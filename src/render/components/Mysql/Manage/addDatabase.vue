@@ -9,7 +9,7 @@
   >
     <template #default>
       <div class="main-wapper">
-        <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" @submit.prevent>
+        <el-form ref="formRef" label-position="top" :model="form" :rules="rules" @submit.prevent>
           <el-form-item :label="I18nT('mysql.databaseName')" prop="database">
             <el-input
               v-model="form.database"

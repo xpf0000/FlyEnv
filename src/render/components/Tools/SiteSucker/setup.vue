@@ -18,8 +18,8 @@
             $t('base.confirm')
           }}</el-button>
         </div>
-        <div class="main-wapper">
-          <div class="main">
+        <div class="main-wapper p-3">
+          <div class="main p-5">
             <el-form label-position="top" class="site-sucker-setup" @submit.prevent>
               <el-form-item :label="$t('util.savePath')">
                 <div class="path-choose w-full">

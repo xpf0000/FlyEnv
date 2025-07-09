@@ -18,7 +18,7 @@
           @click="addDir(undefined)"
         />
       </div>
-      <div class="main">
+      <div class="main p-5">
         <template v-for="(item, _index) in dirs" :key="_index">
           <div class="path-choose mb-5">
             <input
