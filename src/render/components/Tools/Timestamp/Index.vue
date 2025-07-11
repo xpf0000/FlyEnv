@@ -18,8 +18,11 @@
             >{{ current }}</span
           >
         </div>
-        <div class="path-choose my-5">
-          <div class="left">
+        <div
+          style="align-items: center"
+          class="path-choose my-5 flex items-center justify-between gap-5 md:gap-6 xl:gap-16"
+        >
+          <div class="left max-w-[345px]">
             <el-input v-model="timestamp0" placeholder="Unix Timestamp"></el-input>
             <el-select v-model="flag0" class="w-32 max-w-32">
               <el-option :value="0" :label="I18nT('base.second')"></el-option>
@@ -30,14 +33,17 @@
             :svg="import('@/svg/back.svg?raw')"
             width="24"
             height="24"
-            style="transform: rotate(180deg); flex-shrink: 0; margin: 0 40px"
+            style="transform: rotate(180deg); flex-shrink: 0"
           />
-          <div class="right">
+          <div class="right max-w-[345px]">
             <el-input :value="datetime0" readonly placeholder="Date time string"></el-input>
           </div>
         </div>
-        <div class="path-choose my-5">
-          <div class="left">
+        <div
+          style="align-items: center"
+          class="path-choose my-5 flex items-center justify-between gap-5 md:gap-6 xl:gap-16"
+        >
+          <div class="left max-w-[345px]">
             <el-date-picker
               v-model="timestamp1"
               style="--el-date-editor-width: 100%"
@@ -51,9 +57,9 @@
             :svg="import('@/svg/back.svg?raw')"
             width="24"
             height="24"
-            style="transform: rotate(180deg); flex-shrink: 0; margin: 0 40px"
+            style="transform: rotate(180deg); flex-shrink: 0"
           />
-          <div class="right">
+          <div class="right max-w-[345px]">
             <el-input v-model="timestamp1str" readonly placeholder="Unix Timestamp"></el-input>
             <el-select v-model="flag1" class="w-32 max-w-32">
               <el-option :value="0" :label="I18nT('base.second')"></el-option>

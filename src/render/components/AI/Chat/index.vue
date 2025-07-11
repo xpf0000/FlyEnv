@@ -75,6 +75,7 @@
   })
 
   const editChat = () => {
+    console.log('editChat !!!!!!')
     AsyncComponentShow(EditVM, {
       item: currentChat.value
     }).then(() => {})

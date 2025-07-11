@@ -7,16 +7,18 @@
       </div>
     </div>
 
-    <div class="main-wapper">
-      <template v-for="f in list" :key="f">
-        <div class="file">
-          <span @click.stop="openFile(f)">{{ f }}</span>
-          <el-button link @click.stop="toEdit(f)">
-            <yb-icon :svg="import('@/svg/edit.svg?raw')" width="18" height="18" />
-          </el-button>
-        </div>
-      </template>
-    </div>
+    <el-scrollbar class="flex-1">
+      <div class="main-wapper">
+        <template v-for="f in list" :key="f">
+          <div class="file">
+            <span @click.stop="openFile(f)">{{ f }}</span>
+            <el-button link @click.stop="toEdit(f)">
+              <yb-icon :svg="import('@/svg/edit.svg?raw')" width="18" height="18" />
+            </el-button>
+          </div>
+        </template>
+      </div>
+    </el-scrollbar>
   </div>
 </template>
 

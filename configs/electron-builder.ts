@@ -15,7 +15,7 @@ import Notarize from '../build/notarize'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.10.1',
+  buildVersion: '4.10.2',
   electronVersion: '35.6.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,

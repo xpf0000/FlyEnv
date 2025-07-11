@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <div class="p-3 pb-0 overflow-hidden flex-1">
+    <div class="pb-0 overflow-hidden flex-1">
       <el-scrollbar>
         <article class="select-text prose prose-slate dark:prose-invert" v-html="result"></article>
       </el-scrollbar>

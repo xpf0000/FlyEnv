@@ -41,6 +41,7 @@
                     <template #default>
                       <div
                         class="rounded-full w-7 h-7 hover:bg-slate-200 justify-center items-center flex opacity-0 group-hover:opacity-100"
+                        @click.stop="onMoreClick"
                       >
                         <MoreFilled class="w-4 h-4" />
                       </div>
@@ -95,6 +96,7 @@
                     <template #default>
                       <div
                         class="rounded-full w-7 h-7 hover:bg-slate-200 justify-center items-center flex opacity-0 group-hover:opacity-100"
+                        @click.stop="onMoreClick"
                       >
                         <MoreFilled class="w-4 h-4" />
                       </div>
@@ -124,5 +126,11 @@
   import { PromptSetup, Setup } from '@/components/AI/Prompt/setup'
   import { I18nT } from '@lang/index'
 
-  const { promptList, showAdd, poperShow, usePrompt, onPoperShow } = Setup()
+  const onMoreClick = (e: MouseEvent) => {
+    console.log('onMoreClick !!!!!')
+    e.stopPropagation()
+    e.preventDefault()
+  }
+
+  const { promptList, showAdd, poperShow, usePrompt, onPoperShow, onPoperHide } = Setup()
 </script>

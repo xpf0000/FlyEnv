@@ -7,7 +7,7 @@
     class="host-link-dialog"
     @closed="closedFn"
   >
-    <el-form v-model="FeedbackStore" label-position="left" label-width="90px" @submit.prevent>
+    <el-form v-model="FeedbackStore" label-position="top" @submit.prevent>
       <el-form-item :label="I18nT('feedback.email')">
         <el-input v-model="FeedbackStore.email" type="text" clearable></el-input>
       </el-form-item>

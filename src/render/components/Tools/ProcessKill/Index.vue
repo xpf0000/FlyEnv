@@ -7,7 +7,7 @@
       </div>
     </div>
 
-    <div class="main-wapper pb-0">
+    <div class="main-wapper pb-0 flex-1 overflow-hidden">
       <div class="main p-0">
         <el-autocomplete
           v-model.number="searchKey"

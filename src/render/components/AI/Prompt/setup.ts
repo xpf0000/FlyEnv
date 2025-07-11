@@ -1,4 +1,4 @@
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
 import IPC from '@/util/IPC'
 import { StorageGet, StorageSet } from '@/util/Storage'
 import { AppStore } from '@/store/app'
@@ -136,6 +136,10 @@ export const Setup = () => {
     fetchPrompts()
   }
 
+  const onPoperHide = () => {
+    poperShow.value = false
+  }
+
   const promptList = computed(() => {
     return PromptSetup.prompts.filter((p) => p.lang === PromptSetup.lang).reverse()
   })
@@ -157,6 +161,9 @@ export const Setup = () => {
   const usePrompt = (item: PromptItem) => {
     AISetup.updateCurrentChatPrompt(item)
     poperShow.value = false
+    nextTick(() => {
+      poperShow.value = null
+    })
   }
 
   watch(() => PromptSetup.lang, PromptSetup.save)
@@ -166,6 +173,7 @@ export const Setup = () => {
     showAdd,
     poperShow,
     usePrompt,
-    onPoperShow
+    onPoperShow,
+    onPoperHide
   }
 }

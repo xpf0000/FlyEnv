@@ -7,7 +7,7 @@
       </div>
     </div>
 
-    <div class="main-wapper">
+    <div class="main-wapper flex-1 overflow-hidden">
       <div class="main">
         <el-autocomplete
           v-model.number="port"
