@@ -11,16 +11,20 @@ type PathItem = {
 
 type SetupType = {
   list: PathItem[]
+  listBack: PathItem[]
   pathCMD: string
   pathPS: string
   fetchListing: boolean
   updating: boolean
   fetchList: () => void
   updatePath: (arr: string[]) => void
+  rebackPath: () => void
+  savePath: () => void
 }
 
 export const Setup: SetupType = reactive<SetupType>({
   list: [],
+  listBack: [],
   pathCMD: '',
   pathPS: '',
   fetchListing: false,
@@ -37,9 +41,11 @@ export const Setup: SetupType = reactive<SetupType>({
         const list: any = reactive(res?.data ?? [])
         this.list.splice(0)
         this.list.push(...list)
+        this.listBack = reactive(JSON.parse(JSON.stringify(list)))
       } else {
         MessageError(res?.msg ?? I18nT('base.fail'))
       }
+      this.updating = false
     })
   },
   updatePath(arr: string[]) {
@@ -50,7 +56,6 @@ export const Setup: SetupType = reactive<SetupType>({
     IPC.send('app-fork:tools', 'envPathUpdate', JSON.parse(JSON.stringify(arr))).then(
       (key: any, res: any) => {
         IPC.off(key)
-        this.updating = false
         if (res?.code === 0) {
           this.fetchList()
         } else {
@@ -58,5 +63,13 @@ export const Setup: SetupType = reactive<SetupType>({
         }
       }
     )
+  },
+  rebackPath() {
+    this.list.splice(0)
+    this.list.push(...this.listBack)
+  },
+  savePath() {
+    const list = this.list.map((p) => p.path)
+    this.updatePath(list)
   }
 })

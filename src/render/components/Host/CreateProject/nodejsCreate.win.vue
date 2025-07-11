@@ -97,7 +97,7 @@
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
   import { BrewStore } from '@/store/brew'
-  import { dirname, join } from 'path-browserify'
+  import { dirname, join } from '@/util/path-browserify'
   import { dialog, shell } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()

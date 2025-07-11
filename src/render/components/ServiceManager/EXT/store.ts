@@ -6,13 +6,14 @@ import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { AppStore } from '@/store/app'
 import { isEqual } from 'lodash-es'
-import { dirname, join } from '@/util/path-browserify'
+import { dirname, join, normalize } from '@/util/path-browserify'
 import type { AllAppModule } from '@/core/type'
 import Base from '@/core/Base'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 import { BrewStore } from '@/store/brew'
 import { staticVersionDel } from '@/util/Version'
 import localForage from 'localforage'
+import { Setup } from '@/components/Tools/SystenEnv/setup'
 
 let time = 0
 export const ServiceActionStore: {
@@ -44,7 +45,9 @@ export const ServiceActionStore: {
     if (item?.typeFlag === 'php') {
       bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
     }
-    return ServiceActionStore.allPath.includes(bin)
+    const all = ServiceActionStore.allPath.map((s) => normalize(s))
+    console.log('isInEnv: ', all, bin)
+    return all.includes(bin)
   },
   isInAppEnv(item: SoftInstalled) {
     let bin = dirname(item.bin)
@@ -57,7 +60,9 @@ export const ServiceActionStore: {
       join(item.path, 'bin'),
       join(item.path, 'sbin')
     ]
-    return arr.some((s) => ServiceActionStore.appPath.includes(s))
+    const all = ServiceActionStore.appPath.map((s) => normalize(s))
+    console.log('isInAppEnv: ', all, bin)
+    return arr.some((s) => all.includes(s))
   },
   showAlias(item: SoftInstalled) {
     import('./alias.vue').then((res) => {
@@ -182,6 +187,7 @@ export const ServiceActionStore: {
                   ServiceActionStore.appPath = reactive([...appList])
                 })
                 .catch()
+              Setup.fetchList()
             }
 
             MessageSuccess(I18nT('base.success'))

@@ -123,7 +123,7 @@
   import XTerm from '@/util/XTerm'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
-  import { join, dirname } from 'path-browserify'
+  import { join, dirname } from '@/util/path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()

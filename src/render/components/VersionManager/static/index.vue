@@ -18,12 +18,16 @@
             <pre v-html="fetchCommand(scope.row)"></pre>
           </template>
           <template #default>
-            <span
-              class="hover:text-yellow-500 cursor-pointer truncate"
+            <div
               style="padding: 2px 12px 2px 24px"
+              class="flex items-center overflow-hidden hover:text-yellow-500 cursor-pointer gap-2"
               @click.stop="copyCommand(scope.row)"
-              >{{ scope.row.name }}</span
             >
+              <yb-icon :svg="import('@/svg/link.svg?raw')" width="18" height="18" />
+              <span class="truncate">
+                {{ scope.row.name }}
+              </span>
+            </div>
           </template>
         </el-tooltip>
       </template>

@@ -75,7 +75,6 @@
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>{{ I18nT('mysql.manage') }}</el-dropdown-item>
               <el-dropdown-item @click.stop="showSetPassword('update', scope.row)">
                 <el-tooltip
                   placement="left"

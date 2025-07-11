@@ -29,7 +29,7 @@
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { FolderOpened } from '@element-plus/icons-vue'
   import { MessageError } from '@/util/Element'
-  import { isAbsolute } from 'path-browserify'
+  import { isAbsolute } from '@/util/path-browserify'
   import { fs, exec } from '@/util/NodeFn'
   import { chooseFolder } from '@/util/File'
 

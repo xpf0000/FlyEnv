@@ -86,6 +86,7 @@
 
   const alias = computed(() => {
     const aliasDir = resolve(window.Server.BaseDir!, '../alias')
+    console.log('aliasDir', aliasDir)
     const list = store.config.setup?.alias?.[props.item.bin] ?? []
     return list.map((item) => {
       return {

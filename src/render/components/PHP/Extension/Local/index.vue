@@ -53,7 +53,7 @@
   import { I18nT } from '@lang/index'
   import { PHPSetup } from '@/components/PHP/store'
   import { fs, shell } from '@/util/NodeFn'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const props = defineProps<{
     version: SoftInstalled

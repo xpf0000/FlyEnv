@@ -11,24 +11,48 @@
       <el-form label-position="top" class="w-full h-full overflow-hidden">
         <el-form-item label="PATH" class="h-full overflow-hidden system-env-form-item">
           <template #label>
-            <div class="flex items-center">
-              <span>PATH</span>
-              <el-button link class="ml-2" @click.stop="toEdit('', -1)">
-                <Plus class="w-5 h-5" />
-              </el-button>
-              <template v-if="Setup.fetchListing">
-                <el-button link :loading="true"></el-button>
-              </template>
-              <template v-else>
-                <el-button link @click.stop="Setup.fetchList()">
-                  <Refresh class="w-5 h-5" />
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <span>PATH</span>
+                <el-button
+                  :disabled="Setup.updating || Setup.fetchListing"
+                  link
+                  class="ml-2"
+                  @click.stop="toEdit('', -1)"
+                >
+                  <Plus class="w-5 h-5" />
                 </el-button>
-              </template>
+                <template v-if="Setup.updating || Setup.fetchListing">
+                  <el-button link :loading="true"></el-button>
+                </template>
+                <template v-else>
+                  <el-button link @click.stop="Setup.fetchList()">
+                    <Refresh class="w-5 h-5" />
+                  </el-button>
+                </template>
+              </div>
+              <el-button-group size="small">
+                <el-button
+                  :disabled="Setup.updating || Setup.fetchListing"
+                  @click.stop="Setup.rebackPath()"
+                  >{{ I18nT('base.cancel') }}</el-button
+                >
+                <el-button :disabled="noChange" type="primary" @click.stop="Setup.savePath()">
+                  <el-badge :offset="[5, 0]" is-dot type="danger" :hidden="noChange">
+                    <span>{{ I18nT('base.save') }}</span>
+                  </el-badge>
+                </el-button>
+              </el-button-group>
             </div>
           </template>
           <el-auto-resizer>
             <template #default="{ height }">
-              <el-table :data="Setup.list" :show-overflow-tooltip="true" :height="height">
+              <el-table
+                v-loading="Setup.updating || Setup.fetchListing"
+                :data="Setup.list"
+                :show-overflow-tooltip="true"
+                :height="height"
+              >
                 <el-table-column :label="I18nT('tools.envValue')">
                   <template #default="scope">
                     <el-button class="select-text" link @click.stop="pathClick(scope.row.path)">{{
@@ -110,17 +134,22 @@
 </template>
 
 <script lang="ts" setup>
+  import { reactive, computed } from 'vue'
   import { MessageSuccess } from '@/util/Element'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Refresh, Plus, Edit, Delete, SortDown, SortUp } from '@element-plus/icons-vue'
   import { Setup } from './setup'
-  import { reactive } from 'vue'
   import { shell, clipboard, fs } from '@/util/NodeFn'
-  import { isAbsolute } from 'path-browserify'
+  import { isAbsolute } from '@/util/path-browserify'
   import { ArrayMoveItem } from '@/util/Index'
+  import { isEqual } from 'lodash-es'
 
   Setup.fetchList()
+
+  const noChange = computed(() => {
+    return isEqual(Setup.list, Setup.listBack)
+  })
 
   const isSystem = (path: string) => {
     const p = path.toLowerCase()
@@ -137,7 +166,7 @@
   }
 
   let EditVM: any
-  import('./edit.vue').then((res) => {
+  import('./edit.win.vue').then((res) => {
     EditVM = res.default
   })
   const toEdit = (p: string, index: number) => {
@@ -165,31 +194,23 @@
           })
         )
       }
-      const arr = Setup.list.map((p) => p.path)
-      Setup.updatePath(arr)
     })
   }
 
   const doDel = (item: any, index: number) => {
     Setup.list.splice(index, 1)
-    const arr = Setup.list.map((p) => p.path)
-    Setup.updatePath(arr)
   }
 
   const doDown = (item: any, index: number) => {
     const arr = ArrayMoveItem(Setup.list, index, index + 1)
     Setup.list.splice(0)
     Setup.list.push(...arr)
-    const list = Setup.list.map((p) => p.path)
-    Setup.updatePath(list)
   }
 
   const doUp = (item: any, index: number) => {
     const arr = ArrayMoveItem(Setup.list, index, index - 1)
     Setup.list.splice(0)
     Setup.list.push(...arr)
-    const list = Setup.list.map((p) => p.path)
-    Setup.updatePath(list)
   }
 </script>
 <style lang="scss">

@@ -15,7 +15,7 @@
   import Conf from '@/components/Conf/index.vue'
   import IPC from '@/util/IPC'
 
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const conf = ref()
