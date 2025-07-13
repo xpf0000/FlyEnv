@@ -44,6 +44,7 @@
   import { uuid } from '@/util/Index'
   import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
+  import { IniParse } from '@/util/IniParse'
 
   const props = defineProps<{
     version: SoftInstalled
@@ -69,6 +70,7 @@
   const cacert = join(window.Server.BaseDir!, 'CA/cacert.pem')
   const names: CommonSetItem[] = [
     {
+      section: 'PHP',
       name: 'display_errors',
       value: 'On',
       enable: true,
@@ -87,6 +89,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'short_open_tag',
       value: 'On',
       enable: true,
@@ -105,6 +108,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'file_uploads',
       value: 'On',
       enable: true,
@@ -123,6 +127,7 @@
       }
     },
     {
+      section: 'PHP-CGI',
       name: 'cgi.fix_pathinfo',
       value: '1',
       enable: true,
@@ -141,6 +146,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'max_execution_time',
       value: '300',
       enable: true,
@@ -149,6 +155,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'max_input_time',
       value: '60',
       enable: true,
@@ -157,6 +164,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'memory_limit',
       value: '128M',
       enable: true,
@@ -165,6 +173,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'post_max_size',
       value: '20M',
       enable: true,
@@ -173,6 +182,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'upload_max_filesize',
       value: '20M',
       enable: true,
@@ -181,6 +191,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'max_file_uploads',
       value: '20',
       enable: true,
@@ -189,6 +200,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'default_socket_timeout',
       value: '60',
       enable: true,
@@ -197,6 +209,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'error_reporting',
       value: 'E_ALL & ~E_NOTICE',
       enable: true,
@@ -205,6 +218,7 @@
       }
     },
     {
+      section: 'PHP',
       name: 'date.timezone',
       value: 'PRC',
       enable: true,
@@ -213,6 +227,7 @@
       }
     },
     {
+      section: 'curl',
       name: 'curl.cainfo',
       value: `"${cacert}"`,
       enable: true,
@@ -225,6 +240,7 @@
       }
     },
     {
+      section: 'openssl',
       name: 'openssl.cafile',
       value: `"${cacert}"`,
       enable: true,
@@ -241,64 +257,42 @@
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const parse = new IniParse(editConfig)
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       if (item.enable) {
         let value = ''
-        if (item.isString) {
+        if (item.isString || item.isFile || item.isDir) {
           value = `${item.name} = "${item.value}"`
         } else {
           value = `${item.name} = ${item.value}`
         }
-        if (regex.test(config)) {
-          config = config.replace(regex, `${value}\n`)
-        } else {
-          config = `${value}\n` + config
-        }
+        parse.set(item.name, value, item?.section)
       } else {
-        config = config.replace(regex, ``)
+        parse.remove(item.name)
       }
     })
-    conf.value.setEditValue(config)
-    editConfig = config
+    conf.value.setEditValue(parse.content)
+    editConfig = parse.content
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
-    const arr = [...names].map((item) => {
-      const regex = new RegExp(
-        `^[\\s\\n]?((?![#;])([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`,
-        'gm'
-      )
-      const matchs =
-        config.match(regex)?.map((s) => {
-          const sarr = s
-            .trim()
-            .split('=')
-            .filter((s) => !!s.trim())
-            .map((s) => s.trim())
-          const k = sarr.shift()
-          const v = sarr.join(' ').replace(';', '').replace('=', '').trim()
-          return {
-            k,
-            v
-          }
-        }) ?? []
-      console.log('getCommonSetting: ', matchs, item.name)
-      const find = matchs?.find((m) => m.k === item.name)
-      let value = find?.v ?? item.value
-      if (item.isString) {
-        value = value.replace(new RegExp(`"`, 'g'), '').replace(new RegExp(`'`, 'g'), '')
-      }
-      item.enable = !!find
-      item.value = value
-      item.key = uuid()
-      return item
-    })
+    const parse = new IniParse(editConfig)
+    const arr = [...names]
+      .map((item) => {
+        const find = parse.get(item.name)
+        let value = find ?? item.value
+        if (item.isString) {
+          value = value.replace(new RegExp(`"`, 'g'), '').replace(new RegExp(`'`, 'g'), '')
+        }
+        item.enable = typeof find === 'string'
+        item.value = value
+        item.key = uuid()
+        return item
+      })
+      .filter((item) => item.show !== false)
     commonSetting.value = reactive(arr) as any
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true

@@ -129,10 +129,12 @@ export function md5(str: string) {
 }
 
 export function pathFixedToUnix(path: string) {
-  return path
+  const needAdd = path.endsWith('\\')
+  const p = path
     .split('\\')
     .filter((s) => !!s.trim())
     .join('/')
+  return needAdd ? `${p}/` : p
 }
 
 const os = platform()

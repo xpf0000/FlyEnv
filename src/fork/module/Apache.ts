@@ -63,7 +63,7 @@ class Apache extends Base {
         } catch {}
         if (srvroot) {
           const srvrootReplace = pathFixedToUnix(version.path)
-          if (srvroot !== srvrootReplace) {
+          if (pathFixedToUnix(srvroot) !== srvrootReplace) {
             content = content.replace(
               `Define SRVROOT "${srvroot}"`,
               `Define SRVROOT "${srvrootReplace}"`
@@ -198,10 +198,12 @@ class Apache extends Base {
       const pidFile = pathFixedToUnix(join(global.Server.ApacheDir!, 'httpd.pid'))
       let vhost = join(global.Server.BaseDir!, 'vhost/apache/')
       await mkdirp(vhost)
-      vhost = pathFixedToUnix(vhost)
+      vhost = pathFixedToUnix(join(vhost, '*.conf'))
 
       content += `\nPidFile "${pidFile}"
-IncludeOptional "${vhost}*.conf"`
+IncludeOptional "${vhost}"`
+
+      await mkdirp(dirname(defaultFile))
 
       await writeFile(defaultFile, content)
       await writeFile(defaultFileBack, content)

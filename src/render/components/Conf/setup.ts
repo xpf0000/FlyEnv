@@ -14,6 +14,7 @@ type CommonSetItemOption = {
 }
 
 export type CommonSetItem = {
+  section?: string
   name: string
   value: string
   enable: boolean
@@ -171,7 +172,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
         inputDom,
         await EditorConfigMake(config.value, disabled?.value ?? true, 'off')
       )
-      monacoInstance.addAction({
+      monacoInstance!.addAction({
         id: 'save',
         label: 'save',
         keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
@@ -179,7 +180,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
           saveConfig()
         }
       })
-      monacoInstance.onDidChangeModelContent(() => {
+      monacoInstance!.onDidChangeModelContent(() => {
         if (!monacoInstance) {
           return
         }

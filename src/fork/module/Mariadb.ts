@@ -164,6 +164,7 @@ class Manager extends Base {
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = pathFixedToUnix(join(global.Server.MariaDBDir!, `my-${v}.cnf`))
       const dataDir = pathFixedToUnix(join(global.Server.MariaDBDir!, `data-${v}`))
+      await mkdirp(global.Server.MariaDBDir!)
       if (!existsSync(m)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))

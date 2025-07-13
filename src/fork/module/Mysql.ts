@@ -470,6 +470,7 @@ datadir=${pathFixedToUnix(dataDir)}`
       const id = version?.id ?? ''
       const m = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
       const dataDir = version.dataDir
+      await mkdirp(dirname(m))
       if (!existsSync(m)) {
         const conf = `[mysqld]
 # Only allow connections from localhost

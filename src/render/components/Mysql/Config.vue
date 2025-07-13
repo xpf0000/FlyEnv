@@ -24,6 +24,7 @@
   import { AppStore } from '@/store/app'
   import { uuid } from '@/util/Index'
   import { join } from '@/util/path-browserify'
+  import { IniParse } from '@/util/IniParse'
 
   const appStore = AppStore()
   const conf = ref()
@@ -58,6 +59,7 @@ datadir=${dataDir}`
 
   const names: CommonSetItem[] = [
     {
+      section: 'mysqld',
       name: 'port',
       value: '3306',
       enable: true,
@@ -66,6 +68,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'key_buffer_size',
       value: '64M',
       enable: true,
@@ -74,6 +77,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'query_cache_size',
       value: '32M',
       enable: true,
@@ -83,6 +87,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'tmp_table_size',
       value: '64M',
       enable: true,
@@ -91,6 +96,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'innodb_buffer_pool_size',
       value: '256M',
       enable: true,
@@ -99,6 +105,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'innodb_log_buffer_size',
       value: '32M',
       enable: true,
@@ -107,6 +114,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'sort_buffer_size',
       value: '1M',
       enable: true,
@@ -115,6 +123,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'read_buffer_size',
       value: '1M',
       enable: true,
@@ -123,6 +132,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'read_rnd_buffer_size',
       value: '256K',
       enable: true,
@@ -131,6 +141,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'thread_cache_size',
       value: '32',
       enable: true,
@@ -139,6 +150,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'table_open_cache',
       value: '256',
       enable: true,
@@ -147,6 +159,7 @@ datadir=${dataDir}`
       }
     },
     {
+      section: 'mysqld',
       name: 'max_connections',
       value: '500',
       enable: true,
@@ -159,58 +172,37 @@ datadir=${dataDir}`
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const parse = new IniParse(editConfig)
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       if (item.enable) {
         let value = ''
-        if (item.isString) {
+        if (item.isString || item.isFile || item.isDir) {
           value = `${item.name} = "${item.value}"`
         } else {
           value = `${item.name} = ${item.value}`
         }
-        if (regex.test(config)) {
-          config = config.replace(regex, `${value}\n`)
-        } else {
-          config = `${value}\n` + config
-        }
+        parse.set(item.name, value, item?.section)
       } else {
-        config = config.replace(regex, ``)
+        parse.remove(item.name)
       }
     })
-    conf.value.setEditValue(config)
-    editConfig = config
+    conf.value.setEditValue(parse.content)
+    editConfig = parse.content
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const parse = new IniParse(editConfig)
     const arr = [...names]
       .map((item) => {
-        const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
-        const matchs =
-          config.match(regex)?.map((s) => {
-            const sarr = s
-              .trim()
-              .split('=')
-              .filter((s) => !!s.trim())
-              .map((s) => s.trim())
-            const k = sarr.shift()
-            const v = sarr.join(' ').replace(';', '').replace('=', '').trim()
-            return {
-              k,
-              v
-            }
-          }) ?? []
-        console.log('getCommonSetting: ', matchs, item.name)
-        const find = matchs?.find((m) => m.k === item.name)
-        let value = find?.v ?? item.value
+        const find = parse.get(item.name)
+        let value = find ?? item.value
         if (item.isString) {
           value = value.replace(new RegExp(`"`, 'g'), '').replace(new RegExp(`'`, 'g'), '')
         }
-        item.enable = !!find
+        item.enable = typeof find === 'string'
         item.value = value
         item.key = uuid()
         return item
