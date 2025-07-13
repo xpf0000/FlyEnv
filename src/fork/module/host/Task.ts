@@ -152,7 +152,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
 
       let useSSL = false
       let autoSSL = false
-      const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+      const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
       if (existsSync(CARoot)) {
         useSSL = true
         autoSSL = true

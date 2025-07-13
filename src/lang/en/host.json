@@ -65,7 +65,7 @@
   "licenseTips": "Without obtaining a license, only three sites can be created",
   "composerVersion": "Composer Version",
   "useSysVersion": "Versions set using environment variables",
-  "sslTips": "<p>The automatic SSL certificate function requires adding a certificate named PhpWebStudy-Root-CA to the keychain and setting it to always trust</p>\n<p>Normally, this function will be automatically completed. </p>\n<p>If this function is abnormal. You can also copy and execute commands on the terminal. </p>\n<p>You can also double-click to add the certificate in the opened folder and manually set the trust to always trust in the keychain app</p>",
+  "sslTips": "<p>The automatic SSL certificate function requires adding a certificate named FlyEnv-Root-CA to the keychain and setting it to always trust</p>\n<p>Normally, this function will be automatically completed. </p>\n<p>If this function is abnormal. You can also copy and execute commands on the terminal. </p>\n<p>You can also double-click to add the certificate in the opened folder and manually set the trust to always trust in the keychain app</p>",
   "copyCommand": "Copy Command",
   "showFile": "Show File",
   "sticky": "Sticky",

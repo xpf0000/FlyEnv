@@ -60,7 +60,7 @@
   "licenseTips": "Sans obtenir une licence, seuls trois sites peuvent être créés",
   "composerVersion": "Version Composer",
   "useSysVersion": "Versions définies à l'aide de variables d'environnement",
-  "sslTips": "<p>La fonction de certificat SSL automatique nécessite l'ajout d'un certificat nommé PhpWebStudy-Root-CA au trousseau et le définir sur toujours faire confiance</p>\n<p>Normalement, cette fonction sera automatiquement complétée. </p>\n<p>Si cette fonction est anormale. Vous pouvez également copier et exécuter des commandes sur le terminal. </p>\n<p>Vous pouvez également double-cliquer pour ajouter le certificat dans le dossier ouvert et définir manuellement la confiance sur toujours faire confiance dans l'application trousseau</p>",
+  "sslTips": "<p>La fonction de certificat SSL automatique nécessite l'ajout d'un certificat nommé FlyEnv-Root-CA au trousseau et le définir sur toujours faire confiance</p>\n<p>Normalement, cette fonction sera automatiquement complétée. </p>\n<p>Si cette fonction est anormale. Vous pouvez également copier et exécuter des commandes sur le terminal. </p>\n<p>Vous pouvez également double-cliquer pour ajouter le certificat dans le dossier ouvert et définir manuellement la confiance sur toujours faire confiance dans l'application trousseau</p>",
   "copyCommand": "Copier la commande",
   "showFile": "Afficher le fichier",
   "sticky": "Épinglé",

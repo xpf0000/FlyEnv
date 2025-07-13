@@ -14,7 +14,7 @@
 
   pki {
       ca {
-          name "PhpWebStudy-Root-CA"
+          name "FlyEnv-Root-CA"
       }
   }
 }

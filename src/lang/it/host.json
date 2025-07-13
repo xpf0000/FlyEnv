@@ -60,7 +60,7 @@
   "licenseTips": "Senza licenza puoi creare solo tre siti",
   "composerVersion": "Versione di Composer",
   "useSysVersion": "Versioni impostate tramite variabili d'ambiente",
-  "sslTips": "<p>La funzione di certificato SSL automatico richiede l'aggiunta del certificato PhpWebStudy-Root-CA nel portachiavi e l'impostazione su \"Fidati sempre\".</p>\n<p>Normalmente questa operazione è automatica. </p>\n<p>Se non funziona, puoi copiare ed eseguire i comandi nel terminale. </p>\n<p>Oppure puoi aprire la cartella, fare doppio clic sul certificato e impostare manualmente la fiducia nel portachiavi.</p>",
+  "sslTips": "<p>La funzione di certificato SSL automatico richiede l'aggiunta del certificato FlyEnv-Root-CA nel portachiavi e l'impostazione su \"Fidati sempre\".</p>\n<p>Normalmente questa operazione è automatica. </p>\n<p>Se non funziona, puoi copiare ed eseguire i comandi nel terminale. </p>\n<p>Oppure puoi aprire la cartella, fare doppio clic sul certificato e impostare manualmente la fiducia nel portachiavi.</p>",
   "copyCommand": "Copia Comando",
   "showFile": "Mostra File",
   "sticky": "Fissa in alto",

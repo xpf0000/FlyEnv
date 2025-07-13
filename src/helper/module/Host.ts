@@ -6,7 +6,7 @@ class Manager extends BaseManager {
     return new Promise(async (resolve, reject) => {
       try {
         await execPromise(
-          `security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "PhpWebStudy-Root-CA.crt"`,
+          `security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "FlyEnv-Root-CA.crt"`,
           {
             cwd
           }
@@ -22,7 +22,7 @@ class Manager extends BaseManager {
   sslFindCertificate(cwd: string) {
     return new Promise(async (resolve, reject) => {
       try {
-        const res = await execPromise(`security find-certificate -c "PhpWebStudy-Root-CA"`, {
+        const res = await execPromise(`security find-certificate -c "FlyEnv-Root-CA"`, {
           cwd
         })
         resolve({

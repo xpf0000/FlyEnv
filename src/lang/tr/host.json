@@ -60,7 +60,7 @@
   "licenseTips": "Lisans alınmadan yalnızca üç site oluşturulabilir",
   "composerVersion": "Composer Sürümü",
   "useSysVersion": "Ortam değişkenlerinden ayarlanan sürümler",
-  "sslTips": "<p>Otomatik SSL sertifika işlevi, PhpWebStudy-Root-CA adlı sertifikanın anahtarlığa eklenmesini ve her zaman güvenilir olarak ayarlanmasını gerektirir</p>\n<p>Bu işlem genellikle otomatik olarak tamamlanır.</p>\n<p>Eğer işlev düzgün çalışmazsa terminalde komutları manuel olarak çalıştırabilirsiniz.</p>\n<p>Ayrıca sertifika dosyasına çift tıklayarak açılan klasörden sertifikayı ekleyebilir ve anahtarlık uygulamasında 'her zaman güvenilir' olarak ayarlayabilirsiniz</p>",
+  "sslTips": "<p>Otomatik SSL sertifika işlevi, FlyEnv-Root-CA adlı sertifikanın anahtarlığa eklenmesini ve her zaman güvenilir olarak ayarlanmasını gerektirir</p>\n<p>Bu işlem genellikle otomatik olarak tamamlanır.</p>\n<p>Eğer işlev düzgün çalışmazsa terminalde komutları manuel olarak çalıştırabilirsiniz.</p>\n<p>Ayrıca sertifika dosyasına çift tıklayarak açılan klasörden sertifikayı ekleyebilir ve anahtarlık uygulamasında 'her zaman güvenilir' olarak ayarlayabilirsiniz</p>",
   "copyCommand": "Komutu Kopyala",
   "showFile": "Dosyayı Göster",
   "sticky": "Sabit",

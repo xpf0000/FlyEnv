@@ -60,7 +60,7 @@
   "licenseTips": "Tanpa memperoleh lisensi, hanya tiga situs yang dapat dibuat",
   "composerVersion": "Versi Composer",
   "useSysVersion": "Versi yang disetel menggunakan variabel lingkungan",
-  "sslTips": "<p>Fungsi sertifikat SSL otomatis memerlukan penambahan sertifikat bernama PhpWebStudy-Root-CA ke keychain dan mengaturnya untuk selalu dipercaya</p>\n<p>Normalnya, fungsi ini akan diselesaikan secara otomatis. </p>\n<p>Jika fungsi ini tidak normal, Anda juga dapat menyalin dan menjalankan perintah di terminal. </p>\n<p>Anda juga dapat mengklik dua kali untuk menambahkan sertifikat di folder yang dibuka dan secara manual mengatur kepercayaan untuk selalu dipercaya di aplikasi keychain</p>",
+  "sslTips": "<p>Fungsi sertifikat SSL otomatis memerlukan penambahan sertifikat bernama FlyEnv-Root-CA ke keychain dan mengaturnya untuk selalu dipercaya</p>\n<p>Normalnya, fungsi ini akan diselesaikan secara otomatis. </p>\n<p>Jika fungsi ini tidak normal, Anda juga dapat menyalin dan menjalankan perintah di terminal. </p>\n<p>Anda juga dapat mengklik dua kali untuk menambahkan sertifikat di folder yang dibuka dan secara manual mengatur kepercayaan untuk selalu dipercaya di aplikasi keychain</p>",
   "copyCommand": "Salin Perintah",
   "showFile": "Tampilkan File",
   "sticky": "Tegak (Sticky)",

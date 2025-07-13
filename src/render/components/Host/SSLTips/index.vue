@@ -29,12 +29,12 @@
 
   const copyCommand = () => {
     const CARoot = join(window.Server.BaseDir!, 'CA')
-    const command = `cd "${CARoot}" && sudo -S security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "PhpWebStudy-Root-CA.crt"`
+    const command = `cd "${CARoot}" && sudo -S security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "FlyEnv-Root-CA.crt"`
     clipboard.writeText(command)
     MessageSuccess(I18nT('base.copySuccess'))
   }
   const showFile = () => {
-    const CARoot = join(window.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+    const CARoot = join(window.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
     shell.showItemInFolder(CARoot)
   }
 </script>

@@ -47,7 +47,11 @@ export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: stri
           await execPromise(command, {
             cwd: CADir
           })
-          await writeFile(join(CADir, `${caFileName}.cnf`), `basicConstraints=CA:true`)
+          const cnf = `basicConstraints = critical,CA:TRUE
+keyUsage = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer`
+          await writeFile(join(CADir, `${caFileName}.cnf`), cnf)
           command = `"${openssl}" x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650`
           await execPromise(command, {
             cwd: CADir
@@ -108,7 +112,7 @@ subjectAltName=@alt_names
           await mkdirp(CADir)
           let command = `openssl genrsa -out ${caFileName}.key 2048;`
           command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=${caFileName}";`
-          command += `echo "basicConstraints=CA:true" > ${caFileName}.cnf;`
+          command += `echo "basicConstraints = critical,CA:TRUE\nkeyUsage = critical,keyCertSign,cRLSign\nsubjectKeyIdentifier = hash\nauthorityKeyIdentifier = keyid:always,issuer" > ${caFileName}.cnf;`
           command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
           await execPromise(command, {
             cwd: CADir
