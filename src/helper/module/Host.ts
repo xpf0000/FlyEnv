@@ -2,11 +2,11 @@ import { BaseManager } from './Base'
 import { execPromise } from '../util'
 
 class Manager extends BaseManager {
-  sslAddTrustedCert(cwd: string): Promise<boolean> {
+  sslAddTrustedCert(cwd: string, caName: string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
       try {
         await execPromise(
-          `security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "FlyEnv-Root-CA.crt"`,
+          `security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "${caName}"`,
           {
             cwd
           }

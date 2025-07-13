@@ -121,7 +121,7 @@ subjectAltName=@alt_names
             resolve(false)
             return
           }
-          await Helper.send('host', 'sslAddTrustedCert', CADir)
+          await Helper.send('host', 'sslAddTrustedCert', CADir, 'FlyEnv-Root-CA.crt')
           const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
           if (!res.stdout.includes('FlyEnv-Root-CA') && !res.stderr.includes('FlyEnv-Root-CA')) {
             resolve(false)

@@ -10,7 +10,7 @@ const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
 class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
-  version = 5
+  version = 6
   check() {
     console.time('AppHelper check')
     return new Promise((resolve, reject) => {

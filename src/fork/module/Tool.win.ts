@@ -114,11 +114,15 @@ class Manager extends Base {
         await execPromise(command)
 
         process.chdir(param.savePath)
-        command = `echo basicConstraints=CA:true > "${caFileName}.cnf"`
-        await execPromise(command)
 
         const caCRT = join(param.savePath, `${caFileName}.crt`)
         const caCnf = join(param.savePath, `${caFileName}.cnf`)
+
+        const cnf = `basicConstraints = critical,CA:TRUE
+keyUsage = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer`
+        await writeFile(caCnf, cnf)
 
         process.chdir(dirname(openssl))
         command = `${basename(openssl)} x509 -req -in "${caCSR}" -signkey "${caKey}" -out "${caCRT}" -extfile "${caCnf}" -sha256 -days 3650`
