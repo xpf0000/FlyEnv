@@ -22,7 +22,6 @@ dist-ssr
 /icon.sh
 yarn.lock
 app-update.yml
-latest-mac.yml
 .idea
 /test.js
 /static/brew

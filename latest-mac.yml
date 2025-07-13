@@ -1,0 +1,17 @@
+version: 4.10.3
+files:
+  - url: FlyEnv-4.10.3-mac.zip
+    sha512: PAhatuRqDsY3oSkw/eO88WJIRZfVBVlKYlhcoBbIgE+r0Ko7g1p1oQcz6MRipBArZM4VSzWnN9ifKb4dQwYnKg==
+    size: 171787877
+  - url: FlyEnv-4.10.3-arm64-mac.zip
+    sha512: uuCAN5p8O/P7nrj3yI2QNu0m3j388vXOCQ6TO152bRMy/0dcouYYpf3r44dnlJXJW7JYQbQ7MDmElLxHRHGeiQ==
+    size: 163426196
+  - url: FlyEnv-4.10.3.dmg
+    sha512: mRItERnsNkiBgVCF6GT6XBpVuw+NvKjasGOEaazyGOlnA9Wi02CH8ZsWLV9USl37CmSUFdDlbFSl30Zk4RAJOQ==
+    size: 179750553
+  - url: FlyEnv-4.10.3-arm64.dmg
+    sha512: oGjtNwfvbcTmIhRLrwo8o/CKLOClJcU898vrvikSo39qmXCOpWZ0u+eMm8mUiMf65YllpReaIvG33hanDTIHnA==
+    size: 171316901
+path: FlyEnv-4.10.3-mac.zip
+sha512: PAhatuRqDsY3oSkw/eO88WJIRZfVBVlKYlhcoBbIgE+r0Ko7g1p1oQcz6MRipBArZM4VSzWnN9ifKb4dQwYnKg==
+releaseDate: '2025-07-13T16:02:21.810Z'
