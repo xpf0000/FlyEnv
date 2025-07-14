@@ -100,7 +100,7 @@ class AppHelper {
         const bin = join(
           binDir,
           'bin',
-          global.Server.isAppleSilicon ? 'arm' : 'x86',
+          global.Server.isArmArch ? 'arm' : 'x86',
           'flyenv-helper'
         )
         command = `cd "${dirname(bin)}" && sudo ./postinstall.sh "${plist}" "${bin}"`

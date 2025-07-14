@@ -54,7 +54,7 @@ class Minio extends Base {
       if (isMacOS()) {
         const bin = join(global.Server.AppDir!, `minio`, 'minio')
         const zip = join(global.Server.Cache!, 'minio')
-        const arch = global.Server.isAppleSilicon ? 'arm64' : 'amd64'
+        const arch = global.Server.isArmArch ? 'arm64' : 'amd64'
         const all: any[] = [
           {
             url: `https://dl.min.io/server/minio/release/darwin-${arch}/minio`,

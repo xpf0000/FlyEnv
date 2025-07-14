@@ -51,9 +51,24 @@ const distFork: BuildOptions = {
   drop: ['debugger', 'console']
 }
 
+const devHelper: BuildOptions = {
+  platform: 'node',
+  entryPoints: ['src/helper/index.ts'],
+  outfile: 'dist/helper/helper.js',
+  minify: true,
+  bundle: true,
+  loader: {
+    '.node': 'file'
+  },
+  plugins: [],
+  external: [],
+  drop: ['debugger', 'console']
+}
+
 export default {
   dev,
   dist,
   devFork,
-  distFork
+  distFork,
+  devHelper
 }

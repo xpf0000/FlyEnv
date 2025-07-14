@@ -247,7 +247,7 @@ class Manager extends Base {
             current
           })
         } else {
-          const arch = global.Server.isAppleSilicon ? 'arm64' : 'x64'
+          const arch = global.Server.isArmArch ? 'arm64' : 'x64'
           const url = `https://nodejs.org/dist/v${version}/node-v${version}-darwin-${arch}.tar.xz`
           const destDir = join(global.Server.AppDir!, `nodejs/v${version}`)
           if (existsSync(destDir)) {

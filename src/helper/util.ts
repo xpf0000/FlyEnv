@@ -1,6 +1,7 @@
 import { mkdirp, remove, existsSync, readFile, writeFile } from '@shared/fs-extra'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { platform } from 'node:os'
 
 const execPromise = promisify(exec)
 
@@ -35,4 +36,18 @@ export async function dirChownFetch(dir: string) {
       ?.split(' ')
       ?.filter((s: string) => !!s.trim()) ?? []
   return `${arr[2]}:${arr[3]}`
+}
+
+const os = platform()
+
+export function isWindows() {
+  return os === 'win32'
+}
+
+export function isMacOS() {
+  return os === 'darwin'
+}
+
+export function isLinux() {
+  return os === 'linux'
 }

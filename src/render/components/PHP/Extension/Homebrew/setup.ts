@@ -85,7 +85,7 @@ export const Setup = (version: SoftInstalled) => {
     BrewSetup.installing = true
     BrewSetup.installEnd = false
     const fn = row?.status ? 'uninstall' : 'install'
-    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isArmArch ? '-arm64' : '-x86_64'
     const name = row.libName
     let params = []
     const sh = join(window.Server.Static!, 'sh/brew-cmd.sh')

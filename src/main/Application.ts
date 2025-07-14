@@ -8,13 +8,13 @@ import MenuManager from './ui/MenuManager'
 import UpdateManager from './core/UpdateManager'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
-import { getLanguage, isAppleSilicon, mkdirp, readFile, writeFile } from './utils'
+import { getLanguage, isArmArch, mkdirp, readFile, writeFile } from './utils'
 import { AppI18n, I18nT, AppAllLang } from '@lang/index'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseSudo, spawnPromiseWithEnv } from '@shared/child-process'
-import { arch } from 'node:os'
+import { arch, userInfo } from 'node:os'
 import NodePTY from './core/NodePTY'
 import HttpServer from './core/HttpServer'
 import AppHelper from './core/AppHelper'
@@ -138,7 +138,7 @@ export default class Application extends EventEmitter {
   checkBrewOrPort() {
     if (isMacOS()) {
       const handleBrewCheck = (error?: Error) => {
-        const brewBin = isAppleSilicon() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
+        const brewBin = isArmArch() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
         if (existsSync(brewBin)) {
           global.Server.BrewBin = brewBin
         }
@@ -217,6 +217,82 @@ export default class Application extends EventEmitter {
         .catch((e: Error) => {
           console.log('which port e: ', e)
         })
+    } else if (isLinux()) {
+      /**
+       * Linux homebrew check
+       */
+      const uinfo = userInfo()
+      const handleBrewCheck = (error?: Error) => {
+        const brewBin = [
+          join(uinfo.homedir, '.linuxbrew/bin/brew'),
+          '/home/linuxbrew/.linuxbrew/bin/brew'
+        ]
+        brewBin.forEach((s) => {
+          if (existsSync(s)) {
+            global.Server.BrewBin = s
+          }
+        })
+        if (error) {
+          global.Server.BrewError = error.toString()
+        }
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'APP-Update-Global-Server',
+          'APP-Update-Global-Server',
+          JSON.parse(JSON.stringify(global.Server))
+        )
+      }
+      spawnPromiseWithEnv('which', ['brew'])
+        .then((res) => {
+          console.log('which brew: ', res)
+          spawnPromiseWithEnv('brew', ['--repo'])
+            .then((res) => {
+              console.log('brew --repo: ', res)
+              const dir = res.stdout
+              global.Server.BrewHome = dir
+              handleBrewCheck()
+              spawnPromiseWithEnv('git', [
+                'config',
+                '--global',
+                '--add',
+                'safe.directory',
+                join(dir, 'Library/Taps/homebrew/homebrew-core')
+              ])
+                .then(() => {
+                  return spawnPromiseWithEnv('git', [
+                    'config',
+                    '--global',
+                    '--add',
+                    'safe.directory',
+                    join(dir, 'Library/Taps/homebrew/homebrew-cask')
+                  ])
+                })
+                .then()
+                .catch()
+            })
+            .catch((e: Error) => {
+              handleBrewCheck(e)
+              AppLog.debug(`[checkBrewOrPort][brew --repo][error]: ${e.toString()}`)
+              console.log('brew --repo err: ', e)
+            })
+          spawnPromiseWithEnv('brew', ['--cellar'])
+            .then((res) => {
+              const dir = res.stdout
+              console.log('brew --cellar: ', res)
+              global.Server.BrewCellar = dir
+              handleBrewCheck()
+            })
+            .catch((e: Error) => {
+              handleBrewCheck(e)
+              AppLog.debug(`[checkBrewOrPort][brew --cellar][error]: ${e.toString()}`)
+              console.log('brew --cellar err: ', e)
+            })
+        })
+        .catch((e: Error) => {
+          handleBrewCheck(e)
+          AppLog.debug(`[checkBrewOrPort][which brew][error]: ${e.toString()}`)
+          console.log('which brew e: ', e)
+        })
     }
   }
 
@@ -233,7 +309,7 @@ export default class Application extends EventEmitter {
     }
     this.setProxy()
     global.Server.UserHome = app.getPath('home')
-    global.Server.isAppleSilicon = isAppleSilicon()
+    global.Server.isArmArch = isArmArch()
     global.Server.BaseDir = join(runpath, 'server')
     global.Server.AppDir = join(runpath, 'app')
     mkdirp(global.Server.BaseDir).then().catch()

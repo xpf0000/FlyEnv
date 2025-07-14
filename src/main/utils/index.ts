@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { cpus } from 'os'
+import { cpus, arch } from 'os'
 import {
   createWriteStream,
   unlinkSync,
@@ -13,6 +13,7 @@ import {
   readFile,
   writeFile
 } from '@shared/fs-extra'
+import { isLinux, isMacOS } from '@shared/utils'
 
 export {
   createWriteStream,
@@ -52,7 +53,13 @@ export const wait = (time = 2000) => {
   })
 }
 
-export function isAppleSilicon() {
-  const cpuCore = cpus()
-  return cpuCore[0].model.includes('Apple')
+export function isArmArch() {
+  if (isMacOS()) {
+    const cpuCore = cpus()
+    return cpuCore[0].model.includes('Apple')
+  }
+  if (isLinux()) {
+    return arch() !== 'x64'
+  }
+  return false
 }

@@ -86,7 +86,7 @@ export const Setup = (version: SoftInstalled) => {
     MacPortsSetup.installEnd = false
 
     let fn = row?.status ? 'uninstall' : 'install'
-    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isArmArch ? '-arm64' : '-x86_64'
     const name = row.libName
     const params = []
     const sh = join(window.Server.Static!, 'sh/port-cmd.sh')

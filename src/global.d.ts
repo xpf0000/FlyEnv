@@ -10,7 +10,7 @@ export interface ServerType {
   BrewError?: string
   Password?: string
   Proxy?: { [key: string]: string }
-  isAppleSilicon?: boolean
+  isArmArch?: boolean
   Static?: string
   Cache?: string
   RedisDir?: string

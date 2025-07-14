@@ -73,7 +73,7 @@ export function execAsync(
       env
     }
     const opt = merge(optdefault, options)
-    if (global.Server.isAppleSilicon) {
+    if (global.Server.isArmArch) {
       arg.unshift('-arm64', command)
       command = 'arch'
     }
@@ -118,7 +118,7 @@ export function formatBytes(bytes: number, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 }
 
-export function isAppleSilicon() {
+export function isArmArch() {
   const cpuCore = cpus()
   return cpuCore[0].model.includes('Apple')
 }

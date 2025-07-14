@@ -163,7 +163,7 @@ export const Setup = () => {
     FNMSetup.installEnd = false
     FNMSetup.installing = true
     await nextTick()
-    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isArmArch ? '-arm64' : '-x86_64'
     const params = []
     if (proxyStr?.value) {
       params.unshift(proxyStr?.value)

@@ -158,7 +158,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     } else {
       fn = 'install'
     }
-    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isArmArch ? '-arm64' : '-x86_64'
     const name = row.name
     let params = []
     const sh = join(window.Server.Static!, 'sh/brew-cmd.sh')

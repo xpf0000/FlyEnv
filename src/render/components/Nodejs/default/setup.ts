@@ -126,7 +126,7 @@ export const Setup = () => {
       store.all
         .filter((v) => {
           const a = !NodeDefaultSetup.local.includes(v)
-          if (window.Server.isAppleSilicon) {
+          if (window.Server.isArmArch) {
             const vn = Number(v.split('.')[0])
             const b = !isNaN(vn) && vn > 15
             return a && b
