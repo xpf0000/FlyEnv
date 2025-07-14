@@ -18,6 +18,14 @@ jobs:
           - arch: arm64
             os: macos-14
             target: arm64
+          - arch: x64
+            os: ubuntu-latest
+            os_label: linux-ubuntu-latest
+            target: x64
+          - arch: arm64
+            os: ubuntu-latest
+            os_label: linux-ubuntu-latest
+            target: arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,12 +37,12 @@ jobs:
 
       - name: Build executable
         run: |
-          OUTPUT_NAME="helper-${{ matrix.arch }}"
+          OUTPUT_NAME="helper-${{ matrix.os_label }}-${{ matrix.arch }}"
           bun build --compile ./build/helper.js --outfile $OUTPUT_NAME --minify
           file $OUTPUT_NAME
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: helper-${{ matrix.arch }}
-          path: helper-${{ matrix.arch }}
+          name: helper-${{ matrix.os_label }}-${{ matrix.arch }}
+          path: helper-${{ matrix.os_label }}-${{ matrix.arch }}
