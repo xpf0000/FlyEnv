@@ -14,9 +14,11 @@ jobs:
         include:
           - arch: x64
             os: macos-13
+            os_label:  macos-13
             target: x64
           - arch: arm64
             os: macos-14
+            os_label:  macos-14
             target: arm64
           - arch: x64
             os: ubuntu-latest
