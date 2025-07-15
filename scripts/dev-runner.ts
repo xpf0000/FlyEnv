@@ -49,7 +49,7 @@ function buildMainProcess() {
     await DoFix()
     let promise: Promise<any> | undefined
     if (isMacOS() || isLinux()) {
-      console.log('isMacOS !!!')
+      console.log('isMacOS || isLinux !!!')
       const config = (await import('../configs/esbuild.config')).default
       promise = Promise.all([
         build(config.dev),

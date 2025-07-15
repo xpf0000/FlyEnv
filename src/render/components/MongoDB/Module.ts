@@ -5,7 +5,7 @@ const module: AppModuleItem = {
   moduleType: 'dataBaseServer',
   typeFlag: 'mongodb',
   label: 'MongoDB',
-  icon: import('@/svg/MongoDB.svg?raw'),
+  icon: import('@/svg/Mongodb.svg?raw'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 8,
