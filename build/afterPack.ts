@@ -15,6 +15,84 @@ const execPromise = promisify(exec)
 export default async function after(pack) {
   if (isLinux()) {
     console.log('linux pack: ', pack)
+    /**
+     * /home/xpf0000/Desktop/GitHub/FlyEnv/release/linux-unpacked/resources/
+     * {
+     *   appOutDir: '/home/xpf0000/Desktop/GitHub/FlyEnv/release/linux-unpacked',
+     *   outDir: '/home/xpf0000/Desktop/GitHub/FlyEnv/release',
+     *   arch: 1,
+     *   targets: [
+     *     FpmTarget {
+     *       name: 'deb',
+     *       isAsyncSupported: false,
+     *       packager: [LinuxPackager],
+     *       helper: [LinuxTargetHelper],
+     *       outDir: '/home/xpf0000/Desktop/GitHub/FlyEnv/release',
+     *       options: [Object],
+     *       scriptFiles: [Promise]
+     *     },
+     *     FpmTarget {
+     *       name: 'rpm',
+     *       isAsyncSupported: false,
+     *       packager: [LinuxPackager],
+     *       helper: [LinuxTargetHelper],
+     *       outDir: '/home/xpf0000/Desktop/GitHub/FlyEnv/release',
+     *       options: [Object],
+     *       scriptFiles: [Promise]
+     *     }
+     *   ],
+     *   packager: LinuxPackager {
+     *     info: Packager {
+     *       cancellationToken: [CancellationToken],
+     *       _metadata: [Object],
+     *       _nodeModulesHandledExternally: false,
+     *       _isPrepackedAppAsar: false,
+     *       _devMetadata: [Object],
+     *       _configuration: [Object],
+     *       isTwoPackageJsonProjectLayoutUsed: false,
+     *       eventEmitter: [AsyncEventEmitter],
+     *       _appInfo: [AppInfo],
+     *       tempDirManager: [TmpDir],
+     *       _repositoryInfo: [Lazy],
+     *       debugLogger: [DebugLogger],
+     *       nodeDependencyInfo: [Map],
+     *       stageDirPathCustomizer: [Function (anonymous)],
+     *       _buildResourcesDir: '/home/xpf0000/Desktop/GitHub/FlyEnv/build',
+     *       _framework: [ElectronFramework],
+     *       toDispose: [Array],
+     *       projectDir: '/home/xpf0000/Desktop/GitHub/FlyEnv',
+     *       _appDir: '/home/xpf0000/Desktop/GitHub/FlyEnv',
+     *       options: [Object]
+     *     },
+     *     platform: Platform {
+     *       name: 'linux',
+     *       buildConfigurationKey: 'linux',
+     *       nodeName: 'linux'
+     *     },
+     *     _resourceList: Lazy { _value: null, creator: [Function (anonymous)] },
+     *     platformSpecificBuildOptions: {
+     *       icon: 'build/Icon@256x256.icns',
+     *       asarUnpack: [Array],
+     *       category: 'Development',
+     *       target: [Array]
+     *     },
+     *     appInfo: AppInfo {
+     *       info: [Packager],
+     *       platformSpecificOptions: [Object],
+     *       description: 'All-In-One Full-Stack Environment Management Tool',
+     *       version: '4.10.3',
+     *       type: 'module',
+     *       buildNumber: undefined,
+     *       buildVersion: '4.10.3',
+     *       productName: 'FlyEnv',
+     *       sanitizedProductName: 'FlyEnv',
+     *       productFilename: 'FlyEnv'
+     *     },
+     *     executableName: 'FlyEnv'
+     *   },
+     *   electronPlatformName: 'linux'
+     * }
+     */
     return
   }
   if (pack.arch === 1) {
