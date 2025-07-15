@@ -45,12 +45,15 @@ Promise.all([packMain(), packRenderer()])
       targets: Platform.current().createTarget()
     }
     if (isMacOS()) {
+      console.log('electron-builder isMacOS !!!')
       const config = (await import('../configs/electron-builder')).default
       options.config = config as any
     } else if (isWindows()) {
+      console.log('electron-builder isWindows !!!')
       const config = (await import('../configs/electron-builder.win')).default
       options.config = config as any
     } else if (isLinux()) {
+      console.log('electron-builder isLinux !!!')
       const config = (await import('../configs/electron-builder.linux')).default
       options.config = config as any
     }
