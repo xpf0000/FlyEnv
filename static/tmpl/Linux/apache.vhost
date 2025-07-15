@@ -1,0 +1,27 @@
+<VirtualHost *:#Port_Apache#>
+    ServerAdmin webmaster@example.com
+    DocumentRoot "#Server_Root#"
+    ServerName #Server_Name#
+    ServerAlias #Server_Alias#
+    ErrorLog "#Log_Path#/#Server_Name#-error_log"
+    CustomLog "#Log_Path#/#Server_Name#-access_log" combined
+
+    # File Access Restrictions
+    <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
+        Require all denied
+    </Files>
+
+    # PHP
+    <FilesMatch \.php$>
+        SetHandler "proxy:fcgi://127.0.0.1:9000"
+    </FilesMatch>
+
+    # Directory
+    <Directory "#Server_Root#">
+        SetOutputFilter DEFLATE
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+        DirectoryIndex index.php index.html index.htm default.php default.html default.htm
+    </Directory>
+</VirtualHost>

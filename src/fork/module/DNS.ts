@@ -8,7 +8,7 @@ import Helper from '../Helper'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { mkdirp, existsSync, writeFile, readFile } from '../Fn'
 import { dirname, join } from 'node:path'
-import { HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 
 const require = createRequire(import.meta.url)
 const Tangerine = require('tangerine')
@@ -68,6 +68,7 @@ class Manager extends Base {
     if (isWindows()) {
       hostFile = HostsFileWindows
     } else if (isLinux()) {
+      hostFile = HostsFileLinux
     } else if (isMacOS()) {
       hostFile = HostsFileMacOS
     }

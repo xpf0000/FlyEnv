@@ -6,9 +6,9 @@ import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
 import UpdateManager from './core/UpdateManager'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
-import { getLanguage, isArmArch, mkdirp, readFile, writeFile } from './utils'
+import { getLanguage, isArmArch, mkdirp, readFile, readFileFixed, writeFile } from './utils'
 import { AppI18n, I18nT, AppAllLang } from '@lang/index'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
 import AppNodeFnManager, { type AppNodeFn } from './core/AppNodeFn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 import ServiceProcessManager from './core/ServiceProcess'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -306,6 +306,8 @@ export default class Application extends EventEmitter {
       if (is.dev()) {
         runpath = resolve(__static, '../../../data')
       }
+    } else {
+      runpath = app.getPath('userData')
     }
     this.setProxy()
     global.Server.UserHome = app.getPath('home')
@@ -335,14 +337,14 @@ export default class Application extends EventEmitter {
     global.Server.Cache = join(runpath, 'server/cache')
     mkdirp(global.Server.Cache).then().catch()
     global.Server.Static = __static
-    global.Server.Arch = arch() === 'arm64' ? 'arm64' : 'x86_64'
+    global.Server.Arch = arch() === 'x64' ? 'x86_64' : 'arm64'
     global.Server.Password = this.configManager.getConfig('password')
     global.Server.isMacOS = isMacOS()
     global.Server.isLinux = isLinux()
     global.Server.isWindows = isWindows()
     console.log('global.Server.Password: ', global.Server.Password)
 
-    if (isMacOS()) {
+    if (!isWindows()) {
       const httpdcong = join(global.Server.ApacheDir, 'common/conf/')
       mkdirp(httpdcong).then().catch()
 
@@ -472,9 +474,10 @@ export default class Application extends EventEmitter {
     } else if (isWindows()) {
       file = HostsFileWindows
     } else if (isLinux()) {
+      file = HostsFileLinux
     }
     try {
-      let hosts = readFileSync(file, 'utf-8')
+      let hosts = await readFileFixed(file)
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x && x.length > 0) {
         hosts = hosts.replace(x[0], '')
@@ -641,7 +644,7 @@ export default class Application extends EventEmitter {
       const exclude = ['app', 'version']
       module = command.replace('app-fork:', '')
       let openApps: Record<string, string> = {}
-      if (isMacOS()) {
+      if (isMacOS() || isLinux()) {
         openApps = {
           VSCode: 'vscode://file/',
           PhpStorm: 'phpstorm://open?file=',
@@ -722,7 +725,7 @@ export default class Application extends EventEmitter {
         return
       }
 
-      if (isMacOS()) {
+      if (isMacOS() || isLinux()) {
         if (AppHelper.state === 'normal') {
           const helperVersion = this.configManager?.getConfig('helper.version') ?? 0
           if (is.production() && helperVersion !== AppHelper.version) {

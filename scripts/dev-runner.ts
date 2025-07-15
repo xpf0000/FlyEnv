@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 import { createRequire } from 'node:module'
 import { ElectronKill, ElectronKillWin } from './electron-process-kill'
-import { isMacOS, isWindows } from '../src/shared/utils'
+import { isLinux, isMacOS, isWindows } from '../src/shared/utils'
 
 const require = createRequire(import.meta.url)
 
@@ -48,7 +48,7 @@ function buildMainProcess() {
     building = true
     await DoFix()
     let promise: Promise<any> | undefined
-    if (isMacOS()) {
+    if (isMacOS() || isLinux()) {
       console.log('isMacOS !!!')
       const config = (await import('../configs/esbuild.config')).default
       promise = Promise.all([

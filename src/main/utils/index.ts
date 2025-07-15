@@ -1,19 +1,20 @@
 import { app } from 'electron'
-import { cpus, arch } from 'os'
+import { arch, cpus } from 'os'
 import {
-  createWriteStream,
-  unlinkSync,
-  stat,
-  existsSync,
-  copyFile,
   appendFile,
   chmod,
-  remove,
+  copyFile,
+  createWriteStream,
+  existsSync,
   mkdirp,
   readFile,
+  remove,
+  stat,
+  unlinkSync,
   writeFile
 } from '@shared/fs-extra'
-import { isLinux, isMacOS } from '@shared/utils'
+import { isLinux, isMacOS, pathFixedToUnix } from '@shared/utils'
+import Helper from '../../fork/Helper'
 
 export {
   createWriteStream,
@@ -62,4 +63,28 @@ export function isArmArch() {
     return arch() !== 'x64'
   }
   return false
+}
+
+export async function readFileFixed(file: string): Promise<string> {
+  const path = pathFixedToUnix(file)
+  try {
+    return await readFile(path, 'utf-8')
+  } catch (e) {
+    if (isMacOS() || isLinux()) {
+      return (await Helper.send('tools', 'readFileByRoot', path)) as any
+    }
+    throw e
+  }
+}
+
+export async function writeFileFixed(file: string, content: string) {
+  const path = pathFixedToUnix(file)
+  try {
+    return await writeFile(path, content)
+  } catch (e) {
+    if (isMacOS() || isLinux()) {
+      return await Helper.send('tools', 'writeFileByRoot', path, content)
+    }
+    throw e
+  }
 }

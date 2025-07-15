@@ -2,6 +2,7 @@ import { join, resolve } from 'path'
 import _fs from 'fs-extra'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { isLinux } from '../src/shared/utils'
 
 const { mkdirp, writeFile, readFile } = _fs
 const execPromise = promisify(exec)
@@ -12,6 +13,10 @@ const execPromise = promisify(exec)
  * @returns {Promise<boolean>}
  */
 export default async function after(pack) {
+  if (isLinux()) {
+    console.log('linux pack: ', pack)
+    return
+  }
   if (pack.arch === 1) {
     const fromBinDir = resolve(pack.appOutDir, '../../build/bin/x86')
     const toBinDir = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/')

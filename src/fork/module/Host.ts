@@ -22,8 +22,8 @@ import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './host/HostFile'
 import Helper from '../Helper'
-import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
-import { HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
+import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 
 export class Host extends Base {
   hostsFile = ''
@@ -34,6 +34,8 @@ export class Host extends Base {
       this.hostsFile = HostsFileWindows
     } else if (isMacOS()) {
       this.hostsFile = HostsFileMacOS
+    } else if (isLinux()) {
+      this.hostsFile = HostsFileLinux
     }
   }
 

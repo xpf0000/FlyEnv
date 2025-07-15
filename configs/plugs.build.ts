@@ -3,7 +3,7 @@ import { resolve as pathResolve, join } from 'path'
 import _fs from 'fs-extra'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
-import { isMacOS, isWindows } from '../src/shared/utils'
+import { isLinux, isMacOS, isWindows } from '../src/shared/utils'
 import { moveChildDirToParent } from '../src/fork/util/Dir'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -33,10 +33,6 @@ export const BuildPlugin: () => Plugin = () => {
 
             await remove(join(base, 'zip/Windows'))
             await remove(join(base, 'zip/Linux'))
-
-            await moveChildDirToParent(join(base, 'sh'))
-            await moveChildDirToParent(join(base, 'tmpl'))
-            await moveChildDirToParent(join(base, 'zip'))
           } else if (isWindows()) {
             await remove(join(base, 'sh/macOS'))
             await remove(join(base, 'sh/Linux'))
@@ -46,11 +42,19 @@ export const BuildPlugin: () => Plugin = () => {
 
             await remove(join(base, 'zip/macOS'))
             await remove(join(base, 'zip/Linux'))
+          } else if (isLinux()) {
+            await remove(join(base, 'sh/macOS'))
+            await remove(join(base, 'sh/Windows'))
 
-            await moveChildDirToParent(join(base, 'sh'))
-            await moveChildDirToParent(join(base, 'tmpl'))
-            await moveChildDirToParent(join(base, 'zip'))
+            await remove(join(base, 'tmpl/macOS'))
+            await remove(join(base, 'tmpl/Windows'))
+
+            await remove(join(base, 'zip/macOS'))
+            await remove(join(base, 'zip/Windows'))
           }
+          await moveChildDirToParent(join(base, 'sh'))
+          await moveChildDirToParent(join(base, 'tmpl'))
+          await moveChildDirToParent(join(base, 'zip'))
           hasCopyed = true
           resolve()
         })
