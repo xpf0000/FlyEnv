@@ -2,6 +2,7 @@ import { createConnection } from 'net'
 import Sudo from '@shared/Sudo'
 import { dirname, join, resolve as PathResolve } from 'path'
 import is from 'electron-is'
+import { isLinux, isMacOS } from '@shared/utils'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
@@ -64,17 +65,32 @@ class AppHelper {
       let command = ''
       let icns = ``
       if (is.production()) {
-        const binDir = PathResolve(global.Server.Static!, '../../../../')
-        const plist = join(binDir, 'plist/com.flyenv.helper.plist')
-        const bin = join(binDir, 'helper/flyenv-helper')
-        command = `cd "${join(binDir, 'helper')}" && sudo ./postinstall.sh "${plist}" "${bin}"`
-        icns = join(binDir, 'icon.icns')
+        if (isMacOS()) {
+          const binDir = PathResolve(global.Server.Static!, '../../../../')
+          const plist = join(binDir, 'plist/com.flyenv.helper.plist')
+          const bin = join(binDir, 'helper/flyenv-helper')
+          command = `cd "${join(binDir, 'helper')}" && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
+          icns = join(binDir, 'icon.icns')
+        } else if (isLinux()) {
+          const binDir = PathResolve(global.Server.Static!, '../../../../')
+          const bin = join(binDir, 'helper/flyenv-helper')
+          command = `cd "${join(binDir, 'helper')}" && sudo ./flyenv-helper-init.sh "${bin}"`
+          icns = join(binDir, 'Icon@256x256.icns')
+        }
       } else {
-        const binDir = PathResolve(global.Server.Static!, '../../../build/')
-        const plist = join(binDir, 'plist/com.flyenv.helper.plist')
-        const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
-        command = `cd "${dirname(bin)}" && sudo ./postinstall.sh "${plist}" "${bin}"`
-        icns = join(binDir, 'icon.icns')
+        if (isMacOS()) {
+          const binDir = PathResolve(global.Server.Static!, '../../../build/')
+          const plist = join(binDir, 'plist/com.flyenv.helper.plist')
+          const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
+          command = `cd "${dirname(bin)}" && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
+          icns = join(binDir, 'icon.icns')
+        } else if (isLinux()) {
+          const binDir = PathResolve(global.Server.Static!, '../../../build/')
+          const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
+          const shDir = join(global.Server.Static!, 'sh')
+          command = `cd "${shDir}" && sudo ./flyenv-helper-init.sh "${bin}"`
+          icns = join(binDir, 'Icon@256x256.icns')
+        }
       }
 
       Sudo(command, {
