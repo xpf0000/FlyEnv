@@ -25,10 +25,15 @@ jobs:
             os_label: linux-ubuntu-latest
             target: x64
           - arch: arm64
-            os: ubuntu-latest
+            os: ubuntu-24.04-arm
             os_label: linux-ubuntu-latest
             target: arm64
     steps:
+      - name: Debug arch
+        run: |
+          echo "Running on arch: ${{ matrix.arch }}"
+          uname -m
+          
       - name: Checkout code
         uses: actions/checkout@v4
 
