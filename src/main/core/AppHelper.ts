@@ -1,5 +1,5 @@
 import { createConnection } from 'net'
-import Sudo from '@shared/Sudo'
+import { exec as Sudo } from '@shared/Sudo'
 import { dirname, join, resolve as PathResolve } from 'path'
 import is from 'electron-is'
 import { isLinux, isMacOS } from '@shared/utils'
