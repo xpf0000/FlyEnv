@@ -312,7 +312,7 @@ class BaseManager {
       doRun(this.FTPSrv)
     } else if (module === 'etcd') {
       if (!this.ETCD) {
-        const res = await import('./module/Etcd')
+        const res = await import('./module/ETCD')
         this.ETCD = res.default
       }
       doRun(this.ETCD)

@@ -222,7 +222,7 @@ class Manager extends Base {
           versions.meilisearch = this.MeiliSearch.allInstalledVersions(setup)
         } else if (type === 'etcd') {
           if (!this.ETCD) {
-            const res = await import('../Etcd')
+            const res = await import('../ETCD')
             this.ETCD = res.default
           }
           versions.etcd = this.ETCD.allInstalledVersions(setup)
