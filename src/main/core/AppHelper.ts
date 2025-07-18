@@ -3,15 +3,19 @@ import { exec as Sudo } from '@shared/Sudo'
 import { dirname, join, resolve as PathResolve } from 'path'
 import is from 'electron-is'
 import { isLinux, isMacOS } from '@shared/utils'
+import { writeFile, stat } from '@shared/fs-extra'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
+const Role_Path = '/tmp/flyenv.role'
 
 class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
-  version = 6
+  version = 7
   check() {
     console.time('AppHelper check')
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      const stats = await stat(process.execPath)
+      await writeFile(Role_Path, `${stats.uid}:${stats.gid}`)
       const client = createConnection(SOCKET_PATH)
       client.on('connect', () => {
         console.log('Connected to the server')

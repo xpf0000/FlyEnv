@@ -1,10 +1,12 @@
 import { createServer } from 'node:net'
-import { dirChownFetch, waitTime, remove, existsSync } from './util'
+import { waitTime, remove, existsSync, readFile, writeFile, mkdirp } from './util'
 import type { TaskItem } from './type'
 import { execPromise } from './util'
 
 // Path to the socket file
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
+const Role_Path = '/tmp/flyenv.role'
+const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
 
 class AppHelper {
   Tool: any
@@ -145,22 +147,19 @@ class AppHelper {
     server.listen(SOCKET_PATH, async () => {
       console.log('Server is listening on', SOCKET_PATH)
       await waitTime(500)
-      let appDir = `/Applications/FlyEnv.app`
-      if (!existsSync(appDir)) {
-        appDir = `/Applications/PhpWebStudy.app`
-      }
-      if (!existsSync(appDir)) {
-        return
-      }
       let rule = ''
-      try {
-        rule = await dirChownFetch(appDir)
-      } catch {}
+      if (existsSync(Role_Path)) {
+        rule = await readFile(Role_Path, 'utf8')
+        await mkdirp(Role_Path_Back)
+        await writeFile(Role_Path_Back, rule)
+      } else if (existsSync(Role_Path_Back)) {
+        rule = await readFile(Role_Path_Back, 'utf8')
+      }
       if (!rule) {
         return
       }
       if (existsSync(SOCKET_PATH)) {
-        await execPromise(`chown ${rule} "${SOCKET_PATH}"`)
+        await execPromise(`chown ${rule.trim()} "${SOCKET_PATH}"`)
       }
     })
 
