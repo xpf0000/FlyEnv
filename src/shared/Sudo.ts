@@ -264,9 +264,7 @@ async function linux(instance: Instance): Promise<{ stdout: string; stderr: stri
   }
 
   const magic = 'SUDOPROMPT\n'
-  command.push(
-    `/bin/bash -c "echo ${escapeDoubleQuotes(magic.trim())}; ${escapeDoubleQuotes(instance.command)}"`
-  )
+  command.push(`/bin/bash -c "echo ${escapeDoubleQuotes(magic.trim())}; ${instance.command}"`)
 
   const finalCommand = command.join(' ')
 

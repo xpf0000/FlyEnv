@@ -69,12 +69,12 @@ class AppHelper {
           const binDir = PathResolve(global.Server.Static!, '../../../../')
           const plist = join(binDir, 'plist/com.flyenv.helper.plist')
           const bin = join(binDir, 'helper/flyenv-helper')
-          command = `cd "${join(binDir, 'helper')}" && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
+          command = `cd "${join(binDir, 'helper')}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
           icns = join(binDir, 'icon.icns')
         } else if (isLinux()) {
           const binDir = PathResolve(global.Server.Static!, '../../../../')
           const bin = join(binDir, 'helper/flyenv-helper')
-          command = `cd "${join(binDir, 'helper')}" && ./flyenv-helper-init.sh "${bin}"`
+          command = `cd "${join(binDir, 'helper')}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${bin}"`
           icns = join(binDir, 'Icon@256x256.icns')
         }
       } else {
@@ -82,13 +82,13 @@ class AppHelper {
           const binDir = PathResolve(global.Server.Static!, '../../../build/')
           const plist = join(binDir, 'plist/com.flyenv.helper.plist')
           const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
-          command = `cd "${dirname(bin)}" && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
+          command = `cd "${dirname(bin)}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
           icns = join(binDir, 'icon.icns')
         } else if (isLinux()) {
           const binDir = PathResolve(global.Server.Static!, '../../../build/')
           const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
           const shDir = join(global.Server.Static!, 'sh')
-          command = `cd "${shDir}" && ./flyenv-helper-init.sh "${bin}"`
+          command = `cd "${shDir}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${bin}"`
           icns = join(binDir, 'Icon@256x256.icns')
         }
       }
