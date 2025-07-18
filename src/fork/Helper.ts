@@ -81,10 +81,11 @@ class Helper {
         } catch {}
       })
 
-      client.on('error', () => {
+      client.on('error', (error) => {
         try {
           client.destroySoon()
         } catch {}
+        console.log('connect failed error: ', error)
         reject(new Error('connect failed'))
       })
     })
