@@ -1,4 +1,4 @@
-import { CallBack, LinkItem, type PageLink } from './LinkItem'
+import { Callback, LinkItem, type PageLink } from './LinkItem'
 import { BrowserWindow } from 'electron'
 import request from '@shared/request'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
@@ -10,8 +10,8 @@ import { dirname } from 'path'
 
 class PageTaskItem {
   private window?: BrowserWindow
-  isDestory?: boolean
-  onDestoryed?: (item: any) => void
+  isDestroy?: boolean
+  onDestroyed?: (item: any) => void
 
   constructor() {
     this.window = new BrowserWindow({
@@ -139,8 +139,8 @@ class PageTaskItem {
         callback({})
       }
       this?.window?.on('close', async () => {
-        this.destory()
-        this?.onDestoryed?.(this)
+        this.destroy()
+        this?.onDestroyed?.(this)
       })
     })
   }
@@ -174,7 +174,7 @@ class PageTaskItem {
   }
 
   async run() {
-    if (this.isDestory) {
+    if (this.isDestroy) {
       return
     }
     /**
@@ -431,8 +431,8 @@ class PageTaskItem {
     })
   }
 
-  destory() {
-    this.isDestory = true
+  destroy() {
+    this.isDestroy = true
     if (this.window) {
       this.window?.destroy()
     }
@@ -443,18 +443,18 @@ class PageTaskItem {
 class PageTask {
   private task: PageTaskItem[] = []
   init(num: number) {
-    const destory = (item: any) => {
+    const destroy = (item: any) => {
       const index = this.task.findIndex((f) => f === item)
       if (index >= 0) {
         this.task.splice(index, 1)
       }
       if (this.task.length === 0) {
-        CallBack.fn('window-close')
+        Callback.fn('window-close')
       }
     }
     for (let i = 0; i < num; i += 1) {
       const item = new PageTaskItem()
-      item.onDestoryed = destory
+      item.onDestroyed = destroy
       this.task.push(item)
     }
   }
@@ -470,9 +470,9 @@ class PageTask {
   updateConfig() {
     this.task.forEach((t) => t.updateConfig())
   }
-  destory() {
+  destroy() {
     this.task.forEach((t) => {
-      t.isDestory = true
+      t.isDestroy = true
     })
     this.task.splice(0)
   }

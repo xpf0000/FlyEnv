@@ -18,7 +18,7 @@ import {
   versionLocalFetch,
   versionSort,
   waitTime,
-  zipUnPack
+  zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
@@ -29,7 +29,7 @@ class Java extends Base {
     this.type = 'java'
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('java')
@@ -125,7 +125,7 @@ class Java extends Base {
     } else if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }
@@ -134,8 +134,8 @@ class Java extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand = 'brew search -q --formula "/^(jdk|openjdk)((@[\\d\\.]+)?)$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^(jdk|openjdk)((@[\\d\\.]+)?)$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

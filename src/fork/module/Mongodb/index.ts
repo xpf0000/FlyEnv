@@ -20,7 +20,7 @@ import {
   mkdirp,
   chmod,
   remove,
-  zipUnPack,
+  zipUnpack,
   moveChildDirToParent,
   createWriteStream,
   serviceStartExecCMD,
@@ -59,7 +59,7 @@ class Manager extends Base {
           try {
             await remove(appDir)
             await mkdirp(appDir)
-            await zipUnPack(zip, appDir)
+            await zipUnpack(zip, appDir)
             await moveChildDirToParent(appDir)
             return existsSync(mongosh)
           } catch {
@@ -214,7 +214,7 @@ class Manager extends Base {
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mongodb')
@@ -292,7 +292,7 @@ class Manager extends Base {
     if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
       await waitTime(1000)
       await this.initMongosh()
@@ -303,9 +303,9 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand =
+        const command =
           'brew search -q --desc --eval-all --formula "High-performance, schema-free, document-oriented database"'
-        all = await brewSearch(all, cammand, (content) => {
+        all = await brewSearch(all, command, (content) => {
           content = content
             .replace('==> Formulae', '')
             .replace(

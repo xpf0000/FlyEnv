@@ -295,7 +295,7 @@ export LANG="${global.Server.Local!}"
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('postgresql')
@@ -375,8 +375,8 @@ export LANG="${global.Server.Local!}"
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand = 'brew search -q --formula "/^postgresql@[\\d\\.]+$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^postgresql@[\\d\\.]+$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

@@ -101,7 +101,7 @@ class BaseDialog {
         dom?.remove()
         dom = null
       }
-      intance.callBack = (res: any, close = true) => {
+      intance.callback = (res: any, close = true) => {
         if (close) {
           intance.close()
         }
@@ -113,11 +113,11 @@ class BaseDialog {
 
   /**
    * Dialog callback method
-   * @param callBack
+   * @param callback
    * @returns {Dialog}
    */
-  then(callBack: Function) {
-    this._resolve = callBack
+  then(callback: Function) {
+    this._resolve = callback
     return this
   }
 }

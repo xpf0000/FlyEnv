@@ -1,5 +1,5 @@
 {
-  "phpiniNoFound": "php.ini dosyası bulunamadı",
+  "phpiniNotFound": "php.ini dosyası bulunamadı",
   "editPhpIni": "php.ini dosyasını düzenle",
   "phpExtensions": "PHP Eklentileri",
   "copyConfTemplate": "Yapılandırma şablonunu kopyala",

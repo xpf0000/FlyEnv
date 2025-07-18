@@ -1,14 +1,14 @@
 {
-  "binNoFound": "The startup file does not exist, operation failed.",
-  "confNoFound": "The configuration file does not exist, the server failed to start",
+  "binNotFound": "The startup file does not exist, operation failed.",
+  "confNotFound": "The configuration file does not exist, the server failed to start",
   "apacheLogPathErr": "The log path of the configuration file is wrong, and the switch fails",
   "versionError": "The version is wrong, please select again",
-  "hostsFileNoFound": "The hosts file does not exist",
+  "hostsFileNotFound": "The hosts file does not exist",
   "startFail": "Failed to start, please check the log file",
-  "versionNoFound": "Failed to get software version, operation failed.",
+  "versionNotFound": "Failed to get software version, operation failed.",
   "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
-  "downFileFail": "Download file failed!",
+  "downloadFileFail": "Download file failed!",
   "trialEnd": "The trial has expired. To continue using this feature, please obtain a license",
-  "phpiniNoFound": "php.ini file not found",
+  "phpiniNotFound": "php.ini file not found",
   "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

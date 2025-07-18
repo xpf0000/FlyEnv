@@ -9,7 +9,7 @@ import Helper from './Helper'
 import { format } from 'date-fns'
 import { hostname, userInfo } from 'os'
 import _node_machine_id from 'node-machine-id'
-import { zipUnPack } from './util/Zip'
+import { zipUnpack } from './util/Zip'
 import { moveDirToDir, getSubDirAsync, getAllFileAsync, moveChildDirToParent } from './util/Dir'
 import { serviceStartExec, customerServiceStartExec } from './util/ServiceStart'
 import {
@@ -79,7 +79,7 @@ const { machineId } = _node_machine_id
 
 export {
   machineId,
-  zipUnPack,
+  zipUnpack,
   moveDirToDir,
   getSubDirAsync,
   getAllFileAsync,
@@ -214,7 +214,7 @@ export function md5(str: string) {
   return md5.update(str).digest('hex')
 }
 
-export function downFile(url: string, savepath: string) {
+export function downloadFile(url: string, savepath: string) {
   return new ForkPromise((resolve, reject, on) => {
     const proxyUrl =
       Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''

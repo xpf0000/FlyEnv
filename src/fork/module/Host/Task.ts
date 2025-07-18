@@ -6,7 +6,7 @@ import { setDirRole } from './Host'
 import { I18nT } from '@lang/index'
 import compressing from 'compressing'
 import {
-  downFile,
+  downloadFile,
   execPromise,
   waitTime,
   copyFile,
@@ -19,7 +19,7 @@ import {
 import { fetchHostList } from './HostFile'
 import { isWindows } from '@shared/utils'
 
-export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = true, ipv6 = true) {
+export function TaskAddRandomSite(this: any, version?: SoftInstalled, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject) => {
     const baseName = join(global.Server.BaseDir!, 'www')
     let host = `test.com`
@@ -119,7 +119,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
     const doMake = async () => {
       if (!existsSync(siteDir) || readdirSync(siteDir).length === 0) {
         if (!existsSync(zipFile)) {
-          reject(new Error(I18nT('fork.downFileFail')))
+          reject(new Error(I18nT('fork.downloadFileFail')))
           return
         }
         if (existsSync(siteDir)) {
@@ -145,7 +145,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
           return
         }
         if (readdirSync(siteDir).length === 0) {
-          reject(new Error(I18nT('fork.downFileFail')))
+          reject(new Error(I18nT('fork.downloadFileFail')))
           return
         }
       }
@@ -206,7 +206,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
       await remove(zipTmpFile)
     }
     const url = 'https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.zip'
-    downFile(url, zipTmpFile)
+    downloadFile(url, zipTmpFile)
       .on(on)
       .then(async () => {
         return copyFile(zipTmpFile, zipFile)
@@ -216,7 +216,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
           doMake().then()
           return
         } else {
-          reject(new Error(I18nT('fork.downFileFail')))
+          reject(new Error(I18nT('fork.downloadFileFail')))
         }
       })
       .catch(reject)

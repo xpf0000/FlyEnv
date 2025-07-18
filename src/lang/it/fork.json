@@ -1,15 +1,15 @@
 {
-  "binNoFound": "Il file di avvio non esiste, operazione fallita.",
-  "confNoFound": "Il file di configurazione non esiste, avvio del server fallito",
+  "binNotFound": "Il file di avvio non esiste, operazione fallita.",
+  "confNotFound": "Il file di configurazione non esiste, avvio del server fallito",
   "apacheLogPathErr": "Il percorso del log nel file di configurazione è errato, cambio fallito",
   "versionError": "Versione errata, seleziona di nuovo",
-  "hostsFileNoFound": "Il file hosts non esiste",
+  "hostsFileNotFound": "Il file hosts non esiste",
   "startFail": "Avvio fallito, controlla il file di log",
-  "versionNoFound": "Recupero della versione del software fallito, operazione non riuscita.",
+  "versionNotFound": "Recupero della versione del software fallito, operazione non riuscita.",
   "postgresqlInit": "Servizio avviato con successo\nCartella dati: {dir}\nUtente iniziale: root, Password: root",
-  "downFileFail": "Download del file fallito!",
+  "downloadFileFail": "Download del file fallito!",
   "trialEnd": "Il periodo di prova è terminato. Per continuare a usare questa funzionalità, richiedi una licenza",
 
-  "phpiniNoFound": "php.ini file not found",
+  "phpiniNotFound": "php.ini file not found",
   "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

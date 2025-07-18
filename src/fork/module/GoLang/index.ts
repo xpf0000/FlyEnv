@@ -18,7 +18,7 @@ import {
   versionLocalFetch,
   versionSort,
   waitTime,
-  zipUnPack
+  zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
@@ -29,7 +29,7 @@ class GoLang extends Base {
     this.type = 'golang'
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('golang')
@@ -106,7 +106,7 @@ class GoLang extends Base {
     if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     } else if (isMacOS()) {
       const dir = row.appDir
@@ -125,8 +125,8 @@ class GoLang extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand = 'brew search -q --formula "/^go$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^go$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

@@ -3,7 +3,7 @@ import { app, Menu } from 'electron'
 import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
-import type { CallBackFn } from '@shared/app.d'
+import type { CallbackFn } from '@shared/app.d'
 import { isMacOS, isWindows } from '@shared/utils'
 import { AppStartFlagChech } from './app'
 
@@ -17,7 +17,7 @@ export default class Launcher extends EventEmitter {
     })
   }
 
-  makeSingleInstance(callback: CallBackFn) {
+  makeSingleInstance(callback: CallbackFn) {
     const gotSingleLock = app.requestSingleInstanceLock()
     if (!gotSingleLock) {
       app.quit()

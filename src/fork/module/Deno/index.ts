@@ -23,7 +23,7 @@ class Deno extends Base {
     this.type = 'deno'
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('deno')
@@ -103,8 +103,8 @@ class Deno extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand = 'brew search -q --formula "/^deno$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^deno$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

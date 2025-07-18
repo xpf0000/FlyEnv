@@ -18,7 +18,7 @@ import {
   versionSort,
   waitTime,
   writeFile,
-  zipUnPack
+  zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
@@ -30,7 +30,7 @@ class Python extends Base {
     this.type = 'python'
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('python')
@@ -46,7 +46,7 @@ class Python extends Base {
         })
         resolve(all)
       } catch (e) {
-        console.log('fetchAllOnLineVersion error: ', e)
+        console.log('fetchAllOnlineVersion error: ', e)
         resolve([])
       }
     })
@@ -113,7 +113,7 @@ class Python extends Base {
       const darkDir = join(global.Server.Cache!, 'dark')
       if (!existsSync(dark)) {
         const darkZip = join(global.Server.Static!, 'zip/dark.7z')
-        await zipUnPack(darkZip, dirname(dark))
+        await zipUnpack(darkZip, dirname(dark))
       }
       const pythonSH = join(global.Server.Static!, 'sh/python.ps1')
       let content = await readFile(pythonSH, 'utf-8')
@@ -193,8 +193,8 @@ class Python extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand = 'brew search -q --formula "/^python[@\\d\\.]+?$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^python[@\\d\\.]+?$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

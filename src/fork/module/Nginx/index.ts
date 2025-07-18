@@ -16,7 +16,7 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  zipUnPack,
+  zipUnpack,
   serviceStartExecCMD,
   readdir,
   execPromise,
@@ -103,7 +103,7 @@ class Nginx extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
-        zipUnPack(join(global.Server.Static!, 'zip/nginx.zip'), global.Server.NginxDir!)
+        zipUnpack(join(global.Server.Static!, 'zip/nginx.zip'), global.Server.NginxDir!)
           .then(() => {
             return readFile(conf, 'utf-8')
           })
@@ -208,7 +208,7 @@ class Nginx extends Base {
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('nginx')

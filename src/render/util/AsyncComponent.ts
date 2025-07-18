@@ -1,6 +1,6 @@
 import { onMounted, ref } from 'vue'
 import { VueExtend } from '@/core/VueExtend'
-import type { CallBackFn } from '@shared/app'
+import type { CallbackFn } from '@shared/app'
 
 export const AsyncComponentShow = (compontent: any, data?: any) => {
   return new Promise((resolve) => {
@@ -24,12 +24,12 @@ export const AsyncComponentShow = (compontent: any, data?: any) => {
 
 export const AsyncComponentSetup = () => {
   const show = ref(false)
-  let closedFn: CallBackFn = () => {}
-  let callback: CallBackFn = () => {}
-  const onClosed = (fn: CallBackFn) => {
+  let closedFn: CallbackFn = () => {}
+  let callback: CallbackFn = () => {}
+  const onClosed = (fn: CallbackFn) => {
     closedFn = fn
   }
-  const onSubmit = (fn: CallBackFn) => {
+  const onSubmit = (fn: CallbackFn) => {
     callback = fn
   }
   onMounted(() => {

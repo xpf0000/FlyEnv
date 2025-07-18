@@ -23,7 +23,7 @@ import {
   serviceStartExecCMD,
   readdir,
   remove,
-  zipUnPack,
+  zipUnpack,
   moveChildDirToParent
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -47,11 +47,11 @@ class RabbitMQ extends Base {
   initConfig(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
       if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
+        reject(new Error(I18nT('fork.versionNotFound')))
         return
       }
       this._initConf(version).then(resolve)
@@ -259,7 +259,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('rabbitmq')
@@ -372,7 +372,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
     if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }
@@ -381,8 +381,8 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['rabbitmq']
-        const cammand = 'brew search -q --formula "/^rabbitmq$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^rabbitmq$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

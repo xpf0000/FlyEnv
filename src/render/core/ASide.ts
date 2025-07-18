@@ -58,7 +58,7 @@ export const AsideSetup = (flag: AllAppModule) => {
     const installed = brewStore.module(flag).installed
     const b = installed.length === 0
     const c = installed.some((v) => v.running)
-    const d = !appStore.versionInited
+    const d = !appStore.versionInitiated
     return a || b || c || d
   })
 

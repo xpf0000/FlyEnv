@@ -308,7 +308,7 @@
     }
     const execXTerm = ProjectSetup.execing.PHP
     execXTerm?.stop()?.then(() => {
-      execXTerm?.destory()
+      execXTerm?.destroy()
       created.value = false
       loading.value = false
       createFail.value = false
@@ -391,7 +391,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     const execXTerm = ProjectSetup.execing.PHP
     execXTerm?.unmounted()
     if (created.value) {
-      execXTerm?.destory()
+      execXTerm?.destroy()
       created.value = false
       loading.value = false
       delete ProjectSetup.execing.PHP

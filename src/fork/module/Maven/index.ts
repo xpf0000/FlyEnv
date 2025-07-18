@@ -17,7 +17,7 @@ import {
   versionLocalFetch,
   versionSort,
   waitTime,
-  zipUnPack
+  zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
@@ -28,7 +28,7 @@ class Maven extends Base {
     this.type = 'maven'
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('maven')
@@ -54,7 +54,7 @@ class Maven extends Base {
         })
         resolve(all)
       } catch (e) {
-        console.log('fetchAllOnLineVersion error: ', e)
+        console.log('fetchAllOnlineVersion error: ', e)
         resolve([])
       }
     })
@@ -117,7 +117,7 @@ class Maven extends Base {
     } else if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }

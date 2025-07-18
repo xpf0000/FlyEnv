@@ -157,7 +157,7 @@
     return (
       !ftpVersion?.value?.version ||
       versions.value.some((v) => v.running) ||
-      !appStore.versionInited
+      !appStore.versionInitiated
     )
   })
 

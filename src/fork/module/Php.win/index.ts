@@ -16,7 +16,7 @@ import {
   mkdirp,
   copyFile,
   readdir,
-  zipUnPack,
+  zipUnpack,
   versionLocalFetch,
   serviceStartExecWin
 } from '../../Fn'
@@ -139,7 +139,7 @@ class Php extends Base {
         }
       }
 
-      reject(new Error(I18nT('fork.phpiniNoFound')))
+      reject(new Error(I18nT('fork.phpiniNotFound')))
     })
   }
 
@@ -179,7 +179,7 @@ class Php extends Base {
     return new Promise((resolve) => {
       const fpm = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
       if (!existsSync(fpm)) {
-        zipUnPack(join(global.Server.Static!, `zip/php_cgi_spawner.7z`), global.Server.PhpDir!)
+        zipUnpack(join(global.Server.Static!, `zip/php_cgi_spawner.7z`), global.Server.PhpDir!)
           .then(resolve)
           .catch(resolve)
         return
@@ -191,11 +191,11 @@ class Php extends Base {
   startService(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
+        reject(new Error(I18nT('fork.versionNotFound')))
         return
       }
       try {
@@ -279,7 +279,7 @@ class Php extends Base {
         const obfuscatorDir = join(cacheDir, 'php-obfuscator')
         await remove(obfuscatorDir)
         const zipFile = join(global.Server.Static!, 'zip/php-obfuscator.zip')
-        await zipUnPack(zipFile, obfuscatorDir)
+        await zipUnpack(zipFile, obfuscatorDir)
         const bin = join(obfuscatorDir, 'yakpro-po.php')
         let command = ''
         if (params.config) {
@@ -299,7 +299,7 @@ class Php extends Base {
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('php')
@@ -563,7 +563,7 @@ xdebug.output_dir = "${output_dir}"
 
               if (existsSync(zipFile)) {
                 try {
-                  await zipUnPack(zipFile, cacheDir)
+                  await zipUnpack(zipFile, cacheDir)
                 } catch {}
                 if (existsSync(dll)) {
                   await copyFile(dll, file)
@@ -614,7 +614,7 @@ xdebug.output_dir = "${output_dir}"
                     })
                     try {
                       if (existsSync(zipFile)) {
-                        await zipUnPack(zipFile, cacheDir)
+                        await zipUnpack(zipFile, cacheDir)
                       }
                     } catch (e) {
                       reject(e)

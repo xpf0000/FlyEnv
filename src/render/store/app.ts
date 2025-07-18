@@ -98,8 +98,8 @@ type StateBase = SetupBase & {
   forceStart: boolean
   showAIRobot: boolean
   showTool?: boolean
-  phpBrewInited: boolean
-  mongodbBrewInited: boolean
+  phpBrewInitiated: boolean
+  mongodbBrewInitiated: boolean
   currentNodeTool: 'fnm' | 'nvm' | 'default'
   editorConfig: EditorConfig
   phpGroupStart: { [k: string]: boolean }
@@ -118,7 +118,7 @@ interface State {
     setup: StateBase
   }
   httpServe: Array<string>
-  versionInited: boolean
+  versionInitiated: boolean
   httpServeService: {
     [k: string]: {
       run: boolean
@@ -152,15 +152,15 @@ const state: State = {
       autoCheck: true,
       forceStart: false,
       showAIRobot: true,
-      phpBrewInited: false,
-      mongodbBrewInited: false,
+      phpBrewInitiated: false,
+      mongodbBrewInitiated: false,
       editorConfig: EditorBaseConfig,
       phpGroupStart: {},
       currentNodeTool: 'default'
     }
   },
   httpServe: [],
-  versionInited: false,
+  versionInitiated: false,
   httpServeService: {},
   currentPage: '/hosts',
   floatBtnShow: true

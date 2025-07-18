@@ -125,7 +125,7 @@ export const Setup = (version: SoftInstalled) => {
   const taskConfirm = () => {
     PgsqlExtensionSetup.installing = false
     PgsqlExtensionSetup.installEnd = false
-    PgsqlExtensionSetup.xterm?.destory()
+    PgsqlExtensionSetup.xterm?.destroy()
     delete PgsqlExtensionSetup.xterm
     return
   }
@@ -134,7 +134,7 @@ export const Setup = (version: SoftInstalled) => {
     PgsqlExtensionSetup.installing = false
     PgsqlExtensionSetup.installEnd = false
     PgsqlExtensionSetup.xterm?.stop()?.then(() => {
-      PgsqlExtensionSetup.xterm?.destory()
+      PgsqlExtensionSetup.xterm?.destroy()
       delete PgsqlExtensionSetup.xterm
     })
   }

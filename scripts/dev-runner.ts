@@ -34,12 +34,12 @@ async function launchViteDevServer(openInBrowser = false) {
 }
 
 let building = false
-const buildCallBack: any = []
+const buildCallback: any = []
 
 function buildMainProcess() {
   return new Promise(async (resolve, reject) => {
     if (building) {
-      buildCallBack.push({
+      buildCallback.push({
         resolve,
         reject
       })
@@ -69,29 +69,29 @@ function buildMainProcess() {
     }
     if (!promise) {
       building = false
-      buildCallBack.forEach((b: any) => {
+      buildCallback.forEach((b: any) => {
         b.reject(new Error('No PLATFORM provided'))
       })
-      buildCallBack.splice(0)
+      buildCallback.splice(0)
       reject(new Error('No PLATFORM provided'))
       return
     }
     promise
       .then(() => {
         building = false
-        buildCallBack.forEach((b: any) => {
+        buildCallback.forEach((b: any) => {
           b.resolve(true)
         })
-        buildCallBack.splice(0)
+        buildCallback.splice(0)
         resolve(true)
       })
       .catch((e) => {
         console.log('buildMainProcess error', e)
         building = false
-        buildCallBack.forEach((b: any) => {
+        buildCallback.forEach((b: any) => {
           b.reject(e)
         })
-        buildCallBack.splice(0)
+        buildCallback.splice(0)
         reject(e)
       })
   })

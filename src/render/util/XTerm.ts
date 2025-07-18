@@ -176,7 +176,7 @@ class XTerm implements XTermType {
     this.logs.splice(0)
   }
 
-  destory() {
+  destroy() {
     if (this.ptyKey) {
       IPC.off(`NodePty:data:${this.ptyKey}`)
     }
@@ -208,14 +208,14 @@ class XTerm implements XTermType {
     })
   }
 
-  send(cammand: string[]) {
-    console.log('XTerm send:', cammand)
+  send(command: string[]) {
+    console.log('XTerm send:', command)
     if (this.end) {
       return
     }
     return new Promise((resolve) => {
       this.resolve = resolve
-      const param = [...cammand]
+      const param = [...command]
       if (window.Server.isWindows) {
         param.push(`echo "Task-${this.ptyKey}-End"`)
         param.push(`exit 0`)
@@ -224,7 +224,7 @@ class XTerm implements XTermType {
         param.push(`echo "Task-${this.ptyKey}-END" && exit 0;`)
       }
       IPC.send('NodePty:exec', this.ptyKey, param).then((key: string) => {
-        console.log('static cammand finished: ', cammand)
+        console.log('static command finished: ', command)
         IPC.off(key)
         this.end = true
         this.resolve = undefined

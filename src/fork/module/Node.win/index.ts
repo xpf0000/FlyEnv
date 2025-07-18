@@ -11,7 +11,7 @@ import {
   readdir,
   remove,
   realpath,
-  zipUnPack,
+  zipUnpack,
   execPromiseWithEnv,
   fetchRawPATH,
   versionLocalFetch
@@ -322,7 +322,7 @@ class Manager extends Base {
 
           const unpack = async () => {
             try {
-              await zipUnPack(zip, destDir)
+              await zipUnpack(zip, destDir)
               await moveChildDirToParent(destDir)
             } catch (e) {
               return e

@@ -1,5 +1,5 @@
 {
-  "phpiniNoFound": "File php.ini tidak ditemukan",
+  "phpiniNotFound": "File php.ini tidak ditemukan",
   "editPhpIni": "Edit php.ini",
   "phpExtensions": "Ekstensi PHP",
   "copyConfTemplate": "Salin template konfigurasi",

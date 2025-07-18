@@ -90,7 +90,7 @@ class Module extends Base {
   /**
    * Fetch all available online packages
    */
-  async fetchAllOnLineVersion() {
+  async fetchAllOnlineVersion() {
     // Parse the official download page or GitHub release API
   }
 

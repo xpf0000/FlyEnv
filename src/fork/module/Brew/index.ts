@@ -86,8 +86,8 @@ class Brew extends Base {
         if (!allTap.stdout.includes('shivammathur/extensions')) {
           await execPromiseWithEnv('brew tap shivammathur/extensions')
         }
-        const cammand = `brew search --formula "/shivammathur\\/extensions\\/[\\s\\S]+${num}$/"`
-        let content: any = await execPromiseWithEnv(cammand, {
+        const command = `brew search --formula "/shivammathur\\/extensions\\/[\\s\\S]+${num}$/"`
+        let content: any = await execPromiseWithEnv(command, {
           env: {
             HOMEBREW_NO_INSTALL_FROM_API: 1
           }
@@ -131,9 +131,9 @@ class Brew extends Base {
       const zend: Array<string> = ['xdebug']
       try {
         const numStr = `${num}`.split('.').join('')
-        const cammand = `port search --name --line php${numStr}-`
-        console.log('cammand: ', cammand)
-        let res: any = await execPromiseWithEnv(cammand)
+        const command = `port search --name --line php${numStr}-`
+        console.log('command: ', command)
+        let res: any = await execPromiseWithEnv(command)
         res = res?.stdout.toString() ?? ''
         const arr = res
           .split('\n')

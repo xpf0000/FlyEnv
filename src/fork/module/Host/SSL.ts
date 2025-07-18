@@ -1,5 +1,5 @@
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, execPromise, hostAlias, mkdirp, remove, writeFile, zipUnPack } from '../../Fn'
+import { copyFile, execPromise, hostAlias, mkdirp, remove, writeFile, zipUnpack } from '../../Fn'
 import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { EOL } from 'os'

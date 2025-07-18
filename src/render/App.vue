@@ -65,7 +65,12 @@
       (f: AllAppModule) => showItem?.value?.[f] !== false
     ) as Array<keyof typeof AppModuleEnum>
     if (flags.length === 0) {
-      appStore.versionInited = true
+      appStore.versionInitiated = true
+      for (const typeFlag in brewStore.modules) {
+        const moduleKey = typeFlag as AllAppModule
+        const module = brewStore.modules[moduleKey]
+        module?.watchShowHide?.()
+      }
       return
     }
     const modules = Object.values(brewStore.modules)
@@ -75,8 +80,13 @@
         return i.fetchInstalled()
       })
     Promise.all(all).then(() => {
-      appStore.versionInited = true
-      console.log('appStore.versionInited true !!!')
+      appStore.versionInitiated = true
+      console.log('appStore.versionInitiated true !!!')
+      for (const typeFlag in brewStore.modules) {
+        const moduleKey = typeFlag as AllAppModule
+        const module = brewStore.modules[moduleKey]
+        module?.watchShowHide?.()
+      }
     })
     if (appStore.hosts.length === 0) {
       appStore.initHost().then()
