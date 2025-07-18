@@ -74,7 +74,7 @@ class AppHelper {
         } else if (isLinux()) {
           const binDir = PathResolve(global.Server.Static!, '../../../../')
           const bin = join(binDir, 'helper/flyenv-helper')
-          command = `cd "${join(binDir, 'helper')}" && sudo ./flyenv-helper-init.sh "${bin}"`
+          command = `cd "${join(binDir, 'helper')}" && ./flyenv-helper-init.sh "${bin}"`
           icns = join(binDir, 'Icon@256x256.icns')
         }
       } else {
