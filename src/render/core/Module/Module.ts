@@ -102,7 +102,10 @@ export class Module {
                   (o) => o.path === item.path && o.version === item.version
                 )
                 if (find) {
-                  Object.assign(find, item)
+                  const copy: any = { ...item }
+                  delete copy?.run
+                  delete copy?.running
+                  Object.assign(find, copy)
                   return find
                 } else {
                   const installItem = reactive(new ModuleInstalledItem(item))

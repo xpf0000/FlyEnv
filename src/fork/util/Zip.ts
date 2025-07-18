@@ -36,7 +36,7 @@ export function zipUnpack(fp: string, dist: string) {
       console.log('cacheFP: ', fp)
     }
     compressing.unpack(file, dist, async (err: any, res: any) => {
-      console.log('zipUnPack end: ', err, res)
+      console.log('zipUnpack end: ', err, res)
       if (err) {
         await appendFile(
           join(global.Server.BaseDir!, 'debug.log'),

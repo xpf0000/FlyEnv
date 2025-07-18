@@ -29,7 +29,7 @@ export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: stri
       if (isWindows()) {
         const openssl = join(global.Server.AppDir!, 'openssl/bin/openssl.exe')
         if (!existsSync(openssl)) {
-          await zipUnPack(join(global.Server.Static!, `zip/openssl.7z`), global.Server.AppDir!)
+          await zipUnpack(join(global.Server.Static!, `zip/openssl.7z`), global.Server.AppDir!)
         }
         const opensslCnf = join(global.Server.AppDir!, 'openssl/openssl.cnf')
         if (!existsSync(opensslCnf)) {

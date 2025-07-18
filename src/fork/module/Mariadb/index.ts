@@ -23,7 +23,7 @@ import {
   chmod,
   remove,
   serviceStartExecCMD,
-  zipUnPack,
+  zipUnpack,
   moveChildDirToParent,
   readFile
 } from '../../Fn'
@@ -452,7 +452,7 @@ datadir=${dataDir}`
     if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }
