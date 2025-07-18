@@ -3,6 +3,7 @@ import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import type { ChildProcess } from 'node:child_process'
+import { powershellExecWithUnblock } from '../src/fork/util/Powershell'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const execPromise = promisify(exec)
@@ -11,18 +12,16 @@ async function ElectronKillWin() {
   const sh = resolve(__dirname, '../scripts/electron-kill.ps1')
   const scriptDir = dirname(sh)
   console.log('sh: ', sh, scriptDir)
-  const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './electron-kill.ps1'; & './electron-kill.ps1'"`
+
   let res: any = null
   try {
-    res = await execPromise(command, {
-      cwd: scriptDir
-    })
+    res = await powershellExecWithUnblock(sh, { cwd: scriptDir })
   } catch (e) {
     console.log('killAllElectron err: ', e)
   }
   let all: any = []
   try {
-    all = JSON.parse(res?.stdout?.trim() ?? '[]')
+    all = JSON.parse(res?.trim() ?? '[]')
   } catch {}
   console.log('all: ', all)
   const arr: Array<string> = []

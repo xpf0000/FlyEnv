@@ -24,6 +24,7 @@ import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../TaskQueue'
 import ncu from 'npm-check-updates'
+import { powershellCmd } from '../util/Powershell'
 
 class Manager extends Base {
   constructor() {
@@ -45,9 +46,8 @@ class Manager extends Base {
       }
 
       try {
-        const command = `powershell.exe -command "$env:NVM_HOME"`
-        const res = await execPromise(command)
-        NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
+        const res = await powershellCmd('$env:NVM_HOME')
+        NVM_HOME = res.trim()
       } catch {}
       if (NVM_HOME && existsSync(NVM_HOME) && existsSync(join(NVM_HOME, 'nvm.exe'))) {
         console.log('NVM_HOME 1: ', NVM_HOME)
@@ -73,9 +73,8 @@ class Manager extends Base {
       }
 
       try {
-        const command = `powershell.exe -command "$env:FNM_HOME"`
-        const res = await execPromise(command)
-        FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
+        const res = await powershellCmd('$env:FNM_HOME')
+        FNM_HOME = res.trim()
       } catch {}
       if (FNM_HOME && existsSync(FNM_HOME) && existsSync(join(FNM_HOME, 'fnm.exe'))) {
         console.log('FNM_HOME 1: ', FNM_HOME)

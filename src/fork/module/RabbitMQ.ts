@@ -31,6 +31,8 @@ import TaskQueue from '../TaskQueue'
 import Helper from '../Helper'
 import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
+import { powershellCmd } from '../util/Powershell'
+
 class RabbitMQ extends Base {
   baseDir: string = ''
 
@@ -123,14 +125,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
     }
     let str = ''
     try {
-      const stdout = (
-        await execPromise(
-          'Write-Host "##FlyEnv-ERLANG_HOME$($env:ERLANG_HOME)FlyEnv-ERLANG_HOME##"',
-          {
-            shell: 'powershell.exe'
-          }
-        )
-      ).stdout.trim()
+      const stdout = await powershellCmd('Write-Host "##FlyEnv-ERLANG_HOME$($env:ERLANG_HOME)FlyEnv-ERLANG_HOME##"')
       const regex = /FlyEnv-ERLANG_HOME(.*?)FlyEnv-ERLANG_HOME/g
       const match = regex.exec(stdout)
       if (match) {
