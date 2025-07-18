@@ -2,6 +2,7 @@ import { createServer } from 'node:net'
 import { waitTime, remove, existsSync, readFile, writeFile, mkdirp } from './util'
 import type { TaskItem } from './type'
 import { execPromise } from './util'
+import { dirname } from 'node:path'
 
 // Path to the socket file
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
@@ -150,7 +151,7 @@ class AppHelper {
       let rule = ''
       if (existsSync(Role_Path)) {
         rule = await readFile(Role_Path, 'utf8')
-        await mkdirp(Role_Path_Back)
+        await mkdirp(dirname(Role_Path_Back))
         await writeFile(Role_Path_Back, rule)
       } else if (existsSync(Role_Path_Back)) {
         rule = await readFile(Role_Path_Back, 'utf8')
