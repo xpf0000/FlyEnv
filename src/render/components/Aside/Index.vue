@@ -121,7 +121,7 @@
   })
 
   const topToolStyle = computed(() => {
-    if (!window.Server.isWindows) {
+    if (window.Server.isMacOS) {
       return null
     }
     return {
