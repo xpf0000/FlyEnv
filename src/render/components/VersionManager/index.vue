@@ -65,7 +65,7 @@
         <StaticVM :type-flag="typeFlag" />
       </template>
     </template>
-    <template v-if="isMacOS && showFooter" #footer>
+    <template v-if="(isMacOS || isLinux) && showFooter" #footer>
       <template v-if="taskEnd">
         <el-button type="primary" @click.stop="taskConfirm">{{ I18nT('base.confirm') }}</el-button>
       </template>
