@@ -46,4 +46,10 @@ if [[ -f "$HOME/.linuxbrew/bin/brew" ]]; then
     eval "$($HOME/.linuxbrew/bin/brew shellenv)"
 fi
 
+if [[ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+    echo -e "${tty_green}Detected Linuxbrew, configuring environment variables...${tty_reset}"
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
 echo "FlyEnv-End of Homebrew installation"
