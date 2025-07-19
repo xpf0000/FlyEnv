@@ -136,6 +136,7 @@
     "@vue/tsconfig": "^0.7.0",
     "@vueuse/core": "^13.4.0",
     "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-webgl": "^0.18.0",
     "@xterm/xterm": "^5.5.0",
     "autoprefixer": "^10.4.21",
     "babel-eslint": "^10.1.0",
@@ -196,8 +197,8 @@
     "yamljs": "^0.3.0"
   },
   "optionalDependencies": {
-    "fsevents": "*",
     "@electron/notarize": "^3.0.1",
-    "@electron/osx-sign": "^2.0.0"
+    "@electron/osx-sign": "^2.0.0",
+    "fsevents": "*"
   }
 }

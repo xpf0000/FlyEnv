@@ -1,6 +1,7 @@
 import '@xterm/xterm/css/xterm.css'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
+import { WebglAddon } from '@xterm/addon-webgl'
 import IPC from './IPC'
 import { AppStore } from '@/store/app'
 import { nativeTheme, clipboard } from '@/util/NodeFn'
@@ -65,6 +66,16 @@ class XTerm implements XTermType {
           logLevel: 'off',
           theme: theme
         })
+
+        let webglAddon: WebglAddon | undefined
+        try {
+          webglAddon = new WebglAddon()
+          this.xterm.loadAddon(webglAddon)
+        } catch {}
+        webglAddon?.onContextLoss?.(() => {
+          webglAddon?.dispose?.()
+        })
+
         const fitaddon = new FitAddon()
         this.xterm.loadAddon(fitaddon)
         this.xterm.open(dom)
