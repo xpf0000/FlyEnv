@@ -228,6 +228,7 @@ export const Setup = (typeFlag: AllAppModule) => {
         : join(window.Server.Static!, 'sh/brew-install-en.sh')
     const copyFile = join(window.Server.Cache!, basename(file))
     await fs.copyFile(file, copyFile)
+    await fs.chmod(copyFile, '0755')
     const execXTerm = new XTerm()
     BrewSetup.xterm = execXTerm
     console.log('xtermDom.value: ', xtermDom.value)
