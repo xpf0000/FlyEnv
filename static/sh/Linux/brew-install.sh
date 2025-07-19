@@ -117,6 +117,9 @@ case $MY_DOWN_NUM in
         ;;
 esac
 
+sudo apt-get install build-essential > /dev/null 2>&1
+brew install gcc
+
 echo "${tty_green}Homebrew 安装完成，建议运行以下命令检测：${tty_reset}"
 echo "brew doctor"
 echo "FlyEnv-Homebrew安装结束"

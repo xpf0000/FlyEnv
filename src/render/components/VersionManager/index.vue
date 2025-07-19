@@ -26,12 +26,14 @@
             </el-button>
           </template>
           <template v-else-if="isLinux">
-            <template v-if="hasStatic">
-              <el-radio-button value="static">Static</el-radio-button>
-            </template>
-            <template v-if="showBrewLib !== false">
-              <el-radio-button value="brew">Homebrew</el-radio-button>
-            </template>
+            <el-radio-group v-model="libSrc" size="small">
+              <template v-if="hasStatic">
+                <el-radio-button value="static">Static</el-radio-button>
+              </template>
+              <template v-if="showBrewLib !== false">
+                <el-radio-button value="brew">Homebrew</el-radio-button>
+              </template>
+            </el-radio-group>
           </template>
         </div>
         <el-button class="button" :disabled="loading" link @click="reFetch">

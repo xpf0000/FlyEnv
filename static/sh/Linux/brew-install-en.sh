@@ -52,4 +52,7 @@ if [[ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
+sudo apt-get install build-essential > /dev/null 2>&1
+brew install gcc
+
 echo "FlyEnv-End of Homebrew installation"
