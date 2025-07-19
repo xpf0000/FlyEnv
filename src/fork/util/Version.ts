@@ -278,7 +278,9 @@ export const brewInfoJson = async (names: string[]) => {
         flag: 'brew'
       })
     })
-  } catch {}
+  } catch (e) {
+    console.error('brewInfoJson nginx: ', e)
+  }
   return info
 }
 

@@ -4,7 +4,7 @@ import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
 import type { CallbackFn } from '@shared/app.d'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { AppStartFlagChech } from './app'
 
 export default class Launcher extends EventEmitter {
@@ -53,7 +53,7 @@ export default class Launcher extends EventEmitter {
       global.application = new Application()
       global.application.start('index')
       global.application.on('ready', () => {})
-      if (isWindows()) {
+      if (isWindows() || isLinux()) {
         Menu.setApplicationMenu(null)
       }
     })

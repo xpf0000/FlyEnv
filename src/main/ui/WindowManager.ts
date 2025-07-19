@@ -5,13 +5,13 @@ import { debounce } from 'lodash-es'
 import Event = Electron.Main.Event
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
 import { join } from 'path'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isMacOS } from '@shared/utils'
 import is from 'electron-is'
 import { AppStartErrorCallback } from '../app'
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
-  autoHideMenuBar: isWindows(),
+  autoHideMenuBar: !isMacOS(),
   show: false,
   width: 1200,
   height: 800,
