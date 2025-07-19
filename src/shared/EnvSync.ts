@@ -2,6 +2,7 @@ import { join } from 'path'
 import { chmod, copyFile } from './fs-extra'
 import { appDebugLog, isWindows } from '@shared/utils'
 import { execPromise } from '@shared/child-process'
+import { existsSync } from 'fs'
 
 class EnvSync {
   AppEnv: Record<string, any> | undefined
@@ -28,11 +29,13 @@ class EnvSync {
     const file = join(global.Server.Cache!, 'env.sh')
     await copyFile(join(global.Server.Static!, 'sh/env.sh'), file)
     let text = ''
+    const shells = ['/bin/zsh', '/bin/bash', '/bin/sh']
+    const shell = shells.find((s) => existsSync(s))
     try {
       await chmod(file, '0777')
       const res = await execPromise(`./env.sh`, {
         cwd: global.Server.Cache!,
-        shell: '/bin/zsh'
+        shell
       })
       text = res.stdout
     } catch (e: any) {

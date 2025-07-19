@@ -8,7 +8,7 @@ import { chmod, remove, writeFile } from '../utils'
 import { existsSync } from 'fs'
 import EnvSync from '@shared/EnvSync'
 import type { CallbackFn } from '@shared/app'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
@@ -101,6 +101,50 @@ class NodePTY {
           pty,
           data: ''
         }
+      } else if (isLinux()) {
+        const env = await EnvSync.sync()
+        Object.assign(env!, {
+          TERM: 'xterm-256color',
+          COLORTERM: 'truecolor'
+        })
+        const pty: IPty = spawn('bash', [], {
+          name: 'xterm-color',
+          cols: 80,
+          rows: 34,
+          cwd: process.cwd(),
+          env,
+          encoding: 'utf8'
+        })
+        pty.onData((data: string) => {
+          console.log('pty.onData: ', data)
+          if (data.trim() === 'Password:') {
+            if (global.Server.Password) {
+              pty.write(`${global.Server.Password!}\r`)
+            }
+          }
+          this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
+        })
+        pty.onExit((e) => {
+          console.log('this.pty.onExit !!!!!!', e)
+          const item = this.pty[key]
+          if (item) {
+            const execFile = item?.execFile
+            if (execFile && existsSync(execFile)) {
+              remove(execFile).then().catch()
+            }
+            const task = item?.task ?? []
+            for (const t of task) {
+              const { command, key } = t
+              this._callback?.(command, key, true)
+            }
+            this.exitPtyByKey(key)
+          }
+        })
+        this.pty[key] = {
+          task: [],
+          pty,
+          data: ''
+        }
       }
       resolve(key)
     })
@@ -128,7 +172,7 @@ class NodePTY {
   }
 
   async exec(ptyKey: string, param: string[], command: string, key: string) {
-    if (isMacOS()) {
+    if (isMacOS() || isLinux()) {
       const file = join(global.Server.Cache!, `${uuid()}.sh`)
       await writeFile(file, param.join('\n'))
       await chmod(file, '0777')

@@ -4,9 +4,11 @@ import { dirname, join, resolve as PathResolve } from 'path'
 import is from 'electron-is'
 import { isLinux, isMacOS } from '@shared/utils'
 import { writeFile, stat } from '@shared/fs-extra'
+import Helper from '../../fork/Helper'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
+const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
 
 class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
@@ -15,7 +17,11 @@ class AppHelper {
     console.time('AppHelper check')
     return new Promise(async (resolve, reject) => {
       const stats = await stat(process.execPath)
-      await writeFile(Role_Path, `${stats.uid}:${stats.gid}`)
+      const role = `${stats.uid}:${stats.gid}`
+      await writeFile(Role_Path, role)
+      try {
+        Helper.send('tools', 'writeFileByRoot', Role_Path_Back, role).catch()
+      } catch {}
       const client = createConnection(SOCKET_PATH)
       client.on('connect', () => {
         console.log('Connected to the server')

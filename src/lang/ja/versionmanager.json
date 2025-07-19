@@ -1,6 +1,6 @@
 {
   "Local": "ローカル",
-  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a>が見つかりません\nHomebrewをインストールするには、インストールボタンをクリックして進めてください\nこのリンクをクリックすることもできます\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/zh/help-4-2.html')\">https://flyenv.com/zh/help-4-2.html</a>\nドキュメントに従ってインストールしてください。",
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a>が見つかりません\nHomebrewをインストールするには、インストールボタンをクリックして進めてください\nこのリンクをクリックすることもできます\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nドキュメントに従ってインストールしてください。",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a>が見つかりません。\nMacportsをインストールするには、このリンクをクリックしてください\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nドキュメントに従ってインストールしてください。",
   "brewErrorTips": "この場所 {bin} でHomebrew実行ファイルが検出されました。\nしかし、FlyEnvはそれらを呼び出すことができません。エラーメッセージ：\n{error}",
 
