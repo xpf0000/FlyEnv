@@ -23,7 +23,7 @@ import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
 import Helper from '../../Helper'
 import { EOL } from 'os'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 
 class Minio extends Base {
   constructor() {
@@ -58,6 +58,23 @@ class Minio extends Base {
         const all: any[] = [
           {
             url: `https://dl.min.io/server/minio/release/darwin-${arch}/minio`,
+            appDir: join(global.Server.AppDir!, `minio`),
+            bin,
+            zip,
+            downloaded: existsSync(zip),
+            installed: existsSync(bin),
+            version: 'lasted',
+            name: `Minio-lasted`
+          }
+        ]
+        resolve(all)
+      } else if (isLinux()) {
+        const bin = join(global.Server.AppDir!, `minio`, 'minio')
+        const zip = join(global.Server.Cache!, 'minio')
+        const arch = global.Server.isArmArch ? 'arm64' : 'amd64'
+        const all: any[] = [
+          {
+            url: `https://dl.min.io/server/minio/release/linux-${arch}/minio`,
             appDir: join(global.Server.AppDir!, `minio`),
             bin,
             zip,

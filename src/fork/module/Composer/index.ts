@@ -31,11 +31,11 @@ class Composer extends Base {
         all.forEach((a: any) => {
           let bin = ''
           let zip = ''
-          if (isMacOS()) {
-            bin = join(global.Server.AppDir!, `composer-${a.version}`, 'composer')
-            zip = join(global.Server.Cache!, `composer-${a.version}.phar`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             bin = join(global.Server.AppDir!, `composer-${a.version}`, 'composer.phar')
+            zip = join(global.Server.Cache!, `composer-${a.version}.phar`)
+          } else {
+            bin = join(global.Server.AppDir!, `composer-${a.version}`, 'composer')
             zip = join(global.Server.Cache!, `composer-${a.version}.phar`)
           }
           a.appDir = join(global.Server.AppDir!, `composer-${a.version}`)

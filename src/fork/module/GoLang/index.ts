@@ -36,12 +36,12 @@ class GoLang extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `static-go-${a.version}`, 'bin/go')
-            zip = join(global.Server.Cache!, `static-go-${a.version}.tar.gz`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `static-go-${a.version}`, 'bin/go.exe')
             zip = join(global.Server.Cache!, `static-go-${a.version}.zip`)
+          } else {
+            dir = join(global.Server.AppDir!, `static-go-${a.version}`, 'bin/go')
+            zip = join(global.Server.Cache!, `static-go-${a.version}.tar.gz`)
           }
           a.appDir = join(global.Server.AppDir!, `static-go-${a.version}`)
           a.zip = zip

@@ -204,14 +204,14 @@ class Caddy extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `static-caddy-${a.version}`, 'caddy')
-            zip = join(global.Server.Cache!, `static-caddy-${a.version}.tar.gz`)
-            a.appDir = join(global.Server.AppDir!, `static-caddy-${a.version}`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `caddy-${a.version}`, 'caddy.exe')
             zip = join(global.Server.Cache!, `caddy-${a.version}.zip`)
             a.appDir = join(global.Server.AppDir!, `caddy-${a.version}`)
+          } else {
+            dir = join(global.Server.AppDir!, `static-caddy-${a.version}`, 'caddy')
+            zip = join(global.Server.Cache!, `static-caddy-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-caddy-${a.version}`)
           }
           a.zip = zip
           a.bin = dir

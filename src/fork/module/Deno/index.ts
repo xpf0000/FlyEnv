@@ -30,11 +30,11 @@ class Deno extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `deno`, a.version, 'deno')
-            zip = join(global.Server.Cache!, `deno-${a.version}.zip`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `deno`, a.version, 'deno.exe')
+            zip = join(global.Server.Cache!, `deno-${a.version}.zip`)
+          } else {
+            dir = join(global.Server.AppDir!, `deno`, a.version, 'deno')
             zip = join(global.Server.Cache!, `deno-${a.version}.zip`)
           }
           a.appDir = join(global.Server.AppDir!, 'deno', a.version)

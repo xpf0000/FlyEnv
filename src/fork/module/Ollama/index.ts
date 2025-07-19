@@ -190,14 +190,14 @@ class Ollama extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `static-ollama-${a.version}`, 'ollama')
-            zip = join(global.Server.Cache!, `static-ollama-${a.version}.tgz`)
-            a.appDir = join(global.Server.AppDir!, `static-ollama-${a.version}`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `ollama-${a.version}`, 'ollama.exe')
             zip = join(global.Server.Cache!, `ollama-${a.version}.zip`)
             a.appDir = join(global.Server.AppDir!, `ollama-${a.version}`)
+          } else {
+            dir = join(global.Server.AppDir!, `static-ollama-${a.version}`, 'ollama')
+            zip = join(global.Server.Cache!, `static-ollama-${a.version}.tgz`)
+            a.appDir = join(global.Server.AppDir!, `static-ollama-${a.version}`)
           }
 
           a.zip = zip

@@ -132,14 +132,14 @@ class MeiliSearch extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `meilisearch-${a.version}`, 'meilisearch')
-            zip = join(global.Server.Cache!, `meilisearch-${a.version}`)
-            a.appDir = join(global.Server.AppDir!, `meilisearch-${a.version}`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `meilisearch`, a.version, 'meilisearch.exe')
             zip = join(global.Server.Cache!, `meilisearch-${a.version}.exe`)
             a.appDir = join(global.Server.AppDir!, `meilisearch`, a.version)
+          } else {
+            dir = join(global.Server.AppDir!, `meilisearch-${a.version}`, 'meilisearch')
+            zip = join(global.Server.Cache!, `meilisearch-${a.version}`)
+            a.appDir = join(global.Server.AppDir!, `meilisearch-${a.version}`)
           }
 
           a.zip = zip

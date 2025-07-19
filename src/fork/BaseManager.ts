@@ -1,5 +1,5 @@
 import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class BaseManager {
   Apache: any
@@ -87,11 +87,11 @@ class BaseManager {
       doRun(this.Nginx)
     } else if (module === 'php') {
       if (!this.Php) {
-        if (isMacOS()) {
-          const res = await import('./module/Php')
-          this.Php = res.default
-        } else if (isWindows()) {
+        if (isWindows()) {
           const res = await import('./module/Php.win')
+          this.Php = res.default
+        } else {
+          const res = await import('./module/Php')
           this.Php = res.default
         }
       }
@@ -146,11 +146,11 @@ class BaseManager {
       doRun(this.PureFtpd)
     } else if (module === 'node') {
       if (!this.Node) {
-        if (isMacOS()) {
-          const res = await import('./module/Node')
-          this.Node = res.default
-        } else if (isWindows()) {
+        if (isWindows()) {
           const res = await import('./module/Node.win')
+          this.Node = res.default
+        } else {
+          const res = await import('./module/Node')
           this.Node = res.default
         }
       }
@@ -169,11 +169,11 @@ class BaseManager {
       doRun(this.Version)
     } else if (module === 'tools') {
       if (!this.Tool) {
-        if (isMacOS()) {
-          const res = await import('./module/Tool')
-          this.Tool = res.default
-        } else if (isWindows()) {
+        if (isWindows()) {
           const res = await import('./module/Tool.win')
+          this.Tool = res.default
+        } else {
+          const res = await import('./module/Tool')
           this.Tool = res.default
         }
       }

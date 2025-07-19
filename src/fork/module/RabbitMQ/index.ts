@@ -266,7 +266,11 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
+          if (isWindows()) {
+            dir = join(global.Server.AppDir!, `rabbitmq-${a.version}`, 'sbin/rabbitmq-server.bat')
+            zip = join(global.Server.Cache!, `rabbitmq-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `rabbitmq-${a.version}`)
+          } else {
             dir = join(
               global.Server.AppDir!,
               `static-rabbitmq-${a.version}`,
@@ -274,10 +278,6 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
             )
             zip = join(global.Server.Cache!, `static-rabbitmq-${a.version}.tar.xz`)
             a.appDir = join(global.Server.AppDir!, `static-rabbitmq-${a.version}`)
-          } else if (isWindows()) {
-            dir = join(global.Server.AppDir!, `rabbitmq-${a.version}`, 'sbin/rabbitmq-server.bat')
-            zip = join(global.Server.Cache!, `rabbitmq-${a.version}.zip`)
-            a.appDir = join(global.Server.AppDir!, `rabbitmq-${a.version}`)
           }
           a.zip = zip
           a.bin = dir

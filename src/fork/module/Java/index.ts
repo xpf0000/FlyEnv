@@ -36,7 +36,11 @@ class Java extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
+          if (isWindows()) {
+            dir = join(global.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
+            zip = join(global.Server.Cache!, `${a.type}-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `${a.type}-${a.version}`)
+          } else {
             dir = join(
               global.Server.AppDir!,
               `static-${a.type}-${a.version}`,
@@ -44,10 +48,6 @@ class Java extends Base {
             )
             zip = join(global.Server.Cache!, `static-${a.type}-${a.version}.tar.gz`)
             a.appDir = join(global.Server.AppDir!, `static-${a.type}-${a.version}`)
-          } else if (isWindows()) {
-            dir = join(global.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
-            zip = join(global.Server.Cache!, `${a.type}-${a.version}.zip`)
-            a.appDir = join(global.Server.AppDir!, `${a.type}-${a.version}`)
           }
           a.zip = zip
           a.bin = dir

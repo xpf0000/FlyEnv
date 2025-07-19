@@ -35,13 +35,13 @@ class Maven extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `maven-${a.version}`, 'bin/mvn')
-            zip = join(global.Server.Cache!, `maven-${a.version}.tar.gz`)
-            a.appDir = join(global.Server.AppDir!, `maven-${a.version}`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `maven-${a.version}`, 'bin/mvn.cmd')
             zip = join(global.Server.Cache!, `maven-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `maven-${a.version}`)
+          } else {
+            dir = join(global.Server.AppDir!, `maven-${a.version}`, 'bin/mvn')
+            zip = join(global.Server.Cache!, `maven-${a.version}.tar.gz`)
             a.appDir = join(global.Server.AppDir!, `maven-${a.version}`)
           }
 

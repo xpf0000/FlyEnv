@@ -2,7 +2,7 @@ import { Base } from '../Base'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { versionDirCache } from '../../Fn'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Manager extends Base {
   Apache: any
@@ -62,11 +62,11 @@ class Manager extends Base {
           versions.nginx = this.Nginx.allInstalledVersions(setup)
         } else if (type === 'php') {
           if (!this.Php) {
-            if (isMacOS()) {
-              const res = await import('../Php')
-              this.Php = res.default
-            } else if (isWindows()) {
+            if (isWindows()) {
               const res = await import('../Php.win')
+              this.Php = res.default
+            } else {
+              const res = await import('../Php')
               this.Php = res.default
             }
           }
@@ -181,11 +181,11 @@ class Manager extends Base {
           versions.ruby = this.Ruby.allInstalledVersions(setup)
         } else if (type === 'node') {
           if (!this.Node) {
-            if (isMacOS()) {
-              const res = await import('../Node')
-              this.Node = res.default
-            } else if (isWindows()) {
+            if (isWindows()) {
               const res = await import('../Node.win')
+              this.Node = res.default
+            } else {
+              const res = await import('../Node')
               this.Node = res.default
             }
           }

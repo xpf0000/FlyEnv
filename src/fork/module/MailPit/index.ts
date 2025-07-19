@@ -182,14 +182,14 @@ class MailPit extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `static-mailpit-${a.version}`, 'mailpit')
-            zip = join(global.Server.Cache!, `static-mailpit-${a.version}.tar.gz`)
-            a.appDir = join(global.Server.AppDir!, `static-mailpit-${a.version}`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `mailpit-${a.version}`, 'mailpit.exe')
             zip = join(global.Server.Cache!, `mailpit-${a.version}.zip`)
             a.appDir = join(global.Server.AppDir!, `mailpit-${a.version}`)
+          } else {
+            dir = join(global.Server.AppDir!, `static-mailpit-${a.version}`, 'mailpit')
+            zip = join(global.Server.Cache!, `static-mailpit-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-mailpit-${a.version}`)
           }
 
           a.zip = zip

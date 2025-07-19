@@ -108,10 +108,7 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, 'elasticsearch', `v${a.version}`, 'bin/elasticsearch')
-            zip = join(global.Server.Cache!, `static-elasticsearch-${a.version}.tar.gz`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(
               global.Server.AppDir!,
               'elasticsearch',
@@ -119,6 +116,9 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
               'bin/elasticsearch.bat'
             )
             zip = join(global.Server.Cache!, `elasticsearch-${a.version}.zip`)
+          } else {
+            dir = join(global.Server.AppDir!, 'elasticsearch', `v${a.version}`, 'bin/elasticsearch')
+            zip = join(global.Server.Cache!, `static-elasticsearch-${a.version}.tar.gz`)
           }
           a.appDir = join(global.Server.AppDir!, 'elasticsearch', `v${a.version}`)
           a.zip = zip

@@ -35,14 +35,14 @@ class Rust extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `rust-${a.version}`, 'bin/cargo')
-            zip = join(global.Server.Cache!, `rust-${a.version}.tar.xz`)
-            a.appDir = join(global.Server.AppDir!, `rust-${a.version}`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `rust`, a.version, 'cargo/bin/cargo.exe')
             zip = join(global.Server.Cache!, `rust-${a.version}.tar.xz`)
             a.appDir = join(global.Server.AppDir!, `rust`, a.version)
+          } else {
+            dir = join(global.Server.AppDir!, `rust-${a.version}`, 'bin/cargo')
+            zip = join(global.Server.Cache!, `rust-${a.version}.tar.xz`)
+            a.appDir = join(global.Server.AppDir!, `rust-${a.version}`)
           }
 
           a.zip = zip

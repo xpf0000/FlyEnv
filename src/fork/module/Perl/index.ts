@@ -37,11 +37,11 @@ class Perl extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `perl`, a.version, 'perl')
-            zip = join(global.Server.Cache!, `perl-${a.version}.zip`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `perl`, a.version, 'bin/perl.exe')
+            zip = join(global.Server.Cache!, `perl-${a.version}.zip`)
+          } else {
+            dir = join(global.Server.AppDir!, `perl`, a.version, 'perl')
             zip = join(global.Server.Cache!, `perl-${a.version}.zip`)
           }
           a.appDir = join(global.Server.AppDir!, 'perl', a.version)

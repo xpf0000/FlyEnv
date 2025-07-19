@@ -130,12 +130,12 @@ log-outputs: ["stdout"]`
         all.forEach((a: any) => {
           let bin = ''
           let zip = ''
-          if (isMacOS()) {
-            bin = join(global.Server.AppDir!, `etcd`, a.version, 'etcd')
+          if (isWindows()) {
+            bin = join(global.Server.AppDir!, `etcd`, a.version, 'etcd.exe')
             zip = join(global.Server.Cache!, `etcd-${a.version}.zip`)
             a.appDir = join(global.Server.AppDir!, `etcd`, a.version)
-          } else if (isWindows()) {
-            bin = join(global.Server.AppDir!, `etcd`, a.version, 'etcd.exe')
+          } else {
+            bin = join(global.Server.AppDir!, `etcd`, a.version, 'etcd')
             zip = join(global.Server.Cache!, `etcd-${a.version}.zip`)
             a.appDir = join(global.Server.AppDir!, `etcd`, a.version)
           }

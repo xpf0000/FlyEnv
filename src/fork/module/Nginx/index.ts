@@ -215,11 +215,7 @@ class Nginx extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `nginx-${a.version}`, 'sbin/nginx')
-            zip = join(global.Server.Cache!, `static-nginx-${a.version}.tar.xz`)
-            a.appDir = join(global.Server.AppDir!, `nginx-${a.version}`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(
               global.Server.AppDir!,
               `nginx-${a.version}`,
@@ -227,6 +223,10 @@ class Nginx extends Base {
               'nginx.exe'
             )
             zip = join(global.Server.Cache!, `nginx-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `nginx-${a.version}`)
+          } else {
+            dir = join(global.Server.AppDir!, `nginx-${a.version}`, 'sbin/nginx')
+            zip = join(global.Server.Cache!, `static-nginx-${a.version}.tar.xz`)
             a.appDir = join(global.Server.AppDir!, `nginx-${a.version}`)
           }
           a.zip = zip

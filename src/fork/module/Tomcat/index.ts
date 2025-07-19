@@ -50,14 +50,14 @@ class Tomcat extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
-          if (isMacOS()) {
-            dir = join(global.Server.AppDir!, `static-tomcat-${a.version}`, 'bin/catalina.sh')
-            zip = join(global.Server.Cache!, `static-tomcat-${a.version}.tar.gz`)
-            a.appDir = join(global.Server.AppDir!, `static-tomcat-${a.version}`)
-          } else if (isWindows()) {
+          if (isWindows()) {
             dir = join(global.Server.AppDir!, `tomcat-${a.version}`, 'bin/catalina.bat')
             zip = join(global.Server.Cache!, `tomcat-${a.version}.zip`)
             a.appDir = join(global.Server.AppDir!, `tomcat-${a.version}`)
+          } else {
+            dir = join(global.Server.AppDir!, `static-tomcat-${a.version}`, 'bin/catalina.sh')
+            zip = join(global.Server.Cache!, `static-tomcat-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-tomcat-${a.version}`)
           }
 
           a.zip = zip
