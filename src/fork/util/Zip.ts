@@ -1,4 +1,4 @@
-import { appendFile, existsSync, copyFile } from '../Fn'
+import { appendFile, existsSync, copyFile, execPromise } from '../Fn'
 import { join, basename } from 'node:path'
 import { createRequire } from 'node:module'
 import { pathFixedToUnix } from '@shared/utils'
@@ -48,4 +48,27 @@ export function zipUnpack(fp: string, dist: string) {
       resolve(true)
     })
   })
+}
+
+export async function unpack(zipFile: string, dist: string) {
+  const zip: string = zipFile.trim()
+  if (zip.includes('.tar.xz')) {
+    await execPromise(`tar -xJf "${zip}" -C "${dist}"`)
+  } else if (zip.includes('.tar.gz') || zip.includes('.tgz')) {
+    await execPromise(`tar -xzf "${zip}" -C "${dist}"`)
+  } else if (zip.includes('.tar.bz2') || zip.includes('.tbz2')) {
+    await execPromise(`tar -xjf "${zip}" -C "${dist}"`)
+  } else if (zip.includes('.tar')) {
+    await execPromise(`tar -xf "${zip}" -C "${dist}"`)
+  } else if (zip.includes('.zip')) {
+    await execPromise(`unzip "${zip}" -d "${dist}"`)
+  } else if (zip.includes('.gz') && !zip.includes('.tar.gz')) {
+    await execPromise(`gzip -d "${zip}" -c > "${dist}/${zip.replace('.gz', '')}"`)
+  } else if (zip.includes('.bz2') && !zip.includes('.tar.bz2')) {
+    await execPromise(`bzip2 -d "${zip}" -c > "${dist}/${zip.replace('.bz2', '')}"`)
+  } else if (zip.includes('.xz') && !zip.includes('.tar.xz')) {
+    await execPromise(`xz -d "${zip}" -c > "${dist}/${zip.replace('.xz', '')}"`)
+  } else {
+    throw new Error(`Unsupported file format: ${zip}`)
+  }
 }

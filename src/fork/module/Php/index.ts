@@ -29,6 +29,7 @@ import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
 import { ProcessPidsByPid } from '@shared/Process'
 import Helper from '../../Helper'
+import { unpack } from '../../util/Zip'
 
 class Php extends Base {
   constructor() {
@@ -374,11 +375,11 @@ xdebug.output_dir = "${output_dir}"
         try {
           let bin = join(row.appDir, 'bin')
           await mkdirp(bin)
-          await execPromise(`tar -xzf ${cliZIP} -C ${bin}`)
+          await unpack(cliZIP, bin)
 
           bin = join(row.appDir, 'sbin')
           await mkdirp(bin)
-          await execPromise(`tar -xzf ${row.zip} -C ${bin}`)
+          await unpack(row.zip, bin)
 
           success = true
         } catch {}
@@ -426,7 +427,7 @@ xdebug.output_dir = "${output_dir}"
                   if (existsSync(row.zip)) {
                     const sbin = join(row.appDir, 'sbin')
                     await mkdirp(sbin)
-                    await execPromise(`tar -xzf ${row.zip} -C ${sbin}`)
+                    await unpack(row.zip, sbin)
                   }
                 } catch {}
                 resolve(true)
@@ -476,7 +477,7 @@ xdebug.output_dir = "${output_dir}"
                   if (existsSync(cliZIP)) {
                     const bin = join(row.appDir, 'bin')
                     await mkdirp(bin)
-                    await execPromise(`tar -xzf ${cliZIP} -C ${bin}`)
+                    await unpack(cliZIP, bin)
                   }
                 } catch {}
                 resolve(true)

@@ -21,6 +21,7 @@ import { type PItem, ProcessSearch } from '@shared/Process'
 import Helper from '../../Helper'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessPidList } from '@shared/Process.win'
+import { unpack } from '../../util/Zip'
 
 export class Base {
   type: string
@@ -344,7 +345,7 @@ export class Base {
     } else {
       const dir = row.appDir
       await mkdirp(dir)
-      await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
+      await unpack(row.zip, dir)
     }
   }
 

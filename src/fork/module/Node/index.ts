@@ -28,6 +28,7 @@ import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../../TaskQueue'
 import ncu from 'npm-check-updates'
 import { isMacOS } from '@shared/utils'
+import { unpack as unpackZip } from '../../util/Zip'
 
 class Manager extends Base {
   constructor() {
@@ -264,7 +265,7 @@ class Manager extends Base {
 
           const unpack = async () => {
             try {
-              await execPromise(`tar -xzf ${zip} -C ${destDir}`)
+              await unpackZip(zip, destDir)
               await moveChildDirToParent(destDir)
             } catch (e) {
               return e
