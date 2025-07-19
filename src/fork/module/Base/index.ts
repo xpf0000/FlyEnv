@@ -19,7 +19,7 @@ import * as http from 'http'
 import * as https from 'https'
 import { type PItem, ProcessSearch } from '@shared/Process'
 import Helper from '../../Helper'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessPidList } from '@shared/Process.win'
 
 export class Base {
@@ -163,7 +163,12 @@ export class Base {
       }
       const serverName = dis?.[this.type]
       if (serverName) {
-        if (isMacOS()) {
+        if (isWindows()) {
+          const all = ProcessSearch(serverName, false, plist)
+            .filter((item) => item.COMMAND.includes('PhpWebStudy-Data'))
+            .map((m) => `${m.PID}`)
+          allPid.push(...all)
+        } else {
           const pids = ProcessSearch(serverName, false, plist)
             .filter((p) => {
               return (
@@ -182,17 +187,19 @@ export class Base {
             })
             .map((p) => p.PID)
           allPid.push(...pids)
-        } else if (isWindows()) {
-          const all = ProcessSearch(serverName, false, plist)
-            .filter((item) => item.COMMAND.includes('PhpWebStudy-Data'))
-            .map((m) => `${m.PID}`)
-          allPid.push(...all)
         }
       }
       console.log('_stopServer searchName pids: ', serverName, [...allPid])
 
       const arr: string[] = Array.from(new Set(allPid))
-      if (isMacOS()) {
+      if (isWindows()) {
+        if (arr.length > 0) {
+          const str = arr.map((s) => `/pid ${s}`).join(' ')
+          try {
+            await execPromise(`taskkill /f /t ${str}`)
+          } catch {}
+        }
+      } else {
         if (arr.length > 0) {
           let sig = ''
           switch (this.type) {
@@ -211,13 +218,6 @@ export class Base {
           }
           try {
             await Helper.send('tools', 'kill', sig, arr)
-          } catch {}
-        }
-      } else if (isWindows()) {
-        if (arr.length > 0) {
-          const str = arr.map((s) => `/pid ${s}`).join(' ')
-          try {
-            await execPromise(`taskkill /f /t ${str}`)
           } catch {}
         }
       }
@@ -314,6 +314,12 @@ export class Base {
           os: 'win',
           arch: 'x86'
         }
+      } else if (isLinux()) {
+        data = {
+          app,
+          os: 'linux',
+          arch: global.Server.Arch === 'x86_64' ? 'x86' : 'arm'
+        }
       }
       const res = await axios({
         url: 'https://api.one-env.com/api/version/fetch',
@@ -335,7 +341,7 @@ export class Base {
   async _installSoftHandle(row: any) {
     if (isWindows()) {
       await zipUnpack(row.zip, row.appDir)
-    } else if (isMacOS()) {
+    } else {
       const dir = row.appDir
       await mkdirp(dir)
       await execPromise(`tar -xzf ${row.zip} -C ${dir}`)

@@ -197,15 +197,7 @@ class MeiliSearch extends Base {
   }
 
   async _installSoftHandle(row: any): Promise<void> {
-    if (isMacOS()) {
-      const command = `cd "${dirname(row.bin)}" && ./${basename(row.bin)} --version`
-      console.log('command: ', command)
-      await mkdirp(dirname(row.bin))
-      await copyFile(row.zip, row.bin)
-      await chmod(row.bin, '0777')
-      await waitTime(500)
-      await execPromise(command)
-    } else if (isWindows()) {
+    if (isWindows()) {
       await waitTime(500)
       await mkdirp(dirname(row.bin))
       try {
@@ -222,6 +214,14 @@ class MeiliSearch extends Base {
         await appDebugLog('[handleMeilisearch][error]', e.toString())
         throw e
       }
+    } else {
+      const command = `cd "${dirname(row.bin)}" && ./${basename(row.bin)} --version`
+      console.log('command: ', command)
+      await mkdirp(dirname(row.bin))
+      await copyFile(row.zip, row.bin)
+      await chmod(row.bin, '0777')
+      await waitTime(500)
+      await execPromise(command)
     }
   }
 

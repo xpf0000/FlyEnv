@@ -55,14 +55,7 @@ class Composer extends Base {
   }
 
   async _installSoftHandle(row: any): Promise<void> {
-    if (isMacOS()) {
-      if (!existsSync(row.appDir)) {
-        await mkdirp(row.appDir)
-      }
-      const bin = join(row.appDir, 'composer')
-      await copyFile(row.zip, bin)
-      await chmod(bin, '0777')
-    } else if (isWindows()) {
+    if (isWindows()) {
       if (!existsSync(row.appDir)) {
         await mkdirp(row.appDir)
       }
@@ -72,6 +65,13 @@ class Composer extends Base {
         `@echo off
 php "%~dp0composer.phar" %*`
       )
+    } else {
+      if (!existsSync(row.appDir)) {
+        await mkdirp(row.appDir)
+      }
+      const bin = join(row.appDir, 'composer')
+      await copyFile(row.zip, bin)
+      await chmod(bin, '0777')
     }
   }
 

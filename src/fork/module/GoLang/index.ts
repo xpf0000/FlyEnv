@@ -108,7 +108,7 @@ class GoLang extends Base {
       await mkdirp(row.appDir)
       await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
-    } else if (isMacOS()) {
+    } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
       const subDirs = await readdir(dir)

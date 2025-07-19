@@ -301,7 +301,12 @@ export CATALINA_PID="${this.pidPath}"`
   }
 
   async _installSoftHandle(row: any): Promise<void> {
-    if (isMacOS()) {
+    if (isWindows()) {
+      await remove(row.appDir)
+      await mkdirp(row.appDir)
+      await zipUnpack(row.zip, row.appDir)
+      await moveChildDirToParent(row.appDir)
+    } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
       const subDirs = await readdir(dir)
@@ -311,11 +316,6 @@ export CATALINA_PID="${this.pidPath}"`
         await waitTime(300)
         await remove(join(dir, subDir))
       }
-    } else if (isWindows()) {
-      await remove(row.appDir)
-      await mkdirp(row.appDir)
-      await zipUnpack(row.zip, row.appDir)
-      await moveChildDirToParent(row.appDir)
     }
   }
 

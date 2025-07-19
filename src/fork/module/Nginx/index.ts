@@ -285,7 +285,7 @@ class Nginx extends Base {
 
   async _installSoftHandle(row: any): Promise<void> {
     await super._installSoftHandle(row)
-    if (isMacOS()) {
+    if (!isWindows()) {
       const dir = row.appDir
       const subDirs = await readdir(dir)
       const subDir = subDirs.pop()

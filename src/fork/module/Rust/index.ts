@@ -115,7 +115,21 @@ class Rust extends Base {
   }
 
   async _installSoftHandle(row: any): Promise<void> {
-    if (isMacOS()) {
+    if (isWindows()) {
+      await remove(row.appDir)
+      await mkdirp(row.appDir)
+      const cacheDir = join(global.Server.Cache!, uuid())
+      await mkdirp(cacheDir)
+      await zipUnpack(row.zip, cacheDir)
+      const files = await readdir(cacheDir)
+      const find = files.find((f) => f.includes('.tar'))
+      if (!find) {
+        throw new Error('UnZIP failed')
+      }
+      await zipUnpack(join(cacheDir, find), row.appDir)
+      await moveChildDirToParent(row.appDir)
+      await remove(cacheDir)
+    } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
       let subDirs = await readdir(dir)
@@ -143,20 +157,6 @@ class Rust extends Base {
           }
         }
       }
-    } else if (isWindows()) {
-      await remove(row.appDir)
-      await mkdirp(row.appDir)
-      const cacheDir = join(global.Server.Cache!, uuid())
-      await mkdirp(cacheDir)
-      await zipUnpack(row.zip, cacheDir)
-      const files = await readdir(cacheDir)
-      const find = files.find((f) => f.includes('.tar'))
-      if (!find) {
-        throw new Error('UnZIP failed')
-      }
-      await zipUnpack(join(cacheDir, find), row.appDir)
-      await moveChildDirToParent(row.appDir)
-      await remove(cacheDir)
     }
   }
 

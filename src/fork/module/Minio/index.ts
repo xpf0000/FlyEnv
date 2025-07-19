@@ -262,16 +262,16 @@ class Minio extends Base {
   }
 
   async _installSoftHandle(row: any): Promise<void> {
-    if (isMacOS()) {
+    if (isWindows()) {
+      await mkdirp(dirname(row.bin))
+      await copyFile(row.zip, row.bin)
+    } else {
       await mkdirp(dirname(row.bin))
       await copyFile(row.zip, row.bin)
       await chmod(row.bin, '0777')
       try {
         await Helper.send('mailpit', 'binFixed', row.bin)
       } catch {}
-    } else if (isWindows()) {
-      await mkdirp(dirname(row.bin))
-      await copyFile(row.zip, row.bin)
     }
 
     await spawnPromise(basename(row.bin), ['--version'], {

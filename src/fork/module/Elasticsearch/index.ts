@@ -181,7 +181,12 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
   }
 
   async _installSoftHandle(row: any): Promise<void> {
-    if (isMacOS()) {
+    if (isWindows()) {
+      await remove(row.appDir)
+      await mkdirp(row.appDir)
+      await zipUnpack(row.zip, row.appDir)
+      await moveChildDirToParent(row.appDir)
+    } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
       const subDirs = await readdir(dir)
@@ -191,11 +196,6 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
         await waitTime(300)
         await remove(join(dir, subDir))
       }
-    } else if (isWindows()) {
-      await remove(row.appDir)
-      await mkdirp(row.appDir)
-      await zipUnpack(row.zip, row.appDir)
-      await moveChildDirToParent(row.appDir)
     }
   }
 

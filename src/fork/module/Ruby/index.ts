@@ -92,13 +92,13 @@ class Ruby extends Base {
   }
 
   async _installSoftHandle(row: any): Promise<void> {
-    if (isMacOS()) {
-      await super._installSoftHandle(row)
-    } else if (isWindows()) {
+    if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
       await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
+    } else {
+      await super._installSoftHandle(row)
     }
   }
 
