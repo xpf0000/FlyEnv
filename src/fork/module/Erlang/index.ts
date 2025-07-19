@@ -49,11 +49,11 @@ class Erlang extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.erlang?.dirs ?? [], 'erl.exe')]
+      } else {
         const dir = [...(setup?.erlang?.dirs ?? []), '/opt/local/lib']
         all = [versionLocalFetch(dir, 'erl', 'erlang')]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.erlang?.dirs ?? [], 'erl.exe')]
       }
 
       Promise.all(all)

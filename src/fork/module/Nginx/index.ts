@@ -18,10 +18,7 @@ import {
   mkdirp,
   zipUnpack,
   serviceStartExecCMD,
-  readdir,
-  execPromise,
-  waitTime,
-  remove
+  moveChildDirToParent
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
@@ -246,10 +243,10 @@ class Nginx extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.nginx?.dirs ?? [], 'nginx', 'nginx')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.nginx?.dirs ?? [], 'nginx.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.nginx?.dirs ?? [], 'nginx', 'nginx')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -287,13 +284,7 @@ class Nginx extends Base {
     await super._installSoftHandle(row)
     if (!isWindows()) {
       const dir = row.appDir
-      const subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
+      await moveChildDirToParent(dir)
     }
   }
 

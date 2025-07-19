@@ -404,13 +404,13 @@ datadir=${dataDir}`
         .map((f) => `lib/${f}/bin/mariadbd-safe`)
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe')]
+      } else {
         all = [
           versionLocalFetch(setup?.mariadbd?.dirs ?? [], 'mariadbd-safe', 'mariadb'),
           versionMacportsFetch(fpms)
         ]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

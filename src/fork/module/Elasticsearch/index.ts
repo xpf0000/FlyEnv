@@ -12,11 +12,8 @@ import {
   versionFixed,
   versionLocalFetch,
   versionSort,
-  readdir,
   mkdirp,
   serviceStartExecCMD,
-  execPromise,
-  waitTime,
   remove,
   zipUnpack,
   moveChildDirToParent
@@ -138,12 +135,12 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.elasticsearch?.dirs ?? [], 'elasticsearch.bat')]
+      } else {
         all = [
           versionLocalFetch(setup?.elasticsearch?.dirs ?? [], 'elasticsearch', 'elasticsearch')
         ]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.elasticsearch?.dirs ?? [], 'elasticsearch.bat')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -189,13 +186,7 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
-      const subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
+      await moveChildDirToParent(dir)
     }
   }
 

@@ -4,21 +4,18 @@ import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
-  execPromise,
   mkdirp,
   moveChildDirToParent,
-  readdir,
   remove,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
   versionSort,
-  waitTime,
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 import Helper from '../../Helper'
 
 class Bun extends Base {
@@ -59,10 +56,10 @@ class Bun extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.bun?.dirs ?? [], 'bun', 'bun')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.bun?.dirs ?? [], 'bun.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.bun?.dirs ?? [], 'bun', 'bun')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -105,14 +102,10 @@ class Bun extends Base {
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
-      const subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
-      await Helper.send('mailpit', 'binFixed', row.bin)
+      await moveChildDirToParent(dir)
+      try {
+        await Helper.send('mailpit', 'binFixed', row.bin)
+      } catch {}
     }
   }
 }

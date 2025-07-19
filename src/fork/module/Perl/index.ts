@@ -5,12 +5,10 @@ import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
-  execPromise,
   getAllFileAsync,
   mkdirp,
   moveChildDirToParent,
   portSearch,
-  readdir,
   remove,
   versionBinVersion,
   versionFilterSame,
@@ -18,11 +16,10 @@ import {
   versionLocalFetch,
   versionMacportsFetch,
   versionSort,
-  waitTime,
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Perl extends Base {
   constructor() {
@@ -62,7 +59,9 @@ class Perl extends Base {
     return new ForkPromise(async (resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.perl?.dirs ?? [], 'perl.exe')]
+      } else {
         const base = '/opt/local/bin'
         const allSbinFile = await getAllFileAsync(base, false)
         const bins = allSbinFile.filter((f) => f.startsWith('perl5')).map((f) => `bin/${f}`)
@@ -70,8 +69,6 @@ class Perl extends Base {
           versionLocalFetch(setup?.perl?.dirs ?? [], 'perl', 'perl'),
           versionMacportsFetch(bins)
         ]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.perl?.dirs ?? [], 'perl.exe')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -114,13 +111,7 @@ class Perl extends Base {
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
-      const subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
+      await moveChildDirToParent(dir)
     }
   }
 

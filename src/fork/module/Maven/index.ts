@@ -5,22 +5,19 @@ import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
-  execPromise,
   mkdirp,
   moveChildDirToParent,
   portSearch,
-  readdir,
   remove,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
   versionSort,
-  waitTime,
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Maven extends Base {
   constructor() {
@@ -64,11 +61,11 @@ class Maven extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.maven?.dirs ?? [], 'mvn.cmd')]
+      } else {
         const dirs = setup?.maven?.dirs ?? []
         all = [versionLocalFetch([...dirs, '/opt/local/share/java/'], 'mvn', 'maven')]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.maven?.dirs ?? [], 'mvn.cmd')]
       }
 
       Promise.all(all)
@@ -112,13 +109,7 @@ class Maven extends Base {
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
-      const subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
+      await moveChildDirToParent(dir)
     }
   }
 

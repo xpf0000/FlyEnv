@@ -247,13 +247,13 @@ class Manager extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.mongodb?.dirs ?? [], 'mongod.exe')]
+      } else {
         all = [
           versionLocalFetch(setup?.mongodb?.dirs ?? [], 'mongod', 'mongodb-'),
           versionMacportsFetch(['bin/mongod', 'sbin/mongod'])
         ]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.mongodb?.dirs ?? [], 'mongod.exe')]
       }
 
       Promise.all(all)

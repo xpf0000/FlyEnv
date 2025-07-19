@@ -217,10 +217,10 @@ class Ollama extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama', 'ollama')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama', 'ollama')]
       }
       Promise.all(all)
         .then(async (list) => {

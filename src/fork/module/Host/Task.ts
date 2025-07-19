@@ -129,13 +129,13 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
         const tmplDir = join(global.Server.Cache!, 'phpMyAdmin-tmpl')
         try {
           await compressing.zip.uncompress(zipFile, tmplDir)
-          const subDirs = await readdir(tmplDir)
-          const subDir = subDirs.pop()
+          const subDirs = await readdir(tmplDir, { withFileTypes: true })
+          const subDir = subDirs.filter((f) => f.isDirectory()).pop()
           if (subDir) {
             if (isWindows()) {
-              await moveDirToDir(join(tmplDir, subDir), siteDir)
+              await moveDirToDir(join(tmplDir, subDir.name), siteDir)
             } else {
-              await execPromise(`cd ${join(tmplDir, subDir)} && mv ./* ${siteDir}/`)
+              await execPromise(`cd ${join(tmplDir, subDir.name)} && mv ./* ${siteDir}/`)
             }
             await waitTime(300)
             await remove(tmplDir)

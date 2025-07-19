@@ -21,7 +21,7 @@ import {
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isWindows } from '@shared/utils'
 import { ProcessPidList } from '@shared/Process.win'
 
 class Python extends Base {
@@ -56,7 +56,9 @@ class Python extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.python?.dirs ?? [], 'python.exe')]
+      } else {
         all = [
           versionLocalFetch(
             [
@@ -68,8 +70,6 @@ class Python extends Base {
             ['libexec/bin/python', 'bin/python3']
           )
         ]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.python?.dirs ?? [], 'python.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

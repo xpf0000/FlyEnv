@@ -209,10 +209,10 @@ class MailPit extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit', 'mailpit')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit', 'mailpit')]
       }
       Promise.all(all)
         .then(async (list) => {

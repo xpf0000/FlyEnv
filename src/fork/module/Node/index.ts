@@ -16,7 +16,8 @@ import {
   realpath,
   remove,
   mkdirp,
-  fetchPathByBin
+  fetchPathByBin,
+  moveChildDirToParent
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { basename, dirname, join } from 'path'
@@ -26,6 +27,7 @@ import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../../TaskQueue'
 import ncu from 'npm-check-updates'
+import { isMacOS } from '@shared/utils'
 
 class Manager extends Base {
   constructor() {
@@ -248,7 +250,8 @@ class Manager extends Base {
           })
         } else {
           const arch = global.Server.isArmArch ? 'arm64' : 'x64'
-          const url = `https://nodejs.org/dist/v${version}/node-v${version}-darwin-${arch}.tar.xz`
+          const os = isMacOS() ? 'darwin' : 'linux'
+          const url = `https://nodejs.org/dist/v${version}/node-v${version}-${os}-${arch}.tar.xz`
           const destDir = join(global.Server.AppDir!, `nodejs/v${version}`)
           if (existsSync(destDir)) {
             try {
@@ -262,12 +265,7 @@ class Manager extends Base {
           const unpack = async () => {
             try {
               await execPromise(`tar -xzf ${zip} -C ${destDir}`)
-              const subDirs = await readdir(destDir)
-              const subDir = subDirs.pop()
-              if (subDir) {
-                await execPromise(`cd ${join(destDir, subDir)} && mv ./* ../`)
-                await remove(join(destDir, subDir))
-              }
+              await moveChildDirToParent(destDir)
             } catch (e) {
               return e
             }

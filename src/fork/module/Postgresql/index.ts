@@ -330,13 +330,13 @@ export LANG="${global.Server.Local!}"
         .map((f) => `lib/${f}/bin/pg_ctl`)
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.postgresql?.dirs ?? [], 'pg_ctl.exe')]
+      } else {
         all = [
           versionLocalFetch(setup?.apache?.dirs ?? [], 'pg_ctl', 'postgresql'),
           versionMacportsFetch(fpms)
         ]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.postgresql?.dirs ?? [], 'pg_ctl.exe')]
       }
 
       Promise.all(all)

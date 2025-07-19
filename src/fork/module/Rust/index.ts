@@ -14,7 +14,6 @@ import {
   versionFixed,
   versionLocalFetch,
   versionSort,
-  waitTime,
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
@@ -132,16 +131,10 @@ class Rust extends Base {
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
-      let subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
+      await moveChildDirToParent(dir)
       const appBinDir = join(row.appDir, 'bin')
       await mkdirp(appBinDir)
-      subDirs = await readdir(row.appDir)
+      const subDirs = await readdir(row.appDir)
       for (const d of subDirs) {
         const binDir = join(row.appDir, d, 'bin')
         if (existsSync(binDir)) {

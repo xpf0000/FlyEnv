@@ -299,10 +299,10 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
       }
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.rabbitmq?.dirs ?? [], 'rabbitmq-server', 'rabbitmq')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.rabbitmq?.dirs ?? [], 'rabbitmq-server.bat')]
+      } else {
+        all = [versionLocalFetch(setup?.rabbitmq?.dirs ?? [], 'rabbitmq-server', 'rabbitmq')]
       }
       Promise.all(all)
         .then(async (list) => {

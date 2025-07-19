@@ -16,7 +16,7 @@ import {
   writeFile
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Composer extends Base {
   constructor() {
@@ -110,10 +110,10 @@ php "%~dp0composer.phar" %*`
       }
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.composer?.dirs ?? [], 'composer', 'composer')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.composer?.dirs ?? [], 'composer.phar')]
+      } else {
+        all = [versionLocalFetch(setup?.composer?.dirs ?? [], 'composer', 'composer')]
       }
       Promise.all(all)
         .then(async (list) => {

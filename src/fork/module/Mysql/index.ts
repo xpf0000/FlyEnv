@@ -802,13 +802,13 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         .map((f) => `lib/${f}/bin/mysqld_safe`)
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.mysql?.dirs ?? [], 'mysqld.exe')]
+      } else {
         all = [
           versionLocalFetch(setup?.mysql?.dirs ?? [], 'mysqld_safe', 'mysql'),
           versionMacportsFetch(fpms)
         ]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.mysql?.dirs ?? [], 'mysqld.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

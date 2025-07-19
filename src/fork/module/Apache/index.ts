@@ -414,10 +414,10 @@ IncludeOptional "${vhost}"`
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.apache?.dirs ?? [], 'apachectl', 'httpd')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.apache?.dirs ?? [], 'httpd.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.apache?.dirs ?? [], 'apachectl', 'httpd')]
       }
       Promise.all(all)
         .then(async (list) => {

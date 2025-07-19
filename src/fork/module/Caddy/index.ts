@@ -230,10 +230,10 @@ class Caddy extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy', 'caddy')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy', 'caddy')]
       }
       Promise.all(all)
         .then(async (list) => {

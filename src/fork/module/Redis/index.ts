@@ -213,10 +213,10 @@ class Redis extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.redis?.dirs ?? [], 'redis-server', 'redis')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.redis?.dirs ?? [], 'redis-server.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.redis?.dirs ?? [], 'redis-server', 'redis')]
       }
       Promise.all(all)
         .then(async (list) => {

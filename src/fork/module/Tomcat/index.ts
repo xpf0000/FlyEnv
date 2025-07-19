@@ -20,8 +20,6 @@ import {
   writeFile,
   serviceStartExecCMD,
   waitTime,
-  readdir,
-  execPromise,
   remove,
   zipUnpack,
   moveChildDirToParent
@@ -245,10 +243,10 @@ export CATALINA_PID="${this.pidPath}"`
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.tomcat?.dirs ?? [], 'catalina.sh', 'tomcat')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.tomcat?.dirs ?? [], 'catalina.bat')]
+      } else {
+        all = [versionLocalFetch(setup?.tomcat?.dirs ?? [], 'catalina.sh', 'tomcat')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -309,13 +307,7 @@ export CATALINA_PID="${this.pidPath}"`
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
-      const subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
+      await moveChildDirToParent(dir)
     }
   }
 

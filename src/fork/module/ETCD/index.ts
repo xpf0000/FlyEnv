@@ -14,9 +14,6 @@ import {
   writeFile,
   mkdirp,
   serviceStartExecWin,
-  readdir,
-  execPromise,
-  waitTime,
   remove,
   zipUnpack,
   moveChildDirToParent
@@ -156,10 +153,10 @@ log-outputs: ["stdout"]`
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.etcd?.dirs ?? [], 'etcd', 'etcd')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.etcd?.dirs ?? [], 'etcd.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.etcd?.dirs ?? [], 'etcd', 'etcd')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -202,13 +199,7 @@ log-outputs: ["stdout"]`
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
-      const subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
+      await moveChildDirToParent(dir)
     }
   }
 

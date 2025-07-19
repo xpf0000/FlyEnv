@@ -18,7 +18,7 @@ import {
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Ruby extends Base {
   constructor() {
@@ -51,12 +51,12 @@ class Ruby extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        const dir = [...(setup?.ruby?.dirs ?? []), '/opt/local/lib']
-        all = [versionLocalFetch(dir, 'ruby', 'ruby')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         const dir = [...(setup?.ruby?.dirs ?? [])]
         all = [versionLocalFetch(dir, 'ruby.exe')]
+      } else {
+        const dir = [...(setup?.ruby?.dirs ?? []), '/opt/local/lib']
+        all = [versionLocalFetch(dir, 'ruby', 'ruby')]
       }
 
       Promise.all(all)

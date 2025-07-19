@@ -113,10 +113,10 @@ class Memcached extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached', 'memcached')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached', 'memcached')]
       }
       Promise.all(all)
         .then(async (list) => {

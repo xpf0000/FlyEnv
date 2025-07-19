@@ -6,22 +6,19 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
   brewSearch,
-  execPromise,
   mkdirp,
   moveChildDirToParent,
   portSearch,
-  readdir,
   remove,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
   versionSort,
-  waitTime,
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Java extends Base {
   constructor() {
@@ -67,7 +64,9 @@ class Java extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.java?.dirs ?? [], 'java.exe')]
+      } else {
         all = [
           versionLocalFetch(
             [...(setup?.java?.dirs ?? []), '/Library/Java/JavaVirtualMachines'],
@@ -76,8 +75,6 @@ class Java extends Base {
             ['Contents/Home/bin/java']
           )
         ]
-      } else if (isWindows()) {
-        all = [versionLocalFetch(setup?.java?.dirs ?? [], 'java.exe')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -120,13 +117,7 @@ class Java extends Base {
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
-      const subDirs = await readdir(dir)
-      const subDir = subDirs.pop()
-      if (subDir) {
-        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-        await waitTime(300)
-        await remove(join(dir, subDir))
-      }
+      await moveChildDirToParent(dir)
     }
   }
 

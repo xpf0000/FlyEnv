@@ -159,10 +159,10 @@ class MeiliSearch extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.meilisearch?.dirs ?? [], 'meilisearch', 'meilisearch')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.meilisearch?.dirs ?? [], 'meilisearch.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.meilisearch?.dirs ?? [], 'meilisearch', 'meilisearch')]
       }
       Promise.all(all)
         .then(async (list) => {
