@@ -72,7 +72,7 @@ class Nginx extends Base {
       }
       let content = await readFile(c, 'utf-8')
       const uinfo = userInfo()
-      const regex = new RegExp(`([#;\\s]*?)user([\\s]+)(.*?);([^\\n])*(\\n|$)`, 'gm')
+      const regex = new RegExp(`([#;\\s]*?)user([\\s]+)(.*?);(.*?)([^\\n])*(\\n|$)`, 'gm')
       if (regex.test(content)) {
         content = content.replace(regex, ``)
       }
