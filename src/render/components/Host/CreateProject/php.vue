@@ -112,12 +112,12 @@
   }
 
   let CreateVM: any
-  if (window.Server.isMacOS) {
-    import('./phpCreate.vue').then((res) => {
+  if (window.Server.isWindows) {
+    import('./phpCreate.win.vue').then((res) => {
       CreateVM = res.default
     })
-  } else if (window.Server.isWindows) {
-    import('./phpCreate.win.vue').then((res) => {
+  } else {
+    import('./phpCreate.vue').then((res) => {
       CreateVM = res.default
     })
   }

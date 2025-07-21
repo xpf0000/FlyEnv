@@ -27,22 +27,16 @@
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const file = computed(() => {
-    if (window.Server.isMacOS) {
-      return join(window.Server.NginxDir!, 'common/conf/nginx.conf')
-    }
     if (window.Server.isWindows) {
       return join(window.Server.NginxDir!, 'conf/nginx.conf')
     }
-    return ''
+    return join(window.Server.NginxDir!, 'common/conf/nginx.conf')
   })
   const defaultFile = computed(() => {
-    if (window.Server.isMacOS) {
-      return join(window.Server.NginxDir!, 'common/conf/nginx.conf.default')
-    }
     if (window.Server.isWindows) {
       return join(window.Server.NginxDir!, 'conf/nginx.conf.default')
     }
-    return ''
+    return join(window.Server.NginxDir!, 'common/conf/nginx.conf.default')
   })
 
   const names: CommonSetItem[] = [

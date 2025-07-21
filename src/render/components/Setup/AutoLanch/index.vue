@@ -72,14 +72,6 @@
       return store.config.setup?.autoLaunch ?? false
     },
     set(v) {
-      if (isMacOS.value) {
-        store.config.setup.autoLaunch = v
-        app.setLoginItemSettings({
-          openAtLogin: v
-        })
-        store.saveConfig()
-        return
-      }
       if (isWindows.value) {
         setAutoStart(v)
           .then(() => {
@@ -87,6 +79,12 @@
             store.saveConfig()
           })
           .catch()
+      } else {
+        store.config.setup.autoLaunch = v
+        app.setLoginItemSettings({
+          openAtLogin: v
+        })
+        store.saveConfig()
       }
     }
   })
@@ -98,7 +96,7 @@
       store.config.setup.autoLaunch = setting.openAtLogin
     }
   }
-  if (isMacOS.value) {
+  if (isMacOS.value || isLinux.value) {
     sysnAutoLunach()
   }
 </script>

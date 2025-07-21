@@ -21,11 +21,9 @@
 
   const log = ref()
   const filepath = computed(() => {
-    if (window.Server.isMacOS) {
-      return join(window.Server.NginxDir!, `common/logs/${props.type}.log`)
-    } else if (window.Server.isWindows) {
+    if (window.Server.isWindows) {
       return join(window.Server.NginxDir!, `logs/${props.type}.log`)
     }
-    return ''
+    return join(window.Server.NginxDir!, `common/logs/${props.type}.log`)
   })
 </script>
