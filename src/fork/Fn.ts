@@ -344,7 +344,21 @@ export async function waitPidFile(
       }
     | false = false
   if (existsSync(pidFile)) {
-    const pid = (await readFile(pidFile, 'utf-8')).trim()
+    let pid = ''
+    let error = false
+    try {
+      pid = (await readFile(pidFile, 'utf-8')).trim()
+    } catch {
+      error = true
+    }
+    if (error && !isWindows()) {
+      try {
+        pid = ((await Helper.send('tools', 'readFileByRoot', pidFile)) as string).trim()
+      } catch {}
+    }
+    if (!pid) {
+      return false
+    }
     return {
       pid
     }
