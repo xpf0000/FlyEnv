@@ -24,6 +24,7 @@ import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { I18nT } from '@lang/index'
 import { isLinux, isWindows } from '@shared/utils'
+import { userInfo } from 'node:os'
 
 class Nginx extends Base {
   constructor() {
@@ -70,6 +71,13 @@ class Nginx extends Base {
         return resolve(true)
       }
       let content = await readFile(c, 'utf-8')
+      const uinfo = userInfo()
+      const regex = new RegExp(`(.*?)user([\s]+)(.*?);([^\\n])*(\\n|$)`, 'gm')
+      if (regex.test(content)) {
+        content = content.replace(regex, `user ${uinfo.username};\n`)
+      } else {
+        content = `user ${uinfo.username};\n` + content
+      }
       const add: string[] = [
         'client_body_temp',
         'proxy_temp',
