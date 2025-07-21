@@ -28,6 +28,7 @@ export type ServiceStartParams = {
   timeToWait?: number
   checkPidFile?: boolean
   cwd?: string
+  root?: boolean
 }
 
 export async function serviceStartExec(
@@ -81,12 +82,20 @@ export async function serviceStartExec(
   let res: any
   let error: any
   const shell = isMacOS() ? 'zsh' : 'bash'
-  try {
-    res = await spawnPromiseWithEnv(shell, [psName], {
-      cwd: baseDir
-    })
-  } catch (e) {
-    error = e
+  if (param?.root) {
+    try {
+      res = await Helper.send('apache', 'startService', `${shell} "${psPath}"`)
+    } catch (e) {
+      error = e
+    }
+  } else {
+    try {
+      res = await spawnPromiseWithEnv(shell, [psName], {
+        cwd: baseDir
+      })
+    } catch (e) {
+      error = e
+    }
   }
 
   on({

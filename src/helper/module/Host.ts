@@ -57,6 +57,7 @@ class Manager extends BaseManager {
         const commonCaPaths = [
           '/etc/ssl/certs/',
           '/usr/local/share/ca-certificates/',
+          '/etc/pki/ca-trust/source/anchors',
           '/etc/pki/ca-trust/extracted/pem/', // CentOS/RHEL/Fedora 提取的路径
           '/etc/pki/tls/certs/'
         ]

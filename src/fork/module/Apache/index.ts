@@ -24,7 +24,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
-import { isWindows, pathFixedToUnix } from '@shared/utils'
+import { isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
 
 class Apache extends Base {
   constructor() {
@@ -370,6 +370,7 @@ IncludeOptional "${vhost}"`
 
         try {
           const res = await serviceStartExec({
+            root: isLinux(),
             version,
             pidPath: pidFile,
             baseDir,
