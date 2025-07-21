@@ -21,7 +21,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Elasticsearch extends Base {
   constructor() {
@@ -46,31 +46,7 @@ class Elasticsearch extends Base {
       const baseDir = join(global.Server.BaseDir!, `elasticsearch`)
       await mkdirp(baseDir)
 
-      if (isMacOS()) {
-        const execEnv = `export ES_HOME="${version.path}"
-export ES_PATH_CONF="${join(version.path, 'config')}"
-`
-        const execArgs = `-d -p "${this.pidPath}"`
-
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on,
-            maxTime: 60,
-            timeToWait: 2000
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else if (isWindows()) {
+      if (isWindows()) {
         const execEnv = `set "ES_HOME=${version.path}"
 set "ES_PATH_CONF=${join(version.path, 'config')}"
 `
@@ -87,6 +63,30 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
             on,
             maxTime: 120,
             timeToWait: 1000
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else {
+        const execEnv = `export ES_HOME="${version.path}"
+export ES_PATH_CONF="${join(version.path, 'config')}"
+`
+        const execArgs = `-d -p "${this.pidPath}"`
+
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            maxTime: 60,
+            timeToWait: 2000
           })
           resolve(res)
         } catch (e: any) {

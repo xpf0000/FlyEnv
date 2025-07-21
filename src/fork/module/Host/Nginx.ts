@@ -201,7 +201,11 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
           }
           if (hasErr) {
             try {
-              const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
+              const content: string = (await Helper.send(
+                'tools',
+                'readFileByRoot',
+                f.oldFile
+              )) as any
               await writeFile(f.newFile, content)
             } catch {}
           }

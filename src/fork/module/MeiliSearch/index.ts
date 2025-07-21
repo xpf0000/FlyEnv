@@ -25,7 +25,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
-import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isWindows } from '@shared/utils'
 
 class MeiliSearch extends Base {
   constructor() {
@@ -79,27 +79,7 @@ class MeiliSearch extends Base {
 
       const baseDir = join(global.Server.BaseDir!, 'meilisearch')
 
-      if (isMacOS()) {
-        const execArgs = `--config-file-path "${iniFile}"`
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            on,
-            timeToWait: 1000,
-            checkPidFile: false,
-            cwd: working_dir
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else if (isWindows()) {
+      if (isWindows()) {
         const execArgs = `--config-file-path \`"${iniFile}\`"`
         const execEnv = ``
 
@@ -114,6 +94,26 @@ class MeiliSearch extends Base {
             execEnv,
             on,
             checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else {
+        const execArgs = `--config-file-path "${iniFile}"`
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            on,
+            timeToWait: 1000,
+            checkPidFile: false,
+            cwd: working_dir
           })
           resolve(res)
         } catch (e: any) {

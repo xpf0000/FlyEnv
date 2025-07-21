@@ -29,7 +29,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import axios from 'axios'
-import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 
 class Manager extends Base {
@@ -173,10 +173,11 @@ class Manager extends Base {
 
       const baseDir = global.Server.MongoDBDir!
       const execEnv = ''
-      if (isMacOS()) {
-        const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}" --fork`
+      if (isWindows()) {
+        const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
+
         try {
-          const res = await serviceStartExec({
+          const res = await serviceStartExecCMD({
             version,
             pidPath: this.pidPath,
             baseDir,
@@ -191,11 +192,10 @@ class Manager extends Base {
           reject(e)
           return
         }
-      } else if (isWindows()) {
-        const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
-
+      } else {
+        const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}" --fork`
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartExec({
             version,
             pidPath: this.pidPath,
             baseDir,

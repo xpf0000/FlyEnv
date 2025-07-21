@@ -13,7 +13,7 @@ import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { ProcessPidsByPid } from '@shared/Process'
 import Helper from '../../Helper'
-import { isMacOS, isWindows } from '@shared/utils'
+import { defaultShell, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { EOL } from 'os'
 
@@ -55,8 +55,24 @@ export class ServiceItemNode extends ServiceItem {
 
       const opt = await getHostItemEnv(item)
       const commands: string[] = []
-      if (isMacOS()) {
-        commands.push('#!/bin/zsh')
+      if (isWindows()) {
+        commands.push('@echo off')
+        commands.push('chcp 65001>nul')
+        if (opt && opt?.env) {
+          for (const k in opt.env) {
+            const v = opt.env[k]
+            if (v.includes(' ')) {
+              commands.push(`set "${k}=${v}"`)
+            } else {
+              commands.push(`set ${k}=${v}`)
+            }
+          }
+        }
+        commands.push(`set PATH="${dirname(item.nodeDir!)};%PATH%"`)
+        commands.push(`cd /d "${dirname(item.nodeDir!)}"`)
+        commands.push(`start /B ${item.startCommand} > "${log}" 2>&1 &`)
+      } else {
+        commands.push(defaultShell())
         if (opt && opt?.env) {
           for (const k in opt.env) {
             const v = opt.env[k]
@@ -74,22 +90,6 @@ export class ServiceItemNode extends ServiceItem {
           `nohup ${startCommand} --PWSAPPFLAG=${global.Server.BaseDir!} --PWSAPPID=${this.id} &>> ${log} &`
         )
         commands.push(`echo $! > ${pid}`)
-      } else if (isWindows()) {
-        commands.push('@echo off')
-        commands.push('chcp 65001>nul')
-        if (opt && opt?.env) {
-          for (const k in opt.env) {
-            const v = opt.env[k]
-            if (v.includes(' ')) {
-              commands.push(`set "${k}=${v}"`)
-            } else {
-              commands.push(`set ${k}=${v}`)
-            }
-          }
-        }
-        commands.push(`set PATH="${dirname(item.nodeDir!)};%PATH%"`)
-        commands.push(`cd /d "${dirname(item.nodeDir!)}"`)
-        commands.push(`start /B ${item.startCommand} > "${log}" 2>&1 &`)
       }
 
       this.command = commands.join(EOL)
@@ -106,6 +106,8 @@ export class ServiceItemNode extends ServiceItem {
       try {
         if (isMacOS()) {
           await execPromiseWithEnv(`zsh "${sh}"`, opt)
+        } else if (isLinux()) {
+          await execPromiseWithEnv(`bash "${sh}"`, opt)
         } else if (isWindows()) {
           await execPromiseWithEnv(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`

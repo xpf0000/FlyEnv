@@ -19,7 +19,7 @@ import {
 import TaskQueue from '../../TaskQueue'
 import { basename, join } from 'path'
 import { existsSync } from 'fs'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Rust extends Base {
   constructor() {
@@ -61,10 +61,10 @@ class Rust extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch([...(setup?.rust?.dirs ?? [])], 'cargo', 'rust')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch([...(setup?.rust?.dirs ?? [])], 'cargo.exe')]
+      } else {
+        all = [versionLocalFetch([...(setup?.rust?.dirs ?? [])], 'cargo', 'rust')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -87,15 +87,15 @@ class Rust extends Base {
               ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
               : null
             const item = versions[i]
-            if (isMacOS()) {
+            if (isWindows()) {
+              item.path = join(item.path, '../')
+            } else {
               if (item.path.includes(global.Server.AppDir!)) {
                 const p = join(item.path, '../bin/cargo')
                 if (existsSync(p)) {
                   item.path = join(p, '../../')
                 }
               }
-            } else if (isWindows()) {
-              item.path = join(item.path, '../')
             }
 
             Object.assign(item, {

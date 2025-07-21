@@ -26,7 +26,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { userInfo } from 'os'
 import Helper from '../../Helper'
-import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 
 class Redis extends Base {
@@ -76,7 +76,7 @@ class Redis extends Base {
           'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: confFile }))
         })
       } else {
-        if (isMacOS()) {
+        if (!isWindows()) {
           const logFile = join(global.Server.RedisDir!, `redis-${v}.log`)
           if (existsSync(logFile)) {
             const uinfo = userInfo()
@@ -90,7 +90,7 @@ class Redis extends Base {
   }
 
   _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': string[] }> {
-    if (isMacOS()) {
+    if (!isWindows()) {
       return super._stopServer(version) as any
     }
     return new ForkPromise(async (resolve, reject, on) => {
@@ -135,10 +135,18 @@ class Redis extends Base {
       await mkdirp(baseDir)
       const execEnv = ''
 
-      if (isMacOS()) {
-        const execArgs = `"${confFile}"`
+      if (isWindows()) {
+        const v = version?.version?.split('.')?.[0] ?? ''
+        const confName = `redis-${v}.conf`
+        const conf = join(global.Server.RedisDir!, confName)
+        const appConfName = `pws-app-redis-${v}.conf`
+        const runConf = join(dirname(bin), appConfName)
+        await copyFile(conf, runConf)
+
+        const execArgs = `"${appConfName}"`
+
         try {
-          const res = await serviceStartExec({
+          const res = await serviceStartExecCMD({
             version,
             pidPath: this.pidPath,
             baseDir,
@@ -153,18 +161,10 @@ class Redis extends Base {
           reject(e)
           return
         }
-      } else if (isWindows()) {
-        const v = version?.version?.split('.')?.[0] ?? ''
-        const confName = `redis-${v}.conf`
-        const conf = join(global.Server.RedisDir!, confName)
-        const appConfName = `pws-app-redis-${v}.conf`
-        const runConf = join(dirname(bin), appConfName)
-        await copyFile(conf, runConf)
-
-        const execArgs = `"${appConfName}"`
-
+      } else {
+        const execArgs = `"${confFile}"`
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartExec({
             version,
             pidPath: this.pidPath,
             baseDir,

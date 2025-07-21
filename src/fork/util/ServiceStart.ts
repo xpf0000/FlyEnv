@@ -14,6 +14,7 @@ import {
   writeFile,
   execPromiseSudo
 } from '../Fn'
+import { isMacOS } from '@shared/utils'
 
 export type ServiceStartParams = {
   version: SoftInstalled
@@ -79,8 +80,9 @@ export async function serviceStartExec(
   process.chdir(baseDir)
   let res: any
   let error: any
+  const shell = isMacOS() ? 'zsh' : 'bash'
   try {
-    res = await spawnPromiseWithEnv('zsh', [psName], {
+    res = await spawnPromiseWithEnv(shell, [psName], {
       cwd: baseDir
     })
   } catch (e) {
@@ -218,19 +220,21 @@ export async function customerServiceStartExec(
     await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${psPath}"`)
   } catch {}
 
+  const shell = isMacOS() ? 'zsh' : 'bash'
+
   process.chdir(baseDir)
   let res: any
   let error: any
   try {
     if (version.isSudo) {
-      const execRes = await execPromiseSudo(['zsh', psName], {
+      const execRes = await execPromiseSudo([shell, psName], {
         cwd: baseDir
       })
       res = (execRes.stdout + '\n' + execRes.stderr).trim()
     } else {
-      res = await spawnPromiseWithEnv('zsh', [psName], {
+      res = await spawnPromiseWithEnv(shell, [psName], {
         cwd: baseDir,
-        shell: '/bin/zsh'
+        shell: `/bin/${shell}`
       })
     }
   } catch (e) {

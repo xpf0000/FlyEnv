@@ -30,7 +30,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
-import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { compareVersions } from 'compare-versions'
 import { parse as iniParse } from 'ini'
 import { Connection, createConnection } from 'mysql2/promise'
@@ -52,11 +52,7 @@ class Manager extends Base {
         'APP-On-Log': AppLog('info', I18nT('appLog.initDBPass'))
       })
       let promise: Promise<any> | undefined
-      if (isMacOS()) {
-        promise = execPromise('./mariadb-admin --socket=/tmp/mysql.sock -uroot password "root"', {
-          cwd: dirname(version.bin)
-        })
-      } else if (isWindows()) {
+      if (isWindows()) {
         const bin = join(dirname(version.bin), 'mariadb-admin.exe')
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
@@ -67,6 +63,10 @@ class Manager extends Base {
             cwd: dirname(bin)
           }
         )
+      } else {
+        promise = execPromise('./mariadb-admin --socket=/tmp/mysql.sock -uroot password "root"', {
+          cwd: dirname(version.bin)
+        })
       }
 
       promise!
@@ -205,7 +205,46 @@ datadir=${dataDir}`
           const port = config?.mysqld?.port ?? 3306
           const ddir = config?.mysqld?.datadir ?? dataDir
 
-          if (isMacOS()) {
+          if (isWindows()) {
+            const params = [
+              `--defaults-file="${m}"`,
+              `--pid-file="${p}"`,
+              '--slow-query-log=ON',
+              `--slow-query-log-file="${s}"`,
+              `--log-error="${e}"`,
+              '--standalone'
+            ]
+
+            if (skipGrantTables) {
+              params.push(`--datadir="${ddir}"`)
+              params.push('--bind-address="127.0.0.1"')
+              params.push(`--port=${port}`)
+              params.push(`--enable-named-pipe`)
+              params.push('--skip-grant-tables')
+            }
+
+            const execEnv = ``
+            const execArgs = params.join(' ')
+
+            try {
+              const res = await serviceStartExecCMD({
+                version,
+                pidPath: p,
+                baseDir,
+                bin,
+                execArgs,
+                execEnv,
+                on,
+                maxTime: 20,
+                timeToWait: 1000
+              })
+              resolve(res)
+            } catch (e: any) {
+              console.log('-k start err: ', e)
+              reject(e)
+              return
+            }
+          } else {
             const params = [
               `--defaults-file="${m}"`,
               `--pid-file="${p}"`,
@@ -247,45 +286,6 @@ datadir=${dataDir}`
               reject(e)
               return
             }
-          } else if (isWindows()) {
-            const params = [
-              `--defaults-file="${m}"`,
-              `--pid-file="${p}"`,
-              '--slow-query-log=ON',
-              `--slow-query-log-file="${s}"`,
-              `--log-error="${e}"`,
-              '--standalone'
-            ]
-
-            if (skipGrantTables) {
-              params.push(`--datadir="${ddir}"`)
-              params.push('--bind-address="127.0.0.1"')
-              params.push(`--port=${port}`)
-              params.push(`--enable-named-pipe`)
-              params.push('--skip-grant-tables')
-            }
-
-            const execEnv = ``
-            const execArgs = params.join(' ')
-
-            try {
-              const res = await serviceStartExecCMD({
-                version,
-                pidPath: p,
-                baseDir,
-                bin,
-                execArgs,
-                execEnv,
-                on,
-                maxTime: 20,
-                timeToWait: 1000
-              })
-              resolve(res)
-            } catch (e: any) {
-              console.log('-k start err: ', e)
-              reject(e)
-              return
-            }
           }
         })
       }
@@ -296,7 +296,27 @@ datadir=${dataDir}`
         })
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        if (isMacOS()) {
+        if (isWindows()) {
+          const binInstallDB = join(version.path, 'bin/mariadb-install-db.exe')
+
+          const params = [`--datadir="${dataDir}"`, `--config="${m}"`]
+
+          process.chdir(dirname(binInstallDB))
+          const command = `${basename(binInstallDB)} ${params.join(' ')}`
+          console.log('command: ', command)
+
+          try {
+            const res = await execPromise(command)
+            console.log('init res: ', res)
+            on(res.stdout)
+          } catch (e: any) {
+            on({
+              'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
+            })
+            reject(e)
+            return
+          }
+        } else {
           let bin = join(version.path, 'bin/mariadb-install-db')
           if (!existsSync(bin)) {
             bin = join(version.path, 'bin/mysql_install_db')
@@ -318,26 +338,6 @@ datadir=${dataDir}`
           try {
             await execPromise(`cd "${dirname(bin)}" && ./${basename(bin)} ${params.join(' ')}`)
           } catch (e) {
-            on({
-              'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
-            })
-            reject(e)
-            return
-          }
-        } else if (isWindows()) {
-          const binInstallDB = join(version.path, 'bin/mariadb-install-db.exe')
-
-          const params = [`--datadir="${dataDir}"`, `--config="${m}"`]
-
-          process.chdir(dirname(binInstallDB))
-          const command = `${basename(binInstallDB)} ${params.join(' ')}`
-          console.log('command: ', command)
-
-          try {
-            const res = await execPromise(command)
-            console.log('init res: ', res)
-            on(res.stdout)
-          } catch (e: any) {
             on({
               'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
             })

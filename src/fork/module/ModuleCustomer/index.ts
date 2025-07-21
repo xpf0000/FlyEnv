@@ -9,7 +9,8 @@ import {
   mkdirp,
   remove,
   writeFile,
-  customerServiceStartExecWin
+  customerServiceStartExecWin,
+  copyFile
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import Helper from '../../Helper'
@@ -17,7 +18,7 @@ import { existsSync } from 'fs'
 import { ProcessPidsByPid } from '@shared/Process'
 import { I18nT } from '@lang/index'
 import type { ModuleExecItem } from '@shared/app'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessPidListByPid } from '@shared/Process.win'
 
 class ModuleCustomer {
@@ -36,7 +37,20 @@ class ModuleCustomer {
 
   stopService(pid: string) {
     return new ForkPromise(async (resolve) => {
-      if (isMacOS()) {
+      if (isWindows()) {
+        const pids = await ProcessPidListByPid(`${pid}`.trim())
+
+        if (pids.length > 0) {
+          const str = pids.map((s) => `/pid ${s}`).join(' ')
+          try {
+            await execPromise(`taskkill /f /t ${str}`)
+          } catch {}
+        }
+
+        resolve({
+          'APP-Service-Stop-PID': pids
+        })
+      } else {
         const allPid: string[] = []
         const plist: any = await Helper.send('tools', 'processList')
         const pids = ProcessPidsByPid(pid.trim(), plist)
@@ -55,19 +69,6 @@ class ModuleCustomer {
         }
         resolve({
           'APP-Service-Stop-PID': arr
-        })
-      } else if (isWindows()) {
-        const pids = await ProcessPidListByPid(`${pid}`.trim())
-
-        if (pids.length > 0) {
-          const str = pids.map((s) => `/pid ${s}`).join(' ')
-          try {
-            await execPromise(`taskkill /f /t ${str}`)
-          } catch {}
-        }
-
-        resolve({
-          'APP-Service-Stop-PID': pids
         })
       }
     })
@@ -141,12 +142,65 @@ class ModuleCustomer {
         return
       }
 
+      if (isLinux() && openInTerminal) {
+        let command = ''
+        if (version.commandType === 'file') {
+          command = version.commandFile
+        } else {
+          command = version.command
+          const baseDir = join(global.Server.BaseDir!, 'module-customer')
+          await mkdirp(baseDir)
+          command = join(baseDir, `${version.id}.sh`)
+          await writeFile(command, version.command)
+          try {
+            await Helper.send('tools', 'chmod', command, '0777')
+          } catch {}
+        }
+        command = command.replace(/"/g, '\\"')
+
+        const terminalSH = join(global.Server.Static!, 'sh/exec-by-terminal.sh')
+        const exeSH = join(global.Server.Cache!, `exec-by-terminal.sh`)
+        await copyFile(terminalSH, exeSH)
+        await chmod(exeSH, '0755')
+
+        try {
+          await execPromise(`"${exeSH}" "${command}"`, {
+            cwd: global.Server.Cache!
+          })
+        } catch (e) {
+          return reject(e)
+        }
+
+        if (!isService) {
+          resolve(true)
+          return
+        }
+        if (!version?.pidPath) {
+          reject(new Error(I18nT('setup.module.hadOpenInTerminal')))
+          return
+        }
+
+        const res = await waitPidFile(version.pidPath, 0, 20, 500)
+        if (res) {
+          if (res?.pid) {
+            resolve({
+              'APP-Service-Start-PID': res.pid
+            })
+            return
+          }
+          reject(new Error(res?.error ?? 'Start Fail'))
+          return
+        }
+        reject(new Error('Start Fail'))
+        return
+      }
+
       try {
-        if (isMacOS()) {
-          const res = await customerServiceStartExec(version, isService)
-          resolve(res)
-        } else if (isWindows()) {
+        if (isWindows()) {
           const res = await customerServiceStartExecWin(version, isService)
+          resolve(res)
+        } else {
+          const res = await customerServiceStartExec(version, isService)
           resolve(res)
         }
       } catch (e: any) {

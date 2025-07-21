@@ -148,51 +148,7 @@ class Minio extends Base {
 
       const opt = await getConfEnv()
 
-      if (isMacOS()) {
-        const envs: string[] = []
-        for (const k in opt) {
-          const v = opt[k]
-          if (k === 'MINIO_ADDRESS') {
-            address = v
-          } else if (k === 'MINIO_CONSOLE_ADDRESS') {
-            console_address = v
-          } else if (k === 'MINIO_CERTS_DIR') {
-            certs_dir = v
-          }
-          envs.push(`export ${k}="${v}"`)
-        }
-        envs.push('')
-
-        const execEnv = envs.join(EOL)
-        let execArgs = `server "${dataDir}"`
-        if (address) {
-          execArgs += ` --address "${address}"`
-        }
-        if (console_address) {
-          execArgs += ` --console-address "${console_address}"`
-        }
-        if (certs_dir) {
-          execArgs += ` --certs-dir "${certs_dir}"`
-        }
-
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else if (isWindows()) {
+      if (isWindows()) {
         const envs: string[] = []
         for (const k in opt) {
           const v = opt[k]
@@ -236,6 +192,50 @@ class Minio extends Base {
           reject(e)
           return
         }
+      } else {
+        const envs: string[] = []
+        for (const k in opt) {
+          const v = opt[k]
+          if (k === 'MINIO_ADDRESS') {
+            address = v
+          } else if (k === 'MINIO_CONSOLE_ADDRESS') {
+            console_address = v
+          } else if (k === 'MINIO_CERTS_DIR') {
+            certs_dir = v
+          }
+          envs.push(`export ${k}="${v}"`)
+        }
+        envs.push('')
+
+        const execEnv = envs.join(EOL)
+        let execArgs = `server "${dataDir}"`
+        if (address) {
+          execArgs += ` --address "${address}"`
+        }
+        if (console_address) {
+          execArgs += ` --console-address "${console_address}"`
+        }
+        if (certs_dir) {
+          execArgs += ` --certs-dir "${certs_dir}"`
+        }
+
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
       }
     })
   }
@@ -244,10 +244,10 @@ class Minio extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      if (isMacOS()) {
-        all = [versionLocalFetch(setup?.minio?.dirs ?? [], 'minio', 'minio')]
-      } else if (isWindows()) {
+      if (isWindows()) {
         all = [versionLocalFetch(setup?.minio?.dirs ?? [], 'minio.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.minio?.dirs ?? [], 'minio', 'minio')]
       }
       Promise.all(all)
         .then(async (list) => {

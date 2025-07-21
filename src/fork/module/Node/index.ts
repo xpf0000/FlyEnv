@@ -143,7 +143,7 @@ class Manager extends Base {
 
   private resetEnv(tool: 'fnm' | 'nvm') {
     return new Promise(async (resolve) => {
-      const file = join(global.Server.UserHome!, '.zshrc')
+      const file = join(global.Server.UserHome!, isMacOS() ? '.zshrc' : '.bashrc')
       if (!existsSync(file)) {
         try {
           await writeFile(file, '')

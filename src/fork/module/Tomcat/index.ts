@@ -27,7 +27,7 @@ import {
 import TaskQueue from '../../TaskQueue'
 import { makeGlobalTomcatServerXML } from '../Service/ServiceItemJavaTomcat'
 import { I18nT } from '@lang/index'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 
 class Tomcat extends Base {
@@ -154,26 +154,7 @@ class Tomcat extends Base {
       const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
       const execArgs = ``
 
-      if (isMacOS()) {
-        const execEnv = `export CATALINA_BASE="${baseDir}"
-export CATALINA_PID="${this.pidPath}"`
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir: tomcatDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else if (isWindows()) {
+      if (isWindows()) {
         const execEnv = `set "CATALINA_BASE=${baseDir}"`
         try {
           await serviceStartExecCMD({
@@ -235,6 +216,25 @@ export CATALINA_PID="${this.pidPath}"`
           )
         })
         reject(new Error('Start failed'))
+      } else {
+        const execEnv = `export CATALINA_BASE="${baseDir}"
+export CATALINA_PID="${this.pidPath}"`
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir: tomcatDir,
+            bin,
+            execArgs,
+            execEnv,
+            on
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
       }
     })
   }
@@ -252,7 +252,15 @@ export CATALINA_PID="${this.pidPath}"`
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          if (isMacOS()) {
+          if (isWindows()) {
+            const all = versions.map((item) => {
+              const bin = join(dirname(item.bin), 'version.bat')
+              const command = `call "${bin}"`
+              const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
+              return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+            })
+            return Promise.all(all)
+          } else {
             const all: any[] = []
             for (const item of versions) {
               const bin = join(dirname(item.bin), 'version.sh')
@@ -261,14 +269,6 @@ export CATALINA_PID="${this.pidPath}"`
               const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
               all.push(TaskQueue.run(versionBinVersion, bin, command, reg))
             }
-            return Promise.all(all)
-          } else if (isWindows()) {
-            const all = versions.map((item) => {
-              const bin = join(dirname(item.bin), 'version.bat')
-              const command = `call "${bin}"`
-              const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
-              return TaskQueue.run(versionBinVersion, item.bin, command, reg)
-            })
             return Promise.all(all)
           }
           return Promise.resolve([])

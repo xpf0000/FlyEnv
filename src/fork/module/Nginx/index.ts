@@ -23,7 +23,7 @@ import {
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { I18nT } from '@lang/index'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Nginx extends Base {
   constructor() {
@@ -47,10 +47,10 @@ class Nginx extends Base {
     for (const v of all) {
       const name = `enable-php-${v}.conf`
       let confFile = ''
-      if (isMacOS()) {
-        confFile = join(global.Server.NginxDir!, 'common/conf/', name)
-      } else if (isWindows()) {
+      if (isWindows()) {
         confFile = join(global.Server.NginxDir!, 'conf', name)
+      } else {
+        confFile = join(global.Server.NginxDir!, 'common/conf/', name)
       }
       if (!existsSync(confFile)) {
         await mkdirp(dirname(confFile))
@@ -150,19 +150,16 @@ class Nginx extends Base {
       const baseDir = global.Server.NginxDir!
       const execEnv = ''
 
-      if (isMacOS()) {
-        const c = join(global.Server.NginxDir!, 'common/conf/nginx.conf')
-        const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
-        const errlog = join(global.Server.NginxDir!, 'common/logs/error.log')
-        const temp_path = join(global.Server.NginxDir!, 'common/run')
-        await mkdirp(temp_path)
-        await this._fixConf()
-        const g = `pid ${pid};error_log ${errlog};`
-        const p = join(global.Server.NginxDir!, 'common')
-        const execArgs = `-p "${p}" -e "${errlog}" -c ${c} -g "${g}"`
+      if (isWindows()) {
+        const bin = version.bin
+        const p = global.Server.NginxDir!
+
+        const pid = join(global.Server.NginxDir!, 'logs/nginx.pid')
+
+        const execArgs = `-p "${p}"`
 
         try {
-          const res = await serviceStartExec({
+          const res = await serviceStartExecCMD({
             version,
             pidPath: pid,
             baseDir,
@@ -177,16 +174,19 @@ class Nginx extends Base {
           reject(e)
           return
         }
-      } else if (isWindows()) {
-        const bin = version.bin
-        const p = global.Server.NginxDir!
-
-        const pid = join(global.Server.NginxDir!, 'logs/nginx.pid')
-
-        const execArgs = `-p "${p}"`
+      } else {
+        const c = join(global.Server.NginxDir!, 'common/conf/nginx.conf')
+        const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
+        const errlog = join(global.Server.NginxDir!, 'common/logs/error.log')
+        const temp_path = join(global.Server.NginxDir!, 'common/run')
+        await mkdirp(temp_path)
+        await this._fixConf()
+        const g = `pid ${pid};error_log ${errlog};`
+        const p = join(global.Server.NginxDir!, 'common')
+        const execArgs = `-p "${p}" -e "${errlog}" -c ${c} -g "${g}"`
 
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartExec({
             version,
             pidPath: pid,
             baseDir,

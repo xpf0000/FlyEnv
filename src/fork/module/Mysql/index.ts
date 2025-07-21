@@ -29,7 +29,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
-import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 import type { PItem } from '@shared/Process'
 import { EOL } from 'os'
@@ -55,28 +55,7 @@ class Mysql extends Base {
         'APP-On-Log': AppLog('info', I18nT('appLog.initDBPass'))
       })
       password = password ?? 'root'
-      if (isMacOS()) {
-        execPromise(`./mysqladmin --socket=/tmp/mysql.sock -uroot password "${password}"`, {
-          cwd: dirname(version.bin)
-        })
-          .then((res) => {
-            on({
-              'APP-On-Log': AppLog(
-                'info',
-                I18nT('appLog.initDBPassSuccess', { user: 'root', pass: 'root' })
-              )
-            })
-            console.log('_initPassword res: ', res)
-            resolve(true)
-          })
-          .catch((err) => {
-            on({
-              'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: err }))
-            })
-            console.log('_initPassword err: ', err)
-            reject(err)
-          })
-      } else if (isWindows()) {
+      if (isWindows()) {
         const bin = join(dirname(version.bin), 'mysqladmin.exe')
         if (existsSync(bin)) {
           process.chdir(dirname(bin))
@@ -105,6 +84,27 @@ class Mysql extends Base {
           })
         }
         resolve(true)
+      } else {
+        execPromise(`./mysqladmin --socket=/tmp/mysql.sock -uroot password "${password}"`, {
+          cwd: dirname(version.bin)
+        })
+          .then((res) => {
+            on({
+              'APP-On-Log': AppLog(
+                'info',
+                I18nT('appLog.initDBPassSuccess', { user: 'root', pass: 'root' })
+              )
+            })
+            console.log('_initPassword res: ', res)
+            resolve(true)
+          })
+          .catch((err) => {
+            on({
+              'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: err }))
+            })
+            console.log('_initPassword err: ', err)
+            reject(err)
+          })
       }
     })
   }
@@ -223,47 +223,7 @@ datadir=${pathFixedToUnix(dataDir)}`
           const port = config?.mysqld?.port ?? 3306
           const ddir = config?.mysqld?.datadir ?? dataDir
 
-          if (isMacOS()) {
-            const params = [
-              `--defaults-file="${m}"`,
-              `--pid-file="${p}"`,
-              '--user=mysql',
-              `--slow-query-log-file="${s}"`,
-              `--log-error="${e}"`
-            ]
-            if (version?.flag === 'macports') {
-              params.push(`--lc-messages-dir="/opt/local/share/${basename(version.path)}/english"`)
-            }
-
-            if (skipGrantTables) {
-              params.push(`--socket=/tmp/mysql.${version.version}.sock`)
-              params.push(`--datadir="${ddir}"`)
-              params.push('--bind-address="127.0.0.1"')
-              params.push(`--port=${port}`)
-              params.push('--skip-grant-tables')
-            } else {
-              params.push(`--socket=/tmp/mysql.sock`)
-            }
-
-            const execArgs = params.join(' ')
-
-            try {
-              const res = await serviceStartExec({
-                version,
-                pidPath: p,
-                baseDir,
-                bin,
-                execArgs,
-                execEnv,
-                on
-              })
-              resolve(res)
-            } catch (e: any) {
-              console.log('-k start err: ', e)
-              reject(e)
-              return
-            }
-          } else if (isWindows()) {
+          if (isWindows()) {
             const params = [
               `--defaults-file="${m}"`,
               `--pid-file="${p}"`,
@@ -303,6 +263,46 @@ datadir=${pathFixedToUnix(dataDir)}`
               reject(e)
               return
             }
+          } else {
+            const params = [
+              `--defaults-file="${m}"`,
+              `--pid-file="${p}"`,
+              '--user=mysql',
+              `--slow-query-log-file="${s}"`,
+              `--log-error="${e}"`
+            ]
+            if (version?.flag === 'macports') {
+              params.push(`--lc-messages-dir="/opt/local/share/${basename(version.path)}/english"`)
+            }
+
+            if (skipGrantTables) {
+              params.push(`--socket=/tmp/mysql.${version.version}.sock`)
+              params.push(`--datadir="${ddir}"`)
+              params.push('--bind-address="127.0.0.1"')
+              params.push(`--port=${port}`)
+              params.push('--skip-grant-tables')
+            } else {
+              params.push(`--socket=/tmp/mysql.sock`)
+            }
+
+            const execArgs = params.join(' ')
+
+            try {
+              const res = await serviceStartExec({
+                version,
+                pidPath: p,
+                baseDir,
+                bin,
+                execArgs,
+                execEnv,
+                on
+              })
+              resolve(res)
+            } catch (e: any) {
+              console.log('-k start err: ', e)
+              reject(e)
+              return
+            }
           }
         })
       }
@@ -314,7 +314,32 @@ datadir=${pathFixedToUnix(dataDir)}`
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
         let bin = version.bin
-        if (isMacOS()) {
+        if (isWindows()) {
+          const params = [
+            `--defaults-file="${m}"`,
+            `--pid-file="${p}"`,
+            '--user=mysql',
+            '--slow-query-log=ON',
+            `--slow-query-log-file="${s}"`,
+            `--log-error="${e}"`,
+            '--initialize-insecure'
+          ]
+
+          process.chdir(dirname(bin))
+          const command = `${basename(bin)} ${params.join(' ')}`
+          console.log('command: ', command)
+          try {
+            const res = await execPromise(command)
+            console.log('init res: ', res)
+            on(res.stdout)
+          } catch (e: any) {
+            on({
+              'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
+            })
+            reject(e)
+            return
+          }
+        } else {
           const params = [
             `--defaults-file=${m}`,
             `--pid-file=${p}`,
@@ -363,31 +388,6 @@ datadir=${pathFixedToUnix(dataDir)}`
             reject(e)
             return
           }
-        } else if (isWindows()) {
-          const params = [
-            `--defaults-file="${m}"`,
-            `--pid-file="${p}"`,
-            '--user=mysql',
-            '--slow-query-log=ON',
-            `--slow-query-log-file="${s}"`,
-            `--log-error="${e}"`,
-            '--initialize-insecure'
-          ]
-
-          process.chdir(dirname(bin))
-          const command = `${basename(bin)} ${params.join(' ')}`
-          console.log('command: ', command)
-          try {
-            const res = await execPromise(command)
-            console.log('init res: ', res)
-            on(res.stdout)
-          } catch (e: any) {
-            on({
-              'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
-            })
-            reject(e)
-            return
-          }
         }
 
         on({
@@ -416,7 +416,27 @@ datadir=${pathFixedToUnix(dataDir)}`
     console.log(version)
     return new ForkPromise(async (resolve, reject) => {
       const id = version?.id ?? ''
-      if (isMacOS()) {
+      if (isWindows()) {
+        const conf =
+          'PhpWebStudy-Data' +
+          join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
+        const arr: Array<string> = []
+        let all: PItem[] = []
+        try {
+          all = await ProcessListSearch(conf, false)
+        } catch {}
+
+        all.forEach((item) => arr.push(item.PID))
+
+        if (arr.length > 0) {
+          const str = arr.map((s) => `/pid ${s}`).join(' ')
+          await execPromise(`taskkill /f /t ${str}`)
+        }
+        await waitTime(500)
+        resolve({
+          'APP-Service-Stop-PID': arr
+        })
+      } else {
         const conf = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
         const serverName = 'mysqld'
         const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
@@ -439,26 +459,6 @@ datadir=${pathFixedToUnix(dataDir)}`
         } catch (e) {
           reject(e)
         }
-      } else if (isWindows()) {
-        const conf =
-          'PhpWebStudy-Data' +
-          join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
-        const arr: Array<string> = []
-        let all: PItem[] = []
-        try {
-          all = await ProcessListSearch(conf, false)
-        } catch {}
-
-        all.forEach((item) => arr.push(item.PID))
-
-        if (arr.length > 0) {
-          const str = arr.map((s) => `/pid ${s}`).join(' ')
-          await execPromise(`taskkill /f /t ${str}`)
-        }
-        await waitTime(500)
-        resolve({
-          'APP-Service-Stop-PID': arr
-        })
       }
     })
   }
@@ -499,7 +499,40 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       const doStart = () => {
         const execEnv = ''
         return new Promise(async (resolve, reject) => {
-          if (isMacOS()) {
+          if (isWindows()) {
+            const params = [
+              `--defaults-file="${m}"`,
+              `--datadir="${dataDir}"`,
+              `--port="${version.port}"`,
+              `--pid-file="${p}"`,
+              '--user=mysql',
+              '--slow-query-log=ON',
+              `--slow-query-log-file="${s}"`,
+              `--log-error="${e}"`,
+              `--socket="${sock}"`,
+              '--standalone'
+            ]
+
+            const execArgs = params.join(' ')
+
+            try {
+              const res = await serviceStartExecCMD({
+                version: version.version as any,
+                pidPath: p,
+                baseDir,
+                bin,
+                execArgs,
+                execEnv,
+                on,
+                timeToWait: 1000
+              })
+              resolve(res)
+            } catch (e: any) {
+              console.log('-k start err: ', e)
+              reject(e)
+              return
+            }
+          } else {
             const params = [
               `--defaults-file=${m}`,
               `--datadir=${dataDir}`,
@@ -527,39 +560,6 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
                 execArgs,
                 execEnv,
                 on
-              })
-              resolve(res)
-            } catch (e: any) {
-              console.log('-k start err: ', e)
-              reject(e)
-              return
-            }
-          } else if (isWindows()) {
-            const params = [
-              `--defaults-file="${m}"`,
-              `--datadir="${dataDir}"`,
-              `--port="${version.port}"`,
-              `--pid-file="${p}"`,
-              '--user=mysql',
-              '--slow-query-log=ON',
-              `--slow-query-log-file="${s}"`,
-              `--log-error="${e}"`,
-              `--socket="${sock}"`,
-              '--standalone'
-            ]
-
-            const execArgs = params.join(' ')
-
-            try {
-              const res = await serviceStartExecCMD({
-                version: version.version as any,
-                pidPath: p,
-                baseDir,
-                bin,
-                execArgs,
-                execEnv,
-                on,
-                timeToWait: 1000
               })
               resolve(res)
             } catch (e: any) {
@@ -653,7 +653,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
                 return
               }
             }
-          } else if (isMacOS()) {
+          } else {
             try {
               await execPromise(`./mysqladmin -P${version.port} -S${sock} -uroot password "root"`, {
                 cwd: dirname(version.version.bin!)
@@ -695,7 +695,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
             reject(e)
             return
           }
-        } else if (isMacOS()) {
+        } else {
           const params = [
             `--defaults-file=${m}`,
             `--datadir=${dataDir}`,
@@ -816,11 +816,11 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
             let command = ''
-            if (isMacOS()) {
+            if (isWindows()) {
+              command = `"${item.bin}" -V`
+            } else {
               const bin = join(dirname(item.bin), 'mysqld')
               command = `"${bin}" -V`
-            } else if (isWindows()) {
-              command = `"${item.bin}" -V`
             }
             const reg = /(Ver )(\d+(\.\d+){1,4})( )/g
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)

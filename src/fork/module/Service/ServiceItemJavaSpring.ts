@@ -13,7 +13,7 @@ import {
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import Helper from '../../Helper'
 import { ProcessPidsByPid } from '@shared/Process'
-import { isMacOS, isWindows } from '@shared/utils'
+import { defaultShell, isMacOS, isWindows } from '@shared/utils'
 import { EOL } from 'os'
 import { ProcessPidListByPid } from '@shared/Process.win'
 
@@ -48,23 +48,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
       }
       const opt = await getHostItemEnv(item)
       const commands: string[] = []
-      if (isMacOS()) {
-        commands.push('#!/bin/zsh')
-        if (opt && opt?.env) {
-          for (const k in opt.env) {
-            const v = opt.env[k]
-            if (v.includes(' ')) {
-              commands.push(`export ${k}="${v}"`)
-            } else {
-              commands.push(`export ${k}=${v}`)
-            }
-          }
-        }
-        commands.push(`export PATH="${dirname(item.jdkDir)}:$PATH"`)
-        const startCommand = item?.startCommand?.replace(item.jdkDir, 'java')
-        commands.push(`nohup ${startCommand} &>> ${log} &`)
-        commands.push(`echo $! > ${pid}`)
-      } else if (isWindows()) {
+      if (isWindows()) {
         commands.push('@echo off')
         commands.push('chcp 65001>nul')
         if (opt && opt?.env) {
@@ -81,6 +65,22 @@ export class ServiceItemJavaSpring extends ServiceItem {
         commands.push(`set "JAVA_HOME=${dirname(dirname(item.jdkDir))}"`)
         commands.push(`cd /d "${dirname(item.jdkDir!)}"`)
         commands.push(`start /B ${item.startCommand} > "${log}" 2>&1 &`)
+      } else {
+        commands.push(defaultShell())
+        if (opt && opt?.env) {
+          for (const k in opt.env) {
+            const v = opt.env[k]
+            if (v.includes(' ')) {
+              commands.push(`export ${k}="${v}"`)
+            } else {
+              commands.push(`export ${k}=${v}`)
+            }
+          }
+        }
+        commands.push(`export PATH="${dirname(item.jdkDir)}:$PATH"`)
+        const startCommand = item?.startCommand?.replace(item.jdkDir, 'java')
+        commands.push(`nohup ${startCommand} &>> ${log} &`)
+        commands.push(`echo $! > ${pid}`)
       }
 
       this.command = commands.join(EOL)
@@ -93,14 +93,17 @@ export class ServiceItemJavaSpring extends ServiceItem {
       }
       await writeFile(sh, this.command)
       await chmod(sh, '0777')
+
+      const shell = isMacOS() ? 'zsh' : 'bash'
+
       process.chdir(global.Server.Cache!)
       try {
-        if (isMacOS()) {
-          await execPromiseWithEnv(`zsh "${sh}"`, opt)
-        } else if (isWindows()) {
+        if (isWindows()) {
           await execPromiseWithEnv(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
           )
+        } else {
+          await execPromiseWithEnv(`${shell} "${sh}"`, opt)
         }
         const resPid = await this.checkPid()
         this.daemon()

@@ -28,6 +28,7 @@ import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
 import { userInfo } from 'os'
 import { BomCleanTask } from '../../util/BomCleanTask'
+import { defaultShell, isMacOS } from '@shared/utils'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -154,7 +155,7 @@ class Manager extends Base {
 
   handleUpdatePath(param?: { zsh: string }) {
     return new ForkPromise(async (resolve, reject) => {
-      const file = join(global.Server.UserHome!, '.zshrc')
+      const file = join(global.Server.UserHome!, isMacOS() ? '.zshrc' : '.bashrc')
       if (!existsSync(file)) {
         try {
           await writeFile(file, '')
@@ -317,9 +318,10 @@ class Manager extends Base {
       }
 
       if (item) {
+        const shell = defaultShell()
         const file = join(aliasDir, `${item.name}`)
         if (item?.php?.bin) {
-          const content = `#!/bin/zsh
+          const content = `${shell}
 "${item?.php?.bin}" "${service.bin}" $@`
           await writeFile(file, content)
           await chmod(file, '0777')
@@ -328,7 +330,7 @@ class Manager extends Base {
           if (service.typeFlag === 'php') {
             bin = service?.phpBin ?? join(service.path, 'bin/php')
           }
-          const content = `#!/bin/zsh
+          const content = `${shell}
 "${bin}" $@`
           await writeFile(file, content)
           await chmod(file, '0777')
@@ -356,7 +358,7 @@ class Manager extends Base {
         return
       }
 
-      const zshrc = join(global.Server.UserHome!, '.zshrc')
+      const zshrc = join(global.Server.UserHome!, isMacOS() ? '.zshrc' : '.bashrc')
       if (!existsSync(zshrc)) {
         try {
           await writeFile(zshrc, '')
@@ -590,7 +592,7 @@ end tell`
 
   initFlyEnvSH() {
     return new ForkPromise(async (resolve, reject) => {
-      const file = join(global.Server.UserHome!, '.zshrc')
+      const file = join(global.Server.UserHome!, isMacOS() ? '.zshrc' : '.bashrc')
       if (!existsSync(file)) {
         try {
           await writeFile(file, '')

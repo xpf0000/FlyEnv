@@ -18,7 +18,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { fetchHostList } from '../Host/HostFile'
 import Helper from '../../Helper'
 import { ProcessPidsByPid } from '@shared/Process'
-import { isMacOS, isWindows } from '@shared/utils'
+import { defaultShell, isMacOS, isWindows } from '@shared/utils'
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { EOL } from 'os'
 
@@ -374,16 +374,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
         CATALINA_PID: pid
       }
       let commands: string[] = []
-      if (isMacOS()) {
-        commands = [
-          '#!/bin/zsh',
-          `export JAVA_HOME=${env.JAVA_HOME}`,
-          `export CATALINA_BASE=${env.CATALINA_BASE}`,
-          `export CATALINA_PID=${pid}`,
-          `cd "${dirname(bin)}"`,
-          `./${basename(bin)}`
-        ]
-      } else if (isWindows()) {
+      if (isWindows()) {
         commands = [
           '@echo off',
           'chcp 65001>nul',
@@ -392,6 +383,15 @@ export class ServiceItemJavaTomcat extends ServiceItem {
           `set "CATALINA_PID=${pid}"`,
           `cd /d "${dirname(bin)}"`,
           `start /B ${basename(bin)} > NUL 2>&1 &`
+        ]
+      } else {
+        commands = [
+          defaultShell(),
+          `export JAVA_HOME=${env.JAVA_HOME}`,
+          `export CATALINA_BASE=${env.CATALINA_BASE}`,
+          `export CATALINA_PID=${pid}`,
+          `cd "${dirname(bin)}"`,
+          `./${basename(bin)}`
         ]
       }
 
@@ -405,15 +405,18 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       }
       await writeFile(sh, this.command)
       await chmod(sh, '0777')
+
+      const shell = isMacOS() ? 'zsh' : 'bash'
+
       process.chdir(global.Server.Cache!)
       try {
-        if (isMacOS()) {
-          const res = await execPromiseWithEnv(`zsh "${sh}"`, { env })
-          console.log('start res: ', res)
-        } else if (isWindows()) {
+        if (isWindows()) {
           await execPromiseWithEnv(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
           )
+        } else {
+          const res = await execPromiseWithEnv(`${shell} "${sh}"`, { env })
+          console.log('start res: ', res)
         }
 
         const resPid = await this.checkPid()

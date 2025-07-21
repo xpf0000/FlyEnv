@@ -14,7 +14,7 @@ import {
   versionSort
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Erlang extends Base {
   constructor() {
@@ -60,7 +60,7 @@ class Erlang extends Base {
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          if (isMacOS()) {
+          if (!isWindows()) {
             const all = versions.map((item) =>
               TaskQueue.run(
                 versionBinVersion,

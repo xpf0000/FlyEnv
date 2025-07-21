@@ -18,7 +18,7 @@ import { makeCaddyConf, updateCaddyConf } from './Caddy'
 import { makeApacheConf, updateApacheConf } from './Apache'
 import { autoFillNginxRewrite, makeNginxConf, updateNginxConf } from './Nginx'
 import { setDirRole, updateAutoSSL, updateRootRule } from './Host'
-import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './Task'
+import { TaskAddPhpMyAdminSite, TaskAddRandomSite } from './Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './HostFile'
 import Helper from '../../Helper'
@@ -357,11 +357,11 @@ export class Host extends Base {
       })
       await writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
       if (!writeToSystem) {
-        try {
-          if (!isWindows()) {
+        if (!isWindows()) {
+          try {
             await Helper.send('host', 'dnsRefresh')
-          }
-        } catch {}
+          } catch {}
+        }
         resolve(true)
         return
       }
@@ -387,13 +387,13 @@ export class Host extends Base {
       }
       content = content.trim()
       content += `\n${x}`
-      if (isMacOS()) {
+      if (isWindows()) {
+        await writeFile(this.hostsFile, content.trim())
+      } else {
         await Helper.send('tools', 'writeFileByRoot', this.hostsFile, content.trim())
         try {
           await Helper.send('host', 'dnsRefresh')
         } catch {}
-      } else if (isWindows()) {
-        await writeFile(this.hostsFile, content.trim())
       }
       resolve(true)
     })
@@ -414,15 +414,7 @@ export class Host extends Base {
           this._initHost(appHost, true, ipv6)
         } catch {}
       } else {
-        if (isMacOS()) {
-          let hosts: any = await Helper.send('tools', 'readFileByRoot', this.hostsFile)
-          const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-          if (x) {
-            hosts = hosts.replace(x[0], '')
-            await Helper.send('tools', 'writeFileByRoot', this.hostsFile, hosts.trim())
-          }
-          this._initHost(appHost, false, ipv6)
-        } else if (isWindows()) {
+        if (isWindows()) {
           let hasErr = false
           let hosts = ''
           try {
@@ -441,11 +433,17 @@ export class Host extends Base {
           try {
             this._initHost(appHost, false, ipv6)
           } catch {}
-        }
-        if (isWindows()) {
           try {
             await execPromise(`ipconfig /flushdns`)
           } catch {}
+        } else {
+          let hosts: any = await Helper.send('tools', 'readFileByRoot', this.hostsFile)
+          const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
+          if (x) {
+            hosts = hosts.replace(x[0], '')
+            await Helper.send('tools', 'writeFileByRoot', this.hostsFile, hosts.trim())
+          }
+          this._initHost(appHost, false, ipv6)
         }
         resolve(true)
       }

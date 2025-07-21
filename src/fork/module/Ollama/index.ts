@@ -26,7 +26,7 @@ import http from 'http'
 import https from 'https'
 import { publicDecrypt } from 'crypto'
 import { EOL } from 'os'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Ollama extends Base {
   chats: Record<string, AbortController> = {}
@@ -99,7 +99,32 @@ class Ollama extends Base {
 
       const opt = await getConfEnv()
 
-      if (isMacOS()) {
+      if (isWindows()) {
+        const envs: string[] = []
+        for (const k in opt) {
+          const v = opt[k]
+          envs.push(`$env:${k}="${v}"`)
+        }
+        envs.push('')
+        const execEnv = envs.join(EOL)
+        try {
+          const res = await serviceStartExecWin({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else {
         const envs: string[] = []
         for (const k in opt) {
           const v = opt[k]
@@ -126,31 +151,6 @@ class Ollama extends Base {
           reject(e)
           return
         }
-      } else if (isWindows()) {
-        const envs: string[] = []
-        for (const k in opt) {
-          const v = opt[k]
-          envs.push(`$env:${k}="${v}"`)
-        }
-        envs.push('')
-        const execEnv = envs.join(EOL)
-        try {
-          const res = await serviceStartExecWin({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
       }
     })
   }
@@ -158,10 +158,10 @@ class Ollama extends Base {
   allModel(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       let command = ''
-      if (isMacOS()) {
-        command = `cd "${dirname(version.bin)}" && ./ollama list`
-      } else if (isWindows()) {
+      if (isWindows()) {
         command = `ollama.exe list`
+      } else {
+        command = `cd "${dirname(version.bin)}" && ./ollama list`
       }
       let res: any
       try {

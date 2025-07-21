@@ -21,7 +21,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Etcd extends Base {
   constructor() {
@@ -97,7 +97,7 @@ log-outputs: ["stdout"]`
           reject(e)
           return
         }
-      } else if (isMacOS()) {
+      } else {
         const execArgs = `--config-file "${iniFile}"`
         try {
           const res = await serviceStartExec({

@@ -29,7 +29,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
-import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 class RabbitMQ extends Base {
   baseDir: string = ''
@@ -103,13 +103,13 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
   async _initPlugin(version: SoftInstalled) {
     try {
       const baseDir = dirname(version.bin)
-      if (isMacOS()) {
-        await Helper.send('rabbitmq', 'initPlugin', baseDir)
-      } else if (isWindows()) {
+      if (isWindows()) {
         process.chdir(baseDir)
         await execPromise(`rabbitmq-plugins.bat enable rabbitmq_management`, {
           cwd: baseDir
         })
+      } else {
+        await Helper.send('rabbitmq', 'initPlugin', baseDir)
       }
     } catch (e: any) {
       console.log('_initPlugin err: ', e)
@@ -218,10 +218,10 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
       const bin = version.bin
       const baseDir = this.baseDir
       const execArgs = `-detached`
-      if (isMacOS()) {
-        const execEnv = `export RABBITMQ_CONF_ENV_FILE="${confFile}"`
+      if (isWindows()) {
+        const execEnv = `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`
         try {
-          await serviceStartExec({
+          await serviceStartExecCMD({
             version,
             pidPath: this.pidPath,
             baseDir,
@@ -236,10 +236,10 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
           reject(e)
           return
         }
-      } else if (isWindows()) {
-        const execEnv = `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`
+      } else {
+        const execEnv = `export RABBITMQ_CONF_ENV_FILE="${confFile}"`
         try {
-          await serviceStartExecCMD({
+          await serviceStartExec({
             version,
             pidPath: this.pidPath,
             baseDir,
@@ -323,7 +323,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
               return TaskQueue.run(versionBinVersion, item.bin, command, reg)
             })
             return Promise.all(all)
-          } else if (isMacOS()) {
+          } else {
             if (existsSync('/opt/local/lib/rabbitmq/bin/rabbitmq-server')) {
               const bin = realpathSync('/opt/local/lib/rabbitmq/bin/rabbitmq-server')
               versions.push({

@@ -22,7 +22,7 @@ import {
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 class Memcached extends Base {
   constructor() {
     super()
@@ -45,26 +45,7 @@ class Memcached extends Base {
       const baseDir = global.Server.MemcachedDir!
       const execEnv = ''
 
-      if (isMacOS()) {
-        const execArgs = `-d -P "${this.pidPath}" -vv`
-
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else if (isWindows()) {
+      if (isWindows()) {
         const execArgs = `-d -P \`"${this.pidPath}\`"`
 
         try {
@@ -77,6 +58,25 @@ class Memcached extends Base {
             execEnv,
             on,
             checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else {
+        const execArgs = `-d -P "${this.pidPath}" -vv`
+
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on
           })
           resolve(res)
         } catch (e: any) {

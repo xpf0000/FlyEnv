@@ -31,7 +31,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 
 class Manager extends Base {
@@ -107,7 +107,35 @@ class Manager extends Base {
 
       const doRun = async () => {
         const baseDir = global.Server.PostgreSqlDir!
-        if (isMacOS()) {
+        if (isWindows()) {
+          const execArgs = `-D "${dbPath}" -l "${logFile}" start`
+
+          try {
+            const res = await serviceStartExecCMD({
+              version,
+              pidPath: pidFile,
+              baseDir,
+              bin,
+              execArgs,
+              execEnv: '',
+              on
+            })
+            if (sendUserPass) {
+              on(I18nT('fork.postgresqlInit', { dir: dbPath }))
+            }
+            const pid = res['APP-Service-Start-PID'].trim().split('\n').shift()!.trim()
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+            })
+            resolve({
+              'APP-Service-Start-PID': pid
+            })
+          } catch (e: any) {
+            console.log('-k start err: ', e)
+            reject(e)
+            return
+          }
+        } else {
           const execEnv = `export LC_ALL="${global.Server.Local!}"
 export LANG="${global.Server.Local!}"
 `
@@ -140,34 +168,6 @@ export LANG="${global.Server.Local!}"
             reject(e)
             return
           }
-        } else if (isWindows()) {
-          const execArgs = `-D "${dbPath}" -l "${logFile}" start`
-
-          try {
-            const res = await serviceStartExecCMD({
-              version,
-              pidPath: pidFile,
-              baseDir,
-              bin,
-              execArgs,
-              execEnv: '',
-              on
-            })
-            if (sendUserPass) {
-              on(I18nT('fork.postgresqlInit', { dir: dbPath }))
-            }
-            const pid = res['APP-Service-Start-PID'].trim().split('\n').shift()!.trim()
-            on({
-              'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-            })
-            resolve({
-              'APP-Service-Start-PID': pid
-            })
-          } catch (e: any) {
-            console.log('-k start err: ', e)
-            reject(e)
-            return
-          }
         }
       }
       if (existsSync(confFile)) {
@@ -177,7 +177,23 @@ export LANG="${global.Server.Local!}"
           'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
         })
         const binDir = dirname(bin)
-        if (isMacOS()) {
+        if (isWindows()) {
+          process.env.LC_ALL = global.Server.Local!
+          process.env.LANG = global.Server.Local!
+          await mkdirp(dbPath)
+          const initDB = join(binDir, 'initdb.exe')
+          process.chdir(dirname(initDB))
+          const command = `start /B ./${basename(initDB)} -D "${dbPath}" -U root > NUL 2>&1 &`
+          try {
+            await execPromise(command)
+          } catch (e) {
+            on({
+              'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
+            })
+            reject(e)
+            return
+          }
+        } else {
           const initDB = join(binDir, 'initdb')
           const command = `"${initDB}" -D "${dbPath}" -U root --locale=${global.Server.Local} --encoding=UTF8 && wait`
           console.log('global.Server.Local: ', global.Server.Local)
@@ -188,22 +204,6 @@ export LANG="${global.Server.Local!}"
                 LANG: global.Server.Local!
               }
             })
-          } catch (e) {
-            on({
-              'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
-            })
-            reject(e)
-            return
-          }
-        } else if (isWindows()) {
-          process.env.LC_ALL = global.Server.Local!
-          process.env.LANG = global.Server.Local!
-          await mkdirp(dbPath)
-          const initDB = join(binDir, 'initdb.exe')
-          process.chdir(dirname(initDB))
-          const command = `start /B ./${basename(initDB)} -D "${dbPath}" -U root > NUL 2>&1 &`
-          try {
-            await execPromise(command)
           } catch (e) {
             on({
               'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))

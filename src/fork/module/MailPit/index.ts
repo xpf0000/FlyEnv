@@ -115,19 +115,19 @@ class MailPit extends Base {
       const baseDir = join(global.Server.BaseDir!, `mailpit`)
       await mkdirp(baseDir)
 
-      if (isMacOS()) {
+      if (isWindows()) {
         const envs: string[] = []
         for (const k in opt) {
           const v = opt[k]
-          envs.push(`export ${k}="${v}"`)
+          envs.push(`$env:${k}="${v}"`)
         }
         envs.push('')
 
         const execEnv = envs.join(EOL)
-        const execArgs = ``
+        const execArgs = ` `
 
         try {
-          const res = await serviceStartExec({
+          const res = await serviceStartExecWin({
             version,
             pidPath: this.pidPath,
             baseDir,
@@ -143,19 +143,19 @@ class MailPit extends Base {
           reject(e)
           return
         }
-      } else if (isWindows()) {
+      } else {
         const envs: string[] = []
         for (const k in opt) {
           const v = opt[k]
-          envs.push(`$env:${k}="${v}"`)
+          envs.push(`export ${k}="${v}"`)
         }
         envs.push('')
 
         const execEnv = envs.join(EOL)
-        const execArgs = ` `
+        const execArgs = ``
 
         try {
-          const res = await serviceStartExecWin({
+          const res = await serviceStartExec({
             version,
             pidPath: this.pidPath,
             baseDir,

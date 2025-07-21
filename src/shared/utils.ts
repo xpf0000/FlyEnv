@@ -150,3 +150,13 @@ export function isMacOS() {
 export function isLinux() {
   return os === 'linux'
 }
+
+export function defaultShell() {
+  if (isMacOS()) {
+    return '#!/bin/zsh'
+  }
+  if (isLinux()) {
+    return '#!/bin/bash'
+  }
+  return ''
+}
