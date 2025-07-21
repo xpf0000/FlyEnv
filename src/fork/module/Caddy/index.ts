@@ -23,7 +23,7 @@ import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import Helper from '../../Helper'
-import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 
 class Caddy extends Base {
   constructor() {
@@ -147,7 +147,7 @@ class Caddy extends Base {
       await this.#fixVHost()
       const iniFile = await this.initConfig().on(on)
 
-      if (isMacOS()) {
+      if (!isWindows()) {
         const sslDir = join(global.Server.BaseDir!, 'caddy/ssl')
         await Helper.send('caddy', 'sslDirFixed', sslDir)
       }
@@ -174,7 +174,7 @@ class Caddy extends Base {
           reject(e)
           return
         }
-      } else if (isMacOS()) {
+      } else {
         const execEnv = ``
         const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
         try {

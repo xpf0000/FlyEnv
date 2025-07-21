@@ -30,12 +30,9 @@
     if (!version?.value || !version?.value?.bin) {
       return ''
     }
-    if (window.Server.isMacOS) {
-      return join(window.Server.ApacheDir!, `common/logs/${props.type}_log`)
-    }
     if (window.Server.isWindows) {
       return join(window.Server.ApacheDir, `${version.value.version}.${props.type}.log`)
     }
-    return ''
+    return join(window.Server.ApacheDir!, `common/logs/${props.type}_log`)
   })
 </script>

@@ -24,7 +24,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
-import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 
 class Apache extends Base {
   constructor() {
@@ -40,15 +40,15 @@ class Apache extends Base {
     return new ForkPromise(async (resolve, reject, on) => {
       let defaultFile = ''
       let defaultFileBack = ''
-      if (isMacOS()) {
+      if (isWindows()) {
+        defaultFile = join(global.Server.ApacheDir!, `${version.version}.conf`)
+        defaultFileBack = join(global.Server.ApacheDir!, `${version.version}.default.conf`)
+      } else {
         defaultFile = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
         defaultFileBack = join(
           global.Server.ApacheDir!,
           `common/conf/${md5(version.bin)}.default.conf`
         )
-      } else if (isWindows()) {
-        defaultFile = join(global.Server.ApacheDir!, `${version.version}.conf`)
-        defaultFileBack = join(global.Server.ApacheDir!, `${version.version}.default.conf`)
       }
 
       const logs = join(global.Server.ApacheDir!, 'common/logs')
@@ -153,24 +153,24 @@ class Apache extends Base {
 
       if (logPath) {
         let logPathReplace = ''
-        if (isMacOS()) {
-          logPathReplace = join(global.Server.ApacheDir, `common/logs/access_log`)
-        } else if (isWindows()) {
+        if (isWindows()) {
           logPathReplace = pathFixedToUnix(
             join(global.Server.ApacheDir!, `${version.version}.access.log`)
           )
+        } else {
+          logPathReplace = join(global.Server.ApacheDir, `common/logs/access_log`)
         }
         content = content.replace(`CustomLog "${logPath}"`, `CustomLog "${logPathReplace}"`)
       }
 
       if (errLogPath) {
         let errLogPathReplace = ''
-        if (isMacOS()) {
-          errLogPathReplace = join(global.Server.ApacheDir, `common/logs/error_log`)
-        } else if (isWindows()) {
+        if (isWindows()) {
           errLogPathReplace = pathFixedToUnix(
             join(global.Server.ApacheDir!, `${version.version}.error.log`)
           )
+        } else {
+          errLogPathReplace = join(global.Server.ApacheDir, `common/logs/error_log`)
         }
         content = content.replace(`ErrorLog "${errLogPath}"`, `ErrorLog "${errLogPathReplace}"`)
       }
@@ -188,7 +188,7 @@ class Apache extends Base {
       find = content.match(/\nGroup _www(.*?)\n/g)
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#Group _www\n')
 
-      if (isMacOS()) {
+      if (!isWindows()) {
         const regex = /\n\s*Mutex /g
         if (!regex.test(content)) {
           content = 'Mutex posixsem default\n' + content
@@ -261,7 +261,7 @@ IncludeOptional "${vhost}"`
     let configpath = ''
     if (isWindows()) {
       configpath = join(global.Server.ApacheDir!, `${version.version}.conf`)
-    } else if (isMacOS()) {
+    } else {
       configpath = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
     }
     let confContent = await readFile(configpath, 'utf-8')
@@ -328,10 +328,10 @@ IncludeOptional "${vhost}"`
       })
 
       let conf = ''
-      if (isMacOS()) {
-        conf = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
-      } else if (isWindows()) {
+      if (isWindows()) {
         conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
+      } else {
+        conf = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
       }
 
       if (!existsSync(conf)) {

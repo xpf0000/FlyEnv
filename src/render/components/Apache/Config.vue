@@ -36,27 +36,21 @@
     if (!version?.value || !version?.value?.bin) {
       return ''
     }
-    if (window.Server.isMacOS) {
-      const name = md5(version.value.bin!)
-      return join(window.Server.ApacheDir!, `common/conf/${name}.conf`)
-    }
     if (window.Server.isWindows) {
       return join(window.Server.ApacheDir, `${version.value.version}.conf`)
     }
-    return ''
+    const name = md5(version.value.bin!)
+    return join(window.Server.ApacheDir!, `common/conf/${name}.conf`)
   })
   const defaultFile = computed(() => {
     if (!version?.value || !version?.value?.bin) {
       return ''
     }
-    if (window.Server.isMacOS) {
-      const name = md5(version.value.bin!)
-      return join(window.Server.ApacheDir!, `common/conf/${name}.default.conf`)
-    }
     if (window.Server.isWindows) {
       return join(window.Server.ApacheDir, `${version.value.version}.default.conf`)
     }
-    return ''
+    const name = md5(version.value.bin!)
+    return join(window.Server.ApacheDir!, `common/conf/${name}.default.conf`)
   })
 
   const names: CommonSetItem[] = [

@@ -4,6 +4,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { arch } from 'os'
 import axios from 'axios'
 import { publicDecrypt } from 'crypto'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class App extends Base {
   constructor() {
@@ -35,7 +36,15 @@ class App extends Base {
     return new ForkPromise(async (resolve) => {
       const uuid_new = await machineId()
       const uuid = '#########'
-      const os = `macOS ${arch()}`
+
+      let os = ''
+      if (isWindows()) {
+        os = `Windows ${arch()}`
+      } else if (isMacOS()) {
+        os = `macOS ${arch()}`
+      } else {
+        os = `Linux ${arch()}`
+      }
 
       const data = {
         uuid,
