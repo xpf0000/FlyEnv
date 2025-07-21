@@ -23,7 +23,7 @@ import {
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { I18nT } from '@lang/index'
-import { isWindows } from '@shared/utils'
+import { isLinux, isWindows } from '@shared/utils'
 
 class Nginx extends Base {
   constructor() {
@@ -187,6 +187,7 @@ class Nginx extends Base {
 
         try {
           const res = await serviceStartExec({
+            root: isLinux(),
             version,
             pidPath: pid,
             baseDir,

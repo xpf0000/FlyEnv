@@ -27,7 +27,7 @@ import {
 import TaskQueue from '../../TaskQueue'
 import { makeGlobalTomcatServerXML } from '../Service/ServiceItemJavaTomcat'
 import { I18nT } from '@lang/index'
-import { isWindows } from '@shared/utils'
+import { isLinux, isWindows } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 
 class Tomcat extends Base {
@@ -221,6 +221,7 @@ class Tomcat extends Base {
 export CATALINA_PID="${this.pidPath}"`
         try {
           const res = await serviceStartExec({
+            root: isLinux(),
             version,
             pidPath: this.pidPath,
             baseDir: tomcatDir,

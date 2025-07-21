@@ -23,7 +23,7 @@ import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import Helper from '../../Helper'
-import { isWindows, pathFixedToUnix } from '@shared/utils'
+import { isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
 
 class Caddy extends Base {
   constructor() {
@@ -179,6 +179,7 @@ class Caddy extends Base {
         const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
         try {
           const res = await serviceStartExec({
+            root: isLinux(),
             version,
             pidPath: this.pidPath,
             baseDir,
