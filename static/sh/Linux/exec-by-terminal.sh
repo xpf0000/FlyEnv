@@ -23,7 +23,7 @@ open_terminal_with_command() {
         echo "$command" >> "$temp_script"
         echo 'echo -e "\nCommand execution completed. Press any key to close..."; read -n1 -s' >> "$temp_script"
         chmod +x "$temp_script"
-        exec_cmd="set +H; bash \"$temp_script\"; rm -f \"$temp_script\""
+        exec_cmd="set +H; bash \"$temp_script\"; echo \"$temp_script\""
     else
         exec_cmd="set +H; $command; echo -e '\nCommand execution completed. Press any key to close...'; read -n1 -s"
     fi

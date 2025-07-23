@@ -55,8 +55,8 @@ end tell`
     } catch (e) {
       console.log('runInTerminal error', e)
     } finally {
-      await waitTime(300)
-      remove(exeSH).catch()
+      // await waitTime(300)
+      // remove(exeSH).catch()
     }
     return
   }
