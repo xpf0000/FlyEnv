@@ -131,7 +131,7 @@ class AppHelper {
   initHelperByTerminal() {
     return new Promise((resolve, reject) => {
       const doChech = (time = 0) => {
-        if (time > 9) {
+        if (time > 1) {
           this.state = 'normal'
           reject(new Error('Install helper failed'))
           return

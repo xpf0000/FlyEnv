@@ -48,6 +48,9 @@ end tell`
     await copyFile(terminalSH, exeSH)
     await chmod(exeSH, '0755')
 
+    console.log('runInTerminal exeSH: ', exeSH)
+    console.log('runInTerminal command: ', command)
+
     try {
       await spawnPromise('/bin/bash', [`./${basename(exeSH)}`, command], {
         cwd: global.Server.Cache!
