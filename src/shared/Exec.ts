@@ -12,7 +12,7 @@ function escapeShellArg(arg: string) {
   // First check if argument needs wrapping
   if (!arg.match(/[ "'\r\n]/)) return arg
   // Escape double quotes by backslash-escaping them, then wrap in double quotes
-  return `"${arg.replace(/"/g, '\\"')}"`
+  return arg.replace(/'/g, `\\'`)
 }
 
 const runInTerminal = async (c: string) => {
@@ -22,10 +22,10 @@ const runInTerminal = async (c: string) => {
         tell application "Terminal"
           if not running then
             activate
-            do script "${command}" in front window
+            do script '${command}' in front window
           else
             activate
-            do script "${command}"
+            do script '${command}'
           end if
         end tell`
     const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
@@ -49,7 +49,7 @@ const runInTerminal = async (c: string) => {
     await chmod(exeSH, '0755')
 
     try {
-      await execPromise(`"${exeSH}" "${command}"`, {
+      await execPromise(`"${exeSH}" '${command}'`, {
         cwd: global.Server.Cache!
       })
     } catch (e) {
@@ -59,7 +59,7 @@ const runInTerminal = async (c: string) => {
 
   if (isWindows()) {
     try {
-      await execPromiseWithEnv(`start powershell -NoExit -Command "${command}"`)
+      await execPromiseWithEnv(`start powershell -NoExit -Command '${command}'`)
     } catch (e) {
       console.log('runInTerminal error', e)
     }
