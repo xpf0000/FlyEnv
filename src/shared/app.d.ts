@@ -120,4 +120,9 @@ export type ModuleExecItem = {
   pidPath?: string
 }
 
+export type ExecResult = {
+  stdout: string
+  stderr: string
+}
+
 export type CallbackFn = (...args: any) => void
