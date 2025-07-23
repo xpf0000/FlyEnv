@@ -1,8 +1,7 @@
 import { basename, join } from 'path'
 import { spawnPromise } from '@shared/child-process'
 import { remove, chmod, copyFile, writeFile } from '@shared/fs-extra'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { waitTime, uuid } from '@/util/Index'
+import { isLinux, isMacOS, isWindows, uuid, waitTime } from '@shared/utils'
 
 type ExecType = {
   escapeCommand: (command: string) => string

@@ -57,9 +57,9 @@ import {
   stat
 } from '@shared/fs-extra'
 import { addPath, fetchRawPATH, handleWinPathArr, writePath } from './util/PATH.win'
-import { isWindows } from '@shared/utils'
+import { isWindows, waitTime } from '@shared/utils'
 
-export { addPath, fetchRawPATH, handleWinPathArr, writePath }
+export { waitTime, addPath, fetchRawPATH, handleWinPathArr, writePath }
 
 export {
   versionBinVersion,
@@ -171,14 +171,6 @@ export function uuid(length = 32) {
     str += num.charAt(Math.floor(Math.random() * num.length))
   }
   return str
-}
-
-export function waitTime(time: number) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(true)
-    }, time)
-  })
 }
 
 export async function setDir777ToCurrentUser(folderPath: string) {

@@ -100,6 +100,14 @@ export function execAsync(
   })
 }
 
+export function waitTime(time: number) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(true)
+    }, time)
+  })
+}
+
 export function uuid(length = 32) {
   const num = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
   let str = ''
