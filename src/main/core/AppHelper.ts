@@ -101,7 +101,7 @@ class AppHelper {
           const binDir = PathResolve(global.Server.Static!, '../../../build/')
           const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
           const shDir = join(global.Server.Static!, 'sh')
-          command = `cd "${shDir}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${bin}"`
+          command = `cd '${shDir}' && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh '${bin}'`
           icns = join(binDir, 'Icon@256x256.icns')
         }
       }
@@ -120,7 +120,7 @@ class AppHelper {
           console.log('initHelper err: ', e)
           if (!HadOpenInTerminal) {
             HadOpenInTerminal = true
-            ExecCommand.runInTerminal(command).catch()
+            ExecCommand.runInTerminal(`"${command}"`).catch()
           }
           this.state = 'normal'
           reject(e)
