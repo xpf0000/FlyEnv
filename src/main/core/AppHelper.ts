@@ -175,7 +175,7 @@ class AppHelper {
         }
       }
 
-      ExecCommand.runInTerminal(`"${command}"`)
+      ExecCommand.runInTerminal(command)
         .then(() => {
           doChech()
         })
