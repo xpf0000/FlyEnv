@@ -1,5 +1,5 @@
 import { basename, join } from 'path'
-import { spawnPromise } from '@shared/child-process'
+import { spawnPromise, spawnPromiseWithEnv } from '@shared/child-process'
 import { remove, chmod, copyFile, writeFile } from '@shared/fs-extra'
 import { isLinux, isMacOS, isWindows, uuid, waitTime } from '@shared/utils'
 
@@ -52,7 +52,7 @@ end tell`
     console.log('runInTerminal command: ', command)
 
     try {
-      const res = await spawnPromise('/bin/bash', [`./${basename(exeSH)}`, command], {
+      const res = await spawnPromiseWithEnv('/bin/bash', [`./${basename(exeSH)}`, command], {
         cwd: global.Server.Cache!
       })
       console.log('runInTerminal res', res)

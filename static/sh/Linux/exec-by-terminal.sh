@@ -34,7 +34,7 @@ open_terminal_with_command() {
         case "$terminal" in
             gnome-terminal)
                 if command -v gnome-terminal &>/dev/null; then
-                    echo "terminal command: gnome-terminal -- bash -c \"$exec_cmd\""
+                    echo "terminal command: gnome-terminal -- bash -ic \"$exec_cmd\""
                     gnome-terminal -- bash -ic "$exec_cmd"
                     terminal_found=true
                     break
