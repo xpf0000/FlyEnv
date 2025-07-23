@@ -28,10 +28,13 @@ open_terminal_with_command() {
         exec_cmd="set +H; $command; echo -e '\nCommand execution completed. Press any key to close...'; read -n1 -s"
     fi
 
+    echo "command: $exec_cmd"
+
     for terminal in "$TERMINAL" gnome-terminal kitty konsole xfce4-terminal mate-terminal lxterminal terminator tilix alacritty xterm urxvt; do
         case "$terminal" in
             gnome-terminal)
                 if command -v gnome-terminal &>/dev/null; then
+                    echo "terminal command: gnome-terminal -- bash -c \"$exec_cmd\""
                     gnome-terminal -- bash -c "$exec_cmd"
                     terminal_found=true
                     break

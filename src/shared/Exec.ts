@@ -52,9 +52,10 @@ end tell`
     console.log('runInTerminal command: ', command)
 
     try {
-      await spawnPromise('/bin/bash', [`./${basename(exeSH)}`, command], {
+      const res = await spawnPromise('/bin/bash', [`./${basename(exeSH)}`, command], {
         cwd: global.Server.Cache!
       })
+      console.log('runInTerminal res', res)
     } catch (e) {
       console.log('runInTerminal error', e)
     } finally {
