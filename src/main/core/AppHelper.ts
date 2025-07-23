@@ -5,10 +5,13 @@ import is from 'electron-is'
 import { isLinux, isMacOS } from '@shared/utils'
 import { writeFile, stat } from '@shared/fs-extra'
 import Helper from '../../fork/Helper'
+import { ExecCommand } from '@shared/Exec'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
+
+let HadOpenInTerminal = false
 
 class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
@@ -115,6 +118,10 @@ class AppHelper {
         })
         .catch((e) => {
           console.log('initHelper err: ', e)
+          if (!HadOpenInTerminal) {
+            HadOpenInTerminal = true
+            ExecCommand.runInTerminal(command).catch()
+          }
           this.state = 'normal'
           reject(e)
         })

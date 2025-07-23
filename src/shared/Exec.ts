@@ -1,7 +1,7 @@
 import { basename, join } from 'path'
+import { spawnPromise } from '@shared/child-process'
 import { remove, chmod, copyFile, writeFile } from '@shared/fs-extra'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { execa } from 'execa'
 import { waitTime, uuid } from '@/util/Index'
 
 type ExecType = {
@@ -13,7 +13,7 @@ function escapeCommand(command: string) {
   // First check if argument needs wrapping
   if (!command.match(/[ "'\r\n]/)) return command
   // Escape double quotes by backslash-escaping them, then wrap in double quotes
-  return command.replace(/"/g, '\\"')
+  return command.replace(/"/g, '\\"').replace(/!\\/g, '! \\')
 }
 
 const runInTerminal = async (c: string) => {
@@ -32,7 +32,7 @@ end tell`
     await writeFile(scptFile, appleScript.trim())
     await chmod(scptFile, '0755')
     try {
-      await execa('osascript', [`./${basename(scptFile)}`], {
+      await spawnPromise('osascript', [`./${basename(scptFile)}`], {
         cwd: global.Server.Cache!
       })
     } catch (e) {
@@ -50,7 +50,7 @@ end tell`
     await chmod(exeSH, '0755')
 
     try {
-      await execa(basename(exeSH), [command], {
+      await spawnPromise(basename(exeSH), [command], {
         cwd: global.Server.Cache!
       })
     } catch (e) {
@@ -64,7 +64,7 @@ end tell`
 
   if (isWindows()) {
     try {
-      await execa('start', ['powershell', '-NoExit', '-Command', `& {${command}}`])
+      await spawnPromise('start', ['powershell', '-NoExit', '-Command', `& {${command}}`])
     } catch (e) {
       console.log('runInTerminal error', e)
     }
