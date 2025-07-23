@@ -49,7 +49,7 @@ end tell`
     await chmod(exeSH, '0755')
 
     try {
-      await spawnPromise(basename(exeSH), [command], {
+      await spawnPromise('/bin/bash', [`"${exeSH}"`, command], {
         cwd: global.Server.Cache!
       })
     } catch (e) {
