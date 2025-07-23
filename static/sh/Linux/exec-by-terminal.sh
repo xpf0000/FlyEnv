@@ -35,21 +35,21 @@ open_terminal_with_command() {
             gnome-terminal)
                 if command -v gnome-terminal &>/dev/null; then
                     echo "terminal command: gnome-terminal -- bash -c \"$exec_cmd\""
-                    gnome-terminal -- bash -c "$exec_cmd"
+                    gnome-terminal -- bash -ic "$exec_cmd"
                     terminal_found=true
                     break
                 fi
                 ;;
             kitty)
                 if command -v kitty &>/dev/null; then
-                    kitty bash -c "$exec_cmd"
+                    kitty bash -ic "$exec_cmd"
                     terminal_found=true
                     break
                 fi
                 ;;
             konsole)
                 if command -v konsole &>/dev/null; then
-                    konsole --noclose -e bash -c "$exec_cmd"
+                    konsole --noclose -e bash -ic "$exec_cmd"
                     terminal_found=true
                     break
                 fi
