@@ -780,6 +780,30 @@ export default class Application extends EventEmitter {
     }
 
     switch (command) {
+      case 'App-Check-FlyEnv-Helper':
+        AppHelper.check()
+          .then(() => {
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 0,
+              data: true
+            })
+          })
+          .catch(() => {
+            AppHelper.initHelperByTerminal()
+              .then(() => {
+                this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                  code: 0,
+                  data: true
+                })
+              })
+              .catch(() => {
+                this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                  code: 1,
+                  data: false
+                })
+              })
+          })
+        break
       case 'App-Node-FN':
         {
           const namespace: string = args.shift()

@@ -53,6 +53,12 @@
         </div>
         <div v-else class="col opacity-0"></div>
       </div>
+      <div v-if="!isWindows" class="row-2">
+        <div class="col">
+          <FlyEnvHelperFix />
+        </div>
+        <div class="col opacity-0"></div>
+      </div>
     </div>
   </el-scrollbar>
 </template>
@@ -73,6 +79,7 @@
   import AutoLanch from './AutoLanch/index.vue'
   import AutoHide from './AutoHide/index.vue'
   import AutoStartService from './AutoStartService/index.vue'
+  import FlyEnvHelperFix from '@/components/Setup/FlyEnvHelper/index.vue'
 
   const isMacOS = computed(() => {
     return window.Server.isMacOS

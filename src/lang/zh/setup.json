@@ -45,5 +45,10 @@
     "licenseTips": "未获得许可证, 只可以创建三个模块和模块执行项",
     "outputLog": "输出日志",
     "errorLog": "错误日志"
-  }
+  },
+
+  "flyenvHelper": "FlyEnv帮助程序修复",
+  "flyenvHelperBtn": "修复",
+  "flyenvHelperFixSuccess": "FlyEnv帮助程序修复成功",
+  "flyenvHelperFixFail": "FlyEnv帮助程序修复失败"
 }

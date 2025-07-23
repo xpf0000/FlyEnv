@@ -120,8 +120,67 @@ class AppHelper {
           console.log('initHelper err: ', e)
           if (!HadOpenInTerminal) {
             HadOpenInTerminal = true
-            ExecCommand.runInTerminal(`"${command}"`).catch()
+            // ExecCommand.runInTerminal(`"${command}"`).catch()
           }
+          this.state = 'normal'
+          reject(e)
+        })
+    })
+  }
+
+  initHelperByTerminal() {
+    return new Promise((resolve, reject) => {
+      const doChech = (time = 0) => {
+        if (time > 9) {
+          this.state = 'normal'
+          reject(new Error('Install helper failed'))
+          return
+        }
+        this.check()
+          .then(() => {
+            this.state = 'normal'
+            resolve(true)
+          })
+          .catch(() => {
+            setTimeout(() => {
+              doChech(time + 1)
+            }, 1000)
+          })
+      }
+
+      this.state = 'installing'
+      let command = ''
+      if (is.production()) {
+        if (isMacOS()) {
+          const binDir = PathResolve(global.Server.Static!, '../../../../')
+          const plist = join(binDir, 'plist/com.flyenv.helper.plist')
+          const bin = join(binDir, 'helper/flyenv-helper')
+          command = `cd "${join(binDir, 'helper')}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
+        } else if (isLinux()) {
+          const binDir = PathResolve(global.Server.Static!, '../../../../')
+          const bin = join(binDir, 'helper/flyenv-helper')
+          command = `cd "${join(binDir, 'helper')}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${bin}"`
+        }
+      } else {
+        if (isMacOS()) {
+          const binDir = PathResolve(global.Server.Static!, '../../../build/')
+          const plist = join(binDir, 'plist/com.flyenv.helper.plist')
+          const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
+          command = `cd "${dirname(bin)}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
+        } else if (isLinux()) {
+          const binDir = PathResolve(global.Server.Static!, '../../../build/')
+          const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
+          const shDir = join(global.Server.Static!, 'sh')
+          command = `cd '${shDir}' && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh '${bin}'`
+        }
+      }
+
+      ExecCommand.runInTerminal(`"${command}"`)
+        .then(() => {
+          doChech()
+        })
+        .catch((e) => {
+          console.log('initHelperByTerminal err: ', e)
           this.state = 'normal'
           reject(e)
         })

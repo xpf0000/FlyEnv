@@ -45,5 +45,10 @@
     "licenseTips": "No license found. Only 3 modules/execution items can be created.",
     "outputLog": "Output Log",
     "errorLog": "Error Log"
-  }
+  },
+
+  "flyenvHelper": "Fix FlyEnv Helper",
+  "flyenvHelperBtn": "Fix",
+  "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully",
+  "flyenvHelperFixFail": "FlyEnv Helper Fixed Failed"
 }
