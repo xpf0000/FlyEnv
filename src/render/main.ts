@@ -71,7 +71,9 @@ IPC.on('APP-FlyEnv-Helper-Notice').then((key: string, res: any) => {
   } else if (res.code === 1) {
     MessageError(res?.msg)
     if (res?.status === 'installFaild' && inited && !FlyEnvHelperSetup.show) {
-      AsyncComponentShow(import('@/components/FlyEnvHelper/index.vue')).then()
+      import('@/components/FlyEnvHelper/index.vue').then((m) => {
+        AsyncComponentShow(m.default).then()
+      })
     }
   } else if (res.code === 2) {
     MessageWarning(res?.msg)

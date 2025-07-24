@@ -1,6 +1,5 @@
-import { existsSync } from 'node:fs'
 import { BaseManager } from './Base'
-import { execPromise } from '../util'
+import { execPromise, existsSync } from '../util'
 
 class Manager extends BaseManager {
   sslDirFixed(sslDir: string): Promise<boolean> {

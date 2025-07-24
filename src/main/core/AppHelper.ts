@@ -1,5 +1,5 @@
 import { exec as Sudo } from '@shared/Sudo'
-import { dirname, join, resolve as PathResolve } from 'path'
+import { join, resolve as PathResolve } from 'path'
 import is from 'electron-is'
 import { isLinux, isMacOS } from '@shared/utils'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
@@ -39,7 +39,8 @@ export class AppHelper {
         const binDir = PathResolve(global.Server.Static!, '../../../build/')
         const plist = join(binDir, 'plist/com.flyenv.helper.plist')
         const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
-        command = `cd "${dirname(bin)}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
+        const shDir = join(global.Server.Static!, 'sh')
+        command = `cd "${shDir}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
         icns = join(binDir, 'icon.icns')
       } else if (isLinux()) {
         const binDir = PathResolve(global.Server.Static!, '../../../build/')

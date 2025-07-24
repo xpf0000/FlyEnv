@@ -26,18 +26,6 @@ export function uuid(length = 32) {
   return str
 }
 
-export async function dirChownFetch(dir: string) {
-  const res = await execPromise(`ls -al "${dir}"`)
-
-  const arr =
-    res?.stdout
-      ?.trim()
-      ?.split('\n')?.[1]
-      ?.split(' ')
-      ?.filter((s: string) => !!s.trim()) ?? []
-  return `${arr[2]}:${arr[3]}`
-}
-
 const os = platform()
 
 export function isWindows() {
