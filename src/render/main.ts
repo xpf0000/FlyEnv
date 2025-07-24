@@ -13,9 +13,11 @@ import { ThemeInit } from '@/util/Theme'
 import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
-import { EventBus } from '@/global'
 import { AppCustomerModule } from '@/core/Module'
 import { lang, nativeTheme } from '@/util/NodeFn'
+import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
+import { FlyEnvHelperSetup } from '@/components/FlyEnvHelper/setup'
 
 window.Server = reactive({}) as any
 
@@ -63,7 +65,15 @@ IPC.on('APP-Update-Global-Server').then((key: string, res: any) => {
 IPC.on('APP-License-Need-Update').then(() => {
   SetupStore().init()
 })
-IPC.on('APP-Helper-Check-Success').then((key: string) => {
-  IPC.off(key)
-  EventBus.emit('APP-Helper-Check-Success')
+IPC.on('APP-FlyEnv-Helper-Notice').then((key: string, res: any) => {
+  if (res?.code === 0) {
+    MessageSuccess(res?.msg)
+  } else if (res.code === 1) {
+    MessageError(res?.msg)
+    if (res?.status === 'installFaild' && inited && !FlyEnvHelperSetup.show) {
+      AsyncComponentShow(import('@/components/FlyEnvHelper/index.vue')).then()
+    }
+  } else if (res.code === 2) {
+    MessageWarning(res?.msg)
+  }
 })

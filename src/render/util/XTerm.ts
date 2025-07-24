@@ -13,7 +13,7 @@ interface XTermType {
 
 type ResolveFn = (...args: any) => void
 
-class XTerm implements XTermType {
+export class XTerm implements XTermType {
   xterm: Terminal | undefined
   dom: HTMLElement | undefined
   fitaddon: FitAddon | undefined

@@ -524,31 +524,35 @@
   })
 
   let autoStarted = false
-  let helperInitiated = false
+
+  const doAutoStart = () => {
+    autoStarted = true
+    IPC.send('APP:FlyEnv-Helper-Check').then((key: string, res: any) => {
+      if (res?.code === 0 && res?.data) {
+        groupDo()
+      } else {
+        setTimeout(doAutoStart, 2000)
+      }
+    })
+  }
+
+  const needAutoStart = computed(() => {
+    return (
+      appStore.config.setup?.autoStartService === true &&
+      !groupDisabled.value &&
+      !groupIsRunning.value
+    )
+  })
+
   watch(
-    groupDisabled,
+    needAutoStart,
     (v) => {
-      if (!v) {
-        if (autoStarted || !helperInitiated) {
-          return
-        }
-        if (appStore.config.setup?.autoStartService === true) {
-          autoStarted = true
-          groupDo()
-        }
+      if (v && !autoStarted) {
+        doAutoStart()
       }
     },
     {
       immediate: true
     }
   )
-
-  EventBus.on('APP-Helper-Check-Success', () => {
-    console.log('EventBus on APP-Helper-Check-Success !!!')
-    helperInitiated = true
-    if (appStore.config.setup?.autoStartService === true && !autoStarted && !groupDisabled.value) {
-      autoStarted = true
-      groupDo()
-    }
-  })
 </script>

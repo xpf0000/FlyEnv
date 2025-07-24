@@ -27,6 +27,8 @@ import AppNodeFnManager, { type AppNodeFn } from './core/AppNodeFn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 import ServiceProcessManager from './core/ServiceProcess'
+import { AppHelperCheck } from '@shared/AppHelperCheck'
+import Helper from '../fork/Helper'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -68,6 +70,7 @@ export default class Application extends EventEmitter {
     this.initUpdaterManager()
     this.handleCommands()
     this.handleIpcMessages()
+    this.initAppHelper()
     this.initForkManager()
     SiteSuckerManager.setCallback((link: any) => {
       if (link === 'window-close') {
@@ -95,6 +98,52 @@ export default class Application extends EventEmitter {
     console.log('Application inited !!!')
   }
 
+  initAppHelper() {
+    if (isWindows()) {
+      return
+    }
+    Helper.appHelper = AppHelper
+    AppHelper.onStatusMessage((flag) => {
+      if (!this?.mainWindow) {
+        return
+      }
+      const key = 'APP-FlyEnv-Helper-Notice'
+      switch (flag) {
+        case 'needInstall':
+          this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
+            code: 1,
+            msg: I18nT('menu.needInstallHelper')
+          })
+          break
+        case 'installed':
+          this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
+            code: 2,
+            msg: I18nT('menu.waitHelper')
+          })
+          break
+        case 'installing':
+          this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
+            code: 2,
+            msg: I18nT('menu.helperInstalling')
+          })
+          break
+        case 'installFaild':
+          this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
+            code: 1,
+            status: 'installFaild',
+            msg: I18nT('menu.helperInstallFailTips')
+          })
+          break
+        case 'checkSuccess':
+          this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
+            code: 0,
+            msg: I18nT('menu.helperInstallSuccessTips')
+          })
+          break
+      }
+    })
+  }
+
   initLang() {
     const lang = getLanguage(this.configManager.getConfig('setup.lang'))
     if (lang) {
@@ -107,6 +156,10 @@ export default class Application extends EventEmitter {
   initForkManager() {
     this.forkManager = new ForkManager(resolve(__dirname, './fork.mjs'))
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
+      if (key === 'App-Need-Init-FlyEnv-Helper') {
+        AppHelper.initHelper().catch()
+        return
+      }
       this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
     })
     ServiceProcessManager.forkManager = this.forkManager
@@ -641,7 +694,6 @@ export default class Application extends EventEmitter {
     }
 
     if (command.startsWith('app-fork:')) {
-      const exclude = ['app', 'version']
       module = command.replace('app-fork:', '')
       let openApps: Record<string, string> = {}
       if (isMacOS() || isLinux()) {
@@ -702,86 +754,16 @@ export default class Application extends EventEmitter {
           .then(callback)
       }
 
-      const doNotice = () => {
-        if (this.helpCheckSuccessNoticed) {
-          return
-        }
-        this.helpCheckSuccessNoticed = true
-        this.windowManager.sendCommandTo(
-          this.mainWindow!,
-          'APP-Helper-Check-Success',
-          'APP-Helper-Check-Success',
-          true
-        )
-      }
-
-      if (isWindows()) {
-        doFork()
-        return
-      }
-
-      if (exclude.includes(module)) {
-        doFork()
-        return
-      }
-
-      if (isMacOS() || isLinux()) {
-        if (AppHelper.state === 'normal') {
-          const helperVersion = this.configManager?.getConfig('helper.version') ?? 0
-          if (is.production() && helperVersion !== AppHelper.version) {
-            AppHelper.initHelper()
-              .then(() => {
-                doNotice()
-                this.configManager.setConfig('helper.version', AppHelper.version)
-                doFork()
-              })
-              .catch(() => {
-                this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-                  code: 1,
-                  msg: I18nT('menu.needInstallHelper')
-                })
-              })
-            return
-          }
-
-          AppHelper.check()
-            .then(() => {
-              doNotice()
-              doFork()
-            })
-            .catch(() => {
-              AppHelper.initHelper()
-                .then(() => {
-                  doNotice()
-                  doFork()
-                })
-                .catch(() => {
-                  this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-                    code: 1,
-                    msg: I18nT('menu.needInstallHelper')
-                  })
-                })
-            })
-        } else if (AppHelper.state === 'installed') {
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-            code: 1,
-            msg: I18nT('menu.waitHelper')
-          })
-        } else {
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-            code: 1,
-            msg: I18nT('menu.needInstallHelper')
-          })
-        }
-        return
-      }
-
+      doFork()
       return
     }
 
     switch (command) {
-      case 'App-Check-FlyEnv-Helper':
-        AppHelper.check()
+      case 'APP:FlyEnv-Helper-Command':
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, AppHelper.command())
+        break
+      case 'APP:FlyEnv-Helper-Check':
+        AppHelperCheck()
           .then(() => {
             this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
               code: 0,
@@ -789,19 +771,10 @@ export default class Application extends EventEmitter {
             })
           })
           .catch(() => {
-            AppHelper.initHelperByTerminal()
-              .then(() => {
-                this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-                  code: 0,
-                  data: true
-                })
-              })
-              .catch(() => {
-                this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-                  code: 1,
-                  data: false
-                })
-              })
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 1,
+              data: false
+            })
           })
         break
       case 'App-Node-FN':

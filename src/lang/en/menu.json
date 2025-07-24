@@ -19,5 +19,9 @@
   "front": "Bring FlyEnv to Front",
   "dev": "Open Debug Window",
   "needInstallHelper": "FlyEnv needs to install a helper program",
-  "waitHelper": "Helper program is starting, please wait"
+  "helperInstalling": "Helper program is installing, please wait",
+  "waitHelper": "Helper program is starting, please wait",
+  "helperInstallFailTips": "Helper program installation failed. Please try manually installing in the terminal window",
+  "helperInstallSuccessTips": "Helper program installation successed",
+  "helperInstallTitle": "Install FlyEnv Helper"
 }

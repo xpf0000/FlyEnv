@@ -1,6 +1,8 @@
 import { createConnection } from 'net'
 import { uuid } from './Fn'
 import type { TaskItem } from '../helper/type'
+import { AppHelperCheck } from '@shared/AppHelperCheck'
+import type { AppHelper } from '../main/core/AppHelper'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
@@ -39,8 +41,33 @@ type FN =
   | 'chmod'
 
 class Helper {
+  enable = false
+  appHelper?: AppHelper
+
   send(module: Module, fn: FN, ...args: any) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      if (!this.enable) {
+        try {
+          await AppHelperCheck()
+          this.enable = true
+        } catch (e) {
+          this.enable = false
+          if (this.appHelper) {
+            this.appHelper.initHelper().catch()
+          } else {
+            process?.send?.({
+              on: true,
+              key: 'App-Need-Init-FlyEnv-Helper',
+              info: {
+                code: 200,
+                msg: 'App-Need-Init-FlyEnv-Helper'
+              }
+            })
+          }
+          reject(e)
+          return
+        }
+      }
       const key = uuid()
       const client = createConnection(SOCKET_PATH)
       const buffer: Buffer[] = []
