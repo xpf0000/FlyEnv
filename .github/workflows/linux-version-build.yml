@@ -58,6 +58,16 @@ jobs:
         run: |
           yarn install
 
+      - name: Init notarize.ts File
+        run: |
+          mkdir -p build
+          cat > build/notarize.ts << 'EOF'
+          export default async function notarizing() {
+            return;
+          }
+          EOF
+
+
       - name: Build Electron packages with electron-builder
         run: |
           yarn build
