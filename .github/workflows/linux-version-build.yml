@@ -79,6 +79,8 @@ jobs:
           bash ./build-os.sh
 
       - name: Build Electron packages with electron-builder
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd "$GITHUB_WORKSPACE"
           yarn build
