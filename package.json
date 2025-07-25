@@ -181,8 +181,6 @@
     "svg-inline-loader": "^0.8.2",
     "tailwindcss": "^3.4.17",
     "tar": "^7.4.3",
-    "terser": "^5.43.1",
-    "terser-webpack-plugin": "^5.3.14",
     "tiny-emitter": "^2.1.0",
     "toml": "^3.0.0",
     "tsx": "^4.20.3",
