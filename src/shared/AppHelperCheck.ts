@@ -1,14 +1,15 @@
-import { stat, writeFile } from '@shared/fs-extra'
+import { writeFile } from '@shared/fs-extra'
 import Helper from '../fork/Helper'
 import { createConnection } from 'node:net'
+import { userInfo } from 'node:os'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
 
 export const AppHelperRoleFix = async () => {
-  const stats = await stat(process.execPath)
-  const role = `${stats.uid}:${stats.gid}`
+  const uinfo = userInfo()
+  const role = `${uinfo.uid}:${uinfo.gid}`
   await writeFile(Role_Path, role)
   try {
     Helper.send('tools', 'writeFileByRoot', Role_Path_Back, role).catch()
