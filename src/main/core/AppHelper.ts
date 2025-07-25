@@ -36,15 +36,23 @@ export class AppHelper {
       }
     } else {
       if (isMacOS()) {
+        const helperFile = global.Server.isArmArch
+          ? 'flyenv-helper-darwin-arm64'
+          : 'flyenv-helper-darwin-amd64'
+
         const binDir = PathResolve(global.Server.Static!, '../../../build/')
         const plist = join(binDir, 'plist/com.flyenv.helper.plist')
-        const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
+        const bin = join(binDir, 'bin', helperFile)
         const shDir = join(global.Server.Static!, 'sh')
         command = `cd "${shDir}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
         icns = join(binDir, 'icon.icns')
       } else if (isLinux()) {
+        const helperFile = global.Server.isArmArch
+          ? 'flyenv-helper-darwin-arm64'
+          : 'flyenv-helper-darwin-amd64'
+
         const binDir = PathResolve(global.Server.Static!, '../../../build/')
-        const bin = join(binDir, 'bin', global.Server.isArmArch ? 'arm' : 'x86', 'flyenv-helper')
+        const bin = join(binDir, 'bin', helperFile)
         const shDir = join(global.Server.Static!, 'sh')
         command = `cd "${shDir}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${bin}"`
         icns = join(binDir, 'Icon@256x256.icns')
