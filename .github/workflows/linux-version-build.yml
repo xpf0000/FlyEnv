@@ -67,7 +67,6 @@ jobs:
           }
           EOF
 
-
       - name: Build Electron packages with electron-builder
         run: |
           yarn build
