@@ -1,9 +1,20 @@
+#!/usr/bin/env bash
+
 # --- Configuration ---
 BUILD_DIR="./dist"
 APP_NAME="flyenv-helper"
 MAIN_PACKAGE="./main.go" # Or "." if your main.go is in the current directory and you're building the module
 
-TARGET=$1
+# Determine architecture and set TARGET
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then
+    TARGET="linux amd64 v1"
+elif [ "$ARCH" = "aarch64" ]; then
+    TARGET="linux arm64"
+else
+    echo "Unsupported architecture: $ARCH"
+    exit 1
+fi
 
 # --- Build Process ---
 

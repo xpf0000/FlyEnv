@@ -72,8 +72,15 @@ jobs:
           }
           EOF
 
+      - name: Build Go helper
+        run: |
+          cd "$GITHUB_WORKSPACE/src/helper-go"
+          chmod +x ./build-os.sh
+          bash ./build-os.sh
+
       - name: Build Electron packages with electron-builder
         run: |
+          cd "$GITHUB_WORKSPACE"
           yarn build
 
       - name: Upload artifacts
