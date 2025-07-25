@@ -25,7 +25,14 @@ const conf: Configuration = {
     icon: 'build/Icon@256x256.icns',
     asarUnpack: ['**/*.node'],
     category: 'Development',
-    target: ['deb', 'rpm']
+    target: [
+      {
+        target: 'deb'
+      },
+      {
+        target: 'rpm'
+      }
+    ]
   },
   afterPack: (...args) => {
     return AfterPack(...args) as any
