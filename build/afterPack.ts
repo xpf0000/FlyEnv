@@ -4,7 +4,7 @@ import { exec } from 'child_process'
 import { promisify } from 'util'
 import { isLinux } from '../src/shared/utils'
 
-const { mkdirp, writeFile, readFile } = _fs
+const { mkdirp, copyFile } = _fs
 const execPromise = promisify(exec)
 
 /**
@@ -29,33 +29,23 @@ export default async function after(pack) {
       const fromBinDir = resolve(pack.appOutDir, '../../build/bin/flyenv-helper-linux-amd64')
       const toBinDir = join(pack.appOutDir, 'resources/helper/flyenv-helper')
       await mkdirp(dirname(toBinDir))
-      const command = `cp "${fromBinDir}" "${toBinDir}"`
-      console.log('command: ', command)
-      await execPromise(command, {
-        cwd: fromBinDir
-      })
+      await copyFile(fromBinDir, toBinDir)
     }
     // arm64
     else if (pack.arch === 3) {
       const fromBinDir = resolve(pack.appOutDir, '../../build/bin/flyenv-helper-linux-arm64')
       const toBinDir = join(pack.appOutDir, 'resources/helper/flyenv-helper')
       await mkdirp(dirname(toBinDir))
-      const command = `cp "${fromBinDir}" "${toBinDir}"`
-      console.log('command: ', command)
-      await execPromise(command, {
-        cwd: fromBinDir
-      })
+      await copyFile(fromBinDir, toBinDir)
     }
 
     let shFile = join(pack.appOutDir, 'resources/helper/flyenv.sh')
     let tmplFile = resolve(pack.appOutDir, '../../static/sh/macOS/fly-env.sh')
-    let content = await readFile(tmplFile, 'utf-8')
-    await writeFile(shFile, content)
+    await copyFile(tmplFile, shFile)
 
     shFile = join(pack.appOutDir, 'resources/helper/flyenv-helper-init.sh')
     tmplFile = resolve(pack.appOutDir, '../../static/sh/Linux/flyenv-helper-init.sh')
-    content = await readFile(tmplFile, 'utf-8')
-    await writeFile(shFile, content)
+    await copyFile(tmplFile, shFile)
 
     console.log('afterPack handle end !!!!!!')
     return
@@ -66,9 +56,7 @@ export default async function after(pack) {
     await mkdirp(dirname(toBinDir))
     const command = `cp "${fromBinDir}" "${toBinDir}" && xattr -dr "com.apple.quarantine" "${toBinDir}" && chmod 755 "${toBinDir}"`
     console.log('command: ', command)
-    await execPromise(command, {
-      cwd: fromBinDir
-    })
+    await execPromise(command)
   }
   // arm64
   else if (pack.arch === 3) {
@@ -77,9 +65,7 @@ export default async function after(pack) {
     await mkdirp(dirname(toBinDir))
     const command = `cp "${fromBinDir}" "${toBinDir}" && xattr -dr "com.apple.quarantine" "${toBinDir}" && chmod 755 "${toBinDir}"`
     console.log('command: ', command)
-    await execPromise(command, {
-      cwd: fromBinDir
-    })
+    await execPromise(command)
   }
 
   let fromBinDir = resolve(pack.appOutDir, '../../build/plist')
@@ -93,13 +79,11 @@ export default async function after(pack) {
 
   let shFile = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/flyenv.sh')
   let tmplFile = resolve(pack.appOutDir, '../../static/sh/macOS/fly-env.sh')
-  let content = await readFile(tmplFile, 'utf-8')
-  await writeFile(shFile, content)
+  await copyFile(tmplFile, shFile)
 
   shFile = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/flyenv-helper-init.sh')
   tmplFile = resolve(pack.appOutDir, '../../static/sh/macOS/flyenv-helper-init.sh')
-  content = await readFile(tmplFile, 'utf-8')
-  await writeFile(shFile, content)
+  await copyFile(tmplFile, shFile)
 
   console.log('afterPack handle end !!!!!!')
   return
