@@ -48,8 +48,8 @@ export class AppHelper {
         icns = join(binDir, 'icon.icns')
       } else if (isLinux()) {
         const helperFile = global.Server.isArmArch
-          ? 'flyenv-helper-darwin-arm64'
-          : 'flyenv-helper-darwin-amd64'
+          ? 'flyenv-helper-linux-arm64'
+          : 'flyenv-helper-linux-amd64'
 
         const binDir = PathResolve(global.Server.Static!, '../../../build/')
         const bin = join(binDir, 'bin', helperFile)
