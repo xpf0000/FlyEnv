@@ -27,7 +27,7 @@ import AppNodeFnManager, { type AppNodeFn } from './core/AppNodeFn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 import ServiceProcessManager from './core/ServiceProcess'
-import { AppHelperCheck } from '@shared/AppHelperCheck'
+import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -102,6 +102,7 @@ export default class Application extends EventEmitter {
     if (isWindows()) {
       return
     }
+    AppHelperRoleFix().catch()
     Helper.appHelper = AppHelper
     AppHelper.onStatusMessage((flag) => {
       if (!this?.mainWindow) {

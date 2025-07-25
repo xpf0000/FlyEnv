@@ -21,12 +21,13 @@ export class AppHelper {
   command() {
     let command = ''
     let icns = ``
+
     if (is.production()) {
       if (isMacOS()) {
         const binDir = PathResolve(global.Server.Static!, '../../../../')
         const plist = join(binDir, 'plist/com.flyenv.helper.plist')
         const bin = join(binDir, 'helper/flyenv-helper')
-        command = `cd "${join(binDir, 'helper')}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}"`
+        command = `cd "${join(binDir, 'helper')}" && sudo chmod 777 ./flyenv-helper-init.sh && sudo ./flyenv-helper-init.sh "${plist}" "${bin}" `
         icns = join(binDir, 'icon.icns')
       } else if (isLinux()) {
         const binDir = PathResolve(global.Server.Static!, '../../../../')
