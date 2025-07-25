@@ -11,6 +11,7 @@ dist-ssr
 /build/JWT.ts
 /build/Legacy.ts
 /build/pkg-scripts
+/build/bin
 /build/bin/arm
 /build/bin/x86
 !/build/bin/arm/postinstall.sh
