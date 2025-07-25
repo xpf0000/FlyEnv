@@ -40,6 +40,16 @@ jobs:
           node-version: 'latest'
           cache: 'yarn'
 
+      - name: Cache node_modules and node-gyp
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+            .yarn/cache
+            ~/.cache/node-gyp
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install Yarn and build tools
         run: |
           npm install -g yarn node-gyp
@@ -47,7 +57,7 @@ jobs:
 
       - name: Install dependencies with Yarn
         run: |
-          yarn install --frozen-lockfile
+          yarn install
 
       - name: Build Electron packages with electron-builder
         run: |
