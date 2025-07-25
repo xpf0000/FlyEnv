@@ -1,0 +1,63 @@
+name: Build FlyEnv Linux Packages
+on:
+  push:
+    paths:
+      - 'build/linux.build.yml'
+
+jobs:
+  build-packages:
+    name: Build Packages (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            os: ubuntu-22.04
+            target: x64
+          - arch: arm64
+            os: ubuntu-22.04-arm
+            target: arm64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Electron build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            g++ \
+            make \
+            python3 \
+            python3-pip \
+            pkg-config \
+            fakeroot \
+            rpm
+
+      - name: Setup Latest Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+          cache: 'yarn'
+
+      - name: Install Yarn and build tools
+        run: |
+          npm install -g yarn node-gyp
+          python3 -m pip install --upgrade pip
+
+      - name: Install dependencies with Yarn
+        run: |
+          yarn install --frozen-lockfile
+
+      - name: Build Electron packages with electron-builder
+        run: |
+          yarn build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.arch }}
+          path: |
+            release/*.dep
+            release/*.rpm
+            release/*.yml

@@ -26,14 +26,26 @@ export default async function after(pack) {
      */
 
     if (pack.arch === 1) {
-      const fromBinDir = resolve(pack.appOutDir, '../../build/bin/flyenv-helper-linux-amd64')
+      let fromBinDir = resolve(pack.appOutDir, '../../build/bin/flyenv-helper-linux-amd64')
+      if (!exec(fromBinDir)) {
+        const buildSH = resolve(pack.appOutDir, '../../src/helper-go/build-os.sh')
+        const command = `cd "${dirname(buildSH)}" && ./build-os.sh "linux amd64 v1"`
+        await execPromise(command)
+        fromBinDir = resolve(pack.appOutDir, '../../src/helper-go/dist/flyenv-helper-linux-amd64-v1')
+      }
       const toBinDir = join(pack.appOutDir, 'resources/helper/flyenv-helper')
       await mkdirp(dirname(toBinDir))
       await copyFile(fromBinDir, toBinDir)
     }
     // arm64
     else if (pack.arch === 3) {
-      const fromBinDir = resolve(pack.appOutDir, '../../build/bin/flyenv-helper-linux-arm64')
+      let fromBinDir = resolve(pack.appOutDir, '../../build/bin/flyenv-helper-linux-arm64')
+      if (!exec(fromBinDir)) {
+        const buildSH = resolve(pack.appOutDir, '../../src/helper-go/build-os.sh')
+        const command = `cd "${dirname(buildSH)}" && ./build-os.sh "linux arm64"`
+        await execPromise(command)
+        fromBinDir = resolve(pack.appOutDir, '../../src/helper-go/dist/flyenv-helper-linux-arm64')
+      }
       const toBinDir = join(pack.appOutDir, 'resources/helper/flyenv-helper')
       await mkdirp(dirname(toBinDir))
       await copyFile(fromBinDir, toBinDir)
