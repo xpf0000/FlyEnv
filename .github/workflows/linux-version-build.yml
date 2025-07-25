@@ -38,7 +38,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'latest'
-          cache: 'yarn'
 
       - name: Cache node_modules and node-gyp
         uses: actions/cache@v4
