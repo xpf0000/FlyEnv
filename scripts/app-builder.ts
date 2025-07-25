@@ -42,7 +42,8 @@ const buildStart = Date.now()
 Promise.all([packMain(), packRenderer()])
   .then(async () => {
     const options: any = {
-      targets: Platform.current().createTarget()
+      targets: Platform.current().createTarget(),
+      publish: 'never'
     }
     if (isMacOS()) {
       console.log('electron-builder isMacOS !!!')

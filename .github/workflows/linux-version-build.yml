@@ -90,6 +90,6 @@ jobs:
         with:
           name: packages-${{ matrix.arch }}
           path: |
-            release/*.dep
+            release/*.deb
             release/*.rpm
             release/*.yml
