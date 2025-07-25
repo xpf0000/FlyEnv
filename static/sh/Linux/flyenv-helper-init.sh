@@ -18,6 +18,7 @@ fi
 # Copy the binary
 echo "Installing binary..."
 sudo mkdir -p "/usr/local/bin"
+echo "Copy $BIN to $BIN_DEST"
 sudo cp "$BIN" "$BIN_DEST"
 sudo chmod 755 "$BIN_DEST"
 
