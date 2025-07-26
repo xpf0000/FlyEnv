@@ -44,7 +44,9 @@ const conf: Configuration = {
     asarUnpack: ['**/*.node'],
     category: 'Development',
     packageCategory: 'Development',
-    desktop,
+    desktop: {
+      entry: desktop
+    },
     target: [
       {
         target: 'deb'
