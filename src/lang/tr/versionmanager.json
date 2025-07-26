@@ -3,6 +3,6 @@
   "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> bulunamadı\nHomebrew kurmak için kur butonuna tıklayarak devam edebilirsiniz\nAyrıca aşağıdaki bağlantıya da tıklayabilirsiniz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nKurulum kılavuzunu takip edin.",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">MacPorts</a> bulunamadı.\nMacPorts kurmak için aşağıdaki bağlantıya tıklayabilirsiniz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nKurulum kılavuzunu takip edin.",
 
-  "brewErrorTips": "At this location {bin}, Homebrew executable files were detected.\nHowever, FlyEnv cannot call them. Error message:\n{error}",
-  "Library": "Library"
+  "brewErrorTips": "Bu konumda {bin}, Homebrew çalıştırılabilir dosyaları tespit edildi.\nAncak FlyEnv bunları çağıramıyor. Hata mesajı:\n{error}",
+  "Library": "Kütüphane"
 }
