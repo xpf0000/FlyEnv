@@ -1,4 +1,6 @@
 {
   "showMainWin": "Show Main Window",
-  "exit": "Exit"
+  "exit": "Exit",
+  "run": "Running",
+  "notRun": "Not Running"
 }

@@ -478,8 +478,8 @@ export default class Application extends EventEmitter {
     })
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
-    this.trayWindow = this.windowManager.openTrayWindow()
-    AppNodeFnManager.trayWindow = this.trayWindow
+    // this.trayWindow = this.windowManager.openTrayWindow()
+    // AppNodeFnManager.trayWindow = this.trayWindow
   }
 
   show(page = 'index') {
@@ -834,7 +834,8 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
       case 'APP:Tray-Store-Sync':
-        this.windowManager.sendCommandTo(this.trayWindow!, command, command, args?.[0])
+        this.trayManager.menuChange(args?.[0])
+        // this.windowManager.sendCommandTo(this.trayWindow!, command, command, args?.[0])
         break
       case 'APP:Tray-Command':
         this.windowManager.sendCommandTo(this.mainWindow!, command, command, ...args)

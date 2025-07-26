@@ -1,4 +1,6 @@
 {
   "showMainWin": "显示主界面",
-  "exit": "退出"
+  "exit": "退出",
+  "run": "运行中",
+  "notRun": "未运行"
 }

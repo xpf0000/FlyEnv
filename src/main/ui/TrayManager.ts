@@ -1,12 +1,15 @@
 import { EventEmitter } from 'events'
 import { join } from 'path'
-import { Tray, nativeImage, screen } from 'electron'
+import { Tray, nativeImage, screen, Menu } from 'electron'
 import NativeImage = Electron.NativeImage
-import { isLinux, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
+import { I18nT } from '@lang/index'
 
 export default class TrayManager extends EventEmitter {
   normalIcon: NativeImage
   activeIcon: NativeImage
+  stopIcon: NativeImage
+  runIcon: NativeImage
   active: boolean
   tray: Tray
   constructor() {
@@ -14,15 +17,53 @@ export default class TrayManager extends EventEmitter {
     this.active = false
     this.normalIcon = nativeImage.createFromPath(join(global.__static, '32x32.png'))
     this.activeIcon = nativeImage.createFromPath(join(global.__static, '32x32_active.png'))
+    this.stopIcon = nativeImage.createFromPath(join(__static, 'stop.png'))
+    this.runIcon = nativeImage.createFromPath(join(__static, 'run.png'))
     this.tray = new Tray(this.normalIcon)
     this.tray.setToolTip('FlyEnv')
-    this.tray.on('click', this.handleTrayClick)
-    if (!isLinux()) {
-      this.tray.on('right-click', this.handleTrayClick)
-      this.tray.on('double-click', () => {
-        this.emit('double-click')
-      })
-    }
+
+    // this.tray.on('click', this.handleTrayClick)
+    // if (!isLinux()) {
+    //   this.tray.on('right-click', this.handleTrayClick)
+    //   this.tray.on('double-click', () => {
+    //     this.emit('double-click')
+    //   })
+    // }
+  }
+
+  menuChange(status: any) {
+    console.log('menuChange: ', status)
+    this.iconChange(status.groupIsRunning)
+    const menus: any[] = []
+    menus.push({
+      label: status.groupIsRunning ? I18nT('tray.run') : I18nT('tray.notRun'),
+      type: 'normal',
+      enabled: !status.groupDisabled,
+      icon: status.groupIsRunning ? this.runIcon : this.stopIcon,
+      click: () => {
+        this.emit('action', 'serviceAll')
+      }
+    })
+    menus.push({
+      type: 'separator'
+    })
+    menus.push({
+      label: I18nT('tray.showMainWin'),
+      type: 'normal',
+      click: () => {
+        this.emit('action', 'show')
+      }
+    })
+    menus.push({
+      label: I18nT('tray.exit'),
+      type: 'normal',
+      click: () => {
+        this.emit('action', 'exit')
+      }
+    })
+    const contextMenu = Menu.buildFromTemplate(menus)
+
+    this.tray.setContextMenu(contextMenu)
   }
 
   iconChange(status: boolean) {
