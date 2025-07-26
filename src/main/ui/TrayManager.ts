@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import { join } from 'path'
 import { Tray, nativeImage, screen } from 'electron'
 import NativeImage = Electron.NativeImage
-import { isWindows } from '@shared/utils'
+import { isLinux, isWindows } from '@shared/utils'
 
 export default class TrayManager extends EventEmitter {
   normalIcon: NativeImage
@@ -17,10 +17,15 @@ export default class TrayManager extends EventEmitter {
     this.tray = new Tray(this.normalIcon)
     this.tray.setToolTip('FlyEnv')
     this.tray.on('click', this.handleTrayClick)
-    this.tray.on('right-click', this.handleTrayClick)
-    this.tray.on('double-click', () => {
-      this.emit('double-click')
-    })
+    if (!isLinux()) {
+      this.tray.on('right-click', this.handleTrayClick)
+      this.tray.on('double-click', () => {
+        this.emit('double-click')
+      })
+    } else {
+      this.normalIcon = this.normalIcon.resize({ width: 24, height: 24 })
+      this.activeIcon = this.activeIcon.resize({ width: 24, height: 24 })
+    }
   }
 
   iconChange(status: boolean) {
@@ -38,7 +43,8 @@ export default class TrayManager extends EventEmitter {
       const y = bounds.y - 445
       this.emit('click', x, y, poperX)
     } else {
-      this.emit('click', x, 0, poperX)
+      const y = bounds.y + bounds.height
+      this.emit('click', x, y, poperX)
     }
   }
 
