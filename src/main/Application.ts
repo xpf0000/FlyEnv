@@ -361,7 +361,7 @@ export default class Application extends EventEmitter {
         runpath = resolve(__static, '../../../data')
       }
     } else {
-      runpath = app.getPath('userData')
+      runpath = resolve(app.getPath('userData'), '../FlyEnv')
     }
     this.setProxy()
     global.Server.UserHome = app.getPath('home')
