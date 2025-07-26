@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, screen } from 'electron'
+import { app, BrowserWindow, nativeImage, screen } from 'electron'
 import pageConfig from '../configs/page'
 import { debounce } from 'lodash-es'
 import Event = Electron.Main.Event
@@ -134,7 +134,8 @@ export default class WindowManager extends EventEmitter {
     )
     window = new BrowserWindow({
       ...defaultBrowserOptions,
-      ...pageOptions.attrs
+      ...pageOptions.attrs,
+      icon: nativeImage.createFromPath(join(global.__static, '512x512.png'))
     })
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
