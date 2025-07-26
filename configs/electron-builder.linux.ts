@@ -1,12 +1,23 @@
 import type { Configuration } from 'electron-builder'
 import AfterPack from '../build/afterPack'
 
+const desktop: any = {
+  Name: 'FlyEnv',
+  Comment: 'All-In-One Full-Stack Environment Management Tool',
+  Exec: 'FlyEnv', // 确保这里与 executableName 一致
+  Icon: 'com.xpf0000.flyenv', // 通常是 executableName 的小写，或者你的应用ID
+  Terminal: false,
+  StartupNotify: true,
+  Type: 'Application',
+  Categories: 'Development;Utility;'
+}
+
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
   buildVersion: '4.10.3',
   electronVersion: '35.6.0',
-  appId: 'phpstudy.xpfme.com',
+  appId: 'com.xpf0000.flyenv',
   asar: true,
   directories: {
     output: 'release'
@@ -21,10 +32,19 @@ const conf: Configuration = {
     '!**/node_modules/node-pty/build/node_gyp_bins',
     '!**/node_modules/nodejieba/dict'
   ],
+  deb: {
+    packageName: 'flyenv'
+  },
+  rpm: {
+    packageName: 'flyenv'
+  },
+  artifactName: '${productName}-${version}.${ext}', // 自定义打包文件名格式
   linux: {
-    icon: 'build/Icon@256x256.icns',
+    icon: 'build/icons',
     asarUnpack: ['**/*.node'],
     category: 'Development',
+    packageCategory: 'Development',
+    desktop,
     target: [
       {
         target: 'deb'
