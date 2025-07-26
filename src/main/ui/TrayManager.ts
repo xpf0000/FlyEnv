@@ -22,9 +22,6 @@ export default class TrayManager extends EventEmitter {
       this.tray.on('double-click', () => {
         this.emit('double-click')
       })
-    } else {
-      this.normalIcon = this.normalIcon.resize({ width: 24, height: 24 })
-      this.activeIcon = this.activeIcon.resize({ width: 24, height: 24 })
     }
   }
 
@@ -34,6 +31,7 @@ export default class TrayManager extends EventEmitter {
   }
 
   handleTrayClick = (event: any) => {
+    console.log('handleTrayClick !!!')
     event?.preventDefault?.()
     const bounds = this.tray.getBounds()
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
