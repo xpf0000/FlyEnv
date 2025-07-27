@@ -16,7 +16,8 @@ import {
   writeFile,
   mkdirp,
   machineId,
-  serviceStartExecWin
+  serviceStartExecWin,
+  moveChildDirToParent
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
@@ -26,7 +27,7 @@ import http from 'http'
 import https from 'https'
 import { publicDecrypt } from 'crypto'
 import { EOL } from 'os'
-import { isWindows } from '@shared/utils'
+import { isLinux, isWindows } from '@shared/utils'
 
 class Ollama extends Base {
   chats: Record<string, AbortController> = {}
@@ -211,6 +212,14 @@ class Ollama extends Base {
         resolve({})
       }
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isLinux()) {
+      const dir = row.appDir
+      await super._installSoftHandle(row)
+      await moveChildDirToParent(dir)
+    }
   }
 
   allInstalledVersions(setup: any) {
