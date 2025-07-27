@@ -75,10 +75,28 @@
 
   Object.assign(form.value, props.item)
 
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
+  })
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
+  const isLinux = computed(() => {
+    return window.Server.isLinux
+  })
+
   const phpVersions = computed(() => {
     return brewStore.module('php').installed.map((i) => {
+      let bin = ''
+      if (isWindows.value) {
+        bin = join(i.path, 'php.exe')
+      } else if (isMacOS.value) {
+        bin = i?.phpBin ?? join(i.path, 'bin/php')
+      } else {
+        bin = join(i.path, 'bin/php')
+      }
       return {
-        bin: i?.phpBin ?? join(i.path, 'bin/php'),
+        bin,
         version: i.version
       }
     })
