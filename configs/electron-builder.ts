@@ -15,7 +15,7 @@ import Notarize from '../build/notarize'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.10.3',
+  buildVersion: '4.10.4',
   electronVersion: '35.6.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -57,8 +57,8 @@ const conf: Configuration = {
     target: {
       target: 'default',
       // target: 'pkg',
-      // arch: ['x64', 'arm64']
-      arch: ['arm64']
+      arch: ['x64', 'arm64']
+      // arch: ['arm64']
     },
     asarUnpack: ['**/*.node'],
     extendInfo: {
