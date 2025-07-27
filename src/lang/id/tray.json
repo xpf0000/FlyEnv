@@ -1,4 +1,6 @@
 {
   "showMainWin": "Tampilkan Jendela Utama",
-  "exit": "Keluar"
+  "exit": "Keluar",
+  "run": "Berjalan",
+  "notRun": "Tidak berjalan"
 }

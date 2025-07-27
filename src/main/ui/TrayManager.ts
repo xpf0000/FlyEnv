@@ -4,6 +4,7 @@ import { Tray, nativeImage, screen, Menu } from 'electron'
 import NativeImage = Electron.NativeImage
 import { isWindows } from '@shared/utils'
 import { I18nT } from '@lang/index'
+import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions
 
 export default class TrayManager extends EventEmitter {
   normalIcon: NativeImage
@@ -17,8 +18,12 @@ export default class TrayManager extends EventEmitter {
     this.active = false
     this.normalIcon = nativeImage.createFromPath(join(global.__static, '32x32.png'))
     this.activeIcon = nativeImage.createFromPath(join(global.__static, '32x32_active.png'))
-    this.stopIcon = nativeImage.createFromPath(join(__static, 'stop.png'))
-    this.runIcon = nativeImage.createFromPath(join(__static, 'run.png'))
+    this.stopIcon = nativeImage
+      .createFromPath(join(__static, 'stop.png'))
+      .resize({ width: 10, height: 10 })
+    this.runIcon = nativeImage
+      .createFromPath(join(__static, 'run.png'))
+      .resize({ width: 10, height: 10 })
     this.tray = new Tray(this.normalIcon)
     this.tray.setToolTip('FlyEnv')
 
@@ -34,19 +39,42 @@ export default class TrayManager extends EventEmitter {
   menuChange(status: any) {
     console.log('menuChange: ', status)
     this.iconChange(status.groupIsRunning)
-    const menus: any[] = []
+    const menus: MenuItemConstructorOptions[] = []
     menus.push({
       label: status.groupIsRunning ? I18nT('tray.run') : I18nT('tray.notRun'),
       type: 'normal',
       enabled: !status.groupDisabled,
       icon: status.groupIsRunning ? this.runIcon : this.stopIcon,
       click: () => {
-        this.emit('action', 'serviceAll')
+        console.log('action serviceAll !!!')
+        this.emit('action', 'groupDo')
       }
     })
     menus.push({
       type: 'separator'
     })
+
+    const service: any[] = status?.service ?? []
+
+    if (service.length > 0) {
+      for (const item of service) {
+        menus.push({
+          label: item.label,
+          type: 'normal',
+          enabled: !item.disabled && !item.running,
+          icon: item.run ? this.runIcon : this.stopIcon,
+          click: () => {
+            console.log('action service: ', item)
+            this.emit('action', 'switchChange', item?.typeFlag ?? item?.id)
+          }
+        })
+      }
+
+      menus.push({
+        type: 'separator'
+      })
+    }
+
     menus.push({
       label: I18nT('tray.showMainWin'),
       type: 'normal',

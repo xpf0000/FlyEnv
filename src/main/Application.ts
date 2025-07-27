@@ -167,26 +167,32 @@ export default class Application extends EventEmitter {
   }
 
   initTrayManager() {
-    this.trayManager.on('click', (x, y, poperX) => {
-      if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
-        this?.trayWindow?.setPosition(Math.round(x), Math.round(y))
-        this?.trayWindow?.setOpacity(1.0)
-        this?.trayWindow?.show()
-        this.windowManager.sendCommandTo(
-          this.trayWindow!,
-          'APP:Poper-Left',
-          'APP:Poper-Left',
-          poperX
-        )
-        this?.trayWindow?.moveTop()
-      } else {
-        this?.trayWindow?.hide()
+    this.trayManager.on(
+      'action',
+      (action: 'groupDo' | 'switchChange' | 'show' | 'exit', typeFlag?: string) => {
+        console.log('TrayManager action: ', action, typeFlag)
+        if (action === 'exit') {
+          this.emit('application:exit')
+        } else if (action === 'show') {
+          this.emit('application:show', 'index')
+        } else if (action === 'groupDo') {
+          this.windowManager.sendCommandTo(
+            this.mainWindow!,
+            'APP:Tray-Command',
+            'APP:Tray-Command',
+            'groupDo'
+          )
+        } else if (action === 'switchChange') {
+          this.windowManager.sendCommandTo(
+            this.mainWindow!,
+            'APP:Tray-Command',
+            'APP:Tray-Command',
+            'switchChange',
+            typeFlag
+          )
+        }
       }
-    })
-
-    this.trayManager.on('double-click', () => {
-      this.show('index')
-    })
+    )
   }
 
   checkBrewOrPort() {
@@ -761,7 +767,9 @@ export default class Application extends EventEmitter {
 
     switch (command) {
       case 'APP:FlyEnv-Helper-Command':
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, AppHelper.command())
+        AppHelper.command().then((res) => {
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, res)
+        })
         break
       case 'APP:FlyEnv-Helper-Check':
         AppHelperCheck()

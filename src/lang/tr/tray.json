@@ -1,4 +1,6 @@
 {
   "showMainWin": "Ana Pencereyi Göster",
-  "exit": "Çıkış"
+  "exit": "Çıkış",
+  "run": "Çalışıyor",
+  "notRun": "Çalışmıyor"
 }

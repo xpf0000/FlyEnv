@@ -1,4 +1,6 @@
 {
   "showMainWin": "Visa huvudfönstret",
-  "exit": "Avsluta"
+  "exit": "Avsluta",
+  "run": "Kör",
+  "notRun": "Kör inte"
 }

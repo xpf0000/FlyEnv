@@ -1,4 +1,6 @@
 {
   "showMainWin": "Hiện Cửa Sổ Chính",
-  "exit": "Thoát"
+  "exit": "Thoát",
+  "run": "Đang chạy",
+  "notRun": "Không chạy"
 }

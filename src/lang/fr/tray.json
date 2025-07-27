@@ -1,4 +1,6 @@
 {
   "showMainWin": "Afficher la fenêtre principale",
-  "exit": "Quitter"
+  "exit": "Quitter",
+  "run": "En cours d'exécution",
+  "notRun": "Non en cours d'exécution"
 }

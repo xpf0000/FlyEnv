@@ -1,5 +1,5 @@
 import _fs from 'fs-extra'
-import { createWriteStream, watch, existsSync, unlinkSync } from 'node:fs'
+import { createWriteStream, watch, existsSync, unlinkSync, chownSync } from 'node:fs'
 import {
   stat,
   chmod,
@@ -10,7 +10,8 @@ import {
   realpath,
   readFile,
   appendFile,
-  rename
+  rename,
+  chown
 } from 'node:fs/promises'
 
 const { removeSync, mkdirp, remove, copy } = _fs
@@ -33,5 +34,7 @@ export {
   removeSync,
   mkdirp,
   remove,
-  copy
+  copy,
+  chown,
+  chownSync
 }

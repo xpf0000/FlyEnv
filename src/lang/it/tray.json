@@ -1,4 +1,6 @@
 {
   "showMainWin": "Mostra Finestra Principale",
-  "exit": "Esci"
+  "exit": "Esci",
+  "run": "In esecuzione",
+  "notRun": "Non in esecuzione"
 }

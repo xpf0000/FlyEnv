@@ -84,7 +84,7 @@ export async function serviceStartExec(
   const shell = isMacOS() ? 'zsh' : 'bash'
   if (param?.root) {
     try {
-      res = await Helper.send('apache', 'startService', `${shell} "${psPath}"`)
+      res = await Helper.send('tools', 'exec', `${shell} "${psPath}"`)
     } catch (e) {
       error = e
     }
@@ -214,7 +214,7 @@ export async function customerServiceStartExec(
   } catch {}
 
   try {
-    await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${bin}"`)
+    await Helper.send('tools', 'exec', `chown -R ${uid}:${gid} "${bin}"`)
   } catch {}
 
   psScript = psScript
@@ -234,7 +234,7 @@ export async function customerServiceStartExec(
   } catch {}
 
   try {
-    await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${psPath}"`)
+    await Helper.send('tools', 'exec', `chown -R ${uid}:${gid} "${psPath}"`)
   } catch {}
 
   const shell = isMacOS() ? 'zsh' : 'bash'

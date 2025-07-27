@@ -13,6 +13,23 @@ type ToolManager struct {
 	BaseManager // Anonymous field for composition and method "inheritance"
 }
 
+func (t *ToolManager) Exec(command string, options ...map[string]interface{}) error {
+	var opts map[string]interface{}
+
+	// Check if options were provided
+	if len(options) > 0 {
+		opts = options[0] // Use the first (and only expected) options map
+	} else {
+		opts = make(map[string]interface{}) // If no options provided, use an empty map
+	}
+
+	_, stderr, err := utils.ExecPromise(command, opts)
+	if err != nil {
+		return fmt.Errorf("%s: %s", err.Error(), stderr)
+	}
+	return nil
+}
+
 // WriteFileByRoot attempts to write content to a file. If direct write fails,
 // it tries to write to a temp file and then copy with root privileges (via execPromise).
 func (t *ToolManager) WriteFileByRoot(file string, content string) (bool, error) {
