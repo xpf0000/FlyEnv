@@ -60,7 +60,16 @@
                     ></el-radio-button>
                   </el-radio-group>
                 </template>
-                <template v-else-if="isLinux"></template>
+                <template v-else-if="isLinux">
+                  <el-radio-group v-model="lib" size="small">
+                    <el-radio-button value="loaded">{{
+                      I18nT('php.loadedExtensions')
+                    }}</el-radio-button>
+                    <template v-if="isHomeBrew">
+                      <el-radio-button value="homebrew">Homebrew</el-radio-button>
+                    </template>
+                  </el-radio-group>
+                </template>
               </div>
               <el-button class="button" :disabled="loading" link @click="reFetch">
                 <yb-icon

@@ -55,7 +55,21 @@
               ></el-radio-button>
             </el-radio-group>
           </template>
-          <template v-else-if="isLinux"> </template>
+          <template v-else-if="isLinux">
+            <el-radio-group v-model="libSrc" size="small" class="ml-6">
+              <el-radio-button
+                class="flex-1"
+                :label="I18nT('versionmanager.Local')"
+                value="local"
+              ></el-radio-button>
+              <template v-if="hasStatic">
+                <el-radio-button value="static">Static</el-radio-button>
+              </template>
+              <template v-if="showBrewLib !== false">
+                <el-radio-button value="brew">Homebrew</el-radio-button>
+              </template>
+            </el-radio-group>
+          </template>
         </div>
         <el-button class="button" link :disabled="loading" @click="reFetch">
           <yb-icon
@@ -80,6 +94,17 @@
         <LocalVM :type-flag="typeFlag" />
       </template>
     </template>
+    <template v-else-if="isLinux">
+      <template v-if="libSrc === 'brew'">
+        <BrewVM :type-flag="typeFlag" />
+      </template>
+      <template v-else-if="libSrc === 'static'">
+        <StaticVM :type-flag="typeFlag" />
+      </template>
+      <template v-else-if="libSrc === 'local'">
+        <LocalVM :type-flag="typeFlag" />
+      </template>
+    </template>
     <template v-else-if="isWindows">
       <template v-if="libSrc === 'local'">
         <LocalVM :type-flag="typeFlag" />
@@ -89,7 +114,7 @@
       </template>
     </template>
 
-    <template v-if="isMacOS && showFooter" #footer>
+    <template v-if="!isWindows && showFooter" #footer>
       <template v-if="taskEnd">
         <el-button type="primary" @click.stop="taskConfirm">{{ I18nT('base.confirm') }}</el-button>
       </template>

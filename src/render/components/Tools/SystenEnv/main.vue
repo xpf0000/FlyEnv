@@ -15,12 +15,9 @@
   })
 
   const vm = computed(() => {
-    if (isMacOS.value) {
-      return markRaw(defineAsyncComponent(() => import('./Index.vue')))
-    }
     if (isWindows.value) {
       return markRaw(defineAsyncComponent(() => import('./Index.win.vue')))
     }
-    return undefined
+    return markRaw(defineAsyncComponent(() => import('./Index.vue')))
   })
 </script>
