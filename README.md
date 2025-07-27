@@ -80,12 +80,12 @@ brew install flyenv
 ```
 
 #### Intel (x86)
-- [FlyEnv-4.10.3.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.3/FlyEnv-4.10.3.dmg)
-- [FlyEnv-4.10.3-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.3/FlyEnv-4.10.3-mac.zip)
+- [FlyEnv-4.10.4.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.4/FlyEnv-4.10.4.dmg)
+- [FlyEnv-4.10.4-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.4/FlyEnv-4.10.4-mac.zip)
 
 #### Apple Silicon (ARM64)
-- [FlyEnv-4.10.3-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.3/FlyEnv-4.10.3-arm64.dmg)
-- [FlyEnv-4.10.3-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.3/FlyEnv-4.10.3-arm64-mac.zip)
+- [FlyEnv-4.10.4-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.4/FlyEnv-4.10.4-arm64.dmg)
+- [FlyEnv-4.10.4-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.4/FlyEnv-4.10.4-arm64-mac.zip)
 
 > **Tip**: For a lightweight PHP and web server solution, check out [FlyPHPServer](https://flyenv.com/flyphpserver.html), available on the [Mac App Store](https://apps.apple.com/us/app/flyphpserver/id1506384441).
 
@@ -105,12 +105,12 @@ brew install flyenv
 
 ### Linux
 #### Debian / Ubuntu
-- **x86_64**: [PhpWebStudy_4.0.0_amd64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.0.0/PhpWebStudy_4.0.0_amd64.deb)
-- **ARM64**: [PhpWebStudy_4.0.0_arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.0.0/PhpWebStudy_4.0.0_arm64.deb)
+- **x86_64**: [FlyEnv-4.10.4-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.4/FlyEnv-4.10.4-x64.deb)
+- **ARM64**: [FlyEnv-4.10.4-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.4/FlyEnv-4.10.4-arm64.deb)
 
 #### Red Hat / Fedora / SUSE / CentOS
-- **x86_64**: [PhpWebStudy-4.0.0.x86_64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.0.0/PhpWebStudy-4.0.0.x86_64.rpm)
-- **ARM64**: [PhpWebStudy-4.0.0.aarch64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.0.0/PhpWebStudy-4.0.0.aarch64.rpm)
+- **x86_64**: [FlyEnv-4.10.4-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.4/FlyEnv-4.10.4-x64.rpm)
+- **ARM64**: [FlyEnv-4.10.4-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.4/FlyEnv-4.10.4-arm64.rpm)
 
 ---
 
