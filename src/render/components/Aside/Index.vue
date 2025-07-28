@@ -115,6 +115,8 @@
   const appStore = AppStore()
   const brewStore = BrewStore()
 
+  appStore.chechAutoHide()
+
   const currentPage = computed(() => {
     return appStore.currentPage
   })
@@ -548,6 +550,10 @@
 
   const doAutoStart = () => {
     autoStarted = true
+    if (window.Server.isWindows) {
+      groupDo()
+      return
+    }
     IPC.send('APP:FlyEnv-Helper-Check').then((key: string, res: any) => {
       if (res?.code === 0 && res?.data) {
         groupDo()

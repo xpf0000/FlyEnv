@@ -126,6 +126,7 @@ export default class WindowManager extends EventEmitter {
     if (window) {
       window.show()
       window.focus()
+      console.log('openWindow !!!')
       return window
     }
     defaultBrowserOptions.webPreferences!.preload = join(
@@ -159,6 +160,7 @@ export default class WindowManager extends EventEmitter {
 
     window.once('ready-to-show', () => {
       if (!hidden) {
+        console.log('window.once ready-to-show !!!')
         window.show()
       }
     })
@@ -259,6 +261,7 @@ export default class WindowManager extends EventEmitter {
       return
     }
     window.show()
+    console.log('showWindow !!!')
     if (isMacOS()) {
       app.dock?.show?.()?.catch()
     }
@@ -289,6 +292,7 @@ export default class WindowManager extends EventEmitter {
       window.hide()
     } else {
       window.show()
+      console.log('toggleWindow !!!')
     }
   }
 

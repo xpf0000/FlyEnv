@@ -98,13 +98,20 @@
 
   const groupState = computed({
     get() {
-      return props.item.sub.some(
+      const a = props.item.sub.some(
         (s) => appStore.config.setup.common.showItem?.[s.typeFlag] !== false
       )
+      const b = customerModule.value.some(
+        (s) => appStore.config.setup.common.showItem?.[s.typeFlag] !== false
+      )
+      return a || b
     },
     set(v) {
       groupSetting.value = true
       for (const s of props.item.sub) {
+        appStore.config.setup.common.showItem[s.typeFlag] = v
+      }
+      for (const s of customerModule.value) {
         appStore.config.setup.common.showItem[s.typeFlag] = v
       }
       appStore.saveConfig().then(() => {

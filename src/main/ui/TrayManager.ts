@@ -18,12 +18,13 @@ export default class TrayManager extends EventEmitter {
     this.active = false
     this.normalIcon = nativeImage.createFromPath(join(global.__static, '32x32.png'))
     this.activeIcon = nativeImage.createFromPath(join(global.__static, '32x32_active.png'))
+    const size = isWindows() ? 9 : 10
     this.stopIcon = nativeImage
       .createFromPath(join(__static, 'stop.png'))
-      .resize({ width: 10, height: 10 })
+      .resize({ width: size, height: size })
     this.runIcon = nativeImage
       .createFromPath(join(__static, 'run.png'))
-      .resize({ width: 10, height: 10 })
+      .resize({ width: size, height: size })
     this.tray = new Tray(this.normalIcon)
     this.tray.setToolTip('FlyEnv')
 

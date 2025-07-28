@@ -19,9 +19,9 @@ const conf: Configuration = {
     '!**/node_modules/.bin',
     '!**/node_modules/node-pty/build/node_gyp_bins'
   ],
-  artifactName: 'FlyEnv Setup ${version}.${ext}',
+  artifactName: 'FlyEnv-Setup-${version}.${ext}',
   win: {
-    artifactName: 'FlyEnv Setup ${version}.${ext}',
+    artifactName: 'FlyEnv-Setup-${version}.${ext}',
     icon: 'build/icon.ico',
     requestedExecutionLevel: 'requireAdministrator',
     target: [
@@ -40,7 +40,7 @@ const conf: Configuration = {
     allowToChangeInstallationDirectory: true
   },
   portable: {
-    artifactName: 'FlyEnv Portable ${version}.${ext}',
+    artifactName: 'FlyEnv-Portable-${version}.${ext}',
     requestExecutionLevel: 'admin'
   },
   publish: []

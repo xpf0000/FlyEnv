@@ -36,6 +36,7 @@
 
   async function setAutoStart(enable: boolean) {
     const exePath = (await app.getPath('exe')).replace(/"/g, '\\"')
+    console.log('exePath: ', exePath)
     const taskName = 'FlyEnvStartup'
     if (enable) {
       const tmpl = await fs.readFile(
@@ -54,14 +55,19 @@
         console.log('file: ', file)
         console.log('res: ', res.stdout, res.stderr)
         await fs.remove(file)
-        return true
+        const std = res.stdout + res.stderr
+        if (std.includes(`Task Create Success: FlyEnvStartup`)) {
+          return true
+        }
+        MessageError(res.stderr)
+        throw new Error(res.stderr)
       } catch (e: any) {
         MessageError(`${e.toString()}`)
         throw e
       }
     } else {
       try {
-        await exec.exec(`schtasks /delete /tn "${taskName}" /f`)
+        await exec.exec(`schtasks.exe /delete /tn "${taskName}" /f`)
       } catch {}
       return true
     }

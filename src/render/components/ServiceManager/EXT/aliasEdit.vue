@@ -15,7 +15,7 @@
               <div class="title">
                 <span>{{ I18nT('base.phpVersion') }}</span>
               </div>
-              <el-select v-model="php" class="w-32" filterable :disabled="running">
+              <el-select v-model="php" class="w-64" filterable :disabled="running">
                 <el-option :value="undefined" :label="I18nT('service.useSysPHP')"></el-option>
                 <template v-for="(v, _k) in phpVersions" :key="_k">
                   <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
