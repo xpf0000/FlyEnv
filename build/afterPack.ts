@@ -48,6 +48,10 @@ export default async function after(pack) {
     shFile = join(pack.appOutDir, 'resources/helper/flyenv-helper-init.sh')
     tmplFile = resolve(pack.appOutDir, '../../static/sh/Linux/flyenv-helper-init.sh')
     await copyFile(tmplFile, shFile)
+
+    shFile = join(pack.appOutDir, 'resources/helper/512x512.png')
+    tmplFile = resolve(pack.appOutDir, '../../static/512x512.png')
+    await copyFile(tmplFile, shFile)
     console.log('afterPack handle end !!!!!!')
     return
   }
