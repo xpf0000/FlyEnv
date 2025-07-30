@@ -2,5 +2,9 @@
   "showMainWin": "Mostra Finestra Principale",
   "exit": "Esci",
   "run": "In esecuzione",
-  "notRun": "Non in esecuzione"
+  "notRun": "Non in esecuzione",
+  "trayMenuBarStyle": "Stile finestra popup",
+  "classic": "Classico",
+  "modern": "Moderno",
+  "trayMenuBarStyleTips": "Scegli lo stile della finestra popup. Su alcuni desktop Linux lo stile moderno potrebbe avere problemi, puoi selezionare lo stile classico invece."
 }

@@ -2,5 +2,9 @@
   "showMainWin": "Ana Pencereyi Göster",
   "exit": "Çıkış",
   "run": "Çalışıyor",
-  "notRun": "Çalışmıyor"
+  "notRun": "Çalışmıyor",
+  "trayMenuBarStyle": "Tepsi Açılır Penceresi Stili",
+  "classic": "Klasik",
+  "modern": "Modern",
+  "trayMenuBarStyleTips": "Tepsi açılır penceresi stilini seçin. Bazı Linux masaüstlerinde modern stil sorun çıkarabilir, bunun yerine klasik stili seçebilirsiniz."
 }

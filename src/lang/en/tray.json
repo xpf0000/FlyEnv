@@ -2,5 +2,9 @@
   "showMainWin": "Show Main Window",
   "exit": "Exit",
   "run": "Running",
-  "notRun": "Not Running"
+  "notRun": "Not Running",
+  "trayMenuBarStyle": "Tray Popup Style",
+  "classic": "Classic",
+  "modern": "Modern",
+  "trayMenuBarStyleTips": "Choose the tray popup style. On some Linux desktops, the modern style may have issues, so you can select the classic style instead."
 }

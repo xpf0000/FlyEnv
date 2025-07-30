@@ -13,6 +13,8 @@ export default class TrayManager extends EventEmitter {
   runIcon: NativeImage
   active: boolean
   tray: Tray
+  style: 'modern' | 'classic' | '' = ''
+  status: any
   constructor() {
     super()
     this.active = false
@@ -27,17 +29,38 @@ export default class TrayManager extends EventEmitter {
       .resize({ width: size, height: size })
     this.tray = new Tray(this.normalIcon)
     this.tray.setToolTip('FlyEnv')
+  }
 
-    // this.tray.on('click', this.handleTrayClick)
-    // if (!isLinux()) {
-    //   this.tray.on('right-click', this.handleTrayClick)
-    //   this.tray.on('double-click', () => {
-    //     this.emit('double-click')
-    //   })
-    // }
+  addModernStyleListener() {
+    this.tray.on('click', this.handleTrayClick)
+    this.tray.on('right-click', this.handleTrayClick)
+    this.tray.on('double-click', () => {
+      this.emit('double-click')
+    })
+  }
+
+  setStyle(style: 'modern' | 'classic') {
+    console.log('setStyle: ', style, this.style)
+    if (this.style === style) {
+      return
+    }
+    this.style = style
+    this.emit('style-changed', style)
+    if (style === 'classic') {
+      this.tray.removeAllListeners()
+      if (this.status) {
+        this.menuChange(this.status)
+      }
+    } else {
+      this.tray.setContextMenu(null)
+    }
   }
 
   menuChange(status: any) {
+    this.status = status
+    if (this.style !== 'classic') {
+      return
+    }
     console.log('menuChange: ', status)
     this.iconChange(status.groupIsRunning)
     const menus: MenuItemConstructorOptions[] = []
@@ -117,6 +140,8 @@ export default class TrayManager extends EventEmitter {
   }
 
   destroy() {
+    this.tray.removeAllListeners()
+    this.tray.setContextMenu(null)
     this.tray.destroy()
   }
 }

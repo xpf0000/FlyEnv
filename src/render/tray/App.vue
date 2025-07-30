@@ -16,28 +16,8 @@
     </ul>
     <ul class="menu top-menu">
       <el-scrollbar>
-        <template v-for="(item, _index) in customerModule" :key="_index">
+        <template v-for="(item, _index) in service" :key="_index">
           <CustomerItem :item="item" />
-        </template>
-        <template v-for="(item, _index) in allService" :key="_index">
-          <li v-if="store[item.typeFlag] && store[item.typeFlag].show" class="non-draggable">
-            <div class="left">
-              <div class="icon-block" :class="{ run: store[item.typeFlag].run }">
-                <yb-icon :svg="item.icon" width="30" height="30" />
-              </div>
-              <span class="title">{{
-                typeof item.label === 'string' ? item.label : (item.label?.() ?? '')
-              }}</span>
-            </div>
-
-            <el-switch
-              v-model="store[item.typeFlag]!.run"
-              :disabled="store[item.typeFlag]?.disabled"
-              :loading="store[item.typeFlag]?.running"
-              @change="switchChange(item.typeFlag)"
-            >
-            </el-switch>
-          </li>
         </template>
       </el-scrollbar>
     </ul>
@@ -74,8 +54,8 @@
     return store.groupDisabled
   })
 
-  const customerModule = computed(() => {
-    return store.customerModule
+  const service = computed(() => {
+    return store.service
   })
 
   const left: Ref<string | null> = ref(null)

@@ -66,7 +66,6 @@ export default class Application extends EventEmitter {
     this.initWindowManager()
     ScreenManager.initWatch()
     this.trayManager = new TrayManager()
-    this.initTrayManager()
     this.initUpdaterManager()
     this.handleCommands()
     this.handleIpcMessages()
@@ -167,6 +166,46 @@ export default class Application extends EventEmitter {
   }
 
   initTrayManager() {
+    this.trayManager.on('style-changed', (style: 'modern' | 'classic') => {
+      console.log('style-changed !!!', style)
+      if (style === "modern") {
+        if (!this?.trayWindow) {
+          this.trayWindow = this.windowManager.openTrayWindow()
+          AppNodeFnManager.trayWindow = this.trayWindow
+          this.trayWindow.webContents.once('dom-ready', () => {
+            console.log('DOM 已准备好');
+            const command = 'APP:Tray-Store-Sync'
+            this.windowManager.sendCommandTo(this.trayWindow!, command, command, this.trayManager.status)
+            this.trayManager.addModernStyleListener()
+          });
+        }
+      } else {
+        this.windowManager.destroyWindow('tray')
+        this.trayWindow = undefined
+        AppNodeFnManager.trayWindow = undefined
+      }
+    })
+    this.trayManager.on('click', (x, y, poperX) => {
+      if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
+        this?.trayWindow?.setPosition(Math.round(x), Math.round(y))
+        this?.trayWindow?.setOpacity(1.0)
+        this?.trayWindow?.show()
+        this.windowManager.sendCommandTo(
+          this.trayWindow!,
+          'APP:Poper-Left',
+          'APP:Poper-Left',
+          poperX
+        )
+        this?.trayWindow?.moveTop()
+      } else {
+        this?.trayWindow?.hide()
+      }
+    })
+
+    this.trayManager.on('double-click', () => {
+      this.show('index')
+    })
+
     this.trayManager.on(
       'action',
       (action: 'groupDo' | 'switchChange' | 'show' | 'exit', typeFlag?: string) => {
@@ -193,6 +232,9 @@ export default class Application extends EventEmitter {
         }
       }
     )
+
+    const style = this.configManager.getConfig('setup.trayMenuBarStyle') ?? 'modern'
+    this.trayManager.setStyle(style)
   }
 
   checkBrewOrPort() {
@@ -484,8 +526,7 @@ export default class Application extends EventEmitter {
     })
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
-    // this.trayWindow = this.windowManager.openTrayWindow()
-    // AppNodeFnManager.trayWindow = this.trayWindow
+    this.initTrayManager()
   }
 
   show(page = 'index') {
@@ -597,6 +638,7 @@ export default class Application extends EventEmitter {
       console.log('application:save-preference.config====>', config)
       this.configManager.setConfig(config)
       this.menuManager.rebuild()
+      this.trayManager.setStyle(config?.setup?.trayMenuBarStyle ?? 'modern')
     })
 
     this.on('application:relaunch', () => {
@@ -843,7 +885,9 @@ export default class Application extends EventEmitter {
         break
       case 'APP:Tray-Store-Sync':
         this.trayManager.menuChange(args?.[0])
-        // this.windowManager.sendCommandTo(this.trayWindow!, command, command, args?.[0])
+        if (this.trayWindow) {
+          this.windowManager.sendCommandTo(this.trayWindow!, command, command, args?.[0])
+        }
         break
       case 'APP:Tray-Command':
         this.windowManager.sendCommandTo(this.mainWindow!, command, command, ...args)

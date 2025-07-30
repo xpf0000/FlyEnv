@@ -51,13 +51,17 @@
         <div v-if="!isWindows" class="col">
           <RestPassword />
         </div>
-        <div v-else class="col opacity-0"></div>
+        <div v-else class="col">
+          <TrayStyle />
+        </div>
       </div>
       <div v-if="!isWindows" class="row-2">
         <div class="col">
+          <TrayStyle />
+        </div>
+        <div class="col">
           <FlyEnvHelperFix />
         </div>
-        <div class="col opacity-0"></div>
       </div>
     </div>
   </el-scrollbar>
@@ -80,6 +84,7 @@
   import AutoHide from './AutoHide/index.vue'
   import AutoStartService from './AutoStartService/index.vue'
   import FlyEnvHelperFix from '@/components/Setup/FlyEnvHelper/index.vue'
+  import TrayStyle from './TrayStyle/index.vue'
 
   const isMacOS = computed(() => {
     return window.Server.isMacOS

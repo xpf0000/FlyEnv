@@ -11,7 +11,7 @@
       v-model="run"
       :disabled="item.running"
       :loading="item.running"
-      @change="switchChange(item.id)"
+      @change="switchChange(item?.id ?? item.typeFlag)"
     >
     </el-switch>
   </li>

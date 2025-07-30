@@ -2,5 +2,9 @@
   "showMainWin": "显示主界面",
   "exit": "退出",
   "run": "运行中",
-  "notRun": "未运行"
+  "notRun": "未运行",
+  "trayMenuBarStyle": "托盘弹窗样式",
+  "classic": "经典",
+  "modern": "现代",
+  "trayMenuBarStyleTips": "选择托盘弹窗的样式. 在某些 Linux桌面下, 现代样式可能会有问题, 可以选择经典样式."
 }

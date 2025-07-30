@@ -2,5 +2,9 @@
   "showMainWin": "Afficher la fenêtre principale",
   "exit": "Quitter",
   "run": "En cours d'exécution",
-  "notRun": "Non en cours d'exécution"
+  "notRun": "Non en cours d'exécution",
+  "trayMenuBarStyle": "Style de fenêtre contextuelle",
+  "classic": "Classique",
+  "modern": "Moderne",
+  "trayMenuBarStyleTips": "Choisissez le style de fenêtre contextuelle. Sur certains environnements Linux, le style moderne peut poser problème, vous pouvez choisir le style classique à la place."
 }

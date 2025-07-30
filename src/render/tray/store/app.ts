@@ -1,14 +1,12 @@
 import { defineStore } from 'pinia'
-import type { AllAppModule } from '@/core/type'
 
 type ModuleItemState = {
   show: boolean
   run: boolean
   running: boolean
   disabled: boolean
+  typeFlag: string
 }
-
-type StateBase = Partial<Record<AllAppModule, ModuleItemState>>
 
 export type CustomerModuleItem = {
   id: string
@@ -16,13 +14,13 @@ export type CustomerModuleItem = {
   icon: string
 } & ModuleItemState
 
-export interface TrayState extends StateBase {
+export interface TrayState{
   password: string
   lang: string
   theme: string
   groupIsRunning: boolean
   groupDisabled: boolean
-  customerModule: CustomerModuleItem[]
+  service: CustomerModuleItem[]
 }
 
 const state: TrayState = {
@@ -31,7 +29,7 @@ const state: TrayState = {
   password: '',
   groupIsRunning: false,
   groupDisabled: true,
-  customerModule: []
+  service: []
 }
 
 export const AppStore = defineStore('trayApp', {

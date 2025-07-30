@@ -219,6 +219,8 @@ class Ollama extends Base {
       const dir = row.appDir
       await super._installSoftHandle(row)
       await moveChildDirToParent(dir)
+    } else {
+      await super._installSoftHandle(row)
     }
   }
 

@@ -2,5 +2,9 @@
   "showMainWin": "Hiện Cửa Sổ Chính",
   "exit": "Thoát",
   "run": "Đang chạy",
-  "notRun": "Không chạy"
+  "notRun": "Không chạy",
+  "trayMenuBarStyle": "Kiểu cửa sổ bật lên",
+  "classic": "Cổ điển",
+  "modern": "Hiện đại",
+  "trayMenuBarStyleTips": "Chọn kiểu cửa sổ bật lên. Trên một số môi trường Linux, kiểu hiện đại có thể gặp sự cố, bạn có thể chọn kiểu cổ điển thay thế."
 }
