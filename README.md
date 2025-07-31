@@ -95,11 +95,11 @@ brew install flyenv
 
 #### Installer version
 
-- [FlyEnv.Setup.4.10.5.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.5/FlyEnv.Setup.4.10.5.exe)
+- [FlyEnv-Setup-4.10.5.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.5/FlyEnv-Setup-4.10.5.exe)
 
 #### Portable version
 
-- [FlyEnv.Portable.4.10.5.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.5/FlyEnv.Portable.4.10.5.exe)
+- [FlyEnv-Portable-4.10.5.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.5/FlyEnv-Portable-4.10.5.exe)
 
 ---
 
