@@ -2,6 +2,8 @@ import { reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { ElMessage } from 'element-plus'
 import { I18nT } from '@lang/index'
+import { FlyEnvHelperSetup } from '@/components/FlyEnvHelper/setup'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
 
 export const FlyEnvHelperFix = reactive({
   fixing: false,
@@ -10,12 +12,16 @@ export const FlyEnvHelperFix = reactive({
       return
     }
     this.fixing = true
-    IPC.send('App-Check-FlyEnv-Helper').then((key: string, res: any) => {
+    IPC.send('APP:FlyEnv-Helper-Check').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
         ElMessage.success(I18nT('setup.flyenvHelperFixSuccess'))
       } else {
-        ElMessage.success(I18nT('setup.flyenvHelperFixFail'))
+        if (!FlyEnvHelperSetup.show) {
+          import('@/components/FlyEnvHelper/index.vue').then((m) => {
+            AsyncComponentShow(m.default).then()
+          })
+        }
       }
       this.fixing = false
     })
