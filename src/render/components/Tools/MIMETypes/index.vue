@@ -1,32 +1,48 @@
 <script setup lang="ts">
-  import { types as extensionToMimeType, extensions as mimeTypeToExtension } from 'mime-types'
   import { computed, ref } from 'vue'
+  import { asyncComputed } from '@vueuse/core'
   import { I18nT } from '@lang/index'
+  import { mime } from '@/util/NodeFn'
 
-  const mimeInfos = Object.entries(mimeTypeToExtension).map(([mimeType, extensions]) => ({
+  const miniTypes = asyncComputed(async() => {
+    const { types, extensions } = await mime.types()
+    console.log('miniTypes: ', types, extensions )
+    return { types, extensions }
+  })
+
+  const extensions = computed(() => {
+    return miniTypes?.value?.extensions ?? {}
+  })
+
+  const types = computed(() => {
+    return miniTypes?.value?.types ?? {}
+  })
+
+  const mimeInfos = computed(() => Object.entries(extensions.value).map(([mimeType, extensions]) => ({
     mimeType,
     extensions
-  }))
+  })))
 
-  const mimeToExtensionsOptions = Object.keys(mimeTypeToExtension).map((label) => ({
+  const mimeToExtensionsOptions = computed(() => Object.keys(extensions.value).map((label) => ({
     label,
     value: label
-  }))
+  })))
   const selectedMimeType = ref(undefined)
 
   const extensionsFound = computed(() =>
-    selectedMimeType.value ? mimeTypeToExtension[selectedMimeType.value] : []
+    selectedMimeType.value ? extensions?.value?.[selectedMimeType.value] ?? '' : []
   )
 
-  const extensionToMimeTypeOptions = Object.keys(extensionToMimeType).map((label) => {
+  const typesOptions = computed(() => Object.keys(types.value).map((label) => {
     const extension = `.${label}`
 
     return { label: extension, value: label }
-  })
+  }))
+
   const selectedExtension = ref(undefined)
 
   const mimeTypeFound = computed(() =>
-    selectedExtension.value ? extensionToMimeType[selectedExtension.value] : []
+    selectedExtension.value ? types.value?.[selectedExtension.value] ?? '' : []
   )
 </script>
 <template>
@@ -88,7 +104,7 @@
             filterable
             placeholder="Select your mimetype here... (ex: application/pdf)"
           >
-            <template v-for="item in extensionToMimeTypeOptions" :key="item.value">
+            <template v-for="item in typesOptions" :key="item.value">
               <el-option :label="item.label" :value="item.value"></el-option>
             </template>
           </el-select>

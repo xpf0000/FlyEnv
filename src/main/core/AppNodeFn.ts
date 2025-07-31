@@ -23,6 +23,7 @@ import { homedir } from 'node:os'
 const require = createRequire(import.meta.url)
 
 const { pki } = require('node-forge')
+const { types, extensions } = require('mime-types')
 
 async function readdirRecursive(dir: string): Promise<string[]> {
   const items = await readdir(dir, { withFileTypes: true })
@@ -75,6 +76,10 @@ export class AppNodeFn {
   customerLang: Record<string, any> = {}
   private fileWatchers: Map<string, WatcherItem> = new Map()
   private dirWatchers: Map<string, WatcherItem> = new Map()
+
+  mime_types(command: string, key: string) {
+    this?.mainWindow?.webContents.send('command', command, key, { types, extensions })
+  }
 
   ip_address(command: string, key: string) {
     const ip = address() ?? ''

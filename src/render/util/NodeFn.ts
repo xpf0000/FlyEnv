@@ -142,6 +142,10 @@ export const shell = {
   openExternal: createIPCCall<void>('shell', 'openExternal')
 }
 
+export const mime = {
+  types: createIPCCall<any>('mime', 'types')
+}
+
 export const exec = {
   exec: createIPCCall<any>('exec', 'exec')
 }
