@@ -9,13 +9,14 @@
       <Service v-if="tab === 0" type-flag="tomcat" title="Tomcat">
         <template #tool-left>
           <div class="flex items-center gap-1 pl-4">
-            <span>CATALINA_BASE: </span>
+            <span class="flex-shrink-0">CATALINA_BASE: </span>
             <span
-              class="cursor-pointer hover:text-yellow-500"
+              class="cursor-pointer hover:text-yellow-500 truncate"
               @click.stop="shell.openPath(CATALINA_BASE)"
               >{{ CATALINA_BASE }}</span
             >
             <el-button
+              class="flex-shrink-0"
               :disabled="!CATALINA_BASE"
               link
               :icon="Edit"
@@ -26,6 +27,7 @@
       </Service>
       <Manager
         v-else-if="tab === 1"
+        title="Tomcat"
         type-flag="tomcat"
         :has-static="true"
         :show-port-lib="false"

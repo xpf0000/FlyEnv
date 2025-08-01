@@ -23,7 +23,12 @@
               class="flex items-center overflow-hidden hover:text-yellow-500 cursor-pointer gap-2"
               @click.stop="copyCommand(scope.row)"
             >
-              <yb-icon :svg="import('@/svg/link.svg?raw')" width="18" height="18" />
+              <yb-icon
+                class="flex-shrink-0"
+                :svg="import('@/svg/link.svg?raw')"
+                width="18"
+                height="18"
+              />
               <span class="truncate">
                 {{ scope.row.name }}
               </span>

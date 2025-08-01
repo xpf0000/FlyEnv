@@ -17,14 +17,20 @@
             </el-button>
           </template>
 
-          <div class="flex items-center gap-1 pl-4">
-            <span>{{ I18nT('util.mysqlDataDir') }}: </span>
+          <div class="flex items-center gap-1 pl-4 pr-2">
+            <span class="flex-shrink-0">{{ I18nT('util.mysqlDataDir') }}: </span>
             <span
-              class="cursor-pointer hover:text-yellow-500"
+              class="cursor-pointer hover:text-yellow-500 truncate"
               @click.stop="shell.openPath(DATA_DIR)"
               >{{ DATA_DIR }}</span
             >
-            <el-button :disabled="!DATA_DIR" link :icon="Edit" @click.stop="chooseDir"></el-button>
+            <el-button
+              class="flex-shrink-0"
+              :disabled="!DATA_DIR"
+              link
+              :icon="Edit"
+              @click.stop="chooseDir"
+            ></el-button>
           </div>
         </template>
       </Service>

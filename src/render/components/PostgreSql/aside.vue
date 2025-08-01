@@ -57,7 +57,7 @@
     module.startExtParam = (version: ModuleInstalledItem) => {
       return new Promise<any[]>((resolve) => {
         const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-        const dir = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+        const dir = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
         const p = PostgreSqlSetup.dir?.[version.bin] ?? dir
         resolve([p])
       })
