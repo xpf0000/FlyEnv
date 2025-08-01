@@ -28,6 +28,11 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
+  import { BrewStore } from '@/store/brew'
+  import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+  import { join } from '@/util/path-browserify'
+  import { PostgreSqlSetup } from '@/components/PostgreSql/setup'
+  import { computed } from 'vue'
 
   const {
     showItem,
@@ -40,6 +45,24 @@
     nav,
     stopNav
   } = AsideSetup('postgresql')
+
+  const brewStore = BrewStore()
+
+  const currentVersion = computed(() => {
+    return brewStore.currentVersion('postgresql')
+  })
+
+  const module = brewStore.module('postgresql')
+  if (!module?.startExtParam) {
+    module.startExtParam = (version: ModuleInstalledItem) => {
+      return new Promise<any[]>((resolve) => {
+        const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+        const dir = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+        const p = PostgreSqlSetup.dir?.[version.bin] ?? dir
+        resolve([p])
+      })
+    }
+  }
 
   AppServiceModule.postgresql = {
     groupDo,
