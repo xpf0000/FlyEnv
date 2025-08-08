@@ -75,8 +75,8 @@ flyenv_autoload() {
   (( found )) || return
 
   if [[ -f ".flyenv" ]]; then
-    _flyenv_msg cyan "[FlyEnv] Loading environment variables..."
-    source ".flyenv" && _flyenv_msg green "✓ [FlyEnv] Load successful" || _flyenv_msg red "✗ [FlyEnv] Load failed"
+    _flyenv_msg cyan "Loading environment variables..."
+    source ".flyenv" && _flyenv_msg green "✓ Load successful" || _flyenv_msg red "✗ Load failed"
   fi
 }
 
