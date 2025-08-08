@@ -8,8 +8,8 @@
     </div>
 
     <div class="main-wapper">
-      <el-tabs v-model="JSONStore.currentTab" :editable="true" type="card" @edit="handleTabsEdit">
-        <template v-for="(_, key) in JSONStore.tabs" :key="key">
+      <el-tabs v-model="CodePlay.currentTab" :editable="true" type="card" @edit="handleTabsEdit">
+        <template v-for="(_, key) in CodePlay.tabs" :key="key">
           <el-tab-pane :label="key" :name="key" :class="key" :closable="key !== 'tab-1'">
           </el-tab-pane>
         </template>
@@ -71,7 +71,7 @@
 
   import TomlRules from '@/util/transform/TomlRules'
   import { AppStore } from '@/store/app'
-  import JSONStore, { JSONStoreTab } from '@/components/Tools/Json/store'
+  import CodePlay, { CodePlayTab } from '@/components/Tools/CodePlayground/setup'
   import type { TabPaneName } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
   import { I18nT } from '@lang/index'
@@ -91,68 +91,68 @@
 
   const to = computed({
     get() {
-      console.log('JSONStore: ', JSONStore)
-      return JSONStore.tabs[JSONStore.currentTab].to
+      console.log('CodePlay: ', CodePlay)
+      return CodePlay.tabs[CodePlay.currentTab].to
     },
     set(v: string) {
-      JSONStore.tabs[JSONStore.currentTab].to = v
+      CodePlay.tabs[CodePlay.currentTab].to = v
     }
   })
   const currentValue = computed({
     get() {
-      return JSONStore.tabs[JSONStore.currentTab].value
+      return CodePlay.tabs[CodePlay.currentTab].value
     },
     set(v) {
-      JSONStore.tabs[JSONStore.currentTab].value = v
+      CodePlay.tabs[CodePlay.currentTab].value = v
     }
   })
   const currentType = computed({
     get() {
-      return JSONStore.tabs[JSONStore.currentTab].type
+      return CodePlay.tabs[CodePlay.currentTab].type
     },
     set(v) {
-      JSONStore.tabs[JSONStore.currentTab].type = v
+      CodePlay.tabs[CodePlay.currentTab].type = v
     }
   })
   const currentToValue = computed({
     get() {
-      return JSONStore.tabs[JSONStore.currentTab].toValue
+      return CodePlay.tabs[CodePlay.currentTab].toValue
     },
     set(v) {
-      JSONStore.tabs[JSONStore.currentTab].toValue = v
+      CodePlay.tabs[CodePlay.currentTab].toValue = v
     }
   })
 
   const currentToLang = computed({
     get() {
-      return JSONStore.tabs[JSONStore.currentTab].toLang
+      return CodePlay.tabs[CodePlay.currentTab].toLang
     },
     set(v) {
-      JSONStore.tabs[JSONStore.currentTab].toLang = v
+      CodePlay.tabs[CodePlay.currentTab].toLang = v
     }
   })
 
   const currentTab = computed(() => {
-    return JSONStore.tabs[JSONStore.currentTab]
+    return CodePlay.tabs[CodePlay.currentTab]
   })
 
   const handleTabsEdit = (targetName: TabPaneName | undefined, action: 'remove' | 'add') => {
     if (action === 'add') {
-      JSONStore.index += 1
-      const tabName = `tab-${JSONStore.index}`
-      const tab = new JSONStoreTab()
+      CodePlay.index += 1
+      const tabName = `tab-${CodePlay.index}`
+      const tab = new CodePlayTab()
       tab.editor = () => toEditor!
-      JSONStore.tabs[tabName] = reactive(tab)
-      JSONStore.currentTab = tabName
+      CodePlay.tabs[tabName] = reactive(tab)
+      CodePlay.currentTab = tabName
     } else if (action === 'remove') {
       if (targetName === 'tab-1') {
         return
       }
-      const allKeys = Object.keys(JSONStore.tabs)
+      const allKeys = Object.keys(CodePlay.tabs)
       const index = allKeys.findIndex((k) => k === targetName)
-      delete JSONStore.tabs?.[targetName!]
-      if (targetName === JSONStore.currentTab) {
-        JSONStore.currentTab = allKeys[index - 1]
+      delete CodePlay.tabs?.[targetName!]
+      if (targetName === CodePlay.currentTab) {
+        CodePlay.currentTab = allKeys[index - 1]
       }
     }
   }
@@ -235,10 +235,10 @@
   let wapperRect: DOMRect = new DOMRect()
   const leftStyle = computed({
     get() {
-      return JSONStore.style
+      return CodePlay.style
     },
     set(v) {
-      JSONStore.style = v
+      CodePlay.style = v
     }
   })
 
@@ -344,7 +344,7 @@
   }
 
   watch(
-    () => JSONStore.currentTab,
+    () => CodePlay.currentTab,
     () => {
       tabChanging = true
       currentTab.value.editor = () => toEditor!

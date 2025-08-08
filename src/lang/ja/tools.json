@@ -37,5 +37,7 @@
   "envValue": "Value",
   "rawEnvPath": "Actual Path",
   "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
-  "invalidPath": "Invalid Path"
+  "invalidPath": "Invalid Path",
+
+  "CodePlayGround": "コードプレイグラウンド"
 }

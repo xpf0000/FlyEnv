@@ -123,9 +123,11 @@ type ToolType =
   | 'Math'
   | 'Measurement'
   | 'Text'
+  | 'Code'
   | 'Custom'
 
 export const AppToolType: ToolType[] = [
+  'Code',
   'Development',
   'Crypto',
   'Converter',
