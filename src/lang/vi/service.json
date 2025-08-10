@@ -2,13 +2,13 @@
   "setaliase": "Đặt bí danh",
   "env": "Môi trường",
   "alias": "Bí danh",
-  "envTips": "Đã thêm đường dẫn vào biến môi trường chưa",
-  "aliasTips": "Bí danh được sử dụng trong terminal",
+  "envTips": "Đường dẫn đã được thêm vào biến môi trường chưa",
+  "aliasTips": "Bí danh sử dụng trong terminal",
   "useSysPHP": "Sử dụng phiên bản PHP mặc định",
-  "setByApp": "Các biến môi trường được đặt bởi FlyEnv",
-  "setByNoApp": "Các biến môi trường không được đặt bởi FlyEnv",
+  "setByApp": "Biến môi trường được thiết lập bởi FlyEnv",
+  "setByNoApp": "Biến môi trường không được thiết lập bởi FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd cần quyền sudo để khởi động. Vui lòng nhập mật khẩu người dùng của bạn. Mật khẩu sẽ được dùng cho việc tự động điền sau này. Hoặc bạn có thể nhấp vào nút bên dưới để nhập thủ công trong terminal, nhưng thông báo này có thể xuất hiện lại.",
 
-  "ftpdNeedPasswordToStart": "Pure-FTPd requires sudo privileges to start. Please enter your user password. The password will be used for auto-fill later. Or you can click the button below to input manually in the terminal, but this prompt may reappear.",
-  "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
-  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?"
+  "bundleinVersionDelTips": "Phiên bản này là phiên bản tích hợp sẵn, xác nhận không hiển thị nữa?",
+  "customDirVersionDelTips": "Phiên bản này là phiên bản đường dẫn tùy chỉnh, xác nhận không hiển thị nữa?"
 }

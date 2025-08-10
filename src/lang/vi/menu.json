@@ -1,12 +1,12 @@
 {
   "about": "Giới thiệu",
   "app": "FlyEnv",
-  "checkForUpdates": "Kiểm tra cập nhật...",
+  "checkForUpdates": "Kiểm tra bản cập nhật...",
   "hide": "Ẩn FlyEnv",
-  "hideOthers": "Ẩn những ứng dụng khác",
-  "unhide": "Hiện tất cả",
+  "hideOthers": "Ẩn các ứng dụng khác",
+  "unhide": "Hiển thị tất cả",
   "quit": "Thoát FlyEnv",
-  "edit": "Sửa",
+  "edit": "Chỉnh sửa",
   "cut": "Cắt",
   "copy": "Sao chép",
   "paste": "Dán",
@@ -15,9 +15,13 @@
   "close": "Đóng",
   "minimize": "Thu nhỏ",
   "zoom": "Phóng to",
-  "fullscreen": "Vào toàn màn hình",
+  "fullscreen": "Toàn màn hình",
   "front": "Đưa FlyEnv lên trước",
   "dev": "Mở cửa sổ gỡ lỗi",
   "needInstallHelper": "FlyEnv cần cài đặt một chương trình hỗ trợ",
-  "waitHelper": "Chương trình hỗ trợ đang khởi động, vui lòng đợi"
+  "helperInstalling": "Đang cài đặt chương trình hỗ trợ, vui lòng chờ",
+  "waitHelper": "Chương trình hỗ trợ đang khởi động, vui lòng chờ",
+  "helperInstallFailTips": "Cài đặt chương trình hỗ trợ thất bại. Vui lòng thử cài đặt thủ công trong cửa sổ terminal",
+  "helperInstallSuccessTips": "Cài đặt chương trình hỗ trợ thành công",
+  "helperInstallTitle": "Cài đặt FlyEnv Helper"
 }
