@@ -14,6 +14,7 @@ import {
 import { isLinux, isWindows } from '@shared/utils'
 import * as process from 'node:process'
 import { userInfo } from 'node:os'
+import { execSync } from 'node:child_process'
 
 export function versionFixed(version?: string | null) {
   return (
@@ -68,6 +69,27 @@ export const versionFilterSame = (versions: SoftInstalled[]) => {
     item = versions.pop()
   }
   return arr
+}
+
+export const versionBinVersionSync = (bin: string, command: string, reg: RegExp): string => {
+  let version: string | undefined = ''
+  const cwd = dirname(bin)
+  try {
+    process.chdir(cwd)
+    const res = execSync(command, {
+      cwd,
+      shell: undefined
+    }).toString()
+    let str = res
+    str = str.replace(new RegExp(`\r\n`, 'g'), `\n`)
+    try {
+      version = reg?.exec(str)?.[2]?.trim()
+      reg!.lastIndex = 0
+    } catch {}
+  } catch (e) {
+    console.log('versionBinVersion err: ', e)
+  }
+  return version ?? ''
 }
 
 export const versionBinVersion = (
@@ -125,7 +147,7 @@ export const versionLocalFetch = async (
     searchDepth1Dir = [...customDirs]
     searchDepth2Dir = [global.Server.AppDir!]
   } else {
-    searchDepth1Dir = ['/', '/opt', '/usr', ...customDirs]
+    searchDepth1Dir = ['/', '/opt', '/opt/local/', '/usr', ...customDirs]
     searchDepth2Dir = [global.Server.AppDir!]
     if (searchName) {
       const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']

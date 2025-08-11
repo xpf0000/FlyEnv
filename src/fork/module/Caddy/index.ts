@@ -16,7 +16,8 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  serviceStartExecCMD
+  serviceStartExecCMD,
+  versionBinVersionSync
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
@@ -290,8 +291,17 @@ class Caddy extends Base {
             f.includes('www') && f.includes('Fast, multi-platform web server with automatic HTTPS')
           )
         },
-        (name) => {
-          return existsSync(join('/opt/local/bin/', name))
+        (name, version) => {
+          const bin = join('/opt/local/bin/', name)
+          let is = existsSync(bin)
+          if (is) {
+            const command = `"${bin}" version`
+            const reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
+            const v = versionBinVersionSync(bin, command, reg)
+            console.log('portinfo true v: ', v)
+            is = v === version
+          }
+          return is
         }
       )
       resolve(Info)

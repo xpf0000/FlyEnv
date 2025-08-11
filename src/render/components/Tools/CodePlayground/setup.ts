@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import {
   javascriptToJson,
   jsonToGoBase,
@@ -24,18 +24,82 @@ import { JSONSort } from '@/util/JsonSort'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@/util/FormatCode'
 import { I18nT } from '@lang/index'
+import localForage from 'localforage'
+import { detectLanguage } from '@/components/Tools/CodePlayground/languageDetector'
+import { BrewStore } from '@/store/brew'
 
 export class CodePlayTab {
   value = ''
   json: any = null
   type = ''
+  from = ''
   to = 'json'
   toValue = ''
   toLang = 'javascript'
   editor!: () => editor.IStandaloneCodeEditor
-  constructor() {
+  execing = false
+
+  watcher1: any = null
+  watcher2: any = null
+
+  constructor(obj?: any) {
     this.value = I18nT('tools.inputTips')
     this.type = I18nT('tools.noInputTips')
+
+    Object.assign(this, obj)
+  }
+
+  initWatch() {
+    this.watcher1 = watch(
+      () => this.value,
+      (v) => {
+        if (this.from) {
+          return
+        }
+        const lang = detectLanguage(v)
+        if (lang) {
+          const brewStore = BrewStore()
+          const installed = brewStore.module(lang).installed
+          const saved = CodePlay.langBin?.[lang]
+          if (saved && installed.some((f) => f.path === saved)) {
+            this.from = JSON.stringify({
+              type: lang,
+              path: saved
+            })
+          } else if (installed.length > 0) {
+            const find = installed[0]
+            this.from = JSON.stringify({
+              type: lang,
+              path: find.path
+            })
+            CodePlay.langBin[lang] = find.path
+            CodePlay.save()
+          }
+        }
+      }
+    )
+    this.watcher2 = watch(
+      () => this.from,
+      (v) => {
+        if (!v) {
+          return
+        }
+        const json = JSON.parse(v)
+        CodePlay.langBin[json.type] = json.path
+        CodePlay.save()
+      }
+    )
+  }
+
+  destroy() {
+    if (this.watcher1) {
+      this.watcher1()
+      this.watcher1 = null
+    }
+    if (this.watcher2) {
+      this.watcher2()
+      this.watcher2 = null
+    }
   }
 
   transformTo(sort?: 'asc' | 'desc') {
@@ -313,6 +377,9 @@ export type CodePlayType = {
   currentTab: string
   style: any
   tabs: { [k: string]: CodePlayTab }
+  langBin: { [k: string]: string }
+  init: () => void
+  save: () => void
 }
 
 let style: any = localStorage.getItem('FlyEnv-CodePlay-LeftStyle')
@@ -320,13 +387,55 @@ if (style) {
   style = JSON.parse(style)
 }
 
-const CodePlay: CodePlayType = {
+const CodePlay: CodePlayType = reactive({
   index: 1,
   currentTab: 'tab-1',
   style: style,
+  langBin: {},
   tabs: {
-    'tab-1': new CodePlayTab()
+    'tab-1': reactive(new CodePlayTab())
+  },
+  init() {
+    localForage
+      .getItem('FlyEnv-CodePlay-LangBin')
+      .then((res: any) => {
+        if (res && res?.langBin) {
+          CodePlay.langBin = reactive(res.langBin)
+        }
+        if (res && res?.tabs) {
+          for (const k in res.tabs) {
+            CodePlay.tabs?.[k]?.destroy?.()
+            CodePlay.tabs[k] = reactive(new CodePlayTab(res.tabs[k]))
+            CodePlay.tabs[k].initWatch()
+          }
+        }
+      })
+      .catch()
+  },
+  save() {
+    const tabs: any = {}
+    for (const k in CodePlay.tabs) {
+      const v = CodePlay.tabs[k]
+      tabs[k] = {
+        value: v.value,
+        json: v.json,
+        type: v.type,
+        from: v.from,
+        to: v.to,
+        toValue: v.toValue,
+        toLang: v.toLang
+      }
+    }
+    localForage.setItem('FlyEnv-CodePlay-LangBin', {
+      langBin: { ...CodePlay.langBin },
+      tabs
+    })
   }
-}
+})
 
-export default reactive(CodePlay)
+const tab = CodePlay.tabs['tab-1']
+tab.destroy = tab.destroy.bind(tab)
+tab.initWatch = tab.initWatch.bind(tab)
+tab.initWatch()
+
+export default CodePlay

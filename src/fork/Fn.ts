@@ -27,6 +27,7 @@ import {
   spawnPromiseWithStdin
 } from '@shared/child-process'
 import {
+  versionBinVersionSync,
   versionBinVersion,
   versionCheckBin,
   brewInfoJson,
@@ -62,6 +63,7 @@ import { isWindows, waitTime } from '@shared/utils'
 export { waitTime, addPath, fetchRawPATH, handleWinPathArr, writePath }
 
 export {
+  versionBinVersionSync,
   versionBinVersion,
   versionCheckBin,
   brewInfoJson,
