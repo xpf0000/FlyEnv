@@ -9,7 +9,6 @@
   "postgresqlInit": "Dịch vụ đã khởi động thành công\nData Dir là {dir}\nNgười dùng ban đầu là root, Mật khẩu là root",
   "downloadFileFail": "Tải xuống tệp không thành công!",
   "trialEnd": "Thời gian dùng thử đã hết. Để tiếp tục sử dụng tính năng này, vui lòng mua giấy phép",
-
-  "phpiniNotFound": "php.ini file not found",
-  "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
+  "phpiniNotFound": "Không tìm thấy tệp php.ini",
+  "noEPMD": "Quá trình EPMD không được tìm thấy. Vui lòng đặt lại các biến môi trường Erlang"
 }

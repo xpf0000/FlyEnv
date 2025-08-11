@@ -1,8 +1,7 @@
 {
   "Local": "Cục bộ",
-  "noBrewFound": "Không tìm thấy <a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a>\nĐể cài đặt Homebrew, hãy nhấp vào nút cài đặt để tiếp tục\nBạn cũng có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nLàm theo tài liệu để cài đặt.",
-  "noPortFound": "Không tìm thấy <a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a>.\nCài đặt Macports, bạn có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nLàm theo tài liệu để cài đặt.",
-
-  "brewErrorTips": "At this location {bin}, Homebrew executable files were detected.\nHowever, FlyEnv cannot call them. Error message:\n{error}",
-  "Library": "Library"
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> không được tìm thấy\nĐể cài đặt Homebrew, nhấp nút cài đặt để tiếp tục\nBạn cũng có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nLàm theo hướng dẫn để cài đặt.",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> không được tìm thấy.\nĐể cài đặt Macports, bạn có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nLàm theo hướng dẫn để cài đặt.",
+  "brewErrorTips": "Tại vị trí {bin}, đã phát hiện các tệp thực thi Homebrew.\nTuy nhiên, FlyEnv không thể gọi chúng. Thông báo lỗi:\n{error}",
+  "Library": "Thư viện"
 }

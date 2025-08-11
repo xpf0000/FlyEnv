@@ -1,4 +1,5 @@
 {
+  "startInstall": "Bắt đầu cài đặt {service}",
   "startServiceBegin": "Bắt đầu dịch vụ {service}...",
   "confInit": "Tệp cấu hình không tồn tại, tạo tệp cấu hình",
   "confInitSuccess": "Tệp cấu hình được tạo thành công, đường dẫn tệp: {file}",
@@ -17,7 +18,5 @@
   "initDBPassFail": "Không khởi tạo được mật khẩu cơ sở dữ liệu, lý do: {error}",
   "initDBDataDir": "Không tìm thấy thư mục dữ liệu, bắt đầu khởi tạo thư mục dữ liệu",
   "initDBDataDirSuccess": "Khởi tạo thư mục dữ liệu thành công, đường dẫn thư mục dữ liệu: {dir}",
-  "initDBDataDirFail": "Không khởi tạo được thư mục dữ liệu, lý do: {error}",
-
-  "startInstall": "Start installing {service}"
+  "initDBDataDirFail": "Không khởi tạo được thư mục dữ liệu, lý do: {error}"
 }

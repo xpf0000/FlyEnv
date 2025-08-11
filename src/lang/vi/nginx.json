@@ -1,10 +1,10 @@
 {
-  "gzip": "Có bật truyền nén GZIP không",
-  "gzip_min_length": "Tệp nén tối thiểu",
-  "gzip_comp_level": "Khả năng nén",
+  "gzip": "Bật nén truyền tải GZIP",
+  "gzip_min_length": "Kích thước tệp tối thiểu để nén",
+  "gzip_comp_level": "Mức độ nén",
   "client_max_body_size": "Kích thước tệp tải lên tối đa",
-  "server_names_hash_max_size": "Kích thước tối đa của bảng băm cho tên máy chủ",
-  "server_names_hash_bucket_size": "Kích thước bảng băm cho tên máy chủ",
-  "client_header_buffer_size": "Kích thước bộ đệm tiêu đề yêu cầu của máy khách",
+  "server_names_hash_max_size": "Kích thước tối đa bảng băm cho tên máy chủ",
+  "server_names_hash_bucket_size": "Kích thước bucket bảng băm cho tên máy chủ",
+  "client_header_buffer_size": "Kích thước bộ đệm header yêu cầu từ client",
   "client_body_buffer_size": "Kích thước bộ đệm nội dung yêu cầu"
 }
