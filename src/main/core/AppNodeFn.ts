@@ -145,13 +145,21 @@ export class AppNodeFn {
   }
 
   toml_parse(command: string, key: string, json: any) {
-    const res = TOMLParse(json)
-    this?.mainWindow?.webContents.send('command', command, key, res)
+    try {
+      const res = TOMLParse(json)
+      this?.mainWindow?.webContents.send('command', command, key, res)
+    } catch (e) {
+      this?.mainWindow?.webContents.send('command', command, key, null)
+    }
   }
 
   toml_stringify(command: string, key: string, json: any) {
-    const res = TOMLStringify(json)
-    this?.mainWindow?.webContents.send('command', command, key, res)
+    try {
+      const res = TOMLStringify(json)
+      this?.mainWindow?.webContents.send('command', command, key, res)
+    } catch (e) {
+      this?.mainWindow?.webContents.send('command', command, key, null)
+    }
   }
 
   app_getPath(command: string, key: string, flag: AppPathFlag) {
@@ -208,10 +216,7 @@ X-GNOME-Autostart-enabled=true`
     console.log('exePath: ', exePath)
     const taskName = 'FlyEnvStartup'
     if (autoLaunch) {
-      const tmpl = await readFile(
-        join(global.Server.Static!, 'sh/flyenv-auto-start.ps1'),
-        'utf-8'
-      )
+      const tmpl = await readFile(join(global.Server.Static!, 'sh/flyenv-auto-start.ps1'), 'utf-8')
       const content = tmpl.replace('#EXECPATH#', exePath)
       try {
         await mkdirp(global.Server.Cache!)
@@ -244,20 +249,24 @@ X-GNOME-Autostart-enabled=true`
     console.log('app_setLoginItemSettings: ', param, obj)
 
     if (isWindows()) {
-      this.windowsAutoLaunch(obj.openAtLogin).then(() => {
-        this?.mainWindow?.webContents.send('command', command, key, true)
-      }).catch((error) => {
-        this?.mainWindow?.webContents.send('command', command, key, `${error}`)
-      })
+      this.windowsAutoLaunch(obj.openAtLogin)
+        .then(() => {
+          this?.mainWindow?.webContents.send('command', command, key, true)
+        })
+        .catch((error) => {
+          this?.mainWindow?.webContents.send('command', command, key, `${error}`)
+        })
       return
     }
 
     if (isLinux()) {
-      this.linuxAutoLaunch(obj.openAtLogin).then(() => {
-        this?.mainWindow?.webContents.send('command', command, key, true)
-      }).catch((error) => {
-        this?.mainWindow?.webContents.send('command', command, key, `${error}`)
-      })
+      this.linuxAutoLaunch(obj.openAtLogin)
+        .then(() => {
+          this?.mainWindow?.webContents.send('command', command, key, true)
+        })
+        .catch((error) => {
+          this?.mainWindow?.webContents.send('command', command, key, `${error}`)
+        })
       return
     }
 
@@ -265,9 +274,17 @@ X-GNOME-Autostart-enabled=true`
     if (!obj.openAtLogin && isMacOS()) {
       try {
         if (is.production()) {
-          Helper.send('tools', 'exec', `osascript -e 'tell application "System Events" to delete login item "FlyEnv"'`).catch()
+          Helper.send(
+            'tools',
+            'exec',
+            `osascript -e 'tell application "System Events" to delete login item "FlyEnv"'`
+          ).catch()
         } else {
-          Helper.send('tools', 'exec', `osascript -e 'tell application "System Events" to delete login item "Electron"'`).catch()
+          Helper.send(
+            'tools',
+            'exec',
+            `osascript -e 'tell application "System Events" to delete login item "Electron"'`
+          ).catch()
         }
       } catch {}
     }
@@ -312,26 +329,30 @@ X-GNOME-Autostart-enabled=true`
   }
 
   exec_exec(command: string, key: string, cmd: string, opt: any) {
-    execPromise(cmd, opt).then((res) => {
-      this?.mainWindow?.webContents.send('command', command, key, {
-        stdout: res.stdout.toString(),
-        stderr: res.stderr.toString()
+    execPromise(cmd, opt)
+      .then((res) => {
+        this?.mainWindow?.webContents.send('command', command, key, {
+          stdout: res.stdout.toString(),
+          stderr: res.stderr.toString()
+        })
       })
-    }).catch((err) => {
-      this?.mainWindow?.webContents.send('command', command, key, {
-        error: `${err}`,
-        stdout: '',
-        stderr: ''
+      .catch((err) => {
+        this?.mainWindow?.webContents.send('command', command, key, {
+          error: `${err}`,
+          stdout: '',
+          stderr: ''
+        })
       })
-    })
   }
 
   fs_chmod(command: string, key: string, path: string, mode: string | number) {
-    chmod(path, mode).then(() => {
-      this?.mainWindow?.webContents.send('command', command, key, true)
-    }).catch(() => {
-      this?.mainWindow?.webContents.send('command', command, key, false)
-    })
+    chmod(path, mode)
+      .then(() => {
+        this?.mainWindow?.webContents.send('command', command, key, true)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, false)
+      })
   }
 
   fs_remove(command: string, key: string, path: string) {

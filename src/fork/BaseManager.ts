@@ -44,6 +44,7 @@ class BaseManager {
   Bun: any
   Perl: any
   DNS: any
+  Code: any
 
   constructor() {}
 
@@ -340,6 +341,14 @@ class BaseManager {
         this.DNS = res.default
       }
       doRun(this.DNS)
+    } else if (module === 'code') {
+      console.log('codeRun 00: ', Math.round(new Date().getTime() / 1000))
+      if (!this.Code) {
+        const res = await import('./module/Code')
+        this.Code = res.default
+      }
+      console.log('codeRun 11: ', Math.round(new Date().getTime() / 1000))
+      doRun(this.Code)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

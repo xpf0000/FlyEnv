@@ -5,15 +5,14 @@
 export type Language =
   | 'python'
   | 'php'
-  | 'node'
-  | 'bun'
-  | 'deno'
   | 'golang'
   | 'rust'
   | 'java'
   | 'perl'
   | 'ruby'
   | 'erlang'
+  | 'typescript'
+  | 'javascript'
 
 // 定义一个启发式规则的结构
 type HeuristicRule = {
@@ -83,26 +82,28 @@ const languageHeuristics: Record<Language, HeuristicRule[]> = {
     { pattern: /^\s*sub\s+\w+\s*{/m, weight: 20 },
     { pattern: /(\$|@|%)\w+/, weight: 5 } // Sigils
   ],
-  // --- JavaScript 生态圈 (需要仔细区分) ---
-  deno: [
-    { pattern: /Deno\.\w+/, weight: 51 }, // Deno 全局对象
-    { pattern: /import\s+.*from\s+('|")https?:\/\//, weight: 40 } // 从 URL 导入
-  ],
-  bun: [
-    { pattern: /Bun\.(serve|file|write)/, weight: 51 } // Bun 全局对象
-  ],
-  node: [
+  javascript: [
     // 这个作为 JS 的通用后备选项
     { pattern: /require\s*\(\s*('|").+('|")\s*\)/, weight: 30 }, // CommonJS require
     { pattern: /process\.(argv|env|exit)/, weight: 20 },
     { pattern: /import\s+.*from\s+('|")\w+('|")/, weight: 10 }, // ES Module 导入本地包
     { pattern: /console\.log/, weight: 2 },
     { pattern: /\b(const|let|var|async|await|function)\b/, weight: 1 }
+  ],
+  typescript: [
+    { pattern: /:\s*\w+(<.*>)?(\s*\|\s*\w+)*/, weight: 50 }, // 类型注解，包括联合类型
+    { pattern: /interface\s+\w+\s*(extends\s+\w+)?\s*{/, weight: 40 },
+    { pattern: /type\s+\w+\s*=\s*(.*\|\s*)*/, weight: 40 },
+    { pattern: /declare\s+(const|let|var|function|class|namespace)\s+\w+/, weight: 30 },
+    { pattern: /@\w+(\(.*\))?/, weight: 20 }, // 装饰器
+    { pattern: /as\s+(const|\w+)/, weight: 15 }, // 类型断言
+    { pattern: /import\s+type\s+/, weight: 15 },
+    { pattern: /<[A-Z]\w+(,?\s*\w+:\s*\w+)*>/, weight: 10 } // 泛型
   ]
 }
 
 // 定义一个检测顺序，确保更特殊的语言（如 Deno）先于更通用的语言（如 NodeJS）被匹配
-const languagesToCheck: Language[] = [
+export const languagesToCheck: Language[] = [
   'java',
   'php',
   'golang',
@@ -111,9 +112,8 @@ const languagesToCheck: Language[] = [
   'python',
   'ruby',
   'perl',
-  'deno',
-  'bun',
-  'node'
+  'typescript', // 在 node 之前检测 TypeScript
+  'javascript'
 ]
 
 /**
@@ -123,18 +123,11 @@ const languagesToCheck: Language[] = [
  * @returns 检测到的语言名称（Language 类型），如果无法确定则返回 null。
  */
 export function detectLanguage(code: string, minimumConfidenceThreshold = 10): Language | null {
-  const scores: Record<Language, number> = {
-    python: 0,
-    php: 0,
-    node: 0,
-    bun: 0,
-    deno: 0,
-    golang: 0,
-    rust: 0,
-    java: 0,
-    perl: 0,
-    ruby: 0,
-    erlang: 0
+  const scores: Partial<Record<Language, number>> = {}
+
+  // 初始化所有语言分数为0
+  for (const lang of languagesToCheck) {
+    scores[lang] = 0
   }
 
   // 提前处理特殊情况
@@ -144,10 +137,10 @@ export function detectLanguage(code: string, minimumConfidenceThreshold = 10): L
 
   // 按照预定顺序遍历语言
   for (const lang of languagesToCheck) {
-    const rules = languageHeuristics[lang as Language]
+    const rules = languageHeuristics[lang]
     for (const rule of rules) {
       if (rule.pattern.test(code)) {
-        scores[lang as Language] += rule.weight
+        scores[lang]! += rule.weight
       }
     }
   }
@@ -157,8 +150,8 @@ export function detectLanguage(code: string, minimumConfidenceThreshold = 10): L
   let maxScore = 0
 
   for (const lang in scores) {
-    if (scores[lang as Language] > maxScore) {
-      maxScore = scores[lang as Language]
+    if (scores[lang as Language]! > maxScore) {
+      maxScore = scores[lang as Language]!
       bestMatch = lang as Language
     }
   }
@@ -167,6 +160,5 @@ export function detectLanguage(code: string, minimumConfidenceThreshold = 10): L
   if (maxScore < minimumConfidenceThreshold) {
     return null
   }
-
   return bestMatch
 }

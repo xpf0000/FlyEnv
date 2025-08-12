@@ -23,17 +23,21 @@ import {
 import { JSONSort } from '@/util/JsonSort'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@/util/FormatCode'
-import { I18nT } from '@lang/index'
 import localForage from 'localforage'
 import { detectLanguage } from '@/components/Tools/CodePlayground/languageDetector'
 import { BrewStore } from '@/store/brew'
+import type { AllAppModule } from '@/core/type'
+import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+import IPC from '@/util/IPC'
+import { MessageError } from '@/util/Element'
 
 export class CodePlayTab {
   value = ''
   json: any = null
   type = ''
-  from = ''
-  to = 'json'
+  fromType = ''
+  fromPath = ''
+  to = 'raw'
   toValue = ''
   toLang = 'javascript'
   editor!: () => editor.IStandaloneCodeEditor
@@ -43,35 +47,61 @@ export class CodePlayTab {
   watcher2: any = null
 
   constructor(obj?: any) {
-    this.value = I18nT('tools.inputTips')
-    this.type = I18nT('tools.noInputTips')
-
     Object.assign(this, obj)
+  }
+
+  run() {
+    if (this.execing) {
+      return
+    }
+    this.execing = true
+    console.log('codeRun: ', Math.round(new Date().getTime() / 1000))
+    console.time('codeRun')
+    IPC.send(`app-fork:code`, 'codeRun', this.value, this.fromType, this.fromPath).then(
+      async (key: string, res: any) => {
+        if (res.code === 0) {
+          IPC.off(key)
+          this.toValue = res?.data ?? ''
+          this.transformTo().catch()
+        } else if (res.code === 1) {
+          IPC.off(key)
+          MessageError(res?.msg ?? '')
+        }
+        this.execing = false
+        console.timeEnd('codeRun')
+      }
+    )
   }
 
   initWatch() {
     this.watcher1 = watch(
       () => this.value,
       (v) => {
-        if (this.from) {
+        if (this.fromType) {
           return
         }
         const lang = detectLanguage(v)
         if (lang) {
+          let installed: ModuleInstalledItem[] = []
           const brewStore = BrewStore()
-          const installed = brewStore.module(lang).installed
+          if (lang === 'typescript' || lang === 'javascript') {
+            const jsModules: AllAppModule[] = ['node', 'bun', 'deno']
+            for (const m of jsModules) {
+              installed = brewStore.module(m).installed
+              if (installed.length > 0) {
+                break
+              }
+            }
+          } else {
+            installed = brewStore.module(lang as AllAppModule).installed
+          }
+          this.fromType = lang
           const saved = CodePlay.langBin?.[lang]
           if (saved && installed.some((f) => f.path === saved)) {
-            this.from = JSON.stringify({
-              type: lang,
-              path: saved
-            })
+            this.fromPath = saved
           } else if (installed.length > 0) {
             const find = installed[0]
-            this.from = JSON.stringify({
-              type: lang,
-              path: find.path
-            })
+            this.fromPath = find.path
             CodePlay.langBin[lang] = find.path
             CodePlay.save()
           }
@@ -79,14 +109,39 @@ export class CodePlayTab {
       }
     )
     this.watcher2 = watch(
-      () => this.from,
+      () =>
+        JSON.stringify({
+          type: this.fromType,
+          path: this.fromPath
+        }),
       (v) => {
-        if (!v) {
+        const json = JSON.parse(v)
+        const lang = json.type
+        const installed: ModuleInstalledItem[] = []
+        const brewStore = BrewStore()
+        if (lang === 'typescript' || lang === 'javascript') {
+          const jsModules: AllAppModule[] = ['node', 'bun', 'deno']
+          for (const m of jsModules) {
+            installed.push(...brewStore.module(m).installed)
+          }
+        } else {
+          installed.push(...brewStore.module(lang as AllAppModule).installed)
+        }
+        const binPath = json.path
+        if (binPath && installed.some((f) => f.path === binPath)) {
+          CodePlay.langBin[lang] = binPath
+          CodePlay.save()
           return
         }
-        const json = JSON.parse(v)
-        CodePlay.langBin[json.type] = json.path
-        CodePlay.save()
+        const saved = CodePlay.langBin?.[lang]
+        if (saved && installed.some((f) => f.path === saved)) {
+          this.fromPath = saved
+        } else if (installed.length > 0) {
+          const find = installed[0]
+          this.fromPath = find.path
+          CodePlay.langBin[lang] = find.path
+          CodePlay.save()
+        }
       }
     )
   }
@@ -102,273 +157,361 @@ export class CodePlayTab {
     }
   }
 
-  transformTo(sort?: 'asc' | 'desc') {
-    if (!this.json) {
-      this.editor().setValue(I18nT('tools.parseFailTips'))
-      return
-    }
-    let json = JSON.parse(JSON.stringify(this.json))
-    if (sort) {
-      json = JSONSort(json, sort)
-    }
+  async transformTo(sort?: 'asc' | 'desc') {
     const model = this.editor().getModel()!
-    let value = ''
+    if (this.to === 'raw') {
+      this.toLang = 'json'
+      editor.setModelLanguage(model, 'json')
+      this.editor().setValue(this.toValue)
+      return
+    }
+    let value = this.toValue
     if (this.to === 'json') {
-      this.toLang = 'json'
-      editor.setModelLanguage(model, 'json')
-      value = JSON.stringify(json, null, 4)
-    } else if (this.to === 'json-minify') {
-      this.toLang = 'json'
-      editor.setModelLanguage(model, 'json')
-      value = JSON.stringify(json)
-    } else if (this.to === 'js') {
-      this.toLang = 'javascript'
-      editor.setModelLanguage(model, 'javascript')
-      value = jsonToJSON(json)
-    } else if (this.to === 'php') {
-      this.toLang = 'php'
-      editor.setModelLanguage(model, 'php')
-      if (this.type !== 'PHP') {
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'json'
+        editor.setModelLanguage(model, 'json')
         value = JSON.stringify(json, null, 4)
-        value = value.replace(/": /g, `" => `).replace(/\{/g, '[').replace(/\}/g, ']')
       } else {
-        value = this.value
+        this.toLang = 'json'
+        editor.setModelLanguage(model, 'json')
       }
-      if (!value.includes('<?php')) {
-        value = '<?php\n' + value
+    } else if (this.to === 'json-minify') {
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
       }
-      FormatPHP(value)
-        .then((php: string) => {
-          this.editor().setValue(php)
-        })
-        .catch(() => {
-          this.editor().setValue(value)
-        })
-      return
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'json'
+        editor.setModelLanguage(model, 'json')
+        value = JSON.stringify(json)
+      } else {
+        this.toLang = 'json'
+        editor.setModelLanguage(model, 'json')
+      }
+    } else if (this.to === 'js') {
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'javascript'
+        editor.setModelLanguage(model, 'javascript')
+        value = jsonToJSON(json)
+      } else {
+        this.toLang = 'javascript'
+        editor.setModelLanguage(model, 'javascript')
+      }
+    } else if (this.to === 'php') {
+      try {
+        this.json = phpToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'php'
+        editor.setModelLanguage(model, 'php')
+        if (this.type !== 'PHP') {
+          value = JSON.stringify(json, null, 4)
+          value = value.replace(/": /g, `" => `).replace(/\{/g, '[').replace(/\}/g, ']')
+        } else {
+          value = this.value
+        }
+        if (!value.includes('<?php')) {
+          value = '<?php\n' + value
+        }
+        FormatPHP(value)
+          .then((php: string) => {
+            this.editor().setValue(php)
+          })
+          .catch(() => {
+            this.editor().setValue(value)
+          })
+        return
+      } else {
+        this.toLang = 'php'
+        editor.setModelLanguage(model, 'php')
+      }
     } else if (this.to === 'xml') {
-      this.toLang = 'xml'
-      editor.setModelLanguage(model, 'xml')
-      if (this.type === 'XML') {
-        value = this.value
-      } else {
-        value = jsonToXML(json)
+      try {
+        this.json = xmlToJson(this.value)
+      } catch {
+        this.json = null
       }
-      console.log('xml value: ', value)
-      FormatHtml(value)
-        .then((xml: string) => {
-          this.editor().setValue(xml)
-        })
-        .catch(() => {
-          this.editor().setValue(value)
-        })
-      return
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'xml'
+        editor.setModelLanguage(model, 'xml')
+        if (this.type === 'XML') {
+          value = this.value
+        } else {
+          value = jsonToXML(json)
+        }
+        console.log('xml value: ', value)
+        FormatHtml(value)
+          .then((xml: string) => {
+            this.editor().setValue(xml)
+          })
+          .catch(() => {
+            this.editor().setValue(value)
+          })
+        return
+      } else {
+        this.toLang = 'xml'
+        editor.setModelLanguage(model, 'xml')
+      }
     } else if (this.to === 'plist') {
-      this.toLang = 'xml'
-      editor.setModelLanguage(model, 'xml')
-      if (this.type === 'PList') {
-        value = this.value
-      } else {
+      try {
+        this.json = plistToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'xml'
+        editor.setModelLanguage(model, 'xml')
         value = jsonToPList(json)
-      }
-      FormatHtml(value)
-        .then((xml: string) => {
-          this.editor().setValue(xml)
-        })
-        .catch(() => {
-          this.editor().setValue(value)
-        })
-      return
-    } else if (this.to === 'yaml') {
-      this.toLang = 'yaml'
-      editor.setModelLanguage(model, 'yaml')
-      if (this.type === 'YAML') {
-        value = this.value
+        FormatHtml(value)
+          .then((xml: string) => {
+            this.editor().setValue(xml)
+          })
+          .catch(() => {
+            this.editor().setValue(value)
+          })
+        return
       } else {
-        value = jsonToYAML(json)
+        this.toLang = 'xml'
+        editor.setModelLanguage(model, 'xml')
       }
-      FormatYaml(value)
-        .then((xml: string) => {
-          this.editor().setValue(xml)
-        })
-        .catch(() => {
-          this.editor().setValue(value)
-        })
-      return
+    } else if (this.to === 'yaml') {
+      try {
+        this.json = yamlToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'yaml'
+        editor.setModelLanguage(model, 'yaml')
+        value = jsonToYAML(json)
+        FormatYaml(value)
+          .then((xml: string) => {
+            this.editor().setValue(xml)
+          })
+          .catch(() => {
+            this.editor().setValue(value)
+          })
+        return
+      } else {
+        this.toLang = 'yaml'
+        editor.setModelLanguage(model, 'yaml')
+      }
     } else if (this.to === 'ts') {
-      this.toLang = 'typescript'
-      editor.setModelLanguage(model, 'typescript')
-      value = jsonToTs(json)
-      FormatTS(value)
-        .then((ts) => {
-          this.editor().setValue(ts)
-        })
-        .catch(() => {
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'typescript'
+        editor.setModelLanguage(model, 'typescript')
+        value = jsonToTs(json)
+        FormatTS(value)
+          .then((ts) => {
+            this.editor().setValue(ts)
+          })
+          .catch(() => {
+            this.editor().setValue(value)
+          })
+        return
+      } else {
+        this.toLang = 'typescript'
+        editor.setModelLanguage(model, 'typescript')
+      }
+    } else if (this.to === 'toml') {
+      try {
+        this.json = await tomlToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'toml'
+        editor.setModelLanguage(model, 'toml')
+        jsonToTOML(json).then((res) => {
+          value = res
           this.editor().setValue(value)
         })
-      return
-    } else if (this.to === 'toml') {
-      this.toLang = 'toml'
-      editor.setModelLanguage(model, 'toml')
-      jsonToTOML(json).then((res) => {
-        value = res
-        this.editor().setValue(value)
-      })
+      } else {
+        this.toLang = 'toml'
+        editor.setModelLanguage(model, 'toml')
+      }
     } else if (this.to === 'goStruct') {
-      this.toLang = 'go'
-      editor.setModelLanguage(model, 'go')
-      value = jsonToGoStruct(json)
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'go'
+        editor.setModelLanguage(model, 'go')
+        value = jsonToGoStruct(json)
+      } else {
+        this.toLang = 'go'
+        editor.setModelLanguage(model, 'go')
+      }
     } else if (this.to === 'goBson') {
-      this.toLang = 'go'
-      editor.setModelLanguage(model, 'go')
-      value = jsonToGoBase(json)
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'go'
+        editor.setModelLanguage(model, 'go')
+        value = jsonToGoBase(json)
+      } else {
+        this.toLang = 'go'
+        editor.setModelLanguage(model, 'go')
+      }
     } else if (this.to === 'Java') {
-      this.toLang = 'java'
-      editor.setModelLanguage(model, 'java')
-      value = jsonToJava(json)
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'java'
+        editor.setModelLanguage(model, 'java')
+        value = jsonToJava(json)
+      } else {
+        this.toLang = 'java'
+        editor.setModelLanguage(model, 'java')
+      }
     } else if (this.to === 'Kotlin') {
-      this.toLang = 'kotlin'
-      editor.setModelLanguage(model, 'kotlin')
-      value = jsonToKotlin(json)
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'kotlin'
+        editor.setModelLanguage(model, 'kotlin')
+        value = jsonToKotlin(json)
+      } else {
+        this.toLang = 'kotlin'
+        editor.setModelLanguage(model, 'kotlin')
+      }
     } else if (this.to === 'rustSerde') {
-      this.toLang = 'rust'
-      editor.setModelLanguage(model, 'rust')
-      value = jsonToRust(json)
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'rust'
+        editor.setModelLanguage(model, 'rust')
+        value = jsonToRust(json)
+      } else {
+        this.toLang = 'rust'
+        editor.setModelLanguage(model, 'rust')
+      }
     } else if (this.to === 'MySQL') {
-      this.toLang = 'mysql'
-      editor.setModelLanguage(model, 'mysql')
-      value = jsonToMySQL(json)
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'mysql'
+        editor.setModelLanguage(model, 'mysql')
+        value = jsonToMySQL(json)
+      } else {
+        this.toLang = 'mysql'
+        editor.setModelLanguage(model, 'mysql')
+      }
     } else if (this.to === 'JSDoc') {
-      this.toLang = 'javascript'
-      editor.setModelLanguage(model, 'javascript')
-      value = jsonToJSDoc(json)
+      try {
+        this.json = javascriptToJson(this.value)
+      } catch {
+        this.json = null
+      }
+      if (this.json) {
+        let json = JSON.parse(JSON.stringify(this.json))
+        if (sort) {
+          json = JSONSort(json, sort)
+        }
+        this.toLang = 'javascript'
+        editor.setModelLanguage(model, 'javascript')
+        value = jsonToJSDoc(json)
+      } else {
+        this.toLang = 'javascript'
+        editor.setModelLanguage(model, 'javascript')
+      }
     }
     this.editor().setValue(value)
-  }
-
-  async checkFrom() {
-    let type = ''
-    if (!this.value.trim()) {
-      this.type = I18nT('tools.inputCheckFailTips')
-      this.transformTo()
-      return
-    }
-
-    try {
-      const u = new URL(this.value)
-      const obj: any = {}
-      Object.entries(Object.fromEntries(u?.searchParams?.entries() ?? [])).forEach(([k, v]) => {
-        console.log('k: ', k, v)
-        obj[k] = v
-      })
-      this.json = {
-        Protocol: u.protocol,
-        Username: u.username,
-        Password: u.password,
-        Hostname: u.hostname,
-        Port: u.port,
-        Path: u.pathname,
-        Params: u.search,
-        ParamObject: obj
-      }
-      console.log('this.json: ', this.json)
-      type = 'JSON'
-    } catch {
-      this.json = null
-      type = ''
-    }
-    console.log('type 000: ', type)
-    if (type) {
-      this.type = type
-      this.transformTo()
-      return
-    }
-
-    try {
-      this.json = javascriptToJson(this.value)
-      type = 'JSON'
-    } catch {
-      this.json = null
-      type = ''
-    }
-    console.log('type 000: ', type)
-    if (type) {
-      this.type = type
-      this.transformTo()
-      return
-    }
-
-    try {
-      this.json = phpToJson(this.value)
-      type = 'PHP'
-    } catch {
-      this.json = null
-      type = ''
-    }
-    console.log('type 111: ', type)
-    if (type) {
-      this.type = type
-      this.transformTo()
-      return
-    }
-
-    try {
-      this.json = plistToJson(this.value)
-      type = 'PList'
-    } catch {
-      this.json = null
-      type = ''
-    }
-    console.log('type 222: ', type)
-    if (type) {
-      this.type = type
-      this.transformTo()
-      return
-    }
-
-    try {
-      this.json = xmlToJson(this.value)
-      type = 'XML'
-    } catch {
-      this.json = null
-      type = ''
-    }
-    console.log('type 333: ', type)
-    if (type) {
-      this.type = type
-      this.transformTo()
-      return
-    }
-
-    try {
-      this.json = yamlToJson(this.value)
-      type = 'YAML'
-    } catch {
-      this.json = null
-      type = ''
-    }
-    console.log('type 444: ', type)
-    if (type) {
-      this.type = type
-      this.transformTo()
-      return
-    }
-
-    try {
-      this.json = await tomlToJson(this.value)
-      type = 'TOML'
-    } catch {
-      this.json = null
-      type = ''
-    }
-    console.log('type 555: ', type)
-    if (type) {
-      this.type = type
-      this.transformTo()
-      return
-    }
-
-    this.type = I18nT('tools.inputCheckFailTips')
-    this.transformTo()
   }
 }
 
@@ -397,7 +540,7 @@ const CodePlay: CodePlayType = reactive({
   },
   init() {
     localForage
-      .getItem('FlyEnv-CodePlay-LangBin')
+      .getItem('flyenv-code-playground')
       .then((res: any) => {
         if (res && res?.langBin) {
           CodePlay.langBin = reactive(res.langBin)
@@ -420,13 +563,14 @@ const CodePlay: CodePlayType = reactive({
         value: v.value,
         json: v.json,
         type: v.type,
-        from: v.from,
+        fromType: v.fromType,
+        fromPath: v.fromPath,
         to: v.to,
         toValue: v.toValue,
         toLang: v.toLang
       }
     }
-    localForage.setItem('FlyEnv-CodePlay-LangBin', {
+    localForage.setItem('flyenv-code-playground', {
       langBin: { ...CodePlay.langBin },
       tabs
     })

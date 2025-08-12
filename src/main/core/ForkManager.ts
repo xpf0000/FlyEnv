@@ -89,9 +89,12 @@ class ForkItem {
       }
       let child = this.child
       if (this.isChildDisabled()) {
+        console.log('this.isChildDisabled !!!!')
         child = fork(this.forkFile)
         child.on('message', this.onMessage)
         child.on('error', this.onError)
+      } else {
+        console.log('!!!! this.isChildDisabled')
       }
       child.send({ Server })
       child.send([thenKey, ...args])
@@ -164,10 +167,13 @@ export class ForkManager {
      * If not found, and the number of threads is less than the number of CPU cores, create a new thread that will automatically destroy itself 10 seconds after completing the task.
      * If the number of threads equals the number of CPU cores, poll from front to back.
      */
-    let find = this.forks.find((p) => p.taskFlag.length === 0)
+    let find = this.forks.find((p) => p.taskFlag.length === 0 && !p.autoDestroy)
+    if (!find) {
+      find = this.forks.find((p) => p.taskFlag.length === 0)
+    }
     if (!find) {
       if (this.forks.length < cpus().length) {
-        find = new ForkItem(this.file, true)
+        find = new ForkItem(this.file, this.forks.length > 0)
         this.forks.push(find)
       } else {
         find = this.forks.shift()!

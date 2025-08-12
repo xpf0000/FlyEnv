@@ -2,7 +2,7 @@
   <div class="json-parse tools host-edit">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ $t('tools.jsonParseTitle') }}</span>
+        <span class="text-xl">{{ $t('tools.CodePlayGround') }}</span>
         <slot name="like"></slot>
       </div>
     </div>
@@ -17,18 +17,18 @@
       <div ref="mainRef" class="main pb-0 pt-3">
         <div class="left" :style="leftStyle">
           <div class="flex h-[44px]">
-            <el-select v-model="from">
+            <el-select v-model="fromType" class="max-w-[140px]">
               <template v-for="(item, _index) in langs" :key="_index">
+                <el-option :label="item" :value="item"></el-option>
+              </template>
+            </el-select>
+            <el-select v-model="fromPath" style="margin-left: 8px">
+              <template v-for="(item, _index) in langsBin" :key="_index">
                 <el-option-group :label="item.label">
                   <template v-for="(s, _j) in item.children" :key="_j">
                     <el-option
                       :label="`${item.label}-${s.version}-${s.bin}`"
-                      :value="
-                        JSON.stringify({
-                          type: item.type,
-                          path: s.path
-                        })
-                      "
+                      :value="s.path"
                     ></el-option>
                   </template>
                 </el-option-group>
@@ -36,9 +36,10 @@
             </el-select>
             <el-button class="ml-4" :icon="Document" @click.stop="openFile"></el-button>
             <el-button
+              style="margin-left: 8px"
               :icon="VideoPlay"
               :loading="execing"
-              :disabled="execing"
+              :disabled="runDisabled"
               @click.stop="doRun"
             ></el-button>
           </div>
@@ -48,6 +49,7 @@
         <div class="right">
           <div class="top">
             <el-select v-model="to" filterable @change="onToChange">
+              <el-option label="Raw" value="raw"></el-option>
               <el-option label="JSON" value="json"></el-option>
               <el-option label="JSON Minify" value="json-minify"></el-option>
               <el-option label="PHP Array" value="php"></el-option>
@@ -90,7 +92,6 @@
 <script lang="ts" setup>
   import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
   import { editor, languages } from 'monaco-editor/esm/vs/editor/editor.api.js'
-
   import TomlRules from '@/util/transform/TomlRules'
   import { AppStore } from '@/store/app'
   import CodePlay, { CodePlayTab } from '@/components/Tools/CodePlayground/setup'
@@ -101,6 +102,7 @@
   import { EditorCreate, EditorDestroy } from '@/util/Editor'
   import { dialog, shell, nativeTheme, fs } from '@/util/NodeFn'
   import { BrewStore } from '@/store/brew'
+  import { languagesToCheck } from '@/components/Tools/CodePlayground/languageDetector'
 
   CodePlay.init()
 
@@ -117,7 +119,11 @@
   const brewStore = BrewStore()
 
   const langs = computed(() => {
-    return [
+    return [...languagesToCheck].sort()
+  })
+
+  const langsBin = computed(() => {
+    const bins = [
       {
         label: 'Python',
         type: 'python',
@@ -174,16 +180,37 @@
         children: brewStore.module('erlang').installed
       }
     ].sort((a, b) => a.label.localeCompare(b.label))
+
+    const type = currentTab.value.fromType
+    if (['javascript', 'typescript'].includes(type)) {
+      return bins.filter((b) => ['node', 'bun', 'deno'].includes(b.type))
+    }
+    return bins.filter((b) => b.type === type)
   })
 
-  const from = computed({
+  const fromType = computed({
     get() {
       console.log('CodePlay: ', CodePlay)
-      return CodePlay.tabs[CodePlay.currentTab].from
+      return CodePlay.tabs[CodePlay.currentTab].fromType
     },
     set(v: string) {
-      CodePlay.tabs[CodePlay.currentTab].from = v
+      CodePlay.tabs[CodePlay.currentTab].fromType = v
     }
+  })
+
+  const fromPath = computed({
+    get() {
+      console.log('CodePlay: ', CodePlay)
+      return CodePlay.tabs[CodePlay.currentTab].fromPath
+    },
+    set(v: string) {
+      console.log('fromPath set: ', v)
+      CodePlay.tabs[CodePlay.currentTab].fromPath = v
+    }
+  })
+
+  const runDisabled = computed(() => {
+    return execing.value || !fromType.value || !fromPath.value || !currentValue.value.trim()
   })
 
   const to = computed({
@@ -202,14 +229,6 @@
     },
     set(v) {
       CodePlay.tabs[CodePlay.currentTab].value = v
-    }
-  })
-  const currentType = computed({
-    get() {
-      return CodePlay.tabs[CodePlay.currentTab].type
-    },
-    set(v) {
-      CodePlay.tabs[CodePlay.currentTab].type = v
     }
   })
   const currentToValue = computed({
@@ -311,7 +330,7 @@
       fromEditor?.onDidChangeModelContent?.(() => {
         if (!tabChanging) {
           currentValue.value = fromEditor?.getValue() ?? ''
-          currentTab.value.checkFrom().catch()
+          // currentTab.value.checkFrom().catch()
         }
       })
     }
@@ -361,7 +380,7 @@
     document.removeEventListener('mouseup', mouseUp)
     maskDom.remove()
     handleMoving.value = false
-    localStorage.setItem('PWS-JSON-LeftStle', JSON.stringify(leftStyle.value))
+    localStorage.setItem('FlyEnv-CodePlay-LeftStyle', JSON.stringify(leftStyle.value))
   }
   const HandleMoveMouseDown = (e: MouseEvent) => {
     e?.stopPropagation?.()
@@ -375,25 +394,26 @@
   }
 
   const openFile = () => {
+    const extensionMap: Record<string, string> = {
+      py: 'python',
+      php: 'php',
+      js: 'node',
+      mjs: 'node',
+      cjs: 'node',
+      ts: 'typescript',
+      tsx: 'typescript',
+      go: 'golang',
+      rs: 'rust',
+      java: 'java',
+      pl: 'perl',
+      rb: 'ruby',
+      erl: 'erlang'
+    }
     const opt = ['openFile']
     const filters = [
       {
         name: 'Parse File',
-        extensions: [
-          'txt',
-          'json',
-          'js',
-          'xml',
-          'plist',
-          'yml',
-          'yaml',
-          'php',
-          'ts',
-          'mjs',
-          'ini',
-          'conf',
-          'cnf'
-        ]
+        extensions: Object.keys(extensionMap)
       }
     ]
     dialog
@@ -415,7 +435,9 @@
     return CodePlay.tabs[CodePlay.currentTab].execing
   })
 
-  const doRun = () => {}
+  const doRun = () => {
+    currentTab.value.run()
+  }
 
   const saveToLocal = () => {
     const opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
@@ -430,7 +452,7 @@
         const content = toEditor?.getValue() ?? ''
         await fs.writeFile(filePath, content)
         MessageSuccess(I18nT('base.success'))
-        shell.showItemInFolder(filePath)
+        shell.showItemInFolder(filePath).catch()
       })
   }
 
@@ -463,6 +485,29 @@
       nextTick().then(() => {
         tabChanging = false
       })
+    }
+  )
+
+  let timer: any
+  watch(
+    currentTab,
+    (v) => {
+      if (!v) {
+        return
+      }
+      if (!currentTab.value.editor && toEditor) {
+        currentTab.value.editor = () => toEditor!
+        fromEditor?.setValue?.(currentValue.value ?? '')
+        currentTab.value.transformTo()
+      }
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        CodePlay.save()
+      }, 600)
+    },
+    {
+      deep: true,
+      immediate: true
     }
   )
 </script>
