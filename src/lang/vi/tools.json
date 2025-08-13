@@ -40,5 +40,17 @@
   "URLTimingAnalyzer": "Phân tích thời gian URL",
 
   "CodePlayGround": "Khu vực thử nghiệm mã",
-  "CodeLibrary": "Code Library"
+  "CodeLibrary": "Thư viện mã",
+  "GroupName": "Tên nhóm",
+  "GroupNameInput": "Vui lòng nhập tên nhóm",
+  "GroupDelTitle": "Xóa nhóm",
+  "GroupDelTips": "Khi nhóm bị xóa, sẽ không thể khôi phục. Tất cả mã trong nhóm cũng sẽ bị xóa vĩnh viễn và không thể khôi phục.",
+  "Group": "Nhóm",
+  "Code": "Mã",
+  "CodeLanguage": "Ngôn ngữ lập trình",
+  "CodeResult": "Kết quả mã",
+  "NameNeed": "Vui lòng nhập tên",
+  "CodeLanguageNeed": "Vui lòng chọn ngôn ngữ lập trình",
+  "BatchOperations": "Thao tác hàng loạt",
+  "SelectAll": "Chọn tất cả"
 }
