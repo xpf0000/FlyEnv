@@ -68,15 +68,6 @@
               <el-option label="JSDoc" value="JSDoc"></el-option>
             </el-select>
             <el-button-group>
-              <el-button @click.stop="currentTab.transformTo('asc')">
-                <yb-icon :svg="import('@/svg/asc1.svg?raw')" width="18" height="18" />
-              </el-button>
-              <el-button @click.stop="currentTab.transformTo('desc')">
-                <yb-icon :svg="import('@/svg/desc1.svg?raw')" width="18" height="18" />
-              </el-button>
-              <el-button @click.stop="currentTab.transformTo(undefined)">
-                <yb-icon :svg="import('@/svg/nosort.svg?raw')" width="18" height="18" />
-              </el-button>
               <el-button @click.stop="saveToLocal">
                 <yb-icon :svg="import('@/svg/save.svg?raw')" width="18" height="18" />
               </el-button>
@@ -275,6 +266,7 @@
       if (targetName === CodePlay.currentTab) {
         CodePlay.currentTab = allKeys[index - 1]
       }
+      CodePlay.save()
     }
   }
 
@@ -497,6 +489,8 @@
       }
       if (!currentTab.value.editor && toEditor) {
         currentTab.value.editor = () => toEditor!
+        currentTab.value.fromEditor = () => fromEditor!
+        currentTab.value.initFromModelLanguage()
         fromEditor?.setValue?.(currentValue.value ?? '')
         currentTab.value.transformTo()
       }

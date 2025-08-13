@@ -39,5 +39,8 @@
   "wifi-qr-code-generator-title": "WiFi二维码生成",
   "URLTimingAnalyzer": "URL请求计时分析",
 
-  "CodePlayGround": "代码演练场"
+  "CodePlayGround": "代码演练场",
+  "CodeLibrary": "代码图书馆",
+  "GroupName": "分组名称",
+  "GroupNameInput": "请输入分组名称"
 }

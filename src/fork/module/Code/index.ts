@@ -11,6 +11,12 @@ class Code extends Base {
     this.type = 'code'
   }
 
+  /**
+   * 代码执行
+   * @param code 运行的代码
+   * @param type 代码类型
+   * @param path 运行代码的二进制文件的路径
+   */
   codeRun(code: string, type: string, path: string) {
     console.log('codeRun: ', Math.round(new Date().getTime() / 1000))
     console.time('codeRun')
@@ -64,6 +70,7 @@ class Code extends Base {
       }
 
       let shFile = ''
+      let shContent = ``
       if (type === 'typescript') {
         const file = join(runDir, `${uuid()}.ts`)
         await writeFile(file, code)
@@ -72,7 +79,6 @@ class Code extends Base {
             existsSync(f)
           )
           shFile = join(runDir, `${uuid()}.ps1`)
-          let shContent = ``
           if (isNode) {
             shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
 if (-not (Get-Command tsx -ErrorAction SilentlyContinue)) {
@@ -93,7 +99,6 @@ ${bin} run "${file}"
         } else {
           const isNode = [join(path, 'node'), join(path, 'bin/node')].some((f) => existsSync(f))
           shFile = join(runDir, `${uuid()}.sh`)
-          let shContent = ``
           if (isNode) {
             shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
 if ! command -v tsx &> /dev/null; then
@@ -121,7 +126,6 @@ ${bin} run "${file}"
             existsSync(f)
           )
           shFile = join(runDir, `${uuid()}.ps1`)
-          let shContent = ``
           if (isNode) {
             shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
 node "${file}"
@@ -139,7 +143,6 @@ ${bin} run "${file}"
         } else {
           const isNode = [join(path, 'node'), join(path, 'bin/node')].some((f) => existsSync(f))
           shFile = join(runDir, `${uuid()}.sh`)
-          let shContent = ``
           if (isNode) {
             shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
 node "${file}"
@@ -154,6 +157,175 @@ ${bin} run "${file}"
           await writeFile(shFile, shContent)
         }
         await doExec(shFile)
+      }
+      // PHP
+      else if (type === 'php') {
+        const file = join(runDir, `${uuid()}.php`)
+        if (!code.includes('<?php')) {
+          await writeFile(file, `<?php\n${code}`)
+        } else {
+          await writeFile(file, code)
+        }
+        if (isWindows()) {
+          shFile = join(runDir, `${uuid()}.ps1`)
+          shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
+php "${file}"
+`
+        } else {
+          shFile = join(runDir, `${uuid()}.sh`)
+          shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
+php "${file}"
+`
+        }
+        await writeFile(shFile, shContent)
+        await doExec(shFile)
+      }
+      // Java
+      else if (type === 'java') {
+        const file = join(runDir, 'Main.java')
+        await writeFile(file, code)
+        if (isWindows()) {
+          shFile = join(runDir, `${uuid()}.ps1`)
+          shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
+javac "${file}"
+if ($?) {
+    java -cp "${runDir}" Main
+}
+`
+        } else {
+          shFile = join(runDir, `${uuid()}.sh`)
+          shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
+javac "${file}"
+if [ $? -eq 0 ]; then
+    java -cp "${runDir}" Main
+fi
+`
+        }
+        await writeFile(shFile, shContent)
+        await doExec(shFile)
+      }
+      // Golang
+      else if (type === 'golang') {
+        const file = join(runDir, 'main.go')
+        await writeFile(file, code)
+        if (isWindows()) {
+          shFile = join(runDir, `${uuid()}.ps1`)
+          shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
+$env:GO111MODULE = "auto"
+go run "${file}"
+`
+        } else {
+          shFile = join(runDir, `${uuid()}.sh`)
+          shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
+export GO111MODULE=auto
+go run "${file}"
+`
+        }
+        await writeFile(shFile, shContent)
+        await doExec(shFile)
+      }
+      // Rust
+      else if (type === 'rust') {
+        const file = join(runDir, 'main.rs')
+        await writeFile(file, code)
+        if (isWindows()) {
+          shFile = join(runDir, `${uuid()}.ps1`)
+          shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
+rustc "${file}" -o "${join(runDir, 'main.exe')}"
+if ($?) {
+    .\\main.exe
+}
+`
+        } else {
+          shFile = join(runDir, `${uuid()}.sh`)
+          shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
+rustc "${file}" -o "${join(runDir, 'main')}"
+if [ $? -eq 0 ]; then
+    ./main
+fi
+`
+        }
+        await writeFile(shFile, shContent)
+        await doExec(shFile)
+      }
+      // Erlang
+      else if (type === 'erlang') {
+        const file = join(runDir, 'main.erl')
+        await writeFile(file, code)
+        if (isWindows()) {
+          shFile = join(runDir, `${uuid()}.ps1`)
+          shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
+erl -compile main
+erl -noshell -s main main -s init stop
+`
+        } else {
+          shFile = join(runDir, `${uuid()}.sh`)
+          shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
+erl -compile main
+erl -noshell -s main main -s init stop
+`
+        }
+        await writeFile(shFile, shContent)
+        await doExec(shFile)
+      }
+      // Python
+      else if (type === 'python') {
+        const file = join(runDir, 'main.py')
+        await writeFile(file, code)
+        if (isWindows()) {
+          shFile = join(runDir, `${uuid()}.ps1`)
+          shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
+python "${file}"
+`
+        } else {
+          shFile = join(runDir, `${uuid()}.sh`)
+          shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
+python3 "${file}"
+`
+        }
+        await writeFile(shFile, shContent)
+        await doExec(shFile)
+      }
+      // Ruby
+      else if (type === 'ruby') {
+        const file = join(runDir, 'main.rb')
+        await writeFile(file, code)
+        if (isWindows()) {
+          shFile = join(runDir, `${uuid()}.ps1`)
+          shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
+ruby "${file}"
+`
+        } else {
+          shFile = join(runDir, `${uuid()}.sh`)
+          shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
+ruby "${file}"
+`
+        }
+        await writeFile(shFile, shContent)
+        await doExec(shFile)
+      }
+      // Perl
+      else if (type === 'perl') {
+        const file = join(runDir, 'main.pl')
+        await writeFile(file, code)
+        if (isWindows()) {
+          shFile = join(runDir, `${uuid()}.ps1`)
+          shContent = `$env:PATH = "${join(path, 'bin')};${path};" + $env:PATH
+perl "${file}"
+`
+        } else {
+          shFile = join(runDir, `${uuid()}.sh`)
+          shContent = `export PATH="${join(path, 'bin')}:${path}:$PATH"
+perl "${file}"
+`
+        }
+        await writeFile(shFile, shContent)
+        await doExec(shFile)
+      }
+      // 不支持的语言
+      else {
+        reject(new Error(`Unsupported language: ${type}`))
+        await remove(runDir)
       }
     })
   }

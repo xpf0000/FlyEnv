@@ -34,13 +34,13 @@ import { MessageError } from '@/util/Element'
 export class CodePlayTab {
   value = ''
   json: any = null
-  type = ''
   fromType = ''
   fromPath = ''
   to = 'raw'
   toValue = ''
   toLang = 'javascript'
   editor!: () => editor.IStandaloneCodeEditor
+  fromEditor!: () => editor.IStandaloneCodeEditor
   execing = false
 
   watcher1: any = null
@@ -48,6 +48,31 @@ export class CodePlayTab {
 
   constructor(obj?: any) {
     Object.assign(this, obj)
+  }
+
+  initFromModelLanguage() {
+    if (!this.fromEditor || !this.fromType) {
+      return
+    }
+
+    const languageMap: any = {
+      javascript: 'javascript',
+      typescript: 'typescript',
+      php: 'php',
+      java: 'java',
+      golang: 'go',
+      rust: 'rust',
+      erlang: 'erlang', // 修正：应该使用 'erlang' 而不是 'json'
+      python: 'python',
+      ruby: 'ruby',
+      perl: 'perl'
+    }
+
+    const model = this.fromEditor().getModel()
+    if (model) {
+      const language = languageMap[this.fromType] || 'plaintext'
+      editor.setModelLanguage(model, language)
+    }
   }
 
   run() {
@@ -115,6 +140,7 @@ export class CodePlayTab {
           path: this.fromPath
         }),
       (v) => {
+        this.initFromModelLanguage()
         const json = JSON.parse(v)
         const lang = json.type
         const installed: ModuleInstalledItem[] = []
@@ -233,12 +259,8 @@ export class CodePlayTab {
         }
         this.toLang = 'php'
         editor.setModelLanguage(model, 'php')
-        if (this.type !== 'PHP') {
-          value = JSON.stringify(json, null, 4)
-          value = value.replace(/": /g, `" => `).replace(/\{/g, '[').replace(/\}/g, ']')
-        } else {
-          value = this.value
-        }
+        value = JSON.stringify(json, null, 4)
+        value = value.replace(/": /g, `" => `).replace(/\{/g, '[').replace(/\}/g, ']')
         if (!value.includes('<?php')) {
           value = '<?php\n' + value
         }
@@ -267,11 +289,7 @@ export class CodePlayTab {
         }
         this.toLang = 'xml'
         editor.setModelLanguage(model, 'xml')
-        if (this.type === 'XML') {
-          value = this.value
-        } else {
-          value = jsonToXML(json)
-        }
+        value = jsonToXML(json)
         console.log('xml value: ', value)
         FormatHtml(value)
           .then((xml: string) => {
@@ -546,11 +564,15 @@ const CodePlay: CodePlayType = reactive({
           CodePlay.langBin = reactive(res.langBin)
         }
         if (res && res?.tabs) {
+          let index = 0
           for (const k in res.tabs) {
+            const i = Number(k.split('-').pop())
+            index = Math.max(index, i)
             CodePlay.tabs?.[k]?.destroy?.()
             CodePlay.tabs[k] = reactive(new CodePlayTab(res.tabs[k]))
             CodePlay.tabs[k].initWatch()
           }
+          CodePlay.index = index
         }
       })
       .catch()
@@ -562,7 +584,6 @@ const CodePlay: CodePlayType = reactive({
       tabs[k] = {
         value: v.value,
         json: v.json,
-        type: v.type,
         fromType: v.fromType,
         fromPath: v.fromPath,
         to: v.to,

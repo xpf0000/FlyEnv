@@ -38,5 +38,7 @@
   "url-parse-title": "Trình phân tích URL",
   "wifi-qr-code-generator-title": "Trình tạo mã QR WiFi",
   "URLTimingAnalyzer": "Phân tích thời gian URL",
-  "CodePlayGround": "Khu vực thử nghiệm mã"
+
+  "CodePlayGround": "Khu vực thử nghiệm mã",
+  "CodeLibrary": "Code Library"
 }
