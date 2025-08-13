@@ -42,5 +42,15 @@
   "CodePlayGround": "代码演练场",
   "CodeLibrary": "代码图书馆",
   "GroupName": "分组名称",
-  "GroupNameInput": "请输入分组名称"
+  "GroupNameInput": "请输入分组名称",
+  "GroupDelTitle": "删除分组",
+  "GroupDelTips": "该分组被删除后无法恢复，组内的所有代码也将被一并删除，不可恢复。",
+  "Group": "分组",
+  "Code": "代码",
+  "CodeLanguage": "代码语言",
+  "CodeResult": "运行结果",
+  "NameNeed": "请输入名称",
+  "CodeLanguageNeed": "请选择代码语言",
+  "BatchOperations": "批量操作",
+  "SelectAll": "全选"
 }

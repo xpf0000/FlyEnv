@@ -1,6 +1,9 @@
 import { reactive, watch } from 'vue'
 import localForage from 'localforage'
 import { languagesToCheck } from '../CodePlayground/languageDetector'
+import { ElMessageBox } from 'element-plus'
+import { I18nT } from '@lang/index'
+import { uuid } from '@/util/Index'
 
 type CodeLibraryLangItemType = {
   type: string
@@ -13,7 +16,7 @@ type CodeLibraryGroupType = {
   name: string
 }
 
-type CodeLibraryItemType = {
+export type CodeLibraryItemType = {
   id: string
   groupID: string
   value: string
@@ -23,6 +26,8 @@ type CodeLibraryItemType = {
   to?: string
   toValue: string
   toLang?: string
+  comment: string
+  name: string
 }
 
 export type CodeLibraryType = {
@@ -34,6 +39,7 @@ export type CodeLibraryType = {
   itemID: string
   init: () => void
   save: () => void
+  addGroup: (langType: string, item?: CodeLibraryGroupType) => void
 }
 
 let timer: any
@@ -50,6 +56,32 @@ const CodeLibrary: CodeLibraryType = reactive({
   langType: '',
   groupID: '',
   itemID: '',
+  addGroup(langType: string, item?: CodeLibraryGroupType) {
+    ElMessageBox.prompt(I18nT('tools.GroupNameInput'), I18nT('tools.GroupName'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      inputValue: item?.name ?? ''
+    })
+      .then(({ value }) => {
+        if (!value.trim()) {
+          return
+        }
+        if (item?.id) {
+          const find = CodeLibrary.group.find((f) => f.id === item.id)
+          if (find) {
+            find.name = value.trim()
+          }
+        } else {
+          const item = {
+            id: uuid(),
+            name: value.trim(),
+            type: langType
+          }
+          CodeLibrary.group.unshift(item)
+        }
+      })
+      .catch()
+  },
   init() {
     if (inited) {
       return

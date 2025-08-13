@@ -2681,7 +2681,25 @@ body {
 
   }
 }
+.el-tabs {
+  &.el-tabs-content-flex-1{
+    height: 100%;
+    overflow: hidden;
 
+    .el-tabs__header {
+      flex-shrink: 0;
+    }
+    .el-tabs__content {
+      flex: 1;
+      overflow: hidden;
+
+      .el-tab-pane {
+        height: 100%;
+        overflow: hidden;
+      }
+    }
+  }
+}
 .el-button.status {
   svg {
     width: 22px;

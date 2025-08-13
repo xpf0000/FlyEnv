@@ -25,7 +25,7 @@
     </div>
 
     <div class="main-wapper">
-      <el-tabs v-model="tab" type="card">
+      <el-tabs v-model="tab" type="card" class="el-tabs-content-flex-1">
         <template v-for="(item, _key) in tabs" :key="_key">
           <el-tab-pane lazy :label="item.type" :name="item.type">
             <ContentVM :lang-type="item.type" />
