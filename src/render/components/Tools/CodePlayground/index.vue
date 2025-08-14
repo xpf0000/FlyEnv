@@ -16,13 +16,13 @@
       </el-tabs>
       <div ref="mainRef" class="main pb-0 pt-3">
         <div class="left" :style="leftStyle">
-          <div class="flex h-[44px]">
-            <el-select v-model="fromType" class="max-w-[140px]">
+          <div class="flex h-[36px]">
+            <el-select v-model="fromType" size="small" class="max-w-[140px]">
               <template v-for="(item, _index) in langs" :key="_index">
                 <el-option :label="item" :value="item"></el-option>
               </template>
             </el-select>
-            <el-select v-model="fromPath" style="margin-left: 8px">
+            <el-select v-model="fromPath" size="small" style="margin-left: 8px">
               <template v-for="(item, _index) in langsBin" :key="_index">
                 <el-option-group :label="item.label">
                   <template v-for="(s, _j) in item.children" :key="_j">
@@ -34,8 +34,14 @@
                 </el-option-group>
               </template>
             </el-select>
-            <el-button class="ml-4" :icon="Document" @click.stop="openFile"></el-button>
             <el-button
+              size="small"
+              class="ml-4"
+              :icon="Document"
+              @click.stop="openFile"
+            ></el-button>
+            <el-button
+              size="small"
               style="margin-left: 8px"
               :icon="VideoPlay"
               :loading="execing"
@@ -47,8 +53,14 @@
         </div>
         <div ref="moveRef" class="handle" @mousedown.stop="HandleMoveMouseDown"></div>
         <div class="right">
-          <div class="top">
-            <el-select v-model="to" filterable @change="onToChange">
+          <div class="flex h-[36px]">
+            <el-select
+              v-model="to"
+              class="max-w-[140px]"
+              size="small"
+              filterable
+              @change="onToChange"
+            >
               <el-option label="Raw" value="raw"></el-option>
               <el-option label="JSON" value="json"></el-option>
               <el-option label="JSON Minify" value="json-minify"></el-option>
@@ -67,9 +79,9 @@
               <el-option label="MySQL" value="MySQL"></el-option>
               <el-option label="JSDoc" value="JSDoc"></el-option>
             </el-select>
-            <el-button-group>
-              <el-button @click.stop="saveToLocal">
-                <yb-icon :svg="import('@/svg/save.svg?raw')" width="18" height="18" />
+            <el-button-group size="small">
+              <el-button size="small" @click.stop="saveToLocal">
+                <yb-icon :svg="import('@/svg/save.svg?raw')" width="14" height="14" />
               </el-button>
             </el-button-group>
           </div>
@@ -87,13 +99,12 @@
   import { AppStore } from '@/store/app'
   import CodePlay, { CodePlayTab } from '@/components/Tools/CodePlayground/setup'
   import type { TabPaneName } from 'element-plus'
-  import { MessageSuccess } from '@/util/Element'
-  import { I18nT } from '@lang/index'
   import { Document, VideoPlay } from '@element-plus/icons-vue'
   import { EditorCreate, EditorDestroy } from '@/util/Editor'
-  import { dialog, shell, nativeTheme, fs } from '@/util/NodeFn'
+  import { dialog, nativeTheme, fs } from '@/util/NodeFn'
   import { BrewStore } from '@/store/brew'
   import { languagesToCheck } from '@/components/Tools/CodePlayground/languageDetector'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   CodePlay.init()
 
@@ -431,21 +442,19 @@
     currentTab.value.run()
   }
 
+  let CodeAddVM: any
+  import('@/components/Tools/CodeLibrary/codeAdd.vue').then((res) => {
+    CodeAddVM = res.default
+  })
+
   const saveToLocal = () => {
-    const opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-    dialog
-      .showSaveDialog({
-        properties: opt
-      })
-      .then(async ({ canceled, filePath }: any) => {
-        if (canceled || !filePath) {
-          return
-        }
-        const content = toEditor?.getValue() ?? ''
-        await fs.writeFile(filePath, content)
-        MessageSuccess(I18nT('base.success'))
-        shell.showItemInFolder(filePath).catch()
-      })
+    AsyncComponentShow(CodeAddVM, {
+      langType: currentTab.value.fromType,
+      item: {
+        value: currentTab.value.value,
+        toValue: currentTab.value.toValue
+      }
+    }).then()
   }
 
   onMounted(() => {

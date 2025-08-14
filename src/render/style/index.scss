@@ -678,7 +678,7 @@ body {
         display: flex;
         flex-wrap: nowrap;
         flex-direction: row;
-        gap: 6px;
+        gap: 2px;
 
         >.left,
         >.right {
@@ -2466,6 +2466,12 @@ body {
       .el-button-group {
         display: flex;
       }
+    }
+  }
+  &.el-dialog-content-flex-1 {
+    .el-dialog__body {
+      flex: 1;
+      overflow: hidden;
     }
   }
 }

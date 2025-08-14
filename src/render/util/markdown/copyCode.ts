@@ -1,45 +1,54 @@
-let hasInitiated = false
-export function useCopyCode() {
-  if (hasInitiated) {
+const timeoutIdMap: WeakMap<HTMLElement, NodeJS.Timeout> = new WeakMap()
+const clickEvent = (e: MouseEvent) => {
+  console.log('click !!!!: ', e)
+  const el = e.target as HTMLElement
+  if (el.matches('div[class*="language-"] > button.copy')) {
+    const parent = el.parentElement
+    const sibling = el.nextElementSibling?.nextElementSibling
+    if (!parent || !sibling) {
+      return
+    }
+
+    const isShell = /language-(shellscript|shell|bash|sh|zsh)/.test(parent.className)
+
+    const ignoredNodes = ['.vp-copy-ignore', '.diff.remove']
+
+    // Clone the node and remove the ignored nodes
+    const clone = sibling.cloneNode(true) as HTMLElement
+    clone.querySelectorAll(ignoredNodes.join(',')).forEach((node) => node.remove())
+
+    let text = clone.textContent || ''
+
+    if (isShell) {
+      text = text.replace(/^ *(\$|>) /gm, '').trim()
+    }
+
+    copyToClipboard(text).then(() => {
+      el.classList.add('copied')
+      clearTimeout(timeoutIdMap.get(el))
+      const timeoutId = setTimeout(() => {
+        el.classList.remove('copied')
+        el.blur()
+        timeoutIdMap.delete(el)
+      }, 2000)
+      timeoutIdMap.set(el, timeoutId)
+    })
+  }
+}
+
+export function useCopyCode(dom: HTMLElement) {
+  if (!dom) {
     return
   }
-  hasInitiated = true
-  const timeoutIdMap: WeakMap<HTMLElement, NodeJS.Timeout> = new WeakMap()
-  window.addEventListener('click', (e) => {
-    const el = e.target as HTMLElement
-    if (el.matches('div[class*="language-"] > button.copy')) {
-      const parent = el.parentElement
-      const sibling = el.nextElementSibling?.nextElementSibling
-      if (!parent || !sibling) {
-        return
-      }
+  dom.removeEventListener('click', clickEvent)
+  dom.addEventListener('click', clickEvent)
+}
 
-      const isShell = /language-(shellscript|shell|bash|sh|zsh)/.test(parent.className)
-
-      const ignoredNodes = ['.vp-copy-ignore', '.diff.remove']
-
-      // Clone the node and remove the ignored nodes
-      const clone = sibling.cloneNode(true) as HTMLElement
-      clone.querySelectorAll(ignoredNodes.join(',')).forEach((node) => node.remove())
-
-      let text = clone.textContent || ''
-
-      if (isShell) {
-        text = text.replace(/^ *(\$|>) /gm, '').trim()
-      }
-
-      copyToClipboard(text).then(() => {
-        el.classList.add('copied')
-        clearTimeout(timeoutIdMap.get(el))
-        const timeoutId = setTimeout(() => {
-          el.classList.remove('copied')
-          el.blur()
-          timeoutIdMap.delete(el)
-        }, 2000)
-        timeoutIdMap.set(el, timeoutId)
-      })
-    }
-  })
+export function unUseCopyCode(dom: HTMLElement) {
+  if (!dom) {
+    return
+  }
+  dom.removeEventListener('click', clickEvent)
 }
 
 async function copyToClipboard(text: string) {

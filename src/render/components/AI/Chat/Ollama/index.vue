@@ -151,7 +151,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, type ComputedRef, watch } from 'vue'
+  import { computed, ref, type ComputedRef, watch, onMounted, onBeforeUnmount } from 'vue'
   import {
     User,
     Setting,
@@ -172,7 +172,9 @@
   import { dialog, fs, clipboard } from '@/util/NodeFn'
   import { ElScrollbar } from 'element-plus'
   import { debounce } from 'lodash-es'
+  import { unUseCopyCode, useCopyCode } from '@/util/markdown/copyCode'
 
+  const mainWapper = ref()
   const appStore = AppStore()
 
   const speaking = ref<ChatItem | undefined>()
@@ -358,4 +360,12 @@
         }
       })
   }
+
+  onMounted(() => {
+    useCopyCode(mainWapper.value)
+  })
+
+  onBeforeUnmount(() => {
+    unUseCopyCode(mainWapper.value)
+  })
 </script>

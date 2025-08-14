@@ -15,7 +15,6 @@
   import { AIStore } from '@/components/AI/store'
   import { I18nT } from '@lang/index'
   import { AISetup } from '@/components/AI/setup'
-  import { useCopyCode } from '@/util/markdown/copyCode'
 
   const aiStore = AIStore()
   const chat = ref()
@@ -28,7 +27,6 @@
     }
     chat.value.show()
   }
-  useCopyCode()
   AISetup.init()
   AISetup.initCompositionEvent()
   onBeforeUnmount(() => {

@@ -52,5 +52,8 @@
   "NameNeed": "Please Input Name",
   "CodeLanguageNeed": "Please Choose Code Language",
   "BatchOperations": "Batch Operations",
-  "SelectAll": "Select All"
+  "SelectAll": "Select All",
+  "MoveToTop": "Move To Top",
+  "MoveToGroup": "Move To Group",
+  "MarkdownPreview": "Markdown Preview"
 }

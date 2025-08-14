@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <div class="main-wapper">
+    <div ref="wapper" class="main-wapper overflow-hidden">
       <el-tabs v-model="tab" type="card" class="el-tabs-content-flex-1">
         <template v-for="(item, _key) in tabs" :key="_key">
           <el-tab-pane lazy :label="item.type" :name="item.type">
@@ -37,10 +37,13 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, onMounted, ref, onBeforeUnmount, watch } from 'vue'
   import CodeLibrary from './setup'
   import { Setting } from '@element-plus/icons-vue'
   import ContentVM from './content.vue'
+  import { unUseCopyCode, useCopyCode } from '@/util/markdown/copyCode'
+
+  const wapper = ref()
 
   CodeLibrary.init()
 
@@ -55,5 +58,17 @@
     set(v: string) {
       CodeLibrary.langType = v
     }
+  })
+
+  watch(tab, () => {
+    CodeLibrary.onLangChange()
+  })
+
+  onMounted(() => {
+    useCopyCode(wapper.value)
+  })
+
+  onBeforeUnmount(() => {
+    unUseCopyCode(wapper.value)
   })
 </script>

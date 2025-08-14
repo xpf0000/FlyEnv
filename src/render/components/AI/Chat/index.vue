@@ -43,7 +43,7 @@
 
 <script lang="ts" setup>
   import { AIStore } from '../store'
-  import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+  import { ref, computed } from 'vue'
   import Tool from './tool.vue'
   import Main from './Main/index.vue'
   import ASideVM from './ASide/index.vue'
@@ -94,10 +94,6 @@
     }
     currentShow.value = false
   }
-
-  onMounted(() => {})
-
-  onBeforeUnmount(() => {})
 
   const doClean = () => {
     if (AISetup.tab === 'flyenv') {

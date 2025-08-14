@@ -7,7 +7,7 @@
       </div>
     </div>
 
-    <div class="main-wapper">
+    <div class="main-wapper overflow-hidden">
       <el-tabs v-model="JSONStore.currentTab" :editable="true" type="card" @edit="handleTabsEdit">
         <template v-for="(_, key) in JSONStore.tabs" :key="key">
           <el-tab-pane :label="key" :name="key" :class="key" :closable="key !== 'tab-1'">
@@ -16,16 +16,22 @@
       </el-tabs>
       <div ref="mainRef" class="main pb-0 pt-3">
         <div class="left" :style="leftStyle">
-          <div class="top">
+          <div class="flex h-[36px] justify-between">
             <span>{{ currentType }}</span>
-            <el-button :icon="Document" @click.stop="openFile"></el-button>
+            <el-button size="small" :icon="Document" @click.stop="openFile"></el-button>
           </div>
           <div ref="fromRef" class="editor el-input__wrapper"></div>
         </div>
         <div ref="moveRef" class="handle" @mousedown.stop="HandleMoveMouseDown"></div>
         <div class="right">
-          <div class="top">
-            <el-select v-model="to" filterable @change="onToChange">
+          <div class="flex h-[36px]">
+            <el-select
+              v-model="to"
+              size="small"
+              class="max-w-[140px]"
+              filterable
+              @change="onToChange"
+            >
               <el-option label="JSON" value="json"></el-option>
               <el-option label="JSON Minify" value="json-minify"></el-option>
               <el-option label="PHP Array" value="php"></el-option>
@@ -43,18 +49,18 @@
               <el-option label="MySQL" value="MySQL"></el-option>
               <el-option label="JSDoc" value="JSDoc"></el-option>
             </el-select>
-            <el-button-group>
-              <el-button @click.stop="currentTab.transformTo('asc')">
-                <yb-icon :svg="import('@/svg/asc1.svg?raw')" width="18" height="18" />
+            <el-button-group size="small">
+              <el-button size="small" @click.stop="currentTab.transformTo('asc')">
+                <yb-icon :svg="import('@/svg/asc1.svg?raw')" width="14" height="14" />
               </el-button>
-              <el-button @click.stop="currentTab.transformTo('desc')">
-                <yb-icon :svg="import('@/svg/desc1.svg?raw')" width="18" height="18" />
+              <el-button size="small" @click.stop="currentTab.transformTo('desc')">
+                <yb-icon :svg="import('@/svg/desc1.svg?raw')" width="14" height="14" />
               </el-button>
-              <el-button @click.stop="currentTab.transformTo(undefined)">
-                <yb-icon :svg="import('@/svg/nosort.svg?raw')" width="18" height="18" />
+              <el-button size="small" @click.stop="currentTab.transformTo(undefined)">
+                <yb-icon :svg="import('@/svg/nosort.svg?raw')" width="14" height="14" />
               </el-button>
-              <el-button @click.stop="saveToLocal">
-                <yb-icon :svg="import('@/svg/save.svg?raw')" width="18" height="18" />
+              <el-button size="small" @click.stop="saveToLocal">
+                <yb-icon :svg="import('@/svg/save.svg?raw')" width="14" height="14" />
               </el-button>
             </el-button-group>
           </div>

@@ -4,55 +4,57 @@
     :title="I18nT('base.edit')"
     width="600px"
     :destroy-on-close="true"
-    class="host-edit new-project"
+    class="host-edit new-project overflow-hidden el-dialog-content-flex-1"
     @closed="closedFn"
   >
     <template #default>
-      <el-form ref="formRef" class="pb-7" label-position="top" :rules="rules" :model="form">
-        <el-form-item :label="I18nT('base.name')" prop="name" :required="true">
-          <el-input v-model="form.name"></el-input>
-        </el-form-item>
-        <el-form-item :label="I18nT('host.comment')" prop="comment">
-          <el-input v-model="form.comment" type="textarea" :rows="2" resize="none"></el-input>
-        </el-form-item>
-        <el-form-item
-          v-if="!langType && !item?.fromType"
-          :label="I18nT('tools.CodeLanguage')"
-          prop="fromType"
-          :required="true"
-        >
-          <el-select v-model="form.fromType">
-            <template v-for="(l, _l) in langs" :key="_l">
-              <el-option :label="l" :value="l"></el-option>
+      <el-scrollbar max-height="55vh">
+        <el-form ref="formRef" class="pb-7" label-position="top" :rules="rules" :model="form">
+          <el-form-item :label="I18nT('base.name')" prop="name" :required="true">
+            <el-input v-model="form.name"></el-input>
+          </el-form-item>
+          <el-form-item :label="I18nT('host.comment')" prop="comment">
+            <el-input v-model="form.comment" type="textarea" :rows="2" resize="none"></el-input>
+          </el-form-item>
+          <el-form-item
+            v-if="!langType && !item?.fromType"
+            :label="I18nT('tools.CodeLanguage')"
+            prop="fromType"
+            :required="true"
+          >
+            <el-select v-model="form.fromType">
+              <template v-for="(l, _l) in langs" :key="_l">
+                <el-option :label="l" :value="l"></el-option>
+              </template>
+            </el-select>
+          </el-form-item>
+          <el-form-item v-if="!groupID" :label="I18nT('tools.Group')" prop="groupID">
+            <template #label>
+              <div class="w-full flex items-center justify-between">
+                <span>{{ I18nT('tools.Group') }}</span>
+                <el-button
+                  link
+                  :icon="Plus"
+                  :disabled="!form.fromType"
+                  @click.stop="CodeLibrary.addGroup(form.fromType, undefined)"
+                ></el-button>
+              </div>
             </template>
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="I18nT('tools.Group')" prop="groupID">
-          <template #label>
-            <div class="w-full flex items-center justify-between">
-              <span>{{ I18nT('tools.Group') }}</span>
-              <el-button
-                link
-                :icon="Plus"
-                :disabled="!form.fromType"
-                @click.stop="CodeLibrary.addGroup(form.fromType, undefined)"
-              ></el-button>
-            </div>
-          </template>
-          <el-select v-model="form.groupID">
-            <el-option :label="I18nT('base.none')" :value="''"></el-option>
-            <template v-for="(l, _l) in groups" :key="_l">
-              <el-option :label="l.name" :value="l.id"></el-option>
-            </template>
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="I18nT('tools.Code')" prop="value">
-          <el-input v-model="form.value" type="textarea" :rows="6" resize="none"></el-input>
-        </el-form-item>
-        <el-form-item :label="I18nT('tools.CodeResult')" prop="value">
-          <el-input v-model="form.toValue" type="textarea" :rows="4" resize="none"></el-input>
-        </el-form-item>
-      </el-form>
+            <el-select v-model="form.groupID">
+              <el-option :label="I18nT('base.none')" :value="''"></el-option>
+              <template v-for="(l, _l) in groups" :key="_l">
+                <el-option :label="l.name" :value="l.id"></el-option>
+              </template>
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="I18nT('tools.Code')" prop="value">
+            <el-input v-model="form.value" type="textarea" :rows="6" resize="none"></el-input>
+          </el-form-item>
+          <el-form-item :label="I18nT('tools.CodeResult')" prop="value">
+            <el-input v-model="form.toValue" type="textarea" :rows="4" resize="none"></el-input>
+          </el-form-item>
+        </el-form>
+      </el-scrollbar>
     </template>
     <template #footer>
       <div class="dialog-footer">
@@ -78,6 +80,7 @@
   const props = defineProps<{
     langType: string
     item?: CodeLibraryItemType
+    groupID?: string
   }>()
 
   const langs = computed(() => {
@@ -99,6 +102,9 @@
   Object.assign(form.value, props.item)
   if (props.langType) {
     form.value.fromType = props.langType
+  }
+  if (props.groupID) {
+    form.value.groupID = props.groupID
   }
 
   const groups = computed(() => {
@@ -138,6 +144,8 @@
             Object.assign(find, form.value)
           }
         }
+        CodeLibrary.groupID = form.value.groupID
+        CodeLibrary.itemID = form.value.id
         show.value = false
       } else {
         submiting = false
