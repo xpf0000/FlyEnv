@@ -95,7 +95,7 @@ export class AppHelper {
       } else if (isLinux()) {
         const helperFile = global.Server.isArmArch
           ? 'flyenv-helper-linux-arm64'
-          : 'flyenv-helper-linux-amd64'
+          : 'flyenv-helper-linux-amd64-v1'
         const binDir = PathResolve(global.Server.Static!, '../../../build/')
         const bin = PathResolve(binDir, `../src/helper-go/dist/${helperFile}`)
         const shDir = join(global.Server.Static!, 'sh')
