@@ -36,6 +36,7 @@ class Manager extends Base {
   Deno: any
   Bun: any
   Perl: any
+  Consul: any
 
   constructor() {
     super()
@@ -244,6 +245,12 @@ class Manager extends Base {
             this.Perl = res.default
           }
           versions.perl = this.Perl.allInstalledVersions(setup)
+        } else if (type === 'consul') {
+          if (!this.Consul) {
+            const res = await import('../Consul')
+            this.Consul = res.default
+          }
+          versions.consul = this.Consul.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

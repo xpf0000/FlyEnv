@@ -110,6 +110,15 @@ export const Setup = (typeFlag: AllAppModule) => {
             fetchData()
           }
         })
+      } else if (typeFlag === 'consul' && !appStore?.config?.setup?.consulBrewInitiated) {
+        IPC.send('app-fork:brew', 'addTap', 'hashicorp/tap').then((key: string, res: any) => {
+          IPC.off(key)
+          appStore.config.setup.consulBrewInitiated = true
+          appStore.saveConfig().catch()
+          if (res?.data === 2) {
+            fetchData()
+          }
+        })
       }
       fetchData()
     }

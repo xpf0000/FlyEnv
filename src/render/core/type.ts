@@ -66,7 +66,8 @@ export enum AppModuleEnum {
   'etcd' = 'etcd',
   'deno' = 'deno',
   'bun' = 'bun',
-  'perl' = 'perl'
+  'perl' = 'perl',
+  consul = 'consul'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

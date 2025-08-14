@@ -98,6 +98,7 @@ type StateBase = SetupBase & {
   forceStart: boolean
   showAIRobot: boolean
   showTool?: boolean
+  consulBrewInitiated?: boolean
   phpBrewInitiated: boolean
   mongodbBrewInitiated: boolean
   currentNodeTool: 'fnm' | 'nvm' | 'default'

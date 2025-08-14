@@ -45,6 +45,7 @@ class BaseManager {
   Perl: any
   DNS: any
   Code: any
+  Consul: any
 
   constructor() {}
 
@@ -349,6 +350,12 @@ class BaseManager {
       }
       console.log('codeRun 11: ', Math.round(new Date().getTime() / 1000))
       doRun(this.Code)
+    } else if (module === 'consul') {
+      if (!this.Consul) {
+        const res = await import('./module/Consul')
+        this.Consul = res.default
+      }
+      doRun(this.Consul)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }
