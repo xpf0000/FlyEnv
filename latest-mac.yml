@@ -1,17 +1,17 @@
-version: 4.10.5
+version: 4.10.6
 files:
-  - url: FlyEnv-4.10.5-mac.zip
-    sha512: b79JVtw9/oBWVfB+kvj1VSErl160ntVn4T7s1C283l7yfukDgT9Yz1q+TjSZmtkIMsY3KZAkkPOaXu3Id6U5tA==
-    size: 151066852
-  - url: FlyEnv-4.10.5-arm64-mac.zip
-    sha512: My5YHnPv4YFcdgz+wvGvFCzOyOaZR7SX48gt4VDd8R8PcoJIX0JAcRhl5jVVmAdKnaW72QgRZw8m79wY5K3P+g==
-    size: 144993855
-  - url: FlyEnv-4.10.5.dmg
-    sha512: T11brhriVPhOATEc6sGiddFMKg7eu90iqQFRJRCmp2qPgYvHI6xNUL/tOtqr/FzP4DL29objO9aXmYwjLkc1Qg==
-    size: 158288885
-  - url: FlyEnv-4.10.5-arm64.dmg
-    sha512: 0kde7s4OGEpcazsJ8AyFKGQRcYjJjFrqSrOBZNeEqLAnCP1/aNPlgc9Pk0Hv+QrFMpbCU4LMbEd1uQX5trTugg==
-    size: 152226236
-path: FlyEnv-4.10.5-mac.zip
-sha512: b79JVtw9/oBWVfB+kvj1VSErl160ntVn4T7s1C283l7yfukDgT9Yz1q+TjSZmtkIMsY3KZAkkPOaXu3Id6U5tA==
-releaseDate: '2025-07-31T03:39:19.948Z'
+  - url: FlyEnv-4.10.6-mac.zip
+    sha512: ELMNPr53FFr1AxA9vMZR3zU/j5ecLpev2dqseurU+l4M29v7MZgbxZZ9qYuIWVnFO2Ey+aY0TghvIJDUD+UILQ==
+    size: 151349989
+  - url: FlyEnv-4.10.6-arm64-mac.zip
+    sha512: xS8wqbHTsN1Umd8hecF1/ajzLmWbCW5qKyjtIQWcct3iepQ8eW75ffH/PuSQy18u5A8NUWTjOiq5k/oMmAafrQ==
+    size: 145278081
+  - url: FlyEnv-4.10.6.dmg
+    sha512: iqelh//3onC3gvQbLcog5GQwfkvQaw0wCU6zPUAD/1TG+8uDlDHnhP37ssTkRbruUCtJqsM6Os0SuyJYj8w6QA==
+    size: 158606879
+  - url: FlyEnv-4.10.6-arm64.dmg
+    sha512: +kHtLKJH9kXjzI4UthNArEW3RPIxsADpUjUbKsw36MyeQJtPlsPnvuvZwUwf+r0ii/4MXBaQ2I3wbbgIitDf5Q==
+    size: 152543997
+path: FlyEnv-4.10.6-mac.zip
+sha512: ELMNPr53FFr1AxA9vMZR3zU/j5ecLpev2dqseurU+l4M29v7MZgbxZZ9qYuIWVnFO2Ey+aY0TghvIJDUD+UILQ==
+releaseDate: '2025-08-14T14:38:05.927Z'
