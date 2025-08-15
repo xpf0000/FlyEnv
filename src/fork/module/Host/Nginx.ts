@@ -144,7 +144,12 @@ export const makeNginxConf = async (host: AppHost) => {
 const handlePhpEnableConf = async (v: number) => {
   try {
     const name = `enable-php-${v}.conf`
-    const confFile = join(global.Server.NginxDir!, 'common/conf/', name)
+    let confFile = ''
+    if (isWindows()) {
+      confFile = join(global.Server.NginxDir!, 'conf', name)
+    } else {
+      confFile = join(global.Server.NginxDir!, 'common/conf/', name)
+    }
     if (!existsSync(confFile)) {
       await mkdirp(dirname(confFile))
       const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
