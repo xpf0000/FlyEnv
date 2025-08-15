@@ -174,6 +174,7 @@ export class ForkManager {
     if (!find) {
       if (this.forks.length < cpus().length) {
         find = new ForkItem(this.file, this.forks.length > 0)
+        // find = new ForkItem(this.file, true)
         this.forks.push(find)
       } else {
         find = this.forks.shift()!

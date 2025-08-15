@@ -61,7 +61,6 @@ export default class TrayManager extends EventEmitter {
     if (this.style !== 'classic') {
       return
     }
-    console.log('menuChange: ', status)
     this.iconChange(status.groupIsRunning)
     const menus: MenuItemConstructorOptions[] = []
     menus.push({

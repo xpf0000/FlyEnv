@@ -47,6 +47,8 @@ class BaseManager {
   Code: any
   Consul: any
 
+  modules: Set<string> = new Set()
+
   constructor() {}
 
   init() {}
@@ -55,9 +57,27 @@ class BaseManager {
     const ipcCommandKey = commands.shift()
     const then = (res: any) => {
       ProcessSendSuccess(ipcCommandKey, res)
+      const memoryUsage = process.memoryUsage()
+      console.log({
+        modules: Array.from(this.modules),
+        rss: `${Math.round((memoryUsage.rss / 1024 / 1024) * 100) / 100} MB`, // 常驻内存
+        heapTotal: `${Math.round((memoryUsage.heapTotal / 1024 / 1024) * 100) / 100} MB`, // 堆内存总量
+        heapUsed: `${Math.round((memoryUsage.heapUsed / 1024 / 1024) * 100) / 100} MB`, // 已用堆内存
+        external: `${Math.round((memoryUsage.external / 1024 / 1024) * 100) / 100} MB`, // 外部内存
+        arrayBuffers: `${Math.round((memoryUsage.arrayBuffers / 1024 / 1024) * 100) / 100} MB` // ArrayBuffer内存
+      })
     }
     const error = (e: Error) => {
       ProcessSendError(ipcCommandKey, e.toString())
+      const memoryUsage = process.memoryUsage()
+      console.log({
+        modules: Array.from(this.modules),
+        rss: `${Math.round((memoryUsage.rss / 1024 / 1024) * 100) / 100} MB`, // 常驻内存
+        heapTotal: `${Math.round((memoryUsage.heapTotal / 1024 / 1024) * 100) / 100} MB`, // 堆内存总量
+        heapUsed: `${Math.round((memoryUsage.heapUsed / 1024 / 1024) * 100) / 100} MB`, // 已用堆内存
+        external: `${Math.round((memoryUsage.external / 1024 / 1024) * 100) / 100} MB`, // 外部内存
+        arrayBuffers: `${Math.round((memoryUsage.arrayBuffers / 1024 / 1024) * 100) / 100} MB` // ArrayBuffer内存
+      })
     }
     const onData = (log: string) => {
       ProcessSendLog(ipcCommandKey, log)
@@ -65,6 +85,8 @@ class BaseManager {
 
     const module: string = commands.shift()
     const fn: string = commands.shift()
+
+    this.modules.add(module)
 
     const doRun = (module: any) => {
       module?.init?.()

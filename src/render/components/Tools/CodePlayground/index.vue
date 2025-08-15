@@ -53,7 +53,7 @@
         </div>
         <div ref="moveRef" class="handle" @mousedown.stop="HandleMoveMouseDown"></div>
         <div class="right">
-          <div class="flex h-[36px]">
+          <div class="flex h-[36px] gap-2">
             <el-select
               v-model="to"
               class="max-w-[140px]"

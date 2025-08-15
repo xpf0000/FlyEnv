@@ -15,7 +15,8 @@ import {
   writeFile,
   mkdirp,
   serviceStartExecCMD,
-  versionBinVersionSync
+  versionBinVersionSync,
+  chmod
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
@@ -36,10 +37,13 @@ class Consul extends Base {
   initConfig(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
       const baseDir = join(global.Server.BaseDir!, 'consul')
-      await mkdirp(baseDir)
       const versionTop = version.version?.split('.')?.shift() ?? ''
       const iniFile = join(baseDir, `consul-${versionTop}.json`)
       if (!existsSync(iniFile)) {
+        if (!existsSync(baseDir)) {
+          await mkdirp(baseDir)
+          await chmod(baseDir, '0777')
+        }
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
@@ -77,7 +81,10 @@ class Consul extends Base {
 
       const bin = version.bin
       const baseDir = join(global.Server.BaseDir!, 'consul')
-      await mkdirp(baseDir)
+      if (!existsSync(baseDir)) {
+        await mkdirp(baseDir)
+        await chmod(baseDir, '0777')
+      }
 
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = DATA_DIR ?? join(baseDir, `consul-${versionTop}-data`)
