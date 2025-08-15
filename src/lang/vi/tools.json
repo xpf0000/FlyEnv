@@ -52,5 +52,8 @@
   "NameNeed": "Vui lòng nhập tên",
   "CodeLanguageNeed": "Vui lòng chọn ngôn ngữ lập trình",
   "BatchOperations": "Thao tác hàng loạt",
-  "SelectAll": "Chọn tất cả"
+  "SelectAll": "Chọn tất cả",
+  "MoveToTop": "Di chuyển lên đầu",
+  "MoveToGroup": "Di chuyển vào nhóm",
+  "MarkdownPreview": "Xem trước Markdown"
 }
