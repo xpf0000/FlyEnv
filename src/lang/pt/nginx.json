@@ -1,10 +1,10 @@
 {
-  "gzip": "Is enable GZIP compression transmission",
-  "gzip_min_length": "Minimum compressed file",
-  "gzip_comp_level": "compressibility",
-  "client_max_body_size": "Maximum upload file size",
-  "server_names_hash_max_size": "Hash table max size for server name",
-  "server_names_hash_bucket_size": "Hash table size for server name",
-  "client_header_buffer_size": "Client request header buffer size",
-  "client_body_buffer_size": "Request body buffer size"
+  "gzip": "Habilitar compressão GZIP na transmissão",
+  "gzip_min_length": "Tamanho mínimo do arquivo comprimido",
+  "gzip_comp_level": "Nível de compressão",
+  "client_max_body_size": "Tamanho máximo do arquivo de upload",
+  "server_names_hash_max_size": "Tamanho máximo da tabela hash para nome do servidor",
+  "server_names_hash_bucket_size": "Tamanho da tabela hash para nome do servidor",
+  "client_header_buffer_size": "Tamanho do buffer do cabeçalho da requisição do cliente",
+  "client_body_buffer_size": "Tamanho do buffer do corpo da requisição"
 }

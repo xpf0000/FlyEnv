@@ -1,15 +1,15 @@
 {
-  "Crypto": "Crypto",
-  "Converter": "Converter",
+  "Crypto": "Criptografia",
+  "Converter": "Conversor",
   "Web": "Web",
-  "Images": "Images & Videos",
-  "Development": "Development",
-  "Network": "Network",
-  "Math": "Math",
-  "Measurement": "Measurement",
-  "Text": "Text",
-  "Custom": "Custom",
-  "Favorites": "Favorites",
-  "Favorite": "Favorite",
-  "Code": "Code"
+  "Images": "Imagens e Vídeos",
+  "Development": "Desenvolvimento",
+  "Network": "Rede",
+  "Math": "Matemática",
+  "Measurement": "Medição",
+  "Text": "Texto",
+  "Custom": "Personalizado",
+  "Favorites": "Favoritos",
+  "Favorite": "Favorito",
+  "Code": "Código"
 }

@@ -1,10 +1,10 @@
 {
-  "showMainWin": "Show Main Window",
-  "exit": "Exit",
-  "run": "Running",
-  "notRun": "Not Running",
-  "trayMenuBarStyle": "Tray Popup Style",
-  "classic": "Classic",
-  "modern": "Modern",
-  "trayMenuBarStyleTips": "Choose the tray popup style. On some Linux desktops, the modern style may have issues, so you can select the classic style instead."
+  "showMainWin": "Mostrar janela principal",
+  "exit": "Sair",
+  "run": "Em execução",
+  "notRun": "Não está em execução",
+  "trayMenuBarStyle": "Estilo do menu da bandeja",
+  "classic": "Clássico",
+  "modern": "Moderno",
+  "trayMenuBarStyleTips": "Escolha o estilo do menu da bandeja. Em alguns desktops Linux, o estilo moderno pode apresentar problemas, então você pode selecionar o estilo clássico."
 }

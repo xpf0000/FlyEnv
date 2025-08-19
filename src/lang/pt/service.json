@@ -1,14 +1,13 @@
 {
-  "setaliase": "Set Alias",
-  "env": "Env",
+  "setaliase": "Definir Alias",
+  "env": "Ambiente",
   "alias": "Alias",
-  "envTips": "Has the path been added to the environment variable",
-  "aliasTips": "Alias used in the terminal",
-  "useSysPHP": "Use default PHP version",
-  "setByApp": "Environment variables set by FlyEnv",
-  "setByNoApp": "Environment variables not set by FlyEnv",
-  "ftpdNeedPasswordToStart": "Pure-FTPd requires sudo privileges to start. Please enter your user password. The password will be used for auto-fill later. Or you can click the button below to input manually in the terminal, but this prompt may reappear.",
-
-  "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
-  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?"
+  "envTips": "O caminho foi adicionado à variável de ambiente",
+  "aliasTips": "Alias usado no terminal",
+  "useSysPHP": "Usar versão padrão do PHP",
+  "setByApp": "Variáveis de ambiente definidas pelo FlyEnv",
+  "setByNoApp": "Variáveis de ambiente não definidas pelo FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd requer privilégios sudo para iniciar. Por favor digite sua senha de usuário. A senha será usada para preenchimento automático posteriormente. Ou você pode clicar no botão abaixo para digitar manualmente no terminal, mas este prompt pode reaparecer.",
+  "bundleinVersionDelTips": "Esta versão é uma versão integrada, confirmar não exibir?",
+  "customDirVersionDelTips": "Esta versão é uma versão de caminho personalizado, confirmar não exibir?"
 }

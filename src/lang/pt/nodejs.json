@@ -1,16 +1,16 @@
 {
-  "installFNM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
-  "installNVM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
-  "registry": "Source",
-  "checkPackageJsonUpdate": "Check for updates",
-  "updatePackageJsonFile": "Update package.json file",
-  "updatePackageJsonFileTips": "This action will modify the package.json file. Are you sure you want to update?",
-  "copyDirPath": "Copy Project Folder Path",
-  "openIN": "Open In",
+  "installFNM": "Instalar <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Instalar <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "registry": "Fonte",
+  "checkPackageJsonUpdate": "Verificar atualizações",
+  "updatePackageJsonFile": "Atualizar arquivo package.json",
+  "updatePackageJsonFileTips": "Esta ação modificará o arquivo package.json. Tem certeza de que deseja atualizar?",
+  "copyDirPath": "Copiar Caminho da Pasta do Projeto",
+  "openIN": "Abrir Em",
   "Terminal": "Terminal",
   "VSCode": "Visual Studio Code",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "HBuilderX": "HBuilderX",
-  "projectEnvSet": "Project Environment"
+  "projectEnvSet": "Ambiente do Projeto"
 }

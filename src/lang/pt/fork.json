@@ -1,14 +1,14 @@
 {
-  "binNotFound": "The startup file does not exist, operation failed.",
-  "confNotFound": "The configuration file does not exist, the server failed to start",
-  "apacheLogPathErr": "The log path of the configuration file is wrong, and the switch fails",
-  "versionError": "The version is wrong, please select again",
-  "hostsFileNotFound": "The hosts file does not exist",
-  "startFail": "Failed to start, please check the log file",
-  "versionNotFound": "Failed to get software version, operation failed.",
-  "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
-  "downloadFileFail": "Download file failed!",
-  "trialEnd": "The trial has expired. To continue using this feature, please obtain a license",
-  "phpiniNotFound": "php.ini file not found",
-  "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
+  "binNotFound": "O arquivo de inicialização não existe, operação falhou.",
+  "confNotFound": "O arquivo de configuração não existe, o servidor falhou ao iniciar",
+  "apacheLogPathErr": "O caminho do log do arquivo de configuração está incorreto, e a troca falhou",
+  "versionError": "A versão está incorreta, por favor selecione novamente",
+  "hostsFileNotFound": "O arquivo hosts não existe",
+  "startFail": "Falha ao iniciar, por favor verifique o arquivo de log",
+  "versionNotFound": "Falha ao obter a versão do software, operação falhou.",
+  "postgresqlInit": "Serviço iniciado com sucesso\nDiretório de dados é {dir}\nUsuário inicial é root, Senha é root",
+  "downloadFileFail": "Falha no download do arquivo!",
+  "trialEnd": "O período de teste expirou. Para continuar usando este recurso, por favor obtenha uma licença",
+  "phpiniNotFound": "arquivo php.ini não encontrado",
+  "noEPMD": "O processo epmd não foi encontrado. Por favor reinicie as variáveis de ambiente do Erlang"
 }

@@ -1,6 +1,6 @@
 {
-  "timeout": "Idle connection timeout, 0 indicates continuous opening",
-  "databases": "Number of databases",
-  "requirepass": "Redis password",
-  "maxmemory": "Byte, maximum memory usage, 0 indicates no limit"
+  "timeout": "Timeout de conexão inativa, 0 indica abertura contínua",
+  "databases": "Número de bancos de dados",
+  "requirepass": "Senha do Redis",
+  "maxmemory": "Bytes, uso máximo de memória, 0 indica sem limite"
 }
