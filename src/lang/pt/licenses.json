@@ -1,0 +1,36 @@
+{
+  "title": "License Description",
+  "description": "The license is a recognition and support for the hard work of FlyEnv and its authors. Its purpose is not to restrict users but to remind them to respect the developers' efforts and comply with the relevant terms when using the software. By adhering to the license, users not only support the ongoing development of the project but also contribute to the spirit of trust and collaboration within the open-source community.",
+  "restrictions": {
+    "title": "Users without a license will be subject to the following restrictions:",
+    "items": {
+      "0": "A maximum of three sites can be created.",
+      "1": "The AI chat feature is available for a trial period of three days only.",
+      "2": "Additional restrictions may apply to future features."
+    }
+  },
+  "licenseInfo": "The current license offered is a perpetual license, with one license corresponding to one computer. If you change your computer, you will need to request a new license.",
+  "howToObtain": {
+    "title": "How to Obtain a License",
+    "description": "FlyEnv provides flexible ways to obtain a license. Users can choose any of the following methods to apply:",
+    "methods": {
+      "0": {
+        "title": "Donate to the Project",
+        "description": "There is no fixed amount required for donations. Considering the varying economic situations of users in different countries (e.g., many users are students), please choose an amount that suits your circumstances."
+      },
+      "1": {
+        "title": "Contribute to Development",
+        "description": "Participate in the project by submitting a Pull Request. Regardless of the amount of code, as long as it positively improves the project (e.g., fixing a translation error), it qualifies."
+      },
+      "2": {
+        "title": "Promote the Project",
+        "description": "Promote FlyEnv by sharing your experience in articles, videos, blogs, vlogs, or comments. Authentic user feedback is preferred. Content can be in any language and on any platform, as long as it’s publicly available online."
+      }
+    }
+  },
+  "submitInfo": "After completing any of the above methods, please fill in the results in the input box below and click the 'Request License' button to submit your application. License requests are manually reviewed, so please be patient. They are usually processed promptly.",
+  "messageLabel": "Message",
+  "messagePlaceholder": "Please submit the donor, donation link, or order ID when choosing to donate.\nPlease submit the PR link for those who choose to participate in project development.\nPlease submit article/video link if you choose to help promote the project",
+  "requestButton": "Request License",
+  "refreshButton": "Refresh State"
+}
