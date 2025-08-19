@@ -20,8 +20,9 @@
         title="Rust"
         url="https://forge.rust-lang.org/infra/other-installation-methods.html#standalone-installers"
       ></Manager>
+      <RustupVM v-else-if="tab === 2" />
       <ProjectIndex
-        v-else-if="tab === 2"
+        v-else-if="tab === 3"
         :title="`Rust ${I18nT('base.projects')}`"
         :type-flag="'rust'"
       >
@@ -43,11 +44,13 @@
   import { I18nT } from '@lang/index'
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
   import { Project } from '@/util/Project'
+  import RustupVM from './rustup.vue'
 
   const { tab } = AppModuleSetup('rust')
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),
+    'Rustup',
     `Rust ${I18nT('base.projects')}`
   ]
 </script>

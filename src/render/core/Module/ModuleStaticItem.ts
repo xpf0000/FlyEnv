@@ -17,6 +17,7 @@ export class ModuleStaticItem implements OnlineVersionItem {
   downloaded: boolean = false
   installed: boolean = false
   zip: string = ''
+  name: string = ''
 
   constructor(item: any) {
     Object.assign(this, item)

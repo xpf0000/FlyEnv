@@ -7,6 +7,7 @@ import {
   mkdirp,
   moveChildDirToParent,
   readdir,
+  readFile,
   remove,
   uuid,
   versionBinVersion,
@@ -17,9 +18,10 @@ import {
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { basename, join } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
 import { isWindows } from '@shared/utils'
+import { homedir, tmpdir } from 'node:os'
 
 class Rust extends Base {
   constructor() {
@@ -132,24 +134,8 @@ class Rust extends Base {
       const dir = row.appDir
       await super._installSoftHandle(row)
       await moveChildDirToParent(dir)
-      const appBinDir = join(row.appDir, 'bin')
-      await mkdirp(appBinDir)
-      const subDirs = await readdir(row.appDir)
-      for (const d of subDirs) {
-        const binDir = join(row.appDir, d, 'bin')
-        if (existsSync(binDir)) {
-          const binFiles = await readdir(binDir)
-          for (const bin of binFiles) {
-            const srcFile = join(binDir, bin)
-            const destFile = join(appBinDir, basename(bin))
-            if (!existsSync(destFile) && existsSync(srcFile)) {
-              try {
-                await execPromise(['ln', '-s', `"${srcFile}"`, `"${destFile}"`].join(' '))
-              } catch {}
-            }
-          }
-        }
-      }
+      const installSH = join(row.appDir, 'install.sh')
+      await execPromise(`${installSH} --destdir="./" --prefix="/"`)
     }
   }
 
@@ -163,6 +149,87 @@ class Rust extends Base {
         reject(e)
         return
       }
+    })
+  }
+
+  checkRustup() {
+    return new ForkPromise(async (resolve) => {
+      let rustupBin = join(homedir(), '.cargo/bin/rustup')
+      if (isWindows()) {
+        rustupBin = join(homedir(), '.cargo/bin/rustup.exe')
+      }
+      resolve(existsSync(rustupBin))
+    })
+  }
+
+  rustupData() {
+    return new ForkPromise(async (resolve) => {
+      let rustupBin = join(homedir(), '.cargo/bin/rustup')
+      if (isWindows()) {
+        rustupBin = join(homedir(), '.cargo/bin/rustup.exe')
+      }
+      const toolchainDir = join(homedir(), '.rustup/toolchains')
+
+      const toolchainList: any = []
+      const tmplDir = join(tmpdir(), uuid())
+      await mkdirp(tmplDir)
+      const tmplFile = join(tmplDir, `${uuid()}.txt`)
+      try {
+        await execPromise(`"${rustupBin}" toolchain list > "${tmplFile}"`)
+        const content = await readFile(tmplFile, 'utf-8')
+        if (content) {
+          const list = content.split('\n').filter((f) => !!f.trim())
+          for (const v of list) {
+            const dir = v.split(' ').shift()!
+            const versionFile = join(tmplDir, `${uuid()}.txt`)
+            const versionDir = join(toolchainDir, dir)
+            let versionBin = join(toolchainDir, dir, 'bin/cargo')
+            if (isWindows()) {
+              versionBin = join(toolchainDir, dir, 'bin/cargo.exe')
+            }
+            if (existsSync(versionBin)) {
+              await execPromise(`"${versionBin}" version > "${versionFile}"`)
+            }
+            const vContent = await readFile(versionFile, 'utf-8')
+            const version = vContent.split(' ')?.[1]
+            const name = dir.split('-').shift()
+            if (version && name) {
+              toolchainList.push({
+                path: versionDir,
+                name,
+                version,
+                isDefault: v.includes('(active, default)')
+              })
+            }
+          }
+        }
+      } catch {}
+
+      const targetList = []
+      const tmplFile1 = join(tmplDir, `${uuid()}.txt`)
+      try {
+        await execPromise(`"${rustupBin}" target list > "${tmplFile1}"`)
+        const content = await readFile(tmplFile1, 'utf-8')
+        if (content) {
+          const list = content.split('\n').filter((f) => !!f.trim())
+          for (const v of list) {
+            const name = v.split(' ').shift()!
+            targetList.push({
+              name,
+              installed: v.includes('(installed)')
+            })
+          }
+        }
+      } catch {}
+
+      setTimeout(() => {
+        remove(tmplDir).catch()
+      }, 2000)
+
+      resolve({
+        toolchainList,
+        targetList
+      })
     })
   }
 }
