@@ -32,12 +32,12 @@ FlyEnv is packed with features to make your development workflow smoother and mo
 
 ### Core Modules
 - **AI Integration**: Ollama, DeepSeek, Chatbox.
-- **Web Servers**: Apache, Nginx, Caddy, Tomcat.
+- **Web Servers**: Apache, Nginx, Caddy, Tomcat, Consul.
 - **Databases**: MySQL, MariaDB, PostgreSQL, MongoDB.
 - **Email Server**: Mailpit.
-- **Programming Languages**: PHP (Composer), Java (Maven), NodeJS, Python, Go, Erlang, Ruby, Rust, Bun, Deno.
+- **Programming Languages**: PHP (Composer), Java (Maven), NodeJS, Python, Go, Erlang, Ruby, Rust (Rustup), Bun, Deno, Gradle.
 - **Data Queue & Cache**: Redis, Memcached, RabbitMQ, etcd.
-- **Search Engine**: Elasticsearch, Meilisearch
+- **Search Engine**: Elasticsearch, Meilisearch, Typesense
 - **Object Storage**: Minio.
 - **Utilities**: DNS Server, FTP Server, Static HTTP Server.
 - **Custom modules**: Users can add modules on their own, whether as services or commonly used commands. FlyEnv's custom module system ensures that user modules function just like system modules, delivering a seamless user experience.
