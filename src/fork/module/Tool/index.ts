@@ -180,7 +180,8 @@ class Manager extends Base {
         'gmu'
       )
       const regex2 = new RegExp(`^(?!\\s*#)\\s*export\\s*JAVA_HOME\\s*=\\s*"(.*?)"`, 'gmu')
-      const regexArr = [regex, regex2]
+      const regex3 = new RegExp(`^(?!\\s*#)\\s*export\\s*GRADLE_HOME\\s*=\\s*"(.*?)"`, 'gmu')
+      const regexArr = [regex, regex2, regex3]
       regexArr.forEach((regex) => {
         let x: any = content.match(regex)
         if (x && x[0]) {
@@ -262,10 +263,18 @@ class Manager extends Base {
             (f.toLowerCase().includes('java') || f.toLowerCase().includes('jdk')) &&
             realpathSync(f).includes('/Contents/Home/')
         )
-        let java_home_zsh = ''
+        let other_zsh = ''
         if (java) {
           java = dirname(realpathSync(java))
-          java_home_zsh = `\nexport JAVA_HOME="${java}"`
+          other_zsh = `\nexport JAVA_HOME="${java}"`
+        }
+        let gradle = allFile.find((f) => {
+          const files = [join(f, 'gradle'), join(f, 'bin/gradle')]
+          return files.some((s) => existsSync(s))
+        })
+        if (gradle) {
+          gradle = dirname(realpathSync(gradle))
+          other_zsh = `\nexport GRADLE_HOME="${gradle}"`
         }
         // Handle Python
         let python = allFile.find((f) => realpathSync(f).includes('Python.framework'))
@@ -279,7 +288,7 @@ class Manager extends Base {
             } catch {}
           }
         }
-        param.zsh = `\nexport PATH="${aliasDir}:${allFile.join(':')}:$PATH"${java_home_zsh}\n`
+        param.zsh = `\nexport PATH="${aliasDir}:${allFile.join(':')}:$PATH"${other_zsh}\n`
       } else {
         param.zsh = `\nexport PATH="${aliasDir}:$PATH"\n`
       }

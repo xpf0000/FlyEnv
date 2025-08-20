@@ -46,6 +46,8 @@ class BaseManager {
   DNS: any
   Code: any
   Consul: any
+  Gradle: any
+  Typesense: any
 
   modules: Set<string> = new Set()
 
@@ -378,6 +380,18 @@ class BaseManager {
         this.Consul = res.default
       }
       doRun(this.Consul)
+    } else if (module === 'gradle') {
+      if (!this.Gradle) {
+        const res = await import('./module/Gradle')
+        this.Gradle = res.default
+      }
+      doRun(this.Gradle)
+    } else if (module === 'typesense') {
+      if (!this.Typesense) {
+        const res = await import('./module/Typesense')
+        this.Typesense = res.default
+      }
+      doRun(this.Typesense)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

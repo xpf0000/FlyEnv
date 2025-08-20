@@ -119,6 +119,17 @@ export const Setup = (typeFlag: AllAppModule) => {
             fetchData()
           }
         })
+      } else if (typeFlag === 'typesense' && !appStore?.config?.setup?.typesenseBrewInitiated) {
+        IPC.send('app-fork:brew', 'addTap', 'typesense/homebrew-tap').then(
+          (key: string, res: any) => {
+            IPC.off(key)
+            appStore.config.setup.typesenseBrewInitiated = true
+            appStore.saveConfig().catch()
+            if (res?.data === 2) {
+              fetchData()
+            }
+          }
+        )
       }
       fetchData()
     }

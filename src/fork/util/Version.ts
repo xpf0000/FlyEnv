@@ -95,7 +95,8 @@ export const versionBinVersionSync = (bin: string, command: string, reg: RegExp)
 export const versionBinVersion = (
   bin: string,
   command: string,
-  reg: RegExp
+  reg: RegExp,
+  findInError?: boolean
 ): Promise<{ version?: string; error?: string }> => {
   return new Promise(async (resolve) => {
     const handleCatch = (err: any) => {
@@ -127,6 +128,13 @@ export const versionBinVersion = (
       handleThen(res)
     } catch (e) {
       console.log('versionBinVersion err: ', e)
+      if (findInError) {
+        handleThen({
+          stdout: '',
+          stderr: `${e}`
+        })
+        return
+      }
       handleCatch(e)
     }
   })

@@ -19,7 +19,6 @@ import {
   remove,
   writeFile,
   zipUnpack,
-  stat,
   execPromiseWithEnv
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -530,19 +529,6 @@ subjectAltName=@alt_names
             oldPath.unshift(dirname(pip))
           }
         }
-        // Handle Rust
-        if (existsSync(join(rawEnvPath, 'cargo/bin/cargo.exe'))) {
-          const dirs = await readdir(rawEnvPath)
-          for (const f of dirs) {
-            const binDir = join(rawEnvPath, f, 'bin')
-            if (existsSync(binDir)) {
-              const state = await stat(binDir)
-              if (state.isDirectory()) {
-                oldPath.unshift(binDir)
-              }
-            }
-          }
-        }
       }
 
       if (typeFlag === 'composer') {
@@ -582,6 +568,8 @@ php "%~dp0composer.phar" %*`
       let otherString = ''
       if (typeFlag === 'java') {
         otherString = `"JAVA_HOME" = "${flagDir}"`
+      } else if (typeFlag === 'gradle') {
+        otherString = `"GRADLE_HOME" = "${flagDir}"`
       } else if (typeFlag === 'erlang') {
         otherString = `"ERLANG_HOME" = "${flagDir}"`
         const f = join(global.Server.Cache!, `${uuid()}.ps1`)
