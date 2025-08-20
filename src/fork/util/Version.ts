@@ -32,19 +32,15 @@ export function versionFixed(version?: string | null) {
 }
 
 export const versionCheckBin = (binPath: string) => {
-  console.log('versionCheckBin: ', binPath)
   if (existsSync(binPath)) {
-    console.log('binPath: ', binPath)
     binPath = realpathSync(binPath)
     if (!existsSync(binPath)) {
       return false
     }
     const stat = statSync(binPath)
-    console.log('stat: ', stat.isFile(), stat.isDirectory(), stat.isSymbolicLink())
     if (!stat.isFile()) {
       return false
     }
-    console.log('binPath realpathSync: ', binPath)
     return binPath
   }
   return false

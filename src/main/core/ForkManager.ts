@@ -171,6 +171,9 @@ export class ForkManager {
     if (!find) {
       find = this.forks.find((p) => p.taskFlag.length === 0)
     }
+    if (find) {
+      console.log('fork find: ', this.forks.indexOf(find), find.autoDestroy)
+    }
     if (!find) {
       if (this.forks.length < cpus().length) {
         find = new ForkItem(this.file, this.forks.length > 0)

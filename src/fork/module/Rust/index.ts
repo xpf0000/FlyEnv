@@ -60,13 +60,21 @@ class Rust extends Base {
   }
 
   allInstalledVersions(setup: any) {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
+      const customDirs = [...(setup?.rust?.dirs ?? [])]
+      const rustupDir = join(homedir(), '.rustup/toolchains')
+      const dirs = await readdir(rustupDir, { withFileTypes: true })
+      dirs.forEach((dir) => {
+        if (dir.isDirectory()) {
+          customDirs.push(join(rustupDir, dir.name))
+        }
+      })
       if (isWindows()) {
-        all = [versionLocalFetch([...(setup?.rust?.dirs ?? [])], 'cargo.exe')]
+        all = [versionLocalFetch(customDirs, 'rustc.exe')]
       } else {
-        all = [versionLocalFetch([...(setup?.rust?.dirs ?? [])], 'cargo', 'rust')]
+        all = [versionLocalFetch(customDirs, 'rustc', 'rust')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -77,7 +85,7 @@ class Rust extends Base {
               versionBinVersion,
               item.bin,
               `"${item.bin}" --version`,
-              /(cargo )(\d+(\.\d+){1,4})(.*?)/g
+              /(rustc )(\d+(\.\d+){1,4})(.*?)/g
             )
           )
           return Promise.all(all)
@@ -89,16 +97,6 @@ class Rust extends Base {
               ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
               : null
             const item = versions[i]
-            if (isWindows()) {
-              item.path = join(item.path, '../')
-            } else {
-              if (item.path.includes(global.Server.AppDir!)) {
-                const p = join(item.path, '../bin/cargo')
-                if (existsSync(p)) {
-                  item.path = join(p, '../../')
-                }
-              }
-            }
 
             Object.assign(item, {
               version: version,
@@ -135,7 +133,9 @@ class Rust extends Base {
       await super._installSoftHandle(row)
       await moveChildDirToParent(dir)
       const installSH = join(row.appDir, 'install.sh')
-      await execPromise(`${installSH} --destdir="./" --prefix="/"`)
+      if (existsSync(installSH)) {
+        await execPromise(`cd "${row.appDir}" && ./install.sh --destdir="./" --prefix="/"`)
+      }
     }
   }
 

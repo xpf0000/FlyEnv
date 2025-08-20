@@ -50,8 +50,11 @@
             </template>
             <template #default="scope">
               <span
-                class="hover:text-yellow-500 pl-12"
-                @click.stop="scope.row.isInstalled ? shell.showItemInFolder(scope.row.path) : null"
+                :class="{
+                  'cursor-pointer hover:text-yellow-500': scope.row.isInstalled
+                }"
+                class="pl-12"
+                @click.stop="scope.row.isInstalled ? showVersionDir(scope.row) : null"
                 >{{ scope.row.version }}</span
               >
             </template>
@@ -245,6 +248,11 @@
   const taskEnd = computed(() => {
     return RustupSetup.installEnd
   })
+
+  const showVersionDir = (item: any) => {
+    const dir = RustupSetup.toolchainList.find((t) => t.version === item.version)?.path
+    shell.showItemInFolder(dir).catch()
+  }
 
   const taskConfirm = () => {
     RustupSetup.installing = false
