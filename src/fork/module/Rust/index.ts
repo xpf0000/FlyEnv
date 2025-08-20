@@ -158,7 +158,11 @@ class Rust extends Base {
       if (isWindows()) {
         rustupBin = join(homedir(), '.cargo/bin/rustup.exe')
       }
-      resolve(existsSync(rustupBin))
+      console.log('checkRustup: ', rustupBin)
+      if (existsSync(rustupBin)) {
+        resolve(rustupBin)
+      }
+      resolve(null)
     })
   }
 

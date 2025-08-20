@@ -24,7 +24,7 @@
       </div>
     </temaplte>
     <template v-else-if="RustupSetup.installed === false">
-      <div class="w-full h-full flex flex-col items-center justify-center p-10">
+      <div class="w-full h-full flex flex-col items-center justify-center p-10 gap-5">
         <span>Install Rustup?</span>
         <el-button type="primary" @click.stop="doInstall">{{ I18nT('base.confirm') }}</el-button>
       </div>

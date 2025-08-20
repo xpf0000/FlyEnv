@@ -14,7 +14,8 @@ import {
   readdir,
   remove,
   writeFile,
-  moveDirToDir
+  moveDirToDir,
+  readFile
 } from '../../Fn'
 import { fetchHostList } from './HostFile'
 import { isWindows } from '@shared/utils'
@@ -147,6 +148,19 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
         if (readdirSync(siteDir).length === 0) {
           reject(new Error(I18nT('fork.downloadFileFail')))
           return
+        }
+
+        if (isWindows()) {
+          const ini = join(siteDir, 'config.sample.inc.php')
+          if (existsSync(ini)) {
+            let content = await readFile(ini, 'utf-8')
+            content = content.replace(
+              `$cfg['Servers'][$i]['host'] = 'localhost';`,
+              `$cfg['Servers'][$i]['host'] = '127.0.0.1';`
+            )
+            const cpFile = join(siteDir, 'config.inc.php')
+            await writeFile(cpFile, content)
+          }
         }
       }
 

@@ -3,6 +3,7 @@ import { AppStore } from '@/store/app'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import type { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
+import { dirname } from 'pathe'
 
 type ToolchainItem = {
   path: string
@@ -17,6 +18,7 @@ type TargetItem = {
 }
 
 export const RustupSetup = reactive<{
+  rustupBin: string
   versionSearchKey: string
   targetSearchKey: string
   tab: 'version' | 'target'
@@ -39,6 +41,7 @@ export const RustupSetup = reactive<{
   tagertAction: (item: TargetItem, action: 'add' | 'remove', xtermDom: HTMLElement) => Promise<any>
   versionDefault: (item: TargetItem, xtermDom: HTMLElement) => Promise<any>
 }>({
+  rustupBin: '',
   versionSearchKey: '',
   targetSearchKey: '',
   tab: 'version',
@@ -53,7 +56,8 @@ export const RustupSetup = reactive<{
   checkRustup() {
     IPC.send('app-fork:rust', 'checkRustup').then((key: string, res) => {
       IPC.off(key)
-      RustupSetup.installed = res?.data
+      RustupSetup.rustupBin = res?.data
+      RustupSetup.installed = !!RustupSetup.rustupBin
       if (RustupSetup.installed) {
         RustupSetup.fetchData()
       }
@@ -77,11 +81,22 @@ export const RustupSetup = reactive<{
     xtermDom: HTMLElement
   ) {
     RustupSetup.installEnd = false
-    const appStore = AppStore()
-    const proxy = appStore.config.setup?.proxy?.proxy
     const params = []
-    if (proxy) {
-      params.unshift(proxy)
+    if (window.Server.isWindows) {
+      if (window.Server.Proxy) {
+        for (const k in window.Server.Proxy) {
+          const v = window.Server.Proxy[k]
+          params.push(`$env:${k}="${v}"`)
+        }
+      }
+      params.push(`$env:PATH = "${dirname(RustupSetup.rustupBin)};" + $env:PATH`)
+    } else {
+      const appStore = AppStore()
+      const proxy = appStore.config.setup?.proxy?.proxy
+      if (proxy) {
+        params.unshift(proxy)
+      }
+      params.push(`export PATH="${dirname(RustupSetup.rustupBin)}:$PATH"`)
     }
     params.push(`rustup ${action} ${item.version}`)
     await nextTick()
@@ -94,11 +109,22 @@ export const RustupSetup = reactive<{
   },
   async tagertAction(item: TargetItem, action: 'add' | 'remove', xtermDom: HTMLElement) {
     RustupSetup.installEnd = false
-    const appStore = AppStore()
-    const proxy = appStore.config.setup?.proxy?.proxy
     const params = []
-    if (proxy) {
-      params.unshift(proxy)
+    if (window.Server.isWindows) {
+      if (window.Server.Proxy) {
+        for (const k in window.Server.Proxy) {
+          const v = window.Server.Proxy[k]
+          params.push(`$env:${k}="${v}"`)
+        }
+      }
+      params.push(`$env:PATH = "${dirname(RustupSetup.rustupBin)};" + $env:PATH`)
+    } else {
+      const appStore = AppStore()
+      const proxy = appStore.config.setup?.proxy?.proxy
+      if (proxy) {
+        params.unshift(proxy)
+      }
+      params.push(`export PATH="${dirname(RustupSetup.rustupBin)}:$PATH"`)
     }
     params.push(`rustup target ${action} ${item.name}`)
     await nextTick()
@@ -112,6 +138,11 @@ export const RustupSetup = reactive<{
   async versionDefault(item: TargetItem, xtermDom: HTMLElement) {
     RustupSetup.installEnd = false
     const params = []
+    if (window.Server.isWindows) {
+      params.push(`$env:PATH = "${dirname(RustupSetup.rustupBin)};" + $env:PATH`)
+    } else {
+      params.push(`export PATH="${dirname(RustupSetup.rustupBin)}:$PATH"`)
+    }
     params.push(`rustup default ${item.name}`)
     await nextTick()
     const execXTerm = new XTerm()
@@ -123,17 +154,23 @@ export const RustupSetup = reactive<{
   },
   async installRustup(xtermDom: HTMLElement) {
     RustupSetup.installEnd = false
-    const appStore = AppStore()
-    const proxy = appStore.config.setup?.proxy?.proxy
     const params = []
-    if (proxy) {
-      params.unshift(proxy)
-    }
     if (window.Server.isWindows) {
+      if (window.Server.Proxy) {
+        for (const k in window.Server.Proxy) {
+          const v = window.Server.Proxy[k]
+          params.push(`$env:${k}="${v}"`)
+        }
+      }
       params.push(`cd "${window.Server.Cache!}"`)
       params.push(`Invoke-WebRequest -Uri https://win.rustup.rs -OutFile rustup-init.exe`)
       params.push(`.\\rustup-init.exe -y --default-toolchain stable`)
     } else {
+      const appStore = AppStore()
+      const proxy = appStore.config.setup?.proxy?.proxy
+      if (proxy) {
+        params.unshift(proxy)
+      }
       params.push(`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
     }
     await nextTick()
@@ -142,6 +179,6 @@ export const RustupSetup = reactive<{
     await execXTerm.mount(xtermDom)
     await execXTerm.send(params)
     RustupSetup.installEnd = true
-    RustupSetup.fetchData()
+    RustupSetup.checkRustup()
   }
 })
