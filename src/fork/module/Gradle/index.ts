@@ -70,7 +70,7 @@ class Gradle extends Base {
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
             const command = `"${item.bin}" --version`
-            const reg = /(Gradle )(.*?)(\n)/g
+            const reg = /(Gradle )(\d+(\.\d+){1,4})(.*?)/g
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           return Promise.all(all)
