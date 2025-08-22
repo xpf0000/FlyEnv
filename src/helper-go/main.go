@@ -216,6 +216,12 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 				} else {
 					result, execErr = a.Tool.ProcessList()
 				}
+			case "processListWin":
+				if len(info.Args) != 0 {
+					execErr = fmt.Errorf("processListWin expects 0 arguments, got %d", len(info.Args))
+				} else {
+					result, execErr = a.Tool.ProcessListWin()
+				}
 			case "writeFileByRoot":
 				if len(info.Args) == 2 {
 					if file, ok := info.Args[0].(string); ok {
@@ -338,6 +344,16 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 					}
 				} else {
 					execErr = fmt.Errorf("getPortPids expects 1 argument, got %d", len(info.Args))
+				}
+			case "getPortPidsWin":
+				if len(info.Args) == 1 {
+					if port, ok := info.Args[0].(string); ok {
+						result, execErr = a.Tool.GetPortPidsWin(port)
+					} else {
+						execErr = fmt.Errorf("getPortPidsWin: arg[0] must be a string, got %T", info.Args[0])
+					}
+				} else {
+					execErr = fmt.Errorf("getPortPidsWin expects 1 argument, got %d", len(info.Args))
 				}
 			default:
 				execErr = fmt.Errorf("unknown function '%s' for module 'tools'", info.Function)

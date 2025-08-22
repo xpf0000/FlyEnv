@@ -5,6 +5,7 @@ import (
 	"helper-go/utils" // Import your utils package
 	"os"              // For os.TempDir
 	"path/filepath"   // For filepath.Join, filepath.Dir
+	"runtime"         // For runtime.GOOS detection
 	"strings"         // For string manipulation
 )
 
@@ -30,8 +31,7 @@ func (t *ToolManager) Exec(command string, options ...map[string]interface{}) er
 	return nil
 }
 
-// WriteFileByRoot attempts to write content to a file. If direct write fails,
-// it tries to write to a temp file and then copy with root privileges (via execPromise).
+// WriteFileByRoot with improved cleanup
 func (t *ToolManager) WriteFileByRoot(file string, content string) (bool, error) {
 	// Try writing directly first
 	err := utils.WriteFileString(file, content)
@@ -39,11 +39,20 @@ func (t *ToolManager) WriteFileByRoot(file string, content string) (bool, error)
 		return true, nil // Success
 	}
 
-	// If direct write failed, assume permissions issue and try via temp file + cp
-	cacheFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.txt", utils.UUID(32))) // 32 chars for UUID
+	// If direct write failed, assume permissions issue and try via temp file + copy
+	cacheFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.txt", utils.UUID(32)))
+
+	// Improved cleanup with defer
 	defer func() {
-		// Clean up the cache file, ignoring errors
-		_, _, _ = utils.ExecPromise(fmt.Sprintf(`rm -rf "%s"`, cacheFile), nil)
+		// First try native Go removal
+		if err := os.Remove(cacheFile); err != nil {
+			// If native fails, try command line
+			if runtime.GOOS == "windows" {
+				_, _, _ = utils.ExecPromise(fmt.Sprintf(`del /f /q "%s"`, cacheFile), nil)
+			} else {
+				_, _, _ = utils.ExecPromise(fmt.Sprintf(`rm -rf "%s"`, cacheFile), nil)
+			}
+		}
 	}()
 
 	// Write content to temp file
@@ -52,36 +61,54 @@ func (t *ToolManager) WriteFileByRoot(file string, content string) (bool, error)
 		return false, fmt.Errorf("failed to write to temporary file '%s': %w", cacheFile, err)
 	}
 
-	// Copy from temp file to target with potential root privileges
-	_, stderr, err := utils.ExecPromise(fmt.Sprintf(`cp -f "%s" "%s"`, cacheFile, file), nil)
-	if err != nil {
-		// This is the final error if cp also fails
-		return false, fmt.Errorf("failed to copy from temp '%s' to target '%s' with root: %w, stderr: %s", cacheFile, file, err, stderr)
+	// Copy from temp file to target
+	if runtime.GOOS == "windows" {
+		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`copy /y "%s" "%s"`, cacheFile, file), nil)
+		if err != nil {
+			return false, fmt.Errorf("failed to copy from temp '%s' to target '%s': %w, stderr: %s", cacheFile, file, err, stderr)
+		}
+	} else {
+		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`cp -f "%s" "%s"`, cacheFile, file), nil)
+		if err != nil {
+			return false, fmt.Errorf("failed to copy from temp '%s' to target '%s': %w, stderr: %s", cacheFile, file, err, stderr)
+		}
 	}
 
-	return true, nil // Success after retry
+	return true, nil
 }
 
-// ReadFileByRoot attempts to read content from a file. If direct read fails,
-// it tries to copy to a temp file and then read from there with root privileges.
+// ReadFileByRoot with improved cleanup
 func (t *ToolManager) ReadFileByRoot(file string) (string, error) {
 	content, err := utils.ReadFile(file)
 	if err == nil {
 		return content, nil // Success
 	}
 
-	// If direct read failed, assume permissions issue and try via temp file + cp
-	// For global.Server.Cache, we use os.TempDir() as a standard temporary directory.
-	cacheFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.txt", utils.UUID(32))) // 32 chars for UUID
+	// If direct read failed, try via temp file + copy
+	cacheFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.txt", utils.UUID(32)))
+
+	// Improved cleanup with defer
 	defer func() {
-		// Clean up the cache file, ignoring errors
-		_, _, _ = utils.ExecPromise(fmt.Sprintf(`rm -rf "%s"`, cacheFile), nil)
+		if err := os.Remove(cacheFile); err != nil {
+			if runtime.GOOS == "windows" {
+				_, _, _ = utils.ExecPromise(fmt.Sprintf(`del /f /q "%s"`, cacheFile), nil)
+			} else {
+				_, _, _ = utils.ExecPromise(fmt.Sprintf(`rm -rf "%s"`, cacheFile), nil)
+			}
+		}
 	}()
 
-	// Copy from target file to temp file with potential root privileges
-	_, stderr, err := utils.ExecPromise(fmt.Sprintf(`cp -f "%s" "%s"`, file, cacheFile), nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to copy from target '%s' to temp '%s' with root: %w, stderr: %s", file, cacheFile, err, stderr)
+	// Copy from target file to temp file
+	if runtime.GOOS == "windows" {
+		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`copy /y "%s" "%s"`, file, cacheFile), nil)
+		if err != nil {
+			return "", fmt.Errorf("failed to copy from target '%s' to temp '%s': %w, stderr: %s", file, cacheFile, err, stderr)
+		}
+	} else {
+		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`cp -f "%s" "%s"`, file, cacheFile), nil)
+		if err != nil {
+			return "", fmt.Errorf("failed to copy from target '%s' to temp '%s': %w, stderr: %s", file, cacheFile, err, stderr)
+		}
 	}
 
 	// Read content from temp file
@@ -90,7 +117,7 @@ func (t *ToolManager) ReadFileByRoot(file string) (string, error) {
 		return "", fmt.Errorf("failed to read from temporary file '%s': %w", cacheFile, err)
 	}
 
-	return content, nil // Success after retry
+	return content, nil
 }
 
 // ProcessInfo represents a process's details.
@@ -145,13 +172,57 @@ func (t *ToolManager) ProcessList() ([]ProcessInfo, error) {
 	return processes, nil
 }
 
+func (t *ToolManager) ProcessListWin() (string, error) {
+	// Create temporary JSON file
+	jsonFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.json", utils.UUID(32)))
+
+	// Use defer with improved cleanup
+	defer func() {
+		// First try native Go removal
+		if err := os.Remove(jsonFile); err != nil {
+			// If native fails, try command line
+			_, _, _ = utils.ExecPromise(fmt.Sprintf(`del /f /q "%s"`, jsonFile), nil)
+		}
+	}()
+
+	// PowerShell command to get process info and output to JSON
+	command := fmt.Sprintf(
+		`powershell.exe -NoProfile -WindowStyle Hidden -command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId,CreationClassName | ConvertTo-Json | Out-File -FilePath '%s' -Encoding utf8"`,
+		jsonFile,
+	)
+
+	_, stderr, err := utils.ExecPromise(command, nil)
+	if err != nil {
+		return "", fmt.Errorf("Warning: failed to execute PowerShell command: %v, stderr: %s\n", err, stderr)
+	}
+
+	// Read and parse JSON content
+	content, err := utils.ReadFile(jsonFile)
+	if err != nil {
+		return "", fmt.Errorf("Warning: failed to read process JSON file '%s': %v\n", jsonFile, err)
+	}
+
+	content = strings.TrimSpace(content)
+
+	return content, nil
+}
+
 // Rm removes a file or directory recursively.
 func (t *ToolManager) Rm(dir string) (bool, error) {
-	_, stderr, err := utils.ExecPromise(fmt.Sprintf(`rm -rf "%s"`, dir), nil)
-	if err != nil {
-		// JS ignored errors. Go will log but return true (matching JS's unconditional resolve).
-		fmt.Printf("Warning: failed to remove '%s': %v, stderr: %s\n", dir, err, stderr)
-		return true, nil
+	if err := os.RemoveAll(dir); err != nil {
+		var command string
+		if runtime.GOOS == "windows" {
+			command = fmt.Sprintf(`rmdir /s /q "%s"`, dir)
+		} else {
+			command = fmt.Sprintf(`rm -rf "%s"`, dir)
+		}
+
+		_, stderr, err := utils.ExecPromise(command, nil)
+		if err != nil {
+			// JS ignored errors. Go will log but return true (matching JS's unconditional resolve).
+			fmt.Printf("Warning: failed to remove '%s': %v, stderr: %s\n", dir, err, stderr)
+			return true, nil
+		}
 	}
 	return true, nil
 }
@@ -159,10 +230,17 @@ func (t *ToolManager) Rm(dir string) (bool, error) {
 // Chmod changes the permissions of a file or directory.
 func (t *ToolManager) Chmod(dir, flag string) (bool, error) {
 	if utils.ExistsSync(dir) {
-		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`chmod %s "%s"`, flag, dir), nil)
-		if err != nil {
-			// JS ignored errors. Go will log but return true.
-			fmt.Printf("Warning: failed to chmod '%s' with '%s': %v, stderr: %s\n", dir, flag, err, stderr)
+		if runtime.GOOS == "windows" {
+			// Windows uses different permission system, implement basic support
+			// For simplicity, we'll just return success on Windows
+			fmt.Printf("Info: chmod not fully supported on Windows, skipping '%s'\n", dir)
+			return true, nil
+		} else {
+			_, stderr, err := utils.ExecPromise(fmt.Sprintf(`chmod %s "%s"`, flag, dir), nil)
+			if err != nil {
+				// JS ignored errors. Go will log but return true.
+				fmt.Printf("Warning: failed to chmod '%s' with '%s': %v, stderr: %s\n", dir, flag, err, stderr)
+			}
 		}
 	}
 	return true, nil
@@ -173,11 +251,19 @@ func (t *ToolManager) Kill(sig string, pids []string) (bool, error) {
 	if len(pids) == 0 {
 		return true, nil // Nothing to kill
 	}
-	command := fmt.Sprintf(`kill %s %s`, sig, strings.Join(pids, " "))
+
+	var command string
+	if runtime.GOOS == "windows" {
+		// Windows uses taskkill instead of kill
+		command = fmt.Sprintf(`taskkill /f /pid %s`, strings.Join(pids, " /pid "))
+	} else {
+		command = fmt.Sprintf(`kill %s %s`, sig, strings.Join(pids, " "))
+	}
+
 	_, stderr, err := utils.ExecPromise(command, nil)
 	if err != nil {
 		// JS ignored errors. Go will log but return true.
-		fmt.Printf("Warning: failed to kill processes with signal '%s': %v, stderr: %s\n", sig, err, stderr)
+		fmt.Printf("Warning: failed to kill processes: %v, stderr: %s\n", err, stderr)
 	}
 	return true, nil
 }
@@ -185,10 +271,16 @@ func (t *ToolManager) Kill(sig string, pids []string) (bool, error) {
 // Lns creates a symbolic link.
 func (t *ToolManager) Lns(oldname, newname string) (bool, error) {
 	// JS checks if oldname exists before linking.
-	// In Go, `os.Symlink` or `ln -s` handles this by failing if source doesn't exist,
-	// so the `ExistsSync` check before `ln` might be redundant or for pre-flight.
 	if utils.ExistsSync(oldname) {
-		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`ln -s "%s" "%s"`, oldname, newname), nil)
+		var command string
+		if runtime.GOOS == "windows" {
+			// Windows mklink command (requires admin privileges in some cases)
+			command = fmt.Sprintf(`mklink "%s" "%s"`, newname, oldname)
+		} else {
+			command = fmt.Sprintf(`ln -s "%s" "%s"`, oldname, newname)
+		}
+
+		_, stderr, err := utils.ExecPromise(command, nil)
 		if err != nil {
 			// JS ignored errors. Go will log but return true.
 			fmt.Printf("Warning: failed to create symlink from '%s' to '%s': %v, stderr: %s\n", oldname, newname, err, stderr)
@@ -202,10 +294,17 @@ func (t *ToolManager) KillPorts(ports []string) (bool, error) {
 	pids := make(map[string]struct{}) // Using map as a set
 
 	for _, port := range ports {
-		lsofCmd := fmt.Sprintf(`lsof -nP -i:%s | grep '(LISTEN)' | awk '{print $1,$2}'`, port) // Simplified awk to get COMMAND and PID
-		stdout, _, err := utils.ExecPromise(lsofCmd, nil)
+		var command string
+		if runtime.GOOS == "windows" {
+			// Windows: use netstat to find processes using ports
+			command = fmt.Sprintf(`netstat -ano | findstr ":%s" | findstr "LISTENING"`, port)
+		} else {
+			command = fmt.Sprintf(`lsof -nP -i:%s | grep '(LISTEN)' | awk '{print $1,$2}'`, port)
+		}
+
+		stdout, _, err := utils.ExecPromise(command, nil)
 		if err != nil {
-			fmt.Printf("Warning: lsof command failed for port %s: %v\n", port, err)
+			fmt.Printf("Warning: port detection command failed for port %s: %v\n", port, err)
 			continue // Continue to next port even if one fails
 		}
 
@@ -215,11 +314,22 @@ func (t *ToolManager) KillPorts(ports []string) (bool, error) {
 			if line == "" {
 				continue
 			}
-			parts := strings.Fields(line)
-			if len(parts) >= 2 {
-				// Assuming `awk '{print $1,$2}'` gives COMMAND then PID
-				pid := parts[1] // PID is the second field
-				pids[pid] = struct{}{}
+
+			if runtime.GOOS == "windows" {
+				// Parse Windows netstat output
+				// Format: Proto Local Address Foreign Address State PID
+				parts := strings.Fields(line)
+				if len(parts) >= 5 {
+					pid := parts[len(parts)-1] // PID is the last field
+					pids[pid] = struct{}{}
+				}
+			} else {
+				// Parse Unix lsof output
+				parts := strings.Fields(line)
+				if len(parts) >= 2 {
+					pid := parts[1] // PID is the second field
+					pids[pid] = struct{}{}
+				}
 			}
 		}
 	}
@@ -229,7 +339,14 @@ func (t *ToolManager) KillPorts(ports []string) (bool, error) {
 		for pid := range pids {
 			pidList = append(pidList, pid)
 		}
-		killCmd := fmt.Sprintf(`kill -9 %s`, strings.Join(pidList, " "))
+
+		var killCmd string
+		if runtime.GOOS == "windows" {
+			killCmd = fmt.Sprintf(`taskkill /f /pid %s`, strings.Join(pidList, " /pid "))
+		} else {
+			killCmd = fmt.Sprintf(`kill -9 %s`, strings.Join(pidList, " "))
+		}
+
 		_, stderr, err := utils.ExecPromise(killCmd, nil)
 		if err != nil {
 			fmt.Printf("Warning: failed to kill processes for ports: %v, stderr: %s\n", err, stderr)
@@ -247,10 +364,12 @@ type PortProcessInfo struct {
 
 // GetPortPids returns a list of processes using a specific port.
 func (t *ToolManager) GetPortPids(port string) ([]PortProcessInfo, error) {
-	lsofCmd := fmt.Sprintf(`lsof -nP -i:%s | awk '{print $1,$2,$3}'`, port)
-	stdout, _, err := utils.ExecPromise(lsofCmd, nil)
+	var command string
+	command = fmt.Sprintf(`lsof -nP -i:%s | awk '{print $1,$2,$3}'`, port)
+
+	stdout, _, err := utils.ExecPromise(command, nil)
 	if err != nil {
-		return nil, fmt.Errorf("lsof command failed for port %s: %w", port, err)
+		return nil, fmt.Errorf("port detection command failed for port %s: %w", port, err)
 	}
 
 	res := strings.TrimSpace(stdout)
@@ -260,24 +379,20 @@ func (t *ToolManager) GetPortPids(port string) ([]PortProcessInfo, error) {
 		return []PortProcessInfo{}, nil // No processes found
 	}
 
-	// Skip header line (i > 0)
-	processes := make([]PortProcessInfo, 0, len(lines)-1)
-	for i, line := range lines {
-		if i == 0 { // Skip header line
-			continue
-		}
+	processes := make([]PortProcessInfo, 0, len(lines))
+
+	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
+
+		// Parse Unix lsof output
 		parts := strings.Fields(line)
 		if len(parts) < 3 {
-			// Handle cases where the line might be malformed or not contain enough parts
-			// fmt.Printf("Warning: Malformed lsof output line for port %s: %s\n", port, line)
-			continue
+			continue // Skip malformed lines
 		}
 
-		// The JS logic extracts PID, USER, COMMAND.
 		// lsof -nP -i:PORT | awk '{print $1,$2,$3}' gives: COMMAND PID USER
 		command := parts[0]
 		pid := parts[1]
@@ -288,6 +403,42 @@ func (t *ToolManager) GetPortPids(port string) ([]PortProcessInfo, error) {
 			PID:     pid,
 			COMMAND: command,
 		})
+	}
+	return processes, nil
+}
+
+// GetPortPids returns a list of processes using a specific port.
+func (t *ToolManager) GetPortPidsWin(port string) ([]string, error) {
+	var command string
+	command = fmt.Sprintf(`netstat -ano | findstr ":%s"`, port)
+
+	stdout, _, err := utils.ExecPromise(command, nil)
+	if err != nil {
+		return nil, fmt.Errorf("port detection command failed for port %s: %w", port, err)
+	}
+
+	res := strings.TrimSpace(stdout)
+	lines := strings.Split(res, "\n")
+
+	if len(lines) == 0 || (len(lines) == 1 && strings.TrimSpace(lines[0]) == "") {
+		return []string{}, nil // No processes found
+	}
+
+	processes := make([]string, 0, len(lines))
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// Parse Windows netstat output
+		// Format: Proto Local Address Foreign Address State PID
+		parts := strings.Fields(line)
+		if len(parts) >= 5 {
+			pid := parts[len(parts)-1] // PID is the last field
+			// For Windows, we don't easily get USER and COMMAND from netstat
+			processes = append(processes, pid)
+		}
 	}
 	return processes, nil
 }

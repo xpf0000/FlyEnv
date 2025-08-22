@@ -57,6 +57,8 @@ func ExecPromise(command string, options map[string]interface{}) (string, string
 		cmd = exec.Command("/bin/zsh", "-c", command)
 	} else if IsLinux() {
 		cmd = exec.Command("/bin/bash", "-c", command)
+	} else if IsWindows() {
+		cmd = exec.Command("cmd", "/C", command)
 	} else {
 		return "", "", fmt.Errorf("unsupported operating system")
 	}
@@ -94,6 +96,7 @@ func WaitTime(duration time.Duration) <-chan bool {
 
 // 对应 uuid
 func UUID(length int) string {
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	const num = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 	var str strings.Builder
 	for i := 0; i < length; i++ {
