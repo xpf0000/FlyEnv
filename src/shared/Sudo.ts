@@ -2,7 +2,6 @@ import { exec as execChildProcess } from 'node:child_process'
 import * as fs from 'node:fs/promises'
 import os, { tmpdir } from 'node:os'
 import path from 'node:path'
-import { existsSync } from 'node:fs'
 import { promisify } from 'node:util'
 import { uuid, waitTime } from './utils'
 
