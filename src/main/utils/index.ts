@@ -69,22 +69,21 @@ export async function readFileFixed(file: string): Promise<string> {
   const path = pathFixedToUnix(file)
   try {
     return await readFile(path, 'utf-8')
-  } catch (e) {
-    if (isMacOS() || isLinux()) {
-      return (await Helper.send('tools', 'readFileByRoot', path)) as any
-    }
-    throw e
-  }
+  } catch {}
+  try {
+    return (await Helper.send('tools', 'readFileByRoot', path)) as any
+  } catch {}
+  throw new Error(`readFileFixed Failed: ${file}`)
 }
 
 export async function writeFileFixed(file: string, content: string) {
   const path = pathFixedToUnix(file)
   try {
     return await writeFile(path, content)
-  } catch (e) {
-    if (isMacOS() || isLinux()) {
-      return await Helper.send('tools', 'writeFileByRoot', path, content)
-    }
-    throw e
-  }
+  } catch {}
+  try {
+    return await Helper.send('tools', 'writeFileByRoot', path, content)
+  } catch {}
+
+  throw new Error(`writeFileFixed Failed: ${file}`)
 }

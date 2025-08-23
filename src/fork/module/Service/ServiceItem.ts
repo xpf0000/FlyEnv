@@ -1,9 +1,7 @@
 import type { AppHost } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { waitTime, watch, existsSync, type FSWatcher, readFile } from '../../Fn'
+import { waitTime, watch, existsSync, type FSWatcher, readFile, remove } from '../../Fn'
 import Helper from '../../Helper'
-import { isWindows } from '@shared/utils'
-import { execPromise } from '@shared/child-process'
 
 export const getHostItemEnv = async (item: AppHost) => {
   if (item?.envVarType === 'none') {
@@ -75,23 +73,18 @@ export class ServiceItem {
 
       const arr = await this.checkState()
       if (arr.length > 0) {
-        if (isWindows()) {
-          const str = arr.map((s) => `/pid ${s}`).join(' ')
-          try {
-            await execPromise(`taskkill /f /t ${str}`)
-          } catch {}
-        } else {
-          try {
-            await Helper.send('tools', 'kill', '-9', arr)
-          } catch {}
-        }
+        try {
+          await Helper.send('tools', 'kill', '-9', arr)
+        } catch {}
       }
       if (this.pidFile && existsSync(this.pidFile)) {
-        if (isWindows()) {
-          try {
-            await execPromise(`del -Force ${this.pidFile}`)
-          } catch {}
-        } else {
+        let hasError = false
+        try {
+          await remove(this.pidFile)
+        } catch {
+          hasError = true
+        }
+        if (hasError) {
           try {
             await Helper.send('tools', 'rm', this.pidFile)
           } catch {}

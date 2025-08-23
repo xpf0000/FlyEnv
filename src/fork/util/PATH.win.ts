@@ -1,7 +1,8 @@
 import { isAbsolute, join } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, execPromise, existsSync, readFile, remove, spawnPromise, writeFile } from '../Fn'
+import { copyFile, existsSync, readFile, remove, writeFile } from '../Fn'
 import { appDebugLog } from '@shared/utils'
+import Helper from '../Helper'
 
 export const fetchRawPATH = (): ForkPromise<string[]> => {
   return new ForkPromise(async (resolve, reject) => {
@@ -12,23 +13,19 @@ export const fetchRawPATH = (): ForkPromise<string[]> => {
       await remove(copySh)
     }
     await copyFile(sh, copySh)
-    process.chdir(global.Server.Cache!)
+    const commands = [
+      'powershell.exe',
+      '-NoProfile',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-Command',
+      `"Unblock-File -LiteralPath './path-get.ps1'; & './path-get.ps1'"`
+    ]
     let res: any
     try {
-      res = await spawnPromise(
-        'powershell.exe',
-        [
-          '-NoProfile',
-          '-ExecutionPolicy',
-          'Bypass',
-          '-Command',
-          `"Unblock-File -LiteralPath './path-get.ps1'; & './path-get.ps1'"`
-        ],
-        {
-          shell: 'powershell.exe',
-          cwd: global.Server.Cache!
-        }
-      )
+      res = await Helper.send('tools', 'exec', commands.join(' '), {
+        cwd: global.Server.Cache!
+      })
     } catch (e) {
       console.log('fetchRawPATH error: ', e)
       appDebugLog('[_fetchRawPATH][error]', `${e}`).catch()
@@ -102,11 +99,9 @@ export const writePath = async (path: string[], other: string = '') => {
   let content = await readFile(sh, 'utf-8')
   content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
   await writeFile(copySh, content, 'utf-8')
-  process.chdir(global.Server.Cache!)
   try {
-    await execPromise(
-      `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
-    )
+    const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
+    await Helper.send('tools', 'exec', command)
   } catch (e) {
     console.log('writePath error: ', e)
     appDebugLog('[writePath][error]', `${e}`)

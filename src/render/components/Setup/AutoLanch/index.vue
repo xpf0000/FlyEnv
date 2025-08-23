@@ -38,16 +38,18 @@
       return store.config.setup?.autoLaunch ?? false
     },
     set(v) {
-      app.setLoginItemSettings({
-        openAtLogin: v
-      }).then((res: any) => {
-        if (typeof res === 'boolean' && res === true) {
-          store.config.setup.autoLaunch = v
-          store.saveConfig()
-        } else {
-          MessageError(res)
-        }
-      })
+      app
+        .setLoginItemSettings({
+          openAtLogin: v
+        })
+        .then((res: any) => {
+          if (typeof res === 'boolean' && res === true) {
+            store.config.setup.autoLaunch = v
+            store.saveConfig()
+          } else {
+            MessageError(res)
+          }
+        })
     }
   })
 

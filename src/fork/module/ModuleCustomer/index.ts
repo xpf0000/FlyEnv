@@ -41,9 +41,8 @@ class ModuleCustomer {
         const pids = await ProcessPidListByPid(`${pid}`.trim())
 
         if (pids.length > 0) {
-          const str = pids.map((s) => `/pid ${s}`).join(' ')
           try {
-            await execPromise(`taskkill /f /t ${str}`)
+            await Helper.send('tools', 'kill', '-INT', pids)
           } catch {}
         }
 

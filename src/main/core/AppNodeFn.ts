@@ -148,7 +148,7 @@ export class AppNodeFn {
     try {
       const res = TOMLParse(json)
       this?.mainWindow?.webContents.send('command', command, key, res)
-    } catch (e) {
+    } catch {
       this?.mainWindow?.webContents.send('command', command, key, null)
     }
   }
@@ -157,7 +157,7 @@ export class AppNodeFn {
     try {
       const res = TOMLStringify(json)
       this?.mainWindow?.webContents.send('command', command, key, res)
-    } catch (e) {
+    } catch {
       this?.mainWindow?.webContents.send('command', command, key, null)
     }
   }
@@ -217,26 +217,21 @@ X-GNOME-Autostart-enabled=true`
     const taskName = 'FlyEnvStartup'
     if (autoLaunch) {
       const tmpl = await readFile(join(global.Server.Static!, 'sh/flyenv-auto-start.ps1'), 'utf-8')
-      const content = tmpl.replace('#EXECPATH#', exePath)
-      try {
-        await mkdirp(global.Server.Cache!)
-        const file = join(global.Server.Cache!, 'flyenv-auto-start.ps1')
-        await writeFile(file, content)
-        const res = await execPromise(
-          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${file}'; & '${file}'"`
-        )
-        await remove(file)
-        const std = res.stdout + res.stderr
-        if (std.includes(`Task Create Success: FlyEnvStartup`)) {
-          return true
-        }
-        throw new Error(res.stderr)
-      } catch (e: any) {
-        throw e
+      const content = tmpl.replace('#TASKNAME#', taskName).replace('#EXECPATH#', exePath)
+      await mkdirp(global.Server.Cache!)
+      const file = join(global.Server.Cache!, 'flyenv-auto-start.ps1')
+      await writeFile(file, content)
+      const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${file}'; & '${file}'"`
+      const res: any = await Helper.send('tools', 'exec', command)
+      await remove(file)
+      const std = res.stdout + res.stderr
+      if (std.includes(`Task Create Success: FlyEnvStartup`)) {
+        return true
       }
+      throw new Error(res.stderr)
     } else {
       try {
-        await execPromise(`schtasks.exe /delete /tn "${taskName}" /f`)
+        await Helper.send('tools', 'exec', `schtasks.exe /delete /tn "${taskName}" /f`)
       } catch {}
       return true
     }
@@ -368,17 +363,13 @@ X-GNOME-Autostart-enabled=true`
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
       .catch(() => {
-        if (isMacOS() || isLinux()) {
-          Helper.send('tools', 'writeFileByRoot', path, data)
-            .then(() => {
-              this?.mainWindow?.webContents.send('command', command, key, true)
-            })
-            .catch(() => {
-              this?.mainWindow?.webContents.send('command', command, key, false)
-            })
-        } else {
-          this?.mainWindow?.webContents.send('command', command, key, false)
-        }
+        Helper.send('tools', 'writeFileByRoot', path, data)
+          .then(() => {
+            this?.mainWindow?.webContents.send('command', command, key, true)
+          })
+          .catch(() => {
+            this?.mainWindow?.webContents.send('command', command, key, false)
+          })
       })
   }
 
@@ -462,17 +453,13 @@ X-GNOME-Autostart-enabled=true`
         this?.mainWindow?.webContents.send('command', command, key, data)
       })
       .catch(() => {
-        if (isMacOS() || isLinux()) {
-          Helper.send('tools', 'readFileByRoot', path)
-            .then((data) => {
-              this?.mainWindow?.webContents.send('command', command, key, data)
-            })
-            .catch(() => {
-              this?.mainWindow?.webContents.send('command', command, key, '')
-            })
-        } else {
-          this?.mainWindow?.webContents.send('command', command, key, '')
-        }
+        Helper.send('tools', 'readFileByRoot', path)
+          .then((data) => {
+            this?.mainWindow?.webContents.send('command', command, key, data)
+          })
+          .catch(() => {
+            this?.mainWindow?.webContents.send('command', command, key, '')
+          })
       })
   }
 
@@ -482,17 +469,13 @@ X-GNOME-Autostart-enabled=true`
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
       .catch(() => {
-        if (isMacOS() || isLinux()) {
-          Helper.send('tools', 'writeFileByRoot', path, data)
-            .then(() => {
-              this?.mainWindow?.webContents.send('command', command, key, true)
-            })
-            .catch(() => {
-              this?.mainWindow?.webContents.send('command', command, key, false)
-            })
-        } else {
-          this?.mainWindow?.webContents.send('command', command, key, false)
-        }
+        Helper.send('tools', 'writeFileByRoot', path, data)
+          .then(() => {
+            this?.mainWindow?.webContents.send('command', command, key, true)
+          })
+          .catch(() => {
+            this?.mainWindow?.webContents.send('command', command, key, false)
+          })
       })
   }
 

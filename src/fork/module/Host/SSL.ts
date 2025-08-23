@@ -12,7 +12,7 @@ const initCARoot = () => {
     const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
     const command = `certutil -addstore root "${CARoot}"`
     try {
-      const res = await execPromise(command)
+      const res = await Helper.send('tools', 'exec', command)
       console.log('initCARoot res111: ', res)
     } catch {}
     resolve(true)

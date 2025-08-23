@@ -429,8 +429,9 @@ datadir=${pathFixedToUnix(dataDir)}`
         all.forEach((item) => arr.push(item.PID))
 
         if (arr.length > 0) {
-          const str = arr.map((s) => `/pid ${s}`).join(' ')
-          await execPromise(`taskkill /f /t ${str}`)
+          try {
+            await Helper.send('tools', 'kill', '-INT', arr)
+          } catch {}
         }
         await waitTime(500)
         resolve({

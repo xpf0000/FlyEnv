@@ -1,11 +1,11 @@
 import { exec as Sudo } from '@shared/Sudo'
 import { join, resolve as PathResolve, basename } from 'node:path'
 import is from 'electron-is'
-import { isLinux, isMacOS } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { tmpdir } from 'node:os'
 import { uuid } from '../utils'
-import { copyFile, chmod, mkdirp } from '@shared/fs-extra'
+import { copyFile, chmod, mkdirp, readFile, writeFile } from '@shared/fs-extra'
 
 type AppHelperCallback = (
   state: 'needInstall' | 'installing' | 'installed' | 'installFaild' | 'checkSuccess'
@@ -111,6 +111,19 @@ export class AppHelper {
 
         command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
+      } else if (isWindows()) {
+        const helperFile = 'flyenv-helper-windows-amd64-v1.exe'
+        const binDir = PathResolve(global.Server.Static!, '../../../build/')
+        const bin = PathResolve(binDir, `../src/helper-go/dist/${helperFile}`)
+        const tmpl = await readFile(
+          join(global.Server.Static!, 'sh/flyenv-auto-start.ps1'),
+          'utf-8'
+        )
+        const content = tmpl.replace('#TASKNAME#', 'flyenv-helper').replace('#EXECPATH#', bin)
+        const tmpFile = join(tmpDir, `${uuid()}.ps1`)
+        await writeFile(tmpFile, content)
+        command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
+        icns = join(binDir, 'icon.icns')
       }
     }
 

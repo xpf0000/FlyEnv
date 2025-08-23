@@ -5,7 +5,7 @@ import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash-es'
 import Helper from '../../Helper'
-import { isWindows, pathFixedToUnix } from '@shared/utils'
+import { pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -108,44 +108,33 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
     }
     const arr = [cvhost]
     for (const f of arr) {
-      if (isWindows()) {
-        if (existsSync(f.oldFile)) {
+      if (existsSync(f.oldFile)) {
+        let hasErr = false
+        try {
           await copyFile(f.oldFile, f.newFile)
+        } catch {
+          hasErr = true
+        }
+        if (hasErr) {
+          try {
+            const content: string = (await Helper.send('tools', 'readFileByRoot', f.oldFile)) as any
+            await writeFile(f.newFile, content)
+          } catch {}
+        }
+        hasErr = false
+        try {
           await remove(f.oldFile)
+        } catch {
+          hasErr = true
         }
-      } else {
-        if (existsSync(f.oldFile)) {
-          let hasErr = false
+        if (hasErr) {
           try {
-            await copyFile(f.oldFile, f.newFile)
-          } catch {
-            hasErr = true
-          }
-          if (hasErr) {
-            try {
-              const content: string = (await Helper.send(
-                'tools',
-                'readFileByRoot',
-                f.oldFile
-              )) as any
-              await writeFile(f.newFile, content)
-            } catch {}
-          }
-          hasErr = false
-          try {
-            await remove(f.oldFile)
-          } catch {
-            hasErr = true
-          }
-          if (hasErr) {
-            try {
-              await Helper.send('tools', 'rm', f.oldFile)
-            } catch {}
-          }
+            await Helper.send('tools', 'rm', f.oldFile)
+          } catch {}
         }
-        if (existsSync(f.newFile)) {
-          await chmod(f.newFile, '0777')
-        }
+      }
+      if (existsSync(f.newFile)) {
+        await chmod(f.newFile, '0777')
       }
     }
   }

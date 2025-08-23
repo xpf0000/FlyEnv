@@ -1,7 +1,7 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 try {
-    $taskName = "FlyEnvStartup"
+    $taskName = "#TASKNAME#"
     $exePath = "#EXECPATH#"
 
     if (-not (Test-Path -LiteralPath $exePath)) {

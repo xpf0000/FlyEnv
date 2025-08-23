@@ -24,6 +24,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import axios from 'axios'
 import { ProcessListSearch } from '@shared/Process.win'
+import Helper from '../../Helper'
 
 class Php extends Base {
   constructor() {
@@ -161,9 +162,8 @@ class Php extends Base {
       arr.unshift(...fpm)
       console.log('php arr: ', arr)
       if (arr.length > 0) {
-        const str = arr.map((s) => `/pid ${s}`).join(' ')
         try {
-          await execPromise(`taskkill /f /t ${str}`)
+          await Helper.send('tools', 'kill', arr)
         } catch {}
       }
       on({

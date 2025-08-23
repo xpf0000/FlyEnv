@@ -98,9 +98,6 @@ export default class Application extends EventEmitter {
   }
 
   initAppHelper() {
-    if (isWindows()) {
-      return
-    }
     AppHelperRoleFix().catch()
     Helper.appHelper = AppHelper
     AppHelper.onStatusMessage((flag) => {

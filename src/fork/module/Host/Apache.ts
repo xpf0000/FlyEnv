@@ -113,44 +113,33 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
     }
     const arr = [avhost, accesslogap, errorlogap]
     for (const f of arr) {
-      if (isWindows()) {
-        if (existsSync(f.oldFile)) {
+      if (existsSync(f.oldFile)) {
+        let hasErr = false
+        try {
           await copyFile(f.oldFile, f.newFile)
+        } catch {
+          hasErr = true
+        }
+        if (hasErr) {
+          try {
+            const content: string = (await Helper.send('tools', 'readFileByRoot', f.oldFile)) as any
+            await writeFile(f.newFile, content)
+          } catch {}
+        }
+        hasErr = false
+        try {
           await remove(f.oldFile)
+        } catch {
+          hasErr = true
         }
-      } else {
-        if (existsSync(f.oldFile)) {
-          let hasErr = false
+        if (hasErr) {
           try {
-            await copyFile(f.oldFile, f.newFile)
-          } catch {
-            hasErr = true
-          }
-          if (hasErr) {
-            try {
-              const content: string = (await Helper.send(
-                'tools',
-                'readFileByRoot',
-                f.oldFile
-              )) as any
-              await writeFile(f.newFile, content)
-            } catch {}
-          }
-          hasErr = false
-          try {
-            await remove(f.oldFile)
-          } catch {
-            hasErr = true
-          }
-          if (hasErr) {
-            try {
-              await Helper.send('tools', 'rm', f.oldFile)
-            } catch {}
-          }
+            await Helper.send('tools', 'rm', f.oldFile)
+          } catch {}
         }
-        if (existsSync(f.newFile)) {
-          await chmod(f.newFile, '0777')
-        }
+      }
+      if (existsSync(f.newFile)) {
+        await chmod(f.newFile, '0777')
       }
     }
   }

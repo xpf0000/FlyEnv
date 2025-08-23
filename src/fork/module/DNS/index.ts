@@ -1,4 +1,3 @@
-import { readFileSync } from 'fs'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import DNS2 from 'dns2'
@@ -77,11 +76,7 @@ class Manager extends Base {
       this.lastTime = time
       try {
         let hosts = ''
-        if (isWindows()) {
-          hosts = readFileSync(hostFile, 'utf-8') ?? ''
-        } else {
-          hosts = (await Helper.send('tools', 'readFileByRoot', hostFile)) as string
-        }
+        hosts = (await Helper.send('tools', 'readFileByRoot', hostFile)) as string
         const arrs = hosts.split('\n').filter((s) => s.trim().indexOf('#') !== 0)
         arrs.forEach((s) => {
           const items = s

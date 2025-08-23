@@ -107,7 +107,7 @@ class Python extends Base {
     if (isWindows()) {
       const tmpDir = join(global.Server.Cache!, `python-${row.version}-tmp`)
       if (existsSync(tmpDir)) {
-        await execPromise(`rmdir /S /Q ${tmpDir}`)
+        await remove(tmpDir)
       }
       const dark = join(global.Server.Cache!, 'dark/dark.exe')
       const darkDir = join(global.Server.Cache!, 'dark')

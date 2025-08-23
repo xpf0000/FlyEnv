@@ -4,7 +4,6 @@ import { dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
   execPromiseWithEnv,
   waitTime,
   readFile,
@@ -20,8 +19,8 @@ import * as https from 'https'
 import { type PItem, ProcessSearch } from '@shared/Process'
 import Helper from '../../Helper'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { ProcessPidList } from '@shared/Process.win'
 import { unpack } from '../../util/Zip'
+import { ProcessPidList } from '@shared/Process.win'
 
 export class Base {
   type: string
@@ -195,9 +194,8 @@ export class Base {
       const arr: string[] = Array.from(new Set(allPid))
       if (isWindows()) {
         if (arr.length > 0) {
-          const str = arr.map((s) => `/pid ${s}`).join(' ')
           try {
-            await execPromise(`taskkill /f /t ${str}`)
+            await Helper.send('tools', 'kill', '-INT', arr)
           } catch {}
         }
       } else {

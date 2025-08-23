@@ -2,12 +2,29 @@ import { writeFile } from '@shared/fs-extra'
 import Helper from '../fork/Helper'
 import { createConnection } from 'node:net'
 import { userInfo } from 'node:os'
+import { basename } from 'node:path'
+import { isWindows } from './utils'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
 
+export const AppHelperSocketPathGet = (): string => {
+  let actualPath = SOCKET_PATH
+
+  if (isWindows()) {
+    // Convert Unix socket path to Windows named pipe format
+    const pipeName = basename(SOCKET_PATH).replace(/[^a-zA-Z0-9_-]/g, '_')
+    actualPath = `\\\\.\\pipe\\${pipeName}`
+  }
+
+  return actualPath
+}
+
 export const AppHelperRoleFix = async () => {
+  if (isWindows()) {
+    return
+  }
   const uinfo = userInfo()
   const role = `${uinfo.uid}:${uinfo.gid}`
   await writeFile(Role_Path, role)
@@ -19,7 +36,7 @@ export const AppHelperRoleFix = async () => {
 export const AppHelperCheck = () => {
   return new Promise(async (resolve, reject) => {
     console.time('AppHelper check')
-    const client = createConnection(SOCKET_PATH)
+    const client = createConnection(AppHelperSocketPathGet())
     client.on('connect', () => {
       console.log('Connected to the server')
       client.end()

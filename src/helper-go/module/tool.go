@@ -14,7 +14,12 @@ type ToolManager struct {
 	BaseManager // Anonymous field for composition and method "inheritance"
 }
 
-func (t *ToolManager) Exec(command string, options ...map[string]interface{}) error {
+type ExecResult struct {
+	stdout string
+	stderr string
+}
+
+func (t *ToolManager) Exec(command string, options ...map[string]interface{}) (ExecResult, error) {
 	var opts map[string]interface{}
 
 	// Check if options were provided
@@ -24,11 +29,11 @@ func (t *ToolManager) Exec(command string, options ...map[string]interface{}) er
 		opts = make(map[string]interface{}) // If no options provided, use an empty map
 	}
 
-	_, stderr, err := utils.ExecPromise(command, opts)
+	stdout, stderr, err := utils.ExecPromise(command, opts)
 	if err != nil {
-		return fmt.Errorf("%s: %s", err.Error(), stderr)
+		return ExecResult{}, fmt.Errorf("%s: %s", err.Error(), stderr)
 	}
-	return nil
+	return ExecResult{stdout: stdout, stderr: stderr}, nil
 }
 
 // WriteFileByRoot with improved cleanup

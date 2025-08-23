@@ -345,7 +345,7 @@ export async function waitPidFile(
     } catch {
       error = true
     }
-    if (error && !isWindows()) {
+    if (error) {
       try {
         pid = ((await Helper.send('tools', 'readFileByRoot', pidFile)) as string).trim()
       } catch {}

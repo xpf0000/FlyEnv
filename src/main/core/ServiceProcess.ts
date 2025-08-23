@@ -5,7 +5,6 @@ import Helper from '../../fork/Helper'
 import { isMacOS, isWindows } from '@shared/utils'
 import type { ForkManager } from './ForkManager'
 import { ProcessPidList, ProcessPidListByPids } from '@shared/Process.win'
-import { execPromise } from '@shared/child-process'
 
 type ServiceProcessItem = {
   item: SoftInstalled
@@ -116,9 +115,8 @@ class ServiceProcess {
         )
       )
       if (all.length > 0) {
-        const str = all.map((s) => `/pid ${s}`).join(' ')
         try {
-          await execPromise(`taskkill /f /t ${str}`)
+          await Helper.send('tools', 'kill', '-INT', all)
         } catch (e) {
           console.log('taskkill e: ', e)
         }
@@ -205,9 +203,8 @@ class ServiceProcess {
       arr.unshift(...fpm)
       console.log('_stopServer arr: ', arr)
       if (arr.length > 0) {
-        const str = arr.map((s) => `/pid ${s}`).join(' ')
         try {
-          await execPromise(`taskkill /f /t ${str}`)
+          await Helper.send('tools', 'kill', '-INT', arr)
         } catch (e) {
           console.log('taskkill e: ', e)
         }
