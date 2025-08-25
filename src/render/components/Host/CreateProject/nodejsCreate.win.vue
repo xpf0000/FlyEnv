@@ -181,7 +181,7 @@
     loading.value = true
     const form = ProjectSetup.form.NodeJS
     const execXTerm = new XTerm()
-    const item = app.value.list.find((f) => f.version === form.version)
+    const item: any = app.value.list.find((f) => f.version === form.version)
     const command: string[] = []
     if (window.Server.Proxy) {
       for (const k in window.Server.Proxy) {
@@ -200,7 +200,7 @@
       )
     }
     command.push(`cd "${form.dir}"`)
-    const arr = item?.command?.split(';') ?? []
+    const arr = item?.commandWin?.split(';') ?? item?.command?.split(';') ?? []
     command.push(...arr)
 
     nextTick().then(() => {
