@@ -1,6 +1,6 @@
 {
   "name": "PhpWebStudy",
-  "version": "4.10.7",
+  "version": "4.10.8",
   "description": "All-In-One Full-Stack Environment Management Tool",
   "author": {
     "name": "Pengfei Xu",
@@ -34,7 +34,7 @@
     "@shikijs/core": "^3.4.2",
     "@shikijs/transformers": "^3.4.2",
     "@shikijs/types": "^3.4.2",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "chardet": "^2.1.0",
     "compare-versions": "^6.1.1",
     "compressing": "^1.10.3",
@@ -148,7 +148,7 @@
     "concurrently": "^9.2.0",
     "cross-env": "^7.0.3",
     "crypto-js": "^4.2.0",
-    "electron": "^35.6.0",
+    "electron": "^35.7.5",
     "electron-builder": "^26.0.17",
     "electron-debug": "^4.1.0",
     "electron-devtools-installer": "^4.0.0",

@@ -1,10 +1,11 @@
 import type { Configuration } from 'electron-builder'
+import AfterPack from '../build/afterPack'
 
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'PhpWebStudy',
-  buildVersion: '4.10.7',
-  electronVersion: '35.6.0',
+  buildVersion: '4.10.8',
+  electronVersion: '35.7.5',
   appId: 'phpstudy.xpfme.com',
   asar: true,
   directories: {
@@ -23,7 +24,6 @@ const conf: Configuration = {
   win: {
     artifactName: 'FlyEnv-Setup-${version}.${ext}',
     icon: 'build/icon.ico',
-    requestedExecutionLevel: 'requireAdministrator',
     target: [
       {
         target: 'nsis',
@@ -40,8 +40,10 @@ const conf: Configuration = {
     allowToChangeInstallationDirectory: true
   },
   portable: {
-    artifactName: 'FlyEnv-Portable-${version}.${ext}',
-    requestExecutionLevel: 'admin'
+    artifactName: 'FlyEnv-Portable-${version}.${ext}'
+  },
+  afterPack: (...args) => {
+    return AfterPack(...args) as any
   },
   publish: []
 }

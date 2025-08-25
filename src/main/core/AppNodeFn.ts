@@ -221,7 +221,7 @@ X-GNOME-Autostart-enabled=true`
       await mkdirp(global.Server.Cache!)
       const file = join(global.Server.Cache!, 'flyenv-auto-start.ps1')
       await writeFile(file, content)
-      const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${file}'; & '${file}'"`
+      const command = `Unblock-File -LiteralPath '${file}'; & '${file}'`
       const res: any = await Helper.send('tools', 'exec', command)
       await remove(file)
       const std = res.stdout + res.stderr

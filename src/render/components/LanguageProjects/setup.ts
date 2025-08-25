@@ -101,7 +101,8 @@ class Project {
       .then((res: string[]) => {
         if (res) {
           this.allDirs = res
-          IPC.send('app-fork:tools', 'initAllowDir', res.join('\n')).then((key: string) => {
+          const dirs = window.Server.isWindows ? JSON.stringify(res) : res.join('\n')
+          IPC.send('app-fork:tools', 'initAllowDir', dirs).then((key: string) => {
             IPC.off(key)
           })
         }
@@ -145,54 +146,106 @@ class Project {
     this.saveDirs().then(() => {
       this.initDirs()
     })
-    try {
-      const envFile = join(item.path, '.flyenv')
-      const exists = await fs.existsSync(envFile)
-      if (!exists) {
-        if (!item.binVersion) {
-          await fs.writeFile(envFile, '')
+    if (window.Server.isWindows) {
+      try {
+        const envFile = join(item.path, '.flyenv')
+        const exists = await fs.existsSync(envFile)
+        if (!exists) {
+          if (!item.binVersion) {
+            await fs.writeFile(envFile, '')
+          } else {
+            const arr: string[] = []
+            const list = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')]
+            for (const s of list) {
+              const e = await fs.existsSync(s)
+              if (e) {
+                arr.push(s)
+              }
+            }
+            if (arr.length) {
+              await fs.writeFile(
+                envFile,
+                `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\n$env:PATH = "${arr.join(';')};" + $env:PATH #FlyEnv-ID-${item.id}`
+              )
+            }
+          }
         } else {
-          const arr: string[] = []
-          const list = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')]
-          for (const s of list) {
-            const e = await fs.existsSync(s)
-            if (e) {
-              arr.push(s)
+          const content = await fs.readFile(envFile, 'utf-8')
+          const lines = content
+            .trim()
+            .split('\n')
+            .filter((s: string) => {
+              const line = s.trim()
+              return !!line && !line.includes(`#FlyEnv-ID-${item.id}`)
+            })
+          if (item.binVersion) {
+            const arr: string[] = []
+            const list = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')]
+            for (const s of list) {
+              const e = await fs.existsSync(s)
+              if (e) {
+                arr.push(s)
+              }
+            }
+            if (arr.length) {
+              lines.push(`$env:PATH = "${arr.join(';')};" + $env:PATH #FlyEnv-ID-${item.id}`)
             }
           }
-          if (arr.length) {
-            await fs.writeFile(
-              envFile,
-              `#!/bin/zsh\nexport PATH="${arr.join(':')}:$PATH" #FlyEnv-ID-${item.id}`
-            )
-          }
+          await fs.writeFile(envFile, lines.join('\n'))
         }
-      } else {
-        const content = await fs.readFile(envFile)
-        const lines = content
-          .trim()
-          .split('\n')
-          .filter((s: string) => {
-            const line = s.trim()
-            return !!line && !line.includes(`#FlyEnv-ID-${item.id}`)
-          })
-        if (item.binVersion) {
-          const arr: string[] = []
-          const list = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')]
-          for (const s of list) {
-            const e = await fs.existsSync(s)
-            if (e) {
-              arr.push(s)
-            }
-          }
-          if (arr.length) {
-            lines.push(`export PATH="${arr.join(':')}:$PATH" #FlyEnv-ID-${item.id}`)
-          }
-        }
-        await fs.writeFile(envFile, lines.join('\n'))
+      } catch (e: any) {
+        MessageError(e.toString())
       }
-    } catch (e: any) {
-      MessageError(e.toString())
+    } else {
+      try {
+        const envFile = join(item.path, '.flyenv')
+        const exists = await fs.existsSync(envFile)
+        if (!exists) {
+          if (!item.binVersion) {
+            await fs.writeFile(envFile, '')
+          } else {
+            const arr: string[] = []
+            const list = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')]
+            for (const s of list) {
+              const e = await fs.existsSync(s)
+              if (e) {
+                arr.push(s)
+              }
+            }
+            if (arr.length) {
+              await fs.writeFile(
+                envFile,
+                `#!/bin/zsh\nexport PATH="${arr.join(':')}:$PATH" #FlyEnv-ID-${item.id}`
+              )
+            }
+          }
+        } else {
+          const content = await fs.readFile(envFile)
+          const lines = content
+            .trim()
+            .split('\n')
+            .filter((s: string) => {
+              const line = s.trim()
+              return !!line && !line.includes(`#FlyEnv-ID-${item.id}`)
+            })
+          if (item.binVersion) {
+            const arr: string[] = []
+            const list = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')]
+            for (const s of list) {
+              const e = await fs.existsSync(s)
+              if (e) {
+                arr.push(s)
+              }
+            }
+            if (arr.length) {
+              lines.push(`export PATH="${arr.join(':')}:$PATH" #FlyEnv-ID-${item.id}`)
+            }
+          }
+          await fs.writeFile(envFile, lines.join('\n'))
+        }
+      } catch (e: any) {
+        MessageError(e.toString())
+      }
     }
   }
 }

@@ -13,14 +13,7 @@ export const fetchRawPATH = (): ForkPromise<string[]> => {
       await remove(copySh)
     }
     await copyFile(sh, copySh)
-    const commands = [
-      'powershell.exe',
-      '-NoProfile',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-Command',
-      `"Unblock-File -LiteralPath './path-get.ps1'; & './path-get.ps1'"`
-    ]
+    const commands = [`Unblock-File -LiteralPath '${copySh}'; & '${copySh}'`]
     let res: any
     try {
       res = await Helper.send('tools', 'exec', commands.join(' '), {
@@ -31,6 +24,8 @@ export const fetchRawPATH = (): ForkPromise<string[]> => {
       appDebugLog('[_fetchRawPATH][error]', `${e}`).catch()
       return reject(e)
     }
+
+    console.log('fetchRawPATH res: ', res)
 
     let str = ''
     const stdout = res.stdout.trim() + '\n' + res.stderr.trim()
@@ -100,7 +95,7 @@ export const writePath = async (path: string[], other: string = '') => {
   content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
   await writeFile(copySh, content, 'utf-8')
   try {
-    const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
+    const command = `Unblock-File -LiteralPath '${copySh}'; & '${copySh}'`
     await Helper.send('tools', 'exec', command)
   } catch (e) {
     console.log('writePath error: ', e)

@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -58,7 +59,12 @@ func ExecPromise(command string, options map[string]interface{}) (string, string
 	} else if IsLinux() {
 		cmd = exec.Command("/bin/bash", "-c", command)
 	} else if IsWindows() {
-		cmd = exec.Command("cmd", "/C", command)
+		// 使用 PowerShell 执行命令，隐藏窗口
+		//cmd = exec.Command("cmd", "/C", command)
+		cmd = exec.Command("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NonInteractive", "-Command", command)
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			HideWindow: true,
+		}
 	} else {
 		return "", "", fmt.Errorf("unsupported operating system")
 	}
@@ -81,6 +87,9 @@ func ExecPromise(command string, options map[string]interface{}) (string, string
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
+
+	fmt.Printf("ExecPromise command: %s, error: %v, stdout: %s, stderr: %s\n", command, err, stdout.String(), stderr.String())
+
 	return stdout.String(), stderr.String(), err
 }
 

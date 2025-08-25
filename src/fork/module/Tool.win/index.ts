@@ -28,7 +28,7 @@ import type { SoftInstalled } from '@shared/app'
 import type { AppServiceAliasItem } from '@shared/app'
 import { BomCleanTask } from '../../util/BomCleanTask'
 import { ProcessListSearch, ProcessPidList, ProcessPidListByPids } from '@shared/Process.win'
-import type { PItem } from '@shared/Process'
+import { PItem, ProcessListByPid } from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
 import Helper from '../../Helper'
 
@@ -210,6 +210,12 @@ subjectAltName=@alt_names
       try {
         pids = (await Helper.send('tools', 'getPortPidsWin', name)) as any
       } catch {}
+      pids = Array.from(new Set(pids))
+      pids = pids
+        .map((m) => m.trim())
+        .filter((p) => {
+          return !!p && p !== '0'
+        })
       if (pids.length === 0) {
         return resolve([])
       }
@@ -217,13 +223,8 @@ subjectAltName=@alt_names
       console.log('pids: ', pids)
       const all = await ProcessPidList()
       for (const pid of pids) {
-        const find = all.find((a) => `${a.PID}` === `${pid}`)
-        if (find) {
-          arr.push({
-            PID: find.PID,
-            COMMAND: find.COMMAND
-          })
-        }
+        const item = ProcessListByPid(pid, all)
+        arr.push(...item)
       }
       resolve(arr)
     })

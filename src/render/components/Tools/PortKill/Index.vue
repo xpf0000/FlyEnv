@@ -38,6 +38,8 @@
               :data="arrs"
               size="default"
               style="width: 100%"
+              default-expand-all
+              row-key="PID"
               @selection-change="handleSelectionChange"
             >
               <el-table-column type="selection" width="55" />
@@ -149,6 +151,14 @@
     doSearch()
   }
 
+  interface ProcessItem {
+    PID: string
+    PPID?: string
+    USER: string
+    COMMAND: string
+    children?: ProcessItem[]
+  }
+
   const doSearch = () => {
     arrs.value = []
     if (!port.value) {
@@ -157,12 +167,37 @@
     SearchHistory.add('port', `${port.value}`)
     IPC.send('app-fork:tools', 'getPortPids', port.value).then((key: string, res: any) => {
       IPC.off(key)
-      const data = res?.data ?? []
-      if (data.length === 0) {
+      const arr = res?.data ?? []
+      if (arr.length === 0) {
         MessageWarning(I18nT('base.portNotUse'))
         return
       }
-      arrs.value = [...data]
+
+      const processMap = new Map<string, ProcessItem>()
+      const rootProcesses: ProcessItem[] = []
+
+      // First pass: create all items and build the map
+      arr.forEach((item: ProcessItem) => {
+        processMap.set(item.PID, { ...item })
+      })
+
+      // Second pass: build the hierarchy
+      arr.forEach((item: ProcessItem) => {
+        const current = processMap.get(item.PID)
+        if (item.PPID && processMap.has(item.PPID)) {
+          const parent = processMap.get(item.PPID)
+          if (parent) {
+            if (!parent.children) {
+              parent.children = []
+            }
+            parent.children.push(current!)
+          }
+        } else {
+          rootProcesses.push(current!)
+        }
+      })
+
+      arrs.value = rootProcesses
     })
   }
 </script>

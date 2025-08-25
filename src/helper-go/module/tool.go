@@ -15,8 +15,8 @@ type ToolManager struct {
 }
 
 type ExecResult struct {
-	stdout string
-	stderr string
+	Stdout string `json:"stdout"`
+	Stderr string `json:"stderr"`
 }
 
 func (t *ToolManager) Exec(command string, options ...map[string]interface{}) (ExecResult, error) {
@@ -33,7 +33,7 @@ func (t *ToolManager) Exec(command string, options ...map[string]interface{}) (E
 	if err != nil {
 		return ExecResult{}, fmt.Errorf("%s: %s", err.Error(), stderr)
 	}
-	return ExecResult{stdout: stdout, stderr: stderr}, nil
+	return ExecResult{Stdout: stdout, Stderr: stderr}, nil
 }
 
 // WriteFileByRoot with improved cleanup
@@ -192,7 +192,7 @@ func (t *ToolManager) ProcessListWin() (string, error) {
 
 	// PowerShell command to get process info and output to JSON
 	command := fmt.Sprintf(
-		`powershell.exe -NoProfile -WindowStyle Hidden -command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId,CreationClassName | ConvertTo-Json | Out-File -FilePath '%s' -Encoding utf8"`,
+		`[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId,CreationClassName | ConvertTo-Json | Out-File -FilePath '%s' -Encoding utf8`,
 		jsonFile,
 	)
 

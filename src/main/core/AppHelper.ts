@@ -66,6 +66,18 @@ export class AppHelper {
 
         command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
+      } else if (isWindows()) {
+        const binDir = PathResolve(global.Server.Static!, '../../../../')
+        const bin = join(binDir, 'helper/flyenv-helper.exe')
+        const tmpl = await readFile(
+          join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
+          'utf-8'
+        )
+        const content = tmpl.replace('#TASKNAME#', 'flyenv-helper').replace('#EXECPATH#', bin)
+        const tmpFile = join(tmpDir, `${uuid()}.ps1`)
+        await writeFile(tmpFile, content)
+        command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
+        icns = join(binDir, 'icon.icns')
       }
     } else {
       if (isMacOS()) {
@@ -116,7 +128,7 @@ export class AppHelper {
         const binDir = PathResolve(global.Server.Static!, '../../../build/')
         const bin = PathResolve(binDir, `../src/helper-go/dist/${helperFile}`)
         const tmpl = await readFile(
-          join(global.Server.Static!, 'sh/flyenv-auto-start.ps1'),
+          join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
         )
         const content = tmpl.replace('#TASKNAME#', 'flyenv-helper').replace('#EXECPATH#', bin)
