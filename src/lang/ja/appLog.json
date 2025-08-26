@@ -19,5 +19,6 @@
   "initDBDataDirSuccess": "データフォルダの初期化が成功しました。データフォルダパス：{dir}",
   "initDBDataDirFail": "データフォルダの初期化に失敗しました。理由：{error}",
 
-  "startInstall": "Start installing {service}"
+  "startInstall": "Start installing {service}",
+  "newProjectFail": "新しいプロジェクトの作成に失敗しました"
 }

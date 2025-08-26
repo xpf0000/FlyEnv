@@ -19,5 +19,9 @@
   "front": "Tampilkan FlyEnv di Depan",
   "dev": "Buka Jendela Debug",
   "needInstallHelper": "FlyEnv perlu menginstal program pembantu",
-  "waitHelper": "Program pembantu sedang mulai, harap tunggu"
+  "waitHelper": "Program pembantu sedang mulai, harap tunggu",
+  "helperInstalling": "Program bantu sedang dipasang, mohon tunggu",
+  "helperInstallFailTips": "Pemasangan program bantu gagal, silakan coba pasang secara manual di terminal yang muncul",
+  "helperInstallSuccessTips": "Pemasangan program bantu berhasil",
+  "helperInstallTitle": "Pasang Program Bantu"
 }

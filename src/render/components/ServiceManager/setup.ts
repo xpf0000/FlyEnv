@@ -1,11 +1,10 @@
 import { computed, ComputedRef, reactive } from 'vue'
-import { AppHost, AppStore } from '@/store/app'
+import { AppStore } from '@/store/app'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { MessageError } from '@/util/Element'
 import { MysqlStore } from '@/components/Mysql/mysql'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
-import { handleWriteHosts } from '@/util/Host'
 import type { AllAppModule } from '@/core/type'
 import { shell } from '@/util/NodeFn'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
@@ -140,7 +139,11 @@ export const Setup = (typeFlag: AllAppModule) => {
     PhpMyAdminVM = res.default
   })
   const toPhpMyAdmin = () => {
-    const toOpenHost = (item: AppHost) => {
+    const toOpenHost = () => {
+      const item = appStore.hosts.find((h) => h.isAppPHPMyAdmin === true)
+      if (!item) {
+        return false
+      }
       const host = item.name
       const brewStore = BrewStore()
       const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
@@ -170,20 +173,15 @@ export const Setup = (typeFlag: AllAppModule) => {
 
       const portStr = port === 80 || port === 443 ? '' : `:${port}`
       const url = `${http}${host}${portStr}`
-      shell.openExternal(url)
+      shell.openExternal(url).catch()
+      return true
     }
-    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.test')
-    if (find) {
-      toOpenHost(find)
+    if (toOpenHost()) {
       return
     }
-
     AsyncComponentShow(PhpMyAdminVM).then(async (res) => {
       if (res) {
-        await appStore.initHost()
-        handleWriteHosts().then().catch()
-        const url = 'http://phpmyadmin.test'
-        shell.openExternal(url)
+        toOpenHost()
       }
     })
   }

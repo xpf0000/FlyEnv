@@ -76,6 +76,7 @@
   import type { AllAppModule } from '@/core/type'
   import { ConfSetup } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
+  import type { SoftInstalled } from '@/store/brew'
 
   const props = withDefaults(
     defineProps<{
@@ -87,6 +88,7 @@
       showCommond: boolean
       showLoadDefault?: boolean
       url?: string
+      version?: SoftInstalled
     }>(),
     {
       showLoadDefault: true

@@ -1,0 +1,23 @@
+{
+  "startInstall": "Iniciar instalação do {service}",
+  "startServiceBegin": "Iniciar o serviço {service}...",
+  "confInit": "O arquivo de configuração não existe, gerar arquivo de configuração",
+  "confInitSuccess": "Arquivo de configuração gerado com sucesso, caminho do arquivo: {file}",
+  "confInitFail": "Geração do arquivo de configuração falhou, motivo: {error}",
+  "apachePortHandleBegin": "Iniciar obtenção de todas as portas de escuta do Apache do site",
+  "apachePortHandleEnd": "Obtenção da porta de escuta do Apache concluída, escrita bem-sucedida do arquivo de configuração",
+  "execStartCommand": "Iniciar execução do comando de inicialização",
+  "execStartCommandSuccess": "Comando de inicialização executado com sucesso, iniciar verificação se a inicialização foi bem-sucedida",
+  "execStartCommandFail": "Falha na execução do comando de inicialização, motivo: {error}, o serviço {service} não pôde ser iniciado",
+  "startServiceSuccess": "Serviço {service} iniciado com sucesso, PID: {pid}",
+  "startServiceFail": "Falha ao iniciar o serviço {service}, motivo: {error}",
+  "stopServiceBegin": "Iniciando parada do serviço {service}",
+  "stopServiceEnd": "Serviço {service} parado com sucesso",
+  "initDBPass": "Iniciando a inicialização da senha do banco de dados",
+  "initDBPassSuccess": "Senha do banco de dados inicializada com sucesso, usuário e senha: {user} {pass}",
+  "initDBPassFail": "Falha ao inicializar a senha do banco de dados, motivo: {error}",
+  "initDBDataDir": "Pasta de dados não encontrada, iniciando a inicialização da pasta de dados",
+  "initDBDataDirSuccess": "Inicialização da pasta de dados bem-sucedida, caminho da pasta de dados: {dir}",
+  "initDBDataDirFail": "Inicialização da pasta de dados falhou, motivo: {error}",
+  "newProjectFail": "Falha ao criar novo projeto"
+}

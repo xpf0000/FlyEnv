@@ -49,6 +49,5 @@
 
   "flyenvHelper": "Fix FlyEnv Helper",
   "flyenvHelperBtn": "Fix",
-  "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully",
-  "flyenvHelperFixFail": "FlyEnv Helper Fixed Failed"
+  "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully"
 }

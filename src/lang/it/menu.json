@@ -19,5 +19,9 @@
   "front": "Porta FlyEnv in primo piano",
   "dev": "Apri finestra di debug",
   "needInstallHelper": "FlyEnv necessita di installare un programma ausiliario",
-  "waitHelper": "Il programma ausiliario si sta avviando, attendere"
+  "waitHelper": "Il programma ausiliario si sta avviando, attendere",
+  "helperInstalling": "Installazione del programma di supporto in corso, attendere prego",
+  "helperInstallFailTips": "Installazione del programma di supporto non riuscita, provare a installarlo manualmente nel terminale che appare",
+  "helperInstallSuccessTips": "Programma di supporto installato con successo",
+  "helperInstallTitle": "Installa programma di supporto"
 }

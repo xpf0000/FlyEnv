@@ -414,25 +414,27 @@ export class Host extends Base {
           hosts = hosts.replace(x[0], '')
           await Helper.send('tools', 'writeFileByRoot', this.hostsFile, hosts.trim())
         }
-        this._initHost(appHost, false, ipv6)
         try {
-          if (isWindows()) {
-            await execPromise('ipconfig /flushdns')
-          } else {
-            await Helper.send('host', 'dnsRefresh')
-          }
+          this._initHost(appHost, false, ipv6)
         } catch {}
-        resolve(true)
       }
+      try {
+        if (isWindows()) {
+          await execPromise('ipconfig /flushdns')
+        } else {
+          await Helper.send('host', 'dnsRefresh')
+        }
+      } catch {}
+      resolve(true)
     })
   }
 
-  addRandomSite(version?: SoftInstalled) {
-    return TaskAddRandomSite.call(this, version)
+  addRandomSite(version?: SoftInstalled, write = true, ipv6 = true) {
+    return TaskAddRandomSite.call(this, version, write, ipv6)
   }
 
-  addPhpMyAdminSite(phpVersion?: number) {
-    return TaskAddPhpMyAdminSite.call(this, phpVersion)
+  addPhpMyAdminSite(phpVersion?: number, write = true, ipv6 = true) {
+    return TaskAddPhpMyAdminSite.call(this, phpVersion, write, ipv6)
   }
 }
 export default new Host()

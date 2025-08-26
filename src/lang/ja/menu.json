@@ -19,5 +19,9 @@
   "front": "FlyEnvを最前面に",
   "dev": "デバッグウィンドウを開く",
   "needInstallHelper": "FlyEnvはヘルパープログラムのインストールが必要です",
-  "waitHelper": "ヘルパープログラムを起動中です。お待ちください"
+  "waitHelper": "ヘルパープログラムを起動中です。お待ちください",
+  "helperInstalling": "ヘルパープログラムをインストールしています。しばらくお待ちください",
+  "helperInstallFailTips": "ヘルパープログラムのインストールに失敗しました。表示されたターミナルで手動でインストールを試してください",
+  "helperInstallSuccessTips": "ヘルパープログラムが正常にインストールされました",
+  "helperInstallTitle": "ヘルパープログラムのインストール"
 }

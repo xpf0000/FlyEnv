@@ -33,6 +33,7 @@
     "name": "Nome",
     "path": "Percorso file",
     "comment": "Commento",
+    "command": "Command",
     "exec": "Esegui",
     "commandFile": "File",
     "isSudo": "Eseguire con sudo?",
@@ -44,5 +45,9 @@
     "licenseTips": "Licenza non trovata. È possibile creare solo 3 moduli/elementi di esecuzione.",
     "outputLog": "Log di output",
     "errorLog": "Log errori"
-  }
+  },
+
+  "flyenvHelper": "Riparazione del programma di supporto FlyEnv",
+  "flyenvHelperBtn": "Ripara",
+  "flyenvHelperFixSuccess": "Riparazione del programma di supporto FlyEnv riuscita"
 }

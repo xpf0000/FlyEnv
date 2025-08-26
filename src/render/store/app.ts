@@ -11,6 +11,7 @@ import { shell, app } from '@/util/NodeFn'
 
 export interface AppHost {
   id: number
+  isAppPHPMyAdmin?: boolean
   isTop?: boolean
   isSorting?: boolean
   projectName?: string

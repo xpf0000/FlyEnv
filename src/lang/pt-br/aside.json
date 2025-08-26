@@ -1,0 +1,17 @@
+{
+  "site": "Site",
+  "webServer": "Servidor Web",
+  "dataBaseServer": "Servidor de Banco de Dados",
+  "emailServer": "Servidor de Email",
+  "language": "Linguagem",
+  "dataQueue": "Fila de Dados e Cache de Dados",
+  "searchEngine": "Motor de Busca",
+  "dnsServer": "Servidor DNS",
+  "ftpServer": "Servidor FTP",
+  "other": "Outro",
+  "appLog": "Log da Aplicação",
+  "ai": "IA",
+  "objectStorage": "Armazenamento de Objetos",
+  "appExit": "Parar todos os serviços iniciados e sair do FlyEnv",
+  "groupStart": "Iniciar todos os serviços disponíveis visíveis no painel com um clique"
+}

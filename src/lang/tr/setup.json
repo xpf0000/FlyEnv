@@ -33,6 +33,7 @@
     "name": "Ad",
     "path": "Dosya Yolu",
     "comment": "Açıklama",
+    "command": "Command",
     "exec": "Çalıştır",
     "commandFile": "Dosya",
     "isSudo": "sudo ile çalıştırılsın mı?",
@@ -45,5 +46,9 @@
 
     "outputLog": "Output Log",
     "errorLog": "Error Log"
-  }
+  },
+
+  "flyenvHelper": "FlyEnv Yardımcı Programını Onar",
+  "flyenvHelperBtn": "Onar",
+  "flyenvHelperFixSuccess": "FlyEnv yardımcı programı başarıyla onarıldı"
 }

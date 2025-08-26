@@ -19,5 +19,9 @@
   "front": "Passer FlyEnv au premier plan",
   "dev": "Ouvrir la fenêtre de débogage",
   "needInstallHelper": "FlyEnv doit installer un programme d'assistance",
-  "waitHelper": "Le programme d'assistance démarre, veuillez patienter"
+  "waitHelper": "Le programme d'assistance démarre, veuillez patienter",
+  "helperInstalling": "L'application d'assistance est en cours d'installation, veuillez patienter",
+  "helperInstallFailTips": "Échec de l'installation de l'application d'assistance, veuillez essayer de l'installer manuellement dans la fenêtre de terminal qui s'affiche",
+  "helperInstallSuccessTips": "Application d'assistance installée avec succès",
+  "helperInstallTitle": "Installer l'application d'assistance"
 }

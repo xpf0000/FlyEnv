@@ -19,5 +19,6 @@
   "initDBDataDirSuccess": "Cartella dati inizializzata con successo, percorso: {dir}",
   "initDBDataDirFail": "Inizializzazione della cartella dati fallita, motivo: {error}",
 
-  "startInstall": "Start installing {service}"
+  "startInstall": "Start installing {service}",
+  "newProjectFail": "Impossibile creare un nuovo progetto"
 }

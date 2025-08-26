@@ -1,0 +1,10 @@
+{
+  "gzip": "Está habilitada a transmissão de compressão GZIP",
+  "gzip_min_length": "Arquivo comprimido mínimo",
+  "gzip_comp_level": "compressibilidade",
+  "client_max_body_size": "Tamanho máximo de upload de arquivo",
+  "server_names_hash_max_size": "Tamanho máximo da tabela hash para nome do servidor",
+  "server_names_hash_bucket_size": "Tamanho da tabela hash para nome do servidor",
+  "client_header_buffer_size": "Tamanho do buffer de cabeçalho de solicitação do cliente",
+  "client_body_buffer_size": "Tamanho do buffer do corpo da solicitação"
+}

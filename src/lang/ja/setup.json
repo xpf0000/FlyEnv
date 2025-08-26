@@ -33,6 +33,7 @@
     "name": "名前",
     "path": "ファイルパス",
     "comment": "備考",
+    "command": "Command",
     "exec": "実行",
     "commandFile": "ファイル",
     "isSudo": "sudoで起動するかどうか",
@@ -44,5 +45,9 @@
     "licenseTips": "ライセンスが取得されていないため、3つのモジュールとモジュール実行項目のみ作成できます",
     "outputLog": "出力ログ",
     "errorLog": "エラーログ"
-  }
+  },
+
+  "flyenvHelper": "FlyEnvヘルパープログラムの修復",
+  "flyenvHelperBtn": "修復",
+  "flyenvHelperFixSuccess": "FlyEnvヘルパープログラムの修復に成功しました"
 }

@@ -7,6 +7,7 @@ import { I18nT } from '@lang/index'
 import type { AllAppModule } from '@/core/type'
 import { dialog, shell, fs } from '@/util/NodeFn'
 import { asyncComputed } from '@vueuse/core'
+import { BrewStore, SoftInstalled } from '@/store/brew'
 
 type CommonSetItemOption = {
   label: string
@@ -61,6 +62,7 @@ type ConfSetupProps = {
   fileExt: string
   typeFlag: AllAppModule
   showCommond?: boolean
+  version?: SoftInstalled
 }
 
 export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
@@ -116,14 +118,54 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     }
   )
 
+  let lastSaveTime: number = 0
+  let lastRestartTime: number = 0
+
+  const brewStore = BrewStore()
+  const module = brewStore.module(props.value.typeFlag)
+  const current = props?.value?.version
+    ? module.installed.find(
+        (f) =>
+          f.version === props?.value?.version?.version &&
+          (f.phpBin === props?.value?.version?.phpBin || f.bin === props?.value?.version?.bin)
+      )
+    : brewStore.currentVersion(props.value.typeFlag)
+  let timer: any
+
+  const restartService = (chechRun: boolean, retryTimes = 0) => {
+    const ServiceRun = chechRun ? (current?.run ?? false) : true
+    if (!module.isService || !current || !ServiceRun || current?.running || retryTimes >= 2) {
+      return
+    }
+    clearTimeout(timer)
+    setTimeout(() => {
+      lastRestartTime = Date.now()
+      current
+        .restart()
+        .then(() => {
+          if (lastSaveTime > lastRestartTime) {
+            restartService(false, 0)
+          }
+        })
+        .catch(() => {
+          restartService(false, retryTimes + 1)
+        })
+    }, 800)
+  }
+
   const saveConfig = () => {
     if (disabled?.value) {
       return
     }
     const content = monacoInstance?.getValue() ?? ''
+    if (config.value === content) {
+      return
+    }
     fs.writeFile(props.value.file, content).then(() => {
       config.value = content
       changed.value = false
+      lastSaveTime = Date.now()
+      restartService(true)
       MessageSuccess(I18nT('base.success'))
     })
   }

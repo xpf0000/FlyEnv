@@ -20,6 +20,7 @@
         :default-conf="defaultConf"
         :file="file"
         :file-ext="'ini'"
+        :version="item"
         :show-commond="false"
       >
       </Conf>

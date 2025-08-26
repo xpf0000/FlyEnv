@@ -33,6 +33,7 @@
     "name": "Nama",
     "path": "Lokasi File",
     "comment": "Komentar",
+    "command": "Command",
     "exec": "Jalankan",
     "commandFile": "File",
     "isSudo": "Jalankan dengan sudo?",
@@ -45,5 +46,9 @@
 
     "outputLog": "Output Log",
     "errorLog": "Error Log"
-  }
+  },
+
+  "flyenvHelper": "Perbaikan Program Bantu FlyEnv",
+  "flyenvHelperBtn": "Perbaiki",
+  "flyenvHelperFixSuccess": "Perbaikan program bantu FlyEnv berhasil"
 }

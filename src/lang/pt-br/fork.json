@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Arquivo de inicialização não existe, operação falhou",
+  "confNotFound": "Arquivo de configuração não existe, falha ao iniciar servidor",
+  "apacheLogPathErr": "Caminho do log no arquivo de configuração está incorreto, falha ao alternar",
+  "versionError": "Versão incorreta, por favor selecione novamente",
+  "hostsFileNotFound": "Arquivo hosts não existe",
+  "startFail": "Falha ao iniciar, por favor verifique o arquivo de log",
+  "versionNotFound": "Não foi possível obter a versão do software, operação falhou",
+  "postgresqlInit": "Serviço iniciado com sucesso\nPasta de dados localizada em {dir}\nUsuário inicial: root, Senha: root",
+  "downloadFileFail": "Falha no download do arquivo",
+  "trialEnd": "Período de teste expirado, para continuar usando este recurso, obtenha uma licença",
+  "phpiniNotFound": "Falha ao obter arquivo php.ini",
+  "noEPMD": "Processo epmd não encontrado. Por favor, redefina as variáveis de ambiente do erlang"
+}

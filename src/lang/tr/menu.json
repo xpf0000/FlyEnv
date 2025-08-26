@@ -19,5 +19,9 @@
   "front": "FlyEnv'i Öne Getir",
   "dev": "Hata Ayıklama Penceresini Aç",
   "needInstallHelper": "FlyEnv yardımcı programı yüklemelidir",
-  "waitHelper": "Yardımcı program başlatılıyor, lütfen bekleyin"
+  "waitHelper": "Yardımcı program başlatılıyor, lütfen bekleyin",
+  "helperInstalling": "Yardımcı program yükleniyor, lütfen bekleyin",
+  "helperInstallFailTips": "Yardımcı program yüklemesi başarısız oldu, lütfen açılan terminalde manuel olarak yüklemeyi deneyin",
+  "helperInstallSuccessTips": "Yardımcı program başarıyla yüklendi",
+  "helperInstallTitle": "Yardımcı Programı Yükle"
 }

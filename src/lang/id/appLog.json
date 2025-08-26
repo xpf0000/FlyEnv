@@ -19,5 +19,6 @@
   "initDBDataDirSuccess": "Folder data berhasil dibuat. Lokasi folder: {dir}",
   "initDBDataDirFail": "Gagal membuat folder data. Alasan: {error}",
 
-  "startInstall": "Start installing {service}"
+  "startInstall": "Start installing {service}",
+  "newProjectFail": "Gagal membuat proyek baru"
 }

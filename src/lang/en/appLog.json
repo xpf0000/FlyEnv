@@ -18,5 +18,6 @@
   "initDBPassFail": "Failed to initialize database password, reason: {error}",
   "initDBDataDir": "Data folder not found, start initializing data folder",
   "initDBDataDirSuccess": "Initialization of data folder successful, data folder path: {dir}",
-  "initDBDataDirFail": "Initialization of data folder failed, reason: {error}"
+  "initDBDataDirFail": "Initialization of data folder failed, reason: {error}",
+  "newProjectFail": "Failed to create new project"
 }

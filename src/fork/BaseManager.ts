@@ -48,6 +48,7 @@ class BaseManager {
   Consul: any
   Gradle: any
   Typesense: any
+  Project: any
 
   modules: Set<string> = new Set()
 
@@ -392,6 +393,12 @@ class BaseManager {
         this.Typesense = res.default
       }
       doRun(this.Typesense)
+    } else if (module === 'project') {
+      if (!this.Project) {
+        const res = await import('./module/Project')
+        this.Project = res.default
+      }
+      doRun(this.Project)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

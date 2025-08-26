@@ -19,5 +19,6 @@
   "initDBDataDirSuccess": "Initiering av datafolder lyckades, datafolderns sökväg: {dir}",
   "initDBDataDirFail": "Initiering av datafolder misslyckades, anledning: {error}",
 
-  "startInstall": "Start installing {service}"
+  "startInstall": "Start installing {service}",
+  "newProjectFail": "Kunde inte skapa nytt projekt"
 }

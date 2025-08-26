@@ -62,6 +62,7 @@ try {
     }
 
     if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+        Start-Sleep -Milliseconds 1500
         Write-Host "Task Create Success: $taskName"
     } else {
         throw "Task Create Failed"

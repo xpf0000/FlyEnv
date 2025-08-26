@@ -22,6 +22,7 @@
         :file="file"
         :file-ext="'ini'"
         :show-commond="true"
+        :version="version"
         @on-type-change="onTypeChange"
       >
         <template #common>

@@ -33,6 +33,7 @@
     "name": "Namn",
     "path": "Filsökväg",
     "comment": "Kommentar",
+    "command": "Command",
     "exec": "Kör",
     "commandFile": "Fil",
     "isSudo": "Kör med sudo?",
@@ -45,5 +46,9 @@
 
     "outputLog": "Output Log",
     "errorLog": "Error Log"
-  }
+  },
+
+  "flyenvHelper": "Reparera FlyEnv-hjälpprogram",
+  "flyenvHelperBtn": "Reparera",
+  "flyenvHelperFixSuccess": "Reparation av FlyEnv-hjälpprogram lyckades"
 }

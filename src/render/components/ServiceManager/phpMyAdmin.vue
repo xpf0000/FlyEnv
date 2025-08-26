@@ -25,8 +25,8 @@
         <template v-else>
           <el-button
             type="primary"
-            :disabled="phpMyAdminStore.percent < 100"
-            :loading="phpMyAdminStore.percent < 100"
+            :disabled="phpMyAdminStore.percent < 100 || state !== 'success'"
+            :loading="phpMyAdminStore.percent < 100 || state !== 'success'"
             @click="doSubmit"
             >{{ I18nT('base.confirm') }}</el-button
           >
@@ -88,7 +88,12 @@
           PhpMyAdminTask.percent = res.msg
         } else if (res?.code === 0) {
           PhpMyAdminTask.percent = 100
-          state.value = 'success'
+          appStore
+            .initHost()
+            .then(() => {
+              state.value = 'success'
+            })
+            .catch()
           IPC.off(key)
         } else if (res?.code === 1) {
           state.value = 'error'
@@ -100,6 +105,9 @@
   }
 
   const doSubmit = () => {
+    if (state.value !== 'success') {
+      return
+    }
     show.value = false
     callback(true)
     nextTick().then(() => {

@@ -23,7 +23,6 @@ try {
     <Principal id="Author">
       <UserId>$(whoami)</UserId>
       <LogonType>InteractiveToken</LogonType>
-      <RunLevel>HighestAvailable</RunLevel>
     </Principal>
   </Principals>
   <Settings>

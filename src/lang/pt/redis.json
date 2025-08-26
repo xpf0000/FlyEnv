@@ -1,0 +1,6 @@
+{
+  "timeout": "Tempo limite de conexão ociosa, 0 significa sem desconexão",
+  "databases": "Número de bases de dados",
+  "requirepass": "Senha do Redis",
+  "maxmemory": "bytes, memória máxima a ser usada, 0 significa sem limite"
+}

@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Verificar atualizações",
+  "update-available-message": "Nova versão disponível. Deseja atualizar agora?",
+  "update-not-available-message": "Já é a versão mais recente",
+  "update-downloaded-message": "Atualização descarregada. A aplicação será encerrada e a atualização começará...",
+  "update-error-message": "Falha ao verificar atualizações",
+  "yes": "Sim",
+  "no": "Não"
+}

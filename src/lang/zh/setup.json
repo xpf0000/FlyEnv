@@ -49,6 +49,5 @@
 
   "flyenvHelper": "FlyEnv帮助程序修复",
   "flyenvHelperBtn": "修复",
-  "flyenvHelperFixSuccess": "FlyEnv帮助程序修复成功",
-  "flyenvHelperFixFail": "FlyEnv帮助程序修复失败"
+  "flyenvHelperFixSuccess": "FlyEnv帮助程序修复成功"
 }

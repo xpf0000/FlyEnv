@@ -19,5 +19,6 @@
   "initDBDataDirSuccess": "Création du répertoire des données réussi, chemin du répertoire des données: {dir}",
   "initDBDataDirFail": "Echec création du répertoire des données, raison: {error}",
 
-  "startInstall": "Start installing {service}"
+  "startInstall": "Start installing {service}",
+  "newProjectFail": "Échec de la création d'un nouveau projet"
 }
