@@ -65,7 +65,8 @@ const version = {
       {
         name: 'latest',
         version: '*',
-        command: 'npm i -g @nestjs/cli;Start-Sleep -Seconds 1.5;nest new'
+        command: 'npm i -g @nestjs/cli; sleep 1.5; nest new',
+        commandWin: 'npm i -g @nestjs/cli;Start-Sleep -Seconds 1.5;nest new'
       }
     ]
   }
