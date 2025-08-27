@@ -86,6 +86,10 @@ export function execPromiseSudo(
       stderr.push(err)
       onPassword(err)
     })
+    child?.on('error', (err: Error) => {
+      exit = true
+      reject(err)
+    })
     child?.on('exit', onEnd)
     child?.on('close', onEnd)
   })
@@ -156,7 +160,10 @@ export const spawnPromise = (
         reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
-
+    cp.on('error', (err: Error) => {
+      exit = true
+      reject(err)
+    })
     cp.on('exit', onEnd)
     cp.on('close', onEnd)
   })
@@ -213,7 +220,10 @@ export const spawnPromiseWithEnv = (
         reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
-
+    cp.on('error', (err: Error) => {
+      exit = true
+      reject(err)
+    })
     cp.on('exit', onEnd)
     cp.on('close', onEnd)
   })
@@ -262,7 +272,10 @@ export const spawnPromiseWithStdin = (
         reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
-
+    cp.on('error', (err: Error) => {
+      exit = true
+      reject(err)
+    })
     cp.on('exit', onEnd)
     cp.on('close', onEnd)
   })
