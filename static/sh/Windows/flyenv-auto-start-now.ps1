@@ -1,25 +1,27 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 try {
-    $taskName = "#TASKNAME#"
-    $exePath = "#EXECPATH#"
+  $taskName = "#TASKNAME#"
+  $exePath = "#EXECPATH#"
 
-    if (-not (Test-Path -LiteralPath $exePath)) {
-        throw "$exePath not exist"
-    }
+  $currentUserName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
-    Write-Host "Starting application immediately..."
-    try {
-      $process = Start-Process -FilePath $exePath -WindowStyle Hidden -PassThru
-      if ($process.Id) {
-        Write-Host "✓ Application started successfully (PID: $($process.Id))"
-      }
-    }
-    catch {
-      Write-Host "✗ Failed to start application: $($_.Exception.Message)"
-    }
+  if (-not (Test-Path -LiteralPath $exePath)) {
+    throw "'$exePath' does not exist."
+  }
 
-    $xmlConfig = @"
+  Write-Host "Starting application immediately..."
+  try {
+    $process = Start-Process -FilePath $exePath -WindowStyle Hidden -PassThru
+    if ($process.Id) {
+      Write-Host "Application started successfully (PID: $($process.Id))"
+    }
+  }
+  catch {
+    Write-Host "Failed to start application: $($_.Exception.Message)"
+  }
+
+  $xmlConfig = @"
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
@@ -32,7 +34,7 @@ try {
   </Triggers>
   <Principals>
     <Principal id="Author">
-      <UserId>$(whoami)</UserId>
+      <UserId>$($currentUserName)</UserId>
       <LogonType>InteractiveToken</LogonType>
       <RunLevel>HighestAvailable</RunLevel>
     </Principal>
@@ -52,26 +54,22 @@ try {
 </Task>
 "@
 
-    $xmlPath = "$env:TEMP\FlyEnvTask.xml"
-    $xmlConfig | Out-File -FilePath $xmlPath -Encoding Unicode -Force
+  $xmlPath = Join-Path $env:TEMP "FlyEnvHelperTask.xml"
+  $xmlConfig | Out-File -FilePath $xmlPath -Encoding Unicode -Force
 
-    schtasks /Create /XML "$xmlPath" /TN "$taskName" /F
+  schtasks /Create /XML "$xmlPath" /TN "$taskName" /F
 
-    if (Test-Path -LiteralPath $xmlPath) {
-        Remove-Item -LiteralPath $xmlPath -Force
-    }
-
-    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-        Start-Sleep -Milliseconds 1500
-        Write-Host "Task Create Success: $taskName"
-    } else {
-        throw "Task Create Failed"
-    }
-    exit 0
+  if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+    Start-Sleep -Milliseconds 1000
+    Write-Host "Task '$taskName' created successfully."
+  } else {
+    throw "Failed to create scheduled task '$taskName'."
+  }
+  exit 0
 }
 catch {
-    Write-Host "Task Create Failed, Error: $($_.Exception.Message)"
-    exit 1
+  Write-Host "Task creation failed. Error: $($_.Exception.Message)"
+  exit 1
 }
 finally {
   if ($xmlPath -and (Test-Path -LiteralPath $xmlPath)) {
