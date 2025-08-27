@@ -3,11 +3,41 @@
 try {
   $taskName = "#TASKNAME#"
   $exePath = "#EXECPATH#"
+  $dataPath = "#DATAPATH#"
 
   $currentUserName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
   if (-not (Test-Path -LiteralPath $exePath)) {
     throw "'$exePath' does not exist."
+  }
+
+  if (-not (Test-Path -LiteralPath $dataPath)) {
+    Write-Host "Creating data directory: $dataPath"
+    try {
+      New-Item -Path $dataPath -ItemType Directory -Force | Out-Null
+      Write-Host "Data directory created successfully."
+    }
+    catch {
+      throw "Failed to create data directory '$dataPath': $($_.Exception.Message)"
+    }
+  }
+
+  Write-Host "Setting full access permissions for current user on: $dataPath"
+  try {
+    $acl = Get-Acl -Path $dataPath
+    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+    $currentUserName,
+    "FullControl",
+    "ContainerInherit,ObjectInherit",
+    "None",
+    "Allow"
+    )
+    $acl.SetAccessRule($rule)
+    Set-Acl -Path $dataPath -AclObject $acl
+    Write-Host "Permissions set successfully for $currentUserName."
+  }
+  catch {
+    Write-Host "Warning: Failed to set permissions on '$dataPath': $($_.Exception.Message)"
   }
 
   Write-Host "Starting application immediately..."

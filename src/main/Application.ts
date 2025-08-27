@@ -139,6 +139,9 @@ export default class Application extends EventEmitter {
           break
       }
     })
+    AppHelper.onSuduExecSuccess(() => {
+      this.makeServerDir()
+    })
   }
 
   initLang() {
@@ -400,6 +403,43 @@ export default class Application extends EventEmitter {
     }
   }
 
+  makeServerDir() {
+    mkdirp(global.Server.BaseDir!).then().catch()
+    mkdirp(global.Server.AppDir!).then().catch()
+    mkdirp(global.Server.NginxDir!).then().catch()
+    mkdirp(global.Server.PhpDir!).then().catch()
+    mkdirp(global.Server.MysqlDir!).then().catch()
+    mkdirp(global.Server.MariaDBDir!).then().catch()
+    mkdirp(global.Server.ApacheDir!).then().catch()
+    mkdirp(global.Server.MemcachedDir!).then().catch()
+    mkdirp(global.Server.RedisDir!).then().catch()
+    mkdirp(global.Server.MongoDBDir!).then().catch()
+    mkdirp(global.Server.Cache!).then().catch()
+    if (!isWindows()) {
+      const httpdcong = join(global.Server.ApacheDir!, 'common/conf/')
+      mkdirp(httpdcong).then().catch()
+
+      const ngconf = join(global.Server.NginxDir!, 'common/conf/nginx.conf')
+      if (!existsSync(ngconf)) {
+        compressing.zip
+          .uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir!)
+          .then(() => {
+            readFile(ngconf, 'utf-8').then((content: string) => {
+              content = content
+                .replace(/#PREFIX#/g, global.Server.NginxDir!)
+                .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx'))
+              writeFile(ngconf, content).then()
+              writeFile(
+                join(global.Server.NginxDir!, 'common/conf/nginx.conf.default'),
+                content
+              ).then()
+            })
+          })
+          .catch()
+      }
+    }
+  }
+
   initServerDir() {
     console.log('userData: ', app.getPath('userData'))
     let runpath = ''
@@ -418,8 +458,6 @@ export default class Application extends EventEmitter {
     global.Server.isArmArch = isArmArch()
     global.Server.BaseDir = join(runpath, 'server')
     global.Server.AppDir = join(runpath, 'app')
-    mkdirp(global.Server.BaseDir).then().catch()
-    mkdirp(global.Server.AppDir).then().catch()
     global.Server.NginxDir = join(runpath, 'server/nginx')
     global.Server.PhpDir = join(runpath, 'server/php')
     global.Server.MysqlDir = join(runpath, 'server/mysql')
@@ -430,47 +468,14 @@ export default class Application extends EventEmitter {
     global.Server.MongoDBDir = join(runpath, 'server/mongodb')
     global.Server.FTPDir = join(runpath, 'server/ftp')
     global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
-    mkdirp(global.Server.NginxDir).then().catch()
-    mkdirp(global.Server.PhpDir).then().catch()
-    mkdirp(global.Server.MysqlDir).then().catch()
-    mkdirp(global.Server.MariaDBDir).then().catch()
-    mkdirp(global.Server.ApacheDir).then().catch()
-    mkdirp(global.Server.MemcachedDir).then().catch()
-    mkdirp(global.Server.RedisDir).then().catch()
-    mkdirp(global.Server.MongoDBDir).then().catch()
     global.Server.Cache = join(runpath, 'server/cache')
-    mkdirp(global.Server.Cache).then().catch()
     global.Server.Static = __static
     global.Server.Arch = arch() === 'x64' ? 'x86_64' : 'arm64'
     global.Server.Password = this.configManager.getConfig('password')
     global.Server.isMacOS = isMacOS()
     global.Server.isLinux = isLinux()
     global.Server.isWindows = isWindows()
-    console.log('global.Server.Password: ', global.Server.Password)
-
-    if (!isWindows()) {
-      const httpdcong = join(global.Server.ApacheDir, 'common/conf/')
-      mkdirp(httpdcong).then().catch()
-
-      const ngconf = join(global.Server.NginxDir, 'common/conf/nginx.conf')
-      if (!existsSync(ngconf)) {
-        compressing.zip
-          .uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir)
-          .then(() => {
-            readFile(ngconf, 'utf-8').then((content: string) => {
-              content = content
-                .replace(/#PREFIX#/g, global.Server.NginxDir!)
-                .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx'))
-              writeFile(ngconf, content).then()
-              writeFile(
-                join(global.Server.NginxDir!, 'common/conf/nginx.conf.default'),
-                content
-              ).then()
-            })
-          })
-          .catch()
-      }
-    }
+    this.makeServerDir()
   }
 
   initWindowManager() {

@@ -190,7 +190,7 @@ async function windowsResult(instance: Instance): Promise<{ stdout: string; stde
 
 async function windowsWaitForStatus(instance: Instance): Promise<void> {
   let times = 0
-  while (times < 10) {
+  while (times < 20) {
     const a = existsSync(instance.pathStatus!)
     const b = existsSync(instance.pathStdout!)
     const c = existsSync(instance.pathStderr!)

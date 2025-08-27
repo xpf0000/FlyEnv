@@ -1,11 +1,12 @@
 import { exec as Sudo } from '@shared/Sudo'
-import { join, resolve as PathResolve, basename } from 'node:path'
+import { join, resolve as PathResolve, basename, dirname } from 'node:path'
 import is from 'electron-is'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { tmpdir } from 'node:os'
 import { uuid } from '../utils'
 import { copyFile, chmod, mkdirp, readFile, writeFile } from '@shared/fs-extra'
+import type { CallbackFn } from '@shared/app'
 
 type AppHelperCallback = (
   state: 'needInstall' | 'installing' | 'installed' | 'installFaild' | 'checkSuccess'
@@ -17,8 +18,14 @@ export class AppHelper {
 
   private _onMessage?: AppHelperCallback
 
+  private _onSuduExecSuccess?: CallbackFn
+
   onStatusMessage(fn: AppHelperCallback) {
     this._onMessage = fn
+  }
+
+  onSuduExecSuccess(fn: CallbackFn) {
+    this._onSuduExecSuccess = fn
   }
 
   async command() {
@@ -73,7 +80,10 @@ export class AppHelper {
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
         )
-        const content = tmpl.replace('#TASKNAME#', 'flyenv-helper').replace('#EXECPATH#', bin)
+        const content = tmpl
+          .replace('#TASKNAME#', 'flyenv-helper')
+          .replace('#EXECPATH#', bin)
+          .replace('#DATAPATH#', dirname(global.Server.AppDir!))
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, content)
         command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
@@ -131,7 +141,11 @@ export class AppHelper {
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
         )
-        const content = tmpl.replace('#TASKNAME#', 'flyenv-helper').replace('#EXECPATH#', bin)
+        const content = tmpl
+          .replace('#TASKNAME#', 'flyenv-helper')
+          .replace('#EXECPATH#', bin)
+          .replace('#DATAPATH#', dirname(global.Server.AppDir!))
+
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, content)
         command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
@@ -176,6 +190,7 @@ export class AppHelper {
           .then(() => {
             this.state = 'normal'
             this?._onMessage?.('checkSuccess')
+            this?._onSuduExecSuccess?.()
             resolve(true)
           })
           .catch(() => {

@@ -353,6 +353,11 @@ export class Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.startInstall', { service: row?.name ?? '' }))
       })
+      try {
+        await mkdirp(global.Server.Cache!)
+        await mkdirp(global.Server.AppDir!)
+      } catch {}
+
       const refresh = () => {
         row.downloaded = existsSync(row.zip)
         row.installed = existsSync(row.bin)
