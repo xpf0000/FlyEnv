@@ -226,10 +226,12 @@ async function windowsWriteCommandScript(instance: Instance): Promise<void> {
 async function windowsWriteExecuteScript(instance: Instance): Promise<void> {
   const script: string[] = []
   script.push('@echo off')
+  script.push('setlocal enabledelayedexpansion')
   script.push(
     `call "${instance.pathCommand!}" > "${instance.pathStdout!}" 2> "${instance.pathStderr!}"`
   )
-  script.push(`(echo %ERRORLEVEL%) > "${instance.pathStatus!}"`)
+  script.push(`(echo !ERRORLEVEL!) > "${instance.pathStatus!}"`)
+  script.push('endlocal')
   await fs.writeFile(instance.pathExecute!, script.join('\r\n'), 'utf-8')
   console.log('windowsWriteExecuteScript: ', instance.pathExecute)
 }
