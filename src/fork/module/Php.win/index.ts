@@ -163,7 +163,7 @@ class Php extends Base {
       console.log('php arr: ', arr)
       if (arr.length > 0) {
         try {
-          await Helper.send('tools', 'kill', arr)
+          await Helper.send('tools', 'kill', '-INT', arr)
         } catch {}
       }
       on({

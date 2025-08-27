@@ -57,7 +57,7 @@ class Manager extends Base {
       const logFile = join(dbPath, 'pg.log')
 
       try {
-        await spawnPromise(basename(bin), ['stop', '-D', `"${dbPath}"`, '-l', `"${logFile}"`], {
+        await spawnPromise(basename(bin), ['stop', '-D', dbPath, '-l', logFile], {
           cwd: dirname(bin),
           shell: false
         })

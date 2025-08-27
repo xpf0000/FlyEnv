@@ -84,8 +84,8 @@ export class Base {
     })
   }
 
-  stopService(version: SoftInstalled) {
-    return this._stopServer(version)
+  stopService(version: SoftInstalled, ...args: any) {
+    return this._stopServer(version, ...args)
   }
 
   startService(version: SoftInstalled, ...args: any) {
@@ -102,7 +102,7 @@ export class Base {
         this._linkVersion(version)
       } catch {}
       try {
-        await this._stopServer(version).on(on)
+        await this._stopServer(version, ...args).on(on)
         const res = await this._startServer(version, ...args).on(on)
         if (res?.['APP-Service-Start-PID']) {
           const pid = res['APP-Service-Start-PID']
@@ -117,8 +117,9 @@ export class Base {
     })
   }
 
-  _stopServer(version: SoftInstalled) {
+  _stopServer(version: SoftInstalled, ...args: any) {
     console.log(version)
+    console.log(args)
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))

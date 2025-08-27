@@ -46,6 +46,8 @@
     stopNav
   } = AsideSetup('postgresql')
 
+  PostgreSqlSetup.init()
+
   const brewStore = BrewStore()
 
   const currentVersion = computed(() => {
@@ -53,15 +55,19 @@
   })
 
   const module = brewStore.module('postgresql')
+  const extParamFn = (version: ModuleInstalledItem) => {
+    return new Promise<any[]>((resolve) => {
+      const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+      const dir = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+      const p = PostgreSqlSetup.dir?.[version.bin] ?? dir
+      resolve([p])
+    })
+  }
   if (!module?.startExtParam) {
-    module.startExtParam = (version: ModuleInstalledItem) => {
-      return new Promise<any[]>((resolve) => {
-        const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-        const dir = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
-        const p = PostgreSqlSetup.dir?.[version.bin] ?? dir
-        resolve([p])
-      })
-    }
+    module.startExtParam = extParamFn
+  }
+  if (!module?.stopExtParam) {
+    module.stopExtParam = extParamFn
   }
 
   AppServiceModule.postgresql = {

@@ -22,6 +22,7 @@ export class Module {
   fetchEnving: boolean = false
 
   startExtParam?: ExtParamFn
+  stopExtParam?: ExtParamFn
 
   installed: ModuleInstalledItem[] = []
 

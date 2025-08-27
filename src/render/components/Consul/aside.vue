@@ -46,6 +46,8 @@
     stopNav
   } = AsideSetup('consul')
 
+  ConsulSetup.init()
+
   const brewStore = BrewStore()
 
   const currentVersion = computed(() => {

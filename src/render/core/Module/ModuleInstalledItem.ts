@@ -93,22 +93,39 @@ export class ModuleInstalledItem implements SoftInstalled {
   }
 
   stop(): Promise<string | boolean> {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       if (!this.run) {
         return resolve(true)
       }
       this.running = true
       this.run = false
 
-      IPC.send(`app-fork:${this.typeFlag}`, 'stopService', JSON.parse(JSON.stringify(this))).then(
-        (key: string) => {
-          IPC.off(key)
+      const brewStore = BrewStore()
+      const module = brewStore.module(this.typeFlag)
+      let params: any[] = []
+      if (module?.stopExtParam) {
+        try {
+          params = await module.stopExtParam(this)
+        } catch {
           this.run = false
-          this.pid = ''
           this.running = false
           resolve(true)
+          return
         }
-      )
+      }
+
+      IPC.send(
+        `app-fork:${this.typeFlag}`,
+        'stopService',
+        JSON.parse(JSON.stringify(this)),
+        ...params
+      ).then((key: string) => {
+        IPC.off(key)
+        this.run = false
+        this.pid = ''
+        this.running = false
+        resolve(true)
+      })
     })
   }
 

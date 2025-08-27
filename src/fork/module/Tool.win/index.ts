@@ -198,7 +198,7 @@ subjectAltName=@alt_names
   killPids(sig: string, pids: Array<string>) {
     return new ForkPromise(async (resolve) => {
       try {
-        await Helper.send('tools', 'kill', pids)
+        await Helper.send('tools', 'kill', '-INT', pids)
       } catch {}
       resolve(true)
     })
@@ -253,7 +253,7 @@ subjectAltName=@alt_names
         return resolve(true)
       }
       try {
-        await Helper.send('tools', 'kill', all)
+        await Helper.send('tools', 'kill', '-INT', all)
       } catch {}
       resolve(true)
     })
