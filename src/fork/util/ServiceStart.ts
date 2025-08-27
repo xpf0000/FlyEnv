@@ -14,7 +14,7 @@ import {
   writeFile,
   execPromiseSudo
 } from '../Fn'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isMacOS } from '@shared/utils'
 
 export type ServiceStartParams = {
   version: SoftInstalled
@@ -125,15 +125,6 @@ export async function serviceStartExec(
   res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
   if (res) {
     if (res?.pid) {
-      try {
-        await writeFile(pidPath, res.pid)
-      } catch {
-        if (!isWindows()) {
-          try {
-            await Helper.send('tools', 'writeFileByRoot', pidPath, res.pid)
-          } catch {}
-        }
-      }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
       })

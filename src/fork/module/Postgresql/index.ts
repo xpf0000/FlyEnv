@@ -46,10 +46,6 @@ class Manager extends Base {
     version: SoftInstalled,
     DATA_DIR?: string
   ): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
-    if (!isWindows()) {
-      return super._stopServer(version) as any
-    }
-
     return new ForkPromise(async (resolve, reject, on) => {
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
@@ -62,7 +58,7 @@ class Manager extends Base {
           shell: false
         })
       } catch (e) {
-        console.log('mongosh shutdown error: ', e)
+        console.log('PostgreSQL shutdown error: ', e)
       }
 
       const pids = new Set<string>()

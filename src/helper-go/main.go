@@ -14,8 +14,6 @@ import (
 
 	"helper-go/module"
 	"helper-go/utils"
-
-	"github.com/Microsoft/go-winio"
 )
 
 // Constants for socket paths
@@ -87,11 +85,11 @@ func (a *AppHelper) Run() error {
 	// Create the appropriate listener based on platform
 	if runtime.GOOS == "windows" {
 		// Use named pipe on Windows
-		listener, err = a.createWindowsNamedPipe()
+		listener, err = utils.CreateWindowsNamedPipe(SOCKET_PATH)
 		if err != nil {
 			return fmt.Errorf("failed to create named pipe: %w", err)
 		}
-		fmt.Println("Server is listening on Windows named pipe:", getPipeNameFromSocketPath(SOCKET_PATH))
+		fmt.Println("Server is listening on Windows named pipe:", utils.GetPipeNameFromSocketPath(SOCKET_PATH))
 	} else {
 		// Use Unix domain socket on Unix-like systems
 		listener, err = net.Listen("unix", SOCKET_PATH)
@@ -121,28 +119,6 @@ func (a *AppHelper) Run() error {
 		// Handle each connection in a new goroutine
 		go a.handleClient(conn)
 	}
-}
-
-// createWindowsNamedPipe creates a Windows named pipe using go-winio
-func (a *AppHelper) createWindowsNamedPipe() (net.Listener, error) {
-	pipeName := getPipeNameFromSocketPath(SOCKET_PATH)
-	fullPipePath := `\\.\pipe\` + pipeName
-
-	// Configure the named pipe
-	pipeConfig := &winio.PipeConfig{
-		SecurityDescriptor: "D:P(A;;GA;;;WD)", // Allow generic all access to everyone
-		MessageMode:        true,              // Message mode for reliable message boundaries
-		InputBufferSize:    65536,             // 64KB input buffer
-		OutputBufferSize:   65536,             // 64KB output buffer
-	}
-
-	// Create and listen on the named pipe
-	listener, err := winio.ListenPipe(fullPipePath, pipeConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to listen on named pipe '%s': %w", fullPipePath, err)
-	}
-
-	return listener, nil
 }
 
 // setupUnixPermissions handles the chown operation for Unix domain sockets
@@ -187,27 +163,6 @@ func (a *AppHelper) setupUnixPermissions() {
 			fmt.Printf("Successfully changed ownership of socket to '%s'\n", rule)
 		}
 	}
-}
-
-// getPipeNameFromSocketPath extracts a valid pipe name from socket path
-func getPipeNameFromSocketPath(socketPath string) string {
-	if runtime.GOOS == "windows" {
-		// On Windows, use the base name of the socket path as pipe name
-		// Remove any invalid characters for Windows pipe names
-		baseName := filepath.Base(socketPath)
-		// Replace any non-alphanumeric characters (except underscore) with underscore
-		var result strings.Builder
-		for _, r := range baseName {
-			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
-				(r >= '0' && r <= '9') || r == '_' || r == '-' {
-				result.WriteRune(r)
-			} else {
-				result.WriteRune('_')
-			}
-		}
-		return result.String()
-	}
-	return socketPath
 }
 
 // handleClient processes data from a single client connection
