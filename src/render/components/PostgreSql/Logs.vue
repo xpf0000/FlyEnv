@@ -13,20 +13,14 @@
   import { computed, ref } from 'vue'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
-  import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { join } from '@/util/path-browserify'
+  import { PostgreSqlSetup } from '@/components/PostgreSql/setup'
 
-  const appStore = AppStore()
   const brewStore = BrewStore()
 
   const currentVersion = computed(() => {
-    const current = appStore.config.server?.postgresql?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore.module('postgresql').installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+    return brewStore.currentVersion('postgresql')
   })
 
   const log = ref()
@@ -36,7 +30,8 @@
     }
     const version = currentVersion.value?.version
     const versionTop = version?.split('.')?.shift()
-    const dbPath = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+    const dir = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+    const dbPath = PostgreSqlSetup.dir?.[currentVersion.value.bin] ?? dir
     return join(dbPath, 'pg.log')
   })
 </script>

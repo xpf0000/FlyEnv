@@ -52,18 +52,21 @@ class Manager extends Base {
       const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       const logFile = join(dbPath, 'pg.log')
 
-      try {
-        await spawnPromise(basename(bin), ['stop', '-D', dbPath, '-l', logFile], {
-          cwd: dirname(bin),
-          shell: false
-        })
-      } catch (e) {
-        console.log('PostgreSQL shutdown error: ', e)
-        console.log('PostgreSQL shutdown error version: ', version, bin)
+      const doStop = async () => {
+        try {
+          await spawnPromise(basename(bin), ['stop', '-D', dbPath, '-l', logFile], {
+            cwd: dirname(bin),
+            shell: false
+          })
+        } catch (e) {
+          console.log('PostgreSQL shutdown error: ', e)
+          console.log('PostgreSQL shutdown error version: ', version, bin)
+        }
       }
 
       if (!isWindows()) {
         const pidFile = join(dbPath, 'postmaster.pid')
+        await doStop()
         const check = async (times = 0) => {
           if (times >= 10) {
             console.log('times out: ', times)
@@ -73,11 +76,14 @@ class Manager extends Base {
             console.log('times success: ', times)
             return true
           } else {
-            await waitTime(600)
+            await waitTime(1000)
+            await doStop()
             return await check(times + 1)
           }
         }
         await check()
+      } else {
+        await doStop()
       }
 
       const pids = new Set<string>()
