@@ -7,7 +7,7 @@
         <div class="w-full flex flex-col gap-7">
           <div class="flex flex-col">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-[12px]">分组</span>
+              <span class="text-[12px]">{{ I18nT('tools.Group') }}</span>
               <el-button
                 link
                 :icon="Plus"
@@ -67,7 +67,7 @@
           </div>
           <div class="flex flex-col">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-[12px]">代码</span>
+              <span class="text-[12px]">{{ I18nT('tools.Code') }}</span>
               <el-button link :icon="Plus" @click.stop="addCode(undefined)"></el-button>
             </div>
             <template v-if="codesNoGroup.length === 0">

@@ -32,9 +32,9 @@ class Podman {
           machine.remove = machine.remove.bind(machine)
           machine._onRemove = this.onMachineRemove
           this.machine.push(machine)
-          machine.fetchInfoAndContainer()
           if (!this.tab) {
             this.tab = machine.name
+            machine.fetchInfoAndContainer()
           }
         }
       } else {
@@ -43,6 +43,11 @@ class Podman {
       }
       this.loading = true
     })
+  }
+
+  tabChange(item: Machine) {
+    this.tab = item.name
+    item.fetchInfoAndContainer()
   }
 }
 

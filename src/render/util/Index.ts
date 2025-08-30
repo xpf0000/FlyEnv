@@ -206,3 +206,8 @@ export function waitTime(time: number) {
     }, time)
   })
 }
+
+export const emptyClick = (e: MouseEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+}

@@ -2,5 +2,18 @@
   "noPodmanFound": "未检测到 <a href=\"javascript:void();\" onclick=\"openUrl('https://podman.io/')\">Podman</a>。\n如需安装 Podman, 可点击安装按钮进行安装。\n也可以点击此链接\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/zh/guide/podman.html')\">https://flyenv.com/zh/guide/podman.html</a>\n按照文档说明自行安装。",
   "podmanErrorTips": "在此位置{bin}, 检测到 Podman 的可执行文件。\n但是FlyEnv 无法调用。错误信息：\n{error}",
   "removeContainerTips": "确定移除此容器?",
-  "removeMachineTips": "确定移除此虚拟机?"
+  "removeMachineTips": "确定移除此虚拟机?",
+  "removeImageTips": "确定移除此镜像?",
+  "Machine": "虚拟机",
+  "Container": "容器",
+  "CPU": "CPU核心数",
+  "Memory": "内存",
+  "DiskSize": "磁盘空间",
+  "isDefault": "设为默认",
+  "require": "为必填项",
+  "rootful": "Rootful模式",
+  "userModeNetworking": "用户模式网络",
+  "rosetta": "Rosetta (Mac)",
+  "identityPath": "SSH密钥路径",
+  "remoteUsername": "远程用户"
 }

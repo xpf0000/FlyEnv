@@ -6,6 +6,7 @@ import { MessageError } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { ElMessageBox } from 'element-plus'
 import { Container } from '@/components/Podman/class/Container'
+import { Image } from '@/components/Podman/class/Image'
 
 export class Machine {
   name: string = ''
@@ -14,22 +15,28 @@ export class Machine {
   running: boolean = false
   info?: MachineItemType
   container: Container[] = []
+  images: Image[] = []                // 新增镜像列表
   _onRemove?: CallbackFn
+  fetched: boolean = false
 
   constructor(obj: any) {
     Object.assign(this, obj)
   }
 
   /**
-   * Fetch Machine info
+   * Fetch Machine info and containers
    */
   fetchInfoAndContainer() {
+    if (this.fetched) {
+      return
+    }
     IPC.send('app-fork:podman', 'fetchMachineInfo', this.name).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
+        this.fetched = true
         this.info = reactive(res?.data?.info ?? {})
-        const arr = res?.data?.machine ?? []
-        for (const item of arr) {
+        const containers = res?.data?.container ?? []
+        for (const item of containers) {
           const find = this.container.some((s) => s.id === item.id)
           if (!find) {
             const container = reactive(new Container(item))
@@ -41,8 +48,24 @@ export class Machine {
             this.container.unshift(container)
           }
         }
+        const images = res?.data?.images ?? []
+        for (const img of images) {
+          const find = this.images.some((s) => s.id === img.id)
+          if (!find) {
+            const image = reactive(new Image(img))
+            image._onRemove = this.onImageRemove.bind(this)
+            this.images.push(image)
+          }
+        }
       }
     })
+  }
+
+  /**
+   * 镜像删除回调
+   */
+  onImageRemove(item: Image) {
+    this.images = this.images.filter((img) => img.id !== item.id)
   }
 
   onContainerRemove(item: Container) {
