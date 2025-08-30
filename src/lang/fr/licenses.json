@@ -4,7 +4,7 @@
   "restrictions": {
     "title": "Les utilisateurs sans licence seront soumis aux restrictions suivantes :",
     "items": {
-      "0": "Un maximum de trois sites peut être créé.",
+      "0": "Un maximum de trois sites peut être créés.",
       "1": "La fonctionnalité de chat IA est disponible pour une période d'essai de trois jours seulement.",
       "2": "Des restrictions supplémentaires peuvent s'appliquer aux fonctionnalités futures."
     }
@@ -28,7 +28,7 @@
       }
     }
   },
-  "submitInfo": "Après avoir complété l'une des méthodes ci-dessus, veuillez remplir les résultats dans la fenptre de saisie ci-dessous et cliquer sur le bouton 'Demander une licence' pour soumettre votre demande. Les demandes de licence sont examinées manuellement, alors soyez patient. Elles sont généralement traitées rapidement.",
+  "submitInfo": "Après avoir complété l'une des méthodes ci-dessus, veuillez remplir les résultats dans la fenêtre de saisie ci-dessous et cliquez sur le bouton 'Demander une licence' pour soumettre votre demande. Les demandes de licence sont examinées manuellement, alors soyez patient. Elles sont généralement traitées rapidement.",
   "messageLabel": "Message",
   "messagePlaceholder": "Veuillez soumettre le donateur, le lien de don ou l'ID de commande lors du choix de faire un don.\nVeuillez soumettre le lien PR pour ceux qui choisissent de participer au développement du projet.\nVeuillez soumettre le lien de l'article/vidéo si vous choisissez d'aider à promouvoir le projet",
   "requestButton": "Demander une licence",
