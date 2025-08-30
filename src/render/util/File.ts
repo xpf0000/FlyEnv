@@ -16,3 +16,20 @@ export function chooseFolder(): Promise<string> {
       .catch(reject)
   })
 }
+
+export function chooseFile(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    dialog
+      .showOpenDialog({
+        properties: ['openFile', 'showHiddenFiles']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        resolve(path)
+      })
+      .catch(reject)
+  })
+}
