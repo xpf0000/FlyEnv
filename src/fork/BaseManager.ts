@@ -49,6 +49,7 @@ class BaseManager {
   Gradle: any
   Typesense: any
   Project: any
+  Podman: any
 
   modules: Set<string> = new Set()
 
@@ -399,6 +400,12 @@ class BaseManager {
         this.Project = res.default
       }
       doRun(this.Project)
+    } else if (module === 'podman') {
+      if (!this.Podman) {
+        const res = await import('./module/Podman')
+        this.Podman = res.default
+      }
+      doRun(this.Podman)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

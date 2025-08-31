@@ -29,9 +29,11 @@ import licensesZH from './licenses.json'
 import requestTimer from './requestTimer.json'
 import meilisearch from './meilisearch.json'
 import minio from './minio.json'
+import podman from './podman.json'
 
 export default {
   zh: {
+    podman,
     minio,
     meilisearch,
     requestTimer,

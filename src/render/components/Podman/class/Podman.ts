@@ -1,6 +1,7 @@
 import IPC from '@/util/IPC'
 import { reactive } from 'vue'
 import { Machine } from '@/components/Podman/class/Machine'
+import XTerm from '@/util/XTerm'
 
 class Podman {
   machine: Machine[] = []
@@ -8,18 +9,25 @@ class Podman {
   inited: boolean = false
   loading: boolean = false
   tab: string = ''
+  xtermExec = ''
 
-  onMachineRemove() {}
+  installEnd: boolean = false
+  installing: boolean = false
+  xterm: XTerm | undefined
+
+  onMachineRemove(item: Machine) {
+    this.machine = this.machine.filter((f) => f.name !== item.name)
+  }
 
   init() {
     if (this.inited || this.loading) {
       return
     }
     this.loading = true
-    this.inited = true
     IPC.send('app-fork:podman', 'podmanInit').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
+        this.inited = true
         this.version = res?.data?.version ?? ''
         const arr = res?.data?.machine ?? []
         this.machine.splice(0)
@@ -41,8 +49,14 @@ class Podman {
         this.version = ''
         this.machine.splice(0)
       }
-      this.loading = true
+      this.loading = false
     })
+  }
+
+  reinit() {
+    this.loading = false
+    this.inited = false
+    this.init()
   }
 
   tabChange(item: Machine) {
@@ -52,5 +66,9 @@ class Podman {
 }
 
 const PodmanManager = reactive(new Podman())
+PodmanManager.init = PodmanManager.init.bind(PodmanManager)
+PodmanManager.onMachineRemove = PodmanManager.onMachineRemove.bind(PodmanManager)
+PodmanManager.reinit = PodmanManager.reinit.bind(PodmanManager)
+PodmanManager.tabChange = PodmanManager.tabChange.bind(PodmanManager)
 
 export { PodmanManager }

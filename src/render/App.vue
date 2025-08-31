@@ -19,6 +19,7 @@
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
   import { Module } from '@/core/Module/Module'
   import type { AllAppModule, AppModuleEnum } from '@/core/type'
+  import { shell } from '@/util/NodeFn'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -152,4 +153,14 @@
       e.preventDefault()
     }
   })
+
+  const openDir = (dir: string) => {
+    shell.openPath(dir)
+  }
+  const openUrl = (url: string) => {
+    shell.openExternal(url)
+  }
+
+  window.openDir = openDir
+  window.openUrl = openUrl
 </script>

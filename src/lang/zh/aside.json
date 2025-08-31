@@ -8,6 +8,7 @@
   "searchEngine": "搜索引擎",
   "dnsServer": "DNS服务器",
   "ftpServer": "FTP服务器",
+  "containerRuntime": "容器运行时",
   "other": "其他",
   "appLog": "App日志",
   "ai": "AI",

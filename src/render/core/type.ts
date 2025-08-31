@@ -10,7 +10,8 @@ export enum AppModuleTypeEnum {
   ftpServer = 'ftpServer',
   other = 'other',
   objectStorage = 'objectStorage',
-  ai = 'ai'
+  ai = 'ai',
+  containerRuntime = 'containerRuntime'
 }
 
 export type AllAppModuleType = keyof typeof AppModuleTypeEnum
@@ -18,6 +19,7 @@ export type AllAppModuleType = keyof typeof AppModuleTypeEnum
 export const AppModuleTypeList: AllAppModuleType[] = [
   'site',
   'ai',
+  'containerRuntime',
   'webServer',
   'language',
   'dataBaseServer',
@@ -69,7 +71,8 @@ export enum AppModuleEnum {
   'perl' = 'perl',
   consul = 'consul',
   gradle = 'gradle',
-  typesense = 'typesense'
+  typesense = 'typesense',
+  podman = 'podman'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum
