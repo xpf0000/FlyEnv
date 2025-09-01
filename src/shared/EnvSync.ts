@@ -55,7 +55,7 @@ class EnvSync {
           this.AppEnv![k] = v
         }
       })
-    const PATH = `${this.AppEnv!['PATH']}:/home/linuxbrew/.linuxbrew/bin:$HOME/.linuxbrew/bin:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
+    const PATH = `${this.AppEnv!['PATH']}:/opt/podman/bin:/home/linuxbrew/.linuxbrew/bin:$HOME/.linuxbrew/bin:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
     this.AppEnv!['PATH'] = Array.from(new Set(PATH.split(':'))).join(':')
     if (global.Server.Proxy) {
       for (const k in global.Server.Proxy) {

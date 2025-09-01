@@ -14,11 +14,12 @@ class Podman extends Base {
   podmanInit() {
     return new ForkPromise(async (resolve) => {
       let version = ''
-      let tmp = join(tmpdir(), `${uuid}.txt`)
+      let tmp = join(tmpdir(), `${uuid()}.txt`)
       try {
         await execPromiseWithEnv(`podman --version > "${tmp}" 2>/dev/null`)
         version = await readFile(tmp, 'utf-8')
-      } catch {
+      } catch (e) {
+        console.log('podman --version error: ', e)
         version = ''
       } finally {
         if (existsSync(tmp)) {
@@ -27,7 +28,7 @@ class Podman extends Base {
       }
 
       const machine: any[] = []
-      tmp = join(tmpdir(), `${uuid}.txt`)
+      tmp = join(tmpdir(), `${uuid()}.txt`)
       try {
         await execPromiseWithEnv(`podman machine list --format json > "${tmp}" 2>/dev/null`)
         const content = await readFile(tmp, 'utf-8')
@@ -39,7 +40,8 @@ class Podman extends Base {
           running: m.Starting
         }))
         machine.push(...arr)
-      } catch {
+      } catch (e) {
+        console.log('podman machine list error: ', e)
       } finally {
         if (existsSync(tmp)) {
           await remove(tmp)
@@ -55,7 +57,7 @@ class Podman extends Base {
 
   fetchContainerList(machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const tmp = join(tmpdir(), `${uuid}.txt`)
+      const tmp = join(tmpdir(), `${uuid()}.txt`)
       let containers: any[] = []
       try {
         const cmd = isLinux()
@@ -87,7 +89,7 @@ class Podman extends Base {
 
   fetchImageList(machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const tmp = join(tmpdir(), `${uuid}.txt`)
+      const tmp = join(tmpdir(), `${uuid()}.txt`)
       let images: any[] = []
       try {
         const cmd = isLinux()
@@ -225,9 +227,11 @@ class Podman extends Base {
           // Linux 下没有 machine，info 可返回空对象或本地 Podman 信息
           info = {}
         } else {
-          const infoTmp = join(tmpdir(), `${uuid}.txt`)
+          const infoTmp = join(tmpdir(), `${uuid()}.txt`)
           try {
-            await execPromiseWithEnv(`podman machine inspect ${machineName} > "${infoTmp}" 2>/dev/null`)
+            await execPromiseWithEnv(
+              `podman machine inspect ${machineName} > "${infoTmp}" 2>/dev/null`
+            )
             const content = await readFile(infoTmp, 'utf-8')
             info = JSON.parse(content)[0] ?? {}
           } catch (e: any) {
