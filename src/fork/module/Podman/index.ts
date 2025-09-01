@@ -2,7 +2,7 @@ import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { uuid, execPromiseWithEnv, readFile, remove, existsSync } from '../../Fn'
+import { uuid, execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
 import { isLinux } from '@shared/utils'
 
 class Podman extends Base {
@@ -18,6 +18,7 @@ class Podman extends Base {
       try {
         await execPromiseWithEnv(`podman --version > "${tmp}" 2>/dev/null`)
         version = await readFile(tmp, 'utf-8')
+        version = version.split(' ')?.pop()?.trim() ?? ''
       } catch (e) {
         console.log('podman --version error: ', e)
         version = ''
@@ -62,7 +63,7 @@ class Podman extends Base {
       try {
         const cmd = isLinux()
           ? `podman ps --format json > "${tmp}" 2>/dev/null`
-          : `podman --machine ${machineName} ps --format json > "${tmp}" 2>/dev/null`
+          : `podman --connection ${machineName} ps --format json > "${tmp}" 2>/dev/null`
         await execPromiseWithEnv(cmd)
         const content = await readFile(tmp, 'utf-8')
         const json = JSON.parse(content)
@@ -78,6 +79,7 @@ class Podman extends Base {
         }))
         resolve(containers)
       } catch (e: any) {
+        console.log('fetchContainerList error: ', e)
         reject(e?.message ?? 'fail')
       } finally {
         if (existsSync(tmp)) {
@@ -94,7 +96,7 @@ class Podman extends Base {
       try {
         const cmd = isLinux()
           ? `podman images --format json > "${tmp}" 2>/dev/null`
-          : `podman --machine ${machineName} images --format json > "${tmp}" 2>/dev/null`
+          : `podman --connection ${machineName} images --format json > "${tmp}" 2>/dev/null`
         await execPromiseWithEnv(cmd)
         const content = await readFile(tmp, 'utf-8')
         const json = JSON.parse(content)
@@ -107,6 +109,7 @@ class Podman extends Base {
         }))
         resolve(images)
       } catch (e: any) {
+        console.log('fetchImageList error: ', e)
         reject(e?.message ?? 'fail')
       } finally {
         if (existsSync(tmp)) {
@@ -138,12 +141,25 @@ class Podman extends Base {
     })
   }
 
+  machineReStart(machineName: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        await this.machineStop(machineName)
+        await waitTime(500)
+        await this.machineStart(machineName)
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      }
+    })
+  }
+
   containerStart(containerName: string, machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
         const cmd = isLinux()
           ? `podman start ${containerName}`
-          : `podman --machine ${machineName} start ${containerName}`
+          : `podman --connection ${machineName} start ${containerName}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -157,7 +173,7 @@ class Podman extends Base {
       try {
         const cmd = isLinux()
           ? `podman stop ${containerName}`
-          : `podman --machine ${machineName} stop ${containerName}`
+          : `podman --connection ${machineName} stop ${containerName}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -182,7 +198,7 @@ class Podman extends Base {
       try {
         const cmd = isLinux()
           ? `podman rm -f ${containerName}`
-          : `podman --machine ${machineName} rm -f ${containerName}`
+          : `podman --connection ${machineName} rm -f ${containerName}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -196,7 +212,7 @@ class Podman extends Base {
       try {
         const cmd = isLinux()
           ? `podman pull ${imageName}:${tag}`
-          : `podman --machine ${machineName} pull ${imageName}:${tag}`
+          : `podman --connection ${machineName} pull ${imageName}:${tag}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -210,7 +226,7 @@ class Podman extends Base {
       try {
         const cmd = isLinux()
           ? `podman rmi -f ${imageId}`
-          : `podman --machine ${machineName} rmi -f ${imageId}`
+          : `podman --connection ${machineName} rmi -f ${imageId}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -235,6 +251,7 @@ class Podman extends Base {
             const content = await readFile(infoTmp, 'utf-8')
             info = JSON.parse(content)[0] ?? {}
           } catch (e: any) {
+            console.error('podman machine inspect: ', e?.message)
             info = {}
           } finally {
             if (existsSync(infoTmp)) {
@@ -257,6 +274,7 @@ class Podman extends Base {
           }
         })
       } catch (e: any) {
+        console.error('fetchMachineInfo error: ', e?.message)
         reject(e?.message ?? 'fail')
       }
     })

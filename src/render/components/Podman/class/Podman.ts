@@ -33,6 +33,7 @@ class Podman {
         this.machine.splice(0)
         for (const item of arr) {
           const machine = reactive(new Machine(item))
+          machine.reStart = machine.reStart.bind(machine)
           machine.start = machine.start.bind(machine)
           machine.stop = machine.stop.bind(machine)
           machine.onContainerRemove = machine.onContainerRemove.bind(machine)

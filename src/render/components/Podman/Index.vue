@@ -8,7 +8,7 @@
         <div v-loading="true" class="w-full h-full overflow-hidden"></div>
       </template>
       <template v-else-if="showInstall">
-        <el-card class="h-full">
+        <el-card class="h-full app-base-el-card">
           <template #header>
             <div class="flex items-center justify-between gap-7 overflow-hidden">
               <template v-if="PodmanManager.installing">
@@ -61,19 +61,27 @@
           </template>
         </el-card>
       </template>
-      <template v-else-if="showNomal"></template>
+      <template v-else-if="showNomal">
+        <div class="flex h-full w-full overflow-hidden gap-3">
+          <LeftVM />
+          <RightVM />
+        </div>
+      </template>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, ref } from 'vue'
+  import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { PodmanManager } from './class/Podman'
   import { I18nT } from '@lang/index'
   import { AppStore } from '@/store/app'
   import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
   import XTerm from '@/util/XTerm'
+  import LeftVM from './left.vue'
+  import RightVM from './right.vue'
+
   const tab = 'podman'
 
   PodmanManager.init()
@@ -142,4 +150,19 @@
     await execXTerm.send(params)
     PodmanManager.installEnd = true
   }
+
+  onMounted(() => {
+    if (PodmanManager.installing) {
+      nextTick().then(() => {
+        const execXTerm: XTerm = PodmanManager.xterm as any
+        if (execXTerm && xtermDom.value) {
+          execXTerm.mount(xtermDom.value).then().catch()
+        }
+      })
+    }
+  })
+
+  onUnmounted(() => {
+    PodmanManager?.xterm?.unmounted?.()
+  })
 </script>

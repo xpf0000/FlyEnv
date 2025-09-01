@@ -8,6 +8,7 @@
   "removeImageTips": "确定移除此镜像?",
   "Machine": "虚拟机",
   "Container": "容器",
+  "Image": "镜像",
   "CPU": "CPU核心数",
   "Memory": "内存",
   "DiskSize": "磁盘空间",
@@ -17,5 +18,8 @@
   "userModeNetworking": "用户模式网络",
   "rosetta": "Rosetta (Mac)",
   "identityPath": "SSH密钥路径",
-  "remoteUsername": "远程用户"
+  "remoteUsername": "远程用户",
+  "Dashboard": "仪表盘",
+  "machineIsEmpty": "请选择虚拟机",
+  "machineNeedRun": "请先启动虚拟机"
 }

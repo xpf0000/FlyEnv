@@ -15,9 +15,10 @@ export class Machine {
   running: boolean = false
   info?: MachineItemType
   container: Container[] = []
-  images: Image[] = []                // 新增镜像列表
+  images: Image[] = [] // 新增镜像列表
   _onRemove?: CallbackFn
   fetched: boolean = false
+  tab: string = 'Dashboard'
 
   constructor(obj: any) {
     Object.assign(this, obj)
@@ -70,6 +71,22 @@ export class Machine {
 
   onContainerRemove(item: Container) {
     this.container = this.container.filter((f) => f.id !== item.id)
+  }
+
+  reStart() {
+    if (this.running) {
+      return
+    }
+    this.running = true
+    IPC.send('app-fork:podman', 'machineReStart', this.name).then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        this.run = true
+      } else {
+        MessageError(res?.msg ?? I18nT('base.fail'))
+      }
+      this.running = false
+    })
   }
 
   start() {

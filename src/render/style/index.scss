@@ -2738,7 +2738,25 @@ body {
     opacity: 0;
   }
 }
+.service {
+  &.status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 
+    &.running {
+      >svg {
+        color: #01cc74;
+      }
+    }
+    &:not(.running):hover {
+      >svg {
+        color: #fdab1f;
+      }
+    }
+  }
+}
 .editor-config {
   display: flex;
   flex-direction: column;
