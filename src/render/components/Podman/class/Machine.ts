@@ -28,7 +28,7 @@ export class Machine {
    * Fetch Machine info and containers
    */
   fetchInfoAndContainer() {
-    if (this.fetched) {
+    if (this.fetched || !this.run) {
       return
     }
     IPC.send('app-fork:podman', 'fetchMachineInfo', this.name).then((key: string, res: any) => {
@@ -98,6 +98,7 @@ export class Machine {
       IPC.off(key)
       if (res?.code === 0) {
         this.run = true
+        this.fetchInfoAndContainer()
       } else {
         MessageError(res?.msg ?? I18nT('base.fail'))
       }

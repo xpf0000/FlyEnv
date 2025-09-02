@@ -16,16 +16,14 @@ export class Image {
   }
 
   pull() {
-    IPC.send('app-fork:podman', 'imagePull', this.name, this.tag).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          // 可根据需要刷新镜像列表
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
+    IPC.send('app-fork:podman', 'imagePull', this.name, this.tag).then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        // 可根据需要刷新镜像列表
+      } else {
+        MessageError(res?.msg ?? I18nT('base.fail'))
       }
-    )
+    })
   }
 
   remove() {
@@ -35,16 +33,14 @@ export class Image {
       type: 'warning'
     })
       .then(() => {
-        IPC.send('app-fork:podman', 'imageRemove', this.id).then(
-          (key: string, res: any) => {
-            IPC.off(key)
-            if (res?.code === 0) {
-              this?._onRemove?.(this)
-            } else {
-              MessageError(res?.msg ?? I18nT('base.fail'))
-            }
+        IPC.send('app-fork:podman', 'imageRemove', this.id).then((key: string, res: any) => {
+          IPC.off(key)
+          if (res?.code === 0) {
+            this?._onRemove?.(this)
+          } else {
+            MessageError(res?.msg ?? I18nT('base.fail'))
           }
-        )
+        })
       })
       .catch()
   }

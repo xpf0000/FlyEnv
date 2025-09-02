@@ -46,6 +46,15 @@
       <template v-else-if="!machine?.run">
         <el-empty :description="I18nT('podman.machineNeedRun')"></el-empty>
       </template>
+      <template v-else>
+        <template v-if="machine.tab === 'Dashboard'">
+          <DashboradVM />
+        </template>
+        <template v-else-if="machine.tab === 'Image'">
+          <ImageVM />
+        </template>
+        <!-- 其它 tab 可继续补充 -->
+      </template>
     </template>
   </el-card>
 </template>
@@ -53,6 +62,8 @@
   import { computed } from 'vue'
   import { PodmanManager } from './class/Podman'
   import { I18nT } from '@lang/index'
+  import DashboradVM from './dashboard.vue'
+  import ImageVM from './image.vue'
 
   const machine = computed(() => {
     return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)

@@ -266,12 +266,9 @@ class Podman extends Base {
         const imageRes = await this.fetchImageList(machineName)
 
         resolve({
-          code: 0,
-          data: {
-            info,
-            container: containerRes,
-            images: imageRes
-          }
+          info,
+          container: containerRes,
+          images: imageRes
         })
       } catch (e: any) {
         console.error('fetchMachineInfo error: ', e?.message)

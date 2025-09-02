@@ -9,6 +9,11 @@
   "Machine": "虚拟机",
   "Container": "容器",
   "Image": "镜像",
+  "Tag": "标签",
+  "Size": "大小",
+  "Created": "创建时间",
+  "Action": "操作",
+  "Delete": "删除",
   "CPU": "CPU核心数",
   "Memory": "内存",
   "DiskSize": "磁盘空间",
@@ -21,5 +26,11 @@
   "remoteUsername": "远程用户",
   "Dashboard": "仪表盘",
   "machineIsEmpty": "请选择虚拟机",
-  "machineNeedRun": "请先启动虚拟机"
+  "machineNeedRun": "请先启动虚拟机",
+  "State": "状态",
+  "LastUp": "最后启动",
+  "SSHPort": "SSH端口",
+  "PodmanSocket": "Podman Socket",
+  "yes": "是",
+  "no": "否"
 }
