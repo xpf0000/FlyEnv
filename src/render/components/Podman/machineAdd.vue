@@ -6,7 +6,7 @@
         ? I18nT('base.edit') + I18nT('podman.Machine')
         : I18nT('podman.Machine') + I18nT('base.add')
     "
-    width="400px"
+    width="600px"
     @closed="closedFn"
   >
     <el-form ref="formRef" :model="form" label-width="110px" class="pt-2">

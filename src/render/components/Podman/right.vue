@@ -1,5 +1,9 @@
 <template>
-  <el-card shadow="never" class="app-base-el-card flex-1 overflow-hidden">
+  <el-card
+    style="--el-card-padding: 12px 16px"
+    shadow="never"
+    class="app-base-el-card flex-1 overflow-hidden"
+  >
     <template v-if="machine?.name" #header>
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-7">

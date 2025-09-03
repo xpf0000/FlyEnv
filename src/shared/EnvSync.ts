@@ -13,7 +13,7 @@ class EnvSync {
       return this.AppEnv
     }
     if (isWindows()) {
-      let path = `${process.env['PATH']};C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\`
+      let path = `${process.env['PATH']};C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\`
       path = Array.from(new Set(path.split(';')))
         .filter((s) => !!s)
         .join(';')

@@ -2,6 +2,7 @@ import IPC from '@/util/IPC'
 import { reactive } from 'vue'
 import { Machine } from '@/components/Podman/class/Machine'
 import XTerm from '@/util/XTerm'
+import { reactiveBind } from '@/util/Index'
 
 class Podman {
   machine: Machine[] = []
@@ -32,13 +33,7 @@ class Podman {
         const arr = res?.data?.machine ?? []
         this.machine.splice(0)
         for (const item of arr) {
-          const machine = reactive(new Machine(item))
-          machine.reStart = machine.reStart.bind(machine)
-          machine.start = machine.start.bind(machine)
-          machine.stop = machine.stop.bind(machine)
-          machine.onContainerRemove = machine.onContainerRemove.bind(machine)
-          machine.fetchInfoAndContainer = machine.fetchInfoAndContainer.bind(machine)
-          machine.remove = machine.remove.bind(machine)
+          const machine = reactiveBind(new Machine(item))
           machine._onRemove = this.onMachineRemove
           this.machine.push(machine)
           if (!this.tab) {

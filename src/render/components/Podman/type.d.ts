@@ -1,3 +1,5 @@
+import XTerm from '@/util/XTerm'
+
 export interface MachineItemType {
   ConfigDir: ConfigDir
   ConnectionInfo: ConnectionInfo
@@ -36,4 +38,10 @@ export interface ContainerPortItem {
   portIn: string
   portOut: string
   ipOut: string
+}
+
+export interface XTermType {
+  installEnd: boolean
+  installing: boolean
+  xterm?: XTerm
 }

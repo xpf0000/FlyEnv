@@ -152,6 +152,7 @@ export default class WindowManager extends EventEmitter {
 
     if (is.dev()) {
       window.loadURL(pageOptions.url).catch()
+      window.webContents.openDevTools()
     } else {
       window.loadFile(pageOptions.url).catch((e) => {
         AppStartErrorCallback(e).catch()

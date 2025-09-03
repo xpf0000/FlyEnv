@@ -3,7 +3,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { uuid, execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
-import { isLinux } from '@shared/utils'
+import { isLinux, isWindows } from '@shared/utils'
 
 class Podman extends Base {
   constructor() {
@@ -16,7 +16,7 @@ class Podman extends Base {
       let version = ''
       let tmp = join(tmpdir(), `${uuid()}.txt`)
       try {
-        await execPromiseWithEnv(`podman --version > "${tmp}" 2>/dev/null`)
+        await execPromiseWithEnv(`podman --version > "${tmp}" ${getRedirect()}`)
         version = await readFile(tmp, 'utf-8')
         version = version.split(' ')?.pop()?.trim() ?? ''
       } catch (e) {
@@ -31,7 +31,7 @@ class Podman extends Base {
       const machine: any[] = []
       tmp = join(tmpdir(), `${uuid()}.txt`)
       try {
-        await execPromiseWithEnv(`podman machine list --format json > "${tmp}" 2>/dev/null`)
+        await execPromiseWithEnv(`podman machine list --format json > "${tmp}" ${getRedirect()}`)
         const content = await readFile(tmp, 'utf-8')
         const json = JSON.parse(content)
         const arr = json.map((m: any) => ({
@@ -62,8 +62,8 @@ class Podman extends Base {
       let containers: any[] = []
       try {
         const cmd = isLinux()
-          ? `podman ps --format json > "${tmp}" 2>/dev/null`
-          : `podman --connection ${machineName} ps --format json > "${tmp}" 2>/dev/null`
+          ? `podman ps --format json > "${tmp}" ${getRedirect()}`
+          : `podman --connection ${machineName} ps --format json > "${tmp}" ${getRedirect()}`
         await execPromiseWithEnv(cmd)
         const content = await readFile(tmp, 'utf-8')
         const json = JSON.parse(content)
@@ -95,8 +95,8 @@ class Podman extends Base {
       let images: any[] = []
       try {
         const cmd = isLinux()
-          ? `podman images --format json > "${tmp}" 2>/dev/null`
-          : `podman --connection ${machineName} images --format json > "${tmp}" 2>/dev/null`
+          ? `podman images --format json > "${tmp}" ${getRedirect()}`
+          : `podman --connection ${machineName} images --format json > "${tmp}" ${getRedirect()}`
         await execPromiseWithEnv(cmd)
         const content = await readFile(tmp, 'utf-8')
         const json = JSON.parse(content)
@@ -246,7 +246,7 @@ class Podman extends Base {
           const infoTmp = join(tmpdir(), `${uuid()}.txt`)
           try {
             await execPromiseWithEnv(
-              `podman machine inspect ${machineName} > "${infoTmp}" 2>/dev/null`
+              `podman machine inspect ${machineName} > "${infoTmp}" ${getRedirect()}`
             )
             const content = await readFile(infoTmp, 'utf-8')
             info = JSON.parse(content)[0] ?? {}
@@ -276,6 +276,10 @@ class Podman extends Base {
       }
     })
   }
+}
+
+function getRedirect(): string {
+  return isWindows() ? '2>NUL' : '2>/dev/null'
 }
 
 export default new Podman()

@@ -7,6 +7,8 @@ import { I18nT } from '@lang/index'
 import { ElMessageBox } from 'element-plus'
 import { Container } from '@/components/Podman/class/Container'
 import { Image } from '@/components/Podman/class/Image'
+import { XTermExec } from '@/util/XTermExec'
+import { reactiveBind } from '@/util/Index'
 
 export class Machine {
   name: string = ''
@@ -20,8 +22,13 @@ export class Machine {
   fetched: boolean = false
   tab: string = 'Dashboard'
 
+  ImageXTerm: XTermExec
+  ContainerXTerm: XTermExec
+
   constructor(obj: any) {
     Object.assign(this, obj)
+    this.ImageXTerm = reactiveBind(new XTermExec())
+    this.ContainerXTerm = reactiveBind(new XTermExec())
   }
 
   /**

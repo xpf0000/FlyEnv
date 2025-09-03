@@ -1,4 +1,5 @@
 import MD5 from 'crypto-js/md5'
+import { reactive } from 'vue'
 
 export function md5(str: string) {
   return MD5(str).toString()
@@ -210,4 +211,18 @@ export function waitTime(time: number) {
 export const emptyClick = (e: MouseEvent) => {
   e.preventDefault()
   e.stopPropagation()
+}
+
+export function reactiveBind<T extends object>(instance: T): T {
+  const obj = reactive(instance)
+  const proto = Object.getPrototypeOf(obj)
+  console.log('reactiveBind proto', proto)
+  for (const key of Object.getOwnPropertyNames(proto)) {
+    if (key === 'constructor') continue
+    const val = (obj as any)[key]
+    if (typeof val === 'function') {
+      ;(obj as any)[key] = val.bind(obj)
+    }
+  }
+  return obj as T
 }
