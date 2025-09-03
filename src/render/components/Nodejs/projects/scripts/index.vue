@@ -68,13 +68,13 @@
     let command = ''
     switch (packageManager) {
       case 'npm':
-        command = `cd "${props.item.path}" && npm run ${scriptName}`
+        command = `cd "${props.item.path}"; npm run ${scriptName}`
         break
       case 'yarn':
-        command = `cd "${props.item.path}" && yarn ${scriptName}`
+        command = `cd "${props.item.path}"; yarn ${scriptName}`
         break
       case 'pnpm':
-        command = `cd "${props.item.path}" && pnpm ${scriptName}`
+        command = `cd "${props.item.path}"; pnpm ${scriptName}`
         break
     }
 
