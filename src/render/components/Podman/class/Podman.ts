@@ -1,8 +1,10 @@
 import IPC from '@/util/IPC'
-import { reactive } from 'vue'
 import { Machine } from '@/components/Podman/class/Machine'
 import XTerm from '@/util/XTerm'
 import { reactiveBind } from '@/util/Index'
+import type { AllAppModule } from '@/core/type'
+import { reactive } from 'vue'
+import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 
 class Podman {
   machine: Machine[] = []
@@ -10,7 +12,7 @@ class Podman {
   inited: boolean = false
   loading: boolean = false
   tab: string = ''
-  xtermExec = ''
+  imageVersion: Partial<Record<AllAppModule, string[]>> = {}
 
   installEnd: boolean = false
   installing: boolean = false
@@ -20,10 +22,33 @@ class Podman {
     this.machine = this.machine.filter((f) => f.name !== item.name)
   }
 
+  initImageVersion() {
+    if (Object.keys(this.imageVersion).length > 0) {
+      return
+    }
+    const storeKey = 'flyenv-podman-image-version'
+    const doFetch = () => {
+      IPC.send('app-fork:podman', 'fetchImagesVersion').then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          const obj: any = res?.data ?? {}
+          this.imageVersion = reactive(obj)
+          StorageSetAsync(storeKey, obj, 3 * 24 * 60 * 60).catch()
+        }
+      })
+    }
+    StorageGetAsync(storeKey)
+      .then((res: any) => {
+        this.imageVersion = reactive(res)
+      })
+      .catch(doFetch)
+  }
+
   init() {
     if (this.inited || this.loading) {
       return
     }
+    this.initImageVersion()
     this.loading = true
     IPC.send('app-fork:podman', 'podmanInit').then((key: string, res: any) => {
       IPC.off(key)
@@ -61,10 +86,6 @@ class Podman {
   }
 }
 
-const PodmanManager = reactive(new Podman())
-PodmanManager.init = PodmanManager.init.bind(PodmanManager)
-PodmanManager.onMachineRemove = PodmanManager.onMachineRemove.bind(PodmanManager)
-PodmanManager.reinit = PodmanManager.reinit.bind(PodmanManager)
-PodmanManager.tabChange = PodmanManager.tabChange.bind(PodmanManager)
+const PodmanManager = reactiveBind(new Podman())
 
 export { PodmanManager }

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { uuid, execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
 import { isLinux, isWindows } from '@shared/utils'
+import axios from 'axios'
 
 class Podman extends Base {
   constructor() {
@@ -274,6 +275,18 @@ class Podman extends Base {
         console.error('fetchMachineInfo error: ', e?.message)
         reject(e?.message ?? 'fail')
       }
+    })
+  }
+
+  fetchImagesVersion() {
+    return new ForkPromise(async (resolve) => {
+      const json = await axios({
+        url: 'https://flyenv.com/static/podman/allImagesTags.json',
+        method: 'get',
+        timeout: 30000,
+        withCredentials: false
+      })
+      resolve(json.data)
     })
   }
 }
