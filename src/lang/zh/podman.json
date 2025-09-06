@@ -32,5 +32,10 @@
   "SSHPort": "SSH端口",
   "PodmanSocket": "Podman Socket",
   "yes": "是",
-  "no": "否"
+  "no": "否",
+  "Status": "状态",
+  "Running": "运行中",
+  "Stopped": "已停止",
+  "Start": "启动",
+  "Stop": "停止"
 }

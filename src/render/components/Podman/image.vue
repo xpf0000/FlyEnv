@@ -1,6 +1,8 @@
 <template>
   <div class="w-full h-full overflow-hidden flex flex-col gap-2 items-start">
-    <el-button size="small" class="flex-shrink-0" @click="addImage()">{{ I18nT('base.add') }}</el-button>
+    <el-button size="small" class="flex-shrink-0" @click="addImage()">{{
+      I18nT('base.add')
+    }}</el-button>
     <el-table border class="flex-1 overflow-hidden" :data="images" style="width: 100%">
       <el-table-column prop="name" :label="I18nT('podman.Image')" />
       <el-table-column prop="tag" :label="I18nT('podman.Tag')" />

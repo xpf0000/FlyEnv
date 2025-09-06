@@ -30,6 +30,7 @@
           </template>
           <el-radio-group v-model="machine.tab" size="small">
             <el-radio-button value="Dashboard" :label="I18nT('podman.Dashboard')"></el-radio-button>
+            <el-radio-button value="Compose" label="Compose"></el-radio-button>
             <el-radio-button value="Image" :label="I18nT('podman.Image')"></el-radio-button>
             <el-radio-button value="Container" :label="I18nT('podman.Container')"></el-radio-button>
           </el-radio-group>

@@ -289,6 +289,50 @@ class Podman extends Base {
       resolve(json.data)
     })
   }
+
+  composeStart(composePath: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        await execPromiseWithEnv(`podman-compose -f "${composePath}" up -d`)
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      }
+    })
+  }
+
+  composeStop(composePath: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        await execPromiseWithEnv(`podman-compose -f "${composePath}" down`)
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      }
+    })
+  }
+
+  // 假设 composeName 是你的 compose 项目名（通常是 Pod 名）
+  isComposeRunning(composeName: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const tmp = join(tmpdir(), `${uuid()}.txt`)
+      try {
+        await execPromiseWithEnv(`podman pod ps --format json > "${tmp}" ${getRedirect()}`)
+        const content = await readFile(tmp, 'utf-8')
+        const pods = JSON.parse(content)
+        const running = pods.some(
+          (pod: any) => pod.Name === composeName && pod.Status === 'Running'
+        )
+        resolve(running)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      } finally {
+        if (existsSync(tmp)) {
+          await remove(tmp)
+        }
+      }
+    })
+  }
 }
 
 function getRedirect(): string {
