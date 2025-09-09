@@ -8,6 +8,7 @@
   "searchEngine": "Search Engine",
   "dnsServer": "DNS Server",
   "ftpServer": "FTP Server",
+  "containerRuntime": "Container Runtime",
   "other": "Other",
   "appLog": "App Log",
   "ai": "AI",
