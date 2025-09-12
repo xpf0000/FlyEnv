@@ -1,6 +1,6 @@
 import { computed, ComputedRef, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
@@ -8,6 +8,7 @@ import type { AllAppModule } from '@/core/type'
 import { dialog, shell, fs } from '@/util/NodeFn'
 import { asyncComputed } from '@vueuse/core'
 import { BrewStore, SoftInstalled } from '@/store/brew'
+import type { CallbackFn } from '@shared/app'
 
 type CommonSetItemOption = {
   label: string
@@ -181,6 +182,13 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     monacoInstance?.setValue(v)
   }
 
+  const setEditLanguage = (v: string) => {
+    const model = monacoInstance?.getModel?.()
+    if (model) {
+      editor.setModelLanguage(model, v)
+    }
+  }
+
   const saveCustom = () => {
     const opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
     dialog
@@ -202,6 +210,15 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
           MessageSuccess(I18nT('base.success'))
         })
       })
+  }
+
+  let editerInitedCallback: CallbackFn | undefined
+
+  const onEditerInited = (fn: CallbackFn): void => {
+    editerInitedCallback = fn
+    if (monacoInstance) {
+      editerInitedCallback(true)
+    }
   }
 
   const initEditor = async () => {
@@ -229,6 +246,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
         const currentValue = monacoInstance?.getValue()
         changed.value = currentValue !== config.value
       })
+      editerInitedCallback?.(true)
     } else {
       monacoInstance.setValue(config.value)
       monacoInstance.updateOptions({
@@ -351,6 +369,8 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     getEditValue,
     setEditValue,
     openURL,
-    watchFlag
+    watchFlag,
+    setEditLanguage,
+    onEditerInited
   }
 }

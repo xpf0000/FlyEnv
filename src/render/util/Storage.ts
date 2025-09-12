@@ -39,6 +39,9 @@ export const StorageGetAsync = async <T>(key: string): Promise<T> => {
     }
     throw new Error('expire')
   }
+  if (saved?.data) {
+    return saved.data
+  }
   throw new Error('no found')
 }
 

@@ -1,7 +1,7 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { uuid, execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
 import { isLinux, isWindows } from '@shared/utils'
 import axios from 'axios'
@@ -313,17 +313,23 @@ class Podman extends Base {
   }
 
   // 假设 composeName 是你的 compose 项目名（通常是 Pod 名）
-  isComposeRunning(composeName: string) {
+  isComposeRunning(path: string) {
     return new ForkPromise(async (resolve, reject) => {
       const tmp = join(tmpdir(), `${uuid()}.txt`)
       try {
-        await execPromiseWithEnv(`podman pod ps --format json > "${tmp}" ${getRedirect()}`)
+        await execPromiseWithEnv(`docker-compose ps --format json > "${tmp}" ${getRedirect()}`, {
+          cwd: dirname(path)
+        })
         const content = await readFile(tmp, 'utf-8')
-        const pods = JSON.parse(content)
-        const running = pods.some(
-          (pod: any) => pod.Name === composeName && pod.Status === 'Running'
-        )
-        resolve(running)
+        const arr = content.split('\n').filter((f) => {
+          let json: any
+          try {
+            json = JSON.parse(f.trim())
+          } catch {}
+          return !!json
+        })
+        console.log('isComposeRunning arr: ', arr)
+        resolve(arr.length > 0)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
       } finally {

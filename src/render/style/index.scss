@@ -117,11 +117,9 @@ body {
 }
 #app {
   #container {
-    .aside {
+    >.aside {
       transition: width 0.3s;
       width: 280px;
-
-      .top-tool {}
 
       .swith-power{
         &.on{
@@ -148,6 +146,69 @@ body {
 
       .top-menu {
         padding: 0 12px;
+
+        > li {
+          padding: 0 15px;
+          border-radius: 6px;
+        }
+      }
+
+      .setup-menu {
+        padding: 0 12px 8px 12px;
+
+        >li {
+          padding: 0 15px;
+          border-radius: 6px;
+        }
+
+        svg {
+          color: #345;
+        }
+      }
+    }
+
+    >.aside.fold {
+      width: 45px;
+
+      .top-tool {
+        padding: 30px 0 12px 0;
+        justify-content: center;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .menu {
+        padding: 0;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        .module-type {
+          display: none;
+        }
+
+        >li {
+          padding: 0;
+          border-radius: 0;
+
+          >.left {
+            justify-content: space-between;
+
+            .icon-block {
+              width: 45px;
+              justify-content: center;
+            }
+
+            >.title {
+              display: none;
+            }
+          }
+
+          >.el-switch {
+            display: none;
+          }
+        }
       }
     }
 
@@ -2235,7 +2296,6 @@ body {
     > li {
       width: 30px;
       height: 30px;
-      cursor: pointer;
       border-radius: 14px;
       transition: background-color 0.25s;
       display: flex;
@@ -2888,7 +2948,7 @@ body {
   html {
     #app {
       #container {
-        >.aside {
+        >.aside:not(.expanded) {
           width: 45px;
 
           .top-tool {

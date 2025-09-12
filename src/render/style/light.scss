@@ -24,9 +24,6 @@ html.light {
 
         .top-menu {
           > li {
-            padding: 0 15px;
-            border-radius: 6px;
-
             &:hover {
               background-color: var(--base-bg-color-2);
               backdrop-filter: blur(5px);
@@ -53,12 +50,8 @@ html.light {
 
         .setup-menu {
           border: none;
-          padding: 0 12px 8px 12px;
 
           >li {
-            padding: 0 15px;
-            border-radius: 6px;
-
             &:hover {
               background-color: var(--base-bg-color-2);
               backdrop-filter: blur(5px);
@@ -534,7 +527,7 @@ html.light {
   html.light {
     #app {
       #container {
-        .aside {
+        >.aside:not(.expanded) {
           .menu {
             padding: 0;
 

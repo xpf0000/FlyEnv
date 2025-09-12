@@ -119,7 +119,9 @@
     getEditValue,
     setEditValue,
     openURL,
-    watchFlag
+    watchFlag,
+    setEditLanguage,
+    onEditerInited
   } = ConfSetup(p)
 
   watch(
@@ -136,6 +138,8 @@
 
   defineExpose({
     setEditValue,
-    update
+    update,
+    setEditLanguage,
+    onEditerInited
   })
 </script>

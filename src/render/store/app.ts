@@ -114,6 +114,7 @@ type StateBase = SetupBase & {
 }
 
 interface State {
+  asideExpanded: boolean
   envIndex: number
   hosts: Array<AppHost>
   config: {
@@ -135,6 +136,7 @@ interface State {
 }
 
 const state: State = {
+  asideExpanded: true,
   envIndex: 1,
   hosts: [],
   config: {

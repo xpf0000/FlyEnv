@@ -5,7 +5,7 @@ import { I18nT } from '@lang/index'
 export class Compose {
   name: string = ''
   path: string = ''
-  command: string = ''
+  comment: string = ''
   services: string[] = []
   run: boolean = false
   running: boolean = false
@@ -14,6 +14,8 @@ export class Compose {
 
   constructor(obj: any) {
     Object.assign(this, obj)
+    this.run = false
+    this.running = false
   }
 
   start() {
@@ -48,10 +50,10 @@ export class Compose {
   }
 
   checkRunningStatus() {
-    IPC.send('app-fork:podman', 'isComposeRunning', this.name).then((key: string, res: any) => {
+    IPC.send('app-fork:podman', 'isComposeRunning', this.path).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        this.running = res.data
+        this.run = res.data
       } else {
         this.statusError = res?.msg ?? I18nT('base.fail')
       }

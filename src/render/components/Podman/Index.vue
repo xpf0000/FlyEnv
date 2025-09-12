@@ -85,6 +85,7 @@
   const tab = 'podman'
 
   PodmanManager.init()
+  PodmanManager.loadComposeList().catch()
 
   const showInstall = computed(() => {
     return !PodmanManager.loading && PodmanManager.inited && !PodmanManager.version

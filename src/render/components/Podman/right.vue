@@ -55,6 +55,9 @@
         <template v-if="machine.tab === 'Dashboard'">
           <DashboradVM />
         </template>
+        <template v-else-if="machine.tab === 'Compose'">
+          <ComposeVM />
+        </template>
         <template v-else-if="machine.tab === 'Image'">
           <ImageVM />
         </template>
@@ -69,6 +72,7 @@
   import { I18nT } from '@lang/index'
   import DashboradVM from './dashboard.vue'
   import ImageVM from './image.vue'
+  import ComposeVM from  './compose.vue'
 
   const machine = computed(() => {
     return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)

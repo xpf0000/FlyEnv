@@ -1,5 +1,9 @@
 <template>
-  <el-aside width="280px" class="aside">
+  <el-aside
+    width="280px"
+    class="aside"
+    :class="{ fold: !appStore.asideExpanded, expanded: appStore.asideExpanded }"
+  >
     <div class="aside-inner">
       <ul class="top-tool mt-3 pt-2" :style="topToolStyle as any">
         <el-popover
@@ -47,11 +51,25 @@
             <span>{{ I18nT('aside.groupStart') }}</span>
           </template>
           <template #reference>
-            <li :class="groupClass" @click="groupDo">
+            <li class="cursor-pointer" :class="groupClass" @click="groupDo">
               <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
             </li>
           </template>
         </el-popover>
+        <li
+          :class="{
+            'opacity-40 cursor-not-allowed': !expandEnable,
+            'cursor-pointer hover:text-yellow-500': expandEnable
+          }"
+          @click.stop="asideExpandChange"
+        >
+          <template v-if="appStore.asideExpanded">
+            <yb-icon :svg="import('@/svg/fold.svg?raw')" width="24" height="24" />
+          </template>
+          <template v-else>
+            <yb-icon class="p-[3px]" :svg="import('@/svg/expand.svg?raw')" width="24" height="24" />
+          </template>
+        </li>
       </ul>
       <el-scrollbar>
         <ul class="menu top-menu">
@@ -94,7 +112,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, watch } from 'vue'
+  import { computed, onMounted, ref, watch } from 'vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
@@ -408,7 +426,7 @@
         lastTray = current
         const obj = JSON.parse(current)
         const customerModule = obj.customerModule
-        for(const item of customerModule) {
+        for (const item of customerModule) {
           item.isCustomer = true
         }
         delete obj.customerModule
@@ -607,4 +625,36 @@
       immediate: true
     }
   )
+
+  const canExpand = ref(true)
+
+  const checkAppWidth = () => {
+    const width = window.innerWidth
+    if (width < 960) {
+      appStore.asideExpanded = false
+    }
+    canExpand.value = width >= 960
+  }
+
+  const asideExpandChange = () => {
+    if (!canExpand.value && !appStore.asideExpanded) {
+      return
+    }
+    appStore.asideExpanded = !appStore.asideExpanded
+  }
+
+  const expandEnable = computed(() => {
+    if (!canExpand.value && !appStore.asideExpanded) {
+      return false
+    }
+    return true
+  })
+
+  onMounted(() => {
+    checkAppWidth()
+  })
+
+  window.addEventListener('resize', () => {
+    checkAppWidth()
+  })
 </script>

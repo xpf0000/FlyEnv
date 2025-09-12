@@ -110,6 +110,7 @@ class Podman {
 
   addCompose(item: any) {
     const compose = reactiveBind(new Compose(item))
+    compose.checkRunningStatus()
     this.compose.push(compose)
     this.saveComposeList().catch()
   }
