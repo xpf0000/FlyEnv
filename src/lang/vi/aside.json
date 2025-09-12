@@ -1,17 +1,18 @@
 {
   "site": "Trang web",
-  "webServer": "Máy chủ web",
+  "webServer": "Dịch vụ web",
   "dataBaseServer": "Máy chủ cơ sở dữ liệu",
   "emailServer": "Máy chủ Email",
   "language": "Ngôn ngữ & môi trường thực thi",
   "dataQueue": "Bộ nhớ đệm & lưu trữ trong bộ nhớ",
-  "searchEngine": "Bộ máy tìm kiếm",
+  "searchEngine": "Tìm kiếm",
   "dnsServer": "Máy chủ DNS",
   "ftpServer": "Máy chủ FTP",
+  "containerRuntime": "Trình quản lý Container",
   "other": "Khác",
   "appLog": "Nhật ký ứng dụng",
   "ai": "AI",
-  "objectStorage": "Hệ thống lưu trữ đối tượng",
+  "objectStorage": "Lưu trữ đối tượng",
   "appExit": "Dừng tất cả các dịch vụ đang chạy và thoát FlyEnv",
   "groupStart": "Khởi động tất cả các dịch vụ khả dụng hiển thị trên bảng điều khiển bằng một cú nhấp chuột"
 }
