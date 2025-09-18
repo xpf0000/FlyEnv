@@ -56,7 +56,6 @@
   const FenciDict: { [k: string]: Array<string> } = {}
 
   const querySearch = (queryString: string, cb: any) => {
-    console.log('querySearch: ', queryString)
     const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys() : AIKeysEN()
     const find = ALLKeys.find((a) => a.txt === queryString.trim())
     if (find) {
