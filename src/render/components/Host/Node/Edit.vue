@@ -165,7 +165,6 @@
 
 <script lang="ts" setup>
   import { computed, onUnmounted, ref, watch } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
@@ -350,13 +349,11 @@
     }
     const saveFn = () => {
       running.value = true
-      passwordCheck().then(() => {
-        const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-        const data = JSON.parse(JSON.stringify(item.value))
-        handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
-          running.value = false
-          show.value = false
-        })
+      const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
+      const data = JSON.parse(JSON.stringify(item.value))
+      handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
+        running.value = false
+        show.value = false
       })
     }
     saveFn()
