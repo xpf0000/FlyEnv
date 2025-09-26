@@ -59,11 +59,6 @@ export const showPassPrompt = () => {
  * Computer password verification, required for many operations
  * @returns {Promise<unknown>}
  */
-export const passwordCheck = () => {
-  return new Promise((resolve) => {
-    resolve(true)
-  })
-}
 
 export function brewInfo(key: string): Promise<OnlineVersionItem[]> {
   return new Promise((resolve, reject) => {
