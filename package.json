@@ -193,6 +193,7 @@
     "vue-eslint-parser": "^10.1.4",
     "vue-router": "^4.5.1",
     "vue-tsc": "^2.2.10",
+    "vuedraggable": "^4.1.0",
     "yamljs": "^0.3.0"
   },
   "optionalDependencies": {

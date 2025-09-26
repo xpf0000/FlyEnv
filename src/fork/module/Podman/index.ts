@@ -1,7 +1,7 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import { uuid, execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
 import { isLinux, isWindows } from '@shared/utils'
 import axios from 'axios'
@@ -290,10 +290,15 @@ class Podman extends Base {
     })
   }
 
-  composeStart(composePath: string) {
+  composeStart(paths: string[], projectName: string) {
     return new ForkPromise(async (resolve, reject) => {
+      const arr: string[] = ['docker-compose', ...paths.map((p) => `-f "${p}"`)]
+      if (projectName) {
+        arr.push(`-p ${projectName}`)
+      }
+      arr.push('up -d')
       try {
-        await execPromiseWithEnv(`podman-compose -f "${composePath}" up -d`)
+        await execPromiseWithEnv(arr.join(' '))
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
@@ -301,10 +306,15 @@ class Podman extends Base {
     })
   }
 
-  composeStop(composePath: string) {
+  composeStop(paths: string[], projectName: string) {
     return new ForkPromise(async (resolve, reject) => {
+      const arr: string[] = ['docker-compose', ...paths.map((p) => `-f "${p}"`)]
+      if (projectName) {
+        arr.push(`-p ${projectName}`)
+      }
+      arr.push('down')
       try {
-        await execPromiseWithEnv(`podman-compose -f "${composePath}" down`)
+        await execPromiseWithEnv(arr.join(' '))
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
@@ -313,13 +323,16 @@ class Podman extends Base {
   }
 
   // 假设 composeName 是你的 compose 项目名（通常是 Pod 名）
-  isComposeRunning(path: string) {
+  isComposeRunning(paths: string[], projectName: string) {
     return new ForkPromise(async (resolve, reject) => {
       const tmp = join(tmpdir(), `${uuid()}.txt`)
+      const list: string[] = ['docker-compose', ...paths.map((p) => `-f "${p}"`)]
+      if (projectName) {
+        list.push(`-p ${projectName}`)
+      }
+      list.push('ps --format json')
       try {
-        await execPromiseWithEnv(`docker-compose ps --format json > "${tmp}" ${getRedirect()}`, {
-          cwd: dirname(path)
-        })
+        await execPromiseWithEnv(`${list.join(' ')} > "${tmp}" ${getRedirect()}`)
         const content = await readFile(tmp, 'utf-8')
         const arr = content.split('\n').filter((f) => {
           let json: any

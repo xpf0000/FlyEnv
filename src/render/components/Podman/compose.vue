@@ -11,13 +11,12 @@
       style="width: 100%"
     >
       <el-table-column prop="name" :label="I18nT('base.name')" width="160" />
+      <el-table-column prop="flag" :label="I18nT('host.projectName')" width="160" />
       <el-table-column prop="path" :label="I18nT('base.path')">
         <template #default="scope">
-          <span
-            class="truncate hover:text-yellow-500 cursor-pointer"
-            @click.stop="shell.showItemInFolder(scope.row.path)"
-            >{{ scope.row.path }}</span
-          >
+          <span class="truncate hover:text-yellow-500 cursor-pointer">{{
+            scope.row.paths.join(' ')
+          }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="comment" :label="I18nT('host.comment')"></el-table-column>
@@ -27,6 +26,9 @@
             <el-tooltip :content="scope.row?.statusError">
               <Warning class="w-[21px] h-[21px] text-yellow-500" />
             </el-tooltip>
+          </template>
+          <template v-else-if="scope.row?.running">
+            <el-button loading link></el-button>
           </template>
           <template v-else-if="scope.row.run">
             <div class="service status running" :class="{ disabled: scope.row.running }">
@@ -58,12 +60,25 @@
             </template>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click.stop="addCompose(scope.row)">
-                  {{ I18nT('base.edit') }}
+                <el-dropdown-item
+                  v-if="scope.row.run"
+                  :disabled="scope.row.running"
+                  @click.stop="scope.row.stopWithTerminal()"
+                >
+                  {{ I18nT('podman.StopWithTerminal') }}
                 </el-dropdown-item>
-                <el-dropdown-item @click.stop="toEditFile(scope.row)">
-                  {{ I18nT('base.edit') }} {{ basename(scope.row.path) }}
+                <el-dropdown-item
+                  v-else
+                  :disabled="scope.row.running"
+                  @click.stop="scope.row.startWithTerminal()"
+                >
+                  {{ I18nT('podman.StartWithTerminal') }}
                 </el-dropdown-item>
+                <template v-for="(f, _i) in scope.row.paths" :key="_i">
+                  <el-dropdown-item @click.stop="toEditFile(f)">
+                    {{ I18nT('base.edit') }} {{ basename(f) }}
+                  </el-dropdown-item>
+                </template>
                 <el-dropdown-item @click.stop="removeCompose(scope.row)">
                   {{ I18nT('podman.Delete') }}
                 </el-dropdown-item>
@@ -83,7 +98,6 @@
   import type { Compose } from '@/components/Podman/class/Compose'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Warning } from '@element-plus/icons-vue'
-  import { shell } from '@/util/NodeFn'
   import { basename } from '@/util/path-browserify'
 
   const composeList = computed<Compose[]>(() => PodmanManager.compose ?? [])
@@ -114,9 +128,9 @@
     ConfigVM = res.default
   })
 
-  const toEditFile = (item: Compose) => {
+  const toEditFile = (file: string) => {
     AsyncComponentShow(ConfigVM, {
-      item
+      file
     }).then()
   }
 

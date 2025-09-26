@@ -2529,6 +2529,14 @@ body {
     }
   }
   &.el-dialog-content-flex-1 {
+    overflow: hidden;
+
+    .el-dialog__header {
+      flex-shrink: 0;
+    }
+    .el-dialog__footer {
+      flex-shrink: 0;
+    }
     .el-dialog__body {
       flex: 1;
       overflow: hidden;

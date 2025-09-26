@@ -64,10 +64,10 @@
           @click.stop="asideExpandChange"
         >
           <template v-if="appStore.asideExpanded">
-            <yb-icon :svg="import('@/svg/fold.svg?raw')" width="24" height="24" />
+            <yb-icon class="p-[1px]" :svg="import('@/svg/fold.svg?raw')" width="24" height="24" />
           </template>
           <template v-else>
-            <yb-icon class="p-[3px]" :svg="import('@/svg/expand.svg?raw')" width="24" height="24" />
+            <yb-icon class="p-[4px]" :svg="import('@/svg/expand.svg?raw')" width="24" height="24" />
           </template>
         </li>
       </ul>

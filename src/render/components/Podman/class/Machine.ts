@@ -47,11 +47,8 @@ export class Machine {
         for (const item of containers) {
           const find = this.container.some((s) => s.id === item.id)
           if (!find) {
-            const container = reactive(new Container(item))
+            const container = reactiveBind(new Container(item))
             container.machineName = this.name
-            container.start = container.start.bind(container)
-            container.stop = container.stop.bind(container)
-            container.remove = container.remove.bind(container)
             container._onRemove = this.onContainerRemove
             this.container.unshift(container)
           }
@@ -60,7 +57,7 @@ export class Machine {
         for (const img of images) {
           const find = this.images.some((s) => s.id === img.id)
           if (!find) {
-            const image = reactive(new Image(img))
+            const image = reactiveBind(new Image(img))
             image._onRemove = this.onImageRemove.bind(this)
             this.images.push(image)
           }

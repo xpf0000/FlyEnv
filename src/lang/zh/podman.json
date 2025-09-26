@@ -37,5 +37,9 @@
   "Running": "运行中",
   "Stopped": "已停止",
   "Start": "启动",
-  "Stop": "停止"
+  "Stop": "停止",
+  "StartWithTerminal": "使用内置终端启动",
+  "StopWithTerminal": "使用内置终端停止",
+  "ComposeFile": "Compose文件",
+  "ComposeFileRequire": "请选择至少一个Compose文件"
 }

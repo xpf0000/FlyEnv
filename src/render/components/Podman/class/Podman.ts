@@ -110,18 +110,18 @@ class Podman {
 
   addCompose(item: any) {
     const compose = reactiveBind(new Compose(item))
-    compose.checkRunningStatus()
     this.compose.push(compose)
     this.saveComposeList().catch()
+    compose.checkRunningStatus()
   }
 
   removeCompose(item: Compose) {
-    this.compose = this.compose.filter((f) => f.path !== item.path)
+    this.compose = this.compose.filter((f) => f.id !== item.id)
     this.saveComposeList().catch()
   }
 
   updateCompose(item: Compose) {
-    const idx = this.compose.findIndex((f) => f.path === item.path)
+    const idx = this.compose.findIndex((f) => f.id === item.id)
     if (idx !== -1) {
       this.compose[idx] = item
       this.saveComposeList().catch()

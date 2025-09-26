@@ -1,11 +1,22 @@
 import { nextTick } from 'vue'
 import XTerm from '@/util/XTerm'
 import { AppStore } from '@/store/app'
+import type { CallbackFn } from '@shared/app'
 
 class XTermExec {
+  id: string = ''
   installEnd: boolean = false
   installing: boolean = false
   xterm: XTerm | undefined
+  cammand: string[] = []
+
+  private _callbackFn: CallbackFn[] = []
+
+  wait() {
+    return new Promise((resolve) => {
+      this._callbackFn.push(resolve)
+    })
+  }
 
   async exec(dom: HTMLElement, cammand: string[]) {
     if (this.installing) {
@@ -36,6 +47,10 @@ class XTermExec {
     params.push(...cammand)
     await execXTerm.send(params)
     this.installEnd = true
+    for (const fn of this._callbackFn) {
+      fn(true)
+    }
+    this._callbackFn.splice(0)
   }
 
   mount(dom: HTMLElement) {
@@ -51,6 +66,9 @@ class XTermExec {
     this.installEnd = false
     this.xterm?.destroy()
     delete this.xterm
+    if (XTermExecCache?.[this.id]) {
+      delete XTermExecCache[this.id]
+    }
   }
 
   taskCancel() {
@@ -59,8 +77,13 @@ class XTermExec {
     this.xterm?.stop()?.then(() => {
       this.xterm?.destroy()
       delete this.xterm
+      if (XTermExecCache?.[this.id]) {
+        delete XTermExecCache[this.id]
+      }
     })
   }
 }
 
-export { XTermExec }
+const XTermExecCache: Record<string, XTermExec> = {}
+
+export { XTermExec, XTermExecCache }
