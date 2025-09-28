@@ -41,5 +41,8 @@
   "StartWithTerminal": "使用内置终端启动",
   "StopWithTerminal": "使用内置终端停止",
   "ComposeFile": "Compose文件",
-  "ComposeFileRequire": "请选择至少一个Compose文件"
+  "ComposeFileRequire": "请选择至少一个Compose文件",
+  "ChooseComposeFile": "选择Compose文件",
+  "Build": "构建",
+  "ModuleEmpty": "请选择模块"
 }

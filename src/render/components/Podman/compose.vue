@@ -1,8 +1,13 @@
 <template>
   <div class="w-full h-full overflow-hidden flex flex-col gap-2 items-start">
-    <el-button size="small" class="flex-shrink-0" @click="addCompose(undefined)">
-      {{ I18nT('base.add') }}
-    </el-button>
+    <div class="flex items-center">
+      <el-button size="small" class="flex-shrink-0" @click="addCompose(undefined)">
+        {{ I18nT('base.add') }}
+      </el-button>
+      <el-button size="small" class="flex-shrink-0" @click="buildCompose()">
+        {{ I18nT('podman.Build') }}
+      </el-button>
+    </div>
     <el-table
       border
       class="flex-1 overflow-hidden"
@@ -115,6 +120,15 @@
     AsyncComponentShow(ComposeAddVM, {
       item
     }).then()
+  }
+
+  let ComposeBuildVM: any
+  import('./composeBuild.vue').then((res) => {
+    ComposeBuildVM = res.default
+  })
+
+  function buildCompose() {
+    AsyncComponentShow(ComposeBuildVM).then()
   }
 
   const refreshState = () => {

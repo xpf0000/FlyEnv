@@ -1,70 +1,44 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="I18nT('base.add') + ' Compose'"
-    width="500px"
+    :title="I18nT('podman.Build') + ' Compose'"
+    width="750px"
     :destroy-on-close="true"
-    class="dark:bg-[#1d2033]"
+    class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     @closed="closedFn"
   >
-    <el-form
-      ref="formRef"
-      :rules="rules"
-      :model="form"
-      label-width="110px"
-      label-position="top"
-      class="pt-2"
-    >
-      <el-form-item :label="I18nT('base.name')" prop="name" required>
-        <el-input v-model="form.name" />
-      </el-form-item>
-      <el-form-item prop="paths" required>
-        <template #label>
-          <div class="inline-flex items-center gap-3">
-            <span>{{ I18nT('podman.ComposeFile') }}</span>
-            <el-button link type="primary" :icon="Plus" @click.stop="addFile"></el-button>
-          </div>
-        </template>
-        <draggable
-          v-model="form.paths"
-          handle=".handle"
-          class="w-full flex flex-col gap-2"
-          item-key="id"
+    <template #default>
+      <div class="flex gap-2 h-full overflow-hidden">
+        <el-card
+          style="--el-card-padding: 0 12px"
+          shadow="never"
+          class="w-[200px] flex-shrink-0 app-base-el-card"
         >
-          <template #item="{ element, index }">
-            <div class="w-full flex items-center">
-              <yb-icon
-                v-if="form.paths.length > 1"
-                class="handle w-[18px] h-[18px] cursor-move flex-shrink-0 mr-2"
-                :svg="import('@/svg/handle.svg?raw')"
-              />
-              <el-input v-model="element.path" class="flex-1" placeholder="请选择 .yml 文件">
-                <template #append>
-                  <el-button :icon="FolderOpened" @click="selectFile(index)"></el-button>
+          <el-scrollbar>
+            <el-checkbox-group v-model="module">
+              <el-collapse v-model="cate" style="border-top: none">
+                <template v-for="(item, _index) in cates" :key="_index">
+                  <el-collapse-item :title="I18nT(`aside.${item.cate}`)" :name="item.cate">
+                    <div class="w-full flex flex-col">
+                      <template v-for="(sub, _j) in item.sub" :key="_j">
+                        <el-checkbox :value="sub" :label="sub"></el-checkbox>
+                      </template>
+                    </div>
+                  </el-collapse-item>
                 </template>
-              </el-input>
-              <div
-                v-if="form.paths.length > 1"
-                class="w-[28px] h-[28px] flex items-center justify-center ml-2 flex-shrink-0"
-              >
-                <el-button
-                  link
-                  type="danger"
-                  :icon="Delete"
-                  @click.stop="delPath(index)"
-                ></el-button>
-              </div>
+              </el-collapse>
+            </el-checkbox-group>
+          </el-scrollbar>
+        </el-card>
+        <div class="right flex-1">
+          <template v-if="!module.length">
+            <div class="w-full pt-8 flex justify-center">
+              <el-empty :description="I18nT('podman.ModuleEmpty')"></el-empty>
             </div>
           </template>
-        </draggable>
-      </el-form-item>
-      <el-form-item :label="I18nT('host.projectName')" prop="flag">
-        <el-input v-model="form.flag" placeholder="docker-compose -p xxxx" />
-      </el-form-item>
-      <el-form-item :label="I18nT('host.comment')" prop="comment">
-        <el-input v-model="form.comment" type="textarea" :rows="4" />
-      </el-form-item>
-    </el-form>
+        </div>
+      </div>
+    </template>
     <template #footer>
       <div class="dialog-footer">
         <el-button @click.stop="onCancel">{{ I18nT('base.cancel') }}</el-button>
@@ -83,7 +57,7 @@
   import { dialog } from '@/util/NodeFn'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { uuid } from '@/util/Index'
-  import draggable from 'vuedraggable'
+  import { AllAppModule, AllAppModuleType } from '@/core/type'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -116,6 +90,59 @@
     Object.assign(form.value, props?.item)
     form.value.paths = props.item.paths.map((p: string) => ({ path: p }))
   }
+
+  type CateType = {
+    cate: AllAppModuleType
+    sub: string[]
+  }
+
+  const module = ref<string[]>([])
+
+  const cates = ref<CateType[]>([
+    {
+      cate: 'webServer',
+      sub: ['Apache HTTP Server', 'Caddy', 'Consul', 'Nginx', 'Apache Tomcat']
+    },
+    {
+      cate: 'language',
+      sub: [
+        'Bun',
+        'Deno',
+        'Erlang',
+        'Go (Golang)',
+        'Gradle',
+        'Java',
+        'Node.js',
+        'Perl',
+        'PHP',
+        'Python',
+        'Ruby',
+        'Rust'
+      ]
+    },
+    {
+      cate: 'dataBaseServer',
+      sub: ['MariaDB', 'MongoDB', 'MySQL', 'PostgreSQL']
+    },
+    {
+      cate: 'dataQueue',
+      sub: ['etcd', 'Memcached', 'RabbitMQ', 'Redis']
+    },
+    {
+      cate: 'emailServer',
+      sub: ['Mailpit']
+    },
+    {
+      cate: 'searchEngine',
+      sub: ['Elasticsearch', 'Meilisearch']
+    },
+    {
+      cate: 'objectStorage',
+      sub: ['MinIO']
+    }
+  ])
+
+  const cate = ref([])
 
   // 添加表单引用
   const formRef = ref<FormInstance>()
