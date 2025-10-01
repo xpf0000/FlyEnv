@@ -1,0 +1,9 @@
+{
+  "rawFile": "Archivo Original",
+  "CommonSetting": "Ajustes Comunes",
+  "open": "Abrir Archivo",
+  "save": "Guardar Archivo Ctrl + s",
+  "loadDefault": "Cargar Archivo por Defecto",
+  "saveCustom": "Guardar como Archivo Personalizado",
+  "loadCustom": "Cargar Archivo Personalizado"
+}
