@@ -25,7 +25,6 @@
   "noPhpWarning": "Kiểm tra xem không có phiên bản PHP nào được chọn, một trang web tĩnh sẽ được tạo và các tệp PHP sẽ không thể thực thi. Bạn có chắc chắn muốn tiếp tục?",
   "hostsWriteTips": "Bật / Tắt tất cả các host trong danh sách này",
   "sort": "Sắp xếp",
-
   "projectPhp": "Dự án PHP",
   "projectJava": "Dự án Java",
   "projectNode": "Dự án Node",
@@ -35,7 +34,6 @@
   "projectDeno": "Dự án Deno",
   "projectBun": "Dự án Bun",
   "projectPerl": "Dự án Perl",
-
   "jarPackagePath": "Đường dẫn gói JAR",
   "jdkPath": "Đường dẫn JDK",
   "pythonPath": "Đường dẫn Python",
