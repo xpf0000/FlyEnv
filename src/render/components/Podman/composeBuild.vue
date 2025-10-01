@@ -2,9 +2,8 @@
   <el-dialog
     v-model="show"
     :title="I18nT('podman.Build') + ' Compose'"
-    width="750px"
     :destroy-on-close="true"
-    class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
+    class="el-dialog-content-flex-1 h-[75%] w-[75%] dark:bg-[#1d2033]"
     @closed="closedFn"
   >
     <template #default>
@@ -12,7 +11,7 @@
         <el-card
           style="--el-card-padding: 0 12px"
           shadow="never"
-          class="w-[200px] flex-shrink-0 app-base-el-card"
+          class="w-[280px] flex-shrink-0 app-base-el-card"
         >
           <el-scrollbar>
             <el-checkbox-group v-model="module">

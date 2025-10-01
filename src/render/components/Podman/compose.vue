@@ -12,6 +12,7 @@
       border
       class="flex-1 overflow-hidden"
       show-overflow-tooltip
+      empty-text="No Data"
       :data="composeList"
       style="width: 100%"
     >

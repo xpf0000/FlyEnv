@@ -38,7 +38,11 @@
                 class="handle w-[18px] h-[18px] cursor-move flex-shrink-0 mr-2"
                 :svg="import('@/svg/handle.svg?raw')"
               />
-              <el-input v-model="element.path" class="flex-1" placeholder="请选择 .yml 文件">
+              <el-input
+                v-model="element.path"
+                class="flex-1"
+                :placeholder="I18nT('podman.PleaseSelectYmlFile')"
+              >
                 <template #append>
                   <el-button :icon="FolderOpened" @click="selectFile(index)"></el-button>
                 </template>
