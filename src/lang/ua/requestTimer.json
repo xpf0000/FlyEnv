@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "Пошук DNS",
+  "tcpConnect": "TCP-з'єднання",
+  "tlsHandshake": "TLS-підтвердження",
+  "requestProcessing": "Обробка запиту",
+  "ttfb": "Час до першого байта (TTFB)",
+  "contentDownload": "Завантаження контенту",
+  "downloadSpeed": "Швидкість завантаження",
+  "dataSize": "Розмір даних",
+  "httpVersion": "Версія HTTP",
+  "statusCode": "Код стану",
+  "usingProxy": "Використання проксі",
+  "totalTime": "Загальний час",
+  "skippedForProxy": "Пропущено для проксі",
+  "metric": "Метрика",
+  "value": "Значення"
+}

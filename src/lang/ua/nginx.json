@@ -1,0 +1,10 @@
+{
+  "gzip": "Увімкнути передачу стиснення GZIP",
+  "gzip_min_length": "Мінімальний стиснутий файл",
+  "gzip_comp_level": "стисливість",
+  "client_max_body_size": "Максимальний розмір файлу для завантаження",
+  "server_names_hash_max_size": "Максимальний розмір хеш-таблиці для імені сервера",
+  "server_names_hash_bucket_size": "Розмір хеш-таблиці для імені сервера",
+  "client_header_buffer_size": "Розмір буфера заголовка запиту клієнта",
+  "client_body_buffer_size": "Розмір буфера тіла запиту"
+}
