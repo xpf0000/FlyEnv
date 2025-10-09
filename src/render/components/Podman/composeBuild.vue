@@ -10,11 +10,11 @@
     <template #default>
       <div class="flex gap-2 h-full overflow-hidden">
         <el-card
-          style="--el-card-padding: 0 12px"
+          style="--el-card-padding: 0 0"
           shadow="never"
           class="w-[200px] flex-shrink-0 app-base-el-card"
         >
-          <el-scrollbar>
+          <el-scrollbar class="px-[12px]">
             <el-checkbox-group v-model="module">
               <el-collapse v-model="cate" style="border-top: none">
                 <template v-for="(item, _index) in cates" :key="_index">
@@ -36,6 +36,21 @@
               <el-empty :description="I18nT('podman.ModuleEmpty')"></el-empty>
             </div>
           </template>
+          <template v-else>
+            <el-card style="--el-card-padding: 0 0" shadow="never" class="flex-1 app-base-el-card">
+              <el-scrollbar class="px-[12px]">
+                <el-collapse v-model="moduleRight">
+                  <template v-for="(m, _m) in module" :key="_m">
+                    <el-collapse-item :title="m" :name="m">
+                      <template v-if="m === 'Apache HTTP Server'">
+                        <ApacheVM />
+                      </template>
+                    </el-collapse-item>
+                  </template>
+                </el-collapse>
+              </el-scrollbar>
+            </el-card>
+          </template>
         </div>
       </div>
     </template>
@@ -49,15 +64,14 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { ref, watch } from 'vue'
   import { I18nT } from '@lang/index'
-  import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+  import { ElMessage, type FormInstance } from 'element-plus'
   import { PodmanManager } from '@/components/Podman/class/Podman'
-  import { FolderOpened, Plus, Delete } from '@element-plus/icons-vue'
-  import { dialog } from '@/util/NodeFn'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { uuid } from '@/util/Index'
-  import { AllAppModule, AllAppModuleType } from '@/core/type'
+  import type { AllAppModuleType } from '@/core/type'
+  import ApacheVM from './compose-build/Apache.vue'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -144,58 +158,23 @@
 
   const cate = ref([])
 
+  const moduleRight = ref<string[]>([])
+
+  watch(
+    module,
+    () => {
+      moduleRight.value = [...module.value]
+    },
+    {
+      deep: true
+    }
+  )
+
   // 添加表单引用
   const formRef = ref<FormInstance>()
 
-  // 定义表单验证规则
-  const rules = ref<FormRules>({
-    name: [
-      { required: true, message: I18nT('base.name') + I18nT('podman.require'), trigger: 'blur' }
-    ],
-    paths: [
-      {
-        validator: (rule: any, value: Array<{ path: string }>, callback: any) => {
-          const isEmptyPath = value.every((item) => !item.path.trim())
-          if (isEmptyPath) {
-            callback(new Error(I18nT('podman.ComposeFileRequire')))
-            return
-          }
-          callback()
-        },
-        trigger: 'blur'
-      }
-    ]
-  })
-
   const onCancel = () => {
     show.value = false
-  }
-
-  const addFile = () => {
-    form.value.paths.push({
-      id: uuid(),
-      path: ''
-    })
-  }
-
-  const delPath = (index: number) => {
-    form.value.paths.splice(index, 1)
-  }
-
-  // 文件选择器（Electron/Node环境下可用）
-  const selectFile = async (index: number) => {
-    dialog
-      .showOpenDialog({
-        properties: ['openFile', 'showHiddenFiles'],
-        filters: [{ name: 'YAML', extensions: ['yml', 'yaml'] }]
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        form.value.paths[index].path = path
-      })
   }
 
   const doSubmit = async () => {

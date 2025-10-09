@@ -1,9 +1,141 @@
 <template>
-  <el-form-item label="端口映射">
-    <el-input-number v-model="form.apachePort" :min="1" :max="65535" />
-  </el-form-item>
-  <el-form-item label="站点目录路径">
-    <el-input v-model="form.localPath" placeholder="F:/www/project/public" />
-  </el-form-item>
+  <el-form :model="form" label-position="top">
+    <el-form-item label="Apache 版本" prop="version">
+      <el-select v-model="form.version" :loading="versionLoading" placeholder="请选择版本">
+        <el-option label="latest" value="latest" />
+        <template v-for="(v, _v) in versions" :key="_v">
+          <el-option :label="v" :value="v" />
+        </template>
+      </el-select>
+    </el-form-item>
+
+    <el-form-item label="站点目录路径" prop="wwwRoot">
+      <el-input v-model="form.wwwRoot" placeholder="例如: ./html">
+        <template #append>
+          <el-button @click="selectDirectory">选择目录</el-button>
+        </template>
+      </el-input>
+    </el-form-item>
+
+    <el-form-item label="容器文档根目录" prop="docRoot">
+      <el-input v-model="form.docRoot" placeholder="例如: /usr/local/apache2/htdocs" />
+    </el-form-item>
+
+    <el-form-item label="端口映射">
+      <div class="w-full flex flex-col gap-3">
+        <template v-for="(p, _p) in form.ports" :key="_p">
+          <div class="w-full flex items-center justify-between">
+            <el-input v-model="p.in" placeholder="容器端口" class="flex-1">
+              <template #prefix>
+                <span>容器端口</span>
+              </template>
+            </el-input>
+            <span class="mx-3 flex-shrink-0">→</span>
+            <el-input v-model="p.out" placeholder="本地端口" class="flex-1">
+              <template #prefix>
+                <span>本地端口</span>
+              </template>
+            </el-input>
+          </div>
+        </template>
+      </div>
+    </el-form-item>
+
+    <el-divider></el-divider>
+    <el-form-item>
+      <el-button type="primary" @click="generateCompose">生成 Docker Compose</el-button>
+    </el-form-item>
+
+    <el-dialog v-model="dialogVisible" title="Docker Compose 配置" width="50%">
+      <pre>{{ composeYaml }}</pre>
+      <template #footer>
+        <el-button @click="dialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="copyToClipboard">复制到剪贴板</el-button>
+      </template>
+    </el-dialog>
+  </el-form>
 </template>
-<script lang="ts" setup></script>
+
+<script lang="ts" setup>
+  import { ref, computed } from 'vue'
+  import { ElMessage } from 'element-plus'
+  import YAML from 'yamljs'
+  import { ComposeBuildForm } from '@/components/Podman/compose-build/Form'
+  import { dialog } from '@/util/NodeFn'
+  import { OfficialImages } from '@/components/Podman/officialImages'
+  import { VersionManager } from '@/components/Podman/compose-build/Version'
+
+  const imageName = OfficialImages.apache.image
+  VersionManager.init(imageName).catch()
+
+  const versions = computed(() => {
+    return VersionManager.versions?.[imageName] ?? []
+  })
+
+  const versionLoading = computed(() => {
+    return VersionManager.fetching?.[imageName]
+  })
+
+  const form = computed(() => {
+    return ComposeBuildForm['Apache HTTP Server']
+  })
+
+  // 对话框控制
+  const dialogVisible = ref(false)
+  const composeYaml = ref('')
+
+  // 生成 Docker Compose
+  const generateCompose = () => {
+    const { version, ports, volumes, environment } = form.value
+
+    const compose = {
+      version: '3.8',
+      services: {
+        apache: {
+          image: `httpd:${version}`,
+          ports: ports.map((p) => `${p.in}:${p.out}`),
+          volumes: volumes.map((v) => `${v.in}:${v.out}`),
+          environment: environment
+        }
+      }
+    }
+
+    composeYaml.value = YAML.stringify(compose, 4, 2)
+    dialogVisible.value = true
+  }
+
+  // 复制到剪贴板
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(composeYaml.value)
+      ElMessage.success('已复制到剪贴板！')
+    } catch (err) {
+      ElMessage.error('复制失败')
+      console.error('复制失败:', err)
+    }
+  }
+
+  // 选择目录（浏览器环境下有限制）
+  const selectDirectory = () => {
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        form.value.wwwRoot = path
+      })
+  }
+</script>
+
+<style scoped>
+  pre {
+    background: #f5f7fa;
+    padding: 16px;
+    border-radius: 4px;
+    overflow: auto;
+  }
+</style>

@@ -220,7 +220,22 @@ export function reactiveBind<T extends object>(instance: T): T {
   for (const key of Object.getOwnPropertyNames(proto)) {
     if (key === 'constructor') continue
     const val = (obj as any)[key]
+    console.log('reactiveBind key: ', key, typeof val)
     if (typeof val === 'function') {
+      ;(obj as any)[key] = val.bind(obj)
+    }
+  }
+  return obj as T
+}
+
+export function reactiveBindObject<T extends object>(instance: T): T {
+  const obj = reactive(instance)
+  const keys = Object.getOwnPropertyNames(obj)
+  console.log('reactiveBindObject keys', keys)
+  for (const key of keys) {
+    const val = (obj as any)[key]
+    console.log('reactiveBindObject key: ', key, typeof val)
+    if (typeof val === 'function' && key !== 'constructor') {
       ;(obj as any)[key] = val.bind(obj)
     }
   }
