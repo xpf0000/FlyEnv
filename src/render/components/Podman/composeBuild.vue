@@ -39,6 +39,7 @@
           <template v-else>
             <el-card style="--el-card-padding: 0 0" shadow="never" class="flex-1 app-base-el-card">
               <el-scrollbar class="px-[12px]">
+                <BaseVM />
                 <el-collapse v-model="moduleRight">
                   <template v-for="(m, _m) in module" :key="_m">
                     <el-collapse-item :title="m" :name="m">
@@ -72,6 +73,7 @@
   import { uuid } from '@/util/Index'
   import type { AllAppModuleType } from '@/core/type'
   import ApacheVM from './compose-build/Apache.vue'
+  import BaseVM from './compose-build/Base.vue'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 

@@ -10,15 +10,20 @@
     </el-form-item>
 
     <el-form-item label="站点目录路径" prop="wwwRoot">
-      <el-input v-model="form.wwwRoot" placeholder="例如: ./html">
+      <el-input v-model="form.wwwRoot">
         <template #append>
           <el-button @click="selectDirectory">选择目录</el-button>
         </template>
       </el-input>
     </el-form-item>
 
-    <el-form-item label="容器文档根目录" prop="docRoot">
-      <el-input v-model="form.docRoot" placeholder="例如: /usr/local/apache2/htdocs" />
+    <el-form-item label="运行目录" prop="docRoot">
+      <el-select v-model="form.docRoot">
+        <el-option label="/" :value="'/'"></el-option>
+        <template v-for="(d, _d) in subdirs" :key="_d">
+          <el-option :value="d" :label="d"></el-option>
+        </template>
+      </el-select>
     </el-form-item>
 
     <el-form-item label="端口映射">
@@ -57,13 +62,14 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed } from 'vue'
+  import { computed, ref } from 'vue'
   import { ElMessage } from 'element-plus'
   import YAML from 'yamljs'
   import { ComposeBuildForm } from '@/components/Podman/compose-build/Form'
-  import { dialog } from '@/util/NodeFn'
+  import { dialog, fs } from '@/util/NodeFn'
   import { OfficialImages } from '@/components/Podman/officialImages'
   import { VersionManager } from '@/components/Podman/compose-build/Version'
+  import { asyncComputed } from '@vueuse/core'
 
   const imageName = OfficialImages.apache.image
   VersionManager.init(imageName).catch()
@@ -78,6 +84,11 @@
 
   const form = computed(() => {
     return ComposeBuildForm['Apache HTTP Server']
+  })
+
+  const subdirs = asyncComputed(async () => {
+    const root = form.value.wwwRoot
+    return await fs.subdir(root)
   })
 
   // 对话框控制

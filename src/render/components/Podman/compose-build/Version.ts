@@ -40,8 +40,10 @@ const VersionManager: VersionManagerType = reactiveBindObject({
     if (arr && arr.length) {
       const key = `flyenv-podman-image-${image}-versions`
       try {
-        await StorageSetAsync(key, arr, 3 * 24 * 60 * 60)
-      } catch {}
+        await StorageSetAsync(key, JSON.parse(JSON.stringify(arr)), 3 * 24 * 60 * 60)
+      } catch (e) {
+        console.error('save error: ', e)
+      }
     }
   }
 } as VersionManagerType)

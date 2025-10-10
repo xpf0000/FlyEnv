@@ -44,5 +44,6 @@
   "ComposeFileRequire": "请选择至少一个Compose文件",
   "ChooseComposeFile": "选择Compose文件",
   "Build": "构建",
-  "ModuleEmpty": "请选择模块"
+  "ModuleEmpty": "请选择模块",
+  "ComposeFileSaveDir": "Compose文件保存位置"
 }
