@@ -1,0 +1,10 @@
+{
+  "email": "البريد الإلكتروني",
+  "country": "البلد",
+  "message": "الرسالة",
+  "messagelengthErr": "طول الرسالة بين 5 و 1024",
+  "sendMessage": "إرسال الرسالة",
+  "anythingToSay": "أي شيء تريد قوله",
+  "noSelected": "لا شيء محدد",
+  "inputFilter": "إدخال للتصفية"
+}
