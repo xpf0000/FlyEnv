@@ -646,6 +646,7 @@ export default class Application extends EventEmitter {
       this.configManager.setConfig(config)
       this.menuManager.rebuild()
       this.trayManager.setStyle(config?.setup?.trayMenuBarStyle ?? 'modern')
+      this.setProxy()
     })
 
     this.on('application:relaunch', () => {
@@ -709,6 +710,14 @@ export default class Application extends EventEmitter {
       global.Server.Proxy = proxyDict
     } else {
       delete global.Server.Proxy
+    }
+    if (this.mainWindow) {
+      this.windowManager.sendCommandTo(
+        this.mainWindow,
+        'APP-Update-Global-Server',
+        'APP-Update-Global-Server',
+        JSON.parse(JSON.stringify(global.Server))
+      )
     }
   }
 

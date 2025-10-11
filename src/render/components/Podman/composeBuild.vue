@@ -5,6 +5,7 @@
     width="750px"
     :destroy-on-close="true"
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
+    :close-on-click-modal="false"
     @closed="closedFn"
   >
     <template #default>
@@ -46,6 +47,9 @@
                       <template v-if="m === 'Apache HTTP Server'">
                         <ApacheVM />
                       </template>
+                      <template v-else-if="m === 'PHP'">
+                        <PHPVM />
+                      </template>
                     </el-collapse-item>
                   </template>
                 </el-collapse>
@@ -74,6 +78,11 @@
   import type { AllAppModuleType } from '@/core/type'
   import ApacheVM from './compose-build/Apache.vue'
   import BaseVM from './compose-build/Base.vue'
+  import { ComposeBuildForm } from '@/components/Podman/compose-build/Form'
+  import { MessageError } from '@/util/Element'
+  import YAML from 'yamljs'
+  import { fs, shell } from '@/util/NodeFn'
+  import PHPVM from './compose-build/PHP.vue'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -180,45 +189,37 @@
   }
 
   const doSubmit = async () => {
-    if (!form.value.name) {
-      ElMessage.error(I18nT('base.name') + I18nT('podman.require'))
-      return
-    }
-
-    try {
-      // 验证表单
-      await formRef.value?.validate()
-    } catch {
-      return
-    }
-
-    const paths = form.value.paths.map((p) => p.path).filter((p) => !!p.trim())
-    if (!paths.length) {
-      ElMessage.error(I18nT('podman.ComposeFileRequire'))
-      return
-    }
-
-    if (!props?.item?.id) {
-      const data = {
-        ...form.value,
-        paths
-      }
-      PodmanManager.addCompose(data)
-    } else {
-      const find = PodmanManager.compose.find((f) => f.id === form.value.id)
-      if (find) {
-        if (find.run) {
-          find.stop()
-        }
-        find.name = form.value.name
-        find.comment = form.value.comment
-        find.flag = form.value.flag
-        find.paths = paths
-        PodmanManager.saveComposeList().catch()
+    const BuildForm: any = ComposeBuildForm
+    const keys = ['base', ...moduleRight.value]
+    for (const key of keys) {
+      const item = BuildForm?.[key]
+      const error = item?.check?.()
+      if (error) {
+        MessageError(error)
+        return
       }
     }
+
+    const services: any = {}
+    for (const key of moduleRight.value) {
+      const item = BuildForm?.[key]
+      const obj = await item?.build?.()
+      Object.assign(services, obj)
+    }
+
+    console.log('services: ', services)
+
+    const compose = {
+      version: '3.8',
+      services
+    }
+
+    const content = YAML.stringify(compose, Infinity, 2)
+    const base = ComposeBuildForm.base
+    await fs.writeFile(base.dir, content)
     ElMessage.success(I18nT('base.success'))
-    show.value = false
+    shell.showItemInFolder(base.dir).catch()
+    // show.value = false
   }
 
   defineExpose({
