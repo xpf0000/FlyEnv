@@ -1,5 +1,5 @@
 {
-  "gzip": "Bật nén truyền tải GZIP",
+  "gzip": "Bật nén GZIP",
   "gzip_min_length": "Kích thước tệp tối thiểu để nén",
   "gzip_comp_level": "Mức độ nén",
   "client_max_body_size": "Kích thước tệp tải lên tối đa",

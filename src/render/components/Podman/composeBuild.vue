@@ -13,7 +13,7 @@
         <el-card
           style="--el-card-padding: 0 0"
           shadow="never"
-          class="w-[200px] flex-shrink-0 app-base-el-card"
+          class="w-[280px] flex-shrink-0 app-base-el-card"
         >
           <el-scrollbar class="px-[12px]">
             <el-checkbox-group v-model="module">
