@@ -1,0 +1,23 @@
+{
+  "startInstall": "Comenzando la instalación de {service}",
+  "startServiceBegin": "Iniciar el servicio {service}...",
+  "confInit": "El archivo de configuración no existe, generándolo",
+  "confInitSuccess": "Archivo de configuración generado exitosamente, ruta: {file}",
+  "confInitFail": "Error al generar el archivo de configuración, motivo: {error}",
+  "apachePortHandleBegin": "Comenzando a obtener todos los puertos de escucha de Apache del sitio",
+  "apachePortHandleEnd": "Adquisición de puertos de escucha de Apache completada, se escribió exitosamente el archivo de configuración",
+  "execStartCommand": "Comenzando a ejecutar el comando de inicio",
+  "execStartCommandSuccess": "Comando de inicio ejecutado exitosamente, verificando si el inicio fue exitoso",
+  "execStartCommandFail": "La ejecución del comando de inicio falló, motivo: {error}, el servicio {service} no se pudo iniciar",
+  "startServiceSuccess": "Servicio {service} iniciado correctamente, pid: {pid}",
+  "startServiceFail": "El servicio {service} no pudo iniciar, motivo: {error}",
+  "stopServiceBegin": "Deteniendo el servicio {service}",
+  "stopServiceEnd": "Servicio {service} detenido correctamente",
+  "initDBPass": "Inicializando la contraseña de la base de datos",
+  "initDBPassSuccess": "Contraseña de base de datos inicializada correctamente, usuario y contraseña: {user} {pass}",
+  "initDBPassFail": "No se pudo inicializar la contraseña de la base de datos, motivo: {error}",
+  "initDBDataDir": "Carpeta de datos no encontrada, creando la carpeta de datos",
+  "initDBDataDirSuccess": "Creación exitosa de la carpeta de datos, ruta: {dir}",
+  "initDBDataDirFail": "Falló la creación de la carpeta de datos, motivo: {error}",
+  "newProjectFail": "No se pudo crear el nuevo proyecto"
+}
