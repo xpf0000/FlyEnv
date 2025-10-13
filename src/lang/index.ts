@@ -45,6 +45,7 @@ import IT from './it/index'
 import JA from './ja/index'
 import PT from './pt/index'
 import PTBR from './pt-br/index'
+import UA from './ua/index'
 import ES from './es/index'
 
 type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
@@ -105,6 +106,7 @@ export const AppAllLang = {
   ja: '日本語',
   pt: 'Português',
   'pt-br': 'Português (Brasil)',
+  ua: 'Українська',
   es: 'Español'
 }
 
@@ -120,6 +122,7 @@ const lang = {
   ...JA,
   ...PT,
   ...PTBR,
+  ...UA
   ...ES
 }
 
