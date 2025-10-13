@@ -45,6 +45,7 @@ import IT from './it/index'
 import JA from './ja/index'
 import PT from './pt/index'
 import PTBR from './pt-br/index'
+import AR from './ar/index'
 import UA from './ua/index'
 import ES from './es/index'
 
@@ -106,6 +107,7 @@ export const AppAllLang = {
   ja: '日本語',
   pt: 'Português',
   'pt-br': 'Português (Brasil)',
+  ar: 'العربية'
   ua: 'Українська',
   es: 'Español'
 }
@@ -122,6 +124,7 @@ const lang = {
   ...JA,
   ...PT,
   ...PTBR,
+  ...AR
   ...UA
   ...ES
 }

@@ -1,0 +1,10 @@
+{
+  "gzip": "هل تمكين ضغط GZIP للإرسال",
+  "gzip_min_length": "الحد الأدنى لحجم الملف المضغوط",
+  "gzip_comp_level": "مستوى قابلية الضغط",
+  "client_max_body_size": "الحد الأقصى لحجم ملف التحميل",
+  "server_names_hash_max_size": "الحد الأقصى لحجم جدول التجزئة (Hash Table) لاسم الخادم",
+  "server_names_hash_bucket_size": "حجم حاوية جدول التجزئة (Hash Bucket) لاسم الخادم",
+  "client_header_buffer_size": "حجم الذاكرة المؤقتة لرأس طلب العميل",
+  "client_body_buffer_size": "حجم الذاكرة المؤقتة لـ جسم الطلب"
+}

@@ -1,0 +1,16 @@
+{
+  "installFNM": "تثبيت <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "تثبيت <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "الطرفية (Terminal)",
+  "registry": "المصدر",
+  "checkPackageJsonUpdate": "التحقق من وجود تحديثات",
+  "updatePackageJsonFile": "تحديث ملف package.json",
+  "updatePackageJsonFileTips": "سيؤدي هذا الإجراء إلى تعديل ملف package.json. هل أنت متأكد من أنك تريد التحديث؟",
+  "copyDirPath": "نسخ مسار مجلد المشروع",
+  "openIN": "فتح في",
+  "VSCode": "فيجوال ستوديو كود (Visual Studio Code)",
+  "PhpStorm": "بي إتش بي ستورم (PhpStorm)",
+  "WebStorm": "ويب ستورم (WebStorm)",
+  "HBuilderX": "إتش بيلدر إكس (HBuilderX)",
+  "projectEnvSet": "بيئة المشروع"
+}

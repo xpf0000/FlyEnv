@@ -1,0 +1,13 @@
+{
+  "title": "مولد الرمز (Token Generator)",
+  "uppercase": "أحرف كبيرة (ABC...)",
+  "lowercase": "أحرف صغيرة (abc...)",
+  "numbers": "أرقام (123...)",
+  "symbols": "رموز (!-;...)",
+  "length": "الطول",
+  "tokenPlaceholder": "الرمز...",
+  "button": {
+    "copy": "نسخ",
+    "refresh": "تحديث"
+  }
+}

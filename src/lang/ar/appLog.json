@@ -1,0 +1,23 @@
+{
+  "startInstall": "بدء تثبيت {service}",
+  "startServiceBegin": "بدء تشغيل خدمة {service}...",
+  "confInit": "ملف الإعداد غير موجود، جارٍ إنشاء ملف الإعداد",
+  "confInitSuccess": "تم إنشاء ملف الإعداد بنجاح، مسار الملف: {file}",
+  "confInitFail": "فشل إنشاء ملف الإعداد، السبب: {error}",
+  "apachePortHandleBegin": "بدء الحصول على جميع منافذ استماع Apache من الموقع",
+  "apachePortHandleEnd": "اكتمل الحصول على منافذ استماع Apache، وتمت كتابة ملف الإعداد بنجاح",
+  "execStartCommand": "بدء تنفيذ أمر التشغيل",
+  "execStartCommandSuccess": "تم تنفيذ أمر التشغيل بنجاح، جارٍ التحقق من نجاح التشغيل",
+  "execStartCommandFail": "فشل تنفيذ أمر التشغيل، السبب: {error}، فشل تشغيل خدمة {service}",
+  "startServiceSuccess": "تم تشغيل خدمة {service} بنجاح، رقم العملية: {pid}",
+  "startServiceFail": "فشل تشغيل خدمة {service}، السبب: {error}",
+  "stopServiceBegin": "بدء إيقاف خدمة {service}",
+  "stopServiceEnd": "تم إيقاف خدمة {service} بنجاح",
+  "initDBPass": "بدء تهيئة كلمة مرور قاعدة البيانات",
+  "initDBPassSuccess": "تم تهيئة كلمة مرور قاعدة البيانات بنجاح، بيانات الحساب: {user} {pass}",
+  "initDBPassFail": "فشل تهيئة كلمة مرور قاعدة البيانات، السبب: {error}",
+  "initDBDataDir": "لم يتم العثور على مجلد البيانات، جارٍ تهيئة مجلد البيانات",
+  "initDBDataDirSuccess": "تم تهيئة مجلد البيانات بنجاح، مسار المجلد: {dir}",
+  "initDBDataDirFail": "فشل تهيئة مجلد البيانات، السبب: {error}",
+  "newProjectFail": "فشل إنشاء مشروع جديد"
+}

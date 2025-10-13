@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "البحث عن DNS",
+  "tcpConnect": "اتصال TCP",
+  "tlsHandshake": "مصافحة TLS (TLS Handshake)",
+  "requestProcessing": "معالجة الطلب",
+  "ttfb": "وقت الوصول إلى البايت الأول (TTFB)",
+  "contentDownload": "تحميل المحتوى",
+  "downloadSpeed": "سرعة التحميل",
+  "dataSize": "حجم البيانات",
+  "httpVersion": "إصدار HTTP",
+  "statusCode": "رمز الحالة",
+  "usingProxy": "استخدام بروكسي",
+  "totalTime": "الوقت الكلي",
+  "skippedForProxy": "تم تخطيه من أجل البروكسي",
+  "metric": "المقياس",
+  "value": "القيمة"
+}
