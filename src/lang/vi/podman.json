@@ -37,5 +37,18 @@
   "Running": "Đang chạy",
   "Stopped": "Đã dừng",
   "Start": "Khởi động",
-  "Stop": "Dừng"
+  "Stop": "Dừng",
+  "StartWithTerminal": "Khởi động bằng terminal tích hợp",
+  "StopWithTerminal": "Dừng bằng terminal tích hợp",
+  "ComposeFile": "Tệp Compose",
+  "ComposeFileRequire": "Vui lòng chọn ít nhất một tệp Compose",
+  "ChooseComposeFile": "Chọn tệp Compose",
+  "Build": "Xây dựng",
+  "ModuleEmpty": "Vui lòng chọn mô-đun",
+  "PleaseSelectYmlFile": "Vui lòng chọn tệp .yml",
+  "PresetModule": "Mô-đun dựng sẵn",
+  "CustomInput": "Tự nhập",
+  "SelectPresetModule": "Chọn mô-đun dựng sẵn",
+  "TagPlaceholder": "latest hoặc số phiên bản, ví dụ: 8.2, 5.7, 16-alpine",
+  "NamePlaceholder": "ví dụ: nginx"
 }

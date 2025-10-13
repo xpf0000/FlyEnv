@@ -16,7 +16,6 @@
   "passwordTips": "Không bắt buộc. Tự động điền mật khẩu khi thực thi lệnh, ví dụ: cài đặt hoặc gỡ cài đặt bằng Macports, v.v.",
   "langTips": "Tải gói ngôn ngữ do người dùng định nghĩa. Điều này cũng sẽ khởi tạo gói ngôn ngữ mặc định, giúp người dùng dịch FlyEnv sang ngôn ngữ khác dễ dàng hơn.",
   "openLangDir": "Mở thư mục gói ngôn ngữ",
-
   "moduleCateAddTips": "Thêm danh mục module",
   "moduleCateName": "Tên danh mục module",
   "moduleAdd": "Thêm module",
@@ -39,12 +38,12 @@
     "isSudo": "Chạy với quyền sudo?",
     "pidPath": "Đường dẫn tệp PID",
     "configPath": "Tệp cấu hình",
-    "logPath": "Tệp log",
+    "logPath": "Tệp nhật ký",
     "needPasswordToStart": "Cần quyền quản trị. Nhập mật khẩu của bạn (sẽ được lưu cho lần dùng sau). Hoặc nhập thủ công trong terminal, nhưng thông báo này có thể xuất hiện lại.",
     "hadOpenInTerminal": "Đã chạy trong terminal — không thể lấy kết quả.",
     "licenseTips": "Không tìm thấy giấy phép. Chỉ có thể tạo tối đa 3 module/mục thực thi.",
-    "outputLog": "Log đầu ra",
-    "errorLog": "Log lỗi"
+    "outputLog": "Nhật ký đầu ra",
+    "errorLog": "Nhật ký lỗi"
   },
 
   "flyenvHelper": "Sửa FlyEnv Helper",

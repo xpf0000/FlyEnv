@@ -1,0 +1,13 @@
+{
+  "setaliase": "Establecer Alias",
+  "env": "Entorno",
+  "alias": "Alias",
+  "envTips": "Añadise la ruta a la variable de entorno",
+  "aliasTips": "Alias usado en el terminal",
+  "useSysPHP": "Usar la versión por defecto de PHP",
+  "setByApp": "Variables de entorno establecidas por FlyEnv",
+  "setByNoApp": "Variables de entorno no establecidas por FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd requiere privilegios sudo para iniciar. Por favor ingresa tu contraseña. La contraseña se usará para autocompletar después. También puedes hacer clic en el botón abajo para ingresarla manualmente en el terminal, aunque este aviso puede reaparecer.",
+  "bundleinVersionDelTips": "Esta versión está integrada, ¿confirmas que no se muestre?",
+  "customDirVersionDelTips": "Esta versión es de ruta personalizada, ¿confirmas que no se muestre?"
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Generador de Tokens",
+  "uppercase": "Mayúsculas (ABC...)",
+  "lowercase": "Minúsculas (abc...)",
+  "numbers": "Números (123...)",
+  "symbols": "Símbolos (!-;...)",
+  "length": "Longitud",
+  "tokenPlaceholder": "El token...",
+  "button": {
+    "copy": "Copiar",
+    "refresh": "Actualizar"
+  }
+}

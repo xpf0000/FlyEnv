@@ -72,7 +72,7 @@
   import { I18nT } from '@lang/index'
   import DashboradVM from './dashboard.vue'
   import ImageVM from './image.vue'
-  import ComposeVM from  './compose.vue'
+  import ComposeVM from './compose.vue'
 
   const machine = computed(() => {
     return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)

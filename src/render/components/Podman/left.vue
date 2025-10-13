@@ -75,10 +75,10 @@
                         <template #dropdown>
                           <el-dropdown-menu>
                             <el-dropdown-item @click.stop="PodmanManager.startMachine(item.name)">
-                              {{ I18nT('base.start') }}
+                              {{ I18nT('podman.Start') }}
                             </el-dropdown-item>
                             <el-dropdown-item @click.stop="PodmanManager.stopMachine(item.name)">
-                              {{ I18nT('base.stop') }}
+                              {{ I18nT('podman.Stop') }}
                             </el-dropdown-item>
                             <el-dropdown-item @click.stop="addMachine(item)">
                               {{ I18nT('base.edit') }}
@@ -87,7 +87,7 @@
                               {{ I18nT('base.refresh') }}
                             </el-dropdown-item>
                             <el-dropdown-item divided @click.stop="item.remove()">
-                              <span class="text-red-500">{{ I18nT('base.delete') }}</span>
+                              <span class="text-red-500">{{ I18nT('podman.Delete') }}</span>
                             </el-dropdown-item>
                           </el-dropdown-menu>
                         </template>
