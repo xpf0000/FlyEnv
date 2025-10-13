@@ -7,183 +7,114 @@ export const OfficialImages: Record<
   string,
   {
     image: string
-    tags: string[]
-    desc?: string
   }
 > = {
   // AI
   ollama: {
-    image: 'ollama/ollama',
-    tags: ['latest'],
-    desc: 'AI LLM 服务'
+    image: 'ollama/ollama'
   },
-
   // Web服务器
   apache: {
-    image: 'httpd',
-    tags: ['latest', '2.4'],
-    desc: 'Apache HTTP Server'
+    image: 'httpd'
   },
   nginx: {
-    image: 'nginx',
-    tags: ['latest', 'alpine', 'mainline'],
-    desc: 'Nginx Web Server'
+    image: 'nginx'
   },
   caddy: {
-    image: 'caddy',
-    tags: ['latest'],
-    desc: 'Caddy Web Server'
+    image: 'caddy'
   },
   tomcat: {
-    image: 'tomcat',
-    tags: ['latest', '10', '9'],
-    desc: 'Apache Tomcat'
+    image: 'tomcat'
   },
   consul: {
-    image: 'consul',
-    tags: ['latest'],
-    desc: 'Consul 服务发现'
+    image: 'consul'
   },
 
   // 数据库
   mysql: {
-    image: 'mysql',
-    tags: ['latest', '8.0', '5.7'],
-    desc: 'MySQL 数据库'
+    image: 'mysql'
   },
   mariadb: {
-    image: 'mariadb',
-    tags: ['latest', '11', '10.11'],
-    desc: 'MariaDB 数据库'
+    image: 'mariadb'
   },
   postgresql: {
-    image: 'postgres',
-    tags: ['latest', '16', '15'],
-    desc: 'PostgreSQL 数据库'
+    image: 'postgres'
   },
   mongodb: {
-    image: 'mongo',
-    tags: ['latest', '7', '6'],
-    desc: 'MongoDB 数据库'
+    image: 'mongo'
   },
 
   // 邮件服务器
   mailpit: {
-    image: 'axllent/mailpit',
-    tags: ['latest'],
-    desc: 'Mailpit 邮件测试'
+    image: 'axllent/mailpit'
   },
 
   // 编程语言 & 运行时
   php: {
-    image: 'php',
-    tags: ['latest', '8.2', '8.1', '7.4'],
-    desc: 'PHP 运行环境'
+    image: 'php'
   },
   composer: {
-    image: 'composer',
-    tags: ['latest'],
-    desc: 'PHP Composer'
+    image: 'composer'
   },
   java: {
-    image: 'openjdk',
-    tags: ['latest', '21', '17', '8'],
-    desc: 'OpenJDK Java'
+    image: 'openjdk'
   },
   maven: {
-    image: 'maven',
-    tags: ['latest', '3.9'],
-    desc: 'Maven Java 构建'
+    image: 'maven'
   },
   node: {
-    image: 'node',
-    tags: ['latest', '20', '18', 'alpine'],
-    desc: 'Node.js'
+    image: 'node'
   },
   python: {
-    image: 'python',
-    tags: ['latest', '3.12', '3.11'],
-    desc: 'Python'
+    image: 'python'
   },
   golang: {
-    image: 'golang',
-    tags: ['latest', '1.22', '1.21'],
-    desc: 'Go'
+    image: 'golang'
   },
   erlang: {
-    image: 'erlang',
-    tags: ['latest'],
-    desc: 'Erlang'
+    image: 'erlang'
   },
   ruby: {
-    image: 'ruby',
-    tags: ['latest', '3.3', '3.2'],
-    desc: 'Ruby'
+    image: 'ruby'
   },
   rust: {
-    image: 'rust',
-    tags: ['latest', '1.77'],
-    desc: 'Rust'
+    image: 'rust'
   },
   bun: {
-    image: 'oven/bun',
-    tags: ['latest'],
-    desc: 'Bun JS 运行时'
+    image: 'oven/bun'
   },
   deno: {
-    image: 'denoland/deno',
-    tags: ['latest'],
-    desc: 'Deno JS/TS 运行时'
+    image: 'denoland/deno'
   },
   gradle: {
-    image: 'gradle',
-    tags: ['latest', '8.7'],
-    desc: 'Gradle 构建工具'
+    image: 'gradle'
   },
 
   // 数据队列与缓存
   redis: {
-    image: 'redis',
-    tags: ['latest', '7', '6'],
-    desc: 'Redis 缓存'
+    image: 'redis'
   },
   memcached: {
-    image: 'memcached',
-    tags: ['latest'],
-    desc: 'Memcached 缓存'
+    image: 'memcached'
   },
   rabbitmq: {
-    image: 'rabbitmq',
-    tags: ['latest', 'management'],
-    desc: 'RabbitMQ 队列'
+    image: 'rabbitmq'
   },
   etcd: {
-    image: 'quay.io/coreos/etcd',
-    tags: ['latest', 'v3.5.13'],
-    desc: 'etcd 分布式键值存储'
+    image: 'quay.io/coreos/etcd'
   },
 
   // 搜索引擎
   elasticsearch: {
-    image: 'elasticsearch',
-    tags: ['latest', '8.13.0', '7.17.0'],
-    desc: 'Elasticsearch 搜索'
+    image: 'elasticsearch'
   },
   meilisearch: {
-    image: 'getmeili/meilisearch',
-    tags: ['latest', 'v1.8'],
-    desc: 'Meilisearch 搜索'
+    image: 'getmeili/meilisearch'
   },
   typesense: {
-    image: 'typesense/typesense',
-    tags: ['latest', '0.25.2'],
-    desc: 'Typesense 搜索'
+    image: 'typesense/typesense'
   },
-
-  // 对象存储
-  minio: {
-    image: 'minio/minio',
-    tags: ['latest'],
-    desc: 'Minio 对象存储'
+  jdk: {
+    image: 'eclipse-temurin'
   }
 }

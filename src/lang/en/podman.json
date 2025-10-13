@@ -37,5 +37,18 @@
   "Running": "Running",
   "Stopped": "Stopped",
   "Start": "Start",
-  "Stop": "Stop"
+  "Stop": "Stop",
+  "StartWithTerminal": "Start with Built-in Terminal",
+  "StopWithTerminal": "Stop with Built-in Terminal",
+  "ComposeFile": "Compose File",
+  "ComposeFileRequire": "Please select at least one Compose file",
+  "ChooseComposeFile": "Choose Compose File",
+  "Build": "Build",
+  "ModuleEmpty": "Please select a module",
+  "PleaseSelectYmlFile": "Please select a .yml file",
+  "PresetModule": "Preset module",
+  "CustomInput": "Custom input",
+  "SelectPresetModule": "Select a preset module",
+  "TagPlaceholder": "latest or a version number, e.g. 8.2, 5.7, 16-alpine",
+  "NamePlaceholder": "e.g. nginx"
 }

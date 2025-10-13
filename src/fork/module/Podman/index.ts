@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { uuid, execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
 import { isLinux, isWindows } from '@shared/utils'
 import axios from 'axios'
+import { fetchTags } from './image'
 
 class Podman extends Base {
   constructor() {
@@ -350,6 +351,12 @@ class Podman extends Base {
           await remove(tmp)
         }
       }
+    })
+  }
+
+  composeImageVersion(image: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      fetchTags(image).then(resolve).catch(reject)
     })
   }
 }

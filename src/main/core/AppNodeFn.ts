@@ -390,6 +390,21 @@ X-GNOME-Autostart-enabled=true`
     })
   }
 
+  fs_subdir(command: string, key: string, dir: string) {
+    if (!existsSync(dir)) {
+      this?.mainWindow?.webContents.send('command', command, key, [])
+      return
+    }
+    readdir(dir, { withFileTypes: true })
+      .then((arr) => {
+        const dirs = arr.filter((d) => d.isDirectory()).map((d) => d.name)
+        this?.mainWindow?.webContents.send('command', command, key, dirs)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, [])
+      })
+  }
+
   fs_mkdirp(command: string, key: string, dir: string) {
     mkdirp(dir)
       .then(() => {

@@ -8,13 +8,13 @@
     @closed="closedFn"
   >
     <el-radio-group v-model="mode" class="mb-3">
-      <el-radio label="preset">预设模块</el-radio>
-      <el-radio label="custom">自定义输入</el-radio>
+      <el-radio label="preset">{{ I18nT('podman.PresetModule') }}</el-radio>
+      <el-radio label="custom">{{ I18nT('podman.CustomInput') }}</el-radio>
     </el-radio-group>
     <div v-if="mode === 'preset'" class="mb-3">
       <el-select
         v-model="preset"
-        placeholder="选择预设模块"
+        :placeholder="I18nT('podman.SelectPresetModule')"
         style="width: 100%"
         @change="onPresetChange"
       >
@@ -23,10 +23,14 @@
     </div>
     <el-form :model="form" label-width="110px" class="pt-2">
       <el-form-item :label="I18nT('podman.Image')" prop="name" required>
-        <el-input v-model="form.name" :disabled="mode === 'preset'" placeholder="e.g. nginx" />
+        <el-input
+          v-model="form.name"
+          :disabled="mode === 'preset'"
+          :placeholder="I18nT('podman.NamePlaceholder')"
+        />
       </el-form-item>
       <el-form-item :label="I18nT('podman.Tag')" prop="tag">
-        <el-input v-model="form.tag" placeholder="latest 或版本号，如 8.2, 5.7, 16-alpine" />
+        <el-input v-model="form.tag" :placeholder="I18nT('podman.TagPlaceholder')" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="onSubmit">{{ I18nT('base.confirm') }}</el-button>

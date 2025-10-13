@@ -1,0 +1,7 @@
+{
+  "Local": "Local",
+  "noBrewFound": "No se encontró <a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a>.\nPara instalar Homebrew, haz clic en el botón de instalar para continuar.\nTambién puedes hacer clic en este enlace\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nSigue la documentación para instalar.",
+  "noPortFound": "No se encontró <a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a>.\nPara instalar Macports, puedes hacer clic en este enlace\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nSigue la documentación para instalar.",
+  "brewErrorTips": "En esta ubicación {bin}, se detectaron archivos ejecutables de Homebrew.\nSin embargo, FlyEnv no puede invocarlos. Mensaje de error:\n{error}",
+  "Library": "Biblioteca"
+}

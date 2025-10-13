@@ -4,7 +4,6 @@ import { Compose } from '@/components/Podman/class/Compose'
 import XTerm from '@/util/XTerm'
 import { reactiveBind } from '@/util/Index'
 import type { AllAppModule } from '@/core/type'
-import { reactive } from 'vue'
 import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 
 class Podman {
@@ -24,33 +23,10 @@ class Podman {
     this.machine = this.machine.filter((f) => f.name !== item.name)
   }
 
-  initImageVersion() {
-    if (Object.keys(this.imageVersion).length > 0) {
-      return
-    }
-    const storeKey = 'flyenv-podman-image-version'
-    const doFetch = () => {
-      IPC.send('app-fork:podman', 'fetchImagesVersion').then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          const obj: any = res?.data ?? {}
-          this.imageVersion = reactive(obj)
-          StorageSetAsync(storeKey, obj, 3 * 24 * 60 * 60).catch()
-        }
-      })
-    }
-    StorageGetAsync(storeKey)
-      .then((res: any) => {
-        this.imageVersion = reactive(res)
-      })
-      .catch(doFetch)
-  }
-
   init() {
     if (this.inited || this.loading) {
       return
     }
-    this.initImageVersion()
     this.loading = true
     IPC.send('app-fork:podman', 'podmanInit').then((key: string, res: any) => {
       IPC.off(key)

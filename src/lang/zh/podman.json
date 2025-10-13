@@ -44,5 +44,12 @@
   "ComposeFileRequire": "请选择至少一个Compose文件",
   "ChooseComposeFile": "选择Compose文件",
   "Build": "构建",
-  "ModuleEmpty": "请选择模块"
+  "ModuleEmpty": "请选择模块",
+  "PleaseSelectYmlFile": "请选择 .yml 文件",
+  "PresetModule": "预设模块",
+  "CustomInput": "自定义输入",
+  "SelectPresetModule": "选择预设模块",
+  "TagPlaceholder": "latest 或版本号，如 8.2, 5.7, 16-alpine",
+  "NamePlaceholder": "例如：nginx"
+  "ComposeFileSaveDir": "Compose文件保存位置"
 }
