@@ -60,7 +60,20 @@ export class Compose {
   }
 
   startWithTerminal() {
-    if (this.running) return
+    if (this.running) {
+      const xtermExec = XTermExecCache?.[this.id]
+      if (xtermExec) {
+        import('@/components/XTermExecDialog/index.vue').then((res) => {
+          AsyncComponentShow(res.default, {
+            title: I18nT('podman.StartWithTerminal'),
+            item: xtermExec
+          }).then(() => {
+            this.checkStatusAfterTerminalExec()
+          })
+        })
+      }
+      return
+    }
     this.running = true
     let xtermExec = XTermExecCache?.[this.id]
     if (!xtermExec) {
@@ -69,8 +82,9 @@ export class Compose {
       if (this.flag) {
         arr.push(`-p ${this.flag}`)
       }
+      const logs: string[] = [...arr, 'logs']
       arr.push('up -d')
-      xtermExec.cammand = [arr.join(' ')]
+      xtermExec.cammand = [arr.join(' '), logs.join(' ')]
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[this.id]
         this.checkStatusAfterTerminalExec()
@@ -88,7 +102,20 @@ export class Compose {
   }
 
   stopWithTerminal() {
-    if (this.running) return
+    if (this.running) {
+      const xtermExec = XTermExecCache?.[this.id]
+      if (xtermExec) {
+        import('@/components/XTermExecDialog/index.vue').then((res) => {
+          AsyncComponentShow(res.default, {
+            title: I18nT('podman.StopWithTerminal'),
+            item: xtermExec
+          }).then(() => {
+            this.checkStatusAfterTerminalExec()
+          })
+        })
+      }
+      return
+    }
     this.running = true
     let xtermExec = XTermExecCache?.[this.id]
     if (!xtermExec) {
@@ -97,8 +124,9 @@ export class Compose {
       if (this.flag) {
         arr.push(`-p ${this.flag}`)
       }
+      const logs: string[] = [...arr, 'logs']
       arr.push('down')
-      xtermExec.cammand = [arr.join(' ')]
+      xtermExec.cammand = [arr.join(' '), logs.join(' ')]
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[this.id]
         this.checkStatusAfterTerminalExec()

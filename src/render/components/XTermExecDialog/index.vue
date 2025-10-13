@@ -3,6 +3,7 @@
     v-model="show"
     :title="title"
     class="el-dialog-content-flex-1 app-xterm-exec-dialog"
+    :close-on-click-modal="false"
     @closed="closedFn"
     @open="onOpen"
   >

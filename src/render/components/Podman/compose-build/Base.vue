@@ -21,6 +21,9 @@
     <el-form-item :label="I18nT('host.comment')" prop="comment">
       <el-input v-model="form.comment" type="textarea" :rows="4" />
     </el-form-item>
+    <el-form-item :label="I18nT('podman.DockerImageMirror')" prop="flag">
+      <el-input v-model="form.mirror" placeholder="" />
+    </el-form-item>
   </el-form>
 </template>
 <script setup lang="ts">

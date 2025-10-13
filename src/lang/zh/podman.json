@@ -50,6 +50,7 @@
   "CustomInput": "自定义输入",
   "SelectPresetModule": "选择预设模块",
   "TagPlaceholder": "latest 或版本号，如 8.2, 5.7, 16-alpine",
-  "NamePlaceholder": "例如：nginx"
-  "ComposeFileSaveDir": "Compose文件保存位置"
+  "NamePlaceholder": "例如：nginx",
+  "ComposeFileSaveDir": "Compose文件保存位置",
+  "DockerImageMirror": "Docker Image 镜像(可选)"
 }

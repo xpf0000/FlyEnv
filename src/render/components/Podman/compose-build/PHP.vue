@@ -1,7 +1,7 @@
 <template>
   <el-form :model="form" label-position="top">
     <el-form-item label="PHP 版本" prop="version">
-      <el-select v-model="form.version" :loading="versionLoading" placeholder="请选择版本">
+      <el-select filterable v-model="form.version" placeholder="请选择版本">
         <el-option label="latest" value="latest" />
         <template v-for="(v, _v) in versions" :key="_v">
           <el-option :label="v" :value="v" />
@@ -55,18 +55,13 @@
   import { ElMessage } from 'element-plus'
   import YAML from 'yamljs'
   import { ComposeBuildForm } from '@/components/Podman/compose-build/Form'
+  import { PodmanManager } from '../class/Podman'
   import { OfficialImages } from '@/components/Podman/officialImages'
-  import { VersionManager } from '@/components/Podman/compose-build/Version'
 
-  const imageName = OfficialImages.php.image
-  VersionManager.init(imageName).catch()
+  const image = OfficialImages.php?.image ?? ''
 
   const versions = computed(() => {
-    return VersionManager.versions?.[imageName] ?? []
-  })
-
-  const versionLoading = computed(() => {
-    return VersionManager.fetching?.[imageName]
+    return PodmanManager.imageVersion?.[image] ?? []
   })
 
   const form = computed(() => {

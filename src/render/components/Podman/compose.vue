@@ -65,18 +65,10 @@
             </template>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item
-                  v-if="scope.row.run"
-                  :disabled="scope.row.running"
-                  @click.stop="scope.row.stopWithTerminal()"
-                >
+                <el-dropdown-item v-if="scope.row.run" @click.stop="scope.row.stopWithTerminal()">
                   {{ I18nT('podman.StopWithTerminal') }}
                 </el-dropdown-item>
-                <el-dropdown-item
-                  v-else
-                  :disabled="scope.row.running"
-                  @click.stop="scope.row.startWithTerminal()"
-                >
+                <el-dropdown-item v-else @click.stop="scope.row.startWithTerminal()">
                   {{ I18nT('podman.StartWithTerminal') }}
                 </el-dropdown-item>
                 <template v-for="(f, _i) in scope.row.paths" :key="_i">

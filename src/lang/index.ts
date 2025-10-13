@@ -34,6 +34,21 @@ import type meilisearch from './zh/meilisearch.json'
 import type minio from './zh/minio.json'
 import type podman from './zh/podman.json'
 
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import en from 'element-plus/es/locale/lang/en'
+import vi from 'element-plus/es/locale/lang/vi'
+import sv from 'element-plus/es/locale/lang/sv'
+import tr from 'element-plus/es/locale/lang/tr'
+import id from 'element-plus/es/locale/lang/id'
+import fr from 'element-plus/es/locale/lang/fr'
+import it from 'element-plus/es/locale/lang/it'
+import ja from 'element-plus/es/locale/lang/ja'
+import pt from 'element-plus/es/locale/lang/pt'
+import ptBr from 'element-plus/es/locale/lang/pt-br'
+import ar from 'element-plus/es/locale/lang/ar'
+import ua from 'element-plus/es/locale/lang/uk'
+import es from 'element-plus/es/locale/lang/es'
+
 import ZH from './zh/index'
 import EN from './en/index'
 import VI from './vi/index'
@@ -107,7 +122,7 @@ export const AppAllLang = {
   ja: '日本語',
   pt: 'Português',
   'pt-br': 'Português (Brasil)',
-  ar: 'العربية'
+  ar: 'العربية',
   ua: 'Українська',
   es: 'Español'
 }
@@ -124,9 +139,26 @@ const lang = {
   ...JA,
   ...PT,
   ...PTBR,
-  ...AR
-  ...UA
+  ...AR,
+  ...UA,
   ...ES
+}
+
+export const ElementPlusLang: any = {
+  en: en,
+  zh: zhCn,
+  vi: vi,
+  sv: sv,
+  tr: tr,
+  id: id,
+  fr: fr,
+  it: it,
+  ja: ja,
+  pt: pt,
+  'pt-br': ptBr,
+  ar: ar,
+  ua: ua,
+  es: es
 }
 
 let i18n: I18n

@@ -1,13 +1,17 @@
+import type { AllAppModule } from '@/core/type'
+
 /**
  * 官方镜像映射表
  * key: AllAppModule
  * value: { image: 镜像名, tags: 推荐tag[], desc: 简要说明 }
  */
-export const OfficialImages: Record<
-  string,
-  {
-    image: string
-  }
+export const OfficialImages: Partial<
+  Record<
+    AllAppModule | 'jdk',
+    {
+      image: string
+    }
+  >
 > = {
   // AI
   ollama: {
