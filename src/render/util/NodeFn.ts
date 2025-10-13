@@ -161,6 +161,7 @@ export const fs = {
   writeBufferBase64: createIPCCall<void>('fs', 'writeBufferBase64'),
   readdir: (dir: string, full = true): Promise<string[]> =>
     createIPCCall<string[]>('fs', 'readdir')(dir, full),
+  subdir: createIPCCall<string[]>('fs', 'subdir'),
   mkdirp: createIPCCall<void>('fs', 'mkdirp'),
   stat: createIPCCall<import('fs').Stats>('fs', 'stat'),
   copy: createIPCCall<void>('fs', 'copy'),

@@ -18,6 +18,7 @@ import { lang, nativeTheme } from '@/util/NodeFn'
 import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { FlyEnvHelperSetup } from '@/components/FlyEnvHelper/setup'
+import { isEqual } from 'lodash-es'
 
 window.Server = reactive({}) as any
 
@@ -57,6 +58,13 @@ IPC.on('App-Native-Theme-Update').then(() => {
 })
 IPC.on('APP-Update-Global-Server').then((key: string, res: any) => {
   console.log('APP-Update-Global-Server: ', key, res)
+  const server: any = window.Server
+  if (isEqual(server, res)) {
+    return
+  }
+  for (const key in server) {
+    delete server?.[key]
+  }
   Object.assign(window.Server, res)
   const store = AppStore()
   store.envIndex += 1

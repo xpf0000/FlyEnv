@@ -51,4 +51,5 @@
   "SelectPresetModule": "选择预设模块",
   "TagPlaceholder": "latest 或版本号，如 8.2, 5.7, 16-alpine",
   "NamePlaceholder": "例如：nginx"
+  "ComposeFileSaveDir": "Compose文件保存位置"
 }

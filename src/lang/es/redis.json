@@ -1,0 +1,6 @@
+{
+  "timeout": "Tiempo de espera de conexión inactiva, 0 indica apertura continua",
+  "databases": "Número de bases de datos",
+  "requirepass": "Contraseña de Redis",
+  "maxmemory": "Bytes, uso máximo de memoria, 0 indica sin límite"
+}

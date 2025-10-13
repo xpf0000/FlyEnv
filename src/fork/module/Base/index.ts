@@ -21,6 +21,7 @@ import Helper from '../../Helper'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { unpack } from '../../util/Zip'
 import { ProcessPidList } from '@shared/Process.win'
+import { getAxiosProxy } from '../../util/Axios'
 
 export class Base {
   type: string
@@ -279,23 +280,7 @@ export class Base {
   }
 
   getAxiosProxy() {
-    const proxyUrl =
-      Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
-    let proxy: any = {}
-    if (proxyUrl) {
-      try {
-        const u = new URL(proxyUrl)
-        proxy.protocol = u.protocol.replace(':', '')
-        proxy.host = u.hostname
-        proxy.port = u.port
-      } catch {
-        proxy = undefined
-      }
-    } else {
-      proxy = undefined
-    }
-    console.log('getAxiosProxy: ', proxy)
-    return proxy
+    return getAxiosProxy()
   }
 
   async _fetchOnlineVersion(app: string): Promise<OnlineVersionItem[]> {

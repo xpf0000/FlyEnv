@@ -1,0 +1,36 @@
+{
+  "title": "Descripción de la Licencia",
+  "description": "Esta licencia reconoce y apoya los esfuerzos de FlyEnv y sus autores. No está destinada a restringir a los usuarios, sino a fomentar el respeto por el trabajo y la propiedad intelectual de los desarrolladores. Por favor, asegúrate de obtener una licencia válida antes de usar FlyEnv con fines comerciales.",
+  "restrictions": {
+    "title": "Los usuarios sin licencia estarán sujetos a las siguientes restricciones:",
+    "items": {
+      "0": "Se puede crear un máximo de tres sitios.",
+      "1": "La función de chat con IA está disponible solo por un periodo de prueba de tres días.",
+      "2": "Pueden aplicarse restricciones adicionales en futuras funciones."
+    }
+  },
+  "licenseInfo": "La licencia actual ofrecida es perpetua, con una licencia correspondiente a un equipo. Si cambias de equipo, necesitarás solicitar una nueva licencia.",
+  "howToObtain": {
+    "title": "Cómo Obtener una Licencia",
+    "description": "FlyEnv ofrece maneras flexibles de obtener una licencia. Los usuarios pueden elegir cualquiera de los siguientes métodos para solicitarla:",
+    "methods": {
+      "0": {
+        "title": "Donar al Proyecto",
+        "description": "No hay un monto fijo para las donaciones. Considerando las diferentes situaciones económicas de los usuarios en distintos países (por ejemplo, muchos son estudiantes), elige una cantidad que te sea cómoda."
+      },
+      "1": {
+        "title": "Contribuir al Desarrollo",
+        "description": "Participa en el proyecto enviando un Pull Request. No importa la cantidad de código, siempre que mejore positivamente el proyecto (por ejemplo, corrigiendo un error de traducción), tu contribución cuenta."
+      },
+      "2": {
+        "title": "Promover el Proyecto",
+        "description": "Promueve FlyEnv compartiendo tu experiencia en artículos, videos, blogs, vlogs o comentarios. Se prefieren opiniones auténticas de usuarios. El contenido puede estar en cualquier idioma y plataforma."
+      }
+    }
+  },
+  "submitInfo": "Después de completar cualquiera de los métodos anteriores, por favor ingresa los resultados en el cuadro de texto abajo y haz clic en el botón 'Solicitar Licencia' para enviar tu solicitud. Las solicitudes suelen procesarse en 24 horas.",
+  "messageLabel": "Mensaje",
+  "messagePlaceholder": "Por favor envía el nombre del donante, enlace de donación o ID de pedido si elegiste donar.\nEnvía el enlace del PR si elegiste participar en el desarrollo del proyecto.\nEnvía un enlace a tu artículo, video, blog, vlog o comentario si elegiste promover.",
+  "requestButton": "Solicitar Licencia",
+  "refreshButton": "Actualizar Estado"
+}
