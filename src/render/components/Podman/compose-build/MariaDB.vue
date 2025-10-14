@@ -1,6 +1,6 @@
 <template>
   <el-form :model="form" label-position="top">
-    <el-form-item label="MySQL 版本" prop="version">
+    <el-form-item label="MariaDB 版本" prop="version">
       <el-select v-model="form.version" filterable placeholder="请选择版本">
         <el-option label="latest" value="latest" />
         <template v-for="(v, _v) in versions" :key="_v">
@@ -82,14 +82,14 @@
   import { PodmanManager } from '../class/Podman'
   import { OfficialImages } from '@/components/Podman/officialImages'
 
-  const image = OfficialImages.mysql?.image ?? ''
+  const image = OfficialImages.mariadb?.image ?? ''
 
   const versions = computed(() => {
     return PodmanManager.imageVersion?.[image] ?? []
   })
 
   const form = computed(() => {
-    return ComposeBuildForm.MySQL
+    return ComposeBuildForm.MariaDB
   })
 
   // 对话框控制

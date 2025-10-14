@@ -26,7 +26,8 @@ const Apache = reactive({
     const mirror = base.mirrorHost()
     const apache: any = {
       image: `${mirror}httpd:${Apache.version}`,
-      ports: Apache.ports.map((p) => `${p.out}:${p.in}`)
+      ports: Apache.ports.map((p) => `${p.out}:${p.in}`),
+      networks: ['flyenv-network']
     }
     const flyenvDir = join(dirname(base.dir), 'flyenv-docker-compose/apache')
     await fs.mkdirp(flyenvDir)
@@ -57,6 +58,7 @@ const Apache = reactive({
         read_only: true
       })
 
+      let root = '/var/www/html'
       if (Apache.docRoot !== '/') {
         root = join(root, Apache.docRoot)
       }
@@ -73,7 +75,7 @@ const Apache = reactive({
 
     # PHP
     <FilesMatch \\.php$>
-        SetHandler "proxy:fcgi://127.0.0.1:${phpPort}"
+        SetHandler "proxy:fcgi://php:${phpPort}"
     </FilesMatch>
 
     # Directory

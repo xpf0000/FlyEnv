@@ -50,6 +50,12 @@
                       <template v-else-if="m === 'PHP'">
                         <PHPVM />
                       </template>
+                      <template v-else-if="m === 'MySQL'">
+                        <MySQLVM />
+                      </template>
+                      <template v-else-if="m === 'MariaDB'">
+                        <MariaDBVM />
+                      </template>
                     </el-collapse-item>
                   </template>
                 </el-collapse>
@@ -83,6 +89,8 @@
   import YAML from 'yamljs'
   import { fs, shell } from '@/util/NodeFn'
   import PHPVM from './compose-build/PHP.vue'
+  import MySQLVM from './compose-build/MySQL.vue'
+  import MariaDBVM from './compose-build/MariaDB.vue'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -210,8 +218,12 @@
     console.log('services: ', services)
 
     const compose = {
-      version: '3.8',
-      services
+      services,
+      networks: {
+        'flyenv-network': {
+          driver: 'bridge'
+        }
+      }
     }
 
     const content = YAML.stringify(compose, Infinity, 2)

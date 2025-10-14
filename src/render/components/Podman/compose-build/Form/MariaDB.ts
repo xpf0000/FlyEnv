@@ -12,7 +12,7 @@ const MariaDB = reactive({
   ports: [{ in: '3306', out: '3306' }],
   volumes: [
     {
-      type: 'volume',
+      type: 'bind',
       source: './flyenv-docker-compose/mariadb/data',
       target: '/var/lib/mysql'
     }
@@ -41,7 +41,8 @@ const MariaDB = reactive({
     const mariadb: any = {
       image: `${mirror}mariadb:${MariaDB.version}`,
       ports: MariaDB.ports.map((p) => `${p.out}:${p.in}`),
-      environment
+      environment,
+      networks: ['flyenv-network']
     }
 
     // 如果需要持久化数据，创建数据目录

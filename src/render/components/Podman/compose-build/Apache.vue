@@ -9,23 +9,6 @@
       </el-select>
     </el-form-item>
 
-    <el-form-item :label="I18nT('host.placeholderRootPath')" prop="wwwRoot" :show-message="false">
-      <el-input v-model="form.wwwRoot">
-        <template #append>
-          <el-button @click="selectDirectory">选择目录</el-button>
-        </template>
-      </el-input>
-    </el-form-item>
-
-    <el-form-item label="运行目录" prop="docRoot">
-      <el-select v-model="form.docRoot">
-        <el-option label="/" :value="'/'"></el-option>
-        <template v-for="(d, _d) in subdirs" :key="_d">
-          <el-option :value="d" :label="d"></el-option>
-        </template>
-      </el-select>
-    </el-form-item>
-
     <el-form-item label="端口映射">
       <div class="w-full flex flex-col gap-3">
         <template v-for="(p, _p) in form.ports" :key="_p">
@@ -44,6 +27,23 @@
           </div>
         </template>
       </div>
+    </el-form-item>
+
+    <el-form-item :label="I18nT('host.placeholderRootPath')" prop="wwwRoot" :show-message="false">
+      <el-input v-model="form.wwwRoot">
+        <template #append>
+          <el-button @click="selectDirectory">选择目录</el-button>
+        </template>
+      </el-input>
+    </el-form-item>
+
+    <el-form-item label="运行目录" prop="docRoot">
+      <el-select v-model="form.docRoot">
+        <el-option label="/" :value="'/'"></el-option>
+        <template v-for="(d, _d) in subdirs" :key="_d">
+          <el-option :value="d" :label="d"></el-option>
+        </template>
+      </el-select>
     </el-form-item>
 
     <el-form-item>

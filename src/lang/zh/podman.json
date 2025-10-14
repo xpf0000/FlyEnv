@@ -52,5 +52,10 @@
   "TagPlaceholder": "latest 或版本号，如 8.2, 5.7, 16-alpine",
   "NamePlaceholder": "例如：nginx",
   "ComposeFileSaveDir": "Compose文件保存位置",
-  "DockerImageMirror": "Docker Image 镜像(可选)"
+  "DockerImageMirror": "Docker Image 镜像(可选)",
+  "Persistence": "数据持久化",
+  "MYSQL_ROOT_PASSWORD": "ROOT密码",
+  "MYSQL_DATABASE": "数据库",
+  "MYSQL_USER": "数据库用户",
+  "MYSQL_PASSWORD": "数据库密码"
 }
