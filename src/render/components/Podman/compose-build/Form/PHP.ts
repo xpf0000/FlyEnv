@@ -2,6 +2,8 @@ import { reactive } from 'vue'
 import { normalize } from '@/util/path-browserify'
 import Base from './Base'
 import Apache from './Apache'
+import Nginx from './Nginx'
+import Caddy from './Caddy'
 
 const PHP = reactive({
   enable: false,
@@ -22,7 +24,25 @@ const PHP = reactive({
         {
           type: 'bind',
           source: normalize(apache.wwwRoot),
-          target: '/var/www/html',
+          target: '/usr/local/apache2/htdocs',
+          read_only: false
+        }
+      ]
+    } else if (Nginx.enable) {
+      php.volumes = [
+        {
+          type: 'bind',
+          source: normalize(Nginx.wwwRoot),
+          target: '/usr/share/nginx/html',
+          read_only: false
+        }
+      ]
+    } else if (Caddy.enable) {
+      php.volumes = [
+        {
+          type: 'bind',
+          source: normalize(Caddy.wwwRoot),
+          target: '/srv',
           read_only: false
         }
       ]

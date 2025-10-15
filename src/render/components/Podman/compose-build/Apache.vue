@@ -13,7 +13,7 @@
       <div class="w-full flex flex-col gap-3">
         <template v-for="(p, _p) in form.ports" :key="_p">
           <div class="w-full flex items-center justify-between">
-            <el-input v-model="p.in" placeholder="容器端口" class="flex-1">
+            <el-input v-model="p.in" readonly disabled placeholder="容器端口" class="flex-1">
               <template #prefix>
                 <span>容器端口</span>
               </template>

@@ -1,7 +1,7 @@
 <template>
   <el-form :model="form" label-position="top">
     <el-form-item label="PHP 版本" prop="version">
-      <el-select filterable v-model="form.version" placeholder="请选择版本">
+      <el-select v-model="form.version" filterable placeholder="请选择版本">
         <el-option label="latest" value="latest" />
         <template v-for="(v, _v) in versions" :key="_v">
           <el-option :label="v" :value="v" />
@@ -13,7 +13,7 @@
       <div class="w-full flex flex-col gap-3">
         <template v-for="(p, _p) in form.ports" :key="_p">
           <div class="w-full flex items-center justify-between">
-            <el-input v-model="p.in" placeholder="容器端口" class="flex-1">
+            <el-input v-model="p.in" readonly disabled placeholder="容器端口" class="flex-1">
               <template #prefix>
                 <span>容器端口</span>
               </template>

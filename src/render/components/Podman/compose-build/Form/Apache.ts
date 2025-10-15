@@ -33,12 +33,12 @@ const Apache = reactive({
     await fs.mkdirp(flyenvDir)
     await fs.mkdirp(join(flyenvDir, 'conf'))
     await fs.mkdirp(join(flyenvDir, 'logs'))
-    let root = Apache.wwwRoot
+    const root = Apache.wwwRoot
     const volumes = [
       {
         type: 'bind',
         source: normalize(root),
-        target: '/var/www/html',
+        target: '/usr/local/apache2/htdocs',
         read_only: false
       },
       {
@@ -58,7 +58,7 @@ const Apache = reactive({
         read_only: true
       })
 
-      let root = '/var/www/html'
+      let root = '/usr/local/apache2/htdocs'
       if (Apache.docRoot !== '/') {
         root = join(root, Apache.docRoot)
       }

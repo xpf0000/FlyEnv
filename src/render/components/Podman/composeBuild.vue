@@ -56,6 +56,12 @@
                       <template v-else-if="m === 'MariaDB'">
                         <MariaDBVM />
                       </template>
+                      <template v-else-if="m === 'Nginx'">
+                        <Nginx />
+                      </template>
+                      <template v-else-if="m === 'Caddy'">
+                        <Caddy />
+                      </template>
                     </el-collapse-item>
                   </template>
                 </el-collapse>
@@ -77,8 +83,7 @@
 <script lang="ts" setup>
   import { ref, watch } from 'vue'
   import { I18nT } from '@lang/index'
-  import { ElMessage, type FormInstance } from 'element-plus'
-  import { PodmanManager } from '@/components/Podman/class/Podman'
+  import { ElMessage } from 'element-plus'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { uuid } from '@/util/Index'
   import type { AllAppModuleType } from '@/core/type'
@@ -91,6 +96,8 @@
   import PHPVM from './compose-build/PHP.vue'
   import MySQLVM from './compose-build/MySQL.vue'
   import MariaDBVM from './compose-build/MariaDB.vue'
+  import Nginx from './compose-build/Nginx.vue'
+  import Caddy from './compose-build/Caddy.vue'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -189,9 +196,6 @@
     }
   )
 
-  // 添加表单引用
-  const formRef = ref<FormInstance>()
-
   const onCancel = () => {
     show.value = false
   }
@@ -228,6 +232,7 @@
 
     const content = YAML.stringify(compose, Infinity, 2)
     const base = ComposeBuildForm.base
+    base.saveMirrors()
     await fs.writeFile(base.dir, content)
     ElMessage.success(I18nT('base.success'))
     shell.showItemInFolder(base.dir).catch()

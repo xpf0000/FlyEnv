@@ -1,6 +1,6 @@
 <template>
   <el-form :model="form" label-position="top">
-    <el-form-item label="MariaDB 版本" prop="version">
+    <el-form-item label="Nginx 版本" prop="version">
       <el-select v-model="form.version" filterable placeholder="请选择版本">
         <el-option label="latest" value="latest" />
         <template v-for="(v, _v) in versions" :key="_v">
@@ -29,27 +29,21 @@
       </div>
     </el-form-item>
 
-    <el-form-item :label="I18nT('podman.Persistence')" prop="persistence">
-      <el-switch v-model="form.persistence"></el-switch>
+    <el-form-item :label="I18nT('host.placeholderRootPath')" prop="wwwRoot" :show-message="false">
+      <el-input v-model="form.wwwRoot">
+        <template #append>
+          <el-button @click="selectDirectory">选择目录</el-button>
+        </template>
+      </el-input>
     </el-form-item>
 
-    <el-form-item :label="I18nT('podman.MYSQL_ROOT_PASSWORD')">
-      <el-input
-        v-model="form.environment.MYSQL_ROOT_PASSWORD"
-        placeholder="MYSQL_ROOT_PASSWORD"
-      ></el-input>
-    </el-form-item>
-
-    <el-form-item :label="I18nT('podman.MYSQL_DATABASE')">
-      <el-input v-model="form.environment.MYSQL_DATABASE" placeholder="MYSQL_DATABASE"></el-input>
-    </el-form-item>
-
-    <el-form-item :label="I18nT('podman.MYSQL_USER')">
-      <el-input v-model="form.environment.MYSQL_USER" placeholder="MYSQL_USER"></el-input>
-    </el-form-item>
-
-    <el-form-item :label="I18nT('podman.MYSQL_PASSWORD')">
-      <el-input v-model="form.environment.MYSQL_PASSWORD" placeholder="MYSQL_PASSWORD"></el-input>
+    <el-form-item label="运行目录" prop="docRoot">
+      <el-select v-model="form.docRoot">
+        <el-option label="/" :value="'/'"></el-option>
+        <template v-for="(d, _d) in subdirs" :key="_d">
+          <el-option :value="d" :label="d"></el-option>
+        </template>
+      </el-select>
     </el-form-item>
 
     <el-form-item>
@@ -78,18 +72,25 @@
   import { ElMessage } from 'element-plus'
   import YAML from 'yamljs'
   import { ComposeBuildForm } from '@/components/Podman/compose-build/Form'
+  import { dialog, fs } from '@/util/NodeFn'
+  import { asyncComputed } from '@vueuse/core'
   import { I18nT } from '@lang/index'
   import { PodmanManager } from '../class/Podman'
   import { OfficialImages } from '@/components/Podman/officialImages'
 
-  const image = OfficialImages.mariadb?.image ?? ''
+  const image = OfficialImages.nginx?.image ?? ''
 
   const versions = computed(() => {
     return PodmanManager.imageVersion?.[image] ?? []
   })
 
   const form = computed(() => {
-    return ComposeBuildForm.MariaDB
+    return ComposeBuildForm.Nginx
+  })
+
+  const subdirs = asyncComputed(async () => {
+    const root = form.value.wwwRoot
+    return await fs.subdir(root)
   })
 
   // 对话框控制
@@ -117,6 +118,21 @@
       ElMessage.error('复制失败')
       console.error('复制失败:', err)
     }
+  }
+
+  // 选择目录（浏览器环境下有限制）
+  const selectDirectory = () => {
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        form.value.wwwRoot = path
+      })
   }
 
   onMounted(() => {
