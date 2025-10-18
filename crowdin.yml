@@ -1,3 +1,0 @@
-files:
-  - source: src/lang/en/*.json
-    translation: '%original_file_name%'
