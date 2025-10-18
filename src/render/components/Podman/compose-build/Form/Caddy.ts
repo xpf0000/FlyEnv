@@ -37,7 +37,6 @@ const Caddy = reactive({
     const flyenvDir = join(dirname(base.dir), 'flyenv-docker-compose/caddy')
     await fs.mkdirp(flyenvDir)
     await fs.mkdirp(join(flyenvDir, 'config'))
-    await fs.mkdirp(join(flyenvDir, 'data'))
 
     const root = Caddy.wwwRoot
     const volumes = [
