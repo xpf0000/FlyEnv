@@ -32,7 +32,6 @@ const Nginx = reactive({
     const flyenvDir = join(dirname(base.dir), 'flyenv-docker-compose/nginx')
     await fs.mkdirp(flyenvDir)
     await fs.mkdirp(join(flyenvDir, 'conf'))
-    await fs.mkdirp(join(flyenvDir, 'logs'))
 
     const root = Nginx.wwwRoot
     const volumes = [

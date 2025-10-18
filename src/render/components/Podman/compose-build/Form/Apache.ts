@@ -32,7 +32,6 @@ const Apache = reactive({
     const flyenvDir = join(dirname(base.dir), 'flyenv-docker-compose/apache')
     await fs.mkdirp(flyenvDir)
     await fs.mkdirp(join(flyenvDir, 'conf'))
-    await fs.mkdirp(join(flyenvDir, 'logs'))
     const root = Apache.wwwRoot
     const volumes = [
       {
