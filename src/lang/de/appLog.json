@@ -1,0 +1,23 @@
+{
+  "startInstall": "Installation von {service} starten",
+  "startServiceBegin": "Starte den {service} Dienst...",
+  "confInit": "Die Konfigurationsdatei existiert nicht, Generiere Konfigurationsdatei",
+  "confInitSuccess": "Konfigurationsdatei erfolgreich generiert, Dateipfad: {file}",
+  "confInitFail": "Generierung der Konfigurationsdatei fehlgeschlagen, Grund: {error}",
+  "apachePortHandleBegin": "Beginne alle Apache-Ports von der Seite zu erhalten",
+  "apachePortHandleEnd": "Apache-Port wurde übernommen, Konfigurationsdatei wurde erfolgreich geschrieben",
+  "execStartCommand": "Starte den Start-Befehl",
+  "execStartCommandSuccess": "Startbefehl erfolgreich ausgeführt, überprüfen Sie, ob der Start erfolgreich war",
+  "execStartCommandFail": "Start des Befehls fehlgeschlagen, Grund: {error}, {service} Dienst konnte nicht gestartet werden",
+  "startServiceSuccess": "{service} Dienst erfolgreich gestartet, pid: {pid}",
+  "startServiceFail": "{service} Dienst konnte nicht gestartet werden, Grund: {error}",
+  "stopServiceBegin": "{service} Dienst stoppen",
+  "stopServiceEnd": "{service} Dienst erfolgreich beendet",
+  "initDBPass": "Initialisiere Datenbankpasswort",
+  "initDBPassSuccess": "Datenbankpasswort erfolgreich initialisiert, Kontopasswort: {user} {pass}",
+  "initDBPassFail": "Fehler beim Initialisieren des Datenbankpasswortes, Grund: {error}",
+  "initDBDataDir": "Datenordner nicht gefunden, initialisieren Sie den Datenordner",
+  "initDBDataDirSuccess": "Initialisierung des Datenordners, Datenordnerpfad: {dir}",
+  "initDBDataDirFail": "Initialisierung des Datenordners fehlgeschlagen, Grund: {error}",
+  "newProjectFail": "Fehler beim Erstellen des neuen Projekts"
+}

@@ -1,0 +1,6 @@
+{
+  "timeout": "Zeitüberschreitung bei inaktiver Verbindung, 0 bedeutet permanente Öffnung",
+  "databases": "Anzahl der Datenbanken",
+  "requirepass": "Redis-Passwort",
+  "maxmemory": "Byte, maximale Speicherauslastung, 0 bedeutet keine Grenze"
+}

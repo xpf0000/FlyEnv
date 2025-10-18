@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Die Startdatei existiert nicht, der Vorgang ist fehlgeschlagen.",
+  "confNotFound": "Die Konfigurationsdatei existiert nicht, der Server konnte nicht starten",
+  "apacheLogPathErr": "Der Log-Pfad der Konfigurationsdatei ist falsch und der Schalter schlägt fehl,",
+  "versionError": "Die Version ist falsch, bitte erneut auswählen",
+  "hostsFileNotFound": "Die Hosts-Datei existiert nicht",
+  "startFail": "Fehler beim Starten, bitte überprüfen Sie die Protokolldatei",
+  "versionNotFound": "Fehler beim Abrufen der Software-Version, Operation fehlgeschlagen.",
+  "postgresqlInit": "Dienst erfolgreich gestartet\nDatenverzeichnis ist {dir}\nInitialer Benutzer ist Root, Passwort ist root",
+  "downloadFileFail": "Download fehlgeschlagen!",
+  "trialEnd": "Die Testphase ist abgelaufen. Um diese Funktion weiterhin nutzen zu können, erwerben Sie bitte eine Lizenz.",
+  "phpiniNotFound": "php.ini Datei nicht gefunden",
+  "noEPMD": "Der epmd-Prozess wurde nicht gefunden. Bitte setzen Sie die Erlang-Umgebungsvariablen zurück"
+}
