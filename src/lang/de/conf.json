@@ -1,0 +1,9 @@
+{
+  "rawFile": "Rohdatei",
+  "CommonSetting": "Gemeinsame Einstellungen",
+  "open": "Datei öffnen",
+  "save": "Datei Strg + s speichern",
+  "loadDefault": "Standarddatei laden",
+  "saveCustom": "Als eigene Datei speichern",
+  "loadCustom": "Eigene Datei laden"
+}

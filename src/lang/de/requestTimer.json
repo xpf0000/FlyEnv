@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS-Suche",
+  "tcpConnect": "TCP verbinden",
+  "tlsHandshake": "TLS Handshake",
+  "requestProcessing": "Bearbeitung von Anfragen",
+  "ttfb": "Zeit bis zum ersten Byte (TTFB)",
+  "contentDownload": "Download von Inhalten",
+  "downloadSpeed": "Download-Geschwindigkeit",
+  "dataSize": "Datengröße",
+  "httpVersion": "HTTP-Version",
+  "statusCode": "Statuscode",
+  "usingProxy": "Proxy verwenden",
+  "totalTime": "Gesamtzeit",
+  "skippedForProxy": "Für Proxy übersprungen",
+  "metric": "Metrisch",
+  "value": "Wert"
+}

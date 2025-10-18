@@ -1,0 +1,7 @@
+{
+  "Timeout": "Die Anzahl der Sekunden vor dem Empfang und dem Versand der Zeitüberschreitung.",
+  "KeepAlive": "Dauerhafte Verbindungen erlauben oder nicht",
+  "KeepAliveTimeout": "Anzahl der Sekunden, die auf die nächste Anfrage vom gleichen Client auf der gleichen Verbindung warten.",
+  "MaxKeepAliveRequests": "Die maximale Anzahl an Anfragen für eine dauerhafte Verbindung.\nSetze auf 0 um eine unbegrenzte Anzahl zu erlauben.\nWir empfehlen Ihnen, diese Zahl hoch zu belassen, um maximale Leistung zu erzielen.",
+  "LimitRequestBody": "Byte. Datei-Uploadgrößenlimit. 0: kein Limit"
+}

@@ -1,0 +1,18 @@
+{
+  "site": "Site",
+  "webServer": "Webserver",
+  "dataBaseServer": "Datenbankserver",
+  "emailServer": "E-Mail-Server",
+  "language": "Sprache & Laufzeit",
+  "dataQueue": "Cache & Speicher",
+  "searchEngine": "Suchmaschine",
+  "dnsServer": "DNS-Server",
+  "ftpServer": "FTP-Server",
+  "containerRuntime": "Container Laufzeit",
+  "other": "Andere",
+  "appLog": "App-Log",
+  "ai": "AI",
+  "objectStorage": "Objektspeicher",
+  "appExit": "Stoppe alle laufenden Dienste und beende FlyEnv",
+  "groupStart": "Mit einem Klick starten Sie alle verfügbaren Dienste auf dem Panel"
+}

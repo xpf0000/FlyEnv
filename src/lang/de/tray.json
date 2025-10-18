@@ -1,0 +1,10 @@
+{
+  "showMainWin": "Hauptfenster anzeigen",
+  "exit": "Beenden",
+  "run": "Aktiv",
+  "notRun": "Nicht aktiv",
+  "trayMenuBarStyle": "Tray Popup Stil",
+  "classic": "Klassisch",
+  "modern": "Modern",
+  "trayMenuBarStyleTips": "Wählen Sie den Popup-Stil. Auf einigen Linux-Desktop-Computern kann der moderne Stil Probleme haben, so dass Sie stattdessen den klassischen Stil wählen können."
+}

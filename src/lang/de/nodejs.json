@@ -1,0 +1,16 @@
+{
+  "installFNM": "<a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a> installieren",
+  "installNVM": "<a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a> installieren",
+  "Terminal": "Terminal",
+  "registry": "Quelle",
+  "checkPackageJsonUpdate": "Nach Updates suchen",
+  "updatePackageJsonFile": "package.json-Datei aktualisieren",
+  "updatePackageJsonFileTips": "Diese Aktion wird die package.json-Datei ändern. Sind Sie sicher, dass Sie aktualisieren möchten?",
+  "copyDirPath": "Projektordnerpfad kopieren",
+  "openIN": "Öffnen in",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Projektumgebung"
+}
