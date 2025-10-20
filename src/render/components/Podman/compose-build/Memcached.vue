@@ -13,11 +13,11 @@
   import BaseVM from '@/components/Podman/compose-build/components/base.vue'
   import PreviewVM from '@/components/Podman/compose-build/components/preview.vue'
 
-  const formName = 'PHP'
-  const image = OfficialImages.php?.image ?? ''
+  const formName = 'Memcached'
+  const image = OfficialImages.memcached?.image ?? ''
 
   const form = computed(() => {
-    return ComposeBuildForm['PHP']
+    return ComposeBuildForm.Memcached
   })
 </script>
 

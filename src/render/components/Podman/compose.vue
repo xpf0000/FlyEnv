@@ -71,6 +71,9 @@
                 <el-dropdown-item v-else @click.stop="scope.row.startWithTerminal()">
                   {{ I18nT('podman.StartWithTerminal') }}
                 </el-dropdown-item>
+                <el-dropdown-item @click.stop="addCompose(scope.row)">
+                  {{ I18nT('base.edit') }}
+                </el-dropdown-item>
                 <template v-for="(f, _i) in scope.row.paths" :key="_i">
                   <el-dropdown-item @click.stop="toEditFile(f)">
                     {{ I18nT('base.edit') }} {{ basename(f) }}

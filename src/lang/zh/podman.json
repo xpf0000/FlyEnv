@@ -57,5 +57,8 @@
   "MYSQL_ROOT_PASSWORD": "ROOT密码",
   "MYSQL_DATABASE": "数据库",
   "MYSQL_USER": "数据库用户",
-  "MYSQL_PASSWORD": "数据库密码"
+  "MYSQL_PASSWORD": "数据库密码",
+  "PortBind": "端口映射",
+  "ContainerPort": "容器端口",
+  "LocalPort": "本地端口"
 }

@@ -10,15 +10,6 @@
       </el-input>
     </el-form-item>
 
-    <el-form-item label="运行目录" prop="docRoot">
-      <el-select v-model="form.docRoot">
-        <el-option label="/" :value="'/'"></el-option>
-        <template v-for="(d, _d) in subdirs" :key="_d">
-          <el-option :value="d" :label="d"></el-option>
-        </template>
-      </el-select>
-    </el-form-item>
-
     <PreviewVM :form-name="formName" />
   </el-form>
 </template>
@@ -26,27 +17,33 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { ComposeBuildForm } from '@/components/Podman/compose-build/Form'
-  import { fs } from '@/util/NodeFn'
-  import { asyncComputed } from '@vueuse/core'
+  import { dialog } from '@/util/NodeFn'
   import { I18nT } from '@lang/index'
   import { OfficialImages } from '@/components/Podman/officialImages'
-  import { ComposeBuildSetup } from '@/components/Podman/compose-build/setup'
-  import BaseVM from './components/base.vue'
-  import PreviewVM from './components/preview.vue'
+  import BaseVM from '@/components/Podman/compose-build/components/base.vue'
+  import PreviewVM from '@/components/Podman/compose-build/components/preview.vue'
 
-  const formName = 'Apache HTTP Server'
-  const image = OfficialImages.apache?.image ?? ''
+  const formName = 'Apache Tomcat'
+  const image = OfficialImages.tomcat?.image ?? ''
 
   const form = computed(() => {
-    return ComposeBuildForm[formName]
+    return ComposeBuildForm['Apache Tomcat']
   })
 
-  const subdirs = asyncComputed(async () => {
-    const root = form.value.wwwRoot
-    return await fs.subdir(root)
-  })
-
-  const { selectDirectory } = ComposeBuildSetup(form)
+  // 选择目录（浏览器环境下有限制）
+  const selectDirectory = () => {
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        form.value.wwwRoot = path
+      })
+  }
 </script>
 
 <style scoped>

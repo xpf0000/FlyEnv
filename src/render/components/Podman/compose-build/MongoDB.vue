@@ -6,23 +6,25 @@
       <el-switch v-model="form.persistence"></el-switch>
     </el-form-item>
 
-    <el-form-item :label="I18nT('podman.MYSQL_ROOT_PASSWORD')">
+    <el-form-item label="Root User">
       <el-input
-        v-model="form.environment.MYSQL_ROOT_PASSWORD"
-        placeholder="MYSQL_ROOT_PASSWORD"
+        v-model="form.environment.MONGO_INITDB_ROOT_USERNAME"
+        placeholder="MONGO_INITDB_ROOT_USERNAME"
       ></el-input>
     </el-form-item>
 
-    <el-form-item :label="I18nT('podman.MYSQL_DATABASE')">
-      <el-input v-model="form.environment.MYSQL_DATABASE" placeholder="MYSQL_DATABASE"></el-input>
+    <el-form-item label="Root Password">
+      <el-input
+        v-model="form.environment.MONGO_INITDB_ROOT_PASSWORD"
+        placeholder="MONGO_INITDB_ROOT_PASSWORD"
+      ></el-input>
     </el-form-item>
 
-    <el-form-item :label="I18nT('podman.MYSQL_USER')">
-      <el-input v-model="form.environment.MYSQL_USER" placeholder="MYSQL_USER"></el-input>
-    </el-form-item>
-
-    <el-form-item :label="I18nT('podman.MYSQL_PASSWORD')">
-      <el-input v-model="form.environment.MYSQL_PASSWORD" placeholder="MYSQL_PASSWORD"></el-input>
+    <el-form-item label="Database">
+      <el-input
+        v-model="form.environment.MONGO_INITDB_DATABASE"
+        placeholder="MONGO_INITDB_DATABASE"
+      ></el-input>
     </el-form-item>
 
     <PreviewVM :form-name="formName" />
@@ -37,11 +39,11 @@
   import BaseVM from '@/components/Podman/compose-build/components/base.vue'
   import PreviewVM from '@/components/Podman/compose-build/components/preview.vue'
 
-  const formName = 'MariaDB'
-  const image = OfficialImages.mariadb?.image ?? ''
+  const formName = 'MongoDB'
+  const image = OfficialImages.mongodb?.image ?? ''
 
   const form = computed(() => {
-    return ComposeBuildForm.MariaDB
+    return ComposeBuildForm.MongoDB
   })
 </script>
 

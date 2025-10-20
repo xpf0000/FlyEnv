@@ -62,6 +62,72 @@
                       <template v-else-if="m === 'Caddy'">
                         <Caddy />
                       </template>
+                      <template v-else-if="m === 'Apache Tomcat'">
+                        <Tomcat />
+                      </template>
+                      <template v-else-if="m === 'Consul'">
+                        <Consul />
+                      </template>
+                      <template v-else-if="m === 'Node.js'">
+                        <NodeJS />
+                      </template>
+                      <template v-else-if="m === 'Bun'">
+                        <Bun />
+                      </template>
+                      <template v-else-if="m === 'Deno'">
+                        <Deno />
+                      </template>
+                      <template v-else-if="m === 'Erlang'">
+                        <Erlang />
+                      </template>
+                      <template v-else-if="m === 'Go (Golang)'">
+                        <Go />
+                      </template>
+                      <template v-else-if="m === 'Perl'">
+                        <Perl />
+                      </template>
+                      <template v-else-if="m === 'Python'">
+                        <Python />
+                      </template>
+                      <template v-else-if="m === 'Ruby'">
+                        <Ruby />
+                      </template>
+                      <template v-else-if="m === 'Rust'">
+                        <Rust />
+                      </template>
+                      <template v-else-if="m === 'Java'">
+                        <Java />
+                      </template>
+                      <template v-else-if="m === 'MongoDB'">
+                        <MongoDB />
+                      </template>
+                      <template v-else-if="m === 'PostgreSQL'">
+                        <PostgreSQL />
+                      </template>
+                      <template v-else-if="m === 'etcd'">
+                        <Etcd />
+                      </template>
+                      <template v-else-if="m === 'Memcached'">
+                        <Memcached />
+                      </template>
+                      <template v-else-if="m === 'RabbitMQ'">
+                        <RabbitMQ />
+                      </template>
+                      <template v-else-if="m === 'Redis'">
+                        <Redis />
+                      </template>
+                      <template v-else-if="m === 'Mailpit'">
+                        <Mailpit />
+                      </template>
+                      <template v-else-if="m === 'Elasticsearch'">
+                        <Elasticsearch />
+                      </template>
+                      <template v-else-if="m === 'Meilisearch'">
+                        <Meilisearch />
+                      </template>
+                      <template v-else-if="m === 'MinIO'">
+                        <MinIO />
+                      </template>
                     </el-collapse-item>
                   </template>
                 </el-collapse>
@@ -98,6 +164,29 @@
   import MariaDBVM from './compose-build/MariaDB.vue'
   import Nginx from './compose-build/Nginx.vue'
   import Caddy from './compose-build/Caddy.vue'
+  import Tomcat from './compose-build/Tomcat.vue'
+  import Consul from './compose-build/Consul.vue'
+  import NodeJS from './compose-build/NodeJS.vue'
+  import Bun from './compose-build/Bun.vue'
+  import Deno from './compose-build/Deno.vue'
+  import Erlang from './compose-build/Erlang.vue'
+  import Go from './compose-build/Go.vue'
+  import Perl from './compose-build/Perl.vue'
+  import Python from './compose-build/Python.vue'
+  import Ruby from './compose-build/Ruby.vue'
+  import Rust from './compose-build/Rust.vue'
+  import Java from './compose-build/Java.vue'
+  import MongoDB from './compose-build/MongoDB.vue'
+  import PostgreSQL from './compose-build/PostgreSQL.vue'
+  import Etcd from './compose-build/Etcd.vue'
+  import Memcached from '@/components/Podman/compose-build/Memcached.vue'
+  import RabbitMQ from '@/components/Podman/compose-build/RabbitMQ.vue'
+  import Redis from '@/components/Podman/compose-build/Redis.vue'
+  import Mailpit from '@/components/Podman/compose-build/Mailpit.vue'
+  import Elasticsearch from '@/components/Podman/compose-build/Elasticsearch.vue'
+  import Meilisearch from '@/components/Podman/compose-build/Meilisearch.vue'
+  import MinIO from '@/components/Podman/compose-build/MinIO.vue'
+  import { PodmanManager } from '@/components/Podman/class/Podman'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -150,7 +239,6 @@
         'Deno',
         'Erlang',
         'Go (Golang)',
-        'Gradle',
         'Java',
         'Node.js',
         'Perl',
@@ -236,7 +324,16 @@
     await fs.writeFile(base.dir, content)
     ElMessage.success(I18nT('base.success'))
     shell.showItemInFolder(base.dir).catch()
-    // show.value = false
+
+    const obj = {
+      id: uuid(),
+      name: base.name,
+      flag: base.flag,
+      comment: base.comment,
+      paths: [base.dir]
+    }
+    PodmanManager.addCompose(obj)
+    show.value = false
   }
 
   defineExpose({

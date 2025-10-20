@@ -6,23 +6,19 @@
       <el-switch v-model="form.persistence"></el-switch>
     </el-form-item>
 
-    <el-form-item :label="I18nT('podman.MYSQL_ROOT_PASSWORD')">
+    <el-form-item label="Database User">
+      <el-input v-model="form.environment.POSTGRES_USER" placeholder="POSTGRES_USER"></el-input>
+    </el-form-item>
+
+    <el-form-item label="Database Password">
       <el-input
-        v-model="form.environment.MYSQL_ROOT_PASSWORD"
-        placeholder="MYSQL_ROOT_PASSWORD"
+        v-model="form.environment.POSTGRES_PASSWORD"
+        placeholder="POSTGRES_PASSWORD"
       ></el-input>
     </el-form-item>
 
-    <el-form-item :label="I18nT('podman.MYSQL_DATABASE')">
-      <el-input v-model="form.environment.MYSQL_DATABASE" placeholder="MYSQL_DATABASE"></el-input>
-    </el-form-item>
-
-    <el-form-item :label="I18nT('podman.MYSQL_USER')">
-      <el-input v-model="form.environment.MYSQL_USER" placeholder="MYSQL_USER"></el-input>
-    </el-form-item>
-
-    <el-form-item :label="I18nT('podman.MYSQL_PASSWORD')">
-      <el-input v-model="form.environment.MYSQL_PASSWORD" placeholder="MYSQL_PASSWORD"></el-input>
+    <el-form-item label="Database">
+      <el-input v-model="form.environment.POSTGRES_DB" placeholder="POSTGRES_DB"></el-input>
     </el-form-item>
 
     <PreviewVM :form-name="formName" />
@@ -37,11 +33,11 @@
   import BaseVM from '@/components/Podman/compose-build/components/base.vue'
   import PreviewVM from '@/components/Podman/compose-build/components/preview.vue'
 
-  const formName = 'MariaDB'
-  const image = OfficialImages.mariadb?.image ?? ''
+  const formName = 'PostgreSQL'
+  const image = OfficialImages.postgresql?.image ?? ''
 
   const form = computed(() => {
-    return ComposeBuildForm.MariaDB
+    return ComposeBuildForm.PostgreSQL
   })
 </script>
 

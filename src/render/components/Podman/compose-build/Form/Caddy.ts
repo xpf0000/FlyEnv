@@ -11,13 +11,9 @@ const Caddy = reactive({
   version: 'latest',
   wwwRoot: '',
   docRoot: '/',
-  ports: [
-    { in: '80', out: '8080' },
-    { in: '443', out: '8443' }
-  ],
+  ports: [{ in: '80', out: '8080' }],
   environment: {
-    TZ: currentTimeZone,
-    CADDY_DOMAIN: 'localhost'
+    TZ: currentTimeZone
   },
   check() {
     if (!Caddy.wwwRoot) {
@@ -55,7 +51,7 @@ const Caddy = reactive({
     ]
 
     // 生成 Caddyfile
-    let caddyfileContent = `${Caddy.environment.CADDY_DOMAIN} {\n`
+    let caddyfileContent = `http://localhost:80 {\n`
     caddyfileContent += `    root * /srv`
 
     if (Caddy.docRoot !== '/') {
@@ -66,17 +62,19 @@ const Caddy = reactive({
 
     if (PHP.enable) {
       const phpPort = PHP.ports[0].in
-      caddyfileContent += `    file_server\n`
-      caddyfileContent += `    php_fastcgi php:${phpPort}\n`
-      caddyfileContent += `    @forbidden {\n`
-      caddyfileContent += `        path *.user.ini *.htaccess *.git *.svn *.project LICENSE README.md\n`
-      caddyfileContent += `    }\n`
-      caddyfileContent += `    respond @forbidden 403\n`
-    } else {
-      caddyfileContent += `    file_server\n`
+      caddyfileContent += `    file_server
+    route {
+        try_files {path} {path}/ /index.php?{query}
+        php_fastcgi php:${phpPort}
     }
-
-    caddyfileContent += `}\n`
+    @forbidden {
+        path *.user.ini *.htaccess *.git *.svn *.project LICENSE README.md
+    }
+    respond @forbidden 403
+}`
+    } else {
+      caddyfileContent += `    file_server\n}\n`
+    }
 
     await fs.writeFile(join(flyenvDir, 'config/Caddyfile'), caddyfileContent)
 
