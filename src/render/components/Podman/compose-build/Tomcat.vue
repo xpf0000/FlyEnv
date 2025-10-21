@@ -2,13 +2,7 @@
   <el-form :model="form" label-position="top">
     <BaseVM :image="image" :form-name="formName" />
 
-    <el-form-item :label="I18nT('host.placeholderRootPath')" prop="wwwRoot" :show-message="false">
-      <el-input v-model="form.wwwRoot">
-        <template #append>
-          <el-button @click="selectDirectory">选择目录</el-button>
-        </template>
-      </el-input>
-    </el-form-item>
+    <WwwRoot :form-name="formName" />
 
     <PreviewVM :form-name="formName" />
   </el-form>
@@ -17,11 +11,10 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { ComposeBuildForm } from '@/components/Podman/compose-build/Form'
-  import { dialog } from '@/util/NodeFn'
-  import { I18nT } from '@lang/index'
   import { OfficialImages } from '@/components/Podman/officialImages'
   import BaseVM from '@/components/Podman/compose-build/components/base.vue'
   import PreviewVM from '@/components/Podman/compose-build/components/preview.vue'
+  import WwwRoot from '@/components/Podman/compose-build/components/wwwRoot.vue'
 
   const formName = 'Apache Tomcat'
   const image = OfficialImages.tomcat?.image ?? ''
@@ -29,21 +22,6 @@
   const form = computed(() => {
     return ComposeBuildForm['Apache Tomcat']
   })
-
-  // 选择目录（浏览器环境下有限制）
-  const selectDirectory = () => {
-    dialog
-      .showOpenDialog({
-        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        form.value.wwwRoot = path
-      })
-  }
 </script>
 
 <style scoped>

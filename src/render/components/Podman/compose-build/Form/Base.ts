@@ -19,6 +19,10 @@ const base = reactive({
     if (!this.dir) {
       return I18nT('podman.ComposeFileSaveDir') + I18nT('podman.require')
     }
+    const regex = /^[a-z0-9][a-z0-9_-]*$/
+    if (!regex.test(base.flag)) {
+      return I18nT('podman.ComposeNameErrorTips')
+    }
     return ''
   },
   mirrorHost() {

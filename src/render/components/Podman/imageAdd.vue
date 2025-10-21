@@ -4,91 +4,136 @@
     :title="I18nT('podman.Image') + I18nT('base.add')"
     width="600px"
     class="host-edit new-project"
-    :class="{ installing: loading }"
     @closed="closedFn"
   >
-    <el-radio-group v-model="mode" class="mb-3">
-      <el-radio label="preset">{{ I18nT('podman.PresetModule') }}</el-radio>
-      <el-radio label="custom">{{ I18nT('podman.CustomInput') }}</el-radio>
-    </el-radio-group>
-    <div v-if="mode === 'preset'" class="mb-3">
-      <el-select
-        v-model="preset"
-        :placeholder="I18nT('podman.SelectPresetModule')"
-        style="width: 100%"
-        @change="onPresetChange"
-      >
-        <el-option v-for="item in presets" :key="item.name" :label="item.label" :value="item" />
-      </el-select>
-    </div>
-    <el-form :model="form" label-width="110px" class="pt-2">
-      <el-form-item :label="I18nT('podman.Image')" prop="name" required>
-        <el-input
+    <el-form :model="form" label-width="110px" label-position="top" class="pt-2">
+      <el-form-item :label="I18nT('podman.PresetModule')">
+        <el-cascader
           v-model="form.name"
-          :disabled="mode === 'preset'"
-          :placeholder="I18nT('podman.NamePlaceholder')"
+          class="w-full"
+          :show-all-levels="false"
+          :options="presets"
         />
       </el-form-item>
-      <el-form-item :label="I18nT('podman.Tag')" prop="tag">
-        <el-input v-model="form.tag" :placeholder="I18nT('podman.TagPlaceholder')" />
+      <el-form-item :label="I18nT('podman.DockerImageMirror')" prop="flag">
+        <el-autocomplete v-model="form.mirror" :fetch-suggestions="querySearch" clearable />
       </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="onSubmit">{{ I18nT('base.confirm') }}</el-button>
-        <el-button @click="onCancel">{{ I18nT('base.cancel') }}</el-button>
+      <el-form-item :label="I18nT('podman.Image')" prop="name" required>
+        <el-input v-model="form.name" :placeholder="I18nT('podman.NamePlaceholder')" />
       </el-form-item>
     </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="onCancel">{{ I18nT('base.cancel') }}</el-button>
+        <el-button type="primary" @click="onSubmit">{{ I18nT('base.confirm') }}</el-button>
+      </div>
+    </template>
   </el-dialog>
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { I18nT } from '@lang/index'
   import { ElMessage } from 'element-plus'
   import { PodmanManager } from '@/components/Podman/class/Podman'
+  import { OfficialImages } from '@/components/Podman/officialImages'
+  import { AllAppModule } from '@/core/type'
+  import Base from './compose-build/Form/Base'
+  import { XTermExec, XTermExecCache } from '@/util/XTermExec'
+  import { reactiveBind, uuid } from '@/util/Index'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { Image } from '@/components/Podman/class/Image'
 
   const visible = ref(true)
-  const mode = ref<'preset' | 'custom'>('preset')
   const form = ref({
     name: '',
-    tag: 'latest'
+    mirror: ''
   })
 
-  const presets = [
-    { label: 'Nginx', name: 'nginx', tag: 'latest' },
-    { label: 'Apache', name: 'httpd', tag: 'latest' },
-    { label: 'Caddy', name: 'caddy', tag: 'latest' },
-    { label: 'Tomcat', name: 'tomcat', tag: 'latest' },
-    { label: 'Consul', name: 'consul', tag: 'latest' },
-    { label: 'MySQL', name: 'mysql', tag: 'latest' },
-    { label: 'MariaDB', name: 'mariadb', tag: 'latest' },
-    { label: 'PostgreSQL', name: 'postgres', tag: 'latest' },
-    { label: 'MongoDB', name: 'mongo', tag: 'latest' },
-    { label: 'Mailpit', name: 'axllent/mailpit', tag: 'latest' },
-    { label: 'PHP', name: 'php', tag: 'latest' },
-    { label: 'NodeJS', name: 'node', tag: 'latest' },
-    { label: 'Python', name: 'python', tag: 'latest' },
-    { label: 'Go', name: 'golang', tag: 'latest' },
-    { label: 'Erlang', name: 'erlang', tag: 'latest' },
-    { label: 'Ruby', name: 'ruby', tag: 'latest' },
-    { label: 'Rust', name: 'rust', tag: 'latest' },
-    { label: 'Bun', name: 'oven/bun', tag: 'latest' },
-    { label: 'Deno', name: 'denoland/deno', tag: 'latest' },
-    { label: 'Gradle', name: 'gradle', tag: 'latest' },
-    { label: 'Redis', name: 'redis', tag: 'latest' },
-    { label: 'Memcached', name: 'memcached', tag: 'latest' },
-    { label: 'RabbitMQ', name: 'rabbitmq', tag: 'latest' },
-    { label: 'etcd', name: 'quay.io/coreos/etcd', tag: 'latest' },
-    { label: 'Elasticsearch', name: 'elasticsearch', tag: 'latest' },
-    { label: 'Meilisearch', name: 'getmeili/meilisearch', tag: 'latest' },
-    { label: 'Typesense', name: 'typesense/typesense', tag: 'latest' },
-    { label: 'Minio', name: 'minio/minio', tag: 'latest' }
-  ]
+  const presets = computed(() => {
+    const arrs: Array<{
+      label: string
+      children: AllAppModule[]
+    }> = [
+      {
+        label: I18nT(`aside.webServer`),
+        children: ['apache', 'caddy', 'consul', 'nginx', 'tomcat']
+      },
+      {
+        label: I18nT(`aside.language`),
+        children: [
+          'bun',
+          'deno',
+          'erlang',
+          'golang',
+          'java',
+          'node',
+          'php',
+          'python',
+          'ruby',
+          'rust'
+        ]
+      },
+      {
+        label: I18nT(`aside.dataBaseServer`),
+        children: ['mariadb', 'mongodb', 'mysql', 'postgresql']
+      },
+      {
+        label: I18nT(`aside.dataQueue`),
+        children: ['etcd', 'memcached', 'rabbitmq', 'redis']
+      },
+      {
+        label: I18nT(`aside.emailServer`),
+        children: ['mailpit']
+      },
+      {
+        label: I18nT(`aside.searchEngine`),
+        children: ['elasticsearch', 'meilisearch']
+      }
+    ]
+    console.log('PodmanManager.imageVersion: ', PodmanManager.imageVersion)
+    return arrs.map((item) => {
+      return {
+        label: item.label,
+        children: item.children.map((c) => {
+          const image = OfficialImages?.[c]?.image ?? ''
+          console.log('image: ', image, c, PodmanManager.imageVersion?.[image])
+          const versions =
+            PodmanManager.imageVersion?.[image]?.map?.((i: string) => {
+              return {
+                label: i,
+                value: `${image}:${i}`
+              }
+            }) ?? []
+          return {
+            label: c,
+            children: [
+              {
+                label: 'latest',
+                value: `${image}:latest`
+              },
+              ...versions
+            ]
+          }
+        })
+      }
+    })
+  })
 
-  const preset = ref()
+  const mirrorsHistory = computed(() => {
+    const list = Base.mirrors ?? []
+    return list.map((l: string) => ({ value: l }))
+  })
 
-  const onPresetChange = (item: any) => {
-    form.value.name = item.name
-    form.value.tag = item.tag
+  const querySearch = (queryString: string, cb: any) => {
+    const search = queryString.toLowerCase()
+    const results = queryString
+      ? mirrorsHistory.value.filter((f) => {
+          const value = f.value.toLowerCase()
+          return value.includes(search) || search.includes(value)
+        })
+      : mirrorsHistory.value
+    cb(results)
   }
 
   const closedFn = () => {
@@ -99,18 +144,42 @@
     visible.value = false
   }
 
+  const machine = computed(() => {
+    return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)
+  })
+
   const onSubmit = async () => {
     if (!form.value.name) {
       ElMessage.error(I18nT('podman.Image') + I18nT('podman.require'))
       return
     }
-    try {
-      await PodmanManager.pullImage(form.value.name, form.value.tag)
-      ElMessage.success(I18nT('base.success'))
-      visible.value = false
-      PodmanManager.refresh()
-    } catch (e: any) {
-      ElMessage.error(e?.message ?? I18nT('base.fail'))
-    }
+    const id = uuid()
+    machine.value?.images.unshift(
+      reactiveBind(
+        new Image({
+          id,
+          name: form.value.name,
+          pulling: true
+        })
+      )
+    )
+    const command = `podman pull ${form.value.name}`
+    const xtermExec = reactiveBind(new XTermExec())
+    xtermExec.cammand = [command]
+    xtermExec.wait().then(() => {
+      delete XTermExecCache?.[id]
+      const index = machine.value?.images?.findIndex?.((i) => i.id === id) ?? -1
+      if (index >= 0) {
+        machine.value?.images.splice(index, 1)
+      }
+      machine.value?.fetchImages?.()
+    })
+    XTermExecCache[id] = xtermExec
+    import('@/components/XTermExecDialog/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        title: command,
+        item: xtermExec
+      }).then()
+    })
   }
 </script>

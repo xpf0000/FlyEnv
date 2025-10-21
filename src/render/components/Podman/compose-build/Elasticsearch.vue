@@ -1,5 +1,5 @@
 <template>
-  <el-form :model="form" label-position="top">
+  <el-form label-position="top">
     <BaseVM :image="image" :form-name="formName" />
 
     <el-form-item :label="I18nT('podman.Persistence')" prop="persistence">

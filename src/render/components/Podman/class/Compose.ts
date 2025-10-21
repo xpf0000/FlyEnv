@@ -21,6 +21,7 @@ export class Compose {
     Object.assign(this, obj)
     this.run = false
     this.running = false
+    this.statusError = undefined
   }
 
   start() {
@@ -140,6 +141,31 @@ export class Compose {
       }).then(() => {
         this.checkStatusAfterTerminalExec()
       })
+    })
+  }
+
+  showLogsWithTerminal() {
+    const key = `logs-${this.id}`
+    let xtermExec = XTermExecCache?.[key]
+    if (!xtermExec) {
+      xtermExec = reactiveBind(new XTermExec())
+      const arr: string[] = ['docker-compose', ...this.paths.map((p) => `-f "${p}"`)]
+      if (this.flag) {
+        arr.push(`-p ${this.flag}`)
+      }
+      arr.push('logs -f')
+      xtermExec.cammand = [arr.join(' ')]
+      xtermExec.wait().then(() => {
+        delete XTermExecCache?.[key]
+      })
+      XTermExecCache[key] = xtermExec
+    }
+    import('@/components/XTermExecDialog/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        title: I18nT('base.log'),
+        item: xtermExec,
+        exitOnClose: true
+      }).then()
     })
   }
 

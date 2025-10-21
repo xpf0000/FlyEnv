@@ -36,6 +36,7 @@
   const props = defineProps<{
     title: string
     item: XTermExec
+    exitOnClose: boolean
   }>()
 
   const xtermDom = ref<HTMLElement>()
@@ -63,6 +64,9 @@
 
   onBeforeUnmount(() => {
     props.item.unmount()
+    if (props.exitOnClose) {
+      props.item.taskCancel()
+    }
   })
 
   defineExpose({
