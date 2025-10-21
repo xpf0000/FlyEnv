@@ -104,10 +104,10 @@ class Podman extends Base {
         const json = JSON.parse(content)
         images = json.map((img: any) => ({
           id: img.Id,
-          name: img.Repository,
+          name: img.Names[0],
           tag: img.Tag,
           size: img.Size,
-          created: img.Created
+          created: img.CreatedAt
         }))
         resolve(images)
       } catch (e: any) {

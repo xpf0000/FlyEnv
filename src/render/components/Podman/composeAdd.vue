@@ -129,6 +129,19 @@
     name: [
       { required: true, message: I18nT('base.name') + I18nT('podman.require'), trigger: 'blur' }
     ],
+    flag: [
+      {
+        validator: (rule: any, value: string, callback: any) => {
+          const regex = /^[a-z0-9][a-z0-9_-]*$/
+          if (!regex.test(value)) {
+            callback(new Error(I18nT('podman.ComposeNameErrorTips')))
+            return
+          }
+          callback()
+        },
+        trigger: 'blur'
+      }
+    ],
     paths: [
       {
         validator: (rule: any, value: Array<{ path: string }>, callback: any) => {
@@ -202,6 +215,7 @@
       PodmanManager.addCompose(data)
     } else {
       const find = PodmanManager.compose.find((f) => f.id === form.value.id)
+      console.log('find', find, PodmanManager.compose)
       if (find) {
         if (find.run) {
           find.stop()

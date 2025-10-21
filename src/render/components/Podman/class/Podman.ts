@@ -50,6 +50,7 @@ class Podman {
       return
     }
     this.initImageVersion()
+    PodmanManager.loadComposeList().catch()
     IPC.send('app-fork:podman', 'podmanInit').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {

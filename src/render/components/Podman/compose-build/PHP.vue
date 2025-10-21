@@ -2,6 +2,8 @@
   <el-form :model="form" label-position="top">
     <BaseVM :image="image" :form-name="formName" />
 
+    <WwwRoot :form-name="formName" />
+
     <PreviewVM :form-name="formName" />
   </el-form>
 </template>
@@ -12,6 +14,7 @@
   import { OfficialImages } from '@/components/Podman/officialImages'
   import BaseVM from '@/components/Podman/compose-build/components/base.vue'
   import PreviewVM from '@/components/Podman/compose-build/components/preview.vue'
+  import WwwRoot from '@/components/Podman/compose-build/components/wwwRoot.vue'
 
   const formName = 'PHP'
   const image = OfficialImages.php?.image ?? ''

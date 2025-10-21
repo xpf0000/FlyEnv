@@ -241,7 +241,6 @@
         'Go (Golang)',
         'Java',
         'Node.js',
-        'Perl',
         'PHP',
         'Python',
         'Ruby',
@@ -263,10 +262,6 @@
     {
       cate: 'searchEngine',
       sub: ['Elasticsearch', 'Meilisearch']
-    },
-    {
-      cate: 'objectStorage',
-      sub: ['MinIO']
     }
   ])
 

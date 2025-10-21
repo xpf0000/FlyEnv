@@ -8,6 +8,7 @@ import Caddy from './Caddy'
 const PHP = reactive({
   enable: false,
   version: 'latest',
+  wwwRoot: '',
   ports: [{ in: '9000', out: '9000' }],
   async build() {
     const base = Base
@@ -46,6 +47,26 @@ const PHP = reactive({
           read_only: false
         }
       ]
+    }
+    const wwwRoot = PHP.wwwRoot.trim()
+    if (wwwRoot) {
+      if (php.volumes) {
+        php.volumes.push({
+          type: 'bind',
+          source: normalize(wwwRoot),
+          target: '/var/www/html',
+          read_only: false
+        })
+      } else {
+        php.volumes = [
+          {
+            type: 'bind',
+            source: normalize(wwwRoot),
+            target: '/var/www/html',
+            read_only: false
+          }
+        ]
+      }
     }
     return {
       php
