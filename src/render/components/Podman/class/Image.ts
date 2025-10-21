@@ -9,6 +9,8 @@ export class Image {
   tag: string = ''
   size: string = ''
   created: string = ''
+  pulling: boolean = false
+
   _onRemove?: (img: Image) => void
 
   constructor(obj: any) {

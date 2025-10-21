@@ -4,7 +4,6 @@
     :title="I18nT('podman.Image') + I18nT('base.add')"
     width="600px"
     class="host-edit new-project"
-    :class="{ installing: loading }"
     @closed="closedFn"
   >
     <el-form :model="form" label-width="110px" label-position="top" class="pt-2">
@@ -40,9 +39,12 @@
   import { OfficialImages } from '@/components/Podman/officialImages'
   import { AllAppModule } from '@/core/type'
   import Base from './compose-build/Form/Base'
+  import { XTermExec, XTermExecCache } from '@/util/XTermExec'
+  import { reactiveBind, uuid } from '@/util/Index'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { Image } from '@/components/Podman/class/Image'
 
   const visible = ref(true)
-  const mode = ref<'preset' | 'custom'>('preset')
   const form = ref({
     name: '',
     mirror: ''
@@ -142,18 +144,42 @@
     visible.value = false
   }
 
+  const machine = computed(() => {
+    return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)
+  })
+
   const onSubmit = async () => {
     if (!form.value.name) {
       ElMessage.error(I18nT('podman.Image') + I18nT('podman.require'))
       return
     }
-    try {
-      await PodmanManager.pullImage(form.value.name, form.value.tag)
-      ElMessage.success(I18nT('base.success'))
-      visible.value = false
-      PodmanManager.refresh()
-    } catch (e: any) {
-      ElMessage.error(e?.message ?? I18nT('base.fail'))
-    }
+    const id = uuid()
+    machine.value?.images.unshift(
+      reactiveBind(
+        new Image({
+          id,
+          name: form.value.name,
+          pulling: true
+        })
+      )
+    )
+    const command = `podman pull ${form.value.name}`
+    const xtermExec = reactiveBind(new XTermExec())
+    xtermExec.cammand = [command]
+    xtermExec.wait().then(() => {
+      delete XTermExecCache?.[id]
+      const index = machine.value?.images?.findIndex?.((i) => i.id === id) ?? -1
+      if (index >= 0) {
+        machine.value?.images.splice(index, 1)
+      }
+      machine.value?.fetchImages?.()
+    })
+    XTermExecCache[id] = xtermExec
+    import('@/components/XTermExecDialog/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        title: command,
+        item: xtermExec
+      }).then()
+    })
   }
 </script>

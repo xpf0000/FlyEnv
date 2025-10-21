@@ -31,6 +31,10 @@ export class Machine {
     this.ContainerXTerm = reactiveBind(new XTermExec())
   }
 
+  fetchImages() {
+
+  }
+
   /**
    * Fetch Machine info and containers
    */
