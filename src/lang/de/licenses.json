@@ -1,0 +1,36 @@
+{
+  "title": "Lizenzbeschreibung",
+  "description": "Diese Lizenz würdigt und unterstützt die Bemühungen von FlyEnv und seinen Autoren. Es soll nicht die Nutzer einschränken, sondern die Achtung der Arbeit und des geistigen Eigentums der Entwickler fördern. Bitte stellen Sie sicher, dass Sie vor der Nutzung von FlyEnv eine gültige Lizenz erhalten.",
+  "restrictions": {
+    "title": "Benutzer ohne Lizenz unterliegen folgenden Einschränkungen:",
+    "items": {
+      "0": "Es können maximal drei Seiten erstellt werden.",
+      "1": "Das KI-Chat-Feature ist nur für einen Testzeitraum von drei Tagen verfügbar.",
+      "2": "Weitere Einschränkungen können für zukünftige Funktionen gelten."
+    }
+  },
+  "licenseInfo": "Die aktuell angebotene Lizenz ist eine ewige Lizenz mit einer Lizenz, die einem Computer entspricht. Wenn Sie Ihren Computer ändern, müssen Sie eine neue Lizenz anfordern.",
+  "howToObtain": {
+    "title": "Wie man eine Lizenz erhält",
+    "description": "FlyEnv bietet flexible Möglichkeiten, eine Lizenz zu erwerben. Benutzer können eine der folgenden Methoden wählen:",
+    "methods": {
+      "0": {
+        "title": "Spenden an das Projekt",
+        "description": "Für Spenden ist kein fester Betrag erforderlich, da die wirtschaftliche Situation der Nutzer in den verschiedenen Ländern unterschiedlich ist (z. ., viele Benutzer sind Studenten), wählen Sie bitte einen Betrag, der für Sie bequem ist."
+      },
+      "1": {
+        "title": "Zur Entwicklung beitragen",
+        "description": "Beteiligen Sie sich am Projekt, indem Sie einen Pull Request einreichen. Unabhängig von der Anzahl an Code, solange es das Projekt positiv verbessert (z. ., Übersetzungsfehler behoben), zählt Ihr Beitrag."
+      },
+      "2": {
+        "title": "Befördere das Projekt",
+        "description": "Bewerben Sie FlyEnv, indem Sie Ihre Erfahrungen in Artikeln, Videos, Blogs, Vlogs oder Kommentaren teilen. Authentisches Feedback von Benutzern wird bevorzugt. Inhalte können in jeder Sprache und auf jeder Plattform sein."
+      }
+    }
+  },
+  "submitInfo": "Nach Abschluss einer der oben genannten Methoden geben Sie bitte die Ergebnisse in das Eingabefeld unten ein und klicken Sie auf die Schaltfläche „Lizenz anfordern“, um Ihren Antrag einzureichen. Lizenzanfragen werden in der Regel innerhalb von 24 Stunden bearbeitet.",
+  "messageLabel": "Nachricht",
+  "messagePlaceholder": "Bitte geben Sie den Spender, den Spendenlink oder die Bestell-ID ein, wenn Sie sich für eine Spende entscheiden.\nBitte senden Sie den PR-Link für diejenigen, die an der Projektentwicklung teilnehmen.\nBitte senden Sie einen Link zu Ihrem Artikel, Video, Blog, Vlog oder Kommentar für diejenigen, die sich entscheiden, zu fördern.",
+  "requestButton": "Lizenz anfordern",
+  "refreshButton": "Aktualisiere Status"
+}

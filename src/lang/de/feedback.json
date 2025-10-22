@@ -1,0 +1,10 @@
+{
+  "email": "E-Mail",
+  "country": "Land",
+  "message": "Nachricht",
+  "messagelengthErr": "Nachrichtenlänge beträgt 5 - 1024",
+  "sendMessage": "Nachricht senden",
+  "anythingToSay": "Alles zu sagen",
+  "noSelected": "Keine Auswahl",
+  "inputFilter": "Eingabe zum Filter"
+}

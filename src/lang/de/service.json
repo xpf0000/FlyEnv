@@ -1,0 +1,13 @@
+{
+  "setaliase": "Alias setzen",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Wurde der Pfad zur Umgebungsvariable hinzugefügt",
+  "aliasTips": "Alias im Terminal verwendet",
+  "useSysPHP": "Standard-PHP-Version verwenden",
+  "setByApp": "Umgebungsvariablen von FlyEnv",
+  "setByNoApp": "Umgebungsvariablen nicht von FlyEnv gesetzt",
+  "ftpdNeedPasswordToStart": "Pure-FTPd benötigt sudo-Berechtigungen. Bitte geben Sie Ihr Benutzerpasswort ein. Das Passwort wird später für das automatische Ausfüllen verwendet. Oder Sie können auf die Schaltfläche unten klicken, um manuell in das Terminal einzugeben, aber diese Aufforderung kann wieder erscheinen.",
+  "bundleinVersionDelTips": "Dies ist die integrierte Version. Möchten Sie sie wirklich nicht mehr anzeigen?",
+  "customDirVersionDelTips": "Diese Version ist eine benutzerdefinierte Pfadversion, bestätigen Sie nicht angezeigt?"
+}

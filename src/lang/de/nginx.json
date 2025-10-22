@@ -1,0 +1,10 @@
+{
+  "gzip": "Aktiviere GZIP-Komprimierungsübertragung",
+  "gzip_min_length": "Minimal komprimierte Datei",
+  "gzip_comp_level": "Komprimierbarkeit",
+  "client_max_body_size": "Maximale Dateigröße für Upload",
+  "server_names_hash_max_size": "Maximale Größe der Hashtabelle für den Servernamen",
+  "server_names_hash_bucket_size": "Hash-Tabellengröße für Servername",
+  "client_header_buffer_size": "Client-Anfrage-Header-Puffergröße",
+  "client_body_buffer_size": "Body-Puffergröße anfordern"
+}
