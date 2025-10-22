@@ -4,7 +4,7 @@ import type { AppModuleItem } from '@/core/type'
 const module: AppModuleItem = {
   moduleType: 'dataQueue',
   typeFlag: 'etcd',
-  label: 'etcd',
+  label: 'Etcd',
   icon: import('@/svg/etcd.svg?raw'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
