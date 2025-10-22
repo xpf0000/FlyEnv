@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    v-model="visible"
+    v-model="show"
     :title="I18nT('podman.Image') + I18nT('base.add')"
     width="600px"
     class="host-edit new-project"
@@ -9,7 +9,8 @@
     <el-form :model="form" label-width="110px" label-position="top" class="pt-2">
       <el-form-item :label="I18nT('podman.PresetModule')">
         <el-cascader
-          v-model="form.name"
+          v-model="form.version"
+          filterable
           class="w-full"
           :show-all-levels="false"
           :options="presets"
@@ -25,14 +26,14 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="onCancel">{{ I18nT('base.cancel') }}</el-button>
-        <el-button type="primary" @click="onSubmit">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" @click="doSubmit">{{ I18nT('base.confirm') }}</el-button>
       </div>
     </template>
   </el-dialog>
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { ElMessage } from 'element-plus'
   import { PodmanManager } from '@/components/Podman/class/Podman'
@@ -41,14 +42,24 @@
   import Base from './compose-build/Form/Base'
   import { XTermExec, XTermExecCache } from '@/util/XTermExec'
   import { reactiveBind, uuid } from '@/util/Index'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
   import { Image } from '@/components/Podman/class/Image'
 
-  const visible = ref(true)
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+
   const form = ref({
+    version: [],
     name: '',
     mirror: ''
   })
+
+  watch(
+    () => form.value.version,
+    (val: string[]) => {
+      const v = [...val].pop() ?? ''
+      form.value.name = v
+    }
+  )
 
   const presets = computed(() => {
     const arrs: Array<{
@@ -98,11 +109,15 @@
         children: item.children.map((c) => {
           const image = OfficialImages?.[c]?.image ?? ''
           console.log('image: ', image, c, PodmanManager.imageVersion?.[image])
+          let append = ''
+          if (image === 'php') {
+            append = '-fpm'
+          }
           const versions =
             PodmanManager.imageVersion?.[image]?.map?.((i: string) => {
               return {
                 label: i,
-                value: `${image}:${i}`
+                value: `${image}:${i}${append}`
               }
             }) ?? []
           return {
@@ -110,7 +125,7 @@
             children: [
               {
                 label: 'latest',
-                value: `${image}:latest`
+                value: `${image}:latest${append}`
               },
               ...versions
             ]
@@ -136,34 +151,32 @@
     cb(results)
   }
 
-  const closedFn = () => {
-    visible.value = false
-  }
-
   const onCancel = () => {
-    visible.value = false
+    show.value = false
   }
 
   const machine = computed(() => {
     return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)
   })
 
-  const onSubmit = async () => {
+  const doSubmit = async () => {
     if (!form.value.name) {
       ElMessage.error(I18nT('podman.Image') + I18nT('podman.require'))
       return
     }
+    show.value = false
     const id = uuid()
+    const name = `${form.value.mirror}/${form.value.name}`
     machine.value?.images.unshift(
       reactiveBind(
         new Image({
           id,
-          name: form.value.name,
+          name,
           pulling: true
         })
       )
     )
-    const command = `podman pull ${form.value.name}`
+    const command = `podman pull ${name}`
     const xtermExec = reactiveBind(new XTermExec())
     xtermExec.cammand = [command]
     xtermExec.wait().then(() => {
@@ -174,6 +187,13 @@
       }
       machine.value?.fetchImages?.()
     })
+    xtermExec.whenCancel().then(() => {
+      const index = machine.value?.images?.findIndex?.((i) => i.id === id) ?? -1
+      if (index >= 0) {
+        machine.value?.images.splice(index, 1)
+      }
+    })
+    xtermExec.title = command
     XTermExecCache[id] = xtermExec
     import('@/components/XTermExecDialog/index.vue').then((res) => {
       AsyncComponentShow(res.default, {
@@ -182,4 +202,11 @@
       }).then()
     })
   }
+
+  defineExpose({
+    show,
+    onClosed,
+    onSubmit,
+    closedFn
+  })
 </script>

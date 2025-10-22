@@ -61,5 +61,7 @@
   "PortBind": "端口映射",
   "ContainerPort": "容器端口",
   "LocalPort": "本地端口",
-  "ComposeNameErrorTips": "项目名称只能是字母或数字开头，包含小写字母、数字、下划线或连字符"
+  "ComposeNameErrorTips": "项目名称只能是字母或数字开头，包含小写字母、数字、下划线或连字符",
+  "Rename": "重命名",
+  "ImageName": "镜像名称"
 }

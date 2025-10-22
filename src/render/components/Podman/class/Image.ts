@@ -2,10 +2,14 @@ import IPC from '@/util/IPC'
 import { MessageError } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { ElMessageBox } from 'element-plus'
+import { dialog, shell } from '@/util/NodeFn'
+import { reactiveBind } from '@/util/Index'
+import { XTermExec, XTermExecCache } from '@/util/XTermExec'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
 
 export class Image {
   id: string = ''
-  name: string = ''
+  name: string[] = []
   tag: string = ''
   size: string = ''
   created: string = ''
@@ -33,17 +37,102 @@ export class Image {
       confirmButtonText: I18nT('base.confirm'),
       cancelButtonText: I18nT('base.cancel'),
       type: 'warning'
+    }).then(() => {
+      this.pulling = true
+      const id = this.id
+      const command = `podman rmi -f ${id}`
+      const xtermExec = reactiveBind(new XTermExec())
+      xtermExec.cammand = [command]
+      xtermExec.wait().then(() => {
+        this?._onRemove?.(this)
+        delete XTermExecCache[id]
+        this.pulling = false
+      })
+      xtermExec.whenCancel().then(() => {
+        delete XTermExecCache[id]
+        this.pulling = false
+      })
+      xtermExec.title = I18nT('base.del')
+      XTermExecCache[id] = xtermExec
+      import('@/components/XTermExecDialog/index.vue').then((res) => {
+        AsyncComponentShow(res.default, {
+          title: I18nT('base.del'),
+          item: xtermExec
+        }).then()
+      })
     })
-      .then(() => {
-        IPC.send('app-fork:podman', 'imageRemove', this.id).then((key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            this?._onRemove?.(this)
-          } else {
-            MessageError(res?.msg ?? I18nT('base.fail'))
-          }
+  }
+
+  doExport() {
+    const name = this.name?.[0]?.replace?.(/\//g, '-')?.replace?.(/:/g, '-') ?? this.id
+    dialog
+      .showSaveDialog({
+        defaultPath: `${name}.tar`
+      })
+      .then(({ canceled, filePath }: any) => {
+        if (canceled || !filePath) {
+          return
+        }
+        this.pulling = true
+        const dir = filePath
+        const id = this.id
+        const command = `podman save -o "${dir}" ${this.name}`
+        const xtermExec = reactiveBind(new XTermExec())
+        xtermExec.cammand = [command]
+        xtermExec.wait().then(() => {
+          delete XTermExecCache[id]
+          this.pulling = false
+          shell.showItemInFolder(dir).catch()
+        })
+        xtermExec.whenCancel().then(() => {
+          delete XTermExecCache[id]
+          this.pulling = false
+        })
+        xtermExec.title = I18nT('base.export')
+        XTermExecCache[id] = xtermExec
+        import('@/components/XTermExecDialog/index.vue').then((res) => {
+          AsyncComponentShow(res.default, {
+            title: I18nT('base.export'),
+            item: xtermExec
+          }).then()
         })
       })
-      .catch()
+  }
+
+  doRename() {
+    return new Promise((resolve) => {
+      ElMessageBox.prompt(I18nT('podman.ImageName'), undefined, {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        inputValue: this.name?.[0] ?? this.id
+      }).then(({ value }) => {
+        this.pulling = true
+        const id = this.id
+        const command = []
+        command.push(`podman tag ${this.id} ${value}`)
+        for (const name of this.name) {
+          command.push(`podman rmi ${name}`)
+        }
+        const xtermExec = reactiveBind(new XTermExec())
+        xtermExec.cammand = command
+        xtermExec.wait().then(() => {
+          resolve(true)
+          delete XTermExecCache[id]
+          this.pulling = false
+        })
+        xtermExec.whenCancel().then(() => {
+          delete XTermExecCache[id]
+          this.pulling = false
+        })
+        xtermExec.title = I18nT('podman.Rename')
+        XTermExecCache[id] = xtermExec
+        import('@/components/XTermExecDialog/index.vue').then((res) => {
+          AsyncComponentShow(res.default, {
+            title: xtermExec.title,
+            item: xtermExec
+          }).then()
+        })
+      })
+    })
   }
 }

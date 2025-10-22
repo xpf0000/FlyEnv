@@ -110,5 +110,7 @@
   "projects": "项目",
   "areYouSure": "确定执行此操作?",
   "action": "操作",
-  "preview": "预览"
+  "preview": "预览",
+
+  "executing": "执行中"
 }

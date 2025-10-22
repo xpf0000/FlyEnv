@@ -9,12 +9,20 @@ class XTermExec {
   installing: boolean = false
   xterm: XTerm | undefined
   cammand: string[] = []
+  title: string = ''
 
   private _callbackFn: CallbackFn[] = []
+  private _cancelCallbackFn: CallbackFn[] = []
 
   wait() {
     return new Promise((resolve) => {
       this._callbackFn.push(resolve)
+    })
+  }
+
+  whenCancel() {
+    return new Promise((resolve) => {
+      this._cancelCallbackFn.push(resolve)
     })
   }
 
@@ -80,6 +88,10 @@ class XTermExec {
       if (XTermExecCache?.[this.id]) {
         delete XTermExecCache[this.id]
       }
+      for (const fn of this._cancelCallbackFn) {
+        fn()
+      }
+      this._cancelCallbackFn.splice(0)
     })
   }
 }
