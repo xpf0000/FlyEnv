@@ -74,17 +74,22 @@
                         </template>
                         <template #dropdown>
                           <el-dropdown-menu>
-                            <el-dropdown-item @click.stop="PodmanManager.startMachine(item.name)">
+                            <el-dropdown-item
+                              v-if="!item.run"
+                              :disabled="item.running"
+                              @click.stop="item.start()"
+                            >
                               {{ I18nT('podman.Start') }}
                             </el-dropdown-item>
-                            <el-dropdown-item @click.stop="PodmanManager.stopMachine(item.name)">
+                            <el-dropdown-item
+                              v-else
+                              :disabled="item.running"
+                              @click.stop="item.stop()"
+                            >
                               {{ I18nT('podman.Stop') }}
                             </el-dropdown-item>
                             <el-dropdown-item @click.stop="addMachine(item)">
                               {{ I18nT('base.edit') }}
-                            </el-dropdown-item>
-                            <el-dropdown-item divided @click.stop="PodmanManager.refresh()">
-                              {{ I18nT('base.refresh') }}
                             </el-dropdown-item>
                             <el-dropdown-item divided @click.stop="item.remove()">
                               <span class="text-red-500">{{ I18nT('podman.Delete') }}</span>
@@ -105,15 +110,14 @@
 </template>
 <script lang="ts" setup>
   import { computed } from 'vue'
-  import { Delete, Edit, Folder, Plus, SetUp, Top } from '@element-plus/icons-vue'
-  import CodeLibrary from '@/components/Tools/CodeLibrary/setup'
+  import { Plus } from '@element-plus/icons-vue'
   import { I18nT } from '@lang/index'
   import { PodmanManager } from '@/components/Podman/class/Podman'
   import { emptyClick } from '@/util/Index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   let MachineAddVM: any
-  import('./machineAdd.vue').then((res) => {
+  import('./machine/machineAdd.vue').then((res) => {
     MachineAddVM = res.default
   })
 

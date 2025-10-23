@@ -136,7 +136,7 @@
   }
 
   let ConfigVM: any
-  import('./config.vue').then((res) => {
+  import('../config.vue').then((res) => {
     ConfigVM = res.default
   })
 

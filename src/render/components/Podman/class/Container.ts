@@ -10,9 +10,11 @@ export class Container {
   machineName: string = ''
   name: string = ''
   image: string = ''
+  ImageID = ''
+  Mounts: string[] = []
+  Networks: string[] = []
   command: string = ''
-  ports: string = ''
-  portList: ContainerPortItem[] = []
+  Ports: ContainerPortItem[] = []
   run: boolean = false
   running: boolean = false
 

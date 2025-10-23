@@ -71,8 +71,8 @@
   import { PodmanManager } from './class/Podman'
   import { I18nT } from '@lang/index'
   import DashboradVM from './dashboard.vue'
-  import ImageVM from './image.vue'
-  import ComposeVM from './compose.vue'
+  import ImageVM from './image/image.vue'
+  import ComposeVM from './compose/compose.vue'
 
   const machine = computed(() => {
     return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)

@@ -63,5 +63,7 @@
   "LocalPort": "本地端口",
   "ComposeNameErrorTips": "项目名称只能是字母或数字开头，包含小写字母、数字、下划线或连字符",
   "Rename": "重命名",
-  "ImageName": "镜像名称"
+  "ImageName": "镜像名称",
+  "CommandArgs": "命令参数",
+  "Volumes": "挂载"
 }

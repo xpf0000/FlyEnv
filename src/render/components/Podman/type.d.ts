@@ -34,10 +34,8 @@ interface ConfigDir {
 }
 
 export interface ContainerPortItem {
-  port: string
-  portIn: string
-  portOut: string
-  ipOut: string
+  in: number
+  out: number
 }
 
 export interface XTermType {

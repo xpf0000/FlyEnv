@@ -39,7 +39,7 @@
   import { PodmanManager } from '@/components/Podman/class/Podman'
   import { OfficialImages } from '@/components/Podman/officialImages'
   import { AllAppModule } from '@/core/type'
-  import Base from './compose-build/Form/Base'
+  import Base from '../compose-build/Form/Base'
   import { XTermExec, XTermExecCache } from '@/util/XTermExec'
   import { reactiveBind, uuid } from '@/util/Index'
   import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'

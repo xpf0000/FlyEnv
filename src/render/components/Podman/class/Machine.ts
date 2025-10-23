@@ -24,6 +24,7 @@ export class Machine {
   fetched: boolean = false
   tab: string = 'Dashboard'
   imageImporting = false
+  containerImporting = false
 
   ImageXTerm: XTermExec
   ContainerXTerm: XTermExec

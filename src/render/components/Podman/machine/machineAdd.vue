@@ -51,10 +51,9 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, reactive } from 'vue'
+  import { ref } from 'vue'
   import { I18nT } from '@lang/index'
   import { ElMessage } from 'element-plus'
-  import { PodmanManager } from '@/components/Podman/class/Podman'
 
   const props = defineProps<{ item?: any }>()
   const isEdit = !!props.item
