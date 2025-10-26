@@ -50,5 +50,20 @@
   "CustomInput": "Custom input",
   "SelectPresetModule": "Select a preset module",
   "TagPlaceholder": "latest or a version number, e.g. 8.2, 5.7, 16-alpine",
-  "NamePlaceholder": "e.g. nginx"
+  "NamePlaceholder": "e.g. nginx",
+  "ComposeFileSaveDir": "Compose file save directory",
+  "DockerImageMirror": "Docker image mirror (optional)",
+  "Persistence": "Data persistence",
+  "MYSQL_ROOT_PASSWORD": "ROOT password",
+  "MYSQL_DATABASE": "Database name",
+  "MYSQL_USER": "Database user",
+  "MYSQL_PASSWORD": "Database password",
+  "PortBind": "Port mapping",
+  "ContainerPort": "Container port",
+  "LocalPort": "Host port",
+  "ComposeNameErrorTips": "Project name must start with a letter or number, and may include lowercase letters, numbers, underscores (_) or hyphens (-).",
+  "Rename": "Rename",
+  "ImageName": "Image name",
+  "CommandArgs": "Command arguments",
+  "Volumes": "Volume mounts"
 }
