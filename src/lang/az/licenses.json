@@ -1,0 +1,36 @@
+{
+  "title": "Lisenziya İzahı",
+  "description": "Lisenziya, FlyEnv və müəlliflərinin əməyinə verilən bir təşəkkür və dəstəkdir. Məqsədi istifadəçiləri məhdudlaşdırmaq deyil, inkişaf etdiricilərin səylərinə hörmət göstərilməsini və proqramdan istifadə edərkən müvafiq şərtlərə əməl edilməsini xatırlatmaqdır. Lisenziyaya riayət etməklə, istifadəçilər təkcə layihənin davamlı inkişafını dəstəkləmir, həm də açıq mənbə icmasında etimad və əməkdaşlıq ruhuna töhfə verirlər.",
+  "restrictions": {
+    "title": "Lisenziyası olmayan istifadəçilər aşağıdakı məhdudiyyətlərə tabe olacaqlar:",
+    "items": {
+      "0": "Ən çox üç sayt yaradıla bilər.",
+      "1": "Süni intellekt söhbət funksiyası yalnız üç günlük sınaq müddəti ilə istifadə edilə bilər.",
+      "2": "Gələcək funksiyalarda əlavə məhdudiyyətlər ola bilər."
+    }
+  },
+  "licenseInfo": "Verilən mövcud lisenziya müddətsizdir və hər lisenziya bir kompüterə məxsusdur. Kompüterinizi dəyişsəniz, yeni bir lisenziya tələb etməlisiniz.",
+  "howToObtain": {
+    "title": "Lisenziyanı Necə Əldə Etmək Olar?",
+    "description": "FlyEnv lisenziya almaq üçün çevik üsullar təqdim edir. İstifadəçilər aşağıdakı metodlardan birini seçərək müraciət edə bilərlər:",
+    "methods": {
+      "0": {
+        "title": "Layihəyə İanə Edin",
+        "description": "İanə üçün müəyyən bir məbləğ tələb olunmur. Müxtəlif ölkələrdəki istifadəçilərin iqtisadi vəziyyəti (məsələn, bir çox istifadəçi tələbədir) nəzərə alınaraq, sizə uyğun məbləği seçə bilərsiniz."
+      },
+      "1": {
+        "title": "İnkişafa Töhfə Verin",
+        "description": "Layihəyə Pull Request göndərərək töhfə verin. Kod miqdarı vacib deyil, layihəyə müsbət təsir göstərməsi (məsələn, tərcümə səhvini düzəltmək kimi) kifayətdir."
+      },
+      "2": {
+        "title": "Layihəni Tanıdın",
+        "description": "FlyEnv-i tanıtmaq üçün məqalə, video, bloq və ya rəylərdə real təcrübələrinizi paylaşın. Dürüst istifadəçi fikirləri üstünlük təşkil edir. Məzmun istənilən dildə və platformada ola bilər, kifayət ki, internetdə açıq şəkildə paylaşılsın."
+      }
+    }
+  },
+  "submitInfo": "Yuxarıdakı üsullardan birini tamamladıqdan sonra nəticəni aşağıdakı giriş qutusuna yazın və 'Lisenziya Tələb Et' düyməsinə klikləyərək müraciətinizi göndərin. Lisenziya müraciətləri əl ilə yoxlanılır, zəhmət olmasa səbirli olun. Adətən qısa müddətdə cavab verilir.",
+  "messageLabel": "Mesaj",
+  "messagePlaceholder": "İanə etmisinizsə, zəhmət olmasa ianəçi adını, ianə bağlantısını və ya sifariş nömrəsini daxil edin.\nLayihəyə töhfə vermisinizsə, zəhmət olmasa PR bağlantısını göndərin.\nLayihəni tanıtmısınızsa, zəhmət olmasa məqalə/video bağlantısını göndərin.",
+  "requestButton": "Lisenziya Tələb Et",
+  "refreshButton": "Vəziyyəti Yenilə"
+}

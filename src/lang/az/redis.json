@@ -1,0 +1,6 @@
+{
+  "timeout": "Boş bağlantı vaxtı, 0 davamlı açıq deməkdir",
+  "databases": "Verilənlər bazasının sayı",
+  "requirepass": "Redis parolu",
+  "maxmemory": "Baytla ölçülən maksimum yaddaş istifadəsi, 0 məhdudiyyətsiz deməkdir"
+}

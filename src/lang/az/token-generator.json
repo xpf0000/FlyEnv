@@ -1,0 +1,13 @@
+{
+  "title": "Token Yaradıcı",
+  "uppercase": "Böyük Hərflər (ABC...)",
+  "lowercase": "Kiçik Hərflər (abc...)",
+  "numbers": "Rəqəmlər (123...)",
+  "symbols": "Simvollar (!-;...)",
+  "length": "Uzunluq",
+  "tokenPlaceholder": "Token...",
+  "button": {
+    "copy": "Kopyala",
+    "refresh": "Yenilə"
+  }
+}

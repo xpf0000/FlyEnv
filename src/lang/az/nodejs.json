@@ -1,0 +1,16 @@
+{
+  "installFNM": "<a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a> quraşdır",
+  "installNVM": "<a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a> quraşdır",
+  "registry": "Mənbə",
+  "checkPackageJsonUpdate": "Yeniləmələri yoxla",
+  "updatePackageJsonFile": "package.json faylını yenilə",
+  "updatePackageJsonFileTips": "Bu əməliyyat package.json faylını dəyişəcək. Yeniləmək istədiyinizə əminsiniz?",
+  "copyDirPath": "Layihə qovluğunun yolunu kopyala",
+  "openIN": "Burada aç",
+  "Terminal": "Terminal",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Layihə Mühiti"
+}

@@ -1,0 +1,10 @@
+{
+  "gzip": "GZIP sıxılma ötürülməsini aktiv et",
+  "gzip_min_length": "Sıxılacaq minimum fayl ölçüsü",
+  "gzip_comp_level": "Sıxılma səviyyəsi",
+  "client_max_body_size": "Maksimum yükləmə fayl ölçüsü",
+  "server_names_hash_max_size": "Server adı üçün hash cədvəlinin maksimum ölçüsü",
+  "server_names_hash_bucket_size": "Server adı üçün hash cədvəl ölçüsü",
+  "client_header_buffer_size": "İstək başlığı üçün bufer ölçüsü",
+  "client_body_buffer_size": "İstək məzmunu üçün bufer ölçüsü"
+}

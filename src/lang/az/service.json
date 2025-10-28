@@ -1,0 +1,14 @@
+{
+  "setaliase": "Ləqəb Təyin Et",
+  "env": "Mühit Dəyişəni",
+  "alias": "Ləqəb",
+  "envTips": "Yol mühit dəyişəninə əlavə edilibmi?",
+  "aliasTips": "Terminalda istifadə olunacaq ləqəb",
+  "useSysPHP": "Standart PHP versiyasını istifadə et",
+  "setByApp": "FlyEnv tərəfindən təyin edilmiş mühit dəyişənləri",
+  "setByNoApp": "FlyEnv tərəfindən təyin edilməmiş mühit dəyişənləri",
+  "ftpdNeedPasswordToStart": "Pure-FTPd işlətmək üçün sudo icazələri tələb olunur. Zəhmət olmasa istifadəçi parolunuzu daxil edin. Bu parol sonrakı avtomatik doldurma üçün saxlanacaq. Alternativ olaraq aşağıdakı düyməni klikləyərək terminalda əl ilə daxil edə bilərsiniz, lakin bu xəbərdarlıq yenidən görünə bilər.",
+
+  "bundleinVersionDelTips": "Bu versiya daxili versiyadır, göstərilməsin?",
+  "customDirVersionDelTips": "Bu versiya xüsusi yol versiyasıdır, göstərilməsin?"
+}

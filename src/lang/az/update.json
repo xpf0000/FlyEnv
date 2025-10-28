@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Yeniləmələri Yoxla",
+  "update-available-message": "FlyEnv-in daha yeni versiyası mövcuddur, indi yeniləmək istəyirsiniz?",
+  "update-not-available-message": "Tətbiqiniz güncəldir!",
+  "update-downloaded-message": "Quraşdırılmağa hazırdır...",
+  "update-error-message": "Yeniləmə Xətası",
+  "yes": "Bəli",
+  "no": "Xeyr"
+}

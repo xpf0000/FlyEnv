@@ -1,0 +1,54 @@
+{
+  "tsinghua": "Tsinghua Universiteti yükləmə mənbəyi",
+  "bfsu": "Pekin Xarici Dillər Universiteti yükləmə mənbəyi",
+  "tencent": "Tencent yükləmə mənbəyi",
+  "aliyun": "Alibaba yükləmə mənbəyi",
+  "ustc": "Çin Elm və Texnologiya Universiteti yükləmə mənbəyi",
+  "Licenses": "Lisenziyalar",
+  "requestedTips": "Lisenziya sorğusu göndərildi, zəhmət olmasa gözləyin. Məlumatları dəyişmək istəsəniz, yenidən göndərə bilərsiniz.",
+  "licenseActivated": "Lisenziya Aktivləşdirildi",
+  "autoStartService": "Xidmətləri Avtomatik Başlat",
+  "autoStartServiceTips": "Tətbiq başladıldıqda xidmətlərin avtomatik olaraq işə salınıb-salınmayacağı",
+  "autoHide": "Başlanğıcda Gizlət / Sistem Çekməcəsinə Kiçilt",
+  "autoHideTips": "Xidmət avtomatik başladıqdan sonra əsas interfeysin gizlədilməsi və yalnız sistem çekməcəsində işləməsi",
+  "autoLaunch": "Kompüter Açıldıqda Avtomatik Başlat",
+  "autoLaunchTips": "Kompüter açıldıqda FlyEnv-in avtomatik olaraq işə salınıb-salınmayacağı",
+  "passwordTips": "Vacib deyil. Əmrləri icra edərkən parolu avtomatik doldurur. Məsələn, Macports ilə proqram quraşdırma və ya silmə zamanı.",
+  "langTips": "İstifadəçi tərəfindən müəyyən edilən dil paketlərini yüklə. Bu əməliyyat həmçinin standart dil paketini işə salır, beləliklə FlyEnv-i digər dillərə çevirmək daha asan olur.",
+  "openLangDir": "Dil paketi qovluğunu aç",
+
+  "moduleCateAddTips": "Modul Kateqoriyası Əlavə Et",
+  "moduleCateName": "Modul Kateqoriya Adı",
+  "moduleAdd": "Modul Əlavə Et",
+  "moduleCateDelTips": "Bu kateqoriyadakı modullar da silinəcək. Silməni təsdiqləyirsiniz?",
+
+  "moduleTitle": "Modul",
+  "moduleName": "Modul Adı",
+  "moduleIcon": "Modul Simvolu",
+  "moduleIsService": "Bu modul bir xidmətdirmi?",
+  "moduleIsOnlyRunOne": "Eyni anda yalnız bir xidmət işlədilə bilər",
+  "moduleExecItem": "Modul İcra Elementi",
+
+  "module": {
+    "name": "Ad",
+    "path": "Fayl Yolu",
+    "comment": "Açıqlama",
+    "command": "Əmr",
+    "exec": "İcra Et",
+    "commandFile": "Fayl",
+    "isSudo": "sudo ilə işlədilsin?",
+    "pidPath": "PID Fayl Yolu",
+    "configPath": "Konfiqurasiya Faylı",
+    "logPath": "Jurnal Faylı",
+    "needPasswordToStart": "Administrator icazəsi tələb olunur. Şifrənizi daxil edin (gələcək istifadə üçün saxlanacaq). Alternativ olaraq terminalda əl ilə daxil edə bilərsiniz, lakin bu xəbərdarlıq yenidən görünə bilər.",
+    "hadOpenInTerminal": "Artıq terminalda işləyir — nəticələr göstərilə bilmir.",
+    "licenseTips": "Lisenziya tapılmadı. Yalnız 3 modul və ya icra elementi yaradıla bilər.",
+
+    "outputLog": "Çıxış Jurnalı",
+    "errorLog": "Xəta Jurnalı"
+  },
+
+  "flyenvHelper": "FlyEnv Yardımçı Proqramını Bərpa Et",
+  "flyenvHelperBtn": "Bərpa Et",
+  "flyenvHelperFixSuccess": "FlyEnv yardımçı proqramı uğurla bərpa edildi"
+}

@@ -33,6 +33,7 @@ import type requestTimer from './zh/requestTimer.json'
 import type meilisearch from './zh/meilisearch.json'
 import type minio from './zh/minio.json'
 import type podman from './zh/podman.json'
+import type az from './az/toolType.json'
 
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import en from 'element-plus/es/locale/lang/en'
@@ -63,6 +64,7 @@ import PTBR from './pt-br/index'
 import AR from './ar/index'
 import UA from './ua/index'
 import ES from './es/index'
+import AZ from './az/index'
 
 type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
@@ -115,6 +117,7 @@ export const AppAllLang = {
   zh: '中文',
   vi: 'Tiếng Việt',
   sv: 'Svenska',
+  az: 'Azərbaycanca',
   tr: 'Türkçe',
   id: 'Bahasa Indonesia',
   fr: 'Français',

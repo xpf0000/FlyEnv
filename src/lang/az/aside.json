@@ -1,0 +1,17 @@
+{
+  "site": "Sayt",
+  "webServer": "Veb Server",
+  "dataBaseServer": "Məlumat Bazası Serveri",
+  "emailServer": "E-poçt Serveri",
+  "language": "Dil və İcra Mühiti",
+  "dataQueue": "Keş və Yaddaş Saxlama",
+  "searchEngine": "Axtarış Mühərriki",
+  "dnsServer": "DNS Server",
+  "ftpServer": "FTP Server",
+  "other": "Digər",
+  "appLog": "Tətbiq Jurnalı",
+  "ai": "Süni İntellekt",
+  "objectStorage": "Obyekt Saxlama",
+  "appExit": "Bütün işləyən xidmətləri dayandır və FlyEnv-dən çıx",
+  "groupStart": "Paneldə göstərilən bütün mövcud xidmətləri bir kliklə başlat"
+}
