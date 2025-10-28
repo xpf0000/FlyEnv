@@ -1,0 +1,10 @@
+{
+  "showMainWin": "Əsas Pəncərəni Göstər",
+  "exit": "Çıxış",
+  "run": "İşləyir",
+  "notRun": "İşləmir",
+  "trayMenuBarStyle": "Tray Açılan Pəncərə Üslubu",
+  "classic": "Klassik",
+  "modern": "Müasir",
+  "trayMenuBarStyleTips": "Tray açılan pəncərə üslubunu seçin. Bəzi Linux masaüstü mühitlərində müasir üslub problemlər yarada bilər, bu halda klassik üslubu seçin."
+}

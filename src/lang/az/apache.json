@@ -1,0 +1,7 @@
+{
+  "Timeout": "Alma və göndərmə əməliyyatlarından əvvəl vaxt aşımı müddəti (saniyə).",
+  "KeepAlive": "Daimi bağlantılara icazə verilib-verilməyəcəyi.",
+  "KeepAliveTimeout": "Eyni bağlantı üzərindən eyni müştəridən gələn növbəti sorğunu gözləmə müddəti (saniyə).",
+  "MaxKeepAliveRequests": "Daimi bağlantı zamanı icazə verilən maksimum sorğu sayı.\nLimitsiz icazə vermək üçün 0 olaraq təyin edin.\nMaksimum performans üçün bu dəyərin yüksək saxlanması tövsiyə olunur.",
+  "LimitRequestBody": "Baytla ölçülən fayl yükləmə ölçü limiti. 0: limitsiz."
+}
