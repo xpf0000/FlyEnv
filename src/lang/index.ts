@@ -33,6 +33,12 @@ import type tray from './zh/tray.json'
 import type update from './zh/update.json'
 import type util from './zh/util.json'
 import type versionmanager from './zh/versionmanager.json'
+import type licenses from './zh/licenses.json'
+import type requestTimer from './zh/requestTimer.json'
+import type meilisearch from './zh/meilisearch.json'
+import type minio from './zh/minio.json'
+import type podman from './zh/podman.json'
+import type az from './az/toolType.json'
 
 import ar from 'element-plus/es/locale/lang/ar'
 import de from 'element-plus/es/locale/lang/de'
@@ -49,6 +55,7 @@ import tr from 'element-plus/es/locale/lang/tr'
 import ua from 'element-plus/es/locale/lang/uk'
 import vi from 'element-plus/es/locale/lang/vi'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import az from 'element-plus/es/locale/lang/az'
 
 import AR from './ar/index'
 import DE from './de/index'
@@ -63,6 +70,7 @@ import PTBR from './pt-br/index'
 import SV from './sv/index'
 import TR from './tr/index'
 import UA from './ua/index'
+import AZ from './az/index'
 import VI from './vi/index'
 import ZH from './zh/index'
 
@@ -116,6 +124,8 @@ export const AppAllLang = {
   ar: 'العربية',
   de: 'Deutsch',
   en: 'English',
+  zh: '中文',
+  az: 'Azərbaycanca',
   es: 'Español',
   fr: 'Français',
   id: 'Bahasa Indonesia',
@@ -126,12 +136,12 @@ export const AppAllLang = {
   sv: 'Svenska',
   tr: 'Türkçe',
   ua: 'Українська',
-  vi: 'Tiếng Việt',
-  zh: '中文'
+  vi: 'Tiếng Việt'
 }
 
 const lang = {
   ...AR,
+  ...AZ,
   ...DE,
   ...EN,
   ...ES,
@@ -150,6 +160,7 @@ const lang = {
 
 export const ElementPlusLang: any = {
   ar: ar,
+  az: az,
   de: de,
   en: en,
   es: es,

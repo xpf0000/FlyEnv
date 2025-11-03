@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS Sorğusu",
+  "tcpConnect": "TCP Bağlantısı",
+  "tlsHandshake": "TLS Əl Sıxması",
+  "requestProcessing": "Sorğunun Emalı",
+  "ttfb": "İlk Bayta Qədər Keçən Müddət (TTFB)",
+  "contentDownload": "Məzmunun Endirilməsi",
+  "downloadSpeed": "Endirmə Sürəti",
+  "dataSize": "Məlumat Ölçüsü",
+  "httpVersion": "HTTP Versiyası",
+  "statusCode": "Status Kodu",
+  "usingProxy": "Proxy İstifadə Olunur",
+  "totalTime": "Ümumi Müddət",
+  "skippedForProxy": "Proxy səbəbindən buraxıldı",
+  "metric": "Metrika",
+  "value": "Dəyər"
+}

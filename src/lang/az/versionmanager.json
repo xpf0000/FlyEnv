@@ -1,0 +1,7 @@
+{
+  "Local": "Yerli",
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> tapılmadı.\nHomebrew quraşdırmaq üçün 'quraşdır' düyməsinə klikləyərək davam edə bilərsiniz.\nHəmçinin aşağıdakı keçidə də klikləyə bilərsiniz:\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nQuraşdırma təlimatını izləyin.",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">MacPorts</a> tapılmadı.\nMacPorts quraşdırmaq üçün aşağıdakı keçidə klikləyə bilərsiniz:\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nQuraşdırma təlimatını izləyin.",
+  "brewErrorTips": "Bu yerdə {bin} üçün Homebrew icra faylları aşkarlandı.\nLakin FlyEnv onları çağıra bilmir. Xəta mesajı:\n{error}",
+  "Library": "Kitabxana"
+}

@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Əlavə xəta ayıklama məlumatlarını göstər (nümunə: OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "Ollama serveri üçün IP ünvanı (standart 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Modellərin yaddaşda nə qədər müddət yüklü qalacağı (standart \"5 dəq\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Hər GPU üçün yüklənmiş model sayının limiti",
+  "OLLAMA_MAX_QUEUE": "Növbədəki maksimum sorğu sayı",
+  "OLLAMA_MODELS": "Modellər qovluğunun yolu",
+  "OLLAMA_NUM_PARALLEL": "Eyni anda işləyə biləcək maksimum sorğu sayı",
+  "OLLAMA_NOPRUNE": "Başlanğıcda model komponentlərini təmizləmə",
+  "OLLAMA_ORIGINS": "İcazə verilmiş mənbələrin vergüllə ayrılmış siyahısı",
+  "OLLAMA_SCHED_SPREAD": "Həmişə modelləri bütün GPU-lar arasında paylayaraq planlaşdır",
+  "OLLAMA_FLASH_ATTENTION": "Flash attention funksiyasını aktiv et",
+  "OLLAMA_KV_CACHE_TYPE": "K/V keş üçün kvantlaşdırma növü (standart: f16)",
+  "OLLAMA_LLM_LIBRARY": "Avtomatik aşkarlamanı keçmək üçün LLM kitabxanasını təyin et",
+  "OLLAMA_GPU_OVERHEAD": "Hər GPU üçün ayrılacaq VRAM miqdarı (baytla)",
+  "OLLAMA_LOAD_TIMEOUT": "Model yükləmələrinin nə qədər müddət dayanmasına icazə verilir (standart \"5 dəq\")",
+  "needServiceRun": "Zəhmət olmasa əvvəlcə Ollama xidmətini başladın",
+  "size": "Ölçü",
+  "model": "Modellər"
+}

@@ -1,0 +1,10 @@
+{
+  "email": "E-poçt",
+  "country": "Ölkə",
+  "message": "Mesaj",
+  "messagelengthErr": "Mesajın uzunluğu 5 - 1024 simvol arasında olmalıdır",
+  "sendMessage": "Mesaj Göndər",
+  "anythingToSay": "Demək istədiyiniz bir şey varmı?",
+  "noSelected": "Seçilməyib",
+  "inputFilter": "Filtrləmək üçün yazın"
+}

@@ -1,0 +1,24 @@
+{
+  "startServiceBegin": "{service} xidməti başladılır...",
+  "confInit": "Konfiqurasiya faylı tapılmadı. Yeni konfiqurasiya faylı yaradılır",
+  "confInitSuccess": "Konfiqurasiya faylı uğurla yaradıldı, fayl yolu: {file}",
+  "confInitFail": "Konfiqurasiya faylı yaradıla bilmədi, səbəb: {error}",
+  "apachePortHandleBegin": "Saytdan bütün Apache dinləmə portları alınır",
+  "apachePortHandleEnd": "Apache dinləmə portları alındı, konfiqurasiya faylı yazılır",
+  "execStartCommand": "Başlatma əmri icra olunur",
+  "execStartCommandSuccess": "Başlatma əmri uğurla icra olundu, başlatma vəziyyəti yoxlanılır",
+  "execStartCommandFail": "Başlatma əmri icra edilə bilmədi, səbəb: {error}, {service} xidməti başladılmadı",
+  "startServiceSuccess": "{service} xidməti uğurla başladıldı, pid: {pid}",
+  "startServiceFail": "{service} xidməti başladılmadı, səbəb: {error}",
+  "stopServiceBegin": "{service} xidməti dayandırılır...",
+  "stopServiceEnd": "{service} xidməti uğurla dayandırıldı",
+  "initDBPass": "Verilənlər bazası parolu başlanır...",
+  "initDBPassSuccess": "Verilənlər bazası parolu uğurla quruldu, istifadəçi adı və parol: {user} {pass}",
+  "initDBPassFail": "Verilənlər bazası parolu qurula bilmədi, səbəb: {error}",
+  "initDBDataDir": "Məlumat qovluğu tapılmadı, yaradılır...",
+  "initDBDataDirSuccess": "Məlumat qovluğu uğurla yaradıldı, qovluq yolu: {dir}",
+  "initDBDataDirFail": "Məlumat qovluğu yaradıla bilmədi, səbəb: {error}",
+
+  "startInstall": "{service} quraşdırılması başlayır",
+  "newProjectFail": "Yeni layihə yaradıla bilmədi"
+}

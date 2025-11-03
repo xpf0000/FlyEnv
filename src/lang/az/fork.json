@@ -1,0 +1,15 @@
+{
+  "binNotFound": "Başlatma faylı tapılmadı, əməliyyat uğursuz oldu.",
+  "confNotFound": "Konfiqurasiya faylı mövcud deyil, server başladılmadı.",
+  "apacheLogPathErr": "Konfiqurasiya faylındakı jurnal yolu səhvdir, əməliyyat uğursuz oldu.",
+  "versionError": "Versiya səhvdir, zəhmət olmasa yenidən seçin.",
+  "hostsFileNotFound": "Hosts faylı mövcud deyil.",
+  "startFail": "Başladılmadı, zəhmət olmasa jurnal faylını yoxlayın.",
+  "versionNotFound": "Proqram versiyası alına bilmədi, əməliyyat uğursuz oldu.",
+  "postgresqlInit": "Xidmət uğurla başladıldı\nMəlumat Qovluğu: {dir}\nİlkin İstifadəçi: root, Şifrə: root",
+  "downloadFileFail": "Fayl endirilə bilmədi!",
+  "trialEnd": "Sınaq müddəti başa çatdı. Bu funksiyanı istifadə etməyə davam etmək üçün lisenziya əldə edin.",
+
+  "phpiniNotFound": "php.ini faylı tapılmadı",
+  "noEPMD": "epmd prosesi tapılmadı. Zəhmət olmasa Erlang mühit dəyişənlərini sıfırlayın."
+}
