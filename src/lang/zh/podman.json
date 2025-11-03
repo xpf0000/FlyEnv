@@ -65,5 +65,16 @@
   "Rename": "重命名",
   "ImageName": "镜像名称",
   "CommandArgs": "命令参数",
-  "Volumes": "挂载"
+  "Volumes": "挂载",
+  "ContainerDir": "容器路径",
+  "LocalDir": "本地路径",
+  "ContainerEnvVars": "容器内环境变量",
+  "NetworkMode": "网络连接方式",
+  "NetworkName": "网络名称",
+  "AutoRemove": "退出后自动删除容器",
+  "Interactive": "以交互模式运行容器",
+  "TTY": "分配一个伪终端",
+  "RestartPolicy": "容器重启策略",
+  "ContainerNameRequired": "请输入容器名称",
+  "ContainerImageRequired": "请选择容器镜像"
 }

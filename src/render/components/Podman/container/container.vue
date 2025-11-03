@@ -1,9 +1,14 @@
 <template>
   <div class="w-full h-full overflow-hidden flex flex-col gap-2 items-start">
     <div class="flex items-center">
-      <el-button size="small" class="flex-shrink-0" @click="addContainer()">{{
-        I18nT('base.add')
-      }}</el-button>
+      <el-button size="small" class="flex-shrink-0" @click="addContainer()">
+        <template #default>
+          <span>{{ I18nT('base.add') }}</span>
+          <template v-if="machine?.containerCreating">
+            <el-button link loading></el-button>
+          </template>
+        </template>
+      </el-button>
       <el-button size="small" class="flex-shrink-0" @click="importContainer()">
         <template #default>
           <span>{{ I18nT('base.import') }}</span>
@@ -62,9 +67,6 @@
                   <el-dropdown-item @click.stop="scope.row.doExport()">
                     {{ I18nT('base.export') }}
                   </el-dropdown-item>
-                  <el-dropdown-item @click.stop="doRename(scope.row)">
-                    {{ I18nT('podman.Rename') }}
-                  </el-dropdown-item>
                   <el-dropdown-item @click.stop="scope.row.remove()">
                     {{ I18nT('podman.Delete') }}
                   </el-dropdown-item>
@@ -94,26 +96,31 @@
   })
 
   const containers = computed<Container[]>(() => {
-    return machine?.value?.containers ?? []
+    return machine?.value?.container ?? []
   })
 
   let ContainerAddVM: any
-  import('./containerAdd.vue').then((res) => {
+  import('./containerCreate.vue').then((res) => {
     ContainerAddVM = res.default
   })
 
   function addContainer() {
+    const id = 'FlyEnv-Podman-Container-Create'
+    const xtermExec = XTermExecCache?.[id]
+    if (xtermExec) {
+      import('@/components/XTermExecDialog/index.vue').then((res) => {
+        AsyncComponentShow(res.default, {
+          title: xtermExec.title,
+          item: xtermExec
+        }).then()
+      })
+      return
+    }
     AsyncComponentShow(ContainerAddVM).then()
   }
 
   const importContainer = () => {
     machine.value?.containerImport?.()
-  }
-
-  const doRename = (item: Container) => {
-    item.doRename().then(() => {
-      machine.value?.fetchContainers?.()
-    })
   }
 
   const doCopy = (txt: string) => {

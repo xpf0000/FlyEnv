@@ -25,6 +25,7 @@ export class Machine {
   tab: string = 'Dashboard'
   imageImporting = false
   containerImporting = false
+  containerCreating = false
 
   ImageXTerm: XTermExec
   ContainerXTerm: XTermExec
@@ -48,6 +49,24 @@ export class Machine {
             this.images.push(image)
           } else {
             find.name = reactive(img.name)
+          }
+        }
+      }
+    })
+  }
+
+  fetchContainers() {
+    IPC.send('app-fork:podman', 'fetchContainerList', this.name).then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        const containers = res?.data ?? []
+        for (const item of containers) {
+          const find = this.container.some((s) => s.id === item.id)
+          if (!find) {
+            const container = reactiveBind(new Container(item))
+            container.machineName = this.name
+            container._onRemove = this.onContainerRemove
+            this.container.unshift(container)
           }
         }
       }

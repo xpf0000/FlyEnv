@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    v-model="visible"
+    v-model="show"
     :title="
       isEdit
         ? I18nT('base.edit') + I18nT('podman.Container')
@@ -9,12 +9,25 @@
     width="700px"
     @closed="closedFn"
   >
-    <el-form ref="formRef" :model="form" label-width="130px" class="pt-2">
-      <el-form-item :label="I18nT('base.name')" prop="name">
+    <el-form ref="formRef" :model="form" label-position="top" class="pt-2">
+      <el-form-item
+        prop="dir"
+        :label="I18nT('podman.ComposeFileSaveDir')"
+        required
+        :show-message="false"
+      >
+        <el-input v-model="form.dir">
+          <template #append>
+            <el-button :icon="FolderOpened" @click.stop="chooseDir"></el-button>
+          </template>
+        </el-input>
+      </el-form-item>
+
+      <el-form-item :label="I18nT('base.name')" prop="name" required :show-message="false">
         <el-input v-model="form.name" maxlength="32" />
       </el-form-item>
 
-      <el-form-item :label="I18nT('podman.Image')" prop="image" required>
+      <el-form-item :label="I18nT('podman.Image')" prop="image" required :show-message="false">
         <el-select v-model="form.image" filterable style="width: 100%">
           <el-option
             v-for="img in images"
@@ -60,7 +73,12 @@
                   <span>{{ I18nT('podman.LocalPort') }}</span>
                 </template>
               </el-input>
-              <el-button class="flex-shrink-0 ml-4" link :icon="Delete"></el-button>
+              <el-button
+                class="flex-shrink-0 ml-4"
+                link
+                :icon="Delete"
+                @click.stop="removePort(_p)"
+              ></el-button>
             </div>
           </template>
         </div>
@@ -70,50 +88,81 @@
         <template #label>
           <div class="inline-flex items-center gap-3">
             <span>{{ I18nT('podman.Volumes') }}</span>
-            <el-button link type="primary" :icon="Plus" @click.stop="addPort"></el-button>
+            <el-button link type="primary" :icon="Plus" @click.stop="addVolumes"></el-button>
           </div>
         </template>
         <div class="w-full flex flex-col gap-3">
-          <template v-for="(p, _p) in form.ports" :key="_p">
+          <template v-for="(p, _p) in form.volumes" :key="_p">
             <div class="w-full flex items-center justify-between">
               <el-input
                 v-model="p.in"
                 readonly
                 disabled
-                :placeholder="I18nT('podman.ContainerPort')"
+                :placeholder="I18nT('podman.ContainerDir')"
                 class="flex-1"
               >
                 <template #prefix>
-                  <span>{{ I18nT('podman.ContainerPort') }}</span>
+                  <span>{{ I18nT('podman.ContainerDir') }}</span>
                 </template>
               </el-input>
               <span class="mx-3 flex-shrink-0">→</span>
-              <el-input v-model="p.out" :placeholder="I18nT('podman.LocalPort')" class="flex-1">
+              <el-input v-model="p.out" :placeholder="I18nT('podman.LocalDir')" class="flex-1">
                 <template #prefix>
-                  <span>{{ I18nT('podman.LocalPort') }}</span>
+                  <span>{{ I18nT('podman.LocalDir') }}</span>
                 </template>
               </el-input>
-              <el-button class="flex-shrink-0 ml-4" link :icon="Delete"></el-button>
+              <el-button
+                class="flex-shrink-0 ml-4"
+                link
+                :icon="Delete"
+                @click.stop="removeVolume(_p)"
+              ></el-button>
             </div>
           </template>
         </div>
       </el-form-item>
 
-      <el-form-item :label="I18nT('podman.EnvVars')" prop="env">
-        <el-tag v-for="(env, index) in form.env" :key="index" closable @close="removeEnv(index)">
-          {{ env.name }}={{ env.value }}
-        </el-tag>
-        <el-button class="ml-2" size="small" @click="addEnv">
-          {{ I18nT('base.add') }}
-        </el-button>
+      <el-form-item :label="I18nT('podman.ContainerEnvVars')" prop="env">
+        <template #label>
+          <div class="inline-flex items-center gap-3">
+            <span>{{ I18nT('podman.ContainerEnvVars') }}</span>
+            <el-button link type="primary" :icon="Plus" @click.stop="addEnv"></el-button>
+          </div>
+        </template>
+        <div class="w-full flex flex-col gap-3">
+          <template v-for="(item, _index) in form.env" :key="_index">
+            <div class="w-full flex items-center justify-between">
+              <el-input
+                v-model="item.name"
+                readonly
+                disabled
+                :placeholder="I18nT('podman.ContainerDir')"
+                class="w-[140px] flex-shrink-0"
+              >
+              </el-input>
+              <el-input v-model="item.value" :placeholder="I18nT('podman.LocalDir')" class="flex-1">
+              </el-input>
+              <el-button
+                class="flex-shrink-0 ml-4"
+                link
+                :icon="Delete"
+                @click.stop="removeEnv(_index)"
+              ></el-button>
+            </div>
+          </template>
+        </div>
       </el-form-item>
 
-      <el-form-item :label="I18nT('podman.Network')" prop="network">
-        <el-select v-model="form.network" :placeholder="I18nT('podman.selectNetwork')">
+      <el-form-item :label="I18nT('podman.NetworkMode')" prop="network">
+        <el-select v-model="form.networkMode" :placeholder="I18nT('podman.NetworkMode')">
           <el-option label="bridge" value="bridge" />
           <el-option label="host" value="host" />
           <el-option label="none" value="none" />
         </el-select>
+      </el-form-item>
+
+      <el-form-item :label="I18nT('podman.NetworkName')" prop="network">
+        <el-input v-model="form.networkName" :placeholder="I18nT('podman.NetworkName')"> </el-input>
       </el-form-item>
 
       <el-form-item :label="I18nT('podman.AutoRemove')" prop="autoRemove">
@@ -129,7 +178,7 @@
       </el-form-item>
 
       <el-form-item :label="I18nT('podman.RestartPolicy')" prop="restart">
-        <el-select v-model="form.restart" :placeholder="I18nT('podman.selectRestartPolicy')">
+        <el-select v-model="form.restart" :placeholder="I18nT('podman.RestartPolicy')">
           <el-option label="no" value="no" />
           <el-option label="on-failure" value="on-failure" />
           <el-option label="always" value="always" />
@@ -137,35 +186,13 @@
         </el-select>
       </el-form-item>
 
+      <Preview :form="form" />
+
       <el-form-item>
-        <el-button type="primary" @click="onSubmit">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" @click="doSubmit">{{ I18nT('base.confirm') }}</el-button>
         <el-button @click="onCancel">{{ I18nT('base.cancel') }}</el-button>
       </el-form-item>
     </el-form>
-
-    <!-- 端口添加对话框 -->
-    <el-dialog v-model="portDialogVisible" :title="I18nT('podman.addPort')" width="400px">
-      <el-form :model="newPort" label-width="100px">
-        <el-form-item :label="I18nT('podman.hostPort')" prop="host">
-          <el-input-number v-model="newPort.host" :min="1" :max="65535" />
-        </el-form-item>
-        <el-form-item :label="I18nT('podman.containerPort')" prop="container">
-          <el-input-number v-model="newPort.container" :min="1" :max="65535" />
-        </el-form-item>
-        <el-form-item :label="I18nT('podman.protocol')" prop="protocol">
-          <el-select v-model="newPort.protocol">
-            <el-option label="tcp" value="tcp" />
-            <el-option label="udp" value="udp" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="portDialogVisible = false">{{ I18nT('base.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmAddPort">{{ I18nT('base.confirm') }}</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 其他添加对话框类似 -->
   </el-dialog>
 </template>
 
@@ -175,17 +202,21 @@
   import { ElMessage } from 'element-plus'
   import { PodmanManager } from '@/components/Podman/class/Podman'
   import type { Image } from '@/components/Podman/class/Image'
-  import { Delete, Plus } from '@element-plus/icons-vue'
+  import { Delete, FolderOpened, Plus } from '@element-plus/icons-vue'
+  import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
+  import Preview from './preview.vue'
+  import { dialog, fs } from '@/util/NodeFn'
+  import { generateComposeFile } from '@/components/Podman/container/util'
+  import { XTermExec, XTermExecCache } from '@/util/XTermExec'
+  import { reactiveBind } from '@/util'
+
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{ item?: any }>()
   const isEdit = !!props.item
 
   const visible = ref(true)
   const formRef = ref()
-  const imageLoading = ref(false)
-  const portDialogVisible = ref(false)
-  const volumeDialogVisible = ref(false)
-  const envDialogVisible = ref(false)
 
   const machine = computed(() => {
     return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)
@@ -195,29 +226,13 @@
     return machine?.value?.images ?? []
   })
 
-  const newPort = ref({
-    host: 8080,
-    container: 80,
-    protocol: 'tcp'
-  })
-
-  const newVolume = ref({
-    host: '',
-    container: '',
-    mode: 'rw'
-  })
-
-  const newEnv = ref({
-    name: '',
-    value: ''
-  })
-
   type BindType = {
     in: number
     out: number
   }
 
   const form = ref({
+    dir: '',
     name: '',
     image: '',
     command: '',
@@ -225,51 +240,33 @@
     ports: [] as Array<BindType>,
     volumes: [] as Array<BindType>,
     env: [] as Array<{ name: string; value: string }>,
-    network: 'bridge',
+    networkMode: 'bridge',
+    networkName: '',
     autoRemove: false,
     interactive: false,
     tty: false,
     restart: 'no'
   })
 
+  const chooseDir = () => {
+    dialog
+      .showSaveDialog({
+        defaultPath: 'docker-compose.yml'
+      })
+      .then(({ canceled, filePath }: any) => {
+        if (canceled || !filePath) {
+          return
+        }
+        form.value.dir = filePath
+      })
+  }
+
   // 初始化表单数据（如果是编辑模式）
   onMounted(() => {
     if (isEdit && props.item) {
       Object.assign(form.value, props.item)
     }
-    loadImages()
   })
-
-  const loadImages = async () => {
-    imageLoading.value = true
-    try {
-      // 这里替换为实际的 Podman 镜像列表获取逻辑
-      // imageList.value = await PodmanManager.listImages()
-      imageList.value = [
-        { id: 'nginx', tags: ['nginx:latest'] },
-        { id: 'alpine', tags: ['alpine:latest'] },
-        { id: 'ubuntu', tags: ['ubuntu:latest'] }
-      ]
-    } catch (e) {
-      ElMessage.error(I18nT('podman.loadImagesFailed'))
-    } finally {
-      imageLoading.value = false
-    }
-  }
-
-  const searchImages = async (query: string) => {
-    if (query) {
-      imageLoading.value = true
-      try {
-        // 这里替换为实际的搜索逻辑
-        // imageList.value = await PodmanManager.searchImages(query)
-      } catch (e) {
-        ElMessage.error(I18nT('podman.searchImagesFailed'))
-      } finally {
-        imageLoading.value = false
-      }
-    }
-  }
 
   const addPort = () => {
     form.value.ports.push(
@@ -280,96 +277,87 @@
     )
   }
 
-  const confirmAddPort = () => {
-    form.value.ports.push({ ...newPort.value })
-    portDialogVisible.value = false
-    resetNewPort()
+  const addEnv = () => {
+    form.value.env.push(
+      reactive({
+        name: undefined,
+        value: undefined
+      } as any)
+    )
+  }
+
+  const addVolumes = () => {
+    form.value.volumes.push(
+      reactive({
+        in: undefined,
+        out: undefined
+      } as any)
+    )
   }
 
   const removePort = (index: number) => {
     form.value.ports.splice(index, 1)
   }
 
-  const resetNewPort = () => {
-    newPort.value = {
-      host: 8080,
-      container: 80,
-      protocol: 'tcp'
-    }
-  }
-
-  // 类似的添加/删除方法用于 volumes 和 env
-  const addVolume = () => {
-    volumeDialogVisible.value = true
-  }
-
-  const confirmAddVolume = () => {
-    form.value.volumes.push({ ...newVolume.value })
-    volumeDialogVisible.value = false
-    resetNewVolume()
-  }
-
   const removeVolume = (index: number) => {
     form.value.volumes.splice(index, 1)
-  }
-
-  const resetNewVolume = () => {
-    newVolume.value = {
-      host: '',
-      container: '',
-      mode: 'rw'
-    }
-  }
-
-  const addEnv = () => {
-    envDialogVisible.value = true
-  }
-
-  const confirmAddEnv = () => {
-    form.value.env.push({ ...newEnv.value })
-    envDialogVisible.value = false
-    resetNewEnv()
   }
 
   const removeEnv = (index: number) => {
     form.value.env.splice(index, 1)
   }
 
-  const resetNewEnv = () => {
-    newEnv.value = {
-      name: '',
-      value: ''
-    }
-  }
-
-  const closedFn = () => {
-    visible.value = false
-  }
-
   const onCancel = () => {
     visible.value = false
   }
 
-  const onSubmit = async () => {
+  const doSubmit = async () => {
+    if (!form.value.name) {
+      ElMessage.error(I18nT('podman.ContainerNameRequired'))
+      return
+    }
     if (!form.value.image) {
-      ElMessage.error(I18nT('podman.imageRequired'))
+      ElMessage.error(I18nT('podman.ContainerImageRequired'))
+      return
+    }
+    if (!form.value.dir) {
+      ElMessage.error(I18nT('podman.ComposeFileSaveDir') + I18nT('podman.require'))
       return
     }
 
-    try {
-      // 这里替换为实际的创建/更新容器逻辑
-      // if (isEdit) {
-      //   await PodmanManager.updateContainer(form.value)
-      // } else {
-      //   await PodmanManager.createContainer(form.value)
-      // }
-
-      ElMessage.success(I18nT('base.success'))
-      visible.value = false
-      // 可选：触发容器列表刷新
-      // PodmanManager.refreshContainers()
-    } catch (e: any) {
-      ElMessage.error(e?.message ?? I18nT('base.fail'))
+    machine.value!.containerCreating = true
+    const content = generateComposeFile(form.value)
+    await fs.writeFile(form.value.dir, content)
+    const id = 'FlyEnv-Podman-Container-Create'
+    let xtermExec = XTermExecCache?.[id]
+    if (!xtermExec) {
+      xtermExec = reactiveBind(new XTermExec())
+      const arr: string[] = [`docker-compose -f ${form.value.dir}`]
+      const logs: string[] = [...arr, 'logs']
+      arr.push('up -d')
+      xtermExec.cammand = [arr.join(' '), logs.join(' ')]
+      xtermExec.wait().then(() => {
+        delete XTermExecCache?.[id]
+        machine.value?.fetchContainers?.()
+        machine.value!.containerCreating = false
+      })
+      XTermExecCache[id] = xtermExec
     }
+    import('@/components/XTermExecDialog/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        title: I18nT('podman.StartWithTerminal'),
+        item: xtermExec
+      }).then(() => {
+        machine.value?.fetchContainers?.()
+      })
+    })
+    onCancel()
   }
+
+  defineExpose({
+    show,
+    onClosed,
+    onSubmit,
+    closedFn
+  })
 </script>

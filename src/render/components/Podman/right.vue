@@ -61,6 +61,9 @@
         <template v-else-if="machine.tab === 'Image'">
           <ImageVM />
         </template>
+        <template v-else-if="machine.tab === 'Container'">
+          <ContainerVM />
+        </template>
         <!-- 其它 tab 可继续补充 -->
       </template>
     </template>
@@ -73,6 +76,7 @@
   import DashboradVM from './dashboard.vue'
   import ImageVM from './image/image.vue'
   import ComposeVM from './compose/compose.vue'
+  import ContainerVM from './container/container.vue'
 
   const machine = computed(() => {
     return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)
