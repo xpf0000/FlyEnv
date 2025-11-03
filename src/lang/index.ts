@@ -10,15 +10,20 @@ import type conf from './zh/conf.json'
 import type feedback from './zh/feedback.json'
 import type fork from './zh/fork.json'
 import type host from './zh/host.json'
+import type licenses from './zh/licenses.json'
 import type mailpit from './zh/mailpit.json'
+import type meilisearch from './zh/meilisearch.json'
 import type menu from './zh/menu.json'
+import type minio from './zh/minio.json'
 import type mysql from './zh/mysql.json'
 import type nginx from './zh/nginx.json'
 import type nodejs from './zh/nodejs.json'
 import type ollama from './zh/ollama.json'
 import type php from './zh/php.json'
+import type podman from './zh/podman.json'
 import type prompt from './zh/prompt.json'
 import type redis from './zh/redis.json'
+import type requestTimer from './zh/requestTimer.json'
 import type service from './zh/service.json'
 import type setup from './zh/setup.json'
 import type tokenGenerator from './zh/token-generator.json'
@@ -35,36 +40,39 @@ import type minio from './zh/minio.json'
 import type podman from './zh/podman.json'
 import type az from './az/toolType.json'
 
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import ar from 'element-plus/es/locale/lang/ar'
+import de from 'element-plus/es/locale/lang/de'
 import en from 'element-plus/es/locale/lang/en'
-import vi from 'element-plus/es/locale/lang/vi'
-import sv from 'element-plus/es/locale/lang/sv'
-import tr from 'element-plus/es/locale/lang/tr'
-import id from 'element-plus/es/locale/lang/id'
+import es from 'element-plus/es/locale/lang/es'
 import fr from 'element-plus/es/locale/lang/fr'
+import id from 'element-plus/es/locale/lang/id'
 import it from 'element-plus/es/locale/lang/it'
 import ja from 'element-plus/es/locale/lang/ja'
 import pt from 'element-plus/es/locale/lang/pt'
 import ptBr from 'element-plus/es/locale/lang/pt-br'
-import ar from 'element-plus/es/locale/lang/ar'
+import sv from 'element-plus/es/locale/lang/sv'
+import tr from 'element-plus/es/locale/lang/tr'
 import ua from 'element-plus/es/locale/lang/uk'
-import es from 'element-plus/es/locale/lang/es'
+import vi from 'element-plus/es/locale/lang/vi'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import az from 'element-plus/es/locale/lang/az'
 
-import ZH from './zh/index'
+import AR from './ar/index'
+import DE from './de/index'
 import EN from './en/index'
-import VI from './vi/index'
-import SV from './sv/index'
-import TR from './tr/index'
-import ID from './id/index'
+import ES from './es/index'
 import FR from './fr/index'
+import ID from './id/index'
 import IT from './it/index'
 import JA from './ja/index'
 import PT from './pt/index'
 import PTBR from './pt-br/index'
-import AR from './ar/index'
+import SV from './sv/index'
+import TR from './tr/index'
 import UA from './ua/index'
-import ES from './es/index'
 import AZ from './az/index'
+import VI from './vi/index'
+import ZH from './zh/index'
 
 type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
@@ -79,11 +87,6 @@ type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
 }[keyof T] // Extract the union type of all values
 
 type LangKey =
-  | AppendStringToKeys<typeof podman, 'podman'>
-  | AppendStringToKeys<typeof minio, 'minio'>
-  | AppendStringToKeys<typeof meilisearch, 'meilisearch'>
-  | AppendStringToKeys<typeof requestTimer, 'requestTimer'>
-  | AppendStringToKeys<typeof licenses, 'licenses'>
   | AppendStringToKeys<typeof ai, 'ai'>
   | AppendStringToKeys<typeof apache, 'apache'>
   | AppendStringToKeys<typeof appLog, 'appLog'>
@@ -93,15 +96,20 @@ type LangKey =
   | AppendStringToKeys<typeof feedback, 'feedback'>
   | AppendStringToKeys<typeof fork, 'fork'>
   | AppendStringToKeys<typeof host, 'host'>
+  | AppendStringToKeys<typeof licenses, 'licenses'>
   | AppendStringToKeys<typeof mailpit, 'mailpit'>
+  | AppendStringToKeys<typeof meilisearch, 'meilisearch'>
   | AppendStringToKeys<typeof menu, 'menu'>
+  | AppendStringToKeys<typeof minio, 'minio'>
   | AppendStringToKeys<typeof mysql, 'mysql'>
   | AppendStringToKeys<typeof nginx, 'nginx'>
   | AppendStringToKeys<typeof nodejs, 'nodejs'>
   | AppendStringToKeys<typeof ollama, 'ollama'>
   | AppendStringToKeys<typeof php, 'php'>
+  | AppendStringToKeys<typeof podman, 'podman'>
   | AppendStringToKeys<typeof prompt, 'prompt'>
   | AppendStringToKeys<typeof redis, 'redis'>
+  | AppendStringToKeys<typeof requestTimer, 'requestTimer'>
   | AppendStringToKeys<typeof service, 'service'>
   | AppendStringToKeys<typeof setup, 'setup'>
   | AppendStringToKeys<typeof tokenGenerator, 'token-generator'>
@@ -113,55 +121,60 @@ type LangKey =
   | AppendStringToKeys<typeof versionmanager, 'versionmanager'>
 
 export const AppAllLang = {
+  ar: 'العربية',
+  de: 'Deutsch',
   en: 'English',
   zh: '中文',
-  vi: 'Tiếng Việt',
-  sv: 'Svenska',
   az: 'Azərbaycanca',
-  tr: 'Türkçe',
-  id: 'Bahasa Indonesia',
+  es: 'Español',
   fr: 'Français',
+  id: 'Bahasa Indonesia',
   it: 'Italiano',
   ja: '日本語',
   pt: 'Português',
   'pt-br': 'Português (Brasil)',
-  ar: 'العربية',
+  sv: 'Svenska',
+  tr: 'Türkçe',
   ua: 'Українська',
-  es: 'Español'
+  vi: 'Tiếng Việt'
 }
 
 const lang = {
-  ...ZH,
+  ...AR,
+  ...AZ,
+  ...DE,
   ...EN,
-  ...VI,
-  ...SV,
-  ...TR,
-  ...ID,
+  ...ES,
   ...FR,
+  ...ID,
   ...IT,
   ...JA,
   ...PT,
   ...PTBR,
-  ...AR,
+  ...SV,
+  ...TR,
   ...UA,
-  ...ES
+  ...VI,
+  ...ZH
 }
 
 export const ElementPlusLang: any = {
+  ar: ar,
+  az: az,
+  de: de,
   en: en,
-  zh: zhCn,
-  vi: vi,
-  sv: sv,
-  tr: tr,
-  id: id,
+  es: es,
   fr: fr,
+  id: id,
   it: it,
   ja: ja,
   pt: pt,
   'pt-br': ptBr,
-  ar: ar,
+  sv: sv,
+  tr: tr,
   ua: ua,
-  es: es
+  vi: vi,
+  zh: zhCn
 }
 
 let i18n: I18n
