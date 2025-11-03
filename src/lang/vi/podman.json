@@ -50,5 +50,20 @@
   "CustomInput": "Tự nhập",
   "SelectPresetModule": "Chọn mô-đun dựng sẵn",
   "TagPlaceholder": "latest hoặc số phiên bản, ví dụ: 8.2, 5.7, 16-alpine",
-  "NamePlaceholder": "ví dụ: nginx"
+  "NamePlaceholder": "ví dụ: nginx",
+  "ComposeFileSaveDir": "Thư mục lưu tệp Compose",
+  "DockerImageMirror": "Nguồn mirror Docker image (tùy chọn)",
+  "Persistence": "Lưu trữ dữ liệu bền vững",
+  "MYSQL_ROOT_PASSWORD": "Mật khẩu ROOT",
+  "MYSQL_DATABASE": "Tên cơ sở dữ liệu",
+  "MYSQL_USER": "Tài khoản truy cập cơ sở dữ liệu",
+  "MYSQL_PASSWORD": "Mật khẩu cơ sở dữ liệu",
+  "PortBind": "Ánh xạ cổng",
+  "ContainerPort": "Cổng trong container",
+  "LocalPort": "Cổng trên máy host",
+  "ComposeNameErrorTips": "Tên dự án phải bắt đầu bằng chữ cái hoặc số, và chỉ được chứa chữ thường, số, dấu gạch dưới (_) hoặc dấu gạch ngang (-).",
+  "Rename": "Đổi tên",
+  "ImageName": "Tên image",
+  "CommandArgs": "Tham số lệnh",
+  "Volumes": "Gắn kết volume"
 }
