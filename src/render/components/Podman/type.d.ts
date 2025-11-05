@@ -43,3 +43,39 @@ export interface XTermType {
   installing: boolean
   xterm?: XTerm
 }
+
+export interface ContainerPortItem {
+  host_ip: string
+  container_port: number
+  host_port: number
+  range: number
+  protocol: string
+}
+
+export interface ContainerItem {
+  AutoRemove: boolean
+  Command: string[]
+  CreatedAt: string
+  CIDFile: string
+  Exited: boolean
+  ExitedAt: number
+  ExitCode: number
+  ExposedPorts: Record<string, string[]>
+  Id: string
+  Image: string
+  ImageID: string
+  IsInfra: boolean
+  Mounts: string[]
+  Names: string[]
+  Networks: string[]
+  Pid: number
+  Pod: string
+  PodName: string
+  Ports: ContainerPortItem[]
+  Restarts: number
+  Size: number
+  StartedAt: number
+  State: string
+  Status: string
+  Created: number
+}
