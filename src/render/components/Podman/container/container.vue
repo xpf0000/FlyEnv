@@ -37,17 +37,46 @@
           </el-tooltip>
         </template>
       </el-table-column>
-      <el-table-column prop="size" width="120px" :label="I18nT('podman.Size')">
+      <el-table-column prop="Image" :label="I18nT('podman.Image')">
         <template #default="scope">
-          <template v-if="scope.row.pulling && !scope.row.size">
+          <span
+            class="truncate cursor-pointer hover:text-yellow-500"
+            @click.stop="doCopy(scope.row.Image)"
+          >
+            {{ scope.row.Image }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="running" :label="I18nT('podman.Status')" width="110" align="center">
+        <template #default="scope">
+          <template v-if="scope.row?.statusError">
+            <el-tooltip :content="scope.row?.statusError">
+              <Warning class="w-[21px] h-[21px] text-yellow-500" />
+            </el-tooltip>
+          </template>
+          <template v-else-if="scope.row?.running">
             <el-button loading link></el-button>
           </template>
+          <template v-else-if="scope.row.run">
+            <div class="service status running" :class="{ disabled: scope.row.running }">
+              <yb-icon
+                class="w-[21px] h-[21px]"
+                :svg="import('@/svg/stop2.svg?raw')"
+                @click.stop="scope.row.stop()"
+              />
+            </div>
+          </template>
           <template v-else>
-            <span>{{ formatBytes(Number(scope.row.size)) }}</span>
+            <div class="service status" :class="{ disabled: scope.row.running }">
+              <yb-icon
+                class="w-[21px] h-[21px]"
+                :svg="import('@/svg/play.svg?raw')"
+                @click.stop="scope.row.start()"
+              />
+            </div>
           </template>
         </template>
       </el-table-column>
-      <el-table-column prop="created" width="170px" :label="I18nT('podman.Created')" />
       <el-table-column align="center" :label="I18nT('podman.Action')" width="100">
         <template #default="scope">
           <template v-if="scope.row.pulling">
@@ -64,6 +93,15 @@
               </template>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item v-if="scope.row.run" @click.stop="scope.row.stopWithTerminal()">
+                    {{ I18nT('podman.StopWithTerminal') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item v-else @click.stop="scope.row.startWithTerminal()">
+                    {{ I18nT('podman.StartWithTerminal') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item @click.stop="scope.row.showLogsWithTerminal()">
+                    {{ I18nT('base.log') }}
+                  </el-dropdown-item>
                   <el-dropdown-item @click.stop="scope.row.doExport()">
                     {{ I18nT('base.export') }}
                   </el-dropdown-item>
@@ -90,6 +128,7 @@
   import { MessageSuccess } from '@/util/Element'
   import { formatBytes } from '@/util/Index'
   import { XTermExecCache } from '@/util/XTermExec'
+  import { Warning } from '@element-plus/icons-vue'
 
   const machine = computed(() => {
     return PodmanManager.machine.find((m) => m.name === PodmanManager.tab)

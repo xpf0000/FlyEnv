@@ -72,7 +72,7 @@ class Podman extends Base {
         containers = json.map((c: any) => ({
           id: c.Id,
           name: c.Names,
-          image: c.Image,
+          Image: c.Image,
           ImageID: c.ImageID,
           Mounts: c.Mounts,
           Networks: c.Networks,
@@ -352,6 +352,30 @@ class Podman extends Base {
         })
         console.log('isComposeRunning arr: ', arr)
         resolve(arr.length > 0)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      } finally {
+        if (existsSync(tmp)) {
+          await remove(tmp)
+        }
+      }
+    })
+  }
+
+  isContainerRunning(containerName: string, machineName: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const tmp = join(tmpdir(), `${uuid()}.txt`)
+      const cmd = isLinux()
+        ? `podman inspect ${containerName} --format json > "${tmp}"`
+        : `podman --connection ${machineName} inspect ${containerName} --format json > "${tmp}"`
+      try {
+        await execPromiseWithEnv(cmd)
+        const content = await readFile(tmp, 'utf-8')
+        const arr = JSON.parse(content)
+        console.log('isContainerRunning arr: ', arr)
+        const item: any = arr.shift()
+        console.log('isContainerRunning item: ', item)
+        resolve(item?.State?.Status === 'running')
       } catch (e: any) {
         reject(e?.message ?? 'fail')
       } finally {
