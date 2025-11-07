@@ -5,6 +5,9 @@ import { Compose } from '@/components/Podman/class/Compose'
 import XTerm from '@/util/XTerm'
 import { reactiveBind } from '@/util/Index'
 import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
+import { XTermExec, XTermExecCache } from '@/util/XTermExec'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
+import { I18nT } from '@lang/index'
 
 class Podman {
   machine: Machine[] = []
@@ -18,6 +21,9 @@ class Podman {
   installEnd: boolean = false
   installing: boolean = false
   xterm: XTerm | undefined
+
+  dockerComposeExists: boolean = false
+  dockerComposeInstalling: boolean = false
 
   onMachineRemove(item: Machine) {
     this.machine = this.machine.filter((f) => f.name !== item.name)
@@ -50,6 +56,7 @@ class Podman {
       return
     }
     this.initImageVersion()
+    this.checkIsComposeExists()
     PodmanManager.loadComposeList().catch()
     IPC.send('app-fork:podman', 'podmanInit').then((key: string, res: any) => {
       IPC.off(key)
@@ -125,6 +132,64 @@ class Podman {
       this.compose[idx] = item
       this.saveComposeList().catch()
     }
+  }
+
+  currentMachine() {
+    return this.machine.find((m) => m.name === this.tab)
+  }
+
+  currentSocket() {
+    return this.currentMachine()?.info?.ConnectionInfo?.PodmanSocket?.Path
+  }
+
+  checkIsComposeExists() {
+    IPC.send('app-fork:podman', 'checkIsComposeExists').then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        this.dockerComposeExists = true
+      } else {
+        this.dockerComposeExists = false
+      }
+    })
+  }
+
+  installDockerCompose() {
+    const id = 'App-Podman-DockerCompose-Install'
+    if (this.dockerComposeInstalling) {
+      const xtermExec = XTermExecCache?.[id]
+      if (xtermExec) {
+        import('@/components/XTermExecDialog/index.vue').then((res) => {
+          AsyncComponentShow(res.default, {
+            title: xtermExec.title,
+            item: xtermExec
+          }).then(() => {
+            this.checkIsComposeExists()
+          })
+        })
+      }
+      return
+    }
+
+    this.dockerComposeInstalling = true
+    let xtermExec = XTermExecCache?.[id]
+    if (!xtermExec) {
+      xtermExec = reactiveBind(new XTermExec())
+      const arr: string[] = ['brew install docker-compose']
+      xtermExec.cammand = [arr.join(' ')]
+      xtermExec.wait().then(() => {
+        delete XTermExecCache?.[id]
+        this.checkIsComposeExists()
+      })
+      XTermExecCache[id] = xtermExec
+    }
+    import('@/components/XTermExecDialog/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        title: I18nT('podman.DockerComposeInstallButton'),
+        item: xtermExec
+      }).then(() => {
+        this.checkIsComposeExists()
+      })
+    })
   }
 }
 

@@ -76,5 +76,7 @@
   "TTY": "分配一个伪终端",
   "RestartPolicy": "容器重启策略",
   "ContainerNameRequired": "请输入容器名称",
-  "ContainerImageRequired": "请选择容器镜像"
+  "ContainerImageRequired": "请选择容器镜像",
+  "DockerComposeNoExistsTips": "未检测到docker-composer, 请先安装",
+  "DockerComposeInstallButton": "安装docker-composer"
 }
