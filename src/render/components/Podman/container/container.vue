@@ -99,6 +99,9 @@
                   <el-dropdown-item v-else @click.stop="scope.row.startWithTerminal()">
                     {{ I18nT('podman.StartWithTerminal') }}
                   </el-dropdown-item>
+                  <el-dropdown-item @click.stop="scope.row.showInfo()">
+                    {{ I18nT('base.info') }}
+                  </el-dropdown-item>
                   <el-dropdown-item @click.stop="scope.row.showLogsWithTerminal()">
                     {{ I18nT('base.log') }}
                   </el-dropdown-item>
@@ -126,7 +129,6 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { clipboard } from '@/util/NodeFn'
   import { MessageSuccess } from '@/util/Element'
-  import { formatBytes } from '@/util/Index'
   import { XTermExecCache } from '@/util/XTermExec'
   import { Warning } from '@element-plus/icons-vue'
 

@@ -112,5 +112,6 @@
   "action": "操作",
   "preview": "预览",
 
-  "executing": "执行中"
+  "executing": "执行中",
+  "info": "详情"
 }

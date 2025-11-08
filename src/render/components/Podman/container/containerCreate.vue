@@ -6,193 +6,202 @@
         ? I18nT('base.edit') + I18nT('podman.Container')
         : I18nT('podman.Container') + I18nT('base.add')
     "
+    class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     width="700px"
     @closed="closedFn"
   >
-    <el-form ref="formRef" :model="form" label-position="top" class="pt-2">
-      <el-form-item
-        prop="dir"
-        :label="I18nT('podman.ComposeFileSaveDir')"
-        required
-        :show-message="false"
-      >
-        <el-input v-model="form.dir">
-          <template #append>
-            <el-button :icon="FolderOpened" @click.stop="chooseDir"></el-button>
-          </template>
-        </el-input>
-      </el-form-item>
+    <el-scrollbar>
+      <el-form ref="formRef" :model="form" label-position="top" class="pt-2">
+        <el-form-item
+          prop="dir"
+          :label="I18nT('podman.ComposeFileSaveDir')"
+          required
+          :show-message="false"
+        >
+          <el-input v-model="form.dir">
+            <template #append>
+              <el-button :icon="FolderOpened" @click.stop="chooseDir"></el-button>
+            </template>
+          </el-input>
+        </el-form-item>
 
-      <el-form-item :label="I18nT('base.name')" prop="name" required :show-message="false">
-        <el-input v-model="form.name" maxlength="32" />
-      </el-form-item>
+        <el-form-item :label="I18nT('base.name')" prop="name" required :show-message="false">
+          <el-input v-model="form.name" maxlength="32" />
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.Image')" prop="image" required :show-message="false">
-        <el-select v-model="form.image" filterable style="width: 100%">
-          <el-option
-            v-for="img in images"
-            :key="img.id"
-            :label="img.name.join(',')"
-            :value="img.id"
-          />
-        </el-select>
-      </el-form-item>
+        <el-form-item :label="I18nT('podman.Image')" prop="image" required :show-message="false">
+          <el-select v-model="form.image" filterable style="width: 100%">
+            <el-option
+              v-for="img in images"
+              :key="img.id"
+              :label="img.name.join(',')"
+              :value="img.id"
+            />
+          </el-select>
+        </el-form-item>
 
-      <el-form-item :label="I18nT('setup.module.command')" prop="command">
-        <el-input v-model="form.command" />
-      </el-form-item>
+        <el-form-item :label="I18nT('setup.module.command')" prop="command">
+          <el-input v-model="form.command" />
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.CommandArgs')" prop="args">
-        <el-input v-model="form.args" />
-      </el-form-item>
+        <el-form-item :label="I18nT('podman.CommandArgs')" prop="args">
+          <el-input v-model="form.args" />
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.PortBind')" prop="ports">
-        <template #label>
-          <div class="inline-flex items-center gap-3">
-            <span>{{ I18nT('podman.PortBind') }}</span>
-            <el-button link type="primary" :icon="Plus" @click.stop="addPort"></el-button>
-          </div>
-        </template>
-        <div class="w-full flex flex-col gap-3">
-          <template v-for="(p, _p) in form.ports" :key="_p">
-            <div class="w-full flex items-center justify-between">
-              <el-input
-                v-model="p.in"
-                readonly
-                disabled
-                :placeholder="I18nT('podman.ContainerPort')"
-                class="flex-1"
-              >
-                <template #prefix>
-                  <span>{{ I18nT('podman.ContainerPort') }}</span>
-                </template>
-              </el-input>
-              <span class="mx-3 flex-shrink-0">→</span>
-              <el-input v-model="p.out" :placeholder="I18nT('podman.LocalPort')" class="flex-1">
-                <template #prefix>
-                  <span>{{ I18nT('podman.LocalPort') }}</span>
-                </template>
-              </el-input>
-              <el-button
-                class="flex-shrink-0 ml-4"
-                link
-                :icon="Delete"
-                @click.stop="removePort(_p)"
-              ></el-button>
+        <el-form-item :label="I18nT('podman.PortBind')" prop="ports">
+          <template #label>
+            <div class="inline-flex items-center gap-3">
+              <span>{{ I18nT('podman.PortBind') }}</span>
+              <el-button link type="primary" :icon="Plus" @click.stop="addPort"></el-button>
             </div>
           </template>
-        </div>
-      </el-form-item>
-
-      <el-form-item :label="I18nT('podman.Volumes')" prop="volumes">
-        <template #label>
-          <div class="inline-flex items-center gap-3">
-            <span>{{ I18nT('podman.Volumes') }}</span>
-            <el-button link type="primary" :icon="Plus" @click.stop="addVolumes"></el-button>
+          <div class="w-full flex flex-col gap-3">
+            <template v-for="(p, _p) in form.ports" :key="_p">
+              <div class="w-full flex items-center justify-between">
+                <el-input
+                  v-model="p.in"
+                  readonly
+                  disabled
+                  :placeholder="I18nT('podman.ContainerPort')"
+                  class="flex-1"
+                >
+                  <template #prefix>
+                    <span>{{ I18nT('podman.ContainerPort') }}</span>
+                  </template>
+                </el-input>
+                <span class="mx-3 flex-shrink-0">→</span>
+                <el-input v-model="p.out" :placeholder="I18nT('podman.LocalPort')" class="flex-1">
+                  <template #prefix>
+                    <span>{{ I18nT('podman.LocalPort') }}</span>
+                  </template>
+                </el-input>
+                <el-button
+                  class="flex-shrink-0 ml-4"
+                  link
+                  :icon="Delete"
+                  @click.stop="removePort(_p)"
+                ></el-button>
+              </div>
+            </template>
           </div>
-        </template>
-        <div class="w-full flex flex-col gap-3">
-          <template v-for="(p, _p) in form.volumes" :key="_p">
-            <div class="w-full flex items-center justify-between">
-              <el-input
-                v-model="p.in"
-                readonly
-                disabled
-                :placeholder="I18nT('podman.ContainerDir')"
-                class="flex-1"
-              >
-                <template #prefix>
-                  <span>{{ I18nT('podman.ContainerDir') }}</span>
-                </template>
-              </el-input>
-              <span class="mx-3 flex-shrink-0">→</span>
-              <el-input v-model="p.out" :placeholder="I18nT('podman.LocalDir')" class="flex-1">
-                <template #prefix>
-                  <span>{{ I18nT('podman.LocalDir') }}</span>
-                </template>
-              </el-input>
-              <el-button
-                class="flex-shrink-0 ml-4"
-                link
-                :icon="Delete"
-                @click.stop="removeVolume(_p)"
-              ></el-button>
+        </el-form-item>
+
+        <el-form-item :label="I18nT('podman.Volumes')" prop="volumes">
+          <template #label>
+            <div class="inline-flex items-center gap-3">
+              <span>{{ I18nT('podman.Volumes') }}</span>
+              <el-button link type="primary" :icon="Plus" @click.stop="addVolumes"></el-button>
             </div>
           </template>
-        </div>
-      </el-form-item>
-
-      <el-form-item :label="I18nT('podman.ContainerEnvVars')" prop="env">
-        <template #label>
-          <div class="inline-flex items-center gap-3">
-            <span>{{ I18nT('podman.ContainerEnvVars') }}</span>
-            <el-button link type="primary" :icon="Plus" @click.stop="addEnv"></el-button>
+          <div class="w-full flex flex-col gap-3">
+            <template v-for="(p, _p) in form.volumes" :key="_p">
+              <div class="w-full flex items-center justify-between">
+                <el-input
+                  v-model="p.in"
+                  readonly
+                  disabled
+                  :placeholder="I18nT('podman.ContainerDir')"
+                  class="flex-1"
+                >
+                  <template #prefix>
+                    <span>{{ I18nT('podman.ContainerDir') }}</span>
+                  </template>
+                </el-input>
+                <span class="mx-3 flex-shrink-0">→</span>
+                <el-input v-model="p.out" :placeholder="I18nT('podman.LocalDir')" class="flex-1">
+                  <template #prefix>
+                    <span>{{ I18nT('podman.LocalDir') }}</span>
+                  </template>
+                </el-input>
+                <el-button
+                  class="flex-shrink-0 ml-4"
+                  link
+                  :icon="Delete"
+                  @click.stop="removeVolume(_p)"
+                ></el-button>
+              </div>
+            </template>
           </div>
-        </template>
-        <div class="w-full flex flex-col gap-3">
-          <template v-for="(item, _index) in form.env" :key="_index">
-            <div class="w-full flex items-center justify-between">
-              <el-input
-                v-model="item.name"
-                readonly
-                disabled
-                :placeholder="I18nT('podman.ContainerDir')"
-                class="w-[140px] flex-shrink-0"
-              >
-              </el-input>
-              <el-input v-model="item.value" :placeholder="I18nT('podman.LocalDir')" class="flex-1">
-              </el-input>
-              <el-button
-                class="flex-shrink-0 ml-4"
-                link
-                :icon="Delete"
-                @click.stop="removeEnv(_index)"
-              ></el-button>
+        </el-form-item>
+
+        <el-form-item :label="I18nT('podman.ContainerEnvVars')" prop="env">
+          <template #label>
+            <div class="inline-flex items-center gap-3">
+              <span>{{ I18nT('podman.ContainerEnvVars') }}</span>
+              <el-button link type="primary" :icon="Plus" @click.stop="addEnv"></el-button>
             </div>
           </template>
-        </div>
-      </el-form-item>
+          <div class="w-full flex flex-col gap-3">
+            <template v-for="(item, _index) in form.env" :key="_index">
+              <div class="w-full flex items-center justify-between">
+                <el-input
+                  v-model="item.name"
+                  readonly
+                  disabled
+                  :placeholder="I18nT('podman.ContainerDir')"
+                  class="w-[140px] flex-shrink-0"
+                >
+                </el-input>
+                <el-input
+                  v-model="item.value"
+                  :placeholder="I18nT('podman.LocalDir')"
+                  class="flex-1"
+                >
+                </el-input>
+                <el-button
+                  class="flex-shrink-0 ml-4"
+                  link
+                  :icon="Delete"
+                  @click.stop="removeEnv(_index)"
+                ></el-button>
+              </div>
+            </template>
+          </div>
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.NetworkMode')" prop="network">
-        <el-select v-model="form.networkMode" :placeholder="I18nT('podman.NetworkMode')">
-          <el-option label="bridge" value="bridge" />
-          <el-option label="host" value="host" />
-          <el-option label="none" value="none" />
-        </el-select>
-      </el-form-item>
+        <el-form-item :label="I18nT('podman.NetworkMode')" prop="network">
+          <el-select v-model="form.networkMode" :placeholder="I18nT('podman.NetworkMode')">
+            <el-option label="bridge" value="bridge" />
+            <el-option label="host" value="host" />
+            <el-option label="none" value="none" />
+          </el-select>
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.NetworkName')" prop="network">
-        <el-input v-model="form.networkName" :placeholder="I18nT('podman.NetworkName')"> </el-input>
-      </el-form-item>
+        <el-form-item :label="I18nT('podman.NetworkName')" prop="network">
+          <el-input v-model="form.networkName" :placeholder="I18nT('podman.NetworkName')">
+          </el-input>
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.AutoRemove')" prop="autoRemove">
-        <el-switch v-model="form.autoRemove" />
-      </el-form-item>
+        <el-form-item :label="I18nT('podman.AutoRemove')" prop="autoRemove">
+          <el-switch v-model="form.autoRemove" />
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.Interactive')" prop="interactive">
-        <el-switch v-model="form.interactive" />
-      </el-form-item>
+        <el-form-item :label="I18nT('podman.Interactive')" prop="interactive">
+          <el-switch v-model="form.interactive" />
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.TTY')" prop="tty">
-        <el-switch v-model="form.tty" />
-      </el-form-item>
+        <el-form-item :label="I18nT('podman.TTY')" prop="tty">
+          <el-switch v-model="form.tty" />
+        </el-form-item>
 
-      <el-form-item :label="I18nT('podman.RestartPolicy')" prop="restart">
-        <el-select v-model="form.restart" :placeholder="I18nT('podman.RestartPolicy')">
-          <el-option label="no" value="no" />
-          <el-option label="on-failure" value="on-failure" />
-          <el-option label="always" value="always" />
-          <el-option label="unless-stopped" value="unless-stopped" />
-        </el-select>
-      </el-form-item>
+        <el-form-item :label="I18nT('podman.RestartPolicy')" prop="restart">
+          <el-select v-model="form.restart" :placeholder="I18nT('podman.RestartPolicy')">
+            <el-option label="no" value="no" />
+            <el-option label="on-failure" value="on-failure" />
+            <el-option label="always" value="always" />
+            <el-option label="unless-stopped" value="unless-stopped" />
+          </el-select>
+        </el-form-item>
 
-      <Preview :form="form" />
-
-      <el-form-item>
-        <el-button type="primary" @click="doSubmit">{{ I18nT('base.confirm') }}</el-button>
-        <el-button @click="onCancel">{{ I18nT('base.cancel') }}</el-button>
-      </el-form-item>
-    </el-form>
+        <Preview :form="form" />
+      </el-form>
+    </el-scrollbar>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click.stop="onCancel">{{ I18nT('base.cancel') }}</el-button>
+        <el-button type="primary" @click.stop="doSubmit">{{ I18nT('base.confirm') }}</el-button>
+      </div>
+    </template>
   </el-dialog>
 </template>
 
@@ -208,14 +217,13 @@
   import { dialog, fs } from '@/util/NodeFn'
   import { generateComposeFile } from '@/components/Podman/container/util'
   import { XTermExec, XTermExecCache } from '@/util/XTermExec'
-  import { reactiveBind } from '@/util'
+  import { reactiveBind } from '@/util/Index'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{ item?: any }>()
   const isEdit = !!props.item
 
-  const visible = ref(true)
   const formRef = ref()
 
   const machine = computed(() => {
@@ -308,7 +316,7 @@
   }
 
   const onCancel = () => {
-    visible.value = false
+    show.value = false
   }
 
   const doSubmit = async () => {

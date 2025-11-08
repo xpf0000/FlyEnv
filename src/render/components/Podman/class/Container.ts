@@ -12,7 +12,7 @@ import { dialog, shell } from '@/util/NodeFn'
 export class Container {
   id: string = ''
   machineName: string = ''
-  name: string = ''
+  name: string[] = []
   Image: string = ''
   ImageID = ''
   Mounts: string[] = []
@@ -248,5 +248,13 @@ export class Container {
           }).then()
         })
       })
+  }
+
+  showInfo() {
+    import('@/components/Podman/container/info.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        item: this
+      }).then()
+    })
   }
 }

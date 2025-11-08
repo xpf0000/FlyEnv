@@ -412,6 +412,28 @@ class Podman extends Base {
     })
   }
 
+  fetchContainerInfo(id: string, machineName: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const tmp = join(tmpdir(), `${uuid()}.txt`)
+      const cmd = isLinux()
+        ? `podman inspect ${id} --format json > "${tmp}"`
+        : `podman --connection ${machineName} inspect ${id} --format json > "${tmp}"`
+      try {
+        await execPromiseWithEnv(cmd)
+        const content = await readFile(tmp, 'utf-8')
+        const arr = JSON.parse(content)
+        const item: any = arr.shift()
+        resolve(item)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      } finally {
+        if (existsSync(tmp)) {
+          await remove(tmp)
+        }
+      }
+    })
+  }
+
   composeImageVersion(image: string) {
     return new ForkPromise(async (resolve, reject) => {
       fetchTags(image).then(resolve).catch(reject)
