@@ -50,6 +50,7 @@ import ua from 'element-plus/es/locale/lang/uk'
 import vi from 'element-plus/es/locale/lang/vi'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import az from 'element-plus/es/locale/lang/az'
+import bn from 'element-plus/es/locale/lang/bn'
 
 import AR from './ar/index'
 import DE from './de/index'
@@ -67,6 +68,7 @@ import UA from './ua/index'
 import AZ from './az/index'
 import VI from './vi/index'
 import ZH from './zh/index'
+import BN from './bn/index'
 
 type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
@@ -130,7 +132,8 @@ export const AppAllLang = {
   sv: 'Svenska',
   tr: 'Türkçe',
   ua: 'Українська',
-  vi: 'Tiếng Việt'
+  vi: 'Tiếng Việt',
+  bn: 'বাংলা'
 }
 
 const lang = {
@@ -149,7 +152,8 @@ const lang = {
   ...TR,
   ...UA,
   ...VI,
-  ...ZH
+  ...ZH,
+  ...BN
 }
 
 export const ElementPlusLang: any = {
@@ -168,7 +172,8 @@ export const ElementPlusLang: any = {
   tr: tr,
   ua: ua,
   vi: vi,
-  zh: zhCn
+  zh: zhCn,
+  bn: bn
 }
 
 let i18n: I18n
