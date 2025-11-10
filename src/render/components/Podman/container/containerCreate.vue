@@ -10,7 +10,7 @@
     width="700px"
     @closed="closedFn"
   >
-    <el-scrollbar>
+    <el-scrollbar class="px-2">
       <el-form ref="formRef" :model="form" label-position="top" class="pt-2">
         <el-form-item
           prop="dir"
@@ -60,8 +60,6 @@
               <div class="w-full flex items-center justify-between">
                 <el-input
                   v-model="p.in"
-                  readonly
-                  disabled
                   :placeholder="I18nT('podman.ContainerPort')"
                   class="flex-1"
                 >
@@ -96,13 +94,7 @@
           <div class="w-full flex flex-col gap-3">
             <template v-for="(p, _p) in form.volumes" :key="_p">
               <div class="w-full flex items-center justify-between">
-                <el-input
-                  v-model="p.in"
-                  readonly
-                  disabled
-                  :placeholder="I18nT('podman.ContainerDir')"
-                  class="flex-1"
-                >
+                <el-input v-model="p.in" :placeholder="I18nT('podman.ContainerDir')" class="flex-1">
                   <template #prefix>
                     <span>{{ I18nT('podman.ContainerDir') }}</span>
                   </template>
@@ -111,6 +103,9 @@
                 <el-input v-model="p.out" :placeholder="I18nT('podman.LocalDir')" class="flex-1">
                   <template #prefix>
                     <span>{{ I18nT('podman.LocalDir') }}</span>
+                  </template>
+                  <template #append>
+                    <el-button :icon="FolderOpened" @click.stop="chooseVolume(_p)"></el-button>
                   </template>
                 </el-input>
                 <el-button
@@ -133,18 +128,16 @@
           </template>
           <div class="w-full flex flex-col gap-3">
             <template v-for="(item, _index) in form.env" :key="_index">
-              <div class="w-full flex items-center justify-between">
+              <div class="w-full flex items-center justify-between gap-3">
                 <el-input
                   v-model="item.name"
-                  readonly
-                  disabled
-                  :placeholder="I18nT('podman.ContainerDir')"
+                  :placeholder="I18nT('host.envVar')"
                   class="w-[140px] flex-shrink-0"
                 >
                 </el-input>
                 <el-input
                   v-model="item.value"
-                  :placeholder="I18nT('podman.LocalDir')"
+                  :placeholder="I18nT('tools.envValue')"
                   class="flex-1"
                 >
                 </el-input>
@@ -170,10 +163,6 @@
         <el-form-item :label="I18nT('podman.NetworkName')" prop="network">
           <el-input v-model="form.networkName" :placeholder="I18nT('podman.NetworkName')">
           </el-input>
-        </el-form-item>
-
-        <el-form-item :label="I18nT('podman.AutoRemove')" prop="autoRemove">
-          <el-switch v-model="form.autoRemove" />
         </el-form-item>
 
         <el-form-item :label="I18nT('podman.Interactive')" prop="interactive">
@@ -250,7 +239,6 @@
     env: [] as Array<{ name: string; value: string }>,
     networkMode: 'bridge',
     networkName: '',
-    autoRemove: false,
     interactive: false,
     tty: false,
     restart: 'no'
@@ -292,6 +280,21 @@
         value: undefined
       } as any)
     )
+  }
+
+  const chooseVolume = (index: number) => {
+    const opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
+    dialog
+      .showOpenDialog({
+        properties: opt
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        form.value.volumes[index].out = path
+      })
   }
 
   const addVolumes = () => {

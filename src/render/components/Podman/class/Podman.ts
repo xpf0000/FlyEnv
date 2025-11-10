@@ -8,6 +8,7 @@ import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 import { XTermExec, XTermExecCache } from '@/util/XTermExec'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { I18nT } from '@lang/index'
+import { ElMessageBox } from 'element-plus'
 
 class Podman {
   machine: Machine[] = []
@@ -101,6 +102,7 @@ class Podman {
       if (Array.isArray(arr)) {
         for (const item of arr) {
           const compose = reactiveBind(new Compose(item))
+          compose.checkRunningStatus()
           this.compose.push(compose)
         }
       }
@@ -122,8 +124,14 @@ class Podman {
   }
 
   removeCompose(item: Compose) {
-    this.compose = this.compose.filter((f) => f.id !== item.id)
-    this.saveComposeList().catch()
+    ElMessageBox.confirm(I18nT('base.delAlertContent'), I18nT('host.warning'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      type: 'warning'
+    }).then(() => {
+      this.compose = this.compose.filter((f) => f.id !== item.id)
+      this.saveComposeList().catch()
+    })
   }
 
   updateCompose(item: Compose) {

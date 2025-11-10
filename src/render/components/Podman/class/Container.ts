@@ -28,7 +28,6 @@ export class Container {
 
   constructor(obj: any) {
     Object.assign(this, obj)
-    this.run = false
     this.running = false
     this.statusError = undefined
   }

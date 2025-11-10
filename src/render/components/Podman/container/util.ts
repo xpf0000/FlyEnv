@@ -30,8 +30,7 @@ export const generateComposeFile = (formData: any): string => {
         network_mode: formData.networkMode,
         tty: formData.tty,
         stdin_open: formData.interactive,
-        restart: formData.restart === 'no' ? 'no' : formData.restart,
-        auto_remove: formData.autoRemove
+        restart: formData.restart === 'no' ? 'no' : formData.restart
       }
     }
   }

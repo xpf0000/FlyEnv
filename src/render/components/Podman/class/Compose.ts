@@ -20,7 +20,6 @@ export class Compose {
 
   constructor(obj: any) {
     Object.assign(this, obj)
-    this.run = false
     this.running = false
     this.statusError = undefined
   }
@@ -200,6 +199,13 @@ export class Compose {
     this._onRemove?.(this)
   }
 
+  refreshMachineContainer() {
+    const machine = PodmanManager.machine.find((m) => m.name === PodmanManager.tab)
+    if (machine) {
+      machine.fetchContainers()
+    }
+  }
+
   checkRunningStatus() {
     IPC.send(
       'app-fork:podman',
@@ -211,6 +217,7 @@ export class Compose {
       IPC.off(key)
       if (res?.code === 0) {
         this.run = res.data
+        this.refreshMachineContainer()
       } else {
         this.statusError = res?.msg ?? I18nT('base.fail')
       }

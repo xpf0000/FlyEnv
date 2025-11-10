@@ -6,220 +6,226 @@
     width="700px"
     @closed="closedFn"
   >
-    <div v-if="containerDetail?.Id" class="container-detail space-y-4">
-      <!-- 基本信息 -->
-      <el-descriptions title="基本信息" border :column="2">
-        <el-descriptions-item label="容器名称">
-          {{ containerDetail.Name }}
-        </el-descriptions-item>
-        <el-descriptions-item label="容器ID">
-          {{ containerDetail.Id.substring(0, 12) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="镜像">
-          {{ containerDetail.ImageName || containerDetail.Config.Image }}
-        </el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="getStatusType(containerDetail.State.Status)">
-            {{ containerDetail.State.Status }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="退出码">
-          {{ containerDetail.State.ExitCode }}
-        </el-descriptions-item>
-        <el-descriptions-item label="重启次数">
-          {{ containerDetail.RestartCount }}
-        </el-descriptions-item>
-        <el-descriptions-item label="自动删除">
-          <el-tag :type="containerDetail.HostConfig.AutoRemove ? 'success' : 'info'">
-            {{ containerDetail.HostConfig.AutoRemove ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="基础设施容器">
-          <el-tag :type="containerDetail.IsInfra ? 'warning' : 'info'">
-            {{ containerDetail.IsInfra ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-      </el-descriptions>
+    <div v-if="containerDetail?.Id" class="h-full overflow-hidden">
+      <el-scrollbar class="h-full">
+        <div class="flex flex-col gap-5">
+          <!-- 基本信息 -->
+          <el-descriptions title="基本信息" border :column="2" direction="vertical">
+            <el-descriptions-item label="容器名称">
+              {{ containerDetail.Name }}
+            </el-descriptions-item>
+            <el-descriptions-item label="容器ID">
+              {{ containerDetail.Id.substring(0, 12) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="镜像">
+              {{ containerDetail.ImageName || containerDetail.Config.Image }}
+            </el-descriptions-item>
+            <el-descriptions-item label="状态">
+              <el-tag :type="getStatusType(containerDetail.State.Status)">
+                {{ containerDetail.State.Status }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="退出码">
+              {{ containerDetail.State.ExitCode }}
+            </el-descriptions-item>
+            <el-descriptions-item label="重启次数">
+              {{ containerDetail.RestartCount }}
+            </el-descriptions-item>
+            <el-descriptions-item label="自动删除">
+              <el-tag :type="containerDetail.HostConfig.AutoRemove ? 'success' : 'info'">
+                {{ containerDetail.HostConfig.AutoRemove ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="基础设施容器">
+              <el-tag :type="containerDetail.IsInfra ? 'warning' : 'info'">
+                {{ containerDetail.IsInfra ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+          </el-descriptions>
 
-      <!-- 运行状态 -->
-      <el-descriptions title="运行状态" border :column="2">
-        <el-descriptions-item label="运行中">
-          <el-tag :type="containerDetail.State.Running ? 'success' : 'info'">
-            {{ containerDetail.State.Running ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="已暂停">
-          <el-tag :type="containerDetail.State.Paused ? 'warning' : 'info'">
-            {{ containerDetail.State.Paused ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="重启中">
-          <el-tag :type="containerDetail.State.Restarting ? 'warning' : 'info'">
-            {{ containerDetail.State.Restarting ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="内存溢出">
-          <el-tag :type="containerDetail.State.OOMKilled ? 'danger' : 'info'">
-            {{ containerDetail.State.OOMKilled ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="已死亡">
-          <el-tag :type="containerDetail.State.Dead ? 'danger' : 'info'">
-            {{ containerDetail.State.Dead ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item v-if="containerDetail.State.Error" label="错误信息">
-          {{ containerDetail.State.Error }}
-        </el-descriptions-item>
-      </el-descriptions>
+          <!-- 运行状态 -->
+          <el-descriptions title="运行状态" border :column="2" direction="vertical">
+            <el-descriptions-item label="运行中">
+              <el-tag :type="containerDetail.State.Running ? 'success' : 'info'">
+                {{ containerDetail.State.Running ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="已暂停">
+              <el-tag :type="containerDetail.State.Paused ? 'warning' : 'info'">
+                {{ containerDetail.State.Paused ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="重启中">
+              <el-tag :type="containerDetail.State.Restarting ? 'warning' : 'info'">
+                {{ containerDetail.State.Restarting ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="内存溢出">
+              <el-tag :type="containerDetail.State.OOMKilled ? 'danger' : 'info'">
+                {{ containerDetail.State.OOMKilled ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="已死亡">
+              <el-tag :type="containerDetail.State.Dead ? 'danger' : 'info'">
+                {{ containerDetail.State.Dead ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item v-if="containerDetail.State.Error" label="错误信息">
+              {{ containerDetail.State.Error }}
+            </el-descriptions-item>
+          </el-descriptions>
 
-      <!-- 时间信息 -->
-      <el-descriptions title="时间信息" border :column="2">
-        <el-descriptions-item label="创建时间">
-          {{ formatTime(containerDetail.Created) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="启动时间">
-          {{ formatTime(containerDetail.State.StartedAt) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="完成时间">
-          {{ formatTime(containerDetail.State.FinishedAt) }}
-        </el-descriptions-item>
-      </el-descriptions>
+          <!-- 时间信息 -->
+          <el-descriptions title="时间信息" border :column="2" direction="vertical">
+            <el-descriptions-item label="创建时间">
+              {{ formatTime(containerDetail.Created) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="启动时间">
+              {{ formatTime(containerDetail.State.StartedAt) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="完成时间">
+              {{ formatTime(containerDetail.State.FinishedAt) }}
+            </el-descriptions-item>
+          </el-descriptions>
 
-      <!-- 端口信息 -->
-      <el-descriptions v-if="hasPortInfo" title="端口信息" border :column="1">
-        <el-descriptions-item
-          v-if="Object.keys(containerDetail.NetworkSettings.Ports || {}).length > 0"
-          label="端口绑定"
-        >
-          <div class="space-y-2">
-            <div
-              v-for="(bindingsList, portKey) in containerDetail.NetworkSettings.Ports"
-              :key="portKey"
-              class="flex items-center space-x-4 text-sm"
+          <!-- 端口信息 -->
+          <el-descriptions
+            v-if="hasPortInfo"
+            title="端口信息"
+            border
+            :column="1"
+            direction="vertical"
+          >
+            <el-descriptions-item
+              v-if="Object.keys(containerDetail.NetworkSettings.Ports || {}).length > 0"
+              label="端口绑定"
             >
-              <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ portKey }}</span>
-              <span>→</span>
-              <div class="flex space-x-2">
-                <el-tag
-                  v-for="binding in bindingsList"
-                  :key="binding.HostPort"
-                  size="small"
-                  type="info"
+              <div class="space-y-2">
+                <div
+                  v-for="(bindingsList, portKey) in containerDetail.NetworkSettings.Ports"
+                  :key="portKey"
+                  class="flex items-center space-x-4 text-sm"
                 >
-                  {{ binding.HostIp }}:{{ binding.HostPort }}
-                </el-tag>
-              </div>
-            </div>
-          </div>
-        </el-descriptions-item>
-
-        <el-descriptions-item
-          v-if="Object.keys(containerDetail.Config.ExposedPorts || {}).length > 0"
-          label="暴露端口"
-        >
-          <div class="flex flex-wrap gap-2">
-            <el-tag
-              v-for="(_, port) in containerDetail.Config.ExposedPorts"
-              :key="port"
-              size="small"
-              type="warning"
-            >
-              {{ port }}
-            </el-tag>
-          </div>
-        </el-descriptions-item>
-      </el-descriptions>
-
-      <!-- 挂载信息 -->
-      <el-descriptions
-        v-if="containerDetail.Mounts?.length > 0"
-        title="挂载信息"
-        border
-        :column="1"
-        :direction="'vertical'"
-      >
-        <el-descriptions-item label="挂载点">
-          <div class="flex flex-col gap-3">
-            <template v-for="(mount, _index) in containerDetail.Mounts" :key="_index">
-              <el-descriptions border :column="2">
-                <el-descriptions-item label="类型:">
-                  <el-tag size="small" class="ml-1">{{ mount.Type }}</el-tag>
-                </el-descriptions-item>
-                <el-descriptions-item label="权限:">
-                  <el-tag :type="mount.RW ? 'success' : 'info'" size="small" class="ml-1">
-                    {{ mount.RW ? '读写' : '只读' }}
-                  </el-tag>
-                </el-descriptions-item>
-                <el-descriptions-item label="路径:" :span="2">
-                  <span class="font-mono text-xs ml-1"
-                    >{{ mount.Source }} → {{ mount.Destination }}</span
-                  >
-                </el-descriptions-item>
-              </el-descriptions>
-            </template>
-          </div>
-        </el-descriptions-item>
-      </el-descriptions>
-
-      <!-- 网络信息 -->
-      <el-descriptions
-        v-if="containerDetail.NetworkSettings?.Networks"
-        title="网络信息"
-        border
-        :column="1"
-      >
-        <el-descriptions-item label="网络配置">
-          <div class="space-y-3">
-            <div
-              v-for="(network, name) in containerDetail.NetworkSettings.Networks"
-              :key="name"
-              class="border rounded p-3 bg-gray-50"
-            >
-              <div class="flex items-center justify-between mb-2">
-                <span class="font-medium">{{ name }}</span>
-                <span class="text-xs text-gray-500 font-mono"
-                  >ID: {{ network.NetworkID.substring(0, 12) }}</span
-                >
-              </div>
-              <div v-if="network.Aliases.length > 0" class="mt-2">
-                <span class="text-sm font-medium text-gray-600">别名:</span>
-                <div class="flex flex-wrap gap-1 mt-1">
-                  <el-tag v-for="alias in network.Aliases" :key="alias" size="small" type="info">
-                    {{ alias }}
-                  </el-tag>
+                  <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ portKey }}</span>
+                  <span>→</span>
+                  <div class="flex space-x-2">
+                    <el-tag
+                      v-for="binding in bindingsList"
+                      :key="binding.HostPort"
+                      size="small"
+                      type="info"
+                    >
+                      {{ binding.HostIp }}:{{ binding.HostPort }}
+                    </el-tag>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </el-descriptions-item>
-      </el-descriptions>
+            </el-descriptions-item>
 
-      <!-- 命令信息 -->
-      <el-descriptions title="命令信息" border :column="1">
-        <el-descriptions-item label="启动命令">
-          <pre class="command-pre"
-            >{{ containerDetail.Path }} {{ containerDetail.Args.join(' ') }}</pre
+            <el-descriptions-item
+              v-if="Object.keys(containerDetail.Config.ExposedPorts || {}).length > 0"
+              label="暴露端口"
+            >
+              <div class="flex flex-wrap gap-2">
+                <el-tag
+                  v-for="(_, port) in containerDetail.Config.ExposedPorts"
+                  :key="port"
+                  size="small"
+                  type="warning"
+                >
+                  {{ port }}
+                </el-tag>
+              </div>
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <!-- 挂载信息 -->
+          <el-descriptions
+            v-if="containerDetail.Mounts?.length > 0"
+            title="挂载信息"
+            border
+            :column="1"
+            :direction="'vertical'"
           >
-        </el-descriptions-item>
-        <el-descriptions-item label="工作目录">
-          <span class="font-mono text-sm">{{ containerDetail.Config.WorkingDir }}</span>
-        </el-descriptions-item>
-        <el-descriptions-item v-if="containerDetail.Config.Entrypoint?.length > 0" label="入口点">
-          <span class="font-mono text-sm">{{ containerDetail.Config.Entrypoint.join(' ') }}</span>
-        </el-descriptions-item>
-      </el-descriptions>
+            <el-descriptions-item label="挂载点">
+              <div class="flex flex-col gap-3">
+                <template v-for="(mount, _index) in containerDetail.Mounts" :key="_index">
+                  <el-descriptions border :column="2" direction="vertical">
+                    <el-descriptions-item label="类型:">
+                      <el-tag size="small" class="ml-1">{{ mount.Type }}</el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="权限:">
+                      <el-tag :type="mount.RW ? 'success' : 'info'" size="small" class="ml-1">
+                        {{ mount.RW ? '读写' : '只读' }}
+                      </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="路径:" :span="2">
+                      <span class="font-mono text-xs ml-1"
+                        >{{ mount.Source }} → {{ mount.Destination }}</span
+                      >
+                    </el-descriptions-item>
+                  </el-descriptions>
+                </template>
+              </div>
+            </el-descriptions-item>
+          </el-descriptions>
 
-      <!-- 环境变量 -->
-      <el-descriptions
-        v-if="containerDetail.Config.Env.length > 0"
-        title="环境变量"
-        border
-        :column="1"
-      >
-        <el-descriptions-item label="环境变量">
-          <el-collapse>
-            <el-collapse-item title="查看环境变量">
+          <!-- 网络信息 -->
+          <el-descriptions
+            v-if="containerDetail.NetworkSettings?.Networks"
+            title="网络信息"
+            border
+            :column="1"
+            direction="vertical"
+          >
+            <el-descriptions-item label="网络配置">
+              <div class="flex flex-col gap-3">
+                <template
+                  v-for="(network, name) in containerDetail.NetworkSettings.Networks"
+                  :key="name"
+                >
+                  <el-descriptions border :column="1" direction="vertical">
+                    <el-descriptions-item label="名称:">
+                      <span>{{ name }}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="ID:">
+                      <span>{{ network.NetworkID }}</span>
+                    </el-descriptions-item>
+                  </el-descriptions>
+                </template>
+              </div>
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <!-- 命令信息 -->
+          <el-descriptions title="命令信息" border :column="1" direction="vertical">
+            <el-descriptions-item label="启动命令">
+              <pre class="command-pre"
+                >{{ containerDetail.Path }} {{ containerDetail.Args.join(' ') }}</pre
+              >
+            </el-descriptions-item>
+            <el-descriptions-item label="工作目录">
+              <span class="font-mono text-sm">{{ containerDetail.Config.WorkingDir }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item
+              v-if="containerDetail.Config.Entrypoint?.length > 0"
+              label="入口点"
+            >
+              <span class="font-mono text-sm">{{
+                containerDetail.Config.Entrypoint.join(' ')
+              }}</span>
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <!-- 环境变量 -->
+          <el-descriptions
+            v-if="containerDetail.Config.Env.length > 0"
+            title="环境变量"
+            border
+            :column="1"
+            direction="vertical"
+          >
+            <el-descriptions-item label="环境变量">
               <div class="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                 <el-tag
                   v-for="env in containerDetail.Config.Env"
@@ -230,39 +236,42 @@
                   {{ env }}
                 </el-tag>
               </div>
-            </el-collapse-item>
-          </el-collapse>
-        </el-descriptions-item>
-      </el-descriptions>
+            </el-descriptions-item>
+          </el-descriptions>
 
-      <!-- 配置信息 -->
-      <el-descriptions title="配置信息" border :column="2">
-        <el-descriptions-item label="重启策略">
-          {{ containerDetail.HostConfig.RestartPolicy.Name }}
-          <span
-            v-if="containerDetail.HostConfig.RestartPolicy.MaximumRetryCount > 0"
-            class="text-gray-500 text-sm ml-1"
-          >
-            (最大重试: {{ containerDetail.HostConfig.RestartPolicy.MaximumRetryCount }})
-          </span>
-        </el-descriptions-item>
-        <el-descriptions-item label="网络模式">
-          {{ containerDetail.HostConfig.NetworkMode }}
-        </el-descriptions-item>
-        <el-descriptions-item label="特权模式">
-          <el-tag :type="containerDetail.HostConfig.Privileged ? 'warning' : 'info'" size="small">
-            {{ containerDetail.HostConfig.Privileged ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="只读根文件系统">
-          <el-tag
-            :type="containerDetail.HostConfig.ReadonlyRootfs ? 'warning' : 'info'"
-            size="small"
-          >
-            {{ containerDetail.HostConfig.ReadonlyRootfs ? '是' : '否' }}
-          </el-tag>
-        </el-descriptions-item>
-      </el-descriptions>
+          <!-- 配置信息 -->
+          <el-descriptions title="配置信息" border :column="2" direction="vertical">
+            <el-descriptions-item label="重启策略">
+              {{ containerDetail.HostConfig.RestartPolicy.Name }}
+              <span
+                v-if="containerDetail.HostConfig.RestartPolicy.MaximumRetryCount > 0"
+                class="text-gray-500 text-sm ml-1"
+              >
+                (最大重试: {{ containerDetail.HostConfig.RestartPolicy.MaximumRetryCount }})
+              </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="网络模式">
+              {{ containerDetail.HostConfig.NetworkMode }}
+            </el-descriptions-item>
+            <el-descriptions-item label="特权模式">
+              <el-tag
+                :type="containerDetail.HostConfig.Privileged ? 'warning' : 'info'"
+                size="small"
+              >
+                {{ containerDetail.HostConfig.Privileged ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="只读根文件系统">
+              <el-tag
+                :type="containerDetail.HostConfig.ReadonlyRootfs ? 'warning' : 'info'"
+                size="small"
+              >
+                {{ containerDetail.HostConfig.ReadonlyRootfs ? '是' : '否' }}
+              </el-tag>
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
+      </el-scrollbar>
     </div>
 
     <el-empty v-else description="容器信息加载中..."></el-empty>
