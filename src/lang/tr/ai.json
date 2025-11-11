@@ -67,6 +67,6 @@
   "alert": "Uyarı",
   "customer": "Benim Yardımcılarım",
 
-  "siteDirectoryError": "Site Directory Error",
-  "domainError": "Domain Error"
+  "siteDirectoryError": "Site Dizini Hatası",
+  "domainError": "Alan Adı Hatası"
 }

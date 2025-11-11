@@ -27,6 +27,5 @@
   "experimental_enable_metrics": "Deneysel metrik özelliği. `GET /metrics` uç noktasında Prometheus metriklerini etkinleştirir.",
   "experimental_reduce_indexing_memory_usage": "Dizine ekleme sırasında bellek kullanımını deneysel olarak azaltır, üretimde kullanmayın.",
   "experimental_max_number_of_batched_tasks": "Aynı anda işlenecek maksimum görev sayısını deneysel olarak azaltır.",
-
-  "working_dir": "Working Directory"
+  "working_dir": "Çalışma Rehberi"
 }

@@ -43,9 +43,8 @@
     "needPasswordToStart": "Yönetici hakları gerekiyor. Şifrenizi girin (ileride kullanılmak üzere kaydedilecektir). Alternatif olarak terminalde manuel girebilirsiniz, ancak bu uyarı tekrar görünebilir.",
     "hadOpenInTerminal": "Terminalde zaten çalışıyor—sonuçlar görüntülenemiyor.",
     "licenseTips": "Lisans bulunamadı. Yalnızca 3 modül/çalıştırma öğesi oluşturulabilir.",
-
-    "outputLog": "Output Log",
-    "errorLog": "Error Log"
+    "outputLog": "Çıktı Günlüğü",
+    "errorLog": "Hata Günlüğü"
   },
 
   "flyenvHelper": "FlyEnv Yardımcı Programını Onar",
