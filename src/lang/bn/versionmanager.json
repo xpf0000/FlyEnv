@@ -1,0 +1,7 @@
+{
+  "Local": "স্থানীয়",
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> পাওয়া যায়নি\nHomebrew ইনস্টল করতে, এগিয়ে যেতে ইনস্টল বোতামে ক্লিক করুন\nআপনি এই লিংকেও ক্লিক করতে পারেন\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nডকুমেন্টেশন অনুসরণ করে ইনস্টল করুন।",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> পাওয়া যায়নি।\nMacports ইনস্টল করতে, আপনি এই লিংকে ক্লিক করতে পারেন\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nডকুমেন্টেশন অনুসরণ করে ইনস্টল করুন।",
+  "brewErrorTips": "এই অবস্থানে {bin}, Homebrew এক্সিকিউটেবল ফাইল সনাক্ত করা হয়েছে।\nতবে, FlyEnv তাদের কল করতে পারে না। ত্রুটি বার্তা:\n{error}",
+  "Library": "লাইব্রেরি"
+}

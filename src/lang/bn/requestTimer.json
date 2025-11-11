@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS লুকআপ",
+  "tcpConnect": "TCP সংযোগ",
+  "tlsHandshake": "TLS হ্যান্ডশেক",
+  "requestProcessing": "অনুরোধ প্রক্রিয়াকরণ",
+  "ttfb": "প্রথম বাইটের সময় (TTFB)",
+  "contentDownload": "কন্টেন্ট ডাউনলোড",
+  "downloadSpeed": "ডাউনলোড গতি",
+  "dataSize": "ডেটা সাইজ",
+  "httpVersion": "HTTP সংস্করণ",
+  "statusCode": "স্ট্যাটাস কোড",
+  "usingProxy": "প্রক্সি ব্যবহার করা হচ্ছে",
+  "totalTime": "মোট সময়",
+  "skippedForProxy": "প্রক্সির জন্য এড়িয়ে যাওয়া হয়েছে",
+  "metric": "মেট্রিক",
+  "value": "মান"
+}

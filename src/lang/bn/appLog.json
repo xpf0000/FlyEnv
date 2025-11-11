@@ -1,0 +1,23 @@
+{
+  "startInstall": "{service} ইনস্টল শুরু হচ্ছে",
+  "startServiceBegin": "{service} সার্ভিস শুরু করা হচ্ছে...",
+  "confInit": "কনফিগারেশন ফাইল বিদ্যমান নেই, কনফিগারেশন ফাইল তৈরি করা হচ্ছে",
+  "confInitSuccess": "কনফিগারেশন ফাইল সফলভাবে তৈরি হয়েছে, ফাইল পাথ: {file}",
+  "confInitFail": "কনফিগারেশন ফাইল তৈরি ব্যর্থ, কারণ: {error}",
+  "apachePortHandleBegin": "সাইট থেকে সব Apache লিসেনিং পোর্ট পাওয়া শুরু হচ্ছে",
+  "apachePortHandleEnd": "Apache লিসেনিং পোর্ট পাওয়া সম্পূর্ণ, সফলভাবে কনফিগারেশন ফাইল লেখা হচ্ছে",
+  "execStartCommand": "স্টার্টআপ কমান্ড চালানো শুরু হচ্ছে",
+  "execStartCommandSuccess": "স্টার্ট কমান্ড সফলভাবে চালানো হয়েছে, স্টার্টআপ সফল হয়েছে কিনা চেক করা শুরু হচ্ছে",
+  "execStartCommandFail": "স্টার্ট কমান্ড চালানো ব্যর্থ, কারণ: {error}, {service} সার্ভিস শুরু করতে ব্যর্থ",
+  "startServiceSuccess": "{service} সার্ভিস সফলভাবে শুরু হয়েছে, pid: {pid}",
+  "startServiceFail": "{service} সার্ভিস শুরু করতে ব্যর্থ, কারণ: {error}",
+  "stopServiceBegin": "{service} সার্ভিস বন্ধ করা শুরু হচ্ছে",
+  "stopServiceEnd": "{service} সার্ভিস সফলভাবে বন্ধ হয়েছে",
+  "initDBPass": "ডেটাবেস পাসওয়ার্ড ইনিশিয়ালাইজ করা শুরু হচ্ছে",
+  "initDBPassSuccess": "ডেটাবেস পাসওয়ার্ড সফলভাবে ইনিশিয়ালাইজ হয়েছে, অ্যাকাউন্ট পাসওয়ার্ড: {user} {pass}",
+  "initDBPassFail": "ডেটাবেস পাসওয়ার্ড ইনিশিয়ালাইজ করতে ব্যর্থ, কারণ: {error}",
+  "initDBDataDir": "ডেটা ফোল্ডার পাওয়া যায়নি, ডেটা ফোল্ডার ইনিশিয়ালাইজ করা শুরু হচ্ছে",
+  "initDBDataDirSuccess": "ডেটা ফোল্ডার ইনিশিয়ালাইজেশন সফল, ডেটা ফোল্ডার পাথ: {dir}",
+  "initDBDataDirFail": "ডেটা ফোল্ডার ইনিশিয়ালাইজেশন ব্যর্থ, কারণ: {error}",
+  "newProjectFail": "নতুন প্রজেক্ট তৈরি করতে ব্যর্থ"
+}

@@ -1,0 +1,10 @@
+{
+  "gzip": "GZIP কম্প্রেশন ট্রান্সমিশন সক্রিয় করবেন কিনা",
+  "gzip_min_length": "সর্বনিম্ন কম্প্রেসড ফাইল",
+  "gzip_comp_level": "কম্প্রেসিবিলিটি",
+  "client_max_body_size": "সর্বাধিক আপলোড ফাইল সাইজ",
+  "server_names_hash_max_size": "সার্ভার নামের জন্য হ্যাশ টেবিল সর্বাধিক সাইজ",
+  "server_names_hash_bucket_size": "সার্ভার নামের জন্য হ্যাশ টেবিল সাইজ",
+  "client_header_buffer_size": "ক্লায়েন্ট অনুরোধ হেডার বাফার সাইজ",
+  "client_body_buffer_size": "অনুরোধ বডি বাফার সাইজ"
+}

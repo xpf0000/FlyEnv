@@ -1,0 +1,10 @@
+{
+  "email": "ইমেইল",
+  "country": "দেশ",
+  "message": "বার্তা",
+  "messagelengthErr": "বার্তার দৈর্ঘ্য ৫ - ১০২৪",
+  "sendMessage": "বার্তা পাঠান",
+  "anythingToSay": "কিছু বলার আছে",
+  "noSelected": "কিছু নির্বাচন করা হয়নি",
+  "inputFilter": "ফিল্টার করতে লিখুন"
+}
