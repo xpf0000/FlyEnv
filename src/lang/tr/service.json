@@ -8,7 +8,6 @@
   "setByApp": "FlyEnv tarafından ayarlanmış ortam değişkenleri",
   "setByNoApp": "FlyEnv tarafından ayarlanmamış ortam değişkenleri",
   "ftpdNeedPasswordToStart": "Pure-FTPd çalıştırmak için sudo yetkileri gereklidir. Lütfen kullanıcı şifrenizi girin. Bu şifre daha sonra otomatik doldurma için kullanılacaktır. Veya aşağıdaki butona tıklayarak terminalde manuel olarak girebilirsiniz, ancak bu uyarı tekrar görünebilir.",
-
-  "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
-  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?"
+  "bundleinVersionDelTips": "Bu sürüm yerleşik bir sürümdür, görüntülenmediğini doğruluyor musunuz?",
+  "customDirVersionDelTips": "Bu sürüm özel bir yol sürümüdür, görüntülenmediğini doğruluyor musunuz?"
 }
