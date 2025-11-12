@@ -65,8 +65,7 @@
   "showFile": "Dosyayı Göster",
   "sticky": "Sabit",
   "dbclickRowToEdit": "Düzenlemek için satıra çift tıklayın",
-
-  "projectDeno": "Deno Projects",
-  "projectBun": "Bun Projects",
-  "projectPerl": "Perl Projects"
+  "projectDeno": "Deno Projeleri",
+  "projectBun": "Bun Projeleri",
+  "projectPerl": "Perl Projeleri"
 }

@@ -19,6 +19,6 @@
   "initDBDataDirSuccess": "Veri klasörü başarıyla başlatıldı, klasör yolu: {dir}",
   "initDBDataDirFail": "Veri klasörü başlatılamadı, neden: {error}",
 
-  "startInstall": "Start installing {service}",
+  "startInstall": "{service} kurulumunu başlatın",
   "newProjectFail": "Yeni proje oluşturulamadı"
 }
