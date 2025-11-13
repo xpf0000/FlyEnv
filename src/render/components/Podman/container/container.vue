@@ -105,6 +105,9 @@
                   <el-dropdown-item @click.stop="scope.row.showLogsWithTerminal()">
                     {{ I18nT('base.log') }}
                   </el-dropdown-item>
+                  <el-dropdown-item @click.stop="scope.row.showExecCommand()">
+                    {{ I18nT('podman.ExecCommand') }}
+                  </el-dropdown-item>
                   <el-dropdown-item @click.stop="scope.row.doExport()">
                     {{ I18nT('base.export') }}
                   </el-dropdown-item>

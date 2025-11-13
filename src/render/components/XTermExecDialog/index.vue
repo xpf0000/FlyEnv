@@ -14,10 +14,10 @@
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button v-if="item.installing && !item.installEnd" @click.stop="onCancel">{{
+        <el-button v-if="item.execing && !item.execEnd" @click.stop="onCancel">{{
           I18nT('base.cancel')
         }}</el-button>
-        <el-button v-if="item.installEnd" type="primary" @click.stop="doSubmit">{{
+        <el-button v-if="item.execEnd" type="primary" @click.stop="doSubmit">{{
           I18nT('base.confirm')
         }}</el-button>
       </div>
@@ -37,6 +37,7 @@
     title: string
     item: XTermExec
     exitOnClose: boolean
+    showCommand?: string
   }>()
 
   const xtermDom = ref<HTMLElement>()
@@ -54,8 +55,10 @@
 
   const onOpen = () => {
     if (xtermDom?.value) {
-      if (props.item.installing || props.item.installEnd) {
+      if (props.item.execing || props.item.execEnd) {
         props.item.mount(xtermDom.value!)
+      } else if (props?.showCommand) {
+        props.item.show(xtermDom.value!, props.showCommand!)
       } else {
         props.item.exec(xtermDom.value!, props.item.cammand)
       }

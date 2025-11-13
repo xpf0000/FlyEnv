@@ -125,6 +125,7 @@ export class Container {
     let xtermExec = XTermExecCache?.[this.id]
     if (!xtermExec) {
       xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = this.id
       const arr: string[] = ['podman start', this.id]
       const logs: string[] = ['podman logs', this.id]
       xtermExec.cammand = [arr.join(' '), logs.join(' ')]
@@ -163,6 +164,7 @@ export class Container {
     let xtermExec = XTermExecCache?.[this.id]
     if (!xtermExec) {
       xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = this.id
       const arr: string[] = ['podman stop', this.id]
       const logs: string[] = ['podman logs', this.id]
       xtermExec.cammand = [arr.join(' '), logs.join(' ')]
@@ -187,6 +189,7 @@ export class Container {
     let xtermExec = XTermExecCache?.[key]
     if (!xtermExec) {
       xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = key
       const logs: string[] = ['podman logs -f', this.id]
       xtermExec.cammand = [logs.join(' ')]
       xtermExec.wait().then(() => {
@@ -212,6 +215,7 @@ export class Container {
           item: xtermExec
         }).then()
       })
+      return
     }
 
     const name = this.name
@@ -226,8 +230,9 @@ export class Container {
         this.exporting = true
         const dir = filePath
         const id = this.id
-        const command = `podman save -o "${dir}" ${this.name}`
+        const command = `podman export ${this.id} > "${dir}"`
         const xtermExec = reactiveBind(new XTermExec())
+        xtermExec.id = id
         xtermExec.cammand = [command]
         xtermExec.wait().then(() => {
           delete XTermExecCache[id]
@@ -253,6 +258,38 @@ export class Container {
     import('@/components/Podman/container/info.vue').then((res) => {
       AsyncComponentShow(res.default, {
         item: this
+      }).then()
+    })
+  }
+
+  showExecCommand() {
+    const key = `${this.id}-ExecCommand`
+    let xtermExec = XTermExecCache?.[key]
+    console.log('showExecCommand: ', key, xtermExec, XTermExecCache)
+    if (xtermExec) {
+      import('@/components/XTermExecDialog/index.vue').then((res) => {
+        AsyncComponentShow(res.default, {
+          title: xtermExec.title,
+          item: xtermExec
+        }).then()
+      })
+      return
+    }
+
+    xtermExec = XTermExecCache?.[key]
+    if (!xtermExec) {
+      xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = key
+      xtermExec.whenCancel().then(() => {
+        delete XTermExecCache?.[key]
+      })
+      XTermExecCache[key] = xtermExec
+    }
+    import('@/components/XTermExecDialog/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        title: this.name + ' ' + I18nT('podman.ExecCommand'),
+        item: xtermExec,
+        showCommand: `podman exec -it ${this.id} `
       }).then()
     })
   }

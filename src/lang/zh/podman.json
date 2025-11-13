@@ -78,5 +78,6 @@
   "ContainerNameRequired": "请输入容器名称",
   "ContainerImageRequired": "请选择容器镜像",
   "DockerComposeNoExistsTips": "未检测到docker-composer, 请先安装",
-  "DockerComposeInstallButton": "安装docker-composer"
+  "DockerComposeInstallButton": "安装docker-composer",
+  "ExecCommand": "执行命令"
 }

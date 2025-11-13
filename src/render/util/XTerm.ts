@@ -100,6 +100,7 @@ export class XTerm implements XTermType {
            */
           IPC.on(`NodePty:data:${this.ptyKey}`).then((key: string, data: string) => {
             this.write(data)
+            this.xterm?.focus?.()
           })
 
           doMount()
@@ -125,6 +126,7 @@ export class XTerm implements XTermType {
       if (this.end) {
         return
       }
+      console.log('xterm onData: ', data)
       IPC.send('NodePty:write', this.ptyKey, data).then((key: string) => {
         IPC.off(key)
       })
@@ -143,6 +145,12 @@ export class XTerm implements XTermType {
         this.xterm?.write(log)
       }
     }
+  }
+
+  writeToNodePty(data: string) {
+    IPC.send('NodePty:write', this.ptyKey, data).then((key: string) => {
+      IPC.off(key)
+    })
   }
 
   write(data: string) {
