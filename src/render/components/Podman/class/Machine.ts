@@ -11,6 +11,7 @@ import { XTermExec, XTermExecCache } from '@/util/XTermExec'
 import { reactiveBind } from '@/util/Index'
 import { dialog } from '@/util/NodeFn'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
+import { PodmanManager } from '@/components/Podman/class/Podman'
 
 export class Machine {
   name: string = ''
@@ -27,16 +28,19 @@ export class Machine {
   containerImporting = false
   containerCreating = false
 
-  ImageXTerm: XTermExec
-  ContainerXTerm: XTermExec
+  DashboardFetching = false
+  ImageFetching = false
+  ContainerFetching = false
 
   constructor(obj: any) {
     Object.assign(this, obj)
-    this.ImageXTerm = reactiveBind(new XTermExec())
-    this.ContainerXTerm = reactiveBind(new XTermExec())
   }
 
   fetchImages() {
+    if (this.ImageFetching) {
+      return
+    }
+    this.ImageFetching = true
     IPC.send('app-fork:podman', 'fetchImageList', this.name).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
@@ -52,10 +56,15 @@ export class Machine {
           }
         }
       }
+      this.ImageFetching = false
     })
   }
 
   fetchContainers() {
+    if (this.ContainerFetching) {
+      return
+    }
+    this.ContainerFetching = true
     IPC.send('app-fork:podman', 'fetchContainerList', this.name).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
@@ -70,6 +79,7 @@ export class Machine {
           }
         }
       }
+      this.ContainerFetching = false
     })
   }
 
@@ -77,9 +87,10 @@ export class Machine {
    * Fetch Machine info and containers
    */
   fetchInfoAndContainer() {
-    if (this.fetched || !this.run) {
+    if (this.fetched || !this.run || this.DashboardFetching) {
       return
     }
+    this.DashboardFetching = true
     IPC.send('app-fork:podman', 'fetchMachineInfo', this.name).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
@@ -107,6 +118,7 @@ export class Machine {
           }
         }
       }
+      this.DashboardFetching = false
     })
   }
 
@@ -147,6 +159,7 @@ export class Machine {
       if (res?.code === 0) {
         this.run = true
         this.fetchInfoAndContainer()
+        PodmanManager.refreshComposeState()
       } else {
         MessageError(res?.msg ?? I18nT('base.fail'))
       }
@@ -216,6 +229,7 @@ export class Machine {
         const [path] = filePaths
         const command = `podman load -i "${path}"`
         const xtermExec = reactiveBind(new XTermExec())
+        xtermExec.id = id
         xtermExec.cammand = [command]
         xtermExec.wait().then(() => {
           delete XTermExecCache[id]
@@ -225,6 +239,52 @@ export class Machine {
         xtermExec.whenCancel().then(() => {
           delete XTermExecCache[id]
           this.imageImporting = false
+        })
+        xtermExec.title = I18nT('base.import')
+        XTermExecCache[id] = xtermExec
+        import('@/components/XTermExecDialog/index.vue').then((res) => {
+          AsyncComponentShow(res.default, {
+            title: xtermExec.title,
+            item: xtermExec
+          }).then()
+        })
+      })
+  }
+
+  containerImport() {
+    const id = `${this.name}-container-import`
+    const xtermExec = XTermExecCache?.[id]
+    if (xtermExec) {
+      import('@/components/XTermExecDialog/index.vue').then((res) => {
+        AsyncComponentShow(res.default, {
+          title: xtermExec.title,
+          item: xtermExec
+        }).then()
+      })
+      return
+    }
+    dialog
+      .showOpenDialog({
+        properties: ['openFile', 'showHiddenFiles']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        this.containerImporting = true
+        const [path] = filePaths
+        const command = `podman import "${path}"`
+        const xtermExec = reactiveBind(new XTermExec())
+        xtermExec.id = id
+        xtermExec.cammand = [command]
+        xtermExec.wait().then(() => {
+          delete XTermExecCache[id]
+          this.containerImporting = false
+          this.fetchContainers()
+        })
+        xtermExec.whenCancel().then(() => {
+          delete XTermExecCache[id]
+          this.containerImporting = false
         })
         xtermExec.title = I18nT('base.import')
         XTermExecCache[id] = xtermExec

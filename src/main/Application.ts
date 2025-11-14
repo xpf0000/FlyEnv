@@ -941,7 +941,7 @@ export default class Application extends EventEmitter {
         })
         break
       case 'NodePty:exec':
-        NodePTY.exec(args[0], args[1], command, key)
+        NodePTY.exec(args[0], args[1], args[2], command, key)
         break
       case 'NodePty:write':
         NodePTY.write(args[0], args[1])

@@ -7,7 +7,7 @@
         : I18nT('podman.Container') + I18nT('base.add')
     "
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
-    width="700px"
+    width="600px"
     @closed="closedFn"
   >
     <el-scrollbar class="px-2">

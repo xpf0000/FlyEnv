@@ -2,7 +2,6 @@ import { nextTick } from 'vue'
 import XTerm from '@/util/XTerm'
 import { AppStore } from '@/store/app'
 import type { CallbackFn } from '@shared/app'
-import { waitTime } from '@/util/Index'
 
 class XTermExec {
   id: string = ''
@@ -54,7 +53,7 @@ class XTermExec {
       }
     }
     params.push(...cammand)
-    await execXTerm.send(params)
+    await execXTerm.send(params, false)
     this.execEnd = true
     for (const fn of this._callbackFn) {
       fn(true)

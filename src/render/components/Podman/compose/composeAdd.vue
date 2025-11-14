@@ -2,7 +2,7 @@
   <el-dialog
     v-model="show"
     :title="I18nT('base.add') + ' Compose'"
-    width="500px"
+    width="600px"
     :destroy-on-close="true"
     class="dark:bg-[#1d2033]"
     @closed="closedFn"

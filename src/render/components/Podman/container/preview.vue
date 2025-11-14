@@ -9,7 +9,7 @@
     v-model="dialogVisible"
     class="el-dialog-content-flex-1 h-[75vh]"
     title="Docker Compose"
-    width="750px"
+    width="600px"
     :destroy-on-close="true"
   >
     <el-scrollbar class="h-full overflow-hidden">

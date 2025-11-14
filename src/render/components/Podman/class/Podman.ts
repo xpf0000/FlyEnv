@@ -26,6 +26,8 @@ class Podman {
   dockerComposeExists: boolean = false
   dockerComposeInstalling: boolean = false
 
+  ComposeFetching = false
+
   onMachineRemove(item: Machine) {
     this.machine = this.machine.filter((f) => f.name !== item.name)
   }
@@ -70,9 +72,13 @@ class Podman {
           const machine = reactiveBind(new Machine(item))
           machine._onRemove = this.onMachineRemove
           this.machine.push(machine)
-          if (!this.tab) {
-            this.tab = machine.name
+        }
+        const machine = this.machine.find((m) => m.run) ?? this.machine?.[0]
+        if (machine) {
+          this.tab = machine.name
+          if (machine.run) {
             machine.fetchInfoAndContainer()
+            this.refreshComposeState()
           }
         }
       } else {
@@ -95,6 +101,8 @@ class Podman {
   }
 
   async loadComposeList() {
+    this.ComposeFetching = true
+    const all = []
     const storeKey = 'flyenv-podman-compose-list'
     try {
       const arr = await StorageGetAsync(storeKey)
@@ -102,13 +110,30 @@ class Podman {
       if (Array.isArray(arr)) {
         for (const item of arr) {
           const compose = reactiveBind(new Compose(item))
-          compose.checkRunningStatus()
+          all.push(compose.checkRunningStatus())
           this.compose.push(compose)
         }
       }
     } catch {
       this.compose = []
     }
+    if (all.length === 0) {
+      this.ComposeFetching = false
+    } else {
+      await Promise.all(all)
+      this.ComposeFetching = false
+    }
+  }
+
+  refreshComposeState() {
+    if (this.ComposeFetching || !this.compose.length) {
+      return
+    }
+    this.ComposeFetching = true
+    const all = this.compose.map((item) => item.checkRunningStatus())
+    Promise.all(all).finally(() => {
+      this.ComposeFetching = false
+    })
   }
 
   async saveComposeList() {
@@ -182,6 +207,7 @@ class Podman {
     let xtermExec = XTermExecCache?.[id]
     if (!xtermExec) {
       xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = id
       const arr: string[] = ['brew install docker-compose']
       xtermExec.cammand = [arr.join(' ')]
       xtermExec.wait().then(() => {

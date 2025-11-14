@@ -42,6 +42,7 @@ export class Image {
       const id = this.id
       const command = `podman rmi -f ${id}`
       const xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = id
       xtermExec.cammand = [command]
       xtermExec.wait().then(() => {
         this?._onRemove?.(this)
@@ -78,6 +79,7 @@ export class Image {
         const id = this.id
         const command = `podman save -o "${dir}" ${this.name}`
         const xtermExec = reactiveBind(new XTermExec())
+        xtermExec.id = id
         xtermExec.cammand = [command]
         xtermExec.wait().then(() => {
           delete XTermExecCache[id]
@@ -114,6 +116,7 @@ export class Image {
           command.push(`podman rmi ${name}`)
         }
         const xtermExec = reactiveBind(new XTermExec())
+        xtermExec.id = id
         xtermExec.cammand = command
         xtermExec.wait().then(() => {
           resolve(true)

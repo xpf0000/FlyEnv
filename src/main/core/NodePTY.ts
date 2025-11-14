@@ -5,10 +5,11 @@ import { uuid } from '../utils'
 import { spawn } from 'node-pty'
 import { basename, join } from 'path'
 import { chmod, remove, writeFile } from '../utils'
-import { existsSync } from 'fs'
+import { existsSync, watch } from 'fs'
 import EnvSync from '@shared/EnvSync'
 import type { CallbackFn } from '@shared/app'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { tmpdir } from 'node:os'
 
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
@@ -171,7 +172,37 @@ class NodePTY {
     }
   }
 
-  async exec(ptyKey: string, param: string[], command: string, key: string) {
+  async exec(
+    ptyKey: string,
+    param: string[],
+    execUseOneFile: boolean,
+    command: string,
+    key: string
+  ) {
+    if (!execUseOneFile) {
+      const tmplFile = join(tmpdir(), ptyKey)
+      await writeFile(tmplFile, '')
+      const watcher = watch(tmplFile, () => {
+        watcher.close()
+        pty?.kill()
+        remove(tmplFile).catch()
+      })
+      const pty = this.pty?.[ptyKey]?.pty
+      param.forEach((s) => {
+        pty?.write(`${s}\r`)
+      })
+      if (isWindows()) {
+        pty?.write(`"END" | Out-File -FilePath "${tmplFile}"\r`)
+      } else {
+        pty?.write(`echo "END" > "${tmplFile}"\r`)
+      }
+      const task = this.pty?.[ptyKey]
+      task?.task?.push({
+        command,
+        key
+      })
+      return
+    }
     if (isMacOS() || isLinux()) {
       const file = join(global.Server.Cache!, `${uuid()}.sh`)
       await writeFile(file, param.join('\n'))

@@ -63,6 +63,7 @@ export class Compose {
     let xtermExec = XTermExecCache?.[this.id]
     if (!xtermExec) {
       xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = this.id
       const arr: string[] = ['docker-compose', ...this.paths.map((p) => `-f "${p}"`)]
       if (this.flag) {
         arr.push(`-p ${this.flag}`)
@@ -111,6 +112,7 @@ export class Compose {
     let xtermExec = XTermExecCache?.[this.id]
     if (!xtermExec) {
       xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = this.id
       const arr: string[] = ['docker-compose', ...this.paths.map((p) => `-f "${p}"`)]
       if (this.flag) {
         arr.push(`-p ${this.flag}`)
@@ -147,6 +149,7 @@ export class Compose {
     let xtermExec = XTermExecCache?.[key]
     if (!xtermExec) {
       xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = key
       const arr: string[] = ['docker-compose', ...this.paths.map((p) => `-f "${p}"`)]
       if (this.flag) {
         arr.push(`-p ${this.flag}`)
@@ -207,20 +210,24 @@ export class Compose {
   }
 
   checkRunningStatus() {
-    IPC.send(
-      'app-fork:podman',
-      'isComposeRunning',
-      JSON.parse(JSON.stringify(this.paths)),
-      this.flag,
-      PodmanManager.currentSocket()
-    ).then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        this.run = res.data
-        this.refreshMachineContainer()
-      } else {
-        this.statusError = res?.msg ?? I18nT('base.fail')
-      }
+    return new Promise((resolve) => {
+      IPC.send(
+        'app-fork:podman',
+        'isComposeRunning',
+        JSON.parse(JSON.stringify(this.paths)),
+        this.flag,
+        PodmanManager.currentSocket()
+      ).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          this.run = res.data
+          this.refreshMachineContainer()
+          this.statusError = ''
+        } else {
+          this.statusError = res?.msg ?? I18nT('base.fail')
+        }
+        resolve(true)
+      })
     })
   }
 }

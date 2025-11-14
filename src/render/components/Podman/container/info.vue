@@ -3,7 +3,7 @@
     v-model="show"
     :title="item.name.join(', ')"
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
-    width="700px"
+    width="600px"
     @closed="closedFn"
   >
     <div v-if="containerDetail?.Id" class="h-full overflow-hidden">
