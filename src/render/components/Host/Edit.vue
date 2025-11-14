@@ -87,10 +87,15 @@
                 v-model="item.phpVersion"
                 class="w-full"
                 :placeholder="I18nT('base.selectPhpVersion')"
+                @change="
+                  (val: number) => {
+                    phpVersionChanged(item, val)
+                  }
+                "
               >
                 <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
                 <template v-for="(v, _i) in phpVersions" :key="_i">
-                  <el-option :value="v.num" :label="v.num"></el-option>
+                  <el-option :value="v.num" :label="v.version"></el-option>
                 </template>
               </el-select>
             </div>
@@ -292,6 +297,7 @@
     root: '',
     mark: '',
     phpVersion: undefined,
+    phpVersionFull: undefined,
     reverseProxy: []
   })
   const errs = ref({
@@ -344,6 +350,7 @@
       }
       if (v && v[0] && !item.value.phpVersion) {
         item.value.phpVersion = v[0].num as any
+        item.value.phpVersionFull = v[0].version as any
       }
     },
     {
@@ -377,6 +384,10 @@
       }
     }
   })
+
+  const phpVersionChanged = (item: any, val: number) => {
+    item.phpVersionFull = phpVersions.value.find((a) => a.num === val)?.version ?? undefined
+  }
 
   const addReverseProxy = () => {
     const d = reactive({

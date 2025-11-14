@@ -28,7 +28,8 @@ export class CreateSite extends BaseTask {
     url: '',
     root: '',
     mark: '',
-    phpVersion: undefined
+    phpVersion: undefined,
+    phpVersionFull: undefined
   }
   constructor() {
     super()
@@ -92,6 +93,7 @@ export class CreateSite extends BaseTask {
             const php = brewStore.module('php').installed.find((i) => !!i.path && !!i.version)
             if (php?.num) {
               this.host.phpVersion = php.num
+              this.host.phpVersionFull = php.version
             }
             handleHost(this.host, 'add', undefined, false).then((res: true | string) => {
               if (res === true) {
