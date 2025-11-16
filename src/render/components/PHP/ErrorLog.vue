@@ -11,11 +11,13 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ title }}</span>
+          <span class="ml-3 truncate"
+            >{{ I18nT('base.errorLog') }} - {{ version.version }} - {{ version.path }}</span
+          >
         </div>
       </div>
       <div class="main-wapper">
-        <LogVM ref="log" :log-file="filepath" />
+        <LogVM ref="log" :log-file="file" />
       </div>
       <ToolVM :log="log" />
     </div>
@@ -28,23 +30,38 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import type { SoftInstalled } from '@/store/brew'
-  import { join } from '@/util/path-browserify'
+  import IPC from '@/util/IPC'
+  import { ConfStore } from '@/components/Conf/setup'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
-    type: string
     version: SoftInstalled
   }>()
 
   const log = ref()
 
-  const title = computed(() => {
-    return props.type === 'php-fpm-slow' ? I18nT('base.slowLog') : I18nT('php.fpmLog')
+  const file = ref('')
+
+  const flag = computed(() => {
+    return props?.version?.phpBin ?? props?.version?.path
   })
 
-  const filepath = computed(() => {
-    return join(window.Server.PhpDir!, `${props.version.num}`, `var/log/${props.type}.log`)
+  const iniFile = computed(() => {
+    return ConfStore.phpIniFiles?.[flag?.value] ?? ''
+  })
+
+  IPC.send(
+    'app-fork:php',
+    'getErrorLogPathFromIni',
+    JSON.parse(JSON.stringify(props.version)),
+    iniFile.value
+  ).then((key: string, res: any) => {
+    console.log(res)
+    IPC.off(key)
+    if (res.code === 0) {
+      file.value = res.data
+    }
   })
 
   const close = () => {

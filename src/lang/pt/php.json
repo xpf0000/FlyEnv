@@ -26,5 +26,7 @@
   "loadedExtensions": "Carregado",
   "editPhpIni": "Editar php.ini",
   "phpExtensions": "Extensões PHP",
-  "extensions": "Extensões"
+  "extensions": "Extensões",
+  "log_errors": "Ativar registo de erros",
+  "error_log_dir": "Especificar o caminho do ficheiro de log de erros PHP"
 }

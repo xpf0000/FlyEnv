@@ -11,7 +11,9 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3 title">{{ version.version }} - {{ version.path }} - php.ini</span>
+          <span class="ml-3 title truncate"
+            >php.ini - {{ version.version }} - {{ version.path }}</span
+          >
         </div>
       </div>
 
@@ -70,6 +72,35 @@
   })
   const cacert = join(window.Server.BaseDir!, 'CA/cacert.pem')
   const names: CommonSetItem[] = [
+    {
+      section: 'PHP',
+      name: 'log_errors',
+      value: 'On',
+      enable: true,
+      options: [
+        {
+          value: 'Off',
+          label: 'Off'
+        },
+        {
+          value: 'On',
+          label: 'On'
+        }
+      ],
+      tips() {
+        return I18nT('php.log_errors')
+      }
+    },
+    {
+      section: 'PHP',
+      name: 'error_log',
+      isFile: true,
+      value: '',
+      enable: true,
+      tips() {
+        return I18nT('php.error_log_dir')
+      }
+    },
     {
       section: 'PHP',
       name: 'display_errors',

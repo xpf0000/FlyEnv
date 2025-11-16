@@ -26,5 +26,7 @@
   "default_socket_timeout": "Socket zaman aşımı müddəti",
   "error_reporting": "Xəta hesabatı səviyyəsi",
   "timezone": "Zaman qurşağı",
-  "loadedExtensions": "Yüklənmiş Uzantılar"
+  "loadedExtensions": "Yüklənmiş Uzantılar",
+  "log_errors": "Xəta qeydlərini aktiv et",
+  "error_log_dir": "PHP xəta qeyd faylının yolu"
 }

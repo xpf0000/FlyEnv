@@ -26,5 +26,7 @@
   "default_socket_timeout": "Socket-Timeout",
   "error_reporting": "Fehlermeldelevel",
   "timezone": "Zeitzone",
-  "loadedExtensions": "Geladene Erweiterungen"
+  "loadedExtensions": "Geladene Erweiterungen",
+  "log_errors": "Fehlerprotokollierung aktivieren",
+  "error_log_dir": "Pfad zum PHP-Fehlerprotokoll"
 }

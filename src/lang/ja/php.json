@@ -26,5 +26,7 @@
   "default_socket_timeout": "ソケットタイムアウト",
   "error_reporting": "エラー報告レベル",
   "timezone": "タイムゾーン",
-  "loadedExtensions": "読み込まれた拡張機能"
+  "loadedExtensions": "読み込まれた拡張機能",
+  "log_errors": "エラーログを有効にする",
+  "error_log_dir": "PHP エラーログ ファイルのパスを指定"
 }

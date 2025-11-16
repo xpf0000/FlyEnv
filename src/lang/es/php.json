@@ -26,5 +26,7 @@
   "default_socket_timeout": "Tiempo de espera del socket",
   "error_reporting": "Nivel de reporte de errores",
   "timezone": "Zona Horaria",
-  "loadedExtensions": "Extensiones Cargadas"
+  "loadedExtensions": "Extensiones Cargadas",
+  "log_errors": "Habilitar registro de errores",
+  "error_log_dir": "Ruta del archivo de registro de errores de PHP"
 }

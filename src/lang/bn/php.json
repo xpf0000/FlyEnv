@@ -26,5 +26,7 @@
   "default_socket_timeout": "সকেট টাইমআউট",
   "error_reporting": "ত্রুটি রিপোর্টিং লেভেল",
   "timezone": "টাইমজোন",
-  "loadedExtensions": "লোড করা এক্সটেনশন"
+  "loadedExtensions": "লোড করা এক্সটেনশন",
+  "log_errors": "ত্রুটি লগিং চালু করা হবে কিনা",
+  "error_log_dir": "PHP ত্রুটি লগ ফাইলের পাথ"
 }

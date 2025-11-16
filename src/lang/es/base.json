@@ -113,5 +113,6 @@
 
   "preview": "Vista previa",
   "executing": "Ejecutando",
-  "info": "Información"
+  "info": "Información",
+  "ForceDelete": "Forzar eliminación"
 }

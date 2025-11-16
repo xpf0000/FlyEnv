@@ -8,6 +8,7 @@ import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { join } from '@/util/path-browserify'
 import { clipboard, fs } from '@/util/NodeFn'
+import { compareVersions } from 'compare-versions'
 
 export const MacPortsSetup = reactive<{
   installEnd: boolean
@@ -241,9 +242,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       })
       arr.push(value)
     }
-    arr.sort((a: any, b: any) => {
-      return b.num - a.num
-    })
+    arr.sort((a: any, b: any) => compareVersions(b.version, a.version))
     return arr
   })
 

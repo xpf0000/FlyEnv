@@ -27,5 +27,7 @@
 
   "editPhpIni": "Redigera php.ini",
   "phpExtensions": "PHP-tillägg",
-  "extensions": "Tillägg"
+  "extensions": "Tillägg",
+  "log_errors": "Aktivera felloggning",
+  "error_log_dir": "Ange sökväg till PHP-felloggfil"
 }

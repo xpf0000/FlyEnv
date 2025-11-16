@@ -7,7 +7,7 @@
     <div class="left">
       <div class="icon-block">
         <yb-icon
-          style="padding: 5px"
+          style="padding: 6px"
           :svg="import('@/svg/podman.svg?raw')"
           width="29"
           height="29"

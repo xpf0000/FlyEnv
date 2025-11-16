@@ -113,5 +113,6 @@
 
   "preview": "Önizleme",
   "executing": "Yürütülüyor",
-  "info": "Bilgi"
+  "info": "Bilgi",
+  "ForceDelete": "Zorla sil"
 }

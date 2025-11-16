@@ -114,5 +114,6 @@
 
   "preview": "Anteprima",
   "executing": "In esecuzione",
-  "info": "Dettagli"
+  "info": "Dettagli",
+  "ForceDelete": "Eliminazione forzata"
 }

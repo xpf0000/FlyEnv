@@ -26,5 +26,7 @@
   "default_socket_timeout": "Waktu tunggu soket",
   "error_reporting": "Tingkat pelaporan kesalahan",
   "timezone": "Zona waktu",
-  "loadedExtensions": "Ekstensi yang dimuat"
+  "loadedExtensions": "Ekstensi yang dimuat",
+  "log_errors": "Aktifkan pencatatan kesalahan",
+  "error_log_dir": "Tentukan jalur file log kesalahan PHP"
 }

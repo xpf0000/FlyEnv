@@ -26,5 +26,7 @@
   "default_socket_timeout": "Thời gian chờ socket",
   "error_reporting": "Mức báo cáo lỗi",
   "timezone": "Múi giờ",
-  "loadedExtensions": "Các phần mở rộng đã tải"
+  "loadedExtensions": "Các phần mở rộng đã tải",
+  "log_errors": "Bật ghi nhật ký lỗi",
+  "error_log_dir": "Chỉ định đường dẫn tệp nhật ký lỗi PHP"
 }

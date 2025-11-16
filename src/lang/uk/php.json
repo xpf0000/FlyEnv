@@ -26,5 +26,7 @@
   "default_socket_timeout": "Час очікування сокета",
   "error_reporting": "рівень звітності про помилки",
   "timezone": "Часовий пояс",
-  "loadedExtensions": "Завантажені розширення"
+  "loadedExtensions": "Завантажені розширення",
+  "log_errors": "Увімкнути журналювання помилок",
+  "error_log_dir": "Вкажіть шлях до файлу журналу помилок PHP"
 }

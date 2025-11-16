@@ -113,5 +113,6 @@
 
   "preview": "Xem trước",
   "executing": "Đang thực thi",
-  "info": "Thông tin"
+  "info": "Thông tin",
+  "ForceDelete": "Xóa bắt buộc"
 }

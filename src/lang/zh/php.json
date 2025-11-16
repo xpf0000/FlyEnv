@@ -27,5 +27,8 @@
 
   "editPhpIni": "编辑 php.ini",
   "phpExtensions": "PHP 扩展",
-  "extensions": "扩展"
+  "extensions": "扩展",
+
+  "log_errors": "是否开启错误日志功能",
+  "error_log_dir": "指定 PHP 错误日志的文件路径"
 }

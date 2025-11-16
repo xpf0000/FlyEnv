@@ -113,5 +113,6 @@
 
   "preview": "预览",
   "executing": "执行中",
-  "info": "详情"
+  "info": "详情",
+  "ForceDelete": "强制删除"
 }

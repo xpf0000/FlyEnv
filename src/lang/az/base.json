@@ -114,5 +114,6 @@
 
   "preview": "ön izahat",
   "executing": "icra olunur",
-  "info": "məlumat"
+  "info": "məlumat",
+  "ForceDelete": "Məcburi sil"
 }

@@ -113,5 +113,6 @@
 
   "preview": "Vorschau",
   "executing": "Wird ausgeführt",
-  "info": "Details"
+  "info": "Details",
+  "ForceDelete": "Löschen erzwingen"
 }

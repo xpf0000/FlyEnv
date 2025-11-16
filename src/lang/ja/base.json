@@ -114,5 +114,6 @@
 
   "preview": "プレビュー",
   "executing": "実行中",
-  "info": "詳細"
+  "info": "詳細",
+  "ForceDelete": "強制削除"
 }

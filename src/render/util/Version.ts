@@ -1,14 +1,11 @@
-import Base from '@/core/Base'
-import { I18nT } from '@lang/index'
-import { shell } from '@/util/NodeFn'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
+import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+import type { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
 
-export const staticVersionDel = (dir: string) => {
-  Base._Confirm(I18nT('base.staticDelAlert'), undefined, {
-    customClass: 'confirm-del',
-    type: 'warning'
+export const staticVersionDel = (item: ModuleInstalledItem | ModuleStaticItem) => {
+  import('@/components/ServiceManager/delDialog.vue').then((res) => {
+    AsyncComponentShow(res.default, {
+      item
+    }).then()
   })
-    .then(async () => {
-      shell.showItemInFolder(dir)
-    })
-    .catch(() => {})
 }

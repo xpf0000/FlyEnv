@@ -369,6 +369,7 @@ export const portSearch = async (
           flag: 'port'
         }
       })
+    arr.sort((a, b) => compareVersions(b.version, a.version))
     return arr
   } catch (e) {
     console.log('portSearch err: ', e)

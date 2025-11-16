@@ -26,5 +26,7 @@
   "default_socket_timeout": "Socket zaman aşımı süresi",
   "error_reporting": "Hata raporlama seviyesi",
   "timezone": "Zaman dilimi",
-  "loadedExtensions": "Yüklü Eklentiler"
+  "loadedExtensions": "Yüklü Eklentiler",
+  "log_errors": "Hata günlüğünü aç",
+  "error_log_dir": "PHP hata günlüğü dosyasının yolunu belirt"
 }

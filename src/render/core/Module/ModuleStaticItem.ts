@@ -66,7 +66,7 @@ export class ModuleStaticItem implements OnlineVersionItem {
           }
         )
       } else {
-        staticVersionDel(this.appDir)
+        staticVersionDel(this)
         resolve(false)
       }
     })

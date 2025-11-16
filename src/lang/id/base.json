@@ -114,5 +114,6 @@
 
   "preview": "Pratinjau",
   "executing": "Sedang dieksekusi",
-  "info": "Info"
+  "info": "Info",
+  "ForceDelete": "Hapus paksa"
 }

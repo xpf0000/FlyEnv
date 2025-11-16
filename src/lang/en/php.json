@@ -26,5 +26,7 @@
   "default_socket_timeout": "Socket timeout",
   "error_reporting": "error reporting level",
   "timezone": "Timezone",
-  "loadedExtensions": "Loaded Extensions"
+  "loadedExtensions": "Loaded Extensions",
+  "log_errors": "Enable error logging",
+  "error_log_dir": "Specify the PHP error log file path"
 }

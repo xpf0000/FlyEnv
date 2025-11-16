@@ -30,6 +30,7 @@ import TaskQueue from '../../TaskQueue'
 import { ProcessPidsByPid } from '@shared/Process'
 import Helper from '../../Helper'
 import { unpack } from '../../util/Zip'
+import { parse as iniParse } from 'ini'
 
 class Php extends Base {
   constructor() {
@@ -136,6 +137,21 @@ class Php extends Base {
         }
       }
       reject(new Error(I18nT('php.phpiniNotFound')))
+    })
+  }
+
+  getErrorLogPathFromIni(version: SoftInstalled, iniPath?: string) {
+    return new ForkPromise(async (resolve) => {
+      const iniFile = iniPath || (await this.getIniPath(version))
+      console.log('getErrorLogPathFromIni iniFile ', iniFile)
+      if (iniFile && existsSync(iniFile)) {
+        const content = await readFile(iniFile, 'utf8')
+        const config = iniParse(content)
+        console.log('getErrorLogPathFromIni config ', config)
+        resolve(config?.PHP?.error_log ?? config?.error_log ?? '')
+        return
+      }
+      resolve('')
     })
   }
 

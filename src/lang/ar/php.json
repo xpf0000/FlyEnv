@@ -26,5 +26,7 @@
   "default_socket_timeout": "مهلة المقبس (Socket timeout)",
   "error_reporting": "مستوى الإبلاغ عن الأخطاء",
   "timezone": "المنطقة الزمنية",
-  "loadedExtensions": "الإضافات المُحمَّلة"
+  "loadedExtensions": "الإضافات المُحمَّلة",
+  "log_errors": "تفعيل تسجيل الأخطاء",
+  "error_log_dir": "مسار ملف سجل الأخطاء"
 }

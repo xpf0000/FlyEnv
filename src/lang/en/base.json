@@ -114,5 +114,6 @@
 
   "preview": "Preview",
   "executing": "Executing",
-  "info": "Info"
+  "info": "Info",
+  "ForceDelete": "Force Delete"
 }
