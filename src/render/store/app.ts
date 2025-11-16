@@ -42,6 +42,7 @@ export interface AppHost {
   url: string
   root: string
   phpVersion?: number
+  phpVersionFull?: string
   mark?: string
   bookmark?: string
 }
