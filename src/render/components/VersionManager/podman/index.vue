@@ -9,13 +9,13 @@
       <div class="p-5">
         <pre
           class="app-html-block"
-          v-html="I18nT('versionmanager.podmanErrorTips', { bin: podmanBin, error: podmanError })"
+          v-html="I18nT('podman.podmanErrorTips', { bin: podmanBin, error: podmanError })"
         ></pre>
       </div>
     </template>
     <template v-else>
       <div class="p-5">
-        <pre class="app-html-block" v-html="I18nT('versionmanager.noPodmanFound')"></pre>
+        <pre class="app-html-block" v-html="I18nT('podman.noPodmanFound')"></pre>
         <el-button
           type="primary"
           class="mt-5"

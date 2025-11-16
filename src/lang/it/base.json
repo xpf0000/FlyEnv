@@ -110,5 +110,9 @@
   "placeholderSearch": "Cerca",
   "projects": "Progetti",
 
-  "cleanup": "Cleanup"
+  "cleanup": "Cleanup",
+
+  "preview": "Anteprima",
+  "executing": "In esecuzione",
+  "info": "Dettagli"
 }

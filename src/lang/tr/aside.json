@@ -4,14 +4,15 @@
   "dataBaseServer": "Veritabanı Sunucusu",
   "emailServer": "E-posta Sunucusu",
   "language": "Dil ve Çalışma Zamanı",
-  "dataQueue": "Önbellek ve Bellek Depolama",
+  "dataQueue": "Veri Kuyruğu ve Önbellek",
   "searchEngine": "Arama Motoru",
   "dnsServer": "DNS Sunucusu",
   "ftpServer": "FTP Sunucusu",
+  "containerRuntime": "Kapsayıcı Çalışma Zamanı",
   "other": "Diğer",
   "appLog": "Uygulama Günlüğü",
   "ai": "Yapay Zeka",
-  "objectStorage": "Object Storage",
-  "appExit": "Tüm çalışan hizmetleri durdur ve FlyEnv'den çık",
-  "groupStart": "Panelde görüntülenen tüm kullanılabilir hizmetleri tek tıkla başlat"
+  "objectStorage": "Nesne Depolama",
+  "appExit": "Başlatılan tüm hizmetleri durdur ve FlyEnv'ten çık",
+  "groupStart": "Panoda görünen kullanılabilir tüm hizmetleri tek tıkla başlat"
 }

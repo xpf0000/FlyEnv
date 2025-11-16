@@ -109,5 +109,9 @@
   "placeholderSearch": "Pesquisar",
   "projects": "Projetos",
   "areYouSure": "Tem certeza que quer executar esta ação?",
-  "action": "Ação"
+  "action": "Ação",
+
+  "preview": "Pré-visualização",
+  "executing": "Em execução",
+  "info": "Informações"
 }

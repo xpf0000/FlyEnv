@@ -1,13 +1,14 @@
 import type { ContainerPortItem } from '@/components/Podman/type'
 import type { CallbackFn } from '@shared/app'
 import IPC from '@/util/IPC'
-import { MessageError } from '@/util/Element'
+import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { ElMessageBox } from 'element-plus'
 import { XTermExec, XTermExecCache } from '@/util/XTermExec'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { reactiveBind } from '@/util/Index'
 import { dialog, shell } from '@/util/NodeFn'
+import { PodmanManager } from '@/components/Podman/class/Podman'
 
 export class Container {
   id: string = ''
@@ -78,7 +79,7 @@ export class Container {
       type: 'warning'
     })
       .then(() => {
-        IPC.send('app-fork:podman', 'containerRemove', this.name, this.machineName).then(
+        IPC.send('app-fork:podman', 'containerRemove', this.id, this.machineName).then(
           (key: string, res: any) => {
             IPC.off(key)
             if (res?.code === 0) {
@@ -291,6 +292,51 @@ export class Container {
         item: xtermExec,
         showCommand: `podman exec -it ${this.id} `
       }).then()
+    })
+  }
+
+  doCommitToImage() {
+    const xtermExec = XTermExecCache?.[this.id]
+    if (xtermExec) {
+      import('@/components/XTermExecDialog/index.vue').then((res) => {
+        AsyncComponentShow(res.default, {
+          title: xtermExec.title,
+          item: xtermExec
+        }).then()
+      })
+      return
+    }
+
+    ElMessageBox.prompt(I18nT('podman.ImageName'), I18nT('podman.CommitToImage'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      inputValue: `${this.name[0]}:latest`
+    }).then(({ value }) => {
+      const id = this.id
+      const command = `podman commit ${this.id} ${value}`
+      const xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = id
+      xtermExec.cammand = [command]
+      xtermExec.wait().then(() => {
+        MessageSuccess(I18nT('base.success'))
+        delete XTermExecCache[id]
+        const machine = PodmanManager.machine.find((m) => m.name === PodmanManager.tab)
+        if (machine) {
+          machine.fetchImages()
+          machine.tab = 'Image'
+        }
+      })
+      xtermExec.whenCancel().then(() => {
+        delete XTermExecCache[id]
+      })
+      xtermExec.title = I18nT('base.export')
+      XTermExecCache[id] = xtermExec
+      import('@/components/XTermExecDialog/index.vue').then((res) => {
+        AsyncComponentShow(res.default, {
+          title: I18nT('podman.CommitToImage'),
+          item: xtermExec
+        }).then()
+      })
     })
   }
 }

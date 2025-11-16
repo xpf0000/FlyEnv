@@ -1,67 +1,69 @@
-import aiJA from './ai.json'
-import apacheJA from './apache.json'
-import appLogJA from './appLog.json'
-import asideJA from './aside.json'
-import baseJA from './base.json'
-import confJA from './conf.json'
-import feedbackJA from './feedback.json'
-import forkJA from './fork.json'
-import hostJA from './host.json'
-import licensesJA from './licenses.json'
-import mailpitJA from './mailpit.json'
-import meilisearchJA from './meilisearch.json'
-import menuJA from './menu.json'
-import minioJA from './minio.json'
-import mysqlJA from './mysql.json'
-import nginxJA from './nginx.json'
-import nodejsJA from './nodejs.json'
-import ollamaJA from './ollama.json'
-import phpJA from './php.json'
-import promptJA from './prompt.json'
-import redisJA from './redis.json'
-import requestTimerJA from './requestTimer.json'
-import serviceJA from './service.json'
-import setupJA from './setup.json'
-import tokenGeneratorJA from './token-generator.json'
-import toolsJA from './tools.json'
-import toolTypeJA from './toolType.json'
-import trayJA from './tray.json'
-import updateJA from './update.json'
-import utilJA from './util.json'
-import versionmanagerJA from './versionmanager.json'
+import ai from './ai.json'
+import apache from './apache.json'
+import appLog from './appLog.json'
+import aside from './aside.json'
+import base from './base.json'
+import conf from './conf.json'
+import feedback from './feedback.json'
+import fork from './fork.json'
+import host from './host.json'
+import mailpit from './mailpit.json'
+import menu from './menu.json'
+import mysql from './mysql.json'
+import nginx from './nginx.json'
+import nodejs from './nodejs.json'
+import ollama from './ollama.json'
+import php from './php.json'
+import prompt from './prompt.json'
+import redis from './redis.json'
+import service from './service.json'
+import setup from './setup.json'
+import tokenGenerator from './token-generator.json'
+import tools from './tools.json'
+import toolType from './toolType.json'
+import tray from './tray.json'
+import update from './update.json'
+import util from './util.json'
+import versionmanager from './versionmanager.json'
+import licenses from './licenses.json'
+import requestTimer from './requestTimer.json'
+import meilisearch from './meilisearch.json'
+import minio from './minio.json'
+import podman from './podman.json'
 
 export default {
   ja: {
-    ai: aiJA,
-    apache: apacheJA,
-    appLog: appLogJA,
-    aside: asideJA,
-    base: baseJA,
-    conf: confJA,
-    feedback: feedbackJA,
-    fork: forkJA,
-    host: hostJA,
-    licenses: licensesJA,
-    mailpit: mailpitJA,
-    meilisearch: meilisearchJA,
-    menu: menuJA,
-    minio: minioJA,
-    mysql: mysqlJA,
-    nginx: nginxJA,
-    nodejs: nodejsJA,
-    ollama: ollamaJA,
-    php: phpJA,
-    prompt: promptJA,
-    redis: redisJA,
-    requestTimer: requestTimerJA,
-    service: serviceJA,
-    setup: setupJA,
-    'token-generator': tokenGeneratorJA,
-    tools: toolsJA,
-    toolType: toolTypeJA,
-    tray: trayJA,
-    update: updateJA,
-    util: utilJA,
-    versionmanager: versionmanagerJA
+    podman,
+    minio,
+    meilisearch,
+    requestTimer,
+    licenses: licenses,
+    ai: ai,
+    apache: apache,
+    appLog: appLog,
+    aside: aside,
+    base: base,
+    conf: conf,
+    feedback: feedback,
+    fork: fork,
+    host: host,
+    mailpit: mailpit,
+    menu: menu,
+    mysql: mysql,
+    nginx: nginx,
+    nodejs: nodejs,
+    ollama: ollama,
+    php: php,
+    prompt: prompt,
+    redis: redis,
+    service: service,
+    setup: setup,
+    'token-generator': tokenGenerator,
+    tools: tools,
+    toolType: toolType,
+    tray: tray,
+    update: update,
+    util: util,
+    versionmanager: versionmanager
   }
 }

@@ -106,15 +106,4 @@
       machine.value.fetchContainers()
     }
   }
-
-  const refetchInfo = () => {
-    if (!machine?.value) {
-      return
-    }
-    if (machine?.value?.running) {
-      return
-    }
-    machine.value.fetched = false
-    machine.value.fetchInfoAndContainer()
-  }
 </script>

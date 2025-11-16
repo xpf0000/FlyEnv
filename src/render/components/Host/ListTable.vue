@@ -58,12 +58,6 @@
                 v-model="quickEdit.phpVersion"
                 class="w-full"
                 :placeholder="I18nT('base.selectPhpVersion')"
-                @change="
-                  (val: number) => {
-                    phpVersionChanged(quickEdit, val)
-                    phpVersionChanged(scope.row, val)
-                  }
-                "
               >
                 <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
                 <template v-for="(v, _i) in phpVersions" :key="_i">
@@ -73,7 +67,7 @@
             </template>
             <template v-else>
               <span>
-                {{ versionText(scope.row?.phpVersionFull ?? scope.row.phpVersion) }}
+                {{ versionText(scope.row.phpVersion) }}
               </span>
             </template>
           </template>
@@ -207,7 +201,7 @@
   })
   const phpVersions = computed(() => {
     const set: Set<number> = new Set()
-    return (
+    const arr =
       php?.value?.installed?.filter((p) => {
         if (p.version && p.num) {
           if (!set.has(p.num)) {
@@ -218,7 +212,12 @@
         }
         return false
       }) ?? []
-    )
+    return arr.map((p) => {
+      return {
+        ...p,
+        version: p.version.split('.').slice(0, 2).join('.')
+      }
+    })
   })
 
   const hosts = computed(() => {
@@ -305,10 +304,6 @@
     }
 
     return v
-  }
-
-  const phpVersionChanged = (item: any, val: number) => {
-    item.phpVersionFull = phpVersions.value.find((a) => a.num === val)?.version ?? undefined
   }
 
   const siteName = (item: AppHost) => {

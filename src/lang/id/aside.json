@@ -1,17 +1,18 @@
 {
   "site": "Situs",
-  "webServer": "Web Server",
-  "dataBaseServer": "Database Server",
-  "emailServer": "Email Server",
+  "webServer": "Server Web",
+  "dataBaseServer": "Server Basis Data",
+  "emailServer": "Server Surel",
   "language": "Bahasa & Runtime",
-  "dataQueue": "Cache & Penyimpanan Memori",
-  "searchEngine": "Search Engine",
-  "dnsServer": "DNS Server",
-  "ftpServer": "FTP Server",
+  "dataQueue": "Antrian Data & Cache",
+  "searchEngine": "Mesin Pencari",
+  "dnsServer": "Server DNS",
+  "ftpServer": "Server FTP",
+  "containerRuntime": "Runtime Kontainer",
   "other": "Lainnya",
   "appLog": "Log Aplikasi",
-  "ai": "Kecerdasan Buatan (AI)",
+  "ai": "AI",
   "objectStorage": "Penyimpanan Objek",
-  "appExit": "Hentikan semua layanan yang berjalan dan keluar dari FlyEnv",
-  "groupStart": "Mulai semua layanan yang tersedia yang ditampilkan di panel dengan satu klik"
+  "appExit": "Hentikan semua layanan yang telah dimulai dan keluar dari FlyEnv",
+  "groupStart": "Mulai sekaligus semua layanan yang tersedia yang ditampilkan di panel"
 }

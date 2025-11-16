@@ -116,7 +116,7 @@ type LangKey =
   | AppendStringToKeys<typeof util, 'util'>
   | AppendStringToKeys<typeof versionmanager, 'versionmanager'>
 
-export const AppAllLang = {
+export const AppAllLang: Record<string, string> = {
   ar: 'العربية',
   az: 'Azərbaycanca',
   bn: 'বাংলা',

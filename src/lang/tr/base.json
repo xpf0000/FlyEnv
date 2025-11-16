@@ -109,5 +109,9 @@
   "staticDelAlert": "Kullanıcı verilerinin güvenliği için artık yüklü yazılımların otomatik silinmesi desteklenmiyor. Silmek istiyorsanız, \"Tamam\" tıklayın ve yazılımı açılan klasörden manuel olarak silin.",
   "placeholderSearch": "Ara",
   "projects": "Projeler",
-  "cleanup": "Temizle"
+  "cleanup": "Temizle",
+
+  "preview": "Önizleme",
+  "executing": "Yürütülüyor",
+  "info": "Bilgi"
 }

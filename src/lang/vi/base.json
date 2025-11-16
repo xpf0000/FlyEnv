@@ -109,5 +109,9 @@
   "staticDelAlert": "Để đảm bảo an toàn cho dữ liệu người dùng, không còn cung cấp chức năng tự động xóa phần mềm đã cài đặt. Nếu bạn chắc chắn muốn xóa, hãy nhấp vào OK. Xóa thủ công phần mềm trong thư mục đã mở.",
   "placeholderSearch": "Tìm kiếm",
   "projects": "Dự án",
-  "cleanup": "Dọn dẹp"
+  "cleanup": "Dọn dẹp",
+
+  "preview": "Xem trước",
+  "executing": "Đang thực thi",
+  "info": "Thông tin"
 }

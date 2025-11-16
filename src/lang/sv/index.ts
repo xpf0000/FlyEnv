@@ -1,67 +1,69 @@
-import aiSV from './ai.json'
-import apacheSV from './apache.json'
-import appLogSV from './appLog.json'
-import asideSV from './aside.json'
-import baseSV from './base.json'
-import confSV from './conf.json'
-import feedbackSV from './feedback.json'
-import forkSV from './fork.json'
-import hostSV from './host.json'
-import mailpitSV from './mailpit.json'
-import menuSV from './menu.json'
-import mysqlSV from './mysql.json'
-import nginxSV from './nginx.json'
-import nodejsSV from './nodejs.json'
-import ollamaSV from './ollama.json'
-import phpSV from './php.json'
-import promptSV from './prompt.json'
-import redisSV from './redis.json'
-import serviceSV from './service.json'
-import setupSV from './setup.json'
-import tokenGeneratorSV from './token-generator.json'
-import toolsSV from './tools.json'
-import toolTypeSV from './toolType.json'
-import traySV from './tray.json'
-import updateSV from './update.json'
-import utilSV from './util.json'
-import versionmanagerSV from './versionmanager.json'
-import licensesSV from './licenses.json'
+import ai from './ai.json'
+import apache from './apache.json'
+import appLog from './appLog.json'
+import aside from './aside.json'
+import base from './base.json'
+import conf from './conf.json'
+import feedback from './feedback.json'
+import fork from './fork.json'
+import host from './host.json'
+import mailpit from './mailpit.json'
+import menu from './menu.json'
+import mysql from './mysql.json'
+import nginx from './nginx.json'
+import nodejs from './nodejs.json'
+import ollama from './ollama.json'
+import php from './php.json'
+import prompt from './prompt.json'
+import redis from './redis.json'
+import service from './service.json'
+import setup from './setup.json'
+import tokenGenerator from './token-generator.json'
+import tools from './tools.json'
+import toolType from './toolType.json'
+import tray from './tray.json'
+import update from './update.json'
+import util from './util.json'
+import versionmanager from './versionmanager.json'
+import licenses from './licenses.json'
 import requestTimer from './requestTimer.json'
 import meilisearch from './meilisearch.json'
 import minio from './minio.json'
+import podman from './podman.json'
 
 export default {
   sv: {
+    podman,
     minio,
     meilisearch,
     requestTimer,
-    licenses: licensesSV,
-    ai: aiSV,
-    apache: apacheSV,
-    appLog: appLogSV,
-    aside: asideSV,
-    base: baseSV,
-    conf: confSV,
-    feedback: feedbackSV,
-    fork: forkSV,
-    host: hostSV,
-    mailpit: mailpitSV,
-    menu: menuSV,
-    mysql: mysqlSV,
-    nginx: nginxSV,
-    nodejs: nodejsSV,
-    ollama: ollamaSV,
-    php: phpSV,
-    prompt: promptSV,
-    redis: redisSV,
-    service: serviceSV,
-    setup: setupSV,
-    'token-generator': tokenGeneratorSV,
-    tools: toolsSV,
-    toolType: toolTypeSV,
-    tray: traySV,
-    update: updateSV,
-    util: utilSV,
-    versionmanager: versionmanagerSV
+    licenses: licenses,
+    ai: ai,
+    apache: apache,
+    appLog: appLog,
+    aside: aside,
+    base: base,
+    conf: conf,
+    feedback: feedback,
+    fork: fork,
+    host: host,
+    mailpit: mailpit,
+    menu: menu,
+    mysql: mysql,
+    nginx: nginx,
+    nodejs: nodejs,
+    ollama: ollama,
+    php: php,
+    prompt: prompt,
+    redis: redis,
+    service: service,
+    setup: setup,
+    'token-generator': tokenGenerator,
+    tools: tools,
+    toolType: toolType,
+    tray: tray,
+    update: update,
+    util: util,
+    versionmanager: versionmanager
   }
 }

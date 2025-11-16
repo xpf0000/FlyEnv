@@ -1,17 +1,18 @@
 {
-  "site": "Webbplats",
+  "site": "Plats",
   "webServer": "Webbserver",
   "dataBaseServer": "Databasserver",
   "emailServer": "E-postserver",
-  "language": "Programspråk & exekveringsmiljö",
-  "dataQueue": "Cache & minneslagring",
+  "language": "Språk & Körning",
+  "dataQueue": "Datakö & Cache",
   "searchEngine": "Sökmotor",
   "dnsServer": "DNS-server",
   "ftpServer": "FTP-server",
+  "containerRuntime": "Containerkörning",
   "other": "Övrigt",
   "appLog": "App-logg",
   "ai": "AI",
-  "objectStorage": "Object Storage",
-  "appExit": "Stoppa alla tjänster som körs och avsluta FlyEnv",
-  "groupStart": "Starta alla tillgängliga tjänster som visas på panelen med ett klick"
+  "objectStorage": "Objektlagring",
+  "appExit": "Stoppa alla startade tjänster och avsluta FlyEnv",
+  "groupStart": "Starta enkelt alla tillgängliga tjänster som visas på panelen"
 }

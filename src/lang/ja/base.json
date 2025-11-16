@@ -110,5 +110,9 @@
   "placeholderSearch": "検索",
   "projects": "プロジェクト",
 
-  "cleanup": "Cleanup"
+  "cleanup": "Cleanup",
+
+  "preview": "プレビュー",
+  "executing": "実行中",
+  "info": "詳細"
 }

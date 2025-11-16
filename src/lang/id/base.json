@@ -110,5 +110,9 @@
   "placeholderSearch": "Cari",
   "projects": "Proyek",
 
-  "cleanup": "Cleanup"
+  "cleanup": "Cleanup",
+
+  "preview": "Pratinjau",
+  "executing": "Sedang dieksekusi",
+  "info": "Info"
 }

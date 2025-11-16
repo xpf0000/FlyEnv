@@ -29,9 +29,11 @@ import licensesAZ from './licenses.json'
 import requestTimerAZ from './requestTimer.json'
 import meilisearchAZ from './meilisearch.json'
 import minioAZ from './minio.json'
+import podman from './podman.json'
 
 export default {
   az: {
+    podman,
     minio: minioAZ,
     meilisearch: meilisearchAZ,
     requestTimer: requestTimerAZ,

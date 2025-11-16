@@ -3,15 +3,16 @@
   "webServer": "Server Web",
   "dataBaseServer": "Server Database",
   "emailServer": "Server Email",
-  "language": "Linguaggio e Runtime",
-  "dataQueue": "Cache e Memoria",
+  "language": "Linguaggio & Runtime",
+  "dataQueue": "Coda Dati & Cache",
   "searchEngine": "Motore di Ricerca",
   "dnsServer": "Server DNS",
   "ftpServer": "Server FTP",
+  "containerRuntime": "Runtime del Contenitore",
   "other": "Altro",
-  "appLog": "Log dell'Applicazione",
-  "ai": "Intelligenza Artificiale",
+  "appLog": "Log dell'App",
+  "ai": "AI",
   "objectStorage": "Archiviazione Oggetti",
-  "appExit": "Interrompi tutti i servizi in esecuzione ed esci da FlyEnv",
-  "groupStart": "Avvia tutti i servizi disponibili visualizzati sul pannello con un clic"
+  "appExit": "Arresta tutti i servizi avviati ed esci da FlyEnv",
+  "groupStart": "Avvia con un clic tutti i servizi disponibili visualizzati nel pannello"
 }

@@ -26,8 +26,8 @@
       :disabled="running"
       :placeholder="$t('base.changeLang')"
     >
-      <template v-for="(label, value) in AppAllLang" :key="value">
-        <el-option :label="label" :value="value"></el-option>
+      <template v-for="(item, _index) in langList" :key="_index">
+        <el-option :label="item.label" :value="item.value"></el-option>
       </template>
       <template v-for="(item, _index) in otherLang" :key="_index">
         <el-option :label="item.label" :value="item.lang"></el-option>
@@ -59,6 +59,16 @@
         running.value = false
       })
     }
+  })
+
+  const langList = computed(() => {
+    const all = Object.keys(AppAllLang).sort()
+    return all.map((item) => {
+      return {
+        value: item,
+        label: `${item} - ${AppAllLang[item]}`
+      }
+    })
   })
 
   const otherLang = computed(() => {

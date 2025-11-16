@@ -110,5 +110,9 @@
   "placeholderSearch": "Axtar",
   "projects": "Layihələr",
 
-  "cleanup": "Təmizləmə"
+  "cleanup": "Təmizləmə",
+
+  "preview": "ön izahat",
+  "executing": "icra olunur",
+  "info": "məlumat"
 }

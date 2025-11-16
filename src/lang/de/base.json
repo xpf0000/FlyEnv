@@ -109,5 +109,9 @@
   "staticDelAlert": "Um die Sicherheit der Benutzerdaten zu gewährleisten, wird die Funktion zum automatischen Löschen installierter Software nicht mehr angeboten. Wenn Sie sicher sind, dass Sie die Software löschen möchten, klicken Sie auf „OK“. Löschen Sie die Software manuell im geöffneten Ordner.",
   "placeholderSearch": "Suche:",
   "projects": "Projekt",
-  "cleanup": "Bereinigen"
+  "cleanup": "Bereinigen",
+
+  "preview": "Vorschau",
+  "executing": "Wird ausgeführt",
+  "info": "Details"
 }

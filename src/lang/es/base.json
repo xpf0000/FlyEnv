@@ -109,5 +109,9 @@
   "staticDelAlert": "Para garantizar la seguridad de los datos del usuario, ya no se proporciona la función de eliminar automáticamente el software instalado. Si estás seguro de querer eliminarlo, haz clic en Aceptar. Elimina el software manualmente en la carpeta abierta.",
   "placeholderSearch": "Buscar",
   "projects": "Proyecto",
-  "cleanup": "Limpiar"
+  "cleanup": "Limpiar",
+
+  "preview": "Vista previa",
+  "executing": "Ejecutando",
+  "info": "Información"
 }

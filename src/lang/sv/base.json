@@ -111,5 +111,9 @@
   "action": "Åtgärd",
   "projects": "Projekt",
 
-  "cleanup": "Cleanup"
+  "cleanup": "Cleanup",
+
+  "preview": "Förhandsgranskning",
+  "executing": "Körs",
+  "info": "Information"
 }

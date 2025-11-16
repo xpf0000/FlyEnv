@@ -22,7 +22,10 @@
     >
       <el-table-column prop="name" :label="I18nT('podman.Image')">
         <template #default="scope">
-          <el-tooltip :content="scope.row.name.join(', ')" :disabled="scope.row.name.length <= 1">
+          <el-tooltip
+            :content="scope.row?.name?.join(', ')"
+            :disabled="!scope.row?.name || scope.row?.name?.length <= 1"
+          >
             <span
               class="truncate cursor-pointer hover:text-yellow-500"
               @click.stop="doCopy(scope.row.name?.[0] ?? scope.row.id)"

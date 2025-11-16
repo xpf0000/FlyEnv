@@ -47,7 +47,7 @@ export const ComposeBuildSetup = (form: ComputedRef<FormItemType>) => {
       await navigator.clipboard.writeText(composeYaml.value)
       MessageSuccess(I18nT('base.copySuccess'))
     } catch (err) {
-      console.error('复制失败:', err)
+      console.error('Copy Fail:', err)
     }
   }
 
