@@ -34,24 +34,6 @@ import type update from './zh/update.json'
 import type util from './zh/util.json'
 import type versionmanager from './zh/versionmanager.json'
 
-import ar from 'element-plus/es/locale/lang/ar'
-import az from 'element-plus/es/locale/lang/az'
-import bn from 'element-plus/es/locale/lang/bn'
-import de from 'element-plus/es/locale/lang/de'
-import en from 'element-plus/es/locale/lang/en'
-import es from 'element-plus/es/locale/lang/es'
-import fr from 'element-plus/es/locale/lang/fr'
-import id from 'element-plus/es/locale/lang/id'
-import it from 'element-plus/es/locale/lang/it'
-import ja from 'element-plus/es/locale/lang/ja'
-import pt from 'element-plus/es/locale/lang/pt'
-import ptBr from 'element-plus/es/locale/lang/pt-br'
-import sv from 'element-plus/es/locale/lang/sv'
-import tr from 'element-plus/es/locale/lang/tr'
-import uk from 'element-plus/es/locale/lang/uk'
-import vi from 'element-plus/es/locale/lang/vi'
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
-
 import AR from './ar/index'
 import AZ from './az/index'
 import BN from './bn/index'
@@ -154,26 +136,6 @@ const lang = {
   ...UK,
   ...VI,
   ...ZH
-}
-
-export const ElementPlusLang: any = {
-  ar: ar,
-  az: az,
-  bn: bn,
-  de: de,
-  en: en,
-  es: es,
-  fr: fr,
-  id: id,
-  it: it,
-  ja: ja,
-  pt: pt,
-  'pt-br': ptBr,
-  sv: sv,
-  tr: tr,
-  uk: uk,
-  vi: vi,
-  zh: zhCn
 }
 
 let i18n: I18n

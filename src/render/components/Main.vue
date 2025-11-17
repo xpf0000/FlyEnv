@@ -11,7 +11,7 @@
   import { computed, ref } from 'vue'
   import Aside from '@/components/Aside/Index.vue'
   import { AppStore } from '@/store/app'
-  import { ElementPlusLang } from '@lang/index'
+  import { ElementPlusLang } from '@lang/render'
 
   const appStore = AppStore()
   const language = ref(appStore?.config?.setup?.lang)

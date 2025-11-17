@@ -82,7 +82,7 @@
   import LeftVM from './left.vue'
   import RightVM from './right.vue'
 
-  const tab = 'podman'
+  const tab = ref('podman')
 
   PodmanManager.init()
 
