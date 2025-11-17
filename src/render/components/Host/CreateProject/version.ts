@@ -184,6 +184,24 @@ const version = {
         version: '1.*'
       }
     ]
+  },
+  Contao: {
+    url: 'https://contao.org/',
+    package: 'contao/managed-edition',
+    list: [
+      {
+        name: 'contao latest',
+        version: '*'
+      },
+      {
+        name: 'contao 5',
+        version: '5.*'
+      },
+      {
+        name: 'contao 4',
+        version: '4.*'
+      }
+    ]
   }
 }
 export default version
