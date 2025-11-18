@@ -46,8 +46,8 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { uuid } from '@/util/Index'
   import { join } from '@/util/path-browserify'
-  import { fs } from '@/util/NodeFn'
   import { IniParse } from '@/util/IniParse'
+  import { asyncComputed } from '@vueuse/core'
 
   const props = defineProps<{
     version: SoftInstalled
@@ -61,8 +61,30 @@
 
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
-  const file = computed(() => {
-    return ConfStore.phpIniFiles?.[flag?.value] ?? ''
+
+  const fetchIniFile = () => {
+    return new Promise((resolve) => {
+      IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
+        (key: string, res: any) => {
+          console.log(res)
+          IPC.off(key)
+          if (res.code === 0) {
+            ConfStore.phpIniFiles[flag.value] = res.data
+            ConfStore.save()
+            resolve(res.data)
+            return
+          }
+          resolve('')
+        }
+      )
+    })
+  }
+
+  const file = asyncComputed(async () => {
+    if (ConfStore.phpIniFiles?.[flag?.value]) {
+      return ConfStore.phpIniFiles?.[flag?.value]
+    }
+    return await fetchIniFile()
   })
   const defaultFile = computed(() => {
     if (!file.value) {
@@ -337,33 +359,6 @@
       editConfig = config
       getCommonSetting()
     }
-  }
-
-  const fileExists = ref(false)
-  watch(
-    file,
-    (val) => {
-      fs.existsSync(val).then((res) => {
-        fileExists.value = res
-      })
-    },
-    {
-      immediate: true
-    }
-  )
-
-  if (flag.value && (!file.value || !fileExists.value)) {
-    IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
-      (key: string, res: any) => {
-        console.log(res)
-        IPC.off(key)
-        if (res.code === 0) {
-          ConfStore.phpIniFiles[flag.value] = res.data
-          ConfStore.save()
-          conf?.value?.update()
-        }
-      }
-    )
   }
 
   IPC.send('app-fork:php', 'initCACertPEM').then((key: string) => {

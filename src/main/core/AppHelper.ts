@@ -203,7 +203,7 @@ export class AppHelper {
       this.state = 'installing'
 
       const { command, icns } = await this.command()
-
+      await mkdirp(global.Server.Cache!)
       Sudo(command, {
         name: 'FlyEnv',
         icns: icns,
