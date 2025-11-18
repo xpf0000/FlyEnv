@@ -80,12 +80,12 @@ brew install flyenv
 ```
 
 #### Intel (x86)
-- [FlyEnv-4.10.8.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-4.10.8.dmg)
-- [FlyEnv-4.10.8-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-4.10.8-mac.zip)
+- [FlyEnv-4.11.0.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-4.11.0.dmg)
+- [FlyEnv-4.11.0-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-4.11.0-mac.zip)
 
 #### Apple Silicon (ARM64)
-- [FlyEnv-4.10.8-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-4.10.8-arm64.dmg)
-- [FlyEnv-4.10.8-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-4.10.8-arm64-mac.zip)
+- [FlyEnv-4.11.0-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-4.11.0-arm64.dmg)
+- [FlyEnv-4.11.0-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-4.11.0-arm64-mac.zip)
 
 > **Tip**: For a lightweight PHP and web server solution, check out [FlyPHPServer](https://flyenv.com/flyphpserver.html), available on the [Mac App Store](https://apps.apple.com/us/app/flyphpserver/id1506384441).
 
@@ -95,22 +95,22 @@ brew install flyenv
 
 #### Installer version
 
-- [FlyEnv-Setup-4.10.8.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-Setup-4.10.8.exe)
+- [FlyEnv-Setup-4.11.0.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-Setup-4.11.0.exe)
 
 #### Portable version
 
-- [FlyEnv-Portable-4.10.8.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-Portable-4.10.8.exe)
+- [FlyEnv-Portable-4.11.0.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-Portable-4.11.0.exe)
 
 ---
 
 ### Linux
 #### Debian / Ubuntu
-- **x86_64**: [FlyEnv-4.10.8-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-4.10.8-x64.deb)
-- **ARM64**: [FlyEnv-4.10.8-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-4.10.8-arm64.deb)
+- **x86_64**: [FlyEnv-4.11.0-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-4.11.0-x64.deb)
+- **ARM64**: [FlyEnv-4.11.0-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-4.11.0-arm64.deb)
 
 #### Red Hat / Fedora / SUSE / CentOS
-- **x86_64**: [FlyEnv-4.10.8-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-4.10.8-x64.rpm)
-- **ARM64**: [FlyEnv-4.10.8-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.10.8/FlyEnv-4.10.8-arm64.rpm)
+- **x86_64**: [FlyEnv-4.11.0-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-4.11.0-x64.rpm)
+- **ARM64**: [FlyEnv-4.11.0-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.11.0/FlyEnv-4.11.0-arm64.rpm)
 
 ---
 
