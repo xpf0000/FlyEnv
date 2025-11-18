@@ -182,14 +182,14 @@
               <yb-icon :svg="import('@/svg/config.svg?raw')" width="17" height="17" />
               <span class="ml-3">{{ I18nT('php.editPhpIni') }}</span>
             </li>
+            <li @click.stop="action(scope.row, scope.$index, 'log-error')">
+              <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
+              <span class="ml-3">{{ I18nT('base.errorLog') }}</span>
+            </li>
             <template v-if="!isWindows">
               <li @click.stop="action(scope.row, scope.$index, 'fpm-conf')">
                 <yb-icon :svg="import('@/svg/config.svg?raw')" width="17" height="17" />
                 <span class="ml-3"> php-fpm.conf </span>
-              </li>
-              <li @click.stop="action(scope.row, scope.$index, 'log-error')">
-                <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
-                <span class="ml-3">{{ I18nT('base.errorLog') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'log-fpm')">
                 <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />

@@ -49,6 +49,7 @@
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { Folder } from '@element-plus/icons-vue'
   import { dialog } from '@/util/NodeFn'
+  import { normalize } from '@/util/path-browserify'
 
   const props = defineProps<{
     item: CommonSetItem
@@ -90,7 +91,7 @@
       }
       const [path] = filePaths
       const item: CommonSetItem = props.item
-      item.value = item?.pathHandler?.(path) ?? path
+      item.value = normalize(item?.pathHandler?.(path) ?? path)
     })
   }
 </script>
