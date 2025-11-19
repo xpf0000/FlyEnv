@@ -1,0 +1,10 @@
+{
+  "email": "EMail",
+  "country": "Χώρα",
+  "message": "Μήνυμα",
+  "messagelengthErr": "Μήκος μηνύματος είναι 5 - 1024",
+  "sendMessage": "Αποστολή Μηνύματος",
+  "anythingToSay": "Οτιδήποτε να πει",
+  "noSelected": "Δεν Υπάρχουν Επιλεγμένα",
+  "inputFilter": "Είσοδος Στο Φίλτρο"
+}

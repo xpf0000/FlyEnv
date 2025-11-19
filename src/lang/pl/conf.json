@@ -1,0 +1,9 @@
+{
+  "rawFile": "Plik Raw",
+  "CommonSetting": "Wspólne ustawienia",
+  "open": "Otwórz plik",
+  "save": "Zapisz plik Ctrl + s",
+  "loadDefault": "Załaduj domyślny plik",
+  "saveCustom": "Zapisz jako niestandardowy plik",
+  "loadCustom": "Załaduj niestandardowy plik"
+}

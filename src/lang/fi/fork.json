@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Käynnistystiedostoa ei ole olemassa, toiminto epäonnistui.",
+  "confNotFound": "Konfiguraatiotiedostoa ei ole olemassa, palvelin ei käynnistänyt",
+  "apacheLogPathErr": "Konfiguraatiotiedoston lokipolku on väärä, ja kytkin ei onnistu",
+  "versionError": "Versio on väärä, valitse uudelleen",
+  "hostsFileNotFound": "Isäntätiedostoa ei ole olemassa",
+  "startFail": "Käynnistys epäonnistui, tarkista lokitiedosto",
+  "versionNotFound": "Ohjelmistoversion hakeminen epäonnistui. Toiminto epäonnistui.",
+  "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
+  "downloadFileFail": "Tiedoston lataus epäonnistui!",
+  "trialEnd": "Kokeilu on vanhentunut. Voit jatkaa tämän ominaisuuden käyttöä, ole hyvä ja hanki lisenssi",
+  "phpiniNotFound": "php.ini-tiedostoa ei löytynyt",
+  "noEPMD": "epmd prosessia ei löytynyt. Palauta Erlangin ympäristömuuttujat"
+}

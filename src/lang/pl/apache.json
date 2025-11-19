@@ -1,0 +1,7 @@
+{
+  "Timeout": "Liczba sekund przed odebraniem i wysłaniem limitu czasu.",
+  "KeepAlive": "Czy zezwolić na trwałe połączenia",
+  "KeepAliveTimeout": "Liczba sekund oczekiwania na następne żądanie od tego samego klienta przy tym samym połączeniu.",
+  "MaxKeepAliveRequests": "Maksymalna liczba żądań dozwolonych podczas stałego połączenia.\nUstaw na 0, aby zezwolić na nieograniczoną kwotę.\nZalecamy pozostawienie tej liczby wysokiej, dla maksymalnej wydajności.",
+  "LimitRequestBody": "Byte. Limit rozmiaru wysyłanego pliku. 0: brak limitu"
+}

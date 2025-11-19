@@ -1,0 +1,36 @@
+{
+  "title": "Licens Beskrivelse",
+  "description": "Denne licens anerkender og understøtter indsatsen fra FlyEnv og dens forfattere. Formålet er ikke at begrænse brugerne, men at tilskynde til respekt for udviklernes arbejde og intellektuelle ejendomsret. Sørg for at du får en gyldig licens, før du bruger FlyEnv til kommercielle formål.",
+  "restrictions": {
+    "title": "Brugere uden licens vil være underlagt følgende begrænsninger:",
+    "items": {
+      "0": "Der kan højst oprettes tre websteder.",
+      "1": "AI chat funktionen er tilgængelig for en prøveperiode på kun tre dage.",
+      "2": "Der kan gælde yderligere begrænsninger for fremtidige træk."
+    }
+  },
+  "licenseInfo": "Den nuværende licens er en evig licens, med en licens der svarer til en computer. Hvis du ændrer din computer, skal du anmode om en ny licens.",
+  "howToObtain": {
+    "title": "Sådan får du en licens",
+    "description": "FlyEnv giver fleksible måder at opnå en licens. Brugere kan vælge en af følgende metoder til at anvende:",
+    "methods": {
+      "0": {
+        "title": "Donér til projektet",
+        "description": "Der er ikke behov for fast beløb til donationer. I betragtning af de forskellige økonomiske situationer for brugere i forskellige lande (f. eks. ., mange brugere er studerende), skal du vælge et beløb, der er behageligt for dig."
+      },
+      "1": {
+        "title": "Bidrag til udvikling",
+        "description": "Deltag i projektet ved at indsende en Pull Request. Uanset mængden af kode, så længe det forbedrer projektet positivt (f. eks. ., fastsættelse af en oversættelsesfejl), tæller dit bidrag."
+      },
+      "2": {
+        "title": "Promover projektet",
+        "description": "Fremme FlyEnv ved at dele din oplevelse i artikler, videoer, blogs, vlogs, eller kommentarer. Autentiske brugerfeedback foretrækkes. Indhold kan være på ethvert sprog og på enhver platform."
+      }
+    }
+  },
+  "submitInfo": "Efter at have gennemført en af ovennævnte metoder udfyld venligst resultaterne i indtastningsfeltet nedenfor og klik på knappen 'Anmod om licens' for at indsende din ansøgning. Licensanmodninger behandles normalt inden for 24 timer.",
+  "messageLabel": "Besked",
+  "messagePlaceholder": "Indsend venligst donor, donation link, eller ordre ID når du vælger at donere.\nSend venligst PR-linket til dem, der vælger at deltage i projektudviklingen.\nSend venligst et link til din artikel, video, blog, vlog eller kommentar til dem, der vælger at promovere.",
+  "requestButton": "Anmod Om Licens",
+  "refreshButton": "Opdater Tilstand"
+}

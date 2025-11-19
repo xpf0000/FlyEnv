@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Έλεγχος για ενημερώσεις",
+  "update-available-message": "Μια νεότερη έκδοση του FlyEnv είναι διαθέσιμη, ενημέρωση τώρα?",
+  "update-not-available-message": "Είστε ενημερωμένοι!",
+  "update-downloaded-message": "Έτοιμο για εγκατάσταση...",
+  "update-error-message": "Σφάλμα Ενημέρωσης",
+  "yes": "Ναι",
+  "no": "Όχι"
+}

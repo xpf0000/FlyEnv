@@ -1,0 +1,7 @@
+{
+  "Timeout": "Počet vteřin před přijetím a odesláním vypršel.",
+  "KeepAlive": "Zda povolit trvalá spojení",
+  "KeepAliveTimeout": "Počet sekund pro čekání na další požadavek od stejného klienta na stejném připojení.",
+  "MaxKeepAliveRequests": "Maximální počet požadavků k povolení během trvalého připojení.\nNastavte na 0 pro povolení neomezené množství.\nDoporučujeme ponechat toto číslo vysoké, pro maximální výkon.",
+  "LimitRequestBody": "Byt. Limit velikosti nahrávání souboru. 0: bez limitu"
+}

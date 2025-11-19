@@ -1,0 +1,10 @@
+{
+  "email": "Emailová adresa",
+  "country": "L 343, 22.12.2009, s. 1).",
+  "message": "Zpráva",
+  "messagelengthErr": "Délka zprávy je 5 - 1024",
+  "sendMessage": "Odeslat zprávu",
+  "anythingToSay": "Cokoliv, co je třeba říci",
+  "noSelected": "Není vybráno",
+  "inputFilter": "Vložit do filtru"
+}

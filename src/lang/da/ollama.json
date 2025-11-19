@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Vis yderligere debug information (f.eks. OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "IP-adresse for ollama-serveren (standard 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Varigheden af at modeller forbliver indlæst i hukommelse (standard \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Maksimalt antal indlæste modeller pr. GPU",
+  "OLLAMA_MAX_QUEUE": "Maksimalt antal forespørgsler i kø",
+  "OLLAMA_MODELS": "Stien til mappen for modeller",
+  "OLLAMA_NUM_PARALLEL": "Maksimalt antal parallelle anmodninger",
+  "OLLAMA_NOPRUNE": "Skær ikke model blobs ved opstart",
+  "OLLAMA_ORIGINS": "En kommasepareret liste over tilladte oprindelser",
+  "OLLAMA_SCHED_SPREAD": "Planlæg altid model på tværs af alle GPU'er",
+  "OLLAMA_FLASH_ATTENTION": "Aktiveret blitz opmærksomhed",
+  "OLLAMA_KV_CACHE_TYPE": "Kvantiseringstype for K/V cache (standard: f16)",
+  "OLLAMA_LLM_LIBRARY": "Sæt LLM bibliotek til at omgå autodetektion",
+  "OLLAMA_GPU_OVERHEAD": "Reserver en del af VRAM pr. GPU (bytes)",
+  "OLLAMA_LOAD_TIMEOUT": "Hvor lang tid at tillade model belastninger til at stall før du giver op (standard \"5m\")",
+  "needServiceRun": "Start venligst Olama service først",
+  "size": "Størrelse",
+  "model": "Modeller"
+}

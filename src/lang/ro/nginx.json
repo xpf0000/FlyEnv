@@ -1,0 +1,10 @@
+{
+  "gzip": "Este activată transmisia de compresie GZIP",
+  "gzip_min_length": "Fișier comprimat minim",
+  "gzip_comp_level": "compresibilitate",
+  "client_max_body_size": "Mărimea maximă a fișierului încărcat",
+  "server_names_hash_max_size": "Dimensiunea maximă a tabelului Hash pentru numele serverului",
+  "server_names_hash_bucket_size": "Dimensiune tabel hash pentru numele serverului",
+  "client_header_buffer_size": "Dimensiune tampon solicitare client antet antet",
+  "client_body_buffer_size": "Marime tampon corp"
+}

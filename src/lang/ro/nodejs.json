@@ -1,0 +1,16 @@
+{
+  "installFNM": "Instalează <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Instalați <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "Terminal",
+  "registry": "Sursa",
+  "checkPackageJsonUpdate": "Verifică pentru actualizări",
+  "updatePackageJsonFile": "Actualizeaza fisier pachete.json",
+  "updatePackageJsonFileTips": "Această acţiune va modifica fişierul pachete.json. Sunteţi sigur că doriţi să actualizaţi?",
+  "copyDirPath": "Copiază calea dosarului proiectului",
+  "openIN": "Deschide în",
+  "VSCode": "Studio vizual",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Proiectul Mediu"
+}

@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "Vyhledávání DNS",
+  "tcpConnect": "TCP připojení",
+  "tlsHandshake": "TLS Handshake",
+  "requestProcessing": "Zpracování žádosti",
+  "ttfb": "Čas do prvního bajtu (TTFB)",
+  "contentDownload": "Stahování obsahu",
+  "downloadSpeed": "Rychlost stahování",
+  "dataSize": "Velikost dat",
+  "httpVersion": "HTTP verze",
+  "statusCode": "Stavový kód",
+  "usingProxy": "Použití proxy",
+  "totalTime": "Celkový čas",
+  "skippedForProxy": "Přeskočeno pro proxy",
+  "metric": "Metrické",
+  "value": "Hodnota"
+}

@@ -1,0 +1,7 @@
+{
+  "Local": "Místní",
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> nebyl nalezen\nPro instalaci Homebrew, klikněte na tlačítko instalace pro pokračování\nMůžete také kliknout na tento odkaz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv. om/guide/getting-started.html#macos-1</a>\nPostupujte podle dokumentace pro instalaci.",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macport</a> nebyl nalezen.\nNainstalujte Macporty, můžete kliknout na tento odkaz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nPostupujte podle dokumentace.",
+  "brewErrorTips": "Na tomto místě {bin}byly zjištěny spustitelné soubory Homebrew\nNicméně FlyEnv jim nemůže zavolat. Zpráva o chybě:\n{error}",
+  "Library": "Knihovna"
+}

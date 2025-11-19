@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Se etter oppdateringer",
+  "update-available-message": "En nyere versjon av FlyEnv er tilgjengelig, oppdatere nå?",
+  "update-not-available-message": "Du er oppdatert!",
+  "update-downloaded-message": "Klar til å installere...",
+  "update-error-message": "Feil ved oppdatering",
+  "yes": "Ja",
+  "no": "Nei"
+}

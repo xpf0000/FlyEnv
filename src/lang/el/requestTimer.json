@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "Αναζήτηση DNS",
+  "tcpConnect": "Σύνδεση TCP",
+  "tlsHandshake": "TLS Handshake",
+  "requestProcessing": "Αίτηση Επεξεργασίας",
+  "ttfb": "Ώρα για το πρώτο Byte (TTFB)",
+  "contentDownload": "Λήψη Περιεχομένου",
+  "downloadSpeed": "Ταχύτητα Λήψης",
+  "dataSize": "Μέγεθος Δεδομένων",
+  "httpVersion": "Έκδοση HTTP",
+  "statusCode": "Κωδικός Κατάστασης",
+  "usingProxy": "Χρήση Διακομιστή Μεσολάβησης",
+  "totalTime": "Συνολικός Χρόνος",
+  "skippedForProxy": "Παράλειψη για διακομιστή μεσολάβησης",
+  "metric": "Μετρικό",
+  "value": "Τιμή"
+}

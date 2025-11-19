@@ -1,0 +1,13 @@
+{
+  "setaliase": "Sett alias",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Har stien er lagt til miljøvariabelen",
+  "aliasTips": "Alias som brukes i terminalen",
+  "useSysPHP": "Bruk standard PHP-versjon",
+  "setByApp": "Miljøvariabler satt av FlyEnv",
+  "setByNoApp": "Miljøvariabler ikke satt av FlyEnv",
+  "ftpdNeedPasswordToStart": "Utvalg-FTPd krever supertilgangene for å starte. Skriv inn ditt brukerpassord. Passordet vil bli brukt til automatisk utfylling senere. Eller du kan klikke på knappen nedenfor for å skrive inn manuelt i terminalen, men denne ledeteksten kan dukke opp igjen.",
+  "bundleinVersionDelTips": "Denne versjonen er en innebygd versjon, bekreft ikke?",
+  "customDirVersionDelTips": "Denne versjonen er en egendefinert fil-versjon, bekreft ikke?"
+}

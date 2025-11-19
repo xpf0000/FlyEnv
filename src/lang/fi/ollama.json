@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Näytä muut vianetsintätiedot (esim. OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "Ollama palvelimen IP-osoite (oletus 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Kesto, jonka mallit pysyvät ladattuna muistiin (oletus \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Maksimi määrä ladattuja malleja / GPU",
+  "OLLAMA_MAX_QUEUE": "Jonossa olevien pyyntöjen enimmäismäärä",
+  "OLLAMA_MODELS": "Polku mallien hakemistoon",
+  "OLLAMA_NUM_PARALLEL": "Rinnakkaisten pyyntöjen enimmäismäärä",
+  "OLLAMA_NOPRUNE": "Älä karsita mallilohkoja käynnistettäessä",
+  "OLLAMA_ORIGINS": "Pilkulla erotettu luettelo sallituista alkuperäistä",
+  "OLLAMA_SCHED_SPREAD": "Aina aikataulu malli kaikissa GPU:issa",
+  "OLLAMA_FLASH_ATTENTION": "Käytä flash-huomiota",
+  "OLLAMA_KV_CACHE_TYPE": "Kvantifiointityyppi K/V välimuistille (oletus: f16)",
+  "OLLAMA_LLM_LIBRARY": "Aseta LLM-kirjasto ohittaaksesi automaattisen tunnistuksen",
+  "OLLAMA_GPU_OVERHEAD": "Varaa osa VRAMista GPU:ta kohden (tavua)",
+  "OLLAMA_LOAD_TIMEOUT": "Kuinka kauan mallissa olevien kuormien voi pysäyttää ennen luopumista (oletus \"5m\")",
+  "needServiceRun": "Ole hyvä ja käynnistä Olama palvelu ensin",
+  "size": "Koko",
+  "model": "Mallit"
+}

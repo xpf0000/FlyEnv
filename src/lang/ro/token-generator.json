@@ -1,0 +1,13 @@
+{
+  "title": "Generator de simboluri",
+  "uppercase": "Uppercase (ABC...)",
+  "lowercase": "Carcasă mică (abc...)",
+  "numbers": "Numere (123,..)",
+  "symbols": "Simboluri (!-;...)",
+  "length": "Lungime",
+  "tokenPlaceholder": "Token...",
+  "button": {
+    "copy": "Copiază",
+    "refresh": "Împrospătează"
+  }
+}

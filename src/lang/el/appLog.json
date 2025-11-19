@@ -1,0 +1,23 @@
+{
+  "startInstall": "Έναρξη εγκατάστασης {service}",
+  "startServiceBegin": "Έναρξη της υπηρεσίας {service}",
+  "confInit": "Το αρχείο ρύθμισης παραμέτρων δεν υπάρχει, δημιουργία αρχείου ρύθμισης παραμέτρων",
+  "confInitSuccess": "Configuration file generated successfully, file path: {file}",
+  "confInitFail": "Configuration file generation failed, reason: {error}",
+  "apachePortHandleBegin": "Αρχίστε να λαμβάνετε όλες τις θύρες ακρόασης Apache από την ιστοσελίδα",
+  "apachePortHandleEnd": "Η απόκτηση θύρας ακρόασης Apache ολοκληρώθηκε, με επιτυχία εγγραφή αρχείου ρύθμισης παραμέτρων",
+  "execStartCommand": "Ξεκινήστε την εκτέλεση της εντολής εκκίνησης",
+  "execStartCommandSuccess": "Η εντολή έναρξης εκτελέστηκε με επιτυχία, ξεκινήστε τον έλεγχο αν η εκκίνηση ήταν επιτυχής",
+  "execStartCommandFail": "Αποτυχία εκτέλεσης εντολής εκκίνησης, αιτία: Η υπηρεσία {error}, {service} απέτυχε να ξεκινήσει",
+  "startServiceSuccess": "Η υπηρεσία {service} ξεκίνησε με επιτυχία, pid: {pid}",
+  "startServiceFail": "Η υπηρεσία {service} απέτυχε να ξεκινήσει, αιτία: {error}",
+  "stopServiceBegin": "Έναρξη διακοπής της υπηρεσίας {service}",
+  "stopServiceEnd": "Η υπηρεσία {service} σταμάτησε με επιτυχία",
+  "initDBPass": "Έναρξη αρχικοποίησης κωδικού πρόσβασης βάσης δεδομένων",
+  "initDBPassSuccess": "Επιτυχής προετοιμασία του κωδικού πρόσβασης της βάσης δεδομένων, κωδικός λογαριασμού: {user} {pass}",
+  "initDBPassFail": "Failed to initialize database password, reason: {error}",
+  "initDBDataDir": "Ο φάκελος δεδομένων δεν βρέθηκε, έναρξη αρχικοποίησης φακέλου δεδομένων",
+  "initDBDataDirSuccess": "Initialization of data folder successful, data folder path: {dir}",
+  "initDBDataDirFail": "Initialization of data folder failed, reason: {error}",
+  "newProjectFail": "Αποτυχία δημιουργίας νέου έργου"
+}

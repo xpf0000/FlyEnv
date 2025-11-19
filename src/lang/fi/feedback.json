@@ -1,0 +1,10 @@
+{
+  "email": "EMail",
+  "country": "Maa",
+  "message": "Viesti",
+  "messagelengthErr": "Viestin pituus on 5 - 1024",
+  "sendMessage": "Lähetä Viesti",
+  "anythingToSay": "Kaikki mitä sanottavaa",
+  "noSelected": "Ei Valittu",
+  "inputFilter": "Sisääntulo Suodattamaan"
+}

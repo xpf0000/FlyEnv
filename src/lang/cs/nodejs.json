@@ -1,0 +1,16 @@
+{
+  "installFNM": "Nainstalujte <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Nainstalujte <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "Terminál",
+  "registry": "Zdroj",
+  "checkPackageJsonUpdate": "Zkontrolovat aktualizace",
+  "updatePackageJsonFile": "Aktualizovat soubor package.json",
+  "updatePackageJsonFileTips": "Tato akce změní soubor package.json. Jste si jisti, že chcete aktualizovat?",
+  "copyDirPath": "Kopírovat cestu ke složce projektu",
+  "openIN": "Otevřít v",
+  "VSCode": "Kód vizuálního studia",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "Webová bouře",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Projektové prostředí"
+}

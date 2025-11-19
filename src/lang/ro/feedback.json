@@ -1,0 +1,10 @@
+{
+  "email": "Email-uri",
+  "country": "Țară",
+  "message": "Mesaj",
+  "messagelengthErr": "Lungimea mesajului este 5 - 1024",
+  "sendMessage": "Trimite mesaj",
+  "anythingToSay": "Orice să spun",
+  "noSelected": "Nici un selectat",
+  "inputFilter": "Intrare în filtru"
+}

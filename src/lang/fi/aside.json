@@ -1,0 +1,18 @@
+{
+  "site": "Sivusto",
+  "webServer": "Web- Palvelin",
+  "dataBaseServer": "Tietokannan Palvelin",
+  "emailServer": "Sähköpostin Palvelin",
+  "language": "Kieli Ja Runtime",
+  "dataQueue": "Välimuisti Ja Muistin Tallennustila",
+  "searchEngine": "Hakukone",
+  "dnsServer": "DNS Palvelin",
+  "ftpServer": "Ftp Palvelin",
+  "containerRuntime": "Kontti Ajoaika",
+  "other": "Muu",
+  "appLog": "Sovelluksen Loki",
+  "ai": "AI",
+  "objectStorage": "Objektin Tallennustila",
+  "appExit": "Pysäytä kaikki käynnissä olevat palvelut ja poistu FlyEnv",
+  "groupStart": "Yhdellä napsautuksella käynnistetään kaikki paneelissa näytettävät palvelut"
+}

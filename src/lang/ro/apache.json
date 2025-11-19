@@ -1,0 +1,7 @@
+{
+  "Timeout": "Numărul de secunde înainte de a primi și trimite timpul.",
+  "KeepAlive": "Permiteti sau nu conexiuni persistente",
+  "KeepAliveTimeout": "Numărul de secunde de așteptare pentru următoarea solicitare din partea aceluiași client pe aceeași conexiune.",
+  "MaxKeepAliveRequests": "Numărul maxim de solicitări permise în timpul unei conexiuni persistente.\nSetat la 0 pentru a permite o sumă nelimitată.\nVă recomandăm să lăsaţi acest număr mare, pentru o performanţă maximă.",
+  "LimitRequestBody": "Byte. Limita pentru dimensiunea fișierului. 0: fără limită"
+}

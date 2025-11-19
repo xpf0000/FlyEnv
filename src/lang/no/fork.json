@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Oppstartsfilen finnes ikke, operasjonen mislyktes.",
+  "confNotFound": "Konfigurasjonsfilen finnes ikke, serveren kunne ikke starte",
+  "apacheLogPathErr": "Loggbanen til konfigurasjonsfilen er feil, og bryteren feilslått",
+  "versionError": "Versjonen er galt, velg igjen",
+  "hostsFileNotFound": "Verten filen eksisterer ikke",
+  "startFail": "Kan ikke starte, kontroller loggfilen",
+  "versionNotFound": "Klarte ikke hente programvareversjon, operasjonen mislyktes.",
+  "postgresqlInit": "Tjenesten ble startet med\nData Dir er {dir}\nInitial bruker er rot, passord er rot",
+  "downloadFileFail": "Nedlastingsfilen mislyktes!",
+  "trialEnd": "Prøveperioden er utløpt. For å fortsette å bruke denne funksjonen, vennligst skaffe en lisens",
+  "phpiniNotFound": "php.ini-fil ikke funnet",
+  "noEPMD": "Finner ikke epmd-prosessen. Vennligst tilbakestill Erlang miljøvariabler."
+}

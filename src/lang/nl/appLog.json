@@ -1,0 +1,23 @@
+{
+  "startInstall": "Installatie starten {service}",
+  "startServiceBegin": "Start de {service} service...",
+  "confInit": "Het configuratiebestand bestaat niet, het configuratiebestand genereren",
+  "confInitSuccess": "Configuratiebestand succesvol gegenereerd, bestandspad {file}",
+  "confInitFail": "Aanmaken van configuratiebestand is mislukt, reden: {error}",
+  "apachePortHandleBegin": "Beginnen met het verkrijgen van alle Apache luisterpoorten van de site",
+  "apachePortHandleEnd": "Apache luisteren port acquisitie voltooid, configuratie bestand schrijven geslaagd",
+  "execStartCommand": "Start de start opdracht",
+  "execStartCommandSuccess": "Start opdracht succesvol uitgevoerd, controleer of de opstart succesvol was",
+  "execStartCommandFail": "Uitvoering van de opdracht is mislukt, reden: {error}, {service} service is mislukt",
+  "startServiceSuccess": "{service} service succesvol gestart, pid: {pid}",
+  "startServiceFail": "{service} service is niet gestart, reden: {error}",
+  "stopServiceBegin": "Stoppen met {service} service",
+  "stopServiceEnd": "{service} service succesvol gestopt",
+  "initDBPass": "Start met het initialiseren van database wachtwoord",
+  "initDBPassSuccess": "Initialiseer database wachtwoord succesvol, account wachtwoord: {user} {pass}",
+  "initDBPassFail": "Kon het databasewachtwoord niet initialiseren, reden: {error}",
+  "initDBDataDir": "Gegevensmap niet gevonden, begin met het initialiseren van de gegevensmap",
+  "initDBDataDirSuccess": "Initialisatie van de gegevensmap succesvol, gegevensmap pad: {dir}",
+  "initDBDataDirFail": "Initialisatie van gegevensmap is mislukt, reden: {error}",
+  "newProjectFail": "Nieuw project maken mislukt"
+}

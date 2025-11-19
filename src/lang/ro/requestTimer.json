@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "Căutare DNS",
+  "tcpConnect": "Conectare TCP",
+  "tlsHandshake": "TLS Handshake",
+  "requestProcessing": "Cerere de procesare",
+  "ttfb": "Timpul până la primul octet (TTFB)",
+  "contentDownload": "Conținut Descărcat",
+  "downloadSpeed": "Viteza de Descărcare",
+  "dataSize": "Dimensiune date",
+  "httpVersion": "Versiune HTTP",
+  "statusCode": "Cod de stare",
+  "usingProxy": "Utilizarea Proxy",
+  "totalTime": "Timp total",
+  "skippedForProxy": "Salt pentru proxy",
+  "metric": "Metrice",
+  "value": "Valoare"
+}

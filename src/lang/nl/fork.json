@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Opstartbestand bestaat niet, bewerking mislukt.",
+  "confNotFound": "Het configuratiebestand bestaat niet, de server kon niet starten",
+  "apacheLogPathErr": "Het log-pad van het configuratiebestand is verkeerd en de schakelaar mislukt",
+  "versionError": "De versie is verkeerd, selecteer opnieuw",
+  "hostsFileNotFound": "Het hosts bestand bestaat niet",
+  "startFail": "Starten mislukt, controleer het logboekbestand",
+  "versionNotFound": "Fout bij het ophalen van de softwareversie.",
+  "postgresqlInit": "Service met succes gestart\nData Dir is {dir}\nInitial User is root, Wachtwoord is root",
+  "downloadFileFail": "Download bestand mislukt!",
+  "trialEnd": "De proefperiode is verlopen. Om deze functie te blijven gebruiken, moet u een licentie verkrijgen",
+  "phpiniNotFound": "php.ini bestand niet gevonden",
+  "noEPMD": "Het epmd proces is niet gevonden. Herstel de Erlang omgevingsvariabelen"
+}

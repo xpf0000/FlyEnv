@@ -1,0 +1,6 @@
+{
+  "timeout": "Idle connection timeout, 0 geeft continue opening aan",
+  "databases": "Aantal databases",
+  "requirepass": "Redis wachtwoord",
+  "maxmemory": "Byte, maximum geheugengebruik, 0 geeft geen limiet aan"
+}

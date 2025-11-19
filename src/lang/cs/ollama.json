@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Zobrazit další informace o ladění (např. OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "IP adresa ollama serveru (výchozí 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Doba, po kterou zůstávají modely načteny do paměti (výchozí \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Maximální počet načtených modelů na GPU",
+  "OLLAMA_MAX_QUEUE": "Maximální počet žádostí ve frontě",
+  "OLLAMA_MODELS": "Cesta k adresáři modelů",
+  "OLLAMA_NUM_PARALLEL": "Maximální počet paralelních žádostí",
+  "OLLAMA_NOPRUNE": "Při spuštění neprořezávat bloby",
+  "OLLAMA_ORIGINS": "Čárkami oddělený seznam povolených původů",
+  "OLLAMA_SCHED_SPREAD": "Vždy plánovat model napříč všemi GPU.",
+  "OLLAMA_FLASH_ATTENTION": "Zapnout bleskovou pozornost",
+  "OLLAMA_KV_CACHE_TYPE": "Typ kvantifikace pro mezipaměť K/V (výchozí: f16)",
+  "OLLAMA_LLM_LIBRARY": "Nastavit knihovnu LLM pro obejití autodetekce",
+  "OLLAMA_GPU_OVERHEAD": "Rezervovat část VRAM na GPU (bajty)",
+  "OLLAMA_LOAD_TIMEOUT": "Jak dlouho dovolit, aby se zatížení modelu zastavilo, než se vzdá (výchozí \"5m\")",
+  "needServiceRun": "Nejprve spusťte službu Olama",
+  "size": "Velikost",
+  "model": "Vzory"
+}

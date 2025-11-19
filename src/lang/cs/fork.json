@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Spouštěcí soubor neexistuje, operace se nezdařila.",
+  "confNotFound": "Konfigurační soubor neexistuje, server se nepodařilo spustit",
+  "apacheLogPathErr": "Cesta k protokolu konfiguračního souboru je chybná a přepínač selhal",
+  "versionError": "Verze je špatná, vyberte prosím znovu",
+  "hostsFileNotFound": "Soubor hosts neexistuje",
+  "startFail": "Nepodařilo se spustit, zkontrolujte soubor protokolu",
+  "versionNotFound": "Nepodařilo se získat verzi softwaru, operace se nezdařila.",
+  "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
+  "downloadFileFail": "Stahování souboru selhalo!",
+  "trialEnd": "Zkušební verze vypršela. Chcete-li nadále používat tuto funkci, získejte licenci",
+  "phpiniNotFound": "php.ini soubor nebyl nalezen",
+  "noEPMD": "Proces epmd nebyl nalezen. Prosím resetujte proměnné prostředí Erlang"
+}

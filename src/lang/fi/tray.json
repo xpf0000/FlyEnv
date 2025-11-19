@@ -1,0 +1,10 @@
+{
+  "showMainWin": "Näytä Pääikkuna",
+  "exit": "Poistu",
+  "run": "Käynnissä",
+  "notRun": "Ei Käynnissä",
+  "trayMenuBarStyle": "Kaukalon Ponnahdusikkunan Tyyli",
+  "classic": "Klassinen",
+  "modern": "Moderni",
+  "trayMenuBarStyleTips": "Valitse tarjotin ponnahdusikkunan tyyli. Joissakin Linux-työpöydissä, moderni tyyli voi olla ongelmia, joten voit valita klassisen tyylin sijaan."
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Γεννήτρια Token",
+  "uppercase": "Κεφαλαία (ABC...)",
+  "lowercase": "Πεζά (abc...)",
+  "numbers": "Αριθμοί (123...)",
+  "symbols": "Σύμβολα (!-;...)",
+  "length": "Μήκος",
+  "tokenPlaceholder": "Το token...",
+  "button": {
+    "copy": "Αντιγραφή",
+    "refresh": "Ανανέωση"
+  }
+}

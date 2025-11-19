@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS Opslag",
+  "tcpConnect": "TCP Forbind",
+  "tlsHandshake": "TLS Handshake",
+  "requestProcessing": "Anmod Om Behandling",
+  "ttfb": "Tid til første byte (TTFB)",
+  "contentDownload": "Download Af Indhold",
+  "downloadSpeed": "Download Hastighed",
+  "dataSize": "Data Størrelse",
+  "httpVersion": "Http Version",
+  "statusCode": "Status Kode",
+  "usingProxy": "Bruger Proxy",
+  "totalTime": "Tid I Alt",
+  "skippedForProxy": "Oversprunget over for proxy",
+  "metric": "Metrisk",
+  "value": "Værdi"
+}

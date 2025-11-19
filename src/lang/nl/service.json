@@ -1,0 +1,13 @@
+{
+  "setaliase": "Stel alias in",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Is het pad toegevoegd aan de omgevingsvariabele",
+  "aliasTips": "Alias gebruikt in de terminal",
+  "useSysPHP": "Gebruik standaard PHP versie",
+  "setByApp": "Omgeving variabelen ingesteld door FlyEnv",
+  "setByNoApp": "Omgevingsvariabelen niet ingesteld door FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd vereist sudo rechten om te starten. Voer uw gebruikerswachtwoord in. Het wachtwoord wordt later gebruikt om automatisch in te vullen. Of je kunt op de knop hieronder klikken om handmatig in te voeren in de terminal, maar deze vraag kan weer verschijnen.",
+  "bundleinVersionDelTips": "Deze versie is een ingebouwde versie, bevestig niet weergegeven?",
+  "customDirVersionDelTips": "Deze versie is een aangepaste path versie, bevestig niet weergegeven?"
+}

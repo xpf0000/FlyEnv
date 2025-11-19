@@ -1,0 +1,18 @@
+{
+  "site": "Witryna",
+  "webServer": "Serwer WWW",
+  "dataBaseServer": "Serwer bazy danych",
+  "emailServer": "Serwer e-mail",
+  "language": "Język i czas pracy",
+  "dataQueue": "Pamięć podręczna i pamięć",
+  "searchEngine": "Wyszukiwarka",
+  "dnsServer": "Serwer DNS",
+  "ftpServer": "Serwer FTP",
+  "containerRuntime": "Czas uruchomienia kontenera",
+  "other": "Inne",
+  "appLog": "Dziennik aplikacji",
+  "ai": "AI",
+  "objectStorage": "Przechowywanie obiektów",
+  "appExit": "Zatrzymaj wszystkie uruchomione usługi i wyjdź z FlyEnv",
+  "groupStart": "Uruchom wszystkie dostępne usługi wyświetlane w panelu jednym kliknięciem"
+}

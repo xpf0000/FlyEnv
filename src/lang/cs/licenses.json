@@ -1,0 +1,36 @@
+{
+  "title": "Popis licence",
+  "description": "Tato licence uznává a podporuje úsilí FlyEnv a jeho autorů. Jejím cílem není omezovat uživatele, ale podporovat úctu k práci a duševnímu vlastnictví vývojářů. Před použitím FlyEnv pro komerční účely se ujistěte, že jste získali platnou licenci.",
+  "restrictions": {
+    "title": "Uživatelé bez licence budou podléhat následujícím omezením:",
+    "items": {
+      "0": "Je možné vytvořit maximálně tři stránky.",
+      "1": "Funkce AI chatu je dostupná pouze po dobu tří dnů.",
+      "2": "Další omezení mohou platit pro budoucí funkce."
+    }
+  },
+  "licenseInfo": "Aktuální nabízená licence je trvalá licence s jednou licencí pro jeden počítač. Pokud změníte svůj počítač, budete muset požádat o novou licenci.",
+  "howToObtain": {
+    "title": "Jak získat licenci",
+    "description": "FlyEnv poskytuje flexibilní způsoby, jak získat licenci. Uživatelé si mohou vybrat některou z následujících metod:",
+    "methods": {
+      "0": {
+        "title": "Přispět na projekt",
+        "description": "Pro dary není vyžadována pevně stanovená částka. Vezměme v úvahu proměnlivou ekonomickou situaci uživatelů v různých zemích (např. ., mnoho uživatelů jsou studenti), vyberte si prosím částku, která je pro vás pohodlná."
+      },
+      "1": {
+        "title": "Přispět k vývoji",
+        "description": "Účast na projektu předložením Pull Request. Bez ohledu na množství kódu, pokud projekt pozitivně zlepšuje (např. ., oprava chyby překladu), počítání příspěvků."
+      },
+      "2": {
+        "title": "Propagovat projekt",
+        "description": "Propagujte FlyEnv sdílením vašich zkušeností s články, videi, blogy, vlogy nebo komentáři. Upřednostňuje se uživatelská zpětná vazba. Obsah může být v libovolném jazyce a na libovolné platformě."
+      }
+    }
+  },
+  "submitInfo": "Po dokončení některé z výše uvedených metod vyplňte prosím výsledky do vstupního pole níže a pro odeslání vaší žádosti klikněte na tlačítko 'Požádat o licenci'. Žádosti o licence jsou obvykle zpracovávány do 24 hodin.",
+  "messageLabel": "Zpráva",
+  "messagePlaceholder": "Pošlete prosím dárce, odkaz na dárce nebo ID objednávky při výběru darování.\nPředložte prosím odkaz na PR pro ty, kteří se rozhodnou podílet se na vývoji projektu.\nProsím nahrajte odkaz na váš článek, video, blog, vlog nebo komentář pro ty, kteří se rozhodnou propagovat.",
+  "requestButton": "Žádost o licenci",
+  "refreshButton": "Obnovit stav"
+}

@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS opzoeken",
+  "tcpConnect": "TCP verbinding",
+  "tlsHandshake": "TLS Handshake",
+  "requestProcessing": "Verzoek verwerken",
+  "ttfb": "Tijd tot eerste Byte (TTFB)",
+  "contentDownload": "Inhoud downloaden",
+  "downloadSpeed": "Download snelheid",
+  "dataSize": "Data grootte",
+  "httpVersion": "HTTP versie",
+  "statusCode": "Status Code",
+  "usingProxy": "Proxy gebruiken",
+  "totalTime": "Totale tijd",
+  "skippedForProxy": "Overgeslagen voor proxy",
+  "metric": "Metrisch",
+  "value": "Waarde"
+}

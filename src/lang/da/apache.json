@@ -1,0 +1,7 @@
+{
+  "Timeout": "Antallet af sekunder før modtager og sender tid ud.",
+  "KeepAlive": "Om vedvarende forbindelser skal tillades eller ej",
+  "KeepAliveTimeout": "Antal sekunder til at vente på den næste forespørgsel fra den samme klient på den samme forbindelse.",
+  "MaxKeepAliveRequests": "Det maksimale antal forespørgsler der skal tillades under en vedvarende forbindelse.\nSæt til 0 for at tillade et ubegrænset beløb.\nVi anbefaler, at du efterlader dette nummer højt, for maksimal ydelse.",
+  "LimitRequestBody": "Byte. Fil upload størrelse grænse. 0: ingen grænse"
+}

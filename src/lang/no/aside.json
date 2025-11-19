@@ -1,0 +1,18 @@
+{
+  "site": "Nettsted",
+  "webServer": "Webserver",
+  "dataBaseServer": "Databaseserver (Automatic Translation)",
+  "emailServer": "E-post server",
+  "language": "Språk og kjøretid",
+  "dataQueue": "Mellomlager og minne",
+  "searchEngine": "Søkemotor",
+  "dnsServer": "DNS server",
+  "ftpServer": "FTP server",
+  "containerRuntime": "Container kjøretid",
+  "other": "Annet",
+  "appLog": "App logg",
+  "ai": "AI",
+  "objectStorage": "Objekt lagring",
+  "appExit": "Stopp alle kjørende tjenester og avslutt FlyEnv",
+  "groupStart": "Ett klikk start av alle tilgjengelige tjenester som vises i ruten"
+}

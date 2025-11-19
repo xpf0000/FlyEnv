@@ -1,0 +1,18 @@
+{
+  "site": "Stránka",
+  "webServer": "Webový server",
+  "dataBaseServer": "Databázový server",
+  "emailServer": "E-mailový server",
+  "language": "Jazyk a běh",
+  "dataQueue": "Mezipaměť a paměť",
+  "searchEngine": "Vyhledávač",
+  "dnsServer": "DNS server",
+  "ftpServer": "FTP server",
+  "containerRuntime": "Čas běhu kontejneru",
+  "other": "Ostatní",
+  "appLog": "Protokol aplikací",
+  "ai": "AI",
+  "objectStorage": "Úložiště objektů",
+  "appExit": "Zastavit všechny běžící služby a ukončit FlyEnv",
+  "groupStart": "Jedním klepnutím spustit všechny dostupné služby zobrazené v panelu"
+}

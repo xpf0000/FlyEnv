@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Arată informații suplimentare de depanare (de ex. OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "Adresa IP pentru serverul ollama (implicit 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Durata ca modelele să rămână în memorie (implicit \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Numărul maxim de modele încărcate per GPU",
+  "OLLAMA_MAX_QUEUE": "Numărul maxim de cereri în așteptare",
+  "OLLAMA_MODELS": "Calea către directorul de modele",
+  "OLLAMA_NUM_PARALLEL": "Numărul maxim de cereri paralele",
+  "OLLAMA_NOPRUNE": "Nu curățați bulgăurile de model la pornire",
+  "OLLAMA_ORIGINS": "O listă separată prin virgulă a originilor permise",
+  "OLLAMA_SCHED_SPREAD": "Întotdeauna programează model pentru toate GPU-urile",
+  "OLLAMA_FLASH_ATTENTION": "Activat atenția flash",
+  "OLLAMA_KV_CACHE_TYPE": "Tipul de cuantificare pentru cache-ul K/V (implicit: f16)",
+  "OLLAMA_LLM_LIBRARY": "Setează biblioteca LLM pentru a ocoli detectarea automată",
+  "OLLAMA_GPU_OVERHEAD": "Rezervă o porțiune de VRAM per GPU (octechar)",
+  "OLLAMA_LOAD_TIMEOUT": "Cât timp se permite ca sarcinile modelului să se blocheze înainte de a renunța (implicit \"5m\")",
+  "needServiceRun": "Vă rugăm să porniţi mai întâi serviciul Olama",
+  "size": "Dimensiune",
+  "model": "Modele"
+}

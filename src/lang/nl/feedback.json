@@ -1,0 +1,10 @@
+{
+  "email": "E-Mail",
+  "country": "Land:",
+  "message": "Bericht",
+  "messagelengthErr": "Bericht lengte is 5 - 1024",
+  "sendMessage": "Verstuur bericht",
+  "anythingToSay": "Alles wat te zeggen",
+  "noSelected": "Geen Geselecteerd",
+  "inputFilter": "Invoeren om te filteren"
+}

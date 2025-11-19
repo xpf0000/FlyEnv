@@ -1,0 +1,6 @@
+{
+  "timeout": "Limit czasu bezczynności podłączenia, 0 oznacza ciągłe otwarcie",
+  "databases": "Liczba baz danych",
+  "requirepass": "Hasło Redis",
+  "maxmemory": "Bajt, maksymalne użycie pamięci, 0 oznacza brak limitu"
+}

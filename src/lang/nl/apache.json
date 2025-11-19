@@ -1,0 +1,7 @@
+{
+  "Timeout": "Het aantal seconden voordat het wordt ontvangen en verstuurt een time-out.",
+  "KeepAlive": "Aanhoudende verbindingen wel of niet toestaan",
+  "KeepAliveTimeout": "Het aantal seconden dat wacht op het volgende verzoek van dezelfde client bij dezelfde verbinding.",
+  "MaxKeepAliveRequests": "Het maximale aantal verzoeken om toe te staan tijdens een aanhoudende verbinding.\nZet op 0 om een onbeperkt bedrag toe te staan.\nWe raden aan om dit getal hoog te laten staan, voor maximale prestaties.",
+  "LimitRequestBody": "Byte. Bestand upload grootte limiet. 0: geen limiet"
+}

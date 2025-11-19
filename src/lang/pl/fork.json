@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Plik startowy nie istnieje, operacja nie powiodła się.",
+  "confNotFound": "Plik konfiguracyjny nie istnieje, serwer nie został uruchomiony",
+  "apacheLogPathErr": "Ścieżka logowania pliku konfiguracyjnego jest nieprawidłowa i przełącznik się nie udaje",
+  "versionError": "Wersja jest niepoprawna, proszę wybrać ponownie",
+  "hostsFileNotFound": "Plik hostów nie istnieje",
+  "startFail": "Nie udało się rozpocząć, proszę sprawdzić plik dziennika",
+  "versionNotFound": "Nie udało się pobrać wersji oprogramowania, operacja nie powiodła się.",
+  "postgresqlInit": "Usługa rozpoczęta pomyślnie\nDir danych to {dir}\nPoczątkowy użytkownik jest rootem, hasło jest rootem",
+  "downloadFileFail": "Pobieranie pliku nie powiodło się!",
+  "trialEnd": "Okres próbny wygasł. Aby kontynuować korzystanie z tej funkcji, uzyskaj licencję",
+  "phpiniNotFound": "Nie znaleziono pliku php.ini",
+  "noEPMD": "Proces epmd nie został znaleziony. Proszę zresetować zmienne środowiskowe Erlang."
+}

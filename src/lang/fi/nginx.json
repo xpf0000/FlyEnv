@@ -1,0 +1,10 @@
+{
+  "gzip": "On käytössä GZIP puristuslähetys",
+  "gzip_min_length": "Minimi tiivistetty tiedosto",
+  "gzip_comp_level": "puristuvuus",
+  "client_max_body_size": "Suurin lataustiedoston koko",
+  "server_names_hash_max_size": "Hash taulukon max koko palvelimen nimelle",
+  "server_names_hash_bucket_size": "Hash taulukon koko palvelimen nimelle",
+  "client_header_buffer_size": "Asiakaspyynnön otsikon puskurin koko",
+  "client_body_buffer_size": "Pyydä kehon puskurin kokoa"
+}
