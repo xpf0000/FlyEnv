@@ -46,6 +46,7 @@ import IT from './it/index'
 import JA from './ja/index'
 import PT from './pt/index'
 import PTBR from './pt-br/index'
+import RU from './ru/index'
 import SV from './sv/index'
 import TR from './tr/index'
 import UK from './uk/index'
@@ -111,6 +112,7 @@ export const AppAllLang: Record<string, string> = {
   ja: '日本語',
   pt: 'Português',
   'pt-br': 'Português (Brasil)',
+  ru: 'Русский',
   sv: 'Svenska',
   tr: 'Türkçe',
   uk: 'Українська',
@@ -131,6 +133,7 @@ const lang = {
   ...JA,
   ...PT,
   ...PTBR,
+  ...RU,
   ...SV,
   ...TR,
   ...UK,

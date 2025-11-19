@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS поиск",
+  "tcpConnect": "TCP соединение",
+  "tlsHandshake": "TLS Handshake",
+  "requestProcessing": "Заявка обрабатывается",
+  "ttfb": "Время до первой байты (TTFB)",
+  "contentDownload": "Загрузка контента",
+  "downloadSpeed": "Скорость загрузки",
+  "dataSize": "Размер данных",
+  "httpVersion": "Версия HTTP",
+  "statusCode": "Код статуса",
+  "usingProxy": "Использование прокси",
+  "totalTime": "Общее время",
+  "skippedForProxy": "Пропущено для прокси",
+  "metric": "Метрика",
+  "value": "Значение"
+}
