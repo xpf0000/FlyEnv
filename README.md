@@ -32,6 +32,7 @@ FlyEnv is packed with features to make your development workflow smoother and mo
 
 ### Core Modules
 - **AI Integration**: Ollama, DeepSeek, Chatbox.
+- **Containers**: Podman.
 - **Web Servers**: Apache, Nginx, Caddy, Tomcat, Consul.
 - **Databases**: MySQL, MariaDB, PostgreSQL, MongoDB.
 - **Email Server**: Mailpit.
