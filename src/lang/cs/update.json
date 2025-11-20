@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Zkontrolovat aktualizace",
+  "update-available-message": "Je k dispozici novější verze FlyEnvu, aktualizovat?",
+  "update-not-available-message": "Jste aktuální!",
+  "update-downloaded-message": "Připraveno k instalaci...",
+  "update-error-message": "Chyba aktualizace",
+  "yes": "Ano",
+  "no": "Ne"
+}

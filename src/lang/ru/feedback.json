@@ -1,0 +1,10 @@
+{
+  "email": "E-Mail",
+  "country": "Страна",
+  "message": "Сообщение",
+  "messagelengthErr": "Длина сообщения 5 - 1024",
+  "sendMessage": "Отправить сообщение",
+  "anythingToSay": "Всё, что нужно сказать",
+  "noSelected": "Не выбрано",
+  "inputFilter": "Ввод в фильтр"
+}

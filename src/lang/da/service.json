@@ -1,0 +1,13 @@
+{
+  "setaliase": "Sæt Alias",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Er stien blevet tilføjet til miljøvariablen",
+  "aliasTips": "Alias brugt i terminalen",
+  "useSysPHP": "Brug standard PHP version",
+  "setByApp": "Miljøvariabler sat af FlyEnv",
+  "setByNoApp": "Miljøvariabler ikke angivet af FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd kræver sudo rettigheder for at starte. Indtast venligst din brugeradgangskode. Adgangskoden vil blive brugt til autoudfyldning senere. Eller du kan klikke på knappen nedenfor for at indtaste manuelt i terminalen, men denne prompt kan dukke op igen.",
+  "bundleinVersionDelTips": "Denne version er en indbygget version, bekræft ikke vist?",
+  "customDirVersionDelTips": "Denne version er en brugerdefineret sti version, bekræft ikke vist?"
+}

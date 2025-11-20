@@ -1,0 +1,23 @@
+{
+  "startInstall": "Starte installasjonen av {service}",
+  "startServiceBegin": "Start {service} tjenesten...",
+  "confInit": "Konfigurasjonsfilen finnes ikke, generere konfigurasjonsfilen",
+  "confInitSuccess": "Konfigurasjonsfil generert vellykket, filsti: {file}",
+  "confInitFail": "Konfigurasjonsfilgenerering feilet, grunn: {error}",
+  "apachePortHandleBegin": "Begynn å skaffe alle Apache lytteporter fra nettstedet",
+  "apachePortHandleEnd": "Apache lytter av port-kjøpet er fullført, vil skrive konfigurasjonsfil vellykket",
+  "execStartCommand": "Start å kjøre oppstartskommandoen",
+  "execStartCommandSuccess": "Starte kommandoen ble kjørt, start å sjekke om oppstarten var vellykket",
+  "execStartCommandFail": "Utføring av startkommando feilet, årsak: {error}, {service} tjenesten klarte ikke å starte",
+  "startServiceSuccess": "{service} tjenesten startet med pid: {pid}",
+  "startServiceFail": "{service} tjenesten startet ikke, grunn: {error}",
+  "stopServiceBegin": "Start stans av {service} tjenesten",
+  "stopServiceEnd": "{service} tjenesten stoppet",
+  "initDBPass": "Start initialisering av databasepassord",
+  "initDBPassSuccess": "Initialiser databasepassord, passord for konto: {user} {pass}",
+  "initDBPassFail": "Kan ikke initialisere databasepassord, grunn: {error}",
+  "initDBDataDir": "Finner ikke datamappen, start å initialisere datamappen",
+  "initDBDataDirSuccess": "Initialisering av datamappe vellykket, datamappens sti: {dir}",
+  "initDBDataDirFail": "Initialisering av datamappen mislyktes, grunn: {error}",
+  "newProjectFail": "Kunne ikke opprette nytt prosjekt"
+}

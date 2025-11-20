@@ -1,0 +1,36 @@
+{
+  "title": "Lisenssin Kuvaus",
+  "description": "Tämä lisenssi tunnustaa FlyEnvin ja sen kirjoittajien pyrkimykset ja tukee niitä. Tarkoituksena ei ole rajoittaa käyttäjiä, vaan edistää kehittäjien työn ja henkisen omaisuuden kunnioittamista. Varmista, että saat voimassa olevan lisenssin ennen kuin käytät FlyEnv kaupallisiin tarkoituksiin.",
+  "restrictions": {
+    "title": "Käyttäjiin, joilla ei ole lisenssiä, sovelletaan seuraavia rajoituksia:",
+    "items": {
+      "0": "Voidaan luoda enintään kolme kohdetta.",
+      "1": "AI chat -ominaisuus on saatavilla vain kolmen päivän kokeilujaksolle.",
+      "2": "Tuleviin ominaisuuksiin voidaan soveltaa lisärajoituksia."
+    }
+  },
+  "licenseInfo": "Nykyinen tarjolla oleva lisenssi on ikuinen lisenssi, jossa on yksi yhtä tietokonetta vastaava lisenssi. Jos vaihdat tietokonetta, sinun täytyy pyytää uusi lisenssi.",
+  "howToObtain": {
+    "title": "Miten hankkia lisenssi",
+    "description": "FlyEnv tarjoaa joustavia tapoja saada lisenssi. Käyttäjät voivat valita minkä tahansa seuraavista menetelmistä:",
+    "methods": {
+      "0": {
+        "title": "Lahjoita projektille",
+        "description": "Lahjoituksia varten ei tarvita kiinteää summaa, kun otetaan huomioon eri maiden käyttäjien erilaiset taloudelliset tilanteet (esim. ., monet käyttäjät ovat opiskelijoita), valitse summa, joka on mukava sinulle."
+      },
+      "1": {
+        "title": "Osallistu kehitykseen",
+        "description": "Osallistu projektiin lähettämällä Pull Request. Riippumatta koodin määrästä, niin kauan kuin se positiivisesti parantaa projektia (e. ., vahvistamisesta käännösvirhe), maksuosuus laskee."
+      },
+      "2": {
+        "title": "Hankkeen edistäminen",
+        "description": "Edistää FlyEnv jakamalla kokemuksesi artikkeleita, videoita, blogeja, vlogs, tai kommentteja. Aito käyttäjän palaute on suositeltavaa. Sisältö voi olla millä tahansa kielellä ja millä tahansa alustalla."
+      }
+    }
+  },
+  "submitInfo": "Sen jälkeen kun jokin edellä mainituista menetelmistä on suoritettu, ole hyvä ja täytä tulokset alla olevaan kenttään ja lähetä hakemuksesi klikkaamalla 'Request License' -painiketta. Lisenssipyynnöt käsitellään yleensä 24 tunnin kuluessa.",
+  "messageLabel": "Viesti",
+  "messagePlaceholder": "Ole hyvä ja lähetä lahjoittaja, lahjoituslinkki tai tilaushenkilöllisyystodistus, kun päätät lahjoittaa.\nOle hyvä ja lähetä PR-linkki niille, jotka haluavat osallistua projektin kehittämiseen.\nOle hyvä ja lähetä linkki artikkeliisi, videoihisi, blogiisi, vlogisiisi tai kommentoi niille, jotka haluavat markkinoida.",
+  "requestButton": "Pyydä Lisenssiä",
+  "refreshButton": "Päivitä Tila"
+}

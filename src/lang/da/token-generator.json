@@ -1,0 +1,13 @@
+{
+  "title": "Token Generator",
+  "uppercase": "Store (ABC...)",
+  "lowercase": "Lille (abc...)",
+  "numbers": "Tal (123...)",
+  "symbols": "Symboler (!-;...)",
+  "length": "Længde",
+  "tokenPlaceholder": "Token...",
+  "button": {
+    "copy": "Kopiér",
+    "refresh": "Opdater"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "rawFile": "Rå Fil",
+  "CommonSetting": "Almindelige Indstillinger",
+  "open": "Åbn Fil",
+  "save": "Gem Fil Ctrl + s",
+  "loadDefault": "Indlæs Standardfil",
+  "saveCustom": "Gem Som Brugerdefineret Fil",
+  "loadCustom": "Indlæs Brugerdefineret Fil"
+}

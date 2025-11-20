@@ -1,0 +1,36 @@
+{
+  "title": "Descriere licenta",
+  "description": "Această licență recunoaște și sprijină eforturile lui FlyEnv și ale autorilor săi. Aceasta nu este destinată restricţionării utilizatorilor, ci încurajării respectului pentru activitatea dezvoltatorilor şi pentru proprietatea intelectuală. Asigurați-vă că obțineți o licență valabilă înainte de a utiliza FlyEnv în scopuri comerciale.",
+  "restrictions": {
+    "title": "Utilizatorii care nu dețin o licență vor face obiectul următoarelor restricții:",
+    "items": {
+      "0": "Pot fi create maximum trei situri.",
+      "1": "Funcția de chat AI este disponibilă doar pentru o perioadă de probă de trei zile.",
+      "2": "Se pot aplica restricții suplimentare caracteristicilor viitoare."
+    }
+  },
+  "licenseInfo": "Licența oferită în prezent este o licență perpetuă, cu o licență corespunzătoare unui singur calculator. Dacă vă schimbați calculatorul, va trebui să solicitați o nouă licență.",
+  "howToObtain": {
+    "title": "Cum să obții o licență",
+    "description": "FlyEnv oferă modalități flexibile de a obține o licență. Utilizatorii pot alege oricare dintre următoarele metode de aplicat:",
+    "methods": {
+      "0": {
+        "title": "Donează pentru Proiect",
+        "description": "Nu este necesară o sumă fixă pentru donații. Luând în considerare situațiile economice diferite ale utilizatorilor din diferite țări (e. ., mulți utilizatori sunt elevi), vă rugăm să alegeți o sumă confortabilă pentru dvs."
+      },
+      "1": {
+        "title": "Contribuie la dezvoltare",
+        "description": "Participă la proiect prin depunerea unei solicitări Pull Request. Indiferent de cantitatea de cod, atât timp cât îmbunătățește pozitiv proiectul (e. ., reparând o eroare de traducere), contribuţia ta contează."
+      },
+      "2": {
+        "title": "Promovarea proiectului",
+        "description": "Promovează FlyEnv partajând experiența ta în articole, videoclipuri, bloguri, vlog-uri sau comentarii. Feedback-ul utilizatorului autentic este preferat. Conținutul poate fi în orice limbă și pe orice platformă."
+      }
+    }
+  },
+  "submitInfo": "după completarea oricăruia dintre metodele de mai sus, vă rugăm să completați rezultatele în caseta de mai jos și să faceți clic pe butonul 'Solicitare licență' pentru a remite cererea dvs. Cererile de licenţă sunt de obicei procesate în 24 de ore.",
+  "messageLabel": "Mesaj",
+  "messagePlaceholder": "Vă rugăm să trimiteți link-ul de donație, sau ID-ul comenzii atunci când alegeți să donați.\nVă rugăm să trimiteți link-ul PR pentru cei care aleg să participe la dezvoltarea proiectului.\nVă rugăm să trimiteți un link către articole, video, blog, vlog, sau să comentați pentru cei care aleg să promoveze.",
+  "requestButton": "Solicită licență",
+  "refreshButton": "Reîmprospătare stare"
+}

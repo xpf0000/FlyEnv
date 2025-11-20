@@ -1,0 +1,13 @@
+{
+  "setaliase": "Nastavit alias",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Byla přidána cesta k proměnné prostředí",
+  "aliasTips": "Alias použitý v terminálu",
+  "useSysPHP": "Použít výchozí verzi PHP",
+  "setByApp": "Proměnné prostředí nastavené FlyEnv",
+  "setByNoApp": "Proměnné prostředí nejsou nastaveny FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd vyžaduje k spuštění sudo oprávnění. Zadejte prosím své uživatelské heslo. Heslo bude použito pro automatické vyplnění později. Nebo můžete kliknout na tlačítko níže pro zadání ručně v terminálu, ale tato výzva se může znovu objevit.",
+  "bundleinVersionDelTips": "Tato verze je vestavěná verze, nepotvrdit její zobrazení?",
+  "customDirVersionDelTips": "Tato verze je vlastní verzí cesty, nepotvrdit její zobrazení?"
+}

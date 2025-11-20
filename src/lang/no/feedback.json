@@ -1,0 +1,10 @@
+{
+  "email": "Epost",
+  "country": "Land",
+  "message": "Melding",
+  "messagelengthErr": "Lengden på meldingen er 5 - 1024",
+  "sendMessage": "Send melding",
+  "anythingToSay": "Noe å si",
+  "noSelected": "Ingen valgt",
+  "inputFilter": "Inndata som skal filtreres"
+}

@@ -37,15 +37,24 @@ import type versionmanager from './zh/versionmanager.json'
 import AR from './ar/index'
 import AZ from './az/index'
 import BN from './bn/index'
+import CS from './cs/index'
+import DA from './da/index'
 import DE from './de/index'
+import EL from './el/index'
 import EN from './en/index'
 import ES from './es/index'
+import FI from './fi/index'
 import FR from './fr/index'
 import ID from './id/index'
 import IT from './it/index'
 import JA from './ja/index'
+import NL from './nl/index'
+import NO from './no/index'
+import PL from './pl/index'
 import PT from './pt/index'
 import PTBR from './pt-br/index'
+import RO from './ro/index'
+import RU from './ru/index'
 import SV from './sv/index'
 import TR from './tr/index'
 import UK from './uk/index'
@@ -102,15 +111,24 @@ export const AppAllLang: Record<string, string> = {
   ar: 'العربية',
   az: 'Azərbaycanca',
   bn: 'বাংলা',
+  cs: 'Čeština',
+  da: 'Dansk',
   de: 'Deutsch',
+  el: 'Ελληνικά',
   en: 'English',
   es: 'Español',
+  fi: 'Suomi',
   fr: 'Français',
   id: 'Bahasa Indonesia',
   it: 'Italiano',
   ja: '日本語',
+  nl: 'Nederlands',
+  no: 'Norsk',
+  pl: 'Polski',
   pt: 'Português',
   'pt-br': 'Português (Brasil)',
+  ro: 'Romainiană',
+  ru: 'Русский',
   sv: 'Svenska',
   tr: 'Türkçe',
   uk: 'Українська',
@@ -122,15 +140,24 @@ const lang = {
   ...AR,
   ...AZ,
   ...BN,
+  ...CS,
+  ...DA,
   ...DE,
+  ...EL,
   ...EN,
   ...ES,
+  ...FI,
   ...FR,
   ...ID,
   ...IT,
   ...JA,
+  ...NL,
+  ...NO,
+  ...PL,
   ...PT,
   ...PTBR,
+  ...RO,
+  ...RU,
   ...SV,
   ...TR,
   ...UK,

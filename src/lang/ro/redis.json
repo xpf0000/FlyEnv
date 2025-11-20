@@ -1,0 +1,6 @@
+{
+  "timeout": "Idle conexiune timeout, 0 indică deschiderea continuă",
+  "databases": "Numărul de baze de date",
+  "requirepass": "Parola Redis",
+  "maxmemory": "Byte, memorie maximă, 0 indică nicio limită"
+}

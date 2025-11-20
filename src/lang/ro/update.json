@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Verifică pentru actualizări",
+  "update-available-message": "O versiune mai nouă a FlyEnv este disponibilă, actualizați acum?",
+  "update-not-available-message": "Ești actualizat!",
+  "update-downloaded-message": "Gata de instalare...",
+  "update-error-message": "Eroare la actualizare",
+  "yes": "Da",
+  "no": "Nr"
+}

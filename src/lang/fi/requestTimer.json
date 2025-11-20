@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS Haku",
+  "tcpConnect": "Tcp Yhdistä",
+  "tlsHandshake": "TLS Handshake",
+  "requestProcessing": "Pyydä Käsittelyä",
+  "ttfb": "Aika ensimmäiseen tavuon (TTFB)",
+  "contentDownload": "Sisällön Lataus",
+  "downloadSpeed": "Latauksen Nopeus",
+  "dataSize": "Tietojen Koko",
+  "httpVersion": "Http Versio",
+  "statusCode": "Tilan Koodi",
+  "usingProxy": "Käytetään Välityspalvelinta",
+  "totalTime": "Aika Yhteensä",
+  "skippedForProxy": "Ohitettu välityspalvelimelle",
+  "metric": "Metrinen",
+  "value": "Arvo"
+}

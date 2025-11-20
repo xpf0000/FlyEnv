@@ -1,0 +1,23 @@
+{
+  "startInstall": "Start installation af {service}",
+  "startServiceBegin": "Start {service} tjenesten...",
+  "confInit": "Konfigurationsfilen findes ikke, generer konfigurationsfilen",
+  "confInitSuccess": "Konfigurationsfil genereret med succes, filsti: {file}",
+  "confInitFail": "Generering af konfigurationsfil mislykkedes, årsag: {error}",
+  "apachePortHandleBegin": "Begynd at få alle Apache lytter porte fra webstedet",
+  "apachePortHandleEnd": "Apache lytteport erhvervelse fuldført, korrekt skrivning konfigurationsfil",
+  "execStartCommand": "Start udførelse af opstartskommandoen",
+  "execStartCommandSuccess": "Start kommando udført, start kontrol om opstart lykkedes",
+  "execStartCommandFail": "Kørsel af startkommando mislykkedes, årsag: {error}, {service} tjenesten kunne ikke starte",
+  "startServiceSuccess": "{service} service startede med succes, pid: {pid}",
+  "startServiceFail": "{service} tjeneste kunne ikke starte, årsag: {error}",
+  "stopServiceBegin": "Begynd at stoppe {service} tjeneste",
+  "stopServiceEnd": "{service} service stoppet med succes",
+  "initDBPass": "Start initialisering af database adgangskode",
+  "initDBPassSuccess": "Initialiser database adgangskode, konto adgangskode: {user} {pass}",
+  "initDBPassFail": "Kunne ikke initialisere databasens adgangskode, årsag: {error}",
+  "initDBDataDir": "Datamappe ikke fundet, start initialisering af datamappe",
+  "initDBDataDirSuccess": "Initialisering af datamappe lykkedes, datamappe sti: {dir}",
+  "initDBDataDirFail": "Initialisering af datamappe mislykkedes, årsag: {error}",
+  "newProjectFail": "Kunne ikke oprette nyt projekt"
+}

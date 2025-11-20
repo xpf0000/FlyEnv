@@ -1,0 +1,6 @@
+{
+  "timeout": "Joutoyhteyden aikakatkaisu, 0 tarkoittaa jatkuvaa avautumista",
+  "databases": "Tietokantojen määrä",
+  "requirepass": "Redis salasana",
+  "maxmemory": "Byte, maksimi muistin käyttö, 0 tarkoittaa ei rajoitusta"
+}

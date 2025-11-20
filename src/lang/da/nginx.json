@@ -1,0 +1,10 @@
+{
+  "gzip": "Aktiverer GZIP komprimering transmission",
+  "gzip_min_length": "Minimum komprimeret fil",
+  "gzip_comp_level": "komprimering",
+  "client_max_body_size": "Maksimal upload filstørrelse",
+  "server_names_hash_max_size": "Maks. størrelse på Hash tabel for servernavn",
+  "server_names_hash_bucket_size": "Hash tabelstørrelse for servernavn",
+  "client_header_buffer_size": "Klient anmodning header buffer størrelse",
+  "client_body_buffer_size": "Anmod om brødbufferstørrelse"
+}

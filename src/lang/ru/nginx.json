@@ -1,0 +1,10 @@
+{
+  "gzip": "Включает передачу GZIP сжатия",
+  "gzip_min_length": "Минимальный сжатый файл",
+  "gzip_comp_level": "сжатие",
+  "client_max_body_size": "Максимальный размер загружаемого файла",
+  "server_names_hash_max_size": "Максимальный размер хэш-таблицы для имени сервера",
+  "server_names_hash_bucket_size": "Размер хэш-таблицы для имени сервера",
+  "client_header_buffer_size": "Размер буфера заголовка запроса клиента",
+  "client_body_buffer_size": "Размер буфера запроса"
+}

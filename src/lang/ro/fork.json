@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Fișierul de pornire nu există, operația a eșuat.",
+  "confNotFound": "Fișierul de configurare nu există, serverul a eșuat să pornească",
+  "apacheLogPathErr": "Calea jurnalului fișierului de configurare este greșită, iar comutatorul eșuează",
+  "versionError": "Versiunea este greşită, vă rugăm să selectaţi din nou",
+  "hostsFileNotFound": "Fişierul de host-uri nu există",
+  "startFail": "Esuare pornire, te rugam sa verifici fisierul jurnal",
+  "versionNotFound": "Obținerea versiunii software a eșuat.",
+  "postgresqlInit": "Serviciul a fost inițiat cu succes\nData Dir este {dir}\nUtilizatorul inițial este root, parola este rădăcină",
+  "downloadFileFail": "Descărcarea fișierului a eșuat!",
+  "trialEnd": "Perioada de încercare a expirat. Pentru a continua utilizarea acestei caracteristici, vă rugăm să obțineți o licență",
+  "phpiniNotFound": "fisierul php.ini nu a fost gasit",
+  "noEPMD": "Procesul epmd nu a fost găsit. Vă rugăm resetați variabilele de mediu Erlang"
+}

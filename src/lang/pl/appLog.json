@@ -1,0 +1,23 @@
+{
+  "startInstall": "Zacznij instalować {service}",
+  "startServiceBegin": "Uruchom usługę {service}...",
+  "confInit": "Plik konfiguracyjny nie istnieje, wygeneruj plik konfiguracyjny",
+  "confInitSuccess": "Plik konfiguracyjny został wygenerowany pomyślnie, ścieżka pliku: {file}",
+  "confInitFail": "Generowanie pliku konfiguracyjnego nie powiodło się, powód: {error}",
+  "apachePortHandleBegin": "Zacznij uzyskiwać wszystkie porty nasłuchujące Apache ze strony",
+  "apachePortHandleEnd": "Pobieranie portu nasłuchującego Apache zakończone, pomyślnie zapisano plik konfiguracyjny",
+  "execStartCommand": "Zacznij wykonywać polecenie startowe",
+  "execStartCommandSuccess": "Rozpocznij komendę wykonaną pomyślnie, rozpocznij sprawdzanie, czy uruchomienie powiodło się",
+  "execStartCommandFail": "Wykonanie polecenia startowego nie powiodło się, powód: {error}, usługa {service} nie powiodła się",
+  "startServiceSuccess": "Usługa {service} rozpoczęta pomyślnie, pid: {pid}",
+  "startServiceFail": "Nie udało się uruchomić usługi {service} , powód: {error}",
+  "stopServiceBegin": "Rozpocznij zatrzymywanie usługi {service}",
+  "stopServiceEnd": "Usługa {service} została pomyślnie zatrzymana",
+  "initDBPass": "Rozpocznij inicjowanie hasła bazy danych",
+  "initDBPassSuccess": "Pomyślnie zainicjowano hasło bazy danych, hasło konta: {user} {pass}",
+  "initDBPassFail": "Nie udało się zainicjować hasła bazy danych, powód: {error}",
+  "initDBDataDir": "Nie znaleziono folderu danych, rozpocznij inicjalizację folderu danych",
+  "initDBDataDirSuccess": "Inicjalizacja folderu danych powiodła się, ścieżka folderu danych: {dir}",
+  "initDBDataDirFail": "Inicjalizacja folderu danych nie powiodła się, powód: {error}",
+  "newProjectFail": "Nie udało się utworzyć nowego projektu"
+}

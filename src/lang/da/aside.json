@@ -1,0 +1,18 @@
+{
+  "site": "Websted",
+  "webServer": "Webserver",
+  "dataBaseServer": "Database Server",
+  "emailServer": "Email Server",
+  "language": "Sprog & Kørtid",
+  "dataQueue": "Cache Og Hukommelseslager",
+  "searchEngine": "Søgemaskine",
+  "dnsServer": "DNS Server",
+  "ftpServer": "FTP Server",
+  "containerRuntime": "Container Runtime",
+  "other": "Andet",
+  "appLog": "App Log",
+  "ai": "AI",
+  "objectStorage": "Opbevaring Af Objekt",
+  "appExit": "Stop alle kørende tjenester og afslut FlyEnv",
+  "groupStart": "Start alle tilgængelige tjenester på panelet med et enkelt klik"
+}

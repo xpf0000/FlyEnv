@@ -1,0 +1,36 @@
+{
+  "title": "Licentie omschrijving",
+  "description": "Deze licentie erkent en ondersteunt de inspanningen van FlyEnv en zijn auteurs. Het is niet de bedoeling om gebruikers te beperken, maar om respect voor het werk van de ontwikkelaar en het intellectuele eigendom te bevorderen. Verzeker u van een geldige licentie voordat u FlyEnv gebruikt voor commerciële doeleinden.",
+  "restrictions": {
+    "title": "Gebruikers zonder licentie worden onderworpen aan de volgende beperkingen:",
+    "items": {
+      "0": "Maximaal drie sites kunnen worden aangemaakt.",
+      "1": "De AI-chatfunctie is beschikbaar voor een proefperiode van slechts drie dagen.",
+      "2": "Extra beperkingen kunnen van toepassing zijn op toekomstige functies."
+    }
+  },
+  "licenseInfo": "De huidige licentie is een eeuwigdurende licentie, met één licentie die overeenkomt met één computer. Als je je computer verandert, moet je een nieuwe licentie aanvragen.",
+  "howToObtain": {
+    "title": "Hoe een licentie verkrijgen",
+    "description": "FlyEnv biedt flexibele manieren om een licentie te verkrijgen. Gebruikers kunnen een van de volgende methoden kiezen om toe te passen:",
+    "methods": {
+      "0": {
+        "title": "Doneer aan het project",
+        "description": "Er is geen vast bedrag nodig voor donaties. Gezien de uiteenlopende economische situatie van gebruikers in verschillende landen (bv. ., veel gebruikers zijn leerlingen), kies een bedrag dat comfortabel is voor u."
+      },
+      "1": {
+        "title": "Meewerken aan ontwikkeling",
+        "description": "Neem deel aan het project door een pull-aanvraag in te dienen. Ongeacht de hoeveelheid code, zolang het het project positief verbetert (bv. ., het herstellen van een vertaalfout), uw bijdrage telt."
+      },
+      "2": {
+        "title": "Promoot het Project",
+        "description": "Promoot FlyEnv door uw ervaring te delen in artikelen, video's, blogs, vlogs of opmerkingen. Authentieke gebruikersfeedback heeft de voorkeur. Inhoud kan in elke taal en op elk platform zijn."
+      }
+    }
+  },
+  "submitInfo": "Na het voltooien van bovenstaande methodes, Vul de resultaten in het onderstaande invoervak in en klik op de knop 'Verzoek licentie' om uw aanvraag in te dienen. Licentieverzoeken worden meestal binnen 24 uur verwerkt.",
+  "messageLabel": "Bericht",
+  "messagePlaceholder": "Gelieve de donatie link of order-ID in te dienen wanneer je ervoor kiest om te doneren.\nDien de PR-link in voor degenen die ervoor kiezen deel te nemen aan de projectontwikkeling.\nStuur een link naar je artikel, video, blog, vlog of een opmerking voor degenen die promoten kiezen.",
+  "requestButton": "Licentie aanvragen",
+  "refreshButton": "Ververs status"
+}

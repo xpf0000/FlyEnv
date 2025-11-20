@@ -1,0 +1,10 @@
+{
+  "email": "E-mail",
+  "country": "Land",
+  "message": "Besked",
+  "messagelengthErr": "Beskedlængde er 5 - 1024",
+  "sendMessage": "Send Besked",
+  "anythingToSay": "Noget at sige",
+  "noSelected": "Ingen Valgt",
+  "inputFilter": "Input To Filter (Automatic Copy)"
+}

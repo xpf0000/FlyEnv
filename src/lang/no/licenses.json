@@ -1,0 +1,36 @@
+{
+  "title": "Lisens beskrivelse",
+  "description": "Dette lisenstaker og støtter FlyEnv og dets forfattere. Det er ikke meningen å begrense brukerne, men å oppmuntre til respekt for utviklernes arbeid og immaterielle eiendom. Vennligst forsikre deg om at du har en gyldig lisens før du bruker FlyEnv for kommersielle formål.",
+  "restrictions": {
+    "title": "Brukere uten lisens vil være underlagt følgende begrensninger:",
+    "items": {
+      "0": "Du kan opprette maksimalt tre nettsider.",
+      "1": "AI chat funksjonen er kun tilgjengelig for prøveperiode på tre dager.",
+      "2": "Ytterligere restriksjoner kan gjelde for fremtidige egenskaper."
+    }
+  },
+  "licenseInfo": "Gjeldende lisens som tilbys er en evigvarende lisens, med en lisens tilsvarende en datamaskin. Hvis du endrer datamaskinen din, må du be om en ny lisens.",
+  "howToObtain": {
+    "title": "Hvordan få en lisens",
+    "description": "FlyEnv gir fleksible måter å få en lisens. Brukere kan velge følgende metoder som skal gjelde:",
+    "methods": {
+      "0": {
+        "title": "Doner til prosjektet",
+        "description": "Det kreves ikke fast beløp for penger. Det er ikke nødvendig å vurdere ulike økonomiske situasjoner av brukere i forskjellige land (e. ., mange brukere er elever), vennligst velg et antall som er komfortabelt for deg."
+      },
+      "1": {
+        "title": "Bidra til utvikling",
+        "description": "Delta i prosjektet ved å sende inn en Dra-forespørsel. Uavhengig av hvor mye kode det forbedrer prosjektet positivt (e. hendelse av oversettelsesfeil), telling av ditt bidrag."
+      },
+      "2": {
+        "title": "Promoter prosjektet",
+        "description": "Fremme FlyEnv ved å dele dine erfaringer i artikler, videoer, blogger, vlogs eller kommentarer. Authentic brukertilbakemeldinger er å foretrekke. Innhold kan være på alle språk og på hvilken som helst plattform."
+      }
+    }
+  },
+  "submitInfo": "Etter å ha fullført noen av metodene ovenfor, Vennligst fyll inn resultatene i boksen under og klikk \"Be om lisens\"-knappen for å sende inn søknaden. Lisensforespørsler blir vanligvis behandlet innen 24 timer.",
+  "messageLabel": "Melding",
+  "messagePlaceholder": "Vennligst send inn giveren, donasjonslenken, eller bestille ID ved valg å donere.\nSend inn PR-lenken for de som velger å delta i prosjektutvikling.\nDu kan sende en lenke til din artikkel, video, blogg, innlogging eller kommentere dem som velger å forvandle.",
+  "requestButton": "Forespørsel Lisens",
+  "refreshButton": "Oppdater tilstand"
+}

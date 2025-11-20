@@ -1,0 +1,23 @@
+{
+  "startInstall": "Začít instalovat {service}",
+  "startServiceBegin": "Zahájit službu {service}...",
+  "confInit": "Konfigurační soubor neexistuje, generovat konfigurační soubor",
+  "confInitSuccess": "Konfigurační soubor byl úspěšně vygenerován, cesta souboru: {file}",
+  "confInitFail": "Generování konfiguračního souboru selhalo, důvod: {error}",
+  "apachePortHandleBegin": "Začněte získávat všechny naslouchající porty Apache z webu",
+  "apachePortHandleEnd": "Vyřízení naslouchacího portu Apache bylo dokončeno, úspěšně zapsáno do konfiguračního souboru",
+  "execStartCommand": "Spustit spuštění příkazu startu",
+  "execStartCommandSuccess": "Příkaz spuštěn úspěšně, začněte kontrolovat, zda bylo spuštění úspěšné",
+  "execStartCommandFail": "Spuštění příkazu selhalo, důvod: {error}, služba {service} se nepodařilo spustit",
+  "startServiceSuccess": "Služba {service} byla úspěšně spuštěna, skryta: {pid}",
+  "startServiceFail": "Služba {service} se nepodařilo spustit, důvod: {error}",
+  "stopServiceBegin": "Začít zastavit službu {service}",
+  "stopServiceEnd": "Služba {service} byla úspěšně zastavena",
+  "initDBPass": "Začněte inicializovat heslo k databázi",
+  "initDBPassSuccess": "Inicializovat heslo k databázi úspěšně, heslo účtu: {user} {pass}",
+  "initDBPassFail": "Nepodařilo se inicializovat heslo k databázi, důvod: {error}",
+  "initDBDataDir": "Datová složka nebyla nalezena, začněte inicializovat datovou složku",
+  "initDBDataDirSuccess": "Inicializace složky dat úspěšná, cesta ke složce dat: {dir}",
+  "initDBDataDirFail": "Inicializace složky dat selhala, důvod: {error}",
+  "newProjectFail": "Vytvoření nového projektu se nezdařilo"
+}

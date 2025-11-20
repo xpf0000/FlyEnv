@@ -1,0 +1,10 @@
+{
+  "gzip": "Je povoleno GZIP komprese",
+  "gzip_min_length": "Minimální komprimovaný soubor",
+  "gzip_comp_level": "stlačitelnost",
+  "client_max_body_size": "Maximální velikost nahrávaného souboru",
+  "server_names_hash_max_size": "Maximální velikost tabulky Hash pro název serveru",
+  "server_names_hash_bucket_size": "Velikost tabulky Hash pro název serveru",
+  "client_header_buffer_size": "Velikost vyrovnávací paměti v záhlaví požadavku zákazníka",
+  "client_body_buffer_size": "Požádat o velikost vyrovnávací paměti"
+}

@@ -1,0 +1,16 @@
+{
+  "installFNM": "Asenna <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Asenna <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "Pääte",
+  "registry": "Lähde",
+  "checkPackageJsonUpdate": "Tarkista päivitykset",
+  "updatePackageJsonFile": "Päivitä paketti.json tiedosto",
+  "updatePackageJsonFileTips": "Tämä toiminto muokkaa package.json tiedostoa. Oletko varma, että haluat päivittää?",
+  "copyDirPath": "Kopioi Projektin Kansion Polku",
+  "openIN": "Avaa Sisään",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Projektin Ympäristö"
+}

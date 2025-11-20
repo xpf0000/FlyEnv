@@ -1,0 +1,10 @@
+{
+  "showMainWin": "Pokaż główne okno",
+  "exit": "Wyjście",
+  "run": "Uruchamianie",
+  "notRun": "Nie uruchomiono",
+  "trayMenuBarStyle": "Styl wyskakujących okienek",
+  "classic": "Klasyczny",
+  "modern": "Nowoczesny",
+  "trayMenuBarStyleTips": "Wybierz styl popup tacy. Na niektórych pulpitach Linux współczesny styl może mieć problemy, więc zamiast tego możesz wybrać klasyczny styl."
+}

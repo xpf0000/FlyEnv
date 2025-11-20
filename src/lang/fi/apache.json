@@ -1,0 +1,7 @@
+{
+  "Timeout": "Sekuntien määrä ennen kuin vastaanottaa ja lähettää aika.",
+  "KeepAlive": "Sallitaanko pysyvät yhteydet vai ei.",
+  "KeepAliveTimeout": "Sellaisten sekuntien lukumäärä, jotka odottavat saman asiakkaan seuraavaa pyyntöä samasta yhteydestä.",
+  "MaxKeepAliveRequests": "Suurin sallittujen pyyntöjen määrä jatkuvan yhteyden aikana.\nAseta 0 salliaksesi rajoittamattoman määrän.\nSuosittelemme, että jätät tämän numeron korkealle maksimaalisen suorituskyvyn.",
+  "LimitRequestBody": "Tavu. Tiedoston lähetyksen kokorajoitus 0: ei rajoitusta"
+}

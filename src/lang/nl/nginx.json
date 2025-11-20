@@ -1,0 +1,10 @@
+{
+  "gzip": "Is ingeschakeld GZIP compressie transmissie",
+  "gzip_min_length": "Minimum gecomprimeerd bestand",
+  "gzip_comp_level": "compressiviteit",
+  "client_max_body_size": "Maximale uploadgrootte",
+  "server_names_hash_max_size": "Hash tabel max grootte voor server naam",
+  "server_names_hash_bucket_size": "Hash tabelgrootte voor servernaam",
+  "client_header_buffer_size": "Grootte van de header van de klantaanvraag",
+  "client_body_buffer_size": "Aanvraag body buffer grootte"
+}

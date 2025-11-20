@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Vis mer feilsøkingsinformasjon (f.eks. OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "IP-adressen til ollamatseren (standard 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Varighet som brukes på minnet (standard \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Maksimalt antall lastede modeller per GPU",
+  "OLLAMA_MAX_QUEUE": "Maksimalt antall kølagte forespørsler",
+  "OLLAMA_MODELS": "Stien til modellmappen",
+  "OLLAMA_NUM_PARALLEL": "Maksimalt antall parallelle forespørsler",
+  "OLLAMA_NOPRUNE": "Ikke hune modellbomber ved oppstart",
+  "OLLAMA_ORIGINS": "En kommaseparert liste over tillatte opprinnelser",
+  "OLLAMA_SCHED_SPREAD": "Alltid tidsplan modell over alle GPU-er",
+  "OLLAMA_FLASH_ATTENTION": "Aktivert flash-oppmerksomhet",
+  "OLLAMA_KV_CACHE_TYPE": "Kvantitasjonstype for K/V cache (standard: f16)",
+  "OLLAMA_LLM_LIBRARY": "Angi LM-biblioteket for å omgå autodeteksjon",
+  "OLLAMA_GPU_OVERHEAD": "Reserver en andel av VRAM per GPU (bytes)",
+  "OLLAMA_LOAD_TIMEOUT": "Hvor lang tid modelllastene skal være steile før de gir opp (standard «5m»)",
+  "needServiceRun": "Vennligst begynn Olama-tjenesten først",
+  "size": "Størrelse",
+  "model": "Modeller"
+}

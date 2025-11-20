@@ -1,0 +1,18 @@
+{
+  "site": "Website",
+  "webServer": "Web Server",
+  "dataBaseServer": "Database Server",
+  "emailServer": "E-mail server",
+  "language": "Taal & Runtime",
+  "dataQueue": "Cache & geheugen opslag",
+  "searchEngine": "Motor zoeken",
+  "dnsServer": "DNS Server",
+  "ftpServer": "FTP server",
+  "containerRuntime": "Container Runtime",
+  "other": "anders",
+  "appLog": "App Logboek",
+  "ai": "AI",
+  "objectStorage": "Object Opslag",
+  "appExit": "Stop alle actieve services en exit FlyEnv",
+  "groupStart": "Start met één klik alle beschikbare services die worden weergegeven op het paneel"
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Symbol Generator",
+  "uppercase": "Store bokstaver (ABC...)",
+  "lowercase": "Små bokstaver (god...)",
+  "numbers": "Tall (123...)",
+  "symbols": "Symboler (!-;...)",
+  "length": "Lengde",
+  "tokenPlaceholder": "Tegnkoden...",
+  "button": {
+    "copy": "Kopier",
+    "refresh": "Oppdater"
+  }
+}

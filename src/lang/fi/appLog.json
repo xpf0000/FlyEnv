@@ -1,0 +1,23 @@
+{
+  "startInstall": "Aloita {service} asentaminen",
+  "startServiceBegin": "Käynnistä {service} palvelu...",
+  "confInit": "Konfiguraatiotiedostoa ei löydy, luo asetustiedosto",
+  "confInitSuccess": "Asetustiedosto luotiin onnistuneesti, tiedostopolku: {file}",
+  "confInitFail": "Konfiguraatiotiedoston luonti epäonnistui, syy: {error}",
+  "apachePortHandleBegin": "Aloita saada kaikki Apache kuuntelee satamia sivustolta",
+  "apachePortHandleEnd": "Apache kuuntelee portin hankinta valmis, onnistuneesti kirjoittamalla konfiguraatiotiedostoa",
+  "execStartCommand": "Aloita käynnistyskomennon suorittaminen",
+  "execStartCommandSuccess": "Käynnistyskomento suoritettu onnistuneesti, aloita tarkistaminen jos käynnistys onnistui",
+  "execStartCommandFail": "Start command execution failed, reason: {error}, {service} service failed to start",
+  "startServiceSuccess": "{service} service started successfully, pid: {pid}",
+  "startServiceFail": "{service} service failed to start, reason: {error}",
+  "stopServiceBegin": "Aloita pysäyttäminen {service} palvelu",
+  "stopServiceEnd": "{service} palvelu pysäytetty onnistuneesti",
+  "initDBPass": "Aloita tietokannan salasanan alustus",
+  "initDBPassSuccess": "Alusta tietokannan salasana onnistuneesti, salasana: {user} {pass}",
+  "initDBPassFail": "Tietokannan salasanan alustus epäonnistui, syy: {error}",
+  "initDBDataDir": "Datakansiota ei löydy, aloita datakansion alustaminen",
+  "initDBDataDirSuccess": "Datakansion alustus onnistui, datakansion polku: {dir}",
+  "initDBDataDirFail": "Datakansion alustus epäonnistui, syy: {error}",
+  "newProjectFail": "Uuden projektin luonti epäonnistui"
+}

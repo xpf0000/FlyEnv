@@ -1,0 +1,13 @@
+{
+  "setaliase": "Aseta Alias",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "On lisätty polku ympäristön muuttujaan",
+  "aliasTips": "Pääteikkunassa käytetty Alias",
+  "useSysPHP": "Käytä PHP oletusversiota",
+  "setByApp": "FlyEnvin määrittämät ympäristömuuttujat",
+  "setByNoApp": "Ympäristömuuttujat, joita FlyEnv ei ole määrittänyt",
+  "ftpdNeedPasswordToStart": "Pure-FTPd vaatii sudo oikeudet käynnistyä. Syötä käyttäjän salasana. Salasanaa käytetään automaattista täyttöä myöhemmin. Tai voit painaa alla olevaa painiketta syöttääksesi manuaalisesti päätteessä, mutta tämä kehotus voi ilmestyä uudelleen.",
+  "bundleinVersionDelTips": "Tämä versio on sisäänrakennettu versio, varmista, että sitä ei näytetä?",
+  "customDirVersionDelTips": "Tämä versio on mukautettu polkuversio, varmista, että sitä ei näytetä?"
+}

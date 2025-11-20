@@ -1,0 +1,9 @@
+{
+  "rawFile": "Rå fil",
+  "CommonSetting": "Vanlige innstillinger",
+  "open": "Åpne fil",
+  "save": "Lagre fil Ctrl + s",
+  "loadDefault": "Last inn standardfil",
+  "saveCustom": "Lagre som tilpasset fil",
+  "loadCustom": "Last inn egendefinert fil"
+}

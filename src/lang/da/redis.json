@@ -1,0 +1,6 @@
+{
+  "timeout": "Timeout for tomgangstid, 0 angiver kontinuerlig åbning",
+  "databases": "Antal databaser",
+  "requirepass": "Redis adgangskode",
+  "maxmemory": "Byte, maksimal hukommelsesforbrug, 0 indikerer ingen grænse"
+}

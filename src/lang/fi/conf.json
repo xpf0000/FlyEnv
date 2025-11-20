@@ -1,0 +1,9 @@
+{
+  "rawFile": "Raaka Tiedosto",
+  "CommonSetting": "Yleiset Asetukset",
+  "open": "Avaa Tiedosto",
+  "save": "Tallenna Tiedosto Ctrl + s",
+  "loadDefault": "Lataa Oletustiedosto",
+  "saveCustom": "Tallenna Mukautettuna Tiedostoksi",
+  "loadCustom": "Lataa Mukautettu Tiedosto"
+}

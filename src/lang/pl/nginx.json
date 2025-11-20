@@ -1,0 +1,10 @@
+{
+  "gzip": "Jest włączona transmisja kompresji GZIP",
+  "gzip_min_length": "Minimalny skompresowany plik",
+  "gzip_comp_level": "ściśliwość",
+  "client_max_body_size": "Maksymalny rozmiar pliku",
+  "server_names_hash_max_size": "Maksymalny rozmiar tabeli skrótów dla nazwy serwera",
+  "server_names_hash_bucket_size": "Rozmiar tabeli skrótów dla nazwy serwera",
+  "client_header_buffer_size": "Rozmiar buforu nagłówka żądania klienta",
+  "client_body_buffer_size": "Rozmiar bufora żądania"
+}

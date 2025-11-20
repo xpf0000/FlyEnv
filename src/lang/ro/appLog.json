@@ -1,0 +1,23 @@
+{
+  "startInstall": "Începe instalarea {service}",
+  "startServiceBegin": "Pornește serviciul {service}...",
+  "confInit": "Fișierul de configurare nu există, generează fișierul de configurare",
+  "confInitSuccess": "Fișier de configurare generat cu succes, calea fișierului: {file}",
+  "confInitFail": "Configuration file generation failed, reason: {error}",
+  "apachePortHandleBegin": "Începe să obții toate porturile Apache care ascultă porturile de pe site",
+  "apachePortHandleEnd": "Apache ascultând achiziția portului finalizată, scriind cu succes fișierul de configurare",
+  "execStartCommand": "Începe executarea comenzii de pornire",
+  "execStartCommandSuccess": "Comanda de pornire executată cu succes, începeți să verificați dacă pornirea a fost cu succes",
+  "execStartCommandFail": "Start command execution failed, reason: {error}, {service} service failed to start",
+  "startServiceSuccess": "{service} serviciu a fost pornit, pid: {pid}",
+  "startServiceFail": "{service} serviciu a eșuat, motiv: {error}",
+  "stopServiceBegin": "Începe oprirea serviciului {service}",
+  "stopServiceEnd": "{service} serviciu oprit cu succes",
+  "initDBPass": "Începeți inițializarea parolei bazei de date",
+  "initDBPassSuccess": "Inițializează parola bazei de date cu succes, parola contului: {user} {pass}",
+  "initDBPassFail": "Inițializarea parolei bazei de date a eșuat, motivul: {error}",
+  "initDBDataDir": "Dosarul de date nu a fost găsit, începe inițializarea dosarului de date",
+  "initDBDataDirSuccess": "Inițializarea dosarului de date a reușit, calea dosarului de date: {dir}",
+  "initDBDataDirFail": "Inițializarea dosarului de date a eșuat, motiv: {error}",
+  "newProjectFail": "Crearea unui proiect nou a eșuat"
+}

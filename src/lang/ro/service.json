@@ -1,0 +1,13 @@
+{
+  "setaliase": "Setează Aliasul",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Are calea adăugată la variabila de mediu",
+  "aliasTips": "Aliasul folosit în terminal",
+  "useSysPHP": "Foloseste versiunea implicita PHP",
+  "setByApp": "Variabile de mediu setate de FlyEnv",
+  "setByNoApp": "Variabilele de mediu nu sunt setate de FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd necesită privilegii adecvate pentru pornire. Vă rugăm să introduceţi parola de utilizator. Parola va fi utilizată pentru completarea automată mai târziu. Sau puteţi da click pe butonul de mai jos pentru a introduce manual în terminal, dar acest lucru poate reapărea.",
+  "bundleinVersionDelTips": "Această versiune este o versiune încorporată, confirmați că nu este afișată?",
+  "customDirVersionDelTips": "Această versiune este o versiune de cale personalizată, confirmați că nu este afișată?"
+}
