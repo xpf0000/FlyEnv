@@ -29,6 +29,7 @@ import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFo
 import ServiceProcessManager from './core/ServiceProcess'
 import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
+import { Capturer } from './core/Capturer'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -45,6 +46,7 @@ export default class Application extends EventEmitter {
   helpCheckSuccessNoticed: boolean = false
   pty: Partial<Record<string, PtyItem>> = {}
   customerLang: Record<string, any> = {}
+  capturer?: Capturer
 
   constructor() {
     super()
@@ -95,6 +97,13 @@ export default class Application extends EventEmitter {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
     console.log('Application inited !!!')
+  }
+
+  getCapturer(): Capturer {
+    if (!this.capturer) {
+      this.capturer = new Capturer()
+    }
+    return this.capturer
   }
 
   initAppHelper() {
@@ -934,6 +943,23 @@ export default class Application extends EventEmitter {
             path: res
           })
         })
+        break
+      case 'Capturer:doCapturer':
+        {
+          const isHide: any = args[0] as any
+          if (isHide) {
+            this.mainWindow?.hide()
+            this.trayWindow?.hide()
+          }
+          this.getCapturer()
+            .getAllWindows()
+            .finally(() => {
+              this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+              if (this?.trayWindow) {
+                this.windowManager.sendCommandTo(this.trayWindow!, command, key, true)
+              }
+            })
+        }
         break
       case 'NodePty:init':
         NodePTY.initNodePty().then((res) => {
