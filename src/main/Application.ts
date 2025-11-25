@@ -951,14 +951,18 @@ export default class Application extends EventEmitter {
             this.mainWindow?.hide()
             this.trayWindow?.hide()
           }
-          this.getCapturer()
-            .getAllWindows()
-            .finally(() => {
-              this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-              if (this?.trayWindow) {
-                this.windowManager.sendCommandTo(this.trayWindow!, command, key, true)
-              }
-            })
+          this.getCapturer().initWatchPointWindow()
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+          if (this?.trayWindow) {
+            this.windowManager.sendCommandTo(this.trayWindow!, command, key, true)
+          }
+        }
+        break
+      case 'Capturer:doStopCapturer':
+        this.getCapturer().stopCapturer()
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+        if (this?.trayWindow) {
+          this.windowManager.sendCommandTo(this.trayWindow!, command, key, true)
         }
         break
       case 'NodePty:init':

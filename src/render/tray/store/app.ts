@@ -14,7 +14,7 @@ export type CustomerModuleItem = {
   icon: string
 } & ModuleItemState
 
-export interface TrayState{
+export interface TrayState {
   password: string
   lang: string
   theme: string

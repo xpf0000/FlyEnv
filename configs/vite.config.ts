@@ -96,7 +96,8 @@ const buildConfig: UserConfig = {
       external: [],
       input: {
         main: path.resolve(__dirname, '../src/render/index.html'),
-        tray: path.resolve(__dirname, '../src/render/tray.html')
+        tray: path.resolve(__dirname, '../src/render/tray.html'),
+        capturer: path.resolve(__dirname, '../src/render/capturer/capturer.html')
       },
       output: {
         entryFileNames: 'static/js/[name].[hash].js',
