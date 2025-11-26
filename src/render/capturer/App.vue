@@ -1,7 +1,7 @@
 <template>
-  <div class="main">
-<!--    <img class="screen-image" :src="screenImage" />-->
-    <div v-show="rect" class="rect" :style="style"></div>
+  <div class="main h-full w-full flex items-center justify-center relative">
+    <img class="screen-image" :src="screenImage" />
+    <div v-show="rect" class="rect" :style="style" @click.stop="onRectClick"></div>
     <el-button @click.stop="doStop">停止</el-button>
   </div>
 </template>
@@ -15,12 +15,20 @@
 
   const store = CapturerStore()
   const rect: ComputedRef<Rect | undefined> = computed(() => {
-    return store.currentRect
+    return store?.currentRect?.bounds
   })
   const screenImage = computed(() => {
     return store.screenImage
   })
   const style = computed(() => {
+    if (!rect.value?.width) {
+      return {
+        left: '-1px',
+        top: '-1px',
+        width: '1px',
+        height: '1px'
+      }
+    }
     return {
       left: `${rect.value?.x}px`,
       top: `${rect.value?.y}px`,
@@ -33,6 +41,9 @@
       IPC.off(key)
     })
   }
+  const onRectClick = () => {
+    console.log('onRectClick !!!')
+  }
 </script>
 
 <style lang="scss">
@@ -43,24 +54,16 @@
   html,
   body,
   #app {
-    min-height: 100vh;
-    min-width: 100vw;
+    height: 100vh;
+    width: 100vw;
     overflow: hidden;
     background: transparent;
   }
 
   #app {
-    background: rgba(0, 0, 0, 0.2);
     border: 5px solid red;
 
     .main {
-      min-height: 100vh;
-      min-width: 100vw;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
       .screen-image {
         position: fixed;
         inset: 0;
@@ -71,6 +74,10 @@
         position: fixed;
         border: 2px solid #409eff;
         z-index: 50;
+        background: transparent;
+        /* 使用超大box-shadow创建遮罩效果 */
+        box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
+        //pointer-events: none;
       }
 
       .el-button {

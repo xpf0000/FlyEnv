@@ -7,18 +7,25 @@ export type Rect = {
   height: number
 }
 
-export interface TrayState {
-  currentRect?: Rect
+type WindowBoundAndInfo = {
+  id: number
+  bounds: Rect
+  name: string
+  image: string
+}
+
+export interface State {
+  currentRect?: WindowBoundAndInfo
   screenImage?: string
 }
 
-const state: TrayState = {
+const state: State = {
   currentRect: undefined,
   screenImage: undefined
 }
 
 export const CapturerStore = defineStore('capturerStore', {
-  state: (): TrayState => state,
+  state: (): State => state,
   getters: {},
   actions: {}
 })

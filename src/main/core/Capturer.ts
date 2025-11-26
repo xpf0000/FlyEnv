@@ -1,5 +1,5 @@
 import type { Rectangle } from 'electron'
-import { desktopCapturer, screen, BrowserWindow } from 'electron'
+import { desktopCapturer, screen, BrowserWindow, globalShortcut } from 'electron'
 import { windowManager } from '@xpf0000/node-window-manager'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve as PathResolve, join } from 'node:path'
@@ -20,29 +20,148 @@ type WindowItem = {
   }
 }
 
+type WindowBoundAndInfo = {
+  id: number
+  bounds: Rectangle
+  name: string
+}
+
 export class Capturer {
   useWindow: boolean = true
+  capturerWindowID: number = 0
+  capturering: boolean = false
+  destroyTimer: NodeJS.Timeout | undefined = undefined
   timer: NodeJS.Timeout | undefined = undefined
   window: BrowserWindow | undefined = undefined
+  currentPoint: {
+    x: number
+    y: number
+  } = {
+    x: 0,
+    y: 0
+  }
+  windows: Record<number, WindowBoundAndInfo> = {}
 
   stopCapturer() {
     clearInterval(this.timer)
-    this.window?.destroy()
+    this.timer = undefined
+    this.window?.hide()
+    this.destroyTimer = setTimeout(
+      () => {
+        this.window?.destroy()
+        this.window = undefined
+        this.capturerWindowID = 0
+      },
+      2 * 60 * 1000
+    )
+    this.capturering = false
+  }
+
+  registShortcut() {
+    globalShortcut.register('CommandOrControl+Shift+A', () => {
+      console.log('Ctrl+Shift+A 被按下')
+      if (this.capturering) {
+        return
+      }
+      this.initWatchPointWindow().catch()
+    })
   }
 
   async initWatchPointWindow() {
+    this.capturering = true
+    clearTimeout(this.destroyTimer)
     clearInterval(this.timer)
-    this.window?.destroy()
+    this.windows = {}
 
+    const title = 'FlyEnv-Capturer-Window-I3MCDmGbp2IJy9T69RHFs7p0mwGg1WHB'
     const display = screen.getPrimaryDisplay()
-
+    console.log('scaleFactor: ', display.scaleFactor)
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
-      thumbnailSize: { width: display.bounds.width, height: display.bounds.height }
+      thumbnailSize: {
+        width: Math.floor(display.bounds.width * display.scaleFactor),
+        height: Math.floor(display.bounds.height * display.scaleFactor)
+      }
     })
 
     const image = sources[0].thumbnail
     const base64Image = image.toDataURL()
+
+    const init = (window: BrowserWindow) => {
+      window.setAlwaysOnTop(true, 'screen-saver')
+      window.show()
+      window.moveTop()
+      window.webContents?.send?.(
+        'command',
+        'APP:Capturer-Window-Screen-Image-Update',
+        'APP:Capturer-Window-Screen-Image-Update',
+        base64Image
+      )
+      if (!this.capturerWindowID) {
+        const all = windowManager.getWindows()
+        const find = all.find((a) => a.getName().includes(title))
+        const activeId = find?.id ?? 0
+        console.log('find: ', activeId, find?.getName())
+        this.capturerWindowID = activeId
+      }
+      this.timer = setInterval(() => {
+        const point = screen.getCursorScreenPoint()
+        if (point.x === this.currentPoint.x && point.y === this.currentPoint.y) {
+          return
+        }
+        this.currentPoint.x = point.x
+        this.currentPoint.y = point.y
+        const pointWindow = windowManager.getWindowAtPoint(point.x, point.y, this.capturerWindowID)
+        console.log(
+          'getWindowAtPoint: ',
+          pointWindow.id,
+          pointWindow.getTitle(),
+          pointWindow.getName()
+        )
+        if (pointWindow.id) {
+          let item = this.windows?.[pointWindow.id]
+          console.log('getWindowAtPoint item: ', item)
+          if (!item) {
+            const bounds: Rectangle = pointWindow.getBounds() as any
+            const name = pointWindow.getName()
+            item = {
+              id: pointWindow.id,
+              bounds,
+              name
+            }
+            this.windows[pointWindow.id] = item
+          }
+          window.webContents?.send?.(
+            'command',
+            'APP:Capturer-Window-Rect-Update',
+            'APP:Capturer-Window-Rect-Update',
+            JSON.parse(JSON.stringify(item))
+          )
+        } else {
+          const item = {
+            id: 0,
+            bounds: {
+              x: 0,
+              y: 0,
+              width: display.bounds.width,
+              height: display.bounds.height
+            },
+            name: 'Full Screen'
+          }
+          window.webContents?.send?.(
+            'command',
+            'APP:Capturer-Window-Rect-Update',
+            'APP:Capturer-Window-Rect-Update',
+            item
+          )
+        }
+      }, 150)
+    }
+
+    if (this.window) {
+      init(this.window)
+      return
+    }
 
     const window = new BrowserWindow({
       x: 0,
@@ -50,6 +169,7 @@ export class Capturer {
       y: 0,
       width: display.bounds.width,
       height: display.bounds.height,
+      // paintWhenInitiallyHidden: false,
       transparent: true,
       frame: false,
       alwaysOnTop: true,
@@ -59,18 +179,17 @@ export class Capturer {
       hasShadow: false,
       skipTaskbar: true,
       enableLargerThanScreen: true,
-      title: 'FlyEnv-Capturer-Window',
+      title,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
         webSecurity: true,
-        webviewTag: true,
+        backgroundThrottling: false, // 禁止后台节流
         preload: join(global.Server.Static!, 'preload/preload.js')
       }
     })
 
     window.setMenu(null)
-    window.setAlwaysOnTop(true, 'screen-saver')
 
     if (is.dev()) {
       window.loadURL(`http://localhost:${ViteDevPort}/capturer/capturer.html`).catch()
@@ -78,36 +197,10 @@ export class Capturer {
       window.loadFile(index).catch()
     }
     window.once('ready-to-show', () => {
-      window.show()
-      window.focus()
-      window.moveTop()
-      window.webContents?.send?.(
-        'command',
-        'APP:Capturer-Window-Screen-Image-Update',
-        'APP:Capturer-Window-Screen-Image-Update',
-        base64Image
-      )
-      const all = windowManager.getWindows()
-      const find = all.find((a) => a.getName().includes('FlyEnv-Capturer-Window'))
-      console.log('find: ', find?.id, find?.getTitle(), find?.getName())
-      const activeId = find?.id
-      this.timer = setInterval(() => {
-        const point = screen.getCursorScreenPoint()
-        const pointWindow = windowManager.getWindowAtPoint(point.x, point.y, activeId)
-        console.log(
-          'getWindowAtPoint: ',
-          pointWindow.id,
-          pointWindow.getTitle(),
-          pointWindow.getName()
-        )
-        const rect = pointWindow.getBounds()
-        window.webContents?.send?.(
-          'command',
-          'APP:Capturer-Window-Rect-Update',
-          'APP:Capturer-Window-Rect-Update',
-          JSON.parse(JSON.stringify(rect))
-        )
-      }, 200)
+      init(window)
+    })
+    window.on('show', () => {
+      console.log('window show !!!!!!')
     })
     this.window = window
   }

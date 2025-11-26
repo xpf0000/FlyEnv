@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
 import is from 'electron-is'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
@@ -515,10 +515,10 @@ export default class Application extends EventEmitter {
   }
 
   showPage(page: string) {
-    const win = this.windowManager.openWindow(page)
     if (this.mainWindow) {
       return
     }
+    const win = this.windowManager.openWindow(page)
     this.mainWindow = win
     AppNodeFnManager.mainWindow = win
     console.log('showPage checkBrewOrPort !!!')
@@ -543,6 +543,7 @@ export default class Application extends EventEmitter {
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
     this.initTrayManager()
+    this.getCapturer().registShortcut()
   }
 
   show(page = 'index') {
@@ -568,6 +569,7 @@ export default class Application extends EventEmitter {
   async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
     try {
+      globalShortcut.unregisterAll()
       ScreenManager.destroy()
       SiteSuckerManager.destroy()
       this.forkManager?.destroy()
