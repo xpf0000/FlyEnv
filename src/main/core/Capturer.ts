@@ -1,12 +1,10 @@
 import type { Rectangle } from 'electron'
 import { desktopCapturer, screen, BrowserWindow, globalShortcut } from 'electron'
 import { windowManager } from '@xpf0000/node-window-manager'
-import type { Window } from '@xpf0000/node-window-manager'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve as PathResolve, join } from 'node:path'
 import is from 'electron-is'
 import { ViteDevPort } from '../../../configs/vite.port'
-import { isWindows } from '@shared/utils'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const index = PathResolve(__dirname, '../render/capturer/capturer.html')
@@ -29,9 +27,7 @@ type WindowBoundAndInfo = {
 }
 
 export class Capturer {
-  isFullScreen: boolean = false
   useWindow: boolean = true
-  capturerWindow: Window | undefined = undefined
   capturerWindowID: number = 0
   capturering: boolean = false
   destroyTimer: NodeJS.Timeout | undefined = undefined
@@ -50,13 +46,11 @@ export class Capturer {
     clearInterval(this.timer)
     this.timer = undefined
     this.window?.hide()
-    this.isFullScreen = false
     this.destroyTimer = setTimeout(
       () => {
         this.window?.destroy()
         this.window = undefined
         this.capturerWindowID = 0
-        this.capturerWindow = undefined
       },
       2 * 60 * 1000
     )
@@ -82,21 +76,20 @@ export class Capturer {
     const title = 'FlyEnv-Capturer-Window-I3MCDmGbp2IJy9T69RHFs7p0mwGg1WHB'
     const display = screen.getPrimaryDisplay()
     console.log('scaleFactor: ', display.scaleFactor)
-    console.log('原始bounds:', display.bounds)
-    const deskID = windowManager.getDesktopWindowID()
-    console.log('deskID:', deskID)
-    const base64Image = windowManager.captureWindow(deskID)
-    console.log('base64Image: ', base64Image.length)
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: {
+        width: Math.floor(display.bounds.width * display.scaleFactor),
+        height: Math.floor(display.bounds.height * display.scaleFactor)
+      }
+    })
+
+    const image = sources[0].thumbnail
+    const base64Image = image.toDataURL()
 
     const init = (window: BrowserWindow) => {
-      this.isFullScreen = false
       window.setAlwaysOnTop(true, 'screen-saver')
-      window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
       window.show()
-      setTimeout(() => {
-        window.setAlwaysOnTop(true, 'screen-saver')
-      }, 100)
-      window.focus()
       window.moveTop()
       window.webContents?.send?.(
         'command',
@@ -107,14 +100,9 @@ export class Capturer {
       if (!this.capturerWindowID) {
         const all = windowManager.getWindows()
         const find = all.find((a) => a.getName().includes(title))
-        this.capturerWindow = find
         const activeId = find?.id ?? 0
         console.log('find: ', activeId, find?.getName())
         this.capturerWindowID = activeId
-      }
-      if (!this.isFullScreen && isWindows()) {
-        this.isFullScreen = true
-        this.capturerWindow?.setFullScreen()
       }
       this.timer = setInterval(() => {
         const point = screen.getCursorScreenPoint()
@@ -179,7 +167,6 @@ export class Capturer {
       x: 0,
       // 向上移动窗口，使其顶部覆盖菜单栏
       y: 0,
-      type: 'toolbar',
       width: display.bounds.width,
       height: display.bounds.height,
       // paintWhenInitiallyHidden: false,
@@ -214,10 +201,6 @@ export class Capturer {
     })
     window.on('show', () => {
       console.log('window show !!!!!!')
-      if (!this.isFullScreen && isWindows()) {
-        this.isFullScreen = true
-        this.capturerWindow?.setFullScreen()
-      }
     })
     this.window = window
   }
