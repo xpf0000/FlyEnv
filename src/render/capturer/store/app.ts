@@ -17,11 +17,13 @@ type WindowBoundAndInfo = {
 export interface State {
   currentRect?: WindowBoundAndInfo
   screenImage?: string
+  windowImages: Record<number, string>
 }
 
 const state: State = {
   currentRect: undefined,
-  screenImage: undefined
+  screenImage: undefined,
+  windowImages: {}
 }
 
 export const CapturerStore = defineStore('capturerStore', {

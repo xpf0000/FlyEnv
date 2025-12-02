@@ -1,7 +1,9 @@
 <template>
   <div class="main h-full w-full flex items-center justify-center relative">
     <img class="screen-image" :src="screenImage" />
-    <div v-show="rect" class="rect" :style="style" @click.stop="onRectClick"></div>
+    <div v-show="rect" class="rect" :style="style" @click.stop="onRectClick">
+      <img v-show="rectImage" :src="rectImage" />
+    </div>
     <el-button @click.stop="doStop">停止</el-button>
   </div>
 </template>
@@ -14,6 +16,12 @@
   import IPC from '@/util/IPC'
 
   const store = CapturerStore()
+  const currentRect = computed(() => {
+    return store?.currentRect
+  })
+  const rectImage = computed(() => {
+    return store.windowImages?.[currentRect?.value?.id ?? 0]
+  })
   const rect: ComputedRef<Rect | undefined> = computed(() => {
     return store?.currentRect?.bounds
   })
@@ -43,6 +51,11 @@
   }
   const onRectClick = () => {
     console.log('onRectClick !!!')
+    if (currentRect.value?.id && !store.windowImages?.[currentRect.value?.id]) {
+      IPC.send('Capturer:getWindowCapturer', currentRect.value?.id).then((key: string) => {
+        IPC.off(key)
+      })
+    }
   }
 </script>
 
@@ -72,12 +85,25 @@
 
       .rect {
         position: fixed;
-        border: 2px solid #409eff;
         z-index: 50;
         background: transparent;
         /* 使用超大box-shadow创建遮罩效果 */
         box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
         //pointer-events: none;
+
+        &:after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border: 2px solid #409eff;
+          z-index: 100;
+        }
+
+        > img {
+          width: 100%;
+          height: 100%;
+          z-index: -1;
+        }
       }
 
       .el-button {

@@ -60,6 +60,11 @@ export class Capturer {
       },
       2 * 60 * 1000
     )
+    this.window?.webContents?.send?.(
+      'command',
+      'APP:Capturer-Window-Clean',
+      'APP:Capturer-Window-Clean'
+    )
     this.capturering = false
   }
 
@@ -73,20 +78,48 @@ export class Capturer {
     })
   }
 
+  getWindowCapturer(id: number) {
+    const image = windowManager.captureWindow(id)
+    console.log('getWindowCapturer image: ', image)
+    if (image) {
+      this.window?.webContents?.send?.(
+        'command',
+        'APP:Capturer-Window-Image-Get',
+        'APP:Capturer-Window-Image-Get',
+        {
+          id,
+          image
+        }
+      )
+    }
+  }
+
   async initWatchPointWindow() {
     this.capturering = true
     clearTimeout(this.destroyTimer)
     clearInterval(this.timer)
     this.windows = {}
 
+    let base64Image = ''
     const title = 'FlyEnv-Capturer-Window-I3MCDmGbp2IJy9T69RHFs7p0mwGg1WHB'
     const display = screen.getPrimaryDisplay()
     console.log('scaleFactor: ', display.scaleFactor)
     console.log('原始bounds:', display.bounds)
-    const deskID = windowManager.getDesktopWindowID()
-    console.log('deskID:', deskID)
-    const base64Image = windowManager.captureWindow(deskID)
-    console.log('base64Image: ', base64Image.length)
+
+    if (isWindows()) {
+      const deskID = windowManager.getDesktopWindowID()
+      base64Image = windowManager.captureWindow(deskID)
+    } else {
+      const sources = await desktopCapturer.getSources({
+        types: ['screen'],
+        thumbnailSize: {
+          width: Math.floor(display.bounds.width * display.scaleFactor),
+          height: Math.floor(display.bounds.height * display.scaleFactor)
+        }
+      })
+      const image = sources[0].thumbnail
+      base64Image = image.toDataURL()
+    }
 
     const init = (window: BrowserWindow) => {
       this.isFullScreen = false
@@ -240,10 +273,10 @@ export class Capturer {
           display_id: source.display_id,
           display: display
             ? {
-              bounds: display.bounds,
-              workArea: display.workArea,
-              scaleFactor: display.scaleFactor
-            }
+                bounds: display.bounds,
+                workArea: display.workArea,
+                scaleFactor: display.scaleFactor
+              }
             : undefined
         }
       })

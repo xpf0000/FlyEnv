@@ -949,23 +949,24 @@ export default class Application extends EventEmitter {
       case 'Capturer:doCapturer':
         {
           const isHide: any = args[0] as any
-          if (isHide) {
+          if (isHide && this.mainWindow?.isVisible()) {
+            this.mainWindow?.once('hide', () => {
+              this.getCapturer().initWatchPointWindow()
+            })
             this.mainWindow?.hide()
-            this.trayWindow?.hide()
+          } else {
+            this.getCapturer().initWatchPointWindow()
           }
-          this.getCapturer().initWatchPointWindow()
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-          if (this?.trayWindow) {
-            this.windowManager.sendCommandTo(this.trayWindow!, command, key, true)
-          }
         }
         break
       case 'Capturer:doStopCapturer':
         this.getCapturer().stopCapturer()
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-        if (this?.trayWindow) {
-          this.windowManager.sendCommandTo(this.trayWindow!, command, key, true)
-        }
+        this.windowManager.sendCommandTo(this.getCapturer().window!, command, key, true)
+        break
+      case 'Capturer:getWindowCapturer':
+        this.getCapturer().getWindowCapturer(args[0] as any)
+        this.windowManager.sendCommandTo(this.getCapturer().window!, command, key, true)
         break
       case 'NodePty:init':
         NodePTY.initNodePty().then((res) => {
