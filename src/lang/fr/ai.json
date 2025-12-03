@@ -14,6 +14,8 @@
   "siteCreatedSuccessfully": "Site créé avec succès",
   "siteDomain": "Domaine du site",
   "siteDirectory": "Répertoire du site",
+  "siteDirectoryError": "Erreur répertoire du site",
+  "domainError": "Erreur de domaine",
   "tryingToStartService": "Tentative de démarrage du service, veuillez patienter...",
   "serviceStartedSuccessfully": "Service démarré avec succès",
   "domain": "Domaine",
@@ -65,8 +67,5 @@
   "enterTips": "[Entrée] envoyer, [Shift+Entrée] saut de ligne, [Ctrl+Entrée] envoyer sans générer",
   "noLiencesTips": "Actuellement sans licence, vous pouvez essayer pendant trois jours",
   "alert": "Alerte",
-  "customer": "Mes Copilots",
-
-  "siteDirectoryError": "Site Directory Error",
-  "domainError": "Domain Error"
+  "customer": "Mes Copilots"
 }

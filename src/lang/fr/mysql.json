@@ -11,7 +11,6 @@
   "thread_cache_size": "Taille du pool de threads",
   "table_open_cache": "Cache des tables",
   "max_connections": "Nombre maximum de connexions",
-
   "rootPassword": "mot de passe root",
   "rootPasswordChange": "Modifier le mot de passe {user}",
   "passwordNoEmpty": "le mot de passe root ne peut pas être vide",
