@@ -39,6 +39,10 @@ export default class Launcher extends EventEmitter {
       app.commandLine.appendSwitch('disable-gpu-sandbox')
       app.commandLine.appendSwitch('--no-sandbox')
     }
+    if (isWindows()) {
+      // 启用高 DPI 支持
+      app.commandLine.appendSwitch('high-dpi-support', '1')
+    }
     this.handleAppEvents()
   }
 

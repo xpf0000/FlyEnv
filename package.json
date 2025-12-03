@@ -34,7 +34,7 @@
     "@shikijs/core": "^3.4.2",
     "@shikijs/transformers": "^3.4.2",
     "@shikijs/types": "^3.4.2",
-    "@xpf0000/node-window-manager": "^0.0.11",
+    "@xpf0000/node-window-manager": "^0.0.12",
     "axios": "^1.13.2",
     "chardet": "^2.1.0",
     "compare-versions": "^6.1.1",

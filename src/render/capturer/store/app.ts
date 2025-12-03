@@ -15,12 +15,14 @@ type WindowBoundAndInfo = {
 }
 
 export interface State {
+  screenRect: Rect | undefined
   currentRect?: WindowBoundAndInfo
   screenImage?: string
   windowImages: Record<number, string>
 }
 
 const state: State = {
+  screenRect: undefined,
   currentRect: undefined,
   screenImage: undefined,
   windowImages: {}

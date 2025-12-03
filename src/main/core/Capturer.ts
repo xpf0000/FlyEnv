@@ -1,7 +1,6 @@
 import type { Rectangle } from 'electron'
 import { desktopCapturer, screen, BrowserWindow, globalShortcut } from 'electron'
-import { windowManager } from '@xpf0000/node-window-manager'
-import type { Window } from '@xpf0000/node-window-manager'
+import { windowManager, Window } from '@xpf0000/node-window-manager'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve as PathResolve, join } from 'node:path'
 import is from 'electron-is'
@@ -105,10 +104,14 @@ export class Capturer {
     const display = screen.getPrimaryDisplay()
     console.log('scaleFactor: ', display.scaleFactor)
     console.log('原始bounds:', display.bounds)
+    let screenRect = undefined
 
     if (isWindows()) {
       const deskID = windowManager.getDesktopWindowID()
       base64Image = windowManager.captureWindow(deskID)
+      const desk = new Window(deskID)
+      screenRect = desk.getBounds()
+      console.log('Desktop Bounds:', screenRect)
     } else {
       const sources = await desktopCapturer.getSources({
         types: ['screen'],
@@ -135,7 +138,10 @@ export class Capturer {
         'command',
         'APP:Capturer-Window-Screen-Image-Update',
         'APP:Capturer-Window-Screen-Image-Update',
-        base64Image
+        {
+          image: base64Image,
+          screenRect
+        }
       )
       if (!this.capturerWindowID) {
         const all = windowManager.getWindows()
@@ -169,6 +175,12 @@ export class Capturer {
           if (!item) {
             const bounds: Rectangle = pointWindow.getBounds() as any
             const name = pointWindow.getName()
+            if (isWindows()) {
+              bounds.x /= display.scaleFactor
+              bounds.y /= display.scaleFactor
+              bounds.width /= display.scaleFactor
+              bounds.height /= display.scaleFactor
+            }
             item = {
               id: pointWindow.id,
               bounds,

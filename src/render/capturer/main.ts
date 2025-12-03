@@ -15,8 +15,15 @@ IPC.on('APP:Capturer-Window-Rect-Update').then((key: string, res: any) => {
   store.currentRect = res
 })
 IPC.on('APP:Capturer-Window-Screen-Image-Update').then((key: string, res: any) => {
-  const store = CapturerStore()
-  store.screenImage = res
+  if (res && res?.image) {
+    const store = CapturerStore()
+    let image: string = res.image as any
+    if (!image.includes('data:image/png;base64,')) {
+      image = `data:image/png;base64,${image}`
+    }
+    store.screenImage = image
+    store.screenRect = res?.screenRect
+  }
 })
 IPC.on('APP:Capturer-Window-Image-Get').then((key: string, res: any) => {
   const store = CapturerStore()

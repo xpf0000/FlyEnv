@@ -1,6 +1,11 @@
 <template>
   <div class="main h-full w-full flex items-center justify-center relative">
-    <img class="screen-image" :src="screenImage" />
+    <img
+      :style="screenImageStyle"
+      style="image-rendering: high-quality"
+      class="screen-image"
+      :src="screenImage"
+    />
     <div v-show="rect" class="rect" :style="style" @click.stop="onRectClick">
       <img v-show="rectImage" :src="rectImage" />
     </div>
@@ -9,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, watch } from 'vue'
   import type { ComputedRef } from 'vue'
   import { CapturerStore } from './store/app'
   import type { Rect } from './store/app'
@@ -27,6 +32,24 @@
   })
   const screenImage = computed(() => {
     return store.screenImage
+  })
+  const screenImageStyle = computed(() => {
+    if (!store.screenRect) {
+      return {}
+    }
+    const physicalWidth = store.screenRect.width
+    const physicalHeight = store.screenRect.height
+    // 2. 获取当前浏览器的 DPI 缩放比例
+    const scaleFactor = window.devicePixelRatio // 例如 1.5
+    // 3. 计算用于 CSS 的逻辑像素尺寸
+    const logicalWidth = physicalWidth / scaleFactor
+    const logicalHeight = physicalHeight / scaleFactor
+
+    console.log('screenImageStyle: ', physicalWidth, physicalHeight, logicalWidth, logicalHeight)
+    return {
+      width: `${logicalWidth}px`,
+      height: `${logicalHeight}px`
+    }
   })
   const style = computed(() => {
     if (!rect.value?.width) {
@@ -51,6 +74,8 @@
   }
   const onRectClick = () => {
     console.log('onRectClick !!!')
+    const rect = document.body.getBoundingClientRect()
+    console.log('body rect: ', rect)
     if (currentRect.value?.id && !store.windowImages?.[currentRect.value?.id]) {
       IPC.send('Capturer:getWindowCapturer', currentRect.value?.id).then((key: string) => {
         IPC.off(key)
@@ -67,14 +92,23 @@
   html,
   body,
   #app {
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
+    min-height: 100vh;
+    min-width: 100vw;
     overflow: hidden;
     background: transparent;
   }
 
   #app {
-    border: 5px solid red;
+    position: relative;
+    &:after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 5px solid red;
+      z-index: -1;
+    }
 
     .main {
       .screen-image {
@@ -103,6 +137,7 @@
           width: 100%;
           height: 100%;
           z-index: -1;
+          image-rendering: high-quality;
         }
       }
 
