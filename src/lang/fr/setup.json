@@ -5,7 +5,7 @@
   "aliyun": "Source de téléchargement Alibaba",
   "ustc": "Source de téléchargement de l'Université des Sciences et Technologies de Chine",
   "Licenses": "Licences",
-  "requestedTips": "La demande de licence a été envoyée, veuillez patienter. Si vous devez modifier les informations, vous pouvez renvoyer la demande.",
+  "requestedTips": "La demande de licence a été envoyée, veuillez patienter. Si vous devez modifier les informations, vous pouvez renvoyer la demande",
   "licenseActivated": "Licence activée",
   "autoStartService": "Démarrage automatique des services",
   "autoStartServiceTips": "Démarrer automatiquement les services au lancement de l'application",
@@ -16,27 +16,24 @@
   "passwordTips": "Non requis. Le mot de passe sera automatiquement rempli lors de l'exécution des commandes. Par exemple, pour l'installation et la désinstallation avec Macports, etc",
   "langTips": "Charger des packs de langue définis par l'utilisateur. Cela initialisera également le pack de langue par défaut, facilitant ainsi la traduction de FlyEnv dans d'autres langues.",
   "openLangDir": "Ouvrir le dossier des packs de langue",
-
   "moduleCateAddTips": "Ajouter une catégorie de module",
   "moduleCateName": "Nom de la catégorie de module",
   "moduleAdd": "Ajouter un module",
-  "moduleCateDelTips": "Les modules sous cette catégorie seront également supprimés. Confirmer la suppression?",
-
+  "moduleCateDelTips": "Les modules sous cette catégorie seront également supprimés. Confirmer la suppression ?",
   "moduleTitle": "Module",
   "moduleName": "Nom du module",
   "moduleIcon": "Icône du module",
-  "moduleIsService": "Le module est-il un service?",
+  "moduleIsService": "Le module est-il un service ?",
   "moduleIsOnlyRunOne": "Un seul service peut fonctionner à la fois",
   "moduleExecItem": "Élément d'exécution du module",
-
   "module": {
     "name": "Nom",
     "path": "Chemin du fichier",
     "comment": "Commentaire",
-    "command": "Command",
     "exec": "Exécuter",
+    "command": "Commande",
     "commandFile": "Fichier",
-    "isSudo": "Exécuter avec sudo?",
+    "isSudo": "Exécuter avec sudo ?",
     "pidPath": "Chemin du fichier PID",
     "configPath": "Fichier de configuration",
     "logPath": "Fichier journal",
@@ -46,7 +43,6 @@
     "outputLog": "Journal de sortie",
     "errorLog": "Journal des erreurs"
   },
-
   "flyenvHelper": "Réparer l'application d'assistance FlyEnv",
   "flyenvHelperBtn": "Réparer",
   "flyenvHelperFixSuccess": "Réparation de l'application d'assistance FlyEnv réussie"

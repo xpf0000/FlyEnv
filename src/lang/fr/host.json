@@ -31,6 +31,9 @@
   "projectGo": "Projets Go",
   "projectPython": "Projets Python",
   "projectTomcat": "Projets Tomcat",
+  "projectDeno": "Projets Deno",
+  "projectBun": "Projets Bun",
+  "projectPerl": "Projets Perl",
   "jarPackagePath": "Chemin du package JAR",
   "jdkPath": "Chemin JDK",
   "pythonPath": "Chemin Python",
@@ -43,7 +46,7 @@
   "tcpPort": "Port TCP",
   "reverseProxy": "Proxy inverse",
   "projectName": "Nom du projet",
-  "customJDKAndTomcat": "JDK&Tomcat personnalisés",
+  "customJDKAndTomcat": "JDK et Tomcat personnalisés",
   "useSSL": "Utiliser SSL",
   "projectAGroup": "Services de site",
   "projectBGroup": "Services d'application",
@@ -64,9 +67,5 @@
   "copyCommand": "Copier la commande",
   "showFile": "Afficher le fichier",
   "sticky": "Épinglé",
-  "dbclickRowToEdit": "Double-cliquez sur cette ligne pour modifier",
-
-  "projectDeno": "Deno Projects",
-  "projectBun": "Bun Projects",
-  "projectPerl": "Perl Projects"
+  "dbclickRowToEdit": "Double-cliquez sur cette ligne pour modifier"
 }
