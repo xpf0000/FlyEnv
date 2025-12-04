@@ -102,6 +102,13 @@ export default class Application extends EventEmitter {
    * Converts short locale codes (e.g., "vi") to full locale format (e.g., "vi_VN.UTF-8")
    */
   normalizeLocale(locale: string): string {
+    // Handle edge cases: null, undefined, empty string
+    if (!locale || typeof locale !== 'string' || locale.trim() === '') {
+      return 'en_US.UTF-8' // Safe default fallback
+    }
+
+    locale = locale.trim()
+
     // Map of short locale codes to full locale codes
     // This ensures compatibility with PostgreSQL and other services that require full locale format
     const localeMap: Record<string, string> = {
@@ -165,9 +172,10 @@ export default class Application extends EventEmitter {
       return `${normalized}.UTF-8`
     }
 
-    // For unknown short codes, append _XX format (e.g., "ab" becomes "ab_AB")
-    // This is a fallback for locales not in our map
-    return `${normalized}_${normalized.toUpperCase()}.UTF-8`
+    // For unknown short codes, use safe fallback to prevent invalid locale codes
+    // Log warning for debugging purposes
+    console.warn(`Unknown locale code: ${locale}, falling back to en_US.UTF-8`)
+    return 'en_US.UTF-8'
   }
 
   initAppHelper() {
