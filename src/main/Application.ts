@@ -103,12 +103,14 @@ export default class Application extends EventEmitter {
    */
   normalizeLocale(locale: string): string {
     // Handle edge cases: null, undefined, empty string
-    if (!locale || typeof locale !== 'string' || locale.trim() === '') {
+    if (!locale || typeof locale !== 'string') {
       return 'en_US.UTF-8' // Safe default fallback
     }
 
     locale = locale.trim()
-
+    if (locale === '') {
+      return 'en_US.UTF-8' // Safe default fallback
+    }
     // Map of short locale codes to full locale codes
     // This ensures compatibility with PostgreSQL and other services that require full locale format
     // Note: Some mappings use common defaults (e.g., 'zh' -> 'zh_CN', 'ar' -> 'ar_SA')
