@@ -171,6 +171,10 @@ export default class Application extends EventEmitter {
     
     // If already has underscore (e.g., "en_US"), use it as is
     if (normalized.includes('_')) {
+      // Warn if not in our known locale map
+      if (!Object.values(localeMap).includes(normalized)) {
+        logger.warn(`Using unvalidated locale code: ${locale}`)
+      }
       return `${normalized}.UTF-8`
     }
 
