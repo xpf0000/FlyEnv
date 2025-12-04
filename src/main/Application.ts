@@ -1,14 +1,22 @@
 import { EventEmitter } from 'events'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import is from 'electron-is'
-import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
 import UpdateManager from './core/UpdateManager'
 import { existsSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
-import { getLanguage, isArmArch, mkdirp, readFile, readFileFixed, writeFile } from './utils'
+import {
+  getLanguage,
+  isArmArch,
+  mkdirp,
+  readFile,
+  readFileFixed,
+  writeFile,
+  getLocale,
+  logger
+} from './utils'
 import { AppI18n, I18nT, AppAllLang } from '@lang/index'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
@@ -51,7 +59,7 @@ export default class Application extends EventEmitter {
     AppNodeFnManager.customerLang = this.customerLang
     AppNodeFnManager.nativeTheme_watch()
     global.Server = {
-      Local: this.normalizeLocale(app.getLocale())
+      Local: getLocale()
     } as any
     this.isReady = false
     this.configManager = new ConfigManager()
@@ -95,96 +103,6 @@ export default class Application extends EventEmitter {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
     console.log('Application inited !!!')
-  }
-
-  /**
-   * Normalize locale code to full format for PostgreSQL and other services
-   * Converts short locale codes (e.g., "vi") to full locale format (e.g., "vi_VN.UTF-8")
-   */
-  normalizeLocale(locale: string): string {
-    // Handle edge cases: null, undefined, empty string
-    if (!locale || typeof locale !== 'string') {
-      return 'en_US.UTF-8' // Safe default fallback
-    }
-
-    locale = locale.trim()
-    if (locale === '') {
-      return 'en_US.UTF-8' // Safe default fallback
-    }
-    // Map of short locale codes to full locale codes
-    // This ensures compatibility with PostgreSQL and other services that require full locale format
-    // Note: Some mappings use common defaults (e.g., 'zh' -> 'zh_CN', 'ar' -> 'ar_SA')
-    // These represent the most widely used variants. If a different variant is needed,
-    // users should ensure their system locale is set to the full format (e.g., 'zh_TW').
-    const localeMap: Record<string, string> = {
-      'vi': 'vi_VN',      // Vietnamese
-      'zh': 'zh_CN',      // Chinese (Simplified)
-      'zh-CN': 'zh_CN',   // Chinese (Simplified)
-      'zh-TW': 'zh_TW',   // Chinese (Traditional)
-      'ja': 'ja_JP',      // Japanese
-      'ko': 'ko_KR',      // Korean
-      'th': 'th_TH',      // Thai
-      'id': 'id_ID',      // Indonesian
-      'ms': 'ms_MY',      // Malay
-      'ar': 'ar_SA',      // Arabic
-      'hi': 'hi_IN',      // Hindi
-      'bn': 'bn_BD',      // Bengali
-      'ur': 'ur_PK',      // Urdu
-      'fa': 'fa_IR',      // Persian
-      'he': 'he_IL',      // Hebrew
-      'tr': 'tr_TR',      // Turkish
-      'ru': 'ru_RU',      // Russian
-      'uk': 'uk_UA',      // Ukrainian
-      'pl': 'pl_PL',      // Polish
-      'cs': 'cs_CZ',      // Czech
-      'sk': 'sk_SK',      // Slovak
-      'hu': 'hu_HU',      // Hungarian
-      'ro': 'ro_RO',      // Romanian
-      'bg': 'bg_BG',      // Bulgarian
-      'sr': 'sr_RS',      // Serbian
-      'hr': 'hr_HR',      // Croatian
-      'sl': 'sl_SI',      // Slovenian
-      'et': 'et_EE',      // Estonian
-      'lv': 'lv_LV',      // Latvian
-      'lt': 'lt_LT',      // Lithuanian
-      'el': 'el_GR',      // Greek
-      'fi': 'fi_FI',      // Finnish
-      'sv': 'sv_SE',      // Swedish
-      'no': 'no_NO',      // Norwegian
-      'da': 'da_DK',      // Danish
-      'nl': 'nl_NL',      // Dutch
-      'de': 'de_DE',      // German
-      'fr': 'fr_FR',      // French
-      'es': 'es_ES',      // Spanish
-      'it': 'it_IT',      // Italian
-      'pt': 'pt_PT',      // Portuguese
-      'pt-BR': 'pt_BR',   // Portuguese (Brazil)
-      'en': 'en_US',      // English
-      'en-US': 'en_US',   // English (US)
-      'en-GB': 'en_GB'    // English (UK)
-    }
-
-    // Check if locale is in the map
-    if (localeMap[locale]) {
-      return `${localeMap[locale]}.UTF-8`
-    }
-
-    // For locales already in format "xx_YY" or "xx-YY", convert hyphen to underscore
-    const normalized = locale.split('-').join('_')
-    
-    // If already has underscore (e.g., "en_US"), use it as is
-    if (normalized.includes('_')) {
-      // Warn if not in our known locale map
-      if (!Object.values(localeMap).includes(normalized)) {
-        logger.warn(`Using unvalidated locale code: ${locale}`)
-      }
-      return `${normalized}.UTF-8`
-    }
-
-    // For unknown short codes, use safe fallback to prevent invalid locale codes
-    // Log warning for debugging purposes
-    logger.warn(`Unknown locale code: ${locale}, falling back to en_US.UTF-8`)
-    return 'en_US.UTF-8'
   }
 
   initAppHelper() {
