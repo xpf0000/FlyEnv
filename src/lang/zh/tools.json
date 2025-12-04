@@ -65,5 +65,7 @@
   "SelectAll": "全选",
   "MoveToTop": "移至顶部",
   "MoveToGroup": "移至分组",
-  "MarkdownPreview": "Markdown预览"
+  "MarkdownPreview": "Markdown预览",
+
+  "Capturer": "屏幕截图"
 }

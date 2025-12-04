@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
 import is from 'electron-is'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
@@ -37,6 +37,7 @@ import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFo
 import ServiceProcessManager from './core/ServiceProcess'
 import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
+import { Capturer } from './core/Capturer'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -53,6 +54,7 @@ export default class Application extends EventEmitter {
   helpCheckSuccessNoticed: boolean = false
   pty: Partial<Record<string, PtyItem>> = {}
   customerLang: Record<string, any> = {}
+  capturer?: Capturer
 
   constructor() {
     super()
@@ -103,6 +105,13 @@ export default class Application extends EventEmitter {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
     console.log('Application inited !!!')
+  }
+
+  getCapturer(): Capturer {
+    if (!this.capturer) {
+      this.capturer = new Capturer()
+    }
+    return this.capturer
   }
 
   initAppHelper() {
@@ -460,10 +469,10 @@ export default class Application extends EventEmitter {
   }
 
   showPage(page: string) {
-    const win = this.windowManager.openWindow(page)
     if (this.mainWindow) {
       return
     }
+    const win = this.windowManager.openWindow(page)
     this.mainWindow = win
     AppNodeFnManager.mainWindow = win
     console.log('showPage checkBrewOrPort !!!')
@@ -488,6 +497,7 @@ export default class Application extends EventEmitter {
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
     this.initTrayManager()
+    this.getCapturer().registShortcut()
   }
 
   show(page = 'index') {
@@ -513,6 +523,7 @@ export default class Application extends EventEmitter {
   async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
     try {
+      globalShortcut.unregisterAll()
       ScreenManager.destroy()
       SiteSuckerManager.destroy()
       this.forkManager?.destroy()
@@ -888,6 +899,28 @@ export default class Application extends EventEmitter {
             path: res
           })
         })
+        break
+      case 'Capturer:doCapturer':
+        {
+          const isHide: any = args[0] as any
+          if (isHide && this.mainWindow?.isVisible()) {
+            this.mainWindow?.once('hide', () => {
+              this.getCapturer().initWatchPointWindow()
+            })
+            this.mainWindow?.hide()
+          } else {
+            this.getCapturer().initWatchPointWindow()
+          }
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+        }
+        break
+      case 'Capturer:doStopCapturer':
+        this.getCapturer().stopCapturer()
+        this.windowManager.sendCommandTo(this.getCapturer().window!, command, key, true)
+        break
+      case 'Capturer:getWindowCapturer':
+        this.getCapturer().getWindowCapturer(args[0] as any)
+        this.windowManager.sendCommandTo(this.getCapturer().window!, command, key, true)
         break
       case 'NodePty:init':
         NodePTY.initNodePty().then((res) => {

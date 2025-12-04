@@ -1,0 +1,44 @@
+import { VueExtend } from '@/core/VueExtend'
+import App from './App.vue'
+import '../index.scss'
+import { createPinia } from 'pinia'
+import IPC from '../util/IPC'
+import { CapturerStore } from './store/app'
+import { reactive } from 'vue'
+
+const pinia = createPinia()
+const app = VueExtend(App)
+app.use(pinia)
+app.mount('#app')
+IPC.on('APP:Capturer-Window-Rect-Update').then((key: string, res: any) => {
+  const store = CapturerStore()
+  store.currentRect = res
+})
+IPC.on('APP:Capturer-Window-Screen-Image-Update').then((key: string, res: any) => {
+  if (res && res?.image) {
+    const store = CapturerStore()
+    let image: string = res.image as any
+    if (!image.includes('data:image/png;base64,')) {
+      image = `data:image/png;base64,${image}`
+    }
+    store.screenImage = image
+    store.screenRect = res?.screenRect
+  }
+})
+IPC.on('APP:Capturer-Window-Image-Get').then((key: string, res: any) => {
+  const store = CapturerStore()
+  if (res && res?.id && res?.image) {
+    const id = res.id
+    let image: string = res.image as any
+    if (!image.includes('data:image/png;base64,')) {
+      image = `data:image/png;base64,${image}`
+    }
+    store.windowImages[id] = image
+  }
+})
+IPC.on('APP:Capturer-Window-Clean').then(() => {
+  const store = CapturerStore()
+  store.screenImage = undefined
+  store.windowImages = reactive({})
+  store.currentRect = undefined
+})
