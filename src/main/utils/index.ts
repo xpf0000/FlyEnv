@@ -15,7 +15,6 @@ import {
 } from '@shared/fs-extra'
 import { isLinux, isMacOS, pathFixedToUnix } from '@shared/utils'
 import Helper from '../../fork/Helper'
-// import { AppHelperRoleFix } from '@shared/AppHelperCheck'
 import logger from '../core/Logger'
 
 export {
