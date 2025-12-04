@@ -65,5 +65,7 @@
   "SelectAll": "Select All",
   "MoveToTop": "Move To Top",
   "MoveToGroup": "Move To Group",
-  "MarkdownPreview": "Markdown Preview"
+  "MarkdownPreview": "Markdown Preview",
+
+  "Capturer": "Screenshot"
 }
