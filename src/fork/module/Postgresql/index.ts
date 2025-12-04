@@ -123,13 +123,6 @@ class Manager extends Base {
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
       const sendUserPass = false
-      
-      // Optimize: cache global.Server.Local and fix Vietnamese locale
-      let serverLocal = global.Server.Local!
-      // Fix: PostgreSQL requires vi_VN.UTF-8 instead of vi.UTF-8 for Vietnamese
-      if (serverLocal === 'vi.UTF-8') {
-        serverLocal = 'vi_VN.UTF-8'
-      }
 
       await mkdirp(global.Server.PostgreSqlDir!)
 
@@ -164,8 +157,8 @@ class Manager extends Base {
             return
           }
         } else {
-          const execEnv = `export LC_ALL="${serverLocal}"
-export LANG="${serverLocal}"
+          const execEnv = `export LC_ALL="${global.Server.Local!}"
+export LANG="${global.Server.Local!}"
 `
           const execArgs = `-D "${dbPath}" -l "${logFile}" start`
 
@@ -205,8 +198,8 @@ export LANG="${serverLocal}"
         })
         const binDir = dirname(bin)
         if (isWindows()) {
-          process.env.LC_ALL = serverLocal
-          process.env.LANG = serverLocal
+          process.env.LC_ALL = global.Server.Local!
+          process.env.LANG = global.Server.Local!
           await mkdirp(dbPath)
           const initDB = join(binDir, 'initdb.exe')
           process.chdir(dirname(initDB))
@@ -222,13 +215,13 @@ export LANG="${serverLocal}"
           }
         } else {
           const initDB = join(binDir, 'initdb')
-          const command = `"${initDB}" -D "${dbPath}" -U root --locale=${serverLocal} --encoding=UTF8 && wait`
-          console.log('serverLocal: ', serverLocal)
+          const command = `"${initDB}" -D "${dbPath}" -U root --locale=${global.Server.Local} --encoding=UTF8 && wait`
+          console.log('global.Server.Local: ', global.Server.Local)
           try {
             await execPromiseWithEnv(command, {
               env: {
-                LC_ALL: serverLocal,
-                LANG: serverLocal
+                LC_ALL: global.Server.Local!,
+                LANG: global.Server.Local!
               }
             })
           } catch (e) {
@@ -257,13 +250,13 @@ export LANG="${serverLocal}"
         if (isWindows()) {
           let conf = await readFile(confFile, 'utf-8')
           let find = conf.match(/lc_messages = '(.*?)'/g)
-          conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_messages = '${serverLocal}'`)
+          conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_messages = '${global.Server.Local}'`)
           find = conf.match(/lc_monetary = '(.*?)'/g)
-          conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_monetary = '${serverLocal}'`)
+          conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_monetary = '${global.Server.Local}'`)
           find = conf.match(/lc_numeric = '(.*?)'/g)
-          conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_numeric = '${serverLocal}'`)
+          conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_numeric = '${global.Server.Local}'`)
           find = conf.match(/lc_time = '(.*?)'/g)
-          conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_time = '${serverLocal}'`)
+          conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_time = '${global.Server.Local}'`)
 
           await writeFile(confFile, conf)
         }
