@@ -111,6 +111,8 @@ export default class Application extends EventEmitter {
 
     // Map of short locale codes to full locale codes
     // This ensures compatibility with PostgreSQL and other services that require full locale format
+    // Note: Some mappings use common defaults (e.g., 'zh' -> 'zh_CN', 'ar' -> 'ar_SA')
+    // These represent the most widely used variants but may not be appropriate for all users
     const localeMap: Record<string, string> = {
       'vi': 'vi_VN',      // Vietnamese
       'zh': 'zh_CN',      // Chinese (Simplified)
@@ -174,7 +176,7 @@ export default class Application extends EventEmitter {
 
     // For unknown short codes, use safe fallback to prevent invalid locale codes
     // Log warning for debugging purposes
-    console.warn(`Unknown locale code: ${locale}, falling back to en_US.UTF-8`)
+    logger.warn(`Unknown locale code: ${locale}, falling back to en_US.UTF-8`)
     return 'en_US.UTF-8'
   }
 
