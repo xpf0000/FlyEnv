@@ -251,22 +251,50 @@ export default class Application extends EventEmitter {
   }
 
   checkBrewOrPort() {
-    if (isMacOS()) {
+    const sendGlobalUpdate = () => {
+      this.windowManager.sendCommandTo(
+        this.mainWindow!,
+        'APP-Update-Global-Server',
+        'APP-Update-Global-Server',
+        JSON.parse(JSON.stringify(global.Server))
+      )
+    }
+
+    const makeRepoSafe = (dir: string) => {
+      spawnPromiseWithEnv('git', [
+        'config',
+        '--global',
+        '--add',
+        'safe.directory',
+        join(dir, 'Library/Taps/homebrew/homebrew-core')
+      ])
+        .then(() => {
+          return spawnPromiseWithEnv('git', [
+            'config',
+            '--global',
+            '--add',
+            'safe.directory',
+            join(dir, 'Library/Taps/homebrew/homebrew-cask')
+          ])
+        })
+        .then()
+        .catch()
+    }
+
+    const runBrewChecks = (brewBins: string[]) => {
       const handleBrewCheck = (error?: Error) => {
-        const brewBin = isArmArch() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
-        if (existsSync(brewBin)) {
-          global.Server.BrewBin = brewBin
+        for (const s of brewBins) {
+          if (existsSync(s)) {
+            global.Server.BrewBin = s
+            break
+          }
         }
         if (error) {
           global.Server.BrewError = error.toString()
         }
-        this.windowManager.sendCommandTo(
-          this.mainWindow!,
-          'APP-Update-Global-Server',
-          'APP-Update-Global-Server',
-          JSON.parse(JSON.stringify(global.Server))
-        )
+        sendGlobalUpdate()
       }
+
       spawnPromiseWithEnv('which', ['brew'])
         .then((res) => {
           console.log('which brew: ', res)
@@ -276,30 +304,14 @@ export default class Application extends EventEmitter {
               const dir = res.stdout
               global.Server.BrewHome = dir
               handleBrewCheck()
-              spawnPromiseWithEnv('git', [
-                'config',
-                '--global',
-                '--add',
-                'safe.directory',
-                join(dir, 'Library/Taps/homebrew/homebrew-core')
-              ])
-                .then(() => {
-                  return spawnPromiseWithEnv('git', [
-                    'config',
-                    '--global',
-                    '--add',
-                    'safe.directory',
-                    join(dir, 'Library/Taps/homebrew/homebrew-cask')
-                  ])
-                })
-                .then()
-                .catch()
+              makeRepoSafe(dir)
             })
             .catch((e: Error) => {
               handleBrewCheck(e)
               AppLog.debug(`[checkBrewOrPort][brew --repo][error]: ${e.toString()}`)
               console.log('brew --repo err: ', e)
             })
+
           spawnPromiseWithEnv('brew', ['--cellar'])
             .then((res) => {
               const dir = res.stdout
@@ -318,16 +330,16 @@ export default class Application extends EventEmitter {
           AppLog.debug(`[checkBrewOrPort][which brew][error]: ${e.toString()}`)
           console.log('which brew e: ', e)
         })
+    }
+
+    if (isMacOS()) {
+      const brewBin = isArmArch() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
+      runBrewChecks([brewBin])
 
       spawnPromiseWithEnv('which', ['port'])
         .then((res) => {
           global.Server.MacPorts = res.stdout
-          this.windowManager.sendCommandTo(
-            this.mainWindow!,
-            'APP-Update-Global-Server',
-            'APP-Update-Global-Server',
-            JSON.parse(JSON.stringify(global.Server))
-          )
+          sendGlobalUpdate()
         })
         .catch((e: Error) => {
           console.log('which port e: ', e)
@@ -337,77 +349,11 @@ export default class Application extends EventEmitter {
        * Linux homebrew check
        */
       const uinfo = userInfo()
-      const handleBrewCheck = (error?: Error) => {
-        const brewBin = [
-          join(uinfo.homedir, '.linuxbrew/bin/brew'),
-          '/home/linuxbrew/.linuxbrew/bin/brew'
-        ]
-        brewBin.forEach((s) => {
-          if (existsSync(s)) {
-            global.Server.BrewBin = s
-          }
-        })
-        if (error) {
-          global.Server.BrewError = error.toString()
-        }
-        this.windowManager.sendCommandTo(
-          this.mainWindow!,
-          'APP-Update-Global-Server',
-          'APP-Update-Global-Server',
-          JSON.parse(JSON.stringify(global.Server))
-        )
-      }
-      spawnPromiseWithEnv('which', ['brew'])
-        .then((res) => {
-          console.log('which brew: ', res)
-          spawnPromiseWithEnv('brew', ['--repo'])
-            .then((res) => {
-              console.log('brew --repo: ', res)
-              const dir = res.stdout
-              global.Server.BrewHome = dir
-              handleBrewCheck()
-              spawnPromiseWithEnv('git', [
-                'config',
-                '--global',
-                '--add',
-                'safe.directory',
-                join(dir, 'Library/Taps/homebrew/homebrew-core')
-              ])
-                .then(() => {
-                  return spawnPromiseWithEnv('git', [
-                    'config',
-                    '--global',
-                    '--add',
-                    'safe.directory',
-                    join(dir, 'Library/Taps/homebrew/homebrew-cask')
-                  ])
-                })
-                .then()
-                .catch()
-            })
-            .catch((e: Error) => {
-              handleBrewCheck(e)
-              AppLog.debug(`[checkBrewOrPort][brew --repo][error]: ${e.toString()}`)
-              console.log('brew --repo err: ', e)
-            })
-          spawnPromiseWithEnv('brew', ['--cellar'])
-            .then((res) => {
-              const dir = res.stdout
-              console.log('brew --cellar: ', res)
-              global.Server.BrewCellar = dir
-              handleBrewCheck()
-            })
-            .catch((e: Error) => {
-              handleBrewCheck(e)
-              AppLog.debug(`[checkBrewOrPort][brew --cellar][error]: ${e.toString()}`)
-              console.log('brew --cellar err: ', e)
-            })
-        })
-        .catch((e: Error) => {
-          handleBrewCheck(e)
-          AppLog.debug(`[checkBrewOrPort][which brew][error]: ${e.toString()}`)
-          console.log('which brew e: ', e)
-        })
+      const brewBins = [
+        join(uinfo.homedir, '.linuxbrew/bin/brew'),
+        '/home/linuxbrew/.linuxbrew/bin/brew'
+      ]
+      runBrewChecks(brewBins)
     }
   }
 
