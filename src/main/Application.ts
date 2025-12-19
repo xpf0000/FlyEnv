@@ -286,8 +286,6 @@ export default class Application extends EventEmitter {
             join(dir, 'Library/Taps/homebrew/homebrew-cask')
           ])
         })
-        .then()
-        .catch()
     }
 
     const runBrewChecks = (brewBins: string[]) => {
