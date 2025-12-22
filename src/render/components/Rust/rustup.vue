@@ -18,11 +18,11 @@
         </el-button>
       </div>
     </template>
-    <temaplte v-if="RustupSetup.installing">
+    <template v-if="RustupSetup.installing">
       <div class="w-full h-full overflow-hidden p-5">
         <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>
       </div>
-    </temaplte>
+    </template>
     <template v-else-if="RustupSetup.installed === false">
       <div class="w-full h-full flex flex-col items-center justify-center p-10 gap-5">
         <span>Install Rustup?</span>
