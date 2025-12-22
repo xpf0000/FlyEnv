@@ -9,7 +9,6 @@
   "postgresqlInit": "Service démarré avec succès\nLe répertoire des données est {dir}\nL'utilisateur initial est root, le mot de passe est root",
   "downloadFileFail": "Échec du téléchargement du fichier !",
   "trialEnd": "La période d'essai est expirée. Pour continuer à utiliser cette fonctionnalité, veuillez acquérir une licence.",
-
-  "phpiniNotFound": "php.ini file not found",
-  "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
+  "phpiniNotFound": "Fichier \"php.ini\" non trouvé",
+  "noEPMD": "Le processus \"epmd\" est introuvable. Veuillez réinitialiser les variables d'environnement \"Erlang\""
 }

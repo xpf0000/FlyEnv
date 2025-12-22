@@ -20,7 +20,7 @@
   "require": "est requis",
   "rootful": "Mode Rootful",
   "userModeNetworking": "Réseau en mode utilisateur",
-  "rosetta": "Rosetta (Mac)",
+  "rosetta": "Rosetta",
   "identityPath": "Chemin de la clé SSH",
   "remoteUsername": "Utilisateur distant",
   "Dashboard": "Tableau de bord",
