@@ -15,7 +15,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { fs } from '@/util/NodeFn'
+  import { ref, watch, nextTick } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
@@ -27,6 +28,12 @@
   const props = defineProps<{
     name: string
   }>()
+
+  watch(show, (v) => {
+    if (v) {
+      void doRefresh()
+    }
+  })
 
   const type = ref('')
   const filepath = ref('')
@@ -72,11 +79,20 @@
     }
   }
 
-  const initType = (t: string) => {
+  const doRefresh = async () => {
+    await nextTick()
+
+    if (show.value && (await fs.existsSync(filepath.value))) {
+      log.value?.logDo?.('refresh')
+    }
+  }
+
+  const initType = async (t: string) => {
     type.value = t
     const logFile: { [key: string]: string } = logfile.value
     filepath.value = logFile[t] ?? ''
     localStorage.setItem('PhpWebStudy-Host-Log-Type', t)
+    await doRefresh()
   }
 
   init()
