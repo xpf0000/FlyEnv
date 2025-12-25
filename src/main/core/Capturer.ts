@@ -44,6 +44,7 @@ export class Capturer {
     y: 0
   }
   windows: Record<number, WindowBoundAndInfo> = {}
+  needCheckWindowInPoint: boolean = true
 
   stopCapturer() {
     clearInterval(this.timer)
@@ -98,6 +99,7 @@ export class Capturer {
     clearTimeout(this.destroyTimer)
     clearInterval(this.timer)
     this.windows = {}
+    this.needCheckWindowInPoint = true
 
     let base64Image = ''
     const title = 'FlyEnv-Capturer-Window-I3MCDmGbp2IJy9T69RHFs7p0mwGg1WHB'
@@ -140,7 +142,8 @@ export class Capturer {
         'APP:Capturer-Window-Screen-Image-Update',
         {
           image: base64Image,
-          screenRect
+          screenRect,
+          scaleFactor: isWindows() ? display.scaleFactor : 1
         }
       )
       if (!this.capturerWindowID) {
@@ -156,6 +159,10 @@ export class Capturer {
         this.capturerWindow?.setFullScreen()
       }
       this.timer = setInterval(() => {
+        if (!this.needCheckWindowInPoint) {
+          clearInterval(this.timer)
+          return
+        }
         const point = screen.getCursorScreenPoint()
         if (point.x === this.currentPoint.x && point.y === this.currentPoint.y) {
           return
@@ -265,6 +272,11 @@ export class Capturer {
       }
     })
     this.window = window
+  }
+
+  stopCheckWindowInPoint() {
+    this.needCheckWindowInPoint = false
+    clearInterval(this.timer)
   }
 
   async getAllWindows(): Promise<WindowItem[]> {

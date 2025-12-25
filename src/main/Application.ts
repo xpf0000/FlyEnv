@@ -276,16 +276,15 @@ export default class Application extends EventEmitter {
         '--add',
         'safe.directory',
         join(dir, 'Library/Taps/homebrew/homebrew-core')
-      ])
-        .then(() => {
-          return spawnPromiseWithEnv('git', [
-            'config',
-            '--global',
-            '--add',
-            'safe.directory',
-            join(dir, 'Library/Taps/homebrew/homebrew-cask')
-          ])
-        })
+      ]).then(() => {
+        return spawnPromiseWithEnv('git', [
+          'config',
+          '--global',
+          '--add',
+          'safe.directory',
+          join(dir, 'Library/Taps/homebrew/homebrew-cask')
+        ])
+      })
     }
 
     const runBrewChecks = (brewBins: string[]) => {
@@ -918,6 +917,10 @@ export default class Application extends EventEmitter {
         break
       case 'Capturer:getWindowCapturer':
         this.getCapturer().getWindowCapturer(args[0] as any)
+        this.windowManager.sendCommandTo(this.getCapturer().window!, command, key, true)
+        break
+      case 'Capturer:stopCheckWindowInPoint':
+        this.getCapturer().stopCheckWindowInPoint()
         this.windowManager.sendCommandTo(this.getCapturer().window!, command, key, true)
         break
       case 'NodePty:init':

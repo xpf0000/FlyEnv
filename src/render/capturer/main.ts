@@ -23,6 +23,7 @@ IPC.on('APP:Capturer-Window-Screen-Image-Update').then((key: string, res: any) =
     }
     store.screenImage = image
     store.screenRect = res?.screenRect
+    store.scaleFactor = res?.scaleFactor ?? 1
   }
 })
 IPC.on('APP:Capturer-Window-Image-Get').then((key: string, res: any) => {
@@ -34,6 +35,7 @@ IPC.on('APP:Capturer-Window-Image-Get').then((key: string, res: any) => {
       image = `data:image/png;base64,${image}`
     }
     store.windowImages[id] = image
+    store.getCanvas(store.screenImage!, image, store.currentRect?.bounds).catch()
   }
 })
 IPC.on('APP:Capturer-Window-Clean').then(() => {
@@ -41,4 +43,6 @@ IPC.on('APP:Capturer-Window-Clean').then(() => {
   store.screenImage = undefined
   store.windowImages = reactive({})
   store.currentRect = undefined
+  store.rectSelected = false
+  store.editRect = undefined
 })

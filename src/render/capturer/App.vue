@@ -1,24 +1,46 @@
 <template>
   <div class="main h-full w-full flex items-center justify-center relative">
     <img
+      ref="screenImgRef"
       :style="screenImageStyle"
       style="image-rendering: high-quality"
       class="screen-image"
       :src="screenImage"
+      crossorigin="anonymous"
+      decoding="sync"
     />
-    <div v-show="rect" class="rect" :style="style" @click.stop="onRectClick">
-      <img v-show="rectImage" :src="rectImage" />
+    <div
+      v-show="rect"
+      :class="{ 'no-border': store.rectSelected }"
+      class="rect"
+      :style="style"
+      @click.stop="onRectClick"
+    >
+      <img
+        v-show="rectImage"
+        ref="rectImgRef"
+        decoding="sync"
+        crossorigin="anonymous"
+        :src="rectImage"
+      />
     </div>
+    <RectSelector></RectSelector>
+    <Magnifying />
     <el-button @click.stop="doStop">停止</el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { computed, watch } from 'vue'
+  import { computed, onBeforeUnmount, watch, ref } from 'vue'
   import type { ComputedRef } from 'vue'
   import { CapturerStore } from './store/app'
   import type { Rect } from './store/app'
   import IPC from '@/util/IPC'
+  import RectSelector from './selector.vue'
+  import Magnifying from './magnifying.vue'
+
+  const screenImgRef = ref<HTMLImageElement | undefined>(undefined)
+  const rectImgRef = ref<HTMLImageElement | undefined>(undefined)
 
   const store = CapturerStore()
   const currentRect = computed(() => {
@@ -67,12 +89,36 @@
       height: `${rect.value?.height}px`
     }
   })
+
+  watch(
+    screenImage,
+    (v) => {
+      if (v) {
+        if (screenImgRef.value) {
+          store.getCanvas(v, rectImage.value, store.currentRect?.bounds).catch()
+        }
+      }
+    },
+    {
+      immediate: true
+    }
+  )
+
+  window.addEventListener('mousemove', store.onWindowMouseMove)
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('mousemove', store.onWindowMouseMove)
+  })
+
   const doStop = () => {
     IPC.send('Capturer:doStopCapturer').then((key: string) => {
       IPC.off(key)
     })
   }
   const onRectClick = () => {
+    IPC.send('Capturer:stopCheckWindowInPoint').then((key: string) => {
+      IPC.off(key)
+    })
     console.log('onRectClick !!!')
     const rect = document.body.getBoundingClientRect()
     console.log('body rect: ', rect)
@@ -81,6 +127,11 @@
         IPC.off(key)
       })
     }
+    store.magnifyingInfo.show = false
+    store.editRect = {
+      ...store.currentRect?.bounds
+    } as any
+    store.rectSelected = true
   }
 </script>
 
@@ -98,6 +149,7 @@
     min-width: 100vw;
     overflow: hidden;
     background: transparent;
+    padding: 0;
   }
 
   #app {
@@ -138,6 +190,14 @@
           height: 100%;
           z-index: -1;
           image-rendering: high-quality;
+        }
+
+        &.no-border {
+          box-shadow: none;
+
+          &:after {
+            display: none;
+          }
         }
       }
 
