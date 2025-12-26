@@ -11,7 +11,7 @@
     />
     <div
       v-show="rect"
-      :class="{ 'no-border': store.rectSelected }"
+      :class="{ 'no-border': !!RectSelect?.editRect }"
       class="rect"
       :style="style"
       @click.stop="onRectClick"
@@ -26,6 +26,7 @@
     </div>
     <RectSelector></RectSelector>
     <Magnifying />
+    <SizeVM />
     <el-button @click.stop="doStop">停止</el-button>
   </div>
 </template>
@@ -38,6 +39,8 @@
   import IPC from '@/util/IPC'
   import RectSelector from './selector.vue'
   import Magnifying from './magnifying.vue'
+  import SizeVM from './size.vue'
+  import RectSelect from '@/capturer/store/RectSelect'
 
   const screenImgRef = ref<HTMLImageElement | undefined>(undefined)
   const rectImgRef = ref<HTMLImageElement | undefined>(undefined)
@@ -128,10 +131,11 @@
       })
     }
     store.magnifyingInfo.show = false
-    store.editRect = {
+    RectSelect.editRect = {
       ...store.currentRect?.bounds
     } as any
-    store.rectSelected = true
+    RectSelect.selectAble = false
+    RectSelect.selected = true
   }
 </script>
 

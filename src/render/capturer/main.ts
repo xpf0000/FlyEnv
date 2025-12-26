@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 import IPC from '../util/IPC'
 import { CapturerStore } from './store/app'
 import { reactive } from 'vue'
+import RectSelect from '@/capturer/store/RectSelect'
 
 const pinia = createPinia()
 const app = VueExtend(App)
@@ -43,6 +44,7 @@ IPC.on('APP:Capturer-Window-Clean').then(() => {
   store.screenImage = undefined
   store.windowImages = reactive({})
   store.currentRect = undefined
-  store.rectSelected = false
-  store.editRect = undefined
+  store.magnifyingInfo.show = true
+  RectSelect.editRect = undefined
+  RectSelect.selectAble = true
 })

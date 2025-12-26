@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="store.rectSelected"
+    v-if="RectSelect.editRect"
     class="selector"
     :style="style"
     @mousedown.stop="handleMouseDown($event, 'move')"
@@ -17,8 +17,9 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onBeforeUnmount } from 'vue'
+  import { computed, onBeforeUnmount, reactive } from 'vue'
   import { CapturerStore } from '@/capturer/store/app'
+  import RectSelect from '@/capturer/store/RectSelect'
 
   const store = CapturerStore()
 
@@ -26,7 +27,7 @@
   type Direction = 'tl' | 'tc' | 'tr' | 'cl' | 'cr' | 'bl' | 'bc' | 'br' | 'move'
 
   // 1. 获取当前矩形数据
-  const rect = computed(() => store?.editRect || { x: 0, y: 0, width: 0, height: 0 })
+  const rect = computed(() => RectSelect?.editRect || { x: 0, y: 0, width: 0, height: 0 })
 
   // 2. 样式绑定
   const style = computed(() => ({
@@ -130,12 +131,12 @@
 
     // 4. 更新 Store
     // 注意：这里建议在 store 中加一个 action 如 updateRect，或者直接赋值
-    store.editRect = {
+    RectSelect.editRect = reactive({
       x: finalX,
       y: finalY,
       width: finalW,
       height: finalH
-    }
+    })
   }
 
   const handleMouseUp = () => {

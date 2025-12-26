@@ -9,7 +9,7 @@ export type Rect = {
 
 type WindowBoundAndInfo = {
   id: number
-  bounds: Rect | DOMRect
+  bounds: Rect
   name: string
   image: string
 }
@@ -34,8 +34,6 @@ export interface State {
   currentRect?: WindowBoundAndInfo
   screenImage?: string
   windowImages: Record<number, string>
-  editRect?: Rect | undefined
-  rectSelected: boolean
   magnifyingInfo: MagnifyingInfo
   scaleFactor: number
 }
@@ -44,9 +42,7 @@ const state: State = {
   screenRect: undefined,
   currentRect: undefined,
   screenImage: undefined,
-  editRect: undefined,
   windowImages: {},
-  rectSelected: false,
   magnifyingInfo: {
     show: true,
     point: {
@@ -100,7 +96,6 @@ export const CapturerStore = defineStore('capturerStore', {
 
         // 2. 获取鼠标位置像素颜色
         const pixelData = ctx.getImageData(x, y, 1, 1).data
-        console.log('pixelData: ', pixelData)
         const [r, g, b] = pixelData
 
         // 3. 转换为RGB格式

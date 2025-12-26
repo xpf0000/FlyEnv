@@ -47,6 +47,7 @@ export class Capturer {
   needCheckWindowInPoint: boolean = true
 
   stopCapturer() {
+    globalShortcut.unregister('Escape')
     clearInterval(this.timer)
     this.timer = undefined
     this.window?.hide()
@@ -95,6 +96,9 @@ export class Capturer {
   }
 
   async initWatchPointWindow() {
+    globalShortcut.register('Escape', () => {
+      this.stopCapturer()
+    })
     this.capturering = true
     clearTimeout(this.destroyTimer)
     clearInterval(this.timer)
@@ -111,8 +115,12 @@ export class Capturer {
     if (isWindows()) {
       const deskID = windowManager.getDesktopWindowID()
       base64Image = windowManager.captureWindow(deskID)
-      const desk = new Window(deskID)
-      screenRect = desk.getBounds()
+      screenRect = {
+        x: 0,
+        y: 0,
+        width: Math.floor(display.bounds.width * display.scaleFactor),
+        height: Math.floor(display.bounds.height * display.scaleFactor)
+      }
       console.log('Desktop Bounds:', screenRect)
     } else {
       const sources = await desktopCapturer.getSources({
@@ -124,6 +132,12 @@ export class Capturer {
       })
       const image = sources[0].thumbnail
       base64Image = image.toDataURL()
+      screenRect = {
+        x: 0,
+        y: 0,
+        width: Math.floor(display.bounds.width * display.scaleFactor),
+        height: Math.floor(display.bounds.height * display.scaleFactor)
+      }
     }
 
     const init = (window: BrowserWindow) => {
@@ -155,8 +169,10 @@ export class Capturer {
         this.capturerWindowID = activeId
       }
       if (!this.isFullScreen && isWindows()) {
-        this.isFullScreen = true
-        this.capturerWindow?.setFullScreen()
+        if (this.capturerWindow) {
+          this.isFullScreen = true
+          this.capturerWindow?.setFullScreen()
+        }
       }
       this.timer = setInterval(() => {
         if (!this.needCheckWindowInPoint) {
@@ -169,9 +185,19 @@ export class Capturer {
         }
         this.currentPoint.x = point.x
         this.currentPoint.y = point.y
-        const pointWindow = windowManager.getWindowAtPoint(point.x, point.y, this.capturerWindowID)
+        let x = point.x
+        let y = point.y
+        if (isWindows()) {
+          x = Math.floor(x * display.scaleFactor)
+          y = Math.floor(y * display.scaleFactor)
+        }
+        const pointWindow = windowManager.getWindowAtPoint(x, y, this.capturerWindowID)
         console.log(
           'getWindowAtPoint: ',
+          {
+            x,
+            y
+          },
           pointWindow.id,
           pointWindow.getTitle(),
           pointWindow.getName()
@@ -267,8 +293,10 @@ export class Capturer {
     window.on('show', () => {
       console.log('window show !!!!!!')
       if (!this.isFullScreen && isWindows()) {
-        this.isFullScreen = true
-        this.capturerWindow?.setFullScreen()
+        if (this.capturerWindow) {
+          this.isFullScreen = true
+          this.capturerWindow?.setFullScreen()
+        }
       }
     })
     this.window = window
