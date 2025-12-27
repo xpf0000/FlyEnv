@@ -1,4 +1,5 @@
 <template>
+  <VueSvg />
   <div class="main h-full w-full flex items-center justify-center relative">
     <img
       ref="screenImgRef"
@@ -27,6 +28,7 @@
     <RectSelector></RectSelector>
     <Magnifying />
     <SizeVM />
+    <CapturerToolVM />
     <el-button @click.stop="doStop">停止</el-button>
   </div>
 </template>
@@ -41,6 +43,9 @@
   import Magnifying from './magnifying.vue'
   import SizeVM from './size.vue'
   import RectSelect from '@/capturer/store/RectSelect'
+  import CapturerTool from '@/capturer/tools/tools'
+  import CapturerToolVM from '@/capturer/tools/index.vue'
+  import VueSvg from '@/components/VueSvgIcon/svg.vue'
 
   const screenImgRef = ref<HTMLImageElement | undefined>(undefined)
   const rectImgRef = ref<HTMLImageElement | undefined>(undefined)
@@ -136,6 +141,7 @@
     } as any
     RectSelect.selectAble = false
     RectSelect.selected = true
+    CapturerTool.updatePosition(RectSelect.editRect)
   }
 </script>
 

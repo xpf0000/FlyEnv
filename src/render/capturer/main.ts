@@ -6,6 +6,7 @@ import IPC from '../util/IPC'
 import { CapturerStore } from './store/app'
 import { reactive } from 'vue'
 import RectSelect from '@/capturer/store/RectSelect'
+import CapturerTool from '@/capturer/tools/tools'
 
 const pinia = createPinia()
 const app = VueExtend(App)
@@ -47,4 +48,5 @@ IPC.on('APP:Capturer-Window-Clean').then(() => {
   store.magnifyingInfo.show = true
   RectSelect.editRect = undefined
   RectSelect.selectAble = true
+  CapturerTool.reinit()
 })

@@ -1,6 +1,7 @@
 import type { Rect } from './app'
 import { reactiveBind } from '@/util/Index'
 import { CapturerStore } from './app'
+import CapturerTool from '@/capturer/tools/tools'
 // 首先，在你的类中需要定义一些必要的属性
 class RectSelect {
   // 选区数据
@@ -79,6 +80,7 @@ class RectSelect {
 
     CapturerStore().magnifyingInfo.show = false
     this.selected = true
+    CapturerTool.updatePosition(this.editRect)
     // 可以在这里触发选区完成的回调
     console.log('选区完成', this.editRect)
     window.removeEventListener('mousemove', this.onMouseMove)

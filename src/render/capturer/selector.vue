@@ -20,6 +20,7 @@
   import { computed, onBeforeUnmount, reactive } from 'vue'
   import { CapturerStore } from '@/capturer/store/app'
   import RectSelect from '@/capturer/store/RectSelect'
+  import CapturerTool from '@/capturer/tools/tools'
 
   const store = CapturerStore()
 
@@ -55,6 +56,7 @@
 
   const handleMouseDown = (e: MouseEvent, dir: Direction) => {
     e.preventDefault() // 防止选中文字
+    CapturerTool.updatePosition()
     isDragging = true
     startX = e.clientX
     startY = e.clientY
@@ -143,6 +145,7 @@
     store.magnifyingInfo.show = false
     isDragging = false
     currentDirection = null
+    CapturerTool.updatePosition(RectSelect.editRect)
     window.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('mouseup', handleMouseUp)
   }
