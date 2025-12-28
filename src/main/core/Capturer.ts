@@ -123,27 +123,37 @@ export class Capturer {
       }
       console.log('Desktop Bounds:', screenRect)
     } else {
-      const sources = await desktopCapturer.getSources({
-        types: ['screen'],
-        thumbnailSize: {
+      try {
+        const sources = await desktopCapturer.getSources({
+          types: ['screen'],
+          thumbnailSize: {
+            width: Math.floor(display.bounds.width * display.scaleFactor),
+            height: Math.floor(display.bounds.height * display.scaleFactor)
+          }
+        })
+        console.log('desktopCapturer.getSources sources: ', sources)
+        const image = sources[0].thumbnail
+        base64Image = image.toDataURL()
+        console.log('desktopCapturer.getSources base64Image: ', base64Image)
+        if (base64Image.length < 500) {
+          return
+        }
+        screenRect = {
+          x: 0,
+          y: 0,
           width: Math.floor(display.bounds.width * display.scaleFactor),
           height: Math.floor(display.bounds.height * display.scaleFactor)
         }
-      })
-      const image = sources[0].thumbnail
-      base64Image = image.toDataURL()
-      screenRect = {
-        x: 0,
-        y: 0,
-        width: Math.floor(display.bounds.width * display.scaleFactor),
-        height: Math.floor(display.bounds.height * display.scaleFactor)
+      } catch (e) {
+        console.error('desktopCapturer.getSources error: ', e)
+        return
       }
     }
 
     const init = (window: BrowserWindow) => {
       this.isFullScreen = false
       window.setAlwaysOnTop(true, 'screen-saver')
-      window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+      // window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
       window.show()
       setTimeout(() => {
         window.setAlwaysOnTop(true, 'screen-saver')
@@ -157,11 +167,12 @@ export class Capturer {
         {
           image: base64Image,
           screenRect,
-          scaleFactor: isWindows() ? display.scaleFactor : 1
+          scaleFactor: display.scaleFactor
         }
       )
       if (!this.capturerWindowID) {
         const all = windowManager.getWindows()
+        console.log('windowManager.getWindows all: ', all)
         const find = all.find((a) => a.getName().includes(title))
         this.capturerWindow = find
         const activeId = find?.id ?? 0
@@ -260,7 +271,6 @@ export class Capturer {
       type: 'toolbar',
       width: display.bounds.width,
       height: display.bounds.height,
-      // paintWhenInitiallyHidden: false,
       transparent: true,
       frame: false,
       alwaysOnTop: true,

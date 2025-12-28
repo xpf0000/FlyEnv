@@ -5,8 +5,9 @@ import { createPinia } from 'pinia'
 import IPC from '../util/IPC'
 import { CapturerStore } from './store/app'
 import { reactive } from 'vue'
-import RectSelect from '@/capturer/store/RectSelect'
+import RectSelect from '@/capturer/RectSelector/RectSelect'
 import CapturerTool from '@/capturer/tools/tools'
+import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
 
 const pinia = createPinia()
 const app = VueExtend(App)
@@ -49,4 +50,5 @@ IPC.on('APP:Capturer-Window-Clean').then(() => {
   RectSelect.editRect = undefined
   RectSelect.selectAble = true
   CapturerTool.reinit()
+  RectCanvasStore.reinit()
 })

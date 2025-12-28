@@ -115,6 +115,7 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import CapurerTool from './tools'
+  import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
 
   const currentColor = computed({
     get() {
@@ -124,6 +125,10 @@
     set(v) {
       const tool: 'square' | 'circle' | 'arrow' | 'draw' = CapurerTool.tool as any
       CapurerTool[tool].color = v
+      if (RectCanvasStore.edit?.type === tool) {
+        RectCanvasStore.edit!.strokeColor = v
+        RectCanvasStore.draw()
+      }
     }
   })
 
@@ -135,6 +140,10 @@
     set(v) {
       const tool: 'square' | 'circle' | 'arrow' | 'draw' = CapurerTool.tool as any
       CapurerTool[tool].width = v
+      if (RectCanvasStore.edit?.type === tool) {
+        RectCanvasStore.edit!.toolWidth = v
+        RectCanvasStore.draw()
+      }
     }
   })
 </script>

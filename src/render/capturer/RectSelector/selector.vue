@@ -5,22 +5,27 @@
     :style="style"
     @mousedown.stop="handleMouseDown($event, 'move')"
   >
-    <div class="ctrl top-left" @mousedown.stop="handleMouseDown($event, 'tl')"></div>
-    <div class="ctrl top-center" @mousedown.stop="handleMouseDown($event, 'tc')"></div>
-    <div class="ctrl top-right" @mousedown.stop="handleMouseDown($event, 'tr')"></div>
-    <div class="ctrl center-left" @mousedown.stop="handleMouseDown($event, 'cl')"></div>
-    <div class="ctrl center-right" @mousedown.stop="handleMouseDown($event, 'cr')"></div>
-    <div class="ctrl bottom-left" @mousedown.stop="handleMouseDown($event, 'bl')"></div>
-    <div class="ctrl bottom-center" @mousedown.stop="handleMouseDown($event, 'bc')"></div>
-    <div class="ctrl bottom-right" @mousedown.stop="handleMouseDown($event, 'br')"></div>
+    <RectCanvas />
+    <template v-if="RectCanvasStore.shape.length === 0">
+      <div class="ctrl top-left" @mousedown.stop="handleMouseDown($event, 'tl')"></div>
+      <div class="ctrl top-center" @mousedown.stop="handleMouseDown($event, 'tc')"></div>
+      <div class="ctrl top-right" @mousedown.stop="handleMouseDown($event, 'tr')"></div>
+      <div class="ctrl center-left" @mousedown.stop="handleMouseDown($event, 'cl')"></div>
+      <div class="ctrl center-right" @mousedown.stop="handleMouseDown($event, 'cr')"></div>
+      <div class="ctrl bottom-left" @mousedown.stop="handleMouseDown($event, 'bl')"></div>
+      <div class="ctrl bottom-center" @mousedown.stop="handleMouseDown($event, 'bc')"></div>
+      <div class="ctrl bottom-right" @mousedown.stop="handleMouseDown($event, 'br')"></div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
   import { computed, onBeforeUnmount, reactive } from 'vue'
   import { CapturerStore } from '@/capturer/store/app'
-  import RectSelect from '@/capturer/store/RectSelect'
+  import RectSelect from '@/capturer/RectSelector/RectSelect'
   import CapturerTool from '@/capturer/tools/tools'
+  import RectCanvas from '@/capturer/RectCanvas/index.vue'
+  import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
 
   const store = CapturerStore()
 
@@ -31,14 +36,20 @@
   const rect = computed(() => RectSelect?.editRect || { x: 0, y: 0, width: 0, height: 0 })
 
   // 2. 样式绑定
-  const style = computed(() => ({
-    left: `${rect.value.x}px`,
-    top: `${rect.value.y}px`,
-    width: `${rect.value.width}px`,
-    height: `${rect.value.height}px`,
-    // 移动模式下显示移动光标
-    cursor: 'move'
-  }))
+  const style = computed(() => {
+    const obj = {
+      left: `${rect.value.x}px`,
+      top: `${rect.value.y}px`,
+      width: `${rect.value.width}px`,
+      height: `${rect.value.height}px`,
+      // 移动模式下显示移动光标
+      cursor: 'move'
+    }
+    if (RectCanvasStore.shape.length > 0 || !!CapturerTool.tool) {
+      delete obj.cursor
+    }
+    return obj
+  })
 
   // --- 拖拽核心逻辑 ---
 
@@ -55,6 +66,9 @@
   })
 
   const handleMouseDown = (e: MouseEvent, dir: Direction) => {
+    if (RectCanvasStore.shape.length > 0 || !!CapturerTool.tool) {
+      return
+    }
     e.preventDefault() // 防止选中文字
     CapturerTool.updatePosition()
     isDragging = true
@@ -172,7 +186,7 @@
       border: 2px solid #409eff;
       z-index: 120;
       /* 让中间区域可以透过点击（如果需要选中内部元素）*/
-      /* pointer-events: none; */
+      pointer-events: none;
     }
 
     /* 定义控制点的大小 */

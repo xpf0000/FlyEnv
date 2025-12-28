@@ -14,7 +14,7 @@
   import { CapturerStore } from '@/capturer/store/app'
   import { Close } from '@element-plus/icons-vue'
   import type { Rect } from '@/capturer/store/app'
-  import RectSelect from '@/capturer/store/RectSelect'
+  import RectSelect from '@/capturer/RectSelector/RectSelect'
 
   const store = CapturerStore()
 

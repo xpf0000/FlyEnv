@@ -1,6 +1,6 @@
-import type { Rect } from './app'
-import { reactiveBind } from '@/util/Index'
-import { CapturerStore } from './app'
+import type { Rect } from '../store/app'
+import { reactiveBind } from '@/util'
+import { CapturerStore } from '../store/app'
 import CapturerTool from '@/capturer/tools/tools'
 // 首先，在你的类中需要定义一些必要的属性
 class RectSelect {

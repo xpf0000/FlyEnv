@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画布标注工具（带光标提示）</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .toolbar {
+      width: 200px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      background: white;
+      cursor: default;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin: 5px 0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<h1>画布标注工具（带光标提示）</h1>
+<div class="container">
+  <div class="toolbar">
+    <h3>工具</h3>
+    <button id="rectTool">矩形</button>
+    <button id="ellipseTool">椭圆</button>
+    <button id="selectTool">选择</button>
+
+    <h3>属性</h3>
+    <div>
+      <label>边框颜色: </label>
+      <input type="color" id="strokeColor" value="#ff0000">
+    </div>
+    <div>
+      <label>边框宽度: </label>
+      <input type="range" id="strokeWidth" min="1" max="10" value="2">
+    </div>
+  </div>
+
+  <canvas id="mainCanvas" width="800" height="600"></canvas>
+</div>
+
+<script>
+  class CanvasAnnotation {
+    constructor() {
+      this.canvas = document.getElementById('mainCanvas');
+      this.ctx = this.canvas.getContext('2d');
+      this.currentTool = 'rect';
+      this.isDrawing = false;
+      this.isDragging = false;
+      this.isResizing = false;
+      this.shapes = [];
+      this.selectedShape = null;
+      this.hoveredHandle = null;
+      this.hoveredBorder = false;
+      this.handleSize = 8;
+
+      this.initEventListeners();
+      this.animate();
+    }
+
+    initEventListeners() {
+      this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+      this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+      this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+      this.canvas.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
+
+      document.getElementById('rectTool').addEventListener('click', () => this.setTool('rect'));
+      document.getElementById('ellipseTool').addEventListener('click', () => this.setTool('ellipse'));
+      document.getElementById('selectTool').addEventListener('click', () => this.setTool('select'));
+    }
+
+    setTool(tool) {
+      this.currentTool = tool;
+      this.selectedShape = null;
+      this.updateCursor();
+    }
+
+    handleMouseDown(e) {
+      const rect = this.canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      this.startX = x;
+      this.startY = y;
+
+      if (this.currentTool === 'rect' || this.currentTool === 'ellipse') {
+        this.isDrawing = true;
+        this.selectedShape = null;
+      } else if (this.currentTool === 'select') {
+        this.hoveredHandle = this.getHoveredHandle(x, y);
+        if (this.hoveredHandle) {
+          this.isResizing = true;
+        } else {
+          const shape = this.getShapeAt(x, y);
+          if (shape) {
+            this.selectedShape = shape;
+            this.isDragging = true;
+            this.dragOffsetX = x - shape.x;
+            this.dragOffsetY = y - shape.y;
+          } else {
+            this.selectedShape = null;
+          }
+        }
+      }
+    }
+
+    handleMouseMove(e) {
+      const rect = this.canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      this.currentX = x;
+      this.currentY = y;
+
+      if (this.isDrawing) {
+        this.draw();
+      } else if (this.isDragging && this.selectedShape) {
+        this.selectedShape.x = x - this.dragOffsetX;
+        this.selectedShape.y = y - this.dragOffsetY;
+      } else if (this.isResizing && this.selectedShape) {
+        this.resizeShape(x, y);
+      } else if (this.currentTool === 'select') {
+        this.updateHoverState(x, y);
+      }
+    }
+
+    handleMouseLeave() {
+      this.canvas.style.cursor = 'default';
+    }
+
+    updateHoverState(x, y) {
+      const prevHoveredHandle = this.hoveredHandle;
+      const prevHoveredBorder = this.hoveredBorder;
+
+      this.hoveredHandle = this.getHoveredHandle(x, y);
+      this.hoveredBorder = this.selectedShape && this.selectedShape.isOnBorder(x, y);
+
+      if (this.hoveredHandle !== prevHoveredHandle || this.hoveredBorder !== prevHoveredBorder) {
+        this.updateCursor();
+      }
+    }
+
+    updateCursor() {
+      if (this.currentTool === 'select' && this.selectedShape) {
+        if (this.hoveredHandle) {
+          // 根据手柄位置设置不同方向的光标
+          switch (this.hoveredHandle.index) {
+            case 0: // 左上
+            case 3: // 右下
+              this.canvas.style.cursor = 'nwse-resize';
+              break;
+            case 1: // 右上
+            case 2: // 左下
+              this.canvas.style.cursor = 'nesw-resize';
+              break;
+            case 4: // 上
+            case 6: // 下
+              this.canvas.style.cursor = 'ns-resize';
+              break;
+            case 5: // 右
+            case 7: // 左
+              this.canvas.style.cursor = 'ew-resize';
+              break;
+          }
+        } else if (this.hoveredBorder) {
+          this.canvas.style.cursor = 'move';
+        } else {
+          this.canvas.style.cursor = 'default';
+        }
+      } else {
+        this.canvas.style.cursor = 'default';
+      }
+    }
+
+    handleMouseUp() {
+      if (this.isDrawing) {
+        const width = this.currentX - this.startX;
+        const height = this.currentY - this.startY;
+
+        if (Math.abs(width) > 5 && Math.abs(height) > 5) {
+          const strokeColor = document.getElementById('strokeColor').value;
+          const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+
+          const shape = this.currentTool === 'rect'
+            ? new Rectangle(
+              Math.min(this.startX, this.currentX),
+              Math.min(this.startY, this.currentY),
+              Math.abs(width),
+              Math.abs(height),
+              strokeColor,
+              strokeWidth
+            )
+            : new Ellipse(
+              (this.startX + this.currentX) / 2,
+              (this.startY + this.currentY) / 2,
+              Math.abs(width) / 2,
+              Math.abs(height) / 2,
+              strokeColor,
+              strokeWidth
+            );
+
+          this.shapes.push(shape);
+          this.selectedShape = shape;
+        }
+      }
+
+      this.isDrawing = false;
+      this.isDragging = false;
+      this.isResizing = false;
+      this.hoveredHandle = null;
+      this.hoveredBorder = false;
+      this.updateCursor();
+    }
+
+    getShapeAt(x, y) {
+      for (let i = this.shapes.length - 1; i >= 0; i--) {
+        const shape = this.shapes[i];
+        if (shape.contains(x, y)) {
+          return shape;
+        }
+      }
+      return null;
+    }
+
+    getHoveredHandle(x, y) {
+      if (!this.selectedShape) return null;
+
+      const handles = this.selectedShape.getHandles();
+      for (const handle of handles) {
+        if (Math.abs(x - handle.x) <= this.handleSize &&
+          Math.abs(y - handle.y) <= this.handleSize) {
+          return handle;
+        }
+      }
+      return null;
+    }
+
+    resizeShape(x, y) {
+      if (!this.selectedShape || !this.hoveredHandle) return;
+      this.selectedShape.resize(this.hoveredHandle.type, this.hoveredHandle.index, x, y);
+    }
+
+    draw() {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+      this.shapes.forEach(shape => {
+        shape.draw(this.ctx, shape === this.selectedShape);
+      });
+
+      if (this.isDrawing) {
+        this.ctx.save();
+        this.ctx.strokeStyle = document.getElementById('strokeColor').value;
+        this.ctx.lineWidth = parseInt(document.getElementById('strokeWidth').value);
+        this.ctx.setLineDash([5, 5]);
+
+        if (this.currentTool === 'rect') {
+          const x = Math.min(this.startX, this.currentX);
+          const y = Math.min(this.startY, this.currentY);
+          const width = Math.abs(this.currentX - this.startX);
+          const height = Math.abs(this.currentY - this.startY);
+
+          this.ctx.strokeRect(x, y, width, height);
+        } else {
+          const centerX = (this.startX + this.currentX) / 2;
+          const centerY = (this.startY + this.currentY) / 2;
+          const radiusX = Math.abs(this.currentX - this.startX) / 2;
+          const radiusY = Math.abs(this.currentY - this.startY) / 2;
+
+          this.ctx.beginPath();
+          this.ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+          this.ctx.stroke();
+        }
+
+        this.ctx.restore();
+      }
+    }
+
+    animate() {
+      this.draw();
+      requestAnimationFrame(() => this.animate());
+    }
+  }
+
+  class Shape {
+    constructor(type, x, y, strokeColor, strokeWidth) {
+      this.type = type;
+      this.x = x;
+      this.y = y;
+      this.strokeColor = strokeColor || '#ff0000';
+      this.strokeWidth = strokeWidth || 2;
+    }
+
+    contains(x, y) {
+      return false;
+    }
+
+    isOnBorder(x, y) {
+      return false;
+    }
+
+    getHandles() {
+      return [];
+    }
+
+    resize(handleType, handleIndex, x, y) {}
+
+    draw(ctx, isSelected) {
+      ctx.save();
+      ctx.strokeStyle = this.strokeColor;
+      ctx.lineWidth = this.strokeWidth;
+
+      if (isSelected) {
+        ctx.setLineDash([5, 3]);
+
+        // 绘制控制点
+        ctx.fillStyle = '#4a6cf7';
+        const handles = this.getHandles();
+        handles.forEach(handle => {
+          ctx.fillRect(handle.x - 4, handle.y - 4, 8, 8);
+        });
+      }
+    }
+  }
+
+  class Rectangle extends Shape {
+    constructor(x, y, width, height, strokeColor, strokeWidth) {
+      super('rectangle', x, y, strokeColor, strokeWidth);
+      this.width = width;
+      this.height = height;
+    }
+
+    contains(x, y) {
+      return x >= this.x && x <= this.x + this.width &&
+        y >= this.y && y <= this.y + this.height;
+    }
+
+    isOnBorder(x, y) {
+      const borderThreshold = this.strokeWidth + 2;
+      return (Math.abs(x - this.x) <= borderThreshold && y >= this.y && y <= this.y + this.height) || // 左边框
+        (Math.abs(x - (this.x + this.width)) <= borderThreshold && y >= this.y && y <= this.y + this.height) || // 右边框
+        (Math.abs(y - this.y) <= borderThreshold && x >= this.x && x <= this.x + this.width) || // 上边框
+        (Math.abs(y - (this.y + this.height)) <= borderThreshold && x >= this.x && x <= this.x + this.width); // 下边框
+    }
+
+    getHandles() {
+      return [
+        // 四个角
+        { x: this.x, y: this.y, type: 'corner', index: 0 },
+        { x: this.x + this.width, y: this.y, type: 'corner', index: 1 },
+        { x: this.x, y: this.y + this.height, type: 'corner', index: 2 },
+        { x: this.x + this.width, y: this.y + this.height, type: 'corner', index: 3 },
+
+        // 四条边的中心点
+        { x: this.x + this.width / 2, y: this.y, type: 'edge', index: 4 },
+        { x: this.x + this.width, y: this.y + this.height / 2, type: 'edge', index: 5 },
+        { x: this.x + this.width / 2, y: this.y + this.height, type: 'edge', index: 6 },
+        { x: this.x, y: this.y + this.height / 2, type: 'edge', index: 7 }
+      ];
+    }
+
+    resize(handleType, handleIndex, x, y) {
+      if (handleType === 'corner') {
+        switch (handleIndex) {
+          case 0: this.width += this.x - x; this.height += this.y - y; this.x = x; this.y = y; break;
+          case 1: this.width = x - this.x; this.height += this.y - y; this.y = y; break;
+          case 2: this.width += this.x - x; this.height = y - this.y; this.x = x; break;
+          case 3: this.width = x - this.x; this.height = y - this.y; break;
+        }
+      } else if (handleType === 'edge') {
+        switch (handleIndex) {
+          case 4: this.height += this.y - y; this.y = y; break;
+          case 5: this.width = x - this.x; break;
+          case 6: this.height = y - this.y; break;
+          case 7: this.width += this.x - x; this.x = x; break;
+        }
+      }
+
+      if (this.width < 5) { this.x += this.width - 5; this.width = 5; }
+      if (this.height < 5) { this.y += this.height - 5; this.height = 5; }
+    }
+
+    draw(ctx, isSelected) {
+      super.draw(ctx, isSelected);
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
+      ctx.restore();
+    }
+  }
+
+  class Ellipse extends Shape {
+    constructor(x, y, radiusX, radiusY, strokeColor, strokeWidth) {
+      super('ellipse', x, y, strokeColor, strokeWidth);
+      this.radiusX = radiusX;
+      this.radiusY = radiusY;
+    }
+
+    contains(x, y) {
+      const dx = (x - this.x) / this.radiusX;
+      const dy = (y - this.y) / this.radiusY;
+      return dx * dx + dy * dy <= 1;
+    }
+
+    isOnBorder(x, y) {
+      const dx = (x - this.x) / this.radiusX;
+      const dy = (y - this.y) / this.radiusY;
+      const distance = dx * dx + dy * dy;
+      const borderThreshold = (this.strokeWidth + 2) / Math.min(this.radiusX, this.radiusY);
+      return Math.abs(distance - 1) <= borderThreshold;
+    }
+
+    getHandles() {
+      return [
+        // 四个主要方向
+        { x: this.x - this.radiusX, y: this.y, type: 'edge', index: 0 },
+        { x: this.x + this.radiusX, y: this.y, type: 'edge', index: 1 },
+        { x: this.x, y: this.y - this.radiusY, type: 'edge', index: 2 },
+        { x: this.x, y: this.y + this.radiusY, type: 'edge', index: 3 },
+
+        // 四个斜向点
+        { x: this.x - this.radiusX, y: this.y - this.radiusY, type: 'corner', index: 4 },
+        { x: this.x + this.radiusX, y: this.y - this.radiusY, type: 'corner', index: 5 },
+        { x: this.x - this.radiusX, y: this.y + this.radiusY, type: 'corner', index: 6 },
+        { x: this.x + this.radiusX, y: this.y + this.radiusY, type: 'corner', index: 7 }
+      ];
+    }
+
+    resize(handleType, handleIndex, x, y) {
+      if (handleType === 'corner') {
+        const dx = x - this.x;
+        const dy = y - this.y;
+
+        switch (handleIndex) {
+          case 4: this.radiusX = -dx; this.radiusY = -dy; break;
+          case 5: this.radiusX = dx; this.radiusY = -dy; break;
+          case 6: this.radiusX = -dx; this.radiusY = dy; break;
+          case 7: this.radiusX = dx; this.radiusY = dy; break;
+        }
+      } else if (handleType === 'edge') {
+        switch (handleIndex) {
+          case 0: this.radiusX = this.x - x; break;
+          case 1: this.radiusX = x - this.x; break;
+          case 2: this.radiusY = this.y - y; break;
+          case 3: this.radiusY = y - this.y; break;
+        }
+      }
+
+      if (this.radiusX < 5) this.radiusX = 5;
+      if (this.radiusY < 5) this.radiusY = 5;
+    }
+
+    draw(ctx, isSelected) {
+      super.draw(ctx, isSelected);
+      ctx.beginPath();
+      ctx.ellipse(this.x, this.y, this.radiusX, this.radiusY, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // 初始化应用
+  window.addEventListener('load', () => {
+    new CanvasAnnotation();
+  });
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import { reactiveBind } from '@/util/Index'
 import type { Rect } from '@/capturer/store/app'
+import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
 
 type ColorAndWidthItemType = {
   color: string
@@ -17,7 +18,7 @@ type MaskItemType = {
   type: 'area' | 'hand'
 }
 
-type CapurerToolToolType = 'square' | 'circle' | 'arrow' | 'draw' | 'mask' | 'text' | ''
+type CapurerToolToolType = 'square' | 'circle' | 'arrow' | 'draw' | 'mask' | 'text' | 'tag' | ''
 
 type CapurerToolType = {
   tool: CapurerToolToolType
@@ -79,6 +80,7 @@ class CapurerTool implements CapurerToolType {
     } else {
       this.tool = tool
     }
+    RectCanvasStore.hideAllHandle()
   }
   updatePosition(rect?: Rect) {
     if (!rect) {
