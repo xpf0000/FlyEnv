@@ -37,7 +37,7 @@
 
   // 2. 样式绑定
   const style = computed(() => {
-    const obj = {
+    const obj: any = {
       left: `${rect.value.x}px`,
       top: `${rect.value.y}px`,
       width: `${rect.value.width}px`,
@@ -46,7 +46,7 @@
       cursor: 'move'
     }
     if (RectCanvasStore.shape.length > 0 || !!CapturerTool.tool) {
-      delete obj.cursor
+      delete obj?.cursor
     }
     return obj
   })

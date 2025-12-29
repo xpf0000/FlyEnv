@@ -288,7 +288,7 @@ export const CapturerStore = defineStore('capturerStore', {
 type ScreenStoreType = {
   canvas: HTMLCanvasElement | undefined
   rectCanvas: HTMLCanvasElement | undefined
-  rectCtx: CanvasRenderingContext2D | undefined
+  rectCtx: CanvasRenderingContext2D | undefined | null
 }
 
 export const ScreenStore: ScreenStoreType = {

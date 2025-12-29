@@ -3,8 +3,10 @@ import type { HandleItemType, Point } from '@/capturer/shape/Shape'
 import { Rectangle } from '@/capturer/shape/Rectangle'
 import { ScreenStore, CapturerStore } from '@/capturer/store/app'
 import CapurerTool from '@/capturer/tools/tools'
-import { reactiveBind } from '@/util'
+import { reactiveBind } from '@/util/Index'
 import RectSelect from '@/capturer/RectSelector/RectSelect'
+import { Ellipse } from '@/capturer/shape/Ellipse'
+import { Arrow } from '@/capturer/shape/Arrow'
 
 type RectCanvasHoverItemType = {
   handle?: HandleItemType
@@ -17,20 +19,17 @@ class RectCanvas {
   shape: Shape[] = []
   history: {
     list: Shape[]
+  } = {
+    list: []
   }
   actionType: 'add' | 'move' | 'resize' | '' = 'add'
   edit?: Shape
-  hover: RectCanvasHoverItemType = {
-    handle: undefined,
-    shape: undefined,
-    onBorder: false,
-    onShape: false
-  }
+  hover?: RectCanvasHoverItemType = undefined
   move?: {
+    handle?: HandleItemType
     shapeBegin?: Shape
     pointBegin: Point
   }
-  isHandling: boolean = false
 
   reinit() {
     window.removeEventListener('mousemove', this.onMouseMove)
@@ -66,42 +65,46 @@ class RectCanvas {
     }
     e.preventDefault()
     this.hideAllHandle()
+    this.actionType = ''
     const store = CapturerStore()
-    console.log('RectCanvas onMouseDown !!! 111')
-    if (this.hover) {
-      if (this.hover.shape) {
-        this.hover.shape.showHandle = true
-        this.draw()
-        this.edit = this.hover.shape
-        this.actionType = 'move'
-        this.move = {
-          shapeBegin: JSON.parse(JSON.stringify(this.edit)),
-          pointBegin: {
-            x: e.offsetX * store.scaleFactor,
-            y: e.offsetY * store.scaleFactor
-          }
-        }
-        if (this.hover.shape.type === 'square') {
-          CapurerTool.tool = 'square'
-          CapurerTool.square.width = this.edit.toolWidth
-          CapurerTool.square.color = this.edit.strokeColor
+    console.log('RectCanvas onMouseDown !!! 111', this.hover, CapurerTool.tool)
+    if (this.hover?.handle) {
+      this.edit = this.hover.shape
+      this.edit!.select()
+      this.draw()
+      this.actionType = 'resize'
+      this.move = {
+        handle: this.hover.handle,
+        shapeBegin: JSON.parse(JSON.stringify(this.edit)),
+        pointBegin: {
+          x: e.offsetX * store.scaleFactor,
+          y: e.offsetY * store.scaleFactor
         }
       }
-      this.isHandling = true
-    } else {
-      if (CapurerTool.tool) {
-        this.actionType = 'add'
-        this.move = {
-          shapeBegin: undefined,
-          pointBegin: {
-            x: e.offsetX * store.scaleFactor,
-            y: e.offsetY * store.scaleFactor
-          }
+      this.edit!.resizeStart(this.hover.handle)
+    } else if (this.hover?.shape) {
+      this.edit = this.hover.shape
+      this.edit!.select()
+      this.draw()
+      this.actionType = 'move'
+      this.move = {
+        shapeBegin: JSON.parse(JSON.stringify(this.edit)),
+        pointBegin: {
+          x: e.offsetX * store.scaleFactor,
+          y: e.offsetY * store.scaleFactor
         }
-      } else {
-        this.actionType = ''
+      }
+    } else if (CapurerTool.tool) {
+      this.actionType = 'add'
+      this.move = {
+        shapeBegin: undefined,
+        pointBegin: {
+          x: e.offsetX * store.scaleFactor,
+          y: e.offsetY * store.scaleFactor
+        }
       }
     }
+
     if (this.actionType) {
       window.addEventListener('mousemove', this.onMouseMove)
       window.addEventListener('mouseup', this.onMouseUp)
@@ -128,23 +131,48 @@ class RectCanvas {
             this.move!.pointBegin,
             config.color,
             config.width
-          )
+          ) as any
+          shape.showHandle = true
+          this.edit = shape
+          this.shape.push(shape)
+        } else if (CapurerTool.tool === 'circle') {
+          const config = CapurerTool.circle
+          const shape: Shape = new Ellipse(
+            'circle',
+            this.move!.pointBegin,
+            config.color,
+            config.width
+          ) as any
+          shape.showHandle = true
+          this.edit = shape
+          this.shape.push(shape)
+        } else if (CapurerTool.tool === 'arrow') {
+          const config = CapurerTool.arrow
+          console.log('arrow config: ', JSON.stringify(config))
+          const shape: Shape = new Arrow(
+            'arrow',
+            this.move!.pointBegin,
+            config.color,
+            config.width
+          ) as any
           shape.showHandle = true
           this.edit = shape
           this.shape.push(shape)
         }
       }
-      this.edit.update({
+      this.edit!.update({
         x,
         y
       })
     } else if (this.actionType === 'move') {
       const diffX = x - this.move!.pointBegin.x
       const diffY = y - this.move!.pointBegin.y
-      this.edit.startPoint.x = this.move!.shapeBegin.startPoint.x + diffX
-      this.edit.startPoint.y = this.move!.shapeBegin.startPoint.y + diffY
-      this.edit.endPoint.x = this.move!.shapeBegin.endPoint.x + diffX
-      this.edit.endPoint.y = this.move!.shapeBegin.endPoint.y + diffY
+      this.edit!.startPoint.x = this.move!.shapeBegin!.startPoint.x + diffX
+      this.edit!.startPoint.y = this.move!.shapeBegin!.startPoint.y + diffY
+      this.edit!.endPoint.x = this.move!.shapeBegin!.endPoint.x + diffX
+      this.edit!.endPoint.y = this.move!.shapeBegin!.endPoint.y + diffY
+    } else if (this.actionType === 'resize') {
+      this.edit!.resize({ x, y })
     }
 
     this.draw()
@@ -174,14 +202,13 @@ class RectCanvas {
 
     this.move = undefined
     this.actionType = ''
-    this.isHandling = false
     window.removeEventListener('mousemove', this.onMouseMove)
     window.removeEventListener('mouseup', this.onMouseUp)
   }
 
-  private draw() {
+  draw() {
     const ctx = ScreenStore.rectCtx
-    ctx.clearRect(0, 0, ScreenStore.rectCanvas.width, ScreenStore.rectCanvas.height)
+    ctx?.clearRect(0, 0, ScreenStore.rectCanvas!.width, ScreenStore.rectCanvas!.height)
     for (const item of this.shape) {
       item.draw()
     }
@@ -196,7 +223,7 @@ class RectCanvas {
       if (!onBorder) {
         onBorder = shape.isOnBorder(x, y)
       }
-      const handles = shape.handles
+      const handles = shape?.handles ?? []
       for (const handle of handles) {
         if (Math.abs(x - handle.x) <= handleSize && Math.abs(y - handle.y) <= handleSize) {
           return {
@@ -225,6 +252,7 @@ class RectCanvas {
         }
       }
     }
+    return undefined
   }
 
   private updateCursor() {
@@ -247,7 +275,7 @@ class RectCanvas {
   }
 
   public onCanvasMouseMove(e: MouseEvent) {
-    if (this.isHandling) {
+    if (this.actionType) {
       return
     }
     const prevHoveredHandle = this.hover?.handle

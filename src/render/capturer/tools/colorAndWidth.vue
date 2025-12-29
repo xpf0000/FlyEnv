@@ -140,6 +140,7 @@
     set(v) {
       const tool: 'square' | 'circle' | 'arrow' | 'draw' = CapurerTool.tool as any
       CapurerTool[tool].width = v
+      console.log('currentWidth set: ', tool, v, CapurerTool[tool])
       if (RectCanvasStore.edit?.type === tool) {
         RectCanvasStore.edit!.toolWidth = v
         RectCanvasStore.draw()

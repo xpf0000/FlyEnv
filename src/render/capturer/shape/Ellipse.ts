@@ -2,39 +2,70 @@ import { HandleItemType, Shape } from './Shape'
 import type { Point } from './Shape'
 import { CapturerStore, ScreenStore } from '@/capturer/store/app'
 
-export class Rectangle extends Shape {
+export class Ellipse extends Shape {
   /**
-   * 判断点是否在边框线上
+   * 判断点是否在椭圆边框线上
    */
-  isOnBorder(x: number, y: number) {
+  isOnBorder(x: number, y: number): boolean {
+    const startX = Math.min(this.startPoint.x, this.endPoint.x)
+    const startY = Math.min(this.startPoint.y, this.endPoint.y)
+    const width = Math.abs(this.startPoint.x - this.endPoint.x)
+    const height = Math.abs(this.startPoint.y - this.endPoint.y)
+
+    /**
+     * 半径
+     */
+    const radiusX = width * 0.5
+    const radiusY = height * 0.5
+
+    /**
+     * 中心点
+     */
+    const centerX = startX + radiusX
+    const centerY = startY + radiusY
+
     const store = CapturerStore()
+    /**
+     * 椭圆边框宽度的一半, 用于判断点是否在边框上 (阈值)
+     */
     const borderThreshold = (this.getStrokeWidth() + 2 * store.scaleFactor) * 0.5
-    const inLeftBorder =
-      Math.abs(x - this.startPoint.x) <= borderThreshold &&
-      y >= Math.min(this.startPoint.y, this.endPoint.y) - borderThreshold &&
-      y <= Math.max(this.startPoint.y, this.endPoint.y) + borderThreshold
 
-    const inRightBorder =
-      Math.abs(x - this.endPoint.x) <= borderThreshold &&
-      y >= Math.min(this.startPoint.y, this.endPoint.y) - borderThreshold &&
-      y <= Math.max(this.startPoint.y, this.endPoint.y) + borderThreshold
+    // --- 以下是补全的逻辑 ---
 
-    const inTopBorder =
-      Math.abs(y - this.startPoint.y) <= borderThreshold &&
-      x >= Math.min(this.startPoint.x, this.endPoint.x) - borderThreshold &&
-      x <= Math.max(this.startPoint.x, this.endPoint.x) + borderThreshold
+    // 1. 将坐标归一化：计算点相对于椭圆中心的偏移量
+    const dx = x - centerX
+    const dy = y - centerY
 
-    const inBottomBorder =
-      Math.abs(y - this.endPoint.y) <= borderThreshold &&
-      x >= Math.min(this.startPoint.x, this.endPoint.x) - borderThreshold &&
-      x <= Math.max(this.startPoint.x, this.endPoint.x) + borderThreshold
+    // 2. 定义外椭圆半径 (原半径 + 阈值)
+    // 如果点在这个椭圆内，说明没超过边框最外沿
+    const outerRx = radiusX + borderThreshold
+    const outerRy = radiusY + borderThreshold
 
-    return (
-      inLeftBorder || // 左边框
-      inRightBorder || // 右边框
-      inTopBorder || // 上边框
-      inBottomBorder // 下边框
-    )
+    // 使用椭圆方程 (x²/a² + y²/b² <= 1) 判断是否在外椭圆内
+    // 为了避免除以0，这里假设 radius + threshold > 0
+    const isInsideOuter = (dx * dx) / (outerRx * outerRx) + (dy * dy) / (outerRy * outerRy) <= 1
+
+    if (!isInsideOuter) {
+      return false // 如果已经在最外圈外面，直接返回 false
+    }
+
+    // 3. 定义内椭圆半径 (原半径 - 阈值)
+    // 如果点在这个椭圆外，说明没超过边框最内沿
+    const innerRx = radiusX - borderThreshold
+    const innerRy = radiusY - borderThreshold
+
+    // 4. 判断是否在内椭圆外
+    // 特殊情况：如果内半径小于等于0（说明椭圆很小或者线很粗，中间没有空心），
+    // 那么只要在外椭圆内就算选中，不需要判断内圆。
+    let isOutsideInner = true
+
+    if (innerRx > 0 && innerRy > 0) {
+      // 必须大于等于1才算在内圈外面
+      isOutsideInner = (dx * dx) / (innerRx * innerRx) + (dy * dy) / (innerRy * innerRy) >= 1
+    }
+
+    // 最终结果：在外椭圆内 且 在内椭圆外
+    return isInsideOuter && isOutsideInner
   }
 
   /**
@@ -278,42 +309,53 @@ export class Rectangle extends Shape {
   }
 
   /**
-   * 绘制矩形 需要有4px的圆角
+   * 绘制椭圆
    * @param isSelected 是否被选中
    */
   draw() {
-    // 2. 计算标准化的矩形参数 (x, y, w, h)，确保宽高为正数
     const x = Math.min(this.startPoint.x, this.endPoint.x)
     const y = Math.min(this.startPoint.y, this.endPoint.y)
     const width = Math.abs(this.startPoint.x - this.endPoint.x)
     const height = Math.abs(this.startPoint.y - this.endPoint.y)
-    const radius = 4
+    const radiusX = width * 0.5
+    const radiusY = height * 0.5
+    const centerX = x + radiusX
+    const centerY = y + radiusY
 
     const ctx = ScreenStore.rectCtx!
     // 【关键点 1】禁用平滑处理，产生像素颗粒感
     ctx.imageSmoothingEnabled = false
     ctx.strokeStyle = this.strokeColor
     ctx.lineWidth = this.getStrokeWidth()
-    // 3. 绘制圆角矩形路径
+
     ctx.beginPath()
-    // 防止宽度小于 2 * radius 导致绘制异常
-    const r = Math.min(radius, width / 2, height / 2)
-
-    ctx.moveTo(x + r, y)
-    ctx.lineTo(x + width - r, y)
-    ctx.quadraticCurveTo(x + width, y, x + width, y + r)
-    ctx.lineTo(x + width, y + height - r)
-    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height)
-    ctx.lineTo(x + r, y + height)
-    ctx.quadraticCurveTo(x, y + height, x, y + height - r)
-    ctx.lineTo(x, y + r)
-    ctx.quadraticCurveTo(x, y, x + r, y)
-
-    ctx.closePath()
-
-    // 4. 描边
+    ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2)
     ctx.stroke()
 
-    super.draw()
+    if (this.showHandle) {
+      const store = CapturerStore()
+      // ctx.imageSmoothingEnabled = true
+      // 绘制控制点
+
+      ctx.fillStyle = '#FFFFFF'
+      ctx.strokeStyle = '#333333'
+      ctx.lineWidth = 1 * store.scaleFactor
+
+      ctx.beginPath()
+      ctx.rect(x, y, width, height)
+      ctx.stroke()
+
+      const handles = this.getHandles()
+      const radius = 3 * store.scaleFactor
+      ctx.beginPath()
+      handles.forEach((handle) => {
+        // 必须用 moveTo 分隔每个圆形
+        ctx.moveTo(handle.x + radius, handle.y)
+        ctx.arc(handle.x, handle.y, radius, 0, Math.PI * 2)
+      })
+      // 一次性操作
+      ctx.fill()
+      ctx.stroke()
+    }
   }
 }

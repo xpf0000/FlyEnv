@@ -1,4 +1,5 @@
 import { CapturerStore, ScreenStore } from '@/capturer/store/app'
+import CapurerTool from '@/capturer/tools/tools'
 
 type ShapeItemTypeType = 'square' | 'circle' | 'arrow' | 'draw' | 'mask' | 'text' | 'tag'
 export type Point = {
@@ -9,18 +10,18 @@ export type Point = {
 export type HandleItemType = {
   x: number
   y: number
-  cursor: 'nwse-resize' | 'ns-resize' | 'nesw-resize' | 'ew-resize'
-}
-
-type ShapeHandleType = {
-  // 调整开始时, Shape的起点
-  startPoint: Point
-  // 调整开始时, Shape的终点
-  endPoint: Point
-  // 调整开始点
-  handleStartPoint: Point
-  // 调整结束点
-  handleEndPoint: Point
+  cursor: 'nwse-resize' | 'ns-resize' | 'nesw-resize' | 'ew-resize' | 'auto'
+  position:
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'top-center'
+    | 'bottom-center'
+    | 'left-center'
+    | 'right-center'
+    | 'start'
+    | 'end'
 }
 
 export class Shape {
@@ -37,10 +38,10 @@ export class Shape {
   strokeWidth: number = 1
   toolWidth: number = 0
   showHandle: boolean = false
-  handle?: ShapeHandleType
+  handle?: HandleItemType
   handles?: HandleItemType[]
-  width: number
-  height: number
+  width: number = 0
+  height: number = 0
 
   constructor(type: ShapeItemTypeType, startPoint: Point, strokeColor: string, toolWidth: number) {
     this.type = type
@@ -78,15 +79,36 @@ export class Shape {
     return []
   }
 
-  resize(handleEndPoint: HandleItemType) {
-    if (handleEndPoint) {
+  resizeStart(handle: HandleItemType) {
+    this.handle = handle
+  }
+
+  resize(point: Point) {
+    if (point) {
       return
+    }
+  }
+
+  select() {
+    this.showHandle = true
+    if (this.type === 'square') {
+      CapurerTool.tool = 'square'
+      CapurerTool.square.width = this.toolWidth
+      CapurerTool.square.color = this.strokeColor
+    } else if (this.type === 'circle') {
+      CapurerTool.tool = 'circle'
+      CapurerTool.circle.width = this.toolWidth
+      CapurerTool.circle.color = this.strokeColor
+    } else if (this.type === 'arrow') {
+      CapurerTool.tool = 'arrow'
+      CapurerTool.arrow.width = this.toolWidth
+      CapurerTool.arrow.color = this.strokeColor
     }
   }
 
   draw() {
     const store = CapturerStore()
-    const ctx = ScreenStore.rectCtx
+    const ctx = ScreenStore.rectCtx!
     if (this.showHandle) {
       // ctx.imageSmoothingEnabled = true
       // 绘制控制点
