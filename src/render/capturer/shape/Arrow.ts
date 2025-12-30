@@ -33,19 +33,27 @@ export class Arrow extends Shape {
       return false
     }
 
-    // 3. 射线法核心算法
-    let inside = false
-    for (let i = 0, j = this.arrowPoints.length - 1; i < this.arrowPoints.length; j = i++) {
-      const xi = this.arrowPoints[i].x
-      const yi = this.arrowPoints[i].y
-      const xj = this.arrowPoints[j].x
-      const yj = this.arrowPoints[j].y
-
-      const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
-      if (intersect) inside = !inside
+    if (!this.pathCache) {
+      return false
     }
+    const x1 = this.startPoint.x
+    const y1 = this.startPoint.y
+    const x2 = this.endPoint.x
+    const y2 = this.endPoint.y
+    // --- 1. 计算几何参数 ---
+    const dx = x2 - x1
+    const dy = y2 - y1
+    const angle = Math.atan2(dy, dx)
 
-    return inside
+    const ctx = ScreenStore.rectCtx!
+    ctx.save()
+    ctx.translate(x1, y1)
+    ctx.rotate(angle)
+    // 利用原生 API 判定点是否在路径的描边范围内
+    const isHit = ctx.isPointInPath(this.pathCache, x, y)
+    ctx.restore()
+
+    return isHit
   }
 
   /**
@@ -87,6 +95,7 @@ export class Arrow extends Shape {
         this.endPoint.y = y
         break
     }
+    this.pathCache = null
   }
 
   /**
@@ -114,8 +123,6 @@ export class Arrow extends Shape {
     const color = this.strokeColor
 
     const ctx = ScreenStore.rectCtx!
-    // 【关键点 1】禁用平滑处理，产生像素颗粒感
-    ctx.imageSmoothingEnabled = false
     ctx.fillStyle = color
 
     // --- 1. 计算几何参数 ---
@@ -176,26 +183,30 @@ export class Arrow extends Shape {
       getWPoint(shaftLen, -neckWidth)
     ]
 
+    if (!this.pathCache) {
+      const pathCache = new Path2D()
+      // 绘制半圆尾部：圆心在 (0,0), 半径为 neckWidth, 从 PI/2 到 -PI/2 (逆时针)
+      pathCache.arc(0 + footWidth, 0, footWidth, Math.PI / 2, -Math.PI / 2, false)
+
+      // 绘制箭杆和箭头
+      pathCache.lineTo(shaftLen, -neckWidth)
+      pathCache.lineTo(shaftLen - footWidth, -headWingWidth / 2 - footWidth)
+      pathCache.lineTo(dist, 0)
+      pathCache.lineTo(shaftLen - footWidth, headWingWidth / 2 + footWidth)
+      pathCache.lineTo(shaftLen, neckWidth)
+
+      pathCache.closePath()
+
+      this.pathCache = pathCache
+    }
+
     // --- 开始绘制 ---
     ctx.save()
-    ctx.imageSmoothingEnabled = false
     ctx.fillStyle = color
     ctx.translate(x1, y1)
     ctx.rotate(angle)
 
-    ctx.beginPath()
-    // 绘制半圆尾部：圆心在 (0,0), 半径为 neckWidth, 从 PI/2 到 -PI/2 (逆时针)
-    ctx.arc(0 + footWidth, 0, footWidth, Math.PI / 2, -Math.PI / 2, false)
-
-    // 绘制箭杆和箭头
-    ctx.lineTo(shaftLen, -neckWidth)
-    ctx.lineTo(shaftLen - footWidth, -headWingWidth / 2 - footWidth)
-    ctx.lineTo(dist, 0)
-    ctx.lineTo(shaftLen - footWidth, headWingWidth / 2 + footWidth)
-    ctx.lineTo(shaftLen, neckWidth)
-
-    ctx.closePath()
-    ctx.fill()
+    ctx.fill(this.pathCache)
     ctx.restore()
 
     if (this.showHandle) {
@@ -208,6 +219,7 @@ export class Arrow extends Shape {
    */
   private drawHandles(ctx: CanvasRenderingContext2D) {
     const store = CapturerStore()
+    ctx.save()
     ctx.fillStyle = '#FFFFFF'
     ctx.strokeStyle = '#333333'
     ctx.lineWidth = 1 * store.scaleFactor
@@ -223,5 +235,6 @@ export class Arrow extends Shape {
     })
     ctx.fill()
     ctx.stroke()
+    ctx.restore()
   }
 }

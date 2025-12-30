@@ -42,6 +42,7 @@ export class Shape {
   handles?: HandleItemType[]
   width: number = 0
   height: number = 0
+  pathCache?: Path2D | null = undefined // 缓存路径对象
 
   constructor(type: ShapeItemTypeType, startPoint: Point, strokeColor: string, toolWidth: number) {
     this.type = type
@@ -50,6 +51,8 @@ export class Shape {
     this.toolWidth = toolWidth
   }
 
+  onMove() {}
+
   /**
    * 更新鼠标移动的点
    * 根据起点和终点, 自动计算宽高路径
@@ -57,6 +60,7 @@ export class Shape {
    */
   update(endPoint: Point) {
     this.endPoint = endPoint
+    this.pathCache = null
   }
 
   isOnShape(x: number, y: number): boolean {
@@ -72,7 +76,7 @@ export class Shape {
   }
 
   isOnBorder(x: number, y: number) {
-    return x > y
+    return x < 0 && y < 0
   }
 
   getHandles(): HandleItemType[] {
@@ -89,8 +93,14 @@ export class Shape {
     }
   }
 
+  deSelect() {
+    this.showHandle = false
+    this.reDraw()
+  }
+
   select() {
     this.showHandle = true
+    this.reDraw()
     if (this.type === 'square') {
       CapurerTool.tool = 'square'
       CapurerTool.square.width = this.toolWidth
@@ -103,8 +113,14 @@ export class Shape {
       CapurerTool.tool = 'arrow'
       CapurerTool.arrow.width = this.toolWidth
       CapurerTool.arrow.color = this.strokeColor
+    } else if (this.type === 'draw') {
+      CapurerTool.tool = 'draw'
+      CapurerTool.arrow.width = this.toolWidth
+      CapurerTool.arrow.color = this.strokeColor
     }
   }
+
+  reDraw() {}
 
   draw() {
     const store = CapturerStore()

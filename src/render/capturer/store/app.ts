@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import RectSelect from '@/capturer/RectSelector/RectSelect'
 
 export type Rect = {
   x: number
@@ -73,7 +74,6 @@ export const CapturerStore = defineStore('capturerStore', {
       if (!this.magnifyingInfo?.show || !ScreenStore.canvas) {
         return
       }
-
       try {
         const canvas = ScreenStore.canvas
         const ctx = canvas.getContext('2d')
@@ -286,13 +286,97 @@ export const CapturerStore = defineStore('capturerStore', {
 })
 
 type ScreenStoreType = {
-  canvas: HTMLCanvasElement | undefined
-  rectCanvas: HTMLCanvasElement | undefined
+  canvas: HTMLCanvasElement | undefined | null
+  rectCanvas: HTMLCanvasElement | undefined | null
   rectCtx: CanvasRenderingContext2D | undefined | null
+  mosaicPattern: CanvasPattern | undefined | null
+  createMosaicPattern: (mosaicSize: number) => void
+  reinit: () => void
 }
 
 export const ScreenStore: ScreenStoreType = {
+  /**
+   * 屏幕截图画布
+   */
   canvas: undefined,
+  /**
+   * 编辑区域画布
+   */
   rectCanvas: undefined,
-  rectCtx: undefined
+  rectCtx: undefined,
+  /**
+   * 马赛克画刷
+   */
+  mosaicPattern: undefined,
+
+  reinit() {
+    ScreenStore.mosaicPattern = null
+    ScreenStore.canvas = null
+    ScreenStore.rectCanvas = null
+    ScreenStore.rectCtx = null
+  },
+  createMosaicPattern(mosaicSize: number = 10) {
+    if (this.mosaicPattern || !RectSelect.editRect) {
+      return
+    }
+
+    const store = CapturerStore()
+    let { x, y, width, height } = RectSelect.editRect!
+    x *= store.scaleFactor
+    y *= store.scaleFactor
+    width *= store.scaleFactor
+    height *= store.scaleFactor
+
+    const sourceCanvas = this.canvas!
+    const mainCtx = this.rectCtx!
+
+    // 1. 创建离屏 Canvas，尺寸仅为编辑区域大小
+    let offScreen: HTMLCanvasElement | null = document.createElement('canvas')
+    let offCtx: CanvasRenderingContext2D | null = offScreen.getContext('2d')!
+
+    offScreen.width = width
+    offScreen.height = height
+
+    // 计算缩小后的尺寸
+    const sw = width / mosaicSize
+    const sh = height / mosaicSize
+
+    /**
+     * 核心逻辑调整：
+     * 步骤 1：从 sourceCanvas 的 (x, y) 处截取 width/height，缩小绘制到离屏画布上
+     */
+    offCtx.drawImage(
+      sourceCanvas,
+      x,
+      y,
+      width,
+      height, // 数据源的截取范围
+      0,
+      0,
+      sw,
+      sh // 绘制到离屏画布的缩小目标
+    )
+
+    /**
+     * 步骤 2：将缩小后的那一小块图，拉伸填满整个离屏画布
+     */
+    offCtx.imageSmoothingEnabled = false
+    offCtx.drawImage(
+      offScreen,
+      0,
+      0,
+      sw,
+      sh, // 缩小后的源
+      0,
+      0,
+      width,
+      height // 拉伸回编辑区大小
+    )
+
+    this.mosaicPattern = mainCtx.createPattern(offScreen, 'no-repeat')
+
+    // 释放内存
+    offScreen = null
+    offCtx = null
+  }
 }

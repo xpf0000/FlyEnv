@@ -3,7 +3,7 @@ import App from './App.vue'
 import '../index.scss'
 import { createPinia } from 'pinia'
 import IPC from '../util/IPC'
-import { CapturerStore } from './store/app'
+import { CapturerStore, ScreenStore } from './store/app'
 import { reactive } from 'vue'
 import RectSelect from '@/capturer/RectSelector/RectSelect'
 import CapturerTool from '@/capturer/tools/tools'
@@ -51,4 +51,5 @@ IPC.on('APP:Capturer-Window-Clean').then(() => {
   RectSelect.selectAble = true
   CapturerTool.reinit()
   RectCanvasStore.reinit()
+  ScreenStore.reinit()
 })

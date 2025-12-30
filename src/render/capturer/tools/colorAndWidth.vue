@@ -127,6 +127,7 @@
       CapurerTool[tool].color = v
       if (RectCanvasStore.edit?.type === tool) {
         RectCanvasStore.edit!.strokeColor = v
+        RectCanvasStore.edit!.reDraw()
         RectCanvasStore.draw()
       }
     }
@@ -143,6 +144,7 @@
       console.log('currentWidth set: ', tool, v, CapurerTool[tool])
       if (RectCanvasStore.edit?.type === tool) {
         RectCanvasStore.edit!.toolWidth = v
+        RectCanvasStore.edit!.reDraw()
         RectCanvasStore.draw()
       }
     }

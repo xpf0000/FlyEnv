@@ -3,38 +3,37 @@ import type { Point } from './Shape'
 import { CapturerStore, ScreenStore } from '@/capturer/store/app'
 
 export class Rectangle extends Shape {
+  onMove() {
+    this.pathCache = null
+  }
+
   /**
    * 判断点是否在边框线上
    */
   isOnBorder(x: number, y: number) {
     const store = CapturerStore()
-    const borderThreshold = (this.getStrokeWidth() + 2 * store.scaleFactor) * 0.5
-    const inLeftBorder =
-      Math.abs(x - this.startPoint.x) <= borderThreshold &&
-      y >= Math.min(this.startPoint.y, this.endPoint.y) - borderThreshold &&
-      y <= Math.max(this.startPoint.y, this.endPoint.y) + borderThreshold
+    const lineWidth = this.getStrokeWidth() + 2 * store.scaleFactor
+    const threshold = lineWidth / 2
+    const minX = Math.min(this.startPoint.x, this.endPoint.x) - threshold
+    const maxX = Math.max(this.startPoint.x, this.endPoint.x) + threshold
+    const minY = Math.min(this.startPoint.y, this.endPoint.y) - threshold
+    const maxY = Math.max(this.startPoint.y, this.endPoint.y) + threshold
 
-    const inRightBorder =
-      Math.abs(x - this.endPoint.x) <= borderThreshold &&
-      y >= Math.min(this.startPoint.y, this.endPoint.y) - borderThreshold &&
-      y <= Math.max(this.startPoint.y, this.endPoint.y) + borderThreshold
+    if (x < minX || x > maxX || y < minY || y > maxY) {
+      return false
+    }
 
-    const inTopBorder =
-      Math.abs(y - this.startPoint.y) <= borderThreshold &&
-      x >= Math.min(this.startPoint.x, this.endPoint.x) - borderThreshold &&
-      x <= Math.max(this.startPoint.x, this.endPoint.x) + borderThreshold
+    if (!this.pathCache) {
+      return false
+    }
+    const ctx = ScreenStore.rectCtx!
+    ctx.save()
+    ctx.lineWidth = lineWidth
+    // 利用原生 API 判定点是否在路径的描边范围内
+    const isHit = ctx.isPointInStroke(this.pathCache, x, y)
+    ctx.restore()
 
-    const inBottomBorder =
-      Math.abs(y - this.endPoint.y) <= borderThreshold &&
-      x >= Math.min(this.startPoint.x, this.endPoint.x) - borderThreshold &&
-      x <= Math.max(this.startPoint.x, this.endPoint.x) + borderThreshold
-
-    return (
-      inLeftBorder || // 左边框
-      inRightBorder || // 右边框
-      inTopBorder || // 上边框
-      inBottomBorder // 下边框
-    )
+    return isHit
   }
 
   /**
@@ -265,6 +264,7 @@ export class Rectangle extends Shape {
         })
         break
     }
+    this.pathCache = null
   }
 
   private getStrokeWidth() {
@@ -289,31 +289,25 @@ export class Rectangle extends Shape {
     const height = Math.abs(this.startPoint.y - this.endPoint.y)
     const radius = 4
 
+    if (!this.pathCache) {
+      // 防止宽度小于 2 * radius 导致绘制异常
+      const r = Math.min(radius, width / 2, height / 2)
+      const pathCache = new Path2D()
+      pathCache.roundRect(x, y, width, height, r)
+      this.pathCache = pathCache
+    }
+
     const ctx = ScreenStore.rectCtx!
+
+    ctx.save()
     // 【关键点 1】禁用平滑处理，产生像素颗粒感
-    ctx.imageSmoothingEnabled = false
     ctx.strokeStyle = this.strokeColor
     ctx.lineWidth = this.getStrokeWidth()
-    // 3. 绘制圆角矩形路径
-    ctx.beginPath()
-    // 防止宽度小于 2 * radius 导致绘制异常
-    const r = Math.min(radius, width / 2, height / 2)
-
-    ctx.moveTo(x + r, y)
-    ctx.lineTo(x + width - r, y)
-    ctx.quadraticCurveTo(x + width, y, x + width, y + r)
-    ctx.lineTo(x + width, y + height - r)
-    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height)
-    ctx.lineTo(x + r, y + height)
-    ctx.quadraticCurveTo(x, y + height, x, y + height - r)
-    ctx.lineTo(x, y + r)
-    ctx.quadraticCurveTo(x, y, x + r, y)
-
-    ctx.closePath()
 
     // 4. 描边
-    ctx.stroke()
+    ctx.stroke(this.pathCache)
 
     super.draw()
+    ctx.restore()
   }
 }

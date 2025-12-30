@@ -3,69 +3,37 @@ import type { Point } from './Shape'
 import { CapturerStore, ScreenStore } from '@/capturer/store/app'
 
 export class Ellipse extends Shape {
+  onMove() {
+    this.pathCache = null
+  }
+
   /**
    * 判断点是否在椭圆边框线上
    */
   isOnBorder(x: number, y: number): boolean {
-    const startX = Math.min(this.startPoint.x, this.endPoint.x)
-    const startY = Math.min(this.startPoint.y, this.endPoint.y)
-    const width = Math.abs(this.startPoint.x - this.endPoint.x)
-    const height = Math.abs(this.startPoint.y - this.endPoint.y)
-
-    /**
-     * 半径
-     */
-    const radiusX = width * 0.5
-    const radiusY = height * 0.5
-
-    /**
-     * 中心点
-     */
-    const centerX = startX + radiusX
-    const centerY = startY + radiusY
-
     const store = CapturerStore()
-    /**
-     * 椭圆边框宽度的一半, 用于判断点是否在边框上 (阈值)
-     */
-    const borderThreshold = (this.getStrokeWidth() + 2 * store.scaleFactor) * 0.5
+    const lineWidth = this.getStrokeWidth() + 2 * store.scaleFactor
+    const threshold = lineWidth / 2
+    const minX = Math.min(this.startPoint.x, this.endPoint.x) - threshold
+    const maxX = Math.max(this.startPoint.x, this.endPoint.x) + threshold
+    const minY = Math.min(this.startPoint.y, this.endPoint.y) - threshold
+    const maxY = Math.max(this.startPoint.y, this.endPoint.y) + threshold
 
-    // --- 以下是补全的逻辑 ---
-
-    // 1. 将坐标归一化：计算点相对于椭圆中心的偏移量
-    const dx = x - centerX
-    const dy = y - centerY
-
-    // 2. 定义外椭圆半径 (原半径 + 阈值)
-    // 如果点在这个椭圆内，说明没超过边框最外沿
-    const outerRx = radiusX + borderThreshold
-    const outerRy = radiusY + borderThreshold
-
-    // 使用椭圆方程 (x²/a² + y²/b² <= 1) 判断是否在外椭圆内
-    // 为了避免除以0，这里假设 radius + threshold > 0
-    const isInsideOuter = (dx * dx) / (outerRx * outerRx) + (dy * dy) / (outerRy * outerRy) <= 1
-
-    if (!isInsideOuter) {
-      return false // 如果已经在最外圈外面，直接返回 false
+    if (x < minX || x > maxX || y < minY || y > maxY) {
+      return false
     }
 
-    // 3. 定义内椭圆半径 (原半径 - 阈值)
-    // 如果点在这个椭圆外，说明没超过边框最内沿
-    const innerRx = radiusX - borderThreshold
-    const innerRy = radiusY - borderThreshold
-
-    // 4. 判断是否在内椭圆外
-    // 特殊情况：如果内半径小于等于0（说明椭圆很小或者线很粗，中间没有空心），
-    // 那么只要在外椭圆内就算选中，不需要判断内圆。
-    let isOutsideInner = true
-
-    if (innerRx > 0 && innerRy > 0) {
-      // 必须大于等于1才算在内圈外面
-      isOutsideInner = (dx * dx) / (innerRx * innerRx) + (dy * dy) / (innerRy * innerRy) >= 1
+    if (!this.pathCache) {
+      return false
     }
+    const ctx = ScreenStore.rectCtx!
+    ctx.save()
+    ctx.lineWidth = lineWidth
+    // 利用原生 API 判定点是否在路径的描边范围内
+    const isHit = ctx.isPointInStroke(this.pathCache, x, y)
+    ctx.restore()
 
-    // 最终结果：在外椭圆内 且 在内椭圆外
-    return isInsideOuter && isOutsideInner
+    return isHit
   }
 
   /**
@@ -296,6 +264,7 @@ export class Ellipse extends Shape {
         })
         break
     }
+    this.pathCache = null
   }
 
   private getStrokeWidth() {
@@ -322,20 +291,21 @@ export class Ellipse extends Shape {
     const centerX = x + radiusX
     const centerY = y + radiusY
 
+    if (!this.pathCache) {
+      const pathCache = new Path2D()
+      pathCache.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2)
+      this.pathCache = pathCache
+    }
+
     const ctx = ScreenStore.rectCtx!
-    // 【关键点 1】禁用平滑处理，产生像素颗粒感
-    ctx.imageSmoothingEnabled = false
+    ctx.save()
     ctx.strokeStyle = this.strokeColor
     ctx.lineWidth = this.getStrokeWidth()
 
-    ctx.beginPath()
-    ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2)
-    ctx.stroke()
+    ctx.stroke(this.pathCache)
 
     if (this.showHandle) {
       const store = CapturerStore()
-      // ctx.imageSmoothingEnabled = true
-      // 绘制控制点
 
       ctx.fillStyle = '#FFFFFF'
       ctx.strokeStyle = '#333333'
@@ -357,5 +327,6 @@ export class Ellipse extends Shape {
       ctx.fill()
       ctx.stroke()
     }
+    ctx.restore()
   }
 }

@@ -7,6 +7,8 @@ import { reactiveBind } from '@/util/Index'
 import RectSelect from '@/capturer/RectSelector/RectSelect'
 import { Ellipse } from '@/capturer/shape/Ellipse'
 import { Arrow } from '@/capturer/shape/Arrow'
+import { Draw } from '@/capturer/shape/Draw'
+import { Mask } from '@/capturer/shape/Mask'
 
 type RectCanvasHoverItemType = {
   handle?: HandleItemType
@@ -23,13 +25,13 @@ class RectCanvas {
     list: []
   }
   actionType: 'add' | 'move' | 'resize' | '' = 'add'
-  edit?: Shape
+  edit?: Shape | null
   hover?: RectCanvasHoverItemType = undefined
   move?: {
     handle?: HandleItemType
     shapeBegin?: Shape
     pointBegin: Point
-  }
+  } | null
 
   reinit() {
     window.removeEventListener('mousemove', this.onMouseMove)
@@ -47,7 +49,7 @@ class RectCanvas {
     this.shape.forEach((shape) => {
       if (shape.showHandle) {
         needDraw = true
-        shape.showHandle = false
+        shape.deSelect()
       }
     })
     if (needDraw) {
@@ -102,6 +104,9 @@ class RectCanvas {
           x: e.offsetX * store.scaleFactor,
           y: e.offsetY * store.scaleFactor
         }
+      }
+      if (CapurerTool.tool === 'mask') {
+        ScreenStore.createMosaicPattern(20)
       }
     }
 
@@ -158,6 +163,31 @@ class RectCanvas {
           shape.showHandle = true
           this.edit = shape
           this.shape.push(shape)
+        } else if (CapurerTool.tool === 'draw') {
+          const config = CapurerTool.draw
+          console.log('arrow config: ', JSON.stringify(config))
+          const shape: Shape = new Draw(
+            'draw',
+            this.move!.pointBegin,
+            config.color,
+            config.width
+          ) as any
+          shape.showHandle = true
+          this.edit = shape
+          this.shape.push(shape)
+        } else if (CapurerTool.tool === 'mask') {
+          const config = CapurerTool.mask
+          console.log('arrow config: ', JSON.stringify(config))
+          const shape: Mask = new Mask(
+            'mask',
+            this.move!.pointBegin,
+            config.color,
+            config.width
+          ) as any
+          shape.maskType = config.type
+          shape.showHandle = true
+          this.edit = shape as Shape
+          this.shape.unshift(shape as Shape)
         }
       }
       this.edit!.update({
@@ -171,6 +201,7 @@ class RectCanvas {
       this.edit!.startPoint.y = this.move!.shapeBegin!.startPoint.y + diffY
       this.edit!.endPoint.x = this.move!.shapeBegin!.endPoint.x + diffX
       this.edit!.endPoint.y = this.move!.shapeBegin!.endPoint.y + diffY
+      this.edit!.onMove()
     } else if (this.actionType === 'resize') {
       this.edit!.resize({ x, y })
     }
@@ -187,20 +218,20 @@ class RectCanvas {
     }
     e.preventDefault()
 
-    let needDraw = false
-    if (!this.edit) {
+    if (this.actionType === 'add') {
+      let needDraw = false
       this.shape.forEach((shape) => {
         if (shape.showHandle) {
           needDraw = true
-          shape.showHandle = false
+          shape.deSelect()
         }
       })
+      if (needDraw) {
+        this.draw()
+      }
+      this.edit = null
     }
-    if (needDraw) {
-      this.draw()
-    }
-
-    this.move = undefined
+    this.move = null
     this.actionType = ''
     window.removeEventListener('mousemove', this.onMouseMove)
     window.removeEventListener('mouseup', this.onMouseUp)
