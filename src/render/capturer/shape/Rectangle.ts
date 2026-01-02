@@ -1,8 +1,14 @@
 import { HandleItemType, Shape } from './Shape'
 import type { Point } from './Shape'
-import { CapturerStore, ScreenStore } from '@/capturer/store/app'
+import { CapturerStore } from '@/capturer/store/app'
 
 export class Rectangle extends Shape {
+  historyRedo(record: Shape) {
+    super.historyRedo(record)
+    this.pathCache = null
+    this.draw()
+  }
+
   onMove() {
     this.pathCache = null
   }
@@ -26,7 +32,7 @@ export class Rectangle extends Shape {
     if (!this.pathCache) {
       return false
     }
-    const ctx = ScreenStore.rectCtx!
+    const ctx = this.canvasCtx!
     ctx.save()
     ctx.lineWidth = lineWidth
     // 利用原生 API 判定点是否在路径的描边范围内
@@ -297,17 +303,37 @@ export class Rectangle extends Shape {
       this.pathCache = pathCache
     }
 
-    const ctx = ScreenStore.rectCtx!
+    const ctx = this.canvasCtx!
 
     ctx.save()
-    // 【关键点 1】禁用平滑处理，产生像素颗粒感
+    ctx.clearRect(0, 0, this.canvas!.width, this.canvas!.height)
+
     ctx.strokeStyle = this.strokeColor
     ctx.lineWidth = this.getStrokeWidth()
 
     // 4. 描边
     ctx.stroke(this.pathCache)
-
-    super.draw()
+    this.getHandles()
+    if (this.showHandle) {
+      const store = CapturerStore()
+      // ctx.imageSmoothingEnabled = true
+      // 绘制控制点
+      ctx.fillStyle = '#FFFFFF'
+      ctx.strokeStyle = '#333333'
+      ctx.lineWidth = 1 * store.scaleFactor
+      const handles = this.handles!
+      const radius = 3 * store.scaleFactor
+      ctx.beginPath()
+      handles.forEach((handle) => {
+        // 必须用 moveTo 分隔每个圆形
+        ctx.moveTo(handle.x + radius, handle.y)
+        ctx.arc(handle.x, handle.y, radius, 0, Math.PI * 2)
+      })
+      ctx.closePath()
+      // 一次性操作
+      ctx.fill()
+      ctx.stroke()
+    }
     ctx.restore()
   }
 }

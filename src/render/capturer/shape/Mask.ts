@@ -1,6 +1,7 @@
-import { Shape } from './Shape'
-import type { Point } from './Shape'
+import { Shape, ShapeItemTypeType } from './Shape'
+import type { Point, HandleItemType } from './Shape'
 import { CapturerStore, ScreenStore } from '@/capturer/store/app'
+import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
 
 export class Mask extends Shape {
   maskType: 'area' | 'hand' = 'area'
@@ -9,13 +10,39 @@ export class Mask extends Shape {
   // 1. 定义离屏画布及其 Context
   private offScreenCanvas: HTMLCanvasElement | null = null
   private offScreenCtx: CanvasRenderingContext2D | null = null
+
+  destroy() {
+    super.destroy()
+    this.drawPoints.splice(0)
+    this.offScreenCtx = null
+    this.offScreenCanvas = null
+  }
+
+  initCanvas() {
+    super.initCanvas()
+    const zIndexs = RectCanvasStore.shape.filter((f) => f.type === 'mask').map((m) => m.zIndex)
+    const maxZIndex = Math.max(...zIndexs, 99)
+    const zIndex = maxZIndex + 1
+    this.zIndex = zIndex
+    this.canvas!.style.zIndex = `${zIndex}`
+  }
+
+  constructor(type: ShapeItemTypeType, startPoint: Point, strokeColor: string, toolWidth: number) {
+    super(type, startPoint, strokeColor, toolWidth)
+    this.drawPoints.push({
+      ...startPoint
+    })
+    this.pathCache = new Path2D()
+    this.pathCache.moveTo(startPoint.x, startPoint.y)
+  }
+
   /**
    * 初始化离屏画布
    * 尺寸应与主画布一致，用于绘制纯黑色的“路径遮罩”
    */
   private initOffScreen() {
     if (this.offScreenCanvas) return
-    const mainCanvas = ScreenStore.rectCanvas!
+    const mainCanvas = this.canvas!
     this.offScreenCanvas = document.createElement('canvas')
     this.offScreenCanvas.width = mainCanvas.width
     this.offScreenCanvas.height = mainCanvas.height
@@ -38,16 +65,15 @@ export class Mask extends Shape {
 
     const ctx = this.offScreenCtx
     ctx.save()
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
     if (this.maskType === 'area') {
-      if (!this.showHandle) {
-        const x = Math.min(this.startPoint.x, this.endPoint.x)
-        const y = Math.min(this.startPoint.y, this.endPoint.y)
-        const width = Math.abs(this.startPoint.x - this.endPoint.x)
-        const height = Math.abs(this.startPoint.y - this.endPoint.y)
-        ctx.fillStyle = pattern
-        ctx.fillRect(x, y, width, height)
-      }
+      const x = Math.min(this.startPoint.x, this.endPoint.x)
+      const y = Math.min(this.startPoint.y, this.endPoint.y)
+      const width = Math.abs(this.startPoint.x - this.endPoint.x)
+      const height = Math.abs(this.startPoint.y - this.endPoint.y)
+      ctx.fillStyle = pattern
+      ctx.fillRect(x, y, width, height)
     } else {
       /**
        * 【优化】手画线模式：使用离屏画布作为 Pattern 遮罩
@@ -57,17 +83,14 @@ export class Mask extends Shape {
         return
       }
 
-      const tCtx = this.offScreenCtx!
-      // 2. 清空临时画布（关键：必须是透明的）
-      tCtx.clearRect(0, 0, tCtx.canvas.width, tCtx.canvas.height)
-      tCtx.strokeStyle = '#000000' // 颜色不重要，因为我们只需要它的形状
-      tCtx.lineWidth = this.getStrokeWidth()
-      tCtx.stroke(this.pathCache!)
+      ctx.strokeStyle = '#000000' // 颜色不重要，因为我们只需要它的形状
+      ctx.lineWidth = this.getStrokeWidth()
+      ctx.stroke(this.pathCache!)
       // B: 设置合成模式，只在有笔迹的地方显示马赛克
-      tCtx.globalCompositeOperation = 'source-in'
-      tCtx.fillStyle = pattern
-      tCtx.fillRect(0, 0, tCtx.canvas.width, tCtx.canvas.height)
-      tCtx.globalCompositeOperation = 'source-over' // 重置
+      ctx.globalCompositeOperation = 'source-in'
+      ctx.fillStyle = pattern
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+      ctx.globalCompositeOperation = 'source-over' // 重置
     }
 
     ctx.restore()
@@ -84,16 +107,9 @@ export class Mask extends Shape {
       // 距离过滤：减少不必要的计算
       if (!lastPoint || Math.hypot(endPoint.x - lastPoint.x, endPoint.y - lastPoint.y) > 2) {
         this.drawPoints.push(endPoint)
-
-        if (!this.pathCache) {
-          // 第一次绘制：创建路径对象
-          this.pathCache = new Path2D()
-          this.pathCache.moveTo(endPoint.x, endPoint.y)
-        } else {
-          // 增量绘制：将新增的点添加到路径
-          this.pathCache!.lineTo(endPoint.x, endPoint.y)
-          this.drawToOffScreen()
-        }
+        // 增量绘制：将新增的点添加到路径
+        this.pathCache!.lineTo(endPoint.x, endPoint.y)
+        this.drawToOffScreen()
       }
     }
   }
@@ -138,14 +154,14 @@ export class Mask extends Shape {
   }
 
   reDraw() {
-    this.drawToOffScreen()
+    // this.drawToOffScreen()
   }
 
   draw() {
-    const ctx = ScreenStore.rectCtx!
+    const ctx = this.canvasCtx!
     if (!ctx) return
     ctx.save()
-
+    ctx.clearRect(0, 0, this.canvas!.width, this.canvas!.height)
     if (this.maskType === 'area') {
       // ... 区域模式逻辑保持不变
       const x = Math.min(this.startPoint.x, this.endPoint.x)

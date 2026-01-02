@@ -60,6 +60,10 @@ class CapurerTool implements CapurerToolType {
     color: '#F56C6C',
     fontSize: 15
   }
+  tag = {
+    color: '#F56C6C',
+    fontSize: 15
+  }
   tool: CapurerToolToolType = ''
   private initData: any
   isReversed: boolean = false
@@ -80,7 +84,7 @@ class CapurerTool implements CapurerToolType {
     } else {
       this.tool = tool
     }
-    RectCanvasStore.hideAllHandle()
+    RectCanvasStore.onToolTypeChange()
   }
   updatePosition(rect?: Rect) {
     if (!rect) {

@@ -124,6 +124,9 @@
     })
   }
   const onRectClick = () => {
+    if (RectSelect.selected && RectSelect.editRect) {
+      return
+    }
     IPC.send('Capturer:stopCheckWindowInPoint').then((key: string) => {
       IPC.off(key)
     })
@@ -141,7 +144,7 @@
     } as any
     RectSelect.selectAble = false
     RectSelect.selected = true
-    CapturerTool.updatePosition(RectSelect.editRect)
+    CapturerTool.updatePosition(RectSelect.editRect!)
   }
 </script>
 
@@ -160,10 +163,16 @@
     overflow: hidden;
     background: transparent;
     padding: 0;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   #app {
     position: relative;
+    z-index: 50;
+
     &:after {
       content: '';
       position: absolute;
@@ -215,5 +224,22 @@
         z-index: 9999;
       }
     }
+  }
+
+  .capture-edit-textarea {
+    &:after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px solid #333333;
+      pointer-events: none;
+    }
+  }
+
+  .capturer-shape-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
   }
 </style>

@@ -104,13 +104,38 @@
           height="16"
         />
       </div>
+      <div
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        :class="{
+          [`bg-blue-100`]: CapurerTool.tool === 'tag'
+        }"
+        @click.stop="CapurerTool.updateTool('tag')"
+      >
+        <yb-icon
+          :class="{
+            [`text-[#409EFF]`]: CapurerTool.tool === 'tag'
+          }"
+          class=""
+          :svg="import('@/svg/tag.svg?raw')"
+          width="16"
+          height="16"
+        />
+      </div>
     </div>
     <div class="h-[16px] w-[1px] bg-gray-200"></div>
     <div class="flex items-center gap-2">
       <div
         class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        @click.stop="goBack"
       >
-        <yb-icon :svg="import('@/svg/goback.svg?raw')" width="16" height="16" />
+        <yb-icon
+          :class="{
+            'opacity-35': !canGoBack
+          }"
+          :svg="import('@/svg/goback.svg?raw')"
+          width="16"
+          height="16"
+        />
       </div>
       <div
         class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
@@ -122,6 +147,7 @@
     <div class="flex items-center gap-2">
       <div
         class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        @click.stop="exitCapturer"
       >
         <Close width="16" height="16" />
       </div>
@@ -132,14 +158,34 @@
       </div>
     </div>
     <ColorAndWidth v-if="['square', 'circle', 'arrow', 'draw'].includes(CapurerTool.tool)" />
-    <TextVM v-else-if="CapurerTool.tool === 'text'" />
+    <TextVM v-else-if="CapurerTool.tool === 'text' || CapurerTool.tool === 'tag'" />
     <MaskVM v-else-if="CapurerTool.tool === 'mask'" />
   </div>
 </template>
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import { Close, Check } from '@element-plus/icons-vue'
   import ColorAndWidth from '@/capturer/tools/colorAndWidth.vue'
   import MaskVM from '@/capturer/tools/Mask.vue'
   import TextVM from '@/capturer/tools/Text.vue'
   import CapurerTool from './tools'
+  import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
+  import IPC from '@/util/IPC'
+
+  const canGoBack = computed(() => {
+    return RectCanvasStore.history.length > 0
+  })
+
+  const goBack = () => {
+    if (!canGoBack.value) {
+      return
+    }
+    RectCanvasStore.historyDoBack()
+  }
+
+  const exitCapturer = () => {
+    IPC.send('Capturer:doStopCapturer').then((key: string) => {
+      IPC.off(key)
+    })
+  }
 </script>

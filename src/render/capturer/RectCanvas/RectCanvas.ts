@@ -1,4 +1,4 @@
-import { Shape } from '@/capturer/shape/Shape'
+import type { Shape } from '@/capturer/shape/Shape'
 import type { HandleItemType, Point } from '@/capturer/shape/Shape'
 import { Rectangle } from '@/capturer/shape/Rectangle'
 import { ScreenStore, CapturerStore } from '@/capturer/store/app'
@@ -9,6 +9,8 @@ import { Ellipse } from '@/capturer/shape/Ellipse'
 import { Arrow } from '@/capturer/shape/Arrow'
 import { Draw } from '@/capturer/shape/Draw'
 import { Mask } from '@/capturer/shape/Mask'
+import { Text } from '@/capturer/shape/Text'
+import { Tag } from '@/capturer/shape/Tag'
 
 type RectCanvasHoverItemType = {
   handle?: HandleItemType
@@ -17,43 +19,118 @@ type RectCanvasHoverItemType = {
   onShape: boolean
 }
 
+type HisoryItemType = {
+  action: 'add' | 'change'
+  start?: Shape
+  end: Shape
+}
+
 class RectCanvas {
   shape: Shape[] = []
-  history: {
-    list: Shape[]
-  } = {
-    list: []
-  }
+  history: HisoryItemType[] = []
   actionType: 'add' | 'move' | 'resize' | '' = 'add'
+  editBegin?: Shape | null
   edit?: Shape | null
-  hover?: RectCanvasHoverItemType = undefined
+  editingText?: Text | Tag | null
+  hover?: RectCanvasHoverItemType | null = undefined
   move?: {
     handle?: HandleItemType
     shapeBegin?: Shape
     pointBegin: Point
   } | null
 
+  _onMouseDownCallback?: (e: MouseEvent) => void
+
   reinit() {
     window.removeEventListener('mousemove', this.onMouseMove)
     window.removeEventListener('mouseup', this.onMouseUp)
+    this.shape.forEach((shape: Shape) => {
+      shape.destroy()
+    })
     this.shape.splice(0)
-    this.history?.list?.splice(0)
+    this.history?.splice(0)
     this.actionType = ''
-    this.edit = undefined
+    this.edit = null
+    this.editBegin = null
+    this.move = null
+    this.hover = null
+    this.editingText = null
   }
 
-  hideAllHandle() {
-    this.edit = undefined
-    this.move = undefined
-    let needDraw = false
+  onToolTypeChange() {
+    this.hideAllHandle()
+    this.actionType = ''
+    this.editingText = null
+    this.edit = null
+    this.editBegin = null
+    this.hover = null
+    this.move = null
+  }
+
+  hideAllHandle(exclude?: Shape) {
+    this.edit = null
+    this.editBegin = null
+    this.move = null
     this.shape.forEach((shape) => {
-      if (shape.showHandle) {
-        needDraw = true
+      if (shape.showHandle && shape !== exclude) {
         shape.deSelect()
+        shape.draw()
       }
     })
-    if (needDraw) {
-      this.draw()
+  }
+
+  editStringify(edit: Shape) {
+    const editBegin: any = JSON.parse(JSON.stringify(edit))
+    delete editBegin?.showHandle
+    delete editBegin?.arrowPoints
+    delete editBegin?.drawPoints
+    delete editBegin?.textEditing
+    delete editBegin?.pathCache
+    delete editBegin?.handle
+    delete editBegin?.handles
+    return editBegin
+  }
+
+  private initEditBegin() {
+    if (!this.edit) {
+      return
+    }
+    this.editBegin = this.editStringify(this.edit)
+  }
+
+  private checkEditChanged() {
+    if (!this.edit || !this.editBegin || this.edit.id !== this.editBegin.id) {
+      return false
+    }
+    const editBegin: any = this.editStringify(this.edit)
+    if (JSON.stringify(editBegin) === JSON.stringify(this.editBegin)) {
+      return false
+    }
+    return editBegin
+  }
+
+  onDblClick(e: MouseEvent) {
+    if (!RectSelect.editRect || !ScreenStore.rectCanvas) {
+      return
+    }
+    if (this?.hover?.shape?.type === 'text') {
+      e?.preventDefault?.()
+      e?.stopPropagation?.()
+      const shape: Text = this.hover.shape as Text
+      shape.editContent()
+      shape.draw()
+      this.edit = shape as any
+      this.initEditBegin()
+      this.editingText = shape as any
+    } else if (this?.hover?.shape?.type === 'tag') {
+      e?.preventDefault?.()
+      e?.stopPropagation?.()
+      const shape: Tag = this.hover.shape as Tag
+      shape.editContent()
+      shape.draw()
+      this.edit = shape as any
+      this.initEditBegin()
+      this.editingText = shape as any
     }
   }
 
@@ -66,14 +143,42 @@ class RectCanvas {
       return
     }
     e.preventDefault()
+    const noAddedShape = this.shape.filter((s) => !s.historyAdded)
+    noAddedShape.forEach((shape: Shape) => {
+      shape.historyAdded = true
+      this.history.push({
+        action: 'add',
+        start: undefined,
+        end: JSON.parse(JSON.stringify(shape))
+      })
+      console.log('this.history: ', JSON.parse(JSON.stringify(this.history)))
+    })
+    if (this.hover?.handle?.position === 'tag-text-position') {
+      const tag: Tag = this.hover.shape! as any
+      this.hideAllHandle(tag as any)
+      this.edit = tag as any
+      const start = this.editStringify(tag as any)
+      tag.textPositionChanged()
+      this.history.push({
+        action: 'change',
+        start,
+        end: this.editStringify(tag as any)
+      })
+      console.log('this.history: ', JSON.parse(JSON.stringify(this.history)))
+      return
+    }
     this.hideAllHandle()
     this.actionType = ''
     const store = CapturerStore()
     console.log('RectCanvas onMouseDown !!! 111', this.hover, CapurerTool.tool)
     if (this.hover?.handle) {
+      if (this.editingText) {
+        this.editingText = null
+      }
       this.edit = this.hover.shape
+      this.initEditBegin()
       this.edit!.select()
-      this.draw()
+      this.edit!.draw()
       this.actionType = 'resize'
       this.move = {
         handle: this.hover.handle,
@@ -85,9 +190,13 @@ class RectCanvas {
       }
       this.edit!.resizeStart(this.hover.handle)
     } else if (this.hover?.shape) {
+      if (this.editingText) {
+        this.editingText = null
+      }
       this.edit = this.hover.shape
+      this.initEditBegin()
       this.edit!.select()
-      this.draw()
+      this.edit!.draw()
       this.actionType = 'move'
       this.move = {
         shapeBegin: JSON.parse(JSON.stringify(this.edit)),
@@ -97,6 +206,10 @@ class RectCanvas {
         }
       }
     } else if (CapurerTool.tool) {
+      if (this.editingText) {
+        this.editingText = null
+        return
+      }
       this.actionType = 'add'
       this.move = {
         shapeBegin: undefined,
@@ -107,7 +220,43 @@ class RectCanvas {
       }
       if (CapurerTool.tool === 'mask') {
         ScreenStore.createMosaicPattern(20)
+      } else if (CapurerTool.tool === 'text') {
+        const config = CapurerTool.text
+        console.log('arrow config: ', JSON.stringify(config))
+        const shape: Text = new Text(
+          'text',
+          this.move!.pointBegin,
+          config.color,
+          config.fontSize
+        ) as any
+        shape.showHandle = true
+        this.edit = shape as Shape
+        this.editingText = shape
+        this.shape.push(shape as Shape)
+        this.move = null
+        this.actionType = ''
+        return
+      } else if (CapurerTool.tool === 'tag') {
+        const config = CapurerTool.tag
+        console.log('arrow config: ', JSON.stringify(config))
+        const shape: Tag = new Tag(
+          'tag',
+          this.move!.pointBegin,
+          config.color,
+          config.fontSize
+        ) as any
+        shape.showHandle = true
+        this.edit = shape as Shape
+        this.edit.draw()
+        this.editingText = shape
+        this.shape.push(shape as Shape)
+        this.move = null
+        this.actionType = ''
+        return
       }
+    } else if (this.shape.length === 0) {
+      this?._onMouseDownCallback?.(e)
+      return
     }
 
     if (this.actionType) {
@@ -120,10 +269,11 @@ class RectCanvas {
    * 鼠标移动更新选区
    */
   private onMouseMove(e: MouseEvent) {
-    if (!RectSelect.editRect || !CapurerTool.tool || !ScreenStore.rectCanvas) {
+    if (!RectSelect.editRect || !ScreenStore.rectCanvas) {
       return
     }
-    e.preventDefault()
+    e?.preventDefault?.()
+    e?.stopPropagation?.()
     const store = CapturerStore()
     const x = (e.clientX - RectSelect.editRect.x) * store.scaleFactor
     const y = (e.clientY - RectSelect.editRect.y) * store.scaleFactor
@@ -206,64 +356,99 @@ class RectCanvas {
       this.edit!.resize({ x, y })
     }
 
-    this.draw()
+    this.edit!.draw()
   }
 
   /**
    * 鼠标释放结束选区
    */
   private onMouseUp(e: MouseEvent) {
-    if (!RectSelect.editRect || !CapurerTool.tool || !ScreenStore.rectCanvas) {
+    if (!RectSelect.editRect || !ScreenStore.rectCanvas) {
       return
     }
-    e.preventDefault()
+    e?.preventDefault?.()
+    e?.stopPropagation?.()
+
+    let historyItem: Shape | null | undefined = undefined
+    if (this.edit && this.edit.historyAdded) {
+      historyItem = this.edit
+    }
+    const noAddedShape = this.shape.filter((s) => !s.historyAdded)
+    noAddedShape.forEach((shape: Shape) => {
+      shape.historyAdded = true
+      this.history.push({
+        action: 'add',
+        start: undefined,
+        end: this.editStringify(shape)
+      })
+      console.log('this.history: ', JSON.parse(JSON.stringify(this.history)))
+    })
+    if (historyItem) {
+      const editEnd = this.checkEditChanged()
+      console.log('historyItem: ', historyItem, editEnd)
+      if (editEnd) {
+        this.history.push({
+          action: 'change',
+          start: this.editBegin!,
+          end: editEnd
+        })
+        console.log('this.history: ', JSON.parse(JSON.stringify(this.history)))
+      }
+    }
 
     if (this.actionType === 'add') {
-      let needDraw = false
       this.shape.forEach((shape) => {
         if (shape.showHandle) {
-          needDraw = true
           shape.deSelect()
+          shape.draw()
         }
       })
-      if (needDraw) {
-        this.draw()
-      }
       this.edit = null
     }
+    this.editBegin = null
     this.move = null
     this.actionType = ''
     window.removeEventListener('mousemove', this.onMouseMove)
     window.removeEventListener('mouseup', this.onMouseUp)
   }
 
-  draw() {
-    const ctx = ScreenStore.rectCtx
-    ctx?.clearRect(0, 0, ScreenStore.rectCanvas!.width, ScreenStore.rectCanvas!.height)
-    for (const item of this.shape) {
-      item.draw()
+  historyDoBack() {
+    /**
+     * 移除未确定的Shape. 比如正在编辑的text和tag
+     */
+    const noAddedShape = this.shape.filter((s) => !s.historyAdded)
+    if (noAddedShape.length > 0) {
+      noAddedShape.forEach((shape: Shape) => {
+        shape.destroy()
+      })
+      this.shape = this.shape.filter((s) => s.historyAdded)
+      return
+    }
+    const record = this.history.pop()
+    if (record?.action === 'add') {
+      const find = this.shape.find((s) => s.id === record.end!.id)
+      if (find) {
+        find.destroy()
+      }
+      this.shape = this.shape.filter((s) => s.id !== record.end!.id)
+    } else if (record?.action === 'change') {
+      const find = this.shape.find((s) => s.id === record.end!.id)
+      if (find) {
+        find.historyRedo(record.start!)
+      }
     }
   }
 
   private getHoveredHandle(x: number, y: number) {
     const shapes = [...this.shape].reverse()
-    const store = CapturerStore()
-    const handleSize = 7 * store.scaleFactor
     let onBorder = false
     for (const shape of shapes) {
       if (!onBorder) {
         onBorder = shape.isOnBorder(x, y)
       }
-      const handles = shape?.handles ?? []
-      for (const handle of handles) {
-        if (Math.abs(x - handle.x) <= handleSize && Math.abs(y - handle.y) <= handleSize) {
-          return {
-            handle,
-            shape,
-            onBorder: false,
-            onShape: false
-          }
-        }
+      const res = shape.checkMouseOnHandle(x, y)
+      if (res) {
+        return res
       }
       if (onBorder) {
         return {
@@ -288,7 +473,11 @@ class RectCanvas {
 
   private updateCursor() {
     if (!this.hover) {
-      ScreenStore.rectCanvas!.style.cursor = 'auto'
+      if (this.shape.length === 0 && !CapurerTool.tool) {
+        ScreenStore.rectCanvas!.style.cursor = 'move'
+      } else {
+        ScreenStore.rectCanvas!.style.cursor = 'auto'
+      }
       return
     }
     if (this.hover.handle) {

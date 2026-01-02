@@ -1,6 +1,6 @@
 import { HandleItemType, Shape } from './Shape'
 import type { Point } from './Shape'
-import { CapturerStore, ScreenStore } from '@/capturer/store/app'
+import { CapturerStore } from '@/capturer/store/app'
 
 export class Arrow extends Shape {
   /**
@@ -8,6 +8,18 @@ export class Arrow extends Shape {
    * 可以在绘制时计算写入
    */
   arrowPoints: Point[] = []
+
+  historyRedo(record: Arrow) {
+    super.historyRedo(record)
+    this.pathCache = null
+    this.arrowPoints = []
+    this.draw()
+  }
+
+  destroy() {
+    super.destroy()
+    this.arrowPoints.splice(0)
+  }
 
   isOnBorder(x: number, y: number): boolean {
     return x < 0 && y < 0
@@ -45,7 +57,7 @@ export class Arrow extends Shape {
     const dy = y2 - y1
     const angle = Math.atan2(dy, dx)
 
-    const ctx = ScreenStore.rectCtx!
+    const ctx = this.canvasCtx!
     ctx.save()
     ctx.translate(x1, y1)
     ctx.rotate(angle)
@@ -112,6 +124,11 @@ export class Arrow extends Shape {
     return widths[this.toolWidth] * store.scaleFactor
   }
 
+  onToolWidthChanged() {
+    this.pathCache = null
+    this.arrowPoints = []
+  }
+
   /**
    * 绘制箭头
    */
@@ -121,9 +138,6 @@ export class Arrow extends Shape {
     const x2 = this.endPoint.x
     const y2 = this.endPoint.y
     const color = this.strokeColor
-
-    const ctx = ScreenStore.rectCtx!
-    ctx.fillStyle = color
 
     // --- 1. 计算几何参数 ---
     const dx = x2 - x1
@@ -200,8 +214,12 @@ export class Arrow extends Shape {
       this.pathCache = pathCache
     }
 
+    const ctx = this.canvasCtx!
     // --- 开始绘制 ---
     ctx.save()
+
+    ctx.clearRect(0, 0, this.canvas!.width, this.canvas!.height)
+
     ctx.fillStyle = color
     ctx.translate(x1, y1)
     ctx.rotate(angle)
@@ -209,6 +227,7 @@ export class Arrow extends Shape {
     ctx.fill(this.pathCache)
     ctx.restore()
 
+    this.getHandles()
     if (this.showHandle) {
       this.drawHandles(ctx)
     }
@@ -224,7 +243,7 @@ export class Arrow extends Shape {
     ctx.strokeStyle = '#333333'
     ctx.lineWidth = 1 * store.scaleFactor
 
-    const handles = this.getHandles()
+    const handles = this.handles!
     const radius = 3 * store.scaleFactor
 
     // 开始新的 path 防止干扰箭头本身

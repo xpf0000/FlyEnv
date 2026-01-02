@@ -121,22 +121,61 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import CapurerTool from './tools'
+  import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
+  import type { Text } from '@/capturer/shape/Text'
+  import type { Tag } from '@/capturer/shape/Tag'
 
   const currentColor = computed({
     get() {
-      return CapurerTool.text.color
+      const tool: 'text' | 'tag' = CapurerTool.tool as any
+      return CapurerTool[tool].color
     },
     set(v) {
-      CapurerTool.text.color = v
+      const tool: 'text' | 'tag' = CapurerTool.tool as any
+      CapurerTool[tool].color = v
+      if (RectCanvasStore.edit?.type === tool && RectCanvasStore.edit!.strokeColor !== v) {
+        const start = RectCanvasStore.editStringify(RectCanvasStore.edit)
+        const shape: Text | Tag = RectCanvasStore.edit as any
+        shape.strokeColor = v
+        shape.onStrokeColorChanged()
+        shape.reDraw()
+        shape.draw()
+        if (!shape.textEditing) {
+          const end = RectCanvasStore.editStringify(RectCanvasStore.edit)
+          RectCanvasStore.history.push({
+            action: 'change',
+            start,
+            end
+          })
+        }
+      }
     }
   })
 
   const currentFontSize = computed({
     get() {
-      return CapurerTool.text.fontSize
+      const tool: 'text' | 'tag' = CapurerTool.tool as any
+      return CapurerTool[tool].fontSize
     },
     set(v) {
-      CapurerTool.text.fontSize = v
+      const tool: 'text' | 'tag' = CapurerTool.tool as any
+      CapurerTool[tool].fontSize = v
+      if (RectCanvasStore.edit?.type === tool && RectCanvasStore.edit!.toolWidth !== v) {
+        const start = RectCanvasStore.editStringify(RectCanvasStore.edit)
+        const shape: Text | Tag = RectCanvasStore.edit as any
+        shape.toolWidth = v
+        shape.onToolWidthChanged()
+        shape.reDraw()
+        shape.draw()
+        if (!shape.textEditing) {
+          const end = RectCanvasStore.editStringify(RectCanvasStore.edit)
+          RectCanvasStore.history.push({
+            action: 'change',
+            start,
+            end
+          })
+        }
+      }
     }
   })
 </script>

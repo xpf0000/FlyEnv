@@ -125,10 +125,18 @@
     set(v) {
       const tool: 'square' | 'circle' | 'arrow' | 'draw' = CapurerTool.tool as any
       CapurerTool[tool].color = v
-      if (RectCanvasStore.edit?.type === tool) {
+      if (RectCanvasStore.edit?.type === tool && RectCanvasStore.edit!.strokeColor !== v) {
+        const start = RectCanvasStore.editStringify(RectCanvasStore.edit)
         RectCanvasStore.edit!.strokeColor = v
+        RectCanvasStore.edit!.onStrokeColorChanged()
         RectCanvasStore.edit!.reDraw()
-        RectCanvasStore.draw()
+        RectCanvasStore.edit!.draw()
+        const end = RectCanvasStore.editStringify(RectCanvasStore.edit)
+        RectCanvasStore.history.push({
+          action: 'change',
+          start,
+          end
+        })
       }
     }
   })
@@ -142,10 +150,18 @@
       const tool: 'square' | 'circle' | 'arrow' | 'draw' = CapurerTool.tool as any
       CapurerTool[tool].width = v
       console.log('currentWidth set: ', tool, v, CapurerTool[tool])
-      if (RectCanvasStore.edit?.type === tool) {
+      if (RectCanvasStore.edit?.type === tool && RectCanvasStore.edit!.toolWidth !== v) {
+        const start = RectCanvasStore.editStringify(RectCanvasStore.edit)
         RectCanvasStore.edit!.toolWidth = v
+        RectCanvasStore.edit!.onToolWidthChanged()
         RectCanvasStore.edit!.reDraw()
-        RectCanvasStore.draw()
+        RectCanvasStore.edit!.draw()
+        const end = RectCanvasStore.editStringify(RectCanvasStore.edit)
+        RectCanvasStore.history.push({
+          action: 'change',
+          start,
+          end
+        })
       }
     }
   })

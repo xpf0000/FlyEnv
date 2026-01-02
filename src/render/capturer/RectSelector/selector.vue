@@ -1,12 +1,17 @@
 <template>
   <div
     v-if="RectSelect.editRect"
+    id="app-capturer-selector"
+    ref="selector"
     class="selector"
+    :class="{
+      'overflow-hidden': RectCanvasStore.shape.length > 0
+    }"
     :style="style"
     @mousedown.stop="handleMouseDown($event, 'move')"
   >
     <RectCanvas />
-    <template v-if="RectCanvasStore.shape.length === 0">
+    <template v-if="RectCanvasStore.shape.length === 0 && !CapturerTool.tool">
       <div class="ctrl top-left" @mousedown.stop="handleMouseDown($event, 'tl')"></div>
       <div class="ctrl top-center" @mousedown.stop="handleMouseDown($event, 'tc')"></div>
       <div class="ctrl top-right" @mousedown.stop="handleMouseDown($event, 'tr')"></div>
@@ -20,13 +25,14 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onBeforeUnmount, reactive } from 'vue'
+  import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
   import { CapturerStore } from '@/capturer/store/app'
   import RectSelect from '@/capturer/RectSelector/RectSelect'
   import CapturerTool from '@/capturer/tools/tools'
   import RectCanvas from '@/capturer/RectCanvas/index.vue'
   import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
 
+  const selector = ref<HTMLHtmlElement>()
   const store = CapturerStore()
 
   // 为了方便计算，定义一个简单的类型
@@ -74,6 +80,8 @@
     isDragging = true
     startX = e.clientX
     startY = e.clientY
+
+    console.log('handleMouseDown !!!', dir)
 
     if (dir !== 'move') {
       store.magnifyingInfo.show = true
@@ -164,11 +172,34 @@
     window.removeEventListener('mouseup', handleMouseUp)
   }
 
+  RectCanvasStore._onMouseDownCallback = (e: MouseEvent) => {
+    handleMouseDown(e, 'move')
+  }
+
   // 组件卸载时确保清除事件
   onBeforeUnmount(() => {
     window.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('mouseup', handleMouseUp)
   })
+
+  const stopScrolling = (e: any) => {
+    e.preventDefault()
+    e.target.scrollLeft = 0
+    e.target.scrollTop = 0
+  }
+
+  watch(
+    selector,
+    (v) => {
+      if (v) {
+        v.removeEventListener('scroll', stopScrolling)
+        v.addEventListener('scroll', stopScrolling)
+      }
+    },
+    {
+      immediate: true
+    }
+  )
 </script>
 
 <style lang="scss" scoped>
@@ -179,11 +210,20 @@
     touch-action: none;
     box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.4);
 
+    &.overflow-hidden {
+      overflow: hidden !important;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
     &:after {
       content: '';
       position: absolute;
+      display: flex;
       inset: 0;
-      border: 2px solid #409eff;
+      border: 2px solid red;
       z-index: 120;
       /* 让中间区域可以透过点击（如果需要选中内部元素）*/
       pointer-events: none;

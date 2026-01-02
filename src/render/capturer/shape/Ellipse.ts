@@ -1,8 +1,14 @@
 import { HandleItemType, Shape } from './Shape'
 import type { Point } from './Shape'
-import { CapturerStore, ScreenStore } from '@/capturer/store/app'
+import { CapturerStore } from '@/capturer/store/app'
 
 export class Ellipse extends Shape {
+  historyRedo(record: Shape) {
+    super.historyRedo(record)
+    this.pathCache = null
+    this.draw()
+  }
+
   onMove() {
     this.pathCache = null
   }
@@ -26,7 +32,7 @@ export class Ellipse extends Shape {
     if (!this.pathCache) {
       return false
     }
-    const ctx = ScreenStore.rectCtx!
+    const ctx = this.canvasCtx!
     ctx.save()
     ctx.lineWidth = lineWidth
     // 利用原生 API 判定点是否在路径的描边范围内
@@ -297,13 +303,15 @@ export class Ellipse extends Shape {
       this.pathCache = pathCache
     }
 
-    const ctx = ScreenStore.rectCtx!
+    const ctx = this.canvasCtx!
     ctx.save()
+    ctx.clearRect(0, 0, this.canvas!.width, this.canvas!.height)
+
     ctx.strokeStyle = this.strokeColor
     ctx.lineWidth = this.getStrokeWidth()
 
     ctx.stroke(this.pathCache)
-
+    this.getHandles()
     if (this.showHandle) {
       const store = CapturerStore()
 
@@ -315,7 +323,7 @@ export class Ellipse extends Shape {
       ctx.rect(x, y, width, height)
       ctx.stroke()
 
-      const handles = this.getHandles()
+      const handles = this.handles!
       const radius = 3 * store.scaleFactor
       ctx.beginPath()
       handles.forEach((handle) => {

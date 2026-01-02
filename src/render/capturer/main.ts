@@ -47,9 +47,8 @@ IPC.on('APP:Capturer-Window-Clean').then(() => {
   store.windowImages = reactive({})
   store.currentRect = undefined
   store.magnifyingInfo.show = true
-  RectSelect.editRect = undefined
-  RectSelect.selectAble = true
-  CapturerTool.reinit()
   RectCanvasStore.reinit()
+  RectSelect.reinit()
+  CapturerTool.reinit()
   ScreenStore.reinit()
 })

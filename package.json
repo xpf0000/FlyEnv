@@ -164,6 +164,7 @@
     "generate-schema": "^2.6.0",
     "globals": "^16.2.0",
     "gofmt.js": "^0.0.2",
+    "html-to-image": "^1.11.13",
     "js-base64": "^3.7.7",
     "json-to-go": "^1.0.1",
     "json-to-ts": "^2.1.0",

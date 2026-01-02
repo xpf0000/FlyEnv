@@ -2,10 +2,11 @@ import type { Rect } from '../store/app'
 import { reactiveBind } from '@/util/Index'
 import { CapturerStore } from '../store/app'
 import CapturerTool from '@/capturer/tools/tools'
+import IPC from '@/util/IPC'
 // 首先，在你的类中需要定义一些必要的属性
 class RectSelect {
   // 选区数据
-  public editRect: Rect | undefined
+  public editRect: Rect | undefined | null
 
   public selectAble: boolean = true
 
@@ -14,6 +15,17 @@ class RectSelect {
   private isSelecting: boolean = false
 
   private beginPoint: { x: number; y: number } = { x: 0, y: 0 }
+
+  reinit() {
+    this.editRect = null
+    this.selectAble = true
+    this.selected = false
+    this.isSelecting = false
+    this.beginPoint = {
+      x: 0,
+      y: 0
+    }
+  }
 
   // 初始化事件监听
   public initEvents() {
@@ -27,6 +39,7 @@ class RectSelect {
    */
   private onMouseDown(e: MouseEvent) {
     if (!this.selectAble || this.selected) {
+      console.log('onMouseDown exit !!!', this.selectAble, this.selected)
       return
     }
     e.preventDefault()
@@ -83,6 +96,9 @@ class RectSelect {
     CapturerTool.updatePosition(this.editRect)
     // 可以在这里触发选区完成的回调
     console.log('选区完成', this.editRect)
+    IPC.send('Capturer:stopCheckWindowInPoint').then((key: string) => {
+      IPC.off(key)
+    })
     window.removeEventListener('mousemove', this.onMouseMove)
     window.removeEventListener('mouseup', this.onMouseUp)
   }

@@ -1,7 +1,10 @@
-import { CapturerStore, ScreenStore } from '@/capturer/store/app'
+import { CapturerStore } from '@/capturer/store/app'
 import CapurerTool from '@/capturer/tools/tools'
+import RectSelect from '@/capturer/RectSelector/RectSelect'
+import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
+import { uuid } from '@/util/Index'
 
-type ShapeItemTypeType = 'square' | 'circle' | 'arrow' | 'draw' | 'mask' | 'text' | 'tag'
+export type ShapeItemTypeType = 'square' | 'circle' | 'arrow' | 'draw' | 'mask' | 'text' | 'tag'
 export type Point = {
   x: number
   y: number
@@ -22,9 +25,11 @@ export type HandleItemType = {
     | 'right-center'
     | 'start'
     | 'end'
+    | 'tag-text-position'
 }
 
 export class Shape {
+  id: string = ''
   type: ShapeItemTypeType = 'square'
   startPoint: Point = {
     x: 0,
@@ -38,17 +43,82 @@ export class Shape {
   strokeWidth: number = 1
   toolWidth: number = 0
   showHandle: boolean = false
-  handle?: HandleItemType
-  handles?: HandleItemType[]
+  handle?: HandleItemType | null = undefined
+  handles?: HandleItemType[] | null = undefined
   width: number = 0
   height: number = 0
   pathCache?: Path2D | null = undefined // 缓存路径对象
+  canvas?: HTMLCanvasElement | null = undefined
+  canvasCtx?: CanvasRenderingContext2D | null = undefined
+  zIndex = 0
+  historyAdded: boolean = false
+
+  destroy() {
+    this.handle = null
+    this.handles = null
+    this.pathCache = null
+    this.canvasCtx = null
+    this.canvas?.remove()
+    this.canvas = null
+  }
+
+  historyRedo(record: Shape) {
+    this.startPoint = record.startPoint
+    this.endPoint = record.endPoint
+    this.strokeColor = record.strokeColor
+    this.toolWidth = record.toolWidth
+    this.showHandle = false
+    this.width = record.width
+    this.height = record.height
+    this.zIndex = record.zIndex
+  }
+
+  checkMouseOnHandle(x: number, y: number) {
+    const store = CapturerStore()
+    const handleSize = 7 * store.scaleFactor
+    const handles = this?.handles ?? []
+    for (const handle of handles) {
+      if (Math.abs(x - handle.x) <= handleSize && Math.abs(y - handle.y) <= handleSize) {
+        return {
+          handle,
+          shape: this,
+          onBorder: false,
+          onShape: false
+        }
+      }
+    }
+    return undefined
+  }
+
+  initCanvas() {
+    const store = CapturerStore()
+    const canvas = document.createElement('canvas')
+    canvas.width = RectSelect.editRect!.width * store.scaleFactor
+    canvas.height = RectSelect.editRect!.height * store.scaleFactor
+    canvas.style.width = RectSelect.editRect!.width + 'px'
+    canvas.style.height = RectSelect.editRect!.height + 'px'
+    canvas.className = 'capturer-shape-canvas'
+
+    const zIndexs = RectCanvasStore.shape.filter((f) => f.type !== 'mask').map((m) => m.zIndex)
+    const maxZIndex = Math.max(...zIndexs, 1999)
+    canvas.style.zIndex = `${maxZIndex + 1}`
+    const selector: HTMLHtmlElement = document.querySelector('#app-capturer-selector')!
+    selector.appendChild(canvas)
+    this.canvas = canvas
+    this.canvasCtx = this.canvas.getContext('2d')
+  }
+
+  onToolWidthChanged() {}
+
+  onStrokeColorChanged() {}
 
   constructor(type: ShapeItemTypeType, startPoint: Point, strokeColor: string, toolWidth: number) {
+    this.id = uuid()
     this.type = type
     this.startPoint = startPoint
     this.strokeColor = strokeColor
     this.toolWidth = toolWidth
+    this.initCanvas()
   }
 
   onMove() {}
@@ -101,6 +171,11 @@ export class Shape {
   select() {
     this.showHandle = true
     this.reDraw()
+    const zIndexs = RectCanvasStore.shape.filter((f) => f.type !== 'mask').map((m) => m.zIndex)
+    const maxZIndex = Math.max(...zIndexs, 1999)
+    const zIndex = maxZIndex + 1
+    this.zIndex = zIndex
+    this.canvas!.style.zIndex = `${zIndex}`
     if (this.type === 'square') {
       CapurerTool.tool = 'square'
       CapurerTool.square.width = this.toolWidth
@@ -115,34 +190,20 @@ export class Shape {
       CapurerTool.arrow.color = this.strokeColor
     } else if (this.type === 'draw') {
       CapurerTool.tool = 'draw'
-      CapurerTool.arrow.width = this.toolWidth
-      CapurerTool.arrow.color = this.strokeColor
+      CapurerTool.draw.width = this.toolWidth
+      CapurerTool.draw.color = this.strokeColor
+    } else if (this.type === 'text') {
+      CapurerTool.tool = 'text'
+      CapurerTool.text.fontSize = this.toolWidth
+      CapurerTool.text.color = this.strokeColor
+    } else if (this.type === 'tag') {
+      CapurerTool.tool = 'tag'
+      CapurerTool.tag.fontSize = this.toolWidth
+      CapurerTool.tag.color = this.strokeColor
     }
   }
 
   reDraw() {}
 
-  draw() {
-    const store = CapturerStore()
-    const ctx = ScreenStore.rectCtx!
-    if (this.showHandle) {
-      // ctx.imageSmoothingEnabled = true
-      // 绘制控制点
-      ctx.fillStyle = '#FFFFFF'
-      ctx.strokeStyle = '#333333'
-      ctx.lineWidth = 1 * store.scaleFactor
-      const handles = this.getHandles()
-
-      const radius = 3 * store.scaleFactor
-      ctx.beginPath()
-      handles.forEach((handle) => {
-        // 必须用 moveTo 分隔每个圆形
-        ctx.moveTo(handle.x + radius, handle.y)
-        ctx.arc(handle.x, handle.y, radius, 0, Math.PI * 2)
-      })
-      // 一次性操作
-      ctx.fill()
-      ctx.stroke()
-    }
-  }
+  draw() {}
 }

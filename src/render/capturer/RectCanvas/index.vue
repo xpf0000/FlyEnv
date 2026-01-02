@@ -7,6 +7,7 @@
     :height="height"
     @mousedown.stop="RectCanvasStore.onMouseDown"
     @mousemove="RectCanvasStore.onCanvasMouseMove"
+    @dblclick="RectCanvasStore.onDblClick"
   ></canvas>
 </template>
 <script lang="ts" setup>
