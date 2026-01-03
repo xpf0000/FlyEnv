@@ -20,6 +20,7 @@ export class Mask extends Shape {
 
   initCanvas() {
     super.initCanvas()
+    this.zIndex = 99
     const zIndexs = RectCanvasStore.shape.filter((f) => f.type === 'mask').map((m) => m.zIndex)
     const maxZIndex = Math.max(...zIndexs, 99)
     const zIndex = maxZIndex + 1
@@ -191,5 +192,9 @@ export class Mask extends Shape {
     }
 
     ctx.restore()
+  }
+
+  async exportCanvas(): Promise<HTMLCanvasElement> {
+    return this.canvas!
   }
 }

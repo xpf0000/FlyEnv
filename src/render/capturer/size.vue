@@ -34,11 +34,11 @@
   })
 
   const width = computed(() => {
-    return Math.floor(info.value.width * store.scaleFactor)
+    return Math.floor(info.value.width)
   })
 
   const height = computed(() => {
-    return Math.floor(info.value.height * store.scaleFactor)
+    return Math.floor(info.value.height)
   })
 
   onMounted(() => {})

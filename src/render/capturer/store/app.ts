@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia'
 import RectSelect from '@/capturer/RectSelector/RectSelect'
+import RectCanvas from '@/capturer/RectCanvas/RectCanvas'
+import IPC from '@/util/IPC'
+import { loadImage } from '@/util/Index'
 
 export type Rect = {
   x: number
@@ -222,26 +225,24 @@ export const CapturerStore = defineStore('capturerStore', {
      * @param rectImgStr 选区图 base64
      * @param rect 屏幕上的选区位置
      */
-    async getCanvas(screenImgStr: string, rectImgStr?: string, rect?: Rect) {
-      const loadImage = (src: string): Promise<HTMLImageElement> => {
-        return new Promise((resolve, reject) => {
-          const img = new Image()
-          img.src = src
-          img
-            .decode()
-            .then(() => resolve(img))
-            .catch(reject)
-        })
-      }
-
+    async getCanvas(screenImgStr: string, rectImgStr?: string, rect?: Rect, rectId?: number) {
       try {
         const promises: [Promise<HTMLImageElement>, Promise<HTMLImageElement | null>] = [
-          loadImage(screenImgStr),
+          ScreenStore.windowImagesDom[-1]
+            ? Promise.resolve(ScreenStore.windowImagesDom[-1])
+            : loadImage(screenImgStr),
           rectImgStr && rect ? loadImage(rectImgStr) : Promise.resolve(null)
         ]
 
         const [bgImg, overlayImg] = await Promise.all(promises)
 
+        if (bgImg && !rectId && !ScreenStore.windowImagesDom[-1]) {
+          ScreenStore.windowImagesDom[-1] = bgImg
+        }
+
+        if (overlayImg && rectId) {
+          ScreenStore.windowImagesDom[rectId] = overlayImg
+        }
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d', { willReadFrequently: true })
         if (!ctx) return
@@ -281,6 +282,88 @@ export const CapturerStore = defineStore('capturerStore', {
       } catch (error) {
         console.error('生成高清图失败:', error)
       }
+    },
+
+    async exitCapturer() {
+      return new Promise((resolve) => {
+        IPC.send('Capturer:doStopCapturer').then((key: string) => {
+          IPC.off(key)
+          resolve(true)
+        })
+      })
+    },
+    /**
+     * 导出画布为base64字符串
+     */
+    async exportCanvasToBase64(): Promise<string> {
+      /**
+       * 选区
+       */
+      const rect = RectSelect.editRect!
+      const rectID = RectSelect.editRectId
+
+      const canvas = document.createElement('canvas')!
+      canvas.width = rect.width * this.scaleFactor
+      canvas.height = rect.height * this.scaleFactor
+      const ctx = canvas.getContext('2d')!
+      ctx.imageSmoothingEnabled = false
+      if (rectID) {
+        const img = ScreenStore.windowImagesDom[rectID]
+        ctx.drawImage(img, 0, 0)
+      } else {
+        /**
+         * 底图
+         */
+        const baseCanvas = ScreenStore.canvas!
+        /**
+         * 把baseCanvas的rect选区的图像, 绘制到canvas上
+         */
+        ctx.drawImage(
+          baseCanvas,
+          rect.x * this.scaleFactor,
+          rect.y * this.scaleFactor,
+          rect.width * this.scaleFactor,
+          rect.height * this.scaleFactor,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        )
+      }
+      /**
+       * 按zIndex从小到大排序的所有叠加图层
+       */
+      const allShapeLayer = RectCanvas.shape.sort((a, b) => {
+        return a.zIndex - b.zIndex
+      })
+      console.log('allShapeLayer: ', JSON.parse(JSON.stringify(allShapeLayer)))
+      /**
+       * 排好序的图层画布
+       */
+      const allCanavsLayer = await Promise.all(allShapeLayer.map((a) => a.exportCanvas()))
+
+      /**
+       * 按顺序把图层画布叠加绘制到canvas上
+       * 画布大小就是rect的大小, 可以直接绘制到canvas上
+       */
+      allCanavsLayer.forEach((layerCanvas) => {
+        if (layerCanvas && layerCanvas.width && layerCanvas.height) {
+          ctx.drawImage(layerCanvas, 0, 0)
+        }
+      })
+      /**
+       * 导出canvas为base64字符串
+       */
+      return canvas.toDataURL('image/png')
+    },
+
+    async saveImage(useConfig: boolean) {
+      const image = await this.exportCanvasToBase64()
+      await this.exitCapturer()
+      const base64 = image.replace(/^data:image\/\w+;base64,/, '')
+      IPC.send('Capturer:saveImage', base64, useConfig).then((key: string) => {
+        IPC.off(key)
+      })
     }
   }
 })
@@ -291,6 +374,7 @@ type ScreenStoreType = {
   rectCtx: CanvasRenderingContext2D | undefined | null
   mosaicPattern: CanvasPattern | undefined | null
   createMosaicPattern: (mosaicSize: number) => void
+  windowImagesDom: Record<number, HTMLImageElement>
   reinit: () => void
 }
 
@@ -308,12 +392,14 @@ export const ScreenStore: ScreenStoreType = {
    * 马赛克画刷
    */
   mosaicPattern: undefined,
+  windowImagesDom: {},
 
   reinit() {
     ScreenStore.mosaicPattern = null
     ScreenStore.canvas = null
     ScreenStore.rectCanvas = null
     ScreenStore.rectCtx = null
+    ScreenStore.windowImagesDom = {}
   },
   createMosaicPattern(mosaicSize: number = 10) {
     if (this.mosaicPattern || !RectSelect.editRect) {

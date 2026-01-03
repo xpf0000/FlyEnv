@@ -62,5 +62,17 @@
   "SelectAll": "Hamısını Seç",
   "MoveToTop": "Ən Üstə Daşı",
   "MoveToGroup": "Qrupa Daşı",
-  "MarkdownPreview": "Markdown Ön Baxış"
+  "MarkdownPreview": "Markdown Ön Baxış",
+
+  "Capturer": "Ekran görüntüsü",
+  "CapturerShortcut": "Ekran görüntüsü qısayolu",
+  "CapturerShortcutTips": "Ekran görüntüsü almaq üçün istifadə etmək istədiyiniz düymələri basın, məsələn Ctrl+Shift+A",
+  "CapturerSaveDir": "Ekran görüntülərinin saxlanma yeri",
+  "CapturerNameRule": "Ekran görüntüsü adlandırma qaydası",
+  "RuleIndex": "Sıra nömrəsi",
+  "RuleTimestamp": "Zaman damğası",
+  "RuleDateTime": "Tarix və saat",
+  "RuleUUID": "Tək identifikator",
+  "CapturerFailTitle": "Ekran görüntüsü alınmadı",
+  "CapturerFailContent": "Ekran görüntüsü alınamadı, lütfen yenidən cəhd edin"
 }

@@ -300,38 +300,43 @@ export class Tag extends Shape {
   }
 
   private drawToOffScreen() {
-    if (!this.textArea || !this.mirror) return
-    const store = CapturerStore()
-    const fontSize = Math.round(this.getStrokeWidth() / store.scaleFactor)
-    const dom = this.mirror!.cloneNode(true) as HTMLElement
-    dom.style.zIndex = '-1'
-    document.body.appendChild(dom)
-    toCanvasAndSVG(dom, {
-      style: {
-        textRendering: 'geometricPrecision',
-        fontWeight: 'normal',
-        fontSize: `${fontSize}px`,
-        lineHeight: `${fontSize + 12}px`,
-        left: '0px',
-        top: '0px',
-        display: 'inline-block',
-        position: 'relative',
-        inset: '0px',
-        insetBlock: '0px',
-        insetInline: '0px'
+    return new Promise((resolve, reject) => {
+      if (!this.textArea || !this.mirror) {
+        return reject(new Error('not now'))
       }
+      const store = CapturerStore()
+      const fontSize = Math.round(this.getStrokeWidth() / store.scaleFactor)
+      const dom = this.mirror!.cloneNode(true) as HTMLElement
+      dom.style.zIndex = '-1'
+      document.body.appendChild(dom)
+      toCanvasAndSVG(dom, {
+        style: {
+          textRendering: 'geometricPrecision',
+          fontWeight: 'normal',
+          fontSize: `${fontSize}px`,
+          lineHeight: `${fontSize + 12}px`,
+          left: '0px',
+          top: '0px',
+          display: 'inline-block',
+          position: 'relative',
+          inset: '0px',
+          insetBlock: '0px',
+          insetInline: '0px'
+        }
+      })
+        .then(({ canvas }) => {
+          this.offScreenCanvas = canvas
+          this.draw()
+        })
+        .catch((err: Error) => {
+          console.log('drawToOffScreen error: ', err)
+        })
+        .finally(() => {
+          this.mirror?.remove()
+          dom.remove()
+          resolve(true)
+        })
     })
-      .then(({ canvas }) => {
-        this.offScreenCanvas = canvas
-        this.draw()
-      })
-      .catch((err: Error) => {
-        console.log('drawToOffScreen error: ', err)
-      })
-      .finally(() => {
-        this.mirror?.remove()
-        dom.remove()
-      })
   }
 
   update(endPoint: Point) {
@@ -623,5 +628,15 @@ export class Tag extends Shape {
     }
 
     ctx.restore()
+  }
+
+  async exportCanvas(): Promise<HTMLCanvasElement> {
+    if (!this.showHandle && !this.textEditing) {
+      return this.canvas!
+    }
+    this.showHandle = false
+    this.textEditing = false
+    await this.drawToOffScreen()
+    return this.canvas!
   }
 }

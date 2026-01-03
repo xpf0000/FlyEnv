@@ -62,5 +62,17 @@
   "SelectAll": "Velg alle",
   "MoveToTop": "Flytt til toppen",
   "MoveToGroup": "Flytt til gruppe",
-  "MarkdownPreview": "Forhåndsvisning av Markdown"
+  "MarkdownPreview": "Forhåndsvisning av Markdown",
+
+  "Capturer": "Skjermbilde",
+  "CapturerShortcut": "Snarvei for skjermbilde",
+  "CapturerShortcutTips": "Trykk på tastene du vil bruke for å ta et skjermbilde, f.eks. Ctrl+Shift+A",
+  "CapturerSaveDir": "Lagringssted for skjermbilder",
+  "CapturerNameRule": "Navneregel for skjermbilder",
+  "RuleIndex": "Sekvensnummer",
+  "RuleTimestamp": "Tidsstempel",
+  "RuleDateTime": "Dato og tid",
+  "RuleUUID": "Unik identifikator",
+  "CapturerFailTitle": "Skjermbilde mislyktes",
+  "CapturerFailContent": "Kunne ikke ta skjermbilde, vennligst prøv igjen"
 }

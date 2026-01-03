@@ -62,5 +62,17 @@
   "SelectAll": "Valitse Kaikki",
   "MoveToTop": "Siirrä Yläosaan",
   "MoveToGroup": "Siirrä Ryhmään",
-  "MarkdownPreview": "Alusta Esikatselu"
+  "MarkdownPreview": "Alusta Esikatselu",
+
+  "Capturer": "Kuvakaappaus",
+  "CapturerShortcut": "Kuvakaappauspikakuvake",
+  "CapturerShortcutTips": "Paina näppäimet, joita haluat käyttää kuvakaappauksen ottamiseen, esim. Ctrl+Shift+A",
+  "CapturerSaveDir": "Kuvakaappausten tallennussijainti",
+  "CapturerNameRule": "Kuvakaappausten nimeämissääntö",
+  "RuleIndex": "Järjestysnumero",
+  "RuleTimestamp": "Aikaleima",
+  "RuleDateTime": "Päivämäärä ja aika",
+  "RuleUUID": "Yksilöllinen tunniste",
+  "CapturerFailTitle": "Kuvakaappaus epäonnistui",
+  "CapturerFailContent": "Kuvakaappauksen ottaminen epäonnistui, yritä uudelleen"
 }

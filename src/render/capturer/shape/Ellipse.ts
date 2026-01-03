@@ -337,4 +337,13 @@ export class Ellipse extends Shape {
     }
     ctx.restore()
   }
+
+  async exportCanvas(): Promise<HTMLCanvasElement> {
+    if (!this.showHandle) {
+      return this.canvas!
+    }
+    this.showHandle = false
+    this.draw()
+    return this.canvas!
+  }
 }

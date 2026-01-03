@@ -20,6 +20,7 @@ import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { FlyEnvHelperSetup } from '@/components/FlyEnvHelper/setup'
 import { isEqual } from 'lodash-es'
+import CapturerSetup from '@/components/Tools/Capturer/setup'
 
 window.Server = reactive({}) as any
 
@@ -48,6 +49,7 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
     AppToolStore.init()
     SetupStore().init()
     AppLogStore.init().then().catch()
+    CapturerSetup.init()
   } else {
     console.log('has inited !!!!')
   }

@@ -62,5 +62,17 @@
   "SelectAll": "Zaznacz wszystko",
   "MoveToTop": "Przenieś na górę",
   "MoveToGroup": "Przenieś do grupy",
-  "MarkdownPreview": "Podgląd Markdown"
+  "MarkdownPreview": "Podgląd Markdown",
+
+  "Capturer": "Zrzut ekranu",
+  "CapturerShortcut": "Skrót zrzutu ekranu",
+  "CapturerShortcutTips": "Naciśnij klawisze, których chcesz użyć do wykonania zrzutu, np. Ctrl+Shift+A",
+  "CapturerSaveDir": "Lokalizacja zapisu zrzutów",
+  "CapturerNameRule": "Zasada nazewnictwa zrzutów",
+  "RuleIndex": "Numer sekwencyjny",
+  "RuleTimestamp": "Znacznik czasu",
+  "RuleDateTime": "Data i godzina",
+  "RuleUUID": "Unikalny identyfikator",
+  "CapturerFailTitle": "Zrzut ekranu nieudany",
+  "CapturerFailContent": "Nie udało się wykonać zrzutu ekranu, spróbuj ponownie"
 }

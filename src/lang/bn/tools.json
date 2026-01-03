@@ -62,5 +62,17 @@
   "SelectAll": "সব নির্বাচন করুন",
   "MoveToTop": "শীর্ষে সরান",
   "MoveToGroup": "গ্রুপে সরান",
-  "MarkdownPreview": "মার্কডাউন প্রিভিউ"
+  "MarkdownPreview": "মার্কডাউন প্রিভিউ",
+
+  "Capturer": "স্ক্রিনশট",
+  "CapturerShortcut": "স্ক্রিনশট শর্টকাট",
+  "CapturerShortcutTips": "স্ক্রিনশট নেওয়ার জন্য আপনি যে কীগুলি ব্যবহার করতে চান তা চাপুন, যেমন Ctrl+Shift+A",
+  "CapturerSaveDir": "স্ক্রিনশট সংরক্ষণের অবস্থান",
+  "CapturerNameRule": "স্ক্রিনশট নামকরণের নিয়ম",
+  "RuleIndex": "ক্রমিক সংখ্যা",
+  "RuleTimestamp": "টাইমস্ট্যাম্প",
+  "RuleDateTime": "তারিখ ও সময়",
+  "RuleUUID": "স্বতন সনাক্তকারী",
+  "CapturerFailTitle": "স্ক্রিনশট নিতে ব্যর্থ",
+  "CapturerFailContent": "স্ক্রিনশট পাওয়া যায়নি, অনুগ্রহ করে আবার চেষ্টা করুন"
 }

@@ -67,5 +67,15 @@
   "MoveToGroup": "Move To Group",
   "MarkdownPreview": "Markdown Preview",
 
-  "Capturer": "Screenshot"
+  "Capturer": "Screenshot",
+  "CapturerShortcut": "Screenshot Shortcut",
+  "CapturerShortcutTips": "Press the keys you want to use for taking a screenshot, e.g. Ctrl+Shift+A",
+  "CapturerSaveDir": "Screenshot Save Location",
+  "CapturerNameRule": "Screenshot Naming Rule",
+  "RuleIndex": "Sequence Number",
+  "RuleTimestamp": "Timestamp",
+  "RuleDateTime": "Date and Time",
+  "RuleUUID": "UUID",
+  "CapturerFailTitle": "Screenshot Failed",
+  "CapturerFailContent": "Failed to capture screenshot, please try again"
 }

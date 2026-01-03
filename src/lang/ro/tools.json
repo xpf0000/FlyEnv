@@ -62,5 +62,17 @@
   "SelectAll": "Selectează tot",
   "MoveToTop": "Mută sus",
   "MoveToGroup": "Mutare în grup",
-  "MarkdownPreview": "Previzualizare Markdown"
+  "MarkdownPreview": "Previzualizare Markdown",
+
+  "Capturer": "Captură de ecran",
+  "CapturerShortcut": "Scurtătură captură",
+  "CapturerShortcutTips": "Apăsați tastele pe care doriți să le folosiți pentru captură, de ex. Ctrl+Shift+A",
+  "CapturerSaveDir": "Locația de salvare a capturilor",
+  "CapturerNameRule": "Regula de denumire a capturilor",
+  "RuleIndex": "Număr secvenţial",
+  "RuleTimestamp": "Marcaj temporal",
+  "RuleDateTime": "Data și ora",
+  "RuleUUID": "Identificator unic",
+  "CapturerFailTitle": "Captura de ecran eșuată",
+  "CapturerFailContent": "Nu s-a putut face captura de ecran, încercați din nou"
 }

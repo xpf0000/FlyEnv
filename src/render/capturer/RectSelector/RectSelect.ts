@@ -16,8 +16,13 @@ class RectSelect {
 
   private beginPoint: { x: number; y: number } = { x: 0, y: 0 }
 
+  private moved: boolean = false
+
+  editRectId: number | null = null
+
   reinit() {
     this.editRect = null
+    this.editRectId = null
     this.selectAble = true
     this.selected = false
     this.isSelecting = false
@@ -25,6 +30,7 @@ class RectSelect {
       x: 0,
       y: 0
     }
+    this.moved = false
   }
 
   // 初始化事件监听
@@ -43,7 +49,7 @@ class RectSelect {
       return
     }
     e.preventDefault()
-
+    this.moved = false
     this.beginPoint = {
       x: e.clientX,
       y: e.clientY
@@ -61,7 +67,7 @@ class RectSelect {
     window.addEventListener('mouseup', this.onMouseUp)
 
     // 可以在这里触发开始选区的回调
-    console.log('开始选区', this.editRect)
+    console.log('开始选区', this.editRect, e.clientX, e.clientY)
   }
 
   /**
@@ -70,6 +76,10 @@ class RectSelect {
   private onMouseMove(e: MouseEvent) {
     if (!this.selectAble || !this.isSelecting || !this.editRect) return
     e.preventDefault()
+    if (e.clientX !== this.beginPoint.x && e.clientY !== this.beginPoint.y) {
+      this.moved = true
+    }
+    console.log('onMouseMove !!!', e.clientX, e.clientY)
     const x = Math.max(0, Math.min(window.innerWidth, e.clientX))
     const y = Math.max(0, Math.min(window.innerHeight, e.clientY))
 
@@ -83,9 +93,30 @@ class RectSelect {
     if (!this.selectAble || !this.isSelecting || !this.editRect) return
 
     e.preventDefault()
-
     this.isSelecting = false
-
+    const store = CapturerStore()
+    console.log(
+      'onMouseUp this.moved: ',
+      this.moved,
+      store?.currentRect?.bounds,
+      store?.currentRect?.id
+    )
+    if (!this.moved && store?.currentRect?.bounds) {
+      const rect = store.currentRect.bounds
+      if (
+        e.clientX >= rect.x &&
+        e.clientY >= rect.y &&
+        e.clientX <= rect.x + rect.width &&
+        e.clientY <= rect.y + rect.height
+      ) {
+        this.editRect = null
+        this.chooseHoverRect()
+        window.removeEventListener('mousemove', this.onMouseMove)
+        window.removeEventListener('mouseup', this.onMouseUp)
+        return
+      }
+    }
+    this.moved = false
     const x = Math.max(0, Math.min(window.innerWidth, e.clientX))
     const y = Math.max(0, Math.min(window.innerHeight, e.clientY))
 
@@ -101,6 +132,30 @@ class RectSelect {
     })
     window.removeEventListener('mousemove', this.onMouseMove)
     window.removeEventListener('mouseup', this.onMouseUp)
+  }
+
+  private chooseHoverRect() {
+    IPC.send('Capturer:stopCheckWindowInPoint').then((key: string) => {
+      IPC.off(key)
+    })
+    const store = CapturerStore()
+    if (
+      store?.currentRect?.id &&
+      store?.currentRect?.id > 0 &&
+      !store.windowImages?.[store?.currentRect?.id]
+    ) {
+      IPC.send('Capturer:getWindowCapturer', store?.currentRect?.id).then((key: string) => {
+        IPC.off(key)
+      })
+    }
+    store.magnifyingInfo.show = false
+    this.editRect = {
+      ...store.currentRect?.bounds
+    } as any
+    this.editRectId = store?.currentRect?.id ?? 0
+    this.selectAble = false
+    this.selected = true
+    CapturerTool.updatePosition(this.editRect!)
   }
 
   /**

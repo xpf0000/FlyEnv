@@ -62,5 +62,17 @@
   "SelectAll": "Επιλογή Όλων",
   "MoveToTop": "Μετακίνηση Πάνω",
   "MoveToGroup": "Μετακίνηση Σε Ομάδα",
-  "MarkdownPreview": "Προεπισκόπηση Markdown"
+  "MarkdownPreview": "Προεπισκόπηση Markdown",
+
+  "Capturer": "Στιγμιότυπο οθόνης",
+  "CapturerShortcut": "Συντόμευση στιγμιότυπου",
+  "CapturerShortcutTips": "Πατήστε τα πλήκτρα που θέλετε να χρησιμοποιήσετε για λήψη στιγμιότυπου, π.χ. Ctrl+Shift+A",
+  "CapturerSaveDir": "Τοποθεσία αποθήκευσης στιγμιότυπων",
+  "CapturerNameRule": "Κανόνας ονοματοδοσίας στιγμιότυπων",
+  "RuleIndex": "Σειριακός αριθμός",
+  "RuleTimestamp": "Χρονική σήμανση",
+  "RuleDateTime": "Ημερομηνία και ώρα",
+  "RuleUUID": "Μοναδικό αναγνωριστικό",
+  "CapturerFailTitle": "Αποτυχία λήψης στιγμιότυπου",
+  "CapturerFailContent": "Αποτυχία λήψης στιγμιότυπου οθόνης, δοκιμάστε ξανά"
 }

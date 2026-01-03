@@ -62,5 +62,17 @@
   "SelectAll": "Выделить все",
   "MoveToTop": "Переместить вверх",
   "MoveToGroup": "Переместить в группу",
-  "MarkdownPreview": "Предпросмотр Markdown"
+  "MarkdownPreview": "Предпросмотр Markdown",
+
+  "Capturer": "Скриншот",
+  "CapturerShortcut": "Горячая клавиша скриншота",
+  "CapturerShortcutTips": "Нажмите клавиши, которые хотите использовать для скриншота, напр. Ctrl+Shift+A",
+  "CapturerSaveDir": "Папка сохранения скриншотов",
+  "CapturerNameRule": "Правило именования скриншотов",
+  "RuleIndex": "Порядковый номер",
+  "RuleTimestamp": "Отметка времени",
+  "RuleDateTime": "Дата и время",
+  "RuleUUID": "Уникальный идентификатор",
+  "CapturerFailTitle": "Скриншот не удался",
+  "CapturerFailContent": "Не удалось сделать скриншот, попробуйте снова"
 }

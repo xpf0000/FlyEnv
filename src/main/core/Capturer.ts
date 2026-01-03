@@ -1,4 +1,4 @@
-import type { Rectangle } from 'electron'
+import { dialog, Rectangle, shell } from 'electron'
 import { desktopCapturer, screen, BrowserWindow, globalShortcut } from 'electron'
 import { windowManager, Window } from '@xpf0000/node-window-manager'
 import { fileURLToPath } from 'node:url'
@@ -6,6 +6,9 @@ import { dirname, resolve as PathResolve, join } from 'node:path'
 import is from 'electron-is'
 import { ViteDevPort } from '../../../configs/vite.port'
 import { isWindows } from '@shared/utils'
+import { existsSync, mkdirp, writeFile, readdir } from '@shared/fs-extra'
+import { randomUUID } from 'node:crypto'
+import { I18nT } from '@lang/index'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const index = PathResolve(__dirname, '../render/capturer/capturer.html')
@@ -27,6 +30,12 @@ type WindowBoundAndInfo = {
   name: string
 }
 
+type CapturerConfig = {
+  key: string[]
+  dir: string
+  name: string
+}
+
 export class Capturer {
   isFullScreen: boolean = false
   useWindow: boolean = true
@@ -45,6 +54,11 @@ export class Capturer {
   }
   windows: Record<number, WindowBoundAndInfo> = {}
   needCheckWindowInPoint: boolean = true
+  config: CapturerConfig = {
+    key: [],
+    name: '',
+    dir: ''
+  }
 
   stopCapturer() {
     globalShortcut.unregister('Escape')
@@ -113,8 +127,13 @@ export class Capturer {
     let screenRect = undefined
 
     if (isWindows()) {
-      const deskID = windowManager.getDesktopWindowID()
-      base64Image = windowManager.captureWindow(deskID)
+      try {
+        const deskID = windowManager.getDesktopWindowID()
+        base64Image = windowManager.captureWindow(deskID)
+      } catch {
+        dialog.showErrorBox(I18nT('tools.CapturerFailTitle'), I18nT('tools.CapturerFailContent'))
+        return
+      }
       screenRect = {
         x: 0,
         y: 0,
@@ -123,30 +142,41 @@ export class Capturer {
       }
       console.log('Desktop Bounds:', screenRect)
     } else {
-      try {
-        const sources = await desktopCapturer.getSources({
-          types: ['screen'],
-          thumbnailSize: {
-            width: Math.floor(display.bounds.width * display.scaleFactor),
-            height: Math.floor(display.bounds.height * display.scaleFactor)
+      const getScreenThumbnail = async (retry = 0) => {
+        if (retry > 2) {
+          return false
+        }
+        try {
+          const sources = await desktopCapturer.getSources({
+            types: ['screen'],
+            thumbnailSize: {
+              width: Math.floor(display.bounds.width * display.scaleFactor),
+              height: Math.floor(display.bounds.height * display.scaleFactor)
+            }
+          })
+          console.log('desktopCapturer.getSources sources: ', sources)
+          const image = sources[0].thumbnail
+          base64Image = image.toDataURL()
+          console.log('desktopCapturer.getSources base64Image: ', base64Image.length)
+          if (base64Image.length < 500) {
+            return await getScreenThumbnail(retry + 1)
           }
-        })
-        console.log('desktopCapturer.getSources sources: ', sources)
-        const image = sources[0].thumbnail
-        base64Image = image.toDataURL()
-        console.log('desktopCapturer.getSources base64Image: ', base64Image)
-        if (base64Image.length < 500) {
-          return
+          return true
+        } catch (e) {
+          console.error('desktopCapturer.getSources error: ', e)
+          return await getScreenThumbnail(retry + 1)
         }
-        screenRect = {
-          x: 0,
-          y: 0,
-          width: Math.floor(display.bounds.width * display.scaleFactor),
-          height: Math.floor(display.bounds.height * display.scaleFactor)
-        }
-      } catch (e) {
-        console.error('desktopCapturer.getSources error: ', e)
+      }
+      const res = await getScreenThumbnail(0)
+      if (!res) {
+        dialog.showErrorBox(I18nT('tools.CapturerFailTitle'), I18nT('tools.CapturerFailContent'))
         return
+      }
+      screenRect = {
+        x: 0,
+        y: 0,
+        width: Math.floor(display.bounds.width * display.scaleFactor),
+        height: Math.floor(display.bounds.height * display.scaleFactor)
       }
     }
 
@@ -240,7 +270,7 @@ export class Capturer {
           )
         } else {
           const item = {
-            id: 0,
+            id: -1,
             bounds: {
               x: 0,
               y: 0,
@@ -347,6 +377,90 @@ export class Capturer {
     } catch (error) {
       console.error('获取窗口位置失败:', error)
       return []
+    }
+  }
+
+  async saveImage(base64: string, userConfig?: boolean) {
+    const chooseDirSave = () => {
+      const timestramp = Math.floor(new Date().getTime() / 1000)
+      const name = `flyenv-capturer-${timestramp}.png`
+      dialog
+        .showSaveDialog({
+          properties: ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation'],
+          defaultPath: name,
+          filters: [
+            {
+              name: 'PNG Files',
+              extensions: ['png']
+            }
+          ]
+        })
+        .then(({ canceled, filePath }: any) => {
+          if (canceled || !filePath) {
+            return
+          }
+          const buffer = Buffer.from(base64, 'base64')
+          writeFile(filePath, buffer).then(() => {
+            shell.showItemInFolder(filePath)
+          })
+        })
+    }
+    if (!userConfig || !this.config.dir) {
+      chooseDirSave()
+      return
+    }
+    try {
+      await mkdirp(this.config.dir)
+    } catch {}
+    if (!existsSync(this.config.dir)) {
+      chooseDirSave()
+      return
+    }
+    const date = new Date()
+    const timestramp = Math.floor(date.getTime() / 1000)
+    let name = this.config.name.trim()
+    if (name) {
+      const time = date.toISOString()
+      const uuid = randomUUID()
+      name = name
+        .replace(/\{timestramp}/g, `${timestramp}`)
+        .replace(/\{datetime}/g, `${time}`)
+        .replace(/\{uuid}/g, `${uuid}`)
+      if (name.includes('{index}')) {
+        let all = await readdir(this.config.dir)
+        all = all.map((f) => f.toLowerCase())
+        const pngCount = all.filter((a) => a.endsWith('.png')).length
+        let index = pngCount + 1
+        let tmplName = name.replace(/\{index}/g, `${index}`)
+        while (all.includes(`${tmplName}.png`.toLowerCase())) {
+          index += 1
+          tmplName = name.replace(/\{index}/g, `${index}`)
+        }
+        name = tmplName
+      }
+      name += '.png'
+    } else {
+      name = `flyenv-capturer-${timestramp}.png`
+    }
+    const buffer = Buffer.from(base64, 'base64')
+    const filePath = join(this.config.dir, name)
+    writeFile(filePath, buffer).then(() => {
+      shell.showItemInFolder(filePath)
+    })
+  }
+
+  configUpdate(config: CapturerConfig) {
+    if (this.config.key.length) {
+      globalShortcut.unregister(this.config.key.join('+'))
+    }
+    this.config = config
+    if (this.config.key.length) {
+      globalShortcut.register(this.config.key.join('+'), () => {
+        if (this.capturering) {
+          return
+        }
+        this.initWatchPointWindow().catch()
+      })
     }
   }
 }

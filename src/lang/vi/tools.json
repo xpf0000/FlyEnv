@@ -67,5 +67,15 @@
   "MoveToGroup": "Di chuyển vào nhóm",
   "MarkdownPreview": "Xem trước Markdown",
 
-  "Capturer": "Ảnh chụp màn hình"
+  "Capturer": "Ảnh chụp màn hình",
+  "CapturerShortcut": "Phím tắt chụp màn hình",
+  "CapturerShortcutTips": "Nhấn các phím bạn muốn sử dụng để chụp màn hình, ví dụ Ctrl+Shift+A",
+  "CapturerSaveDir": "Vị trí lưu ảnh chụp",
+  "CapturerNameRule": "Quy tắc đặt tên ảnh chụp",
+  "RuleIndex": "Số thứ tự",
+  "RuleTimestamp": "Dấu thời gian",
+  "RuleDateTime": "Ngày và giờ",
+  "RuleUUID": "Định danh duy nhất",
+  "CapturerFailTitle": "Chụp màn hình thất bại",
+  "CapturerFailContent": "Không thể chụp màn hình, vui lòng thử lại"
 }

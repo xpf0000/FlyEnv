@@ -10,13 +10,7 @@
       crossorigin="anonymous"
       decoding="sync"
     />
-    <div
-      v-show="rect"
-      :class="{ 'no-border': !!RectSelect?.editRect }"
-      class="rect"
-      :style="style"
-      @click.stop="onRectClick"
-    >
+    <div v-show="rect" :class="{ 'no-border': !!RectSelect?.editRect }" class="rect" :style="style">
       <img
         v-show="rectImage"
         ref="rectImgRef"
@@ -29,7 +23,6 @@
     <Magnifying />
     <SizeVM />
     <CapturerToolVM />
-    <el-button @click.stop="doStop">停止</el-button>
   </div>
 </template>
 
@@ -38,12 +31,10 @@
   import type { ComputedRef } from 'vue'
   import { CapturerStore } from './store/app'
   import type { Rect } from './store/app'
-  import IPC from '@/util/IPC'
   import RectSelector from './RectSelector/selector.vue'
   import Magnifying from './magnifying.vue'
   import SizeVM from './size.vue'
   import RectSelect from '@/capturer/RectSelector/RectSelect'
-  import CapturerTool from '@/capturer/tools/tools'
   import CapturerToolVM from '@/capturer/tools/index.vue'
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
 
@@ -103,7 +94,9 @@
     (v) => {
       if (v) {
         if (screenImgRef.value) {
-          store.getCanvas(v, rectImage.value, store.currentRect?.bounds).catch()
+          store
+            .getCanvas(v, rectImage.value, store.currentRect?.bounds, store.currentRect?.id)
+            .catch()
         }
       }
     },
@@ -117,35 +110,6 @@
   onBeforeUnmount(() => {
     window.removeEventListener('mousemove', store.onWindowMouseMove)
   })
-
-  const doStop = () => {
-    IPC.send('Capturer:doStopCapturer').then((key: string) => {
-      IPC.off(key)
-    })
-  }
-  const onRectClick = () => {
-    if (RectSelect.selected && RectSelect.editRect) {
-      return
-    }
-    IPC.send('Capturer:stopCheckWindowInPoint').then((key: string) => {
-      IPC.off(key)
-    })
-    console.log('onRectClick !!!')
-    const rect = document.body.getBoundingClientRect()
-    console.log('body rect: ', rect)
-    if (currentRect.value?.id && !store.windowImages?.[currentRect.value?.id]) {
-      IPC.send('Capturer:getWindowCapturer', currentRect.value?.id).then((key: string) => {
-        IPC.off(key)
-      })
-    }
-    store.magnifyingInfo.show = false
-    RectSelect.editRect = {
-      ...store.currentRect?.bounds
-    } as any
-    RectSelect.selectAble = false
-    RectSelect.selected = true
-    CapturerTool.updatePosition(RectSelect.editRect!)
-  }
 </script>
 
 <style lang="scss">
@@ -172,14 +136,6 @@
   #app {
     position: relative;
     z-index: 50;
-
-    &:after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border: 5px solid red;
-      z-index: -1;
-    }
 
     .main {
       .screen-image {

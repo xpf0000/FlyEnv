@@ -62,5 +62,17 @@
   "SelectAll": "Seleziona tutto",
   "MoveToTop": "Sposta in cima",
   "MoveToGroup": "Sposta nel gruppo",
-  "MarkdownPreview": "Anteprima Markdown"
+  "MarkdownPreview": "Anteprima Markdown",
+
+  "Capturer": "Screenshot",
+  "CapturerShortcut": "Scorciatoia per screenshot",
+  "CapturerShortcutTips": "Premi i tasti che desideri utilizzare per fare uno screenshot, es. Ctrl+Maiusc+A",
+  "CapturerSaveDir": "Posizione salvataggio screenshot",
+  "CapturerNameRule": "Regola di denominazione screenshot",
+  "RuleIndex": "Numero sequenziale",
+  "RuleTimestamp": "Timestamp",
+  "RuleDateTime": "Data e ora",
+  "RuleUUID": "Identificatore univoco",
+  "CapturerFailTitle": "Screenshot non riuscito",
+  "CapturerFailContent": "Impossibile acquisire lo screenshot, riprova"
 }

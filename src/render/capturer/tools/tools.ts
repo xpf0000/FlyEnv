@@ -30,7 +30,7 @@ type CapurerToolType = {
   text: TextItemType
 }
 
-export const CapurerToolWidth = 358
+export const CapurerToolWidth = 390
 export const CapurerToolHeight = 82
 export const CapurerToolHeightOne = 36
 
@@ -68,6 +68,7 @@ class CapurerTool implements CapurerToolType {
   private initData: any
   isReversed: boolean = false
   style?: any = undefined
+  toolArrowCenter: number = 0
 
   constructor() {
     this.initData = JSON.parse(JSON.stringify(this))

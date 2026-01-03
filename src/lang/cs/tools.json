@@ -62,5 +62,17 @@
   "SelectAll": "Vybrat vše",
   "MoveToTop": "Přesunout nahoru",
   "MoveToGroup": "Přesunout do skupiny",
-  "MarkdownPreview": "Náhled Markdown"
+  "MarkdownPreview": "Náhled Markdown",
+
+  "Capturer": "Snímek obrazovky",
+  "CapturerShortcut": "Klávesová zkratka pro snímek",
+  "CapturerShortcutTips": "Stiskněte klávesy, které chcete použít pro pořízení snímku, např. Ctrl+Shift+A",
+  "CapturerSaveDir": "Umístění pro ukládání snímků",
+  "CapturerNameRule": "Pravidlo pro pojmenování snímků",
+  "RuleIndex": "Pořadové číslo",
+  "RuleTimestamp": "Časové razítko",
+  "RuleDateTime": "Datum a čas",
+  "RuleUUID": "Jedinečný identifikátor",
+  "CapturerFailTitle": "Snímek obrazovky se nezdařil",
+  "CapturerFailContent": "Nepodařilo se pořídit snímek obrazovky, zkuste to prosím znovu"
 }

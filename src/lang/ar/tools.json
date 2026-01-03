@@ -62,5 +62,17 @@
   "SelectAll": "تحديد الكل",
   "MoveToTop": "نقل إلى الأعلى",
   "MoveToGroup": "نقل إلى مجموعة",
-  "MarkdownPreview": "معاينة Markdown"
+  "MarkdownPreview": "معاينة Markdown",
+
+  "Capturer": "لقطة الشاشة",
+  "CapturerShortcut": "اختصار اللقطة",
+  "CapturerShortcutTips": "اضغط على مفاتيح الاختصار التي تريد استخدامها للقطة، مثل Ctrl+Shift+A",
+  "CapturerSaveDir": "مكان حفظ اللقطات",
+  "CapturerNameRule": "قاعدة تسمية اللقطات",
+  "RuleIndex": "رقم تسلسلي",
+  "RuleTimestamp": "الطابع الزمني",
+  "RuleDateTime": "التاريخ والوقت",
+  "RuleUUID": "معرف فريد",
+  "CapturerFailTitle": "فشل في التقاط الشاشة",
+  "CapturerFailContent": "فشل في الحصول على لقطة الشاشة، يرجى المحاولة مرة أخرى"
 }

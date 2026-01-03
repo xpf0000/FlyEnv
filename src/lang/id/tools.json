@@ -62,5 +62,17 @@
   "SelectAll": "Pilih Semua",
   "MoveToTop": "Pindahkan ke Atas",
   "MoveToGroup": "Pindahkan ke Grup",
-  "MarkdownPreview": "Pratinjau Markdown"
+  "MarkdownPreview": "Pratinjau Markdown",
+
+  "Capturer": "Tangkapan layar",
+  "CapturerShortcut": "Pintasan tangkapan layar",
+  "CapturerShortcutTips": "Tekan tombol yang ingin Anda gunakan untuk mengambil tangkapan layar, mis. Ctrl+Shift+A",
+  "CapturerSaveDir": "Lokasi penyimpanan tangkapan layar",
+  "CapturerNameRule": "Aturan penamaan tangkapan layar",
+  "RuleIndex": "Nomor urut",
+  "RuleTimestamp": "Stempel waktu",
+  "RuleDateTime": "Tanggal dan waktu",
+  "RuleUUID": "Pengidentifikasi unik",
+  "CapturerFailTitle": "Tangkapan layar gagal",
+  "CapturerFailContent": "Gagal mengambil tangkapan layar, silakan coba lagi"
 }

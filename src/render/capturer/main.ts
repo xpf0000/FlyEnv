@@ -38,7 +38,7 @@ IPC.on('APP:Capturer-Window-Image-Get').then((key: string, res: any) => {
       image = `data:image/png;base64,${image}`
     }
     store.windowImages[id] = image
-    store.getCanvas(store.screenImage!, image, store.currentRect?.bounds).catch()
+    store.getCanvas(store.screenImage!, image, store.currentRect?.bounds, id).catch()
   }
 })
 IPC.on('APP:Capturer-Window-Clean').then(() => {
@@ -46,7 +46,20 @@ IPC.on('APP:Capturer-Window-Clean').then(() => {
   store.screenImage = undefined
   store.windowImages = reactive({})
   store.currentRect = undefined
-  store.magnifyingInfo.show = true
+  store.magnifyingInfo = {
+    show: true,
+    point: {
+      x: 0,
+      y: 0,
+      showX: 0,
+      showY: 0
+    },
+    hex: '',
+    rgb: '',
+    image: '',
+    componentWidth: 0,
+    componentHeight: 0
+  }
   RectCanvasStore.reinit()
   RectSelect.reinit()
   CapturerTool.reinit()

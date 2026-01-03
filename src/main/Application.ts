@@ -494,7 +494,6 @@ export default class Application extends EventEmitter {
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
     this.initTrayManager()
-    this.getCapturer().registShortcut()
   }
 
   show(page = 'index') {
@@ -922,6 +921,18 @@ export default class Application extends EventEmitter {
       case 'Capturer:stopCheckWindowInPoint':
         this.getCapturer().stopCheckWindowInPoint()
         this.windowManager.sendCommandTo(this.getCapturer().window!, command, key, true)
+        break
+      case 'Capturer:saveImage':
+        {
+          this.getCapturer().saveImage(args[0], args[1])
+          this.windowManager.sendCommandTo(this.getCapturer().window!, command, key, true)
+        }
+        break
+      case 'Capturer:Config-Update':
+        {
+          this.getCapturer().configUpdate(args[0])
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+        }
         break
       case 'NodePty:init':
         NodePTY.initNodePty().then((res) => {

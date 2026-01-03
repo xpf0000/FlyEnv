@@ -65,5 +65,17 @@
   "SelectAll": "Вибрати все",
   "MoveToTop": "Перемістити вгору",
   "MoveToGroup": "Перемістити до групи",
-  "MarkdownPreview": "Попередній перегляд Markdown"
+  "MarkdownPreview": "Попередній перегляд Markdown",
+
+  "Capturer": "Знімок екрану",
+  "CapturerShortcut": "Гаряча клавіша знімка",
+  "CapturerShortcutTips": "Натисніть клавіші, які хочете використовувати для знімка, напр. Ctrl+Shift+A",
+  "CapturerSaveDir": "Папка збереження знімків",
+  "CapturerNameRule": "Правило іменування знімків",
+  "RuleIndex": "Порядковий номер",
+  "RuleTimestamp": "Мітка часу",
+  "RuleDateTime": "Дата та час",
+  "RuleUUID": "Унікальний ідентифікатор",
+  "CapturerFailTitle": "Не вдалося зробити знімок",
+  "CapturerFailContent": "Не вдалося зробити знімок екрану, спробуйте ще раз"
 }

@@ -256,4 +256,13 @@ export class Arrow extends Shape {
     ctx.stroke()
     ctx.restore()
   }
+
+  async exportCanvas(): Promise<HTMLCanvasElement> {
+    if (!this.showHandle) {
+      return this.canvas!
+    }
+    this.showHandle = false
+    this.draw()
+    return this.canvas!
+  }
 }

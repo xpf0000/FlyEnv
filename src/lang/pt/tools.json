@@ -62,5 +62,17 @@
   "SelectAll": "Selecionar tudo",
   "MoveToTop": "Mover para o topo",
   "MoveToGroup": "Mover para o grupo",
-  "MarkdownPreview": "Pré-visualização de Markdown"
+  "MarkdownPreview": "Pré-visualização de Markdown",
+
+  "Capturer": "Captura de ecrã",
+  "CapturerShortcut": "Atalho de captura",
+  "CapturerShortcutTips": "Pressione as teclas que pretende usar para capturar, ex. Ctrl+Shift+A",
+  "CapturerSaveDir": "Local de gravação das capturas",
+  "CapturerNameRule": "Regra de nomeação de capturas",
+  "RuleIndex": "Número de sequência",
+  "RuleTimestamp": "Data/hora",
+  "RuleDateTime": "Data e hora",
+  "RuleUUID": "Identificador único",
+  "CapturerFailTitle": "Captura de ecrã falhou",
+  "CapturerFailContent": "Falha ao capturar ecrã, tente novamente"
 }

@@ -422,6 +422,9 @@ class RectCanvas {
         shape.destroy()
       })
       this.shape = this.shape.filter((s) => s.historyAdded)
+      if (this.editingText) {
+        this.editingText = null
+      }
       return
     }
     const record = this.history.pop()
@@ -473,7 +476,7 @@ class RectCanvas {
 
   private updateCursor() {
     if (!this.hover) {
-      if (this.shape.length === 0 && !CapurerTool.tool) {
+      if (this.shape.length === 0 && !CapurerTool.tool && !RectSelect.editRectId) {
         ScreenStore.rectCanvas!.style.cursor = 'move'
       } else {
         ScreenStore.rectCanvas!.style.cursor = 'auto'

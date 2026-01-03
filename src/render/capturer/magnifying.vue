@@ -1,22 +1,24 @@
 <template>
   <div
-    v-if="info.show"
-    ref="wapperRef"
+    v-if="info.show && info.image"
+    ref="wapper"
     :style="style"
     class="p-[6px] bg-slate-100 dark:bg-gray-600 rounded-[6px] overflow-hidden flex flex-col gap-1 fixed z-[300]"
   >
     <img class="w-[120px] h-[80px] rounded-[6px] overflow-hidden" :src="info.image" />
     <div class="flex items-center justify-between text-[11px]">
-      <span>坐标</span>
-      <span>{{ Math.round(info.point.showX) }}, {{ Math.round(info.point.showY) }}</span>
+      <span class="flex-shrink-0">坐标</span>
+      <span class="flex-shrink-0"
+        >{{ Math.floor(info.point.x) }}, {{ Math.floor(info.point.y) }}</span
+      >
     </div>
     <div class="flex items-center justify-between text-[11px]">
-      <span>HEX</span>
-      <span>{{ info.hex }}</span>
+      <span class="flex-shrink-0">HEX</span>
+      <span class="flex-shrink-0">{{ info.hex }}</span>
     </div>
     <div class="flex items-center justify-between text-[11px]">
-      <span>RGB</span>
-      <span>{{ info.rgb }}</span>
+      <span class="flex-shrink-0">RGB</span>
+      <span class="flex-shrink-0">{{ info.rgb }}</span>
     </div>
   </div>
 </template>
@@ -24,7 +26,7 @@
   import { computed, ref, watch, nextTick, onMounted } from 'vue'
   import { CapturerStore } from '@/capturer/store/app'
 
-  const wapperRef = ref<HTMLDivElement | undefined>(undefined)
+  const wapper = ref<HTMLElement>()
   const store = CapturerStore()
   const windowWidth = window.innerWidth
   const windowHeight = window.innerHeight
@@ -34,20 +36,23 @@
   })
 
   watch(
-    () => info.value.show,
+    wapper,
     (v) => {
       if (v) {
         if (info.value.componentWidth) {
+          console.log('watch wapper exit: ', info.value.componentWidth)
           return
         }
-        nextTick(() => {
-          if (wapperRef.value) {
-            const rect = wapperRef.value.getBoundingClientRect()
-            info.value.componentWidth = rect.width
-            info.value.componentHeight = rect.height
-          }
-        })
+        if (wapper.value) {
+          const rect = wapper.value.getBoundingClientRect()
+          console.log('watch wapper rect: ', rect)
+          info.value.componentWidth = rect.width
+          info.value.componentHeight = rect.height
+        }
       }
+    },
+    {
+      immediate: true
     }
   )
 
@@ -56,8 +61,8 @@
       return
     }
     nextTick(() => {
-      if (wapperRef.value) {
-        const rect = wapperRef.value.getBoundingClientRect()
+      if (wapper.value) {
+        const rect = wapper.value.getBoundingClientRect()
         info.value.componentWidth = rect.width
         info.value.componentHeight = rect.height
       }
@@ -80,6 +85,8 @@
     // 默认位置：鼠标右下角
     let left = mouseX + offset
     let top = mouseY + offset
+
+    console.log('magnifying.vue style left: ', left, top, info.value.componentWidth, windowWidth)
 
     // 检查右侧是否超出屏幕
     if (left + info.value.componentWidth > windowWidth) {

@@ -101,7 +101,10 @@ export class Shape {
 
     const zIndexs = RectCanvasStore.shape.filter((f) => f.type !== 'mask').map((m) => m.zIndex)
     const maxZIndex = Math.max(...zIndexs, 1999)
-    canvas.style.zIndex = `${maxZIndex + 1}`
+    console.log('Shape initCanvas maxZIndex: ', maxZIndex, zIndexs)
+    const zIndex = maxZIndex + 1
+    this.zIndex = zIndex
+    canvas.style.zIndex = `${zIndex}`
     const selector: HTMLHtmlElement = document.querySelector('#app-capturer-selector')!
     selector.appendChild(canvas)
     this.canvas = canvas
@@ -119,6 +122,8 @@ export class Shape {
     this.strokeColor = strokeColor
     this.toolWidth = toolWidth
     this.initCanvas()
+
+    console.log('Shape init: ', JSON.parse(JSON.stringify(this)), this.zIndex)
   }
 
   onMove() {}
@@ -206,4 +211,8 @@ export class Shape {
   reDraw() {}
 
   draw() {}
+
+  async exportCanvas(): Promise<HTMLCanvasElement> {
+    return this.canvas!
+  }
 }

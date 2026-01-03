@@ -4,6 +4,11 @@
     class="capturer-tools-color-and-width bg-slate-100 dark:bg-gray-600 rounded-[6px] flex items-center justify-between gap-3 p-[6px] z-[9999] absolute"
   >
     <div
+      ref="arrow"
+      class="z-[-1] opacity-0 arrow bg-slate-100 dark:bg-gray-600 rounded-[2px] w-[10px] h-[10px] absolute"
+    ></div>
+    <div
+      :style="arrowStyle"
       class="z-[-1] arrow bg-slate-100 dark:bg-gray-600 rounded-[2px] w-[10px] h-[10px] absolute"
     ></div>
     <div class="flex items-center gap-2">
@@ -113,9 +118,24 @@
   </div>
 </template>
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import CapurerTool from './tools'
   import RectCanvasStore from '@/capturer/RectCanvas/RectCanvas'
+
+  const arrow = ref()
+
+  const arrowStyle = computed(() => {
+    if (!arrow.value) {
+      return null
+    }
+    const rect = arrow.value.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const offsetX = CapurerTool.toolArrowCenter - centerX
+    console.log('arrowStyle: ', rect, centerX, offsetX)
+    return {
+      transform: `translateX(${offsetX}px) rotate(-45deg)`
+    }
+  })
 
   const currentColor = computed({
     get() {
@@ -174,7 +194,7 @@
     .arrow {
       transform: rotate(-45deg);
       top: -4px;
-      left: 50px;
+      left: 0;
     }
 
     &.v-reversed {
@@ -184,7 +204,7 @@
       .arrow {
         transform: rotate(-45deg);
         top: calc(100% - 4px);
-        left: 50px;
+        left: 0;
       }
     }
   }

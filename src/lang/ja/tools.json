@@ -62,5 +62,17 @@
   "SelectAll": "すべて選択",
   "MoveToTop": "一番上に移動",
   "MoveToGroup": "グループに移動",
-  "MarkdownPreview": "Markdownプレビュー"
+  "MarkdownPreview": "Markdownプレビュー",
+
+  "Capturer": "スクリーンショット",
+  "CapturerShortcut": "スクリーンショット ショートカット",
+  "CapturerShortcutTips": "スクリーンショットを撮るために使用したいキーを押してください（例: Ctrl+Shift+A）",
+  "CapturerSaveDir": "スクリーンショットの保存場所",
+  "CapturerNameRule": "スクリーンショットの命名規則",
+  "RuleIndex": "連番",
+  "RuleTimestamp": "タイムスタンプ",
+  "RuleDateTime": "日時",
+  "RuleUUID": "一意識別子",
+  "CapturerFailTitle": "スクリーンショットの失敗",
+  "CapturerFailContent": "スクリーンショットの取得に失敗しました。もう一度お試しください"
 }

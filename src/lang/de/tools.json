@@ -62,5 +62,17 @@
   "SelectAll": "Alle auswählen",
   "MoveToTop": "Nach oben",
   "MoveToGroup": "In Gruppe verschieben",
-  "MarkdownPreview": "Markdown Vorschau"
+  "MarkdownPreview": "Markdown Vorschau",
+
+  "Capturer": "Screenshot",
+  "CapturerShortcut": "Screenshot-Tastenkombination",
+  "CapturerShortcutTips": "Drücken Sie die Tasten, die Sie für den Screenshot verwenden möchten, z.B. Strg+Umschalt+A",
+  "CapturerSaveDir": "Speicherort für Screenshots",
+  "CapturerNameRule": "Namensregel für Screenshots",
+  "RuleIndex": "Laufende Nummer",
+  "RuleTimestamp": "Zeitstempel",
+  "RuleDateTime": "Datum und Uhrzeit",
+  "RuleUUID": "Eindeutige Kennung",
+  "CapturerFailTitle": "Screenshot fehlgeschlagen",
+  "CapturerFailContent": "Screenshot konnte nicht erstellt werden, bitte versuchen Sie es erneut"
 }

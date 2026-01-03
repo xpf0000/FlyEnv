@@ -62,5 +62,17 @@
   "SelectAll": "Välj alla",
   "MoveToTop": "Flytta till toppen",
   "MoveToGroup": "Flytta till grupp",
-  "MarkdownPreview": "Markdown-förhandsgranskning"
+  "MarkdownPreview": "Markdown-förhandsgranskning",
+
+  "Capturer": "Skärmdump",
+  "CapturerShortcut": "Genväg för skärmdump",
+  "CapturerShortcutTips": "Tryck på de tangenter du vill använda för att ta en skärmdump, t.ex. Ctrl+Skift+A",
+  "CapturerSaveDir": "Sparplats för skärmdumpar",
+  "CapturerNameRule": "Namnregel för skärmdumpar",
+  "RuleIndex": "Sekvensnummer",
+  "RuleTimestamp": "Tidsstämpel",
+  "RuleDateTime": "Datum och tid",
+  "RuleUUID": "Unik identifierare",
+  "CapturerFailTitle": "Skärmdump misslyckades",
+  "CapturerFailContent": "Kunde inte ta skärmdump, försök igen"
 }
