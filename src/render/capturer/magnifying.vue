@@ -3,7 +3,7 @@
     v-if="info.show && info.image"
     ref="wapper"
     :style="style"
-    class="p-[6px] bg-slate-100 dark:bg-gray-600 rounded-[6px] overflow-hidden flex flex-col gap-1 fixed z-[300]"
+    class="p-[6px] bg-slate-100 dark:bg-gray-800 rounded-[6px] overflow-hidden flex flex-col gap-1 fixed z-[300]"
   >
     <img class="w-[120px] h-[80px] rounded-[6px] overflow-hidden" :src="info.image" />
     <div class="flex items-center justify-between text-[11px]">

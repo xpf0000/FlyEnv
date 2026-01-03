@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, onUnmounted, reactive, watch } from 'vue'
+  import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
   import TitleBar from './components/Native/TitleBar.vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
@@ -19,7 +19,8 @@
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
   import { Module } from '@/core/Module/Module'
   import type { AllAppModule, AppModuleEnum } from '@/core/type'
-  import { shell } from '@/util/NodeFn'
+  import { nativeTheme, shell } from '@/util/NodeFn'
+  import localForage from 'localforage'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -132,6 +133,27 @@
     (val) => {
       const body = document.body
       body.className = `lang-${val}`
+    },
+    {
+      immediate: true
+    }
+  )
+
+  const isDark = ref(false)
+  nativeTheme.shouldUseDarkColors().then((e) => {
+    isDark.value = e
+  })
+  const theme = computed(() => {
+    const t = appStore?.config?.setup?.theme
+    if (!t) {
+      return isDark.value ? 'dark' : 'light'
+    }
+    return t
+  })
+  watch(
+    theme,
+    (val) => {
+      localForage.setItem('flyenv-app-theme', val).catch()
     },
     {
       immediate: true

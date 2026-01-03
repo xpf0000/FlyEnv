@@ -1,4 +1,4 @@
-import { dialog, Rectangle, shell } from 'electron'
+import { dialog, Rectangle, shell, clipboard, nativeImage } from 'electron'
 import { desktopCapturer, screen, BrowserWindow, globalShortcut } from 'electron'
 import { windowManager, Window } from '@xpf0000/node-window-manager'
 import { fileURLToPath } from 'node:url'
@@ -445,6 +445,7 @@ export class Capturer {
     const buffer = Buffer.from(base64, 'base64')
     const filePath = join(this.config.dir, name)
     writeFile(filePath, buffer).then(() => {
+      clipboard.writeImage(nativeImage.createFromPath(filePath))
       shell.showItemInFolder(filePath)
     })
   }

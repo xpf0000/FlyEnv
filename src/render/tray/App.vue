@@ -33,18 +33,9 @@
   import { computed, ref, Ref } from 'vue'
   import { AppStore } from './store/app'
   import IPC from '../util/IPC'
-  import { AppModules } from '@/core/App'
   import { I18nT } from '@lang/index'
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
   import CustomerItem from './CustomerItem.vue'
-
-  const allService = AppModules.filter((m) => m.isTray).map((m) => {
-    return {
-      typeFlag: m.typeFlag,
-      label: m.label,
-      icon: m.icon
-    }
-  })
 
   const store = AppStore()
   const groupIsRunning = computed(() => {
@@ -69,12 +60,6 @@
       return
     }
     IPC.send('APP:Tray-Command', 'groupDo').then((key: string) => {
-      IPC.off(key)
-    })
-  }
-
-  const switchChange = (flag: string) => {
-    IPC.send('APP:Tray-Command', 'switchChange', flag).then((key: string) => {
       IPC.off(key)
     })
   }

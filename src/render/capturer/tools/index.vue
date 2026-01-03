@@ -3,14 +3,14 @@
     v-if="CapurerTool.style"
     ref="tool"
     :style="CapurerTool.style"
-    class="bg-slate-100 dark:bg-gray-600 rounded-[6px] flex items-center justify-between gap-3 p-[6px] z-[9999] fixed"
+    class="bg-slate-100 dark:bg-gray-800 rounded-[6px] flex items-center justify-between gap-3 p-[6px] z-[9999] fixed"
   >
     <div class="flex items-center gap-2">
       <div
-        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         :class="{
           active: CapurerTool.tool === 'square',
-          [`bg-blue-100`]: CapurerTool.tool === 'square'
+          [`bg-[#409EFF33]`]: CapurerTool.tool === 'square'
         }"
         @click.stop="updateTool('square')"
       >
@@ -24,10 +24,10 @@
         />
       </div>
       <div
-        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         :class="{
           active: CapurerTool.tool === 'circle',
-          [`bg-blue-100`]: CapurerTool.tool === 'circle'
+          [`bg-[#409EFF33]`]: CapurerTool.tool === 'circle'
         }"
         @click.stop="updateTool('circle')"
       >
@@ -41,10 +41,10 @@
         />
       </div>
       <div
-        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         :class="{
           active: CapurerTool.tool === 'arrow',
-          [`bg-blue-100`]: CapurerTool.tool === 'arrow'
+          [`bg-[#409EFF33]`]: CapurerTool.tool === 'arrow'
         }"
         @click.stop="updateTool('arrow')"
       >
@@ -59,10 +59,10 @@
         />
       </div>
       <div
-        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         :class="{
           active: CapurerTool.tool === 'draw',
-          [`bg-blue-100`]: CapurerTool.tool === 'draw'
+          [`bg-[#409EFF33]`]: CapurerTool.tool === 'draw'
         }"
         @click.stop="updateTool('draw')"
       >
@@ -77,10 +77,10 @@
         />
       </div>
       <div
-        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         :class="{
           active: CapurerTool.tool === 'mask',
-          [`bg-blue-100`]: CapurerTool.tool === 'mask'
+          [`bg-[#409EFF33]`]: CapurerTool.tool === 'mask'
         }"
         @click.stop="updateTool('mask')"
       >
@@ -94,10 +94,10 @@
         />
       </div>
       <div
-        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         :class="{
           active: CapurerTool.tool === 'text',
-          [`bg-blue-100`]: CapurerTool.tool === 'text'
+          [`bg-[#409EFF33]`]: CapurerTool.tool === 'text'
         }"
         @click.stop="updateTool('text')"
       >
@@ -112,10 +112,10 @@
         />
       </div>
       <div
-        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] tool-item h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         :class="{
           active: CapurerTool.tool === 'tag',
-          [`bg-blue-100`]: CapurerTool.tool === 'tag'
+          [`bg-[#409EFF33]`]: CapurerTool.tool === 'tag'
         }"
         @click.stop="updateTool('tag')"
       >
@@ -133,7 +133,7 @@
     <div class="h-[16px] w-[1px] bg-gray-200"></div>
     <div class="flex items-center gap-2">
       <div
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="goBack"
       >
         <yb-icon
@@ -146,7 +146,7 @@
         />
       </div>
       <div
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="store.saveImage(false)"
       >
         <yb-icon :svg="import('@/svg/dosave.svg?raw')" width="16" height="16" />
@@ -155,13 +155,13 @@
     <div class="h-[16px] w-[1px] bg-gray-200"></div>
     <div class="flex items-center gap-2">
       <div
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="exitCapturer"
       >
         <Close width="16" height="16" />
       </div>
       <div
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="store.saveImage(true)"
       >
         <Check width="16" height="16" />

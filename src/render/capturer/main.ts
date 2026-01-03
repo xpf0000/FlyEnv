@@ -20,6 +20,7 @@ IPC.on('APP:Capturer-Window-Rect-Update').then((key: string, res: any) => {
 IPC.on('APP:Capturer-Window-Screen-Image-Update').then((key: string, res: any) => {
   if (res && res?.image) {
     const store = CapturerStore()
+    store.initTheme()
     let image: string = res.image as any
     if (!image.includes('data:image/png;base64,')) {
       image = `data:image/png;base64,${image}`

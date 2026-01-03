@@ -1,22 +1,22 @@
 <template>
   <div
     :class="{ 'v-reversed': CapurerTool.isReversed }"
-    class="capturer-tools-text bg-slate-100 dark:bg-gray-600 rounded-[6px] flex items-center justify-between gap-3 p-[6px] z-[9999] absolute"
+    class="capturer-tools-text bg-slate-100 dark:bg-gray-800 rounded-[6px] flex items-center justify-between gap-3 p-[6px] z-[9999] absolute"
   >
     <div
       ref="arrow"
-      class="z-[-1] opacity-0 arrow bg-slate-100 dark:bg-gray-600 rounded-[2px] w-[10px] h-[10px] absolute"
+      class="z-[-1] opacity-0 arrow bg-slate-100 dark:bg-gray-800 rounded-[2px] w-[10px] h-[10px] absolute"
     ></div>
     <div
       :style="arrowStyle"
-      class="z-[-1] arrow bg-slate-100 dark:bg-gray-600 rounded-[2px] w-[10px] h-[10px] absolute"
+      class="z-[-1] arrow bg-slate-100 dark:bg-gray-800 rounded-[2px] w-[10px] h-[10px] absolute"
     ></div>
     <div class="flex items-center gap-2">
       <div
         :class="{
-          [`bg-blue-100`]: currentFontSize === 15
+          [`bg-[#409EFF33]`]: currentFontSize === 15
         }"
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="currentFontSize = 15"
       >
         <yb-icon
@@ -31,9 +31,9 @@
       </div>
       <div
         :class="{
-          [`bg-blue-100`]: currentFontSize === 20
+          [`bg-[#409EFF33]`]: currentFontSize === 20
         }"
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="currentFontSize = 20"
       >
         <yb-icon
@@ -48,9 +48,9 @@
       </div>
       <div
         :class="{
-          [`bg-blue-100`]: currentFontSize === 25
+          [`bg-[#409EFF33]`]: currentFontSize === 25
         }"
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="currentFontSize = 25"
       >
         <yb-icon

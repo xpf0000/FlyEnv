@@ -47,6 +47,8 @@ declare global {
   var launcher: Launcher
 
   interface Window {
+    openDir: (dir: string) => void
+    openUrl: (url: string) => void
     FlyEnvNodeAPI: {
       ipcSendToMain: (...args: any[]) => void
       ipcReceiveFromMain: (callback: (event: any, ...args: any[]) => void) => void

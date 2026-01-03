@@ -42,6 +42,7 @@
   const rectImgRef = ref<HTMLImageElement | undefined>(undefined)
 
   const store = CapturerStore()
+  store.initTheme()
   const currentRect = computed(() => {
     return store?.currentRect
   })

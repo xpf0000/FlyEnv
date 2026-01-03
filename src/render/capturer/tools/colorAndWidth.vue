@@ -1,59 +1,59 @@
 <template>
   <div
     :class="{ 'v-reversed': CapurerTool.isReversed }"
-    class="capturer-tools-color-and-width bg-slate-100 dark:bg-gray-600 rounded-[6px] flex items-center justify-between gap-3 p-[6px] z-[9999] absolute"
+    class="capturer-tools-color-and-width bg-slate-100 dark:bg-gray-800 rounded-[6px] flex items-center justify-between gap-3 p-[6px] z-[9999] absolute"
   >
     <div
       ref="arrow"
-      class="z-[-1] opacity-0 arrow bg-slate-100 dark:bg-gray-600 rounded-[2px] w-[10px] h-[10px] absolute"
+      class="z-[-1] opacity-0 arrow bg-slate-100 dark:bg-gray-800 rounded-[2px] w-[10px] h-[10px] absolute"
     ></div>
     <div
       :style="arrowStyle"
-      class="z-[-1] arrow bg-slate-100 dark:bg-gray-600 rounded-[2px] w-[10px] h-[10px] absolute"
+      class="z-[-1] arrow bg-slate-100 dark:bg-gray-800 rounded-[2px] w-[10px] h-[10px] absolute"
     ></div>
     <div class="flex items-center gap-2">
       <div
         :class="{
-          [`bg-blue-100`]: currentWidth === 5
+          [`bg-[#409EFF33]`]: currentWidth === 5
         }"
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="currentWidth = 5"
       >
         <div
           class="rounded-full overflow-hidden w-[5px] h-[5px]"
           :class="{
             [`bg-[#409EFF]`]: currentWidth === 5,
-            [`bg-[#333333]`]: currentWidth !== 5
+            [`bg-[#333333] dark:bg-[#FFFFFF]`]: currentWidth !== 5
           }"
         ></div>
       </div>
       <div
         :class="{
-          [`bg-blue-100`]: currentWidth === 10
+          [`bg-[#409EFF33]`]: currentWidth === 10
         }"
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="currentWidth = 10"
       >
         <div
           class="rounded-full overflow-hidden w-[10px] h-[10px]"
           :class="{
             [`bg-[#409EFF]`]: currentWidth === 10,
-            [`bg-[#333333]`]: currentWidth !== 10
+            [`bg-[#333333] dark:bg-[#FFFFFF]`]: currentWidth !== 10
           }"
         ></div>
       </div>
       <div
         :class="{
-          [`bg-blue-100`]: currentWidth === 20
+          [`bg-[#409EFF33]`]: currentWidth === 20
         }"
-        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200"
+        class="w-[24px] h-[24px] p-[3px] rounded-[4px] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600"
         @click.stop="currentWidth = 20"
       >
         <div
           class="rounded-full overflow-hidden w-[14px] h-[14px]"
           :class="{
             [`bg-[#409EFF]`]: currentWidth === 20,
-            [`bg-[#333333]`]: currentWidth !== 20
+            [`bg-[#333333] dark:bg-[#FFFFFF]`]: currentWidth !== 20
           }"
         ></div>
       </div>

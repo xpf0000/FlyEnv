@@ -1,7 +1,7 @@
 <template>
   <div
     :style="style"
-    class="px-2 h-[25px] text-[10px] bg-slate-100 dark:bg-gray-600 rounded-[4px] overflow-hidden flex items-center justify-center gap-1 fixed z-[300]"
+    class="px-2 h-[25px] text-[10px] bg-slate-100 dark:bg-gray-800 rounded-[4px] overflow-hidden flex items-center justify-center gap-1 fixed z-[300]"
   >
     <span>{{ width }}</span>
     <Close class="w-[7px] h-[7px]" />

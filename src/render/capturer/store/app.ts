@@ -3,6 +3,7 @@ import RectSelect from '@/capturer/RectSelector/RectSelect'
 import RectCanvas from '@/capturer/RectCanvas/RectCanvas'
 import IPC from '@/util/IPC'
 import { loadImage } from '@/util/Index'
+import localForage from 'localforage'
 
 export type Rect = {
   x: number
@@ -68,6 +69,16 @@ export const CapturerStore = defineStore('capturerStore', {
   state: (): State => state,
   getters: {},
   actions: {
+    initTheme() {
+      localForage.getItem('flyenv-app-theme').then((res: any) => {
+        console.log('flyenv-app-theme: ', res)
+        if (res) {
+          const html = document.documentElement
+          html.classList.remove('dark', 'light')
+          html.classList.add(res)
+        }
+      })
+    },
     /**
      * 鼠标移动时，获取坐标，坐标点的hex，rgb色值，从ScreenStore.canvas获取放大镜效果的图片
      * 获取到的数据，写入magnifyingInfo
