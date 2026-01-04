@@ -83,19 +83,9 @@ export class Capturer {
     this.capturering = false
   }
 
-  registShortcut() {
-    globalShortcut.register('CommandOrControl+Shift+A', () => {
-      console.log('Ctrl+Shift+A 被按下')
-      if (this.capturering) {
-        return
-      }
-      this.initWatchPointWindow().catch()
-    })
-  }
-
   getWindowCapturer(id: number) {
     const image = windowManager.captureWindow(id)
-    console.log('getWindowCapturer image: ', image)
+    console.log('getWindowCapturer image: ', image.length)
     if (image) {
       this.window?.webContents?.send?.(
         'command',

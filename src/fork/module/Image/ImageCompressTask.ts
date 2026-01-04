@@ -1,0 +1,1582 @@
+import type { TaskItem } from '@shared/TaskQueue'
+import sharp, { Sharp, FitEnum, KernelEnum, OverlayOptions, FormatEnum } from 'sharp'
+import type { TrimOptions } from 'sharp'
+import fs from 'fs/promises'
+import path from 'path'
+import { ImageInfoFetchTask } from './ImageInfoFetchTask'
+
+/**
+ * 文字水印配置
+ */
+interface TextWatermarkOptions {
+  /** 水印文字内容 */
+  text: string
+  /** 字体大小，单位像素 (默认 24) */
+  fontSize?: number
+  /** 字体颜色，支持颜色名称、十六进制、RGB等 (默认 '#FFFFFF') */
+  color?: string
+  /** 文字透明度 0-1 (默认 0.8) */
+  opacity?: number
+  /** 文字背景颜色 (可选) */
+  backgroundColor?: string
+  /** 文字内边距，单位像素 (默认 4) */
+  padding?: number
+  /** 文字阴影配置 */
+  shadow?: {
+    /** 阴影颜色 (默认 'rgba(0,0,0,0.5)') */
+    color?: string
+    /** 阴影模糊度 (默认 2) */
+    blur?: number
+    /** 阴影X偏移 (默认 1) */
+    offsetX?: number
+    /** 阴影Y偏移 (默认 1) */
+    offsetY?: number
+  }
+}
+
+/**
+ * 图片水印配置
+ */
+interface ImageWatermarkOptions {
+  /** 水印图片路径 */
+  imagePath: string
+  /** 水印图片宽度 (单位像素或百分比) */
+  width?: number | string
+  /** 水印图片高度 (单位像素或百分比) */
+  height?: number | string
+  /** 水印图片缩放模式 */
+  fit?: keyof FitEnum
+  /** 水印透明度 0-1 (默认 0.7) */
+  opacity?: number
+  /** 水印旋转角度 (默认 0) */
+  rotate?: number
+}
+
+/**
+ * 水印位置配置
+ */
+interface WatermarkPosition {
+  /** 水平位置: 'left' | 'center' | 'right' (默认 'right') */
+  horizontal?: 'left' | 'center' | 'right'
+  /** 垂直位置: 'top' | 'middle' | 'bottom' (默认 'bottom') */
+  vertical?: 'top' | 'middle' | 'bottom'
+  /** 水平偏移，单位像素 (默认 20) */
+  offsetX?: number
+  /** 垂直偏移，单位像素 (默认 20) */
+  offsetY?: number
+}
+
+/**
+ * 完整的水印配置
+ */
+interface WatermarkConfig {
+  /** 水印类型: 'text' 或 'image' */
+  type: 'text' | 'image'
+  /** 水印内容配置 */
+  content: TextWatermarkOptions | ImageWatermarkOptions
+  /** 水印位置配置 */
+  position?: WatermarkPosition
+  /** 是否启用水印 (默认 true) */
+  enabled?: boolean
+  /** 水印重复模式: 'single' | 'repeat' | 'grid' (默认 'single') */
+  repeat?: 'single' | 'repeat' | 'grid'
+  /** 网格模式下的间距，单位像素 (默认 100) */
+  spacing?: number
+  /** 水印整体透明度 0-1 (默认 1) */
+  globalOpacity?: number
+}
+
+/**
+ * 栅格纹理配置
+ */
+interface TextureOptions {
+  /** 纹理类型 */
+  type: 'grid' | 'dot' | 'line' | 'cross' | 'noise' | 'custom'
+  /** 纹理颜色 (默认 'rgba(255,255,255,0.1)') */
+  color?: string
+  /** 纹理大小/间距，单位像素 (默认 20) */
+  size?: number
+  /** 线条宽度 (仅适用于 line/cross 类型) (默认 1) */
+  lineWidth?: number
+  /** 点的大小 (仅适用于 dot 类型) (默认 2) */
+  dotSize?: number
+  /** 噪点强度 0-1 (仅适用于 noise 类型) (默认 0.05) */
+  intensity?: number
+  /** 自定义纹理图片路径 (仅适用于 custom 类型) */
+  customImage?: string
+  /** 纹理混合模式 */
+  blendMode?: 'overlay' | 'multiply' | 'screen' | 'soft-light' | 'hard-light'
+  /** 纹理透明度 0-1 (默认 0.3) */
+  opacity?: number
+  /** 纹理角度，单位度 (默认 0) */
+  angle?: number
+  /** 纹理缩放比例 0.1-5 (默认 1) */
+  scale?: number
+}
+
+/**
+ * 扩展的 Sharp 配置类型
+ */
+export type SharpConfig = {
+  /** 保存路径 */
+  path: string
+  width?: number
+  height?: number
+  fit?: keyof FitEnum
+  position?: number | string
+  kernel?: keyof KernelEnum
+  withoutEnlargement?: boolean
+  withoutReduction?: boolean
+  fastShrinkOnLoad?: boolean
+  format?: keyof FormatEnum
+
+  /** 去白边/透明边配置 */
+  trim?: TrimOptions
+
+  /** 水印配置 */
+  watermark?: WatermarkConfig | WatermarkConfig[]
+
+  /** 栅格纹理配置 */
+  texture?: TextureOptions
+
+  /** 各格式压缩配置 */
+  jpeg?: {
+    quality?: number
+    progressive?: boolean
+    chromaSubsampling?: '4:2:0' | '4:4:4' | '4:2:2'
+    optimiseCoding?: boolean
+    mozjpeg?: boolean
+    trellisQuantisation?: boolean
+    overshootDeringing?: boolean
+    optimiseScans?: boolean
+    quantisationTable?: number
+  }
+  png?: {
+    quality?: number
+    progressive?: boolean
+    compressionLevel?: number
+    adaptiveFiltering?: boolean
+    palette?: boolean
+    colours?: number
+    dither?: number
+  }
+  webp?: {
+    quality?: number
+    alphaQuality?: number
+    lossless?: boolean
+    nearLossless?: boolean
+    smartSubsample?: boolean
+    effort?: number
+  }
+  avif?: {
+    quality?: number
+    lossless?: boolean
+    effort?: number
+    chromaSubsampling?: '4:2:0' | '4:4:4'
+  }
+  gif?: {
+    pageHeight?: number
+    loop?: number
+    delay?: number[]
+    effort?: number
+  }
+  tiff?: {
+    quality?: number
+    compression?: 'jpeg' | 'deflate' | 'ccittfax4' | 'lzw' | 'packbits' | 'webp' | 'zstd'
+    predictor?: 'none' | 'horizontal' | 'float'
+    pyramid?: boolean
+    tile?: boolean
+    tileWidth?: number
+    tileHeight?: number
+    xres?: number
+    yres?: number
+  }
+  heif?: {
+    quality?: number
+    compression?: 'av1' | 'hevc'
+    lossless?: boolean
+    effort?: number
+    chromaSubsampling?: '4:2:0' | '4:4:4'
+  }
+  timeoutSeconds?: number
+  withMetadata?: boolean
+  withIccProfile?: string
+  rotate?: number
+  flip?: boolean
+  flop?: boolean
+  blur?: number
+  sharpen?: {
+    sigma: number
+    m1?: number
+    m2?: number
+    x1?: number
+    y2?: number
+    y3?: number
+  }
+  gamma?: number
+  grayscale?: boolean
+  normalise?: boolean
+  clahe?: {
+    width: number
+    height: number
+    maxSlope?: number
+  }
+  negate?: boolean
+  median?: number
+  linear?: {
+    a: number
+    b: number
+  }
+  modulate?: {
+    brightness?: number
+    saturation?: number
+    hue?: number
+    lightness?: number
+  }
+  threshold?: number
+  toColorspace?: 'srgb' | 'rgb' | 'cmyk' | 'lab' | 'b-w'
+  removeAlpha?: boolean
+  ensureAlpha?: number
+  tint?: {
+    r: number
+    g: number
+    b: number
+  }
+  extend?: {
+    top?: number
+    bottom?: number
+    left?: number
+    right?: number
+    background?: string
+  }
+  extract?: {
+    left: number
+    top: number
+    width: number
+    height: number
+  }
+}
+
+export class ImageCompressTask implements TaskItem {
+  /** 需要处理的图片 */
+  image: ImageInfoFetchTask
+  /** sharp配置 */
+  config: SharpConfig
+  /** 处理后的文件大小 */
+  size: number = 0
+  /** 格式化后的文件大小字符串 */
+  sizeFormatted: string = ''
+  /** 处理后的图片宽度 */
+  width: number = 0
+  /** 处理后的图片高度 */
+  height: number = 0
+  /** 处理后的图片格式 */
+  ext = ''
+  /** 压缩比 */
+  compressionRatio: number = 0
+  /**
+   * 缩小比例
+   */
+  sizePercentage: string = ''
+  /** 是否应用了水印 */
+  hasWatermark: boolean = false
+  /** 是否应用了纹理 */
+  hasTexture: boolean = false
+  /** 文件状态 */
+  hasError: boolean = false
+  /** 错误信息 */
+  errorMessage: string = ''
+
+  constructor(image: ImageInfoFetchTask, config: SharpConfig) {
+    this.image = image
+    this.config = config
+  }
+
+  /** 格式化文件大小 */
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B'
+    const units = ['B', 'KB', 'MB', 'GB', 'TB']
+    const k = 1024
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${units[i]}`
+  }
+
+  /** 获取压缩后的文件大小 */
+  private async getFileSize(): Promise<boolean> {
+    try {
+      const stats = await fs.stat(this.config.path)
+      this.size = stats.size
+      this.sizeFormatted = this.formatFileSize(stats.size)
+      if (this.image.size > 0) {
+        this.sizePercentage = `${(((this.image.size - this.size) / this.image.size) * 100).toFixed(2)}%`
+        this.compressionRatio = this.image.size / this.size
+      }
+      return true
+    } catch (error: any) {
+      this.errorMessage = `获取文件大小失败: ${error.message}`
+      this.hasError = true
+      return false
+    }
+  }
+
+  /** 获取压缩后的图片元数据 */
+  private async getImageMetadata(): Promise<boolean> {
+    try {
+      const metadata = await sharp(this.config.path).metadata()
+      this.width = metadata.width || 0
+      this.height = metadata.height || 0
+
+      if (metadata.format) {
+        this.ext = metadata.format.toLowerCase()
+      } else {
+        const fileExt = path.extname(this.config.path).toLowerCase().replace('.', '')
+        this.ext = fileExt || 'unknown'
+      }
+      return true
+    } catch (error: any) {
+      this.errorMessage = `获取压缩后图片元数据失败: ${error.message}`
+      this.hasError = true
+      return false
+    }
+  }
+
+  /** 应用 trim 操作 */
+  private applyTrim(pipeline: Sharp): Sharp {
+    if (this.config.trim) {
+      return pipeline.trim(this.config.trim)
+    }
+    return pipeline
+  }
+
+  /**
+   * 创建文字水印SVG
+   * @param options 文字水印配置
+   * @param width 水印宽度
+   * @param height 水印高度
+   * @returns SVG字符串
+   */
+  private createTextWatermarkSVG(
+    options: TextWatermarkOptions,
+    width: number,
+    height: number
+  ): string {
+    const {
+      text,
+      fontSize = 24,
+      color = '#FFFFFF',
+      opacity = 0.8,
+      backgroundColor,
+      shadow
+    } = options
+
+    const hasBackground = !!backgroundColor
+    const shadowStyle = shadow
+      ? `
+      <filter id="shadow">
+        <feDropShadow
+          dx="${shadow.offsetX || 1}"
+          dy="${shadow.offsetY || 1}"
+          stdDeviation="${shadow.blur || 2}"
+          flood-color="${shadow.color || 'rgba(0,0,0,0.5)'}"
+          flood-opacity="${opacity}"
+        />
+      </filter>
+    `
+      : ''
+
+    const backgroundRect = hasBackground
+      ? `
+      <rect
+        x="0" y="0"
+        width="${width}" height="${height}"
+        fill="${backgroundColor}"
+        opacity="${opacity}"
+      />
+    `
+      : ''
+
+    const textStyle = `
+      font-size: ${fontSize}px;
+      font-family: monospace;
+      font-weight: bold;
+      fill: ${color};
+      opacity: ${opacity};
+      text-anchor: middle;
+      dominant-baseline: middle;
+      ${shadow ? 'filter: url(#shadow);' : ''}
+    `
+
+    return `
+      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        ${shadowStyle}
+        ${backgroundRect}
+        <text
+          x="${width / 2}"
+          y="${height / 2}"
+          style="${textStyle}"
+        >
+          ${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+        </text>
+      </svg>
+    `
+  }
+
+  /**
+   * 计算水印位置
+   * @param position 位置配置
+   * @param baseWidth 基准图片宽度
+   * @param baseHeight 基准图片高度
+   * @param watermarkWidth 水印宽度
+   * @param watermarkHeight 水印高度
+   * @returns 水印左上角坐标
+   */
+  private calculateWatermarkPosition(
+    position: WatermarkPosition,
+    baseWidth: number,
+    baseHeight: number,
+    watermarkWidth: number,
+    watermarkHeight: number
+  ): { left: number; top: number } {
+    const { horizontal = 'right', vertical = 'bottom', offsetX = 20, offsetY = 20 } = position
+
+    let left = 0
+    let top = 0
+
+    // 计算水平位置
+    switch (horizontal) {
+      case 'left':
+        left = offsetX
+        break
+      case 'center':
+        left = Math.floor((baseWidth - watermarkWidth) / 2)
+        break
+      case 'right':
+        left = baseWidth - watermarkWidth - offsetX
+        break
+    }
+
+    // 计算垂直位置
+    switch (vertical) {
+      case 'top':
+        top = offsetY
+        break
+      case 'middle':
+        top = Math.floor((baseHeight - watermarkHeight) / 2)
+        break
+      case 'bottom':
+        top = baseHeight - watermarkHeight - offsetY
+        break
+    }
+
+    return { left: Math.max(0, left), top: Math.max(0, top) }
+  }
+
+  /**
+   * 应用图片水印效果
+   * @param watermarkPipeline 水印处理管道
+   * @param imageOptions 图片水印配置
+   * @returns 处理后的水印管道
+   */
+  private async applyImageWatermarkEffects(
+    watermarkPipeline: Sharp,
+    imageOptions: ImageWatermarkOptions
+  ): Promise<Sharp> {
+    try {
+      const { opacity, rotate } = imageOptions
+
+      // 如果设置了透明度，确保有alpha通道
+      if (opacity !== undefined && opacity < 1) {
+        watermarkPipeline = watermarkPipeline.ensureAlpha()
+      }
+
+      // 应用旋转
+      if (rotate) {
+        watermarkPipeline = watermarkPipeline.rotate(rotate, {
+          background: { r: 0, g: 0, b: 0, alpha: 0 }
+        })
+      }
+
+      return watermarkPipeline
+    } catch (error: any) {
+      console.warn(`应用图片水印效果失败: ${error.message}`)
+      return watermarkPipeline
+    }
+  }
+
+  /**
+   * 应用单个水印
+   * @param pipeline 图片处理管道
+   * @param watermarkConfig 水印配置
+   * @param baseWidth 基准图片宽度
+   * @param baseHeight 基准图片高度
+   * @returns 应用水印后的管道
+   */
+  private async applySingleWatermark(
+    pipeline: Sharp,
+    watermarkConfig: WatermarkConfig,
+    baseWidth: number,
+    baseHeight: number
+  ): Promise<Sharp> {
+    if (!watermarkConfig.enabled) {
+      return pipeline
+    }
+
+    const {
+      type,
+      content,
+      position = {},
+      repeat = 'single',
+      spacing = 100,
+      globalOpacity = 1
+    } = watermarkConfig
+
+    try {
+      if (type === 'text') {
+        const textOptions = content as TextWatermarkOptions
+
+        // 计算文字水印尺寸
+        const fontSize = textOptions.fontSize || 24
+        const padding = textOptions.padding || 4
+        const textWidth = Math.ceil(textOptions.text.length * fontSize * 0.6) + padding * 2
+        const textHeight = fontSize + padding * 2
+
+        // 创建文字水印SVG
+        const svg = this.createTextWatermarkSVG(textOptions, textWidth, textHeight)
+        const watermarkBuffer = Buffer.from(svg)
+
+        if (repeat === 'single') {
+          // 单水印模式
+          const { left, top } = this.calculateWatermarkPosition(
+            position,
+            baseWidth,
+            baseHeight,
+            textWidth,
+            textHeight
+          )
+
+          return pipeline.composite([
+            {
+              input: watermarkBuffer,
+              top,
+              left,
+              blend: 'over'
+              // premultiplied: true
+            }
+          ])
+        } else {
+          // 重复水印模式
+          const overlays: OverlayOptions[] = []
+          const horizontalCount = Math.ceil(baseWidth / (textWidth + spacing))
+          const verticalCount = Math.ceil(baseHeight / (textHeight + spacing))
+
+          for (let i = 0; i < horizontalCount; i++) {
+            for (let j = 0; j < verticalCount; j++) {
+              const left = i * (textWidth + spacing)
+              const top = j * (textHeight + spacing)
+
+              if (left < baseWidth && top < baseHeight) {
+                overlays.push({
+                  input: watermarkBuffer,
+                  top,
+                  left,
+                  blend: 'over'
+                  // premultiplied: true
+                })
+              }
+            }
+          }
+
+          return pipeline.composite(overlays)
+        }
+      } else if (type === 'image') {
+        const imageOptions = content as ImageWatermarkOptions
+
+        // 加载水印图片
+        let watermarkPipeline = sharp(imageOptions.imagePath)
+        const watermarkMetadata = await watermarkPipeline.metadata()
+
+        if (!watermarkMetadata.width || !watermarkMetadata.height) {
+          throw new Error('无法获取水印图片尺寸')
+        }
+
+        // 计算水印图片尺寸
+        let watermarkWidth = watermarkMetadata.width
+        let watermarkHeight = watermarkMetadata.height
+
+        if (imageOptions.width || imageOptions.height) {
+          let targetWidth =
+            typeof imageOptions.width === 'string' && imageOptions.width.endsWith('%')
+              ? Math.floor((baseWidth * parseFloat(imageOptions.width)) / 100)
+              : imageOptions.width || watermarkWidth
+
+          let targetHeight =
+            typeof imageOptions.height === 'string' && imageOptions.height.endsWith('%')
+              ? Math.floor((baseHeight * parseFloat(imageOptions.height)) / 100)
+              : imageOptions.height || watermarkHeight
+
+          targetWidth = Number(targetWidth)
+          targetHeight = Number(targetHeight)
+
+          watermarkPipeline = watermarkPipeline.resize({
+            width: targetWidth,
+            height: targetHeight,
+            fit: imageOptions.fit || 'contain',
+            withoutEnlargement: true
+          })
+
+          watermarkWidth = targetWidth
+          watermarkHeight = targetHeight
+        }
+
+        // 应用水印图片效果
+        watermarkPipeline = await this.applyImageWatermarkEffects(watermarkPipeline, imageOptions)
+
+        // 应用全局透明度
+        if (globalOpacity < 1) {
+          watermarkPipeline = watermarkPipeline.composite([
+            {
+              input: {
+                create: {
+                  width: watermarkWidth,
+                  height: watermarkHeight,
+                  channels: 4,
+                  background: { r: 0, g: 0, b: 0, alpha: globalOpacity }
+                }
+              },
+              blend: 'dest-in'
+            }
+          ])
+        }
+
+        const watermarkBuffer = await watermarkPipeline.toBuffer()
+
+        if (repeat === 'single') {
+          // 单水印模式
+          const { left, top } = this.calculateWatermarkPosition(
+            position,
+            baseWidth,
+            baseHeight,
+            watermarkWidth,
+            watermarkHeight
+          )
+
+          return pipeline.composite([
+            {
+              input: watermarkBuffer,
+              top,
+              left,
+              blend: 'over'
+              // premultiplied: true
+            }
+          ])
+        } else {
+          // 重复水印模式
+          const overlays: OverlayOptions[] = []
+          const horizontalCount = Math.ceil(baseWidth / (watermarkWidth + spacing))
+          const verticalCount = Math.ceil(baseHeight / (watermarkHeight + spacing))
+
+          for (let i = 0; i < horizontalCount; i++) {
+            for (let j = 0; j < verticalCount; j++) {
+              const left = i * (watermarkWidth + spacing)
+              const top = j * (watermarkHeight + spacing)
+
+              if (left < baseWidth && top < baseHeight) {
+                overlays.push({
+                  input: watermarkBuffer,
+                  top,
+                  left,
+                  blend: 'over'
+                  // premultiplied: true
+                })
+              }
+            }
+          }
+
+          return pipeline.composite(overlays)
+        }
+      }
+
+      return pipeline
+    } catch (error: any) {
+      console.warn(`应用水印失败: ${error.message}`)
+      return pipeline
+    }
+  }
+
+  /**
+   * 应用水印功能
+   * @param pipeline 图片处理管道
+   * @param baseWidth 基准图片宽度
+   * @param baseHeight 基准图片高度
+   * @returns 应用水印后的管道
+   */
+  private async applyWatermark(
+    pipeline: Sharp,
+    baseWidth: number,
+    baseHeight: number
+  ): Promise<Sharp> {
+    if (!this.config.watermark) {
+      return pipeline
+    }
+
+    try {
+      this.hasWatermark = true
+
+      if (Array.isArray(this.config.watermark)) {
+        // 多个水印
+        for (const watermarkConfig of this.config.watermark) {
+          if (watermarkConfig.enabled !== false) {
+            pipeline = await this.applySingleWatermark(
+              pipeline,
+              watermarkConfig,
+              baseWidth,
+              baseHeight
+            )
+          }
+        }
+      } else {
+        // 单个水印
+        if (this.config.watermark.enabled !== false) {
+          pipeline = await this.applySingleWatermark(
+            pipeline,
+            this.config.watermark,
+            baseWidth,
+            baseHeight
+          )
+        }
+      }
+
+      return pipeline
+    } catch (error: any) {
+      console.warn(`水印处理失败: ${error.message}`)
+      return pipeline
+    }
+  }
+
+  /**
+   * 创建栅格纹理
+   * @param options 纹理配置
+   * @param width 纹理宽度
+   * @param height 纹理高度
+   * @returns 纹理图片Buffer
+   */
+  private async createTexture(
+    options: TextureOptions,
+    width: number,
+    height: number
+  ): Promise<Buffer> {
+    const {
+      type = 'grid',
+      color = 'rgba(255,255,255,0.1)',
+      size = 20,
+      lineWidth = 1,
+      dotSize = 2,
+      intensity = 0.05,
+      customImage,
+      opacity = 0.3,
+      angle = 0,
+      scale = 1
+    } = options
+
+    try {
+      if (type === 'custom' && customImage) {
+        // 使用自定义图片作为纹理
+        let texturePipeline = sharp(customImage)
+
+        // 调整纹理大小
+        const scaledWidth = Math.floor(width * scale)
+        const scaledHeight = Math.floor(height * scale)
+        texturePipeline = texturePipeline.resize({
+          width: scaledWidth,
+          height: scaledHeight,
+          fit: 'fill',
+          withoutEnlargement: false
+        })
+
+        // 应用透明度
+        if (opacity < 1) {
+          // 正确的方法：创建透明蒙版
+          texturePipeline = texturePipeline.composite([
+            {
+              input: {
+                create: {
+                  width: scaledWidth,
+                  height: scaledHeight,
+                  channels: 4,
+                  background: { r: 0, g: 0, b: 0, alpha: opacity }
+                }
+              },
+              blend: 'dest-in'
+            }
+          ])
+        }
+
+        // 旋转纹理
+        if (angle !== 0) {
+          texturePipeline = texturePipeline.rotate(angle, {
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+          })
+        }
+
+        return await texturePipeline.toBuffer()
+      }
+
+      // 创建SVG纹理
+      let svg = ''
+      const scaledSize = Math.max(1, Math.floor(size * scale))
+      const scaledLineWidth = Math.max(1, Math.floor(lineWidth * scale))
+      const scaledDotSize = Math.max(1, Math.floor(dotSize * scale))
+
+      switch (type) {
+        case 'grid':
+          // 网格纹理
+          svg = `
+          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="${scaledSize}" height="${scaledSize}" patternUnits="userSpaceOnUse">
+                <path d="M ${scaledSize} 0 L 0 0 0 ${scaledSize}" fill="none" stroke="${color}" stroke-width="${scaledLineWidth}"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)"/>
+          </svg>
+        `
+          break
+
+        case 'dot':
+          // 点状纹理
+          svg = `
+          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="dot" width="${scaledSize}" height="${scaledSize}" patternUnits="userSpaceOnUse">
+                <circle cx="${scaledSize / 2}" cy="${scaledSize / 2}" r="${scaledDotSize}" fill="${color}"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dot)"/>
+          </svg>
+        `
+          break
+
+        case 'line':
+          // 线条纹理
+          svg = `
+          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="line" width="${scaledSize}" height="${scaledSize}" patternUnits="userSpaceOnUse">
+                <line x1="0" y1="0" x2="${scaledSize}" y2="${scaledSize}" stroke="${color}" stroke-width="${scaledLineWidth}"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#line)"/>
+          </svg>
+        `
+          break
+
+        case 'cross':
+          // 十字纹理
+          svg = `
+          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="cross" width="${scaledSize}" height="${scaledSize}" patternUnits="userSpaceOnUse">
+                <path d="M ${scaledSize / 2} 0 L ${scaledSize / 2} ${scaledSize} M 0 ${scaledSize / 2} L ${scaledSize} ${scaledSize / 2}"
+                      fill="none" stroke="${color}" stroke-width="${scaledLineWidth}"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#cross)"/>
+          </svg>
+        `
+          break
+
+        case 'noise':
+          {
+            // 创建小尺寸的噪点纹理，然后平铺
+            const tileSize = 64 // 纹理块大小
+
+            // 1. 生成一个小的噪点块
+            const tilePixels = tileSize * tileSize * 4
+            const tileData = Buffer.alloc(tilePixels)
+
+            for (let i = 0; i < tilePixels; i += 4) {
+              const value = Math.floor(Math.random() * 255 * intensity)
+              tileData[i] = value
+              tileData[i + 1] = value
+              tileData[i + 2] = value
+              tileData[i + 3] = Math.floor(opacity * 255)
+            }
+
+            const tileBuffer = await sharp(tileData, {
+              raw: {
+                width: tileSize,
+                height: tileSize,
+                channels: 4
+              }
+            })
+              .png()
+              .toBuffer()
+
+            // 2. 通过SVG平铺小纹理
+            svg = `
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="noise" width="${tileSize}" height="${tileSize}" patternUnits="userSpaceOnUse">
+          <image
+            href="data:image/png;base64,${tileBuffer.toString('base64')}"
+            width="${tileSize}"
+            height="${tileSize}"
+          />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#noise)"/>
+    </svg>
+  `
+          }
+          break
+      }
+
+      if (svg) {
+        let texturePipeline = sharp(Buffer.from(svg))
+
+        // 应用透明度
+        if (opacity < 1) {
+          texturePipeline = texturePipeline.ensureAlpha()
+          texturePipeline = texturePipeline.composite([
+            {
+              input: {
+                create: {
+                  width,
+                  height,
+                  channels: 4,
+                  background: { r: 0, g: 0, b: 0, alpha: 1 - opacity }
+                }
+              },
+              blend: 'dest-in'
+            }
+          ])
+        }
+
+        // 旋转纹理
+        if (angle !== 0) {
+          texturePipeline = texturePipeline.rotate(angle, {
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+          })
+        }
+
+        return await texturePipeline.toBuffer()
+      }
+
+      return Buffer.alloc(0)
+    } catch (error: any) {
+      console.warn(`创建纹理失败: ${error.message}`)
+      return Buffer.alloc(0)
+    }
+  }
+
+  /**
+   * 应用纹理
+   * @param pipeline 图片处理管道
+   * @param baseWidth 基准图片宽度
+   * @param baseHeight 基准图片高度
+   * @returns 应用纹理后的管道
+   */
+  private async applyTexture(
+    pipeline: Sharp,
+    baseWidth: number,
+    baseHeight: number
+  ): Promise<Sharp> {
+    if (!this.config.texture) {
+      return pipeline
+    }
+
+    try {
+      this.hasTexture = true
+      const textureBuffer = await this.createTexture(this.config.texture, baseWidth, baseHeight)
+
+      if (textureBuffer.length === 0) {
+        return pipeline
+      }
+
+      const blendMode = this.config.texture.blendMode || 'overlay'
+
+      return pipeline.composite([
+        {
+          input: textureBuffer,
+          top: 0,
+          left: 0,
+          blend: blendMode as any
+          // premultiplied: true
+        }
+      ])
+    } catch (error: any) {
+      console.warn(`应用纹理失败: ${error.message}`)
+      return pipeline
+    }
+  }
+
+  private buildSharpPipeline(): Sharp {
+    let pipeline = sharp(this.image.path)
+
+    // 应用 trim
+    pipeline = this.applyTrim(pipeline)
+
+    // 调整大小
+    if (this.config.width || this.config.height) {
+      pipeline = pipeline.resize({
+        width: this.config.width,
+        height: this.config.height,
+        fit: (this.config.fit as keyof FitEnum) || 'contain',
+        position: this.config.position || 'center',
+        kernel: (this.config.kernel as keyof KernelEnum) || 'lanczos3',
+        withoutEnlargement: this.config.withoutEnlargement !== false,
+        withoutReduction: this.config.withoutReduction || false,
+        fastShrinkOnLoad: this.config.fastShrinkOnLoad !== false
+      })
+    }
+
+    // 其他处理操作...
+    if (this.config.rotate) pipeline = pipeline.rotate(this.config.rotate)
+    if (this.config.flip) pipeline = pipeline.flip()
+    if (this.config.flop) pipeline = pipeline.flop()
+    if (this.config.blur) pipeline = pipeline.blur(this.config.blur)
+    if (this.config.sharpen) pipeline = pipeline.sharpen(this.config.sharpen)
+    if (this.config.grayscale) pipeline = pipeline.grayscale()
+    if (this.config.gamma) pipeline = pipeline.gamma(this.config.gamma)
+    if (this.config.negate) pipeline = pipeline.negate()
+    if (this.config.median) pipeline = pipeline.median(this.config.median)
+    if (this.config.threshold) pipeline = pipeline.threshold(this.config.threshold)
+    if (this.config.linear) pipeline = pipeline.linear(this.config.linear.a, this.config.linear.b)
+    if (this.config.modulate) pipeline = pipeline.modulate(this.config.modulate)
+    if (this.config.toColorspace) pipeline = pipeline.toColorspace(this.config.toColorspace as any)
+    if (this.config.removeAlpha) pipeline = pipeline.removeAlpha()
+    if (this.config.ensureAlpha !== undefined)
+      pipeline = pipeline.ensureAlpha(this.config.ensureAlpha)
+    if (this.config.tint) pipeline = pipeline.tint(this.config.tint)
+    if (this.config.extend) pipeline = pipeline.extend(this.config.extend)
+    if (this.config.extract) pipeline = pipeline.extract(this.config.extract)
+
+    return pipeline
+  }
+
+  private applyFormatOptions(pipeline: Sharp, format: keyof FormatEnum): Sharp {
+    switch (format) {
+      case 'jpeg':
+      case 'jpg':
+        return pipeline.jpeg(this.config.jpeg || { quality: 80 })
+      case 'png':
+        return pipeline.png(this.config.png || { compressionLevel: 9 })
+      case 'webp':
+        return pipeline.webp(this.config.webp || { quality: 80 })
+      case 'avif':
+        return pipeline.avif(this.config.avif || { quality: 50 })
+      case 'gif':
+        return pipeline.gif(this.config.gif || {})
+      case 'tiff':
+        return pipeline.tiff(this.config.tiff || {})
+      case 'heif':
+        return pipeline.heif(this.config.heif || {})
+      default:
+        return pipeline
+    }
+  }
+
+  /**
+   * 保存图片 - 核心逻辑重构
+   * 采用 Buffer 中转方案，彻底解决双重处理和元数据获取问题
+   */
+  private async saveImage(pipeline: Sharp): Promise<boolean> {
+    try {
+      const outputDir = path.dirname(this.config.path)
+      await fs.mkdir(outputDir, { recursive: true })
+
+      let format: keyof FormatEnum = 'jpeg'
+      if (this.config.format) {
+        format = this.config.format
+      } else {
+        const ext = path.extname(this.config.path).toLowerCase().replace('.', '')
+        if (['jpeg', 'jpg', 'png', 'webp', 'avif', 'gif', 'tiff', 'heif'].includes(ext)) {
+          format = ext as keyof FormatEnum
+        }
+      }
+
+      // 优化路径: 如果没有水印和纹理，直接处理保存，避免 Buffer 复制开销
+      if (!this.config.watermark && !this.config.texture) {
+        pipeline = this.applyFormatOptions(pipeline, format)
+
+        if (this.config.withMetadata !== false) pipeline = pipeline.withMetadata()
+        if (this.config.withIccProfile)
+          pipeline = pipeline.withIccProfile(this.config.withIccProfile)
+        if (this.config.timeoutSeconds)
+          pipeline = pipeline.timeout({ seconds: this.config.timeoutSeconds })
+
+        await pipeline.toFile(this.config.path)
+        return true
+      }
+
+      // 复杂路径: 有水印或纹理
+      // 1. 先执行基础形变 (Resize/Trim/Rotate)，输出到 Buffer
+      // resolveWithObject: true 可以让我们同时拿到处理后的 buffer 和图片信息(width/height)
+      const { data: buffer, info } = await pipeline.toBuffer({ resolveWithObject: true })
+
+      // 2. 基于中间 Buffer 创建新的处理流
+      let finalPipeline = sharp(buffer)
+      const baseWidth = info.width
+      const baseHeight = info.height
+
+      // 3. 应用特效 (此时已确切知道基础尺寸)
+      finalPipeline = await this.applyTexture(finalPipeline, baseWidth, baseHeight)
+      finalPipeline = await this.applyWatermark(finalPipeline, baseWidth, baseHeight)
+
+      // 4. 应用输出格式和元数据
+      finalPipeline = this.applyFormatOptions(finalPipeline, format)
+
+      if (this.config.withMetadata !== false) {
+        finalPipeline = finalPipeline.withMetadata()
+      }
+      if (this.config.withIccProfile) {
+        finalPipeline = finalPipeline.withIccProfile(this.config.withIccProfile)
+      }
+      if (this.config.timeoutSeconds) {
+        finalPipeline = finalPipeline.timeout({ seconds: this.config.timeoutSeconds })
+      }
+
+      await finalPipeline.toFile(this.config.path)
+      return true
+    } catch (error: any) {
+      this.errorMessage = `保存图片失败: ${error.message}`
+      this.hasError = true
+      return false
+    }
+  }
+
+  private validateConfig(): boolean {
+    if (!this.image) {
+      this.errorMessage = '图片信息未提供'
+      this.hasError = true
+      return false
+    }
+
+    if (!this.config || !this.config.path) {
+      this.errorMessage = '输出路径未配置'
+      this.hasError = true
+      return false
+    }
+
+    if (this.image.hasError) {
+      this.errorMessage = `原始图片有错误: ${this.image.errorMessage}`
+      this.hasError = true
+      return false
+    }
+
+    const supportedFormats = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'svg', 'tiff', 'avif', 'heif']
+    if (!supportedFormats.includes(this.image.ext.toLowerCase())) {
+      this.errorMessage = `不支持的图片格式: ${this.image.ext}`
+      this.hasError = true
+      return false
+    }
+
+    return true
+  }
+
+  async run(): Promise<boolean> {
+    try {
+      this.hasError = false
+      this.errorMessage = ''
+      this.hasWatermark = false
+      this.hasTexture = false
+
+      if (!this.validateConfig()) {
+        return false
+      }
+
+      const pipeline = this.buildSharpPipeline()
+
+      if (!(await this.saveImage(pipeline))) {
+        return false
+      }
+
+      if (!(await this.getFileSize())) {
+        return false
+      }
+
+      if (!(await this.getImageMetadata())) {
+        return false
+      }
+
+      return true
+    } catch (error: any) {
+      this.errorMessage = `处理图片时发生未知错误: ${error.message}`
+      this.hasError = true
+      return false
+    }
+  }
+
+  /** 获取处理结果摘要 */
+  getSummary(): {
+    success: boolean
+    message: string
+    originalSize?: number
+    originalSizeFormatted?: string
+    originalWidth?: number
+    originalHeight?: number
+    compressedSize?: number
+    compressedSizeFormatted?: string
+    compressedWidth?: number
+    compressedHeight?: number
+    compressionRatio?: number
+    savedBytes?: number
+    savedPercentage?: string
+    path?: string
+    hasWatermark?: boolean
+    hasTexture?: boolean
+  } {
+    if (this.hasError) {
+      return {
+        success: false,
+        message: this.errorMessage
+      }
+    }
+
+    const savedBytes = this.image.size - this.size
+    const savedPercentage =
+      this.image.size > 0 ? `${((savedBytes / this.image.size) * 100).toFixed(2)}%` : '0%'
+
+    return {
+      success: true,
+      message: '图片处理成功',
+      originalSize: this.image.size,
+      originalSizeFormatted: this.image.sizeFormatted,
+      originalWidth: this.image.width,
+      originalHeight: this.image.height,
+      compressedSize: this.size,
+      compressedSizeFormatted: this.sizeFormatted,
+      compressedWidth: this.width,
+      compressedHeight: this.height,
+      compressionRatio: this.compressionRatio,
+      savedBytes,
+      savedPercentage,
+      path: this.config.path,
+      hasWatermark: this.hasWatermark,
+      hasTexture: this.hasTexture
+    }
+  }
+
+  /** 获取压缩统计信息 */
+  getCompressionStats(): {
+    original: { width: number; height: number; size: number; sizeFormatted: string }
+    compressed: { width: number; height: number; size: number; sizeFormatted: string }
+    ratio: number
+    saved: { bytes: number; percentage: string }
+    effects: {
+      watermark: boolean
+      texture: boolean
+    }
+  } {
+    return {
+      original: {
+        width: this.image.width,
+        height: this.image.height,
+        size: this.image.size,
+        sizeFormatted: this.image.sizeFormatted
+      },
+      compressed: {
+        width: this.width,
+        height: this.height,
+        size: this.size,
+        sizeFormatted: this.sizeFormatted
+      },
+      ratio: this.compressionRatio,
+      saved: {
+        bytes: this.image.size - this.size,
+        percentage:
+          this.image.size > 0
+            ? `${(((this.image.size - this.size) / this.image.size) * 100).toFixed(2)}%`
+            : '0%'
+      },
+      effects: {
+        watermark: this.hasWatermark,
+        texture: this.hasTexture
+      }
+    }
+  }
+
+  toString(): string {
+    if (this.hasError) {
+      return `ImageCompressTask: ${this.image.path} -> 错误: ${this.errorMessage}`
+    }
+
+    const savedPercentage =
+      this.image.size > 0
+        ? `${(((this.image.size - this.size) / this.image.size) * 100).toFixed(2)}%`
+        : '0%'
+
+    let info = `ImageCompressTask: ${this.image.width}x${this.image.height} ${this.image.sizeFormatted} -> ${this.width}x${this.height} ${this.sizeFormatted} (节省${savedPercentage})`
+
+    if (this.hasWatermark) {
+      info += ' [水印]'
+    }
+
+    if (this.hasTexture) {
+      info += ' [纹理]'
+    }
+
+    return info
+  }
+}
+
+/**
+ * 水印和纹理预设配置
+ */
+export class EffectsPresets {
+  /** 版权水印预设 */
+  static copyrightWatermark(text: string = '© Copyright'): WatermarkConfig {
+    return {
+      type: 'text',
+      content: {
+        text,
+        fontSize: 16,
+        color: 'rgba(255,255,255,0.8)',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: 6,
+        shadow: {
+          color: 'rgba(0,0,0,0.7)',
+          blur: 2,
+          offsetX: 1,
+          offsetY: 1
+        }
+      },
+      position: {
+        horizontal: 'right',
+        vertical: 'bottom',
+        offsetX: 20,
+        offsetY: 20
+      },
+      enabled: true,
+      repeat: 'single'
+    }
+  }
+
+  /** 透明水印预设 */
+  static transparentWatermark(text: string): WatermarkConfig {
+    return {
+      type: 'text',
+      content: {
+        text,
+        fontSize: 40,
+        color: 'rgba(255,255,255,0.15)',
+        opacity: 0.15
+      },
+      position: {
+        horizontal: 'center',
+        vertical: 'middle',
+        offsetX: 0,
+        offsetY: 0
+      },
+      enabled: true,
+      repeat: 'grid',
+      spacing: 150,
+      globalOpacity: 0.8
+    }
+  }
+
+  /** Logo水印预设 */
+  static logoWatermark(logoPath: string, size: number | string = 100): WatermarkConfig {
+    return {
+      type: 'image',
+      content: {
+        imagePath: logoPath,
+        width: size,
+        height: size,
+        fit: 'contain',
+        opacity: 0.8
+      },
+      position: {
+        horizontal: 'left',
+        vertical: 'top',
+        offsetX: 20,
+        offsetY: 20
+      },
+      enabled: true,
+      repeat: 'single'
+    }
+  }
+
+  /** 图片边框水印 */
+  static borderWatermark(): WatermarkConfig[] {
+    return [
+      {
+        type: 'text',
+        content: {
+          text: 'PROTECTED',
+          fontSize: 12,
+          color: 'rgba(255,255,255,0.7)',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          padding: 3
+        },
+        position: {
+          horizontal: 'left',
+          vertical: 'top',
+          offsetX: 5,
+          offsetY: 5
+        },
+        enabled: true,
+        repeat: 'repeat',
+        spacing: 100
+      },
+      {
+        type: 'text',
+        content: {
+          text: 'CONFIDENTIAL',
+          fontSize: 12,
+          color: 'rgba(255,255,255,0.7)',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          padding: 3
+        },
+        position: {
+          horizontal: 'right',
+          vertical: 'bottom',
+          offsetX: 5,
+          offsetY: 5
+        },
+        enabled: true,
+        repeat: 'repeat',
+        spacing: 100
+      }
+    ]
+  }
+
+  /** 网格纹理预设 */
+  static gridTexture(): TextureOptions {
+    return {
+      type: 'grid',
+      color: 'rgba(0,0,0,0.1)',
+      size: 20,
+      lineWidth: 1,
+      opacity: 0.2,
+      blendMode: 'multiply'
+    }
+  }
+
+  /** 点状纹理预设 */
+  static dotTexture(): TextureOptions {
+    return {
+      type: 'dot',
+      color: 'rgba(0,0,0,0.15)',
+      size: 25,
+      dotSize: 1,
+      opacity: 0.3,
+      blendMode: 'overlay'
+    }
+  }
+
+  /** 纸张纹理预设 */
+  static paperTexture(): TextureOptions {
+    return {
+      type: 'noise',
+      intensity: 0.08,
+      opacity: 0.4,
+      blendMode: 'soft-light',
+      scale: 1.2
+    }
+  }
+
+  /** 布纹纹理预设 */
+  static canvasTexture(): TextureOptions {
+    return {
+      type: 'custom',
+      customImage: path.join(__dirname, 'assets/canvas-texture.png'), // 假设有纹理图片
+      opacity: 0.25,
+      blendMode: 'overlay',
+      scale: 0.8
+    }
+  }
+
+  /** 交叉线纹理预设 */
+  static crossTexture(): TextureOptions {
+    return {
+      type: 'cross',
+      color: 'rgba(100,100,100,0.2)',
+      size: 15,
+      lineWidth: 1,
+      opacity: 0.3,
+      angle: 45,
+      blendMode: 'multiply'
+    }
+  }
+}
+
+/**
+ * 水印工具函数
+ */
+export class WatermarkUtils {
+  /**
+   * 生成时间戳水印
+   */
+  static timestampWatermark(): WatermarkConfig {
+    const now = new Date()
+    const timestamp = now.toISOString().replace('T', ' ').substring(0, 19)
+
+    return {
+      type: 'text',
+      content: {
+        text: `生成时间: ${timestamp}`,
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.7)',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: 4
+      },
+      position: {
+        horizontal: 'left',
+        vertical: 'bottom',
+        offsetX: 10,
+        offsetY: 10
+      },
+      enabled: true,
+      repeat: 'single'
+    }
+  }
+
+  /**
+   * 生成文件名水印
+   */
+  static filenameWatermark(filename: string): WatermarkConfig {
+    return {
+      type: 'text',
+      content: {
+        text: `文件名: ${path.basename(filename, path.extname(filename))}`,
+        fontSize: 12,
+        color: 'rgba(200,200,200,0.8)',
+        backgroundColor: 'rgba(30,30,30,0.6)',
+        padding: 3
+      },
+      position: {
+        horizontal: 'right',
+        vertical: 'top',
+        offsetX: 10,
+        offsetY: 10
+      },
+      enabled: true,
+      repeat: 'single'
+    }
+  }
+
+  /**
+   * 生成分辨率水印
+   */
+  static resolutionWatermark(width: number, height: number): WatermarkConfig {
+    return {
+      type: 'text',
+      content: {
+        text: `${width}×${height}`,
+        fontSize: 11,
+        color: 'rgba(180,180,180,0.6)',
+        backgroundColor: 'rgba(40,40,40,0.4)',
+        padding: 2
+      },
+      position: {
+        horizontal: 'left',
+        vertical: 'top',
+        offsetX: 5,
+        offsetY: 5
+      },
+      enabled: true,
+      repeat: 'single'
+    }
+  }
+}

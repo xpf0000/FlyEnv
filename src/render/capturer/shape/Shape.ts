@@ -71,6 +71,7 @@ export class Shape {
     this.width = record.width
     this.height = record.height
     this.zIndex = record.zIndex
+    this.canvas!.style.zIndex = `${this.zIndex}`
   }
 
   checkMouseOnHandle(x: number, y: number) {

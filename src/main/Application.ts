@@ -901,8 +901,12 @@ export default class Application extends EventEmitter {
           const isHide: any = args[0] as any
           if (isHide && this.mainWindow?.isVisible()) {
             this.mainWindow?.once('hide', () => {
-              this.getCapturer().initWatchPointWindow()
+              setTimeout(() => {
+                this.getCapturer().initWatchPointWindow()
+                this.mainWindow?.setOpacity(1)
+              }, 150)
             })
+            this.mainWindow?.setOpacity(0)
             this.mainWindow?.hide()
           } else {
             this.getCapturer().initWatchPointWindow()
