@@ -1,261 +1,16 @@
 import type { TaskItem } from '@shared/TaskQueue'
 import sharp, { Sharp, FitEnum, KernelEnum, OverlayOptions, FormatEnum } from 'sharp'
-import type { TrimOptions } from 'sharp'
+import type {
+  ImageWatermarkOptions,
+  SharpConfig,
+  TextureOptions,
+  TextWatermarkOptions,
+  WatermarkConfig,
+  WatermarkPosition
+} from './imageCompress.type'
 import fs from 'fs/promises'
 import path from 'path'
 import { ImageInfoFetchTask } from './ImageInfoFetchTask'
-
-/**
- * 文字水印配置
- */
-interface TextWatermarkOptions {
-  /** 水印文字内容 */
-  text: string
-  /** 字体大小，单位像素 (默认 24) */
-  fontSize?: number
-  /** 字体颜色，支持颜色名称、十六进制、RGB等 (默认 '#FFFFFF') */
-  color?: string
-  /** 文字透明度 0-1 (默认 0.8) */
-  opacity?: number
-  /** 文字背景颜色 (可选) */
-  backgroundColor?: string
-  /** 文字内边距，单位像素 (默认 4) */
-  padding?: number
-  /** 文字阴影配置 */
-  shadow?: {
-    /** 阴影颜色 (默认 'rgba(0,0,0,0.5)') */
-    color?: string
-    /** 阴影模糊度 (默认 2) */
-    blur?: number
-    /** 阴影X偏移 (默认 1) */
-    offsetX?: number
-    /** 阴影Y偏移 (默认 1) */
-    offsetY?: number
-  }
-}
-
-/**
- * 图片水印配置
- */
-interface ImageWatermarkOptions {
-  /** 水印图片路径 */
-  imagePath: string
-  /** 水印图片宽度 (单位像素或百分比) */
-  width?: number | string
-  /** 水印图片高度 (单位像素或百分比) */
-  height?: number | string
-  /** 水印图片缩放模式 */
-  fit?: keyof FitEnum
-  /** 水印透明度 0-1 (默认 0.7) */
-  opacity?: number
-  /** 水印旋转角度 (默认 0) */
-  rotate?: number
-}
-
-/**
- * 水印位置配置
- */
-interface WatermarkPosition {
-  /** 水平位置: 'left' | 'center' | 'right' (默认 'right') */
-  horizontal?: 'left' | 'center' | 'right'
-  /** 垂直位置: 'top' | 'middle' | 'bottom' (默认 'bottom') */
-  vertical?: 'top' | 'middle' | 'bottom'
-  /** 水平偏移，单位像素 (默认 20) */
-  offsetX?: number
-  /** 垂直偏移，单位像素 (默认 20) */
-  offsetY?: number
-}
-
-/**
- * 完整的水印配置
- */
-interface WatermarkConfig {
-  /** 水印类型: 'text' 或 'image' */
-  type: 'text' | 'image'
-  /** 水印内容配置 */
-  content: TextWatermarkOptions | ImageWatermarkOptions
-  /** 水印位置配置 */
-  position?: WatermarkPosition
-  /** 是否启用水印 (默认 true) */
-  enabled?: boolean
-  /** 水印重复模式: 'single' | 'repeat' | 'grid' (默认 'single') */
-  repeat?: 'single' | 'repeat' | 'grid'
-  /** 网格模式下的间距，单位像素 (默认 100) */
-  spacing?: number
-  /** 水印整体透明度 0-1 (默认 1) */
-  globalOpacity?: number
-}
-
-/**
- * 栅格纹理配置
- */
-interface TextureOptions {
-  /** 纹理类型 */
-  type: 'grid' | 'dot' | 'line' | 'cross' | 'noise' | 'custom'
-  /** 纹理颜色 (默认 'rgba(255,255,255,0.1)') */
-  color?: string
-  /** 纹理大小/间距，单位像素 (默认 20) */
-  size?: number
-  /** 线条宽度 (仅适用于 line/cross 类型) (默认 1) */
-  lineWidth?: number
-  /** 点的大小 (仅适用于 dot 类型) (默认 2) */
-  dotSize?: number
-  /** 噪点强度 0-1 (仅适用于 noise 类型) (默认 0.05) */
-  intensity?: number
-  /** 自定义纹理图片路径 (仅适用于 custom 类型) */
-  customImage?: string
-  /** 纹理混合模式 */
-  blendMode?: 'overlay' | 'multiply' | 'screen' | 'soft-light' | 'hard-light'
-  /** 纹理透明度 0-1 (默认 0.3) */
-  opacity?: number
-  /** 纹理角度，单位度 (默认 0) */
-  angle?: number
-  /** 纹理缩放比例 0.1-5 (默认 1) */
-  scale?: number
-}
-
-/**
- * 扩展的 Sharp 配置类型
- */
-export type SharpConfig = {
-  /** 保存路径 */
-  path: string
-  width?: number
-  height?: number
-  fit?: keyof FitEnum
-  position?: number | string
-  kernel?: keyof KernelEnum
-  withoutEnlargement?: boolean
-  withoutReduction?: boolean
-  fastShrinkOnLoad?: boolean
-  format?: keyof FormatEnum
-
-  /** 去白边/透明边配置 */
-  trim?: TrimOptions
-
-  /** 水印配置 */
-  watermark?: WatermarkConfig | WatermarkConfig[]
-
-  /** 栅格纹理配置 */
-  texture?: TextureOptions
-
-  /** 各格式压缩配置 */
-  jpeg?: {
-    quality?: number
-    progressive?: boolean
-    chromaSubsampling?: '4:2:0' | '4:4:4' | '4:2:2'
-    optimiseCoding?: boolean
-    mozjpeg?: boolean
-    trellisQuantisation?: boolean
-    overshootDeringing?: boolean
-    optimiseScans?: boolean
-    quantisationTable?: number
-  }
-  png?: {
-    quality?: number
-    progressive?: boolean
-    compressionLevel?: number
-    adaptiveFiltering?: boolean
-    palette?: boolean
-    colours?: number
-    dither?: number
-  }
-  webp?: {
-    quality?: number
-    alphaQuality?: number
-    lossless?: boolean
-    nearLossless?: boolean
-    smartSubsample?: boolean
-    effort?: number
-  }
-  avif?: {
-    quality?: number
-    lossless?: boolean
-    effort?: number
-    chromaSubsampling?: '4:2:0' | '4:4:4'
-  }
-  gif?: {
-    pageHeight?: number
-    loop?: number
-    delay?: number[]
-    effort?: number
-  }
-  tiff?: {
-    quality?: number
-    compression?: 'jpeg' | 'deflate' | 'ccittfax4' | 'lzw' | 'packbits' | 'webp' | 'zstd'
-    predictor?: 'none' | 'horizontal' | 'float'
-    pyramid?: boolean
-    tile?: boolean
-    tileWidth?: number
-    tileHeight?: number
-    xres?: number
-    yres?: number
-  }
-  heif?: {
-    quality?: number
-    compression?: 'av1' | 'hevc'
-    lossless?: boolean
-    effort?: number
-    chromaSubsampling?: '4:2:0' | '4:4:4'
-  }
-  timeoutSeconds?: number
-  withMetadata?: boolean
-  withIccProfile?: string
-  rotate?: number
-  flip?: boolean
-  flop?: boolean
-  blur?: number
-  sharpen?: {
-    sigma: number
-    m1?: number
-    m2?: number
-    x1?: number
-    y2?: number
-    y3?: number
-  }
-  gamma?: number
-  grayscale?: boolean
-  normalise?: boolean
-  clahe?: {
-    width: number
-    height: number
-    maxSlope?: number
-  }
-  negate?: boolean
-  median?: number
-  linear?: {
-    a: number
-    b: number
-  }
-  modulate?: {
-    brightness?: number
-    saturation?: number
-    hue?: number
-    lightness?: number
-  }
-  threshold?: number
-  toColorspace?: 'srgb' | 'rgb' | 'cmyk' | 'lab' | 'b-w'
-  removeAlpha?: boolean
-  ensureAlpha?: number
-  tint?: {
-    r: number
-    g: number
-    b: number
-  }
-  extend?: {
-    top?: number
-    bottom?: number
-    left?: number
-    right?: number
-    background?: string
-  }
-  extract?: {
-    left: number
-    top: number
-    width: number
-    height: number
-  }
-}
 
 export class ImageCompressTask implements TaskItem {
   /** 需要处理的图片 */
@@ -343,7 +98,9 @@ export class ImageCompressTask implements TaskItem {
   /** 应用 trim 操作 */
   private applyTrim(pipeline: Sharp): Sharp {
     if (this.config.trim) {
-      return pipeline.trim(this.config.trim)
+      return pipeline.trim({
+        threshold: 0
+      })
     }
     return pipeline
   }
@@ -981,7 +738,7 @@ export class ImageCompressTask implements TaskItem {
     baseWidth: number,
     baseHeight: number
   ): Promise<Sharp> {
-    if (!this.config.texture) {
+    if (!this.config?.texture?.enabled) {
       return pipeline
     }
 

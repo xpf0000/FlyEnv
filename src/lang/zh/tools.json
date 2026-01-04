@@ -77,5 +77,8 @@
   "RuleDateTime": "时间",
   "RuleUUID": "UUID",
   "CapturerFailTitle": "屏幕截图失败",
-  "CapturerFailContent": "获取屏幕截图失败, 请重试"
+  "CapturerFailContent": "获取屏幕截图失败, 请重试",
+  "ImageCompress": {
+    "title": "图片压缩"
+  }
 }
