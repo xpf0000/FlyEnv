@@ -5,6 +5,9 @@ import type {
   WatermarkConfig
 } from '../../../../fork/module/Image/imageCompress.type'
 import type { FitEnum, FormatEnum, KernelEnum } from 'sharp'
+import { dialog, fs, shell } from '@/util/NodeFn'
+import { MessageError } from '@/util/Element'
+import { I18nT } from '@lang/index'
 
 class ImageCompressSetup implements SharpConfig {
   // 基本配置
@@ -39,8 +42,7 @@ class ImageCompressSetup implements SharpConfig {
       offsetY: 20
     },
     repeat: 'single',
-    spacing: 100,
-    globalOpacity: 1
+    spacing: 100
   }
 
   // 纹理配置
@@ -188,14 +190,14 @@ class ImageCompressSetup implements SharpConfig {
     y2?: number
     y3?: number
   } = {
-    sigma: 1,
+    sigma: 0,
     m1: 0,
     m2: 3,
     x1: 3,
     y2: 3,
     y3: 0
   }
-  gamma: number = 2.2
+  gamma: number = 1
   grayscale: boolean = false
   normalise: boolean = false
   clahe: {
@@ -256,6 +258,41 @@ class ImageCompressSetup implements SharpConfig {
     top: 0,
     width: 100,
     height: 100
+  }
+
+  download(base64: string) {
+    let ext = 'png'
+    const mimeToExt: any = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+      'image/svg+xml': 'svg',
+      'image/avif': 'avif'
+    }
+    for (const key in mimeToExt) {
+      if (base64.includes(key)) {
+        ext = mimeToExt[key]
+      }
+    }
+    dialog
+      .showSaveDialog({
+        properties: ['createDirectory', 'showOverwriteConfirmation'],
+        defaultPath: `flyenv-compress-test.${ext}`
+      })
+      .then(({ canceled, filePath }: any) => {
+        if (canceled || !filePath) {
+          return
+        }
+        const data = base64.replace(/^data:image\/\w+;base64,/, '')
+        fs.writeBufferBase64(filePath, data)
+          .then(() => {
+            shell.showItemInFolder(filePath).catch()
+          })
+          .catch(() => {
+            MessageError(I18nT('base.fail'))
+          })
+      })
   }
 }
 export default reactiveBind(new ImageCompressSetup())

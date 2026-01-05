@@ -236,7 +236,9 @@ export class ImageCompressTask implements TaskItem {
    */
   private async applyImageWatermarkEffects(
     watermarkPipeline: Sharp,
-    imageOptions: ImageWatermarkOptions
+    imageOptions: ImageWatermarkOptions,
+    width: number,
+    height: number
   ): Promise<Sharp> {
     try {
       const { opacity, rotate } = imageOptions
@@ -244,6 +246,28 @@ export class ImageCompressTask implements TaskItem {
       // 如果设置了透明度，确保有alpha通道
       if (opacity !== undefined && opacity < 1) {
         watermarkPipeline = watermarkPipeline.ensureAlpha()
+        // 创建半透明蒙版
+        const overlayColor = { r: 0, g: 0, b: 0, alpha: opacity }
+
+        // 创建一个相同尺寸的半透明层
+        const overlay = await sharp({
+          create: {
+            width: width,
+            height: height,
+            channels: 4,
+            background: overlayColor
+          }
+        })
+          .png()
+          .toBuffer()
+
+        // 通过blend模式应用透明度
+        watermarkPipeline = watermarkPipeline.composite([
+          {
+            input: overlay,
+            blend: 'dest-in'
+          }
+        ])
       }
 
       // 应用旋转
@@ -278,14 +302,7 @@ export class ImageCompressTask implements TaskItem {
       return pipeline
     }
 
-    const {
-      type,
-      content,
-      position = {},
-      repeat = 'single',
-      spacing = 100,
-      globalOpacity = 1
-    } = watermarkConfig
+    const { type, content, position = {}, repeat = 'single', spacing = 100 } = watermarkConfig
 
     try {
       if (type === 'text') {
@@ -294,11 +311,12 @@ export class ImageCompressTask implements TaskItem {
         // 计算文字水印尺寸
         const fontSize = textOptions.fontSize || 24
         const padding = textOptions.padding || 4
-        const textWidth = Math.ceil(textOptions.text.length * fontSize * 0.6) + padding * 2
+        const textWidth = Math.ceil(textOptions.text.length * fontSize) + padding * 2
         const textHeight = fontSize + padding * 2
 
         // 创建文字水印SVG
         const svg = this.createTextWatermarkSVG(textOptions, textWidth, textHeight)
+        console.log('applySingleWatermark text svg: ', svg)
         const watermarkBuffer = Buffer.from(svg)
 
         if (repeat === 'single') {
@@ -310,6 +328,8 @@ export class ImageCompressTask implements TaskItem {
             textWidth,
             textHeight
           )
+
+          console.log('calculateWatermarkPosition left:', left, top)
 
           return pipeline.composite([
             {
@@ -361,49 +381,49 @@ export class ImageCompressTask implements TaskItem {
         let watermarkHeight = watermarkMetadata.height
 
         if (imageOptions.width || imageOptions.height) {
-          let targetWidth =
-            typeof imageOptions.width === 'string' && imageOptions.width.endsWith('%')
-              ? Math.floor((baseWidth * parseFloat(imageOptions.width)) / 100)
-              : imageOptions.width || watermarkWidth
-
-          let targetHeight =
-            typeof imageOptions.height === 'string' && imageOptions.height.endsWith('%')
-              ? Math.floor((baseHeight * parseFloat(imageOptions.height)) / 100)
-              : imageOptions.height || watermarkHeight
-
-          targetWidth = Number(targetWidth)
-          targetHeight = Number(targetHeight)
-
-          watermarkPipeline = watermarkPipeline.resize({
-            width: targetWidth,
-            height: targetHeight,
-            fit: imageOptions.fit || 'contain',
-            withoutEnlargement: true
+          let targetWidth = 0
+          if (imageOptions.width) {
+            targetWidth =
+              typeof imageOptions.width === 'string' && imageOptions.width.endsWith('%')
+                ? Math.floor((baseWidth * parseFloat(imageOptions.width)) / 100)
+                : Number(imageOptions.width)
+          }
+          let targetHeight = 0
+          if (imageOptions.height) {
+            targetHeight =
+              typeof imageOptions.height === 'string' && imageOptions.height.endsWith('%')
+                ? Math.floor((baseHeight * parseFloat(imageOptions.height)) / 100)
+                : Number(imageOptions.height)
+          }
+          const option: any = {
+            fit: 'contain',
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
+            withoutEnlargement: false
+          }
+          if (targetWidth && !isNaN(targetWidth)) {
+            option.width = targetWidth
+          }
+          if (targetHeight && !isNaN(targetHeight)) {
+            option.height = targetHeight
+          }
+          console.log('watermarkPipeline.resize(option): ', option)
+          watermarkPipeline = watermarkPipeline.resize(option)
+          const clone = watermarkPipeline.clone()
+          const { info } = await clone.toBuffer({
+            resolveWithObject: true
           })
-
-          watermarkWidth = targetWidth
-          watermarkHeight = targetHeight
+          watermarkWidth = info.width
+          watermarkHeight = info.height
+          console.log('watermarkPipeline watermarkWidth: ', watermarkWidth, watermarkHeight)
         }
 
         // 应用水印图片效果
-        watermarkPipeline = await this.applyImageWatermarkEffects(watermarkPipeline, imageOptions)
-
-        // 应用全局透明度
-        if (globalOpacity < 1) {
-          watermarkPipeline = watermarkPipeline.composite([
-            {
-              input: {
-                create: {
-                  width: watermarkWidth,
-                  height: watermarkHeight,
-                  channels: 4,
-                  background: { r: 0, g: 0, b: 0, alpha: globalOpacity }
-                }
-              },
-              blend: 'dest-in'
-            }
-          ])
-        }
+        watermarkPipeline = await this.applyImageWatermarkEffects(
+          watermarkPipeline,
+          imageOptions,
+          watermarkWidth,
+          watermarkHeight
+        )
 
         const watermarkBuffer = await watermarkPipeline.toBuffer()
 
@@ -467,14 +487,12 @@ export class ImageCompressTask implements TaskItem {
    * @param baseHeight 基准图片高度
    * @returns 应用水印后的管道
    */
-  private async applyWatermark(
-    pipeline: Sharp,
-    baseWidth: number,
-    baseHeight: number
-  ): Promise<Sharp> {
+  async applyWatermark(pipeline: Sharp, baseWidth: number, baseHeight: number): Promise<Sharp> {
     if (!this.config.watermark) {
       return pipeline
     }
+
+    console.log('applyWatermark this.config.watermark: ', this.config.watermark)
 
     try {
       this.hasWatermark = true
@@ -733,11 +751,7 @@ export class ImageCompressTask implements TaskItem {
    * @param baseHeight 基准图片高度
    * @returns 应用纹理后的管道
    */
-  private async applyTexture(
-    pipeline: Sharp,
-    baseWidth: number,
-    baseHeight: number
-  ): Promise<Sharp> {
+  async applyTexture(pipeline: Sharp, baseWidth: number, baseHeight: number): Promise<Sharp> {
     if (!this.config?.texture?.enabled) {
       return pipeline
     }
@@ -1127,8 +1141,7 @@ export class EffectsPresets {
       },
       enabled: true,
       repeat: 'grid',
-      spacing: 150,
-      globalOpacity: 0.8
+      spacing: 150
     }
   }
 

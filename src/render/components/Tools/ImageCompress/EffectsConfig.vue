@@ -2,7 +2,6 @@
 <template>
   <div class="effects-config">
     <h3 class="text-lg font-medium mb-4 text-gray-700">图片效果</h3>
-
     <div class="space-y-6">
       <!-- 旋转和翻转 -->
       <div class="border rounded-lg p-4">
@@ -70,8 +69,8 @@
               <label class="block text-sm font-medium mb-2">Gamma 值</label>
               <el-slider
                 v-model="config.gamma"
-                :min="0"
-                :max="3"
+                :min="1.0"
+                :max="3.0"
                 :step="0.1"
                 :format-tooltip="(val: number) => val.toFixed(1)"
                 show-input
@@ -151,11 +150,13 @@
         </div>
       </div>
     </div>
+    <EffectsPreview />
   </div>
 </template>
 
 <script setup lang="ts">
   import ImageCompressSetup from './setup'
+  import EffectsPreview from '@/components/Tools/ImageCompress/EffectsPreview.vue'
 
   const config = ImageCompressSetup
 </script>

@@ -26,8 +26,14 @@
         type="primary"
         :icon="VideoPlay"
         :loading="running"
-        class="whitespace-nowrap bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0 shadow-sm hover:shadow"
         @click.stop="doTest"
+      >
+      </el-button>
+      <el-button
+        :disabled="!testResult?.compressed?.base64"
+        type="primary"
+        :icon="Download"
+        @click.stop="ImageCompressSetup.download(testResult?.compressed?.base64 ?? '')"
       >
       </el-button>
     </div>
@@ -36,7 +42,7 @@
     <div v-if="testResult?.original" class="w-full">
       <!-- 图片信息对比 -->
       <div class="w-full mb-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
           <!-- 原图信息卡片 -->
           <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
             <div class="flex items-center justify-between mb-2">
@@ -128,7 +134,7 @@
               {{ testResult.compression.isReduced ? '✓ 有效压缩' : '⚠ 压缩后更大' }}
             </span>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-3">
             <div class="text-center">
               <div class="text-xs text-gray-500 mb-1">压缩率</div>
               <div
@@ -274,60 +280,6 @@
           <div class="mt-2 text-xs text-gray-500 text-center"> 拖动滑块比较图片质量 </div>
         </div>
       </div>
-
-      <!-- 操作按钮 -->
-      <div class="mt-4 flex justify-end gap-2">
-        <el-button size="small" class="hover:bg-gray-100" @click="viewOriginal">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-            />
-          </svg>
-          查看原图
-        </el-button>
-        <el-button size="small" class="hover:bg-blue-50" @click="viewCompressed">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-            />
-          </svg>
-          查看压缩图
-        </el-button>
-        <el-button
-          type="primary"
-          size="small"
-          class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0"
-          @click="downloadCompressed"
-        >
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-            />
-          </svg>
-          下载压缩图
-        </el-button>
-      </div>
     </div>
 
     <!-- 空状态 -->
@@ -337,9 +289,9 @@
 
 <script setup lang="ts">
   import { reactive, ref, onUnmounted, watch } from 'vue'
-  import { FolderOpened, VideoPlay } from '@element-plus/icons-vue'
+  import { Download, FolderOpened, VideoPlay } from '@element-plus/icons-vue'
   import type { CompressTestResult } from '../../../../fork/module/Image/imageCompress.type'
-  import { dialog, shell } from '@/util/NodeFn'
+  import { dialog } from '@/util/NodeFn'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
   import { I18nT } from '@lang/index'
@@ -468,21 +420,6 @@
     window.removeEventListener('mouseup', stopDrag)
     window.removeEventListener('touchmove', handleDrag)
     window.removeEventListener('touchend', stopDrag)
-  }
-
-  // 查看原图
-  const viewOriginal = () => {
-    shell.openExternal(testResult.value?.original.base64)
-  }
-
-  // 查看压缩图
-  const viewCompressed = () => {
-    shell.openExternal(testResult.value?.compressed.base64)
-  }
-
-  // 下载压缩图
-  const downloadCompressed = () => {
-    if (!testResult.value?.compressed?.base64) return
   }
 
   // 组件卸载时清理事件监听

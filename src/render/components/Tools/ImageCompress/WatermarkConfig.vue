@@ -37,7 +37,7 @@
                 <el-input-number
                   v-model="(watermark.content as any).fontSize"
                   :min="12"
-                  :max="72"
+                  :max="300"
                   :step="1"
                   controls-position="right"
                   class="w-full"
@@ -88,7 +88,7 @@
                 clearable
               >
                 <template #append>
-                  <el-button icon="Picture" @click="selectImage" />
+                  <el-button :icon="Picture" @click="selectImage" />
                 </template>
               </el-input>
             </div>
@@ -170,7 +170,6 @@
           <label class="block text-sm font-medium mb-2">重复模式</label>
           <el-select v-model="watermark.repeat" class="w-full">
             <el-option label="单水印" value="single" />
-            <el-option label="重复" value="repeat" />
             <el-option label="网格" value="grid" />
           </el-select>
 
@@ -185,22 +184,9 @@
             />
           </div>
         </div>
-
-        <!-- 全局透明度 -->
-        <div>
-          <label class="block text-sm font-medium mb-2">全局透明度</label>
-          <el-slider
-            v-model="watermark.globalOpacity"
-            :min="0"
-            :max="1"
-            :step="0.1"
-            :format-tooltip="(val: number) => (val * 100).toFixed(0) + '%'"
-            show-input
-            :show-input-controls="false"
-          />
-        </div>
       </template>
     </div>
+    <WatermarkPreview v-if="watermark.enabled" />
   </div>
 </template>
 
@@ -210,8 +196,10 @@
     WatermarkConfig,
     TextWatermarkOptions
   } from '../../../../fork/module/Image/imageCompress.type'
-
+  import WatermarkPreview from '@/components/Tools/ImageCompress/WatermarkPreview.vue'
+  import { Picture } from '@element-plus/icons-vue'
   import ImageCompressSetup from './setup'
+  import { dialog } from '@/util/NodeFn'
 
   const config = ImageCompressSetup
 
@@ -233,8 +221,7 @@
         offsetY: 20
       },
       repeat: 'single',
-      spacing: 100,
-      globalOpacity: 1
+      spacing: 100
     }
   }
 
@@ -282,12 +269,29 @@
         offsetY: 20
       },
       repeat: 'single',
-      spacing: 100,
-      globalOpacity: 1
+      spacing: 100
     }
   }
 
   const selectImage = () => {
     console.log('选择水印图片')
+    dialog
+      .showOpenDialog({
+        properties: ['openFile', 'showHiddenFiles'],
+        filters: [
+          {
+            name: 'Image Files',
+            extensions: ['jpeg', 'jpg', 'png', 'webp', 'avif', 'gif', 'tiff', 'heif', 'svg']
+          }
+        ]
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        const content: any = watermark.value.content
+        content.imagePath = path
+      })
   }
 </script>

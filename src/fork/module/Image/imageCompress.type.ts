@@ -77,8 +77,6 @@ export interface WatermarkConfig {
   repeat?: 'single' | 'repeat' | 'grid'
   /** 网格模式下的间距，单位像素 (默认 100) */
   spacing?: number
-  /** 水印整体透明度 0-1 (默认 1) */
-  globalOpacity?: number
 }
 
 /**
@@ -455,4 +453,15 @@ export interface CompressTestResult {
   compressed: ImageInfo
   // 压缩信息
   compression: CompressionInfo
+}
+
+export interface EffectsTestResult {
+  // 原始图片
+  original: {
+    base64: string
+  }
+  // 应用效果后的图片
+  effected: {
+    base64: string
+  }
 }

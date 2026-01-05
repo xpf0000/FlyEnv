@@ -9,7 +9,7 @@ import { ImageCompressTask } from './ImageCompressTask'
 import { cpus } from 'node:os'
 import type { SharpConfig } from './imageCompress.type'
 import axios from 'axios'
-import { imageCompressTest } from './ImageCompressTest'
+import { imageCompressTest, imageEffectsTest, imageWatermarkTest } from './ImageCompressTest'
 
 type ImageFileItemType = {
   path: string
@@ -141,6 +141,14 @@ class Image extends Base {
     format: 'jpeg' | 'png' | 'webp' | 'avif'
   ) {
     return imageCompressTest(base64OrFilepath, config, format)
+  }
+
+  imageEffectsTest(base64OrFilepath: string, config: SharpConfig) {
+    return imageEffectsTest(base64OrFilepath, config)
+  }
+
+  imageWatermarkTest(base64OrFilepath: string, config: SharpConfig) {
+    return imageWatermarkTest(base64OrFilepath, config)
   }
 }
 export default new Image()

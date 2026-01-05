@@ -38,9 +38,6 @@
               <el-tooltip :show-after="600" content="最高质量,生成的文件最大">
                 <el-radio label="4:4:4">4:4:4</el-radio>
               </el-tooltip>
-              <el-tooltip :show-after="600" content="高质量,压缩率中等,适用于大多数场景">
-                <el-radio label="4:2:2">4:2:2</el-radio>
-              </el-tooltip>
               <el-tooltip :show-after="600" content="可接受的视觉质量,最高的压缩率,生成的文件最小">
                 <el-radio label="4:2:0">4:2:0</el-radio>
               </el-tooltip>
