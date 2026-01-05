@@ -5,8 +5,11 @@ import { stat } from '@shared/fs-extra'
 import { basename, extname } from 'node:path'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { ImageInfoFetchTask } from './ImageInfoFetchTask'
-import { ImageCompressTask, SharpConfig } from './ImageCompressTask'
+import { ImageCompressTask } from './ImageCompressTask'
 import { cpus } from 'node:os'
+import type { SharpConfig } from './imageCompress.type'
+import axios from 'axios'
+import { imageCompressTest } from './ImageCompressTest'
 
 type ImageFileItemType = {
   path: string
@@ -91,6 +94,53 @@ class Image extends Base {
         )
         .run()
     })
+  }
+
+  /**
+   * 下载图片，返回base64编码格式
+   */
+  initTestImage() {
+    return new ForkPromise(async (resolve, reject) => {
+      const url = 'https://oss.macphpstudy.com/image/flyenv-image-compress-test.png'
+
+      try {
+        const response = await axios({
+          url: url,
+          method: 'GET',
+          responseType: 'arraybuffer' // 重要：设置为 arraybuffer 格式接收二进制数据
+        })
+
+        // 将二进制数据转换为 base64
+        const buffer = Buffer.from(response.data, 'binary')
+        const base64 = buffer.toString('base64')
+
+        // const mimeType = 'image/png'
+        // const dataUrl = `data:${mimeType};base64,${base64}`
+
+        // 根据你的需要选择返回纯 base64 还是完整的 data URL
+        resolve({
+          base64: base64
+        })
+      } catch (e) {
+        console.error('图片下载失败:', e)
+        reject(e)
+      }
+    })
+  }
+
+  /**
+   * 压缩测试
+   * 1. 对原始图片进行压缩
+   * 2. 返回压缩前后的图片base64字符串和文件尺寸大小
+   * @param base64OrFilepath  图片文件路径或图片base64字符串
+   * @param config  压缩配置
+   */
+  imageCompressTest(
+    base64OrFilepath: string,
+    config: SharpConfig,
+    format: 'jpeg' | 'png' | 'webp' | 'avif'
+  ) {
+    return imageCompressTest(base64OrFilepath, config, format)
   }
 }
 export default new Image()

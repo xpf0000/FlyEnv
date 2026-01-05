@@ -50,6 +50,7 @@ class BaseManager {
   Typesense: any
   Project: any
   Podman: any
+  Image: any
 
   modules: Set<string> = new Set()
 
@@ -406,6 +407,12 @@ class BaseManager {
         this.Podman = res.default
       }
       doRun(this.Podman)
+    } else if (module === 'image') {
+      if (!this.Image) {
+        const res = await import('./module/Image')
+        this.Image = res.default
+      }
+      doRun(this.Image)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

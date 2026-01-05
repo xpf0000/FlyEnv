@@ -1,33 +1,44 @@
 <!-- ImageCompressConfig.vue 主组件 -->
 <template>
-  <div class="image-compress-config">
-    <el-tabs v-model="activeTab" type="border-card" class="config-tabs el-tabs-content-flex-1">
-      <el-tab-pane label="基础配置" name="basic">
-        <el-scrollbar>
-          <BasicConfig />
-        </el-scrollbar>
-      </el-tab-pane>
-      <el-tab-pane label="压缩配置" name="compress">
-        <el-scrollbar>
-          <CompressConfig />
-        </el-scrollbar>
-      </el-tab-pane>
-      <el-tab-pane label="图片效果" name="effects">
-        <el-scrollbar>
-          <EffectsConfig />
-        </el-scrollbar>
-      </el-tab-pane>
-      <el-tab-pane label="水印配置" name="watermark">
-        <el-scrollbar>
-          <WatermarkConfig />
-        </el-scrollbar>
-      </el-tab-pane>
-      <el-tab-pane label="纹理配置" name="texture">
-        <el-scrollbar>
-          <TextureConfig />
-        </el-scrollbar>
-      </el-tab-pane>
-    </el-tabs>
+  <div class="host-edit tools">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ I18nT('tools.ImageCompress.title') }}</span>
+        <slot name="like"></slot>
+      </div>
+    </div>
+
+    <div class="p-3 pb-0 overflow-hidden flex-1">
+      <div class="image-compress-config h-full overflow-hidden">
+        <el-tabs v-model="activeTab" type="border-card" class="config-tabs el-tabs-content-flex-1">
+          <el-tab-pane label="基础配置" name="basic">
+            <el-scrollbar>
+              <BasicConfig />
+            </el-scrollbar>
+          </el-tab-pane>
+          <el-tab-pane label="压缩配置" name="compress">
+            <el-scrollbar>
+              <CompressConfig />
+            </el-scrollbar>
+          </el-tab-pane>
+          <el-tab-pane label="图片效果" name="effects">
+            <el-scrollbar>
+              <EffectsConfig />
+            </el-scrollbar>
+          </el-tab-pane>
+          <el-tab-pane label="水印配置" name="watermark">
+            <el-scrollbar>
+              <WatermarkConfig />
+            </el-scrollbar>
+          </el-tab-pane>
+          <el-tab-pane label="纹理配置" name="texture">
+            <el-scrollbar>
+              <TextureConfig />
+            </el-scrollbar>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -38,6 +49,7 @@
   import EffectsConfig from './EffectsConfig.vue'
   import WatermarkConfig from './WatermarkConfig.vue'
   import TextureConfig from './TextureConfig.vue'
+  import { I18nT } from '@lang/index'
 
   const activeTab = ref('basic')
 </script>

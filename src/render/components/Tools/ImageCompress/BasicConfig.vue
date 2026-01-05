@@ -45,18 +45,9 @@
       <!-- 缩放模式和格式 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium mb-2">缩放模式</label>
-          <el-select v-model="config.fit" class="w-full">
-            <el-option label="contain" value="contain" />
-            <el-option label="cover" value="cover" />
-            <el-option label="fill" value="fill" />
-            <el-option label="inside" value="inside" />
-            <el-option label="outside" value="outside" />
-          </el-select>
-        </div>
-        <div>
           <label class="block text-sm font-medium mb-2">输出格式</label>
           <el-select v-model="config.format" class="w-full">
+            <el-option label="保持原有格式" value="none" />
             <el-option label="JPEG" value="jpeg" />
             <el-option label="PNG" value="png" />
             <el-option label="WebP" value="webp" />
@@ -66,6 +57,10 @@
             <el-option label="HEIF" value="heif" />
           </el-select>
         </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">启用压缩</label>
+          <el-switch v-model="config.compressOpen"></el-switch>
+        </div>
       </div>
 
       <!-- 高级选项 -->
@@ -73,7 +68,7 @@
         <h4 class="text-md font-medium mb-3 text-gray-600">高级选项</h4>
         <div class="space-y-4">
           <el-checkbox v-model="config.withoutEnlargement">禁止放大</el-checkbox>
-          <el-checkbox v-model="config.fastShrinkOnLoad">快速缩小加载</el-checkbox>
+          <el-checkbox v-model="config.fastShrinkOnLoad">快速分片加载</el-checkbox>
           <el-checkbox v-model="config.withMetadata">保留元数据</el-checkbox>
         </div>
       </div>

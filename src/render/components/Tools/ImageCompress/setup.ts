@@ -13,12 +13,12 @@ class ImageCompressSetup implements SharpConfig {
   height?: number
   fit: keyof FitEnum = 'cover'
   position: number | string = 'centre'
-  kernel: keyof KernelEnum = 'lanczos3'
+  kernel: keyof KernelEnum = 'cubic'
   withoutEnlargement: boolean = true
   withoutReduction: boolean = false
   fastShrinkOnLoad: boolean = true
-  format: keyof FormatEnum = 'png'
-
+  format: 'none' | keyof FormatEnum = 'none'
+  compressOpen: boolean = true
   // 裁剪配置
   trim?: boolean
 
@@ -66,17 +66,14 @@ class ImageCompressSetup implements SharpConfig {
     optimiseCoding?: boolean
     mozjpeg?: boolean
     trellisQuantisation?: boolean
-    overshootDeringing?: boolean
     optimiseScans?: boolean
-    quantisationTable?: number
   } = {
     quality: 80,
     progressive: true,
     chromaSubsampling: '4:2:0',
     optimiseCoding: true,
-    mozjpeg: false,
+    mozjpeg: true,
     trellisQuantisation: false,
-    overshootDeringing: false,
     optimiseScans: false
   }
 
@@ -92,7 +89,7 @@ class ImageCompressSetup implements SharpConfig {
     quality: 80,
     progressive: false,
     compressionLevel: 6,
-    adaptiveFiltering: false,
+    adaptiveFiltering: true,
     palette: false,
     colours: 256
   }

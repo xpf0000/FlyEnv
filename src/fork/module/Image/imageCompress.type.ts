@@ -145,7 +145,9 @@ export type SharpConfig = {
   fastShrinkOnLoad?: boolean
 
   /** 输出图片格式 (默认 'jpeg') */
-  format?: keyof FormatEnum
+  format?: 'none' | keyof FormatEnum
+
+  compressOpen?: boolean
 
   // ====================== 裁剪配置 ======================
 
@@ -178,12 +180,8 @@ export type SharpConfig = {
     mozjpeg?: boolean
     /** 是否启用格状量化 (默认 false) */
     trellisQuantisation?: boolean
-    /** 是否启用过冲去振铃 (默认 false) */
-    overshootDeringing?: boolean
     /** 是否优化扫描 (默认 false) */
     optimiseScans?: boolean
-    /** 量化表编号 (可选) */
-    quantisationTable?: number
   }
 
   /** PNG 格式特定配置 (可选) */
@@ -415,4 +413,46 @@ export type SharpConfig = {
     /** 裁剪区域高度 (必填) */
     height: number
   }
+}
+
+// 文件大小信息类型
+export interface FileSizeInfo {
+  /** 字节数 */
+  bytes: number
+  /** 千字节数（保留2位小数） */
+  kilobytes: number
+  /** 兆字节数（保留4位小数） */
+  megabytes: number
+}
+
+export interface ImageInfo {
+  base64: string
+  size: FileSizeInfo
+  dimensions: {
+    width: number
+    height: number
+  }
+  format: string
+}
+
+export interface CompressionInfo {
+  // 压缩比例
+  ratio: number
+  // 压缩减少的大小
+  sizeReduced: {
+    bytes: number
+    kilobytes: number
+    megabytes: number
+  }
+  // 是否变小
+  isReduced: boolean
+}
+
+export interface CompressTestResult {
+  // 压缩前的原始图片
+  original: ImageInfo
+  // 压缩后的图片
+  compressed: ImageInfo
+  // 压缩信息
+  compression: CompressionInfo
 }

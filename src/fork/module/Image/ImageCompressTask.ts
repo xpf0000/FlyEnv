@@ -842,8 +842,8 @@ export class ImageCompressTask implements TaskItem {
       const outputDir = path.dirname(this.config.path)
       await fs.mkdir(outputDir, { recursive: true })
 
-      let format: keyof FormatEnum = 'jpeg'
-      if (this.config.format) {
+      let format: 'none' | keyof FormatEnum = 'jpeg'
+      if (this.config.format && this.config.format !== 'none') {
         format = this.config.format
       } else {
         const ext = path.extname(this.config.path).toLowerCase().replace('.', '')

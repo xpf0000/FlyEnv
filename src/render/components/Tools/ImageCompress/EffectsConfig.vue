@@ -7,7 +7,7 @@
       <!-- 旋转和翻转 -->
       <div class="border rounded-lg p-4">
         <h4 class="text-md font-medium mb-3 text-gray-600">旋转和翻转</h4>
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-3">
           <div>
             <label class="block text-sm font-medium mb-2">旋转角度</label>
             <el-input-number
@@ -21,11 +21,11 @@
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">垂直翻转</label>
-            <el-switch v-model="config.flip" active-text="开启" inactive-text="关闭" />
+            <el-switch v-model="config.flip" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">水平翻转</label>
-            <el-switch v-model="config.flop" active-text="开启" inactive-text="关闭" />
+            <el-switch v-model="config.flop" />
           </div>
         </div>
       </div>
@@ -33,7 +33,7 @@
       <!-- 模糊和锐化 -->
       <div class="border rounded-lg p-4">
         <h4 class="text-md font-medium mb-3 text-gray-600">模糊和锐化</h4>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-1 xl:grid-cols-2">
           <div>
             <label class="block text-sm font-medium mb-2">模糊强度 (0-100)</label>
             <el-slider
@@ -65,20 +65,33 @@
       <div class="border rounded-lg p-4">
         <h4 class="text-md font-medium mb-3 text-gray-600">色彩调整</h4>
         <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium mb-2">Gamma 值</label>
-            <el-slider
-              v-model="config.gamma"
-              :min="0"
-              :max="3"
-              :step="0.1"
-              :format-tooltip="(val: number) => val.toFixed(1)"
-              show-input
-              :show-input-controls="false"
-            />
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-2">
+            <div>
+              <label class="block text-sm font-medium mb-2">Gamma 值</label>
+              <el-slider
+                v-model="config.gamma"
+                :min="0"
+                :max="3"
+                :step="0.1"
+                :format-tooltip="(val: number) => val.toFixed(1)"
+                show-input
+                :show-input-controls="false"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">色相 (-180~180)</label>
+              <el-slider
+                v-model="config.modulate.hue"
+                :min="-180"
+                :max="180"
+                :step="1"
+                show-input
+                :show-input-controls="false"
+              />
+            </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-2">
             <div>
               <label class="block text-sm font-medium mb-2"
                 >亮度 ({{ config.modulate.brightness?.toFixed(1) }})</label
@@ -105,18 +118,6 @@
                 :show-input-controls="false"
               />
             </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium mb-2">色相 (-180~180)</label>
-            <el-slider
-              v-model="config.modulate.hue"
-              :min="-180"
-              :max="180"
-              :step="1"
-              show-input
-              :show-input-controls="false"
-            />
           </div>
         </div>
       </div>
