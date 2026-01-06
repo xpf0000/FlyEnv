@@ -49,12 +49,12 @@ class ImageCompressSetup implements SharpConfig {
   texture: TextureOptions = {
     enabled: false,
     type: 'grid',
-    color: 'rgba(255,255,255,0.1)',
+    color: 'rgba(255,255,255,0.4)',
     size: 20,
     lineWidth: 1,
-    dotSize: 2,
+    dotSize: 3,
     intensity: 0.05,
-    blendMode: 'overlay',
+    blendMode: 'over',
     opacity: 0.3,
     angle: 0,
     scale: 1

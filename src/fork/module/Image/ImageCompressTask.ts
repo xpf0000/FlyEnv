@@ -564,9 +564,27 @@ export class ImageCompressTask implements TaskItem {
         texturePipeline = texturePipeline.resize({
           width: scaledWidth,
           height: scaledHeight,
-          fit: 'fill',
-          withoutEnlargement: false
+          fit: 'contain',
+          background: { r: 0, g: 0, b: 0, alpha: 0 }
         })
+
+        // 旋转纹理
+        if (angle % 360 !== 0) {
+          texturePipeline = texturePipeline.rotate(angle, {
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+          })
+        }
+        const clone = texturePipeline.clone()
+        const { info } = await clone.toBuffer({ resolveWithObject: true })
+        clone.destroy()
+
+        if (info.width > width || info.height > height) {
+          texturePipeline = texturePipeline.resize({
+            width,
+            height,
+            fit: 'contain'
+          })
+        }
 
         // 应用透明度
         if (opacity < 1) {
@@ -575,8 +593,8 @@ export class ImageCompressTask implements TaskItem {
             {
               input: {
                 create: {
-                  width: scaledWidth,
-                  height: scaledHeight,
+                  width: width,
+                  height: height,
                   channels: 4,
                   background: { r: 0, g: 0, b: 0, alpha: opacity }
                 }
@@ -584,13 +602,6 @@ export class ImageCompressTask implements TaskItem {
               blend: 'dest-in'
             }
           ])
-        }
-
-        // 旋转纹理
-        if (angle !== 0) {
-          texturePipeline = texturePipeline.rotate(angle, {
-            background: { r: 0, g: 0, b: 0, alpha: 0 }
-          })
         }
 
         return await texturePipeline.toBuffer()
@@ -602,11 +613,30 @@ export class ImageCompressTask implements TaskItem {
       const scaledLineWidth = Math.max(1, Math.floor(lineWidth * scale))
       const scaledDotSize = Math.max(1, Math.floor(dotSize * scale))
 
+      let textureWidth = width
+      let textureHeight = height
+      if (angle % 360 !== 0) {
+        // 计算旋转后需要的精确尺寸
+        const rad = (Math.abs(angle) * Math.PI) / 180
+        const cos = Math.cos(rad)
+        const sin = Math.sin(rad)
+
+        // 旋转后需要的尺寸计算公式
+        const rotatedWidth = Math.ceil(Math.abs(width * cos) + Math.abs(height * sin))
+        const rotatedHeight = Math.ceil(Math.abs(width * sin) + Math.abs(height * cos))
+
+        console.log('rotatedWidth', rotatedWidth, rotatedHeight, width, height)
+
+        // 确保旋转后的尺寸足够覆盖原始区域
+        textureWidth = Math.max(width, rotatedWidth)
+        textureHeight = Math.max(height, rotatedHeight)
+      }
+
       switch (type) {
         case 'grid':
           // 网格纹理
           svg = `
-          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+          <svg width="${textureWidth}" height="${textureHeight}" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="grid" width="${scaledSize}" height="${scaledSize}" patternUnits="userSpaceOnUse">
                 <path d="M ${scaledSize} 0 L 0 0 0 ${scaledSize}" fill="none" stroke="${color}" stroke-width="${scaledLineWidth}"/>
@@ -620,7 +650,7 @@ export class ImageCompressTask implements TaskItem {
         case 'dot':
           // 点状纹理
           svg = `
-          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+          <svg width="${textureWidth}" height="${textureWidth}" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="dot" width="${scaledSize}" height="${scaledSize}" patternUnits="userSpaceOnUse">
                 <circle cx="${scaledSize / 2}" cy="${scaledSize / 2}" r="${scaledDotSize}" fill="${color}"/>
@@ -634,28 +664,13 @@ export class ImageCompressTask implements TaskItem {
         case 'line':
           // 线条纹理
           svg = `
-          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+          <svg width="${textureWidth}" height="${textureWidth}" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="line" width="${scaledSize}" height="${scaledSize}" patternUnits="userSpaceOnUse">
                 <line x1="0" y1="0" x2="${scaledSize}" y2="${scaledSize}" stroke="${color}" stroke-width="${scaledLineWidth}"/>
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#line)"/>
-          </svg>
-        `
-          break
-
-        case 'cross':
-          // 十字纹理
-          svg = `
-          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="cross" width="${scaledSize}" height="${scaledSize}" patternUnits="userSpaceOnUse">
-                <path d="M ${scaledSize / 2} 0 L ${scaledSize / 2} ${scaledSize} M 0 ${scaledSize / 2} L ${scaledSize} ${scaledSize / 2}"
-                      fill="none" stroke="${color}" stroke-width="${scaledLineWidth}"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#cross)"/>
           </svg>
         `
           break
@@ -689,7 +704,7 @@ export class ImageCompressTask implements TaskItem {
 
             // 2. 通过SVG平铺小纹理
             svg = `
-    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <svg width="${textureWidth}" height="${textureWidth}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="noise" width="${tileSize}" height="${tileSize}" patternUnits="userSpaceOnUse">
           <image
@@ -707,7 +722,33 @@ export class ImageCompressTask implements TaskItem {
       }
 
       if (svg) {
+        console.log('texturePipeline svg: ', svg)
         let texturePipeline = sharp(Buffer.from(svg))
+
+        // 旋转纹理
+        if (angle % 360 !== 0) {
+          texturePipeline = texturePipeline.rotate(angle, {
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+          })
+
+          const clone = texturePipeline.clone()
+          const { info } = await clone.toBuffer({ resolveWithObject: true })
+          textureWidth = info.width
+          textureHeight = info.height
+          clone.destroy()
+
+          if (textureWidth > width && textureHeight > height) {
+            const left = Math.floor((textureWidth - width) / 2)
+            const top = Math.floor((textureHeight - height) / 2)
+            const rect = {
+              left,
+              top,
+              width,
+              height
+            }
+            texturePipeline = texturePipeline.extract(rect)
+          }
+        }
 
         // 应用透明度
         if (opacity < 1) {
@@ -716,22 +757,15 @@ export class ImageCompressTask implements TaskItem {
             {
               input: {
                 create: {
-                  width,
-                  height,
+                  width: width,
+                  height: height,
                   channels: 4,
-                  background: { r: 0, g: 0, b: 0, alpha: 1 - opacity }
+                  background: { r: 0, g: 0, b: 0, alpha: opacity }
                 }
               },
               blend: 'dest-in'
             }
           ])
-        }
-
-        // 旋转纹理
-        if (angle !== 0) {
-          texturePipeline = texturePipeline.rotate(angle, {
-            background: { r: 0, g: 0, b: 0, alpha: 0 }
-          })
         }
 
         return await texturePipeline.toBuffer()

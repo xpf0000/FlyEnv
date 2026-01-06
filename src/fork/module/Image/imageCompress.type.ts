@@ -100,7 +100,7 @@ export interface TextureOptions {
   /** 自定义纹理图片路径 (仅适用于 custom 类型) */
   customImage?: string
   /** 纹理混合模式 (默认 'overlay') */
-  blendMode?: 'overlay' | 'multiply' | 'screen' | 'soft-light' | 'hard-light'
+  blendMode?: 'overlay' | 'multiply' | 'screen' | 'soft-light' | 'hard-light' | 'over'
   /** 纹理透明度 0-1 (默认 0.3) */
   opacity?: number
   /** 纹理角度，单位度 (默认 0) */

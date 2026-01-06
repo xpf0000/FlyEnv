@@ -313,3 +313,58 @@ export function imageWatermarkTest(filePath: string, config: SharpConfig) {
     }
   })
 }
+
+/**
+ * 图片纹理测试
+ * 返回添加纹理前后的图片base64字符串
+ * @param filePath  图片文件路径
+ * @param config  配置
+ */
+export function imageTextureTest(filePath: string, config: SharpConfig) {
+  return new ForkPromise(async (resolve, reject) => {
+    try {
+      // 验证输入
+      if (!filePath) {
+        return reject(new Error('输入参数不能为空'))
+      }
+
+      // 读取原始文件
+      const originalBuffer: Buffer = await readFile(filePath)
+
+      // 获取原始图片元数据
+      const originalSharp = sharp(originalBuffer)
+      const metadata = await originalSharp.metadata()
+      const width = metadata.width
+      const height = metadata.height
+      const originalFormat = metadata.format || 'unknown'
+      // 获取原始图片的base64
+      const originalBase64 = `data:image/${originalFormat};base64,${originalBuffer.toString('base64')}`
+
+      // 应用图片效果
+      let imageProcessor = originalSharp
+
+      const task = new ImageCompressTask({} as any, config)
+      imageProcessor = await task.applyTexture(imageProcessor, width, height)
+
+      // 生成处理后的图片（保持原始格式）
+      const compressedBuffer = await imageProcessor.toBuffer()
+
+      // 处理后的图片base64（使用原始格式）
+      const compressedBase64 = `data:image/${originalFormat};base64,${compressedBuffer.toString('base64')}`
+
+      // 返回结果
+      resolve({
+        // 处理前的原始图片
+        original: {
+          base64: originalBase64
+        },
+        // 处理后的图片
+        effected: {
+          base64: compressedBase64
+        }
+      })
+    } catch (error) {
+      reject(error)
+    }
+  })
+}

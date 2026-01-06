@@ -17,7 +17,6 @@
             <el-option label="网格" value="grid" />
             <el-option label="圆点" value="dot" />
             <el-option label="线条" value="line" />
-            <el-option label="交叉线" value="cross" />
             <el-option label="噪点" value="noise" />
             <el-option label="自定义图片" value="custom" />
           </el-select>
@@ -28,7 +27,7 @@
           <label class="block text-sm font-medium mb-2">自定义纹理图片</label>
           <el-input v-model="config.texture.customImage" placeholder="请输入图片路径" clearable>
             <template #append>
-              <el-button icon="Picture" @click="selectTextureImage" />
+              <el-button :icon="Picture" @click="selectTextureImage" />
             </template>
           </el-input>
         </div>
@@ -135,6 +134,7 @@
             <div>
               <label class="block text-sm font-medium mb-2">混合模式</label>
               <el-select v-model="config.texture.blendMode" class="w-full">
+                <el-option label="无" value="over" />
                 <el-option label="叠加" value="overlay" />
                 <el-option label="正片叠底" value="multiply" />
                 <el-option label="滤色" value="screen" />
@@ -169,43 +169,20 @@
             </div>
           </div>
         </div>
-
-        <!-- 预览区域 -->
-        <div class="border rounded-lg p-4">
-          <h4 class="text-md font-medium mb-3 text-gray-600">纹理预览</h4>
-          <div class="bg-gray-100 rounded p-4 text-center h-40 flex items-center justify-center">
-            <div class="text-gray-500">
-              <el-icon class="text-4xl mb-2"><Picture /></el-icon>
-              <p class="text-sm">纹理效果预览区域</p>
-              <p class="text-xs text-gray-400 mt-1"
-                >当前类型: {{ getTextureTypeName(config.texture.type) }}</p
-              >
-            </div>
-          </div>
-        </div>
       </template>
     </div>
+
+    <TexturePreview v-if="config.texture.enabled" />
   </div>
 </template>
 
 <script setup lang="ts">
-  import { Picture } from '@element-plus/icons-vue'
   import ImageCompressSetup from './setup'
+  import { dialog } from '@/util/NodeFn'
+  import TexturePreview from './TexturePreview.vue'
+  import { Picture } from '@element-plus/icons-vue'
 
   const config = ImageCompressSetup
-
-  // 纹理类型名称映射
-  function getTextureTypeName(type: string): string {
-    const types: Record<string, string> = {
-      grid: '网格',
-      dot: '圆点',
-      line: '线条',
-      cross: '交叉线',
-      noise: '噪点',
-      custom: '自定义图片'
-    }
-    return types[type] || type
-  }
 
   // 纹理类型变化时的处理
   function onTextureTypeChange(type: string) {
@@ -216,22 +193,21 @@
       case 'grid':
         config.texture.size = 20
         config.texture.lineWidth = 1
-        config.texture.color = 'rgba(255,255,255,0.1)'
+        config.texture.color = 'rgba(255,255,255,0.4)'
         break
       case 'dot':
         config.texture.size = 20
         config.texture.dotSize = 2
-        config.texture.color = 'rgba(255,255,255,0.1)'
+        config.texture.color = 'rgba(255,255,255,0.4)'
         break
       case 'line':
-      case 'cross':
         config.texture.size = 30
         config.texture.lineWidth = 1
-        config.texture.color = 'rgba(255,255,255,0.1)'
+        config.texture.color = 'rgba(255,255,255,0.4)'
         break
       case 'noise':
         config.texture.intensity = 0.05
-        config.texture.color = 'rgba(255,255,255,0.1)'
+        config.texture.color = 'rgba(255,255,255,0.4)'
         break
       case 'custom':
         config.texture.customImage = ''
@@ -241,5 +217,22 @@
 
   const selectTextureImage = () => {
     console.log('选择纹理图片')
+    dialog
+      .showOpenDialog({
+        properties: ['openFile', 'showHiddenFiles'],
+        filters: [
+          {
+            name: 'Image Files',
+            extensions: ['jpeg', 'jpg', 'png', 'webp', 'avif', 'gif', 'tiff', 'heif', 'svg']
+          }
+        ]
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        config.texture.customImage = path
+      })
   }
 </script>
