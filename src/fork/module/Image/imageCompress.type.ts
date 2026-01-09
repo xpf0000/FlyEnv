@@ -365,7 +365,10 @@ export type SharpConfig = {
   }
 
   /** 二值化阈值 0-255 (默认 128) */
-  threshold?: number
+  threshold?: {
+    enabled: boolean
+    value: number
+  }
 
   /** 目标色彩空间 (默认 'srgb') */
   toColorspace?: 'srgb' | 'rgb' | 'cmyk' | 'lab' | 'b-w'

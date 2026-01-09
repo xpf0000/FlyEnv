@@ -239,6 +239,11 @@ export function imageEffectsTest(filePath: string, config: SharpConfig) {
         imageProcessor = imageProcessor.trim()
       }
 
+      if (typeof config.opacity === 'number' && config.opacity < 1) {
+        const task = new ImageCompressTask({} as any, {} as any)
+        imageProcessor = await task.applyOpacity(imageProcessor, config.opacity)
+      }
+
       // 生成处理后的图片（保持原始格式）
       const compressedBuffer = await imageProcessor.toBuffer()
 
@@ -388,8 +393,10 @@ export function imageBaseTest(filePath: string, config: SharpConfig) {
 
       const sp = sharp(filePath)
       const { data, info } = await sp.toBuffer({ resolveWithObject: true })
+      const originalSize = data.length
       const originalFormat = info.format || 'png'
       const originalBase64 = `data:image/${originalFormat};base64,${data.toString('base64')}`
+      const originalDimensions = { width: info.width, height: info.height }
       const image = {
         path: filePath,
         size: data.length,
@@ -410,17 +417,51 @@ export function imageBaseTest(filePath: string, config: SharpConfig) {
       console.log('imageBaseTest tast success: ', task.toString())
       const endSharp = sharp(config.path)
       const res = await endSharp.toBuffer({ resolveWithObject: true })
+      const compressedSize = res.data.length
+      const compressedDimensions = { width: res.info.width, height: res.info.height }
+      const format = res.info.format || 'png'
       const compressedBase64 = `data:image/${res.info.format};base64,${res.data.toString('base64')}`
+
+      // 计算压缩率
+      const compressionRatio =
+        originalSize > 0 ? ((originalSize - compressedSize) / originalSize) * 100 : 0
 
       // 返回结果
       resolve({
-        // 处理前的原始图片
+        // 压缩前的原始图片
         original: {
-          base64: originalBase64
+          base64: originalBase64,
+          size: {
+            bytes: originalSize,
+            kilobytes: parseFloat((originalSize / 1024).toFixed(2)),
+            megabytes: parseFloat((originalSize / (1024 * 1024)).toFixed(4))
+          },
+          dimensions: originalDimensions,
+          format: originalFormat
         },
-        // 处理后的图片
-        effected: {
-          base64: compressedBase64
+        // 压缩后的图片
+        compressed: {
+          base64: compressedBase64,
+          size: {
+            bytes: compressedSize,
+            kilobytes: parseFloat((compressedSize / 1024).toFixed(2)),
+            megabytes: parseFloat((compressedSize / (1024 * 1024)).toFixed(4))
+          },
+          dimensions: compressedDimensions,
+          format
+        },
+        // 压缩信息
+        compression: {
+          // 压缩比例
+          ratio: parseFloat(compressionRatio.toFixed(2)),
+          // 压缩减少的大小
+          sizeReduced: {
+            bytes: originalSize - compressedSize,
+            kilobytes: parseFloat(((originalSize - compressedSize) / 1024).toFixed(2)),
+            megabytes: parseFloat(((originalSize - compressedSize) / (1024 * 1024)).toFixed(4))
+          },
+          // 是否变小
+          isReduced: compressedSize < originalSize
         }
       })
     } catch (error) {

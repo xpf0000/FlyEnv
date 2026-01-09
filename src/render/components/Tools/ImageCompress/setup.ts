@@ -184,18 +184,8 @@ class ImageCompressSetup implements SharpConfig {
   blur: number = 0
   sharpen: {
     sigma: number
-    m1?: number
-    m2?: number
-    x1?: number
-    y2?: number
-    y3?: number
   } = {
-    sigma: 0,
-    m1: 0,
-    m2: 3,
-    x1: 3,
-    y2: 3,
-    y3: 0
+    sigma: 0
   }
   gamma: number = 1
   grayscale: boolean = false
@@ -222,10 +212,17 @@ class ImageCompressSetup implements SharpConfig {
     hue: 0,
     lightness: 0
   }
-  threshold: number = 128
+  threshold: {
+    enabled: boolean
+    value: number
+  } = {
+    enabled: false,
+    value: 128
+  }
   toColorspace: 'srgb' | 'rgb' | 'cmyk' | 'lab' | 'b-w' = 'srgb'
   removeAlpha: boolean = false
   ensureAlpha: number = 1.0
+  opacity: number = 1
 
   download(base64: string) {
     let ext = 'png'

@@ -817,11 +817,8 @@ export class ImageCompressTask implements TaskItem {
 
   private buildSharpPipeline(): Sharp {
     let pipeline = sharp(this.image.path)
-
-    console.log('buildSharpPipeline !!!')
     // 应用 trim
     pipeline = this.applyTrim(pipeline)
-    console.log('buildSharpPipeline applyTrim !!!')
     // 调整大小
     if (this.config.width || this.config.height) {
       pipeline = pipeline.resize({
@@ -834,7 +831,6 @@ export class ImageCompressTask implements TaskItem {
         withoutReduction: this.config.withoutReduction || false,
         fastShrinkOnLoad: this.config.fastShrinkOnLoad !== false
       })
-      console.log('buildSharpPipeline resize !!!')
     }
 
     // 其他处理操作...
@@ -842,13 +838,13 @@ export class ImageCompressTask implements TaskItem {
     if (this.config.flip) pipeline = pipeline.flip()
     if (this.config.flop) pipeline = pipeline.flop()
     if (this.config.blur) pipeline = pipeline.blur(this.config.blur)
-    if (this.config.sharpen) pipeline = pipeline.sharpen(this.config.sharpen)
-    console.log('buildSharpPipeline sharpen !!!')
+    if (this.config.sharpen && this.config.sharpen.sigma > 0)
+      pipeline = pipeline.sharpen({ sigma: this.config.sharpen.sigma })
     if (this.config.grayscale) pipeline = pipeline.grayscale()
     if (this.config.gamma) pipeline = pipeline.gamma(this.config.gamma)
     if (this.config.negate) pipeline = pipeline.negate()
     if (this.config.median) pipeline = pipeline.median(this.config.median)
-    if (this.config.threshold) pipeline = pipeline.threshold(this.config.threshold)
+    if (this.config.threshold?.enabled) pipeline = pipeline.threshold(this.config.threshold.value)
     if (this.config.modulate) pipeline = pipeline.modulate(this.config.modulate)
     if (this.config.toColorspace) pipeline = pipeline.toColorspace(this.config.toColorspace as any)
     if (this.config.removeAlpha) pipeline = pipeline.removeAlpha()
@@ -856,7 +852,6 @@ export class ImageCompressTask implements TaskItem {
       pipeline = pipeline.ensureAlpha(this.config.ensureAlpha)
     // if (this.config.extend) pipeline = pipeline.extend(this.config.extend)
     // if (this.config.extract) pipeline = pipeline.extract(this.config.extract)
-    console.log('buildSharpPipeline end !!!')
     return pipeline
   }
 
@@ -864,22 +859,74 @@ export class ImageCompressTask implements TaskItem {
     switch (format) {
       case 'jpeg':
       case 'jpg':
-        return pipeline.jpeg(this.config.jpeg || { quality: 80 })
+        return pipeline.jpeg(
+          this.config.compressOpen ? this.config.jpeg || { quality: 80 } : undefined
+        )
       case 'png':
-        return pipeline.png(this.config.png || { compressionLevel: 9 })
+        return pipeline.png(
+          this.config.compressOpen ? this.config.png || { compressionLevel: 9 } : undefined
+        )
       case 'webp':
-        return pipeline.webp(this.config.webp || { quality: 80 })
+        return pipeline.webp(
+          this.config.compressOpen ? this.config.webp || { quality: 80 } : undefined
+        )
       case 'avif':
-        return pipeline.avif(this.config.avif || { quality: 50 })
+        return pipeline.avif(
+          this.config.compressOpen ? this.config.avif || { quality: 50 } : undefined
+        )
       case 'gif':
-        return pipeline.gif(this.config.gif || {})
+        return pipeline.gif(this.config.gif)
       case 'tiff':
-        return pipeline.tiff(this.config.tiff || {})
+        return pipeline.tiff(this.config.tiff)
       case 'heif':
-        return pipeline.heif(this.config.heif || {})
+        return pipeline.heif(this.config.heif)
       default:
         return pipeline
     }
+  }
+
+  async applyOpacity(
+    pipeline: Sharp,
+    opacity: number,
+    width?: number,
+    height?: number
+  ): Promise<Sharp> {
+    if (width && height) {
+      pipeline = pipeline.ensureAlpha()
+      pipeline = pipeline.composite([
+        {
+          input: {
+            create: {
+              width: width,
+              height: height,
+              channels: 4,
+              background: { r: 0, g: 0, b: 0, alpha: opacity }
+            }
+          },
+          blend: 'dest-in'
+        }
+      ])
+      return pipeline
+    }
+    let clone: any = pipeline.clone()
+    const { info } = await clone.toBuffer({ resolveWithObject: true })
+    clone.destroy()
+    clone = null
+    pipeline = pipeline.ensureAlpha()
+    pipeline = pipeline.composite([
+      {
+        input: {
+          create: {
+            width: info.width,
+            height: info.height,
+            channels: 4,
+            background: { r: 0, g: 0, b: 0, alpha: opacity }
+          }
+        },
+        blend: 'dest-in'
+      }
+    ])
+    return pipeline
   }
 
   /**
@@ -904,25 +951,9 @@ export class ImageCompressTask implements TaskItem {
       // 优化路径: 如果没有水印和纹理，直接处理保存，避免 Buffer 复制开销
       if (!this.config.watermark?.enabled && !this.config.texture?.enabled) {
         pipeline = this.applyFormatOptions(pipeline, format)
-
         // 应用透明度
         if (typeof this.config.opacity === 'number' && this.config.opacity < 1) {
-          const clone = pipeline.clone()
-          const { info } = await clone.toBuffer({ resolveWithObject: true })
-          pipeline = pipeline.ensureAlpha()
-          pipeline = pipeline.composite([
-            {
-              input: {
-                create: {
-                  width: info.width,
-                  height: info.height,
-                  channels: 4,
-                  background: { r: 0, g: 0, b: 0, alpha: this.config.opacity }
-                }
-              },
-              blend: 'dest-in'
-            }
-          ])
+          pipeline = await this.applyOpacity(pipeline, this.config.opacity)
         }
 
         if (this.config.withMetadata !== false) pipeline = pipeline.withMetadata()
@@ -955,6 +986,11 @@ export class ImageCompressTask implements TaskItem {
 
       // 4. 应用输出格式和元数据
       finalPipeline = this.applyFormatOptions(finalPipeline, format)
+
+      // 应用透明度
+      if (typeof this.config.opacity === 'number' && this.config.opacity < 1) {
+        finalPipeline = await this.applyOpacity(finalPipeline, this.config.opacity)
+      }
 
       if (this.config.withMetadata !== false) {
         finalPipeline = finalPipeline.withMetadata()

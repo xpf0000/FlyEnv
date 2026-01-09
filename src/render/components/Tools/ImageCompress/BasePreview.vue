@@ -30,16 +30,143 @@
       >
       </el-button>
       <el-button
-        :disabled="!testResult?.effected?.base64"
+        :disabled="!testResult?.compressed?.base64"
         type="primary"
         :icon="Download"
-        @click.stop="ImageCompressSetup.download(testResult?.effected?.base64 ?? '')"
+        @click.stop="ImageCompressSetup.download(testResult?.compressed?.base64 ?? '')"
       >
       </el-button>
     </div>
 
     <!-- 压缩结果展示区域 -->
     <div v-if="testResult?.original" class="w-full">
+      <!-- 图片信息对比 -->
+      <div class="w-full mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+          <!-- 原图信息卡片 -->
+          <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <div class="flex items-center justify-between mb-2">
+              <h5 class="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                原始图片
+              </h5>
+              <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                {{ testResult.original.format?.toUpperCase() }}
+              </span>
+            </div>
+            <div class="space-y-1.5 text-xs text-gray-600">
+              <div class="flex justify-between">
+                <span>尺寸</span>
+                <span class="font-medium text-gray-800">
+                  {{ testResult.original.dimensions.width }} ×
+                  {{ testResult.original.dimensions.height }}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>文件大小</span>
+                <span class="font-medium text-gray-800">
+                  {{ testResult.original.size.kilobytes }} KB
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 压缩后信息卡片 -->
+          <div
+            class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <h5 class="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                压缩图片
+              </h5>
+              <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">
+                {{ testResult.compressed.format?.toUpperCase() }}
+              </span>
+            </div>
+            <div class="space-y-1.5 text-xs text-gray-600">
+              <div class="flex justify-between">
+                <span>尺寸</span>
+                <span class="font-medium text-gray-800">
+                  {{ testResult.compressed.dimensions.width }} ×
+                  {{ testResult.compressed.dimensions.height }}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>文件大小</span>
+                <span class="font-medium text-gray-800">
+                  {{ testResult.compressed.size.kilobytes.toFixed(2) }} KB
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 压缩统计信息 -->
+        <div
+          class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-100"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <h6 class="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <svg
+                class="w-4 h-4 text-indigo-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+              压缩结果
+            </h6>
+            <span
+              class="text-xs font-semibold px-2 py-1 rounded-full"
+              :class="
+                testResult.compression.isReduced
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              "
+            >
+              {{ testResult.compression.isReduced ? '✓ 有效压缩' : '⚠ 压缩后更大' }}
+            </span>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div class="text-center">
+              <div class="text-xs text-gray-500 mb-1">压缩率</div>
+              <div
+                class="text-lg font-bold"
+                :class="testResult.compression.ratio > 0 ? 'text-green-600' : 'text-red-600'"
+              >
+                {{ testResult.compression.ratio > 0 ? '−' : '+'
+                }}{{ Math.abs(testResult.compression.ratio) }}%
+              </div>
+            </div>
+            <div class="text-center">
+              <div class="text-xs text-gray-500 mb-1">大小减少</div>
+              <div class="text-lg font-bold text-blue-600">
+                {{ testResult.compression.sizeReduced.kilobytes }} KB
+              </div>
+            </div>
+            <div class="text-center">
+              <div class="text-xs text-gray-500 mb-1">原大小</div>
+              <div class="text-sm font-medium text-gray-700">
+                {{ testResult.original.size.kilobytes }} KB
+              </div>
+            </div>
+            <div class="text-center">
+              <div class="text-xs text-gray-500 mb-1">压缩后</div>
+              <div class="text-sm font-medium text-gray-700">
+                {{ testResult.compressed.size.kilobytes }} KB
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 图片对比区域 -->
       <div
         class="w-full grid grid-cols-2 overflow-hidden rounded-lg border border-gray-200 bg-gray-100"
@@ -76,8 +203,8 @@
 
         <div class="flex flex-col items-center p-3 gap-3">
           <el-image
-            :src="testResult.effected.base64"
-            :preview-src-list="[testResult.effected.base64]"
+            :src="testResult.compressed.base64"
+            :preview-src-list="[testResult.compressed.base64]"
             class="w-full"
           >
             <template #error>
@@ -114,7 +241,7 @@
 <script setup lang="ts">
   import { reactive, ref, onUnmounted } from 'vue'
   import { Download, FolderOpened, VideoPlay } from '@element-plus/icons-vue'
-  import type { EffectsTestResult } from '../../../../fork/module/Image/imageCompress.type'
+  import { CompressTestResult } from '../../../../fork/module/Image/imageCompress.type'
   import { dialog } from '@/util/NodeFn'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
@@ -125,7 +252,7 @@
 
   const running = ref(false)
   const dir = ref('')
-  const testResult = ref<EffectsTestResult>()
+  const testResult = ref<CompressTestResult>()
 
   // 选择文件
   const chooseFile = () => {

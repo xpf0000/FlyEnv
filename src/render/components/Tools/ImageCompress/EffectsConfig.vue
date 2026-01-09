@@ -120,6 +120,41 @@
               />
             </div>
           </div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-2">
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <label class="block text-sm font-medium">二值化 </label>
+                <el-checkbox
+                  v-model="config.threshold.enabled"
+                  style="margin: 0; padding: 0; height: auto"
+                ></el-checkbox>
+              </div>
+              <el-slider
+                v-model="config.threshold.value"
+                :disabled="!config.threshold.enabled"
+                :min="0"
+                :max="255"
+                :step="1"
+                show-input
+                show-input-controls
+              />
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <label class="block text-sm font-medium"
+                  >透明度 ({{ config.opacity?.toFixed(1) }})
+                </label>
+              </div>
+              <el-slider
+                v-model="config.opacity"
+                :min="0"
+                :max="1"
+                :step="0.05"
+                show-input
+                show-input-controls
+              />
+            </div>
+          </div>
         </div>
       </div>
 
