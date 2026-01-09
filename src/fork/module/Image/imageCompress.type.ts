@@ -155,7 +155,7 @@ export type SharpConfig = {
   // ====================== 水印配置 ======================
 
   /** 水印配置，支持单个或多个水印 (可选) */
-  watermark?: WatermarkConfig | WatermarkConfig[]
+  watermark?: WatermarkConfig
 
   // ====================== 纹理配置 ======================
 
@@ -411,6 +411,11 @@ export type SharpConfig = {
     /** 裁剪区域高度 (必填) */
     height: number
   }
+
+  /**
+   * 透明度
+   */
+  opacity?: number
 }
 
 // 文件大小信息类型

@@ -10,6 +10,7 @@ import { cpus } from 'node:os'
 import type { SharpConfig } from './imageCompress.type'
 import axios from 'axios'
 import {
+  imageBaseTest,
   imageCompressTest,
   imageEffectsTest,
   imageTextureTest,
@@ -158,6 +159,10 @@ class Image extends Base {
 
   imageTextureTest(base64OrFilepath: string, config: SharpConfig) {
     return imageTextureTest(base64OrFilepath, config)
+  }
+
+  imageBaseTest(base64OrFilepath: string, config: SharpConfig) {
+    return imageBaseTest(base64OrFilepath, config)
   }
 }
 export default new Image()

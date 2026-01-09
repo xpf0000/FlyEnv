@@ -49,10 +49,10 @@
                 v-model="config.texture.opacity"
                 :min="0"
                 :max="1"
-                :step="0.1"
+                :step="0.05"
                 :format-tooltip="(val: number) => (val * 100).toFixed(0) + '%'"
                 show-input
-                :show-input-controls="false"
+                show-input-controls
               />
             </div>
 
@@ -60,26 +60,26 @@
             <template v-if="['grid', 'line', 'cross'].includes(config.texture.type)">
               <div>
                 <label class="block text-sm font-medium mb-2">线条宽度 (像素)</label>
-                <el-input-number
+                <el-slider
                   v-model="config.texture.lineWidth"
                   :min="1"
                   :max="20"
                   :step="1"
-                  controls-position="right"
-                  class="w-full"
-                />
+                  show-input
+                  show-input-controls
+                ></el-slider>
               </div>
 
               <div>
                 <label class="block text-sm font-medium mb-2">网格间距 (像素)</label>
-                <el-input-number
+                <el-slider
                   v-model="config.texture.size"
                   :min="5"
                   :max="100"
                   :step="5"
-                  controls-position="right"
-                  class="w-full"
-                />
+                  show-input
+                  show-input-controls
+                ></el-slider>
               </div>
             </template>
 
@@ -130,7 +130,7 @@
         <div class="border rounded-lg p-4">
           <h4 class="text-md font-medium mb-3 text-gray-600">混合和变换</h4>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 gap-4">
             <div>
               <label class="block text-sm font-medium mb-2">混合模式</label>
               <el-select v-model="config.texture.blendMode" class="w-full">
@@ -145,27 +145,26 @@
 
             <div>
               <label class="block text-sm font-medium mb-2">旋转角度 (°)</label>
-              <el-input-number
+              <el-slider
                 v-model="config.texture.angle"
                 :min="0"
-                :max="360"
+                :max="359"
                 :step="1"
-                controls-position="right"
-                class="w-full"
-              />
+                show-input
+                show-input-controls
+              ></el-slider>
             </div>
 
             <div>
               <label class="block text-sm font-medium mb-2">缩放比例</label>
-              <el-input-number
+              <el-slider
                 v-model="config.texture.scale"
                 :min="0.1"
                 :max="5"
                 :step="0.1"
-                :precision="1"
-                controls-position="right"
-                class="w-full"
-              />
+                show-input
+                show-input-controls
+              ></el-slider>
             </div>
           </div>
         </div>

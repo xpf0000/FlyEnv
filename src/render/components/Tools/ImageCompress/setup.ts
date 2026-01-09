@@ -26,7 +26,7 @@ class ImageCompressSetup implements SharpConfig {
   trim?: boolean
 
   // 水印配置
-  watermark: WatermarkConfig | WatermarkConfig[] = {
+  watermark: WatermarkConfig = {
     type: 'text',
     enabled: false,
     content: {
@@ -211,10 +211,6 @@ class ImageCompressSetup implements SharpConfig {
   }
   negate: boolean = false
   median: number = 0
-  linear: { a: number; b: number } = {
-    a: 1,
-    b: 0
-  }
   modulate: {
     brightness?: number
     saturation?: number
@@ -230,35 +226,6 @@ class ImageCompressSetup implements SharpConfig {
   toColorspace: 'srgb' | 'rgb' | 'cmyk' | 'lab' | 'b-w' = 'srgb'
   removeAlpha: boolean = false
   ensureAlpha: number = 1.0
-  tint: { r: number; g: number; b: number } = {
-    r: 255,
-    g: 255,
-    b: 255
-  }
-  extend: {
-    top?: number
-    bottom?: number
-    left?: number
-    right?: number
-    background?: string
-  } = {
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    background: '#000000'
-  }
-  extract: {
-    left: number
-    top: number
-    width: number
-    height: number
-  } = {
-    left: 0,
-    top: 0,
-    width: 100,
-    height: 100
-  }
 
   download(base64: string) {
     let ext = 'png'

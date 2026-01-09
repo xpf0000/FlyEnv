@@ -31,17 +31,17 @@
               />
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium mb-2">字体大小</label>
-                <el-input-number
+                <el-slider
                   v-model="(watermark.content as any).fontSize"
                   :min="12"
                   :max="300"
                   :step="1"
-                  controls-position="right"
-                  class="w-full"
-                />
+                  show-input
+                  show-input-controls
+                ></el-slider>
               </div>
               <div>
                 <label class="block text-sm font-medium mb-2">字体颜色</label>
@@ -59,7 +59,7 @@
                   :step="0.1"
                   :format-tooltip="(val: number) => (val * 100).toFixed(0) + '%'"
                   show-input
-                  :show-input-controls="false"
+                  show-input-controls
                 />
               </div>
 
@@ -110,10 +110,10 @@
                 v-model="(watermark.content as any).opacity"
                 :min="0"
                 :max="1"
-                :step="0.1"
+                :step="0.05"
                 :format-tooltip="(val: number) => (val * 100).toFixed(0) + '%'"
                 show-input
-                :show-input-controls="false"
+                show-input-controls
               />
             </div>
           </div>
@@ -122,45 +122,285 @@
         <!-- 位置配置 -->
         <div class="border-t pt-4">
           <h4 class="text-md font-medium mb-3 text-gray-600">位置设置</h4>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium mb-2">水平位置</label>
-              <el-select v-model="watermark.position!.horizontal" class="w-full">
-                <el-option label="左对齐" value="left" />
-                <el-option label="居中" value="center" />
-                <el-option label="右对齐" value="right" />
-              </el-select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">垂直位置</label>
-              <el-select v-model="watermark.position!.vertical" class="w-full">
-                <el-option label="顶部" value="top" />
-                <el-option label="居中" value="middle" />
-                <el-option label="底部" value="bottom" />
-              </el-select>
+          <div class="flex flex-col items-center gap-4">
+            <div class="grid grid-cols-3 gap-2 w-32 h-32 rounded-[5px] overflow-hidden">
+              <div
+                class="rounded-[5px] relative aspect-square group"
+                :class="{
+                  'bg-blue-200':
+                    watermark.position!.horizontal === 'left' &&
+                    watermark.position!.vertical === 'top',
+                  'bg-slate-200 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'left' ||
+                    watermark.position!.vertical !== 'top'
+                }"
+                @click.stop="updatePositon('left', 'top')"
+              >
+                <div
+                  class="absolute left-0 top-0 w-full h-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'left' &&
+                      watermark.position!.vertical === 'top',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'left' ||
+                      watermark.position!.vertical !== 'top'
+                  }"
+                ></div>
+                <div
+                  class="absolute left-0 top-0 h-full w-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'left' &&
+                      watermark.position!.vertical === 'top',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'left' ||
+                      watermark.position!.vertical !== 'top'
+                  }"
+                ></div>
+              </div>
+              <div
+                class="rounded-[5px] relative aspect-square group"
+                :class="{
+                  'bg-blue-200':
+                    watermark.position!.horizontal === 'center' &&
+                    watermark.position!.vertical === 'top',
+                  'bg-slate-200 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'center' ||
+                    watermark.position!.vertical !== 'top'
+                }"
+                @click.stop="updatePositon('center', 'top')"
+              >
+                <div
+                  class="absolute left-0 top-0 w-full h-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'center' &&
+                      watermark.position!.vertical === 'top',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'center' ||
+                      watermark.position!.vertical !== 'top'
+                  }"
+                ></div>
+              </div>
+              <div
+                class="rounded-[5px] relative bg-slate-200 aspect-square group"
+                :class="{
+                  'bg-blue-200':
+                    watermark.position!.horizontal === 'right' &&
+                    watermark.position!.vertical === 'top',
+                  'bg-slate-200 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'right' ||
+                    watermark.position!.vertical !== 'top'
+                }"
+                @click.stop="updatePositon('right', 'top')"
+              >
+                <div
+                  class="absolute right-0 top-0 w-full h-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'right' &&
+                      watermark.position!.vertical === 'top',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'right' ||
+                      watermark.position!.vertical !== 'top'
+                  }"
+                ></div>
+                <div
+                  class="absolute right-0 top-0 h-full w-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'right' &&
+                      watermark.position!.vertical === 'top',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'right' ||
+                      watermark.position!.vertical !== 'top'
+                  }"
+                ></div>
+              </div>
+
+              <div
+                class="rounded-[5px] relative aspect-square group"
+                :class="{
+                  'bg-blue-200':
+                    watermark.position!.horizontal === 'left' &&
+                    watermark.position!.vertical === 'middle',
+                  'bg-slate-200 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'left' ||
+                    watermark.position!.vertical !== 'middle'
+                }"
+                @click.stop="updatePositon('left', 'middle')"
+              >
+                <div
+                  class="absolute left-0 top-0 w-[5px] h-full rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'left' &&
+                      watermark.position!.vertical === 'middle',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'left' ||
+                      watermark.position!.vertical !== 'middle'
+                  }"
+                ></div>
+              </div>
+              <div
+                class="rounded-[5px] border-[5px] border-solid"
+                :class="{
+                  'bg-blue-200 border-blue-400':
+                    watermark.position!.horizontal === 'center' &&
+                    watermark.position!.vertical === 'middle',
+                  'bg-slate-200 hover:border-blue-300 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'center' ||
+                    watermark.position!.vertical !== 'middle'
+                }"
+                @click.stop="updatePositon('center', 'middle')"
+              ></div>
+              <div
+                class="rounded-[5px] relative bg-slate-200 aspect-square group"
+                :class="{
+                  'bg-blue-200':
+                    watermark.position!.horizontal === 'right' &&
+                    watermark.position!.vertical === 'middle',
+                  'bg-slate-200 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'right' ||
+                    watermark.position!.vertical !== 'middle'
+                }"
+                @click.stop="updatePositon('right', 'middle')"
+              >
+                <div
+                  class="absolute right-0 top-0 w-[5px] h-full rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'right' &&
+                      watermark.position!.vertical === 'middle',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'right' ||
+                      watermark.position!.vertical !== 'middle'
+                  }"
+                ></div>
+              </div>
+
+              <div
+                class="rounded-[5px] relative aspect-square group"
+                :class="{
+                  'bg-blue-200':
+                    watermark.position!.horizontal === 'left' &&
+                    watermark.position!.vertical === 'bottom',
+                  'bg-slate-200 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'left' ||
+                    watermark.position!.vertical !== 'bottom'
+                }"
+                @click.stop="updatePositon('left', 'bottom')"
+              >
+                <div
+                  class="absolute left-0 bottom-0 w-full h-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'left' &&
+                      watermark.position!.vertical === 'bottom',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'left' ||
+                      watermark.position!.vertical !== 'bottom'
+                  }"
+                ></div>
+                <div
+                  class="absolute left-0 bottom-0 h-full w-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'left' &&
+                      watermark.position!.vertical === 'bottom',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'left' ||
+                      watermark.position!.vertical !== 'bottom'
+                  }"
+                ></div>
+              </div>
+              <div
+                class="rounded-[5px] relative aspect-square group"
+                :class="{
+                  'bg-blue-200':
+                    watermark.position!.horizontal === 'center' &&
+                    watermark.position!.vertical === 'bottom',
+                  'bg-slate-200 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'center' ||
+                    watermark.position!.vertical !== 'bottom'
+                }"
+                @click.stop="updatePositon('center', 'bottom')"
+              >
+                <div
+                  class="absolute left-0 bottom-0 w-full h-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'center' &&
+                      watermark.position!.vertical === 'bottom',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'center' ||
+                      watermark.position!.vertical !== 'bottom'
+                  }"
+                ></div>
+              </div>
+              <div
+                class="rounded-[5px] relative aspect-square group"
+                :class="{
+                  'bg-blue-200':
+                    watermark.position!.horizontal === 'right' &&
+                    watermark.position!.vertical === 'bottom',
+                  'bg-slate-200 hover:bg-blue-100':
+                    watermark.position!.horizontal !== 'right' ||
+                    watermark.position!.vertical !== 'bottom'
+                }"
+                @click.stop="updatePositon('right', 'bottom')"
+              >
+                <div
+                  class="absolute right-0 bottom-0 w-full h-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'right' &&
+                      watermark.position!.vertical === 'bottom',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'right' ||
+                      watermark.position!.vertical !== 'bottom'
+                  }"
+                ></div>
+                <div
+                  class="absolute right-0 bottom-0 h-full w-[5px] rounded-[2px]"
+                  :class="{
+                    'bg-blue-400':
+                      watermark.position!.horizontal === 'right' &&
+                      watermark.position!.vertical === 'bottom',
+                    'bg-slate-400 group-hover:bg-blue-300':
+                      watermark.position!.horizontal !== 'right' ||
+                      watermark.position!.vertical !== 'bottom'
+                  }"
+                ></div>
+              </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4 mt-4">
+          <div class="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium mb-2">水平偏移 (像素)</label>
-              <el-input-number
+              <el-slider
                 v-model="watermark.position!.offsetX"
+                :disabled="watermark.position!.horizontal === 'center'"
                 :min="0"
                 :step="1"
-                controls-position="right"
-                class="w-full"
-              />
+                :max="200"
+                show-input
+                show-input-controls
+              ></el-slider>
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">垂直偏移 (像素)</label>
-              <el-input-number
+              <el-slider
                 v-model="watermark.position!.offsetY"
+                :disabled="watermark.position!.vertical === 'middle'"
                 :min="0"
                 :step="1"
-                controls-position="right"
-                class="w-full"
-              />
+                :max="200"
+                show-input
+                show-input-controls
+              ></el-slider>
             </div>
           </div>
         </div>
@@ -251,6 +491,11 @@
       }
     }
   })
+
+  const updatePositon = (h: 'left' | 'center' | 'right', v: 'top' | 'middle' | 'bottom') => {
+    watermark.value.position!.horizontal = h
+    watermark.value.position!.vertical = v
+  }
 
   function createDefaultWatermark(): WatermarkConfig {
     return {

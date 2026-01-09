@@ -4,16 +4,6 @@
     <h3 class="text-lg font-medium mb-4 text-gray-700">基础配置</h3>
 
     <div class="space-y-6">
-      <!-- 文件路径 -->
-      <div>
-        <label class="block text-sm font-medium mb-2">输出路径</label>
-        <el-input v-model="config.path" placeholder="请输入保存路径" clearable>
-          <template #append>
-            <el-button icon="Folder" @click="selectPath" />
-          </template>
-        </el-input>
-      </div>
-
       <!-- 尺寸配置 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
@@ -73,11 +63,14 @@
         </div>
       </div>
     </div>
+
+    <BasePreview />
   </div>
 </template>
 
 <script setup lang="ts">
   import ImageCompressSetup from './setup'
+  import BasePreview from '@/components/Tools/ImageCompress/BasePreview.vue'
 
   const config = ImageCompressSetup
 

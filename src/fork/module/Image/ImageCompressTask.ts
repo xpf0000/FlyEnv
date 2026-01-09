@@ -818,9 +818,10 @@ export class ImageCompressTask implements TaskItem {
   private buildSharpPipeline(): Sharp {
     let pipeline = sharp(this.image.path)
 
+    console.log('buildSharpPipeline !!!')
     // 应用 trim
     pipeline = this.applyTrim(pipeline)
-
+    console.log('buildSharpPipeline applyTrim !!!')
     // 调整大小
     if (this.config.width || this.config.height) {
       pipeline = pipeline.resize({
@@ -833,6 +834,7 @@ export class ImageCompressTask implements TaskItem {
         withoutReduction: this.config.withoutReduction || false,
         fastShrinkOnLoad: this.config.fastShrinkOnLoad !== false
       })
+      console.log('buildSharpPipeline resize !!!')
     }
 
     // 其他处理操作...
@@ -841,21 +843,20 @@ export class ImageCompressTask implements TaskItem {
     if (this.config.flop) pipeline = pipeline.flop()
     if (this.config.blur) pipeline = pipeline.blur(this.config.blur)
     if (this.config.sharpen) pipeline = pipeline.sharpen(this.config.sharpen)
+    console.log('buildSharpPipeline sharpen !!!')
     if (this.config.grayscale) pipeline = pipeline.grayscale()
     if (this.config.gamma) pipeline = pipeline.gamma(this.config.gamma)
     if (this.config.negate) pipeline = pipeline.negate()
     if (this.config.median) pipeline = pipeline.median(this.config.median)
     if (this.config.threshold) pipeline = pipeline.threshold(this.config.threshold)
-    if (this.config.linear) pipeline = pipeline.linear(this.config.linear.a, this.config.linear.b)
     if (this.config.modulate) pipeline = pipeline.modulate(this.config.modulate)
     if (this.config.toColorspace) pipeline = pipeline.toColorspace(this.config.toColorspace as any)
     if (this.config.removeAlpha) pipeline = pipeline.removeAlpha()
     if (this.config.ensureAlpha !== undefined)
       pipeline = pipeline.ensureAlpha(this.config.ensureAlpha)
-    if (this.config.tint) pipeline = pipeline.tint(this.config.tint)
-    if (this.config.extend) pipeline = pipeline.extend(this.config.extend)
-    if (this.config.extract) pipeline = pipeline.extract(this.config.extract)
-
+    // if (this.config.extend) pipeline = pipeline.extend(this.config.extend)
+    // if (this.config.extract) pipeline = pipeline.extract(this.config.extract)
+    console.log('buildSharpPipeline end !!!')
     return pipeline
   }
 
@@ -901,8 +902,28 @@ export class ImageCompressTask implements TaskItem {
       }
 
       // 优化路径: 如果没有水印和纹理，直接处理保存，避免 Buffer 复制开销
-      if (!this.config.watermark && !this.config.texture) {
+      if (!this.config.watermark?.enabled && !this.config.texture?.enabled) {
         pipeline = this.applyFormatOptions(pipeline, format)
+
+        // 应用透明度
+        if (typeof this.config.opacity === 'number' && this.config.opacity < 1) {
+          const clone = pipeline.clone()
+          const { info } = await clone.toBuffer({ resolveWithObject: true })
+          pipeline = pipeline.ensureAlpha()
+          pipeline = pipeline.composite([
+            {
+              input: {
+                create: {
+                  width: info.width,
+                  height: info.height,
+                  channels: 4,
+                  background: { r: 0, g: 0, b: 0, alpha: this.config.opacity }
+                }
+              },
+              blend: 'dest-in'
+            }
+          ])
+        }
 
         if (this.config.withMetadata !== false) pipeline = pipeline.withMetadata()
         if (this.config.withIccProfile)
@@ -925,8 +946,12 @@ export class ImageCompressTask implements TaskItem {
       const baseHeight = info.height
 
       // 3. 应用特效 (此时已确切知道基础尺寸)
-      finalPipeline = await this.applyTexture(finalPipeline, baseWidth, baseHeight)
-      finalPipeline = await this.applyWatermark(finalPipeline, baseWidth, baseHeight)
+      if (this.config.texture?.enabled) {
+        finalPipeline = await this.applyTexture(finalPipeline, baseWidth, baseHeight)
+      }
+      if (this.config.watermark?.enabled) {
+        finalPipeline = await this.applyWatermark(finalPipeline, baseWidth, baseHeight)
+      }
 
       // 4. 应用输出格式和元数据
       finalPipeline = this.applyFormatOptions(finalPipeline, format)

@@ -4,6 +4,9 @@ import sharp from 'sharp'
 import { readFile } from 'node:fs/promises'
 import type { Sharp } from 'sharp'
 import { ImageCompressTask } from './ImageCompressTask'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
+import { uuid } from '../../Fn'
 
 /**
  * 压缩测试
@@ -351,6 +354,63 @@ export function imageTextureTest(filePath: string, config: SharpConfig) {
 
       // 处理后的图片base64（使用原始格式）
       const compressedBase64 = `data:image/${originalFormat};base64,${compressedBuffer.toString('base64')}`
+
+      // 返回结果
+      resolve({
+        // 处理前的原始图片
+        original: {
+          base64: originalBase64
+        },
+        // 处理后的图片
+        effected: {
+          base64: compressedBase64
+        }
+      })
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+
+/**
+ * 图片纹理测试
+ * 返回添加纹理前后的图片base64字符串
+ * @param filePath  图片文件路径
+ * @param config  配置
+ */
+export function imageBaseTest(filePath: string, config: SharpConfig) {
+  return new ForkPromise(async (resolve, reject) => {
+    try {
+      // 验证输入
+      if (!filePath) {
+        return reject(new Error('输入参数不能为空'))
+      }
+
+      const sp = sharp(filePath)
+      const { data, info } = await sp.toBuffer({ resolveWithObject: true })
+      const originalFormat = info.format || 'png'
+      const originalBase64 = `data:image/${originalFormat};base64,${data.toString('base64')}`
+      const image = {
+        path: filePath,
+        size: data.length,
+        ext: info.format || 'png',
+        width: info.width,
+        height: info.height
+      }
+      console.log('imageBaseTest image: ', image)
+      sp.destroy()
+      config.path = join(tmpdir(), `${uuid()}.${image.ext}`)
+      const task = new ImageCompressTask(image as any, config)
+      try {
+        await task.run()
+      } catch (e) {
+        console.log('imageBaseTest tast fail: ', e, task.toString())
+        return reject(e)
+      }
+      console.log('imageBaseTest tast success: ', task.toString())
+      const endSharp = sharp(config.path)
+      const res = await endSharp.toBuffer({ resolveWithObject: true })
+      const compressedBase64 = `data:image/${res.info.format};base64,${res.data.toString('base64')}`
 
       // 返回结果
       resolve({

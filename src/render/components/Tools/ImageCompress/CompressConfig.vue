@@ -3,10 +3,10 @@
   <div class="compress-config">
     <h3 class="text-lg font-medium mb-4 text-gray-700">压缩配置</h3>
 
-    <el-tabs v-model="formatActiveTab" type="card" class="format-tabs">
+    <el-tabs v-model="formatActiveTab" type="card" class="compress-types-tabs">
       <!-- JPEG 配置 -->
       <el-tab-pane label="JPEG" name="jpeg">
-        <div class="space-y-4 p-4">
+        <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium mb-2">质量 (0-100)</label>
             <el-slider
@@ -15,7 +15,7 @@
               :max="100"
               :step="1"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
 
@@ -48,7 +48,7 @@
 
       <!-- PNG 配置 -->
       <el-tab-pane label="PNG" name="png">
-        <div class="space-y-4 p-4">
+        <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium mb-2">质量 (0-100)</label>
             <el-slider
@@ -57,7 +57,7 @@
               :max="100"
               :step="1"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
 
@@ -69,7 +69,7 @@
               :max="9"
               :step="1"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
           <el-tooltip
@@ -89,7 +89,7 @@
 
       <!-- WebP 配置 -->
       <el-tab-pane label="WebP" name="webp">
-        <div class="space-y-4 p-4">
+        <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium mb-2">质量 (0-100)</label>
             <el-slider
@@ -98,7 +98,7 @@
               :max="100"
               :step="1"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
 
@@ -110,7 +110,7 @@
               :max="100"
               :step="1"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
           <el-checkbox v-model="config.webp.lossless">无损压缩</el-checkbox>
@@ -120,7 +120,7 @@
 
       <!-- AVIF 配置 -->
       <el-tab-pane label="AVIF" name="avif">
-        <div class="space-y-4 p-4">
+        <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium mb-2">质量 (0-100)</label>
             <el-slider
@@ -129,7 +129,7 @@
               :max="100"
               :step="1"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
           <div>
@@ -140,7 +140,7 @@
               :max="9"
               :step="1"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
           <el-checkbox v-model="config.avif.lossless">无损压缩</el-checkbox>
@@ -203,9 +203,3 @@
   const config = ImageCompressSetup
   const formatActiveTab = ref('jpeg')
 </script>
-
-<style scoped>
-  .format-tabs {
-    @apply shadow-sm;
-  }
-</style>

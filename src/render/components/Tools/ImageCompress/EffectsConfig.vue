@@ -6,25 +6,27 @@
       <!-- 旋转和翻转 -->
       <div class="border rounded-lg p-4">
         <h4 class="text-md font-medium mb-3 text-gray-600">旋转和翻转</h4>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">垂直翻转</label>
+              <el-switch v-model="config.flip" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">水平翻转</label>
+              <el-switch v-model="config.flop" />
+            </div>
+          </div>
           <div>
             <label class="block text-sm font-medium mb-2">旋转角度</label>
-            <el-input-number
+            <el-slider
               v-model="config.rotate"
               :min="0"
-              :max="360"
-              :step="90"
-              controls-position="right"
-              class="w-full"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2">垂直翻转</label>
-            <el-switch v-model="config.flip" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2">水平翻转</label>
-            <el-switch v-model="config.flop" />
+              :max="359"
+              :step="1"
+              show-input
+              show-input-controls
+            ></el-slider>
           </div>
         </div>
       </div>
@@ -42,7 +44,7 @@
               :step="0.1"
               :format-tooltip="(val: number) => val.toFixed(1)"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
           <div>
@@ -54,7 +56,7 @@
               :step="0.1"
               :format-tooltip="(val: number) => val.toFixed(1)"
               show-input
-              :show-input-controls="false"
+              show-input-controls
             />
           </div>
         </div>
@@ -74,7 +76,7 @@
                 :step="0.1"
                 :format-tooltip="(val: number) => val.toFixed(1)"
                 show-input
-                :show-input-controls="false"
+                show-input-controls
               />
             </div>
             <div>
@@ -85,7 +87,7 @@
                 :max="180"
                 :step="1"
                 show-input
-                :show-input-controls="false"
+                show-input-controls
               />
             </div>
           </div>
@@ -101,7 +103,7 @@
                 :max="3"
                 :step="0.1"
                 show-input
-                :show-input-controls="false"
+                show-input-controls
               />
             </div>
             <div>
@@ -114,7 +116,7 @@
                 :max="3"
                 :step="0.1"
                 show-input
-                :show-input-controls="false"
+                show-input-controls
               />
             </div>
           </div>
