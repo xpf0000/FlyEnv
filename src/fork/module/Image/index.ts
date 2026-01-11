@@ -2,7 +2,7 @@ import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { getAllFileAsync } from '../../util/Dir'
 import { stat } from '@shared/fs-extra'
-import { basename, extname } from 'node:path'
+import { basename, extname, join } from 'node:path'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { ImageInfoFetchTask } from './ImageInfoFetchTask'
 import { ImageCompressTask } from './ImageCompressTask'
@@ -29,36 +29,40 @@ class Image extends Base {
     super()
   }
 
-  fetchDirFile(dir: string) {
+  fetchDirFile(dirs: string[]) {
     return new ForkPromise(async (resolve, reject, on) => {
       let all: Array<ImageFileItemType> = []
-      try {
-        const dirStat = await stat(dir)
-        const ext = extname(dir).replace('.', '').toLowerCase()
-        if (dirStat.isFile() && this.exts.includes(ext)) {
-          all = [
-            {
-              path: dir,
-              name: basename(dir)
+      for (const dir of dirs) {
+        try {
+          const dirStat = await stat(dir)
+          if (dirStat.isFile()) {
+            const ext = extname(dir).replace('.', '').toLowerCase()
+            if (this.exts.includes(ext)) {
+              all = [
+                {
+                  path: dir,
+                  name: basename(dir)
+                }
+              ]
             }
-          ]
-        } else if (dirStat.isDirectory()) {
-          const list = await getAllFileAsync(dir)
-          all = list
-            .filter((f: string) => {
-              const ext = extname(f).replace('.', '').toLowerCase()
-              return this.exts.includes(ext)
-            })
-            .map((m) => {
-              return {
-                path: m,
-                name: basename(m)
-              }
-            })
+          } else if (dirStat.isDirectory()) {
+            const list = await getAllFileAsync(dir)
+            all = list
+              .filter((f: string) => {
+                const ext = extname(f).replace('.', '').toLowerCase()
+                return this.exts.includes(ext)
+              })
+              .map((m) => {
+                return {
+                  path: m,
+                  name: basename(m)
+                }
+              })
+          }
+        } catch (e) {
+          reject(e)
+          return
         }
-      } catch (e) {
-        reject(e)
-        return
       }
       if (!all.length) {
         return resolve([])
@@ -83,7 +87,12 @@ class Image extends Base {
     })
   }
 
-  doCompressTask(files: ImageInfoFetchTask[], config: SharpConfig) {
+  doCompressTask(
+    files: ImageInfoFetchTask[],
+    config: SharpConfig,
+    savePath: string,
+    backPath: string
+  ) {
     return new ForkPromise((resolve, reject, on) => {
       const taskQueue = new TaskQueue(cpus().length)
       taskQueue
@@ -95,7 +104,10 @@ class Image extends Base {
         })
         .initQueue(
           files.map((p) => {
-            return new ImageCompressTask(p, config)
+            const name = basename(p.path)
+            const path = join(savePath, name)
+            const backupPath = backPath ? join(backPath, name) : ''
+            return new ImageCompressTask(p, config, path, backupPath)
           })
         )
         .run()

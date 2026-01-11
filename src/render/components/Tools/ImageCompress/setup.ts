@@ -1,5 +1,7 @@
 import { reactiveBind } from '@/util/Index'
 import type {
+  BatchImageInfoItem,
+  BatchImageResultItem,
   SharpConfig,
   TextureOptions,
   WatermarkConfig
@@ -8,10 +10,11 @@ import type { FitEnum, FormatEnum, KernelEnum } from 'sharp'
 import { dialog, fs, shell } from '@/util/NodeFn'
 import { MessageError } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import IPC from '@/util/IPC'
+import { reactive } from 'vue'
 
 class ImageCompressSetup implements SharpConfig {
   // 基本配置
-  path: string = ''
   width?: number
   height?: number
   fit: keyof FitEnum = 'cover'
@@ -31,13 +34,13 @@ class ImageCompressSetup implements SharpConfig {
     enabled: false,
     content: {
       text: '水印',
-      fontSize: 24,
-      color: '#FFFFFF',
-      opacity: 0.8
+      fontSize: 44,
+      color: 'rgb(128, 128, 128)',
+      opacity: 0.6
     },
     position: {
-      horizontal: 'right',
-      vertical: 'bottom',
+      horizontal: 'center',
+      vertical: 'middle',
       offsetX: 20,
       offsetY: 20
     },
@@ -49,7 +52,7 @@ class ImageCompressSetup implements SharpConfig {
   texture: TextureOptions = {
     enabled: false,
     type: 'grid',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'rgba(128,128,128,0.4)',
     size: 20,
     lineWidth: 1,
     dotSize: 3,
@@ -260,3 +263,76 @@ class ImageCompressSetup implements SharpConfig {
   }
 }
 export default reactiveBind(new ImageCompressSetup())
+
+class ImageBatchProcess {
+  saveDir: string = ''
+  backupDir: string = ''
+
+  dirs: string[] = []
+  images: BatchImageInfoItem[] = []
+  batchs: BatchImageResultItem[] = []
+
+  selectDir() {
+    dialog
+      .showOpenDialog({
+        properties: ['openFile', 'openDirectory', 'showHiddenFiles', 'multiSelections'],
+        filters: [
+          {
+            name: 'Image Files',
+            extensions: ['jpeg', 'jpg', 'png', 'webp', 'avif', 'gif', 'tiff', 'heif']
+          }
+        ]
+      })
+      .then(({ canceled, filePaths }: { canceled: boolean; filePaths: string[] }) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const all = filePaths.filter((filePath: string) => !this.dirs.includes(filePath))
+        this.dirs.push(...all)
+        const images: BatchImageInfoItem[] = reactive(
+          all.map((a) => ({ path: a, status: 'fetching' }) as any)
+        )
+        this.images.push(...images)
+        IPC.send('app-fork:image', 'fetchDirFile', all).then((key, res) => {
+          if (res?.code === 0 || res?.code === 1) {
+            IPC.off(key)
+            return
+          }
+          const data:
+            | {
+                successTask: BatchImageInfoItem[]
+                failTask: BatchImageInfoItem[]
+              }
+            | undefined = res?.data
+          if (data) {
+            for (const task of [...data.successTask, ...data.failTask]) {
+              const find = this.images.find((i) => i.path === task.path)
+              if (find) {
+                Object.assign(find, task, { status: 'fetched' })
+              }
+            }
+          }
+        })
+      })
+  }
+
+  selectSaveDir(type: 'save' | 'backup') {
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory', 'showHiddenFiles', 'createDirectory', 'promptToCreate']
+      })
+      .then(({ canceled, filePaths }: { canceled: boolean; filePaths: string[] }) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const path = filePaths[0]
+        if (type === 'save') {
+          this.saveDir = path
+        } else {
+          this.backupDir = path
+        }
+      })
+  }
+}
+
+export const ImageBatch = reactiveBind(new ImageBatchProcess())

@@ -114,10 +114,6 @@ export interface TextureOptions {
  */
 export type SharpConfig = {
   // ====================== 基本配置 ======================
-
-  /** 图片保存路径 (必填) */
-  path: string
-
   /** 输出图片宽度，单位像素 (可选) */
   width?: number
 
@@ -472,4 +468,80 @@ export interface EffectsTestResult {
   effected: {
     base64: string
   }
+}
+
+export interface BatchImageInfoItem {
+  status: 'fetching' | 'fetched'
+  /**
+   * 本地图片路径
+   */
+  path: string
+  /**
+   * 文件大小
+   */
+  size: number
+  /**
+   * 格式化后的文件大小字符串
+   */
+  sizeFormatted: string
+  /**
+   * 图片宽度
+   */
+  width: number
+  /**
+   * 图片高度
+   */
+  height: number
+  /**
+   * 图片格式 jpeg png gif webp等
+   */
+  ext: string
+  /**
+   * 文件状态
+   */
+  hasError: boolean
+  /**
+   * 错误信息
+   */
+  errorMessage: string
+}
+
+export interface BatchImageResultItem {
+  image: BatchImageInfoItem
+  /** sharp配置 */
+  config: SharpConfig
+  /**
+   * 文件大小
+   */
+  size: number
+  /**
+   * 格式化后的文件大小字符串
+   */
+  sizeFormatted: string
+  /**
+   * 图片宽度
+   */
+  width: number
+  /**
+   * 图片高度
+   */
+  height: number
+  /**
+   * 图片格式 jpeg png gif webp等
+   */
+  ext: string
+  /** 压缩比 */
+  compressionRatio: number
+  /**
+   * 缩小比例
+   */
+  sizePercentage: string
+  /**
+   * 文件状态
+   */
+  hasError: boolean
+  /**
+   * 错误信息
+   */
+  errorMessage: string
 }

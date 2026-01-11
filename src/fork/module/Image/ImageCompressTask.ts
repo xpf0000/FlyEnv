@@ -8,13 +8,18 @@ import type {
   WatermarkConfig,
   WatermarkPosition
 } from './imageCompress.type'
-import fs from 'fs/promises'
-import path from 'path'
+import { stat, mkdir, copyFile } from 'fs/promises'
 import { ImageInfoFetchTask } from './ImageInfoFetchTask'
+import { dirname, extname, join, basename } from 'node:path'
 
 export class ImageCompressTask implements TaskItem {
   /** 需要处理的图片 */
   image: ImageInfoFetchTask
+  /**
+   * 本地存储路径
+   */
+  path: string = ''
+  backupPath: string = ''
   /** sharp配置 */
   config: SharpConfig
   /** 处理后的文件大小 */
@@ -42,9 +47,11 @@ export class ImageCompressTask implements TaskItem {
   /** 错误信息 */
   errorMessage: string = ''
 
-  constructor(image: ImageInfoFetchTask, config: SharpConfig) {
+  constructor(image: ImageInfoFetchTask, config: SharpConfig, path: string, backupPath: string) {
     this.image = image
     this.config = config
+    this.path = path
+    this.backupPath = backupPath
   }
 
   /** 格式化文件大小 */
@@ -59,7 +66,7 @@ export class ImageCompressTask implements TaskItem {
   /** 获取压缩后的文件大小 */
   private async getFileSize(): Promise<boolean> {
     try {
-      const stats = await fs.stat(this.config.path)
+      const stats = await stat(this.path)
       this.size = stats.size
       this.sizeFormatted = this.formatFileSize(stats.size)
       if (this.image.size > 0) {
@@ -77,14 +84,14 @@ export class ImageCompressTask implements TaskItem {
   /** 获取压缩后的图片元数据 */
   private async getImageMetadata(): Promise<boolean> {
     try {
-      const metadata = await sharp(this.config.path).metadata()
+      const metadata = await sharp(this.path).metadata()
       this.width = metadata.width || 0
       this.height = metadata.height || 0
 
       if (metadata.format) {
         this.ext = metadata.format.toLowerCase()
       } else {
-        const fileExt = path.extname(this.config.path).toLowerCase().replace('.', '')
+        const fileExt = extname(this.path).toLowerCase().replace('.', '')
         this.ext = fileExt || 'unknown'
       }
       return true
@@ -793,7 +800,7 @@ export class ImageCompressTask implements TaskItem {
     try {
       this.hasTexture = true
       const textureBuffer = await this.createTexture(this.config.texture, baseWidth, baseHeight)
-
+      console.log('applyTexture textureBuffer: ', textureBuffer.length)
       if (textureBuffer.length === 0) {
         return pipeline
       }
@@ -834,7 +841,10 @@ export class ImageCompressTask implements TaskItem {
     }
 
     // 其他处理操作...
-    if (this.config.rotate) pipeline = pipeline.rotate(this.config.rotate)
+    if (this.config.rotate)
+      pipeline = pipeline.rotate(this.config.rotate, {
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      })
     if (this.config.flip) pipeline = pipeline.flip()
     if (this.config.flop) pipeline = pipeline.flop()
     if (this.config.blur) pipeline = pipeline.blur(this.config.blur)
@@ -930,19 +940,30 @@ export class ImageCompressTask implements TaskItem {
   }
 
   /**
+   * 保存备份文件
+   * @private
+   */
+  private async saveBackupImage() {
+    if (this.backupPath) {
+      await mkdir(dirname(this.backupPath), { recursive: true })
+      await copyFile(this.image.path, this.backupPath)
+    }
+  }
+
+  /**
    * 保存图片 - 核心逻辑重构
    * 采用 Buffer 中转方案，彻底解决双重处理和元数据获取问题
    */
   private async saveImage(pipeline: Sharp): Promise<boolean> {
     try {
-      const outputDir = path.dirname(this.config.path)
-      await fs.mkdir(outputDir, { recursive: true })
+      const outputDir = dirname(this.path)
+      await mkdir(outputDir, { recursive: true })
 
       let format: 'none' | keyof FormatEnum = 'jpeg'
       if (this.config.format && this.config.format !== 'none') {
         format = this.config.format
       } else {
-        const ext = path.extname(this.config.path).toLowerCase().replace('.', '')
+        const ext = extname(this.path).toLowerCase().replace('.', '')
         if (['jpeg', 'jpg', 'png', 'webp', 'avif', 'gif', 'tiff', 'heif'].includes(ext)) {
           format = ext as keyof FormatEnum
         }
@@ -962,7 +983,8 @@ export class ImageCompressTask implements TaskItem {
         if (this.config.timeoutSeconds)
           pipeline = pipeline.timeout({ seconds: this.config.timeoutSeconds })
 
-        await pipeline.toFile(this.config.path)
+        await this.saveBackupImage()
+        await pipeline.toFile(this.path)
         return true
       }
 
@@ -981,6 +1003,8 @@ export class ImageCompressTask implements TaskItem {
         finalPipeline = await this.applyTexture(finalPipeline, baseWidth, baseHeight)
       }
       if (this.config.watermark?.enabled) {
+        const buffer: Buffer = await finalPipeline.toBuffer()
+        finalPipeline = sharp(buffer)
         finalPipeline = await this.applyWatermark(finalPipeline, baseWidth, baseHeight)
       }
 
@@ -1002,7 +1026,8 @@ export class ImageCompressTask implements TaskItem {
         finalPipeline = finalPipeline.timeout({ seconds: this.config.timeoutSeconds })
       }
 
-      await finalPipeline.toFile(this.config.path)
+      await this.saveBackupImage()
+      await finalPipeline.toFile(this.path)
       return true
     } catch (error: any) {
       this.errorMessage = `保存图片失败: ${error.message}`
@@ -1018,7 +1043,7 @@ export class ImageCompressTask implements TaskItem {
       return false
     }
 
-    if (!this.config || !this.config.path) {
+    if (!this.config || !this.path) {
       this.errorMessage = '输出路径未配置'
       this.hasError = true
       return false
@@ -1117,7 +1142,7 @@ export class ImageCompressTask implements TaskItem {
       compressionRatio: this.compressionRatio,
       savedBytes,
       savedPercentage,
-      path: this.config.path,
+      path: this.path,
       hasWatermark: this.hasWatermark,
       hasTexture: this.hasTexture
     }
@@ -1345,7 +1370,7 @@ export class EffectsPresets {
   static canvasTexture(): TextureOptions {
     return {
       type: 'custom',
-      customImage: path.join(__dirname, 'assets/canvas-texture.png'), // 假设有纹理图片
+      customImage: join(__dirname, 'assets/canvas-texture.png'), // 假设有纹理图片
       opacity: 0.25,
       blendMode: 'overlay',
       scale: 0.8
@@ -1404,7 +1429,7 @@ export class WatermarkUtils {
     return {
       type: 'text',
       content: {
-        text: `文件名: ${path.basename(filename, path.extname(filename))}`,
+        text: `文件名: ${basename(filename, extname(filename))}`,
         fontSize: 12,
         color: 'rgba(200,200,200,0.8)',
         backgroundColor: 'rgba(30,30,30,0.6)',

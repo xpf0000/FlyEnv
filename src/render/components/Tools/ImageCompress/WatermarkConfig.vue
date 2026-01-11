@@ -56,7 +56,7 @@
                   v-model="(watermark.content as any).opacity"
                   :min="0"
                   :max="1"
-                  :step="0.1"
+                  :step="0.05"
                   :format-tooltip="(val: number) => (val * 100).toFixed(0) + '%'"
                   show-input
                   show-input-controls

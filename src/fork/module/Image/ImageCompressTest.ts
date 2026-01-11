@@ -240,7 +240,7 @@ export function imageEffectsTest(filePath: string, config: SharpConfig) {
       }
 
       if (typeof config.opacity === 'number' && config.opacity < 1) {
-        const task = new ImageCompressTask({} as any, {} as any)
+        const task = new ImageCompressTask({} as any, {} as any, '', '')
         imageProcessor = await task.applyOpacity(imageProcessor, config.opacity)
       }
 
@@ -296,7 +296,7 @@ export function imageWatermarkTest(filePath: string, config: SharpConfig) {
       // 应用图片效果
       let imageProcessor = originalSharp
 
-      const task = new ImageCompressTask({} as any, config)
+      const task = new ImageCompressTask({} as any, config, '', '')
       imageProcessor = await task.applyWatermark(imageProcessor, width, height)
 
       // 生成处理后的图片（保持原始格式）
@@ -351,7 +351,7 @@ export function imageTextureTest(filePath: string, config: SharpConfig) {
       // 应用图片效果
       let imageProcessor = originalSharp
 
-      const task = new ImageCompressTask({} as any, config)
+      const task = new ImageCompressTask({} as any, config, '', '')
       imageProcessor = await task.applyTexture(imageProcessor, width, height)
 
       // 生成处理后的图片（保持原始格式）
@@ -406,8 +406,8 @@ export function imageBaseTest(filePath: string, config: SharpConfig) {
       }
       console.log('imageBaseTest image: ', image)
       sp.destroy()
-      config.path = join(tmpdir(), `${uuid()}.${image.ext}`)
-      const task = new ImageCompressTask(image as any, config)
+      const path = join(tmpdir(), `${uuid()}.${image.ext}`)
+      const task = new ImageCompressTask(image as any, config, path, '')
       try {
         await task.run()
       } catch (e) {
@@ -415,7 +415,7 @@ export function imageBaseTest(filePath: string, config: SharpConfig) {
         return reject(e)
       }
       console.log('imageBaseTest tast success: ', task.toString())
-      const endSharp = sharp(config.path)
+      const endSharp = sharp(path)
       const res = await endSharp.toBuffer({ resolveWithObject: true })
       const compressedSize = res.data.length
       const compressedDimensions = { width: res.info.width, height: res.info.height }
