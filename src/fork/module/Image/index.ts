@@ -2,7 +2,7 @@ import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { getAllFileAsync } from '../../util/Dir'
 import { stat } from '@shared/fs-extra'
-import { basename, extname, join } from 'node:path'
+import { basename, extname, join, normalize, sep } from 'node:path'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { ImageInfoFetchTask } from './ImageInfoFetchTask'
 import { ImageCompressTask } from './ImageCompressTask'
@@ -19,7 +19,6 @@ import {
 
 type ImageFileItemType = {
   path: string
-  name: string
 }
 
 class Image extends Base {
@@ -31,33 +30,30 @@ class Image extends Base {
 
   fetchDirFile(dirs: string[]) {
     return new ForkPromise(async (resolve, reject, on) => {
-      let all: Array<ImageFileItemType> = []
+      const all: Array<ImageFileItemType> = []
       for (const dir of dirs) {
         try {
           const dirStat = await stat(dir)
           if (dirStat.isFile()) {
-            const ext = extname(dir).replace('.', '').toLowerCase()
+            const ext = extname(dir.toLowerCase()).replace('.', '').toLowerCase()
             if (this.exts.includes(ext)) {
-              all = [
-                {
-                  path: dir,
-                  name: basename(dir)
-                }
-              ]
+              all.push({
+                path: dir
+              })
             }
           } else if (dirStat.isDirectory()) {
             const list = await getAllFileAsync(dir)
-            all = list
+            const arr = list
               .filter((f: string) => {
                 const ext = extname(f).replace('.', '').toLowerCase()
                 return this.exts.includes(ext)
               })
               .map((m) => {
                 return {
-                  path: m,
-                  name: basename(m)
+                  path: m
                 }
               })
+            all.push(...arr)
           }
         } catch (e) {
           reject(e)
@@ -80,11 +76,68 @@ class Image extends Base {
         })
         .initQueue(
           all.map((p) => {
-            return new ImageInfoFetchTask(p.path, p.name)
+            return new ImageInfoFetchTask(p.path)
           })
         )
         .run()
     })
+  }
+
+  /**
+   * 获取 N 条文件路径的最长公共前缀路径
+   * @param {string[]} paths - 文件路径数组
+   * @returns {string} - 最长公共前缀路径
+   */
+  private getLongestCommonPath(paths: string[]) {
+    // 1. 边界条件处理
+    if (!paths || paths.length === 0) {
+      return ''
+    }
+    if (paths.length === 1) {
+      return normalize(paths[0])
+    }
+
+    // 2. 获取当前系统的路径分隔符 (Windows是 '\', macOS/Linux是 '/')
+    const separator = sep
+
+    // 3. 将所有路径标准化并拆分为片段数组
+    // 例如: '/usr/local/bin' -> ['', 'usr', 'local', 'bin']
+    const splitPaths = paths.map((p) => normalize(p).split(separator))
+
+    // 4. 以第一条路径为基准进行循环
+    const firstPathParts = splitPaths[0]
+    const commonParts = []
+
+    for (let i = 0; i < firstPathParts.length; i++) {
+      const currentPart = firstPathParts[i]
+
+      // 检查所有其他路径在当前位置是否也是这个目录名
+      const isMatch = splitPaths.every((parts) => parts[i] === currentPart)
+
+      if (isMatch) {
+        commonParts.push(currentPart)
+      } else {
+        // 一旦遇到不匹配，立即停止
+        break
+      }
+    }
+
+    // 5. 将公共部分重新组合成路径字符串
+    // 如果没有任何公共部分（比如一个是 C:\ 一个是 D:\），则返回空
+    if (commonParts.length === 0) return ''
+
+    // 如果是根路径 (比如 Linux 下 split 结果第一个是空字符串)，join 可能会丢失开头的斜杠
+    // 使用 path.join 可以自动处理，但有时需要根据 split 结果手动补全根符号
+    const result = commonParts.join(separator)
+
+    // 特殊处理：如果是 Linux/macOS 绝对路径，split 产生的数组第一个元素是空字符串
+    // join 连接后开头可能是 "/usr" 这种形式，通常没问题。
+    // 如果 commonParts 只有 [""] (即根目录)，join 结果可能是 ""，需要转回 separator
+    if (result === '' && commonParts.length > 0 && commonParts[0] === '') {
+      return separator
+    }
+
+    return result
   }
 
   doCompressTask(
@@ -94,6 +147,9 @@ class Image extends Base {
     backPath: string
   ) {
     return new ForkPromise((resolve, reject, on) => {
+      const format = config.format
+      const commonPath = this.getLongestCommonPath(files.map((f) => f.path))
+      console.log('doCompressTask commonPath', commonPath)
       const taskQueue = new TaskQueue(cpus().length)
       taskQueue
         .progress((progress: TaskQueueProgress) => {
@@ -104,9 +160,17 @@ class Image extends Base {
         })
         .initQueue(
           files.map((p) => {
-            const name = basename(p.path)
-            const path = join(savePath, name)
-            const backupPath = backPath ? join(backPath, name) : ''
+            let name = basename(p.path)
+            if (commonPath) {
+              name = p.path.replace(`${commonPath}${sep}`, '')
+            }
+            console.log('doCompressTask name', name)
+            let path = savePath ? join(savePath, name) : p.path
+            let backupPath = backPath ? join(backPath, name) : ''
+            if (format !== 'none') {
+              path = path.replace(extname(path), `.${format}`)
+              backupPath = backupPath.replace(extname(backupPath), `.${format}`)
+            }
             return new ImageCompressTask(p, config, path, backupPath)
           })
         )

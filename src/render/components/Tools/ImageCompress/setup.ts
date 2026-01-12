@@ -262,7 +262,8 @@ class ImageCompressSetup implements SharpConfig {
       })
   }
 }
-export default reactiveBind(new ImageCompressSetup())
+const setup = reactiveBind(new ImageCompressSetup())
+export default setup
 
 class ImageBatchProcess {
   saveDir: string = ''
@@ -274,6 +275,8 @@ class ImageBatchProcess {
   batchs: BatchImageResultItem[] = []
 
   wordWidths: Record<string, number> = {}
+
+  processing = false
 
   getWordWidths(word: string) {
     const arr = Array.from(new Set([...word.split(''), '.']))
@@ -291,6 +294,7 @@ class ImageBatchProcess {
       dom.remove()
       dom = null
     }
+    console.log('getWordWidths: ', word, this.wordWidths)
   }
 
   selectDir() {
@@ -309,11 +313,10 @@ class ImageBatchProcess {
           return
         }
         const all = filePaths.filter((filePath: string) => !this.dirs.includes(filePath))
+        if (!all.length) {
+          return
+        }
         this.dirs.push(...all)
-        const images: BatchImageInfoItem[] = reactive(
-          all.map((a) => ({ path: a, status: 'fetching' }) as any)
-        )
-        this.images.push(...images)
         IPC.send('app-fork:image', 'fetchDirFile', all).then((key, res) => {
           if (res?.code === 0 || res?.code === 1) {
             IPC.off(key)
@@ -321,12 +324,28 @@ class ImageBatchProcess {
           }
           const data:
             | {
-                successTask: BatchImageInfoItem[]
-                failTask: BatchImageInfoItem[]
+                allFile?: BatchImageInfoItem[]
+                successTask?: BatchImageInfoItem[]
+                failTask?: BatchImageInfoItem[]
               }
-            | undefined = res?.data
+            | undefined = res?.msg
           if (data) {
-            for (const task of [...data.successTask, ...data.failTask]) {
+            const allFile = data?.allFile
+            if (allFile) {
+              const images: BatchImageInfoItem[] = reactive(
+                allFile.map((m) => {
+                  return {
+                    path: m.path,
+                    status: 'fetching'
+                  }
+                })
+              ) as any
+              this.images.push(...images)
+              return
+            }
+            const successTask = data?.successTask ?? []
+            const failTask = data?.failTask ?? []
+            for (const task of [...successTask, ...failTask]) {
               const find = this.images.find((i) => i.path === task.path)
               if (find) {
                 Object.assign(find, task, { status: 'fetched' })
@@ -353,6 +372,63 @@ class ImageBatchProcess {
           this.backupDir = path
         }
       })
+  }
+
+  doProcess() {
+    if (this.processing) {
+      return
+    }
+    if (this.rewrite) {
+      if (!this.backupDir) {
+        MessageError('源文件会自动覆盖, 为了您的数据安全, 请选择备份文件夹')
+        return
+      }
+      this.saveDir = ''
+    } else {
+      if (!this.saveDir) {
+        MessageError('请选择保存文件夹')
+        return
+      }
+      this.backupDir = ''
+    }
+    this.processing = true
+    this.dirs.splice(0)
+    this.images.forEach((image) => {
+      delete image?.result
+      image.status = 'processing'
+    })
+    IPC.send(
+      'app-fork:image',
+      'doCompressTask',
+      JSON.parse(JSON.stringify(this.images)),
+      JSON.parse(JSON.stringify(setup)),
+      this.saveDir,
+      this.backupDir
+    ).then((key, res) => {
+      if (res?.code === 0 || res?.code === 1) {
+        IPC.off(key)
+        this.processing = false
+        shell.openPath(this.saveDir || this.backupDir).catch()
+        return
+      }
+      const data:
+        | {
+            successTask: BatchImageResultItem[]
+            failTask: BatchImageResultItem[]
+          }
+        | undefined = res?.msg
+      if (data) {
+        const successTask = data?.successTask ?? []
+        const failTask = data?.failTask ?? []
+        for (const task of [...successTask, ...failTask]) {
+          const find = this.images.find((i) => i.path === task.image.path)
+          if (find) {
+            find.result = task
+            find.status = 'processed'
+          }
+        }
+      }
+    })
   }
 }
 

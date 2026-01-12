@@ -9,10 +9,6 @@ export class ImageInfoFetchTask implements TaskItem {
    */
   path = ''
   /**
-   * 前端显示名字
-   */
-  name = ''
-  /**
    * 文件大小
    */
   size: number = 0
@@ -41,9 +37,8 @@ export class ImageInfoFetchTask implements TaskItem {
    */
   errorMessage: string = ''
 
-  constructor(path: string, name: string) {
+  constructor(path: string) {
     this.path = path
-    this.name = name
   }
 
   /**

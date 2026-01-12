@@ -17,7 +17,7 @@
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item label="备份位置">
+      <el-form-item v-else label="备份位置">
         <el-input :model-value="ImageBatch.backupDir" readonly>
           <template #append>
             <el-button
@@ -29,10 +29,25 @@
       </el-form-item>
     </el-form>
 
-    <el-card class="app-base-el-card flex-1">
+    <el-card class="app-base-el-card flex-1 w-full">
       <template #header>
         <div class="flex items-center justify-between">
-          <span>图片文件</span>
+          <div class="flex items-center gap-2">
+            <span>图片文件</span>
+            <template v-if="ImageBatch.processing">
+              <el-button :loading="true" link></el-button>
+            </template>
+            <template v-else>
+              <el-button
+                link
+                type="success"
+                :disabled="!ImageBatch.images.length"
+                @click.stop="ImageBatch.doProcess()"
+              >
+                <yb-icon class="w-[18px] h-[18px]" :svg="import('@/svg/play.svg?raw')" />
+              </el-button>
+            </template>
+          </div>
           <div class="flex items-center">
             <el-button
               :icon="Plus"
@@ -40,47 +55,57 @@
               link
               @click.stop="ImageBatch.selectDir()"
             ></el-button>
-            <el-button :disabled="!choosed.length" :icon="Delete" type="danger" link></el-button>
+            <el-button
+              :disabled="!choosed.length"
+              :icon="Delete"
+              type="danger"
+              link
+              @click.stop="doDelete"
+            ></el-button>
           </div>
         </div>
       </template>
-      <el-table row-key="path" class="h-full" :data="ImageBatch.images">
+      <el-table
+        row-key="path"
+        class="h-full w-full"
+        :data="ImageBatch.images"
+        @selection-change="handleSelectionChange"
+      >
         <el-table-column type="selection" width="55"></el-table-column>
         <el-table-column type="index"></el-table-column>
-        <el-table-column label="路径">
+        <el-table-column label="路径" width="auto" prop="path">
           <template #default="scope">
             <BatchImageTablePathCell :content="scope.row.path" />
           </template>
         </el-table-column>
-        <el-table-column label="处理前">
+        <el-table-column label="处理前" width="160px">
           <template #default="scope">
-            <div v-if="scope.row.status === 'fetching'" class="flex items-center justify-center">
+            <div v-if="scope.row.status === 'fetching'" class="flex items-center">
               <el-button link loading></el-button>
             </div>
-            <div v-else-if="!scope.row?.hasError" class="flex flex-col gap-1">
-              <span>格式: {{ scope.row.ext }}</span>
-              <span>宽高: {{ scope.row.width }}x{{ scope.row.height }}</span>
-              <span>大小: {{ scope.row.sizeFormatted }}</span>
+            <div v-else-if="!scope.row?.hasError" class="flex flex-col items-start gap-1">
+              <el-tag type="primary">{{ scope.row.ext }}</el-tag>
+              <el-tag type="success">{{ scope.row.width }}x{{ scope.row.height }}</el-tag>
+              <el-tag type="warning">{{ scope.row.sizeFormatted }}</el-tag>
             </div>
             <div v-else>
               <span class="truncate">{{ scope.row.errorMessage }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="处理后">
+        <el-table-column label="处理后" width="160px">
           <template #default="scope">
-            <div v-if="scope.row?.result" class="flex flex-col gap-1">
-              <span>格式: {{ scope.row?.result.ext }}</span>
-              <span>宽高: {{ scope.row?.result.width }}x{{ scope.row?.result.height }}</span>
-              <span>大小: {{ scope.row?.result.sizeFormatted }}</span>
+            <div v-if="scope.row?.result" class="flex flex-col items-start gap-1">
+              <el-tag type="primary">{{ scope.row?.result.ext }}</el-tag>
+              <el-tag type="success"
+                >{{ scope.row?.result.width }}x{{ scope.row?.result.height }}</el-tag
+              >
+              <el-tag type="warning">{{ scope.row?.result.sizeFormatted }}</el-tag>
             </div>
-            <div
-              v-else-if="scope.row.status === 'fetching'"
-              class="flex items-center justify-center"
-            >
+            <div v-else-if="scope.row.status === 'processing'" class="flex items-center">
               <el-button link loading></el-button>
             </div>
-            <div v-else-if="scope.row.status === 'fetched' && scope.row?.result?.hasError">
+            <div v-else-if="scope.row.status === 'processed' && scope.row?.result?.hasError">
               <span class="truncate">{{ scope.row?.result?.errorMessage }}</span>
             </div>
           </template>
@@ -97,4 +122,18 @@
   import BatchImageTablePathCell from '@/components/Tools/ImageCompress/BatchImageTablePathCell.vue'
 
   const choosed = ref([])
+
+  const handleSelectionChange = (val: any) => {
+    console.log('handleSelectionChange: ', val)
+    choosed.value = val
+  }
+
+  const doDelete = () => {
+    if (!choosed.value.length) {
+      return
+    }
+    ImageBatch.images = ImageBatch.images.filter((image) => {
+      return !choosed.value.find((f: any) => f.path === image.path)
+    })
+  }
 </script>

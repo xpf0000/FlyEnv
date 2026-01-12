@@ -511,7 +511,7 @@ export interface BatchImageResultItem {
 }
 
 export interface BatchImageInfoItem {
-  status: 'fetching' | 'fetched'
+  status: 'fetching' | 'fetched' | 'processing' | 'processed'
   /**
    * 本地图片路径
    */
