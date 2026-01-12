@@ -470,42 +470,6 @@ export interface EffectsTestResult {
   }
 }
 
-export interface BatchImageInfoItem {
-  status: 'fetching' | 'fetched'
-  /**
-   * 本地图片路径
-   */
-  path: string
-  /**
-   * 文件大小
-   */
-  size: number
-  /**
-   * 格式化后的文件大小字符串
-   */
-  sizeFormatted: string
-  /**
-   * 图片宽度
-   */
-  width: number
-  /**
-   * 图片高度
-   */
-  height: number
-  /**
-   * 图片格式 jpeg png gif webp等
-   */
-  ext: string
-  /**
-   * 文件状态
-   */
-  hasError: boolean
-  /**
-   * 错误信息
-   */
-  errorMessage: string
-}
-
 export interface BatchImageResultItem {
   image: BatchImageInfoItem
   /** sharp配置 */
@@ -544,4 +508,42 @@ export interface BatchImageResultItem {
    * 错误信息
    */
   errorMessage: string
+}
+
+export interface BatchImageInfoItem {
+  status: 'fetching' | 'fetched'
+  /**
+   * 本地图片路径
+   */
+  path: string
+  /**
+   * 文件大小
+   */
+  size: number
+  /**
+   * 格式化后的文件大小字符串
+   */
+  sizeFormatted: string
+  /**
+   * 图片宽度
+   */
+  width: number
+  /**
+   * 图片高度
+   */
+  height: number
+  /**
+   * 图片格式 jpeg png gif webp等
+   */
+  ext: string
+  /**
+   * 文件状态
+   */
+  hasError: boolean
+  /**
+   * 错误信息
+   */
+  errorMessage: string
+
+  result?: BatchImageResultItem
 }

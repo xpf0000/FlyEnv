@@ -11,6 +11,9 @@
     <div class="p-3 pb-0 overflow-hidden flex-1">
       <div class="image-compress-config h-full overflow-hidden">
         <el-tabs v-model="activeTab" type="border-card" class="config-tabs el-tabs-content-flex-1">
+          <el-tab-pane label="批量处理" name="batch">
+            <BatchImage />
+          </el-tab-pane>
           <el-tab-pane label="基础配置" name="basic">
             <el-scrollbar>
               <BasicConfig />
@@ -49,9 +52,11 @@
   import EffectsConfig from './EffectsConfig.vue'
   import WatermarkConfig from './WatermarkConfig.vue'
   import TextureConfig from './TextureConfig.vue'
+  import BatchImage from '@/components/Tools/ImageCompress/BatchImage.vue'
+
   import { I18nT } from '@lang/index'
 
-  const activeTab = ref('basic')
+  const activeTab = ref('batch')
 </script>
 
 <style scoped>

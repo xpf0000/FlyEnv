@@ -267,10 +267,31 @@ export default reactiveBind(new ImageCompressSetup())
 class ImageBatchProcess {
   saveDir: string = ''
   backupDir: string = ''
+  rewrite: boolean = false
 
   dirs: string[] = []
-  images: BatchImageInfoItem[] = []
+  images: Array<BatchImageInfoItem> = []
   batchs: BatchImageResultItem[] = []
+
+  wordWidths: Record<string, number> = {}
+
+  getWordWidths(word: string) {
+    const arr = Array.from(new Set([...word.split(''), '.']))
+    for (const word of arr) {
+      if (this.wordWidths[word]) {
+        continue
+      }
+      let dom: HTMLElement | null = document.createElement('span')
+      dom.innerHTML = word
+      dom.style.opacity = '0'
+      dom.style.pointerEvents = 'none'
+      document.body.appendChild(dom)
+      const rect = dom.getBoundingClientRect()
+      this.wordWidths[word] = rect.width
+      dom.remove()
+      dom = null
+    }
+  }
 
   selectDir() {
     dialog
