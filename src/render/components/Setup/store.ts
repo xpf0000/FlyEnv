@@ -27,16 +27,19 @@ export const SetupStore = defineStore('setup', {
   getters: {},
   actions: {
     init() {
-      this.message = localStorage.getItem('flyenv-licenses-post-message') ?? ''
-      IPC.send('app-fork:app', 'licensesInit').then((key: string, res?: any) => {
-        if (res?.code !== 200) {
-          IPC.off(key)
-        }
-        console.log('licensesInit: ', res)
-        Object.assign(this, res?.data)
-        const store = AppStore()
-        store.config.setup.license = this.activeCode
-        store.saveConfig().then().catch()
+      return new Promise<void>((resolve) => {
+        this.message = localStorage.getItem('flyenv-licenses-post-message') ?? ''
+        IPC.send('app-fork:app', 'licensesInit').then((key: string, res?: any) => {
+          if (res?.code !== 200) {
+            IPC.off(key)
+          }
+          console.log('licensesInit: ', res)
+          Object.assign(this, res?.data)
+          const store = AppStore()
+          store.config.setup.license = this.activeCode
+          store.saveConfig().then().catch()
+          resolve()
+        })
       })
     },
     refreshState() {

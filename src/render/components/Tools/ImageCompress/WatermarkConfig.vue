@@ -1,7 +1,7 @@
 <!-- WatermarkConfig.vue 水印配置 -->
 <template>
   <div class="watermark-config">
-    <h3 class="text-lg font-medium mb-4 text-gray-700">水印配置</h3>
+    <h3 class="text-lg font-medium mb-4">水印配置</h3>
 
     <div class="space-y-6">
       <!-- 水印开关 -->
@@ -121,7 +121,7 @@
 
         <!-- 位置配置 -->
         <div class="border-t pt-4">
-          <h4 class="text-md font-medium mb-3 text-gray-600">位置设置</h4>
+          <h4 class="text-md font-medium mb-3">位置设置</h4>
           <div class="flex flex-col items-center gap-4">
             <div class="grid grid-cols-3 gap-2 w-32 h-32 rounded-[5px] overflow-hidden">
               <div

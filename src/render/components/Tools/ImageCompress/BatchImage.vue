@@ -1,7 +1,7 @@
 <!-- BasicConfig.vue 基础配置 -->
 <template>
   <div class="basic-config h-full overflow-hidden flex flex-col">
-    <h3 class="text-lg font-medium mb-4 text-gray-700 flex-shrink-0">批量处理</h3>
+    <h3 class="text-lg font-medium mb-4 flex-shrink-0">批量处理</h3>
 
     <el-form label-position="top" class="mb-4 flex-shrink-0" @submit.prevent>
       <el-form-item label="覆盖源文件">
@@ -34,18 +34,25 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span>图片文件</span>
-            <template v-if="ImageBatch.processing">
-              <el-button :loading="true" link></el-button>
+            <template v-if="isLocked">
+              <el-tooltip placement="top" :content="I18nT('fork.trialEnd')">
+                <Lock class="w-[18px] h-[18px] text-yellow-500 select-none outline-none"></Lock>
+              </el-tooltip>
             </template>
             <template v-else>
-              <el-button
-                link
-                type="success"
-                :disabled="!ImageBatch.images.length"
-                @click.stop="ImageBatch.doProcess()"
-              >
-                <yb-icon class="w-[18px] h-[18px]" :svg="import('@/svg/play.svg?raw')" />
-              </el-button>
+              <template v-if="ImageBatch.processing">
+                <el-button :loading="true" link></el-button>
+              </template>
+              <template v-else>
+                <el-button
+                  link
+                  type="success"
+                  :disabled="!ImageBatch.images.length"
+                  @click.stop="ImageBatch.doProcess()"
+                >
+                  <yb-icon class="w-[18px] h-[18px]" :svg="import('@/svg/play.svg?raw')" />
+                </el-button>
+              </template>
             </template>
           </div>
           <div class="flex items-center">
@@ -116,12 +123,31 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
   import { ImageBatch } from './setup'
-  import { Delete, FolderOpened, Plus } from '@element-plus/icons-vue'
+  import { Delete, FolderOpened, Lock, Plus } from '@element-plus/icons-vue'
   import BatchImageTablePathCell from '@/components/Tools/ImageCompress/BatchImageTablePathCell.vue'
+  import { SetupStore } from '@/components/Setup/store'
+  import { I18nT } from '@lang/index'
 
+  const setupStore = SetupStore()
   const choosed = ref([])
+
+  const isLocked = computed(() => {
+    if (setupStore.isActive) {
+      return false
+    }
+    if (ImageBatch.trialStartTime === 0) {
+      return false
+    }
+
+    const currentTime = Math.round(new Date().getTime() / 1000)
+    if (ImageBatch.trialStartTime + 3 * 24 * 60 * 60 < currentTime) {
+      return true
+    }
+
+    return false
+  })
 
   const handleSelectionChange = (val: any) => {
     console.log('handleSelectionChange: ', val)

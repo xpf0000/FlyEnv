@@ -47,9 +47,12 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
       .catch()
     SiteSuckerStore().init()
     AppToolStore.init()
-    SetupStore().init()
+    SetupStore()
+      .init()
+      .then(() => {
+        CapturerSetup.init()
+      })
     AppLogStore.init().then().catch()
-    CapturerSetup.init()
   } else {
     console.log('has inited !!!!')
   }

@@ -1,7 +1,7 @@
 <!-- CompressConfig.vue 压缩配置 -->
 <template>
   <div class="border rounded-lg p-4 mt-4">
-    <h4 class="text-md font-medium mb-3 text-gray-700 flex items-center gap-2">
+    <h4 class="text-md font-medium mb-3 flex items-center gap-2">
       <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           stroke-linecap="round"

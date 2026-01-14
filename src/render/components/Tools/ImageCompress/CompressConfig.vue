@@ -1,7 +1,7 @@
 <!-- CompressConfig.vue 压缩配置 -->
 <template>
   <div class="compress-config">
-    <h3 class="text-lg font-medium mb-4 text-gray-700">压缩配置</h3>
+    <h3 class="text-lg font-medium mb-4">压缩配置</h3>
 
     <el-tabs v-model="formatActiveTab" type="card" class="compress-types-tabs">
       <!-- JPEG 配置 -->
@@ -150,7 +150,7 @@
 
     <!-- 公共选项 -->
     <div class="mt-6 border-t pt-4">
-      <h4 class="text-md font-medium mb-3 text-gray-600">公共选项</h4>
+      <h4 class="text-md font-medium mb-3">公共选项</h4>
       <div class="space-y-3">
         <el-tooltip
           :show-after="600"

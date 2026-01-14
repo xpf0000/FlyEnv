@@ -1,11 +1,11 @@
 <!-- EffectsConfig.vue 图片效果 -->
 <template>
   <div class="effects-config">
-    <h3 class="text-lg font-medium mb-4 text-gray-700">图片效果</h3>
+    <h3 class="text-lg font-medium mb-4">图片效果</h3>
     <div class="space-y-6">
       <!-- 旋转和翻转 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3 text-gray-600">旋转和翻转</h4>
+        <h4 class="text-md font-medium mb-3">旋转和翻转</h4>
         <div class="grid grid-cols-1 gap-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -33,7 +33,7 @@
 
       <!-- 模糊和锐化 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3 text-gray-600">模糊和锐化</h4>
+        <h4 class="text-md font-medium mb-3">模糊和锐化</h4>
         <div class="grid grid-cols-2 gap-4 md:grid-cols-1 xl:grid-cols-2">
           <div>
             <label class="block text-sm font-medium mb-2">模糊强度 (0-100)</label>
@@ -64,7 +64,7 @@
 
       <!-- 色彩调整 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3 text-gray-600">色彩调整</h4>
+        <h4 class="text-md font-medium mb-3">色彩调整</h4>
         <div class="space-y-4">
           <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-2">
             <div>
@@ -160,7 +160,7 @@
 
       <!-- 特效 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3 text-gray-600">特效</h4>
+        <h4 class="text-md font-medium mb-3">特效</h4>
         <div class="space-y-3">
           <el-checkbox v-model="config.grayscale">灰度化</el-checkbox>
           <el-checkbox v-model="config.negate">反相</el-checkbox>
@@ -181,7 +181,7 @@
 
       <!-- 去白边 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3 text-gray-600">去白边设置</h4>
+        <h4 class="text-md font-medium mb-3">去白边设置</h4>
         <div class="space-y-4">
           <el-checkbox v-model="config.trim">启用去白边</el-checkbox>
         </div>

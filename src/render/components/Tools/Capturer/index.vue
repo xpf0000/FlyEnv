@@ -3,13 +3,15 @@
   import { useEventListener } from '@vueuse/core'
   import { I18nT } from '@lang/index'
   import IPC from '@/util/IPC'
-  import { FolderOpened, Plus } from '@element-plus/icons-vue'
+  import { Delete, FolderOpened, Lock, Plus } from '@element-plus/icons-vue'
   import { dialog } from '@/util/NodeFn'
   import Setup from '@/components/Tools/Capturer/setup'
+  import { SetupStore } from '@/components/Setup/store'
+  import { ElMessageBox } from 'element-plus'
 
   const name = ref()
   const keyInputAbled = ref(false)
-  const form = ref({
+  const form = ref<any>({
     key: [],
     dir: '',
     name: ''
@@ -22,6 +24,8 @@
   useEventListener(document, 'keydown', (e) => {
     if (!keyInputAbled.value) return
     event.value = e
+    e?.stopPropagation?.()
+    e?.preventDefault?.()
   })
 
   const inputKey = computed(() => {
@@ -56,7 +60,13 @@
     }
   )
 
-  const doCapturer = (hideWindow: boolean): void => {
+  const doCapturer = async (hideWindow: boolean) => {
+    if (!setupStore.isActive && Setup.trialStartTime === 0) {
+      await ElMessageBox.alert(I18nT('ai.noLiencesTips'))
+      Setup.trialStartTime = Math.round(new Date().getTime() / 1000)
+      Setup.save(false)
+    }
+
     IPC.send('Capturer:doCapturer', hideWindow).then((key: string) => {
       IPC.off(key)
     })
@@ -124,6 +134,28 @@
     }
     return I18nT('base.none')
   })
+
+  const setupStore = SetupStore()
+  const isLocked = computed(() => {
+    if (setupStore.isActive) {
+      return false
+    }
+    if (Setup.trialStartTime === 0) {
+      return false
+    }
+
+    const currentTime = Math.round(new Date().getTime() / 1000)
+    if (Setup.trialStartTime + 3 * 24 * 60 * 60 < currentTime) {
+      return true
+    }
+
+    return false
+  })
+
+  const cleanShortcut = () => {
+    event.value = {} as any
+    form.value.key = []
+  }
 </script>
 
 <template>
@@ -139,6 +171,12 @@
       <el-scrollbar>
         <el-form label-position="top" @submit.prevent>
           <el-form-item :label="I18nT('tools.CapturerShortcut')">
+            <template #label>
+              <div class="flex items-center gap-2">
+                <span>{{ I18nT('tools.CapturerShortcut') }}</span>
+                <el-button link :icon="Delete" @click.stop="cleanShortcut"></el-button>
+              </div>
+            </template>
             <el-card
               shadow="hover"
               class="mb-5 w-full hover:border-1 hover:border-solid hover:border-blue-500 group"
@@ -146,8 +184,17 @@
               @mouseenter.stop="onMouseEnter"
             >
               <div class="py-12 text-center">
-                <div class="mb-2 text-3xl group-hover:text-blue-500">
-                  {{ showKey }}
+                <div
+                  class="mb-2 text-3xl flex items-center justify-center gap-2 group-hover:text-blue-500"
+                >
+                  <template v-if="isLocked">
+                    <el-tooltip placement="top" :content="I18nT('fork.trialEnd')">
+                      <Lock
+                        class="w-[30px] h-[30px] text-yellow-500 select-none outline-none"
+                      ></Lock>
+                    </el-tooltip>
+                  </template>
+                  <span>{{ showKey }}</span>
                 </div>
                 <span class="lh-1 op-70">
                   {{ I18nT('tools.CapturerShortcutTips') }}
@@ -200,8 +247,23 @@
         </el-form>
 
         <el-button type="primary" @click.stop="doSaveConfig">保存</el-button>
-        <el-button type="primary" @click.stop="doCapturer(false)">截图</el-button>
-        <el-button type="primary" @click.stop="doCapturer(true)">隐藏此窗口截图</el-button>
+        <template v-if="isLocked">
+          <el-tooltip placement="top" :content="I18nT('fork.trialEnd')">
+            <el-button type="warning" :icon="Lock">截图</el-button>
+          </el-tooltip>
+        </template>
+        <template v-else>
+          <el-button type="primary" @click.stop="doCapturer(false)">截图</el-button>
+        </template>
+
+        <template v-if="isLocked">
+          <el-tooltip placement="top" :content="I18nT('fork.trialEnd')">
+            <el-button type="warning" :icon="Lock">隐藏此窗口截图</el-button>
+          </el-tooltip>
+        </template>
+        <template v-else>
+          <el-button type="primary" @click.stop="doCapturer(true)">隐藏此窗口截图</el-button>
+        </template>
       </el-scrollbar>
     </div>
   </div>

@@ -46,17 +46,32 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, watch, computed } from 'vue'
   import BasicConfig from './BasicConfig.vue'
   import CompressConfig from './CompressConfig.vue'
   import EffectsConfig from './EffectsConfig.vue'
   import WatermarkConfig from './WatermarkConfig.vue'
   import TextureConfig from './TextureConfig.vue'
   import BatchImage from '@/components/Tools/ImageCompress/BatchImage.vue'
-
   import { I18nT } from '@lang/index'
+  import { ImageBatch } from '@/components/Tools/ImageCompress/setup'
+  import ConfigSetup from '@/components/Tools/ImageCompress/setup'
 
   const activeTab = ref('batch')
+
+  const config = computed(() => ConfigSetup)
+
+  ImageBatch.init().then(() => {
+    watch(
+      config,
+      () => {
+        ImageBatch.save()
+      },
+      {
+        deep: true
+      }
+    )
+  })
 </script>
 
 <style scoped>

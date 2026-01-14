@@ -1,7 +1,7 @@
 <!-- TextureConfig.vue 纹理配置 -->
 <template>
   <div class="texture-config">
-    <h3 class="text-lg font-medium mb-4 text-gray-700">纹理配置</h3>
+    <h3 class="text-lg font-medium mb-4">纹理配置</h3>
 
     <div class="space-y-6">
       <!-- 纹理开关 -->
@@ -34,7 +34,7 @@
 
         <!-- 纹理参数 -->
         <div class="border rounded-lg p-4">
-          <h4 class="text-md font-medium mb-3 text-gray-600">纹理参数</h4>
+          <h4 class="text-md font-medium mb-3">纹理参数</h4>
 
           <div class="space-y-4">
             <!-- 通用参数 -->
@@ -128,7 +128,7 @@
 
         <!-- 混合和变换 -->
         <div class="border rounded-lg p-4">
-          <h4 class="text-md font-medium mb-3 text-gray-600">混合和变换</h4>
+          <h4 class="text-md font-medium mb-3">混合和变换</h4>
 
           <div class="grid grid-cols-1 gap-4">
             <div>

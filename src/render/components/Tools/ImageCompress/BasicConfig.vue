@@ -1,7 +1,7 @@
 <!-- BasicConfig.vue 基础配置 -->
 <template>
   <div class="basic-config">
-    <h3 class="text-lg font-medium mb-4 text-gray-700">基础配置</h3>
+    <h3 class="text-lg font-medium mb-4">基础配置</h3>
 
     <div class="space-y-6">
       <!-- 尺寸配置 -->
@@ -55,7 +55,7 @@
 
       <!-- 高级选项 -->
       <div class="border-t pt-4">
-        <h4 class="text-md font-medium mb-3 text-gray-600">高级选项</h4>
+        <h4 class="text-md font-medium mb-3">高级选项</h4>
         <div class="space-y-4">
           <el-checkbox v-model="config.withoutEnlargement">禁止放大</el-checkbox>
           <el-checkbox v-model="config.fastShrinkOnLoad">快速分片加载</el-checkbox>

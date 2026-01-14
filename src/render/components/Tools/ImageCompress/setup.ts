@@ -12,6 +12,9 @@ import { MessageError } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { reactive } from 'vue'
+import localForage from 'localforage'
+import { SetupStore } from '@/components/Setup/store'
+import { ElMessageBox } from 'element-plus'
 
 class ImageCompressSetup implements SharpConfig {
   // 基本配置
@@ -269,14 +272,55 @@ class ImageBatchProcess {
   saveDir: string = ''
   backupDir: string = ''
   rewrite: boolean = false
-
+  trialStartTime: number = 0
   dirs: string[] = []
   images: Array<BatchImageInfoItem> = []
-  batchs: BatchImageResultItem[] = []
 
   wordWidths: Record<string, number> = {}
 
   processing = false
+
+  private storeKey = 'flyenv-tools-imagecompress'
+  private inited: boolean = false
+
+  init() {
+    return new Promise((resolve) => {
+      if (this.inited) {
+        resolve(true)
+        return
+      }
+      localForage
+        .getItem(this.storeKey)
+        .then((res: any) => {
+          if (res && res?.config) {
+            Object.assign(setup, res?.config)
+          }
+          if (res && res?.trialStartTime) {
+            this.trialStartTime = res.trialStartTime
+          }
+        })
+        .catch()
+        .finally(() => {
+          this.inited = true
+          resolve(true)
+        })
+    })
+  }
+
+  save() {
+    localForage
+      .setItem(
+        this.storeKey,
+        JSON.parse(
+          JSON.stringify({
+            config: setup,
+            trialStartTime: this.trialStartTime
+          })
+        )
+      )
+      .then()
+      .catch()
+  }
 
   getWordWidths(word: string) {
     const arr = Array.from(new Set([...word.split(''), '.']))
@@ -375,6 +419,12 @@ class ImageBatchProcess {
   }
 
   doProcess() {
+    const setupStore = SetupStore()
+    if (!setupStore.isActive && this.trialStartTime === 0) {
+      ElMessageBox.alert(I18nT('ai.noLiencesTips')).catch()
+      this.trialStartTime = Math.round(new Date().getTime() / 1000)
+      this.save()
+    }
     if (this.processing) {
       return
     }
@@ -403,12 +453,19 @@ class ImageBatchProcess {
       JSON.parse(JSON.stringify(this.images)),
       JSON.parse(JSON.stringify(setup)),
       this.saveDir,
-      this.backupDir
+      this.backupDir,
+      this.trialStartTime
     ).then((key, res) => {
-      if (res?.code === 0 || res?.code === 1) {
+      if (res?.code === 0) {
         IPC.off(key)
         this.processing = false
         shell.openPath(this.saveDir || this.backupDir).catch()
+        return
+      }
+      if (res?.code === 1) {
+        IPC.off(key)
+        this.processing = false
+        MessageError(res?.msg ?? I18nT('base.fail'))
         return
       }
       const data:
