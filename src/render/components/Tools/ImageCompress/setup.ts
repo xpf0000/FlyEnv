@@ -430,13 +430,13 @@ class ImageBatchProcess {
     }
     if (this.rewrite) {
       if (!this.backupDir) {
-        MessageError('源文件会自动覆盖, 为了您的数据安全, 请选择备份文件夹')
+        MessageError(I18nT('tools.ImageCompress.batchProcessing.backupDirTips'))
         return
       }
       this.saveDir = ''
     } else {
       if (!this.saveDir) {
-        MessageError('请选择保存文件夹')
+        MessageError(I18nT('tools.ImageCompress.batchProcessing.saveDirTips'))
         return
       }
       this.backupDir = ''

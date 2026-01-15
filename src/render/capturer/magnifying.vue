@@ -7,7 +7,7 @@
   >
     <img class="w-[120px] h-[80px] rounded-[6px] overflow-hidden" :src="info.image" />
     <div class="flex items-center justify-between text-[11px]">
-      <span class="flex-shrink-0">坐标</span>
+      <span class="flex-shrink-0">{{ I18nT('tools.CapturerPointPosition') }}</span>
       <span class="flex-shrink-0"
         >{{ Math.floor(info.point.x) }}, {{ Math.floor(info.point.y) }}</span
       >
@@ -25,6 +25,7 @@
 <script setup lang="ts">
   import { computed, ref, watch, nextTick, onMounted } from 'vue'
   import { CapturerStore } from '@/capturer/store/app'
+  import { I18nT } from '@lang/index'
 
   const wapper = ref<HTMLElement>()
   const store = CapturerStore()

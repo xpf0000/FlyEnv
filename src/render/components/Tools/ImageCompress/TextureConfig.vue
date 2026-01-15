@@ -1,31 +1,44 @@
 <!-- TextureConfig.vue 纹理配置 -->
 <template>
   <div class="texture-config">
-    <h3 class="text-lg font-medium mb-4">纹理配置</h3>
+    <h3 class="text-lg font-medium mb-4">{{ I18nT('tools.ImageCompress.textureConfig.title') }}</h3>
 
     <div class="space-y-6">
       <!-- 纹理开关 -->
       <div>
-        <el-checkbox v-model="config.texture.enabled">启用纹理</el-checkbox>
+        <el-checkbox v-model="config.texture.enabled">{{
+          I18nT('tools.ImageCompress.textureConfig.enableTexture')
+        }}</el-checkbox>
       </div>
 
       <template v-if="config.texture.enabled">
         <!-- 纹理类型 -->
         <div>
-          <label class="block text-sm font-medium mb-2">纹理类型</label>
+          <label class="block text-sm font-medium mb-2">{{
+            I18nT('tools.ImageCompress.textureConfig.textureType')
+          }}</label>
           <el-select v-model="config.texture.type" class="w-full" @change="onTextureTypeChange">
-            <el-option label="网格" value="grid" />
-            <el-option label="圆点" value="dot" />
-            <el-option label="线条" value="line" />
-            <el-option label="噪点" value="noise" />
-            <el-option label="自定义图片" value="custom" />
+            <el-option :label="I18nT('tools.ImageCompress.textureConfig.grid')" value="grid" />
+            <el-option :label="I18nT('tools.ImageCompress.textureConfig.dot')" value="dot" />
+            <el-option :label="I18nT('tools.ImageCompress.textureConfig.line')" value="line" />
+            <el-option :label="I18nT('tools.ImageCompress.textureConfig.noise')" value="noise" />
+            <el-option
+              :label="I18nT('tools.ImageCompress.textureConfig.customImage')"
+              value="custom"
+            />
           </el-select>
         </div>
 
         <!-- 自定义图片上传 -->
         <div v-if="config.texture.type === 'custom'">
-          <label class="block text-sm font-medium mb-2">自定义纹理图片</label>
-          <el-input v-model="config.texture.customImage" placeholder="请输入图片路径" clearable>
+          <label class="block text-sm font-medium mb-2">{{
+            I18nT('tools.ImageCompress.textureConfig.customTextureImage')
+          }}</label>
+          <el-input
+            v-model="config.texture.customImage"
+            :placeholder="I18nT('tools.ImageCompress.preview.selectImageFile')"
+            clearable
+          >
             <template #append>
               <el-button :icon="Picture" @click="selectTextureImage" />
             </template>
@@ -34,17 +47,23 @@
 
         <!-- 纹理参数 -->
         <div class="border rounded-lg p-4">
-          <h4 class="text-md font-medium mb-3">纹理参数</h4>
+          <h4 class="text-md font-medium mb-3">{{
+            I18nT('tools.ImageCompress.textureConfig.textureParameters')
+          }}</h4>
 
           <div class="space-y-4">
             <!-- 通用参数 -->
             <div>
-              <label class="block text-sm font-medium mb-2">纹理颜色</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.textureConfig.textureColor')
+              }}</label>
               <el-color-picker v-model="config.texture.color" show-alpha />
             </div>
 
             <div>
-              <label class="block text-sm font-medium mb-2">透明度</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.effectsConfig.opacity')
+              }}</label>
               <el-slider
                 v-model="config.texture.opacity"
                 :min="0"
@@ -59,7 +78,9 @@
             <!-- 类型特定参数 -->
             <template v-if="['grid', 'line', 'cross'].includes(config.texture.type)">
               <div>
-                <label class="block text-sm font-medium mb-2">线条宽度 (像素)</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.textureConfig.lineWidth')
+                }}</label>
                 <el-slider
                   v-model="config.texture.lineWidth"
                   :min="1"
@@ -71,7 +92,9 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium mb-2">网格间距 (像素)</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.textureConfig.gridSpacing')
+                }}</label>
                 <el-slider
                   v-model="config.texture.size"
                   :min="5"
@@ -85,7 +108,9 @@
 
             <div v-if="config.texture.type === 'dot'">
               <div>
-                <label class="block text-sm font-medium mb-2">点大小 (像素)</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.textureConfig.dotSize')
+                }}</label>
                 <el-input-number
                   v-model="config.texture.dotSize"
                   :min="1"
@@ -97,7 +122,9 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium mb-2">点间距 (像素)</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.textureConfig.dotSpacing')
+                }}</label>
                 <el-input-number
                   v-model="config.texture.size"
                   :min="10"
@@ -111,7 +138,9 @@
 
             <div v-if="config.texture.type === 'noise'">
               <div>
-                <label class="block text-sm font-medium mb-2">噪点强度</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.textureConfig.noiseIntensity')
+                }}</label>
                 <el-slider
                   v-model="config.texture.intensity"
                   :min="0"
@@ -128,23 +157,44 @@
 
         <!-- 混合和变换 -->
         <div class="border rounded-lg p-4">
-          <h4 class="text-md font-medium mb-3">混合和变换</h4>
+          <h4 class="text-md font-medium mb-3">{{
+            I18nT('tools.ImageCompress.textureConfig.blendTransform')
+          }}</h4>
 
           <div class="grid grid-cols-1 gap-4">
             <div>
-              <label class="block text-sm font-medium mb-2">混合模式</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.textureConfig.blendMode')
+              }}</label>
               <el-select v-model="config.texture.blendMode" class="w-full">
-                <el-option label="无" value="over" />
-                <el-option label="叠加" value="overlay" />
-                <el-option label="正片叠底" value="multiply" />
-                <el-option label="滤色" value="screen" />
-                <el-option label="柔光" value="soft-light" />
-                <el-option label="强光" value="hard-light" />
+                <el-option :label="I18nT('tools.ImageCompress.textureConfig.none')" value="over" />
+                <el-option
+                  :label="I18nT('tools.ImageCompress.textureConfig.overlay')"
+                  value="overlay"
+                />
+                <el-option
+                  :label="I18nT('tools.ImageCompress.textureConfig.multiply')"
+                  value="multiply"
+                />
+                <el-option
+                  :label="I18nT('tools.ImageCompress.textureConfig.screen')"
+                  value="screen"
+                />
+                <el-option
+                  :label="I18nT('tools.ImageCompress.textureConfig.softLight')"
+                  value="soft-light"
+                />
+                <el-option
+                  :label="I18nT('tools.ImageCompress.textureConfig.hardLight')"
+                  value="hard-light"
+                />
               </el-select>
             </div>
 
             <div>
-              <label class="block text-sm font-medium mb-2">旋转角度 (°)</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.textureConfig.rotationAngleDeg')
+              }}</label>
               <el-slider
                 v-model="config.texture.angle"
                 :min="0"
@@ -156,7 +206,9 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium mb-2">缩放比例</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.textureConfig.scale')
+              }}</label>
               <el-slider
                 v-model="config.texture.scale"
                 :min="0.1"
@@ -180,6 +232,7 @@
   import { dialog } from '@/util/NodeFn'
   import TexturePreview from './TexturePreview.vue'
   import { Picture } from '@element-plus/icons-vue'
+  import { I18nT } from '@lang/index'
 
   const config = ImageCompressSetup
 

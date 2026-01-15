@@ -1,65 +1,118 @@
 <template>
   <div class="h-full overflow-hidden">
     <el-scrollbar>
-      <div v-if="!store.isActive" class="flex flex-col gap-2 items-start">
-        <div class="text-xl">{{ I18nT('licenses.title') }}</div>
-        <p>{{ I18nT('licenses.description') }}</p>
-        <p>{{ I18nT('licenses.restrictions.title') }} </p>
-        <p>1. {{ I18nT('licenses.restrictions.items.0') }}</p>
-        <p>2. {{ I18nT('licenses.restrictions.items.1') }}</p>
-        <p>3. {{ I18nT('licenses.restrictions.items.2') }}</p>
-        <p>{{ I18nT('licenses.licenseInfo') }}</p>
-        <div class="text-xl">{{ I18nT('licenses.howToObtain.title') }}</div>
-        <p>{{ I18nT('licenses.howToObtain.description') }}</p>
-        <p>1. {{ I18nT('licenses.howToObtain.methods.0.title') }} </p>
-        <p>
-          {{ I18nT('licenses.howToObtain.methods.0.description') }}
-          <el-button type="primary" link @click.stop="toUrl('https://flyenv.com/sponsor.html')"
-            >https://flyenv.com/sponsor.html</el-button
-          >
-        </p>
-        <p>2. {{ I18nT('licenses.howToObtain.methods.1.title') }} </p>
-        <p>
-          {{ I18nT('licenses.howToObtain.methods.1.description') }}
-          <el-button type="primary" link @click.stop="toUrl('https://github.com/xpf0000/FlyEnv')"
-            >https://github.com/xpf0000/FlyEnv</el-button
-          ></p
-        >
-        <p> 3. {{ I18nT('licenses.howToObtain.methods.2.title') }} </p>
-        <p>{{ I18nT('licenses.howToObtain.methods.2.description') }}</p>
-        <p>{{ I18nT('licenses.submitInfo') }}</p>
-        <el-form-item class="w-full mt-5 mb-1" label-position="top" label="UUID">
-          <el-input v-model="store.uuid" readonly></el-input>
-        </el-form-item>
-        <el-form-item
-          class="w-full mb-0"
-          label-position="top"
-          :label="I18nT('licenses.messageLabel')"
-        >
-          <el-input
-            v-model="store.message"
-            class="mt-4"
-            type="textarea"
-            resize="none"
-            rows="6"
-            :placeholder="I18nT('licenses.messagePlaceholder')"
-          ></el-input>
-        </el-form-item>
-        <div class="mt-4">
-          <el-button
-            :loading="store.fetching"
-            :disabled="store.fetching || !store.message.trim()"
-            type="primary"
-            @click.stop="doRequest"
-            >{{ I18nT('licenses.requestButton') }}</el-button
-          >
-          <el-button :loading="store.fetching" :disabled="store.fetching" @click.stop="doRefresh">{{
-            I18nT('licenses.refreshButton')
-          }}</el-button>
-        </div>
-      </div>
-      <div v-else class="h-full min-h-[80vh] flex items-center justify-center">
-        <el-result icon="success" :title="I18nT('setup.licenseActivated')"> </el-result>
+      <div class="p-3 flex flex-col gap-4">
+        <el-card>
+          <template #header>
+            <span>本机许可证状态</span>
+          </template>
+          <template #default>
+            <el-descriptions :column="1" :direction="'vertical'">
+              <el-descriptions-item label="激活状态">
+                <template v-if="store.isActive">
+                  <el-result icon="success" :title="I18nT('licenses.licenseActivated')">
+                  </el-result>
+                </template>
+                <template v-else>
+                  <el-result icon="warning" :title="I18nT('licenses.licenseNoActivated')">
+                  </el-result>
+                </template>
+              </el-descriptions-item>
+              <el-descriptions-item label-align="left" :align="'center'" label="UUID">
+                {{ store.uuid }}
+              </el-descriptions-item>
+            </el-descriptions>
+          </template>
+        </el-card>
+        <el-card>
+          <template #header>
+            <div class="w-full flex items-center justify-between">
+              <span>我的许可证</span>
+              <yb-icon
+                class="hover:text-blue-500 cursor-pointer"
+                :svg="import('@/svg/github.svg?raw')"
+                width="20"
+                height="20"
+              />
+            </div>
+          </template>
+          <template #default>
+            <el-empty description="请先登录"></el-empty>
+          </template>
+        </el-card>
+        <el-card>
+          <template #header>
+            <span>许可证说明</span>
+          </template>
+          <template #default>
+            <div class="flex flex-col gap-2 items-start">
+              <div class="text-xl">{{ I18nT('licenses.title') }}</div>
+              <p>{{ I18nT('licenses.description') }}</p>
+              <p>{{ I18nT('licenses.restrictions.title') }} </p>
+              <p>1. {{ I18nT('licenses.restrictions.items.0') }}</p>
+              <p>2. {{ I18nT('licenses.restrictions.items.1') }}</p>
+              <p>3. {{ I18nT('licenses.restrictions.items.2') }}</p>
+              <p>{{ I18nT('licenses.licenseInfo') }}</p>
+              <div class="text-xl">{{ I18nT('licenses.howToObtain.title') }}</div>
+              <p>{{ I18nT('licenses.howToObtain.description') }}</p>
+              <p>1. {{ I18nT('licenses.howToObtain.methods.0.title') }} </p>
+              <p>
+                {{ I18nT('licenses.howToObtain.methods.0.description') }}
+                <el-button
+                  type="primary"
+                  link
+                  @click.stop="toUrl('https://flyenv.com/sponsor.html')"
+                  >https://flyenv.com/sponsor.html</el-button
+                >
+              </p>
+              <p>2. {{ I18nT('licenses.howToObtain.methods.1.title') }} </p>
+              <p>
+                {{ I18nT('licenses.howToObtain.methods.1.description') }}
+                <el-button
+                  type="primary"
+                  link
+                  @click.stop="toUrl('https://github.com/xpf0000/FlyEnv')"
+                  >https://github.com/xpf0000/FlyEnv</el-button
+                ></p
+              >
+              <p> 3. {{ I18nT('licenses.howToObtain.methods.2.title') }} </p>
+              <p>{{ I18nT('licenses.howToObtain.methods.2.description') }}</p>
+              <p>{{ I18nT('licenses.submitInfo') }}</p>
+              <el-form-item class="w-full mt-5 mb-1" label-position="top" label="UUID">
+                <el-input v-model="store.uuid" readonly></el-input>
+              </el-form-item>
+              <el-form-item
+                class="w-full mb-0"
+                label-position="top"
+                :label="I18nT('licenses.messageLabel')"
+              >
+                <el-input
+                  v-model="store.message"
+                  class="mt-4"
+                  type="textarea"
+                  resize="none"
+                  rows="6"
+                  :placeholder="I18nT('licenses.messagePlaceholder')"
+                ></el-input>
+              </el-form-item>
+              <div class="mt-4">
+                <el-button
+                  :loading="store.fetching"
+                  :disabled="store.fetching || !store.message.trim()"
+                  type="primary"
+                  @click.stop="doRequest"
+                  >{{ I18nT('licenses.requestButton') }}</el-button
+                >
+                <el-button
+                  :loading="store.fetching"
+                  :disabled="store.fetching"
+                  @click.stop="doRefresh"
+                  >{{ I18nT('licenses.refreshButton') }}</el-button
+                >
+              </div>
+            </div>
+          </template>
+        </el-card>
       </div>
     </el-scrollbar>
   </div>

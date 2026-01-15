@@ -32,5 +32,7 @@
   "messageLabel": "消息",
   "messagePlaceholder": "选择捐赠请提交捐赠人捐赠链接或订单ID.\n选择参与项目开发请提交PR链接.\n选择帮助推广项目,请提交文章/视频链接",
   "requestButton": "请求许可证",
-  "refreshButton": "刷新状态"
+  "refreshButton": "刷新状态",
+  "licenseActivated": "许可证已激活",
+  "licenseNoActivated": "许可证未激活"
 }

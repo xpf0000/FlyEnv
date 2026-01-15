@@ -1,13 +1,18 @@
 <!-- BasicConfig.vue 基础配置 -->
 <template>
   <div class="basic-config h-full overflow-hidden flex flex-col">
-    <h3 class="text-lg font-medium mb-4 flex-shrink-0">批量处理</h3>
+    <h3 class="text-lg font-medium mb-4 flex-shrink-0">{{
+      I18nT('tools.ImageCompress.batchProcessing.title')
+    }}</h3>
 
     <el-form label-position="top" class="mb-4 flex-shrink-0" @submit.prevent>
-      <el-form-item label="覆盖源文件">
+      <el-form-item :label="I18nT('tools.ImageCompress.batchProcessing.overwriteSource')">
         <el-switch v-model="ImageBatch.rewrite"></el-switch>
       </el-form-item>
-      <el-form-item v-if="!ImageBatch.rewrite" label="保存位置">
+      <el-form-item
+        v-if="!ImageBatch.rewrite"
+        :label="I18nT('tools.ImageCompress.batchProcessing.saveLocation')"
+      >
         <el-input :model-value="ImageBatch.saveDir" readonly>
           <template #append>
             <el-button
@@ -17,7 +22,7 @@
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item v-else label="备份位置">
+      <el-form-item v-else :label="I18nT('tools.ImageCompress.batchProcessing.backupLocation')">
         <el-input :model-value="ImageBatch.backupDir" readonly>
           <template #append>
             <el-button
@@ -33,7 +38,7 @@
       <template #header>
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span>图片文件</span>
+            <span>{{ I18nT('tools.ImageCompress.batchProcessing.imageFiles') }}</span>
             <template v-if="isLocked">
               <el-tooltip placement="top" :content="I18nT('fork.trialEnd')">
                 <Lock class="w-[18px] h-[18px] text-yellow-500 select-none outline-none"></Lock>
@@ -80,12 +85,19 @@
       >
         <el-table-column type="selection" width="55"></el-table-column>
         <el-table-column type="index"></el-table-column>
-        <el-table-column label="路径" width="auto" prop="path">
+        <el-table-column
+          :label="I18nT('tools.ImageCompress.batchProcessing.path')"
+          width="auto"
+          prop="path"
+        >
           <template #default="scope">
             <BatchImageTablePathCell :content="scope.row.path" />
           </template>
         </el-table-column>
-        <el-table-column label="处理前" width="160px">
+        <el-table-column
+          :label="I18nT('tools.ImageCompress.batchProcessing.beforeProcessing')"
+          width="160px"
+        >
           <template #default="scope">
             <div v-if="scope.row.status === 'fetching'" class="flex items-center">
               <el-button link loading></el-button>
@@ -100,7 +112,10 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="处理后" width="160px">
+        <el-table-column
+          :label="I18nT('tools.ImageCompress.batchProcessing.afterProcessing')"
+          width="160px"
+        >
           <template #default="scope">
             <div v-if="scope.row?.result" class="flex flex-col items-start gap-1">
               <el-tag type="primary">{{ scope.row?.result.ext }}</el-tag>

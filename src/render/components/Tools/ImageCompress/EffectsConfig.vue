@@ -1,24 +1,32 @@
 <!-- EffectsConfig.vue 图片效果 -->
 <template>
   <div class="effects-config">
-    <h3 class="text-lg font-medium mb-4">图片效果</h3>
+    <h3 class="text-lg font-medium mb-4">{{ I18nT('tools.ImageCompress.effectsConfig.title') }}</h3>
     <div class="space-y-6">
       <!-- 旋转和翻转 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3">旋转和翻转</h4>
+        <h4 class="text-md font-medium mb-3">{{
+          I18nT('tools.ImageCompress.effectsConfig.rotateFlip')
+        }}</h4>
         <div class="grid grid-cols-1 gap-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium mb-2">垂直翻转</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.effectsConfig.verticalFlip')
+              }}</label>
               <el-switch v-model="config.flip" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-2">水平翻转</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.effectsConfig.horizontalFlip')
+              }}</label>
               <el-switch v-model="config.flop" />
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium mb-2">旋转角度</label>
+            <label class="block text-sm font-medium mb-2">{{
+              I18nT('tools.ImageCompress.effectsConfig.rotationAngle')
+            }}</label>
             <el-slider
               v-model="config.rotate"
               :min="0"
@@ -33,10 +41,14 @@
 
       <!-- 模糊和锐化 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3">模糊和锐化</h4>
+        <h4 class="text-md font-medium mb-3">{{
+          I18nT('tools.ImageCompress.effectsConfig.blurSharpen')
+        }}</h4>
         <div class="grid grid-cols-2 gap-4 md:grid-cols-1 xl:grid-cols-2">
           <div>
-            <label class="block text-sm font-medium mb-2">模糊强度 (0-100)</label>
+            <label class="block text-sm font-medium mb-2">{{
+              I18nT('tools.ImageCompress.effectsConfig.blurStrength')
+            }}</label>
             <el-slider
               v-model="config.blur"
               :min="0"
@@ -48,7 +60,9 @@
             />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-2">锐化强度 (Sigma)</label>
+            <label class="block text-sm font-medium mb-2">{{
+              I18nT('tools.ImageCompress.effectsConfig.sharpenStrength')
+            }}</label>
             <el-slider
               v-model="config.sharpen.sigma"
               :min="0"
@@ -64,11 +78,15 @@
 
       <!-- 色彩调整 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3">色彩调整</h4>
+        <h4 class="text-md font-medium mb-3">{{
+          I18nT('tools.ImageCompress.effectsConfig.colorAdjustment')
+        }}</h4>
         <div class="space-y-4">
           <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-2">
             <div>
-              <label class="block text-sm font-medium mb-2">Gamma 值</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.effectsConfig.gamma')
+              }}</label>
               <el-slider
                 v-model="config.gamma"
                 :min="1.0"
@@ -80,7 +98,9 @@
               />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-2">色相 (-180~180)</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.effectsConfig.hue')
+              }}</label>
               <el-slider
                 v-model="config.modulate.hue"
                 :min="-180"
@@ -95,7 +115,9 @@
           <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-2">
             <div>
               <label class="block text-sm font-medium mb-2"
-                >亮度 ({{ config.modulate.brightness?.toFixed(1) }})</label
+                >{{ I18nT('tools.ImageCompress.effectsConfig.brightness') }} ({{
+                  config.modulate.brightness?.toFixed(1)
+                }})</label
               >
               <el-slider
                 v-model="config.modulate.brightness"
@@ -108,7 +130,9 @@
             </div>
             <div>
               <label class="block text-sm font-medium mb-2"
-                >饱和度 ({{ config.modulate.saturation?.toFixed(1) }})</label
+                >{{ I18nT('tools.ImageCompress.effectsConfig.saturation') }} ({{
+                  config.modulate.saturation?.toFixed(1)
+                }})</label
               >
               <el-slider
                 v-model="config.modulate.saturation"
@@ -123,7 +147,9 @@
           <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-2">
             <div>
               <div class="flex items-center gap-2 mb-2">
-                <label class="block text-sm font-medium">二值化 </label>
+                <label class="block text-sm font-medium"
+                  >{{ I18nT('tools.ImageCompress.effectsConfig.threshold') }}
+                </label>
                 <el-checkbox
                   v-model="config.threshold.enabled"
                   style="margin: 0; padding: 0; height: auto"
@@ -142,7 +168,9 @@
             <div>
               <div class="flex items-center gap-2 mb-2">
                 <label class="block text-sm font-medium"
-                  >透明度 ({{ config.opacity?.toFixed(1) }})
+                  >{{ I18nT('tools.ImageCompress.effectsConfig.opacity') }} ({{
+                    config.opacity?.toFixed(1)
+                  }})
                 </label>
               </div>
               <el-slider
@@ -160,20 +188,30 @@
 
       <!-- 特效 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3">特效</h4>
+        <h4 class="text-md font-medium mb-3">{{
+          I18nT('tools.ImageCompress.effectsConfig.effects')
+        }}</h4>
         <div class="space-y-3">
-          <el-checkbox v-model="config.grayscale">灰度化</el-checkbox>
-          <el-checkbox v-model="config.negate">反相</el-checkbox>
-          <el-checkbox v-model="config.normalise">标准化</el-checkbox>
+          <el-checkbox v-model="config.grayscale">{{
+            I18nT('tools.ImageCompress.effectsConfig.grayscale')
+          }}</el-checkbox>
+          <el-checkbox v-model="config.negate">{{
+            I18nT('tools.ImageCompress.effectsConfig.invert')
+          }}</el-checkbox>
+          <el-checkbox v-model="config.normalise">{{
+            I18nT('tools.ImageCompress.effectsConfig.normalize')
+          }}</el-checkbox>
 
           <div>
-            <label class="block text-sm font-medium mb-2">色彩空间</label>
+            <label class="block text-sm font-medium mb-2">{{
+              I18nT('tools.ImageCompress.effectsConfig.colorSpace')
+            }}</label>
             <el-select v-model="config.toColorspace" class="w-full">
-              <el-option label="sRGB" value="srgb" />
-              <el-option label="RGB" value="rgb" />
-              <el-option label="CMYK" value="cmyk" />
-              <el-option label="Lab" value="lab" />
-              <el-option label="黑白" value="b-w" />
+              <el-option :label="I18nT('tools.ImageCompress.colorSpaces.srgb')" value="srgb" />
+              <el-option :label="I18nT('tools.ImageCompress.colorSpaces.rgb')" value="rgb" />
+              <el-option :label="I18nT('tools.ImageCompress.colorSpaces.cmyk')" value="cmyk" />
+              <el-option :label="I18nT('tools.ImageCompress.colorSpaces.lab')" value="lab" />
+              <el-option :label="I18nT('tools.ImageCompress.colorSpaces.bw')" value="b-w" />
             </el-select>
           </div>
         </div>
@@ -181,9 +219,13 @@
 
       <!-- 去白边 -->
       <div class="border rounded-lg p-4">
-        <h4 class="text-md font-medium mb-3">去白边设置</h4>
+        <h4 class="text-md font-medium mb-3">{{
+          I18nT('tools.ImageCompress.effectsConfig.whiteEdgeRemoval')
+        }}</h4>
         <div class="space-y-4">
-          <el-checkbox v-model="config.trim">启用去白边</el-checkbox>
+          <el-checkbox v-model="config.trim">{{
+            I18nT('tools.ImageCompress.effectsConfig.enableWhiteEdgeRemoval')
+          }}</el-checkbox>
         </div>
       </div>
     </div>
@@ -194,6 +236,7 @@
 <script setup lang="ts">
   import ImageCompressSetup from './setup'
   import EffectsPreview from '@/components/Tools/ImageCompress/EffectsPreview.vue'
+  import { I18nT } from '@lang/index'
 
   const config = ImageCompressSetup
 </script>

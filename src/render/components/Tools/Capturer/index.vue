@@ -246,23 +246,29 @@
           </el-form-item>
         </el-form>
 
-        <el-button type="primary" @click.stop="doSaveConfig">保存</el-button>
+        <el-button type="primary" @click.stop="doSaveConfig">{{ I18nT('base.save') }}</el-button>
         <template v-if="isLocked">
           <el-tooltip placement="top" :content="I18nT('fork.trialEnd')">
-            <el-button type="warning" :icon="Lock">截图</el-button>
+            <el-button type="warning" :icon="Lock">{{ I18nT('tools.CapturerDo') }}</el-button>
           </el-tooltip>
         </template>
         <template v-else>
-          <el-button type="primary" @click.stop="doCapturer(false)">截图</el-button>
+          <el-button type="primary" @click.stop="doCapturer(false)">{{
+            I18nT('tools.CapturerDo')
+          }}</el-button>
         </template>
 
         <template v-if="isLocked">
           <el-tooltip placement="top" :content="I18nT('fork.trialEnd')">
-            <el-button type="warning" :icon="Lock">隐藏此窗口截图</el-button>
+            <el-button type="warning" :icon="Lock">{{
+              I18nT('tools.CapturerHideWindowDo')
+            }}</el-button>
           </el-tooltip>
         </template>
         <template v-else>
-          <el-button type="primary" @click.stop="doCapturer(true)">隐藏此窗口截图</el-button>
+          <el-button type="primary" @click.stop="doCapturer(true)">{{
+            I18nT('tools.CapturerHideWindowDo')
+          }}</el-button>
         </template>
       </el-scrollbar>
     </div>

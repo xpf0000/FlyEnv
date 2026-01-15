@@ -1,21 +1,37 @@
 <!-- WatermarkConfig.vue 水印配置 -->
 <template>
   <div class="watermark-config">
-    <h3 class="text-lg font-medium mb-4">水印配置</h3>
+    <h3 class="text-lg font-medium mb-4">{{
+      I18nT('tools.ImageCompress.watermarkConfig.title')
+    }}</h3>
 
     <div class="space-y-6">
       <!-- 水印开关 -->
       <div>
-        <el-checkbox v-model="watermark.enabled">启用水印</el-checkbox>
+        <el-checkbox v-model="watermark.enabled">{{
+          I18nT('tools.ImageCompress.watermarkConfig.enableWatermark')
+        }}</el-checkbox>
       </div>
 
       <template v-if="watermark.enabled">
         <!-- 水印类型选择 -->
         <div>
-          <label class="block text-sm font-medium mb-2">水印类型</label>
+          <label class="block text-sm font-medium mb-2">{{
+            I18nT('tools.ImageCompress.watermarkConfig.watermarkType')
+          }}</label>
           <el-radio-group v-model="watermark.type">
-            <el-radio label="text">文字水印</el-radio>
-            <el-radio label="image">图片水印</el-radio>
+            <el-radio
+              :label="I18nT('tools.ImageCompress.watermarkConfig.textWatermark')"
+              value="text"
+            >
+              {{ I18nT('tools.ImageCompress.watermarkConfig.textWatermark') }}
+            </el-radio>
+            <el-radio
+              :label="I18nT('tools.ImageCompress.watermarkConfig.imageWatermark')"
+              value="image"
+            >
+              {{ I18nT('tools.ImageCompress.watermarkConfig.imageWatermark') }}
+            </el-radio>
           </el-radio-group>
         </div>
 
@@ -23,17 +39,21 @@
         <div v-if="watermark.type === 'text'">
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium mb-2">水印文字</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.watermarkConfig.watermarkText')
+              }}</label>
               <el-input
                 v-model="(watermark.content as any).text"
-                placeholder="请输入水印文字"
+                :placeholder="I18nT('tools.ImageCompress.watermarkConfig.watermarkText')"
                 clearable
               />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium mb-2">字体大小</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.watermarkConfig.fontSize')
+                }}</label>
                 <el-slider
                   v-model="(watermark.content as any).fontSize"
                   :min="12"
@@ -44,14 +64,18 @@
                 ></el-slider>
               </div>
               <div>
-                <label class="block text-sm font-medium mb-2">字体颜色</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.watermarkConfig.fontColor')
+                }}</label>
                 <el-color-picker v-model="(watermark.content as any).color" show-alpha />
               </div>
             </div>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-1 xl:grid-cols-2">
               <div>
-                <label class="block text-sm font-medium mb-2">透明度</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.effectsConfig.opacity')
+                }}</label>
                 <el-slider
                   v-model="(watermark.content as any).opacity"
                   :min="0"
@@ -65,13 +89,17 @@
 
               <!-- 背景和阴影 -->
               <div>
-                <label class="block text-sm font-medium mb-2">背景色</label>
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.watermarkConfig.backgroundColor')
+                }}</label>
                 <el-color-picker
                   v-model="(watermark.content as any).backgroundColor"
                   show-alpha
                   :disabled="!hasBackground"
                 />
-                <el-checkbox v-model="hasBackground" class="ml-2">启用背景</el-checkbox>
+                <el-checkbox v-model="hasBackground" class="ml-2">{{
+                  I18nT('tools.ImageCompress.watermarkConfig.enableBackground')
+                }}</el-checkbox>
               </div>
             </div>
           </div>
@@ -81,10 +109,12 @@
         <div v-if="watermark.type === 'image'">
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium mb-2">水印图片路径</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.watermarkConfig.watermarkImagePath')
+              }}</label>
               <el-input
                 v-model="(watermark.content as any).imagePath"
-                placeholder="请输入图片路径"
+                :placeholder="I18nT('tools.ImageCompress.watermarkConfig.watermarkImagePath')"
                 clearable
               >
                 <template #append>
@@ -95,17 +125,29 @@
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium mb-2">宽度</label>
-                <el-input v-model="(watermark.content as any).width" placeholder="100 或 50%" />
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.watermarkConfig.width')
+                }}</label>
+                <el-input
+                  v-model="(watermark.content as any).width"
+                  :placeholder="I18nT('tools.ImageCompress.watermarkConfig.width')"
+                />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-2">高度</label>
-                <el-input v-model="(watermark.content as any).height" placeholder="100 或 50%" />
+                <label class="block text-sm font-medium mb-2">{{
+                  I18nT('tools.ImageCompress.watermarkConfig.height')
+                }}</label>
+                <el-input
+                  v-model="(watermark.content as any).height"
+                  :placeholder="I18nT('tools.ImageCompress.watermarkConfig.height')"
+                />
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium mb-2">透明度</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.effectsConfig.opacity')
+              }}</label>
               <el-slider
                 v-model="(watermark.content as any).opacity"
                 :min="0"
@@ -121,9 +163,12 @@
 
         <!-- 位置配置 -->
         <div class="border-t pt-4">
-          <h4 class="text-md font-medium mb-3">位置设置</h4>
+          <h4 class="text-md font-medium mb-3">{{
+            I18nT('tools.ImageCompress.watermarkConfig.positionSettings')
+          }}</h4>
           <div class="flex flex-col items-center gap-4">
             <div class="grid grid-cols-3 gap-2 w-32 h-32 rounded-[5px] overflow-hidden">
+              <!-- 左上 -->
               <div
                 class="rounded-[5px] relative aspect-square group"
                 :class="{
@@ -159,6 +204,7 @@
                   }"
                 ></div>
               </div>
+              <!-- 中上 -->
               <div
                 class="rounded-[5px] relative aspect-square group"
                 :class="{
@@ -183,6 +229,7 @@
                   }"
                 ></div>
               </div>
+              <!-- 右上 -->
               <div
                 class="rounded-[5px] relative bg-slate-200 aspect-square group"
                 :class="{
@@ -219,6 +266,7 @@
                 ></div>
               </div>
 
+              <!-- 左中 -->
               <div
                 class="rounded-[5px] relative aspect-square group"
                 :class="{
@@ -243,6 +291,7 @@
                   }"
                 ></div>
               </div>
+              <!-- 中心 -->
               <div
                 class="rounded-[5px] border-[5px] border-solid"
                 :class="{
@@ -255,6 +304,7 @@
                 }"
                 @click.stop="updatePositon('center', 'middle')"
               ></div>
+              <!-- 右中 -->
               <div
                 class="rounded-[5px] relative bg-slate-200 aspect-square group"
                 :class="{
@@ -280,6 +330,7 @@
                 ></div>
               </div>
 
+              <!-- 左下 -->
               <div
                 class="rounded-[5px] relative aspect-square group"
                 :class="{
@@ -315,6 +366,7 @@
                   }"
                 ></div>
               </div>
+              <!-- 中下 -->
               <div
                 class="rounded-[5px] relative aspect-square group"
                 :class="{
@@ -339,6 +391,7 @@
                   }"
                 ></div>
               </div>
+              <!-- 右下 -->
               <div
                 class="rounded-[5px] relative aspect-square group"
                 :class="{
@@ -379,7 +432,9 @@
 
           <div class="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
             <div>
-              <label class="block text-sm font-medium mb-2">水平偏移 (像素)</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.watermarkConfig.horizontalOffset')
+              }}</label>
               <el-slider
                 v-model="watermark.position!.offsetX"
                 :disabled="watermark.position!.horizontal === 'center'"
@@ -391,7 +446,9 @@
               ></el-slider>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-2">垂直偏移 (像素)</label>
+              <label class="block text-sm font-medium mb-2">{{
+                I18nT('tools.ImageCompress.watermarkConfig.verticalOffset')
+              }}</label>
               <el-slider
                 v-model="watermark.position!.offsetY"
                 :disabled="watermark.position!.vertical === 'middle'"
@@ -407,14 +464,21 @@
 
         <!-- 重复模式 -->
         <div>
-          <label class="block text-sm font-medium mb-2">重复模式</label>
+          <label class="block text-sm font-medium mb-2">{{
+            I18nT('tools.ImageCompress.watermarkConfig.repeatMode')
+          }}</label>
           <el-select v-model="watermark.repeat" class="w-full">
-            <el-option label="单水印" value="single" />
-            <el-option label="网格" value="grid" />
+            <el-option
+              :label="I18nT('tools.ImageCompress.watermarkConfig.single')"
+              value="single"
+            />
+            <el-option :label="I18nT('tools.ImageCompress.watermarkConfig.grid')" value="grid" />
           </el-select>
 
           <div v-if="watermark.repeat === 'grid'" class="mt-4">
-            <label class="block text-sm font-medium mb-2">网格间距 (像素)</label>
+            <label class="block text-sm font-medium mb-2">{{
+              I18nT('tools.ImageCompress.watermarkConfig.gridSpacing')
+            }}</label>
             <el-input-number
               v-model="watermark.spacing"
               :min="10"
@@ -440,6 +504,7 @@
   import { Picture } from '@element-plus/icons-vue'
   import ImageCompressSetup from './setup'
   import { dialog } from '@/util/NodeFn'
+  import { I18nT } from '@lang/index'
 
   const config = ImageCompressSetup
 
@@ -449,7 +514,7 @@
       type: 'text',
       enabled: true,
       content: {
-        text: '水印',
+        text: I18nT('tools.ImageCompress.watermarkConfig.defaultWatermarkText'),
         fontSize: 24,
         color: '#FFFFFF',
         opacity: 0.8
@@ -502,7 +567,7 @@
       type: 'text',
       enabled: true,
       content: {
-        text: '水印',
+        text: I18nT('tools.ImageCompress.watermarkConfig.defaultWatermarkText'),
         fontSize: 24,
         color: '#FFFFFF',
         opacity: 0.8

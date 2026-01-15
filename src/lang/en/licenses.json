@@ -32,5 +32,7 @@
   "messageLabel": "Message",
   "messagePlaceholder": "Please submit the donor, donation link, or order ID when choosing to donate.\nPlease submit the PR link for those who choose to participate in project development.\nPlease submit a link to your article, video, blog, vlog, or comment for those who choose to promote.",
   "requestButton": "Request License",
-  "refreshButton": "Refresh State"
+  "refreshButton": "Refresh State",
+  "licenseActivated": "License activated",
+  "licenseNoActivated": "License not activated"
 }

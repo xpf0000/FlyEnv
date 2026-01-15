@@ -10,12 +10,17 @@
           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
         />
       </svg>
-      压缩预览
+      {{ I18nT('tools.ImageCompress.preview.compressionPreview') }}
     </h4>
 
     <!-- 文件选择区域 -->
     <div class="flex items-center gap-3 mb-4">
-      <el-input v-model="dir" placeholder="选择图片文件" readonly class="flex-1">
+      <el-input
+        v-model="dir"
+        :placeholder="I18nT('tools.ImageCompress.preview.selectImageFile')"
+        readonly
+        class="flex-1"
+      >
         <template #append>
           <el-button :icon="FolderOpened" class="hover:bg-gray-100" @click.stop="chooseFile">
           </el-button>
@@ -48,7 +53,7 @@
             <div class="flex items-center justify-between mb-2">
               <h5 class="text-sm font-medium flex items-center gap-1">
                 <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                原始图片
+                {{ I18nT('tools.ImageCompress.preview.originalImage') }}
               </h5>
               <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
                 {{ testResult.original.format?.toUpperCase() }}
@@ -56,14 +61,14 @@
             </div>
             <div class="space-y-1.5 text-xs">
               <div class="flex justify-between">
-                <span>尺寸</span>
+                <span>{{ I18nT('tools.ImageCompress.preview.dimensions') }}</span>
                 <span class="font-medium text-gray-800">
                   {{ testResult.original.dimensions.width }} ×
                   {{ testResult.original.dimensions.height }}
                 </span>
               </div>
               <div class="flex justify-between">
-                <span>文件大小</span>
+                <span>{{ I18nT('tools.ImageCompress.preview.fileSize') }}</span>
                 <span class="font-medium text-gray-800">
                   {{ testResult.original.size.kilobytes }} KB
                 </span>
@@ -78,7 +83,7 @@
             <div class="flex items-center justify-between mb-2">
               <h5 class="text-sm font-medium flex items-center gap-1">
                 <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                压缩图片
+                {{ I18nT('tools.ImageCompress.preview.compressedImage') }}
               </h5>
               <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">
                 {{ testResult.compressed.format?.toUpperCase() }}
@@ -86,14 +91,14 @@
             </div>
             <div class="space-y-1.5 text-xs">
               <div class="flex justify-between">
-                <span>尺寸</span>
+                <span>{{ I18nT('tools.ImageCompress.preview.dimensions') }}</span>
                 <span class="font-medium text-gray-800">
                   {{ testResult.compressed.dimensions.width }} ×
                   {{ testResult.compressed.dimensions.height }}
                 </span>
               </div>
               <div class="flex justify-between">
-                <span>文件大小</span>
+                <span>{{ I18nT('tools.ImageCompress.preview.fileSize') }}</span>
                 <span class="font-medium text-gray-800">
                   {{ testResult.compressed.size.kilobytes.toFixed(2) }} KB
                 </span>
@@ -121,7 +126,7 @@
                   d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                 />
               </svg>
-              压缩结果
+              {{ I18nT('tools.ImageCompress.preview.compressionResult') }}
             </h6>
             <span
               class="text-xs font-semibold px-2 py-1 rounded-full"
@@ -131,12 +136,18 @@
                   : 'bg-red-100 text-red-700'
               "
             >
-              {{ testResult.compression.isReduced ? '✓ 有效压缩' : '⚠ 压缩后更大' }}
+              {{
+                testResult.compression.isReduced
+                  ? I18nT('tools.ImageCompress.preview.effectiveCompression')
+                  : I18nT('tools.ImageCompress.preview.largerAfterCompression')
+              }}
             </span>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-3">
             <div class="text-center">
-              <div class="text-xs text-gray-500 mb-1">压缩率</div>
+              <div class="text-xs text-gray-500 mb-1">{{
+                I18nT('tools.ImageCompress.preview.compressionRatio')
+              }}</div>
               <div
                 class="text-lg font-bold"
                 :class="testResult.compression.ratio > 0 ? 'text-green-600' : 'text-red-600'"
@@ -146,17 +157,23 @@
               </div>
             </div>
             <div class="text-center">
-              <div class="text-xs text-gray-500 mb-1">大小减少</div>
+              <div class="text-xs text-gray-500 mb-1">{{
+                I18nT('tools.ImageCompress.preview.sizeReduction')
+              }}</div>
               <div class="text-lg font-bold text-blue-600">
                 {{ testResult.compression.sizeReduced.kilobytes }} KB
               </div>
             </div>
             <div class="text-center">
-              <div class="text-xs text-gray-500 mb-1">原大小</div>
+              <div class="text-xs text-gray-500 mb-1">{{
+                I18nT('tools.ImageCompress.preview.originalSize')
+              }}</div>
               <div class="text-sm font-medium"> {{ testResult.original.size.kilobytes }} KB </div>
             </div>
             <div class="text-center">
-              <div class="text-xs text-gray-500 mb-1">压缩后</div>
+              <div class="text-xs text-gray-500 mb-1">{{
+                I18nT('tools.ImageCompress.preview.compressedSize')
+              }}</div>
               <div class="text-sm font-medium"> {{ testResult.compressed.size.kilobytes }} KB </div>
             </div>
           </div>
@@ -266,20 +283,27 @@
           <div class="flex items-center justify-between text-sm">
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 bg-green-500 rounded-full"></span>
-              <span>原图</span>
+              <span>{{ I18nT('tools.ImageCompress.preview.original') }}</span>
             </div>
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
-              <span>压缩</span>
+              <span>{{ I18nT('tools.ImageCompress.preview.effect') }}</span>
             </div>
           </div>
-          <div class="mt-2 text-xs text-gray-500 text-center"> 拖动滑块比较图片质量 </div>
+          <div class="mt-2 text-xs text-gray-500 text-center">
+            {{ I18nT('tools.ImageCompress.preview.dragSliderPrompt') }}
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 空状态 -->
-    <el-empty v-else description="请选择图片文件进行压缩预览" :image-size="80"> </el-empty>
+    <el-empty
+      v-else
+      :description="I18nT('tools.ImageCompress.preview.selectFileForCompression')"
+      :image-size="80"
+    >
+    </el-empty>
   </div>
 </template>
 

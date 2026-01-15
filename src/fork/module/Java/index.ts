@@ -33,24 +33,24 @@ class Java extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
+          const type = a?.type ?? 'Java'
           if (isWindows()) {
-            dir = join(global.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
-            zip = join(global.Server.Cache!, `${a.type}-${a.version}.zip`)
-            a.appDir = join(global.Server.AppDir!, `${a.type}-${a.version}`)
+            dir = join(global.Server.AppDir!, `${type}-${a.version}`, 'bin/java.exe')
+            zip = join(global.Server.Cache!, `${type}-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `${type}-${a.version}`)
           } else {
             dir = join(
               global.Server.AppDir!,
-              `static-${a.type}-${a.version}`,
+              `static-${type}-${a.version}`,
               'Contents/Home/bin/java'
             )
-            zip = join(global.Server.Cache!, `static-${a.type}-${a.version}.tar.gz`)
-            a.appDir = join(global.Server.AppDir!, `static-${a.type}-${a.version}`)
+            zip = join(global.Server.Cache!, `static-${type}-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-${type}-${a.version}`)
           }
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          const type = a?.type ?? 'Java'
           a.name = `${type}-${a.version}`
         })
         resolve(all)

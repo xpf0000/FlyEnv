@@ -11,30 +11,30 @@
     <div class="p-3 pb-0 overflow-hidden flex-1">
       <div class="image-compress-config h-full overflow-hidden">
         <el-tabs v-model="activeTab" type="border-card" class="config-tabs el-tabs-content-flex-1">
-          <el-tab-pane label="批量处理" name="batch">
+          <el-tab-pane :label="I18nT('tools.ImageCompress.batchProcessing.title')" name="batch">
             <BatchImage />
           </el-tab-pane>
-          <el-tab-pane label="基础配置" name="basic">
+          <el-tab-pane :label="I18nT('tools.ImageCompress.basicConfig.title')" name="basic">
             <el-scrollbar>
               <BasicConfig />
             </el-scrollbar>
           </el-tab-pane>
-          <el-tab-pane label="压缩配置" name="compress">
+          <el-tab-pane :label="I18nT('tools.ImageCompress.compressConfig.title')" name="compress">
             <el-scrollbar>
               <CompressConfig />
             </el-scrollbar>
           </el-tab-pane>
-          <el-tab-pane label="图片效果" name="effects">
+          <el-tab-pane :label="I18nT('tools.ImageCompress.effectsConfig.title')" name="effects">
             <el-scrollbar>
               <EffectsConfig />
             </el-scrollbar>
           </el-tab-pane>
-          <el-tab-pane label="水印配置" name="watermark">
+          <el-tab-pane :label="I18nT('tools.ImageCompress.watermarkConfig.title')" name="watermark">
             <el-scrollbar>
               <WatermarkConfig />
             </el-scrollbar>
           </el-tab-pane>
-          <el-tab-pane label="纹理配置" name="texture">
+          <el-tab-pane :label="I18nT('tools.ImageCompress.textureConfig.title')" name="texture">
             <el-scrollbar>
               <TextureConfig />
             </el-scrollbar>

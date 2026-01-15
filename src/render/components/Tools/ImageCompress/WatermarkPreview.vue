@@ -10,12 +10,17 @@
           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
         />
       </svg>
-      效果预览
+      {{ I18nT('tools.ImageCompress.preview.effectPreview') }}
     </h4>
 
     <!-- 文件选择区域 -->
     <div class="flex items-center gap-3 mb-4">
-      <el-input v-model="dir" placeholder="选择图片文件" readonly class="flex-1">
+      <el-input
+        v-model="dir"
+        :placeholder="I18nT('tools.ImageCompress.preview.selectImageFile')"
+        readonly
+        class="flex-1"
+      >
         <template #append>
           <el-button :icon="FolderOpened" class="hover:bg-gray-100" @click.stop="chooseFile">
           </el-button>
@@ -70,7 +75,7 @@
           </el-image>
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 bg-green-500 rounded-full"></span>
-            <span>原图</span>
+            <span>{{ I18nT('tools.ImageCompress.preview.original') }}</span>
           </div>
         </div>
 
@@ -100,14 +105,19 @@
           </el-image>
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
-            <span>效果</span>
+            <span>{{ I18nT('tools.ImageCompress.preview.effect') }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 空状态 -->
-    <el-empty v-else description="请选择图片文件进行效果预览" :image-size="80"> </el-empty>
+    <el-empty
+      v-else
+      :description="I18nT('tools.ImageCompress.preview.selectFilePrompt')"
+      :image-size="80"
+    >
+    </el-empty>
   </div>
 </template>
 
