@@ -38,6 +38,7 @@ import ServiceProcessManager from './core/ServiceProcess'
 import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import { Capturer } from './core/Capturer'
+import OAuth from './core/OAuth'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -524,6 +525,7 @@ export default class Application extends EventEmitter {
       SiteSuckerManager.destroy()
       this.forkManager?.destroy()
       this.trayManager?.destroy()
+      OAuth.cancel()
       await this.stopServer()
     } catch (e) {
       console.log('stop e: ', e)
@@ -984,6 +986,32 @@ export default class Application extends EventEmitter {
           const langValue = args[1]
           this.customerLang[langKey] = langValue
           AppI18n().global.setLocaleMessage(langKey, langValue)
+        }
+        return
+      case 'GitHub-OAuth-Start':
+        {
+          OAuth.startOAuth()
+            .then((res) => {
+              this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                code: 0,
+                data: res
+              })
+            })
+            .catch((err) => {
+              this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                code: 1,
+                msg: `${err}`
+              })
+            })
+        }
+        break
+      case 'GitHub-OAuth-Cancel':
+        {
+          OAuth.cancel()
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+            code: 0,
+            data: true
+          })
         }
         return
     }

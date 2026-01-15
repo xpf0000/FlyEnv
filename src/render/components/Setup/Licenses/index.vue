@@ -28,16 +28,38 @@
           <template #header>
             <div class="w-full flex items-center justify-between">
               <span>我的许可证</span>
-              <yb-icon
-                class="hover:text-blue-500 cursor-pointer"
-                :svg="import('@/svg/github.svg?raw')"
-                width="20"
-                height="20"
-              />
+              <div class="flex gap-1">
+                <div
+                  v-if="!store.githubAuthing"
+                  class="flex h-full aspect-square items-center justify-center"
+                >
+                  <yb-icon
+                    class="hover:text-blue-400 cursor-pointer"
+                    :svg="import('@/svg/github.svg?raw')"
+                    width="20"
+                    height="20"
+                    @click.stop="store.githubAuthStart()"
+                  />
+                </div>
+                <el-button v-else size="small" @click.stop="store.githubAuthCancel()">{{
+                  I18nT('base.cancel')
+                }}</el-button>
+              </div>
             </div>
           </template>
           <template #default>
-            <el-empty description="请先登录"></el-empty>
+            <el-empty v-loading="store.githubAuthing" description="请先登录">
+              <template #image>
+                <yb-icon
+                  class="text-blue-400 cursor-pointer hover:text-blue-400"
+                  :svg="import('@/svg/github.svg?raw')"
+                  @click.stop="store.githubAuthStart()"
+                />
+              </template>
+              <template v-if="store.githubAuthing" #description>
+                <span>GitHub授权登录中...</span>
+              </template>
+            </el-empty>
           </template>
         </el-card>
         <el-card>

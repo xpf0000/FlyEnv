@@ -1,8 +1,6 @@
-import { app, shell } from 'electron'
+import { shell } from 'electron'
 import type { CallbackFn } from '@shared/app'
 import _node_machine_id from 'node-machine-id'
-import { isMacOS, isWindows } from '@shared/utils'
-import { arch } from 'os'
 import axios from 'axios'
 import { getAxiosProxy } from '../../fork/util/Axios'
 import http from 'http'
@@ -19,9 +17,9 @@ class OAuth {
   private callBack: CallbackFn | undefined
   private server: http.Server | null = null
   private readonly PORT = 32481
-  private readonly REDIRECT_URI = `http://localhost:${this.PORT}/callback`
-  private readonly GITHUB_CLIENT_ID = 'YOUR_GITHUB_CLIENT_ID' // 需要替换为实际的 GitHub Client ID
-  private readonly SCOPES = ['user:email', 'read:user'] // 请求的权限范围
+  private readonly REDIRECT_URI = `http://127.0.0.1:${this.PORT}/callback`
+  private readonly GITHUB_CLIENT_ID = 'Ov23liF7xr41xEMUYAEW' // 需要替换为实际的 GitHub Client ID
+  private readonly SCOPES = [] // 请求的权限范围
   private isCancelled = false
 
   /**
@@ -30,28 +28,16 @@ class OAuth {
    */
   private async login() {
     try {
-      const uuid_new = await machineId()
-
-      let os = ''
-      if (isWindows()) {
-        os = `Windows ${arch()}`
-      } else if (isMacOS()) {
-        os = `macOS ${arch()}`
-      } else {
-        os = `Linux ${arch()}`
-      }
-
+      const uuid = await machineId()
       const data = {
-        uuid_new,
-        os,
-        version: app.getVersion(),
+        uuid,
         code: this.code
       }
 
       console.log('发送登录请求到服务端:', data)
 
       const res = await axios({
-        url: 'https://api.one-env.com/api/oauth/github',
+        url: 'https://api.one-env.com/api/app/user_giuhub_auth_by_code',
         method: 'post',
         data,
         proxy: getAxiosProxy(),
@@ -60,8 +46,8 @@ class OAuth {
 
       console.log('服务端响应:', res.data)
 
-      if (res.data && res.data.success !== false) {
-        this.callBack?.(res.data)
+      if (res.data && res.data?.data?.user) {
+        this.callBack?.(res.data.data)
       } else {
         throw new Error(res.data?.message || '登录失败')
       }
@@ -164,7 +150,7 @@ class OAuth {
           this.closeServer()
           reject(new Error('服务器启动超时'))
         }
-      }, 10000)
+      }, 60000)
     })
   }
 
@@ -251,7 +237,7 @@ class OAuth {
             <script>
               setTimeout(() => {
                 window.close();
-              }, 1500);
+              }, 2000);
             </script>
           `
               : ''

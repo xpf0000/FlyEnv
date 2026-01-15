@@ -3,6 +3,19 @@ import IPC from '@/util/IPC'
 import { ElMessage } from 'element-plus'
 import { I18nT } from '@lang/index'
 import { AppStore } from '@/store/app'
+import { MessageError } from '@/util/Element'
+import { reactive } from 'vue'
+
+type GitHubUser = {
+  uuid: string
+  avatar_url: string
+  login: string
+}
+
+type GitHubLicenseItem = {
+  uuid: string
+  license: string
+}
 
 interface State {
   tab: string
@@ -11,6 +24,10 @@ interface State {
   isActive: boolean
   message: string
   fetching: boolean
+  githubAuthing: boolean
+
+  githubUser?: GitHubUser
+  githubLicense?: GitHubLicenseItem[]
 }
 
 const state: State = {
@@ -19,7 +36,8 @@ const state: State = {
   activeCode: '',
   isActive: false,
   message: '',
-  fetching: false
+  fetching: false,
+  githubAuthing: false
 }
 
 export const SetupStore = defineStore('setup', {
@@ -71,6 +89,30 @@ export const SetupStore = defineStore('setup', {
         console.log('postRequest: ', res)
         this.fetching = false
         ElMessage.success(I18nT('setup.requestedTips'))
+      })
+    },
+    githubAuthStart() {
+      if (this.githubAuthing) {
+        return
+      }
+      this.githubAuthing = true
+      IPC.send('GitHub-OAuth-Start').then((key, res?: any) => {
+        IPC.off(key)
+        this.githubAuthing = false
+        if (res?.code === 1) {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          return
+        }
+        const user = reactive(res?.data?.user ?? {})
+        const license = reactive(res?.data?.license ?? [])
+        this.githubUser = user
+        this.githubLicense = license
+      })
+    },
+    githubAuthCancel() {
+      IPC.send('GitHub-OAuth-Cancel').then((key) => {
+        IPC.off(key)
+        this.githubAuthing = false
       })
     }
   }
