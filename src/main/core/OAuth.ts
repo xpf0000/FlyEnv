@@ -45,7 +45,7 @@ class OAuth {
 
       try {
         const res = await axios({
-          url: 'https://api.one-env.com/api/app/user_giuhub_auth',
+          url: 'https://api.one-env.com/api/app/user_github_auth',
           method: 'post',
           data,
           proxy: getAxiosProxy(),
@@ -64,7 +64,7 @@ class OAuth {
           })
         }
       } catch (e: any) {
-        console.log('user_giuhub_auth error: ', e)
+        console.log('user_github_auth error: ', e)
         resolve({
           code: 0,
           data: {}
@@ -92,7 +92,7 @@ class OAuth {
 
       try {
         const res = await axios({
-          url: 'https://api.one-env.com/api/app/user_giuhub_license',
+          url: 'https://api.one-env.com/api/app/user_github_license',
           method: 'post',
           data,
           proxy: getAxiosProxy(),
@@ -111,7 +111,7 @@ class OAuth {
           })
         }
       } catch (e: any) {
-        console.log('user_giuhub_license error: ', e)
+        console.log('user_github_license error: ', e)
         resolve({
           code: 0,
           data: []
@@ -130,7 +130,7 @@ class OAuth {
 
       try {
         const res = await axios({
-          url: 'https://api.one-env.com/api/app/user_giuhub_license_del',
+          url: 'https://api.one-env.com/api/app/user_github_license_del',
           method: 'post',
           data,
           proxy: getAxiosProxy(),
@@ -149,7 +149,7 @@ class OAuth {
           })
         }
       } catch (e: any) {
-        console.log('user_giuhub_license_del error: ', e)
+        console.log('user_github_license_del error: ', e)
         resolve({
           code: 1,
           msg: `${e}`
@@ -168,7 +168,7 @@ class OAuth {
 
       try {
         const res = await axios({
-          url: 'https://api.one-env.com/api/app/user_giuhub_license_add',
+          url: 'https://api.one-env.com/api/app/user_github_license_add',
           method: 'post',
           data,
           proxy: getAxiosProxy(),
@@ -187,7 +187,7 @@ class OAuth {
           })
         }
       } catch (e: any) {
-        console.log('user_giuhub_license_add error: ', e)
+        console.log('user_github_license_add error: ', e)
         resolve({
           code: 1,
           msg: `${e}`
@@ -213,7 +213,7 @@ class OAuth {
       console.log('发送登录请求到服务端:', data)
 
       const res = await axios({
-        url: 'https://api.one-env.com/api/app/user_giuhub_auth_by_code',
+        url: 'https://api.one-env.com/api/app/user_github_auth_by_code',
         method: 'post',
         data,
         proxy: getAxiosProxy(),
