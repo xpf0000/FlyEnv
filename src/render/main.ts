@@ -75,6 +75,13 @@ IPC.on('APP-Update-Global-Server').then((key: string, res: any) => {
   const store = AppStore()
   store.envIndex += 1
 })
+IPC.on('APP-User-UUID-Need-Update').then((key: string, res: any) => {
+  if (res?.code === 0) {
+    const store = SetupStore()
+    store.githubUser = res?.data?.user
+    store.githubLicense = res?.data?.license
+  }
+})
 IPC.on('APP-License-Need-Update').then(() => {
   SetupStore().init()
 })

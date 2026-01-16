@@ -5,6 +5,7 @@ import axios from 'axios'
 import { getAxiosProxy } from '../../fork/util/Axios'
 import http from 'http'
 import url from 'url'
+import { I18nT } from '@lang/index'
 
 const { machineId } = _node_machine_id
 // 添加常量定义
@@ -21,6 +22,179 @@ class OAuth {
   private readonly GITHUB_CLIENT_ID = 'Ov23liF7xr41xEMUYAEW' // 需要替换为实际的 GitHub Client ID
   private readonly SCOPES = [] // 请求的权限范围
   private isCancelled = false
+  private uuid = ''
+
+  public fetchUser() {
+    return new Promise(async (resolve) => {
+      if (!global.Server.UserUUID) {
+        resolve({
+          code: 0,
+          data: {}
+        })
+      }
+      if (!this.uuid) {
+        this.uuid = await machineId()
+      }
+
+      const data = {
+        user_uuid: global.Server.UserUUID,
+        uuid: this.uuid
+      }
+
+      console.log('fetchUser data: ', data)
+
+      try {
+        const res = await axios({
+          url: 'https://api.one-env.com/api/app/user_giuhub_auth',
+          method: 'post',
+          data,
+          proxy: getAxiosProxy(),
+          timeout: 30000 // 30秒超时
+        })
+
+        if (res.data && res.data?.data?.user) {
+          resolve({
+            code: 0,
+            data: res.data.data
+          })
+        } else {
+          resolve({
+            code: 0,
+            data: {}
+          })
+        }
+      } catch (e: any) {
+        console.log('user_giuhub_auth error: ', e)
+        resolve({
+          code: 0,
+          data: {}
+        })
+      }
+    })
+  }
+
+  public fetchUserLicense() {
+    return new Promise(async (resolve) => {
+      if (!global.Server.UserUUID) {
+        resolve({
+          code: 0,
+          data: []
+        })
+      }
+
+      if (!this.uuid) {
+        this.uuid = await machineId()
+      }
+      const data = {
+        user_uuid: global.Server.UserUUID,
+        uuid: this.uuid
+      }
+
+      try {
+        const res = await axios({
+          url: 'https://api.one-env.com/api/app/user_giuhub_license',
+          method: 'post',
+          data,
+          proxy: getAxiosProxy(),
+          timeout: 30000 // 30秒超时
+        })
+
+        if (res.data && Array.isArray(res.data?.data)) {
+          resolve({
+            code: 0,
+            data: res.data.data
+          })
+        } else {
+          resolve({
+            code: 0,
+            data: []
+          })
+        }
+      } catch (e: any) {
+        console.log('user_giuhub_license error: ', e)
+        resolve({
+          code: 0,
+          data: []
+        })
+      }
+    })
+  }
+
+  public delBind(uuid: string, license: string) {
+    return new Promise(async (resolve) => {
+      const data = {
+        user_uuid: global.Server.UserUUID,
+        uuid,
+        license
+      }
+
+      try {
+        const res = await axios({
+          url: 'https://api.one-env.com/api/app/user_giuhub_license_del',
+          method: 'post',
+          data,
+          proxy: getAxiosProxy(),
+          timeout: 30000 // 30秒超时
+        })
+
+        if (res.data && Array.isArray(res.data?.data)) {
+          resolve({
+            code: 0,
+            data: res.data.data
+          })
+        } else {
+          resolve({
+            code: 1,
+            msg: res?.data?.message ?? I18nT('base.fail')
+          })
+        }
+      } catch (e: any) {
+        console.log('user_giuhub_license_del error: ', e)
+        resolve({
+          code: 1,
+          msg: `${e}`
+        })
+      }
+    })
+  }
+
+  public addBind(uuid: string, license: string) {
+    return new Promise(async (resolve) => {
+      const data = {
+        user_uuid: global.Server.UserUUID,
+        uuid,
+        license
+      }
+
+      try {
+        const res = await axios({
+          url: 'https://api.one-env.com/api/app/user_giuhub_license_add',
+          method: 'post',
+          data,
+          proxy: getAxiosProxy(),
+          timeout: 30000 // 30秒超时
+        })
+
+        if (res.data && Array.isArray(res.data?.data)) {
+          resolve({
+            code: 0,
+            data: res.data.data
+          })
+        } else {
+          resolve({
+            code: 1,
+            msg: res?.data?.message ?? I18nT('base.fail')
+          })
+        }
+      } catch (e: any) {
+        console.log('user_giuhub_license_add error: ', e)
+        resolve({
+          code: 1,
+          msg: `${e}`
+        })
+      }
+    })
+  }
 
   /**
    * 使用code请求服务端接口获取用户信息
@@ -28,9 +202,11 @@ class OAuth {
    */
   private async login() {
     try {
-      const uuid = await machineId()
+      if (!this.uuid) {
+        this.uuid = await machineId()
+      }
       const data = {
-        uuid,
+        uuid: this.uuid,
         code: this.code
       }
 

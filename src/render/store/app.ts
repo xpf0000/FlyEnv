@@ -111,6 +111,7 @@ type StateBase = SetupBase & {
   autoHide?: boolean
   autoLaunch?: boolean
   license?: string
+  user_uuid?: string
   trayMenuBarStyle?: 'classic' | 'modern'
 }
 

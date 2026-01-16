@@ -491,6 +491,15 @@ export default class Application extends EventEmitter {
         'APP-Ready-To-Show',
         JSON.parse(JSON.stringify(global.Server))
       )
+      global.Server.UserUUID = this.configManager?.getConfig('setup.user_uuid')
+      OAuth.fetchUser().then((res) => {
+        this.windowManager.sendCommandTo(
+          win,
+          'APP-User-UUID-Need-Update',
+          'APP-User-UUID-Need-Update',
+          JSON.parse(JSON.stringify(res))
+        )
+      })
     })
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
@@ -773,6 +782,7 @@ export default class Application extends EventEmitter {
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
         global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
         global.Server.Licenses = this.configManager?.getConfig('setup.license')
+        global.Server.UserUUID = this.configManager?.getConfig('setup.user_uuid')
         if (!Object.keys(AppAllLang).includes(global.Server.Lang!)) {
           global.Server.LangCustomer = this.customerLang[global.Server.Lang!]
         }
@@ -1013,7 +1023,43 @@ export default class Application extends EventEmitter {
             data: true
           })
         }
-        return
+        break
+      case 'GitHub-OAuth-License-Fetch':
+        {
+          OAuth.fetchUserLicense().then((res) => {
+            this.windowManager.sendCommandTo(
+              this.mainWindow!,
+              command,
+              key,
+              JSON.parse(JSON.stringify(res))
+            )
+          })
+        }
+        break
+      case 'GitHub-OAuth-License-Del-Bind':
+        {
+          OAuth.delBind(args[0], args[1]).then((res) => {
+            this.windowManager.sendCommandTo(
+              this.mainWindow!,
+              command,
+              key,
+              JSON.parse(JSON.stringify(res))
+            )
+          })
+        }
+        break
+      case 'GitHub-OAuth-License-Add-Bind':
+        {
+          OAuth.addBind(args[0], args[1]).then((res) => {
+            this.windowManager.sendCommandTo(
+              this.mainWindow!,
+              command,
+              key,
+              JSON.parse(JSON.stringify(res))
+            )
+          })
+        }
+        break
     }
   }
 

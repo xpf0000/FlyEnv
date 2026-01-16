@@ -30,6 +30,7 @@ export interface ServerType {
   ForceStart?: boolean
   UserHome?: string
   Licenses?: string
+  UserUUID?: string
   LangCustomer?: any
   isMacOS?: boolean
   isLinux?: boolean

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { I18nT } from '@lang/index'
 import { AppStore } from '@/store/app'
 import { MessageError } from '@/util/Element'
@@ -107,11 +107,56 @@ export const SetupStore = defineStore('setup', {
         const license = reactive(res?.data?.license ?? [])
         this.githubUser = user
         this.githubLicense = license
+        const store = AppStore()
+        store.config.setup.user_uuid = user?.uuid
+        store.saveConfig().then().catch()
       })
     },
     githubAuthCancel() {
       IPC.send('GitHub-OAuth-Cancel').then((key) => {
         IPC.off(key)
+        this.githubAuthing = false
+      })
+    },
+    githubAuthLogout() {
+      ElMessageBox.confirm('确定退出登录?').then(() => {
+        this.githubUser = undefined
+        this.githubLicense = undefined
+        const store = AppStore()
+        store.config.setup.user_uuid = ''
+        store.saveConfig().then().catch()
+      })
+    },
+    githubLicenseFetch() {
+      if (this.githubAuthing) {
+        return
+      }
+      this.githubAuthing = true
+      IPC.send('GitHub-OAuth-License-Fetch').then((key, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          this.githubLicense = reactive(res?.data ?? [])
+        }
+        this.githubAuthing = false
+      })
+    },
+    githubAuthDelBind(uuid: string, license: string) {
+      this.githubAuthing = true
+      IPC.send('GitHub-OAuth-License-Del-Bind', uuid, license).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          this.githubLicense = reactive(res?.data ?? [])
+        }
+        this.githubAuthing = false
+      })
+    },
+    githubAuthAddBind(uuid: string, license: string) {
+      this.githubAuthing = true
+      IPC.send('GitHub-OAuth-License-Add-Bind', uuid, license).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          this.githubLicense = reactive(res?.data ?? [])
+        }
         this.githubAuthing = false
       })
     }

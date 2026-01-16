@@ -27,28 +27,57 @@
         <el-card>
           <template #header>
             <div class="w-full flex items-center justify-between">
-              <span>我的许可证</span>
-              <div class="flex gap-1">
-                <div
-                  v-if="!store.githubAuthing"
-                  class="flex h-full aspect-square items-center justify-center"
-                >
-                  <yb-icon
-                    class="hover:text-blue-400 cursor-pointer"
-                    :svg="import('@/svg/github.svg?raw')"
-                    width="20"
-                    height="20"
-                    @click.stop="store.githubAuthStart()"
-                  />
-                </div>
-                <el-button v-else size="small" @click.stop="store.githubAuthCancel()">{{
-                  I18nT('base.cancel')
-                }}</el-button>
+              <div class="flex items-center gap-2">
+                <span>我的许可证</span>
+                <span v-if="store.githubUser?.login">{{ store.githubUser?.login }}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <template v-if="store.githubUser?.uuid">
+                  <el-button
+                    class="button"
+                    :disabled="store.githubAuthing"
+                    link
+                    @click="store.githubLicenseFetch()"
+                  >
+                    <yb-icon
+                      :svg="import('@/svg/icon_refresh.svg?raw')"
+                      class="w-[20px] h-[20px]"
+                      :class="{ 'fa-spin': store.githubAuthing }"
+                    ></yb-icon>
+                  </el-button>
+                  <el-button link @click.stop="store.githubAuthLogout()">
+                    <yb-icon
+                      :svg="import('@/svg/logout.svg?raw')"
+                      class="w-[20px] h-[20px]"
+                    ></yb-icon>
+                  </el-button>
+                </template>
+                <template v-else>
+                  <div
+                    v-if="!store.githubAuthing"
+                    class="flex h-full aspect-square items-center justify-center"
+                  >
+                    <yb-icon
+                      class="hover:text-blue-400 cursor-pointer"
+                      :svg="import('@/svg/github.svg?raw')"
+                      width="20"
+                      height="20"
+                      @click.stop="store.githubAuthStart()"
+                    />
+                  </div>
+                  <el-button v-else size="small" @click.stop="store.githubAuthCancel()">{{
+                    I18nT('base.cancel')
+                  }}</el-button>
+                </template>
               </div>
             </div>
           </template>
           <template #default>
-            <el-empty v-loading="store.githubAuthing" description="请先登录">
+            <el-empty
+              v-if="!store.githubUser?.uuid"
+              v-loading="store.githubAuthing"
+              description="请先登录"
+            >
               <template #image>
                 <yb-icon
                   class="text-blue-400 cursor-pointer hover:text-blue-400"
@@ -60,9 +89,41 @@
                 <span>GitHub授权登录中...</span>
               </template>
             </el-empty>
+            <el-table v-else :data="store.githubLicense" show-overflow-tooltip>
+              <el-table-column type="index"></el-table-column>
+              <el-table-column label="许可证编号" prop="license"></el-table-column>
+              <el-table-column label="已绑定UUID" prop="uuid"></el-table-column>
+              <el-table-column label="操作" width="100px">
+                <template #default="scope">
+                  <el-dropdown>
+                    <template #default>
+                      <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+                    </template>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item
+                          :disabled="store.githubAuthing || !scope.row.uuid"
+                          @click.stop="store.githubAuthDelBind(scope.row.uuid, scope.row.license)"
+                          >解除绑定</el-dropdown-item
+                        >
+                        <el-dropdown-item
+                          :disabled="
+                            store.githubAuthing ||
+                            scope.row.uuid ||
+                            store.githubLicense?.some((s) => s.uuid === store.uuid)
+                          "
+                          @click.stop="store.githubAuthAddBind(store.uuid, scope.row.license)"
+                          >绑定本机</el-dropdown-item
+                        >
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </template>
+              </el-table-column>
+            </el-table>
           </template>
         </el-card>
-        <el-card>
+        <el-card v-if="!store.isActive">
           <template #header>
             <span>许可证说明</span>
           </template>
