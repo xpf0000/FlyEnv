@@ -2,7 +2,7 @@ import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { getAllFileAsync } from '../../util/Dir'
 import { stat } from '@shared/fs-extra'
-import { basename, extname, join, normalize, sep } from 'node:path'
+import { basename, dirname, extname, join, normalize, sep } from 'node:path'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { ImageInfoFetchTask } from './ImageInfoFetchTask'
 import { ImageCompressTask } from './ImageCompressTask'
@@ -97,7 +97,7 @@ class Image extends Base {
       return ''
     }
     if (paths.length === 1) {
-      return normalize(paths[0])
+      return dirname(normalize(paths[0]))
     }
 
     // 2. 获取当前系统的路径分隔符 (Windows是 '\', macOS/Linux是 '/')
@@ -205,13 +205,13 @@ class Image extends Base {
             if (commonPath) {
               name = p.path.replace(`${commonPath}${sep}`, '')
             }
-            console.log('doCompressTask name', name)
             let path = savePath ? join(savePath, name) : p.path
             let backupPath = backPath ? join(backPath, name) : ''
             if (format !== 'none') {
               path = path.replace(extname(path), `.${format}`)
               backupPath = backupPath.replace(extname(backupPath), `.${format}`)
             }
+            console.log('doCompressTask name', name, path, backupPath)
             return new ImageCompressTask(p, config, path, backupPath)
           })
         )
