@@ -62,8 +62,10 @@ class App extends Base {
         proxy: this.getAxiosProxy()
       })
 
-      if (res?.data?.data?.license) {
-        const license = res?.data?.data?.license
+      console.log('App start res: ', res)
+
+      if (res?.data?.code === 200) {
+        const license = res?.data?.data?.license ?? ''
         resolve({
           'APP-Licenses-Code': license
         })
@@ -108,23 +110,14 @@ class App extends Base {
         activeCode: '',
         isActive: false
       }
-      if (!global.Server.Licenses) {
-        const res: any = await this.licensesState()
-        console.log('licensesInit licensesState: ', res)
-        Object.assign(data, res)
-      } else {
-        data.activeCode = global.Server.Licenses
-        const uid = publicDecrypt(
-          this.getRSAKey(),
-          Buffer.from(data.activeCode, 'base64') as any
-        ).toString('utf-8')
-        data.isActive = uid === uuid
-      }
-      if (data.activeCode) {
-        on({
-          'APP-Licenses-Code': data.activeCode
-        })
-      }
+
+      const res: any = await this.licensesState()
+      console.log('licensesInit licensesState: ', res)
+      Object.assign(data, res)
+
+      on({
+        'APP-Licenses-Code': res?.activeCode ?? ''
+      })
       resolve(data)
     })
   }
@@ -146,6 +139,7 @@ class App extends Base {
         proxy: this.getAxiosProxy()
       })
         .then((res) => {
+          console.log('licensesState res: ', res)
           const data = res?.data?.data ?? {}
           obj.activeCode = data?.code ?? ''
         })
@@ -158,11 +152,9 @@ class App extends Base {
             ).toString('utf-8')
             obj.isActive = uid === uuid
 
-            if (obj.activeCode) {
-              on({
-                'APP-Licenses-Code': obj.activeCode
-              })
-            }
+            on({
+              'APP-Licenses-Code': obj.activeCode
+            })
           }
           resolve(obj)
         })

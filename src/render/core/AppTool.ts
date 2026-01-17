@@ -5,7 +5,8 @@ console.log('modules: ', modules)
 const AppToolModules: AppToolModuleItem[] = []
 for (const k in modules) {
   const m: any = modules[k]
-  AppToolModules.push(m.default)
+  const module: AppToolModuleItem = m.default as AppToolModuleItem
+  AppToolModules.push(module)
 }
 AppToolModules.sort((a, b) => {
   return a.index! - b.index!

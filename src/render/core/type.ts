@@ -157,4 +157,5 @@ export type AppToolModuleItem = {
   component: any
   index: number
   isCustom?: boolean
+  platform?: Array<'macOS' | 'Windows' | 'Linux'>
 }

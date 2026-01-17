@@ -271,9 +271,24 @@
     return AppToolStore.like
   })
 
+  const PlatformToolModules = computed(() => {
+    let platform: any = ''
+    if (window.Server.isMacOS) {
+      platform = 'macOS'
+    } else if (window.Server.isWindows) {
+      platform = 'Windows'
+    } else if (window.Server.isLinux) {
+      platform = 'Linux'
+    }
+    if (!platform) {
+      return []
+    }
+    return AppToolModules.filter((a) => !a.platform || a.platform.includes(platform))
+  })
+
   const asideData = computed(() => {
     const tree: AsideTreeDataType[] = []
-    const all = [...AppToolStore.custom, ...AppToolModules]
+    const all = [...AppToolStore.custom, ...PlatformToolModules.value]
     const like = AppToolStore.like
     /**
      * user like
@@ -304,7 +319,7 @@
       tree.push(item)
     }
     for (const type of AppToolType) {
-      const sub = AppToolModules.filter((a) => a.type === type)
+      const sub = PlatformToolModules.value.filter((a) => a.type === type)
       if (sub.length > 0) {
         tree.push({
           isTop: true,
@@ -317,7 +332,7 @@
   })
 
   const likeData = computed(() => {
-    const all = [...AppToolStore.custom, ...AppToolModules]
+    const all = [...AppToolStore.custom, ...PlatformToolModules.value]
     const like = AppToolStore.like
     const arr = []
     if (like.length > 0) {
@@ -342,7 +357,7 @@
     if (AppToolStore.id !== 'home') {
       return []
     }
-    const all = [...AppToolStore.custom, ...AppToolModules]
+    const all = [...AppToolStore.custom, ...PlatformToolModules.value]
     const search = AppToolStore.search.trim().toLowerCase()
     if (!search) {
       return all
@@ -357,7 +372,7 @@
     if (AppToolStore.id === 'home') {
       return undefined
     }
-    const all = [...AppToolStore.custom, ...AppToolModules]
+    const all = [...AppToolStore.custom, ...PlatformToolModules.value]
     return all.find((a) => a.id === AppToolStore.id)
   })
 
@@ -366,7 +381,7 @@
   }
 
   const searchALL = computed(() => {
-    return [...AppToolStore.custom, ...AppToolModules].map((i) => {
+    return [...AppToolStore.custom, ...PlatformToolModules.value].map((i) => {
       const value = typeof i.label === 'function' ? i.label() : i.label
       return {
         value,

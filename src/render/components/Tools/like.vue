@@ -15,8 +15,24 @@
   const likeID = computed(() => {
     return AppToolStore.like
   })
+
+  const PlatformToolModules = computed(() => {
+    let platform: any = ''
+    if (window.Server.isMacOS) {
+      platform = 'macOS'
+    } else if (window.Server.isWindows) {
+      platform = 'Windows'
+    } else if (window.Server.isLinux) {
+      platform = 'Linux'
+    }
+    if (!platform) {
+      return []
+    }
+    return AppToolModules.filter((a) => !a.platform || a.platform.includes(platform))
+  })
+
   const item: ComputedRef<AppToolModuleItem> = computed(() => {
-    const all = [...AppToolStore.custom, ...AppToolModules]
+    const all = [...AppToolStore.custom, ...PlatformToolModules.value]
     return all.find((a) => a.id === AppToolStore.id) as any
   })
 </script>
