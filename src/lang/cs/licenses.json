@@ -9,7 +9,6 @@
       "2": "Další omezení mohou platit pro budoucí funkce."
     }
   },
-  "licenseInfo": "Aktuální nabízená licence je trvalá licence s jednou licencí pro jeden počítač. Pokud změníte svůj počítač, budete muset požádat o novou licenci.",
   "howToObtain": {
     "title": "Jak získat licenci",
     "description": "FlyEnv poskytuje flexibilní způsoby, jak získat licenci. Uživatelé si mohou vybrat některou z následujících metod:",
@@ -32,5 +31,29 @@
   "messageLabel": "Zpráva",
   "messagePlaceholder": "Pošlete prosím dárce, odkaz na dárce nebo ID objednávky při výběru darování.\nPředložte prosím odkaz na PR pro ty, kteří se rozhodnou podílet se na vývoji projektu.\nProsím nahrajte odkaz na váš článek, video, blog, vlog nebo komentář pro ty, kteří se rozhodnou propagovat.",
   "requestButton": "Žádost o licenci",
-  "refreshButton": "Obnovit stav"
+  "refreshButton": "Obnovit stav",
+
+  "licenseInfo": "Aktuálně poskytovaná licence je trvalá licence, každý počítač odpovídá jedné licenci. Pokud vyměníte počítač, je třeba v 'Moje licence' navázat uuid nového zařízení nebo požádat o novou licenci.",
+  "logoutTips": "Opravdu se chcete odhlásit?",
+  "delBindTips": "Opravdu chcete zrušit vazbu licence na toto UUID?",
+  "addBindTips": "Opravdu chcete navázat licenci na toto UUID?",
+  "currentLicenseState": "Stav licence na tomto zařízení",
+  "activeState": "Stav aktivace",
+  "myLicense": "Moje licence",
+  "loginTips": "Nejprve se přihlaste",
+  "logingTips": "Probíhá přihlášení přes GitHub...",
+  "licenseNo": "Číslo licence",
+  "licenseBindUUID": "Navázané UUID",
+  "delBind": "Zrušit vazbu",
+  "bindCurrentUUID": "Navázat toto zařízení",
+  "licenseDescription": "Popis licence",
+  "loginFail": "Přihlášení se nezdařilo",
+  "oauthCanceledTitle": "Oprávnění zrušeno",
+  "oauthCanceledMessage": "Uživatel zrušil proces ověření",
+  "oauthFailedTitle": "Ověření se nezdařilo",
+  "oauthFailedMessage": "Ověření se nezdařilo. Důvod: {error}",
+  "oauthFailedByNoAuthCode": "Autorizační kód nebyl přijat",
+  "oauthTimeout": "Platnost ověření vypršela",
+  "oauthSuccessTitle": "Ověření úspěšné",
+  "oauthSuccessMessage": "Načítání informací o licenci FlyEnv, počkejte prosím..."
 }

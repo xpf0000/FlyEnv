@@ -9,7 +9,6 @@
       "2": "将来の機能には追加の制限が適用される場合があります。"
     }
   },
-  "licenseInfo": "現在提供されているライセンスは永続ライセンスで、1つのライセンスが1台のコンピュータに対応します。コンピュータを変更する場合は、新しいライセンスをリクエストする必要があります。",
   "howToObtain": {
     "title": "ライセンスの取得方法",
     "description": "FlyEnvはライセンスを取得するための柔軟な方法を提供しています。ユーザーは以下のいずれかの方法を選択して申請できます：",
@@ -32,5 +31,29 @@
   "messageLabel": "メッセージ",
   "messagePlaceholder": "寄付を選択した場合は、寄付者、寄付リンク、または注文IDを提出してください。\nプロジェクト開発への参加を選択した場合は、PRリンクを提出してください。\nプロジェクトの宣伝を選択した場合は、記事/動画リンクを提出してください",
   "requestButton": "ライセンスをリクエスト",
-  "refreshButton": "状態を更新"
+  "refreshButton": "状態を更新",
+
+  "licenseInfo": "現在提供されているライセンスは永久ライセンスで、各コンピューターは1つのライセンスに対応します。コンピューターを変更する場合は、「マイライセンス」で新しいデバイスのUUIDを紐付けるか、新しいライセンスを申請する必要があります。",
+  "logoutTips": "ログアウトしてもよろしいですか？",
+  "delBindTips": "このUUIDからライセンスの紐付けを解除してもよろしいですか？",
+  "addBindTips": "このUUIDにライセンスを紐付けてもよろしいですか？",
+  "currentLicenseState": "このデバイス上のライセンス状態",
+  "activeState": "アクティベーション状態",
+  "myLicense": "マイライセンス",
+  "loginTips": "まずログインしてください",
+  "logingTips": "GitHub経由でログイン中...",
+  "licenseNo": "ライセンス番号",
+  "licenseBindUUID": "紐付け済みUUID",
+  "delBind": "紐付け解除",
+  "bindCurrentUUID": "このデバイスを紐付け",
+  "licenseDescription": "ライセンス説明",
+  "loginFail": "ログインに失敗しました",
+  "oauthCanceledTitle": "認証がキャンセルされました",
+  "oauthCanceledMessage": "ユーザーが認証プロセスをキャンセルしました",
+  "oauthFailedTitle": "認証に失敗しました",
+  "oauthFailedMessage": "認証に失敗しました。 理由: {error}",
+  "oauthFailedByNoAuthCode": "認証コードを受信できませんでした",
+  "oauthTimeout": "認証がタイムアウトしました",
+  "oauthSuccessTitle": "認証に成功しました",
+  "oauthSuccessMessage": "FlyEnvライセンス情報を取得中です。お待ちください..."
 }

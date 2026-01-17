@@ -75,6 +75,7 @@ export const SetupStore = defineStore('setup', {
         store.config.setup.license = this.activeCode
         store.saveConfig().then().catch()
         this.fetching = false
+        this.githubLicenseFetch()
       })
     },
     postRequest() {
@@ -119,7 +120,11 @@ export const SetupStore = defineStore('setup', {
       })
     },
     githubAuthLogout() {
-      ElMessageBox.confirm('确定退出登录?').then(() => {
+      ElMessageBox.confirm(I18nT('licenses.logoutTips'), {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        type: 'warning'
+      }).then(() => {
         this.githubUser = undefined
         this.githubLicense = undefined
         const store = AppStore()
@@ -128,7 +133,7 @@ export const SetupStore = defineStore('setup', {
       })
     },
     githubLicenseFetch() {
-      if (this.githubAuthing) {
+      if (this.githubAuthing || !this.githubUser?.uuid) {
         return
       }
       this.githubAuthing = true
@@ -141,23 +146,43 @@ export const SetupStore = defineStore('setup', {
       })
     },
     githubAuthDelBind(uuid: string, license: string) {
-      this.githubAuthing = true
-      IPC.send('GitHub-OAuth-License-Del-Bind', uuid, license).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          this.githubLicense = reactive(res?.data ?? [])
-        }
-        this.githubAuthing = false
+      ElMessageBox.confirm(I18nT('licenses.delBindTips'), {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        type: 'warning'
+      }).then(() => {
+        this.githubAuthing = true
+        IPC.send('GitHub-OAuth-License-Del-Bind', uuid, license).then((key: string, res: any) => {
+          IPC.off(key)
+          if (res?.code === 0) {
+            this.githubLicense = reactive(res?.data ?? [])
+            if (uuid === this.uuid) {
+              const store = AppStore()
+              store.config.setup.license = ''
+              store.saveConfig().then().catch()
+              this.isActive = false
+              window.Server.UserUUID = ''
+            }
+          }
+          this.githubAuthing = false
+        })
       })
     },
     githubAuthAddBind(uuid: string, license: string) {
-      this.githubAuthing = true
-      IPC.send('GitHub-OAuth-License-Add-Bind', uuid, license).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          this.githubLicense = reactive(res?.data ?? [])
-        }
-        this.githubAuthing = false
+      ElMessageBox.confirm(I18nT('licenses.addBindTips'), {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        type: 'warning'
+      }).then(() => {
+        this.githubAuthing = true
+        IPC.send('GitHub-OAuth-License-Add-Bind', uuid, license).then((key: string, res: any) => {
+          IPC.off(key)
+          if (res?.code === 0) {
+            this.githubLicense = reactive(res?.data ?? [])
+            this.refreshState()
+          }
+          this.githubAuthing = false
+        })
       })
     }
   }

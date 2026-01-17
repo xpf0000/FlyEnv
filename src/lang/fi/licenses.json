@@ -9,7 +9,6 @@
       "2": "Tuleviin ominaisuuksiin voidaan soveltaa lisärajoituksia."
     }
   },
-  "licenseInfo": "Nykyinen tarjolla oleva lisenssi on ikuinen lisenssi, jossa on yksi yhtä tietokonetta vastaava lisenssi. Jos vaihdat tietokonetta, sinun täytyy pyytää uusi lisenssi.",
   "howToObtain": {
     "title": "Miten hankkia lisenssi",
     "description": "FlyEnv tarjoaa joustavia tapoja saada lisenssi. Käyttäjät voivat valita minkä tahansa seuraavista menetelmistä:",
@@ -32,5 +31,29 @@
   "messageLabel": "Viesti",
   "messagePlaceholder": "Ole hyvä ja lähetä lahjoittaja, lahjoituslinkki tai tilaushenkilöllisyystodistus, kun päätät lahjoittaa.\nOle hyvä ja lähetä PR-linkki niille, jotka haluavat osallistua projektin kehittämiseen.\nOle hyvä ja lähetä linkki artikkeliisi, videoihisi, blogiisi, vlogisiisi tai kommentoi niille, jotka haluavat markkinoida.",
   "requestButton": "Pyydä Lisenssiä",
-  "refreshButton": "Päivitä Tila"
+  "refreshButton": "Päivitä Tila",
+
+  "licenseInfo": "Nykyinen tarjottu lisenssi on pysyvä lisenssi, jokainen tietokone vastaa yhtä lisenssiä. Jos vaihdat tietokonetta, sinun on sidottava uuden laitteen uuid kohdassa 'Lisenssini' tai haettava uutta lisenssiä.",
+  "logoutTips": "Haluatko varmasti kirjautua ulos?",
+  "delBindTips": "Haluatko varmasti irrottaa lisenssin tästä UUID:stä?",
+  "addBindTips": "Haluatko varmasti sitoa lisenssin tähän UUID:hen?",
+  "currentLicenseState": "Lisenssin tila tässä laitteessa",
+  "activeState": "Aktivointitila",
+  "myLicense": "Lisenssini",
+  "loginTips": "Kirjaudu sisään ensin",
+  "logingTips": "Kirjaudutaan sisään GitHubin kautta...",
+  "licenseNo": "Lisenssinumero",
+  "licenseBindUUID": "Sidottu UUID",
+  "delBind": "Irrota sidos",
+  "bindCurrentUUID": "Sido tämä laite",
+  "licenseDescription": "Lisenssin kuvaus",
+  "loginFail": "Sisäänkirjautuminen epäonnistui",
+  "oauthCanceledTitle": "Valtuutus peruutettu",
+  "oauthCanceledMessage": "Käyttäjä peruutti valtuutusprosessin",
+  "oauthFailedTitle": "Valtuutus epäonnistui",
+  "oauthFailedMessage": "Valtuutus epäonnistui. Syy: {error}",
+  "oauthFailedByNoAuthCode": "Valtuutuskoodia ei vastaanotettu",
+  "oauthTimeout": "Valtuutuksen aikakatkaisu",
+  "oauthSuccessTitle": "Valtuutus onnistui",
+  "oauthSuccessMessage": "Haetaan FlyEnv-lisenssitietoja, odota..."
 }

@@ -9,7 +9,6 @@
       "2": "Additional restrictions may apply to future features."
     }
   },
-  "licenseInfo": "The current license offered is a perpetual license, with one license corresponding to one computer. If you change your computer, you will need to request a new license.",
   "howToObtain": {
     "title": "How to Obtain a License",
     "description": "FlyEnv provides flexible ways to obtain a license. Users can choose any of the following methods to apply:",
@@ -34,5 +33,29 @@
   "requestButton": "Request License",
   "refreshButton": "Refresh State",
   "licenseActivated": "License activated",
-  "licenseNoActivated": "License not activated"
+  "licenseNoActivated": "License not activated",
+
+  "licenseInfo": "The current provided license is a permanent license, each computer corresponds to one license. If you change computers, you need to bind the new device's uuid in 'My Licenses', or apply for a new license.",
+  "logoutTips": "Are you sure you want to log out?",
+  "delBindTips": "Are you sure to unbind the license from this UUID?",
+  "addBindTips": "Are you sure to bind the license to this UUID?",
+  "currentLicenseState": "License status on this device",
+  "activeState": "Activation Status",
+  "myLicense": "My Licenses",
+  "loginTips": "Please log in first",
+  "logingTips": "Logging in via GitHub...",
+  "licenseNo": "License Number",
+  "licenseBindUUID": "Bound UUID",
+  "delBind": "Unbind",
+  "bindCurrentUUID": "Bind This Device",
+  "licenseDescription": "License Description",
+  "loginFail": "Login failed",
+  "oauthCanceledTitle": "Authorization Canceled",
+  "oauthCanceledMessage": "User canceled the authorization process",
+  "oauthFailedTitle": "Authorization Failed",
+  "oauthFailedMessage": "Authorization failed. Reason: {error}",
+  "oauthFailedByNoAuthCode": "Authorization code not received",
+  "oauthTimeout": "Authorization timeout",
+  "oauthSuccessTitle": "Authorization Successful",
+  "oauthSuccessMessage": "Fetching FlyEnv license information, please wait..."
 }

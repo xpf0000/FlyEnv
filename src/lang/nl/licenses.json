@@ -9,7 +9,6 @@
       "2": "Extra beperkingen kunnen van toepassing zijn op toekomstige functies."
     }
   },
-  "licenseInfo": "De huidige licentie is een eeuwigdurende licentie, met één licentie die overeenkomt met één computer. Als je je computer verandert, moet je een nieuwe licentie aanvragen.",
   "howToObtain": {
     "title": "Hoe een licentie verkrijgen",
     "description": "FlyEnv biedt flexibele manieren om een licentie te verkrijgen. Gebruikers kunnen een van de volgende methoden kiezen om toe te passen:",
@@ -32,5 +31,29 @@
   "messageLabel": "Bericht",
   "messagePlaceholder": "Gelieve de donatie link of order-ID in te dienen wanneer je ervoor kiest om te doneren.\nDien de PR-link in voor degenen die ervoor kiezen deel te nemen aan de projectontwikkeling.\nStuur een link naar je artikel, video, blog, vlog of een opmerking voor degenen die promoten kiezen.",
   "requestButton": "Licentie aanvragen",
-  "refreshButton": "Ververs status"
+  "refreshButton": "Ververs status",
+
+  "licenseInfo": "De huidige licentie is een permanente licentie, elke computer komt overeen met één licentie. Als u van computer wisselt, moet u de uuid van het nieuwe apparaat koppelen in 'Mijn Licenties' of een nieuwe licentie aanvragen.",
+  "logoutTips": "Weet u zeker dat u wilt uitloggen?",
+  "delBindTips": "Weet u zeker dat u de licentie van deze UUID wilt ontkoppelen?",
+  "addBindTips": "Weet u zeker dat u de licentie aan deze UUID wilt koppelen?",
+  "currentLicenseState": "Licentiestatus op dit apparaat",
+  "activeState": "Activeringsstatus",
+  "myLicense": "Mijn Licenties",
+  "loginTips": "Log eerst in",
+  "logingTips": "Inloggen via GitHub...",
+  "licenseNo": "Licentienummer",
+  "licenseBindUUID": "Gekoppelde UUID",
+  "delBind": "Ontkoppelen",
+  "bindCurrentUUID": "Koppel dit apparaat",
+  "licenseDescription": "Licentieomschrijving",
+  "loginFail": "Inloggen mislukt",
+  "oauthCanceledTitle": "Autorisatie geannuleerd",
+  "oauthCanceledMessage": "Gebruiker heeft het autorisatieproces geannuleerd",
+  "oauthFailedTitle": "Autorisatie mislukt",
+  "oauthFailedMessage": "Autorisatie mislukt. Reden: {error}",
+  "oauthFailedByNoAuthCode": "Autorisatiecode niet ontvangen",
+  "oauthTimeout": "Autorisatietime-out",
+  "oauthSuccessTitle": "Autorisatie geslaagd",
+  "oauthSuccessMessage": "FlyEnv licentie-informatie ophalen, even geduld..."
 }

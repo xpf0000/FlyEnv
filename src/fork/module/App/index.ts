@@ -172,11 +172,13 @@ class App extends Base {
   licensesRequest(message: string) {
     return new ForkPromise(async (resolve, reject) => {
       const uuid = await machineId()
+      const user_uuid = global.Server?.UserUUID ?? ''
       axios({
         url: 'https://api.one-env.com/api/app/active_code_request',
         method: 'post',
         data: {
           uuid,
+          user_uuid,
           message
         },
         proxy: this.getAxiosProxy()

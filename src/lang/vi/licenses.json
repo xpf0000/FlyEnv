@@ -9,7 +9,6 @@
       "2": "Các hạn chế bổ sung có thể áp dụng cho các tính năng trong tương lai."
     }
   },
-  "licenseInfo": "Giấy phép hiện tại được cung cấp là giấy phép vĩnh viễn, với một giấy phép tương ứng với một máy tính. Nếu bạn thay đổi máy tính, bạn sẽ cần yêu cầu một giấy phép mới.",
   "howToObtain": {
     "title": "Cách Nhận Giấy phép",
     "description": "FlyEnv cung cấp các cách linh hoạt để có được giấy phép. Người dùng có thể chọn bất kỳ phương pháp nào sau đây để đăng ký:",
@@ -32,5 +31,29 @@
   "messageLabel": "Tin nhắn",
   "messagePlaceholder": "Vui lòng gửi người hiến tặng, liên kết quyên góp hoặc ID đơn hàng khi chọn quyên góp.\nVui lòng gửi liên kết PR cho những người chọn tham gia vào phát triển dự án.\nVui lòng gửi liên kết bài viết/video nếu bạn chọn giúp quảng bá dự án",
   "requestButton": "Yêu cầu Giấy phép",
-  "refreshButton": "Làm Mới Trạng Thái"
+  "refreshButton": "Làm Mới Trạng Thái",
+
+  "licenseInfo": "Giấy phép hiện được cung cấp là giấy phép vĩnh viễn, mỗi máy tính tương ứng với một giấy phép. Nếu bạn thay đổi máy tính, bạn cần liên kết uuid của thiết bị mới trong 'Giấy phép của tôi' hoặc nộp đơn xin giấy phép mới.",
+  "logoutTips": "Bạn có chắc chắn muốn đăng xuất không?",
+  "delBindTips": "Bạn có chắc chắn muốn hủy liên kết giấy phép với UUID này không?",
+  "addBindTips": "Bạn có chắc chắn muốn liên kết giấy phép với UUID này không?",
+  "currentLicenseState": "Trạng thái giấy phép trên thiết bị này",
+  "activeState": "Trạng thái Kích hoạt",
+  "myLicense": "Giấy phép của tôi",
+  "loginTips": "Vui lòng đăng nhập trước",
+  "logingTips": "Đang đăng nhập qua GitHub...",
+  "licenseNo": "Số giấy phép",
+  "licenseBindUUID": "UUID đã liên kết",
+  "delBind": "Hủy liên kết",
+  "bindCurrentUUID": "Liên kết thiết bị này",
+  "licenseDescription": "Mô tả giấy phép",
+  "loginFail": "Đăng nhập thất bại",
+  "oauthCanceledTitle": "Ủy quyền đã bị hủy",
+  "oauthCanceledMessage": "Người dùng đã hủy quy trình ủy quyền",
+  "oauthFailedTitle": "Ủy quyền thất bại",
+  "oauthFailedMessage": "Ủy quyền thất bại. Lý do: {error}",
+  "oauthFailedByNoAuthCode": "Không nhận được mã ủy quyền",
+  "oauthTimeout": "Ủy quyền đã hết thời gian",
+  "oauthSuccessTitle": "Ủy quyền thành công",
+  "oauthSuccessMessage": "Đang lấy thông tin giấy phép FlyEnv, vui lòng chờ..."
 }

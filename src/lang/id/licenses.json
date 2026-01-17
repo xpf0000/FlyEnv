@@ -9,7 +9,6 @@
       "2": "Pembatasan tambahan mungkin berlaku untuk fitur mendatang."
     }
   },
-  "licenseInfo": "Lisensi saat ini yang ditawarkan adalah lisensi permanen, dengan satu lisensi sesuai untuk satu komputer. Jika Anda mengganti komputer, Anda perlu meminta lisensi baru.",
   "howToObtain": {
     "title": "Cara Mendapatkan Lisensi",
     "description": "FlyEnv menyediakan cara fleksibel untuk mendapatkan lisensi. Pengguna dapat memilih salah satu metode berikut untuk mengajukan permohonan:",
@@ -32,5 +31,29 @@
   "messageLabel": "Pesan",
   "messagePlaceholder": "Harap kirimkan donatur, tautan donasi, atau ID pesanan saat memilih untuk mendonasikan.\nHarap kirimkan tautan PR bagi mereka yang memilih untuk berpartisipasi dalam pengembangan proyek.\nHarap kirimkan tautan artikel/video jika Anda memilih untuk membantu mempromosikan proyek",
   "requestButton": "Ajukan Lisensi",
-  "refreshButton": "Segarkan Status"
+  "refreshButton": "Segarkan Status",
+
+  "licenseInfo": "Lisensi yang disediakan saat ini adalah lisensi permanen, setiap komputer sesuai dengan satu lisensi. Jika Anda mengganti komputer, Anda perlu mengikat uuid perangkat baru di 'Lisensi Saya', atau mengajukan lisensi baru.",
+  "logoutTips": "Apakah Anda yakin ingin keluar?",
+  "delBindTips": "Apakah Anda yakin ingin membatalkan ikatan lisensi dari UUID ini?",
+  "addBindTips": "Apakah Anda yakin ingin mengikat lisensi ke UUID ini?",
+  "currentLicenseState": "Status lisensi di perangkat ini",
+  "activeState": "Status Aktivasi",
+  "myLicense": "Lisensi Saya",
+  "loginTips": "Silakan masuk terlebih dahulu",
+  "logingTips": "Sedang masuk melalui GitHub...",
+  "licenseNo": "Nomor Lisensi",
+  "licenseBindUUID": "UUID yang Terikat",
+  "delBind": "Batalkan Ikat",
+  "bindCurrentUUID": "Ikat Perangkat Ini",
+  "licenseDescription": "Deskripsi Lisensi",
+  "loginFail": "Gagal masuk",
+  "oauthCanceledTitle": "Otorisasi Dibatalkan",
+  "oauthCanceledMessage": "Pengguna membatalkan proses otorisasi",
+  "oauthFailedTitle": "Otorisasi Gagal",
+  "oauthFailedMessage": "Otorisasi gagal. Alasan: {error}",
+  "oauthFailedByNoAuthCode": "Kode otorisasi tidak diterima",
+  "oauthTimeout": "Waktu otorisasi habis",
+  "oauthSuccessTitle": "Otorisasi Berhasil",
+  "oauthSuccessMessage": "Mengambil informasi lisensi FlyEnv, harap tunggu..."
 }

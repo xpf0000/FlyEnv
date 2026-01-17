@@ -4,11 +4,11 @@
       <div class="p-3 flex flex-col gap-4">
         <el-card>
           <template #header>
-            <span>本机许可证状态</span>
+            <span>{{ I18nT('licenses.currentLicenseState') }}</span>
           </template>
           <template #default>
             <el-descriptions :column="1" :direction="'vertical'">
-              <el-descriptions-item label="激活状态">
+              <el-descriptions-item :label="I18nT('licenses.activeState')">
                 <template v-if="store.isActive">
                   <el-result icon="success" :title="I18nT('licenses.licenseActivated')">
                   </el-result>
@@ -28,7 +28,7 @@
           <template #header>
             <div class="w-full flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span>我的许可证</span>
+                <span>{{ I18nT('licenses.myLicense') }}</span>
                 <span v-if="store.githubUser?.login">{{ store.githubUser?.login }}</span>
               </div>
               <div class="flex items-center gap-1">
@@ -76,7 +76,7 @@
             <el-empty
               v-if="!store.githubUser?.uuid"
               v-loading="store.githubAuthing"
-              description="请先登录"
+              :description="I18nT('licenses.loginTips')"
             >
               <template #image>
                 <yb-icon
@@ -86,14 +86,20 @@
                 />
               </template>
               <template v-if="store.githubAuthing" #description>
-                <span>GitHub授权登录中...</span>
+                <span>{{ I18nT('licenses.logingTips') }}</span>
               </template>
             </el-empty>
             <el-table v-else :data="store.githubLicense" show-overflow-tooltip>
               <el-table-column type="index"></el-table-column>
-              <el-table-column label="许可证编号" prop="license"></el-table-column>
-              <el-table-column label="已绑定UUID" prop="uuid"></el-table-column>
-              <el-table-column label="操作" width="100px">
+              <el-table-column
+                :label="I18nT('licenses.licenseNo')"
+                prop="license"
+              ></el-table-column>
+              <el-table-column
+                :label="I18nT('licenses.licenseBindUUID')"
+                prop="uuid"
+              ></el-table-column>
+              <el-table-column :label="I18nT('base.action')" width="100px">
                 <template #default="scope">
                   <el-dropdown>
                     <template #default>
@@ -104,7 +110,7 @@
                         <el-dropdown-item
                           :disabled="store.githubAuthing || !scope.row.uuid"
                           @click.stop="store.githubAuthDelBind(scope.row.uuid, scope.row.license)"
-                          >解除绑定</el-dropdown-item
+                          >{{ I18nT('licenses.delBind') }}</el-dropdown-item
                         >
                         <el-dropdown-item
                           :disabled="
@@ -113,7 +119,7 @@
                             store.githubLicense?.some((s) => s.uuid === store.uuid)
                           "
                           @click.stop="store.githubAuthAddBind(store.uuid, scope.row.license)"
-                          >绑定本机</el-dropdown-item
+                          >{{ I18nT('licenses.bindCurrentUUID') }}</el-dropdown-item
                         >
                       </el-dropdown-menu>
                     </template>
@@ -125,7 +131,7 @@
         </el-card>
         <el-card v-if="!store.isActive">
           <template #header>
-            <span>许可证说明</span>
+            <span>{{ I18nT('licenses.licenseDescription') }}</span>
           </template>
           <template #default>
             <div class="flex flex-col gap-2 items-start">
@@ -159,7 +165,15 @@
                 ></p
               >
               <p> 3. {{ I18nT('licenses.howToObtain.methods.2.title') }} </p>
-              <p>{{ I18nT('licenses.howToObtain.methods.2.description') }}</p>
+              <p>
+                {{ I18nT('licenses.howToObtain.methods.2.description') }}
+                <el-button
+                  type="primary"
+                  link
+                  @click.stop="toUrl('https://flyenv.com/sponsor.html')"
+                  >https://flyenv.com/sponsor.html</el-button
+                >
+              </p>
               <p>{{ I18nT('licenses.submitInfo') }}</p>
               <el-form-item class="w-full mt-5 mb-1" label-position="top" label="UUID">
                 <el-input v-model="store.uuid" readonly></el-input>

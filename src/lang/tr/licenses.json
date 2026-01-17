@@ -9,7 +9,6 @@
       "2": "Gelecekteki özelliklerde ek kısıtlamalar olabilir."
     }
   },
-  "licenseInfo": "Sunulan mevcut lisans süresizdir ve her lisans bir bilgisayara özeldir. Bilgisayarınızı değiştirirseniz, yeni bir lisans talep etmeniz gerekir.",
   "howToObtain": {
     "title": "Lisans Nasıl Alınır?",
     "description": "FlyEnv lisans almak için esnek yollar sunar. Kullanıcılar aşağıdaki yöntemlerden herhangi birini seçerek başvurabilir:",
@@ -32,5 +31,29 @@
   "messageLabel": "Mesaj",
   "messagePlaceholder": "Bağış yaptıysanız lütfen bağışçı adı, bağış bağlantısı veya sipariş numarasını girin.\nProje geliştirmeye katkıda bulunduysanız lütfen PR bağlantısını gönderin.\nProjeyi tanıttıysanız lütfen makale/video bağlantısını gönderin.",
   "requestButton": "Lisans Talep Et",
-  "refreshButton": "Durumu Yenile"
+  "refreshButton": "Durumu Yenile",
+
+  "licenseInfo": "Mevcut sağlanan lisans kalıcı bir lisandır, her bilgisayar bir lisansla eşleşir. Bilgisayar değiştirirseniz, 'Lisanslarım'da yeni cihazın uuid'sini bağlamanız veya yeni lisans başvurusunda bulunmanız gerekir.",
+  "logoutTips": "Oturumu kapatmak istediğinizden emin misiniz?",
+  "delBindTips": "Lisansı bu UUID'den bağlamayı kaldırmak istediğinizden emin misiniz?",
+  "addBindTips": "Lisansı bu UUID'ye bağlamak istediğinizden emin misiniz?",
+  "currentLicenseState": "Bu cihazdaki lisans durumu",
+  "activeState": "Etkinleştirme Durumu",
+  "myLicense": "Lisanslarım",
+  "loginTips": "Lütfen önce giriş yapın",
+  "logingTips": "GitHub üzerinden giriş yapılıyor...",
+  "licenseNo": "Lisans Numarası",
+  "licenseBindUUID": "Bağlı UUID",
+  "delBind": "Bağlamayı Kaldır",
+  "bindCurrentUUID": "Bu Cihazı Bağla",
+  "licenseDescription": "Lisans Açıklaması",
+  "loginFail": "Giriş başarısız",
+  "oauthCanceledTitle": "Yetkilendirme İptal Edildi",
+  "oauthCanceledMessage": "Kullanıcı yetkilendirme sürecini iptal etti",
+  "oauthFailedTitle": "Yetkilendirme Başarısız",
+  "oauthFailedMessage": "Yetkilendirme başarısız oldu. Sebep: {error}",
+  "oauthFailedByNoAuthCode": "Yetkilendirme kodu alınmadı",
+  "oauthTimeout": "Yetkilendirme zaman aşımı",
+  "oauthSuccessTitle": "Yetkilendirme Başarılı",
+  "oauthSuccessMessage": "FlyEnv lisans bilgileri alınıyor, lütfen bekleyin..."
 }

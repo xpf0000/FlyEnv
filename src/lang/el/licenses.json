@@ -9,7 +9,6 @@
       "2": "Επιπλέον περιορισμοί ενδέχεται να ισχύουν για μελλοντικά χαρακτηριστικά."
     }
   },
-  "licenseInfo": "Η τρέχουσα άδεια χρήσης που προσφέρεται είναι μια αέναη άδεια, με μία άδεια που αντιστοιχεί σε έναν υπολογιστή. Αν αλλάξετε τον υπολογιστή σας, θα πρέπει να ζητήσετε μια νέα άδεια.",
   "howToObtain": {
     "title": "Πώς να αποκτήσετε μια άδεια",
     "description": "Το FlyEnv παρέχει ευέλικτους τρόπους απόκτησης άδειας χρήσης. Οι χρήστες μπορούν να επιλέξουν οποιαδήποτε από τις ακόλουθες μεθόδους για να εφαρμόσουν:",
@@ -32,5 +31,29 @@
   "messageLabel": "Μήνυμα",
   "messagePlaceholder": "Please submit the donor, donation link, or order ID when choosing to donate.\nPlease submit the PR link for those who choose to participate in project development.\nPlease submit a link to your article, video, blog, vlog, or comment for those who choose to promote.",
   "requestButton": "Αίτηση Άδειας",
-  "refreshButton": "Ανανέωση Κατάστασης"
+  "refreshButton": "Ανανέωση Κατάστασης",
+
+  "licenseInfo": "Η παρούσα παροχή άδειας είναι μόνιμη άδεια, κάθε υπολογιστής αντιστοιχεί σε μία άδεια. Εάν αλλάξετε υπολογιστή, πρέπει να δεσμεύσετε το uuid της νέας συσκευής στα 'Άδειές μου' ή να υποβάλετε αίτηση για νέα άδεια.",
+  "logoutTips": "Είστε βέβαιοι ότι θέλετε να αποσυνδεθείτε;",
+  "delBindTips": "Είστε βέβαιοι ότι θέλετε να ακυρώσετε τη σύνδεση της άδειας με αυτό το UUID;",
+  "addBindTips": "Είστε βέβαιοι ότι θέλετε να δεσμεύσετε την άδεια σε αυτό το UUID;",
+  "currentLicenseState": "Κατάσταση άδειας σε αυτήν τη συσκευή",
+  "activeState": "Κατάσταση Ενεργοποίησης",
+  "myLicense": "Οι Άδειές μου",
+  "loginTips": "Παρακαλώ συνδεθείτε πρώτα",
+  "logingTips": "Σύνδεση μέσω GitHub σε εξέλιξη...",
+  "licenseNo": "Αριθμός Άδειας",
+  "licenseBindUUID": "Δεσμευμένο UUID",
+  "delBind": "Ακύρωση Σύνδεσης",
+  "bindCurrentUUID": "Δέσμευση αυτής της συσκευής",
+  "licenseDescription": "Περιγραφή Άδειας",
+  "loginFail": "Η σύνδεση απέτυχε",
+  "oauthCanceledTitle": "Η εξουσιοδότηση ακυρώθηκε",
+  "oauthCanceledMessage": "Ο χρήστης ακύρωσε τη διαδικασία εξουσιοδότησης",
+  "oauthFailedTitle": "Η εξουσιοδότηση απέτυχε",
+  "oauthFailedMessage": "Η εξουσιοδότηση απέτυχε. Αιτία: {error}",
+  "oauthFailedByNoAuthCode": "Δεν ελήφθη κωδικός εξουσιοδότησης",
+  "oauthTimeout": "Λήξη χρόνου εξουσιοδότησης",
+  "oauthSuccessTitle": "Επιτυχής εξουσιοδότηση",
+  "oauthSuccessMessage": "Ανακτώνται πληροφορίες άδειας FlyEnv, παρακαλώ περιμένετε..."
 }

@@ -225,7 +225,7 @@ class OAuth {
       if (res.data && res.data?.data?.user) {
         this.callBack?.(res.data.data)
       } else {
-        throw new Error(res.data?.message || '登录失败')
+        throw new Error(res.data?.message || I18nT('licenses.loginFail'))
       }
     } catch (error: any) {
       console.error('登录过程出错:', error)
@@ -258,14 +258,27 @@ class OAuth {
 
           if (this.isCancelled) {
             res.writeHead(200, { 'Content-Type': 'text/html' })
-            res.end(this.getHtmlResponse('授权已取消', '用户取消了授权流程'))
+            res.end(
+              this.getHtmlResponse(
+                I18nT('licenses.oauthCanceledTitle'),
+                I18nT('licenses.oauthCanceledMessage')
+              )
+            )
             return
           }
 
           if (error) {
             // GitHub 返回错误
             res.writeHead(200, { 'Content-Type': 'text/html' })
-            res.end(this.getHtmlResponse('授权失败', `错误: ${error}`, errorDescription))
+            res.end(
+              this.getHtmlResponse(
+                I18nT('licenses.oauthFailedTitle'),
+                I18nT('licenses.oauthFailedMessage', {
+                  error
+                }),
+                errorDescription
+              )
+            )
 
             reject(new Error(errorDescription || error))
             this.closeServer()
@@ -277,7 +290,14 @@ class OAuth {
 
             // 发送成功响应页面
             res.writeHead(200, { 'Content-Type': 'text/html' })
-            res.end(this.getHtmlResponse('授权成功', '正在登录，请稍候...', '', true))
+            res.end(
+              this.getHtmlResponse(
+                I18nT('licenses.oauthSuccessTitle'),
+                I18nT('licenses.oauthSuccessMessage'),
+                '',
+                true
+              )
+            )
 
             // 关闭服务器
             setTimeout(() => {
@@ -288,9 +308,14 @@ class OAuth {
           } else {
             // 没有 code 参数
             res.writeHead(200, { 'Content-Type': 'text/html' })
-            res.end(this.getHtmlResponse('授权失败', '未收到授权码'))
+            res.end(
+              this.getHtmlResponse(
+                I18nT('licenses.oauthFailedTitle'),
+                I18nT('licenses.oauthFailedByNoAuthCode')
+              )
+            )
 
-            reject(new Error('未收到授权码'))
+            reject(new Error(I18nT('licenses.oauthFailedByNoAuthCode')))
             this.closeServer()
           }
         } else if (parsedUrl.pathname === '/health') {
@@ -324,7 +349,7 @@ class OAuth {
         if (this.server && this.server.listening) {
           console.log('服务器启动超时，正在关闭...')
           this.closeServer()
-          reject(new Error('服务器启动超时'))
+          reject(new Error(I18nT('licenses.oauthTimeout')))
         }
       }, 60000)
     })
@@ -524,7 +549,7 @@ class OAuth {
     this.closeServer()
     this.callBack?.({
       success: false,
-      message: '用户取消了授权流程',
+      message: I18nT('licenses.oauthCanceledMessage'),
       cancelled: true
     })
     this.callBack = undefined

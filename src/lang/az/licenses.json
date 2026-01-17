@@ -9,7 +9,6 @@
       "2": "Gələcək funksiyalarda əlavə məhdudiyyətlər ola bilər."
     }
   },
-  "licenseInfo": "Verilən mövcud lisenziya müddətsizdir və hər lisenziya bir kompüterə məxsusdur. Kompüterinizi dəyişsəniz, yeni bir lisenziya tələb etməlisiniz.",
   "howToObtain": {
     "title": "Lisenziyanı Necə Əldə Etmək Olar?",
     "description": "FlyEnv lisenziya almaq üçün çevik üsullar təqdim edir. İstifadəçilər aşağıdakı metodlardan birini seçərək müraciət edə bilərlər:",
@@ -32,5 +31,29 @@
   "messageLabel": "Mesaj",
   "messagePlaceholder": "İanə etmisinizsə, zəhmət olmasa ianəçi adını, ianə bağlantısını və ya sifariş nömrəsini daxil edin.\nLayihəyə töhfə vermisinizsə, zəhmət olmasa PR bağlantısını göndərin.\nLayihəni tanıtmısınızsa, zəhmət olmasa məqalə/video bağlantısını göndərin.",
   "requestButton": "Lisenziya Tələb Et",
-  "refreshButton": "Vəziyyəti Yenilə"
+  "refreshButton": "Vəziyyəti Yenilə",
+
+  "licenseInfo": "Cari təqdim olunan lisenziya daimi lisenziyadır, hər bir kompüter bir lisenziyaya uyğundur. Əgər kompüteri dəyişdirsəniz, 'Mənim Lisenziyalarım' bölməsində yeni cihazın uuid-ni bağlamaq və ya yeni lisenziya üçün müraciət etmək lazımdır.",
+  "logoutTips": "Çıxış etmək istədiyinizə əminsiniz?",
+  "delBindTips": "Bu UUID ilə lisenziya bağlantısını ləğv etmək istədiyinizə əminsiniz?",
+  "addBindTips": "Lisenziyanı bu UUID ilə bağlamaq istədiyinizə əminsiniz?",
+  "currentLicenseState": "Bu cihazdakı lisenziya vəziyyəti",
+  "activeState": "Aktivləşdirmə Vəziyyəti",
+  "myLicense": "Mənim Lisenziyalarım",
+  "loginTips": "Əvvəlcə daxil olun",
+  "logingTips": "GitHub vasitəsilə daxil olunur...",
+  "licenseNo": "Lisenziya Nömrəsi",
+  "licenseBindUUID": "Bağlanmış UUID",
+  "delBind": "Bağlantını Ləğv Et",
+  "bindCurrentUUID": "Bu Cihazı Bağla",
+  "licenseDescription": "Lisenziya Təsviri",
+  "loginFail": "Daxil Olmaq Uğursuz Oldu",
+  "oauthCanceledTitle": "Yetki Ləğv Edildi",
+  "oauthCanceledMessage": "İstifadəçi yetki prosesini ləğv etdi",
+  "oauthFailedTitle": "Yetki Uğursuz Oldu",
+  "oauthFailedMessage": "Yetki uğursuz oldu. Səbəb: {error}",
+  "oauthFailedByNoAuthCode": "Yetki Kodu Alınmadı",
+  "oauthTimeout": "Yetki Müddəti Bitdi",
+  "oauthSuccessTitle": "Yetki Uğurla Tamamlandı",
+  "oauthSuccessMessage": "FlyEnv lisenziya məlumatları gətirilir, zəhmət olmasa gözləyin..."
 }

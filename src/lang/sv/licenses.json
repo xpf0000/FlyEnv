@@ -9,7 +9,6 @@
       "2": "Ytterligare begränsningar kan tillkomma för framtida funktioner."
     }
   },
-  "licenseInfo": "Den nuvarande licensen som erbjuds är en evig licens, där en licens motsvarar en dator. Om du byter dator måste du begära en ny licens.",
   "howToObtain": {
     "title": "Hur man skaffar en licens",
     "description": "FlyEnv erbjuder flexibla sätt att skaffa en licens. Användare kan välja något av följande metoder för att ansöka:",
@@ -32,5 +31,29 @@
   "messageLabel": "Meddelande",
   "messagePlaceholder": "Vänligen skicka in givaren, donationslänken eller order-ID när du väljer att donera.\nVänligen skicka in PR-länken för dem som väljer att delta i projektutvecklingen.\nVänligen skicka in artikel-/videolänken om du väljer att hjälpa till att främja projektet",
   "requestButton": "Begär licens",
-  "refreshButton": "Uppdatera status"
+  "refreshButton": "Uppdatera status",
+
+  "licenseInfo": "Den nuvarande licensen är en permanent licens, varje dator motsvarar en licens. Om du byter dator måste du binda den nya enhetens uuid i 'Mina licenser', eller ansöka om en ny licens.",
+  "logoutTips": "Är du säker på att du vill logga ut?",
+  "delBindTips": "Är du säker på att du vill ta bort bindningen av licensen från detta UUID?",
+  "addBindTips": "Är du säker på att du vill binda licensen till detta UUID?",
+  "currentLicenseState": "Licensstatus på denna enhet",
+  "activeState": "Aktiveringsstatus",
+  "myLicense": "Mina licenser",
+  "loginTips": "Var god logga in först",
+  "logingTips": "Loggar in via GitHub...",
+  "licenseNo": "Licensnummer",
+  "licenseBindUUID": "Bundet UUID",
+  "delBind": "Ta bort bindning",
+  "bindCurrentUUID": "Bind denna enhet",
+  "licenseDescription": "Licensbeskrivning",
+  "loginFail": "Inloggning misslyckades",
+  "oauthCanceledTitle": "Auktorisering avbruten",
+  "oauthCanceledMessage": "Användaren avbröt auktoriseringsprocessen",
+  "oauthFailedTitle": "Auktorisering misslyckades",
+  "oauthFailedMessage": "Auktorisering misslyckades. Anledning: {error}",
+  "oauthFailedByNoAuthCode": "Auktoriseringskod inte mottagen",
+  "oauthTimeout": "Auktoriseringstimeout",
+  "oauthSuccessTitle": "Auktorisering lyckades",
+  "oauthSuccessMessage": "Hämtar FlyEnv licensinformation, var god vänta..."
 }

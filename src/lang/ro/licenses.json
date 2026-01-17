@@ -9,7 +9,6 @@
       "2": "Se pot aplica restricții suplimentare caracteristicilor viitoare."
     }
   },
-  "licenseInfo": "Licența oferită în prezent este o licență perpetuă, cu o licență corespunzătoare unui singur calculator. Dacă vă schimbați calculatorul, va trebui să solicitați o nouă licență.",
   "howToObtain": {
     "title": "Cum să obții o licență",
     "description": "FlyEnv oferă modalități flexibile de a obține o licență. Utilizatorii pot alege oricare dintre următoarele metode de aplicat:",
@@ -32,5 +31,29 @@
   "messageLabel": "Mesaj",
   "messagePlaceholder": "Vă rugăm să trimiteți link-ul de donație, sau ID-ul comenzii atunci când alegeți să donați.\nVă rugăm să trimiteți link-ul PR pentru cei care aleg să participe la dezvoltarea proiectului.\nVă rugăm să trimiteți un link către articole, video, blog, vlog, sau să comentați pentru cei care aleg să promoveze.",
   "requestButton": "Solicită licență",
-  "refreshButton": "Reîmprospătare stare"
+  "refreshButton": "Reîmprospătare stare",
+
+  "licenseInfo": "Licența oferită în prezent este o licență permanentă, fiecare computer corespunde unei licențe. Dacă schimbați computerul, trebuie să legați uuid-ul noului dispozitiv în 'Licențele mele' sau să solicitați o licență nouă.",
+  "logoutTips": "Sigur doriți să vă deconectați?",
+  "delBindTips": "Sigur doriți să dezlegați licența de acest UUID?",
+  "addBindTips": "Sigur doriți să legați licența la acest UUID?",
+  "currentLicenseState": "Starea licenței pe acest dispozitiv",
+  "activeState": "Stare Activare",
+  "myLicense": "Licențele mele",
+  "loginTips": "Vă rugăm să vă conectați mai întâi",
+  "logingTips": "Conectare prin GitHub...",
+  "licenseNo": "Număr Licență",
+  "licenseBindUUID": "UUID Legat",
+  "delBind": "Dezleagă",
+  "bindCurrentUUID": "Leagă acest Dispozitiv",
+  "licenseDescription": "Descriere Licență",
+  "loginFail": "Autentificare eșuată",
+  "oauthCanceledTitle": "Autorizare anulată",
+  "oauthCanceledMessage": "Utilizatorul a anulat procesul de autorizare",
+  "oauthFailedTitle": "Autorizare eșuată",
+  "oauthFailedMessage": "Autorizare eșuată. Motiv: {error}",
+  "oauthFailedByNoAuthCode": "Cod de autorizare neprimit",
+  "oauthTimeout": "Autorizare expirată",
+  "oauthSuccessTitle": "Autorizare reușită",
+  "oauthSuccessMessage": "Se preiau informațiile despre licența FlyEnv, vă rugăm așteptați..."
 }

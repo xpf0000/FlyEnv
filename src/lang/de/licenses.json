@@ -9,7 +9,6 @@
       "2": "Weitere Einschränkungen können für zukünftige Funktionen gelten."
     }
   },
-  "licenseInfo": "Die aktuell angebotene Lizenz ist eine ewige Lizenz mit einer Lizenz, die einem Computer entspricht. Wenn Sie Ihren Computer ändern, müssen Sie eine neue Lizenz anfordern.",
   "howToObtain": {
     "title": "Wie man eine Lizenz erhält",
     "description": "FlyEnv bietet flexible Möglichkeiten, eine Lizenz zu erwerben. Benutzer können eine der folgenden Methoden wählen:",
@@ -32,5 +31,29 @@
   "messageLabel": "Nachricht",
   "messagePlaceholder": "Bitte geben Sie den Spender, den Spendenlink oder die Bestell-ID ein, wenn Sie sich für eine Spende entscheiden.\nBitte senden Sie den PR-Link für diejenigen, die an der Projektentwicklung teilnehmen.\nBitte senden Sie einen Link zu Ihrem Artikel, Video, Blog, Vlog oder Kommentar für diejenigen, die sich entscheiden, zu fördern.",
   "requestButton": "Lizenz anfordern",
-  "refreshButton": "Aktualisiere Status"
+  "refreshButton": "Aktualisiere Status",
+
+  "licenseInfo": "Die aktuell bereitgestellte Lizenz ist eine permanente Lizenz, jeder Computer entspricht einer Lizenz. Wenn Sie den Computer wechseln, müssen Sie in 'Meine Lizenzen' die UUID des neuen Geräts binden oder eine neue Lizenz beantragen.",
+  "logoutTips": "Sind Sie sicher, dass Sie sich abmelden möchten?",
+  "delBindTips": "Sind Sie sicher, dass Sie die Lizenzbindung an diese UUID aufheben möchten?",
+  "addBindTips": "Sind Sie sicher, dass Sie die Lizenz an diese UUID binden möchten?",
+  "currentLicenseState": "Lizenzstatus auf diesem Gerät",
+  "activeState": "Aktivierungsstatus",
+  "myLicense": "Meine Lizenzen",
+  "loginTips": "Bitte zuerst anmelden",
+  "logingTips": "Anmeldung über GitHub läuft...",
+  "licenseNo": "Lizenznummer",
+  "licenseBindUUID": "Gebundene UUID",
+  "delBind": "Bindung aufheben",
+  "bindCurrentUUID": "Dieses Gerät binden",
+  "licenseDescription": "Lizenzbeschreibung",
+  "loginFail": "Anmeldung fehlgeschlagen",
+  "oauthCanceledTitle": "Autorisierung abgebrochen",
+  "oauthCanceledMessage": "Der Benutzer hat den Autorisierungsprozess abgebrochen",
+  "oauthFailedTitle": "Autorisierung fehlgeschlagen",
+  "oauthFailedMessage": "Autorisierung fehlgeschlagen. Grund: {error}",
+  "oauthFailedByNoAuthCode": "Autorisierungscode nicht erhalten",
+  "oauthTimeout": "Autorisierungs-Timeout",
+  "oauthSuccessTitle": "Autorisierung erfolgreich",
+  "oauthSuccessMessage": "FlyEnv-Lizenzinformationen werden abgerufen, bitte warten..."
 }

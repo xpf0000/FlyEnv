@@ -9,7 +9,6 @@
       "2": "Dodatkowe ograniczenia mogą mieć zastosowanie do przyszłych funkcji."
     }
   },
-  "licenseInfo": "Obecna licencja jest licencją perpetual licencja, z jedną licencją odpowiadającą jednemu komputerowi. Jeśli zmienisz komputer, musisz poprosić o nową licencję.",
   "howToObtain": {
     "title": "Jak uzyskać licencję",
     "description": "FlyEnv zapewnia elastyczne sposoby uzyskania licencji. Użytkownicy mogą wybrać jedną z następujących metod:",
@@ -32,5 +31,29 @@
   "messageLabel": "Wiadomość",
   "messagePlaceholder": "Prosimy o przesłanie darowizny, linku darowizny, lub identyfikatora zamówienia podczas wyboru darowizny.\nPrześlij link PR dla tych, którzy decydują się uczestniczyć w tworzeniu projektu.\nProsimy o przesłanie linku do artykułu, filmu, bloga, vlog lub komentarza dla tych, którzy decydują się na promocję.",
   "requestButton": "Poproś o licencję",
-  "refreshButton": "Odśwież województwo"
+  "refreshButton": "Odśwież województwo",
+
+  "licenseInfo": "Obecnie udzielana licencja jest licencją stałą, każdy komputer odpowiada jednej licencji. Jeśli zmienisz komputer, musisz powiązać uuid nowego urządzenia w 'Moje licencje' lub ubiegać się o nową licencję.",
+  "logoutTips": "Czy na pewno chcesz się wylogować?",
+  "delBindTips": "Czy na pewno chcesz usunąć powiązanie licencji z tego UUID?",
+  "addBindTips": "Czy na pewno chcesz powiązać licencję z tym UUID?",
+  "currentLicenseState": "Stan licencji na tym urządzeniu",
+  "activeState": "Status Aktywacji",
+  "myLicense": "Moje licencje",
+  "loginTips": "Najpierw się zaloguj",
+  "logingTips": "Logowanie przez GitHub...",
+  "licenseNo": "Numer licencji",
+  "licenseBindUUID": "Powiązany UUID",
+  "delBind": "Usuń powiązanie",
+  "bindCurrentUUID": "Powiąż to urządzenie",
+  "licenseDescription": "Opis licencji",
+  "loginFail": "Logowanie nie powiodło się",
+  "oauthCanceledTitle": "Autoryzacja anulowana",
+  "oauthCanceledMessage": "Użytkownik anulował proces autoryzacji",
+  "oauthFailedTitle": "Autoryzacja nie powiodła się",
+  "oauthFailedMessage": "Autoryzacja nie powiodła się. Przyczyna: {error}",
+  "oauthFailedByNoAuthCode": "Nie otrzymano kodu autoryzacji",
+  "oauthTimeout": "Przekroczono limit czasu autoryzacji",
+  "oauthSuccessTitle": "Autoryzacja powiodła się",
+  "oauthSuccessMessage": "Pobieranie informacji o licencji FlyEnv, proszę czekać..."
 }

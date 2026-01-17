@@ -2,21 +2,20 @@
   "title": "许可证说明",
   "description": "许可证代表了对 FlyEnv 和作者辛勤工作的认可。其初衷并非限制用户使用，而是希望提醒用户尊重开发者的劳动成果，并在使用软件时遵守相关条款。通过遵守许可证，用户不仅支持了项目的持续发展，也为开源社区的互信与合作精神贡献了力量。",
   "restrictions": {
-    "title": "未获取许可证的用户将受到以下限制:",
+    "title": "未获取许可证的用户仍可正常使用，但受到以下限制:",
     "items": {
       "0": "最多可新建三个站点。",
       "1": "AI聊天功能仅可试用三天。",
       "2": "后续新增功能可能会受到其他限制。"
     }
   },
-  "licenseInfo": "当前提供的许可证为永久许可证，每台电脑对应一个许可证。若更换电脑，需重新申请许可证。",
   "howToObtain": {
     "title": "许可证获取方式",
     "description": "FlyEnv 提供了灵活的许可证获取方式，用户可选择以下任意一种方式申请：",
     "methods": {
       "0": {
         "title": "捐赠项目",
-        "description": "捐赠金额无具体限制。考虑到不同国家和用户的经济状况（例如许多用户为学生），请根据自身情况选择合适的金额。"
+        "description": "捐赠金额无具体限制。考虑到不同国家和用户的经济状况（例如许多用户为学生），请根据自身情况选择合适的金额。捐赠前请考虑好，不要捐赠一份钱，一块钱等不太尊重人的金额。浪费彼此大家的时间。如果确实需要许可证，还有其他获取方式。"
       },
       "1": {
         "title": "参与项目开发",
@@ -34,5 +33,29 @@
   "requestButton": "请求许可证",
   "refreshButton": "刷新状态",
   "licenseActivated": "许可证已激活",
-  "licenseNoActivated": "许可证未激活"
+  "licenseNoActivated": "许可证未激活",
+
+  "licenseInfo": "当前提供的许可证为永久许可证，每台电脑对应一个许可证。若更换电脑，需要在我的许可证里绑定新设备的uuid，或者重新申请许可证。",
+  "logoutTips": "确定退出登录?",
+  "delBindTips": "确定取消此UUID的许可证绑定?",
+  "addBindTips": "确定将许可证绑定到此UUID?",
+  "currentLicenseState": "本机许可证状态",
+  "activeState": "激活状态",
+  "myLicense": "我的许可证",
+  "loginTips": "请先登录",
+  "logingTips": "GitHub授权登录中...",
+  "licenseNo": "许可证编号",
+  "licenseBindUUID": "已绑定UUID",
+  "delBind": "解除绑定",
+  "bindCurrentUUID": "绑定本机",
+  "licenseDescription": "许可证说明",
+  "loginFail": "登录失败",
+  "oauthCanceledTitle": "授权已取消",
+  "oauthCanceledMessage": "用户取消了授权流程",
+  "oauthFailedTitle": "授权失败",
+  "oauthFailedMessage": "授权失败。原因: {error}",
+  "oauthFailedByNoAuthCode": "未收到授权码",
+  "oauthTimeout": "授权已超时",
+  "oauthSuccessTitle": "授权成功",
+  "oauthSuccessMessage": "FlyEnv许可证信息获取中，请稍候..."
 }

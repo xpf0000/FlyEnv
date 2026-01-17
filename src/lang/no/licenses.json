@@ -9,7 +9,6 @@
       "2": "Ytterligere restriksjoner kan gjelde for fremtidige egenskaper."
     }
   },
-  "licenseInfo": "Gjeldende lisens som tilbys er en evigvarende lisens, med en lisens tilsvarende en datamaskin. Hvis du endrer datamaskinen din, må du be om en ny lisens.",
   "howToObtain": {
     "title": "Hvordan få en lisens",
     "description": "FlyEnv gir fleksible måter å få en lisens. Brukere kan velge følgende metoder som skal gjelde:",
@@ -32,5 +31,29 @@
   "messageLabel": "Melding",
   "messagePlaceholder": "Vennligst send inn giveren, donasjonslenken, eller bestille ID ved valg å donere.\nSend inn PR-lenken for de som velger å delta i prosjektutvikling.\nDu kan sende en lenke til din artikkel, video, blogg, innlogging eller kommentere dem som velger å forvandle.",
   "requestButton": "Forespørsel Lisens",
-  "refreshButton": "Oppdater tilstand"
+  "refreshButton": "Oppdater tilstand",
+
+  "licenseInfo": "Den nåværende lisensen er en permanent lisens, hver datamaskin tilsvarer én lisens. Hvis du bytter datamaskin, må du knytte den nye enhetens uuid i 'Mine lisenser', eller søke om en ny lisens.",
+  "logoutTips": "Er du sikker på at du vil logge ut?",
+  "delBindTips": "Er du sikker på at du vil fjerne bindingen av lisensen fra denne UUID?",
+  "addBindTips": "Er du sikker på at du vil binde lisensen til denne UUID?",
+  "currentLicenseState": "Lisensstatus på denne enheten",
+  "activeState": "Aktiveringsstatus",
+  "myLicense": "Mine lisenser",
+  "loginTips": "Vennligst logg inn først",
+  "logingTips": "Logger inn via GitHub...",
+  "licenseNo": "Lisensnummer",
+  "licenseBindUUID": "Bundet UUID",
+  "delBind": "Fjern binding",
+  "bindCurrentUUID": "Bind denne enheten",
+  "licenseDescription": "Lisensbeskrivelse",
+  "loginFail": "Innlogging mislyktes",
+  "oauthCanceledTitle": "Autorisasjon avbrutt",
+  "oauthCanceledMessage": "Brukeren avbrøt autorisasjonsprosessen",
+  "oauthFailedTitle": "Autorisasjon mislyktes",
+  "oauthFailedMessage": "Autorisasjon mislyktes. Årsak: {error}",
+  "oauthFailedByNoAuthCode": "Autorisasjonskode ikke mottatt",
+  "oauthTimeout": "Autorisasjon timeout",
+  "oauthSuccessTitle": "Autorisasjon vellykket",
+  "oauthSuccessMessage": "Henter FlyEnv lisensinformasjon, vennligst vent..."
 }
