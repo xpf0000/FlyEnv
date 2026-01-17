@@ -341,10 +341,16 @@ class ImageBatchProcess {
     console.log('getWordWidths: ', word, this.wordWidths)
   }
 
-  selectDir() {
+  selectDir(type?: 'file' | 'folder') {
+    let properties = ['openFile', 'openDirectory', 'showHiddenFiles', 'multiSelections']
+    if (type === 'file') {
+      properties = ['openFile', 'showHiddenFiles', 'multiSelections']
+    } else if (type === 'folder') {
+      properties = ['openDirectory', 'showHiddenFiles', 'multiSelections']
+    }
     dialog
       .showOpenDialog({
-        properties: ['openFile', 'openDirectory', 'showHiddenFiles', 'multiSelections'],
+        properties,
         filters: [
           {
             name: 'Image Files',
@@ -356,7 +362,9 @@ class ImageBatchProcess {
         if (canceled || filePaths.length === 0) {
           return
         }
-        const all = filePaths.filter((filePath: string) => !this.dirs.includes(filePath))
+        const all = filePaths
+          .filter((filePath: string) => !this.dirs.includes(filePath))
+          .filter((filePath: string) => !this.images.some((i) => i.path === filePath))
         if (!all.length) {
           return
         }
@@ -376,15 +384,18 @@ class ImageBatchProcess {
           if (data) {
             const allFile = data?.allFile
             if (allFile) {
-              const images: BatchImageInfoItem[] = reactive(
-                allFile.map((m) => {
-                  return {
-                    path: m.path,
-                    status: 'fetching'
-                  }
-                })
-              ) as any
-              this.images.push(...images)
+              const files = allFile.filter((a) => !this.images.some((i) => i.path === a.path))
+              if (files.length > 0) {
+                const images: BatchImageInfoItem[] = reactive(
+                  files.map((m) => {
+                    return {
+                      path: m.path,
+                      status: 'fetching'
+                    }
+                  })
+                ) as any
+                this.images.push(...images)
+              }
               return
             }
             const successTask = data?.successTask ?? []

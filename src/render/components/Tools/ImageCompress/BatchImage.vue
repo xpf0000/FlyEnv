@@ -61,12 +61,28 @@
             </template>
           </div>
           <div class="flex items-center">
-            <el-button
-              :icon="Plus"
-              type="primary"
-              link
-              @click.stop="ImageBatch.selectDir()"
-            ></el-button>
+            <template v-if="isWindows">
+              <el-button
+                :icon="Picture"
+                type="primary"
+                link
+                @click.stop="ImageBatch.selectDir('file')"
+              ></el-button>
+              <el-button
+                :icon="Folder"
+                type="primary"
+                link
+                @click.stop="ImageBatch.selectDir('folder')"
+              ></el-button>
+            </template>
+            <template v-else>
+              <el-button
+                :icon="Plus"
+                type="primary"
+                link
+                @click.stop="ImageBatch.selectDir()"
+              ></el-button>
+            </template>
             <el-button
               :disabled="!choosed.length"
               :icon="Delete"
@@ -140,13 +156,17 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue'
   import { ImageBatch } from './setup'
-  import { Delete, FolderOpened, Lock, Plus } from '@element-plus/icons-vue'
+  import { Delete, FolderOpened, Lock, Plus, Picture, Folder } from '@element-plus/icons-vue'
   import BatchImageTablePathCell from '@/components/Tools/ImageCompress/BatchImageTablePathCell.vue'
   import { SetupStore } from '@/components/Setup/store'
   import { I18nT } from '@lang/index'
 
   const setupStore = SetupStore()
   const choosed = ref([])
+
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
 
   const isLocked = computed(() => {
     if (setupStore.isActive) {
