@@ -65,12 +65,14 @@ class Rust extends Base {
       let all: Promise<SoftInstalled[]>[] = []
       const customDirs = [...(setup?.rust?.dirs ?? [])]
       const rustupDir = join(homedir(), '.rustup/toolchains')
-      const dirs = await readdir(rustupDir, { withFileTypes: true })
-      dirs.forEach((dir) => {
-        if (dir.isDirectory()) {
-          customDirs.push(join(rustupDir, dir.name))
-        }
-      })
+      if (existsSync(rustupDir)) {
+        const dirs = await readdir(rustupDir, { withFileTypes: true })
+        dirs.forEach((dir) => {
+          if (dir.isDirectory()) {
+            customDirs.push(join(rustupDir, dir.name))
+          }
+        })
+      }
       if (isWindows()) {
         all = [versionLocalFetch(customDirs, 'rustc.exe')]
       } else {
