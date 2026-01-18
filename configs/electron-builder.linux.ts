@@ -41,7 +41,7 @@ const conf: Configuration = {
   artifactName: '${productName}-${version}.${ext}', // 自定义打包文件名格式
   linux: {
     icon: 'build/icons',
-    asarUnpack: ['**/*.node'],
+    asarUnpack: ['**/*.node', '**/node_modules/sharp/**/*', '**/node_modules/@img/**/*'],
     category: 'Development',
     packageCategory: 'Development',
     desktop: {
