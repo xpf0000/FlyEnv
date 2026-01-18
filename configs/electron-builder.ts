@@ -2,6 +2,10 @@ import type { Configuration } from 'electron-builder'
 import PublishConfig from './publish'
 import AfterPack from '../build/afterPack'
 import Notarize from '../build/notarize'
+
+// 获取当前 Node.js 运行环境的架构
+const currentArch = process.arch === 'arm64' ? 'arm64' : 'x64'
+
 /**
  * one environment
  * envlab
@@ -57,7 +61,8 @@ const conf: Configuration = {
     target: {
       target: 'default',
       // target: 'pkg',
-      arch: ['x64', 'arm64']
+      // 这里通过变量动态设置，确保只打包当前架构
+      arch: [currentArch]
       // arch: ['arm64']
     },
     asarUnpack: ['**/*.node', '**/node_modules/sharp/**/*', '**/node_modules/@img/**/*'],

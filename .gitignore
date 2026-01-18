@@ -4,7 +4,6 @@ dist
 dist-ssr
 *.local
 /build/*.p8
-/build/notarize.js
 /build/JWT.js
 /build/Legacy.js
 /build/notarize.ts
