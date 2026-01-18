@@ -82,9 +82,6 @@ const serveConfig: UserConfig = {
 
 const buildConfig: UserConfig = {
   mode: 'production',
-  esbuild: {
-    drop: ['console', 'debugger']
-  },
   build: {
     outDir: '../../dist/render',
     assetsDir: 'static',
@@ -113,7 +110,17 @@ const buildConfig: UserConfig = {
     },
     minify: 'esbuild'
   },
-  ...config
+  ...config,
+  ...{
+    esbuild: {
+      jsx: 'preserve',
+      target: 'esnext',
+      supported: {
+        'top-level-await': true
+      },
+      drop: ['console', 'debugger']
+    }
+  }
 }
 
 export default {
