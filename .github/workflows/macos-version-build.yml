@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - arch: x64
-            os: macos-13 # Intel 运行环境
+            os: macos-15 # Intel 运行环境
             target: x64
           - arch: arm64
             os: macos-latest # Apple Silicon 运行环境
@@ -80,6 +80,8 @@ jobs:
 
       - name: Build and Notarize Electron App
         env:
+          # 关键点：增加 Node 内存上限到 8GB
+          NODE_OPTIONS: "--max-old-space-size=4096"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
