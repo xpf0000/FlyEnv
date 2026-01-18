@@ -468,6 +468,7 @@ export default class Application extends EventEmitter {
 
   showPage(page: string) {
     if (this.mainWindow) {
+      this.mainWindow.show()
       return
     }
     const win = this.windowManager.openWindow(page)
