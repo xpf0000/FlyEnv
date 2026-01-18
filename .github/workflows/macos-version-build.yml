@@ -54,7 +54,7 @@ jobs:
         run: |
           # 1. 还原 .p8 文件
           mkdir -p build
-          echo -n "$AUTH_KEY_BASE64" | base64 --decode -o build/AuthKey_JTMT429KVA.p8
+          echo -n "$AUTH_KEY_BASE64" | base64 --decode -o build/apple_api_key.p8
 
           # 2. 创建临时钥匙串并导入证书
           CERT_PATH=$RUNNER_TEMP/build_cert.p12
@@ -87,7 +87,9 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_KEY_PATH: ${{ github.workspace }}/build/AuthKey_JTMT429KVA.p8
+          # 核心修复：electron-builder 寻找的是 APPLE_API_KEY
+          APPLE_API_KEY: ${{ github.workspace }}/build/apple_api_key.p8
+          APPLE_API_KEY_PATH: ${{ github.workspace }}/build/apple_api_key.p8
         run: yarn build
 
       - name: Upload Artifacts
