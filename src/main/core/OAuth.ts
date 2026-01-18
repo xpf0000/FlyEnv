@@ -1,5 +1,4 @@
 import { shell } from 'electron'
-import type { CallbackFn } from '@shared/app'
 import _node_machine_id from 'node-machine-id'
 import axios from 'axios'
 import { getAxiosProxy } from '../../fork/util/Axios'
@@ -15,7 +14,6 @@ const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize'
  */
 class OAuth {
   private code = ''
-  private callBack: CallbackFn | undefined
   private server: http.Server | null = null
   private readonly PORT = 32481
   private readonly REDIRECT_URI = `http://127.0.0.1:${this.PORT}/callback`
@@ -25,7 +23,7 @@ class OAuth {
   private uuid = ''
 
   public fetchUser() {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       if (!global.Server.UserUUID) {
         resolve({
           code: 0,
@@ -65,9 +63,9 @@ class OAuth {
         }
       } catch (e: any) {
         console.log('user_github_auth error: ', e)
-        resolve({
-          code: 0,
-          data: {}
+        reject({
+          code: 1,
+          msg: `${e}`
         })
       }
     })
@@ -113,8 +111,8 @@ class OAuth {
       } catch (e: any) {
         console.log('user_github_license error: ', e)
         resolve({
-          code: 0,
-          data: []
+          code: 1,
+          msg: `${e}`
         })
       }
     })
@@ -223,17 +221,13 @@ class OAuth {
       console.log('服务端响应:', res.data)
 
       if (res.data && res.data?.data?.user) {
-        this.callBack?.(res.data.data)
+        return res.data.data
       } else {
         throw new Error(res.data?.message || I18nT('licenses.loginFail'))
       }
     } catch (error: any) {
       console.error('登录过程出错:', error)
-      this.callBack?.({
-        success: false,
-        message: error.message || '登录失败',
-        error: error.response?.data || error
-      })
+      throw error
     }
   }
 
@@ -513,10 +507,9 @@ class OAuth {
    * 接收到code后 调用login方法获取用户信息
    */
   startOAuth(): Promise<any> {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       try {
         this.isCancelled = false
-        this.callBack = resolve
 
         // 启动授权流程获取 code
         const code = await this.startAuthFlow()
@@ -524,15 +517,12 @@ class OAuth {
         if (code && !this.isCancelled) {
           this.code = code
           // 使用 code 调用服务端登录接口
-          await this.login()
+          const res = await this.login()
+          resolve(res)
         }
       } catch (error: any) {
         console.error('OAuth流程出错:', error)
-        resolve({
-          success: false,
-          message: error.message || '授权流程出错',
-          error: error.toString()
-        })
+        reject(error)
       } finally {
         this.closeServer()
       }
@@ -547,12 +537,6 @@ class OAuth {
     console.log('用户取消授权流程')
     this.isCancelled = true
     this.closeServer()
-    this.callBack?.({
-      success: false,
-      message: I18nT('licenses.oauthCanceledMessage'),
-      cancelled: true
-    })
-    this.callBack = undefined
   }
 }
 

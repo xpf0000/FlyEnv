@@ -100,7 +100,7 @@ export default class Application extends EventEmitter {
       )
     })
     // if (!is.dev()) {
-      this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
+    this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
     // }
     NodePTY.onSendCommand((command: string, ...args: any) => {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
@@ -492,14 +492,16 @@ export default class Application extends EventEmitter {
         JSON.parse(JSON.stringify(global.Server))
       )
       global.Server.UserUUID = this.configManager?.getConfig('setup.user_uuid')
-      OAuth.fetchUser().then((res) => {
-        this.windowManager.sendCommandTo(
-          win,
-          'APP-User-UUID-Need-Update',
-          'APP-User-UUID-Need-Update',
-          JSON.parse(JSON.stringify(res))
-        )
-      })
+      OAuth.fetchUser()
+        .then((res) => {
+          this.windowManager.sendCommandTo(
+            win,
+            'APP-User-UUID-Need-Update',
+            'APP-User-UUID-Need-Update',
+            JSON.parse(JSON.stringify(res))
+          )
+        })
+        .catch()
     })
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
@@ -1026,14 +1028,16 @@ export default class Application extends EventEmitter {
         break
       case 'GitHub-OAuth-License-Fetch':
         {
-          OAuth.fetchUserLicense().then((res) => {
-            this.windowManager.sendCommandTo(
-              this.mainWindow!,
-              command,
-              key,
-              JSON.parse(JSON.stringify(res))
-            )
-          })
+          OAuth.fetchUserLicense()
+            .then((res) => {
+              this.windowManager.sendCommandTo(
+                this.mainWindow!,
+                command,
+                key,
+                JSON.parse(JSON.stringify(res))
+              )
+            })
+            .catch()
         }
         break
       case 'GitHub-OAuth-License-Del-Bind':

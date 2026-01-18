@@ -5,6 +5,7 @@ import { I18nT } from '@lang/index'
 import { AppStore } from '@/store/app'
 import { MessageError } from '@/util/Element'
 import { reactive } from 'vue'
+import localForage from 'localforage'
 
 type GitHubUser = {
   uuid: string
@@ -47,15 +48,30 @@ export const SetupStore = defineStore('setup', {
     init() {
       return new Promise<void>((resolve) => {
         this.message = localStorage.getItem('flyenv-licenses-post-message') ?? ''
+        localForage.getItem('flyenv-user-github').then((res: any) => {
+          if (res) {
+            this.githubUser = reactive(res.githubUser)
+            this.githubLicense = reactive(res.githubLicense)
+          }
+        })
         IPC.send('app-fork:app', 'licensesInit').then((key: string, res?: any) => {
           if (res?.code !== 200) {
             IPC.off(key)
           }
           console.log('licensesInit: ', res)
-          Object.assign(this, res?.data)
-          const store = AppStore()
-          store.config.setup.license = this.activeCode
-          store.saveConfig().then().catch()
+          if (res?.code === 0) {
+            const data: any = res?.data
+            if (data.requestSuccess) {
+              Object.assign(this, res?.data)
+              const store = AppStore()
+              store.config.setup.license = this.activeCode
+              store.saveConfig().then().catch()
+            } else {
+              this.uuid = data.uuid
+              this.isActive = data.isActive
+              this.activeCode = data.activeCode
+            }
+          }
           resolve()
         })
       })
@@ -68,6 +84,11 @@ export const SetupStore = defineStore('setup', {
       IPC.send('app-fork:app', 'licensesState').then((key: string, res?: any) => {
         if (res?.code !== 200) {
           IPC.off(key)
+        }
+        if (res?.code === 1) {
+          this.fetching = false
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          return
         }
         console.log('refreshState: ', res)
         Object.assign(this, res?.data)
@@ -89,8 +110,22 @@ export const SetupStore = defineStore('setup', {
         IPC.off(key)
         console.log('postRequest: ', res)
         this.fetching = false
+        if (res?.code === 1) {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          return
+        }
         ElMessage.success(I18nT('setup.requestedTips'))
       })
+    },
+    githubInfoSave() {
+      localForage
+        .setItem(
+          'flyenv-user-github',
+          JSON.parse(
+            JSON.stringify({ githubUser: this.githubUser, githubLicense: this.githubLicense })
+          )
+        )
+        .catch()
     },
     githubAuthStart() {
       if (this.githubAuthing) {
@@ -111,6 +146,7 @@ export const SetupStore = defineStore('setup', {
         const store = AppStore()
         store.config.setup.user_uuid = user?.uuid
         store.saveConfig().then().catch()
+        this.githubInfoSave()
       })
     },
     githubAuthCancel() {
@@ -130,6 +166,7 @@ export const SetupStore = defineStore('setup', {
         const store = AppStore()
         store.config.setup.user_uuid = ''
         store.saveConfig().then().catch()
+        localForage.removeItem('flyenv-user-github').catch()
       })
     },
     githubLicenseFetch() {
@@ -139,10 +176,13 @@ export const SetupStore = defineStore('setup', {
       this.githubAuthing = true
       IPC.send('GitHub-OAuth-License-Fetch').then((key, res: any) => {
         IPC.off(key)
+        this.githubAuthing = false
         if (res?.code === 0) {
           this.githubLicense = reactive(res?.data ?? [])
+          this.githubInfoSave()
+        } else if (res?.code === 1) {
+          MessageError(res?.msg ?? I18nT('base.fail'))
         }
-        this.githubAuthing = false
       })
     },
     githubAuthDelBind(uuid: string, license: string) {
@@ -154,8 +194,10 @@ export const SetupStore = defineStore('setup', {
         this.githubAuthing = true
         IPC.send('GitHub-OAuth-License-Del-Bind', uuid, license).then((key: string, res: any) => {
           IPC.off(key)
+          this.githubAuthing = false
           if (res?.code === 0) {
             this.githubLicense = reactive(res?.data ?? [])
+            this.githubInfoSave()
             if (uuid === this.uuid) {
               const store = AppStore()
               store.config.setup.license = ''
@@ -163,8 +205,9 @@ export const SetupStore = defineStore('setup', {
               this.isActive = false
               window.Server.UserUUID = ''
             }
+          } else if (res?.code === 1) {
+            MessageError(res?.msg ?? I18nT('base.fail'))
           }
-          this.githubAuthing = false
         })
       })
     },
@@ -177,11 +220,14 @@ export const SetupStore = defineStore('setup', {
         this.githubAuthing = true
         IPC.send('GitHub-OAuth-License-Add-Bind', uuid, license).then((key: string, res: any) => {
           IPC.off(key)
+          this.githubAuthing = false
           if (res?.code === 0) {
             this.githubLicense = reactive(res?.data ?? [])
+            this.githubInfoSave()
             this.refreshState()
+          } else if (res?.code === 1) {
+            MessageError(res?.msg ?? I18nT('base.fail'))
           }
-          this.githubAuthing = false
         })
       })
     }

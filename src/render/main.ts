@@ -80,6 +80,7 @@ IPC.on('APP-User-UUID-Need-Update').then((key: string, res: any) => {
     const store = SetupStore()
     store.githubUser = res?.data?.user
     store.githubLicense = res?.data?.license
+    store.githubInfoSave()
   }
 })
 IPC.on('APP-License-Need-Update').then(() => {

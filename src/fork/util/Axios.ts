@@ -9,10 +9,10 @@ export const getAxiosProxy = () => {
       proxy.host = u.hostname
       proxy.port = u.port
     } catch {
-      proxy = undefined
+      proxy = false
     }
   } else {
-    proxy = undefined
+    proxy = false
   }
   console.log('getAxiosProxy: ', proxy)
   return proxy

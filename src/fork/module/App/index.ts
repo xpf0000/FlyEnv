@@ -33,7 +33,7 @@ class App extends Base {
   }
 
   start(version: string) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       const uuid_new = await machineId()
       const uuid = '#########'
 
@@ -54,25 +54,26 @@ class App extends Base {
       }
 
       console.log('data: ', data)
-
-      const res = await axios({
+      axios({
         url: 'https://api.one-env.com/api/app/start',
         method: 'post',
         data,
         proxy: this.getAxiosProxy()
       })
+        .then((res) => {
+          if (res?.data?.code === 200) {
+            const license = res?.data?.data?.license ?? ''
+            resolve({
+              'APP-Licenses-Code': license
+            })
+            return
+          }
 
-      console.log('App start res: ', res)
-
-      if (res?.data?.code === 200) {
-        const license = res?.data?.data?.license ?? ''
-        resolve({
-          'APP-Licenses-Code': license
+          resolve(true)
         })
-        return
-      }
-
-      resolve(true)
+        .catch((err) => {
+          reject(err)
+        })
     })
   }
 
@@ -106,19 +107,34 @@ class App extends Base {
     return new ForkPromise(async (resolve, reject, on) => {
       const uuid = await machineId()
       const data = {
+        requestSuccess: false,
         uuid,
         activeCode: '',
         isActive: false
       }
 
-      const res: any = await this.licensesState()
-      console.log('licensesInit licensesState: ', res)
-      Object.assign(data, res)
-
-      on({
-        'APP-Licenses-Code': res?.activeCode ?? ''
-      })
-      resolve(data)
+      this.licensesState()
+        .then((res) => {
+          Object.assign(data, res)
+          data.requestSuccess = true
+          on({
+            'APP-Licenses-Code': data?.activeCode ?? ''
+          })
+          resolve(data)
+        })
+        .catch(() => {
+          data.requestSuccess = false
+          const license = global.Server?.Licenses
+          if (license) {
+            const uid = publicDecrypt(
+              this.getRSAKey(),
+              Buffer.from(license, 'base64') as any
+            ).toString('utf-8')
+            data.isActive = uid === uuid
+            data.activeCode = data.isActive ? license : ''
+          }
+          resolve(data)
+        })
     })
   }
 
@@ -142,9 +158,6 @@ class App extends Base {
           console.log('licensesState res: ', res)
           const data = res?.data?.data ?? {}
           obj.activeCode = data?.code ?? ''
-        })
-        .catch(() => {})
-        .finally(() => {
           if (obj.activeCode) {
             const uid = publicDecrypt(
               this.getRSAKey(),
@@ -153,10 +166,18 @@ class App extends Base {
             obj.isActive = uid === uuid
 
             on({
-              'APP-Licenses-Code': obj.activeCode
+              'APP-Licenses-Code': obj.isActive ? obj.activeCode : ''
+            })
+          } else {
+            on({
+              'APP-Licenses-Code': ''
             })
           }
           resolve(obj)
+        })
+        .catch((e) => {
+          console.log('licensesState err: ', e)
+          reject(e)
         })
     })
   }
