@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - arch: x64
-            os: macos-15 # Intel 运行环境
+            os: macos-15-intel # Intel 运行环境
             target: x64
           - arch: arm64
             os: macos-latest # Apple Silicon 运行环境
