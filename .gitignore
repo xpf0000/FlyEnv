@@ -16,6 +16,8 @@ dist-ssr
 !/build/bin/x86/postinstall.sh
 /build/afterPack.js
 /build/log
+/build/generate-secrets.sh
+/build/DevIDAPP.p12
 /electron
 /release
 /icon.sh
