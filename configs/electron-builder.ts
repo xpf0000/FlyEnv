@@ -60,7 +60,7 @@ const conf: Configuration = {
       arch: ['x64', 'arm64']
       // arch: ['arm64']
     },
-    asarUnpack: ['**/*.node'],
+    asarUnpack: ['**/*.node', '**/node_modules/sharp/**/*', '**/node_modules/@img/**/*'],
     extendInfo: {
       'Icon file': 'icon.icns',
       CFBundleDisplayName: 'FlyEnv',
