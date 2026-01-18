@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "Yetki Kodu Alınmadı",
   "oauthTimeout": "Yetki Müddəti Bitdi",
   "oauthSuccessTitle": "Yetki Uğurla Tamamlandı",
-  "oauthSuccessMessage": "FlyEnv lisenziya məlumatları gətirilir, zəhmət olmasa gözləyin..."
+  "oauthSuccessMessage": "Bu səhifə bağlana bilər. Lisenziya məlumatlarını görmək üçün FlyEnv-ə qayıtmaq əməliyyatını tamamlayın."
 }

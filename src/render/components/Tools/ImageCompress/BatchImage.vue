@@ -34,7 +34,7 @@
       </el-form-item>
     </el-form>
 
-    <el-card class="app-base-el-card flex-1 w-full">
+    <el-card ref="card" class="app-base-el-card flex-1 w-full">
       <template #header>
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -61,7 +61,15 @@
             </template>
           </div>
           <div class="flex items-center">
-            <template v-if="isWindows">
+            <template v-if="isMacOS">
+              <el-button
+                :icon="Plus"
+                type="primary"
+                link
+                @click.stop="ImageBatch.selectDir()"
+              ></el-button>
+            </template>
+            <template v-else>
               <el-button
                 :icon="Picture"
                 type="primary"
@@ -75,14 +83,6 @@
                 @click.stop="ImageBatch.selectDir('folder')"
               ></el-button>
             </template>
-            <template v-else>
-              <el-button
-                :icon="Plus"
-                type="primary"
-                link
-                @click.stop="ImageBatch.selectDir()"
-              ></el-button>
-            </template>
             <el-button
               :disabled="!choosed.length"
               :icon="Delete"
@@ -93,7 +93,16 @@
           </div>
         </div>
       </template>
+      <li v-show="onDrag" class="w-full h-full z-50 flex items-center justify-center">
+        <div
+          class="w-[70%] h-[70%] border-2 border-dashed border-yellow-500 text-yellow-500 rounded-[10px] flex flex-col items-center justify-center gap-[20px]"
+        >
+          <yb-icon :svg="import('@/svg/upload.svg?raw')" class="w-[100px] h-[100px]" />
+          <span>{{ $t('base.fileInfoTips') }}</span>
+        </div>
+      </li>
       <el-table
+        v-show="!onDrag"
         row-key="path"
         class="h-full w-full"
         :data="ImageBatch.images"
@@ -154,18 +163,33 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { ImageBatch } from './setup'
   import { Delete, FolderOpened, Lock, Plus, Picture, Folder } from '@element-plus/icons-vue'
   import BatchImageTablePathCell from '@/components/Tools/ImageCompress/BatchImageTablePathCell.vue'
   import { SetupStore } from '@/components/Setup/store'
   import { I18nT } from '@lang/index'
+  import { initFileDroper } from '@/util/File'
 
   const setupStore = SetupStore()
   const choosed = ref([])
+  const card = ref()
+  const onDrag = ref(false)
 
-  const isWindows = computed(() => {
-    return window.Server.isWindows
+  onMounted(() => {
+    const dom = card.value.$el as HTMLElement
+    initFileDroper(dom, (res) => {
+      console.log('initFileDroper: ', res)
+      onDrag.value = res?.ondrag
+      const files = res.files
+      if (files.length > 0) {
+        ImageBatch.imageSelected(files)
+      }
+    })
+  })
+
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
   })
 
   const isLocked = computed(() => {

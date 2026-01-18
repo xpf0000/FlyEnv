@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "Godkendelseskode ikke modtaget",
   "oauthTimeout": "Godkendelses-timeout",
   "oauthSuccessTitle": "Godkendelse lykkedes",
-  "oauthSuccessMessage": "Henter FlyEnv licensoplysninger, vent venligst..."
+  "oauthSuccessMessage": "Denne side kan lukkes. Vend tilbage til FlyEnv for at se licensoplysningerne."
 }

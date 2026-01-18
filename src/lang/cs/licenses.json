@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "Autorizační kód nebyl přijat",
   "oauthTimeout": "Platnost ověření vypršela",
   "oauthSuccessTitle": "Ověření úspěšné",
-  "oauthSuccessMessage": "Načítání informací o licenci FlyEnv, počkejte prosím..."
+  "oauthSuccessMessage": "Tuto stránku lze zavřít. Vraťte se do FlyEnv a zkontrolujte si licenční údaje."
 }

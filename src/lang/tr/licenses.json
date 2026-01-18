@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "Yetkilendirme kodu alınmadı",
   "oauthTimeout": "Yetkilendirme zaman aşımı",
   "oauthSuccessTitle": "Yetkilendirme Başarılı",
-  "oauthSuccessMessage": "FlyEnv lisans bilgileri alınıyor, lütfen bekleyin..."
+  "oauthSuccessMessage": "Bu sayfa kapatılabilir. Lütfen lisans bilgilerini görüntülemek için FlyEnv'ye dönün."
 }

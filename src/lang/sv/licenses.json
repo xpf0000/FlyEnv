@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "Auktoriseringskod inte mottagen",
   "oauthTimeout": "Auktoriseringstimeout",
   "oauthSuccessTitle": "Auktorisering lyckades",
-  "oauthSuccessMessage": "Hämtar FlyEnv licensinformation, var god vänta..."
+  "oauthSuccessMessage": "Den här sidan kan stängas. Vänligen återvänd till FlyEnv för att se licensinformationen."
 }

@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "Autorisatiecode niet ontvangen",
   "oauthTimeout": "Autorisatietime-out",
   "oauthSuccessTitle": "Autorisatie geslaagd",
-  "oauthSuccessMessage": "FlyEnv licentie-informatie ophalen, even geduld..."
+  "oauthSuccessMessage": "Deze pagina kan worden gesloten. Ga alstublieft terug naar FlyEnv om de licentiegegevens te bekijken."
 }

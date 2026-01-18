@@ -273,7 +273,6 @@ class ImageBatchProcess {
   backupDir: string = ''
   rewrite: boolean = false
   trialStartTime: number = 0
-  dirs: string[] = []
   images: Array<BatchImageInfoItem> = []
 
   wordWidths: Record<string, number> = {}
@@ -341,73 +340,76 @@ class ImageBatchProcess {
     console.log('getWordWidths: ', word, this.wordWidths)
   }
 
+  imageSelected(paths: string[]) {
+    const all = paths.filter((filePath: string) => !this.images.some((i) => i.path === filePath))
+    if (!all.length) {
+      return
+    }
+    IPC.send('app-fork:image', 'fetchDirFile', all).then((key, res) => {
+      if (res?.code === 0 || res?.code === 1) {
+        IPC.off(key)
+        return
+      }
+      const data:
+        | {
+            allFile?: BatchImageInfoItem[]
+            successTask?: BatchImageInfoItem[]
+            failTask?: BatchImageInfoItem[]
+          }
+        | undefined = res?.msg
+      if (data) {
+        const allFile = data?.allFile
+        if (allFile) {
+          const files = allFile.filter((a) => !this.images.some((i) => i.path === a.path))
+          if (files.length > 0) {
+            const images: BatchImageInfoItem[] = reactive(
+              files.map((m) => {
+                return {
+                  path: m.path,
+                  status: 'fetching'
+                }
+              })
+            ) as any
+            this.images.push(...images)
+          }
+          return
+        }
+        const successTask = data?.successTask ?? []
+        const failTask = data?.failTask ?? []
+        for (const task of [...successTask, ...failTask]) {
+          const find = this.images.find((i) => i.path === task.path)
+          if (find) {
+            Object.assign(find, task, { status: 'fetched' })
+          }
+        }
+      }
+    })
+  }
+
   selectDir(type?: 'file' | 'folder') {
     let properties = ['openFile', 'openDirectory', 'showHiddenFiles', 'multiSelections']
+    let filters: any = []
     if (type === 'file') {
       properties = ['openFile', 'showHiddenFiles', 'multiSelections']
+      filters = [
+        {
+          name: 'Image Files',
+          extensions: ['jpeg', 'jpg', 'png', 'webp', 'avif', 'gif', 'tiff', 'heif']
+        }
+      ]
     } else if (type === 'folder') {
       properties = ['openDirectory', 'showHiddenFiles', 'multiSelections']
     }
     dialog
       .showOpenDialog({
         properties,
-        filters: [
-          {
-            name: 'Image Files',
-            extensions: ['jpeg', 'jpg', 'png', 'webp', 'avif', 'gif', 'tiff', 'heif']
-          }
-        ]
+        filters
       })
       .then(({ canceled, filePaths }: { canceled: boolean; filePaths: string[] }) => {
         if (canceled || filePaths.length === 0) {
           return
         }
-        const all = filePaths
-          .filter((filePath: string) => !this.dirs.includes(filePath))
-          .filter((filePath: string) => !this.images.some((i) => i.path === filePath))
-        if (!all.length) {
-          return
-        }
-        this.dirs.push(...all)
-        IPC.send('app-fork:image', 'fetchDirFile', all).then((key, res) => {
-          if (res?.code === 0 || res?.code === 1) {
-            IPC.off(key)
-            return
-          }
-          const data:
-            | {
-                allFile?: BatchImageInfoItem[]
-                successTask?: BatchImageInfoItem[]
-                failTask?: BatchImageInfoItem[]
-              }
-            | undefined = res?.msg
-          if (data) {
-            const allFile = data?.allFile
-            if (allFile) {
-              const files = allFile.filter((a) => !this.images.some((i) => i.path === a.path))
-              if (files.length > 0) {
-                const images: BatchImageInfoItem[] = reactive(
-                  files.map((m) => {
-                    return {
-                      path: m.path,
-                      status: 'fetching'
-                    }
-                  })
-                ) as any
-                this.images.push(...images)
-              }
-              return
-            }
-            const successTask = data?.successTask ?? []
-            const failTask = data?.failTask ?? []
-            for (const task of [...successTask, ...failTask]) {
-              const find = this.images.find((i) => i.path === task.path)
-              if (find) {
-                Object.assign(find, task, { status: 'fetched' })
-              }
-            }
-          }
-        })
+        this.imageSelected(filePaths)
       })
   }
 
@@ -453,7 +455,6 @@ class ImageBatchProcess {
       this.backupDir = ''
     }
     this.processing = true
-    this.dirs.splice(0)
     this.images.forEach((image) => {
       delete image?.result
       image.status = 'processing'

@@ -57,5 +57,5 @@
   "oauthFailedByNoAuthCode": "未收到授权码",
   "oauthTimeout": "授权已超时",
   "oauthSuccessTitle": "授权成功",
-  "oauthSuccessMessage": "FlyEnv许可证信息获取中，请稍候..."
+  "oauthSuccessMessage": "此页面可关闭. 请回到FlyEnv中查看许可证信息"
 }

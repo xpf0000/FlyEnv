@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "Không nhận được mã ủy quyền",
   "oauthTimeout": "Ủy quyền đã hết thời gian",
   "oauthSuccessTitle": "Ủy quyền thành công",
-  "oauthSuccessMessage": "Đang lấy thông tin giấy phép FlyEnv, vui lòng chờ..."
+  "oauthSuccessMessage": "Trang này có thể đóng lại. Vui lòng quay lại FlyEnv để xem thông tin giấy phép."
 }

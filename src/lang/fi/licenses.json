@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "Valtuutuskoodia ei vastaanotettu",
   "oauthTimeout": "Valtuutuksen aikakatkaisu",
   "oauthSuccessTitle": "Valtuutus onnistui",
-  "oauthSuccessMessage": "Haetaan FlyEnv-lisenssitietoja, odota..."
+  "oauthSuccessMessage": "Tämä sivu voidaan sulkea. Palaa FlyEnv:n puoleen tarkastellaksesi lisenssitietoja."
 }

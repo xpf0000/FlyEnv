@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "認証コードを受信できませんでした",
   "oauthTimeout": "認証がタイムアウトしました",
   "oauthSuccessTitle": "認証に成功しました",
-  "oauthSuccessMessage": "FlyEnvライセンス情報を取得中です。お待ちください..."
+  "oauthSuccessMessage": "このページは閉じて結構です。ライセンス情報を確認するにはFlyEnvにお戻りください。"
 }

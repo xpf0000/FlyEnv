@@ -55,5 +55,5 @@
   "oauthFailedByNoAuthCode": "لم يتم استلام رمز التفويض",
   "oauthTimeout": "انتهت مهلة التفويض",
   "oauthSuccessTitle": "نجح التفويض",
-  "oauthSuccessMessage": "جارٍ جلب معلومات ترخيص FlyEnv، يرجى الانتظار..."
+  "oauthSuccessMessage": "يمكن إغلاق هذه الصفحة. يرجى العودة إلى FlyEnv لعرض معلومات الترخيص."
 }

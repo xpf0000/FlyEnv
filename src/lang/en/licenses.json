@@ -57,5 +57,5 @@
   "oauthFailedByNoAuthCode": "Authorization code not received",
   "oauthTimeout": "Authorization timeout",
   "oauthSuccessTitle": "Authorization Successful",
-  "oauthSuccessMessage": "Fetching FlyEnv license information, please wait..."
+  "oauthSuccessMessage": "This page can be closed. Please return to FlyEnv to view the license information."
 }
