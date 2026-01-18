@@ -209,7 +209,9 @@ class Image extends Base {
             let backupPath = backPath ? join(backPath, name) : ''
             if (format !== 'none') {
               path = path.replace(extname(path), `.${format}`)
-              backupPath = backupPath.replace(extname(backupPath), `.${format}`)
+              if (backupPath) {
+                backupPath = backupPath.replace(extname(backupPath), `.${format}`)
+              }
             }
             console.log('doCompressTask name', name, path, backupPath)
             return new ImageCompressTask(p, config, path, backupPath)
