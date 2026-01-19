@@ -14,21 +14,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-            python-version: '3.x'  # 使用最新的稳定版本
-            architecture: 'x64'
-
       - name: Install build dependencies
         run: |
           # 安装必要的构建工具
           choco install -y make git
-
-      - name: Setup Latest Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'latest'
 
       - name: Setup Latest Go
         uses: actions/setup-go@v4
@@ -53,6 +42,8 @@ jobs:
 
       - name: Install dependencies with Yarn
         run: |
+          # Force link against WinRT runtime objects
+          $env:LINK = "runtimeobject.lib"
           yarn install
 
       - name: Build Go helper with build-win.ps1
