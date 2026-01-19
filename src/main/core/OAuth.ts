@@ -29,6 +29,7 @@ class OAuth {
           code: 0,
           data: {}
         })
+        return
       }
       if (!this.uuid) {
         this.uuid = await machineId()
@@ -78,6 +79,7 @@ class OAuth {
           code: 0,
           data: []
         })
+        return
       }
 
       if (!this.uuid) {
@@ -120,6 +122,13 @@ class OAuth {
 
   public delBind(uuid: string, license: string) {
     return new Promise(async (resolve) => {
+      if (!global.Server.UserUUID) {
+        resolve({
+          code: 1,
+          msg: I18nT('base.fail')
+        })
+        return
+      }
       const data = {
         user_uuid: global.Server.UserUUID,
         uuid,
@@ -158,6 +167,14 @@ class OAuth {
 
   public addBind(uuid: string, license: string) {
     return new Promise(async (resolve) => {
+      if (!global.Server.UserUUID) {
+        resolve({
+          code: 1,
+          msg: I18nT('base.fail')
+        })
+        return
+      }
+
       const data = {
         user_uuid: global.Server.UserUUID,
         uuid,

@@ -1,38 +1,29 @@
-name: Build FlyEnv Linux Packages
+name: Build FlyEnv Windows Packages
 on:
   push:
     paths:
-      - 'build/linux.build.yml'
+      - 'build/windows.build.yml'
 
 jobs:
-  build-packages:
-    name: Build Packages (${{ matrix.arch }})
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    name: Build Windows Packages (x64)
+    runs-on: windows-2022
     timeout-minutes: 60
-    strategy:
-      matrix:
-        include:
-          - arch: x64
-            os: ubuntu-22.04
-            target: x64
-          - arch: arm64
-            os: ubuntu-22.04-arm
-            target: arm64
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Electron build dependencies
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+            python-version: '3.x'  # 使用最新的稳定版本
+            architecture: 'x64'
+
+      - name: Install build dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            g++ \
-            make \
-            python3 \
-            python3-pip \
-            pkg-config \
-            fakeroot \
-            rpm
+          # 安装必要的构建工具
+          choco install -y make git
 
       - name: Setup Latest Node.js
         uses: actions/setup-node@v4
@@ -52,35 +43,37 @@ jobs:
             **/node_modules
             .yarn/cache
             ~/.cache/node-gyp
-          key: ${{ runner.os }}-${{ matrix.arch }}-node-${{ hashFiles('**/package.json') }}
+            ~\AppData\Local\node-gyp
+          key: ${{ runner.os }}-x64-node-${{ hashFiles('**/package.json') }}
 
       - name: Install Yarn and build tools
         run: |
           npm install -g yarn node-gyp
-          python3 -m pip install --upgrade pip
+          python -m pip install --upgrade pip
 
       - name: Install dependencies with Yarn
         run: |
           yarn install
 
-      - name: Build Go helper
+      - name: Build Go helper with build-win.ps1
         run: |
-          cd "$GITHUB_WORKSPACE/src/helper-go"
-          chmod +x ./build-os.sh
-          bash ./build-os.sh
+          cd "$env:GITHUB_WORKSPACE/src/helper-go"
+          # 使用 PowerShell 脚本构建
+          .\build-win.ps1
 
       - name: Build Electron packages with electron-builder
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd "$GITHUB_WORKSPACE"
+          cd "$env:GITHUB_WORKSPACE"
           yarn build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: packages-${{ matrix.arch }}
+          name: FlyEnv-Windows-x64
           path: |
-            release/*.deb
-            release/*.rpm
+            release/*.exe
+            release/*.msi
             release/*.yml
+            release/*.blockmap
