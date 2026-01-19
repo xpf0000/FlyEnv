@@ -36,7 +36,7 @@ import { EOL } from 'os'
 import { createConnection } from 'mysql2/promise'
 import type { Connection } from 'mysql2/promise'
 import { parse as iniParse } from 'ini'
-import { compareVersions } from 'compare-versions'
+import { compareVersions } from '@shared/compare-versions'
 import { format } from 'date-fns'
 
 class Mysql extends Base {

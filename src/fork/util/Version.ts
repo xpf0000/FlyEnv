@@ -1,6 +1,6 @@
 import { statSync } from 'node:fs'
 import type { SoftInstalled } from '@shared/app'
-import { compareVersions } from 'compare-versions'
+import { compareVersions } from '@shared/compare-versions'
 import { dirname, join } from 'path'
 import {
   spawnPromiseWithEnv,
@@ -369,7 +369,7 @@ export const portSearch = async (
           flag: 'port'
         }
       })
-    arr.sort((a, b) => compareVersions(b.version, a.version))
+    arr.sort((a, b) => compareVersions(versionFixed(b.version), versionFixed(a.version)))
     return arr
   } catch (e) {
     console.log('portSearch err: ', e)

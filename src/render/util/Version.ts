@@ -9,3 +9,18 @@ export const staticVersionDel = (item: ModuleInstalledItem | ModuleStaticItem) =
     }).then()
   })
 }
+
+export function versionFixed(version?: string | null) {
+  return (
+    version
+      ?.split('.')
+      ?.map((v) => {
+        const vn = parseInt(v)
+        if (isNaN(vn)) {
+          return '0'
+        }
+        return `${vn}`
+      })
+      ?.join('.') ?? '0'
+  )
+}

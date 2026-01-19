@@ -21,7 +21,7 @@ import {
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { basename, dirname, join } from 'path'
-import { compareVersions } from 'compare-versions'
+import { compareVersions } from '@shared/compare-versions'
 import { createWriteStream, existsSync } from 'fs'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'

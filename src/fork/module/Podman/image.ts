@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { compareVersions } from 'compare-versions'
+import { compareVersions } from '@shared/compare-versions'
 import { getAxiosProxy } from '../../util/Axios'
 
 function isStableTag(tag: string, name: string) {
