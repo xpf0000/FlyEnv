@@ -23,6 +23,7 @@ const conf: Configuration = {
   artifactName: 'FlyEnv-Setup-${version}.${ext}',
   win: {
     artifactName: 'FlyEnv-Setup-${version}.${ext}',
+    asarUnpack: ['**/*.node', '**/node_modules/sharp/**/*', '**/node_modules/@img/**/*'],
     icon: 'build/icon.ico',
     target: [
       {
