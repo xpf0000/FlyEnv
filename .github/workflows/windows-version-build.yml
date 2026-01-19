@@ -17,7 +17,12 @@ jobs:
       - name: Install build dependencies
         run: |
           # 安装必要的构建工具
-          choco install -y make git
+          choco install -y make
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
       - name: Setup Latest Go
         uses: actions/setup-go@v4
