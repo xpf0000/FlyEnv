@@ -37,7 +37,7 @@ jobs:
       - name: Setup Latest Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'latest'
+          node-version: '24'
 
       - name: Setup Latest Go
         uses: actions/setup-go@v4

@@ -54,6 +54,9 @@ jobs:
       - name: Build Go helper with build-win.ps1
         run: |
           cd "$env:GITHUB_WORKSPACE/src/helper-go"
+          go clean -modcache
+          go mod download
+          go mod tidy
           # 使用 PowerShell 脚本构建
           .\build-win.ps1
 
