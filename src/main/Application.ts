@@ -52,7 +52,6 @@ export default class Application extends EventEmitter {
   trayWindow?: BrowserWindow
   updateManager?: UpdateManager
   forkManager?: ForkManager
-  helpCheckSuccessNoticed: boolean = false
   pty: Partial<Record<string, PtyItem>> = {}
   customerLang: Record<string, any> = {}
   capturer?: Capturer
@@ -99,9 +98,9 @@ export default class Application extends EventEmitter {
         link
       )
     })
-    // if (!is.dev()) {
-    this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
-    // }
+    if (!is.dev()) {
+      this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
+    }
     NodePTY.onSendCommand((command: string, ...args: any) => {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
