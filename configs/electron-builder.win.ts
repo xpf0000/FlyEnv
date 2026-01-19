@@ -1,5 +1,5 @@
 import type { Configuration } from 'electron-builder'
-import AfterPack from '../build/afterPack'
+import AfterSign from '../build/afterSign'
 
 const conf: Configuration = {
   productName: 'FlyEnv',
@@ -26,10 +26,11 @@ const conf: Configuration = {
     asarUnpack: ['**/*.node', '**/node_modules/sharp/**/*', '**/node_modules/@img/**/*'],
     extraResources: [
       {
-        from: 'resources/helper/flyenv-helper.exe',
-        to: 'resources/helper/flyenv-helper.exe'
+        from: 'src/helper-go/dist/flyenv-helper-windows-amd64-v1.exe',
+        to: 'app.asar.unpacked/node_modules/helper/flyenv-helper.exe'
       }
     ],
+    signExts: ['flyenv-helper.exe'],
     icon: 'build/icon.ico',
     target: [
       {
@@ -49,10 +50,8 @@ const conf: Configuration = {
   portable: {
     artifactName: 'FlyEnv-Portable-${version}.${ext}'
   },
-  afterPack: (...args) => {
-    return AfterPack(...args) as any
-  },
-  publish: []
+  publish: [],
+  afterSign: AfterSign
 }
 
 export default conf
