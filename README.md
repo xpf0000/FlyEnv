@@ -116,10 +116,24 @@ Supports Debian/Ubuntu (.deb) and RedHat/CentOS (.rpm).
 
 ## 📸 Interface Preview
 
-|                     Service Management                      | Version Switching |
-|:-----------------------------------------------------------:| :---: |
-| <img src="screen1.jpeg" alt="Manage Services" width="100%"> | <img src="screen2.jpeg" alt="Version Switching" width="100%"> |
-|          **Manage Nginx/MySQL/Redis in one place**          | **Switch PHP/Node versions per project** |
+<table>
+<thead>
+<tr>
+<th width="50%" align="center">Service Management</th>
+<th width="50%" align="center">Version Switching</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><a target="_blank" rel="noopener noreferrer" href="./screen1.jpeg"><img src="./screen1.jpeg" alt="Manage Services" width="100%" style="max-width: 100%;"></a></td>
+<td align="center"><a target="_blank" rel="noopener noreferrer" href="./screen2.jpeg"><img src="./screen2.jpeg" alt="Version Switching" width="100%" style="max-width: 100%;"></a></td>
+</tr>
+<tr>
+<td align="center"><strong>Manage Nginx/MySQL/Redis in one place</strong></td>
+<td align="center"><strong>Switch PHP/Node versions per project</strong></td>
+</tr>
+</tbody>
+</table>
 
 ---
 
