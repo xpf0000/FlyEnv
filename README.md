@@ -116,10 +116,10 @@ Supports Debian/Ubuntu (.deb) and RedHat/CentOS (.rpm).
 
 ## 📸 Interface Preview
 
-| Service Management | Version Switching |
-| :---: | :---: |
-| <img src="screen1.png" alt="Manage Services" width="100%"> | <img src="screen2.png" alt="Version Switching" width="100%"> |
-| **Manage Nginx/MySQL/Redis in one place** | **Switch PHP/Node versions per project** |
+|                     Service Management                      | Version Switching |
+|:-----------------------------------------------------------:| :---: |
+| <img src="screen1.webp" alt="Manage Services" width="100%"> | <img src="screen2.webp" alt="Version Switching" width="100%"> |
+|          **Manage Nginx/MySQL/Redis in one place**          | **Switch PHP/Node versions per project** |
 
 ---
 
@@ -128,6 +128,8 @@ Supports Debian/Ubuntu (.deb) and RedHat/CentOS (.rpm).
 * **Local Domains & SSL:** Create local sites (`myapp.test`) with custom domains and **one-click HTTPS**.
 * **Config & Logs:** Edit `php.ini` or `my.cnf` directly in FlyEnv. View real-time error logs with highlighting.
 * **Port Management:** Visualize which apps are using which ports and kill processes instantly.
+
+![screen3.webp](./screen3.webp)
 ---
 
 ## Development & Contribution
