@@ -6,9 +6,12 @@
   <h1>Develop Faster. Run Native. Forget Containers.</h1>
 
   <p>
-    The lightweight, <strong>modular</strong> development environment for Windows, macOS, and Linux.<br>
+    The <strong>lightweight</strong>, <strong>modular</strong> full-stack development environment manager for Windows, macOS, and Linux.<br>
+    One-click install for Apache, PHP, Node.js, Python, databases, and more—running natively at full speed—<strong>no Docker required</strong>.<br>
     Switch versions instantly, manage databases, and deploy local SSL—<strong>zero Docker overhead</strong>.
   </p>
+
+*⚡️ Get your development environment ready in under 60 seconds*
 
   <p>
     <a href="https://github.com/xpf0000/FlyEnv/releases"><img src="https://img.shields.io/github/release/xpf0000/FlyEnv.svg" alt="GitHub release"></a>
