@@ -1,4 +1,4 @@
-import { ChildProcess, fork } from 'child_process'
+import { utilityProcess, UtilityProcess } from 'electron'
 import { uuid, appendFile } from '../utils'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
@@ -6,11 +6,16 @@ import { cpus } from 'os'
 
 type Callback = (...args: any) => void
 
+const CupCount = cpus().length
+
 class ForkItem {
   forkFile: string
-  child: ChildProcess
+  child: UtilityProcess
   autoDestroy: boolean
   destroyTimer?: NodeJS.Timeout
+  childExited: boolean = false
+  pid?: number = undefined
+  loading: boolean = false
   taskFlag: Array<number> = []
   _on: Callback = () => {}
   callback: {
@@ -45,14 +50,20 @@ class ForkItem {
       }
     }
   }
-  onError(err: Error) {
-    appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${err?.message}`).then()
+  onError(type: string, location: string, report: string) {
+    this.loading = false
+    const error = JSON.stringify({
+      type,
+      location,
+      report
+    })
+    appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${error}`).then()
     for (const k in this.callback) {
       const fn = this.callback?.[k]
       if (fn) {
         fn.resolve({
           code: 1,
-          msg: err.toString()
+          msg: error
         })
       }
       delete this.callback?.[k]
@@ -61,21 +72,44 @@ class ForkItem {
     this.waitDestroy()
   }
 
+  onExit() {
+    this.childExited = true
+    this.pid = undefined
+    this.loading = false
+  }
+
+  onSpawn() {
+    this.childExited = false
+    this.pid = this?.child?.pid
+    this.loading = false
+    console.log('onSpawn: ', this.pid)
+  }
+
   constructor(file: string, autoDestroy: boolean) {
     this.forkFile = file
     this.autoDestroy = autoDestroy
     this.callback = {}
+
     this.onMessage = this.onMessage.bind(this)
     this.onError = this.onError.bind(this)
-    const child = fork(file)
-    child.send({ Server })
+    this.onExit = this.onExit.bind(this)
+    this.onSpawn = this.onSpawn.bind(this)
+
+    this.loading = true
+    const child = utilityProcess.fork(file)
+    child.postMessage({ Server })
     child.on('message', this.onMessage)
     child.on('error', this.onError)
+    child.on('exit', this.onExit)
+    child.on('spawn', this.onSpawn)
     this.child = child
   }
 
   isChildDisabled() {
-    return this?.child?.killed || !this?.child?.connected || !this?.child?.channel
+    if (this.loading) {
+      return false
+    }
+    return this?.childExited || !this?.pid
   }
 
   send(...args: any) {
@@ -89,29 +123,34 @@ class ForkItem {
       }
       let child = this.child
       if (this.isChildDisabled()) {
-        console.log('this.isChildDisabled !!!!')
-        child = fork(this.forkFile)
+        console.log('this.isChildDisabled !!!!', this.childExited, this?.pid)
+        this.loading = true
+        child = utilityProcess.fork(this.forkFile)
         child.on('message', this.onMessage)
         child.on('error', this.onError)
+        child.on('exit', this.onExit)
+        child.on('spawn', this.onSpawn)
+        console.log('this.isChildDisabled pid: ', child.pid)
       } else {
-        console.log('!!!! this.isChildDisabled')
+        console.log('!!!! this.isChildDisabled Not')
       }
-      child.send({ Server })
-      child.send([thenKey, ...args])
+      child.postMessage({ Server })
+      child.postMessage([thenKey, ...args])
       this.child = child
     })
   }
 
   destroy() {
     try {
-      const pid = this?.child?.pid
-      if (this?.child?.connected) {
-        this?.child?.disconnect?.()
-      }
+      this.child?.kill()
+    } catch {}
+    try {
+      const pid = this?.child?.pid || this.pid
       if (pid) {
         process.kill(pid)
       }
     } catch {}
+    this.childExited = true
   }
 }
 
@@ -175,7 +214,9 @@ export class ForkManager {
       console.log('fork find: ', this.forks.indexOf(find), find.autoDestroy)
     }
     if (!find) {
-      if (this.forks.length < cpus().length) {
+      const forksCount = this.forks.length
+      console.log('forksCount: ', forksCount, CupCount)
+      if (forksCount < CupCount) {
         find = new ForkItem(this.file, this.forks.length > 0)
         // find = new ForkItem(this.file, true)
         this.forks.push(find)
