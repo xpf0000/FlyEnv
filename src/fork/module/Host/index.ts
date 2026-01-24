@@ -13,7 +13,7 @@ import { TaskAddPhpMyAdminSite, TaskAddRandomSite } from './Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './HostFile'
 import Helper from '../../Helper'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 
 export class Host extends Base {
@@ -53,7 +53,11 @@ export class Host extends Base {
       }
 
       const writeHostFile = async () => {
-        await saveHostList(hostList)
+        try {
+          await saveHostList(hostList)
+        } catch (e) {
+          appDebugLog('[handleHost][writeHostFile][error]', `${e}`).catch()
+        }
         resolve({
           host: hostList
         })
