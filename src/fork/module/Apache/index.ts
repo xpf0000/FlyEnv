@@ -148,7 +148,7 @@ class Apache extends Base {
         .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
         .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
         .replace('#LoadModule access_compat_module', 'LoadModule access_compat_module')
-        .replace('#LoadModule rewrite_module modules', 'LoadModule rewrite_module modules')
+        .replace('#LoadModule rewrite_module', 'LoadModule rewrite_module')
         .replace('#ServerName www.', 'ServerName www.')
 
       if (logPath) {
