@@ -17,7 +17,7 @@
   "fontSize": "Schriftgröße",
   "lineHeight": "Zeilenhöhe",
   "forceStart": "Start-Dienste erzwingen",
-  "forceStartInfo": "Gibt an, ob widersprüchliche Dienste, die nicht von dieser Anwendung gestartet werden, beim Start des Dienstes heruntergefahren werden oder nicht. Der Versuch, sicherzustellen, dass die Dienste ordnungsgemäß eingeschaltet werden.",
+  "forceStartInfo": "Gibt an, ob konkurrierende Dienste, die nicht von dieser Anwendung gestartet werden, beim Start des Dienstes heruntergefahren werden sollen oder nicht. Damit soll sichergestellt werden, dass die Dienste ordnungsgemäß gestartet werden.",
   "showAIRobot": "KI-Assistent anzeigen",
   "mysqlDataDir": "Datenverzeichnis",
   "mysqlState": "Land",

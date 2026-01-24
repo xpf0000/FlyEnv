@@ -24,9 +24,9 @@
   "upload_max_filesize": "Maximale Größe für das Hochladen von Dateien",
   "max_file_uploads": "Maximale Anzahl an gleichzeitig hochzuladenden Dateien",
   "default_socket_timeout": "Socket-Timeout",
-  "error_reporting": "Fehlermeldelevel",
+  "error_reporting": "Fehlerberichtsstufe",
   "timezone": "Zeitzone",
   "loadedExtensions": "Geladene Erweiterungen",
   "log_errors": "Fehlerprotokollierung aktivieren",
-  "error_log_dir": "Pfad zum PHP-Fehlerprotokoll"
+  "error_log_dir": "Gib den Pfad zur PHP-Fehlerprotokolldatei an."
 }
