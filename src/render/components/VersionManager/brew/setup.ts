@@ -71,6 +71,9 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   const fetchData = () => {
+    if (!checkBrew.value || BrewSetup.installing) {
+      return
+    }
     const module = brewStore.module(typeFlag)
     if (module.brewFetching) {
       return
@@ -78,7 +81,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     module.fetchBrew()
   }
   const getData = () => {
-    if (!checkBrew.value || fetching.value) {
+    if (!checkBrew.value || fetching.value || BrewSetup.installing) {
       console.log('getData exit: ', checkBrew.value, fetching.value)
       return
     }
