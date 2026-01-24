@@ -29,6 +29,7 @@ import { makeGlobalTomcatServerXML } from '../Service/ServiceItemJavaTomcat'
 import { I18nT } from '@lang/index'
 import { isLinux, isWindows } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
+import EnvSync from '@shared/EnvSync'
 
 class Tomcat extends Base {
   constructor() {
@@ -217,8 +218,17 @@ class Tomcat extends Base {
         })
         reject(new Error('Start failed'))
       } else {
-        const execEnv = `export CATALINA_BASE="${baseDir}"
-export CATALINA_PID="${this.pidPath}"`
+        const execEnvs: string[] = [
+          `export CATALINA_BASE="${baseDir}"`,
+          `export CATALINA_PID="${this.pidPath}"`
+        ]
+        const env = await EnvSync.sync()
+        if (env?.JAVA_HOME) {
+          execEnvs.push(`export JAVA_HOME="${env?.JAVA_HOME}"`)
+        } else if (env?.JAR_HOME) {
+          execEnvs.push(`export JAR_HOME="${env?.JAR_HOME}"`)
+        }
+        const execEnv = execEnvs.join('\n')
         try {
           const res = await serviceStartExec({
             root: isLinux(),
