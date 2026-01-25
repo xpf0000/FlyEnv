@@ -28,6 +28,7 @@ import { userInfo } from 'os'
 import { BomCleanTask } from '../../util/BomCleanTask'
 import { appDebugLog, defaultShell, isMacOS } from '@shared/utils'
 import { shellEnv } from 'shell-env'
+import EnvSync from '@shared/EnvSync'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -297,6 +298,7 @@ class Manager extends Base {
         reject(e)
         return
       }
+      EnvSync.AppEnv = undefined
       const allPath = await this.fetchPATH()
       resolve(allPath)
     })
