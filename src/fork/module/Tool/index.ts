@@ -8,7 +8,6 @@ import {
   readFileByRoot,
   execPromise,
   chmod,
-  copyFile,
   existsSync,
   mkdirp,
   readdir,
@@ -27,7 +26,8 @@ import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
 import { userInfo } from 'os'
 import { BomCleanTask } from '../../util/BomCleanTask'
-import { appDebugLog, defaultShell, isLinux, isMacOS } from '@shared/utils'
+import { appDebugLog, defaultShell, isMacOS } from '@shared/utils'
+import { shellEnv } from 'shell-env'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -111,27 +111,8 @@ class Manager extends Base {
 
   fetchEnvPath(): ForkPromise<string[]> {
     return new ForkPromise(async (resolve) => {
-      const sh = join(global.Server.Static!, 'sh/path.sh')
-      // if (isLinux()) {
-      //   sh = join(global.Server.Static!, 'sh/env.sh')
-      // }
-      const cpSh = join(global.Server.Cache!, `${uuid()}.sh`)
-      await copyFile(sh, cpSh)
-      await chmod(cpSh, '0777')
-      const arr: string[] = []
-      const shells = ['/bin/zsh', '/bin/bash', '/bin/sh']
-      const shell = shells.find((s) => existsSync(s))
-      try {
-        const res = await execPromise(`./${basename(cpSh)}`, {
-          cwd: global.Server.Cache!,
-          shell
-        })
-        const list = res?.stdout?.trim()?.split(':') ?? []
-        arr.push(...list)
-      } catch (e) {
-        appDebugLog('[fetchEnvPath][error]', `${e}`).catch()
-      }
-      await remove(cpSh)
+      const { PATH } = await shellEnv()
+      const arr = PATH.trim().split(':') ?? []
       resolve(Array.from(new Set(arr)))
     })
   }

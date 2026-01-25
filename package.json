@@ -74,6 +74,7 @@
     "randexp": "^0.5.3",
     "serve": "^14.2.4",
     "sharp": "^0.34.5",
+    "shell-env": "^4.0.2",
     "shiki": "^3.4.2",
     "tangerine": "^1.6.0",
     "undici": "^7.19.1",

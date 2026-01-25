@@ -1,8 +1,5 @@
-import { join } from 'path'
-import { chmod, copyFile } from './fs-extra'
 import { appDebugLog, isWindows } from '@shared/utils'
-import { execPromise } from '@shared/child-process'
-import { existsSync } from 'fs'
+import { shellEnv } from 'shell-env'
 
 class EnvSync {
   AppEnv: Record<string, any> | undefined
@@ -26,36 +23,8 @@ class EnvSync {
       this.AppEnv = env
       return this.AppEnv
     }
-    const file = join(global.Server.Cache!, 'env.sh')
-    await copyFile(join(global.Server.Static!, 'sh/env.sh'), file)
-    let text = ''
-    const shells = ['/bin/zsh', '/bin/bash', '/bin/sh']
-    const shell = shells.find((s) => existsSync(s))
-    try {
-      await chmod(file, '0777')
-      const res = await execPromise(`./env.sh`, {
-        cwd: global.Server.Cache!,
-        shell
-      })
-      text = res.stdout
-      appDebugLog('[EnvSync][sync]', text).catch()
-    } catch (e: any) {
-      appDebugLog('[env][sync][error]', e.toString()).catch()
-    }
 
-    this.AppEnv = process.env
-    text
-      .toString()
-      .trim()
-      .split('\n')
-      .forEach((l: string) => {
-        const arr = l.split('=')
-        const k = arr.shift()
-        const v = arr.join('')
-        if (k) {
-          this.AppEnv![k] = v
-        }
-      })
+    this.AppEnv = await shellEnv()
     const PATH = `${this.AppEnv!['PATH']}:/opt/podman/bin:/home/linuxbrew/.linuxbrew/bin:$HOME/.linuxbrew/bin:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
     this.AppEnv!['PATH'] = Array.from(new Set(PATH.split(':'))).join(':')
     if (global.Server.Proxy) {
@@ -63,6 +32,7 @@ class EnvSync {
         this.AppEnv![k] = global.Server.Proxy[k]
       }
     }
+    appDebugLog('[EnvSync][sync]', `${JSON.stringify(this.AppEnv, null, 2)}`).catch()
     return this.AppEnv!
   }
 }
