@@ -255,9 +255,10 @@ class Manager extends Base {
       }
       if (allFile.length > 0) {
         // Handle Java path and add JAVA_HOME variable
-        let java = allFile.find(
-          (f) => f.toLowerCase().includes('java') || f.toLowerCase().includes('jdk')
-        )
+        let java = allFile.find((f) => {
+          const fl = f.toLowerCase()
+          return (fl.includes('java') || fl.includes('jdk')) && fl.includes('/bin')
+        })
         let other_zsh = ''
         if (java) {
           java = dirname(realpathSync(java))
