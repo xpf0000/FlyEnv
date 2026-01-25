@@ -11,7 +11,7 @@ import {
   execPromise,
   fetchPathByBin
 } from '../Fn'
-import { isLinux, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows } from '@shared/utils'
 import * as process from 'node:process'
 import { userInfo } from 'node:os'
 import { execSync } from 'node:child_process'
@@ -124,6 +124,7 @@ export const versionBinVersion = (
       handleThen(res)
     } catch (e) {
       console.log('versionBinVersion err: ', e)
+      appDebugLog('[versionBinVersion][error]', `${e}`).catch()
       if (findInError) {
         handleThen({
           stdout: '',

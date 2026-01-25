@@ -7,7 +7,6 @@ import {
   writeFileByRoot,
   readFileByRoot,
   execPromise,
-  appendFile,
   chmod,
   copyFile,
   existsSync,
@@ -28,7 +27,7 @@ import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
 import { userInfo } from 'os'
 import { BomCleanTask } from '../../util/BomCleanTask'
-import { defaultShell, isMacOS } from '@shared/utils'
+import { appDebugLog, defaultShell, isMacOS } from '@shared/utils'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -216,8 +215,13 @@ class Manager extends Base {
       const flagDir = join(envDir, flag)
       // Delete the subfolder
       try {
+        await remove(flagDir)
+      } catch {}
+      try {
         await Helper.send('tools', 'rm', flagDir)
       } catch {}
+      appDebugLog('[updatePATH][binPath]', `${binPath}`).catch()
+      appDebugLog('[updatePATH][all]', `${JSON.stringify(all, null, 2)}`).catch()
       // If the PATH environment variable array does not include the installed software path, create a symlink
       if (!all.includes(binPath)) {
         try {
@@ -252,6 +256,8 @@ class Manager extends Base {
         })
         .flat()
 
+      appDebugLog('[updatePATH][allFile]', `${JSON.stringify(allFile, null, 2)}`).catch()
+
       const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
       const param: { zsh: string } = {
         zsh: ''
@@ -259,9 +265,7 @@ class Manager extends Base {
       if (allFile.length > 0) {
         // Handle Java path and add JAVA_HOME variable
         let java = allFile.find(
-          (f) =>
-            (f.toLowerCase().includes('java') || f.toLowerCase().includes('jdk')) &&
-            realpathSync(f).includes('/Contents/Home/')
+          (f) => f.toLowerCase().includes('java') || f.toLowerCase().includes('jdk')
         )
         let other_zsh = ''
         if (java) {
@@ -292,12 +296,12 @@ class Manager extends Base {
       } else {
         param.zsh = `\nexport PATH="${aliasDir}:$PATH"\n`
       }
+      appDebugLog('[updatePATH][allFile]', `${JSON.stringify(param, null, 2)}`).catch()
       try {
         // Write to the .zshrc file
         await this.handleUpdatePath(param)
       } catch (e) {
-        const debugFile = join(global.Server.BaseDir!, 'debug.log')
-        await appendFile(debugFile, `[updatePATH][error]: ${e} !!!\n`)
+        appDebugLog('[updatePATH][error]', `${e}`).catch()
         reject(e)
         return
       }
