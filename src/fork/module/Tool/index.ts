@@ -120,7 +120,9 @@ class Manager extends Base {
         const res = await execPromise(`cd ${dirname(cpSh)} && source ./${basename(cpSh)}`)
         const list = res?.stdout?.trim()?.split(':') ?? []
         arr.push(...list)
-      } catch {}
+      } catch (e) {
+        appDebugLog('[fetchEnvPath][error]', `${e}`).catch()
+      }
       await remove(cpSh)
       resolve(Array.from(new Set(arr)))
     })
