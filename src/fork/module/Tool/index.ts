@@ -266,7 +266,7 @@ class Manager extends Base {
         }
         let gradle = allFile.find((f) => {
           const files = [join(f, 'gradle'), join(f, 'bin/gradle')]
-          return files.some((s) => existsSync(s))
+          return files.some((s) => existsSync(s)) && f.includes('/bin')
         })
         if (gradle) {
           gradle = dirname(realpathSync(gradle))
