@@ -33,11 +33,12 @@ class EnvSync {
     const shell = shells.find((s) => existsSync(s))
     try {
       await chmod(file, '0777')
-      const res = await execPromise(`./env.sh`, {
+      const res = await execPromise(`source ./env.sh`, {
         cwd: global.Server.Cache!,
         shell
       })
       text = res.stdout
+      appDebugLog('[EnvSync][sync]', text).catch()
     } catch (e: any) {
       appDebugLog('[env][sync][error]', e.toString()).catch()
     }

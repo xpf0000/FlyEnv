@@ -1,13 +1,8 @@
 import crypto from 'node:crypto'
-import { merge } from 'lodash-es'
-import { spawn, exec } from 'node:child_process'
 import { cpus } from 'node:os'
 import { join } from 'node:path'
-import { promisify } from 'node:util'
 import { platform } from 'node:os'
-import { chmod, copyFile, appendFile } from './fs-extra'
-
-const execPromise = promisify(exec)
+import { appendFile } from './fs-extra'
 
 export async function appDebugLog(flag: string, info: string) {
   try {
@@ -16,88 +11,6 @@ export async function appDebugLog(flag: string, info: string) {
   } catch {
     /* empty */
   }
-}
-
-let AppEnv: any
-
-export async function fixEnv(): Promise<{ [k: string]: any }> {
-  console.log('fixEnv !!!', typeof AppEnv)
-  if (AppEnv) {
-    return AppEnv
-  }
-  const file = join(global.Server.Cache!, 'env.sh')
-  await copyFile(join(global.Server.Static!, 'sh/env.sh'), file)
-  let text = ''
-  try {
-    await chmod(file, '0777')
-    const res = await execPromise(`./env.sh`, {
-      cwd: global.Server.Cache!,
-      shell: '/bin/zsh'
-    })
-    text = res.stdout
-  } catch (e: any) {
-    appDebugLog('[fixEnv][env.sh][error]', e.toString()).then().catch()
-  }
-
-  AppEnv = process.env
-  text
-    .toString()
-    .trim()
-    .split('\n')
-    .forEach((l: string) => {
-      const arr = l.split('=')
-      const k = arr.shift()
-      const v = arr.join('')
-      if (k) {
-        AppEnv[k] = v
-      }
-    })
-  const PATH = `${AppEnv['PATH']}:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
-  AppEnv['PATH'] = Array.from(new Set(PATH.split(':'))).join(':')
-  if (global.Server.Proxy) {
-    for (const k in global.Server.Proxy) {
-      AppEnv[k] = global.Server.Proxy[k]
-    }
-  }
-  return AppEnv
-}
-
-export function execAsync(
-  command: string,
-  arg: Array<string> = [],
-  options: { [key: string]: any } = {}
-) {
-  return new Promise(async (resolve, reject) => {
-    const env = await fixEnv()
-    const optdefault = {
-      env
-    }
-    const opt = merge(optdefault, options)
-    if (global.Server.isArmArch) {
-      arg.unshift('-arm64', command)
-      command = 'arch'
-    }
-    const cp = spawn(command, arg, opt)
-    const stdout: Array<Uint8Array> = []
-    const stderr: Array<Uint8Array> = []
-    cp.stdout.on('data', (data: Uint8Array) => {
-      stdout.push(data)
-    })
-
-    cp.stderr.on('data', (data: Uint8Array) => {
-      stderr.push(data)
-    })
-
-    cp.on('close', (code: number) => {
-      const out = Buffer.concat(stdout)
-      const err = Buffer.concat(stderr)
-      if (!code) {
-        resolve(out.toString().trim())
-      } else {
-        reject(err.toString().trim())
-      }
-    })
-  })
 }
 
 export function waitTime(time: number) {

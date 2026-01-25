@@ -117,7 +117,7 @@ class Manager extends Base {
       await chmod(cpSh, '0777')
       const arr: string[] = []
       try {
-        const res = await execPromise(`cd ${dirname(cpSh)} && ./${basename(cpSh)}`)
+        const res = await execPromise(`cd ${dirname(cpSh)} && source ./${basename(cpSh)}`)
         const list = res?.stdout?.trim()?.split(':') ?? []
         arr.push(...list)
       } catch {}
