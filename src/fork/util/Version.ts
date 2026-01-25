@@ -97,7 +97,7 @@ export const versionBinVersion = (
   return new Promise(async (resolve) => {
     const handleCatch = (err: any) => {
       resolve({
-        error: command + '<br/>' + err.toString().trim().replace(new RegExp('\n', 'g'), '<br/>'),
+        error: `${command}\n${err}`,
         version: undefined
       })
     }

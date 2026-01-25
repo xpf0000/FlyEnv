@@ -51,14 +51,19 @@
       <el-table-column :label="I18nT('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
-            <el-popover popper-class="version-error-tips" width="auto" placement="top">
+            <el-popover
+              :show-after="600"
+              popper-class="version-error-tips"
+              width="auto"
+              placement="top"
+            >
               <template #reference>
                 <span class="path error" @click.stop="openDir(scope.row.path)">{{
                   scope.row.path
                 }}</span>
               </template>
               <template #default>
-                <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
+                <VersionErrorTips :type-flag="typeFlag" :version="scope.row" />
               </template>
             </el-popover>
           </template>
@@ -232,6 +237,7 @@
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
   import { Setup } from './setup'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+  import VersionErrorTips from '@/components/ServiceManager/VersionErrorTips.vue'
 
   const props = defineProps<{
     typeFlag: AllAppModule

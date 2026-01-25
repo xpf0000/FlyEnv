@@ -10,5 +10,15 @@
   "ftpdNeedPasswordToStart": "Pure-FTPd requires sudo privileges to start. Please enter your user password. The password will be used for auto-fill later. Or you can click the button below to input manually in the terminal, but this prompt may reappear.",
 
   "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
-  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?"
+  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?",
+
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Your system is missing the Visual C++ Redistributable (DLLs) required to run this version. Please click the link below to download and install the VC Runtime from Microsoft's official website.",
+      "versionRelation": "Version Compatibility Reference:",
+      "software": "Software",
+      "versionRange": "Version Range",
+      "msvsVersion": "MSVC Version"
+    }
+  }
 }

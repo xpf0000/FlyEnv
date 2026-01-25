@@ -28,5 +28,13 @@
   "timezone": "Timezone",
   "loadedExtensions": "Loaded Extensions",
   "log_errors": "Enable error logging",
-  "error_log_dir": "Specify the PHP error log file path"
+  "error_log_dir": "Specify the PHP error log file path",
+
+  "disableFunction": {
+    "title": "Disable Functions",
+    "function": "Function",
+    "emptyFunction": "Please enter function name",
+    "sameName": "Function already exists",
+    "invalidName": "Invalid function name. Function name can only contain letters, numbers, and underscores"
+  }
 }

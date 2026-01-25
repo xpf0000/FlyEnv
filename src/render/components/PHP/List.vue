@@ -41,14 +41,19 @@
       <el-table-column :label="I18nT('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
-            <el-popover popper-class="version-error-tips" width="auto" placement="top">
+            <el-popover
+              :show-after="600"
+              popper-class="version-error-tips"
+              width="auto"
+              placement="top"
+            >
               <template #reference>
                 <span class="path error" @click.stop="openDir(scope.row.path)">{{
                   scope.row.path
                 }}</span>
               </template>
               <template #default>
-                <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
+                <VersionErrorTips :type-flag="'php'" :version="scope.row" />
               </template>
             </el-popover>
           </template>
@@ -182,6 +187,10 @@
               <yb-icon :svg="import('@/svg/config.svg?raw')" width="17" height="17" />
               <span class="ml-3">{{ I18nT('php.editPhpIni') }}</span>
             </li>
+            <li @click.stop="action(scope.row, scope.$index, 'disable_functions')">
+              <yb-icon :svg="import('@/svg/config.svg?raw')" width="17" height="17" />
+              <span class="ml-3">{{ I18nT('php.disableFunction.title') }}</span>
+            </li>
             <li @click.stop="action(scope.row, scope.$index, 'log-error')">
               <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
               <span class="ml-3">{{ I18nT('base.errorLog') }}</span>
@@ -221,6 +230,7 @@
   import { Setup } from '@/components/ServiceManager/setup'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
   import { shell } from '@/util/NodeFn'
+  import VersionErrorTips from '@/components/ServiceManager/VersionErrorTips.vue'
 
   const isWindows = computed(() => {
     return window.Server.isWindows
@@ -254,6 +264,11 @@
     ConfVM = res.default
   })
 
+  let DisableFunctionVM: any
+  import('./DisableFunction.vue').then((res) => {
+    DisableFunctionVM = res.default
+  })
+
   let LogVM: any
   import('./Logs.vue').then((res) => {
     LogVM = res.default
@@ -274,6 +289,11 @@
         break
       case 'conf':
         AsyncComponentShow(ConfVM, {
+          version: item
+        }).then()
+        break
+      case 'disable_functions':
+        AsyncComponentShow(DisableFunctionVM, {
           version: item
         }).then()
         break
