@@ -296,14 +296,13 @@ export const versionMacportsFetch = async (bins: string[]): Promise<Array<SoftIn
 
 export const brewInfoJson = async (names: string[]) => {
   const info: any = []
+  if (!names.length) {
+    return info
+  }
   const command = ['brew', 'info', ...names, '--json', '--formula'].join(' ')
   console.log('brewinfo doRun: ', command)
   try {
-    const res = await execPromiseWithEnv(command, {
-      env: {
-        HOMEBREW_NO_INSTALL_FROM_API: 1
-      }
-    })
+    const res = await execPromiseWithEnv(command)
     const arr = JSON.parse(res.stdout)
     arr.forEach((item: any) => {
       info.push({
@@ -325,11 +324,7 @@ export const brewSearch = async (
   handleContent?: (content: string) => string
 ) => {
   try {
-    const res = await execPromiseWithEnv(command, {
-      env: {
-        HOMEBREW_NO_INSTALL_FROM_API: 1
-      }
-    })
+    const res = await execPromiseWithEnv(command)
     let content: any = res.stdout
     console.log('brewinfo content: ', content)
     if (handleContent) {

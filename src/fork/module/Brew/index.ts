@@ -87,11 +87,7 @@ class Brew extends Base {
           await execPromiseWithEnv('brew tap shivammathur/extensions')
         }
         const command = `brew search --formula "/shivammathur\\/extensions\\/[\\s\\S]+${num}$/"`
-        let content: any = await execPromiseWithEnv(command, {
-          env: {
-            HOMEBREW_NO_INSTALL_FROM_API: 1
-          }
-        })
+        let content: any = await execPromiseWithEnv(command)
         content = content.stdout
           .split('\n')
           .filter((s: string) => !!s.trim())

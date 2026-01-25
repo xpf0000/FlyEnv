@@ -65,11 +65,7 @@ export class Base {
           if (v) {
             const command = `brew unlink ${v} && brew link --overwrite --force ${v}`
             console.log('_linkVersion: ', command)
-            execPromiseWithEnv(command, {
-              env: {
-                HOMEBREW_NO_INSTALL_FROM_API: 1
-              }
-            })
+            execPromiseWithEnv(command)
               .then(() => {})
               .catch(() => {})
             resolve(true)

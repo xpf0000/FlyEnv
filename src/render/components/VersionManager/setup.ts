@@ -68,6 +68,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       BrewSetup.xterm?.destroy()
       delete BrewSetup.xterm
       BrewSetup.checkBrew()
+      BrewSetup.reFetch()
       return
     }
 
@@ -77,6 +78,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       MacPortsSetup.xterm?.destroy()
       delete MacPortsSetup.xterm
       MacPortsSetup.checkMacPorts()
+      MacPortsSetup.reFetch()
       return
     }
   }

@@ -68,6 +68,9 @@ class Gradle extends Base {
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
+          versions = versions.filter((v) => {
+            return !v.path.includes('gradle-completion')
+          })
           const all = versions.map((item) => {
             const command = `"${item.bin}" --version`
             const reg = /(Gradle )(\d+(\.\d+){1,4})(.*?)/g
