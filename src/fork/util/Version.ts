@@ -8,7 +8,6 @@ import {
   realpathSync,
   execPromiseWithEnv,
   getSubDirAsync,
-  execPromise,
   fetchPathByBin
 } from '../Fn'
 import { appDebugLog, isLinux, isWindows } from '@shared/utils'
@@ -116,7 +115,7 @@ export const versionBinVersion = (
     const cwd = dirname(bin)
     try {
       process.chdir(cwd)
-      const res = await execPromise(command, {
+      const res = await execPromiseWithEnv(command, {
         cwd,
         shell: undefined
       })
