@@ -262,7 +262,7 @@ class Manager extends Base {
         let other_zsh = ''
         if (java) {
           java = dirname(realpathSync(java))
-          other_zsh = `\nexport JAVA_HOME="${java}"`
+          other_zsh += `\nexport JAVA_HOME="${java}"`
         }
         let gradle = allFile.find((f) => {
           const files = [join(f, 'gradle'), join(f, 'bin/gradle')]
@@ -270,7 +270,7 @@ class Manager extends Base {
         })
         if (gradle) {
           gradle = dirname(realpathSync(gradle))
-          other_zsh = `\nexport GRADLE_HOME="${gradle}"`
+          other_zsh += `\nexport GRADLE_HOME="${gradle}"`
         }
         // Handle Python
         let python = allFile.find((f) => realpathSync(f).includes('Python.framework'))
