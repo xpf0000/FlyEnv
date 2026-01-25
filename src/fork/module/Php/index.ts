@@ -614,11 +614,11 @@ xdebug.output_dir = "${output_dir}"
   disableFunctionGet(version: SoftInstalled, iniPath?: string) {
     return new ForkPromise(async (resolve) => {
       const iniFile = iniPath || (await this.getIniPath(version))
-      console.log('getErrorLogPathFromIni iniFile ', iniFile)
+      console.log('disableFunctionGet iniFile ', iniFile)
       if (iniFile && existsSync(iniFile)) {
         const content = await readFile(iniFile, 'utf8')
         const config = iniParse(content)
-        console.log('getErrorLogPathFromIni config ', config)
+        console.log('disableFunctionGet config ', config)
         const funtions: string = config?.PHP?.disable_functions ?? config?.disable_functions ?? ''
         const list = funtions
           .split(',')

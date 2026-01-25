@@ -371,6 +371,8 @@ export class Capturer {
   }
 
   async saveImage(base64: string, userConfig?: boolean) {
+    const buffer = Buffer.from(base64, 'base64')
+    clipboard.writeImage(nativeImage.createFromBuffer(buffer))
     const chooseDirSave = () => {
       const timestramp = Math.floor(new Date().getTime() / 1000)
       const name = `flyenv-capturer-${timestramp}.png`
@@ -432,10 +434,8 @@ export class Capturer {
     } else {
       name = `flyenv-capturer-${timestramp}.png`
     }
-    const buffer = Buffer.from(base64, 'base64')
     const filePath = join(this.config.dir, name)
     writeFile(filePath, buffer).then(() => {
-      clipboard.writeImage(nativeImage.createFromPath(filePath))
       shell.showItemInFolder(filePath)
     })
   }
