@@ -21,7 +21,6 @@ dist-ssr
 /electron
 /release
 /icon.sh
-yarn.lock
 app-update.yml
 .idea
 /test.js
