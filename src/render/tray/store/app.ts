@@ -21,6 +21,9 @@ export interface TrayState {
   groupIsRunning: boolean
   groupDisabled: boolean
   service: CustomerModuleItem[]
+  isMacOS?: boolean
+  isLinux?: boolean
+  isWindows?: boolean
 }
 
 const state: TrayState = {
@@ -29,7 +32,10 @@ const state: TrayState = {
   password: '',
   groupIsRunning: false,
   groupDisabled: true,
-  service: []
+  service: [],
+  isMacOS: undefined,
+  isLinux: undefined,
+  isWindows: undefined
 }
 
 export const AppStore = defineStore('trayApp', {

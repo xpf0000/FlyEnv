@@ -1,36 +1,38 @@
 <template>
-  <VueSvg />
-  <div class="tray-aside-inner">
-    <ul class="top-tool">
-      <li
-        :class="{
-          'non-draggable': true,
-          'swith-power': true,
-          on: groupIsRunning,
-          disabled: groupDisabled
-        }"
-        @click="groupDo"
-      >
-        <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
-      </li>
-    </ul>
-    <ul class="menu top-menu">
-      <el-scrollbar>
-        <template v-for="(item, _index) in service" :key="_index">
-          <CustomerItem :item="item" />
-        </template>
-      </el-scrollbar>
-    </ul>
-    <ul class="bottom-tool">
-      <li @click="showMainWin"> {{ I18nT('tray.showMainWin') }} </li>
-      <li @click="doExit"> {{ I18nT('tray.exit') }} </li>
-    </ul>
+  <div class="tray-main" :class="{ 'is-windows': store.isWindows }">
+    <VueSvg />
+    <div class="tray-aside-inner">
+      <ul class="top-tool">
+        <li
+          :class="{
+            'non-draggable': true,
+            'swith-power': true,
+            on: groupIsRunning,
+            disabled: groupDisabled
+          }"
+          @click="groupDo"
+        >
+          <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
+        </li>
+      </ul>
+      <ul class="menu top-menu">
+        <el-scrollbar>
+          <template v-for="(item, _index) in service" :key="_index">
+            <CustomerItem :item="item" />
+          </template>
+        </el-scrollbar>
+      </ul>
+      <ul class="bottom-tool">
+        <li @click="showMainWin"> {{ I18nT('tray.showMainWin') }} </li>
+        <li @click="doExit"> {{ I18nT('tray.exit') }} </li>
+      </ul>
+    </div>
+    <span ref="arrow" class="popper-arrow" :style="{ left: left } as any"></span>
   </div>
-  <span class="popper-arrow" :style="{ left: left } as any"></span>
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, Ref } from 'vue'
+  import { computed, onMounted, ref, Ref } from 'vue'
   import { AppStore } from './store/app'
   import IPC from '../util/IPC'
   import { I18nT } from '@lang/index'
@@ -81,11 +83,17 @@
       e.preventDefault()
     }
   })
+  const arrow = ref()
+  onMounted(() => {
+    const rect = arrow.value.getBoundingClientRect()
+    console.log('rect: ', rect)
+  })
 </script>
 
 <style lang="scss">
   * {
     user-select: none !important;
+    box-sizing: border-box;
   }
 
   html,
@@ -97,119 +105,121 @@
     background: transparent !important;
   }
   #app {
-    padding-top: 6px;
+    .tray-main {
+      height: 100vh;
+      padding-top: 7px;
 
-    .popper-arrow {
-      position: absolute;
-      left: calc(50% - 6px);
-      top: 0;
-      width: 12px;
-      height: 12px;
-      z-index: -1;
-
-      &:before {
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        z-index: -1;
-        content: ' ';
-        transform: rotate(45deg);
-        box-sizing: border-box;
-        right: 0;
-        border-bottom-color: transparent !important;
-        border-right-color: transparent !important;
-        border-top-left-radius: 2px;
-      }
-    }
-  }
-  .tray-aside-inner {
-    display: flex;
-    height: 100vh;
-    flex-flow: column;
-    border-radius: 10px !important;
-    overflow: hidden;
-
-    > .top-tool {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 0 20px;
-      height: 60px;
-      list-style: none;
-      flex-shrink: 0;
-      > li {
-        width: 30px;
-        height: 30px;
-        cursor: pointer;
-        border-radius: 14px;
-        transition: background-color 0.25s;
+      .tray-aside-inner {
         display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-    }
+        height: 100%;
+        flex-flow: column;
+        border-radius: 10px !important;
+        overflow: hidden;
 
-    .menu {
-      width: 100%;
-      padding: 0;
-      margin: 0 auto;
-      user-select: none;
-      cursor: default;
-      li {
-        height: 45px;
-        cursor: pointer;
-        transition: background-color 0.25s;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 18px;
-        .left {
-          height: 100%;
+        > .top-tool {
           display: flex;
           align-items: center;
-          gap: 10px;
-
-          .icon-block {
+          justify-content: flex-end;
+          padding: 0 20px;
+          height: 60px;
+          list-style: none;
+          flex-shrink: 0;
+          > li {
             width: 30px;
-            height: 45px;
+            height: 30px;
+            cursor: pointer;
+            border-radius: 14px;
+            transition: background-color 0.25s;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+          }
+        }
 
-            &.run {
-              svg {
-                color: #01cc74;
+        .menu {
+          width: 100%;
+          padding: 0;
+          margin: 0 auto;
+          user-select: none;
+          cursor: default;
+          li {
+            height: 45px;
+            cursor: pointer;
+            transition: background-color 0.25s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 18px;
+            .left {
+              height: 100%;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+
+              .icon-block {
+                width: 30px;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                &.run {
+                  svg {
+                    color: #01cc74;
+                  }
+                }
+              }
+              .title {
+                font-size: 14px;
               }
             }
           }
-          .title {
-            font-size: 14px;
+          svg {
+            padding: 6px;
+          }
+        }
+        .top-menu {
+          flex: 1;
+          overflow: hidden;
+        }
+
+        > .bottom-tool {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          font-size: 14px;
+          justify-content: space-between;
+          padding: 0 24px 2px;
+          height: 60px;
+
+          > li {
+            cursor: pointer;
+
+            &:hover {
+              color: #409eff;
+            }
           }
         }
       }
-      svg {
-        padding: 6px;
+
+      .popper-arrow {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        top: 2px;
+        border-radius: 2px;
+        transform-origin: center;
+        z-index: -1;
+        transform: rotate(45deg);
       }
-    }
-    .top-menu {
-      flex: 1;
-      overflow: hidden;
-    }
 
-    > .bottom-tool {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      font-size: 14px;
-      justify-content: space-between;
-      padding: 0 24px 2px;
-      height: 60px;
+      &.is-windows {
+        padding-top: 0;
+        padding-bottom: 7px;
 
-      > li {
-        cursor: pointer;
-
-        &:hover {
-          color: #409eff;
+        .popper-arrow {
+          top: unset;
+          bottom: 2px;
         }
       }
     }
@@ -218,10 +228,8 @@
   html.dark {
     #app {
       .popper-arrow {
-        &:before {
-          background: #32364a;
-          border: 1px solid #32364a;
-        }
+        background: #32364a;
+        border: 1px solid #32364a;
       }
     }
     .tray-aside-inner {
@@ -261,10 +269,8 @@
 
     #app {
       .popper-arrow {
-        &:before {
-          background: var(--base-bg-color);
-          border: 1px solid var(--base-bg-color);
-        }
+        background: var(--base-bg-color);
+        border: 1px solid var(--base-bg-color);
       }
     }
     .tray-aside-inner {

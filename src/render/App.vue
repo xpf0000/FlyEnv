@@ -33,9 +33,27 @@
     return appStore.config.setup.common.showItem
   })
 
-  const allService = AppModules.filter((m) => m.isService).map((m) => m.typeFlag)
+  const platform = computed(() => {
+    let platform: any = ''
+    if (window.Server.isMacOS) {
+      platform = 'macOS'
+    } else if (window.Server.isWindows) {
+      platform = 'Windows'
+    } else if (window.Server.isLinux) {
+      platform = 'Linux'
+    }
+    return platform
+  })
 
-  for (const item of AppModules) {
+  const plagformModule = computed(() => {
+    return AppModules.filter((m) => !m.platform || m.platform.includes(platform.value))
+  })
+
+  const allService = computed(() => {
+    return plagformModule.value.filter((m) => m.isService).map((m) => m.typeFlag)
+  })
+
+  for (const item of plagformModule.value) {
     const module = reactive(new Module())
     module.typeFlag = item.typeFlag
     module.isService = item?.isService ?? false
@@ -61,9 +79,20 @@
       .show()
   }
 
+  const initError = ref('')
+
+  // const debugObj = computed(() => {
+  //   const obj = {
+  //     initError: initError.value,
+  //     versionInitiated: appStore.versionInitiated,
+  //     debugLog: appStore.debugLog
+  //   }
+  //   return JSON.stringify(obj)
+  // })
+
   const init = () => {
     checkProxy()
-    const flags: Array<AllAppModule> = allService.filter(
+    const flags: Array<AllAppModule> = allService.value.filter(
       (f: AllAppModule) => showItem?.value?.[f] !== false
     ) as Array<keyof typeof AppModuleEnum>
     if (flags.length === 0) {
@@ -81,15 +110,22 @@
       .map((i) => {
         return i.fetchInstalled()
       })
-    Promise.all(all).then(() => {
-      appStore.versionInitiated = true
-      console.log('appStore.versionInitiated true !!!')
-      for (const typeFlag in brewStore.modules) {
-        const moduleKey = typeFlag as AllAppModule
-        const module = brewStore.modules[moduleKey]
-        module?.watchShowHide?.()
-      }
-    })
+    Promise.all(all)
+      .then(() => {
+        appStore.versionInitiated = true
+        console.log('appStore.versionInitiated true !!!')
+        for (const typeFlag in brewStore.modules) {
+          const moduleKey = typeFlag as AllAppModule
+          const module = brewStore.modules[moduleKey]
+          module?.watchShowHide?.()
+        }
+      })
+      .catch((err) => {
+        initError.value = `${err}`
+      })
+      .finally(() => {
+        appStore.versionInitiated = true
+      })
     if (appStore.hosts.length === 0) {
       appStore.initHost().then()
     }

@@ -118,8 +118,11 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
   }
 
   async _initEPMD() {
-    const pids = await ProcessListSearch('epmd.exe', false)
-    if (pids.length > 0) {
+    let pids: PItem[] | undefined
+    try {
+      pids = await ProcessListSearch('epmd.exe', false)
+    } catch {}
+    if (pids && pids.length > 0) {
       return
     }
     let str = ''
@@ -138,7 +141,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
         str = match[1] // 捕获组 (\d+) 的内容
       }
     } catch (e: any) {
-      console.log('set ERLANG_HOME error: ', e)
+      console.log('get ERLANG_HOME error: ', e)
     }
     console.log('ERLANG_HOME: ', str)
     if (!str || !existsSync(str)) {
@@ -173,7 +176,9 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
         )
       })
       if (isWindows()) {
-        await this._initEPMD()
+        try {
+          await this._initEPMD()
+        } catch {}
       }
       const confFile = await this._initConf(version).on(on)
       const v = version?.version?.split('.')?.[0] ?? ''
@@ -296,7 +301,9 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
   allInstalledVersions(setup: any) {
     return new ForkPromise(async (resolve) => {
       if (isWindows()) {
-        await this._initEPMD()
+        try {
+          await this._initEPMD()
+        } catch {}
       }
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []

@@ -9,15 +9,15 @@ import { existsSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import {
   getLanguage,
+  getLocale,
   isArmArch,
+  logger,
   mkdirp,
   readFile,
   readFileFixed,
-  writeFile,
-  getLocale,
-  logger
+  writeFile
 } from './utils'
-import { AppI18n, I18nT, AppAllLang } from '@lang/index'
+import { AppAllLang, AppI18n, I18nT } from '@lang/index'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
@@ -35,7 +35,7 @@ import AppNodeFnManager, { type AppNodeFn } from './core/AppNodeFn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 import ServiceProcessManager from './core/ServiceProcess'
-import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
+import { AppHelperCheck, AppHelperRoleFix, HelperVersion } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import { Capturer } from './core/Capturer'
 import OAuth from './core/OAuth'
@@ -76,6 +76,7 @@ export default class Application extends EventEmitter {
     this.initWindowManager()
     ScreenManager.initWatch()
     this.trayManager = new TrayManager()
+    this.windowManager.trayManager = this.trayManager
     this.initUpdaterManager()
     this.handleCommands()
     this.handleIpcMessages()
@@ -115,6 +116,7 @@ export default class Application extends EventEmitter {
   }
 
   initAppHelper() {
+    global.Server.HelperVersion = this.configManager?.getConfig('helper.version')
     AppHelperRoleFix().catch()
     Helper.appHelper = AppHelper
     AppHelper.onStatusMessage((flag) => {
@@ -134,6 +136,8 @@ export default class Application extends EventEmitter {
             code: 2,
             msg: I18nT('menu.waitHelper')
           })
+          this.configManager.setConfig('helper.version', HelperVersion)
+          global.Server.HelperVersion = HelperVersion
           break
         case 'installing':
           this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
@@ -207,11 +211,12 @@ export default class Application extends EventEmitter {
         AppNodeFnManager.trayWindow = undefined
       }
     })
-    this.trayManager.on('click', (x, y, poperX) => {
-      if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
+    this.trayManager.on('click', (x, y, poperX, show) => {
+      if (this?.trayWindow && show) {
         this?.trayWindow?.setPosition(Math.round(x), Math.round(y))
-        this?.trayWindow?.setOpacity(1.0)
+        this?.trayWindow?.setAlwaysOnTop(true, 'screen-saver')
         this?.trayWindow?.show()
+        console.log('tray show !!!')
         this.windowManager.sendCommandTo(
           this.trayWindow!,
           'APP:Poper-Left',

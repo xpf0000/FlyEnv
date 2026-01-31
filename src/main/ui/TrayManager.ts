@@ -15,6 +15,8 @@ export default class TrayManager extends EventEmitter {
   tray: Tray
   style: 'modern' | 'classic' | '' = ''
   status: any
+  show: boolean = false
+  clicking: boolean = false
   constructor() {
     super()
     this.active = false
@@ -125,16 +127,17 @@ export default class TrayManager extends EventEmitter {
   handleTrayClick = (event: any) => {
     console.log('handleTrayClick !!!')
     event?.preventDefault?.()
+    this.clicking = true
     const bounds = this.tray.getBounds()
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
     const x = Math.min(bounds.x - 135 + bounds.width * 0.5, screenWidth - 270)
     const poperX = Math.max(15, bounds.x + bounds.width * 0.5 - x - 6)
     if (isWindows()) {
       const y = bounds.y - 445
-      this.emit('click', x, y, poperX)
+      this.emit('click', x, y, poperX, !this.show)
     } else {
       const y = bounds.y + bounds.height
-      this.emit('click', x, y, poperX)
+      this.emit('click', x, y, poperX, !this.show)
     }
   }
 

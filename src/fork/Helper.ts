@@ -3,6 +3,8 @@ import { uuid } from './Fn'
 import type { TaskItem } from '../helper/type'
 import { AppHelperCheck, AppHelperSocketPathGet } from '@shared/AppHelperCheck'
 import type { AppHelper } from '../main/core/AppHelper'
+import JSON5 from 'json5'
+import { appDebugLog } from '@shared/utils'
 
 type Module =
   | 'tools'
@@ -66,7 +68,6 @@ class Helper {
           return
         }
       }
-
       const key = uuid()
       const client = createConnection(AppHelperSocketPathGet())
       const buffer: Buffer[] = []
@@ -83,31 +84,37 @@ class Helper {
 
       client.on('data', (data: any) => {
         buffer.push(data)
+      })
+
+      client.on('end', () => {
+        try {
+          client.destroySoon()
+        } catch {}
+        console.log('Disconnected from server')
         let res: any
         try {
           const content = Buffer.concat(buffer).toString().trim()
-          res = JSON.parse(content)
+          res = JSON5.parse(content)
         } catch {}
         if (res && res?.key && res?.key === key) {
           buffer.splice(0)
           if (res?.code === 0) {
-            resolve(res?.data)
-          } else {
-            reject(new Error(res?.msg ?? 'Execution failed'))
+            return resolve(res?.data)
           }
-          client.end() // Close connection
-          return
         }
-      })
-
-      client.on('end', () => {
-        console.log('Disconnected from server')
-        try {
-          client.destroySoon()
-        } catch {}
+        return reject(new Error(res?.msg ?? 'Execution failed'))
       })
 
       client.on('error', (error) => {
+        appDebugLog(
+          '[Fork][Helper][error]',
+          `${JSON.stringify({
+            module,
+            fn,
+            args,
+            error
+          })}`
+        ).catch()
         try {
           client.destroySoon()
         } catch {}

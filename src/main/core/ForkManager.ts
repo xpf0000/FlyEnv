@@ -141,6 +141,7 @@ class ForkItem {
   }
 
   destroy() {
+    this.childExited = true
     try {
       this.child?.kill()
     } catch {}
@@ -150,7 +151,6 @@ class ForkItem {
         process.kill(pid)
       }
     } catch {}
-    this.childExited = true
   }
 }
 

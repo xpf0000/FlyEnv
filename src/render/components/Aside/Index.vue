@@ -347,6 +347,22 @@
     )
   })
 
+  // const debugObj = computed(() => {
+  //   const modules = Object.values(AppServiceModule)
+  //   const allDisabled = modules.every((m) => !!m?.serviceDisabled)
+  //   const running = modules.some((m) => !!m?.serviceFetching)
+  //
+  //   return {
+  //     modules: AppServiceModule,
+  //     allDisabled,
+  //     running,
+  //     versionInitiated: appStore.versionInitiated,
+  //     customerRunning: serviceShowCustomer.value.some((s) => s.running),
+  //     noGroupStart: noGroupStart.value,
+  //     serviceShowCustomer: serviceShowCustomer.value
+  //   }
+  // })
+
   const groupDisabled = computed(() => {
     const modules = Object.values(AppServiceModule)
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
@@ -408,7 +424,10 @@
       theme: appStore?.config?.setup?.theme,
       groupDisabled: groupDisabled.value,
       groupIsRunning: groupIsRunning.value,
-      customerModule: customerModule.value
+      customerModule: customerModule.value,
+      isWindows: window.Server.isWindows,
+      isMacOS: window.Server.isMacOS,
+      isLinux: window.Server.isLinux
     }
   })
 

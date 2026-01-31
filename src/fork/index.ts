@@ -1,5 +1,7 @@
 import { AppI18n } from '@lang/index'
 import BaseManager from './BaseManager'
+import { appDebugLog } from '@shared/utils'
+import { ProcessSendError } from './Fn'
 
 // ---------------------- 兼容层开始 ----------------------
 // 只有在 electron 环境下且存在 parentPort 时才执行兼容逻辑
@@ -37,7 +39,22 @@ process.on('message', function (args: any) {
     manager.init()
   } else {
     // 假设 manager 内部使用了 process.send，现在也能正常工作了
-    manager.exec(args).then().catch()
+    manager
+      .exec(args)
+      .then()
+      .catch((error) => {
+        if (Array.isArray(args) && args.length > 0) {
+          const ipcCommandKey = args[0]
+          ProcessSendError(ipcCommandKey, `${error}`)
+        }
+        appDebugLog(
+          '[Fork][exec][error]',
+          `${JSON.stringify({
+            args,
+            error
+          })}`
+        ).catch()
+      })
   }
 })
 

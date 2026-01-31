@@ -245,6 +245,11 @@ export const versionLocalFetch = async (
     await findInstalled(s)
   }
 
+  appDebugLog(
+    `[versionLocalFetch][searchDepth1Dir][${binName}][res]`,
+    `${JSON.stringify([...installed])}`
+  ).catch()
+
   const count = installed.size
   if (count === 0) {
     return []
@@ -264,6 +269,11 @@ export const versionLocalFetch = async (
       list.push(item as any)
     }
   }
+  appDebugLog(
+    `[versionLocalFetch][searchDepth2Dir][${binName}][list]`,
+    `${JSON.stringify(list)}`
+  ).catch()
+
   return list
 }
 

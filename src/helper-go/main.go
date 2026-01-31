@@ -630,6 +630,7 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 		if writeErr != nil {
 			fmt.Printf("Error writing response for key %s: %v\n", info.Key, writeErr)
 		}
+		return // Exit after handling one complete request
 	}
 }
 

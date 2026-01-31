@@ -94,7 +94,13 @@ export const ProcessListSearch = async (search: string, aA = true): Promise<PIte
   if (!search) {
     return all
   }
-  const arr = await ProcessPidList()
+  let arr: PItem[] = []
+  try {
+    arr = await ProcessPidList()
+  } catch (e) {
+    console.log('ProcessListSearch error: ', e)
+    return []
+  }
   const find = (ppid: string | number) => {
     ppid = `${ppid}`
     for (const item of arr) {

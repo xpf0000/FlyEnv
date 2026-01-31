@@ -8,6 +8,7 @@ import { join } from 'path'
 import { isMacOS } from '@shared/utils'
 import is from 'electron-is'
 import { AppStartErrorCallback } from '../app'
+import TrayManager from './TrayManager'
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
@@ -35,8 +36,9 @@ const trayBrowserOptions: BrowserWindowConstructorOptions = {
   show: false,
   width: 270,
   height: 435,
-  opacity: 0,
   transparent: true,
+  type: 'toolbar',
+  alwaysOnTop: true,
   webPreferences: {
     nodeIntegration: false,
     contextIsolation: true,
@@ -49,6 +51,7 @@ export default class WindowManager extends EventEmitter {
   userConfig: any
   windows: { [key: string]: BrowserWindow }
   willQuit: boolean
+  trayManager?: TrayManager | undefined
 
   constructor(options: { [key: string]: any } = {}) {
     super()
@@ -108,11 +111,29 @@ export default class WindowManager extends EventEmitter {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
         window.hide()
+        this.trayManager!.show = false
       }
     })
-    window.on('blur', (event: Event) => {
+    const onBlur = (event: Event) => {
       event.preventDefault()
       window.hide()
+    }
+    window.on('show', () => {
+      console.log('tray on show !!!')
+      this.trayManager!.show = true
+      setTimeout(() => {
+        window.on('blur', onBlur)
+        this.trayManager!.clicking = false
+      }, 350)
+      window.removeListener('blur', onBlur)
+    })
+    window.on('hide', () => {
+      console.log('tray on hide !!!')
+      this.trayManager!.show = false
+      setTimeout(() => {
+        this.trayManager!.clicking = false
+      }, 350)
+      window.removeListener('blur', onBlur)
     })
     this.bindAfterClosed(page, window)
     this.addWindow(page, window)

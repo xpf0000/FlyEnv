@@ -14,7 +14,6 @@ type AppHelperCallback = (
 
 export class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
-  version = 7
 
   private _onMessage?: AppHelperCallback
 

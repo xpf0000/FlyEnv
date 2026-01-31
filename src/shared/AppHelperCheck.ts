@@ -8,6 +8,7 @@ import { isWindows } from './utils'
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
+export const HelperVersion = 8
 
 export const AppHelperSocketPathGet = (): string => {
   let actualPath = SOCKET_PATH
@@ -36,6 +37,9 @@ export const AppHelperRoleFix = async () => {
 export const AppHelperCheck = () => {
   return new Promise(async (resolve, reject) => {
     console.time('AppHelper check')
+    if (!isWindows() && HelperVersion !== global.Server.HelperVersion) {
+      return reject(new Error('AppHelper need update'))
+    }
     const client = createConnection(AppHelperSocketPathGet())
     client.on('connect', () => {
       console.log('Connected to the server')

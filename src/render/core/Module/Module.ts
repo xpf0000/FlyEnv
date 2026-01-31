@@ -69,8 +69,11 @@ export class Module {
   private _fetchInstalledResolves: CallbackFn[] = []
 
   fetchInstalled(): Promise<boolean> {
+    const appStore = AppStore()
     return new Promise((resolve) => {
       if (this.installedFetched) {
+        this._fetchInstalledResolves.forEach((f) => f(true))
+        this._fetchInstalledResolves.splice(0)
         resolve(true)
         return
       }
@@ -80,7 +83,6 @@ export class Module {
       }
       console.log('fetchInstalled run: ', this.typeFlag)
       this.fetchInstalleding = true
-      const appStore = AppStore()
       const setup = JSON.parse(JSON.stringify(appStore.config.setup))
       const excludeLocalVersion = setup?.excludeLocalVersion ?? []
       IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup).then(
@@ -330,10 +332,10 @@ export class Module {
       (v) => {
         console.log('watchShowHide show: ', v, this.typeFlag)
         if (v) {
-          this.fetchInstalled()
+          this.fetchInstalled().catch()
         } else {
           if (this.installed.length > 0) {
-            this.stop()
+            this.stop().catch()
           }
         }
       },
