@@ -62,6 +62,7 @@ type ConfSetupProps = {
   defaultConf?: string
   fileExt: string
   typeFlag: AllAppModule
+  configLanguage?: string
   showCommond?: boolean
   version?: SoftInstalled
 }
@@ -229,7 +230,12 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       }
       monacoInstance = EditorCreate(
         inputDom,
-        await EditorConfigMake(config.value, disabled?.value ?? true, 'off')
+        await EditorConfigMake(
+          config.value,
+          disabled?.value ?? true,
+          'off',
+          props.value.configLanguage ?? 'ini'
+        )
       )
       monacoInstance!.addAction({
         id: 'save',

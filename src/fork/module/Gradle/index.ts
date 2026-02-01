@@ -18,7 +18,7 @@ import {
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 import Helper from '../../Helper'
 
 class Gradle extends Base {
@@ -109,9 +109,11 @@ class Gradle extends Base {
       const dir = row.appDir
       await super._installSoftHandle(row)
       await moveChildDirToParent(dir)
-      try {
-        await Helper.send('mailpit', 'binFixed', row.bin)
-      } catch {}
+      if (isMacOS()) {
+        try {
+          await Helper.send('mailpit', 'binFixed', row.bin)
+        } catch {}
+      }
     }
   }
 

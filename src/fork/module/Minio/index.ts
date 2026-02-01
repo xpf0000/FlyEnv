@@ -286,9 +286,11 @@ class Minio extends Base {
       await mkdirp(dirname(row.bin))
       await copyFile(row.zip, row.bin)
       await chmod(row.bin, '0777')
-      try {
-        await Helper.send('mailpit', 'binFixed', row.bin)
-      } catch {}
+      if (isMacOS()) {
+        try {
+          await Helper.send('mailpit', 'binFixed', row.bin)
+        } catch {}
+      }
     }
 
     await spawnPromise(basename(row.bin), ['--version'], {

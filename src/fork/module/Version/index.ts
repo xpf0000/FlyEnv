@@ -39,6 +39,8 @@ class Manager extends Base {
   Consul: any
   Gradle: any
   Typesense: any
+  Zig: any
+  Qdrant: any
 
   constructor() {
     super()
@@ -265,6 +267,18 @@ class Manager extends Base {
             this.Typesense = res.default
           }
           versions.typesense = this.Typesense.allInstalledVersions(setup)
+        } else if (type === 'zig') {
+          if (!this.Zig) {
+            const res = await import('../Zig')
+            this.Zig = res.default
+          }
+          versions.zig = this.Zig.allInstalledVersions(setup)
+        } else if (type === 'qdrant') {
+          if (!this.Qdrant) {
+            const res = await import('../Qdrant')
+            this.Qdrant = res.default
+          }
+          versions.qdrant = this.Qdrant.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

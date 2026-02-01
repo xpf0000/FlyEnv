@@ -72,7 +72,9 @@ export enum AppModuleEnum {
   consul = 'consul',
   gradle = 'gradle',
   typesense = 'typesense',
-  podman = 'podman'
+  podman = 'podman',
+  zig = 'zig',
+  qdrant = 'qdrant'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

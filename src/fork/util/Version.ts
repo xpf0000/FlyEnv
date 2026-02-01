@@ -136,6 +136,33 @@ export const versionBinVersion = (
   })
 }
 
+export const versionBinVersionOutput = (
+  bin: string,
+  command: string
+): Promise<{ version?: string; error?: string }> => {
+  return new Promise(async (resolve) => {
+    const handleCatch = (err: any) => {
+      resolve({
+        error: `${command}\n${err}`,
+        version: undefined
+      })
+    }
+    const cwd = dirname(bin)
+    try {
+      process.chdir(cwd)
+      const res = await execPromiseWithEnv(command, {
+        cwd,
+        shell: undefined
+      })
+      resolve({
+        version: res.stdout
+      })
+    } catch (e) {
+      handleCatch(e)
+    }
+  })
+}
+
 export const versionDirCache: Record<string, string[]> = {}
 
 export const versionLocalFetch = async (

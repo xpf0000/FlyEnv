@@ -22,7 +22,8 @@ import { nativeTheme } from '@/util/NodeFn'
 export const EditorConfigMake = async (
   value: string,
   readOnly: boolean,
-  wordWrap: 'off' | 'on'
+  wordWrap: 'off' | 'on',
+  language = 'ini'
 ) => {
   const appStore = AppStore()
   const editorConfig = appStore.editorConfig
@@ -41,7 +42,7 @@ export const EditorConfigMake = async (
   }
   return {
     value,
-    language: 'ini',
+    language,
     readOnly,
     scrollBeyondLastLine: false,
     overviewRulerBorder: true,

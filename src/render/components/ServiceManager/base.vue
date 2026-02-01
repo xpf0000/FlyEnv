@@ -27,7 +27,7 @@
         </el-button>
       </div>
     </template>
-    <el-table v-loading="fetching" class="service-table" :data="versions">
+    <el-table v-loading="fetching" class="service-table" :data="versions" show-overflow-tooltip>
       <el-table-column prop="version" width="140px">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
@@ -37,6 +37,7 @@
         <template #default="scope">
           <span
             style="padding: 2px 12px 2px 24px; display: block"
+            class="truncate"
             :class="{
               current: isInAppEnv(scope.row)
             }"

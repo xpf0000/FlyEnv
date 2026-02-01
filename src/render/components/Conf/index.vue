@@ -84,6 +84,7 @@
       defaultFile?: string
       defaultConf?: string
       fileExt: string
+      configLanguage?: string
       typeFlag: AllAppModule
       showCommond: boolean
       showLoadDefault?: boolean
@@ -103,6 +104,7 @@
       defaultFile: props.defaultFile,
       defaultConf: props.defaultConf,
       fileExt: props.fileExt,
+      configLanguage: props.configLanguage,
       typeFlag: props.typeFlag,
       showCommond: props.showCommond
     }

@@ -37,7 +37,8 @@
         </template>
         <template #default="scope">
           <span
-            style="padding: 2px 12px 2px 24px; display: block"
+            style="padding: 2px 12px 2px 24px"
+            class="truncate"
             :class="{
               current:
                 currentVersion?.version === scope.row.version &&

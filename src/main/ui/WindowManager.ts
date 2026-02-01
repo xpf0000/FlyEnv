@@ -90,11 +90,13 @@ export default class WindowManager extends EventEmitter {
     const page = 'tray'
     let window = this.windows.tray
     if (window) {
+      this.trayManager!.window = window
       return window
     }
     const pageOptions = this.getPageOptions(page)
     trayBrowserOptions.webPreferences!.preload = join(global.Server.Static!, 'preload/preload.js')
     window = new BrowserWindow(trayBrowserOptions)
+    this.trayManager!.window = window
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
         event.preventDefault()
@@ -114,26 +116,20 @@ export default class WindowManager extends EventEmitter {
         this.trayManager!.show = false
       }
     })
-    const onBlur = (event: Event) => {
-      event.preventDefault()
-      window.hide()
-    }
     window.on('show', () => {
-      console.log('tray on show !!!')
+      window.removeListener('blur', this.trayManager!.onBlur)
       this.trayManager!.show = true
       setTimeout(() => {
-        window.on('blur', onBlur)
+        window.on('blur', this.trayManager!.onBlur)
         this.trayManager!.clicking = false
-      }, 350)
-      window.removeListener('blur', onBlur)
+      }, 250)
     })
     window.on('hide', () => {
-      console.log('tray on hide !!!')
       this.trayManager!.show = false
       setTimeout(() => {
         this.trayManager!.clicking = false
-      }, 350)
-      window.removeListener('blur', onBlur)
+      }, 250)
+      window.removeListener('blur', this.trayManager!.onBlur)
     })
     this.bindAfterClosed(page, window)
     this.addWindow(page, window)

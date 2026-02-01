@@ -1,5 +1,11 @@
 <template>
-  <el-table height="100%" :data="tableData" :border="false" style="width: 100%">
+  <el-table
+    show-overflow-tooltip
+    height="100%"
+    :data="tableData"
+    :border="false"
+    style="width: 100%"
+  >
     <template #empty>
       <template v-if="fetching">
         {{ I18nT('base.gettingVersion') }}
@@ -44,7 +50,11 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column prop="version" :label="I18nT('base.version')" width="200"> </el-table-column>
+    <el-table-column prop="version" :label="I18nT('base.version')" width="200">
+      <template #default="scope">
+        <span class="truncate">{{ scope.row.version }}</span>
+      </template>
+    </el-table-column>
     <el-table-column align="center" :label="I18nT('base.isInstalled')" width="120">
       <template #default="scope">
         <div class="cell-status">

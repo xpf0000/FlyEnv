@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import { join } from 'path'
-import { Tray, nativeImage, screen, Menu } from 'electron'
+import { Tray, nativeImage, screen, Menu, BrowserWindow } from 'electron'
 import NativeImage = Electron.NativeImage
 import { isWindows } from '@shared/utils'
 import { I18nT } from '@lang/index'
@@ -17,6 +17,8 @@ export default class TrayManager extends EventEmitter {
   status: any
   show: boolean = false
   clicking: boolean = false
+  window: BrowserWindow | undefined
+
   constructor() {
     super()
     this.active = false
@@ -31,6 +33,7 @@ export default class TrayManager extends EventEmitter {
       .resize({ width: size, height: size })
     this.tray = new Tray(this.normalIcon)
     this.tray.setToolTip('FlyEnv')
+    this.onBlur = this.onBlur.bind(this)
   }
 
   addModernStyleListener() {
@@ -124,10 +127,17 @@ export default class TrayManager extends EventEmitter {
     this.tray.setImage(this.active ? this.activeIcon : this.normalIcon)
   }
 
+  onBlur(event: Event) {
+    event.preventDefault()
+    if (!this.clicking) {
+      this.window?.hide()
+    }
+  }
+
   handleTrayClick = (event: any) => {
-    console.log('handleTrayClick !!!')
     event?.preventDefault?.()
     this.clicking = true
+    this.window?.removeListener('blur', this.onBlur)
     const bounds = this.tray.getBounds()
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
     const x = Math.min(bounds.x - 135 + bounds.width * 0.5, screenWidth - 270)

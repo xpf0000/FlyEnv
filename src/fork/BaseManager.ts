@@ -51,6 +51,8 @@ class BaseManager {
   Project: any
   Podman: any
   Image: any
+  Zig: any
+  Qdrant: any
 
   modules: Set<string> = new Set()
 
@@ -413,6 +415,18 @@ class BaseManager {
         this.Image = res.default
       }
       doRun(this.Image)
+    } else if (module === 'zig') {
+      if (!this.Zig) {
+        const res = await import('./module/Zig')
+        this.Zig = res.default
+      }
+      doRun(this.Zig)
+    } else if (module === 'qdrant') {
+      if (!this.Qdrant) {
+        const res = await import('./module/Qdrant')
+        this.Qdrant = res.default
+      }
+      doRun(this.Qdrant)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }
