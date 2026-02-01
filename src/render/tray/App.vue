@@ -133,6 +133,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
+
+            &.swith-power {
+              &.on {
+                color: #01cc74;
+              }
+
+              &.disabled {
+                cursor: not-allowed !important;
+              }
+            }
           }
         }
 

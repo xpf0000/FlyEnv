@@ -15,7 +15,7 @@ const desktop: any = {
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.12.2',
+  buildVersion: '4.13.0',
   electronVersion: '35.7.5',
   appId: 'com.xpf0000.flyenv',
   asar: true,

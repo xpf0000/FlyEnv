@@ -6,7 +6,7 @@
   >
     <div class="left">
       <div class="icon-block">
-        <yb-icon style="padding: 0" :svg="import('@/svg/zig.svg?raw')" width="29" height="29" />
+        <yb-icon style="padding: 5px" :svg="import('@/svg/zig.svg?raw')" width="29" height="29" />
       </div>
       <span class="title">Zig</span>
     </div>
