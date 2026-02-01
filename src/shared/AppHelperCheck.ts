@@ -53,6 +53,7 @@ export const AppHelperCheck = () => {
 
     client.on('data', (data: any) => {
       buffer.push(data)
+      client.end()
     })
 
     client.on('end', () => {
