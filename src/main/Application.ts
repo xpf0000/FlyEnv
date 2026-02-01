@@ -35,7 +35,7 @@ import AppNodeFnManager, { type AppNodeFn } from './core/AppNodeFn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 import ServiceProcessManager from './core/ServiceProcess'
-import { AppHelperCheck, AppHelperRoleFix, HelperVersion } from '@shared/AppHelperCheck'
+import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import { Capturer } from './core/Capturer'
 import OAuth from './core/OAuth'
@@ -116,7 +116,6 @@ export default class Application extends EventEmitter {
   }
 
   initAppHelper() {
-    global.Server.HelperVersion = this.configManager?.getConfig('helper.version')
     AppHelperRoleFix().catch()
     Helper.appHelper = AppHelper
     AppHelper.onStatusMessage((flag) => {
@@ -136,8 +135,6 @@ export default class Application extends EventEmitter {
             code: 2,
             msg: I18nT('menu.waitHelper')
           })
-          this.configManager.setConfig('helper.version', HelperVersion)
-          global.Server.HelperVersion = HelperVersion
           break
         case 'installing':
           this.windowManager.sendCommandTo(this.mainWindow!, key, key, {

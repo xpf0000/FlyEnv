@@ -1,7 +1,7 @@
 import { exec as Sudo } from '@shared/Sudo'
 import { join, resolve as PathResolve, basename, dirname } from 'node:path'
 import is from 'electron-is'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { tmpdir } from 'node:os'
 import { uuid } from '../utils'
@@ -214,6 +214,7 @@ export class AppHelper {
           doChech()
         })
         .catch((e) => {
+          appDebugLog('[AppHelper][initHelper][error]', `${e})}`).catch()
           console.log('initHelper err: ', e)
           this.state = 'normal'
           this?._onMessage?.('installFaild')

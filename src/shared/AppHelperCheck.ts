@@ -4,6 +4,7 @@ import { createConnection } from 'node:net'
 import { userInfo } from 'node:os'
 import { basename } from 'node:path'
 import { isWindows } from './utils'
+import JSON5 from 'json5'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
@@ -37,26 +38,45 @@ export const AppHelperRoleFix = async () => {
 export const AppHelperCheck = () => {
   return new Promise(async (resolve, reject) => {
     console.time('AppHelper check')
-    if (!isWindows() && HelperVersion !== global.Server.HelperVersion) {
-      return reject(new Error('AppHelper need update'))
-    }
+    const key = 'flyenv-helper-version-check'
+    const buffer: Buffer[] = []
     const client = createConnection(AppHelperSocketPathGet())
     client.on('connect', () => {
       console.log('Connected to the server')
-      client.end()
-      try {
-        client.destroySoon()
-      } catch {}
-      resolve(true)
-      console.timeEnd('AppHelper check')
+      const param = {
+        key,
+        module: 'helper',
+        function: 'version'
+      }
+      client.write(JSON.stringify(param))
     })
 
     client.on('data', (data: any) => {
-      console.log('Received server response:', data.toString())
+      buffer.push(data)
     })
 
     client.on('end', () => {
       console.log('Disconnected from the server')
+      try {
+        client.destroySoon()
+      } catch {}
+      let res: any
+      try {
+        const content = Buffer.concat(buffer).toString().trim()
+        res = JSON5.parse(content)
+      } catch {}
+      console.timeEnd('AppHelper check')
+      console.log(`${key}: `, res)
+      if (res && res?.key && res?.key === key) {
+        buffer.splice(0)
+        if (res?.code === 0) {
+          const version = res?.data
+          if (version === HelperVersion) {
+            return resolve(true)
+          }
+        }
+      }
+      return reject(new Error(`Helper Need Install Or Update`))
     })
 
     client.on('error', () => {

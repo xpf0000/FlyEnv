@@ -18,6 +18,7 @@ import (
 
 // Constants for socket paths
 const (
+	Helper_Version   = 8
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
@@ -212,6 +213,14 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 
 		// 使用嵌套的 switch 语句直接调用方法，并加入参数检查
 		switch info.Module {
+		case "helper":
+			switch info.Function {
+			case "version":
+				result = Helper_Version
+				execErr = nil
+			default:
+				execErr = fmt.Errorf("unknown function '%s' for module 'helper'", info.Function)
+			}
 		case "tools":
 			switch info.Function {
 			case "exec":

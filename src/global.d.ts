@@ -35,7 +35,6 @@ export interface ServerType {
   isMacOS?: boolean
   isLinux?: boolean
   isWindows?: boolean
-  HelperVersion?: number
 }
 
 declare global {
