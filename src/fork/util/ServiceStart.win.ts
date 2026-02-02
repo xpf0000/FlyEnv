@@ -61,7 +61,7 @@ export async function serviceStartExec(
   const execEnv = param?.execEnv ?? ''
   const cwd = param?.cwd ?? dirname(param.bin)
   const bin = param.bin
-  const execArgs = param?.execArgs ?? ''
+  const execArgs = param?.execArgs ?? ' '
   const on = param.on
   const checkPidFile = param?.checkPidFile ?? true
   const pidPath = param?.pidPath ?? ''
