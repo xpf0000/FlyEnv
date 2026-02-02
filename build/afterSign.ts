@@ -14,7 +14,7 @@ export default async function (configuration: AfterPackContext) {
   const helperPath = join(appOutDir, "resources/app.asar.unpacked/node_modules/helper/flyenv-helper.exe")
   if (existsSync(helperPath)) {
     try {
-      const dest = join(appOutDir, "resources/helper/flyenv-helper.exe")
+      const dest = join(appOutDir, "resources/helper-backup/flyenv-helper.exe")
       await mkdirp(dirname(dest))
       await copyFile(helperPath, dest)
       await remove(dirname(helperPath))
