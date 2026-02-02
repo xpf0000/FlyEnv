@@ -165,7 +165,7 @@ Check out our [Development Guide](./DEV.md) to get started.
 ## Community & Support
 
 * **Technical Deep Dive:** [Architecture Analysis](https://deepwiki.com/xpf0000/FlyEnv)
-* **Facebook Group**[Facebook Group](https://www.facebook.com/groups/908637655411162)
+* **Facebook Group:**[Facebook Group](https://www.facebook.com/groups/908637655411162)
 * **Discord:** [Join Community](https://discord.gg/u5SuMGxjPE)
 * **Discussions:** [GitHub Discussions](https://github.com/xpf0000/FlyEnv/discussions)
 * **Website:** [flyenv.com](https://www.flyenv.com)
