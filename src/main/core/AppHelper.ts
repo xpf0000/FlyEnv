@@ -74,7 +74,7 @@ export class AppHelper {
         icns = join(binDir, 'Icon@256x256.icns')
       } else if (isWindows()) {
         const binDir = PathResolve(global.Server.Static!, '../../../../')
-        const srcBin = join(binDir, 'helper-backup/flyenv-helper.exe')
+        // const srcBin = join(binDir, 'helper-backup/flyenv-helper.exe')
         const bin = join(binDir, 'helper/flyenv-helper.exe')
         const tmpl = await readFile(
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
@@ -82,7 +82,7 @@ export class AppHelper {
         )
         const content = tmpl
           .replace('#TASKNAME#', 'flyenv-helper')
-          .replace('#SRCEXECPATH#', srcBin)
+          .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
           .replace('#DATAPATH#', dirname(global.Server.AppDir!))
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)

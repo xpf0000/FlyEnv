@@ -1,11 +1,32 @@
+param (
+  [string]$instDir
+)
+
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+$instDir = $instDir.Trim('"')
+
+$logFile = Join-Path $env:TEMP "flyenv-helper-init.log"
+function Write-Log($msg) {
+  $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+  "$timestamp : $msg" | Out-File -FilePath $logFile -Append -Encoding UTF8
+}
+
+Write-Log "Script started. Raw instDir: $instDir"
+
 try {
-  $taskName = "#TASKNAME#"
-  $exePath = "#EXECPATH#"
-  $dataPath = "#DATAPATH#"
+  $taskName = "flyenv-helper"
+
+  $parentDir = Split-Path -Path $instDir -Parent
+  $dataPath = Join-Path $parentDir "PhpWebStudy-Data"
+  $exePath = Join-Path $instDir "resources\helper\flyenv-helper.exe"
+
+  Write-Log "Parsed Path - exePath: $exePath"
+  Write-Log "Parsed Path - dataPath: $dataPath"
 
   $currentUserName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+
+  Write-Log "Current User: $currentUserName"
 
   if (Test-Path -LiteralPath $exePath) {
     $processName = [System.IO.Path]::GetFileNameWithoutExtension($exePath)
@@ -13,6 +34,7 @@ try {
 
     $runningProcesses = Get-Process -Name $processName -ErrorAction SilentlyContinue
     if ($runningProcesses) {
+      Write-Log "Stopping processes..."
       Write-Host "Stopping existing process(es)..."
       $runningProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
       Start-Sleep -Milliseconds 500 # 等待进程完全释放
@@ -58,14 +80,17 @@ try {
     Write-Host "Warning: Failed to set permissions on '$dataPath': $($_.Exception.Message)"
   }
 
+  Write-Log "Starting process..."
   Write-Host "Starting application immediately..."
   try {
     $process = Start-Process -FilePath $exePath -WindowStyle Hidden -PassThru
     if ($process.Id) {
+      Write-Log "Application started successfully (PID: $($process.Id))"
       Write-Host "Application started successfully (PID: $($process.Id))"
     }
   }
   catch {
+    Write-Log "Failed to start application: $($_.Exception.Message)"
     Write-Host "Failed to start application: $($_.Exception.Message)"
   }
 
@@ -105,11 +130,11 @@ try {
   $xmlPath = Join-Path $env:TEMP "FlyEnvHelperTask.xml"
   $xmlConfig | Out-File -FilePath $xmlPath -Encoding Unicode -Force
 
-  # 使用 /F 强制覆盖 (虽然前面已经删除了，但双重保险)
   schtasks /Create /XML "$xmlPath" /TN "$taskName" /F
 
   if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Start-Sleep -Milliseconds 1000
+    Write-Log "Task '$taskName' created successfully."
     Write-Host "Task '$taskName' created successfully."
   } else {
     throw "Failed to create scheduled task '$taskName'."
@@ -117,6 +142,7 @@ try {
   exit 0
 }
 catch {
+  Write-Log "Task creation failed. Error: $($_.Exception.Message)"
   Write-Host "Task creation failed. Error: $($_.Exception.Message)"
   exit 1
 }

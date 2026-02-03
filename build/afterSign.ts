@@ -11,17 +11,30 @@ export default async function (configuration: AfterPackContext) {
 
   const appOutDir = configuration.appOutDir
   // 定位你的 helper 文件
-  const helperPath = join(appOutDir, "resources/app.asar.unpacked/node_modules/helper/flyenv-helper.exe")
+  let helperPath = join(appOutDir, "resources/app.asar.unpacked/node_modules/helper/flyenv-helper.exe")
   if (existsSync(helperPath)) {
     try {
-      const dest = join(appOutDir, "resources/helper-backup/flyenv-helper.exe")
+      const dest = join(appOutDir, "resources/helper/flyenv-helper.exe")
       await mkdirp(dirname(dest))
       await copyFile(helperPath, dest)
-      await remove(dirname(helperPath))
     } catch (e) {
       console.warn(`win copy helperPath File error: ${e}`)
     }
   } else {
     console.warn(`win helperPath File not found: ${helperPath}`)
+  }
+
+  helperPath = join(appOutDir, "resources/app.asar.unpacked/node_modules/helper/flyenv-helper-init.ps1")
+  if (existsSync(helperPath)) {
+    try {
+      const dest = join(appOutDir, "resources/helper/flyenv-helper-init.ps1")
+      await mkdirp(dirname(dest))
+      await copyFile(helperPath, dest)
+      await remove(dirname(helperPath))
+    } catch (e) {
+      console.warn(`win copy helperInitPath File error: ${e}`)
+    }
+  } else {
+    console.warn(`win helperInitPath File not found: ${helperPath}`)
   }
 }
