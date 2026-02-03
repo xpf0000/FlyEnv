@@ -87,7 +87,7 @@ export class AppHelper {
           .replace('#DATAPATH#', dirname(global.Server.AppDir!))
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, content)
-        command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
+        command = `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
         icns = join(binDir, 'icon.icns')
       }
     } else {
@@ -150,7 +150,7 @@ export class AppHelper {
 
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, content)
-        command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
+        command = `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
         icns = join(binDir, 'icon.icns')
       }
     }

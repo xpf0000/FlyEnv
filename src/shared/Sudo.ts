@@ -199,7 +199,7 @@ async function windowsWaitForStatus(instance: Instance): Promise<void> {
   }
 
   let times = 0
-  while (times < 60) {
+  while (times < 120) {
     const a = checkFile(instance.pathStatus!)
     const b = checkFile(instance.pathStdout!)
     const c = checkFile(instance.pathStderr!)

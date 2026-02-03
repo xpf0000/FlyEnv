@@ -29,10 +29,6 @@ const conf: Configuration = {
       {
         from: 'src/helper-go/dist/flyenv-helper-windows-amd64-v1.exe',
         to: 'app.asar.unpacked/node_modules/helper/flyenv-helper.exe'
-      },
-      {
-        from: 'static/sh/Windows/flyenv-helper-init.ps1',
-        to: 'app.asar.unpacked/node_modules/helper/flyenv-helper-init.ps1'
       }
     ],
     signExts: ['flyenv-helper.exe', 'flyenv-helper-init.ps1'],
@@ -51,8 +47,7 @@ const conf: Configuration = {
   nsis: {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
-    allowElevation: true,
-    include: 'build/installer.nsh'
+    allowElevation: true
   },
   portable: {
     artifactName: 'FlyEnv-Portable-${version}.${ext}'
