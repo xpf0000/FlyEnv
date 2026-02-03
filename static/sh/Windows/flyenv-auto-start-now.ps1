@@ -9,119 +9,66 @@ try {
 
   if (Test-Path -LiteralPath $exePath) {
     $processName = [System.IO.Path]::GetFileNameWithoutExtension($exePath)
-    Write-Host "Checking for running process: $processName..."
-
     $runningProcesses = Get-Process -Name $processName -ErrorAction SilentlyContinue
     if ($runningProcesses) {
-      Write-Host "Stopping existing process(es)..."
       $runningProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
-      Start-Sleep -Milliseconds 500 # 等待进程完全释放
+      Start-Sleep -Milliseconds 500
     }
-  }
-
-  Write-Host "Checking for existing scheduled task: $taskName..."
-  if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-    Write-Host "Removing existing task..."
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction Stop
-  }
-
-  if (-not (Test-Path -LiteralPath $exePath)) {
-    throw "'$exePath' does not exist."
   }
 
   if (-not (Test-Path -LiteralPath $dataPath)) {
-    Write-Host "Creating data directory: $dataPath"
-    try {
-      New-Item -Path $dataPath -ItemType Directory -Force | Out-Null
-      Write-Host "Data directory created successfully."
-    }
-    catch {
-      throw "Failed to create data directory '$dataPath': $($_.Exception.Message)"
-    }
+    New-Item -Path $dataPath -ItemType Directory -Force | Out-Null
   }
 
-  Write-Host "Setting full access permissions for current user on: $dataPath"
   try {
     $acl = Get-Acl -Path $dataPath
-    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
-    $currentUserName,
-    "FullControl",
-    "ContainerInherit,ObjectInherit",
-    "None",
-    "Allow"
-    )
+    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($currentUserName, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
     $acl.SetAccessRule($rule)
     Set-Acl -Path $dataPath -AclObject $acl -ErrorAction SilentlyContinue
-    Write-Host "Permissions set successfully for $currentUserName."
-  }
-  catch {
-    Write-Host "Warning: Failed to set permissions on '$dataPath': $($_.Exception.Message)"
+  } catch {
+    Write-Host "Warning: Failed to set permissions: $($_.Exception.Message)"
   }
 
-  Write-Host "Starting application immediately..."
   try {
-    $process = Start-Process -FilePath $exePath -WindowStyle Hidden -PassThru
-    if ($process.Id) {
-      Write-Host "Application started successfully (PID: $($process.Id))"
-    }
-  }
-  catch {
+    Start-Process -FilePath $exePath -WindowStyle Hidden
+  } catch {
     Write-Host "Failed to start application: $($_.Exception.Message)"
   }
 
-  $xmlConfig = @"
-<?xml version="1.0" encoding="UTF-16"?>
-<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <RegistrationInfo>
-    <Description>FlyEnv Helper Auto Start</Description>
-  </RegistrationInfo>
-  <Triggers>
-    <LogonTrigger>
-      <Enabled>true</Enabled>
-    </LogonTrigger>
-  </Triggers>
-  <Principals>
-    <Principal id="Author">
-      <UserId>$($currentUserName)</UserId>
-      <LogonType>InteractiveToken</LogonType>
-      <RunLevel>HighestAvailable</RunLevel>
-    </Principal>
-  </Principals>
-  <Settings>
-    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
-    <AllowStartOnDemand>true</AllowStartOnDemand>
-    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
-  </Settings>
-  <Actions Context="Author">
-    <Exec>
-      <Command>"$exePath"</Command>
-    </Exec>
-  </Actions>
-</Task>
-"@
+  Write-Host "Creating scheduled task via API..."
 
-  $xmlPath = Join-Path $env:TEMP "FlyEnvHelperTask.xml"
-  $xmlConfig | Out-File -FilePath $xmlPath -Encoding Unicode -Force
+  $scheduler = New-Object -ComObject "Schedule.Service"
+  $scheduler.Connect()
+  $rootFolder = $scheduler.GetFolder("\")
 
-  # 使用 /F 强制覆盖 (虽然前面已经删除了，但双重保险)
-  schtasks /Create /XML "$xmlPath" /TN "$taskName" /F
+  $taskDefinition = $scheduler.NewTask(0)
 
-  if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-    Start-Sleep -Milliseconds 1000
-    Write-Host "Task '$taskName' created successfully."
-  } else {
-    throw "Failed to create scheduled task '$taskName'."
-  }
+  $taskDefinition.RegistrationInfo.Description = "FlyEnv Helper Auto Start"
+  $taskDefinition.RegistrationInfo.Author = $currentUserName
+
+  $taskDefinition.Settings.ExecutionTimeLimit = "PT0S"
+  $taskDefinition.Settings.AllowStartOnDemand = $true
+  $taskDefinition.Settings.DisallowStartIfOnBatteries = $false
+  $taskDefinition.Settings.StopIfGoingOnBatteries = $false
+  $taskDefinition.Settings.MultipleInstances = 2
+
+  $trigger = $taskDefinition.Triggers.Create(9)
+  $trigger.Enabled = $true
+  $trigger.UserId = $currentUserName
+
+  $action = $taskDefinition.Actions.Create(0)
+  $action.Path = "`"$exePath`""
+
+  $taskDefinition.Principal.UserId = $currentUserName
+  $taskDefinition.Principal.LogonType = 3
+  $taskDefinition.Principal.RunLevel = 1
+
+  $rootFolder.RegisterTaskDefinition($taskName, $taskDefinition, 6, $null, $null, 3)
+
+  Write-Host "Task '$taskName' created successfully via API."
   exit 0
 }
 catch {
   Write-Host "Task creation failed. Error: $($_.Exception.Message)"
   exit 1
-}
-finally {
-  if ($xmlPath -and (Test-Path -LiteralPath $xmlPath)) {
-    Remove-Item -LiteralPath $xmlPath -Force -ErrorAction SilentlyContinue
-  }
 }
