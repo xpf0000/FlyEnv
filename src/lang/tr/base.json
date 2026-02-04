@@ -77,8 +77,8 @@
   "action": "Eylem",
   "copyLink": "Bağlantıyı Kopyala",
   "copySuccess": "Panoya kopyalandı!",
-  "killProcessConfirm": "Seçilen işlemi sonlandırmak istediğinize emin misiniz?",
-  "killAllProcessConfirm": "Tüm işlemleri sonlandırmak istediğinize emin misiniz?",
+  "killProcessConfirm": "Seçilen işlemi sonlandırmak istediğinizden emin misiniz?",
+  "killAllProcessConfirm": "Tüm işlemleri sonlandırmak istediğinizden emin misiniz?",
   "portNotUse": "Bu port kullanılmıyor",
   "sslMakeAlert": "SSL kendinden imzalı sertifika başarıyla oluşturuldu. Açılan Anahtar Zinciri'nde Dev Root CA {caFileName} dosyasını bulun ve \"her zaman güven\" olarak değiştirin.",
   "second": "Saniye",
@@ -110,7 +110,6 @@
   "placeholderSearch": "Ara",
   "projects": "Projeler",
   "cleanup": "Temizle",
-
   "preview": "Önizleme",
   "executing": "Yürütülüyor",
   "info": "Bilgi",

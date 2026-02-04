@@ -32,7 +32,8 @@
   "messagePlaceholder": "Bağış yaptıysanız lütfen bağışçı adı, bağış bağlantısı veya sipariş numarasını girin.\nProje geliştirmeye katkıda bulunduysanız lütfen PR bağlantısını gönderin.\nProjeyi tanıttıysanız lütfen makale/video bağlantısını gönderin.",
   "requestButton": "Lisans Talep Et",
   "refreshButton": "Durumu Yenile",
-
+  "licenseActivated": "Lisans etkinleştirildi",
+  "licenseNoActivated": "Lisans etkinleştirilmedi",
   "licenseInfo": "Mevcut sağlanan lisans kalıcı bir lisandır, her bilgisayar bir lisansla eşleşir. Bilgisayar değiştirirseniz, 'Lisanslarım'da yeni cihazın uuid'sini bağlamanız veya yeni lisans başvurusunda bulunmanız gerekir.",
   "logoutTips": "Oturumu kapatmak istediğinizden emin misiniz?",
   "delBindTips": "Lisansı bu UUID'den bağlamayı kaldırmak istediğinizden emin misiniz?",
