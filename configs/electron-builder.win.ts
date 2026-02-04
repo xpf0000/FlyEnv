@@ -3,8 +3,8 @@ import AfterSign from '../build/afterSign'
 
 const conf: Configuration = {
   productName: 'FlyEnv',
-  executableName: 'PhpWebStudy',
-  buildVersion: '4.13.0',
+  executableName: 'FlyEnv',
+  buildVersion: '4.13.1',
   electronVersion: '35.7.5',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -14,7 +14,6 @@ const conf: Configuration = {
   files: [
     'dist/electron/**/*',
     'dist/render/**/*',
-    'static/sh/Windows/flyenv-helper-init.ps1',
     '!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,LICENSE}',
     '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}',
     '!**/node_modules/*.d.ts',
@@ -31,7 +30,7 @@ const conf: Configuration = {
         to: 'app.asar.unpacked/node_modules/helper/flyenv-helper.exe'
       }
     ],
-    signExts: ['flyenv-helper.exe', 'flyenv-helper-init.ps1'],
+    signExts: ['flyenv-helper.exe'],
     icon: 'build/icon.ico',
     target: [
       {

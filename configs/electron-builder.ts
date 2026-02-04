@@ -19,7 +19,7 @@ const currentArch = process.arch === 'arm64' ? 'arm64' : 'x64'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.13.0',
+  buildVersion: '4.13.1',
   electronVersion: '35.7.5',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -69,7 +69,7 @@ const conf: Configuration = {
     extendInfo: {
       'Icon file': 'icon.icns',
       CFBundleDisplayName: 'FlyEnv',
-      CFBundleExecutable: 'PhpWebStudy'
+      CFBundleExecutable: 'FlyEnv'
     },
     type: 'distribution',
     darkModeSupport: true,

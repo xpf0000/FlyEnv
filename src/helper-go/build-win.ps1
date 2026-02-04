@@ -70,7 +70,7 @@ $env:CGO_ENABLED = "0"
 $buildOutput = Join-Path -Path $BUILD_DIR -ChildPath $OUTPUT_FILENAME
 $buildArgs = @(
   "build",
-  "-ldflags=`"-H windowsgui`"",
+  "-ldflags=`"-s -w -H windowsgui`"",
   "-o",
   $buildOutput,
   $MAIN_PACKAGE

@@ -53,10 +53,14 @@ jobs:
 
       - name: Build Go helper with build-win.ps1
         run: |
+          go install github.com/tc-hib/go-winres@latest
+          $GOBIN = $(go env GOPATH) + "\bin"
+          $env:PATH = "$GOBIN;$env:PATH"
           cd "$env:GITHUB_WORKSPACE/src/helper-go"
           go clean -modcache
           go mod download
           go mod tidy
+          go-winres make
           # 使用 PowerShell 脚本构建
           .\build-win.ps1
 
