@@ -1,13 +1,17 @@
 {
   "RT_VERSION": {
-    "vars": {
-      "FileDescription": "FlyEnv Helper - System Service Manager",
-      "ProductName": "FlyEnv",
-      "CompanyName": "FlyEnv Project",
-      "OriginalFilename": "flyenv-helper.exe",
-      "LegalCopyright": "Copyright © Pengfei Xu",
-      "FileVersion": "1.0.0.8",
-      "ProductVersion": "4.13.0"
+    "#1": {
+      "1033": {
+        "vars": {
+          "FileDescription": "FlyEnv Helper - System Service Manager",
+          "ProductName": "FlyEnv",
+          "CompanyName": "Pengfei Xu",
+          "OriginalFilename": "flyenv-helper.exe",
+          "LegalCopyright": "Copyright (c) 2026 Pengfei Xu",
+          "FileVersion": "1.0.0.8",
+          "ProductVersion": "4.13.0.0"
+        }
+      }
     }
   }
 }
