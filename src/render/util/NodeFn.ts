@@ -1,12 +1,17 @@
 import IPC from '@/util/IPC'
 import { CustomerLangs } from '@lang/customer'
 import { AppI18n } from '@lang/index'
+import type { ExecOptions } from 'node:child_process'
+import type { Stats } from 'node:fs'
 
-// Helper function to create consistent IPC calls with proper typing
-const createIPCCall = <T>(namespace: string, method: string) => {
-  return (...args: any[]): Promise<T> =>
+// 创建类型工具
+type IPCMethod<T extends any[], R> = (...args: T) => Promise<R>
+
+// 工厂函数
+const createIPCCall = <T extends any[], R>(namespace: string, method: string): IPCMethod<T, R> => {
+  return (...args: T): Promise<R> =>
     new Promise((resolve) => {
-      IPC.send(`App-Node-FN`, namespace, method, ...args).then((key: string, res: T) => {
+      IPC.send(`App-Node-FN`, namespace, method, ...args).then((key: string, res: R) => {
         IPC.off(key)
         resolve(res)
       })
@@ -62,10 +67,10 @@ type CustomerLangItem = {
 }
 
 export const lang = {
-  initCustomerLang: createIPCCall<any>('lang', 'initCustomerLang'),
+  initCustomerLang: createIPCCall<[], any>('lang', 'initCustomerLang'),
   loadCustomerLang: () => {
     return new Promise((resolve) => {
-      createIPCCall<CustomerLangItem[]>('lang', 'loadCustomerLang')()
+      createIPCCall<[], CustomerLangItem[]>('lang', 'loadCustomerLang')()
         .then((langArr) => {
           CustomerLangs.splice(0)
           for (const item of langArr) {
@@ -85,29 +90,29 @@ export const lang = {
 }
 
 export const ip = {
-  address: createIPCCall<string>('ip', 'address')
+  address: createIPCCall<[], string>('ip', 'address')
 }
 
 export const clipboard = {
-  writeText: createIPCCall<void>('clipboard', 'writeText')
+  writeText: createIPCCall<[string], void>('clipboard', 'writeText')
 }
 
 export const md = {
-  render: createIPCCall<string>('md', 'render')
+  render: createIPCCall<[string], string>('md', 'render')
 }
 
 export const nodeForge = {
-  rsaGenerateKeyPair: createIPCCall<{ privateKey: string; publicKey: string }>(
+  rsaGenerateKeyPair: createIPCCall<[{ bits: number }], { privateKey: string; publicKey: string }>(
     'node_forge',
     'rsaGenerateKeyPair'
   ),
-  privateKeyToPem: createIPCCall<string>('node_forge', 'privateKeyToPem'),
-  publicKeyToPem: createIPCCall<string>('node_forge', 'publicKeyToPem')
+  privateKeyToPem: createIPCCall<[string], string>('node_forge', 'privateKeyToPem'),
+  publicKeyToPem: createIPCCall<[string], string>('node_forge', 'publicKeyToPem')
 }
 
 export const nativeTheme = {
   updateFn: [] as any,
-  shouldUseDarkColors: createIPCCall<boolean>('nativeTheme', 'shouldUseDarkColors'),
+  shouldUseDarkColors: createIPCCall<[], boolean>('nativeTheme', 'shouldUseDarkColors'),
   on(flag: 'updated', _fn: () => void) {
     if (flag === 'updated' && !this.updateFn.includes(_fn)) {
       this.updateFn.push(_fn)
@@ -124,51 +129,91 @@ export const nativeTheme = {
 }
 
 export const app = {
-  getPath: createIPCCall<string>('app', 'getPath'),
-  getConfig: createIPCCall<any>('app', 'getConfig'),
-  setLoginItemSettings: createIPCCall<string>('app', 'setLoginItemSettings'),
-  getLoginItemSettings: createIPCCall<string>('app', 'getLoginItemSettings'),
-  getVersion: createIPCCall<string>('app', 'getVersion')
+  getPath: createIPCCall<
+    [
+      | 'home'
+      | 'appData'
+      | 'userData'
+      | 'sessionData'
+      | 'temp'
+      | 'exe'
+      | 'module'
+      | 'desktop'
+      | 'documents'
+      | 'downloads'
+      | 'music'
+      | 'pictures'
+      | 'videos'
+      | 'recent'
+      | 'logs'
+      | 'crashDumps'
+    ],
+    string
+  >('app', 'getPath'),
+  getConfig: createIPCCall<[], any>('app', 'getConfig'),
+  setLoginItemSettings: createIPCCall<[{ openAtLogin?: boolean }], string>(
+    'app',
+    'setLoginItemSettings'
+  ),
+  getLoginItemSettings: createIPCCall<[], string>('app', 'getLoginItemSettings'),
+  getVersion: createIPCCall<[], string>('app', 'getVersion')
 }
 
 export const dialog = {
-  showSaveDialog: createIPCCall<Electron.SaveDialogReturnValue>('dialog', 'showSaveDialog'),
-  showOpenDialog: createIPCCall<Electron.OpenDialogReturnValue>('dialog', 'showOpenDialog')
+  showSaveDialog: createIPCCall<[Electron.SaveDialogOptions], Electron.SaveDialogReturnValue>(
+    'dialog',
+    'showSaveDialog'
+  ),
+  showOpenDialog: createIPCCall<[Electron.OpenDialogOptions], Electron.OpenDialogReturnValue>(
+    'dialog',
+    'showOpenDialog'
+  ),
+  showMessageBox: createIPCCall<[Electron.MessageBoxOptions], Electron.MessageBoxReturnValue>(
+    'dialog',
+    'showMessageBox'
+  )
 }
 
 export const shell = {
-  showItemInFolder: createIPCCall<void>('shell', 'showItemInFolder'),
-  openPath: createIPCCall<string>('shell', 'openPath'),
-  openExternal: createIPCCall<void>('shell', 'openExternal')
+  showItemInFolder: createIPCCall<[string], void>('shell', 'showItemInFolder'),
+  openPath: createIPCCall<[string], string>('shell', 'openPath'),
+  openExternal: createIPCCall<[string], void>('shell', 'openExternal')
 }
 
 export const mime = {
-  types: createIPCCall<any>('mime', 'types')
+  types: createIPCCall<[], any>('mime', 'types')
 }
 
 export const exec = {
-  exec: createIPCCall<any>('exec', 'exec')
+  exec: createIPCCall<
+    [
+      command: string,
+      options: {
+        encoding: 'buffer' | null
+      } & ExecOptions
+    ],
+    any
+  >('exec', 'exec')
 }
 
 export const toml = {
-  parse: createIPCCall<any>('toml', 'parse'),
-  stringify: createIPCCall<string>('toml', 'stringify')
+  parse: createIPCCall<[string], any>('toml', 'parse'),
+  stringify: createIPCCall<any, string>('toml', 'stringify')
 }
 
 export const fs = {
-  chmod: createIPCCall<void>('fs', 'chmod'),
-  remove: createIPCCall<void>('fs', 'remove'),
-  writeBufferBase64: createIPCCall<void>('fs', 'writeBufferBase64'),
-  readdir: (dir: string, full = true): Promise<string[]> =>
-    createIPCCall<string[]>('fs', 'readdir')(dir, full),
-  subdir: createIPCCall<string[]>('fs', 'subdir'),
-  mkdirp: createIPCCall<void>('fs', 'mkdirp'),
-  stat: createIPCCall<import('fs').Stats>('fs', 'stat'),
-  copy: createIPCCall<void>('fs', 'copy'),
-  copyFile: createIPCCall<void>('fs', 'copyFile'),
-  existsSync: createIPCCall<boolean>('fs', 'existsSync'),
-  readFile: createIPCCall<string>('fs', 'readFile'),
-  writeFile: createIPCCall<void>('fs', 'writeFile'),
-  realpath: createIPCCall<string>('fs', 'realpath'),
-  getFileHash: createIPCCall<string>('fs', 'getFileHash')
+  chmod: createIPCCall<[path: string, mode: string | number], void>('fs', 'chmod'),
+  remove: createIPCCall<[path: string], void>('fs', 'remove'),
+  writeBufferBase64: createIPCCall<[path: string, data: string], void>('fs', 'writeBufferBase64'),
+  readdir: createIPCCall<[dir: string, full: boolean], string[]>('fs', 'readdir'),
+  subdir: createIPCCall<[dir: string], string[]>('fs', 'subdir'),
+  mkdirp: createIPCCall<[dir: string], void>('fs', 'mkdirp'),
+  stat: createIPCCall<[path: string], Stats>('fs', 'stat'),
+  copy: createIPCCall<[src: string, dest: string], void>('fs', 'copy'),
+  copyFile: createIPCCall<[src: string, dest: string], void>('fs', 'copyFile'),
+  existsSync: createIPCCall<[string], boolean>('fs', 'existsSync'),
+  readFile: createIPCCall<[path: string], string>('fs', 'readFile'),
+  writeFile: createIPCCall<[path: string, data: string], void>('fs', 'writeFile'),
+  realpath: createIPCCall<[path: string], string>('fs', 'realpath'),
+  getFileHash: createIPCCall<[string, 'sha1' | 'sha256' | 'md5'], string>('fs', 'getFileHash')
 }

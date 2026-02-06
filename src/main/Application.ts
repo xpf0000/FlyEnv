@@ -4,7 +4,6 @@ import is from 'electron-is'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
-import UpdateManager from './core/UpdateManager'
 import { existsSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import {
@@ -18,7 +17,6 @@ import {
   writeFile
 } from './utils'
 import { AppAllLang, AppI18n, I18nT } from '@lang/index'
-import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseSudo, spawnPromiseWithEnv } from '@shared/child-process'
@@ -51,9 +49,7 @@ export default class Application extends EventEmitter {
   windowManager: WindowManager
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
-  updateManager?: UpdateManager
   forkManager?: ForkManager
-  pty: Partial<Record<string, PtyItem>> = {}
   customerLang: Record<string, any> = {}
   capturer?: Capturer
 
@@ -62,7 +58,8 @@ export default class Application extends EventEmitter {
     AppNodeFnManager.customerLang = this.customerLang
     AppNodeFnManager.nativeTheme_watch()
     global.Server = {
-      Local: getLocale()
+      Local: getLocale(),
+      APPVersion: app.getVersion()
     } as any
     this.isReady = false
     this.configManager = new ConfigManager()
@@ -78,7 +75,6 @@ export default class Application extends EventEmitter {
     ScreenManager.initWatch()
     this.trayManager = new TrayManager()
     this.windowManager.trayManager = this.trayManager
-    this.initUpdaterManager()
     this.handleCommands()
     this.handleIpcMessages()
     this.initAppHelper()
@@ -404,11 +400,12 @@ export default class Application extends EventEmitter {
   }
 
   initServerDir() {
-    console.log('userData: ', app.getPath('userData'))
     let runpath = ''
     if (isMacOS()) {
-      const oldPath = join(dirname(app.getPath('userData')), 'PhpWebStudy')
-      const newPath = join(dirname(app.getPath('userData')), 'FlyEnv')
+      const userData = app.getPath('userData')
+      console.log('userData: ', userData)
+      const oldPath = resolve(userData, '../../PhpWebStudy')
+      const newPath = resolve(userData, '../../FlyEnv')
       if (existsSync(oldPath) && oldPath.includes('PhpWebStudy')) {
         runpath = oldPath
       } else {
@@ -620,16 +617,6 @@ export default class Application extends EventEmitter {
     })
   }
 
-  initUpdaterManager() {
-    try {
-      const autoCheck = this.configManager.getConfig('setup.autoCheck') ?? true
-      this.updateManager = new UpdateManager(autoCheck)
-      this.handleUpdaterEvents()
-    } catch (err) {
-      console.log('initUpdaterManager err: ', err)
-    }
-  }
-
   relaunch() {
     this.stop()
       .then(() => {
@@ -692,10 +679,6 @@ export default class Application extends EventEmitter {
 
     this.on('application:window-open-new', (page) => {
       console.log('application:window-open-new: ', page)
-    })
-
-    this.on('application:check-for-updates', () => {
-      this.updateManager?.check()
     })
   }
 
@@ -1103,35 +1086,6 @@ export default class Application extends EventEmitter {
     ipcMain.on('event', (event, eventName, ...args) => {
       console.log('receive event', eventName, ...args)
       this.emit(eventName, ...args)
-    })
-  }
-
-  handleUpdaterEvents() {
-    this.updateManager?.on('checking', () => {
-      this.menuManager.updateMenuItemEnabledState('app.check-for-updates', false)
-    })
-
-    this.updateManager?.on('download-progress', (event) => {
-      const win = this.windowManager.getWindow('index')
-      win.setProgressBar(event.percent / 100)
-    })
-
-    this.updateManager?.on('update-not-available', () => {
-      this.menuManager.updateMenuItemEnabledState('app.check-for-updates', true)
-    })
-
-    this.updateManager?.on('update-downloaded', () => {
-      this.menuManager.updateMenuItemEnabledState('app.check-for-updates', true)
-      const win = this.windowManager.getWindow('index')
-      win.setProgressBar(0)
-    })
-
-    this.updateManager?.on('will-updated', () => {
-      this.windowManager.setWillQuit(true)
-    })
-
-    this.updateManager?.on('update-error', () => {
-      this.menuManager.updateMenuItemEnabledState('app.check-for-updates', true)
     })
   }
 }

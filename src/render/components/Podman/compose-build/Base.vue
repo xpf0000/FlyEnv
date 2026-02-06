@@ -58,7 +58,7 @@
   const querySearch = (queryString: string, cb: any) => {
     const search = queryString.toLowerCase()
     const results = queryString
-      ? mirrorsHistory.value.filter((f) => {
+      ? mirrorsHistory.value.filter((f: any) => {
           const value = f.value.toLowerCase()
           return value.includes(search) || search.includes(value)
         })

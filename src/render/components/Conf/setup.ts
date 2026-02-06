@@ -191,13 +191,14 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   }
 
   const saveCustom = () => {
-    const opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
+    const opt: any = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
     dialog
       .showSaveDialog({
         properties: opt,
         defaultPath: 'apache-custom.conf',
         filters: [
           {
+            name: 'Config File',
             extensions: [props?.value?.fileExt ?? 'conf']
           }
         ]
@@ -293,7 +294,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    fs.readFile(props.value.defaultFile).then((conf: string) => {
+    fs.readFile(props.value.defaultFile!).then((conf: string) => {
       console.log('getDefault config.value === conf', config.value === conf)
       changed.value = conf !== config.value
       config.value = conf
@@ -305,7 +306,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     const opt = ['openFile', 'showHiddenFiles']
     dialog
       .showOpenDialog({
-        properties: opt
+        properties: opt as any
       })
       .then(async ({ canceled, filePaths }: any) => {
         if (canceled || filePaths.length === 0) {

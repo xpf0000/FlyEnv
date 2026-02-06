@@ -308,6 +308,12 @@ X-GNOME-Autostart-enabled=true`
     })
   }
 
+  dialog_showMessageBox(command: string, key: string, options: Electron.MessageBoxOptions) {
+    dialog.showMessageBox(options).then((result) => {
+      this?.mainWindow?.webContents.send('command', command, key, result)
+    })
+  }
+
   shell_showItemInFolder(command: string, key: string, fullPath: string) {
     shell.showItemInFolder(fullPath)
     this?.mainWindow?.webContents.send('command', command, key, true)

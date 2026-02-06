@@ -34,13 +34,13 @@
           return
         }
         const base64 = qrcode.value.replace(/^data:image\/\w+;base64,/, '')
-        fs.writeBufferBase64(filePath, base64, function (err: Error | null) {
-          if (err) {
+        fs.writeBufferBase64(filePath, base64)
+          .then(() => {
+            shell.showItemInFolder(filePath)
+          })
+          .catch((err) => {
             MessageError(err.message)
-            return
-          }
-          shell.showItemInFolder(filePath)
-        })
+          })
       })
   }
 </script>

@@ -7,7 +7,7 @@ import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
 import type { AppServiceAliasItem } from '@shared/app'
-import { shell, app } from '@/util/NodeFn'
+import { shell, app, dialog } from '@/util/NodeFn'
 
 export interface AppHost {
   id: number
@@ -135,6 +135,12 @@ interface State {
   }
   currentPage: string
   floatBtnShow: boolean
+  appVersion: {
+    app: string
+    online: string
+    check: number
+    url: string
+  }
 }
 
 const state: State = {
@@ -171,7 +177,13 @@ const state: State = {
   versionInitiated: false,
   httpServeService: {},
   currentPage: '/hosts',
-  floatBtnShow: true
+  floatBtnShow: true,
+  appVersion: {
+    app: '',
+    online: '',
+    check: 0,
+    url: ''
+  }
 }
 
 export const AppStore = defineStore('app', {
@@ -225,32 +237,6 @@ export const AppStore = defineStore('app', {
     INIT_HTTP_SERVE(obj: any) {
       this.httpServe = reactive(obj)
     },
-    SET_CUSTOM_DIR({ typeFlag, dir, index }: { typeFlag: string; dir: string; index?: number }) {
-      const setup: any = this.config.setup
-      if (!setup?.[typeFlag]) {
-        setup[typeFlag] = reactive({
-          dirs: []
-        })
-      }
-      const common = setup[typeFlag]!
-      const dirs = JSON.parse(JSON.stringify(common.dirs))
-      if (index !== undefined) {
-        dirs[index] = dir
-      } else {
-        dirs.push(dir)
-      }
-      common.dirs = reactive(dirs)
-    },
-    DEL_CUSTOM_DIR({ typeFlag, index }: { typeFlag: string; index: number }) {
-      const setup: any = this.config.setup
-      const common = setup[typeFlag]
-      if (!common) {
-        return
-      }
-      const dirs = JSON.parse(JSON.stringify(common.dirs))
-      dirs.splice(index, 1)
-      common.dirs = reactive(dirs)
-    },
     initHost() {
       return new Promise((resolve) => {
         IPC.send('app-fork:host', 'hostList').then((key: string, res: any) => {
@@ -282,6 +268,9 @@ export const AppStore = defineStore('app', {
           showTour: config?.showTour ?? true
         })
         this.INIT_HTTP_SERVE(config.httpServe ?? [])
+        if (this.config.setup?.autoCheck) {
+          this.checkUpdate(true)
+        }
         resolve(true)
       })
     },
@@ -308,6 +297,49 @@ export const AppStore = defineStore('app', {
           IPC.off(key)
         })
       }
+    },
+    checkUpdate(isAutoCheck?: boolean) {
+      IPC.send('app-fork:app', 'checkAppVersionUpdate').then((key: string, res: any) => {
+        IPC.off(key)
+        console.log('checkUpdate res: ', res)
+        if (res?.data?.app) {
+          this.appVersion = reactive(res.data)
+          if (!isAutoCheck || (isAutoCheck && this.appVersion.check > 0)) {
+            if (this.appVersion.check > 0) {
+              dialog
+                .showMessageBox({
+                  type: 'info',
+                  title: I18nT('update.checkForUpdates'),
+                  message: I18nT('update.update-available-message'),
+                  buttons: [
+                    I18nT('base.cancel'),
+                    I18nT('update.view-update-log'),
+                    I18nT('update.download-new-version')
+                  ],
+                  cancelId: 0
+                })
+                .then(({ response }) => {
+                  if (response === 1) {
+                    shell.openExternal('https://github.com/xpf0000/FlyEnv/releases')
+                  } else if (response === 2) {
+                    shell.openExternal(this.appVersion.url)
+                  }
+                })
+            } else {
+              dialog
+                .showMessageBox({
+                  title: I18nT('update.checkForUpdates'),
+                  message: I18nT('update.update-not-available-message')
+                })
+                .catch()
+            }
+          }
+        } else {
+          if (!isAutoCheck) {
+            MessageError(res?.msg ?? I18nT('base.fail'))
+          }
+        }
+      })
     }
   }
 })

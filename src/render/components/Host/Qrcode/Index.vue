@@ -46,13 +46,13 @@
         }
         const base64 = url.replace(/^data:image\/\w+;base64,/, '')
         // const dataBuffer = new Buffer(base64, 'base64')
-        fs.writeBufferBase64(filePath, base64, function (err: Error | null) {
-          if (err) {
+        fs.writeBufferBase64(filePath, base64)
+          .then(() => {
+            shell.showItemInFolder(filePath)
+          })
+          .catch((err: Error) => {
             MessageError(err.message)
-            return
-          }
-          shell.showItemInFolder(filePath)
-        })
+          })
       })
   }
   const downImg = () => {

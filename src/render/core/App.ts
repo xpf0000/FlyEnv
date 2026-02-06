@@ -1,9 +1,8 @@
 import type { AppModuleItem } from '@/core/type'
-import { reactive } from 'vue'
 
 const modules = import.meta.glob('@/components/*/Module.ts', { eager: true })
 console.log('modules: ', modules)
-const AppModules: AppModuleItem[] = reactive([])
+const AppModules: AppModuleItem[] = []
 for (const k in modules) {
   const m: any = modules[k]
   AppModules.push(m.default)

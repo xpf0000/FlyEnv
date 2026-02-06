@@ -190,36 +190,6 @@ export class JSONStoreTab {
     }
 
     try {
-      const u = new URL(this.value)
-      const obj: any = {}
-      Object.entries(Object.fromEntries(u?.searchParams?.entries() ?? [])).forEach(([k, v]) => {
-        console.log('k: ', k, v)
-        obj[k] = v
-      })
-      this.json = {
-        Protocol: u.protocol,
-        Username: u.username,
-        Password: u.password,
-        Hostname: u.hostname,
-        Port: u.port,
-        Path: u.pathname,
-        Params: u.search,
-        ParamObject: obj
-      }
-      console.log('this.json: ', this.json)
-      type = 'JSON'
-    } catch {
-      this.json = null
-      type = ''
-    }
-    console.log('type 000: ', type)
-    if (type) {
-      this.type = type
-      this.transformTo()
-      return
-    }
-
-    try {
       this.json = javascriptToJson(this.value)
       type = 'JSON'
     } catch {
@@ -277,7 +247,10 @@ export class JSONStoreTab {
 
     try {
       this.json = yamlToJson(this.value)
-      type = 'YAML'
+      console.log('type 444 json: ', this.json, typeof this.json)
+      if (this.json !== this.value) {
+        type = 'YAML'
+      }
     } catch {
       this.json = null
       type = ''
@@ -291,12 +264,45 @@ export class JSONStoreTab {
 
     try {
       this.json = await tomlToJson(this.value)
-      type = 'TOML'
+      console.log('type 555 json: ', this.json, typeof this.json)
+      if (this.json && this.json !== this.value) {
+        type = 'TOML'
+      }
     } catch {
       this.json = null
       type = ''
     }
     console.log('type 555: ', type)
+    if (type) {
+      this.type = type
+      this.transformTo()
+      return
+    }
+
+    try {
+      const u = new URL(this.value)
+      const obj: any = {}
+      Object.entries(Object.fromEntries(u?.searchParams?.entries() ?? [])).forEach(([k, v]) => {
+        console.log('k: ', k, v)
+        obj[k] = v
+      })
+      this.json = {
+        Protocol: u.protocol,
+        Username: u.username,
+        Password: u.password,
+        Hostname: u.hostname,
+        Port: u.port,
+        Path: u.pathname,
+        Params: u.search,
+        ParamObject: obj
+      }
+      console.log('this.json: ', this.json)
+      type = 'JSON'
+    } catch {
+      this.json = null
+      type = ''
+    }
+    console.log('type 000: ', type)
     if (type) {
       this.type = type
       this.transformTo()

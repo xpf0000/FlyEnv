@@ -4,6 +4,9 @@
       <div class="flex items-baseline gap-3">
         <span class="text-2xl">FlyEnv</span>
         <span>Version {{ version }}</span>
+        <el-button type="primary" size="small" @click.stop="checkUpdate">{{
+          I18nT('update.checkForUpdates')
+        }}</el-button>
       </div>
     </template>
     <div class="about-panel">
@@ -98,6 +101,7 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { app, shell } from '@/util/NodeFn'
   import IPC from '@/util/IPC'
+  import { I18nT } from '@lang/index'
 
   const version = ref('')
   const appStore = AppStore()
@@ -112,6 +116,10 @@
   const toHome = (e: Event) => {
     e.preventDefault()
     shell.openExternal('https://flyenv.com')
+  }
+
+  const checkUpdate = () => {
+    appStore.checkUpdate(false)
   }
 
   const toFeedback = () => {
