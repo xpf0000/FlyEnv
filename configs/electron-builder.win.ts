@@ -36,11 +36,11 @@ const conf: Configuration = {
       {
         target: 'nsis',
         arch: ['x64']
-      },
-      {
-        target: 'portable',
-        arch: ['x64']
       }
+      // {
+      //   target: 'portable',
+      //   arch: ['x64']
+      // }
     ]
   },
   nsis: {

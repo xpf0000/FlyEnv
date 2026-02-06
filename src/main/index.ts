@@ -4,12 +4,12 @@ import Launcher from './Launcher'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 import { existsSync } from 'node:fs'
-import { production } from 'electron-is'
+import is from 'electron-is'
 import { isLinux } from '@shared/utils'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-if (production() && !isLinux()) {
+if (is.production() && !isLinux()) {
   const appData = app.getPath('appData')
   const oldPath = path.join(appData, 'PhpWebStudy')
   if (existsSync(oldPath)) {

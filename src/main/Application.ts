@@ -22,7 +22,7 @@ import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseSudo, spawnPromiseWithEnv } from '@shared/child-process'
-import { arch, userInfo } from 'node:os'
+import { arch, userInfo, tmpdir } from 'node:os'
 import NodePTY from './core/NodePTY'
 import HttpServer from './core/HttpServer'
 import AppHelper from './core/AppHelper'
@@ -39,6 +39,7 @@ import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import { Capturer } from './core/Capturer'
 import OAuth from './core/OAuth'
+import { appendFile } from '@shared/fs-extra'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -408,16 +409,30 @@ export default class Application extends EventEmitter {
     if (isMacOS()) {
       const oldPath = join(dirname(app.getPath('userData')), 'PhpWebStudy')
       const newPath = join(dirname(app.getPath('userData')), 'FlyEnv')
-      if (existsSync(oldPath)) {
+      if (existsSync(oldPath) && oldPath.includes('PhpWebStudy')) {
         runpath = oldPath
       } else {
         runpath = newPath
       }
     } else if (isWindows()) {
-      const oldPath = resolve(app.getPath('exe'), '../../PhpWebStudy-Data').split('\\').join('/')
-      const newPath = resolve(app.getPath('exe'), '../../FlyEnv-Data').split('\\').join('/')
-      if (existsSync(oldPath)) {
+      const exePath = app.getPath('exe')
+      const oldPath = resolve(exePath, '../../PhpWebStudy-Data').split('\\').join('/')
+      const oldPath1 = resolve(oldPath, '../../PhpWebStudy-Data').split('\\').join('/')
+      const newPath = resolve(exePath, '../../FlyEnv-Data').split('\\').join('/')
+      const debugLog = JSON.stringify(
+        {
+          oldPath,
+          oldPath1,
+          newPath
+        },
+        null,
+        2
+      )
+      appendFile(join(tmpdir(), 'flyenv-debug.log'), `[initServerDir]: ${debugLog}\n`).catch()
+      if (existsSync(oldPath) && oldPath.includes('PhpWebStudy-Data')) {
         runpath = oldPath
+      } else if (existsSync(oldPath1) && oldPath1.includes('PhpWebStudy-Data')) {
+        runpath = oldPath1
       } else {
         runpath = newPath
       }

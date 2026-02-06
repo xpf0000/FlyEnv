@@ -24,12 +24,6 @@
   const isMacOS = computed(() => {
     return window.Server.isMacOS
   })
-  const isWindows = computed(() => {
-    return window.Server.isWindows
-  })
-  const isLinux = computed(() => {
-    return window.Server.isLinux
-  })
 
   const store = AppStore()
 
