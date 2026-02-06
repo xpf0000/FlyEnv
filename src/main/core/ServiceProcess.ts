@@ -189,6 +189,7 @@ class ServiceProcess {
           continue
         }
         if (
+          item.COMMAND.includes('FlyEnv-Data') ||
           item.COMMAND.includes('PhpWebStudy-Data') ||
           item.COMMAND.includes('pws-app-') ||
           item.COMMAND.includes('php.phpwebstudy')

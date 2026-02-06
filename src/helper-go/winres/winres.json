@@ -1,15 +1,56 @@
 {
+  "RT_GROUP_ICON": {
+    "APP": {
+      "0000": "icon.ico"
+    }
+  },
+  "RT_MANIFEST": {
+    "#1": {
+      "0409": {
+        "identity": {
+          "name": "FlyEnv Helper",
+          "version": "1.0.0.8"
+        },
+        "description": "FlyEnv Helper Service",
+        "minimum-os": "win10",
+        "execution-level": "requireAdministrator",
+        "ui-access": false,
+        "auto-elevate": false,
+        "dpi-awareness": "system",
+        "disable-theming": false,
+        "disable-window-filtering": false,
+        "high-resolution-scrolling-aware": false,
+        "ultra-high-resolution-scrolling-aware": false,
+        "long-path-aware": false,
+        "printer-driver-isolation": false,
+        "gdi-scaling": false,
+        "segment-heap": false,
+        "use-common-controls-v6": false
+      }
+    }
+  },
   "RT_VERSION": {
     "#1": {
-      "1033": {
-        "vars": {
-          "FileDescription": "FlyEnv Helper - System Service Manager",
-          "ProductName": "FlyEnv",
-          "CompanyName": "Pengfei Xu",
-          "OriginalFilename": "flyenv-helper.exe",
-          "LegalCopyright": "Copyright (c) 2026 Pengfei Xu",
-          "FileVersion": "1.0.0.8",
-          "ProductVersion": "4.13.0.0"
+      "0000": {
+        "fixed": {
+          "file_version": "1.0.0.8",
+          "product_version": "4.13.1.0"
+        },
+        "info": {
+          "0409": {
+            "Comments": "",
+            "CompanyName": "Pengfei Xu",
+            "FileDescription": "FlyEnv Helper - System Service Manager",
+            "FileVersion": "1.0.0.8",
+            "InternalName": "flyenv-helper",
+            "LegalCopyright": "Copyright (c) 2026 Pengfei Xu",
+            "LegalTrademarks": "",
+            "OriginalFilename": "flyenv-helper.exe",
+            "PrivateBuild": "",
+            "ProductName": "FlyEnv",
+            "ProductVersion": "4.13.1.0",
+            "SpecialBuild": ""
+          }
         }
       }
     }

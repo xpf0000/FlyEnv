@@ -163,7 +163,10 @@ export class Base {
       if (serverName) {
         if (isWindows()) {
           const all = ProcessSearch(serverName, false, plist)
-            .filter((item) => item.COMMAND.includes('PhpWebStudy-Data'))
+            .filter(
+              (item) =>
+                item.COMMAND.includes('PhpWebStudy-Data') || item.COMMAND.includes('FlyEnv-Data')
+            )
             .map((m) => `${m.PID}`)
           allPid.push(...all)
         } else {

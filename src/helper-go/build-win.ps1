@@ -8,7 +8,6 @@ Build script for flyenv-helper Go application with cross-compilation support.
 # --- Configuration ---
 $BUILD_DIR = "./dist"
 $APP_NAME = "flyenv-helper"
-$MAIN_PACKAGE = "./main.go" # Or "." if your main.go is in the current directory
 
 # Determine architecture and set TARGET
 $ARCH = (Get-WmiObject Win32_Processor).Architecture
@@ -72,8 +71,7 @@ $buildArgs = @(
   "build",
   "-ldflags=`"-s -w -H windowsgui`"",
   "-o",
-  $buildOutput,
-  $MAIN_PACKAGE
+  $buildOutput
 )
 
 $process = Start-Process -FilePath "go" -ArgumentList $buildArgs -NoNewWindow -PassThru -Wait
@@ -82,14 +80,5 @@ if ($process.ExitCode -ne 0) {
   exit 1
 }
 
-# Set executable permissions if not Windows
-if ($GOOS_VAL -ne "windows") {
-  chmod +x $buildOutput
-}
-
 Write-Host "--- Build complete! ---"
 Get-ChildItem -Path $BUILD_DIR | Format-Table Name, Length, LastWriteTime -AutoSize
-
-if ($GOOS_VAL -ne "windows") {
-  Write-Host "Remember to set execute permissions (chmod +x) on the binary after copying."
-}

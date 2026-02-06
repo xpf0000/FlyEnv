@@ -137,7 +137,7 @@ class Mysql extends Base {
 
         let success = false
         /**
-         * ./mysqladmin.exe --defaults-file="C:\Program Files\PhpWebStudy-Data\server\mysql\my-5.7.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
+         * ./mysqladmin.exe --defaults-file="C:\Program Files\FlyEnv-Data\server\mysql\my-5.7.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
          */
         const command = `"${bin}" --defaults-file="${m}" --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
         console.log('mysql _stopServer command: ', command)
@@ -417,13 +417,10 @@ datadir=${pathFixedToUnix(dataDir)}`
     return new ForkPromise(async (resolve, reject) => {
       const id = version?.id ?? ''
       if (isWindows()) {
-        const conf =
-          'PhpWebStudy-Data' +
-          join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
         const arr: Array<string> = []
         let all: PItem[] = []
         try {
-          all = await ProcessListSearch(conf, false)
+          all = await ProcessListSearch(`my-group-${id}.cnf`, false)
         } catch {}
 
         all.forEach((item) => arr.push(item.PID))
@@ -438,7 +435,6 @@ datadir=${pathFixedToUnix(dataDir)}`
           'APP-Service-Stop-PID': arr
         })
       } else {
-        const conf = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
         const serverName = 'mysqld'
         const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
         console.log('_stopServer command: ', command)
@@ -447,7 +443,7 @@ datadir=${pathFixedToUnix(dataDir)}`
           const pids = res?.stdout?.trim()?.split('\n') ?? []
           const arr: Array<string> = []
           for (const p of pids) {
-            if (p.includes(conf)) {
+            if (p.includes(`my-group-${id}.cnf`)) {
               arr.push(p.split(' ')[0])
             }
           }

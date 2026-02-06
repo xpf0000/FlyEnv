@@ -135,7 +135,7 @@
     if (appStore?.config?.setup?.proxy?.on) {
       return
     }
-    const checked = localStorage.getItem('PhpWebStudy-Checked-Proxy')
+    const checked = localStorage.getItem('FlyEnv-Checked-Proxy')
     if (checked) {
       return
     }
@@ -157,7 +157,7 @@
           appStore.saveConfig()
           MessageSuccess(I18nT('tools.systemProxyUsed'))
         })
-        localStorage.setItem('PhpWebStudy-Checked-Proxy', 'true')
+        localStorage.setItem('FlyEnv-Checked-Proxy', 'true')
       }
     })
   }

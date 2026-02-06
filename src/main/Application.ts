@@ -406,9 +406,21 @@ export default class Application extends EventEmitter {
     console.log('userData: ', app.getPath('userData'))
     let runpath = ''
     if (isMacOS()) {
-      runpath = app.getPath('userData').replace('Application Support/', '')
+      const oldPath = join(dirname(app.getPath('userData')), 'PhpWebStudy')
+      const newPath = join(dirname(app.getPath('userData')), 'FlyEnv')
+      if (existsSync(oldPath)) {
+        runpath = oldPath
+      } else {
+        runpath = newPath
+      }
     } else if (isWindows()) {
-      runpath = resolve(app.getPath('exe'), '../../PhpWebStudy-Data').split('\\').join('/')
+      const oldPath = resolve(app.getPath('exe'), '../../PhpWebStudy-Data').split('\\').join('/')
+      const newPath = resolve(app.getPath('exe'), '../../FlyEnv-Data').split('\\').join('/')
+      if (existsSync(oldPath)) {
+        runpath = oldPath
+      } else {
+        runpath = newPath
+      }
       if (is.dev()) {
         runpath = resolve(__static, '../../../data')
       }
@@ -531,7 +543,7 @@ export default class Application extends EventEmitter {
   }
 
   async stop() {
-    logger.info('[PhpWebStudy] application stop !!!')
+    logger.info('[FlyEnv] application stop !!!')
     try {
       globalShortcut.unregisterAll()
       ScreenManager.destroy()
@@ -838,7 +850,7 @@ export default class Application extends EventEmitter {
       case 'app:password-check':
         {
           const pass = args?.[0] ?? ''
-          execPromiseSudo([`-k`, 'echo', 'PhpWebStudy'], undefined, pass)
+          execPromiseSudo([`-k`, 'echo', 'FlyEnv'], undefined, pass)
             .then(() => {
               this.configManager.setConfig('password', pass)
               global.Server.Password = pass

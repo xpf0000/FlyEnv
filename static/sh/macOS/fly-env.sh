@@ -26,9 +26,17 @@ _flyenv_hash() {
 }
 
 _flyenv_reload() {
-  local config_file="$HOME/Library/PhpWebStudy/bin/.flyenv.dir"
+  local config_file
   local -a valid_paths
   local new_hash dir_path clean_dir
+
+    if [[ -f "$HOME/Library/FlyEnv/bin/.flyenv.dir" ]]; then
+      config_file="$HOME/Library/FlyEnv/bin/.flyenv.dir"
+    elif [[ -f "$HOME/Library/PhpWebStudy/bin/.flyenv.dir" ]]; then
+      config_file="$HOME/Library/PhpWebStudy/bin/.flyenv.dir"
+    else
+      return 1
+    fi
 
   new_hash=$(_flyenv_hash "$config_file") || return
 

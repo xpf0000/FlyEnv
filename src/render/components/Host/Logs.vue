@@ -91,12 +91,12 @@
     type.value = t
     const logFile: { [key: string]: string } = logfile.value
     filepath.value = logFile[t] ?? ''
-    localStorage.setItem('PhpWebStudy-Host-Log-Type', t)
+    localStorage.setItem('FlyEnv-Host-Log-Type', t)
     await doRefresh()
   }
 
   init()
-  const saveType = localStorage.getItem('PhpWebStudy-Host-Log-Type') ?? 'nginx-access'
+  const saveType = localStorage.getItem('FlyEnv-Host-Log-Type') ?? 'nginx-access'
   initType(saveType)
 
   defineExpose({
