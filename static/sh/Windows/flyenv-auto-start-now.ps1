@@ -47,10 +47,8 @@ try {
   $taskDefinition.RegistrationInfo.Author = $currentUserName
 
   $taskDefinition.Settings.ExecutionTimeLimit = "PT0S"
-  $taskDefinition.Settings.AllowStartOnDemand = $true
   $taskDefinition.Settings.DisallowStartIfOnBatteries = $false
   $taskDefinition.Settings.StopIfGoingOnBatteries = $false
-  $taskDefinition.Settings.MultipleInstances = 2
 
   $trigger = $taskDefinition.Triggers.Create(9)
   $trigger.Enabled = $true

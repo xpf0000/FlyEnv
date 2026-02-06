@@ -12,27 +12,26 @@ try {
 
   $service = New-Object -ComObject "Schedule.Service"
   $service.Connect()
+  $rootFolder = $service.GetFolder("\")
 
   $taskDefinition = $service.NewTask(0)
   $taskDefinition.RegistrationInfo.Description = "FlyEnv Auto Start"
+  $taskDefinition.RegistrationInfo.Author = $currentUserName
 
-  $settings = $taskDefinition.Settings
-  $settings.Enabled = $true
-  $settings.AllowStartOnDemand = $true
-  $settings.ExecutionTimeLimit = "PT0S"
-  $settings.DisallowStartIfOnBatteries = $false
-  $settings.StopIfGoingOnBatteries = $false
-  $settings.MultipleInstancesPolicy = 2
+  $taskDefinition.Settings.ExecutionTimeLimit = "PT0S"
+  $taskDefinition.Settings.DisallowStartIfOnBatteries = $false
+  $taskDefinition.Settings.StopIfGoingOnBatteries = $false
 
-  $triggers = $taskDefinition.Triggers
-  $trigger = $triggers.Create(9)
+  $trigger = $taskDefinition.Triggers.Create(9)
   $trigger.Enabled = $true
+  $trigger.UserId = $currentUserName
 
-  $actions = $taskDefinition.Actions
-  $action = $actions.Create(0)
+  $action = $taskDefinition.Actions.Create(0)
   $action.Path = $exePath
 
-  $rootFolder = $service.GetFolder("\")
+  $taskDefinition.Principal.UserId = $currentUserName
+  $taskDefinition.Principal.LogonType = 3
+
   $rootFolder.RegisterTaskDefinition(
     $taskName,
     $taskDefinition,
