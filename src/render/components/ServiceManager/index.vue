@@ -56,7 +56,7 @@
               :show-after="600"
               popper-class="version-error-tips"
               width="auto"
-              placement="top"
+              :placement="scope.$index < 3 ? 'bottom' : 'top'"
             >
               <template #reference>
                 <span class="path error" @click.stop="openDir(scope.row.path)">{{

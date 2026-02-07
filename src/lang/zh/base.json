@@ -114,5 +114,7 @@
   "preview": "预览",
   "executing": "执行中",
   "info": "详情",
-  "ForceDelete": "强制删除"
+  "ForceDelete": "强制删除",
+
+  "DataDirPermissionTips": "创建FlyEnv数据文件夹失败, 请先使用管理员权限启动FlyEnv, 或者更改FlyEnv安装位置."
 }

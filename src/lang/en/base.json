@@ -115,5 +115,7 @@
   "preview": "Preview",
   "executing": "Executing",
   "info": "Info",
-  "ForceDelete": "Force Delete"
+  "ForceDelete": "Force Delete",
+
+  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
 }

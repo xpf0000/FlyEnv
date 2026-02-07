@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, globalShortcut, ipcMain, shell } from 'electron'
 import is from 'electron-is'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
@@ -363,7 +363,19 @@ export default class Application extends EventEmitter {
   }
 
   makeServerDir() {
-    mkdirp(global.Server.BaseDir!).then().catch()
+    mkdirp(global.Server.BaseDir!)
+      .then()
+      .catch(() => {
+        if (isWindows() && !existsSync(global.Server.BaseDir!)) {
+          dialog
+            .showMessageBox({
+              type: 'info',
+              title: I18nT('host.warning'),
+              message: I18nT('base.DataDirPermissionTips')
+            })
+            .catch()
+        }
+      })
     mkdirp(global.Server.AppDir!).then().catch()
     mkdirp(global.Server.NginxDir!).then().catch()
     mkdirp(global.Server.PhpDir!).then().catch()

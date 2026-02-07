@@ -52,11 +52,20 @@
   })
 
   const showVCRuntimeTips = computed(() => {
-    return isWindows.value && ['mysql', 'php', 'mariadb'].includes(props.typeFlag)
+    return isWindows.value && ['mysql', 'php', 'mariadb', 'apache'].includes(props.typeFlag)
   })
 
   const versionDicts = computed(() => {
     if (!isWindows.value) return []
+    if (props.typeFlag === 'apache') {
+      return [
+        {
+          name: 'Apache',
+          version: '2.4+',
+          vcruntime: 'Latest(Visual Studio 2017 +)'
+        }
+      ]
+    }
     if (props.typeFlag === 'mysql') {
       return [
         {
