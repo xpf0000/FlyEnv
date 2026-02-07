@@ -208,8 +208,7 @@ export class AppHelper {
       await mkdirp(global.Server.Cache!)
       Sudo(command, {
         name: 'FlyEnv',
-        icns: icns,
-        dir: global.Server.Cache!
+        icns: icns
       })
         .then(({ stdout, stderr }) => {
           console.log('initHelper: ', stdout, stderr)

@@ -16,7 +16,6 @@ interface Options {
   name: string
   icns?: string
   env?: Record<string, string>
-  dir?: string
   debug?: boolean
 }
 
@@ -299,7 +298,7 @@ async function linux(instance: Instance): Promise<{ stdout: string; stderr: stri
 }
 
 async function mac(instance: Instance): Promise<{ stdout: string; stderr: string }> {
-  const temp = instance?.options?.dir ?? tmpdir()
+  const temp = tmpdir()
   if (!temp) throw new Error('os.tmpdir() not defined.')
 
   const user = process.env.USER
