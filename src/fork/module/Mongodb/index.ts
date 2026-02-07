@@ -303,24 +303,8 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const command =
-          'brew search -q --desc --eval-all --formula "High-performance, schema-free, document-oriented database"'
-        all = await brewSearch(all, command, (content) => {
-          content = content
-            .replace('==> Formulae', '')
-            .replace(
-              new RegExp(
-                ': High-performance, schema-free, document-oriented database \\(Enterprise\\)',
-                'g'
-              ),
-              ''
-            )
-            .replace(
-              new RegExp(': High-performance, schema-free, document-oriented database', 'g'),
-              ''
-            )
-          return content
-        })
+        const command = 'brew search -q --formula "/mongodb-(community|enterprise)(@[\\d\\.]+)?$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

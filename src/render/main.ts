@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import { VueExtend } from './core/VueExtend'
-import { AppI18n } from '@lang/index'
+import { AppI18n, I18nT } from '@lang/index'
 import App from './App.vue'
 // import App from './APPTest.vue'
 import './index.scss'
@@ -15,16 +15,17 @@ import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
 import { AppCustomerModule } from '@/core/Module'
-import { lang, nativeTheme } from '@/util/NodeFn'
+import { dialog, lang, nativeTheme, shell, app } from '@/util/NodeFn'
 import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { FlyEnvHelperSetup } from '@/components/FlyEnvHelper/setup'
 import { isEqual } from 'lodash-es'
 import CapturerSetup from '@/components/Tools/Capturer/setup'
+import { join } from '@/util/path-browserify'
 
 window.Server = reactive({}) as any
 
-const app = VueExtend(App)
+const appRoot = VueExtend(App)
 lang.loadCustomerLang().then().catch()
 
 let inited = false
@@ -42,7 +43,7 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
         ThemeInit()
         const config = store.config.setup
         AppI18n(config?.lang)
-        app.mount('#app')
+        appRoot.mount('#app')
       })
       .catch()
     SiteSuckerStore().init()
@@ -92,9 +93,25 @@ IPC.on('APP-FlyEnv-Helper-Notice').then((key: string, res: any) => {
   } else if (res.code === 1) {
     MessageError(res?.msg)
     if (res?.status === 'installFaild' && inited && !FlyEnvHelperSetup.show) {
-      import('@/components/FlyEnvHelper/index.vue').then((m) => {
-        AsyncComponentShow(m.default).then()
-      })
+      if (window.Server.isWindows) {
+        dialog
+          .showMessageBox({
+            type: 'info',
+            title: I18nT('host.warning'),
+            message: I18nT('setup.flyenvHelperInstallFailTips'),
+            buttons: [I18nT('base.confirm')]
+          })
+          .then(() => {
+            app.getPath('exe').then((path: string) => {
+              const item = join(path, 'resources/helper/flyenv-helper.exe')
+              shell.showItemInFolder(item).catch()
+            })
+          })
+      } else {
+        import('@/components/FlyEnvHelper/index.vue').then((m) => {
+          AsyncComponentShow(m.default).then()
+        })
+      }
     }
   } else if (res.code === 2) {
     MessageWarning(res?.msg)

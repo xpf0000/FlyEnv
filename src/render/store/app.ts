@@ -316,7 +316,8 @@ export const AppStore = defineStore('app', {
                     I18nT('update.view-update-log'),
                     I18nT('update.download-new-version')
                   ],
-                  cancelId: 0
+                  cancelId: 0,
+                  defaultId: 1
                 })
                 .then(({ response }) => {
                   if (response === 1) {

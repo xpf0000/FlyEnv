@@ -49,5 +49,6 @@
 
   "flyenvHelper": "Fix FlyEnv Helper",
   "flyenvHelperBtn": "Fix",
-  "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully"
+  "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully",
+  "flyenvHelperInstallFailTips": "FlyEnv helper installation failed. Please try running FlyEnv with administrator privileges, or click the OK button and manually run the flyenv-helper.exe helper program in the opened folder."
 }
