@@ -38,6 +38,7 @@ import Helper from '../fork/Helper'
 import { Capturer } from './core/Capturer'
 import OAuth from './core/OAuth'
 import { appendFile } from '@shared/fs-extra'
+import path from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -424,29 +425,34 @@ export default class Application extends EventEmitter {
         runpath = newPath
       }
     } else if (isWindows()) {
-      const exePath = app.getPath('exe')
-      const oldPath = resolve(exePath, '../../PhpWebStudy-Data').split('\\').join('/')
-      const oldPath1 = resolve(oldPath, '../../PhpWebStudy-Data').split('\\').join('/')
-      const newPath = resolve(exePath, '../../FlyEnv-Data').split('\\').join('/')
-      const debugLog = JSON.stringify(
-        {
-          oldPath,
-          oldPath1,
-          newPath
-        },
-        null,
-        2
-      )
-      appendFile(join(tmpdir(), 'flyenv-debug.log'), `[initServerDir]: ${debugLog}\n`).catch()
-      if (existsSync(oldPath) && oldPath.includes('PhpWebStudy-Data')) {
-        runpath = oldPath
-      } else if (existsSync(oldPath1) && oldPath1.includes('PhpWebStudy-Data')) {
-        runpath = oldPath1
-      } else {
-        runpath = newPath
-      }
       if (is.dev()) {
         runpath = resolve(__static, '../../../data')
+      } else {
+        if (process.env?.PORTABLE_EXECUTABLE_DIR) {
+          runpath = path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'FlyEnv-Data')
+        } else {
+          const exePath = app.getPath('exe')
+          const oldPath = resolve(exePath, '../../PhpWebStudy-Data').split('\\').join('/')
+          const oldPath1 = resolve(oldPath, '../../PhpWebStudy-Data').split('\\').join('/')
+          const newPath = resolve(exePath, '../../FlyEnv-Data').split('\\').join('/')
+          const debugLog = JSON.stringify(
+            {
+              oldPath,
+              oldPath1,
+              newPath
+            },
+            null,
+            2
+          )
+          appendFile(join(tmpdir(), 'flyenv-debug.log'), `[initServerDir]: ${debugLog}\n`).catch()
+          if (existsSync(oldPath) && oldPath.includes('PhpWebStudy-Data')) {
+            runpath = oldPath
+          } else if (existsSync(oldPath1) && oldPath1.includes('PhpWebStudy-Data')) {
+            runpath = oldPath1
+          } else {
+            runpath = newPath
+          }
+        }
       }
     } else {
       runpath = resolve(app.getPath('userData'), '../FlyEnv')

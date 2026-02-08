@@ -2,7 +2,6 @@ import type { Configuration } from 'electron-builder'
 import PublishConfig from './publish'
 import AfterPack from '../build/afterPack'
 import Notarize from '../build/notarize'
-import BeforPack from '../build/beforPack'
 
 // 获取当前 Node.js 运行环境的架构
 const currentArch = process.arch === 'arm64' ? 'arm64' : 'x64'
@@ -80,7 +79,6 @@ const conf: Configuration = {
     hardenedRuntime: true,
     gatekeeperAssess: false
   },
-  beforePack: BeforPack,
   afterPack: (...args) => {
     return AfterPack(...args) as any
   },

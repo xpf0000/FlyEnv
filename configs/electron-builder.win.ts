@@ -1,6 +1,5 @@
 import type { Configuration } from 'electron-builder'
 import AfterSign from '../build/afterSign'
-import BeforPack from '../build/beforPack'
 
 const conf: Configuration = {
   productName: 'FlyEnv',
@@ -50,10 +49,9 @@ const conf: Configuration = {
     allowElevation: true
   },
   portable: {
-    artifactName: 'FlyEnv-Portable-${version}.${ext}'
+    artifactName: 'FlyEnv-Portable-${version}.${ext}',
   },
   publish: [],
-  beforePack: BeforPack,
   afterSign: AfterSign
 }
 
