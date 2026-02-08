@@ -31,6 +31,7 @@ import { ProcessPidsByPid } from '@shared/Process'
 import Helper from '../../Helper'
 import { unpack } from '../../util/Zip'
 import { parse as iniParse } from 'ini'
+import { IniParse } from '../../../render/util/IniParse'
 
 class Php extends Base {
   constructor() {
@@ -127,6 +128,16 @@ class Php extends Base {
           if (existsSync(ini)) {
             const iniDefault = `${ini}.default`
             if (!existsSync(iniDefault)) {
+              const content = await readFile(ini, 'utf-8')
+              const parse = new IniParse(content)
+              parse.set('user_ini.filename', 'user_ini.filename = ', 'PHP')
+              parse.set('max_execution_time', 'max_execution_time = 120', 'PHP')
+              parse.set('max_input_time', 'max_input_time = 120', 'PHP')
+              parse.set('memory_limit', 'memory_limit = 256M', 'PHP')
+              parse.set('post_max_size', 'post_max_size = 200M', 'PHP')
+              parse.set('post_max_size', 'upload_max_filesize = 200M', 'PHP')
+
+              await writeFile(ini, parse.content)
               try {
                 await Helper.send('php', 'iniDefaultFileFixed', iniDefault, ini)
               } catch {}

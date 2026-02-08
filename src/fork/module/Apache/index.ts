@@ -151,6 +151,8 @@ class Apache extends Base {
         .replace('#LoadModule rewrite_module', 'LoadModule rewrite_module')
         .replace('#ServerName www.', 'ServerName www.')
 
+      content = `Timeout 120\n${content}`
+
       if (logPath) {
         let logPathReplace = ''
         if (isWindows()) {

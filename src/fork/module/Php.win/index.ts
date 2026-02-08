@@ -26,6 +26,7 @@ import axios from 'axios'
 import { ProcessListSearch } from '@shared/Process.win'
 import Helper from '../../Helper'
 import { parse as iniParse } from 'ini'
+import { IniParse } from '../../../render/util/IniParse'
 
 class Php extends Base {
   constructor() {
@@ -60,54 +61,54 @@ class Php extends Base {
       const initIniFile = async (file: string) => {
         let content = await readFile(file, 'utf-8')
         content = content.replace(';extension_dir = "ext"', 'extension_dir = "ext"')
-        let dll = join(version.path, 'ext/php_redis.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_redis.dll`
-        }
-        dll = join(version.path, 'ext/php_xdebug.dll')
-        if (existsSync(dll)) {
-          content = content + `\nzend_extension=php_xdebug.dll`
-        }
-        dll = join(version.path, 'ext/php_mongodb.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_mongodb.dll`
-        }
-        dll = join(version.path, 'ext/php_memcache.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_memcache.dll`
-        }
-        dll = join(version.path, 'ext/php_pdo_sqlsrv.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_pdo_sqlsrv.dll`
-        }
-        dll = join(version.path, 'ext/php_openssl.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_openssl.dll`
-        }
-        dll = join(version.path, 'ext/php_curl.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_curl.dll`
-        }
-        dll = join(version.path, 'ext/php_gd.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_gd.dll`
-        }
-        dll = join(version.path, 'ext/php_fileinfo.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_fileinfo.dll`
-        }
-        dll = join(version.path, 'ext/php_zip.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_zip.dll`
-        }
-        dll = join(version.path, 'ext/php_mbstring.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=php_mbstring.dll`
-        }
+        const extensions = [
+          // 核心扩展
+          { name: 'php_redis.dll', type: 'extension' },
+          { name: 'php_xdebug.dll', type: 'zend_extension' }, // 唯一的 zend_extension
+          { name: 'php_mongodb.dll', type: 'extension' },
+          { name: 'php_memcache.dll', type: 'extension' },
+          { name: 'php_pdo_sqlsrv.dll', type: 'extension' },
+          { name: 'php_openssl.dll', type: 'extension' },
+          { name: 'php_curl.dll', type: 'extension' },
+          { name: 'php_gd.dll', type: 'extension' },
+          { name: 'php_fileinfo.dll', type: 'extension' },
+          { name: 'php_zip.dll', type: 'extension' },
+          { name: 'php_mbstring.dll', type: 'extension' },
+          { name: 'php_mysqli.dll', type: 'extension' },
+          { name: 'php_pdo_mysql.dll', type: 'extension' },
+          { name: 'php_pdo_odbc.dll', type: 'extension' },
 
-        content = content + `\nextension=php_mysqli.dll`
-        content = content + `\nextension=php_pdo_mysql.dll`
-        content = content + `\nextension=php_pdo_odbc.dll`
+          // 新增的必需扩展
+          { name: 'php_intl.dll', type: 'extension' },
+          { name: 'php_exif.dll', type: 'extension' },
+          { name: 'php_simplexml.dll', type: 'extension' },
+          { name: 'php_xml.dll', type: 'extension' },
+          { name: 'php_dom.dll', type: 'extension' },
+          { name: 'php_xmlreader.dll', type: 'extension' },
+          { name: 'php_xmlwriter.dll', type: 'extension' },
+          { name: 'php_json.dll', type: 'extension' }, // PHP 7.x 需要，8.0+ 内置
+          { name: 'php_bcmath.dll', type: 'extension' },
+          { name: 'php_sodium.dll', type: 'extension' },
+          { name: 'php_soap.dll', type: 'extension' },
+          { name: 'php_ldap.dll', type: 'extension' },
+          { name: 'php_imap.dll', type: 'extension' },
+          { name: 'php_sockets.dll', type: 'extension' },
+          { name: 'php_pdo_pgsql.dll', type: 'extension' },
+          { name: 'php_pdo_sqlite.dll', type: 'extension' },
+          { name: 'php_sqlite3.dll', type: 'extension' },
+          { name: 'php_iconv.dll', type: 'extension' },
+          { name: 'php_ftp.dll', type: 'extension' },
+          { name: 'php_gettext.dll', type: 'extension' },
+          { name: 'php_shmop.dll', type: 'extension' }
+        ]
+
+        // 循环检查并添加存在的扩展
+        extensions.forEach((ext) => {
+          const dll = join(version.path, 'ext', ext.name)
+          if (existsSync(dll)) {
+            content += `\n${ext.type}=${ext.name}`
+          }
+        })
 
         // Set CA certificate path
         const cacertpem = join(global.Server.BaseDir!, 'CA/cacert.pem').split('\\').join('/')
@@ -117,6 +118,16 @@ class Php extends Base {
         }
         content = content.replace(';curl.cainfo =', `curl.cainfo = "${cacertpem}"`)
         content = content.replace(';openssl.cafile=', `openssl.cafile="${cacertpem}"`)
+
+        const parse = new IniParse(content)
+        parse.set('user_ini.filename', 'user_ini.filename = ', 'PHP')
+        parse.set('max_execution_time', 'max_execution_time = 120', 'PHP')
+        parse.set('max_input_time', 'max_input_time = 120', 'PHP')
+        parse.set('memory_limit', 'memory_limit = 256M', 'PHP')
+        parse.set('post_max_size', 'post_max_size = 200M', 'PHP')
+        parse.set('post_max_size', 'upload_max_filesize = 200M', 'PHP')
+
+        content = parse.content
 
         await writeFile(ini, content)
         const iniDefault = join(version.path, 'php.ini.default')
