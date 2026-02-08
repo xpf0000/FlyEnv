@@ -4,7 +4,7 @@ import AfterSign from '../build/afterSign'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.11.5',
+  buildVersion: '4.13.1',
   electronVersion: '35.7.5',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -36,11 +36,11 @@ const conf: Configuration = {
       {
         target: 'nsis',
         arch: ['x64']
+      },
+      {
+        target: 'portable',
+        arch: ['x64']
       }
-      // {
-      //   target: 'portable',
-      //   arch: ['x64']
-      // }
     ]
   },
   nsis: {
