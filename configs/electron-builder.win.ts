@@ -50,6 +50,7 @@ const conf: Configuration = {
   },
   portable: {
     artifactName: 'FlyEnv-Portable-${version}.${ext}',
+    unpackDirName: 'FlyEnv-Portable-${version}'
   },
   publish: [],
   afterSign: AfterSign
