@@ -47,6 +47,11 @@ declare global {
   var __static: string
   // @ts-ignore
   var launcher: Launcher
+  // @ts-ignore
+  var bundleEnv: {
+    arch: string
+    target: string
+  }
 
   interface Window {
     openDir: (dir: string) => void

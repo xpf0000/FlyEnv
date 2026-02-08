@@ -18,6 +18,11 @@ if (is.production() && !isLinux()) {
   }
 }
 
+global.bundleEnv = {
+  target: '[#FLYENV-BUNDLE-ENV-TARGET#]',
+  arch: '[#FLYENV-BUNDLE-ENV-ARCH#]'
+}
+
 global.__static = path.resolve(__dirname, 'static/').replace(/\\/g, '\\\\')
 global.launcher = new Launcher()
 
