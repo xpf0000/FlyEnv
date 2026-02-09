@@ -96,23 +96,34 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 ### Windows (Recommended)
 Finally, a fast, native environment for Windows developers.
 
-* **Installer:** [FlyEnv-Setup-4.12.2.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.12.2/FlyEnv-Setup-4.12.2.exe)
-* **Portable:** [FlyEnv-Portable-4.12.2.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.12.2/FlyEnv-Portable-4.12.2.exe)
+* **Installer:** [FlyEnv-Setup-4.13.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.1/FlyEnv-Setup-4.13.1.exe)
+* **Portable:** [FlyEnv-Portable-4.13.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.1/FlyEnv-Portable-4.13.1.exe)
 
 ### macOS
 * **Homebrew:** `brew install flyenv`
-* **DMG (Intel):** [FlyEnv-4.12.2.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.12.2/FlyEnv-4.12.2.dmg)
-* **DMG (Apple Silicon):** [FlyEnv-4.12.2-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.12.2/FlyEnv-4.12.2-arm64.dmg)
+* **DMG (Intel):** [FlyEnv-4.13.1.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.1/FlyEnv-4.13.1.dmg)
+* **DMG (Apple Silicon):** [FlyEnv-4.13.1-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.1/FlyEnv-4.13.1-arm64.dmg)
 
 ### Linux
 Supports Debian/Ubuntu (.deb) and RedHat/CentOS (.rpm).
 #### Debian / Ubuntu
-- **x86_64**: [FlyEnv-4.12.2-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.12.2/FlyEnv-4.12.2-x64.deb)
-- **ARM64**: [FlyEnv-4.12.2-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.12.2/FlyEnv-4.12.2-arm64.deb)
+- **x86_64**: [FlyEnv-4.13.1-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.1/FlyEnv-4.13.1-x64.deb)
+- **ARM64**: [FlyEnv-4.13.1-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.1/FlyEnv-4.13.1-arm64.deb)
 
 #### Red Hat / Fedora / SUSE / CentOS
-- **x86_64**: [FlyEnv-4.12.2-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.12.2/FlyEnv-4.12.2-x64.rpm)
-- **ARM64**: [FlyEnv-4.12.2-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.12.2/FlyEnv-4.12.2-arm64.rpm)
+- **x86_64**: [FlyEnv-4.13.1-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.1/FlyEnv-4.13.1-x64.rpm)
+- **ARM64**: [FlyEnv-4.13.1-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.1/FlyEnv-4.13.1-arm64.rpm)
+
+---
+
+**📦 Build & Transparency**
+
+All FlyEnv installation packages are now built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+* **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+* **Windows Build:** [[Run #21811918057](https://github.com/xpf0000/FlyEnv/actions/runs/21811918057)](https://github.com/xpf0000/FlyEnv/actions/runs/21811918057)
+* **macOS Build:** [[Run #21799936855](https://github.com/xpf0000/FlyEnv/actions/runs/21799936855)](https://github.com/xpf0000/FlyEnv/actions/runs/21799936855)
+* **Linux Build:** [[Run #21799936847](https://github.com/xpf0000/FlyEnv/actions/runs/21799936847)](https://github.com/xpf0000/FlyEnv/actions/runs/21799936847)
 
 ---
 
