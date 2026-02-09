@@ -28,5 +28,12 @@
   "timezone": "Tijdszone",
   "loadedExtensions": "Geladen extensies",
   "log_errors": "Fouten loggen inschakelen",
-  "error_log_dir": "Geef het PHP foutlog bestandspad op"
+  "error_log_dir": "Geef het PHP foutlog bestandspad op",
+  "disableFunction": {
+    "title": "Functies uitschakelen",
+    "function": "Functie",
+    "emptyFunction": "Voer de functienaam in",
+    "sameName": "Functie bestaat al",
+    "invalidName": "Ongeldige functienaam. De naam van de functie mag alleen letters, cijfers en onderstrepingstekens bevatten"
+  }
 }

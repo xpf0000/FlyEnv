@@ -28,5 +28,12 @@
   "timezone": "Fuso orario",
   "loadedExtensions": "Estensioni caricate",
   "log_errors": "Abilita la registrazione degli errori",
-  "error_log_dir": "Specifica il percorso del file di log degli errori PHP"
+  "error_log_dir": "Specifica il percorso del file di log degli errori PHP",
+  "disableFunction": {
+    "title": "Disabilita Funzioni",
+    "function": "Funzione",
+    "emptyFunction": "Inserisci il nome della funzione",
+    "sameName": "Funzione già esistente",
+    "invalidName": "Nome funzione non valido. Il nome della funzione può contenere solo lettere, numeri e trattini bassi"
+  }
 }

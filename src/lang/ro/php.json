@@ -28,5 +28,12 @@
   "timezone": "Timezone",
   "loadedExtensions": "Extensii încărcate",
   "log_errors": "Activați înregistrarea erorilor",
-  "error_log_dir": "Specificați calea pentru jurnalul de erori PHP"
+  "error_log_dir": "Specificați calea pentru jurnalul de erori PHP",
+  "disableFunction": {
+    "title": "Dezactivează funcțiile",
+    "function": "Funcție",
+    "emptyFunction": "Te rugăm să introduci numele funcției",
+    "sameName": "Funcția există deja",
+    "invalidName": "Numele funcției este invalid. Numele funcției poate conține doar litere, numere, și underscore"
+  }
 }

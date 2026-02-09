@@ -9,5 +9,14 @@
   "setByNoApp": "FlyEnv tarafından ayarlanmamış ortam değişkenleri",
   "ftpdNeedPasswordToStart": "Pure-FTPd çalıştırmak için sudo yetkileri gereklidir. Lütfen kullanıcı şifrenizi girin. Bu şifre daha sonra otomatik doldurma için kullanılacaktır. Veya aşağıdaki butona tıklayarak terminalde manuel olarak girebilirsiniz, ancak bu uyarı tekrar görünebilir.",
   "bundleinVersionDelTips": "Bu sürüm yerleşik bir sürümdür, görüntülenmediğini doğruluyor musunuz?",
-  "customDirVersionDelTips": "Bu sürüm özel bir yol sürümüdür, görüntülenmediğini doğruluyor musunuz?"
+  "customDirVersionDelTips": "Bu sürüm özel bir yol sürümüdür, görüntülenmediğini doğruluyor musunuz?",
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Bu sürümü çalıştırmak için sisteminizde Visual C++ Redistributable (DLL) eksik. Lütfen aşağıdaki bağlantıdan Microsoft'un resmi sitesinden VC Runtime'ı indirip kurun.",
+      "versionRelation": "Sürüm Uyumluluk Referansı:",
+      "software": "Yazılım",
+      "versionRange": "Sürüm Aralığı",
+      "msvsVersion": "MSVC Sürümü"
+    }
+  }
 }

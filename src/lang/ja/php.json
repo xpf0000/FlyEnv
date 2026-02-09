@@ -28,5 +28,12 @@
   "timezone": "タイムゾーン",
   "loadedExtensions": "読み込まれた拡張機能",
   "log_errors": "エラーログを有効にする",
-  "error_log_dir": "PHP エラーログ ファイルのパスを指定"
+  "error_log_dir": "PHP エラーログ ファイルのパスを指定",
+  "disableFunction": {
+    "title": "関数を無効化",
+    "function": "関数",
+    "emptyFunction": "関数名を入力してください",
+    "sameName": "関数は既に存在します",
+    "invalidName": "無効な関数名です。関数名は文字、数字、アンダースコアのみ使用できます。"
+  }
 }

@@ -9,5 +9,14 @@
   "setByNoApp": "Umgebungsvariablen nicht von FlyEnv gesetzt",
   "ftpdNeedPasswordToStart": "Pure-FTPd benötigt sudo-Berechtigungen. Bitte geben Sie Ihr Benutzerpasswort ein. Das Passwort wird später für das automatische Ausfüllen verwendet. Oder Sie können auf die Schaltfläche unten klicken, um manuell in das Terminal einzugeben, aber diese Aufforderung kann wieder erscheinen.",
   "bundleinVersionDelTips": "Dies ist die integrierte Version. Möchten Sie sie wirklich nicht mehr anzeigen?",
-  "customDirVersionDelTips": "Diese Version ist eine benutzerdefinierte Pfadversion, bestätigen Sie nicht angezeigt?"
+  "customDirVersionDelTips": "Diese Version ist eine benutzerdefinierte Pfadversion, bestätigen Sie nicht angezeigt?",
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Ihrem System fehlen die für die Ausführung dieser Version erforderlichen Visual C++ Redistributable (DLLs). Bitte klicken Sie auf den untenstehenden Link, um die VC Runtime von der offiziellen Website von Microsoft herunterzuladen und zu installieren.",
+      "versionRelation": "Versionskompatibilitätsreferenz:",
+      "software": "Software",
+      "versionRange": "Versionsbereich",
+      "msvsVersion": "MSVC Version"
+    }
+  }
 }

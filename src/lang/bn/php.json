@@ -28,5 +28,12 @@
   "timezone": "টাইমজোন",
   "loadedExtensions": "লোড করা এক্সটেনশন",
   "log_errors": "ত্রুটি লগিং চালু করা হবে কিনা",
-  "error_log_dir": "PHP ত্রুটি লগ ফাইলের পাথ"
+  "error_log_dir": "PHP ত্রুটি লগ ফাইলের পাথ",
+  "disableFunction": {
+    "title": "Disable Functions",
+    "function": "Function",
+    "emptyFunction": "Please enter function name",
+    "sameName": "Function already exists",
+    "invalidName": "Invalid function name. Function name can only contain letters, numbers, and underscores"
+  }
 }

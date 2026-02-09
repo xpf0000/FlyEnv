@@ -28,5 +28,12 @@
   "timezone": "Timezone",
   "loadedExtensions": "Lastede utvidelser",
   "log_errors": "Aktivere feillogging",
-  "error_log_dir": "Spesifiser filbanen for PHP-feil"
+  "error_log_dir": "Spesifiser filbanen for PHP-feil",
+  "disableFunction": {
+    "title": "Deaktiver funksjoner",
+    "function": "Funksjon",
+    "emptyFunction": "Skriv inn funksjonsnavn",
+    "sameName": "Funksjonen finnes allerede",
+    "invalidName": "Ugyldig funksjonsnavn. Funksjonsnavn kan bare inneholde bokstaver, tall og understrekingstegn"
+  }
 }

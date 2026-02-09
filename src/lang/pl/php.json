@@ -28,5 +28,12 @@
   "timezone": "Strefa czasowa",
   "loadedExtensions": "Załadowane rozszerzenia",
   "log_errors": "Włącz rejestrowanie błędów",
-  "error_log_dir": "Określ ścieżkę do pliku dziennika błędów PHP"
+  "error_log_dir": "Określ ścieżkę do pliku dziennika błędów PHP",
+  "disableFunction": {
+    "title": "Wyłącz funkcje",
+    "function": "Funkcja",
+    "emptyFunction": "Wprowadź nazwę funkcji",
+    "sameName": "Funkcja już istnieje",
+    "invalidName": "Nieprawidłowa nazwa funkcji. Nazwa funkcji może zawierać tylko litery, cyfry i podkreślenia"
+  }
 }

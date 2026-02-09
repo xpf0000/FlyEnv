@@ -28,5 +28,12 @@
   "timezone": "Timezone",
   "loadedExtensions": "Načtená rozšíření",
   "log_errors": "Povolit protokolování chyb",
-  "error_log_dir": "Zadejte cestu k souboru protokolu chyb PHP"
+  "error_log_dir": "Zadejte cestu k souboru protokolu chyb PHP",
+  "disableFunction": {
+    "title": "Zakázat funkce",
+    "function": "Funkce",
+    "emptyFunction": "Zadejte název funkce",
+    "sameName": "Funkce již existuje",
+    "invalidName": "Neplatný název funkce. Název funkce může obsahovat pouze písmena, čísla a podtržítka"
+  }
 }

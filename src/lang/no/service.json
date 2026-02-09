@@ -9,5 +9,14 @@
   "setByNoApp": "Miljøvariabler ikke satt av FlyEnv",
   "ftpdNeedPasswordToStart": "Utvalg-FTPd krever supertilgangene for å starte. Skriv inn ditt brukerpassord. Passordet vil bli brukt til automatisk utfylling senere. Eller du kan klikke på knappen nedenfor for å skrive inn manuelt i terminalen, men denne ledeteksten kan dukke opp igjen.",
   "bundleinVersionDelTips": "Denne versjonen er en innebygd versjon, bekreft ikke?",
-  "customDirVersionDelTips": "Denne versjonen er en egendefinert fil-versjon, bekreft ikke?"
+  "customDirVersionDelTips": "Denne versjonen er en egendefinert fil-versjon, bekreft ikke?",
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Ditt system mangler Visual C++ Redistributable (DLLs) for å kunne kjøre denne versjonen. Vennligst klikk på linken nedenfor for å laste ned og installere VC kjøretid fra Microsofts offisielle nettside.",
+      "versionRelation": "Versjons kompatibilitetsreferanse:",
+      "software": "Programvare",
+      "versionRange": "Versjon Utvalg",
+      "msvsVersion": "MSVC versjon"
+    }
+  }
 }

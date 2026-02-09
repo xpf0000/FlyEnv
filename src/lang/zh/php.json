@@ -28,5 +28,12 @@
   "timezone": "时区",
   "loadedExtensions": "已加载",
   "log_errors": "是否开启错误日志功能",
-  "error_log_dir": "指定 PHP 错误日志的文件路径"
+  "error_log_dir": "指定 PHP 错误日志的文件路径",
+  "disableFunction": {
+    "title": "禁用函数",
+    "function": "函数",
+    "emptyFunction": "请输入函数名称",
+    "sameName": "函数已存在",
+    "invalidName": "无效的函数名称.函数名称只能包含字母、数字、下划线"
+  }
 }

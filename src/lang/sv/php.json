@@ -28,5 +28,12 @@
   "timezone": "Tidszon",
   "loadedExtensions": "Laddade tillägg",
   "log_errors": "Aktivera felloggning",
-  "error_log_dir": "Ange sökväg till PHP-felloggfil"
+  "error_log_dir": "Ange sökväg till PHP-felloggfil",
+  "disableFunction": {
+    "title": "Inaktivera funktioner",
+    "function": "Funktion",
+    "emptyFunction": "Ange funktionsnamn",
+    "sameName": "Funktionen finns redan",
+    "invalidName": "Ogiltigt funktionsnamn. Funktionsnamnet kan endast innehålla bokstäver, siffror och understreck"
+  }
 }

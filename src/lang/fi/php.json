@@ -28,5 +28,12 @@
   "timezone": "Timezone",
   "loadedExtensions": "Ladatut Laajennukset",
   "log_errors": "Ota käyttöön virhe kirjautuessa",
-  "error_log_dir": "Määritä PHP virhelokin tiedostopolku"
+  "error_log_dir": "Määritä PHP virhelokin tiedostopolku",
+  "disableFunction": {
+    "title": "Poista Toiminnot Käytöstä",
+    "function": "Funktio",
+    "emptyFunction": "Syötä funktion nimi",
+    "sameName": "Funktio on jo olemassa",
+    "invalidName": "Virheellinen funktion nimi. Funktion nimi voi sisältää vain kirjaimia, numeroita ja alaviivoja"
+  }
 }
