@@ -18,15 +18,14 @@ try {
 
   if (-not (Test-Path -LiteralPath $dataPath)) {
     New-Item -Path $dataPath -ItemType Directory -Force | Out-Null
-  }
-
-  try {
-    $acl = Get-Acl -Path $dataPath
-    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($currentUserName, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
-    $acl.SetAccessRule($rule)
-    Set-Acl -Path $dataPath -AclObject $acl -ErrorAction SilentlyContinue
-  } catch {
-    Write-Host "Warning: Failed to set permissions: $($_.Exception.Message)"
+    try {
+      $acl = Get-Acl -Path $dataPath
+      $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($currentUserName, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+      $acl.SetAccessRule($rule)
+      Set-Acl -Path $dataPath -AclObject $acl -ErrorAction SilentlyContinue
+    } catch {
+      Write-Host "Warning: Failed to set permissions: $($_.Exception.Message)"
+    }
   }
 
   try {
