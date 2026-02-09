@@ -32,7 +32,8 @@
   "messagePlaceholder": "Vă rugăm să trimiteți link-ul de donație, sau ID-ul comenzii atunci când alegeți să donați.\nVă rugăm să trimiteți link-ul PR pentru cei care aleg să participe la dezvoltarea proiectului.\nVă rugăm să trimiteți un link către articole, video, blog, vlog, sau să comentați pentru cei care aleg să promoveze.",
   "requestButton": "Solicită licență",
   "refreshButton": "Reîmprospătare stare",
-
+  "licenseActivated": "Licență activată",
+  "licenseNoActivated": "Licenta nu este activata",
   "licenseInfo": "Licența oferită în prezent este o licență permanentă, fiecare computer corespunde unei licențe. Dacă schimbați computerul, trebuie să legați uuid-ul noului dispozitiv în 'Licențele mele' sau să solicitați o licență nouă.",
   "logoutTips": "Sigur doriți să vă deconectați?",
   "delBindTips": "Sigur doriți să dezlegați licența de acest UUID?",

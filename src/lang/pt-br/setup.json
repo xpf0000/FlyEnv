@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Reparar FlyEnv Helper",
   "flyenvHelperBtn": "Reparar",
-  "flyenvHelperFixSuccess": "Reparo do FlyEnv Helper bem-sucedido"
+  "flyenvHelperFixSuccess": "Reparo do FlyEnv Helper bem-sucedido",
+  "flyenvHelperInstallFailTips": "Falha na instalação do auxiliar FlyEnv. Tente executar o FlyEnv com privilégios de administrador ou clique no botão OK e execute manualmente o programa auxiliar flyenv-helper.exe na pasta aberta."
 }

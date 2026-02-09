@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Opravit FlyEnv pomocníka",
   "flyenvHelperBtn": "Opravit",
-  "flyenvHelperFixSuccess": "FlyEnv pomocník úspěšně opraven"
+  "flyenvHelperFixSuccess": "FlyEnv pomocník úspěšně opraven",
+  "flyenvHelperInstallFailTips": "Instalace pomocného programu FlyEnv se nezdařila. Zkuste spustit FlyEnv s oprávněními správce nebo klikněte na tlačítko OK a ručně spusťte pomocný program flyenv-helper.exe v otevřené složce."
 }

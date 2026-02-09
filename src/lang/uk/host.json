@@ -25,7 +25,6 @@
   "noPhpWarning": "Перевірте, чи не вибрано жодної версії PHP, інакше буде створено статичний сайт, а файли PHP не можна буде виконати. Ви впевнені, що хочете продовжити?",
   "hostsWriteTips": "Увімкнути/вимкнути всі хости в цьому списку",
   "sort": "Сортувати",
-
   "projectPhp": "Проекти PHP",
   "projectJava": "Проекти Java",
   "projectNode": "Проекти Node",
@@ -35,7 +34,6 @@
   "projectDeno": "Проекти Deno",
   "projectBun": "Проекти Bun",
   "projectPerl": "Проекти Perl",
-
   "jarPackagePath": "Шлях до пакета JAR",
   "jdkPath": "Шлях JDK",
   "pythonPath": "Шлях Python",

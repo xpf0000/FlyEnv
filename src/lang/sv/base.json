@@ -21,6 +21,7 @@
   "prompt": "Prompt",
   "delAlertTitle": "Varning",
   "delAlertContent": "Bekräfta borttagning?",
+  "areYouSure": "Är du säker?",
   "confirm": "OK",
   "cancel": "Avbryt",
   "service": "Tjänst",
@@ -39,7 +40,7 @@
   "cleanSelect": "Rensa val",
   "cleanAll": "Rensa allt",
   "brewSrcSwitch": "Brew-källväxling",
-    "useProxy": "Använd proxy",
+  "useProxy": "Använd proxy",
   "proxySetting": "Proxyserver",
   "quickSetup": "Snabbinställning",
   "currentProxy": "Nuvarande proxy",
@@ -73,6 +74,7 @@
   "name": "Namn",
   "status": "Status",
   "operation": "Åtgärd",
+  "action": "Åtgärd",
   "copyLink": "Kopiera länk",
   "copySuccess": "Kopiera till urklipp framgångsrikt.",
   "killProcessConfirm": "Är du säker på att du vill avsluta den valda processen?",
@@ -106,15 +108,11 @@
   "Official": "Officiell",
   "staticDelAlert": "För att säkerställa användardatasäkerhet tillhandahålls inte längre funktionen för att automatiskt radera installerad programvara. Om du är säker på att du vill radera den, klicka på OK. Radera programvaran manuellt i den öppnade mappen.",
   "placeholderSearch": "Sök",
-
-  "areYouSure": "Är du säker?",
-  "action": "Åtgärd",
   "projects": "Projekt",
-
   "cleanup": "Cleanup",
-
   "preview": "Förhandsgranskning",
   "executing": "Körs",
   "info": "Information",
-  "ForceDelete": "Tvinga radering"
+  "ForceDelete": "Tvinga radering",
+  "DataDirPermissionTips": "Det gick inte att skapa mappen FlyEnv. Starta FlyEnv med administratörsrättigheter eller ändra installationsplatsen för FlyEnv."
 }

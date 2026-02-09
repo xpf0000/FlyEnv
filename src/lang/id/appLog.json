@@ -1,4 +1,5 @@
 {
+  "startInstall": "Start installing {service}",
   "startServiceBegin": "Memulai layanan {service}...",
   "confInit": "File konfigurasi belum ada. Membuat file konfigurasi baru.",
   "confInitSuccess": "File konfigurasi berhasil dibuat. Lokasi file: {file}",
@@ -18,7 +19,5 @@
   "initDBDataDir": "Folder data tidak ditemukan, mulai membuat folder data",
   "initDBDataDirSuccess": "Folder data berhasil dibuat. Lokasi folder: {dir}",
   "initDBDataDirFail": "Gagal membuat folder data. Alasan: {error}",
-
-  "startInstall": "Start installing {service}",
   "newProjectFail": "Gagal membuat proyek baru"
 }

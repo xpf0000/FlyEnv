@@ -5,5 +5,7 @@
   "update-downloaded-message": "Sẵn sàng để cài đặt...",
   "update-error-message": "Lỗi cập nhật",
   "yes": "Có",
-  "no": "Không"
+  "no": "Không",
+  "view-update-log": "View Update Log",
+  "download-new-version": "Download New Version"
 }

@@ -58,7 +58,7 @@
   "Rename": "Umbenennen",
   "ImageName": "Imagename",
   "CommandArgs": "Kommandoargumente",
-  "Volumes": "Volumes",
+  "Volumes": "Lautstärke",
   "ContainerDir": "Containerpfad",
   "LocalDir": "Lokaler Pfad",
   "ContainerEnvVars": "Umgebungsvariablen im Container",

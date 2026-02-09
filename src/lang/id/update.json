@@ -5,5 +5,7 @@
   "update-downloaded-message": "Siap untuk dipasang...",
   "update-error-message": "Terjadi Kesalahan Pembaruan",
   "yes": "Ya",
-  "no": "Tidak"
+  "no": "Tidak",
+  "view-update-log": "View Update Log",
+  "download-new-version": "Download New Version"
 }

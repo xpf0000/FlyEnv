@@ -113,5 +113,6 @@
   "preview": "Aperçu",
   "executing": "En cours d'exécution",
   "info": "Informations",
-  "ForceDelete": "Suppression forcée"
+  "ForceDelete": "Suppression forcée",
+  "DataDirPermissionTips": "Impossible de créer le dossier de données de FlyEnv. Veuillez démarrer FlyEnv avec les privilèges d'administrateur, ou changer l'emplacement d'installation de FlyEnv."
 }

@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Διόρθωση Βοηθού FlyEnv",
   "flyenvHelperBtn": "Διόρθωση",
-  "flyenvHelperFixSuccess": "Επιτυχής Σταθερή Βοηθός FlyEnv"
+  "flyenvHelperFixSuccess": "Επιτυχής Σταθερή Βοηθός FlyEnv",
+  "flyenvHelperInstallFailTips": "Η εγκατάσταση του βοηθητικού προγράμματος FlyEnv απέτυχε. Δοκιμάστε να εκτελέσετε το FlyEnv με δικαιώματα διαχειριστή ή κάντε κλικ στο κουμπί OK και εκτελέστε χειροκίνητα το βοηθητικό πρόγραμμα flyenv-helper.exe στον φάκελο που άνοιξε."
 }

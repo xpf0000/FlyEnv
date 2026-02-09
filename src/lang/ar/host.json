@@ -25,7 +25,6 @@
   "noPhpWarning": "لم يتم تحديد إصدار PHP. سيتم إنشاء موقع ثابت ولن يتم تنفيذ ملفات PHP. هل أنت متأكد من المتابعة؟",
   "hostsWriteTips": "تفعيل / تعطيل جميع Hosts في هذه القائمة",
   "sort": "الترتيب",
-
   "projectPhp": "مشاريع PHP",
   "projectJava": "مشاريع Java",
   "projectNode": "مشاريع Node",
@@ -35,7 +34,6 @@
   "projectDeno": "مشاريع Deno",
   "projectBun": "مشاريع Bun",
   "projectPerl": "مشاريع Perl",
-
   "jarPackagePath": "مسار حزمة JAR",
   "jdkPath": "مسار JDK",
   "pythonPath": "مسار Python",

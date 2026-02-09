@@ -8,16 +8,6 @@
   "setByApp": "FlyEnv设置的环境变量",
   "setByNoApp": "非FlyEnv设置的环境变量",
   "ftpdNeedPasswordToStart": "Pure-FTPd 需要管理员权限启动，请输入当前用户密码。后续会使用此密码自动填充. 您也可以点击下方按钮在终端中手动输入, 但此提示可能会再次出现。",
-
   "bundleinVersionDelTips": "此版本为内置版本, 确定不再显示?",
-  "customDirVersionDelTips": "此版本为用户自定义版本, 确定不再显示?",
-  "ErrorTips": {
-    "VCRuntime": {
-      "title": "此问题是系统缺少运行此版本所需的VC运行时DLL.请点击下方链接前往微软官网下载安装VC运行时",
-      "versionRelation": "版本对应关系如下",
-      "software": "软件",
-      "versionRange": "版本范围",
-      "msvsVersion": "MSVC 版本"
-    }
-  }
+  "customDirVersionDelTips": "此版本为用户自定义版本, 确定不再显示?"
 }

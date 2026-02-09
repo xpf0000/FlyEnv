@@ -73,7 +73,6 @@
   "DockerComposeInstallButton": "安装docker-composer",
   "ExecCommand": "执行命令",
   "CommitToImage": "提交为镜像",
-
   "container": {
     "basicInfo": "基本信息",
     "runningStatus": "运行状态",

@@ -1,9 +1,12 @@
 {
   "phpiniNotFound": "php.ini-filen hittades inte",
+  "editPhpIni": "Redigera php.ini",
+  "phpExtensions": "PHP-tillägg",
   "copyConfTemplate": "Kopiera konfigurationsmall",
   "extensionCopySuccess": "Tilläggslänk kopierad till urklipp",
   "xdebugConfCopySuccess": "XDebug-konfigurationsmall kopierad till urklipp",
   "fpmLog": "FPM-logg",
+  "extensions": "Tillägg",
   "extension": "Tillägg",
   "obfuscatorPhpVersion": "Förvräng med PHP-version",
   "obfuscatorSrc": "PHP-fil eller mapp som ska förvrängas",
@@ -24,10 +27,6 @@
   "error_reporting": "Felrapporteringsnivå",
   "timezone": "Tidszon",
   "loadedExtensions": "Laddade tillägg",
-
-  "editPhpIni": "Redigera php.ini",
-  "phpExtensions": "PHP-tillägg",
-  "extensions": "Tillägg",
   "log_errors": "Aktivera felloggning",
   "error_log_dir": "Ange sökväg till PHP-felloggfil"
 }

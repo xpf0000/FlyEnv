@@ -32,7 +32,8 @@
   "messagePlaceholder": "Vui lòng gửi người hiến tặng, liên kết quyên góp hoặc ID đơn hàng khi chọn quyên góp.\nVui lòng gửi liên kết PR cho những người chọn tham gia vào phát triển dự án.\nVui lòng gửi liên kết bài viết/video nếu bạn chọn giúp quảng bá dự án",
   "requestButton": "Yêu cầu Giấy phép",
   "refreshButton": "Làm Mới Trạng Thái",
-
+  "licenseActivated": "License activated",
+  "licenseNoActivated": "License not activated",
   "licenseInfo": "Giấy phép hiện được cung cấp là giấy phép vĩnh viễn, mỗi máy tính tương ứng với một giấy phép. Nếu bạn thay đổi máy tính, bạn cần liên kết uuid của thiết bị mới trong 'Giấy phép của tôi' hoặc nộp đơn xin giấy phép mới.",
   "logoutTips": "Bạn có chắc chắn muốn đăng xuất không?",
   "delBindTips": "Bạn có chắc chắn muốn hủy liên kết giấy phép với UUID này không?",

@@ -32,7 +32,8 @@
   "messagePlaceholder": "Prosimy o przesłanie darowizny, linku darowizny, lub identyfikatora zamówienia podczas wyboru darowizny.\nPrześlij link PR dla tych, którzy decydują się uczestniczyć w tworzeniu projektu.\nProsimy o przesłanie linku do artykułu, filmu, bloga, vlog lub komentarza dla tych, którzy decydują się na promocję.",
   "requestButton": "Poproś o licencję",
   "refreshButton": "Odśwież województwo",
-
+  "licenseActivated": "Licencja aktywowana",
+  "licenseNoActivated": "Licencja nieaktywna",
   "licenseInfo": "Obecnie udzielana licencja jest licencją stałą, każdy komputer odpowiada jednej licencji. Jeśli zmienisz komputer, musisz powiązać uuid nowego urządzenia w 'Moje licencje' lub ubiegać się o nową licencję.",
   "logoutTips": "Czy na pewno chcesz się wylogować?",
   "delBindTips": "Czy na pewno chcesz usunąć powiązanie licencji z tego UUID?",

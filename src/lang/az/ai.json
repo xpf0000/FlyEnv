@@ -14,6 +14,8 @@
   "siteCreatedSuccessfully": "Sayt uğurla yaradıldı.",
   "siteDomain": "Sayt Domeni",
   "siteDirectory": "Sayt Qovluğu",
+  "siteDirectoryError": "Sayt Qovluğu Xətası",
+  "domainError": "Domen Xətası",
   "tryingToStartService": "Xidmət başladılır, zəhmət olmasa gözləyin...",
   "serviceStartedSuccessfully": "Xidmət uğurla başladıldı.",
   "domain": "Domen",
@@ -65,8 +67,5 @@
   "enterTips": "[Enter] göndər, [Shift+Enter] yeni sətir, [Ctrl+Enter] icra etmədən göndər",
   "noLiencesTips": "Hazırda lisenziya yoxdur, 3 gün sınaq müddətindən istifadə edə bilərsiniz",
   "alert": "Xəbərdarlıq",
-  "customer": "Mənim Köməkçilərim",
-
-  "siteDirectoryError": "Sayt Qovluğu Xətası",
-  "domainError": "Domen Xətası"
+  "customer": "Mənim Köməkçilərim"
 }

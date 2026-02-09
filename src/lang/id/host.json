@@ -31,6 +31,9 @@
   "projectGo": "Proyek Go",
   "projectPython": "Proyek Python",
   "projectTomcat": "Proyek Tomcat",
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects",
   "jarPackagePath": "Path Paket JAR",
   "jdkPath": "Path JDK",
   "pythonPath": "Path Python",
@@ -64,9 +67,5 @@
   "copyCommand": "Salin Perintah",
   "showFile": "Tampilkan File",
   "sticky": "Tegak (Sticky)",
-  "dbclickRowToEdit": "Klik dua kali baris ini untuk mengedit",
-
-  "projectDeno": "Deno Projects",
-  "projectBun": "Bun Projects",
-  "projectPerl": "Perl Projects"
+  "dbclickRowToEdit": "Klik dua kali baris ini untuk mengedit"
 }

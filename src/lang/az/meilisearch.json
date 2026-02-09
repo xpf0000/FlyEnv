@@ -1,4 +1,5 @@
 {
+  "working_dir": "İş Qovluğu",
   "db_path": "Verilənlər bazası fayllarının yaradılacağı və əldə ediləcəyi yeri göstərir",
   "env": "Nümunənin mühiti konfiqurasiya edir. Dəyər `production` və ya `development` olmalıdır.",
   "http_addr": "HTTP serverin dinləyəcəyi ünvan.",
@@ -26,7 +27,5 @@
   "ssl_tickets": "SSL biletlərini aktivləşdirir.",
   "experimental_enable_metrics": "Eksperimental metrik xüsusiyyəti. `GET /metrics` endpoint-də Prometheus metriklərini aktivləşdirir.",
   "experimental_reduce_indexing_memory_usage": "İndeksləmə zamanı yaddaş istifadəsini eksperimental olaraq azaldır, istehsalda istifadə etməyin.",
-  "experimental_max_number_of_batched_tasks": "Eyni anda işlənəcək maksimum tapşırıq sayını eksperimental olaraq azaldır.",
-
-  "working_dir": "İş Qovluğu"
+  "experimental_max_number_of_batched_tasks": "Eyni anda işlənəcək maksimum tapşırıq sayını eksperimental olaraq azaldır."
 }

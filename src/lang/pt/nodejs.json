@@ -1,4 +1,7 @@
 {
+  "installFNM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "Terminal",
   "registry": "Fonte",
   "checkPackageJsonUpdate": "Verificar atualizações",
   "updatePackageJsonFile": "Atualizar arquivo package.json",
@@ -9,8 +12,5 @@
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "HBuilderX": "HBuilderX",
-  "projectEnvSet": "Ambiente do Projeto",
-  "installFNM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
-  "installNVM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
-  "Terminal": "Terminal"
+  "projectEnvSet": "Ambiente do Projeto"
 }

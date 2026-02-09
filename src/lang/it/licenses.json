@@ -32,7 +32,8 @@
   "messagePlaceholder": "Se hai scelto di donare, inserisci il nome, il link della donazione o l'ID dell'ordine.\nSe hai contribuito allo sviluppo, inserisci il link della Pull Request.\nSe hai promosso il progetto, inserisci il link all’articolo/video.",
   "requestButton": "Richiedi Licenza",
   "refreshButton": "Aggiorna Stato",
-
+  "licenseActivated": "Licenza attivata",
+  "licenseNoActivated": "Licenza non attivata",
   "licenseInfo": "La licenza attualmente fornita è una licenza permanente, ogni computer corrisponde a una licenza. Se si cambia computer, è necessario associare l'uuid del nuovo dispositivo in 'Le Mie Licenze', o richiedere una nuova licenza.",
   "logoutTips": "Sei sicuro di voler uscire?",
   "delBindTips": "Sei sicuro di voler rimuovere l'associazione della licenza da questo UUID?",

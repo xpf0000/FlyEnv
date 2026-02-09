@@ -110,9 +110,9 @@
   "placeholderSearch": "অনুসন্ধান করুন",
   "projects": "প্রজেক্ট",
   "cleanup": "পরিষ্কার করুন",
-
   "preview": "প্রাকদর্শন",
   "executing": "চলছে",
   "info": "তথ্য",
-  "ForceDelete": "জোর মুছে ফেলা"
+  "ForceDelete": "জোর মুছে ফেলা",
+  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
 }

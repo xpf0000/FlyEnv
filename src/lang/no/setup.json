@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Fiks FlyEnv Hjelper",
   "flyenvHelperBtn": "Reparer",
-  "flyenvHelperFixSuccess": "FlyEnv Helper Fikset"
+  "flyenvHelperFixSuccess": "FlyEnv Helper Fikset",
+  "flyenvHelperInstallFailTips": "FlyEnv-hjelpeprogrammet kunne ikke installeres. Prøv å kjøre FlyEnv med administratorrettigheter, eller klikk på OK-knappen og kjør hjelpeprogrammet flyenv-helper.exe manuelt i den åpnede mappen."
 }

@@ -28,12 +28,5 @@
   "timezone": "Zaman dilimi",
   "loadedExtensions": "Yüklü Eklentiler",
   "log_errors": "Hata günlüğünü aç",
-  "error_log_dir": "PHP hata günlüğü dosyasının yolunu belirt",
-  "disableFunction": {
-    "title": "Devre Dışı Bırakılan Fonksiyonlar",
-    "function": "Fonksiyon",
-    "emptyFunction": "Lütfen fonksiyon adı girin",
-    "sameName": "Fonksiyon zaten mevcut",
-    "invalidName": "Geçersiz fonksiyon adı. Fonksiyon adı yalnızca harf, rakam ve alt çizgi içerebilir"
-  }
+  "error_log_dir": "PHP hata günlüğü dosyasının yolunu belirt"
 }

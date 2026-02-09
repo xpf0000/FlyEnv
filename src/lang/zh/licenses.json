@@ -34,7 +34,6 @@
   "refreshButton": "刷新状态",
   "licenseActivated": "许可证已激活",
   "licenseNoActivated": "许可证未激活",
-
   "licenseInfo": "当前提供的许可证为永久许可证，每台电脑对应一个许可证。若更换电脑，需要在我的许可证里绑定新设备的uuid，或者重新申请许可证。",
   "logoutTips": "确定退出登录?",
   "delBindTips": "确定取消此UUID的许可证绑定?",

@@ -11,7 +11,6 @@
   "thread_cache_size": "Ukuran pool thread",
   "table_open_cache": "Cache tabel",
   "max_connections": "Jumlah koneksi maksimum",
-
   "rootPassword": "kata sandi root",
   "rootPasswordChange": "Ubah kata sandi {user}",
   "passwordNoEmpty": "kata sandi root tidak boleh kosong",

@@ -113,5 +113,6 @@
   "preview": "Podgląd",
   "executing": "Wykonywanie",
   "info": "Informacje",
-  "ForceDelete": "Wymuś usunięcie"
+  "ForceDelete": "Wymuś usunięcie",
+  "DataDirPermissionTips": "Nie udało się utworzyć folderu danych FlyEnv. Uruchom FlyEnv z uprawnieniami administratora lub zmień lokalizację instalacji FlyEnv."
 }

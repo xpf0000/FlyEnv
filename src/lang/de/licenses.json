@@ -32,7 +32,8 @@
   "messagePlaceholder": "Bitte gib den Spender, den Spendenlink oder die Bestell-ID ein, wenn du dich für eine Spende entscheidest.\nBitte gib den PR-Link an, wenn du dich für die Teilnahme an der Projektentwicklung entscheidest.\nBitte gib einen Link zu deinem Artikel, Video, Blog, Vlog oder Kommentar an, wenn du dich für die Werbung entscheidest.",
   "requestButton": "Lizenz anfordern",
   "refreshButton": "Aktualisiere Status",
-
+  "licenseActivated": "Lizenz aktiviert",
+  "licenseNoActivated": "Lizenz nicht aktiviert",
   "licenseInfo": "Die aktuell bereitgestellte Lizenz ist eine permanente Lizenz, jeder Computer entspricht einer Lizenz. Wenn Sie den Computer wechseln, müssen Sie in 'Meine Lizenzen' die UUID des neuen Geräts binden oder eine neue Lizenz beantragen.",
   "logoutTips": "Sind Sie sicher, dass Sie sich abmelden möchten?",
   "delBindTips": "Sind Sie sicher, dass Sie die Lizenzbindung an diese UUID aufheben möchten?",

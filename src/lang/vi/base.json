@@ -40,7 +40,7 @@
   "cleanSelect": "Xóa lựa chọn",
   "cleanAll": "Xóa tất cả",
   "brewSrcSwitch": "Chuyển đổi nguồn Brew",
-    "useProxy": "Sử dụng Proxy",
+  "useProxy": "Sử dụng Proxy",
   "proxySetting": "Proxy máy chủ",
   "quickSetup": "Cài đặt nhanh",
   "currentProxy": "Proxy hiện tại",
@@ -110,9 +110,9 @@
   "placeholderSearch": "Tìm kiếm",
   "projects": "Dự án",
   "cleanup": "Dọn dẹp",
-
   "preview": "Xem trước",
   "executing": "Đang thực thi",
   "info": "Thông tin",
-  "ForceDelete": "Xóa bắt buộc"
+  "ForceDelete": "Xóa bắt buộc",
+  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
 }

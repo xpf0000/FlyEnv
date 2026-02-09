@@ -14,12 +14,10 @@
   "component": "工具URL链接",
   "addTool": "添加工具",
   "editTool": "编辑工具",
-
   "envValue": "值",
   "rawEnvPath": "实际路径",
   "envValueErrorTips": "此值无法指向一个存在的路径。可点击复制命令再CMD中执行查看",
   "invalidPath": "无效路径",
-
   "base64-file-converter-title": "Base64 文件转换器",
   "base64-string-converter-title": "Base64字符串编码/解码",
   "chmod-calculator-title": "Chmod计算器",
@@ -48,7 +46,6 @@
   "url-parse-title": "URL解析",
   "wifi-qr-code-generator-title": "WiFi二维码生成",
   "URLTimingAnalyzer": "URL请求计时分析",
-
   "CodePlayGround": "代码演练场",
   "CodeLibrary": "代码图书馆",
   "GroupName": "分组名称",
@@ -66,7 +63,6 @@
   "MoveToTop": "移至顶部",
   "MoveToGroup": "移至分组",
   "MarkdownPreview": "Markdown预览",
-
   "Capturer": "屏幕截图",
   "CapturerShortcut": "截图快捷键",
   "CapturerShortcutTips": "请按下你想唤起截图功能的按键, 例如Ctrl+Shift+A",
@@ -81,7 +77,6 @@
   "CapturerDo": "截图",
   "CapturerHideWindowDo": "隐藏此窗口截图",
   "CapturerPointPosition": "坐标",
-
   "ImageCompress": {
     "title": "图片压缩",
     "preview": {
@@ -242,7 +237,7 @@
       "gridSpacing": "网格间距 (像素)"
     },
     "formats": {
-      "jpeg": "JPEG",
+      "jpeg": "跳过",
       "png": "PNG",
       "webp": "WebP",
       "avif": "AVIF",
@@ -254,7 +249,7 @@
       "srgb": "sRGB",
       "rgb": "RGB",
       "cmyk": "CMYK",
-      "lab": "Lab",
+      "lab": "实验室",
       "bw": "黑白"
     }
   }

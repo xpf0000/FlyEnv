@@ -5,5 +5,7 @@
   "update-downloaded-message": "Připraveno k instalaci...",
   "update-error-message": "Chyba aktualizace",
   "yes": "Ano",
-  "no": "Ne"
+  "no": "Ne",
+  "view-update-log": "Zobrazit protokol aktualizací",
+  "download-new-version": "Stáhnout novou verzi"
 }

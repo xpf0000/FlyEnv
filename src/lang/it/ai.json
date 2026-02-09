@@ -14,6 +14,8 @@
   "siteCreatedSuccessfully": "Sito creato con successo",
   "siteDomain": "Dominio del sito",
   "siteDirectory": "Directory del sito",
+  "siteDirectoryError": "Site Directory Error",
+  "domainError": "Domain Error",
   "tryingToStartService": "Tentativo di avvio del servizio, attendere...",
   "serviceStartedSuccessfully": "Servizio avviato con successo",
   "domain": "Dominio",
@@ -65,8 +67,5 @@
   "enterTips": "[Enter] invia, [Shift+Enter] va a capo, [Ctrl+Enter] invia senza generare",
   "noLiencesTips": "Attualmente senza licenza, puoi provarlo per tre giorni",
   "alert": "Avviso",
-  "customer": "I miei Copilot",
-
-  "siteDirectoryError": "Site Directory Error",
-  "domainError": "Domain Error"
+  "customer": "I miei Copilot"
 }

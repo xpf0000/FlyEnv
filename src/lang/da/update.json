@@ -5,5 +5,7 @@
   "update-downloaded-message": "Klar til at installere...",
   "update-error-message": "Fejl Ved Opdatering",
   "yes": "Ja",
-  "no": "Nej"
+  "no": "Nej",
+  "view-update-log": "Vis Opdaterings Log",
+  "download-new-version": "Download Ny Version"
 }

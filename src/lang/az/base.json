@@ -109,11 +109,10 @@
   "staticDelAlert": "İstifadəçi məlumatlarının təhlükəsizliyi üçün artıq quraşdırılmış proqramların avtomatik silinməsi dəstəklənmir. Silmək istəyirsinizsə, \"Təsdiq et\" klikləyin və proqramı açılan qovluqdan əl ilə silin.",
   "placeholderSearch": "Axtar",
   "projects": "Layihələr",
-
   "cleanup": "Təmizləmə",
-
   "preview": "ön izahat",
   "executing": "icra olunur",
   "info": "məlumat",
-  "ForceDelete": "Məcburi sil"
+  "ForceDelete": "Məcburi sil",
+  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
 }

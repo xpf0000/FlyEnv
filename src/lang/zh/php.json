@@ -1,9 +1,12 @@
 {
   "phpiniNotFound": "php.ini文件获取失败",
+  "editPhpIni": "编辑 php.ini",
+  "phpExtensions": "PHP 扩展",
   "copyConfTemplate": "复制配置模板",
   "extensionCopySuccess": "扩展链接已复制到剪贴板",
   "xdebugConfCopySuccess": "xdebug配置模板已复制到剪贴板",
   "fpmLog": "FPM日志",
+  "extensions": "扩展",
   "extension": "扩展",
   "obfuscatorPhpVersion": "混淆用PHP版本",
   "obfuscatorSrc": "待混淆PHP文件或文件夹",
@@ -24,19 +27,6 @@
   "error_reporting": "错误级别",
   "timezone": "时区",
   "loadedExtensions": "已加载",
-
-  "editPhpIni": "编辑 php.ini",
-  "phpExtensions": "PHP 扩展",
-  "extensions": "扩展",
-
   "log_errors": "是否开启错误日志功能",
-  "error_log_dir": "指定 PHP 错误日志的文件路径",
-
-  "disableFunction": {
-    "title": "禁用函数",
-    "function": "函数",
-    "emptyFunction": "请输入函数名称",
-    "sameName": "函数已存在",
-    "invalidName": "无效的函数名称.函数名称只能包含字母、数字、下划线"
-  }
+  "error_log_dir": "指定 PHP 错误日志的文件路径"
 }

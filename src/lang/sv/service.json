@@ -7,7 +7,6 @@
   "useSysPHP": "Använd standard PHP-version",
   "setByApp": "Miljövariabler som ställts in av FlyEnv",
   "setByNoApp": "Miljövariabler som inte ställts in av FlyEnv",
-
   "ftpdNeedPasswordToStart": "Pure-FTPd requires sudo privileges to start. Please enter your user password. The password will be used for auto-fill later. Or you can click the button below to input manually in the terminal, but this prompt may reappear.",
   "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
   "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?"

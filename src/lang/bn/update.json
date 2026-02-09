@@ -5,5 +5,7 @@
   "update-downloaded-message": "ইনস্টল করার জন্য প্রস্তুত...",
   "update-error-message": "আপডেট ত্রুটি",
   "yes": "হ্যাঁ",
-  "no": "না"
+  "no": "না",
+  "view-update-log": "View Update Log",
+  "download-new-version": "Download New Version"
 }

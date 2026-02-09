@@ -113,5 +113,6 @@
   "preview": "Eksempelvisning",
   "executing": "Udfører",
   "info": "Info",
-  "ForceDelete": "Tving Slet"
+  "ForceDelete": "Tving Slet",
+  "DataDirPermissionTips": "Kunne ikke oprette FlyEnv datamappen. Start FlyEnv med administratorrettigheder, eller skift FlyEnv installationsplaceringen."
 }

@@ -113,5 +113,6 @@
   "preview": "Náhled",
   "executing": "Provádění",
   "info": "Info",
-  "ForceDelete": "Vynutit odstranění"
+  "ForceDelete": "Vynutit odstranění",
+  "DataDirPermissionTips": "Nepodařilo se vytvořit složku FlyEnv. Spusťte FlyEnv s oprávněním správce, nebo změňte umístění instalace FlyEnv."
 }

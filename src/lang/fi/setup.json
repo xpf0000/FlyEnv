@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Korjaa FlyEnv -auttaja",
   "flyenvHelperBtn": "Korjaa",
-  "flyenvHelperFixSuccess": "FlyEnv Helper Kiinteä Onnistuneesti"
+  "flyenvHelperFixSuccess": "FlyEnv Helper Kiinteä Onnistuneesti",
+  "flyenvHelperInstallFailTips": "FlyEnv-apuohjelman asennus epäonnistui. Yritä suorittaa FlyEnv järjestelmänvalvojan oikeuksilla tai napsauta OK-painiketta ja suorita flyenv-helper.exe-apuohjelma manuaalisesti avautuneessa kansiossa."
 }

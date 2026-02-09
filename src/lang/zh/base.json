@@ -18,10 +18,10 @@
   "nginxRewriteTips": "此处设置Nginx的Url Rewrite, Apache请在项目文件中自行设置",
   "refresh": "刷新",
   "clean": "清空",
-  "cleanup": "清理",
   "prompt": "提示",
   "delAlertTitle": "温馨提示",
   "delAlertContent": "确认删除?",
+  "areYouSure": "确定执行此操作?",
   "confirm": "确定",
   "cancel": "取消",
   "service": "服务",
@@ -74,6 +74,7 @@
   "name": "名称",
   "status": "状态",
   "operation": "操作",
+  "action": "操作",
   "copyLink": "复制链接",
   "copySuccess": "已复制到剪贴板",
   "killProcessConfirm": "确认结束所选进程?",
@@ -108,13 +109,10 @@
   "staticDelAlert": "为了保证用户数据安全. 不再提供自动删除已安装软件的功能. 如确定要删除. 可点击确定. 在打开的文件夹中手动删除软件.",
   "placeholderSearch": "搜索",
   "projects": "项目",
-  "areYouSure": "确定执行此操作?",
-  "action": "操作",
-
+  "cleanup": "清理",
   "preview": "预览",
   "executing": "执行中",
   "info": "详情",
   "ForceDelete": "强制删除",
-
   "DataDirPermissionTips": "创建FlyEnv数据文件夹失败, 请先使用管理员权限启动FlyEnv, 或者更改FlyEnv安装位置."
 }

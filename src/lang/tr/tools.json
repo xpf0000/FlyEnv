@@ -63,7 +63,6 @@
   "MoveToTop": "En Üste Taşı",
   "MoveToGroup": "Gruba Taşı",
   "MarkdownPreview": "Markdown Önizleme",
-
   "Capturer": "Ekran görüntüsü",
   "CapturerShortcut": "Ekran görüntüsü kısayolu",
   "CapturerShortcutTips": "Ekran görüntüsü almak için kullanmak istediğiniz tuşlara basın, örn. Ctrl+Shift+A",
@@ -78,7 +77,6 @@
   "CapturerDo": "Ekran görüntüsü al",
   "CapturerHideWindowDo": "Bu pencereyi gizle ve ekran görüntüsü al",
   "CapturerPointPosition": "Koordinatlar",
-
   "ImageCompress": {
     "title": "Görsel Sıkıştırma",
     "preview": {

@@ -1,8 +1,10 @@
 {
   "site": "Webbplats",
-  "comment": "Kommentar",
   "phpVersion": "PHP-version",
+  "action": "Åtgärd",
+  "comment": "Kommentar",
   "newProject": "Nytt projekt",
+  "frameworkVersion": "Framework-version",
   "newProjectTips": "Skapar ett nytt projekt med composer, initierar med valt ramverk, stöder: wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim",
   "toCreateHost": "Skapa värd",
   "dnsInfo": "Slå på en DNS-server. Lös domännamnet som anges i /etc/hosts-filen till den lokala IP:n. Används huvudsakligen för att andra datorer eller telefoner i LAN ska kunna komma åt den lokala webbplatsen. \nDenna funktion kräver node, så om du inte har det installerat, installera det först.\nHur man använder.\n1. Starta DNS-servern.\n2. På andra datorer eller telefoner, ställ in nätverkets DNS, ange DNS-IP:n som visas i det aktuella gränssnittet. Det är bäst att endast behålla denna DNS-inställning och sedan återställa den ursprungliga inställningen när den inte längre används.\n3. Använd detta kommando för testning: dig {ip} domän\n4. På andra datorer eller telefoner, använd domännamnet för den lokala webbplatsen för att komma åt.\n",
@@ -12,6 +14,7 @@
   "hostsOpen": "Öppna anpassad hosts-fil",
   "placeholderName": "Värdnamn (Exempel: mydomain.tld)",
   "placeholderAlias": "Domänalias (Example: www.mydomain.tld)",
+  "placeholderComment": "Kommentar",
   "placeholderRootPath": "Sökväg till dokumentrot",
   "port": "Port",
   "hostSSL": "SSL",
@@ -28,6 +31,9 @@
   "projectGo": "Go-projekt",
   "projectPython": "Python-projekt",
   "projectTomcat": "Tomcat-projekt",
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects",
   "jarPackagePath": "JAR-paket sökväg",
   "jdkPath": "JDK-sökväg",
   "pythonPath": "Python-sökväg",
@@ -61,13 +67,5 @@
   "copyCommand": "Kopiera kommando",
   "showFile": "Visa fil",
   "sticky": "Fästbar",
-  "dbclickRowToEdit": "Dubbelklicka på den här raden för att redigera",
-
-  "action": "Åtgärd",
-  "frameworkVersion": "Framework-version",
-  "placeholderComment": "Kommentar",
-
-  "projectDeno": "Deno Projects",
-  "projectBun": "Bun Projects",
-  "projectPerl": "Perl Projects"
+  "dbclickRowToEdit": "Dubbelklicka på den här raden för att redigera"
 }

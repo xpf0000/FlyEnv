@@ -9,7 +9,6 @@
   "postgresqlInit": "Tjänsten startades framgångsrikt\nData Katalog är {dir}\nInitial användare är root, lösenord är root.",
   "downloadFileFail": "Nedladdning av fil misslyckades!",
   "trialEnd": "Testperioden har gått ut. För att fortsätta använda denna funktion, vänligen skaffa en licens.",
-
   "phpiniNotFound": "php.ini file not found",
   "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

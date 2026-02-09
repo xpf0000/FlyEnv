@@ -40,7 +40,7 @@
   "cleanSelect": "選択をクリア",
   "cleanAll": "すべてクリア",
   "brewSrcSwitch": "Brewソース切り替え",
-    "useProxy": "プロキシを使用",
+  "useProxy": "プロキシを使用",
   "proxySetting": "サーバープロキシ",
   "quickSetup": "クイック設定",
   "currentProxy": "現在のプロキシ",
@@ -109,11 +109,10 @@
   "staticDelAlert": "ユーザーデータの安全を確保するため、インストールされたソフトウェアを自動削除する機能は提供されなくなりました。削除を確実に行いたい場合は、OKをクリックして開いたフォルダでソフトウェアを手動で削除してください。",
   "placeholderSearch": "検索",
   "projects": "プロジェクト",
-
   "cleanup": "Cleanup",
-
   "preview": "プレビュー",
   "executing": "実行中",
   "info": "詳細",
-  "ForceDelete": "強制削除"
+  "ForceDelete": "強制削除",
+  "DataDirPermissionTips": "FlyEnvデータフォルダの作成に失敗しました。FlyEnvを管理者権限で起動するか、FlyEnvのインストール場所を変更してください。"
 }

@@ -5,5 +5,7 @@
   "update-downloaded-message": "Quraşdırılmağa hazırdır...",
   "update-error-message": "Yeniləmə Xətası",
   "yes": "Bəli",
-  "no": "Xeyr"
+  "no": "Xeyr",
+  "view-update-log": "View Update Log",
+  "download-new-version": "Download New Version"
 }

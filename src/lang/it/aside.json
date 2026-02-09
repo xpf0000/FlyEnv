@@ -11,7 +11,7 @@
   "containerRuntime": "Runtime del Contenitore",
   "other": "Altro",
   "appLog": "Log dell'App",
-  "ai": "AI",
+  "ai": "Intelligenza Artificiale",
   "objectStorage": "Archiviazione Oggetti",
   "appExit": "Arresta tutti i servizi avviati ed esci da FlyEnv",
   "groupStart": "Avvia con un clic tutti i servizi disponibili visualizzati nel pannello"

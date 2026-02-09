@@ -14,6 +14,8 @@
   "siteCreatedSuccessfully": "Webbplats skapades framgångsrikt",
   "siteDomain": "Webbplatsens domän",
   "siteDirectory": "Webbplatskatalog",
+  "siteDirectoryError": "Site Directory Error",
+  "domainError": "Domain Error",
   "tryingToStartService": "Försöker starta tjänsten, vänligen vänta...",
   "serviceStartedSuccessfully": "Tjänsten startade framgångsrikt",
   "domain": "Domän",
@@ -65,8 +67,5 @@
   "enterTips": "[Enter] skicka, [Shift+Enter] radbrytning, [Ctrl+Enter] skicka utan att generera",
   "noLiencesTips": "För närvarande utan licens, du kan prova i tre dagar",
   "alert": "Varning",
-  "customer": "Mina copiloter",
-
-  "siteDirectoryError": "Site Directory Error",
-  "domainError": "Domain Error"
+  "customer": "Mina copiloter"
 }

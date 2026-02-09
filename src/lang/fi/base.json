@@ -113,5 +113,6 @@
   "preview": "Esikatselu",
   "executing": "Suoritetaan",
   "info": "Tiedot",
-  "ForceDelete": "Pakota Poisto"
+  "ForceDelete": "Pakota Poisto",
+  "DataDirPermissionTips": "FlyEnv data-kansion luominen epäonnistui. Käynnistä FlyEnv järjestelmänvalvojan oikeuksilla tai muuta FlyEnv asennussijaintia."
 }

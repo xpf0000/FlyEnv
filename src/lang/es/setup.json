@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Corregir FlyEnv Helper",
   "flyenvHelperBtn": "Corregir",
-  "flyenvHelperFixSuccess": "FlyEnv Helper corregido exitosamente"
+  "flyenvHelperFixSuccess": "FlyEnv Helper corregido exitosamente",
+  "flyenvHelperInstallFailTips": "Error al instalar FlyEnv helper. Intente ejecutar FlyEnv con privilegios de administrador o haga clic en el botón Aceptar y ejecute manualmente el programa auxiliar flyenv-helper.exe en la carpeta abierta."
 }

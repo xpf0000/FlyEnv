@@ -32,7 +32,8 @@
   "messagePlaceholder": "Please submit the donor, donation link, or order ID when choosing to donate.\nPlease submit the PR link for those who choose to participate in project development.\nPlease submit a link to your article, video, blog, vlog, or comment for those who choose to promote.",
   "requestButton": "Αίτηση Άδειας",
   "refreshButton": "Ανανέωση Κατάστασης",
-
+  "licenseActivated": "Η άδεια ενεργοποιήθηκε",
+  "licenseNoActivated": "Η άδεια δεν ενεργοποιήθηκε",
   "licenseInfo": "Η παρούσα παροχή άδειας είναι μόνιμη άδεια, κάθε υπολογιστής αντιστοιχεί σε μία άδεια. Εάν αλλάξετε υπολογιστή, πρέπει να δεσμεύσετε το uuid της νέας συσκευής στα 'Άδειές μου' ή να υποβάλετε αίτηση για νέα άδεια.",
   "logoutTips": "Είστε βέβαιοι ότι θέλετε να αποσυνδεθείτε;",
   "delBindTips": "Είστε βέβαιοι ότι θέλετε να ακυρώσετε τη σύνδεση της άδειας με αυτό το UUID;",
