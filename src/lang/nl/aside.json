@@ -13,6 +13,6 @@
   "appLog": "App Logboek",
   "ai": "AI",
   "objectStorage": "Object Opslag",
-  "appExit": "Stop alle actieve services en exit FlyEnv",
+  "appExit": "Stop alle actieve services en verlaat FlyEnv",
   "groupStart": "Start met één klik alle beschikbare services die worden weergegeven op het paneel"
 }
