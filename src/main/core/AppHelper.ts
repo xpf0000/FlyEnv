@@ -81,7 +81,7 @@ export class AppHelper {
           'utf-8'
         )
         const content = tmpl
-          .replace('#TASKNAME#', 'flyenv-helper')
+          .replace('#TASKNAME#', 'FlyEnvHelperTask')
           .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
           .replace('#DATAPATH#', dirname(global.Server.AppDir!))
@@ -143,7 +143,7 @@ export class AppHelper {
           'utf-8'
         )
         const content = tmpl
-          .replace('#TASKNAME#', 'flyenv-helper')
+          .replace('#TASKNAME#', 'FlyEnvHelperTask')
           .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
           .replace('#DATAPATH#', dirname(global.Server.AppDir!))

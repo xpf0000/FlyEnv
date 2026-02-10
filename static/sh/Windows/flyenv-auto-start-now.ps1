@@ -40,6 +40,20 @@ try {
   $scheduler.Connect()
   $rootFolder = $scheduler.GetFolder("\")
 
+  try {
+    $existingTask = $rootFolder.GetTask($taskName)
+    if ($existingTask) {
+      $rootFolder.DeleteTask($taskName, 1)
+    }
+  } catch {}
+
+  try {
+    $existingTask = $rootFolder.GetTask("flyenv-helper")
+    if ($existingTask) {
+      $rootFolder.DeleteTask($taskName, 1)
+    }
+  } catch {}
+
   $taskDefinition = $scheduler.NewTask(0)
 
   $taskDefinition.RegistrationInfo.Description = "FlyEnv Helper Auto Start"
