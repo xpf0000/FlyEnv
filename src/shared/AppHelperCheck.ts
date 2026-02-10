@@ -38,6 +38,7 @@ export const AppHelperRoleFix = async () => {
 export const AppHelperCheck = () => {
   return new Promise(async (resolve, reject) => {
     console.time('AppHelper check')
+    let timer: NodeJS.Timeout | undefined
     const key = 'flyenv-helper-version-check'
     const buffer: Buffer[] = []
     const client = createConnection(AppHelperSocketPathGet())
@@ -49,18 +50,19 @@ export const AppHelperCheck = () => {
         function: 'version'
       }
       client.write(JSON.stringify(param))
+      timer = setTimeout(() => {
+        onEnd()
+      }, 500)
     })
 
-    client.on('data', (data: any) => {
-      buffer.push(data)
-      client.end()
-    })
-
-    client.on('end', () => {
-      console.log('Disconnected from the server')
+    const onEnd = () => {
+      clearTimeout(timer)
       try {
         client.destroySoon()
       } catch {}
+      if (!buffer.length) {
+        return reject(new Error(`Helper Need Install Or Update`))
+      }
       let res: any
       try {
         const content = Buffer.concat(buffer).toString().trim()
@@ -78,6 +80,16 @@ export const AppHelperCheck = () => {
         }
       }
       return reject(new Error(`Helper Need Install Or Update`))
+    }
+
+    client.on('data', (data: any) => {
+      buffer.push(data)
+      client.end()
+    })
+
+    client.on('end', () => {
+      console.log('Disconnected from the server')
+      onEnd()
     })
 
     client.on('error', () => {
