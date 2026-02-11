@@ -1,4 +1,5 @@
 {
+  "working_dir": "Working Directory",
   "db_path": "Menentukan lokasi pembuatan dan pengambilan file database",
   "env": "Mengkonfigurasi lingkungan instance. Nilai harus `production` atau `development`.",
   "http_addr": "Alamat yang akan didengarkan oleh server HTTP.",
@@ -26,7 +27,5 @@
   "ssl_tickets": "Mengaktifkan tiket SSL.",
   "experimental_enable_metrics": "Fitur metrik eksperimental. Mengaktifkan metrik Prometheus di endpoint `GET /metrics`.",
   "experimental_reduce_indexing_memory_usage": "Pengurangan penggunaan memori eksperimental selama pengindeksan, jangan gunakan di produksi.",
-  "experimental_max_number_of_batched_tasks": "Secara eksperimental mengurangi jumlah maksimum tugas yang diproses sekaligus.",
-
-  "working_dir": "Working Directory"
+  "experimental_max_number_of_batched_tasks": "Secara eksperimental mengurangi jumlah maksimum tugas yang diproses sekaligus."
 }

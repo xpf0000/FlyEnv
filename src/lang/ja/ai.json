@@ -14,6 +14,8 @@
   "siteCreatedSuccessfully": "サイトが正常に作成されました",
   "siteDomain": "サイトドメイン",
   "siteDirectory": "サイトディレクトリ",
+  "siteDirectoryError": "Site Directory Error",
+  "domainError": "Domain Error",
   "tryingToStartService": "サービスの起動を試行中です。お待ちください...",
   "serviceStartedSuccessfully": "サービスが正常に起動しました",
   "domain": "ドメイン",
@@ -65,8 +67,5 @@
   "enterTips": "[Enter]送信、[Shift+Enter]改行、[Ctrl+Enter]生成せずに送信",
   "noLiencesTips": "現在ライセンスがないため、3日間試用できます",
   "alert": "警告",
-  "customer": "マイコパイロット",
-
-  "siteDirectoryError": "Site Directory Error",
-  "domainError": "Domain Error"
+  "customer": "マイコパイロット"
 }

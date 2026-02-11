@@ -32,7 +32,8 @@
   "messagePlaceholder": "Por favor envie o doador, link de doação, ou ID do pedido ao escolher doar.\nPor favor envie o link do PR para aqueles que escolhem participar do desenvolvimento do projeto.\nPor favor envie link do artigo/vídeo se você escolher ajudar a promover o projeto",
   "requestButton": "Solicitar Licença",
   "refreshButton": "Atualizar Estado",
-
+  "licenseActivated": "Licença ativada",
+  "licenseNoActivated": "Licença não ativada",
   "licenseInfo": "A licença atualmente fornecida é uma licença permanente, cada computador corresponde a uma licença. Se você trocar de computador, precisa vincular o uuid do novo dispositivo em 'Minhas Licenças' ou solicitar uma nova licença.",
   "logoutTips": "Tem certeza de que deseja sair?",
   "delBindTips": "Tem certeza de que deseja desvincular a licença deste UUID?",

@@ -1,6 +1,6 @@
 {
   "email": "E-Mail",
-  "country": "Land:",
+  "country": "Land",
   "message": "Bericht",
   "messagelengthErr": "Bericht lengte is 5 - 1024",
   "sendMessage": "Verstuur bericht",

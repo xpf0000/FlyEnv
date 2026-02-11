@@ -110,9 +110,9 @@
   "placeholderSearch": "Suche:",
   "projects": "Projekt",
   "cleanup": "Bereinigen",
-
   "preview": "Vorschau",
   "executing": "Ausführen",
   "info": "Info",
-  "ForceDelete": "Löschen erzwingen"
+  "ForceDelete": "Löschen erzwingen",
+  "DataDirPermissionTips": "Fehler beim Erstellen des FlyEnv-Datenordners. Bitte starten Sie FlyEnv mit Administratorrechten oder ändern Sie den Speicherort der FlyEnv-Installation."
 }

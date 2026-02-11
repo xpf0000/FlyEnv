@@ -11,7 +11,6 @@
   "thread_cache_size": "Kích thước pool luồng",
   "table_open_cache": "Bộ đệm mở bảng",
   "max_connections": "Số kết nối tối đa",
-
   "rootPassword": "Mật khẩu root",
   "rootPasswordChange": "Đổi mật khẩu {user}",
   "passwordNoEmpty": "Mật khẩu root không được để trống",

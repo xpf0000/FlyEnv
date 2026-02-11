@@ -113,5 +113,6 @@
   "preview": "Previzualizare",
   "executing": "Executare",
   "info": "Info",
-  "ForceDelete": "Ștergere forțată"
+  "ForceDelete": "Ștergere forțată",
+  "DataDirPermissionTips": "Nu s-a reușit crearea dosarului de date FlyEnv. Vă rugăm să porniți FlyEnv cu privilegii de administrator sau să schimbați locația de instalare FlyEnv."
 }

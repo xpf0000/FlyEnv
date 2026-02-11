@@ -16,25 +16,22 @@
   "passwordTips": "必須ではありません。コマンド実行時にパスワードを自動入力するために使用されます。例：Macportsのインストール/アンインストールなど",
   "langTips": "ユーザー定義の言語パックを読み込みます。また、デフォルトの言語パックも初期化され、ユーザーが他の言語に翻訳しやすくなります。",
   "openLangDir": "言語パックフォルダを開く",
-
   "moduleCateAddTips": "モジュールカテゴリを追加",
   "moduleCateName": "モジュールカテゴリ名",
   "moduleAdd": "モジュールを追加",
   "moduleCateDelTips": "このカテゴリのモジュールも削除されます。モジュールカテゴリを削除してもよろしいですか？",
-
   "moduleTitle": "モジュール",
   "moduleName": "モジュール名",
   "moduleIcon": "モジュールアイコン",
   "moduleIsService": "モジュールはサービスかどうか",
   "moduleIsOnlyRunOne": "同時に1つのサービスのみ起動可能",
   "moduleExecItem": "モジュール実行項目",
-
   "module": {
     "name": "名前",
     "path": "ファイルパス",
     "comment": "備考",
-    "command": "Command",
     "exec": "実行",
+    "command": "Command",
     "commandFile": "ファイル",
     "isSudo": "sudoで起動するかどうか",
     "pidPath": "pidファイルパス",
@@ -46,8 +43,8 @@
     "outputLog": "出力ログ",
     "errorLog": "エラーログ"
   },
-
   "flyenvHelper": "FlyEnvヘルパープログラムの修復",
   "flyenvHelperBtn": "修復",
-  "flyenvHelperFixSuccess": "FlyEnvヘルパープログラムの修復に成功しました"
+  "flyenvHelperFixSuccess": "FlyEnvヘルパープログラムの修復に成功しました",
+  "flyenvHelperInstallFailTips": "FlyEnv ヘルパーのインストールに失敗しました。管理者権限で FlyEnv を実行するか、[OK] ボタンをクリックして開いたフォルダ内の flyenv-helper.exe ヘルパープログラムを手動で実行してください。"
 }

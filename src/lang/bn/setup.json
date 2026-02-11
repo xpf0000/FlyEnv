@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "FlyEnv হেল্পার ঠিক করুন",
   "flyenvHelperBtn": "ঠিক করুন",
-  "flyenvHelperFixSuccess": "FlyEnv হেল্পার সফলভাবে ঠিক করা হয়েছে"
+  "flyenvHelperFixSuccess": "FlyEnv হেল্পার সফলভাবে ঠিক করা হয়েছে",
+  "flyenvHelperInstallFailTips": "FlyEnv হেল্পার ইনস্টলেশন ব্যর্থ হয়েছে। অনুগ্রহ করে প্রশাসনিক অধিকারে FlyEnv চালানোর চেষ্টা করুন, অথবা OK বোতামে ক্লিক করে খোলা ফোল্ডারে ম্যানুয়ালি flyenv-helper.exe হেল্পার প্রোগ্রামটি চালান।."
 }

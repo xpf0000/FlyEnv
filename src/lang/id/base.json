@@ -40,7 +40,7 @@
   "cleanSelect": "Bersihkan Pilihan",
   "cleanAll": "Bersihkan Semua",
   "brewSrcSwitch": "Ganti Sumber Brew",
-    "useProxy": "Gunakan Proxy",
+  "useProxy": "Gunakan Proxy",
   "proxySetting": "Pengaturan Proxy Server",
   "quickSetup": "Setup Cepat",
   "currentProxy": "Proxy Saat Ini",
@@ -109,11 +109,10 @@
   "staticDelAlert": "Untuk menjaga data pengguna tetap aman, fitur hapus otomatis software tidak lagi tersedia. Jika tetap ingin menghapus, klik OK. Silakan hapus manual dari folder yang terbuka.",
   "placeholderSearch": "Cari",
   "projects": "Proyek",
-
   "cleanup": "Cleanup",
-
   "preview": "Pratinjau",
   "executing": "Sedang dieksekusi",
   "info": "Info",
-  "ForceDelete": "Hapus paksa"
+  "ForceDelete": "Hapus paksa",
+  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
 }

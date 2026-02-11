@@ -1,9 +1,12 @@
 {
   "phpiniNotFound": "Falha ao obter o arquivo php.ini",
+  "editPhpIni": "Editar php.ini",
+  "phpExtensions": "Extensões PHP",
   "copyConfTemplate": "Copiar modelo de configuração",
   "extensionCopySuccess": "Link da extensão copiado para a área de transferência",
   "xdebugConfCopySuccess": "Modelo de configuração xdebug copiado para a área de transferência",
   "fpmLog": "Log FPM",
+  "extensions": "Extensões",
   "extension": "Extensão",
   "obfuscatorPhpVersion": "Versão do PHP para ofuscação",
   "obfuscatorSrc": "Arquivo ou pasta PHP a ser ofuscado",
@@ -24,9 +27,13 @@
   "error_reporting": "Nível de erro",
   "timezone": "Fuso horário",
   "loadedExtensions": "Carregado",
-  "editPhpIni": "Editar php.ini",
-  "phpExtensions": "Extensões PHP",
-  "extensions": "Extensões",
   "log_errors": "Ativar registro de erros",
-  "error_log_dir": "Especificar o caminho do arquivo de log de erros do PHP"
+  "error_log_dir": "Especificar o caminho do arquivo de log de erros do PHP",
+  "disableFunction": {
+    "title": "Desativar Funções",
+    "function": "Função",
+    "emptyFunction": "Por favor, digite nome da função",
+    "sameName": "Função já existe",
+    "invalidName": "Nome de função inválido. O nome da função pode conter apenas letras, números e sublinhados"
+  }
 }

@@ -5,5 +5,7 @@
   "update-downloaded-message": "Listo para instalar...",
   "update-error-message": "Error de Actualización",
   "yes": "Sí",
-  "no": "No"
+  "no": "No",
+  "view-update-log": "Ver Actualizar registro",
+  "download-new-version": "Descargar nueva versión"
 }

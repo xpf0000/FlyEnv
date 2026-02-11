@@ -14,12 +14,10 @@
   "component": "URL-адреса інструменту",
   "addTool": "Додати інструмент",
   "editTool": "Редагувати інструмент",
-
   "envValue": "Значення",
   "rawEnvPath": "Фактичний шлях",
   "envValueErrorTips": "Шлях не існує. Ви можете натиснути, щоб скопіювати команду та перевірити її в командному рядку.",
   "invalidPath": "Недійсний шлях",
-
   "base64-file-converter-title": "Конвертер файлів Base64",
   "base64-string-converter-title": "Кодер/декодер рядків Base64",
   "chmod-calculator-title": "Калькулятор Chmod",
@@ -48,7 +46,6 @@
   "url-parse-title": "Аналізатор URL",
   "wifi-qr-code-generator-title": "Генератор QR-кодів WiFi",
   "URLTimingAnalyzer": "Аналізатор синхронізації URL",
-
   "CodePlayGround": "Тестове середовище коду",
   "CodeLibrary": "Бібліотека коду",
   "GroupName": "Назва групи",
@@ -66,7 +63,6 @@
   "MoveToTop": "Перемістити вгору",
   "MoveToGroup": "Перемістити до групи",
   "MarkdownPreview": "Попередній перегляд Markdown",
-
   "Capturer": "Знімок екрану",
   "CapturerShortcut": "Гаряча клавіша знімка",
   "CapturerShortcutTips": "Натисніть клавіші, які хочете використовувати для знімка, напр. Ctrl+Shift+A",

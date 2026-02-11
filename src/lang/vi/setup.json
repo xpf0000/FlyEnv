@@ -20,14 +20,12 @@
   "moduleCateName": "Tên danh mục module",
   "moduleAdd": "Thêm module",
   "moduleCateDelTips": "Các module trong danh mục này cũng sẽ bị xóa. Xác nhận xóa?",
-
   "moduleTitle": "Module",
   "moduleName": "Tên module",
   "moduleIcon": "Biểu tượng module",
   "moduleIsService": "Module này có phải là dịch vụ không?",
   "moduleIsOnlyRunOne": "Chỉ cho phép chạy một dịch vụ cùng lúc",
   "moduleExecItem": "Mục thực thi module",
-
   "module": {
     "name": "Tên",
     "path": "Đường dẫn tệp",
@@ -45,8 +43,8 @@
     "outputLog": "Nhật ký đầu ra",
     "errorLog": "Nhật ký lỗi"
   },
-
   "flyenvHelper": "Sửa FlyEnv Helper",
   "flyenvHelperBtn": "Sửa",
-  "flyenvHelperFixSuccess": "Sửa FlyEnv Helper thành công"
+  "flyenvHelperFixSuccess": "Sửa FlyEnv Helper thành công",
+  "flyenvHelperInstallFailTips": "Quá trình cài đặt trình trợ giúp FlyEnv đã thất bại. Vui lòng thử chạy FlyEnv với quyền quản trị viên, hoặc nhấp vào nút OK và chạy thủ công chương trình trợ giúp flyenv-helper.exe trong thư mục đã mở."
 }

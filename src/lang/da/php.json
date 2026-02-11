@@ -28,5 +28,12 @@
   "timezone": "Tidszone",
   "loadedExtensions": "Indlæste Udvidelser",
   "log_errors": "Aktiver fejllogning",
-  "error_log_dir": "Angiv PHP fejl logfil sti"
+  "error_log_dir": "Angiv PHP fejl logfil sti",
+  "disableFunction": {
+    "title": "Deaktivér Funktioner",
+    "function": "Funktion",
+    "emptyFunction": "Indtast venligst funktionsnavn",
+    "sameName": "Funktionen findes allerede",
+    "invalidName": "Ugyldigt funktionsnavn. Funktionsnavn kan kun indeholde bogstaver, tal og understregninger"
+  }
 }

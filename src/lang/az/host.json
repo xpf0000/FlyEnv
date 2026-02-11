@@ -31,6 +31,9 @@
   "projectGo": "Go Layihələri",
   "projectPython": "Python Layihələri",
   "projectTomcat": "Tomcat Layihələri",
+  "projectDeno": "Deno Layihələri",
+  "projectBun": "Bun Layihələri",
+  "projectPerl": "Perl Layihələri",
   "jarPackagePath": "JAR Paket Yolu",
   "jdkPath": "JDK Yolu",
   "pythonPath": "Python Yolu",
@@ -64,9 +67,5 @@
   "copyCommand": "Əmri Kopyala",
   "showFile": "Faylı Göstər",
   "sticky": "Sabit",
-  "dbclickRowToEdit": "Redaktə etmək üçün sətrə iki dəfə klikləyin",
-
-  "projectDeno": "Deno Layihələri",
-  "projectBun": "Bun Layihələri",
-  "projectPerl": "Perl Layihələri"
+  "dbclickRowToEdit": "Redaktə etmək üçün sətrə iki dəfə klikləyin"
 }

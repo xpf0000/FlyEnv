@@ -1,4 +1,5 @@
 {
+  "startInstall": "{service} kurulumunu başlatın",
   "startServiceBegin": "{service} servisi başlatılıyor...",
   "confInit": "Yapılandırma dosyası bulunamadı. Yeni yapılandırma dosyası oluşturuluyor",
   "confInitSuccess": "Yapılandırma dosyası başarıyla oluşturuldu, dosya yolu: {file}",
@@ -18,7 +19,5 @@
   "initDBDataDir": "Veri klasörü bulunamadı, başlatılıyor...",
   "initDBDataDirSuccess": "Veri klasörü başarıyla başlatıldı, klasör yolu: {dir}",
   "initDBDataDirFail": "Veri klasörü başlatılamadı, neden: {error}",
-
-  "startInstall": "{service} kurulumunu başlatın",
   "newProjectFail": "Yeni proje oluşturulamadı"
 }

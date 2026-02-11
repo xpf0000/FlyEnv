@@ -113,5 +113,6 @@
   "preview": "Forhåndsvisning",
   "executing": "Utfører",
   "info": "Informasjon",
-  "ForceDelete": "Tving sletting"
+  "ForceDelete": "Tving sletting",
+  "DataDirPermissionTips": "Kunne ikke opprette mappen FlyEnv. Vennligst start FlyEnv med administratorrettigheter, eller endre FlyEnv installeringssted."
 }

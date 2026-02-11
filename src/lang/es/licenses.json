@@ -32,7 +32,8 @@
   "messagePlaceholder": "Por favor envía el nombre del donante, enlace de donación o ID de pedido si elegiste donar.\nEnvía el enlace del PR si elegiste participar en el desarrollo del proyecto.\nEnvía un enlace a tu artículo, video, blog, vlog o comentario si elegiste promover.",
   "requestButton": "Solicitar Licencia",
   "refreshButton": "Actualizar Estado",
-
+  "licenseActivated": "Licencia activada",
+  "licenseNoActivated": "Licencia no activada",
   "licenseInfo": "La licencia proporcionada actualmente es una licencia permanente, cada computadora corresponde a una licencia. Si cambia de computadora, necesita vincular el uuid del nuevo dispositivo en 'Mis Licencias', o solicitar una nueva licencia.",
   "logoutTips": "¿Está seguro de que desea cerrar sesión?",
   "delBindTips": "¿Está seguro de desvincular la licencia de este UUID?",

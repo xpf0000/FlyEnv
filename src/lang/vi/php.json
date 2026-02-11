@@ -28,5 +28,12 @@
   "timezone": "Múi giờ",
   "loadedExtensions": "Các phần mở rộng đã tải",
   "log_errors": "Bật ghi nhật ký lỗi",
-  "error_log_dir": "Chỉ định đường dẫn tệp nhật ký lỗi PHP"
+  "error_log_dir": "Chỉ định đường dẫn tệp nhật ký lỗi PHP",
+  "disableFunction": {
+    "title": "Disable Functions",
+    "function": "Function",
+    "emptyFunction": "Please enter function name",
+    "sameName": "Function already exists",
+    "invalidName": "Invalid function name. Function name can only contain letters, numbers, and underscores"
+  }
 }

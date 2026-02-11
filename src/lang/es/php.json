@@ -28,5 +28,12 @@
   "timezone": "Zona Horaria",
   "loadedExtensions": "Extensiones Cargadas",
   "log_errors": "Habilitar registro de errores",
-  "error_log_dir": "Ruta del archivo de registro de errores de PHP"
+  "error_log_dir": "Ruta del archivo de registro de errores de PHP",
+  "disableFunction": {
+    "title": "Desactivar funciones",
+    "function": "Función",
+    "emptyFunction": "Por favor, introduzca el nombre de la función",
+    "sameName": "La función ya existe",
+    "invalidName": "Nombre de función inválido. El nombre de la función sólo puede contener letras, números y guiones bajos"
+  }
 }

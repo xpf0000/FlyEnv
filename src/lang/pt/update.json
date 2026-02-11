@@ -5,5 +5,7 @@
   "update-downloaded-message": "Atualização descarregada. A aplicação será encerrada e a atualização começará...",
   "update-error-message": "Falha ao verificar atualizações",
   "yes": "Sim",
-  "no": "Não"
+  "no": "Não",
+  "view-update-log": "Visualizar Log de Atualizações",
+  "download-new-version": "Baixar nova versão"
 }

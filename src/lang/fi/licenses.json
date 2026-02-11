@@ -32,7 +32,8 @@
   "messagePlaceholder": "Ole hyvä ja lähetä lahjoittaja, lahjoituslinkki tai tilaushenkilöllisyystodistus, kun päätät lahjoittaa.\nOle hyvä ja lähetä PR-linkki niille, jotka haluavat osallistua projektin kehittämiseen.\nOle hyvä ja lähetä linkki artikkeliisi, videoihisi, blogiisi, vlogisiisi tai kommentoi niille, jotka haluavat markkinoida.",
   "requestButton": "Pyydä Lisenssiä",
   "refreshButton": "Päivitä Tila",
-
+  "licenseActivated": "Lisenssi aktivoitu",
+  "licenseNoActivated": "Lisenssiä ei ole aktivoitu",
   "licenseInfo": "Nykyinen tarjottu lisenssi on pysyvä lisenssi, jokainen tietokone vastaa yhtä lisenssiä. Jos vaihdat tietokonetta, sinun on sidottava uuden laitteen uuid kohdassa 'Lisenssini' tai haettava uutta lisenssiä.",
   "logoutTips": "Haluatko varmasti kirjautua ulos?",
   "delBindTips": "Haluatko varmasti irrottaa lisenssin tästä UUID:stä?",

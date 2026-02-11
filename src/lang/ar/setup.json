@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "إصلاح FlyEnv Helper",
   "flyenvHelperBtn": "إصلاح",
-  "flyenvHelperFixSuccess": "تم إصلاح FlyEnv Helper بنجاح"
+  "flyenvHelperFixSuccess": "تم إصلاح FlyEnv Helper بنجاح",
+  "flyenvHelperInstallFailTips": "فشل تثبيت مساعد FlyEnv. الرجاء محاولة تشغيل FlyEnv مع امتيازات المسؤول، أو انقر على زر OK وتشغيل مساعد flyenv-help يدويا. برنامج مساعد xe في المجلد المفتوح."
 }

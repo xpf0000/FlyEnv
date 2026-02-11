@@ -9,7 +9,6 @@
   "postgresqlInit": "サービスの起動に成功しました\nデータディレクトリは{dir}です\n初期ユーザーはroot、パスワードはrootです",
   "downloadFileFail": "ファイルのダウンロードに失敗しました！",
   "trialEnd": "試用期間が終了しました。この機能を継続して使用するには、ライセンスを取得してください",
-
   "phpiniNotFound": "php.ini file not found",
   "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

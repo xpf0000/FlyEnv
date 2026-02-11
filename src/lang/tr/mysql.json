@@ -11,7 +11,6 @@
   "thread_cache_size": "İş parçacığı havuzu boyutu",
   "table_open_cache": "Tablo önbelleği",
   "max_connections": "Maksimum bağlantı sayısı",
-
   "rootPassword": "root şifresi",
   "rootPasswordChange": "{user} şifresini değiştir",
   "passwordNoEmpty": "root şifresi boş olamaz",

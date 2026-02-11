@@ -1,4 +1,5 @@
 {
+  "startInstall": "{service} quraşdırılması başlayır",
   "startServiceBegin": "{service} xidməti başladılır...",
   "confInit": "Konfiqurasiya faylı tapılmadı. Yeni konfiqurasiya faylı yaradılır",
   "confInitSuccess": "Konfiqurasiya faylı uğurla yaradıldı, fayl yolu: {file}",
@@ -18,7 +19,5 @@
   "initDBDataDir": "Məlumat qovluğu tapılmadı, yaradılır...",
   "initDBDataDirSuccess": "Məlumat qovluğu uğurla yaradıldı, qovluq yolu: {dir}",
   "initDBDataDirFail": "Məlumat qovluğu yaradıla bilmədi, səbəb: {error}",
-
-  "startInstall": "{service} quraşdırılması başlayır",
   "newProjectFail": "Yeni layihə yaradıla bilmədi"
 }

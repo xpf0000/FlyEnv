@@ -5,5 +5,7 @@
   "update-downloaded-message": "Bereit zur Installation...",
   "update-error-message": "Update-Fehler",
   "yes": "Ja",
-  "no": "Nein"
+  "no": "Nein",
+  "view-update-log": "Update-Log anzeigen",
+  "download-new-version": "Neue Version herunterladen"
 }

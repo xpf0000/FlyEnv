@@ -19,8 +19,8 @@
   "front": "FlyEnv-i önə gətir",
   "dev": "Xəta sazlama pəncərəsini aç",
   "needInstallHelper": "FlyEnv köməkçi proqramı quraşdırılmalıdır",
-  "waitHelper": "Köməkçi proqram işə salınır, zəhmət olmasa gözləyin",
   "helperInstalling": "Köməkçi proqram quraşdırılır, zəhmət olmasa gözləyin",
+  "waitHelper": "Köməkçi proqram işə salınır, zəhmət olmasa gözləyin",
   "helperInstallFailTips": "Köməkçi proqramın quraşdırılması uğursuz oldu, zəhmət olmasa açılan terminalda əl ilə quraşdırmağa cəhd edin",
   "helperInstallSuccessTips": "Köməkçi proqram uğurla quraşdırıldı",
   "helperInstallTitle": "Köməkçi Proqramı Quraşdır"

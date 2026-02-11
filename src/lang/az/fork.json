@@ -9,7 +9,6 @@
   "postgresqlInit": "Xidmət uğurla başladıldı\nMəlumat Qovluğu: {dir}\nİlkin İstifadəçi: root, Şifrə: root",
   "downloadFileFail": "Fayl endirilə bilmədi!",
   "trialEnd": "Sınaq müddəti başa çatdı. Bu funksiyanı istifadə etməyə davam etmək üçün lisenziya əldə edin.",
-
   "phpiniNotFound": "php.ini faylı tapılmadı",
   "noEPMD": "epmd prosesi tapılmadı. Zəhmət olmasa Erlang mühit dəyişənlərini sıfırlayın."
 }

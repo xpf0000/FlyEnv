@@ -9,7 +9,6 @@
   "postgresqlInit": "Layanan berhasil dimulai\nDirektori Data adalah {dir}\nPengguna Awal adalah root, Kata Sandi adalah root.",
   "downloadFileFail": "Gagal mengunduh file!",
   "trialEnd": "Masa percobaan telah berakhir. Untuk terus menggunakan fitur ini, silakan dapatkan lisensi.",
-
   "phpiniNotFound": "php.ini file not found",
   "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

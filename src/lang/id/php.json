@@ -28,5 +28,12 @@
   "timezone": "Zona waktu",
   "loadedExtensions": "Ekstensi yang dimuat",
   "log_errors": "Aktifkan pencatatan kesalahan",
-  "error_log_dir": "Tentukan jalur file log kesalahan PHP"
+  "error_log_dir": "Tentukan jalur file log kesalahan PHP",
+  "disableFunction": {
+    "title": "Disable Functions",
+    "function": "Function",
+    "emptyFunction": "Please enter function name",
+    "sameName": "Function already exists",
+    "invalidName": "Invalid function name. Function name can only contain letters, numbers, and underscores"
+  }
 }

@@ -9,5 +9,14 @@
   "setByNoApp": "Proměnné prostředí nejsou nastaveny FlyEnv",
   "ftpdNeedPasswordToStart": "Pure-FTPd vyžaduje k spuštění sudo oprávnění. Zadejte prosím své uživatelské heslo. Heslo bude použito pro automatické vyplnění později. Nebo můžete kliknout na tlačítko níže pro zadání ručně v terminálu, ale tato výzva se může znovu objevit.",
   "bundleinVersionDelTips": "Tato verze je vestavěná verze, nepotvrdit její zobrazení?",
-  "customDirVersionDelTips": "Tato verze je vlastní verzí cesty, nepotvrdit její zobrazení?"
+  "customDirVersionDelTips": "Tato verze je vlastní verzí cesty, nepotvrdit její zobrazení?",
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Vašemu systému chybí Visual C++ Redistributable (DLL), který je nutný pro spuštění této verze. Pro stažení a instalaci VC Runtime z oficiálních stránek Microsoftu klikněte na odkaz níže.",
+      "versionRelation": "Odkaz na kompatibilitu verze:",
+      "software": "Programové vybavení",
+      "versionRange": "Rozsah verze",
+      "msvsVersion": "Verze MSVC"
+    }
+  }
 }

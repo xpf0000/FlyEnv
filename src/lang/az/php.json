@@ -28,5 +28,12 @@
   "timezone": "Zaman qurşağı",
   "loadedExtensions": "Yüklənmiş Uzantılar",
   "log_errors": "Xəta qeydlərini aktiv et",
-  "error_log_dir": "PHP xəta qeyd faylının yolu"
+  "error_log_dir": "PHP xəta qeyd faylının yolu",
+  "disableFunction": {
+    "title": "Disable Functions",
+    "function": "Function",
+    "emptyFunction": "Please enter function name",
+    "sameName": "Function already exists",
+    "invalidName": "Invalid function name. Function name can only contain letters, numbers, and underscores"
+  }
 }

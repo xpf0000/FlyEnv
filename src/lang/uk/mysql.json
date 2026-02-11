@@ -11,7 +11,6 @@
   "thread_cache_size": "Розмір потоку пулу",
   "table_open_cache": "Кеш таблиці",
   "max_connections": "максимальне підключення",
-
   "rootPassword": "пароль root",
   "rootPasswordChange": "Змінити {user} пароль",
   "passwordNoEmpty": "пароль root не може бути порожнім",

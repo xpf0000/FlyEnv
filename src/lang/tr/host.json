@@ -31,6 +31,9 @@
   "projectGo": "Go Projeleri",
   "projectPython": "Python Projeleri",
   "projectTomcat": "Tomcat Projeleri",
+  "projectDeno": "Deno Projeleri",
+  "projectBun": "Bun Projeleri",
+  "projectPerl": "Perl Projeleri",
   "jarPackagePath": "JAR Paket Yolu",
   "jdkPath": "JDK Yolu",
   "pythonPath": "Python Yolu",
@@ -64,8 +67,5 @@
   "copyCommand": "Komutu Kopyala",
   "showFile": "Dosyayı Göster",
   "sticky": "Sabit",
-  "dbclickRowToEdit": "Düzenlemek için satıra çift tıklayın",
-  "projectDeno": "Deno Projeleri",
-  "projectBun": "Bun Projeleri",
-  "projectPerl": "Perl Projeleri"
+  "dbclickRowToEdit": "Düzenlemek için satıra çift tıklayın"
 }

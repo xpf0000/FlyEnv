@@ -40,7 +40,7 @@
   "cleanSelect": "Seçimi Temizle",
   "cleanAll": "Tümünü Temizle",
   "brewSrcSwitch": "Brew Kaynak Değiştirici",
-    "useProxy": "Proxy Kullan",
+  "useProxy": "Proxy Kullan",
   "proxySetting": "Sunucu Proxy Ayarları",
   "quickSetup": "Hızlı Kurulum",
   "currentProxy": "Mevcut Proxy",
@@ -113,5 +113,6 @@
   "preview": "Önizleme",
   "executing": "Yürütülüyor",
   "info": "Bilgi",
-  "ForceDelete": "Zorla sil"
+  "ForceDelete": "Zorla sil",
+  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
 }

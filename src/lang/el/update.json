@@ -5,5 +5,7 @@
   "update-downloaded-message": "Έτοιμο για εγκατάσταση...",
   "update-error-message": "Σφάλμα Ενημέρωσης",
   "yes": "Ναι",
-  "no": "Όχι"
+  "no": "Όχι",
+  "view-update-log": "Προβολή Αρχείου Καταγραφής Ενημέρωσης",
+  "download-new-version": "Λήψη Νέας Έκδοσης"
 }

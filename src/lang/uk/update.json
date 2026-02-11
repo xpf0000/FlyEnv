@@ -5,5 +5,7 @@
   "update-downloaded-message": "Готово до встановлення...",
   "update-error-message": "Помилка оновлення",
   "yes": "Так",
-  "no": "Ні"
+  "no": "Ні",
+  "view-update-log": "Переглянути журнал оновлень",
+  "download-new-version": "Завантажити нову версію"
 }

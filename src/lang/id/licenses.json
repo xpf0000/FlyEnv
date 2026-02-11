@@ -32,7 +32,8 @@
   "messagePlaceholder": "Harap kirimkan donatur, tautan donasi, atau ID pesanan saat memilih untuk mendonasikan.\nHarap kirimkan tautan PR bagi mereka yang memilih untuk berpartisipasi dalam pengembangan proyek.\nHarap kirimkan tautan artikel/video jika Anda memilih untuk membantu mempromosikan proyek",
   "requestButton": "Ajukan Lisensi",
   "refreshButton": "Segarkan Status",
-
+  "licenseActivated": "License activated",
+  "licenseNoActivated": "License not activated",
   "licenseInfo": "Lisensi yang disediakan saat ini adalah lisensi permanen, setiap komputer sesuai dengan satu lisensi. Jika Anda mengganti komputer, Anda perlu mengikat uuid perangkat baru di 'Lisensi Saya', atau mengajukan lisensi baru.",
   "logoutTips": "Apakah Anda yakin ingin keluar?",
   "delBindTips": "Apakah Anda yakin ingin membatalkan ikatan lisensi dari UUID ini?",

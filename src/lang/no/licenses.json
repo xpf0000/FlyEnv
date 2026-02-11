@@ -32,7 +32,8 @@
   "messagePlaceholder": "Vennligst send inn giveren, donasjonslenken, eller bestille ID ved valg å donere.\nSend inn PR-lenken for de som velger å delta i prosjektutvikling.\nDu kan sende en lenke til din artikkel, video, blogg, innlogging eller kommentere dem som velger å forvandle.",
   "requestButton": "Forespørsel Lisens",
   "refreshButton": "Oppdater tilstand",
-
+  "licenseActivated": "Lisensen er aktivert",
+  "licenseNoActivated": "Lisensen er ikke aktivert",
   "licenseInfo": "Den nåværende lisensen er en permanent lisens, hver datamaskin tilsvarer én lisens. Hvis du bytter datamaskin, må du knytte den nye enhetens uuid i 'Mine lisenser', eller søke om en ny lisens.",
   "logoutTips": "Er du sikker på at du vil logge ut?",
   "delBindTips": "Er du sikker på at du vil fjerne bindingen av lisensen fra denne UUID?",

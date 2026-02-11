@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Fix Helper FlyEnv",
   "flyenvHelperBtn": "Repară",
-  "flyenvHelperFixSuccess": "FlyEnv Helper fixat cu succes"
+  "flyenvHelperFixSuccess": "FlyEnv Helper fixat cu succes",
+  "flyenvHelperInstallFailTips": "Instalarea programului FlyEnv helper a eșuat. Încercați să rulați FlyEnv cu privilegii de administrator sau faceți clic pe butonul OK și rulați manual programul flyenv-helper.exe din folderul deschis."
 }

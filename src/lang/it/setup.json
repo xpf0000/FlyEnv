@@ -16,25 +16,22 @@
   "passwordTips": "Non obbligatorio. Inserisce automaticamente la password quando vengono eseguiti comandi che la richiedono (es. installazione/disinstallazione con Macports)",
   "langTips": "Carica pacchetti lingua personalizzati. Inizializzerà anche il pacchetto lingua predefinito, facilitando la traduzione di FlyEnv in altre lingue.",
   "openLangDir": "Apri la cartella dei pacchetti lingua",
-
   "moduleCateAddTips": "Aggiungi categoria modulo",
   "moduleCateName": "Nome categoria modulo",
   "moduleAdd": "Aggiungi modulo",
   "moduleCateDelTips": "I moduli sotto questa categoria verranno eliminati. Confermi l'eliminazione?",
-
   "moduleTitle": "Modulo",
   "moduleName": "Nome modulo",
   "moduleIcon": "Icona modulo",
   "moduleIsService": "Il modulo è un servizio?",
   "moduleIsOnlyRunOne": "È consentita l'esecuzione di un solo servizio alla volta",
   "moduleExecItem": "Elemento di esecuzione del modulo",
-
   "module": {
     "name": "Nome",
     "path": "Percorso file",
     "comment": "Commento",
-    "command": "Command",
     "exec": "Esegui",
+    "command": "Command",
     "commandFile": "File",
     "isSudo": "Eseguire con sudo?",
     "pidPath": "Percorso file PID",
@@ -46,8 +43,8 @@
     "outputLog": "Log di output",
     "errorLog": "Log errori"
   },
-
   "flyenvHelper": "Riparazione del programma di supporto FlyEnv",
   "flyenvHelperBtn": "Ripara",
-  "flyenvHelperFixSuccess": "Riparazione del programma di supporto FlyEnv riuscita"
+  "flyenvHelperFixSuccess": "Riparazione del programma di supporto FlyEnv riuscita",
+  "flyenvHelperInstallFailTips": "Installazione dell'helper FlyEnv non riuscita. Prova a eseguire FlyEnv con privilegi di amministratore oppure fai clic sul pulsante OK ed esegui manualmente il programma helper flyenv-helper.exe nella cartella aperta."
 }

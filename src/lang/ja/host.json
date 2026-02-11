@@ -31,6 +31,9 @@
   "projectGo": "Goプロジェクト",
   "projectPython": "Pythonプロジェクト",
   "projectTomcat": "Tomcatプロジェクト",
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects",
   "jarPackagePath": "JARパッケージパス",
   "jdkPath": "JDKパス",
   "pythonPath": "Pythonパス",
@@ -64,9 +67,5 @@
   "copyCommand": "コマンドをコピー",
   "showFile": "ファイルを表示",
   "sticky": "スティッキー",
-  "dbclickRowToEdit": "この行をダブルクリックして編集",
-
-  "projectDeno": "Deno Projects",
-  "projectBun": "Bun Projects",
-  "projectPerl": "Perl Projects"
+  "dbclickRowToEdit": "この行をダブルクリックして編集"
 }

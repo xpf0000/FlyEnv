@@ -16,25 +16,22 @@
   "passwordTips": "Gerekli değil. Komutları çalıştırırken şifreyi otomatik olarak doldurur. Örneğin Macports ile yazılım yükleme ve kaldırma işlemlerinde.",
   "langTips": "Kullanıcı tanımlı dil paketlerini yükle. Bu işlem aynı zamanda varsayılan dil paketini başlatır, böylece kullanıcıların FlyEnv’i başka dillere çevirmesi kolaylaşır.",
   "openLangDir": "Dil paketi klasörünü aç",
-
   "moduleCateAddTips": "Modül Kategorisi Ekle",
   "moduleCateName": "Modül Kategori Adı",
   "moduleAdd": "Modül Ekle",
   "moduleCateDelTips": "Bu kategorideki modüller de silinecek. Silmeyi onaylıyor musunuz?",
-
   "moduleTitle": "Modül",
   "moduleName": "Modül Adı",
   "moduleIcon": "Modül Simgesi",
   "moduleIsService": "Modül bir servis mi?",
   "moduleIsOnlyRunOne": "Aynı anda yalnızca bir servis çalıştırılabilir",
   "moduleExecItem": "Modül Çalıştırma Öğesi",
-
   "module": {
     "name": "Ad",
     "path": "Dosya Yolu",
     "comment": "Açıklama",
-    "command": "Command",
     "exec": "Çalıştır",
+    "command": "Command",
     "commandFile": "Dosya",
     "isSudo": "sudo ile çalıştırılsın mı?",
     "pidPath": "PID Dosya Yolu",
@@ -46,8 +43,8 @@
     "outputLog": "Çıktı Günlüğü",
     "errorLog": "Hata Günlüğü"
   },
-
   "flyenvHelper": "FlyEnv Yardımcı Programını Onar",
   "flyenvHelperBtn": "Onar",
-  "flyenvHelperFixSuccess": "FlyEnv yardımcı programı başarıyla onarıldı"
+  "flyenvHelperFixSuccess": "FlyEnv yardımcı programı başarıyla onarıldı",
+  "flyenvHelperInstallFailTips": "FlyEnv yardımcı programı kurulumu başarısız oldu. Lütfen FlyEnv'i yönetici ayrıcalıklarıyla çalıştırmayı deneyin veya Tamam düğmesine tıklayın ve açılan klasörde flyenv-helper.exe yardımcı programını manuel olarak çalıştırın."
 }

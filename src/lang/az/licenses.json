@@ -32,7 +32,8 @@
   "messagePlaceholder": "İanə etmisinizsə, zəhmət olmasa ianəçi adını, ianə bağlantısını və ya sifariş nömrəsini daxil edin.\nLayihəyə töhfə vermisinizsə, zəhmət olmasa PR bağlantısını göndərin.\nLayihəni tanıtmısınızsa, zəhmət olmasa məqalə/video bağlantısını göndərin.",
   "requestButton": "Lisenziya Tələb Et",
   "refreshButton": "Vəziyyəti Yenilə",
-
+  "licenseActivated": "License activated",
+  "licenseNoActivated": "License not activated",
   "licenseInfo": "Cari təqdim olunan lisenziya daimi lisenziyadır, hər bir kompüter bir lisenziyaya uyğundur. Əgər kompüteri dəyişdirsəniz, 'Mənim Lisenziyalarım' bölməsində yeni cihazın uuid-ni bağlamaq və ya yeni lisenziya üçün müraciət etmək lazımdır.",
   "logoutTips": "Çıxış etmək istədiyinizə əminsiniz?",
   "delBindTips": "Bu UUID ilə lisenziya bağlantısını ləğv etmək istədiyinizə əminsiniz?",

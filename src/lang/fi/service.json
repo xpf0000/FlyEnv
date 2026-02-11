@@ -9,5 +9,14 @@
   "setByNoApp": "Ympäristömuuttujat, joita FlyEnv ei ole määrittänyt",
   "ftpdNeedPasswordToStart": "Pure-FTPd vaatii sudo oikeudet käynnistyä. Syötä käyttäjän salasana. Salasanaa käytetään automaattista täyttöä myöhemmin. Tai voit painaa alla olevaa painiketta syöttääksesi manuaalisesti päätteessä, mutta tämä kehotus voi ilmestyä uudelleen.",
   "bundleinVersionDelTips": "Tämä versio on sisäänrakennettu versio, varmista, että sitä ei näytetä?",
-  "customDirVersionDelTips": "Tämä versio on mukautettu polkuversio, varmista, että sitä ei näytetä?"
+  "customDirVersionDelTips": "Tämä versio on mukautettu polkuversio, varmista, että sitä ei näytetä?",
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Järjestelmästäsi puuttuu Visual C++ Redistributable (DLL), joka vaaditaan tämän version suorittamiseen. Ole hyvä ja klikkaa alla olevaa linkkiä ladata ja asentaa VC Runtime Microsoftin virallisilla verkkosivuilla.",
+      "versionRelation": "Version Yhteensopivuus Viite:",
+      "software": "Ohjelmisto",
+      "versionRange": "Version Vaihteluväli",
+      "msvsVersion": "Msvc Versio"
+    }
+  }
 }

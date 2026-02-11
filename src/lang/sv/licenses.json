@@ -32,7 +32,8 @@
   "messagePlaceholder": "Vänligen skicka in givaren, donationslänken eller order-ID när du väljer att donera.\nVänligen skicka in PR-länken för dem som väljer att delta i projektutvecklingen.\nVänligen skicka in artikel-/videolänken om du väljer att hjälpa till att främja projektet",
   "requestButton": "Begär licens",
   "refreshButton": "Uppdatera status",
-
+  "licenseActivated": "Licens aktiverad",
+  "licenseNoActivated": "Licensen är inte aktiverad",
   "licenseInfo": "Den nuvarande licensen är en permanent licens, varje dator motsvarar en licens. Om du byter dator måste du binda den nya enhetens uuid i 'Mina licenser', eller ansöka om en ny licens.",
   "logoutTips": "Är du säker på att du vill logga ut?",
   "delBindTips": "Är du säker på att du vill ta bort bindningen av licensen från detta UUID?",

@@ -31,6 +31,9 @@
   "projectGo": "Progetti Go",
   "projectPython": "Progetti Python",
   "projectTomcat": "Progetti Tomcat",
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects",
   "jarPackagePath": "Percorso pacchetto JAR",
   "jdkPath": "Percorso JDK",
   "pythonPath": "Percorso Python",
@@ -64,9 +67,5 @@
   "copyCommand": "Copia Comando",
   "showFile": "Mostra File",
   "sticky": "Fissa in alto",
-  "dbclickRowToEdit": "Fai doppio clic su questa riga per modificare",
-
-  "projectDeno": "Deno Projects",
-  "projectBun": "Bun Projects",
-  "projectPerl": "Perl Projects"
+  "dbclickRowToEdit": "Fai doppio clic su questa riga per modificare"
 }

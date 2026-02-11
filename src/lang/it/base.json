@@ -40,7 +40,7 @@
   "cleanSelect": "Pulisci selezione",
   "cleanAll": "Pulisci tutto",
   "brewSrcSwitch": "Cambio sorgente Brew",
-    "useProxy": "Usa proxy",
+  "useProxy": "Usa proxy",
   "proxySetting": "Proxy server",
   "quickSetup": "Configurazione rapida",
   "currentProxy": "Proxy attuale",
@@ -109,11 +109,10 @@
   "staticDelAlert": "Per garantire la sicurezza dei dati dell'utente, non è più prevista la funzione di eliminazione automatica del software installato. Se sei sicuro di volerlo eliminare, clicca OK. Elimina manualmente il software dalla cartella aperta.",
   "placeholderSearch": "Cerca",
   "projects": "Progetti",
-
   "cleanup": "Cleanup",
-
   "preview": "Anteprima",
   "executing": "In esecuzione",
   "info": "Dettagli",
-  "ForceDelete": "Eliminazione forzata"
+  "ForceDelete": "Eliminazione forzata",
+  "DataDirPermissionTips": "Creazione della cartella dati FlyEnv non riuscita. Si prega di avviare FlyEnv con privilegi di amministratore, o modificare la posizione di installazione di FlyEnv."
 }

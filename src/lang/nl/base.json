@@ -113,5 +113,6 @@
   "preview": "Voorvertoning",
   "executing": "Uitvoeren",
   "info": "Informatie",
-  "ForceDelete": "Geforceerd verwijderen"
+  "ForceDelete": "Geforceerd verwijderen",
+  "DataDirPermissionTips": "Aanmaken van de FlyEnv gegevensmap is mislukt. Start FlyEnv met beheerdersrechten of verander de locatie voor de installatie FlyEnv."
 }

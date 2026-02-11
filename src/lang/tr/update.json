@@ -5,5 +5,7 @@
   "update-downloaded-message": "Kurulmaya hazır...",
   "update-error-message": "Güncelleme Hatası",
   "yes": "Evet",
-  "no": "Hayır"
+  "no": "Hayır",
+  "view-update-log": "View Update Log",
+  "download-new-version": "Download New Version"
 }

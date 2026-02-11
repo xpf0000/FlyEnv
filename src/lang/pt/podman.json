@@ -58,7 +58,7 @@
   "Rename": "Renomear",
   "ImageName": "Nome da imagem",
   "CommandArgs": "Argumentos de comando",
-  "Volumes": "Volumes",
+  "Volumes": "Volume",
   "ContainerDir": "Caminho do contentor",
   "LocalDir": "Caminho local",
   "ContainerEnvVars": "Variáveis de ambiente no contentor",

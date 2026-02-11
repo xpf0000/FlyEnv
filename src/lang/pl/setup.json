@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Napraw pomocnik FlyEnv",
   "flyenvHelperBtn": "Napraw",
-  "flyenvHelperFixSuccess": "Pomocnik FlyEnv został naprawiony"
+  "flyenvHelperFixSuccess": "Pomocnik FlyEnv został naprawiony",
+  "flyenvHelperInstallFailTips": "Instalacja programu pomocniczego FlyEnv nie powiodła się. Spróbuj uruchomić FlyEnv z uprawnieniami administratora lub kliknij przycisk OK i ręcznie uruchom program pomocniczy flyenv-helper.exe w otwartym folderze."
 }

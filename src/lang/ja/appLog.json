@@ -1,4 +1,5 @@
 {
+  "startInstall": "Start installing {service}",
   "startServiceBegin": "{service}サービスを開始しています...",
   "confInit": "設定ファイルが存在しません。新しい設定ファイルを生成しています",
   "confInitSuccess": "設定ファイルが正常に生成されました。ファイルパス：{file}",
@@ -18,7 +19,5 @@
   "initDBDataDir": "データフォルダが見つかりません。データフォルダの初期化を開始",
   "initDBDataDirSuccess": "データフォルダの初期化が成功しました。データフォルダパス：{dir}",
   "initDBDataDirFail": "データフォルダの初期化に失敗しました。理由：{error}",
-
-  "startInstall": "Start installing {service}",
   "newProjectFail": "新しいプロジェクトの作成に失敗しました"
 }

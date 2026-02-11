@@ -1,8 +1,10 @@
 {
   "site": "Site",
-  "comment": "Comentário",
   "phpVersion": "Versão do PHP",
+  "action": "Ação",
+  "comment": "Comentário",
   "newProject": "Novo projeto",
+  "frameworkVersion": "Versão do framework",
   "newProjectTips": "Crie um novo projeto com o Composer. Inicialize com um framework selecionado: wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim",
   "toCreateHost": "Criar site",
   "dnsInfo": "Ativar um servidor DNS. Resolva os nomes de domínio definidos em /etc/hosts para o endereço IP da máquina local. Usado principalmente por outros computadores ou telemóveis na rede local para acederem a sites locais.\nEsta funcionalidade requer o Node.js; se não estiver instalado, instale-o primeiro.\nComo usar:\n1. Inicie o servidor DNS.\n2. Em outros computadores ou telemóveis, defina o DNS da rede para o IP DNS exibido nesta interface. É melhor manter apenas esta configuração de DNS e restaurar a original depois de não a usar mais.\n3. Use este comando para testar:\nWindows: nslookup domínio {ipWin}\nmacOS&Linux: dig {ip} domínio\n4. Em outros computadores ou telemóveis, use o nome de domínio do site local para aceder.",
@@ -12,6 +14,7 @@
   "hostsOpen": "Abrir ficheiro hosts personalizado",
   "placeholderName": "Domínio do site (Exemplo: mydomain.tld)",
   "placeholderAlias": "Alias do domínio do site (Exemplo: www.mydomain.tld)",
+  "placeholderComment": "Comentário",
   "placeholderRootPath": "Diretório raiz do site",
   "port": "Porta",
   "hostSSL": "Certificado SSL",
@@ -40,6 +43,7 @@
   "fileVar": "Carregar do ficheiro",
   "envVarTips": "Variáveis de ambiente, uma por linha",
   "fileVarTips": "Por favor, selecione o ficheiro de variáveis de ambiente",
+  "tcpPort": "Porta TCP",
   "reverseProxy": "Proxy reverso",
   "projectName": "Nome do projeto",
   "customJDKAndTomcat": "JDK e Tomcat personalizados",
@@ -63,9 +67,5 @@
   "copyCommand": "Copiar comando",
   "showFile": "Mostrar ficheiro",
   "sticky": "Fixar",
-  "dbclickRowToEdit": "Clique duas vezes nesta linha para editar",
-  "action": "Ação",
-  "frameworkVersion": "Versão do framework",
-  "placeholderComment": "Comentário",
-  "tcpPort": "Porta TCP"
+  "dbclickRowToEdit": "Clique duas vezes nesta linha para editar"
 }

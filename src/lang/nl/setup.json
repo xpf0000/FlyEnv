@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Herstel FlyEnv Helper",
   "flyenvHelperBtn": "Repareer",
-  "flyenvHelperFixSuccess": "FlyEnv Helper succesvol opgelost"
+  "flyenvHelperFixSuccess": "FlyEnv Helper succesvol opgelost",
+  "flyenvHelperInstallFailTips": "De installatie van FlyEnv helper is mislukt. Probeer FlyEnv uit te voeren met beheerdersrechten, of klik op de knop OK en voer het hulpprogramma flyenv-helper.exe handmatig uit in de geopende map."
 }

@@ -1,4 +1,5 @@
 {
+  "startInstall": "Start installing {service}",
   "startServiceBegin": "Avvio del servizio {service} in corso...",
   "confInit": "Il file di configurazione non esiste. Generazione di un nuovo file di configurazione",
   "confInitSuccess": "File di configurazione generato con successo, percorso file: {file}",
@@ -18,7 +19,5 @@
   "initDBDataDir": "Cartella dati non trovata, avvio inizializzazione della cartella dati",
   "initDBDataDirSuccess": "Cartella dati inizializzata con successo, percorso: {dir}",
   "initDBDataDirFail": "Inizializzazione della cartella dati fallita, motivo: {error}",
-
-  "startInstall": "Start installing {service}",
   "newProjectFail": "Impossibile creare un nuovo progetto"
 }

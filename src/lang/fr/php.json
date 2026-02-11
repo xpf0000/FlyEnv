@@ -28,5 +28,12 @@
   "timezone": "Fuseau horaire",
   "loadedExtensions": "Extensions chargées",
   "log_errors": "Activer la journalisation des erreurs",
-  "error_log_dir": "Spécifier le chemin du fichier de log d'erreurs PHP"
+  "error_log_dir": "Spécifier le chemin du fichier de log d'erreurs PHP",
+  "disableFunction": {
+    "title": "Désactiver les fonctions",
+    "function": "Fonction",
+    "emptyFunction": "Veuillez entrer le nom de la fonction",
+    "sameName": "La fonction existe déjà",
+    "invalidName": "Nom de fonction invalide. Le nom de la fonction ne peut contenir que des lettres, des chiffres et des tirets bas"
+  }
 }

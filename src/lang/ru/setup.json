@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Помощник FlyEnv",
   "flyenvHelperBtn": "Исправить",
-  "flyenvHelperFixSuccess": "Успешная помощь в FlyEnv"
+  "flyenvHelperFixSuccess": "Успешная помощь в FlyEnv",
+  "flyenvHelperInstallFailTips": "Не удалось установить вспомогательную программу FlyEnv. Попробуйте запустить FlyEnv с правами администратора или нажмите кнопку «ОК» и вручную запустите вспомогательную программу flyenv-helper.exe в открывшейся папке."
 }

@@ -14,6 +14,8 @@
   "siteCreatedSuccessfully": "Site başarıyla oluşturuldu",
   "siteDomain": "Site Alan Adı",
   "siteDirectory": "Site Dizini",
+  "siteDirectoryError": "Site Dizini Hatası",
+  "domainError": "Alan Adı Hatası",
   "tryingToStartService": "Servis başlatılıyor, lütfen bekleyin...",
   "serviceStartedSuccessfully": "Servis başarıyla başlatıldı",
   "domain": "Alan Adı",
@@ -65,8 +67,5 @@
   "enterTips": "[Enter] gönder, [Shift+Enter] satır başı, [Ctrl+Enter] üretmeden gönder",
   "noLiencesTips": "Şu anda lisans yok, 3 gün boyunca deneyebilirsiniz",
   "alert": "Uyarı",
-  "customer": "Benim Yardımcılarım",
-
-  "siteDirectoryError": "Site Dizini Hatası",
-  "domainError": "Alan Adı Hatası"
+  "customer": "Benim Yardımcılarım"
 }

@@ -110,9 +110,9 @@
   "placeholderSearch": "بحث",
   "projects": "المشاريع",
   "cleanup": "تنظيف",
-
   "preview": "معاينة",
   "executing": "قيد التنفيذ",
   "info": "تفاصيل",
-  "ForceDelete": "حذف إجباري"
+  "ForceDelete": "حذف إجباري",
+  "DataDirPermissionTips": "فشل في إنشاء مجلد بيانات FlyEnv. الرجاء بدء تشغيل FlyEnv مع امتيازات المسؤول، أو تغيير موقع تثبيت FlyEnv."
 }

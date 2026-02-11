@@ -32,7 +32,8 @@
   "messagePlaceholder": "Pošlete prosím dárce, odkaz na dárce nebo ID objednávky při výběru darování.\nPředložte prosím odkaz na PR pro ty, kteří se rozhodnou podílet se na vývoji projektu.\nProsím nahrajte odkaz na váš článek, video, blog, vlog nebo komentář pro ty, kteří se rozhodnou propagovat.",
   "requestButton": "Žádost o licenci",
   "refreshButton": "Obnovit stav",
-
+  "licenseActivated": "Licence aktivována",
+  "licenseNoActivated": "Licence není aktivována",
   "licenseInfo": "Aktuálně poskytovaná licence je trvalá licence, každý počítač odpovídá jedné licenci. Pokud vyměníte počítač, je třeba v 'Moje licence' navázat uuid nového zařízení nebo požádat o novou licenci.",
   "logoutTips": "Opravdu se chcete odhlásit?",
   "delBindTips": "Opravdu chcete zrušit vazbu licence na toto UUID?",

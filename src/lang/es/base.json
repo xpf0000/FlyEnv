@@ -110,9 +110,9 @@
   "placeholderSearch": "Buscar",
   "projects": "Proyecto",
   "cleanup": "Limpiar",
-
   "preview": "Vista previa",
   "executing": "Ejecutando",
   "info": "Información",
-  "ForceDelete": "Forzar eliminación"
+  "ForceDelete": "Forzar eliminación",
+  "DataDirPermissionTips": "No se pudo crear la carpeta de datos de FlyEnv. Inicie FlyEnv con privilegios de administrador o cambie la ubicación de la instalación de FlyEnv."
 }

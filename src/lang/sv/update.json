@@ -5,5 +5,7 @@
   "update-downloaded-message": "Redo att installera...",
   "update-error-message": "Uppdateringsfel",
   "yes": "Ja",
-  "no": "Nej"
+  "no": "Nej",
+  "view-update-log": "Visa uppdateringslogg",
+  "download-new-version": "Ladda ner ny version"
 }

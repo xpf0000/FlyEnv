@@ -5,5 +5,7 @@
   "update-downloaded-message": "Valmis asentamaan...",
   "update-error-message": "Virhe Päivityksessä",
   "yes": "Kyllä",
-  "no": "Ei"
+  "no": "Ei",
+  "view-update-log": "Näytä Päivitysloki",
+  "download-new-version": "Lataa Uusi Versio"
 }

@@ -45,5 +45,6 @@
   },
   "flyenvHelper": "Fix FlyEnv Helfer",
   "flyenvHelperBtn": "Beheben",
-  "flyenvHelperFixSuccess": "FlyEnv Helfer erfolgreich behoben"
+  "flyenvHelperFixSuccess": "FlyEnv Helfer erfolgreich behoben",
+  "flyenvHelperInstallFailTips": "Die Installation des FlyEnv-Helpers ist fehlgeschlagen. Bitte versuchen Sie, FlyEnv mit Administratorrechten auszuführen, oder klicken Sie auf die Schaltfläche „OK“ und führen Sie das Hilfsprogramm flyenv-helper.exe im geöffneten Ordner manuell aus."
 }

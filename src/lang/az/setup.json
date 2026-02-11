@@ -16,25 +16,22 @@
   "passwordTips": "Vacib deyil. Əmrləri icra edərkən parolu avtomatik doldurur. Məsələn, Macports ilə proqram quraşdırma və ya silmə zamanı.",
   "langTips": "İstifadəçi tərəfindən müəyyən edilən dil paketlərini yüklə. Bu əməliyyat həmçinin standart dil paketini işə salır, beləliklə FlyEnv-i digər dillərə çevirmək daha asan olur.",
   "openLangDir": "Dil paketi qovluğunu aç",
-
   "moduleCateAddTips": "Modul Kateqoriyası Əlavə Et",
   "moduleCateName": "Modul Kateqoriya Adı",
   "moduleAdd": "Modul Əlavə Et",
   "moduleCateDelTips": "Bu kateqoriyadakı modullar da silinəcək. Silməni təsdiqləyirsiniz?",
-
   "moduleTitle": "Modul",
   "moduleName": "Modul Adı",
   "moduleIcon": "Modul Simvolu",
   "moduleIsService": "Bu modul bir xidmətdirmi?",
   "moduleIsOnlyRunOne": "Eyni anda yalnız bir xidmət işlədilə bilər",
   "moduleExecItem": "Modul İcra Elementi",
-
   "module": {
     "name": "Ad",
     "path": "Fayl Yolu",
     "comment": "Açıqlama",
-    "command": "Əmr",
     "exec": "İcra Et",
+    "command": "Əmr",
     "commandFile": "Fayl",
     "isSudo": "sudo ilə işlədilsin?",
     "pidPath": "PID Fayl Yolu",
@@ -43,12 +40,11 @@
     "needPasswordToStart": "Administrator icazəsi tələb olunur. Şifrənizi daxil edin (gələcək istifadə üçün saxlanacaq). Alternativ olaraq terminalda əl ilə daxil edə bilərsiniz, lakin bu xəbərdarlıq yenidən görünə bilər.",
     "hadOpenInTerminal": "Artıq terminalda işləyir — nəticələr göstərilə bilmir.",
     "licenseTips": "Lisenziya tapılmadı. Yalnız 3 modul və ya icra elementi yaradıla bilər.",
-
     "outputLog": "Çıxış Jurnalı",
     "errorLog": "Xəta Jurnalı"
   },
-
   "flyenvHelper": "FlyEnv Yardımçı Proqramını Bərpa Et",
   "flyenvHelperBtn": "Bərpa Et",
-  "flyenvHelperFixSuccess": "FlyEnv yardımçı proqramı uğurla bərpa edildi"
+  "flyenvHelperFixSuccess": "FlyEnv yardımçı proqramı uğurla bərpa edildi",
+  "flyenvHelperInstallFailTips": "FlyEnv köməkçi proqramının quraşdırılması uğursuz oldu. Zəhmət olmasa FlyEnv-i administrator səlahiyyətləri ilə işə salmağa cəhd edin, ya da OK düyməsini basıb açılan qovluqda flyenv-helper.exe köməkçi proqramını əl ilə işə salın."
 }
