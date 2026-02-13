@@ -91,6 +91,17 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 
 ---
 
+## 🛠 Developer-Friendly Tools
+
+* **Local Domains & SSL:** Create local sites (`myapp.test`) with custom domains and **one-click HTTPS**.
+* **Config & Logs:** Edit `php.ini` or `my.cnf` directly in FlyEnv. View real-time error logs with highlighting.
+* **Port Management:** Visualize which apps are using which ports and kill processes instantly.
+
+[Watch Video Demo](https://flyenv.com/#tools-modules)
+
+![screen3.jpeg](./screen3.jpeg)
+---
+
 ## 📥 Installation
 
 ### Windows (Recommended)
@@ -149,15 +160,6 @@ All FlyEnv installation packages are now built using **[GitHub Actions](https://
 </tbody>
 </table>
 
----
-
-## 🛠 Developer-Friendly Tools
-
-* **Local Domains & SSL:** Create local sites (`myapp.test`) with custom domains and **one-click HTTPS**.
-* **Config & Logs:** Edit `php.ini` or `my.cnf` directly in FlyEnv. View real-time error logs with highlighting.
-* **Port Management:** Visualize which apps are using which ports and kill processes instantly.
-
-![screen3.jpeg](./screen3.jpeg)
 ---
 
 ## Development & Contribution

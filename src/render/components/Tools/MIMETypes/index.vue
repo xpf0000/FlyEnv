@@ -4,9 +4,9 @@
   import { I18nT } from '@lang/index'
   import { mime } from '@/util/NodeFn'
 
-  const miniTypes = asyncComputed(async() => {
+  const miniTypes = asyncComputed(async () => {
     const { types, extensions } = await mime.types()
-    console.log('miniTypes: ', types, extensions )
+    console.log('miniTypes: ', types, extensions)
     return { types, extensions }
   })
 
@@ -18,31 +18,37 @@
     return miniTypes?.value?.types ?? {}
   })
 
-  const mimeInfos = computed(() => Object.entries(extensions.value).map(([mimeType, extensions]) => ({
-    mimeType,
-    extensions
-  })))
+  const mimeInfos = computed(() =>
+    Object.entries(extensions.value).map(([mimeType, extensions]) => ({
+      mimeType,
+      extensions
+    }))
+  )
 
-  const mimeToExtensionsOptions = computed(() => Object.keys(extensions.value).map((label) => ({
-    label,
-    value: label
-  })))
+  const mimeToExtensionsOptions = computed(() =>
+    Object.keys(extensions.value).map((label) => ({
+      label,
+      value: label
+    }))
+  )
   const selectedMimeType = ref(undefined)
 
   const extensionsFound = computed(() =>
-    selectedMimeType.value ? extensions?.value?.[selectedMimeType.value] ?? '' : []
+    selectedMimeType.value ? (extensions?.value?.[selectedMimeType.value] ?? '') : []
   )
 
-  const typesOptions = computed(() => Object.keys(types.value).map((label) => {
-    const extension = `.${label}`
+  const typesOptions = computed(() =>
+    Object.keys(types.value).map((label) => {
+      const extension = `.${label}`
 
-    return { label: extension, value: label }
-  }))
+      return { label: extension, value: label }
+    })
+  )
 
   const selectedExtension = ref(undefined)
 
   const mimeTypeFound = computed(() =>
-    selectedExtension.value ? types.value?.[selectedExtension.value] ?? '' : []
+    selectedExtension.value ? (types.value?.[selectedExtension.value] ?? '') : []
   )
 </script>
 <template>
