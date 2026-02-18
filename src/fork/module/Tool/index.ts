@@ -13,7 +13,8 @@ import {
   readdir,
   readFile,
   remove,
-  writeFile
+  writeFile,
+  removeByRoot
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
@@ -90,7 +91,7 @@ class Manager extends Base {
         return
       }
       try {
-        await Helper.send('tools', 'writeFileByRoot', file, content)
+        await writeFileByRoot(file, content)
         resolve(true)
       } catch (e) {
         reject(e)
@@ -207,10 +208,7 @@ class Manager extends Base {
       const flagDir = join(envDir, flag)
       // Delete the subfolder
       try {
-        await remove(flagDir)
-      } catch {}
-      try {
-        await Helper.send('tools', 'rm', flagDir)
+        await removeByRoot(flagDir)
       } catch {}
       appDebugLog('[updatePATH][binPath]', `${binPath}`).catch()
       appDebugLog('[updatePATH][all]', `${JSON.stringify(all, null, 2)}`).catch()
@@ -471,7 +469,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve) => {
       let content = ''
       try {
-        content = (await Helper.send('tools', 'readFileByRoot', file)) as any
+        content = await readFileByRoot(file)
       } catch {}
       resolve(content)
     })
@@ -480,7 +478,7 @@ class Manager extends Base {
   writeFileByRoot(file: string, content: string) {
     return new ForkPromise(async (resolve) => {
       try {
-        await Helper.send('tools', 'writeFileByRoot', file, content)
+        await writeFileByRoot(file, content)
       } catch {}
       resolve(true)
     })
@@ -622,7 +620,7 @@ end tell`
       if (!existsSync(shfile)) {
         const fileContent = await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf-8')
         try {
-          await Helper.send('tools', 'writeFileByRoot', shfile, fileContent)
+          await writeFileByRoot(shfile, fileContent)
         } catch {}
         if (existsSync(shfile)) {
           const uinfo = userInfo()

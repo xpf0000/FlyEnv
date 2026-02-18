@@ -117,5 +117,6 @@
   "info": "Info",
   "ForceDelete": "Force Delete",
 
-  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
+  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location.",
+  "needInstallHelperTips": "Some operations failed because Administrator privileges are required. This includes modifying the Hosts file, accessing the process list, binding to ports below 1024, or managing system environment variables.\nPlease install the FlyEnv Helper to grant the necessary permissions for these tasks. Click \"OK\" to proceed with the installation."
 }

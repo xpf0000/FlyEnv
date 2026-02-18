@@ -1,10 +1,18 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join, basename } from 'path'
-import { hostAlias, chmod, copyFile, mkdirp, readFile, remove, writeFile } from '../../Fn'
+import {
+  hostAlias,
+  chmod,
+  copyFile,
+  mkdirp,
+  readFile,
+  writeFile,
+  readFileByRoot,
+  removeByRoot
+} from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash-es'
-import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
@@ -200,21 +208,11 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
         }
         if (hasErr) {
           try {
-            const content: string = (await Helper.send('tools', 'readFileByRoot', f.oldFile)) as any
+            const content: string = (await readFileByRoot(f.oldFile)) as any
             await writeFile(f.newFile, content)
           } catch {}
         }
-        hasErr = false
-        try {
-          await remove(f.oldFile)
-        } catch {
-          hasErr = true
-        }
-        if (hasErr) {
-          try {
-            await Helper.send('tools', 'rm', f.oldFile)
-          } catch {}
-        }
+        await removeByRoot(f.oldFile)
       }
       if (existsSync(f.newFile)) {
         await chmod(f.newFile, '0777')

@@ -1,8 +1,7 @@
-import { writeFile } from '@shared/fs-extra'
-import Helper from '../fork/Helper'
+import { mkdirp, writeFile } from '@shared/fs-extra'
 import { createConnection } from 'node:net'
 import { userInfo } from 'node:os'
-import { basename } from 'node:path'
+import { basename, dirname } from 'node:path'
 import { isWindows } from './utils'
 import JSON5 from 'json5'
 
@@ -31,7 +30,8 @@ export const AppHelperRoleFix = async () => {
   const role = `${uinfo.uid}:${uinfo.gid}`
   await writeFile(Role_Path, role)
   try {
-    Helper.send('tools', 'writeFileByRoot', Role_Path_Back, role).catch()
+    await mkdirp(dirname(Role_Path_Back))
+    await writeFile(Role_Path_Back, role)
   } catch {}
 }
 

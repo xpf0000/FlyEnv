@@ -12,7 +12,8 @@ import {
   mkdirp,
   readFile,
   writeFile,
-  execPromiseSudo
+  execPromiseSudo,
+  removeByRoot
 } from '../Fn'
 import { isMacOS } from '@shared/utils'
 
@@ -181,10 +182,10 @@ export async function customerServiceStartExec(
   const errFile = join(baseDir, `${version.id}-error.log`)
 
   try {
-    await Helper.send('tools', 'rm', errFile)
+    await removeByRoot(errFile)
   } catch {}
   try {
-    await Helper.send('tools', 'rm', outFile)
+    await removeByRoot(outFile)
   } catch {}
 
   let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')

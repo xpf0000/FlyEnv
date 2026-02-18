@@ -3,9 +3,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import DNS2 from 'dns2'
 import { address } from 'neoip'
 import { createRequire } from 'node:module'
-import Helper from '../../Helper'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { mkdirp, existsSync, writeFile, readFile } from '../../Fn'
+import { mkdirp, existsSync, writeFile, readFile, readFileByRoot } from '../../Fn'
 import { dirname, join } from 'node:path'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 
@@ -76,7 +75,7 @@ class Manager extends Base {
       this.lastTime = time
       try {
         let hosts = ''
-        hosts = (await Helper.send('tools', 'readFileByRoot', hostFile)) as string
+        hosts = (await readFileByRoot(hostFile)) as string
         const arrs = hosts.split('\n').filter((s) => s.trim().indexOf('#') !== 0)
         arrs.forEach((s) => {
           const items = s

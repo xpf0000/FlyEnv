@@ -1,6 +1,6 @@
 import type { AppHost } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { waitTime, watch, existsSync, type FSWatcher, readFile, remove } from '../../Fn'
+import { waitTime, watch, existsSync, type FSWatcher, readFile, removeByRoot } from '../../Fn'
 import Helper from '../../Helper'
 
 export const getHostItemEnv = async (item: AppHost) => {
@@ -78,17 +78,9 @@ export class ServiceItem {
         } catch {}
       }
       if (this.pidFile && existsSync(this.pidFile)) {
-        let hasError = false
         try {
-          await remove(this.pidFile)
-        } catch {
-          hasError = true
-        }
-        if (hasError) {
-          try {
-            await Helper.send('tools', 'rm', this.pidFile)
-          } catch {}
-        }
+          await removeByRoot(this.pidFile)
+        } catch {}
       }
       resolve({
         'APP-Service-Stop-PID': arr

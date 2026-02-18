@@ -109,6 +109,7 @@ export class Base {
         }
         resolve(res)
       } catch (e) {
+        console.error('startService error: ', e)
         reject(e)
       }
     })
@@ -123,11 +124,17 @@ export class Base {
       })
       let plist: PItem[] = []
       const allPid: string[] = []
-
-      if (isWindows()) {
-        plist = await ProcessPidList()
-      } else {
-        plist = (await Helper.send('tools', 'processList')) as any
+      try {
+        if (isWindows()) {
+          plist = await ProcessPidList()
+        } else {
+          plist = (await Helper.send('tools', 'processList')) as any
+        }
+      } catch (e) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.processListFail'))
+        })
+        reject(e)
       }
       on({
         'APP-Service-Stop-Success': true

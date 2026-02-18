@@ -489,7 +489,8 @@ X-GNOME-Autostart-enabled=true`
       .then(() => {
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
-      .catch(() => {
+      .catch((e) => {
+        console.error('fs_writeFile error: ', e)
         Helper.send('tools', 'writeFileByRoot', path, data)
           .then(() => {
             this?.mainWindow?.webContents.send('command', command, key, true)

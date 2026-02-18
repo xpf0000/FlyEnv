@@ -12,21 +12,17 @@ import Helper from '../fork/Helper'
 export const ProcessPidList = async (): Promise<PItem[]> => {
   console.log('ProcessPidList !!!')
   const all: PItem[] = []
-  try {
-    const content: string = (await Helper.send('tools', 'processListWin')) as any
-    const list = JSON5.parse(content)
-    all.push(
-      ...list.map((m: any) => {
-        return {
-          PID: `${m.ProcessId}`,
-          PPID: `${m.ParentProcessId}`,
-          COMMAND: m.CommandLine
-        }
-      })
-    )
-  } catch (e) {
-    console.log('ProcessPidList err0: ', e)
-  }
+  const content: string = (await Helper.send('tools', 'processListWin')) as any
+  const list = JSON5.parse(content)
+  all.push(
+    ...list.map((m: any) => {
+      return {
+        PID: `${m.ProcessId}`,
+        PPID: `${m.ParentProcessId}`,
+        COMMAND: m.CommandLine
+      }
+    })
+  )
   return all
 }
 

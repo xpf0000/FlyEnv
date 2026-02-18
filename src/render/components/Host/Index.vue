@@ -290,12 +290,12 @@
       })
   }
   const doImport = () => {
-    const opt = ['openFile', 'showHiddenFiles']
     dialog
       .showOpenDialog({
-        properties: opt,
+        properties: ['openFile', 'showHiddenFiles'],
         filters: [
           {
+            name: 'JSON File',
             extensions: ['json']
           }
         ]

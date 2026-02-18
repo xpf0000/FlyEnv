@@ -115,15 +115,3 @@ export async function readFileFixed(file: string): Promise<string> {
   } catch {}
   throw new Error(`readFileFixed Failed: ${file}`)
 }
-
-export async function writeFileFixed(file: string, content: string) {
-  const path = pathFixedToUnix(file)
-  try {
-    return await writeFile(path, content)
-  } catch {}
-  try {
-    return await Helper.send('tools', 'writeFileByRoot', path, content)
-  } catch {}
-
-  throw new Error(`writeFileFixed Failed: ${file}`)
-}

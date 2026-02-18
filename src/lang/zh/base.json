@@ -114,5 +114,6 @@
   "executing": "执行中",
   "info": "详情",
   "ForceDelete": "强制删除",
-  "DataDirPermissionTips": "创建FlyEnv数据文件夹失败, 请先使用管理员权限启动FlyEnv, 或者更改FlyEnv安装位置."
+  "DataDirPermissionTips": "创建FlyEnv数据文件夹失败, 请先使用管理员权限启动FlyEnv, 或者更改FlyEnv安装位置.",
+  "needInstallHelperTips": "当前操作执行失败，原因是部分核心功能（如修改 Hosts 文件、获取进程列表、使用 1024 以下端口、读写系统变量等）需要管理员权限。\n请安装 FlyEnv 辅助程序 以完成授权。点击“确定”立即开始安装。"
 }

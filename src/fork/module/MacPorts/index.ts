@@ -1,7 +1,6 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile } from '../../Fn'
-import Helper from '../../Helper'
+import { readFile, writeFileByRoot } from '../../Fn'
 class MacPorts extends Base {
   constructor() {
     super()
@@ -24,7 +23,7 @@ class MacPorts extends Base {
           content = content.replace(a, '')
         })
         content = content.trim() + '\n' + `${src.url} [default]`
-        await Helper.send('tools', 'writeFileByRoot', sourcesConf, content)
+        await writeFileByRoot(sourcesConf, content)
 
         content = await readFile(macportsConf, 'utf-8')
 
@@ -46,7 +45,7 @@ class MacPorts extends Base {
             '\n' +
             `rsync_dir ${src.rsync_dir}`
         }
-        await Helper.send('tools', 'writeFileByRoot', macportsConf, content)
+        await writeFileByRoot(macportsConf, content)
 
         resolve(true)
       } catch (e) {

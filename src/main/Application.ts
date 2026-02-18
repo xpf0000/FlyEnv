@@ -173,7 +173,7 @@ export default class Application extends EventEmitter {
     this.forkManager = new ForkManager(resolve(__dirname, './fork.mjs'))
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
       if (key === 'App-Need-Init-FlyEnv-Helper') {
-        AppHelper.initHelper().catch()
+        AppHelper.needInstall()
         return
       }
       this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
@@ -817,6 +817,13 @@ export default class Application extends EventEmitter {
     }
 
     switch (command) {
+      case 'APP-FlyEnv-Helper-Install':
+        AppHelper.initHelper()
+          .catch()
+          .finally(() => {
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+          })
+        break
       case 'APP:FlyEnv-Helper-Command':
         AppHelper.command().then((res) => {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, res)

@@ -161,6 +161,12 @@ export class AppHelper {
     }
   }
 
+  needInstall() {
+    if (this.state === 'normal') {
+      this?._onMessage?.('needInstall')
+    }
+  }
+
   initHelper() {
     return new Promise(async (resolve, reject) => {
       if (this.state !== 'normal') {

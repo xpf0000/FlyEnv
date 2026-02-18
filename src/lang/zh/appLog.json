@@ -19,5 +19,6 @@
   "initDBDataDir": "未找到数据文件夹, 开始初始化数据文件夹",
   "initDBDataDirSuccess": "初始化数据文件夹成功, 数据文件夹路径: {dir}",
   "initDBDataDirFail": "初始化数据文件夹失败, 原因: {error}",
-  "newProjectFail": "创建新项目失败"
+  "newProjectFail": "创建新项目失败",
+  "processListFail": "进程列表获取失败, 请先安装帮助程序"
 }

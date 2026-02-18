@@ -21,7 +21,10 @@ import {
   readFile,
   copyFile,
   mkdirp,
-  remove
+  remove,
+  removeByRoot,
+  writeFileByRoot,
+  readFileByRoot
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
@@ -169,7 +172,7 @@ class Php extends Base {
   extensionIni(item: any, version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      let content: string = (await Helper.send('tools', 'readFileByRoot', ini)) as any
+      let content: string = (await readFileByRoot(ini)) as any
       content = content.trim()
 
       const name = item.soname
@@ -202,7 +205,7 @@ xdebug.output_dir = "${output_dir}"
         }
       }
       content = content.trim()
-      await Helper.send('tools', 'writeFileByRoot', ini, content)
+      await writeFileByRoot(ini, content)
       resolve(true)
     })
   }
@@ -211,7 +214,7 @@ xdebug.output_dir = "${output_dir}"
     return new ForkPromise(async (resolve, reject) => {
       try {
         if (existsSync(soPath)) {
-          await Helper.send('tools', 'rm', soPath)
+          await removeByRoot(soPath)
         }
       } catch (e) {
         reject(e)

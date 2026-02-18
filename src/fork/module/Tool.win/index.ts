@@ -18,7 +18,8 @@ import {
   remove,
   writeFile,
   zipUnpack,
-  execPromiseWithEnv
+  execPromiseWithEnv,
+  removeByRoot
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
@@ -300,19 +301,9 @@ subjectAltName=@alt_names
 
       const envDir = join(dirname(global.Server.AppDir!), 'env')
       const flagDir = join(envDir, typeFlag)
-      let hasError = false
       try {
-        await remove(flagDir)
-      } catch {
-        hasError = true
-      }
-      if (hasError) {
-        try {
-          await Helper.send('tools', 'rm', flagDir)
-        } catch (e) {
-          console.log('rmdir err: ', e)
-        }
-      }
+        await removeByRoot(flagDir)
+      } catch {}
       console.log('removePATH flagDir: ', flagDir)
 
       oldPath = oldPath.filter((p) => {
@@ -403,19 +394,9 @@ subjectAltName=@alt_names
       }
       const flagDir = join(envDir, typeFlag)
       console.log('flagDir: ', flagDir)
-      let hasError = false
       try {
-        await remove(flagDir)
-      } catch {
-        hasError = true
-      }
-      if (hasError) {
-        try {
-          await Helper.send('tools', 'rm', flagDir)
-        } catch (e) {
-          console.log('rmdir err: ', e)
-        }
-      }
+        await removeByRoot(flagDir)
+      } catch {}
 
       if (!rawOldPath.includes(binDir)) {
         try {
@@ -584,17 +565,9 @@ php "%~dp0composer.phar" %*`
   }
 
   private async removeFixed(dir: string) {
-    let hasError = false
     try {
-      await remove(dir)
-    } catch {
-      hasError = true
-    }
-    if (hasError) {
-      try {
-        await Helper.send('tools', 'rm', dir)
-      } catch {}
-    }
+      await removeByRoot(dir)
+    } catch {}
   }
 
   setAlias(

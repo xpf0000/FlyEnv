@@ -1,5 +1,5 @@
-import { createWriteStream, realpathSync } from 'node:fs'
 import type { FSWatcher } from 'node:fs'
+import { createWriteStream, realpathSync } from 'node:fs'
 import { dirname, join, normalize, parse } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
@@ -10,52 +10,52 @@ import { format } from 'date-fns'
 import { hostname, userInfo } from 'os'
 import _node_machine_id from 'node-machine-id'
 import { zipUnpack } from './util/Zip'
-import { moveDirToDir, getSubDirAsync, getAllFileAsync, moveChildDirToParent } from './util/Dir'
-import { serviceStartExec, customerServiceStartExec } from './util/ServiceStart'
+import { getAllFileAsync, getSubDirAsync, moveChildDirToParent, moveDirToDir } from './util/Dir'
+import { customerServiceStartExec, serviceStartExec } from './util/ServiceStart'
 import {
-  serviceStartExec as serviceStartExecWin,
-  serviceStartExecCMD,
+  customerServiceStartExec as customerServiceStartExecWin,
   readFileAsUTF8,
-  customerServiceStartExec as customerServiceStartExecWin
+  serviceStartExec as serviceStartExecWin,
+  serviceStartExecCMD
 } from './util/ServiceStart.win'
 import {
   execPromise,
   execPromiseSudo,
   execPromiseWithEnv,
-  spawnPromiseWithEnv,
   spawnPromise,
+  spawnPromiseWithEnv,
   spawnPromiseWithStdin
 } from '@shared/child-process'
 import {
-  versionBinVersionSync,
-  versionBinVersion,
-  versionCheckBin,
   brewInfoJson,
   brewSearch,
   portSearch,
-  versionFixed,
+  versionBinVersion,
+  versionBinVersionSync,
+  versionCheckBin,
   versionDirCache,
   versionFilterSame,
+  versionFixed,
   versionLocalFetch,
   versionMacportsFetch,
   versionSort
 } from './util/Version'
 import {
-  watch,
-  copy,
+  appendFile,
   chmod,
+  copy,
   copyFile,
-  unlink,
+  existsSync,
+  mkdirp,
   readdir,
-  writeFile,
+  readFile,
   realpath,
   remove,
-  mkdirp,
-  readFile,
-  existsSync,
-  appendFile,
   rename,
-  stat
+  stat,
+  unlink,
+  watch,
+  writeFile
 } from '@shared/fs-extra'
 import { addPath, fetchRawPATH, handleWinPathArr, writePath } from './util/PATH.win'
 import { isWindows, waitTime } from '@shared/utils'
@@ -311,12 +311,35 @@ export const systemProxyGet = async () => {
 }
 
 export const writeFileByRoot = async (file: string, content: string) => {
+  try {
+    await writeFile(file, content)
+    return true
+  } catch (e) {
+    console.error('writeFileByRoot writeFile error: ', e)
+  }
   await Helper.send('tools', 'writeFileByRoot', file, content)
   return true
 }
 
 export const readFileByRoot = async (file: string): Promise<string> => {
+  try {
+    return await readFile(file, 'utf-8')
+  } catch {}
   return (await Helper.send('tools', 'readFileByRoot', file)) as any
+}
+
+export const removeByRoot = async (file: string): Promise<void> => {
+  if (!existsSync(file)) {
+    return
+  }
+  try {
+    await remove(file)
+    return
+  } catch {}
+  try {
+    await Helper.send('tools', 'rm', file)
+  } catch {}
+  return
 }
 
 export async function waitPidFile(
@@ -341,16 +364,11 @@ export async function waitPidFile(
     let pid = ''
     let error = false
     try {
-      pid = (await readFile(pidFile, 'utf-8')).trim()
+      pid = (await readFileByRoot(pidFile)).trim()
     } catch {
       error = true
     }
-    if (error) {
-      try {
-        pid = ((await Helper.send('tools', 'readFileByRoot', pidFile)) as string).trim()
-      } catch {}
-    }
-    if (!pid) {
+    if (error || !pid) {
       return false
     }
     return {
