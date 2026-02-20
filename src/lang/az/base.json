@@ -115,5 +115,5 @@
   "info": "məlumat",
   "ForceDelete": "Məcburi sil",
   "DataDirPermissionTips": "FlyEnv məlumat qovluğunu yaratmaq mümkün olmadı. Zəhmət olmasa FlyEnv-i administrator səlahiyyətləri ilə işə salın və ya FlyEnv-in quraşdırılma yerini dəyişdirin.",
-  "needInstallHelperTips": "Bəzi əməliyyatlar uğursuz oldu, çünki Administrator icazələri tələb olunur. Bunlara Hosts faylının dəyişdirilməsi, proseslər siyahısına çıxış, 1024-dən aşağı portlara bağlanma və ya sistem ətraf mühit dəyişənlərinin idarə edilməsi daxildir. Bu tapşırıqlar üçün zəruri icazələri təmin etmək üçün FlyEnv Helper-i quraşdırın. Quraşdırmaya davam etmək üçün "OK" düyməsini basın."
+  "needInstallHelperTips": "Bəzi əməliyyatlar uğursuz oldu, çünki Administrator icazələri tələb olunur. Bunlara Hosts faylının dəyişdirilməsi, proseslər siyahısına çıxış, 1024-dən aşağı portlara bağlanma və ya sistem ətraf mühit dəyişənlərinin idarə edilməsi daxildir. Bu tapşırıqlar üçün zəruri icazələri təmin etmək üçün FlyEnv Helper-i quraşdırın. Quraşdırmaya davam etmək üçün \"OK\" düyməsini basın."
 }

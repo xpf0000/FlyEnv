@@ -115,5 +115,5 @@
   "info": "Thông tin",
   "ForceDelete": "Xóa bắt buộc",
   "DataDirPermissionTips": "Không thể tạo thư mục dữ liệu FlyEnv. Vui lòng khởi động FlyEnv với quyền quản trị viên hoặc thay đổi vị trí cài đặt FlyEnv.",
-  "needInstallHelperTips": "Một số thao tác đã thất bại vì yêu cầu quyền quản trị viên. Điều này bao gồm việc sửa đổi tệp Hosts, truy cập danh sách quá trình, kết nối với các cổng dưới 1024 hoặc quản lý biến môi trường hệ thống.\nVui lòng cài đặt FlyEnv Helper để cấp quyền cần thiết cho các tác vụ này. Nhấp vào "OK" để tiếp tục cài đặt."
+  "needInstallHelperTips": "Một số thao tác đã thất bại vì yêu cầu quyền quản trị viên. Điều này bao gồm việc sửa đổi tệp Hosts, truy cập danh sách quá trình, kết nối với các cổng dưới 1024 hoặc quản lý biến môi trường hệ thống.\nVui lòng cài đặt FlyEnv Helper để cấp quyền cần thiết cho các tác vụ này. Nhấp vào \"OK\" để tiếp tục cài đặt."
 }
