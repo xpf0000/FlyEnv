@@ -114,5 +114,6 @@
   "executing": "Executare",
   "info": "Info",
   "ForceDelete": "Ștergere forțată",
-  "DataDirPermissionTips": "Nu s-a reușit crearea dosarului de date FlyEnv. Vă rugăm să porniți FlyEnv cu privilegii de administrator sau să schimbați locația de instalare FlyEnv."
+  "DataDirPermissionTips": "Nu s-a reușit crearea dosarului de date FlyEnv. Vă rugăm să porniți FlyEnv cu privilegii de administrator sau să schimbați locația de instalare FlyEnv.",
+  "needInstallHelperTips": "Unele operații au eșuat deoarece privilegiile de administrator sunt necesare. Aceasta include modificarea fişierului Gazde, accesarea listei procesului, legarea de porturile de sub 1024 sau gestionarea variabilelor de mediu ale sistemului.\nVă rugăm să instalați Helper-ul FlyEnv pentru a acorda permisiunile necesare pentru aceste sarcini. Faceți clic pe \"OK\" pentru a continua instalarea."
 }

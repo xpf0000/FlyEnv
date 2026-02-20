@@ -19,5 +19,6 @@
   "initDBDataDir": "Cartella dati non trovata, avvio inizializzazione della cartella dati",
   "initDBDataDirSuccess": "Cartella dati inizializzata con successo, percorso: {dir}",
   "initDBDataDirFail": "Inizializzazione della cartella dati fallita, motivo: {error}",
-  "newProjectFail": "Impossibile creare un nuovo progetto"
+  "newProjectFail": "Impossibile creare un nuovo progetto",
+  "processListFail": "Recupero lista processi fallito. Si prega di installare FlyEnv Helper"
 }

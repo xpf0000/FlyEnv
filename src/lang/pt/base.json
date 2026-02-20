@@ -114,5 +114,6 @@
   "executing": "Em execução",
   "info": "Informações",
   "ForceDelete": "Exclusão forçada",
-  "DataDirPermissionTips": "Falha ao criar a pasta de dados do FlyEnv. Inicie o FlyEnv com privilégios de administrador ou altere o local de instalação do FlyEnv."
+  "DataDirPermissionTips": "Falha ao criar a pasta de dados do FlyEnv. Inicie o FlyEnv com privilégios de administrador ou altere o local de instalação do FlyEnv.",
+  "needInstallHelperTips": "Algumas operações falharam porque os privilégios de administrador são necessários. Isso inclui modificar o arquivo de host, acessando a lista de processos, vinculando as portas abaixo de 1024, ou gerenciar variáveis de ambiente do sistema. Por favor, instale o Auxiliar FlyEnv para conceder as permissões necessárias para essas tarefas. Clique em "OK" para prosseguir com a instalação."
 }

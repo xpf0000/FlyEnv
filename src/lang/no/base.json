@@ -114,5 +114,6 @@
   "executing": "Utfører",
   "info": "Informasjon",
   "ForceDelete": "Tving sletting",
-  "DataDirPermissionTips": "Kunne ikke opprette mappen FlyEnv. Vennligst start FlyEnv med administratorrettigheter, eller endre FlyEnv installeringssted."
+  "DataDirPermissionTips": "Kunne ikke opprette mappen FlyEnv. Vennligst start FlyEnv med administratorrettigheter, eller endre FlyEnv installeringssted.",
+  "needInstallHelperTips": "Noen operasjoner mislyktes fordi administratorrettigheter kreves. Dette omfatter endring av verts-filen, tilgang til prosesslisten, binding til porter under 1024 eller styring av systemmiljøvariabler.\nInstaller FlyEnv Helper for å gi de nødvendige tillatelsene for disse oppgavene. Klikk \"OK\" for å fortsette installasjonen."
 }

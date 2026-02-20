@@ -114,5 +114,6 @@
   "executing": "Wykonywanie",
   "info": "Informacje",
   "ForceDelete": "Wymuś usunięcie",
-  "DataDirPermissionTips": "Nie udało się utworzyć folderu danych FlyEnv. Uruchom FlyEnv z uprawnieniami administratora lub zmień lokalizację instalacji FlyEnv."
+  "DataDirPermissionTips": "Nie udało się utworzyć folderu danych FlyEnv. Uruchom FlyEnv z uprawnieniami administratora lub zmień lokalizację instalacji FlyEnv.",
+  "needInstallHelperTips": "Niektóre operacje nie powiodły się, ponieważ wymagane są uprawnienia administratora. Obejmuje to modyfikację pliku hostów, dostęp do listy procesów, wiązanie z portami poniżej 1024 lub zarządzanie zmiennymi środowiskowymi systemu.\nZainstaluj FlyEnv Helper aby przyznać niezbędne uprawnienia do tych zadań. Kliknij \"OK\", aby kontynuować instalację."
 }

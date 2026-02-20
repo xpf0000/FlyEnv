@@ -19,5 +19,6 @@
   "initDBDataDir": "データフォルダが見つかりません。データフォルダの初期化を開始",
   "initDBDataDirSuccess": "データフォルダの初期化が成功しました。データフォルダパス：{dir}",
   "initDBDataDirFail": "データフォルダの初期化に失敗しました。理由：{error}",
-  "newProjectFail": "新しいプロジェクトの作成に失敗しました"
+  "newProjectFail": "新しいプロジェクトの作成に失敗しました",
+  "processListFail": "プロセス一覧の取得に失敗しました。FlyEnv Helper をインストールしてください。"
 }

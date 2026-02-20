@@ -114,5 +114,6 @@
   "executing": "চলছে",
   "info": "তথ্য",
   "ForceDelete": "জোর মুছে ফেলা",
-  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
+  "DataDirPermissionTips": "FlyEnv ডেটা ফোল্ডার তৈরি করতে ব্যর্থ হয়েছে। অনুগ্রহ করে FlyEnv অ্যাডমিনিস্ট্রেটর অধিকারে চালান, অথবা FlyEnv ইনস্টলেশনের অবস্থান পরিবর্তন করুন।.",
+  "needInstallHelperTips": "কিছু অপারেশন ব্যর্থ হয়েছে কারণ প্রশাসক অধিকার প্রয়োজন। এর মধ্যে রয়েছে হোস্টস ফাইল সম্পাদনা, প্রসেস তালিকা অ্যাক্সেস, 1024-এর নিচে পোর্ট বাইন্ড করা, অথবা সিস্টেম এনভায়রনমেন্ট ভেরিয়েবল পরিচালনা। এই কাজগুলির জন্য প্রয়োজনীয় অনুমতি প্রদানের জন্য অনুগ্রহ করে FlyEnv Helper ইনস্টল করুন। ইনস্টলেশন চালিয়ে যেতে "OK" এ ক্লিক করুন।."
 }

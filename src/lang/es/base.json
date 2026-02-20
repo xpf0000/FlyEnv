@@ -114,5 +114,6 @@
   "executing": "Ejecutando",
   "info": "Información",
   "ForceDelete": "Forzar eliminación",
-  "DataDirPermissionTips": "No se pudo crear la carpeta de datos de FlyEnv. Inicie FlyEnv con privilegios de administrador o cambie la ubicación de la instalación de FlyEnv."
+  "DataDirPermissionTips": "No se pudo crear la carpeta de datos de FlyEnv. Inicie FlyEnv con privilegios de administrador o cambie la ubicación de la instalación de FlyEnv.",
+  "needInstallHelperTips": "Algunas operaciones fallaron porque los privilegios de administrador son requeridos. Esto incluye modificar el archivo Hosts, acceder a la lista de procesos, enlazar a puertos inferiores a 1024 o administrar variables de entorno del sistema.\nPor favor instale el helper FlyEnv para conceder los permisos necesarios para estas tareas. Haga clic en \"OK\" para continuar con la instalación."
 }

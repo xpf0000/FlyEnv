@@ -19,5 +19,6 @@
   "initDBDataDir": "Folder data tidak ditemukan, mulai membuat folder data",
   "initDBDataDirSuccess": "Folder data berhasil dibuat. Lokasi folder: {dir}",
   "initDBDataDirFail": "Gagal membuat folder data. Alasan: {error}",
-  "newProjectFail": "Gagal membuat proyek baru"
+  "newProjectFail": "Gagal membuat proyek baru",
+  "processListFail": "Daftar proses tidak dapat diambil. Silakan instal FlyEnv Helper"
 }

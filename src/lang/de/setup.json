@@ -9,7 +9,7 @@
   "licenseActivated": "Lizenz aktiviert",
   "autoStartService": "Dienste automatisch starten",
   "autoStartServiceTips": "Gibt an, ob Dienste automatisch gestartet werden sollen, wenn die Anwendung gestartet wird",
-  "autoHide": "Versteckt starten / in Tray minimiert",
+  "autoHide": "Versteckt starten / in Kontrollleiste minimiert",
   "autoHideTips": "Legt fest, ob die Hauptschnittstelle ausgeblendet werden soll und nur das Systemleistensymbol nach dem Start von FlyEnv bleibt",
   "autoLaunch": "Autostart beim Booten",
   "autoLaunchTips": "Legt fest, ob FlyEnv beim Starten des Computers automatisch gestartet wird",
