@@ -15,7 +15,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import Helper from '../../Helper'
 import { existsSync } from 'fs'
-import { ProcessPidsByPid } from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { I18nT } from '@lang/index'
 import type { ModuleExecItem } from '@shared/app'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
@@ -42,7 +42,7 @@ class ModuleCustomer {
 
         if (pids.length > 0) {
           try {
-            await Helper.send('tools', 'kill', '-INT', pids)
+            await ProcessKill('-INT', pids)
           } catch {}
         }
 
@@ -51,19 +51,19 @@ class ModuleCustomer {
         })
       } else {
         const allPid: string[] = []
-        const plist: any = await Helper.send('tools', 'processList')
+        const plist: any = await ProcessListFetch()
         const pids = ProcessPidsByPid(pid.trim(), plist)
         allPid.push(...pids)
         const arr: string[] = Array.from(new Set(allPid))
         if (arr.length > 0) {
           let sig = '-TERM'
           try {
-            await Helper.send('tools', 'kill', sig, arr)
+            await ProcessKill(sig, arr)
           } catch {}
           await waitTime(500)
           sig = '-INT'
           try {
-            await Helper.send('tools', 'kill', sig, arr)
+            await ProcessKill(sig, arr)
           } catch {}
         }
         resolve({

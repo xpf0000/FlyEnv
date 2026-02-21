@@ -1,8 +1,7 @@
 import type { SoftInstalled } from '@shared/app'
-import { ProcessListByPid } from '@shared/Process'
+import { ProcessKill, ProcessListByPid, ProcessListFetch } from '@shared/Process'
 import type { PItem } from '@shared/Process'
-import Helper from '../../fork/Helper'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 import type { ForkManager } from './ForkManager'
 import { ProcessPidList, ProcessPidListByPids } from '@shared/Process.win'
 
@@ -31,8 +30,8 @@ class ServiceProcess {
   }
 
   private async killAllPid() {
-    if (isMacOS()) {
-      const plist: any = await Helper.send('tools', 'processList')
+    if (!isWindows()) {
+      const plist: any = await ProcessListFetch()
       const arr = Array.from(
         new Set(
           Object.values(this.servicePID)
@@ -65,13 +64,13 @@ class ServiceProcess {
             if (TERM.length > 0) {
               const sig = '-TERM'
               try {
-                await Helper.send('tools', 'kill', sig, TERM)
+                await ProcessKill(sig, TERM)
               } catch {}
             }
             if (INT.length > 0) {
               const sig = '-INT'
               try {
-                await Helper.send('tools', 'kill', sig, INT)
+                await ProcessKill(sig, INT)
               } catch {}
             }
           }
@@ -116,7 +115,7 @@ class ServiceProcess {
       )
       if (all.length > 0) {
         try {
-          await Helper.send('tools', 'kill', '-INT', all)
+          await ProcessKill('-INT', all)
         } catch (e) {
           console.log('taskkill e: ', e)
         }
@@ -125,10 +124,10 @@ class ServiceProcess {
   }
 
   private async stopAllProcessByName() {
-    if (isMacOS()) {
+    if (!isWindows()) {
       const TERM: Array<string> = []
       const INT: Array<string> = []
-      const all: any = await Helper.send('tools', 'processList')
+      const all: any = await ProcessListFetch()
       const find = all.filter((p: any) => {
         return (
           (p.COMMAND.includes(global.Server.BaseDir!) ||
@@ -165,13 +164,13 @@ class ServiceProcess {
       if (TERM.length > 0) {
         const sig = '-TERM'
         try {
-          await Helper.send('tools', 'kill', sig, TERM)
+          await ProcessKill(sig, TERM)
         } catch {}
       }
       if (INT.length > 0) {
         const sig = '-INT'
         try {
-          await Helper.send('tools', 'kill', sig, INT)
+          await ProcessKill(sig, INT)
         } catch {}
       }
       return
@@ -205,7 +204,7 @@ class ServiceProcess {
       console.log('_stopServer arr: ', arr)
       if (arr.length > 0) {
         try {
-          await Helper.send('tools', 'kill', '-INT', arr)
+          await ProcessKill('-INT', arr)
         } catch (e) {
           console.log('taskkill e: ', e)
         }

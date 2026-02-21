@@ -11,8 +11,7 @@ import {
   execPromiseWithEnv
 } from '../../Fn'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
-import Helper from '../../Helper'
-import { ProcessPidsByPid } from '@shared/Process'
+import { ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { defaultShell, isMacOS, isWindows } from '@shared/utils'
 import { EOL } from 'os'
 import { ProcessPidListByPid } from '@shared/Process.win'
@@ -131,7 +130,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
     if (isWindows()) {
       return await ProcessPidListByPid(pid)
     } else {
-      const plist: any = await Helper.send('tools', 'processList')
+      const plist: any = await ProcessListFetch()
       return ProcessPidsByPid(pid, plist)
     }
   }

@@ -115,3 +115,14 @@ export async function readFileFixed(file: string): Promise<string> {
   } catch {}
   throw new Error(`readFileFixed Failed: ${file}`)
 }
+
+export const writeFileByRoot = async (file: string, content: string) => {
+  try {
+    await writeFile(file, content)
+    return true
+  } catch (e) {
+    console.error('writeFileByRoot writeFile error: ', e)
+  }
+  await Helper.send('tools', 'writeFileByRoot', file, content)
+  return true
+}

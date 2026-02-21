@@ -13,7 +13,8 @@ import {
   readFile,
   writeFile,
   execPromiseSudo,
-  removeByRoot
+  removeByRoot,
+  execPromise
 } from '../Fn'
 import { isMacOS } from '@shared/utils'
 
@@ -202,11 +203,11 @@ export async function customerServiceStartExec(
   const gid = uinfo.gid
 
   try {
-    await Helper.send('tools', 'chmod', bin, '0777')
+    await execPromise(`chmod 0777 "${bin}"`)
   } catch {}
 
   try {
-    await Helper.send('tools', 'exec', `chown -R ${uid}:${gid} "${bin}"`)
+    await execPromise(`chown -R ${uid}:${gid} "${bin}"`)
   } catch {}
 
   psScript = psScript
@@ -222,11 +223,11 @@ export async function customerServiceStartExec(
   await writeFile(psPath, psScript)
 
   try {
-    await Helper.send('tools', 'chmod', psPath, '0777')
+    await execPromise(`chmod 0777 "${psPath}"`)
   } catch {}
 
   try {
-    await Helper.send('tools', 'exec', `chown -R ${uid}:${gid} "${psPath}"`)
+    await execPromise(`chown -R ${uid}:${gid} "${psPath}"`)
   } catch {}
 
   const shell = isMacOS() ? 'zsh' : 'bash'

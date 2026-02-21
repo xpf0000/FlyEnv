@@ -16,8 +16,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
-import { type PItem, ProcessSearch } from '@shared/Process'
-import Helper from '../../Helper'
+import { type PItem, ProcessKill, ProcessListFetch, ProcessSearch } from '@shared/Process'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { unpack } from '../../util/Zip'
 import { ProcessPidList } from '@shared/Process.win'
@@ -128,7 +127,7 @@ export class Base {
         if (isWindows()) {
           plist = await ProcessPidList()
         } else {
-          plist = (await Helper.send('tools', 'processList')) as any
+          plist = await ProcessListFetch()
         }
       } catch (e) {
         on({
@@ -203,7 +202,7 @@ export class Base {
       if (isWindows()) {
         if (arr.length > 0) {
           try {
-            await Helper.send('tools', 'kill', '-INT', arr)
+            await ProcessKill('-INT', arr)
           } catch {}
         }
       } else {
@@ -224,7 +223,7 @@ export class Base {
               break
           }
           try {
-            await Helper.send('tools', 'kill', sig, arr)
+            await ProcessKill(sig, arr)
           } catch {}
         }
       }

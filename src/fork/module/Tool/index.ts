@@ -22,7 +22,7 @@ import { join, dirname, resolve as PathResolve, basename } from 'path'
 import { I18nT } from '@lang/index'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import Helper from '../../Helper'
-import { ProcessSearch } from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessSearch } from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
 import { userInfo } from 'os'
@@ -459,7 +459,7 @@ class Manager extends Base {
   killPids(sig: string, pids: Array<string>) {
     return new ForkPromise(async (resolve) => {
       try {
-        await Helper.send('tools', 'kill', sig, pids)
+        await ProcessKill(sig, pids)
       } catch {}
       resolve(true)
     })
@@ -498,7 +498,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve) => {
       let arr: any = []
       try {
-        const plist: any = await Helper.send('tools', 'processList')
+        const plist: any = await ProcessListFetch()
         arr = ProcessSearch(key, false, plist)
       } catch {}
       resolve(arr)

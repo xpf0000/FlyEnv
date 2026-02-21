@@ -24,9 +24,9 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import axios from 'axios'
 import { ProcessListSearch } from '@shared/Process.win'
-import Helper from '../../Helper'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
+import { ProcessKill } from '@shared/Process'
 
 class Php extends Base {
   constructor() {
@@ -190,7 +190,7 @@ class Php extends Base {
       console.log('php arr: ', arr)
       if (arr.length > 0) {
         try {
-          await Helper.send('tools', 'kill', '-INT', arr)
+          await ProcessKill('-INT', arr)
         } catch {}
       }
       on({

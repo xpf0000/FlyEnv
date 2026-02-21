@@ -1,7 +1,7 @@
 import type { AppHost } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { waitTime, watch, existsSync, type FSWatcher, readFile, removeByRoot } from '../../Fn'
-import Helper from '../../Helper'
+import { ProcessKill } from '@shared/Process'
 
 export const getHostItemEnv = async (item: AppHost) => {
   if (item?.envVarType === 'none') {
@@ -74,7 +74,7 @@ export class ServiceItem {
       const arr = await this.checkState()
       if (arr.length > 0) {
         try {
-          await Helper.send('tools', 'kill', '-9', arr)
+          await ProcessKill('-9', arr as any)
         } catch {}
       }
       if (this.pidFile && existsSync(this.pidFile)) {

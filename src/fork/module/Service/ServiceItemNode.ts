@@ -11,8 +11,7 @@ import {
 } from '../../Fn'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { ProcessPidsByPid } from '@shared/Process'
-import Helper from '../../Helper'
+import { ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { defaultShell, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { EOL } from 'os'
@@ -140,7 +139,7 @@ export class ServiceItemNode extends ServiceItem {
     if (isWindows()) {
       return await ProcessPidListByPid(pid)
     } else {
-      const plist: any = await Helper.send('tools', 'processList')
+      const plist: any = await ProcessListFetch()
       return ProcessPidsByPid(pid, plist)
     }
   }

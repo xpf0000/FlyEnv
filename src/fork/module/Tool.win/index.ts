@@ -29,7 +29,7 @@ import type { SoftInstalled } from '@shared/app'
 import type { AppServiceAliasItem } from '@shared/app'
 import { BomCleanTask } from '../../util/BomCleanTask'
 import { ProcessListSearch, ProcessPidList, ProcessPidListByPids } from '@shared/Process.win'
-import { PItem, ProcessListByPid } from '@shared/Process'
+import { PItem, ProcessKill, ProcessListByPid } from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
 import Helper from '../../Helper'
 
@@ -199,7 +199,7 @@ subjectAltName=@alt_names
   killPids(sig: string, pids: Array<string>) {
     return new ForkPromise(async (resolve) => {
       try {
-        await Helper.send('tools', 'kill', '-INT', pids)
+        await ProcessKill('-INT', pids)
       } catch {}
       resolve(true)
     })
@@ -254,7 +254,7 @@ subjectAltName=@alt_names
         return resolve(true)
       }
       try {
-        await Helper.send('tools', 'kill', '-INT', all)
+        await ProcessKill('-INT', all)
       } catch {}
       resolve(true)
     })

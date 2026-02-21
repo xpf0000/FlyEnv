@@ -31,7 +31,7 @@ import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
-import type { PItem } from '@shared/Process'
+import { PItem, ProcessKill } from '@shared/Process'
 import { EOL } from 'os'
 import { createConnection } from 'mysql2/promise'
 import type { Connection } from 'mysql2/promise'
@@ -427,7 +427,7 @@ datadir=${pathFixedToUnix(dataDir)}`
 
         if (arr.length > 0) {
           try {
-            await Helper.send('tools', 'kill', '-INT', arr)
+            await ProcessKill('-INT', arr)
           } catch {}
         }
         await waitTime(500)
@@ -449,7 +449,7 @@ datadir=${pathFixedToUnix(dataDir)}`
           }
           if (arr.length > 0) {
             const sig = '-TERM'
-            await Helper.send('tools', 'kill', sig, arr)
+            await ProcessKill(sig, arr)
           }
           await waitTime(500)
           resolve(true)

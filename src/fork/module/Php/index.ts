@@ -24,17 +24,20 @@ import {
   remove,
   removeByRoot,
   writeFileByRoot,
-  readFileByRoot
+  readFileByRoot,
+  chmod
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
-import { ProcessPidsByPid } from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import Helper from '../../Helper'
 import { unpack } from '../../util/Zip'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
+import { tmpdir } from 'node:os'
+import { uuid } from '@shared/utils'
 
 class Php extends Base {
   constructor() {
@@ -88,6 +91,23 @@ class Php extends Base {
         } catch {}
       }
 
+      const iniFix = async (ini: string, cacheFile: string) => {
+        let hasError = false
+        try {
+          await mkdirp(dirname(ini))
+          await copyFile(cacheFile, ini)
+          await chmod(ini, '0777')
+        } catch {
+          hasError = true
+        }
+        if (hasError) {
+          try {
+            await Helper.send('php', 'iniFileFixed', ini, cacheFile)
+            await Helper.send('tools', 'chmod', ini, '777')
+          } catch {}
+        }
+      }
+
       if (ini) {
         if (!existsSync(ini)) {
           if (!ini.endsWith('.ini')) {
@@ -96,12 +116,9 @@ class Php extends Base {
           }
           const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
           const content = await readFile(tmpl, 'utf-8')
-          const cacheFile = join(global.Server.Cache!, 'php.ini')
+          const cacheFile = join(tmpdir(), `php.${uuid()}.ini`)
           await writeFile(cacheFile, content)
-          try {
-            await Helper.send('php', 'iniFileFixed', ini, cacheFile)
-            await Helper.send('tools', 'chmod', ini, '777')
-          } catch {}
+          await iniFix(ini, cacheFile)
           await remove(cacheFile)
         }
         if (existsSync(ini)) {
@@ -110,19 +127,13 @@ class Php extends Base {
             ini = join(ini, 'php.ini-development')
             if (!existsSync(baseIni)) {
               if (existsSync(ini)) {
-                try {
-                  await Helper.send('php', 'iniFileFixed', baseIni, ini)
-                  await Helper.send('tools', 'chmod', baseIni, '777')
-                } catch {}
+                await iniFix(baseIni, ini)
               } else {
                 const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
                 const content = await readFile(tmpl, 'utf-8')
-                const cacheFile = join(global.Server.Cache!, 'php.ini')
+                const cacheFile = join(tmpdir(), `php.${uuid()}.ini`)
                 await writeFile(cacheFile, content)
-                try {
-                  await Helper.send('php', 'iniFileFixed', baseIni, cacheFile)
-                  await Helper.send('tools', 'chmod', baseIni, '777')
-                } catch {}
+                await iniFix(baseIni, cacheFile)
                 await remove(cacheFile)
               }
             }
@@ -140,10 +151,8 @@ class Php extends Base {
               parse.set('post_max_size', 'post_max_size = 200M', 'PHP')
               parse.set('post_max_size', 'upload_max_filesize = 200M', 'PHP')
 
-              await writeFile(ini, parse.content)
-              try {
-                await Helper.send('php', 'iniDefaultFileFixed', iniDefault, ini)
-              } catch {}
+              await writeFileByRoot(ini, parse.content)
+              await iniFix(iniDefault, ini)
             }
             resolve(ini)
             return
@@ -231,7 +240,7 @@ xdebug.output_dir = "${output_dir}"
       })
       const arr: Array<string> = []
       if (version?.pid?.trim()) {
-        const plist: any = await Helper.send('tools', 'processList')
+        const plist: any = await ProcessListFetch()
         const pids = ProcessPidsByPid(version.pid.trim(), plist)
         arr.push(...pids)
       } else {
@@ -249,7 +258,7 @@ xdebug.output_dir = "${output_dir}"
       if (arr.length > 0) {
         const sig = '-INT'
         try {
-          await Helper.send('tools', 'kill', sig, arr)
+          await ProcessKill(sig, arr)
         } catch {}
       }
       on({

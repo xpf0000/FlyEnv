@@ -4,7 +4,7 @@ import is from 'electron-is'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
-import { existsSync, writeFileSync } from 'fs'
+import { existsSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import {
   getLanguage,
@@ -14,7 +14,8 @@ import {
   mkdirp,
   readFile,
   readFileFixed,
-  writeFile
+  writeFile,
+  writeFileByRoot
 } from './utils'
 import { AppAllLang, AppI18n, I18nT } from '@lang/index'
 import SiteSuckerManager from './ui/SiteSucker'
@@ -595,7 +596,7 @@ export default class Application extends EventEmitter {
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x && x.length > 0) {
         hosts = hosts.replace(x[0], '')
-        writeFileSync(file, hosts)
+        await writeFileByRoot(file, hosts)
       }
     } catch {}
   }

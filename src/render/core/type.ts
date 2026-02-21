@@ -79,6 +79,8 @@ export enum AppModuleEnum {
 
 export type AllAppModule = keyof typeof AppModuleEnum
 
+export const AppWithRoot = ['apache', 'nginx', 'caddy', 'pure-ftpd', 'ftp-srv', 'tomcat', 'consul']
+
 type LabelFn = () => string
 
 /**
