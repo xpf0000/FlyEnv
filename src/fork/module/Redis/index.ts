@@ -24,8 +24,6 @@ import {
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
-import { userInfo } from 'os'
-import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 
@@ -75,15 +73,6 @@ class Redis extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: confFile }))
         })
-      } else {
-        if (!isWindows()) {
-          const logFile = join(global.Server.RedisDir!, `redis-${v}.log`)
-          if (existsSync(logFile)) {
-            const uinfo = userInfo()
-            const user = `${uinfo.uid}:${uinfo.gid}`
-            await Helper.send('redis', 'logFileFixed', logFile, user)
-          }
-        }
       }
       resolve(confFile)
     })

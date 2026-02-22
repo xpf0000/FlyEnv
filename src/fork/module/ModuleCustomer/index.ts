@@ -13,7 +13,6 @@ import {
   copyFile
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import Helper from '../../Helper'
 import { existsSync } from 'fs'
 import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { I18nT } from '@lang/index'
@@ -90,7 +89,7 @@ class ModuleCustomer {
           command = join(baseDir, `${version.id}.sh`)
           await writeFile(command, version.command)
           try {
-            await Helper.send('tools', 'chmod', command, '0777')
+            await chmod(command, '0777')
           } catch {}
         }
         command = command.replace(/"/g, '\\"')
@@ -152,7 +151,7 @@ class ModuleCustomer {
           command = join(baseDir, `${version.id}.sh`)
           await writeFile(command, version.command)
           try {
-            await Helper.send('tools', 'chmod', command, '0777')
+            await chmod(command, '0777')
           } catch {}
         }
         command = command.replace(/"/g, '\\"')

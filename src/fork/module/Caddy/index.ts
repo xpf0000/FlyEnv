@@ -23,7 +23,6 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
-import Helper from '../../Helper'
 import { isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
 
 class Caddy extends Base {
@@ -147,11 +146,6 @@ class Caddy extends Base {
 
       await this.#fixVHost()
       const iniFile = await this.initConfig().on(on)
-
-      if (!isWindows()) {
-        const sslDir = join(global.Server.BaseDir!, 'caddy/ssl')
-        await Helper.send('caddy', 'sslDirFixed', sslDir)
-      }
 
       const bin = version.bin
       const baseDir = join(global.Server.BaseDir!, 'caddy')

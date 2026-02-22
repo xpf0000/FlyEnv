@@ -25,6 +25,7 @@ import { fetchHostList, saveHostList } from './HostFile'
 import Helper from '../../Helper'
 import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+import { AppHelperCheck } from '@shared/AppHelperCheck'
 
 export class Host extends Base {
   hostsFile = ''
@@ -437,7 +438,11 @@ export class Host extends Base {
           if (isWindows()) {
             await execPromise('ipconfig /flushdns')
           } else {
-            await Helper.send('host', 'dnsRefresh')
+            if (Helper.enable) {
+              await Helper.send('host', 'dnsRefresh')
+            } else if (await AppHelperCheck()) {
+              await Helper.send('host', 'dnsRefresh')
+            }
           }
         } catch {}
       }
