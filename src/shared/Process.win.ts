@@ -21,7 +21,7 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
   }
   const all: PItem[] = []
 
-  if (!useHelper) {
+  if (useHelper) {
     const content: string = (await Helper.send('tools', 'processListWin')) as any
     const list = JSON5.parse(content)
     all.push(
