@@ -4,7 +4,7 @@ import Helper from '../fork/Helper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { uuid } from '@shared/utils'
+import { appDebugLog, uuid } from '@shared/utils'
 import { execPromiseWithEnv } from '@shared/child-process'
 import { readFile, remove } from '@shared/fs-extra'
 
@@ -36,21 +36,25 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
     return all
   }
 
-  const file = join(tmpdir(), `${uuid()}.json`)
-  const command = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId,CreationClassName | ConvertTo-Json | Out-File -FilePath '${file}' -Encoding utf8`
-  await execPromiseWithEnv(command)
-  const content = await readFile(file, 'utf-8')
-  const list = JSON5.parse(content)
-  all.push(
-    ...list.map((m: any) => {
-      return {
-        PID: `${m.ProcessId}`,
-        PPID: `${m.ParentProcessId}`,
-        COMMAND: m.CommandLine
-      }
-    })
-  )
-  remove(file).catch()
+  try {
+    const file = join(tmpdir(), `${uuid()}.json`)
+    const command = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId,CreationClassName | ConvertTo-Json | Out-File -FilePath '${file}' -Encoding utf8`
+    await execPromiseWithEnv(command)
+    const content = await readFile(file, 'utf-8')
+    const list = JSON5.parse(content)
+    all.push(
+      ...list.map((m: any) => {
+        return {
+          PID: `${m.ProcessId}`,
+          PPID: `${m.ParentProcessId}`,
+          COMMAND: m.CommandLine
+        }
+      })
+    )
+    remove(file).catch()
+  } catch (e) {
+    appDebugLog(`[ProcessPidList][error]`, `${e}`).catch()
+  }
   return all
 }
 
