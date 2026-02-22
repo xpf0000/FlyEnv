@@ -55,7 +55,7 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
 }
 
 export const ProcessPidListByPids = async (pids: (string | number)[]): Promise<string[]> => {
-  const all: Set<string> = new Set()
+  const all: Set<string> = new Set(pids as any)
   const arr = await ProcessPidList()
   const find = (ppid: string | number) => {
     ppid = Number(ppid)
@@ -87,7 +87,7 @@ export const ProcessPidListByPids = async (pids: (string | number)[]): Promise<s
 
 export const ProcessPidListByPid = async (pid: string | number): Promise<string[]> => {
   pid = `${pid}`
-  const all: Set<string> = new Set()
+  const all: Set<string> = new Set([pid])
   const arr = await ProcessPidList()
   const find = (ppid: string | number) => {
     ppid = `${ppid}`

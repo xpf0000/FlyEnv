@@ -104,15 +104,19 @@ class ServiceProcess {
         delete this.servicePID?.['postgresql']
       }
 
-      const all: string[] = await ProcessPidListByPids(
-        Array.from(
-          new Set(
-            Object.values(this.servicePID)
-              .flat()
-              .map((m) => m.pid)
-          )
+      let all: string[] = []
+      const pids = Array.from(
+        new Set(
+          Object.values(this.servicePID)
+            .flat()
+            .map((m) => `${m.pid}`)
         )
       )
+      try {
+        all = await ProcessPidListByPids(pids)
+      } catch {
+        all = pids
+      }
       if (all.length > 0) {
         try {
           await ProcessKill('-INT', all)

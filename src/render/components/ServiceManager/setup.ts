@@ -196,7 +196,9 @@ export const Setup = (typeFlag: AllAppModule) => {
     return module.fetchInstalleding
   })
 
-  ServiceActionStore.fetchPath()
+  if (versions.value.length > 0) {
+    ServiceActionStore.fetchPath()
+  }
 
   return {
     appStore,
