@@ -1,6 +1,6 @@
 {
   "add": "Hinzufügen",
-  "open": "Offen",
+  "open": "Öffnen",
   "enable": "Aktivieren",
   "openHosts": "Hosts-Datei öffnen",
   "edit": "Bearbeiten",
@@ -114,5 +114,6 @@
   "executing": "Ausführen",
   "info": "Info",
   "ForceDelete": "Löschen erzwingen",
-  "DataDirPermissionTips": "Fehler beim Erstellen des FlyEnv-Datenordners. Bitte starten Sie FlyEnv mit Administratorrechten oder ändern Sie den Speicherort der FlyEnv-Installation."
+  "DataDirPermissionTips": "Fehler beim Erstellen des FlyEnv-Datenordners. Bitte starten Sie FlyEnv mit Administratorrechten oder ändern Sie den Speicherort der FlyEnv-Installation.",
+  "needInstallHelperTips": "Einige Operationen sind fehlgeschlagen, da Administratorrechte erforderlich sind. Dazu gehören die Änderung der Hosts-Datei, der Zugriff auf die Prozessliste, die Bindung an Ports unterhalb von 1024 oder die Verwaltung von System-Umgebungsvariablen.\nBitte installieren Sie den FlyEnv Helfer, um die erforderlichen Berechtigungen für diese Aufgaben zu erteilen. Klicken Sie auf \"OK\", um mit der Installation fortzufahren."
 }

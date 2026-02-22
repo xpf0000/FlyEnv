@@ -19,5 +19,6 @@
   "initDBDataDir": "Gegevensmap niet gevonden, begin met het initialiseren van de gegevensmap",
   "initDBDataDirSuccess": "Initialisatie van de gegevensmap succesvol, gegevensmap pad: {dir}",
   "initDBDataDirFail": "Initialisatie van gegevensmap is mislukt, reden: {error}",
-  "newProjectFail": "Nieuw project maken mislukt"
+  "newProjectFail": "Nieuw project maken mislukt",
+  "processListFail": "Proceslijst ophalen mislukt. Installeer FlyEnv Helper"
 }

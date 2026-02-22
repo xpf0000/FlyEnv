@@ -114,5 +114,6 @@
   "executing": "Uitvoeren",
   "info": "Informatie",
   "ForceDelete": "Geforceerd verwijderen",
-  "DataDirPermissionTips": "Aanmaken van de FlyEnv gegevensmap is mislukt. Start FlyEnv met beheerdersrechten of verander de locatie voor de installatie FlyEnv."
+  "DataDirPermissionTips": "Aanmaken van de FlyEnv gegevensmap is mislukt. Start FlyEnv met beheerdersrechten of verander de locatie voor de installatie FlyEnv.",
+  "needInstallHelperTips": "Sommige bewerkingen zijn mislukt omdat beheerdersbevoegdheden vereist zijn. Dit omvat onder andere het wijzigen van het Hosts bestand, toegang tot de proceslijst, binding met poorten onder 1024, of het beheren van systeemomgevingsvariabelen.\nInstalleer de FlyEnv Helper om de benodigde machtigingen te geven voor deze taken. Klik op \"OK\" om verder te gaan met de installatie."
 }

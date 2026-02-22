@@ -19,5 +19,6 @@
   "initDBDataDir": "Finner ikke datamappen, start å initialisere datamappen",
   "initDBDataDirSuccess": "Initialisering av datamappe vellykket, datamappens sti: {dir}",
   "initDBDataDirFail": "Initialisering av datamappen mislyktes, grunn: {error}",
-  "newProjectFail": "Kunne ikke opprette nytt prosjekt"
+  "newProjectFail": "Kunne ikke opprette nytt prosjekt",
+  "processListFail": "Henting av prosessliste feilet. Vennligst installer FlyEnv Helper"
 }

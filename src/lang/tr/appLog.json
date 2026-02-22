@@ -19,5 +19,6 @@
   "initDBDataDir": "Veri klasörü bulunamadı, başlatılıyor...",
   "initDBDataDirSuccess": "Veri klasörü başarıyla başlatıldı, klasör yolu: {dir}",
   "initDBDataDirFail": "Veri klasörü başlatılamadı, neden: {error}",
-  "newProjectFail": "Yeni proje oluşturulamadı"
+  "newProjectFail": "Yeni proje oluşturulamadı",
+  "processListFail": "İşlem listesi alınamadı. Lütfen FlyEnv Helper'ı yükleyin"
 }

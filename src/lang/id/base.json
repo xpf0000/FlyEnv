@@ -114,5 +114,6 @@
   "executing": "Sedang dieksekusi",
   "info": "Info",
   "ForceDelete": "Hapus paksa",
-  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
+  "DataDirPermissionTips": "Gagal membuat folder data FlyEnv. Silakan jalankan FlyEnv dengan hak administrator, atau ubah lokasi instalasi FlyEnv.",
+  "needInstallHelperTips": "Beberapa operasi gagal karena memerlukan hak administrator. Hal ini termasuk memodifikasi berkas Hosts, mengakses daftar proses, mengikat ke port di bawah 1024, atau mengelola variabel lingkungan sistem.\nSilakan instal FlyEnv Helper untuk memberikan izin yang diperlukan untuk tugas-tugas ini. Klik \“OK\” untuk melanjutkan instalasi."
 }

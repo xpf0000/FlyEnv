@@ -3,8 +3,8 @@
   "exit": "Beenden",
   "run": "Aktiv",
   "notRun": "Nicht aktiv",
-  "trayMenuBarStyle": "Tray Popup Stil",
+  "trayMenuBarStyle": "Modus für das Kontextmenü",
   "classic": "Klassisch",
   "modern": "Modern",
-  "trayMenuBarStyleTips": "Wählen Sie den Popup-Stil. Auf einigen Linux-Desktop-Computern kann der moderne Stil Probleme haben, so dass Sie stattdessen den klassischen Stil wählen können."
+  "trayMenuBarStyleTips": "Wählen Sie den Stil für das Kontextmenü aus. Auf einigen Linux-Desktop-Computern kann der moderne Stil Probleme haben, so dass Sie stattdessen den klassischen Stil wählen können."
 }

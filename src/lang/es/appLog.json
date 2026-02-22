@@ -19,5 +19,6 @@
   "initDBDataDir": "Carpeta de datos no encontrada, creando la carpeta de datos",
   "initDBDataDirSuccess": "Creación exitosa de la carpeta de datos, ruta: {dir}",
   "initDBDataDirFail": "Falló la creación de la carpeta de datos, motivo: {error}",
-  "newProjectFail": "No se pudo crear el nuevo proyecto"
+  "newProjectFail": "No se pudo crear el nuevo proyecto",
+  "processListFail": "Falló la búsqueda de la lista de procesos. Por favor instale FlyEnv Helper"
 }

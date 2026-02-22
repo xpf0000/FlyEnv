@@ -114,5 +114,6 @@
   "executing": "Körs",
   "info": "Information",
   "ForceDelete": "Tvinga radering",
-  "DataDirPermissionTips": "Det gick inte att skapa mappen FlyEnv. Starta FlyEnv med administratörsrättigheter eller ändra installationsplatsen för FlyEnv."
+  "DataDirPermissionTips": "Det gick inte att skapa mappen FlyEnv. Starta FlyEnv med administratörsrättigheter eller ändra installationsplatsen för FlyEnv.",
+  "needInstallHelperTips": "Vissa operationer misslyckades eftersom administratörsprivilegier krävs. Detta inkluderar att ändra Hosts-filen, komma åt processlistan, binda till portar under 1024, eller hantera systemmiljövariabler.\nInstallera FlyEnv Helper för att bevilja nödvändiga behörigheter för dessa uppgifter. Klicka på \"OK\" för att fortsätta med installationen."
 }

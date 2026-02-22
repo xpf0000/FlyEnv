@@ -114,5 +114,6 @@
   "executing": "Yürütülüyor",
   "info": "Bilgi",
   "ForceDelete": "Zorla sil",
-  "DataDirPermissionTips": "Failed to create the FlyEnv data folder. Please start FlyEnv with administrator privileges, or change the FlyEnv installation location."
+  "DataDirPermissionTips": "FlyEnv veri klasörü oluşturulamadı. Lütfen FlyEnv'yi yönetici ayrıcalıklarıyla başlatın veya FlyEnv kurulum konumunu değiştirin.",
+  "needInstallHelperTips": "Yönetici ayrıcalıkları gerektiğinden bazı işlemler başarısız oldu. Buna Hosts dosyasını değiştirme, işlem listesine erişme, 1024'ün altındaki bağlantı noktalarına bağlanma veya sistem ortam değişkenlerini yönetme dahildir. Bu görevler için gerekli izinleri vermek üzere FlyEnv Helper'ı yükleyin. Yüklemeye devam etmek için \“Tamam\”ı tıklayın."
 }

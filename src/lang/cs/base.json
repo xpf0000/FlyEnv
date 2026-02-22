@@ -114,5 +114,6 @@
   "executing": "Provádění",
   "info": "Info",
   "ForceDelete": "Vynutit odstranění",
-  "DataDirPermissionTips": "Nepodařilo se vytvořit složku FlyEnv. Spusťte FlyEnv s oprávněním správce, nebo změňte umístění instalace FlyEnv."
+  "DataDirPermissionTips": "Nepodařilo se vytvořit složku FlyEnv. Spusťte FlyEnv s oprávněním správce, nebo změňte umístění instalace FlyEnv.",
+  "needInstallHelperTips": "Některé operace se nezdařily, protože jsou vyžadována oprávnění správce. To zahrnuje úpravu souboru Hosts, přístup k seznamu procesů, závazné pro porty pod 1024 nebo správu proměnných systémového prostředí.\nNainstalujte si FlyEnv Helper pro udělení potřebných oprávnění pro tyto úkoly. Klikněte na \"OK\" pro pokračování v instalaci."
 }

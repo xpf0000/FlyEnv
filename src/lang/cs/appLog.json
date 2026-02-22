@@ -19,5 +19,6 @@
   "initDBDataDir": "Datová složka nebyla nalezena, začněte inicializovat datovou složku",
   "initDBDataDirSuccess": "Inicializace složky dat úspěšná, cesta ke složce dat: {dir}",
   "initDBDataDirFail": "Inicializace složky dat selhala, důvod: {error}",
-  "newProjectFail": "Vytvoření nového projektu se nezdařilo"
+  "newProjectFail": "Vytvoření nového projektu se nezdařilo",
+  "processListFail": "Načítání seznamu procesů se nezdařilo. Nainstalujte FlyEnv Helper"
 }
