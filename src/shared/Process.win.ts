@@ -37,8 +37,8 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
   }
 
   try {
-    const file = join(tmpdir(), `${uuid()}.json`)
-    const command = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId,CreationClassName | ConvertTo-Json | Out-File -FilePath '${file}' -Encoding utf8`
+    const file = join(tmpdir(), `${uuid()}.json`).split('\\').join('/')
+    const command = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId,CreationClassName | ConvertTo-Json | Out-File -FilePath "${file}" -Encoding utf8`
     await execPromiseWithEnv(command)
     const content = await readFile(file, 'utf-8')
     const list = JSON5.parse(content)
