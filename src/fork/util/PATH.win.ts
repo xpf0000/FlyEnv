@@ -3,10 +3,27 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, existsSync, readFile, remove, writeFile } from '../Fn'
 import { appDebugLog } from '@shared/utils'
 import Helper from '../Helper'
+import { AppHelperCheck } from '@shared/AppHelperCheck'
 
-export const fetchRawPATH = (): ForkPromise<string[]> => {
+export const fetchRawPATH = (useHelper = false): ForkPromise<string[]> => {
   return new ForkPromise(async (resolve, reject) => {
     console.log('fetchRawPATH !!!!!!')
+    let helperEnable = false
+    try {
+      if (Helper.enable) {
+        helperEnable = true
+      } else if (await AppHelperCheck()) {
+        helperEnable = true
+      }
+    } catch {
+      helperEnable = false
+    }
+
+    if (!useHelper && !helperEnable) {
+      reject(new Error('Need Install FlyEnv Helper'))
+      return
+    }
+
     const sh = join(global.Server.Static!, 'sh/path-get.ps1')
     const copySh = join(global.Server.Cache!, 'path-get.ps1')
     if (existsSync(copySh)) {
@@ -106,7 +123,7 @@ export const writePath = async (path: string[], other: string = '') => {
 export const addPath = async (dir: string) => {
   let allPath: string[] = []
   try {
-    allPath = await fetchRawPATH()
+    allPath = await fetchRawPATH(true)
   } catch {
     return
   }

@@ -90,7 +90,16 @@
               >
                 <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
                 <template v-for="(v, _i) in phpVersions" :key="_i">
-                  <el-option :value="v.num" :label="v.version"></el-option>
+                  <el-option :value="v.num" :label="v.version">
+                    <template #default>
+                      <template v-if="v.run">
+                        <span class="text-green-500">{{ v.version }}</span>
+                      </template>
+                      <template v-else>
+                        <span>{{ v.version }}</span>
+                      </template>
+                    </template>
+                  </el-option>
                 </template>
               </el-select>
             </div>
@@ -255,6 +264,7 @@
   import NginxRewrite from './Edit/nginxRewrite.vue'
   import { join } from '@/util/path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
+  import { uuid } from '@/util'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -267,7 +277,7 @@
   const item = ref({
     id: new Date().getTime(),
     type: 'php',
-    name: '',
+    name: `flyenv-test-${uuid(8)}.test`,
     alias: '',
     useSSL: false,
     autoSSL: false,
@@ -317,6 +327,18 @@
   const php = computed(() => {
     return brewStore.module('php')
   })
+
+  const phpRunVersions = computed(() => {
+    const versions: Record<string, boolean> = {}
+    php?.value?.installed?.forEach((p) => {
+      const k = p.version.split('.').slice(0, 2).join('.')
+      if (!versions?.[k]) {
+        versions[k] = p.run
+      }
+    })
+    return versions
+  })
+
   const phpVersions = computed(() => {
     const set: Set<number> = new Set()
     const arr =
@@ -331,9 +353,11 @@
         return false
       }) ?? []
     return arr.map((p) => {
+      const version = p.version.split('.').slice(0, 2).join('.')
       return {
         ...p,
-        version: p.version.split('.').slice(0, 2).join('.')
+        version,
+        run: phpRunVersions.value?.[version] ?? false
       }
     })
   })

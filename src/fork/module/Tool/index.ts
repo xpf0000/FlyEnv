@@ -22,7 +22,12 @@ import { join, dirname, resolve as PathResolve, basename } from 'path'
 import { I18nT } from '@lang/index'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import Helper from '../../Helper'
-import { ProcessKill, ProcessListFetch, ProcessSearch } from '@shared/Process'
+import {
+  fetchProcessPidByPort,
+  ProcessKill,
+  ProcessListFetch,
+  ProcessSearch
+} from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
 import { userInfo } from 'os'
@@ -488,7 +493,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve) => {
       let arr: any
       try {
-        arr = await Helper.send('tools', 'getPortPids', port)
+        arr = await fetchProcessPidByPort(port)
       } catch {}
       resolve(arr)
     })

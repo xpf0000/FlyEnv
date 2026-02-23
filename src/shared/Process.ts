@@ -173,3 +173,41 @@ export const ProcessKill = async (sig: string, pids: string[]) => {
   }
   await execPromiseWithEnv(command)
 }
+
+export const fetchProcessPidByPort = async (port: string): Promise<PItem[]> => {
+  const command = `lsof -nP -i:${port} | awk '{print $1,$2,$3}'`
+  let content: string = ''
+  try {
+    const res = await execPromiseWithEnv(command)
+    content = res.stdout.trim()
+  } catch {
+    return []
+  }
+
+  const list: string[] = content.split('\n').filter((line) => line.trim().length > 0)
+  const pids: PItem[] = []
+  for (const item of list) {
+    const arr: string[] = item.split(' ').filter((s) => s.trim().length > 0)
+    if (arr.length >= 3) {
+      const command = arr[0]
+      const pid = arr[1]
+      const user = arr[2]
+      pids.push({
+        COMMAND: command,
+        PID: pid,
+        USER: user,
+        PPID: ''
+      })
+    }
+  }
+  if (pids.length > 0) {
+    const all = await ProcessListFetch()
+    pids.forEach((item) => {
+      const find = all.find((f) => f.PID === item.PID)
+      if (find) {
+        Object.assign(item, find)
+      }
+    })
+  }
+  return pids
+}

@@ -225,12 +225,17 @@ subjectAltName=@alt_names
       if (pids.length === 0) {
         return resolve([])
       }
-      const arr: any[] = []
+      const arr: PItem[] = []
       console.log('pids: ', pids)
       const all = await ProcessPidList()
       for (const pid of pids) {
         const item = ProcessListByPid(pid, all)
-        arr.push(...item)
+        for (const p of item) {
+          const find = arr.find((s: PItem) => s.PID === p.PID)
+          if (!find) {
+            arr.push(p)
+          }
+        }
       }
       resolve(arr)
     })
@@ -295,7 +300,7 @@ subjectAltName=@alt_names
     return new ForkPromise(async (resolve, reject) => {
       let oldPath: string[] = []
       try {
-        oldPath = await fetchRawPATH()
+        oldPath = await fetchRawPATH(true)
       } catch {}
       if (oldPath.length === 0) {
         reject(new Error('Fail'))
@@ -372,7 +377,7 @@ subjectAltName=@alt_names
       let oldPath: string[] = []
       let rawOldPath: string[] = []
       try {
-        oldPath = await fetchRawPATH()
+        oldPath = await fetchRawPATH(true)
         rawOldPath = oldPath.map((s) => {
           if (existsSync(s)) {
             return realpathSync(s)
@@ -675,7 +680,7 @@ chcp 65001>nul
       console.log('envPathList !!!!!')
       let oldPath: string[] = []
       try {
-        oldPath = await fetchRawPATH()
+        oldPath = await fetchRawPATH(true)
       } catch {}
       if (oldPath.length === 0) {
         reject(new Error('Fail'))
