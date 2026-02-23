@@ -167,3 +167,26 @@ export const ProcessListSearch = async (search: string, aA = true): Promise<PIte
   }
   return all
 }
+
+export const fetchProcessPidByPort = async (port: string): Promise<string[]> => {
+  const command = `netstat -ano | findstr ":${port}"`
+  let content: string = ''
+  try {
+    const res = await execPromiseWithEnv(command, {
+      shell: 'powershell.exe'
+    })
+    content = res.stdout.trim()
+  } catch {
+    return []
+  }
+
+  const list: string[] = content.split('\n').filter((line) => line.trim().length > 0)
+  const pids: Set<string> = new Set()
+  for (const item of list) {
+    const arr: string[] = item.split(' ').filter((s) => s.trim().length > 0)
+    if (arr.length >= 5) {
+      pids.add(arr.pop()!)
+    }
+  }
+  return Array.from(pids)
+}

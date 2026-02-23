@@ -342,6 +342,20 @@ export const removeByRoot = async (file: string): Promise<void> => {
   return
 }
 
+export const binXattrFix = async (bin: string) => {
+  if (!existsSync(bin)) {
+    return
+  }
+  const command = `xattr -dr "com.apple.quarantine" "${bin}"`
+  try {
+    await execPromiseWithEnv(command)
+    return
+  } catch {}
+  try {
+    await Helper.send('mailpit', 'binFixed', bin)
+  } catch {}
+}
+
 export async function waitPidFile(
   pidFile: string,
   time = 0,

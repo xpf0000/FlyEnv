@@ -4,6 +4,7 @@ import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  binXattrFix,
   brewInfoJson,
   brewSearch,
   mkdirp,
@@ -19,7 +20,6 @@ import {
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
-import Helper from '../../Helper'
 
 class Gradle extends Base {
   constructor() {
@@ -111,7 +111,7 @@ class Gradle extends Base {
       await moveChildDirToParent(dir)
       if (isMacOS()) {
         try {
-          await Helper.send('mailpit', 'binFixed', row.bin)
+          await binXattrFix(row.bin)
         } catch {}
       }
     }

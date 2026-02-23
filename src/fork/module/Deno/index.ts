@@ -4,6 +4,7 @@ import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  binXattrFix,
   brewInfoJson,
   brewSearch,
   portSearch,
@@ -15,7 +16,6 @@ import {
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
-import Helper from '../../Helper'
 
 class Deno extends Base {
   constructor() {
@@ -95,7 +95,7 @@ class Deno extends Base {
   async _installSoftHandle(row: any): Promise<void> {
     await super._installSoftHandle(row)
     if (isMacOS()) {
-      await Helper.send('mailpit', 'binFixed', row.bin)
+      await binXattrFix(row.bin)
     }
   }
 

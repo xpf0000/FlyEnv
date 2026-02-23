@@ -28,7 +28,12 @@ import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
 import type { AppServiceAliasItem } from '@shared/app'
 import { BomCleanTask } from '../../util/BomCleanTask'
-import { ProcessListSearch, ProcessPidList, ProcessPidListByPids } from '@shared/Process.win'
+import {
+  fetchProcessPidByPort,
+  ProcessListSearch,
+  ProcessPidList,
+  ProcessPidListByPids
+} from '@shared/Process.win'
 import { PItem, ProcessKill, ProcessListByPid } from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
 import Helper from '../../Helper'
@@ -209,7 +214,7 @@ subjectAltName=@alt_names
     return new ForkPromise(async (resolve) => {
       let pids: string[] = []
       try {
-        pids = (await Helper.send('tools', 'getPortPidsWin', name)) as any
+        pids = await fetchProcessPidByPort(name)
       } catch {}
       pids = Array.from(new Set(pids))
       pids = pids
@@ -237,7 +242,7 @@ subjectAltName=@alt_names
       for (const port of ports) {
         let portList: string[] = []
         try {
-          portList = (await Helper.send('tools', 'getPortPidsWin', port)) as any
+          portList = await fetchProcessPidByPort(port)
         } catch {
           portList = []
         }

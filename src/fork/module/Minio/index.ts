@@ -17,11 +17,11 @@ import {
   mkdirp,
   readFile,
   writeFile,
-  serviceStartExecWin
+  serviceStartExecWin,
+  binXattrFix
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
-import Helper from '../../Helper'
 import { EOL } from 'os'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 
@@ -288,7 +288,7 @@ class Minio extends Base {
       await chmod(row.bin, '0777')
       if (isMacOS()) {
         try {
-          await Helper.send('mailpit', 'binFixed', row.bin)
+          await binXattrFix(row.bin)
         } catch {}
       }
     }

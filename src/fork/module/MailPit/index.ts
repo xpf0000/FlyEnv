@@ -14,14 +14,14 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  serviceStartExecWin
+  serviceStartExecWin,
+  binXattrFix
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
 import { EOL } from 'os'
 import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
-import Helper from '../../Helper'
 
 class MailPit extends Base {
   constructor() {
@@ -252,7 +252,7 @@ class MailPit extends Base {
   async _installSoftHandle(row: any): Promise<void> {
     await super._installSoftHandle(row)
     if (isMacOS()) {
-      await Helper.send('mailpit', 'binFixed', row.bin)
+      await binXattrFix(row.bin)
     }
   }
 
