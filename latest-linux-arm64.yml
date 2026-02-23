@@ -1,11 +1,11 @@
-version: 4.13.1
+version: 4.13.2
 files:
-  - url: FlyEnv-4.13.1.deb
-    sha512: /jSIuU0RygpWs2UWp9Bk+owV7cIO6fHZ616xzJg5qN20mzgFj5qWc0xM4TUQAvwWoYVH+otrtYTzFrSm3zx5Pw==
-    size: 127631076
-  - url: FlyEnv-4.13.1.rpm
-    sha512: AnC/YiFRcU2ygb5v+w5zd4Y2cHc8zO/17F7DHr+AA0F2LEhEMWi+hfzWDOVE07ggN9PVmDaUu2FzpJ3BOSuvaQ==
-    size: 106526045
-path: FlyEnv-4.13.1.deb
-sha512: /jSIuU0RygpWs2UWp9Bk+owV7cIO6fHZ616xzJg5qN20mzgFj5qWc0xM4TUQAvwWoYVH+otrtYTzFrSm3zx5Pw==
-releaseDate: '2026-02-08T14:48:59.980Z'
+  - url: FlyEnv-4.13.2.deb
+    sha512: Eg5+fsMsUN4+/z+OomQvg8kusvP211oDkbBkKj2Kxog5fcGWDmPnEaI7z9FQIKJR6un4Mo/r0A8HNROlazKIhw==
+    size: 127717784
+  - url: FlyEnv-4.13.2.rpm
+    sha512: 86aQeM82E2zMlsienu1yRpWxKFxRhuNBNbP1bcijcFa40rJzJ5bScCygy/8xtGyHy4pe5bpLcQIKp/nAy4QlBg==
+    size: 106604953
+path: FlyEnv-4.13.2.deb
+sha512: Eg5+fsMsUN4+/z+OomQvg8kusvP211oDkbBkKj2Kxog5fcGWDmPnEaI7z9FQIKJR6un4Mo/r0A8HNROlazKIhw==
+releaseDate: '2026-02-23T10:54:51.877Z'
