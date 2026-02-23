@@ -264,7 +264,7 @@
   import NginxRewrite from './Edit/nginxRewrite.vue'
   import { join } from '@/util/path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
-  import { uuid } from '@/util'
+  import { uuid } from '@/util/Index'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -277,7 +277,7 @@
   const item = ref({
     id: new Date().getTime(),
     type: 'php',
-    name: `flyenv-test-${uuid(8)}.test`,
+    name: `flyenv-test-${uuid(8)}.test`.toLowerCase(),
     alias: '',
     useSSL: false,
     autoSSL: false,
