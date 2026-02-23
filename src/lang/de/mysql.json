@@ -4,7 +4,7 @@
   "query_cache_size": "Abfrage-Cache, bitte setzen Sie 0 wenn nicht aktiviert",
   "tmp_table_size": "Temporäre Tabellen-Cache-Größe",
   "innodb_buffer_pool_size": "InnoDB Puffergröße",
-  "innodb_log_buffer_size": "InnoDB Logpuffergröße",
+  "innodb_log_buffer_size": "InnoDB-Protokollpuffergröße",
   "sort_buffer_size": "Puffergröße für die Sortierung jedes Themas",
   "read_buffer_size": "In Puffergröße lesen",
   "read_rnd_buffer_size": "Zufällige Puffergröße",
