@@ -510,6 +510,14 @@ subjectAltName=@alt_names
 php "%~dp0composer.phar" %*`
           )
         }
+        const file = join(binDir, 'composer')
+        if (!existsSync(file)) {
+          await writeFile(
+            file,
+            `#!/usr/bin/env bash
+exec php "$(dirname "\${BASH_SOURCE[0]}")/composer.phar" "$@"`
+          )
+        }
         let composer_bin_dir = ''
         try {
           const d = await execPromise(`echo %COMPOSER_HOME%\\Composer`)
