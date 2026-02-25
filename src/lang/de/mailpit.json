@@ -7,7 +7,7 @@
   "MP_USE_MESSAGE_DATES": "Verwenden Sie das Datum des Nachrichtenkopfes als Empfangsdatum und -zeit anstelle des SMTP-Empfangsdatums und -zeiten.",
   "MP_IGNORE_DUPLICATE_IDS": "Ignoriere doppelte Nachrichten basierend auf Nachrichten-Ids.",
   "MP_LOG_FILE": "Mailpit-Ausgabe in Datei statt Stdout protokollieren. Beispiel: --log-file /path/to/logfile.log",
-  "MP_QUIET": "Ruhige Protokollierung (nur Fehler)",
+  "MP_QUIET": "Stille Protokollierung (nur Fehler)",
   "MP_VERBOSE": "Ausführliches Protokollieren (Debug)",
   "MP_UI_BIND_ADDR": "HTTP-Schnittstelle und Port für die Benutzeroberfläche.",
   "MP_WEBROOT": "Legen Sie den Webroot für die Web-Benutzeroberfläche und die API fest. Für E-Mails würde dies beispielsweise zu http://0.0.0.0:8025/mail/ führen.",

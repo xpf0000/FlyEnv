@@ -5,7 +5,7 @@
   "copyConfTemplate": "Konfigurationsvorlage kopieren",
   "extensionCopySuccess": "Erweiterungs-Link in Zwischenablage kopiert",
   "xdebugConfCopySuccess": "xdebug Konfigurationsvorlage in Zwischenablage kopiert",
-  "fpmLog": "FPM Log",
+  "fpmLog": "FPM-Protokoll",
   "extensions": "Erweiterungen",
   "extension": "Erweiterung",
   "obfuscatorPhpVersion": "Mit PHP-Version verbergen",

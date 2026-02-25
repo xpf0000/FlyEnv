@@ -19,5 +19,6 @@
   "initDBDataDir": "Ο φάκελος δεδομένων δεν βρέθηκε, έναρξη αρχικοποίησης φακέλου δεδομένων",
   "initDBDataDirSuccess": "Initialization of data folder successful, data folder path: {dir}",
   "initDBDataDirFail": "Initialization of data folder failed, reason: {error}",
-  "newProjectFail": "Αποτυχία δημιουργίας νέου έργου"
+  "newProjectFail": "Αποτυχία δημιουργίας νέου έργου",
+  "processListFail": "Αποτυχία ανάκτησης λίστας διεργασιών. Παρακαλώ εγκαταστήστε το FlyEnv Helper"
 }

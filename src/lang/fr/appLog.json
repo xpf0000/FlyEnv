@@ -19,5 +19,6 @@
   "initDBDataDir": "Répertoire des données non trouvé, création du répertoire en cours",
   "initDBDataDirSuccess": "Création du répertoire des données réussi, chemin du répertoire des données : {dir}",
   "initDBDataDirFail": "Échec création du répertoire des données, raison : {error}",
-  "newProjectFail": "Échec de la création d'un nouveau projet"
+  "newProjectFail": "Échec de la création d'un nouveau projet",
+  "processListFail": "La récupération de la liste de processus a échoué. Veuillez installer FlyEnv Helper"
 }

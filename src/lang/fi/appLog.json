@@ -19,5 +19,6 @@
   "initDBDataDir": "Datakansiota ei löydy, aloita datakansion alustaminen",
   "initDBDataDirSuccess": "Datakansion alustus onnistui, datakansion polku: {dir}",
   "initDBDataDirFail": "Datakansion alustus epäonnistui, syy: {error}",
-  "newProjectFail": "Uuden projektin luonti epäonnistui"
+  "newProjectFail": "Uuden projektin luonti epäonnistui",
+  "processListFail": "Prosessilistan nouto epäonnistui. Asenna FlyEnv Helper"
 }

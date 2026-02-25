@@ -114,5 +114,6 @@
   "executing": "Suoritetaan",
   "info": "Tiedot",
   "ForceDelete": "Pakota Poisto",
-  "DataDirPermissionTips": "FlyEnv data-kansion luominen epäonnistui. Käynnistä FlyEnv järjestelmänvalvojan oikeuksilla tai muuta FlyEnv asennussijaintia."
+  "DataDirPermissionTips": "FlyEnv data-kansion luominen epäonnistui. Käynnistä FlyEnv järjestelmänvalvojan oikeuksilla tai muuta FlyEnv asennussijaintia.",
+  "needInstallHelperTips": "Jotkin toiminnot epäonnistuivat, koska järjestelmänvalvojan oikeudet vaaditaan. Tähän kuuluu Hosts-tiedoston muuttaminen, prosessiluettelon avaaminen, alle 1024 sijaitseviin satamiin sitominen tai järjestelmän ympäristömuuttujien hallinta.\nAsenna FlyEnv Helper myöntääksesi tarvittavat oikeudet näihin tehtäviin. Klikkaa \"OK\" jatkaaksesi asennusta."
 }

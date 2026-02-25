@@ -19,5 +19,6 @@
   "initDBDataDir": "Datafolder hittades inte, börja initiera datafolder",
   "initDBDataDirSuccess": "Initiering av datafolder lyckades, datafolderns sökväg: {dir}",
   "initDBDataDirFail": "Initiering av datafolder misslyckades, anledning: {error}",
-  "newProjectFail": "Kunde inte skapa nytt projekt"
+  "newProjectFail": "Kunde inte skapa nytt projekt",
+  "processListFail": "Hämtningen av processlistan misslyckades. Installera FlyEnv Helper"
 }

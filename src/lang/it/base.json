@@ -114,5 +114,6 @@
   "executing": "In esecuzione",
   "info": "Dettagli",
   "ForceDelete": "Eliminazione forzata",
-  "DataDirPermissionTips": "Creazione della cartella dati FlyEnv non riuscita. Si prega di avviare FlyEnv con privilegi di amministratore, o modificare la posizione di installazione di FlyEnv."
+  "DataDirPermissionTips": "Creazione della cartella dati FlyEnv non riuscita. Si prega di avviare FlyEnv con privilegi di amministratore, o modificare la posizione di installazione di FlyEnv.",
+  "needInstallHelperTips": "Alcune operazioni non sono riuscite perché sono richiesti privilegi di amministratore. Ciò include la modifica del file Hosts, l'accesso all'elenco di processo, l'associazione a porte inferiori a 1024 o la gestione di variabili di ambiente di sistema.\nSi prega di installare FlyEnv Helper per concedere i permessi necessari per queste attività. Fare clic su \"OK\" per procedere con l'installazione."
 }

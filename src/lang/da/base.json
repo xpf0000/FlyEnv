@@ -114,5 +114,6 @@
   "executing": "Udfører",
   "info": "Info",
   "ForceDelete": "Tving Slet",
-  "DataDirPermissionTips": "Kunne ikke oprette FlyEnv datamappen. Start FlyEnv med administratorrettigheder, eller skift FlyEnv installationsplaceringen."
+  "DataDirPermissionTips": "Kunne ikke oprette FlyEnv datamappen. Start FlyEnv med administratorrettigheder, eller skift FlyEnv installationsplaceringen.",
+  "needInstallHelperTips": "Nogle handlinger mislykkedes, fordi administratorrettigheder er påkrævet. Dette omfatter ændring af Hosts fil, adgang til proceslisten, binding til porte under 1024, eller styring af system miljø variabler.\nInstallér venligst FlyEnv Helper for at give de nødvendige tilladelser til disse opgaver. Klik på \"OK\" for at fortsætte med installationen."
 }

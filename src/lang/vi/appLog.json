@@ -19,5 +19,6 @@
   "initDBDataDir": "Không tìm thấy thư mục dữ liệu, bắt đầu khởi tạo thư mục dữ liệu",
   "initDBDataDirSuccess": "Khởi tạo thư mục dữ liệu thành công, đường dẫn thư mục dữ liệu: {dir}",
   "initDBDataDirFail": "Không khởi tạo được thư mục dữ liệu, lý do: {error}",
-  "newProjectFail": "Không thể tạo dự án mới"
+  "newProjectFail": "Không thể tạo dự án mới",
+  "processListFail": "Danh sách quá trình không thể lấy được. Vui lòng cài đặt FlyEnv Helper"
 }

@@ -10,7 +10,7 @@
   "ftpServer": "FTP-Server",
   "containerRuntime": "Container Laufzeit",
   "other": "Andere",
-  "appLog": "App-Log",
+  "appLog": "Anwendungsprotokoll",
   "ai": "AI",
   "objectStorage": "Objektspeicher",
   "appExit": "Stoppe alle laufenden Dienste und beende FlyEnv",

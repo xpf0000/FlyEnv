@@ -19,5 +19,6 @@
   "initDBDataDir": "لم يتم العثور على مجلد البيانات، جارٍ تهيئة مجلد البيانات",
   "initDBDataDirSuccess": "تم تهيئة مجلد البيانات بنجاح، مسار المجلد: {dir}",
   "initDBDataDirFail": "فشل تهيئة مجلد البيانات، السبب: {error}",
-  "newProjectFail": "فشل إنشاء مشروع جديد"
+  "newProjectFail": "فشل إنشاء مشروع جديد",
+  "processListFail": "فشل جلب قائمة العمليات. الرجاء تثبيت مساعد FlyEnv"
 }

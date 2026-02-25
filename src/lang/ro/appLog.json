@@ -19,5 +19,6 @@
   "initDBDataDir": "Dosarul de date nu a fost găsit, începe inițializarea dosarului de date",
   "initDBDataDirSuccess": "Inițializarea dosarului de date a reușit, calea dosarului de date: {dir}",
   "initDBDataDirFail": "Inițializarea dosarului de date a eșuat, motiv: {error}",
-  "newProjectFail": "Crearea unui proiect nou a eșuat"
+  "newProjectFail": "Crearea unui proiect nou a eșuat",
+  "processListFail": "Preluarea listei de procese nu a reușit. Vă rugăm să instalați FlyEnv Helper"
 }
