@@ -83,12 +83,10 @@
     const all: Array<Promise<string | boolean>> = []
     if (isRunning) {
       if (showItem?.value) {
-        phpVersions?.value?.forEach((v) => {
-          if (v?.version && v?.run) {
-            const module = brewStore.module('php')
-            all.push(module.stop())
-          }
-        })
+        if (serviceRunning.value) {
+          const module = brewStore.module('php')
+          all.push(module.stop())
+        }
       }
     } else {
       if (showItem?.value) {

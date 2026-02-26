@@ -11,7 +11,8 @@ export enum AppModuleTypeEnum {
   other = 'other',
   objectStorage = 'objectStorage',
   ai = 'ai',
-  containerRuntime = 'containerRuntime'
+  containerRuntime = 'containerRuntime',
+  networkTunnel = 'networkTunnel'
 }
 
 export type AllAppModuleType = keyof typeof AppModuleTypeEnum
@@ -20,6 +21,7 @@ export const AppModuleTypeList: AllAppModuleType[] = [
   'site',
   'ai',
   'containerRuntime',
+  'networkTunnel',
   'webServer',
   'language',
   'dataBaseServer',
@@ -74,7 +76,8 @@ export enum AppModuleEnum {
   typesense = 'typesense',
   podman = 'podman',
   zig = 'zig',
-  qdrant = 'qdrant'
+  qdrant = 'qdrant',
+  'cloudflare-tunnel' = 'cloudflare-tunnel'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

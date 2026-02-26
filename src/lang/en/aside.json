@@ -14,5 +14,7 @@
   "ai": "AI",
   "objectStorage": "Object Storage",
   "appExit": "Stop all running services and exit FlyEnv",
-  "groupStart": "One-click start all available services displayed on the panel"
+  "groupStart": "One-click start all available services displayed on the panel",
+
+  "networkTunnel": "Network Tunnel"
 }
