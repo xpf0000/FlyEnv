@@ -40,16 +40,11 @@ export class CloudflareTunnel {
    * 获取所有的Zone
    */
   async fetchAllZone() {
-    try {
-      console.log('正在获取您的域名列表...')
-      const zonesRes = await this.client().get('/zones')
-      const zones = zonesRes.data.result
-      console.log('fetchAllZone: ', zones)
-      return zones
-    } catch (e) {
-      console.error('fetchAllZone error: ', e)
-    }
-    return []
+    console.log('正在获取您的域名列表...')
+    const zonesRes = await this.client().get('/zones')
+    const zones = zonesRes.data.result
+    console.log('fetchAllZone: ', zones)
+    return zones
   }
 
   private async startCloudflared(token: string) {

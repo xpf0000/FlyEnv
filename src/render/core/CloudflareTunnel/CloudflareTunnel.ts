@@ -1,6 +1,7 @@
 import IPC from '@/util/IPC'
 import { ZoneType } from '@/core/CloudflareTunnel/type'
 import { I18nT } from '@lang/index'
+import { MessageError } from '@/util/Element'
 
 export class CloudflareTunnel {
   id: string = ''
@@ -67,6 +68,18 @@ export class CloudflareTunnel {
           resolve(true)
         }
       )
+    })
+  }
+
+  restart(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this.stop()
+        .then(() => this.start())
+        .then(() => resolve(true))
+        .catch((err) => {
+          MessageError(`${err}`)
+          reject(err)
+        })
     })
   }
 }

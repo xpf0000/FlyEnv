@@ -2,6 +2,10 @@ import { CloudflareTunnel } from '@/core/CloudflareTunnel/CloudflareTunnel'
 import { computed, reactive } from 'vue'
 import CloudflareTunnelStore from '@/core/CloudflareTunnel/CloudflareTunnelStore'
 import { AppStore } from '@/store/app'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
+import type { ZoneType } from '@/core/CloudflareTunnel/type'
+
+export const ZoneDict: Record<string, ZoneType[]> = reactive({})
 
 export const Setup = () => {
   const appStore = AppStore()
@@ -10,7 +14,14 @@ export const Setup = () => {
     return CloudflareTunnelStore.items
   })
 
-  function add() {}
+  let AddVM: any
+  import('./add.vue').then((res) => {
+    AddVM = res.default
+  })
+
+  function add() {
+    AsyncComponentShow(AddVM).then()
+  }
 
   function edit(item: CloudflareTunnel) {}
 

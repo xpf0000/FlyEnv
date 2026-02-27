@@ -33,18 +33,16 @@
       <el-table-column prop="local-url" :label="I18nT('host.LocalDoman')">
         <template #default="scope">
           <template v-if="scope.row.run">
-            <el-button type="success" link @click.stop="openLocalUrl(scope.row)"
-              >{{ scope.row.subdomain }}.{{ scope.row.zoneName }}</el-button
-            >
+            <el-button type="success" link @click.stop="openLocalUrl(scope.row)">{{
+              scope.row.localService
+            }}</el-button>
           </template>
           <template v-else>
-            <el-button type="info" link
-              >{{ scope.row.subdomain }}.{{ scope.row.zoneName }}</el-button
-            >
+            <el-button type="info" link>{{ scope.row.localService }}</el-button>
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="140px" align="center">
+      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-button
             link
@@ -57,6 +55,31 @@
               :svg="import('@/svg/nogroupstart.svg?raw')"
             />
           </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column :label="I18nT('base.service')" :prop="null" width="100px">
+        <template #default="scope">
+          <template v-if="scope.row.running">
+            <el-button :loading="true" link></el-button>
+          </template>
+          <template v-else>
+            <template v-if="scope.row.run">
+              <el-button link class="status running">
+                <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="scope.row.stop()" />
+              </el-button>
+              <el-button link class="status refresh">
+                <yb-icon
+                  :svg="import('@/svg/icon_refresh.svg?raw')"
+                  @click.stop="scope.row.restart()"
+                />
+              </el-button>
+            </template>
+            <template v-else>
+              <el-button link class="status start">
+                <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="scope.row.start()" />
+              </el-button>
+            </template>
+          </template>
         </template>
       </el-table-column>
       <el-table-column align="center" :label="I18nT('host.action')" width="100px">
@@ -75,7 +98,7 @@
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'info')">
                 <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
-                <span class="ml-3">{{ I18nT('host.park') }}</span>
+                <span class="ml-3">{{ I18nT('base.info') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'del')">
                 <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
