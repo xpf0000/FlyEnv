@@ -69,5 +69,8 @@
   "copyCommand": "Copy Command",
   "showFile": "Show File",
   "sticky": "Sticky",
-  "dbclickRowToEdit": "Double-click this line to edit"
+  "dbclickRowToEdit": "Double-click this line to edit",
+
+  "OnlineDomain": "Online Domain",
+  "LocalDoman": "Local Domain"
 }

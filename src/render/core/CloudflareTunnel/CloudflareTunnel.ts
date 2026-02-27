@@ -9,6 +9,9 @@ export class CloudflareTunnel {
   subdomain: string = ''
   localService: string = ''
 
+  zoneId: string = ''
+  zoneName: string = ''
+
   pid: string = ''
   run: boolean = false
   running: boolean = false
