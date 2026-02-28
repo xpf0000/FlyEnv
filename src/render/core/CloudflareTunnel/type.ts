@@ -6,3 +6,10 @@ export type ZoneType = {
     name: string
   }
 }
+
+export type CloudflareTunnelDnsRecord = {
+  subdomain: string
+  localService: string
+  zoneId: string
+  zoneName: string
+}
