@@ -70,5 +70,9 @@
   "dbclickRowToEdit": "双击此行进行编辑",
 
   "OnlineDomain": "线上域名",
-  "LocalDoman": "本地域名"
+  "LocalDoman": "本地域名",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "相同的线上域名已存在",
+    "CloudflaredNoFoundTips": "未找到Cloudflared，请先安装"
+  }
 }

@@ -54,6 +54,7 @@ class BaseManager {
   Zig: any
   Qdrant: any
   CloudflareTunnel: any
+  Cloudflared: any
 
   modules: Set<string> = new Set()
 
@@ -434,6 +435,12 @@ class BaseManager {
         this.CloudflareTunnel = res.default
       }
       doRun(this.CloudflareTunnel)
+    } else if (module === 'cloudflared') {
+      if (!this.Cloudflared) {
+        const res = await import('./module/Cloudflared')
+        this.Cloudflared = res.default
+      }
+      doRun(this.Cloudflared)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

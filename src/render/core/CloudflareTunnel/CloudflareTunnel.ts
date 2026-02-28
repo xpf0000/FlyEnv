@@ -13,6 +13,8 @@ export class CloudflareTunnel {
   zoneId: string = ''
   zoneName: string = ''
 
+  cloudflaredBin: string = ''
+
   pid: string = ''
   run: boolean = false
   running: boolean = false
@@ -43,7 +45,7 @@ export class CloudflareTunnel {
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            this.pid = res?.data?.pid ?? ''
+            this.pid = res?.data?.['APP-Service-Start-PID'] ?? ''
             this.run = true
             resolve(true)
           } else {

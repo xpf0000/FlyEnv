@@ -8,6 +8,7 @@ import { mkdirp } from '../../Fn'
 import { ProcessKill } from '@shared/Process'
 
 export class CloudflareTunnel {
+  id: string = ''
   apiToken: string = ''
   accountId: string = ''
   subdomain: string = ''
@@ -130,8 +131,9 @@ export class CloudflareTunnel {
 
     // --- 5. 启动本地进程 ---
     console.log('--- 准备启动 cloudflared ---')
-    this.pid = (await this.startCloudflared(tunnelToken))?.['APP-Service-Start-PID']
-    return this.pid
+    const res = await this.startCloudflared(tunnelToken)
+    this.pid = res?.['APP-Service-Start-PID']
+    return res
   }
 
   async stop() {

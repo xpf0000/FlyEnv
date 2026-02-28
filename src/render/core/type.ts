@@ -77,7 +77,8 @@ export enum AppModuleEnum {
   podman = 'podman',
   zig = 'zig',
   qdrant = 'qdrant',
-  'cloudflare-tunnel' = 'cloudflare-tunnel'
+  'cloudflare-tunnel' = 'cloudflare-tunnel',
+  cloudflared = 'cloudflared'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

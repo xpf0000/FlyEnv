@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="'Cloudflare Tunnel' + ' ' + I18nT('base.add')"
+    :title="'Cloudflare Tunnel' + ' ' + I18nT('base.edit')"
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     width="600px"
     @closed="closedFn"
@@ -70,9 +70,12 @@
   import { ZoneDict } from '@/components/CloudflareTunnel/setup'
   import { AppStore } from '@/store/app'
   import { CloudflareTunnel } from '@/core/CloudflareTunnel/CloudflareTunnel'
-  import { reactiveBind, uuid } from '@/util/Index'
   import CloudflareTunnelStore from '@/core/CloudflareTunnel/CloudflareTunnelStore'
   import { BrewStore } from '@/store/brew'
+
+  const props = defineProps<{
+    item: CloudflareTunnel
+  }>()
 
   const brewStore = BrewStore()
 
@@ -82,7 +85,7 @@
 
   const zones = ref<ZoneType[]>([])
 
-  const form = ref({
+  const form = ref<Record<string, string>>({
     apiToken: '',
     accountId: '',
     subdomain: '',
@@ -91,6 +94,11 @@
     zoneId: '',
     zoneName: ''
   })
+
+  const edit: any = props.item
+  for (const key in form.value) {
+    form.value[key] = edit?.[key] ?? ''
+  }
 
   const cloudflared = computed(() => {
     return brewStore.module('cloudflared').installed
@@ -121,29 +129,36 @@
     )
   })
 
+  const fetchAllZone = (v: string) => {
+    if (v) {
+      if (ZoneDict?.[v]) {
+        zones.value = ZoneDict[v]
+        return
+      }
+      if (v.length < 24) {
+        return
+      }
+      IPC.send('app-fork:cloudflare-tunnel', 'fetchAllZone', {
+        apiToken: v
+      }).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          zones.value = reactive(res?.data ?? [])
+          ZoneDict[v] = zones.value
+        }
+      })
+    }
+  }
+
+  if (form.value.apiToken) {
+    fetchAllZone(form.value.apiToken)
+  }
+
   watch(
     () => form.value.apiToken,
     (v) => {
       zones.value = []
-
-      if (v) {
-        if (ZoneDict?.[v]) {
-          zones.value = ZoneDict[v]
-          return
-        }
-        if (v.length < 24) {
-          return
-        }
-        IPC.send('app-fork:cloudflare-tunnel', 'fetchAllZone', {
-          apiToken: v
-        }).then((key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            zones.value = reactive(res?.data ?? [])
-            ZoneDict[v] = zones.value
-          }
-        })
-      }
+      fetchAllZone(v)
     }
   )
 
@@ -189,7 +204,9 @@
       return ''
     }
     const domain = `${form.value.subdomain}.${form.value.zoneName}`
-    const all = CloudflareTunnelStore.items.map((item) => `${item.subdomain}.${item.zoneName}`)
+    const all = CloudflareTunnelStore.items
+      .filter((i) => i.id !== props.item.id)
+      .map((item) => `${item.subdomain}.${item.zoneName}`)
     if (all.includes(domain)) {
       return I18nT('host.CloudflareTunnel.OnlineDomainExistsTips')
     }
@@ -201,10 +218,11 @@
   }
 
   const doSubmit = async () => {
-    const item = reactiveBind(new CloudflareTunnel(form.value))
-    item.id = uuid()
-    CloudflareTunnelStore.items.unshift(item)
-    CloudflareTunnelStore.save()
+    const find = CloudflareTunnelStore.items.find((i) => i.id === props.item.id)
+    if (find) {
+      Object.assign(find, form.value)
+      CloudflareTunnelStore.save()
+    }
     onCancel()
   }
 

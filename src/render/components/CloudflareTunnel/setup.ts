@@ -23,7 +23,16 @@ export const Setup = () => {
     AsyncComponentShow(AddVM).then()
   }
 
-  function edit(item: CloudflareTunnel) {}
+  let EditVM: any
+  import('./edit.vue').then((res) => {
+    EditVM = res.default
+  })
+
+  function edit(item: CloudflareTunnel) {
+    AsyncComponentShow(EditVM, {
+      item
+    }).then()
+  }
 
   function info(item: CloudflareTunnel) {}
 

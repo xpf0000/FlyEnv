@@ -72,5 +72,9 @@
   "dbclickRowToEdit": "Double-click this line to edit",
 
   "OnlineDomain": "Online Domain",
-  "LocalDoman": "Local Domain"
+  "LocalDoman": "Local Domain",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "The same online domain name already exists.",
+    "CloudflaredNoFoundTips": "Cloudflared not found. Please install it."
+  }
 }

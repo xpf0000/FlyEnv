@@ -41,6 +41,7 @@ class Manager extends Base {
   Typesense: any
   Zig: any
   Qdrant: any
+  Cloudflared: any
 
   constructor() {
     super()
@@ -279,6 +280,12 @@ class Manager extends Base {
             this.Qdrant = res.default
           }
           versions.qdrant = this.Qdrant.allInstalledVersions(setup)
+        } else if (type === 'cloudflared') {
+          if (!this.Cloudflared) {
+            const res = await import('../Cloudflared')
+            this.Cloudflared = res.default
+          }
+          versions.cloudflared = this.Cloudflared.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []
