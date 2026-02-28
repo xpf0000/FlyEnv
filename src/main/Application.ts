@@ -418,7 +418,13 @@ export default class Application extends EventEmitter {
         runpath = resolve(__static, '../../../data')
       } else {
         if (process.env?.PORTABLE_EXECUTABLE_DIR) {
-          runpath = path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'FlyEnv-Data')
+          const oldPath = path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'PhpWebStudy-Data')
+          const newPath = path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'FlyEnv-Data')
+          if (existsSync(oldPath)) {
+            runpath = oldPath
+          } else {
+            runpath = newPath
+          }
         } else {
           const exePath = app.getPath('exe')
           const oldPath = resolve(exePath, '../../PhpWebStudy-Data').split('\\').join('/')
