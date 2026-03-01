@@ -169,7 +169,6 @@ let i18n: I18n
 export const AppI18n = (l?: string): I18n => {
   if (!i18n) {
     i18n = createI18n({
-      legacy: true,
       locale: l || 'en',
       fallbackLocale: 'en',
       messages: lang as any
