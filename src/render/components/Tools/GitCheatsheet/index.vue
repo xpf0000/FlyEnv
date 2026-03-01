@@ -1,5 +1,5 @@
 <template>
-  <div class="host-edit tools" @click="handleContentClick">
+  <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
         <span class="text-xl">{{ I18nT('tools.git-cheatsheet-title') }}</span>
@@ -9,52 +9,90 @@
 
     <div class="pb-0 overflow-hidden flex-1">
       <el-scrollbar>
-        <article class="select-text prose prose-slate dark:prose-invert" v-html="result"></article>
+        <article
+          ref="contentRef"
+          class="select-text prose prose-slate dark:prose-invert"
+          v-html="result"
+        ></article>
       </el-scrollbar>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue'
+  import { computed, h, onMounted, onUnmounted, render, ref, markRaw } from 'vue'
   import { AppI18n, I18nT } from '@lang/index'
   import MemoEn from './lang/git-memo.en.md?raw'
   import MemoVi from './lang/git-memo.vi.md?raw'
   import markdownit from 'markdown-it'
+  import { MessageSuccess } from '@/util/Element'
+  import { clipboard } from '@/util/NodeFn'
+  import { ElButton } from 'element-plus'
+  import { CopyDocument, Check } from '@element-plus/icons-vue'
+  import { createHighlighter } from 'shiki'
 
   const i18n = AppI18n()
-  const copyTimeoutMap = new Map<HTMLButtonElement, number>()
+  const highlighter = ref<any>(null)
+
+  let observer: MutationObserver | null = null
+
+  onMounted(async () => {
+    highlighter.value = await createHighlighter({
+      themes: ['github-dark'],
+      langs: ['bash', 'shell']
+    })
+
+    if (contentRef.value) {
+      observer = new MutationObserver(() => {
+        mountButtons()
+      })
+      observer.observe(contentRef.value, { childList: true, subtree: true })
+    }
+    mountButtons()
+  })
+
+  onUnmounted(() => {
+    observer?.disconnect()
+  })
   const md = markdownit({
     html: false,
     linkify: true,
     typographer: true
   })
 
-  // Custom rule to wrap code blocks and add a copy button
-  const defaultRender =
-    md.renderer.rules.fence ||
-    function (tokens, idx, options, env, self) {
-      return self.renderToken(tokens, idx, options)
-    }
-
-  md.renderer.rules.fence = function (tokens, idx, options, env, self) {
+  md.renderer.rules.fence = function (tokens, idx) {
     const token = tokens[idx]
     const code = token.content.trim()
-    const copyCode = code
-      .split('\n')
-      .filter((line) => !line.trim().startsWith('#'))
-      .join('\n')
-      .trim()
-    const origRendered = defaultRender(tokens, idx, options, env, self)
+    const lines = code.split('\n')
 
-    return `
-      <div class="code-block-wrapper">
-        <button class="copy-button" data-code="${encodeURIComponent(copyCode)}" type="button" aria-label="${I18nT('base.copy')}">
-          <i class="bi bi-clipboard"></i>
-          <span>${I18nT('base.copy')}</span>
-        </button>
-        ${origRendered}
-      </div>
-    `
+    const renderedLines = lines
+      .map((line) => {
+        const trimmed = line.trim()
+        if (trimmed.startsWith('#') || !trimmed) {
+          return `<div class="code-line comment"><span class="line-content">${md.utils.escapeHtml(line)}</span></div>`
+        }
+
+        let highlighted = md.utils.escapeHtml(line)
+        if (highlighter.value) {
+          try {
+            const html = highlighter.value.codeToHtml(line, {
+              lang: 'bash',
+              theme: 'github-dark'
+            })
+            // Extract the core content from shiki's pre/code wrapper
+            const match = html.match(/<code[^>]*>([\s\S]*?)<\/code>/)
+            if (match) {
+              highlighted = match[1]
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (e) {}
+        }
+
+        // Return a single line string to prevent pre-tag whitespace issues
+        return `<div class="code-line command"><span class="line-content">${highlighted}</span><div class="copy-btn-placeholder" data-code="${encodeURIComponent(trimmed)}"></div></div>`
+      })
+      .join('')
+
+    return `<div class="code-block-wrapper"><pre><code>${renderedLines}</code></pre></div>`
   }
 
   const memos = {
@@ -68,39 +106,49 @@
     return memos[locale] ?? MemoEn
   })
 
-  const result = computed(() => md.render(memo.value))
+  const result = computed(() => {
+    return md.render(memo.value)
+  })
 
-  const handleContentClick = async (e: MouseEvent) => {
-    const target = e.target as HTMLElement
-    const btn = target.closest('.copy-button') as HTMLButtonElement | null
-    if (!btn) return
+  const contentRef = ref<HTMLElement | null>(null)
 
-    const code = decodeURIComponent(btn.getAttribute('data-code') || '')
-    try {
-      await navigator.clipboard.writeText(code)
-      const span = btn.querySelector('span')
-      const icon = btn.querySelector('i')
-      if (span && icon) {
-        const existingTimeout = copyTimeoutMap.get(btn)
-        if (existingTimeout) {
-          clearTimeout(existingTimeout)
-        }
+  const copy = (v: string) => {
+    clipboard.writeText(v)
+    MessageSuccess(I18nT('base.copySuccess'))
+  }
 
-        span.innerText = I18nT('base.copySuccess')
-        icon.className = 'bi bi-check2'
-        btn.classList.add('copied')
+  const mountButtons = () => {
+    const el = contentRef.value
+    if (!el) return
+    const placeholders = el.querySelectorAll('.copy-btn-placeholder')
+    placeholders.forEach((p) => {
+      if (p.children.length > 0) return
+      p.innerHTML = ''
+      const code = decodeURIComponent(p.getAttribute('data-code') || '')
+      const btnIcon = ref(markRaw(CopyDocument))
 
-        const newTimeout = window.setTimeout(() => {
-          span.innerText = I18nT('base.copy')
-          icon.className = 'bi bi-clipboard'
-          btn.classList.remove('copied')
-          copyTimeoutMap.delete(btn)
-        }, 2000)
-        copyTimeoutMap.set(btn, newTimeout)
+      const renderBtn = () => {
+        const vnode = h(
+          ElButton,
+          {
+            link: true,
+            icon: btnIcon.value,
+            onClick: () => {
+              copy(code)
+              btnIcon.value = markRaw(Check)
+              renderBtn()
+              setTimeout(() => {
+                btnIcon.value = markRaw(CopyDocument)
+                renderBtn()
+              }, 2000)
+            }
+          },
+          () => []
+        )
+        render(vnode, p)
       }
-    } catch (err) {
-      console.error('Failed to copy: ', err)
-    }
+      renderBtn()
+    })
   }
 </script>
 
@@ -108,69 +156,90 @@
   .code-block-wrapper {
     position: relative;
     margin-bottom: 1.5rem;
-
-    &:hover,
-    &:focus-within {
-      .copy-button {
-        opacity: 1;
-      }
-    }
+    background: #1e293b;
+    border-radius: 8px;
+    overflow: hidden;
 
     pre {
       margin: 0 !important;
-      padding-top: 2.5rem !important;
+      padding: 0.5rem 1rem !important; // Reduced vertical padding
+      background: transparent !important;
     }
 
-    .copy-button {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      z-index: 10;
+    code {
+      display: block;
+      padding: 0 !important;
+    }
+
+    .code-line {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
-      padding: 0.3rem 0.6rem;
-      font-size: 0.75rem;
-      color: #94a3b8;
-      background: rgba(30, 41, 59, 0.7);
-      border: 1px solid rgba(71, 85, 105, 0.5);
-      border-radius: 6px;
-      cursor: pointer;
-      opacity: 0;
-      transition: all 0.2s ease-in-out;
-      backdrop-filter: blur(4px);
+      justify-content: space-between;
+      min-height: 1.2rem;
+      padding: 0 0.5rem;
+      margin: 0 !important;
+      border-radius: 4px;
+      line-height: 1; // Strict line height
+      transition: background 0.2s;
 
-      i {
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      &.comment {
+        color: #64748b;
+        font-style: italic;
+      }
+
+      .line-content {
+        flex: 1;
+        white-space: pre-wrap;
+        word-break: break-all;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+          monospace;
         font-size: 0.9rem;
+        line-height: 1.4;
       }
+    }
 
-      &:hover,
-      &:focus-visible {
-        color: #f1f5f9;
-        background: rgba(51, 65, 85, 0.9);
-        border-color: #64748b;
+    .copy-btn-placeholder {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 1rem;
+      min-width: 32px; // Ensure space even before mount
+      min-height: 24px;
+      opacity: 0.8;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
         opacity: 1;
-        outline: 2px solid #3b82f6;
-        outline-offset: 2px;
       }
 
-      &.copied {
-        color: #10b981;
-        background: rgba(16, 185, 129, 0.1);
-        border-color: #10b981;
+      .el-button {
+        padding: 4px;
+        height: auto;
+        color: #94a3b8;
+
+        &:hover {
+          color: #409eff;
+        }
       }
+    }
+
+    .code-line:hover .copy-btn-placeholder {
+      opacity: 1;
     }
   }
 
   .dark {
-    .code-block-wrapper .copy-button {
-      background: rgba(15, 23, 42, 0.8);
-      border-color: rgba(51, 65, 85, 0.5);
+    .code-block-wrapper {
+      background: #0f172a;
 
-      &:hover,
-      &:focus-visible {
-        background: rgba(30, 41, 59, 1);
-        outline-color: #60a5fa;
+      .code-line:hover {
+        background: rgba(255, 255, 255, 0.03);
       }
     }
   }
