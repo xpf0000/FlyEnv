@@ -24,6 +24,19 @@ class CloudflareTunnelBase extends Base {
     })
   }
 
+  fetchTunnel(item: CloudflareTunnel) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const model = new CloudflareTunnel()
+        Object.assign(model, item)
+        await model.fetchTunnel()
+        resolve(JSON.parse(JSON.stringify(model)))
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
   start(item: CloudflareTunnel) {
     return new ForkPromise(async (resolve, reject) => {
       try {

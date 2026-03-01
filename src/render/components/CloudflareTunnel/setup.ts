@@ -3,7 +3,11 @@ import { computed, reactive } from 'vue'
 import CloudflareTunnelStore from '@/core/CloudflareTunnel/CloudflareTunnelStore'
 import { AppStore } from '@/store/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
-import type { ZoneType } from '@/core/CloudflareTunnel/type'
+import { CloudflareTunnelDnsRecord, ZoneType } from '@/core/CloudflareTunnel/type'
+import Base from '@/core/Base'
+import { I18nT } from '@lang/index'
+import { clipboard } from '@/util/NodeFn'
+import { MessageSuccess } from '@/util/Element'
 
 export const ZoneDict: Record<string, ZoneType[]> = reactive({})
 
@@ -30,13 +34,21 @@ export const Setup = () => {
 
   function edit(item: CloudflareTunnel) {
     AsyncComponentShow(EditVM, {
-      item
+      item: JSON.parse(JSON.stringify(item))
     }).then()
   }
 
   function info(item: CloudflareTunnel) {}
 
-  function del(item: CloudflareTunnel, index: number) {}
+  function del(item: CloudflareTunnel, index: number) {
+    Base._Confirm(I18nT('base.areYouSure'), undefined, {
+      customClass: 'confirm-del',
+      type: 'warning'
+    }).then(() => {
+      CloudflareTunnelStore.items.splice(index, 1)
+      CloudflareTunnelStore.save()
+    })
+  }
 
   const openOutUrl = (item: CloudflareTunnel) => {}
 
@@ -55,6 +67,49 @@ export const Setup = () => {
     appStore.saveConfig().then().catch()
   }
 
+  const copy = (str: string) => {
+    clipboard.writeText(str).then(() => {
+      MessageSuccess(I18nT('base.copySuccess'))
+    })
+  }
+
+  let EditDNSVM: any
+  import('./editDNS.vue').then((res) => {
+    EditDNSVM = res.default
+  })
+
+  const editDNS = (item: CloudflareTunnel, dns: CloudflareTunnelDnsRecord, index: number) => {
+    AsyncComponentShow(EditDNSVM, {
+      item: JSON.parse(JSON.stringify(item)),
+      dns: JSON.parse(JSON.stringify(dns)),
+      index
+    }).then()
+  }
+
+  const delDNS = (item: CloudflareTunnel, dns: CloudflareTunnelDnsRecord, index: number) => {
+    Base._Confirm(I18nT('base.areYouSure'), undefined, {
+      customClass: 'confirm-del',
+      type: 'warning'
+    }).then(() => {
+      const find = CloudflareTunnelStore.items.find((i) => i.id === item.id)
+      if (find) {
+        find.dns.splice(index, 1)
+      }
+      CloudflareTunnelStore.save()
+    })
+  }
+
+  let AddDNSVM: any
+  import('./addDNS.vue').then((res) => {
+    AddDNSVM = res.default
+  })
+
+  function addDNS(item: CloudflareTunnel) {
+    AsyncComponentShow(AddDNSVM, {
+      item: JSON.parse(JSON.stringify(item))
+    }).then()
+  }
+
   return {
     add,
     edit,
@@ -63,6 +118,10 @@ export const Setup = () => {
     list,
     openOutUrl,
     openLocalUrl,
-    groupTrunOn
+    groupTrunOn,
+    copy,
+    editDNS,
+    delDNS,
+    addDNS
   }
 }
