@@ -1,25 +1,15 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="'Cloudflare Tunnel' + ' ' + I18nT('base.add')"
-    class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
+    :title="'Cloudflare Tunnel' + ' ' + I18nT('base.edit')"
+    class="el-dialog-content-flex-1 dark:bg-[#1d2033]"
     width="600px"
-    :close-on-click-modal="false"
-    :close-on-press-escape="false"
     @closed="closedFn"
   >
     <el-scrollbar class="px-2">
       <el-form ref="formRef" :model="form" label-position="top" class="pt-2" @submit.prevent>
-        <el-form-item label="Cloudflared" required :error="cloudflaredError">
-          <el-select v-model="form.cloudflaredBin" filterable>
-            <template v-for="(item, _index) in cloudflared" :key="_index">
-              <el-option :label="item.bin" :value="item.bin"></el-option>
-            </template>
-          </el-select>
-        </el-form-item>
-
         <el-form-item prop="apiToken" label="Cloudflare ApiToken" required :show-message="false">
-          <el-input v-model="form.apiToken"> </el-input>
+          <el-input v-model="form.apiToken" readonly disabled> </el-input>
         </el-form-item>
 
         <el-form-item label="Zones">
@@ -53,14 +43,10 @@
     </el-scrollbar>
     <template #footer>
       <div class="dialog-footer">
-        <el-button :disabled="loading" @click.stop="onCancel">{{ I18nT('base.cancel') }}</el-button>
-        <el-button
-          :loading="loading"
-          :disabled="!saveEnable || loading"
-          type="primary"
-          @click.stop="doSubmit"
-          >{{ I18nT('base.confirm') }}</el-button
-        >
+        <el-button @click.stop="onCancel">{{ I18nT('base.cancel') }}</el-button>
+        <el-button :disabled="!saveEnable" type="primary" @click.stop="doSubmit">{{
+          I18nT('base.confirm')
+        }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -71,51 +57,42 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
-  import type { ZoneType } from '@/core/CloudflareTunnel/type'
+  import type { CloudflareTunnelDnsRecord, ZoneType } from '@/core/CloudflareTunnel/type'
   import IPC from '@/util/IPC'
   import { ZoneDict } from '@/components/CloudflareTunnel/setup'
   import { AppStore } from '@/store/app'
   import { CloudflareTunnel } from '@/core/CloudflareTunnel/CloudflareTunnel'
-  import { reactiveBind, uuid } from '@/util/Index'
   import CloudflareTunnelStore from '@/core/CloudflareTunnel/CloudflareTunnelStore'
-  import { BrewStore } from '@/store/brew'
-  import { MessageError } from '@/util/Element'
 
-  const brewStore = BrewStore()
+  const props = defineProps<{
+    item: CloudflareTunnel
+    dns: CloudflareTunnelDnsRecord
+    index: number
+  }>()
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const formRef = ref()
 
-  const loading = ref(false)
-
   const zones = ref<ZoneType[]>([])
 
-  const form = ref({
+  const form = ref<Record<string, string>>({
     apiToken: '',
     accountId: '',
+
     subdomain: '',
     localService: '',
-    cloudflaredBin: '',
     zoneId: '',
     zoneName: ''
   })
 
-  const cloudflared = computed(() => {
-    return brewStore.module('cloudflared').installed
-  })
+  form.value.apiToken = props.item.apiToken
+  form.value.accountId = props.item.accountId
 
-  const cloudflaredError = computed(() => {
-    if (cloudflared.value.length === 0) {
-      return I18nT('host.CloudflareTunnel.CloudflaredNoFoundTips')
-    }
-
-    return ''
-  })
-
-  if (cloudflared.value.length) {
-    form.value.cloudflaredBin = cloudflared.value[0].bin
-  }
+  form.value.subdomain = props.dns.subdomain
+  form.value.localService = props.dns.localService
+  form.value.zoneId = props.dns.zoneId
+  form.value.zoneName = props.dns.zoneName
 
   const saveEnable = computed(() => {
     return (
@@ -125,36 +102,35 @@
       form.value.localService &&
       form.value.zoneId &&
       form.value.zoneName &&
-      form.value.cloudflaredBin &&
-      !onlineDomainError.value
+      !onlineDomainError.value &&
+      hasChanged.value
     )
   })
 
-  watch(
-    () => form.value.apiToken,
-    (v) => {
-      zones.value = []
-
-      if (v) {
-        if (ZoneDict?.[v]) {
-          zones.value = ZoneDict[v]
-          return
-        }
-        if (v.length < 24) {
-          return
-        }
-        IPC.send('app-fork:cloudflare-tunnel', 'fetchAllZone', {
-          apiToken: v
-        }).then((key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            zones.value = reactive(res?.data ?? [])
-            ZoneDict[v] = zones.value
-          }
-        })
+  const fetchAllZone = (v: string) => {
+    if (v) {
+      if (ZoneDict?.[v]) {
+        zones.value = ZoneDict[v]
+        return
       }
+      if (v.length < 24) {
+        return
+      }
+      IPC.send('app-fork:cloudflare-tunnel', 'fetchAllZone', {
+        apiToken: v
+      }).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          zones.value = reactive(res?.data ?? [])
+          ZoneDict[v] = zones.value
+        }
+      })
     }
-  )
+  }
+
+  if (form.value.apiToken) {
+    fetchAllZone(form.value.apiToken)
+  }
 
   watch(
     () => form.value.zoneId,
@@ -200,7 +176,9 @@
     const domain = `${form.value.subdomain}.${form.value.zoneName}`
     const all = CloudflareTunnelStore.items
       .map((item) => {
-        return item.dns.map((d) => `${d.subdomain}.${d.zoneName}`)
+        return item.dns
+          .filter((d) => d.id !== props.dns.id)
+          .map((d) => `${d.subdomain}.${d.zoneName}`)
       })
       .flat()
     if (all.includes(domain)) {
@@ -213,40 +191,39 @@
     show.value = false
   }
 
+  const hasChanged = computed(() => {
+    const find = CloudflareTunnelStore.items.find((i) => i.id === props.item.id)
+    if (find) {
+      const dns = find.dns[props.index]
+      return (
+        dns.zoneId !== form.value.zoneId ||
+        dns.zoneName !== form.value.zoneName ||
+        dns.subdomain !== form.value.subdomain ||
+        dns.localService !== form.value.localService
+      )
+    }
+    return false
+  })
+
   const doSubmit = async () => {
-    if (loading.value) {
+    if (!hasChanged.value) {
       return
     }
-    loading.value = true
-    const obj: any = {
-      apiToken: form.value.apiToken,
-      cloudflaredBin: form.value.cloudflaredBin,
-      accountId: form.value.accountId,
-
-      dns: [
-        {
-          id: uuid(),
-          subdomain: form.value.subdomain,
-          localService: form.value.localService,
-          zoneId: form.value.zoneId,
-          zoneName: form.value.zoneName
-        }
-      ]
-    }
-    const item = reactiveBind(new CloudflareTunnel(obj))
-    item.id = uuid()
-    item
-      .fetchTunnel()
-      .then(() => {
-        CloudflareTunnelStore.items.unshift(item)
+    const find = CloudflareTunnelStore.items.find((i) => i.id === props.item.id)
+    if (find) {
+      const dns = find.dns[props.index]
+      if (hasChanged.value) {
+        dns.zoneId = form.value.zoneId
+        dns.zoneName = form.value.zoneName
+        dns.subdomain = form.value.subdomain
+        dns.localService = form.value.localService
         CloudflareTunnelStore.save()
-        loading.value = false
-        onCancel()
-      })
-      .catch((error) => {
-        MessageError(I18nT('host.CloudflareTunnel.TunnelInitFailTips', { error }))
-        loading.value = false
-      })
+        if (find.run) {
+          find.restart().catch()
+        }
+      }
+    }
+    onCancel()
   }
 
   defineExpose({

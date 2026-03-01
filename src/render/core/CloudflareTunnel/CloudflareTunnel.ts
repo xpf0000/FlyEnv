@@ -1,11 +1,13 @@
 import IPC from '@/util/IPC'
-import { CloudflareTunnelDnsRecord, ZoneType } from '@/core/CloudflareTunnel/type'
+import { CloudflareTunnelDnsRecord } from '@/core/CloudflareTunnel/type'
 import { I18nT } from '@lang/index'
 import { MessageError } from '@/util/Element'
+import { md5 } from '@/util/Index'
 
 export class CloudflareTunnel {
   id: string = ''
   apiToken: string = ''
+  tunnelName: string = ''
   tunnelId: string = ''
   tunnelToken: string = ''
   cloudflaredBin: string = ''
@@ -22,17 +24,25 @@ export class CloudflareTunnel {
     this.pid = ''
     this.run = false
     this.running = false
+    if (this.apiToken && !this.tunnelName) {
+      this.tunnelName = `FlyEnv-Tunnel-${md5(this.apiToken).substring(0, 12)}`
+    }
   }
 
-  /**
-   * 获取所有的Zone
-   */
-  fetchAllZone(): Promise<ZoneType> {
-    return new Promise((resolve) => {
-      IPC.send('app-fork:cloudflare-tunnel', 'fetchAllZone').then((key: string, res: any) => {
-        IPC.off(key)
-        resolve(res?.data ?? [])
-      })
+  fetchTunnel(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      IPC.send('app-fork:cloudflare-tunnel', 'fetchTunnel', JSON.parse(JSON.stringify(this))).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          if (res?.data?.tunnelId && res?.data?.tunnelToken) {
+            this.tunnelId = res?.data?.tunnelToken
+            this.tunnelToken = res?.data?.tunnelToken
+            this.tunnelName = res?.data?.tunnelName
+            resolve(true)
+          }
+          reject(new Error(res?.msg ?? I18nT('base.fail')))
+        }
+      )
     })
   }
 

@@ -75,6 +75,8 @@
   "LocalDoman": "Local Domain",
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "The same online domain name already exists.",
-    "CloudflaredNoFoundTips": "Cloudflared not found. Please install it."
+    "CloudflaredNoFoundTips": "Cloudflared not found. Please install it.",
+    "TunnelInitFailTips": "Tunnel creation failed: {error}. Please check if the ApiToken is correct and ensure you have Cloudflare Tunnel edit permissions.",
+    "TunnelRule": "Tunnel Rule"
   }
 }
