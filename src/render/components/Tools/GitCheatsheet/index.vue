@@ -22,8 +22,9 @@
   import markdownit from 'markdown-it'
 
   const i18n = AppI18n()
+  const copyTimeoutMap = new Map<HTMLButtonElement, number>()
   const md = markdownit({
-    html: true,
+    html: false,
     linkify: true,
     typographer: true
   })
@@ -38,11 +39,16 @@
   md.renderer.rules.fence = function (tokens, idx, options, env, self) {
     const token = tokens[idx]
     const code = token.content.trim()
+    const copyCode = code
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('#'))
+      .join('\n')
+      .trim()
     const origRendered = defaultRender(tokens, idx, options, env, self)
 
     return `
       <div class="code-block-wrapper">
-        <button class="copy-button" data-code="${encodeURIComponent(code)}" type="button" aria-label="${I18nT('base.copy')}">
+        <button class="copy-button" data-code="${encodeURIComponent(copyCode)}" type="button" aria-label="${I18nT('base.copy')}">
           <i class="bi bi-clipboard"></i>
           <span>${I18nT('base.copy')}</span>
         </button>
@@ -51,12 +57,15 @@
     `
   }
 
+  const memos = {
+    en: MemoEn,
+    vi: MemoVi
+  }
+
   const memo = computed(() => {
-    const locale = i18n.global.locale
-    if (locale === 'vi') {
-      return MemoVi
-    }
-    return MemoEn
+    // Ensure i18n.global.locale is reactive. For example, if it's a ref, use i18n.global.locale.value
+    const locale = i18n.global.locale as keyof typeof memos
+    return memos[locale] ?? MemoEn
   })
 
   const result = computed(() => md.render(memo.value))
@@ -72,18 +81,22 @@
       const span = btn.querySelector('span')
       const icon = btn.querySelector('i')
       if (span && icon) {
-        const originalText = span.innerText
-        const originalIcon = icon.className
+        const existingTimeout = copyTimeoutMap.get(btn)
+        if (existingTimeout) {
+          clearTimeout(existingTimeout)
+        }
 
         span.innerText = I18nT('base.copySuccess')
         icon.className = 'bi bi-check2'
         btn.classList.add('copied')
 
-        setTimeout(() => {
-          span.innerText = originalText
-          icon.className = originalIcon
+        const newTimeout = window.setTimeout(() => {
+          span.innerText = I18nT('base.copy')
+          icon.className = 'bi bi-clipboard'
           btn.classList.remove('copied')
+          copyTimeoutMap.delete(btn)
         }, 2000)
+        copyTimeoutMap.set(btn, newTimeout)
       }
     } catch (err) {
       console.error('Failed to copy: ', err)

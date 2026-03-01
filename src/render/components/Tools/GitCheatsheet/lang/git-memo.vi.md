@@ -460,9 +460,11 @@ Giữ cho kho lưu trữ khỏe mạnh và gọn nhẹ.
   ```shell
   git am < [file-patch]
   ```
-- **Lưu trữ thông tin đăng nhập (Vĩnh viễn)**:
+- **Trình quản lý thông tin đăng nhập (Khuyên dùng)**:
   ```shell
-  git config --global credential.helper store
+  # Windows, macOS, Linux (khi đã cài GCM)
+  git config --global credential.helper manager
+  # Các trình hỗ trợ khác: osxkeychain (macOS), libsecret (Linux)
   ```
 - **Lưu tạm thông tin đăng nhập (Credential cache)**:
   ```shell

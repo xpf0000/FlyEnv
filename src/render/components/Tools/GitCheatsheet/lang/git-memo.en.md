@@ -460,9 +460,11 @@ Keep the repository healthy and small.
   ```shell
   git am < [patch-file]
   ```
-- **Credential Storage (Permanent)**:
+- **Credential Manager (Recommended)**:
   ```shell
-  git config --global credential.helper store
+  # Windows, macOS, Linux (with GCM installed)
+  git config --global credential.helper manager
+  # Alternative OS-specific: osxkeychain (macOS), libsecret (Linux)
   ```
 - **Credential caching (Temporary)**:
   ```shell
