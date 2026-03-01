@@ -68,12 +68,12 @@
   "showFile": "Hiển thị tệp",
   "sticky": "Ghim",
   "dbclickRowToEdit": "Nhấp đúp vào dòng này để chỉnh sửa",
-
-
   "OnlineDomain": "Tên miền trực tuyến",
   "LocalDoman": "Tên miền cục bộ",
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "Tên miền trực tuyến tương tự đã tồn tại.",
-    "CloudflaredNoFoundTips": "Không tìm thấy Cloudflared. Vui lòng cài đặt nó."
+    "CloudflaredNoFoundTips": "Không tìm thấy Cloudflared. Vui lòng cài đặt nó.",
+    "TunnelInitFailTips": "Tạo Tunnel thất bại: {error}. Vui lòng kiểm tra xem ApiToken có chính xác không và đảm bảo bạn có quyền chỉnh sửa Cloudflare Tunnel.",
+    "TunnelRule": "Quy tắc Tunnel"
   }
 }
