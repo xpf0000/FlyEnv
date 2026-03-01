@@ -28,12 +28,13 @@
   import { clipboard } from '@/util/NodeFn'
   import { ElButton } from 'element-plus'
   import { CopyDocument, Check } from '@element-plus/icons-vue'
-  import { createHighlighter } from 'shiki'
+  import { createHighlighter, type Highlighter } from 'shiki'
 
   const i18n = AppI18n()
-  const highlighter = ref<any>(null)
+  const highlighter = ref<Highlighter | null>(null)
 
   let observer: MutationObserver | null = null
+  const resetTimers = new Map<Element, ReturnType<typeof setTimeout>>()
 
   onMounted(async () => {
     highlighter.value = await createHighlighter({
@@ -52,6 +53,8 @@
 
   onUnmounted(() => {
     observer?.disconnect()
+    resetTimers.forEach((id) => clearTimeout(id))
+    resetTimers.clear()
   })
   const md = markdownit({
     html: false,
@@ -83,8 +86,9 @@
             if (match) {
               highlighted = match[1]
             }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          } catch (e) {}
+          } catch (e) {
+            console.error('Shiki highlighting failed:', e)
+          }
         }
 
         // Return a single line string to prevent pre-tag whitespace issues
@@ -107,14 +111,14 @@
   })
 
   const result = computed(() => {
-    return md.render(memo.value)
+    return highlighter.value ? md.render(memo.value) : ''
   })
 
   const contentRef = ref<HTMLElement | null>(null)
 
   const copy = (v: string) => {
     clipboard.writeText(v)
-    MessageSuccess(I18nT('base.copySuccess'))
+    MessageSuccess(md.utils.escapeHtml(I18nT('base.copySuccess')))
   }
 
   const mountButtons = () => {
@@ -137,10 +141,14 @@
               copy(code)
               btnIcon.value = markRaw(Check)
               renderBtn()
-              setTimeout(() => {
+              const existing = resetTimers.get(p)
+              if (existing) clearTimeout(existing)
+              const timeoutId = setTimeout(() => {
                 btnIcon.value = markRaw(CopyDocument)
                 renderBtn()
+                resetTimers.delete(p)
               }, 2000)
+              resetTimers.set(p, timeoutId)
             }
           },
           () => []
