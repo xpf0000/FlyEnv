@@ -1,5 +1,5 @@
 <template>
-  <div class="host-edit tools">
+  <div class="host-edit tools" @click="handleContentClick">
     <div class="nav p-0">
       <div class="left">
         <span class="text-xl">{{ I18nT('tools.git-cheatsheet-title') }}</span>
@@ -15,7 +15,7 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed, onUnmounted } from 'vue'
+  import { computed } from 'vue'
   import { AppI18n, I18nT } from '@lang/index'
   import MemoEn from './lang/git-memo.en.md?raw'
   import MemoVi from './lang/git-memo.vi.md?raw'
@@ -42,7 +42,7 @@
 
     return `
       <div class="code-block-wrapper">
-        <button class="copy-button" data-code="${encodeURIComponent(code)}" onclick="window.gitCheatsheetCopy(this)">
+        <button class="copy-button" data-code="${encodeURIComponent(code)}" type="button" aria-label="${I18nT('base.copy')}">
           <i class="bi bi-clipboard"></i>
           <span>${I18nT('base.copy')}</span>
         </button>
@@ -61,20 +61,27 @@
 
   const result = computed(() => md.render(memo.value))
 
-  // Expose copy function to window for the onclick handler
-  const gitCheatsheetCopyFn = async (btn: HTMLButtonElement) => {
+  const handleContentClick = async (e: MouseEvent) => {
+    const target = e.target as HTMLElement
+    const btn = target.closest('.copy-button') as HTMLButtonElement | null
+    if (!btn) return
+
     const code = decodeURIComponent(btn.getAttribute('data-code') || '')
     try {
       await navigator.clipboard.writeText(code)
       const span = btn.querySelector('span')
       const icon = btn.querySelector('i')
       if (span && icon) {
+        const originalText = span.innerText
+        const originalIcon = icon.className
+
         span.innerText = I18nT('base.copySuccess')
         icon.className = 'bi bi-check2'
         btn.classList.add('copied')
+
         setTimeout(() => {
-          span.innerText = I18nT('base.copy')
-          icon.className = 'bi bi-clipboard'
+          span.innerText = originalText
+          icon.className = originalIcon
           btn.classList.remove('copied')
         }, 2000)
       }
@@ -82,19 +89,6 @@
       console.error('Failed to copy: ', err)
     }
   }
-
-  if (typeof window !== 'undefined') {
-    ;(window as any).gitCheatsheetCopy = gitCheatsheetCopyFn
-  }
-
-  onUnmounted(() => {
-    if (
-      typeof window !== 'undefined' &&
-      (window as any).gitCheatsheetCopy === gitCheatsheetCopyFn
-    ) {
-      delete (window as any).gitCheatsheetCopy
-    }
-  })
 </script>
 
 <style lang="scss">
@@ -102,7 +96,8 @@
     position: relative;
     margin-bottom: 1.5rem;
 
-    &:hover {
+    &:hover,
+    &:focus-within {
       .copy-button {
         opacity: 1;
       }
@@ -136,10 +131,14 @@
         font-size: 0.9rem;
       }
 
-      &:hover {
+      &:hover,
+      &:focus-visible {
         color: #f1f5f9;
         background: rgba(51, 65, 85, 0.9);
         border-color: #64748b;
+        opacity: 1;
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
       }
 
       &.copied {
@@ -155,8 +154,10 @@
       background: rgba(15, 23, 42, 0.8);
       border-color: rgba(51, 65, 85, 0.5);
 
-      &:hover {
+      &:hover,
+      &:focus-visible {
         background: rgba(30, 41, 59, 1);
+        outline-color: #60a5fa;
       }
     }
   }

@@ -77,7 +77,7 @@ Lưu trữ tạm thời các thay đổi chưa commit.
 
 - **Lưu các thay đổi vào stash**:
   ```shell
-  git stash save "tin nhắn"
+  git stash push -m "tin nhắn"
   ```
 - **Liệt kê danh sách stash**:
   ```shell

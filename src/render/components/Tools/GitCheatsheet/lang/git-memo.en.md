@@ -77,7 +77,7 @@ Temporarily store uncommitted changes.
 
 - **Save changes to stash**:
   ```shell
-  git stash save "message"
+  git stash push -m "message"
   ```
 - **List stashes**:
   ```shell
