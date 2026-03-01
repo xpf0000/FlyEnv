@@ -15,7 +15,7 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue'
+  import { computed, onUnmounted } from 'vue'
   import { AppI18n, I18nT } from '@lang/index'
   import MemoEn from './lang/git-memo.en.md?raw'
   import MemoVi from './lang/git-memo.vi.md?raw'
@@ -62,28 +62,39 @@
   const result = computed(() => md.render(memo.value))
 
   // Expose copy function to window for the onclick handler
-  if (typeof window !== 'undefined') {
-    ;(window as any).gitCheatsheetCopy = async (btn: HTMLButtonElement) => {
-      const code = decodeURIComponent(btn.getAttribute('data-code') || '')
-      try {
-        await navigator.clipboard.writeText(code)
-        const span = btn.querySelector('span')
-        const icon = btn.querySelector('i')
-        if (span && icon) {
-          span.innerText = I18nT('base.copySuccess')
-          icon.className = 'bi bi-check2'
-          btn.classList.add('copied')
-          setTimeout(() => {
-            span.innerText = I18nT('base.copy')
-            icon.className = 'bi bi-clipboard'
-            btn.classList.remove('copied')
-          }, 2000)
-        }
-      } catch (err) {
-        console.error('Failed to copy: ', err)
+  const gitCheatsheetCopyFn = async (btn: HTMLButtonElement) => {
+    const code = decodeURIComponent(btn.getAttribute('data-code') || '')
+    try {
+      await navigator.clipboard.writeText(code)
+      const span = btn.querySelector('span')
+      const icon = btn.querySelector('i')
+      if (span && icon) {
+        span.innerText = I18nT('base.copySuccess')
+        icon.className = 'bi bi-check2'
+        btn.classList.add('copied')
+        setTimeout(() => {
+          span.innerText = I18nT('base.copy')
+          icon.className = 'bi bi-clipboard'
+          btn.classList.remove('copied')
+        }, 2000)
       }
+    } catch (err) {
+      console.error('Failed to copy: ', err)
     }
   }
+
+  if (typeof window !== 'undefined') {
+    ;(window as any).gitCheatsheetCopy = gitCheatsheetCopyFn
+  }
+
+  onUnmounted(() => {
+    if (
+      typeof window !== 'undefined' &&
+      (window as any).gitCheatsheetCopy === gitCheatsheetCopyFn
+    ) {
+      delete (window as any).gitCheatsheetCopy
+    }
+  })
 </script>
 
 <style lang="scss">
