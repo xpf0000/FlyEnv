@@ -6,7 +6,7 @@ import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { CloudflareTunnelDnsRecord, ZoneType } from '@/core/CloudflareTunnel/type'
 import Base from '@/core/Base'
 import { I18nT } from '@lang/index'
-import { clipboard } from '@/util/NodeFn'
+import { clipboard, shell } from '@/util/NodeFn'
 import { MessageSuccess } from '@/util/Element'
 
 export const ZoneDict: Record<string, ZoneType[]> = reactive({})
@@ -38,7 +38,16 @@ export const Setup = () => {
     }).then()
   }
 
-  function info(item: CloudflareTunnel) {}
+  let LogVM: any
+  import('./Logs.vue').then((res) => {
+    LogVM = res.default
+  })
+
+  function log(item: CloudflareTunnel) {
+    AsyncComponentShow(LogVM, {
+      item: JSON.parse(JSON.stringify(item))
+    }).then()
+  }
 
   function del(item: CloudflareTunnel, index: number) {
     Base._Confirm(I18nT('base.areYouSure'), undefined, {
@@ -50,9 +59,15 @@ export const Setup = () => {
     })
   }
 
-  const openOutUrl = (item: CloudflareTunnel) => {}
+  const openOutUrl = (item: CloudflareTunnelDnsRecord) => {
+    const url = `http://${item.subdomain}.${item.zoneName}`
+    shell.openExternal(url).catch()
+  }
 
-  const openLocalUrl = (item: CloudflareTunnel) => {}
+  const openLocalUrl = (item: CloudflareTunnelDnsRecord) => {
+    const url = `${item?.protocol || 'http'}://${item.localService}`
+    shell.openExternal(url).catch()
+  }
 
   const groupTrunOn = (item: CloudflareTunnel) => {
     const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
@@ -113,7 +128,6 @@ export const Setup = () => {
   return {
     add,
     edit,
-    info,
     del,
     list,
     openOutUrl,
@@ -122,6 +136,7 @@ export const Setup = () => {
     copy,
     editDNS,
     delDNS,
-    addDNS
+    addDNS,
+    log
   }
 }

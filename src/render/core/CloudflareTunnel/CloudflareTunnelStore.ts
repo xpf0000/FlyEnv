@@ -14,6 +14,7 @@ class CloudflareTunnelStore {
     StorageGetAsync<CloudflareTunnel[]>(storeKey)
       .then((res: CloudflareTunnel[]) => {
         if (res) {
+          console.log('CloudflareTunnelStore init res:', res)
           for (const item of res) {
             const obj = reactiveBind(new CloudflareTunnel(item))
             this.items.push(obj)

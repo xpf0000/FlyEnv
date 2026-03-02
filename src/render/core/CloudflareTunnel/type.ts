@@ -13,4 +13,5 @@ export type CloudflareTunnelDnsRecord = {
   localService: string
   zoneId: string
   zoneName: string
+  protocol: 'http' | 'https'
 }
