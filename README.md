@@ -52,7 +52,7 @@ Most dev tools are either too heavy (Docker Desktop) or too limited (NVM/Homebre
 > * Switch between PHP 5.6, 7.4, 8.x instantly.
 > * Run Nginx/Apache, MySQL, Redis, and Mailpit out of the box.
 > * Native `composer` performance (no file-sharing lag).
-> * **[Download for Windows](#Windows)**
+> * **[Download for Windows](#windows-recommended)**
 
 </details>
 
