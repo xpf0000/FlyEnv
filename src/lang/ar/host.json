@@ -67,5 +67,14 @@
   "copyCommand": "نسخ الأمر",
   "showFile": "عرض الملف",
   "sticky": "تثبيت",
-  "dbclickRowToEdit": "انقر مرتين على هذا السطر للتحرير"
+  "dbclickRowToEdit": "انقر مرتين على هذا السطر للتحرير",
+  "OnlineDomain": "النطاق العام",
+  "LocalDoman": "النطاق المحلي",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "نفس اسم النطاق العام موجود بالفعل.",
+    "CloudflaredNoFoundTips": "لم يتم العثور على Cloudflared. يرجى تثبيته.",
+    "TunnelInitFailTips": "فشل إنشاء النفق: {error}. يرجى التحقق مما إذا كان ApiToken صحيحًا والتأكد من امتلاكك صلاحيات تعديل Cloudflare Tunnel.",
+    "TunnelRule": "قاعدة النفق",
+    "licenseTips": "بدون الحصول على ترخيص، يمكنك إنشاء نفق واحد فقط ومجموعة واحدة من سجلات المضيف."
+  }
 }

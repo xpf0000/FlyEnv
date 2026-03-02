@@ -67,5 +67,14 @@
   "copyCommand": "コマンドをコピー",
   "showFile": "ファイルを表示",
   "sticky": "スティッキー",
-  "dbclickRowToEdit": "この行をダブルクリックして編集"
+  "dbclickRowToEdit": "この行をダブルクリックして編集",
+  "OnlineDomain": "オンラインドメイン",
+  "LocalDoman": "ローカルドメイン",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "同じオンラインドメインが既に存在します。",
+    "CloudflaredNoFoundTips": "Cloudflaredが見つかりません。インストールしてください。",
+    "TunnelInitFailTips": "トンネルの作成に失敗しました: {error}。ApiTokenが正しいか確認し、Cloudflare Tunnelの編集権限があることを確認してください。",
+    "TunnelRule": "トンネルルール",
+    "licenseTips": "ライセンスを取得しない場合、1つのトンネルと1セットのホストレコードのみ作成できます。"
+  }
 }

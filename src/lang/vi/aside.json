@@ -15,6 +15,5 @@
   "objectStorage": "Lưu trữ đối tượng",
   "appExit": "Dừng tất cả các dịch vụ đang chạy và thoát FlyEnv",
   "groupStart": "Khởi động tất cả các dịch vụ khả dụng hiển thị trên bảng điều khiển bằng một cú nhấp chuột",
-
   "networkTunnel": "Xuyên mạng nội bộ"
 }

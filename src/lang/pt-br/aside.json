@@ -14,5 +14,6 @@
   "ai": "IA",
   "objectStorage": "Armazenamento de Objetos",
   "appExit": "Parar todos os serviços iniciados e sair do FlyEnv",
-  "groupStart": "Iniciar com um clique todos os serviços disponíveis exibidos no painel"
+  "groupStart": "Iniciar com um clique todos os serviços disponíveis exibidos no painel",
+  "networkTunnel": "Túnel de Rede"
 }

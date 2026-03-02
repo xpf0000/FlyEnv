@@ -67,5 +67,14 @@
   "copyCommand": "Əmri Kopyala",
   "showFile": "Faylı Göstər",
   "sticky": "Sabit",
-  "dbclickRowToEdit": "Redaktə etmək üçün sətrə iki dəfə klikləyin"
+  "dbclickRowToEdit": "Redaktə etmək üçün sətrə iki dəfə klikləyin",
+  "OnlineDomain": "Onlayn Domen",
+  "LocalDoman": "Lokal Domen",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Eyni onlayn domen adı artıq mövcuddur.",
+    "CloudflaredNoFoundTips": "Cloudflared tapılmadı. Zəhmət olmasa quraşdırın.",
+    "TunnelInitFailTips": "Tunnel yaradılması uğursuz oldu: {error}. Zəhmət olmasa ApiToken-in düzgün olub-olmadığını yoxlayın və Cloudflare Tunnel redaktə icazələrinizin olduğundan əmin olun.",
+    "TunnelRule": "Tunnel Qaydası",
+    "licenseTips": "Lisenziya almadan, yalnız bir tunnel və bir dəstə host qeydi yarada bilərsiniz."
+  }
 }

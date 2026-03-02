@@ -14,5 +14,6 @@
   "ai": "Yapay Zəka",
   "objectStorage": "Obyekt saxlama",
   "appExit": "Başladılmış bütün xidmətləri dayandırın və FlyEnv-dən çıxın",
-  "groupStart": "Paneldə göstərilən bütün mövcud xidmətləri bir dəfəyə başlatın"
+  "groupStart": "Paneldə göstərilən bütün mövcud xidmətləri bir dəfəyə başlatın",
+  "networkTunnel": "Şəbəkə Tuneli"
 }

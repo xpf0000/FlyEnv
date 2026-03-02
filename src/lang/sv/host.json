@@ -67,5 +67,14 @@
   "copyCommand": "Kopiera kommando",
   "showFile": "Visa fil",
   "sticky": "Fästbar",
-  "dbclickRowToEdit": "Dubbelklicka på den här raden för att redigera"
+  "dbclickRowToEdit": "Dubbelklicka på den här raden för att redigera",
+  "OnlineDomain": "Online-domän",
+  "LocalDoman": "Lokal Domän",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Samma online-domännamn finns redan.",
+    "CloudflaredNoFoundTips": "Cloudflared hittades inte. Vänligen installera det.",
+    "TunnelInitFailTips": "Tunnel skapande misslyckades: {error}. Vänligen kontrollera om ApiToken är korrekt och säkerställ att du har Cloudflare Tunnel-redigeringsbehörigheter.",
+    "TunnelRule": "Tunnelregel",
+    "licenseTips": "Utan att skaffa en licens kan du endast skapa en tunnel och en uppsättning värdposter."
+  }
 }

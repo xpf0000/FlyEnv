@@ -67,5 +67,14 @@
   "copyCommand": "Kopiuj polecenie",
   "showFile": "Pokaż plik",
   "sticky": "Przyklejony",
-  "dbclickRowToEdit": "Kliknij dwukrotnie w ten wiersz, aby edytować"
+  "dbclickRowToEdit": "Kliknij dwukrotnie w ten wiersz, aby edytować",
+  "OnlineDomain": "Domena online",
+  "LocalDoman": "Domena lokalna",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Taka sama nazwa domeny online już istnieje.",
+    "CloudflaredNoFoundTips": "Nie znaleziono Cloudflared. Proszę go zainstalować.",
+    "TunnelInitFailTips": "Tworzenie tunelu nie powiodło się: {error}. Sprawdź, czy ApiToken jest poprawny i upewnij się, że masz uprawnienia do edycji Cloudflare Tunnel.",
+    "TunnelRule": "Reguła tunelu",
+    "licenseTips": "Bez uzyskania licencji można utworzyć tylko jeden tunel i jeden zestaw rekordów hosta."
+  }
 }

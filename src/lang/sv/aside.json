@@ -14,5 +14,6 @@
   "ai": "AI",
   "objectStorage": "Objektlagring",
   "appExit": "Stoppa alla startade tjänster och avsluta FlyEnv",
-  "groupStart": "Starta enkelt alla tillgängliga tjänster som visas på panelen"
+  "groupStart": "Starta enkelt alla tillgängliga tjänster som visas på panelen",
+  "networkTunnel": "Nätverkstunnel"
 }

@@ -13,6 +13,7 @@
   "appLog": "Log Aplikasi",
   "ai": "Kecerdasan Buatan (AI)",
   "objectStorage": "Penyimpanan Objek",
+  "networkTunnel": "Tunnel Jaringan",
   "appExit": "Hentikan semua layanan yang telah dimulai dan keluar dari FlyEnv",
   "groupStart": "Mulai sekaligus semua layanan yang tersedia yang ditampilkan di panel"
 }

@@ -67,5 +67,14 @@
   "copyCommand": "Kopírovat příkaz",
   "showFile": "Zobrazit soubor",
   "sticky": "Přilepit",
-  "dbclickRowToEdit": "Dvojklikem na tento řádek upravíte"
+  "dbclickRowToEdit": "Dvojklikem na tento řádek upravíte",
+  "OnlineDomain": "Online doména",
+  "LocalDoman": "Místní doména",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Stejná online doména již existuje.",
+    "CloudflaredNoFoundTips": "Cloudflared nebyl nalezen. Nainstalujte jej prosím.",
+    "TunnelInitFailTips": "Vytvoření tunelu selhalo: {error}. Zkontrolujte, zda je ApiToken správný a ujistěte se, že máte oprávnění k úpravám Cloudflare Tunnel.",
+    "TunnelRule": "Pravidlo tunelu",
+    "licenseTips": "Bez získání licence můžete vytvořit pouze jeden tunel a jednu sadu záznamů hostitele."
+  }
 }
