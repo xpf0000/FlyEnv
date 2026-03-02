@@ -33,7 +33,7 @@
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
 
   const projectTitle = computed(() => {
-    return `Zig ${I18nT('base.projects')}`
+    return I18nT('host.projectZig')
   })
 
   const { tab } = AppModuleSetup('zig')

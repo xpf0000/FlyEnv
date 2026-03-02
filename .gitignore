@@ -28,6 +28,8 @@ app-update.yml
 yarn-error.log
 /test
 .vscode/settings.json
-src/main/lang/index.ts
 /data
 package-lock.json
+src/helper-go/rsrc_windows_amd64.syso
+src/helper-go/rsrc_windows_386.syso
+src/helper-go/go.sum

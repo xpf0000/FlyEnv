@@ -21,15 +21,11 @@
         url="https://forge.rust-lang.org/infra/other-installation-methods.html#standalone-installers"
       ></Manager>
       <RustupVM v-else-if="tab === 2" />
-      <ProjectIndex
-        v-else-if="tab === 3"
-        :title="`Rust ${I18nT('base.projects')}`"
-        :type-flag="'rust'"
-      >
+      <ProjectIndex v-else-if="tab === 3" :title="I18nT('host.projectRust')" :type-flag="'rust'">
         <template #openin="{ row }">
           <li @click.stop="Project.openPath(row.path, 'RustRover')">
             <yb-icon :svg="import('@/svg/rustrover.svg?raw')" width="13" height="13" />
-            <span class="ml-3">{{ I18nT('nodejs.openIN') }} RustMine</span>
+            <span class="ml-3">{{ I18nT('nodejs.openIN') }} RustRover</span>
           </li>
         </template>
       </ProjectIndex>
@@ -51,6 +47,6 @@
     I18nT('base.service'),
     I18nT('base.versionManager'),
     'Rustup',
-    `Rust ${I18nT('base.projects')}`
+    I18nT('host.projectRust')
   ]
 </script>

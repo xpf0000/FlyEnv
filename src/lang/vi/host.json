@@ -34,6 +34,10 @@
   "projectDeno": "Dự án Deno",
   "projectBun": "Dự án Bun",
   "projectPerl": "Dự án Perl",
+  "projectRuby": "Dự án Ruby",
+  "projectRust": "Dự án Rust",
+  "projectZig": "Dự án Zig",
+  "targetPlatforms": "Nền tảng mục tiêu",
   "jarPackagePath": "Đường dẫn gói JAR",
   "jdkPath": "Đường dẫn JDK",
   "pythonPath": "Đường dẫn Python",
@@ -71,10 +75,10 @@
   "OnlineDomain": "Tên miền trực tuyến",
   "LocalDoman": "Tên miền cục bộ",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Tên miền trực tuyến giống nhau đã tồn tại.",
-    "CloudflaredNoFoundTips": "Không tìm thấy Cloudflared. Vui lòng cài đặt.",
-    "TunnelInitFailTips": "Tạo đường hầm thất bại: {error}. Vui lòng kiểm tra xem ApiToken có đúng không và đảm bảo bạn có quyền chỉnh sửa Cloudflare Tunnel.",
-    "TunnelRule": "Quy tắc đường hầm",
-    "licenseTips": "Nếu không có giấy phép, bạn chỉ có thể tạo một đường hầm và một bộ bản ghi máy chủ."
+    "OnlineDomainExistsTips": "Tên miền trực tuyến tương tự đã tồn tại.",
+    "CloudflaredNoFoundTips": "Không tìm thấy Cloudflared. Vui lòng cài đặt nó.",
+    "TunnelInitFailTips": "Tạo Tunnel thất bại: {error}. Vui lòng kiểm tra xem ApiToken có chính xác không và đảm bảo bạn có quyền chỉnh sửa Cloudflare Tunnel.",
+    "TunnelRule": "Quy tắc Tunnel",
+    "licenseTips": "Nếu không có giấy phép, Bạn chỉ có thể tạo một đường hầm và một bộ bản ghi máy chủ."
   }
 }

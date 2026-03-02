@@ -5,8 +5,16 @@
         <div class="left">
           <span> Rustup </span>
           <el-radio-group v-model="RustupSetup.tab" size="small" class="ml-6">
-            <el-radio-button class="flex-1" label="version" value="version"></el-radio-button>
-            <el-radio-button class="flex-1" label="target" value="target"></el-radio-button>
+            <el-radio-button
+              class="flex-1"
+              :label="I18nT('base.version')"
+              value="version"
+            ></el-radio-button>
+            <el-radio-button
+              class="flex-1"
+              :label="I18nT('base.targetPlatforms')"
+              value="target"
+            ></el-radio-button>
           </el-radio-group>
         </div>
         <el-button class="button" link :disabled="refreshDisable" @click="RustupSetup.fetchData()">
@@ -98,10 +106,8 @@
                 :loading="RustupSetup.installing"
                 :disabled="RustupSetup.installing"
                 @click="doVersionAction(scope.row)"
-                >{{
-                  scope.row.isInstalled ? I18nT('base.uninstall') : I18nT('base.install')
-                }}</el-button
-              >
+                >{{ scope.row.isInstalled ? I18nT('base.uninstall') : I18nT('base.install') }}
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -111,7 +117,9 @@
           <el-table-column prop="version">
             <template #header>
               <div class="w-full flex items-center gap-3">
-                <span class="inline-flex items-center py-[2px] flex-shrink-0">target</span>
+                <span class="inline-flex items-center py-[2px] flex-shrink-0">{{
+                  I18nT('base.targetPlatforms')
+                }}</span>
                 <el-input
                   v-model.trim="RustupSetup.targetSearchKey"
                   class="w-[188px]"
@@ -147,10 +155,8 @@
                 link
                 :disabled="RustupSetup.installing"
                 @click="doTargetAction(scope.row)"
-                >{{
-                  scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install')
-                }}</el-button
-              >
+                >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}
+              </el-button>
             </template>
           </el-table-column>
         </el-table>

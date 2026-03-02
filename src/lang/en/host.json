@@ -35,7 +35,10 @@
   "projectDeno": "Deno Projects",
   "projectBun": "Bun Projects",
   "projectPerl": "Perl Projects",
-
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects",
+  "targetPlatforms": "Target Platforms",
   "jarPackagePath": "JAR Package Path",
   "jdkPath": "JDK Path",
   "pythonPath": "Python Path",
