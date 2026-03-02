@@ -19,11 +19,7 @@
         title="Ruby"
         url="https://github.com/oneclick/rubyinstaller2/releases"
       ></Manager>
-      <ProjectIndex
-        v-else-if="tab === 2"
-        :title="`Ruby ${I18nT('base.projects')}`"
-        :type-flag="'ruby'"
-      >
+      <ProjectIndex v-else-if="tab === 2" :title="I18nT('host.projectRuby')" :type-flag="'ruby'">
         <template #openin="{ row }">
           <li @click.stop="Project.openPath(row.path, 'RubyMine')">
             <yb-icon :svg="import('@/svg/rubymine.svg?raw')" width="13" height="13" />
@@ -44,9 +40,5 @@
   import { Project } from '@/util/Project'
 
   const { tab } = AppModuleSetup('ruby')
-  const tabs = [
-    I18nT('base.service'),
-    I18nT('base.versionManager'),
-    `Ruby ${I18nT('base.projects')}`
-  ]
+  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('host.projectRuby')]
 </script>
