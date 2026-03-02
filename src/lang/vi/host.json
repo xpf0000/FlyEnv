@@ -67,5 +67,14 @@
   "copyCommand": "Sao chép lệnh",
   "showFile": "Hiển thị tệp",
   "sticky": "Ghim",
-  "dbclickRowToEdit": "Nhấp đúp vào dòng này để chỉnh sửa"
+  "dbclickRowToEdit": "Nhấp đúp vào dòng này để chỉnh sửa",
+  "OnlineDomain": "Tên miền trực tuyến",
+  "LocalDoman": "Tên miền cục bộ",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Tên miền trực tuyến giống nhau đã tồn tại.",
+    "CloudflaredNoFoundTips": "Không tìm thấy Cloudflared. Vui lòng cài đặt.",
+    "TunnelInitFailTips": "Tạo đường hầm thất bại: {error}. Vui lòng kiểm tra xem ApiToken có đúng không và đảm bảo bạn có quyền chỉnh sửa Cloudflare Tunnel.",
+    "TunnelRule": "Quy tắc đường hầm",
+    "licenseTips": "Nếu không có giấy phép, bạn chỉ có thể tạo một đường hầm và một bộ bản ghi máy chủ."
+  }
 }

@@ -67,5 +67,14 @@
   "copyCommand": "Kopier Kommando",
   "showFile": "Vis Fil",
   "sticky": "Klæbrig",
-  "dbclickRowToEdit": "Dobbeltklik på denne linje for at redigere"
+  "dbclickRowToEdit": "Dobbeltklik på denne linje for at redigere",
+  "OnlineDomain": "Online domæne",
+  "LocalDoman": "Lokalt domæne",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Det samme online domænenavn findes allerede.",
+    "CloudflaredNoFoundTips": "Cloudflared blev ikke fundet. Installer det venligst.",
+    "TunnelInitFailTips": "Tunneloprettelse mislykkedes: {error}. Kontroller om ApiToken er korrekt, og sørg for, at du har Cloudflare Tunnel redigeringstilladelser.",
+    "TunnelRule": "Tunnelregel",
+    "licenseTips": "Uden at opnå en licens kan du kun oprette én tunnel og ét sæt værtsregistreringer."
+  }
 }

@@ -14,5 +14,6 @@
   "ai": "AI",
   "objectStorage": "Object Opslag",
   "appExit": "Stop alle actieve services en verlaat FlyEnv",
-  "groupStart": "Start met één klik alle beschikbare services die worden weergegeven op het paneel"
+  "groupStart": "Start met één klik alle beschikbare services die worden weergegeven op het paneel",
+  "networkTunnel": "Netwerktunnel"
 }

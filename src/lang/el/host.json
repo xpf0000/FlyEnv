@@ -45,6 +45,8 @@
   "fileVarTips": "Επιλέξτε το αρχείο μεταβλητής περιβάλλοντος",
   "tcpPort": "Θύρα TCP",
   "reverseProxy": "Αντίστροφος Διακομιστής Μεσολάβησης",
+  "OnlineDomain": "Διαδικτυακός Τομέας",
+  "LocalDoman": "Τοπικός Τομέας",
   "projectName": "Όνομα Έργου",
   "customJDKAndTomcat": "Προσαρμοσμένο JDK&Tomcat",
   "useSSL": "Χρήση SSL",
@@ -67,5 +69,12 @@
   "copyCommand": "Αντιγραφή Εντολής",
   "showFile": "Εμφάνιση Αρχείου",
   "sticky": "Κολλημένο",
-  "dbclickRowToEdit": "Κάντε διπλό κλικ σε αυτή τη γραμμή για επεξεργασία"
+  "dbclickRowToEdit": "Κάντε διπλό κλικ σε αυτή τη γραμμή για επεξεργασία",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Το ίδιο όνομα διαδικτυακού τομέα υπάρχει ήδη.",
+    "CloudflaredNoFoundTips": "Το Cloudflared δεν βρέθηκε. Παρακαλώ εγκαταστήστε το.",
+    "TunnelInitFailTips": "Η δημιουργία σήραγγας απέτυχε: {error}. Παρακαλώ ελέγξτε αν το ApiToken είναι σωστό και βεβαιωθείτε ότι έχετε δικαιώματα επεξεργασίας Cloudflare Tunnel.",
+    "TunnelRule": "Κανόνας Σήραγγας",
+    "licenseTips": "Χωρίς την απόκτηση άδειας, μπορείτε να δημιουργήσετε μόνο μία σήραγγα και ένα σύνολο εγγραφών host."
+  }
 }

@@ -45,6 +45,8 @@
   "fileVarTips": "Selecciona el archivo de variables de entorno",
   "tcpPort": "Puerto TCP",
   "reverseProxy": "Proxy reverso",
+  "OnlineDomain": "Dominio en Línea",
+  "LocalDoman": "Dominio Local",
   "projectName": "Nombre del Proyecto",
   "customJDKAndTomcat": "JDK&Tomcat personalizados",
   "useSSL": "Usar SSL",
@@ -67,5 +69,12 @@
   "copyCommand": "Copiar Comando",
   "showFile": "Mostrar Archivo",
   "sticky": "Fijar",
-  "dbclickRowToEdit": "Haz doble clic en esta línea para editar"
+  "dbclickRowToEdit": "Haz doble clic en esta línea para editar",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "El mismo nombre de dominio en línea ya existe.",
+    "CloudflaredNoFoundTips": "Cloudflared no encontrado. Por favor instálalo.",
+    "TunnelInitFailTips": "La creación del túnel falló: {error}. Por favor verifica si el ApiToken es correcto y asegúrate de tener permisos de edición de Cloudflare Tunnel.",
+    "TunnelRule": "Regla de Túnel",
+    "licenseTips": "Sin obtener una licencia, solo puedes crear un túnel y un conjunto de registros de host."
+  }
 }

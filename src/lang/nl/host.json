@@ -67,5 +67,14 @@
   "copyCommand": "Opdracht kopiëren",
   "showFile": "Toon bestand",
   "sticky": "Vasthouden",
-  "dbclickRowToEdit": "Dubbelklik op deze regel om te bewerken"
+  "dbclickRowToEdit": "Dubbelklik op deze regel om te bewerken",
+  "OnlineDomain": "Online Domein",
+  "LocalDoman": "Lokaal Domein",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Hetzelfde online domein bestaat al.",
+    "CloudflaredNoFoundTips": "Cloudflared niet gevonden. Installeer het alstublieft.",
+    "TunnelInitFailTips": "Tunnel aanmaken mislukt: {error}. Controleer of de ApiToken correct is en zorg dat u Cloudflare Tunnel bewerkingsrechten heeft.",
+    "TunnelRule": "Tunnel Regel",
+    "licenseTips": "Zonder een licentie te verkrijgen, kunt u slechts één tunnel en één set hostrecords aanmaken."
+  }
 }

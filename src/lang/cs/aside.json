@@ -14,5 +14,6 @@
   "ai": "AI",
   "objectStorage": "Úložiště objektů",
   "appExit": "Zastavit všechny běžící služby a ukončit FlyEnv",
-  "groupStart": "Jedním klepnutím spustit všechny dostupné služby zobrazené v panelu"
+  "groupStart": "Jedním klepnutím spustit všechny dostupné služby zobrazené v panelu",
+  "networkTunnel": "Síťový tunel"
 }

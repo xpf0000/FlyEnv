@@ -67,5 +67,14 @@
   "copyCommand": "কমান্ড কপি করুন",
   "showFile": "ফাইল দেখান",
   "sticky": "স্টিকি",
-  "dbclickRowToEdit": "সম্পাদনা করতে এই লাইনে ডাবল-ক্লিক করুন"
+  "dbclickRowToEdit": "সম্পাদনা করতে এই লাইনে ডাবল-ক্লিক করুন",
+  "OnlineDomain": "অনলাইন ডোমেইন",
+  "LocalDoman": "লোকাল ডোমেইন",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "একই অনলাইন ডোমেইন নাম ইতিমধ্যে বিদ্যমান রয়েছে।",
+    "CloudflaredNoFoundTips": "Cloudflared পাওয়া যায়নি। অনুগ্রহ করে ইনস্টল করুন।",
+    "TunnelInitFailTips": "Tunnel তৈরি ব্যর্থ হয়েছে: {error}। অনুগ্রহ করে পরীক্ষা করুন যে ApiToken সঠিক কিনা এবং আপনার কাছে Cloudflare Tunnel সম্পাদনার অনুমতি আছে কিনা তা নিশ্চিত করুন।",
+    "TunnelRule": "Tunnel নিয়ম",
+    "licenseTips": "লাইসেন্স না পেলে, আপনি শুধুমাত্র একটি tunnel এবং একটি সেট host রেকর্ড তৈরি করতে পারবেন।"
+  }
 }

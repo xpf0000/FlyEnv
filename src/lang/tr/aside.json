@@ -14,5 +14,6 @@
   "ai": "Yapay Zeka",
   "objectStorage": "Nesne Depolama",
   "appExit": "Başlatılan tüm hizmetleri durdur ve FlyEnv'ten çık",
-  "groupStart": "Panoda görünen kullanılabilir tüm hizmetleri tek tıkla başlat"
+  "groupStart": "Panoda görünen kullanılabilir tüm hizmetleri tek tıkla başlat",
+  "networkTunnel": "Ağ Tüneli"
 }

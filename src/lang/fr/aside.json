@@ -13,6 +13,7 @@
   "appLog": "Journal de l'Application",
   "ai": "IA",
   "objectStorage": "Stockage d'Objets",
+  "networkTunnel": "Tunnel Réseau",
   "appExit": "Arrêter tous les services démarrés et quitter FlyEnv",
   "groupStart": "Démarrer en un clic tous les services disponibles affichés sur le panneau"
 }

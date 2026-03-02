@@ -67,5 +67,14 @@
   "copyCommand": "Копіювати команду",
   "showFile": "Показати файл",
   "sticky": "Залипати",
-  "dbclickRowToEdit": "Двічі клацніть цей рядок для редагування"
+  "dbclickRowToEdit": "Двічі клацніть цей рядок для редагування",
+  "OnlineDomain": "Онлайн-домен",
+  "LocalDoman": "Локальний домен",
+  "CloudflareTunnel": {
+    "OnlineDomainExistsTips": "Такий онлайн-домен вже існує.",
+    "CloudflaredNoFoundTips": "Cloudflared не знайдено. Будь ласка, встановіть його.",
+    "TunnelInitFailTips": "Створення тунелю не вдалося: {error}. Будь ласка, перевірте, чи правильний ApiToken, і переконайтеся, що у вас є дозволи на редагування Cloudflare Tunnel.",
+    "TunnelRule": "Правило тунелю",
+    "licenseTips": "Без отримання ліцензії ви можете створити лише один тунель і один набір записів хоста."
+  }
 }
