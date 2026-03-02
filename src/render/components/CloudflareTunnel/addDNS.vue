@@ -37,19 +37,12 @@
         </el-form-item>
 
         <el-form-item :label="I18nT('host.LocalDoman')" required :show-message="false">
-          <div class="w-full flex items-center overflow-hidden">
-            <el-select v-model="form.protocol" class="flex-1">
-              <el-option label="http" value="http"></el-option>
-              <el-option label="https" value="https"></el-option>
-            </el-select>
-            <div class="px-2 flex-shrink-0 flex items-center">://</div>
-            <el-autocomplete
-              v-model="form.localService"
-              class="flex-[3]"
-              :fetch-suggestions="querySearch"
-              clearable
-            />
-          </div>
+          <el-autocomplete
+            v-model="form.localService"
+            class="flex-[3]"
+            :fetch-suggestions="querySearch"
+            clearable
+          />
         </el-form-item>
       </el-form>
     </el-scrollbar>
@@ -207,6 +200,7 @@
         protocol: form.value.protocol as any
       }
       find.dns.unshift(reactive(dns))
+      CloudflareTunnelStore.save()
       if (find.run) {
         find.restart().catch()
       }

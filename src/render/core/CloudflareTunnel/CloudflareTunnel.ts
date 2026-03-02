@@ -3,6 +3,7 @@ import { CloudflareTunnelDnsRecord } from '@/core/CloudflareTunnel/type'
 import { I18nT } from '@lang/index'
 import { MessageError } from '@/util/Element'
 import { md5 } from '@/util/Index'
+import CloudflareTunnelStore from '@/core/CloudflareTunnel/CloudflareTunnelStore'
 
 export class CloudflareTunnel {
   id: string = ''
@@ -54,6 +55,18 @@ export class CloudflareTunnel {
           IPC.off(key)
           if (res?.code === 0) {
             this.pid = res?.data?.['APP-Service-Start-PID'] ?? ''
+            let hasChaned = false
+            if (res?.data?.tunnelId) {
+              this.tunnelId = res?.data?.tunnelId
+              hasChaned = true
+            }
+            if (res?.data?.tunnelToken) {
+              this.tunnelToken = res?.data?.tunnelToken
+              hasChaned = true
+            }
+            if (hasChaned) {
+              CloudflareTunnelStore.save()
+            }
             this.run = true
             resolve(true)
           } else {

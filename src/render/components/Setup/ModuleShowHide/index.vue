@@ -3,7 +3,7 @@
     class="relative flex justify-center items-center py-5 bg-[#33445526] w-full rounded-md dark:bg-[#32364A]"
   >
     <div class="flex items-center">
-      <div class="w-[100px]">{{ title }}</div>
+      <div class="w-[130px] truncate">{{ title }}</div>
       <el-switch v-model="showItem" />
     </div>
     <slot name="default"></slot>

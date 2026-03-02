@@ -46,7 +46,9 @@ class CloudflareTunnelBase extends Base {
         const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
         await mkdirp(dirname(appPidFile))
         await writeFile(appPidFile, model.pid)
-        resolve(res)
+        const json = JSON.parse(JSON.stringify(res))
+        json['APP-Service-Start-PID'] = model.pid
+        resolve(json)
       } catch (e) {
         reject(e)
       }

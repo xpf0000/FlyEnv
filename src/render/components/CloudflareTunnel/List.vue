@@ -52,14 +52,12 @@
               <el-table-column prop="local-url" :label="I18nT('host.LocalDoman')">
                 <template #default="scope">
                   <template v-if="props.row.run">
-                    <el-button type="success" link @click.stop="openLocalUrl(scope.row)"
-                      >{{ scope.row?.protocol || 'http' }}://{{ scope.row.localService }}</el-button
-                    >
+                    <el-button type="success" link @click.stop="openLocalUrl(scope.row)">{{
+                      scope.row.localService
+                    }}</el-button>
                   </template>
                   <template v-else>
-                    <el-button type="info" link
-                      >{{ scope.row?.protocol || 'http' }}://{{ scope.row.localService }}</el-button
-                    >
+                    <el-button type="info" link>{{ scope.row.localService }}</el-button>
                   </template>
                 </template>
               </el-table-column>

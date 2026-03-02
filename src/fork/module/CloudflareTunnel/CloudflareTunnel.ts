@@ -256,7 +256,7 @@ export class CloudflareTunnel {
       this.pid = res?.['APP-Service-Start-PID']
 
       console.log(`🚀 穿透服务启动完毕！(PID: ${this.pid})`)
-      return res
+      return this
     } catch (error: any) {
       console.error('启动 Cloudflare Tunnel 失败:', error.response?.data || error.message)
       throw error
