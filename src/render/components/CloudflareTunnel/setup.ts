@@ -8,6 +8,7 @@ import Base from '@/core/Base'
 import { I18nT } from '@lang/index'
 import { clipboard, shell } from '@/util/NodeFn'
 import { MessageSuccess } from '@/util/Element'
+import { SetupStore } from '@/components/Setup/store'
 
 export const ZoneDict: Record<string, ZoneType[]> = reactive({})
 
@@ -125,6 +126,15 @@ export const Setup = () => {
     }).then()
   }
 
+  const setupStore = SetupStore()
+  const isLocked = computed(() => {
+    if (setupStore.isActive) {
+      return false
+    }
+
+    return CloudflareTunnelStore.items.length > 0
+  })
+
   return {
     add,
     edit,
@@ -137,6 +147,7 @@ export const Setup = () => {
     editDNS,
     delDNS,
     addDNS,
-    log
+    log,
+    isLocked
   }
 }
