@@ -8,11 +8,12 @@
 - **Electron Version**: 35.7.5
 - **License**: MIT
 - **Author**: Pengfei Xu
-- **Repository**: https://github.com/xpf0000/FlyEnv
+- **Repository**: <https://github.com/xpf0000/FlyEnv>
 
 ## Technology Stack
 
 ### Core Technologies
+
 - **Frontend Framework**: Vue 3 (Composition API)
 - **Desktop Framework**: Electron 35.7.5
 - **Build Tool**: Vite 6.x + esbuild 0.25.x
@@ -23,6 +24,7 @@
 - **Internationalization**: Vue I18n 11.x
 
 ### Additional Libraries
+
 - **Code Editor**: Monaco Editor
 - **Terminal**: node-pty + xterm.js
 - **HTTP Client**: Axios
@@ -35,14 +37,17 @@
 FlyEnv follows Electron's multi-process architecture with three main components:
 
 ### 1. Main Process (`/src/main`)
+
 Acts as a command relay station between the renderer and fork processes.
 
 **Key Files**:
+
 - `index.ts` - Entry point, initializes Launcher
 - `Launcher.ts` - Application bootstrap, single-instance lock, event handling
 - `Application.ts` - Main application controller, window management, IPC handling
 
 **Core Managers**:
+
 - `WindowManager` - Browser window creation and management
 - `TrayManager` - System tray functionality
 - `MenuManager` - Application menus
@@ -51,29 +56,35 @@ Acts as a command relay station between the renderer and fork processes.
 - `NodePTY` - Terminal PTY handling
 
 ### 2. Forked Asynchronous Process (`/src/fork`)
+
 Executes all heavy commands asynchronously to prevent main thread blocking.
 
 **Key Files**:
+
 - `index.ts` - Fork process entry point
 - `BaseManager.ts` - Command dispatcher
 - `module/Base/index.ts` - Base class for all service modules
 
 **Module Structure** (`/src/fork/module/`):
 Each service has its own module (e.g., `Nginx/`, `Php/`, `Mysql/`). A typical module extends the `Base` class and implements:
+
 - `_startServer(version)` - Start the service
 - `_stopService(version)` - Stop the service
 - `fetchAllOnlineVersion()` - Fetch available versions
 - `installSoft()` - Download and install
 
 ### 3. Renderer Process (`/src/render`)
+
 Vue 3-based UI application.
 
 **Key Files**:
+
 - `main.ts` - Renderer entry point
 - `App.vue` - Root component
 - `core/type.ts` - Module type definitions
 
 **Directory Structure**:
+
 - `components/` - Vue components organized by module
 - `store/` - Pinia stores
 - `util/` - Utility functions
@@ -85,16 +96,20 @@ Background helper process for privileged operations.~~
 Deprecated. Only the Go version is used.
 
 ### 5. Go Helper (`/src/helper-go/`)
+
 Go-based helper binary for platform-specific operations (Windows admin tasks).
 
 ### 6. Shared Code (`/src/shared`)
+
 Shared utilities between all processes:
+
 - `ForkPromise.ts` - Promise with progress callbacks
 - `Process.ts` - Process management utilities
 - `child-process.ts` - Child process helpers
 - `utils.ts` - Platform detection utilities
 
 ### 7. Internationalization (`/src/lang`)
+
 Supports 25+ languages with JSON-based translation files.
 
 **Supported Languages**:
@@ -146,11 +161,13 @@ yarn postinstall                  # Install Electron app dependencies
 ### Vite Configuration (`/configs/vite.config.ts`)
 
 **Entry Points**:
+
 - `main` - Main application window
 - `tray` - Tray popup window
 - `capturer` - Screen capture window
 
 **Path Aliases**:
+
 - `@` → `src/render/`
 - `@shared` → `src/shared/`
 - `@lang` → `src/lang/`
@@ -158,23 +175,27 @@ yarn postinstall                  # Install Electron app dependencies
 ## Code Style Guidelines
 
 ### ESLint Configuration
+
 - Uses flat config format (`eslint.config.mjs`)
 - TypeScript ESLint recommended rules
 - Vue 3 recommended rules
 - Prettier integration for formatting
 
 ### Key Rules
+
 - `@typescript-eslint/no-explicit-any`: error (disabled in practice)
 - `vue/multi-word-component-names`: off
 - `vue/block-lang`: requires TypeScript in Vue SFCs
 - `prettier/prettier`: error (formatting issues treated as errors)
 
 ### Styling
+
 - **Primary**: Tailwind CSS for utility-first styling
 - **Secondary**: SCSS for complex styles
 - **Dark Mode**: CSS selector-based (`darkMode: 'selector'`)
 
 ### Code Conventions
+
 - Use TypeScript for all new code
 - Vue SFCs must use `<script lang="ts">`
 - Prefer Composition API over Options API
@@ -184,6 +205,7 @@ yarn postinstall                  # Install Electron app dependencies
 ## Adding a New Module
 
 ### Step 1: Define Module Type
+
 Add to `src/render/core/type.ts` in `AppModuleEnum`:
 
 ```typescript
@@ -194,6 +216,7 @@ export enum AppModuleEnum {
 ```
 
 ### Step 2: Create Fork Module
+
 Create `/src/fork/module/MyService/index.ts`:
 
 ```typescript
@@ -219,18 +242,23 @@ export default new MyService();
 ```
 
 ### Step 3: Create Renderer Components
+
 Create `/src/render/components/MyService/`:
+
 - `Module.ts` - Module definition
 - `Index.vue` - Main view
 - `aside.vue` - Sidebar component
 
 ### Step 4: Add Translations
+
 Create translation files in `/src/lang/*/myservice.json` and add to `index.ts`.
 
 ## Testing
 
 ### Test Directory (`/test/`)
+
 Contains various test files and utilities:
+
 - `test.ts` - General test file
 - `powershell.ts` - PowerShell tests
 - `docker-compose.yml` - Docker test configuration
@@ -240,6 +268,7 @@ Contains various test files and utilities:
 ## Development Workflow
 
 ### Prerequisites
+
 - Node.js 18+
 - Yarn package manager
 - Platform-specific build tools:
@@ -265,14 +294,17 @@ yarn build
 ### Platform-Specific Notes
 
 **macOS**:
+
 - May require `sudo xattr -dr "com.apple.quarantine"` for helper binaries
 - Uses `flyenv-helper` for privileged operations
 
 **Windows**:
+
 - Uses `flyenv-helper-windows-amd64-v1.exe` Go binary for admin tasks
 - PowerShell scripts in `/scripts/`
 
 **Linux**:
+
 - Supports both .deb and .rpm packaging
 - Uses native package managers for dependencies
 
@@ -286,11 +318,13 @@ yarn build
 ## Deployment
 
 ### GitHub Actions Workflows
+
 - `.github/workflows/macos-version-build.yml`
 - `.github/workflows/windows-version-build.yml`
 - `.github/workflows/linux-version-build.yml`
 
 ### Release Artifacts
+
 - **macOS**: `.dmg` (Intel & Apple Silicon)
 - **Windows**: `.exe` installer and portable
 - **Linux**: `.deb` and `.rpm` packages
@@ -316,7 +350,7 @@ yarn upgrade-interactive
 
 ## Resources
 
-- **Website**: https://www.flyenv.com
-- **Documentation**: https://deepwiki.com/xpf0000/FlyEnv
-- **Discord**: https://discord.gg/u5SuMGxjPE
-- **Releases**: https://github.com/xpf0000/FlyEnv/releases
+- **Website**: <https://www.flyenv.com>
+- **Documentation**: <https://deepwiki.com/xpf0000/FlyEnv>
+- **Discord**: <https://discord.gg/u5SuMGxjPE>
+- **Releases**: <https://github.com/xpf0000/FlyEnv/releases>
