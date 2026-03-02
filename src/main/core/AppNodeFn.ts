@@ -1,5 +1,9 @@
-import { address } from 'neoip'
 import { BrowserWindow, clipboard, nativeTheme, app, dialog, shell } from 'electron'
+import {
+  getAllLocalIPAddresses,
+  getPrimaryLocalIPAddress,
+  type NetworkInterfaceInfo
+} from '@shared/network'
 import { createRequire } from 'node:module'
 import ConfigManager from './ConfigManager'
 import { execPromise } from '@shared/child-process'
@@ -81,9 +85,22 @@ export class AppNodeFn {
     this?.mainWindow?.webContents.send('command', command, key, { types, extensions })
   }
 
+  /**
+   * 获取单个IP地址（向后兼容）
+   * 优先返回物理网卡的真实局域网IP
+   */
   ip_address(command: string, key: string) {
-    const ip = address() ?? ''
+    const ip = getPrimaryLocalIPAddress()
     this?.mainWindow?.webContents.send('command', command, key, ip)
+  }
+
+  /**
+   * 获取所有可用的IP地址列表
+   * 供用户选择使用哪个IP（用于DNS、FTP等服务）
+   */
+  ip_address_list(command: string, key: string) {
+    const list: NetworkInterfaceInfo[] = getAllLocalIPAddresses()
+    this?.mainWindow?.webContents.send('command', command, key, list)
   }
 
   clipboard_writeText(command: string, key: string, txt: string) {

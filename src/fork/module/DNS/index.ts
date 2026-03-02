@@ -1,12 +1,12 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import DNS2 from 'dns2'
-import { address } from 'neoip'
 import { createRequire } from 'node:module'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { mkdirp, existsSync, writeFile, readFile, readFileByRoot } from '../../Fn'
 import { dirname, join } from 'node:path'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+import { getPrimaryLocalIPAddress } from '@shared/network'
 
 const require = createRequire(import.meta.url)
 const Tangerine = require('tangerine')
@@ -109,7 +109,7 @@ class Manager extends Base {
         }
       }
       this.hosts = { ...resolveIP }
-      const LOCAL_IP = address()
+      const LOCAL_IP = getPrimaryLocalIPAddress()
       const server = createServer({
         udp: true,
         handle: (request: DNS2.DnsRequest, send: (response: DNS2.DnsResponse) => void) => {

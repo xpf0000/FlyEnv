@@ -4,9 +4,9 @@ import { Base } from '../Base'
 import type { FtpItem } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import FtpServer from 'ftp-srv'
-import { address } from 'neoip'
 import { readFile, writeFile, mkdirp, copyFile, remove } from '../../Fn'
 import { isWindows } from '@shared/utils'
+import { getPrimaryLocalIPAddress } from '@shared/network'
 
 class Manager extends Base {
   server?: FtpServer
@@ -51,7 +51,7 @@ class Manager extends Base {
       if (clientIP === '127.0.0.1' || clientIP === '::1') {
         return '127.0.0.1' // 本地连接直接返回回环地址
       }
-      return address()
+      return getPrimaryLocalIPAddress()
     }
 
     return new ForkPromise(async (resolve, reject) => {

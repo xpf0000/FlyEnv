@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
-import { ip } from '@/util/NodeFn'
+import { ip, type NetworkInterfaceInfo } from '@/util/NodeFn'
 
 export interface FtpItem {
   user: string
@@ -13,6 +13,8 @@ export interface FtpItem {
 interface State {
   running: boolean
   ip: string
+  ipList: NetworkInterfaceInfo[]
+  selectedIp: string
   fetching: boolean
   allFtp: Array<FtpItem>
   port: number
@@ -21,6 +23,8 @@ interface State {
 const state: State = {
   running: false,
   ip: '',
+  ipList: [],
+  selectedIp: '',
   fetching: false,
   allFtp: [],
   port: 0
@@ -31,9 +35,23 @@ export const FtpStore = defineStore('ftp-srv', {
   getters: {},
   actions: {
     getIP() {
-      ip.address().then((res) => {
-        this.ip = res
+      // 获取所有可用IP列表，让用户选择
+      ip.addressList().then((list) => {
+        this.ipList = list
+        // 优先选择非虚拟网卡的IP
+        const physicalIp = list.find((item) => !item.isVirtual)
+        if (physicalIp) {
+          this.ip = physicalIp.ip
+          this.selectedIp = physicalIp.ip
+        } else if (list.length > 0) {
+          this.ip = list[0].ip
+          this.selectedIp = list[0].ip
+        }
       })
+    },
+    setSelectedIp(ip: string) {
+      this.selectedIp = ip
+      this.ip = ip
     },
     getPort() {
       IPC.send('app-fork:ftp-srv', 'getPort').then((key: string, res?: any) => {

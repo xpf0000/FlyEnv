@@ -89,8 +89,16 @@ export const lang = {
   }
 }
 
+export interface NetworkInterfaceInfo {
+  name: string
+  ip: string
+  isVirtual: boolean
+  priority: number
+}
+
 export const ip = {
-  address: createIPCCall<[], string>('ip', 'address')
+  address: createIPCCall<[], string>('ip', 'address'),
+  addressList: createIPCCall<[], NetworkInterfaceInfo[]>('ip', 'address_list')
 }
 
 export const clipboard = {

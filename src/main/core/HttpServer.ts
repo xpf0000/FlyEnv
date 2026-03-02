@@ -2,7 +2,7 @@ import type { StaticHttpServe } from '../type'
 import type { IncomingMessage, ServerResponse } from 'http'
 import ServeHandler from 'serve-handler'
 import Http from 'http'
-import { address } from 'neoip'
+import { getAllLocalIPAddresses } from '@shared/network'
 import type { AddressInfo } from 'node:net'
 
 class HttpServer {
@@ -27,9 +27,17 @@ class HttpServer {
         const addressInfo: AddressInfo = server.address() as any
         const port = addressInfo.port
         const host = [`http://localhost:${port}/`]
-        const ip = address()
-        if (ip && typeof ip === 'string' && ip.includes('.')) {
-          host.push(`http://${ip}:${port}/`)
+        // 获取所有可用IP，优先显示物理网卡IP
+        const ipList = getAllLocalIPAddresses()
+        // 优先添加非虚拟网卡的IP
+        const physicalIps = ipList.filter((item) => !item.isVirtual)
+        if (physicalIps.length > 0) {
+          physicalIps.forEach((item) => {
+            host.push(`http://${item.ip}:${port}/`)
+          })
+        } else if (ipList.length > 0) {
+          // 如果没有物理网卡IP，添加第一个可用IP
+          host.push(`http://${ipList[0].ip}:${port}/`)
         }
         this.httpServes[path] = {
           server,

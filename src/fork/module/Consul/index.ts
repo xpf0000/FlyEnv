@@ -22,7 +22,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
 import { isLinux, isWindows } from '@shared/utils'
-import { address } from 'neoip'
+import { getPrimaryLocalIPAddress } from '@shared/network'
 
 class Consul extends Base {
   constructor() {
@@ -89,7 +89,7 @@ class Consul extends Base {
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = DATA_DIR ?? join(baseDir, `consul-${versionTop}-data`)
       const logPath = join(baseDir, `consul.log`)
-      const ip = address()
+      const ip = getPrimaryLocalIPAddress()
       if (isWindows()) {
         const execArgs = `agent -config-file="${iniFile}" -data-dir="${dbPath}" -log-file="${logPath}" -bind="${ip}" -pid-file="${this.pidPath}"`
         try {

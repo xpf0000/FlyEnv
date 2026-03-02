@@ -23,9 +23,19 @@
             </div>
           </template>
           <template v-if="ftpRunning">
-            <div class="link">
-              <span @click.stop="copyPass(linkLocal)">{{ linkLocal }}</span>
-              <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
+            <div class="flex items-center text-[#01cc74] gap-1 cursor-pointer ml-[20px]">
+              <span @click.stop="copyPass(linkLocal)">ftp://</span>
+              <el-select
+                v-if="ipList.length > 1"
+                v-model="selectedIp"
+                style="--el-select-multiple-input-color: #01cc74; --el-input-text-color: #01cc74"
+                class="w-[150px]"
+                @change="copyPass(linkLocal)"
+              >
+                <el-option v-for="item in ipList" :key="item.ip" :label="item.ip" :value="item.ip">
+                </el-option>
+              </el-select>
+              <span @click.stop="copyPass(linkLocal)">:{{ ftpStore.port }}</span>
             </div>
           </template>
           <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-7 w-52">
@@ -103,11 +113,16 @@
     return brewStore.module('pure-ftpd').installed
   })
 
-  const linkLocal = computed(() => {
-    return `ftp://127.0.0.1:${ftpStore.port}`
+  const ipList = computed(() => {
+    return [{ ip: '127.0.0.1' }, ...ftpStore.ipList]
   })
-  const linkIp = computed(() => {
-    return `ftp://${ftpStore.ip}:${ftpStore.port}`
+  const selectedIp = computed({
+    get: () => ftpStore.selectedIp,
+    set: (val: string) => ftpStore.setSelectedIp(val)
+  })
+
+  const linkLocal = computed(() => {
+    return `ftp://${ftpStore.selectedIp}:${ftpStore.port}`
   })
 
   const ftpFetching = computed(() => {
