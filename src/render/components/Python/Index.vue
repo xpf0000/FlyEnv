@@ -13,8 +13,9 @@
         :fetch-data-when-create="true"
       ></Service>
       <Manager v-else-if="tab === 1" type-flag="python" title="Python"></Manager>
+      <ProjectCreateVM v-else-if="tab === 2" />
       <ProjectIndex
-        v-else-if="tab === 2"
+        v-else-if="tab === 3"
         :title="I18nT('host.projectPython')"
         :type-flag="'python'"
       >
@@ -36,7 +37,13 @@
   import { I18nT } from '@lang/index'
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
   import { Project } from '@/util/Project'
+  import ProjectCreateVM from './CreateProject.vue'
 
   const { tab } = AppModuleSetup('python')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('host.projectPython')]
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    I18nT('host.newProject'),
+    I18nT('host.projectPython')
+  ]
 </script>

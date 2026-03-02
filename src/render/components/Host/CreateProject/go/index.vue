@@ -1,7 +1,7 @@
 <template>
   <div class="h-full overflow-hidden flex flex-col">
     <el-autocomplete
-      v-model="ProjectSetup.search.PHP"
+      v-model="ProjectSetup.search.Go"
       :fetch-suggestions="querySearch"
       :trigger-on-focus="false"
       clearable
@@ -14,7 +14,7 @@
     </el-autocomplete>
     <div class="flex-1 overflow-hidden">
       <el-scrollbar>
-        <el-collapse v-model="ProjectSetup.collapse.PHP">
+        <el-collapse v-model="ProjectSetup.collapse.Go">
           <template v-for="(item, _index) in list" :key="_index">
             <el-collapse-item :title="item.key" :name="item.key">
               <div class="p-2 grid grid-cols-2 gap-4">
@@ -31,7 +31,7 @@
                     <el-button
                       link
                       class="absolute right-2 bottom-2 hidden group-hover:inline-flex"
-                      @click="openURL($event, p.url)"
+                      @click.stop="openURL($event, p.url)"
                     >
                       <yb-icon
                         style="width: 20px; height: 20px"
@@ -56,12 +56,10 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { shell } from '@/util/NodeFn'
 
-  const emit = defineEmits(['onMakeHost'])
-
   const list = computed(() => {
     let allName = Object.keys(Projects)
-    if (ProjectSetup.search.PHP) {
-      const queryString = ProjectSetup.search.PHP.toLowerCase()
+    if (ProjectSetup.search.Go) {
+      const queryString = ProjectSetup.search.Go.toLowerCase()
       allName = allName.filter(
         (n) => n.toLowerCase().includes(queryString) || queryString.includes(n.toLowerCase())
       )
@@ -82,9 +80,9 @@
     })
   })
 
-  if (!ProjectSetup.collapse['PHP']) {
+  if (!ProjectSetup.collapse['Go']) {
     const keys = list.value.map((l) => l.key)
-    ProjectSetup.collapse['PHP'] = reactive([...keys])
+    ProjectSetup.collapse['Go'] = reactive([...keys])
   }
 
   const querySearch = (queryString: string, cb: any) => {
@@ -115,11 +113,11 @@
 
   let CreateVM: any
   if (window.Server.isWindows) {
-    import('./phpCreate.win.vue').then((res) => {
+    import('./create.win.vue').then((res) => {
       CreateVM = res.default
     })
   } else {
-    import('./phpCreate.vue').then((res) => {
+    import('./create.vue').then((res) => {
       CreateVM = res.default
     })
   }
@@ -128,8 +126,6 @@
     console.log('toCreate: ', item)
     AsyncComponentShow(CreateVM, {
       type: item.name
-    }).then((res) => {
-      emit('onMakeHost', res)
-    })
+    }).then()
   }
 </script>

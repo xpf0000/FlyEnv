@@ -22,9 +22,9 @@
               <input
                 type="text"
                 class="input"
-                placeholder="root path"
+                placeholder="Document Root Directory"
                 :readonly="loading || created ? true : undefined"
-                :value="ProjectSetup.form.NodeJS.dir"
+                :value="ProjectSetup.form.Go.dir"
               />
               <div class="icon-block" @click="chooseRoot()">
                 <yb-icon
@@ -37,10 +37,10 @@
             </div>
             <div class="park">
               <div class="title">
-                <span>{{ I18nT('host.nodeJSVersion') }}</span>
+                <span>Go {{ I18nT('base.version') }}</span>
               </div>
               <el-select
-                v-model="ProjectSetup.form.NodeJS.node"
+                v-model="ProjectSetup.form.Go.bin"
                 class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
@@ -56,7 +56,7 @@
                 <span>{{ I18nT('host.frameworkVersion') }}</span>
               </div>
               <el-select
-                v-model="ProjectSetup.form.NodeJS.version"
+                v-model="ProjectSetup.form.Go.version"
                 class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
@@ -93,11 +93,11 @@
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, markRaw } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
-  import AppVersions from './version_nodejs'
+  import AppVersions from './version'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
   import { BrewStore } from '@/store/brew'
-  import { dirname, join } from '@/util/path-browserify'
+  import { dirname } from '@/util/path-browserify'
   import { dialog, shell } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -108,49 +108,50 @@
 
   const xterm = ref<HTMLElement>()
 
-  const brewStore = BrewStore()
   const app = computed(() => {
     return AppVersions[props.type]
   })
 
   const loading = computed({
     get() {
-      return ProjectSetup.form.NodeJS.running
+      return ProjectSetup.form.Go.running
     },
     set(v) {
-      ProjectSetup.form.NodeJS.running = v
+      ProjectSetup.form.Go.running = v
     }
   })
 
   const created = computed({
     get() {
-      return ProjectSetup.form.NodeJS.created
+      return ProjectSetup.form.Go.created
     },
     set(v) {
-      ProjectSetup.form.NodeJS.created = v
+      ProjectSetup.form.Go.created = v
     }
   })
 
   const createAble = computed(() => {
-    return !!ProjectSetup.form.NodeJS.dir && !!ProjectSetup.form.NodeJS.version
+    return !!ProjectSetup.form.Go.dir && !!ProjectSetup.form.Go.version
   })
+
+  const brewStore = BrewStore()
 
   const nodes = computed(() => {
-    return brewStore.module('node')?.installed ?? []
+    return brewStore.module('golang')?.installed ?? []
   })
 
-  const nodeModule = brewStore.module('node')
+  const nodeModule = brewStore.module('golang')
 
   if (nodes.value.length === 0 && !nodeModule.fetchInstalleding && !nodeModule.installedFetched) {
     nodeModule.fetchInstalled().then(() => {
-      if (!ProjectSetup.form.NodeJS.node && nodes.value.length > 0) {
+      if (!ProjectSetup.form.Go.bin && nodes.value.length > 0) {
         const v: any = nodes.value[0]
-        ProjectSetup.form.NodeJS.node = v.bin
+        ProjectSetup.form.Go.bin = v.bin
       }
     })
-  } else if (nodes.value.length > 0 && !ProjectSetup.form.NodeJS.node) {
+  } else if (nodes.value.length > 0 && !ProjectSetup.form.Go.bin) {
     const v: any = nodes.value[0]
-    ProjectSetup.form.NodeJS.node = v.bin
+    ProjectSetup.form.Go.bin = v.bin
   }
 
   const chooseRoot = () => {
@@ -166,12 +167,12 @@
           return
         }
         const [path] = filePaths
-        ProjectSetup.form.NodeJS.dir = path
+        ProjectSetup.form.Go.dir = path
       })
   }
 
-  if (!ProjectSetup.form.NodeJS.version) {
-    ProjectSetup.form.NodeJS.version = '*'
+  if (!ProjectSetup.form.Go.version) {
+    ProjectSetup.form.Go.version = '*'
   }
 
   const doCreateProject = () => {
@@ -179,25 +180,21 @@
       return
     }
     loading.value = true
-    const form = ProjectSetup.form.NodeJS
+    const form = ProjectSetup.form.Go
     const execXTerm = new XTerm()
-    const item: any = app.value.list.find((f) => f.version === form.version)
+    const item = app.value.list.find((f) => f.version === form.version)
     const command: string[] = []
     if (window.Server.Proxy) {
       for (const k in window.Server.Proxy) {
         const v = window.Server.Proxy[k]
-        command.push(`$env:${k}="${v}"`)
+        command.push(`export ${k}="${v}"`)
       }
     }
-    if (form.node) {
-      command.push(`$env:PATH = "${dirname(form.node)};" + $env:PATH`)
-      command.push(`$env:npm_config_prefix="${dirname(form.node)}"`)
-      command.push(
-        `$env:npm_config_cache="${join(window.Server.UserHome!, 'AppData/Local/npm-cache')}"`
-      )
+    if (form.bin) {
+      command.push(`export PATH="${dirname(form.bin)}:$PATH"`)
     }
     command.push(`cd "${form.dir}"`)
-    const arr = item?.commandWin?.split(';') ?? item?.command?.split(';') ?? []
+    const arr = item?.command?.split(';') ?? []
     command.push(...arr)
 
     nextTick().then(() => {
@@ -207,13 +204,13 @@
         })
       })
     })
-    ProjectSetup.execing.NodeJS = markRaw(execXTerm)
+    ProjectSetup.execing.Go = markRaw(execXTerm)
   }
 
   onMounted(() => {
     if (loading.value) {
       nextTick().then(() => {
-        const execXTerm = ProjectSetup.execing.NodeJS
+        const execXTerm = ProjectSetup.execing.Go
         if (execXTerm && xterm.value) {
           execXTerm.mount(xterm.value)
         }
@@ -222,13 +219,13 @@
   })
 
   onBeforeUnmount(() => {
-    const execXTerm = ProjectSetup.execing.NodeJS
+    const execXTerm = ProjectSetup.execing.Go
     execXTerm?.unmounted()
     if (created.value) {
       execXTerm?.destroy()
       created.value = false
       loading.value = false
-      delete ProjectSetup.execing.NodeJS
+      delete ProjectSetup.execing.Go
     }
   })
 
@@ -237,17 +234,19 @@
       show.value = false
       return
     }
-    const execXTerm = ProjectSetup.execing.NodeJS
+    const execXTerm = ProjectSetup.execing.Go
     execXTerm?.stop()?.then(() => {
       execXTerm?.destroy()
       created.value = false
       loading.value = false
-      delete ProjectSetup.execing.NodeJS
+      delete ProjectSetup.execing.Go
     })
   }
 
   const doEnd = () => {
-    shell.openPath(ProjectSetup.form.NodeJS.dir)
+    ProjectSetup.execing.Go?.destroy()
+    delete ProjectSetup.execing.Go
+    shell.openPath(ProjectSetup.form.Go.dir)
     show.value = false
   }
 

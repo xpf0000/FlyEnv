@@ -15,6 +15,8 @@
         <el-radio-group v-model="ProjectSetup.tab" class="flex-shrink-0" size="small">
           <el-radio-button value="PHP" label="PHP"></el-radio-button>
           <el-radio-button value="NodeJS" label="NodeJS"></el-radio-button>
+          <el-radio-button value="Python" label="Python"></el-radio-button>
+          <el-radio-button value="Go" label="Go"></el-radio-button>
         </el-radio-group>
         <div></div>
       </div>
@@ -22,7 +24,9 @@
     <template #default>
       <div class="flex flex-col gap-4 h-[500px] overflow-hidden">
         <PHP v-if="ProjectSetup.tab === 'PHP'" @on-make-host="onMakeHost" />
-        <NodeJS v-if="ProjectSetup.tab === 'NodeJS'" />
+        <NodeJS v-else-if="ProjectSetup.tab === 'NodeJS'" />
+        <PythonVM v-else-if="ProjectSetup.tab === 'Python'" />
+        <GoVM v-else-if="ProjectSetup.tab === 'Go'" />
       </div>
     </template>
   </el-dialog>
@@ -34,6 +38,8 @@
   import { I18nT } from '@lang/index'
   import { nextTick } from 'vue'
   import NodeJS from './nodejs.vue'
+  import PythonVM from './python/index.vue'
+  import GoVM from './go/index.vue'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
