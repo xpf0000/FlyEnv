@@ -37,7 +37,19 @@
         </el-form-item>
 
         <el-form-item :label="I18nT('host.LocalDoman')" required :show-message="false">
-          <el-autocomplete v-model="form.localService" :fetch-suggestions="querySearch" clearable />
+          <div class="w-full flex items-center overflow-hidden">
+            <el-select v-model="form.protocol" class="flex-1">
+              <el-option label="http" value="http"></el-option>
+              <el-option label="https" value="https"></el-option>
+            </el-select>
+            <div class="px-2 flex-shrink-0 flex items-center">://</div>
+            <el-autocomplete
+              v-model="form.localService"
+              class="flex-[3]"
+              :fetch-suggestions="querySearch"
+              clearable
+            />
+          </div>
         </el-form-item>
       </el-form>
     </el-scrollbar>
@@ -80,6 +92,7 @@
     apiToken: '',
     accountId: '',
 
+    protocol: 'http',
     subdomain: '',
     localService: '',
     zoneId: '',
@@ -93,6 +106,7 @@
   form.value.localService = props.dns.localService
   form.value.zoneId = props.dns.zoneId
   form.value.zoneName = props.dns.zoneName
+  form.value.protocol = props.dns.protocol || 'http'
 
   const saveEnable = computed(() => {
     return (
@@ -199,7 +213,8 @@
         dns.zoneId !== form.value.zoneId ||
         dns.zoneName !== form.value.zoneName ||
         dns.subdomain !== form.value.subdomain ||
-        dns.localService !== form.value.localService
+        dns.localService !== form.value.localService ||
+        dns.protocol !== form.value.protocol
       )
     }
     return false
@@ -217,6 +232,8 @@
         dns.zoneName = form.value.zoneName
         dns.subdomain = form.value.subdomain
         dns.localService = form.value.localService
+        dns.protocol = form.value.protocol as any
+
         CloudflareTunnelStore.save()
         if (find.run) {
           find.restart().catch()

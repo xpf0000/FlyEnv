@@ -5,7 +5,14 @@
         <div class="left">
           <span> Cloudflare Tunnel </span>
         </div>
-        <el-button class="button" link :icon="Plus" @click="add"> </el-button>
+        <template v-if="isLocked">
+          <el-tooltip placement="top" :content="I18nT('host.CloudflareTunnel.licenseTips')">
+            <el-button type="warning" link :icon="Lock"></el-button>
+          </el-tooltip>
+        </template>
+        <template v-else>
+          <el-button class="button" link :icon="Plus" @click="add"> </el-button>
+        </template>
       </div>
     </template>
     <el-table default-expand-all class="service-table" :data="list" show-overflow-tooltip>
@@ -17,13 +24,20 @@
               style="border-bottom: var(--el-table-border)"
             >
               <span>{{ I18nT('host.CloudflareTunnel.TunnelRule') }}</span>
-              <el-button link :icon="Plus" @click.stop="addDNS(props.row)"></el-button>
+              <template v-if="isLocked && props.row.dns.length > 0">
+                <el-tooltip placement="top" :content="I18nT('host.CloudflareTunnel.licenseTips')">
+                  <el-button type="warning" link :icon="Lock"></el-button>
+                </el-tooltip>
+              </template>
+              <template v-else>
+                <el-button link :icon="Plus" @click.stop="addDNS(props.row)"></el-button>
+              </template>
             </div>
             <el-table :data="props.row.dns" show-overflow-tooltip>
               <el-table-column width="30px"></el-table-column>
               <el-table-column prop="out-url" :label="I18nT('host.OnlineDomain')">
                 <template #default="scope">
-                  <template v-if="scope.row.run">
+                  <template v-if="props.row.run">
                     <el-button type="success" link @click.stop="openOutUrl(scope.row)"
                       >{{ scope.row.subdomain }}.{{ scope.row.zoneName }}</el-button
                     >
@@ -37,13 +51,15 @@
               </el-table-column>
               <el-table-column prop="local-url" :label="I18nT('host.LocalDoman')">
                 <template #default="scope">
-                  <template v-if="scope.row.run">
-                    <el-button type="success" link @click.stop="openLocalUrl(scope.row)">{{
-                      scope.row.localService
-                    }}</el-button>
+                  <template v-if="props.row.run">
+                    <el-button type="success" link @click.stop="openLocalUrl(scope.row)"
+                      >{{ scope.row?.protocol || 'http' }}://{{ scope.row.localService }}</el-button
+                    >
                   </template>
                   <template v-else>
-                    <el-button type="info" link>{{ scope.row.localService }}</el-button>
+                    <el-button type="info" link
+                      >{{ scope.row?.protocol || 'http' }}://{{ scope.row.localService }}</el-button
+                    >
                   </template>
                 </template>
               </el-table-column>
@@ -175,11 +191,11 @@
                       </div>
                     </template>
                   </el-dropdown-item>
-                  <el-dropdown-item @click.stop="action(scope.row, scope.$index, 'info')">
+                  <el-dropdown-item @click.stop="action(scope.row, scope.$index, 'log')">
                     <template #default>
                       <div class="flex items-center">
-                        <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
-                        <span class="ml-3">{{ I18nT('base.info') }}</span>
+                        <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                        <span class="ml-3">{{ I18nT('base.log') }}</span>
                       </div>
                     </template>
                   </el-dropdown-item>
@@ -203,7 +219,7 @@
 
 <script lang="ts" setup>
   import { I18nT } from '@lang/index'
-  import { Plus } from '@element-plus/icons-vue'
+  import { Lock, Plus } from '@element-plus/icons-vue'
   import { Setup } from './setup'
   import { AppStore } from '@/store/app'
   import { CloudflareTunnel } from '@/core/CloudflareTunnel/CloudflareTunnel'
@@ -215,7 +231,6 @@
     add,
     edit,
     del,
-    info,
     list,
     openOutUrl,
     openLocalUrl,
@@ -223,7 +238,9 @@
     copy,
     editDNS,
     delDNS,
-    addDNS
+    addDNS,
+    log,
+    isLocked
   } = Setup()
 
   const action = (item: CloudflareTunnel, index: number, flag: string) => {
@@ -231,8 +248,8 @@
       case 'edit':
         edit(item)
         break
-      case 'info':
-        info(item)
+      case 'log':
+        log(item)
         break
       case 'del':
         del(item, index)

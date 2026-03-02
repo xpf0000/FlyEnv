@@ -69,6 +69,66 @@ const version = {
         commandWin: 'npm i -g @nestjs/cli;Start-Sleep -Seconds 1.5;nest new'
       }
     ]
+  },
+  Nuxt: {
+    url: 'https://nuxt.com/',
+    list: [
+      {
+        name: 'latest',
+        version: '*',
+        command: 'npx nuxi@latest init'
+      }
+    ]
+  },
+  Svelte: {
+    url: 'https://svelte.dev/',
+    list: [
+      {
+        name: 'latest',
+        version: '*',
+        command: 'npm create sv@latest'
+      }
+    ]
+  },
+  Astro: {
+    url: 'https://astro.build/',
+    list: [
+      {
+        name: 'latest',
+        version: '*',
+        command: 'npm create astro@latest'
+      }
+    ]
+  },
+  Hono: {
+    url: 'https://hono.dev/',
+    list: [
+      {
+        name: 'latest',
+        version: '*',
+        command: 'npm create hono@latest'
+      }
+    ]
+  },
+  Solid: {
+    url: 'https://www.solidjs.com/',
+    list: [
+      {
+        name: 'latest',
+        version: '*',
+        command: 'npm create solid@latest'
+      }
+    ]
+  },
+  Fastify: {
+    url: 'https://fastify.dev/',
+    list: [
+      {
+        name: 'latest',
+        version: '*',
+        command: 'npm init fastify'
+      }
+    ]
   }
 }
 export default version

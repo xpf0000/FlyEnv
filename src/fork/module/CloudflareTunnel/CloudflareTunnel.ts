@@ -1,12 +1,12 @@
 import axios, { AxiosInstance } from 'axios'
 import crypto from 'crypto'
-import { isWindows } from '@shared/utils'
 import { join } from 'path'
-import { serviceStartExecCMD } from '../../util/ServiceStart.win'
-import { serviceStartExec } from '../../util/ServiceStart'
-import { mkdirp } from '../../Fn'
+import { mkdirp, remove, writeFile } from '../../Fn'
 import { ProcessKill } from '@shared/Process'
 import type { CloudflareTunnelDnsRecord } from '@/core/CloudflareTunnel/type'
+import { spawn } from 'node:child_process'
+import { openSync, closeSync } from 'node:fs'
+import { dirname } from 'node:path'
 
 export class CloudflareTunnel {
   id: string = ''
@@ -147,12 +147,17 @@ export class CloudflareTunnel {
   async initTunnelConfig() {
     console.log(`正在同步路由配置(Ingress Rules)...`)
     const cfClient = this.client()
-
     // 映射 this.dns 数组为 Cloudflare Ingress 规则
-    const ingressRules: any[] = this.dns.map((record) => ({
-      hostname: `${record.subdomain}.${record.zoneName}`,
-      service: record.localService
-    }))
+    const ingressRules: any[] = this.dns.map((record) => {
+      const protocol = record.protocol || 'http'
+      return {
+        hostname: `${record.subdomain}.${record.zoneName}`,
+        service: `${protocol}://${record.localService}`,
+        originRequest: {
+          httpHostHeader: record.localService
+        }
+      }
+    })
 
     // Cloudflare 强制要求必须以 404 兜底规则结尾
     ingressRules.push({ service: 'http_status:404' })
@@ -165,51 +170,63 @@ export class CloudflareTunnel {
     console.log(`✅ 路由配置同步完成，共 ${this.dns.length} 条转发规则。`)
   }
 
-  /**
-   * 启动 cloudflared
-   * @param token
-   * @private
-   */
-  private async startCloudflared(token: string) {
-    const baseDir = join(global.Server.BaseDir!, `cloudflare-tunnel`)
+  private async startCloudflared(token: string): Promise<{ 'APP-Service-Start-PID': string }> {
+    const baseDir = join(global.Server.BaseDir!, 'cloudflare-tunnel')
     await mkdirp(baseDir)
-    const pidPath = join(global.Server.BaseDir!, `cloudflare-tunnel/${this.id}.pid`)
-    const version: any = {
-      typeFlag: 'cloudflare-tunnel',
-      version: this.id
-    }
-    const execEnv = ` `
-    const execArgs = `tunnel --no-autoupdate run --token ${token}`
 
-    const on = () => {}
+    const outLog = join(baseDir, `${this.id}-out.log`)
+    const errLog = join(baseDir, `${this.id}-error.log`)
+    const pidPath = join(baseDir, `${this.id}.pid`)
 
-    if (isWindows()) {
-      return await serviceStartExecCMD({
-        version,
-        pidPath,
-        baseDir,
-        bin: this.cloudflaredBin,
-        execArgs,
-        execEnv,
-        on,
-        maxTime: 20,
-        timeToWait: 1000,
-        checkPidFile: false
+    await remove(outLog)
+    await remove(errLog)
+    await remove(pidPath)
+
+    const out = openSync(outLog, 'a')
+    const err = openSync(errLog, 'a')
+
+    const execArgs = ['tunnel', '--no-autoupdate', 'run', '--token', token]
+
+    // 2. 启动进程
+    const cp = spawn(this.cloudflaredBin, execArgs, {
+      detached: true,
+      stdio: ['ignore', out, err],
+      cwd: dirname(this.cloudflaredBin),
+      windowsHide: true // 隐藏 cmd 窗口
+    })
+
+    // 3. 立即关闭父进程中的句柄 (子进程已继承)
+    closeSync(out)
+    closeSync(err)
+
+    return new Promise((resolve, reject) => {
+      // 监听启动瞬间的错误（如文件路径不存在、权限不足）
+      cp.on('error', (err) => {
+        console.error('Cloudflared 无法启动:', err)
+        reject(new Error(`无法执行二进制文件: ${err.message}`))
       })
-    } else {
-      return await serviceStartExec({
-        version,
-        pidPath,
-        baseDir,
-        bin: this.cloudflaredBin,
-        execArgs,
-        execEnv,
-        on,
-        maxTime: 20,
-        timeToWait: 1000,
-        checkPidFile: false
-      })
-    }
+
+      let timer: NodeJS.Timeout | undefined = undefined
+
+      // 关键：检测启动后的早期崩溃（例如 Token 错误导致 1-2 秒内退出）
+      const startupExitHandler = (code: number) => {
+        clearTimeout(timer)
+        reject(new Error(`隧道启动后意外退出，代码: ${code}。请检查错误日志: ${errLog}`))
+      }
+      cp.on('exit', startupExitHandler)
+
+      // 如果 2 秒内没退出，我们认为启动基本成功
+      timer = setTimeout(async () => {
+        cp.off('exit', startupExitHandler) // 移除早期退出监听
+
+        if (cp.pid) {
+          const pid = `${cp.pid}`
+          await writeFile(pidPath, pid)
+          cp.unref() // 让子进程独立运行，不挂钩主进程
+          resolve({ 'APP-Service-Start-PID': pid })
+        }
+      }, 2000)
+    })
   }
 
   /**

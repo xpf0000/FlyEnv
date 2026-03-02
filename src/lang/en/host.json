@@ -77,6 +77,7 @@
     "OnlineDomainExistsTips": "The same online domain name already exists.",
     "CloudflaredNoFoundTips": "Cloudflared not found. Please install it.",
     "TunnelInitFailTips": "Tunnel creation failed: {error}. Please check if the ApiToken is correct and ensure you have Cloudflare Tunnel edit permissions.",
-    "TunnelRule": "Tunnel Rule"
+    "TunnelRule": "Tunnel Rule",
+    "licenseTips": "Without obtaining a license, You can only create one tunnel and one set of host records."
   }
 }
