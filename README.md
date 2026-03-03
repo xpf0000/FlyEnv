@@ -83,6 +83,7 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 
 * **AI Integration**: Ollama, DeepSeek, Chatbox.
 * **Containers**: Podman.
+* **Network Tunnel**: Cloudflared, Cloudflare Tunnel.
 * **Web Servers**: Apache, Nginx, Caddy, Tomcat, Consul.
 * **Databases**: MySQL, MariaDB, PostgreSQL, MongoDB, Qdrant.
 * **Email Server**: Mailpit.
@@ -115,14 +116,14 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 
 Finally, a fast, native environment for Windows developers.
 
-* **Installer:** [FlyEnv-Setup-4.13.2.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.2/FlyEnv-Setup-4.13.2.exe)
-* **Portable:** [FlyEnv-Portable-4.13.2.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.2/FlyEnv-Portable-4.13.2.exe)
+* **Installer:** [FlyEnv-Setup-4.13.3.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.3/FlyEnv-Setup-4.13.3.exe)
+* **Portable:** [FlyEnv-Portable-4.13.3.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.3/FlyEnv-Portable-4.13.3.exe)
 
 ### macOS
 
 * **Homebrew:** `brew install flyenv`
-* **DMG (Intel):** [FlyEnv-4.13.2.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.2/FlyEnv-4.13.2.dmg)
-* **DMG (Apple Silicon):** [FlyEnv-4.13.2-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.2/FlyEnv-4.13.2-arm64.dmg)
+* **DMG (Intel):** [FlyEnv-4.13.3.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.3/FlyEnv-4.13.3.dmg)
+* **DMG (Apple Silicon):** [FlyEnv-4.13.3-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.3/FlyEnv-4.13.3-arm64.dmg)
 
 ### Linux
 
@@ -130,13 +131,13 @@ Supports Debian/Ubuntu (.deb) and RedHat/CentOS (.rpm).
 
 #### Debian / Ubuntu
 
-- **x86_64**: [FlyEnv-4.13.2-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.2/FlyEnv-4.13.2-x64.deb)
-- **ARM64**: [FlyEnv-4.13.2-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.2/FlyEnv-4.13.2-arm64.deb)
+- **x86_64**: [FlyEnv-4.13.3-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.3/FlyEnv-4.13.3-x64.deb)
+- **ARM64**: [FlyEnv-4.13.3-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.3/FlyEnv-4.13.3-arm64.deb)
 
 #### Red Hat / Fedora / SUSE / CentOS
 
-- **x86_64**: [FlyEnv-4.13.2-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.2/FlyEnv-4.13.2-x64.rpm)
-- **ARM64**: [FlyEnv-4.13.2-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.2/FlyEnv-4.13.2-arm64.rpm)
+- **x86_64**: [FlyEnv-4.13.3-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.3/FlyEnv-4.13.3-x64.rpm)
+- **ARM64**: [FlyEnv-4.13.3-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.13.3/FlyEnv-4.13.3-arm64.rpm)
 
 ---
 
