@@ -331,9 +331,11 @@
   const phpRunVersions = computed(() => {
     const versions: Record<string, boolean> = {}
     php?.value?.installed?.forEach((p) => {
-      const k = p.version.split('.').slice(0, 2).join('.')
-      if (!versions?.[k]) {
-        versions[k] = p.run
+      if (p.version && typeof p.version === 'string') {
+        const k = p.version.split('.').slice(0, 2).join('.')
+        if (!versions?.[k]) {
+          versions[k] = p.run
+        }
       }
     })
     return versions
@@ -371,7 +373,7 @@
       if (props?.isEdit) {
         return
       }
-      if (v && v[0] && !item.value.phpVersion) {
+      if (v && v?.[0] && v?.[0]?.num && !item.value.phpVersion) {
         item.value.phpVersion = v[0].num as any
       }
     },

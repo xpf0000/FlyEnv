@@ -44,14 +44,16 @@ class Manager extends Base {
           resolveServer: ['223.5.5.5', '119.29.29.29', '180.76.76.76', '114.114.114.119'],
           resolveIP: {
             'phpmyadmin.test': '127.0.0.1'
-          }
+          },
+          bind: '0.0.0.0'
         }
       } else {
         json = {
           resolveServer: ['1.1.1.1', '1.0.0.1', '8.8.8.8', '8.8.4.4'],
           resolveIP: {
             'phpmyadmin.test': '127.0.0.1'
-          }
+          },
+          bind: '0.0.0.0'
         }
       }
       const defaultFile = join(global.Server.BaseDir!, 'dns/dns.default.json')
@@ -99,6 +101,7 @@ class Manager extends Base {
       console.log('lang: ', lang)
       const file = join(global.Server.BaseDir!, 'dns/dns.json')
       let resolveIP: Record<string, string> = {}
+      let bind = '0.0.0.0'
       if (existsSync(file)) {
         const content = await readFile(file, 'utf-8')
         const json = JSON.parse(content)
@@ -107,6 +110,7 @@ class Manager extends Base {
         if (resolveServer.length > 0) {
           tangerine.setServers(resolveServer)
         }
+        bind = json?.bind ?? '0.0.0.0'
       }
       this.hosts = { ...resolveIP }
       const LOCAL_IP = getPrimaryLocalIPAddress()
@@ -193,13 +197,13 @@ class Manager extends Base {
           // Optionally specify port, address and/or the family of socket() for udp server:
           udp: {
             port: 53,
-            address: '0.0.0.0'
+            address: bind
           },
 
           // Optionally specify port and/or address for tcp server:
           tcp: {
             port: 53,
-            address: '0.0.0.0'
+            address: bind
           }
         })
         .then()

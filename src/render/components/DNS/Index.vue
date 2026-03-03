@@ -7,7 +7,7 @@
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0"></Service>
-      <Config v-if="tab === 1"></Config>
+      <Config v-else-if="tab === 1"></Config>
     </div>
   </div>
 </template>

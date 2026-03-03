@@ -2,7 +2,7 @@
   <el-card v-if="item.show !== false" :header="item.name">
     <template #header>
       <div class="flex items-center justify-between gap-2 overflow-hidden">
-        <div class="flex-1 overflow-hidden flex items-center gap-0.5">
+        <div class="flex-1 overflow-hidden flex items-center gap-1">
           <template v-if="item.showEnable !== false">
             <el-checkbox v-model="enable"></el-checkbox>
           </template>

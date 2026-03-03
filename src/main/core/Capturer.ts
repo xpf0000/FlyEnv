@@ -1,12 +1,21 @@
-import { dialog, Rectangle, shell, clipboard, nativeImage } from 'electron'
-import { desktopCapturer, screen, BrowserWindow, globalShortcut } from 'electron'
-import { windowManager, Window } from '@xpf0000/node-window-manager'
+import {
+  BrowserWindow,
+  clipboard,
+  desktopCapturer,
+  dialog,
+  globalShortcut,
+  nativeImage,
+  Rectangle,
+  screen,
+  shell
+} from 'electron'
+import { Window, windowManager } from '@xpf0000/node-window-manager'
 import { fileURLToPath } from 'node:url'
-import { dirname, resolve as PathResolve, join } from 'node:path'
+import { dirname, join, resolve as PathResolve } from 'node:path'
 import is from 'electron-is'
 import { ViteDevPort } from '../../../configs/vite.port'
 import { isWindows } from '@shared/utils'
-import { existsSync, mkdirp, writeFile, readdir } from '@shared/fs-extra'
+import { existsSync, mkdirp, readdir, writeFile } from '@shared/fs-extra'
 import { randomUUID } from 'node:crypto'
 import { I18nT } from '@lang/index'
 
@@ -60,8 +69,11 @@ export class Capturer {
     dir: ''
   }
 
+  windowImage: Record<number, string> | null = null
+
   stopCapturer() {
     globalShortcut.unregister('Escape')
+    this.windowImage = null
     clearInterval(this.timer)
     this.timer = undefined
     this.window?.hide()
@@ -84,7 +96,13 @@ export class Capturer {
   }
 
   getWindowCapturer(id: number) {
-    const image = windowManager.captureWindow(id)
+    let image: string = ''
+    if (this.windowImage?.[id]) {
+      console.log('getWindowCapturer this.windowImage?.[id]: ', id)
+      image = this.windowImage[id]
+    } else {
+      image = windowManager.captureWindow(id)
+    }
     console.log('getWindowCapturer image: ', image.length)
     if (image) {
       this.window?.webContents?.send?.(
@@ -103,6 +121,7 @@ export class Capturer {
     globalShortcut.register('Escape', () => {
       this.stopCapturer()
     })
+    this.windowImage = {}
     this.capturering = true
     clearTimeout(this.destroyTimer)
     clearInterval(this.timer)
@@ -115,6 +134,26 @@ export class Capturer {
     console.log('scaleFactor: ', display.scaleFactor)
     console.log('原始bounds:', display.bounds)
     let screenRect = undefined
+
+    const captureActiveWindow = () => {
+      const point = screen.getCursorScreenPoint()
+      if (point.x === this.currentPoint.x && point.y === this.currentPoint.y) {
+        return
+      }
+      this.currentPoint.x = point.x
+      this.currentPoint.y = point.y
+      let x = point.x
+      let y = point.y
+      if (isWindows()) {
+        x = Math.floor(x * display.scaleFactor)
+        y = Math.floor(y * display.scaleFactor)
+      }
+      const pointWindow = windowManager.getWindowAtPoint(x, y, this.capturerWindowID)
+      if (pointWindow.id) {
+        this.windowImage[pointWindow.id] = windowManager.captureWindow(pointWindow.id)
+      }
+    }
+    captureActiveWindow()
 
     if (isWindows()) {
       try {
@@ -205,7 +244,8 @@ export class Capturer {
           this.capturerWindow?.setFullScreen()
         }
       }
-      this.timer = setInterval(() => {
+
+      const fetchTopWindow = () => {
         if (!this.needCheckWindowInPoint) {
           clearInterval(this.timer)
           return
@@ -276,6 +316,10 @@ export class Capturer {
             item
           )
         }
+      }
+      fetchTopWindow()
+      this.timer = setInterval(() => {
+        fetchTopWindow()
       }, 150)
     }
 
