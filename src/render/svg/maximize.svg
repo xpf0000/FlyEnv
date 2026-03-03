@@ -1,7 +1,5 @@
-<svg class="icon" viewBox="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg"
-     width="12" height="12" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
-        <polyline points="5.5 1.5 10.5 1.5 10.5 6.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <polyline points="1.5 5.5 1.5 10.5 6.5 10.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" class="icon" viewBox="0 0 12 12">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5.5 1.5h5v5M1.5 5.5v5h5"/>
     </g>
 </svg>
