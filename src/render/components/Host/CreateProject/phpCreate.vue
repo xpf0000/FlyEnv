@@ -218,29 +218,33 @@
       await fs.writeFile(join(form.dir, 'composer.json'), tmpl)
 
       if (form.php && form.composer) {
+        command.push(`export PATH="${form.php}:$PATH"`)
         command.push(`"${form.php}" "${form.composer}" self-update`)
         command.push(`"${form.php}" "${form.composer}" update`)
       } else if (form.php) {
-        command.push(`"${form.php}" composer self-update`)
-        command.push(`"${form.php}" composer update`)
+        command.push(`export PATH="${form.php}:$PATH"`)
+        command.push(`composer self-update`)
+        command.push(`composer update`)
       } else if (form.composer) {
         command.push(`php "${form.composer}" self-update`)
         command.push(`php "${form.composer}" update`)
       } else {
-        command.push(`php composer self-update`)
-        command.push(`php composer update`)
+        command.push(`composer self-update`)
+        command.push(`composer update`)
       }
     } else {
       const name = app.value.package
       if (form.php && form.composer) {
+        command.push(`export PATH="${form.php}:$PATH"`)
         command.push(`"${form.php}" "${form.composer}" self-update`)
         command.push(
           `"${form.php}" "${form.composer}" create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else if (form.php) {
-        command.push(`"${form.php}" composer self-update`)
+        command.push(`export PATH="${form.php}:$PATH"`)
+        command.push(`composer self-update`)
         command.push(
-          `"${form.php}" composer create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
+          `composer create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else if (form.composer) {
         command.push(`php "${form.composer}" self-update`)
@@ -248,9 +252,9 @@
           `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else {
-        command.push(`php composer self-update`)
+        command.push(`composer self-update`)
         command.push(
-          `php composer create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
+          `composer create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       }
       command.push(`cd flyenv-created-project`)
@@ -261,7 +265,7 @@
 
     nextTick().then(() => {
       execXTerm.mount(xterm.value!).then(() => {
-        execXTerm?.send(command)?.then(() => {
+        execXTerm?.send(command, false)?.then(() => {
           created.value = true
         })
       })

@@ -188,14 +188,27 @@ class NodePTY {
         remove(tmplFile).catch()
       })
       const pty = this.pty?.[ptyKey]?.pty
-      param.forEach((s) => {
-        pty?.write(`${s}\r`)
-      })
+      // param.forEach((s) => {
+      //   pty?.write(`${s}\r`)
+      // })
+      // if (isWindows()) {
+      //   pty?.write(`"END" | Out-File -FilePath "${tmplFile}"\r`)
+      // } else {
+      //   pty?.write(`echo "END" > "${tmplFile}"\r`)
+      // }
+
+      // ===== 修改的核心逻辑 =====
       if (isWindows()) {
-        pty?.write(`"END" | Out-File -FilePath "${tmplFile}"\r`)
+        // Windows PowerShell 使用 ';' 按顺序执行
+        const cmdStr = param.join(' ; ')
+        pty?.write(`${cmdStr} ; "END" | Out-File -FilePath "${tmplFile}"\r`)
       } else {
-        pty?.write(`echo "END" > "${tmplFile}"\r`)
+        // macOS / Linux 使用 '&&' 确保前置命令成功后再执行下一步
+        const cmdStr = param.join(' && ')
+        pty?.write(`${cmdStr} && echo "END" > "${tmplFile}"\r`)
       }
+      // ===========================
+
       const task = this.pty?.[ptyKey]
       task?.task?.push({
         command,

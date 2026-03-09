@@ -329,9 +329,6 @@ export const readFileByRoot = async (file: string): Promise<string> => {
 }
 
 export const removeByRoot = async (file: string): Promise<void> => {
-  if (!existsSync(file)) {
-    return
-  }
   try {
     await remove(file)
     return

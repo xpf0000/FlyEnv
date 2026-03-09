@@ -238,11 +238,11 @@
         command.push(`php "${form.composer}" update`)
       } else if (form.php) {
         command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
-        command.push(`php composer update`)
+        command.push(`composer update`)
       } else if (form.composer) {
         command.push(`php "${form.composer}" update`)
       } else {
-        command.push(`php composer update`)
+        command.push(`composer update`)
       }
     } else {
       const name = app.value.package
@@ -254,7 +254,7 @@
       } else if (form.php) {
         command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
         command.push(
-          `php composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
         )
       } else if (form.composer) {
         command.push(
@@ -262,14 +262,14 @@
         )
       } else {
         command.push(
-          `php composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
         )
       }
     }
 
     nextTick().then(() => {
       execXTerm.mount(xterm.value!).then(() => {
-        execXTerm?.send(command)?.then(() => {
+        execXTerm?.send(command, false)?.then(() => {
           if (props.type === 'WordPress') {
             created.value = true
           } else {

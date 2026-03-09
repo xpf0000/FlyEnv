@@ -32,7 +32,7 @@ import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
 import { userInfo } from 'os'
 import { BomCleanTask } from '../../util/BomCleanTask'
-import { appDebugLog, defaultShell, isMacOS } from '@shared/utils'
+import { appDebugLog, defaultShell, isLinux, isMacOS } from '@shared/utils'
 import { shellEnv } from 'shell-env'
 import EnvSync from '@shared/EnvSync'
 
@@ -221,7 +221,9 @@ class Manager extends Base {
       if (!all.includes(binPath)) {
         try {
           await execPromise(['ln', '-s', `"${binPath}"`, `"${flagDir}"`].join(' '))
-        } catch {}
+        } catch (e) {
+          appDebugLog('[updatePATH][ls -s][error]', `${e}`).catch()
+        }
       }
       // Get all subfolders under the `env` folder (e.g., 'php', 'nginx', 'mysql', etc.)
       let allFile = await readdir(envDir)
@@ -621,29 +623,57 @@ end tell`
       }
       const contentBack = content
 
-      const shfile = `/Applications/FlyEnv.app/Contents/Resources/helper/flyenv.sh`
-      if (!existsSync(shfile)) {
-        const fileContent = await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf-8')
-        try {
-          await writeFileByRoot(shfile, fileContent)
-        } catch {}
-        if (existsSync(shfile)) {
-          const uinfo = userInfo()
-          const user = `${uinfo.uid}:${uinfo.gid}`
+      if (isMacOS()) {
+        const shfile = `/Applications/FlyEnv.app/Contents/Resources/helper/flyenv.sh`
+        if (!existsSync(shfile)) {
+          const fileContent = await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf-8')
           try {
-            await Helper.send('tools', 'chmod', shfile, '777')
-            await Helper.send('redis', 'logFileFixed', shfile, user)
+            await writeFileByRoot(shfile, fileContent)
           } catch {}
+          if (existsSync(shfile)) {
+            const uinfo = userInfo()
+            const user = `${uinfo.uid}:${uinfo.gid}`
+            try {
+              await Helper.send('tools', 'chmod', shfile, '777')
+              await Helper.send('redis', 'logFileFixed', shfile, user)
+            } catch {}
+          }
+        }
+
+        const regex = new RegExp(
+          `^(?!\\s*#)\\s*source\\s*"/Applications/FlyEnv\\.app/Contents/Resources/helper/flyenv\\.sh"`,
+          'gmu'
+        )
+        if (!content.match(regex) && existsSync(file)) {
+          content = content.trim() + `\nsource "${shfile}"`
+        }
+      } else if (isLinux()) {
+        const binDir = PathResolve(global.Server.Static!, '../../../../')
+        const shfile = join(binDir, 'helper/flyenv.sh')
+        if (!existsSync(shfile)) {
+          const fileContent = await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf-8')
+          try {
+            await writeFileByRoot(shfile, fileContent)
+          } catch {}
+          if (existsSync(shfile)) {
+            const uinfo = userInfo()
+            const user = `${uinfo.uid}:${uinfo.gid}`
+            try {
+              await Helper.send('tools', 'chmod', shfile, '777')
+              await Helper.send('redis', 'logFileFixed', shfile, user)
+            } catch {}
+          }
+        }
+
+        const regex = new RegExp(
+          `^(?!\\s*#)\\s*source\\s*"/(.*?)/resources/helper/flyenv\\.sh"`,
+          'gmu'
+        )
+        if (!content.match(regex) && existsSync(file)) {
+          content = content.trim() + `\nsource "${shfile}"`
         }
       }
 
-      const regex = new RegExp(
-        `^(?!\\s*#)\\s*source\\s*"/Applications/FlyEnv\\.app/Contents/Resources/helper/flyenv\\.sh"`,
-        'gmu'
-      )
-      if (!content.match(regex) && existsSync(file)) {
-        content = content.trim() + `\nsource "${shfile}"`
-      }
       if (content !== contentBack) {
         try {
           await writeFileByRoot(file, content)

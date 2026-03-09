@@ -5,6 +5,7 @@ import { platform } from 'node:os'
 import { appendFile } from './fs-extra'
 
 export async function appDebugLog(flag: string, info: string) {
+  console.log('appDebugLog: ', flag, info)
   try {
     const debugFile = join(tmpdir(), 'flyenv-debug.log')
     await appendFile(debugFile, `${flag}: ${info}\n`)
