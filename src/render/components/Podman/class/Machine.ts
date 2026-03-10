@@ -34,6 +34,14 @@ export class Machine {
 
   constructor(obj: any) {
     Object.assign(this, obj)
+    this.running = false
+    this.run = false
+    // stopped running
+    // this.info?.State
+    console.log('Machine constructor: ', obj)
+    if (this.info?.State === 'running') {
+      this.run = true
+    }
   }
 
   fetchImages() {

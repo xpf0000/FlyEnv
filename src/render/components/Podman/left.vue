@@ -122,6 +122,7 @@
   })
 
   const addMachine = (item?: any) => {
+    console.log('addMachine', item)
     AsyncComponentShow(MachineAddVM, {
       item
     }).then()

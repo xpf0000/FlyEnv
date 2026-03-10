@@ -51,6 +51,30 @@ class Podman extends Base {
         }
       }
 
+      // 获取每个虚拟机的详细信息
+      for (const m of machine) {
+        tmp = join(tmpdir(), `${uuid()}.txt`)
+        try {
+          await execPromiseWithEnv(`podman machine inspect ${m.name} > "${tmp}" ${getRedirect()}`)
+          const content = await readFile(tmp, 'utf-8')
+          const info = JSON.parse(content)[0] ?? {}
+          m.info = info
+        } catch (e) {
+          console.log(`podman machine inspect ${m.name} error: `, e)
+        } finally {
+          if (existsSync(tmp)) {
+            await remove(tmp)
+          }
+        }
+      }
+
+      // 按创建时间倒序排列，最新创建的在最前
+      machine.sort((a, b) => {
+        const timeA = a.info?.Created ? new Date(a.info.Created).getTime() : 0
+        const timeB = b.info?.Created ? new Date(b.info.Created).getTime() : 0
+        return timeB - timeA
+      })
+
       resolve({
         version,
         machine
@@ -203,6 +227,67 @@ class Podman extends Base {
     })
   }
 
+  machineInit(config: {
+    name: string
+    cpus: number
+    memory: number
+    disk: number
+    isDefault: boolean
+    rootful: boolean
+    rosetta: boolean
+    identityPath?: string
+    remoteUsername?: string
+  }) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const {
+          name,
+          cpus,
+          memory,
+          disk,
+          isDefault,
+          rootful,
+          rosetta,
+          identityPath,
+          remoteUsername
+        } = config
+
+        console.log('machineInit config: ', config)
+
+        const args: string[] = ['podman machine init']
+
+        args.push(`--cpus ${cpus}`)
+        args.push(`--memory ${memory}`)
+        args.push(`--disk-size ${disk}`)
+
+        if (isDefault) {
+          args.push('--now')
+        }
+        if (rootful) {
+          args.push('--rootful')
+        } else {
+          args.push('--rootful=false')
+        }
+        if (rosetta) {
+          args.push('--rosetta')
+        }
+        if (identityPath) {
+          args.push(`--identity-path "${identityPath}"`)
+        }
+        if (remoteUsername) {
+          args.push(`--username "${remoteUsername}"`)
+        }
+
+        args.push(name)
+
+        await execPromiseWithEnv(args.join(' '))
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      }
+    })
+  }
+
   containerRemove(containerName: string, machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
@@ -210,6 +295,59 @@ class Podman extends Base {
           ? `podman rm -f ${containerName}`
           : `podman --connection ${machineName} rm -f ${containerName}`
         await execPromiseWithEnv(cmd)
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      }
+    })
+  }
+
+  machineSet(config: { name: string; cpus: number; memory: number; rootful: boolean }) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const { name, cpus, memory, rootful } = config
+
+        // 先检查虚拟机是否在运行
+        let wasRunning = false
+        try {
+          const tmp = join(tmpdir(), `${uuid()}.txt`)
+          await execPromiseWithEnv(`podman machine list --format json > "${tmp}" ${getRedirect()}`)
+          const content = await readFile(tmp, 'utf-8')
+          const machines = JSON.parse(content)
+          const machine = machines.find((m: any) => m.Name === name)
+          wasRunning = machine?.Running ?? false
+          if (existsSync(tmp)) {
+            await remove(tmp)
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        // 如果正在运行，先停止
+        if (wasRunning) {
+          await execPromiseWithEnv(`podman machine stop ${name}`)
+        }
+
+        const args: string[] = ['podman machine set']
+
+        args.push(`--cpus ${cpus}`)
+        args.push(`--memory ${memory}`)
+
+        if (rootful) {
+          args.push('--rootful')
+        } else {
+          args.push('--rootful=false')
+        }
+
+        args.push(name)
+
+        await execPromiseWithEnv(args.join(' '))
+
+        // 如果之前是运行状态，重新启动
+        if (wasRunning) {
+          await execPromiseWithEnv(`podman machine start ${name}`)
+        }
+
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')

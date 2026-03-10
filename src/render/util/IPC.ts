@@ -18,6 +18,12 @@ class IPC {
       }
     )
   }
+
+  /**
+   * 注意: 返回的不是Promise 而是包含then的对象
+   * @param command
+   * @param args
+   */
   send(command: string, ...args: any) {
     const key = 'IPC-Key-' + uuid()
     console.log('ipcSendToMain: ', command, key, args)
