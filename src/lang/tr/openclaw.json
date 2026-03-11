@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw kurulu değil. Lütfen önce kurun.",
+  "gatewayStatus": "Ağ Geçidi Durumu",
+  "gatewayNotInstalled": "Ağ geçidi kurulu değil. Lütfen önce ağ geçidini kurun.",
+  "gatewayRunning": "Ağ geçidi çalışıyor",
+  "gatewayStopped": "Ağ geçidi durduruldu",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

@@ -78,7 +78,8 @@ export enum AppModuleEnum {
   zig = 'zig',
   qdrant = 'qdrant',
   'cloudflare-tunnel' = 'cloudflare-tunnel',
-  cloudflared = 'cloudflared'
+  cloudflared = 'cloudflared',
+  openclaw = 'openclaw'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum
@@ -101,6 +102,7 @@ export type AppModuleItem = {
    * Module icon. display in Tray Window
    */
   icon?: any
+  iconPadding?: number
   /**
    * App left aside module component
    */

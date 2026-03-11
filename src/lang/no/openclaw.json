@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw er ikke installert. Installer det først.",
+  "gatewayStatus": "Gateway-status",
+  "gatewayNotInstalled": "Gateway er ikke installert. Installer gatewayen først.",
+  "gatewayRunning": "Gateway kjører",
+  "gatewayStopped": "Gateway er stoppet",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

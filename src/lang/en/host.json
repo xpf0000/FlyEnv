@@ -25,7 +25,6 @@
   "noPhpWarning": "Check that no PHP version is selected, a static site will be created, and the PHP files will cannot be executed. Are you sure to continue?",
   "hostsWriteTips": "Enable / Disable all hosts in this list",
   "sort": "Sort",
-
   "projectPhp": "PHP Projects",
   "projectJava": "Java Projects",
   "projectNode": "Node Projects",
@@ -38,7 +37,6 @@
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
-  "targetPlatforms": "Target Platforms",
   "jarPackagePath": "JAR Package Path",
   "jdkPath": "JDK Path",
   "pythonPath": "Python Path",
@@ -73,7 +71,6 @@
   "showFile": "Show File",
   "sticky": "Sticky",
   "dbclickRowToEdit": "Double-click this line to edit",
-
   "OnlineDomain": "Online Domain",
   "LocalDoman": "Local Domain",
   "CloudflareTunnel": {

@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw ist nicht installiert. Bitte installieren Sie es zuerst.",
+  "gatewayStatus": "Gateway-Status",
+  "gatewayNotInstalled": "Gateway ist nicht installiert. Bitte installieren Sie zuerst das Gateway.",
+  "gatewayRunning": "Gateway läuft",
+  "gatewayStopped": "Gateway ist gestoppt",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

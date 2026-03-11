@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw 未安装，请先安装。",
+  "gatewayStatus": "网关状态",
+  "gatewayNotInstalled": "网关未安装，请先安装网关。",
+  "gatewayRunning": "网关运行中",
+  "gatewayStopped": "网关已停止",
+  "startGatewayFail": "网关启动失败",
+  "OpenClawOfficialWebsite": "OpenClaw官网",
+  "OpenClawLocalDashboard": "OpenClaw面板"
+}

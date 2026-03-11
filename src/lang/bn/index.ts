@@ -30,9 +30,11 @@ import requestTimerBN from './requestTimer.json'
 import meilisearchBN from './meilisearch.json'
 import minioBN from './minio.json'
 import podmanBN from './podman.json'
+import openclawBN from './openclaw.json'
 
 export default {
   bn: {
+    openclaw: openclawBN,
     podman: podmanBN,
     minio: minioBN,
     meilisearch: meilisearchBN,

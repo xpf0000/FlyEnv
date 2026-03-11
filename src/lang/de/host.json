@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Tunnelerstellung fehlgeschlagen: {error}. Bitte überprüfen Sie, ob der ApiToken korrekt ist, und stellen Sie sicher, dass Sie über Cloudflare Tunnel-Bearbeitungsberechtigungen verfügen.",
     "TunnelRule": "Tunnelregel",
     "licenseTips": "Ohne Erwerb einer Lizenz können Sie nur einen Tunnel und einen Satz Host-Datensätze erstellen."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

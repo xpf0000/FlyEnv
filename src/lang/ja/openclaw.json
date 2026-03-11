@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClawがインストールされていません。先にインストールしてください。",
+  "gatewayStatus": "ゲートウェイ状態",
+  "gatewayNotInstalled": "ゲートウェイがインストールされていません。先にゲートウェイをインストールしてください。",
+  "gatewayRunning": "ゲートウェイが実行中",
+  "gatewayStopped": "ゲートウェイが停止中",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

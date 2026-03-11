@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Pembuatan tunnel gagal: {error}. Silakan periksa apakah ApiToken benar dan pastikan Anda memiliki izin edit Cloudflare Tunnel.",
     "TunnelRule": "Aturan Tunnel",
     "licenseTips": "Tanpa memperoleh lisensi, Anda hanya dapat membuat satu tunnel dan satu set catatan host."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

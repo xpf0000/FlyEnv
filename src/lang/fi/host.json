@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Tunnelin luominen epäonnistui: {error}. Tarkista onko ApiToken oikea ja varmista, että sinulla on Cloudflare Tunnel -muokkausoikeudet.",
     "TunnelRule": "Tunnelisääntö",
     "licenseTips": "Ilman lisenssiä voit luoda vain yhden tunnelin ja yhden joukon host-tietueita."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

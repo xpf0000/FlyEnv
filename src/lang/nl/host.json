@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Tunnel aanmaken mislukt: {error}. Controleer of de ApiToken correct is en zorg dat u Cloudflare Tunnel bewerkingsrechten heeft.",
     "TunnelRule": "Tunnel Regel",
     "licenseTips": "Zonder een licentie te verkrijgen, kunt u slechts één tunnel en één set hostrecords aanmaken."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

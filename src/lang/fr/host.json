@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Échec de la création du tunnel : {error}. Veuillez vérifier si l'ApiToken est correct et assurez-vous d'avoir les permissions de modification du Cloudflare Tunnel.",
     "TunnelRule": "Règle du Tunnel",
     "licenseTips": "Sans obtenir de licence, vous ne pouvez créer qu'un seul tunnel et un ensemble d'enregistrements d'hôte."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

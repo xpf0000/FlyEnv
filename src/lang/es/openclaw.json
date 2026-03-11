@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw no está instalado. Por favor, instálelo primero.",
+  "gatewayStatus": "Estado de la Puerta de Enlace",
+  "gatewayNotInstalled": "La puerta de enlace no está instalada. Por favor, instale la puerta de enlace primero.",
+  "gatewayRunning": "La puerta de enlace está en ejecución",
+  "gatewayStopped": "La puerta de enlace está detenida",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

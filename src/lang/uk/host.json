@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Створення тунелю не вдалося: {error}. Будь ласка, перевірте, чи правильний ApiToken, і переконайтеся, що у вас є дозволи на редагування Cloudflare Tunnel.",
     "TunnelRule": "Правило тунелю",
     "licenseTips": "Без отримання ліцензії ви можете створити лише один тунель і один набір записів хоста."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

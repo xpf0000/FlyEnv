@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Crearea tunelului a eșuat: {error}. Vă rugăm să verificați dacă ApiToken este corect și asigurați-vă că aveți permisiuni de editare pentru Cloudflare Tunnel.",
     "TunnelRule": "Regulă Tunel",
     "licenseTips": "Fără obținerea unei licențe, puteți crea doar un tunel și un set de înregistrări gazdă."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }
