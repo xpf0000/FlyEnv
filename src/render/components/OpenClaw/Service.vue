@@ -108,6 +108,18 @@
                 </el-button>
               </template>
             </el-form-item>
+            <el-form-item :label="I18nT('host.action')">
+              <div class="w-full flex flex-wrap gap-5">
+                <template v-for="(item, _index) in OpenClawSetup.actions" :key="_index">
+                  <el-button
+                    style="margin-left: 0"
+                    class="flex-shrink-0"
+                    @click.stop="doAction(item)"
+                    >{{ item }}</el-button
+                  >
+                </template>
+              </div>
+            </el-form-item>
           </el-form>
         </div>
       </template>
@@ -139,6 +151,10 @@
 
   const installOpenClaw = () => {
     OpenClawSetup.installOpenClaw(xtermDom)
+  }
+
+  const doAction = (action: string) => {
+    OpenClawSetup.doAction(action, xtermDom)
   }
 
   onMounted(() => {

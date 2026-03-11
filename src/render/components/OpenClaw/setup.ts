@@ -17,6 +17,36 @@ class OpenClaw {
   loading: boolean = true
   gatewayStatus: string = ''
   dashboard = ''
+  actions: string[] = [
+    'openclaw help',
+    'openclaw dashboard',
+    'openclaw doctor',
+    'openclaw doctor --fix',
+    'openclaw health',
+    'openclaw status',
+    'openclaw configure',
+    'openclaw logs',
+    'openclaw gateway --help',
+    'openclaw gateway usage-cost',
+    'openclaw gateway probe',
+    'openclaw gateway discover',
+    'openclaw gateway health',
+    'openclaw gateway status',
+    'openclaw gateway install',
+    'openclaw gateway uninstall',
+    'openclaw gateway start',
+    'openclaw gateway stop',
+    'openclaw gateway restart'
+  ]
+  needRefreshActions: string[] = [
+    'openclaw doctor --fix',
+    'openclaw gateway install',
+    'openclaw gateway uninstall',
+    'openclaw gateway start',
+    'openclaw gateway stop',
+    'openclaw gateway restart'
+  ]
+  currentAction: string = ''
 
   constructor() {}
 
@@ -104,6 +134,7 @@ class OpenClaw {
     if (this.installing) {
       return
     }
+    this.currentAction = ''
     this.installEnd = false
     this.installing = true
     await nextTick()
@@ -133,12 +164,32 @@ class OpenClaw {
     this.installEnd = true
   }
 
+  async doAction(action: string, domRef: Ref<HTMLElement>) {
+    if (this.installing) {
+      return
+    }
+    this.currentAction = action
+    this.installEnd = false
+    this.installing = true
+    await nextTick()
+
+    const execXTerm = new XTerm()
+    this.xterm = markRaw(execXTerm)
+    await execXTerm.mount(domRef.value)
+    const command: string[] = [action]
+    await execXTerm.send(command, false)
+    this.installEnd = true
+  }
+
   taskConfirm() {
     this.installing = false
     this.installEnd = false
     this.xterm?.destroy()
     delete this.xterm
-    this.init()
+    if (this.needRefreshActions.includes(this.currentAction)) {
+      this.init()
+    }
+    this.currentAction = ''
   }
   taskCancel() {
     this.installing = false
@@ -147,6 +198,7 @@ class OpenClaw {
       this.xterm?.destroy()
       delete this.xterm
     })
+    this.currentAction = ''
   }
 }
 

@@ -24,7 +24,6 @@
 
 <script lang="ts" setup>
   import { AsideSetup } from './ASide'
-  import { OpenClawSetup } from './setup'
   import { AppServiceModule } from '@/core/ASide'
 
   const {

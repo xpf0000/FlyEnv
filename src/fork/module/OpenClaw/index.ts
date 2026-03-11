@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
 import Helper from '../../Helper'
-import { isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 import { PItem, ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidList } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
@@ -110,6 +110,16 @@ class OpenClaw extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         await execPromiseWithEnv(`openclaw gateway start`)
+      } catch {}
+      if (isMacOS()) {
+        try {
+          await execPromiseWithEnv(
+            `launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.gateway.plist`
+          )
+        } catch {}
+      }
+
+      try {
         await waitTime(3000)
         let res: any = await this.getGatewayStatus()
         if (res?.isRunning) {
@@ -149,9 +159,10 @@ class OpenClaw extends Base {
         const find = all.find(
           (f) =>
             f?.COMMAND &&
-            f.COMMAND.includes('openclaw') &&
-            f.COMMAND.includes('gateway') &&
-            f.COMMAND.includes('--port')
+            (f.COMMAND.includes('openclaw-gateway') ||
+              (f.COMMAND.includes('openclaw') &&
+                f.COMMAND.includes('gateway') &&
+                f.COMMAND.includes('--port')))
         )
 
         if (find) {
