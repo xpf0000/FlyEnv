@@ -63,7 +63,7 @@
       <template v-else-if="!OpenClawSetup.loading && !OpenClawSetup.gatewayInstalled">
         <div class="p-5">
           <pre class="app-html-block" v-html="I18nT('openclaw.gatewayNotInstalled')"></pre>
-          <el-button type="primary" class="mt-5" @click.stop="OpenClawSetup.installGateway()">{{
+          <el-button type="primary" class="mt-5" @click.stop="installOpenClawGateway">{{
             I18nT('base.install')
           }}</el-button>
         </div>
@@ -151,6 +151,10 @@
 
   const installOpenClaw = () => {
     OpenClawSetup.installOpenClaw(xtermDom)
+  }
+
+  const installOpenClawGateway = () => {
+    OpenClawSetup.installGateway(xtermDom)
   }
 
   const doAction = (action: string) => {

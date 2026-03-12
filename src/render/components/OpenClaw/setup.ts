@@ -12,6 +12,7 @@ class OpenClaw {
   installEnd = false
   installed: boolean = false
   version: string = ''
+  gatewayInstalling = false
   gatewayInstalled: boolean = false
   gatewayRunning: boolean = false
   loading: boolean = true
@@ -84,13 +85,31 @@ class OpenClaw {
     })
   }
 
-  installGateway() {
-    IPC.send('app-fork:openclaw', 'installGateway').then((key: string) => {
-      IPC.off(key)
-      Promise.all([this.checkInstalled(), this.getGatewayStatus()]).then(() => {
-        this.loading = false
-      })
-    })
+  async installGateway(domRef: Ref<HTMLElement>) {
+    if (this.installing) {
+      return
+    }
+    this.currentAction = ''
+    this.installEnd = false
+    this.installing = true
+    await nextTick()
+
+    const execXTerm = new XTerm()
+    this.xterm = markRaw(execXTerm)
+    await execXTerm.mount(domRef.value)
+    const command: string[] = []
+    if (window.Server.isLinux) {
+      command.push(`export XDG_RUNTIME_DIR=/run/user/$(id -u)`)
+      command.push(`export DBUS_SESSION_BUS_ADDRESS="unix:path=\${XDG_RUNTIME_DIR}/bus"`)
+    }
+    if (window.Server.isMacOS) {
+      command.push('sudo openclaw gateway install')
+    } else {
+      command.push('openclaw gateway install')
+    }
+
+    await execXTerm.send(command, false)
+    this.installEnd = true
   }
 
   startGateway(): Promise<boolean> {

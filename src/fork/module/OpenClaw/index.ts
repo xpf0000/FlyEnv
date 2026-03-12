@@ -86,26 +86,6 @@ class OpenClaw extends Base {
   }
 
   /**
-   * Install gateway using Helper
-   */
-  installGateway() {
-    return new ForkPromise(async (resolve, reject) => {
-      try {
-        const res: any = await Helper.send('tools', 'exec', 'openclaw gateway install')
-        const stdout = res?.stdout ?? ''
-        const stderr = res?.stderr ?? ''
-        if (stderr && !stdout) {
-          reject(stderr)
-          return
-        }
-        resolve(stdout || stderr)
-      } catch (e: any) {
-        reject(e?.message ?? 'fail')
-      }
-    })
-  }
-
-  /**
    * Start gateway using Helper
    */
   startGateway() {
