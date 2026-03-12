@@ -49,12 +49,7 @@ class OpenClaw extends Base {
       let status = ''
       const tmp = join(tmpdir(), `${uuid()}.txt`)
       try {
-        await execPromiseWithEnv(`openclaw gateway status > "${tmp}" 2>&1`, {
-          env: {
-            XDG_RUNTIME_DIR: '/run/user/$(id -u)',
-            DBUS_SESSION_BUS_ADDRESS: 'unix:path=${XDG_RUNTIME_DIR}/bus"'
-          }
-        })
+        await execPromiseWithEnv(`openclaw gateway status > "${tmp}" 2>&1`)
         const content = await readFile(tmp, 'utf-8')
         status = content.trim()
       } catch (e) {
@@ -70,8 +65,9 @@ class OpenClaw extends Base {
 
       // Parse status
       const isInstalled =
-        !status.includes('Service: Scheduled Task (missing)') &&
-        !status.includes('Service: systemd (disabled)')
+        (!status.includes('Service: Scheduled Task (missing)') &&
+          !status.includes('Service: systemd (disabled)')) ||
+        status.includes('RPC probe: ok')
       const isRunning = status.includes('RPC probe: ok')
       const isStopped = status.includes('RPC probe: failed')
       const dashboard =
@@ -96,14 +92,8 @@ class OpenClaw extends Base {
    */
   startGateway() {
     return new ForkPromise(async (resolve, reject) => {
-      const opt = {
-        env: {
-          XDG_RUNTIME_DIR: '/run/user/$(id -u)',
-          DBUS_SESSION_BUS_ADDRESS: 'unix:path=${XDG_RUNTIME_DIR}/bus"'
-        }
-      }
       try {
-        await execPromiseWithEnv(`openclaw gateway start`, opt)
+        await execPromiseWithEnv(`openclaw gateway start`)
       } catch {}
       if (isMacOS()) {
         try {
@@ -115,8 +105,7 @@ class OpenClaw extends Base {
       if (isLinux()) {
         try {
           await execPromiseWithEnv(
-            `systemctl --user daemon-reload && systemctl --user enable openclaw-gateway.service && systemctl --user start openclaw-gateway.service`,
-            opt
+            `systemctl --user daemon-reload && systemctl --user enable openclaw-gateway.service && systemctl --user start openclaw-gateway.service`
           )
         } catch {}
       }
@@ -145,12 +134,7 @@ class OpenClaw extends Base {
   stopGateway() {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        await execPromiseWithEnv(`openclaw gateway stop`, {
-          env: {
-            XDG_RUNTIME_DIR: '/run/user/$(id -u)',
-            DBUS_SESSION_BUS_ADDRESS: 'unix:path=${XDG_RUNTIME_DIR}/bus"'
-          }
-        })
+        await execPromiseWithEnv(`openclaw gateway stop`)
         let all: PItem[] = []
         if (isWindows()) {
           all = await ProcessPidList()

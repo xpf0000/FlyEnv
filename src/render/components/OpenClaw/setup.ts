@@ -98,11 +98,6 @@ class OpenClaw {
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
     const command: string[] = []
-    if (window.Server.isLinux) {
-      command.push(`echo "XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR"`)
-      command.push(`export XDG_RUNTIME_DIR=/run/user/$(id -u)`)
-      command.push(`export DBUS_SESSION_BUS_ADDRESS="unix:path=\${XDG_RUNTIME_DIR}/bus"`)
-    }
     if (window.Server.isMacOS) {
       command.push('sudo openclaw gateway install --force')
     } else {
@@ -188,10 +183,6 @@ class OpenClaw {
           const v = window.Server.Proxy[k]
           command.push(`export ${k}="${v}"`)
         }
-      }
-      if (window.Server.isLinux) {
-        command.push(`export XDG_RUNTIME_DIR=/run/user/$(id -u)`)
-        command.push(`export DBUS_SESSION_BUS_ADDRESS="unix:path=\${XDG_RUNTIME_DIR}/bus"`)
       }
 
       command.push('curl -fsSL https://openclaw.ai/install.sh | bash')
