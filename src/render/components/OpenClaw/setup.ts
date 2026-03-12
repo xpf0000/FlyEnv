@@ -158,6 +158,11 @@ class OpenClaw {
           command.push(`export ${k}="${v}"`)
         }
       }
+      if (window.Server.isLinux) {
+        command.push(`export XDG_RUNTIME_DIR=/run/user/$(id -u)`)
+        command.push(`export DBUS_SESSION_BUS_ADDRESS="unix:path=\${XDG_RUNTIME_DIR}/bus"`)
+      }
+
       command.push('curl -fsSL https://openclaw.ai/install.sh | bash')
     }
     await execXTerm.send(command, false)

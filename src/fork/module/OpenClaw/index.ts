@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
 import Helper from '../../Helper'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { PItem, ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidList } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
@@ -63,7 +63,9 @@ class OpenClaw extends Base {
       }
 
       // Parse status
-      const isInstalled = !status.includes('Service: Scheduled Task (missing)')
+      const isInstalled =
+        !status.includes('Service: Scheduled Task (missing)') &&
+        !status.includes('Service: systemd (disabled)')
       const isRunning = status.includes('RPC probe: ok')
       const isStopped = status.includes('RPC probe: failed')
       const dashboard =
@@ -116,6 +118,11 @@ class OpenClaw extends Base {
           await execPromiseWithEnv(
             `launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.gateway.plist`
           )
+        } catch {}
+      }
+      if (isLinux()) {
+        try {
+          await execPromiseWithEnv(`systemctl --user start openclaw-gateway.service`)
         } catch {}
       }
 
