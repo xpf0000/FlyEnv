@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Tünel oluşturma başarısız oldu: {error}. Lütfen ApiToken'ın doğru olduğunu ve Cloudflare Tunnel düzenleme izinlerine sahip olduğunuzu kontrol edin.",
     "TunnelRule": "Tünel Kuralı",
     "licenseTips": "Lisans alınmadan, yalnızca bir tünel ve bir grup ana bilgisayar kaydı oluşturabilirsiniz."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

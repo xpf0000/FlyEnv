@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw nie jest zainstalowany. Zainstaluj go najpierw.",
+  "gatewayStatus": "Status bramy",
+  "gatewayNotInstalled": "Brama nie jest zainstalowana. Zainstaluj najpierw bramę.",
+  "gatewayRunning": "Brama jest uruchomiona",
+  "gatewayStopped": "Brama jest zatrzymana",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

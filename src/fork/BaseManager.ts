@@ -55,6 +55,7 @@ class BaseManager {
   Qdrant: any
   CloudflareTunnel: any
   Cloudflared: any
+  OpenClaw: any
 
   modules: Set<string> = new Set()
 
@@ -441,6 +442,12 @@ class BaseManager {
         this.Cloudflared = res.default
       }
       doRun(this.Cloudflared)
+    } else if (module === 'openclaw') {
+      if (!this.OpenClaw) {
+        const res = await import('./module/OpenClaw')
+        this.OpenClaw = res.default
+      }
+      doRun(this.OpenClaw)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw belum diinstal. Silakan instal terlebih dahulu.",
+  "gatewayStatus": "Status Gateway",
+  "gatewayNotInstalled": "Gateway belum diinstal. Silakan instal gateway terlebih dahulu.",
+  "gatewayRunning": "Gateway sedang berjalan",
+  "gatewayStopped": "Gateway dihentikan",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

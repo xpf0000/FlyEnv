@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Tunneloppretting mislykket: {error}. Sjekk om ApiToken er korrekt, og sørg for at du har Cloudflare Tunnel-redigeringstillatelser.",
     "TunnelRule": "Tunnelregel",
     "licenseTips": "Uten å skaffe lisens kan du bare opprette én tunnel og ett sett med host-poster."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

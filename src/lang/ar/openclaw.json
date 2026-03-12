@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw غير مثبت. يرجى تثبيته أولاً.",
+  "gatewayStatus": "حالة البوابة",
+  "gatewayNotInstalled": "البوابة غير مثبتة. يرجى تثبيت البوابة أولاً.",
+  "gatewayRunning": "البوابة تعمل",
+  "gatewayStopped": "البوابة متوقفة",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

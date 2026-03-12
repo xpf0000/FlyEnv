@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw ei ole asennettu. Asenna se ensin.",
+  "gatewayStatus": "Yhdyskäytävän tila",
+  "gatewayNotInstalled": "Yhdyskäytävää ei ole asennettu. Asenna yhdyskäytävä ensin.",
+  "gatewayRunning": "Yhdyskäytävä on käynnissä",
+  "gatewayStopped": "Yhdyskäytävä on pysäytetty",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

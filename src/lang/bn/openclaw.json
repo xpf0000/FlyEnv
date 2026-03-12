@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw ইনস্টল করা হয়নি। অনুগ্রহ করে প্রথমে এটি ইনস্টল করুন।",
+  "gatewayStatus": "গেটওয়ে স্ট্যাটাস",
+  "gatewayNotInstalled": "গেটওয়ে ইনস্টল করা হয়নি। অনুগ্রহ করে প্রথমে গেটওয়ে ইনস্টল করুন।",
+  "gatewayRunning": "গেটওয়ে চলছে",
+  "gatewayStopped": "গেটওয়ে বন্ধ আছে",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

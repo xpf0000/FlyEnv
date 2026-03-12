@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Vytvoření tunelu selhalo: {error}. Zkontrolujte, zda je ApiToken správný a ujistěte se, že máte oprávnění k úpravám Cloudflare Tunnel.",
     "TunnelRule": "Pravidlo tunelu",
     "licenseTips": "Bez získání licence můžete vytvořit pouze jeden tunel a jednu sadu záznamů hostitele."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

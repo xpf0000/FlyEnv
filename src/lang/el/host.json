@@ -76,5 +76,8 @@
     "TunnelInitFailTips": "Η δημιουργία σήραγγας απέτυχε: {error}. Παρακαλώ ελέγξτε αν το ApiToken είναι σωστό και βεβαιωθείτε ότι έχετε δικαιώματα επεξεργασίας Cloudflare Tunnel.",
     "TunnelRule": "Κανόνας Σήραγγας",
     "licenseTips": "Χωρίς την απόκτηση άδειας, μπορείτε να δημιουργήσετε μόνο μία σήραγγα και ένα σύνολο εγγραφών host."
-  }
+  },
+  "projectRuby": "Ruby Projects",
+  "projectRust": "Rust Projects",
+  "projectZig": "Zig Projects"
 }

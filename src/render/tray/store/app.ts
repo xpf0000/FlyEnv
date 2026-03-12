@@ -12,6 +12,7 @@ export type CustomerModuleItem = {
   id: string
   label: string
   icon: string
+  iconPadding?: number
 } & ModuleItemState
 
 export interface TrayState {

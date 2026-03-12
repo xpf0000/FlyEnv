@@ -30,9 +30,11 @@ import requestTimerAZ from './requestTimer.json'
 import meilisearchAZ from './meilisearch.json'
 import minioAZ from './minio.json'
 import podman from './podman.json'
+import openclawAZ from './openclaw.json'
 
 export default {
   az: {
+    openclaw: openclawAZ,
     podman,
     minio: minioAZ,
     meilisearch: meilisearchAZ,

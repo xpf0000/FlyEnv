@@ -1,0 +1,10 @@
+{
+  "notInstalled": "Το OpenClaw δεν είναι εγκατεστημένο. Παρακαλώ εγκαταστήστε το πρώτα.",
+  "gatewayStatus": "Κατάσταση Πύλης",
+  "gatewayNotInstalled": "Η πύλη δεν είναι εγκατεστημένη. Παρακαλώ εγκαταστήστε πρώτα την πύλη.",
+  "gatewayRunning": "Η πύλη εκτελείται",
+  "gatewayStopped": "Η πύλη είναι σταματημένη",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

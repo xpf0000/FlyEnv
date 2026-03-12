@@ -6,7 +6,6 @@
   "ustc": "中国科学技術大学ダウンロードソース",
   "Licenses": "ライセンス",
   "requestedTips": "ライセンスリクエストが送信されました。お待ちください。情報を変更する場合は、再送信できます",
-  "licenseActivated": "ライセンスがアクティブ化されました",
   "autoStartService": "サービスの自動起動",
   "autoStartServiceTips": "アプリを開いたときにサーバーを自動起動するかどうか",
   "autoHide": "インターフェースの自動非表示",

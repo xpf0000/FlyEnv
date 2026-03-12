@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw chưa được cài đặt. Vui lòng cài đặt trước.",
+  "gatewayStatus": "Trạng thái Cổng kết nối",
+  "gatewayNotInstalled": "Cổng kết nối chưa được cài đặt. Vui lòng cài đặt cổng kết nối trước.",
+  "gatewayRunning": "Cổng kết nối đang chạy",
+  "gatewayStopped": "Cổng kết nối đã dừng",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw n'est pas installé. Veuillez l'installer d'abord.",
+  "gatewayStatus": "État de la Passerelle",
+  "gatewayNotInstalled": "La passerelle n'est pas installée. Veuillez installer la passerelle d'abord.",
+  "gatewayRunning": "La passerelle est en cours d'exécution",
+  "gatewayStopped": "La passerelle est arrêtée",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

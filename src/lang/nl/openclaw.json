@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw is niet geïnstalleerd. Installeer het eerst.",
+  "gatewayStatus": "Gateway-status",
+  "gatewayNotInstalled": "Gateway is niet geïnstalleerd. Installeer eerst de gateway.",
+  "gatewayRunning": "Gateway is actief",
+  "gatewayStopped": "Gateway is gestopt",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

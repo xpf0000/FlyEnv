@@ -37,7 +37,6 @@
   "projectRuby": "Ruby项目",
   "projectRust": "Rust项目",
   "projectZig": "Zig项目",
-  "targetPlatforms": "目标平台",
   "jarPackagePath": "jar包路径",
   "jdkPath": "jdk路径",
   "pythonPath": "Python路径",
@@ -72,7 +71,6 @@
   "showFile": "显示文件",
   "sticky": "置顶",
   "dbclickRowToEdit": "双击此行进行编辑",
-
   "OnlineDomain": "线上域名",
   "LocalDoman": "本地域名",
   "CloudflareTunnel": {

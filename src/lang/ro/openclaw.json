@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw nu este instalat. Vă rugăm să îl instalați mai întâi.",
+  "gatewayStatus": "Status Gateway",
+  "gatewayNotInstalled": "Gateway-ul nu este instalat. Vă rugăm să instalați gateway-ul mai întâi.",
+  "gatewayRunning": "Gateway-ul rulează",
+  "gatewayStopped": "Gateway-ul este oprit",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

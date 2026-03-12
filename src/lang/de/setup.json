@@ -6,7 +6,6 @@
   "ustc": "University of Science and Technology of China Downloadquelle",
   "Licenses": "Lizenz",
   "requestedTips": "Der Lizenzantrag wurde eingereicht. Bitte haben Sie etwas Geduld. Sollten Sie Änderungen an den Angaben vornehmen müssen, können Sie den Antrag erneut einreichen",
-  "licenseActivated": "Lizenz aktiviert",
   "autoStartService": "Dienste automatisch starten",
   "autoStartServiceTips": "Gibt an, ob Dienste automatisch gestartet werden sollen, wenn die Anwendung gestartet wird",
   "autoHide": "Versteckt starten / in Kontrollleiste minimiert",

@@ -2,7 +2,13 @@
   <li class="non-draggable">
     <div class="left">
       <div class="icon-block" :class="{ run: item.run }">
-        <yb-icon :key="iconKey" :svg="icon" width="30" height="30" />
+        <yb-icon
+          :key="iconKey"
+          :class="{ [`p-${iconPadding}`]: iconPadding || null }"
+          :svg="icon"
+          width="30"
+          height="30"
+        />
       </div>
       <span class="title">{{ item.label }}</span>
     </div>
@@ -41,6 +47,10 @@
 
   const icon = computed(() => {
     return props.item.icon
+  })
+
+  const iconPadding = computed(() => {
+    return props.item?.iconPadding
   })
 
   watch(icon, () => {

@@ -1,0 +1,10 @@
+{
+  "notInstalled": "OpenClaw není nainstalován. Nejprve jej nainstalujte.",
+  "gatewayStatus": "Stav brány",
+  "gatewayNotInstalled": "Brána není nainstalována. Nejprve nainstalujte bránu.",
+  "gatewayRunning": "Brána běží",
+  "gatewayStopped": "Brána je zastavena",
+  "startGatewayFail": "Gateway start failed",
+  "OpenClawOfficialWebsite": "OpenClaw Home",
+  "OpenClawLocalDashboard": "OpenClaw Dashboard"
+}

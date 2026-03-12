@@ -37,7 +37,6 @@
   "projectRuby": "Dự án Ruby",
   "projectRust": "Dự án Rust",
   "projectZig": "Dự án Zig",
-  "targetPlatforms": "Nền tảng mục tiêu",
   "jarPackagePath": "Đường dẫn gói JAR",
   "jdkPath": "Đường dẫn JDK",
   "pythonPath": "Đường dẫn Python",
