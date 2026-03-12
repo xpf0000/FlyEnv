@@ -20,6 +20,8 @@ class Manager extends Base {
   hosts: any
   ipcCommand: string
   ipcCommandKey: string
+  appHosts: Record<string, string> = {}
+  localIP: string = ''
 
   constructor() {
     super()
@@ -60,6 +62,16 @@ class Manager extends Base {
       await writeFile(file, JSON.stringify(json, null, 2))
       await writeFile(defaultFile, JSON.stringify(json, null, 2))
       resolve(file)
+    })
+  }
+
+  initAppHosts(appHosts: string[]) {
+    return new ForkPromise((resolve) => {
+      this.appHosts = {}
+      appHosts.forEach((h) => {
+        this.appHosts[h] = this.localIP
+      })
+      resolve(true)
     })
   }
 
@@ -114,6 +126,7 @@ class Manager extends Base {
       }
       this.hosts = { ...resolveIP }
       const LOCAL_IP = getPrimaryLocalIPAddress()
+      this.localIP = LOCAL_IP
       const server = createServer({
         udp: true,
         handle: (request: DNS2.DnsRequest, send: (response: DNS2.DnsResponse) => void) => {
@@ -122,6 +135,7 @@ class Manager extends Base {
           const { name } = question
           console.log('question: ', question, name)
           this.initHosts(LOCAL_IP!)
+          Object.assign(this.hosts, this.appHosts)
           console.log('this.hosts: ', this.hosts)
           if (this.hosts[name]) {
             const ip = this.hosts[name]

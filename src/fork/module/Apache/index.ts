@@ -142,14 +142,14 @@ class Apache extends Base {
        * LoadModule headers_module modules/mod_headers.so
        */
       content = content
-        .replace('#LoadModule headers_module', 'LoadModule headers_module')
-        .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
-        .replace('#LoadModule proxy_module', 'LoadModule proxy_module')
-        .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
-        .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
-        .replace('#LoadModule access_compat_module', 'LoadModule access_compat_module')
-        .replace('#LoadModule rewrite_module', 'LoadModule rewrite_module')
-        .replace('#ServerName www.', 'ServerName www.')
+        .replace(/#(.*)?LoadModule headers_module/g, 'LoadModule headers_module')
+        .replace(/#(.*)?LoadModule deflate_module/g, 'LoadModule deflate_module')
+        .replace(/#(.*)?LoadModule proxy_module/g, 'LoadModule proxy_module')
+        .replace(/#(.*)?LoadModule proxy_fcgi_module/g, 'LoadModule proxy_fcgi_module')
+        .replace(/#(.*)?LoadModule ssl_module/g, 'LoadModule ssl_module')
+        .replace(/#(.*)?LoadModule access_compat_module/g, 'LoadModule access_compat_module')
+        .replace(/#(.*)?LoadModule rewrite_module/g, 'LoadModule rewrite_module')
+        .replace(/#(.*)?ServerName www\./g, 'ServerName www.')
 
       content = `Timeout 120\n${content}`
 
