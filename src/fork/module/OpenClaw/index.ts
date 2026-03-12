@@ -4,7 +4,6 @@ import { execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../.
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
-import Helper from '../../Helper'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { PItem, ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidList } from '@shared/Process.win'

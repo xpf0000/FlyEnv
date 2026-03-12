@@ -89,7 +89,7 @@ class OpenClaw {
     if (this.installing) {
       return
     }
-    this.currentAction = ''
+    this.currentAction = 'openclaw gateway install'
     this.installEnd = false
     this.installing = true
     await nextTick()
@@ -106,6 +106,12 @@ class OpenClaw {
       command.push('sudo openclaw gateway install')
     } else {
       command.push('openclaw gateway install')
+    }
+
+    if (window.Server.isLinux) {
+      command.push('systemctl --user start openclaw-gateway.service')
+    } else if (window.Server.isMacOS) {
+      command.push('launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.gateway.plist')
     }
 
     await execXTerm.send(command, false)
