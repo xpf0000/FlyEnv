@@ -99,6 +99,7 @@ class OpenClaw {
     await execXTerm.mount(domRef.value)
     const command: string[] = []
     if (window.Server.isLinux) {
+      command.push(`echo "XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR"`)
       command.push(`export XDG_RUNTIME_DIR=/run/user/$(id -u)`)
       command.push(`export DBUS_SESSION_BUS_ADDRESS="unix:path=\${XDG_RUNTIME_DIR}/bus"`)
     }
