@@ -71,6 +71,9 @@
       <template v-else-if="OpenClawSetup.installed && OpenClawSetup.gatewayInstalled">
         <div class="p-5">
           <el-form label-position="top" @submit.prevent>
+            <el-form-item :label="'OpenClaw ' + I18nT('base.version')">
+              <span>{{ OpenClawSetup.version }}</span>
+            </el-form-item>
             <el-form-item :label="I18nT('openclaw.gatewayStatus')">
               <template v-if="OpenClawSetup.gatewayRunning">
                 <span class="text-[#01cc74]">{{ I18nT('openclaw.gatewayRunning') }}</span>

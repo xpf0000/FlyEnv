@@ -4,7 +4,7 @@ import { execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../.
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { PItem, ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidList } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
@@ -60,6 +60,8 @@ class OpenClaw extends Base {
           await remove(tmp)
         }
       }
+
+      appDebugLog('[OpenClaw][getGatewayStatus]', status).catch()
 
       // Parse status
       const isInstalled =

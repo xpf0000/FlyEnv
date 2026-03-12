@@ -1,4 +1,4 @@
-import { appDebugLog, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 import { shellEnv } from 'shell-env'
 
 class EnvSync {
@@ -32,7 +32,7 @@ class EnvSync {
         this.AppEnv![k] = global.Server.Proxy[k]
       }
     }
-    appDebugLog('[EnvSync][sync]', `${JSON.stringify(this.AppEnv, null, 2)}`).catch()
+    // appDebugLog('[EnvSync][sync]', `${JSON.stringify(this.AppEnv, null, 2)}`).catch()
     return this.AppEnv!
   }
 }
