@@ -122,7 +122,9 @@ class OpenClaw extends Base {
       }
       if (isLinux()) {
         try {
-          await execPromiseWithEnv(`systemctl --user start openclaw-gateway.service`)
+          await execPromiseWithEnv(
+            `export XDG_RUNTIME_DIR=/run/user/$(id -u) && export DBUS_SESSION_BUS_ADDRESS="unix:path=\${XDG_RUNTIME_DIR}/bus" && systemctl --user start openclaw-gateway.service`
+          )
         } catch {}
       }
 
