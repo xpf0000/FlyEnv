@@ -103,18 +103,21 @@ class OpenClaw {
       command.push(`export DBUS_SESSION_BUS_ADDRESS="unix:path=\${XDG_RUNTIME_DIR}/bus"`)
     }
     if (window.Server.isMacOS) {
-      command.push('sudo openclaw gateway install')
+      command.push('sudo openclaw gateway install --force')
     } else {
-      command.push('openclaw gateway install')
+      command.push('openclaw gateway install --force')
     }
 
     if (window.Server.isLinux) {
       command.push('systemctl --user daemon-reload')
       command.push('systemctl --user enable openclaw-gateway.service')
       command.push('systemctl --user start openclaw-gateway.service')
+      command.push('echo "openclaw gateway install end"')
     } else if (window.Server.isMacOS) {
       command.push('launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.gateway.plist')
     }
+
+    command.push('openclaw gateway status --deep')
 
     await execXTerm.send(command, false)
     this.installEnd = true
