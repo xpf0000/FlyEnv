@@ -109,6 +109,8 @@ class OpenClaw {
     }
 
     if (window.Server.isLinux) {
+      command.push('systemctl --user daemon-reload')
+      command.push('systemctl --user enable openclaw-gateway.service')
       command.push('systemctl --user start openclaw-gateway.service')
     } else if (window.Server.isMacOS) {
       command.push('launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.gateway.plist')
