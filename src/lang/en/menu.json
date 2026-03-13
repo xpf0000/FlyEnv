@@ -22,6 +22,6 @@
   "helperInstalling": "Helper program is installing, please wait",
   "waitHelper": "Helper program is starting, please wait",
   "helperInstallFailTips": "Helper program installation failed. Please try manually installing in the terminal window",
-  "helperInstallSuccessTips": "Helper program installation successed",
+  "helperInstallSuccessTips": "Helper program installation succeeded",
   "helperInstallTitle": "Install FlyEnv Helper"
 }
