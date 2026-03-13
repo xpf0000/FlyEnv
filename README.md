@@ -81,7 +81,7 @@ Most dev tools are either too heavy (Docker Desktop) or too limited (NVM/Homebre
 
 FlyEnv allows you to install **only what you need** from a vast library of supported software:
 
-* **AI Integration**: Ollama, DeepSeek, Chatbox, OpenClaw
+* **AI Integration**: OpenClaw, Ollama, DeepSeek, Chatbox
 * **Containers**: Podman.
 * **Network Tunnel**: Cloudflared, Cloudflare Tunnel.
 * **Web Servers**: Apache, Nginx, Caddy, Tomcat, Consul.
