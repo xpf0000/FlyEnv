@@ -77,7 +77,7 @@
     "shell-env": "^4.0.2",
     "shiki": "^3.4.2",
     "tangerine": "^1.6.0",
-    "undici": "^7.19.1",
+    "undici": "^7.24.0",
     "vue": "^3.5.17",
     "vue-i18n": "^11.1.7",
     "vue-shadow-dom": "^4.2.0",
