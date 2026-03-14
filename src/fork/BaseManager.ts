@@ -56,6 +56,7 @@ class BaseManager {
   CloudflareTunnel: any
   Cloudflared: any
   OpenClaw: any
+  N8N: any
 
   modules: Set<string> = new Set()
 
@@ -448,6 +449,12 @@ class BaseManager {
         this.OpenClaw = res.default
       }
       doRun(this.OpenClaw)
+    } else if (module === 'n8n') {
+      if (!this.N8N) {
+        const res = await import('./module/N8N')
+        this.N8N = res.default
+      }
+      doRun(this.N8N)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

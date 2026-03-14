@@ -42,6 +42,7 @@ class Manager extends Base {
   Zig: any
   Qdrant: any
   Cloudflared: any
+  N8N: any
 
   constructor() {
     super()
@@ -286,6 +287,12 @@ class Manager extends Base {
             this.Cloudflared = res.default
           }
           versions.cloudflared = this.Cloudflared.allInstalledVersions(setup)
+        } else if (type === 'n8n') {
+          if (!this.N8N) {
+            const res = await import('../N8N')
+            this.N8N = res.default
+          }
+          versions.n8n = this.N8N.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

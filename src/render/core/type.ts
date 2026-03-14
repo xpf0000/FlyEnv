@@ -79,7 +79,8 @@ export enum AppModuleEnum {
   qdrant = 'qdrant',
   'cloudflare-tunnel' = 'cloudflare-tunnel',
   cloudflared = 'cloudflared',
-  openclaw = 'openclaw'
+  openclaw = 'openclaw',
+  n8n = 'n8n'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum
