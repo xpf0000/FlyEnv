@@ -538,8 +538,10 @@ class N8N extends Base {
   getRunningVersion() {
     return new ForkPromise(async (resolve) => {
       try {
+        const { port } = await this._getN8nConfig()
+        const url = `http://localhost:${port}/api/v1/info`
         const res = await axios({
-          url: 'http://localhost:5678/api/v1/info',
+          url,
           method: 'get',
           timeout: 3000,
           withCredentials: false,
