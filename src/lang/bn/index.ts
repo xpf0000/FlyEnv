@@ -31,9 +31,11 @@ import meilisearchBN from './meilisearch.json'
 import minioBN from './minio.json'
 import podmanBN from './podman.json'
 import openclawBN from './openclaw.json'
+import n8n from './n8n.json'
 
 export default {
   bn: {
+    n8n,
     openclaw: openclawBN,
     podman: podmanBN,
     minio: minioBN,

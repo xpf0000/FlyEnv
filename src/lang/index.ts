@@ -34,6 +34,7 @@ import type update from './zh/update.json'
 import type util from './zh/util.json'
 import type versionmanager from './zh/versionmanager.json'
 import type openclaw from './zh/openclaw.json'
+import type n8n from './zh/n8n.json'
 
 import AR from './ar/index'
 import AZ from './az/index'
@@ -108,6 +109,7 @@ type LangKey =
   | AppendStringToKeys<typeof util, 'util'>
   | AppendStringToKeys<typeof versionmanager, 'versionmanager'>
   | AppendStringToKeys<typeof openclaw, 'openclaw'>
+  | AppendStringToKeys<typeof n8n, 'n8n'>
 
 export const AppAllLang: Record<string, string> = {
   ar: 'العربية',

@@ -31,9 +31,11 @@ import meilisearchAZ from './meilisearch.json'
 import minioAZ from './minio.json'
 import podman from './podman.json'
 import openclawAZ from './openclaw.json'
+import n8n from './n8n.json'
 
 export default {
   az: {
+    n8n,
     openclaw: openclawAZ,
     podman,
     minio: minioAZ,

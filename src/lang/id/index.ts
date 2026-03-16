@@ -31,9 +31,11 @@ import meilisearch from './meilisearch.json'
 import minio from './minio.json'
 import podman from './podman.json'
 import openclawID from './openclaw.json'
+import n8n from './n8n.json'
 
 export default {
   id: {
+    n8n,
     openclaw: openclawID,
     podman,
     minio,
