@@ -4,14 +4,23 @@
       <div class="card-header">
         <div class="left">
           <span>n8n</span>
-          <el-button class="button" link @click="openURL('https://docs.n8n.io/hosting/installation/npm/')">
+          <el-button
+            class="button"
+            link
+            @click="openURL('https://docs.n8n.io/hosting/installation/npm/')"
+          >
             <yb-icon
               style="width: 20px; height: 20px; margin-left: 10px"
               :svg="import('@/svg/http.svg?raw')"
             ></yb-icon>
           </el-button>
         </div>
-        <el-button class="button" :disabled="setup.installing || setup.fetching" link @click="doFetch">
+        <el-button
+          class="button"
+          :disabled="setup.installing || setup.fetching"
+          link
+          @click="doFetch"
+        >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
@@ -30,7 +39,13 @@
 
     <!-- version table -->
     <template v-else>
-      <el-table show-overflow-tooltip height="100%" :data="setup.versions" :border="false" style="width: 100%">
+      <el-table
+        show-overflow-tooltip
+        height="100%"
+        :data="setup.versions"
+        :border="false"
+        style="width: 100%"
+      >
         <template #empty>
           <template v-if="setup.fetching">{{ I18nT('base.gettingVersion') }}</template>
           <template v-else>{{ I18nT('util.noVerionsFoundInLib') }}</template>
@@ -148,7 +163,7 @@
       const xterm = new XTerm()
       setup.xterm = xterm
       xterm.mount(xtermDom.value!).then(() => {
-        xterm.send(commands).then(() => {
+        xterm.send(commands, false).then(() => {
           setup.installEnd = true
         })
       })

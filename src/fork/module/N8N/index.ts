@@ -402,7 +402,7 @@ class N8N extends Base {
     })
   }
 
-  allInstalledVersions(_flags: any, _setup: any) {
+  allInstalledVersions() {
     return new ForkPromise(async (resolve) => {
       const list: SoftInstalled[] = []
       const seen = new Set<string>()
@@ -413,8 +413,7 @@ class N8N extends Base {
         const appData = process.env.APPDATA ?? ''
         const userProfile = process.env.USERPROFILE ?? ''
         if (appData) candidates.push(join(appData, 'npm', 'n8n.cmd'))
-        if (userProfile)
-          candidates.push(join(userProfile, 'AppData', 'Roaming', 'npm', 'n8n.cmd'))
+        if (userProfile) candidates.push(join(userProfile, 'AppData', 'Roaming', 'npm', 'n8n.cmd'))
       } else {
         candidates.push('/usr/local/bin/n8n')
         candidates.push('/usr/bin/n8n')
@@ -473,7 +472,7 @@ class N8N extends Base {
    * then falls back to port-listener check so we also detect processes
    * that were started outside FlyEnv.
    */
-  checkRunning(_version?: SoftInstalled): ForkPromise<{ running: boolean; pid: string; status: number }> {
+  checkRunning(): ForkPromise<{ running: boolean; pid: string; status: number }> {
     return new ForkPromise(async (resolve) => {
       // Determine port from config (default 5678)
       let port = '5678'
@@ -598,7 +597,10 @@ class N8N extends Base {
           const eqIdx = t.indexOf('=')
           if (eqIdx < 0) continue
           const k = t.slice(0, eqIdx).trim()
-          const v = t.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '')
+          const v = t
+            .slice(eqIdx + 1)
+            .trim()
+            .replace(/^["']|["']$/g, '')
           if (k === 'N8N_USER_FOLDER' && v) return v
         }
       }
@@ -641,7 +643,9 @@ class N8N extends Base {
       const result = await execPromise(`node "${tmpFile}"`)
       return result.stdout ?? ''
     } finally {
-      try { await remove(tmpFile) } catch {}
+      try {
+        await remove(tmpFile)
+      } catch {}
     }
   }
 
@@ -770,7 +774,8 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
         if (!existsSync(dbFile)) throw new Error('n8n database not found at ' + dbFile)
         const n8nModules = await this._resolveN8nModulesDir()
         const sqlite3Path = n8nModules ? join(n8nModules, 'sqlite3', 'lib', 'sqlite3.js') : ''
-        if (!sqlite3Path || !existsSync(sqlite3Path)) throw new Error('Could not find sqlite3 module in n8n installation')
+        if (!sqlite3Path || !existsSync(sqlite3Path))
+          throw new Error('Could not find sqlite3 module in n8n installation')
         const script = `
 const sqlite3 = require(${JSON.stringify(sqlite3Path)});
 const userId  = ${JSON.stringify(userId)};
@@ -809,7 +814,8 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
         if (!existsSync(dbFile)) throw new Error('n8n database not found at ' + dbFile)
         const n8nModules = await this._resolveN8nModulesDir()
         const sqlite3Path = n8nModules ? join(n8nModules, 'sqlite3', 'lib', 'sqlite3.js') : ''
-        if (!sqlite3Path || !existsSync(sqlite3Path)) throw new Error('Could not find sqlite3 module in n8n installation')
+        if (!sqlite3Path || !existsSync(sqlite3Path))
+          throw new Error('Could not find sqlite3 module in n8n installation')
         const script = `
 const sqlite3 = require(${JSON.stringify(sqlite3Path)});
 const userId   = ${JSON.stringify(userId)};
@@ -847,7 +853,8 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
         if (!existsSync(dbFile)) throw new Error('n8n database not found at ' + dbFile)
         const n8nModules = await this._resolveN8nModulesDir()
         const sqlite3Path = n8nModules ? join(n8nModules, 'sqlite3', 'lib', 'sqlite3.js') : ''
-        if (!sqlite3Path || !existsSync(sqlite3Path)) throw new Error('Could not find sqlite3 module in n8n installation')
+        if (!sqlite3Path || !existsSync(sqlite3Path))
+          throw new Error('Could not find sqlite3 module in n8n installation')
         const script = `
 const sqlite3   = require(${JSON.stringify(sqlite3Path)});
 const userId    = ${JSON.stringify(userId)};
@@ -883,8 +890,10 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
         const n8nModules = await this._resolveN8nModulesDir()
         const sqlite3Path = n8nModules ? join(n8nModules, 'sqlite3', 'lib', 'sqlite3.js') : ''
         const bcryptPath = n8nModules ? join(n8nModules, 'bcryptjs', 'index.js') : ''
-        if (!sqlite3Path || !existsSync(sqlite3Path)) throw new Error('Could not find sqlite3 module in n8n installation')
-        if (!bcryptPath || !existsSync(bcryptPath)) throw new Error('Could not find bcryptjs module in n8n installation')
+        if (!sqlite3Path || !existsSync(sqlite3Path))
+          throw new Error('Could not find sqlite3 module in n8n installation')
+        if (!bcryptPath || !existsSync(bcryptPath))
+          throw new Error('Could not find bcryptjs module in n8n installation')
         const script = `
 const sqlite3 = require(${JSON.stringify(sqlite3Path)});
 const bcrypt  = require(${JSON.stringify(bcryptPath)});
@@ -912,7 +921,13 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
    * Create a new n8n user by writing directly to the SQLite database.
    * Works offline — n8n does not need to be running, no owner credentials required.
    */
-  userCreate(email: string, firstName: string, lastName: string, role: string, password: string): ForkPromise<any> {
+  userCreate(
+    email: string,
+    firstName: string,
+    lastName: string,
+    role: string,
+    password: string
+  ): ForkPromise<any> {
     return new ForkPromise(async (resolve, reject) => {
       try {
         if (!email) throw new Error('Email is required')
@@ -1021,7 +1036,10 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
         if (existsSync(envFile)) {
           let content = await readFile(envFile, 'utf-8')
           if (/^N8N_OWNER_PASSWORD=/m.test(content)) {
-            content = content.replace(/^N8N_OWNER_PASSWORD=.*/m, `N8N_OWNER_PASSWORD="${newPassword}"`)
+            content = content.replace(
+              /^N8N_OWNER_PASSWORD=.*/m,
+              `N8N_OWNER_PASSWORD="${newPassword}"`
+            )
           } else {
             content = content.replace(
               /^# N8N_OWNER_PASSWORD=.*/m,
@@ -1122,8 +1140,14 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
             const eqIdx = t.indexOf('=')
             if (eqIdx < 0) continue
             const k = t.slice(0, eqIdx).trim()
-            const v = t.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '')
-            if (k === 'N8N_USER_FOLDER' && v) { candidates.push(v); break }
+            const v = t
+              .slice(eqIdx + 1)
+              .trim()
+              .replace(/^["']|["']$/g, '')
+            if (k === 'N8N_USER_FOLDER' && v) {
+              candidates.push(v)
+              break
+            }
           }
         }
       } catch {}
@@ -1132,16 +1156,16 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
 
       if (isWindows()) {
         // a. Well-known per-user AppData locations for the current user
-        const appData     = process.env['APPDATA']
-        const localApp    = process.env['LOCALAPPDATA']
+        const appData = process.env['APPDATA']
+        const localApp = process.env['LOCALAPPDATA']
         const programData = process.env['PROGRAMDATA']
         const userProfile = process.env['USERPROFILE'] ?? homedir()
-        if (appData)     candidates.push(join(appData,     'n8n'))
-        if (localApp)    candidates.push(join(localApp,    'n8n'))
+        if (appData) candidates.push(join(appData, 'n8n'))
+        if (localApp) candidates.push(join(localApp, 'n8n'))
         if (programData) candidates.push(join(programData, 'n8n'))
         candidates.push(join(userProfile, 'n8n'))
         candidates.push(join(userProfile, 'AppData', 'Roaming', 'n8n'))
-        candidates.push(join(userProfile, 'AppData', 'Local',   'n8n'))
+        candidates.push(join(userProfile, 'AppData', 'Local', 'n8n'))
 
         // b. Scan ALL user profiles under C:\Users\*\.n8n and nearby
         try {
@@ -1151,7 +1175,7 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
               candidates.push(join(usersRoot, profile, '.n8n'))
               candidates.push(join(usersRoot, profile, 'n8n'))
               candidates.push(join(usersRoot, profile, 'AppData', 'Roaming', 'n8n'))
-              candidates.push(join(usersRoot, profile, 'AppData', 'Local',   'n8n'))
+              candidates.push(join(usersRoot, profile, 'AppData', 'Local', 'n8n'))
             }
           }
         } catch {}
@@ -1181,7 +1205,7 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
       }
 
       // ── Deduplicate and return only paths with database.sqlite ────────────
-      const seen  = new Set<string>()
+      const seen = new Set<string>()
       const found: string[] = []
       for (const p of candidates) {
         if (!p || seen.has(p)) continue
@@ -1194,7 +1218,6 @@ const d = new sqlite3.Database(${JSON.stringify(dbFile)}, function(err) {
       resolve(found)
     })
   }
-
 }
 
 export default new N8N()

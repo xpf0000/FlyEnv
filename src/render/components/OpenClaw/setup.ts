@@ -48,6 +48,7 @@ class OpenClaw {
     'openclaw gateway restart'
   ]
   currentAction: string = ''
+  configFile = ''
 
   constructor() {}
 
@@ -72,6 +73,7 @@ class OpenClaw {
           this.gatewayInstalled = res?.data?.isInstalled ?? false
           this.gatewayRunning = res?.data?.isRunning ?? false
           this.dashboard = res?.data?.dashboard ?? ''
+          this.configFile = res?.data?.configFile ?? ''
         }
         resolve(true)
       })
