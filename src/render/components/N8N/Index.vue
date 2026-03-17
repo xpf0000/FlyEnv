@@ -8,19 +8,12 @@
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="n8n" title="n8n">
         <template v-if="isRunning" #tool-left>
-          <el-button style="color: #ea4b71" class="button" link @click.stop="openDashboard">
+          <el-button style="color: #01cc74" class="button" link @click.stop="openDashboard">
             <yb-icon
               style="width: 20px; height: 20px; margin-left: 10px"
               :svg="import('@/svg/http.svg?raw')"
             ></yb-icon>
           </el-button>
-        </template>
-        <template #action="{ row }">
-          <template v-if="row.run">
-            <el-button link style="color: #ea4b71" @click.stop="openDashboard">
-              <yb-icon :svg="import('@/svg/http.svg?raw')" width="17" height="17" />
-            </el-button>
-          </template>
         </template>
       </Service>
       <Manager v-else-if="tab === 1"></Manager>
@@ -71,7 +64,7 @@
         .find((l: string) => l.trim().startsWith('N8N_PORT='))
       if (match) port = match.trim().split('=')[1]?.trim() || '5678'
     } catch {}
-    shell.openExternal(`http://localhost:${port}`).catch()
+    shell.openExternal(`http://127.0.0.1:${port}`).catch()
   }
 
   checkVersion()

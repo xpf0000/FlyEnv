@@ -5,18 +5,22 @@ import Helper from '../Helper'
 import { userInfo } from 'os'
 import {
   AppLog,
-  spawnPromiseWithEnv,
-  waitPidFile,
+  execPromise,
+  execPromiseSudo,
   existsSync,
-  remove,
   mkdirp,
   readFile,
-  writeFile,
-  execPromiseSudo,
+  remove,
   removeByRoot,
-  execPromise
+  spawnPromiseWithEnv,
+  waitPidFile,
+  writeFile
 } from '../Fn'
-import { isMacOS } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
+import { closeSync, openSync } from 'node:fs'
+import { spawn } from 'node:child_process'
+import EnvSync from '@shared/EnvSync'
+import { basename } from 'node:path'
 
 export type ServiceStartParams = {
   version: SoftInstalled
@@ -31,6 +35,16 @@ export type ServiceStartParams = {
   checkPidFile?: boolean
   cwd?: string
   root?: boolean
+}
+
+export type ServiceStartSpawnParams = {
+  version: SoftInstalled
+  pidPath?: string
+  baseDir: string
+  bin: string
+  execArgs?: string[]
+  execEnv?: Record<string, string>
+  on: (...args: any) => void
 }
 
 export async function serviceStartExec(
@@ -303,4 +317,112 @@ export async function customerServiceStartExec(
     msg += '\n' + (await readFile(errFile, 'utf-8'))
   }
   throw new Error(msg)
+}
+
+/**
+ * Start the service using the spawn detached: true method and directly return the process ID after startup.
+ * @param param
+ */
+export async function serviceStartSpawn(
+  param: ServiceStartSpawnParams
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  const baseDir = param.baseDir
+  const version = param.version
+  const execEnv = param?.execEnv ?? ''
+  const bin = param.bin
+  const execArgs = param?.execArgs ?? []
+  const on = param.on
+  const pidPath = param?.pidPath ?? ''
+
+  if (pidPath && existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch {}
+  }
+
+  await mkdirp(baseDir)
+
+  const typeFlag = version.typeFlag
+  const versionStr = version.version!.trim()
+
+  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
+  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
+
+  const out = openSync(outFile, 'a')
+  const err = openSync(errFile, 'a')
+
+  const env = await EnvSync.sync()
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+  })
+
+  const doExec = (): Promise<{ 'APP-Service-Start-PID': string }> => {
+    const cwd = dirname(bin)
+    const options: any = {
+      detached: true,
+      stdio: ['ignore', out, err],
+      cwd,
+      env: {
+        ...env,
+        ...execEnv
+      },
+      windowsHide: true // 隐藏 cmd 窗口
+    }
+    if (isWindows()) {
+      if (bin.endsWith('.ps1')) {
+        options.shell = 'powershell.exe'
+      } else if (!bin.endsWith('.exe') && !bin.endsWith('.com')) {
+        options.shell = true
+      }
+    }
+    // 2. 启动进程
+    const cp = spawn(basename(bin), execArgs, options)
+    // 3. 立即关闭父进程中的句柄 (子进程已继承)
+    closeSync(out)
+    closeSync(err)
+
+    return new Promise((resolve, reject) => {
+      // 监听启动瞬间的错误（如文件路径不存在、权限不足）
+      cp.on('error', (err) => {
+        reject(err)
+      })
+
+      let timer: NodeJS.Timeout | undefined = undefined
+
+      // 关键：检测启动后的早期崩溃（例如 Token 错误导致 1-2 秒内退出）
+      const startupExitHandler = () => {
+        clearTimeout(timer)
+        reject(new Error(I18nT('fork.startFail')))
+      }
+      cp.on('exit', startupExitHandler)
+
+      // 如果 2 秒内没退出，我们认为启动基本成功
+      timer = setTimeout(async () => {
+        cp.off('exit', startupExitHandler) // 移除早期退出监听
+
+        if (cp.pid) {
+          const pid = `${cp.pid}`
+          await writeFile(pidPath, pid)
+          cp.unref() // 让子进程独立运行，不挂钩主进程
+          resolve({ 'APP-Service-Start-PID': pid })
+        }
+      }, 2000)
+    })
+  }
+
+  try {
+    return await doExec()
+  } catch (e) {
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.startServiceFail', {
+          error: e,
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw e
+  }
 }

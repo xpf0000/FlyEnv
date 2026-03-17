@@ -19,7 +19,7 @@
           class="button"
           :disabled="setup.installing || setup.fetching"
           link
-          @click="doFetch"
+          @click="setup.reinit()"
         >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
@@ -72,7 +72,7 @@
               type="primary"
               link
               :disabled="setup.installing"
-              @click.stop="doAction(scope.row)"
+              @click.stop="handleAction(scope.row)"
             >
               {{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}
             </el-button>
@@ -83,128 +83,40 @@
 
     <template v-if="setup.installing" #footer>
       <template v-if="setup.installEnd">
-        <el-button type="primary" @click.stop="onConfirm">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" @click.stop="setup.onConfirm()">{{
+          I18nT('base.confirm')
+        }}</el-button>
       </template>
       <template v-else>
-        <el-button @click.stop="onCancel">{{ I18nT('base.cancel') }}</el-button>
+        <el-button @click.stop="setup.onCancel()">{{ I18nT('base.cancel') }}</el-button>
       </template>
     </template>
   </el-card>
 </template>
 
 <script lang="ts" setup>
-  import { ref, reactive, nextTick, onMounted, onUnmounted } from 'vue'
+  import { ref, onMounted, onUnmounted } from 'vue'
   import { I18nT } from '@lang/index'
   import { shell } from '@/util/NodeFn'
-  import XTerm from '@/util/XTerm'
-  import IPC from '@/util/IPC'
-  import { BrewStore } from '@/store/brew'
+  import { N8NManagerSetup } from './setup'
 
   const xtermDom = ref<HTMLElement>()
-
-  const setup = reactive<{
-    fetching: boolean
-    installing: boolean
-    installEnd: boolean
-    versions: Array<{ version: string; mVersion: string; url: string; installed: boolean }>
-    xterm: XTerm | undefined
-  }>({
-    fetching: false,
-    installing: false,
-    installEnd: false,
-    versions: [],
-    xterm: undefined
-  })
+  const setup = N8NManagerSetup
 
   const openURL = (url: string) => {
     shell.openExternal(url).catch()
   }
 
-  const doFetch = () => {
-    if (setup.fetching) return
-    setup.fetching = true
-    IPC.send('app-fork:n8n', 'fetchAllOnlineVersion').then((key: string, res: any) => {
-      IPC.off(key)
-      const online: any[] = res?.data ?? []
-      // merge with installed state
-      const brewStore = BrewStore()
-      const installed = brewStore.module('n8n').installed
-      setup.versions = online.map((v) => ({
-        ...v,
-        installed: installed.some((i) => i.version === v.version)
-      }))
-      setup.fetching = false
-    })
-  }
-
-  const doAction = (row: any) => {
-    const action = row.installed ? 'uninstall' : 'install'
-    const commands: string[] = []
-    if (window.Server.isWindows) {
-      if (window.Server.Proxy) {
-        for (const k in window.Server.Proxy) {
-          commands.push(`$env:${k}="${(window.Server.Proxy as any)[k]}"`)
-        }
-      }
-      commands.push(`npm ${action} -g n8n@${row.version}`)
-    } else {
-      if (window.Server.Proxy) {
-        for (const k in window.Server.Proxy) {
-          commands.push(`export ${k}="${(window.Server.Proxy as any)[k]}"`)
-        }
-      }
-      commands.push(`npm ${action} -g n8n@${row.version}`)
-    }
-
-    setup.installEnd = false
-    setup.installing = true
-
-    nextTick(() => {
-      const xterm = new XTerm()
-      setup.xterm = xterm
-      xterm.mount(xtermDom.value!).then(() => {
-        xterm.send(commands, false).then(() => {
-          setup.installEnd = true
-        })
-      })
-    })
-  }
-
-  const onConfirm = () => {
-    setup.installing = false
-    setup.installEnd = false
-    setup.xterm?.destroy()
-    setup.xterm = undefined
-    // Use fetchInstalled() so items are wrapped as ModuleInstalledItem instances (with .start()/.stop())
-    const brewStore = BrewStore()
-    const mod = brewStore.module('n8n')
-    mod.installedFetched = false
-    mod.fetchInstalled().then(() => {
-      const installed = mod.installed
-      setup.versions = setup.versions.map((v) => ({
-        ...v,
-        installed: installed.some((i: any) => i.version === v.version)
-      }))
-    })
-  }
-
-  const onCancel = () => {
-    setup.installing = false
-    setup.installEnd = false
-    setup.xterm?.stop()?.then(() => {
-      setup.xterm?.destroy()
-      setup.xterm = undefined
-    })
+  const handleAction = (row: any) => {
+    setup.doAction(row.version, row.installed, xtermDom as any)
   }
 
   onMounted(() => {
-    doFetch()
-    if (setup.installing && setup.xterm && xtermDom.value) {
-      setup.xterm.mount(xtermDom.value).catch()
-    }
+    setup.init()
+    setup.onMounted(xtermDom)
   })
 
   onUnmounted(() => {
-    setup.xterm?.unmounted?.()
+    setup.onUnmounted()
   })
 </script>

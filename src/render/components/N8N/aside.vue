@@ -6,12 +6,7 @@
   >
     <div class="left">
       <div class="icon-block" :class="{ run: serviceRunning }">
-        <yb-icon
-          :svg="import('@/svg/n8n.svg?raw')"
-          style="padding: 4px"
-          width="28"
-          height="28"
-        />
+        <yb-icon :svg="import('@/svg/n8n.svg?raw')" style="padding: 4px" width="28" height="28" />
       </div>
       <span class="title">n8n</span>
     </div>

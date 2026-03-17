@@ -1,14 +1,91 @@
 <template>
-  <div class="n8n-users px-4 pt-4">
+  <el-card class="app-base-el-card" header-class="bg-gray-50 dark:bg-gray-800">
+    <template #header>
+      <!-- Data Directory row (always visible) -->
+      <div class="flex items-center gap-3 h-[30px]">
+        <span class="text-sm font-medium whitespace-nowrap">{{ I18nT('n8n.usersDataDir') }}</span>
+        <el-input v-model="dataDir" size="small" readonly class="flex-1" />
+        <el-button size="small" :loading="scanning" @click="scanDataDir">{{
+          I18nT('n8n.usersDataDirScan')
+        }}</el-button>
+        <el-button size="small" @click="chooseDataDir">{{
+          I18nT('n8n.usersDataDirChange')
+        }}</el-button>
+      </div>
+    </template>
+    <template #default>
+      <!-- Toolbar -->
+      <div class="flex items-center gap-2 mb-4">
+        <el-button :loading="loading" @click="loadUsers">{{ I18nT('base.refresh') }}</el-button>
+        <el-button type="primary" @click="openAddDialog">
+          {{ I18nT('n8n.usersAddUser') }}
+        </el-button>
+        <el-button @click="openChangePasswordDialog">{{
+          I18nT('n8n.usersChangePassword')
+        }}</el-button>
+      </div>
 
-    <!-- Data Directory row (always visible) -->
-    <div class="flex items-center gap-3 mb-4 p-3 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-      <span class="text-sm font-medium whitespace-nowrap">{{ I18nT('n8n.usersDataDir') }}</span>
-      <el-input v-model="dataDir" size="small" readonly class="flex-1" />
-      <el-button size="small" :loading="scanning" @click="scanDataDir">{{ I18nT('n8n.usersDataDirScan') }}</el-button>
-      <el-button size="small" @click="chooseDataDir">{{ I18nT('n8n.usersDataDirChange') }}</el-button>
-    </div>
-
+      <!-- Users table — reads from SQLite directly, works offline -->
+      <el-table v-loading="loading" :data="users" border>
+        <el-table-column :label="I18nT('n8n.usersName')" min-width="150">
+          <template #default="{ row }">{{ row.firstName }} {{ row.lastName }}</template>
+        </el-table-column>
+        <el-table-column prop="email" :label="I18nT('n8n.usersEmail')" min-width="200" />
+        <el-table-column :label="I18nT('n8n.usersRole')" width="120">
+          <template #default="{ row }">{{ formatRole(row.roleSlug) }}</template>
+        </el-table-column>
+        <el-table-column :label="I18nT('n8n.usersStatus')" width="100">
+          <template #default="{ row }">
+            <el-tag
+              :type="row.disabled ? 'info' : row.isPending ? 'warning' : 'success'"
+              size="small"
+            >
+              {{
+                row.disabled
+                  ? I18nT('n8n.usersDisabled')
+                  : row.isPending
+                    ? I18nT('n8n.usersPending')
+                    : I18nT('n8n.usersActive')
+              }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column :label="I18nT('n8n.usersActions')" width="80" fixed="right">
+          <template #default="{ row }">
+            <el-dropdown trigger="click" @command="(cmd: string) => handleAction(cmd, row)">
+              <el-button type="primary" link size="small">&#8943;</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="name">{{
+                    I18nT('n8n.usersChangeName')
+                  }}</el-dropdown-item>
+                  <el-dropdown-item command="password">{{
+                    I18nT('n8n.usersResetPassword')
+                  }}</el-dropdown-item>
+                  <el-dropdown-item v-if="row.roleSlug !== 'global:owner'" command="role">{{
+                    I18nT('n8n.usersChangeRole')
+                  }}</el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="row.roleSlug !== 'global:owner'"
+                    :command="row.disabled ? 'enable' : 'disable'"
+                  >
+                    {{ row.disabled ? I18nT('n8n.usersEnable') : I18nT('n8n.usersDisable') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="row.roleSlug !== 'global:owner'"
+                    command="delete"
+                    style="color: var(--el-color-danger)"
+                    >{{ I18nT('base.del') }}</el-dropdown-item
+                  >
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+        </el-table-column>
+      </el-table>
+    </template>
+  </el-card>
+  <div>
     <!-- Scan results dialog -->
     <el-dialog
       v-model="showScanDialog"
@@ -18,78 +95,35 @@
     >
       <p class="text-sm text-gray-500 mb-3">{{ I18nT('n8n.usersDataDirScanTip') }}</p>
       <el-radio-group v-model="scanSelected" class="flex flex-col gap-2">
-        <el-radio v-for="p in scanResults" :key="p" :value="p" class="font-mono text-sm">{{ p }}</el-radio>
+        <el-radio v-for="p in scanResults" :key="p" :value="p" class="font-mono text-sm">{{
+          p
+        }}</el-radio>
       </el-radio-group>
       <template #footer>
         <el-button @click="showScanDialog = false">{{ I18nT('base.cancel') }}</el-button>
-        <el-button type="primary" :disabled="!scanSelected" @click="applyScanResult">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" :disabled="!scanSelected" @click="applyScanResult">{{
+          I18nT('base.confirm')
+        }}</el-button>
       </template>
     </el-dialog>
 
-    <!-- Toolbar -->
-    <div class="flex items-center gap-2 mb-4">
-      <el-button :loading="loading" @click="loadUsers">{{ I18nT('base.refresh') }}</el-button>
-      <el-button type="primary" @click="openAddDialog">
-        {{ I18nT('n8n.usersAddUser') }}
-      </el-button>
-      <el-button @click="openChangePasswordDialog">{{ I18nT('n8n.usersChangePassword') }}</el-button>
-    </div>
-
-    <!-- Users table — reads from SQLite directly, works offline -->
-    <el-table :data="users" v-loading="loading" border>
-      <el-table-column :label="I18nT('n8n.usersName')" min-width="150">
-        <template #default="{ row }">{{ row.firstName }} {{ row.lastName }}</template>
-      </el-table-column>
-      <el-table-column prop="email" :label="I18nT('n8n.usersEmail')" min-width="200" />
-      <el-table-column :label="I18nT('n8n.usersRole')" width="120">
-        <template #default="{ row }">{{ formatRole(row.roleSlug) }}</template>
-      </el-table-column>
-      <el-table-column :label="I18nT('n8n.usersStatus')" width="100">
-        <template #default="{ row }">
-          <el-tag :type="row.disabled ? 'info' : row.isPending ? 'warning' : 'success'" size="small">
-            {{ row.disabled ? I18nT('n8n.usersDisabled') : row.isPending ? I18nT('n8n.usersPending') : I18nT('n8n.usersActive') }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column :label="I18nT('n8n.usersActions')" width="80" fixed="right">
-        <template #default="{ row }">
-          <el-dropdown trigger="click" @command="(cmd: string) => handleAction(cmd, row)">
-            <el-button type="primary" link size="small">&#8943;</el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="name">{{ I18nT('n8n.usersChangeName') }}</el-dropdown-item>
-                <el-dropdown-item command="password">{{ I18nT('n8n.usersResetPassword') }}</el-dropdown-item>
-                <el-dropdown-item v-if="row.roleSlug !== 'global:owner'" command="role">{{ I18nT('n8n.usersChangeRole') }}</el-dropdown-item>
-                <el-dropdown-item v-if="row.roleSlug !== 'global:owner'" :command="row.disabled ? 'enable' : 'disable'">
-                  {{ row.disabled ? I18nT('n8n.usersEnable') : I18nT('n8n.usersDisable') }}
-                </el-dropdown-item>
-                <el-dropdown-item
-                  v-if="row.roleSlug !== 'global:owner'"
-                  command="delete"
-                  style="color: var(--el-color-danger)"
-                >{{ I18nT('base.del') }}</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </template>
-      </el-table-column>
-</el-table>
-
-<!-- Delete confirm dialog -->
-<el-dialog
-  v-model="showDeleteDialog"
-  :title="I18nT('n8n.usersActions')"
-  width="440px"
-  :destroy-on-close="true"
->
-  <p class="mb-3 text-sm">{{ I18nT('n8n.usersDeleteConfirm', { email: deletingRow?.email }) }}</p>
-  <template #footer>
-    <el-button @click="showDeleteDialog = false">{{ I18nT('base.cancel') }}</el-button>
-    <el-button type="danger" :loading="!!deletingId" @click="confirmDelete">
-      {{ I18nT('base.del') }}
-    </el-button>
-  </template>
-</el-dialog>
+    <!-- Delete confirm dialog -->
+    <el-dialog
+      v-model="showDeleteDialog"
+      :title="I18nT('n8n.usersActions')"
+      width="440px"
+      :destroy-on-close="true"
+    >
+      <p class="mb-3 text-sm">{{
+        I18nT('n8n.usersDeleteConfirm', { email: deletingRow?.email })
+      }}</p>
+      <template #footer>
+        <el-button @click="showDeleteDialog = false">{{ I18nT('base.cancel') }}</el-button>
+        <el-button type="danger" :loading="!!deletingId" @click="confirmDelete">
+          {{ I18nT('base.del') }}
+        </el-button>
+      </template>
+    </el-dialog>
     <!-- Edit Name Dialog -->
     <el-dialog
       v-model="showEditNameDialog"
@@ -107,7 +141,9 @@
       </el-form>
       <template #footer>
         <el-button @click="showEditNameDialog = false">{{ I18nT('base.cancel') }}</el-button>
-        <el-button type="primary" :loading="editNameLoading" @click="confirmEditName">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" :loading="editNameLoading" @click="confirmEditName">{{
+          I18nT('base.confirm')
+        }}</el-button>
       </template>
     </el-dialog>
 
@@ -128,7 +164,9 @@
       </el-form>
       <template #footer>
         <el-button @click="showChangeRoleDialog = false">{{ I18nT('base.cancel') }}</el-button>
-        <el-button type="primary" :loading="changeRoleLoading" @click="confirmChangeRole">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" :loading="changeRoleLoading" @click="confirmChangeRole">{{
+          I18nT('base.confirm')
+        }}</el-button>
       </template>
     </el-dialog>
 
@@ -146,7 +184,9 @@
       </el-form>
       <template #footer>
         <el-button @click="showResetPasswordDialog = false">{{ I18nT('base.cancel') }}</el-button>
-        <el-button type="primary" :loading="resetPasswordLoading" @click="confirmResetPassword">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" :loading="resetPasswordLoading" @click="confirmResetPassword">{{
+          I18nT('base.confirm')
+        }}</el-button>
       </template>
     </el-dialog>
 
@@ -222,18 +262,11 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, onMounted } from 'vue'
   import { I18nT } from '@lang/index'
-  import { BrewStore } from '@/store/brew'
   import IPC from '@/util/IPC'
   import { dialog } from '@/util/NodeFn'
   import { ElMessage } from 'element-plus'
-
-  const brewStore = BrewStore()
-
-  const isRunning = computed(() => {
-    return !!brewStore.module('n8n').installed.find((v) => v.run)
-  })
 
   // ── Data directory ───────────────────────────────────────────────────────
   const dataDir = ref('')
@@ -337,7 +370,9 @@
     IPC.send('app-fork:n8n', 'userSetDisabled', row.id, disabled).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        ElMessage.success(disabled ? I18nT('n8n.usersDisableSuccess') : I18nT('n8n.usersEnableSuccess'))
+        ElMessage.success(
+          disabled ? I18nT('n8n.usersDisableSuccess') : I18nT('n8n.usersEnableSuccess')
+        )
         loadUsers()
       } else {
         ElMessage.error(res?.msg ?? I18nT('n8n.usersToggleStatusFailed'))
@@ -360,7 +395,13 @@
   const confirmEditName = () => {
     if (!editNameRow.value) return
     editNameLoading.value = true
-    IPC.send('app-fork:n8n', 'userSetName', editNameRow.value.id, editNameForm.value.firstName, editNameForm.value.lastName).then((key: string, res: any) => {
+    IPC.send(
+      'app-fork:n8n',
+      'userSetName',
+      editNameRow.value.id,
+      editNameForm.value.firstName,
+      editNameForm.value.lastName
+    ).then((key: string, res: any) => {
       IPC.off(key)
       editNameLoading.value = false
       if (res?.code === 0) {
@@ -388,17 +429,19 @@
   const confirmChangeRole = () => {
     if (!changeRoleRow.value) return
     changeRoleLoading.value = true
-    IPC.send('app-fork:n8n', 'userSetRole', changeRoleRow.value.id, changeRoleForm.value.role).then((key: string, res: any) => {
-      IPC.off(key)
-      changeRoleLoading.value = false
-      if (res?.code === 0) {
-        showChangeRoleDialog.value = false
-        ElMessage.success(I18nT('n8n.usersChangeRoleSuccess'))
-        loadUsers()
-      } else {
-        ElMessage.error(res?.msg ?? I18nT('n8n.usersChangeRoleFailed'))
+    IPC.send('app-fork:n8n', 'userSetRole', changeRoleRow.value.id, changeRoleForm.value.role).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        changeRoleLoading.value = false
+        if (res?.code === 0) {
+          showChangeRoleDialog.value = false
+          ElMessage.success(I18nT('n8n.usersChangeRoleSuccess'))
+          loadUsers()
+        } else {
+          ElMessage.error(res?.msg ?? I18nT('n8n.usersChangeRoleFailed'))
+        }
       }
-    })
+    )
   }
 
   // ── Reset password ───────────────────────────────────────────────────────
@@ -420,7 +463,12 @@
       return
     }
     resetPasswordLoading.value = true
-    IPC.send('app-fork:n8n', 'userResetPassword', resetPasswordRow.value.id, resetPasswordForm.value.password).then((key: string, res: any) => {
+    IPC.send(
+      'app-fork:n8n',
+      'userResetPassword',
+      resetPasswordRow.value.id,
+      resetPasswordForm.value.password
+    ).then((key: string, res: any) => {
       IPC.off(key)
       resetPasswordLoading.value = false
       if (res?.code === 0) {
@@ -461,7 +509,13 @@
   // ── Add user ─────────────────────────────────────────────────────────────
   const showAddDialog = ref(false)
   const creating = ref(false)
-  const newUser = ref({ email: '', firstName: '', lastName: '', role: 'global:member', password: '' })
+  const newUser = ref({
+    email: '',
+    firstName: '',
+    lastName: '',
+    role: 'global:member',
+    password: ''
+  })
   const showInviteUrlDialog = ref(false)
   const inviteUrl = ref('')
 
@@ -528,20 +582,18 @@
       return
     }
     changingPassword.value = true
-    IPC.send(
-      'app-fork:n8n',
-      'userChangeOwnerPassword',
-      passwordChange.value.newPass
-    ).then((key: string, res: any) => {
-      IPC.off(key)
-      changingPassword.value = false
-      if (res?.code === 0) {
-        showChangePasswordDialog.value = false
-        ElMessage.success(I18nT('n8n.usersChangePasswordSuccess'))
-      } else {
-        ElMessage.error(res?.msg ?? I18nT('n8n.usersChangePasswordFailed'))
+    IPC.send('app-fork:n8n', 'userChangeOwnerPassword', passwordChange.value.newPass).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        changingPassword.value = false
+        if (res?.code === 0) {
+          showChangePasswordDialog.value = false
+          ElMessage.success(I18nT('n8n.usersChangePasswordSuccess'))
+        } else {
+          ElMessage.error(res?.msg ?? I18nT('n8n.usersChangePasswordFailed'))
+        }
       }
-    })
+    )
   }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
