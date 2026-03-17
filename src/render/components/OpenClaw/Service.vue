@@ -69,7 +69,7 @@
         </div>
       </template>
       <template v-else-if="OpenClawSetup.installed && OpenClawSetup.gatewayInstalled">
-        <div class="p-5">
+        <div class="p-5 openclaw-service-content">
           <el-form label-position="top" @submit.prevent>
             <el-form-item :label="'OpenClaw ' + I18nT('base.version')">
               <span>{{ OpenClawSetup.version }}</span>
@@ -112,15 +112,32 @@
               </template>
             </el-form-item>
             <el-form-item :label="I18nT('host.action')">
-              <div class="w-full flex flex-wrap gap-5">
-                <template v-for="(item, _index) in OpenClawSetup.actions" :key="_index">
-                  <el-button
-                    style="margin-left: 0"
-                    class="flex-shrink-0"
-                    @click.stop="doAction(item)"
-                    >{{ item }}</el-button
+              <div class="w-full command-categories">
+                <el-collapse v-model="activeCategories">
+                  <el-collapse-item
+                    v-for="(category, cIndex) in OpenClawSetup.commandData.categories"
+                    :key="cIndex"
+                    :title="category.name + ' (' + category.nameEn + ')'"
+                    :name="category.nameEn"
                   >
-                </template>
+                    <div class="command-buttons">
+                      <el-tooltip
+                        v-for="(item, index) in category.commands"
+                        :key="index"
+                        :content="item.description"
+                        placement="top"
+                        :show-after="500"
+                      >
+                        <el-button
+                          class="command-btn"
+                          @click.stop="doAction(item.label)"
+                        >
+                          {{ item.label }}
+                        </el-button>
+                      </el-tooltip>
+                    </div>
+                  </el-collapse-item>
+                </el-collapse>
               </div>
             </el-form-item>
           </el-form>
@@ -151,6 +168,7 @@
   import XTerm from '@/util/XTerm'
 
   const xtermDom = ref()
+  const activeCategories = ref(['Basic Info', 'Gateway Service'])
 
   const installOpenClaw = () => {
     OpenClawSetup.installOpenClaw(xtermDom)
@@ -183,6 +201,39 @@
   .service-table {
     :deep(.el-table__expanded-cell) {
       padding-top: 0 !important;
+    }
+  }
+
+  .openclaw-service-content {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .command-categories {
+    :deep(.el-collapse) {
+      border: none;
+    }
+
+    :deep(.el-collapse-item__header) {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    :deep(.el-collapse-item__content) {
+      padding-bottom: 10px;
+    }
+  }
+
+  .command-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .command-btn {
+      margin-left: 0;
+      flex-shrink: 0;
+      font-size: 12px;
+      padding: 6px 12px;
     }
   }
 </style>

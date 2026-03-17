@@ -101,7 +101,7 @@ export function allInstalledVersions(this: any) {
         const fixed = versionFixed(versionStr)
         let rawBin = realpathSync(bin)
         if (isWindows() && basename(rawBin) === 'n8n') {
-          rawBin += '.ps1'
+          rawBin += '.cmd'
         }
         list.push({
           typeFlag: 'n8n',
