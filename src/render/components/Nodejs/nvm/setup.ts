@@ -95,6 +95,9 @@ export const Setup = () => {
     item.installing = true
     IPC.send('app-fork:node', 'installOrUninstall', 'nvm', action, item.version).then(
       (key: string, res: any) => {
+        if (res?.code === 200) {
+          return
+        }
         IPC.off(key)
         if (res?.code === 0) {
           NVMSetup.current = res?.data?.current ?? ''
