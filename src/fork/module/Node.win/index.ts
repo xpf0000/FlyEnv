@@ -43,7 +43,7 @@ class Manager extends Base {
       try {
         const envVar = tool === 'fnm' ? 'FNM_HOME' : 'NVM_HOME'
         const command = `powershell.exe -command "$env:${envVar}"`
-        const res = await execPromise(command)
+        const res = await execPromiseWithEnv(command)
         dir = res?.stdout?.trim() ?? ''
       } catch {}
 
@@ -51,7 +51,7 @@ class Manager extends Base {
         try {
           const envVar = tool === 'fnm' ? 'FNM_DIR' : 'NVM_DIR'
           const command = `powershell.exe -command "$env:${envVar}"`
-          const res = await execPromise(command)
+          const res = await execPromiseWithEnv(command)
           dir = res?.stdout?.trim() ?? ''
         } catch {}
       }
@@ -60,7 +60,7 @@ class Manager extends Base {
         const exePath = join(dir, `${tool}.exe`)
         if (existsSync(exePath)) {
           try {
-            const res = await execPromise(`${exePath} --version`, { cwd: dir })
+            const res = await execPromiseWithEnv(`${exePath} --version`, { cwd: dir })
             version = res?.stdout?.trim() ?? ''
             installed = version.length > 0 && /^v?[\d.]+/.test(version)
           } catch (e) {
@@ -82,7 +82,7 @@ class Manager extends Base {
       let NVM_HOME = ''
       try {
         const command = `set NVM_HOME`
-        const res = await execPromise(command)
+        const res = await execPromiseWithEnv(command)
         NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
       } catch {}
       if (NVM_HOME && existsSync(NVM_HOME) && existsSync(join(NVM_HOME, 'nvm.exe'))) {
@@ -93,7 +93,7 @@ class Manager extends Base {
 
       try {
         const command = `powershell.exe -command "$env:NVM_HOME"`
-        const res = await execPromise(command)
+        const res = await execPromiseWithEnv(command)
         NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
       } catch {}
       if (NVM_HOME && existsSync(NVM_HOME) && existsSync(join(NVM_HOME, 'nvm.exe'))) {
@@ -110,7 +110,7 @@ class Manager extends Base {
       let FNM_HOME = ''
       try {
         const command = `set FNM_HOME`
-        const res = await execPromise(command)
+        const res = await execPromiseWithEnv(command)
         FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
       } catch {}
       if (FNM_HOME && existsSync(FNM_HOME) && existsSync(join(FNM_HOME, 'fnm.exe'))) {
@@ -121,7 +121,7 @@ class Manager extends Base {
 
       try {
         const command = `powershell.exe -command "$env:FNM_HOME"`
-        const res = await execPromise(command)
+        const res = await execPromiseWithEnv(command)
         FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
       } catch {}
       if (FNM_HOME && existsSync(FNM_HOME) && existsSync(join(FNM_HOME, 'fnm.exe'))) {
@@ -133,6 +133,7 @@ class Manager extends Base {
       resolve(FNM_HOME)
     })
   }
+
   allVersion(tool: 'fnm' | 'nvm') {
     return new ForkPromise(async (resolve) => {
       const url = 'https://nodejs.org/dist/'
@@ -296,49 +297,6 @@ class Manager extends Base {
         current: current,
         tool
       })
-    })
-  }
-
-  /**
-   * Get version change command for XTerm execution
-   */
-  getVersionChangeCommand(tool: 'fnm' | 'nvm', version: string) {
-    if (tool === 'fnm') {
-      return `fnm.exe default ${version}`
-    } else {
-      return `nvm.exe use ${version}`
-    }
-  }
-
-  versionChange(tool: 'fnm' | 'nvm', select: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      let dir = ''
-      if (tool === 'fnm') {
-        dir = await this._initFNM()
-      } else {
-        dir = await this._initNVM()
-      }
-      if (!dir) {
-        reject(new Error(`${tool} not found`))
-        return
-      }
-      const command = this.getVersionChangeCommand(tool, select)
-      const env = await this._buildEnv(tool, dir)
-      process.chdir(dir)
-      try {
-        await execPromise(command, {
-          cwd: dir,
-          env
-        })
-        const { current }: any = await this.localVersion(tool)
-        if (current !== select) {
-          return reject(new Error('Fail'))
-        }
-      } catch (e) {
-        console.log('versionChange error: ', e)
-        return reject(e)
-      }
-      resolve(true)
     })
   }
 

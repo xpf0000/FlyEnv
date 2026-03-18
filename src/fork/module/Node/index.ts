@@ -1,18 +1,12 @@
 import { Base } from '../Base'
 import {
   execPromise,
-  readFileByRoot,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
   versionSort,
-  writeFileByRoot,
-  chmod,
-  copyFile,
-  unlink,
   readdir,
-  writeFile,
   realpath,
   remove,
   mkdirp,
@@ -44,10 +38,13 @@ class Manager extends Base {
       let installed = false
       let version = ''
       try {
-        const command = tool === 'fnm' ? 'fnm --version' : 'nvm --version'
+        const command =
+          tool === 'fnm'
+            ? 'fnm --version'
+            : 'unset PREFIX && source "$NVM_DIR/nvm.sh" && nvm --version'
         const res = await execPromiseWithEnv(command)
         version = res?.stdout?.trim() ?? ''
-        installed = version.length > 0 && /^v?[\d.]+/.test(version)
+        installed = version.length > 0 && /[\d.]+/.test(version)
       } catch (e) {
         console.log(`${tool} --version error: `, e)
         installed = false
@@ -129,7 +126,7 @@ class Manager extends Base {
         command = 'unset PREFIX;[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls'
       }
       try {
-        const res = await execPromise(command)
+        const res = await execPromiseWithEnv(command)
         const stdout = res?.stdout ?? ''
         let localVersions: Array<string> = []
         let current = ''
@@ -160,98 +157,6 @@ class Manager extends Base {
           current: current,
           tool
         })
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-
-  private resetEnv(tool: 'fnm' | 'nvm') {
-    return new Promise(async (resolve) => {
-      const file = join(global.Server.UserHome!, isMacOS() ? '.zshrc' : '.bashrc')
-      if (!existsSync(file)) {
-        try {
-          await writeFile(file, '')
-        } catch {}
-      }
-      if (!existsSync(file)) {
-        resolve(true)
-        return
-      }
-      let content = ''
-      try {
-        content = await readFileByRoot(file)
-      } catch {
-        resolve(true)
-        return
-      }
-      let NVM_DIR = ''
-      const lines = content.split('\n')
-      const newLines: string[] = []
-      lines.forEach((s) => {
-        if (tool === 'fnm') {
-          const jump = s.includes('eval') && s.includes('fnm env')
-          if (!jump) {
-            newLines.push(s)
-          }
-        } else {
-          if (s.trim().startsWith('export NVM_DIR=')) {
-            NVM_DIR = s
-          }
-          const jump =
-            s.includes('export NVM_DIR=') ||
-            s.includes('"$NVM_DIR/nvm.sh"') ||
-            s.includes('"$NVM_DIR/bash_completion"')
-          if (!jump) {
-            newLines.push(s)
-          }
-        }
-      })
-      if (tool === 'fnm') {
-        newLines.push(`eval "$(fnm env --use-on-cd --shell zsh)"`)
-      } else {
-        if (NVM_DIR) {
-          newLines.push(NVM_DIR)
-        }
-        newLines.push(`[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"  # This loads nvm`)
-        newLines.push(
-          `[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion`
-        )
-      }
-      content = newLines.join('\n')
-      try {
-        await writeFileByRoot(file, content)
-      } catch {
-        resolve(true)
-        return
-      }
-      resolve(true)
-    })
-  }
-
-  /**
-   * Get version change command for XTerm execution
-   */
-  getVersionChangeCommand(tool: 'fnm' | 'nvm', version: string) {
-    if (tool === 'fnm') {
-      return `unset PREFIX;fnm default ${version}`
-    } else {
-      return `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm alias default ${version}`
-    }
-  }
-
-  versionChange(tool: 'fnm' | 'nvm', select: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      const command = this.getVersionChangeCommand(tool, select)
-      try {
-        await execPromise(command)
-        const { current }: any = await this.localVersion(tool)
-        if (current === select) {
-          await this.resetEnv(tool)
-          resolve(true)
-        } else {
-          reject(new Error('Fail'))
-        }
       } catch (e) {
         reject(e)
       }
@@ -406,26 +311,6 @@ class Manager extends Base {
     })
   }
 
-  nvmDir() {
-    return new ForkPromise(async (resolve, reject) => {
-      try {
-        const sh = join(global.Server.Static!, 'sh/node.sh')
-        const copyfile = join(global.Server.Cache!, 'node.sh')
-        if (existsSync(copyfile)) {
-          await unlink(copyfile)
-        }
-        await copyFile(sh, copyfile)
-        await chmod(copyfile, '0777')
-        const { stdout } = await execPromise(`source node.sh check`, {
-          cwd: global.Server.Cache
-        })
-        resolve(stdout.trim())
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-
   allInstalled(): ForkPromise<
     Array<{
       version: string
@@ -436,8 +321,20 @@ class Manager extends Base {
       const all: any[] = []
       let fnmDir = ''
       try {
-        fnmDir = (await execPromise(`echo $FNM_DIR`)).stdout.trim()
+        fnmDir = (await execPromiseWithEnv(`echo $FNM_DIR`)).stdout.trim()
       } catch {}
+      if (!fnmDir) {
+        try {
+          const res = await execPromiseWithEnv('fnm env')
+          fnmDir =
+            res?.stdout
+              ?.trim()
+              ?.split('\n')
+              ?.find((l) => l.includes('export FNM_DIR='))
+              ?.replace('export FNM_DIR=', '')
+              ?.replace(/"/g, '') ?? ''
+        } catch {}
+      }
       if (fnmDir && existsSync(fnmDir)) {
         fnmDir = join(fnmDir, 'node-versions')
         if (existsSync(fnmDir)) {
@@ -463,7 +360,7 @@ class Manager extends Base {
 
       let nvmDir = ''
       try {
-        nvmDir = (await execPromise(`echo $NVM_DIR`)).stdout.trim()
+        nvmDir = (await execPromiseWithEnv(`echo $NVM_DIR`)).stdout.trim()
       } catch {}
       if (nvmDir && existsSync(nvmDir)) {
         nvmDir = join(nvmDir, 'versions/node')

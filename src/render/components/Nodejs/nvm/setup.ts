@@ -1,13 +1,10 @@
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, markRaw, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
-import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
 import { AppStore } from '@/store/app'
 import { dirname, join } from '@/util/path-browserify'
 import { fs } from '@/util/NodeFn'
-import { markRaw } from 'vue'
 
 export const NVMSetup = reactive<{
   installed: boolean
@@ -93,22 +90,20 @@ export const Setup = () => {
     })
   }
 
-  const reFetch = () => {
+  NVMSetup.reFetch = () => {
     NVMSetup.fetching = false
     NVMSetup.local.splice(0)
     NVMSetup.current = ''
     checkInstalled().then(() => {
-      fetchLocal()
+      fetchLocal().catch()
     })
     store.chekTool()?.then()?.catch()
   }
 
-  NVMSetup.reFetch = reFetch
-
   /**
    * Switch version using XTerm
    */
-  const versionChangeXTerm = async (item: any, domRef: HTMLElement) => {
+  const versionChangeXTerm = async (item: any) => {
     if (NVMSetup.switching) {
       return
     }
@@ -120,7 +115,7 @@ export const Setup = () => {
 
     const execXTerm = new XTerm()
     NVMSetup.xterm = markRaw(execXTerm)
-    await execXTerm.mount(domRef)
+    await execXTerm.mount(xtermDom.value!)
 
     const commands: string[] = []
 
@@ -135,27 +130,18 @@ export const Setup = () => {
 
     await execXTerm.send(commands, false)
 
-    // After command execution, refresh local versions
-    NVMSetup.installing = false
     NVMSetup.switching = false
     item.switching = false
-    NVMSetup.xterm?.destroy()
-    delete NVMSetup.xterm
-
-    // Refresh local versions
-    fetchLocal().then(() => {
-      if (NVMSetup.current === item.version) {
-        MessageSuccess(I18nT('base.success'))
-      } else {
-        MessageError(I18nT('base.fail'))
-      }
-    })
+    NVMSetup.installEnd = true
   }
 
   /**
    * Install or uninstall version using XTerm
    */
-  const installOrUninstallXTerm = async (action: 'install' | 'uninstall', item: any, domRef: HTMLElement) => {
+  const installOrUninstallXTerm = async (action: 'install' | 'uninstall', item: any) => {
+    if (NVMSetup.installing) {
+      return
+    }
     item.installing = true
     NVMSetup.installEnd = false
     NVMSetup.installing = true
@@ -163,7 +149,7 @@ export const Setup = () => {
 
     const execXTerm = new XTerm()
     NVMSetup.xterm = markRaw(execXTerm)
-    await execXTerm.mount(domRef)
+    await execXTerm.mount(xtermDom.value!)
 
     const commands: string[] = []
 
@@ -177,17 +163,8 @@ export const Setup = () => {
     }
 
     await execXTerm.send(commands, false)
-
-    // After command execution, refresh local versions
-    NVMSetup.installing = false
     item.installing = false
-    NVMSetup.xterm?.destroy()
-    delete NVMSetup.xterm
-
-    // Refresh local versions
-    fetchLocal().then(() => {
-      MessageSuccess(I18nT('base.success'))
-    })
+    NVMSetup.installEnd = true
   }
 
   const tableData = computed(() => {
@@ -220,10 +197,11 @@ export const Setup = () => {
   })
 
   const showInstall = computed(() => {
-    if (window.Server.isWindows) {
-      return false
-    }
     return !store.checking && (!store.tool || store.tool === 'fnm')
+  })
+
+  const showTable = computed(() => {
+    return !store.checking && ['nvm', 'all'].includes(store.tool)
   })
 
   const proxy = computed(() => {
@@ -243,6 +221,28 @@ export const Setup = () => {
     NVMSetup.installEnd = false
     NVMSetup.installing = true
     await nextTick()
+
+    const execXTerm = new XTerm()
+    NVMSetup.xterm = markRaw(execXTerm)
+    await execXTerm.mount(xtermDom.value!)
+
+    if (window.Server.isWindows) {
+      // Windows installation using winget
+      const commands: string[] = []
+      if (proxyStr?.value) {
+        commands.push(proxyStr.value)
+      }
+      commands.push(
+        'winget install CoreyButler.NVMforWindows --accept-source-agreements --accept-package-agreements'
+      )
+      await execXTerm.send(commands)
+      NVMSetup.installEnd = true
+      checkInstalled().then(() => {
+        store.chekTool()?.then()?.catch()
+      })
+      return
+    }
+
     const arch = window.Server.isArmArch ? '-arm64' : '-x86_64'
     const params = []
     if (proxyStr?.value) {
@@ -250,7 +250,7 @@ export const Setup = () => {
     }
 
     if (NVMSetup.installLib === 'shell') {
-      params.push(`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash`)
+      params.push(`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash`)
       params.push(`command brew --prefix && chmod -R go-w "$(brew --prefix)/share"`)
     } else if (NVMSetup.installLib === 'brew') {
       params.push(`arch ${arch} brew install --verbose nvm`)
@@ -275,9 +275,6 @@ ${params.join('\n')}`
     await fs.writeFile(file, content)
     await fs.chmod(file, '0777')
     await nextTick()
-    const execXTerm = new XTerm()
-    NVMSetup.xterm = markRaw(execXTerm)
-    await execXTerm.mount(xtermDom.value!)
     await execXTerm.send([`cd "${dirname(file)}"`, `./nvm-install.sh`])
     NVMSetup.installEnd = true
     await fs.remove(file)
@@ -292,7 +289,7 @@ ${params.join('\n')}`
     NVMSetup.xterm?.destroy()
     delete NVMSetup.xterm
     checkInstalled().then(() => {
-      fetchLocal()
+      fetchLocal().catch()
     })
   }
 
@@ -314,14 +311,14 @@ ${params.join('\n')}`
         }
       })
     }
-    checkInstalled()
+    checkInstalled().catch()
   })
 
   onUnmounted(() => {
     NVMSetup?.xterm?.unmounted()
   })
 
-  fetchLocal()
+  fetchLocal().catch()
 
   return {
     fetchLocal,
@@ -335,6 +332,7 @@ ${params.join('\n')}`
     tableData,
     taskConfirm,
     taskCancel,
-    checkInstalled
+    checkInstalled,
+    showTable
   }
 }

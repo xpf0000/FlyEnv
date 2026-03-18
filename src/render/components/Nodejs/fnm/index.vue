@@ -25,7 +25,7 @@
       </el-form>
     </div>
   </template>
-  <template v-else>
+  <template v-else-if="showTable">
     <el-auto-resizer>
       <template #default="{ height, width }">
         <el-table-v2
@@ -52,35 +52,37 @@
   import { ref, nextTick, onMounted, onUnmounted } from 'vue'
   import XTerm from '@/util/XTerm'
 
-  const xtermDom = ref<HTMLElement>()
   const currentRow = ref<any>(null)
   const currentAction = ref<'versionChange' | 'install' | 'uninstall' | ''>('')
 
-  const { showInstall, hasBrew, hasPort, installFNM, tableData, taskConfirm, taskCancel } = Setup()
+  const {
+    showInstall,
+    hasBrew,
+    hasPort,
+    installFNM,
+    tableData,
+    xtermDom,
+    showTable,
+    installOrUninstall,
+    versionChange
+  } = Setup()
 
   const copyCommand = (command: string) => {
     clipboard.writeText(command)
     MessageSuccess(I18nT('base.copySuccess'))
   }
 
-  // Create a virtual XTerm container for version operations
-  const operationXtermDom = ref<HTMLElement | null>(null)
-
   const handleVersionChange = (row: any) => {
-    if (!xtermDom.value) return
     currentRow.value = row
     currentAction.value = 'versionChange'
     // Re-fetch setup with current row context
-    const { versionChange } = Setup()
-    versionChange(row, xtermDom.value)
+    versionChange(row)
   }
 
   const handleInstallOrUninstall = (action: 'install' | 'uninstall', row: any) => {
-    if (!xtermDom.value) return
     currentRow.value = row
     currentAction.value = action
-    const { installOrUninstall } = Setup()
-    installOrUninstall(action, row, xtermDom.value)
+    installOrUninstall(action, row)
   }
 
   onMounted(() => {
