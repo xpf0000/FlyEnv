@@ -20,6 +20,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join } from 'path'
 import { compareVersions } from '@shared/compare-versions'
 import { createWriteStream, existsSync } from 'fs'
+import { spawn } from 'child_process'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../../TaskQueue'
@@ -122,7 +123,10 @@ class Manager extends Base {
     } catch {
       return
     }
-    const env: any = {}
+    // Spread process.env so system vars like PROCESSOR_ARCHITECTURE, TEMP, TMP,
+    // SystemRoot, ComSpec etc. are preserved. Without them nvm/fnm detect the
+    // wrong architecture (32-bit) and use garbled temp paths.
+    const env: any = { ...process.env }
     if (tool === 'fnm') {
       env.FNM_HOME = dir
       env.FNM_SYMLINK = join(dir, 'nodejs-link')
@@ -410,32 +414,45 @@ class Manager extends Base {
         return
       }
 
-      let command = ''
-      if (tool === 'fnm') {
-        command = `fnm.exe ${action} ${version}`
-      } else {
-        command = `nvm.exe ${action} ${version}`
-      }
+      const bin = tool === 'fnm' ? 'fnm.exe' : 'nvm.exe'
+      const args = [action, version]
       const env = await this._buildEnv(tool, dir)
       process.chdir(dir)
       try {
-        await execPromise(command, {
-          cwd: dir,
-          env
+        await new Promise<void>((res, rej) => {
+          const cp = spawn(bin, args, { cwd: dir, env })
+          const output: string[] = []
+          cp.stdout?.on('data', (data: Buffer) => {
+            const line = data.toString()
+            output.push(line)
+            on(line)
+          })
+          cp.stderr?.on('data', (data: Buffer) => {
+            const line = data.toString()
+            output.push(line)
+            on(line)
+          })
+          cp.on('error', rej)
+          cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
+            if (code === 0) {
+              res()
+            } else {
+              const trimmedOutput = output.join('').trim()
+              const message =
+                trimmedOutput ||
+                (signal
+                  ? `${bin} terminated due to signal ${signal}`
+                  : code !== null
+                  ? `${bin} exited with code ${code}`
+                  : `${bin} exited for unknown reasons`)
+              rej(new Error(message))
+            }
+          })
         })
+        // nvm/fnm exited 0 — trust the exit code and return the refreshed list
         const { versions, current }: { versions: Array<string>; current: string } =
           (await this.localVersion(tool)) as any
-        if (
-          (action === 'install' && versions.includes(version)) ||
-          (action === 'uninstall' && !versions.includes(version))
-        ) {
-          resolve({
-            versions,
-            current
-          })
-        } else {
-          reject(new Error('Fail'))
-        }
+        resolve({ versions, current })
       } catch (e) {
         reject(e)
       }
