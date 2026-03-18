@@ -43,17 +43,21 @@ export const Setup = () => {
 
   const taskConfirm = () => {
     if (currentTool.value === 'fnm') {
+      // Call FNMSetup's taskConfirm through reFetch which handles cleanup
       FNMSetup.installing = false
       FNMSetup.installEnd = false
       FNMSetup.xterm?.destroy()
       delete FNMSetup.xterm
+      FNMSetup.reFetch()
       return
     }
     if (currentTool.value === 'nvm') {
+      // Call NVMSetup's taskConfirm through reFetch which handles cleanup
       NVMSetup.installing = false
       NVMSetup.installEnd = false
       NVMSetup.xterm?.destroy()
       delete NVMSetup.xterm
+      NVMSetup.reFetch()
       return
     }
   }

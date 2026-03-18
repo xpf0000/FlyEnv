@@ -48,22 +48,50 @@
   import { type Column, ElButton, ElInput, ElTooltip } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
   import { clipboard } from '@/util/NodeFn'
+  import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+  import XTerm from '@/util/XTerm'
 
-  const {
-    showInstall,
-    xtermDom,
-    hasBrew,
-    hasPort,
-    installNVM,
-    versionChange,
-    installOrUninstall,
-    tableData
-  } = Setup()
+  const xtermDom = ref<HTMLElement>()
+  const currentRow = ref<any>(null)
+  const currentAction = ref<'versionChange' | 'install' | 'uninstall' | ''>('')
+
+  const { showInstall, hasBrew, hasPort, installNVM, tableData, taskConfirm, taskCancel } = Setup()
 
   const copyCommand = (command: string) => {
     clipboard.writeText(command)
     MessageSuccess(I18nT('base.copySuccess'))
   }
+
+  const handleVersionChange = (row: any) => {
+    if (!xtermDom.value) return
+    currentRow.value = row
+    currentAction.value = 'versionChange'
+    const { versionChange } = Setup()
+    versionChange(row, xtermDom.value)
+  }
+
+  const handleInstallOrUninstall = (action: 'install' | 'uninstall', row: any) => {
+    if (!xtermDom.value) return
+    currentRow.value = row
+    currentAction.value = action
+    const { installOrUninstall } = Setup()
+    installOrUninstall(action, row, xtermDom.value)
+  }
+
+  onMounted(() => {
+    if (NVMSetup.installing && NVMSetup.xterm && xtermDom.value) {
+      nextTick().then(() => {
+        const execXTerm: XTerm = NVMSetup.xterm as any
+        if (execXTerm && xtermDom.value) {
+          execXTerm.mount(xtermDom.value).then().catch()
+        }
+      })
+    }
+  })
+
+  onUnmounted(() => {
+    NVMSetup?.xterm?.unmounted()
+  })
 
   const columns: Column<any>[] = [
     {
@@ -137,7 +165,7 @@
                 link
                 class="current-set row-hover-show"
                 onClick={() => {
-                  versionChange(row)
+                  handleVersionChange(row)
                 }}
               >
                 <YbIcon
@@ -195,7 +223,7 @@
             <ElButton
               type="primary"
               onClick={() => {
-                installOrUninstall(a, row)
+                handleInstallOrUninstall(a as 'install' | 'uninstall', row)
               }}
               link
             >

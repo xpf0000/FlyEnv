@@ -2774,6 +2774,23 @@ body {
     }
   }
 }
+.el-form-item {
+  &.el-form-item-flex-1 {
+
+    .el-form-item__label {
+      flex-shrink: 0;
+    }
+    .el-form-item__content {
+      flex: 1;
+      overflow: hidden;
+    }
+  }
+}
+.el-table {
+  .el-table__inner-wrapper::before {
+    display: none;
+  }
+}
 .el-button.status {
   svg {
     width: 22px;

@@ -17,7 +17,8 @@ import {
   remove,
   mkdirp,
   fetchPathByBin,
-  moveChildDirToParent
+  moveChildDirToParent,
+  execPromiseWithEnv
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { basename, dirname, join } from 'path'
@@ -33,6 +34,30 @@ import { unpack as unpackZip } from '../../util/Zip'
 class Manager extends Base {
   constructor() {
     super()
+  }
+
+  /**
+   * Check if fnm or nvm is installed
+   */
+  checkInstalled(tool: 'fnm' | 'nvm') {
+    return new ForkPromise(async (resolve) => {
+      let installed = false
+      let version = ''
+      try {
+        const command = tool === 'fnm' ? 'fnm --version' : 'nvm --version'
+        const res = await execPromiseWithEnv(command)
+        version = res?.stdout?.trim() ?? ''
+        installed = version.length > 0 && /^v?[\d.]+/.test(version)
+      } catch (e) {
+        console.log(`${tool} --version error: `, e)
+        installed = false
+        version = ''
+      }
+      resolve({
+        installed,
+        version
+      })
+    })
   }
 
   allVersion() {
@@ -204,14 +229,20 @@ class Manager extends Base {
     })
   }
 
+  /**
+   * Get version change command for XTerm execution
+   */
+  getVersionChangeCommand(tool: 'fnm' | 'nvm', version: string) {
+    if (tool === 'fnm') {
+      return `unset PREFIX;fnm default ${version}`
+    } else {
+      return `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm alias default ${version}`
+    }
+  }
+
   versionChange(tool: 'fnm' | 'nvm', select: string) {
     return new ForkPromise(async (resolve, reject) => {
-      let command = ''
-      if (tool === 'fnm') {
-        command = `unset PREFIX;fnm default ${select}`
-      } else {
-        command = `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm alias default ${select}`
-      }
+      const command = this.getVersionChangeCommand(tool, select)
       try {
         await execPromise(command)
         const { current }: any = await this.localVersion(tool)
@@ -225,6 +256,17 @@ class Manager extends Base {
         reject(e)
       }
     })
+  }
+
+  /**
+   * Get install/uninstall command for XTerm execution
+   */
+  getInstallCommand(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', version: string) {
+    if (tool === 'fnm') {
+      return `unset PREFIX;fnm ${action} ${version}`
+    } else {
+      return `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ${action} ${version}`
+    }
   }
 
   installOrUninstall(
@@ -342,12 +384,7 @@ class Manager extends Base {
         }
         return
       }
-      let command = ''
-      if (tool === 'fnm') {
-        command = `unset PREFIX;fnm ${action} ${version}`
-      } else {
-        command = `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ${action} ${version}`
-      }
+      const command = this.getInstallCommand(tool, action, version)
       try {
         await execPromise(command)
         const { versions, current }: { versions: Array<string>; current: string } =

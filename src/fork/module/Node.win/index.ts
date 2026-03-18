@@ -31,6 +31,52 @@ class Manager extends Base {
     super()
   }
 
+  /**
+   * Check if fnm or nvm is installed on Windows
+   */
+  checkInstalled(tool: 'fnm' | 'nvm') {
+    return new ForkPromise(async (resolve) => {
+      let installed = false
+      let version = ''
+      let dir = ''
+
+      try {
+        const envVar = tool === 'fnm' ? 'FNM_HOME' : 'NVM_HOME'
+        const command = `powershell.exe -command "$env:${envVar}"`
+        const res = await execPromise(command)
+        dir = res?.stdout?.trim() ?? ''
+      } catch {}
+
+      if (!dir) {
+        try {
+          const envVar = tool === 'fnm' ? 'FNM_DIR' : 'NVM_DIR'
+          const command = `powershell.exe -command "$env:${envVar}"`
+          const res = await execPromise(command)
+          dir = res?.stdout?.trim() ?? ''
+        } catch {}
+      }
+
+      if (dir && existsSync(dir)) {
+        const exePath = join(dir, `${tool}.exe`)
+        if (existsSync(exePath)) {
+          try {
+            const res = await execPromise(`${exePath} --version`, { cwd: dir })
+            version = res?.stdout?.trim() ?? ''
+            installed = version.length > 0 && /^v?[\d.]+/.test(version)
+          } catch (e) {
+            console.log(`${tool} --version error: `, e)
+          }
+        }
+      }
+
+      resolve({
+        installed,
+        version,
+        dir
+      })
+    })
+  }
+
   _initNVM(): Promise<string> {
     return new Promise(async (resolve) => {
       let NVM_HOME = ''
@@ -253,6 +299,17 @@ class Manager extends Base {
     })
   }
 
+  /**
+   * Get version change command for XTerm execution
+   */
+  getVersionChangeCommand(tool: 'fnm' | 'nvm', version: string) {
+    if (tool === 'fnm') {
+      return `fnm.exe default ${version}`
+    } else {
+      return `nvm.exe use ${version}`
+    }
+  }
+
   versionChange(tool: 'fnm' | 'nvm', select: string) {
     return new ForkPromise(async (resolve, reject) => {
       let dir = ''
@@ -265,12 +322,7 @@ class Manager extends Base {
         reject(new Error(`${tool} not found`))
         return
       }
-      let command = ''
-      if (tool === 'fnm') {
-        command = `fnm.exe default ${select}`
-      } else {
-        command = `nvm.exe use ${select}`
-      }
+      const command = this.getVersionChangeCommand(tool, select)
       const env = await this._buildEnv(tool, dir)
       process.chdir(dir)
       try {
@@ -288,6 +340,13 @@ class Manager extends Base {
       }
       resolve(true)
     })
+  }
+
+  /**
+   * Get install/uninstall command for XTerm execution
+   */
+  getInstallCommand(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', version: string) {
+    return `${tool}.exe ${action} ${version}`
   }
 
   installOrUninstall(
@@ -443,8 +502,8 @@ class Manager extends Base {
                 (signal
                   ? `${bin} terminated due to signal ${signal}`
                   : code !== null
-                  ? `${bin} exited with code ${code}`
-                  : `${bin} exited for unknown reasons`)
+                    ? `${bin} exited with code ${code}`
+                    : `${bin} exited for unknown reasons`)
               rej(new Error(message))
             }
           })

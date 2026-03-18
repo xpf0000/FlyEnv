@@ -11,7 +11,8 @@ import {
   writeFile,
   remove,
   serviceStartExec,
-  serviceStartExecCMD
+  serviceStartExecCMD,
+  waitTime
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
@@ -42,7 +43,12 @@ import {
   userCreate,
   userChangeOwnerPassword
 } from './database'
-import { ProcessKill, fetchProcessPidByPort as fetchPidByPort } from '@shared/Process'
+import {
+  ProcessKill,
+  fetchProcessPidByPort as fetchPidByPort,
+  PItem,
+  ProcessListFetch
+} from '@shared/Process'
 import { allInstalledVersions, fetchAllOnlineVersion } from './version'
 
 class N8N extends Base {
@@ -195,9 +201,49 @@ class N8N extends Base {
               checkPidFile: false
             })
 
+      const checkPid = async (times = 0) => {
+        if (times > 10) {
+          throw new Error(I18nT('fork.startFail'))
+        }
+        /**
+         * Fetch Process List
+         */
+        let all: PItem[] = []
+        try {
+          if (isWindows()) {
+            all = await ProcessPidList()
+          } else {
+            all = await ProcessListFetch()
+          }
+        } catch {
+          await waitTime(2000)
+          return await checkPid(times + 1)
+        }
+        /**
+         * Check Is n8n start success
+         */
+        const find = all.find(
+          (a) => a?.COMMAND && a.COMMAND.includes('n8n') && a.COMMAND.includes('start')
+        )
+        if (find) {
+          return find.PID
+        }
+        await waitTime(2000)
+        return await checkPid(times + 1)
+      }
+
       try {
-        const res = await startService()
-        resolve(res)
+        await startService()
+      } catch (e) {
+        reject(e)
+        return
+      }
+
+      try {
+        const pid = await checkPid()
+        resolve({
+          'APP-Service-Start-PID': pid
+        })
         const ownerEmail = opt['N8N_OWNER_EMAIL']?.trim()
         const ownerPassword = opt['N8N_OWNER_PASSWORD']?.trim()
         const n8nPort = opt['N8N_PORT']?.trim() || '5678'

@@ -7,9 +7,11 @@ import { NodejsStore } from '@/components/Nodejs/node'
 import { AppStore } from '@/store/app'
 import { dirname, join } from '@/util/path-browserify'
 import { fs } from '@/util/NodeFn'
+import { markRaw } from 'vue'
 
 export const FNMSetup = reactive<{
   installed: boolean
+  version: string
   installEnd: boolean
   installing: boolean
   fetching: boolean
@@ -20,8 +22,10 @@ export const FNMSetup = reactive<{
   reFetch: () => void
   installLib: 'shell' | 'brew' | 'port'
   search: string
+  checkInstalled: () => Promise<boolean>
 }>({
   installed: false,
+  version: '',
   installEnd: false,
   installing: false,
   fetching: false,
@@ -31,7 +35,8 @@ export const FNMSetup = reactive<{
   xterm: undefined,
   reFetch: () => 0,
   installLib: 'shell',
-  search: ''
+  search: '',
+  checkInstalled: async () => false
 })
 
 export const Setup = () => {
@@ -43,20 +48,48 @@ export const Setup = () => {
   const hasBrew = !!window.Server.BrewCellar
   const hasPort = !!window.Server.MacPorts
 
+  /**
+   * Check if fnm is installed
+   */
+  const checkInstalled = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Server.isWindows) {
+        // For Windows, use localVersion to check
+        fetchLocal().then(() => {
+          resolve(FNMSetup.local.length > 0)
+        })
+        return
+      }
+      IPC.send('app-fork:node', 'checkInstalled', 'fnm').then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          FNMSetup.installed = res?.data?.installed ?? false
+          FNMSetup.version = res?.data?.version ?? ''
+        }
+        resolve(FNMSetup.installed)
+      })
+    })
+  }
+
+  FNMSetup.checkInstalled = checkInstalled
+
   const fetchLocal = () => {
     if (FNMSetup.local.length > 0 || FNMSetup.fetching) {
-      return
+      return Promise.resolve()
     }
     FNMSetup.fetching = true
-    IPC.send('app-fork:node', 'localVersion', 'fnm').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        FNMSetup.local.splice(0)
-        const list = res?.data?.versions ?? []
-        FNMSetup.local.push(...list)
-        FNMSetup.current = res?.data?.current ?? ''
-      }
-      FNMSetup.fetching = false
+    return new Promise<void>((resolve) => {
+      IPC.send('app-fork:node', 'localVersion', 'fnm').then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          FNMSetup.local.splice(0)
+          const list = res?.data?.versions ?? []
+          FNMSetup.local.push(...list)
+          FNMSetup.current = res?.data?.current ?? ''
+        }
+        FNMSetup.fetching = false
+        resolve()
+      })
     })
   }
 
@@ -64,50 +97,93 @@ export const Setup = () => {
     FNMSetup.fetching = false
     FNMSetup.local.splice(0)
     FNMSetup.current = ''
-    fetchLocal()
+    checkInstalled().then(() => {
+      fetchLocal()
+    })
     store.chekTool()?.then()?.catch()
   }
 
   FNMSetup.reFetch = reFetch
 
-  const versionChange = (item: any) => {
+  /**
+   * Switch version using XTerm
+   */
+  const versionChangeXTerm = async (item: any, domRef: HTMLElement) => {
     if (FNMSetup.switching) {
       return
     }
     FNMSetup.switching = true
     item.switching = true
-    IPC.send('app-fork:node', 'versionChange', 'fnm', item.version).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          FNMSetup.current = item.version
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        item.switching = false
-        FNMSetup.switching = false
+    FNMSetup.installEnd = false
+    FNMSetup.installing = true
+    await nextTick()
+
+    const execXTerm = new XTerm()
+    FNMSetup.xterm = markRaw(execXTerm)
+    await execXTerm.mount(domRef)
+
+    const commands: string[] = []
+
+    if (window.Server.isWindows) {
+      commands.push(`fnm.exe default ${item.version}`)
+    } else {
+      commands.push(`unset PREFIX`)
+      commands.push(`fnm default ${item.version}`)
+    }
+
+    await execXTerm.send(commands, false)
+
+    // After command execution, refresh local versions
+    FNMSetup.installing = false
+    FNMSetup.switching = false
+    item.switching = false
+    FNMSetup.xterm?.destroy()
+    delete FNMSetup.xterm
+
+    // Refresh local versions
+    fetchLocal().then(() => {
+      if (FNMSetup.current === item.version) {
+        MessageSuccess(I18nT('base.success'))
+      } else {
+        MessageError(I18nT('base.fail'))
       }
-    )
+    })
   }
 
-  const installOrUninstall = (action: 'install' | 'uninstall', item: any) => {
+  /**
+   * Install or uninstall version using XTerm
+   */
+  const installOrUninstallXTerm = async (action: 'install' | 'uninstall', item: any, domRef: HTMLElement) => {
     item.installing = true
-    IPC.send('app-fork:node', 'installOrUninstall', 'fnm', action, item.version).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          FNMSetup.current = res?.data?.current ?? ''
-          const list = res?.data?.versions ?? []
-          FNMSetup.local.splice(0)
-          FNMSetup.local.push(...list)
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(I18nT('base.fail'))
-        }
-        item.installing = false
-      }
-    )
+    FNMSetup.installEnd = false
+    FNMSetup.installing = true
+    await nextTick()
+
+    const execXTerm = new XTerm()
+    FNMSetup.xterm = markRaw(execXTerm)
+    await execXTerm.mount(domRef)
+
+    const commands: string[] = []
+
+    if (window.Server.isWindows) {
+      commands.push(`fnm.exe ${action} ${item.version}`)
+    } else {
+      commands.push(`unset PREFIX`)
+      commands.push(`fnm ${action} ${item.version}`)
+    }
+
+    await execXTerm.send(commands, false)
+
+    // After command execution, refresh local versions
+    FNMSetup.installing = false
+    item.installing = false
+    FNMSetup.xterm?.destroy()
+    delete FNMSetup.xterm
+
+    // Refresh local versions
+    fetchLocal().then(() => {
+      MessageSuccess(I18nT('base.success'))
+    })
   }
 
   const tableData = computed(() => {
@@ -195,12 +271,33 @@ ${params.join('\n')}`
     await fs.chmod(file, '0777')
     await nextTick()
     const execXTerm = new XTerm()
-    FNMSetup.xterm = execXTerm
+    FNMSetup.xterm = markRaw(execXTerm)
     await execXTerm.mount(xtermDom.value!)
     await execXTerm.send([`cd "${dirname(file)}"`, `./fnm-install.sh`])
     FNMSetup.installEnd = true
     await fs.remove(file)
-    store.chekTool()?.then()?.catch()
+    checkInstalled().then(() => {
+      store.chekTool()?.then()?.catch()
+    })
+  }
+
+  const taskConfirm = () => {
+    FNMSetup.installing = false
+    FNMSetup.installEnd = false
+    FNMSetup.xterm?.destroy()
+    delete FNMSetup.xterm
+    checkInstalled().then(() => {
+      fetchLocal()
+    })
+  }
+
+  const taskCancel = () => {
+    FNMSetup.installing = false
+    FNMSetup.installEnd = false
+    FNMSetup.xterm?.stop()?.then(() => {
+      FNMSetup.xterm?.destroy()
+      delete FNMSetup.xterm
+    })
   }
 
   onMounted(() => {
@@ -212,6 +309,7 @@ ${params.join('\n')}`
         }
       })
     }
+    checkInstalled()
   })
 
   onUnmounted(() => {
@@ -222,13 +320,16 @@ ${params.join('\n')}`
 
   return {
     fetchLocal,
-    versionChange,
-    installOrUninstall,
+    versionChange: versionChangeXTerm,
+    installOrUninstall: installOrUninstallXTerm,
     showInstall,
     xtermDom,
     hasBrew,
     hasPort,
     installFNM,
-    tableData
+    tableData,
+    taskConfirm,
+    taskCancel,
+    checkInstalled
   }
 }

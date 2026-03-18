@@ -69,12 +69,16 @@
         </div>
       </template>
       <template v-else-if="OpenClawSetup.installed && OpenClawSetup.gatewayInstalled">
-        <div class="p-5 openclaw-service-content">
-          <el-form label-position="top" @submit.prevent>
-            <el-form-item :label="'OpenClaw ' + I18nT('base.version')">
+        <div class="p-5 openclaw-service-content h-full overflow-hidden">
+          <el-form
+            class="h-full overflow-hidden flex flex-col"
+            label-position="top"
+            @submit.prevent
+          >
+            <el-form-item class="flex-shrink-0" :label="'OpenClaw ' + I18nT('base.version')">
               <span>{{ OpenClawSetup.version }}</span>
             </el-form-item>
-            <el-form-item :label="I18nT('openclaw.gatewayStatus')">
+            <el-form-item class="flex-shrink-0" :label="I18nT('openclaw.gatewayStatus')">
               <template v-if="OpenClawSetup.gatewayRunning">
                 <span class="text-[#01cc74]">{{ I18nT('openclaw.gatewayRunning') }}</span>
               </template>
@@ -82,7 +86,7 @@
                 <span>{{ I18nT('openclaw.gatewayStopped') }}</span>
               </template>
             </el-form-item>
-            <el-form-item>
+            <el-form-item class="flex-shrink-0">
               <template v-if="OpenClawSetup.loading">
                 <el-button link loading disabled></el-button>
               </template>
@@ -111,34 +115,36 @@
                 </el-button>
               </template>
             </el-form-item>
-            <el-form-item :label="I18nT('host.action')">
-              <div class="w-full command-categories">
-                <el-collapse v-model="activeCategories">
-                  <el-collapse-item
-                    v-for="(category, cIndex) in OpenClawSetup.commandData.categories"
-                    :key="cIndex"
-                    :title="category.name + ' (' + category.nameEn + ')'"
-                    :name="category.nameEn"
-                  >
-                    <div class="command-buttons">
-                      <el-tooltip
-                        v-for="(item, index) in category.commands"
-                        :key="index"
-                        :content="item.description"
-                        placement="top"
-                        :show-after="500"
-                      >
-                        <el-button
-                          class="command-btn"
-                          @click.stop="doAction(item.label)"
+            <el-form-item
+              class="flex-1 overflow-hidden el-form-item-flex-1 flex flex-col"
+              :label="I18nT('host.action')"
+            >
+              <el-scrollbar>
+                <div class="w-full command-categories">
+                  <el-collapse v-model="activeCategories">
+                    <el-collapse-item
+                      v-for="(category, cIndex) in OpenClawSetup.commandData.categories"
+                      :key="cIndex"
+                      :title="I18nT(category.nameKey)"
+                      :name="category.nameKey"
+                    >
+                      <div class="command-buttons">
+                        <el-tooltip
+                          v-for="(item, index) in category.commands"
+                          :key="index"
+                          :content="I18nT(item.descriptionKey)"
+                          placement="top"
+                          :show-after="500"
                         >
-                          {{ item.label }}
-                        </el-button>
-                      </el-tooltip>
-                    </div>
-                  </el-collapse-item>
-                </el-collapse>
-              </div>
+                          <el-button class="command-btn" @click.stop="doAction(item)">
+                            {{ item.label }}
+                          </el-button>
+                        </el-tooltip>
+                      </div>
+                    </el-collapse-item>
+                  </el-collapse>
+                </div>
+              </el-scrollbar>
             </el-form-item>
           </el-form>
         </div>
@@ -163,12 +169,12 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import { I18nT } from '@lang/index'
-  import { OpenClawSetup } from './setup'
+  import { CommandItem, OpenClawSetup } from "./setup";
   import { nextTick, onMounted, onUnmounted } from 'vue'
   import XTerm from '@/util/XTerm'
 
   const xtermDom = ref()
-  const activeCategories = ref(['Basic Info', 'Gateway Service'])
+  const activeCategories = ref(['openclaw.category.basicInfo'])
 
   const installOpenClaw = () => {
     OpenClawSetup.installOpenClaw(xtermDom)
@@ -178,8 +184,8 @@
     OpenClawSetup.installGateway(xtermDom)
   }
 
-  const doAction = (action: string) => {
-    OpenClawSetup.doAction(action, xtermDom)
+  const doAction = (item: CommandItem) => {
+    OpenClawSetup.doAction(item, xtermDom)
   }
 
   onMounted(() => {
@@ -202,11 +208,6 @@
     :deep(.el-table__expanded-cell) {
       padding-top: 0 !important;
     }
-  }
-
-  .openclaw-service-content {
-    max-height: 60vh;
-    overflow-y: auto;
   }
 
   .command-categories {

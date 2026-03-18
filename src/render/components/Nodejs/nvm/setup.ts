@@ -7,9 +7,11 @@ import { NodejsStore } from '@/components/Nodejs/node'
 import { AppStore } from '@/store/app'
 import { dirname, join } from '@/util/path-browserify'
 import { fs } from '@/util/NodeFn'
+import { markRaw } from 'vue'
 
 export const NVMSetup = reactive<{
   installed: boolean
+  version: string
   installEnd: boolean
   installing: boolean
   fetching: boolean
@@ -20,8 +22,10 @@ export const NVMSetup = reactive<{
   reFetch: () => void
   installLib: 'shell' | 'brew' | 'port'
   search: string
+  checkInstalled: () => Promise<boolean>
 }>({
   installed: false,
+  version: '',
   installEnd: false,
   installing: false,
   fetching: false,
@@ -31,7 +35,8 @@ export const NVMSetup = reactive<{
   xterm: undefined,
   reFetch: () => 0,
   installLib: 'shell',
-  search: ''
+  search: '',
+  checkInstalled: async () => false
 })
 
 export const Setup = () => {
@@ -43,20 +48,48 @@ export const Setup = () => {
   const hasBrew = !!window.Server.BrewCellar
   const hasPort = !!window.Server.MacPorts
 
+  /**
+   * Check if nvm is installed
+   */
+  const checkInstalled = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Server.isWindows) {
+        // For Windows, use localVersion to check
+        fetchLocal().then(() => {
+          resolve(NVMSetup.local.length > 0)
+        })
+        return
+      }
+      IPC.send('app-fork:node', 'checkInstalled', 'nvm').then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          NVMSetup.installed = res?.data?.installed ?? false
+          NVMSetup.version = res?.data?.version ?? ''
+        }
+        resolve(NVMSetup.installed)
+      })
+    })
+  }
+
+  NVMSetup.checkInstalled = checkInstalled
+
   const fetchLocal = () => {
     if (NVMSetup.local.length > 0 || NVMSetup.fetching) {
-      return
+      return Promise.resolve()
     }
     NVMSetup.fetching = true
-    IPC.send('app-fork:node', 'localVersion', 'nvm').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        NVMSetup.local.splice(0)
-        const list = res?.data?.versions ?? []
-        NVMSetup.local.push(...list)
-        NVMSetup.current = res?.data?.current ?? ''
-      }
-      NVMSetup.fetching = false
+    return new Promise<void>((resolve) => {
+      IPC.send('app-fork:node', 'localVersion', 'nvm').then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          NVMSetup.local.splice(0)
+          const list = res?.data?.versions ?? []
+          NVMSetup.local.push(...list)
+          NVMSetup.current = res?.data?.current ?? ''
+        }
+        NVMSetup.fetching = false
+        resolve()
+      })
     })
   }
 
@@ -64,53 +97,97 @@ export const Setup = () => {
     NVMSetup.fetching = false
     NVMSetup.local.splice(0)
     NVMSetup.current = ''
-    fetchLocal()
+    checkInstalled().then(() => {
+      fetchLocal()
+    })
     store.chekTool()?.then()?.catch()
   }
 
   NVMSetup.reFetch = reFetch
 
-  const versionChange = (item: any) => {
+  /**
+   * Switch version using XTerm
+   */
+  const versionChangeXTerm = async (item: any, domRef: HTMLElement) => {
     if (NVMSetup.switching) {
       return
     }
     NVMSetup.switching = true
     item.switching = true
-    IPC.send('app-fork:node', 'versionChange', 'nvm', item.version).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          NVMSetup.current = item.version
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        item.switching = false
-        NVMSetup.switching = false
+    NVMSetup.installEnd = false
+    NVMSetup.installing = true
+    await nextTick()
+
+    const execXTerm = new XTerm()
+    NVMSetup.xterm = markRaw(execXTerm)
+    await execXTerm.mount(domRef)
+
+    const commands: string[] = []
+
+    if (window.Server.isWindows) {
+      commands.push(`nvm.exe use ${item.version}`)
+    } else {
+      commands.push(`unset PREFIX`)
+      commands.push(`export NVM_DIR="${window.Server.UserHome}/.nvm"`)
+      commands.push(`[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"`)
+      commands.push(`nvm alias default ${item.version}`)
+    }
+
+    await execXTerm.send(commands, false)
+
+    // After command execution, refresh local versions
+    NVMSetup.installing = false
+    NVMSetup.switching = false
+    item.switching = false
+    NVMSetup.xterm?.destroy()
+    delete NVMSetup.xterm
+
+    // Refresh local versions
+    fetchLocal().then(() => {
+      if (NVMSetup.current === item.version) {
+        MessageSuccess(I18nT('base.success'))
+      } else {
+        MessageError(I18nT('base.fail'))
       }
-    )
+    })
   }
 
-  const installOrUninstall = (action: 'install' | 'uninstall', item: any) => {
+  /**
+   * Install or uninstall version using XTerm
+   */
+  const installOrUninstallXTerm = async (action: 'install' | 'uninstall', item: any, domRef: HTMLElement) => {
     item.installing = true
-    IPC.send('app-fork:node', 'installOrUninstall', 'nvm', action, item.version).then(
-      (key: string, res: any) => {
-        if (res?.code === 200) {
-          return
-        }
-        IPC.off(key)
-        if (res?.code === 0) {
-          NVMSetup.current = res?.data?.current ?? ''
-          const list = res?.data?.versions ?? []
-          NVMSetup.local.splice(0)
-          NVMSetup.local.push(...list)
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(I18nT('base.fail'))
-        }
-        item.installing = false
-      }
-    )
+    NVMSetup.installEnd = false
+    NVMSetup.installing = true
+    await nextTick()
+
+    const execXTerm = new XTerm()
+    NVMSetup.xterm = markRaw(execXTerm)
+    await execXTerm.mount(domRef)
+
+    const commands: string[] = []
+
+    if (window.Server.isWindows) {
+      commands.push(`nvm.exe ${action} ${item.version}`)
+    } else {
+      commands.push(`unset PREFIX`)
+      commands.push(`export NVM_DIR="${window.Server.UserHome}/.nvm"`)
+      commands.push(`[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"`)
+      commands.push(`nvm ${action} ${item.version}`)
+    }
+
+    await execXTerm.send(commands, false)
+
+    // After command execution, refresh local versions
+    NVMSetup.installing = false
+    item.installing = false
+    NVMSetup.xterm?.destroy()
+    delete NVMSetup.xterm
+
+    // Refresh local versions
+    fetchLocal().then(() => {
+      MessageSuccess(I18nT('base.success'))
+    })
   }
 
   const tableData = computed(() => {
@@ -199,12 +276,33 @@ ${params.join('\n')}`
     await fs.chmod(file, '0777')
     await nextTick()
     const execXTerm = new XTerm()
-    NVMSetup.xterm = execXTerm
+    NVMSetup.xterm = markRaw(execXTerm)
     await execXTerm.mount(xtermDom.value!)
     await execXTerm.send([`cd "${dirname(file)}"`, `./nvm-install.sh`])
     NVMSetup.installEnd = true
     await fs.remove(file)
-    store.chekTool()?.then()?.catch()
+    checkInstalled().then(() => {
+      store.chekTool()?.then()?.catch()
+    })
+  }
+
+  const taskConfirm = () => {
+    NVMSetup.installing = false
+    NVMSetup.installEnd = false
+    NVMSetup.xterm?.destroy()
+    delete NVMSetup.xterm
+    checkInstalled().then(() => {
+      fetchLocal()
+    })
+  }
+
+  const taskCancel = () => {
+    NVMSetup.installing = false
+    NVMSetup.installEnd = false
+    NVMSetup.xterm?.stop()?.then(() => {
+      NVMSetup.xterm?.destroy()
+      delete NVMSetup.xterm
+    })
   }
 
   onMounted(() => {
@@ -216,6 +314,7 @@ ${params.join('\n')}`
         }
       })
     }
+    checkInstalled()
   })
 
   onUnmounted(() => {
@@ -226,13 +325,16 @@ ${params.join('\n')}`
 
   return {
     fetchLocal,
-    versionChange,
-    installOrUninstall,
+    versionChange: versionChangeXTerm,
+    installOrUninstall: installOrUninstallXTerm,
     showInstall,
     xtermDom,
     hasBrew,
     hasPort,
     installNVM,
-    tableData
+    tableData,
+    taskConfirm,
+    taskCancel,
+    checkInstalled
   }
 }

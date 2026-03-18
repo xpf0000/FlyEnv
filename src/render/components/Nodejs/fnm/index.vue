@@ -49,22 +49,54 @@
   import type { Column } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
   import { clipboard } from '@/util/NodeFn'
+  import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+  import XTerm from '@/util/XTerm'
 
-  const {
-    showInstall,
-    xtermDom,
-    hasBrew,
-    hasPort,
-    installFNM,
-    versionChange,
-    installOrUninstall,
-    tableData
-  } = Setup()
+  const xtermDom = ref<HTMLElement>()
+  const currentRow = ref<any>(null)
+  const currentAction = ref<'versionChange' | 'install' | 'uninstall' | ''>('')
+
+  const { showInstall, hasBrew, hasPort, installFNM, tableData, taskConfirm, taskCancel } = Setup()
 
   const copyCommand = (command: string) => {
     clipboard.writeText(command)
     MessageSuccess(I18nT('base.copySuccess'))
   }
+
+  // Create a virtual XTerm container for version operations
+  const operationXtermDom = ref<HTMLElement | null>(null)
+
+  const handleVersionChange = (row: any) => {
+    if (!xtermDom.value) return
+    currentRow.value = row
+    currentAction.value = 'versionChange'
+    // Re-fetch setup with current row context
+    const { versionChange } = Setup()
+    versionChange(row, xtermDom.value)
+  }
+
+  const handleInstallOrUninstall = (action: 'install' | 'uninstall', row: any) => {
+    if (!xtermDom.value) return
+    currentRow.value = row
+    currentAction.value = action
+    const { installOrUninstall } = Setup()
+    installOrUninstall(action, row, xtermDom.value)
+  }
+
+  onMounted(() => {
+    if (FNMSetup.installing && FNMSetup.xterm && xtermDom.value) {
+      nextTick().then(() => {
+        const execXTerm: XTerm = FNMSetup.xterm as any
+        if (execXTerm && xtermDom.value) {
+          execXTerm.mount(xtermDom.value).then().catch()
+        }
+      })
+    }
+  })
+
+  onUnmounted(() => {
+    FNMSetup?.xterm?.unmounted()
+  })
 
   const columns: Column<any>[] = [
     {
@@ -138,7 +170,7 @@
                 link
                 class="current-set row-hover-show"
                 onClick={() => {
-                  versionChange(row)
+                  handleVersionChange(row)
                 }}
               >
                 <YbIcon
@@ -196,7 +228,7 @@
             <ElButton
               type="primary"
               onClick={() => {
-                installOrUninstall(a, row)
+                handleInstallOrUninstall(a as 'install' | 'uninstall', row)
               }}
               link
             >

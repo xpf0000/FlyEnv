@@ -78,15 +78,47 @@ export const NodejsStore = defineStore('nodejs', {
         this.all.push(...list)
       })
     },
+    /**
+     * Check which tool is installed (fnm, nvm, or both)
+     */
     chekTool() {
       if (this.checking) {
         return
       }
       this.checking = true
       return new Promise((resolve) => {
-        IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
-          IPC.off(key)
-          this.tool = res?.data ?? ''
+        // Check both fnm and nvm
+        Promise.all([
+          new Promise<'fnm' | ''>((resolve) => {
+            IPC.send('app-fork:node', 'checkInstalled', 'fnm').then((key: string, res: any) => {
+              IPC.off(key)
+              if (res?.code === 0 && res?.data?.installed) {
+                resolve('fnm')
+              } else {
+                resolve('')
+              }
+            })
+          }),
+          new Promise<'nvm' | ''>((resolve) => {
+            IPC.send('app-fork:node', 'checkInstalled', 'nvm').then((key: string, res: any) => {
+              IPC.off(key)
+              if (res?.code === 0 && res?.data?.installed) {
+                resolve('nvm')
+              } else {
+                resolve('')
+              }
+            })
+          })
+        ]).then(([fnmInstalled, nvmInstalled]) => {
+          if (fnmInstalled && nvmInstalled) {
+            this.tool = 'all'
+          } else if (fnmInstalled) {
+            this.tool = 'fnm'
+          } else if (nvmInstalled) {
+            this.tool = 'nvm'
+          } else {
+            this.tool = ''
+          }
           this.checking = false
           resolve(this.tool)
         })

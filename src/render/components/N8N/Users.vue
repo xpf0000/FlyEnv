@@ -1,5 +1,5 @@
 <template>
-  <el-card class="app-base-el-card" header-class="bg-gray-50 dark:bg-gray-800">
+  <el-card class="app-base-el-card">
     <template #header>
       <!-- Data Directory row (always visible) -->
       <div class="flex items-center gap-3 h-[30px]">
@@ -14,75 +14,79 @@
       </div>
     </template>
     <template #default>
-      <!-- Toolbar -->
-      <div class="flex items-center gap-2 mb-4">
-        <el-button :loading="loading" @click="loadUsers">{{ I18nT('base.refresh') }}</el-button>
-        <el-button type="primary" @click="openAddDialog">
-          {{ I18nT('n8n.usersAddUser') }}
-        </el-button>
-        <el-button @click="openChangePasswordDialog">{{
-          I18nT('n8n.usersChangePassword')
-        }}</el-button>
-      </div>
+      <div class="h-full overflow-hidden flex flex-col">
+        <!-- Toolbar -->
+        <div class="flex items-center gap-2 mb-4 flex-shrink-0">
+          <el-button :loading="loading" @click="loadUsers">{{ I18nT('base.refresh') }}</el-button>
+          <el-button type="primary" @click="openAddDialog">
+            {{ I18nT('n8n.usersAddUser') }}
+          </el-button>
+          <el-button @click="openChangePasswordDialog">{{
+            I18nT('n8n.usersChangePassword')
+          }}</el-button>
+        </div>
 
-      <!-- Users table — reads from SQLite directly, works offline -->
-      <el-table v-loading="loading" :data="users" border>
-        <el-table-column :label="I18nT('n8n.usersName')" min-width="150">
-          <template #default="{ row }">{{ row.firstName }} {{ row.lastName }}</template>
-        </el-table-column>
-        <el-table-column prop="email" :label="I18nT('n8n.usersEmail')" min-width="200" />
-        <el-table-column :label="I18nT('n8n.usersRole')" width="120">
-          <template #default="{ row }">{{ formatRole(row.roleSlug) }}</template>
-        </el-table-column>
-        <el-table-column :label="I18nT('n8n.usersStatus')" width="100">
-          <template #default="{ row }">
-            <el-tag
-              :type="row.disabled ? 'info' : row.isPending ? 'warning' : 'success'"
-              size="small"
-            >
-              {{
-                row.disabled
-                  ? I18nT('n8n.usersDisabled')
-                  : row.isPending
-                    ? I18nT('n8n.usersPending')
-                    : I18nT('n8n.usersActive')
-              }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column :label="I18nT('n8n.usersActions')" width="80" fixed="right">
-          <template #default="{ row }">
-            <el-dropdown trigger="click" @command="(cmd: string) => handleAction(cmd, row)">
-              <el-button type="primary" link size="small">&#8943;</el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="name">{{
-                    I18nT('n8n.usersChangeName')
-                  }}</el-dropdown-item>
-                  <el-dropdown-item command="password">{{
-                    I18nT('n8n.usersResetPassword')
-                  }}</el-dropdown-item>
-                  <el-dropdown-item v-if="row.roleSlug !== 'global:owner'" command="role">{{
-                    I18nT('n8n.usersChangeRole')
-                  }}</el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="row.roleSlug !== 'global:owner'"
-                    :command="row.disabled ? 'enable' : 'disable'"
-                  >
-                    {{ row.disabled ? I18nT('n8n.usersEnable') : I18nT('n8n.usersDisable') }}
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="row.roleSlug !== 'global:owner'"
-                    command="delete"
-                    style="color: var(--el-color-danger)"
-                    >{{ I18nT('base.del') }}</el-dropdown-item
-                  >
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
-      </el-table>
+        <!-- Users table — reads from SQLite directly, works offline -->
+        <el-table v-loading="loading" class="flex-1 overflow-hidden" :data="users" border>
+          <el-table-column :label="I18nT('n8n.usersName')" min-width="150">
+            <template #default="{ row }">{{ row.firstName }} {{ row.lastName }}</template>
+          </el-table-column>
+          <el-table-column prop="email" :label="I18nT('n8n.usersEmail')" min-width="200" />
+          <el-table-column :label="I18nT('n8n.usersRole')" width="120">
+            <template #default="{ row }">{{ formatRole(row.roleSlug) }}</template>
+          </el-table-column>
+          <el-table-column :label="I18nT('n8n.usersStatus')" width="100">
+            <template #default="{ row }">
+              <el-tag
+                :type="row.disabled ? 'info' : row.isPending ? 'warning' : 'success'"
+                size="small"
+              >
+                {{
+                  row.disabled
+                    ? I18nT('n8n.usersDisabled')
+                    : row.isPending
+                      ? I18nT('n8n.usersPending')
+                      : I18nT('n8n.usersActive')
+                }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="I18nT('n8n.usersActions')" width="80">
+            <template #default="{ row }">
+              <div class="w-full h-full flex items-center justify-center">
+                <el-dropdown trigger="click" @command="(cmd: string) => handleAction(cmd, row)">
+                  <el-button type="primary" link size="small">&#8943;</el-button>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="name">{{
+                        I18nT('n8n.usersChangeName')
+                      }}</el-dropdown-item>
+                      <el-dropdown-item command="password">{{
+                        I18nT('n8n.usersResetPassword')
+                      }}</el-dropdown-item>
+                      <el-dropdown-item v-if="row.roleSlug !== 'global:owner'" command="role">{{
+                        I18nT('n8n.usersChangeRole')
+                      }}</el-dropdown-item>
+                      <el-dropdown-item
+                        v-if="row.roleSlug !== 'global:owner'"
+                        :command="row.disabled ? 'enable' : 'disable'"
+                      >
+                        {{ row.disabled ? I18nT('n8n.usersEnable') : I18nT('n8n.usersDisable') }}
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        v-if="row.roleSlug !== 'global:owner'"
+                        command="delete"
+                        style="color: var(--el-color-danger)"
+                        >{{ I18nT('base.del') }}</el-dropdown-item
+                      >
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </template>
   </el-card>
   <div>

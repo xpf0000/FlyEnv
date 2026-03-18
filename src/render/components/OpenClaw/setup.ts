@@ -9,13 +9,13 @@ import CommandData from './command.json'
 
 export interface CommandItem {
   label: string
-  description: string
+  descriptionKey: string
+  needInput: boolean
   needRefresh?: boolean
 }
 
 export interface CommandCategory {
-  name: string
-  nameEn: string
+  nameKey: string
   commands: CommandItem[]
 }
 
@@ -206,11 +206,11 @@ class OpenClaw {
     this.installEnd = true
   }
 
-  async doAction(action: string, domRef: Ref<HTMLElement>) {
+  async doAction(item: CommandItem, domRef: Ref<HTMLElement>) {
     if (this.installing) {
       return
     }
-    this.currentAction = action
+    this.currentAction = item.label
     this.installEnd = false
     this.installing = true
     await nextTick()
@@ -218,9 +218,13 @@ class OpenClaw {
     const execXTerm = new XTerm()
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
-    const command: string[] = [action]
-    await execXTerm.send(command, false)
-    this.installEnd = true
+    if (item.needInput) {
+      execXTerm.writeToNodePty(item.label + ' ')
+    } else {
+      const command: string[] = [item.label]
+      await execXTerm.send(command, false)
+      this.installEnd = true
+    }
   }
 
   taskConfirm() {
