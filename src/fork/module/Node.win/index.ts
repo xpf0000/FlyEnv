@@ -433,9 +433,20 @@ class Manager extends Base {
             on(line)
           })
           cp.on('error', rej)
-          cp.on('close', (code: number) => {
-            if (code === 0) res()
-            else rej(new Error(output.join('').trim() || `${bin} exited with code ${code}`))
+          cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
+            if (code === 0) {
+              res()
+            } else {
+              const trimmedOutput = output.join('').trim()
+              const message =
+                trimmedOutput ||
+                (signal
+                  ? `${bin} terminated due to signal ${signal}`
+                  : code !== null
+                  ? `${bin} exited with code ${code}`
+                  : `${bin} exited for unknown reasons`)
+              rej(new Error(message))
+            }
           })
         })
         // nvm/fnm exited 0 — trust the exit code and return the refreshed list
