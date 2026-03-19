@@ -6,6 +6,37 @@ class EnvSync {
   AppEnv: Record<string, any> | undefined
   constructor() {}
 
+  private async getWindowsAllEnv(): Promise<Record<string, string>> {
+    try {
+      /**
+       * 这段 PowerShell 脚本做了三件事：
+       * 1. 分别获取 Machine 和 User 级别的变量并合并到一个哈希表中。
+       * 2. 遍历合并后的哈希表。
+       * 3. 对每一个值调用 ExpandEnvironmentStrings，确保 %SystemRoot% 等被解析为真实路径。
+       */
+      const command = `powershell -NoProfile -Command "
+      $envBlock = @{};
+      [Array]$scopes = 'Machine','User';
+      foreach($s in $scopes) {
+        [Environment]::GetEnvironmentVariables($s).GetEnumerator() | % {
+          $envBlock[$_.Key] = $_.Value
+        }
+      };
+      $result = @{};
+      foreach($key in $envBlock.Keys) {
+        $result[$key] = [Environment]::ExpandEnvironmentStrings($envBlock[$key])
+      };
+      $result | ConvertTo-Json
+    "`
+
+      const output = (await execPromise(command, { encoding: 'utf8' }))?.stdout?.trim()
+      return JSON.parse(output)
+    } catch (e) {
+      console.error('[EnvSync] Failed to fetch/expand Windows envs', e)
+      return process.env as Record<string, string>
+    }
+  }
+
   /**
    * 动态获取 Windows 最新的 PATH 变量（绕过 process.env 缓存）
    * 合并 Machine 和 User 级别的 Path，并展开 %SystemRoot% 等变量
@@ -31,12 +62,12 @@ class EnvSync {
       return this.AppEnv
     }
     if (isWindows()) {
-      const sysPath = await this.getWindowsLatestPath()
-      let path = `${sysPath};C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\`
+      const lastEnv = await this.getWindowsAllEnv()
+      let path = `${lastEnv.PATH};C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\`
       path = Array.from(new Set(path.split(';')))
         .filter((s) => !!s)
         .join(';')
-      const env: any = { ...process.env, PATH: path }
+      const env: any = { ...lastEnv, PATH: path }
       if (global.Server.Proxy) {
         for (const k in global.Server.Proxy) {
           env[k] = global.Server.Proxy[k]
