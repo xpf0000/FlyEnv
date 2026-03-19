@@ -36,6 +36,15 @@ class Manager extends Base {
    */
   checkInstalled(tool: 'fnm' | 'nvm') {
     return new ForkPromise(async (resolve) => {
+      try {
+        const command = `${tool} --version`
+        const res = await execPromiseWithEnv(command)
+        return resolve({
+          installed: true,
+          version: res.stdout
+        })
+      } catch {}
+
       let installed = false
       let version = ''
       let dir = ''
@@ -227,39 +236,49 @@ class Manager extends Base {
         })
       }
 
-      let dir = ''
-      if (tool === 'fnm') {
-        dir = await this._initFNM()
-      } else {
-        dir = await this._initNVM()
-      }
-      if (!dir || !existsSync(dir)) {
-        resolve({
-          versions: [],
-          current: '',
-          tool
-        })
-      }
-      console.log('localVersion: ', dir, existsSync(dir))
-      const env = await this._buildEnv(tool, dir)
-      let res: any
-      process.chdir(dir)
+      let stdout = ''
+
       try {
-        res = await execPromise(`${tool}.exe ls`, {
-          cwd: dir,
-          env
-        })
-        console.log('localVersion: ', res)
-      } catch (e) {
-        console.log('localVersion err: ', e)
-        resolve({
-          versions: [],
-          current: '',
-          tool
-        })
-        return
+        const res = await execPromiseWithEnv(`${tool} ls`)
+        stdout = res.stdout.trim()
+      } catch {}
+
+      if (!stdout) {
+        let dir = ''
+        if (tool === 'fnm') {
+          dir = await this._initFNM()
+        } else {
+          dir = await this._initNVM()
+        }
+        if (!dir || !existsSync(dir)) {
+          resolve({
+            versions: [],
+            current: '',
+            tool
+          })
+        }
+        console.log('localVersion: ', dir, existsSync(dir))
+        const env = await this._buildEnv(tool, dir)
+        let res: any
+        process.chdir(dir)
+        try {
+          res = await execPromise(`${tool}.exe ls`, {
+            cwd: dir,
+            env
+          })
+          console.log('localVersion: ', res)
+        } catch (e) {
+          console.log('localVersion err: ', e)
+          resolve({
+            versions: [],
+            current: '',
+            tool
+          })
+          return
+        }
+        stdout = res?.stdout?.trim() ?? ''
       }
-      const stdout = res?.stdout?.trim() ?? ''
+
       if (!stdout) {
         resolve({
           versions: [],

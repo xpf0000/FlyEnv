@@ -13,8 +13,16 @@
             <el-radio-button key="shell" label="shell">{{
               I18nT('base.Official')
             }}</el-radio-button>
-            <el-radio-button key="brew" :disabled="!hasBrew" label="brew">Homebrew</el-radio-button>
-            <el-radio-button key="port" :disabled="!hasPort" label="port">Macports</el-radio-button>
+            <template v-if="!isWindows">
+              <el-radio-button key="brew" :disabled="!hasBrew" label="brew"
+                >Homebrew</el-radio-button
+              >
+            </template>
+            <template v-if="isMacOS">
+              <el-radio-button key="port" :disabled="!hasPort" label="port"
+                >Macports</el-radio-button
+              >
+            </template>
           </el-radio-group>
         </el-form-item>
         <el-form-item>
@@ -64,7 +72,9 @@
     xtermDom,
     showTable,
     installOrUninstall,
-    versionChange
+    versionChange,
+    isWindows,
+    isMacOS
   } = Setup()
 
   const copyCommand = (command: string) => {

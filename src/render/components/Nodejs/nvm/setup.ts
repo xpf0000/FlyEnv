@@ -302,6 +302,14 @@ ${params.join('\n')}`
     })
   }
 
+  const isWindows = computed(() => {
+    return !!window.Server.isWindows
+  })
+
+  const isMacOS = computed(() => {
+    return !!window.Server.isMacOS
+  })
+
   onMounted(() => {
     if (NVMSetup.installing) {
       nextTick().then(() => {
@@ -333,6 +341,8 @@ ${params.join('\n')}`
     taskConfirm,
     taskCancel,
     checkInstalled,
-    showTable
+    showTable,
+    isWindows,
+    isMacOS
   }
 }
