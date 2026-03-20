@@ -116,10 +116,10 @@
               </template>
             </el-form-item>
             <el-form-item
-              class="flex-1 overflow-hidden el-form-item-flex-1 flex flex-col"
+              class="flex-1 overflow-hidden el-form-item-flex-1 flex flex-col w-full"
               :label="I18nT('host.action')"
             >
-              <el-scrollbar>
+              <el-scrollbar class="w-full">
                 <div class="w-full command-categories">
                   <el-collapse v-model="activeCategories">
                     <el-collapse-item
@@ -169,7 +169,7 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import { I18nT } from '@lang/index'
-  import { CommandItem, OpenClawSetup } from "./setup";
+  import { CommandItem, OpenClawSetup } from './setup'
   import { nextTick, onMounted, onUnmounted } from 'vue'
   import XTerm from '@/util/XTerm'
 
