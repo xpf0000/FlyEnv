@@ -1,8 +1,9 @@
 import { join } from 'path'
 import { existsSync, realpathSync } from 'fs'
 import { tmpdir } from 'os'
-import { execPromise, readFile, writeFile, remove } from '../../Fn'
-import { isWindows } from '@shared/utils'
+import { readFile, writeFile, remove, execPromiseWithEnv } from '../../Fn'
+import { appDebugLog, isWindows } from '@shared/utils'
+import EnvSync from '@shared/EnvSync'
 
 /** Get the env file path for n8n */
 export function getEnvFilePath(): string {
@@ -84,7 +85,7 @@ export async function resolveDataDir(): Promise<string> {
 export async function resolveN8nModulesDir(): Promise<string | null> {
   try {
     const cmd = isWindows() ? 'where n8n.cmd' : 'which n8n'
-    const result = await execPromise(cmd)
+    const result = await execPromiseWithEnv(cmd)
     const binPath = result.stdout.trim().split('\n')[0].trim()
     if (isWindows()) {
       // binPath = C:\...\nodejs\n8n.cmd → modules at C:\...\nodejs\node_modules\n8n\node_modules
@@ -96,7 +97,10 @@ export async function resolveN8nModulesDir(): Promise<string | null> {
       const candidate = join(real, '..', '..', 'node_modules')
       if (existsSync(candidate)) return candidate
     }
-  } catch {}
+  } catch (e) {
+    appDebugLog(`[resolveN8nModulesDir][error]`, `${e}`).catch()
+    appDebugLog(`[resolveN8nModulesDir][AppEnv]`, JSON.stringify(EnvSync.AppEnv, null, 2)).catch()
+  }
   return null
 }
 
@@ -109,7 +113,7 @@ export async function runNodeScript(script: string): Promise<string> {
   const tmpFile = join(tmpdir(), `flyenv-n8n-${Date.now()}.js`)
   await writeFile(tmpFile, script, 'utf-8')
   try {
-    const result = await execPromise(`node "${tmpFile}"`)
+    const result = await execPromiseWithEnv(`node "${tmpFile}"`)
     return result.stdout ?? ''
   } finally {
     try {

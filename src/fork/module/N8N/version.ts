@@ -5,7 +5,7 @@ import https from 'https'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { isWindows } from '@shared/utils'
 import { join } from 'path'
-import { execPromise } from '@shared/child-process'
+import { execPromiseWithEnv } from '@shared/child-process'
 import { existsSync } from 'fs'
 import TaskQueue from '../../TaskQueue'
 import { versionBinVersion, versionFixed, versionSort } from '../../util/Version'
@@ -79,7 +79,7 @@ export function allInstalledVersions(this: any) {
     // PATH lookup
     try {
       const cmd = isWindows() ? 'where n8n' : 'which n8n'
-      const result = await execPromise(cmd)
+      const result = await execPromiseWithEnv(cmd)
       const found = result?.stdout?.trim().split('\n')[0]?.trim()
       if (found && !candidates.includes(found)) {
         candidates.push(found)

@@ -22,8 +22,9 @@ import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../../TaskQueue'
 import ncu from 'npm-check-updates'
-import { isMacOS } from '@shared/utils'
+import { appDebugLog, isMacOS } from '@shared/utils'
 import { unpack as unpackZip } from '../../util/Zip'
+import EnvSync from '@shared/EnvSync'
 
 class Manager extends Base {
   constructor() {
@@ -322,7 +323,9 @@ class Manager extends Base {
       let fnmDir = ''
       try {
         fnmDir = (await execPromiseWithEnv(`echo $FNM_DIR`)).stdout.trim()
-      } catch {}
+      } catch (e) {
+        appDebugLog(`[allInstalled][$FNM_DIR][error]`, `${e}`).catch()
+      }
       if (!fnmDir) {
         try {
           const res = await execPromiseWithEnv('fnm env')
@@ -333,7 +336,13 @@ class Manager extends Base {
               ?.find((l) => l.includes('export FNM_DIR'))
               ?.split('=')?.[1]
               ?.replace(/"/g, '') ?? ''
-        } catch {}
+        } catch (e) {
+          appDebugLog(`[allInstalled][fnm env][error]`, `${e}`).catch()
+          appDebugLog(
+            `[allInstalled][fnm env][AppEnv]`,
+            JSON.stringify(EnvSync.AppEnv, null, 2)
+          ).catch()
+        }
       }
       if (fnmDir && existsSync(fnmDir)) {
         fnmDir = join(fnmDir, 'node-versions')
