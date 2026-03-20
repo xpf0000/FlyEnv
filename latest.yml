@@ -1,8 +1,8 @@
-version: 4.13.4
+version: 4.13.5
 files:
-  - url: FlyEnv-Setup-4.13.4.exe
-    sha512: BtNNaiQ7kKMpUD5reeFNhc3qp4U11VRLRHW1tmLo89dl0LhNX7lYfKgoAMx5Pp1OLZxQIZwqJIFY6ZILrtvcEQ==
-    size: 136587759
-path: FlyEnv-Setup-4.13.4.exe
-sha512: BtNNaiQ7kKMpUD5reeFNhc3qp4U11VRLRHW1tmLo89dl0LhNX7lYfKgoAMx5Pp1OLZxQIZwqJIFY6ZILrtvcEQ==
-releaseDate: '2026-03-12T14:11:11.590Z'
+  - url: FlyEnv-Setup-4.13.5.exe
+    sha512: JyXJ1itP5jyuNsYNzJZJ3/6+mEqGanLbMly3wXhiLue6xnzZHw0hV9SK4JwPQ0cxEuKvevKVGyNcqhFAhIsTbw==
+    size: 136881063
+path: FlyEnv-Setup-4.13.5.exe
+sha512: JyXJ1itP5jyuNsYNzJZJ3/6+mEqGanLbMly3wXhiLue6xnzZHw0hV9SK4JwPQ0cxEuKvevKVGyNcqhFAhIsTbw==
+releaseDate: '2026-03-20T13:31:00.140Z'
