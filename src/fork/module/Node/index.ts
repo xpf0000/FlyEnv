@@ -328,7 +328,8 @@ class Manager extends Base {
       }
       if (!fnmDir) {
         try {
-          const res = await execPromiseWithEnv('fnm env')
+          const command = isMacOS() ? 'fnm env --shell zsh' : 'fnm env --shell bash'
+          const res = await execPromiseWithEnv(command)
           fnmDir =
             res?.stdout
               ?.trim()
