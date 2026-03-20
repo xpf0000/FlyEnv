@@ -66,10 +66,16 @@ class NodePTY {
           data: ''
         }
       } else if (isWindows()) {
+        const env = await EnvSync.sync()
+        Object.assign(env!, {
+          TERM: 'xterm-256color',
+          COLORTERM: 'truecolor'
+        })
         const pty: IPty = spawn('powershell.exe', [], {
           name: 'xterm-color',
           cols: 80,
           rows: 34,
+          env,
           cwd: process.cwd(),
           encoding: 'utf8'
         })

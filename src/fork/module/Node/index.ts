@@ -330,8 +330,8 @@ class Manager extends Base {
             res?.stdout
               ?.trim()
               ?.split('\n')
-              ?.find((l) => l.includes('export FNM_DIR='))
-              ?.replace('export FNM_DIR=', '')
+              ?.find((l) => l.includes('export FNM_DIR'))
+              ?.split('=')?.[1]
               ?.replace(/"/g, '') ?? ''
         } catch {}
       }

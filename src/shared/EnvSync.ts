@@ -1,73 +1,80 @@
 import { isWindows } from '@shared/utils'
 import { shellEnv } from 'shell-env'
 import { execPromise } from '@shared/child-process'
+import { join } from 'node:path'
+import { existsSync, copyFileSync } from 'node:fs'
+import * as process from 'node:process'
+import JSON5 from 'json5'
 
 class EnvSync {
   AppEnv: Record<string, any> | undefined
   constructor() {}
 
-  private async getWindowsAllEnv(): Promise<Record<string, string>> {
-    try {
-      /**
-       * 这段 PowerShell 脚本做了三件事：
-       * 1. 分别获取 Machine 和 User 级别的变量并合并到一个哈希表中。
-       * 2. 遍历合并后的哈希表。
-       * 3. 对每一个值调用 ExpandEnvironmentStrings，确保 %SystemRoot% 等被解析为真实路径。
-       */
-      const command = `powershell -NoProfile -Command "
-      $envBlock = @{};
-      [Array]$scopes = 'Machine','User';
-      foreach($s in $scopes) {
-        [Environment]::GetEnvironmentVariables($s).GetEnumerator() | % {
-          $envBlock[$_.Key] = $_.Value
-        }
-      };
-      $result = @{};
-      foreach($key in $envBlock.Keys) {
-        $result[$key] = [Environment]::ExpandEnvironmentStrings($envBlock[$key])
-      };
-      $result | ConvertTo-Json
-    "`
-
-      const output = (await execPromise(command, { encoding: 'utf8' }))?.stdout?.trim()
-      return JSON.parse(output)
-    } catch (e) {
-      console.error('[EnvSync] Failed to fetch/expand Windows envs', e)
-      return process.env as Record<string, string>
-    }
-  }
-
   /**
-   * 动态获取 Windows 最新的 PATH 变量（绕过 process.env 缓存）
-   * 合并 Machine 和 User 级别的 Path，并展开 %SystemRoot% 等变量
+   * 调用@static/sh/Windows/env-get.ps1获取Windows环境变量
+   * 该脚本会获取 Machine 和 User 级别的环境变量，并展开所有 %VARNAME% 格式的变量引用
+   * @private
    */
-  private async getWindowsLatestPath() {
+  private async getWindowsAllEnv(): Promise<Record<string, string>> {
+    const dest = join(global.Server.Cache!, 'env-get.ps1')
+    if (!existsSync(dest)) {
+      const src = join(global.Server.Static!, 'sh/env-get.ps1')
+      try {
+        copyFileSync(src, dest)
+      } catch (e) {
+        console.error('[EnvSync] Failed to copy env-get.ps1:', e)
+        return process.env as any
+      }
+    }
     try {
-      // 执行 PowerShell 获取最实时的 Path
-      // [Environment]::GetEnvironmentVariable(名称, 范围)
-      const command = `powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')"`
-      const rawPath = (await execPromise(command, { encoding: 'utf8' }))?.stdout?.trim() ?? ''
-      // 过滤重复项和空项
-      return Array.from(new Set(rawPath.split(';')))
-        .filter((s) => !!s)
-        .join(';')
+      const command = `powershell -NoProfile -ExecutionPolicy Bypass -File "${dest}"`
+      const { stdout } = await execPromise(command, { encoding: 'utf8' })
+      return JSON5.parse(stdout.trim())
     } catch (e) {
-      console.error('[EnvSync] Failed to fetch latest Windows PATH, fallback to process.env', e)
-      return process.env['PATH'] || ''
+      console.error('[EnvSync] Failed to fetch Windows env from script:', e)
+      return process.env as any
     }
   }
 
   async sync() {
     if (this.AppEnv) {
+      console.log('sync this.AppEnv exists !!!')
       return this.AppEnv
     }
     if (isWindows()) {
+      console.time('EnvSync getWindowsAllEnv')
       const lastEnv = await this.getWindowsAllEnv()
-      let path = `${lastEnv.PATH};C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\`
-      path = Array.from(new Set(path.split(';')))
-        .filter((s) => !!s)
-        .join(';')
-      const env: any = { ...lastEnv, PATH: path }
+      console.timeEnd('EnvSync getWindowsAllEnv')
+      const paths: string[] = []
+      lastEnv.PATH.split(';').forEach((path) => {
+        const p = path.trim()
+        if (p) {
+          paths.push(p)
+        }
+      })
+      process.env?.Path?.split(';')?.forEach((path) => {
+        const p = path.trim()
+        if (p) {
+          paths.push(p)
+        }
+      })
+      process.env?.PATH?.split(';')?.forEach((path) => {
+        const p = path.trim()
+        if (p) {
+          paths.push(p)
+        }
+      })
+      const extent = `C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\`
+      extent.split(';').forEach((path) => {
+        const p = path.trim()
+        if (p) {
+          paths.push(p)
+        }
+      })
+
+      const path = Array.from(new Set(paths)).filter(Boolean).join(';')
+
+      const env: any = { ...process.env, ...lastEnv, PATH: path, Path: path }
       if (global.Server.Proxy) {
         for (const k in global.Server.Proxy) {
           env[k] = global.Server.Proxy[k]
@@ -85,7 +92,6 @@ class EnvSync {
         this.AppEnv![k] = global.Server.Proxy[k]
       }
     }
-    // appDebugLog('[EnvSync][sync]', `${JSON.stringify(this.AppEnv, null, 2)}`).catch()
     return this.AppEnv!
   }
 }

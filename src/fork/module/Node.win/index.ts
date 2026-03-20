@@ -25,6 +25,7 @@ import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../../TaskQueue'
 import ncu from 'npm-check-updates'
+import { appDebugLog } from '@shared/utils'
 
 class Manager extends Base {
   constructor() {
@@ -262,7 +263,7 @@ class Manager extends Base {
         let res: any
         process.chdir(dir)
         try {
-          res = await execPromise(`${tool}.exe ls`, {
+          res = await execPromiseWithEnv(`${tool}.exe ls`, {
             cwd: dir,
             env
           })
@@ -287,6 +288,7 @@ class Manager extends Base {
         })
         return
       }
+      appDebugLog(`[Node.Win][localVersion]`, stdout).catch()
       let localVersions: Array<string> = []
       let current = ''
       if (tool === 'fnm') {
@@ -298,14 +300,20 @@ class Manager extends Base {
         }
       } else {
         const str = stdout
-        const ls = str.split(' (Currently using')[0]
-        localVersions = ls.match(/\d+(\.\d+){1,4}/g) ?? []
+        localVersions = stdout.match(/\d+(\.\d+){1,4}/g) ?? []
         const reg = /(\d+(\.\d+){1,4}) \(Currently using/g
         const currentArr: any = reg.exec(str)
         if (currentArr?.length > 1) {
           current = currentArr[1]
         } else {
           current = ''
+        }
+        if (!current) {
+          try {
+            const res = await execPromiseWithEnv(`nvm current`)
+            appDebugLog(`[Node.Win][nvm current]`, JSON.stringify(res)).catch()
+            current = res.stdout.trim().replace('v', '')
+          } catch {}
         }
       }
       localVersions?.sort((a, b) => {
@@ -516,13 +524,17 @@ class Manager extends Base {
       } catch {}
       if (!fnmDir) {
         try {
-          fnmDir = (
-            await execPromiseWithEnv(`$env:FNM_DIR`, {
-              shell: 'powershell.exe'
-            })
-          ).stdout.trim()
+          const res = await execPromiseWithEnv('fnm env')
+          fnmDir =
+            res?.stdout
+              ?.trim()
+              ?.split('\n')
+              ?.find((l) => l.includes('SET FNM_DIR'))
+              ?.split('=')?.[1]
+              ?.replace(/"/g, '') ?? ''
         } catch {}
       }
+
       if (fnmDir && existsSync(fnmDir)) {
         fnmDir = join(fnmDir, 'node-versions')
         if (existsSync(fnmDir)) {

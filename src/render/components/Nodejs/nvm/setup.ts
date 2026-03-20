@@ -2,9 +2,7 @@ import { computed, markRaw, nextTick, onMounted, onUnmounted, reactive, ref } fr
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import { NodejsStore } from '@/components/Nodejs/node'
-import { AppStore } from '@/store/app'
-import { dirname, join } from '@/util/path-browserify'
-import { fs } from '@/util/NodeFn'
+import { BrewStore } from '@/store/brew'
 
 export const NVMSetup = reactive<{
   installed: boolean
@@ -38,8 +36,6 @@ export const NVMSetup = reactive<{
 
 export const Setup = () => {
   const store = NodejsStore()
-  const appStore = AppStore()
-
   const xtermDom = ref<HTMLElement>()
 
   const hasBrew = !!window.Server.BrewCellar
@@ -135,6 +131,8 @@ export const Setup = () => {
     NVMSetup.installEnd = true
   }
 
+  const brewStore = BrewStore()
+
   /**
    * Install or uninstall version using XTerm
    */
@@ -154,8 +152,20 @@ export const Setup = () => {
     const commands: string[] = []
 
     if (window.Server.isWindows) {
+      if (window.Server.Proxy) {
+        for (const k in window.Server.Proxy) {
+          const v = window.Server.Proxy[k]
+          commands.push(`$env:${k}="${v}"`)
+        }
+      }
       commands.push(`nvm.exe ${action} ${item.version}`)
     } else {
+      if (window.Server.Proxy) {
+        for (const k in window.Server.Proxy) {
+          const v = window.Server.Proxy[k]
+          commands.push(`export ${k}="${v}"`)
+        }
+      }
       commands.push(`unset PREFIX`)
       commands.push(`export NVM_DIR="${window.Server.UserHome}/.nvm"`)
       commands.push(`[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"`)
@@ -165,6 +175,10 @@ export const Setup = () => {
     await execXTerm.send(commands, false)
     item.installing = false
     NVMSetup.installEnd = true
+
+    const data = brewStore.module('node')
+    data.installedFetched = false
+    data.fetchInstalled().catch()
   }
 
   const tableData = computed(() => {
@@ -204,16 +218,6 @@ export const Setup = () => {
     return !store.checking && ['nvm', 'all'].includes(store.tool)
   })
 
-  const proxy = computed(() => {
-    return appStore.config.setup.proxy
-  })
-  const proxyStr = computed(() => {
-    if (!proxy?.value.on) {
-      return undefined
-    }
-    return proxy?.value?.proxy
-  })
-
   const installNVM = async () => {
     if (NVMSetup.installing) {
       return
@@ -226,11 +230,14 @@ export const Setup = () => {
     NVMSetup.xterm = markRaw(execXTerm)
     await execXTerm.mount(xtermDom.value!)
 
+    const commands: string[] = []
     if (window.Server.isWindows) {
       // Windows installation using winget
-      const commands: string[] = []
-      if (proxyStr?.value) {
-        commands.push(proxyStr.value)
+      if (window.Server.Proxy) {
+        for (const k in window.Server.Proxy) {
+          const v = window.Server.Proxy[k]
+          commands.push(`$env:${k}="${v}"`)
+        }
       }
       commands.push(
         'winget install CoreyButler.NVMforWindows --accept-source-agreements --accept-package-agreements'
@@ -243,41 +250,27 @@ export const Setup = () => {
       return
     }
 
-    const arch = window.Server.isArmArch ? '-arm64' : '-x86_64'
-    const params = []
-    if (proxyStr?.value) {
-      params.unshift(proxyStr?.value)
+    if (window.Server.Proxy) {
+      for (const k in window.Server.Proxy) {
+        const v = window.Server.Proxy[k]
+        commands.push(`export ${k}="${v}"`)
+      }
     }
 
     if (NVMSetup.installLib === 'shell') {
-      params.push(`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash`)
-      params.push(`command brew --prefix && chmod -R go-w "$(brew --prefix)/share"`)
+      commands.push(
+        `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash`
+      )
     } else if (NVMSetup.installLib === 'brew') {
-      params.push(`arch ${arch} brew install --verbose nvm`)
+      commands.push(`brew install --verbose nvm`)
     } else {
-      params.push(`arch ${arch} sudo -S port -f deactivate libuuid`)
-      params.push(`arch ${arch} sudo -S port clean -v nvm`)
-      params.push(`arch ${arch} sudo -S port install -v nvm`)
+      commands.push(`sudo -S port -f deactivate libuuid`)
+      commands.push(`sudo -S port clean -v nvm`)
+      commands.push(`sudo -S port install -v nvm`)
     }
 
-    const content = `#!/bin/zsh
-if [ -f "~/.bash_profile" ]; then
-  source ~/.bash_profile
-fi
-if [ -f "~/.zshrc" ]; then
-  source ~/.zshrc
-fi
-${params.join('\n')}`
-
-    console.log('content: ', content)
-
-    const file = join(window.Server.Cache!, `nvm-install.sh`)
-    await fs.writeFile(file, content)
-    await fs.chmod(file, '0777')
-    await nextTick()
-    await execXTerm.send([`cd "${dirname(file)}"`, `./nvm-install.sh`])
+    await execXTerm.send(commands, false)
     NVMSetup.installEnd = true
-    await fs.remove(file)
     checkInstalled().then(() => {
       store.chekTool()?.then()?.catch()
     })
