@@ -1,4 +1,4 @@
-import { isWindows } from '@shared/utils'
+import { appDebugLog, isWindows } from '@shared/utils'
 import { shellEnv } from 'shell-env'
 import { execPromise } from '@shared/child-process'
 import { join } from 'node:path'
@@ -26,12 +26,26 @@ class EnvSync {
         return process.env as any
       }
     }
+    let stdout = ''
     try {
       const command = `powershell -NoProfile -ExecutionPolicy Bypass -File "${dest}"`
-      const { stdout } = await execPromise(command, { encoding: 'utf8' })
-      return JSON5.parse(stdout.trim())
+      const res = await execPromise(command, { encoding: 'utf8' })
+      stdout = res?.stdout?.trim() ?? ''
     } catch (e) {
       console.error('[EnvSync] Failed to fetch Windows env from script:', e)
+      appDebugLog(`[EnvSync][getWindowsAllEnv][error]`, `${e}`).catch()
+      return process.env as any
+    }
+    if (!stdout) {
+      return process.env as any
+    }
+    try {
+      return JSON5.parse(stdout)
+    } catch {}
+    try {
+      return JSON.parse(stdout)
+    } catch {
+      appDebugLog(`[EnvSync][getWindowsAllEnv][parse][error]`, `${stdout}`).catch()
       return process.env as any
     }
   }
@@ -43,10 +57,13 @@ class EnvSync {
     }
     if (isWindows()) {
       console.time('EnvSync getWindowsAllEnv')
-      const lastEnv = await this.getWindowsAllEnv()
+      let lastEnv: Record<string, string> = {}
+      try {
+        lastEnv = await this.getWindowsAllEnv()
+      } catch {}
       console.timeEnd('EnvSync getWindowsAllEnv')
       const paths: string[] = []
-      lastEnv.PATH.split(';').forEach((path) => {
+      lastEnv?.PATH?.split(';')?.forEach((path) => {
         const p = path.trim()
         if (p) {
           paths.push(p)
