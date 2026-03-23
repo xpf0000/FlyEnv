@@ -98,7 +98,7 @@ class Manager extends Base {
             .map((a) => a.trim())
           const ip = items?.shift()?.toLowerCase()
           if (ip) {
-            items.forEach((i) => {
+            items.filter(Boolean).forEach((i) => {
               this.hosts[i] =
                 ip === '::1' || ip === '127.0.0.1' || ip === 'localhost' ? LOCAL_IP : ip
             })
@@ -107,6 +107,22 @@ class Manager extends Base {
       } catch {}
     }
   }
+
+  checkWildcardDomainMatch(domain: string) {
+    const arr = domain.split('.')
+    /**
+     * *.www.xxx.test
+     * *.xxx.test
+     * *.test
+     */
+    const domains: string[] = [['*', ...arr].join('.')]
+    while (arr.length > 1) {
+      arr.shift()
+      domains.push(`${['*', ...arr].join('.')}`)
+    }
+    return domains.find((f) => this.hosts?.[f])
+  }
+
   start() {
     return new ForkPromise(async (resolve, reject) => {
       const lang = global.Server.Lang
@@ -137,8 +153,9 @@ class Manager extends Base {
           this.initHosts(LOCAL_IP!)
           Object.assign(this.hosts, this.appHosts)
           console.log('this.hosts: ', this.hosts)
-          if (this.hosts[name]) {
-            const ip = this.hosts[name]
+          const wildcard = this.checkWildcardDomainMatch(name)
+          if (this.hosts?.[name] || wildcard) {
+            const ip = this.hosts?.[name] ?? wildcard
             const item = {
               name,
               type: Packet.TYPE.A,
