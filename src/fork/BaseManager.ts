@@ -57,6 +57,7 @@ class BaseManager {
   Cloudflared: any
   OpenClaw: any
   N8N: any
+  RustFS: any
 
   modules: Set<string> = new Set()
 
@@ -455,6 +456,12 @@ class BaseManager {
         this.N8N = res.default
       }
       doRun(this.N8N)
+    } else if (module === 'rustfs') {
+      if (!this.RustFS) {
+        const res = await import('./module/RustFS')
+        this.RustFS = res.default
+      }
+      doRun(this.RustFS)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

@@ -61,7 +61,9 @@ class Redis extends Base {
         const tmplFile = join(global.Server.Static!, 'tmpl/redis.conf')
         const dbDir = join(global.Server.RedisDir!, `db-${v}`)
         await mkdirp(dbDir)
-        chmod(dbDir, '0755')
+        try {
+          await chmod(dbDir, '0755')
+        } catch {}
         let content = await readFile(tmplFile, 'utf-8')
         content = content
           .replace(/#PID_PATH#/g, pathFixedToUnix(join(global.Server.RedisDir!, 'redis.pid')))

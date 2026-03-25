@@ -20,7 +20,6 @@ import { isMacOS, isWindows } from '@shared/utils'
 import { closeSync, openSync } from 'node:fs'
 import { spawn } from 'node:child_process'
 import EnvSync from '@shared/EnvSync'
-import { basename } from 'node:path'
 
 export type ServiceStartParams = {
   version: SoftInstalled
@@ -326,6 +325,7 @@ export async function customerServiceStartExec(
 export async function serviceStartSpawn(
   param: ServiceStartSpawnParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
+  console.log('serviceStartSpawn param: ', param)
   const baseDir = param.baseDir
   const version = param.version
   const execEnv = param?.execEnv ?? ''
@@ -377,7 +377,7 @@ export async function serviceStartSpawn(
       }
     }
     // 2. 启动进程
-    const cp = spawn(basename(bin), execArgs, options)
+    const cp = spawn(bin, execArgs, options)
     // 3. 立即关闭父进程中的句柄 (子进程已继承)
     closeSync(out)
     closeSync(err)

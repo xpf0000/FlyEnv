@@ -80,7 +80,8 @@ export enum AppModuleEnum {
   'cloudflare-tunnel' = 'cloudflare-tunnel',
   cloudflared = 'cloudflared',
   openclaw = 'openclaw',
-  n8n = 'n8n'
+  n8n = 'n8n',
+  rustfs = 'rustfs'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

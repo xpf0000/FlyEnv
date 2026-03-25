@@ -32,9 +32,11 @@ import minio from './minio.json'
 import podman from './podman.json'
 import openclawIT from './openclaw.json'
 import n8n from './n8n.json'
+import rustfsIT from './rustfs.json'
 
 export default {
   it: {
+    rustfs: rustfsIT,
     n8n,
     openclaw: openclawIT,
     podman,

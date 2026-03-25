@@ -32,9 +32,11 @@ import minioAZ from './minio.json'
 import podman from './podman.json'
 import openclawAZ from './openclaw.json'
 import n8n from './n8n.json'
+import rustfsAZ from './rustfs.json'
 
 export default {
   az: {
+    rustfs: rustfsAZ,
     n8n,
     openclaw: openclawAZ,
     podman,
