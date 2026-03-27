@@ -88,6 +88,20 @@ export function portInfo(flag: string): Promise<OnlineVersionItem[]> {
   })
 }
 
+export function sdkmanInfo(flag: string): Promise<OnlineVersionItem[]> {
+  return new Promise((resolve, reject) => {
+    IPC.send(`app-fork:${flag}`, 'sdkmaninfo', flag).then((key: string, res: any) => {
+      if (res.code === 0) {
+        IPC.off(key)
+        resolve(res.data)
+      } else if (res.code === 1) {
+        IPC.off(key)
+        reject(new Error(res?.msg ?? ''))
+      }
+    })
+  })
+}
+
 export const fetchVerion = (typeFlag: AllAppModule): Promise<OnlineVersionItem[]> => {
   return new Promise(async (resolve) => {
     let saved: any = localStorage.getItem(`fetchVerion-${typeFlag}`)

@@ -14,6 +14,9 @@
               <template v-if="showPortLib !== false">
                 <el-radio-button value="port">MacPorts</el-radio-button>
               </template>
+              <template v-if="showSdkmanLib !== false">
+                <el-radio-button value="sdkman">SDKMAN</el-radio-button>
+              </template>
             </el-radio-group>
           </template>
           <template v-else-if="isWindows">
@@ -32,6 +35,9 @@
               </template>
               <template v-if="showBrewLib !== false">
                 <el-radio-button value="brew">Homebrew</el-radio-button>
+              </template>
+              <template v-if="showSdkmanLib !== false">
+                <el-radio-button value="sdkman">SDKMAN</el-radio-button>
               </template>
             </el-radio-group>
           </template>
@@ -55,6 +61,9 @@
       <template v-else-if="libSrc === 'static'">
         <StaticVM :type-flag="typeFlag" />
       </template>
+      <template v-else-if="libSrc === 'sdkman'">
+        <SdkmanVM :type-flag="typeFlag" />
+      </template>
     </template>
     <template v-else-if="isWindows">
       <StaticVM :type-flag="typeFlag" />
@@ -65,6 +74,9 @@
       </template>
       <template v-else-if="libSrc === 'static'">
         <StaticVM :type-flag="typeFlag" />
+      </template>
+      <template v-else-if="libSrc === 'sdkman'">
+        <SdkmanVM :type-flag="typeFlag" />
       </template>
     </template>
     <template v-if="!isWindows && showFooter" #footer>
@@ -86,6 +98,7 @@
   import BrewVM from './brew/index.vue'
   import PortVM from './port/index.vue'
   import StaticVM from './static/index.vue'
+  import SdkmanVM from './sdkman/index.vue'
 
   const props = withDefaults(
     defineProps<{
@@ -93,13 +106,15 @@
       hasStatic?: boolean
       showBrewLib?: boolean
       showPortLib?: boolean
+      showSdkmanLib?: boolean
       title: string
       url?: string
     }>(),
     {
       hasStatic: false,
       showBrewLib: true,
-      showPortLib: true
+      showPortLib: true,
+      showSdkmanLib: false
     }
   )
 

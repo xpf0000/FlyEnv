@@ -58,6 +58,7 @@ class BaseManager {
   OpenClaw: any
   N8N: any
   RustFS: any
+  Sdkman: any
 
   modules: Set<string> = new Set()
 
@@ -220,6 +221,12 @@ class BaseManager {
         this.MacPorts = res.default
       }
       doRun(this.MacPorts)
+    } else if (module === 'sdkman') {
+      if (!this.Sdkman) {
+        const res = await import('./module/Sdkman')
+        this.Sdkman = res.default
+      }
+      doRun(this.Sdkman)
     } else if (module === 'caddy') {
       if (!this.Caddy) {
         const res = await import('./module/Caddy')

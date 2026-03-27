@@ -18,6 +18,7 @@
         url="https://learn.microsoft.com/en-us/java/openjdk/download"
         type-flag="java"
         :has-static="true"
+        :show-sdkman-lib="true"
       ></Manager>
       <Maven
         v-else-if="tab === 2"
@@ -27,6 +28,7 @@
         :show-brew-lib="true"
         :has-static="true"
         :show-port-lib="true"
+        :show-sdkman-lib="true"
       />
       <ProjectIndex v-else-if="tab === 3" :title="I18nT('host.projectJava')" :type-flag="'java'">
         <template #openin="{ row }">

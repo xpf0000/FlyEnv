@@ -339,6 +339,16 @@ export default class Application extends EventEmitter {
         })
     }
 
+    // SDKMAN detection (macOS + Linux)
+    const checkSdkman = () => {
+      const uinfo = userInfo()
+      const sdkmanInit = join(uinfo.homedir, '.sdkman/bin/sdkman-init.sh')
+      if (existsSync(sdkmanInit)) {
+        global.Server.SdkmanHome = join(uinfo.homedir, '.sdkman')
+        sendGlobalUpdate()
+      }
+    }
+
     if (isMacOS()) {
       const brewBin = isArmArch() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
       runBrewChecks([brewBin])
@@ -351,6 +361,8 @@ export default class Application extends EventEmitter {
         .catch((e: Error) => {
           console.log('which port e: ', e)
         })
+
+      checkSdkman()
     } else if (isLinux()) {
       /**
        * Linux homebrew check
@@ -361,6 +373,8 @@ export default class Application extends EventEmitter {
         '/home/linuxbrew/.linuxbrew/bin/brew'
       ]
       runBrewChecks(brewBins)
+
+      checkSdkman()
     }
   }
 
