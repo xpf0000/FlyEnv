@@ -45,5 +45,9 @@
   "flyenvHelper": "FlyEnv Yardımcı Programını Onar",
   "flyenvHelperBtn": "Onar",
   "flyenvHelperFixSuccess": "FlyEnv yardımcı programı başarıyla onarıldı",
-  "flyenvHelperInstallFailTips": "FlyEnv yardımcı programı kurulumu başarısız oldu. Lütfen FlyEnv'i yönetici ayrıcalıklarıyla çalıştırmayı deneyin veya Tamam düğmesine tıklayın ve açılan klasörde flyenv-helper.exe yardımcı programını manuel olarak çalıştırın."
+  "flyenvHelperInstallFailTips": "FlyEnv yardımcı programı kurulumu başarısız oldu. Lütfen FlyEnv'i yönetici ayrıcalıklarıyla çalıştırmayı deneyin veya Tamam düğmesine tıklayın ve açılan klasörde flyenv-helper.exe yardımcı programını manuel olarak çalıştırın.",
+  "appFont": "Arayüz Yazı Tipi",
+  "appFontTips": "Uygulama arayüzü için kullanılan yazı tipini ayarlayın. Varsayılan sistem yazı tipini kullanmak için boş bırakın",
+  "codeFont": "Kod Yazı Tipi",
+  "codeFontTips": "Terminal, editör ve diğer kod alanları için kullanılan yazı tipini ayarlayın. Varsayılan monospace yazı tipini kullanmak için boş bırakın"
 }

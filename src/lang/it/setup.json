@@ -45,5 +45,9 @@
   "flyenvHelper": "Riparazione del programma di supporto FlyEnv",
   "flyenvHelperBtn": "Ripara",
   "flyenvHelperFixSuccess": "Riparazione del programma di supporto FlyEnv riuscita",
-  "flyenvHelperInstallFailTips": "Installazione dell'helper FlyEnv non riuscita. Prova a eseguire FlyEnv con privilegi di amministratore oppure fai clic sul pulsante OK ed esegui manualmente il programma helper flyenv-helper.exe nella cartella aperta."
+  "flyenvHelperInstallFailTips": "Installazione dell'helper FlyEnv non riuscita. Prova a eseguire FlyEnv con privilegi di amministratore oppure fai clic sul pulsante OK ed esegui manualmente il programma helper flyenv-helper.exe nella cartella aperta.",
+  "appFont": "Font dell'interfaccia",
+  "appFontTips": "Imposta il font utilizzato per l'interfaccia dell'applicazione. Lascia vuoto per utilizzare il font di sistema predefinito",
+  "codeFont": "Font del codice",
+  "codeFontTips": "Imposta il font utilizzato per terminale, editor e altre aree di codice. Lascia vuoto per utilizzare il font monospace predefinito"
 }

@@ -45,5 +45,9 @@
   "flyenvHelper": "Perbaikan Program Bantu FlyEnv",
   "flyenvHelperBtn": "Perbaiki",
   "flyenvHelperFixSuccess": "Perbaikan program bantu FlyEnv berhasil",
-  "flyenvHelperInstallFailTips": "Pemasangan FlyEnv helper gagal. Silakan coba jalankan FlyEnv dengan hak administrator, atau klik tombol OK dan jalankan program helper flyenv-helper.exe secara manual di folder yang terbuka."
+  "flyenvHelperInstallFailTips": "Pemasangan FlyEnv helper gagal. Silakan coba jalankan FlyEnv dengan hak administrator, atau klik tombol OK dan jalankan program helper flyenv-helper.exe secara manual di folder yang terbuka.",
+  "appFont": "Font Antarmuka",
+  "appFontTips": "Atur font yang digunakan untuk antarmuka aplikasi. Biarkan kosong untuk menggunakan font sistem default",
+  "codeFont": "Font Kode",
+  "codeFontTips": "Atur font yang digunakan untuk terminal, editor, dan area kode lainnya. Biarkan kosong untuk menggunakan font monospace default"
 }

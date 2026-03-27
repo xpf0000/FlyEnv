@@ -196,6 +196,34 @@
     }
   )
 
+  // 界面字体和代码块字体: 通过 CSS 变量动态应用
+  const appFont = computed(() => appStore.config.setup?.appFont || '')
+  const codeFont = computed(() => appStore.config.setup?.codeFont || '')
+
+  watch(
+    appFont,
+    (val) => {
+      if (val) {
+        document.documentElement.style.setProperty('--app-font', val)
+      } else {
+        document.documentElement.style.removeProperty('--app-font')
+      }
+    },
+    { immediate: true }
+  )
+
+  watch(
+    codeFont,
+    (val) => {
+      if (val) {
+        document.documentElement.style.setProperty('--code-font', val)
+      } else {
+        document.documentElement.style.removeProperty('--code-font')
+      }
+    },
+    { immediate: true }
+  )
+
   onMounted(() => {
     init()
     brewStore.cardHeadTitle = I18nT('base.currentVersionLib')

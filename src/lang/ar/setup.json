@@ -45,5 +45,9 @@
   "flyenvHelper": "إصلاح FlyEnv Helper",
   "flyenvHelperBtn": "إصلاح",
   "flyenvHelperFixSuccess": "تم إصلاح FlyEnv Helper بنجاح",
-  "flyenvHelperInstallFailTips": "فشل تثبيت مساعد FlyEnv. الرجاء محاولة تشغيل FlyEnv مع امتيازات المسؤول، أو انقر على زر OK وتشغيل مساعد flyenv-help يدويا. برنامج مساعد xe في المجلد المفتوح."
+  "flyenvHelperInstallFailTips": "فشل تثبيت مساعد FlyEnv. الرجاء محاولة تشغيل FlyEnv مع امتيازات المسؤول، أو انقر على زر OK وتشغيل مساعد flyenv-help يدويا. برنامج مساعد xe في المجلد المفتوح.",
+  "appFont": "خط الواجهة",
+  "appFontTips": "تعيين الخط المستخدم لواجهة التطبيق. اتركه فارغاً لاستخدام خط النظام الافتراضي",
+  "codeFont": "خط الكود",
+  "codeFontTips": "تعيين الخط المستخدم للطرفية والمحرر ومناطق الكود الأخرى. اتركه فارغاً لاستخدام الخط الافتراضي أحادي المسافة"
 }

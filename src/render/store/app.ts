@@ -113,6 +113,8 @@ type StateBase = SetupBase & {
   license?: string
   user_uuid?: string
   trayMenuBarStyle?: 'classic' | 'modern'
+  appFont?: string
+  codeFont?: string
 }
 
 interface State {

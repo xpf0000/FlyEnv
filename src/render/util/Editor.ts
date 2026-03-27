@@ -40,6 +40,7 @@ export const EditorConfigMake = async (
       theme = 'vs-dark'
     }
   }
+  const codeFont = appStore.config.setup?.codeFont || 'Menlo, Monaco, "Courier New", monospace'
   return {
     value,
     language,
@@ -50,7 +51,8 @@ export const EditorConfigMake = async (
     wordWrap,
     theme: theme,
     fontSize: editorConfig.fontSize,
-    lineHeight: editorConfig.lineHeight
+    lineHeight: editorConfig.lineHeight,
+    fontFamily: codeFont
   }
 }
 

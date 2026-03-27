@@ -45,5 +45,9 @@
   "flyenvHelper": "Sửa FlyEnv Helper",
   "flyenvHelperBtn": "Sửa",
   "flyenvHelperFixSuccess": "Sửa FlyEnv Helper thành công",
-  "flyenvHelperInstallFailTips": "Quá trình cài đặt trình trợ giúp FlyEnv đã thất bại. Vui lòng thử chạy FlyEnv với quyền quản trị viên, hoặc nhấp vào nút OK và chạy thủ công chương trình trợ giúp flyenv-helper.exe trong thư mục đã mở."
+  "flyenvHelperInstallFailTips": "Quá trình cài đặt trình trợ giúp FlyEnv đã thất bại. Vui lòng thử chạy FlyEnv với quyền quản trị viên, hoặc nhấp vào nút OK và chạy thủ công chương trình trợ giúp flyenv-helper.exe trong thư mục đã mở.",
+  "appFont": "Phông chữ giao diện",
+  "appFontTips": "Đặt phông chữ được sử dụng cho giao diện ứng dụng. Để trống để sử dụng phông chữ hệ thống mặc định",
+  "codeFont": "Phông chữ mã",
+  "codeFontTips": "Đặt phông chữ được sử dụng cho terminal, trình soạn thảo và các vùng mã khác. Để trống để sử dụng phông chữ monospace mặc định"
 }

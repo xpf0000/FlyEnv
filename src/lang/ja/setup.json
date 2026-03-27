@@ -45,5 +45,9 @@
   "flyenvHelper": "FlyEnvヘルパープログラムの修復",
   "flyenvHelperBtn": "修復",
   "flyenvHelperFixSuccess": "FlyEnvヘルパープログラムの修復に成功しました",
-  "flyenvHelperInstallFailTips": "FlyEnv ヘルパーのインストールに失敗しました。管理者権限で FlyEnv を実行するか、[OK] ボタンをクリックして開いたフォルダ内の flyenv-helper.exe ヘルパープログラムを手動で実行してください。"
+  "flyenvHelperInstallFailTips": "FlyEnv ヘルパーのインストールに失敗しました。管理者権限で FlyEnv を実行するか、[OK] ボタンをクリックして開いたフォルダ内の flyenv-helper.exe ヘルパープログラムを手動で実行してください。",
+  "appFont": "UIフォント",
+  "appFontTips": "アプリケーションのUIに使用するフォントを設定します。空欄にするとデフォルトのシステムフォントを使用します",
+  "codeFont": "コードフォント",
+  "codeFontTips": "ターミナル、エディタなどのコード領域に使用するフォントを設定します。空欄にするとデフォルトの等幅フォントを使用します"
 }
