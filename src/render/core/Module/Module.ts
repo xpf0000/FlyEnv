@@ -7,7 +7,8 @@ import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 import { ModuleHomebrewItem } from '@/core/Module/ModuleHomebrewItem'
 import { ModuleMacportsItem } from '@/core/Module/ModuleMacportsItem'
 import { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
-import { brewInfo, fetchVerion, portInfo } from '@/util/Brew'
+import { ModuleSdkmanItem } from '@/core/Module/ModuleSdkmanItem'
+import { brewInfo, fetchVerion, portInfo, sdkmanInfo } from '@/util/Brew'
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
@@ -29,12 +30,14 @@ export class Module {
   brew: ModuleHomebrewItem[] = []
   port: ModuleMacportsItem[] = []
   static: ModuleStaticItem[] = []
+  sdkman: ModuleSdkmanItem[] = []
 
   staticDowing: ModuleStaticItem[] = []
 
   brewFetching: boolean = false
   portFetching: boolean = false
   staticFetching: boolean = false
+  sdkmanFetching: boolean = false
 
   onItemStart(item: ModuleInstalledItem): Promise<Module> {
     return new Promise((resolve) => {
@@ -251,6 +254,33 @@ export class Module {
       })
       .catch(() => {
         this.staticFetching = false
+      })
+  }
+
+  fetchSdkman() {
+    if (this.sdkmanFetching) {
+      return
+    }
+    this.sdkmanFetching = true
+    sdkmanInfo(this.typeFlag)
+      .then((res: any) => {
+        for (const item of res) {
+          const find = this.sdkman.find((d) => d.name === item.name && d.version === item.version)
+          if (!find) {
+            const obj = reactive(new ModuleSdkmanItem(item))
+            obj.typeFlag = this.typeFlag
+            obj.fetchCommand = obj.fetchCommand.bind(obj)
+            obj.copyCommand = obj.copyCommand.bind(obj)
+            obj.runCommand = obj.runCommand.bind(obj)
+            this.sdkman.push(obj)
+          } else {
+            Object.assign(find, item)
+          }
+        }
+        this.sdkmanFetching = false
+      })
+      .catch(() => {
+        this.sdkmanFetching = false
       })
   }
 

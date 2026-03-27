@@ -39,6 +39,9 @@
               <template v-if="showPortLib !== false">
                 <el-radio-button value="port">MacPorts</el-radio-button>
               </template>
+              <template v-if="showSdkmanLib !== false">
+                <el-radio-button value="sdkman">SDKMAN</el-radio-button>
+              </template>
             </el-radio-group>
           </template>
           <template v-else-if="isWindows">
@@ -68,6 +71,9 @@
               <template v-if="showBrewLib !== false">
                 <el-radio-button value="brew">Homebrew</el-radio-button>
               </template>
+              <template v-if="showSdkmanLib !== false">
+                <el-radio-button value="sdkman">SDKMAN</el-radio-button>
+              </template>
             </el-radio-group>
           </template>
         </div>
@@ -93,6 +99,9 @@
       <template v-else-if="libSrc === 'local'">
         <LocalVM :type-flag="typeFlag" />
       </template>
+      <template v-else-if="libSrc === 'sdkman'">
+        <SdkmanVM :type-flag="typeFlag" />
+      </template>
     </template>
     <template v-else-if="isLinux">
       <template v-if="libSrc === 'brew'">
@@ -103,6 +112,9 @@
       </template>
       <template v-else-if="libSrc === 'local'">
         <LocalVM :type-flag="typeFlag" />
+      </template>
+      <template v-else-if="libSrc === 'sdkman'">
+        <SdkmanVM :type-flag="typeFlag" />
       </template>
     </template>
     <template v-else-if="isWindows">
@@ -135,6 +147,7 @@
   import BrewVM from '@/components/VersionManager/brew/index.vue'
   import StaticVM from '@/components/VersionManager/static/index.vue'
   import LocalVM from '@/components/VersionManager/local/index.vue'
+  import SdkmanVM from '@/components/VersionManager/sdkman/index.vue'
   import { computed } from 'vue'
 
   const props = defineProps<{
@@ -144,6 +157,7 @@
     hasStatic: boolean
     showBrewLib: boolean
     showPortLib: boolean
+    showSdkmanLib?: boolean
   }>()
 
   const isMacOS = computed(() => {

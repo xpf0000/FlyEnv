@@ -3,6 +3,7 @@ import { BrewStore } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
 import { BrewSetup } from '@/components/VersionManager/brew/setup'
 import { MacPortsSetup } from '@/components/VersionManager/port/setup'
+import { SdkmanSetup } from '@/components/VersionManager/sdkman/setup'
 import { StaticSetup } from '@/components/VersionManager/static/setup'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { LocalSetup } from '@/components/VersionManager/local/setup'
@@ -12,13 +13,13 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   const brewStore = BrewStore()
 
   const libSrc = computed({
-    get(): 'brew' | 'port' | 'static' | 'local' {
+    get(): 'brew' | 'port' | 'static' | 'local' | 'sdkman' {
       if (brewStore.LibUse[typeFlag]) {
         return brewStore.LibUse[typeFlag]
       }
       return 'local'
     },
-    set(v: 'brew' | 'port' | 'static' | 'local') {
+    set(v: 'brew' | 'port' | 'static' | 'local' | 'sdkman') {
       brewStore.LibUse[typeFlag] = v
     }
   })
@@ -30,6 +31,9 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     if (libSrc.value === 'port') {
       return MacPortsSetup.installing
     }
+    if (libSrc.value === 'sdkman') {
+      return SdkmanSetup.installing
+    }
     return false
   })
 
@@ -39,6 +43,9 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     }
     if (libSrc.value === 'port') {
       return MacPortsSetup.installEnd
+    }
+    if (libSrc.value === 'sdkman') {
+      return SdkmanSetup.installEnd
     }
     return false
   })
@@ -64,6 +71,16 @@ export const SetupAll = (typeFlag: AllAppModule) => {
       MacPortsSetup.reFetch()
       return
     }
+
+    if (libSrc.value === 'sdkman') {
+      SdkmanSetup.installing = false
+      SdkmanSetup.installEnd = false
+      SdkmanSetup.xterm?.destroy()
+      delete SdkmanSetup.xterm
+      SdkmanSetup.checkSdkman()
+      SdkmanSetup.reFetch()
+      return
+    }
   }
 
   const taskCancel = () => {
@@ -87,6 +104,16 @@ export const SetupAll = (typeFlag: AllAppModule) => {
       })
       return
     }
+
+    if (libSrc.value === 'sdkman') {
+      SdkmanSetup.installing = false
+      SdkmanSetup.installEnd = false
+      SdkmanSetup.xterm?.stop()?.then(() => {
+        SdkmanSetup.xterm?.destroy()
+        delete SdkmanSetup.xterm
+      })
+      return
+    }
   }
 
   const loading = computed(() => {
@@ -101,28 +128,29 @@ export const SetupAll = (typeFlag: AllAppModule) => {
       return module.staticFetching
     }
     if (libSrc.value === 'local') {
-      console.log('module.fetchInstalleding: ', typeFlag, module, module?.fetchInstalleding)
       return module.fetchInstalleding
+    }
+    if (libSrc.value === 'sdkman') {
+      return module.sdkmanFetching || SdkmanSetup.installing
     }
     return false
   })
 
   const reFetch = () => {
     if (libSrc.value === 'brew') {
-      console.log('reFetch brew !!!')
       BrewSetup.reFetch()
     }
     if (libSrc.value === 'port') {
-      console.log('reFetch port !!!')
       MacPortsSetup.reFetch()
     }
     if (libSrc.value === 'static') {
-      console.log('reFetch static !!!')
       StaticSetup.reFetch()
     }
     if (libSrc.value === 'local') {
-      console.log('reFetch local !!!')
       LocalSetup.reFetch()
+    }
+    if (libSrc.value === 'sdkman') {
+      SdkmanSetup.reFetch()
     }
   }
 

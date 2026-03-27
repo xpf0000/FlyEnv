@@ -10,6 +10,7 @@ import {
   moveChildDirToParent,
   portSearch,
   remove,
+  sdkmanJavaSearch,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -150,6 +151,20 @@ class Java extends Base {
         }
       )
       resolve(Info)
+    })
+  }
+
+  sdkmaninfo() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const sdkmanHome = global.Server.SdkmanHome ?? join(global.Server.UserHome!, '.sdkman')
+        const initPrefix = `source "${join(sdkmanHome, 'bin/sdkman-init.sh')}"`
+        const info = await sdkmanJavaSearch(initPrefix)
+        resolve(info)
+      } catch (e) {
+        console.log('sdkmaninfo java err: ', e)
+        resolve([])
+      }
     })
   }
 }

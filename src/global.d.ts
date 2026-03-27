@@ -27,6 +27,7 @@ export interface ServerType {
   Lang?: string
   Local?: string
   MacPorts?: string
+  SdkmanHome?: string
   ForceStart?: boolean
   UserHome?: string
   Licenses?: string
