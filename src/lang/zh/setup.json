@@ -45,5 +45,9 @@
   "flyenvHelper": "FlyEnv帮助程序修复",
   "flyenvHelperBtn": "修复",
   "flyenvHelperFixSuccess": "FlyEnv帮助程序修复成功",
-  "flyenvHelperInstallFailTips": "FlyEnv帮助程序安装失败,请尝试使用管理员权限启动FlyEnv, 或者点击确定按钮, 在打开的文件夹中, 手动运行flyenv-helper.exe帮助程序"
+  "flyenvHelperInstallFailTips": "FlyEnv帮助程序安装失败,请尝试使用管理员权限启动FlyEnv, 或者点击确定按钮, 在打开的文件夹中, 手动运行flyenv-helper.exe帮助程序",
+  "appFont": "界面字体",
+  "appFontTips": "设置应用程序界面使用的字体, 留空则使用默认系统字体",
+  "codeFont": "代码块字体",
+  "codeFontTips": "设置终端、编辑器等代码区域使用的字体, 留空则使用默认等宽字体"
 }

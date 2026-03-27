@@ -65,6 +65,7 @@
   })
 
   const initEditor = () => {
+    const codeFont = appStore.config.setup?.codeFont || 'Menlo, Monaco, "Courier New", monospace'
     monacoInstance = EditorCreate(wapper.value, {
       value: EditorConfigMap.text,
       language: 'ini',
@@ -73,7 +74,8 @@
       automaticLayout: true,
       theme: currentTheme.value,
       fontSize: editorConfig.value.fontSize,
-      lineHeight: editorConfig.value.lineHeight
+      lineHeight: editorConfig.value.lineHeight,
+      fontFamily: codeFont
     })
   }
 
@@ -99,10 +101,12 @@
     () => {
       nextTick().then(() => {
         console.log('watching editor config: ', currentTheme.value)
+        const codeFont = appStore.config.setup?.codeFont || 'Menlo, Monaco, "Courier New", monospace'
         monacoInstance?.updateOptions({
           theme: currentTheme.value,
           fontSize: editorConfig.value.fontSize,
-          lineHeight: editorConfig.value.lineHeight
+          lineHeight: editorConfig.value.lineHeight,
+          fontFamily: codeFont
         })
         appStore.saveConfig()
       })

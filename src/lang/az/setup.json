@@ -45,5 +45,9 @@
   "flyenvHelper": "FlyEnv Yardımçı Proqramını Bərpa Et",
   "flyenvHelperBtn": "Bərpa Et",
   "flyenvHelperFixSuccess": "FlyEnv yardımçı proqramı uğurla bərpa edildi",
-  "flyenvHelperInstallFailTips": "FlyEnv köməkçi proqramının quraşdırılması uğursuz oldu. Zəhmət olmasa FlyEnv-i administrator səlahiyyətləri ilə işə salmağa cəhd edin, ya da OK düyməsini basıb açılan qovluqda flyenv-helper.exe köməkçi proqramını əl ilə işə salın."
+  "flyenvHelperInstallFailTips": "FlyEnv köməkçi proqramının quraşdırılması uğursuz oldu. Zəhmət olmasa FlyEnv-i administrator səlahiyyətləri ilə işə salmağa cəhd edin, ya da OK düyməsini basıb açılan qovluqda flyenv-helper.exe köməkçi proqramını əl ilə işə salın.",
+  "appFont": "İnterfeys şrifti",
+  "appFontTips": "Tətbiq interfeysi üçün istifadə olunan şrifti təyin edin. Standart sistem şriftini istifadə etmək üçün boş buraxın",
+  "codeFont": "Kod şrifti",
+  "codeFontTips": "Terminal, redaktor və digər kod sahələri üçün istifadə olunan şrifti təyin edin. Standart monospace şriftini istifadə etmək üçün boş buraxın"
 }

@@ -45,5 +45,9 @@
   "flyenvHelper": "Napraw pomocnik FlyEnv",
   "flyenvHelperBtn": "Napraw",
   "flyenvHelperFixSuccess": "Pomocnik FlyEnv został naprawiony",
-  "flyenvHelperInstallFailTips": "Instalacja programu pomocniczego FlyEnv nie powiodła się. Spróbuj uruchomić FlyEnv z uprawnieniami administratora lub kliknij przycisk OK i ręcznie uruchom program pomocniczy flyenv-helper.exe w otwartym folderze."
+  "flyenvHelperInstallFailTips": "Instalacja programu pomocniczego FlyEnv nie powiodła się. Spróbuj uruchomić FlyEnv z uprawnieniami administratora lub kliknij przycisk OK i ręcznie uruchom program pomocniczy flyenv-helper.exe w otwartym folderze.",
+  "appFont": "Czcionka interfejsu",
+  "appFontTips": "Ustaw czcionkę używaną w interfejsie aplikacji. Pozostaw puste, aby użyć domyślnej czcionki systemowej",
+  "codeFont": "Czcionka kodu",
+  "codeFontTips": "Ustaw czcionkę używaną w terminalu, edytorze i innych obszarach kodu. Pozostaw puste, aby użyć domyślnej czcionki o stałej szerokości"
 }
