@@ -6,6 +6,11 @@
   -webkit-font-smoothing: antialiased;
   font-family: var(--app-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
 }
+.monaco-editor {
+  * {
+    font-family: var(--app-code-font, --app-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+  }
+}
 html,
 body,
 #app {
@@ -2847,14 +2852,9 @@ body {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  gap: 30px;
 
   .proxy-set {
     flex-shrink: 0;
-  }
-
-  .editor-wapper {
-    flex: 1;
   }
 }
 .site-sucker-setup {

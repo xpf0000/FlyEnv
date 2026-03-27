@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+  import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
   import TitleBar from './components/Native/TitleBar.vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
@@ -19,15 +19,11 @@
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
   import { Module } from '@/core/Module/Module'
   import type { AllAppModule, AppModuleEnum } from '@/core/type'
-  import { nativeTheme, shell } from '@/util/NodeFn'
-  import localForage from 'localforage'
+  import { shell } from '@/util/NodeFn'
+  import { AppUI } from '@/util/UI'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
-
-  const lang = computed(() => {
-    return appStore.config.setup.lang
-  })
 
   const showItem = computed(() => {
     return appStore.config.setup.common.showItem
@@ -164,65 +160,7 @@
 
   IPC.on('application:about').then(showAbout)
 
-  watch(
-    lang,
-    (val) => {
-      const body = document.body
-      body.className = `lang-${val}`
-    },
-    {
-      immediate: true
-    }
-  )
-
-  const isDark = ref(false)
-  nativeTheme.shouldUseDarkColors().then((e) => {
-    isDark.value = e
-  })
-  const theme = computed(() => {
-    const t = appStore?.config?.setup?.theme
-    if (!t) {
-      return isDark.value ? 'dark' : 'light'
-    }
-    return t
-  })
-  watch(
-    theme,
-    (val) => {
-      localForage.setItem('flyenv-app-theme', val).catch()
-    },
-    {
-      immediate: true
-    }
-  )
-
-  // 界面字体和代码块字体: 通过 CSS 变量动态应用
-  const appFont = computed(() => appStore.config.setup?.appFont || '')
-  const codeFont = computed(() => appStore.config.setup?.codeFont || '')
-
-  watch(
-    appFont,
-    (val) => {
-      if (val) {
-        document.documentElement.style.setProperty('--app-font', val)
-      } else {
-        document.documentElement.style.removeProperty('--app-font')
-      }
-    },
-    { immediate: true }
-  )
-
-  watch(
-    codeFont,
-    (val) => {
-      if (val) {
-        document.documentElement.style.setProperty('--code-font', val)
-      } else {
-        document.documentElement.style.removeProperty('--code-font')
-      }
-    },
-    { immediate: true }
-  )
+  AppUI()
 
   onMounted(() => {
     init()

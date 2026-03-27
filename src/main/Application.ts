@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, session, shell } from 'electron'
 import is from 'electron-is'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
@@ -79,6 +79,7 @@ export default class Application extends EventEmitter {
     this.windowManager.trayManager = this.trayManager
     this.handleCommands()
     this.handleIpcMessages()
+    this.initFontAccessPermission()
     this.initAppHelper()
     this.initForkManager()
     SiteSuckerManager.setCallback((link: any) => {
@@ -1124,6 +1125,22 @@ export default class Application extends EventEmitter {
     ipcMain.on('event', (event, eventName, ...args) => {
       console.log('receive event', eventName, ...args)
       this.emit(eventName, ...args)
+    })
+  }
+
+  initFontAccessPermission() {
+    session.defaultSession.setPermissionCheckHandler((webContents, permission: any) => {
+      if (permission === 'local-fonts') {
+        return true
+      }
+      return true
+    })
+    session.defaultSession.setPermissionRequestHandler((webContents, permission: any, callback) => {
+      if (permission === 'local-fonts') {
+        callback(true)
+        return
+      }
+      callback(true)
     })
   }
 }

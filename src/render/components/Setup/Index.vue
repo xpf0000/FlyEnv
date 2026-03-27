@@ -8,7 +8,7 @@
     <div class="main-block">
       <Common v-if="store.tab === 'base'"></Common>
       <ModuleVM v-else-if="store.tab === 'module'" />
-      <EditorConfig v-else-if="store.tab === 'editor'"></EditorConfig>
+      <UIConfig v-else-if="store.tab === 'editor'"></UIConfig>
       <Licenses v-else-if="store.tab === 'licenses'" />
       <About v-else-if="store.tab === 'about'" />
     </div>
@@ -18,7 +18,7 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import Common from './Common.vue'
-  import EditorConfig from './EditorConfig/index.vue'
+  import UIConfig from './UIConfig/index.vue'
   import { I18nT } from '@lang/index'
   import { SetupStore } from '@/components/Setup/store'
   import Licenses from './Licenses/index.vue'
@@ -39,7 +39,7 @@
       },
       {
         value: 'editor',
-        label: I18nT('base.editorSettings')
+        label: 'UI'
       },
       {
         value: 'licenses',

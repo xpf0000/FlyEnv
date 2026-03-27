@@ -9,14 +9,6 @@
           <theme-set />
         </div>
       </div>
-      <div class="row-2">
-        <div class="col">
-          <AppFont />
-        </div>
-        <div class="col">
-          <CodeFont />
-        </div>
-      </div>
       <ProxySet />
       <template v-if="isMacOS">
         <div class="row-2">
@@ -87,8 +79,6 @@
   import ShowAI from './AI/index.vue'
   import MacPortsSrc from './MacPortsSrc/index.vue'
   import ThemeSet from './Theme/index.vue'
-  import AppFont from './AppFont/index.vue'
-  import CodeFont from './CodeFont/index.vue'
   import Tool from './Tool/index.vue'
   import AutoLanch from './AutoLanch/index.vue'
   import AutoHide from './AutoHide/index.vue'
@@ -101,9 +91,6 @@
   })
   const isWindows = computed(() => {
     return window.Server.isWindows
-  })
-  const isLinux = computed(() => {
-    return window.Server.isLinux
   })
 
   const appStore = AppStore()
