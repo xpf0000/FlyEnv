@@ -6,7 +6,14 @@
   </template>
   <template v-else-if="!checkSdkman">
     <div class="p-5">
-      <span>SDKMAN not found. Install from <a href="https://sdkman.io" target="_blank" style="color: #4096ff">https://sdkman.io</a></span>
+      <pre class="app-html-block" v-html="I18nT('versionmanager.noSDKMANFound')"></pre>
+      <el-button
+        type="primary"
+        class="mt-5"
+        :disabled="SdkmanSetup.installing"
+        @click.stop="installSDKMAN"
+        >{{ I18nT('base.install') }}</el-button
+      >
     </div>
   </template>
   <template v-else>
@@ -84,6 +91,14 @@
     typeFlag: AllAppModule
   }>()
 
-  const { xtermDom, fetching, tableData, handleVersion, fetchCommand, copyCommand, checkSdkman } =
-    Setup(props.typeFlag)
+  const {
+    xtermDom,
+    fetching,
+    tableData,
+    handleVersion,
+    fetchCommand,
+    copyCommand,
+    checkSdkman,
+    installSDKMAN
+  } = Setup(props.typeFlag)
 </script>

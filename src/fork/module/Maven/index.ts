@@ -9,7 +9,6 @@ import {
   moveChildDirToParent,
   portSearch,
   remove,
-  sdkmanMavenSearch,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -66,7 +65,8 @@ class Maven extends Base {
         all = [versionLocalFetch(setup?.maven?.dirs ?? [], 'mvn.cmd')]
       } else {
         const dirs = setup?.maven?.dirs ?? []
-        all = [versionLocalFetch([...dirs, '/opt/local/share/java/'], 'mvn', 'maven')]
+        const sdkmanDir = join(global.Server.UserHome!, '.sdkman/candidates/maven')
+        all = [versionLocalFetch([...dirs, '/opt/local/share/java/', sdkmanDir], 'mvn', 'maven')]
       }
 
       Promise.all(all)
@@ -139,20 +139,6 @@ class Maven extends Base {
         }
       )
       resolve(Info)
-    })
-  }
-
-  sdkmaninfo() {
-    return new ForkPromise(async (resolve) => {
-      try {
-        const sdkmanHome = global.Server.SdkmanHome ?? join(global.Server.UserHome!, '.sdkman')
-        const initPrefix = `source "${join(sdkmanHome, 'bin/sdkman-init.sh')}"`
-        const info = await sdkmanMavenSearch(initPrefix)
-        resolve(info)
-      } catch (e) {
-        console.log('sdkmaninfo maven err: ', e)
-        resolve([])
-      }
     })
   }
 }

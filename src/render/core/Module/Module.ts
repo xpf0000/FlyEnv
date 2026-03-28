@@ -269,9 +269,6 @@ export class Module {
           if (!find) {
             const obj = reactive(new ModuleSdkmanItem(item))
             obj.typeFlag = this.typeFlag
-            obj.fetchCommand = obj.fetchCommand.bind(obj)
-            obj.copyCommand = obj.copyCommand.bind(obj)
-            obj.runCommand = obj.runCommand.bind(obj)
             this.sdkman.push(obj)
           } else {
             Object.assign(find, item)

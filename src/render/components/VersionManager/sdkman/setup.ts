@@ -95,7 +95,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     SdkmanSetup.installing = true
     SdkmanSetup.installEnd = false
     const fn = row.installed ? 'uninstall' : 'install'
-    const candidate = typeFlag === 'java' ? 'java' : 'maven'
+    const candidate = typeFlag
     const target = row.identifier || row.version
     const sdkmanHome = window.Server.SdkmanHome
     const initCmd = `source "${sdkmanHome}/bin/sdkman-init.sh"`
@@ -108,7 +108,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     const execXTerm = new XTerm()
     SdkmanSetup.xterm = execXTerm
     await execXTerm.mount(xtermDom.value!)
-    await execXTerm.send(params)
+    await execXTerm.send(params, false)
     SdkmanSetup.installEnd = true
     regetInstalled()
   }
@@ -120,6 +120,27 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   const xtermDom = ref<HTMLElement>()
+
+  const installSDKMAN = async () => {
+    if (SdkmanSetup.installing) {
+      return
+    }
+    SdkmanSetup.installEnd = false
+    SdkmanSetup.installing = true
+    await nextTick()
+    const execXTerm = new XTerm()
+    SdkmanSetup.xterm = execXTerm
+    console.log('xtermDom.value: ', xtermDom.value)
+    await execXTerm.mount(xtermDom.value!)
+    let command: string[] = []
+    if (window.Server.isMacOS) {
+      command = [`brew install bash`, `curl -s "https://get.sdkman.io" | $(brew --prefix)/bin/bash`]
+    } else {
+      command = [`curl -s "https://get.sdkman.io" | bash`]
+    }
+    await execXTerm.send(command, false)
+    SdkmanSetup.installEnd = true
+  }
 
   getData()
 
@@ -152,6 +173,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     fetching,
     xtermDom,
     fetchCommand,
-    copyCommand
+    copyCommand,
+    installSDKMAN
   }
 }

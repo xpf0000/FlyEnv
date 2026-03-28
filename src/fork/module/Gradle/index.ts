@@ -62,7 +62,8 @@ class Gradle extends Base {
       if (isWindows()) {
         all = [versionLocalFetch(setup?.gradle?.dirs ?? [], 'gradle.bat')]
       } else {
-        all = [versionLocalFetch(setup?.gradle?.dirs ?? [], 'gradle', 'gradle')]
+        const sdkmanDir = join(global.Server.UserHome!, '.sdkman/candidates/gradle')
+        all = [versionLocalFetch([...(setup?.gradle?.dirs ?? []), sdkmanDir], 'gradle', 'gradle')]
       }
       Promise.all(all)
         .then(async (list) => {

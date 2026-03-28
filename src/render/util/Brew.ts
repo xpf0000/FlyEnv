@@ -90,7 +90,7 @@ export function portInfo(flag: string): Promise<OnlineVersionItem[]> {
 
 export function sdkmanInfo(flag: string): Promise<OnlineVersionItem[]> {
   return new Promise((resolve, reject) => {
-    IPC.send(`app-fork:${flag}`, 'sdkmaninfo', flag).then((key: string, res: any) => {
+    IPC.send(`app-fork:sdkman`, 'sdkmaninfo', flag).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
         resolve(res.data)
