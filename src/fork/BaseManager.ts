@@ -59,6 +59,7 @@ class BaseManager {
   N8N: any
   RustFS: any
   Sdkman: any
+  LanguageProject: any
 
   modules: Set<string> = new Set()
 
@@ -469,6 +470,12 @@ class BaseManager {
         this.RustFS = res.default
       }
       doRun(this.RustFS)
+    } else if (module === 'language-project') {
+      if (!this.LanguageProject) {
+        const res = await import('./module/LanguageProject')
+        this.LanguageProject = res.default
+      }
+      doRun(this.LanguageProject)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }
