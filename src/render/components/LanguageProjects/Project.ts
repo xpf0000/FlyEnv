@@ -35,7 +35,8 @@ export class Project {
             typeFlag: this.flagType
           }).then((res: ProjectItem) => {
             if (res) {
-              const isRun = item.state.isRun
+              console.log('action: ', item)
+              const isRun = item?.state?.isRun
               item
                 .stop()
                 .catch()
@@ -71,7 +72,10 @@ export class Project {
       .then((res: ProjectItem[]) => {
         if (res) {
           this.project.splice(0)
-          this.project.push(...res)
+          for (const i of res) {
+            const item = reactiveBind(new ProjectItem(i))
+            this.project.push(item)
+          }
         }
       })
       .catch()

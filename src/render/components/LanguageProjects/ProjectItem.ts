@@ -83,6 +83,12 @@ export class ProjectItem implements ProjectItemType {
     return this._state
   }
 
+  restart() {
+    this.stop()
+      .then(() => this.start())
+      .catch()
+  }
+
   stop(): Promise<boolean> {
     return new Promise((resolve) => {
       if (!this._state.isRun || !this._state.pid) {

@@ -48,7 +48,7 @@
               </div>
             </div>
 
-            <div class="ssl-switch mt-6">
+            <div class="ssl-switch mt-4">
               <span>{{ I18nT('host.ifIsService') }}</span>
               <el-switch v-model="item.isService"></el-switch>
             </div>
@@ -494,7 +494,6 @@
   }
 
   const checkItem = () => {
-    errs.value['comment'] = item.value.comment.length === 0
     errs.value['path'] = item.value.path.length === 0
     if (item.value.isService) {
       errs.value['runCommand'] =

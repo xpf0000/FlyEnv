@@ -52,6 +52,52 @@
             >
           </template>
         </el-table-column>
+        <el-table-column :label="I18nT('base.links')" width="200px">
+          <template #default="scope">
+            <template v-if="scope.row.isService">
+              <template
+                v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id"
+              >
+                <span>{{ `http://127.0.0.1:${quickEdit.projectPort}` }}</span>
+              </template>
+              <template v-else>
+                <div
+                  class="flex items-center gap-2 cursor-pointer"
+                  :class="{
+                    'hover:text-yellow-500': !scope.row?.state?.isRun,
+                    'text-green-500': scope.row?.state?.isRun
+                  }"
+                  @click.stop="openSite(scope.row)"
+                >
+                  <yb-icon
+                    :class="{ active: scope.row?.state?.isRun }"
+                    :svg="import('@/svg/link.svg?raw')"
+                    width="18"
+                    height="18"
+                  />
+                  <span>
+                    {{ `http://127.0.0.1:${scope.row.projectPort}` }}
+                  </span>
+                </div>
+              </template>
+            </template>
+          </template>
+        </el-table-column>
+        <el-table-column :label="I18nT('host.port')" width="100px">
+          <template #default="scope">
+            <template v-if="scope.row.isService">
+              <template v-if="scope.row.id === quickEdit?.id">
+                <el-input
+                  v-model.number="quickEdit!.projectPort"
+                  @change="docClick(undefined)"
+                ></el-input>
+              </template>
+              <template v-else>
+                <span>{{ scope.row.projectPort }}</span>
+              </template>
+            </template>
+          </template>
+        </el-table-column>
         <el-table-column :label="I18nT('base.version')" :prop="null" width="160px">
           <template #default="scope">
             <template v-if="quickEdit?.id === scope.row.id">
@@ -75,12 +121,12 @@
               <el-input v-model="quickEdit!.comment" @change="docClick(undefined)"></el-input>
             </template>
             <template v-else>
-              <template v-if="!scope.row.comment">
+              <template v-if="!scope.row.comment && !scope.row?.state?.running">
                 <span class="truncate row-hover-show text-yellow-500">
                   {{ I18nT('host.dbclickRowToEdit') }}
                 </span>
               </template>
-              <template v-else>
+              <template v-else-if="!!scope.row.comment">
                 <el-popover width="auto" :show-after="800" placement="top">
                   <template #default>
                     <span>{{ scope.row.comment }}</span>
@@ -95,92 +141,193 @@
             </template>
           </template>
         </el-table-column>
+        <el-table-column :label="I18nT('base.service')" :prop="null" width="110px">
+          <template #default="scope">
+            <template v-if="scope.row.isService">
+              <template v-if="scope.row.state.running">
+                <el-button :loading="true" link></el-button>
+              </template>
+              <template v-else>
+                <template v-if="scope.row.state.isRun">
+                  <el-button
+                    link
+                    class="status running"
+                    :class="{ disabled: scope.row.state.running }"
+                    @click.stop="scope.row.stop()"
+                  >
+                    <yb-icon :svg="import('@/svg/stop2.svg?raw')" />
+                  </el-button>
+                  <el-button
+                    link
+                    class="status refresh"
+                    :class="{ disabled: scope.row.state.running }"
+                    @click.stop="scope.row.restart()"
+                  >
+                    <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" />
+                  </el-button>
+                </template>
+                <template v-else>
+                  <el-button
+                    link
+                    class="status start"
+                    :class="{
+                      disabled: scope.row.state.running
+                    }"
+                    @click.stop="scope.row.start()"
+                  >
+                    <yb-icon :svg="import('@/svg/play.svg?raw')" />
+                  </el-button>
+                </template>
+              </template>
+            </template>
+          </template>
+        </el-table-column>
         <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
           <template #default="scope">
-            <el-popover
-              ref="popper"
-              effect="dark"
-              popper-class="host-list-poper"
-              placement="left-start"
-              :show-arrow="false"
-              width="auto"
-            >
-              <ul v-poper-fix class="host-list-menu">
-                <li @click.stop="project.action(scope.row, scope.$index, 'open')">
-                  <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.open') }}</span>
-                </li>
-                <li @click.stop="project.action(scope.row, scope.$index, 'edit')">
-                  <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.edit') }}</span>
-                </li>
-                <slot name="operation" :row="scope.row as ProjectItem"></slot>
-                <li @click.stop="showConfig(scope.row)">
-                  <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                  <span class="ml-3"> {{ I18nT('nodejs.projectEnvSet') }} </span>
-                </li>
-                <li @click.stop="Project.copyPath(scope.row.path)">
-                  <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('nodejs.copyDirPath') }}</span>
-                </li>
-                <li v-if="isWindows" @click.stop="Project.openPath(scope.row.path, 'PowerShell')">
-                  <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('nodejs.openIN') }} PowerShell</span>
-                </li>
-                <li v-if="isWindows" @click.stop="Project.openPath(scope.row.path, 'PowerShell7')">
-                  <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('nodejs.openIN') }} PowerShell7+</span>
-                </li>
-                <li v-if="!isWindows" @click.stop="Project.openPath(scope.row.path, 'Terminal')">
-                  <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                  <span class="ml-3"
-                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.Terminal') }}</span
-                  >
-                </li>
-                <li @click.stop="Project.openPath(scope.row.path, 'VSCode')">
-                  <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
-                  <span class="ml-3"
-                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.VSCode') }}</span
-                  >
-                </li>
-                <li @click.stop="Project.openPath(scope.row.path, 'PhpStorm')">
-                  <yb-icon :svg="import('@/svg/phpstorm.svg?raw')" width="13" height="13" />
-                  <span class="ml-3"
-                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.PhpStorm') }}</span
-                  >
-                </li>
-                <li @click.stop="Project.openPath(scope.row.path, 'WebStorm')">
-                  <yb-icon :svg="import('@/svg/webstorm.svg?raw')" width="13" height="13" />
-                  <span class="ml-3"
-                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.WebStorm') }}</span
-                  >
-                </li>
-                <li @click.stop="Project.openPath(scope.row.path, 'Sublime')">
-                  <yb-icon :svg="import('@/svg/sublime.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('nodejs.openIN') }} Sublime Text</span>
-                </li>
-                <li @click.stop="Project.openPath(scope.row.path, 'HBuilderX')">
-                  <yb-icon :svg="import('@/svg/hbuilderx.svg?raw')" width="13" height="13" />
-                  <span class="ml-3"
-                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.HBuilderX') }}</span
-                  >
-                </li>
-                <slot name="openin" :row="scope.row as ProjectItem"></slot>
-                <li @click.stop="showSort($event, scope.row.id)">
-                  <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('host.sort') }}</span>
-                </li>
-                <li @click.stop="project.delProject(scope.$index)">
-                  <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.del') }}</span>
-                </li>
-              </ul>
-              <template #reference>
+            <el-dropdown>
+              <template #default>
                 <el-button :key="scope.row.id" link class="status">
                   <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
                 </el-button>
               </template>
-            </el-popover>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="project.action(scope.row, scope.$index, 'open')">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('base.open') }}</span>
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="project.action(scope.row, scope.$index, 'edit')">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                    </template>
+                  </el-dropdown-item>
+                  <slot name="operation" :row="scope.row as ProjectItem"></slot>
+                  <el-dropdown-item @click="showConfig(scope.row)">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('nodejs.projectEnvSet') }}</span>
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="Project.copyPath(scope.row.path)">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('nodejs.copyDirPath') }}</span>
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="isWindows"
+                    @click="Project.openPath(scope.row.path, 'PowerShell')"
+                  >
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('nodejs.openIN') }} PowerShell</span>
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="isWindows"
+                    @click="Project.openPath(scope.row.path, 'PowerShell7')"
+                  >
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('nodejs.openIN') }} PowerShell7+</span>
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="!isWindows"
+                    @click="Project.openPath(scope.row.path, 'Terminal')"
+                  >
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3"
+                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.Terminal') }}</span
+                      >
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'VSCode')">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3"
+                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.VSCode') }}</span
+                      >
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'PhpStorm')">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/phpstorm.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3"
+                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.PhpStorm') }}</span
+                      >
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'WebStorm')">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/webstorm.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3"
+                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.WebStorm') }}</span
+                      >
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'Sublime')">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/sublime.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('nodejs.openIN') }} Sublime Text</span>
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'HBuilderX')">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/hbuilderx.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3"
+                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.HBuilderX') }}</span
+                      >
+                    </template>
+                  </el-dropdown-item>
+                  <slot name="openin" :row="scope.row as ProjectItem"></slot>
+                  <el-dropdown-item @click="showSort($event, scope.row.id)">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('host.sort') }}</span>
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="project.delProject(scope.$index)">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('base.del') }}</span>
+                    </template>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -189,7 +336,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, type Ref, ref } from 'vue'
+  import { computed, nextTick, onBeforeUnmount, onMounted, type Ref, ref } from 'vue'
   import { I18nT } from '@lang/index'
   import { ProjectSetup } from './setup'
   import { FolderAdd, Lock } from '@element-plus/icons-vue'
@@ -230,6 +377,11 @@
       }
     })
   })
+
+  const openSite = (item: ProjectItem) => {
+    const url = `http://127.0.0.1:${item.projectPort}`
+    shell.openExternal(url).catch()
+  }
 
   const project = ProjectSetup(props.typeFlag)
 
@@ -309,6 +461,9 @@
     const idDom: HTMLElement = node.querySelector('.project-list-cell-id') as any
     const id = idDom.getAttribute('data-project-id') ?? ''
     const item = project.project.find((h) => `${h.id}` === `${id}`)
+    if (item?.state?.running) {
+      return
+    }
     quickEdit.value = JSON.parse(JSON.stringify(item))
     quickEditTr.value = node as any
     quickEditBack = JSON.parse(JSON.stringify(item))
@@ -324,14 +479,31 @@
         quickEditBack = undefined
         nextTick().then(() => {
           const findNode = binVersions.value.find((n) => n.bin === item.binBin)
-          const findProjectIndex = project.project.findIndex((p) => p.path === item.path)
-          if (findProjectIndex >= 0) {
+          const find = project.project.find((p) => p.path === item.path)
+          if (find) {
             item.binVersion = findNode?.version ?? ''
             item.binPath = findNode?.path ?? ''
             item.binBin = findNode?.bin ?? ''
-            const nodeChanged = project.project[findProjectIndex].binBin !== item.binBin
-            project.project.splice(findProjectIndex, 1, reactive(item))
+
+            const nodeChanged = find.binBin !== item.binBin
+            const needRestart =
+              (find.binBin !== item.binBin || find.projectPort !== item.projectPort) &&
+              find.state?.isRun
+
+            find.binBin = item.binBin
+            find.binPath = item.binPath
+            find.binVersion = item.binVersion
+            find.projectPort = item.projectPort
+            find.comment = item.comment
+
             project.saveProject()
+
+            if (needRestart) {
+              find
+                .stop()
+                .then(() => find.start())
+                .catch()
+            }
             if (nodeChanged) {
               project.setDirEnv(item).then().catch()
             }
