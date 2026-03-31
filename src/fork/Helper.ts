@@ -44,7 +44,7 @@ class Helper {
   enable = false
   appHelper?: AppHelper
 
-  send(module: Module, fn: FN, ...args: any) {
+  send<T>(module: Module, fn: FN, ...args: any): Promise<T> {
     return new Promise(async (resolve, reject) => {
       console.trace('Helper.send: ', module, fn, ...args)
       if (!this.enable) {

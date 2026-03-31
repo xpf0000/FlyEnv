@@ -257,11 +257,11 @@ export async function customerServiceStartExec(
   let error: any
   try {
     if (version.isSudo) {
-      const execRes = await execPromiseSudo([shell, psName], {
+      res = await execPromiseSudo([shell, psName], {
         cwd: baseDir,
         env: version.env
       })
-      res = (execRes.stdout + '\n' + execRes.stderr).trim()
+      console.log('customerServiceStartExec execPromiseSudo execRes: ', res)
     } else {
       res = await spawnPromiseWithEnv(shell, [psName], {
         cwd: baseDir,

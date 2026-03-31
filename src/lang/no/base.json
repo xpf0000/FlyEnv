@@ -115,5 +115,7 @@
   "info": "Informasjon",
   "ForceDelete": "Tving sletting",
   "needInstallHelperTips": "Noen operasjoner mislyktes fordi administratorrettigheter kreves. Dette omfatter endring av verts-filen, tilgang til prosesslisten, binding til porter under 1024 eller styring av systemmiljøvariabler.\nInstaller FlyEnv Helper for å gi de nødvendige tillatelsene for disse oppgavene. Klikk \"OK\" for å fortsette installasjonen.",
-  "targetPlatforms": "Target Platforms"
+  "targetPlatforms": "Target Platforms",
+  "baseInfo": "Grunnleggende informasjon",
+  "selectVersion": "Velg versjon"
 }

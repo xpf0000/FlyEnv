@@ -115,5 +115,7 @@
   "info": "Info",
   "ForceDelete": "Löschen erzwingen",
   "needInstallHelperTips": "Einige Operationen sind fehlgeschlagen, da Administratorrechte erforderlich sind. Dazu gehören die Änderung der Hosts-Datei, der Zugriff auf die Prozessliste, die Bindung an Ports unterhalb von 1024 oder die Verwaltung von System-Umgebungsvariablen.\nBitte installieren Sie den FlyEnv Helfer, um die erforderlichen Berechtigungen für diese Aufgaben zu erteilen. Klicken Sie auf \"OK\", um mit der Installation fortzufahren.",
-  "targetPlatforms": "Target Platforms"
+  "targetPlatforms": "Target Platforms",
+  "baseInfo": "Grundinformationen",
+  "selectVersion": "Version auswählen"
 }

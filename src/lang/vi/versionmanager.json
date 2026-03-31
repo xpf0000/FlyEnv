@@ -3,5 +3,6 @@
   "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> không được tìm thấy\nĐể cài đặt Homebrew, nhấp nút cài đặt để tiếp tục\nBạn cũng có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nLàm theo hướng dẫn để cài đặt.",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> không được tìm thấy.\nĐể cài đặt Macports, bạn có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nLàm theo hướng dẫn để cài đặt.",
   "brewErrorTips": "Tại vị trí {bin}, đã phát hiện các tệp thực thi Homebrew.\nTuy nhiên, FlyEnv không thể gọi chúng. Thông báo lỗi:\n{error}",
-  "Library": "Thư viện"
+  "Library": "Thư viện",
+  "noSDKMANFound": "Không tìm thấy <a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a>\nĐể cài đặt SDKMAN, hãy nhấp vào nút cài đặt"
 }

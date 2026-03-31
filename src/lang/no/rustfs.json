@@ -1,5 +1,4 @@
 {
-  "RUSTFS_VOLUMES": "Data volume directory path for object storage. Defaults to the data directory in base folder.",
   "RUSTFS_ADDRESS": "Bind to a specific ADDRESS:PORT, ADDRESS can be an IP or hostname. Default is ':9000'.",
   "RUSTFS_ACCESS_KEY": "Access key used for S3 API authentication.",
   "RUSTFS_SECRET_KEY": "Secret key used for S3 API authentication.",

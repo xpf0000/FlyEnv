@@ -145,7 +145,7 @@ function diffKey() {
 }
 
 function checkNoUseKey() {
-  const excludeLangFile = ['menu', 'aside', 'toolType']
+  const excludeLangFile = ['menu', 'aside', 'toolType', 'openclaw']
 
   const allLangFile = new Set()
   const allKeys = new Map() // 格式: { '文件名.key': Set(包含此键的语言包) }

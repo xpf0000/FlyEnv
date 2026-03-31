@@ -115,5 +115,7 @@
   "info": "məlumat",
   "ForceDelete": "Məcburi sil",
   "needInstallHelperTips": "Bəzi əməliyyatlar uğursuz oldu, çünki Administrator icazələri tələb olunur. Bunlara Hosts faylının dəyişdirilməsi, proseslər siyahısına çıxış, 1024-dən aşağı portlara bağlanma və ya sistem ətraf mühit dəyişənlərinin idarə edilməsi daxildir. Bu tapşırıqlar üçün zəruri icazələri təmin etmək üçün FlyEnv Helper-i quraşdırın. Quraşdırmaya davam etmək üçün \"OK\" düyməsini basın.",
-  "targetPlatforms": "Target Platforms"
+  "targetPlatforms": "Target Platforms",
+  "baseInfo": "Əsas məlumat",
+  "selectVersion": "Versiya seçin"
 }

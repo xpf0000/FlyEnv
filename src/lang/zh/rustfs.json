@@ -1,5 +1,4 @@
 {
-  "RUSTFS_VOLUMES": "对象存储的数据卷目录路径。默认为基础文件夹中的数据目录。",
   "RUSTFS_ADDRESS": "绑定到特定的地址和端口，地址可以是IP或主机名。默认值为':9000'。",
   "RUSTFS_ACCESS_KEY": "用于S3 API认证的访问密钥。",
   "RUSTFS_ACCESS_KEY_FILE": "包含S3 API认证访问密钥的文件路径。",
