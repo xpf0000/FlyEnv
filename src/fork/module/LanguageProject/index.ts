@@ -5,15 +5,17 @@ import {
   customerServiceStartExecWin,
   waitPidFile,
   waitTime,
-  uuid
+  uuid,
+  existsSync
 } from '../../Fn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
 import { basename, join } from 'path'
-import { chmod, mkdirp, remove, writeFile, copyFile } from '../../Fn'
+import { chmod, mkdirp, remove, writeFile, copyFile, readFile } from '../../Fn'
 import { execPromise } from '../../Fn'
+import { dirname } from 'node:path'
 
 class LanguageProject {
   constructor() {}
@@ -91,25 +93,29 @@ class LanguageProject {
         isSudo: project.isSudo,
         configPath: project.configPath,
         logPath: project.logPath,
-        env: {} as Record<string, string>
+        env: {} as Record<string, string>,
+        binBin: project.binBin
       }
 
       // 设置环境变量
+      let lines: string[] = []
       if (project.envVarType === 'specify' && project.envVar) {
-        const lines = project.envVar.split('\n')
-        for (const line of lines) {
-          const match = line.match(/^\s*export\s+(\w+)=(.+)$/i)
-          if (match) {
-            version.env[match[1]] = match[2].replace(/^["']|["']$/g, '')
-          } else {
-            const match2 = line.match(/^(\w+)=(.+)$/)
-            if (match2) {
-              version.env[match2[1]] = match2[2].replace(/^["']|["']$/g, '')
-            }
+        lines = project.envVar.split('\n')
+      } else if (project.envVarType === 'file' && project.envFile) {
+        try {
+          lines = (await readFile(project.envFile, 'utf-8')).split('\n')
+        } catch {}
+      }
+      for (const line of lines) {
+        const match = line.match(/^\s*export\s+(\w+)=(.+)$/i)
+        if (match) {
+          version.env[match[1]] = match[2].replace(/^["']|["']$/g, '')
+        } else {
+          const match2 = line.match(/^(\w+)=(.+)$/)
+          if (match2) {
+            version.env[match2[1]] = match2[2].replace(/^["']|["']$/g, '')
           }
         }
-      } else if (project.envVarType === 'file' && project.envFile) {
-        version.envFile = project.envFile
       }
 
       // 设置运行目录
@@ -123,14 +129,19 @@ class LanguageProject {
         if (project.commandType === 'file') {
           command = project.runFile
         } else {
-          command = project.runCommand
           const baseDir = join(global.Server.BaseDir!, 'language-project', typeFlag)
           await mkdirp(baseDir)
           command = join(baseDir, `${project.id}.sh`)
-          await writeFile(command, `cd "${project.path}" && ${project.runCommand}`)
+          await writeFile(command, `cd "${project.path}"\n${project.runCommand}`)
           try {
             await chmod(command, '0777')
           } catch {}
+        }
+        if (project.binBin && existsSync(project.binPath)) {
+          command = `export PATH="${dirname(project.binPath)}:$PATH";${command}`
+        }
+        for (const k in version.env) {
+          command = `export ${k}="${version.env[k]}";${command}`
         }
         command = command.replace(/"/g, '\\"')
         const appleScript = `
@@ -182,14 +193,19 @@ class LanguageProject {
         if (project.commandType === 'file') {
           command = project.runFile
         } else {
-          command = project.runCommand
           const baseDir = join(global.Server.BaseDir!, 'language-project', typeFlag)
           await mkdirp(baseDir)
           command = join(baseDir, `${project.id}.sh`)
-          await writeFile(command, `cd "${project.path}" && ${project.runCommand}`)
+          await writeFile(command, `cd "${project.path}"\n${project.runCommand}`)
           try {
             await chmod(command, '0777')
           } catch {}
+        }
+        if (project.binBin && existsSync(project.binPath)) {
+          command = `export PATH="${dirname(project.binPath)}:$PATH";${command}`
+        }
+        for (const k in version.env) {
+          command = `export ${k}="${version.env[k]}";${command}`
         }
         command = command.replace(/"/g, '\\"')
 

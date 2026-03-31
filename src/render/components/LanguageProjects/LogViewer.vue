@@ -1,123 +1,74 @@
 <template>
   <el-drawer
     v-model="show"
-    size="60%"
-    :close-on-click-modal="false"
+    size="75%"
     :destroy-on-close="true"
     :with-header="false"
     @closed="closedFn"
   >
-    <div class="host-edit">
-      <div class="nav pl-3 pr-5">
-        <div class="left" @click="show = false">
-          <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ I18nT('base.log') }}</span>
-        </div>
-        <div class="flex items-center gap-3">
-          <el-button link @click="refreshLogs">
-            <Refresh class="w-[20px] h-[20px]" :class="{ 'fa-spin': refreshing }" />
-          </el-button>
-          <el-button link @click="clearLogs">
-            <Delete class="w-[18px] h-[18px]" />
-          </el-button>
-        </div>
-      </div>
-      <div class="flex-1 overflow-hidden">
-        <el-tabs v-model="activeTab" type="border-card" class="h-full flex flex-col">
-          <template v-for="(log, index) in logs" :key="index">
-            <el-tab-pane :label="log.name || log.path" :name="index" class="h-full">
-              <div class="h-full flex flex-col">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm text-gray-500">{{ log.path }}</span>
-                </div>
-                <div class="flex-1 overflow-auto bg-gray-900 p-3 font-mono text-sm">
-                  <pre class="text-green-400 whitespace-pre-wrap">{{
-                    logContents[index] || I18nT('base.noLogs')
-                  }}</pre>
-                </div>
-              </div>
-            </el-tab-pane>
-          </template>
-        </el-tabs>
-      </div>
+    <div class="flex flex-col overflow-hidden h-screen gap-4">
+      <el-radio-group v-model="filepath" class="mt-4 px-3 flex-shrink-0">
+        <template v-for="(item, _index) in logs" :key="_index">
+          <el-radio-button :value="item.path" :label="item.name"></el-radio-button>
+        </template>
+      </el-radio-group>
+      <LogVM ref="log" :log-file="filepath" class="flex-1 overflow-hidden" />
+      <ToolVM :log="log" class="flex-shrink-0 px-3 pb-4" />
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { ref, onMounted, onUnmounted } from 'vue'
+  import { ref, onMounted, computed, nextTick, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { fs } from '@/util/NodeFn'
-  import { MessageError } from '@/util/Element'
-  import { Refresh, Delete } from '@element-plus/icons-vue'
+  import type { ProjectItem } from '@/components/LanguageProjects/ProjectItem'
+  import { join } from '@/util/path-browserify'
+  import LogVM from '@/components/Log/index.vue'
+  import ToolVM from '@/components/Log/tool.vue'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
-    logs: Array<{ name: string; path: string }>
+    item: ProjectItem
   }>()
 
-  const activeTab = ref(0)
-  const logContents = ref<string[]>([])
-  const autoRefresh = ref(true)
-  const refreshing = ref(false)
-  let refreshTimer: any = null
+  const log = ref()
 
-  const loadLog = async (index: number) => {
-    try {
-      const log = props.logs[index]
-      if (log && log.path) {
-        const exists = await fs.existsSync(log.path)
-        if (exists) {
-          const content = await fs.readFile(log.path)
-          logContents.value[index] = content.slice(-50000) // Last 50KB
-        } else {
-          logContents.value[index] = ''
-        }
-      }
-    } catch (e: any) {
-      logContents.value[index] = e.message
-    }
-  }
-
-  const refreshLogs = async () => {
-    refreshing.value = true
-    for (let i = 0; i < props.logs.length; i++) {
-      await loadLog(i)
-    }
-    setTimeout(() => {
-      refreshing.value = false
-    }, 500)
-  }
-
-  const clearLogs = async () => {
-    try {
-      const log = props.logs[activeTab.value]
-      if (log && log.path) {
-        await fs.writeFile(log.path, '')
-        logContents.value[activeTab.value] = ''
-      }
-    } catch (e: any) {
-      MessageError(e.message)
-    }
-  }
-
-  onMounted(() => {
-    props.logs.forEach((_, index) => {
-      loadLog(index)
-    })
-    refreshTimer = setInterval(() => {
-      if (autoRefresh.value) {
-        loadLog(activeTab.value)
-      }
-    }, 3000)
+  const logs = computed(() => {
+    const baseDir = join(window.Server.BaseDir!, 'module-customer')
+    const outFile = join(baseDir, `${props.item.id}-out.log`)
+    const errFile = join(baseDir, `${props.item.id}-error.log`)
+    return [
+      {
+        name: I18nT('base.log'),
+        path: outFile
+      },
+      {
+        name: I18nT('base.errorLog'),
+        path: errFile
+      },
+      ...props.item.logPath
+    ]
   })
 
-  onUnmounted(() => {
-    if (refreshTimer) {
-      clearInterval(refreshTimer)
+  const filepath = ref(logs.value[0].path)
+
+  const doRefresh = async () => {
+    await nextTick()
+
+    if (show.value && (await fs.existsSync(filepath.value))) {
+      log.value?.logDo?.('refresh')
     }
+  }
+
+  watch(filepath, () => {
+    doRefresh().catch()
+  })
+
+  onMounted(() => {
+    doRefresh().catch()
   })
 
   defineExpose({

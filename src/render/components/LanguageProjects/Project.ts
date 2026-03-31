@@ -22,7 +22,7 @@ export class Project {
     this.flagType = flagType
   }
 
-  action(item: ProjectItem, index: number, action: 'open' | 'edit') {
+  action(item: ProjectItem, index: number, action: 'open' | 'edit' | 'log' | 'config') {
     switch (action) {
       case 'open':
         shell.openPath(item.path).catch()
@@ -51,6 +51,20 @@ export class Project {
                 })
             }
           })
+        })
+        break
+      case 'log':
+        import('./LogViewer.vue').then((res) => {
+          AsyncComponentShow(res.default, {
+            item
+          }).catch()
+        })
+        break
+      case 'config':
+        import('./ConfigViewer.vue').then((res) => {
+          AsyncComponentShow(res.default, {
+            item
+          }).catch()
         })
         break
     }

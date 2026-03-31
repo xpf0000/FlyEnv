@@ -7,6 +7,10 @@ const module: AppModuleItem = {
   label: 'Deno',
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 19
+  asideIndex: 19,
+  icon: import('@/svg/deno.svg?raw'),
+  isService: true,
+  isTray: true,
+  isOnlyRunOne: false
 }
 export default module

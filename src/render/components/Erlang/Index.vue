@@ -6,25 +6,25 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service
+      <ProjectIndex
         v-if="tab === 0"
+        :title="`Erlang ${I18nT('base.projects')}`"
+        :type-flag="'erlang'"
+      >
+      </ProjectIndex>
+      <Service
+        v-else-if="tab === 1"
         title="Erlang"
         type-flag="erlang"
         :fetch-data-when-create="true"
       ></Service>
       <Manager
-        v-else-if="tab === 1"
+        v-else-if="tab === 2"
         type-flag="erlang"
         :has-static="false"
         title="Erlang"
         url="https://github.com/erlang/otp/releases/"
       ></Manager>
-      <ProjectIndex
-        v-else-if="tab === 2"
-        :title="`Erlang ${I18nT('base.projects')}`"
-        :type-flag="'erlang'"
-      >
-      </ProjectIndex>
     </div>
   </div>
 </template>
@@ -38,8 +38,8 @@
 
   const { tab } = AppModuleSetup('erlang')
   const tabs = [
+    `Erlang ${I18nT('base.projects')}`,
     I18nT('base.service'),
-    I18nT('base.versionManager'),
-    `Erlang ${I18nT('base.projects')}`
+    I18nT('base.versionManager')
   ]
 </script>

@@ -10,11 +10,14 @@
       </div>
       <span class="title">Zig</span>
     </div>
+
+    <LanguageProjectASide type-flag="zig" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('zig')
 </script>

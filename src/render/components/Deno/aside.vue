@@ -10,11 +10,13 @@
       </div>
       <span class="title">Deno</span>
     </div>
+    <LanguageProjectASide type-flag="deno" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('deno')
 </script>

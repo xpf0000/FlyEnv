@@ -10,13 +10,13 @@
       </div>
       <span class="title">NodeJS</span>
     </div>
-    <LanguageProjectToggle type-flag="node" page-path="/node" />
+    <LanguageProjectASide type-flag="node" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
-  import LanguageProjectToggle from '@/components/LanguageProjects/Toggle.vue'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('node')
 </script>

@@ -89,6 +89,7 @@
               <template v-if="scope.row.id === quickEdit?.id">
                 <el-input
                   v-model.number="quickEdit!.projectPort"
+                  type="number"
                   @change="docClick(undefined)"
                 ></el-input>
               </template>
@@ -143,7 +144,9 @@
         </el-table-column>
         <el-table-column :label="I18nT('base.service')" :prop="null" width="110px">
           <template #default="scope">
-            <template v-if="scope.row.isService">
+            <template
+              v-if="scope.row.isService && !scope?.row?.deling && quickEdit?.id !== scope.row.id"
+            >
               <template v-if="scope.row.state.running">
                 <el-button :loading="true" link></el-button>
               </template>
@@ -225,6 +228,25 @@
                       <span class="ml-3">{{ I18nT('nodejs.copyDirPath') }}</span>
                     </template>
                   </el-dropdown-item>
+                  <el-dropdown-item @click="project.action(scope.row, scope.$index, 'log')">
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('base.log') }}</span>
+                    </template>
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="scope.row.configPath.length > 0"
+                    @click="project.action(scope.row, scope.$index, 'config')"
+                  >
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('base.configFile') }}</span>
+                    </template>
+                  </el-dropdown-item>
                   <el-dropdown-item
                     v-if="isWindows"
                     @click="Project.openPath(scope.row.path, 'PowerShell')"
@@ -296,16 +318,6 @@
                     </template>
                     <template #default>
                       <span class="ml-3">{{ I18nT('nodejs.openIN') }} Sublime Text</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'HBuilderX')">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/hbuilderx.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3"
-                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.HBuilderX') }}</span
-                      >
                     </template>
                   </el-dropdown-item>
                   <slot name="openin" :row="scope.row as ProjectItem"></slot>
@@ -516,8 +528,6 @@
       }
     }
   }
-
-  project.fetchProject()
 
   onMounted(() => {
     document.addEventListener('click', docClick)

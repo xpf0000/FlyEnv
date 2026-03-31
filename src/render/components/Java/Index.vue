@@ -6,14 +6,26 @@
       </template>
     </el-radio-group>
     <div class="main-block">
+      <ProjectIndex v-if="tab === 0" :title="I18nT('host.projectJava')" :type-flag="'java'">
+        <template #openin="{ row }">
+          <el-dropdown-item @click="Project.openPath(row.path, 'IntelliJ')">
+            <template #icon>
+              <yb-icon :svg="import('@/svg/idea.svg?raw')" width="13" height="13" />
+            </template>
+            <template #default>
+              <span class="ml-3">{{ I18nT('nodejs.openIN') }} IntelliJ IDEA</span>
+            </template>
+          </el-dropdown-item>
+        </template>
+      </ProjectIndex>
       <Service
-        v-if="tab === 0"
+        v-else-if="tab === 1"
         title="JAVA"
         type-flag="java"
         :fetch-data-when-create="true"
       ></Service>
       <Manager
-        v-else-if="tab === 1"
+        v-else-if="tab === 2"
         title="Java"
         url="https://learn.microsoft.com/en-us/java/openjdk/download"
         type-flag="java"
@@ -21,7 +33,7 @@
         :show-sdkman-lib="true"
       ></Manager>
       <Maven
-        v-else-if="tab === 2"
+        v-else-if="tab === 3"
         type-flag="maven"
         title="Maven"
         url="https://maven.apache.org/"
@@ -30,14 +42,6 @@
         :show-port-lib="true"
         :show-sdkman-lib="true"
       />
-      <ProjectIndex v-else-if="tab === 3" :title="I18nT('host.projectJava')" :type-flag="'java'">
-        <template #openin="{ row }">
-          <li @click.stop="Project.openPath(row.path, 'IntelliJ')">
-            <yb-icon :svg="import('@/svg/idea.svg?raw')" width="13" height="13" />
-            <span class="ml-3">{{ I18nT('nodejs.openIN') }} IntelliJ IDEA</span>
-          </li>
-        </template>
-      </ProjectIndex>
     </div>
   </div>
 </template>
@@ -53,9 +57,9 @@
 
   const { tab } = AppModuleSetup('java')
   const tabs = [
+    I18nT('host.projectJava'),
     I18nT('base.service'),
     I18nT('base.versionManager'),
-    'Maven',
-    I18nT('host.projectJava')
+    'Maven'
   ]
 </script>

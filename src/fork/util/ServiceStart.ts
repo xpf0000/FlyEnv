@@ -14,12 +14,14 @@ import {
   removeByRoot,
   spawnPromiseWithEnv,
   waitPidFile,
+  waitTime,
   writeFile
 } from '../Fn'
 import { isMacOS, isWindows } from '@shared/utils'
 import { closeSync, openSync } from 'node:fs'
 import { spawn } from 'node:child_process'
 import EnvSync from '@shared/EnvSync'
+import { ProcessListFetch } from '@shared/Process'
 
 export type ServiceStartParams = {
   version: SoftInstalled
@@ -223,8 +225,13 @@ export async function customerServiceStartExec(
     await execPromise(`chown -R ${uid}:${gid} "${bin}"`)
   } catch {}
 
+  let env: string = ''
+  if (version.binBin && existsSync(version.binBin)) {
+    env = `export PATH="${dirname(version.binBin)}:$PATH"`
+  }
+
   psScript = psScript
-    .replace('#ENV#', '')
+    .replace('#ENV#', env)
     .replace('#CWD#', dirname(bin))
     .replace('#BIN#', bin)
     .replace('#ARGS#', '')
@@ -251,13 +258,15 @@ export async function customerServiceStartExec(
   try {
     if (version.isSudo) {
       const execRes = await execPromiseSudo([shell, psName], {
-        cwd: baseDir
+        cwd: baseDir,
+        env: version.env
       })
       res = (execRes.stdout + '\n' + execRes.stderr).trim()
     } else {
       res = await spawnPromiseWithEnv(shell, [psName], {
         cwd: baseDir,
-        shell: `/bin/${shell}`
+        shell: `/bin/${shell}`,
+        env: version.env
       })
     }
   } catch (e) {
@@ -291,8 +300,15 @@ export async function customerServiceStartExec(
       pid = match[1]
     }
     if (pid) {
-      return {
-        'APP-Service-Start-PID': pid
+      await waitTime(2000)
+      const plist = await ProcessListFetch()
+      const find = plist.find((p) => `${p.PID}` === `${pid}`)
+      if (find) {
+        return {
+          'APP-Service-Start-PID': pid
+        }
+      } else {
+        throw new Error(I18nT('fork.startFail'))
       }
     } else {
       throw new Error(stdout)

@@ -89,7 +89,7 @@ export class ProjectItem implements ProjectItemType {
       .catch()
   }
 
-  stop(): Promise<boolean> {
+  stop(showMessage = true): Promise<boolean> {
     return new Promise((resolve) => {
       if (!this._state.isRun || !this._state.pid) {
         this._state.isRun = false
@@ -105,10 +105,14 @@ export class ProjectItem implements ProjectItemType {
           if (res?.code === 0) {
             this._state.isRun = false
             this._state.pid = ''
-            MessageSuccess(I18nT('base.success'))
+            if (showMessage) {
+              MessageSuccess(I18nT('base.success'))
+            }
             resolve(true)
           } else {
-            MessageError(res?.msg ?? I18nT('base.fail'))
+            if (showMessage) {
+              MessageError(res?.msg ?? I18nT('base.fail'))
+            }
             resolve(false)
           }
         }
@@ -116,7 +120,7 @@ export class ProjectItem implements ProjectItemType {
     })
   }
 
-  start(): Promise<boolean | string> {
+  start(showMessage = true): Promise<boolean | string> {
     return new Promise(async (resolve) => {
       if (!this.isService) {
         resolve(true)
@@ -143,14 +147,18 @@ export class ProjectItem implements ProjectItemType {
             this._state.running = false
             this._state.isRun = true
             this._state.pid = res?.data?.['APP-Service-Start-PID'] ?? ''
-            MessageSuccess(I18nT('base.success'))
+            if (showMessage) {
+              MessageSuccess(I18nT('base.success'))
+            }
             resolve(true)
           } else if (res.code === 1) {
             IPC.off(key)
             this._state.running = false
             this._state.isRun = false
             this._state.pid = ''
-            MessageError(res.msg)
+            if (showMessage) {
+              MessageError(res.msg)
+            }
             resolve(res.msg)
           } else if (res.code === 200) {
             if (res?.msg?.['APP-Service-Start-Success'] === true) {
@@ -209,4 +217,6 @@ export class ProjectItem implements ProjectItemType {
       .then()
       .catch()
   }
+
+  showLog() {}
 }
