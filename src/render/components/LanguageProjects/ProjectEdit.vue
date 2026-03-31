@@ -108,11 +108,6 @@
                 </div>
               </div>
 
-              <div class="ssl-switch mb-2">
-                <span>{{ I18nT('host.runInTerminal') }}</span>
-                <el-switch v-model="item.runInTerminal"></el-switch>
-              </div>
-
               <template v-if="!isWindows">
                 <div class="ssl-switch mt-4">
                   <span>{{ I18nT('setup.module.isSudo') }}</span>

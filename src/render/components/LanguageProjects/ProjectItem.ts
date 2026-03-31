@@ -72,6 +72,7 @@ export class ProjectItem implements ProjectItemType {
   constructor(item: Partial<RunProjectItem>) {
     Object.assign(this, item)
     this.id = item.id || uuid()
+    this.runInTerminal = false
     this._state = reactive({
       running: false,
       isRun: false,
@@ -120,7 +121,7 @@ export class ProjectItem implements ProjectItemType {
     })
   }
 
-  start(showMessage = true): Promise<boolean | string> {
+  start(showMessage = true, runInTerminal = false): Promise<boolean | string> {
     return new Promise(async (resolve) => {
       if (!this.isService) {
         resolve(true)
@@ -140,7 +141,7 @@ export class ProjectItem implements ProjectItemType {
           data,
           this.typeFlag,
           password,
-          openInTerminal
+          openInTerminal || runInTerminal
         ).then((key: string, res: any) => {
           if (res.code === 0) {
             IPC.off(key)
@@ -171,7 +172,7 @@ export class ProjectItem implements ProjectItemType {
       if (this.isSudo && !window.Server.Password) {
         this.showPasswordTips(doRun, resolve)
       } else {
-        doRun(undefined, this.runInTerminal)
+        doRun(undefined)
       }
     })
   }
@@ -198,7 +199,7 @@ export class ProjectItem implements ProjectItemType {
                   .initConfig()
                   .then(() => {
                     done()
-                    doRun(pass, false)
+                    doRun(pass)
                   })
               } else {
                 instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')

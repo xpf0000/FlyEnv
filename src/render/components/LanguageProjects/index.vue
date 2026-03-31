@@ -212,6 +212,17 @@
                     </template>
                   </el-dropdown-item>
                   <slot name="operation" :row="scope.row as ProjectItem"></slot>
+                  <el-dropdown-item
+                    :disabled="scope.row.state.running || scope.row.state.isRun"
+                    @click="scope.row.start(true, true)"
+                  >
+                    <template #icon>
+                      <yb-icon :svg="import('@/svg/play.svg?raw')" width="13" height="13" />
+                    </template>
+                    <template #default>
+                      <span class="ml-3">{{ I18nT('host.runInTerminal') }}</span>
+                    </template>
+                  </el-dropdown-item>
                   <el-dropdown-item @click="showConfig(scope.row)">
                     <template #icon>
                       <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />

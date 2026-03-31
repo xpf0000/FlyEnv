@@ -13,7 +13,7 @@ import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
 import { basename, join } from 'path'
-import { chmod, mkdirp, remove, writeFile, copyFile, readFile } from '../../Fn'
+import { chmod, remove, writeFile, copyFile, readFile } from '../../Fn'
 import { execPromise } from '../../Fn'
 import { dirname } from 'node:path'
 
@@ -129,19 +129,13 @@ class LanguageProject {
         if (project.commandType === 'file') {
           command = project.runFile
         } else {
-          const baseDir = join(global.Server.BaseDir!, 'language-project', typeFlag)
-          await mkdirp(baseDir)
-          command = join(baseDir, `${project.id}.sh`)
-          await writeFile(command, `cd "${project.path}"\n${project.runCommand}`)
-          try {
-            await chmod(command, '0777')
-          } catch {}
+          command = project.runCommand
         }
-        if (project.binBin && existsSync(project.binPath)) {
-          command = `export PATH="${dirname(project.binPath)}:$PATH";${command}`
+        if (project.binBin && existsSync(project.binBin)) {
+          command = `export PATH="${dirname(project.binBin)}:$PATH"\n${command}`
         }
         for (const k in version.env) {
-          command = `export ${k}="${version.env[k]}";${command}`
+          command = `export ${k}="${version.env[k]}"\n${command}`
         }
         command = command.replace(/"/g, '\\"')
         const appleScript = `
@@ -193,19 +187,13 @@ class LanguageProject {
         if (project.commandType === 'file') {
           command = project.runFile
         } else {
-          const baseDir = join(global.Server.BaseDir!, 'language-project', typeFlag)
-          await mkdirp(baseDir)
-          command = join(baseDir, `${project.id}.sh`)
-          await writeFile(command, `cd "${project.path}"\n${project.runCommand}`)
-          try {
-            await chmod(command, '0777')
-          } catch {}
+          command = project.runCommand
         }
-        if (project.binBin && existsSync(project.binPath)) {
-          command = `export PATH="${dirname(project.binPath)}:$PATH";${command}`
+        if (project.binBin && existsSync(project.binBin)) {
+          command = `export PATH="${dirname(project.binBin)}:$PATH"\n${command}`
         }
         for (const k in version.env) {
-          command = `export ${k}="${version.env[k]}";${command}`
+          command = `export ${k}="${version.env[k]}"\n${command}`
         }
         command = command.replace(/"/g, '\\"')
 

@@ -21,7 +21,7 @@ import { createWriteStream, existsSync } from 'fs'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../../TaskQueue'
-import ncu from 'npm-check-updates'
+import { run } from 'npm-check-updates'
 import { appDebugLog, isMacOS } from '@shared/utils'
 import { unpack as unpackZip } from '../../util/Zip'
 import EnvSync from '@shared/EnvSync'
@@ -460,14 +460,16 @@ class Manager extends Base {
 
   packageJsonUpdate(file: string, cwd?: string) {
     return new ForkPromise((resolve, reject) => {
-      ncu({
+      run({
         packageFile: file,
         cwd
       })
         .then((res) => {
+          console.log('packageJsonUpdate: ', res)
           resolve(res)
         })
         .catch((e) => {
+          console.log('packageJsonUpdate error: ', e)
           reject(e)
         })
     })
