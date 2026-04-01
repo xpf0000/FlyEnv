@@ -534,7 +534,7 @@ class Manager extends Base {
   }
 
   runInTerminal(command: string) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       if (isMacOS()) {
         // 转义命令中的特殊字符
         command = command.replace(/"/g, '\\"')
