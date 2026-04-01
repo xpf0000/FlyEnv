@@ -80,5 +80,9 @@
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
-  "ifIsService": "Dacă este un serviciu"
+  "ifIsService": "Dacă este un serviciu",
+  "runSetting": "Setări de rulare",
+  "exec": "Execută",
+  "runInTerminal": "Rulează în terminal",
+  "portSetting": "Setări port"
 }

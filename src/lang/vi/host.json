@@ -80,5 +80,9 @@
     "TunnelRule": "Quy tắc Tunnel",
     "licenseTips": "Nếu không có giấy phép, Bạn chỉ có thể tạo một đường hầm và một bộ bản ghi máy chủ."
   },
-  "ifIsService": "Có phải là dịch vụ"
+  "ifIsService": "Có phải là dịch vụ",
+  "runSetting": "Cài đặt chạy",
+  "exec": "Thực thi",
+  "runInTerminal": "Chạy trong Terminal",
+  "portSetting": "Cài đặt cổng"
 }

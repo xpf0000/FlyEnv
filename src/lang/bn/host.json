@@ -80,5 +80,9 @@
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
-  "ifIsService": "এটি একটি পরিষেবা কিনা"
+  "ifIsService": "এটি একটি পরিষেবা কিনা",
+  "runSetting": "রান সেটিংস",
+  "exec": "এক্সিকিউট",
+  "runInTerminal": "টার্মিনালে চালাও",
+  "portSetting": "পোর্ট সেটিংস"
 }

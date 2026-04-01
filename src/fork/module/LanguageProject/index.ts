@@ -8,7 +8,7 @@ import {
   uuid,
   existsSync
 } from '../../Fn'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
@@ -198,7 +198,7 @@ class LanguageProject {
         command = command.replace(/"/g, '\\"')
 
         const terminalSH = join(global.Server.Static!, 'sh/exec-by-terminal.sh')
-        const exeSH = join(global.Server.Cache!, `exec-by-terminal.sh`)
+        const exeSH = join(global.Server.Cache!, `${uuid()}.sh`)
         await copyFile(terminalSH, exeSH)
         await chmod(exeSH, '0755')
 
@@ -207,6 +207,79 @@ class LanguageProject {
             cwd: global.Server.Cache!
           })
         } catch (e) {
+          return reject(e)
+        }
+
+        if (!project.pidPath) {
+          reject(new Error(I18nT('setup.module.hadOpenInTerminal')))
+          return
+        }
+
+        const res = await waitPidFile(project.pidPath, 0, 20, 500)
+        if (res) {
+          if (res?.pid) {
+            resolve({
+              'APP-Service-Start-PID': res.pid
+            })
+            return
+          }
+          reject(new Error(res?.error ?? 'Start Fail'))
+          return
+        }
+        reject(new Error('Start Fail'))
+        return
+      }
+
+      // 处理 Windows 终端打开
+      if (isWindows() && openInTerminal) {
+        let command = ''
+        if (project.commandType === 'file') {
+          command = project.runFile
+        } else {
+          command = project.runCommand
+        }
+        // Add PATH to environment
+        if (project.binBin && existsSync(project.binBin)) {
+          command = `$env:PATH = "${dirname(project.binBin)};" + $env:PATH\n${command}`
+        }
+        // Add environment variables
+        for (const k in version.env) {
+          command = `$env:${k} = "${version.env[k]}"\n${command}`
+        }
+
+        // Create command file and copy the terminal script
+        const terminalPS = join(global.Server.Static!, 'sh/exec-by-terminal.ps1')
+        const exePS = join(global.Server.Cache!, `exec-by-terminal-${uuid()}.ps1`)
+        const commandFile = join(global.Server.Cache!, `command-${uuid()}.txt`)
+
+        await copyFile(terminalPS, exePS)
+        await writeFile(commandFile, command, 'utf-8')
+
+        appDebugLog(
+          `[Windows][openInTerminal][command]`,
+          JSON.stringify(
+            {
+              command,
+              commandFile,
+              exePS
+            },
+            null,
+            2
+          )
+        ).catch()
+
+        try {
+          await execPromise(
+            `powershell.exe -ExecutionPolicy Bypass -File "${exePS}" "${commandFile}"`,
+            {
+              cwd: global.Server.Cache!
+            }
+          )
+          await remove(exePS)
+          await remove(commandFile)
+        } catch (e) {
+          await remove(exePS)
+          await remove(commandFile)
           return reject(e)
         }
 

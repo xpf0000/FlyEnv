@@ -83,15 +83,16 @@
                 </el-radio-group>
               </div>
 
-              <div v-if="item.commandType === 'command'" class="mb-4">
+              <div v-if="item.commandType === 'command'">
                 <textarea
                   v-model.trim="item.runCommand"
+                  style="margin-top: 0"
                   type="text"
                   :class="'input-textarea w-full' + (errs['runCommand'] ? ' error' : '')"
                   :placeholder="I18nT('host.startCommand')"
                 ></textarea>
               </div>
-              <div v-else class="path-choose mb-4">
+              <div v-else class="path-choose">
                 <input
                   v-model.trim="item.runFile"
                   type="text"

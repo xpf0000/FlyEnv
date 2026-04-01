@@ -80,5 +80,9 @@
     "TunnelRule": "Tunnel Rule",
     "licenseTips": "Without obtaining a license, You can only create one tunnel and one set of host records."
   },
-  "ifIsService": "Is Service"
+  "ifIsService": "Is Service",
+  "runSetting": "Run Settings",
+  "exec": "Execute",
+  "runInTerminal": "Run in Terminal",
+  "portSetting": "Port Settings"
 }

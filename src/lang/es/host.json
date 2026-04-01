@@ -80,5 +80,9 @@
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
-  "ifIsService": "Si es un servicio"
+  "ifIsService": "Si es un servicio",
+  "runSetting": "Configuración de ejecución",
+  "exec": "Ejecutar",
+  "runInTerminal": "Ejecutar en Terminal",
+  "portSetting": "Configuración de puerto"
 }

@@ -80,5 +80,9 @@
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
-  "ifIsService": "Onko se palvelu"
+  "ifIsService": "Onko se palvelu",
+  "runSetting": "Suoritusasetukset",
+  "exec": "Suorita",
+  "runInTerminal": "Suorita päätteessä",
+  "portSetting": "Porttiasetukset"
 }
