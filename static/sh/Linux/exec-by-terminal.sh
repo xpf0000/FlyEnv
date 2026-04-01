@@ -19,13 +19,19 @@ open_terminal_with_command() {
     local exec_cmd
     if $use_temp_file; then
         local temp_script=$(mktemp /tmp/term-cmd.XXXXXX)
-        echo "#!/bin/bash" > "$temp_script"
+        echo '#!/bin/bash' > "$temp_script"
+        echo 'echo "========================================"' >> "$temp_script"
+        echo 'echo "FlyEnv Command Execution"' >> "$temp_script"
+        echo 'echo "========================================"' >> "$temp_script"
+        echo 'echo ""' >> "$temp_script"
+        printf 'echo "\$ %s"\n' "$command" >> "$temp_script"
+        echo 'echo ""' >> "$temp_script"
         echo "$command" >> "$temp_script"
         echo 'bash' >> "$temp_script"
         chmod +x "$temp_script"
         exec_cmd="set +H; bash \"$temp_script\"; echo \"$temp_script\""
     else
-        exec_cmd="set +H; $command; bash"
+        exec_cmd="set +H; echo '========================================'; echo 'FlyEnv Command Execution'; echo '========================================'; echo ''; echo '\$ $command'; echo ''; $command; bash"
     fi
 
     echo "command: $exec_cmd"
