@@ -134,7 +134,7 @@
             <!-- 环境变量 -->
             <div class="plant-title">{{ I18nT('host.envVar') }}</div>
             <div class="main p-5">
-              <div class="ssl-switch mb-4">
+              <div class="ssl-switch">
                 <el-radio-group v-model="item.envVarType">
                   <el-radio-button value="none" :label="I18nT('base.none')"> </el-radio-button>
                   <el-radio-button value="specify" :label="I18nT('host.specifyVar')">
@@ -143,7 +143,7 @@
                 </el-radio-group>
               </div>
 
-              <div v-if="item.envVarType === 'specify'" class="mt-2">
+              <div v-if="item.envVarType === 'specify'" class="mt-4">
                 <textarea
                   v-model.trim="item.envVar"
                   type="text"
@@ -152,7 +152,7 @@
                   :placeholder="I18nT('host.envVarTips')"
                 ></textarea>
               </div>
-              <div v-else-if="item.envVarType === 'file'" class="path-choose mt-2">
+              <div v-else-if="item.envVarType === 'file'" class="path-choose mt-4">
                 <input
                   v-model.trim="item.envFile"
                   type="text"

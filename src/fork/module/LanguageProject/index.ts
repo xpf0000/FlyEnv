@@ -8,7 +8,7 @@ import {
   uuid,
   existsSync
 } from '../../Fn'
-import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
@@ -254,19 +254,6 @@ class LanguageProject {
 
         await copyFile(terminalPS, exePS)
         await writeFile(commandFile, command, 'utf-8')
-
-        appDebugLog(
-          `[Windows][openInTerminal][command]`,
-          JSON.stringify(
-            {
-              command,
-              commandFile,
-              exePS
-            },
-            null,
-            2
-          )
-        ).catch()
 
         try {
           await execPromise(

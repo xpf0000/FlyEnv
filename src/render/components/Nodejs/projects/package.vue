@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <div class="flex-1 overflow-hidden p-5">
+      <div class="flex-1 overflow-hidden px-5 pb-5">
         <el-scrollbar>
           <div class="flex flex-col gap-5">
             <ScriptVM :item="item" :package-json="packageJson" />

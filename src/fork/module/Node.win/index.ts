@@ -24,7 +24,7 @@ import { spawn } from 'child_process'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../../TaskQueue'
-import ncu from 'npm-check-updates'
+import { run } from 'npm-check-updates'
 import { appDebugLog } from '@shared/utils'
 
 class Manager extends Base {
@@ -665,7 +665,7 @@ class Manager extends Base {
 
   packageJsonUpdate(file: string, cwd?: string) {
     return new ForkPromise((resolve, reject) => {
-      ncu({
+      run({
         packageFile: file,
         cwd
       })
