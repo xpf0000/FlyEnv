@@ -206,7 +206,9 @@ class LanguageProject {
           await execPromise(`"${exeSH}" "${command}"`, {
             cwd: global.Server.Cache!
           })
+          await remove(exeSH)
         } catch (e) {
+          await remove(exeSH)
           return reject(e)
         }
 
