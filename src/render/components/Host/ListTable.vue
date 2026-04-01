@@ -52,6 +52,9 @@
           </template>
         </el-table-column>
         <el-table-column align="center" width="120px" :label="I18nT('host.phpVersion')">
+          <template #header>
+            <span class="truncate">{{ I18nT('host.phpVersion') }}</span>
+          </template>
           <template #default="scope">
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-select

@@ -40,7 +40,9 @@
       >
         <el-table-column prop="path">
           <template #header>
-            <span style="padding: 2px 12px 2px 24px; display: block">{{ I18nT('base.path') }}</span>
+            <span class="truncate" style="padding: 2px 12px 2px 24px; display: block">{{
+              I18nT('base.path')
+            }}</span>
           </template>
           <template #default="scope">
             <span
@@ -117,6 +119,9 @@
           </template>
         </el-table-column>
         <el-table-column :label="I18nT('host.comment')" prop="comment">
+          <template #header>
+            <span class="truncate">{{ I18nT('host.comment') }}</span>
+          </template>
           <template #default="scope">
             <template v-if="scope.row.id === quickEdit?.id">
               <el-input v-model="quickEdit!.comment" @change="docClick(undefined)"></el-input>
@@ -185,7 +190,10 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
+        <el-table-column :label="I18nT('base.operation')" :prop="null" width="110px" align="center">
+          <template #header>
+            <span class="truncate">{{ I18nT('base.operation') }}</span>
+          </template>
           <template #default="scope">
             <el-dropdown>
               <template #default>
