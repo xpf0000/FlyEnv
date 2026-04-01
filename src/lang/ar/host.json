@@ -77,7 +77,7 @@
     "TunnelRule": "قاعدة النفق",
     "licenseTips": "بدون الحصول على ترخيص، يمكنك إنشاء نفق واحد فقط ومجموعة واحدة من سجلات المضيف."
   },
-  "projectRuby": "Ruby Projects",
-  "projectRust": "Rust Projects",
-  "projectZig": "Zig Projects"
+  "projectRuby": "Ruby مشاريع",
+  "projectRust": "Rust مشاريع",
+  "projectZig": "Zig مشاريع"
 }
