@@ -79,5 +79,10 @@
   },
   "projectRuby": "Ruby مشاريع",
   "projectRust": "Rust مشاريع",
-  "projectZig": "Zig مشاريع"
+  "projectZig": "Zig مشاريع",
+  "ifIsService": "هل هو خدمة",
+  "runSetting": "إعدادات التشغيل",
+  "exec": "تنفيذ",
+  "runInTerminal": "التشغيل في الطرفية",
+  "portSetting": "إعدادات المنفذ"
 }

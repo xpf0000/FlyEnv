@@ -1,20 +1,97 @@
-import { isWindows } from '@shared/utils'
+import { appDebugLog, isWindows } from '@shared/utils'
 import { shellEnv } from 'shell-env'
+import { execPromise } from '@shared/child-process'
+import { join } from 'node:path'
+import { existsSync, copyFileSync } from 'node:fs'
+import * as process from 'node:process'
+import JSON5 from 'json5'
 
 class EnvSync {
   AppEnv: Record<string, any> | undefined
   constructor() {}
 
+  /**
+   * 调用@static/sh/Windows/env-get.ps1获取Windows环境变量
+   * 该脚本会获取 Machine 和 User 级别的环境变量，并展开所有 %VARNAME% 格式的变量引用
+   * @private
+   */
+  private async getWindowsAllEnv(): Promise<Record<string, string>> {
+    const dest = join(global.Server.Cache!, 'env-get.ps1')
+    if (!existsSync(dest)) {
+      const src = join(global.Server.Static!, 'sh/env-get.ps1')
+      try {
+        copyFileSync(src, dest)
+      } catch (e) {
+        console.error('[EnvSync] Failed to copy env-get.ps1:', e)
+        return process.env as any
+      }
+    }
+    let stdout = ''
+    try {
+      const command = `powershell -NoProfile -ExecutionPolicy Bypass -File "${dest}"`
+      const res = await execPromise(command, { encoding: 'utf8' })
+      stdout = res?.stdout?.trim() ?? ''
+    } catch (e) {
+      console.error('[EnvSync] Failed to fetch Windows env from script:', e)
+      appDebugLog(`[EnvSync][getWindowsAllEnv][error]`, `${e}`).catch()
+      return process.env as any
+    }
+    if (!stdout) {
+      return process.env as any
+    }
+    try {
+      return JSON5.parse(stdout)
+    } catch {}
+    try {
+      return JSON.parse(stdout)
+    } catch {
+      appDebugLog(`[EnvSync][getWindowsAllEnv][parse][error]`, `${stdout}`).catch()
+      return process.env as any
+    }
+  }
+
   async sync() {
     if (this.AppEnv) {
+      console.log('sync this.AppEnv exists !!!')
       return this.AppEnv
     }
     if (isWindows()) {
-      let path = `${process.env['PATH']};C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\`
-      path = Array.from(new Set(path.split(';')))
-        .filter((s) => !!s)
-        .join(';')
-      const env: any = { ...process.env, PATH: path }
+      console.time('EnvSync getWindowsAllEnv')
+      let lastEnv: Record<string, string> = {}
+      try {
+        lastEnv = await this.getWindowsAllEnv()
+      } catch {}
+      console.timeEnd('EnvSync getWindowsAllEnv')
+      const paths: string[] = []
+      lastEnv?.PATH?.split(';')?.forEach((path) => {
+        const p = path.trim()
+        if (p) {
+          paths.push(p)
+        }
+      })
+      process.env?.Path?.split(';')?.forEach((path) => {
+        const p = path.trim()
+        if (p) {
+          paths.push(p)
+        }
+      })
+      process.env?.PATH?.split(';')?.forEach((path) => {
+        const p = path.trim()
+        if (p) {
+          paths.push(p)
+        }
+      })
+      const extent = `C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\`
+      extent.split(';').forEach((path) => {
+        const p = path.trim()
+        if (p) {
+          paths.push(p)
+        }
+      })
+
+      const path = Array.from(new Set(paths)).filter(Boolean).join(';')
+
+      const env: any = { ...process.env, ...lastEnv, PATH: path, Path: path }
       if (global.Server.Proxy) {
         for (const k in global.Server.Proxy) {
           env[k] = global.Server.Proxy[k]
@@ -32,7 +109,6 @@ class EnvSync {
         this.AppEnv![k] = global.Server.Proxy[k]
       }
     }
-    // appDebugLog('[EnvSync][sync]', `${JSON.stringify(this.AppEnv, null, 2)}`).catch()
     return this.AppEnv!
   }
 }

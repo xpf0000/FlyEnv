@@ -7,6 +7,10 @@ const module: AppModuleItem = {
   label: 'NodeJS',
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 17
+  asideIndex: 17,
+  icon: import('@/svg/nodejs.svg?raw'),
+  isService: true,
+  isTray: true,
+  isOnlyRunOne: false
 }
 export default module

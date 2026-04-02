@@ -16,16 +16,25 @@ open_terminal_with_command() {
         use_temp_file=true
     fi
 
+    local decoded_command
+    decoded_command=$(printf '%b' "$command")
+
     local exec_cmd
     if $use_temp_file; then
         local temp_script=$(mktemp /tmp/term-cmd.XXXXXX)
-        echo "#!/bin/bash" > "$temp_script"
-        echo "$command" >> "$temp_script"
-        echo 'echo -e "\nCommand execution completed. Press any key to close..."; read -n1 -s' >> "$temp_script"
+        echo '#!/bin/bash' > "$temp_script"
+        echo 'echo "========================================"' >> "$temp_script"
+        echo 'echo "FlyEnv Command Execution"' >> "$temp_script"
+        echo 'echo "========================================"' >> "$temp_script"
+        echo 'echo ""' >> "$temp_script"
+        printf 'echo "\$ %s"\n' "$decoded_command" >> "$temp_script"
+        echo 'echo ""' >> "$temp_script"
+        printf '%b\n' "$decoded_command" >> "$temp_script"
+        echo 'bash' >> "$temp_script"
         chmod +x "$temp_script"
         exec_cmd="set +H; bash \"$temp_script\"; echo \"$temp_script\""
     else
-        exec_cmd="set +H; $command; echo -e '\nCommand execution completed. Press any key to close...'; read -n1 -s"
+        exec_cmd="set +H; echo '========================================'; echo 'FlyEnv Command Execution'; echo '========================================'; echo ''; echo '\$ $decoded_command'; echo ''; $decoded_command; bash"
     fi
 
     echo "command: $exec_cmd"
@@ -49,7 +58,7 @@ open_terminal_with_command() {
                 ;;
             konsole)
                 if command -v konsole &>/dev/null; then
-                    konsole --noclose -e bash -ic "$exec_cmd"
+                    konsole -e bash -ic "$exec_cmd"
                     terminal_found=true
                     break
                 fi
@@ -131,7 +140,7 @@ open_terminal_with_command() {
                     ;;
                 *KDE*)
                     if command -v konsole &>/dev/null; then
-                        konsole --noclose -e bash -c "$exec_cmd"
+                        konsole -e bash -c "$exec_cmd"
                         terminal_found=true
                     fi
                     ;;

@@ -6,21 +6,7 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service
-        v-if="tab === 0"
-        title="Go"
-        type-flag="golang"
-        :fetch-data-when-create="true"
-      ></Service>
-      <Manager
-        v-else-if="tab === 1"
-        type-flag="golang"
-        title="Go"
-        url="https://go.dev/dl/"
-        :has-static="true"
-      ></Manager>
-      <ProjectCreateVM v-else-if="tab === 2" />
-      <ProjectIndex v-else-if="tab === 3" :title="I18nT('host.projectGo')" :type-flag="'golang'">
+      <ProjectIndex v-if="tab === 0" :title="I18nT('host.projectGo')" :type-flag="'golang'">
         <template #openin="{ row }">
           <li @click.stop="Project.openPath(row.path, 'GoLand')">
             <yb-icon :svg="import('@/svg/goland.svg?raw')" width="13" height="13" />
@@ -28,6 +14,20 @@
           </li>
         </template>
       </ProjectIndex>
+      <Service
+        v-else-if="tab === 1"
+        title="Go"
+        type-flag="golang"
+        :fetch-data-when-create="true"
+      ></Service>
+      <Manager
+        v-else-if="tab === 2"
+        type-flag="golang"
+        title="Go"
+        url="https://go.dev/dl/"
+        :has-static="true"
+      ></Manager>
+      <ProjectCreateVM v-else-if="tab === 3" />
     </div>
   </div>
 </template>
@@ -43,9 +43,9 @@
 
   const { tab } = AppModuleSetup('golang')
   const tabs = [
+    I18nT('host.projectGo'),
     I18nT('base.service'),
     I18nT('base.versionManager'),
-    I18nT('host.newProject'),
-    I18nT('host.projectGo')
+    I18nT('host.newProject')
   ]
 </script>

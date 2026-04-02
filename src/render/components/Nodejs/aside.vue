@@ -10,11 +10,13 @@
       </div>
       <span class="title">NodeJS</span>
     </div>
+    <LanguageProjectASide type-flag="node" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('node')
 </script>

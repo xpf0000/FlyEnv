@@ -79,5 +79,10 @@
   },
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
-  "projectZig": "Zig Projects"
+  "projectZig": "Zig Projects",
+  "ifIsService": "Of het een service is",
+  "runSetting": "Uitvoeringsinstellingen",
+  "exec": "Uitvoeren",
+  "runInTerminal": "Uitvoeren in terminal",
+  "portSetting": "Portinstellingen"
 }

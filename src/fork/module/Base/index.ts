@@ -10,7 +10,8 @@ import {
   writeFile,
   remove,
   mkdirp,
-  zipUnpack
+  zipUnpack,
+  chmod
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
@@ -97,20 +98,25 @@ export class Base {
       try {
         this._linkVersion(version)
       } catch {}
+      let res: any
       try {
         await this._stopServer(version, ...args).on(on)
-        const res = await this._startServer(version, ...args).on(on)
+        res = await this._startServer(version, ...args).on(on)
+        resolve(res)
+      } catch (e) {
+        console.error('startService error: ', e)
+        return reject(e)
+      }
+
+      try {
         if (res?.['APP-Service-Start-PID']) {
           const pid = res['APP-Service-Start-PID']
           const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
           await mkdirp(dirname(appPidFile))
           await writeFile(appPidFile, pid.trim())
+          await chmod(appPidFile, '0755')
         }
-        resolve(res)
-      } catch (e) {
-        console.error('startService error: ', e)
-        reject(e)
-      }
+      } catch {}
     })
   }
 
@@ -139,12 +145,14 @@ export class Base {
         'APP-Service-Stop-Success': true
       })
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      if (existsSync(appPidFile)) {
-        const pid = (await readFile(appPidFile, 'utf-8')).trim()
-        allPid.push(pid)
-        const list = ProcessSearch(pid, false, plist).map((p) => p.PID)
-        allPid.push(...list)
-      }
+      try {
+        if (existsSync(appPidFile)) {
+          const pid = (await readFile(appPidFile, 'utf-8')).trim()
+          allPid.push(pid)
+          const list = ProcessSearch(pid, false, plist).map((p) => p.PID)
+          allPid.push(...list)
+        }
+      } catch {}
       if (version?.pid) {
         allPid.push(version.pid)
         const list = ProcessSearch(version.pid, false, plist).map((p) => p.PID)
@@ -227,9 +235,11 @@ export class Base {
           } catch {}
         }
       }
-      if (existsSync(appPidFile)) {
-        await remove(appPidFile)
-      }
+      try {
+        if (existsSync(appPidFile)) {
+          await remove(appPidFile)
+        }
+      } catch {}
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
       })

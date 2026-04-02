@@ -65,7 +65,8 @@ class Maven extends Base {
         all = [versionLocalFetch(setup?.maven?.dirs ?? [], 'mvn.cmd')]
       } else {
         const dirs = setup?.maven?.dirs ?? []
-        all = [versionLocalFetch([...dirs, '/opt/local/share/java/'], 'mvn', 'maven')]
+        const sdkmanDir = join(global.Server.UserHome!, '.sdkman/candidates/maven')
+        all = [versionLocalFetch([...dirs, '/opt/local/share/java/', sdkmanDir], 'mvn', 'maven')]
       }
 
       Promise.all(all)

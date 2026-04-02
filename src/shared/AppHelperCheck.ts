@@ -52,7 +52,7 @@ export const AppHelperCheck = () => {
       client.write(JSON.stringify(param))
       timer = setTimeout(() => {
         onEnd()
-      }, 500)
+      }, 2000)
     })
 
     const onEnd = () => {

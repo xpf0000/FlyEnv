@@ -4,7 +4,12 @@
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--app-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+}
+.monaco-editor {
+  * {
+    font-family: var(--app-code-font, --app-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+  }
 }
 html,
 body,
@@ -541,7 +546,8 @@ body {
     width: 100%;
 
     &#FileInfoDroper {
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .input {
@@ -913,6 +919,10 @@ body {
       align-items: center;
       padding: 8px 15px;
       cursor: pointer;
+
+      &.disabled {
+        cursor: not-allowed;
+      }
 
       .el-button {
         --el-button-text-color: #fff;
@@ -2585,20 +2595,6 @@ body {
           display: flex;
           align-items: center;
           justify-content: space-between;
-
-          .custom-folder-add-btn {
-            margin-left: 12px;
-
-            .el-icon {
-              width: 20px;
-              height: 20px;
-
-              svg {
-                width: 20px;
-                height: 20px;
-              }
-            }
-          }
         }
       }
     }
@@ -2774,6 +2770,23 @@ body {
     }
   }
 }
+.el-form-item {
+  &.el-form-item-flex-1 {
+
+    .el-form-item__label {
+      flex-shrink: 0;
+    }
+    .el-form-item__content {
+      flex: 1;
+      overflow: hidden;
+    }
+  }
+}
+.el-table {
+  .el-table__inner-wrapper::before {
+    display: none;
+  }
+}
 .el-button.status {
   svg {
     width: 22px;
@@ -2830,14 +2843,9 @@ body {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  gap: 30px;
 
   .proxy-set {
     flex-shrink: 0;
-  }
-
-  .editor-wapper {
-    flex: 1;
   }
 }
 .site-sucker-setup {

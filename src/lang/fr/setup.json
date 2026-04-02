@@ -45,5 +45,9 @@
   "flyenvHelper": "Réparer l'application d'assistance FlyEnv",
   "flyenvHelperBtn": "Réparer",
   "flyenvHelperFixSuccess": "Réparation de l'application d'assistance FlyEnv réussie",
-  "flyenvHelperInstallFailTips": "L'installation de l'assistant FlyEnv a échoué. Veuillez essayer d'exécuter FlyEnv avec les privilèges d'administrateur, ou cliquez sur le bouton OK et exécutez manuellement le programme d'assistance flyenv-helper.exe dans le dossier ouvert."
+  "flyenvHelperInstallFailTips": "L'installation de l'assistant FlyEnv a échoué. Veuillez essayer d'exécuter FlyEnv avec les privilèges d'administrateur, ou cliquez sur le bouton OK et exécutez manuellement le programme d'assistance flyenv-helper.exe dans le dossier ouvert.",
+  "appFont": "Police de l'interface",
+  "appFontTips": "Définir la police utilisée pour l'interface de l'application. Laisser vide pour utiliser la police système par défaut",
+  "codeFont": "Police de code",
+  "codeFontTips": "Définir la police utilisée pour le terminal, l'éditeur et les autres zones de code. Laisser vide pour utiliser la police monospace par défaut"
 }

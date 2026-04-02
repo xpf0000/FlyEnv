@@ -6,14 +6,19 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service
+      <ProjectIndex
         v-if="tab === 0"
+        :title="I18nT('host.projectPerl')"
+        :type-flag="'perl'"
+      ></ProjectIndex>
+      <Service
+        v-else-if="tab === 1"
         title="Perl"
         type-flag="perl"
         :fetch-data-when-create="true"
       ></Service>
       <Manager
-        v-else-if="tab === 1"
+        v-else-if="tab === 2"
         type-flag="perl"
         title="Perl"
         url="https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases"
@@ -21,11 +26,6 @@
         :show-port-lib="true"
         :show-brew-lib="true"
       ></Manager>
-      <ProjectIndex
-        v-else-if="tab === 2"
-        :title="I18nT('host.projectPerl')"
-        :type-flag="'perl'"
-      ></ProjectIndex>
     </div>
   </div>
 </template>
@@ -38,5 +38,5 @@
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
 
   const { tab } = AppModuleSetup('perl')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('host.projectPerl')]
+  const tabs = [I18nT('host.projectPerl'), I18nT('base.service'), I18nT('base.versionManager')]
 </script>

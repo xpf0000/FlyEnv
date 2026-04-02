@@ -14,7 +14,8 @@ import {
   readFile,
   remove,
   writeFile,
-  removeByRoot
+  removeByRoot,
+  copyFile
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
@@ -533,10 +534,11 @@ class Manager extends Base {
   }
 
   runInTerminal(command: string) {
-    return new ForkPromise((resolve, reject) => {
-      // 转义命令中的特殊字符
-      command = command.replace(/"/g, '\\"')
-      const appleScript = `
+    return new ForkPromise(async (resolve, reject) => {
+      if (isMacOS()) {
+        // 转义命令中的特殊字符
+        command = command.replace(/"/g, '\\"')
+        const appleScript = `
         tell application "Terminal"
           if not running then
             activate
@@ -547,27 +549,45 @@ class Manager extends Base {
           end if
         end tell`
 
-      let error: any = undefined
-      const osa = spawn('osascript', ['-e', appleScript])
-      osa.on('error', (err) => {
-        error = err
-      })
-      osa.on('close', () => {
-        console.log('close !!!')
-        if (error) {
-          reject(error)
-        } else {
+        let error: any = undefined
+        const osa = spawn('osascript', ['-e', appleScript])
+        osa.on('error', (err) => {
+          error = err
+        })
+        osa.on('close', () => {
+          console.log('close !!!')
+          if (error) {
+            reject(error)
+          } else {
+            resolve(true)
+          }
+        })
+      } else {
+        const terminalSH = join(global.Server.Static!, 'sh/exec-by-terminal.sh')
+        const exeSH = join(global.Server.Cache!, `${uuid()}.sh`)
+        await copyFile(terminalSH, exeSH)
+        await chmod(exeSH, '0755')
+
+        try {
+          await execPromise(`"${exeSH}" "${command}"`, {
+            cwd: global.Server.Cache!
+          })
+          await remove(exeSH)
           resolve(true)
+        } catch (e) {
+          await remove(exeSH)
+          return reject(e)
         }
-      })
+      }
     })
   }
 
   openPathByApp(dir: string, app: 'Terminal') {
     return new ForkPromise(async (resolve, reject) => {
-      let appleScript = ''
-      if (app === 'Terminal') {
-        appleScript = `tell application "Terminal"
+      if (isMacOS()) {
+        let appleScript = ''
+        if (app === 'Terminal') {
+          appleScript = `tell application "Terminal"
   if not running then
     activate
     do script "cd " & quoted form of "${dir}" in front window
@@ -576,20 +596,37 @@ class Manager extends Base {
     do script "cd " & quoted form of "${dir}"
   end if
 end tell`
+        }
+        const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
+        await writeFile(scptFile, appleScript)
+        await chmod(scptFile, '0777')
+        try {
+          await execPromise(`osascript ./${basename(scptFile)}`, {
+            cwd: global.Server.Cache!
+          })
+          await remove(scptFile)
+        } catch (e) {
+          await remove(scptFile)
+          return reject(e)
+        }
+        resolve(true)
+      } else {
+        const terminalSH = join(global.Server.Static!, 'sh/exec-by-terminal.sh')
+        const exeSH = join(global.Server.Cache!, `${uuid()}.sh`)
+        await copyFile(terminalSH, exeSH)
+        await chmod(exeSH, '0755')
+
+        try {
+          await execPromise(`"${exeSH}" "cd \\"${dir}\\""`, {
+            cwd: global.Server.Cache!
+          })
+          await remove(exeSH)
+          resolve(true)
+        } catch (e) {
+          await remove(exeSH)
+          return reject(e)
+        }
       }
-      const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
-      await writeFile(scptFile, appleScript)
-      await chmod(scptFile, '0777')
-      try {
-        await execPromise(`osascript ./${basename(scptFile)}`, {
-          cwd: global.Server.Cache!
-        })
-        await remove(scptFile)
-      } catch (e) {
-        await remove(scptFile)
-        return reject(e)
-      }
-      resolve(true)
     })
   }
 

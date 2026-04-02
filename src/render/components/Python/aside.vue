@@ -15,11 +15,13 @@
       </div>
       <span class="title">Python</span>
     </div>
+    <LanguageProjectASide type-flag="python" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('python')
 </script>

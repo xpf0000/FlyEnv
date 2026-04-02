@@ -79,5 +79,10 @@
   },
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
-  "projectZig": "Zig Projects"
+  "projectZig": "Zig Projects",
+  "ifIsService": "Xidmətdirmi",
+  "runSetting": "İşləmə Parametrləri",
+  "exec": "İcra et",
+  "runInTerminal": "Terminalda işlət",
+  "portSetting": "Port Parametrləri"
 }

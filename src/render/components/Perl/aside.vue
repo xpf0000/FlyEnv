@@ -10,11 +10,14 @@
       </div>
       <span class="title">Perl</span>
     </div>
+
+    <LanguageProjectASide type-flag="perl" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('perl')
 </script>

@@ -1,7 +1,7 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
-import { tmpdir } from 'node:os'
+import { tmpdir, homedir } from 'node:os'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
 import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
@@ -77,12 +77,14 @@ class OpenClaw extends Base {
           ?.replace('Dashboard:', '')
           ?.trim() ?? ''
 
+      const configFile = join(homedir(), '.openclaw/openclaw.json')
       resolve({
         status,
         isInstalled,
         isRunning,
         isStopped,
-        dashboard
+        dashboard,
+        configFile
       })
     })
   }

@@ -6,20 +6,20 @@
       </template>
     </el-radio-group>
     <div class="main-block">
+      <ProjectIndex v-if="tab === 0" :title="projectTitle" :type-flag="'zig'"></ProjectIndex>
       <Service
-        v-if="tab === 0"
+        v-else-if="tab === 1"
         title="Zig"
         type-flag="zig"
         :fetch-data-when-create="true"
       ></Service>
       <Manager
-        v-else-if="tab === 1"
+        v-else-if="tab === 2"
         type-flag="zig"
         title="Zig"
         url="https://ziglang.org/download/"
         :has-static="true"
       ></Manager>
-      <ProjectIndex v-else-if="tab === 2" :title="projectTitle" :type-flag="'zig'"></ProjectIndex>
     </div>
   </div>
 </template>
@@ -37,5 +37,5 @@
   })
 
   const { tab } = AppModuleSetup('zig')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), projectTitle]
+  const tabs = [projectTitle, I18nT('base.service'), I18nT('base.versionManager')]
 </script>

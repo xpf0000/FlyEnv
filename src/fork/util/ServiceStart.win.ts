@@ -8,12 +8,14 @@ import {
   remove,
   readFile,
   writeFile,
-  mkdirp
+  mkdirp,
+  waitTime
 } from '../Fn'
 import chardet from 'chardet'
 import iconv from 'iconv-lite'
 import { ServiceStartParams } from './ServiceStart'
 import type { ModuleExecItem } from '@shared/app'
+import { ProcessPidListByPid } from '@shared/Process.win'
 
 export async function readFileAsUTF8(filePath: string): Promise<string> {
   try {
@@ -314,7 +316,7 @@ export async function serviceStartExecCMD(
 export async function customerServiceStartExec(
   version: ModuleExecItem,
   isService: boolean
-): Promise<{ 'APP-Service-Start-PID': string }> {
+): Promise<{ pids?: string[]; 'APP-Service-Start-PID': string }> {
   const pidPath = version?.pidPath ?? ''
   if (pidPath && existsSync(pidPath)) {
     try {
@@ -325,8 +327,8 @@ export async function customerServiceStartExec(
   const baseDir = join(global.Server.BaseDir!, 'module-customer')
   await mkdirp(baseDir)
 
-  const outFile = join(baseDir, `${version.id}.out.log`)
-  const errFile = join(baseDir, `${version.id}.error.log`)
+  const outFile = join(baseDir, `${version.id}-out.log`)
+  const errFile = join(baseDir, `${version.id}-error.log`)
 
   let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-customer-exec.ps1'), 'utf8')
 
@@ -338,7 +340,13 @@ export async function customerServiceStartExec(
     await writeFile(bin, version.command)
   }
 
+  let env: string = ''
+  if (version.binBin && existsSync(version.binBin)) {
+    env = `$env:PATH = "${dirname(version.binBin)};" + $env:PATH`
+  }
+
   psScript = psScript
+    .replace('#ENV#', env)
     .replace('#CWD#', dirname(bin))
     .replace('#BIN#', bin)
     .replace('#OUTLOG#', outFile)
@@ -357,7 +365,8 @@ export async function customerServiceStartExec(
       ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', `\`"${psPath}\`"`],
       {
         shell: 'powershell.exe',
-        cwd: baseDir
+        cwd: baseDir,
+        env: version.env
       }
     )
   } catch (e) {
@@ -391,8 +400,15 @@ export async function customerServiceStartExec(
       pid = match[1]
     }
     if (pid) {
-      return {
-        'APP-Service-Start-PID': pid
+      await waitTime(2000)
+      const pids = await ProcessPidListByPid(`${pid}`.trim())
+      if (pids.length > 1) {
+        return {
+          pids,
+          'APP-Service-Start-PID': pid
+        }
+      } else {
+        throw new Error(I18nT('fork.startFail'))
       }
     } else {
       throw new Error(stdout)

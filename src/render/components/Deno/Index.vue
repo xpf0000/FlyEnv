@@ -6,25 +6,25 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service
+      <ProjectIndex
         v-if="tab === 0"
+        :title="I18nT('host.projectDeno')"
+        :type-flag="'deno'"
+      ></ProjectIndex>
+      <Service
+        v-else-if="tab === 1"
         title="Deno"
         type-flag="deno"
         :fetch-data-when-create="true"
       ></Service>
       <Manager
-        v-else-if="tab === 1"
+        v-else-if="tab === 2"
         type-flag="deno"
         title="Deno"
         url="https://github.com/denoland/deno/releases/"
         :has-static="true"
         :show-port-lib="false"
       ></Manager>
-      <ProjectIndex
-        v-else-if="tab === 2"
-        :title="I18nT('host.projectDeno')"
-        :type-flag="'deno'"
-      ></ProjectIndex>
     </div>
   </div>
 </template>
@@ -37,5 +37,5 @@
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
 
   const { tab } = AppModuleSetup('deno')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('host.projectDeno')]
+  const tabs = [I18nT('host.projectDeno'), I18nT('base.service'), I18nT('base.versionManager')]
 </script>

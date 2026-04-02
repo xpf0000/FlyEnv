@@ -79,5 +79,10 @@
     "TunnelInitFailTips": "Tunnel creation failed: {error}. Please check if the ApiToken is correct and ensure you have Cloudflare Tunnel edit permissions.",
     "TunnelRule": "Tunnel Rule",
     "licenseTips": "Without obtaining a license, You can only create one tunnel and one set of host records."
-  }
+  },
+  "ifIsService": "Is Service",
+  "runSetting": "Run Settings",
+  "exec": "Execute",
+  "runInTerminal": "Run in Terminal",
+  "portSetting": "Port Settings"
 }

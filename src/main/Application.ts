@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, globalShortcut, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, session, shell } from 'electron'
 import is from 'electron-is'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
@@ -79,6 +79,7 @@ export default class Application extends EventEmitter {
     this.windowManager.trayManager = this.trayManager
     this.handleCommands()
     this.handleIpcMessages()
+    this.initFontAccessPermission()
     this.initAppHelper()
     this.initForkManager()
     SiteSuckerManager.setCallback((link: any) => {
@@ -339,6 +340,16 @@ export default class Application extends EventEmitter {
         })
     }
 
+    // SDKMAN detection (macOS + Linux)
+    const checkSdkman = () => {
+      const uinfo = userInfo()
+      const sdkmanInit = join(uinfo.homedir, '.sdkman/bin/sdkman-init.sh')
+      if (existsSync(sdkmanInit)) {
+        global.Server.SdkmanHome = join(uinfo.homedir, '.sdkman')
+        sendGlobalUpdate()
+      }
+    }
+
     if (isMacOS()) {
       const brewBin = isArmArch() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
       runBrewChecks([brewBin])
@@ -351,6 +362,8 @@ export default class Application extends EventEmitter {
         .catch((e: Error) => {
           console.log('which port e: ', e)
         })
+
+      checkSdkman()
     } else if (isLinux()) {
       /**
        * Linux homebrew check
@@ -361,6 +374,8 @@ export default class Application extends EventEmitter {
         '/home/linuxbrew/.linuxbrew/bin/brew'
       ]
       runBrewChecks(brewBins)
+
+      checkSdkman()
     }
   }
 
@@ -919,8 +934,12 @@ export default class Application extends EventEmitter {
         this.windowManager?.getFocusedWindow()?.close()
         break
       case 'application:open-dev-window':
-        this.mainWindow?.webContents?.openDevTools()
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+        {
+          this.mainWindow?.webContents?.openDevTools()
+          const debugFile = join(tmpdir(), 'flyenv-debug.log')
+          shell.showItemInFolder(debugFile)
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+        }
         break
       case 'application:about':
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
@@ -1106,6 +1125,22 @@ export default class Application extends EventEmitter {
     ipcMain.on('event', (event, eventName, ...args) => {
       console.log('receive event', eventName, ...args)
       this.emit(eventName, ...args)
+    })
+  }
+
+  initFontAccessPermission() {
+    session.defaultSession.setPermissionCheckHandler((webContents, permission: any) => {
+      if (permission === 'local-fonts') {
+        return true
+      }
+      return true
+    })
+    session.defaultSession.setPermissionRequestHandler((webContents, permission: any, callback) => {
+      if (permission === 'local-fonts') {
+        callback(true)
+        return
+      }
+      callback(true)
     })
   }
 }

@@ -7,6 +7,10 @@ const module: AppModuleItem = {
   label: 'Python',
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 20
+  asideIndex: 20,
+  icon: import('@/svg/python.svg?raw'),
+  isService: true,
+  isTray: true,
+  isOnlyRunOne: false
 }
 export default module

@@ -115,5 +115,7 @@
   "info": "Thông tin",
   "ForceDelete": "Bắt buộc xóa",
   "needInstallHelperTips": "Một số thao tác thất bại do yêu cầu quyền Quản trị viên. Các thao tác này bao gồm sửa đổi tệp Hosts, truy cập danh sách tiến trình, liên kết với các cổng dưới 1024 hoặc quản lý các biến môi trường của hệ thống.\nVui lòng cài đặt FlyEnv Helper để cấp các quyền cần thiết cho các tác vụ này. Nhấp vào \"Đồng ý\" để tiếp tục cài đặt.",
-  "targetPlatforms": "Target Platforms"
+  "targetPlatforms": "Target Platforms",
+  "baseInfo": "Thông tin cơ bản",
+  "selectVersion": "Chọn phiên bản"
 }

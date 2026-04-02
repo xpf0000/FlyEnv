@@ -115,5 +115,7 @@
   "info": "Info",
   "ForceDelete": "Vynutit odstranění",
   "needInstallHelperTips": "Některé operace se nezdařily, protože jsou vyžadována oprávnění správce. To zahrnuje úpravu souboru Hosts, přístup k seznamu procesů, závazné pro porty pod 1024 nebo správu proměnných systémového prostředí.\nNainstalujte si FlyEnv Helper pro udělení potřebných oprávnění pro tyto úkoly. Klikněte na \"OK\" pro pokračování v instalaci.",
-  "targetPlatforms": "Target Platforms"
+  "targetPlatforms": "Target Platforms",
+  "baseInfo": "Základní informace",
+  "selectVersion": "Vyberte verzi"
 }

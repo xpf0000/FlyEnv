@@ -13,8 +13,16 @@
             <el-radio-button key="shell" label="shell">{{
               I18nT('base.Official')
             }}</el-radio-button>
-            <el-radio-button key="brew" :disabled="!hasBrew" label="brew">Homebrew</el-radio-button>
-            <el-radio-button key="port" :disabled="!hasPort" label="port">Macports</el-radio-button>
+            <template v-if="!isWindows">
+              <el-radio-button key="brew" :disabled="!hasBrew" label="brew"
+                >Homebrew</el-radio-button
+              >
+            </template>
+            <template v-if="isMacOS">
+              <el-radio-button key="port" :disabled="!hasPort" label="port"
+                >Macports</el-radio-button
+              >
+            </template>
           </el-radio-group>
         </el-form-item>
         <el-form-item>
@@ -25,7 +33,7 @@
       </el-form>
     </div>
   </template>
-  <template v-else>
+  <template v-else-if="showTable">
     <el-auto-resizer>
       <template #default="{ height, width }">
         <el-table-v2
@@ -48,22 +56,57 @@
   import { type Column, ElButton, ElInput, ElTooltip } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
   import { clipboard } from '@/util/NodeFn'
+  import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+  import XTerm from '@/util/XTerm'
+
+  const currentRow = ref<any>(null)
+  const currentAction = ref<'versionChange' | 'install' | 'uninstall' | ''>('')
 
   const {
     showInstall,
-    xtermDom,
     hasBrew,
     hasPort,
     installNVM,
-    versionChange,
+    tableData,
+    xtermDom,
+    showTable,
     installOrUninstall,
-    tableData
+    versionChange,
+    isWindows,
+    isMacOS
   } = Setup()
 
   const copyCommand = (command: string) => {
     clipboard.writeText(command)
     MessageSuccess(I18nT('base.copySuccess'))
   }
+
+  const handleVersionChange = (row: any) => {
+    currentRow.value = row
+    currentAction.value = 'versionChange'
+    versionChange(row)
+  }
+
+  const handleInstallOrUninstall = (action: 'install' | 'uninstall', row: any) => {
+    currentRow.value = row
+    currentAction.value = action
+    installOrUninstall(action, row)
+  }
+
+  onMounted(() => {
+    if (NVMSetup.installing && NVMSetup.xterm && xtermDom.value) {
+      nextTick().then(() => {
+        const execXTerm: XTerm = NVMSetup.xterm as any
+        if (execXTerm && xtermDom.value) {
+          execXTerm.mount(xtermDom.value).then().catch()
+        }
+      })
+    }
+  })
+
+  onUnmounted(() => {
+    NVMSetup?.xterm?.unmounted()
+  })
 
   const columns: Column<any>[] = [
     {
@@ -137,7 +180,7 @@
                 link
                 class="current-set row-hover-show"
                 onClick={() => {
-                  versionChange(row)
+                  handleVersionChange(row)
                 }}
               >
                 <YbIcon
@@ -195,7 +238,7 @@
             <ElButton
               type="primary"
               onClick={() => {
-                installOrUninstall(a, row)
+                handleInstallOrUninstall(a as 'install' | 'uninstall', row)
               }}
               link
             >

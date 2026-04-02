@@ -119,6 +119,8 @@ export type ModuleExecItem = {
   commandType: 'command' | 'file'
   isSudo?: boolean
   pidPath?: string
+  env: Record<string, string>
+  binBin: string
 }
 
 export type ExecResult = {

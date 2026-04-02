@@ -7,6 +7,7 @@
     </el-radio-group>
     <div class="main-block">
       <ServiceList v-if="tab === 0"></ServiceList>
+      <ConfigVM v-else-if="tab === 1"></ConfigVM>
     </div>
   </div>
 </template>
@@ -15,7 +16,8 @@
   import ServiceList from './Service.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import ConfigVM from './Config.vue'
 
   const { tab } = AppModuleSetup('openclaw')
-  const tabs = [I18nT('base.service')]
+  const tabs = [I18nT('base.service'), I18nT('base.configFile')]
 </script>

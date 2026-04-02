@@ -255,7 +255,8 @@ datadir=${pathFixedToUnix(dataDir)}`
                 execArgs,
                 execEnv,
                 on,
-                timeToWait: 1000
+                timeToWait: 1000,
+                maxTime: 60
               })
               resolve(res)
             } catch (e: any) {
@@ -521,7 +522,8 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
                 execArgs,
                 execEnv,
                 on,
-                timeToWait: 1000
+                timeToWait: 1000,
+                maxTime: 60
               })
               resolve(res)
             } catch (e: any) {

@@ -31,9 +31,13 @@ import meilisearch from './meilisearch.json'
 import minio from './minio.json'
 import podman from './podman.json'
 import openclawEN from './openclaw.json'
+import n8n from './n8n.json'
+import rustfs from './rustfs.json'
 
 export default {
   ar: {
+    rustfs,
+    n8n,
     openclaw: openclawEN,
     podman,
     minio,

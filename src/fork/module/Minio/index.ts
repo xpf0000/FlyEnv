@@ -159,7 +159,7 @@ class Minio extends Base {
           } else if (k === 'MINIO_CERTS_DIR') {
             certs_dir = v
           }
-          envs.push(`export ${k}="${v}"`)
+          envs.push(`$env:${k}="${v}"`)
         }
         envs.push('')
 

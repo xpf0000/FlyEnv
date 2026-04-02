@@ -10,11 +10,14 @@
       </div>
       <span class="title">Ruby</span>
     </div>
+
+    <LanguageProjectASide type-flag="ruby" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('ruby')
 </script>

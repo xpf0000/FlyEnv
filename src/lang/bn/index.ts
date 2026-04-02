@@ -31,9 +31,13 @@ import meilisearchBN from './meilisearch.json'
 import minioBN from './minio.json'
 import podmanBN from './podman.json'
 import openclawBN from './openclaw.json'
+import n8n from './n8n.json'
+import rustfsBN from './rustfs.json'
 
 export default {
   bn: {
+    rustfs: rustfsBN,
+    n8n,
     openclaw: openclawBN,
     podman: podmanBN,
     minio: minioBN,

@@ -4,6 +4,7 @@ import { BrewStore } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
 import { BrewSetup } from '@/components/VersionManager/brew/setup'
 import { MacPortsSetup } from '@/components/VersionManager/port/setup'
+import { SdkmanSetup } from '@/components/VersionManager/sdkman/setup'
 import { StaticSetup } from '@/components/VersionManager/static/setup'
 import { shell } from '@/util/NodeFn'
 
@@ -25,8 +26,15 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     return !!window.Server.MacPorts
   })
 
+  const checkSdkman = computed(() => {
+    if (!appStore.envIndex) {
+      return false
+    }
+    return !!window.Server.SdkmanHome
+  })
+
   const libSrc = computed({
-    get(): 'brew' | 'port' | 'static' {
+    get(): 'brew' | 'port' | 'static' | 'sdkman' {
       if (brewStore.LibUse[typeFlag]) {
         return brewStore.LibUse[typeFlag] as any
       }
@@ -35,7 +43,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       }
       return checkBrew.value ? 'brew' : checkPort.value ? 'port' : 'brew'
     },
-    set(v: 'brew' | 'port' | 'static') {
+    set(v: 'brew' | 'port' | 'static' | 'sdkman') {
       brewStore.LibUse[typeFlag] = v
     }
   })
@@ -47,6 +55,9 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'port') {
       return MacPortsSetup.installing
     }
+    if (libSrc.value === 'sdkman') {
+      return SdkmanSetup.installing
+    }
     return false
   })
 
@@ -56,6 +67,9 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     }
     if (libSrc.value === 'port') {
       return MacPortsSetup.installEnd
+    }
+    if (libSrc.value === 'sdkman') {
+      return SdkmanSetup.installEnd
     }
     return false
   })
@@ -81,6 +95,16 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       MacPortsSetup.reFetch()
       return
     }
+
+    if (libSrc.value === 'sdkman') {
+      SdkmanSetup.installing = false
+      SdkmanSetup.installEnd = false
+      SdkmanSetup.xterm?.destroy()
+      delete SdkmanSetup.xterm
+      SdkmanSetup.checkSdkman()
+      SdkmanSetup.reFetch()
+      return
+    }
   }
 
   const taskCancel = () => {
@@ -104,6 +128,16 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       })
       return
     }
+
+    if (libSrc.value === 'sdkman') {
+      SdkmanSetup.installing = false
+      SdkmanSetup.installEnd = false
+      SdkmanSetup.xterm?.stop()?.then(() => {
+        SdkmanSetup.xterm?.destroy()
+        delete SdkmanSetup.xterm
+      })
+      return
+    }
   }
 
   const loading = computed(() => {
@@ -117,21 +151,24 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'static') {
       return module.staticFetching
     }
+    if (libSrc.value === 'sdkman') {
+      return module.sdkmanFetching || SdkmanSetup.installing
+    }
     return false
   })
 
   const reFetch = () => {
     if (libSrc.value === 'brew') {
-      console.log('reFetch brew !!!')
       BrewSetup.reFetch()
     }
     if (libSrc.value === 'port') {
-      console.log('reFetch port !!!')
       MacPortsSetup.reFetch()
     }
     if (libSrc.value === 'static') {
-      console.log('reFetch port !!!')
       StaticSetup.reFetch()
+    }
+    if (libSrc.value === 'sdkman') {
+      SdkmanSetup.reFetch()
     }
   }
 
@@ -143,6 +180,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     libSrc,
     checkBrew,
     checkPort,
+    checkSdkman,
     showFooter,
     taskEnd,
     taskConfirm,

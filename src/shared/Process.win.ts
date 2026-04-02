@@ -60,9 +60,12 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
   return all
 }
 
-export const ProcessPidListByPids = async (pids: (string | number)[]): Promise<string[]> => {
+export const ProcessPidListByPids = async (
+  pids: (string | number)[],
+  processList?: PItem[]
+): Promise<string[]> => {
   const all: Set<string> = new Set(pids as any)
-  const arr = await ProcessPidList()
+  const arr = processList ?? (await ProcessPidList())
   const find = (ppid: string | number) => {
     ppid = Number(ppid)
     for (const item of arr) {
@@ -91,10 +94,13 @@ export const ProcessPidListByPids = async (pids: (string | number)[]): Promise<s
   return [...all]
 }
 
-export const ProcessPidListByPid = async (pid: string | number): Promise<string[]> => {
+export const ProcessPidListByPid = async (
+  pid: string | number,
+  processList?: PItem[]
+): Promise<string[]> => {
   pid = `${pid}`
   const all: Set<string> = new Set([pid])
-  const arr = await ProcessPidList()
+  const arr = processList ?? (await ProcessPidList())
   const find = (ppid: string | number) => {
     ppid = `${ppid}`
     for (const item of arr) {
@@ -119,14 +125,18 @@ export const ProcessPidListByPid = async (pid: string | number): Promise<string[
   return [...all]
 }
 
-export const ProcessListSearch = async (search: string, aA = true): Promise<PItem[]> => {
+export const ProcessListSearch = async (
+  search: string,
+  aA = true,
+  processList?: PItem[]
+): Promise<PItem[]> => {
   const all: PItem[] = []
   if (!search) {
     return all
   }
   let arr: PItem[] = []
   try {
-    arr = await ProcessPidList()
+    arr = processList ?? (await ProcessPidList())
   } catch (e) {
     console.log('ProcessListSearch error: ', e)
     return []

@@ -115,5 +115,7 @@
   "info": "Dettagli",
   "ForceDelete": "Eliminazione forzata",
   "needInstallHelperTips": "Alcune operazioni non sono riuscite perché sono richiesti privilegi di amministratore. Ciò include la modifica del file Hosts, l'accesso all'elenco di processo, l'associazione a porte inferiori a 1024 o la gestione di variabili di ambiente di sistema.\nSi prega di installare FlyEnv Helper per concedere i permessi necessari per queste attività. Fare clic su \"OK\" per procedere con l'installazione.",
-  "targetPlatforms": "Target Platforms"
+  "targetPlatforms": "Target Platforms",
+  "baseInfo": "Informazioni di base",
+  "selectVersion": "Seleziona versione"
 }

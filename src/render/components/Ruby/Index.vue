@@ -6,20 +6,7 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service
-        v-if="tab === 0"
-        title="Ruby"
-        type-flag="ruby"
-        :fetch-data-when-create="true"
-      ></Service>
-      <Manager
-        v-else-if="tab === 1"
-        type-flag="ruby"
-        :has-static="false"
-        title="Ruby"
-        url="https://github.com/oneclick/rubyinstaller2/releases"
-      ></Manager>
-      <ProjectIndex v-else-if="tab === 2" :title="I18nT('host.projectRuby')" :type-flag="'ruby'">
+      <ProjectIndex v-if="tab === 0" :title="I18nT('host.projectRuby')" :type-flag="'ruby'">
         <template #openin="{ row }">
           <li @click.stop="Project.openPath(row.path, 'RubyMine')">
             <yb-icon :svg="import('@/svg/rubymine.svg?raw')" width="13" height="13" />
@@ -27,6 +14,19 @@
           </li>
         </template>
       </ProjectIndex>
+      <Service
+        v-else-if="tab === 1"
+        title="Ruby"
+        type-flag="ruby"
+        :fetch-data-when-create="true"
+      ></Service>
+      <Manager
+        v-else-if="tab === 2"
+        type-flag="ruby"
+        :has-static="false"
+        title="Ruby"
+        url="https://github.com/oneclick/rubyinstaller2/releases"
+      ></Manager>
     </div>
   </div>
 </template>
@@ -40,5 +40,5 @@
   import { Project } from '@/util/Project'
 
   const { tab } = AppModuleSetup('ruby')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('host.projectRuby')]
+  const tabs = [I18nT('host.projectRuby'), I18nT('base.service'), I18nT('base.versionManager')]
 </script>

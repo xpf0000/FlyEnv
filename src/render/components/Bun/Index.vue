@@ -6,14 +6,19 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service
+      <ProjectIndex
         v-if="tab === 0"
+        :title="I18nT('host.projectBun')"
+        :type-flag="'bun'"
+      ></ProjectIndex>
+      <Service
+        v-else-if="tab === 1"
         title="Bun"
         type-flag="bun"
         :fetch-data-when-create="true"
       ></Service>
       <Manager
-        v-else-if="tab === 1"
+        v-else-if="tab === 2"
         type-flag="bun"
         title="Bun"
         url="https://github.com/oven-sh/bun/releases/"
@@ -21,11 +26,6 @@
         :show-port-lib="false"
         :show-brew-lib="false"
       ></Manager>
-      <ProjectIndex
-        v-else-if="tab === 2"
-        :title="I18nT('host.projectBun')"
-        :type-flag="'bun'"
-      ></ProjectIndex>
     </div>
   </div>
 </template>
@@ -38,5 +38,5 @@
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
 
   const { tab } = AppModuleSetup('bun')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('host.projectBun')]
+  const tabs = [I18nT('host.projectBun'), I18nT('base.service'), I18nT('base.versionManager')]
 </script>

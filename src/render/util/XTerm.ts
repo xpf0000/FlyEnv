@@ -52,7 +52,7 @@ export class XTerm implements XTermType {
         }
         this.xterm = new Terminal({
           fontSize: 14,
-          fontFamily: `monospace`, // 跨平台可用字体
+          fontFamily: appStore.config.setup?.codeFont || 'Menlo, Monaco, "Courier New", monospace',
           letterSpacing: 0, // 消除字体渲染差异
           lineHeight: 1.2, // 统一行高
 

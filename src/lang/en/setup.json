@@ -45,5 +45,9 @@
   "flyenvHelper": "Fix FlyEnv Helper",
   "flyenvHelperBtn": "Fix",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully",
-  "flyenvHelperInstallFailTips": "FlyEnv helper installation failed. Please try running FlyEnv with administrator privileges, or click the OK button and manually run the flyenv-helper.exe helper program in the opened folder."
+  "flyenvHelperInstallFailTips": "FlyEnv helper installation failed. Please try running FlyEnv with administrator privileges, or click the OK button and manually run the flyenv-helper.exe helper program in the opened folder.",
+  "appFont": "UI Font",
+  "appFontTips": "Set the font used for the application UI. Leave empty to use the default system font",
+  "codeFont": "Code Font",
+  "codeFontTips": "Set the font used for terminal, editor and other code areas. Leave empty to use the default monospace font"
 }

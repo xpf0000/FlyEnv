@@ -1,0 +1,22 @@
+{
+  "RUSTFS_ADDRESS": "绑定到特定的地址和端口，地址可以是IP或主机名。默认值为':9000'。",
+  "RUSTFS_ACCESS_KEY": "用于S3 API认证的访问密钥。",
+  "RUSTFS_ACCESS_KEY_FILE": "包含S3 API认证访问密钥的文件路径。",
+  "RUSTFS_SECRET_KEY": "用于S3 API认证的密钥。",
+  "RUSTFS_SECRET_KEY_FILE": "包含S3 API认证密钥的文件路径。",
+  "RUSTFS_CONSOLE_ENABLE": "启用Web控制台服务器。设置为'true'以启用。",
+  "RUSTFS_CONSOLE_ADDRESS": "控制台服务器绑定地址。默认值为':9001'。",
+  "RUSTFS_SERVER_DOMAINS": "用于虚拟主机风格请求的域名。",
+  "RUSTFS_TLS_PATH": "RustFS API和控制台的TLS证书路径。",
+  "RUSTFS_REGION": "服务器的区域名称。",
+  "RUSTFS_LICENSE": "商业功能的许可证密钥。",
+  "RUSTFS_KMS_ENABLE": "启用KMS服务端加密。设置为'true'以启用。",
+  "RUSTFS_KMS_BACKEND": "KMS后端类型：'local'或'vault'。默认值为'local'。",
+  "RUSTFS_KMS_KEY_DIR": "本地后端的KMS密钥目录。",
+  "RUSTFS_KMS_VAULT_ADDRESS": "Vault后端的Vault服务器地址。",
+  "RUSTFS_KMS_VAULT_TOKEN": "Vault后端认证的Vault令牌。",
+  "RUSTFS_KMS_DEFAULT_KEY_ID": "用于加密的默认KMS密钥ID。",
+  "RUSTFS_OBS_ENDPOINT": "用于跟踪、指标和日志的可观测性端点（仅支持gRPC模式）。",
+  "RUSTFS_BUFFER_PROFILE_DISABLE": "禁用工作负载配置文件的自适应缓冲区大小调整。设置为'true'以使用固定大小缓冲区。",
+  "RUSTFS_BUFFER_PROFILE": "自适应缓冲区大小调整的工作负载配置文件。选项：GeneralPurpose、AiTraining、DataAnalytics、WebWorkload、IndustrialIoT、SecureStorage。"
+}

@@ -15,11 +15,14 @@
       </div>
       <span class="title">Erlang</span>
     </div>
+
+    <LanguageProjectASide type-flag="erlang" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('erlang')
 </script>

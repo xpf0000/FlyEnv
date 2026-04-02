@@ -79,5 +79,10 @@
   },
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
-  "projectZig": "Zig Projects"
+  "projectZig": "Zig Projects",
+  "ifIsService": "Zda je služba",
+  "runSetting": "Nastavení spuštění",
+  "exec": "Spustit",
+  "runInTerminal": "Spustit v terminálu",
+  "portSetting": "Nastavení portu"
 }

@@ -45,5 +45,9 @@
   "flyenvHelper": "Reparera FlyEnv-hjälpprogram",
   "flyenvHelperBtn": "Reparera",
   "flyenvHelperFixSuccess": "Reparation av FlyEnv-hjälpprogram lyckades",
-  "flyenvHelperInstallFailTips": "Installationen av FlyEnv-hjälpprogrammet misslyckades. Försök att köra FlyEnv med administratörsbehörighet eller klicka på OK-knappen och kör hjälpprogrammet flyenv-helper.exe manuellt i den öppnade mappen."
+  "flyenvHelperInstallFailTips": "Installationen av FlyEnv-hjälpprogrammet misslyckades. Försök att köra FlyEnv med administratörsbehörighet eller klicka på OK-knappen och kör hjälpprogrammet flyenv-helper.exe manuellt i den öppnade mappen.",
+  "appFont": "Gränssnittstypsnitt",
+  "appFontTips": "Ange typsnittet som används för applikationens gränssnitt. Lämna tomt för att använda systemets standardtypsnitt",
+  "codeFont": "Kodtypsnitt",
+  "codeFontTips": "Ange typsnittet som används för terminal, editor och andra kodområden. Lämna tomt för att använda standardmonospace-typsnittet"
 }

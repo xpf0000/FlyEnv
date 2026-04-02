@@ -3,6 +3,7 @@ import { cpus, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { platform } from 'node:os'
 import { appendFile } from './fs-extra'
+import { normalize } from 'pathe'
 
 export async function appDebugLog(flag: string, info: string) {
   console.log('appDebugLog: ', flag, info)
@@ -51,12 +52,7 @@ export function md5(str: string) {
 }
 
 export function pathFixedToUnix(path: string) {
-  const needAdd = path.endsWith('\\')
-  const p = path
-    .split('\\')
-    .filter((s) => !!s.trim())
-    .join('/')
-  return needAdd ? `${p}/` : p
+  return normalize(path)
 }
 
 const os = platform()

@@ -67,9 +67,10 @@ class Java extends Base {
       if (isWindows()) {
         all = [versionLocalFetch(setup?.java?.dirs ?? [], 'java.exe')]
       } else {
+        const sdkmanDir = join(global.Server.UserHome!, '.sdkman/candidates/java')
         all = [
           versionLocalFetch(
-            [...(setup?.java?.dirs ?? []), '/Library/Java/JavaVirtualMachines'],
+            [...(setup?.java?.dirs ?? []), '/Library/Java/JavaVirtualMachines', sdkmanDir],
             'java',
             'jdk',
             ['Contents/Home/bin/java']

@@ -1,0 +1,193 @@
+{
+  "categories": [
+    {
+      "nameKey": "openclaw.category.basicInfo",
+      "commands": [
+        { "label": "openclaw help", "descriptionKey": "openclaw.cmd.help", "needInput": false },
+        { "label": "openclaw --version", "descriptionKey": "openclaw.cmd.version", "needInput": false },
+        { "label": "openclaw dashboard", "descriptionKey": "openclaw.cmd.dashboard", "needInput": false },
+        { "label": "openclaw doctor", "descriptionKey": "openclaw.cmd.doctor", "needInput": false },
+        { "label": "openclaw doctor --fix", "descriptionKey": "openclaw.cmd.doctorFix", "needInput": false },
+        { "label": "openclaw health", "descriptionKey": "openclaw.cmd.health", "needInput": false },
+        { "label": "openclaw status", "descriptionKey": "openclaw.cmd.status", "needInput": false },
+        { "label": "openclaw logs", "descriptionKey": "openclaw.cmd.logs", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.configuration",
+      "commands": [
+        { "label": "openclaw configure", "descriptionKey": "openclaw.cmd.configure", "needInput": false },
+        { "label": "openclaw config file", "descriptionKey": "openclaw.cmd.configFile", "needInput": false },
+        { "label": "openclaw config get", "descriptionKey": "openclaw.cmd.configGet", "needInput": true },
+        { "label": "openclaw config set", "descriptionKey": "openclaw.cmd.configSet", "needInput": true },
+        { "label": "openclaw config unset", "descriptionKey": "openclaw.cmd.configUnset", "needInput": true },
+        { "label": "openclaw config validate", "descriptionKey": "openclaw.cmd.configValidate", "needInput": false },
+        { "label": "openclaw setup", "descriptionKey": "openclaw.cmd.setup", "needInput": false },
+        { "label": "openclaw reset", "descriptionKey": "openclaw.cmd.reset", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.gateway",
+      "commands": [
+        { "label": "openclaw gateway --help", "descriptionKey": "openclaw.cmd.gatewayHelp", "needInput": false },
+        { "label": "openclaw gateway usage-cost", "descriptionKey": "openclaw.cmd.gatewayUsageCost", "needInput": false },
+        { "label": "openclaw gateway probe", "descriptionKey": "openclaw.cmd.gatewayProbe", "needInput": false },
+        { "label": "openclaw gateway discover", "descriptionKey": "openclaw.cmd.gatewayDiscover", "needInput": false },
+        { "label": "openclaw gateway health", "descriptionKey": "openclaw.cmd.gatewayHealth", "needInput": false },
+        { "label": "openclaw gateway status", "descriptionKey": "openclaw.cmd.gatewayStatus", "needInput": false },
+        { "label": "openclaw gateway status --deep", "descriptionKey": "openclaw.cmd.gatewayStatusDeep", "needInput": false },
+        { "label": "openclaw gateway install", "descriptionKey": "openclaw.cmd.gatewayInstall", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway uninstall", "descriptionKey": "openclaw.cmd.gatewayUninstall", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway start", "descriptionKey": "openclaw.cmd.gatewayStart", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway stop", "descriptionKey": "openclaw.cmd.gatewayStop", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway restart", "descriptionKey": "openclaw.cmd.gatewayRestart", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway run", "descriptionKey": "openclaw.cmd.gatewayRun", "needInput": false },
+        { "label": "openclaw gateway call", "descriptionKey": "openclaw.cmd.gatewayCall", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.agents",
+      "commands": [
+        { "label": "openclaw agent", "descriptionKey": "openclaw.cmd.agent", "needInput": false },
+        { "label": "openclaw agents list", "descriptionKey": "openclaw.cmd.agentsList", "needInput": false },
+        { "label": "openclaw agents add", "descriptionKey": "openclaw.cmd.agentsAdd", "needInput": true },
+        { "label": "openclaw agents delete", "descriptionKey": "openclaw.cmd.agentsDelete", "needInput": true },
+        { "label": "openclaw agents bindings", "descriptionKey": "openclaw.cmd.agentsBindings", "needInput": false },
+        { "label": "openclaw agents bind", "descriptionKey": "openclaw.cmd.agentsBind", "needInput": true },
+        { "label": "openclaw agents unbind", "descriptionKey": "openclaw.cmd.agentsUnbind", "needInput": true },
+        { "label": "openclaw agents set-identity", "descriptionKey": "openclaw.cmd.agentsSetIdentity", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.browser",
+      "commands": [
+        { "label": "openclaw browser status", "descriptionKey": "openclaw.cmd.browserStatus", "needInput": false },
+        { "label": "openclaw browser start", "descriptionKey": "openclaw.cmd.browserStart", "needInput": false },
+        { "label": "openclaw browser stop", "descriptionKey": "openclaw.cmd.browserStop", "needInput": false },
+        { "label": "openclaw browser tabs", "descriptionKey": "openclaw.cmd.browserTabs", "needInput": false },
+        { "label": "openclaw browser open", "descriptionKey": "openclaw.cmd.browserOpen", "needInput": true },
+        { "label": "openclaw browser navigate", "descriptionKey": "openclaw.cmd.browserNavigate", "needInput": true },
+        { "label": "openclaw browser screenshot", "descriptionKey": "openclaw.cmd.browserScreenshot", "needInput": false },
+        { "label": "openclaw browser snapshot", "descriptionKey": "openclaw.cmd.browserSnapshot", "needInput": false },
+        { "label": "openclaw browser click", "descriptionKey": "openclaw.cmd.browserClick", "needInput": true },
+        { "label": "openclaw browser type", "descriptionKey": "openclaw.cmd.browserType", "needInput": true },
+        { "label": "openclaw browser fill", "descriptionKey": "openclaw.cmd.browserFill", "needInput": true },
+        { "label": "openclaw browser pdf", "descriptionKey": "openclaw.cmd.browserPdf", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.channels",
+      "commands": [
+        { "label": "openclaw channels list", "descriptionKey": "openclaw.cmd.channelsList", "needInput": false },
+        { "label": "openclaw channels status", "descriptionKey": "openclaw.cmd.channelsStatus", "needInput": false },
+        { "label": "openclaw channels add", "descriptionKey": "openclaw.cmd.channelsAdd", "needInput": true },
+        { "label": "openclaw channels remove", "descriptionKey": "openclaw.cmd.channelsRemove", "needInput": true },
+        { "label": "openclaw channels login", "descriptionKey": "openclaw.cmd.channelsLogin", "needInput": true },
+        { "label": "openclaw channels logout", "descriptionKey": "openclaw.cmd.channelsLogout", "needInput": true },
+        { "label": "openclaw message send", "descriptionKey": "openclaw.cmd.messageSend", "needInput": true },
+        { "label": "openclaw message read", "descriptionKey": "openclaw.cmd.messageRead", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.nodes",
+      "commands": [
+        { "label": "openclaw nodes list", "descriptionKey": "openclaw.cmd.nodesList", "needInput": false },
+        { "label": "openclaw nodes status", "descriptionKey": "openclaw.cmd.nodesStatus", "needInput": false },
+        { "label": "openclaw nodes pending", "descriptionKey": "openclaw.cmd.nodesPending", "needInput": false },
+        { "label": "openclaw nodes approve", "descriptionKey": "openclaw.cmd.nodesApprove", "needInput": true },
+        { "label": "openclaw nodes reject", "descriptionKey": "openclaw.cmd.nodesReject", "needInput": true },
+        { "label": "openclaw nodes describe", "descriptionKey": "openclaw.cmd.nodesDescribe", "needInput": true },
+        { "label": "openclaw nodes invoke", "descriptionKey": "openclaw.cmd.nodesInvoke", "needInput": true },
+        { "label": "openclaw nodes camera", "descriptionKey": "openclaw.cmd.nodesCamera", "needInput": true },
+        { "label": "openclaw nodes screen", "descriptionKey": "openclaw.cmd.nodesScreen", "needInput": true },
+        { "label": "openclaw devices list", "descriptionKey": "openclaw.cmd.devicesList", "needInput": false },
+        { "label": "openclaw devices approve", "descriptionKey": "openclaw.cmd.devicesApprove", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.models",
+      "commands": [
+        { "label": "openclaw models status", "descriptionKey": "openclaw.cmd.modelsStatus", "needInput": false },
+        { "label": "openclaw models list", "descriptionKey": "openclaw.cmd.modelsList", "needInput": false },
+        { "label": "openclaw models scan", "descriptionKey": "openclaw.cmd.modelsScan", "needInput": false },
+        { "label": "openclaw models set", "descriptionKey": "openclaw.cmd.modelsSet", "needInput": true },
+        { "label": "openclaw models set-image", "descriptionKey": "openclaw.cmd.modelsSetImage", "needInput": true },
+        { "label": "openclaw models aliases", "descriptionKey": "openclaw.cmd.modelsAliases", "needInput": true },
+        { "label": "openclaw models auth", "descriptionKey": "openclaw.cmd.modelsAuth", "needInput": true },
+        { "label": "openclaw models fallbacks", "descriptionKey": "openclaw.cmd.modelsFallbacks", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.skills",
+      "commands": [
+        { "label": "openclaw skills list", "descriptionKey": "openclaw.cmd.skillsList", "needInput": false },
+        { "label": "openclaw skills check", "descriptionKey": "openclaw.cmd.skillsCheck", "needInput": false },
+        { "label": "openclaw skills info", "descriptionKey": "openclaw.cmd.skillsInfo", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.system",
+      "commands": [
+        { "label": "openclaw system presence", "descriptionKey": "openclaw.cmd.systemPresence", "needInput": false },
+        { "label": "openclaw system heartbeat", "descriptionKey": "openclaw.cmd.systemHeartbeat", "needInput": false },
+        { "label": "openclaw system event", "descriptionKey": "openclaw.cmd.systemEvent", "needInput": true },
+        { "label": "openclaw cron list", "descriptionKey": "openclaw.cmd.cronList", "needInput": false },
+        { "label": "openclaw cron add", "descriptionKey": "openclaw.cmd.cronAdd", "needInput": true },
+        { "label": "openclaw hooks list", "descriptionKey": "openclaw.cmd.hooksList", "needInput": false },
+        { "label": "openclaw hooks check", "descriptionKey": "openclaw.cmd.hooksCheck", "needInput": false },
+        { "label": "openclaw memory search", "descriptionKey": "openclaw.cmd.memorySearch", "needInput": true },
+        { "label": "openclaw memory status", "descriptionKey": "openclaw.cmd.memoryStatus", "needInput": false },
+        { "label": "openclaw sandbox list", "descriptionKey": "openclaw.cmd.sandboxList", "needInput": false },
+        { "label": "openclaw secrets audit", "descriptionKey": "openclaw.cmd.secretsAudit", "needInput": false },
+        { "label": "openclaw security audit", "descriptionKey": "openclaw.cmd.securityAudit", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.sessions",
+      "commands": [
+        { "label": "openclaw sessions", "descriptionKey": "openclaw.cmd.sessions", "needInput": false },
+        { "label": "openclaw sessions --active 120", "descriptionKey": "openclaw.cmd.sessionsActive", "needInput": false },
+        { "label": "openclaw sessions --json", "descriptionKey": "openclaw.cmd.sessionsJson", "needInput": false },
+        { "label": "openclaw sessions cleanup", "descriptionKey": "openclaw.cmd.sessionsCleanup", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.backup",
+      "commands": [
+        { "label": "openclaw backup create", "descriptionKey": "openclaw.cmd.backupCreate", "needInput": false },
+        { "label": "openclaw backup verify", "descriptionKey": "openclaw.cmd.backupVerify", "needInput": true },
+        { "label": "openclaw update", "descriptionKey": "openclaw.cmd.update", "needInput": false },
+        { "label": "openclaw update status", "descriptionKey": "openclaw.cmd.updateStatus", "needInput": false },
+        { "label": "openclaw update --dry-run", "descriptionKey": "openclaw.cmd.updateDryRun", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.plugins",
+      "commands": [
+        { "label": "openclaw plugins list", "descriptionKey": "openclaw.cmd.pluginsList", "needInput": false },
+        { "label": "openclaw plugins install", "descriptionKey": "openclaw.cmd.pluginsInstall", "needInput": true },
+        { "label": "openclaw plugins uninstall", "descriptionKey": "openclaw.cmd.pluginsUninstall", "needInput": true },
+        { "label": "openclaw plugins enable", "descriptionKey": "openclaw.cmd.pluginsEnable", "needInput": true },
+        { "label": "openclaw plugins disable", "descriptionKey": "openclaw.cmd.pluginsDisable", "needInput": true },
+        { "label": "openclaw plugins doctor", "descriptionKey": "openclaw.cmd.pluginsDoctor", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "openclaw.category.other",
+      "commands": [
+        { "label": "openclaw acp client", "descriptionKey": "openclaw.cmd.acpClient", "needInput": false },
+        { "label": "openclaw approvals get", "descriptionKey": "openclaw.cmd.approvalsGet", "needInput": false },
+        { "label": "openclaw directory self", "descriptionKey": "openclaw.cmd.directorySelf", "needInput": false },
+        { "label": "openclaw directory peers", "descriptionKey": "openclaw.cmd.directoryPeers", "needInput": true },
+        { "label": "openclaw dns setup", "descriptionKey": "openclaw.cmd.dnsSetup", "needInput": false },
+        { "label": "openclaw pairing list", "descriptionKey": "openclaw.cmd.pairingList", "needInput": false },
+        { "label": "openclaw docs", "descriptionKey": "openclaw.cmd.docs", "needInput": true },
+        { "label": "openclaw completion", "descriptionKey": "openclaw.cmd.completion", "needInput": false },
+        { "label": "openclaw tui", "descriptionKey": "openclaw.cmd.tui", "needInput": false },
+        { "label": "openclaw qr", "descriptionKey": "openclaw.cmd.qr", "needInput": false },
+        { "label": "openclaw onboard", "descriptionKey": "openclaw.cmd.onboard", "needInput": false },
+        { "label": "openclaw uninstall", "descriptionKey": "openclaw.cmd.uninstall", "needInput": false }
+      ]
+    }
+  ]
+}

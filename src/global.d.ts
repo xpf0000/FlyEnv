@@ -27,6 +27,7 @@ export interface ServerType {
   Lang?: string
   Local?: string
   MacPorts?: string
+  SdkmanHome?: string
   ForceStart?: boolean
   UserHome?: string
   Licenses?: string
@@ -56,10 +57,12 @@ declare global {
   interface Window {
     openDir: (dir: string) => void
     openUrl: (url: string) => void
+    queryLocalFonts: () => any
     FlyEnvNodeAPI: {
       ipcSendToMain: (...args: any[]) => void
       ipcReceiveFromMain: (callback: (event: any, ...args: any[]) => void) => void
       showFilePath: (file: File) => string
+      getSystemFonts: () => Promise<string[]>
     }
   }
 }

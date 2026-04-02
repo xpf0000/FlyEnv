@@ -20,6 +20,7 @@
         :has-static="true"
         :show-port-lib="true"
         :show-brew-lib="true"
+        :show-sdkman-lib="true"
       ></Manager>
     </div>
   </div>

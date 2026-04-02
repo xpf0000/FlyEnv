@@ -121,7 +121,8 @@
     openURL,
     watchFlag,
     setEditLanguage,
-    onEditerInited
+    onEditerInited,
+    getConfig
   } = ConfSetup(p)
 
   watch(
@@ -137,6 +138,7 @@
   )
 
   defineExpose({
+    getConfig,
     setEditValue,
     update,
     setEditLanguage,

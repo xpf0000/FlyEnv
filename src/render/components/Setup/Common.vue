@@ -92,9 +92,6 @@
   const isWindows = computed(() => {
     return window.Server.isWindows
   })
-  const isLinux = computed(() => {
-    return window.Server.isLinux
-  })
 
   const appStore = AppStore()
 

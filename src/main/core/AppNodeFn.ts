@@ -576,9 +576,10 @@ X-GNOME-Autostart-enabled=true`
     command: string,
     key: string,
     file: string,
-    algorithm: 'sha1' | 'sha256' | 'md5' = 'sha256'
+    algorithm: 'sha1' | 'sha256' | 'md5' | 'sha512' | 'sha512Base64' = 'sha256'
   ) {
-    const hash = crypto.createHash(algorithm)
+    const algo = algorithm === 'sha512Base64' ? 'sha512' : algorithm
+    const hash = crypto.createHash(algo)
     const stream = createReadStream(file)
 
     stream.on('error', () => {
@@ -590,7 +591,7 @@ X-GNOME-Autostart-enabled=true`
     })
 
     stream.on('end', () => {
-      const md5 = hash.digest('hex')
+      const md5 = algorithm === 'sha512Base64' ? hash.digest('base64') : hash.digest('hex')
       this?.mainWindow?.webContents.send('command', command, key, md5)
     })
   }

@@ -10,11 +10,13 @@
       </div>
       <span class="title">Bun</span>
     </div>
+    <LanguageProjectASide type-flag="bun" :show-item="showItem" />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
+  import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
 
   const { showItem, currentPage, nav } = AsideSetup('bun')
 </script>

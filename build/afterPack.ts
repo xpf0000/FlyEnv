@@ -42,7 +42,7 @@ export default async function after(pack: PackContext) {
     }
 
     let shFile = join(pack.appOutDir, 'resources/helper/flyenv.sh')
-    let tmplFile = resolve(pack.appOutDir, '../../static/sh/macOS/fly-env.sh')
+    let tmplFile = resolve(pack.appOutDir, '../../static/sh/Linux/fly-env.sh')
     await copyFile(tmplFile, shFile)
 
     shFile = join(pack.appOutDir, 'resources/helper/flyenv-helper-init.sh')

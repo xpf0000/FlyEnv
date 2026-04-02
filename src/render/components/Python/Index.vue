@@ -6,19 +6,7 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service
-        v-if="tab === 0"
-        title="Python"
-        type-flag="python"
-        :fetch-data-when-create="true"
-      ></Service>
-      <Manager v-else-if="tab === 1" type-flag="python" title="Python"></Manager>
-      <ProjectCreateVM v-else-if="tab === 2" />
-      <ProjectIndex
-        v-else-if="tab === 3"
-        :title="I18nT('host.projectPython')"
-        :type-flag="'python'"
-      >
+      <ProjectIndex v-if="tab === 0" :title="I18nT('host.projectPython')" :type-flag="'python'">
         <template #openin="{ row }">
           <li @click.stop="Project.openPath(row.path, 'PyCharm')">
             <yb-icon :svg="import('@/svg/pycharm.svg?raw')" width="13" height="13" />
@@ -26,6 +14,14 @@
           </li>
         </template>
       </ProjectIndex>
+      <Service
+        v-else-if="tab === 1"
+        title="Python"
+        type-flag="python"
+        :fetch-data-when-create="true"
+      ></Service>
+      <Manager v-else-if="tab === 2" type-flag="python" title="Python"></Manager>
+      <ProjectCreateVM v-else-if="tab === 3" />
     </div>
   </div>
 </template>
@@ -41,9 +37,9 @@
 
   const { tab } = AppModuleSetup('python')
   const tabs = [
+    I18nT('host.projectPython'),
     I18nT('base.service'),
     I18nT('base.versionManager'),
-    I18nT('host.newProject'),
-    I18nT('host.projectPython')
+    I18nT('host.newProject')
   ]
 </script>

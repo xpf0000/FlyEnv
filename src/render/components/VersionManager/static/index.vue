@@ -43,7 +43,7 @@
         </el-tooltip>
       </template>
     </el-table-column>
-    <el-table-column :label="null">
+    <el-table-column label="">
       <template #default="scope">
         <div class="cell-progress">
           <el-progress v-if="scope.row.downing" :percentage="scope.row.progress"></el-progress>

@@ -1,25 +1,28 @@
 <template>
   <div class="setup-common editor-config">
+    <div class="plant-title flex items-center gap-1">
+      <span>{{ I18nT('base.editorSettings') }}</span>
+    </div>
     <div class="main proxy-set">
       <el-form label-width="130px" label-position="left" @submit.prevent>
-        <el-form-item :label="$t('base.theme')">
+        <el-form-item :label="I18nT('base.theme')">
           <el-radio-group v-model="editorConfig.theme">
             <el-radio-button label="vs-dark" value="vs-dark" />
             <el-radio-button label="vs-light" value="vs-light" />
             <el-radio-button label="hc-black" value="hc-black" />
             <el-radio-button label="hc-light" value="hc-light" />
-            <el-radio-button label="auto" value="auto">{{ $t('util.auto') }}</el-radio-button>
+            <el-radio-button label="auto" value="auto">{{ I18nT('util.auto') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="$t('util.fontSize')">
+        <el-form-item :label="I18nT('util.fontSize')">
           <el-input v-model.number="editorConfig.fontSize" type="number"></el-input>
         </el-form-item>
-        <el-form-item :label="$t('util.lineHeight')">
+        <el-form-item :label="I18nT('util.lineHeight')">
           <el-input v-model.number="editorConfig.lineHeight" type="number"></el-input>
         </el-form-item>
       </el-form>
     </div>
-    <div ref="wapper" class="editor-wapper"></div>
+    <div ref="wapper" class="mt-5 h-[240px]"></div>
   </div>
 </template>
 
@@ -29,9 +32,9 @@
   import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { EditorConfigMap } from '@/components/Setup/EditorConfig/store'
   import { EditorCreate, EditorDestroy } from '@/util/Editor'
-  import { join } from '@/util/path-browserify'
-  import { fs, nativeTheme } from '@/util/NodeFn'
+  import { nativeTheme } from '@/util/NodeFn'
   import { asyncComputed } from '@vueuse/core'
+  import { I18nT } from '@lang/index'
 
   const wapper = ref()
   const appStore = AppStore()
@@ -64,7 +67,20 @@
     return theme
   })
 
+  const codeFont = computed(() => {
+    return appStore.config.setup?.codeFont
+  })
+
+  watch(codeFont, (v) => {
+    const codeFont = v || 'Menlo, Monaco, "Courier New", monospace'
+    console.log('codeFont changed: ', codeFont)
+    monacoInstance?.updateOptions({
+      fontFamily: codeFont
+    })
+  })
+
   const initEditor = () => {
+    const codeFont = appStore.config.setup?.codeFont || 'Menlo, Monaco, "Courier New", monospace'
     monacoInstance = EditorCreate(wapper.value, {
       value: EditorConfigMap.text,
       language: 'ini',
@@ -73,19 +89,21 @@
       automaticLayout: true,
       theme: currentTheme.value,
       fontSize: editorConfig.value.fontSize,
-      lineHeight: editorConfig.value.lineHeight
+      lineHeight: editorConfig.value.lineHeight,
+      fontFamily: codeFont
     })
   }
 
   onMounted(() => {
     if (!EditorConfigMap.text) {
-      fs.readFile(join(window.Server.Static!, 'tmpl/httpd.conf')).then((text: string) => {
-        EditorConfigMap.text = text
-        initEditor()
-      })
-    } else {
-      initEditor()
+      EditorConfigMap.text = `ServerRoot "/usr/local/Cellar/apache@2.4.46/2.4.46"
+# Change this to Listen on specific IP addresses as shown below to
+# prevent Apache from glomming onto all bound IP addresses.
+#
+#Listen 12.34.56.78:80
+#Listen 8080`
     }
+    initEditor()
   })
 
   onUnmounted(() => {
@@ -99,10 +117,13 @@
     () => {
       nextTick().then(() => {
         console.log('watching editor config: ', currentTheme.value)
+        const codeFont =
+          appStore.config.setup?.codeFont || 'Menlo, Monaco, "Courier New", monospace'
         monacoInstance?.updateOptions({
           theme: currentTheme.value,
           fontSize: editorConfig.value.fontSize,
-          lineHeight: editorConfig.value.lineHeight
+          lineHeight: editorConfig.value.lineHeight,
+          fontFamily: codeFont
         })
         appStore.saveConfig()
       })

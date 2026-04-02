@@ -41,7 +41,7 @@ type State = {
   showInstallLog: boolean
   brewSrc: string
   log: Array<string>
-  LibUse: { [k: string]: 'brew' | 'port' | 'static' | 'local' }
+  LibUse: { [k: string]: 'brew' | 'port' | 'static' | 'local' | 'sdkman' }
   modules: Record<AllAppModule, Module>
 }
 
@@ -71,6 +71,7 @@ export const BrewStore = defineStore('brew', {
         module.fetchBrew = module.fetchBrew.bind(module)
         module.fetchPort = module.fetchPort.bind(module)
         module.fetchStatic = module.fetchStatic.bind(module)
+        module.fetchSdkman = module.fetchSdkman.bind(module)
         module.start = module.start.bind(module)
         module.stop = module.stop.bind(module)
         module.watchShowHide = module.watchShowHide.bind(module)

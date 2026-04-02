@@ -11,10 +11,10 @@
 
 <script lang="ts" setup>
   import { I18nT } from '@lang/index'
-  import { type ProjectItem } from '@/components/LanguageProjects/setup'
   import { Reading } from '@element-plus/icons-vue'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
+  import type { ProjectItem } from '@/components/LanguageProjects/ProjectItem'
 
   let PackageVM: any
   import('./package.vue').then((res) => {
