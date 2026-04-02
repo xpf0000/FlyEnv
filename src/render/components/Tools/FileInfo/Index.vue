@@ -14,44 +14,56 @@
           <span>{{ I18nT('base.fileInfoTips') }}</span>
         </div>
       </div>
-      <ul v-if="path" class="info-wapper">
-        <li>
-          <span>file size: </span>
-          <span v-text="info.size_str"></span>
-          <span v-text="info.size"></span>
-        </li>
-        <li>
-          <span>create time: </span>
-          <span v-text="info.btime_str"></span>
-          <span v-text="info.btime"></span>
-        </li>
-        <li>
-          <span>change time: </span>
-          <span v-text="info.ctime_str"></span>
-          <span v-text="info.ctime"></span>
-        </li>
-        <li>
-          <span>access time: </span>
-          <span v-text="info.atime_str"></span>
-          <span v-text="info.atime"></span>
-        </li>
-        <li>
-          <span>modify time: </span>
-          <span v-text="info.mtime_str"></span>
-          <span v-text="info.mtime"></span>
-        </li>
-        <li>
-          <span>MD5: </span>
-          <span v-text="info.md5"></span>
-        </li>
-        <li>
-          <span>SHA-1: </span>
-          <span v-text="info.sha1"></span>
-        </li>
-        <li>
-          <span>SHA-256: </span>
-          <span v-text="info.sha256"></span>
-        </li>
+      <ul v-if="path" class="info-wapper select-text">
+        <el-descriptions border :title="path" :column="2" :direction="'vertical'">
+          <el-descriptions-item label="file size">
+            {{ info.size_str }}
+          </el-descriptions-item>
+          <el-descriptions-item label="">
+            {{ info.size }}
+          </el-descriptions-item>
+          <el-descriptions-item label="create time">
+            {{ info.btime_str }}
+          </el-descriptions-item>
+          <el-descriptions-item label="">
+            {{ info.btime }}
+          </el-descriptions-item>
+          <el-descriptions-item label="change time">
+            {{ info.ctime_str }}
+          </el-descriptions-item>
+          <el-descriptions-item label="">
+            {{ info.ctime }}
+          </el-descriptions-item>
+          <el-descriptions-item label="access time">
+            {{ info.atime_str }}
+          </el-descriptions-item>
+          <el-descriptions-item label="">
+            {{ info.atime }}
+          </el-descriptions-item>
+          <el-descriptions-item label="modify time">
+            {{ info.mtime_str }}
+          </el-descriptions-item>
+          <el-descriptions-item label="">
+            {{ info.mtime }}
+          </el-descriptions-item>
+          <el-descriptions-item label="MD5" :span="2">
+            {{ info.md5 }}
+          </el-descriptions-item>
+          <el-descriptions-item label="SHA-1" :span="2">
+            {{ info.sha1 }}
+          </el-descriptions-item>
+          <el-descriptions-item label="SHA-256" :span="2">
+            {{ info.sha256 }}
+          </el-descriptions-item>
+          <el-descriptions-item class-name="w-full overflow-hidden" label="SHA-512" :span="2">
+            <div class="w-full overflow-hidden break-all whitespace-pre-wrap">{{
+              info.sha512
+            }}</div>
+          </el-descriptions-item>
+          <el-descriptions-item label="SHA-512-Base64" :span="2">
+            {{ info.sha512Base64 }}
+          </el-descriptions-item>
+        </el-descriptions>
       </ul>
     </div>
   </div>
@@ -78,6 +90,8 @@
     md5: string
     sha1: string
     sha256: string
+    sha512: string
+    sha512Base64: string
   }
 
   const path = ref('')
@@ -94,7 +108,9 @@
     btime: 0,
     md5: '',
     sha1: '',
-    sha256: ''
+    sha256: '',
+    sha512: '',
+    sha512Base64: ''
   })
   const timer = ref<number | null>(null)
 
@@ -125,7 +141,13 @@
       }
 
       // Get hash values in parallel
-      await Promise.all([getHashValue('md5'), getHashValue('sha1'), getHashValue('sha256')])
+      await Promise.all([
+        getHashValue('md5'),
+        getHashValue('sha1'),
+        getHashValue('sha256'),
+        getHashValue('sha512'),
+        getHashValue('sha512Base64')
+      ])
 
       // Scroll to bottom
       const container = document.querySelector('.main-wapper')
@@ -137,7 +159,7 @@
     }
   }
 
-  const getHashValue = async (hashType: 'md5' | 'sha1' | 'sha256') => {
+  const getHashValue = async (hashType: 'md5' | 'sha1' | 'sha256' | 'sha512' | 'sha512Base64') => {
     try {
       const value = await fs.getFileHash(path.value, hashType)
       info.value = { ...info.value, [hashType]: value }

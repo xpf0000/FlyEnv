@@ -4,7 +4,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { arch } from 'os'
 import axios from 'axios'
 import { publicDecrypt } from 'crypto'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import YAML from 'yamljs'
 import { compareVersions } from '@shared/compare-versions'
 import { isDEB } from '../../util/Linux'
@@ -108,7 +108,12 @@ class App extends Base {
 
   licensesInit() {
     return new ForkPromise(async (resolve, reject, on) => {
-      const uuid = await machineId()
+      let uuid = ''
+      try {
+        uuid = await machineId()
+      } catch (e) {
+        appDebugLog(`[machineId][error]`, `${e}`).catch()
+      }
       const data = {
         requestSuccess: false,
         uuid,

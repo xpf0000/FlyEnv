@@ -546,7 +546,8 @@ body {
     width: 100%;
 
     &#FileInfoDroper {
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .input {
@@ -918,6 +919,10 @@ body {
       align-items: center;
       padding: 8px 15px;
       cursor: pointer;
+
+      &.disabled {
+        cursor: not-allowed;
+      }
 
       .el-button {
         --el-button-text-color: #fff;

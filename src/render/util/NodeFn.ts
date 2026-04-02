@@ -223,5 +223,8 @@ export const fs = {
   readFile: createIPCCall<[path: string], string>('fs', 'readFile'),
   writeFile: createIPCCall<[path: string, data: string], void>('fs', 'writeFile'),
   realpath: createIPCCall<[path: string], string>('fs', 'realpath'),
-  getFileHash: createIPCCall<[string, 'sha1' | 'sha256' | 'md5'], string>('fs', 'getFileHash')
+  getFileHash: createIPCCall<
+    [string, 'sha1' | 'sha256' | 'md5' | 'sha512' | 'sha512Base64'],
+    string
+  >('fs', 'getFileHash')
 }

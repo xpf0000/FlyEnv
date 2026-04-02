@@ -8,14 +8,10 @@
     <div class="main-block">
       <ProjectIndex v-if="tab === 0" :title="I18nT('host.projectRuby')" :type-flag="'ruby'">
         <template #openin="{ row }">
-          <el-dropdown-item @click="Project.openPath(row.path, 'RubyMine')">
-            <template #icon>
-              <yb-icon :svg="import('@/svg/rubymine.svg?raw')" width="13" height="13" />
-            </template>
-            <template #default>
-              <span class="ml-3">{{ I18nT('nodejs.openIN') }} RubyMine</span>
-            </template>
-          </el-dropdown-item>
+          <li @click.stop="Project.openPath(row.path, 'RubyMine')">
+            <yb-icon :svg="import('@/svg/rubymine.svg?raw')" width="13" height="13" />
+            <span class="ml-3">{{ I18nT('nodejs.openIN') }} RubyMine</span>
+          </li>
         </template>
       </ProjectIndex>
       <Service

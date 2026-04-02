@@ -195,170 +195,121 @@
             <span class="truncate">{{ I18nT('base.operation') }}</span>
           </template>
           <template #default="scope">
-            <el-dropdown>
-              <template #default>
+            <el-popover
+              effect="dark"
+              popper-class="host-list-poper"
+              placement="left-start"
+              width="auto"
+              :show-arrow="false"
+            >
+              <ul v-poper-fix class="host-list-menu">
+                <li @click.stop="project.action(scope.row, scope.$index, 'open')">
+                  <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('base.open') }}</span>
+                </li>
+                <li @click.stop="project.action(scope.row, scope.$index, 'edit')">
+                  <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                </li>
+                <slot name="operation" :row="scope.row as ProjectItem"></slot>
+                <li
+                  :class="{
+                    'cursor-not-allowed disabled': scope.row.state.running || scope.row.state.isRun
+                  }"
+                  @click.stop="
+                    scope.row.state.running || scope.row.state.isRun
+                      ? null
+                      : scope.row.start(true, true)
+                  "
+                >
+                  <yb-icon
+                    :class="{
+                      'opacity-60': scope.row.state.running || scope.row.state.isRun
+                    }"
+                    :svg="import('@/svg/play.svg?raw')"
+                    width="13"
+                    height="13"
+                  />
+                  <span
+                    :class="{
+                      'opacity-60': scope.row.state.running || scope.row.state.isRun
+                    }"
+                    class="ml-3"
+                    >{{ I18nT('host.runInTerminal') }}</span
+                  >
+                </li>
+                <li @click.stop="showConfig(scope.row)">
+                  <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('nodejs.projectEnvSet') }}</span>
+                </li>
+                <li @click.stop="Project.copyPath(scope.row.path)">
+                  <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('nodejs.copyDirPath') }}</span>
+                </li>
+                <li @click.stop="project.action(scope.row, scope.$index, 'log')">
+                  <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('base.log') }}</span>
+                </li>
+                <li
+                  v-if="scope.row.configPath.length > 0"
+                  @click.stop="project.action(scope.row, scope.$index, 'config')"
+                >
+                  <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('base.configFile') }}</span>
+                </li>
+                <li v-if="isWindows" @click.stop="Project.openPath(scope.row.path, 'PowerShell')">
+                  <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('nodejs.openIN') }} PowerShell</span>
+                </li>
+                <li v-if="isWindows" @click.stop="Project.openPath(scope.row.path, 'PowerShell7')">
+                  <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('nodejs.openIN') }} PowerShell7+</span>
+                </li>
+                <li v-if="!isWindows" @click.stop="Project.openPath(scope.row.path, 'Terminal')">
+                  <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
+                  <span class="ml-3"
+                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.Terminal') }}</span
+                  >
+                </li>
+                <li @click.stop="Project.openPath(scope.row.path, 'VSCode')">
+                  <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
+                  <span class="ml-3"
+                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.VSCode') }}</span
+                  >
+                </li>
+                <li @click.stop="Project.openPath(scope.row.path, 'PhpStorm')">
+                  <yb-icon :svg="import('@/svg/phpstorm.svg?raw')" width="13" height="13" />
+                  <span class="ml-3"
+                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.PhpStorm') }}</span
+                  >
+                </li>
+                <li @click.stop="Project.openPath(scope.row.path, 'WebStorm')">
+                  <yb-icon :svg="import('@/svg/webstorm.svg?raw')" width="13" height="13" />
+                  <span class="ml-3"
+                    >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.WebStorm') }}</span
+                  >
+                </li>
+                <li @click.stop="Project.openPath(scope.row.path, 'Sublime')">
+                  <yb-icon :svg="import('@/svg/sublime.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('nodejs.openIN') }} Sublime Text</span>
+                </li>
+                <slot name="openin" :row="scope.row as ProjectItem"></slot>
+                <li @click.stop="showSort($event, scope.row.id)">
+                  <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('host.sort') }}</span>
+                </li>
+                <li @click.stop="project.delProject(scope.$index)">
+                  <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('base.del') }}</span>
+                </li>
+              </ul>
+
+              <template #reference>
                 <el-button :key="scope.row.id" link class="status">
                   <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
                 </el-button>
               </template>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="project.action(scope.row, scope.$index, 'open')">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('base.open') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="project.action(scope.row, scope.$index, 'edit')">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('base.edit') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                  <slot name="operation" :row="scope.row as ProjectItem"></slot>
-                  <el-dropdown-item
-                    :disabled="scope.row.state.running || scope.row.state.isRun"
-                    @click="scope.row.start(true, true)"
-                  >
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/play.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('host.runInTerminal') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="showConfig(scope.row)">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('nodejs.projectEnvSet') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="Project.copyPath(scope.row.path)">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('nodejs.copyDirPath') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="project.action(scope.row, scope.$index, 'log')">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('base.log') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="scope.row.configPath.length > 0"
-                    @click="project.action(scope.row, scope.$index, 'config')"
-                  >
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('base.configFile') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="isWindows"
-                    @click="Project.openPath(scope.row.path, 'PowerShell')"
-                  >
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('nodejs.openIN') }} PowerShell</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="isWindows"
-                    @click="Project.openPath(scope.row.path, 'PowerShell7')"
-                  >
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('nodejs.openIN') }} PowerShell7+</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="!isWindows"
-                    @click="Project.openPath(scope.row.path, 'Terminal')"
-                  >
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3"
-                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.Terminal') }}</span
-                      >
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'VSCode')">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3"
-                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.VSCode') }}</span
-                      >
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'PhpStorm')">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/phpstorm.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3"
-                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.PhpStorm') }}</span
-                      >
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'WebStorm')">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/webstorm.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3"
-                        >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.WebStorm') }}</span
-                      >
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="Project.openPath(scope.row.path, 'Sublime')">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/sublime.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('nodejs.openIN') }} Sublime Text</span>
-                    </template>
-                  </el-dropdown-item>
-                  <slot name="openin" :row="scope.row as ProjectItem"></slot>
-                  <el-dropdown-item @click="showSort($event, scope.row.id)">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('host.sort') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="project.delProject(scope.$index)">
-                    <template #icon>
-                      <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                    </template>
-                    <template #default>
-                      <span class="ml-3">{{ I18nT('base.del') }}</span>
-                    </template>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            </el-popover>
           </template>
         </el-table-column>
       </el-table>

@@ -1,14 +1,10 @@
 <template>
   <ProjectIndex :type-flag="'node'" :title="I18nT('host.projectNode')">
     <template #operation="{ row }">
-      <el-dropdown-item @click="showPackage(row)">
-        <template #icon>
-          <Reading width="13" height="13" />
-        </template>
-        <template #default>
-          <span class="ml-3">package.json</span>
-        </template>
-      </el-dropdown-item>
+      <li @click.stop="showPackage(row)">
+        <Reading width="13" height="13" />
+        <span class="ml-3">package.json</span>
+      </li>
     </template>
   </ProjectIndex>
 </template>

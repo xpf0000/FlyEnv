@@ -8,14 +8,10 @@
     <div class="main-block">
       <ProjectIndex v-if="tab === 0" :title="I18nT('host.projectGo')" :type-flag="'golang'">
         <template #openin="{ row }">
-          <el-dropdown-item @click="Project.openPath(row.path, 'GoLand')">
-            <template #icon>
-              <yb-icon :svg="import('@/svg/goland.svg?raw')" width="13" height="13" />
-            </template>
-            <template #default>
-              <span class="ml-3">{{ I18nT('nodejs.openIN') }} GoLand</span>
-            </template>
-          </el-dropdown-item>
+          <li @click.stop="Project.openPath(row.path, 'GoLand')">
+            <yb-icon :svg="import('@/svg/goland.svg?raw')" width="13" height="13" />
+            <span class="ml-3">{{ I18nT('nodejs.openIN') }} GoLand</span>
+          </li>
         </template>
       </ProjectIndex>
       <Service
