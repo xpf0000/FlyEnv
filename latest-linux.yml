@@ -1,11 +1,11 @@
-version: 4.13.6
+version: 4.14.0
 files:
-  - url: FlyEnv-4.13.6.deb
-    sha512: RJRxM2rVzI6MVKeu6Zaxe4KwFeD7BfdyaGQwEYflktBTSmqjuXrsOuJkl1J1VHov/zpKxqcS2gKhWS79YWYb8A==
-    size: 135036948
-  - url: FlyEnv-4.13.6.rpm
-    sha512: werC1XliUWDB8tYISVJoMoIduOW+9umHMLbpoZQdVUthnaqFYTZbcr2LNmisyqh9JHND3HCMDN9AhdpvoT/0FQ==
-    size: 113054833
-path: FlyEnv-4.13.6.deb
-sha512: RJRxM2rVzI6MVKeu6Zaxe4KwFeD7BfdyaGQwEYflktBTSmqjuXrsOuJkl1J1VHov/zpKxqcS2gKhWS79YWYb8A==
-releaseDate: '2026-03-21T02:11:13.276Z'
+  - url: FlyEnv-4.14.0.deb
+    sha512: bhzYigQ7GHsjWBmSbMmdwxZaUPQ3fphCS//NfhYWewYpsI3+jWtF7um8H+jISmF0i/j4VWGVFkOqcyv/w+fMdw==
+    size: 135187908
+  - url: FlyEnv-4.14.0.rpm
+    sha512: g8znq0ZFBa3YNUXsMvrGaqLqypBl4AS3KnA0JxVwBFAU6oflvpeE910JrleHuWWQBLEIJcqPOmCXaherCp8yAQ==
+    size: 113077373
+path: FlyEnv-4.14.0.deb
+sha512: bhzYigQ7GHsjWBmSbMmdwxZaUPQ3fphCS//NfhYWewYpsI3+jWtF7um8H+jISmF0i/j4VWGVFkOqcyv/w+fMdw==
+releaseDate: '2026-04-02T03:52:49.518Z'
