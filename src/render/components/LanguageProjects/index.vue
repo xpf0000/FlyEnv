@@ -213,6 +213,7 @@
                 </li>
                 <slot name="operation" :row="scope.row as ProjectItem"></slot>
                 <li
+                  v-if="scope.row.isService"
                   :class="{
                     'cursor-not-allowed disabled': scope.row.state.running || scope.row.state.isRun
                   }"
