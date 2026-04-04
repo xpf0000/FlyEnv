@@ -1,0 +1,19 @@
+﻿{
+  "checking": "Checking installation...",
+  "isInstalled": "installed",
+  "notInstalled": "mkcert is not installed",
+  "install": "Install mkcert",
+  "checkAgain": "Check Again",
+  "recheck": "Re-check",
+  "installing": "Installing mkcert...",
+  "installingCA": "Installing CA...",
+  "installCA": "Install CA",
+  "installCATip": "Installs the local CA into system/browser trust store",
+  "carootLabel": "CA Root Path",
+  "certificates": "Certificates",
+  "generate": "Generate",
+  "generateTip": "Generate a trusted certificate for this host",
+  "generating": "Generating...",
+  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first.",
+  "certGenerated": "Certificate generated successfully"
+}

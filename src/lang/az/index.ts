@@ -1,4 +1,4 @@
-import aiAZ from './ai.json'
+﻿import aiAZ from './ai.json'
 import apacheAZ from './apache.json'
 import appLogAZ from './appLog.json'
 import asideAZ from './aside.json'
@@ -33,10 +33,12 @@ import podman from './podman.json'
 import openclawAZ from './openclaw.json'
 import n8n from './n8n.json'
 import rustfsAZ from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   az: {
     rustfs: rustfsAZ,
+    mkcert,
     n8n,
     openclaw: openclawAZ,
     podman,

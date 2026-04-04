@@ -81,7 +81,8 @@ export enum AppModuleEnum {
   cloudflared = 'cloudflared',
   openclaw = 'openclaw',
   n8n = 'n8n',
-  rustfs = 'rustfs'
+  rustfs = 'rustfs',
+  mkcert = 'mkcert'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum
