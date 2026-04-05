@@ -115,7 +115,7 @@
   "info": "詳細",
   "ForceDelete": "強制削除",
   "needInstallHelperTips": "管理者権限が必要なため、一部の操作が失敗しました。 これには、ホストファイルの変更、プロセスリストへのアクセス、1024 以下のポートへのバインド、システム環境変数の管理が含まれます。\nFlyEnv Helper をインストールして、これらのタスクに必要な権限を付与してください。「OK」をクリックしてインストールを続行します。",
-  "targetPlatforms": "Target Platforms",
+  "targetPlatforms": "ターゲットプラットフォーム",
   "baseInfo": "基本情報",
   "selectVersion": "バージョンを選択"
 }
