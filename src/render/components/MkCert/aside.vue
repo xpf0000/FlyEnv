@@ -7,7 +7,7 @@
     <div class="left">
       <div class="icon-block">
         <yb-icon
-          style="padding: 2px"
+          style="padding: 5px"
           :svg="import('@/svg/sslmake.svg?raw')"
           width="29"
           height="29"

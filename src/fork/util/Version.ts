@@ -177,6 +177,16 @@ export const versionLocalFetch = async (
   if (isWindows()) {
     searchDepth1Dir = [...customDirs]
     searchDepth2Dir = [global.Server.AppDir!]
+    try {
+      const res = await execPromiseWithEnv(`where.exe ${binName}`)
+      const bins =
+        res?.stdout
+          ?.split('\n')
+          ?.map((s) => s.trim())
+          ?.filter((b) => b && existsSync(b))
+          ?.map((s) => dirname(realpathSync(s))) ?? []
+      searchDepth1Dir.push(...bins)
+    } catch {}
   } else {
     searchDepth1Dir = ['/', '/opt', '/opt/local/', '/usr', ...customDirs]
     searchDepth2Dir = [global.Server.AppDir!]
@@ -209,6 +219,17 @@ export const versionLocalFetch = async (
         }
       }
     }
+
+    try {
+      const res = await execPromiseWithEnv(`which ${binName}`)
+      const bins =
+        res?.stdout
+          ?.split('\n')
+          ?.map((s) => s.trim())
+          ?.filter((b) => b && existsSync(b))
+          ?.map((s) => dirname(realpathSync(s))) ?? []
+      searchDepth1Dir.push(...bins)
+    } catch {}
   }
 
   const checkedDir: Set<string> = new Set()

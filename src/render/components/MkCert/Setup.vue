@@ -1,56 +1,55 @@
 <template>
-  <div class="setup-panel p-6 max-w-2xl">
+  <el-card class="app-base-el-card">
     <!-- Checking -->
-    <div v-if="checking" class="flex items-center gap-3 py-10">
+    <div v-if="checking" class="flex justify-center items-center w-full h-full gap-3">
       <el-icon class="is-loading text-xl"><Loading /></el-icon>
       <span class="text-gray-500">{{ I18nT('mkcert.checking') }}</span>
     </div>
 
-    <!-- Installing binary -->
-    <template v-else-if="installing">
-      <p class="text-sm font-semibold mb-2">{{ I18nT('mkcert.installing') }}</p>
-      <div
-        ref="logEl"
-        class="bg-black text-green-400 rounded p-3 font-mono text-xs h-48 overflow-y-auto whitespace-pre-wrap"
-        >{{ installLog }}</div
-      >
-    </template>
-
-    <!-- Installing CA -->
-    <template v-else-if="installingCA">
-      <p class="text-sm font-semibold mb-2">{{ I18nT('mkcert.installingCA') }}</p>
-      <div
-        ref="caLogEl"
-        class="bg-black text-green-400 rounded p-3 font-mono text-xs h-48 overflow-y-auto whitespace-pre-wrap"
-        >{{ caLog }}</div
-      >
+    <!-- Installing binary with XTerm -->
+    <template v-else-if="MkCertStore.installing">
+      <div class="w-full h-full overflow-hidden p-5">
+        <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>
+      </div>
     </template>
 
     <!-- Installed -->
     <template v-else-if="installed">
-      <el-alert type="success" :closable="false" show-icon class="mb-4">
+      <el-alert type="success" :closable="false" show-icon class="mb-6">
         <template #title>
           <span class="font-semibold"
             >mkcert {{ mkcertVersion }} {{ I18nT('mkcert.isInstalled') }}</span
           >
         </template>
         <template #default>
-          <span class="text-sm text-gray-500">{{ binPath }}</span>
+          <span
+            class="text-sm text-gray-500 cursor-pointer hover:text-yellow-500"
+            @click.stop="shell.showItemInFolder(binPath)"
+            >{{ binPath }}</span
+          >
         </template>
       </el-alert>
 
       <!-- CA Root info -->
-      <div v-if="caroot" class="mb-4">
-        <p class="text-sm text-gray-500 mb-1">{{ I18nT('mkcert.carootLabel') }}</p>
+      <div v-if="caroot" class="mb-8">
+        <p class="text-sm text-gray-500 mb-2">{{ I18nT('mkcert.carootLabel') }}</p>
         <div
           class="flex items-center gap-2 bg-gray-100 dark:bg-[#2a2d3e] rounded px-3 py-2 font-mono text-xs"
         >
-          <span class="flex-1 break-all select-all">{{ caroot }}</span>
+          <span
+            class="flex-1 truncate cursor-pointer hover:text-yellow-500"
+            @click.stop="shell.openPath(caroot)"
+            >{{ caroot }}</span
+          >
+          <div class="flex-shrink-0 flex items-center">
+            <el-button :icon="CopyDocument" link @click.stop="copyPath(caroot)"></el-button>
+            <el-button :icon="FolderOpened" link @click.stop="shell.openPath(caroot)"></el-button>
+          </div>
         </div>
       </div>
 
       <div class="flex gap-3 flex-wrap">
-        <el-button type="primary" size="small" :loading="installingCA" @click="doInstallCA">
+        <el-button type="primary" size="small" @click="doInstallCA">
           {{ I18nT('mkcert.installCA') }}
         </el-button>
         <el-button size="small" @click="checkInstall">{{ I18nT('mkcert.recheck') }}</el-button>
@@ -73,27 +72,45 @@
         <el-button size="small" @click="checkInstall">{{ I18nT('mkcert.checkAgain') }}</el-button>
       </div>
     </template>
-  </div>
+
+    <!-- Footer buttons for installing -->
+    <template #footer>
+      <template v-if="MkCertStore.installing">
+        <template v-if="MkCertStore.installEnd">
+          <el-button type="primary" @click.stop="taskConfirm">{{
+            I18nT('base.confirm')
+          }}</el-button>
+        </template>
+        <template v-else>
+          <el-button @click.stop="taskCancel">{{ I18nT('base.cancel') }}</el-button>
+        </template>
+      </template>
+    </template>
+  </el-card>
 </template>
 
 <script lang="ts" setup>
-  import { ref, nextTick, onMounted } from 'vue'
-  import { Loading } from '@element-plus/icons-vue'
+  import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+  import { CopyDocument, FolderOpened, Loading } from '@element-plus/icons-vue'
   import IPC from '@/util/IPC'
-  import MkCertStore from '@/core/MkCert/MkCertStore'
+  import MkCertStore from '@/components/MkCert/MkCertStore'
   import { I18nT } from '@lang/index'
+  import { clipboard, shell } from '@/util/NodeFn'
+  import { MessageSuccess } from '@/util/Element'
+  import XTerm from '@/util/XTerm'
 
   const checking = ref(true)
-  const installing = ref(false)
-  const installingCA = ref(false)
   const installed = ref(false)
   const mkcertVersion = ref('')
   const binPath = ref('')
   const caroot = ref('')
-  const installLog = ref('')
-  const caLog = ref('')
-  const logEl = ref<HTMLElement>()
-  const caLogEl = ref<HTMLElement>()
+  const xtermDom = ref<HTMLElement>()
+
+  const copyPath = (path: string) => {
+    clipboard.writeText(path).then(() => {
+      MessageSuccess(I18nT('base.copySuccess'))
+    })
+  }
 
   const fetchCAROOT = () => {
     IPC.send('app-fork:mkcert', 'getCAROOT', { mkcertBin: MkCertStore.mkcertBin }).then(
@@ -101,6 +118,7 @@
         IPC.off(key)
         if (res?.code === 0) {
           caroot.value = res.data?.caroot ?? ''
+          MkCertStore.caroot = res.data?.caroot ?? ''
         }
       }
     )
@@ -122,6 +140,8 @@
         mkcertVersion.value = res.data.version ?? ''
         binPath.value = res.data.bin ?? MkCertStore.mkcertBin
         MkCertStore.mkcertVersion = res.data.version ?? ''
+        MkCertStore.mkcertBin = res.data.bin ?? MkCertStore.mkcertBin
+        MkCertStore.save()
         fetchCAROOT()
       } else {
         installed.value = false
@@ -130,57 +150,39 @@
     })
   }
 
-  const doInstall = () => {
-    installing.value = true
-    installLog.value = ''
+  const emits = defineEmits(['toVersionTab'])
 
-    IPC.send('app-fork:mkcert', 'installLatest', {}).then((key: string, res: any) => {
-      if (res?.code === 200) {
-        installLog.value += res.msg ?? res.data ?? ''
-        nextTick().then(() => {
-          if (logEl.value) logEl.value.scrollTop = logEl.value.scrollHeight
-        })
-        return
-      }
-      IPC.off(key)
-      installing.value = false
-      if (res?.code === 0) {
-        const bin = res.data?.bin
-        if (bin) {
-          MkCertStore.mkcertBin = bin
-          MkCertStore.save()
-        }
-        checkInstall()
-      } else {
-        installLog.value += `\nError: ${res?.msg ?? 'install failed'}`
-        checking.value = false
-      }
-    })
+  const doInstall = () => {
+    emits('toVersionTab')
   }
 
   const doInstallCA = () => {
-    installingCA.value = true
-    caLog.value = ''
+    MkCertStore.installCA(xtermDom as any, binPath.value)
+  }
 
-    IPC.send('app-fork:mkcert', 'installCA', { mkcertBin: MkCertStore.mkcertBin }).then(
-      (key: string, res: any) => {
-        if (res?.code === 200) {
-          caLog.value += res.msg ?? res.data ?? ''
-          nextTick().then(() => {
-            if (caLogEl.value) caLogEl.value.scrollTop = caLogEl.value.scrollHeight
-          })
-          return
-        }
-        IPC.off(key)
-        installingCA.value = false
-        if (res?.code !== 0) {
-          caLog.value += `\nError: ${res?.msg ?? 'failed'}`
-        }
-      }
-    )
+  const taskConfirm = () => {
+    MkCertStore.taskConfirm()
+    checkInstall()
+  }
+
+  const taskCancel = () => {
+    MkCertStore.taskCancel()
   }
 
   onMounted(() => {
     checkInstall()
+    // Handle remounting xterm if component remounts during installation
+    if (MkCertStore.installing) {
+      nextTick().then(() => {
+        const execXTerm: XTerm = MkCertStore.xterm as any
+        if (execXTerm && xtermDom.value) {
+          execXTerm.mount(xtermDom.value).then().catch()
+        }
+      })
+    }
+  })
+
+  onUnmounted(() => {
+    MkCertStore.onUnmounted()
   })
 </script>

@@ -55,7 +55,7 @@
   import { computed, reactive } from 'vue'
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
-  import MkCertStore from '@/core/MkCert/MkCertStore'
+  import MkCertStore from '@/components/MkCert/MkCertStore'
   import { I18nT } from '@lang/index'
   import type { AppHost } from '@shared/app'
 

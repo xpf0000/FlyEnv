@@ -6,23 +6,30 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Setup v-if="tab === 0"></Setup>
-      <Certs v-else-if="tab === 1"></Certs>
+      <Service v-if="tab === 0" type-flag="mkcert" title="mkcert"></Service>
+      <Manager
+        v-else-if="tab === 1"
+        type-flag="mkcert"
+        title="mkcert"
+        :has-static="true"
+        :show-port-lib="false"
+        :show-brew-lib="true"
+        url="https://github.com/FiloSottile/mkcert/releases"
+      >
+      </Manager>
+      <Certs v-else-if="tab === 2"></Certs>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import Setup from './Setup.vue'
   import Certs from './Certs.vue'
   import { I18nT } from '@lang/index'
-  import { onMounted, ref } from 'vue'
-  import MkCertStore from '@/core/MkCert/MkCertStore'
+  import Service from '@/components/ServiceManager/base.vue'
+  import Manager from '@/components/VersionManager/index.vue'
+  import { AppModuleSetup } from '@/core/Module'
 
-  const tab = ref(0)
-  const tabs = [I18nT('base.setupBase'), I18nT('mkcert.certificates')]
-
-  onMounted(() => {
-    MkCertStore.init()
-  })
+  const { tab, checkVersion } = AppModuleSetup('mkcert')
+  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('mkcert.certificates')]
+  checkVersion()
 </script>

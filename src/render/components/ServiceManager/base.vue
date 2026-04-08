@@ -9,12 +9,9 @@
               <span>{{ I18nT('base.customVersionDir') }}</span>
             </template>
             <template #reference>
-              <el-button
-                class="custom-folder-add-btn"
-                :icon="FolderAdd"
-                link
-                @click.stop="showCustomDir"
-              ></el-button>
+              <el-button link @click.stop="showCustomDir">
+                <FolderAdd class="w-[24px] h-[24px] p-[2px]"></FolderAdd>
+              </el-button>
             </template>
           </el-popover>
         </div>

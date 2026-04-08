@@ -1,22 +1,121 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join, dirname } from 'path'
-import { existsSync, createWriteStream } from 'fs'
-import { mkdirp } from '@shared/fs-extra'
-import { binXattrFix, fetchPathByBin, moveChildDirToParent, realpathSync } from '../../Fn'
+import { existsSync } from 'fs'
+import { copyFile, mkdirp, remove } from '@shared/fs-extra'
+import { binXattrFix, brewInfoJson, versionFilterSame, versionLocalFetch } from '../../Fn'
 import { versionBinVersion, versionFixed, versionSort } from '../../util/Version'
 import TaskQueue from '../../TaskQueue'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { isMacOS, isWindows } from '@shared/utils'
 import { execPromiseWithEnv } from '@shared/child-process'
-import axios from 'axios'
-import http from 'http'
-import https from 'https'
 
 class MkCertBase extends Base {
   constructor() {
     super()
     this.type = 'mkcert'
+  }
+
+  fetchAllOnlineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mkcert')
+        all.forEach((a: any) => {
+          let dir = ''
+          let zip = ''
+          if (isWindows()) {
+            dir = join(global.Server.AppDir!, `mkcert`, a.version, 'mkcert.exe')
+            zip = join(global.Server.Cache!, `mkcert-${a.version}`)
+            a.appDir = join(global.Server.AppDir!, `mkcert`, a.version)
+          } else {
+            dir = join(global.Server.AppDir!, `mkcert`, a.version, 'mkcert')
+            zip = join(global.Server.Cache!, `mkcert-${a.version}`)
+            a.appDir = join(global.Server.AppDir!, `mkcert`, a.version)
+          }
+
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+          a.name = `mkcert-${a.version}`
+        })
+        resolve(all)
+      } catch {
+        resolve({})
+      }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise(async (resolve) => {
+      let versions: SoftInstalled[] = []
+      let all: Promise<SoftInstalled[]>[] = []
+      const customDirs = [...(setup?.mkcert?.dirs ?? [])]
+      if (isWindows()) {
+        all = [versionLocalFetch(customDirs, 'mkcert.exe')]
+      } else {
+        all = [versionLocalFetch(customDirs, 'mkcert', 'mkcert')]
+      }
+      Promise.all(all)
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) =>
+            TaskQueue.run(
+              versionBinVersion,
+              item.bin,
+              `"${item.bin}" --version`,
+              /(v)(\d+(\.\d+){1,4})(.*?)/g
+            )
+          )
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            const item = versions[i]
+
+            Object.assign(item, {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    await remove(row.appDir)
+    await mkdirp(row.appDir)
+    await copyFile(row.zip, row.bin)
+
+    if (isMacOS()) {
+      try {
+        await binXattrFix(row.bin)
+      } catch {}
+    }
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const all: Array<string> = ['mkcert']
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
   }
 
   /**
@@ -35,140 +134,13 @@ class MkCertBase extends Base {
   }
 
   /**
-   * Download and install the latest mkcert binary from GitHub.
-   * Streams progress lines back to the UI.
-   */
-  installLatest() {
-    return new ForkPromise(async (resolve, reject, on) => {
-      try {
-        on('Fetching latest mkcert release...\n')
-        const res = await axios({
-          url: 'https://api.github.com/repos/FiloSottile/mkcert/releases/latest',
-          method: 'get',
-          timeout: 30000,
-          withCredentials: false,
-          httpAgent: new http.Agent({ keepAlive: false }),
-          httpsAgent: new https.Agent({ keepAlive: false }),
-          proxy: this.getAxiosProxy()
-        })
-        const release = res?.data
-        if (!release?.tag_name) {
-          reject(new Error('No releases found'))
-          return
-        }
-        const tag = release.tag_name
-        const version = tag.replace(/^v/, '')
-
-        let assetName: string
-        if (isWindows()) {
-          assetName = 'mkcert-v' + version + '-windows-amd64.exe'
-        } else if (isMacOS()) {
-          const arch = process.arch === 'arm64' ? 'arm64' : 'amd64'
-          assetName = `mkcert-v${version}-darwin-${arch}`
-        } else {
-          const arch = process.arch === 'arm64' ? 'arm64' : 'amd64'
-          assetName = `mkcert-v${version}-linux-${arch}`
-        }
-
-        const asset = (release.assets ?? []).find((a: any) => a.name === assetName)
-        if (!asset) {
-          reject(new Error(`No asset found for this platform: ${assetName}`))
-          return
-        }
-
-        const appDir = join(global.Server.AppDir!, 'mkcert', version)
-        const binName = isWindows() ? 'mkcert.exe' : 'mkcert'
-        const bin = join(appDir, binName)
-        const zipPath = join(global.Server.Cache!, assetName)
-
-        on(`Downloading mkcert ${version}...\n`)
-        await mkdirp(global.Server.Cache!)
-        await mkdirp(appDir)
-
-        if (!existsSync(zipPath)) {
-          await new Promise<void>((res2, rej2) => {
-            axios({
-              method: 'get',
-              url: asset.browser_download_url,
-              proxy: this.getAxiosProxy(),
-              responseType: 'stream',
-              onDownloadProgress: (progress) => {
-                if (progress.total) {
-                  const pct = Math.round((progress.loaded * 100.0) / progress.total)
-                  on(`Downloading... ${pct}%\r`)
-                }
-              }
-            })
-              .then((response) => {
-                const stream = createWriteStream(zipPath)
-                response.data.pipe(stream)
-                stream.on('finish', () => res2())
-                stream.on('error', (e: any) => rej2(e))
-              })
-              .catch((e) => rej2(e))
-          })
-        }
-
-        on('\nInstalling...\n')
-        // mkcert is a single binary — just copy it to appDir
-        if (assetName.endsWith('.tar.gz') || assetName.endsWith('.zip')) {
-          // future-proof: handle archives
-          await super._installSoftHandle({ zip: zipPath, appDir, bin })
-          await moveChildDirToParent(appDir)
-        } else {
-          // single binary
-          const { copyFile } = await import('@shared/fs-extra')
-          await copyFile(zipPath, bin)
-        }
-
-        if (!isWindows()) {
-          try {
-            await execPromiseWithEnv(`chmod +x "${bin}"`)
-          } catch {}
-        }
-        if (isMacOS()) {
-          try {
-            await binXattrFix(bin)
-          } catch {}
-        }
-
-        on(`Done! Installed to: ${bin}\n`)
-        resolve({ bin })
-      } catch (e: any) {
-        reject(e)
-      }
-    })
-  }
-
-  /**
-   * Run `mkcert -install` to add the local CA to the system trust store.
-   */
-  installCA(item: { mkcertBin: string }) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      const bin = item.mkcertBin || 'mkcert'
-      try {
-        on('Installing local CA into system trust store...\n')
-        const { execPromiseWithEnv: exec } = await import('@shared/child-process')
-        const result = await exec(`"${bin}" -install`)
-        on(result.stdout ?? '')
-        if (result.stderr) on(result.stderr)
-        on('Done!\n')
-        resolve(true)
-      } catch (e: any) {
-        reject(e)
-      }
-    })
-  }
-
-  /**
    * Returns the path where mkcert stores the root CA files.
    */
   getCAROOT(item: { mkcertBin: string }) {
     return new ForkPromise(async (resolve) => {
       const bin = item.mkcertBin || 'mkcert'
       try {
-        const { execPromiseWithEnv: exec } = await import('@shared/child-process')
-        const result = await exec(`"${bin}" -CAROOT`)
+        const result = await execPromiseWithEnv(`"${bin}" -CAROOT`)
         resolve({ caroot: result.stdout?.trim() ?? '' })
       } catch {
         resolve({ caroot: '' })
@@ -190,83 +162,13 @@ class MkCertBase extends Base {
         const domainArgs = item.domains.map((d) => `"${d}"`).join(' ')
         const cmd = `"${bin}" -cert-file "${item.certFile}" -key-file "${item.keyFile}" ${domainArgs}`
         on(`Running: ${cmd}\n`)
-
-        const { execPromiseWithEnv: exec } = await import('@shared/child-process')
-        const result = await exec(cmd)
+        const result = await execPromiseWithEnv(cmd)
         on(result.stdout ?? '')
         if (result.stderr) on(result.stderr)
         resolve(true)
       } catch (e: any) {
         reject(e)
       }
-    })
-  }
-
-  allInstalledVersions() {
-    return new ForkPromise(async (resolve) => {
-      const list: SoftInstalled[] = []
-      const seen = new Set<string>()
-
-      const candidates: string[] = []
-      if (isWindows()) {
-        const up = process.env.USERPROFILE ?? ''
-        if (up) {
-          candidates.push(join(up, 'AppData', 'Local', 'Programs', 'mkcert', 'mkcert.exe'))
-        }
-        try {
-          const r = await execPromiseWithEnv('where mkcert')
-          const found = r?.stdout?.trim().split('\n')[0]?.trim()
-          if (found) candidates.push(found)
-        } catch {}
-      } else {
-        candidates.push('/usr/local/bin/mkcert', '/usr/bin/mkcert', '/opt/homebrew/bin/mkcert')
-        const home = process.env.HOME ?? ''
-        if (home) candidates.push(join(home, 'bin', 'mkcert'))
-        try {
-          const r = await execPromiseWithEnv('which mkcert')
-          const found = r?.stdout?.trim().split('\n')[0]?.trim()
-          if (found) candidates.push(found)
-        } catch {}
-      }
-
-      // scan app-managed installs
-      const appMkcertDir = join(global.Server.AppDir!, 'mkcert')
-      if (existsSync(appMkcertDir)) {
-        const { readdirSync } = await import('fs')
-        for (const ver of readdirSync(appMkcertDir)) {
-          const b = join(appMkcertDir, ver, isWindows() ? 'mkcert.exe' : 'mkcert')
-          if (existsSync(b)) candidates.push(b)
-        }
-      }
-
-      for (const bin of candidates) {
-        if (!existsSync(bin) || seen.has(bin)) continue
-        seen.add(bin)
-        try {
-          const versionResult = await TaskQueue.run(
-            versionBinVersion,
-            bin,
-            `"${bin}" --version`,
-            /(.*?)(\d+(\.(\d+)){1,4})(.*?)/g
-          )
-          const versionStr = versionResult?.version
-          if (!versionStr) continue
-          const fixed = versionFixed(versionStr)
-          const rawBin = realpathSync(bin)
-          list.push({
-            typeFlag: 'mkcert' as any,
-            bin: rawBin,
-            path: fetchPathByBin(rawBin),
-            version: fixed,
-            num: Number(versionFixed(fixed).split('.').slice(0, 2).join('')),
-            enable: true,
-            run: false,
-            running: false,
-            error: versionResult?.error
-          } as SoftInstalled)
-        } catch {}
-      }
-      resolve(versionSort(list))
     })
   }
 }
