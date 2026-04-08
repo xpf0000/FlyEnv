@@ -1,4 +1,4 @@
-import aiBN from './ai.json'
+﻿import aiBN from './ai.json'
 import apacheBN from './apache.json'
 import appLogBN from './appLog.json'
 import asideBN from './aside.json'
@@ -33,10 +33,12 @@ import podmanBN from './podman.json'
 import openclawBN from './openclaw.json'
 import n8n from './n8n.json'
 import rustfsBN from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   bn: {
     rustfs: rustfsBN,
+    mkcert,
     n8n,
     openclaw: openclawBN,
     podman: podmanBN,

@@ -1,4 +1,4 @@
-import aiIT from './ai.json'
+﻿import aiIT from './ai.json'
 import apacheIT from './apache.json'
 import appLogIT from './appLog.json'
 import asideIT from './aside.json'
@@ -33,10 +33,12 @@ import podman from './podman.json'
 import openclawIT from './openclaw.json'
 import n8n from './n8n.json'
 import rustfsIT from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   it: {
     rustfs: rustfsIT,
+    mkcert,
     n8n,
     openclaw: openclawIT,
     podman,

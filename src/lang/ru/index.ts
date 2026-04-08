@@ -1,4 +1,4 @@
-import ai from './ai.json'
+﻿import ai from './ai.json'
 import apache from './apache.json'
 import appLog from './appLog.json'
 import aside from './aside.json'
@@ -33,10 +33,12 @@ import podman from './podman.json'
 import openclaw from './openclaw.json'
 import n8n from './n8n.json'
 import rustfs from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   ru: {
     rustfs,
+    mkcert,
     n8n,
     openclaw,
     podman,

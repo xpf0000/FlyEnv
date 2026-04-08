@@ -1,4 +1,4 @@
-import aiEN from './ai.json'
+﻿import aiEN from './ai.json'
 import apacheEN from './apache.json'
 import appLogEN from './appLog.json'
 import asideEN from './aside.json'
@@ -33,10 +33,12 @@ import podman from './podman.json'
 import openclaw from './openclaw.json'
 import n8n from './n8n.json'
 import rustfs from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   en: {
     rustfs,
+    mkcert,
     n8n,
     openclaw,
     podman,

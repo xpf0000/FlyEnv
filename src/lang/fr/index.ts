@@ -1,4 +1,4 @@
-import aiFR from './ai.json'
+﻿import aiFR from './ai.json'
 import apacheFR from './apache.json'
 import appLogFR from './appLog.json'
 import asideFR from './aside.json'
@@ -33,10 +33,12 @@ import podman from './podman.json'
 import openclawFR from './openclaw.json'
 import n8n from './n8n.json'
 import rustfsFR from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   fr: {
     rustfs: rustfsFR,
+    mkcert,
     n8n,
     openclaw: openclawFR,
     podman,

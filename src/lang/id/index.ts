@@ -1,4 +1,4 @@
-import aiID from './ai.json'
+﻿import aiID from './ai.json'
 import apacheID from './apache.json'
 import appLogID from './appLog.json'
 import asideID from './aside.json'
@@ -33,10 +33,12 @@ import podman from './podman.json'
 import openclawID from './openclaw.json'
 import n8n from './n8n.json'
 import rustfsID from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   id: {
     rustfs: rustfsID,
+    mkcert,
     n8n,
     openclaw: openclawID,
     podman,

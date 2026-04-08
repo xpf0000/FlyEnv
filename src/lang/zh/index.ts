@@ -1,4 +1,4 @@
-import aiZH from './ai.json'
+﻿import aiZH from './ai.json'
 import apacheZH from './apache.json'
 import appLogZH from './appLog.json'
 import asideZH from './aside.json'
@@ -33,10 +33,12 @@ import podman from './podman.json'
 import openclaw from './openclaw.json'
 import n8n from './n8n.json'
 import rustfs from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   zh: {
     rustfs,
+    mkcert,
     n8n,
     openclaw,
     podman,

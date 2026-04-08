@@ -1,0 +1,19 @@
+﻿{
+  "checking": "检查安装状态...",
+  "isInstalled": "已安装",
+  "notInstalled": "mkcert 未安装",
+  "install": "安装 mkcert",
+  "checkAgain": "重新检查",
+  "recheck": "重新检查",
+  "installing": "正在安装 mkcert...",
+  "installingCA": "正在安装 CA...",
+  "installCA": "安装 CA",
+  "installCATip": "将本地 CA 安装到系统/浏览器信任存储",
+  "carootLabel": "CA 根目录",
+  "certificates": "证书",
+  "generate": "生成",
+  "generateTip": "为此主机生成受信任的证书",
+  "generating": "生成中...",
+  "noSSLHosts": "没有启用 SSL 的主机，请先为主机启用 SSL。",
+  "certGenerated": "证书生成成功"
+}

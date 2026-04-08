@@ -1,4 +1,4 @@
-import aiES from './ai.json'
+﻿import aiES from './ai.json'
 import apacheES from './apache.json'
 import appLogES from './appLog.json'
 import asideES from './aside.json'
@@ -33,10 +33,12 @@ import podman from './podman.json'
 import openclawES from './openclaw.json'
 import n8n from './n8n.json'
 import rustfsES from './rustfs.json'
+import mkcert from './mkcert.json'
 
 export default {
   es: {
     rustfs: rustfsES,
+    mkcert,
     n8n,
     openclaw: openclawES,
     podman,
