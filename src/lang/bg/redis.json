@@ -1,0 +1,6 @@
+{
+  "timeout": "Idle connection timeout, 0 indicates continuous opening",
+  "databases": "Number of databases",
+  "requirepass": "Redis password",
+  "maxmemory": "Byte, maximum memory usage, 0 indicates no limit"
+}
