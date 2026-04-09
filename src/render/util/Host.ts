@@ -66,3 +66,12 @@ export const handleHost = (
     })
   })
 }
+
+export const hostAlias = (item: AppHost) => {
+  const alias = item.alias
+    ? item.alias.split('\n').filter((n) => {
+        return n && n.length > 0
+      })
+    : []
+  return Array.from(new Set([item.name, ...alias])).sort()
+}

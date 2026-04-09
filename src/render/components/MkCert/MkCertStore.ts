@@ -1,9 +1,12 @@
-import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 import { reactiveBind } from '@/util/Index'
 import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
-
-const storeKey = 'flyenv-mkcert-store'
+import IPC from '@/util/IPC'
+import type { AppHost } from '@/store/app'
+import type { SoftInstalled } from '@shared/app'
+import { fs } from '@/util/NodeFn'
+import { dirname } from '@/util/path-browserify'
+import { hostAlias } from '@/util/Host'
 
 class MkCertStore {
   mkcertBin: string = 'mkcert'
@@ -13,28 +16,6 @@ class MkCertStore {
   installing: boolean = false
   installEnd: boolean = false
   xterm: XTerm | undefined
-
-  init() {
-    if (this.inited) return
-    this.inited = true
-    StorageGetAsync<{ mkcertBin?: string; mkcertVersion?: string; caroot?: string }>(storeKey)
-      .then((res) => {
-        if (res) {
-          if (res.mkcertBin) this.mkcertBin = res.mkcertBin
-          if (res.mkcertVersion) this.mkcertVersion = res.mkcertVersion
-          if (res.caroot) this.caroot = res.caroot
-        }
-      })
-      .catch()
-  }
-
-  save() {
-    StorageSetAsync(storeKey, {
-      mkcertBin: this.mkcertBin,
-      mkcertVersion: this.mkcertVersion,
-      caroot: this.caroot
-    }).catch()
-  }
 
   async installCA(domRef: Ref<HTMLElement>, binPath: string) {
     if (this.installing) return
@@ -48,6 +29,31 @@ class MkCertStore {
     await execXTerm.mount(domRef.value)
     const bin = binPath || 'mkcert'
     const commands = [`"${bin}" -install`]
+    await execXTerm.send(commands, false)
+    this.installEnd = true
+  }
+
+  async generateCert(host: AppHost, domRef: Ref<HTMLElement>, binPath: string) {
+    if (this.installing) return
+    const cert = host.ssl.cert
+    const key = host.ssl.key
+
+    if (!cert || !key) {
+      return
+    }
+
+    this.installEnd = false
+    this.installing = true
+    await nextTick()
+
+    await fs.mkdirp(dirname(cert))
+    const domains = hostAlias(host).join(' ')
+
+    const execXTerm = new XTerm()
+    this.xterm = markRaw(execXTerm)
+    await execXTerm.mount(domRef.value)
+    const bin = binPath || 'mkcert'
+    const commands = [`"${bin}" -cert-file "${cert}" -key-file "${key}" ${domains}`]
     await execXTerm.send(commands, false)
     this.installEnd = true
   }
@@ -76,6 +82,20 @@ class MkCertStore {
 
   onUnmounted() {
     this.xterm?.unmounted?.()
+  }
+
+  fetchCARoot(version?: SoftInstalled) {
+    if (this.caroot || !version) {
+      return
+    }
+    IPC.send('app-fork:mkcert', 'getCAROOT', { mkcertBin: version.bin }).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          this.caroot = res.data?.caroot ?? ''
+        }
+      }
+    )
   }
 }
 

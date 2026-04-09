@@ -261,9 +261,7 @@ export const hostAlias = (item: AppHost) => {
         return n && n.length > 0
       })
     : []
-  const arr = Array.from(new Set(alias)).sort()
-  arr.unshift(item.name)
-  return arr
+  return Array.from(new Set([item.name, ...alias])).sort()
 }
 
 export const systemProxyGet = async () => {

@@ -1,8 +1,8 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { join, dirname } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
-import { copyFile, mkdirp, remove } from '@shared/fs-extra'
+import { chmod, copyFile, mkdirp, remove } from '@shared/fs-extra'
 import { binXattrFix, brewInfoJson, versionFilterSame, versionLocalFetch } from '../../Fn'
 import { versionBinVersion, versionFixed, versionSort } from '../../util/Version'
 import TaskQueue from '../../TaskQueue'
@@ -103,6 +103,9 @@ class MkCertBase extends Base {
         await binXattrFix(row.bin)
       } catch {}
     }
+    if (!isWindows()) {
+      await chmod(row.bin, '0755')
+    }
   }
 
   brewinfo() {
@@ -119,21 +122,6 @@ class MkCertBase extends Base {
   }
 
   /**
-   * Check if mkcert binary is present and get its version.
-   */
-  checkBin(item: { mkcertBin: string }) {
-    return new ForkPromise(async (resolve) => {
-      const bin = item.mkcertBin || 'mkcert'
-      const { version, error } = await versionBinVersion(
-        bin,
-        `"${bin}" --version`,
-        /(.*?)(\d+(\.(\d+)){1,4})(.*?)/g
-      )
-      resolve({ version: version ?? '', error: error ?? '', found: !!version, bin })
-    })
-  }
-
-  /**
    * Returns the path where mkcert stores the root CA files.
    */
   getCAROOT(item: { mkcertBin: string }) {
@@ -144,30 +132,6 @@ class MkCertBase extends Base {
         resolve({ caroot: result.stdout?.trim() ?? '' })
       } catch {
         resolve({ caroot: '' })
-      }
-    })
-  }
-
-  /**
-   * Generate a certificate for the given host names, placing cert+key at the
-   * paths already configured in the host's ssl object.
-   */
-  generateCert(item: { mkcertBin: string; certFile: string; keyFile: string; domains: string[] }) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      const bin = item.mkcertBin || 'mkcert'
-      const certDir = join(dirname(item.certFile))
-
-      try {
-        await mkdirp(certDir)
-        const domainArgs = item.domains.map((d) => `"${d}"`).join(' ')
-        const cmd = `"${bin}" -cert-file "${item.certFile}" -key-file "${item.keyFile}" ${domainArgs}`
-        on(`Running: ${cmd}\n`)
-        const result = await execPromiseWithEnv(cmd)
-        on(result.stdout ?? '')
-        if (result.stderr) on(result.stderr)
-        resolve(true)
-      } catch (e: any) {
-        reject(e)
       }
     })
   }
