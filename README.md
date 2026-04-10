@@ -22,6 +22,12 @@
 
 ---
 
+## Discussions
+
+[Why Some People Love FlyEnv — While Others Think It’s Useless](https://github.com/xpf0000/FlyEnv/discussions/618)
+
+---
+
 ## 🚀 Why FlyEnv?
 
 Most dev tools are either too heavy (Docker Desktop) or too limited (NVM/Homebrew). FlyEnv hits the sweet spot:
