@@ -31,8 +31,9 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
-import { isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
+import { ProcessListFetch, ProcessSearch } from '@shared/Process'
 
 class Manager extends Base {
   constructor() {
@@ -77,11 +78,39 @@ class Manager extends Base {
             return true
           } else {
             await waitTime(1000)
-            await doStop()
             return await check(times + 1)
           }
         }
         await check()
+
+        // 等待 postgres 进程完全退出（解决 macOS 共享内存未释放问题）
+        if (isMacOS()) {
+          const waitProcessExit = async (retryTimes = 0) => {
+            if (retryTimes >= 15) {
+              console.log('waitProcessExit timeout')
+              return
+            }
+            try {
+              const plist = await ProcessListFetch()
+              const postgresProcs = ProcessSearch('postgres', false, plist).filter(
+                (p) =>
+                  p.COMMAND.includes(dbPath) &&
+                  !p.COMMAND.includes('grep ') &&
+                  !p.COMMAND.includes('/bin/sh -c')
+              )
+              if (postgresProcs.length > 0) {
+                console.log('PostgreSQL processes still running:', postgresProcs)
+                await waitTime(1000)
+                await waitProcessExit(retryTimes + 1)
+              }
+            } catch (e) {
+              console.log('waitProcessExit error:', e)
+            }
+          }
+          await waitProcessExit()
+          // 额外等待确保共享内存释放
+          await waitTime(500)
+        }
       } else {
         await doStop()
       }
