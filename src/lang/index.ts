@@ -40,6 +40,7 @@ import type mkcert from './zh/mkcert.json'
 
 import AR from './ar/index'
 import AZ from './az/index'
+import BG from './bg/index'
 import BN from './bn/index'
 import CS from './cs/index'
 import DA from './da/index'
@@ -118,6 +119,7 @@ type LangKey =
 export const AppAllLang: Record<string, string> = {
   ar: 'العربية',
   az: 'Azərbaycanca',
+  bg: 'Български',
   bn: 'বাংলা',
   cs: 'Čeština',
   da: 'Dansk',
@@ -147,6 +149,7 @@ export const AppAllLang: Record<string, string> = {
 const lang = {
   ...AR,
   ...AZ,
+  ...BG,
   ...BN,
   ...CS,
   ...DA,

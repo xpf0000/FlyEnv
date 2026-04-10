@@ -115,7 +115,7 @@
   "info": "Info",
   "ForceDelete": "Ștergere forțată",
   "needInstallHelperTips": "Unele operații au eșuat deoarece privilegiile de administrator sunt necesare. Aceasta include modificarea fişierului Gazde, accesarea listei procesului, legarea de porturile de sub 1024 sau gestionarea variabilelor de mediu ale sistemului.\nVă rugăm să instalați Helper-ul FlyEnv pentru a acorda permisiunile necesare pentru aceste sarcini. Faceți clic pe \"OK\" pentru a continua instalarea.",
-  "targetPlatforms": "Target Platforms",
+  "targetPlatforms": "Platforme țintă",
   "baseInfo": "Informații de bază",
   "selectVersion": "Selectați versiunea"
 }

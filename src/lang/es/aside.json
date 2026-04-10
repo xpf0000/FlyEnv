@@ -13,7 +13,7 @@
   "appLog": "Log de la Aplicación",
   "ai": "AI",
   "objectStorage": "Almacenamiento de Objetos",
-  "networkTunnel": "Túnel de Red",
   "appExit": "Detener todos los servicios en ejecución y salir de FlyEnv",
-  "groupStart": "Iniciar con un solo clic todos los servicios disponibles mostrados en el panel"
+  "groupStart": "Iniciar con un solo clic todos los servicios disponibles mostrados en el panel",
+  "networkTunnel": "Túnel de red"
 }

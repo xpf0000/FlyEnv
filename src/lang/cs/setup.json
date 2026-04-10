@@ -47,7 +47,7 @@
   "flyenvHelperFixSuccess": "FlyEnv pomocník úspěšně opraven",
   "flyenvHelperInstallFailTips": "Instalace pomocného programu FlyEnv se nezdařila. Zkuste spustit FlyEnv s oprávněními správce nebo klikněte na tlačítko OK a ručně spusťte pomocný program flyenv-helper.exe v otevřené složce.",
   "appFont": "Písmo rozhraní",
-  "appFontTips": "Nastavte písmo použité pro rozhraní aplikace. Pro použití výchozího systémového písma ponechte prázdné",
+  "appFontTips": "Nastavte písmo používané pro rozhraní aplikace. Ponechte prázdné pro použití výchozího systémového písma",
   "codeFont": "Písmo kódu",
-  "codeFontTips": "Nastavte písmo použité pro terminál, editor a další oblasti kódu. Pro použití výchozího neproporcionálního písma ponechte prázdné"
+  "codeFontTips": "Nastavte písmo používané pro terminál, editor a další oblasti kódů. Ponechte prázdné pro použití výchozího písma monospace"
 }

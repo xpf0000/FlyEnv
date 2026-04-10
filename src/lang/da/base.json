@@ -115,7 +115,7 @@
   "info": "Info",
   "ForceDelete": "Tving Slet",
   "needInstallHelperTips": "Nogle handlinger mislykkedes, fordi administratorrettigheder er påkrævet. Dette omfatter ændring af Hosts fil, adgang til proceslisten, binding til porte under 1024, eller styring af system miljø variabler.\nInstallér venligst FlyEnv Helper for at give de nødvendige tilladelser til disse opgaver. Klik på \"OK\" for at fortsætte med installationen.",
-  "targetPlatforms": "Target Platforms",
-  "baseInfo": "Grundlæggende information",
-  "selectVersion": "Vælg version"
+  "targetPlatforms": "Målplatforme",
+  "baseInfo": "Grundlæggende Info",
+  "selectVersion": "Vælg Version"
 }
