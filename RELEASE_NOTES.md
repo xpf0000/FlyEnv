@@ -2,6 +2,49 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.14.1] - 2026-04-11
+
+# **FlyEnv v4.14.1 Update Release Notes**
+
+## **🚀 New Features**
+
+### **1. Added MkCert Module**
+
+You can now easily generate locally-trusted development certificates with MkCert directly from FlyEnv! MkCert is a simple tool for making locally-trusted development certificates. It automatically installs a local CA in the system root store, and generates locally-trusted certificates.
+
+This integration allows you to:
+- Generate trusted SSL/TLS certificates for local development with a single click
+- Automatically install and configure the local Certificate Authority
+- Manage certificates for your local domains effortlessly
+- Enable HTTPS for your local development environment without browser warnings
+
+<img width="2684" height="1830" alt="image" src="https://github.com/user-attachments/assets/87aad5b6-f178-49d3-a464-e8cd9494968f" />
+
+<img width="2684" height="1830" alt="image" src="https://github.com/user-attachments/assets/78fb4053-f249-4234-a652-a6482b298a24" />
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **2. Fixed PostgreSQL Shutdown Issue**
+
+Resolved a critical issue where PostgreSQL could not be properly stopped after starting. The service will now shut down gracefully when you stop it from the FlyEnv interface.
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)
+
+**Enjoy the update!**
+
+
 ## [4.14.0] - 2026-04-02
 
 # **FlyEnv v4.14.0 Update Release Notes**
