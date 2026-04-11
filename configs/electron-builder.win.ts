@@ -5,7 +5,7 @@ const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
   buildVersion: '4.14.1',
-  electronVersion: '35.7.5',
+  electronVersion: '39.8.7',
   appId: 'phpstudy.xpfme.com',
   asar: true,
   directories: {
