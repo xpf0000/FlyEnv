@@ -23,6 +23,7 @@ import { copy, mkdirp, writeFile, readFile, copyFile, chmod, remove } from '@sha
 import crypto from 'node:crypto'
 import is from 'electron-is'
 import { homedir } from 'node:os'
+import CustomerLang from './CustomerLang'
 
 const require = createRequire(import.meta.url)
 
@@ -77,7 +78,6 @@ export class AppNodeFn {
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
   configManager?: ConfigManager
-  customerLang: Record<string, any> = {}
   private fileWatchers: Map<string, WatcherItem> = new Map()
   private dirWatchers: Map<string, WatcherItem> = new Map()
 
@@ -696,7 +696,7 @@ X-GNOME-Autostart-enabled=true`
     this?.mainWindow?.webContents.send('command', command, key, langArr)
 
     for (const item of langArr) {
-      this.customerLang[item.key] = item.lang
+      CustomerLang.lang[item.key] = item.lang
       AppI18n().global.setLocaleMessage(item.key, item.lang)
     }
   }

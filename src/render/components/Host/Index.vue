@@ -138,16 +138,6 @@
           php: I18nT('host.projectPhp'),
           tomcat: I18nT('host.projectTomcat')
         }
-      },
-      {
-        label: I18nT('host.projectBGroup'),
-        value: 'b',
-        sub: {
-          java: I18nT('host.projectJava'),
-          node: I18nT('host.projectNode'),
-          go: I18nT('host.projectGo'),
-          python: I18nT('host.projectPython')
-        }
       }
     ]
   })

@@ -4,7 +4,7 @@ import AfterSign from '../build/afterSign'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.14.0',
+  buildVersion: '4.14.1',
   electronVersion: '35.7.5',
   appId: 'phpstudy.xpfme.com',
   asar: true,

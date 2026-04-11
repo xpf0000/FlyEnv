@@ -7,7 +7,7 @@ import HttpServer from './HttpServer'
 import AppHelper from './AppHelper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import OAuth from './OAuth'
-import { Capturer } from './Capturer'
+import Capturer from './Capturer'
 import ConfigManager from './ConfigManager'
 import type WindowManager from '../ui/WindowManager'
 import type TrayManager from '../ui/TrayManager'
@@ -32,7 +32,6 @@ export interface IPCHandlerDependencies {
   serverManager: ServerManager
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
-  capturer?: Capturer
   appNodeFnManager: typeof AppNodeFnManager
   siteSuckerManager: typeof SiteSuckerManager
   serviceProcessManager: typeof ServiceProcessManager
@@ -500,48 +499,48 @@ export default class IPCHandler extends EventEmitter {
     if (isHide && this.deps.mainWindow?.isVisible()) {
       this.deps.mainWindow?.once('hide', () => {
         setTimeout(() => {
-          this.deps.capturer?.initWatchPointWindow()
+          Capturer.initWatchPointWindow().catch()
           this.deps.mainWindow?.setOpacity(1)
         }, 150)
       })
       this.deps.mainWindow?.setOpacity(0)
       this.deps.mainWindow?.hide()
     } else {
-      this.deps.capturer?.initWatchPointWindow()
+      Capturer.initWatchPointWindow().catch()
     }
     this.sendToMainWindow(command, key, true)
   }
 
   private handleStopCapturer(command: string, key: string) {
-    this.deps.capturer?.stopCapturer()
-    if (this.deps.capturer?.window) {
-      this.deps.windowManager.sendCommandTo(this.deps.capturer.window, command, key, true)
+    Capturer.stopCapturer()
+    if (Capturer.window) {
+      this.deps.windowManager.sendCommandTo(Capturer.window, command, key, true)
     }
   }
 
   private handleGetWindowCapturer(command: string, key: string, args: any[]) {
-    this.deps.capturer?.getWindowCapturer(args[0])
-    if (this.deps.capturer?.window) {
-      this.deps.windowManager.sendCommandTo(this.deps.capturer.window, command, key, true)
+    Capturer.getWindowCapturer(args[0])
+    if (Capturer.window) {
+      this.deps.windowManager.sendCommandTo(Capturer.window, command, key, true)
     }
   }
 
   private handleStopCheckWindowInPoint(command: string, key: string) {
-    this.deps.capturer?.stopCheckWindowInPoint()
-    if (this.deps.capturer?.window) {
-      this.deps.windowManager.sendCommandTo(this.deps.capturer.window, command, key, true)
+    Capturer.stopCheckWindowInPoint()
+    if (Capturer.window) {
+      this.deps.windowManager.sendCommandTo(Capturer.window, command, key, true)
     }
   }
 
   private handleSaveImage(command: string, key: string, args: any[]) {
-    this.deps.capturer?.saveImage(args[0], args[1])
-    if (this.deps.capturer?.window) {
-      this.deps.windowManager.sendCommandTo(this.deps.capturer.window, command, key, true)
+    Capturer.saveImage(args[0], args[1])
+    if (Capturer.window) {
+      this.deps.windowManager.sendCommandTo(Capturer.window, command, key, true)
     }
   }
 
   private handleCapturerConfigUpdate(command: string, key: string, args: any[]) {
-    this.deps.capturer?.configUpdate(args[0])
+    Capturer.configUpdate(args[0])
     this.sendToMainWindow(command, key, true)
   }
 

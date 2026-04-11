@@ -28,7 +28,12 @@ class MkCertStore {
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
     const bin = binPath || 'mkcert'
-    const commands = [`"${bin}" -install`]
+    let commands: string[] = []
+    if (window.Server.isWindows) {
+      commands = [`cd "${dirname(bin)}"`, `./mkcert.exe -install`]
+    } else {
+      commands = [`"${bin}" -install`]
+    }
     await execXTerm.send(commands, false)
     this.installEnd = true
   }
@@ -53,7 +58,15 @@ class MkCertStore {
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
     const bin = binPath || 'mkcert'
-    const commands = [`"${bin}" -cert-file "${cert}" -key-file "${key}" ${domains}`]
+    let commands: string[] = []
+    if (window.Server.isWindows) {
+      commands = [
+        `cd "${dirname(bin)}"`,
+        `./mkcert.exe -cert-file "${cert}" -key-file "${key}" ${domains}`
+      ]
+    } else {
+      commands = [`"${bin}" -cert-file "${cert}" -key-file "${key}" ${domains}`]
+    }
     await execXTerm.send(commands, false)
     this.installEnd = true
   }

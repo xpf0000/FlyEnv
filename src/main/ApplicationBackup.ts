@@ -36,7 +36,7 @@ import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFo
 import ServiceProcessManager from './core/ServiceProcess'
 import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
-import { Capturer } from './core/Capturer'
+// import { Capturer } from './core/Capturer'
 import OAuth from './core/OAuth'
 import { appendFile } from '@shared/fs-extra'
 import path from 'path'
@@ -57,7 +57,7 @@ export default class Application extends EventEmitter {
 
   constructor() {
     super()
-    AppNodeFnManager.customerLang = this.customerLang
+    // AppNodeFnManager.customerLang = this.customerLang
     AppNodeFnManager.nativeTheme_watch()
     global.Server = {
       Local: getLocale(),

@@ -45,7 +45,7 @@ type CapturerConfig = {
   name: string
 }
 
-export class Capturer {
+class Capturer {
   isFullScreen: boolean = false
   useWindow: boolean = true
   capturerWindow: Window | undefined = undefined
@@ -149,7 +149,7 @@ export class Capturer {
         y = Math.floor(y * display.scaleFactor)
       }
       const pointWindow = windowManager.getWindowAtPoint(x, y, this.capturerWindowID)
-      if (pointWindow.id) {
+      if (pointWindow.id && this.windowImage) {
         this.windowImage[pointWindow.id] = windowManager.captureWindow(pointWindow.id)
       }
     }
@@ -499,3 +499,5 @@ export class Capturer {
     }
   }
 }
+
+export default new Capturer()

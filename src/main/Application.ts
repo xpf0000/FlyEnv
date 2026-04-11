@@ -18,7 +18,6 @@ import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
 import { AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
-import { Capturer } from './core/Capturer'
 import OAuth from './core/OAuth'
 import ConfigManager from './core/ConfigManager'
 import ServerManager from './core/ServerManager'
@@ -37,8 +36,6 @@ export default class Application extends EventEmitter {
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
   forkManager?: ForkManager
-  customerLang: Record<string, any> = {}
-  capturer?: Capturer
 
   // 新提取的管理器
   private serverManager: ServerManager
@@ -50,7 +47,6 @@ export default class Application extends EventEmitter {
     this.configManager = new ConfigManager()
     this.serverManager = new ServerManager(this.configManager)
 
-    AppNodeFnManager.customerLang = this.customerLang
     AppNodeFnManager.nativeTheme_watch()
     AppNodeFnManager.configManager = this.configManager
 
@@ -504,16 +500,6 @@ export default class Application extends EventEmitter {
         )
         break
     }
-  }
-
-  // ===== 屏幕捕获 =====
-
-  getCapturer(): Capturer {
-    if (!this.capturer) {
-      this.capturer = new Capturer()
-      this.ipcHandler.updateDependencies({ capturer: this.capturer })
-    }
-    return this.capturer
   }
 
   // ===== 应用生命周期 =====
