@@ -20,5 +20,10 @@
 
     <key>KeepAlive</key>
     <true/>
+
+    <key>AssociatedBundleIdentifiers</key>
+    <array>
+      <string>phpstudy.xpfme.com</string>
+    </array>
 </dict>
 </plist>
