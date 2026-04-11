@@ -71,8 +71,7 @@ export default class Application extends EventEmitter {
       trayManager: this.trayManager,
       serverManager: this.serverManager,
       appNodeFnManager: AppNodeFnManager,
-      siteSuckerManager: SiteSuckerManager,
-      serviceProcessManager: ServiceProcessManager
+      siteSuckerManager: SiteSuckerManager
     })
 
     this.setupEventHandlers()

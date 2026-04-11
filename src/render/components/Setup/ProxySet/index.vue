@@ -3,9 +3,23 @@
   <div class="main proxy-set">
     <el-form label-width="130px" label-position="left" @submit.prevent>
       <el-form-item :label="$t('base.useProxy')">
+        <template #label>
+          <el-tooltip :content="$t('base.useProxy')" :show-after="600">
+            <span class="w-full whitespace-nowrap text-nowrap truncate">{{
+              $t('base.useProxy')
+            }}</span>
+          </el-tooltip>
+        </template>
         <el-switch v-model="proxy.on"></el-switch>
       </el-form-item>
       <el-form-item :label="$t('base.quickSetup')">
+        <template #label>
+          <el-tooltip :content="$t('base.quickSetup')" :show-after="600">
+            <span class="w-full whitespace-nowrap text-nowrap truncate">{{
+              $t('base.quickSetup')
+            }}</span>
+          </el-tooltip>
+        </template>
         <template v-if="fastEdit">
           <el-input v-model.trim="fastProxy" placeholder="Example: 127.0.0.1:8090">
             <template #append>
@@ -27,6 +41,13 @@
         </template>
       </el-form-item>
       <el-form-item :label="$t('base.currentProxy')">
+        <template #label>
+          <el-tooltip :content="$t('base.currentProxy')" :show-after="600">
+            <span class="w-full whitespace-nowrap text-nowrap truncate">{{
+              $t('base.currentProxy')
+            }}</span>
+          </el-tooltip>
+        </template>
         <template v-if="proxyEdit">
           <el-input v-model.trim="proxyStr">
             <template #append>

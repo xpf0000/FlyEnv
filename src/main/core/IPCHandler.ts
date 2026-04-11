@@ -17,7 +17,7 @@ import type ServerManager from './ServerManager'
 import type { BrowserWindow } from 'electron'
 import type AppNodeFnManager from './AppNodeFn'
 import type SiteSuckerManager from '../ui/SiteSucker'
-import type ServiceProcessManager from './ServiceProcess'
+import ServiceProcessManager from './ServiceProcess'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import CustomerLang from './CustomerLang'
@@ -34,7 +34,6 @@ export interface IPCHandlerDependencies {
   trayWindow?: BrowserWindow
   appNodeFnManager: typeof AppNodeFnManager
   siteSuckerManager: typeof SiteSuckerManager
-  serviceProcessManager: typeof ServiceProcessManager
 }
 
 export default class IPCHandler extends EventEmitter {
@@ -83,8 +82,13 @@ export default class IPCHandler extends EventEmitter {
 
     // 处理特殊命令：通过应用打开路径
     if (module === 'tools' && args?.[0] === 'openPathByApp') {
-      this.handleOpenPathByApp(command, key, args)
-      return
+      const openApps = this.getOpenApps()
+      const appName = args?.[2]
+
+      if (openApps[appName]) {
+        this.handleOpenPathByApp(command, key, args)
+        return
+      }
     }
 
     // 设置代理和全局配置
@@ -108,13 +112,13 @@ export default class IPCHandler extends EventEmitter {
     // 处理服务启动 PID
     if (info?.data?.['APP-Service-Start-PID']) {
       const item = args[1]
-      this.deps.serviceProcessManager.addPid(module, info.data['APP-Service-Start-PID'], item)
+      ServiceProcessManager.addPid(module, info.data['APP-Service-Start-PID'], item)
     }
 
     // 处理服务停止 PID
     if (info?.data?.['APP-Service-Stop-PID']) {
       const arr: string[] = info.data['APP-Service-Stop-PID']
-      this.deps.serviceProcessManager.delPid(module, arr)
+      ServiceProcessManager.delPid(module, arr)
     }
 
     // 处理许可证码
@@ -147,11 +151,6 @@ export default class IPCHandler extends EventEmitter {
     const openApps = this.getOpenApps()
     const appName = args?.[2]
     const filePath = args?.[1]
-
-    if (!openApps[appName]) {
-      this.handleRegularCommand(command, key, ...args)
-      return
-    }
 
     const url = `${openApps[appName]}${encodeURIComponent(filePath)}`
     console.log('openPathByApp ', appName, url)
