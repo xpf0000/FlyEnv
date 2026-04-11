@@ -16,7 +16,7 @@ const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
   buildVersion: '4.14.1',
-  electronVersion: '35.7.5',
+  electronVersion: '39.8.7',
   appId: 'com.xpf0000.flyenv',
   asar: true,
   directories: {
