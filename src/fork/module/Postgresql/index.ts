@@ -26,13 +26,13 @@ import {
   remove,
   serviceStartExecCMD,
   mkdirp,
-  execPromiseWithEnv
+  execPromiseWithEnv,
+  spawnPromiseWithEnv
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
-import { spawnPromise } from '@shared/child-process'
+import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
 import { ProcessListFetch, ProcessSearch } from '@shared/Process'
 
 class Manager extends Base {
@@ -55,11 +55,12 @@ class Manager extends Base {
 
       const doStop = async () => {
         try {
-          await spawnPromise(basename(bin), ['stop', '-D', dbPath, '-l', logFile], {
+          await spawnPromiseWithEnv(bin, ['stop', '-D', dbPath, '-l', logFile], {
             cwd: dirname(bin),
             shell: false
           })
         } catch (e) {
+          appDebugLog(`[PostgreSql][_stopServer][error]`, `${e}`).catch()
           console.log('PostgreSQL shutdown error: ', e)
           console.log('PostgreSQL shutdown error version: ', version, bin)
         }
