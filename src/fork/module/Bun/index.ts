@@ -1,5 +1,7 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -17,6 +19,8 @@ import {
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
+
+const execAsync = promisify(exec)
 
 class Bun extends Base {
   constructor() {
@@ -99,6 +103,10 @@ class Bun extends Base {
       await mkdirp(row.appDir)
       await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
+
+      try {
+        await execAsync(`"${row.bin}" completions`, { windowsHide: true })
+      } catch {}
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
@@ -107,6 +115,12 @@ class Bun extends Base {
         try {
           await binXattrFix(row.bin)
         } catch {}
+      }
+
+      try {
+        await execAsync(`"${row.bin}" completions`)
+      } catch (error) {
+        console.warn('[Bun] completions failed (non-fatal):', (error as Error).message)
       }
     }
   }
