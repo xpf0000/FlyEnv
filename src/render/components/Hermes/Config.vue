@@ -1,51 +1,82 @@
 <template>
-  <Conf
-    ref="conf"
-    :type-flag="'hermes'"
-    :show-load-default="false"
-    :file="file"
-    :file-ext="'yaml'"
-    :config-language="'yaml'"
-    :show-commond="true"
-  >
-    <template #common>
-      <div class="p-4">
-        <el-form label-position="top">
-          <el-form-item :label="'.env ' + I18nT('base.configFile')">
-            <div class="flex items-center gap-2">
-              <el-input v-model="envFile" readonly class="flex-1" />
-              <el-button @click="openEnv">
-                <FolderOpened class="w-4 h-4" />
-              </el-button>
-            </div>
-          </el-form-item>
-        </el-form>
-      </div>
-    </template>
-  </Conf>
+  <div class="module-config">
+    <el-card class="app-base-el-card h-full overflow-hidden">
+      <template #header>
+        <el-radio-group v-model="filepath">
+          <template v-for="(item, _index) in configs" :key="_index">
+            <el-radio-button :value="item.path" :label="item.name"></el-radio-button>
+          </template>
+        </el-radio-group>
+      </template>
+      <template #default>
+        <ConfVM
+          :key="filepath"
+          ref="conf"
+          class="h-full overflow-hidden"
+          :type-flag="'hermes'"
+          :show-load-default="false"
+          :file="filepath"
+          :file-ext="fileExt"
+          :config-language="configLanguage"
+          :show-commond="false"
+        >
+        </ConfVM>
+      </template>
+      <template #footer>
+        <ToolVM v-if="conf" :conf="conf"></ToolVM>
+      </template>
+    </el-card>
+  </div>
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
-  import Conf from '@/components/Conf/index.vue'
+  import { computed, ref, watch } from 'vue'
+  import ConfVM from '@/components/Conf/conf.vue'
+  import ToolVM from '@/components/Conf/tool.vue'
   import { HermesSetup } from '@/components/Hermes/setup'
-  import { FolderOpened } from '@element-plus/icons-vue'
-  import { shell } from '@/util/NodeFn'
-  import { I18nT } from '@lang/index'
 
   const conf = ref()
 
-  const file = computed(() => {
-    return HermesSetup.configFile
+  const configs = computed(() => {
+    return Object.entries(HermesSetup.configPaths).map(([name, path]) => ({ name, path }))
   })
 
-  const envFile = computed(() => {
-    return HermesSetup.envFile
-  })
-
-  const openEnv = () => {
-    if (HermesSetup.envFile) {
-      shell.showItemInFolder(HermesSetup.envFile)
+  const filepath = computed({
+    get() {
+      return HermesSetup.confTab
+    },
+    set(value) {
+      HermesSetup.confTab = value
     }
-  }
+  })
+
+  watch(
+    configs,
+    (val) => {
+      if (val.length > 0 && !filepath.value) {
+        filepath.value = val[0].path
+      }
+    },
+    { immediate: true }
+  )
+
+  const currentFile = computed(() => {
+    return configs.value.find((c) => c.path === filepath.value)
+  })
+
+  const fileExt = computed(() => {
+    const name = currentFile.value?.name ?? ''
+    if (name.endsWith('.yaml') || name.endsWith('.yml')) return 'yaml'
+    if (name === '.env') return 'env'
+    if (name.endsWith('.md')) return 'md'
+    return 'txt'
+  })
+
+  const configLanguage = computed(() => {
+    const name = currentFile.value?.name ?? ''
+    if (name.endsWith('.yaml') || name.endsWith('.yml')) return 'yaml'
+    if (name === '.env') return 'ini'
+    if (name.endsWith('.md')) return 'markdown'
+    return 'plaintext'
+  })
 </script>

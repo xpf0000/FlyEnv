@@ -19,10 +19,9 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, onMounted, computed, nextTick, watch } from 'vue'
+  import { ref, computed } from 'vue'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { fs } from '@/util/NodeFn'
   import type { ProjectItem } from '@/components/LanguageProjects/ProjectItem'
   import { join } from '@/util/path-browserify'
   import LogVM from '@/components/Log/index.vue'
@@ -54,22 +53,6 @@
   })
 
   const filepath = ref(logs.value[0].path)
-
-  const doRefresh = async () => {
-    await nextTick()
-
-    if (show.value && (await fs.existsSync(filepath.value))) {
-      log.value?.logDo?.('refresh')
-    }
-  }
-
-  watch(filepath, () => {
-    doRefresh().catch()
-  })
-
-  onMounted(() => {
-    doRefresh().catch()
-  })
 
   defineExpose({
     show,

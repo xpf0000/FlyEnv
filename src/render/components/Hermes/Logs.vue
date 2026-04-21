@@ -1,49 +1,48 @@
 <template>
   <div class="module-config">
-    <el-card>
-      <div class="flex gap-2 mb-3">
-        <el-radio-group v-model="logType" size="small">
-          <el-radio-button value="agent">agent</el-radio-button>
-          <el-radio-button value="gateway">gateway</el-radio-button>
-          <el-radio-button value="errors">errors</el-radio-button>
+    <el-card class="app-base-el-card">
+      <template #header>
+        <el-radio-group v-model="filepath">
+          <template v-for="(item, _index) in logFiles" :key="_index">
+            <el-radio-button :value="item.path" :label="item.name"></el-radio-button>
+          </template>
         </el-radio-group>
-        <el-button size="small" @click="refreshLogs">
-          <yb-icon
-            :svg="import('@/svg/icon_refresh.svg?raw')"
-            class="refresh-icon"
-            :class="{ 'fa-spin': loading }"
-          ></yb-icon>
-        </el-button>
-      </div>
-      <el-input
-        v-model="logContent"
-        type="textarea"
-        :rows="20"
-        readonly
-        class="font-mono text-xs"
-      />
+      </template>
+      <template #default>
+        <LogVM ref="log" :log-file="filepath" class="h-full overflow-hidden" />
+      </template>
+      <template #footer>
+        <ToolVM :log="log" />
+      </template>
     </el-card>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { ref, watch, onMounted } from 'vue'
+  import { computed, ref } from 'vue'
   import { HermesSetup } from './setup'
+  import LogVM from '@/components/Log/index.vue'
+  import ToolVM from '@/components/Log/tool.vue'
 
-  const logType = ref('agent')
-  const logContent = ref('')
-  const loading = ref(false)
+  const log = ref()
+  const logFiles = ref<Array<{ name: string; path: string }>>([])
 
-  const refreshLogs = async () => {
-    loading.value = true
-    const content = await HermesSetup.getLogs(logType.value, 200)
-    logContent.value = content
-    loading.value = false
+  const filepath = computed({
+    get() {
+      return HermesSetup.logTab
+    },
+    set(value) {
+      HermesSetup.logTab = value
+    }
+  })
+
+  const init = async () => {
+    const files = await HermesSetup.getLogFiles()
+    logFiles.value = files
+    if (files.length > 0 && !filepath.value) {
+      filepath.value = files[0].path
+    }
   }
 
-  watch(logType, refreshLogs)
-
-  onMounted(() => {
-    refreshLogs()
-  })
+  init().catch()
 </script>

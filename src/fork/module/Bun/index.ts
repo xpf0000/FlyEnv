@@ -1,10 +1,11 @@
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   binXattrFix,
+  execPromiseWithEnv,
   mkdirp,
   moveChildDirToParent,
   remove,
@@ -99,6 +100,13 @@ class Bun extends Base {
       await mkdirp(row.appDir)
       await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
+
+      try {
+        await execPromiseWithEnv(`"${row.bin}" completions`, {
+          windowsHide: true,
+          cwd: dirname(row.bin)
+        })
+      } catch {}
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)
@@ -107,6 +115,14 @@ class Bun extends Base {
         try {
           await binXattrFix(row.bin)
         } catch {}
+      }
+
+      try {
+        await execPromiseWithEnv(`"${row.bin}" completions`, {
+          cwd: dirname(row.bin)
+        })
+      } catch (error) {
+        console.warn('[Bun] completions failed (non-fatal):', (error as Error).message)
       }
     }
   }

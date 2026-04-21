@@ -1,0 +1,148 @@
+{
+  "categories": [
+    {
+      "nameKey": "hermes.category.basicInfo",
+      "commands": [
+        { "label": "hermes --help", "descriptionKey": "hermes.cmd.help", "needInput": false },
+        { "label": "hermes --version", "descriptionKey": "hermes.cmd.version", "needInput": false },
+        { "label": "hermes status", "descriptionKey": "hermes.cmd.status", "needInput": false },
+        { "label": "hermes doctor", "descriptionKey": "hermes.cmd.doctor", "needInput": false },
+        { "label": "hermes doctor --fix", "descriptionKey": "hermes.cmd.doctorFix", "needInput": false },
+        { "label": "hermes dump", "descriptionKey": "hermes.cmd.dump", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.chatSession",
+      "commands": [
+        { "label": "hermes chat", "descriptionKey": "hermes.cmd.chat", "needInput": false },
+        { "label": "hermes chat -q", "descriptionKey": "hermes.cmd.chatQuery", "needInput": true },
+        { "label": "hermes sessions list", "descriptionKey": "hermes.cmd.sessionsList", "needInput": false },
+        { "label": "hermes sessions browse", "descriptionKey": "hermes.cmd.sessionsBrowse", "needInput": false },
+        { "label": "hermes sessions stats", "descriptionKey": "hermes.cmd.sessionsStats", "needInput": false },
+        { "label": "hermes sessions rename", "descriptionKey": "hermes.cmd.sessionsRename", "needInput": true },
+        { "label": "hermes sessions export", "descriptionKey": "hermes.cmd.sessionsExport", "needInput": true },
+        { "label": "hermes sessions prune", "descriptionKey": "hermes.cmd.sessionsPrune", "needInput": true },
+        { "label": "hermes sessions delete", "descriptionKey": "hermes.cmd.sessionsDelete", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.gateway",
+      "commands": [
+        { "label": "hermes gateway status", "descriptionKey": "hermes.cmd.gatewayStatus", "needInput": false },
+        { "label": "hermes gateway start", "descriptionKey": "hermes.cmd.gatewayStart", "needInput": false, "needRefresh": true },
+        { "label": "hermes gateway stop", "descriptionKey": "hermes.cmd.gatewayStop", "needInput": false, "needRefresh": true },
+        { "label": "hermes gateway restart", "descriptionKey": "hermes.cmd.gatewayRestart", "needInput": false, "needRefresh": true },
+        { "label": "hermes gateway install", "descriptionKey": "hermes.cmd.gatewayInstall", "needInput": false, "needRefresh": true },
+        { "label": "hermes gateway uninstall", "descriptionKey": "hermes.cmd.gatewayUninstall", "needInput": false, "needRefresh": true },
+        { "label": "hermes gateway run", "descriptionKey": "hermes.cmd.gatewayRun", "needInput": false },
+        { "label": "hermes gateway setup", "descriptionKey": "hermes.cmd.gatewaySetup", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.configuration",
+      "commands": [
+        { "label": "hermes config show", "descriptionKey": "hermes.cmd.configShow", "needInput": false },
+        { "label": "hermes config edit", "descriptionKey": "hermes.cmd.configEdit", "needInput": false },
+        { "label": "hermes config set", "descriptionKey": "hermes.cmd.configSet", "needInput": true },
+        { "label": "hermes config path", "descriptionKey": "hermes.cmd.configPath", "needInput": false },
+        { "label": "hermes config env-path", "descriptionKey": "hermes.cmd.configEnvPath", "needInput": false },
+        { "label": "hermes config check", "descriptionKey": "hermes.cmd.configCheck", "needInput": false },
+        { "label": "hermes config migrate", "descriptionKey": "hermes.cmd.configMigrate", "needInput": false },
+        { "label": "hermes setup", "descriptionKey": "hermes.cmd.setup", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.modelAuth",
+      "commands": [
+        { "label": "hermes model", "descriptionKey": "hermes.cmd.model", "needInput": false },
+        { "label": "hermes login", "descriptionKey": "hermes.cmd.login", "needInput": false },
+        { "label": "hermes logout", "descriptionKey": "hermes.cmd.logout", "needInput": false },
+        { "label": "hermes auth list", "descriptionKey": "hermes.cmd.authList", "needInput": false },
+        { "label": "hermes auth add", "descriptionKey": "hermes.cmd.authAdd", "needInput": true },
+        { "label": "hermes auth remove", "descriptionKey": "hermes.cmd.authRemove", "needInput": true },
+        { "label": "hermes auth reset", "descriptionKey": "hermes.cmd.authReset", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.skillsPlugins",
+      "commands": [
+        { "label": "hermes skills list", "descriptionKey": "hermes.cmd.skillsList", "needInput": false },
+        { "label": "hermes skills check", "descriptionKey": "hermes.cmd.skillsCheck", "needInput": false },
+        { "label": "hermes skills install", "descriptionKey": "hermes.cmd.skillsInstall", "needInput": true },
+        { "label": "hermes skills search", "descriptionKey": "hermes.cmd.skillsSearch", "needInput": true },
+        { "label": "hermes skills update", "descriptionKey": "hermes.cmd.skillsUpdate", "needInput": false },
+        { "label": "hermes plugins list", "descriptionKey": "hermes.cmd.pluginsList", "needInput": false },
+        { "label": "hermes plugins install", "descriptionKey": "hermes.cmd.pluginsInstall", "needInput": true },
+        { "label": "hermes plugins update", "descriptionKey": "hermes.cmd.pluginsUpdate", "needInput": true },
+        { "label": "hermes plugins remove", "descriptionKey": "hermes.cmd.pluginsRemove", "needInput": true },
+        { "label": "hermes plugins enable", "descriptionKey": "hermes.cmd.pluginsEnable", "needInput": true },
+        { "label": "hermes plugins disable", "descriptionKey": "hermes.cmd.pluginsDisable", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.memoryTools",
+      "commands": [
+        { "label": "hermes memory status", "descriptionKey": "hermes.cmd.memoryStatus", "needInput": false },
+        { "label": "hermes memory setup", "descriptionKey": "hermes.cmd.memorySetup", "needInput": false },
+        { "label": "hermes memory off", "descriptionKey": "hermes.cmd.memoryOff", "needInput": false },
+        { "label": "hermes memory reset", "descriptionKey": "hermes.cmd.memoryReset", "needInput": false },
+        { "label": "hermes tools list", "descriptionKey": "hermes.cmd.toolsList", "needInput": false },
+        { "label": "hermes tools enable", "descriptionKey": "hermes.cmd.toolsEnable", "needInput": true },
+        { "label": "hermes tools disable", "descriptionKey": "hermes.cmd.toolsDisable", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.mcp",
+      "commands": [
+        { "label": "hermes mcp list", "descriptionKey": "hermes.cmd.mcpList", "needInput": false },
+        { "label": "hermes mcp add", "descriptionKey": "hermes.cmd.mcpAdd", "needInput": true },
+        { "label": "hermes mcp remove", "descriptionKey": "hermes.cmd.mcpRemove", "needInput": true },
+        { "label": "hermes mcp serve", "descriptionKey": "hermes.cmd.mcpServe", "needInput": false },
+        { "label": "hermes mcp test", "descriptionKey": "hermes.cmd.mcpTest", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.systemLogs",
+      "commands": [
+        { "label": "hermes logs", "descriptionKey": "hermes.cmd.logs", "needInput": false },
+        { "label": "hermes logs errors", "descriptionKey": "hermes.cmd.logsErrors", "needInput": false },
+        { "label": "hermes logs -f", "descriptionKey": "hermes.cmd.logsFollow", "needInput": false },
+        { "label": "hermes cron list", "descriptionKey": "hermes.cmd.cronList", "needInput": false },
+        { "label": "hermes cron status", "descriptionKey": "hermes.cmd.cronStatus", "needInput": false },
+        { "label": "hermes webhook list", "descriptionKey": "hermes.cmd.webhookList", "needInput": false },
+        { "label": "hermes pairing list", "descriptionKey": "hermes.cmd.pairingList", "needInput": false },
+        { "label": "hermes insights", "descriptionKey": "hermes.cmd.insights", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.backupUpdate",
+      "commands": [
+        { "label": "hermes backup", "descriptionKey": "hermes.cmd.backup", "needInput": false },
+        { "label": "hermes backup -q", "descriptionKey": "hermes.cmd.backupQuick", "needInput": false },
+        { "label": "hermes import", "descriptionKey": "hermes.cmd.import", "needInput": true },
+        { "label": "hermes update", "descriptionKey": "hermes.cmd.update", "needInput": false },
+        { "label": "hermes update --gateway", "descriptionKey": "hermes.cmd.updateGateway", "needInput": false },
+        { "label": "hermes claw migrate", "descriptionKey": "hermes.cmd.clawMigrate", "needInput": false },
+        { "label": "hermes claw cleanup", "descriptionKey": "hermes.cmd.clawCleanup", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.dashboardTui",
+      "commands": [
+        { "label": "hermes dashboard", "descriptionKey": "hermes.cmd.dashboard", "needInput": false },
+        { "label": "hermes tui", "descriptionKey": "hermes.cmd.tui", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "hermes.category.profileOther",
+      "commands": [
+        { "label": "hermes profile list", "descriptionKey": "hermes.cmd.profileList", "needInput": false },
+        { "label": "hermes profile use", "descriptionKey": "hermes.cmd.profileUse", "needInput": true },
+        { "label": "hermes acp", "descriptionKey": "hermes.cmd.acp", "needInput": false },
+        { "label": "hermes completion bash", "descriptionKey": "hermes.cmd.completion", "needInput": false },
+        { "label": "hermes whatsapp", "descriptionKey": "hermes.cmd.whatsapp", "needInput": false },
+        { "label": "hermes uninstall", "descriptionKey": "hermes.cmd.uninstall", "needInput": false }
+      ]
+    }
+  ]
+}

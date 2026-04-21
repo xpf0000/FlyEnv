@@ -12,21 +12,6 @@
               ></yb-icon>
             </el-button>
           </el-tooltip>
-          <template v-if="HermesSetup.gatewayRunning && HermesSetup.dashboard">
-            <el-tooltip :content="I18nT('hermes.HermesLocalDashboard')" :show-after="600">
-              <el-button
-                style="color: #01cc74"
-                class="button"
-                link
-                @click.stop="HermesSetup.openURL('dashboard')"
-              >
-                <yb-icon
-                  style="width: 20px; height: 20px; margin-left: 10px"
-                  :svg="import('@/svg/http.svg?raw')"
-                ></yb-icon>
-              </el-button>
-            </el-tooltip>
-          </template>
         </div>
         <el-button
           class="button"
@@ -68,7 +53,10 @@
             @submit.prevent
           >
             <el-form-item class="flex-shrink-0" :label="'Hermes ' + I18nT('base.version')">
-              <span>{{ HermesSetup.version }}</span>
+              <span
+                class="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-300 leading-relaxed"
+                >{{ HermesSetup.version }}</span
+              >
             </el-form-item>
             <el-form-item class="flex-shrink-0" :label="I18nT('hermes.gatewayStatus')">
               <template v-if="HermesSetup.gatewayRunning">
@@ -107,15 +95,36 @@
                 </el-button>
               </template>
             </el-form-item>
-            <el-form-item class="flex-shrink-0" :label="I18nT('host.action')">
-              <div class="flex gap-2">
-                <el-button :disabled="HermesSetup.loading" @click.stop="HermesSetup.openDashboard()">
-                  {{ I18nT('hermes.openDashboard') }}
-                </el-button>
-                <el-button :disabled="HermesSetup.loading" @click.stop="openChat">
-                  {{ I18nT('hermes.openChat') }}
-                </el-button>
-              </div>
+            <el-form-item
+              class="flex-1 overflow-hidden el-form-item-flex-1 flex flex-col w-full"
+              :label="I18nT('host.action')"
+            >
+              <el-scrollbar class="w-full">
+                <div class="w-full command-categories">
+                  <el-collapse v-model="activeCategories">
+                    <el-collapse-item
+                      v-for="(category, cIndex) in HermesSetup.commandData.categories"
+                      :key="cIndex"
+                      :title="I18nT(category.nameKey)"
+                      :name="category.nameKey"
+                    >
+                      <div class="command-buttons">
+                        <el-tooltip
+                          v-for="(item, index) in category.commands"
+                          :key="index"
+                          :content="I18nT(item.descriptionKey)"
+                          placement="top"
+                          :show-after="500"
+                        >
+                          <el-button class="command-btn" @click.stop="doAction(item)">
+                            {{ item.label }}
+                          </el-button>
+                        </el-tooltip>
+                      </div>
+                    </el-collapse-item>
+                  </el-collapse>
+                </div>
+              </el-scrollbar>
             </el-form-item>
           </el-form>
         </div>
@@ -140,18 +149,19 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import { I18nT } from '@lang/index'
-  import { HermesSetup } from './setup'
+  import { CommandItem, HermesSetup } from './setup'
   import { nextTick, onMounted, onUnmounted } from 'vue'
   import XTerm from '@/util/XTerm'
 
   const xtermDom = ref()
+  const activeCategories = ref(['hermes.category.basicInfo'])
 
   const installHermes = () => {
     HermesSetup.installHermes(xtermDom)
   }
 
-  const openChat = () => {
-    HermesSetup.openChat(xtermDom)
+  const doAction = (item: CommandItem) => {
+    HermesSetup.doAction(item, xtermDom)
   }
 
   onMounted(() => {
@@ -169,3 +179,38 @@
     HermesSetup?.xterm?.unmounted?.()
   })
 </script>
+<style lang="scss" scoped>
+  .service-table {
+    :deep(.el-table__expanded-cell) {
+      padding-top: 0 !important;
+    }
+  }
+
+  .command-categories {
+    :deep(.el-collapse) {
+      border: none;
+    }
+
+    :deep(.el-collapse-item__header) {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    :deep(.el-collapse-item__content) {
+      padding-bottom: 10px;
+    }
+  }
+
+  .command-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .command-btn {
+      margin-left: 0;
+      flex-shrink: 0;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+  }
+</style>

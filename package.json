@@ -38,7 +38,7 @@
     "axios": "^1.15.0",
     "chardet": "^2.1.0",
     "compare-versions": "^6.1.1",
-    "compressing": "^1.10.4",
+    "compressing": "^1.10.5",
     "date-fns": "^4.1.0",
     "dns2": "^2.1.0",
     "electron-is": "^3.0.0",

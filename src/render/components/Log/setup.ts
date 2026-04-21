@@ -13,12 +13,34 @@ export const LogSetup = (file: Ref<string>) => {
   let watcher: FileWatcher | null
   let monacoInstance: editor.IStandaloneCodeEditor | undefined
 
+  const currentFile = ref<string>('')
+
+  let checking = false
   const fileExists = asyncComputed(async () => {
-    if (!file.value) {
+    if (!currentFile.value) {
       return false
     }
-    return await fs.existsSync(file.value)
+    console.log('fileExists !!!: ', file.value)
+    checking = true
+    const exists = await fs.existsSync(file.value)
+    checking = false
+    return exists
   })
+
+  watch(
+    file,
+    (v) => {
+      if (v !== currentFile.value) {
+        currentFile.value = ''
+        nextTick().then(() => {
+          currentFile.value = v
+        })
+      }
+    },
+    {
+      immediate: true
+    }
+  )
 
   const isDisabled = () => {
     return !file.value || !fileExists?.value
@@ -67,6 +89,10 @@ export const LogSetup = (file: Ref<string>) => {
   }
 
   const logDo = (action: 'open' | 'refresh' | 'clean') => {
+    if (checking) {
+      console.log('logDo checking: ', checking)
+      return
+    }
     if (!fileExists?.value) {
       MessageError(I18nT('base.logFileNotFound'))
       return
@@ -129,6 +155,7 @@ export const LogSetup = (file: Ref<string>) => {
   getLog()
 
   watch(fileExists, (v) => {
+    console.log('fileExists: ', v, file.value)
     if (v) {
       getLog()
     }

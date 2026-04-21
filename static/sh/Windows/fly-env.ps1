@@ -13,7 +13,7 @@ function global:Prompt {
   if ($isAllowed -and (Test-Path ".flyenv") -and ($currentPath -ne $script:lastFlyenvDir)) {
     Write-Host "[FlyEnv] Loading environment variables..." -ForegroundColor Cyan
     try {
-      Get-Content ".flyenv" -Raw | Invoke-Expression
+      Get-Content ".flyenv" -Encoding UTF8 | Invoke-Expression
       Write-Host "[FlyEnv] Load successful" -ForegroundColor Green
       $script:lastFlyenvDir = $currentPath
     } catch {
@@ -32,7 +32,7 @@ function Get-FlyEnvAllowedPaths {
   $configFile = Join-Path $PSScriptRoot ".flyenv.dir"
   if (Test-Path $configFile) {
     try {
-      $jsonContent = Get-Content $configFile -Raw | ConvertFrom-Json -ErrorAction Stop
+      $jsonContent = Get-Content $configFile -Encoding UTF8 | ConvertFrom-Json -ErrorAction Stop
       return $jsonContent | Where-Object { $_ -ne $null } | ForEach-Object {
         $_.ToString().Replace('/', '\').TrimEnd('\')
       }
