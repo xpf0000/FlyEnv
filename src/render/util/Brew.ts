@@ -104,8 +104,9 @@ export function sdkmanInfo(flag: string): Promise<OnlineVersionItem[]> {
 
 export const fetchVerion = (typeFlag: AllAppModule): Promise<OnlineVersionItem[]> => {
   return new Promise(async (resolve) => {
+    const useCache = typeFlag !== 'flutter'
     let saved: any = localStorage.getItem(`fetchVerion-${typeFlag}`)
-    if (saved) {
+    if (saved && useCache) {
       saved = JSON.parse(saved)
       const time = Math.round(new Date().getTime() / 1000)
       if (time < saved.expire) {

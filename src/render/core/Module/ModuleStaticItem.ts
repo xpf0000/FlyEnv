@@ -11,6 +11,7 @@ export class ModuleStaticItem implements OnlineVersionItem {
   mVersion: string = ''
   url: string = ''
   version: string = ''
+  channel: 'stable' | 'beta' | 'dev' = 'stable'
   appDir: string = ''
   bin: string = ''
   downing: boolean = false

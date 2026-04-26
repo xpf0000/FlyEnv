@@ -37,6 +37,7 @@
   "projectRuby": "Ruby مشاريع",
   "projectRust": "Rust مشاريع",
   "projectZig": "Zig مشاريع",
+  "projectFlutter": "مشاريع Flutter",
   "jarPackagePath": "مسار حزمة JAR",
   "jdkPath": "مسار JDK",
   "pythonPath": "مسار Python",

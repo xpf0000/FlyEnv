@@ -32,6 +32,7 @@ export interface OnlineVersionItem {
   url: string
   version: string
   mVersion: string
+  channel?: 'stable' | 'beta' | 'dev'
   downing?: boolean
 }
 

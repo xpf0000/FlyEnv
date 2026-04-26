@@ -89,7 +89,8 @@ export enum AppModuleEnum {
   cliproxyapi = 'cliproxyapi',
   numa = 'numa',
   rnacos = 'rnacos',
-  frankenphp = 'frankenphp'
+  frankenphp = 'frankenphp',
+  flutter = 'flutter'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

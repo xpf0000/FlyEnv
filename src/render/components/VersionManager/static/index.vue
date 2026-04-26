@@ -1,4 +1,10 @@
 <template>
+  <div v-if="showChannelTabs" class="mb-3">
+    <el-radio-group v-model="channelTab.value" size="small">
+      <el-radio-button value="stable">Stable</el-radio-button>
+      <el-radio-button value="beta">Beta</el-radio-button>
+    </el-radio-group>
+  </div>
   <el-table
     show-overflow-tooltip
     height="100%"
@@ -91,7 +97,8 @@
     typeFlag: AllAppModule
   }>()
 
-  const { fetching, tableData, handleVersion, fetchCommand, copyCommand } = Setup(props.typeFlag)
+  const { fetching, tableData, showChannelTabs, channelTab, handleVersion, fetchCommand, copyCommand } =
+    Setup(props.typeFlag)
 </script>
 <style lang="scss">
   .app-html-block {

@@ -49,6 +49,7 @@ class Manager extends Base {
   Numa: any
   Rnacos: any
   FrankenPHP: any
+  Flutter: any
 
   constructor() {
     super()
@@ -335,6 +336,12 @@ class Manager extends Base {
             this.FrankenPHP = res.default
           }
           versions.frankenphp = this.FrankenPHP.allInstalledVersions(setup)
+        } else if (type === 'flutter') {
+          if (!this.Flutter) {
+            const res = await import('../Flutter')
+            this.Flutter = res.default
+          }
+          versions.flutter = this.Flutter.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

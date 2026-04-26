@@ -60,6 +60,7 @@ class BaseManager {
   N8N: any
   RustFS: any
   MkCert: any
+  Flutter: any
   Sdkman: any
   LanguageProject: any
   CliProxyAPI: any
@@ -488,6 +489,12 @@ class BaseManager {
         this.MkCert = res.default
       }
       doRun(this.MkCert)
+    } else if (module === 'flutter') {
+      if (!this.Flutter) {
+        const res = await import('./module/Flutter')
+        this.Flutter = res.default
+      }
+      doRun(this.Flutter)
     } else if (module === 'language-project') {
       if (!this.LanguageProject) {
         const res = await import('./module/LanguageProject')
