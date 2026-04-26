@@ -7,10 +7,9 @@
     <div class="left">
       <div class="icon-block">
         <yb-icon
-          style="padding: 4px"
-          :svg="import('@/svg/code-library.svg?raw')"
-          width="29"
-          height="29"
+          :svg="import('@/svg/flutter.svg?raw')"
+          width="30"
+          height="30"
         />
       </div>
       <span class="title">Flutter</span>

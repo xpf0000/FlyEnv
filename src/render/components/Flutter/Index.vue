@@ -23,6 +23,7 @@
         :show-brew-lib="false"
         :show-port-lib="false"
       ></Manager>
+      <AndroidToolchain v-else-if="tab === 3" />
     </div>
   </div>
 </template>
@@ -33,7 +34,13 @@
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
+  import AndroidToolchain from './AndroidToolchain.vue'
 
   const { tab } = AppModuleSetup('flutter')
-  const tabs = [I18nT('host.projectFlutter'), I18nT('base.service'), I18nT('base.versionManager')]
+  const tabs = [
+    I18nT('host.projectFlutter'),
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    'Android'
+  ]
 </script>
