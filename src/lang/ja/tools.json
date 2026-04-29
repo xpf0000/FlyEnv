@@ -25,6 +25,7 @@
   "escape-html-title": "HTMLエスケープ",
   "git-cheatsheet-title": "GITチートシート",
   "hash-text-title": "テキストをハッシュ化",
+  "jwt-title": "JWT エンコード/デコード",
   "http-status-codes-title": "HTTPステータスコード",
   "keycode-info-title": "キーコード情報",
   "mime-types-title": "MIMEタイプ",

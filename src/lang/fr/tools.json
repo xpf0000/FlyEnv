@@ -25,6 +25,7 @@
   "escape-html-title": "Échappement HTML",
   "git-cheatsheet-title": "Feuille de triche GIT",
   "hash-text-title": "Hacher du texte",
+  "jwt-title": "Encodage/décodage JWT",
   "http-status-codes-title": "Codes d'état HTTP",
   "keycode-info-title": "Informations Keycode",
   "mime-types-title": "Types MIME",

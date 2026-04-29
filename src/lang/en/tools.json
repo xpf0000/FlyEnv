@@ -27,6 +27,7 @@
   "escape-html-title": "HTML Entity Encode/Decode",
   "git-cheatsheet-title": "Git Cheatsheet",
   "hash-text-title": "Hash String",
+  "jwt-title": "JWT Encode/Decode",
   "http-status-codes-title": "HTTP Status Codes",
   "keycode-info-title": "Keycode Info",
   "mime-types-title": "MIME Types",

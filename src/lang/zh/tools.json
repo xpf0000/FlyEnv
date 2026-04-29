@@ -25,6 +25,7 @@
   "escape-html-title": "HTML转义",
   "git-cheatsheet-title": "GIT备忘录",
   "hash-text-title": "Hash 文本",
+  "jwt-title": "JWT 编码/解码",
   "http-status-codes-title": "HTTP状态码",
   "keycode-info-title": "Keycode信息",
   "mime-types-title": "MIME类型",

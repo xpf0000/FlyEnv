@@ -25,6 +25,7 @@
   "escape-html-title": "HTML-код сущности/декодирование",
   "git-cheatsheet-title": "Чит-лист Git",
   "hash-text-title": "Хэш строка",
+  "jwt-title": "Кодирование/декодирование JWT",
   "http-status-codes-title": "Код состояния HTTP",
   "keycode-info-title": "Информация о ключевом коде",
   "mime-types-title": "Типы MIME",
