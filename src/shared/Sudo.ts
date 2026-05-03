@@ -169,7 +169,6 @@ async function windowsElevate(instance: Instance): Promise<void> {
   } catch {
     throw new Error(PERMISSION_DENIED)
   }
-  console.log('windowsElevate !!!')
 }
 
 async function windowsResult(instance: Instance): Promise<{ stdout: string; stderr: string }> {
@@ -202,7 +201,6 @@ async function windowsWaitForStatus(instance: Instance): Promise<void> {
     const a = checkFile(instance.pathStatus!)
     const b = checkFile(instance.pathStdout!)
     const c = checkFile(instance.pathStderr!)
-    console.log('windowsWaitForStatus times: ', times, a, b, c)
     if (a && b && c) {
       return
     }
@@ -229,7 +227,6 @@ async function windowsWriteCommandScript(instance: Instance): Promise<void> {
   }
   script.push(instance.command)
   await fs.writeFile(instance.pathCommand!, script.join('\r\n'), 'utf-8')
-  console.log('windowsWriteCommandScript: ', instance.pathCommand)
 }
 
 async function windowsWriteExecuteScript(instance: Instance): Promise<void> {
@@ -244,7 +241,6 @@ async function windowsWriteExecuteScript(instance: Instance): Promise<void> {
   script.push(`move /y "${instance.pathStatus!}.tmp" "${instance.pathStatus!}"`)
   script.push('endlocal')
   await fs.writeFile(instance.pathExecute!, script.join('\r\n'), 'utf-8')
-  console.log('windowsWriteExecuteScript: ', instance.pathExecute)
 }
 
 // ## Platform-Specific Implementations ##

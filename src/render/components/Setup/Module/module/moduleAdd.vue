@@ -424,9 +424,7 @@
   const appStore = AppStore()
   const setupStore = SetupStore()
 
-  const isLock = computed(() => {
-    return !setupStore.isActive && item.value.item.length > 2
-  })
+  const isLock = computed(() => false)
 
   const toLicense = () => {
     setupStore.tab = 'licenses'

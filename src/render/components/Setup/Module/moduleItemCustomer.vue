@@ -191,9 +191,7 @@
 
   const setupStore = SetupStore()
 
-  const isLock = computed(() => {
-    return !setupStore.isActive && AppCustomerModule.module.length > 2
-  })
+  const isLock = computed(() => false)
 
   const toLicense = () => {
     setupStore.tab = 'licenses'

@@ -136,21 +136,7 @@
   })
 
   const setupStore = SetupStore()
-  const isLocked = computed(() => {
-    if (setupStore.isActive) {
-      return false
-    }
-    if (Setup.trialStartTime === 0) {
-      return false
-    }
-
-    const currentTime = Math.round(new Date().getTime() / 1000)
-    if (Setup.trialStartTime + 3 * 24 * 60 * 60 < currentTime) {
-      return true
-    }
-
-    return false
-  })
+  const isLocked = computed(() => false)
 
   const cleanShortcut = () => {
     event.value = {} as any

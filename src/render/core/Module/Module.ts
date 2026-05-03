@@ -125,8 +125,6 @@ export class Module {
               })
             this.installed.splice(0)
             this.installed.push(...installItems)
-            // this.installed = installItems as any
-            console.log('this.installed: ', this.installed, this.typeFlag, this)
             const server = appStore.serverCurrent(flag)
             if (this.typeFlag !== 'php' && this.installed.length > 0) {
               const currentVersion = server?.current?.version

@@ -270,9 +270,6 @@ export const AppStore = defineStore('app', {
           showTour: config?.showTour ?? true
         })
         this.INIT_HTTP_SERVE(config.httpServe ?? [])
-        if (this.config.setup?.autoCheck) {
-          this.checkUpdate(true)
-        }
         resolve(true)
       })
     },
@@ -299,50 +296,6 @@ export const AppStore = defineStore('app', {
           IPC.off(key)
         })
       }
-    },
-    checkUpdate(isAutoCheck?: boolean) {
-      IPC.send('app-fork:app', 'checkAppVersionUpdate').then((key: string, res: any) => {
-        IPC.off(key)
-        console.log('checkUpdate res: ', res)
-        if (res?.data?.app) {
-          this.appVersion = reactive(res.data)
-          if (!isAutoCheck || (isAutoCheck && this.appVersion.check > 0)) {
-            if (this.appVersion.check > 0) {
-              dialog
-                .showMessageBox({
-                  type: 'info',
-                  title: I18nT('update.checkForUpdates'),
-                  message: I18nT('update.update-available-message'),
-                  buttons: [
-                    I18nT('base.cancel'),
-                    I18nT('update.view-update-log'),
-                    I18nT('update.download-new-version')
-                  ],
-                  cancelId: 0,
-                  defaultId: 1
-                })
-                .then(({ response }) => {
-                  if (response === 1) {
-                    shell.openExternal('https://github.com/xpf0000/FlyEnv/releases')
-                  } else if (response === 2) {
-                    shell.openExternal(this.appVersion.url)
-                  }
-                })
-            } else {
-              dialog
-                .showMessageBox({
-                  title: I18nT('update.checkForUpdates'),
-                  message: I18nT('update.update-not-available-message')
-                })
-                .catch()
-            }
-          }
-        } else {
-          if (!isAutoCheck) {
-            MessageError(res?.msg ?? I18nT('base.fail'))
-          }
-        }
-      })
     }
   }
 })

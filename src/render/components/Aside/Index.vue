@@ -470,7 +470,6 @@
                   icon
                 })
               } else {
-                console.log('icon: ', icon)
                 icon.then((res: any) => {
                   resolve({
                     ...item,
@@ -486,7 +485,6 @@
 
         Promise.all(service).then((res) => {
           const list = [...customerModule, ...res]
-          console.log('list: ', list)
           obj.service = list
           IPC.send('APP:Tray-Store-Sync', obj).then((key: string) => {
             IPC.off(key)

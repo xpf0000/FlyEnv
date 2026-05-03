@@ -192,21 +192,7 @@
     return window.Server.isMacOS
   })
 
-  const isLocked = computed(() => {
-    if (setupStore.isActive) {
-      return false
-    }
-    if (ImageBatch.trialStartTime === 0) {
-      return false
-    }
-
-    const currentTime = Math.round(new Date().getTime() / 1000)
-    if (ImageBatch.trialStartTime + 3 * 24 * 60 * 60 < currentTime) {
-      return true
-    }
-
-    return false
-  })
+  const isLocked = computed(() => false)
 
   const handleSelectionChange = (val: any) => {
     console.log('handleSelectionChange: ', val)

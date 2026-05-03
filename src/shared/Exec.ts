@@ -48,14 +48,10 @@ end tell`
     await copyFile(terminalSH, exeSH)
     await chmod(exeSH, '0755')
 
-    console.log('runInTerminal exeSH: ', exeSH)
-    console.log('runInTerminal command: ', command)
-
     try {
-      const res = await spawnPromiseWithEnv('/bin/bash', [`./${basename(exeSH)}`, command], {
+      await spawnPromiseWithEnv('/bin/bash', [`./${basename(exeSH)}`, command], {
         cwd: global.Server.Cache!
       })
-      console.log('runInTerminal res', res)
     } catch (e) {
       console.log('runInTerminal error', e)
     } finally {

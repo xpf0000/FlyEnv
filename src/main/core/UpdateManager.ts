@@ -36,7 +36,6 @@ export default class UpdateManager extends EventEmitter {
 
   init() {
     this.updater.on('checking-for-update', this.checkingForUpdate.bind(this))
-    this.updater.on('update-available', this.updateAvailable.bind(this))
     this.updater.on('update-not-available', this.updateNotAvailable.bind(this))
     this.updater.on('download-progress', this.updateDownloadProgress.bind(this))
     this.updater.on('update-downloaded', this.updateDownloaded.bind(this))
@@ -55,23 +54,6 @@ export default class UpdateManager extends EventEmitter {
 
   checkingForUpdate() {
     this.emit('checking')
-  }
-
-  updateAvailable(info: any) {
-    this.emit('update-available', info)
-    dialog
-      .showMessageBox({
-        type: 'info',
-        title: I18nT('update.checkForUpdates'),
-        message: I18nT('update.update-available-message'),
-        buttons: [I18nT('update.yes'), I18nT('update.no')],
-        cancelId: 1
-      })
-      .then(({ response }) => {
-        if (response === 0) {
-          this.updater.downloadUpdate().then()
-        }
-      })
   }
 
   updateNotAvailable(info: any) {

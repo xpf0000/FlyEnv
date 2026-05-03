@@ -115,11 +115,7 @@
     form.value.groupID = props.groupID
   }
 
-  const setupStore = SetupStore()
-
-  const isLock = computed(() => {
-    return !setupStore.isActive && CodeLibrary.items.length > 2 && !props.item?.id
-  })
+  const isLock = computed(() => false)
 
   const groups = computed(() => {
     return CodeLibrary.group.filter((item) => item.type === form.value.fromType)

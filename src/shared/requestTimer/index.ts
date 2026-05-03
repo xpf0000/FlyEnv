@@ -76,7 +76,6 @@ export default class RequestTimer {
         lastError = error as Error
         attempt++
         if (attempt <= this.retries) {
-          console.log(`Request failed, retrying (${attempt}/${this.retries})...`)
           await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt - 1)))
         }
       }
@@ -386,7 +385,6 @@ export default class RequestTimer {
       { Metric: I18nT('requestTimer.totalTime'), Value: `${results.total.toFixed(2)} ms` }
     )
 
-    console.log(`\n=== Request Timing Results ===`)
     console.table(tableData)
     return tableData
   }
@@ -411,8 +409,6 @@ async function Test() {
       'User-Agent': 'RequestTimer/1.0',
       Accept: '*/*'
     }
-
-    console.log(`Measuring ${method} ${url} ...`)
 
     const results = await timer.measure(url, method, headers)
     RequestTimer.formatResults(results)

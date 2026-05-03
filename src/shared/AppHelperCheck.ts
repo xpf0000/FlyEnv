@@ -43,7 +43,6 @@ export const AppHelperCheck = () => {
     const buffer: Buffer[] = []
     const client = createConnection(AppHelperSocketPathGet())
     client.on('connect', () => {
-      console.log('Connected to the server')
       const param = {
         key,
         module: 'helper',

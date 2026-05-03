@@ -125,9 +125,7 @@
   const appStore = AppStore()
   const setupStore = SetupStore()
 
-  const isLock = computed(() => {
-    return !setupStore.isActive && appStore.hosts.length > 2
-  })
+  const isLock = computed(() => false)
 
   const tabs = computed(() => {
     return [
