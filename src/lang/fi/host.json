@@ -83,5 +83,6 @@
   "runSetting": "Suoritusasetukset",
   "exec": "Suorita",
   "runInTerminal": "Suorita päätteessä",
-  "portSetting": "Porttiasetukset"
+  "portSetting": "Porttiasetukset",
+  "projectFlutter": "Flutter Projektit"
 }

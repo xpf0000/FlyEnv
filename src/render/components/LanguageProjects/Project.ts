@@ -45,6 +45,7 @@ export class Project {
                   Object.assign(item, res)
                   Object.assign(item.state, state)
                   this.saveProject()
+                  this.setDirEnv(item).catch()
                   if (isRun) {
                     item.start().catch()
                   }
@@ -87,7 +88,7 @@ export class Project {
         if (res) {
           this.project.splice(0)
           for (const i of res) {
-            const item = reactiveBind(new ProjectItem(i))
+            const item = reactiveBind(new ProjectItem({ ...i, typeFlag: this.flagType }))
             this.project.push(item)
           }
         }
@@ -111,7 +112,7 @@ export class Project {
         typeFlag: this.flagType
       }).then((res: ProjectItem) => {
         if (res) {
-          const item = reactiveBind(new ProjectItem(res))
+          const item = reactiveBind(new ProjectItem({ ...res, typeFlag: this.flagType }))
           this.project.unshift(item)
           this.saveProject()
           this.setDirEnv(item).catch()

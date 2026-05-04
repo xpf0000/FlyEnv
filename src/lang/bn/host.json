@@ -83,5 +83,6 @@
   "runSetting": "রান সেটিংস",
   "exec": "এক্সিকিউট",
   "runInTerminal": "টার্মিনালে চালাও",
-  "portSetting": "পোর্ট সেটিংস"
+  "portSetting": "পোর্ট সেটিংস",
+  "projectFlutter": "Flutter প্রকল্প"
 }

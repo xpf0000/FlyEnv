@@ -83,5 +83,6 @@
   "runSetting": "Ρυθμίσεις Εκτέλεσης",
   "exec": "Εκτέλεση",
   "runInTerminal": "Εκτέλεση στο τερματικό",
-  "portSetting": "Ρυθμίσεις Θύρας"
+  "portSetting": "Ρυθμίσεις Θύρας",
+  "projectFlutter": "Flutter Έργα"
 }

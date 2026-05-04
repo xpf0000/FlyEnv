@@ -83,5 +83,6 @@
   "runSetting": "Çalışma Ayarları",
   "exec": "Çalıştır",
   "runInTerminal": "Terminalde Çalıştır",
-  "portSetting": "Port Ayarları"
+  "portSetting": "Port Ayarları",
+  "projectFlutter": "Flutter Projeleri"
 }

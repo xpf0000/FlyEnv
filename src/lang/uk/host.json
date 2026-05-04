@@ -83,5 +83,6 @@
   "runSetting": "Налаштування запуску",
   "exec": "Виконати",
   "runInTerminal": "Запустити в терміналі",
-  "portSetting": "Налаштування порту"
+  "portSetting": "Налаштування порту",
+  "projectFlutter": "Проекти Flutter"
 }

@@ -23,6 +23,7 @@
               </el-tooltip>
             </template>
             <template v-else>
+              <slot name="header-actions" />
               <el-button link @click.stop="project.addProject()">
                 <FolderAdd class="w-[24px] h-[24px] p-[2px]"></FolderAdd>
               </el-button>
@@ -207,7 +208,10 @@
                   <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
                   <span class="ml-3">{{ I18nT('base.open') }}</span>
                 </li>
-                <li @click.stop="project.action(scope.row, scope.$index, 'edit')">
+                <li
+                  v-if="!props.hideDefaultEdit"
+                  @click.stop="project.action(scope.row, scope.$index, 'edit')"
+                >
                   <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
                   <span class="ml-3">{{ I18nT('base.edit') }}</span>
                 </li>
@@ -339,6 +343,7 @@
     typeFlag: AllAppModule
     title: string
     showRunTab?: boolean
+    hideDefaultEdit?: boolean
   }>()
 
   const isWindows = computed(() => {

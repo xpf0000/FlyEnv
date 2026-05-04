@@ -38,6 +38,7 @@ import type hermes from './zh/hermes.json'
 import type n8n from './zh/n8n.json'
 import type rustfs from './zh/rustfs.json'
 import type mkcert from './zh/mkcert.json'
+import type flutter from './zh/flutter.json'
 import AR from './ar/index'
 import AZ from './az/index'
 import BG from './bg/index'
@@ -117,6 +118,7 @@ type LangKey =
   | AppendStringToKeys<typeof n8n, 'n8n'>
   | AppendStringToKeys<typeof rustfs, 'rustfs'>
   | AppendStringToKeys<typeof mkcert, 'mkcert'>
+  | AppendStringToKeys<typeof flutter, 'flutter'>
 
 export const AppAllLang: Record<string, string> = {
   ar: 'العربية',

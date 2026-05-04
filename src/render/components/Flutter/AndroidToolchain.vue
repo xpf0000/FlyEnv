@@ -6,13 +6,7 @@
           <span>Android Toolchain</span>
           <span class="ml-3 text-sm opacity-70">{{ summaryText }}</span>
         </div>
-        <el-button class="button" :disabled="loading" link @click="fetchReadiness">
-          <yb-icon
-            :svg="import('@/svg/icon_refresh.svg?raw')"
-            class="refresh-icon"
-            :class="{ 'fa-spin': loading }"
-          ></yb-icon>
-        </el-button>
+        <el-button link :disabled="loading" @click="fetchReadiness">{{ I18nT('base.refresh') }}</el-button>
       </div>
     </template>
 
@@ -35,18 +29,32 @@
       <el-button size="small" :disabled="!sdkDir" @click="openSdkDir">Open Android SDK</el-button>
     </div>
 
-    <el-table v-loading="loading" :data="checks" show-overflow-tooltip>
-      <el-table-column label="Status" width="120" align="center">
-        <template #default="scope">
-          <el-tag :type="scope.row.ok ? 'success' : 'danger'">
-            {{ scope.row.ok ? 'OK' : 'Missing' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="label" label="Component" width="200"></el-table-column>
-      <el-table-column prop="value" label="Detected Value"></el-table-column>
-      <el-table-column prop="hint" label="Hint" width="320"></el-table-column>
-    </el-table>
+    <template v-if="loading">
+      <div class="pc-report-loading mb-4">
+        <div class="pc-report-loading-title">Fetching Android toolchain details...</div>
+        <div class="pc-report-skeleton-grid">
+          <el-skeleton v-for="i in 8" :key="`toolchain-loading-${i}`" animated>
+            <template #template>
+              <el-skeleton-item variant="text" style="width: 100%; height: 14px" />
+            </template>
+          </el-skeleton>
+        </div>
+      </div>
+    </template>
+    <template v-else>
+      <el-table :data="checks" show-overflow-tooltip>
+        <el-table-column label="Status" width="120" align="center">
+          <template #default="scope">
+            <el-tag :type="scope.row.ok ? 'success' : 'danger'">
+              {{ scope.row.ok ? 'OK' : 'Missing' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="label" label="Component" width="200"></el-table-column>
+        <el-table-column prop="value" label="Detected Value"></el-table-column>
+        <el-table-column prop="hint" label="Hint" width="320"></el-table-column>
+      </el-table>
+    </template>
 
     <el-card class="mt-4" shadow="never">
       <template #header>
@@ -55,19 +63,27 @@
             <span>ADB Devices</span>
             <span class="ml-3 text-sm opacity-70">{{ devicesSummaryText }}</span>
           </div>
-          <el-button class="button" :disabled="devicesLoading" link @click="fetchDevices">
-            <yb-icon
-              :svg="import('@/svg/icon_refresh.svg?raw')"
-              class="refresh-icon"
-              :class="{ 'fa-spin': devicesLoading }"
-            ></yb-icon>
-          </el-button>
+          <el-button link :disabled="devicesLoading" @click="fetchDevices">{{
+            I18nT('base.refresh')
+          }}</el-button>
         </div>
       </template>
 
       <div class="text-xs opacity-70 mb-3">ADB: {{ adbPath || '-' }}</div>
 
-      <el-table v-loading="devicesLoading" :data="devices" show-overflow-tooltip>
+      <template v-if="devicesLoading">
+        <div class="pc-report-loading">
+          <div class="pc-report-loading-title">Fetching ADB devices...</div>
+          <div class="model-fit-skeleton-grid">
+            <el-skeleton v-for="i in 6" :key="`devices-loading-${i}`" animated>
+              <template #template>
+                <el-skeleton-item variant="text" style="width: 100%; height: 14px" />
+              </template>
+            </el-skeleton>
+          </div>
+        </div>
+      </template>
+      <el-table v-else :data="devices" show-overflow-tooltip>
         <el-table-column label="Device ID" min-width="220">
           <template #default="scope">
             <div class="flex items-center gap-2">
@@ -115,13 +131,7 @@
             <span>Flutter Doctor</span>
             <span class="ml-3 text-sm opacity-70">{{ doctorSummaryText }}</span>
           </div>
-          <el-button class="button" :disabled="doctorLoading" link @click="fetchDoctor">
-            <yb-icon
-              :svg="import('@/svg/icon_refresh.svg?raw')"
-              class="refresh-icon"
-              :class="{ 'fa-spin': doctorLoading }"
-            ></yb-icon>
-          </el-button>
+          <el-button link :loading="doctorLoading" @click="fetchDoctor">{{ I18nT('base.refresh') }}</el-button>
           <el-button class="button" :disabled="!doctorRaw" link @click="copyDoctorReport"
             >Copy Report</el-button
           >
@@ -130,7 +140,30 @@
 
       <div class="text-xs opacity-70 mb-3">Flutter: {{ flutterBin || '-' }}</div>
 
-      <el-table v-loading="doctorLoading" :data="doctorItems" show-overflow-tooltip>
+      <el-alert
+        v-if="!doctorLoading && doctorMessage && !doctorItems.length"
+        :title="doctorMessage"
+        type="warning"
+        :closable="false"
+        class="mb-3"
+      />
+
+      <template v-if="doctorLoading">
+        <div class="pc-report-loading">
+          <div class="pc-report-loading-title">Running flutter doctor...</div>
+          <div class="model-fit-skeleton-grid">
+            <el-skeleton v-for="i in 6" :key="`doctor-loading-${i}`" animated>
+              <template #template>
+                <el-skeleton-item variant="text" style="width: 100%; height: 14px" />
+              </template>
+            </el-skeleton>
+          </div>
+        </div>
+      </template>
+      <el-table v-else :data="doctorDisplayItems" show-overflow-tooltip>
+        <template #empty>
+          <span class="text-xs opacity-70">No parsed doctor checks. Use Copy Report for full output.</span>
+        </template>
         <el-table-column label="Status" width="140" align="center">
           <template #default="scope">
             <el-tag :type="doctorStatusTag(scope.row.status)">
@@ -145,6 +178,16 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <el-input
+        v-if="doctorRaw"
+        v-model="doctorRaw"
+        type="textarea"
+        :rows="8"
+        readonly
+        class="mt-3"
+        placeholder="Flutter doctor raw output"
+      ></el-input>
     </el-card>
 
     <el-card class="mt-4" shadow="never">
@@ -192,6 +235,7 @@
   import { clipboard, dialog, shell } from '@/util/NodeFn'
   import { I18nT } from '@lang/index'
   import { ElMessageBox } from 'element-plus'
+  import { AppStore } from '@/store/app'
 
   type CheckItem = {
     key: string
@@ -208,6 +252,7 @@
 
   const adbPath = ref('')
   const flutterBin = ref('')
+  const doctorMessage = ref('')
   const sdkDir = ref('')
   const targetDevice = ref('')
   const projectDir = ref('')
@@ -262,6 +307,7 @@
   })
 
   const checks = ref<CheckItem[]>([])
+  const appStore = AppStore()
 
   const summaryText = computed(() => {
     if (!summary.total) {
@@ -282,6 +328,23 @@
       return 'No checks'
     }
     return `${doctorSummary.ok}/${doctorSummary.total} ok, ${doctorSummary.warning} warning, ${doctorSummary.error} error`
+  })
+
+  const doctorDisplayItems = computed(() => {
+    if (doctorItems.value.length) {
+      return doctorItems.value
+    }
+    const lines = `${doctorRaw.value ?? ''}`
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => !!l)
+      .slice(0, 80)
+
+    return lines.map((line) => ({
+      status: 'unknown' as DoctorStatus,
+      title: line,
+      details: []
+    }))
   })
 
   const deviceStatusTag = (status: string) => {
@@ -403,8 +466,20 @@
       return
     }
     doctorLoading.value = true
-    IPC.send('app-fork:flutter', 'flutterDoctor').then((key: string, res: any) => {
+    const timeout = setTimeout(() => {
+      if (doctorLoading.value) {
+        doctorLoading.value = false
+        MessageError('Flutter doctor request timed out')
+      }
+    }, 45000)
+
+    IPC.send(
+      'app-fork:flutter',
+      'flutterDoctor',
+      JSON.parse(JSON.stringify(appStore.config.setup))
+    ).then((key: string, res: any) => {
       IPC.off(key)
+      clearTimeout(timeout)
       doctorLoading.value = false
       if (res?.code !== 0) {
         MessageError(res?.msg ?? 'Failed to run flutter doctor')
@@ -412,6 +487,7 @@
       }
       const data = res?.data ?? {}
       flutterBin.value = data?.flutterBin ?? ''
+      doctorMessage.value = data?.message ?? ''
       doctorItems.value = Array.isArray(data?.items) ? data.items : []
       doctorRaw.value = data?.raw ?? ''
       doctorSummary.total = Number(data?.summary?.total ?? 0)
@@ -530,3 +606,42 @@
   fetchDevices()
   fetchDoctor()
 </script>
+
+<style scoped>
+  .pc-report-loading {
+    border: 1px dashed rgba(148, 163, 184, 0.35);
+    border-radius: 8px;
+    padding: 12px;
+    background: rgba(30, 41, 59, 0.18);
+  }
+
+  .pc-report-loading-title {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+  }
+
+  .pc-report-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .model-fit-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  @media (min-width: 768px) {
+    .pc-report-skeleton-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 20px;
+    }
+
+    .model-fit-skeleton-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+  }
+</style>

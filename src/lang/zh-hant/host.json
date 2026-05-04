@@ -83,5 +83,6 @@
   "runSetting": "執行設定",
   "exec": "執行",
   "runInTerminal": "在終端中執行",
-  "portSetting": "通訊埠設定"
+  "portSetting": "通訊埠設定",
+  "projectFlutter": "Flutter 專案"
 }

@@ -83,5 +83,6 @@
   "runSetting": "Pengaturan Jalankan",
   "exec": "Jalankan",
   "runInTerminal": "Jalankan di Terminal",
-  "portSetting": "Pengaturan Port"
+  "portSetting": "Pengaturan Port",
+  "projectFlutter": "Proyek Flutter"
 }

@@ -83,5 +83,6 @@
   "runSetting": "运行设置",
   "exec": "执行",
   "runInTerminal": "在终端中运行",
-  "portSetting": "端口设置"
+  "portSetting": "端口设置",
+  "projectFlutter": "Flutter 项目"
 }

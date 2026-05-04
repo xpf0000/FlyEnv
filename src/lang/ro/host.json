@@ -83,5 +83,6 @@
   "runSetting": "Setări de rulare",
   "exec": "Execută",
   "runInTerminal": "Rulează în terminal",
-  "portSetting": "Setări port"
+  "portSetting": "Setări port",
+  "projectFlutter": "Proiecte Flutter"
 }

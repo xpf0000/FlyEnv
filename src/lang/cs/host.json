@@ -83,5 +83,6 @@
   "runSetting": "Nastavení spuštění",
   "exec": "Spustit",
   "runInTerminal": "Spustit v terminálu",
-  "portSetting": "Nastavení portu"
+  "portSetting": "Nastavení portu",
+  "projectFlutter": "Flutter Projekty"
 }

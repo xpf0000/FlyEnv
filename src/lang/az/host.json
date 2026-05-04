@@ -83,5 +83,6 @@
   "runSetting": "İşləmə Parametrləri",
   "exec": "İcra et",
   "runInTerminal": "Terminalda işlət",
-  "portSetting": "Port Parametrləri"
+  "portSetting": "Port Parametrləri",
+  "projectFlutter": "Flutter Layiheleri"
 }

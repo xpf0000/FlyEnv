@@ -83,5 +83,6 @@
   "runSetting": "Configurações de Execução",
   "exec": "Executar",
   "runInTerminal": "Executar no Terminal",
-  "portSetting": "Configurações de Porta"
+  "portSetting": "Configurações de Porta",
+  "projectFlutter": "Projetos Flutter"
 }

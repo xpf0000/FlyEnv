@@ -83,5 +83,6 @@
   "runSetting": "Cài đặt chạy",
   "exec": "Thực thi",
   "runInTerminal": "Chạy trong Terminal",
-  "portSetting": "Cài đặt cổng"
+  "portSetting": "Cài đặt cổng",
+  "projectFlutter": "Dự án Flutter"
 }

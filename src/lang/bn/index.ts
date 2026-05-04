@@ -35,10 +35,12 @@ import n8n from './n8n.json'
 import rustfsBN from './rustfs.json'
 import mkcert from './mkcert.json'
 import hermes from './hermes.json'
+import flutter from './flutter.json'
 export default {
   bn: {
     rustfs: rustfsBN,
     mkcert,
+    flutter,
     hermes,
     n8n,
     openclaw: openclawBN,

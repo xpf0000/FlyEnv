@@ -83,5 +83,6 @@
   "runSetting": "Kør Indstillinger",
   "exec": "Udfør",
   "runInTerminal": "Kør i terminal",
-  "portSetting": "Port Indstillinger"
+  "portSetting": "Port Indstillinger",
+  "projectFlutter": "Flutter Projekter"
 }

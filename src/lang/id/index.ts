@@ -35,10 +35,12 @@ import n8n from './n8n.json'
 import rustfsID from './rustfs.json'
 import mkcert from './mkcert.json'
 import hermes from './hermes.json'
+import flutter from './flutter.json'
 export default {
   id: {
     rustfs: rustfsID,
     mkcert,
+    flutter,
     hermes,
     n8n,
     openclaw: openclawID,

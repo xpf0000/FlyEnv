@@ -34,10 +34,12 @@ import openclaw from './openclaw.json'
 import n8n from './n8n.json'
 import rustfs from './rustfs.json'
 import hermes from './hermes.json'
+import flutter from './flutter.json'
 
 export default {
   bg: {
     rustfs,
+    flutter,
     hermes,
     n8n,
     openclaw,
