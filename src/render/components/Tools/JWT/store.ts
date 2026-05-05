@@ -49,6 +49,7 @@ const parseJson = (value: string): JwtPart => {
 }
 
 const formatJson = (value: JwtPart) => JSON.stringify(value, null, 2)
+const compactJson = (value: JwtPart) => JSON.stringify(value)
 
 const normalizeHeader = (header: JwtPart, algorithm: JwtAlgorithm) => {
   return {
@@ -118,8 +119,8 @@ const store = reactive({
         throw new Error(`${this.algorithm} signing is not supported locally`)
       }
       const header = normalizeHeader(parseJson(this.header), this.algorithm)
-      parseJson(this.payload)
-      this.token = sign(formatJson(header), this.payload, this.secret, this.algorithm)
+      const payload = parseJson(this.payload)
+      this.token = sign(compactJson(header), compactJson(payload), this.secret, this.algorithm)
     } catch (error: any) {
       this.encodeError = error?.message ?? 'Invalid JSON'
     }
