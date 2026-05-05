@@ -1,0 +1,6 @@
+{
+  "timeout": "Timeout neaktivne veze, 0 označava kontinuirano otvaranje",
+  "databases": "Broj baza podataka",
+  "requirepass": "Redis lozinka",
+  "maxmemory": "Bajt, maksimalna upotreba memorije, 0 označava bez ograničenja"
+}

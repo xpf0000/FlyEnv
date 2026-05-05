@@ -1,0 +1,11 @@
+{
+  "checkForUpdates": "Provjeri Ažuriranja",
+  "update-available-message": "Dostupna je novija verzija FlyEnv-a, ažurirati sada?",
+  "update-not-available-message": "Imate najnoviju verziju!",
+  "update-downloaded-message": "Spreman za instalaciju...",
+  "update-error-message": "Greška Ažuriranja",
+  "yes": "Da",
+  "no": "Ne",
+  "view-update-log": "Pogledaj Log Ažuriranja",
+  "download-new-version": "Preuzmi Novu Verziju"
+}

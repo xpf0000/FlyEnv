@@ -1,0 +1,8 @@
+{
+  "Local": "Lokalno",
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> nije pronađen\nZa instalaciju Homebrewa, kliknite gumb za instalaciju za nastavak\nMožete i kliknuti na ovu vezu\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nSlijedite dokumentaciju za instalaciju.",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> nije pronađen.\nZa instalaciju Macports-a, možete kliknuti na ovu vezu\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nSlijedite dokumentaciju za instalaciju.",
+  "brewErrorTips": "Na lokaciji {bin}, detektirane su Homebrew izvršne datoteke.\nMeđutim, FlyEnv ih ne može pozvati. Poruka greške:\n{error}",
+  "Library": "Knjižnica",
+  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> nije pronađen\nZa instalaciju SDKMAN-a, kliknite gumb za instalaciju za nastavak"
+}

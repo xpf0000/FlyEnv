@@ -1,0 +1,22 @@
+{
+  "RUSTFS_ADDRESS": "Vežite se na specifičnu ADRESU:PORT, ADRESA može biti IP ili naziv hosta. Zadano je ':9000'.",
+  "RUSTFS_ACCESS_KEY": "Pristupni ključ koji se koristi za S3 API autentifikaciju.",
+  "RUSTFS_ACCESS_KEY_FILE": "Putanja do datoteke koja sadrži pristupni ključ za S3 API autentifikaciju.",
+  "RUSTFS_SECRET_KEY": "Tajni ključ koji se koristi za S3 API autentifikaciju.",
+  "RUSTFS_SECRET_KEY_FILE": "Putanja do datoteke koja sadrži tajni ključ za S3 API autentifikaciju.",
+  "RUSTFS_CONSOLE_ENABLE": "Omogući web konzolni poslužitelj. Postavite na 'true' za omogućivanje.",
+  "RUSTFS_CONSOLE_ADDRESS": "Adresa vezivanja konzolnog poslužitelja. Zadano je ':9001'.",
+  "RUSTFS_SERVER_DOMAINS": "Naziv domene koji se koristi za zahtjeve u stilu virtualnog hosta.",
+  "RUSTFS_TLS_PATH": "TLS putanja certifikata za RustFS API i konzolu.",
+  "RUSTFS_REGION": "Naziv regije za poslužitelj.",
+  "RUSTFS_LICENSE": "Licencni ključ za komercijalne značajke.",
+  "RUSTFS_KMS_ENABLE": "Omogući KMS enkripciju za serversku enkripciju. Postavite na 'true' za omogućivanje.",
+  "RUSTFS_KMS_BACKEND": "Vrsta KMS pozadine: 'local' ili 'vault'. Zadano je 'local'.",
+  "RUSTFS_KMS_KEY_DIR": "KMS direktorij ključeva za lokalnu pozadinu.",
+  "RUSTFS_KMS_VAULT_ADDRESS": "Adresa Vault poslužitelja za vault pozadinu.",
+  "RUSTFS_KMS_VAULT_TOKEN": "Vault token za autentifikaciju vault pozadine.",
+  "RUSTFS_KMS_DEFAULT_KEY_ID": "Zadani KMS ID ključa za enkripciju.",
+  "RUSTFS_OBS_ENDPOINT": "Krajnja točka za nadziranje za trag, metrike i logove (samo gRPC način).",
+  "RUSTFS_BUFFER_PROFILE_DISABLE": "Onemogući adaptivno određivanje veličine međuspremnika s profilima opterećenja. Postavite na 'true' za korištenje međuspremnika fiksne veličine.",
+  "RUSTFS_BUFFER_PROFILE": "Profil opterećenja za adaptivno određivanje veličine međuspremnika. Opcije: GeneralPurpose, AiTraining, DataAnalytics, WebWorkload, IndustrialIoT, SecureStorage."
+}

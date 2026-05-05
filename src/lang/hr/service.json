@@ -1,0 +1,24 @@
+{
+  "setaliase": "Postavi Alias",
+  "env": "Okruženje",
+  "alias": "Alias",
+  "envTips": "Je li putanja dodana u varijablu okruženja",
+  "aliasTips": "Alias koji se koristi u terminalu",
+  "useSysPHP": "Koristi zadanu PHP verziju",
+  "setByApp": "Varijable okruženja postavljene od FlyEnv-a",
+  "setByNoApp": "Varijable okruženja nisu postavljene od FlyEnv-a",
+  "ftpdNeedPasswordToStart": "Pure-FTPd zahtijeva sudo privilegije za pokretanje. Molimo unesite svoju korisničku lozinku. Lozinka će se koristiti za automatsko popunjavanje kasnije. Ili možete kliknuti gumb ispod za ručni unos u terminalu, ali ovaj upit se može ponovo pojaviti.",
+
+  "bundleinVersionDelTips": "Ova verzija je ugrađena verzija, potvrdite da nije prikazana?",
+  "customDirVersionDelTips": "Ova verzija je verzija prilagođene putanje, potvrdite da nije prikazana?",
+
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Vašem sustavu nedostaje Visual C++ Redistributable (DLL-ovi) potreban za pokretanje ove verzije. Molimo kliknite vezu ispod za preuzimanje i instalaciju VC Runtime s Microsoftove službene web stranice.",
+      "versionRelation": "Referenca Kompatibilnosti Verzija:",
+      "software": "Softver",
+      "versionRange": "Raspon Verzija",
+      "msvsVersion": "MSVC Verzija"
+    }
+  }
+}

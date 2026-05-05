@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Prikaži dodatne informacije za debugiranje (npr. OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "IP Adresa za ollama poslužitelj (zadano 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Trajanje koliko dugo modeli ostaju učitani u memoriji (zadano \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Maksimalni broj učitanih modela po GPU-u",
+  "OLLAMA_MAX_QUEUE": "Maksimalni broj zahtjeva u redu",
+  "OLLAMA_MODELS": "Putanja do direktorija modela",
+  "OLLAMA_NUM_PARALLEL": "Maksimalni broj paralelnih zahtjeva",
+  "OLLAMA_NOPRUNE": "Ne uklanjaj blob-ove modela pri pokretanju",
+  "OLLAMA_ORIGINS": "Lista dozvoljenih podrijetla razdvojena zarezima",
+  "OLLAMA_SCHED_SPREAD": "Uvijek rasporedi model na sve GPU-ove",
+  "OLLAMA_FLASH_ATTENTION": "Omogućena flash pažnja",
+  "OLLAMA_KV_CACHE_TYPE": "Vrsta kvantizacije za K/V cache (zadano: f16)",
+  "OLLAMA_LLM_LIBRARY": "Postavi LLM knjižnicu za zaobilaženje automatskog otkrivanja",
+  "OLLAMA_GPU_OVERHEAD": "Rezerviraj dio VRAM-a po GPU-u (bajtovi)",
+  "OLLAMA_LOAD_TIMEOUT": "Koliko dugo dopustiti zastajanje učitavanja modela prije odustajanja (zadano \"5m\")",
+  "needServiceRun": "Molimo prvo pokrenite Olama servis",
+  "size": "Veličina",
+  "model": "Modeli"
+}

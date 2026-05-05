@@ -1,0 +1,15 @@
+{
+  "installFNM": "Instaliraj <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Instaliraj <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "Terminal",
+  "registry": "Izvor",
+  "checkPackageJsonUpdate": "Provjeri ažuriranja",
+  "updatePackageJsonFile": "Ažuriraj package.json datoteku",
+  "updatePackageJsonFileTips": "Ova akcija će modificirati package.json datoteku. Jeste li sigurni da želite ažurirati?",
+  "copyDirPath": "Kopiraj Putanju Projektne Mape",
+  "openIN": "Otvori U",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "projectEnvSet": "Okruženje Projekta"
+}

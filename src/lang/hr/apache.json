@@ -1,0 +1,7 @@
+{
+  "Timeout": "Broj sekundi prije isteka primanja i slanja.",
+  "KeepAlive": "Je li dozvoljeno trajne veze",
+  "KeepAliveTimeout": "Broj sekundi za čekanje sljedećeg zahtjeva od istog klijenta na istoj vezi.",
+  "MaxKeepAliveRequests": "Maksimalni broj zahtjeva dozvoljenih tijekom trajne veze.\nPostavite na 0 za neograničenu količinu.\nPreporučujemo da ovaj broj ostavite visokim, radi maksimalnih performansi.",
+  "LimitRequestBody": "Bajt. Ograničenje veličine učitavanja datoteke. 0: bez ograničenja"
+}

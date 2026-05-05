@@ -1,0 +1,13 @@
+{
+  "title": "Generator Tokena",
+  "uppercase": "Velika slova (ABC...)",
+  "lowercase": "Mala slova (abc...)",
+  "numbers": "Brojevi (123...)",
+  "symbols": "Simboli (!-;...)",
+  "length": "Duljina",
+  "tokenPlaceholder": "Token...",
+  "button": {
+    "copy": "Kopiraj",
+    "refresh": "Osvježi"
+  }
+}

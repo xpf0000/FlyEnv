@@ -1,0 +1,60 @@
+{
+  "title": "Opis Licence",
+  "description": "Ova licenca priznaje i podržava napore FlyEnv-a i njegovih autora. Nije namijenjena ograničavanju korisnika, već poticanju poštovanja rada programera i intelektualnog vlasništva. Molimo osigurajte da imate valjanu licencu prije korištenja FlyEnv-a u komercijalne svrhe.",
+  "restrictions": {
+    "title": "Korisnici bez licence bit će podložni sljedećim ograničenjima:",
+    "items": {
+      "0": "Mogu se kreirati maksimalno tri stranice.",
+      "1": "Značajka AI chata dostupna je samo za probno razdoblje od tri dana.",
+      "2": "Dodatna ograničenja mogu se primijeniti na buduće značajke."
+    }
+  },
+  "howToObtain": {
+    "title": "Kako Dobiti Licencu",
+    "description": "FlyEnv pruža fleksibilne načine za dobivanje licence. Korisnici mogu odabrati bilo koji od sljedećih metoda za prijavu:",
+    "methods": {
+      "0": {
+        "title": "Donacija Projektu",
+        "description": "Nema fiksnog iznosa potrebnog za donacije. Uzimajući u obzir različite ekonomske situacije korisnika u različitim zemljama (npr. mnogi korisnici su studenti), molimo odaberite iznos koji vam odgovara."
+      },
+      "1": {
+        "title": "Doprinos Razvoju",
+        "description": "Sudjelujte u projektu slanjem Pull Requesta. Bez obzira na količinu koda, sve dok pozitivno poboljšava projekt (npr. ispravljanje greške u prijevodu), vaš doprinos se računa."
+      },
+      "2": {
+        "title": "Promoviranje Projekta",
+        "description": "Promovirajte FlyEnv dijeljenjem svog iskustva u člancima, videima, blogovima, vlogovima ili komentarima. Autentičan korisnički feedback je poželjan. Sadržaj može biti na bilo kojem jeziku i na bilo kojoj platformi."
+      }
+    }
+  },
+  "submitInfo": "Nakon završetka bilo koje od gore navedenih metoda, molimo ispunite rezultate u polje za unos ispod i kliknite gumb 'Zatraži Licencu' za slanje prijave. Zahtjevi za licencu se obično obrađuju u roku od 24 sata.",
+  "messageLabel": "Poruka",
+  "messagePlaceholder": "Molimo pošaljite donatorsku, vezu donacije ili ID narudžbe kada odabirete doniranje.\nMolimo pošaljite PR vezu za one koji odabiru sudjelovati u razvoju projekta.\nMolimo pošaljite vezu vašeg članka, videa, bloga, vloga ili komentara za one koji odabiru promovirati.",
+  "requestButton": "Zatraži Licencu",
+  "refreshButton": "Osvježi Stanje",
+  "licenseActivated": "Licenca aktivirana",
+  "licenseNoActivated": "Licenca nije aktivirana",
+  "licenseInfo": "Trenutno pružena licenca je trajna licenca, svako računalo odgovara jednoj licenci. Ako promijenite računala, trebate vezati UUID novog uređaja u 'Moje Licence', ili podnijeti zahtjev za novu licencu.",
+  "logoutTips": "Jeste li sigurni da se želite odjaviti?",
+  "delBindTips": "Jeste li sigurni da želite odveznati licencu od ovog UUID-a?",
+  "addBindTips": "Jeste li sigurni da želite vezati licencu za ovaj UUID?",
+  "currentLicenseState": "Status licence na ovom uređaju",
+  "activeState": "Status Aktivacije",
+  "myLicense": "Moje Licence",
+  "loginTips": "Molimo prvo se prijavite",
+  "logingTips": "Prijava putem GitHuba...",
+  "licenseNo": "Broj Licence",
+  "licenseBindUUID": "Vezani UUID",
+  "delBind": "Odveži",
+  "bindCurrentUUID": "Veži Ovaj Uređaj",
+  "licenseDescription": "Opis Licence",
+  "loginFail": "Prijava nije uspjela",
+  "oauthCanceledTitle": "Autorizacija Otkazana",
+  "oauthCanceledMessage": "Korisnik je otkazao proces autorizacije",
+  "oauthFailedTitle": "Autorizacija Nije Uspjela",
+  "oauthFailedMessage": "Autorizacija nije uspjela. Razlog: {error}",
+  "oauthFailedByNoAuthCode": "Autorizacijski kod nije primljen",
+  "oauthTimeout": "Timeout autorizacije",
+  "oauthSuccessTitle": "Autorizacija Uspješna",
+  "oauthSuccessMessage": "Ova stranica može biti zatvorena. Molimo vratite se na FlyEnv za pregled informacija o licenci."
+}

@@ -1,0 +1,13 @@
+{
+  "checking": "Provjera instalacije...",
+  "isInstalled": "instalirano",
+  "notInstalled": "mkcert nije instaliran",
+  "install": "Instaliraj mkcert",
+  "checkAgain": "Provjeri Ponovo",
+  "recheck": "Ponovna provjera",
+  "installCA": "Instaliraj CA",
+  "carootLabel": "Putanja CA Root-a",
+  "certificates": "Certifikati",
+  "generate": "Generiraj",
+  "noSSLHosts": "Nema hostova s omogućenim SSL-om. Prvo omogućite SSL na hostu."
+}

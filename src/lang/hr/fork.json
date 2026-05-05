@@ -1,0 +1,14 @@
+{
+  "binNotFound": "Datoteka za pokretanje ne postoji, operacija nije uspjela.",
+  "confNotFound": "Konfiguracijski fajl ne postoji, pokretanje poslužitelja nije uspjelo",
+  "apacheLogPathErr": "Putanja loga u konfiguracijskom fajlu je pogrešna, i promjena nije uspjela",
+  "versionError": "Verzija je pogrešna, molimo odaberite ponovo",
+  "hostsFileNotFound": "Hosts datoteka ne postoji",
+  "startFail": "Pokretanje nije uspjelo, molimo provjerite log datoteku",
+  "versionNotFound": "Dohvaćanje verzije softvera nije uspjelo, operacija nije uspjela.",
+  "postgresqlInit": "Servis uspješno pokrenut\nPutanja podataka je {dir}\nPočetni korisnik je root, Lozinka je root",
+  "downloadFileFail": "Preuzimanje datoteke nije uspjelo!",
+  "trialEnd": "Probno razdoblje je isteklo. Za nastavak korištenja ove značajke, molimo nabavite licencu",
+  "phpiniNotFound": "php.ini datoteka nije pronađena",
+  "noEPMD": "epmd proces nije pronađen. Molimo resetirajte Erlang varijable okruženja"
+}

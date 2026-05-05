@@ -1,0 +1,10 @@
+{
+  "showMainWin": "Prikaži Glavni Prozor",
+  "exit": "Izađi",
+  "run": "U Izvođenju",
+  "notRun": "Ne Izvodi Se",
+  "trayMenuBarStyle": "Stil Iskočnog Prozora Traya",
+  "classic": "Klasično",
+  "modern": "Moderno",
+  "trayMenuBarStyleTips": "Odaberite stil iskočnog prozora traya. Na nekim Linux radnim površinama, moderni stil može imati problema, tako da možete odabrati klasični stil umjesto toga."
+}

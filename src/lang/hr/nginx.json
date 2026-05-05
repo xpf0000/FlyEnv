@@ -1,0 +1,10 @@
+{
+  "gzip": "Je li omogućena GZIP kompresijska transmisija",
+  "gzip_min_length": "Minimalna komprimirana datoteka",
+  "gzip_comp_level": "Komprimiranost",
+  "client_max_body_size": "Maksimalna veličina datoteke za upload",
+  "server_names_hash_max_size": "Maksimalna veličina hash tablice za naziv poslužitelja",
+  "server_names_hash_bucket_size": "Veličina hash tablice za naziv poslužitelja",
+  "client_header_buffer_size": "Veličina međuspremnika zaglavlja zahtjeva klijenta",
+  "client_body_buffer_size": "Veličina međuspremnika tijela zahtjeva"
+}

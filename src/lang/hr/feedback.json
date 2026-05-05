@@ -1,0 +1,10 @@
+{
+  "email": "E-pošta",
+  "country": "Zemlja",
+  "message": "Poruka",
+  "messagelengthErr": "Duljina poruke je 5 - 1024",
+  "sendMessage": "Pošalji Poruku",
+  "anythingToSay": "Imate li što za reći",
+  "noSelected": "Ništa odabrano",
+  "inputFilter": "Unesi za filtriranje"
+}

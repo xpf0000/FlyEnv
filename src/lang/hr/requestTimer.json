@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS Pretraga",
+  "tcpConnect": "TCP Spajanje",
+  "tlsHandshake": "TLS Rukovanje",
+  "requestProcessing": "Obrada Zahtjeva",
+  "ttfb": "Vrijeme do Prvog Bajta (TTFB)",
+  "contentDownload": "Preuzimanje Sadržaja",
+  "downloadSpeed": "Brzina Preuzimanja",
+  "dataSize": "Veličina Podataka",
+  "httpVersion": "HTTP Verzija",
+  "statusCode": "Kôd Statusa",
+  "usingProxy": "Koristi Proxy",
+  "totalTime": "Ukupno Vrijeme",
+  "skippedForProxy": "Preskočeno za proxy",
+  "metric": "Metrika",
+  "value": "Vrijednost"
+}
