@@ -80,6 +80,94 @@ export class AppNodeFn {
   configManager?: ConfigManager
   private fileWatchers: Map<string, WatcherItem> = new Map()
   private dirWatchers: Map<string, WatcherItem> = new Map()
+  private sseConnections: Map<string, AbortController> = new Map()
+
+  realtime_sseStop(command: string, key: string, connectionKey: string) {
+    const controller = this.sseConnections.get(connectionKey)
+    if (controller) {
+      controller.abort()
+      this.sseConnections.delete(connectionKey)
+    }
+    this?.mainWindow?.webContents.send('command', command, key, true)
+  }
+
+  /**
+   * 避免 Renderer 直接请求 SSE 时被 CORS 拦截。
+   * 支持 SSE 长连接持续把数据发回页面。
+   * 支持断开连接时真正停止主进程里的请求。
+   * 更接近 Apifox / Postman 这类调试工具的行为。
+   */
+  async realtime_sseConnect(
+    command: string,
+    key: string,
+    options: { url: string; headers?: Record<string, string>; connectionKey?: string }
+  ) {
+    const connectionKey = options.connectionKey || key
+    const previous = this.sseConnections.get(connectionKey)
+    if (previous) {
+      previous.abort()
+      this.sseConnections.delete(connectionKey)
+    }
+
+    const controller = new AbortController()
+    this.sseConnections.set(connectionKey, controller)
+
+    try {
+      const response = await fetch(options.url, {
+        headers: {
+          Accept: 'text/event-stream',
+          ...(options.headers ?? {})
+        },
+        signal: controller.signal
+      })
+
+      this?.mainWindow?.webContents.send('command', command, key, {
+        code: 100,
+        status: response.status,
+        statusText: response.statusText,
+        contentType: response.headers.get('content-type') || ''
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`)
+      }
+      if (!response.body) {
+        throw new Error('Readable stream is not available')
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      try {
+        while (this.sseConnections.get(connectionKey) === controller) {
+          const { value, done } = await reader.read()
+          if (done) {
+            break
+          }
+          this?.mainWindow?.webContents.send('command', command, key, {
+            code: 200,
+            data: decoder.decode(value, { stream: true })
+          })
+        }
+      } finally {
+        reader.releaseLock()
+      }
+
+      this?.mainWindow?.webContents.send('command', command, key, { code: 0 })
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        this?.mainWindow?.webContents.send('command', command, key, { code: 0 })
+      } else {
+        this?.mainWindow?.webContents.send('command', command, key, {
+          code: 500,
+          error: error?.message ?? 'SSE connection error'
+        })
+      }
+    } finally {
+      if (this.sseConnections.get(connectionKey) === controller) {
+        this.sseConnections.delete(connectionKey)
+      }
+    }
+  }
 
   mime_types(command: string, key: string) {
     this?.mainWindow?.webContents.send('command', command, key, { types, extensions })
