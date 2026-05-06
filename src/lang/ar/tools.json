@@ -46,6 +46,7 @@
   "url-your-string-decode": "النص الخاص بك مفكوك تشفيره :",
   "url-your-string-decoded": "النص الخاص بك مفكوك تشفيره",
   "url-parse-title": "محلل الرابط (URL Parser)",
+  "websocket-sse-title": "WebSocket / SSE",
   "wifi-qr-code-generator-title": "مولد رمز QR لشبكة WiFi",
   "URLTimingAnalyzer": "محلل توقيت الرابط (URL Timing Analyzer)",
   "CodePlayGround": "ملعب الكود",
