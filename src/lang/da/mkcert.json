@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "Kontrollerer installation...",
+  "isInstalled": "installeret",
+  "notInstalled": "mkcert er ikke installeret",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "Kontroller Igen",
+  "recheck": "Gentjek",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "Cas Rod Sti",
+  "certificates": "Certifikater",
+  "generate": "Generer",
+  "noSSLHosts": "Ingen værter med SSL aktiveret. Aktiver SSL på en vært først."
 }

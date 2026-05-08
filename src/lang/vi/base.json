@@ -1,8 +1,8 @@
 {
   "add": "Thêm",
   "open": "Mở",
-  "openHosts": "Mở tệp hosts",
   "enable": "Kích hoạt",
+  "openHosts": "Mở tệp hosts",
   "edit": "Sửa",
   "links": "Liên kết",
   "configFile": "Cấu hình",

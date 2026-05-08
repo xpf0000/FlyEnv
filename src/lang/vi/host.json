@@ -37,6 +37,7 @@
   "projectRuby": "Dự án Ruby",
   "projectRust": "Dự án Rust",
   "projectZig": "Dự án Zig",
+  "projectFlutter": "Dự án Flutter",
   "jarPackagePath": "Đường dẫn file JAR",
   "jdkPath": "Đường dẫn JDK",
   "pythonPath": "Đường dẫn Python",
@@ -83,6 +84,5 @@
   "runSetting": "Cài đặt chạy",
   "exec": "Thực thi",
   "runInTerminal": "Chạy trong Terminal",
-  "portSetting": "Cài đặt cổng",
-  "projectFlutter": "Dự án Flutter"
+  "portSetting": "Cài đặt cổng"
 }

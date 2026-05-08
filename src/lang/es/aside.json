@@ -15,6 +15,6 @@
   "appExit": "Detener todos los servicios en ejecución y salir de FlyEnv",
   "groupStart": "Iniciar con un solo clic todos los servicios disponibles mostrados en el panel",
   "networkTunnel": "Túnel de red",
-  "cacheAndQueue": "Caché y Cola de Mensajes",
-  "serviceGovernance": "Gobernanza de Servicios"
+  "cacheAndQueue": "Cola de mensajes y cachés",
+  "serviceGovernance": "Gobierno del servicio"
 }

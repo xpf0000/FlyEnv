@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "Se verifică instalarea...",
+  "isInstalled": "instalat",
+  "notInstalled": "mkcert nu este instalat",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "Verifică din nou",
+  "recheck": "Re-verificați",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "Calea rădăcinii AC",
+  "certificates": "Certificate",
+  "generate": "Genereaza",
+  "noSSLHosts": "Nu este activată nicio gazdă cu SSL. Activează SSL pe o gazdă."
 }

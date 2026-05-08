@@ -12,9 +12,9 @@
   "appLog": "Log dell'App",
   "ai": "Intelligenza Artificiale",
   "objectStorage": "Archiviazione Oggetti",
-  "networkTunnel": "Tunnel di Rete",
   "appExit": "Arresta tutti i servizi avviati ed esci da FlyEnv",
   "groupStart": "Avvia con un clic tutti i servizi disponibili visualizzati nel pannello",
-  "cacheAndQueue": "Cache e Coda Messaggi",
-  "serviceGovernance": "Governance dei Servizi"
+  "networkTunnel": "Tunnel Di Rete",
+  "cacheAndQueue": "Cache E Coda Dei Messaggi",
+  "serviceGovernance": "Governance Dei Servizi"
 }

@@ -37,6 +37,7 @@
   "projectRuby": "Проекты Ruby",
   "projectRust": "Проекты Rust",
   "projectZig": "Проекты Zig",
+  "projectFlutter": "Проекты Flutter",
   "jarPackagePath": "Путь к пакету JAR",
   "jdkPath": "Путь JDK",
   "pythonPath": "Python Path",
@@ -70,19 +71,18 @@
   "showFile": "Показать файл",
   "sticky": "Липкие",
   "dbclickRowToEdit": "Дважды щелкните по этой строке для редактирования",
-  "OnlineDomain": "Онлайн Домен",
-  "LocalDoman": "Локальный Домен",
+  "OnlineDomain": "Домен онлайн",
+  "LocalDoman": "Локальный домен",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Такое же онлайн-доменное имя уже существует.",
+    "OnlineDomainExistsTips": "Такое сетевое имя уже существует.",
     "CloudflaredNoFoundTips": "Cloudflared не найден. Пожалуйста, установите его.",
-    "TunnelInitFailTips": "Создание туннеля не удалось: {error}. Пожалуйста, проверьте, правильный ли ApiToken, и убедитесь, что у вас есть права на редактирование Cloudflare Tunnel.",
-    "TunnelRule": "Правило Туннеля",
-    "licenseTips": "Без получения лицензии вы можете создать только один туннель и один набор записей хоста."
+    "TunnelInitFailTips": "Создание туннеля не удалось: {error}. Пожалуйста, проверьте, правильность ApiToken и убедитесь, что у вас есть права на изменение туннеля Cloudflare.",
+    "TunnelRule": "Правило туннеля",
+    "licenseTips": "Без получения лицензии, Вы можете создать только один туннель и один набор хост-записей."
   },
-  "ifIsService": "Является ли службой",
-  "runSetting": "Настройки запуска",
+  "ifIsService": "Сервис",
+  "runSetting": "Запустить настройки",
   "exec": "Выполнить",
   "runInTerminal": "Запустить в терминале",
-  "portSetting": "Настройки порта",
-  "projectFlutter": "Проекты Flutter"
+  "portSetting": "Настройки порта"
 }

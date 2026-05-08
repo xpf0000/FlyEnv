@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
-  "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
-  "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "checking": "Kurulum kontrol ediliyor...",
+  "isInstalled": "yüklü",
+  "notInstalled": "mkcert yüklü değil",
+  "install": "mkcert yükle",
+  "checkAgain": "Tekrar Kontrol Et",
+  "recheck": "Yeniden Kontrol Et",
+  "installCA": "CA Yükle",
+  "carootLabel": "CA Kök Yolu",
+  "certificates": "Sertifikalar",
+  "generate": "Oluştur",
+  "noSSLHosts": "SSL etkin olan host yok. Önce bir hostta SSL'i etkinleştirin."
 }

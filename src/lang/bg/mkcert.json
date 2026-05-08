@@ -1,13 +1,13 @@
-{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
-  "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
-  "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+﻿{
+  "checking": "Проверява се инсталацията...",
+  "isInstalled": "инсталиран",
+  "notInstalled": "mkcert не е инсталиран",
+  "install": "Инсталирайте mkcert",
+  "checkAgain": "Провери отново",
+  "recheck": "Проверете отново",
+  "installCA": "Инсталиране на CA",
+  "carootLabel": "CA основна директория",
+  "certificates": "Сертификати",
+  "generate": "Създаване",
+  "noSSLHosts": "Няма хостове с активиран SSL. Първо активирайте SSL на хоста."
 }

@@ -1,5 +1,5 @@
 {
-  "notInstalled": "OpenClaw non è installato. Installalo prima.",
+  "notInstalled": "OpenClaw non è installato. Si prega di installarlo prima.",
   "gatewayStatus": "Stato Gateway",
   "gatewayNotInstalled": "Gateway non è installato. Si prega di installare prima il gateway.",
   "gatewayRunning": "Gateway in esecuzione",

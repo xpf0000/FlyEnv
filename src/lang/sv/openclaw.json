@@ -1,7 +1,7 @@
 {
   "notInstalled": "OpenClaw är inte installerat. Installera det först.",
-  "gatewayStatus": "Gateway-status",
-  "gatewayNotInstalled": "Gateway är inte installerad. Installera gatewayen först.",
+  "gatewayStatus": "Gateway Status",
+  "gatewayNotInstalled": "Gateway är inte installerad. Installera gateway först.",
   "gatewayRunning": "Gateway körs",
   "gatewayStopped": "Gateway har stoppats",
   "startGatewayFail": "Gateway start misslyckades",

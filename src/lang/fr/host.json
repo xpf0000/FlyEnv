@@ -37,6 +37,7 @@
   "projectRuby": "Projets Ruby",
   "projectRust": "Projets rouillés",
   "projectZig": "Projets Zig",
+  "projectFlutter": "Projets de lutte contre le fléau",
   "jarPackagePath": "Chemin du package JAR",
   "jdkPath": "Chemin JDK",
   "pythonPath": "Chemin Python",
@@ -70,19 +71,18 @@
   "showFile": "Afficher le fichier",
   "sticky": "Épinglé",
   "dbclickRowToEdit": "Double-cliquez sur cette ligne pour modifier",
-  "OnlineDomain": "Domaine en Ligne",
-  "LocalDoman": "Domaine Local",
+  "OnlineDomain": "Domaine en ligne",
+  "LocalDoman": "Domaine local",
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "Le même nom de domaine en ligne existe déjà.",
-    "CloudflaredNoFoundTips": "Cloudflared non trouvé. Veuillez l'installer.",
-    "TunnelInitFailTips": "Échec de la création du tunnel : {error}. Veuillez vérifier si l'ApiToken est correct et assurez-vous d'avoir les permissions de modification du Cloudflare Tunnel.",
-    "TunnelRule": "Règle du Tunnel",
-    "licenseTips": "Sans obtenir de licence, vous ne pouvez créer qu'un seul tunnel et un ensemble d'enregistrements d'hôte."
+    "CloudflaredNoFoundTips": "Fusée nuageuse introuvable. Veuillez l'installer.",
+    "TunnelInitFailTips": "La création de tunnels a échoué : {error}. Veuillez vérifier si le ApiToken est correct et assurez-vous que vous avez les autorisations d'édition du tunnel de la Fusée nuageuse.",
+    "TunnelRule": "Règle du tunnel",
+    "licenseTips": "Sans obtenir une licence, vous ne pouvez créer qu'un seul tunnel et un seul ensemble d'enregistrements hôtes."
   },
-  "ifIsService": "S'il s'agit d'un service",
-  "runSetting": "Paramètres d'exécution",
+  "ifIsService": "Est un service",
+  "runSetting": "Lancer les paramètres",
   "exec": "Exécuter",
-  "runInTerminal": "Exécuter dans le terminal",
-  "portSetting": "Paramètres du port",
-  "projectFlutter": "Projets Flutter"
+  "runInTerminal": "Exécuter dans le Terminal",
+  "portSetting": "Paramètres du Port"
 }

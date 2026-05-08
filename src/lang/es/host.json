@@ -37,6 +37,7 @@
   "projectRuby": "Proyectos de Ruby",
   "projectRust": "Proyectos de Rust",
   "projectZig": "Proyectos Zig",
+  "projectFlutter": "Proyectos de Flutter",
   "jarPackagePath": "Ruta del paquete JAR",
   "jdkPath": "Ruta de JDK",
   "pythonPath": "Ruta de Python",
@@ -74,15 +75,14 @@
   "LocalDoman": "Dominio local",
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "El mismo nombre de dominio en línea ya existe.",
-    "CloudflaredNoFoundTips": "Cloudflared no encontrado. Por favor instálalo.",
-    "TunnelInitFailTips": "La creación del túnel falló: {error}. Por favor verifica si el ApiToken es correcto y asegúrate de tener permisos de edición de Cloudflare Tunnel.",
-    "TunnelRule": "Regla de Túnel",
-    "licenseTips": "Sin obtener una licencia, solo puedes crear un túnel y un conjunto de registros de host."
+    "CloudflaredNoFoundTips": "Cloudflared no encontrado. Por favor, instálelo.",
+    "TunnelInitFailTips": "Creación del túnel fallida: {error}. Por favor, comprueba si el ApiToken es correcto y asegúrate de tener permisos de edición del Túnel de Cloudflare.",
+    "TunnelRule": "Regla de túnel",
+    "licenseTips": "Sin obtener una licencia, sólo puede crear un túnel y un conjunto de registros de host."
   },
-  "ifIsService": "Si es un servicio",
-  "runSetting": "Configuración de ejecución",
+  "ifIsService": "Es Servicio",
+  "runSetting": "Ajustes de ejecución",
   "exec": "Ejecutar",
-  "runInTerminal": "Ejecutar en Terminal",
-  "portSetting": "Configuración de puerto",
-  "projectFlutter": "Proyectos Flutter"
+  "runInTerminal": "Ejecutar en terminal",
+  "portSetting": "Ajustes del puerto"
 }

@@ -68,6 +68,6 @@
   "usersResetPasswordSuccess": "Επαναφορά κωδικού πρόσβασης",
   "usersResetPasswordFailed": "Αποτυχία επαναφοράς κωδικού πρόσβασης",
   "usersDisableSuccess": "Ο χρήστης απενεργοποιήθηκε",
-  "usersEnableSuccess": "Ο χρήστης ενεργοποιήθηκε",
+  "usersEnableSuccess": "Χρήστης ενεργοποιημένος",
   "usersToggleStatusFailed": "Αποτυχία ενημέρωσης κατάστασης χρήστη"
 }

@@ -37,6 +37,7 @@
   "projectRuby": "Ruby prosjekter",
   "projectRust": "Rust Prosjekter",
   "projectZig": "Zig prosjekter",
+  "projectFlutter": "Flutter prosjekter",
   "jarPackagePath": "JAR pakkebane",
   "jdkPath": "JDK sti",
   "pythonPath": "Python Path",
@@ -70,19 +71,18 @@
   "showFile": "Vis fil",
   "sticky": "Klissete",
   "dbclickRowToEdit": "Dobbeltklikk på denne linjen for å redigere",
-  "OnlineDomain": "Online Domene",
-  "LocalDoman": "Lokalt Domene",
+  "OnlineDomain": "Online domene",
+  "LocalDoman": "Lokalt domene",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Det samme online domenenavnet eksisterer allerede.",
-    "CloudflaredNoFoundTips": "Cloudflared ble ikke funnet. Installer det.",
-    "TunnelInitFailTips": "Tunneloppretting mislykket: {error}. Sjekk om ApiToken er korrekt, og sørg for at du har Cloudflare Tunnel-redigeringstillatelser.",
-    "TunnelRule": "Tunnelregel",
-    "licenseTips": "Uten å skaffe lisens kan du bare opprette én tunnel og ett sett med host-poster."
+    "OnlineDomainExistsTips": "Det samme domenenavnet finnes allerede.",
+    "CloudflaredNoFoundTips": "Cloudflared ble ikke funnet. Installer den.",
+    "TunnelInitFailTips": "Tunnel ble ikke opprettet: {error}. Kontroller om ApiToken er riktig og sikre at du har Cloudflare Tunnel redigeringstillatelser.",
+    "TunnelRule": "Regel for tunnel",
+    "licenseTips": "Uten å hente lisens, kan du bare lage én tunnel og ett sett med vertsdata."
   },
-  "ifIsService": "Om det er en tjeneste",
-  "runSetting": "Kjøreinnstillinger",
-  "exec": "Kjør",
+  "ifIsService": "Er tjeneste",
+  "runSetting": "Kjør innstillinger",
+  "exec": "Utfør",
   "runInTerminal": "Kjør i terminal",
-  "portSetting": "Portinnstillinger",
-  "projectFlutter": "Flutter Prosjekter"
+  "portSetting": "Port Innstillinger"
 }

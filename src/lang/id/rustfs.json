@@ -1,8 +1,8 @@
 {
   "RUSTFS_ADDRESS": "Bind to a specific ADDRESS:PORT, ADDRESS can be an IP or hostname. Default is ':9000'.",
   "RUSTFS_ACCESS_KEY": "Access key used for S3 API authentication.",
-  "RUSTFS_SECRET_KEY": "Secret key used for S3 API authentication.",
   "RUSTFS_ACCESS_KEY_FILE": "Path to file containing access key for S3 API authentication.",
+  "RUSTFS_SECRET_KEY": "Secret key used for S3 API authentication.",
   "RUSTFS_SECRET_KEY_FILE": "Path to file containing secret key for S3 API authentication.",
   "RUSTFS_CONSOLE_ENABLE": "Enable the web console server. Set to 'true' to enable.",
   "RUSTFS_CONSOLE_ADDRESS": "Console server bind address. Default is ':9001'.",

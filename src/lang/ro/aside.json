@@ -14,7 +14,7 @@
   "objectStorage": "Stocare obiect",
   "appExit": "Opriți toate serviciile care rulează și ieșiți din FlyEnv",
   "groupStart": "Pornire cu un singur clic a tuturor serviciilor disponibile afișate pe panou",
-  "networkTunnel": "Tunel Rețea",
-  "cacheAndQueue": "Cache și Coadă de Mesaje",
-  "serviceGovernance": "Guvernanța Serviciilor"
+  "networkTunnel": "Tunelul rețelei",
+  "cacheAndQueue": "Coada de geocutii şi mesaje",
+  "serviceGovernance": "Guvernanța serviciilor"
 }

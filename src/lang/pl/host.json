@@ -37,6 +37,7 @@
   "projectRuby": "Projekty Ruby",
   "projectRust": "Projekty Rust",
   "projectZig": "Projekty Zig",
+  "projectFlutter": "Projekty Fluttera",
   "jarPackagePath": "Ścieżka pakietu JAR",
   "jdkPath": "Ścieżka JDK",
   "pythonPath": "Python Path",
@@ -71,18 +72,17 @@
   "sticky": "Przyklejony",
   "dbclickRowToEdit": "Kliknij dwukrotnie w ten wiersz, aby edytować",
   "OnlineDomain": "Domena online",
-  "LocalDoman": "Domena lokalna",
+  "LocalDoman": "Lokalna domena",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Taka sama nazwa domeny online już istnieje.",
+    "OnlineDomainExistsTips": "Ta sama nazwa domeny online już istnieje.",
     "CloudflaredNoFoundTips": "Nie znaleziono Cloudflared. Proszę go zainstalować.",
-    "TunnelInitFailTips": "Tworzenie tunelu nie powiodło się: {error}. Sprawdź, czy ApiToken jest poprawny i upewnij się, że masz uprawnienia do edycji Cloudflare Tunnel.",
+    "TunnelInitFailTips": "Tworzenie tunelu nie powiodło się: {error}. Sprawdź, czy ApiToken jest poprawny i czy masz uprawnienia do edycji tunelu Cloudflare.",
     "TunnelRule": "Reguła tunelu",
-    "licenseTips": "Bez uzyskania licencji można utworzyć tylko jeden tunel i jeden zestaw rekordów hosta."
+    "licenseTips": "Bez uzyskania licencji, można utworzyć tylko jeden tunel i jeden zestaw rekordów hosta."
   },
-  "ifIsService": "Czy to usługa",
-  "runSetting": "Ustawienia uruchamiania",
+  "ifIsService": "Jest usługą",
+  "runSetting": "Uruchom ustawienia",
   "exec": "Wykonaj",
-  "runInTerminal": "Uruchom w terminalu",
-  "portSetting": "Ustawienia portu",
-  "projectFlutter": "Projekty Flutter"
+  "runInTerminal": "Uruchom w Terminalu",
+  "portSetting": "Ustawienia portu"
 }

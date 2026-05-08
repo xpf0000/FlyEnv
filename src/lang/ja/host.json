@@ -34,6 +34,10 @@
   "projectDeno": "Deno Projects",
   "projectBun": "Bun Projects",
   "projectPerl": "Perl Projects",
+  "projectRuby": "ルビープロジェクト",
+  "projectRust": "Rust プロジェクト",
+  "projectZig": "Zig プロジェクト",
+  "projectFlutter": "Flutter プロジェクト",
   "jarPackagePath": "JARパッケージパス",
   "jdkPath": "JDKパス",
   "pythonPath": "Pythonパス",
@@ -70,19 +74,15 @@
   "OnlineDomain": "オンラインドメイン",
   "LocalDoman": "ローカルドメイン",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "同じオンラインドメインが既に存在します。",
+    "OnlineDomainExistsTips": "同じオンラインドメイン名が既に存在します。",
     "CloudflaredNoFoundTips": "Cloudflaredが見つかりません。インストールしてください。",
-    "TunnelInitFailTips": "トンネルの作成に失敗しました: {error}。ApiTokenが正しいか確認し、Cloudflare Tunnelの編集権限があることを確認してください。",
+    "TunnelInitFailTips": "トンネルの作成に失敗しました: {error}. ApiTokenが正しいかを確認し、Cloudflare Tunnelの編集権限を確認してください。",
     "TunnelRule": "トンネルルール",
-    "licenseTips": "ライセンスを取得しない場合、1つのトンネルと1セットのホストレコードのみ作成できます。"
+    "licenseTips": "ライセンスを取得せずに、トンネルとホストレコードのセットを 1 つだけ作成できます。"
   },
-  "projectRuby": "Ruby Projects",
-  "projectRust": "Rust Projects",
-  "projectZig": "Zig Projects",
-  "ifIsService": "サービスかどうか",
+  "ifIsService": "サービスです",
   "runSetting": "実行設定",
   "exec": "実行",
   "runInTerminal": "ターミナルで実行",
-  "portSetting": "ポート設定",
-  "projectFlutter": "Flutter プロジェクト"
+  "portSetting": "ポート設定"
 }

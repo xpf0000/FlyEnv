@@ -37,6 +37,7 @@
   "projectRuby": "Projetos Rubi",
   "projectRust": "Projetos de ferrugem",
   "projectZig": "Projetos Zig",
+  "projectFlutter": "Projetos de Flauta",
   "jarPackagePath": "Caminho do pacote jar",
   "jdkPath": "Caminho do JDK",
   "pythonPath": "Caminho do Python",
@@ -70,19 +71,18 @@
   "showFile": "Mostrar arquivo",
   "sticky": "Fixar",
   "dbclickRowToEdit": "Clique duas vezes nesta linha para editar",
-  "OnlineDomain": "Domínio Online",
-  "LocalDoman": "Domínio Local",
+  "OnlineDomain": "Domínio online",
+  "LocalDoman": "Domínio local",
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "O mesmo nome de domínio online já existe.",
     "CloudflaredNoFoundTips": "Cloudflared não encontrado. Por favor, instale-o.",
-    "TunnelInitFailTips": "Falha na criação do túnel: {error}. Verifique se o ApiToken está correto e certifique-se de que tem permissões de edição do Cloudflare Tunnel.",
-    "TunnelRule": "Regra do Túnel",
-    "licenseTips": "Sem obter uma licença, só pode criar um túnel e um conjunto de registros de host."
+    "TunnelInitFailTips": "Falha na criação do túnel: {error}. Por favor, verifique se o ApiToken está correto e certifique-se de ter permissões de edição do túnel Cloudflare.",
+    "TunnelRule": "Regra de túnel",
+    "licenseTips": "Sem obter uma licença, você só pode criar um túnel e um conjunto de registros de host."
   },
-  "ifIsService": "Se é um serviço",
-  "runSetting": "Configurações de Execução",
+  "ifIsService": "É Serviço",
+  "runSetting": "Configurações de execução",
   "exec": "Executar",
   "runInTerminal": "Executar no Terminal",
-  "portSetting": "Configurações de Porta",
-  "projectFlutter": "Projetos Flutter"
+  "portSetting": "Configurações de Porta"
 }

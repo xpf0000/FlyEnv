@@ -37,6 +37,7 @@
   "projectRuby": "Ruby-Projekte",
   "projectRust": "Rust-Projekte",
   "projectZig": "Zig-Projekte",
+  "projectFlutter": "Flutter Projekte",
   "jarPackagePath": "JAR-Paketpfad",
   "jdkPath": "JDK-Pfad",
   "pythonPath": "Python Path",
@@ -73,16 +74,15 @@
   "OnlineDomain": "Online-Domain",
   "LocalDoman": "Lokale Domäne",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Derselbe Online-Domainname existiert bereits.",
-    "CloudflaredNoFoundTips": "Cloudflared wurde nicht gefunden. Bitte installieren Sie es.",
-    "TunnelInitFailTips": "Tunnelerstellung fehlgeschlagen: {error}. Bitte überprüfen Sie, ob der ApiToken korrekt ist, und stellen Sie sicher, dass Sie über Cloudflare Tunnel-Bearbeitungsberechtigungen verfügen.",
+    "OnlineDomainExistsTips": "Der gleiche Online-Domänenname existiert bereits.",
+    "CloudflaredNoFoundTips": "Cloudflared nicht gefunden. Bitte installieren Sie es.",
+    "TunnelInitFailTips": "Tunnel-Erstellung fehlgeschlagen: {error}. Bitte überprüfen Sie, ob das ApiToken korrekt ist, und stellen Sie sicher, dass Sie die Berechtigungen zum Bearbeiten von Cloudflare-Tunnel haben.",
     "TunnelRule": "Tunnelregel",
     "licenseTips": "Ohne eine Lizenz zu erwerben, können Sie nur einen Tunnel und einen Hosteintrag erstellen."
   },
-  "ifIsService": "Ob es ein Dienst ist",
-  "runSetting": "Ausführungseinstellungen",
+  "ifIsService": "Ist Dienst",
+  "runSetting": "Einstellungen ausführen",
   "exec": "Ausführen",
   "runInTerminal": "Im Terminal ausführen",
-  "portSetting": "Port-Einstellungen",
-  "projectFlutter": "Flutter Projekte"
+  "portSetting": "Port-Einstellungen"
 }

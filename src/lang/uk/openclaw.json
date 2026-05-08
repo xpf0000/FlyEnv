@@ -1,12 +1,12 @@
 {
   "notInstalled": "OpenClaw не встановлено. Будь ласка, спочатку встановіть його.",
   "gatewayStatus": "Статус шлюзу",
-  "gatewayNotInstalled": "Шлюз не встановлено. Будь ласка, спочатку встановіть шлюз.",
-  "gatewayRunning": "Шлюз працює",
-  "gatewayStopped": "Шлюз зупинено",
-  "startGatewayFail": "Gateway start failed",
-  "OpenClawOfficialWebsite": "OpenClaw Home",
-  "OpenClawLocalDashboard": "OpenClaw Dashboard",
+  "gatewayNotInstalled": "Шлюз не встановлено. Спочатку встановіть шлюз.",
+  "gatewayRunning": "Працює шлюз",
+  "gatewayStopped": "Термостат зупинено",
+  "startGatewayFail": "Помилка запуску шлюзу",
+  "OpenClawOfficialWebsite": "Домівка з відкритим кодом",
+  "OpenClawLocalDashboard": "Панель управління OpenClaw",
   "category": {
     "basicInfo": "Основна інформація",
     "configuration": "Конфігурація",

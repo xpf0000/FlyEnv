@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "Tarkistetaan asennusta...",
+  "isInstalled": "asennettu",
+  "notInstalled": "mkcert ei ole asennettu",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "Tarkista Uudelleen",
+  "recheck": "Uudelleentarkistus",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "Ca Juuren Polku",
+  "certificates": "Sertifikaatit",
+  "generate": "Luo",
+  "noSSLHosts": "Ei palvelimia, joissa SSL on käytössä. Ota SSL käyttöön ensin palvelimella."
 }

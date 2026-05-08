@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "Перевірка встановлення...",
+  "isInstalled": "встановлено",
+  "notInstalled": "mkcert не встановлено",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "Повторити перевірку",
+  "recheck": "Перевірити знову",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "Шлях до кореню CA",
+  "certificates": "Сертифікати",
+  "generate": "Згенерувати",
+  "noSSLHosts": "Не включені хости з SSL. Увімкніть SSL для цього хоста."
 }

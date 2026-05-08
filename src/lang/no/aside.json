@@ -14,7 +14,7 @@
   "objectStorage": "Objekt lagring",
   "appExit": "Stopp alle kjørende tjenester og avslutt FlyEnv",
   "groupStart": "Ett klikk start av alle tilgjengelige tjenester som vises i ruten",
-  "networkTunnel": "Nettverkstunnel",
-  "cacheAndQueue": "Cache & Meldingskø",
+  "networkTunnel": "Nettverks tunnel",
+  "cacheAndQueue": "Cache og meldingskø",
   "serviceGovernance": "Service Governance"
 }

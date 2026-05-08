@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "Installation wird überprüft...",
+  "isInstalled": "installiert",
+  "notInstalled": "mkcert ist nicht installiert",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "Erneut prüfen",
+  "recheck": "Erneut prüfen",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "CA Wurzelpfad",
+  "certificates": "Zertifikate",
+  "generate": "Generieren",
+  "noSSLHosts": "Keine Hosts mit SSL aktiviert. SSL zuerst auf einem Host aktivieren."
 }

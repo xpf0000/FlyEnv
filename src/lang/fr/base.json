@@ -117,5 +117,5 @@
   "needInstallHelperTips": "Certaines opérations ont échoué car les privilèges d'administration sont nécessaires. Cela inclut la modification du fichier hôtes, l'accès à la liste des processus, la liaison aux ports inférieurs à 1024, ou la gestion des variables d'environnement système.\nVeuillez installer le FlyEnv Helper pour accorder les autorisations nécessaires à ces tâches. Cliquez sur \"OK\" pour procéder à l'installation.",
   "targetPlatforms": "Plateformes cibles",
   "baseInfo": "Informations de base",
-  "selectVersion": "Sélectionner la version"
+  "selectVersion": "Sélectionner une version"
 }

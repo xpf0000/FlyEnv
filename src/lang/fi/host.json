@@ -37,6 +37,7 @@
   "projectRuby": "Rubyn Projektit",
   "projectRust": "Rust Projektit",
   "projectZig": "Zig Projektit",
+  "projectFlutter": "Flutter Projektit",
   "jarPackagePath": "Jar Paketin Polku",
   "jdkPath": "Jdk Polku",
   "pythonPath": "Python Path",
@@ -70,19 +71,18 @@
   "showFile": "Näytä Tiedosto",
   "sticky": "Kiinni",
   "dbclickRowToEdit": "Kaksoisnapsauta tätä riviä muokataksesi",
-  "OnlineDomain": "Verkkotunnus",
+  "OnlineDomain": "Verkkotunnus Verkossa",
   "LocalDoman": "Paikallinen Verkkotunnus",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Sama verkkotunnus on jo olemassa.",
-    "CloudflaredNoFoundTips": "Cloudflared ei löytynyt. Asenna se.",
-    "TunnelInitFailTips": "Tunnelin luominen epäonnistui: {error}. Tarkista onko ApiToken oikea ja varmista, että sinulla on Cloudflare Tunnel -muokkausoikeudet.",
-    "TunnelRule": "Tunnelisääntö",
-    "licenseTips": "Ilman lisenssiä voit luoda vain yhden tunnelin ja yhden joukon host-tietueita."
+    "OnlineDomainExistsTips": "Sama verkkoverkkotunnus on jo olemassa.",
+    "CloudflaredNoFoundTips": "Cloudflaredia ei löytynyt. Asenna se.",
+    "TunnelInitFailTips": "Tunnelin luonti epäonnistui: {error}. Tarkista onko ApiToken oikein ja varmista, että sinulla on Cloudflare Tunnelin muokkausoikeudet.",
+    "TunnelRule": "Tunnelin Sääntö",
+    "licenseTips": "Ilman lisenssiä voit luoda vain yhden tunnelin ja yhden joukon isäntä-tietueita."
   },
-  "ifIsService": "Onko se palvelu",
-  "runSetting": "Suoritusasetukset",
+  "ifIsService": "On Palvelu",
+  "runSetting": "Suorita Asetukset",
   "exec": "Suorita",
   "runInTerminal": "Suorita päätteessä",
-  "portSetting": "Porttiasetukset",
-  "projectFlutter": "Flutter Projektit"
+  "portSetting": "Portti Asetukset"
 }

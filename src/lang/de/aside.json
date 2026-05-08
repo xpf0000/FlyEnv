@@ -14,7 +14,7 @@
   "objectStorage": "Objektspeicher",
   "appExit": "Stoppe alle laufenden Dienste und beende FlyEnv",
   "groupStart": "Mit einem Klick starten Sie alle verfügbaren Dienste auf dem Panel",
-  "networkTunnel": "Netzwerktunnel",
-  "cacheAndQueue": "Cache & Nachrichtenwarteschlange",
-  "serviceGovernance": "Service-Governance"
+  "networkTunnel": "Netzwerk-Tunnel",
+  "cacheAndQueue": "Cache- & Nachrichtenwarteschlange",
+  "serviceGovernance": "Service Governance"
 }

@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "Έλεγχος εγκατάστασης...",
+  "isInstalled": "εγκαταστάθηκε",
+  "notInstalled": "το mkcert δεν είναι εγκατεστημένο",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "Έλεγχος Ξανά",
+  "recheck": "Επανέλεγχος",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "CA Root Διαδρομή",
+  "certificates": "Πιστοποιητικά",
+  "generate": "Δημιουργία",
+  "noSSLHosts": "Κανένας υπολογιστής με ενεργοποιημένο SSL. Ενεργοποιήστε το SSL σε έναν υπολογιστή πρώτα."
 }

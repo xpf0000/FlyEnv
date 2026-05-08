@@ -7,7 +7,7 @@
   "frameworkVersion": "Versione del Framework",
   "newProjectTips": "Creazione di un nuovo progetto con Composer, inizializza con il framework selezionato. Supportati: WordPress, Laravel, Yii2, Symfony, ThinkPHP, CodeIgniter, CakePHP, Slim",
   "toCreateHost": "Crea Host",
-  "dnsInfo": "Attiva un server DNS. Risolve il nome di dominio impostato nel file /etc/hosts verso l'indirizzo IP locale. Serve principalmente per permettere ad altri dispositivi sulla LAN di accedere al sito locale.\nQuesta funzione richiede Node. Se non è installato, installalo prima.\nCome usarlo:\n1. Avvia il server DNS.\n2. Su altri dispositivi, imposta il DNS della rete inserendo l'IP DNS visualizzato qui. Meglio se è l'unico DNS impostato, da ripristinare una volta finito.\n3. Comando di test: dig {ip} dominio\n4. Su altri dispositivi, accedi al dominio locale.",
+  "dnsInfo": "Attiva un server DNS. Risolve il nome di dominio impostato nel file /etc/hosts verso l'indirizzo IP locale. Serve principalmente per permettere ad altri dispositivi sulla LAN di accedere al sito locale.\nQuesta funzione richiede Node. Se non è installato, installalo prima.\nCome usarlo:\n1. Avvia il server DNS.\n2. Su altri dispositivi, imposta il DNS della rete inserendo l'IP DNS visualizzato qui. Meglio se è l’unico DNS impostato, da ripristinare una volta finito.\n3. Comando di test: dig {ip} dominio\n4. Su altri dispositivi, accedi al dominio locale.",
   "staticSite": "Sito Statico",
   "park": "Abilita sottocartelle come sottodomini",
   "hostsCopy": "Copia hosts negli appunti",
@@ -37,6 +37,7 @@
   "projectRuby": "Progetti Ruby",
   "projectRust": "Progetti Rust",
   "projectZig": "Progetti Zig",
+  "projectFlutter": "Progetti Flutter",
   "jarPackagePath": "Percorso pacchetto JAR",
   "jdkPath": "Percorso JDK",
   "pythonPath": "Percorso Python",
@@ -73,16 +74,15 @@
   "OnlineDomain": "Dominio Online",
   "LocalDoman": "Dominio Locale",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Esiste già lo stesso nome di dominio online.",
-    "CloudflaredNoFoundTips": "Cloudflared non trovato. Si prega di installarlo.",
-    "TunnelInitFailTips": "Creazione del tunnel fallita: {error}. Si prega di verificare se l'ApiToken è corretto e assicurarsi di avere i permessi di modifica del Cloudflare Tunnel.",
-    "TunnelRule": "Regola del Tunnel",
-    "licenseTips": "Senza ottenere una licenza, puoi creare solo un tunnel e un set di record host."
+    "OnlineDomainExistsTips": "Lo stesso nome di dominio online esiste già.",
+    "CloudflaredNoFoundTips": "Cloudflared non trovato. Installalo.",
+    "TunnelInitFailTips": "Creazione del tunnel non riuscita: {error}. Controlla se l'ApiToken è corretto e assicurati di avere i permessi di modifica del tunnel Cloudflare.",
+    "TunnelRule": "Regola Tunnel",
+    "licenseTips": "Senza ottenere una licenza, è possibile creare solo un tunnel e un set di record host."
   },
-  "ifIsService": "Se è un servizio",
-  "runSetting": "Impostazioni di esecuzione",
+  "ifIsService": "È Servizio",
+  "runSetting": "Esegui Impostazioni",
   "exec": "Esegui",
   "runInTerminal": "Esegui nel terminale",
-  "portSetting": "Impostazioni porta",
-  "projectFlutter": "Progetti Flutter"
+  "portSetting": "Impostazioni Porta"
 }

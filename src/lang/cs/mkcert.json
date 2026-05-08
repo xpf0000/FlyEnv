@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "Kontrola instalace...",
+  "isInstalled": "nainstalováno",
+  "notInstalled": "mkcert není nainstalován",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "Zkontrolovat znovu",
+  "recheck": "Znovu zkontrolovat",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "Kořenová cesta CA",
+  "certificates": "Certifikáty",
+  "generate": "Generovat",
+  "noSSLHosts": "Žádné hostitele s SSL povoleny. Nejprve povolte SSL na hostitele."
 }

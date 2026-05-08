@@ -37,6 +37,7 @@
   "projectRuby": "Proiecte Ruby",
   "projectRust": "Proiecte Rust",
   "projectZig": "Proiecte Zig",
+  "projectFlutter": "Proiecte Flutter",
   "jarPackagePath": "Calea JAR a pachetului",
   "jdkPath": "Cale JDK",
   "pythonPath": "Python Path",
@@ -65,24 +66,23 @@
   "licenseTips": "Fără obținerea unei licențe, pot fi create doar trei situri",
   "composerVersion": "Versiune compunere",
   "useSysVersion": "Versiuni setate folosind variabile de mediu",
-  "sslTips": "<p>Funcția automată de certificat SSL necesită adăugarea unui certificat numit FlyEnv-Root-CA la keychain și setarea acestuiu pentru a avea întotdeauna încredere</p>\n<p>în mod normal, această funcţie va fi completată automat. </p>\n<p>Dacă această funcție este anormală. Poţi copia şi executa comenzi pe terminal. </p>\n<p>Puteți, de asemenea, să faceți dublu clic pentru a adăuga certificatul în folderul deschis și să setați manual încrederea în aplicația keychain</p>",
+  "sslTips": "<p>Funcția automată de certificat SSL necesită adăugarea unui certificat numit FlyEnv-Root-CA la keychain și setarea acestuia pentru a avea întotdeauna încredere</p>\n<p>în mod normal, această funcţie va fi completată automat. </p>\n<p>Dacă această funcţie este anormală. Poţi copia şi executa comenzi pe terminal. </p>\n<p>Puteți, de asemenea, să faceți dublu clic pentru a adăuga certificatul în folderul deschis și să setați manual încrederea în aplicația keychain</p>",
   "copyCommand": "Copiază comanda",
   "showFile": "Arata fisier",
   "sticky": "Fixat",
   "dbclickRowToEdit": "Dublu-clic pe această linie pentru a edita",
-  "OnlineDomain": "Domeniu Online",
-  "LocalDoman": "Domeniu Local",
+  "OnlineDomain": "Domeniu online",
+  "LocalDoman": "Domeniu local",
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "Același nume de domeniu online există deja.",
-    "CloudflaredNoFoundTips": "Cloudflared nu a fost găsit. Vă rugăm să îl instalați.",
-    "TunnelInitFailTips": "Crearea tunelului a eșuat: {error}. Vă rugăm să verificați dacă ApiToken este corect și asigurați-vă că aveți permisiuni de editare pentru Cloudflare Tunnel.",
-    "TunnelRule": "Regulă Tunel",
-    "licenseTips": "Fără obținerea unei licențe, puteți crea doar un tunel și un set de înregistrări gazdă."
+    "CloudflaredNoFoundTips": "Nu s-a găsit Cloudfled. Instalați-l.",
+    "TunnelInitFailTips": "Tunnel creation failed: {error}. Please check if the ApiToken is correct and ensure you have Cloudflare Tunnel edit permissions.",
+    "TunnelRule": "Regulă tunel",
+    "licenseTips": "Fără a obține o licență, puteți crea doar un singur tunel și un set de înregistrări de gazdă."
   },
-  "ifIsService": "Dacă este un serviciu",
-  "runSetting": "Setări de rulare",
+  "ifIsService": "Serviciul este",
+  "runSetting": "Execută setările",
   "exec": "Execută",
-  "runInTerminal": "Rulează în terminal",
-  "portSetting": "Setări port",
-  "projectFlutter": "Proiecte Flutter"
+  "runInTerminal": "Rulează în Terminal",
+  "portSetting": "Setări port"
 }

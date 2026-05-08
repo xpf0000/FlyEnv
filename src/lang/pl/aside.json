@@ -14,7 +14,7 @@
   "objectStorage": "Przechowywanie obiektów",
   "appExit": "Zatrzymaj wszystkie uruchomione usługi i wyjdź z FlyEnv",
   "groupStart": "Uruchom wszystkie dostępne usługi wyświetlane w panelu jednym kliknięciem",
-  "networkTunnel": "Tunel Sieciowy",
-  "cacheAndQueue": "Pamięć Podręczna i Kolejka Komunikatów",
-  "serviceGovernance": "Zarządzanie Usługami"
+  "networkTunnel": "Tunel sieciowy",
+  "cacheAndQueue": "Pamięć podręczna i kolejka wiadomości",
+  "serviceGovernance": "Zarządzanie usługami"
 }

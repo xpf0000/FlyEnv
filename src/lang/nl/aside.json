@@ -15,6 +15,6 @@
   "appExit": "Stop alle actieve services en verlaat FlyEnv",
   "groupStart": "Start met één klik alle beschikbare services die worden weergegeven op het paneel",
   "networkTunnel": "Netwerktunnel",
-  "cacheAndQueue": "Cache & Berichtenwachtrij",
+  "cacheAndQueue": "Cache en bericht wachtrij",
   "serviceGovernance": "Service Governance"
 }

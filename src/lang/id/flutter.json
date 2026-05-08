@@ -1,4 +1,4 @@
-﻿{
+{
   "sdkDetails": "SDK Details",
   "sdkNotFound": "Flutter SDK not found. Add a version in the Version tab.",
   "source": "Source",
@@ -20,8 +20,7 @@
   "sourceDefault": "Default SDK location",
   "sourceCustom": "Configured custom path",
   "sourceFlyenv": "FlyEnv managed SDK",
-  "sourceUnknown": "Unknown"
-,
+  "sourceUnknown": "Unknown",
   "createProjectTitle": "Create Flutter Project",
   "create": "Create",
   "projectInfo": "Project Info",
@@ -44,7 +43,7 @@
   "search": "Search",
   "latest": "latest",
   "noDescription": "No description",
-  "add": "Add",
+  "add": "Tambah",
   "addDev": "Add dev",
   "selectedDependencies": "Selected dependencies",
   "noPackagesSelected": "No packages selected.",
@@ -66,8 +65,8 @@
   "searchPubFailed": "Failed to search pub.dev",
   "flutterCreateFailed": "flutter create failed",
   "flutterProjectSettings": "Flutter Project Settings",
-  "save": "Save",
-  "preview": "Preview",
+  "save": "Simpan",
+  "preview": "Pratinjau",
   "previewChanges": "Preview Changes",
   "projectTarget": "Project target",
   "projectIdentity": "Project identity",

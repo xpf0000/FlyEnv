@@ -4,5 +4,5 @@
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> er ikke funnet.\nInstaller Macports, du kan klikke på denne lenken\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nFølg dokumentasjonen for å installere.",
   "brewErrorTips": "At this location {bin}, Homebrew executable files were detected.\nHowever, FlyEnv cannot call them. Error message:\n{error}",
   "Library": "Bibliotek",
-  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> ikke funnet\nFor å installere SDKMAN, klikk på installasjonsknappen"
+  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> fant ikke\nFor å installere SDKMAN, klikk på 'install'-knappen for å fortsette"
 }

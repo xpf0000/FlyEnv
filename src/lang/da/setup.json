@@ -46,8 +46,8 @@
   "flyenvHelperBtn": "Ret",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fast Med Succesfuld",
   "flyenvHelperInstallFailTips": "Installationen af FlyEnv-hjælpeprogrammet mislykkedes. Prøv at køre FlyEnv med administratorrettigheder, eller klik på OK-knappen og kør flyenv-helper.exe-hjælpeprogrammet manuelt i den åbnede mappe.",
-  "appFont": "Grænsefladeskrifttype",
+  "appFont": "UI Font",
   "appFontTips": "Sæt skrifttypen der bruges til programmets UI. Efterlad blank for at bruge systemets standardskrifttype",
-  "codeFont": "Kodeskrifttype",
+  "codeFont": "Code Font",
   "codeFontTips": "Angiv skrifttypen der bruges til terminal, editor og andre kodeområder. Efterlad blank for at bruge standard monospace skrifttype"
 }

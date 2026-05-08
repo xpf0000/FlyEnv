@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "Kontrollerar installation...",
+  "isInstalled": "installerad",
+  "notInstalled": "mkcert är inte installerat",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "Kontrollera igen",
+  "recheck": "Kontrollera igen",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "CA rotsökväg",
+  "certificates": "Certifikat",
+  "generate": "Generera",
+  "noSSLHosts": "Inga värdar med SSL aktiverade. Aktivera SSL på en värd först."
 }

@@ -37,6 +37,7 @@
   "projectRuby": "Robijnen Projecten",
   "projectRust": "Rust Projecten",
   "projectZig": "Zig Projecten",
+  "projectFlutter": "Flutter projecten",
   "jarPackagePath": "JAR pakketpad",
   "jdkPath": "JDK Pad",
   "pythonPath": "Python Path",
@@ -71,18 +72,17 @@
   "sticky": "Vasthouden",
   "dbclickRowToEdit": "Dubbelklik op deze regel om te bewerken",
   "OnlineDomain": "Online Domein",
-  "LocalDoman": "Lokaal Domein",
+  "LocalDoman": "Lokaal domein",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Hetzelfde online domein bestaat al.",
-    "CloudflaredNoFoundTips": "Cloudflared niet gevonden. Installeer het alstublieft.",
-    "TunnelInitFailTips": "Tunnel aanmaken mislukt: {error}. Controleer of de ApiToken correct is en zorg dat u Cloudflare Tunnel bewerkingsrechten heeft.",
-    "TunnelRule": "Tunnel Regel",
-    "licenseTips": "Zonder een licentie te verkrijgen, kunt u slechts één tunnel en één set hostrecords aanmaken."
+    "OnlineDomainExistsTips": "Dezelfde online domeinnaam bestaat al.",
+    "CloudflaredNoFoundTips": "Cloudflared niet gevonden. Installeer het aub.",
+    "TunnelInitFailTips": "Tunnel maken mislukt: {error}. Controleer of de ApiToken correct is en zorg ervoor dat u Cloudflare Tunnel machtigingen hebt om te bewerken.",
+    "TunnelRule": "Tunnel regel",
+    "licenseTips": "Zonder het verkrijgen van een licentie kan je maar één tunnel en een set hostrecords maken."
   },
-  "ifIsService": "Of het een service is",
-  "runSetting": "Uitvoeringsinstellingen",
+  "ifIsService": "Is service",
+  "runSetting": "Instellingen uitvoeren",
   "exec": "Uitvoeren",
-  "runInTerminal": "Uitvoeren in terminal",
-  "portSetting": "Portinstellingen",
-  "projectFlutter": "Flutter Projecten"
+  "runInTerminal": "Uitvoeren in Terminal",
+  "portSetting": "Poort Instellingen"
 }

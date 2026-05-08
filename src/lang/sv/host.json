@@ -37,6 +37,7 @@
   "projectRuby": "Ruby projekt",
   "projectRust": "Rust Projekt",
   "projectZig": "Zig projekt",
+  "projectFlutter": "Flutter projekt",
   "jarPackagePath": "JAR-paket sökväg",
   "jdkPath": "JDK-sökväg",
   "pythonPath": "Python-sökväg",
@@ -71,18 +72,17 @@
   "sticky": "Fästbar",
   "dbclickRowToEdit": "Dubbelklicka på den här raden för att redigera",
   "OnlineDomain": "Online-domän",
-  "LocalDoman": "Lokal Domän",
+  "LocalDoman": "Lokal domän",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Samma online-domännamn finns redan.",
-    "CloudflaredNoFoundTips": "Cloudflared hittades inte. Vänligen installera det.",
-    "TunnelInitFailTips": "Tunnel skapande misslyckades: {error}. Vänligen kontrollera om ApiToken är korrekt och säkerställ att du har Cloudflare Tunnel-redigeringsbehörigheter.",
-    "TunnelRule": "Tunnelregel",
-    "licenseTips": "Utan att skaffa en licens kan du endast skapa en tunnel och en uppsättning värdposter."
+    "OnlineDomainExistsTips": "Samma domännamn finns redan.",
+    "CloudflaredNoFoundTips": "Cloudflared hittades inte. Installera den.",
+    "TunnelInitFailTips": "Tunnelskapandet misslyckades: {error}. Kontrollera om ApiToken är korrekt och se till att du har Cloudflare Tunnel redigera behörigheter.",
+    "TunnelRule": "Tunnelregeln",
+    "licenseTips": "Utan att få en licens, Du kan bara skapa en tunnel och en uppsättning värdposter."
   },
-  "ifIsService": "Om det är en tjänst",
-  "runSetting": "Körinställningar",
-  "exec": "Kör",
-  "runInTerminal": "Kör i terminalen",
-  "portSetting": "Portinställningar",
-  "projectFlutter": "Flutter Projekt"
+  "ifIsService": "Är tjänst",
+  "runSetting": "Kör inställningar",
+  "exec": "Utför",
+  "runInTerminal": "Kör i Terminal",
+  "portSetting": "Inställningar för porten"
 }

@@ -37,6 +37,7 @@
   "projectRuby": "Проекти Ruby",
   "projectRust": "Rust Projects",
   "projectZig": "Проекти ZG",
+  "projectFlutter": "Згладити проекти",
   "jarPackagePath": "Шлях до пакета JAR",
   "jdkPath": "Шлях JDK",
   "pythonPath": "Шлях Python",
@@ -70,19 +71,18 @@
   "showFile": "Показати файл",
   "sticky": "Залипати",
   "dbclickRowToEdit": "Двічі клацніть цей рядок для редагування",
-  "OnlineDomain": "Онлайн-домен",
+  "OnlineDomain": "Домен у мережі",
   "LocalDoman": "Локальний домен",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Такий онлайн-домен вже існує.",
-    "CloudflaredNoFoundTips": "Cloudflared не знайдено. Будь ласка, встановіть його.",
-    "TunnelInitFailTips": "Створення тунелю не вдалося: {error}. Будь ласка, перевірте, чи правильний ApiToken, і переконайтеся, що у вас є дозволи на редагування Cloudflare Tunnel.",
-    "TunnelRule": "Правило тунелю",
-    "licenseTips": "Без отримання ліцензії ви можете створити лише один тунель і один набір записів хоста."
+    "OnlineDomainExistsTips": "Таке ж онлайн-доменне ім'я вже існує.",
+    "CloudflaredNoFoundTips": "Хмаринкувальний режим не знайдено. Будь ласка, встановіть його.",
+    "TunnelInitFailTips": "Tunnel creation failed: {error}. Please check if the ApiToken is correct and ensure you have Cloudflare Tunnel edit permissions.",
+    "TunnelRule": "Правило тунеля",
+    "licenseTips": "Не отримуючи ліцензії, Ви можете створити лише один тунель та один набір хостів."
   },
-  "ifIsService": "Чи є службою",
+  "ifIsService": "Є сервісом",
   "runSetting": "Налаштування запуску",
   "exec": "Виконати",
-  "runInTerminal": "Запустити в терміналі",
-  "portSetting": "Налаштування порту",
-  "projectFlutter": "Проекти Flutter"
+  "runInTerminal": "Запустити в терміні",
+  "portSetting": "Параметри порту"
 }

@@ -14,7 +14,7 @@
   "objectStorage": "Armazenamento de Objetos",
   "appExit": "Parar todos os serviços iniciados e sair do FlyEnv",
   "groupStart": "Iniciar com um clique todos os serviços disponíveis exibidos no painel",
-  "networkTunnel": "Túnel de Rede",
+  "networkTunnel": "Túnel de rede",
   "cacheAndQueue": "Cache e Fila de Mensagens",
-  "serviceGovernance": "Governação de Serviços"
+  "serviceGovernance": "Administração de Serviços"
 }

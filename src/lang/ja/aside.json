@@ -15,6 +15,6 @@
   "appExit": "起動中のすべてのサービスを停止してFlyEnvを終了します",
   "groupStart": "パネルに表示されている利用可能なすべてのサービスをワンクリックで起動",
   "networkTunnel": "ネットワークトンネル",
-  "cacheAndQueue": "キャッシュ＆メッセージキュー",
+  "cacheAndQueue": "キャッシュとメッセージキュー",
   "serviceGovernance": "サービスガバナンス"
 }

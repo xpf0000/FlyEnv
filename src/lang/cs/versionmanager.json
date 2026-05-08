@@ -4,5 +4,5 @@
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macport</a> nebyl nalezen.\nNainstalujte Macporty, můžete kliknout na tento odkaz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nPostupujte podle dokumentace.",
   "brewErrorTips": "Na tomto místě {bin}byly zjištěny spustitelné soubory Homebrew\nNicméně FlyEnv jim nemůže zavolat. Zpráva o chybě:\n{error}",
   "Library": "Knihovna",
-  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> nebyl nalezen\nChcete-li nainstalovat SDKMAN, klikněte na tlačítko instalace"
+  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> nenalezen\nChcete-li nainstalovat SDKMAN, klikněte na tlačítko instalace pro pokračování"
 }

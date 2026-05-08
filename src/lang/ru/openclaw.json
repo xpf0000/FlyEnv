@@ -1,8 +1,8 @@
 {
-  "notInstalled": "OpenClaw не установлен. Пожалуйста, сначала установите его.",
+  "notInstalled": "OpenClaw не установлен. Сначала установите его.",
   "gatewayStatus": "Статус шлюза",
   "gatewayNotInstalled": "Шлюз не установлен. Пожалуйста, сначала установите шлюз.",
-  "gatewayRunning": "Шлюз работает",
+  "gatewayRunning": "Шлюз запущен",
   "gatewayStopped": "Шлюз остановлен",
   "startGatewayFail": "Не удалось запустить шлюз",
   "OpenClawOfficialWebsite": "OpenClaw Главная",

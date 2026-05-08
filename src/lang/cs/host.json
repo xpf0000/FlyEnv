@@ -37,6 +37,7 @@
   "projectRuby": "Projekty runby",
   "projectRust": "Důvěryhodné projekty",
   "projectZig": "Zig projekty",
+  "projectFlutter": "Flutter projekty",
   "jarPackagePath": "Cesta k balíčku JAR",
   "jdkPath": "Cesta JDK",
   "pythonPath": "Python Path",
@@ -73,16 +74,15 @@
   "OnlineDomain": "Online doména",
   "LocalDoman": "Místní doména",
   "CloudflareTunnel": {
-    "OnlineDomainExistsTips": "Stejná online doména již existuje.",
-    "CloudflaredNoFoundTips": "Cloudflared nebyl nalezen. Nainstalujte jej prosím.",
-    "TunnelInitFailTips": "Vytvoření tunelu selhalo: {error}. Zkontrolujte, zda je ApiToken správný a ujistěte se, že máte oprávnění k úpravám Cloudflare Tunnel.",
-    "TunnelRule": "Pravidlo tunelu",
-    "licenseTips": "Bez získání licence můžete vytvořit pouze jeden tunel a jednu sadu záznamů hostitele."
+    "OnlineDomainExistsTips": "Stejný online název domény již existuje.",
+    "CloudflaredNoFoundTips": "Cloudflared nebyl nalezen. Prosím, nainstalujte jej.",
+    "TunnelInitFailTips": "Tvorba tunelu se nezdařila: {error}. Zkontrolujte, zda je ApiToken správný, a ujistěte se, že máte oprávnění k editaci Cloudflare tunelu.",
+    "TunnelRule": "Pravidlo pro tunel",
+    "licenseTips": "Bez získání licence můžete vytvořit pouze jeden tunel a jednu sadu hostitelských záznamů."
   },
-  "ifIsService": "Zda je služba",
-  "runSetting": "Nastavení spuštění",
+  "ifIsService": "Je služba",
+  "runSetting": "Spustit nastavení",
   "exec": "Spustit",
   "runInTerminal": "Spustit v terminálu",
-  "portSetting": "Nastavení portu",
-  "projectFlutter": "Flutter Projekty"
+  "portSetting": "Nastavení portu"
 }

@@ -111,7 +111,7 @@
     "networkId": "ID:",
     "startCmd": "Lệnh khởi động",
     "workDir": "Thư mục làm việc",
-    "entrypoint": "Entrypoint",
+    "entrypoint": "Điểm vào",
     "environmentVars": "Biến môi trường trong container",
     "restartPolicy": "Chính sách khởi động lại",
     "networkMode": "Chế độ mạng",

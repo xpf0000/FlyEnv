@@ -1,13 +1,13 @@
 ﻿{
-  "checking": "Checking installation...",
-  "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
+  "checking": "インストールを確認中...",
+  "isInstalled": "インストール済み",
+  "notInstalled": "MKcertはインストールされていません",
   "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
+  "checkAgain": "もう一度チェック",
+  "recheck": "再チェック",
   "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Generate",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "carootLabel": "CA ルートパス",
+  "certificates": "証明書",
+  "generate": "生成",
+  "noSSLHosts": "SSLが有効なホストがありません。最初にホストでSSLを有効にしてください。"
 }
