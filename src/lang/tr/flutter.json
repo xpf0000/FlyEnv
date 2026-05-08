@@ -1,4 +1,5 @@
-"sdkDetails": "SDK Ayrıntıları",
+{
+  "sdkDetails": "SDK Ayrıntıları",
   "sdkNotFound": "Flutter SDK bulunamadı. Versiyon sekmesinde bir sürüm ekleyin.",
   "source": "Kaynak",
   "searchDirs": "Arama Dizinleri",
@@ -87,3 +88,4 @@
   "templatePluginDesc": "Platforma özgü (Android/iOS/Windows...) API'ler için bir Flutter eklentisi.",
   "templateModuleDesc": "Mevcut bir Android/iOS uygulamasına gömülebilecek bir Flutter modülü.",
   "templateSkeletonDesc": "Material 3 ve Navigation 2.0 kullanan liste/detay Flutter uygulaması."
+}
