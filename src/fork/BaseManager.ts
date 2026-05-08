@@ -67,6 +67,7 @@ class BaseManager {
   Numa: any
   Rnacos: any
   FrankenPHP: any
+  Git: any
 
   modules: Set<string> = new Set()
 
@@ -525,6 +526,12 @@ class BaseManager {
         this.FrankenPHP = res.default
       }
       doRun(this.FrankenPHP)
+    } else if (module === 'git') {
+      if (!this.Git) {
+        const res = await import('./module/Git')
+        this.Git = res.default
+      }
+      doRun(this.Git)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

@@ -50,6 +50,7 @@ class Manager extends Base {
   Rnacos: any
   FrankenPHP: any
   Flutter: any
+  Git: any
 
   constructor() {
     super()
@@ -342,6 +343,12 @@ class Manager extends Base {
             this.Flutter = res.default
           }
           versions.flutter = this.Flutter.allInstalledVersions(setup)
+        } else if (type === 'git') {
+          if (!this.Git) {
+            const res = await import('../Git')
+            this.Git = res.default
+          }
+          versions.git = this.Git.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []
