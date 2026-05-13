@@ -4,6 +4,7 @@
   import { debounce } from 'lodash-es'
   import { I18nT } from '@lang/index'
   import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
+  import { MessageSuccess, MessageWarning } from '@/util/Element'
 
   type DiffType = 'same' | 'added' | 'removed'
 
@@ -409,6 +410,10 @@ JWT, Cron and Diff tools are available.`
   }
 
   const copyDiff = async () => {
+    if (store.original.length === 0 && store.changed.length === 0) {
+      MessageWarning(I18nT('tools.diff-compare-empty-copy'))
+      return
+    }
     const output = diffLines.value
       .map((line) => {
         if (line.type === 'added') {
@@ -421,6 +426,7 @@ JWT, Cron and Diff tools are available.`
       })
       .join('\n')
     await navigator.clipboard.writeText(output)
+    MessageSuccess(I18nT('base.copySuccess'))
   }
 
   const initEditors = async () => {
@@ -487,34 +493,44 @@ JWT, Cron and Diff tools are available.`
         <div class="main p-0">
           <el-card class="mb-3">
             <div class="flex flex-wrap items-center gap-3">
-              <el-button @click="loadSample">Load Sample</el-button>
-              <el-button @click="swapInputs">Swap</el-button>
-              <el-button @click="clearInputs">Clear</el-button>
-              <el-button :disabled="diffTargets.length === 0" @click="goToDiff(-1)"
-                >Previous Diff</el-button
-              >
-              <el-button :disabled="diffTargets.length === 0" @click="goToDiff(1)"
-                >Next Diff</el-button
-              >
-              <el-button @click="copyDiff">Copy Result</el-button>
+              <el-button @click="loadSample">{{
+                I18nT('tools.diff-compare-load-sample')
+              }}</el-button>
+              <el-button @click="swapInputs">{{ I18nT('tools.diff-compare-swap') }}</el-button>
+              <el-button @click="clearInputs">{{ I18nT('tools.diff-compare-clear') }}</el-button>
+              <el-button :disabled="diffTargets.length === 0" @click="goToDiff(-1)">{{
+                I18nT('tools.diff-compare-previous-diff')
+              }}</el-button>
+              <el-button :disabled="diffTargets.length === 0" @click="goToDiff(1)">{{
+                I18nT('tools.diff-compare-next-diff')
+              }}</el-button>
+              <el-button @click="copyDiff">{{ I18nT('tools.diff-compare-copy-result') }}</el-button>
             </div>
           </el-card>
 
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
-            <el-card header="Original text">
+            <el-card :header="I18nT('tools.diff-compare-original-text')">
               <div ref="originalRef" class="diff-editor"></div>
             </el-card>
-            <el-card header="Changed text">
+            <el-card :header="I18nT('tools.diff-compare-changed-text')">
               <div ref="changedRef" class="diff-editor"></div>
             </el-card>
           </div>
 
-          <el-card class="mt-3" header="Comparison summary">
+          <el-card class="mt-3" :header="I18nT('tools.diff-compare-summary')">
             <div class="flex flex-wrap gap-2">
-              <el-tag type="success">Added: {{ stats.added }}</el-tag>
-              <el-tag type="danger">Removed: {{ stats.removed }}</el-tag>
-              <el-tag type="warning">Changed: {{ stats.changed }}</el-tag>
-              <el-tag type="info">Unchanged: {{ stats.unchanged }}</el-tag>
+              <el-tag type="success"
+                >{{ I18nT('tools.diff-compare-added') }}: {{ stats.added }}</el-tag
+              >
+              <el-tag type="danger"
+                >{{ I18nT('tools.diff-compare-removed') }}: {{ stats.removed }}</el-tag
+              >
+              <el-tag type="warning"
+                >{{ I18nT('tools.diff-compare-changed') }}: {{ stats.changed }}</el-tag
+              >
+              <el-tag type="info"
+                >{{ I18nT('tools.diff-compare-unchanged') }}: {{ stats.unchanged }}</el-tag
+              >
             </div>
           </el-card>
         </div>
