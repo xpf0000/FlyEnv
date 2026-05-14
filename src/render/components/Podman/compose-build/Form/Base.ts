@@ -42,6 +42,9 @@ const base = reactive({
       const mirrors: string[] = this.mirrors as any
       mirrors.splice(0)
       mirrors.push(...res)
+    }).catch(() => {
+      const mirrors: string[] = this.mirrors as any
+      mirrors.splice(0)
     })
   },
   saveMirrors() {
