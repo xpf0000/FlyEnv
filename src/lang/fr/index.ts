@@ -36,8 +36,10 @@ import rustfsFR from './rustfs.json'
 import mkcert from './mkcert.json'
 import hermes from './hermes.json'
 import flutter from './flutter.json'
+import cronFR from './cron.json'
 export default {
   fr: {
+    cron: cronFR,
     rustfs: rustfsFR,
     mkcert,
     flutter,
