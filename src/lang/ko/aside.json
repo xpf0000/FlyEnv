@@ -1,0 +1,20 @@
+{
+  "site": "사이트",
+  "webServer": "웹 서버",
+  "dataBaseServer": "데이터베이스 서버",
+  "emailServer": "이메일 서버",
+  "language": "언어 및 런타임",
+  "searchEngine": "검색 엔진",
+  "dnsServer": "DNS 서버",
+  "ftpServer": "FTP 서버",
+  "containerRuntime": "컨테이너 런타임",
+  "other": "기타",
+  "appLog": "애플리케이션 로그",
+  "ai": "AI",
+  "objectStorage": "오브젝트 스토리지",
+  "appExit": "실행 중인 모든 서비스를 중지하고 FlyEnv 종료",
+  "groupStart": "패널에 표시된 사용 가능한 모든 서비스를 원클릭으로 시작",
+  "networkTunnel": "네트워크 터널",
+  "cacheAndQueue": "캐시 및 메시지 큐",
+  "serviceGovernance": "서비스 거버넌스"
+}

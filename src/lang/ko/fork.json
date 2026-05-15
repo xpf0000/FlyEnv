@@ -1,0 +1,14 @@
+{
+  "binNotFound": "시작 파일이 존재하지 않아 작업에 실패했습니다.",
+  "confNotFound": "설정 파일이 존재하지 않아 서버를 시작하지 못했습니다",
+  "apacheLogPathErr": "설정 파일의 로그 경로가 잘못되어 전환에 실패했습니다",
+  "versionError": "버전이 잘못되었습니다. 다시 선택해주세요",
+  "hostsFileNotFound": "hosts 파일이 존재하지 않습니다",
+  "startFail": "시작에 실패했습니다. 로그 파일을 확인해주세요",
+  "versionNotFound": "소프트웨어 버전을 가져오지 못했습니다. 작업에 실패했습니다.",
+  "postgresqlInit": "서비스가 성공적으로 시작되었습니다\n데이터 디렉터리: {dir}\n초기 사용자: root, 비밀번호: root",
+  "downloadFileFail": "파일 다운로드에 실패했습니다!",
+  "trialEnd": "체험 기간이 만료되었습니다. 이 기능을 계속 사용하려면 라이선스를 구매하세요",
+  "phpiniNotFound": "php.ini 파일을 찾을 수 없습니다",
+  "noEPMD": "epmd 프로세스를 찾을 수 없습니다. Erlang 환경 변수를 재설정해주세요"
+}

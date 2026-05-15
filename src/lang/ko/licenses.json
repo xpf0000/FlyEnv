@@ -1,0 +1,60 @@
+{
+  "title": "라이선스 설명",
+  "description": "이 라이선스는 FlyEnv와 그 저작자들의 노력을 인정하고 지지합니다. 사용자를 제한하려는 목적이 아니라 개발자의 작업과 지적 재산에 대한 존중을 권장하기 위한 것입니다. FlyEnv를 상업적 목적으로 사용하기 전에 유효한 라이선스를 반드시 취득해 주시기 바랍니다.",
+  "restrictions": {
+    "title": "라이선스가 없는 사용자는 다음과 같은 제한이 적용됩니다:",
+    "items": {
+      "0": "최대 세 개의 사이트만 생성할 수 있습니다.",
+      "1": "AI 채팅 기능은 3일간의 체험 기간 동안만 이용할 수 있습니다.",
+      "2": "향후 기능에 추가적인 제한이 적용될 수 있습니다."
+    }
+  },
+  "howToObtain": {
+    "title": "라이선스 취득 방법",
+    "description": "FlyEnv는 유연한 방식으로 라이선스를 제공합니다. 사용자는 다음 중 편한 방법을 선택하여 신청할 수 있습니다:",
+    "methods": {
+      "0": {
+        "title": "프로젝트에 기부하기",
+        "description": "기부 금액은 정해져 있지 않습니다. 국가별 경제 상황(예: 많은 사용자가 학생인 경우)을 고려하여 부담 없는 금액을 선택해 주세요."
+      },
+      "1": {
+        "title": "개발에 기여하기",
+        "description": "풀 리퀘스트(Pull Request)를 제출하여 프로젝트에 참여하세요. 코드 분량과 상관없이 프로젝트에 긍정적인 개선을 가져오는 기여(예: 번역 오류 수정)는 모두 인정됩니다."
+      },
+      "2": {
+        "title": "프로젝트 홍보하기",
+        "description": "기사, 동영상, 블로그, 브이로그, 댓글 등으로 FlyEnv를 홍보해 주세요. 진솔한 사용자 후기 등을 우대합니다. 콘텐츠는 언어와 플랫폼에 상관없이 제출 가능합니다."
+      }
+    }
+  },
+  "submitInfo": "위 방법 중 하나를 완료한 후 아래 입력란에 결과를 기재하고 '라이선스 요청' 버튼을 눌러 신청해 주세요. 라이선스 요청은 보통 24시간 내에 처리됩니다.",
+  "messageLabel": "내용",
+  "messagePlaceholder": "기부를 선택한 경우 기부자명, 기부 링크 또는 주문 ID를 제출해 주세요.\n프로젝트 개발 참여를 선택한 경우 PR 링크를 제출해 주세요.\n홍보를 선택한 경우 기사, 동영상, 블로그, 브이로그, 댓글 등의 링크를 제출해 주세요.",
+  "requestButton": "라이선스 요청",
+  "refreshButton": "상태 새로고침",
+  "licenseActivated": "라이선스 활성화됨",
+  "licenseNoActivated": "라이선스 비활성화",
+  "licenseInfo": "현재 제공되는 라이선스는 영구 라이선스이며, 컴퓨터당 한 개의 라이선스에 해당합니다. 컴퓨터를 변경할 경우 '내 라이선스'에서 새 기기의 UUID를 바인딩하거나 새 라이선스를 신청해야 합니다.",
+  "logoutTips": "정말 로그아웃하시겠습니까?",
+  "delBindTips": "이 UUID에서 라이선스 바인딩을 해제하시겠습니까?",
+  "addBindTips": "이 UUID에 라이선스를 바인딩하시겠습니까?",
+  "currentLicenseState": "이 기기의 라이선스 상태",
+  "activeState": "활성화 상태",
+  "myLicense": "내 라이선스",
+  "loginTips": "먼저 로그인해 주세요",
+  "logingTips": "GitHub로 로그인 중...",
+  "licenseNo": "라이선스 번호",
+  "licenseBindUUID": "바인딩된 UUID",
+  "delBind": "바인딩 해제",
+  "bindCurrentUUID": "이 기기 바인딩",
+  "licenseDescription": "라이선스 설명",
+  "loginFail": "로그인 실패",
+  "oauthCanceledTitle": "승인 취소",
+  "oauthCanceledMessage": "사용자가 승인 과정을 취소했습니다",
+  "oauthFailedTitle": "승인 실패",
+  "oauthFailedMessage": "승인이 실패했습니다. 사유: {error}",
+  "oauthFailedByNoAuthCode": "승인 코드를 받지 못했습니다",
+  "oauthTimeout": "승인 시간 초과",
+  "oauthSuccessTitle": "승인 성공",
+  "oauthSuccessMessage": "이 페이지는 닫으셔도 됩니다. FlyEnv로 돌아가 라이선스 정보를 확인해 주세요."
+}

@@ -1,0 +1,22 @@
+{
+  "RUSTFS_ADDRESS": "특정 ADDRESS:PORT에 바인드합니다. ADDRESS는 IP나 호스트명일 수 있습니다. 기본값은 ':9000'입니다.",
+  "RUSTFS_ACCESS_KEY": "S3 API 인증에 사용하는 액세스 키입니다.",
+  "RUSTFS_ACCESS_KEY_FILE": "S3 API 인증용 액세스 키가 저장된 파일 경로입니다.",
+  "RUSTFS_SECRET_KEY": "S3 API 인증에 사용하는 비밀 키입니다.",
+  "RUSTFS_SECRET_KEY_FILE": "S3 API 인증용 비밀 키가 저장된 파일 경로입니다.",
+  "RUSTFS_CONSOLE_ENABLE": "웹 콘솔 서버를 활성화합니다. 활성화하려면 'true'로 설정하세요.",
+  "RUSTFS_CONSOLE_ADDRESS": "콘솔 서버 바인드 주소입니다. 기본값은 ':9001'입니다.",
+  "RUSTFS_SERVER_DOMAINS": "버추얼 호스트 방식 요청에 사용되는 도메인 이름입니다.",
+  "RUSTFS_TLS_PATH": "RustFS API 및 콘솔에 사용할 TLS 인증서 경로입니다.",
+  "RUSTFS_REGION": "서버의 리전(지역) 이름입니다.",
+  "RUSTFS_LICENSE": "상업용 기능을 위한 라이선스 키입니다.",
+  "RUSTFS_KMS_ENABLE": "서버 측 암호화에 KMS를 사용하려면 활성화합니다. 활성화하려면 'true'로 설정하세요.",
+  "RUSTFS_KMS_BACKEND": "KMS 백엔드 유형: 'local' 또는 'vault'. 기본값은 'local'입니다.",
+  "RUSTFS_KMS_KEY_DIR": "로컬 백엔드용 KMS 키 디렉터리입니다.",
+  "RUSTFS_KMS_VAULT_ADDRESS": "Vault 백엔드용 Vault 서버 주소입니다.",
+  "RUSTFS_KMS_VAULT_TOKEN": "Vault 백엔드 인증을 위한 Vault 토큰입니다.",
+  "RUSTFS_KMS_DEFAULT_KEY_ID": "암호화에 사용할 기본 KMS 키 ID입니다.",
+  "RUSTFS_OBS_ENDPOINT": "트레이스, 메트릭 및 로그용 관찰성 엔드포인트(gRPC 모드 전용)입니다.",
+  "RUSTFS_BUFFER_PROFILE_DISABLE": "워크로드 프로파일에 따른 적응형 버퍼 크기 조정을 비활성화합니다. 고정 크기 버퍼를 사용하려면 'true'로 설정하세요.",
+  "RUSTFS_BUFFER_PROFILE": "적응형 버퍼 크기 조정을 위한 워크로드 프로파일입니다. 옵션: GeneralPurpose, AiTraining, DataAnalytics, WebWorkload, IndustrialIoT, SecureStorage."
+}

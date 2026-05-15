@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS 조회",
+  "tcpConnect": "TCP 연결",
+  "tlsHandshake": "TLS 핸드셰이크",
+  "requestProcessing": "요청 처리",
+  "ttfb": "첫 바이트 수신 시간 (TTFB)",
+  "contentDownload": "콘텐츠 다운로드",
+  "downloadSpeed": "다운로드 속도",
+  "dataSize": "데이터 크기",
+  "httpVersion": "HTTP 버전",
+  "statusCode": "상태 코드",
+  "usingProxy": "프록시 사용",
+  "totalTime": "총 시간",
+  "skippedForProxy": "프록시로 인해 생략됨",
+  "metric": "측정항목",
+  "value": "값"
+}

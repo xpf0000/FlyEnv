@@ -1,0 +1,13 @@
+﻿{
+  "checking": "설치 상태 확인 중…",
+  "isInstalled": "설치됨",
+  "notInstalled": "mkcert가 설치되어 있지 않습니다",
+  "install": "mkcert 설치",
+  "checkAgain": "다시 확인",
+  "recheck": "재검사",
+  "installCA": "인증기관(CA) 설치",
+  "carootLabel": "CA 루트 경로",
+  "certificates": "인증서",
+  "generate": "생성",
+  "noSSLHosts": "SSL이 활성화된 호스트가 없습니다. 먼저 호스트에서 SSL을 활성화하세요."
+}
