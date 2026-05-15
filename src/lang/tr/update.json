@@ -1,11 +1,11 @@
 {
-  "checkForUpdates": "Güncellemeleri Kontrol Et",
-  "update-available-message": "FlyEnv'in daha yeni bir sürümü mevcut, şimdi güncellemek ister misiniz?",
-  "update-not-available-message": "Uygulamanız güncel!",
-  "update-downloaded-message": "Kurulmaya hazır...",
-  "update-error-message": "Güncelleme Hatası",
-  "yes": "Evet",
-  "no": "Hayır",
-  "view-update-log": "View Update Log",
-  "download-new-version": "Download New Version"
+	"checkForUpdates": "Güncellemeleri Kontrol Et",
+	"update-available-message": "FlyEnv'in daha yeni bir sürümü var, şimdi güncellemek ister misiniz?",
+	"update-not-available-message": "Uygulamanız zaten güncel!",
+	"update-downloaded-message": "Kurulum için hazır...",
+	"update-error-message": "Güncelleme Hatası",
+	"yes": "Evet",
+	"no": "Hayır",
+	"view-update-log": "Güncelleme Günlüğünü Görüntüle",
+	"download-new-version": "Yeni Sürümü İndir"
 }
