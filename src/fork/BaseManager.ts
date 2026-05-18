@@ -68,6 +68,7 @@ class BaseManager {
   Rnacos: any
   FrankenPHP: any
   Git: any
+  Cron: any
 
   modules: Set<string> = new Set()
 
@@ -532,6 +533,12 @@ class BaseManager {
         this.Git = res.default
       }
       doRun(this.Git)
+    } else if (module === 'cron') {
+      if (!this.Cron) {
+        const res = await import('./module/Cron')
+        this.Cron = res.default
+      }
+      doRun(this.Cron)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

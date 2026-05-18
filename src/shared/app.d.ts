@@ -25,9 +25,27 @@ export interface AppHostReverseProxyItem {
   url: string
 }
 
+export interface CronJob {
+  id: string
+  name: string
+  command: string
+  schedule: string
+  enabled: boolean
+  description?: string
+  workDir?: string
+  lastRunTime?: number
+  nextRunTime?: number
+  lastOutput?: string
+  lastError?: string
+  lastExitCode?: number
+  createdAt: number
+  updatedAt: number
+}
+
 export interface AppHost {
   id: number
   reverseProxy?: AppHostReverseProxyItem[]
+  cronJobs?: CronJob[]
   type?: string
   isTop?: boolean
   isSorting?: boolean

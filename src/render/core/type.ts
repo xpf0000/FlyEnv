@@ -54,6 +54,7 @@ export enum AppModuleEnum {
   node = 'node',
   dns = 'dns',
   hosts = 'hosts',
+  cron = 'cron',
   httpserver = 'httpserver',
   tools = 'tools',
   golang = 'golang',

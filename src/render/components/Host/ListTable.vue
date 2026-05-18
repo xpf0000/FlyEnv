@@ -178,6 +178,10 @@
                       <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
                       <span class="ml-3">{{ I18nT('host.sort') }}</span>
                     </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'cron')">
+                      <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                      <span class="ml-3">{{ I18nT('cron.title') }}</span>
+                    </li>
                     <li @click.stop="action(scope.row, scope.$index, 'del')">
                       <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
                       <span class="ml-3">{{ I18nT('base.del') }}</span>
@@ -430,6 +434,10 @@
   import('./Link.vue').then((res) => {
     LinkVM = res.default
   })
+  let CronVM: any
+  import('./Cron/Index.vue').then((res) => {
+    CronVM = res.default
+  })
 
   const action = (item: any, index: number, flag: string) => {
     console.log('item: ', item)
@@ -480,6 +488,11 @@
             })
           })
           .catch(() => {})
+        break
+      case 'cron':
+        AsyncComponentShow(CronVM, {
+          hostId: item.id
+        }).then()
         break
     }
   }

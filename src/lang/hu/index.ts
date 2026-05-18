@@ -35,8 +35,10 @@ import n8n from './n8n.json'
 import rustfs from './rustfs.json'
 import mkcert from './mkcert.json'
 import hermes from './hermes.json'
+import cronHR from './cron.json'
 export default {
   hu: {
+    cron: cronHR,
     rustfs,
     mkcert,
     hermes,
