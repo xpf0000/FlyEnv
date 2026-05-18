@@ -42,148 +42,162 @@
     <!-- ─── Two-Column Body ────────────────────────────────── -->
     <div class="fg-body">
       <!-- Left: info panels -->
-      <div class="fg-left">
-        <!-- SDK Details -->
-        <el-card shadow="never" class="fg-card">
-          <template #header>
-            <div class="fg-card-hd">
-              <span>{{ I18nT('flutter.sdkDetails') }}</span>
-              <el-button link size="small" :loading="sdkLoading" @click="loadSdkInfo">
-                {{ I18nT('base.refresh') }}
-              </el-button>
-            </div>
-          </template>
-          <el-skeleton v-if="sdkLoading" :rows="5" animated />
-          <template v-else>
-            <div v-if="!sdkInfo.flutterVersion && !sdkInfo.flutterBin" class="fg-empty">
-              {{ I18nT('flutter.sdkNotFound') }}
-            </div>
+      <div class="fg-left h-full overflow-hidden">
+        <el-scrollbar>
+          <!-- SDK Details -->
+          <el-card shadow="never" class="fg-card">
+            <template #header>
+              <div class="fg-card-hd">
+                <span>{{ I18nT('flutter.sdkDetails') }}</span>
+                <el-button link size="small" :loading="sdkLoading" @click="loadSdkInfo">
+                  {{ I18nT('base.refresh') }}
+                </el-button>
+              </div>
+            </template>
+            <el-skeleton v-if="sdkLoading" :rows="5" animated />
             <template v-else>
-              <div class="fg-row">
-                <span class="fg-k">Flutter</span>
-                <span class="fg-v fg-bold">{{ sdkInfo.flutterVersion || '—' }}</span>
+              <div v-if="!sdkInfo.flutterVersion && !sdkInfo.flutterBin" class="fg-empty">
+                {{ I18nT('flutter.sdkNotFound') }}
               </div>
-              <div class="fg-row">
-                <span class="fg-k">Dart</span>
-                <span class="fg-v fg-bold">{{ sdkInfo.dartVersion || '—' }}</span>
-              </div>
-              <div class="fg-row">
-                <span class="fg-k">Channel</span>
-                <span class="fg-v">
-                  <el-tag size="small" :type="channelTagType">{{ sdkInfo.channel || '—' }}</el-tag>
-                </span>
-              </div>
-              <div class="fg-row">
-                <span class="fg-k">{{ I18nT('flutter.source') }}</span>
-                <span class="fg-v">{{ sdkInfo.source ? sourceLabel : '—' }}</span>
-              </div>
-              <div class="fg-row">
-                <span class="fg-k">{{ I18nT('flutter.searchDirs') }}</span>
-                <span class="fg-v fg-search-head">
-                  <span>{{ I18nT('flutter.scanned', sdkInfo.searchDirs.length) }}</span>
-                  <el-button
-                    v-if="sdkInfo.searchDirs.length"
-                    link
-                    size="small"
-                    @click="showSearchDirs = !showSearchDirs"
-                  >
-                    {{ showSearchDirs ? I18nT('flutter.hide') : I18nT('flutter.show') }}
-                  </el-button>
-                  <el-button
-                    v-if="sdkInfo.searchDirs.length"
-                    link
-                    size="small"
-                    @click="copySearchDirs"
-                  >
-                    {{ I18nT('flutter.copyPaths') }}
-                  </el-button>
-                </span>
-              </div>
-              <div v-if="showSearchDirs && sdkInfo.searchDirs.length" class="fg-search-list">
-                <div
-                  v-for="dir in sdkInfo.searchDirs"
-                  :key="dir"
-                  class="fg-search-item fg-mono"
-                  :title="dir"
-                >
-                  {{ dir }}
+              <template v-else>
+                <div class="fg-row">
+                  <span class="fg-k">Flutter</span>
+                  <span class="fg-v fg-bold">{{ sdkInfo.flutterVersion || '—' }}</span>
                 </div>
-              </div>
-              <div class="fg-row">
-                <span class="fg-k">Engine</span>
-                <span class="fg-v fg-mono">{{ sdkInfo.engineRevision?.slice(0, 10) || '—' }}</span>
-              </div>
-              <div class="fg-row">
-                <span class="fg-k">Build Date</span>
-                <span class="fg-v">{{ sdkInfo.buildDate || '—' }}</span>
-              </div>
-              <div class="fg-row">
-                <span class="fg-k">Binary</span>
-                <span class="fg-v fg-mono fg-truncate" :title="sdkInfo.flutterBin">
-                  {{ sdkInfo.flutterBin || I18nT('flutter.notFound') }}
-                </span>
-              </div>
+                <div class="fg-row">
+                  <span class="fg-k">Dart</span>
+                  <span class="fg-v fg-bold">{{ sdkInfo.dartVersion || '—' }}</span>
+                </div>
+                <div class="fg-row">
+                  <span class="fg-k">Channel</span>
+                  <span class="fg-v">
+                    <el-tag size="small" :type="channelTagType">{{
+                      sdkInfo.channel || '—'
+                    }}</el-tag>
+                  </span>
+                </div>
+                <div class="fg-row">
+                  <span class="fg-k">{{ I18nT('flutter.source') }}</span>
+                  <span class="fg-v">{{ sdkInfo.source ? sourceLabel : '—' }}</span>
+                </div>
+                <div class="fg-row">
+                  <span class="fg-k">{{ I18nT('flutter.searchDirs') }}</span>
+                  <span class="fg-v fg-search-head">
+                    <span>{{ I18nT('flutter.scanned', sdkInfo.searchDirs.length) }}</span>
+                    <el-button
+                      v-if="sdkInfo.searchDirs.length"
+                      link
+                      size="small"
+                      @click="showSearchDirs = !showSearchDirs"
+                    >
+                      {{ showSearchDirs ? I18nT('flutter.hide') : I18nT('flutter.show') }}
+                    </el-button>
+                    <el-button
+                      v-if="sdkInfo.searchDirs.length"
+                      link
+                      size="small"
+                      @click="copySearchDirs"
+                    >
+                      {{ I18nT('flutter.copyPaths') }}
+                    </el-button>
+                  </span>
+                </div>
+                <div v-if="showSearchDirs && sdkInfo.searchDirs.length" class="fg-search-list">
+                  <div
+                    v-for="dir in sdkInfo.searchDirs"
+                    :key="dir"
+                    class="fg-search-item fg-mono"
+                    :title="dir"
+                  >
+                    {{ dir }}
+                  </div>
+                </div>
+                <div class="fg-row">
+                  <span class="fg-k">Engine</span>
+                  <span class="fg-v fg-mono">{{
+                    sdkInfo.engineRevision?.slice(0, 10) || '—'
+                  }}</span>
+                </div>
+                <div class="fg-row">
+                  <span class="fg-k">Build Date</span>
+                  <span class="fg-v">{{ sdkInfo.buildDate || '—' }}</span>
+                </div>
+                <div class="fg-row">
+                  <span class="fg-k">Binary</span>
+                  <el-tooltip
+                    :show-after="600"
+                    :content="sdkInfo.flutterBin || I18nT('flutter.notFound')"
+                  >
+                    <span class="fg-v fg-mono fg-truncate" :title="sdkInfo.flutterBin">
+                      {{ sdkInfo.flutterBin || I18nT('flutter.notFound') }}
+                    </span>
+                  </el-tooltip>
+                </div>
+              </template>
             </template>
-          </template>
-        </el-card>
+          </el-card>
 
-        <!-- Environment Variables -->
-        <el-card shadow="never" class="fg-card fg-mt">
-          <template #header>
-            <div class="fg-card-hd"
-              ><span>{{ I18nT('flutter.environment') }}</span></div
-            >
-          </template>
-          <div v-for="(val, key) in envVars" :key="key" class="fg-row">
-            <span class="fg-k fg-k--env">{{ key }}</span>
-            <span class="fg-v fg-mono fg-truncate" :title="String(val)">{{ val || '—' }}</span>
-          </div>
-        </el-card>
-
-        <!-- Doctor Snapshot -->
-        <el-card shadow="never" class="fg-card fg-mt">
-          <template #header>
-            <div class="fg-card-hd">
-              <span>{{ I18nT('flutter.doctorSnapshot') }}</span>
-              <el-button link size="small" :loading="doctorLoading" @click="loadDoctor">
-                {{ I18nT('base.refresh') }}
-              </el-button>
+          <!-- Environment Variables -->
+          <el-card shadow="never" class="fg-card fg-mt">
+            <template #header>
+              <div class="fg-card-hd"
+                ><span>{{ I18nT('flutter.environment') }}</span></div
+              >
+            </template>
+            <div v-for="(val, key) in envVars" :key="key" class="fg-row">
+              <span class="fg-k fg-k--env">{{ key }}</span>
+              <el-tooltip :content="val" :disabled="!val" :show-after="600"></el-tooltip>
+              <span class="fg-v fg-mono fg-truncate" :title="String(val)">{{ val || '—' }}</span>
             </div>
-          </template>
-          <el-skeleton v-if="doctorLoading" :rows="5" animated />
-          <template v-else>
-            <div v-if="!doctorItems.length" class="fg-empty">{{
-              I18nT('flutter.doctorClickRefresh')
-            }}</div>
-            <template v-else>
-              <div class="fg-doc-badges">
-                <el-tag size="small" type="success">
-                  {{ doctorItems.filter((i) => i.status === 'ok').length }} OK
-                </el-tag>
-                <el-tag size="small" type="warning">
-                  {{ doctorItems.filter((i) => i.status === 'warning').length }} Warn
-                </el-tag>
-                <el-tag size="small" type="danger">
-                  {{ doctorItems.filter((i) => i.status === 'error').length }} Error
-                </el-tag>
-              </div>
-              <div v-for="item in doctorItems" :key="item.title" class="fg-doc-row">
-                <span class="fg-doc-icon" :class="`fg-doc-icon--${item.status}`">
-                  {{
-                    item.status === 'ok'
-                      ? '✓'
-                      : item.status === 'warning'
-                        ? '!'
-                        : item.status === 'error'
-                          ? '✗'
-                          : '?'
-                  }}
-                </span>
-                <span class="fg-doc-label">{{ item.title }}</span>
+          </el-card>
+
+          <!-- Doctor Snapshot -->
+          <el-card shadow="never" class="fg-card fg-mt">
+            <template #header>
+              <div class="fg-card-hd">
+                <span>{{ I18nT('flutter.doctorSnapshot') }}</span>
+                <el-button link size="small" :loading="doctorLoading" @click="loadDoctor">
+                  {{ I18nT('base.refresh') }}
+                </el-button>
               </div>
             </template>
-          </template>
-        </el-card>
+            <el-skeleton v-if="doctorLoading" :rows="5" animated />
+            <template v-else>
+              <div v-if="!doctorItems.length" class="fg-empty">{{
+                I18nT('flutter.doctorClickRefresh')
+              }}</div>
+              <template v-else>
+                <div class="fg-doc-badges">
+                  <el-tag size="small" type="success">
+                    {{ doctorItems.filter((i) => i.status === 'ok').length }} OK
+                  </el-tag>
+                  <el-tag size="small" type="warning">
+                    {{ doctorItems.filter((i) => i.status === 'warning').length }} Warn
+                  </el-tag>
+                  <el-tag size="small" type="danger">
+                    {{ doctorItems.filter((i) => i.status === 'error').length }} Error
+                  </el-tag>
+                </div>
+                <div v-for="item in doctorItems" :key="item.title" class="fg-doc-row">
+                  <span class="fg-doc-icon" :class="`fg-doc-icon--${item.status}`">
+                    {{
+                      item.status === 'ok'
+                        ? '✓'
+                        : item.status === 'warning'
+                          ? '!'
+                          : item.status === 'error'
+                            ? '✗'
+                            : '?'
+                    }}
+                  </span>
+                  <el-tooltip :content="item.title" :show-after="600" :disabled="!item.title">
+                    <span class="fg-doc-label">{{ item.title }}</span>
+                  </el-tooltip>
+                </div>
+              </template>
+            </template>
+          </el-card>
+        </el-scrollbar>
       </div>
 
       <!-- Right: Command Center + Console -->

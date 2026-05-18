@@ -8,7 +8,6 @@ import {
   brewInfoJson,
   brewSearch,
   portSearch,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -31,6 +30,7 @@ import TaskQueue from '../../TaskQueue'
 import axios from 'axios'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 
 class Manager extends Base {
   mongoshVersion = '2.5.2'
@@ -193,16 +193,16 @@ class Manager extends Base {
           return
         }
       } else {
-        const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}" --fork`
+        const execArgs = ['--config', m, '--logpath', logPath, '--pidfilepath', this.pidPath]
         try {
-          const res = await serviceStartExec({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
-            execEnv,
-            on
+            on,
+            waitTime: 2000
           })
           resolve(res)
         } catch (e: any) {

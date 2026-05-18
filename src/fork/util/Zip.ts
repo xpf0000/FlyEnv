@@ -52,22 +52,24 @@ export function zipUnpack(fp: string, dist: string) {
 
 export async function unpack(zipFile: string, dist: string) {
   const zip: string = zipFile.trim()
+  const maxBuffer = 1024 * 1024 * 50
+  const opt = { maxBuffer }
   if (zip.includes('.tar.xz')) {
-    await execPromise(`tar -xJf "${zip}" -C "${dist}"`)
+    await execPromise(`tar -xJf "${zip}" -C "${dist}" > /dev/null`, opt)
   } else if (zip.includes('.tar.gz') || zip.includes('.tgz')) {
-    await execPromise(`tar -xzf "${zip}" -C "${dist}"`)
+    await execPromise(`tar -xzf "${zip}" -C "${dist}" > /dev/null`, opt)
   } else if (zip.includes('.tar.bz2') || zip.includes('.tbz2')) {
-    await execPromise(`tar -xjf "${zip}" -C "${dist}"`)
+    await execPromise(`tar -xjf "${zip}" -C "${dist}" > /dev/null`, opt)
   } else if (zip.includes('.tar')) {
-    await execPromise(`tar -xf "${zip}" -C "${dist}"`)
+    await execPromise(`tar -xf "${zip}" -C "${dist}" > /dev/null`, opt)
   } else if (zip.includes('.zip')) {
-    await execPromise(`unzip "${zip}" -d "${dist}"`)
+    await execPromise(`unzip -q "${zip}" -d "${dist}" > /dev/null`, opt)
   } else if (zip.includes('.gz') && !zip.includes('.tar.gz')) {
-    await execPromise(`gzip -d "${zip}" -c > "${dist}/${zip.replace('.gz', '')}"`)
+    await execPromise(`gzip -d "${zip}" -c > "${dist}/${zip.replace('.gz', '')}"`, opt)
   } else if (zip.includes('.bz2') && !zip.includes('.tar.bz2')) {
-    await execPromise(`bzip2 -d "${zip}" -c > "${dist}/${zip.replace('.bz2', '')}"`)
+    await execPromise(`bzip2 -d "${zip}" -c > "${dist}/${zip.replace('.bz2', '')}"`, opt)
   } else if (zip.includes('.xz') && !zip.includes('.tar.xz')) {
-    await execPromise(`xz -d "${zip}" -c > "${dist}/${zip.replace('.xz', '')}"`)
+    await execPromise(`xz -d "${zip}" -c > "${dist}/${zip.replace('.xz', '')}"`, opt)
   } else {
     throw new Error(`Unsupported file format: ${zip}`)
   }
