@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "추가 디버그 정보 표시(예: OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "ollama 서버의 IP 주소(기본값 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "모델이 메모리에 유지되는 기간(기본값 \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "GPU당 로드된 모델의 최대 개수",
+  "OLLAMA_MAX_QUEUE": "대기열에 쌓일 수 있는 최대 요청 수",
+  "OLLAMA_MODELS": "모델 디렉터리 경로",
+  "OLLAMA_NUM_PARALLEL": "동시 처리 가능한 최대 요청 수",
+  "OLLAMA_NOPRUNE": "시작 시 모델 블롭을 정리하지 않음",
+  "OLLAMA_ORIGINS": "허용된 출처를 쉼표로 구분한 목록",
+  "OLLAMA_SCHED_SPREAD": "모델을 항상 모든 GPU에 분산하여 스케줄링",
+  "OLLAMA_FLASH_ATTENTION": "플래시 어텐션 활성화",
+  "OLLAMA_KV_CACHE_TYPE": "K/V 캐시에 대한 양자화 유형(기본값: f16)",
+  "OLLAMA_LLM_LIBRARY": "자동 감지를 우회하기 위한 LLM 라이브러리 설정",
+  "OLLAMA_GPU_OVERHEAD": "GPU당 예약할 VRAM 양(바이트)",
+  "OLLAMA_LOAD_TIMEOUT": "모델 로드가 중단된 것으로 간주하고 포기할 때까지의 시간(기본값 \"5m\")",
+  "needServiceRun": "먼저 Ollama 서비스를 시작해 주세요",
+  "size": "파일 크기",
+  "model": "모델"
+}

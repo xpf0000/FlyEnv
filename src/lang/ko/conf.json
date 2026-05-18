@@ -1,0 +1,9 @@
+{
+  "rawFile": "원본 파일",
+  "CommonSetting": "공통 설정",
+  "open": "파일 열기",
+  "save": "파일 저장 Ctrl + S",
+  "loadDefault": "기본 파일 불러오기",
+  "saveCustom": "사용자 파일로 저장",
+  "loadCustom": "사용자 파일 불러오기"
+}

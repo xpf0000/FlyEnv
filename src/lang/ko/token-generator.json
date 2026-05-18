@@ -1,0 +1,13 @@
+{
+  "title": "토큰 생성기",
+  "uppercase": "대문자 (ABC...)",
+  "lowercase": "소문자 (abc...)",
+  "numbers": "숫자 (123...)",
+  "symbols": "기호 (!-;...)",
+  "length": "길이",
+  "tokenPlaceholder": "토큰...",
+  "button": {
+    "copy": "복사",
+    "refresh": "새로고침"
+  }
+}

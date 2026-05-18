@@ -1,0 +1,10 @@
+{
+  "showMainWin": "메인 창 보기",
+  "exit": "종료",
+  "run": "실행 중",
+  "notRun": "실행되지 않음",
+  "trayMenuBarStyle": "트레이 팝업 스타일",
+  "classic": "클래식",
+  "modern": "모던",
+  "trayMenuBarStyleTips": "트레이 팝업 스타일을 선택하세요. 일부 리눅스 데스크톱에서는 모던 스타일에 문제가 있을 수 있으니 필요하면 클래식 스타일을 선택하세요."
+}

@@ -54,6 +54,7 @@ import FR from './fr/index'
 import ID from './id/index'
 import IT from './it/index'
 import JA from './ja/index'
+import KO from './ko/index'
 import NL from './nl/index'
 import NO from './no/index'
 import PL from './pl/index'
@@ -140,6 +141,7 @@ export const AppAllLang: Record<string, string> = {
   id: 'Bahasa Indonesia',
   it: 'Italiano',
   ja: '日本語',
+  ko: '한국어',
   nl: 'Nederlands',
   no: 'Norsk',
   pl: 'Polski',
@@ -173,6 +175,7 @@ const lang = {
   ...ID,
   ...IT,
   ...JA,
+  ...KO,
   ...NL,
   ...NO,
   ...PL,

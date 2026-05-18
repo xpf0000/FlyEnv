@@ -1,0 +1,10 @@
+{
+  "gzip": "GZIP 압축 전송 사용 여부",
+  "gzip_min_length": "압축 대상 최소 파일 크기",
+  "gzip_comp_level": "압축 수준",
+  "client_max_body_size": "최대 업로드 파일 크기",
+  "server_names_hash_max_size": "서버 이름 해시 테이블 최대 크기",
+  "server_names_hash_bucket_size": "서버 이름 해시 버킷 크기",
+  "client_header_buffer_size": "클라이언트 요청 헤더 버퍼 크기",
+  "client_body_buffer_size": "요청 본문 버퍼 크기"
+}

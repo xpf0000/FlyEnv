@@ -1,0 +1,15 @@
+{
+  "installFNM": "설치 <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "설치 <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "터미널",
+  "registry": "원본",
+  "checkPackageJsonUpdate": "업데이트 확인",
+  "updatePackageJsonFile": "package.json 파일 업데이트",
+  "updatePackageJsonFileTips": "이 작업은 package.json 파일을 변경합니다. 업데이트하시겠습니까?",
+  "copyDirPath": "프로젝트 폴더 경로 복사",
+  "openIN": "다음으로 열기",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "projectEnvSet": "프로젝트 환경"
+}

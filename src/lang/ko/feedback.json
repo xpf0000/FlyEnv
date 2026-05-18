@@ -1,0 +1,10 @@
+{
+  "email": "이메일",
+  "country": "국가",
+  "message": "메시지",
+  "messagelengthErr": "메시지 길이는 5자 이상 1024자 이하입니다",
+  "sendMessage": "메시지 보내기",
+  "anythingToSay": "하실 말이 있으신가요?",
+  "noSelected": "선택되지 않음",
+  "inputFilter": "필터 입력"
+}

@@ -1,0 +1,22 @@
+{
+  "setaliase": "별칭 설정",
+  "env": "환경",
+  "alias": "별칭",
+  "envTips": "경로가 환경 변수에 추가되어 있습니까?",
+  "aliasTips": "터미널에서 사용하는 별칭",
+  "useSysPHP": "기본 PHP 버전 사용",
+  "setByApp": "FlyEnv에서 설정한 환경 변수",
+  "setByNoApp": "FlyEnv에서 설정하지 않은 환경 변수",
+  "ftpdNeedPasswordToStart": "Pure-FTPd는 시작 시 sudo 권한이 필요합니다. 사용자 암호를 입력해 주세요. 이 암호는 나중에 자동 채우기에 사용됩니다. 또는 아래 버튼을 눌러 터미널에서 수동으로 입력할 수 있지만 이 프롬프트가 다시 나타날 수 있습니다.",
+  "bundleinVersionDelTips": "이 버전은 내장된 버전입니다. 표시하지 않겠습니까?",
+  "customDirVersionDelTips": "이 버전은 사용자 지정 경로 버전입니다. 표시하지 않겠습니까?",
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "이 버전을 실행하려면 필요한 Visual C++ 재배포 가능 패키지(DLL)가 시스템에 없습니다. 아래 링크를 클릭하여 Microsoft 공식 사이트에서 VC 런타임을 다운로드하여 설치해 주세요.",
+      "versionRelation": "버전 호환성 참고:",
+      "software": "소프트웨어",
+      "versionRange": "버전 범위",
+      "msvsVersion": "MSVC 버전"
+    }
+  }
+}
