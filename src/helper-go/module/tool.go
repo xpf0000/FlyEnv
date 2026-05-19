@@ -16,13 +16,26 @@ func getWindowsSystemExe(name string) string {
 		return name
 	}
 	systemRoot := os.Getenv("SystemRoot")
+	utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("name=%s SystemRoot=%q", name, systemRoot))
 	if systemRoot == "" {
 		systemRoot = `C:\Windows`
+		utils.AppDebugLog("getWindowsSystemExe", "SystemRoot empty, fallback to C:\\Windows")
 	}
 	fullPath := filepath.Join(systemRoot, "System32", name+".exe")
+	utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Checking System32 path: %s", fullPath))
 	if utils.ExistsSync(fullPath) {
+		utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Found %s at: %s", name, fullPath))
 		return fullPath
 	}
+	// 32-bit process on 64-bit Windows 会被文件系统重定向到 SysWOW64
+	// 某些 64-bit 工具在 SysWOW64 中不存在，需要显式检查 Sysnative
+	sysnativePath := filepath.Join(systemRoot, "Sysnative", name+".exe")
+	utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Checking Sysnative path: %s", sysnativePath))
+	if utils.ExistsSync(sysnativePath) {
+		utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Found %s at Sysnative: %s", name, sysnativePath))
+		return sysnativePath
+	}
+	utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Not found, fallback to: %s", name))
 	return name
 }
 

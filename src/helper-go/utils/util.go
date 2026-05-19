@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -49,20 +50,52 @@ func WriteFileString(path string, content string) error {
 	return os.WriteFile(path, []byte(content), os.ModePerm)
 }
 
+var debugLogMutex sync.Mutex
+
+// AppDebugLog 参照 src/shared/utils.ts 的 appDebugLog 方法
+// 同时输出到控制台和临时日志文件
+func AppDebugLog(flag string, info string) {
+	fmt.Printf("appDebugLog: %s %s\n", flag, info)
+	debugLogMutex.Lock()
+	defer debugLogMutex.Unlock()
+	debugFile := filepath.Join(os.TempDir(), "flyenv-debug.log")
+	f, err := os.OpenFile(debugFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+	f.WriteString(fmt.Sprintf("[%s] %s: %s\n", timestamp, flag, info))
+}
+
 // getPowerShellExe 获取 Windows 下 PowerShell 的完整路径
 // 如果文件存在则返回完整路径，否则回退到命令名本身
 func getPowerShellExe() string {
 	if !IsWindows() {
+		AppDebugLog("getPowerShellExe", "Not Windows, fallback to 'powershell'")
 		return "powershell"
 	}
 	systemRoot := os.Getenv("SystemRoot")
+	AppDebugLog("getPowerShellExe", fmt.Sprintf("SystemRoot env raw value: %q", systemRoot))
 	if systemRoot == "" {
 		systemRoot = `C:\Windows`
+		AppDebugLog("getPowerShellExe", "SystemRoot empty, fallback to C:\\Windows")
 	}
 	fullPath := filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	AppDebugLog("getPowerShellExe", fmt.Sprintf("Checking System32 path: %s", fullPath))
 	if ExistsSync(fullPath) {
+		AppDebugLog("getPowerShellExe", fmt.Sprintf("Found PowerShell at: %s", fullPath))
 		return fullPath
 	}
+	// 32-bit process on 64-bit Windows 会被文件系统重定向到 SysWOW64
+	// PowerShell 不在 SysWOW64 中，需要显式检查 Sysnative
+	sysnativePath := filepath.Join(systemRoot, "Sysnative", "WindowsPowerShell", "v1.0", "powershell.exe")
+	AppDebugLog("getPowerShellExe", fmt.Sprintf("Checking Sysnative path: %s", sysnativePath))
+	if ExistsSync(sysnativePath) {
+		AppDebugLog("getPowerShellExe", fmt.Sprintf("Found PowerShell at Sysnative: %s", sysnativePath))
+		return sysnativePath
+	}
+	AppDebugLog("getPowerShellExe", "PowerShell not found at expected paths, fallback to 'powershell'")
 	return "powershell"
 }
 
