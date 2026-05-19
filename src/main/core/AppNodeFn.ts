@@ -24,6 +24,8 @@ import crypto from 'node:crypto'
 import is from 'electron-is'
 import { homedir } from 'node:os'
 import CustomerLang from './CustomerLang'
+import EnvSync from '@shared/EnvSync'
+import { merge } from 'lodash-es'
 
 const require = createRequire(import.meta.url)
 
@@ -435,7 +437,17 @@ X-GNOME-Autostart-enabled=true`
   }
 
   exec_exec(command: string, key: string, cmd: string, opt: any) {
-    execPromise(cmd, opt)
+    EnvSync.clean()
+    EnvSync.sync()
+      .then((env) => {
+        const options = merge(
+          {
+            env
+          },
+          opt
+        )
+        return execPromise(cmd, options)
+      })
       .then((res) => {
         this?.mainWindow?.webContents.send('command', command, key, {
           stdout: res.stdout.toString(),

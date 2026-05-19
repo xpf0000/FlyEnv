@@ -68,13 +68,13 @@ try {
   $trigger.UserId = $currentUserName
 
   $action = $taskDefinition.Actions.Create(0)
-  $action.Path = "`"$exePath`""
+  $action.Path = $exePath
 
   $taskDefinition.Principal.UserId = $currentUserName
   $taskDefinition.Principal.LogonType = 3
   $taskDefinition.Principal.RunLevel = 1
 
-  $rootFolder.RegisterTaskDefinition($taskName, $taskDefinition, 6, $null, $null, 3)
+  $rootFolder.RegisterTaskDefinition($taskName, $taskDefinition, 6, $currentUserName, $null, 3)
 
   Write-Host "Task '$taskName' created successfully via API."
   exit 0

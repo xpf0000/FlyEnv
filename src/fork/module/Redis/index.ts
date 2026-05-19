@@ -18,9 +18,9 @@ import {
   writeFile,
   mkdirp,
   chmod,
-  execPromise,
   copyFile,
-  serviceStartExecCMD
+  serviceStartExecCMD,
+  execPromiseWithEnv
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
@@ -99,7 +99,7 @@ class Redis extends Base {
       if (arr.length > 0) {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
         try {
-          await execPromise(`taskkill /f /t ${str}`)
+          await execPromiseWithEnv(`taskkill /f /t ${str}`)
         } catch {}
       }
       on({

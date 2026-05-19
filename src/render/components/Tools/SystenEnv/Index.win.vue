@@ -30,8 +30,11 @@
                     <Refresh class="w-5 h-5" />
                   </el-button>
                 </template>
+                <el-button link @click.stop="showWinEnvSetupGui">
+                  <SetUp class="w-5 h-5" />
+                </el-button>
               </div>
-              <el-button-group size="small">
+              <el-button-group size="small" class="ml-2">
                 <el-button
                   :disabled="Setup.updating || Setup.fetchListing"
                   @click.stop="Setup.rebackPath()"
@@ -138,9 +141,9 @@
   import { MessageSuccess } from '@/util/Element'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { Refresh, Plus, Edit, Delete, SortDown, SortUp } from '@element-plus/icons-vue'
+  import { Refresh, Plus, Edit, Delete, SortDown, SortUp, SetUp } from '@element-plus/icons-vue'
   import { Setup } from './setup'
-  import { shell, clipboard, fs } from '@/util/NodeFn'
+  import { shell, clipboard, fs, exec } from '@/util/NodeFn'
   import { isAbsolute } from '@/util/path-browserify'
   import { ArrayMoveItem } from '@/util/Index'
   import { isEqual } from 'lodash-es'
@@ -211,6 +214,15 @@
     const arr = ArrayMoveItem(Setup.list, index, index - 1)
     Setup.list.splice(0)
     Setup.list.push(...arr)
+  }
+
+  /**
+   * 打开 Windows自身的 环境变量 界面
+   */
+  const showWinEnvSetupGui = () => {
+    exec
+      .exec('rundll32.exe sysdm.cpl,EditEnvironmentVariables', { encoding: null } as any)
+      .catch(() => {})
   }
 </script>
 <style lang="scss">

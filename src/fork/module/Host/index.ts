@@ -9,10 +9,10 @@ import {
   writeFile,
   machineId,
   readdir,
-  execPromise,
   removeByRoot,
   readFileByRoot,
-  writeFileByRoot
+  writeFileByRoot,
+  execPromiseWithEnv
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { makeCaddyConf, updateCaddyConf, delVhost as delCaddyVhost } from '../Caddy/Host'
@@ -434,7 +434,7 @@ export class Host extends Base {
       if (hasChanged && existsSync(hostfile)) {
         try {
           if (isWindows()) {
-            await execPromise('ipconfig /flushdns')
+            await execPromiseWithEnv('ipconfig /flushdns')
           } else {
             if (Helper.enable) {
               await Helper.send('host', 'dnsRefresh')

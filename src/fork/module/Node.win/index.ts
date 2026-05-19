@@ -1,6 +1,5 @@
 import { Base } from '../Base'
 import {
-  execPromise,
   fetchPathByBin,
   moveChildDirToParent,
   versionBinVersion,
@@ -225,7 +224,7 @@ class Manager extends Base {
         if (existsSync(currentDir) && existsSync(join(currentDir, 'node.exe'))) {
           const realDir = await realpath(currentDir)
           process.chdir(realDir)
-          const res = await execPromise(`node.exe -v`)
+          const res = await execPromiseWithEnv(`node.exe -v`)
           current = res?.stdout?.trim()?.replace('v', '') ?? ''
         }
         versions.sort((a: string, b: string) => {

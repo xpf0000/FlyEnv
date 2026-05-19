@@ -8,7 +8,7 @@ import JSON5 from 'json5'
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
-export const HelperVersion = 8
+export const HelperVersion = 9
 
 export const AppHelperSocketPathGet = (): string => {
   let actualPath = SOCKET_PATH

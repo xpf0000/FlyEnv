@@ -1,3 +1,4 @@
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $newPath = "##NEW_PATH##;"
 if (-not [string]::IsNullOrEmpty($newPath)) {
   [Microsoft.Win32.Registry]::SetValue(

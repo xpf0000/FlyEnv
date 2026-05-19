@@ -1,7 +1,7 @@
 import Helper from '../fork/Helper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { execPromiseWithEnv } from '@shared/child-process'
-import { isWindows } from '@shared/utils'
+import { appDebugLog, isWindows } from '@shared/utils'
 
 export type PItem = {
   PID: string
@@ -161,7 +161,12 @@ export const ProcessKill = async (sig: string, pids: string[]) => {
     useHelper = false
   }
   if (useHelper) {
-    await Helper.send('tools', 'kill', sig, pids)
+    try {
+      const res = await Helper.send('tools', 'kill', sig, pids)
+      appDebugLog(`[ProcessKill][helper]`, `${JSON.stringify({ res, sig, pids })}`).catch()
+    } catch (e) {
+      appDebugLog(`[ProcessKill][helper][error]`, `${e}`).catch()
+    }
     return
   }
 
@@ -171,7 +176,12 @@ export const ProcessKill = async (sig: string, pids: string[]) => {
   } else {
     command = `kill ${sig} ${pids.join(' ')}`
   }
-  await execPromiseWithEnv(command)
+  try {
+    const res = await execPromiseWithEnv(command)
+    appDebugLog(`[ProcessKill][command]`, `${JSON.stringify({ res, command })}`).catch()
+  } catch (e) {
+    appDebugLog(`[ProcessKill][command][error]`, `${e}`).catch()
+  }
 }
 
 export const fetchProcessPidByPort = async (port: string): Promise<PItem[]> => {

@@ -1,6 +1,6 @@
 import { isAbsolute, join } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, existsSync, readFile, remove, writeFile } from '../Fn'
+import { existsSync, readFile, remove, writeFile } from '../Fn'
 import { appDebugLog } from '@shared/utils'
 import Helper from '../Helper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
@@ -29,7 +29,8 @@ export const fetchRawPATH = (useHelper = false): ForkPromise<string[]> => {
     if (existsSync(copySh)) {
       await remove(copySh)
     }
-    await copyFile(sh, copySh)
+    const shContent = await readFile(sh, 'utf-8')
+    await writeFile(copySh, '\ufeff' + shContent, 'utf-8')
     const commands = [`Unblock-File -LiteralPath '${copySh}'; & '${copySh}'`]
     let res: any
     try {
@@ -110,7 +111,7 @@ export const writePath = async (path: string[], other: string = '') => {
   const pathStr = path.join(';')
   let content = await readFile(sh, 'utf-8')
   content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
-  await writeFile(copySh, content, 'utf-8')
+  await writeFile(copySh, '\ufeff' + content, 'utf-8')
   try {
     const command = `Unblock-File -LiteralPath '${copySh}'; & '${copySh}'`
     await Helper.send('tools', 'exec', command)

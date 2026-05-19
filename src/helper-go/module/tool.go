@@ -9,6 +9,23 @@ import (
 	"strings"         // For string manipulation
 )
 
+// getWindowsSystemExe 获取 Windows System32 下可执行文件的完整路径
+// 如果文件存在则返回完整路径，否则回退到命令名本身
+func getWindowsSystemExe(name string) string {
+	if runtime.GOOS != "windows" {
+		return name
+	}
+	systemRoot := os.Getenv("SystemRoot")
+	if systemRoot == "" {
+		systemRoot = `C:\Windows`
+	}
+	fullPath := filepath.Join(systemRoot, "System32", name+".exe")
+	if utils.ExistsSync(fullPath) {
+		return fullPath
+	}
+	return name
+}
+
 // ToolManager embeds BaseManager, providing various system utility functionalities.
 type ToolManager struct {
 	BaseManager // Anonymous field for composition and method "inheritance"
@@ -260,7 +277,8 @@ func (t *ToolManager) Kill(sig string, pids []string) (bool, error) {
 	var command string
 	if runtime.GOOS == "windows" {
 		// Windows uses taskkill instead of kill
-		command = fmt.Sprintf(`taskkill /f /pid %s`, strings.Join(pids, " /pid "))
+		taskkill := getWindowsSystemExe("taskkill")
+		command = fmt.Sprintf(`"%s" /f /pid %s`, taskkill, strings.Join(pids, " /pid "))
 	} else {
 		command = fmt.Sprintf(`kill %s %s`, sig, strings.Join(pids, " "))
 	}
@@ -302,7 +320,8 @@ func (t *ToolManager) KillPorts(ports []string) (bool, error) {
 		var command string
 		if runtime.GOOS == "windows" {
 			// Windows: use netstat to find processes using ports
-			command = fmt.Sprintf(`netstat -ano | findstr ":%s" | findstr "LISTENING"`, port)
+			netstat := getWindowsSystemExe("netstat")
+			command = fmt.Sprintf(`"%s" -ano | findstr ":%s" | findstr "LISTENING"`, netstat, port)
 		} else {
 			command = fmt.Sprintf(`lsof -nP -i:%s | grep '(LISTEN)' | awk '{print $1,$2}'`, port)
 		}
@@ -347,7 +366,8 @@ func (t *ToolManager) KillPorts(ports []string) (bool, error) {
 
 		var killCmd string
 		if runtime.GOOS == "windows" {
-			killCmd = fmt.Sprintf(`taskkill /f /pid %s`, strings.Join(pidList, " /pid "))
+			taskkill := getWindowsSystemExe("taskkill")
+			killCmd = fmt.Sprintf(`"%s" /f /pid %s`, taskkill, strings.Join(pidList, " /pid "))
 		} else {
 			killCmd = fmt.Sprintf(`kill -9 %s`, strings.Join(pidList, " "))
 		}

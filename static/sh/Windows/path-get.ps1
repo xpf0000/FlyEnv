@@ -7,8 +7,8 @@ try {
         if ($subKey) {
             $rawValue = $subKey.GetValue("Path", $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
             $subKey.Close()
-	          $regKey.Close()
-	          Write-Host "##FlyEnv-PATH-GET"
+		          $regKey.Close()
+		          Write-Host "##FlyEnv-PATH-GET"
             $rawValue
             Write-Host "FlyEnv-PATH-GET##"
         } else {

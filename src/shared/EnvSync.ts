@@ -1,7 +1,7 @@
 import { appDebugLog, isWindows } from '@shared/utils'
 import { shellEnv } from 'shell-env'
 import { execPromise } from '@shared/child-process'
-import { join } from 'node:path'
+import { dirname, join, isAbsolute } from 'node:path'
 import { existsSync, copyFileSync } from 'node:fs'
 import * as process from 'node:process'
 import JSON5 from 'json5'
@@ -10,6 +10,8 @@ class EnvSync {
   AppEnv: Record<string, any> | undefined
   CMDPath: string | undefined
   PowerShellPath: string | undefined
+  SystemPath: string | undefined
+  timer: NodeJS.Timeout | undefined | null
 
   constructor() {}
 
@@ -42,18 +44,24 @@ class EnvSync {
 
     let stdout = ''
     let cmd = ''
+    let systemPath = `C:\\Windows\\System32`
     const cmdDefault = `C:\\Windows\\System32\\cmd.exe`
     const ComSpec = findEnvByKey('ComSpec')
     const SystemRoot = findEnvByKey('SystemRoot')
     if (ComSpec) {
       cmd = ComSpec
+      systemPath = dirname(cmd)
     } else if (SystemRoot) {
+      systemPath = join(SystemRoot, 'System32')
       cmd = join(SystemRoot, 'System32/cmd.exe')
     } else if (existsSync(cmdDefault)) {
       cmd = cmdDefault
+      systemPath = dirname(cmd)
     } else {
       cmd = 'cmd.exe'
+      systemPath = `C:\\Windows\\System32`
     }
+    this.SystemPath = systemPath
     let powershell = ''
     const powershellDefault = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
     if (SystemRoot) {
@@ -156,6 +164,17 @@ class EnvSync {
   }
 
   async sync() {
+    if (this.timer) {
+      clearTimeout(this.timer)
+      this.timer = null
+    }
+    // 5分钟后清理。 处理常驻进程的无法刷新的问题
+    this.timer = setTimeout(
+      () => {
+        this.clean()
+      },
+      1000 * 60 * 5
+    )
     if (this.AppEnv) {
       console.log('sync this.AppEnv exists !!!')
       return this.AppEnv
@@ -186,7 +205,8 @@ class EnvSync {
         })
       }
 
-      const extent = `C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0;C:\\Windows\\System32`
+      const systemPath = `C:\\Windows\\System32`
+      const extent = `C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0;${this.SystemPath || systemPath}`
       extent.split(';').forEach((path) => {
         const p = path.trim()
         if (p) {
@@ -194,7 +214,24 @@ class EnvSync {
         }
       })
 
-      const path = Array.from(new Set(paths)).filter(Boolean).join(';')
+      /**
+       * 需要过滤掉无效的PATH。避免执行命令时，无效PATH导致的路径问题
+       */
+      const path = Array.from(new Set(paths))
+        .map((p) => p.trim())
+        .filter((p) => {
+          if (!p) {
+            return false
+          }
+          // 保留标准的环境变量引用路径，Windows 子进程会自动展开
+          // 如 %SystemRoot%\System32 或 $env:USERPROFILE\bin
+          if (/%[^%]+%/.test(p) || p.includes('$env:')) {
+            return true
+          }
+          // 过滤掉非绝对路径（如相对路径等）
+          return isAbsolute(p)
+        })
+        .join(';')
 
       const env: any = { ...process.env, ...lastEnv, PATH: path, Path: path }
       if (global.Server.Proxy) {
