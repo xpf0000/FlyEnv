@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -48,6 +49,23 @@ func WriteFileString(path string, content string) error {
 	return os.WriteFile(path, []byte(content), os.ModePerm)
 }
 
+// getPowerShellExe 获取 Windows 下 PowerShell 的完整路径
+// 如果文件存在则返回完整路径，否则回退到命令名本身
+func getPowerShellExe() string {
+	if !IsWindows() {
+		return "powershell"
+	}
+	systemRoot := os.Getenv("SystemRoot")
+	if systemRoot == "" {
+		systemRoot = `C:\Windows`
+	}
+	fullPath := filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	if ExistsSync(fullPath) {
+		return fullPath
+	}
+	return "powershell"
+}
+
 // 对应 execPromise
 // ExecPromise 执行 shell 命令并返回输出
 func ExecPromise(command string, options map[string]interface{}) (string, string, error) {
@@ -58,7 +76,7 @@ func ExecPromise(command string, options map[string]interface{}) (string, string
 	} else if IsLinux() {
 		cmd = exec.Command("/bin/bash", "-c", command)
 	} else if IsWindows() {
-		cmd = exec.Command("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-NonInteractive", "-Command", command)
+		cmd = exec.Command(getPowerShellExe(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-NonInteractive", "-Command", command)
 		SetHideWindow(cmd)
 	} else {
 		return "", "", fmt.Errorf("unsupported operating system")

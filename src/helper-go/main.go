@@ -18,7 +18,7 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 9
+	Helper_Version   = 10
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
