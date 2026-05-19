@@ -30,6 +30,7 @@
   "projectNode": "Progetti Node",
   "projectGo": "Progetti Go",
   "projectPython": "Progetti Python",
+  "projectDotnet": "Progetti .NET",
   "projectTomcat": "Progetti Tomcat",
   "projectDeno": "Deno Projects",
   "projectBun": "Bun Projects",

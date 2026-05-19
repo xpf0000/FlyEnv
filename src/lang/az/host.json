@@ -30,6 +30,7 @@
   "projectNode": "Node Layihələri",
   "projectGo": "Go Layihələri",
   "projectPython": "Python Layihələri",
+  "projectDotnet": ".NET Layihələri",
   "projectTomcat": "Tomcat Layihələri",
   "projectDeno": "Deno Layihələri",
   "projectBun": "Bun Layihələri",

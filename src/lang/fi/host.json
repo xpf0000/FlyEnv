@@ -30,6 +30,7 @@
   "projectNode": "Solmun Projektit",
   "projectGo": "Go Projektit",
   "projectPython": "Python-projektit",
+  "projectDotnet": ".NET-projektit",
   "projectTomcat": "Tomcat Projektit",
   "projectDeno": "Deno Projektit",
   "projectBun": "Suorita Projektit",

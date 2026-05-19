@@ -24,6 +24,7 @@
   "projectNode": "Node projekt",
   "projectGo": "Go projekt",
   "projectPython": "Python projekt",
+  "projectDotnet": ".NET projekt",
   "projectTomcat": "Tomcat projekt",
   "jdkPath": "JDK útvonala",
   "pythonPath": "Python útvonala",

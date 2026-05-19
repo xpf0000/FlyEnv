@@ -51,6 +51,7 @@ class Manager extends Base {
   FrankenPHP: any
   Flutter: any
   Git: any
+  DotNet: any
 
   constructor() {
     super()
@@ -349,6 +350,12 @@ class Manager extends Base {
             this.Git = res.default
           }
           versions.git = this.Git.allInstalledVersions(setup)
+        } else if (type === 'dotnet') {
+          if (!this.DotNet) {
+            const res = await import('../DotNet')
+            this.DotNet = res.default
+          }
+          versions.dotnet = this.DotNet.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

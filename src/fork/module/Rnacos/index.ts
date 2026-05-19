@@ -15,13 +15,14 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  readdir
+  readdir,
+  binXattrFix
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
-import { isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Rnacos extends Base {
   constructor() {
@@ -251,6 +252,13 @@ class Rnacos extends Base {
         return
       }
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    await super._installSoftHandle(row)
+    if (isMacOS()) {
+      await binXattrFix(row.bin)
+    }
   }
 }
 

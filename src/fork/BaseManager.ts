@@ -69,6 +69,7 @@ class BaseManager {
   FrankenPHP: any
   Git: any
   Cron: any
+  DotNet: any
 
   modules: Set<string> = new Set()
 
@@ -539,6 +540,12 @@ class BaseManager {
         this.Cron = res.default
       }
       doRun(this.Cron)
+    } else if (module === 'dotnet') {
+      if (!this.DotNet) {
+        const res = await import('./module/DotNet')
+        this.DotNet = res.default
+      }
+      doRun(this.DotNet)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

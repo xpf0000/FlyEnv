@@ -16,7 +16,8 @@ import {
   writeFile,
   mkdirp,
   readdir,
-  serviceStartExecCMD
+  serviceStartExecCMD,
+  binXattrFix
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
@@ -222,6 +223,13 @@ class Numa extends Base {
         return
       }
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    await super._installSoftHandle(row)
+    if (isMacOS()) {
+      await binXattrFix(row.bin)
+    }
   }
 }
 

@@ -30,6 +30,7 @@
   "projectNode": "Node 프로젝트",
   "projectGo": "Go 프로젝트",
   "projectPython": "Python 프로젝트",
+  "projectDotnet": ".NET 프로젝트",
   "projectTomcat": "Tomcat 프로젝트",
   "projectDeno": "Deno 프로젝트",
   "projectBun": "Bun 프로젝트",

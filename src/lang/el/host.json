@@ -30,6 +30,7 @@
   "projectNode": "Έργα Κόμβου",
   "projectGo": "Μεταβείτε Στα Έργα",
   "projectPython": "Έργα Python",
+  "projectDotnet": "Έργα .NET",
   "projectTomcat": "Έργα Tomcat",
   "projectDeno": "Έργα Deno",
   "projectBun": "Bun Έργα",

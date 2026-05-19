@@ -18,7 +18,7 @@
         :row-height="59"
       >
         <template #empty>
-          <div class="w-full h-full flex items-center justify-center">
+          <div class="w-full h-full flex items-center justify-center p-8">
             <template v-if="fetching">
               {{ I18nT('base.gettingVersion') }}
             </template>

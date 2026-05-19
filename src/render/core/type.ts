@@ -92,7 +92,8 @@ export enum AppModuleEnum {
   rnacos = 'rnacos',
   frankenphp = 'frankenphp',
   flutter = 'flutter',
-  git = 'git'
+  git = 'git',
+  dotnet = 'dotnet'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum
