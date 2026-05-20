@@ -1,6 +1,11 @@
 import { createConnection } from 'net'
 import { uuid } from './Fn'
-import { AppHelperCheck, AppHelperSocketPathGet } from '@shared/AppHelperCheck'
+import {
+  AppHelperCheck,
+  AppHelperSocketPathGet,
+  getHelperKey,
+  signTaskItem
+} from '@shared/AppHelperCheck'
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
 import { appDebugLog } from '@shared/utils'
@@ -28,7 +33,6 @@ type FN =
   | 'kill'
   | 'binFixed'
   | 'ln_s'
-  | 'exec'
   | 'initPlugin'
   | 'sslAddTrustedCert'
   | 'sslFindCertificate'
@@ -38,10 +42,22 @@ type FN =
   | 'chmod'
   | 'getPortPidsWin'
   | 'processListWin'
+  | 'getSystemPath'
+  | 'setSystemPath'
+  | 'setSystemEnv'
+  | 'runScript'
+  | 'setAutoStartWin'
+  | 'removeLoginItemMac'
 
 class Helper {
   enable = false
   appHelper?: AppHelper
+  private helperKey: Buffer | null = null
+
+  async ensureKey() {
+    if (this.helperKey) return
+    this.helperKey = await getHelperKey()
+  }
 
   send<T>(module: Module, fn: FN, ...args: any): Promise<T> {
     return new Promise(async (resolve, reject) => {
@@ -68,15 +84,19 @@ class Helper {
           return
         }
       }
+      await this.ensureKey()
       const key = uuid()
       const client = createConnection(AppHelperSocketPathGet())
       const buffer: Buffer[] = []
       client.on('connect', () => {
-        const param = {
+        const param: any = {
           key,
           module,
           function: fn,
           args
+        }
+        if (this.helperKey) {
+          param.sig = signTaskItem(this.helperKey, param)
         }
         console.log('Connected to server', param)
         client.write(JSON.stringify(param))

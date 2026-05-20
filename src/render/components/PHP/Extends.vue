@@ -17,8 +17,11 @@
           <el-tooltip content="php.ini" :show-after="600">
             <el-button :icon="Memo" @click.stop="showIni"></el-button>
           </el-tooltip>
-          <el-tooltip :content="I18nT('base.open')" :show-after="600">
+          <el-tooltip v-if="extensionDir" :content="I18nT('base.open')" :show-after="600">
             <el-button :icon="Folder" :disabled="!extensionDir" @click.stop="openDir"></el-button>
+          </el-tooltip>
+          <el-tooltip v-else-if="extensionDirError" :content="extensionDirError">
+            <el-button disabled :icon="Folder" type="danger"></el-button>
           </el-tooltip>
         </el-button-group>
       </div>
@@ -154,7 +157,8 @@
     loading,
     reFetch,
     extensionDir,
-    openDir
+    openDir,
+    extensionDirError
   } = Setup(props.version)
 
   const isMacPorts = computed(() => {

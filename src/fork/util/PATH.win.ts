@@ -1,6 +1,5 @@
-import { isAbsolute, join } from 'path'
+import { isAbsolute } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
-import { existsSync, readFile, remove, writeFile } from '../Fn'
 import { appDebugLog } from '@shared/utils'
 import Helper from '../Helper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
@@ -24,19 +23,10 @@ export const fetchRawPATH = (useHelper = false): ForkPromise<string[]> => {
       return
     }
 
-    const sh = join(global.Server.Static!, 'sh/path-get.ps1')
-    const copySh = join(global.Server.Cache!, 'path-get.ps1')
-    if (existsSync(copySh)) {
-      await remove(copySh)
-    }
-    const shContent = await readFile(sh, 'utf-8')
-    await writeFile(copySh, '\ufeff' + shContent, 'utf-8')
-    const commands = [`Unblock-File -LiteralPath '${copySh}'; & '${copySh}'`]
     let res: any
     try {
-      res = await Helper.send('tools', 'exec', commands.join(' '), {
-        cwd: global.Server.Cache!
-      })
+      const pathStr = await Helper.send<string>('tools', 'getSystemPath')
+      res = { stdout: pathStr, stderr: '' }
     } catch (e) {
       console.log('fetchRawPATH error: ', e)
       appDebugLog('[_fetchRawPATH][error]', `${e}`).catch()
@@ -45,17 +35,8 @@ export const fetchRawPATH = (useHelper = false): ForkPromise<string[]> => {
 
     console.log('fetchRawPATH res: ', res)
 
-    let str = ''
-    const stdout = res.stdout.trim() + '\n' + res.stderr.trim()
-    console.log('fetchRawPATH stdout: ', stdout)
-    const regex = /FlyEnv-PATH-GET([\s\S]*?)FlyEnv-PATH-GET/g
-    const match = regex.exec(stdout)
-    if (match) {
-      str = match[1].trim()
-    }
-    console.log('fetchRawPATH str: ', {
-      str
-    })
+    let str = res.stdout.trim()
+    console.log('fetchRawPATH str: ', { str })
     str = str.replace(new RegExp(`\r\n`, 'g'), '').replace(new RegExp(`\n`, 'g'), '')
     if (!str.includes(':\\') && !str.includes('%')) {
       return resolve([])
@@ -103,18 +84,12 @@ export const handleWinPathArr = (paths: string[]) => {
 
 export const writePath = async (path: string[], other: string = '') => {
   console.log('writePath paths: ', path)
-  const sh = join(global.Server.Static!, 'sh/path-set.ps1')
-  const copySh = join(global.Server.Cache!, 'path-set.ps1')
-  if (existsSync(copySh)) {
-    await remove(copySh)
-  }
-  const pathStr = path.join(';')
-  let content = await readFile(sh, 'utf-8')
-  content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
-  await writeFile(copySh, '\ufeff' + content, 'utf-8')
   try {
-    const command = `Unblock-File -LiteralPath '${copySh}'; & '${copySh}'`
-    await Helper.send('tools', 'exec', command)
+    const otherVars: Record<string, string> = {}
+    if (other) {
+      // parse simple key=value pairs if needed, currently other is always empty
+    }
+    await Helper.send('tools', 'setSystemPath', path, otherVars)
   } catch (e) {
     console.log('writePath error: ', e)
     appDebugLog('[writePath][error]', `${e}`)

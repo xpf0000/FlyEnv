@@ -18,9 +18,9 @@ import { appDebugLog, isWindows } from '@shared/utils'
 const initCARoot = () => {
   return new Promise(async (resolve) => {
     const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
-    const command = `certutil -addstore root "${CARoot}"`
+    const CADir = dirname(CARoot)
     try {
-      const res = await Helper.send('tools', 'exec', command)
+      const res = await Helper.send('host', 'sslAddTrustedCert', CADir, 'FlyEnv-Root-CA.crt')
       console.log('initCARoot res111: ', res)
     } catch {}
     resolve(true)

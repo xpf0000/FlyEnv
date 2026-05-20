@@ -196,7 +196,7 @@ export const exec = {
   exec: createIPCCall<
     [
       command: string,
-      options: {
+      options?: {
         encoding: 'buffer' | null
       } & ExecOptions
     ],
@@ -213,7 +213,7 @@ export const fs = {
   chmod: createIPCCall<[path: string, mode: string | number], void>('fs', 'chmod'),
   remove: createIPCCall<[path: string], void>('fs', 'remove'),
   writeBufferBase64: createIPCCall<[path: string, data: string], void>('fs', 'writeBufferBase64'),
-  readdir: createIPCCall<[dir: string, full: boolean], string[]>('fs', 'readdir'),
+  readdir: createIPCCall<[dir: string, full?: boolean], string[]>('fs', 'readdir'),
   subdir: createIPCCall<[dir: string], string[]>('fs', 'subdir'),
   mkdirp: createIPCCall<[dir: string], void>('fs', 'mkdirp'),
   stat: createIPCCall<[path: string], Stats>('fs', 'stat'),

@@ -319,28 +319,17 @@ X-GNOME-Autostart-enabled=true`
   }
 
   private async windowsAutoLaunch(autoLaunch: boolean) {
-    const exePath = app.getPath('exe').replace(/"/g, '\\"')
+    const exePath = app.getPath('exe')
     console.log('exePath: ', exePath)
     const taskName = 'FlyEnvStartup'
-    if (autoLaunch) {
-      const tmpl = await readFile(join(global.Server.Static!, 'sh/flyenv-auto-start.ps1'), 'utf-8')
-      const content = tmpl.replace('#TASKNAME#', taskName).replace('#EXECPATH#', exePath)
-      await mkdirp(global.Server.Cache!)
-      const file = join(global.Server.Cache!, 'flyenv-auto-start.ps1')
-      await writeFile(file, content)
-      const command = `Unblock-File -LiteralPath '${file}'; & '${file}'`
-      const res: any = await Helper.send('tools', 'exec', command)
-      await remove(file)
-      const std = res.stdout + res.stderr
-      if (std.includes(`Task Create Success: FlyEnvStartup`)) {
+    try {
+      await Helper.send('tools', 'setAutoStartWin', autoLaunch, taskName, exePath)
+      return true
+    } catch (e: any) {
+      if (!autoLaunch) {
         return true
       }
-      throw new Error(res.stderr)
-    } else {
-      try {
-        await Helper.send('tools', 'exec', `schtasks.exe /delete /tn "${taskName}" /f`)
-      } catch {}
-      return true
+      throw e
     }
   }
 
@@ -375,19 +364,8 @@ X-GNOME-Autostart-enabled=true`
     app.setLoginItemSettings(obj)
     if (!obj.openAtLogin && isMacOS()) {
       try {
-        if (is.production()) {
-          Helper.send(
-            'tools',
-            'exec',
-            `osascript -e 'tell application "System Events" to delete login item "FlyEnv"'`
-          ).catch()
-        } else {
-          Helper.send(
-            'tools',
-            'exec',
-            `osascript -e 'tell application "System Events" to delete login item "Electron"'`
-          ).catch()
-        }
+        const name = is.production() ? 'FlyEnv' : 'Electron'
+        Helper.send('tools', 'removeLoginItemMac', name).catch()
       } catch {}
     }
     this?.mainWindow?.webContents.send('command', command, key, true)

@@ -102,7 +102,7 @@ export async function serviceStartExec(
   const shell = isMacOS() ? 'zsh' : 'bash'
   if (param?.root) {
     try {
-      res = await Helper.send('tools', 'exec', `${shell} "${psPath}"`)
+      res = await Helper.send('tools', 'runScript', shell, psPath)
     } catch (e) {
       error = e
     }

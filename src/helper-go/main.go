@@ -2,6 +2,10 @@ package main
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,12 +22,20 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 10
+	Helper_Version   = 11
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
+	Key_Path_Unix    = "/tmp/flyenv-helper.key"
 	READ_BUFFER_SIZE = 4096 // Buffer size for reading from socket
 )
+
+func getKeyPath() string {
+	if runtime.GOOS == "windows" {
+		return filepath.Join(os.TempDir(), "flyenv-helper.key")
+	}
+	return Key_Path_Unix
+}
 
 // TaskItem defines the structure of the incoming JSON message
 type TaskItem struct {
@@ -31,6 +43,7 @@ type TaskItem struct {
 	Module   string        `json:"module"`
 	Function string        `json:"function"`
 	Args     []interface{} `json:"args"` // Using interface{} to handle varying argument types
+	Sig      string        `json:"sig"`
 }
 
 // Response defines the structure of the JSON response sent back
@@ -71,6 +84,95 @@ func NewAppHelper() *AppHelper {
 	}
 }
 
+var helperKey []byte
+
+func loadOrGenerateKey() error {
+	keyPath := getKeyPath()
+	if utils.ExistsSync(keyPath) {
+		data, err := utils.ReadFileBytes(keyPath)
+		if err != nil {
+			return fmt.Errorf("failed to read existing key: %w", err)
+		}
+		helperKey = data
+		fmt.Println("Loaded existing helper key")
+		return nil
+	}
+
+	key := make([]byte, 32)
+	_, err := rand.Read(key)
+	if err != nil {
+		return fmt.Errorf("failed to generate key: %w", err)
+	}
+
+	err = os.WriteFile(keyPath, key, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to write key file: %w", err)
+	}
+
+	helperKey = key
+	fmt.Println("Generated new helper key")
+	return nil
+}
+
+func setupKeyFileOwnership() {
+	if runtime.GOOS == "windows" {
+		return
+	}
+
+	keyPath := getKeyPath()
+	var rule string
+	if utils.ExistsSync(Role_Path) {
+		content, err := utils.ReadFile(Role_Path)
+		if err != nil {
+			fmt.Printf("Warning: failed to read role file for key chown: %v\n", err)
+		} else {
+			rule = strings.TrimSpace(content)
+		}
+	} else if utils.ExistsSync(Role_Path_Back) {
+		content, err := utils.ReadFile(Role_Path_Back)
+		if err != nil {
+			fmt.Printf("Warning: failed to read role backup file for key chown: %v\n", err)
+		} else {
+			rule = strings.TrimSpace(content)
+		}
+	}
+
+	if rule != "" && utils.ExistsSync(keyPath) {
+		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`chown "%s" "%s"`, rule, keyPath), nil)
+		if err != nil {
+			fmt.Printf("Warning: failed to chown key file '%s' to '%s': %v, stderr: %s\n", keyPath, rule, err, stderr)
+		} else {
+			fmt.Printf("Successfully changed ownership of key file to '%s'\n", rule)
+		}
+	}
+}
+
+func verifySignature(info TaskItem) bool {
+	if len(helperKey) == 0 {
+		fmt.Println("Warning: helper key is empty, rejecting request")
+		return false
+	}
+
+	argsJSON, err := json.Marshal(info.Args)
+	if err != nil {
+		fmt.Printf("Warning: failed to marshal args for signature verification: %v\n", err)
+		return false
+	}
+
+	payload := info.Key + "|" + info.Module + "|" + info.Function + "|" + string(argsJSON)
+
+	mac := hmac.New(sha256.New, helperKey)
+	mac.Write([]byte(payload))
+	expectedSig := hex.EncodeToString(mac.Sum(nil))
+
+	if !hmac.Equal([]byte(expectedSig), []byte(info.Sig)) {
+		fmt.Printf("Warning: signature mismatch. expected=%s, got=%s, payload=%s\n", expectedSig, info.Sig, payload)
+		return false
+	}
+
+	return true
+}
+
 // Run sets up and starts the Unix domain socket server
 func (a *AppHelper) Run() error {
 	// Clean up existing socket file if it exists (Unix only)
@@ -105,6 +207,11 @@ func (a *AppHelper) Run() error {
 	// Post-listen setup tasks (Unix only for chown)
 	if runtime.GOOS != "windows" {
 		go a.setupUnixPermissions()
+		go func() {
+			// Wait for role file to be available before chowning key file
+			time.Sleep(600 * time.Millisecond)
+			setupKeyFileOwnership()
+		}()
 	}
 
 	// Accept and handle incoming connections
@@ -164,6 +271,15 @@ func (a *AppHelper) setupUnixPermissions() {
 			fmt.Printf("Successfully changed ownership of socket to '%s'\n", rule)
 		}
 	}
+	// Always tighten socket file permissions regardless of chown success
+	if utils.ExistsSync(SOCKET_PATH) {
+		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`chmod 0600 "%s"`, SOCKET_PATH), nil)
+		if err != nil {
+			fmt.Printf("Warning: failed to chmod socket '%s' to 0600: %v, stderr: %s\n", SOCKET_PATH, err, stderr)
+		} else {
+			fmt.Printf("Successfully changed socket permissions to 0600\n")
+		}
+	}
 }
 
 // handleClient processes data from a single client connection
@@ -205,6 +321,17 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 		// JSON successfully parsed, clear buffer for next message
 		reader.Reset()
 
+		// Verify HMAC signature
+		if !verifySignature(info) {
+			res := Response{Key: info.Key, Code: 1, Msg: "invalid signature"}
+			responseBytes, _ := json.Marshal(res)
+			_, writeErr := conn.Write(responseBytes)
+			if writeErr != nil {
+				fmt.Printf("Error writing signature error response for key %s: %v\n", info.Key, writeErr)
+			}
+			return
+		}
+
 		// Dispatch the call to the appropriate module manager
 		var (
 			result  interface{}
@@ -223,26 +350,6 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 			}
 		case "tools":
 			switch info.Function {
-			case "exec":
-				if len(info.Args) >= 1 && len(info.Args) <= 2 {
-					if command, ok := info.Args[0].(string); ok {
-						var opts map[string]interface{} = make(map[string]interface{}) // Default to empty map
-						if len(info.Args) == 2 {
-							if providedOpts, ok := info.Args[1].(map[string]interface{}); ok {
-								opts = providedOpts // Use the provided options
-							} else {
-								execErr = fmt.Errorf("exec: arg[1] (options) must be a map[string]interface{} if provided, got %T", info.Args[1])
-								break // Exit switch on this error
-							}
-						}
-						result, execErr = a.Tool.Exec(command, opts) // Use a.Tool if ToolManager embeds BaseManager
-						fmt.Printf("tools exec result: %v, execErr: %v\n", result, execErr)
-					} else {
-						execErr = fmt.Errorf("exec: arg[0] (command) must be a string, got %T", info.Args[0])
-					}
-				} else {
-					execErr = fmt.Errorf("exec expects 1 or 2 arguments (command, [options]), got %d", len(info.Args))
-				}
 			case "processList":
 				if len(info.Args) != 0 {
 					execErr = fmt.Errorf("processList expects 0 arguments, got %d", len(info.Args))
@@ -387,6 +494,104 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 					}
 				} else {
 					execErr = fmt.Errorf("getPortPidsWin expects 1 argument, got %d", len(info.Args))
+				}
+			case "getSystemPath":
+				if len(info.Args) != 0 {
+					execErr = fmt.Errorf("getSystemPath expects 0 arguments, got %d", len(info.Args))
+				} else {
+					result, execErr = a.Tool.GetSystemPath()
+				}
+			case "setSystemPath":
+				if len(info.Args) == 2 {
+					if paths, ok := info.Args[0].([]interface{}); ok {
+						var pathArr []string
+						for i, p := range paths {
+							if ps, ok := p.(string); ok {
+								pathArr = append(pathArr, ps)
+							} else {
+								execErr = fmt.Errorf("setSystemPath: paths[%d] must be a string, got %T", i, p)
+								break
+							}
+						}
+						if execErr == nil {
+							if otherVars, ok := info.Args[1].(map[string]interface{}); ok {
+								var vars map[string]string = make(map[string]string)
+								for k, v := range otherVars {
+									if vs, ok := v.(string); ok {
+										vars[k] = vs
+									} else {
+										execErr = fmt.Errorf("setSystemPath: otherVars[%s] must be a string, got %T", k, v)
+										break
+									}
+								}
+								if execErr == nil {
+									result, execErr = a.Tool.SetSystemPath(pathArr, vars)
+								}
+							} else {
+								execErr = fmt.Errorf("setSystemPath: arg[1] (otherVars) must be a map[string]string, got %T", info.Args[1])
+							}
+						}
+					} else {
+						execErr = fmt.Errorf("setSystemPath: arg[0] (paths) must be a string array, got %T", info.Args[0])
+					}
+				} else {
+					execErr = fmt.Errorf("setSystemPath expects 2 arguments (paths, otherVars), got %d", len(info.Args))
+				}
+			case "setSystemEnv":
+				if len(info.Args) == 2 {
+					if key, ok := info.Args[0].(string); ok {
+						if value, ok := info.Args[1].(string); ok {
+							result, execErr = a.Tool.SetSystemEnv(key, value)
+						} else {
+							execErr = fmt.Errorf("setSystemEnv: arg[1] (value) must be a string, got %T", info.Args[1])
+						}
+					} else {
+						execErr = fmt.Errorf("setSystemEnv: arg[0] (key) must be a string, got %T", info.Args[0])
+					}
+				} else {
+					execErr = fmt.Errorf("setSystemEnv expects 2 arguments (key, value), got %d", len(info.Args))
+				}
+			case "runScript":
+				if len(info.Args) == 2 {
+					if shell, ok := info.Args[0].(string); ok {
+						if scriptPath, ok := info.Args[1].(string); ok {
+							result, execErr = a.Tool.RunScript(shell, scriptPath)
+						} else {
+							execErr = fmt.Errorf("runScript: arg[1] (scriptPath) must be a string, got %T", info.Args[1])
+						}
+					} else {
+						execErr = fmt.Errorf("runScript: arg[0] (shell) must be a string, got %T", info.Args[0])
+					}
+				} else {
+					execErr = fmt.Errorf("runScript expects 2 arguments (shell, scriptPath), got %d", len(info.Args))
+				}
+			case "setAutoStartWin":
+				if len(info.Args) == 3 {
+					if enabled, ok := info.Args[0].(bool); ok {
+						if taskName, ok := info.Args[1].(string); ok {
+							if exePath, ok := info.Args[2].(string); ok {
+								result, execErr = a.Tool.SetAutoStartWin(enabled, taskName, exePath)
+							} else {
+								execErr = fmt.Errorf("setAutoStartWin: arg[2] (exePath) must be a string, got %T", info.Args[2])
+							}
+						} else {
+							execErr = fmt.Errorf("setAutoStartWin: arg[1] (taskName) must be a string, got %T", info.Args[1])
+						}
+					} else {
+						execErr = fmt.Errorf("setAutoStartWin: arg[0] (enabled) must be a bool, got %T", info.Args[0])
+					}
+				} else {
+					execErr = fmt.Errorf("setAutoStartWin expects 3 arguments (enabled, taskName, exePath), got %d", len(info.Args))
+				}
+			case "removeLoginItemMac":
+				if len(info.Args) == 1 {
+					if name, ok := info.Args[0].(string); ok {
+						result, execErr = a.Tool.RemoveLoginItemMac(name)
+					} else {
+						execErr = fmt.Errorf("removeLoginItemMac: arg[0] (name) must be a string, got %T", info.Args[0])
+					}
+				} else {
+					execErr = fmt.Errorf("removeLoginItemMac expects 1 argument (name), got %d", len(info.Args))
 				}
 			default:
 				execErr = fmt.Errorf("unknown function '%s' for module 'tools'", info.Function)
@@ -645,6 +850,10 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 
 // Main entry point for the Go program
 func main() {
+	if err := loadOrGenerateKey(); err != nil {
+		fmt.Printf("Failed to load/generate key: %v\n", err)
+		os.Exit(1)
+	}
 	app := NewAppHelper()
 	if err := app.Run(); err != nil {
 		fmt.Printf("AppHelper terminated with error: %v\n", err)

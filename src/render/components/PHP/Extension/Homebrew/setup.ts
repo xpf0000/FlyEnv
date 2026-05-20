@@ -107,9 +107,12 @@ export const Setup = (version: SoftInstalled) => {
     await execXTerm.send(params)
 
     const extensionDir = ExtensionSetup.dir?.[version.bin] ?? ''
+    console.log('extensionDir: ', extensionDir)
     const baseDir = row.libName.split('/').pop()
     const dir = join(window.Server.BrewCellar!, baseDir)
-    const allFile = await fs.readdir(dir)
+    console.log('dir: ', dir)
+    const allFile = await fs.readdir(dir, true)
+    console.log('allFile: ', allFile)
     const so = allFile.filter((f) => f.endsWith('.so')).pop()
     if (so) {
       const destSo = join(extensionDir, basename(so))

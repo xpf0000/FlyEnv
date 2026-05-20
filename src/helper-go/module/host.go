@@ -48,6 +48,12 @@ func (h *HostManager) SslAddTrustedCert(cwd, caName string) (bool, error) {
 				err = fmt.Errorf("Linux copy CA file failed for both Debian/Ubuntu (%w) and CentOS/Fedora (%w) paths", cmdErr, centosCmdErr)
 			}
 		}
+	} else if utils.IsWindows() {
+		caFile := filepath.Join(cwd, caName)
+		_, stderr, cmdErr := utils.ExecPromise(fmt.Sprintf(`certutil -addstore root "%s"`, caFile), nil)
+		if cmdErr != nil {
+			err = fmt.Errorf("Windows add-trusted-cert failed: %w, stderr: %s", cmdErr, stderr)
+		}
 	} else {
 		err = fmt.Errorf("unsupported operating system for sslAddTrustedCert")
 	}

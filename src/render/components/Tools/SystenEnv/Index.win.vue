@@ -143,10 +143,11 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Refresh, Plus, Edit, Delete, SortDown, SortUp, SetUp } from '@element-plus/icons-vue'
   import { Setup } from './setup'
-  import { shell, clipboard, fs, exec } from '@/util/NodeFn'
+  import { shell, clipboard, fs } from '@/util/NodeFn'
   import { isAbsolute } from '@/util/path-browserify'
   import { ArrayMoveItem } from '@/util/Index'
   import { isEqual } from 'lodash-es'
+  import IPC from '@/util/IPC'
 
   Setup.fetchList()
 
@@ -220,9 +221,9 @@
    * 打开 Windows自身的 环境变量 界面
    */
   const showWinEnvSetupGui = () => {
-    exec
-      .exec('rundll32.exe sysdm.cpl,EditEnvironmentVariables', { encoding: null } as any)
-      .catch(() => {})
+    IPC.send('app-fork:tools', 'openSysdmCpl').then((key: any) => {
+      IPC.off(key)
+    })
   }
 </script>
 <style lang="scss">

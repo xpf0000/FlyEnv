@@ -1,14 +1,42 @@
-import { mkdirp, writeFile } from '@shared/fs-extra'
+import { mkdirp, writeFile, readFile } from '@shared/fs-extra'
 import { createConnection } from 'node:net'
-import { userInfo } from 'node:os'
-import { basename, dirname } from 'node:path'
+import { userInfo, tmpdir } from 'node:os'
+import { basename, dirname, join } from 'node:path'
 import { isWindows } from './utils'
 import JSON5 from 'json5'
+import crypto from 'node:crypto'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
-export const HelperVersion = 10
+export const HelperVersion = 11
+
+const Key_Path_Unix = '/tmp/flyenv-helper.key'
+
+export const HelperKeyPath = (): string => {
+  return isWindows() ? join(tmpdir(), 'flyenv-helper.key') : Key_Path_Unix
+}
+
+export const getHelperKey = async (): Promise<Buffer | null> => {
+  try {
+    const path = HelperKeyPath()
+    const data = await readFile(path)
+    return data
+  } catch {
+    return null
+  }
+}
+
+export const signTaskItem = (
+  key: Buffer,
+  item: { key: string; module: string; function: string; args: any[] }
+): string => {
+  const argsJSON = JSON.stringify(item.args ?? [])
+  const payload = `${item.key}|${item.module}|${item.function}|${argsJSON}`
+  const hmac = crypto.createHmac('sha256', key)
+  hmac.update(payload)
+  return hmac.digest('hex')
+}
 
 export const AppHelperSocketPathGet = (): string => {
   let actualPath = SOCKET_PATH
@@ -41,13 +69,23 @@ export const AppHelperCheck = () => {
     let timer: NodeJS.Timeout | undefined
     const key = 'flyenv-helper-version-check'
     const buffer: Buffer[] = []
+
+    let helperKey: Buffer | null = null
+    try {
+      helperKey = await getHelperKey()
+    } catch {}
+
     const client = createConnection(AppHelperSocketPathGet())
     client.on('connect', () => {
       console.log('Connected to the server')
-      const param = {
+      const param: any = {
         key,
         module: 'helper',
-        function: 'version'
+        function: 'version',
+        args: []
+      }
+      if (helperKey) {
+        param.sig = signTaskItem(helperKey, param)
       }
       client.write(JSON.stringify(param))
       timer = setTimeout(() => {

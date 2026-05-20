@@ -9,10 +9,12 @@ import { PHPSetup } from '@/components/PHP/store'
 
 export const ExtensionSetup = reactive<{
   dir: Partial<Record<string, string>>
+  dirError: Partial<Record<string, string>>
   dirFile: Partial<Record<string, string[]>>
   reFetch: () => void
 }>({
   dir: {},
+  dirError: {},
   dirFile: {},
   reFetch: () => 0
 })
@@ -103,6 +105,10 @@ export const Setup = (version: SoftInstalled) => {
     return ExtensionSetup.dir?.[version.bin]
   })
 
+  const extensionDirError = computed(() => {
+    return ExtensionSetup.dirError?.[version.bin]
+  })
+
   const fetchLocal = () => {
     const fetchFile = async (dir: string) => {
       console.log('fetchFile dir: ', dir)
@@ -117,12 +123,18 @@ export const Setup = (version: SoftInstalled) => {
     } else {
       if (version?.version) {
         const pkconfig = version?.phpConfig ?? join(version?.path, 'bin/php-config')
-        exec.exec(`"${pkconfig}" --extension-dir`).then((res: any) => {
-          console.log('--extension-dir res: ', res)
-          const dir = res.stdout
-          ExtensionSetup.dir[version.bin] = dir
-          fetchFile(dir)
-        })
+        exec
+          .exec(`"${pkconfig}" --extension-dir`)
+          .then((res: any) => {
+            console.log('--extension-dir res: ', res)
+            const dir = res.stdout.trim()
+            ExtensionSetup.dir[version.bin] = dir
+            delete ExtensionSetup.dirError?.[version.bin]
+            fetchFile(dir)
+          })
+          .catch((err) => {
+            ExtensionSetup.dirError[version.bin] = `${err}`
+          })
       }
     }
   }
@@ -168,6 +180,7 @@ export const Setup = (version: SoftInstalled) => {
     loading,
     reFetch,
     extensionDir,
-    openDir
+    openDir,
+    extensionDirError
   }
 }

@@ -49,23 +49,6 @@ type ExecResult struct {
 	Stderr string `json:"stderr"`
 }
 
-func (t *ToolManager) Exec(command string, options ...map[string]interface{}) (ExecResult, error) {
-	var opts map[string]interface{}
-
-	// Check if options were provided
-	if len(options) > 0 {
-		opts = options[0] // Use the first (and only expected) options map
-	} else {
-		opts = make(map[string]interface{}) // If no options provided, use an empty map
-	}
-
-	stdout, stderr, err := utils.ExecPromise(command, opts)
-	if err != nil {
-		return ExecResult{}, fmt.Errorf("%s: %s", err.Error(), stderr)
-	}
-	return ExecResult{Stdout: stdout, Stderr: stderr}, nil
-}
-
 // WriteFileByRoot with improved cleanup
 func (t *ToolManager) WriteFileByRoot(file string, content string) (bool, error) {
 	// Try writing directly first
@@ -479,6 +462,102 @@ func (t *ToolManager) GetPortPidsWin(port string) ([]string, error) {
 		}
 	}
 	return processes, nil
+}
+
+// GetSystemPath reads the system PATH from Windows registry without expanding environment variables.
+func (t *ToolManager) GetSystemPath() (string, error) {
+	if !utils.IsWindows() {
+		return "", fmt.Errorf("GetSystemPath is only supported on Windows")
+	}
+	command := `$regKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey('LocalMachine', [Microsoft.Win32.RegistryView]::Registry64); $subKey = $regKey.OpenSubKey('SYSTEM\CurrentControlSet\Control\Session Manager\Environment', $false); $path = $subKey.GetValue('Path', $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames); $subKey.Close(); $regKey.Close(); $path`
+	stdout, stderr, err := utils.ExecPromise(command, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to get system PATH: %w, stderr: %s", err, stderr)
+	}
+	return strings.TrimSpace(stdout), nil
+}
+
+// SetSystemPath writes the system PATH to Windows registry as ExpandString.
+func (t *ToolManager) SetSystemPath(paths []string, otherVars map[string]string) (bool, error) {
+	if !utils.IsWindows() {
+		return false, fmt.Errorf("SetSystemPath is only supported on Windows")
+	}
+	pathStr := strings.Join(paths, ";") + ";"
+	pathStr = strings.ReplaceAll(pathStr, "'", "''")
+
+	psCmd := fmt.Sprintf(`$pathStr = '%s'; [Microsoft.Win32.Registry]::SetValue("HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment", "Path", $pathStr, [Microsoft.Win32.RegistryValueKind]::ExpandString)`, pathStr)
+
+	for k, v := range otherVars {
+		v = strings.ReplaceAll(v, "'", "''")
+		psCmd += fmt.Sprintf(`; [Environment]::SetEnvironmentVariable("%s", '%s', "Machine")`, k, v)
+	}
+
+	psCmd += `; [Environment]::SetEnvironmentVariable("FLYENV_ENV_FLUSH", "0", "Machine"); try { rundll32.exe user32.dll,UpdatePerUserSystemParameters 1, True } catch {}`
+
+	_, stderr, err := utils.ExecPromise(psCmd, nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to set system PATH: %w, stderr: %s", err, stderr)
+	}
+	return true, nil
+}
+
+// SetSystemEnv sets a single machine-level environment variable on Windows.
+func (t *ToolManager) SetSystemEnv(key, value string) (bool, error) {
+	if !utils.IsWindows() {
+		return false, fmt.Errorf("SetSystemEnv is only supported on Windows")
+	}
+	value = strings.ReplaceAll(value, "'", "''")
+	command := fmt.Sprintf(`[Environment]::SetEnvironmentVariable("%s", '%s', "Machine")`, key, value)
+	_, stderr, err := utils.ExecPromise(command, nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to set system env %s: %w, stderr: %s", key, err, stderr)
+	}
+	return true, nil
+}
+
+// RunScript executes a shell script with the specified shell (macOS/Linux only).
+func (t *ToolManager) RunScript(shell, scriptPath string) (ExecResult, error) {
+	if utils.IsWindows() {
+		return ExecResult{}, fmt.Errorf("RunScript is only supported on macOS/Linux")
+	}
+	stdout, stderr, err := utils.ExecPromise(fmt.Sprintf(`%s "%s"`, shell, scriptPath), nil)
+	if err != nil {
+		return ExecResult{}, fmt.Errorf("%s: %s", err.Error(), stderr)
+	}
+	return ExecResult{Stdout: stdout, Stderr: stderr}, nil
+}
+
+// SetAutoStartWin creates or deletes a Windows scheduled task for auto-start.
+func (t *ToolManager) SetAutoStartWin(enabled bool, taskName, exePath string) (bool, error) {
+	if !utils.IsWindows() {
+		return false, fmt.Errorf("SetAutoStartWin is only supported on Windows")
+	}
+
+	if enabled {
+		command := fmt.Sprintf(`$taskName = "%s"; $exePath = "%s"; $scheduler = New-Object -ComObject "Schedule.Service"; $scheduler.Connect(); $rootFolder = $scheduler.GetFolder("\"); try { $existingTask = $rootFolder.GetTask($taskName); if ($existingTask) { $rootFolder.DeleteTask($taskName, 1) } } catch {}; $taskDefinition = $scheduler.NewTask(0); $taskDefinition.RegistrationInfo.Description = "FlyEnv Auto Start"; $taskDefinition.RegistrationInfo.Author = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name; $taskDefinition.Settings.ExecutionTimeLimit = "PT0S"; $taskDefinition.Settings.DisallowStartIfOnBatteries = $false; $taskDefinition.Settings.StopIfGoingOnBatteries = $false; $trigger = $taskDefinition.Triggers.Create(9); $trigger.Enabled = $true; $action = $taskDefinition.Actions.Create(0); $action.Path = $exePath; $currentUserName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name; $taskDefinition.Principal.UserId = $currentUserName; $taskDefinition.Principal.LogonType = 3; $taskDefinition.Principal.RunLevel = 1; $rootFolder.RegisterTaskDefinition($taskName, $taskDefinition, 6, $currentUserName, $null, 3)`, taskName, exePath)
+		_, stderr, err := utils.ExecPromise(command, nil)
+		if err != nil {
+			return false, fmt.Errorf("failed to create auto start task: %w, stderr: %s", err, stderr)
+		}
+	} else {
+		_, stderr, err := utils.ExecPromise(fmt.Sprintf(`schtasks.exe /delete /tn "%s" /f`, taskName), nil)
+		if err != nil {
+			return false, fmt.Errorf("failed to delete auto start task: %w, stderr: %s", err, stderr)
+		}
+	}
+	return true, nil
+}
+
+// RemoveLoginItemMac removes a login item on macOS.
+func (t *ToolManager) RemoveLoginItemMac(name string) (bool, error) {
+	if !utils.IsMacOS() {
+		return false, fmt.Errorf("RemoveLoginItemMac is only supported on macOS")
+	}
+	_, stderr, err := utils.ExecPromise(fmt.Sprintf(`osascript -e 'tell application "System Events" to delete login item "%s"'`, name), nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to remove login item %s: %w, stderr: %s", name, err, stderr)
+	}
+	return true, nil
 }
 
 // NewToolManager creates and returns a new instance of ToolManager.
