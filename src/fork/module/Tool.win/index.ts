@@ -7,7 +7,8 @@ import {
   existsSync,
   writeFile,
   zipUnpack,
-  execPromiseWithEnv
+  execPromiseWithEnv,
+  spawnPromiseWithEnv
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
@@ -21,6 +22,10 @@ import { setAlias, cleanAlias } from './alias'
 import { openPathByApp } from './ide'
 import { initAllowDir, initFlyEnvSH } from './init'
 import EnvSync from '@shared/EnvSync'
+
+const quotePowerShellSingle = (value: string) => {
+  return `'${value.replace(/'/g, "''")}'`
+}
 
 class Manager extends Base {
   constructor() {
@@ -206,13 +211,26 @@ subjectAltName=@alt_names
   initFlyEnvSH = initFlyEnvSH
 
   openSysdmCpl() {
-    return new ForkPromise(async (resolve) => {
-      await EnvSync.sync()
-      const rundll32 = join(EnvSync.SystemPath!, 'rundll32.exe')
-      const sysdm = join(EnvSync.SystemPath!, 'sysdm.cpl')
-      const command = `"${rundll32}" "${sysdm}",EditEnvironmentVariables`
-      await execPromiseWithEnv(command)
-      resolve(true)
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        await EnvSync.sync()
+        const systemPath = EnvSync.SystemPath ?? 'C:\\Windows\\System32'
+        const powershell =
+          EnvSync.PowerShellPath ?? join(systemPath, 'WindowsPowerShell/v1.0/powershell.exe')
+        const rundll32 = join(systemPath, 'rundll32.exe')
+        const sysdm = join(systemPath, 'sysdm.cpl')
+        const command = `Start-Process -FilePath ${quotePowerShellSingle(rundll32)} -ArgumentList ${quotePowerShellSingle(`${sysdm},EditEnvironmentVariables`)} -Verb RunAs`
+        await spawnPromiseWithEnv(
+          powershell,
+          ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command],
+          {
+            windowsHide: true
+          }
+        )
+        resolve(true)
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 }
