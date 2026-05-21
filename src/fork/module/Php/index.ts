@@ -36,7 +36,6 @@ import Helper from '../../Helper'
 import { unpack } from '../../util/Zip'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
-import { tmpdir } from 'node:os'
 import { uuid } from '@shared/utils'
 
 class Php extends Base {
@@ -116,7 +115,8 @@ class Php extends Base {
           }
           const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
           const content = await readFile(tmpl, 'utf-8')
-          const cacheFile = join(tmpdir(), `php.${uuid()}.ini`)
+          await mkdirp(global.Server.Cache!)
+          const cacheFile = join(global.Server.Cache!, `php.${uuid()}.ini`)
           await writeFile(cacheFile, content)
           await iniFix(ini, cacheFile)
           await remove(cacheFile)
@@ -131,7 +131,8 @@ class Php extends Base {
               } else {
                 const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
                 const content = await readFile(tmpl, 'utf-8')
-                const cacheFile = join(tmpdir(), `php.${uuid()}.ini`)
+                await mkdirp(global.Server.Cache!)
+                const cacheFile = join(global.Server.Cache!, `php.${uuid()}.ini`)
                 await writeFile(cacheFile, content)
                 await iniFix(baseIni, cacheFile)
                 await remove(cacheFile)

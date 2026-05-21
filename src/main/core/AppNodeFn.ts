@@ -464,7 +464,7 @@ X-GNOME-Autostart-enabled=true`
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
       .catch(() => {
-        Helper.send('tools', 'writeFileByRoot', path, data)
+        Helper.send('tools', 'writeBufferBase64ByRoot', path, data)
           .then(() => {
             this?.mainWindow?.webContents.send('command', command, key, true)
           })

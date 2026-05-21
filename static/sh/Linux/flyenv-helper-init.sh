@@ -2,10 +2,13 @@
 # Linux version of the FlyEnv helper installer (using systemd)
 
 BIN="$1"  # Now only takes the binary path as argument (no plist needed)
+DATA_PATH="$3"
+APP_ROOT="$4"
 
 SERVICE_NAME="flyenv-helper"
 BIN_DEST="/usr/local/bin/flyenv-helper"
 SERVICE_PATH="/etc/systemd/system/${SERVICE_NAME}.service"
+ALLOW_ROOTS_PATH="/usr/local/share/FlyEnv/flyenv.allowed-roots"
 
 # Remove existing service if it exists
 if [ -f "$SERVICE_PATH" ]; then
@@ -19,14 +22,23 @@ if [ -e "/tmp/flyenv-helper.sock" ]; then
   sudo chown "$2" "/tmp/flyenv-helper.sock"
 fi
 
-if [ -e "/tmp/flyenv.role" ]; then
-  sudo chown "$2" "/tmp/flyenv.role"
-  echo "$2" > "/tmp/flyenv.role"
-fi
+sudo mkdir -p "/usr/local/share/FlyEnv"
+echo "$2" | sudo tee "/tmp/flyenv.role" >/dev/null
+echo "$2" | sudo tee "/usr/local/share/FlyEnv/flyenv.role" >/dev/null
+sudo chown "$2" "/tmp/flyenv.role"
+sudo chmod 0600 "/tmp/flyenv.role"
+sudo chown root:root "/usr/local/share/FlyEnv/flyenv.role"
+sudo chmod 0644 "/usr/local/share/FlyEnv/flyenv.role"
 
-if [ -e "/usr/local/share/FlyEnv/flyenv.role" ]; then
-  sudo chown "$2" "/usr/local/share/FlyEnv/flyenv.role"
-  echo "$2" > "/usr/local/share/FlyEnv/flyenv.role"
+if [ -n "$DATA_PATH" ]; then
+  {
+    printf '%s\n' "$DATA_PATH"
+    if [ -n "$APP_ROOT" ]; then
+      printf '%s\n' "$APP_ROOT"
+    fi
+  } | sudo tee "$ALLOW_ROOTS_PATH" >/dev/null
+  sudo chown root:root "$ALLOW_ROOTS_PATH"
+  sudo chmod 0644 "$ALLOW_ROOTS_PATH"
 fi
 
 # Copy the binary

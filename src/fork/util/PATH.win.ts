@@ -42,8 +42,8 @@ export const fetchRawPATH = (useHelper = false): ForkPromise<string[]> => {
       return resolve([])
     }
     const oldPath = Array.from(new Set(str.split(';') ?? []))
-      .filter((s) => !!s.trim())
-      .map((s) => s.trim())
+      .filter((s: string) => !!s.trim())
+      .map((s: string) => s.trim())
     console.log('_fetchRawPATH: ', str, oldPath)
     resolve(oldPath)
   })
@@ -58,37 +58,21 @@ export const handleWinPathArr = (paths: string[]) => {
       if (!p) {
         return false
       }
-      return isAbsolute(p) || p.includes('%') || p.includes('$env:')
+      return isAbsolute(p) || p.includes('%')
     })
     .sort((a, b) => {
       // 判断a的类型
-      const aType = isAbsolute(a)
-        ? 1
-        : a.startsWith('%SystemRoot%')
-          ? 2
-          : a.includes('%') || a.includes('$env:')
-            ? 3
-            : 4
+      const aType = isAbsolute(a) ? 1 : a.startsWith('%SystemRoot%') ? 2 : a.includes('%') ? 3 : 4
       // 判断b的类型
-      const bType = isAbsolute(b)
-        ? 1
-        : b.startsWith('%SystemRoot%')
-          ? 2
-          : b.includes('%') || b.includes('$env:')
-            ? 3
-            : 4
+      const bType = isAbsolute(b) ? 1 : b.startsWith('%SystemRoot%') ? 2 : b.includes('%') ? 3 : 4
       // 比较优先级
       return aType - bType
     })
 }
 
-export const writePath = async (path: string[], other: string = '') => {
+export const writePath = async (path: string[], otherVars: Record<string, string> = {}) => {
   console.log('writePath paths: ', path)
   try {
-    const otherVars: Record<string, string> = {}
-    if (other) {
-      // parse simple key=value pairs if needed, currently other is always empty
-    }
     await Helper.send('tools', 'setSystemPath', path, otherVars)
   } catch (e) {
     console.log('writePath error: ', e)

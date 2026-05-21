@@ -1,0 +1,283 @@
+{
+  "methods": [
+    {
+      "module": "helper",
+      "function": "version",
+      "args": [],
+      "return": "number",
+      "platform": "all",
+      "privileged": false
+    },
+    {
+      "module": "tools",
+      "function": "processList",
+      "args": [],
+      "return": "processInfo[]",
+      "platform": "unix",
+      "privileged": false
+    },
+    {
+      "module": "tools",
+      "function": "processListWin",
+      "args": [],
+      "return": "json-string",
+      "platform": "windows",
+      "privileged": false
+    },
+    {
+      "module": "tools",
+      "function": "writeFileByRoot",
+      "args": [
+        { "name": "file", "type": "string" },
+        { "name": "content", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "all",
+      "privileged": true,
+      "pathAccess": "write"
+    },
+    {
+      "module": "tools",
+      "function": "writeBufferBase64ByRoot",
+      "args": [
+        { "name": "file", "type": "string" },
+        { "name": "content", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "all",
+      "privileged": true,
+      "pathAccess": "write"
+    },
+    {
+      "module": "tools",
+      "function": "readFileByRoot",
+      "args": [{ "name": "file", "type": "string" }],
+      "return": "string",
+      "platform": "all",
+      "privileged": true,
+      "pathAccess": "read"
+    },
+    {
+      "module": "tools",
+      "function": "rm",
+      "args": [{ "name": "path", "type": "string" }],
+      "return": "boolean",
+      "platform": "all",
+      "privileged": true,
+      "pathAccess": "remove"
+    },
+    {
+      "module": "tools",
+      "function": "chmod",
+      "args": [
+        { "name": "path", "type": "string" },
+        { "name": "mode", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "unix",
+      "privileged": true,
+      "pathAccess": "write"
+    },
+    {
+      "module": "tools",
+      "function": "kill",
+      "args": [
+        { "name": "signal", "type": "string" },
+        { "name": "pids", "type": "string[]" }
+      ],
+      "return": "boolean",
+      "platform": "all",
+      "privileged": true
+    },
+    {
+      "module": "tools",
+      "function": "ln_s",
+      "args": [
+        { "name": "oldname", "type": "string" },
+        { "name": "newname", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "unix",
+      "privileged": true,
+      "pathAccess": "read-write"
+    },
+    {
+      "module": "tools",
+      "function": "killPorts",
+      "args": [{ "name": "ports", "type": "string[]" }],
+      "return": "boolean",
+      "platform": "all",
+      "privileged": true
+    },
+    {
+      "module": "tools",
+      "function": "getPortPids",
+      "args": [{ "name": "port", "type": "string" }],
+      "return": "portProcessInfo[]",
+      "platform": "unix",
+      "privileged": false
+    },
+    {
+      "module": "tools",
+      "function": "getSystemPath",
+      "args": [],
+      "return": "string",
+      "platform": "windows",
+      "privileged": true
+    },
+    {
+      "module": "tools",
+      "function": "setSystemPath",
+      "args": [
+        { "name": "paths", "type": "string[]" },
+        { "name": "otherVars", "type": "object" }
+      ],
+      "return": "boolean",
+      "platform": "windows",
+      "privileged": true
+    },
+    {
+      "module": "tools",
+      "function": "setSystemEnv",
+      "args": [
+        { "name": "key", "type": "string" },
+        { "name": "value", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "windows",
+      "privileged": true
+    },
+    {
+      "module": "tools",
+      "function": "runScript",
+      "args": [
+        { "name": "shell", "type": "string" },
+        { "name": "scriptPath", "type": "string" }
+      ],
+      "return": "execResult",
+      "platform": "unix",
+      "privileged": true,
+      "pathAccess": "read"
+    },
+    {
+      "module": "tools",
+      "function": "setAutoStartWin",
+      "args": [
+        { "name": "enabled", "type": "boolean" },
+        { "name": "taskName", "type": "string" },
+        { "name": "exePath", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "windows",
+      "privileged": true
+    },
+    {
+      "module": "tools",
+      "function": "removeLoginItemMac",
+      "args": [{ "name": "name", "type": "string" }],
+      "return": "boolean",
+      "platform": "darwin",
+      "privileged": true
+    },
+    {
+      "module": "mariadb",
+      "function": "macportsDirFixed",
+      "args": [
+        { "name": "enDir", "type": "string" },
+        { "name": "shareDir", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "darwin",
+      "privileged": true,
+      "pathAccess": "read-write"
+    },
+    {
+      "module": "redis",
+      "function": "logFileFixed",
+      "args": [
+        { "name": "logFile", "type": "string" },
+        { "name": "user", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "unix",
+      "privileged": true,
+      "pathAccess": "write"
+    },
+    {
+      "module": "php",
+      "function": "iniFileFixed",
+      "args": [
+        { "name": "baseIni", "type": "string" },
+        { "name": "ini", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "unix",
+      "privileged": true,
+      "pathAccess": "read-write"
+    },
+    {
+      "module": "mailpit",
+      "function": "binFixed",
+      "args": [{ "name": "bin", "type": "string" }],
+      "return": "boolean",
+      "platform": "darwin",
+      "privileged": true,
+      "pathAccess": "read"
+    },
+    {
+      "module": "mysql",
+      "function": "macportsDirFixed",
+      "args": [
+        { "name": "enDir", "type": "string" },
+        { "name": "shareDir", "type": "string" },
+        { "name": "langDir", "type": "string" },
+        { "name": "langEnDir", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "darwin",
+      "privileged": true,
+      "pathAccess": "read-write"
+    },
+    {
+      "module": "rabbitmq",
+      "function": "initPlugin",
+      "args": [{ "name": "cwd", "type": "string" }],
+      "return": "boolean",
+      "platform": "unix",
+      "privileged": true,
+      "pathAccess": "read"
+    },
+    {
+      "module": "host",
+      "function": "sslAddTrustedCert",
+      "args": [
+        { "name": "cwd", "type": "string" },
+        { "name": "caName", "type": "string" }
+      ],
+      "return": "boolean",
+      "platform": "all",
+      "privileged": true,
+      "pathAccess": "read"
+    },
+    {
+      "module": "host",
+      "function": "sslFindCertificate",
+      "args": [
+        { "name": "cwd", "type": "string" },
+        { "name": "commonName", "type": "string", "optional": true }
+      ],
+      "return": "execResult",
+      "platform": "unix",
+      "privileged": true,
+      "pathAccess": "read"
+    },
+    {
+      "module": "host",
+      "function": "dnsRefresh",
+      "args": [],
+      "return": "boolean",
+      "platform": "unix",
+      "privileged": true
+    }
+  ]
+}

@@ -42,12 +42,12 @@ func ReadFileBytes(path string) ([]byte, error) {
 
 // WriteFile 写入文件内容
 func WriteFile(path string, data []byte) error {
-	return os.WriteFile(path, data, os.ModePerm)
+	return os.WriteFile(path, data, 0644)
 }
 
 // WriteFileString 写入字符串到文件
 func WriteFileString(path string, content string) error {
-	return os.WriteFile(path, []byte(content), os.ModePerm)
+	return os.WriteFile(path, []byte(content), 0644)
 }
 
 var debugLogMutex sync.Mutex
@@ -68,52 +68,10 @@ func AppDebugLog(flag string, info string) {
 	f.WriteString(fmt.Sprintf("[%s] %s: %s\n", timestamp, flag, info))
 }
 
-// getPowerShellExe 获取 Windows 下 PowerShell 的完整路径
-// 如果文件存在则返回完整路径，否则回退到命令名本身
-func getPowerShellExe() string {
-	if !IsWindows() {
-		AppDebugLog("getPowerShellExe", "Not Windows, fallback to 'powershell'")
-		return "powershell"
-	}
-	systemRoot := os.Getenv("SystemRoot")
-	AppDebugLog("getPowerShellExe", fmt.Sprintf("SystemRoot env raw value: %q", systemRoot))
-	if systemRoot == "" {
-		systemRoot = `C:\Windows`
-		AppDebugLog("getPowerShellExe", "SystemRoot empty, fallback to C:\\Windows")
-	}
-	fullPath := filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
-	AppDebugLog("getPowerShellExe", fmt.Sprintf("Checking System32 path: %s", fullPath))
-	if ExistsSync(fullPath) {
-		AppDebugLog("getPowerShellExe", fmt.Sprintf("Found PowerShell at: %s", fullPath))
-		return fullPath
-	}
-	// 32-bit process on 64-bit Windows 会被文件系统重定向到 SysWOW64
-	// PowerShell 不在 SysWOW64 中，需要显式检查 Sysnative
-	sysnativePath := filepath.Join(systemRoot, "Sysnative", "WindowsPowerShell", "v1.0", "powershell.exe")
-	AppDebugLog("getPowerShellExe", fmt.Sprintf("Checking Sysnative path: %s", sysnativePath))
-	if ExistsSync(sysnativePath) {
-		AppDebugLog("getPowerShellExe", fmt.Sprintf("Found PowerShell at Sysnative: %s", sysnativePath))
-		return sysnativePath
-	}
-	AppDebugLog("getPowerShellExe", "PowerShell not found at expected paths, fallback to 'powershell'")
-	return "powershell"
-}
-
-// 对应 execPromise
-// ExecPromise 执行 shell 命令并返回输出
-func ExecPromise(command string, options map[string]interface{}) (string, string, error) {
-	var cmd *exec.Cmd
-
-	if IsMacOS() {
-		cmd = exec.Command("/bin/zsh", "-c", command)
-	} else if IsLinux() {
-		cmd = exec.Command("/bin/bash", "-c", command)
-	} else if IsWindows() {
-		cmd = exec.Command(getPowerShellExe(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-NonInteractive", "-Command", command)
-		SetHideWindow(cmd)
-	} else {
-		return "", "", fmt.Errorf("unsupported operating system")
-	}
+// ExecCommand 执行命令并返回输出
+// 不经过 shell 解析，直接调用可执行文件，参数以数组传递
+func ExecCommand(name string, args []string, options map[string]interface{}) (string, string, error) {
+	cmd := exec.Command(name, args...)
 
 	// 设置工作目录
 	if cwd, ok := options["cwd"].(string); ok {
@@ -129,14 +87,47 @@ func ExecPromise(command string, options map[string]interface{}) (string, string
 		cmd.Env = envVars
 	}
 
+	if IsWindows() {
+		SetHideWindow(cmd)
+	}
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 
-	fmt.Printf("ExecPromise command: %s, error: %v, stdout: %s, stderr: %s\n", command, err, stdout.String(), stderr.String())
+	fmt.Printf("ExecCommand: %s %v, error: %v, stdout: %s, stderr: %s\n", name, args, err, stdout.String(), stderr.String())
 
 	return stdout.String(), stderr.String(), err
+}
+
+// getPowerShellExe 获取 Windows 下 PowerShell 的完整路径
+// 如果文件存在则返回完整路径，否则回退到命令名本身
+func GetPowerShellExe() string {
+	if !IsWindows() {
+		AppDebugLog("GetPowerShellExe", "Not Windows, fallback to 'powershell'")
+		return "powershell"
+	}
+	systemRoot := os.Getenv("SystemRoot")
+	AppDebugLog("GetPowerShellExe", fmt.Sprintf("SystemRoot env raw value: %q", systemRoot))
+	if systemRoot == "" {
+		systemRoot = `C:\Windows`
+		AppDebugLog("GetPowerShellExe", "SystemRoot empty, fallback to C:\\Windows")
+	}
+	fullPath := filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	AppDebugLog("GetPowerShellExe", fmt.Sprintf("Checking System32 path: %s", fullPath))
+	if ExistsSync(fullPath) {
+		AppDebugLog("GetPowerShellExe", fmt.Sprintf("Found PowerShell at: %s", fullPath))
+		return fullPath
+	}
+	sysnativePath := filepath.Join(systemRoot, "Sysnative", "WindowsPowerShell", "v1.0", "powershell.exe")
+	AppDebugLog("GetPowerShellExe", fmt.Sprintf("Checking Sysnative path: %s", sysnativePath))
+	if ExistsSync(sysnativePath) {
+		AppDebugLog("GetPowerShellExe", fmt.Sprintf("Found PowerShell at Sysnative: %s", sysnativePath))
+		return sysnativePath
+	}
+	AppDebugLog("GetPowerShellExe", "PowerShell not found at expected paths, fallback to 'powershell'")
+	return "powershell"
 }
 
 // 对应 waitTime

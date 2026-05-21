@@ -24,7 +24,8 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
 
   if (useHelper) {
     const content: string = (await Helper.send('tools', 'processListWin')) as any
-    const list = JSON5.parse(content)
+    const parsed = JSON5.parse(content)
+    const list = Array.isArray(parsed) ? parsed : parsed ? [parsed] : []
     all.push(
       ...list.map((m: any) => {
         return {
@@ -45,7 +46,8 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
       shell: EnvSync.PowerShellPath || 'powershell.exe'
     })
     const content = await readFile(file, 'utf-8')
-    const list = JSON5.parse(content)
+    const parsed = JSON5.parse(content)
+    const list = Array.isArray(parsed) ? parsed : parsed ? [parsed] : []
     all.push(
       ...list.map((m: any) => {
         return {

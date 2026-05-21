@@ -32,6 +32,8 @@ export class AppHelper {
     let icns = ``
 
     const tmpDir = join(tmpdir(), uuid())
+    const dataPath = dirname(global.Server.AppDir!)
+    const appRoot = PathResolve(global.Server.Static!, '../../../../')
     await mkdirp(tmpDir)
     await chmod(tmpDir, '0755')
     if (is.production()) {
@@ -56,7 +58,7 @@ export class AppHelper {
         await copyFile(bin, tmpBin)
         await chmod(tmpBin, '0755')
 
-        command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" && sudo rm -rf "${tmpDir}"`
+        command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'icon.icns')
       } else if (isLinux()) {
         const uinfo = userInfo()
@@ -74,7 +76,7 @@ export class AppHelper {
         await copyFile(bin, tmpBin)
         await chmod(tmpBin, '0755')
 
-        command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" && sudo rm -rf "${tmpDir}"`
+        command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
       } else if (isWindows()) {
         const binDir = PathResolve(global.Server.Static!, '../../../../')
@@ -88,7 +90,7 @@ export class AppHelper {
           .replace('#TASKNAME#', 'FlyEnvHelperTask')
           .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
-          .replace('#DATAPATH#', dirname(global.Server.AppDir!))
+          .replace('#DATAPATH#', dataPath)
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, '\ufeff' + content)
         command = `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
@@ -119,7 +121,7 @@ export class AppHelper {
         await copyFile(bin, tmpBin)
         await chmod(tmpBin, '0755')
 
-        command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" && sudo rm -rf "${tmpDir}"`
+        command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'icon.icns')
       } else if (isLinux()) {
         const uinfo = userInfo()
@@ -140,7 +142,7 @@ export class AppHelper {
         await copyFile(bin, tmpBin)
         await chmod(tmpBin, '0755')
 
-        command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" && sudo rm -rf "${tmpDir}"`
+        command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
       } else if (isWindows()) {
         const helperFile = 'flyenv-helper-windows-amd64-v1.exe'
@@ -154,7 +156,7 @@ export class AppHelper {
           .replace('#TASKNAME#', 'FlyEnvHelperTask')
           .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
-          .replace('#DATAPATH#', dirname(global.Server.AppDir!))
+          .replace('#DATAPATH#', dataPath)
 
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, '\ufeff' + content)

@@ -109,7 +109,7 @@ export function removePATH(item: SoftInstalled, typeFlag: string) {
 
     const pathString = oldPath
     try {
-      await writePath(pathString, '')
+      await writePath(pathString)
     } catch (e) {
       return reject(e)
     }
@@ -290,13 +290,13 @@ exec php "$(dirname "\${BASH_SOURCE[0]}")/composer.phar" "$@"`
     console.log('oldPath 003: ', oldPath)
 
     const pathString = oldPath
-    let otherString = ''
+    const otherVars: Record<string, string> = {}
     if (typeFlag === 'java') {
-      otherString = `"JAVA_HOME" = "${flagDir}"`
+      otherVars['JAVA_HOME'] = flagDir
     } else if (typeFlag === 'gradle') {
-      otherString = `"GRADLE_HOME" = "${flagDir}"`
+      otherVars['GRADLE_HOME'] = flagDir
     } else if (typeFlag === 'erlang') {
-      otherString = `"ERLANG_HOME" = "${flagDir}"`
+      otherVars['ERLANG_HOME'] = flagDir
       const f = join(global.Server.Cache!, `${uuid()}.ps1`)
       await writeFile(
         f,
@@ -312,7 +312,7 @@ exec php "$(dirname "\${BASH_SOURCE[0]}")/composer.phar" "$@"`
     }
 
     try {
-      await writePath(pathString, otherString)
+      await writePath(pathString, otherVars)
     } catch (e) {
       return reject(e)
     }

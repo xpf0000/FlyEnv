@@ -3,6 +3,7 @@ package module
 import (
 	"fmt"
 	"helper-go/utils" // Import your utils package
+	"path/filepath"
 )
 
 // RabbitmqManager embeds BaseManager, providing RabbitMQ-specific functionalities.
@@ -12,18 +13,17 @@ type RabbitmqManager struct {
 
 // InitPlugin initializes RabbitMQ plugins, specifically enabling rabbitmq_management.
 func (r *RabbitmqManager) InitPlugin(cwd string) (bool, error) {
-	command := `./rabbitmq-plugins enable rabbitmq_management`
-	options := map[string]interface{}{
-		"cwd": cwd, // Pass the cwd option
+	if err := utils.ValidateRabbitMQPluginDir(cwd); err != nil {
+		return false, fmt.Errorf("path not allowed: %s: %w", cwd, err)
 	}
-
-	_, stderr, err := utils.ExecPromise(command, options)
+	binPath := filepath.Join(cwd, "rabbitmq-plugins")
+	_, stderr, err := utils.ExecCommand(binPath, []string{"enable", "rabbitmq_management"}, map[string]interface{}{
+		"cwd": cwd,
+	})
 	if err != nil {
-		// Equivalent to JS reject(e)
 		return false, fmt.Errorf("failed to enable rabbitmq_management plugin: %w, stderr: %s", err, stderr)
 	}
 
-	// Equivalent to JS resolve(true)
 	return true, nil
 }
 

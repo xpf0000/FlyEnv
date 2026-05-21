@@ -4,6 +4,7 @@ import {
   AppHelperCheck,
   AppHelperSocketPathGet,
   getHelperKey,
+  helperTaskAuthFields,
   signTaskItem
 } from '@shared/AppHelperCheck'
 import type { AppHelper } from '../main/core/AppHelper'
@@ -11,9 +12,9 @@ import JSON5 from 'json5'
 import { appDebugLog } from '@shared/utils'
 
 type Module =
+  | 'helper'
   | 'tools'
   | 'mariadb'
-  | 'caddy'
   | 'redis'
   | 'php'
   | 'mailpit'
@@ -21,14 +22,14 @@ type Module =
   | 'rabbitmq'
   | 'host'
 type FN =
+  | 'version'
   | 'writeFileByRoot'
+  | 'writeBufferBase64ByRoot'
   | 'readFileByRoot'
   | 'processList'
   | 'macportsDirFixed'
-  | 'sslDirFixed'
   | 'logFileFixed'
   | 'iniFileFixed'
-  | 'iniDefaultFileFixed'
   | 'rm'
   | 'kill'
   | 'binFixed'
@@ -40,7 +41,6 @@ type FN =
   | 'killPorts'
   | 'getPortPids'
   | 'chmod'
-  | 'getPortPidsWin'
   | 'processListWin'
   | 'getSystemPath'
   | 'setSystemPath'
@@ -59,9 +59,38 @@ class Helper {
     this.helperKey = await getHelperKey()
   }
 
+  private validatePathArg(arg: any): boolean {
+    if (typeof arg !== 'string') return true
+    if (!arg.includes('/') && !arg.includes('\\')) return true
+    const parts = arg.replace(/\\/g, '/').split('/')
+    if (parts.some((p) => p === '..')) return false
+    return true
+  }
+
+  private validateSendArgs(module: string, fn: string, args: any[]): boolean {
+    for (const arg of args) {
+      if (typeof arg === 'string') {
+        if (!this.validatePathArg(arg)) return false
+      } else if (Array.isArray(arg)) {
+        for (const item of arg) {
+          if (typeof item === 'string' && !this.validatePathArg(item)) {
+            return false
+          }
+        }
+      }
+    }
+    return true
+  }
+
   send<T>(module: Module, fn: FN, ...args: any): Promise<T> {
     return new Promise(async (resolve, reject) => {
       console.trace('Helper.send: ', module, fn, ...args)
+
+      if (!this.validateSendArgs(module, fn, args)) {
+        reject(new Error('Path traversal detected'))
+        return
+      }
+
       if (!this.enable) {
         try {
           await AppHelperCheck()
@@ -93,7 +122,8 @@ class Helper {
           key,
           module,
           function: fn,
-          args
+          args,
+          ...helperTaskAuthFields()
         }
         if (this.helperKey) {
           param.sig = signTaskItem(this.helperKey, param)

@@ -14,6 +14,13 @@
     "build-dev-runner": "npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/dev-runner.ts --outfile=electron/dev-runner.mjs",
     "dev": "yarn run clean:dev && yarn run build-dev-runner && cross-env NODE_ENV=development node electron/dev-runner.mjs",
     "build": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production node electron/app-builder.mjs",
+    "test:helper:contract": "tsx scripts/helper-contract-check.ts",
+    "test:helper:go": "tsx scripts/helper-go-test.ts test",
+    "test:helper:go:vet": "tsx scripts/helper-go-test.ts vet",
+    "test:helper:go:admin": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/helper-go-admin-test.ps1 test",
+    "test:helper:go:vet:admin": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/helper-go-admin-test.ps1 vet",
+    "test:helper:admin": "yarn run test:helper:contract && yarn run test:helper:go:admin && yarn run test:helper:go:vet:admin",
+    "test:helper": "yarn run test:helper:contract && yarn run test:helper:go && yarn run test:helper:go:vet",
     "postinstall": "electron-builder install-app-deps"
   },
   "type": "module",

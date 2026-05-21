@@ -39,7 +39,7 @@ func GetPipeNameFromSocketPath(socketPath string) string {
 	return result.String()
 }
 
-func getCurrentUserSID() (string, error) {
+func CurrentUserSID() (string, error) {
 	token, err := windows.OpenCurrentProcessToken()
 	if err != nil {
 		return "", err
@@ -51,10 +51,7 @@ func getCurrentUserSID() (string, error) {
 		return "", err
 	}
 
-	sid, err := user.User.Sid.String()
-	if err != nil {
-		return "", err
-	}
+	sid := user.User.Sid.String()
 	return sid, nil
 }
 
@@ -62,7 +59,7 @@ func CreateWindowsNamedPipe(SOCKET_PATH string) (net.Listener, error) {
 	pipeName := GetPipeNameFromSocketPath(SOCKET_PATH)
 	fullPipePath := `\\.\pipe\` + pipeName
 
-	sid, err := getCurrentUserSID()
+	sid, err := CurrentUserSID()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current user SID: %w", err)
 	}

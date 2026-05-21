@@ -12,18 +12,17 @@ type MailpitManager struct {
 
 // BinFixed attempts to remove the quarantine attribute from a binary on macOS.
 func (m *MailpitManager) BinFixed(bin string) (bool, error) {
+	if err := utils.ValidatePathForRead(bin); err != nil {
+		return false, fmt.Errorf("path not allowed: %s: %w", bin, err)
+	}
 	if utils.IsMacOS() {
 		if utils.ExistsSync(bin) {
-			command := fmt.Sprintf(`xattr -dr "com.apple.quarantine" "%s"`, bin)
-			_, stderr, err := utils.ExecPromise(command, nil) // No options passed in JS, so nil
+			_, stderr, err := utils.ExecCommand("xattr", []string{"-dr", "com.apple.quarantine", bin}, nil)
 			if err != nil {
-				// In Go, it's better to log the error rather than silently ignoring it like JS catch {}
-				// Or, return the error to the caller for proper handling.
 				return false, fmt.Errorf("failed to remove quarantine attribute from '%s': %w, stderr: %s", bin, err, stderr)
 			}
 		}
 	}
-	// Always return true if not macOS, or if macOS and successful/binary didn't exist
 	return true, nil
 }
 

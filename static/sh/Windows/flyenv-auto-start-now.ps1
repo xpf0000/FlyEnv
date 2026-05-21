@@ -4,6 +4,8 @@ try {
   $taskName = "#TASKNAME#"
   $exePath = "#EXECPATH#"
   $dataPath = "#DATAPATH#"
+  $allowDir = Join-Path $env:ProgramData "FlyEnv"
+  $allowFile = Join-Path $allowDir "flyenv.allowed-roots"
 
   $currentUserName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
@@ -26,6 +28,37 @@ try {
     } catch {
       Write-Host "Warning: Failed to set permissions: $($_.Exception.Message)"
     }
+  }
+
+  if (-not (Test-Path -LiteralPath $allowDir)) {
+    New-Item -Path $allowDir -ItemType Directory -Force | Out-Null
+  }
+
+  $roots = @($dataPath, (Split-Path -Parent $exePath)) | Where-Object { $_ -and $_.Trim().Length -gt 0 } | Sort-Object -Unique
+  Set-Content -LiteralPath $allowFile -Value $roots -Encoding UTF8
+
+  try {
+    $adminSid = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-544")
+    $systemSid = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-18")
+    $userSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
+
+    $dirAcl = New-Object System.Security.AccessControl.DirectorySecurity
+    $dirAcl.SetAccessRuleProtection($true, $false)
+    $dirAcl.SetOwner($adminSid)
+    $dirAcl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($adminSid, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")))
+    $dirAcl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($systemSid, "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")))
+    $dirAcl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($userSid, "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")))
+    Set-Acl -LiteralPath $allowDir -AclObject $dirAcl
+
+    $fileAcl = New-Object System.Security.AccessControl.FileSecurity
+    $fileAcl.SetAccessRuleProtection($true, $false)
+    $fileAcl.SetOwner($adminSid)
+    $fileAcl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($adminSid, "FullControl", "None", "None", "Allow")))
+    $fileAcl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($systemSid, "FullControl", "None", "None", "Allow")))
+    $fileAcl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($userSid, "Read", "None", "None", "Allow")))
+    Set-Acl -LiteralPath $allowFile -AclObject $fileAcl
+  } catch {
+    Write-Host "Warning: Failed to lock allowed roots file permissions: $($_.Exception.Message)"
   }
 
   try {

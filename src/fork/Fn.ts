@@ -308,7 +308,18 @@ export const systemProxyGet = async () => {
   return proxy
 }
 
+const validateHelperPath = (path: string): boolean => {
+  if (!path) return false
+  if (!path.includes('/') && !path.includes('\\')) return true
+  const parts = path.replace(/\\/g, '/').split('/')
+  if (parts.some((p) => p === '..')) return false
+  return true
+}
+
 export const writeFileByRoot = async (file: string, content: string) => {
+  if (!validateHelperPath(file)) {
+    throw new Error(`Path traversal detected: ${file}`)
+  }
   try {
     await writeFile(file, content)
     return true
@@ -320,6 +331,9 @@ export const writeFileByRoot = async (file: string, content: string) => {
 }
 
 export const readFileByRoot = async (file: string): Promise<string> => {
+  if (!validateHelperPath(file)) {
+    throw new Error(`Path traversal detected: ${file}`)
+  }
   try {
     return await readFile(file, 'utf-8')
   } catch {}
@@ -327,6 +341,9 @@ export const readFileByRoot = async (file: string): Promise<string> => {
 }
 
 export const removeByRoot = async (file: string): Promise<void> => {
+  if (!validateHelperPath(file)) {
+    throw new Error(`Path traversal detected: ${file}`)
+  }
   try {
     await remove(file)
     return

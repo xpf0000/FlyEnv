@@ -12,22 +12,22 @@ type MariadbManager struct {
 
 // MacportsDirFixed ensures the MacPorts directory structure is correctly set up for MariaDB.
 func (m *MariadbManager) MacportsDirFixed(enDir, shareDir string) (bool, error) {
-	// Equivalent to JS: await execPromise(`mkdir -p ${enDir}`)
-	_, stderr, err := utils.ExecPromise(fmt.Sprintf(`mkdir -p "%s"`, enDir), nil)
+	if err := utils.ValidatePathForWrite(enDir); err != nil {
+		return false, fmt.Errorf("path not allowed: %s: %w", enDir, err)
+	}
+	if err := utils.ValidatePathForRead(shareDir); err != nil {
+		return false, fmt.Errorf("path not allowed: %s: %w", shareDir, err)
+	}
+	_, stderr, err := utils.ExecCommand("mkdir", []string{"-p", enDir}, nil)
 	if err != nil {
-		// JS had an empty catch, but in Go, it's good practice to at least log.
 		return false, fmt.Errorf("failed to create directory '%s': %w, stderr: %s", enDir, err, stderr)
 	}
 
-	// Equivalent to JS: await execPromise(`cp -R ${shareDir} ${enDir}`)
-	_, stderr, err = utils.ExecPromise(fmt.Sprintf(`cp -R "%s" "%s"`, shareDir, enDir), nil)
+	_, stderr, err = utils.ExecCommand("cp", []string{"-R", shareDir, enDir}, nil)
 	if err != nil {
-		// Log the error for cp, but since JS always resolved true, we might return true
-		// or, for better Go practice, return the error. Let's return the error as it indicates a failure.
 		return false, fmt.Errorf("failed to copy shared directory '%s' to '%s': %w, stderr: %s", shareDir, enDir, err, stderr)
 	}
 
-	// If all commands executed without critical errors, return true
 	return true, nil
 }
 

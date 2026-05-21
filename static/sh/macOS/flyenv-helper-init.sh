@@ -1,9 +1,12 @@
 #!/bin/zsh
 PLIST_SRC="$1"
 BIN="$2"
+DATA_PATH="$4"
+APP_ROOT="$5"
 
 PLIST_PATH="/Library/LaunchDaemons/com.flyenv.helper.plist"
 BIN_DEST="/Library/Application Support/FlyEnv/Helper/flyenv-helper"
+ALLOW_ROOTS_PATH="/usr/local/share/FlyEnv/flyenv.allowed-roots"
 
 OS_VERSION=$(sw_vers -productVersion | cut -d. -f1)
 
@@ -24,14 +27,23 @@ if [ -e "/tmp/flyenv-helper.sock" ]; then
   sudo chown "$3" "/tmp/flyenv-helper.sock"
 fi
 
-if [ -e "/tmp/flyenv.role" ]; then
-  sudo chown "$3" "/tmp/flyenv.role"
-  echo "$3" > "/tmp/flyenv.role"
-fi
+sudo mkdir -p "/usr/local/share/FlyEnv"
+echo "$3" | sudo tee "/tmp/flyenv.role" >/dev/null
+echo "$3" | sudo tee "/usr/local/share/FlyEnv/flyenv.role" >/dev/null
+sudo chown "$3" "/tmp/flyenv.role"
+sudo chmod 0600 "/tmp/flyenv.role"
+sudo chown root:wheel "/usr/local/share/FlyEnv/flyenv.role"
+sudo chmod 0644 "/usr/local/share/FlyEnv/flyenv.role"
 
-if [ -e "/usr/local/share/FlyEnv/flyenv.role" ]; then
-  sudo chown "$3" "/usr/local/share/FlyEnv/flyenv.role"
-  echo "$3" > "/usr/local/share/FlyEnv/flyenv.role"
+if [ -n "$DATA_PATH" ]; then
+  {
+    printf '%s\n' "$DATA_PATH"
+    if [ -n "$APP_ROOT" ]; then
+      printf '%s\n' "$APP_ROOT"
+    fi
+  } | sudo tee "$ALLOW_ROOTS_PATH" >/dev/null
+  sudo chown root:wheel "$ALLOW_ROOTS_PATH"
+  sudo chmod 0644 "$ALLOW_ROOTS_PATH"
 fi
 
 # Copy the new plist file

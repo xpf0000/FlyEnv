@@ -9,9 +9,9 @@ import crypto from 'node:crypto'
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
-export const HelperVersion = 11
+export const HelperVersion = 13
 
-const Key_Path_Unix = '/tmp/flyenv-helper.key'
+const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 
 export const HelperKeyPath = (): string => {
   return isWindows() ? join(tmpdir(), 'flyenv-helper.key') : Key_Path_Unix
@@ -29,13 +29,31 @@ export const getHelperKey = async (): Promise<Buffer | null> => {
 
 export const signTaskItem = (
   key: Buffer,
-  item: { key: string; module: string; function: string; args: any[] }
+  item: {
+    key: string
+    module: string
+    function: string
+    args: any[]
+    ts: number
+    nonce: string
+    clientPid?: number
+    clientExe?: string
+  }
 ): string => {
   const argsJSON = JSON.stringify(item.args ?? [])
-  const payload = `${item.key}|${item.module}|${item.function}|${argsJSON}`
+  const payload = `${item.key}|${item.module}|${item.function}|${argsJSON}|${item.ts}|${item.nonce}|${item.clientPid ?? 0}|${item.clientExe ?? ''}`
   const hmac = crypto.createHmac('sha256', key)
   hmac.update(payload)
   return hmac.digest('hex')
+}
+
+export const helperTaskAuthFields = () => {
+  return {
+    ts: Date.now(),
+    nonce: crypto.randomUUID(),
+    clientPid: process.pid,
+    clientExe: process.execPath ?? ''
+  }
 }
 
 export const AppHelperSocketPathGet = (): string => {
@@ -82,7 +100,8 @@ export const AppHelperCheck = () => {
         key,
         module: 'helper',
         function: 'version',
-        args: []
+        args: [],
+        ...helperTaskAuthFields()
       }
       if (helperKey) {
         param.sig = signTaskItem(helperKey, param)
