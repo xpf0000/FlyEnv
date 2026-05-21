@@ -439,15 +439,14 @@ func (t *ToolManager) GetSystemPath() (string, error) {
 	if !utils.IsWindows() {
 		return "", fmt.Errorf("GetSystemPath is only supported on Windows")
 	}
-	script := `$regKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey('LocalMachine', [Microsoft.Win32.RegistryView]::Registry64); $subKey = $regKey.OpenSubKey('SYSTEM\CurrentControlSet\Control\Session Manager\Environment', $false); $path = $subKey.GetValue('Path', $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames); $subKey.Close(); $regKey.Close(); $path`
-	stdout, stderr, err := runPowerShellScript(script)
+	value, err := windowsGetMachineEnv("Path")
 	if err != nil {
-		return "", fmt.Errorf("failed to get system PATH: %w, stderr: %s", err, stderr)
+		return "", fmt.Errorf("failed to get system PATH: %w", err)
 	}
-	return strings.TrimSpace(stdout), nil
+	return strings.TrimSpace(value), nil
 }
 
-// SetSystemPath writes the system PATH to Windows registry via PowerShell -File.
+// SetSystemPath writes the system PATH to Windows registry.
 func (t *ToolManager) SetSystemPath(paths []string, otherVars map[string]string) (bool, error) {
 	if !utils.IsWindows() {
 		return false, fmt.Errorf("SetSystemPath is only supported on Windows")
@@ -458,9 +457,9 @@ func (t *ToolManager) SetSystemPath(paths []string, otherVars map[string]string)
 		}
 	}
 	pathStr := strings.Join(paths, ";") + ";"
-	pathStr = strings.ReplaceAll(pathStr, "'", "''")
-
-	psCmd := fmt.Sprintf(`$pathStr = '%s'; [Microsoft.Win32.Registry]::SetValue('HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', $pathStr, [Microsoft.Win32.RegistryValueKind]::ExpandString)`, pathStr)
+	if err := windowsSetMachineEnvExpandString("Path", pathStr); err != nil {
+		return false, fmt.Errorf("failed to set system PATH: %w", err)
+	}
 
 	for k, v := range otherVars {
 		if err := utils.ValidateSystemEnvKey(k, true); err != nil {
@@ -469,21 +468,19 @@ func (t *ToolManager) SetSystemPath(paths []string, otherVars map[string]string)
 		if err := utils.ValidateSystemEnvValue(k, v); err != nil {
 			return false, err
 		}
-		v = strings.ReplaceAll(v, "'", "''")
-		k = strings.ReplaceAll(k, "'", "''")
-		psCmd += fmt.Sprintf(`; [Environment]::SetEnvironmentVariable('%s', '%s', 'Machine')`, k, v)
+		if err := windowsSetMachineEnv(k, v); err != nil {
+			return false, fmt.Errorf("failed to set system env %s: %w", k, err)
+		}
 	}
 
-	psCmd += `; [Environment]::SetEnvironmentVariable('FLYENV_ENV_FLUSH', '0', 'Machine'); try { rundll32.exe user32.dll,UpdatePerUserSystemParameters 1, True } catch {}`
-
-	_, stderr, err := runPowerShellScript(psCmd)
-	if err != nil {
-		return false, fmt.Errorf("failed to set system PATH: %w, stderr: %s", err, stderr)
+	if err := windowsSetMachineEnv("FLYENV_ENV_FLUSH", "0"); err != nil {
+		return false, fmt.Errorf("failed to set FLYENV_ENV_FLUSH: %w", err)
 	}
+	windowsNotifyEnvironmentChanged()
 	return true, nil
 }
 
-// SetSystemEnv sets a single machine-level environment variable on Windows via PowerShell -File.
+// SetSystemEnv sets a single machine-level environment variable on Windows.
 func (t *ToolManager) SetSystemEnv(key, value string) (bool, error) {
 	if !utils.IsWindows() {
 		return false, fmt.Errorf("SetSystemEnv is only supported on Windows")
@@ -494,13 +491,10 @@ func (t *ToolManager) SetSystemEnv(key, value string) (bool, error) {
 	if err := utils.ValidateSystemEnvValue(key, value); err != nil {
 		return false, err
 	}
-	key = strings.ReplaceAll(key, "'", "''")
-	value = strings.ReplaceAll(value, "'", "''")
-	script := fmt.Sprintf(`[Environment]::SetEnvironmentVariable('%s', '%s', 'Machine')`, key, value)
-	_, stderr, err := runPowerShellScript(script)
-	if err != nil {
-		return false, fmt.Errorf("failed to set system env %s: %w, stderr: %s", key, err, stderr)
+	if err := windowsSetMachineEnv(key, value); err != nil {
+		return false, fmt.Errorf("failed to set system env %s: %w", key, err)
 	}
+	windowsNotifyEnvironmentChanged()
 	return true, nil
 }
 
