@@ -24,10 +24,11 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Setup Latest Go
-        uses: actions/setup-go@v4
+      - name: Setup Go
+        uses: actions/setup-go@v6
         with:
-          go-version: 'stable'
+          go-version-file: 'src/helper-go/go.mod'
+          cache-dependency-path: 'src/helper-go/go.sum'
 
       - name: Cache node_modules and node-gyp
         uses: actions/cache@v4
@@ -57,9 +58,7 @@ jobs:
           $GOBIN = $(go env GOPATH) + "\bin"
           $env:PATH = "$GOBIN;$env:PATH"
           cd "$env:GITHUB_WORKSPACE/src/helper-go"
-          go clean -modcache
           go mod download
-          go mod tidy
           go-winres make
           # 使用 PowerShell 脚本构建
           .\build-win.ps1
