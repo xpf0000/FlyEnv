@@ -224,6 +224,7 @@ subjectAltName=@alt_names
           powershell,
           ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command],
           {
+            detached: true,
             windowsHide: true
           }
         )

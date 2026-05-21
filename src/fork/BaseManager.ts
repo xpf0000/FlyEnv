@@ -75,7 +75,16 @@ class BaseManager {
 
   constructor() {}
 
-  init() {}
+  init() {
+    import('./module/Cron')
+      .then((res) => {
+        this.Cron = res.default
+        this.Cron?.init?.()
+      })
+      .catch((e) => {
+        console.error('[BaseManager] Cron init failed:', e)
+      })
+  }
 
   async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()

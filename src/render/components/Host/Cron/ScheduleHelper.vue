@@ -3,146 +3,150 @@
     v-model="visible"
     :title="I18nT('cron.helper')"
     width="600px"
-    class="schedule-helper-dialog"
+    class="schedule-helper-dialog el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     @close="$emit('close')"
   >
-    <div class="helper-wrap">
-      <!-- Live expression display -->
-      <div class="expr-display">
-        <div class="expr-label">{{ I18nT('cron.expression') }}</div>
-        <div class="expr-value">
-          <span
-            v-for="(part, i) in partValues"
-            :key="i"
-            class="expr-part"
-            :class="{ active: activeField === i }"
-          >
-            {{ part }}
-          </span>
+    <el-scrollbar>
+      <div class="helper-wrap">
+        <!-- Live expression display -->
+        <div class="expr-display">
+          <div class="expr-label">{{ I18nT('cron.expression') }}</div>
+          <div class="expr-value">
+            <span
+              v-for="(part, i) in partValues"
+              :key="i"
+              class="expr-part"
+              :class="{ active: activeField === i }"
+            >
+              {{ part }}
+            </span>
+          </div>
+          <div class="expr-legend">
+            <span
+              v-for="(lbl, i) in fieldLabels"
+              :key="i"
+              :class="{ active: activeField === i }"
+              @click="activeField = i"
+            >
+              {{ lbl }}
+            </span>
+          </div>
+          <div v-if="description" class="expr-desc">
+            <el-icon><Clock /></el-icon>
+            {{ description }}
+          </div>
         </div>
-        <div class="expr-legend">
-          <span
-            v-for="(lbl, i) in fieldLabels"
+
+        <!-- Presets -->
+        <div class="section-title">{{ I18nT('cron.presets') }}</div>
+        <div class="presets-grid">
+          <div
+            v-for="preset in presets"
+            :key="preset.value"
+            class="preset-card"
+            :class="{ selected: generatedSchedule === preset.value }"
+            @click="applyPreset(preset)"
+          >
+            <div class="preset-icon">{{ preset.icon }}</div>
+            <div class="preset-name">{{ I18nT(preset.labelKey) }}</div>
+            <div class="preset-expr">{{ preset.value }}</div>
+          </div>
+        </div>
+
+        <!-- Field editor -->
+        <div class="section-title">{{ I18nT('cron.custom') }}</div>
+        <div class="field-tabs">
+          <div
+            v-for="(_field, i) in fields"
             :key="i"
+            class="field-tab"
             :class="{ active: activeField === i }"
             @click="activeField = i"
           >
-            {{ lbl }}
-          </span>
-        </div>
-        <div v-if="description" class="expr-desc">
-          <el-icon><Clock /></el-icon>
-          {{ description }}
-        </div>
-      </div>
-
-      <!-- Presets -->
-      <div class="section-title">{{ I18nT('cron.presets') }}</div>
-      <div class="presets-grid">
-        <div
-          v-for="preset in presets"
-          :key="preset.value"
-          class="preset-card"
-          :class="{ selected: generatedSchedule === preset.value }"
-          @click="applyPreset(preset)"
-        >
-          <div class="preset-icon">{{ preset.icon }}</div>
-          <div class="preset-name">{{ preset.name }}</div>
-          <div class="preset-expr">{{ preset.value }}</div>
-        </div>
-      </div>
-
-      <!-- Field editor -->
-      <div class="section-title">{{ I18nT('cron.custom') }}</div>
-      <div class="field-tabs">
-        <div
-          v-for="(field, i) in fields"
-          :key="i"
-          class="field-tab"
-          :class="{ active: activeField === i }"
-          @click="activeField = i"
-        >
-          <span class="tab-label">{{ fieldLabels[i] }}</span>
-          <span class="tab-value">{{ partValues[i] }}</span>
-        </div>
-      </div>
-
-      <div class="field-editor">
-        <div class="editor-title">{{ fieldLabels[activeField] }}</div>
-        <div class="editor-hint">{{ fields[activeField].hint }}</div>
-
-        <div class="editor-options">
-          <div class="option-group">
-            <el-radio-group v-model="fields[activeField].mode">
-              <el-radio value="any">Any (*)</el-radio>
-              <el-radio value="every">Every N</el-radio>
-              <el-radio value="specific">Specific</el-radio>
-              <el-radio value="range">Range</el-radio>
-            </el-radio-group>
+            <span class="tab-label">{{ fieldLabels[i] }}</span>
+            <span class="tab-value">{{ partValues[i] }}</span>
           </div>
+        </div>
 
-          <div v-if="fields[activeField].mode === 'every'" class="mode-config">
-            <el-input-number
-              v-model="fields[activeField].everyN"
-              :min="1"
-              :max="fields[activeField].max"
-              controls-position="right"
-            />
-            <span class="ml-2 text-sm text-gray-500">{{ fields[activeField].unit }}</span>
-          </div>
+        <div class="field-editor">
+          <div class="editor-title">{{ fieldLabels[activeField] }}</div>
+          <div class="editor-hint">{{ fields[activeField].hint }}</div>
 
-          <div v-if="fields[activeField].mode === 'specific'" class="mode-config">
-            <div class="value-chips">
-              <div
-                v-for="v in fields[activeField].options"
-                :key="v.value"
-                class="chip"
-                :class="{ selected: fields[activeField].specific.includes(v.value) }"
-                @click="toggleSpecific(v.value)"
-              >
-                {{ v.label }}
+          <div class="editor-options">
+            <div class="option-group">
+              <el-radio-group v-model="fields[activeField].mode">
+                <el-radio value="any">{{ I18nT('cron.modeAny') }}</el-radio>
+                <el-radio value="every">{{ I18nT('cron.modeEvery') }}</el-radio>
+                <el-radio value="specific">{{ I18nT('cron.modeSpecific') }}</el-radio>
+                <el-radio value="range">{{ I18nT('cron.modeRange') }}</el-radio>
+              </el-radio-group>
+            </div>
+
+            <div v-if="fields[activeField].mode === 'every'" class="mode-config">
+              <el-input-number
+                v-model="fields[activeField].everyN"
+                :min="1"
+                :max="fields[activeField].max"
+                controls-position="right"
+              />
+              <span class="ml-2 text-sm text-gray-500">{{
+                I18nT(fields[activeField].unitKey)
+              }}</span>
+            </div>
+
+            <div v-if="fields[activeField].mode === 'specific'" class="mode-config">
+              <div class="value-chips">
+                <div
+                  v-for="v in fields[activeField].options"
+                  :key="v.value"
+                  class="chip"
+                  :class="{ selected: fields[activeField].specific.includes(v.value) }"
+                  @click="toggleSpecific(v.value)"
+                >
+                  {{ v.label }}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div v-if="fields[activeField].mode === 'range'" class="mode-config range-inputs">
-            <el-input-number
-              v-model="fields[activeField].rangeFrom"
-              :min="fields[activeField].min"
-              :max="fields[activeField].max - 1"
-              controls-position="right"
-            />
-            <span class="range-sep">–</span>
-            <el-input-number
-              v-model="fields[activeField].rangeTo"
-              :min="fields[activeField].min + 1"
-              :max="fields[activeField].max"
-              controls-position="right"
-            />
+            <div v-if="fields[activeField].mode === 'range'" class="mode-config range-inputs">
+              <el-input-number
+                v-model="fields[activeField].rangeFrom"
+                :min="fields[activeField].min"
+                :max="fields[activeField].max - 1"
+                controls-position="right"
+              />
+              <span class="range-sep">–</span>
+              <el-input-number
+                v-model="fields[activeField].rangeTo"
+                :min="fields[activeField].min + 1"
+                :max="fields[activeField].max"
+                controls-position="right"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="hidden-old" style="display: none">
-        <h4>{{ I18nT('cron.presets') }}</h4>
-        <div>
-          <el-button
-            v-for="preset in presetsLegacy"
-            :key="preset.value"
-            size="small"
-            @click="selectPreset(preset)"
-          >
-            {{ preset.label }}
-          </el-button>
+        <div class="hidden-old" style="display: none">
+          <h4>{{ I18nT('cron.presets') }}</h4>
+          <div>
+            <el-button
+              v-for="preset in presetsLegacy"
+              :key="preset.value"
+              size="small"
+              @click="selectPreset(preset)"
+            >
+              {{ I18nT(preset.labelKey) }}
+            </el-button>
+          </div>
+        </div>
+
+        <el-divider class="hidden-old" style="display: none" />
+
+        <div class="hidden-old" style="display: none">
+          <h4>{{ I18nT('cron.custom') }}</h4>
         </div>
       </div>
-
-      <el-divider class="hidden-old" style="display: none" />
-
-      <div class="hidden-old" style="display: none">
-        <h4>{{ I18nT('cron.custom') }}</h4>
-      </div>
-    </div>
+    </el-scrollbar>
 
     <template #footer>
       <el-button @click="visible = false">{{ I18nT('base.cancel') }}</el-button>
@@ -155,6 +159,8 @@
   import { ref, computed } from 'vue'
   import { I18nT } from '@lang/index'
   import { Clock } from '@element-plus/icons-vue'
+  import { validatePortableCronExpression } from '@shared/CronExpression'
+  import { MessageError } from '@/util/Element'
 
   const emit = defineEmits<{
     select: [schedule: string]
@@ -163,7 +169,14 @@
 
   const visible = ref(true)
   const activeField = ref(0)
-  const fieldLabels = ['Minute', 'Hour', 'Day', 'Month', 'Weekday']
+  type I18nKey = Parameters<typeof I18nT>[0]
+  const fieldLabels = computed(() => [
+    I18nT('cron.fieldMinute'),
+    I18nT('cron.fieldHour'),
+    I18nT('cron.fieldDay'),
+    I18nT('cron.fieldMonth'),
+    I18nT('cron.fieldWeekday')
+  ])
 
   interface FieldDef {
     mode: 'any' | 'every' | 'specific' | 'range'
@@ -174,7 +187,7 @@
     rangeFrom: number
     rangeTo: number
     hint: string
-    unit: string
+    unitKey: I18nKey
     options: { label: string; value: number }[]
   }
 
@@ -185,20 +198,28 @@
     }))
 
   const monthLabels = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
+    I18nT('cron.monthJan'),
+    I18nT('cron.monthFeb'),
+    I18nT('cron.monthMar'),
+    I18nT('cron.monthApr'),
+    I18nT('cron.monthMay'),
+    I18nT('cron.monthJun'),
+    I18nT('cron.monthJul'),
+    I18nT('cron.monthAug'),
+    I18nT('cron.monthSep'),
+    I18nT('cron.monthOct'),
+    I18nT('cron.monthNov'),
+    I18nT('cron.monthDec')
   ]
-  const weekLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const weekLabels = [
+    I18nT('cron.weekSun'),
+    I18nT('cron.weekMon'),
+    I18nT('cron.weekTue'),
+    I18nT('cron.weekWed'),
+    I18nT('cron.weekThu'),
+    I18nT('cron.weekFri'),
+    I18nT('cron.weekSat')
+  ]
 
   const fields = ref<FieldDef[]>([
     {
@@ -210,7 +231,7 @@
       rangeFrom: 0,
       rangeTo: 59,
       hint: '0–59',
-      unit: 'minutes',
+      unitKey: 'cron.unitMinutes',
       options: makeOptions(0, 59)
     },
     {
@@ -222,7 +243,7 @@
       rangeFrom: 0,
       rangeTo: 23,
       hint: '0–23',
-      unit: 'hours',
+      unitKey: 'cron.unitHours',
       options: makeOptions(0, 23)
     },
     {
@@ -234,7 +255,7 @@
       rangeFrom: 1,
       rangeTo: 31,
       hint: '1–31',
-      unit: 'days',
+      unitKey: 'cron.unitDays',
       options: makeOptions(1, 31)
     },
     {
@@ -246,7 +267,7 @@
       rangeFrom: 1,
       rangeTo: 12,
       hint: '1–12',
-      unit: 'months',
+      unitKey: 'cron.unitMonths',
       options: makeOptions(1, 12, monthLabels)
     },
     {
@@ -257,8 +278,8 @@
       specific: [],
       rangeFrom: 0,
       rangeTo: 6,
-      hint: '0=Sun … 6=Sat',
-      unit: 'weekdays',
+      hint: I18nT('cron.hintWeekdayRange'),
+      unitKey: 'cron.unitWeekdays',
       options: makeOptions(0, 6, weekLabels)
     }
   ])
@@ -277,44 +298,44 @@
   const generatedSchedule = computed(() => partValues.value.join(' '))
 
   const description = computed(() => {
-    if (generatedSchedule.value === '* * * * *') return 'Every minute'
-    if (generatedSchedule.value === '0 * * * *') return 'Every hour'
-    if (generatedSchedule.value === '0 0 * * *') return 'Every day at midnight'
-    if (generatedSchedule.value === '0 0 * * 0') return 'Every Sunday at midnight'
-    if (generatedSchedule.value === '0 0 1 * *') return 'First day of every month'
-    if (generatedSchedule.value === '0 9 * * 1-5') return 'Weekdays at 9:00 AM'
+    if (generatedSchedule.value === '* * * * *') return I18nT('cron.descEveryMinute')
+    if (generatedSchedule.value === '0 * * * *') return I18nT('cron.descEveryHour')
+    if (generatedSchedule.value === '0 0 * * *') return I18nT('cron.descDailyMidnight')
+    if (generatedSchedule.value === '0 0 * * 0') return I18nT('cron.descEverySundayMidnight')
+    if (generatedSchedule.value === '0 0 1 * *') return I18nT('cron.descMonthly1st')
+    if (generatedSchedule.value === '0 9 * * 1-5') return I18nT('cron.descWeekdays9')
     const [min, hr] = partValues.value
     const parts: string[] = []
-    if (min.startsWith('*/')) parts.push(`every ${min.slice(2)} min`)
-    else if (min !== '*') parts.push(`at minute ${min}`)
-    if (hr.startsWith('*/')) parts.push(`every ${hr.slice(2)} hours`)
-    else if (hr !== '*') parts.push(`at ${hr}:00`)
+    if (min.startsWith('*/')) parts.push(I18nT('cron.descEveryNMinutes', { n: min.slice(2) }))
+    else if (min !== '*') parts.push(I18nT('cron.descAtMinute', { n: min }))
+    if (hr.startsWith('*/')) parts.push(I18nT('cron.descEveryNHours', { n: hr.slice(2) }))
+    else if (hr !== '*') parts.push(I18nT('cron.descAtHour', { n: hr }))
     return parts.join(', ')
   })
 
   interface Preset {
-    name: string
+    labelKey: I18nKey
     icon: string
     value: string
   }
 
   const presets: Preset[] = [
-    { name: 'Every minute', icon: '1m', value: '* * * * *' },
-    { name: 'Every hour', icon: '1h', value: '0 * * * *' },
-    { name: 'Every 2 hours', icon: '2h', value: '0 */2 * * *' },
-    { name: 'Daily midnight', icon: '0:00', value: '0 0 * * *' },
-    { name: '6 AM daily', icon: '6:00', value: '0 6 * * *' },
-    { name: '12 PM daily', icon: '12:00', value: '0 12 * * *' },
-    { name: '6 PM daily', icon: '18:00', value: '0 18 * * *' },
-    { name: 'Weekdays 9 AM', icon: '9-5', value: '0 9 * * 1-5' },
-    { name: 'Every Sunday', icon: 'Sun', value: '0 0 * * 0' },
-    { name: 'Monthly 1st', icon: '1st', value: '0 0 1 * *' },
-    { name: 'Every 5 min', icon: '5m', value: '*/5 * * * *' },
-    { name: 'Every 15 min', icon: '15m', value: '*/15 * * * *' }
+    { labelKey: 'cron.presetEveryMinute', icon: '1m', value: '* * * * *' },
+    { labelKey: 'cron.presetEveryHour', icon: '1h', value: '0 * * * *' },
+    { labelKey: 'cron.presetEvery2Hours', icon: '2h', value: '0 */2 * * *' },
+    { labelKey: 'cron.presetDailyMidnight', icon: '0:00', value: '0 0 * * *' },
+    { labelKey: 'cron.presetDaily6', icon: '6:00', value: '0 6 * * *' },
+    { labelKey: 'cron.presetDaily12', icon: '12:00', value: '0 12 * * *' },
+    { labelKey: 'cron.presetDaily18', icon: '18:00', value: '0 18 * * *' },
+    { labelKey: 'cron.presetWeekdays9', icon: '9-5', value: '0 9 * * 1-5' },
+    { labelKey: 'cron.presetEverySunday', icon: '7d', value: '0 0 * * 0' },
+    { labelKey: 'cron.presetMonthly1st', icon: '1st', value: '0 0 1 * *' },
+    { labelKey: 'cron.presetEvery5Min', icon: '5m', value: '*/5 * * * *' },
+    { labelKey: 'cron.presetEvery15Min', icon: '15m', value: '*/15 * * * *' }
   ]
 
   // kept for compatibility with legacy slot (hidden)
-  const presetsLegacy = presets.map((p) => ({ label: p.name, value: p.value }))
+  const presetsLegacy = presets.map((p) => ({ labelKey: p.labelKey, value: p.value }))
 
   const toggleSpecific = (v: number) => {
     const f = fields.value[activeField.value]
@@ -324,6 +345,11 @@
   }
 
   const applyPreset = (preset: Preset) => {
+    const result = validatePortableCronExpression(preset.value)
+    if (!result.valid) {
+      MessageError(`${I18nT('cron.scheduleInvalid')}: ${result.error}`)
+      return
+    }
     const parts = preset.value.split(' ')
     parts.forEach((part, i) => {
       const f = fields.value[i]
@@ -344,12 +370,17 @@
     })
   }
 
-  const selectPreset = (preset: { label: string; value: string }) => {
+  const selectPreset = (preset: { labelKey: I18nKey; value: string }) => {
     emit('select', preset.value)
     visible.value = false
   }
 
   const applySchedule = () => {
+    const result = validatePortableCronExpression(generatedSchedule.value)
+    if (!result.valid) {
+      MessageError(`${I18nT('cron.scheduleInvalid')}: ${result.error}`)
+      return
+    }
     emit('select', generatedSchedule.value)
     visible.value = false
   }

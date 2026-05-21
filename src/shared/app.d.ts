@@ -27,6 +27,8 @@ export interface AppHostReverseProxyItem {
 
 export interface CronJob {
   id: string
+  hostId?: number
+  scope?: 'host' | 'global'
   name: string
   command: string
   schedule: string
@@ -38,8 +40,26 @@ export interface CronJob {
   lastOutput?: string
   lastError?: string
   lastExitCode?: number
+  systemRegistered?: boolean
+  systemTaskName?: string
+  systemError?: string
   createdAt: number
   updatedAt: number
+}
+
+export interface CronRunRecord {
+  id: string
+  jobId: string
+  hostId?: number
+  scope?: 'host' | 'global'
+  startedAt: number
+  finishedAt: number
+  duration: number
+  exitCode: number
+  output?: string
+  error?: string
+  outputBase64?: string
+  errorBase64?: string
 }
 
 export interface AppHost {

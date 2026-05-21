@@ -224,6 +224,7 @@
   import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
   import { shell } from '@/util/NodeFn'
+  import Router from '@/router/index'
 
   const hostList = ref()
   const loading = ref(false)
@@ -434,11 +435,6 @@
   import('./Link.vue').then((res) => {
     LinkVM = res.default
   })
-  let CronVM: any
-  import('./Cron/Index.vue').then((res) => {
-    CronVM = res.default
-  })
-
   const action = (item: any, index: number, flag: string) => {
     console.log('item: ', item)
     item = appStore.hosts.find((h) => h.id === item.id)
@@ -490,9 +486,15 @@
           .catch(() => {})
         break
       case 'cron':
-        AsyncComponentShow(CronVM, {
-          hostId: item.id
-        }).then()
+        Router.push({
+          path: '/cron',
+          query: {
+            hostId: item.id
+          }
+        })
+          .then()
+          .catch()
+        appStore.currentPage = '/cron'
         break
     }
   }
