@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "Codice di autorizzazione non ricevuto",
   "oauthTimeout": "Timeout autorizzazione",
   "oauthSuccessTitle": "Autorizzazione Riuscita",
-  "oauthSuccessMessage": "Questa pagina può essere chiusa. Torna su FlyEnv per visualizzare le informazioni sulla licenza."
+  "oauthSuccessMessage": "Questa pagina può essere chiusa. Torna su FlyEnv per visualizzare le informazioni sulla licenza.",
+  "trialExpiredTitle": "Licenza non attivata",
+  "trialExpiredTips": "Stai usando FlyEnv da {days} giorni. Se FlyEnv ti è stato utile, considera di ottenere una licenza per supportare il progetto."
 }

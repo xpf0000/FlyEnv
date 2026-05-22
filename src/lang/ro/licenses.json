@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "Cod de autorizare neprimit",
   "oauthTimeout": "Autorizare expirată",
   "oauthSuccessTitle": "Autorizare reușită",
-  "oauthSuccessMessage": "Această pagină poate fi închisă. Vă rugăm să reveniți la FlyEnv pentru a vizualiza informațiile despre licență."
+  "oauthSuccessMessage": "Această pagină poate fi închisă. Vă rugăm să reveniți la FlyEnv pentru a vizualiza informațiile despre licență.",
+  "trialExpiredTitle": "Licența nu este activată",
+  "trialExpiredTips": "Folosești FlyEnv de {days} zile. Dacă FlyEnv ți-a fost de ajutor, ia în considerare obținerea unei licențe pentru a susține proiectul."
 }

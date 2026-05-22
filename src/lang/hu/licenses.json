@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "Nem érkezett engedélyezési kód",
   "oauthTimeout": "Engedélyezési időtúllépés",
   "oauthSuccessTitle": "Engedélyezés sikeres",
-  "oauthSuccessMessage": "Ez az oldal bezárható. Térjen vissza a FlyEnv-be a licencinformációk megtekintéséhez."
+  "oauthSuccessMessage": "Ez az oldal bezárható. Térjen vissza a FlyEnv-be a licencinformációk megtekintéséhez.",
+  "trialExpiredTitle": "A licenc nincs aktiválva",
+  "trialExpiredTips": "{days} napja használja a FlyEnv-et. Ha a FlyEnv hasznos volt Önnek, fontolja meg a licenc megszerzését a projekt támogatásához."
 }

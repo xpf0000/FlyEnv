@@ -34,7 +34,6 @@
   "refreshButton": "Refresh State",
   "licenseActivated": "License activated",
   "licenseNoActivated": "License not activated",
-
   "licenseInfo": "The current provided license is a permanent license, each computer corresponds to one license. If you change computers, you need to bind the new device's uuid in 'My Licenses', or apply for a new license.",
   "logoutTips": "Are you sure you want to log out?",
   "delBindTips": "Are you sure to unbind the license from this UUID?",
@@ -57,5 +56,7 @@
   "oauthFailedByNoAuthCode": "Authorization code not received",
   "oauthTimeout": "Authorization timeout",
   "oauthSuccessTitle": "Authorization Successful",
-  "oauthSuccessMessage": "This page can be closed. Please return to FlyEnv to view the license information."
+  "oauthSuccessMessage": "This page can be closed. Please return to FlyEnv to view the license information.",
+  "trialExpiredTitle": "License Not Activated",
+  "trialExpiredTips": "You have been using FlyEnv for {days} days. If FlyEnv has been helpful to you, please consider obtaining a license to support the project."
 }

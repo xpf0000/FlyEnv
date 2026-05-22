@@ -18,8 +18,15 @@
       <el-tag class="ml-auto" type="info">{{ filteredJobs.length }} / {{ cronJobs.length }}</el-tag>
     </div>
 
-    <el-table v-loading="loading" :data="filteredJobs" row-key="id" stripe class="cron-table">
-      <el-table-column prop="name" :label="I18nT('cron.name')">
+    <el-table
+      v-loading="loading"
+      show-overflow-tooltip
+      :data="filteredJobs"
+      row-key="id"
+      stripe
+      class="cron-table"
+    >
+      <el-table-column prop="name" :width="160" :label="I18nT('cron.name')">
         <template #header>
           <span class="truncate">{{ I18nT('cron.name') }}</span>
         </template>
@@ -31,7 +38,12 @@
         </template>
       </el-table-column>
 
-      <el-table-column v-if="showHostColumn" prop="hostId" :label="I18nT('cron.scope')" width="170">
+      <el-table-column
+        v-if="showHostColumn"
+        prop="hostId"
+        :label="I18nT('cron.scope')"
+        min-width="80"
+      >
         <template #default="{ row }">
           <el-tag v-if="row.scope === 'global' || !row.hostId" type="info" effect="plain">
             {{ I18nT('cron.global') }}
@@ -77,7 +89,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="I18nT('cron.lastRun')" width="180" align="center">
+      <el-table-column :label="I18nT('cron.lastRun')" width="200" align="center">
         <template #default="{ row }">
           <template v-if="row.lastRunTime">
             {{ formatTime(row.lastRunTime) }}
@@ -88,7 +100,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="I18nT('cron.nextRun')" width="180" align="center">
+      <el-table-column :label="I18nT('cron.nextRun')" width="200" align="center">
         <template #default="{ row }">
           <template v-if="row.nextRunTime">
             {{ formatTime(row.nextRunTime) }}
@@ -99,7 +111,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="I18nT('base.action')" width="100" align="center">
+      <el-table-column fixed="right" :label="I18nT('base.action')" width="100" align="center">
         <template #default="{ row }">
           <el-popover
             effect="dark"
@@ -138,24 +150,7 @@
               </div>
             </template>
           </el-popover>
-          <div v-if="outputMap[row.id]" class="inline-output">
-            <div class="inline-output-meta">
-              <el-tag :type="outputMap[row.id].exitCode === 0 ? 'success' : 'danger'" size="small">
-                {{
-                  outputMap[row.id].exitCode === 0
-                    ? I18nT('cron.runSuccess')
-                    : I18nT('cron.runFailed')
-                }}
-              </el-tag>
-              <span class="ml-1 text-xs">{{ outputMap[row.id].duration }}ms</span>
-              <el-button text size="small" class="ml-auto" @click="delete outputMap[row.id]"
-                >✕</el-button
-              >
-            </div>
-            <pre class="inline-output-pre">{{
-              outputMap[row.id].output || outputMap[row.id].error || I18nT('cron.noOutput')
-            }}</pre>
-          </div>
+
         </template>
       </el-table-column>
 
@@ -164,66 +159,11 @@
       </template>
     </el-table>
 
-    <el-dialog
-      v-model="outputDialogVisible"
-      :title="I18nT('cron.runOutput')"
-      width="760px"
-      destroy-on-close
-      class="output-view-dialog"
-    >
-      <div v-if="outputDialogData" class="output-dialog-body">
-        <div class="output-summary">
-          <div
-            ><strong>{{ I18nT('cron.name') }}:</strong> {{ outputDialogData.name }}</div
-          >
-          <div
-            ><strong>{{ I18nT('cron.command') }}:</strong> {{ outputDialogData.command }}</div
-          >
-          <div>
-            <strong>{{ I18nT('cron.exitCode') }}:</strong>
-            <el-tag size="small" :type="outputDialogData.exitCode === 0 ? 'success' : 'danger'">
-              {{ outputDialogData.exitCode ?? '-' }}
-            </el-tag>
-          </div>
-          <div v-if="outputDialogData.duration !== undefined">
-            <strong>{{ I18nT('cron.duration') }}:</strong> {{ outputDialogData.duration }}ms
-          </div>
-          <div v-if="outputDialogData.lastRunTime">
-            <strong>{{ I18nT('cron.runAt') }}:</strong>
-            {{ formatTime(outputDialogData.lastRunTime) }}
-          </div>
-        </div>
-
-        <div v-if="outputDialogHistory.length" class="run-history">
-          <div class="history-title">{{ I18nT('cron.runHistory') }}</div>
-          <div class="history-list">
-            <div
-              v-for="record in outputDialogHistory"
-              :key="record.id"
-              class="history-item"
-              @click="selectRunRecord(record)"
-            >
-              <el-tag size="small" :type="record.exitCode === 0 ? 'success' : 'danger'">
-                {{ record.exitCode === 0 ? I18nT('cron.runSuccess') : I18nT('cron.runFailed') }}
-              </el-tag>
-              <span>{{ formatTime(record.finishedAt) }}</span>
-              <span>{{ record.duration }}ms</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="output-panels">
-          <div class="output-panel">
-            <div class="panel-title">STDOUT</div>
-            <pre>{{ outputDialogData.output || I18nT('cron.noOutput') }}</pre>
-          </div>
-          <div class="output-panel">
-            <div class="panel-title">STDERR</div>
-            <pre>{{ outputDialogData.error || I18nT('cron.noOutput') }}</pre>
-          </div>
-        </div>
-      </div>
-    </el-dialog>
+    <DialogOutput
+      v-if="outputJob"
+      :job="outputJob"
+      @close="outputJob = null"
+    />
   </el-card>
 </template>
 
@@ -235,7 +175,11 @@
   import { MessageSuccess, MessageError } from '@/util/Element'
   import Base from '@/core/Base'
   import { AppStore } from '@/store/app'
-  import type { CronJob, CronRunRecord } from '@shared/app'
+  import type { CronJob } from '@shared/app'
+  import DialogOutput from './DialogOutput.vue'
+  import { XTermExec, XTermExecCache } from '@/util/XTermExec'
+  import { reactiveBind } from '@/util/Index'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const props = defineProps<{
     hostId?: number
@@ -252,20 +196,7 @@
   const searchText = ref('')
   const statusFilter = ref<'all' | 'enabled' | 'disabled'>('all')
   const runningJobId = ref<string | null>(null)
-  const outputMap = ref<
-    Record<string, { output: string; error: string; exitCode: number; duration: number }>
-  >({})
-  const outputDialogVisible = ref(false)
-  const outputDialogData = ref<{
-    name: string
-    command: string
-    output: string
-    error: string
-    exitCode?: number
-    duration?: number
-    lastRunTime?: number
-  } | null>(null)
-  const outputDialogHistory = ref<CronRunRecord[]>([])
+  const outputJob = ref<CronJob | null>(null)
   let pollTimer: number | undefined
 
   const filteredJobs = computed(() => {
@@ -379,24 +310,50 @@
 
   const runJob = (row: CronJob) => {
     const hostRoot = AppStore().hosts.find((h) => h.id === rowHostId(row))?.root ?? ''
+    const workDir = row.workDir || hostRoot
+    const id = `cron-run-${row.id}`
+
     runningJobId.value = row.id
-    IPC.send('app-fork:cron', 'runJobNow', rowHostId(row), row.id, row.workDir || hostRoot).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        runningJobId.value = null
-        if (res?.code === 0) {
-          outputMap.value[row.id] = res.data
-          loadData()
+
+    let xtermExec = XTermExecCache?.[id]
+    if (!xtermExec) {
+      xtermExec = reactiveBind(new XTermExec())
+      xtermExec.id = id
+
+      const commands: string[] = []
+      if (workDir) {
+        if (window.Server.isWindows) {
+          commands.push(`cd /d "${workDir}"`)
         } else {
-          outputMap.value[row.id] = {
-            output: '',
-            error: res?.msg || 'Failed',
-            exitCode: 1,
-            duration: 0
-          }
+          commands.push(`cd "${workDir}"`)
         }
       }
-    )
+      commands.push(row.command)
+      xtermExec.cammand = commands
+
+      xtermExec.wait().then(() => {
+        delete XTermExecCache?.[id]
+        runningJobId.value = null
+        loadData()
+      })
+
+      xtermExec.whenCancel().then(() => {
+        delete XTermExecCache?.[id]
+        runningJobId.value = null
+      })
+
+      XTermExecCache[id] = xtermExec
+    }
+
+    import('@/components/XTermExecDialog/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        title: `${I18nT('cron.runTest')} - ${row.name}`,
+        item: xtermExec,
+        exitOnClose: true
+      }).then(() => {
+        loadData()
+      })
+    })
   }
 
   const deleteCron = (row: CronJob) => {
@@ -423,15 +380,14 @@
   }
 
   const hasOutput = (row: CronJob) => {
-    const runtimeOutput = outputMap.value[row.id]
-    return Boolean(runtimeOutput || row.lastOutput || row.lastError)
+    return Boolean(row.lastRunTime)
   }
 
   const openOutput = (row: CronJob) => {
     if (!hasOutput(row)) {
       return
     }
-    openOutputDialog(row)
+    outputJob.value = row
   }
 
   const runJobIfIdle = (row: CronJob) => {
@@ -439,41 +395,6 @@
       return
     }
     runJob(row)
-  }
-
-  const openOutputDialog = (row: CronJob) => {
-    const runtimeOutput = outputMap.value[row.id]
-    outputDialogData.value = {
-      name: row.name,
-      command: row.command,
-      output: runtimeOutput?.output ?? row.lastOutput ?? '',
-      error: runtimeOutput?.error ?? row.lastError ?? '',
-      exitCode: runtimeOutput?.exitCode ?? row.lastExitCode,
-      duration: runtimeOutput?.duration,
-      lastRunTime: row.lastRunTime
-    }
-    outputDialogHistory.value = []
-    outputDialogVisible.value = true
-    IPC.send('app-fork:cron', 'listRunRecords', row.id, 20).then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        outputDialogHistory.value = [...(res.data || [])].reverse()
-      }
-    })
-  }
-
-  const selectRunRecord = (record: CronRunRecord) => {
-    if (!outputDialogData.value) {
-      return
-    }
-    outputDialogData.value = {
-      ...outputDialogData.value,
-      output: record.output ?? '',
-      error: record.error ?? '',
-      exitCode: record.exitCode,
-      duration: record.duration,
-      lastRunTime: record.finishedAt
-    }
   }
 
   const jobStatusType = (row: CronJob): 'success' | 'failed' | 'paused' => {
@@ -640,110 +561,12 @@
       }
     }
 
-    .output-dialog-body {
-      .output-summary {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px 14px;
-        margin-bottom: 12px;
-        font-size: 12px;
-      }
-
-      .run-history {
-        margin-bottom: 12px;
-
-        .history-title {
-          margin-bottom: 6px;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .history-list {
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding-bottom: 3px;
-        }
-
-        .history-item {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          flex-shrink: 0;
-          padding: 6px 8px;
-          border: 1px solid var(--el-border-color-lighter);
-          border-radius: 6px;
-          font-size: 12px;
-          cursor: pointer;
-          background: var(--el-fill-color-light);
-        }
-      }
-
-      .output-panels {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-
-        .output-panel {
-          border: 1px solid var(--el-border-color-lighter);
-          border-radius: 8px;
-          overflow: hidden;
-
-          .panel-title {
-            padding: 8px 10px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.4px;
-            background: var(--el-fill-color-light);
-            border-bottom: 1px solid var(--el-border-color-lighter);
-          }
-
-          pre {
-            margin: 0;
-            padding: 10px;
-            max-height: 180px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-            font-size: 12px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            background: var(--el-bg-color-overlay);
-          }
-        }
-      }
-    }
-
     :deep(.el-card__body) {
       height: 100%;
       padding: 0;
     }
 
-    .inline-output {
-      margin-top: 6px;
-      text-align: left;
 
-      .inline-output-meta {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        flex-wrap: wrap;
-        margin-bottom: 4px;
-      }
-
-      .inline-output-pre {
-        background: var(--el-fill-color);
-        border: 1px solid var(--el-border-color-lighter);
-        border-radius: 6px;
-        padding: 6px 8px;
-        font-size: 11px;
-        font-family: 'Consolas', 'Courier New', monospace;
-        max-height: 100px;
-        overflow-y: auto;
-        white-space: pre-wrap;
-        word-break: break-all;
-        margin: 0;
-      }
-    }
   }
 
   @media (max-width: 920px) {

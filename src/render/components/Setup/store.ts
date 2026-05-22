@@ -6,6 +6,7 @@ import { AppStore } from '@/store/app'
 import { MessageError } from '@/util/Element'
 import { reactive } from 'vue'
 import localForage from 'localforage'
+import { shell } from '@/util/NodeFn'
 
 type GitHubUser = {
   uuid: string
@@ -54,6 +55,11 @@ export const SetupStore = defineStore('setup', {
             this.githubLicense = reactive(res.githubLicense)
           }
         })
+        let time = Number(localStorage.getItem('flyenv-init-time') ?? '0')
+        if (!time || isNaN(time)) {
+          time = Math.round(new Date().getTime() / 1000)
+          localStorage.setItem('flyenv-init-time', `${time}`)
+        }
         IPC.send('app-fork:app', 'licensesInit').then((key: string, res?: any) => {
           if (res?.code !== 200) {
             IPC.off(key)
@@ -70,6 +76,41 @@ export const SetupStore = defineStore('setup', {
               this.uuid = data.uuid
               this.isActive = data.isActive
               this.activeCode = data.activeCode
+            }
+          }
+
+          if (!this.isActive) {
+            const currentTime = Math.round(new Date().getTime() / 1000)
+            const maxTime = 7 * 24 * 60 * 60
+            if (currentTime - time > maxTime) {
+              const today = new Date().toDateString()
+              const lastAlert = localStorage.getItem('flyenv-license-alert-date')
+              if (lastAlert !== today) {
+                localStorage.setItem('flyenv-license-alert-date', today)
+                const days = Math.floor((currentTime - time) / (24 * 60 * 60))
+                const store = AppStore()
+                const isZh = store.config.setup.lang?.startsWith('zh')
+                const url = isZh
+                  ? 'https://flyenv.com/zh/guide/about-license.html'
+                  : 'https://flyenv.com/guide/about-license.html'
+                setTimeout(() => {
+                  ElMessageBox.alert(
+                    I18nT('licenses.trialExpiredTips').replace('{days}', `${days}`),
+                    I18nT('licenses.trialExpiredTitle'),
+                    {
+                      confirmButtonText: I18nT('base.confirm'),
+                      type: 'warning',
+                      showClose: false,
+                      closeOnClickModal: false,
+                      closeOnPressEscape: false
+                    }
+                  )
+                    .then(() => {
+                      shell.openExternal(url)
+                    })
+                    .catch(() => {})
+                }, 3000)
+              }
             }
           }
           resolve()

@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "승인 코드를 받지 못했습니다",
   "oauthTimeout": "승인 시간 초과",
   "oauthSuccessTitle": "승인 성공",
-  "oauthSuccessMessage": "이 페이지는 닫으셔도 됩니다. FlyEnv로 돌아가 라이선스 정보를 확인해 주세요."
+  "oauthSuccessMessage": "이 페이지는 닫으셔도 됩니다. FlyEnv로 돌아가 라이선스 정보를 확인해 주세요.",
+  "trialExpiredTitle": "라이선스가 활성화되지 않았습니다",
+  "trialExpiredTips": "FlyEnv를 {days}일 동안 사용하고 있습니다. FlyEnv가 도움이 되었다면 프로젝트를 지원하기 위해 라이선스를 획득해 주세요."
 }

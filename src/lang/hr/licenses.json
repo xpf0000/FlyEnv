@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "Autorizacijski kod nije primljen",
   "oauthTimeout": "Timeout autorizacije",
   "oauthSuccessTitle": "Autorizacija Uspješna",
-  "oauthSuccessMessage": "Ova stranica može biti zatvorena. Molimo vratite se na FlyEnv za pregled informacija o licenci."
+  "oauthSuccessMessage": "Ova stranica može biti zatvorena. Molimo vratite se na FlyEnv za pregled informacija o licenci.",
+  "trialExpiredTitle": "Licenca nije aktivirana",
+  "trialExpiredTips": "Koristite FlyEnv već {days} dana. Ako vam je FlyEnv bio koristan, razmislite o nabavi licence za podršku projektu."
 }

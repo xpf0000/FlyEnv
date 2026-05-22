@@ -116,5 +116,6 @@
   "siteTask": "站点任务",
   "scope": "范围",
   "siteRequired": "请选择站点",
-  "runHistory": "运行历史"
+  "runHistory": "运行历史",
+  "licenseTips": "未获得许可证, 只能创建一个定时任务"
 }

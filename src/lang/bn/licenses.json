@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "অনুমোদন কোড পাওয়া যায়নি",
   "oauthTimeout": "অনুমোদনের সময়সীমা শেষ",
   "oauthSuccessTitle": "অনুমোদন সফল",
-  "oauthSuccessMessage": "এই পৃষ্ঠাটি বন্ধ করা যেতে পারে। লাইসেন্স তথ্য দেখতে FlyEnv-এ ফিরে যান।"
+  "oauthSuccessMessage": "এই পৃষ্ঠাটি বন্ধ করা যেতে পারে। লাইসেন্স তথ্য দেখতে FlyEnv-এ ফিরে যান।",
+  "trialExpiredTitle": "লাইসেন্স সক্রিয় করা হয়নি",
+  "trialExpiredTips": "আপনি {days} দিন ধরে FlyEnv ব্যবহার করছেন। যদি FlyEnv আপনার জন্য সহায়ক হয়, তবে প্রকল্পটি সমর্থন করার জন্য একটি লাইসেন্স পাওয়ার বিবেচনা করুন।"
 }

@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "未收到授權碼",
   "oauthTimeout": "授權已逾時",
   "oauthSuccessTitle": "授權成功",
-  "oauthSuccessMessage": "此頁面可關閉。請回到 FlyEnv 中檢視許可證資訊"
+  "oauthSuccessMessage": "此頁面可關閉。請回到 FlyEnv 中檢視許可證資訊",
+  "trialExpiredTitle": "許可證未激活",
+  "trialExpiredTips": "這是你使用 FlyEnv 的第 {days} 天，如果 FlyEnv 對你有幫助，請取得許可證支持專案發展。"
 }

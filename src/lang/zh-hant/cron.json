@@ -116,5 +116,6 @@
   "siteTask": "站點任務",
   "scope": "範圍",
   "siteRequired": "請選擇站點",
-  "runHistory": "執行歷史"
+  "runHistory": "執行歷史",
+  "licenseTips": "未取得許可證，只能建立一個排程任務"
 }

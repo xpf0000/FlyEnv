@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "Yetkilendirme kodu alınmadı",
   "oauthTimeout": "Yetkilendirme zaman aşımı",
   "oauthSuccessTitle": "Yetkilendirme Başarılı",
-  "oauthSuccessMessage": "Bu sayfa kapatılabilir. Lütfen lisans bilgilerini görüntülemek için FlyEnv'ye dönün."
+  "oauthSuccessMessage": "Bu sayfa kapatılabilir. Lütfen lisans bilgilerini görüntülemek için FlyEnv'ye dönün.",
+  "trialExpiredTitle": "Lisans Aktif Değil",
+  "trialExpiredTips": "FlyEnv'i {days} gündür kullanıyorsunuz. FlyEnv size yardımcı olduysa, projeyi desteklemek için bir lisans edinmeyi düşünün."
 }

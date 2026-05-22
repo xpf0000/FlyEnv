@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "Autorisasjonskode ikke mottatt",
   "oauthTimeout": "Autorisasjon timeout",
   "oauthSuccessTitle": "Autorisasjon vellykket",
-  "oauthSuccessMessage": "Denne siden kan lukkes. Gå tilbake til FlyEnv for å se lisensinformasjonen."
+  "oauthSuccessMessage": "Denne siden kan lukkes. Gå tilbake til FlyEnv for å se lisensinformasjonen.",
+  "trialExpiredTitle": "Lisensen er ikke aktivert",
+  "trialExpiredTips": "Du har brukt FlyEnv i {days} dager. Hvis FlyEnv har vært til hjelp for deg, vurder å skaffe en lisens for å støtte prosjektet."
 }

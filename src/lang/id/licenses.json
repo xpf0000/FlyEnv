@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "Kode otorisasi tidak diterima",
   "oauthTimeout": "Waktu otorisasi habis",
   "oauthSuccessTitle": "Otorisasi Berhasil",
-  "oauthSuccessMessage": "Halaman ini dapat ditutup. Silakan kembali ke FlyEnv untuk melihat informasi lisensi."
+  "oauthSuccessMessage": "Halaman ini dapat ditutup. Silakan kembali ke FlyEnv untuk melihat informasi lisensi.",
+  "trialExpiredTitle": "Lisensi belum diaktifkan",
+  "trialExpiredTips": "Anda telah menggunakan FlyEnv selama {days} hari. Jika FlyEnv bermanfaat bagi Anda, pertimbangkan untuk mendapatkan lisensi untuk mendukung proyek ini."
 }

@@ -56,5 +56,7 @@
   "oauthFailedByNoAuthCode": "لم يتم استلام رمز التفويض",
   "oauthTimeout": "انتهت مهلة التفويض",
   "oauthSuccessTitle": "نجح التفويض",
-  "oauthSuccessMessage": "يمكن إغلاق هذه الصفحة. يرجى العودة إلى FlyEnv لعرض معلومات الترخيص."
+  "oauthSuccessMessage": "يمكن إغلاق هذه الصفحة. يرجى العودة إلى FlyEnv لعرض معلومات الترخيص.",
+  "trialExpiredTitle": "الترخيص غير مفعل",
+  "trialExpiredTips": "لقد كنت تستخدم FlyEnv لمدة {days} يومًا. إذا كان FlyEnv مفيدًا لك، فكر في الحصول على ترخيص لدعم المشروع."
 }
