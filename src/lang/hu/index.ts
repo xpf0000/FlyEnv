@@ -36,11 +36,13 @@ import rustfs from './rustfs.json'
 import mkcert from './mkcert.json'
 import hermes from './hermes.json'
 import cronHR from './cron.json'
+import flutter from './flutter.json'
 export default {
   hu: {
     cron: cronHR,
     rustfs,
     mkcert,
+    flutter,
     hermes,
     n8n,
     openclaw,
