@@ -150,7 +150,6 @@
               </div>
             </template>
           </el-popover>
-
         </template>
       </el-table-column>
 
@@ -159,11 +158,7 @@
       </template>
     </el-table>
 
-    <DialogOutput
-      v-if="outputJob"
-      :job="outputJob"
-      @close="outputJob = null"
-    />
+    <DialogOutput v-if="outputJob" :job="outputJob" @close="outputJob = null" />
   </el-card>
 </template>
 
@@ -177,9 +172,6 @@
   import { AppStore } from '@/store/app'
   import type { CronJob } from '@shared/app'
   import DialogOutput from './DialogOutput.vue'
-  import { XTermExec, XTermExecCache } from '@/util/XTermExec'
-  import { reactiveBind } from '@/util/Index'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const props = defineProps<{
     hostId?: number
@@ -311,49 +303,29 @@
   const runJob = (row: CronJob) => {
     const hostRoot = AppStore().hosts.find((h) => h.id === rowHostId(row))?.root ?? ''
     const workDir = row.workDir || hostRoot
-    const id = `cron-run-${row.id}`
 
     runningJobId.value = row.id
 
-    let xtermExec = XTermExecCache?.[id]
-    if (!xtermExec) {
-      xtermExec = reactiveBind(new XTermExec())
-      xtermExec.id = id
+    IPC.send('app-fork:cron', 'runJobNow', rowHostId(row), row.id, workDir).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        runningJobId.value = null
 
-      const commands: string[] = []
-      if (workDir) {
-        if (window.Server.isWindows) {
-          commands.push(`cd /d "${workDir}"`)
+        if (res?.code === 0) {
+          const result = res.data
+          if (result?.exitCode === 0) {
+            MessageSuccess(I18nT('cron.runSuccess'))
+          } else {
+            MessageError(result?.error || I18nT('cron.runFailed'))
+          }
+          outputJob.value = row
         } else {
-          commands.push(`cd "${workDir}"`)
+          MessageError(res?.msg || I18nT('cron.runFailed'))
         }
+
+        loadData()
       }
-      commands.push(row.command)
-      xtermExec.cammand = commands
-
-      xtermExec.wait().then(() => {
-        delete XTermExecCache?.[id]
-        runningJobId.value = null
-        loadData()
-      })
-
-      xtermExec.whenCancel().then(() => {
-        delete XTermExecCache?.[id]
-        runningJobId.value = null
-      })
-
-      XTermExecCache[id] = xtermExec
-    }
-
-    import('@/components/XTermExecDialog/index.vue').then((res) => {
-      AsyncComponentShow(res.default, {
-        title: `${I18nT('cron.runTest')} - ${row.name}`,
-        item: xtermExec,
-        exitOnClose: true
-      }).then(() => {
-        loadData()
-      })
-    })
+    )
   }
 
   const deleteCron = (row: CronJob) => {
@@ -565,8 +537,6 @@
       height: 100%;
       padding: 0;
     }
-
-
   }
 
   @media (max-width: 920px) {

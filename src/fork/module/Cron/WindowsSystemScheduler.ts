@@ -78,7 +78,6 @@ export class WindowsSystemScheduler {
 
   private async writeWrapper(job: CronJob): Promise<string> {
     const psFile = this.taskScriptPath(job.id, 'ps1')
-    const cmdFile = this.taskScriptPath(job.id, 'cmd')
     const workDir = job.workDir || homePath()
     const runDir = join(this.cronRoot, 'tmp')
     const logFile = this.runLogPath(job.id)
@@ -113,6 +112,10 @@ $ErrFile = Join-Path $RunDir "$JobId-$RunId.err"
 $CmdFile = Join-Path $RunDir "$JobId-$RunId.cmd"
 $StartedAt = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
 $ExitCode = 0
+$CmdEncoding = [Text.Encoding]::Default
+try {
+  $CmdEncoding = [Text.Encoding]::GetEncoding([Globalization.CultureInfo]::CurrentCulture.TextInfo.OEMCodePage)
+} catch {}
 
 try {
   if (-not (Test-Path -LiteralPath $WorkDir -PathType Container)) {
@@ -120,8 +123,29 @@ try {
     [IO.File]::WriteAllText($OutFile, '', [Text.Encoding]::UTF8)
     $ExitCode = 1
   } else {
-    [IO.File]::WriteAllText($CmdFile, '@echo off' + [Environment]::NewLine + $Command + [Environment]::NewLine, [Text.Encoding]::UTF8)
-    $process = Start-Process -FilePath $CmdExe -ArgumentList @('/d', '/s', '/c', '"' + $CmdFile + '"') -WorkingDirectory $WorkDir -Wait -PassThru -RedirectStandardOutput $OutFile -RedirectStandardError $ErrFile
+    [IO.File]::WriteAllText($CmdFile, '@echo off' + [Environment]::NewLine + $Command + [Environment]::NewLine, $CmdEncoding)
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $CmdExe
+    $psi.Arguments = '/d /s /c "' + $CmdFile + '"'
+    $psi.WorkingDirectory = $WorkDir
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    try {
+      $psi.StandardOutputEncoding = $CmdEncoding
+      $psi.StandardErrorEncoding = $CmdEncoding
+    } catch {}
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
+    [void]$process.Start()
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
+    $process.WaitForExit()
+    [IO.File]::WriteAllText($OutFile, $stdoutTask.Result, [Text.Encoding]::UTF8)
+    [IO.File]::WriteAllText($ErrFile, $stderrTask.Result, [Text.Encoding]::UTF8)
     $ExitCode = $process.ExitCode
   }
 } catch {
@@ -148,12 +172,10 @@ Remove-Item -Force -LiteralPath $OutFile, $ErrFile, $CmdFile -ErrorAction Silent
 Remove-Item -Force -LiteralPath $LockDir -ErrorAction SilentlyContinue
 exit $ExitCode
 `
-    const cmdContent = `@echo off\r\n${this.cmdQuote(powerShell)} -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0${job.id}.ps1"\r\n`
 
     await mkdirp(dirname(psFile))
     await writeFile(psFile, psContent)
-    await writeFile(cmdFile, cmdContent)
-    return cmdFile
+    return `${this.cmdQuote(powerShell)} -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${this.cmdQuote(psFile)}`
   }
 
   private taskTime(hour: number, minute: number): string {
@@ -213,7 +235,7 @@ exit $ExitCode
     }
   }
 
-  private async installTask(job: CronJob, cmdPath: string) {
+  private async installTask(job: CronJob, taskAction: string) {
     const schedule = getPortableCronSchedule(job.schedule)
     await spawnPromiseWithEnv(
       await this.schtasksPath(),
@@ -223,7 +245,7 @@ exit $ExitCode
         systemTaskName(job.id),
         ...this.scheduleArgs(schedule),
         '/TR',
-        cmdPath,
+        taskAction,
         '/F'
       ],
       { windowsHide: true }
@@ -239,8 +261,8 @@ exit $ExitCode
   }
 
   async install(job: CronJob) {
-    const cmdPath = await this.writeWrapper(job)
-    await this.installTask(job, cmdPath)
+    const taskAction = await this.writeWrapper(job)
+    await this.installTask(job, taskAction)
   }
 
   async remove(jobId: string) {
