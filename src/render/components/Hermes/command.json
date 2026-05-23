@@ -130,7 +130,7 @@
       "nameKey": "hermes.category.dashboardTui",
       "commands": [
         { "label": "hermes dashboard", "descriptionKey": "hermes.cmd.dashboard", "needInput": false },
-        { "label": "hermes tui", "descriptionKey": "hermes.cmd.tui", "needInput": false }
+        { "label": "hermes --tui", "descriptionKey": "hermes.cmd.tui", "needInput": false }
       ]
     },
     {
