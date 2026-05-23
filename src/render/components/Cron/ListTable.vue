@@ -1,166 +1,169 @@
 <template>
   <el-card class="cron-list-card">
-    <div class="toolbar">
-      <el-input
-        v-model="searchText"
-        :placeholder="I18nT('base.placeholderSearch')"
-        clearable
-        class="search-input"
-      />
+    <div class="h-full overflow-hidden flex flex-col">
+      <div class="toolbar flex-shrink-0">
+        <el-input
+          v-model="searchText"
+          :placeholder="I18nT('base.placeholderSearch')"
+          clearable
+          class="search-input"
+        />
 
-      <el-select v-model="statusFilter" class="status-select">
-        <el-option label="All" value="all" />
-        <el-option label="Enabled" value="enabled" />
-        <el-option label="Disabled" value="disabled" />
-      </el-select>
+        <el-select v-model="statusFilter" class="status-select">
+          <el-option label="All" value="all" />
+          <el-option label="Enabled" value="enabled" />
+          <el-option label="Disabled" value="disabled" />
+        </el-select>
 
-      <el-button @click="resetFilter">Reset</el-button>
-      <el-tag class="ml-auto" type="info">{{ filteredJobs.length }} / {{ cronJobs.length }}</el-tag>
-    </div>
+        <el-button @click="resetFilter">Reset</el-button>
+        <el-tag class="ml-auto" type="info"
+          >{{ filteredJobs.length }} / {{ cronJobs.length }}</el-tag
+        >
+      </div>
 
-    <el-table
-      v-loading="loading"
-      show-overflow-tooltip
-      :data="filteredJobs"
-      row-key="id"
-      stripe
-      class="cron-table"
-    >
-      <el-table-column prop="name" :width="160" :label="I18nT('cron.name')">
-        <template #header>
-          <span class="truncate">{{ I18nT('cron.name') }}</span>
-        </template>
-        <template #default="{ row }">
-          <div class="job-name">
-            <div class="name">{{ row.name }}</div>
-            <div v-if="row.description" class="desc">{{ row.description }}</div>
-          </div>
-        </template>
-      </el-table-column>
-
-      <el-table-column
-        v-if="showHostColumn"
-        prop="hostId"
-        :label="I18nT('cron.scope')"
-        min-width="80"
+      <el-table
+        v-loading="loading"
+        show-overflow-tooltip
+        :data="filteredJobs"
+        row-key="id"
+        stripe
+        class="cron-table flex-1"
       >
-        <template #default="{ row }">
-          <el-tag v-if="row.scope === 'global' || !row.hostId" type="info" effect="plain">
-            {{ I18nT('cron.global') }}
-          </el-tag>
-          <span v-else class="truncate">{{ hostName(row.hostId) }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="schedule" :label="I18nT('cron.schedule')" width="160">
-        <template #header>
-          <span class="truncate">{{ I18nT('cron.schedule') }}</span>
-        </template>
-        <template #default="{ row }">
-          <el-tag :type="row.enabled ? 'success' : 'info'" effect="light">{{
-            row.schedule
-          }}</el-tag>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="command" :label="I18nT('cron.command')" show-overflow-tooltip>
-        <template #header>
-          <span class="truncate">{{ I18nT('cron.command') }}</span>
-        </template>
-        <template #default="{ row }">
-          <div class="command-cell">
-            <code>{{ row.command }}</code>
-            <el-button text type="primary" size="small" @click="copyCommand(row.command)"
-              >Copy</el-button
-            >
-          </div>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="enabled" :label="I18nT('cron.status')" width="100" align="center">
-        <template #default="{ row }">
-          <div class="status-cell">
-            <el-tooltip :content="jobStatusLabel(row)" placement="top">
-              <el-icon class="status-icon" :class="jobStatusClass(row)">
-                <CircleCheckFilled v-if="jobStatusType(row) === 'success'" />
-                <CircleCloseFilled v-else-if="jobStatusType(row) === 'failed'" />
-                <VideoPause v-else />
-              </el-icon>
-            </el-tooltip>
-            <el-switch v-model="row.enabled" @change="toggleCron(row)" />
-          </div>
-        </template>
-      </el-table-column>
-
-      <el-table-column :label="I18nT('cron.lastRun')" width="200" align="center">
-        <template #default="{ row }">
-          <template v-if="row.lastRunTime">
-            {{ formatTime(row.lastRunTime) }}
+        <el-table-column prop="name" :width="160" :label="I18nT('cron.name')">
+          <template #header>
+            <span class="truncate">{{ I18nT('cron.name') }}</span>
           </template>
-          <template v-else>
-            <span class="text-gray-400">{{ I18nT('cron.never') }}</span>
+          <template #default="{ row }">
+            <div class="job-name">
+              <div class="name">{{ row.name }}</div>
+              <div v-if="row.description" class="desc">{{ row.description }}</div>
+            </div>
           </template>
-        </template>
-      </el-table-column>
+        </el-table-column>
 
-      <el-table-column :label="I18nT('cron.nextRun')" width="200" align="center">
-        <template #default="{ row }">
-          <template v-if="row.nextRunTime">
-            {{ formatTime(row.nextRunTime) }}
+        <el-table-column
+          v-if="showHostColumn"
+          prop="hostId"
+          :label="I18nT('cron.scope')"
+          min-width="80"
+        >
+          <template #default="{ row }">
+            <el-tag v-if="row.scope === 'global' || !row.hostId" type="info" effect="plain">
+              {{ I18nT('cron.global') }}
+            </el-tag>
+            <span v-else class="truncate">{{ hostName(row.hostId) }}</span>
           </template>
-          <template v-else>
-            <span class="text-gray-400">-</span>
+        </el-table-column>
+
+        <el-table-column prop="schedule" :label="I18nT('cron.schedule')" width="160">
+          <template #header>
+            <span class="truncate">{{ I18nT('cron.schedule') }}</span>
           </template>
-        </template>
-      </el-table-column>
+          <template #default="{ row }">
+            <el-tag :type="row.enabled ? 'success' : 'info'" effect="light">{{
+              row.schedule
+            }}</el-tag>
+          </template>
+        </el-table-column>
 
-      <el-table-column fixed="right" :label="I18nT('base.action')" width="100" align="center">
-        <template #default="{ row }">
-          <el-popover
-            effect="dark"
-            popper-class="host-list-poper"
-            placement="left-start"
-            width="auto"
-            :show-arrow="false"
-          >
-            <ul v-poper-fix class="host-list-menu">
-              <li :class="{ disabled: !hasOutput(row) }" @click.stop="openOutput(row)">
-                <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
-                <span class="ml-3">{{ I18nT('cron.viewOutput') }}</span>
-              </li>
-              <li :class="{ disabled: runningJobId === row.id }" @click.stop="runJobIfIdle(row)">
-                <template v-if="runningJobId === row.id">
-                  <el-button :loading="true" link>{{ I18nT('cron.runTest') }}</el-button>
-                </template>
-                <template v-else>
-                  <yb-icon :svg="import('@/svg/play.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('cron.runTest') }}</span>
-                </template>
-              </li>
-              <li @click.stop="editCron(row)">
-                <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                <span class="ml-3">{{ I18nT('base.edit') }}</span>
-              </li>
-              <li @click.stop="deleteCron(row)">
-                <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                <span class="ml-3">{{ I18nT('base.del') }}</span>
-              </li>
-            </ul>
+        <el-table-column prop="command" :label="I18nT('cron.command')" show-overflow-tooltip>
+          <template #header>
+            <span class="truncate">{{ I18nT('cron.command') }}</span>
+          </template>
+          <template #default="{ row }">
+            <div class="command-cell">
+              <code>{{ row.command }}</code>
+              <el-button text type="primary" size="small" @click="copyCommand(row.command)"
+                >Copy</el-button
+              >
+            </div>
+          </template>
+        </el-table-column>
 
-            <template #reference>
-              <div class="right">
-                <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
-              </div>
+        <el-table-column prop="enabled" :label="I18nT('cron.status')" width="100" align="center">
+          <template #default="{ row }">
+            <div class="status-cell">
+              <el-tooltip :content="jobStatusLabel(row)" placement="top">
+                <el-icon class="status-icon" :class="jobStatusClass(row)">
+                  <CircleCheckFilled v-if="jobStatusType(row) === 'success'" />
+                  <CircleCloseFilled v-else-if="jobStatusType(row) === 'failed'" />
+                  <VideoPause v-else />
+                </el-icon>
+              </el-tooltip>
+              <el-switch v-model="row.enabled" @change="toggleCron(row)" />
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column :label="I18nT('cron.lastRun')" width="200" align="center">
+          <template #default="{ row }">
+            <template v-if="row.lastRunTime">
+              {{ formatTime(row.lastRunTime) }}
             </template>
-          </el-popover>
+            <template v-else>
+              <span class="text-gray-400">{{ I18nT('cron.never') }}</span>
+            </template>
+          </template>
+        </el-table-column>
+
+        <el-table-column :label="I18nT('cron.nextRun')" width="200" align="center">
+          <template #default="{ row }">
+            <template v-if="row.nextRunTime">
+              {{ formatTime(row.nextRunTime) }}
+            </template>
+            <template v-else>
+              <span class="text-gray-400">-</span>
+            </template>
+          </template>
+        </el-table-column>
+
+        <el-table-column fixed="right" :label="I18nT('base.action')" width="100" align="center">
+          <template #default="{ row }">
+            <el-popover
+              effect="dark"
+              popper-class="host-list-poper"
+              placement="left-start"
+              width="auto"
+              :show-arrow="false"
+            >
+              <ul v-poper-fix class="host-list-menu">
+                <li :class="{ disabled: !hasOutput(row) }" @click.stop="openOutput(row)">
+                  <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('cron.viewOutput') }}</span>
+                </li>
+                <li :class="{ disabled: runningJobId === row.id }" @click.stop="runJobIfIdle(row)">
+                  <template v-if="runningJobId === row.id">
+                    <el-button :loading="true" link>{{ I18nT('cron.runTest') }}</el-button>
+                  </template>
+                  <template v-else>
+                    <yb-icon :svg="import('@/svg/play.svg?raw')" width="13" height="13" />
+                    <span class="ml-3">{{ I18nT('cron.runTest') }}</span>
+                  </template>
+                </li>
+                <li @click.stop="editCron(row)">
+                  <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                </li>
+                <li @click.stop="deleteCron(row)">
+                  <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
+                  <span class="ml-3">{{ I18nT('base.del') }}</span>
+                </li>
+              </ul>
+
+              <template #reference>
+                <div class="right">
+                  <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+                </div>
+              </template>
+            </el-popover>
+          </template>
+        </el-table-column>
+
+        <template #empty>
+          <el-empty :description="I18nT('cron.tips')" />
         </template>
-      </el-table-column>
-
-      <template #empty>
-        <el-empty :description="I18nT('cron.tips')" />
-      </template>
-    </el-table>
-
+      </el-table>
+    </div>
     <DialogOutput v-if="outputJob" :job="outputJob" @close="outputJob = null" />
   </el-card>
 </template>
