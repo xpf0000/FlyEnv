@@ -175,6 +175,7 @@
   import { AppStore } from '@/store/app'
   import type { CronJob } from '@shared/app'
   import DialogOutput from './DialogOutput.vue'
+  import { useCronStore } from './store'
 
   const props = defineProps<{
     hostId?: number
@@ -186,8 +187,14 @@
     'stats-change': [stats: { total: number; enabled: number; disabled: number; recent: number }]
   }>()
 
+  interface LoadDataOptions {
+    force?: boolean
+    silent?: boolean
+  }
+
+  const cronStore = useCronStore()
   const loading = ref(false)
-  const cronJobs = ref<CronJob[]>([])
+  const cronJobs = computed(() => cronStore.getHostCronJobs(props.hostId))
   const searchText = ref('')
   const statusFilter = ref<'all' | 'enabled' | 'disabled'>('all')
   const runningJobId = ref<string | null>(null)
@@ -233,7 +240,12 @@
     })
   }
 
-  const loadData = (silent = false) => {
+  const loadData = ({ force = false, silent = false }: LoadDataOptions = {}) => {
+    if (!force && cronStore.hasHostCronJobs(props.hostId)) {
+      emitStats()
+      return
+    }
+
     if (!silent) {
       loading.value = true
     }
@@ -244,7 +256,7 @@
         loading.value = false
       }
       if (res?.code === 0) {
-        cronJobs.value = res.data || []
+        cronStore.setHostCronJobs(props.hostId, res.data || [])
         emitStats()
       } else if (res?.code === 1) {
         MessageError(res.msg || 'Failed to load cron jobs')
@@ -285,15 +297,19 @@
   }
 
   const toggleCron = (row: CronJob) => {
+    const previousEnabled = !row.enabled
     IPC.send('app-fork:cron', 'toggleCronJob', rowHostId(row), row.id, row.enabled).then(
       (key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
           MessageSuccess(I18nT('base.success'))
-          loadData(true)
+          if (res.data) {
+            cronStore.upsertCronJob(res.data)
+          }
+          cronStore.clearSystemTasks()
         } else if (res?.code === 1) {
+          row.enabled = previousEnabled
           MessageError(res.msg || 'Failed to toggle cron job')
-          loadData()
         }
       }
     )
@@ -326,7 +342,8 @@
           MessageError(res?.msg || I18nT('cron.runFailed'))
         }
 
-        loadData()
+        cronStore.clearAllCronJobs()
+        loadData({ force: true, silent: true })
       }
     )
   }
@@ -344,7 +361,9 @@
             loading.value = false
             if (res?.code === 0) {
               MessageSuccess(I18nT('base.success'))
-              loadData()
+              cronStore.clearAllCronJobs()
+              cronStore.clearSystemTasks()
+              loadData({ force: true })
             } else if (res?.code === 1) {
               MessageError(res.msg || 'Failed to delete cron job')
             }
@@ -411,7 +430,7 @@
   onMounted(() => {
     loadData()
     pollTimer = window.setInterval(() => {
-      loadData(true)
+      loadData({ force: true, silent: true })
     }, 20000)
   })
 
@@ -425,7 +444,7 @@
   watch(
     () => cronJobs.value,
     () => emitStats(),
-    { deep: true }
+    { deep: true, immediate: true }
   )
 
   watch(

@@ -234,7 +234,27 @@ export class Cron extends Base {
   listSystemTasks(): ForkPromise<SystemScheduledTask[]> {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        resolve(await this.systemScheduler.listSystemTasks())
+        const tasks = await this.systemScheduler.listSystemTasks()
+        const data = (await this.storage.load().catch(() => ({}))) as CronStorageData
+        const jobMap = new Map(flattenJobs(data).map((job) => [job.id, job]))
+
+        resolve(
+          tasks.map((task) => {
+            const jobId = task.jobId ?? this.systemTaskJobId(task.id)
+            const job = jobId ? jobMap.get(jobId) : undefined
+            if (!job) {
+              return task
+            }
+
+            return {
+              ...task,
+              name: job.name || task.name,
+              description: job.description || task.description,
+              isFlyEnv: true,
+              jobId
+            }
+          })
+        )
       } catch (error) {
         reject(error)
       }

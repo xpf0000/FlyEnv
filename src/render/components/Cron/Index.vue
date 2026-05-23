@@ -83,12 +83,14 @@
   import ListTable from './ListTable.vue'
   import SystemTaskTable from './SystemTaskTable.vue'
   import DialogAdd from './DialogAdd.vue'
+  import { useCronStore } from './store'
   import type { CronJob } from '@shared/app'
 
   const route = useRoute()
   const router = useRouter()
   const appStore = AppStore()
   const setupStore = SetupStore()
+  const cronStore = useCronStore()
   const { tab } = AppModuleSetup('cron')
   const tabs = [I18nT('cron.title'), I18nT('cron.systemTasks')]
 
@@ -185,10 +187,12 @@
 
   const refreshList = () => {
     if (tab.value === 1) {
-      systemTaskTableRef.value?.loadData()
+      systemTaskTableRef.value?.loadData({ force: true })
       return
     }
-    listTableRef.value?.loadData()
+    cronStore.clearAllCronJobs()
+    cronStore.clearSystemTasks()
+    listTableRef.value?.loadData({ force: true })
   }
 </script>
 

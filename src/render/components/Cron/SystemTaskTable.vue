@@ -16,7 +16,7 @@
         <el-option :label="I18nT('cron.otherTask')" value="other" />
       </el-select>
 
-      <el-button :icon="Refresh" @click="loadData">
+      <el-button :icon="Refresh" @click="loadData({ force: true })">
         {{ I18nT('base.refresh') }}
       </el-button>
 
@@ -34,7 +34,7 @@
       <el-table-column prop="name" :label="I18nT('cron.name')" min-width="180">
         <template #default="{ row }">
           <div class="min-w-0 truncate whitespace-nowrap">
-            <span>{{ row.fullName || '-' }}</span>
+            <span>{{ taskName(row) }}</span>
           </div>
         </template>
       </el-table-column>
@@ -97,9 +97,15 @@
   import Base from '@/core/Base'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { SystemScheduledTask } from '@shared/app'
+  import { useCronStore } from './store'
 
+  interface LoadDataOptions {
+    force?: boolean
+  }
+
+  const cronStore = useCronStore()
   const loading = ref(false)
-  const tasks = ref<SystemScheduledTask[]>([])
+  const tasks = computed(() => cronStore.systemTasks)
   const searchText = ref('')
   const taskFilter = ref<'all' | 'flyenv' | 'other'>('all')
 
@@ -133,13 +139,24 @@
     return new Date(timestamp).toLocaleString()
   }
 
-  const loadData = () => {
+  const taskName = (row: SystemScheduledTask): string => {
+    if (row.isFlyEnv) {
+      return row.name || row.fullName || '-'
+    }
+    return row.fullName || row.name || '-'
+  }
+
+  const loadData = ({ force = false }: LoadDataOptions = {}) => {
+    if (!force && cronStore.systemTasksLoaded) {
+      return
+    }
+
     loading.value = true
     IPC.send('app-fork:cron', 'listSystemTasks').then((key: string, res: any) => {
       IPC.off(key)
       loading.value = false
       if (res?.code === 0) {
-        tasks.value = res.data || []
+        cronStore.setSystemTasks(res.data || [])
       } else {
         MessageError(res?.msg || 'Failed to load system tasks')
       }
@@ -155,7 +172,8 @@
           loading.value = false
           if (res?.code === 0) {
             MessageSuccess(I18nT('base.success'))
-            loadData()
+            cronStore.clearAllCronJobs()
+            loadData({ force: true })
           } else {
             MessageError(res?.msg || 'Failed to delete system task')
           }
