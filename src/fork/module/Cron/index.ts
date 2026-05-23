@@ -20,8 +20,7 @@ import {
   findJob,
   flattenJobs,
   normalizeHostId,
-  storageKey,
-  systemTaskName
+  storageKey
 } from './utils'
 
 export class Cron extends Base {
@@ -45,43 +44,14 @@ export class Cron extends Base {
       return
     }
     this.initStarted = true
-    this.syncSystemCronJobs().catch((e) => {
-      console.error('[Cron] sync system cron jobs failed:', e)
+    this.syncCronMetadata().catch((e) => {
+      console.error('[Cron] sync cron metadata failed:', e)
     })
   }
 
-  private async syncSystemCronJobs(): Promise<void> {
+  private async syncCronMetadata(): Promise<void> {
     const data = await this.storage.load()
-    let changed = false
-
-    for (const [key, jobs] of Object.entries(data)) {
-      for (let i = 0; i < jobs.length; i++) {
-        const job = jobs[i]
-        let applied: CronJob
-        try {
-          applied = await this.systemScheduler.apply(job)
-        } catch (e: any) {
-          await this.systemScheduler.remove(job.id).catch(() => {})
-          applied = {
-            ...job,
-            systemRegistered: false,
-            systemTaskName: systemTaskName(job.id),
-            systemError: e?.message || `${e}`
-          }
-        }
-        if (JSON.stringify(applied) !== JSON.stringify(job)) {
-          jobs[i] = applied
-          changed = true
-        }
-      }
-      data[key] = jobs
-    }
-
     if (ensureNextRunTimes(data) || (await this.runRecords.syncLatest(data))) {
-      changed = true
-    }
-
-    if (changed) {
       await this.storage.save(data)
     }
   }
