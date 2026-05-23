@@ -1,4 +1,4 @@
-import type { CronJob } from '@shared/app'
+import type { CronJob, SystemScheduledTask } from '@shared/app'
 import EnvSync from '@shared/EnvSync'
 import { getPortableCronSchedule } from '@shared/CronExpression'
 import type { PortableCronSchedule } from '@shared/CronExpression'
@@ -269,5 +269,71 @@ exit $ExitCode
     await this.removeTask(jobId)
     await remove(this.taskScriptPath(jobId, 'ps1')).catch(() => {})
     await remove(this.taskScriptPath(jobId, 'cmd')).catch(() => {})
+  }
+
+  async listSystemTasks(): Promise<SystemScheduledTask[]> {
+    const script = `
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+$tasks = @(Get-ScheduledTask | Sort-Object TaskPath, TaskName | ForEach-Object {
+  $actions = @($_.Actions | ForEach-Object {
+    $parts = @()
+    if ($_.Execute) { $parts += $_.Execute }
+    if ($_.Arguments) { $parts += $_.Arguments }
+    if ($_.WorkingDirectory) { $parts += ('StartIn=' + $_.WorkingDirectory) }
+    $parts -join ' '
+  }) -join [Environment]::NewLine
+  $triggers = @($_.Triggers | ForEach-Object { $_.ToString() }) -join [Environment]::NewLine
+  $info = $null
+  $nextRunTime = $null
+  try {
+    $info = Get-ScheduledTaskInfo -TaskName $_.TaskName -TaskPath $_.TaskPath -ErrorAction Stop
+    if ($info.NextRunTime -and $info.NextRunTime.Year -gt 1900) {
+      $nextRunTime = [DateTimeOffset]::new($info.NextRunTime).ToUnixTimeMilliseconds()
+    }
+  } catch {}
+  $fullName = "$($_.TaskPath)$($_.TaskName)"
+  $isFlyEnv = $_.TaskName -like 'FlyEnv-Cron-*'
+  $jobId = if ($isFlyEnv) { $_.TaskName.Substring('FlyEnv-Cron-'.Length) } else { $null }
+  [PSCustomObject]@{
+    id = $fullName
+    platform = 'windows'
+    name = $_.TaskName
+    fullName = $fullName
+    path = $_.TaskPath
+    schedule = $triggers
+    command = $actions
+    nextRunTime = $nextRunTime
+    state = [string]$_.State
+    enabled = [bool]($_.State -ne 'Disabled')
+    description = [string]$_.Description
+    author = [string]$_.Author
+    isFlyEnv = [bool]$isFlyEnv
+    jobId = $jobId
+    raw = $fullName
+  }
+})
+if ($tasks.Count -eq 0) { '[]' } else { $tasks | ConvertTo-Json -Compress -Depth 6 }
+`
+    const res = await spawnPromiseWithEnv(
+      await this.powerShellPath(),
+      ['-NoProfile', '-NonInteractive', '-Command', script],
+      { windowsHide: true }
+    )
+    const raw = `${res.stdout || ''}`.trim()
+    if (!raw) {
+      return []
+    }
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : [parsed]
+  }
+
+  async deleteSystemTask(id: string): Promise<void> {
+    if (!id?.trim()) {
+      throw new Error('System task id is required')
+    }
+
+    await spawnPromiseWithEnv(await this.schtasksPath(), ['/Delete', '/TN', id.trim(), '/F'], {
+      windowsHide: true
+    })
   }
 }

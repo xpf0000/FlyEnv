@@ -1,5 +1,5 @@
 import { Base } from '../Base'
-import type { CronJob, CronRunRecord } from '@shared/app'
+import type { CronJob, CronRunRecord, SystemScheduledTask } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { uuid } from '../../Fn'
 import { join } from 'path'
@@ -54,6 +54,34 @@ export class Cron extends Base {
     if (ensureNextRunTimes(data) || (await this.runRecords.syncLatest(data))) {
       await this.storage.save(data)
     }
+  }
+
+  private systemTaskJobId(systemTaskId: string): string | undefined {
+    const unix = systemTaskId.match(/^flyenv:(.+)$/)
+    if (unix) {
+      return unix[1]
+    }
+
+    const task = systemTaskId.match(/(?:^|[\\/])FlyEnv-Cron-([^\\/]+)$/)
+    return task?.[1]
+  }
+
+  private async removeLocalJobBySystemTaskId(systemTaskId: string): Promise<void> {
+    const jobId = this.systemTaskJobId(systemTaskId)
+    if (!jobId) {
+      return
+    }
+
+    const data = await this.storage.load()
+    const found = findJob(data, undefined, jobId)
+    if (!found) {
+      return
+    }
+
+    await this.systemScheduler.remove(jobId).catch(() => {})
+    found.jobs.splice(found.index, 1)
+    data[found.key] = found.jobs
+    await this.storage.save(data)
   }
 
   private resolveJobHostId(hostId: number | undefined | null, job: Partial<CronJob>): number {
@@ -197,6 +225,28 @@ export class Cron extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         resolve(await this.runRecords.read(jobId, limit))
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  listSystemTasks(): ForkPromise<SystemScheduledTask[]> {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        resolve(await this.systemScheduler.listSystemTasks())
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  deleteSystemTask(id: string): ForkPromise<boolean> {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        await this.systemScheduler.deleteSystemTask(id)
+        await this.removeLocalJobBySystemTaskId(id)
+        resolve(true)
       } catch (error) {
         reject(error)
       }

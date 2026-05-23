@@ -23,7 +23,7 @@ export default class ExceptionHandler {
       logger.error(`[FlyEnv] Uncaught exception: ${message}`)
       logger.error(stack)
       appDebugLog('[FlyEnv-UncaughtException]', `${message}\n${stack}`).catch()
-      if (app.isReady()) {
+      if (this.options.showDialog && app.isReady()) {
         dialog.showErrorBox('Error: ', message)
       }
     })

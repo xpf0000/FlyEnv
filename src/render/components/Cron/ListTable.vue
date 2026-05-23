@@ -64,6 +64,9 @@
       </el-table-column>
 
       <el-table-column prop="command" :label="I18nT('cron.command')" show-overflow-tooltip>
+        <template #header>
+          <span class="truncate">{{ I18nT('cron.command') }}</span>
+        </template>
         <template #default="{ row }">
           <div class="command-cell">
             <code>{{ row.command }}</code>

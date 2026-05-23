@@ -40,6 +40,7 @@ export default class Application extends EventEmitter {
   // 新提取的管理器
   private serverManager: ServerManager
   private ipcHandler: IPCHandler
+  private stopPromise?: Promise<void>
 
   constructor() {
     super()
@@ -247,6 +248,7 @@ export default class Application extends EventEmitter {
 
     this.ipcHandler.on('application:exit', () => {
       console.log('application:exit !!!!!')
+      this.windowManager.setWillQuit(true)
       this?.mainWindow?.hide()
       this?.trayWindow?.hide()
       this.stop().then(() => {
@@ -504,18 +506,55 @@ export default class Application extends EventEmitter {
   // ===== 应用生命周期 =====
 
   async stop() {
+    if (this.stopPromise) {
+      return this.stopPromise
+    }
+
+    this.stopPromise = this.doStop()
+    return this.stopPromise
+  }
+
+  private async doStop() {
     logger.info('[FlyEnv] application stop !!!')
     try {
       globalShortcut.unregisterAll()
+    } catch (e) {
+      console.log('globalShortcut.unregisterAll e: ', e)
+    }
+    try {
       ScreenManager.destroy()
+    } catch (e) {
+      console.log('ScreenManager.destroy e: ', e)
+    }
+    try {
       SiteSuckerManager.destroy()
-      this.forkManager?.destroy()
-      this.trayManager?.destroy()
+    } catch (e) {
+      console.log('SiteSuckerManager.destroy e: ', e)
+    }
+    try {
       OAuth.cancel()
+    } catch (e) {
+      console.log('OAuth.cancel e: ', e)
+    }
+    try {
       NodePTY.exitAllPty()
+    } catch (e) {
+      console.log('NodePTY.exitAllPty e: ', e)
+    }
+    try {
       await this.serverManager.stopServer()
     } catch (e) {
-      console.log('stop e: ', e)
+      console.log('serverManager.stopServer e: ', e)
+    }
+    try {
+      this.forkManager?.destroy()
+    } catch (e) {
+      console.log('forkManager.destroy e: ', e)
+    }
+    try {
+      this.trayManager?.destroy()
+    } catch (e) {
+      console.log('trayManager.destroy e: ', e)
     }
   }
 

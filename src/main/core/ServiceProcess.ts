@@ -14,6 +14,26 @@ class ServiceProcess {
   forkManager?: ForkManager
   servicePID: Record<string, ServiceProcessItem[]> = {}
 
+  private protectedProcessPids(processList: PItem[]): Set<string> {
+    const protectedPids = new Set<string>([`${process.pid}`, `${process.ppid}`])
+    const processMap = new Map<string, PItem>()
+    processList.forEach((item) => {
+      processMap.set(`${item.PID}`, item)
+    })
+
+    let currentPid = `${process.pid}`
+    for (let i = 0; i < processList.length; i += 1) {
+      const item = processMap.get(currentPid)
+      const ppid = item?.PPID ? `${item.PPID}` : ''
+      if (!ppid || ppid === '0' || protectedPids.has(ppid)) {
+        break
+      }
+      protectedPids.add(ppid)
+      currentPid = ppid
+    }
+    return protectedPids
+  }
+
   addPid(type: string, pid: string, item: SoftInstalled) {
     if (!this.servicePID[type]) {
       this.servicePID[type] = []
@@ -132,8 +152,10 @@ class ServiceProcess {
       const TERM: Array<string> = []
       const INT: Array<string> = []
       const all: any = await ProcessListFetch()
+      const protectedPids = this.protectedProcessPids(all)
       const find = all.filter((p: any) => {
         return (
+          !protectedPids.has(`${p.PID}`) &&
           (p.COMMAND.includes(global.Server.BaseDir!) ||
             p.COMMAND.includes(global.Server.AppDir!) ||
             p.COMMAND.includes('redis-server')) &&
@@ -187,8 +209,12 @@ class ServiceProcess {
       try {
         all = await ProcessPidList()
       } catch {}
+      const protectedPids = this.protectedProcessPids(all)
       for (const item of all) {
         if (!item.COMMAND || typeof item.COMMAND !== 'string') {
+          continue
+        }
+        if (protectedPids.has(`${item.PID}`)) {
           continue
         }
         if (

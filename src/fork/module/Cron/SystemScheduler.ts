@@ -1,4 +1,4 @@
-import type { CronJob } from '@shared/app'
+import type { CronJob, SystemScheduledTask } from '@shared/app'
 import { assertPortableCronExpression } from '@shared/CronExpression'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { mkdirp } from '../../Fn'
@@ -9,6 +9,8 @@ import { WindowsSystemScheduler } from './WindowsSystemScheduler'
 interface PlatformSystemScheduler {
   install(job: CronJob): Promise<void>
   remove(jobId: string): Promise<void>
+  listSystemTasks(): Promise<SystemScheduledTask[]>
+  deleteSystemTask(id: string): Promise<void>
 }
 
 export class CronSystemScheduler {
@@ -32,6 +34,14 @@ export class CronSystemScheduler {
 
   async remove(jobId: string) {
     await this.platformScheduler()?.remove(jobId)
+  }
+
+  async listSystemTasks(): Promise<SystemScheduledTask[]> {
+    return (await this.platformScheduler()?.listSystemTasks()) || []
+  }
+
+  async deleteSystemTask(id: string) {
+    await this.platformScheduler()?.deleteSystemTask(id)
   }
 
   async apply(job: CronJob): Promise<CronJob> {

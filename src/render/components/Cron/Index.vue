@@ -56,6 +56,9 @@
           @stats-change="onStatsChange"
         />
       </template>
+      <template v-else-if="tab === 1">
+        <SystemTaskTable ref="systemTaskTableRef" />
+      </template>
     </div>
 
     <DialogAdd
@@ -77,8 +80,9 @@
   import { AppModuleSetup } from '@/core/Module'
   import { SetupStore } from '@/components/Setup/store'
   import Router from '@/router'
-  import ListTable from '@/components/Host/Cron/ListTable.vue'
-  import DialogAdd from '@/components/Host/Cron/DialogAdd.vue'
+  import ListTable from './ListTable.vue'
+  import SystemTaskTable from './SystemTaskTable.vue'
+  import DialogAdd from './DialogAdd.vue'
   import type { CronJob } from '@shared/app'
 
   const route = useRoute()
@@ -86,10 +90,11 @@
   const appStore = AppStore()
   const setupStore = SetupStore()
   const { tab } = AppModuleSetup('cron')
-  const tabs = [I18nT('cron.title')]
+  const tabs = [I18nT('cron.title'), I18nT('cron.systemTasks')]
 
   const hostFilter = ref('all')
   const listTableRef = ref<InstanceType<typeof ListTable>>()
+  const systemTaskTableRef = ref<InstanceType<typeof SystemTaskTable>>()
   const showDialog = ref(false)
   const editingItem = ref<CronJob | null>(null)
   const stats = ref({
@@ -179,6 +184,10 @@
   }
 
   const refreshList = () => {
+    if (tab.value === 1) {
+      systemTaskTableRef.value?.loadData()
+      return
+    }
     listTableRef.value?.loadData()
   }
 </script>

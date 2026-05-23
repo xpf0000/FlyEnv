@@ -62,6 +62,24 @@ export interface CronRunRecord {
   errorBase64?: string
 }
 
+export interface SystemScheduledTask {
+  id: string
+  platform: 'windows' | 'unix'
+  name: string
+  fullName: string
+  path?: string
+  schedule?: string
+  command?: string
+  nextRunTime?: number
+  state?: string
+  enabled?: boolean
+  description?: string
+  author?: string
+  isFlyEnv?: boolean
+  jobId?: string
+  raw?: string
+}
+
 export interface AppHost {
   id: number
   reverseProxy?: AppHostReverseProxyItem[]
