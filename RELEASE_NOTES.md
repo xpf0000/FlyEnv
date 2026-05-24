@@ -2,6 +2,84 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.15.2] - 2026-05-24
+
+# **FlyEnv v4.15.2 Update Release Notes**
+
+## **🚀 New Features**
+
+### **1. Added .NET Module**
+
+FlyEnv now includes a dedicated **.NET** module for managing .NET development environments directly from the app. You can now discover, install, and manage .NET SDK versions alongside your other language runtimes and services.
+
+This integration provides:
+- **Project Management**: Browse and manage .NET projects from the language project view
+- **VS Code Integration**: Open .NET projects directly in VS Code from FlyEnv
+- **Service Management**: Start and stop .NET services through the standard FlyEnv service workflow
+- **Version Management**: Detect local .NET SDK installations and install platform-specific SDK packages from Microsoft release metadata
+- **Cross-Platform Support**: Works across Windows, macOS, and Linux with architecture-aware downloads
+- **Package Manager Support**: Includes Homebrew discovery support for macOS users
+
+Thanks to [@sky22333](https://github.com/sky22333) for the feature request! [Issue #662](https://github.com/xpf0000/FlyEnv/issues/662)
+
+---
+
+### **2. Added Cron Jobs Module**
+
+FlyEnv now provides a full **Cron Jobs** module for scheduling and monitoring recurring commands from the desktop UI. You can create global jobs or bind jobs to specific sites, then let FlyEnv register them with the native system scheduler.
+
+This integration allows you to:
+- **Global & Site-Scoped Jobs**: Create scheduled commands globally or for a specific project/site
+- **Native Scheduler Integration**: Register jobs through crontab on macOS/Linux and Windows Task Scheduler on Windows
+- **Cron Expression Helper**: Build and validate portable five-field cron expressions with presets and live previews
+- **Command Testing**: Run commands manually before saving and inspect exit code, duration, stdout, and stderr
+- **Run History**: Track last run time, next run time, output, errors, and execution status
+- **System Task View**: Browse FlyEnv-created tasks and existing system scheduled tasks in one place
+- **Command Templates**: Quickly insert common PHP, Node.js, Python, and shell command patterns
+
+Thanks to [@ibraimfarag](https://github.com/ibraimfarag) for the PR! [PR #674](https://github.com/xpf0000/FlyEnv/pull/674)
+
+---
+
+### **3. Added Korean Translation**
+
+FlyEnv now supports **Korean** as an application language. The translation covers the core app interface, setup pages, service modules, toolbox entries, Cron Jobs, Flutter, and other module-specific text.
+
+Thanks to [@vendeeglobe](https://github.com/vendeeglobe) for the PR! [PR #676](https://github.com/xpf0000/FlyEnv/pull/676)
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **4. Fixed MongoDB Startup Issue on macOS**
+
+Resolved an issue where MongoDB could fail to start on macOS. The MongoDB startup flow now uses the platform-appropriate service launch path with generated configuration, log, PID, and data directory handling, improving startup reliability on macOS.
+
+Thanks to [@leafspace](https://github.com/leafspace) for reporting this issue! [Issue #679](https://github.com/xpf0000/FlyEnv/issues/679)
+
+---
+
+### **5. Fixed Flutter Installation Failure**
+
+Resolved an issue where Flutter SDK installation could fail after extraction. FlyEnv now normalizes the extracted SDK directory and initializes the installed Flutter SDK as a Git repository, preventing Flutter commands from failing with repository-related errors after installation.
+
+Thanks to [@yljphp](https://github.com/yljphp) for reporting this issue! [Issue #682](https://github.com/xpf0000/FlyEnv/issues/682)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)
+
+**Enjoy the update!**
+
+
 ## [4.15.1] - 2026-05-15
 
 # **FlyEnv v4.15.1 Update Release Notes**
@@ -443,5 +521,4 @@ All FlyEnv installation packages are built using **[[GitHub Actions](https://git
 We welcome your continued feedback and bug reports via [[[GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)](https://github.com/xpf0000/FlyEnv/issues)](https://github.com/xpf0000/FlyEnv/issues)
 
 **Enjoy the update!**
-
 

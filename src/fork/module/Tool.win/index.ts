@@ -243,7 +243,7 @@ subjectAltName=@alt_names
         return
       }
 
-      command = `Start-Process -FilePath ${quotePowerShellSingle(rundll32)} -ArgumentList ${quotePowerShellSingle(`"${sysdm}",EditEnvironmentVariables`)}`
+      command = `Start-Process -FilePath ${quotePowerShellSingle(rundll32)} -ArgumentList ${quotePowerShellSingle(`"${sysdm}",EditEnvironmentVariables`)} -Verb RunAs`
       try {
         await spawnPromiseWithEnv(
           powershell,
@@ -267,7 +267,7 @@ subjectAltName=@alt_names
         )
       }
 
-      command = `Start-Process -FilePath ${quotePowerShellSingle(systemPropertiesAdvanced)}`
+      command = `Start-Process -FilePath ${quotePowerShellSingle(systemPropertiesAdvanced)} -Verb RunAs`
       try {
         await spawnPromiseWithEnv(
           powershell,
