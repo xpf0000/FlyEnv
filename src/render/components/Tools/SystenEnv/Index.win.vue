@@ -138,7 +138,7 @@
 
 <script lang="ts" setup>
   import { reactive, computed } from 'vue'
-  import { MessageSuccess } from '@/util/Element'
+  import { MessageError, MessageSuccess } from '@/util/Element'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Refresh, Plus, Edit, Delete, SortDown, SortUp, SetUp } from '@element-plus/icons-vue'
@@ -221,8 +221,11 @@
    * 打开 Windows自身的 环境变量 界面
    */
   const showWinEnvSetupGui = () => {
-    IPC.send('app-fork:tools', 'openSysdmCpl').then((key: any) => {
+    IPC.send('app-fork:tools', 'openSysdmCpl').then((key: any, res: any) => {
       IPC.off(key)
+      if (res?.code !== 0) {
+        MessageError(res?.msg ?? I18nT('base.fail'))
+      }
     })
   }
 </script>

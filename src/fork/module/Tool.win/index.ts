@@ -22,6 +22,7 @@ import { setAlias, cleanAlias } from './alias'
 import { openPathByApp } from './ide'
 import { initAllowDir, initFlyEnvSH } from './init'
 import EnvSync from '@shared/EnvSync'
+import { appDebugLog } from '@shared/utils'
 
 const quotePowerShellSingle = (value: string) => {
   return `'${value.replace(/'/g, "''")}'`
@@ -212,24 +213,83 @@ subjectAltName=@alt_names
 
   openSysdmCpl() {
     return new ForkPromise(async (resolve, reject) => {
+      let command = ''
+      let powershell = ''
+      let rundll32 = ''
+      let sysdm = ''
+      let systemPropertiesAdvanced = ''
+
       try {
         await EnvSync.sync()
         const systemPath = EnvSync.SystemPath ?? 'C:\\Windows\\System32'
-        const powershell =
+        powershell =
           EnvSync.PowerShellPath ?? join(systemPath, 'WindowsPowerShell/v1.0/powershell.exe')
-        const rundll32 = join(systemPath, 'rundll32.exe')
-        const sysdm = join(systemPath, 'sysdm.cpl')
-        const command = `Start-Process -FilePath ${quotePowerShellSingle(rundll32)} -ArgumentList ${quotePowerShellSingle(`${sysdm},EditEnvironmentVariables`)} -Verb RunAs`
+        rundll32 = join(systemPath, 'rundll32.exe')
+        sysdm = join(systemPath, 'sysdm.cpl')
+        systemPropertiesAdvanced = join(systemPath, 'SystemPropertiesAdvanced.exe')
+      } catch (e) {
+        await appDebugLog(
+          '[openSysdmCpl][error]',
+          JSON.stringify({
+            error: e instanceof Error ? e.stack || e.message : `${e}`,
+            command,
+            powershell,
+            rundll32,
+            sysdm,
+            systemPropertiesAdvanced
+          })
+        )
+        reject(e)
+        return
+      }
+
+      command = `Start-Process -FilePath ${quotePowerShellSingle(rundll32)} -ArgumentList ${quotePowerShellSingle(`"${sysdm}",EditEnvironmentVariables`)}`
+      try {
         await spawnPromiseWithEnv(
           powershell,
           ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command],
           {
-            detached: true,
             windowsHide: true
           }
         )
         resolve(true)
+        return
       } catch (e) {
+        await appDebugLog(
+          '[openSysdmCpl][rundll32][error]',
+          JSON.stringify({
+            error: e instanceof Error ? e.stack || e.message : `${e}`,
+            command,
+            powershell,
+            rundll32,
+            sysdm
+          })
+        )
+      }
+
+      command = `Start-Process -FilePath ${quotePowerShellSingle(systemPropertiesAdvanced)}`
+      try {
+        await spawnPromiseWithEnv(
+          powershell,
+          ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', command],
+          {
+            windowsHide: true
+          }
+        )
+        resolve(true)
+        return
+      } catch (e) {
+        await appDebugLog(
+          '[openSysdmCpl][fallback][error]',
+          JSON.stringify({
+            error: e instanceof Error ? e.stack || e.message : `${e}`,
+            command,
+            powershell,
+            rundll32,
+            sysdm,
+            systemPropertiesAdvanced
+          })
+        )
         reject(e)
       }
     })
