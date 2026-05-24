@@ -55,7 +55,7 @@ Most local dev tools are either too heavy for everyday work (Docker Desktop) or 
 * **Native Processes:** Run installed services directly on your operating system rather than inside Docker containers.
 * **Project Workflows:** Switch Node/PHP environments by project and define project service commands, ports, domains, and HTTPS.
 * **Full-Stack Coverage:** Enable databases, queues, search engines, object storage, AI tools, and scheduled tasks from one app.
-* **Multilingual UI:** Use FlyEnv in 25+ languages, including Korean.
+* **Multilingual UI:** Use FlyEnv in 30+ languages.
 
 ---
 
