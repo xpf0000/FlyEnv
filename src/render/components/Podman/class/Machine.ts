@@ -238,7 +238,7 @@ export class Machine {
         const command = `podman load -i "${path}"`
         const xtermExec = reactiveBind(new XTermExec())
         xtermExec.id = id
-        xtermExec.cammand = [command]
+        xtermExec.command = [command]
         xtermExec.wait().then(() => {
           delete XTermExecCache[id]
           this.imageImporting = false
@@ -284,7 +284,7 @@ export class Machine {
         const command = `podman import "${path}"`
         const xtermExec = reactiveBind(new XTermExec())
         xtermExec.id = id
-        xtermExec.cammand = [command]
+        xtermExec.command = [command]
         xtermExec.wait().then(() => {
           delete XTermExecCache[id]
           this.containerImporting = false

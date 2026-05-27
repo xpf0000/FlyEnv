@@ -7,7 +7,7 @@ import { SetupStore } from '@/components/Setup/store'
 
 class CapturerSetup {
   key: string[] = []
-  name = 'flyenv-capturer-{timestramp}'
+  name = 'flyenv-capturer-{timestamp}'
   dir = ''
   trialStartTime: number = 0
 

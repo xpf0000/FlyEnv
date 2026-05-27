@@ -209,7 +209,7 @@ class Podman {
       xtermExec = reactiveBind(new XTermExec())
       xtermExec.id = id
       const arr: string[] = ['brew install docker-compose']
-      xtermExec.cammand = [arr.join(' ')]
+      xtermExec.command = [arr.join(' ')]
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[id]
         this.checkIsComposeExists()

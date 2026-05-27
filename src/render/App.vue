@@ -41,15 +41,15 @@
     return platform
   })
 
-  const plagformModule = computed(() => {
+  const platformModule = computed(() => {
     return AppModules.filter((m) => !m.platform || m.platform.includes(platform.value))
   })
 
   const allService = computed(() => {
-    return plagformModule.value.filter((m) => m.isService).map((m) => m.typeFlag)
+    return platformModule.value.filter((m) => m.isService).map((m) => m.typeFlag)
   })
 
-  for (const item of plagformModule.value) {
+  for (const item of platformModule.value) {
     const module = reactive(new Module())
     module.typeFlag = item.typeFlag
     module.isService = item?.isService ?? false
@@ -135,9 +135,9 @@
     if (checked) {
       return
     }
-    IPC.send('app-fork:tools', 'sysetmProxy').then((key: string, res: any) => {
+    IPC.send('app-fork:tools', 'systemProxy').then((key: string, res: any) => {
       IPC.off(key)
-      console.log('sysetmProxy: ', res)
+      console.log('systemProxy: ', res)
       const proxy = res?.data ?? {}
       if (Object.keys(proxy).length > 0) {
         Base._Confirm(I18nT('tools.systemProxyCheck'), undefined, {

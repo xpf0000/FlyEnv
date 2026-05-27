@@ -346,14 +346,14 @@
       const arr: string[] = [`docker-compose -f ${form.value.dir}`]
       const logs: string[] = [...arr, 'logs']
       arr.push('up -d')
-      const cammand = [arr.join(' '), logs.join(' ')]
+      const command = [arr.join(' '), logs.join(' ')]
 
       if (window.Server.isLinux || window.Server.isMacOS) {
         const socket = PodmanManager.currentSocket()
-        cammand.unshift(`export DOCKER_HOST=unix://${socket}`)
+        command.unshift(`export DOCKER_HOST=unix://${socket}`)
       }
 
-      xtermExec.cammand = cammand
+      xtermExec.command = command
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[id]
         machine.value?.fetchContainers?.()

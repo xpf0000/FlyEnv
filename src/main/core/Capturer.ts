@@ -418,8 +418,8 @@ class Capturer {
     const buffer = Buffer.from(base64, 'base64')
     clipboard.writeImage(nativeImage.createFromBuffer(buffer))
     const chooseDirSave = () => {
-      const timestramp = Math.floor(new Date().getTime() / 1000)
-      const name = `flyenv-capturer-${timestramp}.png`
+      const timestamp = Math.floor(new Date().getTime() / 1000)
+      const name = `flyenv-capturer-${timestamp}.png`
       dialog
         .showSaveDialog({
           properties: ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation'],
@@ -453,13 +453,13 @@ class Capturer {
       return
     }
     const date = new Date()
-    const timestramp = Math.floor(date.getTime() / 1000)
+    const timestamp = Math.floor(date.getTime() / 1000)
     let name = this.config.name.trim()
     if (name) {
       const time = date.toISOString()
       const uuid = randomUUID()
       name = name
-        .replace(/\{timestramp}/g, `${timestramp}`)
+        .replace(/\{timestamp}/g, `${timestamp}`)
         .replace(/\{datetime}/g, `${time}`)
         .replace(/\{uuid}/g, `${uuid}`)
       if (name.includes('{index}')) {
@@ -476,7 +476,7 @@ class Capturer {
       }
       name += '.png'
     } else {
-      name = `flyenv-capturer-${timestramp}.png`
+      name = `flyenv-capturer-${timestamp}.png`
     }
     const filePath = join(this.config.dir, name)
     writeFile(filePath, buffer).then(() => {

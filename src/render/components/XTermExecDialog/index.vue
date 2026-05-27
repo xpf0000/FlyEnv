@@ -60,7 +60,7 @@
       } else if (props?.showCommand) {
         props.item.show(xtermDom.value!, props.showCommand!)
       } else {
-        props.item.exec(xtermDom.value!, props.item.cammand)
+        props.item.exec(xtermDom.value!, props.item.command)
       }
     }
   }

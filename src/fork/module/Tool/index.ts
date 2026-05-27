@@ -87,7 +87,7 @@ class Manager extends Base {
     })
   }
 
-  sysetmProxy() {
+  systemProxy() {
     return new ForkPromise((resolve) => {
       systemProxyGet()
         .then((proxy) => {

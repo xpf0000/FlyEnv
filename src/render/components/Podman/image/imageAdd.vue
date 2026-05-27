@@ -182,7 +182,7 @@
     )
     const command = `podman pull ${name}`
     const xtermExec = reactiveBind(new XTermExec())
-    xtermExec.cammand = [command]
+    xtermExec.command = [command]
     xtermExec.wait().then(() => {
       delete XTermExecCache?.[id]
       const index = machine.value?.images?.findIndex?.((i) => i.id === id) ?? -1
