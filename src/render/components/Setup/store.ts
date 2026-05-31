@@ -95,7 +95,7 @@ export const SetupStore = defineStore('setup', {
                   : 'https://flyenv.com/guide/about-license.html'
                 setTimeout(() => {
                   ElMessageBox.alert(
-                    I18nT('licenses.trialExpiredTips').replace('{days}', `${days}`),
+                    I18nT('licenses.trialExpiredTips', { days }),
                     I18nT('licenses.trialExpiredTitle'),
                     {
                       confirmButtonText: I18nT('base.confirm'),
