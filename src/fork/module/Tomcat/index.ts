@@ -25,7 +25,7 @@ import {
   moveChildDirToParent
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { makeGlobalTomcatServerXML } from '../Service/ServiceItemJavaTomcat'
+import { makeGlobalTomcatServerXML } from './ServerXML'
 import { I18nT } from '@lang/index'
 import { isLinux, isWindows } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'

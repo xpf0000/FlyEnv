@@ -15,7 +15,7 @@ import { shellEnv } from 'shell-env'
 import { appDebugLog, isMacOS } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
 import type { SoftInstalled } from '@shared/app'
-import Helper from '../../Helper'
+import { createPythonBinShims } from '../../util/PythonShim'
 
 export function fetchEnvPath(): ForkPromise<string[]> {
   return new ForkPromise(async (resolve) => {
@@ -40,12 +40,36 @@ export function fetchPATH(): ForkPromise<{ allPath: string[]; appPath: string[] 
 
     const dir = join(dirname(global.Server.AppDir!), 'env')
     if (existsSync(dir)) {
-      let allFile = await readdir(dir)
-      allFile = allFile
-        .filter((f) => existsSync(join(dir, f)))
-        .map((f) => realpathSync(join(dir, f)))
-        .filter((f) => existsSync(f) && statSync(f).isDirectory())
-      res.appPath = Array.from(new Set(allFile))
+      const appPath = new Set<string>()
+      const allFile = await readdir(dir)
+      for (const f of allFile) {
+        const envPath = join(dir, f)
+        if (!existsSync(envPath)) {
+          continue
+        }
+        try {
+          const realEnvPath = realpathSync(envPath)
+          if (existsSync(realEnvPath) && statSync(realEnvPath).isDirectory()) {
+            appPath.add(realEnvPath)
+          }
+        } catch {}
+        if (f !== 'python') {
+          continue
+        }
+        for (const command of ['python', 'python3']) {
+          const shim = join(envPath, 'bin', command)
+          if (!existsSync(shim)) {
+            continue
+          }
+          try {
+            const realBin = realpathSync(shim)
+            if (existsSync(realBin) && statSync(realBin).isFile()) {
+              appPath.add(realBin)
+            }
+          } catch {}
+        }
+      }
+      res.appPath = Array.from(appPath)
     }
     resolve(res)
   })
@@ -118,8 +142,16 @@ export function updatePATH(item: SoftInstalled, flag: string) {
     } catch {}
     appDebugLog('[updatePATH][binPath]', `${binPath}`).catch()
     appDebugLog('[updatePATH][all]', `${JSON.stringify(all, null, 2)}`).catch()
-    // If the PATH environment variable array does not include the installed software path, create a symlink
-    if (!all.includes(binPath)) {
+    if (flag === 'python') {
+      try {
+        await createPythonBinShims(join(flagDir, 'bin'), item.bin, item.version)
+      } catch (e) {
+        appDebugLog('[updatePATH][python shim][error]', `${e}`).catch()
+        reject(e)
+        return
+      }
+    } else if (!all.includes(binPath)) {
+      // If the PATH environment variable array does not include the installed software path, create a symlink
       try {
         await execPromise(['ln', '-s', `"${binPath}"`, `"${flagDir}"`].join(' '))
       } catch (e) {
@@ -178,18 +210,6 @@ export function updatePATH(item: SoftInstalled, flag: string) {
       if (gradle) {
         gradle = dirname(realpathSync(gradle))
         other_zsh += `\nexport GRADLE_HOME="${gradle}"`
-      }
-      // Handle Python
-      let python = allFile.find((f) => realpathSync(f).includes('Python.framework'))
-      if (python) {
-        python = realpathSync(python)
-        const py = join(python, 'python')
-        const py3 = join(python, 'python3')
-        if (existsSync(py3) && !existsSync(py)) {
-          try {
-            await Helper.send('tools', 'ln_s', py3, py)
-          } catch {}
-        }
       }
       param.zsh = `\nexport PATH="${aliasDir}:${allFile.join(':')}:$PATH"${other_zsh}\n`
     } else {

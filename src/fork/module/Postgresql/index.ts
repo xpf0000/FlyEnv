@@ -1,4 +1,4 @@
-import { join, dirname, basename } from 'path'
+import { join, dirname } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/index'
@@ -7,7 +7,6 @@ import {
   AppLog,
   brewInfoJson,
   brewSearch,
-  execPromise,
   getSubDirAsync,
   portSearch,
   serviceStartExec,
@@ -232,11 +231,31 @@ export LANG="${global.Server.Local!}"
           process.env.LANG = global.Server.Local!
           await mkdirp(dbPath)
           const initDB = join(binDir, 'initdb.exe')
-          process.chdir(dirname(initDB))
-          const command = `start /B ./${basename(initDB)} -D "${dbPath}" -U root > NUL 2>&1 &`
           try {
-            await execPromise(command)
+            const res = await spawnPromiseWithEnv(initDB, ['-D', dbPath, '-U', 'root'], {
+              cwd: binDir,
+              shell: false,
+              env: {
+                LC_ALL: global.Server.Local!,
+                LANG: global.Server.Local!
+              }
+            })
+            appDebugLog(
+              `[PostgreSql][initdb][windows]`,
+              JSON.stringify({
+                dbPath,
+                stdout: res.stdout,
+                stderr: res.stderr
+              })
+            ).catch()
           } catch (e) {
+            appDebugLog(
+              `[PostgreSql][initdb][windows][error]`,
+              JSON.stringify({
+                dbPath,
+                error: `${e}`
+              })
+            ).catch()
             on({
               'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
             })

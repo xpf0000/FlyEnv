@@ -79,6 +79,45 @@
           </template>
         </template>
       </el-table-column>
+      <el-table-column
+        :label="I18nT('base.remark')"
+        :prop="null"
+        width="140px"
+        align="left"
+        :show-overflow-tooltip="false"
+      >
+        <template #default="scope">
+          <div class="version-note-cell" @dblclick.stop="editNote(scope.row)">
+            <el-input
+              v-if="editingNoteKey === noteKey(scope.row)"
+              v-model="editingNoteValue"
+              size="small"
+              maxlength="200"
+              clearable
+              @blur="saveNote(scope.row)"
+              @keyup.enter="saveNote(scope.row)"
+              @keyup.esc="cancelNoteEdit"
+            />
+            <template v-else>
+              <el-tooltip :content="getNote(scope.row)" :disabled="!getNote(scope.row)">
+                <span
+                  class="version-note-text"
+                  :class="{
+                    empty: !getNote(scope.row)
+                  }"
+                  >{{ getNote(scope.row) }}</span
+                >
+              </el-tooltip>
+              <el-button
+                class="version-note-edit"
+                link
+                :icon="EditPen"
+                @click.stop="editNote(scope.row)"
+              />
+            </template>
+          </div>
+        </template>
+      </el-table-column>
       <slot name="column"></slot>
       <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #header>
@@ -230,7 +269,7 @@
 
 <script lang="ts" setup>
   import { I18nT } from '@lang/index'
-  import { FolderAdd } from '@element-plus/icons-vue'
+  import { EditPen, FolderAdd } from '@element-plus/icons-vue'
   import EXT from './EXT/index.vue'
   import type { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
@@ -254,6 +293,13 @@
     appStore,
     versions,
     versionRunning,
+    editingNoteKey,
+    editingNoteValue,
+    noteKey,
+    getNote,
+    editNote,
+    cancelNoteEdit,
+    saveNote,
     isInEnv,
     isInAppEnv,
     groupTrunOn,
@@ -269,3 +315,38 @@
     toPhpMyAdmin
   })
 </script>
+
+<style lang="scss" scoped>
+  .version-note-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    min-height: 32px;
+    overflow: hidden;
+  }
+
+  .version-note-text {
+    display: block;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.empty {
+      opacity: 0.45;
+    }
+  }
+
+  .version-note-edit {
+    flex: 0 0 auto;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+
+  .version-note-cell:hover .version-note-edit {
+    opacity: 1;
+  }
+</style>

@@ -3,7 +3,7 @@
     <template #header>
       <div class="card-header">
         <div class="left">
-          <span> PHP </span>
+          <span> {{ title }} </span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
               <span>{{ I18nT('base.customVersionDir') }}</span>
@@ -228,6 +228,15 @@
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
   import { shell } from '@/util/NodeFn'
   import VersionErrorTips from '@/components/ServiceManager/VersionErrorTips.vue'
+
+  withDefaults(
+    defineProps<{
+      title?: string
+    }>(),
+    {
+      title: 'PHP'
+    }
+  )
 
   const isWindows = computed(() => {
     return window.Server.isWindows

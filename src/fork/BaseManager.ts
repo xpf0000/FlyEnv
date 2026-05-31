@@ -27,7 +27,6 @@ class BaseManager {
   RabbitMQ: any
   Python: any
   Maven: any
-  Service: any
   MailPit: any
   Erlang: any
   Ruby: any
@@ -301,12 +300,6 @@ class BaseManager {
         this.Maven = res.default
       }
       doRun(this.Maven)
-    } else if (module === 'service') {
-      if (!this.Service) {
-        const res = await import('./module/Service')
-        this.Service = res.default
-      }
-      doRun(this.Service)
     } else if (module === 'mailpit') {
       if (!this.MailPit) {
         const res = await import('./module/MailPit')

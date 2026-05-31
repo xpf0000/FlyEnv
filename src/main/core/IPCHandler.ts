@@ -79,6 +79,17 @@ export default class IPCHandler extends EventEmitter {
    */
   private handleForkCommand(command: string, key: string, ...args: any[]) {
     const module = command.replace('app-fork:', '')
+    const action = args?.[0]
+    const debugAction = {
+      command,
+      module,
+      action: typeof action === 'string' ? action : undefined,
+      key,
+      startedAt: Date.now()
+    }
+    global.Server.DebugForkActions = [...(global.Server.DebugForkActions ?? []), debugAction].slice(
+      -10
+    )
 
     // 处理特殊命令：通过应用打开路径
     if (module === 'tools' && args?.[0] === 'openPathByApp') {
@@ -86,6 +97,7 @@ export default class IPCHandler extends EventEmitter {
       const appName = args?.[2]
 
       if (openApps[appName]) {
+        this.clearDebugForkAction(debugAction)
         this.handleOpenPathByApp(command, key, args)
         return
       }
@@ -95,11 +107,26 @@ export default class IPCHandler extends EventEmitter {
     this.deps.serverManager.setProxy()
     this.deps.serverManager.updateGlobalConfig()
 
+    const forkManager = this.deps.forkManager
+    if (!forkManager) {
+      this.clearDebugForkAction(debugAction)
+      return
+    }
+
     // 发送给 fork 进程
-    this.deps.forkManager
-      ?.send(module, ...args)
+    forkManager
+      .send(module, ...args)
       .on((info: any) => this.handleForkCallback(command, key, module, info, args))
-      .then((info: any) => this.handleForkCallback(command, key, module, info, args))
+      .then((info: any) => {
+        this.handleForkCallback(command, key, module, info, args)
+        this.clearDebugForkAction(debugAction)
+      })
+  }
+
+  private clearDebugForkAction(debugAction: { key: string; startedAt: number }) {
+    global.Server.DebugForkActions = (global.Server.DebugForkActions ?? []).filter(
+      (item) => item.key !== debugAction.key || item.startedAt !== debugAction.startedAt
+    )
   }
 
   /**

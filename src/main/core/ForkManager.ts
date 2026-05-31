@@ -159,7 +159,6 @@ export class ForkManager {
   forks: Array<ForkItem> = []
   ftpsrvFork?: ForkItem
   dnsFork?: ForkItem
-  serviceFork?: ForkItem
   ollamaChatFork?: ForkItem
 
   _on: Callback = () => {}
@@ -187,12 +186,6 @@ export class ForkManager {
         this.dnsFork._on = this._on
       }
       return this.dnsFork!.send(...args)
-    }
-    if (module === 'service') {
-      if (!this.serviceFork) {
-        this.serviceFork = new ForkItem(this.file, false)
-      }
-      return this.serviceFork!.send(...args)
     }
     const fn = param.shift()
     if (module === 'ollama' && ['chat', 'stopOutput'].includes(fn)) {
@@ -232,7 +225,6 @@ export class ForkManager {
   destroy() {
     this?.dnsFork?.destroy()
     this?.ftpsrvFork?.destroy()
-    this?.serviceFork?.destroy()
     this?.ollamaChatFork?.destroy()
     this.forks.forEach((fork) => {
       fork.destroy()

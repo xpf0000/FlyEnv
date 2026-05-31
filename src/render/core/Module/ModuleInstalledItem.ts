@@ -20,6 +20,7 @@ export class ModuleInstalledItem implements SoftInstalled {
   phpConfig?: string
   phpize?: string
   pid?: string
+  note?: string
   run: boolean = false
   running: boolean = false
   version: string = ''

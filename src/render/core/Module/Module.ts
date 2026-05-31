@@ -9,6 +9,7 @@ import { ModuleMacportsItem } from '@/core/Module/ModuleMacportsItem'
 import { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
 import { ModuleSdkmanItem } from '@/core/Module/ModuleSdkmanItem'
 import { brewInfo, fetchVerion, portInfo, sdkmanInfo } from '@/util/Brew'
+import { installedVersionNote, syncInstalledVersionNotes } from '@/util/InstalledVersionNote'
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
@@ -114,12 +115,12 @@ export class Module {
         this._fetchInstalledResolves.push(resolve)
         return
       }
-      console.log('fetchInstalled run: ', this.typeFlag)
+      console.trace('fetchInstalled run: ', this.typeFlag)
       this.fetchInstalleding = true
       const setup = JSON.parse(JSON.stringify(appStore.config.setup))
       const excludeLocalVersion = setup?.excludeLocalVersion ?? []
       IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup).then(
-        (key: string, res: any) => {
+        async (key: string, res: any) => {
           IPC.off(key)
           const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
           let needSaveConfig = false
@@ -158,6 +159,16 @@ export class Module {
             // this.installed = installItems as any
             console.log('this.installed: ', this.installed, this.typeFlag, this)
             needSaveConfig = needSaveConfig || this.resetCurrentVersion(false)
+          }
+          if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
+            try {
+              await syncInstalledVersionNotes(this.typeFlag, this.installed)
+              this.installed.forEach((item) => {
+                item.note = installedVersionNote(item, this.typeFlag)
+              })
+            } catch (e) {
+              console.error('syncInstalledVersionNotes error: ', e)
+            }
           }
           if (needSaveConfig) {
             appStore.saveConfig().catch()
@@ -359,7 +370,13 @@ export class Module {
 
   watchShowHide() {
     const appStore = AppStore()
+    const phpFpmShow = computed(() => {
+      return appStore.config.setup.common.showItem?.['php-fpm'] !== false
+    })
     const show = computed(() => {
+      if (this.typeFlag === 'php') {
+        return appStore.config.setup.common.showItem?.php !== false || phpFpmShow.value
+      }
       return appStore.config.setup.common.showItem?.[this.typeFlag] !== false
     })
 
@@ -379,5 +396,19 @@ export class Module {
         immediate: true
       }
     )
+
+    if (this.typeFlag === 'php') {
+      watch(
+        phpFpmShow,
+        (v) => {
+          if (!v && this.installed.length > 0) {
+            this.stop().catch()
+          }
+        },
+        {
+          immediate: true
+        }
+      )
+    }
   }
 }

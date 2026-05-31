@@ -211,10 +211,12 @@ export const AppStore = defineStore('app', {
     },
     UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppModule; data: AppServerCurrent }) {
       const server = JSON.parse(JSON.stringify(this.config.server))
+      const current = JSON.parse(JSON.stringify(data))
+      delete current.note
       if (!server[flag]) {
         server[flag] = {}
       }
-      server[flag].current = reactive(data)
+      server[flag].current = reactive(current)
       this.config.server = reactive(server)
     },
     UPDATE_HOSTS(hosts: Array<AppHost>) {
@@ -278,11 +280,18 @@ export const AppStore = defineStore('app', {
     },
     saveConfig() {
       return new Promise((resolve) => {
+        const server = JSON.parse(JSON.stringify(this.config.server))
+        Object.values(server).forEach((item: any) => {
+          if (item?.current) {
+            delete item.current.note
+          }
+        })
+        const setup = JSON.parse(JSON.stringify(this.config.setup))
         const args = JSON.parse(
           JSON.stringify({
-            server: this.config.server,
+            server,
             password: this.config.password,
-            setup: this.config.setup,
+            setup,
             httpServe: this.httpServe
           })
         )
