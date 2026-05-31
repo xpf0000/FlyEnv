@@ -70,6 +70,7 @@ export enum AppModuleEnum {
   minio = 'minio',
   rust = 'rust',
   meilisearch = 'meilisearch',
+  zincsearch = 'zincsearch',
   'ftp-srv' = 'ftp-srv',
   'etcd' = 'etcd',
   'deno' = 'deno',
@@ -92,6 +93,8 @@ export enum AppModuleEnum {
   numa = 'numa',
   rnacos = 'rnacos',
   frankenphp = 'frankenphp',
+  roadrunner = 'roadrunner',
+  'swoole-cli' = 'swoole-cli',
   flutter = 'flutter',
   git = 'git',
   dotnet = 'dotnet'

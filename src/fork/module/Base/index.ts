@@ -174,7 +174,9 @@ export class Base {
         ollama: 'ollama',
         cliproxyapi: 'cli-proxy-api',
         rnacos: 'rnacos',
-        frankenphp: 'frankenphp'
+        frankenphp: 'frankenphp',
+        roadrunner: 'rr',
+        'swoole-cli': 'swoole-cli'
       }
       const serverName = dis?.[this.type]
       if (serverName) {

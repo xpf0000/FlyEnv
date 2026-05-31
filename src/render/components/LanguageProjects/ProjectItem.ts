@@ -7,30 +7,36 @@ import { ElMessageBox } from 'element-plus'
 import { AppStore } from '@/store/app'
 import { RunProjectItem } from '@/core/LanguageProjectRunner'
 import type { AllAppModule } from '@/core/type'
+import type {
+  RoadRunnerProjectExtra,
+  RoadRunnerProjectPreset
+} from '@/components/RoadRunner/project'
+import type { SwooleCliProjectExtra, SwooleCliProjectPreset } from '@/components/SwooleCli/project'
 
-export type ProjectItemType = {
-  id: string
-  path: string
-  comment: string
-  binVersion: string
-  binPath: string
-  binBin: string
-  isSorting?: boolean
+export type ProjectItemType = RoadRunnerProjectExtra &
+  SwooleCliProjectExtra & {
+    id: string
+    path: string
+    comment: string
+    binVersion: string
+    binPath: string
+    binBin: string
+    isSorting?: boolean
 
-  isService: boolean
-  runCommand: string
-  runFile: string
-  commandType: 'command' | 'file'
-  projectPort: number
-  configPath: Array<{ name: string; path: string }>
-  logPath: Array<{ name: string; path: string }>
-  pidPath: string
-  isSudo: boolean
-  envVarType: 'none' | 'specify' | 'file'
-  envVar: string
-  envFile: string
-  runInTerminal: boolean
-}
+    isService: boolean
+    runCommand: string
+    runFile: string
+    commandType: 'command' | 'file'
+    projectPort: number
+    configPath: Array<{ name: string; path: string }>
+    logPath: Array<{ name: string; path: string }>
+    pidPath: string
+    isSudo: boolean
+    envVarType: 'none' | 'specify' | 'file'
+    envVar: string
+    envFile: string
+    runInTerminal: boolean
+  }
 
 export type RunningState = {
   running: boolean
@@ -60,6 +66,15 @@ export class ProjectItem implements ProjectItemType {
   envVar: string = ''
   envFile: string = ''
   runInTerminal: boolean = false
+
+  roadRunnerPreset?: RoadRunnerProjectPreset
+  roadRunnerConfigPath?: string
+  roadRunnerConfigManaged?: boolean
+  roadRunnerPHPBin?: string
+  roadRunnerPHPVersion?: string
+
+  swooleCliPreset?: SwooleCliProjectPreset
+  swooleCliScriptPath?: string
 
   typeFlag: AllAppModule = 'golang'
 

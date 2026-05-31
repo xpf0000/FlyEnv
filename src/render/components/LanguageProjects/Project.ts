@@ -10,6 +10,19 @@ import Base from '@/core/Base'
 import { join } from '@/util/path-browserify'
 import { ProjectItem } from './ProjectItem'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
+import {
+  roadRunnerPrimaryConfigPath,
+  roadRunnerServeCommand,
+  syncRoadRunnerConfigPath,
+  updateRoadRunnerConfigPort,
+  type RoadRunnerProjectItem
+} from '@/components/RoadRunner/project'
+import {
+  defaultSwooleCliScriptPath,
+  inferSwooleCliPreset,
+  swooleCliPresetCommand,
+  type SwooleCliProjectItem
+} from '@/components/SwooleCli/project'
 
 export class Project {
   allDirs: string[] = []
@@ -22,13 +35,108 @@ export class Project {
     this.flagType = flagType
   }
 
+  private prepareRoadRunnerProject(item: ProjectItem): boolean {
+    if (this.flagType !== 'roadrunner' || !item.path) {
+      return false
+    }
+    let changed = false
+    if (!item.runCommand) {
+      item.commandType = 'command'
+      item.runCommand = roadRunnerServeCommand(item.path, roadRunnerPrimaryConfigPath(item))
+      changed = true
+    }
+    const old = JSON.stringify({
+      configPath: item.configPath,
+      roadRunnerConfigPath: item.roadRunnerConfigPath
+    })
+    const rrItem = item as RoadRunnerProjectItem
+    const shouldSyncConfig =
+      !['custom', 'laravel-octane'].includes(`${rrItem.roadRunnerPreset}`) ||
+      !!rrItem.roadRunnerConfigPath ||
+      item.configPath.length > 0
+    if (shouldSyncConfig) {
+      syncRoadRunnerConfigPath(item)
+    }
+    changed =
+      JSON.stringify({
+        configPath: item.configPath,
+        roadRunnerConfigPath: item.roadRunnerConfigPath
+      }) !== old || changed
+    return changed
+  }
+
+  private prepareSwooleCliProject(item: ProjectItem): boolean {
+    if (this.flagType !== 'swoole-cli' || !item.path) {
+      return false
+    }
+    const old = JSON.stringify({
+      commandType: item.commandType,
+      runCommand: item.runCommand,
+      swooleCliPreset: item.swooleCliPreset,
+      swooleCliScriptPath: item.swooleCliScriptPath
+    })
+    const swooleItem = item as SwooleCliProjectItem
+    swooleItem.swooleCliPreset = inferSwooleCliPreset(swooleItem)
+    const preset = swooleItem.swooleCliPreset || 'native'
+    if (['native', 'php-script'].includes(preset) && !swooleItem.swooleCliScriptPath) {
+      swooleItem.swooleCliScriptPath = defaultSwooleCliScriptPath(item.path)
+    }
+    item.commandType = 'command'
+    if (preset !== 'custom') {
+      item.runCommand = swooleCliPresetCommand(
+        preset,
+        item.path,
+        item.projectPort || 3000,
+        swooleItem.swooleCliScriptPath
+      )
+    }
+    return (
+      JSON.stringify({
+        commandType: item.commandType,
+        runCommand: item.runCommand,
+        swooleCliPreset: item.swooleCliPreset,
+        swooleCliScriptPath: item.swooleCliScriptPath
+      }) !== old
+    )
+  }
+
+  prepareProject(item: ProjectItem): boolean {
+    return this.prepareRoadRunnerProject(item) || this.prepareSwooleCliProject(item)
+  }
+
+  private async syncRoadRunnerConfigPort(item: ProjectItem) {
+    if (this.flagType !== 'roadrunner' || !item.path) {
+      return
+    }
+    const rrItem = item as RoadRunnerProjectItem
+    const configFile = roadRunnerPrimaryConfigPath(rrItem)
+    if (!configFile || !(await fs.existsSync(configFile))) {
+      return
+    }
+    const content = await fs.readFile(configFile)
+    const next = updateRoadRunnerConfigPort(content, item.projectPort || 3000)
+    if (next !== content) {
+      await fs.writeFile(configFile, next)
+    }
+  }
+
+  private projectEditComponent() {
+    if (this.flagType === 'roadrunner') {
+      return import('@/components/RoadRunner/ProjectEdit.vue')
+    }
+    if (this.flagType === 'swoole-cli') {
+      return import('@/components/SwooleCli/ProjectEdit.vue')
+    }
+    return import('./ProjectEdit.vue')
+  }
+
   action(item: ProjectItem, index: number, action: 'open' | 'edit' | 'log' | 'config') {
     switch (action) {
       case 'open':
         shell.openPath(item.path).catch()
         break
       case 'edit':
-        import('./ProjectEdit.vue').then((res) => {
+        this.projectEditComponent().then((res) => {
           AsyncComponentShow(res.default, {
             isEdit: true,
             edit: item,
@@ -44,6 +152,7 @@ export class Project {
                   const state = JSON.parse(JSON.stringify(item.state))
                   Object.assign(item, res)
                   Object.assign(item.state, state)
+                  this.prepareProject(item)
                   this.saveProject()
                   this.setDirEnv(item).catch()
                   if (isRun) {
@@ -87,9 +196,14 @@ export class Project {
       .then((res: ProjectItem[]) => {
         if (res) {
           this.project.splice(0)
+          let needSave = false
           for (const i of res) {
             const item = reactiveBind(new ProjectItem({ ...i, typeFlag: this.flagType }))
+            needSave = this.prepareProject(item) || needSave
             this.project.push(item)
+          }
+          if (needSave) {
+            this.saveProject()
           }
         }
       })
@@ -105,7 +219,7 @@ export class Project {
       MessageError(I18nT('host.licenseTips'))
       return
     }
-    import('./ProjectEdit.vue').then((res) => {
+    this.projectEditComponent().then((res) => {
       AsyncComponentShow(res.default, {
         isEdit: false,
         edit: {},
@@ -113,6 +227,7 @@ export class Project {
       }).then((res: ProjectItem) => {
         if (res) {
           const item = reactiveBind(new ProjectItem({ ...res, typeFlag: this.flagType }))
+          this.prepareProject(item)
           this.project.unshift(item)
           this.saveProject()
           this.setDirEnv(item).catch()
@@ -160,6 +275,7 @@ export class Project {
       .catch(() => {})
   }
   async setDirEnv(item: ProjectItem) {
+    await this.syncRoadRunnerConfigPort(item)
     IPC.send('app-fork:tools', 'initFlyEnvSH').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 1) {

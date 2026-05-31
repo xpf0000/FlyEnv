@@ -16,7 +16,7 @@
         ref="conf"
         :type-flag="item.typeFlag"
         :file="filepath"
-        :file-ext="'ini'"
+        :file-ext="fileExt"
         :show-commond="false"
       >
       </Conf>
@@ -44,6 +44,9 @@
   })
 
   const filepath = ref(configs.value[0].path)
+  const fileExt = computed(() => {
+    return filepath.value.split('.').pop() || 'ini'
+  })
 
   const doRefresh = async () => {
     await nextTick()

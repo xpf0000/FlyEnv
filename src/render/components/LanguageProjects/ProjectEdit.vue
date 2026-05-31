@@ -355,15 +355,17 @@
   })
 
   merge(item.value, props.edit)
-
   const brewStore = BrewStore()
   const binVersions = computed(() => {
-    return brewStore.module(props.typeFlag).installed.map((p) => {
-      return {
-        ...p,
-        bin: props.typeFlag === 'php' ? (p?.phpBin ?? join(p.path, 'bin/php')) : p.bin
-      }
-    })
+    return brewStore
+      .module(props.typeFlag)
+      .installed.map((p) => {
+        return {
+          ...p,
+          bin: props.typeFlag === 'php' ? (p?.phpBin ?? join(p.path, 'bin/php')) : p.bin
+        }
+      })
+      .filter((p) => p.version && p.bin && p.enable !== false)
   })
 
   watch(

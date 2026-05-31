@@ -358,12 +358,15 @@
   const brewStore = BrewStore()
 
   const binVersions = computed(() => {
-    return brewStore.module(props.typeFlag).installed.map((p) => {
-      return {
-        ...p,
-        bin: props.typeFlag === 'php' ? (p?.phpBin ?? join(p.path, 'bin/php')) : p.bin
-      }
-    })
+    return brewStore
+      .module(props.typeFlag)
+      .installed.map((p) => {
+        return {
+          ...p,
+          bin: props.typeFlag === 'php' ? (p?.phpBin ?? join(p.path, 'bin/php')) : p.bin
+        }
+      })
+      .filter((p) => p.version && p.bin && p.enable !== false)
   })
 
   const openSite = (item: ProjectItem) => {
@@ -484,6 +487,7 @@
             find.projectPort = item.projectPort
             find.comment = item.comment
 
+            project.prepareProject(find)
             project.saveProject()
 
             if (needRestart) {
@@ -492,8 +496,8 @@
                 .then(() => find.start())
                 .catch()
             }
-            if (nodeChanged) {
-              project.setDirEnv(item).then().catch()
+            if (nodeChanged || ['roadrunner', 'swoole-cli'].includes(props.typeFlag)) {
+              project.setDirEnv(find).then().catch()
             }
           }
         })
