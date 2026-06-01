@@ -14,8 +14,8 @@
 
         <el-form-item label="Zones">
           <el-select v-model="form.zoneId" filterable>
-            <template v-for="(item, _index) in zones" :key="_index">
-              <el-option :label="item.name" :value="item.id"></el-option>
+            <template v-for="(zone, _index) in zones" :key="_index">
+              <el-option :label="zone.name" :value="zone.id"></el-option>
             </template>
           </el-select>
         </el-form-item>
@@ -37,12 +37,18 @@
         </el-form-item>
 
         <el-form-item :label="I18nT('host.LocalDoman')" required :show-message="false">
-          <el-autocomplete
-            v-model="form.localService"
-            class="flex-[3]"
-            :fetch-suggestions="querySearch"
-            clearable
-          />
+          <div class="w-full flex items-center gap-2">
+            <el-select v-model="form.protocol" class="w-[110px] flex-shrink-0">
+              <el-option label="HTTP" value="http"></el-option>
+              <el-option label="HTTPS" value="https"></el-option>
+            </el-select>
+            <el-autocomplete
+              v-model="form.localService"
+              class="flex-1"
+              :fetch-suggestions="querySearch"
+              clearable
+            />
+          </div>
         </el-form-item>
       </el-form>
     </el-scrollbar>

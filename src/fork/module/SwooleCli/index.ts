@@ -1,7 +1,4 @@
-import { dirname, join } from 'path'
-import axios from 'axios'
-import * as http from 'http'
-import * as https from 'https'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -23,9 +20,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
-import { compareVersions } from '@shared/compare-versions'
 
-const githubReleasesUrl = 'https://api.github.com/repos/swoole/swoole-cli/releases?per_page=100'
 const composerDownloadUrl = 'https://getcomposer.org/download/latest-stable/composer.phar'
 const cacertDownloadUrl = 'https://curl.se/ca/cacert.pem'
 
@@ -33,43 +28,6 @@ class SwooleCli extends Base {
   constructor() {
     super()
     this.type = 'swoole-cli'
-  }
-
-  releasePlatform() {
-    if (isWindows()) {
-      return 'cygwin'
-    }
-    if (isMacOS()) {
-      return 'macos'
-    }
-    return 'linux'
-  }
-
-  releaseArch() {
-    if (isWindows()) {
-      return 'x64'
-    }
-    return global.Server.Arch === 'x86_64' ? 'x64' : 'arm64'
-  }
-
-  runtimeVersion(version: string) {
-    const parts = version.split('.').filter(Boolean)
-    if (parts.length > 3) {
-      return parts.slice(0, 3).join('.')
-    }
-    return version
-  }
-
-  assetCandidates(version: string) {
-    const runtimeVersion = this.runtimeVersion(version)
-    const arch = this.releaseArch()
-    if (isWindows()) {
-      return [
-        `swoole-cli-v${runtimeVersion}-cygwin-${arch}.zip`,
-        `swoole-cli-v${runtimeVersion}-msys2-${arch}.zip`
-      ]
-    }
-    return [`swoole-cli-v${runtimeVersion}-${this.releasePlatform()}-${arch}.tar.xz`]
   }
 
   managedAppDir(bin: string) {
@@ -162,49 +120,19 @@ pm.max_spare_servers = 3
   fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const res = await axios({
-          url: githubReleasesUrl,
-          method: 'get',
-          timeout: 30000,
-          withCredentials: false,
-          httpAgent: new http.Agent({ keepAlive: false }),
-          httpsAgent: new https.Agent({ keepAlive: false }),
-          proxy: this.getAxiosProxy()
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('swoole-cli')
+        all.forEach((a: any) => {
+          const appDir = join(global.Server.AppDir!, 'swoole-cli', a.version)
+          const bin = join(appDir, isWindows() ? 'swoole-cli.exe' : 'swoole-cli')
+          const zipName = basename(new URL(a.url).pathname)
+          const zip = join(global.Server.Cache!, zipName)
+          a.appDir = appDir
+          a.zip = zip
+          a.bin = bin
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(bin)
+          a.name = `Swoole CLI-${a.version}`
         })
-        const releases = res?.data ?? []
-        const all: OnlineVersionItem[] = []
-        releases
-          .filter((release: any) => !release?.draft && !release?.prerelease)
-          .forEach((release: any) => {
-            const tag = `${release?.tag_name ?? ''}`
-            const releaseVersion = tag.replace(/^v/, '')
-            const version = this.runtimeVersion(releaseVersion)
-            if (!version) {
-              return
-            }
-            const names = this.assetCandidates(releaseVersion)
-            const asset = release?.assets?.find((item: any) =>
-              names.includes(`${item?.name ?? ''}`)
-            )
-            if (!asset?.browser_download_url) {
-              return
-            }
-            const appDir = join(global.Server.AppDir!, 'swoole-cli', version)
-            const bin = join(appDir, isWindows() ? 'swoole-cli.exe' : 'swoole-cli')
-            const zip = join(global.Server.Cache!, asset.name)
-            all.push({
-              appDir,
-              zip,
-              bin,
-              downloaded: existsSync(zip),
-              installed: existsSync(bin),
-              url: asset.browser_download_url,
-              version,
-              mVersion: releaseVersion,
-              name: `Swoole CLI-${version}`
-            } as OnlineVersionItem)
-          })
-        all.sort((a, b) => compareVersions(b.version, a.version))
         resolve(all)
       } catch (e) {
         console.log('swoole-cli fetchAllOnlineVersion error: ', e)

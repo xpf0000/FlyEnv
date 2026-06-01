@@ -1,8 +1,5 @@
-import { dirname, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
-import axios from 'axios'
-import * as http from 'http'
-import * as https from 'https'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
@@ -25,9 +22,6 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
-
-const githubReleasesUrl =
-  'https://api.github.com/repos/zincsearch/zincsearch/releases?per_page=1000'
 
 const envValue = (value: string) => {
   return value.trim().replace(/^['"]|['"]$/g, '')
@@ -151,64 +145,22 @@ ZINC_LOG_LEVEL=info
     })
   }
 
-  releasePlatform() {
-    if (isWindows()) {
-      return 'windows'
-    }
-    if (isMacOS()) {
-      return 'darwin'
-    }
-    return 'linux'
-  }
-
-  releaseArch() {
-    return global.Server.Arch === 'x86_64' ? 'x86_64' : 'arm64'
-  }
-
   fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const platform = this.releasePlatform()
-        const arch = this.releaseArch()
-        const res = await axios({
-          url: githubReleasesUrl,
-          method: 'get',
-          timeout: 30000,
-          withCredentials: false,
-          httpAgent: new http.Agent({ keepAlive: false }),
-          httpsAgent: new https.Agent({ keepAlive: false }),
-          proxy: this.getAxiosProxy()
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('zincsearch')
+        all.forEach((a: any) => {
+          const appDir = join(global.Server.AppDir!, 'zincsearch', a.version)
+          const bin = join(appDir, isWindows() ? 'zincsearch.exe' : 'zincsearch')
+          const zipName = basename(new URL(a.url).pathname)
+          const zip = join(global.Server.Cache!, zipName)
+          a.appDir = appDir
+          a.zip = zip
+          a.bin = bin
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(bin)
+          a.name = `ZincSearch-${a.version}`
         })
-        const releases = res?.data ?? []
-        const all: OnlineVersionItem[] = []
-        releases
-          .filter((release: any) => !release?.draft)
-          .forEach((release: any) => {
-            const tag = `${release?.tag_name ?? ''}`
-            const version = tag.replace(/^v/, '')
-            if (!version) {
-              return
-            }
-            const name = `zincsearch_${version}_${platform}_${arch}.tar.gz`
-            const asset = release?.assets?.find((item: any) => item?.name === name)
-            if (!asset?.browser_download_url) {
-              return
-            }
-            const appDir = join(global.Server.AppDir!, 'zincsearch', version)
-            const bin = join(appDir, isWindows() ? 'zincsearch.exe' : 'zincsearch')
-            const zip = join(global.Server.Cache!, name)
-            all.push({
-              appDir,
-              zip,
-              bin,
-              downloaded: existsSync(zip),
-              installed: existsSync(bin),
-              url: asset.browser_download_url,
-              version,
-              mVersion: version,
-              name: `ZincSearch-${version}`
-            } as OnlineVersionItem)
-          })
         resolve(all)
       } catch (e) {
         console.log('zincsearch fetchAllOnlineVersion error: ', e)

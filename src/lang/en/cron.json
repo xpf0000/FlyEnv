@@ -111,7 +111,6 @@
   "systemTask": "System Task",
   "flyenvTask": "FlyEnv Task",
   "otherTask": "Other Task",
-  "taskPath": "Task Path",
   "taskSource": "Source",
   "taskTrigger": "Trigger",
   "deleteSystemTaskTips": "Delete this system scheduled task?",

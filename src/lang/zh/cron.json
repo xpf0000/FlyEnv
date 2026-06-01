@@ -111,7 +111,6 @@
   "systemTask": "系统任务",
   "flyenvTask": "FlyEnv 任务",
   "otherTask": "其他任务",
-  "taskPath": "任务路径",
   "taskSource": "来源",
   "taskTrigger": "触发器",
   "deleteSystemTaskTips": "确定删除这个系统计划任务吗？",

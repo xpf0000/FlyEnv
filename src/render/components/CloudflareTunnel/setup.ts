@@ -69,9 +69,12 @@ export const Setup = () => {
     shell.openExternal(url).catch()
   }
 
+  const localServiceUrl = (item: CloudflareTunnelDnsRecord) => {
+    return `${item?.protocol || 'http'}://${item.localService}`
+  }
+
   const openLocalUrl = (item: CloudflareTunnelDnsRecord) => {
-    const url = `${item?.protocol || 'http'}://${item.localService}`
-    shell.openExternal(url).catch()
+    shell.openExternal(localServiceUrl(item)).catch()
   }
 
   const groupTrunOn = (item: CloudflareTunnel) => {
@@ -150,6 +153,7 @@ export const Setup = () => {
     list,
     openOutUrl,
     openLocalUrl,
+    localServiceUrl,
     groupTrunOn,
     copy,
     editDNS,
