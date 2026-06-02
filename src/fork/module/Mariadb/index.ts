@@ -1,5 +1,6 @@
+import { createRequire } from 'node:module'
 import { join, basename, dirname, isAbsolute } from 'path'
-import { existsSync, readdirSync } from 'fs'
+import { existsSync, readdirSync, statSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/index'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -25,7 +26,8 @@ import {
   serviceStartExecCMD,
   zipUnpack,
   moveChildDirToParent,
-  readFile
+  readFile,
+  md5
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
@@ -35,6 +37,340 @@ import { compareVersions } from '@shared/compare-versions'
 import { parse as iniParse } from 'ini'
 import { Connection, createConnection } from 'mysql2/promise'
 import { format } from 'date-fns'
+
+const require = createRequire(import.meta.url)
+const { pki, md } = require('node-forge')
+
+type MariaDBPemFiles = {
+  ca: string
+  cert: string
+  key: string
+  cachingPrivateKey: string
+  cachingPublicKey: string
+}
+
+const stripMariaDBValueQuotes = (value: any) => {
+  return `${value ?? ''}`.trim().replace(/^['"]|['"]$/g, '')
+}
+
+const getMariaDBServerConfig = (config: any) => {
+  return config?.mariadbd ?? config?.mysqld ?? {}
+}
+
+const resolveMariaDBBin = (binDir: string, names: string[]) => {
+  for (const name of names) {
+    const bin = join(binDir, name)
+    if (existsSync(bin)) {
+      return bin
+    }
+  }
+  return join(binDir, names[0])
+}
+
+const resolveMariaDBVersionBin = (version: SoftInstalled, names: string[]) => {
+  return resolveMariaDBBin(dirname(version.bin), names)
+}
+
+const resolveMariaDBInstallDBBin = (version: SoftInstalled) => {
+  return resolveMariaDBBin(
+    join(version.path, 'bin'),
+    isWindows()
+      ? ['mariadb-install-db.exe', 'mysql_install_db.exe']
+      : ['mariadb-install-db', 'mysql_install_db']
+  )
+}
+
+const getMariaDBConfigValue = (section: any, names: string[]) => {
+  for (const name of names) {
+    const value = section?.[name]
+    if (value !== undefined && value !== null && `${value}`.trim().length > 0) {
+      return stripMariaDBValueQuotes(value)
+    }
+  }
+  return ''
+}
+
+const mariaDBPathExists = (value: string, dataDir: string, binDir: string) => {
+  if (!value) {
+    return false
+  }
+  const path = stripMariaDBValueQuotes(value)
+  const candidates = isAbsolute(path) ? [path] : [join(dataDir, path), join(binDir, path)]
+  return candidates.some((p) => existsSync(p))
+}
+
+const isMariaDBSSLDisabled = (section: any) => {
+  const ssl = getMariaDBConfigValue(section, ['ssl'])
+  const disabledValues = new Set(['0', 'off', 'false', 'no', 'disabled'])
+  if (ssl && disabledValues.has(ssl.toLowerCase())) {
+    return true
+  }
+  return ['disable-ssl', 'disable_ssl', 'skip-ssl', 'skip_ssl'].some((key) => {
+    const value = section?.[key]
+    return value !== undefined && value !== false && `${value}`.toLowerCase() !== 'false'
+  })
+}
+
+const supportsMariaDBZeroConfigSSL = (version?: string | null) => {
+  return !!version && compareVersions(version, '11.4.0') !== -1
+}
+
+type MariaDBOptionSupportCacheItem = {
+  bin: string
+  version: string
+  option: string
+  supported: boolean
+  updatedAt: number
+}
+
+let MariaDBOptionSupportFileCache: Record<string, MariaDBOptionSupportCacheItem> | undefined
+
+const mariaDBOptionSupportCacheFile = () => {
+  return join(global.Server.Cache!, 'mariadb-option-support.json')
+}
+
+const readMariaDBOptionSupportCache = async () => {
+  if (MariaDBOptionSupportFileCache) {
+    return MariaDBOptionSupportFileCache
+  }
+
+  try {
+    const file = mariaDBOptionSupportCacheFile()
+    if (existsSync(file)) {
+      const content = await readFile(file, 'utf8')
+      const parsed = JSON.parse(content)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        MariaDBOptionSupportFileCache = parsed
+        return MariaDBOptionSupportFileCache!
+      }
+    }
+  } catch {}
+
+  MariaDBOptionSupportFileCache = {}
+  return MariaDBOptionSupportFileCache
+}
+
+const writeMariaDBOptionSupportCache = async () => {
+  if (!MariaDBOptionSupportFileCache) {
+    return
+  }
+  try {
+    await mkdirp(global.Server.Cache!)
+    await writeFile(
+      mariaDBOptionSupportCacheFile(),
+      JSON.stringify(MariaDBOptionSupportFileCache, null, 2)
+    )
+  } catch {}
+}
+
+const supportsMariaDBServerOption = async (version: SoftInstalled, option: string) => {
+  const optionName = option.replace(/^--/, '')
+  const bin = version.bin
+  const versionNumber = version.version ?? ''
+  let binStatKey = ''
+  try {
+    const info = statSync(bin)
+    binStatKey = `${info.size}:${Math.floor(info.mtimeMs)}`
+  } catch {}
+  const cacheKey = md5(
+    `mariadb:${pathFixedToUnix(bin)}:${versionNumber}:${binStatKey}:${optionName}`
+  )
+  const cache = await readMariaDBOptionSupportCache()
+  const cached = cache?.[cacheKey]
+  if (typeof cached?.supported === 'boolean') {
+    return cached.supported
+  }
+
+  let supported = false
+  let detected = false
+  try {
+    const res = await execPromise(`${basename(bin)} --no-defaults --verbose --help`, {
+      cwd: dirname(bin),
+      maxBuffer: 1024 * 1024 * 10
+    })
+    const output = `${res?.stdout ?? ''}\n${res?.stderr ?? ''}`
+    supported = output.includes(optionName) || output.includes(optionName.replace(/-/g, '_'))
+    detected = true
+  } catch (e) {
+    console.log('supportsMariaDBServerOption error: ', optionName, e)
+  }
+
+  if (!detected) {
+    return false
+  }
+
+  cache[cacheKey] = {
+    bin: pathFixedToUnix(bin),
+    version: versionNumber,
+    option: optionName,
+    supported,
+    updatedAt: Date.now()
+  }
+  await writeMariaDBOptionSupportCache()
+  return supported
+}
+
+const quoteMariaDBArgPath = (file: string) => {
+  return `"${pathFixedToUnix(file)}"`
+}
+
+const createSerialNumber = () => {
+  return `${Date.now()}${Math.floor(Math.random() * 100000)}`
+}
+
+const generateCertificatePair = () => {
+  const caKeys = pki.rsa.generateKeyPair(2048)
+  const caCert = pki.createCertificate()
+  caCert.publicKey = caKeys.publicKey
+  caCert.serialNumber = createSerialNumber()
+  caCert.validity.notBefore = new Date()
+  caCert.validity.notAfter = new Date()
+  caCert.validity.notAfter.setFullYear(caCert.validity.notBefore.getFullYear() + 10)
+  const caAttrs = [{ name: 'commonName', value: 'FlyEnv MariaDB Local CA' }]
+  caCert.setSubject(caAttrs)
+  caCert.setIssuer(caAttrs)
+  caCert.setExtensions([
+    { name: 'basicConstraints', cA: true, critical: true },
+    { name: 'keyUsage', keyCertSign: true, cRLSign: true, critical: true },
+    { name: 'subjectKeyIdentifier' }
+  ])
+  caCert.sign(caKeys.privateKey, md.sha256.create())
+
+  const serverKeys = pki.rsa.generateKeyPair(2048)
+  const serverCert = pki.createCertificate()
+  serverCert.publicKey = serverKeys.publicKey
+  serverCert.serialNumber = createSerialNumber()
+  serverCert.validity.notBefore = new Date()
+  serverCert.validity.notAfter = new Date()
+  serverCert.validity.notAfter.setFullYear(serverCert.validity.notBefore.getFullYear() + 10)
+  serverCert.setSubject([{ name: 'commonName', value: 'localhost' }])
+  serverCert.setIssuer(caCert.subject.attributes)
+  serverCert.setExtensions([
+    { name: 'basicConstraints', cA: false, critical: true },
+    {
+      name: 'keyUsage',
+      digitalSignature: true,
+      keyEncipherment: true,
+      critical: true
+    },
+    { name: 'extKeyUsage', serverAuth: true },
+    {
+      name: 'subjectAltName',
+      altNames: [
+        { type: 2, value: 'localhost' },
+        { type: 7, ip: '127.0.0.1' },
+        { type: 7, ip: '::1' }
+      ]
+    }
+  ])
+  serverCert.sign(caKeys.privateKey, md.sha256.create())
+
+  return {
+    ca: pki.certificateToPem(caCert),
+    cert: pki.certificateToPem(serverCert),
+    key: pki.privateKeyToPem(serverKeys.privateKey)
+  }
+}
+
+const ensureMariaDBPemFiles = async (dataDir: string): Promise<MariaDBPemFiles> => {
+  await mkdirp(dataDir)
+  const files: MariaDBPemFiles = {
+    ca: join(dataDir, 'ca.pem'),
+    cert: join(dataDir, 'server-cert.pem'),
+    key: join(dataDir, 'server-key.pem'),
+    cachingPrivateKey: join(dataDir, 'private_key.pem'),
+    cachingPublicKey: join(dataDir, 'public_key.pem')
+  }
+
+  if (!existsSync(files.ca) || !existsSync(files.cert) || !existsSync(files.key)) {
+    const ssl = generateCertificatePair()
+    await writeFile(files.ca, ssl.ca)
+    await writeFile(files.cert, ssl.cert)
+    await writeFile(files.key, ssl.key)
+    await chmod(files.key, '0600').catch(() => {})
+  }
+
+  if (!existsSync(files.cachingPrivateKey) || !existsSync(files.cachingPublicKey)) {
+    const keyPair = pki.rsa.generateKeyPair(2048)
+    await writeFile(files.cachingPrivateKey, pki.privateKeyToPem(keyPair.privateKey))
+    await writeFile(files.cachingPublicKey, pki.publicKeyToPem(keyPair.publicKey))
+    await chmod(files.cachingPrivateKey, '0600').catch(() => {})
+  }
+
+  return files
+}
+
+const getMariaDBPemStartArgs = async (
+  version: SoftInstalled,
+  section: any,
+  dataDir: string,
+  binDir: string
+) => {
+  if (!isWindows() || !supportsMariaDBZeroConfigSSL(version.version)) {
+    return []
+  }
+
+  const args: string[] = []
+  const sslDisabled = isMariaDBSSLDisabled(section)
+
+  const sslKey = getMariaDBConfigValue(section, ['ssl-key', 'ssl_key'])
+  const sslCert = getMariaDBConfigValue(section, ['ssl-cert', 'ssl_cert'])
+  const hasValidSSL =
+    !sslDisabled &&
+    mariaDBPathExists(sslKey, dataDir, binDir) &&
+    mariaDBPathExists(sslCert, dataDir, binDir)
+  const needsSSLArgs = !hasValidSSL && !sslDisabled
+
+  let needsCachingKeyArgs = false
+  let supportsCachingKeys = false
+  let privateKey = ''
+  let publicKey = ''
+
+  supportsCachingKeys =
+    (await supportsMariaDBServerOption(version, 'caching-sha2-password-private-key-path')) &&
+    (await supportsMariaDBServerOption(version, 'caching-sha2-password-public-key-path'))
+
+  if (supportsCachingKeys) {
+    privateKey = getMariaDBConfigValue(section, [
+      'caching_sha2_password_private_key_path',
+      'caching-sha2-password-private-key-path'
+    ])
+    publicKey = getMariaDBConfigValue(section, [
+      'caching_sha2_password_public_key_path',
+      'caching-sha2-password-public-key-path'
+    ])
+    needsCachingKeyArgs =
+      !mariaDBPathExists(privateKey, dataDir, binDir) ||
+      !mariaDBPathExists(publicKey, dataDir, binDir)
+  }
+
+  if (!needsSSLArgs && !needsCachingKeyArgs) {
+    return args
+  }
+
+  const files = await ensureMariaDBPemFiles(dataDir)
+
+  if (needsSSLArgs) {
+    args.push(`--ssl-ca=${quoteMariaDBArgPath(files.ca)}`)
+    args.push(`--ssl-cert=${quoteMariaDBArgPath(files.cert)}`)
+    args.push(`--ssl-key=${quoteMariaDBArgPath(files.key)}`)
+  }
+
+  if (supportsCachingKeys && needsCachingKeyArgs) {
+    args.push(
+      `--caching-sha2-password-private-key-path=${quoteMariaDBArgPath(files.cachingPrivateKey)}`
+    )
+    args.push(
+      `--caching-sha2-password-public-key-path=${quoteMariaDBArgPath(files.cachingPublicKey)}`
+    )
+  }
+
+  return args
+}
+
+const mariaDBClientTLSArgs = (version?: string | null) => {
+  return supportsMariaDBZeroConfigSSL(version) ? ' --skip-ssl-verify-server-cert' : ''
+}
 
 class Manager extends Base {
   constructor() {
@@ -47,26 +383,38 @@ class Manager extends Base {
   }
 
   _initPassword(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.initDBPass'))
       })
       let promise: Promise<any> | undefined
       if (isWindows()) {
-        const bin = join(dirname(version.bin), 'mariadb-admin.exe')
+        const bin = resolveMariaDBVersionBin(version, ['mariadb-admin.exe', 'mysqladmin.exe'])
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+        let port = 3306
+        try {
+          const content = existsSync(m) ? await readFile(m, 'utf8') : ''
+          const config = iniParse(content)
+          port = getMariaDBServerConfig(config)?.port ?? 3306
+        } catch {}
 
         promise = execPromise(
-          `${basename(bin)} --defaults-file="${m}" --port=3306 --host="127.0.0.1" -uroot password "root"`,
+          `${basename(bin)} --defaults-file="${m}"${mariaDBClientTLSArgs(
+            version.version
+          )} --port=${port} --host="127.0.0.1" -uroot password "root"`,
           {
             cwd: dirname(bin)
           }
         )
       } else {
-        promise = execPromise('./mariadb-admin --socket=/tmp/mysql.sock -uroot password "root"', {
-          cwd: dirname(version.bin)
-        })
+        const bin = resolveMariaDBVersionBin(version, ['mariadb-admin', 'mysqladmin'])
+        promise = execPromise(
+          `./${basename(bin)} --socket=/tmp/mysql.sock -uroot password "root"`,
+          {
+            cwd: dirname(bin)
+          }
+        )
       }
 
       promise!
@@ -109,18 +457,20 @@ class Manager extends Base {
       if (pids.size > 0) {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
-        const bin = join(dirname(version.bin), 'mariadb-admin.exe')
+        const bin = resolveMariaDBVersionBin(version, ['mariadb-admin.exe', 'mysqladmin.exe'])
         const password = version?.rootPassword ?? 'root'
 
         const content = await readFile(m, 'utf8')
         const config = iniParse(content)
-        const port = config?.mysqld?.port ?? 3306
+        const port = getMariaDBServerConfig(config)?.port ?? 3306
 
         let success = false
         /**
          * ./mysqladmin.exe --defaults-file="C:\Program Files\FlyEnv-Data\server\mysql\my-5.7.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
          */
-        const command = `"${bin}" --defaults-file="${m}" --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
+        const command = `"${bin}" --defaults-file="${m}"${mariaDBClientTLSArgs(
+          version.version
+        )} --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
         console.log('mysql _stopServer command: ', command)
         try {
           await execPromise(command)
@@ -202,8 +552,9 @@ datadir=${dataDir}`
 
           const content = await readFile(m, 'utf8')
           const config = iniParse(content)
-          const port = config?.mysqld?.port ?? 3306
-          const ddir = config?.mysqld?.datadir ?? dataDir
+          const serverConfig = getMariaDBServerConfig(config)
+          const port = serverConfig?.port ?? 3306
+          const ddir = pathFixedToUnix(stripMariaDBValueQuotes(serverConfig?.datadir ?? dataDir))
 
           if (isWindows()) {
             const params = [
@@ -214,6 +565,9 @@ datadir=${dataDir}`
               `--log-error="${e}"`,
               '--standalone'
             ]
+            params.push(
+              ...(await getMariaDBPemStartArgs(version, serverConfig, ddir, dirname(bin)))
+            )
 
             if (skipGrantTables) {
               params.push(`--datadir="${ddir}"`)
@@ -297,7 +651,7 @@ datadir=${dataDir}`
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
         if (isWindows()) {
-          const binInstallDB = join(version.path, 'bin/mariadb-install-db.exe')
+          const binInstallDB = resolveMariaDBInstallDBBin(version)
 
           const params = [`--datadir="${dataDir}"`, `--config="${m}"`]
 
@@ -317,10 +671,7 @@ datadir=${dataDir}`
             return
           }
         } else {
-          let bin = join(version.path, 'bin/mariadb-install-db')
-          if (!existsSync(bin)) {
-            bin = join(version.path, 'bin/mysql_install_db')
-          }
+          const bin = resolveMariaDBInstallDBBin(version)
           const params: string[] = []
           params.push(`--datadir="${dataDir}"`)
           params.push(`--basedir="${version.path}"`)
@@ -373,19 +724,32 @@ datadir=${dataDir}`
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mariadb')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `mariadb-${a.version}`, 'bin/mariadbd.exe')
+          const appDir = join(global.Server.AppDir!, `mariadb-${a.version}`)
+          const mariadbdBin = join(appDir, 'bin/mariadbd.exe')
+          const mysqldBin = join(appDir, 'bin/mysqld.exe')
+          const dir = existsSync(mariadbdBin) || !existsSync(mysqldBin) ? mariadbdBin : mysqldBin
           const zip = join(global.Server.Cache!, `mariadb-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `mariadb-${a.version}`)
+          a.appDir = appDir
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
-          const oldDir = join(
+          const oldMariadbdBin = join(
             global.Server.AppDir!,
             `mariadb-${a.version}`,
             `mariadb-${a.version}-winx64`,
             'bin/mariadbd.exe'
           )
-          a.installed = existsSync(dir) || existsSync(oldDir)
+          const oldMysqldBin = join(
+            global.Server.AppDir!,
+            `mariadb-${a.version}`,
+            `mariadb-${a.version}-winx64`,
+            'bin/mysqld.exe'
+          )
+          a.installed =
+            existsSync(mariadbdBin) ||
+            existsSync(mysqldBin) ||
+            existsSync(oldMariadbdBin) ||
+            existsSync(oldMysqldBin)
           a.name = `MariaDB-${a.version}`
         })
         resolve(all)
@@ -401,14 +765,26 @@ datadir=${dataDir}`
       const allLibFile = await getSubDirAsync(join(base, 'lib'), false)
       const fpms = allLibFile
         .filter((f) => f.startsWith('mariadb'))
-        .map((f) => `lib/${f}/bin/mariadbd-safe`)
+        .flatMap((f) => [`lib/${f}/bin/mariadbd-safe`, `lib/${f}/bin/mysqld_safe`])
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
       if (isWindows()) {
-        all = [versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe')]
+        all = [
+          versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe', undefined, [
+            'mariadbd.exe',
+            'mysqld.exe',
+            'bin/mariadbd.exe',
+            'bin/mysqld.exe'
+          ])
+        ]
       } else {
         all = [
-          versionLocalFetch(setup?.mariadbd?.dirs ?? [], 'mariadbd-safe', 'mariadb'),
+          versionLocalFetch(setup?.mariadbd?.dirs ?? [], 'mariadbd-safe', 'mariadb', [
+            'mariadbd-safe',
+            'mysqld_safe',
+            'bin/mariadbd-safe',
+            'bin/mysqld_safe'
+          ]),
           versionMacportsFetch(fpms)
         ]
       }
@@ -419,7 +795,7 @@ datadir=${dataDir}`
           const all = versions.map((item) => {
             let bin = item.bin
             if (!isWindows()) {
-              bin = join(dirname(item.bin), 'mariadbd')
+              bin = resolveMariaDBBin(dirname(item.bin), ['mariadbd', 'mysqld'])
             }
             const command = `"${bin}" -V`
             const reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
@@ -504,7 +880,7 @@ datadir=${dataDir}`
       await waitTime(1000)
 
       if (isWindows()) {
-        const bin = join(dirname(version.bin), 'mariadb.exe')
+        const bin = resolveMariaDBVersionBin(version, ['mariadb.exe', 'mysql.exe'])
         if (compareVersions(version.version!, '10.2.0') === 1) {
           try {
             await execPromise(
@@ -530,7 +906,7 @@ datadir=${dataDir}`
           }
         }
       } else {
-        const bin = join(dirname(version.bin), 'mariadb')
+        const bin = resolveMariaDBVersionBin(version, ['mariadb', 'mysql'])
         const socket = `/tmp/mysql.${version.version}.sock`
 
         if (compareVersions(version.version!, '10.2.0') === 1) {
@@ -575,7 +951,7 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = config?.mysqld?.port ?? 3306
+      const port = getMariaDBServerConfig(config)?.port ?? 3306
       console.log('rootPasswordChange port: ', port)
       let connection: Connection | undefined
       try {
@@ -697,7 +1073,7 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = config?.mysqld?.port ?? 3306
+      const port = getMariaDBServerConfig(config)?.port ?? 3306
       console.log('rootPasswordChange port: ', port)
       let connection: Connection | undefined
       try {
@@ -789,9 +1165,9 @@ datadir=${dataDir}`
 
       let bin = ''
       if (isWindows()) {
-        bin = join(dirname(version.bin), 'mariadb-dump.exe')
+        bin = resolveMariaDBVersionBin(version, ['mariadb-dump.exe', 'mysqldump.exe'])
       } else {
-        bin = join(dirname(version.bin), 'mariadb-dump')
+        bin = resolveMariaDBVersionBin(version, ['mariadb-dump', 'mysqldump'])
       }
 
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
@@ -799,14 +1175,16 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = config?.mysqld?.port ?? 3306
+      const port = getMariaDBServerConfig(config)?.port ?? 3306
       const password = version?.rootPassword ?? 'root'
       const error: any = []
 
       const time = format(new Date(), 'yyyy-MM-dd-HH-mm-ss')
       for (const database of databases) {
         const file = join(saveDir, `${database}-backup-${time}.sql`)
-        const cammand = `"${bin}" -uroot -p${password} --port=${port} --host="127.0.0.1" --single-transaction --skip-add-locks --no-tablespaces ${database} > "${file}"`
+        const cammand = `"${bin}"${mariaDBClientTLSArgs(
+          version.version
+        )} -uroot -p${password} --port=${port} --host="127.0.0.1" --single-transaction --skip-add-locks --no-tablespaces ${database} > "${file}"`
         try {
           await execPromise(cammand)
         } catch (e) {
