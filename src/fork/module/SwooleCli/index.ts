@@ -10,6 +10,7 @@ import {
   execPromiseWithEnv,
   getAllFileAsync,
   mkdirp,
+  moveChildDirToParent,
   remove,
   versionFilterSame,
   versionFixed,
@@ -97,14 +98,15 @@ pm.max_spare_servers = 3
     if (!existsSync(bin) || !this.managedAppDir(bin)) {
       return
     }
-    const phpBin = join(appDir, isWindows() ? 'php.exe' : 'php')
+    const runtimeDir = isWindows() ? dirname(bin) : appDir
+    const phpBin = join(runtimeDir, isWindows() ? 'php.exe' : 'php')
     await copyFile(bin, phpBin)
     if (!isWindows()) {
       await chmod(phpBin, '0755')
     }
 
-    const composer = join(appDir, 'composer')
-    const cacert = join(appDir, 'cacert.pem')
+    const composer = join(runtimeDir, 'composer')
+    const cacert = join(runtimeDir, 'cacert.pem')
     if (withDownload) {
       await this.downloadRuntimeFile(composerDownloadUrl, composer)
       await this.downloadRuntimeFile(cacertDownloadUrl, cacert)
@@ -113,8 +115,8 @@ pm.max_spare_servers = 3
       await chmod(composer, '0755')
     }
 
-    await writeFile(join(appDir, 'php.ini'), this.runtimeIni(appDir))
-    await writeFile(join(appDir, 'php-fpm.conf'), this.runtimeFpmConf())
+    await writeFile(join(runtimeDir, 'php.ini'), this.runtimeIni(runtimeDir))
+    await writeFile(join(runtimeDir, 'php-fpm.conf'), this.runtimeFpmConf())
   }
 
   fetchAllOnlineVersion() {
@@ -123,7 +125,9 @@ pm.max_spare_servers = 3
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('swoole-cli')
         all.forEach((a: any) => {
           const appDir = join(global.Server.AppDir!, 'swoole-cli', a.version)
-          const bin = join(appDir, isWindows() ? 'swoole-cli.exe' : 'swoole-cli')
+          const bin = isWindows()
+            ? join(appDir, 'bin', 'swoole-cli.exe')
+            : join(appDir, 'swoole-cli')
           const zipName = basename(new URL(a.url).pathname)
           const zip = join(global.Server.Cache!, zipName)
           a.appDir = appDir
@@ -201,8 +205,8 @@ pm.max_spare_servers = 3
       if (isWindows()) {
         all = [
           versionLocalFetch(setup?.['swoole-cli']?.dirs ?? [], 'swoole-cli.exe', undefined, [
-            'swoole-cli.exe',
-            'bin/swoole-cli.exe'
+            'bin/swoole-cli.exe',
+            'swoole-cli.exe'
           ])
         ]
       } else {
@@ -256,6 +260,9 @@ pm.max_spare_servers = 3
     await remove(row.appDir)
     await mkdirp(row.appDir)
     await super._installSoftHandle(row)
+    if (isWindows()) {
+      await moveChildDirToParent(row.appDir)
+    }
     const files = await getAllFileAsync(row.appDir)
     const name = isWindows() ? 'swoole-cli.exe' : 'swoole-cli'
     const bin = files.find((file) => file.endsWith(`/${name}`) || file.endsWith(`\\${name}`))

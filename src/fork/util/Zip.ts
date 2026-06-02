@@ -2,9 +2,42 @@ import { appendFile, existsSync, copyFile, execPromise } from '../Fn'
 import { join, basename } from 'node:path'
 import { createRequire } from 'node:module'
 import { pathFixedToUnix } from '@shared/utils'
+import { unlink } from 'node:fs/promises'
 
 const require = createRequire(import.meta.url)
 const compressing = require('7zip-min-electron')
+
+const compressedTarInnerName = (file: string) => {
+  const name = basename(file)
+  const lowerName = name.toLowerCase()
+  if (
+    lowerName.endsWith('.tar.gz') ||
+    lowerName.endsWith('.tar.xz') ||
+    lowerName.endsWith('.tar.bz2')
+  ) {
+    return name.replace(/\.(gz|xz|bz2)$/i, '')
+  }
+  if (lowerName.endsWith('.tgz')) {
+    return name.replace(/\.tgz$/i, '.tar')
+  }
+  if (lowerName.endsWith('.tbz2')) {
+    return name.replace(/\.tbz2$/i, '.tar')
+  }
+  return undefined
+}
+
+const unpackWith7zip = (file: string, dist: string) => {
+  return new Promise((resolve, reject) => {
+    compressing.unpack(file, dist, (err: any, res: any) => {
+      console.log('zipUnpack end: ', err, res)
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(true)
+    })
+  })
+}
 
 export function zipUnpack(fp: string, dist: string) {
   console.log('zipUnpack start: ', fp, dist, global.Server.Static!)
@@ -35,18 +68,24 @@ export function zipUnpack(fp: string, dist: string) {
       file = cacheFP
       console.log('cacheFP: ', fp)
     }
-    compressing.unpack(file, dist, async (err: any, res: any) => {
-      console.log('zipUnpack end: ', err, res)
-      if (err) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[zipUnpack][unpack][error]: ${err}\n`
-        )
-        reject(err)
-        return
+    try {
+      await unpackWith7zip(file, dist)
+      const innerTar = compressedTarInnerName(file)
+      if (innerTar) {
+        const innerTarPath = join(dist, innerTar)
+        if (existsSync(innerTarPath)) {
+          await unpackWith7zip(innerTarPath, dist)
+          await unlink(innerTarPath).catch(() => {})
+        }
       }
       resolve(true)
-    })
+    } catch (err) {
+      await appendFile(
+        join(global.Server.BaseDir!, 'debug.log'),
+        `[zipUnpack][unpack][error]: ${err}\n`
+      )
+      reject(err)
+    }
   })
 }
 
