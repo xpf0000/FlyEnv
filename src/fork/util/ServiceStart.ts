@@ -421,9 +421,20 @@ export async function serviceStartSpawn(
 
         if (cp.pid) {
           const pid = `${cp.pid}`
-          await writeFile(pidPath, pid)
+          try {
+            if (pidPath) {
+              await mkdirp(dirname(pidPath))
+              await writeFile(pidPath, pid)
+            }
+          } catch (e) {
+            on({
+              'APP-On-Log': AppLog('error', `Save PID file failed: ${e}`)
+            })
+          }
           cp.unref() // 让子进程独立运行，不挂钩主进程
           resolve({ 'APP-Service-Start-PID': pid })
+        } else {
+          reject(new Error(I18nT('fork.startFail')))
         }
       }, param?.waitTime ?? 2000)
     })
