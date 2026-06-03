@@ -448,8 +448,10 @@ class Manager extends Base {
       const pids = new Set<string>()
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
-        const pid = (await readFile(appPidFile, 'utf-8')).trim()
-        pids.add(pid)
+        try {
+          const pid = (await readFile(appPidFile, 'utf-8')).trim()
+          pids.add(pid)
+        } catch {}
         TaskQueue.run(remove, appPidFile).then().catch()
       }
       if (version?.pid) {
@@ -460,10 +462,14 @@ class Manager extends Base {
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
         const bin = join(dirname(version.bin), 'mariadb-admin.exe')
         const password = version?.rootPassword ?? 'root'
-
-        const content = await readFile(m, 'utf8')
-        const config = iniParse(content)
-        const port = getMariaDBServerConfig(config)?.port ?? 3306
+        let port = 3306
+        if (existsSync(m)) {
+          try {
+            const content = await readFile(m, 'utf8')
+            const config = iniParse(content)
+            port = getMariaDBServerConfig(config)?.port ?? 3306
+          } catch {}
+        }
 
         let success = false
         /**

@@ -132,9 +132,14 @@ class Mysql extends Base {
         const bin = join(dirname(version.bin), 'mysqladmin.exe')
         const password = version?.rootPassword ?? 'root'
 
-        const content = await readFile(m, 'utf8')
-        const config = iniParse(content)
-        const port = config?.mysqld?.port ?? 3306
+        let port = 3306
+        if (existsSync(m)) {
+          try {
+            const content = await readFile(m, 'utf8')
+            const config = iniParse(content)
+            port = config?.mysqld?.port ?? 3306
+          } catch {}
+        }
 
         let success = false
         /**
