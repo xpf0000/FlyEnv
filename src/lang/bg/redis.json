@@ -1,6 +1,6 @@
 {
-  "timeout": "Idle connection timeout, 0 indicates continuous opening",
-  "databases": "Number of databases",
-  "requirepass": "Redis password",
-  "maxmemory": "Byte, maximum memory usage, 0 indicates no limit"
+  "timeout": "Време за изчакване при неактивна връзка; стойност 0 означава непрекъснато отворена връзка",
+  "databases": "Брой бази данни",
+  "requirepass": "Redis парола",
+  "maxmemory": "Байт, максимално използване на паметта, 0 означава, че няма ограничение"
 }

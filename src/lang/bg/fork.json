@@ -1,14 +1,14 @@
 {
-  "binNotFound": "The startup file does not exist, operation failed.",
-  "confNotFound": "The configuration file does not exist, the server failed to start",
-  "apacheLogPathErr": "The log path of the configuration file is wrong, and the switch fails",
-  "versionError": "The version is wrong, please select again",
-  "hostsFileNotFound": "The hosts file does not exist",
-  "startFail": "Failed to start, please check the log file",
-  "versionNotFound": "Failed to get software version, operation failed.",
-  "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
-  "downloadFileFail": "Download file failed!",
-  "trialEnd": "The trial has expired. To continue using this feature, please obtain a license",
-  "phpiniNotFound": "php.ini file not found",
-  "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
+  "binNotFound": "Стартиращият файл не съществува, операцията се провали.",
+  "confNotFound": "Конфигурационният файл не съществува, сървърът не успя да се стартира",
+  "apacheLogPathErr": "Пътят към конфигурационния файл е грешен и превключвателят не работи",
+  "versionError": "Версията е грешна, моля, изберете отново",
+  "hostsFileNotFound": "Файлът hosts не съществува",
+  "startFail": "Стартирането се провали, моля, проверете файла с логовете",
+  "versionNotFound": "Не успяхме да получим версията на софтуера, операцията се провали.",
+  "postgresqlInit": "Услугата стартира успешно\nДиректорията с данни е {dir}\nПървоначалният потребител е root, паролата е root",
+  "downloadFileFail": "Изтеглянето на файла се провали!",
+  "trialEnd": "Пробният период изтече. За да продължите да използвате тази функция, моля, инсталирайте лиценз",
+  "phpiniNotFound": "Файлът php.ini не е намерен",
+  "noEPMD": "Процесът epmd не беше открит. Моля, пренастройте променливите на средата на Erlang"
 }

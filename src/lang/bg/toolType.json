@@ -1,15 +1,15 @@
 {
-  "Crypto": "Crypto",
-  "Converter": "Converter",
-  "Web": "Web",
-  "Images": "Images & Videos",
-  "Development": "Development",
-  "Network": "Network",
-  "Math": "Math",
-  "Measurement": "Measurement",
-  "Text": "Text",
-  "Custom": "Custom",
-  "Favorites": "Favorites",
-  "Favorite": "Favorite",
-  "Code": "Code"
+  "Crypto": "Крипто",
+  "Converter": "Конвертор",
+  "Web": "Уеб",
+  "Images": "Снимки и видеоклипове",
+  "Development": "Разработка",
+  "Network": "Мрежа",
+  "Math": "Математика",
+  "Measurement": "Мерна единица",
+  "Text": "Текст",
+  "Custom": "Персонализиране",
+  "Favorites": "Любими",
+  "Favorite": "Любим",
+  "Code": "Код"
 }

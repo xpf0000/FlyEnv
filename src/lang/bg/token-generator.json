@@ -1,13 +1,13 @@
 {
-  "title": "Token Generator",
-  "uppercase": "Uppercase (ABC...)",
-  "lowercase": "Lowercase (abc...)",
-  "numbers": "Numbers (123...)",
-  "symbols": "Symbols (!-;...)",
-  "length": "Length",
-  "tokenPlaceholder": "The token...",
+  "title": "Създаване на токени",
+  "uppercase": "С главни букви (ABC...)",
+  "lowercase": "Малки букви (abc...)",
+  "numbers": "Числа (123...)",
+  "symbols": "Символи (!-;...)",
+  "length": "Дължина",
+  "tokenPlaceholder": "Токенът...",
   "button": {
-    "copy": "Copy",
-    "refresh": "Refresh"
+    "copy": "Копирай",
+    "refresh": "Обновяване"
   }
 }
