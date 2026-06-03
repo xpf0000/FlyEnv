@@ -67,10 +67,6 @@ const resolveMariaDBBin = (binDir: string, names: string[]) => {
   return join(binDir, names[0])
 }
 
-const resolveMariaDBVersionBin = (version: SoftInstalled, names: string[]) => {
-  return resolveMariaDBBin(dirname(version.bin), names)
-}
-
 const resolveMariaDBInstallDBBin = (version: SoftInstalled) => {
   return resolveMariaDBBin(
     join(version.path, 'bin'),
@@ -113,6 +109,11 @@ const isMariaDBSSLDisabled = (section: any) => {
 
 const supportsMariaDBZeroConfigSSL = (version?: string | null) => {
   return !!version && compareVersions(version, '11.4.0') !== -1
+}
+
+const supportsMariaDBCommandSet = (item?: { version?: string | null } | string | null) => {
+  const version = typeof item === 'string' ? item : item?.version
+  return !!version && compareVersions(version, '10.5.0') !== -1
 }
 
 type MariaDBOptionSupportCacheItem = {
@@ -389,7 +390,7 @@ class Manager extends Base {
       })
       let promise: Promise<any> | undefined
       if (isWindows()) {
-        const bin = resolveMariaDBVersionBin(version, ['mariadb-admin.exe', 'mysqladmin.exe'])
+        const bin = join(dirname(version.bin), 'mariadb-admin.exe')
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
         let port = 3306
@@ -408,7 +409,7 @@ class Manager extends Base {
           }
         )
       } else {
-        const bin = resolveMariaDBVersionBin(version, ['mariadb-admin', 'mysqladmin'])
+        const bin = join(dirname(version.bin), 'mariadb-admin')
         promise = execPromise(
           `./${basename(bin)} --socket=/tmp/mysql.sock -uroot password "root"`,
           {
@@ -457,7 +458,7 @@ class Manager extends Base {
       if (pids.size > 0) {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
-        const bin = resolveMariaDBVersionBin(version, ['mariadb-admin.exe', 'mysqladmin.exe'])
+        const bin = join(dirname(version.bin), 'mariadb-admin.exe')
         const password = version?.rootPassword ?? 'root'
 
         const content = await readFile(m, 'utf8')
@@ -466,18 +467,18 @@ class Manager extends Base {
 
         let success = false
         /**
-         * ./mysqladmin.exe --defaults-file="C:\Program Files\FlyEnv-Data\server\mysql\my-5.7.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
+         * ./mariadb-admin.exe --defaults-file="C:\Program Files\FlyEnv-Data\server\mariadb\my-11.4.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
          */
         const command = `"${bin}" --defaults-file="${m}"${mariaDBClientTLSArgs(
           version.version
         )} --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
-        console.log('mysql _stopServer command: ', command)
+        console.log('mariadb _stopServer command: ', command)
         try {
           await execPromise(command)
           success = true
         } catch (e) {
           success = false
-          console.log('mysql _stopServer command error: ', e)
+          console.log('mariadb _stopServer command error: ', e)
         }
 
         if (!success) {
@@ -722,34 +723,25 @@ datadir=${dataDir}`
   fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mariadb')
+        const all: OnlineVersionItem[] = (await this._fetchOnlineVersion('mariadb')).filter(
+          supportsMariaDBCommandSet
+        )
         all.forEach((a: any) => {
           const appDir = join(global.Server.AppDir!, `mariadb-${a.version}`)
           const mariadbdBin = join(appDir, 'bin/mariadbd.exe')
-          const mysqldBin = join(appDir, 'bin/mysqld.exe')
-          const dir = existsSync(mariadbdBin) || !existsSync(mysqldBin) ? mariadbdBin : mysqldBin
           const zip = join(global.Server.Cache!, `mariadb-${a.version}.zip`)
-          a.appDir = appDir
-          a.zip = zip
-          a.bin = dir
-          a.downloaded = existsSync(zip)
           const oldMariadbdBin = join(
             global.Server.AppDir!,
             `mariadb-${a.version}`,
             `mariadb-${a.version}-winx64`,
             'bin/mariadbd.exe'
           )
-          const oldMysqldBin = join(
-            global.Server.AppDir!,
-            `mariadb-${a.version}`,
-            `mariadb-${a.version}-winx64`,
-            'bin/mysqld.exe'
-          )
-          a.installed =
-            existsSync(mariadbdBin) ||
-            existsSync(mysqldBin) ||
-            existsSync(oldMariadbdBin) ||
-            existsSync(oldMysqldBin)
+          a.appDir = appDir
+          a.zip = zip
+          a.bin =
+            existsSync(mariadbdBin) || !existsSync(oldMariadbdBin) ? mariadbdBin : oldMariadbdBin
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(mariadbdBin) || existsSync(oldMariadbdBin)
           a.name = `MariaDB-${a.version}`
         })
         resolve(all)
@@ -765,26 +757,14 @@ datadir=${dataDir}`
       const allLibFile = await getSubDirAsync(join(base, 'lib'), false)
       const fpms = allLibFile
         .filter((f) => f.startsWith('mariadb'))
-        .flatMap((f) => [`lib/${f}/bin/mariadbd-safe`, `lib/${f}/bin/mysqld_safe`])
+        .map((f) => `lib/${f}/bin/mariadbd-safe`)
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
       if (isWindows()) {
-        all = [
-          versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe', undefined, [
-            'mariadbd.exe',
-            'mysqld.exe',
-            'bin/mariadbd.exe',
-            'bin/mysqld.exe'
-          ])
-        ]
+        all = [versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe')]
       } else {
         all = [
-          versionLocalFetch(setup?.mariadbd?.dirs ?? [], 'mariadbd-safe', 'mariadb', [
-            'mariadbd-safe',
-            'mysqld_safe',
-            'bin/mariadbd-safe',
-            'bin/mysqld_safe'
-          ]),
+          versionLocalFetch(setup?.mariadbd?.dirs ?? [], 'mariadbd-safe', 'mariadb'),
           versionMacportsFetch(fpms)
         ]
       }
@@ -795,7 +775,7 @@ datadir=${dataDir}`
           const all = versions.map((item) => {
             let bin = item.bin
             if (!isWindows()) {
-              bin = resolveMariaDBBin(dirname(item.bin), ['mariadbd', 'mysqld'])
+              bin = join(dirname(item.bin), 'mariadbd')
             }
             const command = `"${bin}" -V`
             const reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
@@ -812,7 +792,7 @@ datadir=${dataDir}`
             Object.assign(versions[i], {
               version: version,
               num,
-              enable: version !== null,
+              enable: !!version,
               error
             })
           })
@@ -856,13 +836,10 @@ datadir=${dataDir}`
           return f.includes('Multithreaded SQL database server')
         },
         (name) => {
-          return (
-            existsSync(join('/opt/local/lib', name, 'bin/mariadbd-safe')) ||
-            existsSync(join('/opt/local/lib', name, 'bin/mysqld_safe'))
-          )
+          return existsSync(join('/opt/local/lib', name, 'bin/mariadbd-safe'))
         }
       )
-      resolve(Info)
+      resolve(Info.filter((item: any) => supportsMariaDBCommandSet(item.version)))
     })
   }
 
@@ -880,58 +857,38 @@ datadir=${dataDir}`
       await waitTime(1000)
 
       if (isWindows()) {
-        const bin = resolveMariaDBVersionBin(version, ['mariadb.exe', 'mysql.exe'])
-        if (compareVersions(version.version!, '10.2.0') === 1) {
-          try {
-            await execPromise(
-              `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'localhost' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
-            )
-          } catch (e) {
-            console.log('mysql.exe error2: ', e)
-          }
-          try {
-            await execPromise(
-              `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'127.0.0.1' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
-            )
-          } catch (e) {
-            console.log('mysql.exe error3: ', e)
-          }
-        } else {
-          try {
-            await execPromise(
-              `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;UPDATE mysql.user SET Password=PASSWORD('${password}') WHERE User='${user}';FLUSH PRIVILEGES;"`
-            )
-          } catch (e) {
-            console.log('mysql.exe error2: ', e)
-          }
+        const bin = join(dirname(version.bin), 'mariadb.exe')
+        try {
+          await execPromise(
+            `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'localhost' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
+          )
+        } catch (e) {
+          console.log('mariadb.exe error2: ', e)
+        }
+        try {
+          await execPromise(
+            `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'127.0.0.1' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
+          )
+        } catch (e) {
+          console.log('mariadb.exe error3: ', e)
         }
       } else {
-        const bin = resolveMariaDBVersionBin(version, ['mariadb', 'mysql'])
+        const bin = join(dirname(version.bin), 'mariadb')
         const socket = `/tmp/mysql.${version.version}.sock`
 
-        if (compareVersions(version.version!, '10.2.0') === 1) {
-          try {
-            await execPromise(
-              `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'localhost' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
-            )
-          } catch (e) {
-            console.log('mysql.exe error2: ', e)
-          }
-          try {
-            await execPromise(
-              `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'127.0.0.1' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
-            )
-          } catch (e) {
-            console.log('mysql.exe error3: ', e)
-          }
-        } else {
-          try {
-            await execPromise(
-              `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;UPDATE mysql.user SET Password=PASSWORD('${password}') WHERE User='${user}';FLUSH PRIVILEGES;"`
-            )
-          } catch (e) {
-            console.log('mysql.exe error2: ', e)
-          }
+        try {
+          await execPromise(
+            `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'localhost' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
+          )
+        } catch (e) {
+          console.log('mariadb error2: ', e)
+        }
+        try {
+          await execPromise(
+            `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'127.0.0.1' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
+          )
+        } catch (e) {
+          console.log('mariadb error3: ', e)
         }
       }
 
@@ -1119,15 +1076,9 @@ datadir=${dataDir}`
             data.password
           ])
         } else {
-          if (compareVersions(version.version!, '10.2.0') === 1) {
-            await connection.query(
-              `ALTER USER '${data.user}'@'localhost' IDENTIFIED BY '${data.password}';`
-            )
-          } else {
-            await connection.query(
-              `UPDATE mysql.user SET Password=PASSWORD('${data.password}') WHERE User='${data.user}';`
-            )
-          }
+          await connection.query(
+            `ALTER USER '${data.user}'@'localhost' IDENTIFIED BY '${data.password}';`
+          )
           userExists = true
         }
 
@@ -1165,9 +1116,9 @@ datadir=${dataDir}`
 
       let bin = ''
       if (isWindows()) {
-        bin = resolveMariaDBVersionBin(version, ['mariadb-dump.exe', 'mysqldump.exe'])
+        bin = join(dirname(version.bin), 'mariadb-dump.exe')
       } else {
-        bin = resolveMariaDBVersionBin(version, ['mariadb-dump', 'mysqldump'])
+        bin = join(dirname(version.bin), 'mariadb-dump')
       }
 
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
