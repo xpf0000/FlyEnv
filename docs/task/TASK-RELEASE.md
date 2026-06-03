@@ -1,21 +1,19 @@
-# FlyEnv新版本4.15.2更新日志
+# FlyEnv新版本4.15.3更新日志
 
 本次更新内容：
-1. 添加 .NET 模块.
-   https://github.com/xpf0000/FlyEnv/issues/662
-   感谢 @xxx 提出的此Issues.
-2. 添加 Cron Jobs 模块.
-   https://github.com/xpf0000/FlyEnv/pull/674
-   感谢 @xxx 提出的此PR.
-3. add Korean translation
-   https://github.com/xpf0000/FlyEnv/pull/676
+1. 添加 RoadRunner 模块.
+2. 添加 SwooleCli 模块.
+3. 拆分PHP为PHP-FPM和PHP项目服务
+      https://github.com/xpf0000/FlyEnv/discussions/694
+      感谢 @xxx 提出的此discussion.
+4. 添加 ZincSearch 模块.
+   https://github.com/xpf0000/FlyEnv/issues/440
       感谢 @xxx 提出的此PR.
-4. 修复mongodb MacOS下启动问题
-   https://github.com/xpf0000/FlyEnv/issues/679
-      感谢 @xxx 提出的此Issues.
-5. 修复Flutter 安装失败
-   https://github.com/xpf0000/FlyEnv/issues/682
-   感谢 @xxx 提出的此Issues.
+5. 修复MariaDB12+在Windows上因为缺少PEM文件而导致的启动失败的问题.
+6. CloudflareTunnel优化本地域名绑定,现在可以选择本地域名使用https还是http协议. 此优化主要解决WordPress因为https协议导致的重定向问题.
+7. 修复macOS上服务启动时一直处于启动中的问题.
+
+本次更新基本集齐了PHP项目部署的所有形态. PHP/PHP-FPM/FrankenPHP/RoadRunner/SwooleCli
 
 参照：
 ```
