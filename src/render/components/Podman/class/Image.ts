@@ -43,7 +43,7 @@ export class Image {
       const command = `podman rmi -f ${id}`
       const xtermExec = reactiveBind(new XTermExec())
       xtermExec.id = id
-      xtermExec.cammand = [command]
+      xtermExec.command = [command]
       xtermExec.wait().then(() => {
         this?._onRemove?.(this)
         delete XTermExecCache[id]

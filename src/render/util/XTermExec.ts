@@ -8,7 +8,7 @@ class XTermExec {
   execEnd: boolean = false
   execing: boolean = false
   xterm: XTerm | undefined
-  cammand: string[] = []
+  command: string[] = []
   title: string = ''
 
   private _callbackFn: CallbackFn[] = []
@@ -26,7 +26,7 @@ class XTermExec {
     })
   }
 
-  async exec(dom: HTMLElement, cammand: string[]) {
+  async exec(dom: HTMLElement, command: string[]) {
     if (this.execing) {
       return
     }
@@ -52,7 +52,7 @@ class XTermExec {
         params.push(proxy)
       }
     }
-    params.push(...cammand)
+    params.push(...command)
     await execXTerm.send(params, false)
     this.execEnd = true
     for (const fn of this._callbackFn) {
@@ -61,7 +61,7 @@ class XTermExec {
     this._callbackFn.splice(0)
   }
 
-  async show(dom: HTMLElement, cammand: string) {
+  async show(dom: HTMLElement, command: string) {
     if (this.execing) {
       return
     }
@@ -91,7 +91,7 @@ class XTermExec {
         execXTerm.writeToNodePty(`${c}\r`)
       }
     }
-    execXTerm.writeToNodePty(cammand)
+    execXTerm.writeToNodePty(command)
   }
 
   mount(dom: HTMLElement) {

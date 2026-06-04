@@ -221,7 +221,7 @@
                 <el-button
                   style="margin-left: 0"
                   :icon="Plus"
-                  @click.stop="addNameRule('{timestramp}')"
+                  @click.stop="addNameRule('{timestamp}')"
                   >{{ I18nT('tools.RuleTimestamp') }}</el-button
                 >
                 <el-button
