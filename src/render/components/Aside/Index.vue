@@ -313,6 +313,7 @@
   const serviceShowSystem = computed(() => {
     return platformAppModules.value
       .filter((f) => f.isService && showItem.value?.[f.typeFlag] !== false)
+      .filter((f) => !['php', 'php-fpm'].includes(f.typeFlag))
       .map((f) => brewStore.module(f.typeFlag).installed)
       .flat()
   })
@@ -329,7 +330,13 @@
    */
   const noGroupStart = computed(() => {
     const a = allShowTypeFlag.value.every((typeFlag) => {
-      const v = brewStore.currentVersion(typeFlag)
+      const appModule = platformAppModules.value.find((m) => m.typeFlag === typeFlag)
+      const serviceModule = AppServiceModule?.[typeFlag]
+      if (appModule?.moduleType === 'language' && typeFlag !== 'php-fpm') {
+        return serviceModule?.serviceDisabled !== false
+      }
+      const versionFlag = typeFlag === 'php-fpm' ? 'php' : typeFlag
+      const v = brewStore.currentVersion(versionFlag)
       if (!v) {
         return true
       }

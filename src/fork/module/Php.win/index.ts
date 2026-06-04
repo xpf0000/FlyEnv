@@ -125,7 +125,7 @@ class Php extends Base {
         parse.set('max_input_time', 'max_input_time = 120', 'PHP')
         parse.set('memory_limit', 'memory_limit = 256M', 'PHP')
         parse.set('post_max_size', 'post_max_size = 200M', 'PHP')
-        parse.set('post_max_size', 'upload_max_filesize = 200M', 'PHP')
+        parse.set('upload_max_filesize', 'upload_max_filesize = 200M', 'PHP')
 
         content = parse.content
 

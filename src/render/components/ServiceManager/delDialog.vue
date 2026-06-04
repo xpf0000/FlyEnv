@@ -10,6 +10,10 @@
     <template #default>
       <div class="main-wapper">
         {{ I18nT('base.staticDelAlert') }}
+        <div v-if="note" class="version-note-delete">
+          <strong>{{ I18nT('base.remark') }}:</strong>
+          <span>{{ note }}</span>
+        </div>
       </div>
     </template>
     <template #footer>
@@ -29,12 +33,18 @@
   import { BrewStore } from '@/store/brew'
   import { MessageError } from '@/util/Element'
   import type { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
+  import { computed } from 'vue'
+  import { installedVersionNote, setInstalledVersionNote } from '@/util/InstalledVersionNote'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
     item: ModuleInstalledItem & ModuleStaticItem
   }>()
+
+  const note = computed(() => {
+    return installedVersionNote(props.item, props.item.typeFlag)
+  })
 
   const doShowDir = () => {
     show.value = false
@@ -63,6 +73,9 @@
     }
     stop()
       .then(() => fs.remove(props.item?.path ?? props.item?.appDir))
+      .then(() => {
+        return setInstalledVersionNote(props.item, '', props.item.typeFlag)
+      })
       .catch((err: any) => {
         MessageError(`${err}`)
       })
@@ -82,3 +95,10 @@
     onClosed
   })
 </script>
+
+<style lang="scss" scoped>
+  .version-note-delete {
+    margin-top: 12px;
+    word-break: break-word;
+  }
+</style>

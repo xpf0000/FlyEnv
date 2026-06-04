@@ -77,39 +77,39 @@ export const SetupStore = defineStore('setup', {
               this.isActive = data.isActive
               this.activeCode = data.activeCode
             }
-          }
 
-          if (!this.isActive) {
-            const currentTime = Math.round(new Date().getTime() / 1000)
-            const maxTime = 7 * 24 * 60 * 60
-            if (currentTime - time > maxTime) {
-              const today = new Date().toDateString()
-              const lastAlert = localStorage.getItem('flyenv-license-alert-date')
-              if (lastAlert !== today) {
-                localStorage.setItem('flyenv-license-alert-date', today)
-                const days = Math.floor((currentTime - time) / (24 * 60 * 60))
-                const store = AppStore()
-                const isZh = store.config.setup.lang?.startsWith('zh')
-                const url = isZh
-                  ? 'https://flyenv.com/zh/guide/about-license.html'
-                  : 'https://flyenv.com/guide/about-license.html'
-                setTimeout(() => {
-                  ElMessageBox.alert(
-                    I18nT('licenses.trialExpiredTips').replace('{days}', `${days}`),
-                    I18nT('licenses.trialExpiredTitle'),
-                    {
-                      confirmButtonText: I18nT('base.confirm'),
-                      type: 'warning',
-                      showClose: false,
-                      closeOnClickModal: false,
-                      closeOnPressEscape: false
-                    }
-                  )
-                    .then(() => {
-                      shell.openExternal(url)
-                    })
-                    .catch(() => {})
-                }, 3000)
+            if (!this.isActive) {
+              const currentTime = Math.round(new Date().getTime() / 1000)
+              const maxTime = 7 * 24 * 60 * 60
+              if (currentTime - time > maxTime) {
+                const today = new Date().toDateString()
+                const lastAlert = localStorage.getItem('flyenv-license-alert-date')
+                if (lastAlert !== today) {
+                  localStorage.setItem('flyenv-license-alert-date', today)
+                  const days = Math.floor((currentTime - time) / (24 * 60 * 60))
+                  const store = AppStore()
+                  const isZh = store.config.setup.lang?.startsWith('zh')
+                  const url = isZh
+                    ? 'https://flyenv.com/zh/guide/about-license.html'
+                    : 'https://flyenv.com/guide/about-license.html'
+                  setTimeout(() => {
+                    ElMessageBox.alert(
+                      I18nT('licenses.trialExpiredTips', { days }),
+                      I18nT('licenses.trialExpiredTitle'),
+                      {
+                        confirmButtonText: I18nT('base.confirm'),
+                        type: 'warning',
+                        showClose: false,
+                        closeOnClickModal: false,
+                        closeOnPressEscape: false
+                      }
+                    )
+                      .then(() => {
+                        shell.openExternal(url)
+                      })
+                      .catch(() => {})
+                  }, 3000)
+                }
               }
             }
           }

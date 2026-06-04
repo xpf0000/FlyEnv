@@ -40,6 +40,7 @@ export enum AppModuleEnum {
   caddy = 'caddy',
   nginx = 'nginx',
   php = 'php',
+  'php-fpm' = 'php-fpm',
   mysql = 'mysql',
   mariadb = 'mariadb',
   apache = 'apache',
@@ -69,6 +70,7 @@ export enum AppModuleEnum {
   minio = 'minio',
   rust = 'rust',
   meilisearch = 'meilisearch',
+  zincsearch = 'zincsearch',
   'ftp-srv' = 'ftp-srv',
   'etcd' = 'etcd',
   'deno' = 'deno',
@@ -91,6 +93,8 @@ export enum AppModuleEnum {
   numa = 'numa',
   rnacos = 'rnacos',
   frankenphp = 'frankenphp',
+  roadrunner = 'roadrunner',
+  'swoole-cli' = 'swoole-cli',
   flutter = 'flutter',
   git = 'git',
   dotnet = 'dotnet'
@@ -98,7 +102,17 @@ export enum AppModuleEnum {
 
 export type AllAppModule = keyof typeof AppModuleEnum
 
-export const AppWithRoot = ['apache', 'nginx', 'caddy', 'pure-ftpd', 'ftp-srv', 'tomcat', 'consul', 'numa', 'frankenphp']
+export const AppWithRoot = [
+  'apache',
+  'nginx',
+  'caddy',
+  'pure-ftpd',
+  'ftp-srv',
+  'tomcat',
+  'consul',
+  'numa',
+  'frankenphp'
+]
 
 type LabelFn = () => string
 

@@ -20,6 +20,7 @@ export interface SoftInstalled {
   phpize?: string
   flag?: string
   pid?: string
+  note?: string
   typeFlag: AllAppModule
 }
 

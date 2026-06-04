@@ -5,10 +5,11 @@ import { debounce } from 'lodash-es'
 import Event = Electron.Main.Event
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
 import { join } from 'path'
-import { isMacOS } from '@shared/utils'
+import { appDebugLog, isMacOS } from '@shared/utils'
 import is from 'electron-is'
 import { AppStartErrorCallback } from '../app'
 import TrayManager from './TrayManager'
+import logger from '../core/Logger'
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
@@ -103,6 +104,7 @@ export default class WindowManager extends EventEmitter {
       }
     })
     window.webContents.on('will-navigate', (e) => e.preventDefault())
+    this.bindDiagnostics(page, window)
     window.setMenu(null)
     if (is.dev()) {
       window.loadURL(pageOptions.url).catch()
@@ -161,6 +163,7 @@ export default class WindowManager extends EventEmitter {
       }
     })
     window.webContents.on('will-navigate', (e) => e.preventDefault())
+    this.bindDiagnostics(page, window)
     window.setMenu(null)
     const bounds = this.getPageBounds(page)
     if (bounds) {
@@ -227,6 +230,37 @@ export default class WindowManager extends EventEmitter {
   bindAfterClosed(page: string, window: BrowserWindow) {
     window.on('closed', () => {
       this.removeWindow(page)
+    })
+  }
+
+  private bindDiagnostics(page: string, window: BrowserWindow) {
+    const logWindowEvent = async (eventName: string, details: Record<string, any> = {}) => {
+      const gpuInfo = await app.getGPUInfo('basic').catch((error) => ({ error: `${error}` }))
+      const payload = {
+        page,
+        eventName,
+        details,
+        electron: process.versions.electron,
+        chrome: process.versions.chrome,
+        node: process.versions.node,
+        platform: process.platform,
+        platformVersion: process.getSystemVersion?.(),
+        appVersion: app.getVersion(),
+        activeForkActions: global.Server.DebugForkActions ?? [],
+        gpuFeatureStatus: app.getGPUFeatureStatus(),
+        gpuInfo
+      }
+      const message = JSON.stringify(payload)
+      logger.error(`[FlyEnv][WindowDiagnostics] ${message}`)
+      appDebugLog('[FlyEnv-WindowDiagnostics]', message).catch()
+    }
+
+    window.webContents.on('render-process-gone', (_event, details) => {
+      logWindowEvent('render-process-gone', details).catch()
+    })
+
+    window.on('unresponsive', () => {
+      logWindowEvent('unresponsive').catch()
     })
   }
 

@@ -2,6 +2,8 @@ import { computed, onMounted, onUnmounted, reactive } from 'vue'
 import { BrewStore } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
 import type { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
+import { compareVersions } from '@shared/compare-versions'
+import { versionFixed } from '@/util/Version'
 
 export const StaticSetup = reactive<{
   reFetch: () => void
@@ -107,9 +109,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       })
       arr.push(value)
     }
-    arr.sort((a: any, b: any) => {
-      return b.num - a.num
-    })
+    arr.sort((a: any, b: any) => compareVersions(versionFixed(b.version), versionFixed(a.version)))
     return arr
   })
 

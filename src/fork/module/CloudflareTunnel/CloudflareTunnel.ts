@@ -149,7 +149,7 @@ export class CloudflareTunnel {
     const cfClient = this.client()
     // 映射 this.dns 数组为 Cloudflare Ingress 规则
     const ingressRules: any[] = this.dns.map((record) => {
-      const protocol = record.protocol || 'http'
+      const protocol = record.protocol === 'https' ? 'https' : 'http'
       return {
         hostname: `${record.subdomain}.${record.zoneName}`,
         service: `${protocol}://${record.localService}`,

@@ -1,4 +1,4 @@
-import { computed, ComputedRef, reactive } from 'vue'
+import { computed, ComputedRef, reactive, ref } from 'vue'
 import { AppStore } from '@/store/app'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
@@ -8,13 +8,31 @@ import { AsyncComponentShow } from '@/util/AsyncComponent'
 import type { AllAppModule } from '@/core/type'
 import { shell } from '@/util/NodeFn'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+import {
+  installedVersionNote,
+  installedVersionNoteKey,
+  setInstalledVersionNote
+} from '@/util/InstalledVersionNote'
 
 export const Setup = (typeFlag: AllAppModule) => {
   const appStore = AppStore()
   const brewStore = BrewStore()
+  const editingNoteKey = ref('')
+  const editingNoteValue = ref('')
+
+  const getNote = (item: SoftInstalled) => {
+    return installedVersionNote(item, typeFlag)
+  }
+
+  const noteKey = (item: SoftInstalled) => {
+    return installedVersionNoteKey(item, typeFlag)
+  }
 
   const versions = computed(() => {
-    return brewStore.module(typeFlag).installed
+    return brewStore.module(typeFlag).installed.map((item) => {
+      item.note = getNote(item)
+      return item
+    })
   })
 
   const version = computed(() => {
@@ -64,6 +82,26 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const openDir = (dir: string) => {
     shell.openPath(dir)
+  }
+
+  const editNote = (item: SoftInstalled) => {
+    editingNoteKey.value = noteKey(item)
+    editingNoteValue.value = getNote(item)
+  }
+
+  const cancelNoteEdit = () => {
+    editingNoteKey.value = ''
+    editingNoteValue.value = ''
+  }
+
+  const saveNote = async (item: SoftInstalled) => {
+    if (editingNoteKey.value !== noteKey(item)) {
+      return
+    }
+    await setInstalledVersionNote(item, editingNoteValue.value, typeFlag)
+    item.note = getNote(item)
+
+    cancelNoteEdit()
   }
 
   const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: ModuleInstalledItem) => {
@@ -208,6 +246,13 @@ export const Setup = (typeFlag: AllAppModule) => {
     isInAppEnv,
     groupTrunOn,
     openDir,
+    editingNoteKey,
+    editingNoteValue,
+    noteKey,
+    getNote,
+    editNote,
+    cancelNoteEdit,
+    saveNote,
     serviceDo,
     showCustomDir,
     toPhpMyAdmin,

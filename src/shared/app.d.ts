@@ -16,6 +16,7 @@ export interface SoftInstalled {
   phpize?: string
   flag?: string
   pid?: string
+  note?: string
   isLocal7Z?: boolean
   rootPassword?: string
 }
@@ -60,6 +61,24 @@ export interface CronRunRecord {
   error?: string
   outputBase64?: string
   errorBase64?: string
+}
+
+export interface SystemScheduledTask {
+  id: string
+  platform: 'windows' | 'unix'
+  name: string
+  fullName: string
+  path?: string
+  schedule?: string
+  command?: string
+  nextRunTime?: number
+  state?: string
+  enabled?: boolean
+  description?: string
+  author?: string
+  isFlyEnv?: boolean
+  jobId?: string
+  raw?: string
 }
 
 export interface AppHost {
@@ -157,6 +176,7 @@ export type ModuleExecItem = {
   commandType: 'command' | 'file'
   isSudo?: boolean
   pidPath?: string
+  workDir?: string
   env: Record<string, string>
   binBin: string
 }

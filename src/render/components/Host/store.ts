@@ -6,7 +6,7 @@ import { fs } from '@/util/NodeFn'
 
 export const RewriteAll: { [key: string]: any } = {}
 
-export type HostProjectType = 'php' | 'java' | 'node' | 'go' | 'python' | 'html' | 'tomcat'
+export type HostProjectType = 'php' | 'tomcat'
 
 type HostState = {
   running: boolean
@@ -61,9 +61,11 @@ export const HostStore: HostStoreType = reactive({
   }
 } as HostStoreType)
 
-const tab: any = localStorage.getItem('PWS-HOST-TAB')
-if (tab) {
+const tab = localStorage.getItem('PWS-HOST-TAB') as HostProjectType | null
+if (tab && ['php', 'tomcat'].includes(tab)) {
   HostStore.tab = tab
+} else {
+  localStorage.setItem('PWS-HOST-TAB', HostStore.tab)
 }
 
 watch(

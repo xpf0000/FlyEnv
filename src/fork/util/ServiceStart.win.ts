@@ -347,10 +347,11 @@ export async function customerServiceStartExec(
   if (version.binBin && existsSync(version.binBin)) {
     env = `$env:PATH = "${dirname(version.binBin)};" + $env:PATH`
   }
+  const cwd = version.workDir && existsSync(version.workDir) ? version.workDir : dirname(bin)
 
   psScript = psScript
     .replace('#ENV#', env)
-    .replace('#CWD#', dirname(bin))
+    .replace('#CWD#', cwd)
     .replace('#BIN#', bin)
     .replace('#OUTLOG#', outFile)
     .replace('#ERRLOG#', errFile)

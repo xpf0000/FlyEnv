@@ -32,6 +32,7 @@ class Manager extends Base {
   Minio: any
   Rust: any
   MeiliSearch: any
+  ZincSearch: any
   ETCD: any
   Deno: any
   Bun: any
@@ -49,6 +50,8 @@ class Manager extends Base {
   Numa: any
   Rnacos: any
   FrankenPHP: any
+  RoadRunner: any
+  SwooleCli: any
   Flutter: any
   Git: any
   DotNet: any
@@ -236,6 +239,12 @@ class Manager extends Base {
             this.MeiliSearch = res.default
           }
           versions.meilisearch = this.MeiliSearch.allInstalledVersions(setup)
+        } else if (type === 'zincsearch') {
+          if (!this.ZincSearch) {
+            const res = await import('../ZincSearch')
+            this.ZincSearch = res.default
+          }
+          versions.zincsearch = this.ZincSearch.allInstalledVersions(setup)
         } else if (type === 'etcd') {
           if (!this.ETCD) {
             const res = await import('../ETCD')
@@ -338,6 +347,18 @@ class Manager extends Base {
             this.FrankenPHP = res.default
           }
           versions.frankenphp = this.FrankenPHP.allInstalledVersions(setup)
+        } else if (type === 'roadrunner') {
+          if (!this.RoadRunner) {
+            const res = await import('../RoadRunner')
+            this.RoadRunner = res.default
+          }
+          versions.roadrunner = this.RoadRunner.allInstalledVersions(setup)
+        } else if (type === 'swoole-cli') {
+          if (!this.SwooleCli) {
+            const res = await import('../SwooleCli')
+            this.SwooleCli = res.default
+          }
+          versions['swoole-cli'] = this.SwooleCli.allInstalledVersions(setup)
         } else if (type === 'flutter') {
           if (!this.Flutter) {
             const res = await import('../Flutter')

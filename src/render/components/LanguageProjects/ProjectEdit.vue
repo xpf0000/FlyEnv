@@ -48,7 +48,7 @@
               </div>
             </div>
 
-            <div v-if="!noService" class="ssl-switch mt-4">
+            <div class="ssl-switch mt-4">
               <span>{{ I18nT('host.ifIsService') }}</span>
               <el-switch v-model="item.isService"></el-switch>
             </div>
@@ -355,23 +355,17 @@
   })
 
   merge(item.value, props.edit)
-
-  const noService = computed(() => {
-    return props.typeFlag === 'php'
-  })
-
-  if (noService.value) {
-    item.value.isService = false
-  }
-
   const brewStore = BrewStore()
   const binVersions = computed(() => {
-    return brewStore.module(props.typeFlag).installed.map((p) => {
-      return {
-        ...p,
-        bin: props.typeFlag === 'php' ? (p?.phpBin ?? join(p.path, 'bin/php')) : p.bin
-      }
-    })
+    return brewStore
+      .module(props.typeFlag)
+      .installed.map((p) => {
+        return {
+          ...p,
+          bin: props.typeFlag === 'php' ? (p?.phpBin ?? join(p.path, 'bin/php')) : p.bin
+        }
+      })
+      .filter((p) => p.version && p.bin && p.enable !== false)
   })
 
   watch(

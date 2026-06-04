@@ -12,10 +12,9 @@ import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
-import { basename, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { chmod, remove, writeFile, copyFile, readFile } from '../../Fn'
 import { execPromise } from '../../Fn'
-import { dirname } from 'node:path'
 
 class LanguageProject {
   constructor() {}
@@ -115,6 +114,19 @@ class LanguageProject {
           if (match2) {
             version.env[match2[1]] = match2[2].replace(/^["']|["']$/g, '')
           }
+        }
+      }
+
+      if (typeFlag === 'swoole-cli' && project.binBin && existsSync(project.binBin)) {
+        const runtimeDir = dirname(project.binBin)
+        const iniFile = join(runtimeDir, 'php.ini')
+        const cacertFile = join(runtimeDir, 'cacert.pem')
+        if (existsSync(iniFile) && !version.env.PHPRC) {
+          version.env.PHPRC = runtimeDir
+        }
+        if (existsSync(cacertFile)) {
+          version.env.CURL_CA_BUNDLE = version.env.CURL_CA_BUNDLE || cacertFile
+          version.env.SSL_CERT_FILE = version.env.SSL_CERT_FILE || cacertFile
         }
       }
 

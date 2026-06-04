@@ -92,10 +92,6 @@
       </template>
     </ul>
     <List v-show="HostStore.tab === 'php'"></List>
-    <ListJava v-show="HostStore.tab === 'java'"></ListJava>
-    <ListNode v-show="HostStore.tab === 'node'"></ListNode>
-    <ListGo v-show="HostStore.tab === 'go'"></ListGo>
-    <ListPython v-show="HostStore.tab === 'python'"></ListPython>
     <ListTomcat v-show="HostStore.tab === 'tomcat'"></ListTomcat>
   </div>
 </template>
@@ -111,10 +107,6 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { AppHost } from '@shared/app'
   import { type HostProjectType, HostStore } from './store'
-  import ListJava from './Java/ListTable.vue'
-  import ListNode from './Node/ListTable.vue'
-  import ListGo from './Go/ListTable.vue'
-  import ListPython from './Python/ListTable.vue'
   import ListTomcat from './Tomcat/ListTable.vue'
   import VhostTmpl from './VhostTmpl/index.vue'
   import { SetupStore } from '@/components/Setup/store'
@@ -355,22 +347,6 @@
   const toAdd = () => {
     if (HostStore.tab === 'php') {
       AsyncComponentShow(EditVM).then()
-    } else if (HostStore.tab === 'java') {
-      import('./Java/Edit.vue').then((res) => {
-        AsyncComponentShow(res.default).then()
-      })
-    } else if (HostStore.tab === 'node') {
-      import('./Node/Edit.vue').then((res) => {
-        AsyncComponentShow(res.default).then()
-      })
-    } else if (HostStore.tab === 'go') {
-      import('./Go/Edit.vue').then((res) => {
-        AsyncComponentShow(res.default).then()
-      })
-    } else if (HostStore.tab === 'python') {
-      import('./Python/Edit.vue').then((res) => {
-        AsyncComponentShow(res.default).then()
-      })
     } else if (HostStore.tab === 'tomcat') {
       import('./Tomcat/Edit.vue').then((res) => {
         AsyncComponentShow(res.default).then()

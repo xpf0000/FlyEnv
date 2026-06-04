@@ -85,9 +85,26 @@ class Helper {
   send<T>(module: Module, fn: FN, ...args: any): Promise<T> {
     return new Promise(async (resolve, reject) => {
       console.trace('Helper.send: ', module, fn, ...args)
+      let settled = false
+
+      const resolveOnce = (value: T) => {
+        if (settled) {
+          return
+        }
+        settled = true
+        resolve(value)
+      }
+
+      const rejectOnce = (error: Error) => {
+        if (settled) {
+          return
+        }
+        settled = true
+        reject(error)
+      }
 
       if (!this.validateSendArgs(module, fn, args)) {
-        reject(new Error('Path traversal detected'))
+        rejectOnce(new Error('Path traversal detected'))
         return
       }
 
@@ -109,7 +126,7 @@ class Helper {
               }
             })
           }
-          reject(e)
+          rejectOnce(e instanceof Error ? e : new Error(`${e}`))
           return
         }
       }
@@ -117,6 +134,31 @@ class Helper {
       const key = uuid()
       const client = createConnection(AppHelperSocketPathGet())
       const buffer: Buffer[] = []
+
+      const closeClient = () => {
+        try {
+          client.destroy()
+        } catch {}
+      }
+
+      const handleSocketError = (error: Error) => {
+        appDebugLog(
+          '[Fork][Helper][error]',
+          `${JSON.stringify({
+            module,
+            fn,
+            args,
+            error: {
+              message: error.message,
+              code: (error as NodeJS.ErrnoException).code
+            }
+          })}`
+        ).catch()
+        closeClient()
+        console.log('connect failed error: ', error)
+        rejectOnce(error)
+      }
+
       client.on('connect', () => {
         const param: any = {
           key,
@@ -129,7 +171,15 @@ class Helper {
           param.sig = signTaskItem(this.helperKey, param)
         }
         console.log('Connected to server', param)
-        client.write(JSON.stringify(param))
+        try {
+          client.write(JSON.stringify(param), (error?: Error | null) => {
+            if (error) {
+              handleSocketError(error)
+            }
+          })
+        } catch (e) {
+          handleSocketError(e instanceof Error ? e : new Error(`${e}`))
+        }
       })
 
       client.on('data', (data: any) => {
@@ -137,9 +187,7 @@ class Helper {
       })
 
       client.on('end', () => {
-        try {
-          client.destroySoon()
-        } catch {}
+        closeClient()
         console.log('Disconnected from server')
         let res: any
         try {
@@ -149,27 +197,14 @@ class Helper {
         if (res && res?.key && res?.key === key) {
           buffer.splice(0)
           if (res?.code === 0) {
-            return resolve(res?.data)
+            return resolveOnce(res?.data)
           }
         }
-        return reject(new Error(res?.msg ?? 'Execution failed'))
+        return rejectOnce(new Error(res?.msg ?? 'Execution failed'))
       })
 
       client.on('error', (error) => {
-        appDebugLog(
-          '[Fork][Helper][error]',
-          `${JSON.stringify({
-            module,
-            fn,
-            args,
-            error
-          })}`
-        ).catch()
-        try {
-          client.destroySoon()
-        } catch {}
-        console.log('connect failed error: ', error)
-        reject(new Error('connect failed'))
+        handleSocketError(error)
       })
     })
   }

@@ -252,7 +252,7 @@
     EditVM = res.default
   })
   let LogVM: any
-  import('../Java/Logs.vue').then((res) => {
+  import('./Logs.vue').then((res) => {
     LogVM = res.default
   })
   let LinkVM: any

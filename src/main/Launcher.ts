@@ -4,7 +4,7 @@ import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
 import type { CallbackFn } from '@shared/app.d'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { AppStartFlagChech } from './app'
 
 export default class Launcher extends EventEmitter {
@@ -47,8 +47,32 @@ export default class Launcher extends EventEmitter {
   }
 
   handleAppEvents() {
+    this.handleDiagnosticEvents()
     this.handelAppReady()
     this.handleAppWillQuit()
+  }
+
+  handleDiagnosticEvents() {
+    app.on('child-process-gone', async (_event, details) => {
+      const gpuInfo = app.isReady()
+        ? await app.getGPUInfo('basic').catch((error) => ({ error: `${error}` }))
+        : undefined
+      const payload = {
+        details,
+        electron: process.versions.electron,
+        chrome: process.versions.chrome,
+        node: process.versions.node,
+        platform: process.platform,
+        platformVersion: process.getSystemVersion?.(),
+        appVersion: app.isReady() ? app.getVersion() : global.Server?.APPVersion,
+        activeForkActions: global.Server?.DebugForkActions ?? [],
+        gpuFeatureStatus: app.isReady() ? app.getGPUFeatureStatus() : undefined,
+        gpuInfo
+      }
+      const message = JSON.stringify(payload)
+      logger.error(`[FlyEnv][ChildProcessGone] ${message}`)
+      appDebugLog('[FlyEnv-ChildProcessGone]', message).catch()
+    })
   }
 
   handelAppReady() {

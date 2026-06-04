@@ -165,6 +165,138 @@ export const versionBinVersionOutput = (
 
 export const versionDirCache: Record<string, string[]> = {}
 
+const normalizeExistingDir = (dir?: string | null) => {
+  const path = dir?.trim()
+  if (!path || !existsSync(path)) {
+    return undefined
+  }
+  try {
+    if (!statSync(path).isDirectory()) {
+      return undefined
+    }
+    return realpathSync(path)
+  } catch {
+    return undefined
+  }
+}
+
+const addCellarDir = (dirs: Set<string>, dir?: string | null) => {
+  const path = normalizeExistingDir(dir)
+  if (path) {
+    dirs.add(path)
+  }
+}
+
+const addBrewBin = (bins: Set<string>, bin?: string | null) => {
+  const path = bin?.trim()
+  if (!path) {
+    return
+  }
+  const real = versionCheckBin(path)
+  if (real) {
+    bins.add(path)
+  }
+}
+
+const fetchCommandBins = async (command: string) => {
+  const fetch = async (args: string[]) => {
+    const res = await spawnPromiseWithEnv('which', args)
+    return res.stdout
+      .split('\n')
+      .map((s) => s.trim())
+      .filter((s) => !!s)
+  }
+  try {
+    return await fetch(['-a', command])
+  } catch {}
+  try {
+    return await fetch([command])
+  } catch {}
+  return []
+}
+
+const inferCellarDirsFromBrewBin = (bin: string) => {
+  const prefix = dirname(dirname(bin))
+  const dirs = [join(prefix, 'Cellar')]
+  if (prefix.endsWith('/Homebrew')) {
+    dirs.push(join(dirname(prefix), 'Cellar'))
+  }
+  return dirs
+}
+
+const fetchCellarDirsByBrewBin = async (bin: string) => {
+  const dirs: string[] = []
+  try {
+    const res = await spawnPromiseWithEnv(bin, ['--cellar'])
+    dirs.push(
+      ...res.stdout
+        .split('\n')
+        .map((s) => s.trim())
+        .filter((s) => !!s)
+    )
+  } catch {}
+  try {
+    const res = await spawnPromiseWithEnv(bin, ['--prefix'])
+    dirs.push(
+      ...res.stdout
+        .split('\n')
+        .map((s) => s.trim())
+        .filter((s) => !!s)
+        .map((s) => join(s, 'Cellar'))
+    )
+  } catch {}
+  dirs.push(...inferCellarDirsFromBrewBin(bin))
+  return dirs
+}
+
+const fetchBrewCellarDirs = async () => {
+  const dirs: Set<string> = new Set()
+  const bins: Set<string> = new Set()
+  const uinfo = userInfo()
+  const fallbackDirs = [
+    global.Server?.BrewCellar,
+    '/usr/local/Cellar',
+    '/opt/homebrew/Cellar',
+    '/opt/nanobrew/Cellar',
+    '/opt/nanobrew/prefix/Cellar',
+    join(uinfo.homedir, '.nanobrew/Cellar')
+  ]
+  const fallbackBins = [
+    global.Server?.BrewBin,
+    '/usr/local/bin/brew',
+    '/usr/local/Homebrew/bin/brew',
+    '/opt/homebrew/bin/brew',
+    '/opt/nanobrew/bin/brew',
+    '/opt/nanobrew/bin/nb',
+    '/opt/nanobrew/bin/nanobrew',
+    join(uinfo.homedir, '.nanobrew/bin/brew'),
+    join(uinfo.homedir, '.nanobrew/bin/nb'),
+    join(uinfo.homedir, '.nanobrew/bin/nanobrew')
+  ]
+  if (isLinux()) {
+    fallbackDirs.push('/home/linuxbrew/.linuxbrew/Cellar', join(uinfo.homedir, '.linuxbrew/Cellar'))
+    fallbackBins.push(
+      '/home/linuxbrew/.linuxbrew/bin/brew',
+      join(uinfo.homedir, '.linuxbrew/bin/brew')
+    )
+  }
+
+  fallbackDirs.forEach((dir) => addCellarDir(dirs, dir))
+  fallbackBins.forEach((bin) => addBrewBin(bins, bin))
+
+  for (const command of ['brew', 'nanobrew']) {
+    const commandBins = await fetchCommandBins(command)
+    commandBins.forEach((bin) => addBrewBin(bins, bin))
+  }
+
+  for (const bin of bins) {
+    const commandCellarDirs = await fetchCellarDirsByBrewBin(bin)
+    commandCellarDirs.forEach((dir) => addCellarDir(dirs, dir))
+  }
+
+  return Array.from(dirs)
+}
+
 export const versionLocalFetch = async (
   customDirs: string[],
   binName: string,
@@ -191,16 +323,8 @@ export const versionLocalFetch = async (
     searchDepth1Dir = ['/', '/opt', '/opt/local/', '/usr', ...customDirs]
     searchDepth2Dir = [global.Server.AppDir!]
     if (searchName) {
-      const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
-      if (isLinux()) {
-        base.push('/home/linuxbrew/.linuxbrew/Cellar')
-        const uinfo = userInfo()
-        base.push(join(uinfo.homedir, '.linuxbrew/bin/brew'))
-      }
+      const base = await fetchBrewCellarDirs()
       for (const b of base) {
-        if (!existsSync(b)) {
-          continue
-        }
         const subDir = versionDirCache?.[b] ?? (await getSubDirAsync(b))
         if (!versionDirCache?.[b]) {
           versionDirCache[b] = subDir

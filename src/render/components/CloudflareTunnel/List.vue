@@ -53,11 +53,11 @@
                 <template #default="scope">
                   <template v-if="props.row.run">
                     <el-button type="success" link @click.stop="openLocalUrl(scope.row)">{{
-                      scope.row.localService
+                      localServiceUrl(scope.row)
                     }}</el-button>
                   </template>
                   <template v-else>
-                    <el-button type="info" link>{{ scope.row.localService }}</el-button>
+                    <el-button type="info" link>{{ localServiceUrl(scope.row) }}</el-button>
                   </template>
                 </template>
               </el-table-column>
@@ -232,6 +232,7 @@
     list,
     openOutUrl,
     openLocalUrl,
+    localServiceUrl,
     groupTrunOn,
     copy,
     editDNS,

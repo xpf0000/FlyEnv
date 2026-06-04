@@ -85,8 +85,36 @@ export const AppHelperCheck = () => {
   return new Promise(async (resolve, reject) => {
     console.time('AppHelper check')
     let timer: NodeJS.Timeout | undefined
+    let settled = false
+    let checkTimerEnded = false
     const key = 'flyenv-helper-version-check'
     const buffer: Buffer[] = []
+
+    const timeEndOnce = () => {
+      if (checkTimerEnded) {
+        return
+      }
+      checkTimerEnded = true
+      console.timeEnd('AppHelper check')
+    }
+
+    const resolveOnce = (value: boolean) => {
+      if (settled) {
+        return
+      }
+      settled = true
+      clearTimeout(timer)
+      resolve(value)
+    }
+
+    const rejectOnce = (error: Error) => {
+      if (settled) {
+        return
+      }
+      settled = true
+      clearTimeout(timer)
+      reject(error)
+    }
 
     let helperKey: Buffer | null = null
     try {
@@ -106,37 +134,57 @@ export const AppHelperCheck = () => {
       if (helperKey) {
         param.sig = signTaskItem(helperKey, param)
       }
-      client.write(JSON.stringify(param))
+      try {
+        client.write(JSON.stringify(param), (error?: Error | null) => {
+          if (error) {
+            try {
+              client.destroy()
+            } catch {}
+            rejectOnce(error)
+            timeEndOnce()
+          }
+        })
+      } catch (e) {
+        try {
+          client.destroy()
+        } catch {}
+        rejectOnce(e instanceof Error ? e : new Error(`${e}`))
+        timeEndOnce()
+      }
       timer = setTimeout(() => {
         onEnd()
       }, 2000)
     })
 
     const onEnd = () => {
+      if (settled) {
+        return
+      }
       clearTimeout(timer)
       try {
-        client.destroySoon()
+        client.destroy()
       } catch {}
       if (!buffer.length) {
-        return reject(new Error(`Helper Need Install Or Update`))
+        timeEndOnce()
+        return rejectOnce(new Error(`Helper Need Install Or Update`))
       }
       let res: any
       try {
         const content = Buffer.concat(buffer).toString().trim()
         res = JSON5.parse(content)
       } catch {}
-      console.timeEnd('AppHelper check')
+      timeEndOnce()
       console.log(`${key}: `, res)
       if (res && res?.key && res?.key === key) {
         buffer.splice(0)
         if (res?.code === 0) {
           const version = res?.data
           if (version === HelperVersion) {
-            return resolve(true)
+            return resolveOnce(true)
           }
         }
       }
-      return reject(new Error(`Helper Need Install Or Update`))
+      return rejectOnce(new Error(`Helper Need Install Or Update`))
     }
 
     client.on('data', (data: any) => {
@@ -151,10 +199,10 @@ export const AppHelperCheck = () => {
 
     client.on('error', () => {
       try {
-        client.destroySoon()
+        client.destroy()
       } catch {}
-      reject(new Error('Connect helper failed'))
-      console.timeEnd('AppHelper check')
+      rejectOnce(new Error('Connect helper failed'))
+      timeEndOnce()
     })
   })
 }

@@ -14,8 +14,26 @@ import { BrewStore } from '@/store/brew'
 import { staticVersionDel } from '@/util/Version'
 import localForage from 'localforage'
 import { Setup } from '@/components/Tools/SystenEnv/setup'
+import { installedVersionNote, setInstalledVersionNote } from '@/util/InstalledVersionNote'
 
 let time = 0
+const escapeHtml = (content: string) => {
+  return content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+const versionDelTips = (message: string, item: SoftInstalled, type: AllAppModule) => {
+  const note = installedVersionNote(item, type)
+  if (!note) {
+    return message
+  }
+  return `${message}<div style="margin-top: 8px;"><strong>${I18nT('base.remark')}:</strong> ${escapeHtml(note)}</div>`
+}
+
 export const ServiceActionStore: {
   versionDeling: Record<string, boolean>
   pathSeting: Record<string, boolean>
@@ -55,6 +73,7 @@ export const ServiceActionStore: {
       bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
     }
     const arr: string[] = [
+      item.bin,
       bin,
       dirname(join(item.path, 'bin')),
       join(item.path, 'bin'),
@@ -210,10 +229,15 @@ export const ServiceActionStore: {
     const brewStore = BrewStore()
     const module = brewStore.module(type)
     if (item.isLocal7Z) {
-      Base._Confirm(I18nT('service.bundleinVersionDelTips'), undefined, {
-        customClass: 'confirm-del',
-        type: 'warning'
-      })
+      Base._Confirm(
+        versionDelTips(I18nT('service.bundleinVersionDelTips'), item, type),
+        undefined,
+        {
+          customClass: 'confirm-del',
+          dangerouslyUseHTMLString: true,
+          type: 'warning'
+        }
+      )
         .then(async () => {
           if (item.run) {
             item.stop().catch()
@@ -226,6 +250,7 @@ export const ServiceActionStore: {
           arr.add(`${type}-${item.version}`)
           setup.excludeLocalVersion = [...arr]
           store.config.setup = reactive(setup)
+          await setInstalledVersionNote(item, '', type)
           await store.saveConfig()
           module.installedFetched = false
           module.fetchInstalled().catch()
@@ -235,10 +260,15 @@ export const ServiceActionStore: {
           delete ServiceActionStore.versionDeling[item.bin]
         })
     } else if (store.config.setup?.[type]?.dirs?.some((d) => item.bin.includes(d))) {
-      Base._Confirm(I18nT('service.customDirVersionDelTips'), undefined, {
-        customClass: 'confirm-del',
-        type: 'warning'
-      })
+      Base._Confirm(
+        versionDelTips(I18nT('service.customDirVersionDelTips'), item, type),
+        undefined,
+        {
+          customClass: 'confirm-del',
+          dangerouslyUseHTMLString: true,
+          type: 'warning'
+        }
+      )
         .then(async () => {
           if (item.run) {
             item.stop().catch()
@@ -249,6 +279,7 @@ export const ServiceActionStore: {
             setup?.[type]?.dirs?.splice(index, 1)
           }
           store.config.setup = reactive(setup)
+          await setInstalledVersionNote(item, '', type)
           await store.saveConfig()
           module.installedFetched = false
           module.fetchInstalled().catch()

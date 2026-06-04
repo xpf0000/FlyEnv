@@ -37,6 +37,13 @@ export interface ServerType {
   isLinux?: boolean
   isWindows?: boolean
   APPVersion?: string
+  DebugForkActions?: Array<{
+    command: string
+    module: string
+    action?: string
+    key: string
+    startedAt: number
+  }>
 }
 
 declare global {

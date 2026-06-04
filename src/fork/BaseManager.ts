@@ -27,7 +27,6 @@ class BaseManager {
   RabbitMQ: any
   Python: any
   Maven: any
-  Service: any
   MailPit: any
   Erlang: any
   Ruby: any
@@ -37,6 +36,7 @@ class BaseManager {
   Minio: any
   Rust: any
   MeiliSearch: any
+  ZincSearch: any
   ModuleCustomer: any
   FTPSrv: any
   ETCD: any
@@ -67,6 +67,8 @@ class BaseManager {
   Numa: any
   Rnacos: any
   FrankenPHP: any
+  RoadRunner: any
+  SwooleCli: any
   Git: any
   Cron: any
   DotNet: any
@@ -301,12 +303,6 @@ class BaseManager {
         this.Maven = res.default
       }
       doRun(this.Maven)
-    } else if (module === 'service') {
-      if (!this.Service) {
-        const res = await import('./module/Service')
-        this.Service = res.default
-      }
-      doRun(this.Service)
     } else if (module === 'mailpit') {
       if (!this.MailPit) {
         const res = await import('./module/MailPit')
@@ -361,6 +357,12 @@ class BaseManager {
         this.MeiliSearch = res.default
       }
       doRun(this.MeiliSearch)
+    } else if (module === 'zincsearch') {
+      if (!this.ZincSearch) {
+        const res = await import('./module/ZincSearch')
+        this.ZincSearch = res.default
+      }
+      doRun(this.ZincSearch)
     } else if (module === 'module-customer') {
       if (!this.ModuleCustomer) {
         const res = await import('./module/ModuleCustomer')
@@ -537,6 +539,18 @@ class BaseManager {
         this.FrankenPHP = res.default
       }
       doRun(this.FrankenPHP)
+    } else if (module === 'roadrunner') {
+      if (!this.RoadRunner) {
+        const res = await import('./module/RoadRunner')
+        this.RoadRunner = res.default
+      }
+      doRun(this.RoadRunner)
+    } else if (module === 'swoole-cli') {
+      if (!this.SwooleCli) {
+        const res = await import('./module/SwooleCli')
+        this.SwooleCli = res.default
+      }
+      doRun(this.SwooleCli)
     } else if (module === 'git') {
       if (!this.Git) {
         const res = await import('./module/Git')

@@ -1,6 +1,7 @@
 import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync } from 'fs'
-import { dirname, join } from 'path'
+import { join } from 'path'
+import { userInfo } from 'os'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
@@ -22,6 +23,7 @@ import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { unpack } from '../../util/Zip'
 import { ProcessPidList } from '@shared/Process.win'
 import { getAxiosProxy } from '../../util/Axios'
+import Helper from '../../Helper'
 
 export class Base {
   type: string
@@ -81,6 +83,80 @@ export class Base {
     })
   }
 
+  protected appPidFile() {
+    return join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+  }
+
+  protected async ensureAppPidDirWritable() {
+    const pidDir = join(global.Server.BaseDir!, 'pid')
+    const probeFile = join(
+      pidDir,
+      `.flyenv-write-test-${this.type}-${process.pid}-${Date.now()}.tmp`
+    )
+    let lastError: any
+
+    const verifyWritable = async () => {
+      await mkdirp(pidDir)
+      await writeFile(probeFile, '')
+      await remove(probeFile).catch(() => {})
+    }
+
+    try {
+      await verifyWritable()
+      return
+    } catch (e) {
+      lastError = e
+    }
+
+    await remove(probeFile).catch(() => {})
+
+    try {
+      if (existsSync(pidDir)) {
+        await chmod(pidDir, '0755')
+      }
+      await verifyWritable()
+      return
+    } catch (e) {
+      lastError = e
+    }
+
+    await remove(probeFile).catch(() => {})
+
+    if (!isWindows()) {
+      try {
+        const uinfo = userInfo()
+        await Helper.send('redis', 'logFileFixed', pidDir, `${uinfo.uid}:${uinfo.gid}`)
+        await chmod(pidDir, '0755').catch(() => {})
+        await verifyWritable()
+        return
+      } catch (e) {
+        lastError = e
+      }
+    }
+
+    await remove(probeFile).catch(() => {})
+
+    try {
+      await Helper.send('tools', 'rm', pidDir)
+      await verifyWritable()
+      return
+    } catch (e) {
+      lastError = e
+    }
+
+    await remove(probeFile).catch(() => {})
+    const error = lastError instanceof Error ? lastError.message : `${lastError}`
+    throw new Error(`PID directory is not writable: ${pidDir}. ${error}`)
+  }
+
+  protected async saveAppPid(pid: string | number) {
+    const appPidFile = this.appPidFile()
+    await this.ensureAppPidDirWritable()
+    await remove(appPidFile).catch(() => {})
+    await writeFile(appPidFile, `${pid}`.trim())
+    await chmod(appPidFile, '0755').catch(() => {})
+  }
+
   stopService(version: SoftInstalled, ...args: any) {
     return this._stopServer(version, ...args)
   }
@@ -101,6 +177,7 @@ export class Base {
       let res: any
       try {
         await this._stopServer(version, ...args).on(on)
+        await this.ensureAppPidDirWritable()
         res = await this._startServer(version, ...args).on(on)
         resolve(res)
       } catch (e) {
@@ -111,12 +188,11 @@ export class Base {
       try {
         if (res?.['APP-Service-Start-PID']) {
           const pid = res['APP-Service-Start-PID']
-          const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-          await mkdirp(dirname(appPidFile))
-          await writeFile(appPidFile, pid.trim())
-          await chmod(appPidFile, '0755')
+          await this.saveAppPid(pid)
         }
-      } catch {}
+      } catch (e) {
+        console.error('save app pid error: ', e)
+      }
     })
   }
 
@@ -144,7 +220,7 @@ export class Base {
       on({
         'APP-Service-Stop-Success': true
       })
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      const appPidFile = this.appPidFile()
       try {
         if (existsSync(appPidFile)) {
           const pid = (await readFile(appPidFile, 'utf-8')).trim()
@@ -174,7 +250,9 @@ export class Base {
         ollama: 'ollama',
         cliproxyapi: 'cli-proxy-api',
         rnacos: 'rnacos',
-        frankenphp: 'frankenphp'
+        frankenphp: 'frankenphp',
+        roadrunner: 'rr',
+        'swoole-cli': 'swoole-cli'
       }
       const serverName = dis?.[this.type]
       if (serverName) {

@@ -1,9 +1,6 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { CloudflareTunnel } from './CloudflareTunnel'
-import { dirname, join } from 'path'
-import { mkdirp } from '@shared/fs-extra'
-import { writeFile } from '../../Fn'
 
 class CloudflareTunnelBase extends Base {
   constructor() {
@@ -43,9 +40,9 @@ class CloudflareTunnelBase extends Base {
         const model = new CloudflareTunnel()
         Object.assign(model, item)
         const res = await model.start()
-        const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-        await mkdirp(dirname(appPidFile))
-        await writeFile(appPidFile, model.pid)
+        await this.saveAppPid(model.pid).catch((e) => {
+          console.error('CloudflareTunnelBase save app pid error', e)
+        })
         const json = JSON.parse(JSON.stringify(res))
         json['APP-Service-Start-PID'] = model.pid
         resolve(json)
