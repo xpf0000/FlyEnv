@@ -1,24 +1,22 @@
 {
-  "setaliase": "Set Alias",
-  "env": "Env",
-  "alias": "Alias",
-  "envTips": "Has the path been added to the environment variable",
-  "aliasTips": "Alias used in the terminal",
-  "useSysPHP": "Use default PHP version",
-  "setByApp": "Environment variables set by FlyEnv",
-  "setByNoApp": "Environment variables not set by FlyEnv",
-  "ftpdNeedPasswordToStart": "Pure-FTPd requires sudo privileges to start. Please enter your user password. The password will be used for auto-fill later. Or you can click the button below to input manually in the terminal, but this prompt may reappear.",
-
-  "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
-  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?",
-
+  "setaliase": "Задаване на псевдоним",
+  "env": "Среда",
+  "alias": "Псевдоним",
+  "envTips": "Добавена ли е пътеката към променливата на средата",
+  "aliasTips": "Псевдоним, използван в терминала",
+  "useSysPHP": "Използвай версията на PHP по подразбиране",
+  "setByApp": "Променливи на средата, зададени от FlyEnv",
+  "setByNoApp": "Променливи на средата, които не са зададени от FlyEnv",
+  "ftpdNeedPasswordToStart": "За да стартира, Pure-FTPd се нуждае от права на sudo. Моля, въведете потребителската си парола. Паролата ще бъде използвана по-късно за автоматично попълване. Можете също да кликнете върху бутона по-долу, за да я въведете ръчно в терминала, но този прозорец може да се появи отново.",
+  "bundleinVersionDelTips": "Това е вградена версия, не се показва ли?",
+  "customDirVersionDelTips": "Тази версия е с персонализиран път – потвърдете, че не се показва?",
   "ErrorTips": {
     "VCRuntime": {
-      "title": "Your system is missing the Visual C++ Redistributable (DLLs) required to run this version. Please click the link below to download and install the VC Runtime from Microsoft's official website.",
-      "versionRelation": "Version Compatibility Reference:",
-      "software": "Software",
-      "versionRange": "Version Range",
-      "msvsVersion": "MSVC Version"
+      "title": "В системата Ви липсват библиотеките Visual C++ Redistributable (DLL), необходими за стартирането на тази версия. Моля, кликнете върху връзката по-долу, за да изтеглите и инсталирате VC Runtime от официалния Microsoft уебсайт.",
+      "versionRelation": "Справочник за съвместимост на версиите:",
+      "software": "Софтуер",
+      "versionRange": "Диапазон на версиите",
+      "msvsVersion": "Версия на MSVC"
     }
   }
 }

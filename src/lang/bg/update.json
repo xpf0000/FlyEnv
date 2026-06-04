@@ -1,11 +1,11 @@
 {
-  "checkForUpdates": "Check for Updates",
-  "update-available-message": "A newer version of FlyEnv is available, update now?",
-  "update-not-available-message": "You are up-to-date!",
-  "update-downloaded-message": "Ready to install...",
-  "update-error-message": "Update Error",
-  "yes": "Yes",
-  "no": "No",
-  "view-update-log": "View Update Log",
-  "download-new-version": "Download New Version"
+  "checkForUpdates": "Проверка за обновления",
+  "update-available-message": "Налична е по-нова версия на FlyEnv, да я актуализираме ли сега?",
+  "update-not-available-message": "Вече сте в крак с новостите!",
+  "update-downloaded-message": "Готово за инсталиране...",
+  "update-error-message": "Грешка при актуализиране",
+  "yes": "Да",
+  "no": "Не",
+  "view-update-log": "Виж лога с актуализациите",
+  "download-new-version": "Изтегли новата версия"
 }

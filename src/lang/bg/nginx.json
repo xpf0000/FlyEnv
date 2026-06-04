@@ -1,10 +1,10 @@
 {
-  "gzip": "Is enable GZIP compression transmission",
-  "gzip_min_length": "Minimum compressed file",
-  "gzip_comp_level": "compressibility",
-  "client_max_body_size": "Maximum upload file size",
-  "server_names_hash_max_size": "Hash table max size for server name",
-  "server_names_hash_bucket_size": "Hash table size for server name",
-  "client_header_buffer_size": "Client request header buffer size",
-  "client_body_buffer_size": "Request body buffer size"
+  "gzip": "Активирана ли е предаването с GZIP компресия",
+  "gzip_min_length": "Минимален размер на компресирания файл",
+  "gzip_comp_level": "сгъстяемост",
+  "client_max_body_size": "Максимален размер на файла за качване",
+  "server_names_hash_max_size": "Максимален размер на хеш-таблицата за името на сървъра",
+  "server_names_hash_bucket_size": "Размер на хеш-таблицата за името на сървъра",
+  "client_header_buffer_size": "Размер на буфера на заглавния ред на заявката на клиента",
+  "client_body_buffer_size": "Размер на body буфера на заявката"
 }

@@ -1,10 +1,10 @@
 {
-  "showMainWin": "Show Main Window",
-  "exit": "Exit",
-  "run": "Running",
-  "notRun": "Not Running",
-  "trayMenuBarStyle": "Tray Popup Style",
-  "classic": "Classic",
-  "modern": "Modern",
-  "trayMenuBarStyleTips": "Choose the tray popup style. On some Linux desktops, the modern style may have issues, so you can select the classic style instead."
+  "showMainWin": "Покажи главния прозорец",
+  "exit": "Изход",
+  "run": "Работещи",
+  "notRun": "Не работи",
+  "trayMenuBarStyle": "Стил на изскачащия прозорец",
+  "classic": "Класически",
+  "modern": "Модерен",
+  "trayMenuBarStyleTips": "Изберете стила на изскачащия прозорец на системната лента. При някои Linux десктопи стилът Modern може да създава проблеми, затова можете да изберете класическия такъв."
 }

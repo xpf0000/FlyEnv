@@ -1,16 +1,15 @@
 {
-  "installFNM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
-  "installNVM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
-  "Terminal": "Terminal",
+  "installFNM": "Инсталирайте <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Инсталирайте <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "Терминал",
   "registry": "Източник",
-  "checkPackageJsonUpdate": "Check for updates",
-  "updatePackageJsonFile": "Update package.json file",
-  "updatePackageJsonFileTips": "This action will modify the package.json file. Are you sure you want to update?",
-  "copyDirPath": "Copy Project Folder Path",
-  "openIN": "Open In",
+  "checkPackageJsonUpdate": "Проверка за обновления",
+  "updatePackageJsonFile": "Актуализирайте package.json файла",
+  "updatePackageJsonFileTips": "Тази операция ще промени файла package.json. Сигурен ли сте, че искате да го актуализирате?",
+  "copyDirPath": "Копиране на пътя към папката на проекта",
+  "openIN": "Отвори в",
   "VSCode": "Visual Studio Code",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
-  "projectEnvSet": "Project Environment",
-  "installGit": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://git-scm.com')\">Git</a>"
+  "projectEnvSet": "Среда на проекта"
 }

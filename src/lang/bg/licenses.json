@@ -1,62 +1,60 @@
 {
-  "title": "License Description",
-  "description": "This license acknowledges and supports the efforts of FlyEnv and its authors. It is not intended to restrict users, but to encourage respect for the developers’ work and intellectual property. Please ensure you obtain a valid license before using FlyEnv for commercial purposes.",
+  "title": "Описание на лиценза",
+  "description": "Настоящият лиценз признава и подкрепя усилията на FlyEnv и неговите автори. Той не има за цел да ограничава потребителите, а да насърчи зачитането на труда и интелектуалната собственост на разработчиците. Моля, уверете се, че разполагате с валиден лиценз, преди да използвате FlyEnv за търговски цели.",
   "restrictions": {
-    "title": "Users without a license will be subject to the following restrictions:",
+    "title": "Потребителите без лиценз ще подлежат на следните ограничения:",
     "items": {
-      "0": "A maximum of three sites can be created.",
-      "1": "The AI chat feature is available for a trial period of three days only.",
-      "2": "Additional restrictions may apply to future features."
+      "0": "Могат да бъдат създадени най-много три сайта.",
+      "1": "Функцията за чат с изкуствен интелект е достъпна само за пробен период от три дни.",
+      "2": "Възможно е да се въведат допълнителни ограничения за бъдещи функции."
     }
   },
   "howToObtain": {
-    "title": "How to Obtain a License",
-    "description": "FlyEnv provides flexible ways to obtain a license. Users can choose any of the following methods to apply:",
+    "title": "Как да получите лиценз",
+    "description": "FlyEnv предлага гъвкави начини за получаване на лиценз. Потребителите могат да изберат някой от следните начини за подаване на заявка:",
     "methods": {
       "0": {
-        "title": "Donate to the Project",
-        "description": "There is no fixed amount required for donations. Considering the varying economic situations of users in different countries (e.g., many users are students), please choose an amount that is comfortable for you."
+        "title": "Направете дарение за проекта",
+        "description": "Няма определена минимална сума за дарения. Като се има предвид различното икономическо състояние на потребителите в различните страни (например, много от тях са студенти), моля, изберете сума, която ви е удобна."
       },
       "1": {
-        "title": "Contribute to Development",
-        "description": "Participate in the project by submitting a Pull Request. Regardless of the amount of code, as long as it positively improves the project (e.g., fixing a translation error), your contribution counts."
+        "title": "Допринесете за развитието",
+        "description": "Участвайте в проекта, като изпратите Pull Request. Независимо от обема на кода, стига той да допринесе за подобряването на проекта (например, като поправи грешка в превода), вашият принос е ценен."
       },
       "2": {
-        "title": "Promote the Project",
-        "description": "Promote FlyEnv by sharing your experience in articles, videos, blogs, vlogs, or comments. Authentic user feedback is preferred. Content can be in any language and on any platform."
+        "title": "Насърчаване на проекта",
+        "description": "Популяризирайте FlyEnv, като споделяте своя опит в статии, видеоклипове, блогове, видеоблогове или коментари. Предпочитаме автентични отзиви от потребители. Съдържанието може да бъде на всеки език и на всякаква платформа."
       }
     }
   },
-  "submitInfo": "After completing any of the above methods, please fill in the results in the input box below and click the 'Request License' button to submit your application. License requests are usually processed within 24 hours.",
+  "submitInfo": "След като изпълните някой от посочените по-горе методи, моля, въведете резултатите в полето за въвеждане по-долу и натиснете бутона ‘Заявка за лиценз’, за да изпратите заявката си. Заявките за лиценз обикновено се обработват в рамките на 24 часа.",
   "messageLabel": "Съобщение",
-  "messagePlaceholder": "Please submit the donor, donation link, or order ID when choosing to donate.\nPlease submit the PR link for those who choose to participate in project development.\nPlease submit a link to your article, video, blog, vlog, or comment for those who choose to promote.",
-  "requestButton": "Request License",
-  "refreshButton": "Refresh State",
-  "licenseActivated": "License activated",
-  "licenseNoActivated": "License not activated",
-  "licenseInfo": "The current provided license is a permanent license, each computer corresponds to one license. If you change computers, you need to bind the new device's uuid in 'My Licenses', or apply for a new license.",
-  "logoutTips": "Are you sure you want to log out?",
-  "delBindTips": "Are you sure to unbind the license from this UUID?",
-  "addBindTips": "Are you sure to bind the license to this UUID?",
-  "currentLicenseState": "License status on this device",
-  "activeState": "Activation Status",
-  "myLicense": "My Licenses",
-  "loginTips": "Please log in first",
-  "logingTips": "Logging in via GitHub...",
-  "licenseNo": "License Number",
-  "licenseBindUUID": "Bound UUID",
-  "delBind": "Unbind",
-  "bindCurrentUUID": "Bind This Device",
-  "licenseDescription": "License Description",
-  "loginFail": "Login failed",
-  "oauthCanceledTitle": "Authorization Canceled",
-  "oauthCanceledMessage": "User canceled the authorization process",
-  "oauthFailedTitle": "Authorization Failed",
-  "oauthFailedMessage": "Authorization failed. Reason: {error}",
-  "oauthFailedByNoAuthCode": "Authorization code not received",
-  "oauthTimeout": "Authorization timeout",
-  "oauthSuccessTitle": "Authorization Successful",
-  "oauthSuccessMessage": "This page can be closed. Please return to FlyEnv to view the license information.",
-  "trialExpiredTitle": "License Not Activated",
-  "trialExpiredTips": "You have been using FlyEnv for {days} days. If FlyEnv has been helpful to you, please consider obtaining a license to support the project."
+  "messagePlaceholder": "Моля, посочете името на дарителя, линка към дарението или номера на поръчката, ако решите да дарите.\nМоля, посочете линка към публикацията си, ако решите да участвате в разработването на проекта.\nМоля, посочете линка към вашата статия, видео, блог, видеоблог или коментар, ако решите да популяризирате проекта.",
+  "requestButton": "Заявка за лиценз",
+  "refreshButton": "Обновяване на статута",
+  "licenseActivated": "Лицензът е активиран",
+  "licenseNoActivated": "Лицензът не е активиран",
+  "licenseInfo": "Предоставената лицензия е постоянна, като всеки компютър съответства на една лицензия. Ако сменяте компютъра си, трябва да свържете UUID-а на новото устройство в раздела ‘Моите лицензи’ или да подадете заявка за нов лиценз.",
+  "logoutTips": "Сигурен ли сте, че искате да излезете от профила си?",
+  "delBindTips": "Сигурен ли сте, че искате да отмените свързването на лиценза с този UUID?",
+  "addBindTips": "Сигурен ли сте, че искате да свържете лиценза с този UUID?",
+  "currentLicenseState": "Статус на лиценза на това устройство",
+  "activeState": "Статус на активиране",
+  "myLicense": "Моите лицензи",
+  "loginTips": "Моля, първо влезте",
+  "logingTips": "Влизане чрез GitHub...",
+  "licenseNo": "Лицензен номер",
+  "licenseBindUUID": "Свързане към UUID",
+  "delBind": "Отмени свързване",
+  "bindCurrentUUID": "Свържи това устройство",
+  "licenseDescription": "Описание на лиценза",
+  "loginFail": "Влизането е неуспешно",
+  "oauthCanceledTitle": "Оторизацията е отменена",
+  "oauthCanceledMessage": "Потребителят прекъсна процеса на оторизация",
+  "oauthFailedTitle": "Оторизацията се провали",
+  "oauthFailedMessage": "Оторизирането се провали. Причина: {error}",
+  "oauthFailedByNoAuthCode": "Кодът за одобрение не е получен",
+  "oauthTimeout": "Изтичане на времето за изчакване при оторизация",
+  "oauthSuccessTitle": "Успешно оторизиране",
+  "oauthSuccessMessage": "Тази страница може да бъде затворена. Моля, върнете се в FlyEnv, за да видите информацията за лиценза."
 }

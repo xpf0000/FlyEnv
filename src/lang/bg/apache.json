@@ -1,7 +1,7 @@
 {
-  "Timeout": "The number of seconds before receives and sends time out.",
-  "KeepAlive": "Whether or not to allow persistent connections",
-  "KeepAliveTimeout": "Number of seconds to wait for the next request from the same client on the same connection.",
-  "MaxKeepAliveRequests": "The maximum number of requests to allow during a persistent connection.\nSet to 0 to allow an unlimited amount.\nWe recommend you leave this number high, for maximum performance.",
-  "LimitRequestBody": "Byte. File upload size limit. 0: no limit"
+  "Timeout": "Броят секунди, след които изтича времето за изчакване при получаване и изпращане.",
+  "KeepAlive": "Дали да се разрешат постоянните връзки",
+  "KeepAliveTimeout": "Брой секунди, през които да се изчака следващaтa заявка от същия клиент по същата връзка.",
+  "MaxKeepAliveRequests": "Максималният брой заявки, които се допускат по време на постоянна връзка.\nЗадайте стойност 0, за да разрешите неограничен брой.\nПрепоръчваме да оставите тази стойност висока, за да постигнете максимална производителност.",
+  "LimitRequestBody": "Байт. Ограничение за размера на качваните файлове. 0: без ограничение"
 }
