@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agent er ikke installert. Installer den først. Hermes krever Python 3.11+ og et Unix-lignende miljø (macOS / Linux / WSL2).",
+  "notInstalled": "Hermes-Agent er ikke installert. Installer den først. Hermes krever Python 3.11+.",
   "gatewayStatus": "Gateway Status",
   "gatewayRunning": "Gateway kjører",
   "gatewayStopped": "Gateway er stoppet",

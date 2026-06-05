@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agent není nainstalován. Prosím, nainstalujte jej jako první. Hermes vyžaduje Python 3.11+ a Unixové prostředí (macOS / Linux / WSL2).",
+  "notInstalled": "Hermes-Agent není nainstalován. Prosím, nainstalujte jej jako první. Hermes vyžaduje Python 3.11+.",
   "gatewayStatus": "Stav brány",
   "gatewayRunning": "Brána je spuštěna",
   "gatewayStopped": "Brána je zastavena",

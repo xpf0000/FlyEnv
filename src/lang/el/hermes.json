@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Ο Hermes-Agent δεν είναι εγκατεστημένος. Παρακαλώ εγκαταστήστε το. Ο Hermes απαιτεί Python 3.11+ και ένα περιβάλλον σαν Unix (macOS / Linux / WSL2).",
+  "notInstalled": "Ο Hermes-Agent δεν είναι εγκατεστημένος. Παρακαλώ εγκαταστήστε το. Ο Hermes απαιτεί Python 3.11+.",
   "gatewayStatus": "Κατάσταση Πύλης",
   "gatewayRunning": "Η πύλη εκτελείται",
   "gatewayStopped": "Η πύλη σταμάτησε",

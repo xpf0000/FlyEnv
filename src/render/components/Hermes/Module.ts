@@ -12,6 +12,6 @@ const module: AppModuleItem = {
   asideIndex: 101,
   isService: false,
   isTray: false,
-  platform: ['macOS', 'Linux']
+  // platform: ['macOS', 'Linux']
 }
 export default module

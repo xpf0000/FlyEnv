@@ -255,7 +255,11 @@ class Hermes {
         command.push(`export ${k}="${v}"`)
       }
     }
-    command.push('curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash')
+    if (window.Server.isWindows) {
+      command.push('irm https://hermes-agent.nousresearch.com/install.ps1 | iex')
+    } else {
+      command.push('curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash')
+    }
     await execXTerm.send(command, false)
     this.installEnd = true
   }

@@ -1,5 +1,5 @@
 {
-"notInstalled": "Hermes-Agent yüklü değil. Lütfen önce yükleyin. Hermes, Python 3.11+ ve Unix benzeri bir ortam (macOS / Linux / WSL2) gerektirir.",
+"notInstalled": "Hermes-Agent yüklü değil. Lütfen önce yükleyin. Hermes, Python 3.11+.",
   "gatewayStatus": "Ağ Geçidi Durumu",
   "gatewayRunning": "Ağ geçidi çalışıyor",
   "gatewayStopped": "Ağ geçidi durduruldu",
