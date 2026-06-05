@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agent がインストールされていません。まずインストールしてください。Hermes は Python 3.11+ と Unix ライクな環境 (macOS / Linux / WSL2) が必要です。",
+  "notInstalled": "Hermes-Agent がインストールされていません。まずインストールしてください。Hermes は Python 3.11+。",
   "gatewayStatus": "ゲートウェイステータス",
   "gatewayRunning": "ゲートウェイが稼働しています",
   "gatewayStopped": "ゲートウェイが停止しています",

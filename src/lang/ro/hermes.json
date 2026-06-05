@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agent nu este instalat. Vă rugăm să îl instalați prima. Hermes necesită Python 3.11+ și un mediu asemănător cu Unix (macOS / Linux / WSL2).",
+  "notInstalled": "Hermes-Agent nu este instalat. Vă rugăm să îl instalați prima. Hermes necesită Python 3.11+.",
   "gatewayStatus": "Stare gateway",
   "gatewayRunning": "Gateway-ul rulează",
   "gatewayStopped": "Gateway-ul este oprit",

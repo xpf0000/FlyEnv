@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agentia ei ole asennettu. Asenna se ensin. Hermes vaatii Python 3.11+ ja Unix-kaltaisen ympäristön (macOS / Linux / WSL2).",
+  "notInstalled": "Hermes-Agentia ei ole asennettu. Asenna se ensin. Hermes vaatii Python 3.11+.",
   "gatewayStatus": "Yhdyskäytävän Tila",
   "gatewayRunning": "Yhdyskäytävä on käynnissä",
   "gatewayStopped": "Yhdyskäytävä on pysäytetty",

@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agent n'est pas installé. Veuillez l'installer en premier. Hermes nécessite Python 3.11+ et un environnement Unix-like (macOS / Linux / WSL2).",
+  "notInstalled": "Hermes-Agent n'est pas installé. Veuillez l'installer en premier. Hermes nécessite Python 3.11+.",
   "gatewayStatus": "Statut de la passerelle",
   "gatewayRunning": "La passerelle est en cours d'exécution",
   "gatewayStopped": "La passerelle est arrêtée",

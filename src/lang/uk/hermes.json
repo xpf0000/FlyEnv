@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agent не встановлено. Будь ласка, спочатку встановіть його. Hermes вимагає в Python 3.11+ і Unix-подібне середовище (macOS / Linux / WSL2).",
+  "notInstalled": "Hermes-Agent не встановлено. Будь ласка, спочатку встановіть його. Hermes вимагає в Python 3.11+.",
   "gatewayStatus": "Статус шлюзу",
   "gatewayRunning": "Працює шлюз",
   "gatewayStopped": "Термостат зупинено",

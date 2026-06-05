@@ -1,5 +1,5 @@
 {
-  "notInstalled": "A Hermes-Agent nincs telepítve. Előbb telepítse. A Hermes Python 3.11+ verziót és Unix-szerű környezetet igényel (macOS / Linux / WSL2).",
+  "notInstalled": "A Hermes-Agent nincs telepítve. Előbb telepítse. A Hermes Python 3.11+.",
   "gatewayStatus": "Átjáró állapota",
   "gatewayRunning": "Az átjáró fut",
   "gatewayStopped": "Az átjáró leállt",

@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agent nije instaliran. Molimo prvo ga instalirajte. Hermes zahtijeva Python 3.11+ i Unix-like okruženje (macOS / Linux / WSL2).",
+  "notInstalled": "Hermes-Agent nije instaliran. Molimo prvo ga instalirajte. Hermes zahtijeva Python 3.11+.",
   "gatewayStatus": "Status Pristupnika",
   "gatewayRunning": "Pristupnik radi",
   "gatewayStopped": "Pristupnik je zaustavljen",

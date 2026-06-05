@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Hermes-Agent não está instalado. Por favor, instale-o primeiro. Hermes requer o Python 3.11+ e um ambiente similar à Unix (macOS / Linux / WSL2).",
+  "notInstalled": "Hermes-Agent não está instalado. Por favor, instale-o primeiro. Hermes requer o Python 3.11+.",
   "gatewayStatus": "Estado De Gateway",
   "gatewayRunning": "Gateway está sendo executado",
   "gatewayStopped": "Gateway parado",
