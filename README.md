@@ -99,14 +99,14 @@ Most local dev tools are either too heavy for everyday work (Docker Desktop) or 
 
 FlyEnv allows you to install **only what you need** from a vast library of supported software:
 
-* **AI Integration**: Hermes Agent, OpenClaw, n8n, Ollama, CliProxyAPI
+* **AI Integration**: Hermes Agent, [OpenClaw], [n8n], [Ollama], CliProxyAPI
 * **Containers**: Podman.
 * **Network Tunnel**: Cloudflared, Cloudflare Tunnel.
-* **Web Servers**: FrankenPHP, Apache, Nginx, Caddy, Tomcat.
-* **Databases**: MySQL, MariaDB, PostgreSQL, MongoDB, Qdrant.
+* **Web Servers**: FrankenPHP, [Apache], [Nginx], Caddy, Tomcat.
+* **Databases**: [MySQL], MariaDB, PostgreSQL, MongoDB, Qdrant.
 * **Email Server**: Mailpit.
-* **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, RoadRunner, SwooleCli), Java (Maven, Gradle, SDKMAN), Node.js, Python, Go, Erlang, Ruby, Rust (Rustup), Bun, Deno, Zig.
-* **Cache & Message Queue**: Redis, Memcached, RabbitMQ.
+* **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, [PHP-CLI], [PHP-FPM], [RoadRunner], [Swoole Cli]), Go, [Node.js], [Python], Go, Java (Maven, Gradle, SDKMAN), Erlang, Ruby, Rust (Rustup), Bun, Deno, Zig.
+* **Cache & Message Queue**: [Redis], Memcached, RabbitMQ.
 * **Service Governance**: Consul, Etcd, R-Nacos
 * **Search Engine**: Elasticsearch, Meilisearch, Typesense, ZincSearch
 * **Object Storage**: RustFS, Minio.
@@ -116,6 +116,20 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 
 > *All modules support multi-version co-existence.*
 
+[OpenClaw]: https://youtu.be/j7_B-VzIyEU
+[Ollama]: https://youtu.be/yPk9HQJRvb8
+[n8n]: https://youtu.be/YnA1B3qmDJU
+[Apache]: https://youtu.be/t7nKL45FdVk
+[Nginx]: https://youtu.be/zfdNZFRt3k4
+[MySQL]: https://youtu.be/uWWHAqxhVyk
+[PHP-FPM]: https://youtu.be/OYP1IOoJOtI
+[Python]: https://youtu.be/dhy0nJYsfQQ
+[Redis]: https://youtu.be/u9xjPN-VWT4
+[PHP-CLI]: https://youtu.be/5NqSag8c4YY
+[RoadRunner]: https://youtu.be/5NqSag8c4YY
+[Swoole CLI]: https://youtu.be/5NqSag8c4YY
+[Node.js]: https://youtu.be/Pt_I3NDciZw
+[Nodejs]: https://youtu.be/Pt_I3NDciZw
 ---
 
 ## 🛠 Developer-Friendly Tools
