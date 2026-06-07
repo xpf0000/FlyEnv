@@ -105,7 +105,7 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 * **Web Servers**: FrankenPHP, [Apache], [Nginx], Caddy, Tomcat.
 * **Databases**: [MySQL], MariaDB, PostgreSQL, MongoDB, Qdrant.
 * **Email Server**: Mailpit.
-* **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, [PHP-CLI], [PHP-FPM], [RoadRunner], [Swoole Cli]), Go, [Node.js], [Python], Go, Java (Maven, Gradle, SDKMAN), Erlang, Ruby, Rust (Rustup), Bun, Deno, Zig.
+* **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, [PHP-CLI], [PHP-FPM], [RoadRunner], [Swoole Cli]), Go, [Node.js], [Python], Java (Maven, Gradle, SDKMAN), Erlang, Ruby, Rust (Rustup), Bun, Deno, Zig.
 * **Cache & Message Queue**: [Redis], Memcached, RabbitMQ.
 * **Service Governance**: Consul, Etcd, R-Nacos
 * **Search Engine**: Elasticsearch, Meilisearch, Typesense, ZincSearch
