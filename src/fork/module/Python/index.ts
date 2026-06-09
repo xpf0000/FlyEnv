@@ -6,23 +6,64 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
   brewSearch,
-  execPromise,
   portSearch,
   readFile,
   remove,
-  uuid,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
   versionSort,
   waitTime,
-  writeFile,
+  spawnPromiseWithEnv,
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isWindows } from '@shared/utils'
 import { ProcessPidList } from '@shared/Process.win'
+import EnvSync from '@shared/EnvSync'
+import { powerShellInlineArgs } from '@shared/PowerShellCommand'
+
+type WindowsPythonInstallScriptParams = {
+  darkDir: string
+  tmpDir: string
+  exe: string
+  appDir: string
+}
+
+type WindowsPipInstallScriptParams = {
+  appDir: string
+}
+
+export function renderWindowsPythonInstallScript(
+  template: string,
+  params: WindowsPythonInstallScriptParams
+): string {
+  return template
+    .replace(new RegExp(`#DARKDIR#`, 'g'), params.darkDir)
+    .replace(new RegExp(`#TMPL#`, 'g'), params.tmpDir)
+    .replace(new RegExp(`#EXE#`, 'g'), params.exe)
+    .replace(new RegExp(`#APPDIR#`, 'g'), params.appDir)
+}
+
+export function renderWindowsPipInstallScript(
+  template: string,
+  params: WindowsPipInstallScriptParams
+): string {
+  return template.replace(new RegExp(`#APPDIR#`, 'g'), params.appDir)
+}
+
+async function runWindowsPowerShellInline(script: string) {
+  await EnvSync.sync()
+  return spawnPromiseWithEnv(
+    EnvSync.PowerShellPath || 'powershell.exe',
+    powerShellInlineArgs(script),
+    {
+      cwd: global.Server.Cache!,
+      windowsHide: true
+    }
+  )
+}
 
 class Python extends Base {
   constructor() {
@@ -116,30 +157,24 @@ class Python extends Base {
         await zipUnpack(darkZip, dirname(dark))
       }
       const pythonSH = join(global.Server.Static!, 'sh/python.ps1')
-      let content = await readFile(pythonSH, 'utf-8')
       const TMPL = tmpDir
       const EXE = row.zip
       const APPDIR = row.appDir
 
-      content = content
-        .replace(new RegExp(`#DARKDIR#`, 'g'), darkDir)
-        .replace(new RegExp(`#TMPL#`, 'g'), TMPL)
-        .replace(new RegExp(`#EXE#`, 'g'), EXE)
-        .replace(new RegExp(`#APPDIR#`, 'g'), APPDIR)
-
-      let sh = join(global.Server.Cache!, `python-install-${uuid()}.ps1`)
-      await writeFile(sh, content)
+      const content = renderWindowsPythonInstallScript(await readFile(pythonSH, 'utf-8'), {
+        darkDir,
+        tmpDir: TMPL,
+        exe: EXE,
+        appDir: APPDIR
+      })
 
       process.chdir(global.Server.Cache!)
       try {
-        await execPromise(
-          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
-        )
+        await runWindowsPowerShellInline(content)
       } catch (e: any) {
         console.log('[python-install][error]: ', e)
         await appDebugLog('[python][python-install][error]', e.toString())
       }
-      // await remove(sh)
 
       const checkState = async (time = 0): Promise<boolean> => {
         let res = false
@@ -162,19 +197,18 @@ class Python extends Base {
       const res = await checkState()
       if (res) {
         await waitTime(1000)
-        sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
-        let content = await readFile(join(global.Server.Static!, 'sh/pip.ps1'), 'utf-8')
-        content = content.replace('#APPDIR#', APPDIR)
-        await writeFile(sh, content)
+        const content = renderWindowsPipInstallScript(
+          await readFile(join(global.Server.Static!, 'sh/pip.ps1'), 'utf-8'),
+          {
+            appDir: APPDIR
+          }
+        )
         process.chdir(global.Server.Cache!)
         try {
-          await execPromise(
-            `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
-          )
+          await runWindowsPowerShellInline(content)
         } catch (e: any) {
           await appDebugLog('[python][pip-install][error]', e.toString())
         }
-        // await remove(sh)
         await waitTime(1000)
         await remove(tmpDir)
         return

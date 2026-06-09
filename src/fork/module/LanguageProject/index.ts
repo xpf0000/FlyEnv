@@ -13,8 +13,11 @@ import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process
 import { ProcessPidListByPid } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
 import { basename, dirname, join } from 'path'
-import { chmod, remove, writeFile, copyFile, readFile } from '../../Fn'
+import { chmod, remove, writeFile, copyFile, readFile, spawnPromiseWithEnv } from '../../Fn'
 import { execPromise } from '../../Fn'
+import EnvSync from '@shared/EnvSync'
+import { powerShellInlineArgs } from '@shared/PowerShellCommand'
+import { buildWindowsTerminalInlineScript, powerShellDoubleQuoted } from '@shared/WindowsTerminal'
 
 class LanguageProject {
   constructor() {}
@@ -254,33 +257,25 @@ class LanguageProject {
         }
         // Add PATH to environment
         if (project.binBin && existsSync(project.binBin)) {
-          command = `$env:PATH = "${dirname(project.binBin)};" + $env:PATH\n${command}`
+          command = `$env:PATH = ${powerShellDoubleQuoted(`${dirname(project.binBin)};`)} + $env:PATH\n${command}`
         }
         // Add environment variables
         for (const k in version.env) {
-          command = `$env:${k} = "${version.env[k]}"\n${command}`
+          command = `$env:${k} = ${powerShellDoubleQuoted(version.env[k])}\n${command}`
         }
 
-        // Create command file and copy the terminal script
-        const terminalPS = join(global.Server.Static!, 'sh/exec-by-terminal.ps1')
-        const exePS = join(global.Server.Cache!, `exec-by-terminal-${uuid()}.ps1`)
-        const commandFile = join(global.Server.Cache!, `command-${uuid()}.txt`)
-
-        await copyFile(terminalPS, exePS)
-        await writeFile(commandFile, command, 'utf-8')
-
         try {
-          await execPromise(
-            `powershell.exe -ExecutionPolicy Bypass -File "${exePS}" "${commandFile}"`,
+          await EnvSync.sync()
+          await spawnPromiseWithEnv(
+            EnvSync.PowerShellPath || 'powershell.exe',
+            powerShellInlineArgs(buildWindowsTerminalInlineScript(command)),
             {
-              cwd: global.Server.Cache!
+              cwd: global.Server.Cache!,
+              env: version.env,
+              windowsHide: true
             }
           )
-          await remove(exePS)
-          await remove(commandFile)
         } catch (e) {
-          await remove(exePS)
-          await remove(commandFile)
           return reject(e)
         }
 

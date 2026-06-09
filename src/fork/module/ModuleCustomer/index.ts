@@ -6,7 +6,6 @@ import {
   waitPidFile,
   waitTime,
   chmod,
-  mkdirp,
   remove,
   writeFile,
   customerServiceStartExecWin,
@@ -84,13 +83,6 @@ class ModuleCustomer {
           command = version.commandFile
         } else {
           command = version.command
-          const baseDir = join(global.Server.BaseDir!, 'module-customer')
-          await mkdirp(baseDir)
-          command = join(baseDir, `${version.id}.sh`)
-          await writeFile(command, version.command)
-          try {
-            await chmod(command, '0777')
-          } catch {}
         }
         command = command.replace(/"/g, '\\"')
         const appleScript = `
@@ -146,13 +138,6 @@ class ModuleCustomer {
           command = version.commandFile
         } else {
           command = version.command
-          const baseDir = join(global.Server.BaseDir!, 'module-customer')
-          await mkdirp(baseDir)
-          command = join(baseDir, `${version.id}.sh`)
-          await writeFile(command, version.command)
-          try {
-            await chmod(command, '0777')
-          } catch {}
         }
         command = command.replace(/"/g, '\\"')
 

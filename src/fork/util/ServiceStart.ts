@@ -49,6 +49,53 @@ export type ServiceStartSpawnParams = {
   waitTime?: number
 }
 
+type UnixCustomerServiceStartScriptParams = {
+  env: string
+  cwd: string
+  commandType: 'command' | 'file'
+  command: string
+  commandFile: string
+  outFile: string
+  errFile: string
+  shell: 'bash' | 'zsh'
+}
+
+function shellSingleQuoted(value: string): string {
+  return `'${`${value}`.replace(/'/g, "'\\''")}'`
+}
+
+function shellDoubleQuoted(value: string): string {
+  return `"${`${value}`
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\$/g, '\\$')
+    .replace(/`/g, '\\`')}"`
+}
+
+export function buildUnixCustomerServiceStartScript(
+  params: UnixCustomerServiceStartScriptParams
+): string {
+  const lines = [
+    'export LC_ALL=en_US.UTF-8',
+    'export LANG=en_US.UTF-8',
+    params.env.trim(),
+    `cd ${shellDoubleQuoted(params.cwd)}`
+  ].filter(Boolean)
+  const outFile = shellDoubleQuoted(params.outFile)
+  const errFile = shellDoubleQuoted(params.errFile)
+
+  if (params.commandType === 'file') {
+    lines.push(`nohup ${shellDoubleQuoted(params.commandFile)} > ${outFile} 2>${errFile} &`)
+  } else {
+    lines.push(
+      `nohup ${params.shell} -lc ${shellSingleQuoted(params.command)} > ${outFile} 2>${errFile} &`
+    )
+  }
+
+  lines.push('echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"')
+  return lines.join('\n')
+}
+
 export async function serviceStartExec(
   param: ServiceStartParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
@@ -205,69 +252,58 @@ export async function customerServiceStartExec(
     await removeByRoot(outFile)
   } catch {}
 
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')
-
-  let bin = ''
+  let commandFile = ''
   if (version.commandType === 'file') {
-    bin = version.commandFile
-  } else {
-    bin = join(baseDir, `${version.id}.start.sh`)
-    await writeFile(bin, version.command)
+    commandFile = version.commandFile
   }
-  const uinfo = userInfo()
-  const uid = uinfo.uid
-  const gid = uinfo.gid
-
-  try {
-    await execPromise(`chmod 0777 "${bin}"`)
-  } catch {}
-
-  try {
-    await execPromise(`chown -R ${uid}:${gid} "${bin}"`)
-  } catch {}
 
   let env: string = ''
   if (version.binBin && existsSync(version.binBin)) {
     env = `export PATH="${dirname(version.binBin)}:$PATH"`
   }
-  const cwd = version.workDir && existsSync(version.workDir) ? version.workDir : dirname(bin)
-
-  psScript = psScript
-    .replace('#ENV#', env)
-    .replace('#CWD#', cwd)
-    .replace('#BIN#', bin)
-    .replace('#ARGS#', '')
-    .replace('#OUTLOG#', outFile)
-    .replace('#ERRLOG#', errFile)
-
-  const psName = `start-${version.id.trim()}.sh`.split(' ').join('')
-  const psPath = join(baseDir, psName)
-  await writeFile(psPath, psScript)
-
-  try {
-    await execPromise(`chmod 0777 "${psPath}"`)
-  } catch {}
-
-  try {
-    await execPromise(`chown -R ${uid}:${gid} "${psPath}"`)
-  } catch {}
 
   const shell = isMacOS() ? 'zsh' : 'bash'
+  const fallbackCwd = version.commandType === 'file' ? dirname(commandFile) : baseDir
+  const cwd = version.workDir && existsSync(version.workDir) ? version.workDir : fallbackCwd
+
+  if (version.commandType === 'file') {
+    const uinfo = userInfo()
+    const uid = uinfo.uid
+    const gid = uinfo.gid
+
+    try {
+      await execPromise(`chmod 0777 "${commandFile}"`)
+    } catch {}
+
+    try {
+      await execPromise(`chown -R ${uid}:${gid} "${commandFile}"`)
+    } catch {}
+  }
+
+  const inlineScript = buildUnixCustomerServiceStartScript({
+    env,
+    cwd,
+    commandType: version.commandType,
+    command: version.command,
+    commandFile,
+    outFile,
+    errFile,
+    shell
+  })
 
   process.chdir(baseDir)
   let res: any
   let error: any
   try {
     if (version.isSudo) {
-      res = await execPromiseSudo([shell, psName], {
+      res = await execPromiseSudo([shell, '-lc', inlineScript], {
         cwd: baseDir,
         env: version.env
       })
       console.log('customerServiceStartExec execPromiseSudo execRes: ', res)
     } else {
-      res = await spawnPromiseWithEnv(shell, [psName], {
+      res = await spawnPromiseWithEnv(shell, ['-lc', inlineScript], {
         cwd: baseDir,
-        shell: `/bin/${shell}`,
         env: version.env
       })
     }

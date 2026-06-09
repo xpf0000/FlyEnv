@@ -2,6 +2,9 @@ import { basename, join } from 'path'
 import { spawnPromise, spawnPromiseWithEnv } from '@shared/child-process'
 import { remove, chmod, copyFile, writeFile } from '@shared/fs-extra'
 import { isLinux, isMacOS, isWindows, uuid, waitTime } from '@shared/utils'
+import EnvSync from './EnvSync'
+import { powerShellInlineArgs } from './PowerShellCommand'
+import { buildWindowsTerminalInlineScript } from './WindowsTerminal'
 
 type ExecType = {
   escapeCommand: (command: string) => string
@@ -16,8 +19,8 @@ function escapeCommand(command: string) {
 }
 
 const runInTerminal = async (c: string) => {
-  const command = escapeCommand(c)
   if (isMacOS()) {
+    const command = escapeCommand(c)
     const appleScript = `tell application "Terminal"
   if not running then
     activate
@@ -43,6 +46,7 @@ end tell`
     return
   }
   if (isLinux()) {
+    const command = escapeCommand(c)
     const terminalSH = join(global.Server.Static!, 'sh/exec-by-terminal.sh')
     const exeSH = join(global.Server.Cache!, `${uuid()}.sh`)
     await copyFile(terminalSH, exeSH)
@@ -67,7 +71,14 @@ end tell`
 
   if (isWindows()) {
     try {
-      await spawnPromise('start', ['powershell', '-NoExit', '-Command', `& {${command}}`])
+      await EnvSync.sync()
+      await spawnPromiseWithEnv(
+        EnvSync.PowerShellPath || 'powershell.exe',
+        powerShellInlineArgs(buildWindowsTerminalInlineScript(c)),
+        {
+          windowsHide: true
+        }
+      )
     } catch (e) {
       console.log('runInTerminal error', e)
     }

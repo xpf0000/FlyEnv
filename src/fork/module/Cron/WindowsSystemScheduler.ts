@@ -7,6 +7,104 @@ import { dirname, join } from 'path'
 import { mkdirp, remove, spawnPromiseWithEnv, writeFile } from '../../Fn'
 import { base64, homePath, runLogPath, systemTaskName, taskScriptPath } from './utils'
 
+type WindowsCronWrapperScriptParams = {
+  jobId: string
+  hostId?: number
+  scope: string
+  command: string
+  workDir: string
+  runDir: string
+  logFile: string
+  cmdExe: string
+  envPath: string
+}
+
+export function buildWindowsCronWrapperScript(params: WindowsCronWrapperScriptParams): string {
+  return `$ErrorActionPreference = 'Continue'
+$JobId = '${params.jobId}'
+$HostId = '${params.hostId ? `${params.hostId}` : ''}'
+$Scope = '${params.scope}'
+$Command = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(params.command)}'))
+$WorkDir = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(params.workDir)}'))
+$RunDir = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(params.runDir)}'))
+$LogFile = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(params.logFile)}'))
+$CmdExe = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(params.cmdExe)}'))
+$env:Path = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(params.envPath)}'))
+
+New-Item -ItemType Directory -Force -Path $RunDir | Out-Null
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $LogFile) | Out-Null
+$LockDir = Join-Path $RunDir "$JobId.lock"
+try {
+  New-Item -ItemType Directory -Path $LockDir -ErrorAction Stop | Out-Null
+} catch {
+  exit 0
+}
+
+$RunId = "$(Get-Date -Format yyyyMMddHHmmss)-$PID"
+$OutFile = Join-Path $RunDir "$JobId-$RunId.out"
+$ErrFile = Join-Path $RunDir "$JobId-$RunId.err"
+$StartedAt = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
+$ExitCode = 0
+$CmdEncoding = [Text.Encoding]::Default
+try {
+  $CmdEncoding = [Text.Encoding]::GetEncoding([Globalization.CultureInfo]::CurrentCulture.TextInfo.OEMCodePage)
+} catch {}
+
+try {
+  if (-not (Test-Path -LiteralPath $WorkDir -PathType Container)) {
+    [IO.File]::WriteAllText($ErrFile, "Work directory not found: $WorkDir", [Text.Encoding]::UTF8)
+    [IO.File]::WriteAllText($OutFile, '', [Text.Encoding]::UTF8)
+    $ExitCode = 1
+  } else {
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $CmdExe
+    $psi.Arguments = '/d /s /c ' + $Command
+    $psi.WorkingDirectory = $WorkDir
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    try {
+      $psi.StandardOutputEncoding = $CmdEncoding
+      $psi.StandardErrorEncoding = $CmdEncoding
+    } catch {}
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
+    [void]$process.Start()
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
+    $process.WaitForExit()
+    [IO.File]::WriteAllText($OutFile, $stdoutTask.Result, [Text.Encoding]::UTF8)
+    [IO.File]::WriteAllText($ErrFile, $stderrTask.Result, [Text.Encoding]::UTF8)
+    $ExitCode = $process.ExitCode
+  }
+} catch {
+  [IO.File]::WriteAllText($OutFile, '', [Text.Encoding]::UTF8)
+  [IO.File]::WriteAllText($ErrFile, $_.Exception.Message, [Text.Encoding]::UTF8)
+  $ExitCode = 1
+}
+
+$FinishedAt = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
+$record = [ordered]@{
+  id = $RunId
+  jobId = $JobId
+  hostId = if ($HostId) { [int]$HostId } else { $null }
+  scope = $Scope
+  startedAt = $StartedAt
+  finishedAt = $FinishedAt
+  duration = $FinishedAt - $StartedAt
+  exitCode = $ExitCode
+  output = if (Test-Path -LiteralPath $OutFile) { [IO.File]::ReadAllText($OutFile) } else { '' }
+  error = if (Test-Path -LiteralPath $ErrFile) { [IO.File]::ReadAllText($ErrFile) } else { '' }
+}
+($record | ConvertTo-Json -Compress -Depth 4) | Add-Content -Encoding UTF8 -LiteralPath $LogFile
+Remove-Item -Force -LiteralPath $OutFile, $ErrFile -ErrorAction SilentlyContinue
+Remove-Item -Force -LiteralPath $LockDir -ErrorAction SilentlyContinue
+exit $ExitCode
+`
+}
+
 export class WindowsSystemScheduler {
   constructor(private cronRoot: string) {}
 
@@ -86,92 +184,17 @@ export class WindowsSystemScheduler {
     const powerShell = await this.powerShellPath()
     const envPath = await this.resolvePath()
 
-    const psContent = `$ErrorActionPreference = 'Continue'
-$JobId = '${job.id}'
-$HostId = '${job.hostId ? `${job.hostId}` : ''}'
-$Scope = '${scope}'
-$Command = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(job.command)}'))
-$WorkDir = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(workDir)}'))
-$RunDir = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(runDir)}'))
-$LogFile = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(logFile)}'))
-$CmdExe = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(cmdExe)}'))
-$env:Path = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64(envPath)}'))
-
-New-Item -ItemType Directory -Force -Path $RunDir | Out-Null
-New-Item -ItemType Directory -Force -Path (Split-Path -Parent $LogFile) | Out-Null
-$LockDir = Join-Path $RunDir "$JobId.lock"
-try {
-  New-Item -ItemType Directory -Path $LockDir -ErrorAction Stop | Out-Null
-} catch {
-  exit 0
-}
-
-$RunId = "$(Get-Date -Format yyyyMMddHHmmss)-$PID"
-$OutFile = Join-Path $RunDir "$JobId-$RunId.out"
-$ErrFile = Join-Path $RunDir "$JobId-$RunId.err"
-$CmdFile = Join-Path $RunDir "$JobId-$RunId.cmd"
-$StartedAt = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
-$ExitCode = 0
-$CmdEncoding = [Text.Encoding]::Default
-try {
-  $CmdEncoding = [Text.Encoding]::GetEncoding([Globalization.CultureInfo]::CurrentCulture.TextInfo.OEMCodePage)
-} catch {}
-
-try {
-  if (-not (Test-Path -LiteralPath $WorkDir -PathType Container)) {
-    [IO.File]::WriteAllText($ErrFile, "Work directory not found: $WorkDir", [Text.Encoding]::UTF8)
-    [IO.File]::WriteAllText($OutFile, '', [Text.Encoding]::UTF8)
-    $ExitCode = 1
-  } else {
-    [IO.File]::WriteAllText($CmdFile, '@echo off' + [Environment]::NewLine + $Command + [Environment]::NewLine, $CmdEncoding)
-
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = $CmdExe
-    $psi.Arguments = '/d /s /c "' + $CmdFile + '"'
-    $psi.WorkingDirectory = $WorkDir
-    $psi.UseShellExecute = $false
-    $psi.CreateNoWindow = $true
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    try {
-      $psi.StandardOutputEncoding = $CmdEncoding
-      $psi.StandardErrorEncoding = $CmdEncoding
-    } catch {}
-
-    $process = New-Object System.Diagnostics.Process
-    $process.StartInfo = $psi
-    [void]$process.Start()
-    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-    $stderrTask = $process.StandardError.ReadToEndAsync()
-    $process.WaitForExit()
-    [IO.File]::WriteAllText($OutFile, $stdoutTask.Result, [Text.Encoding]::UTF8)
-    [IO.File]::WriteAllText($ErrFile, $stderrTask.Result, [Text.Encoding]::UTF8)
-    $ExitCode = $process.ExitCode
-  }
-} catch {
-  [IO.File]::WriteAllText($OutFile, '', [Text.Encoding]::UTF8)
-  [IO.File]::WriteAllText($ErrFile, $_.Exception.Message, [Text.Encoding]::UTF8)
-  $ExitCode = 1
-}
-
-$FinishedAt = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
-$record = [ordered]@{
-  id = $RunId
-  jobId = $JobId
-  hostId = if ($HostId) { [int]$HostId } else { $null }
-  scope = $Scope
-  startedAt = $StartedAt
-  finishedAt = $FinishedAt
-  duration = $FinishedAt - $StartedAt
-  exitCode = $ExitCode
-  output = if (Test-Path -LiteralPath $OutFile) { [IO.File]::ReadAllText($OutFile) } else { '' }
-  error = if (Test-Path -LiteralPath $ErrFile) { [IO.File]::ReadAllText($ErrFile) } else { '' }
-}
-($record | ConvertTo-Json -Compress -Depth 4) | Add-Content -Encoding UTF8 -LiteralPath $LogFile
-Remove-Item -Force -LiteralPath $OutFile, $ErrFile, $CmdFile -ErrorAction SilentlyContinue
-Remove-Item -Force -LiteralPath $LockDir -ErrorAction SilentlyContinue
-exit $ExitCode
-`
+    const psContent = buildWindowsCronWrapperScript({
+      jobId: job.id,
+      hostId: job.hostId,
+      scope,
+      command: job.command,
+      workDir,
+      runDir,
+      logFile,
+      cmdExe,
+      envPath
+    })
 
     await mkdirp(dirname(psFile))
     await writeFile(psFile, psContent)
