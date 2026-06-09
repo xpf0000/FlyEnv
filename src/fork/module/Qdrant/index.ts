@@ -13,7 +13,10 @@ import {
   mkdirp,
   serviceStartExecWin,
   copyFile,
-  binXattrFix
+  binXattrFix,
+  downloadFile,
+  zipUnpack,
+  rename
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
@@ -181,6 +184,26 @@ class Qdrant extends Base {
     await super._installSoftHandle(row)
     if (isMacOS()) {
       await binXattrFix(row.bin)
+    }
+    try {
+      const staticDir = join(row.appDir, 'static')
+      if (!existsSync(staticDir)) {
+        const webUiVersion = 'v0.2.13'
+        const webUiUrl = `https://github.com/qdrant/qdrant-web-ui/releases/download/${webUiVersion}/dist-qdrant.zip`
+        const webUiZip = join(global.Server.Cache!, `qdrant-web-ui-${webUiVersion}.zip`)
+        if (!existsSync(webUiZip)) {
+          await downloadFile(webUiUrl, webUiZip)
+        }
+        if (existsSync(webUiZip)) {
+          await zipUnpack(webUiZip, row.appDir)
+          const distDir = join(row.appDir, 'dist')
+          if (existsSync(distDir)) {
+            await rename(distDir, staticDir)
+          }
+        }
+      }
+    } catch (e) {
+      console.log('qdrant web ui install error: ', e)
     }
   }
 

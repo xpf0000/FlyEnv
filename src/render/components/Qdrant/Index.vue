@@ -6,7 +6,16 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" type-flag="qdrant" title="Qdrant"> </Service>
+      <Service v-if="tab === 0" type-flag="qdrant" title="Qdrant">
+        <template v-if="isRunning" #tool-left>
+          <el-button style="color: #01cc74" class="button" link @click.stop="openDashboard">
+            <yb-icon
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')"
+            ></yb-icon>
+          </el-button>
+        </template>
+      </Service>
       <Manager
         v-else-if="tab === 1"
         type-flag="qdrant"
@@ -24,12 +33,15 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import { BrewStore } from '@/store/brew'
+  import { shell } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('qdrant')
   const tabs = [
@@ -39,5 +51,17 @@
     I18nT('base.log'),
     I18nT('base.errorLog')
   ]
+
+  const brewStore = BrewStore()
+
+  const isRunning = computed(() => {
+    const current = brewStore.module('qdrant').installed.find((v) => v.run)
+    return !!current
+  })
+
+  const openDashboard = () => {
+    shell.openExternal('http://127.0.0.1:6333/dashboard').catch()
+  }
+
   checkVersion()
 </script>

@@ -133,7 +133,12 @@ export function buildWindowsCmdServiceStartCommand(
   const lines = ['chcp 65001>nul']
   const execEnv = params.execEnv.trim()
   if (execEnv) {
-    lines.push(...execEnv.split(/\r?\n/).map((line) => line.trim()).filter(Boolean))
+    lines.push(
+      ...execEnv
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+    )
   }
   lines.push(`cd /d "${params.cwd}"`)
   const execArgs = params.execArgs ? ` ${params.execArgs}` : ''
