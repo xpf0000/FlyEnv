@@ -2,12 +2,14 @@ package module
 
 import (
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"helper-go/utils"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"unicode/utf16"
 )
 
 // getWindowsSystemExe 获取 Windows System32 下可执行文件的完整路径
@@ -57,15 +59,29 @@ func copyFile(src, dst string) error {
 	return os.WriteFile(dst, data, 0644)
 }
 
-// runPowerShellScript 将 PowerShell 脚本写入临时文件并通过 -File 参数执行
-// 避免使用 -Command 参数导致的命令注入风险
-func runPowerShellScript(script string) (string, string, error) {
-	scriptFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.ps1", utils.UUID(32)))
-	if err := os.WriteFile(scriptFile, []byte(script), 0600); err != nil {
-		return "", "", fmt.Errorf("failed to write temp script: %w", err)
+func encodePowerShellCommand(script string) string {
+	encoded := utf16.Encode([]rune(script))
+	raw := make([]byte, len(encoded)*2)
+	for i, value := range encoded {
+		binary.LittleEndian.PutUint16(raw[i*2:], value)
 	}
-	defer os.Remove(scriptFile)
-	return utils.ExecCommand(utils.GetPowerShellExe(), []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-NonInteractive", "-File", scriptFile}, nil)
+	return base64.StdEncoding.EncodeToString(raw)
+}
+
+func powerShellEncodedArgs(script string) []string {
+	return []string{
+		"-NoProfile",
+		"-ExecutionPolicy",
+		"Bypass",
+		"-NonInteractive",
+		"-EncodedCommand",
+		encodePowerShellCommand(script),
+	}
+}
+
+// runPowerShellScript executes a PowerShell script body without writing a temporary script file.
+func runPowerShellScript(script string) (string, string, error) {
+	return utils.ExecCommand(utils.GetPowerShellExe(), powerShellEncodedArgs(script), nil)
 }
 
 // WriteFileByRoot with improved cleanup
@@ -434,7 +450,7 @@ func (t *ToolManager) GetPortPids(port string) ([]PortProcessInfo, error) {
 	return processes, nil
 }
 
-// GetSystemPath reads the system PATH from Windows registry via PowerShell -File.
+// GetSystemPath reads the system PATH from the Windows registry.
 func (t *ToolManager) GetSystemPath() (string, error) {
 	if !utils.IsWindows() {
 		return "", fmt.Errorf("GetSystemPath is only supported on Windows")

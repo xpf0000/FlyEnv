@@ -1,4 +1,5 @@
-import type { ProjectItem } from '@/components/LanguageProjects/setup'
+import type { ProjectItemType } from '@/components/LanguageProjects/ProjectItem'
+import type { AllAppModule } from '@/core/type'
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
@@ -7,7 +8,7 @@ import { AppStore } from '@/store/app'
 import { ElMessageBox } from 'element-plus'
 import { reactiveBind, uuid } from '@/util/Index'
 
-export type RunProjectItem = ProjectItem & {
+export type RunProjectItem = ProjectItemType & {
   isService: boolean
   runCommand: string
   runFile: string
@@ -52,7 +53,7 @@ class LanguageProjectRunnerItem implements RunProjectItem {
   envFile: string = ''
   runInTerminal: boolean = false
 
-  typeFlag: string = ''
+  typeFlag: AllAppModule = 'golang'
 
   private _state: RunningState = {
     running: false,
@@ -60,7 +61,7 @@ class LanguageProjectRunnerItem implements RunProjectItem {
     pid: ''
   }
 
-  constructor(item: Partial<RunProjectItem>, typeFlag: string) {
+  constructor(item: Partial<RunProjectItem>, typeFlag: AllAppModule) {
     Object.assign(this, item)
     this.id = item.id || uuid()
     this.typeFlag = typeFlag
@@ -194,10 +195,10 @@ class LanguageProjectRunnerItem implements RunProjectItem {
 }
 
 class LanguageProjectRunner {
-  typeFlag: string = ''
+  typeFlag: AllAppModule = 'golang'
   projects: LanguageProjectRunnerItem[] = reactive([])
 
-  constructor(typeFlag: string) {
+  constructor(typeFlag: AllAppModule) {
     this.typeFlag = typeFlag
   }
 
@@ -227,9 +228,9 @@ class LanguageProjectRunner {
   }
 }
 
-const RunnerInstances: Record<string, LanguageProjectRunner> = {}
+const RunnerInstances: Partial<Record<AllAppModule, LanguageProjectRunner>> = {}
 
-export const getLanguageProjectRunner = (typeFlag: string): LanguageProjectRunner => {
+export const getLanguageProjectRunner = (typeFlag: AllAppModule): LanguageProjectRunner => {
   if (!RunnerInstances[typeFlag]) {
     RunnerInstances[typeFlag] = reactiveBind(new LanguageProjectRunner(typeFlag))
   }

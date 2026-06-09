@@ -34,7 +34,7 @@ export class UnixSystemScheduler {
 
   private async resolvePath(): Promise<string> {
     try {
-      const env = await EnvSync.sync()
+      const env = (await EnvSync.sync()) ?? {}
       return `${env.PATH || env.Path || process.env.PATH || ''}`
     } catch {
       return process.env.PATH || ''

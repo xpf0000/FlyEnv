@@ -41,7 +41,7 @@
 		# }
 	}
 	log {
-		output file ##LOG_FILE## {
+		output file "##LOG_FILE##" {
 			roll_size 100mb
 			roll_keep 5
 			roll_keep_for 720h
@@ -49,4 +49,4 @@
 	}
 }
 
-import ##VHOST-DIR##/*
+import "##VHOST-DIR##/*"

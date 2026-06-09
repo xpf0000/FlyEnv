@@ -80,7 +80,7 @@ export class Image {
         const command = `podman save -o "${dir}" ${this.name}`
         const xtermExec = reactiveBind(new XTermExec())
         xtermExec.id = id
-        xtermExec.cammand = [command]
+        xtermExec.command = [command]
         xtermExec.wait().then(() => {
           delete XTermExecCache[id]
           this.pulling = false
@@ -117,7 +117,7 @@ export class Image {
         }
         const xtermExec = reactiveBind(new XTermExec())
         xtermExec.id = id
-        xtermExec.cammand = command
+        xtermExec.command = command
         xtermExec.wait().then(() => {
           resolve(true)
           delete XTermExecCache[id]

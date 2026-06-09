@@ -36,7 +36,7 @@ export const CodeMake: CodeMakeType = reactive({
         this.databases = res?.data ?? []
         this.isConnent = true
       } else {
-        MessageError(res?.msg ?? I18nT('codemake.connentFail'))
+        MessageError(res?.msg ?? I18nT('base.fail'))
         this.isConnent = false
       }
     })

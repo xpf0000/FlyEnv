@@ -82,7 +82,7 @@ function getTypeOfValue(value: any) {
  * @param {Array} array - The array that we want to parse
  * @param {string} objectName - Usually the Prefix - Root do no have ObjectName
  */
-function parseArray(this: any, array: any[], objectName: string): any {
+function parseArray(this: any, array: any[], objectName: string | null): any {
   const currentArrayTypes: any[] = []
   const prefix = objectName ? `${objectName}` : ''
 
@@ -90,8 +90,9 @@ function parseArray(this: any, array: any[], objectName: string): any {
     currentArrayTypes.push(`${getTypeOfValue(currentValue)}[]`)
   })
 
-  if (!(objectName in this)) this[objectName] = []
-  this[objectName].push(getUnique(currentArrayTypes).join('|'))
+  const objectKey = `${objectName}`
+  if (!(objectKey in this)) this[objectKey] = []
+  this[objectKey].push(getUnique(currentArrayTypes).join('|'))
 
   array.forEach((currentValue) => {
     const currentValueType = getTypeOfValue(currentValue)
@@ -109,7 +110,12 @@ function parseArray(this: any, array: any[], objectName: string): any {
  * @param {boolean} doNotReinsert - If we want to reinsert the type, usually when we parse
  * an array of objects, we do not want to reinsert.
  */
-function parseObject(this: any, obj: any, objectName: string, doNotReinsert = false): any {
+function parseObject(
+  this: any,
+  obj: any,
+  objectName: string | null,
+  doNotReinsert = false
+): any {
   const prefix = objectName ? `${objectName}.` : ''
 
   Object.keys(obj).forEach((propertyName) => {

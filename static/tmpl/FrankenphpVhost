@@ -2,7 +2,7 @@
     encode zstd br gzip
 
     log {
-        output file ##LOG-PATH## {
+        output file "##LOG-PATH##" {
             roll_size 100mb
             roll_keep 5
             roll_keep_for 720h

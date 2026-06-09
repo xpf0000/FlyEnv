@@ -46,6 +46,30 @@ class RabbitMQ extends Base {
     this.pidPath = join(this.baseDir, 'rabbitmq.pid')
   }
 
+  async _resolveErlangHome() {
+    const env = await EnvSync.sync().catch(() => process.env)
+    const envHome = `${env?.ERLANG_HOME ?? env?.Erlang_Home ?? ''}`.trim()
+    if (envHome && existsSync(envHome)) {
+      return envHome
+    }
+    const appDir = global.Server.AppDir
+    if (!appDir || !existsSync(appDir)) {
+      return ''
+    }
+    try {
+      const dirs = (await readdir(appDir))
+        .filter((dir) => /^erlang-/i.test(dir))
+        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+      for (const dir of dirs) {
+        const erlangHome = join(appDir, dir)
+        if (existsSync(join(erlangHome, 'bin/erl.exe'))) {
+          return erlangHome
+        }
+      }
+    } catch {}
+    return ''
+  }
+
   initConfig(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
       if (!existsSync(version?.bin)) {
@@ -126,25 +150,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
     if (pids && pids.length > 0) {
       return
     }
-    let str = ''
-    try {
-      await EnvSync.sync()
-      const stdout = (
-        await execPromise(
-          'Write-Host "##FlyEnv-ERLANG_HOME$($env:ERLANG_HOME)FlyEnv-ERLANG_HOME##"',
-          {
-            shell: EnvSync.PowerShellPath || 'powershell.exe'
-          }
-        )
-      ).stdout.trim()
-      const regex = /FlyEnv-ERLANG_HOME(.*?)FlyEnv-ERLANG_HOME/g
-      const match = regex.exec(stdout)
-      if (match) {
-        str = match[1] // 捕获组 (\d+) 的内容
-      }
-    } catch (e: any) {
-      console.log('get ERLANG_HOME error: ', e)
-    }
+    const str = await this._resolveErlangHome()
     console.log('ERLANG_HOME: ', str)
     if (!str || !existsSync(str)) {
       return
@@ -228,7 +234,14 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
       const baseDir = this.baseDir
       const execArgs = `-detached`
       if (isWindows()) {
-        const execEnv = `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`
+        const erlangHome = await this._resolveErlangHome()
+        const execEnv = [
+          `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`,
+          erlangHome ? `set "ERLANG_HOME=${erlangHome}"` : '',
+          erlangHome ? `set "PATH=${join(erlangHome, 'bin')};%PATH%"` : ''
+        ]
+          .filter(Boolean)
+          .join('\n')
         try {
           await serviceStartExecCMD({
             version,

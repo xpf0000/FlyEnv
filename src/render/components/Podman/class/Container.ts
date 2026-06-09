@@ -129,7 +129,7 @@ export class Container {
       xtermExec.id = this.id
       const arr: string[] = ['podman start', this.id]
       const logs: string[] = ['podman logs', this.id]
-      xtermExec.cammand = [arr.join(' '), logs.join(' ')]
+      xtermExec.command = [arr.join(' '), logs.join(' ')]
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[this.id]
         this.checkStatusAfterTerminalExec()
@@ -168,7 +168,7 @@ export class Container {
       xtermExec.id = this.id
       const arr: string[] = ['podman stop', this.id]
       const logs: string[] = ['podman logs', this.id]
-      xtermExec.cammand = [arr.join(' '), logs.join(' ')]
+      xtermExec.command = [arr.join(' '), logs.join(' ')]
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[this.id]
         this.checkStatusAfterTerminalExec()
@@ -192,7 +192,7 @@ export class Container {
       xtermExec = reactiveBind(new XTermExec())
       xtermExec.id = key
       const logs: string[] = ['podman logs -f', this.id]
-      xtermExec.cammand = [logs.join(' ')]
+      xtermExec.command = [logs.join(' ')]
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[key]
       })
@@ -234,7 +234,7 @@ export class Container {
         const command = `podman export ${this.id} > "${dir}"`
         const xtermExec = reactiveBind(new XTermExec())
         xtermExec.id = id
-        xtermExec.cammand = [command]
+        xtermExec.command = [command]
         xtermExec.wait().then(() => {
           delete XTermExecCache[id]
           this.exporting = false
@@ -316,7 +316,7 @@ export class Container {
       const command = `podman commit ${this.id} ${value}`
       const xtermExec = reactiveBind(new XTermExec())
       xtermExec.id = id
-      xtermExec.cammand = [command]
+      xtermExec.command = [command]
       xtermExec.wait().then(() => {
         MessageSuccess(I18nT('base.success'))
         delete XTermExecCache[id]

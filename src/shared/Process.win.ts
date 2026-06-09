@@ -31,6 +31,7 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
         return {
           PID: `${m.ProcessId}`,
           PPID: `${m.ParentProcessId}`,
+          USER: '',
           COMMAND: m.CommandLine
         }
       })
@@ -53,6 +54,7 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
         return {
           PID: `${m.ProcessId}`,
           PPID: `${m.ParentProcessId}`,
+          USER: '',
           COMMAND: m.CommandLine
         }
       })

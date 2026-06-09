@@ -67,9 +67,10 @@ export const makeFrankenPHPConf = async (host: AppHost) => {
   const tmpl = await vhostTmpl()
 
   const httpHostNameAll = httpNames.join(',\n')
+  const logPath = pathFixedToUnix(logFile)
   let content = tmpl.frankenphp
     .replace('##HOST-ALL##', httpHostNameAll)
-    .replace('##LOG-PATH##', pathFixedToUnix(logFile))
+    .replace('##LOG-PATH##', logPath)
     .replace('##ROOT##', pathFixedToUnix(root))
   content = handleReverseProxy(host, content)
   contentList.push(content)
@@ -77,12 +78,12 @@ export const makeFrankenPHPConf = async (host: AppHost) => {
   if (host.useSSL) {
     let tls = 'internal'
     if (host.ssl.cert && host.ssl.key) {
-      tls = `${pathFixedToUnix(host.ssl.cert)} ${pathFixedToUnix(host.ssl.key)}`
+      tls = `"${pathFixedToUnix(host.ssl.cert)}" "${pathFixedToUnix(host.ssl.key)}"`
     }
     const httpHostNameAll = httpsNames.join(',\n')
     let content = tmpl.frankenphpSSL
       .replace('##HOST-ALL##', httpHostNameAll)
-      .replace('##LOG-PATH##', pathFixedToUnix(logFile))
+      .replace('##LOG-PATH##', logPath)
       .replace('##SSL##', tls)
       .replace('##ROOT##', pathFixedToUnix(root))
     content = handleReverseProxy(host, content)
@@ -139,8 +140,8 @@ export const updateFrankenPHPConf = async (host: AppHost, old: AppHost) => {
   const replace: Array<string> = []
   if (host.name !== old.name) {
     hasChanged = true
-    find.push(...[join(logpath, `${old.name}.frankenphp.log`)])
-    replace.push(...[join(logpath, `${host.name}.frankenphp.log`)])
+    find.push(...[pathFixedToUnix(join(logpath, `${old.name}.frankenphp.log`))])
+    replace.push(...[pathFixedToUnix(join(logpath, `${host.name}.frankenphp.log`))])
   }
   const oldAliasArr = hostAlias(old)
   const newAliasArr = hostAlias(host)
@@ -185,12 +186,12 @@ export const updateFrankenPHPConf = async (host: AppHost, old: AppHost) => {
   if (host.ssl.cert !== old.ssl.cert || host.ssl.key !== old.ssl.key) {
     hasChanged = true
     find.push(`tls (.*?)\\n`)
-    replace.push(`tls "${host.ssl.cert}" "${host.ssl.key}"\n`)
+    replace.push(`tls "${pathFixedToUnix(host.ssl.cert)}" "${pathFixedToUnix(host.ssl.key)}"\n`)
   }
   if (host.root !== old.root) {
     hasChanged = true
     find.push(`root \* (.*?)\\n`)
-    replace.push(`root * "${host.root}"\n`)
+    replace.push(`root * "${pathFixedToUnix(host.root)}"\n`)
   }
   if (!isEqual(host?.reverseProxy, old?.reverseProxy)) {
     hasChanged = true
@@ -265,7 +266,7 @@ export const fixVHost = async () => {
     if (host.useSSL) {
       let tls = 'internal'
       if (host.ssl.cert && host.ssl.key) {
-        tls = `${pathFixedToUnix(host.ssl.cert)} ${pathFixedToUnix(host.ssl.key)}`
+        tls = `"${pathFixedToUnix(host.ssl.cert)}" "${pathFixedToUnix(host.ssl.key)}"`
       }
       const httpHostNameAll = httpsNames.join(',\n')
       const content = tmpl.frankenphpSSL

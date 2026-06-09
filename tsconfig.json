@@ -14,7 +14,6 @@
     "sourceMap": false,
     "strictFunctionTypes": false,
     "verbatimModuleSyntax": false,
-    "importsNotUsedAsValues": "preserve",
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "isolatedModules": true,

@@ -70,12 +70,12 @@ export class Compose {
       }
       const logs: string[] = [...arr, 'logs']
       arr.push('up -d')
-      const cammand = [arr.join(' '), logs.join(' ')]
+      const command = [arr.join(' '), logs.join(' ')]
       if (window.Server.isLinux || window.Server.isMacOS) {
         const socket = PodmanManager.currentSocket()
-        cammand.unshift(`export DOCKER_HOST=unix://${socket}`)
+        command.unshift(`export DOCKER_HOST=unix://${socket}`)
       }
-      xtermExec.cammand = cammand
+      xtermExec.command = command
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[this.id]
         this.checkRunningStatus()
@@ -120,12 +120,12 @@ export class Compose {
       const logs: string[] = [...arr, 'logs']
       arr.push('down')
 
-      const cammand = [arr.join(' '), logs.join(' ')]
+      const command = [arr.join(' '), logs.join(' ')]
       if (window.Server.isLinux || window.Server.isMacOS) {
         const socket = PodmanManager.currentSocket()
-        cammand.unshift(`export DOCKER_HOST=unix://${socket}`)
+        command.unshift(`export DOCKER_HOST=unix://${socket}`)
       }
-      xtermExec.cammand = cammand
+      xtermExec.command = command
 
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[this.id]
@@ -156,12 +156,12 @@ export class Compose {
       }
       arr.push('logs -f')
 
-      const cammand = [arr.join(' ')]
+      const command = [arr.join(' ')]
       if (window.Server.isLinux || window.Server.isMacOS) {
         const socket = PodmanManager.currentSocket()
-        cammand.unshift(`export DOCKER_HOST=unix://${socket}`)
+        command.unshift(`export DOCKER_HOST=unix://${socket}`)
       }
-      xtermExec.cammand = cammand
+      xtermExec.command = command
 
       xtermExec.wait().then(() => {
         delete XTermExecCache?.[key]

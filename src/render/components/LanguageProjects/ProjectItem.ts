@@ -5,7 +5,7 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { ElMessageBox } from 'element-plus'
 import { AppStore } from '@/store/app'
-import { RunProjectItem } from '@/core/LanguageProjectRunner'
+import type { RunProjectItem } from '@/core/LanguageProjectRunner'
 import type { AllAppModule } from '@/core/type'
 import type {
   RoadRunnerProjectExtra,
@@ -36,6 +36,7 @@ export type ProjectItemType = RoadRunnerProjectExtra &
     envVar: string
     envFile: string
     runInTerminal: boolean
+    typeFlag: AllAppModule
   }
 
 export type RunningState = {

@@ -1,10 +1,48 @@
 import { appDebugLog, isWindows } from '@shared/utils'
 import { shellEnv } from 'shell-env'
-import { execPromise } from '@shared/child-process'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import { dirname, join, isAbsolute } from 'node:path'
-import { existsSync, copyFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import * as process from 'node:process'
 import JSON5 from 'json5'
+import { powerShellInlineArgs } from './PowerShellCommand'
+
+const execFilePromise = promisify(execFile)
+
+const WINDOWS_ENV_SCRIPT = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+$userVars = [Environment]::GetEnvironmentVariables('User')
+$machineVars = [Environment]::GetEnvironmentVariables('Machine')
+
+$result = @{}
+foreach ($key in $machineVars.Keys) { $result[$key] = $machineVars[$key] }
+foreach ($key in $userVars.Keys) { $result[$key] = $userVars[$key] }
+
+$mPath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+$uPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+$combinedPath = ($mPath.Split(';') + $uPath.Split(';')) | Where-Object { $_ } | Select-Object -Unique
+$rawPath = $combinedPath -join ';'
+
+foreach ($key in @($result.Keys)) {
+  $value = $result[$key]
+  if ($value -is [string]) {
+    [Environment]::SetEnvironmentVariable($key, $value, 'Process')
+  }
+}
+
+$result['PATH'] = $rawPath
+
+foreach ($key in @($result.Keys)) {
+  $value = $result[$key]
+  if ($value -is [string] -and $value -match '%[^%]+%') {
+    $expandedValue = [Environment]::ExpandEnvironmentVariables($value)
+    $result[$key] = $expandedValue
+    [Environment]::SetEnvironmentVariable($key, $expandedValue, 'Process')
+  }
+}
+
+$result | ConvertTo-Json -Compress`
 
 class EnvSync {
   AppEnv: Record<string, any> | undefined
@@ -16,21 +54,11 @@ class EnvSync {
   constructor() {}
 
   /**
-   * 调用@static/sh/Windows/env-get.ps1获取Windows环境变量
-   * 该脚本会获取 Machine 和 User 级别的环境变量，并展开所有 %VARNAME% 格式的变量引用
+   * 通过内联 PowerShell 获取 Windows 环境变量。
+   * 脚本会获取 Machine 和 User 级别的环境变量，并展开所有 %VARNAME% 格式的变量引用。
    * @private
    */
   private async getWindowsAllEnv(): Promise<Record<string, string>> {
-    const dest = join(global.Server.Cache!, 'env-get.ps1')
-    if (!existsSync(dest)) {
-      const src = join(global.Server.Static!, 'sh/env-get.ps1')
-      try {
-        copyFileSync(src, dest)
-      } catch (e) {
-        console.error('[EnvSync] Failed to copy env-get.ps1:', e)
-        return process.env as any
-      }
-    }
     const findEnvByKey = (key: string): string | undefined => {
       const lowKey = key.toLowerCase()
       for (const k in process.env) {
@@ -43,22 +71,17 @@ class EnvSync {
     }
 
     let stdout = ''
-    let cmd = ''
     let systemPath = `C:\\Windows\\System32`
     const cmdDefault = `C:\\Windows\\System32\\cmd.exe`
     const ComSpec = findEnvByKey('ComSpec')
     const SystemRoot = findEnvByKey('SystemRoot')
     if (ComSpec) {
-      cmd = ComSpec
-      systemPath = dirname(cmd)
+      systemPath = dirname(ComSpec)
     } else if (SystemRoot) {
       systemPath = join(SystemRoot, 'System32')
-      cmd = join(SystemRoot, 'System32/cmd.exe')
     } else if (existsSync(cmdDefault)) {
-      cmd = cmdDefault
-      systemPath = dirname(cmd)
+      systemPath = dirname(cmdDefault)
     } else {
-      cmd = 'cmd.exe'
       systemPath = `C:\\Windows\\System32`
     }
     this.SystemPath = systemPath
@@ -72,11 +95,14 @@ class EnvSync {
       powershell = 'powershell.exe'
     }
     try {
-      const command = `"${powershell}" -NoProfile -ExecutionPolicy Bypass -File "${dest}"`
-      const res = await execPromise(command, { encoding: 'utf8', shell: cmd })
-      stdout = res?.stdout?.trim() ?? ''
+      const res: any = await execFilePromise(powershell, powerShellInlineArgs(WINDOWS_ENV_SCRIPT), {
+        encoding: 'utf8',
+        windowsHide: true,
+        maxBuffer: 10 * 1024 * 1024
+      })
+      stdout = `${res?.stdout ?? ''}`.trim()
     } catch (e) {
-      console.error('[EnvSync] Failed to fetch Windows env from script:', e)
+      console.error('[EnvSync] Failed to fetch Windows env from inline PowerShell:', e)
       appDebugLog(`[EnvSync][getWindowsAllEnv][error]`, `${e}`).catch()
       return process.env as any
     }

@@ -9,7 +9,24 @@ import { clipboard, fs } from '@/util/NodeFn'
 import localForage from 'localforage'
 import { chooseFile } from '@/util/File'
 
-export const PodmanSetup = reactive({
+type PodmanTableRow = {
+  name: string
+  version: string
+  installed: boolean
+}
+
+type PodmanSetupState = {
+  installEnd: boolean
+  installing: boolean
+  xterm?: XTerm
+  podmanBin?: string
+  reFetch: () => number
+  initPodmanBin: () => void
+  setPodmanBin: () => void
+  checkPodman: () => void
+}
+
+export const PodmanSetup = reactive<PodmanSetupState>({
   installEnd: false,
   installing: false,
   xterm: undefined,
@@ -18,7 +35,7 @@ export const PodmanSetup = reactive({
   initPodmanBin: () => {
     localForage
       .getItem<string>('flyenv-podman-bin-dir')
-      .then((res: string) => {
+      .then((res) => {
         if (res) {
           PodmanSetup.podmanBin = res
         }
@@ -41,7 +58,7 @@ export const PodmanSetup = reactive({
   }
 })
 
-export const Setup = (typeFlag) => {
+export const Setup = (typeFlag: string) => {
   const appStore = AppStore()
 
   const checkPodman = computed(() => {
@@ -64,17 +81,17 @@ export const Setup = (typeFlag) => {
     return [{ name: 'podman', version: '5.0.0', installed: checkPodman.value }]
   })
 
-  const fetchCommand = (row) => {
+  const fetchCommand = (row: PodmanTableRow) => {
     return row.installed ? 'brew uninstall podman' : 'brew install podman'
   }
 
-  const copyCommand = (row) => {
+  const copyCommand = (row: PodmanTableRow) => {
     const command = fetchCommand(row)
     clipboard.writeText(command)
     MessageSuccess(I18nT('base.copySuccess'))
   }
 
-  const handlePodmanVersion = async (row) => {
+  const handlePodmanVersion = async (row: PodmanTableRow) => {
     if (PodmanSetup.installing) return
     PodmanSetup.installing = true
     PodmanSetup.installEnd = false
@@ -95,7 +112,7 @@ export const Setup = (typeFlag) => {
     PodmanSetup.installing = false
   }
 
-  const xtermDom = ref()
+  const xtermDom = ref<HTMLElement | null>(null)
 
   const installPodman = async () => {
     if (PodmanSetup.installing) return

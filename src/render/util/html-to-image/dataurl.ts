@@ -92,7 +92,7 @@ export async function resourceToDataURL(
 
     let msg = `Failed to fetch resource: ${resourceUrl}`
     if (error) {
-      msg = typeof error === 'string' ? error : error.message
+      msg = error instanceof Error ? error.message : `${error}`
     }
 
     if (msg) {

@@ -2,7 +2,6 @@ import { join, resolve, dirname } from 'node:path'
 import _fs from 'fs-extra'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import { existsSync } from 'node:fs'
 import { isLinux, isWindows } from "../src/shared/utils";
 import type { PackContext } from 'app-builder-lib'
 

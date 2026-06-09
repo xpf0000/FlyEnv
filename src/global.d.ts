@@ -8,6 +8,8 @@ export interface ServerType {
   BrewHome?: string
   BrewBin?: string
   BrewError?: string
+  PodmanBin?: string
+  PodmanError?: string
   Password?: string
   Proxy?: { [key: string]: string }
   isArmArch?: boolean
