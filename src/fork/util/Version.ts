@@ -483,9 +483,9 @@ export const brewInfoJson = async (names: string[]) => {
   if (!names.length) {
     return info
   }
-  const command = ['brew', 'info', ...names, '--json', '--formula'].join(' ')
-  console.log('brewinfo doRun: ', command)
-  try {
+  const fetchInfo = async (formulaNames: string[]) => {
+    const command = ['brew', 'info', ...formulaNames, '--json', '--formula'].join(' ')
+    console.log('brewinfo doRun: ', command)
     const res = await execPromiseWithEnv(command)
     const arr = JSON.parse(res.stdout)
     arr.forEach((item: any) => {
@@ -496,8 +496,22 @@ export const brewInfoJson = async (names: string[]) => {
         flag: 'brew'
       })
     })
+  }
+  try {
+    await fetchInfo(names)
   } catch (e) {
-    console.error('brewInfoJson nginx: ', e)
+    const message = e instanceof Error ? e.message : `${e}`
+    console.warn('brewInfoJson batch failed, retrying separately: ', message)
+    if (names.length > 1) {
+      for (const name of names) {
+        try {
+          await fetchInfo([name])
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : `${error}`
+          console.warn(`brewInfoJson skipped ${name}: `, errorMessage)
+        }
+      }
+    }
   }
   return info
 }
