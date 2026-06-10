@@ -218,14 +218,28 @@ class MailPit extends Base {
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all = versions.map((item) =>
-            TaskQueue.run(
-              versionBinVersion,
-              item.bin,
-              `"${item.bin}" version`,
-              /(v)(\d+(\.\d+){1,4})( )/g
+          const fetchMailpitBinVersion = async (bin: string) => {
+            const reg = /(v)(\d+(\.\d+){1,4})( )/g
+            const noReleaseCheck = await versionBinVersion(
+              bin,
+              `"${bin}" version --no-release-check`,
+              reg
             )
-          )
+            if (noReleaseCheck.version) {
+              return noReleaseCheck
+            }
+
+            const fallback = await versionBinVersion(bin, `"${bin}" version`, reg, true)
+            if (fallback.version) {
+              return fallback
+            }
+
+            return {
+              version: fallback.version,
+              error: fallback.error ?? noReleaseCheck.error
+            }
+          }
+          const all = versions.map((item) => TaskQueue.run(fetchMailpitBinVersion, item.bin))
           return Promise.all(all)
         })
         .then((list) => {

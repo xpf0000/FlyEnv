@@ -94,9 +94,20 @@ export const versionBinVersion = (
   findInError?: boolean
 ): Promise<{ version?: string; error?: string }> => {
   return new Promise(async (resolve) => {
+    const outputFromExecError = (err: any) => {
+      return [err?.stdout, err?.stderr]
+        .filter((s) => `${s ?? ''}`.trim().length > 0)
+        .map((s) => `${s}`)
+        .join('\n')
+    }
+    const messageFromExecError = (err: any) => {
+      return [outputFromExecError(err), `${err}`]
+        .filter((s) => `${s ?? ''}`.trim().length > 0)
+        .join('\n')
+    }
     const handleCatch = (err: any) => {
       resolve({
-        error: `${command}\n${err}`,
+        error: `${command}\n${messageFromExecError(err)}`,
         version: undefined
       })
     }
@@ -126,8 +137,8 @@ export const versionBinVersion = (
       appDebugLog('[versionBinVersion][error]', `${e}`).catch()
       if (findInError) {
         handleThen({
-          stdout: '',
-          stderr: `${e}`
+          stdout: outputFromExecError(e) || `${e}`,
+          stderr: ''
         })
         return
       }
