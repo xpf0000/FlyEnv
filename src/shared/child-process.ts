@@ -29,7 +29,7 @@ export function execPromiseSudo(
       const content = `#!/bin/zsh\n${params}`
       await writeFile(file, content)
       shFile = file
-      args.push('zsh', file)
+      args.push('/bin/zsh', file)
     } else {
       args.push(...params)
     }

@@ -27,7 +27,7 @@ class NodePTY {
           TERM: 'xterm-256color',
           COLORTERM: 'truecolor'
         })
-        const pty: IPty = spawn('zsh', [], {
+        const pty: IPty = spawn('/bin/zsh', [], {
           name: 'xterm-color',
           cols: 80,
           rows: 34,
@@ -120,7 +120,7 @@ class NodePTY {
           TERM: 'xterm-256color',
           COLORTERM: 'truecolor'
         })
-        const pty: IPty = spawn('bash', [], {
+        const pty: IPty = spawn('/bin/bash', [], {
           name: 'xterm-color',
           cols: 80,
           rows: 34,

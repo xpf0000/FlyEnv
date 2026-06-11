@@ -57,7 +57,7 @@ type UnixCustomerServiceStartScriptParams = {
   commandFile: string
   outFile: string
   errFile: string
-  shell: 'bash' | 'zsh'
+  shell: '/bin/bash' | '/bin/zsh'
 }
 
 function shellSingleQuoted(value: string): string {
@@ -146,7 +146,7 @@ export async function serviceStartExec(
   process.chdir(baseDir)
   let res: any
   let error: any
-  const shell = isMacOS() ? 'zsh' : 'bash'
+  const shell = isMacOS() ? '/bin/zsh' : '/bin/bash'
   if (param?.root) {
     try {
       res = await Helper.send('tools', 'runScript', shell, psPath)
@@ -262,7 +262,7 @@ export async function customerServiceStartExec(
     env = `export PATH="${dirname(version.binBin)}:$PATH"`
   }
 
-  const shell = isMacOS() ? 'zsh' : 'bash'
+  const shell = isMacOS() ? '/bin/zsh' : '/bin/bash'
   const fallbackCwd = version.commandType === 'file' ? dirname(commandFile) : baseDir
   const cwd = version.workDir && existsSync(version.workDir) ? version.workDir : fallbackCwd
 

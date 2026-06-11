@@ -183,7 +183,7 @@ class Code extends Base {
               }
             )
           } else {
-            const shell = isMacOS() ? 'zsh' : 'bash'
+            const shell = isMacOS() ? '/bin/zsh' : '/bin/bash'
             res = await spawnPromiseWithEnv(shell, ['-lc', script], {
               cwd: runDir
             })

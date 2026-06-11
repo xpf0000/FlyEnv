@@ -653,8 +653,6 @@ func ValidateShell(shell string) error {
 	allowed := map[string]bool{
 		"/bin/bash": true,
 		"/bin/zsh":  true,
-		"bash":      true,
-		"zsh":       true,
 	}
 	if !allowed[shell] {
 		return fmt.Errorf("invalid shell: %s", shell)
