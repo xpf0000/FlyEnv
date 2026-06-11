@@ -9,6 +9,7 @@ import { AppStartFlagChech } from './app'
 
 export default class Launcher extends EventEmitter {
   exceptionHandler?: ExceptionHandler
+  private isQuitting = false
 
   constructor() {
     super()
@@ -99,13 +100,23 @@ export default class Launcher extends EventEmitter {
   }
 
   handleAppWillQuit() {
-    app.on('will-quit', () => {
-      logger.info('[FlyEnv] will-quit')
-      if (global.application) {
-        global.application.stop()
-      } else {
-        logger.info('[FlyEnv] global.application is null !!!')
+    app.on('before-quit', async (event) => {
+      if (this.isQuitting) {
+        return
       }
+      this.isQuitting = true
+      logger.info('[FlyEnv] before-quit')
+      event.preventDefault()
+      try {
+        if (global.application) {
+          await global.application.stop()
+        } else {
+          logger.info('[FlyEnv] global.application is null !!!')
+        }
+      } catch (e) {
+        logger.error('[FlyEnv] before-quit stop error:', e)
+      }
+      app.quit()
     })
   }
 }

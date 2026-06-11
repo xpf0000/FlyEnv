@@ -9,7 +9,7 @@ import crypto from 'node:crypto'
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
-export const HelperVersion = 13
+export const HelperVersion = 14
 
 const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 

@@ -13,7 +13,7 @@ import { I18nT } from '@lang/index'
 import { BomCleanTask } from '../../util/BomCleanTask'
 import RequestTimer from '@shared/requestTimer'
 import { killPorts, killPids, getPortPids, getPidsByKey } from './process'
-import { fetchEnvPath, fetchPATH, handleUpdatePath, updatePATH } from './path'
+import { fetchEnvPath, fetchPATH, handleUpdatePath, updatePATH, removePATH } from './path'
 import { setAlias, cleanAlias } from './alias'
 import { runInTerminal, openPathByApp } from './terminal'
 import { initAllowDir, initFlyEnvSH } from './init'
@@ -122,6 +122,7 @@ class Manager extends Base {
   fetchPATH = fetchPATH
   handleUpdatePath = handleUpdatePath
   updatePATH = updatePATH
+  removePATH = removePATH
 
   setAlias = setAlias
   cleanAlias = cleanAlias

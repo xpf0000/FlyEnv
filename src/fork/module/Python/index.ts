@@ -136,6 +136,14 @@ class Python extends Base {
               error
             })
           })
+          const pathMap = new Map<string, SoftInstalled>()
+          for (const v of versions) {
+            const existing = pathMap.get(v.path)
+            if (!existing || (!existing.version && v.version)) {
+              pathMap.set(v.path, v)
+            }
+          }
+          versions = Array.from(pathMap.values())
           resolve(versionSort(versions))
         })
         .catch(() => {

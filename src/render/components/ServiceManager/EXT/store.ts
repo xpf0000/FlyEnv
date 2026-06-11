@@ -175,10 +175,10 @@ export const ServiceActionStore: {
         return resolve(true)
       }
       ServiceActionStore.pathSeting[item.bin] = true
-      let action = 'updatePATH'
-      if (window.Server.isWindows) {
-        action = ServiceActionStore.appPath.includes(item.path) ? 'removePATH' : 'updatePATH'
-      }
+      const isSet = ServiceActionStore.appPath.some(
+        (p) => p === item.path || p === item.bin
+      )
+      const action = isSet ? 'removePATH' : 'updatePATH'
       IPC.send('app-fork:tools', action, JSON.parse(JSON.stringify(item)), typeFlag).then(
         (key: string, res: any) => {
           IPC.off(key)

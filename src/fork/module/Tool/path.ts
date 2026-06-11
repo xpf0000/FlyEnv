@@ -124,6 +124,94 @@ export function handleUpdatePath(param?: { zsh: string }) {
   })
 }
 
+async function rebuildEnvPath(envDir: string, resolve: any, reject: any, actionLabel: string) {
+  let allFile = await readdir(envDir)
+  allFile = allFile
+    .filter((f) => existsSync(join(envDir, f)))
+    .map((f) => join(envDir, f))
+    .filter((f) => {
+      let check = false
+      try {
+        const rf = realpathSync(f)
+        check = existsSync(rf) && statSync(rf).isDirectory()
+      } catch {
+        check = false
+      }
+      return check
+    })
+    .map((f) => {
+      const arr: string[] = [f]
+      if (existsSync(join(f, 'bin'))) {
+        arr.push(join(f, 'bin'))
+      } else if (existsSync(join(f, 'sbin'))) {
+        arr.push(join(f, 'sbin'))
+      }
+      return arr
+    })
+    .flat()
+
+  const getRealLength = (p: string): number => {
+    try {
+      const rp = realpathSync(p)
+      if (rp !== p) {
+        return rp.length
+      }
+      // Python 特殊处理：env/python 是真实目录，但 bin/python3 是软链接
+      const py3 = join(p, 'bin', 'python3')
+      if (existsSync(py3)) {
+        return dirname(realpathSync(py3)).length
+      }
+      return p.length
+    } catch {
+      return p.length
+    }
+  }
+
+  allFile.sort((a, b) => {
+    return getRealLength(b) - getRealLength(a)
+  })
+
+  appDebugLog(`[${actionLabel}][allFile]`, `${JSON.stringify(allFile, null, 2)}`).catch()
+
+  const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
+  const param: { zsh: string } = {
+    zsh: ''
+  }
+  if (allFile.length > 0) {
+    let java = allFile.find((f) => {
+      const fl = f.toLowerCase()
+      return (fl.includes('java') || fl.includes('jdk')) && fl.includes('/bin')
+    })
+    let other_zsh = ''
+    if (java) {
+      java = dirname(realpathSync(java))
+      other_zsh += `\nexport JAVA_HOME="${java}"`
+    }
+    let gradle = allFile.find((f) => {
+      const files = [join(f, 'gradle'), join(f, 'bin/gradle')]
+      return files.some((s) => existsSync(s)) && f.includes('/bin')
+    })
+    if (gradle) {
+      gradle = dirname(realpathSync(gradle))
+      other_zsh += `\nexport GRADLE_HOME="${gradle}"`
+    }
+    param.zsh = `\nexport PATH="${aliasDir}:${allFile.join(':')}:$PATH"${other_zsh}\n`
+  } else {
+    param.zsh = `\nexport PATH="${aliasDir}:$PATH"\n`
+  }
+  appDebugLog(`[${actionLabel}][allFile]`, `${JSON.stringify(param, null, 2)}`).catch()
+  try {
+    await handleUpdatePath(param)
+  } catch (e) {
+    appDebugLog(`[${actionLabel}][error]`, `${e}`).catch()
+    reject(e)
+    return
+  }
+  EnvSync.AppEnv = undefined
+  const allPath = await fetchPATH()
+  resolve(allPath)
+}
+
 export function updatePATH(item: SoftInstalled, flag: string) {
   return new ForkPromise(async (resolve, reject) => {
     // Get the PATH environment variable array. Real absolute path array.
@@ -158,74 +246,18 @@ export function updatePATH(item: SoftInstalled, flag: string) {
         appDebugLog('[updatePATH][ls -s][error]', `${e}`).catch()
       }
     }
-    // Get all subfolders under the `env` folder (e.g., 'php', 'nginx', 'mysql', etc.)
-    let allFile = await readdir(envDir)
-    // Get valid paths
-    allFile = allFile
-      .filter((f) => existsSync(join(envDir, f)))
-      .map((f) => join(envDir, f))
-      // Only keep paths that exist and are directories
-      .filter((f) => {
-        let check = false
-        try {
-          const rf = realpathSync(f)
-          check = existsSync(rf) && statSync(rf).isDirectory()
-        } catch {
-          check = false
-        }
-        return check
-      })
-      .map((f) => {
-        const arr: string[] = [f]
-        if (existsSync(join(f, 'bin'))) {
-          arr.push(join(f, 'bin'))
-        } else if (existsSync(join(f, 'sbin'))) {
-          arr.push(join(f, 'sbin'))
-        }
-        return arr
-      })
-      .flat()
+    await rebuildEnvPath(envDir, resolve, reject, 'updatePATH')
+  })
+}
 
-    appDebugLog('[updatePATH][allFile]', `${JSON.stringify(allFile, null, 2)}`).catch()
-
-    const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
-    const param: { zsh: string } = {
-      zsh: ''
-    }
-    if (allFile.length > 0) {
-      // Handle Java path and add JAVA_HOME variable
-      let java = allFile.find((f) => {
-        const fl = f.toLowerCase()
-        return (fl.includes('java') || fl.includes('jdk')) && fl.includes('/bin')
-      })
-      let other_zsh = ''
-      if (java) {
-        java = dirname(realpathSync(java))
-        other_zsh += `\nexport JAVA_HOME="${java}"`
-      }
-      let gradle = allFile.find((f) => {
-        const files = [join(f, 'gradle'), join(f, 'bin/gradle')]
-        return files.some((s) => existsSync(s)) && f.includes('/bin')
-      })
-      if (gradle) {
-        gradle = dirname(realpathSync(gradle))
-        other_zsh += `\nexport GRADLE_HOME="${gradle}"`
-      }
-      param.zsh = `\nexport PATH="${aliasDir}:${allFile.join(':')}:$PATH"${other_zsh}\n`
-    } else {
-      param.zsh = `\nexport PATH="${aliasDir}:$PATH"\n`
-    }
-    appDebugLog('[updatePATH][allFile]', `${JSON.stringify(param, null, 2)}`).catch()
+export function removePATH(item: SoftInstalled, flag: string) {
+  return new ForkPromise(async (resolve, reject) => {
+    const envDir = join(dirname(global.Server.AppDir!), 'env')
+    const flagDir = join(envDir, flag)
     try {
-      // Write to the .zshrc file
-      await handleUpdatePath(param)
-    } catch (e) {
-      appDebugLog('[updatePATH][error]', `${e}`).catch()
-      reject(e)
-      return
-    }
-    EnvSync.AppEnv = undefined
-    const allPath = await fetchPATH()
-    resolve(allPath)
+      await removeByRoot(flagDir)
+    } catch {}
+    appDebugLog('[removePATH][flagDir]', `${flagDir}`).catch()
+    await rebuildEnvPath(envDir, resolve, reject, 'removePATH')
   })
 }

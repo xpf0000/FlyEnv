@@ -173,10 +173,11 @@ export async function serviceStartExec(
   if (!checkPidFile) {
     if (!res) {
       let msg = 'Start Fail'
-      if (existsSync(errFile)) {
-        msg = await readFile(errFile, 'utf-8')
-      } else if (error) {
+      if (error) {
         msg = error && error?.toString ? error?.toString() : ''
+      }
+      if (!error && existsSync(errFile)) {
+        msg = await readFile(errFile, 'utf-8')
       }
       on({
         'APP-On-Log': AppLog(
@@ -227,10 +228,11 @@ export async function serviceStartExec(
     throw new Error(res?.error ?? 'Start Fail')
   }
   let msg = 'Start Fail'
-  if (existsSync(errFile)) {
-    msg = await readFile(errFile, 'utf-8')
-  } else if (error) {
+  if (error) {
     msg = error && error?.toString ? error?.toString() : ''
+  }
+  if (!error && existsSync(errFile)) {
+    msg = await readFile(errFile, 'utf-8')
   }
   on({
     'APP-On-Log': AppLog(
