@@ -171,6 +171,24 @@ export async function serviceStartExec(
   })
 
   if (!checkPidFile) {
+    if (!res) {
+      let msg = 'Start Fail'
+      if (existsSync(errFile)) {
+        msg = await readFile(errFile, 'utf-8')
+      } else if (error) {
+        msg = error && error?.toString ? error?.toString() : ''
+      }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.startServiceFail', {
+            error: msg,
+            service: `${version.typeFlag}-${version.version}`
+          })
+        )
+      })
+      throw new Error(msg)
+    }
     let pid = ''
     const stdout = res.stdout.trim() + '\n' + res.stderr.trim()
     const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g

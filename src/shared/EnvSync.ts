@@ -285,6 +285,7 @@ class EnvSync {
     this.AppEnv = undefined
     this.CMDPath = undefined
     this.PowerShellPath = undefined
+    this.SystemPath = undefined
   }
 }
 
