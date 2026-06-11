@@ -371,7 +371,6 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
             })
             return Promise.all(all)
           }
-          return Promise.resolve([])
         })
         .then((list) => {
           list.forEach((v, i) => {
