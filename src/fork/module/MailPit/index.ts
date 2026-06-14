@@ -5,7 +5,6 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -20,7 +19,6 @@ import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
-import { EOL } from 'os'
 import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 
 class MailPit extends Base {
@@ -115,55 +113,25 @@ class MailPit extends Base {
       const baseDir = join(global.Server.BaseDir!, `mailpit`)
       await mkdirp(baseDir)
 
-      if (isWindows()) {
-        const execEnv: Record<string, string> = {}
-        for (const k in opt) {
-          execEnv[k] = opt[k]
-        }
+      const execEnv: Record<string, string> = {}
+      for (const k in opt) {
+        execEnv[k] = opt[k]
+      }
 
-        try {
-          const res = await serviceStartSpawn({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
-        const envs: string[] = []
-        for (const k in opt) {
-          const v = opt[k]
-          envs.push(`export ${k}="${v}"`)
-        }
-        envs.push('')
-
-        const execEnv = envs.join(EOL)
-        const execArgs = ``
-
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          bin,
+          execEnv,
+          on
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
       }
     })
   }

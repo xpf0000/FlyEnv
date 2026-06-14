@@ -363,21 +363,52 @@ IncludeOptional "${vhost}"`
           reject(e)
           return
         }
-      } else {
+      } else if (isLinux()) {
+        // Linux Apache binds privileged ports (80/443) and needs root, which
+        // serviceStartSpawn cannot provide — keep the Helper script path.
         const logFile = join(global.Server.ApacheDir, `common/logs/access_log`)
         const baseDir = global.Server.ApacheDir!
         const execEnv = ``
         const execArgs = `-f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`
-
         try {
           const res = await serviceStartExec({
-            root: isLinux(),
+            root: true,
             version,
             pidPath: pidFile,
             baseDir,
             bin,
             execArgs,
             execEnv,
+            on
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else {
+        // `-D FOREGROUND` keeps httpd in the foreground (vs `-k start`, which
+        // daemonizes) so the detached spawn owns the process directly.
+        const logFile = join(global.Server.ApacheDir, `common/logs/access_log`)
+        const baseDir = global.Server.ApacheDir!
+        const execArgs = [
+          '-f',
+          conf,
+          '-c',
+          `PidFile "${pidFile}"`,
+          '-c',
+          `CustomLog "${logFile}" common`,
+          '-D',
+          'FOREGROUND'
+        ]
+        try {
+          const res = await serviceStartSpawn({
+            version,
+            pidPath: pidFile,
+            baseDir,
+            bin,
+            execArgs,
             on
           })
           resolve(res)

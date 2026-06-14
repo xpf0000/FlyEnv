@@ -6,7 +6,6 @@ import {
   AppLog,
   brewInfoJson,
   execPromise,
-  serviceStartExec,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
@@ -26,7 +25,6 @@ import axios from 'axios'
 import http from 'http'
 import https from 'https'
 import { publicDecrypt } from 'crypto'
-import { EOL } from 'os'
 import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { pcReportMacOS } from './macOS'
 import { pcReportLinux } from './Linux'
@@ -79,7 +77,6 @@ class Ollama extends Base {
       const iniFile = await this.initConfig().on(on)
       const baseDir = join(global.Server.BaseDir!, 'ollama')
       await mkdirp(baseDir)
-      const execArgs = `serve`
 
       const getConfEnv = async () => {
         const content = await readFile(iniFile, 'utf-8')
@@ -104,54 +101,25 @@ class Ollama extends Base {
 
       const opt = await getConfEnv()
 
-      if (isWindows()) {
-        const execEnv: Record<string, string> = {}
-        for (const k in opt) {
-          execEnv[k] = opt[k]
-        }
-        try {
-          const res = await serviceStartSpawn({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs: ['serve'],
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
-        const envs: string[] = []
-        for (const k in opt) {
-          const v = opt[k]
-          envs.push(`export ${k}="${v}"`)
-        }
-        envs.push('')
-
-        const execEnv = envs.join(EOL)
-
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
+      const execEnv: Record<string, string> = {}
+      for (const k in opt) {
+        execEnv[k] = opt[k]
+      }
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          bin,
+          execArgs: ['serve'],
+          execEnv,
+          on
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
       }
     })
   }

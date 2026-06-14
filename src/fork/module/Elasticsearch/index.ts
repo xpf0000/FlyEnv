@@ -6,7 +6,6 @@ import {
   AppLog,
   brewInfoJson,
   portSearch,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -18,6 +17,7 @@ import {
   zipUnpack,
   moveChildDirToParent
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
@@ -71,13 +71,16 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
           return
         }
       } else {
-        const execEnv = `export ES_HOME="${version.path}"
-export ES_PATH_CONF="${join(version.path, 'config')}"
-`
-        const execArgs = `-d -p "${this.pidPath}"`
+        // Drop `-d` (daemonize): serviceStartSpawn backgrounds the process itself and
+        // needs elasticsearch to stay in the foreground. `-p` still records the pid.
+        const execEnv: Record<string, string> = {
+          ES_HOME: version.path,
+          ES_PATH_CONF: join(version.path, 'config')
+        }
+        const execArgs = ['-p', this.pidPath]
 
         try {
-          const res = await serviceStartExec({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
@@ -85,8 +88,7 @@ export ES_PATH_CONF="${join(version.path, 'config')}"
             execArgs,
             execEnv,
             on,
-            maxTime: 60,
-            timeToWait: 2000
+            waitTime: 5000
           })
           resolve(res)
         } catch (e: any) {

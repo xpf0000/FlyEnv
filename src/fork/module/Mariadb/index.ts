@@ -18,7 +18,6 @@ import {
   portSearch,
   versionFilterSame,
   AppLog,
-  serviceStartExec,
   writeFile,
   mkdirp,
   chmod,
@@ -603,40 +602,40 @@ datadir=${dataDir}`
               return
             }
           } else {
+            // Use the real `mariadbd` (foreground) instead of the `mariadbd-safe`
+            // wrapper that version.bin points to — serviceStartSpawn backgrounds the
+            // process itself and needs a foreground server (no fork-and-exit wrapper).
+            const serverBin = join(dirname(bin), 'mariadbd')
             const params = [
-              `--defaults-file="${m}"`,
-              `--pid-file="${p}"`,
+              `--defaults-file=${m}`,
+              `--pid-file=${p}`,
               '--slow-query-log=ON',
-              `--slow-query-log-file="${s}"`,
-              `--log-error="${e}"`
+              `--slow-query-log-file=${s}`,
+              `--log-error=${e}`
             ]
             if (version?.flag === 'macports') {
-              params.push(`--lc-messages-dir="/opt/local/share/${basename(version.path)}/english"`)
+              params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
             }
 
             if (skipGrantTables) {
               params.push(`--socket=/tmp/mysql.${version.version}.sock`)
-              params.push(`--datadir="${ddir}"`)
-              params.push('--bind-address="127.0.0.1"')
+              params.push(`--datadir=${ddir}`)
+              params.push('--bind-address=127.0.0.1')
               params.push(`--port=${port}`)
               params.push('--skip-grant-tables')
             } else {
               params.push(`--socket=/tmp/mysql.sock`)
             }
 
-            const bin = version.bin
-            const execEnv = ''
-            const execArgs = params.join(' ')
-
             try {
-              const res = await serviceStartExec({
+              const res = await serviceStartSpawn({
                 version,
                 pidPath: p,
                 baseDir,
-                bin,
-                execArgs,
-                execEnv,
-                on
+                bin: serverBin,
+                execArgs: params,
+                on,
+                waitTime: 2000
               })
               resolve(res)
             } catch (e: any) {

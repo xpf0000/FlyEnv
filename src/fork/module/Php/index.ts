@@ -16,7 +16,6 @@ import {
   portSearch,
   versionFilterSame,
   AppLog,
-  serviceStartExec,
   writeFile,
   readFile,
   copyFile,
@@ -27,6 +26,7 @@ import {
   readFileByRoot,
   chmod
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import axios from 'axios'
@@ -334,11 +334,14 @@ xdebug.output_dir = "${output_dir}"
       }
 
       const baseDir = global.Server.PhpDir!
-      const execEnv = ''
-      const execArgs = `-p "${varPath}" -y "${phpFpmConf}" -g "${pid}"`
+      const execEnv = {}
+      // `-F` (nodaemonize) keeps php-fpm in the foreground so the detached spawn owns
+      // the master process directly; otherwise php-fpm forks and the parent exits,
+      // which serviceStartSpawn would treat as a startup failure.
+      const execArgs = ['-p', varPath, '-y', phpFpmConf, '-g', pid, '-F']
 
       try {
-        const res = await serviceStartExec({
+        const res = await serviceStartSpawn({
           version,
           pidPath: pid,
           baseDir,

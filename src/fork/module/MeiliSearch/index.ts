@@ -15,7 +15,6 @@ import {
   readFile,
   remove,
   writeFile,
-  serviceStartExec,
   copyFile,
   chmod,
   waitTime,
@@ -79,45 +78,22 @@ class MeiliSearch extends Base {
 
       const baseDir = join(global.Server.BaseDir!, 'meilisearch')
 
-      if (isWindows()) {
-        const execArgs = ['--config-file-path', iniFile]
-
-        try {
-          const res = await serviceStartSpawn({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            cwd: working_dir,
-            bin,
-            execArgs,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
-        const execArgs = `--config-file-path "${iniFile}"`
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            on,
-            timeToWait: 1000,
-            checkPidFile: false,
-            cwd: working_dir
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
+      const execArgs = ['--config-file-path', iniFile]
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          cwd: working_dir,
+          bin,
+          execArgs,
+          on
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
       }
     })
   }

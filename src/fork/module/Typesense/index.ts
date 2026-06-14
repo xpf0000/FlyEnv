@@ -5,7 +5,6 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -81,8 +80,6 @@ cors-domains = *
       const baseDir = join(global.Server.BaseDir!, 'typesense')
       await mkdirp(baseDir)
 
-      const execEnv = ``
-
       const logDir = join(baseDir, 'log')
       if (!existsSync(logDir)) {
         await mkdirp(logDir)
@@ -97,42 +94,21 @@ cors-domains = *
         await waitTime(600)
       }
 
-      if (isWindows()) {
-        const execArgs = [`--config=${iniFile}`, `--log-dir=${logDir}`]
-        try {
-          const res = await serviceStartSpawn({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
-        const execArgs = `--config="${iniFile}" --log-dir="${logDir}"`
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
+      const execArgs = [`--config=${iniFile}`, `--log-dir=${logDir}`]
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          on
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
       }
     })
   }

@@ -11,7 +11,6 @@ import {
   mkdirp,
   portSearch,
   remove,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -43,45 +42,24 @@ class Memcached extends Base {
       })
       const bin = version.bin
       const baseDir = global.Server.MemcachedDir!
-      const execEnv = ''
 
-      if (isWindows()) {
-        const execArgs = ['-P', this.pidPath]
-
-        try {
-          const res = await serviceStartSpawn({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
-        const execArgs = `-d -P "${this.pidPath}" -vv`
-
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
+      // Drop `-d` (daemonize): serviceStartSpawn already backgrounds the process,
+      // and needs memcached to stay foreground (no fork-and-exit).
+      const execArgs = ['-P', this.pidPath, '-vv']
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          on
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
       }
     })
   }

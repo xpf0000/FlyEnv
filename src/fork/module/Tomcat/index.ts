@@ -26,6 +26,7 @@ import {
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { makeGlobalTomcatServerXML } from './ServerXML'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { I18nT } from '@lang/index'
 import { isLinux, isWindows } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
@@ -151,6 +152,12 @@ class Tomcat extends Base {
       } as any)
 
       await mkdirp(join(baseDir, 'logs'))
+      // Tomcat needs these CATALINA_BASE dirs; java.io.tmpdir points at temp/ and the
+      // JVM warns/aborts if it is missing (notably when started in the foreground via
+      // `catalina.sh run`).
+      await mkdirp(join(baseDir, 'temp'))
+      await mkdirp(join(baseDir, 'work'))
+      await mkdirp(join(baseDir, 'webapps'))
 
       const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
       const execArgs = ``
@@ -217,7 +224,8 @@ class Tomcat extends Base {
           )
         })
         reject(new Error('Start failed'))
-      } else {
+      } else if (isLinux()) {
+        // Linux keeps the privileged Helper script path (root) unchanged.
         const execEnvs: string[] = [
           `export CATALINA_BASE="${baseDir}"`,
           `export CATALINA_PID="${this.pidPath}"`
@@ -231,7 +239,7 @@ class Tomcat extends Base {
         const execEnv = execEnvs.join('\n')
         try {
           const res = await serviceStartExec({
-            root: isLinux(),
+            root: true,
             version,
             pidPath: this.pidPath,
             baseDir: tomcatDir,
@@ -239,6 +247,43 @@ class Tomcat extends Base {
             execArgs,
             execEnv,
             on
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else {
+        // macOS: version.bin is `startup.sh`, which always `exec`s `catalina.sh start`
+        // (daemonizes + parent exits) — serviceStartSpawn would see the launcher exit
+        // within waitTime and report failure even though the JVM came up. Use
+        // `catalina.sh run` instead, which runs the JVM in the foreground so the
+        // detached spawn owns it directly.
+        const catalinaBin = join(dirname(bin), 'catalina.sh')
+        const execEnv: Record<string, string> = {
+          CATALINA_BASE: baseDir,
+          CATALINA_PID: this.pidPath
+        }
+        const env = await EnvSync.sync()
+        if (env?.JAVA_HOME) {
+          execEnv.JAVA_HOME = env.JAVA_HOME
+        } else if (env?.JAR_HOME) {
+          execEnv.JAR_HOME = env.JAR_HOME
+        }
+        try {
+          const res = await serviceStartSpawn({
+            version,
+            pidPath: this.pidPath,
+            baseDir: tomcatDir,
+            bin: catalinaBin,
+            execArgs: ['run'],
+            execEnv,
+            on,
+            waitTime: 3000,
+            // Mirror `catalina.sh start` behaviour: console output goes to catalina.out.
+            outFile: join(baseDir, 'logs/catalina.out'),
+            errFile: join(baseDir, 'logs/catalina.out')
           })
           resolve(res)
         } catch (e: any) {

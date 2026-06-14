@@ -48,6 +48,10 @@ export type ServiceStartSpawnParams = {
   on: (...args: any) => void
   waitTime?: number
   cwd?: string
+  /** Override where the process stdout is written (default: baseDir/<flag>-<ver>-start-out.log) */
+  outFile?: string
+  /** Override where the process stderr is written (default: baseDir/<flag>-<ver>-start-error.log) */
+  errFile?: string
 }
 
 type UnixCustomerServiceStartScriptParams = {
@@ -420,8 +424,13 @@ export async function serviceStartSpawn(
   const typeFlag = version.typeFlag
   const versionStr = version.version!.trim()
 
-  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
-  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
+  const outFile =
+    param?.outFile ?? join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
+  const errFile =
+    param?.errFile ?? join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
+
+  await mkdirp(dirname(outFile))
+  await mkdirp(dirname(errFile))
 
   const out = openSync(outFile, 'a')
   const err = openSync(errFile, 'a')

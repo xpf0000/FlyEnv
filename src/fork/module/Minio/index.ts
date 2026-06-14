@@ -6,7 +6,6 @@ import type { SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
-  serviceStartExec,
   spawnPromise,
   versionBinVersion,
   versionFilterSame,
@@ -22,7 +21,6 @@ import {
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
-import { EOL } from 'os'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 
 class Minio extends Base {
@@ -148,91 +146,45 @@ class Minio extends Base {
 
       const opt = await getConfEnv()
 
-      if (isWindows()) {
-        const execEnv: Record<string, string> = {}
-        for (const k in opt) {
-          const v = opt[k]
-          if (k === 'MINIO_ADDRESS') {
-            address = v
-          } else if (k === 'MINIO_CONSOLE_ADDRESS') {
-            console_address = v
-          } else if (k === 'MINIO_CERTS_DIR') {
-            certs_dir = v
-          }
-          execEnv[k] = v
+      const execEnv: Record<string, string> = {}
+      for (const k in opt) {
+        const v = opt[k]
+        if (k === 'MINIO_ADDRESS') {
+          address = v
+        } else if (k === 'MINIO_CONSOLE_ADDRESS') {
+          console_address = v
+        } else if (k === 'MINIO_CERTS_DIR') {
+          certs_dir = v
         }
+        execEnv[k] = v
+      }
 
-        const execArgs = ['server', dataDir]
-        if (address) {
-          execArgs.push('--address', address)
-        }
-        if (console_address) {
-          execArgs.push('--console-address', console_address)
-        }
-        if (certs_dir) {
-          execArgs.push('--certs-dir', certs_dir)
-        }
+      const execArgs = ['server', dataDir]
+      if (address) {
+        execArgs.push('--address', address)
+      }
+      if (console_address) {
+        execArgs.push('--console-address', console_address)
+      }
+      if (certs_dir) {
+        execArgs.push('--certs-dir', certs_dir)
+      }
 
-        try {
-          const res = await serviceStartSpawn({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
-        const envs: string[] = []
-        for (const k in opt) {
-          const v = opt[k]
-          if (k === 'MINIO_ADDRESS') {
-            address = v
-          } else if (k === 'MINIO_CONSOLE_ADDRESS') {
-            console_address = v
-          } else if (k === 'MINIO_CERTS_DIR') {
-            certs_dir = v
-          }
-          envs.push(`export ${k}="${v}"`)
-        }
-        envs.push('')
-
-        const execEnv = envs.join(EOL)
-        let execArgs = `server "${dataDir}"`
-        if (address) {
-          execArgs += ` --address "${address}"`
-        }
-        if (console_address) {
-          execArgs += ` --console-address "${console_address}"`
-        }
-        if (certs_dir) {
-          execArgs += ` --certs-dir "${certs_dir}"`
-        }
-
-        try {
-          const res = await serviceStartExec({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
       }
     })
   }

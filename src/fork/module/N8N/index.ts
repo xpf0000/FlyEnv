@@ -1,6 +1,6 @@
 import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
-import { EOL, homedir } from 'os'
+import { homedir } from 'os'
 import { Base } from '../Base'
 import type { SoftInstalled } from '@shared/app'
 import {
@@ -10,10 +10,10 @@ import {
   readFile,
   writeFile,
   remove,
-  serviceStartExec,
   serviceStartExecCMD,
   waitTime
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import { isWindows } from '@shared/utils'
@@ -173,9 +173,7 @@ class N8N extends Base {
         ? Object.entries(opt)
             .map(([k, v]) => `SET ${k}=${v}`)
             .join('\r\n') + '\r\n'
-        : Object.entries(opt)
-            .map(([k, v]) => `export ${k}="${v}"`)
-            .join(EOL) + EOL
+        : ''
 
       const startService = isWindows()
         ? () =>
@@ -189,17 +187,25 @@ class N8N extends Base {
               on,
               checkPidFile: false
             })
-        : () =>
-            serviceStartExec({
+        : () => {
+            // n8n's `start` runs the node process in the foreground (no fork), so the
+            // detached spawn owns it directly — no script landed to disk. checkPid()
+            // below locates the real PID from the process list.
+            const spawnEnv: Record<string, string> = {}
+            for (const [k, v] of Object.entries(opt)) {
+              spawnEnv[k] = `${v}`
+            }
+            return serviceStartSpawn({
               version,
               pidPath: this.pidPath,
               baseDir,
               bin,
-              execArgs: 'start',
-              execEnv,
+              execArgs: ['start'],
+              execEnv: spawnEnv,
               on,
-              checkPidFile: false
+              waitTime: 3000
             })
+          }
 
       const checkPid = async (times = 0) => {
         if (times > 10) {
@@ -233,14 +239,18 @@ class N8N extends Base {
       }
 
       try {
-        await startService()
-      } catch (e) {
-        reject(e)
-        return
-      }
+        const startRes: any = await startService()
 
-      try {
-        const pid = await checkPid()
+        // On non-Windows, serviceStartSpawn directly owns the foreground `node bin/n8n
+        // start` process, so its returned PID is authoritative — no process-list search
+        // needed. On Windows the cmd wrapper detaches, so fall back to checkPid().
+        let pid = ''
+        if (!isWindows() && startRes?.['APP-Service-Start-PID']) {
+          pid = `${startRes['APP-Service-Start-PID']}`
+        } else {
+          pid = await checkPid()
+        }
+
         resolve({
           'APP-Service-Start-PID': pid
         })

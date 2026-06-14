@@ -9,7 +9,6 @@ import {
   brewSearch,
   getSubDirAsync,
   portSearch,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -28,6 +27,7 @@ import {
   execPromiseWithEnv,
   spawnPromiseWithEnv
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
@@ -186,25 +186,35 @@ class Manager extends Base {
             return
           }
         } else {
-          const execEnv = `export LC_ALL="${global.Server.Local!}"
-export LANG="${global.Server.Local!}"
-`
-          const execArgs = `-D "${dbPath}" -l "${logFile}" start`
+          // Use `postgres -D` (foreground) instead of `pg_ctl ... start`, which forks
+          // a daemon and exits — serviceStartSpawn backgrounds the process itself and
+          // needs a foreground server. version.bin is pg_ctl; postgres is its sibling.
+          // postgres reads postgresql.conf from the data dir and writes postmaster.pid.
+          const postgresBin = join(dirname(bin), 'postgres')
+          const execEnv: Record<string, string> = {
+            LC_ALL: global.Server.Local!,
+            LANG: global.Server.Local!
+          }
+          const execArgs = ['-D', dbPath]
 
           try {
-            const res = await serviceStartExec({
+            const res = await serviceStartSpawn({
               version,
               pidPath: pidFile,
               baseDir,
-              bin,
+              bin: postgresBin,
               execArgs,
               execEnv,
-              on
+              on,
+              waitTime: 2000,
+              // Preserve the old `pg_ctl -l pg.log` behaviour: server log → pg.log.
+              outFile: logFile,
+              errFile: logFile
             })
             if (sendUserPass) {
               on(I18nT('fork.postgresqlInit', { dir: dbPath }))
             }
-            const pid = res['APP-Service-Start-PID'].trim().split('\n').shift()!.trim()
+            const pid = `${res['APP-Service-Start-PID']}`.trim().split('\n').shift()!.trim()
             on({
               'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
             })

@@ -6,7 +6,6 @@ import {
   AppLog,
   brewInfoJson,
   portSearch,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -21,7 +20,7 @@ import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
-import { isLinux, isWindows } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 import { getPrimaryLocalIPAddress } from '@shared/network'
 
 class Consul extends Base {
@@ -94,50 +93,30 @@ class Consul extends Base {
       const dbPath = DATA_DIR ?? join(baseDir, `consul-${versionTop}-data`)
       const logPath = join(baseDir, `consul.log`)
       const ip = getPrimaryLocalIPAddress()
-      if (isWindows()) {
-        const execArgs = [
-          'agent',
-          `-config-file=${iniFile}`,
-          `-data-dir=${dbPath}`,
-          `-log-file=${logPath}`,
-          `-bind=${ip}`,
-          `-pid-file=${this.pidPath}`
-        ]
-        try {
-          const res = await serviceStartSpawn({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
-        const execEnv = ``
-        const execArgs = `agent -config-file="${iniFile}" -data-dir="${dbPath}" -log-file="${logPath}" -bind="${ip}" -pid-file="${this.pidPath}"`
-        try {
-          const res = await serviceStartExec({
-            root: isLinux(),
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
+      // Consul binds only non-privileged ports (8500/8600/8300...), so no root is
+      // needed on any platform — single detached-spawn path, no script landed.
+      const execArgs = [
+        'agent',
+        `-config-file=${iniFile}`,
+        `-data-dir=${dbPath}`,
+        `-log-file=${logPath}`,
+        `-bind=${ip}`,
+        `-pid-file=${this.pidPath}`
+      ]
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          on
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
       }
     })
   }
