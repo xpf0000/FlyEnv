@@ -17,9 +17,9 @@ import {
   writeFile,
   mkdirp,
   zipUnpack,
-  serviceStartExecCMD,
   moveChildDirToParent
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { I18nT } from '@lang/index'
@@ -163,16 +163,15 @@ class Nginx extends Base {
 
         const pid = join(global.Server.NginxDir!, 'logs/nginx.pid')
 
-        const execArgs = `-p "${p}"`
+        const execArgs = ['-p', p]
 
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartSpawn({
             version,
             pidPath: pid,
             baseDir,
             bin,
             execArgs,
-            execEnv,
             on
           })
           resolve(res)

@@ -57,15 +57,6 @@ export async function readFileAsUTF8(filePath: string): Promise<string> {
   }
 }
 
-type WindowsPowerShellServiceStartScriptParams = {
-  execEnv: string
-  cwd: string
-  bin: string
-  execArgs: string
-  outFile: string
-  errFile: string
-}
-
 type WindowsCmdServiceStartCommandParams = {
   execEnv: string
   cwd: string
@@ -91,40 +82,6 @@ function powerShellSingleQuoted(value: string): string {
 
 function powerShellArray(values: string[]): string {
   return `@(${values.map(powerShellSingleQuoted).join(', ')})`
-}
-
-export function buildWindowsPowerShellServiceStartScript(
-  params: WindowsPowerShellServiceStartScriptParams
-): string {
-  return `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-[Console]::InputEncoding = [System.Text.Encoding]::UTF8
-
-$env:LC_ALL = 'en_US.UTF-8'
-$env:LANG = 'en_US.UTF-8'
-
-${params.execEnv}
-
-$BIN = ${powerShellSingleQuoted(params.bin)}
-$ARGS = ${powerShellSingleQuoted(params.execArgs)}
-$OUTLOG = ${powerShellSingleQuoted(params.outFile)}
-$ERRLOG = ${powerShellSingleQuoted(params.errFile)}
-
-Set-Location -LiteralPath ${powerShellSingleQuoted(params.cwd)}
-
-$process = Start-Process -FilePath $BIN \`
-    -ArgumentList $ARGS \`
-    -WindowStyle Hidden \`
-    -PassThru \`
-    -RedirectStandardOutput $OUTLOG \`
-    -RedirectStandardError $ERRLOG
-
-if ($process) {
-    Write-Host "##FlyEnv-Process-ID$($process.Id)FlyEnv-Process-ID##"
-}
-else {
-    Write-Error "Exec Failed"
-    exit 1
-}`
 }
 
 export function buildWindowsCmdServiceStartCommand(
@@ -194,133 +151,6 @@ else {
     Write-Error "Exec Failed"
     exit 1
 }`
-}
-
-export async function serviceStartExec(
-  param: ServiceStartParams
-): Promise<{ 'APP-Service-Start-PID': string }> {
-  const baseDir = param.baseDir
-  const version = param.version
-  const execEnv = param?.execEnv ?? ''
-  const cwd = param?.cwd ?? dirname(param.bin)
-  const bin = param.bin
-  const execArgs = param?.execArgs ?? ' '
-  const on = param.on
-  const checkPidFile = param?.checkPidFile ?? true
-  const pidPath = param?.pidPath ?? ''
-  const maxTime = param?.maxTime ?? 20
-  const timeToWait = param?.timeToWait ?? 500
-
-  if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
-  }
-
-  const typeFlag = version.typeFlag
-  const versionStr = version.version!.trim()
-
-  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
-  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
-
-  const psScript = buildWindowsPowerShellServiceStartScript({
-    execEnv,
-    cwd,
-    bin,
-    execArgs,
-    outFile,
-    errFile
-  })
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-  })
-
-  process.chdir(baseDir)
-  let res: any
-  try {
-    await EnvSync.sync()
-    res = await spawnPromiseWithEnv(
-      EnvSync.PowerShellPath || 'powershell.exe',
-      powerShellInlineArgs(psScript),
-      {
-        cwd: baseDir,
-        windowsHide: true
-      }
-    )
-  } catch (e) {
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.execStartCommandFail', {
-          error: e,
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw e
-  }
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-  })
-  on({
-    'APP-Service-Start-Success': true
-  })
-
-  if (!checkPidFile) {
-    let pid = ''
-    const stdout = res.stdout.trim() + '\n' + res.stderr.trim()
-    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
-    const match = regex.exec(stdout)
-    if (match) {
-      pid = match[1] // 捕获组 (\d+) 的内容
-    }
-    await writeFile(pidPath, pid)
-    on({
-      'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-    })
-    return {
-      'APP-Service-Start-PID': pid
-    }
-  }
-
-  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
-  if (res) {
-    if (res?.pid) {
-      await writeFile(pidPath, res.pid)
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-      })
-      return {
-        'APP-Service-Start-PID': res.pid
-      }
-    }
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.startServiceFail', {
-          error: res?.error ?? 'Start Fail',
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw new Error(res?.error ?? 'Start Fail')
-  }
-  let msg = 'Start Fail'
-  if (existsSync(errFile)) {
-    msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
-  }
-  on({
-    'APP-On-Log': AppLog(
-      'error',
-      I18nT('appLog.startServiceFail', {
-        error: msg,
-        service: `${version.typeFlag}-${version.version}`
-      })
-    )
-  })
-  throw new Error(msg)
 }
 
 export async function serviceStartExecCMD(

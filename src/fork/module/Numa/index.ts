@@ -8,6 +8,7 @@ import {
   brewInfoJson,
   execPromiseWithEnv,
   serviceStartExec,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionLocalFetch,
@@ -16,14 +17,16 @@ import {
   writeFile,
   mkdirp,
   readdir,
-  serviceStartExecCMD,
-  binXattrFix
+  binXattrFix,
+  waitTime
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { serviceStartSpawn } from '../../util/ServiceStart'
+import { ProcessListSearch } from '@shared/Process.win'
+import { ProcessListFetch, ProcessSearch } from '@shared/Process'
 
 class Numa extends Base {
   constructor() {
@@ -59,6 +62,16 @@ class Numa extends Base {
     })
   }
 
+  private async _findNumaProcess(configFile: string): Promise<string> {
+    if (isWindows()) {
+      const list = await ProcessListSearch(configFile, false)
+      return list[0]?.PID ?? ''
+    }
+    const plist = await ProcessListFetch()
+    const list = ProcessSearch(configFile, false, plist)
+    return list[0]?.PID ?? ''
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
@@ -72,10 +85,11 @@ class Numa extends Base {
       const baseDir = join(global.Server.BaseDir!, 'numa')
       await mkdirp(baseDir)
 
-      const execArgs = `"${configFile}"`
+      let startError: any = null
+      let res: any = null
       try {
-        let res: any
         if (isLinux()) {
+          const execArgs = `"${configFile}"`
           res = await serviceStartExec({
             root: true,
             version,
@@ -86,7 +100,19 @@ class Numa extends Base {
             on,
             checkPidFile: false
           })
-        } else if (isMacOS()) {
+        } else if (isWindows()) {
+          const execArgs = `"${configFile}"`
+          res = await serviceStartExecCMD({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            on,
+            checkPidFile: false,
+            timeToWait: 500
+          })
+        } else {
           res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
@@ -96,22 +122,34 @@ class Numa extends Base {
             waitTime: 500,
             on
           })
-        } else {
-          res = await serviceStartExecCMD({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            on,
-            checkPidFile: false
-          })
         }
-        resolve(res)
       } catch (e: any) {
         console.log('numa start err: ', e)
-        reject(e)
+        startError = e
+      }
+
+      let realPid = ''
+      if (!isMacOS()) {
+        for (let i = 0; i < 10; i++) {
+          realPid = await this._findNumaProcess(configFile)
+          if (realPid) {
+            break
+          }
+          await waitTime(500)
+        }
+      } else {
+        realPid = res?.['APP-Service-Start-PID'] ?? ''
+      }
+
+      if (realPid) {
+        resolve({ 'APP-Service-Start-PID': realPid })
         return
+      }
+
+      if (startError) {
+        reject(startError)
+      } else {
+        reject(new Error(I18nT('fork.startFail')))
       }
     })
   }

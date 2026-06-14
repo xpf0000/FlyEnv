@@ -18,9 +18,9 @@ import {
   versionSort,
   readFile,
   writeFile,
-  mkdirp,
-  serviceStartExecCMD
+  mkdirp
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
@@ -347,15 +347,14 @@ IncludeOptional "${vhost}"`
       const pidFile = join(global.Server.ApacheDir!, 'httpd.pid')
       const bin = version.bin
       if (isWindows()) {
-        const execArgs = `-f "${conf}"`
+        const execArgs = ['-f', conf]
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartSpawn({
             version,
             pidPath: pidFile,
             baseDir: global.Server.ApacheDir!,
             bin,
             execArgs,
-            execEnv: '',
             on
           })
           resolve(res)

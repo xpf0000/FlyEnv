@@ -19,9 +19,10 @@ import {
   mkdirp,
   chmod,
   copyFile,
-  serviceStartExecCMD,
+  waitTime,
   execPromiseWithEnv
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
@@ -134,21 +135,39 @@ class Redis extends Base {
         const runConf = join(dirname(bin), appConfName)
         await copyFile(conf, runConf)
 
-        const execArgs = `"${appConfName}"`
+        const execArgs = [appConfName]
 
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
-            execEnv,
             on
           })
           resolve(res)
         } catch (e: any) {
           console.log('-k start err: ', e)
+          // daemonize yes 时 redis 自后台化、初始进程秒退, serviceStartSpawn 会误判失败.
+          // 回退: 按命令行特征 (含 appConfName) 查找真实运行的 redis 进程确认是否启动成功.
+          // 不依赖 pidfile 的 PID —— msys2 版 redis daemonize 会多次 fork, pidfile 记录的 PID
+          // 可能是已退出的中间进程, 与最终工作进程不一致 (与 _stopServer 用同样的查找方式).
+          let started = false
+          let realPid = ''
+          for (let i = 0; i < 10; i++) {
+            const list = await ProcessListSearch(appConfName, false)
+            if (list.length > 0) {
+              started = true
+              realPid = list[0].PID
+              break
+            }
+            await waitTime(500)
+          }
+          if (started) {
+            resolve({ 'APP-Service-Start-PID': realPid })
+            return
+          }
           reject(e)
           return
         }

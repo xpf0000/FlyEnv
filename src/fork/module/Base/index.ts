@@ -252,7 +252,8 @@ export class Base {
         rnacos: 'rnacos',
         frankenphp: 'frankenphp',
         roadrunner: 'rr',
-        'swoole-cli': 'swoole-cli'
+        'swoole-cli': 'swoole-cli',
+        numa: 'numa'
       }
       const serverName = dis?.[this.type]
       if (serverName) {

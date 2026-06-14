@@ -17,9 +17,9 @@ import {
   copyFile,
   readdir,
   zipUnpack,
-  versionLocalFetch,
-  serviceStartExecWin
+  versionLocalFetch
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import axios from 'axios'
@@ -277,18 +277,16 @@ class Php extends Base {
 
       const bin = join(version.path, 'php-cgi-spawner.exe')
       const pidPath = join(global.Server.PhpDir!, `php${version.num}.pid`)
-      const execArgs = `\`"php-cgi.exe -c php.phpwebstudy.90${version.num}.ini\`" 90${version.num} 4`
+      const execArgs = [`php-cgi.exe -c php.phpwebstudy.90${version.num}.ini`, `90${version.num}`, '4']
 
       try {
-        const res = await serviceStartExecWin({
+        const res = await serviceStartSpawn({
           version,
           pidPath,
           baseDir: global.Server.PhpDir!,
           bin,
           execArgs,
-          execEnv: '',
-          on,
-          checkPidFile: false
+          on
         })
         resolve(res)
       } catch (e: any) {

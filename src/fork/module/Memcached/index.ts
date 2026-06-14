@@ -12,7 +12,6 @@ import {
   portSearch,
   remove,
   serviceStartExec,
-  serviceStartExecWin,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -20,6 +19,7 @@ import {
   versionSort,
   zipUnpack
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isWindows } from '@shared/utils'
@@ -46,18 +46,16 @@ class Memcached extends Base {
       const execEnv = ''
 
       if (isWindows()) {
-        const execArgs = `-d -P \`"${this.pidPath}\`"`
+        const execArgs = ['-P', this.pidPath]
 
         try {
-          const res = await serviceStartExecWin({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
+            on
           })
           resolve(res)
         } catch (e: any) {

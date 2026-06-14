@@ -13,7 +13,6 @@ import {
   versionSort,
   writeFile,
   mkdirp,
-  serviceStartExecWin,
   remove,
   zipUnpack,
   moveChildDirToParent,
@@ -21,6 +20,7 @@ import {
   readFile,
   waitTime
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
@@ -98,17 +98,15 @@ cors-domains = *
       }
 
       if (isWindows()) {
-        const execArgs = `--config=\`"${iniFile}\`" --log-dir=\`"${logDir}\`"`
+        const execArgs = [`--config=${iniFile}`, `--log-dir=${logDir}`]
         try {
-          const res = await serviceStartExecWin({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
+            on
           })
           resolve(res)
         } catch (e: any) {

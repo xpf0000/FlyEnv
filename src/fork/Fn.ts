@@ -15,7 +15,6 @@ import { customerServiceStartExec, serviceStartExec } from './util/ServiceStart'
 import {
   customerServiceStartExec as customerServiceStartExecWin,
   readFileAsUTF8,
-  serviceStartExec as serviceStartExecWin,
   serviceStartExecCMD
 } from './util/ServiceStart.win'
 import {
@@ -88,7 +87,6 @@ export {
   moveChildDirToParent,
   serviceStartExec,
   customerServiceStartExec,
-  serviceStartExecWin,
   serviceStartExecCMD,
   readFileAsUTF8,
   customerServiceStartExecWin

@@ -14,10 +14,10 @@ import {
   versionSort,
   writeFile,
   mkdirp,
-  serviceStartExecCMD,
   versionBinVersionSync,
   chmod
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
@@ -47,16 +47,20 @@ class Consul extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
-        const content = JSON.stringify(
-          {
-            server: true,
-            bootstrap: true,
-            client_addr: '127.0.0.1',
-            ui: true
-          },
-          null,
-          2
-        )
+        const json: any = {
+          server: true,
+          bootstrap_expect: 1,
+          client_addr: '127.0.0.1',
+          ui_config: {
+            enabled: true
+          }
+        }
+        if (isWindows()) {
+          // Consul's default Raft WAL backend fsyncs the `raft/wal` directory on start,
+          // which Windows rejects with "Access is denied". Use the BoltDB backend instead.
+          json.raft_logstore = { backend: 'boltdb' }
+        }
+        const content = JSON.stringify(json, null, 2)
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, `consul-${versionTop}.default`)
         await writeFile(defaultIniFile, content)
@@ -91,15 +95,21 @@ class Consul extends Base {
       const logPath = join(baseDir, `consul.log`)
       const ip = getPrimaryLocalIPAddress()
       if (isWindows()) {
-        const execArgs = `agent -config-file="${iniFile}" -data-dir="${dbPath}" -log-file="${logPath}" -bind="${ip}" -pid-file="${this.pidPath}"`
+        const execArgs = [
+          'agent',
+          `-config-file=${iniFile}`,
+          `-data-dir=${dbPath}`,
+          `-log-file=${logPath}`,
+          `-bind=${ip}`,
+          `-pid-file=${this.pidPath}`
+        ]
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
-            execEnv: '',
             on
           })
           resolve(res)

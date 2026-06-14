@@ -14,9 +14,9 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  serviceStartExecWin,
   binXattrFix
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
@@ -116,26 +116,19 @@ class MailPit extends Base {
       await mkdirp(baseDir)
 
       if (isWindows()) {
-        const envs: string[] = []
+        const execEnv: Record<string, string> = {}
         for (const k in opt) {
-          const v = opt[k]
-          envs.push(`$env:${k}="${v}"`)
+          execEnv[k] = opt[k]
         }
-        envs.push('')
-
-        const execEnv = envs.join(EOL)
-        const execArgs = ` `
 
         try {
-          const res = await serviceStartExecWin({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
-            execArgs,
             execEnv,
-            on,
-            checkPidFile: false
+            on
           })
           resolve(res)
         } catch (e: any) {

@@ -22,7 +22,6 @@ import {
   zipUnpack,
   moveChildDirToParent,
   createWriteStream,
-  serviceStartExecCMD,
   waitTime
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -172,44 +171,22 @@ class Manager extends Base {
       const logPath = join(global.Server.MongoDBDir!, `mongodb-${v}.log`)
 
       const baseDir = global.Server.MongoDBDir!
-      const execEnv = ''
-      if (isWindows()) {
-        const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
-
-        try {
-          const res = await serviceStartExecCMD({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
-        const execArgs = ['--config', m, '--logpath', logPath, '--pidfilepath', this.pidPath]
-        try {
-          const res = await serviceStartSpawn({
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            on,
-            waitTime: 2000
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
+      const execArgs = ['--config', m, '--logpath', logPath, '--pidfilepath', this.pidPath]
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          on,
+          waitTime: 2000
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
       }
     })
   }

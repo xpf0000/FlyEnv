@@ -16,9 +16,9 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  serviceStartExecCMD,
   versionBinVersionSync
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
@@ -152,15 +152,14 @@ class Caddy extends Base {
       await mkdirp(baseDir)
 
       if (isWindows()) {
-        const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
+        const execArgs = ['run', '--config', iniFile, '--watch']
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
-            execEnv: '',
             on
           })
           resolve(res)

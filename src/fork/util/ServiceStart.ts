@@ -47,6 +47,7 @@ export type ServiceStartSpawnParams = {
   execEnv?: Record<string, string>
   on: (...args: any) => void
   waitTime?: number
+  cwd?: string
 }
 
 type UnixCustomerServiceStartScriptParams = {
@@ -432,7 +433,7 @@ export async function serviceStartSpawn(
   })
 
   const doExec = (): Promise<{ 'APP-Service-Start-PID': string }> => {
-    const cwd = dirname(bin)
+    const cwd = param?.cwd ?? dirname(bin)
     const options: any = {
       detached: true,
       stdio: ['ignore', out, err],

@@ -18,11 +18,11 @@ import {
   versionFilterSame,
   AppLog,
   serviceStartExec,
+  serviceStartExecCMD,
   mkdirp,
   writeFile,
   chmod,
   remove,
-  serviceStartExecCMD,
   spawnPromise,
   readFile
 } from '../../Fn'
@@ -230,7 +230,7 @@ datadir=${pathFixedToUnix(dataDir)}`
           const ddir = config?.mysqld?.datadir ?? dataDir
 
           if (isWindows()) {
-            const params = [
+            const execArgs = [
               `--defaults-file="${m}"`,
               `--pid-file="${p}"`,
               '--user=mysql',
@@ -239,26 +239,22 @@ datadir=${pathFixedToUnix(dataDir)}`
               `--log-error="${e}"`,
               '--standalone'
             ]
-
             if (skipGrantTables) {
-              params.push(`--datadir="${ddir}"`)
-              params.push('--bind-address="127.0.0.1"')
-              params.push(`--port=${port}`)
-              params.push(`--enable-named-pipe`)
-              params.push('--skip-grant-tables')
+              execArgs.push(`--datadir="${ddir}"`)
+              execArgs.push('--bind-address="127.0.0.1"')
+              execArgs.push(`--port=${port}`)
+              execArgs.push(`--enable-named-pipe`)
+              execArgs.push('--skip-grant-tables')
             }
-
-            const execArgs = params.join(' ')
-
-            console.log('execArgs: ', execArgs)
-
+            const execArgsStr = execArgs.join(' ')
+            console.log('execArgs: ', execArgsStr)
             try {
               const res = await serviceStartExecCMD({
                 version,
                 pidPath: p,
                 baseDir,
                 bin,
-                execArgs,
+                execArgs: execArgsStr,
                 execEnv,
                 on,
                 timeToWait: 1000,
@@ -504,7 +500,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         const execEnv = ''
         return new Promise(async (resolve, reject) => {
           if (isWindows()) {
-            const params = [
+            const execArgs = [
               `--defaults-file="${m}"`,
               `--datadir="${dataDir}"`,
               `--port="${version.port}"`,
@@ -515,10 +511,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
               `--log-error="${e}"`,
               `--socket="${sock}"`,
               '--standalone'
-            ]
-
-            const execArgs = params.join(' ')
-
+            ].join(' ')
             try {
               const res = await serviceStartExecCMD({
                 version: version.version as any,

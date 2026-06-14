@@ -6,7 +6,6 @@ import {
   AppLog,
   brewInfoJson,
   serviceStartExec,
-  serviceStartExecCMD,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
@@ -21,6 +20,7 @@ import {
   chmod,
   binXattrFix
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
@@ -85,15 +85,14 @@ class FrankenPHP extends Base {
       await mkdirp(baseDir)
 
       if (isWindows()) {
-        const execArgs = `run --config "${iniFile}" --pidfile "${this.pidPath}"`
+        const execArgs = ['run', '--config', iniFile, '--pidfile', this.pidPath]
         try {
-          const res = await serviceStartExecCMD({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
-            execEnv: '',
             on
           })
           resolve(res)

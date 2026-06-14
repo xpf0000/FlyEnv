@@ -17,9 +17,9 @@ import {
   mkdirp,
   readFile,
   writeFile,
-  serviceStartExecWin,
   binXattrFix
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
 import { EOL } from 'os'
@@ -149,7 +149,7 @@ class Minio extends Base {
       const opt = await getConfEnv()
 
       if (isWindows()) {
-        const envs: string[] = []
+        const execEnv: Record<string, string> = {}
         for (const k in opt) {
           const v = opt[k]
           if (k === 'MINIO_ADDRESS') {
@@ -159,32 +159,29 @@ class Minio extends Base {
           } else if (k === 'MINIO_CERTS_DIR') {
             certs_dir = v
           }
-          envs.push(`$env:${k}="${v}"`)
+          execEnv[k] = v
         }
-        envs.push('')
 
-        let execArgs = `server \`"${dataDir}\`"`
-        const execEnv = envs.join('\n')
+        const execArgs = ['server', dataDir]
         if (address) {
-          execArgs += ` --address "${address}"`
+          execArgs.push('--address', address)
         }
         if (console_address) {
-          execArgs += ` --console-address "${console_address}"`
+          execArgs.push('--console-address', console_address)
         }
         if (certs_dir) {
-          execArgs += ` --certs-dir "${certs_dir}"`
+          execArgs.push('--certs-dir', certs_dir)
         }
 
         try {
-          const res = await serviceStartExecWin({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
             execEnv,
-            on,
-            checkPidFile: false
+            on
           })
           resolve(res)
         } catch (e: any) {

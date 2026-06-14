@@ -11,13 +11,13 @@ import {
   versionLocalFetch,
   versionSort,
   mkdirp,
-  serviceStartExecWin,
   copyFile,
   binXattrFix,
   downloadFile,
   zipUnpack,
   rename
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
@@ -72,13 +72,12 @@ class Qdrant extends Base {
 
       if (isWindows()) {
         try {
-          const res = await serviceStartExecWin({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
-            on,
-            checkPidFile: false
+            on
           })
           resolve(res)
         } catch (e: any) {

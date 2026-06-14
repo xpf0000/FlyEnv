@@ -19,9 +19,9 @@ import {
   copyFile,
   chmod,
   waitTime,
-  execPromise,
-  serviceStartExecWin
+  execPromise
 } from '../../Fn'
+import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
@@ -80,20 +80,17 @@ class MeiliSearch extends Base {
       const baseDir = join(global.Server.BaseDir!, 'meilisearch')
 
       if (isWindows()) {
-        const execArgs = `--config-file-path \`"${iniFile}\`"`
-        const execEnv = ``
+        const execArgs = ['--config-file-path', iniFile]
 
         try {
-          const res = await serviceStartExecWin({
+          const res = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             cwd: working_dir,
             bin,
             execArgs,
-            execEnv,
-            on,
-            checkPidFile: false
+            on
           })
           resolve(res)
         } catch (e: any) {
