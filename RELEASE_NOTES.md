@@ -2,6 +2,54 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.15.4] - 2026-06-15
+
+# **FlyEnv v4.15.4 Update Release Notes**
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **1. Improved Service Startup on Windows**
+
+Reworked how FlyEnv launches its services on Windows to reduce the chance of false positives from antivirus software. Services now start through a cleaner launch path, so security tools are less likely to flag normal FlyEnv operations.
+
+---
+
+### **2. Improved Service Startup on macOS**
+
+Reworked how FlyEnv launches its services on macOS to resolve conflicts with certain terminal applications that modify the system default ZSH configuration. Those conflicts previously prevented FlyEnv-managed services from starting; services now launch reliably regardless of the host shell setup.
+
+---
+
+### **3. Fixed Startup-on-Boot for Paths Containing Spaces**
+
+Fixed the auto-start-on-boot logic on Windows and Linux so it works correctly when FlyEnv is installed in a folder whose path contains spaces. Boot startup is now registered correctly in these cases instead of failing silently.
+
+---
+
+### **4. Fixed Mailpit Version Detection**
+
+Fixed an issue where FlyEnv could not correctly read the version number for newer Mailpit releases. Mailpit version detection now works as expected.
+
+---
+
+### **5. Fixed RabbitMQ Management Plugin**
+
+Fixed an issue where the RabbitMQ management plugin could not be enabled, which left the RabbitMQ web management panel unusable. The management plugin now enables correctly and the web panel works as intended.
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)
+
+**Enjoy the update!**
+
 ## [4.15.3] - 2026-06-03
 
 # **FlyEnv v4.15.3 Update Release Notes**

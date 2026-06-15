@@ -27,6 +27,15 @@
 * **Manage projects:** Switch runtime versions per project, define start/stop commands, expose projects through local domains, reverse proxies, HTTPS, and Cloudflare Tunnel.
 * **Handle daily dev tasks:** Edit configs and logs, inspect ports, schedule cron jobs, manage Git, generate certificates, compare diffs, test WebSocket/SSE, and work with JWTs.
 
+Your environment adapts to your project, not the other way around—versions switch automatically as you move between projects:
+
+```bash
+cd ~/projects/legacy-wordpress
+php -v   # PHP 7.4 (auto-loaded)
+cd ~/projects/modern-laravel
+php -v   # PHP 8.3 (auto-switched)
+```
+
 ## Is FlyEnv For You?
 
 | Choose FlyEnv if you... | It may not be the best fit if you... |
@@ -56,6 +65,8 @@ Most local dev tools are either too heavy for everyday work (Docker Desktop) or 
 * **Project Workflows:** Switch Node/PHP environments by project and define project service commands, ports, domains, and HTTPS.
 * **Full-Stack Coverage:** Enable databases, queues, search engines, object storage, AI tools, and scheduled tasks from one app.
 * **Multilingual UI:** Use FlyEnv in 30+ languages.
+
+> **The real power is that everything works together.** A version switcher, a web server manager, a tunnel tool—you can find each of these elsewhere. What you can't find elsewhere is all of them in one window, sharing the same projects, sites, and workflow: `Install → Configure → Run → Reverse proxy → Tunnel → Debug → Ship`. The time you save isn't any one feature being fast. It's never having to leave.
 
 ---
 
@@ -104,7 +115,7 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 * **Network Tunnel**: Cloudflared, Cloudflare Tunnel.
 * **Web Servers**: FrankenPHP, [Apache], [Nginx], Caddy, Tomcat.
 * **Databases**: [MySQL], [MariaDB], [PostgreSQL], [MongoDB], Qdrant.
-* **Email Server**: Mailpit.
+* **Email Server**: [Mailpit].
 * **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, [PHP-CLI], [PHP-FPM], [RoadRunner], [Swoole Cli]), Go, [Node.js], [Python], Java (Maven, Gradle, SDKMAN), Erlang, Ruby, Rust (Rustup), Bun, Deno, Zig.
 * **Cache & Message Queue**: [Redis], Memcached, RabbitMQ.
 * **Service Governance**: Consul, Etcd, R-Nacos
@@ -132,7 +143,8 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 [MariaDB]: https://youtu.be/mvmbRi6KsgI
 [PostgreSQL]: https://youtu.be/5gW3WHh8_Jw
 [MongoDB]: https://youtu.be/wPjgwVeA6lw
-[Nodejs]: https://youtu.be/Pt_I3NDciZw
+[Mailpit]: https://youtu.be/D4MkA25Ofd0
+
 ---
 
 ## 🛠 Developer-Friendly Tools
@@ -156,14 +168,14 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 
 Finally, a fast, native environment for Windows developers.
 
-* **Installer:** [FlyEnv-Setup-4.15.3.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.3/FlyEnv-Setup-4.15.3.exe)
-* **Portable:** [FlyEnv-Portable-4.15.3.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.3/FlyEnv-Portable-4.15.3.exe)
+* **Installer:** [FlyEnv-Setup-4.15.4.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.4/FlyEnv-Setup-4.15.4.exe)
+* **Portable:** [FlyEnv-Portable-4.15.4.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.4/FlyEnv-Portable-4.15.4.exe)
 
 ### macOS
 
 * **Homebrew:** `brew install flyenv`
-* **DMG (Intel):** [FlyEnv-4.15.3.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.3/FlyEnv-4.15.3.dmg)
-* **DMG (Apple Silicon):** [FlyEnv-4.15.3-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.3/FlyEnv-4.15.3-arm64.dmg)
+* **DMG (Intel):** [FlyEnv-4.15.4.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.4/FlyEnv-4.15.4.dmg)
+* **DMG (Apple Silicon):** [FlyEnv-4.15.4-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.4/FlyEnv-4.15.4-arm64.dmg)
 
 ### Linux
 
@@ -171,13 +183,13 @@ Supports Debian/Ubuntu (.deb) and RedHat/CentOS (.rpm).
 
 #### Debian / Ubuntu
 
-- **x86_64**: [FlyEnv-4.15.3-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.3/FlyEnv-4.15.3-x64.deb)
-- **ARM64**: [FlyEnv-4.15.3-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.3/FlyEnv-4.15.3-arm64.deb)
+- **x86_64**: [FlyEnv-4.15.4-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.4/FlyEnv-4.15.4-x64.deb)
+- **ARM64**: [FlyEnv-4.15.4-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.4/FlyEnv-4.15.4-arm64.deb)
 
 #### Red Hat / Fedora / SUSE / CentOS
 
-- **x86_64**: [FlyEnv-4.15.3-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.3/FlyEnv-4.15.3-x64.rpm)
-- **ARM64**: [FlyEnv-4.15.3-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.3/FlyEnv-4.15.3-arm64.rpm)
+- **x86_64**: [FlyEnv-4.15.4-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.4/FlyEnv-4.15.4-x64.rpm)
+- **ARM64**: [FlyEnv-4.15.4-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.15.4/FlyEnv-4.15.4-arm64.rpm)
 
 ---
 
