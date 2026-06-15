@@ -539,8 +539,12 @@ func (t *ToolManager) SetAutoStartWin(enabled bool, taskName, exePath string) (b
 	}
 
 	if enabled {
+		// schtasks 的 /tr 值在路径含空格时需要内层引号，否则 Task Scheduler
+		// 会把首个空格前的部分当作可执行文件，导致登录时启动失败。
+		// Go 的 exec.Command 在 Windows 上会用 syscall.EscapeArg 处理内层引号。
+		trValue := `"` + exePath + `"`
 		_, stderr, err := utils.ExecCommand("schtasks.exe", []string{
-			"/create", "/tn", taskName, "/tr", exePath,
+			"/create", "/tn", taskName, "/tr", trValue,
 			"/sc", "onlogon", "/rl", "highest", "/f",
 		}, nil)
 		if err != nil {

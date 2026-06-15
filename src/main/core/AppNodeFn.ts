@@ -290,10 +290,13 @@ export class AppNodeFn {
         icon = join(global.Server.Static!, '512x512.png')
       }
 
+      // 按 freedesktop desktop entry 规范，Exec 字段中含空格的路径需用双引号包裹，
+      // 否则被当作多个参数，导致开机自启失败。
+      const execPath = app.getPath('exe')
       const desktopFileContent = `[Desktop Entry]
 Type=Application
 Name=${app.name}
-Exec=${app.getPath('exe')}
+Exec="${execPath}"
 Icon=${icon}
 StartupNotify=false
 Terminal=false

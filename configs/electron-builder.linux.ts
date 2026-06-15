@@ -38,7 +38,7 @@ const conf: Configuration = {
   rpm: {
     packageName: 'flyenv'
   },
-  artifactName: '${productName}-${version}.${ext}', // 自定义打包文件名格式
+  artifactName: '${productName}-${version}-${arch}.${ext}', // 自定义打包文件名格式
   linux: {
     icon: 'build/icons',
     asarUnpack: ['**/*.node', '**/node_modules/sharp/**/*', '**/node_modules/@img/**/*'],
