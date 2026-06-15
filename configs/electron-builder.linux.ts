@@ -1,6 +1,12 @@
 import type { Configuration } from 'electron-builder'
 import AfterPack from '../build/afterPack'
 
+// electron-builder 的 ${arch} 宏对 deb/rpm 会转成各包格式的原生架构名
+// (deb: x64→amd64, rpm: x64→x86_64 / arm64→aarch64)，无法得到统一的 x64/arm64。
+// 每个 CI job 都是单一架构的 runner，直接用 process.arch 拼文件名即可。
+// 注意：这只影响产物文件名，包内部架构标识由 fpm --architecture 单独处理，不受影响。
+const archName = process.arch === 'arm64' ? 'arm64' : 'x64'
+
 const desktop: any = {
   Name: 'FlyEnv',
   Comment: 'All-In-One Full-Stack Environment Management Tool',
@@ -38,7 +44,7 @@ const conf: Configuration = {
   rpm: {
     packageName: 'flyenv'
   },
-  artifactName: '${productName}-${version}-${arch}.${ext}', // 自定义打包文件名格式
+  artifactName: `\${productName}-\${version}-${archName}.\${ext}`, // 自定义打包文件名格式
   linux: {
     icon: 'build/icons',
     asarUnpack: ['**/*.node', '**/node_modules/sharp/**/*', '**/node_modules/@img/**/*'],
