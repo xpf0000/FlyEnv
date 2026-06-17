@@ -97,7 +97,8 @@ export enum AppModuleEnum {
   'swoole-cli' = 'swoole-cli',
   flutter = 'flutter',
   git = 'git',
-  dotnet = 'dotnet'
+  dotnet = 'dotnet',
+  claudecode = 'claudecode'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

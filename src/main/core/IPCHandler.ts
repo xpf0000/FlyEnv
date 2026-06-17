@@ -1,4 +1,4 @@
-import { ipcMain, shell, app } from 'electron'
+import { ipcMain, shell, app, safeStorage } from 'electron'
 import { EventEmitter } from 'events'
 import { isMacOS, isWindows, isLinux } from '@shared/utils'
 import { execPromiseSudo } from '@shared/child-process'
@@ -269,6 +269,12 @@ export default class IPCHandler extends EventEmitter {
       case 'application:save-preference':
         this.handleSavePreference(command, key)
         break
+      case 'AICli:saveProviders':
+        this.handleAICliSaveProviders(command, key, args)
+        break
+      case 'AICli:loadProviders':
+        this.handleAICliLoadProviders(command, key)
+        break
       case 'APP:Tray-Store-Sync':
         this.handleTrayStoreSync(command, args)
         break
@@ -465,6 +471,59 @@ export default class IPCHandler extends EventEmitter {
 
   private handleSavePreference(command: string, key: string) {
     this.sendToMainWindow(command, key)
+  }
+
+  /**
+   * #712: persist AI CLI providers. apiKey values are encrypted with Electron
+   * safeStorage before being written to disk, and never stored in plaintext.
+   * args[0] = providers array (each may carry a plaintext `apiKey`).
+   */
+  private handleAICliSaveProviders(command: string, key: string, args: any[]) {
+    try {
+      const providers: any[] = Array.isArray(args?.[0]) ? args[0] : []
+      const stored = providers.map((p) => {
+        const out: any = { ...p }
+        delete out.apiKey
+        if (p?.apiKey && safeStorage.isEncryptionAvailable()) {
+          out.apiKeyEnc = safeStorage.encryptString(String(p.apiKey)).toString('base64')
+        } else if (p?.apiKey) {
+          // Encryption unavailable (rare) — fall back to marking plaintext.
+          out.apiKeyPlain = String(p.apiKey)
+        }
+        return out
+      })
+      this.deps.configManager.setConfig('setup.aicli.providers', stored)
+      this.sendToMainWindow(command, key, { code: 0 })
+    } catch (e: any) {
+      this.sendToMainWindow(command, key, { code: 1, msg: e?.message ?? String(e) })
+    }
+  }
+
+  /**
+   * #712: load AI CLI providers, decrypting apiKey back to plaintext for use.
+   */
+  private handleAICliLoadProviders(command: string, key: string) {
+    try {
+      const stored: any[] = this.deps.configManager.getConfig('setup.aicli.providers', []) ?? []
+      const providers = stored.map((p) => {
+        const out: any = { ...p }
+        if (p?.apiKeyEnc && safeStorage.isEncryptionAvailable()) {
+          try {
+            out.apiKey = safeStorage.decryptString(Buffer.from(p.apiKeyEnc, 'base64'))
+          } catch {
+            out.apiKey = ''
+          }
+        } else if (p?.apiKeyPlain) {
+          out.apiKey = p.apiKeyPlain
+        }
+        delete out.apiKeyEnc
+        delete out.apiKeyPlain
+        return out
+      })
+      this.sendToMainWindow(command, key, { code: 0, data: providers })
+    } catch (e: any) {
+      this.sendToMainWindow(command, key, { code: 1, msg: e?.message ?? String(e) })
+    }
   }
 
   private handleTrayStoreSync(command: string, args: any[]) {

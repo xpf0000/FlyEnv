@@ -1,0 +1,20 @@
+{
+  "tool": "Tool",
+  "provider": "Model Provider",
+  "model": "Model",
+  "baseURL": "API Endpoint",
+  "apiKey": "API Key",
+  "workDir": "Work Directory",
+  "envVars": "Environment Variables",
+  "shell": "Terminal",
+  "addProvider": "Add Provider",
+  "fetchModels": "Fetch Models",
+  "fetchModelsFail": "Failed to fetch model list. Check the endpoint and API Key.",
+  "applyAndOpen": "Apply & Open Terminal",
+  "launched": "Launched in terminal",
+  "notInstalled": "Not Installed",
+  "notInstalledTips": "{name} is not installed yet. Click Install to set it up with the official command.",
+  "depMissing": "{dep} is required but was not found. Please install it first.",
+  "removeProvider": "Remove Provider",
+  "select": "Select"
+}

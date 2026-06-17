@@ -37,8 +37,10 @@ import mkcert from './mkcert.json'
 import hermes from './hermes.json'
 import flutter from './flutter.json'
 import cronZH from './cron.json'
+import aicliZH from './aicli.json'
 export default {
   zh: {
+    aicli: aicliZH,
     cron: cronZH,
     rustfs,
     mkcert,

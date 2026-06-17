@@ -35,6 +35,7 @@ import type util from './zh/util.json'
 import type versionmanager from './zh/versionmanager.json'
 import type openclaw from './zh/openclaw.json'
 import type hermes from './zh/hermes.json'
+import type aicli from './zh/aicli.json'
 import type n8n from './zh/n8n.json'
 import type rustfs from './zh/rustfs.json'
 import type mkcert from './zh/mkcert.json'
@@ -120,6 +121,7 @@ type LangKey =
   | AppendStringToKeys<typeof versionmanager, 'versionmanager'>
   | AppendStringToKeys<typeof openclaw, 'openclaw'>
   | AppendStringToKeys<typeof hermes, 'hermes'>
+  | AppendStringToKeys<typeof aicli, 'aicli'>
   | AppendStringToKeys<typeof n8n, 'n8n'>
   | AppendStringToKeys<typeof rustfs, 'rustfs'>
   | AppendStringToKeys<typeof mkcert, 'mkcert'>
