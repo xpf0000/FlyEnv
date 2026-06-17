@@ -1,4 +1,4 @@
-﻿import aiEN from './ai.json'
+import aiEN from './ai.json'
 import apacheEN from './apache.json'
 import appLogEN from './appLog.json'
 import asideEN from './aside.json'
@@ -37,10 +37,10 @@ import mkcert from './mkcert.json'
 import hermes from './hermes.json'
 import flutter from './flutter.json'
 import cron from './cron.json'
-import aicli from './aicli.json'
+import kimi from './kimi.json'
 export default {
   en: {
-    aicli,
+    kimi,
     cron,
     rustfs,
     mkcert,

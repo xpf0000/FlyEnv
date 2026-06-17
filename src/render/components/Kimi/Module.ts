@@ -3,14 +3,14 @@ import type { AppModuleItem } from '@/core/type'
 
 const module: AppModuleItem = {
   moduleType: 'ai',
-  typeFlag: 'claudecode',
-  label: 'AI Code',
-  icon: import('@/svg/cliproxyapi.svg?raw'),
+  typeFlag: 'kimi',
+  label: 'Kimi',
+  icon: import('@/svg/kimi.svg?raw'),
+  iconPadding: 4,
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 0,
+  asideIndex: 102,
   isService: false,
   isTray: false
 }
-
 export default module

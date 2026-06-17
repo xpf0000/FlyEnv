@@ -1,0 +1,32 @@
+{
+  "categories": [
+    {
+      "nameKey": "kimi.category.basic",
+      "commands": [
+        { "label": "kimi --help", "descriptionKey": "kimi.cmd.help", "needInput": false },
+        { "label": "kimi --version", "descriptionKey": "kimi.cmd.version", "needInput": false },
+        { "label": "kimi upgrade", "descriptionKey": "kimi.cmd.upgrade", "needInput": false, "needRefresh": true }
+      ]
+    },
+    {
+      "nameKey": "kimi.category.session",
+      "commands": [
+        { "label": "kimi", "descriptionKey": "kimi.cmd.start", "needInput": false },
+        { "label": "kimi --continue", "descriptionKey": "kimi.cmd.continue", "needInput": false },
+        { "label": "kimi --session", "descriptionKey": "kimi.cmd.sessionSelect", "needInput": false },
+        { "label": "kimi --plan", "descriptionKey": "kimi.cmd.plan", "needInput": false },
+        { "label": "kimi --yolo", "descriptionKey": "kimi.cmd.yolo", "needInput": false },
+        { "label": "kimi export", "descriptionKey": "kimi.cmd.export", "needInput": true },
+        { "label": "kimi vis", "descriptionKey": "kimi.cmd.vis", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "kimi.category.config",
+      "commands": [
+        { "label": "kimi provider list", "descriptionKey": "kimi.cmd.providerList", "needInput": false },
+        { "label": "kimi provider add", "descriptionKey": "kimi.cmd.providerAdd", "needInput": true },
+        { "label": "kimi provider remove", "descriptionKey": "kimi.cmd.providerRemove", "needInput": true }
+      ]
+    }
+  ]
+}

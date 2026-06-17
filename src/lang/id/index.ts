@@ -37,8 +37,10 @@ import mkcert from './mkcert.json'
 import hermes from './hermes.json'
 import flutter from './flutter.json'
 import cronID from './cron.json'
+import kimi from './kimi.json'
 export default {
   id: {
+    kimi,
     cron: cronID,
     rustfs: rustfsID,
     mkcert,

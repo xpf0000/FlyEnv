@@ -66,7 +66,7 @@ class BaseManager {
   CliProxyAPI: any
   Numa: any
   Rnacos: any
-  AICli: any
+  Kimi: any
   FrankenPHP: any
   RoadRunner: any
   SwooleCli: any
@@ -570,12 +570,12 @@ class BaseManager {
         this.DotNet = res.default
       }
       doRun(this.DotNet)
-    } else if (module === 'aicli') {
-      if (!this.AICli) {
-        const res = await import('./module/AICli')
-        this.AICli = res.default
+    } else if (module === 'kimi') {
+      if (!this.Kimi) {
+        const res = await import('./module/Kimi')
+        this.Kimi = res.default
       }
-      doRun(this.AICli)
+      doRun(this.Kimi)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

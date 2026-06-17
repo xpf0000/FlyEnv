@@ -1,4 +1,4 @@
-﻿import aiZH from './ai.json'
+import aiZH from './ai.json'
 import apacheZH from './apache.json'
 import appLogZH from './appLog.json'
 import asideZH from './aside.json'
@@ -37,10 +37,10 @@ import mkcert from './mkcert.json'
 import hermes from './hermes.json'
 import flutter from './flutter.json'
 import cronZH from './cron.json'
-import aicliZH from './aicli.json'
+import kimi from './kimi.json'
 export default {
   zh: {
-    aicli: aicliZH,
+    kimi,
     cron: cronZH,
     rustfs,
     mkcert,
