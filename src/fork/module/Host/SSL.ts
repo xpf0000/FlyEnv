@@ -15,6 +15,9 @@ import type { AppHost } from '@shared/app'
 import Helper from '../../Helper'
 import { appDebugLog, isWindows } from '@shared/utils'
 
+// Mutex tail for certificate issuance — see makeAutoSSL. (#700)
+let sslQueue: Promise<unknown> = Promise.resolve()
+
 const initCARoot = () => {
   return new Promise(async (resolve) => {
     const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
@@ -28,6 +31,22 @@ const initCARoot = () => {
 }
 
 export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: string } | false> => {
+  // Serialize all certificate issuance. Without this, batch site creation
+  // (park / Promise.all over many hosts) races on (a) first-time Root CA
+  // generation and (b) the shared CA serial (.srl) file, producing a
+  // corrupted root CA or duplicate serial numbers. (#700)
+  const run = sslQueue.then(() => _makeAutoSSL(host))
+  // Keep the queue alive regardless of individual success/failure.
+  sslQueue = run.then(
+    () => undefined,
+    () => undefined
+  )
+  return new ForkPromise<{ crt: string; key: string } | false>((resolve) => {
+    run.then(resolve).catch(() => resolve(false))
+  })
+}
+
+const _makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: string } | false> => {
   return new ForkPromise(async (resolve) => {
     try {
       const alias = hostAlias(host)
@@ -91,19 +110,20 @@ subjectAltName=@alt_names
         ext += `IP.1 = 127.0.0.1${EOL}`
         await writeFile(join(hostCADir, `${hostCAName}.ext`), ext)
 
-        process.chdir(dirname(openssl))
+        // Call openssl by full path with an explicit cwd instead of mutating
+        // the whole fork process working dir via process.chdir (which has a
+        // global side effect and races under concurrent issuance). (#700)
         const caKey = join(hostCADir, `${hostCAName}.key`)
         const caCSR = join(hostCADir, `${hostCAName}.csr`)
-        let command = `openssl.exe req -new -newkey rsa:2048 -nodes -keyout "${caKey}" -out "${caCSR}" -sha256 -subj "/CN=${hostCAName}" -config "${opensslCnf}"`
+        let command = `"${openssl}" req -new -newkey rsa:2048 -nodes -keyout "${caKey}" -out "${caCSR}" -sha256 -subj "/CN=${hostCAName}" -config "${opensslCnf}"`
         console.log('command: ', command)
-        await execPromiseWithEnv(command)
+        await execPromiseWithEnv(command, { cwd: hostCADir })
 
-        process.chdir(dirname(openssl))
         const caCRT = join(hostCADir, `${hostCAName}.crt`)
         const caEXT = join(hostCADir, `${hostCAName}.ext`)
-        command = `openssl.exe x509 -req -in "${caCSR}" -out "${caCRT}" -extfile "${caEXT}" -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -CAserial "${rootCA}.srl" -sha256 -days 3650`
+        command = `"${openssl}" x509 -req -in "${caCSR}" -out "${caCRT}" -extfile "${caEXT}" -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -CAserial "${rootCA}.srl" -sha256 -days 3650`
         console.log('command: ', command)
-        await execPromiseWithEnv(command)
+        await execPromiseWithEnv(command, { cwd: hostCADir })
 
         const crt = join(hostCADir, `${hostCAName}.crt`)
         if (!existsSync(crt)) {

@@ -1,19 +1,11 @@
 import type { AppHost } from '@shared/app'
 import { join } from 'path'
-import {
-  hostAlias,
-  chmod,
-  copyFile,
-  mkdirp,
-  readFile,
-  writeFile,
-  removeByRoot,
-  readFileByRoot
-} from '../../Fn'
+import { hostAlias, mkdirp, readFile, writeFile, removeByRoot } from '../../Fn'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash-es'
 import { pathFixedToUnix } from '@shared/utils'
 import { vhostTmpl } from '../Host/Host'
+import { vhostName } from '../Host/vhostName'
 import { fetchHostList } from '../Host/HostFile'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
@@ -60,9 +52,10 @@ export const makeFrankenPHPConf = async (host: AppHost) => {
 
   const contentList: string[] = []
 
-  const hostName = host.name
+  // Log / conf files named by host.id to avoid same-name collisions. (#700)
+  const fileBase = vhostName(host)
   const root = host.root
-  const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.frankenphp.log`)
+  const logFile = join(global.Server.BaseDir!, `vhost/logs/${fileBase}.frankenphp.log`)
 
   const tmpl = await vhostTmpl()
 
@@ -90,7 +83,7 @@ export const makeFrankenPHPConf = async (host: AppHost) => {
     contentList.push(content)
   }
 
-  const confFile = join(frankenphpvpath, `${host.name}.conf`)
+  const confFile = join(frankenphpvpath, `${fileBase}.conf`)
   await writeFile(confFile, contentList.join('\n'))
 }
 
@@ -100,34 +93,9 @@ export const updateFrankenPHPConf = async (host: AppHost, old: AppHost) => {
   await mkdirp(frankenphpvpath)
   await mkdirp(logpath)
 
-  if (host.name !== old.name) {
-    const cvhost = {
-      oldFile: join(frankenphpvpath, `${old.name}.conf`),
-      newFile: join(frankenphpvpath, `${host.name}.conf`)
-    }
-    const arr = [cvhost]
-    for (const f of arr) {
-      if (existsSync(f.oldFile)) {
-        let hasErr = false
-        try {
-          await copyFile(f.oldFile, f.newFile)
-        } catch {
-          hasErr = true
-        }
-        if (hasErr) {
-          try {
-            const content: string = (await readFileByRoot(f.oldFile)) as any
-            await writeFile(f.newFile, content)
-          } catch {}
-        }
-        await removeByRoot(f.oldFile)
-      }
-      if (existsSync(f.newFile)) {
-        await chmod(f.newFile, '0777')
-      }
-    }
-  }
-  const frankenphpConfPath = join(frankenphpvpath, `${host.name}.conf`)
+  // conf / log files named by host.id (rename-stable) — no move on rename. (#700)
+  const fileBase = vhostName(host)
+  const frankenphpConfPath = join(frankenphpvpath, `${fileBase}.conf`)
   let hasChanged = false
 
   if (!existsSync(frankenphpConfPath)) {
@@ -138,11 +106,6 @@ export const updateFrankenPHPConf = async (host: AppHost, old: AppHost) => {
 
   const find: Array<string> = []
   const replace: Array<string> = []
-  if (host.name !== old.name) {
-    hasChanged = true
-    find.push(...[pathFixedToUnix(join(logpath, `${old.name}.frankenphp.log`))])
-    replace.push(...[pathFixedToUnix(join(logpath, `${host.name}.frankenphp.log`))])
-  }
   const oldAliasArr = hostAlias(old)
   const newAliasArr = hostAlias(host)
 
@@ -209,10 +172,15 @@ export const updateFrankenPHPConf = async (host: AppHost, old: AppHost) => {
 export const delVhost = async (host: AppHost) => {
   const frankenphpvpath = join(global.Server.BaseDir!, 'vhost/frankenphp')
   const logpath = join(global.Server.BaseDir!, 'vhost/logs')
-  const hostname = host.name
-  const fvhost = join(frankenphpvpath, `${hostname}.conf`)
-  const frankenphplog = join(logpath, `${hostname}.frankenphp.log`)
-  const arr = [fvhost, frankenphplog]
+  const fileBase = vhostName(host)
+  const fvhost = join(frankenphpvpath, `${fileBase}.conf`)
+  const frankenphplog = join(logpath, `${fileBase}.frankenphp.log`)
+  // Also remove legacy name-based files for sites created before #700.
+  const legacy = [
+    join(frankenphpvpath, `${host.name}.conf`),
+    join(logpath, `${host.name}.frankenphp.log`)
+  ]
+  const arr = [fvhost, frankenphplog, ...legacy]
   for (const f of arr) {
     if (existsSync(f)) {
       try {
@@ -232,8 +200,8 @@ export const fixVHost = async () => {
   await mkdirp(vhostDir)
   const tmpl = await vhostTmpl()
   for (const host of hostAll) {
-    const name = host.name
-    const confFile = join(vhostDir, `${name}.conf`)
+    const fileBase = vhostName(host)
+    const confFile = join(vhostDir, `${fileBase}.conf`)
     if (existsSync(confFile)) {
       continue
     }
@@ -252,9 +220,8 @@ export const fixVHost = async () => {
 
     const contentList: string[] = []
 
-    const hostName = host.name
     const root = host.root
-    const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.frankenphp.log`)
+    const logFile = join(global.Server.BaseDir!, `vhost/logs/${fileBase}.frankenphp.log`)
 
     const httpHostNameAll = httpNames.join(',\n')
     const content = tmpl.frankenphp

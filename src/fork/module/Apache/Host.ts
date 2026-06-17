@@ -1,16 +1,8 @@
 import type { AppHost } from '@shared/app'
 import { join } from 'path'
-import {
-  hostAlias,
-  chmod,
-  copyFile,
-  mkdirp,
-  readFile,
-  writeFile,
-  readFileByRoot,
-  removeByRoot
-} from '../../Fn'
+import { hostAlias, mkdirp, readFile, writeFile, removeByRoot } from '../../Fn'
 import { vhostTmpl } from '../Host/Host'
+import { vhostName } from '../Host/vhostName'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash-es'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
@@ -63,12 +55,15 @@ export const makeApacheConf = async (host: AppHost) => {
   }
 
   const hostname = host.name
-  const avhost = join(apachevpath, `${hostname}.conf`)
+  // conf / log files named by host.id; ServerName keeps the real domain. (#700)
+  const fileBase = vhostName(host)
+  const avhost = join(apachevpath, `${fileBase}.conf`)
   const hostalias = hostAlias(host).join(' ')
 
   atmpl = atmpl
     .replace(/#Server_Alias#/g, hostalias)
     .replace(/#Server_Root#/g, pathFixedToUnix(host.root))
+    .replace(/#Server_ID#/g, fileBase)
     .replace(/#Server_Name#/g, hostname)
     .replace(/#Log_Path#/g, pathFixedToUnix(logpath))
     .replace(/#Server_Cert#/g, pathFixedToUnix(host.ssl.cert))
@@ -106,42 +101,9 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   await mkdirp(apachevpath)
   await mkdirp(logpath)
 
-  if (host.name !== old.name) {
-    const avhost = {
-      oldFile: join(apachevpath, `${old.name}.conf`),
-      newFile: join(apachevpath, `${host.name}.conf`)
-    }
-    const accesslogap = {
-      oldFile: join(logpath, `${old.name}-access_log`),
-      newFile: join(logpath, `${host.name}-access_log`)
-    }
-    const errorlogap = {
-      oldFile: join(logpath, `${old.name}-error_log`),
-      newFile: join(logpath, `${host.name}-error_log`)
-    }
-    const arr = [avhost, accesslogap, errorlogap]
-    for (const f of arr) {
-      if (existsSync(f.oldFile)) {
-        let hasErr = false
-        try {
-          await copyFile(f.oldFile, f.newFile)
-        } catch {
-          hasErr = true
-        }
-        if (hasErr) {
-          try {
-            const content: string = (await readFileByRoot(f.oldFile)) as any
-            await writeFile(f.newFile, content)
-          } catch {}
-        }
-        await removeByRoot(f.oldFile)
-      }
-      if (existsSync(f.newFile)) {
-        await chmod(f.newFile, '0777')
-      }
-    }
-  }
-  const apacheConfPath = join(apachevpath, `${host.name}.conf`)
+  // conf / log files named by host.id (rename-stable) — no move on rename. (#700)
+  const fileBase = vhostName(host)
+  const apacheConfPath = join(apachevpath, `${fileBase}.conf`)
   let hasChanged = false
 
   if (!existsSync(apacheConfPath)) {
@@ -159,11 +121,7 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
         `ServerName(.*?)SSL\\.(.*?)\\r\\n`,
         `ServerName(.*?)SSL\\.(.*?)\\n`,
         `ServerName(?!\\s+SSL\\.).*?\\r\\n`,
-        `ServerName(?!\\s+SSL\\.).*?\\n`,
-        `ErrorLog(.*?)${logpath}/(.*?)\\r\\n`,
-        `ErrorLog(.*?)${logpath}/(.*?)\\n`,
-        `CustomLog(.*?)${logpath}/(.*?)\\r\\n`,
-        `CustomLog(.*?)${logpath}/(.*?)\\n`
+        `ServerName(?!\\s+SSL\\.).*?\\n`
       ]
     )
     replace.push(
@@ -171,11 +129,7 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
         `ServerName SSL.${host.name}\r\n`,
         `ServerName SSL.${host.name}\n`,
         `ServerName ${host.name}\r\n`,
-        `ServerName ${host.name}\n`,
-        `ErrorLog "${logpath}/${host.name}-error_log"\r\n`,
-        `ErrorLog "${logpath}/${host.name}-error_log"\n`,
-        `CustomLog "${logpath}/${host.name}-access_log" combined\r\n`,
-        `CustomLog "${logpath}/${host.name}-access_log" combined\n`
+        `ServerName ${host.name}\n`
       ]
     )
   }
@@ -274,11 +228,17 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
 export const delVhost = async (host: AppHost) => {
   const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
   const logpath = join(global.Server.BaseDir!, 'vhost/logs')
-  const hostname = host.name
-  const avhost = join(apachevpath, `${hostname}.conf`)
-  const accesslogap = join(logpath, `${hostname}-access_log`)
-  const errorlogap = join(logpath, `${hostname}-error_log`)
-  const arr = [avhost, accesslogap, errorlogap]
+  const fileBase = vhostName(host)
+  const avhost = join(apachevpath, `${fileBase}.conf`)
+  const accesslogap = join(logpath, `${fileBase}-access_log`)
+  const errorlogap = join(logpath, `${fileBase}-error_log`)
+  // Also remove legacy name-based files for sites created before #700.
+  const legacy = [
+    join(apachevpath, `${host.name}.conf`),
+    join(logpath, `${host.name}-access_log`),
+    join(logpath, `${host.name}-error_log`)
+  ]
+  const arr = [avhost, accesslogap, errorlogap, ...legacy]
   for (const f of arr) {
     if (existsSync(f)) {
       try {

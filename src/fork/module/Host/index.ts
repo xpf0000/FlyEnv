@@ -9,6 +9,7 @@ import {
   writeFile,
   machineId,
   readdir,
+  remove,
   removeByRoot,
   readFileByRoot,
   writeFileByRoot,
@@ -185,6 +186,40 @@ export class Host extends Base {
         return
       }
 
+      // #700: backend symmetric check — reject add/edit when another site shares
+      // the same name AND any same-protocol listening port (defends against
+      // bypassing the frontend validation).
+      if ((flag === 'add' || flag === 'edit') && host?.name) {
+        const samePort = (a: AppHost, b: AppHost) => {
+          const httpDup =
+            a.port?.nginx === b.port?.nginx ||
+            a.port?.apache === b.port?.apache ||
+            a.port?.caddy === b.port?.caddy
+          if (httpDup) {
+            return true
+          }
+          if (a.useSSL && b.useSSL) {
+            return (
+              a.port?.nginx_ssl === b.port?.nginx_ssl ||
+              a.port?.apache_ssl === b.port?.apache_ssl ||
+              a.port?.caddy_ssl === b.port?.caddy_ssl
+            )
+          }
+          return false
+        }
+        const conflict = hostList.find(
+          (h) =>
+            (!h.type || h.type === 'php') &&
+            h.name === host.name &&
+            h.id !== host.id &&
+            samePort(h, host)
+        )
+        if (conflict) {
+          reject(new Error(I18nT('host.samePortTips')))
+          return
+        }
+      }
+
       let index: number
       switch (flag) {
         case 'add':
@@ -210,16 +245,15 @@ export class Host extends Base {
           break
         case 'edit':
           if (isMakeConf()) {
-            const nginxConfPath = join(global.Server.BaseDir!, 'vhost/nginx/', `${old?.name}.conf`)
-            const apacheConfPath = join(
-              global.Server.BaseDir!,
-              'vhost/apache/',
-              `${old?.name}.conf`
-            )
+            // vhost files are named by host.id (rename-stable). id is unchanged
+            // on edit, so old/host share the same base. (#700)
+            const confBase = `${old?.id}`
+            const nginxConfPath = join(global.Server.BaseDir!, 'vhost/nginx/', `${confBase}.conf`)
+            const apacheConfPath = join(global.Server.BaseDir!, 'vhost/apache/', `${confBase}.conf`)
             const frankenphpConfPath = join(
               global.Server.BaseDir!,
               'vhost/frankenphp/',
-              `${old?.name}.conf`
+              `${confBase}.conf`
             )
             if (
               !existsSync(nginxConfPath) ||
@@ -271,10 +305,11 @@ export class Host extends Base {
       const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
       const frankenphpvpath = join(global.Server.BaseDir!, 'vhost/frankenphp')
 
-      const nginxConfPath = join(nginxvpath, `${host.name}.conf`)
-      const apacheConfPath = join(apachevpath, `${host.name}.conf`)
-      const caddyConfPath = join(caddyvpath, `${host.name}.conf`)
-      const frankenphpConfPath = join(frankenphpvpath, `${host.name}.conf`)
+      const confBase = `${host.id}`
+      const nginxConfPath = join(nginxvpath, `${confBase}.conf`)
+      const apacheConfPath = join(apachevpath, `${confBase}.conf`)
+      const caddyConfPath = join(caddyvpath, `${confBase}.conf`)
+      const frankenphpConfPath = join(frankenphpvpath, `${confBase}.conf`)
 
       if (!existsSync(nginxConfPath)) {
         await makeNginxConf(host)
@@ -353,8 +388,15 @@ export class Host extends Base {
           allHost.add(a)
         })
       }
+      // localhost / loopback domains are resolved by the system already.
+      // Writing them to the hosts file is redundant and forces an admin prompt.
+      // Skip them so that pure localhost+port sites need no hosts write. (#700)
+      const isLoopbackName = (a: string) => {
+        const n = a.trim().toLowerCase()
+        return n === 'localhost' || n.endsWith('.localhost') || n === '127.0.0.1' || n === '::1'
+      }
       allHost.forEach((a) => {
-        if (a && a.trim().length > 0) {
+        if (a && a.trim().length > 0 && !isLoopbackName(a)) {
           host.push(`127.0.0.1     ${a}`)
           if (ipv6) {
             host.push(`::1     ${a}`)
@@ -389,6 +431,99 @@ export class Host extends Base {
     })
   }
 
+  /**
+   * One-time migration for #700: vhost / rewrite / log files used to be named
+   * by `host.name`, which collides for same-name sites (multiple localhost).
+   * They are now named by `host.id`. This regenerates id-based confs and
+   * removes legacy name-based orphan files so the web servers don't load
+   * duplicate `server` blocks. Guarded by a marker file; safe to no-op.
+   */
+  async migrateVhostToId(list: AppHost[]): Promise<void> {
+    const marker = join(global.Server.BaseDir!, 'vhost/.id-migrated')
+    if (existsSync(marker)) {
+      return
+    }
+    const phpHosts = list.filter(
+      (h) => !['java', 'node', 'go', 'python', 'tomcat'].includes(h?.type ?? '')
+    )
+    const ids = new Set(phpHosts.map((h) => `${h.id}`))
+
+    // 1) Regenerate id-based confs for every site (idempotent).
+    for (const h of phpHosts) {
+      try {
+        await this.initAllConf(h)
+      } catch {}
+    }
+
+    // 2) Remove legacy name-based orphan files (any .conf whose base is not a known id).
+    const dirs = [
+      { dir: join(global.Server.BaseDir!, 'vhost/nginx'), exts: ['.conf'] },
+      { dir: join(global.Server.BaseDir!, 'vhost/apache'), exts: ['.conf'] },
+      { dir: join(global.Server.BaseDir!, 'vhost/caddy'), exts: ['.conf'] },
+      { dir: join(global.Server.BaseDir!, 'vhost/frankenphp'), exts: ['.conf'] },
+      { dir: join(global.Server.BaseDir!, 'vhost/rewrite'), exts: ['.conf'] }
+    ]
+    for (const { dir } of dirs) {
+      if (!existsSync(dir)) {
+        continue
+      }
+      let files: string[] = []
+      try {
+        files = await readdir(dir)
+      } catch {
+        continue
+      }
+      for (const f of files) {
+        if (!f.endsWith('.conf')) {
+          continue
+        }
+        const base = f.slice(0, -'.conf'.length)
+        if (!ids.has(base)) {
+          try {
+            await remove(join(dir, f))
+          } catch {}
+        }
+      }
+    }
+
+    // 3) Remove legacy name-based log files (keep id-based ones).
+    const logDir = join(global.Server.BaseDir!, 'vhost/logs')
+    if (existsSync(logDir)) {
+      let logs: string[] = []
+      try {
+        logs = await readdir(logDir)
+      } catch {}
+      const idLogOk = (name: string) => {
+        // id-based patterns: <id>.log, <id>.error.log, <id>.caddy.log,
+        // <id>.frankenphp.log, <id>-access_log, <id>-error_log
+        for (const id of ids) {
+          if (
+            name === `${id}.log` ||
+            name === `${id}.error.log` ||
+            name === `${id}.caddy.log` ||
+            name === `${id}.frankenphp.log` ||
+            name === `${id}-access_log` ||
+            name === `${id}-error_log`
+          ) {
+            return true
+          }
+        }
+        return false
+      }
+      for (const f of logs) {
+        if (!idLogOk(f)) {
+          try {
+            await remove(join(logDir, f))
+          } catch {}
+        }
+      }
+    }
+
+    try {
+      await writeFile(marker, `${Date.now()}`)
+    } catch {}
+  }
+
   writeHosts(write = true, ipv6 = true) {
     return new ForkPromise(async (resolve, reject) => {
       const hostfile = join(global.Server.BaseDir!, 'host.json')
@@ -405,6 +540,10 @@ export class Host extends Base {
         reject(e)
         return
       }
+      // One-time #700 migration: move vhost files from name-based to id-based.
+      try {
+        await this.migrateVhostToId(appHost)
+      } catch {}
       console.log('writeHosts: ', write)
       if (write) {
         let changed = false

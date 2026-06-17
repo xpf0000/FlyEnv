@@ -1,16 +1,8 @@
 import type { AppHost } from '@shared/app'
 import { join } from 'path'
-import {
-  hostAlias,
-  chmod,
-  copyFile,
-  mkdirp,
-  readFile,
-  writeFile,
-  removeByRoot,
-  readFileByRoot
-} from '../../Fn'
+import { hostAlias, mkdirp, readFile, writeFile, removeByRoot } from '../../Fn'
 import { vhostTmpl } from '../Host/Host'
+import { vhostName } from '../Host/vhostName'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash-es'
 import { pathFixedToUnix } from '@shared/utils'
@@ -61,10 +53,11 @@ export const makeCaddyConf = async (host: AppHost) => {
 
   const contentList: string[] = []
 
-  const hostName = host.name
+  // Log / conf files named by host.id to avoid same-name collisions. (#700)
+  const fileBase = vhostName(host)
   const root = host.root
   const phpv = host.phpVersion
-  const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
+  const logFile = join(global.Server.BaseDir!, `vhost/logs/${fileBase}.caddy.log`)
 
   const httpHostNameAll = httpNames.join(',\n')
   let content = tmpl.caddy
@@ -99,7 +92,7 @@ export const makeCaddyConf = async (host: AppHost) => {
     contentList.push(content)
   }
 
-  const confFile = join(caddyvpath, `${host.name}.conf`)
+  const confFile = join(caddyvpath, `${fileBase}.conf`)
   await writeFile(confFile, contentList.join('\n'))
 }
 
@@ -109,34 +102,9 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
   await mkdirp(caddyvpath)
   await mkdirp(logpath)
 
-  if (host.name !== old.name) {
-    const cvhost = {
-      oldFile: join(caddyvpath, `${old.name}.conf`),
-      newFile: join(caddyvpath, `${host.name}.conf`)
-    }
-    const arr = [cvhost]
-    for (const f of arr) {
-      if (existsSync(f.oldFile)) {
-        let hasErr = false
-        try {
-          await copyFile(f.oldFile, f.newFile)
-        } catch {
-          hasErr = true
-        }
-        if (hasErr) {
-          try {
-            const content: string = (await readFileByRoot(f.oldFile)) as any
-            await writeFile(f.newFile, content)
-          } catch {}
-        }
-        await removeByRoot(f.oldFile)
-      }
-      if (existsSync(f.newFile)) {
-        await chmod(f.newFile, '0777')
-      }
-    }
-  }
-  const caddyConfPath = join(caddyvpath, `${host.name}.conf`)
+  // conf / log files named by host.id (rename-stable) — no move on rename. (#700)
+  const fileBase = vhostName(host)
+  const caddyConfPath = join(caddyvpath, `${fileBase}.conf`)
   let hasChanged = false
 
   if (!existsSync(caddyConfPath)) {
@@ -147,11 +115,6 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
 
   const find: Array<string> = []
   const replace: Array<string> = []
-  if (host.name !== old.name) {
-    hasChanged = true
-    find.push(...[join(logpath, `${old.name}.caddy.log`)])
-    replace.push(...[join(logpath, `${host.name}.caddy.log`)])
-  }
   const oldAliasArr = hostAlias(old)
   const newAliasArr = hostAlias(host)
 
@@ -248,10 +211,12 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
 export const delVhost = async (host: AppHost) => {
   const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
   const logpath = join(global.Server.BaseDir!, 'vhost/logs')
-  const hostname = host.name
-  const cvhost = join(caddyvpath, `${hostname}.conf`)
-  const caddylog = join(logpath, `${hostname}.caddy.log`)
-  const arr = [cvhost, caddylog]
+  const fileBase = vhostName(host)
+  const cvhost = join(caddyvpath, `${fileBase}.conf`)
+  const caddylog = join(logpath, `${fileBase}.caddy.log`)
+  // Also remove legacy name-based files for sites created before #700.
+  const legacy = [join(caddyvpath, `${host.name}.conf`), join(logpath, `${host.name}.caddy.log`)]
+  const arr = [cvhost, caddylog, ...legacy]
   for (const f of arr) {
     if (existsSync(f)) {
       try {

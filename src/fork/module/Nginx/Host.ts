@@ -1,16 +1,8 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join, basename } from 'path'
-import {
-  hostAlias,
-  chmod,
-  copyFile,
-  mkdirp,
-  readFile,
-  writeFile,
-  readFileByRoot,
-  removeByRoot
-} from '../../Fn'
+import { hostAlias, mkdirp, readFile, writeFile, removeByRoot } from '../../Fn'
 import { vhostTmpl } from '../Host/Host'
+import { vhostName } from '../Host/vhostName'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash-es'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
@@ -120,14 +112,16 @@ export const makeNginxConf = async (host: AppHost) => {
     ntmpl = tmpl.nginxSSL
   }
 
-  const hostname = host.name
-  const nvhost = join(nginxvpath, `${hostname}.conf`)
+  // File base uses host.id (unique, rename-stable) to avoid collisions
+  // between same-name sites (e.g. multiple localhost:port). (#700)
+  const fileBase = vhostName(host)
+  const nvhost = join(nginxvpath, `${fileBase}.conf`)
   const hostalias = hostAlias(host).join(' ')
   ntmpl = ntmpl
     .replace(/#Server_Alias#/g, hostalias)
     .replace(/#Server_Root#/g, pathFixedToUnix(host.root))
     .replace(/#Rewrite_Path#/g, pathFixedToUnix(rewritepath))
-    .replace(/#Server_Name#/g, hostname)
+    .replace(/#Server_Name#/g, fileBase)
     .replace(/#Log_Path#/g, pathFixedToUnix(logpath))
     .replace(/#Server_Cert#/g, pathFixedToUnix(host.ssl.cert))
     .replace(/#Server_CertKey#/g, pathFixedToUnix(host.ssl.key))
@@ -146,7 +140,7 @@ export const makeNginxConf = async (host: AppHost) => {
   await writeFile(nvhost, handleReverseProxy(host, ntmpl))
 
   const rewrite = host?.nginx?.rewrite?.trim() ?? ''
-  await writeFile(join(rewritepath, `${hostname}.conf`), rewrite)
+  await writeFile(join(rewritepath, `${fileBase}.conf`), rewrite)
 }
 
 const handlePhpEnableConf = async (v: number) => {
@@ -180,46 +174,10 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   await mkdirp(rewritepath)
   await mkdirp(logpath)
 
-  if (host.name !== old.name) {
-    const nvhost = {
-      oldFile: join(nginxvpath, `${old.name}.conf`),
-      newFile: join(nginxvpath, `${host.name}.conf`)
-    }
-    const rewritep = {
-      oldFile: join(rewritepath, `${old.name}.conf`),
-      newFile: join(rewritepath, `${host.name}.conf`)
-    }
-    const accesslogng = {
-      oldFile: join(logpath, `${old.name}.log`),
-      newFile: join(logpath, `${host.name}.log`)
-    }
-    const errorlogng = {
-      oldFile: join(logpath, `${old.name}.error.log`),
-      newFile: join(logpath, `${host.name}.error.log`)
-    }
-    const arr = [nvhost, rewritep, accesslogng, errorlogng]
-    for (const f of arr) {
-      if (existsSync(f.oldFile)) {
-        let hasErr = false
-        try {
-          await copyFile(f.oldFile, f.newFile)
-        } catch {
-          hasErr = true
-        }
-        if (hasErr) {
-          try {
-            const content: string = (await readFileByRoot(f.oldFile)) as any
-            await writeFile(f.newFile, content)
-          } catch {}
-        }
-        await removeByRoot(f.oldFile)
-      }
-      if (existsSync(f.newFile)) {
-        await chmod(f.newFile, '0777')
-      }
-    }
-  }
-  const nginxConfPath = join(nginxvpath, `${host.name}.conf`)
+  // Vhost / rewrite / log files are named by host.id (rename-stable),
+  // so a name change no longer requires moving files. (#700)
+  const fileBase = vhostName(host)
+  const nginxConfPath = join(nginxvpath, `${fileBase}.conf`)
   let hasChanged = false
 
   if (!existsSync(nginxConfPath)) {
@@ -230,29 +188,6 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
 
   const find: Array<string> = []
   const replace: Array<string> = []
-  if (host.name !== old.name) {
-    hasChanged = true
-    find.push(
-      ...[
-        `include(.*?)${rewritepath}(.*?)\\r\\n`,
-        `include(.*?)${rewritepath}(.*?)\\n`,
-        `access_log(.*?)${logpath}(.*?)\\r\\n`,
-        `access_log(.*?)${logpath}(.*?)\\n`,
-        `error_log(.*?)${logpath}(.*?)\\r\\n`,
-        `error_log(.*?)${logpath}(.*?)\\n`
-      ]
-    )
-    replace.push(
-      ...[
-        `include "${rewritepath}/${host.name}.conf";\r\n`,
-        `include "${rewritepath}/${host.name}.conf";\n`,
-        `access_log  "${logpath}/${host.name}.log";\r\n`,
-        `access_log  "${logpath}/${host.name}.log";\n`,
-        `error_log  "${logpath}/${host.name}.error.log";\r\n`,
-        `error_log  "${logpath}/${host.name}.error.log";\n`
-      ]
-    )
-  }
   const oldAliasArr = hostAlias(old)
   const newAliasArr = hostAlias(host)
   if (!isEqual(oldAliasArr, newAliasArr)) {
@@ -325,7 +260,7 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     await writeFile(nginxConfPath, contentNginxConf)
   }
   if (host.nginx.rewrite.trim() !== old.nginx.rewrite.trim()) {
-    const nginxRewriteConfPath = join(rewritepath, `${host.name}.conf`)
+    const nginxRewriteConfPath = join(rewritepath, `${fileBase}.conf`)
     await writeFile(nginxRewriteConfPath, host.nginx.rewrite.trim())
   }
 }
@@ -334,12 +269,19 @@ export const delVhost = async (host: AppHost) => {
   const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
   const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
   const logpath = join(global.Server.BaseDir!, 'vhost/logs')
-  const hostname = host.name
-  const nvhost = join(nginxvpath, `${hostname}.conf`)
-  const rewritep = join(rewritepath, `${hostname}.conf`)
-  const accesslogng = join(logpath, `${hostname}.log`)
-  const errorlogng = join(logpath, `${hostname}.error.log`)
-  const arr = [nvhost, rewritep, accesslogng, errorlogng]
+  const fileBase = vhostName(host)
+  const nvhost = join(nginxvpath, `${fileBase}.conf`)
+  const rewritep = join(rewritepath, `${fileBase}.conf`)
+  const accesslogng = join(logpath, `${fileBase}.log`)
+  const errorlogng = join(logpath, `${fileBase}.error.log`)
+  // Also remove legacy name-based files for sites created before #700.
+  const legacy = [
+    join(nginxvpath, `${host.name}.conf`),
+    join(rewritepath, `${host.name}.conf`),
+    join(logpath, `${host.name}.log`),
+    join(logpath, `${host.name}.error.log`)
+  ]
+  const arr = [nvhost, rewritep, accesslogng, errorlogng, ...legacy]
   for (const f of arr) {
     if (existsSync(f)) {
       try {

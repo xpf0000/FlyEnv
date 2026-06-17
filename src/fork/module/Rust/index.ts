@@ -29,6 +29,28 @@ class Rust extends Base {
     this.type = 'rust'
   }
 
+  /**
+   * Resolve CARGO_HOME, honoring the env var if set (defaults to ~/.cargo).
+   * Fixes #691: custom install location via CARGO_HOME/RUSTUP_HOME.
+   */
+  private cargoHome(): string {
+    const env = `${process.env.CARGO_HOME || ''}`.trim()
+    return env ? env : join(homedir(), '.cargo')
+  }
+
+  /**
+   * Resolve RUSTUP_HOME, honoring the env var if set (defaults to ~/.rustup).
+   */
+  private rustupHome(): string {
+    const env = `${process.env.RUSTUP_HOME || ''}`.trim()
+    return env ? env : join(homedir(), '.rustup')
+  }
+
+  private rustupBinPath(): string {
+    const bin = join(this.cargoHome(), 'bin', isWindows() ? 'rustup.exe' : 'rustup')
+    return bin
+  }
+
   fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
@@ -64,7 +86,7 @@ class Rust extends Base {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
       const customDirs = [...(setup?.rust?.dirs ?? [])]
-      const rustupDir = join(homedir(), '.rustup/toolchains')
+      const rustupDir = join(this.rustupHome(), 'toolchains')
       if (existsSync(rustupDir)) {
         const dirs = await readdir(rustupDir, { withFileTypes: true })
         dirs.forEach((dir) => {
@@ -156,10 +178,7 @@ class Rust extends Base {
 
   checkRustup() {
     return new ForkPromise(async (resolve) => {
-      let rustupBin = join(homedir(), '.cargo/bin/rustup')
-      if (isWindows()) {
-        rustupBin = join(homedir(), '.cargo/bin/rustup.exe')
-      }
+      const rustupBin = this.rustupBinPath()
       console.log('checkRustup: ', rustupBin)
       if (existsSync(rustupBin)) {
         resolve(rustupBin)
@@ -170,11 +189,8 @@ class Rust extends Base {
 
   rustupData() {
     return new ForkPromise(async (resolve) => {
-      let rustupBin = join(homedir(), '.cargo/bin/rustup')
-      if (isWindows()) {
-        rustupBin = join(homedir(), '.cargo/bin/rustup.exe')
-      }
-      const toolchainDir = join(homedir(), '.rustup/toolchains')
+      const rustupBin = this.rustupBinPath()
+      const toolchainDir = join(this.rustupHome(), 'toolchains')
 
       const toolchainList: any = []
       const tmplDir = join(tmpdir(), uuid())

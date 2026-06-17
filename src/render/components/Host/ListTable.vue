@@ -391,7 +391,9 @@
     const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
     const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
     if (item.useSSL && item.ssl.cert && item.ssl.key) {
-      let port = 443
+      // Fall back to the primary configured ssl port when no server is running,
+      // so same-name sites (e.g. multiple localhost) stay distinguishable. (#700)
+      let port = item.port.nginx_ssl ?? item.port.apache_ssl ?? item.port.caddy_ssl ?? 443
       if (nginxRunning) {
         port = item.port.nginx_ssl
       } else if (apacheRunning) {
@@ -402,7 +404,7 @@
       const portStr = port === 443 ? '' : `:${port}`
       return `https://${host}${portStr}`
     }
-    let port = 80
+    let port = item.port.nginx ?? item.port.apache ?? item.port.caddy ?? 80
     if (nginxRunning) {
       port = item.port.nginx
     } else if (apacheRunning) {

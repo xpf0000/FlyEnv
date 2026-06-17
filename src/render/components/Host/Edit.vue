@@ -105,37 +105,63 @@
             </div>
           </div>
 
-          <div class="plant-title">{{ I18nT('host.port') }}</div>
+          <div class="plant-title flex items-center justify-between">
+            <span>{{ I18nT('host.port') }}</span>
+            <el-button link @click.stop="portAdvanced = !portAdvanced">
+              {{ portAdvanced ? I18nT('host.portSimple') : I18nT('host.portAdvanced') }}
+            </el-button>
+          </div>
           <div class="main p-5">
-            <div class="port-set mb-5">
-              <div class="port-type"> Nginx </div>
-              <input
-                v-model.number="item.port.nginx"
-                type="number"
-                :class="'input' + (errs['port_nginx'] ? ' error' : '')"
-                placeholder="Default: 80"
-              />
-            </div>
+            <template v-if="!portAdvanced">
+              <div class="port-set mb-5">
+                <div class="port-type"> {{ I18nT('host.port') }} </div>
+                <input
+                  v-model.number="primaryPort"
+                  type="number"
+                  :class="
+                    'input' +
+                    (errs['port_nginx'] || errs['port_caddy'] || errs['port_apache']
+                      ? ' error'
+                      : '')
+                  "
+                  placeholder="Default: 80"
+                />
+              </div>
+            </template>
+            <template v-else>
+              <div class="port-set mb-5">
+                <div class="port-type"> Nginx </div>
+                <input
+                  v-model.number="item.port.nginx"
+                  type="number"
+                  :class="'input' + (errs['port_nginx'] ? ' error' : '')"
+                  placeholder="Default: 80"
+                  @input="onPortTouched('nginx')"
+                />
+              </div>
 
-            <div class="port-set mb-5">
-              <div class="port-type"> Caddy </div>
-              <input
-                v-model.number="item.port.caddy"
-                type="number"
-                :class="'input' + (errs['port_caddy'] ? ' error' : '')"
-                placeholder="Default: 80"
-              />
-            </div>
+              <div class="port-set mb-5">
+                <div class="port-type"> Caddy </div>
+                <input
+                  v-model.number="item.port.caddy"
+                  type="number"
+                  :class="'input' + (errs['port_caddy'] ? ' error' : '')"
+                  placeholder="Default: 80"
+                  @input="onPortTouched('caddy')"
+                />
+              </div>
 
-            <div class="port-set mb-5">
-              <div class="port-type"> Apache </div>
-              <input
-                v-model.number="item.port.apache"
-                type="number"
-                :class="'input' + (errs['port_apache'] ? ' error' : '')"
-                placeholder="Default: 80"
-              />
-            </div>
+              <div class="port-set mb-5">
+                <div class="port-type"> Apache </div>
+                <input
+                  v-model.number="item.port.apache"
+                  type="number"
+                  :class="'input' + (errs['port_apache'] ? ' error' : '')"
+                  placeholder="Default: 80"
+                  @input="onPortTouched('apache')"
+                />
+              </div>
+            </template>
           </div>
           <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
           <div class="main p-5">
@@ -192,33 +218,54 @@
               <div class="ssl-switch my-5">
                 <span>Port</span>
               </div>
-              <div class="port-set port-ssl mb-5">
-                <div class="port-type"> Nginx </div>
-                <input
-                  v-model.number="item.port.nginx_ssl"
-                  type="number"
-                  :class="'input' + (errs['port_nginx_ssl'] ? ' error' : '')"
-                  placeholder="Default: 443"
-                />
-              </div>
-              <div class="port-set port-ssl mb-5">
-                <div class="port-type"> Caddy </div>
-                <input
-                  v-model.number="item.port.caddy_ssl"
-                  type="number"
-                  :class="'input' + (errs['port_caddy_ssl'] ? ' error' : '')"
-                  placeholder="Default: 443"
-                />
-              </div>
-              <div class="port-set port-ssl mb-5">
-                <div class="port-type"> Apache </div>
-                <input
-                  v-model.number="item.port.apache_ssl"
-                  type="number"
-                  :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
-                  placeholder="Default: 443"
-                />
-              </div>
+              <template v-if="!portAdvanced">
+                <div class="port-set port-ssl mb-5">
+                  <div class="port-type"> Port </div>
+                  <input
+                    v-model.number="primaryPortSSL"
+                    type="number"
+                    :class="
+                      'input' +
+                      (errs['port_nginx_ssl'] || errs['port_caddy_ssl'] || errs['port_apache_ssl']
+                        ? ' error'
+                        : '')
+                    "
+                    placeholder="Default: 443"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <div class="port-set port-ssl mb-5">
+                  <div class="port-type"> Nginx </div>
+                  <input
+                    v-model.number="item.port.nginx_ssl"
+                    type="number"
+                    :class="'input' + (errs['port_nginx_ssl'] ? ' error' : '')"
+                    placeholder="Default: 443"
+                    @input="onPortTouched('nginx_ssl')"
+                  />
+                </div>
+                <div class="port-set port-ssl mb-5">
+                  <div class="port-type"> Caddy </div>
+                  <input
+                    v-model.number="item.port.caddy_ssl"
+                    type="number"
+                    :class="'input' + (errs['port_caddy_ssl'] ? ' error' : '')"
+                    placeholder="Default: 443"
+                    @input="onPortTouched('caddy_ssl')"
+                  />
+                </div>
+                <div class="port-set port-ssl mb-5">
+                  <div class="port-type"> Apache </div>
+                  <input
+                    v-model.number="item.port.apache_ssl"
+                    type="number"
+                    :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
+                    placeholder="Default: 443"
+                    @input="onPortTouched('apache_ssl')"
+                  />
+                </div>
+              </template>
             </template>
           </div>
 
@@ -324,6 +371,86 @@
   const hosts = computed(() => {
     return appStore.hosts.filter((h) => !h.type || h.type === 'php')
   })
+  // #700: same domain is allowed as long as the listening port differs.
+  // Two sites conflict only when they share a name AND any same-protocol
+  // listening port (http: nginx/apache/caddy; https: their *_ssl).
+  const samePort = (a: AppHost, b: AppHost) => {
+    const httpDup =
+      a.port.nginx === b.port.nginx ||
+      a.port.apache === b.port.apache ||
+      a.port.caddy === b.port.caddy
+    if (httpDup) {
+      return true
+    }
+    if (a.useSSL && b.useSSL) {
+      return (
+        a.port.nginx_ssl === b.port.nginx_ssl ||
+        a.port.apache_ssl === b.port.apache_ssl ||
+        a.port.caddy_ssl === b.port.caddy_ssl
+      )
+    }
+    return false
+  }
+
+  // #700: most users run a single web server per site, so the three port
+  // fields (nginx/caddy/apache) are collapsed into one "primary port" by
+  // default. Editing it keeps the others in sync unless the user has
+  // explicitly changed a port in the advanced section.
+  const portAdvanced = ref(false)
+  const portTouched = reactive({
+    nginx: false,
+    caddy: false,
+    apache: false,
+    nginx_ssl: false,
+    caddy_ssl: false,
+    apache_ssl: false
+  })
+  const onPortTouched = (key: keyof typeof portTouched) => {
+    portTouched[key] = true
+  }
+  const primaryPort = computed<number>({
+    get() {
+      return item.value.port.nginx
+    },
+    set(v: number) {
+      item.value.port.nginx = v
+      if (!portTouched.caddy) {
+        item.value.port.caddy = v
+      }
+      if (!portTouched.apache) {
+        item.value.port.apache = v
+      }
+    }
+  })
+  const primaryPortSSL = computed<number>({
+    get() {
+      return item.value.port.nginx_ssl
+    },
+    set(v: number) {
+      item.value.port.nginx_ssl = v
+      if (!portTouched.caddy_ssl) {
+        item.value.port.caddy_ssl = v
+      }
+      if (!portTouched.apache_ssl) {
+        item.value.port.apache_ssl = v
+      }
+    }
+  })
+  // When editing a site whose servers use different ports, the simple single
+  // port field can't represent them — open the advanced view and mark the
+  // diverging ports as touched so the follow-linking won't clobber them.
+  if (props?.isEdit) {
+    const p = item.value.port
+    const httpDiff = !(p.nginx === p.caddy && p.caddy === p.apache)
+    const sslDiff = !(p.nginx_ssl === p.caddy_ssl && p.caddy_ssl === p.apache_ssl)
+    if (httpDiff || sslDiff) {
+      portAdvanced.value = true
+      portTouched.caddy = true
+      portTouched.apache = true
+      portTouched.caddy_ssl = true
+      portTouched.apache_ssl = true
+    }
+  }
   const php = computed(() => {
     return brewStore.module('php')
   })
@@ -402,7 +529,7 @@
 
   watch(itemName, (name) => {
     for (const h of hosts.value) {
-      if (h.name === name && h.id !== item.value.id) {
+      if (h.name === name && h.id !== item.value.id && samePort(h, item.value)) {
         errs.value['name'] = true
         break
       }
@@ -512,7 +639,7 @@
     } else {
       const name = u.hostname
       for (const h of hosts.value) {
-        if (h.name === name && h.id !== item.value.id) {
+        if (h.name === name && h.id !== item.value.id && samePort(h, item.value)) {
           errs.value['name'] = true
           break
         }

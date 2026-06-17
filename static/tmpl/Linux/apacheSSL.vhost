@@ -3,8 +3,8 @@
     DocumentRoot "#Server_Root#"
     ServerName #Server_Name#
     ServerAlias #Server_Alias#
-    ErrorLog "#Log_Path#/#Server_Name#-error_log"
-    CustomLog "#Log_Path#/#Server_Name#-access_log" combined
+    ErrorLog "#Log_Path#/#Server_ID#-error_log"
+    CustomLog "#Log_Path#/#Server_ID#-access_log" combined
 
     # File Access Restrictions
     <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
@@ -31,8 +31,8 @@
     DocumentRoot "#Server_Root#"
     ServerName SSL.#Server_Name#
     ServerAlias #Server_Alias#
-    ErrorLog "#Log_Path#/#Server_Name#-error_log"
-    CustomLog "#Log_Path#/#Server_Name#-access_log" combined
+    ErrorLog "#Log_Path#/#Server_ID#-error_log"
+    CustomLog "#Log_Path#/#Server_ID#-access_log" combined
 
     #SSL
     SSLEngine On

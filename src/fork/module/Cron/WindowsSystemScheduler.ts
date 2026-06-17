@@ -58,7 +58,7 @@ try {
   } else {
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $CmdExe
-    $psi.Arguments = '/d /s /c ' + $Command
+    $psi.Arguments = '/d /c ' + $Command
     $psi.WorkingDirectory = $WorkDir
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
@@ -89,7 +89,7 @@ $FinishedAt = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
 $record = [ordered]@{
   id = $RunId
   jobId = $JobId
-  hostId = if ($HostId) { [int]$HostId } else { $null }
+  hostId = if ($HostId) { [long]$HostId } else { $null }
   scope = $Scope
   startedAt = $StartedAt
   finishedAt = $FinishedAt
