@@ -32,6 +32,7 @@
 
   const props = defineProps<{
     name: string
+    id: string | number
   }>()
 
   watch(show, (v) => {
@@ -47,12 +48,15 @@
 
   const init = () => {
     const logpath = join(window.Server.BaseDir!, 'vhost/logs')
-    const accesslogng = join(logpath, `${props.name}.log`)
-    const errorlogng = join(logpath, `${props.name}.error.log`)
-    const accesslogap = join(logpath, `${props.name}-access_log`)
-    const errorlogap = join(logpath, `${props.name}-error_log`)
-    const caddyLog = join(logpath, `${props.name}.caddy.log`)
-    const frankenphpLog = join(logpath, `${props.name}.frankenphp.log`)
+    // #700: log files are named by host.id (unique, rename-stable), not
+    // host.name, so multiple same-name sites don't share log files.
+    const base = props.id
+    const accesslogng = join(logpath, `${base}.log`)
+    const errorlogng = join(logpath, `${base}.error.log`)
+    const accesslogap = join(logpath, `${base}-access_log`)
+    const errorlogap = join(logpath, `${base}-error_log`)
+    const caddyLog = join(logpath, `${base}.caddy.log`)
+    const frankenphpLog = join(logpath, `${base}.frankenphp.log`)
     logfile.value = {
       'nginx-access': accesslogng,
       'nginx-error': errorlogng,

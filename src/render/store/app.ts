@@ -35,6 +35,8 @@ export interface AppHost {
     caddy: number
     caddy_ssl: number
     tomcat_ssl: number
+    frankenphp?: number
+    frankenphp_ssl?: number
   }
   nginx: {
     rewrite: string

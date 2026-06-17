@@ -254,7 +254,9 @@
         fs.writeFile(filePath, JSON.stringify(hosts.value)).then(() => {
           const saveDir = dirname(filePath)
           hosts.value.forEach((h) => {
-            const name = `${h.name}.conf`
+            // Live vhost files on disk are named by host.id (#700); export
+            // them under the human-readable host.name for portability.
+            const name = `${h.id}.conf`
             const dict: { [key: string]: string } = {}
             dict[join(apacheVPath, name)] = join(saveDir, `${h.name}.apache.conf`)
             dict[join(nginxVPath, name)] = join(saveDir, `${h.name}.nginx.conf`)
@@ -318,7 +320,9 @@
           const apacheVPath = join(window.Server.BaseDir!, 'vhost/apache')
           const rewriteVPath = join(window.Server.BaseDir!, 'vhost/rewrite')
           arr.forEach((h: any) => {
-            const name = `${h.name}.conf`
+            // Restore exported vhost files (named by host.name) back to the
+            // live id-based filenames on disk (#700).
+            const name = `${h.id}.conf`
             const dict: { [key: string]: string } = {}
             dict[join(baseDir, `${h.name}.apache.conf`)] = join(apacheVPath, name)
             dict[join(baseDir, `${h.name}.nginx.conf`)] = join(nginxVPath, name)

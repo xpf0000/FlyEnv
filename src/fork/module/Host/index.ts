@@ -194,7 +194,8 @@ export class Host extends Base {
           const httpDup =
             a.port?.nginx === b.port?.nginx ||
             a.port?.apache === b.port?.apache ||
-            a.port?.caddy === b.port?.caddy
+            a.port?.caddy === b.port?.caddy ||
+            (a.port?.frankenphp ?? a.port?.caddy) === (b.port?.frankenphp ?? b.port?.caddy)
           if (httpDup) {
             return true
           }
@@ -202,7 +203,9 @@ export class Host extends Base {
             return (
               a.port?.nginx_ssl === b.port?.nginx_ssl ||
               a.port?.apache_ssl === b.port?.apache_ssl ||
-              a.port?.caddy_ssl === b.port?.caddy_ssl
+              a.port?.caddy_ssl === b.port?.caddy_ssl ||
+              (a.port?.frankenphp_ssl ?? a.port?.caddy_ssl) ===
+                (b.port?.frankenphp_ssl ?? b.port?.caddy_ssl)
             )
           }
           return false

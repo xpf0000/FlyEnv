@@ -390,6 +390,7 @@
     const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
     const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
     const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
+    const frankenphpRunning = brewStore.module('frankenphp').installed.find((i) => i.run)
     if (item.useSSL && item.ssl.cert && item.ssl.key) {
       // Fall back to the primary configured ssl port when no server is running,
       // so same-name sites (e.g. multiple localhost) stay distinguishable. (#700)
@@ -400,6 +401,8 @@
         port = item.port.apache_ssl
       } else if (caddyRunning) {
         port = item.port.caddy_ssl
+      } else if (frankenphpRunning) {
+        port = item.port.frankenphp_ssl ?? item.port.caddy_ssl
       }
       const portStr = port === 443 ? '' : `:${port}`
       return `https://${host}${portStr}`
@@ -411,6 +414,8 @@
       port = item.port.apache
     } else if (caddyRunning) {
       port = item.port.caddy
+    } else if (frankenphpRunning) {
+      port = item.port.frankenphp ?? item.port.caddy
     }
     const portStr = port === 80 ? '' : `:${port}`
     return `http://${host}${portStr}`
@@ -453,7 +458,8 @@
         break
       case 'log':
         AsyncComponentShow(LogVM, {
-          name: item.name
+          name: item.name,
+          id: item.id
         }).then()
         break
       case 'del':

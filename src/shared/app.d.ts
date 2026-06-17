@@ -116,6 +116,8 @@ export interface AppHost {
     apache_ssl: number
     caddy: number
     caddy_ssl: number
+    frankenphp?: number
+    frankenphp_ssl?: number
     tomcat?: number
     tomcat_ssl?: number
   }

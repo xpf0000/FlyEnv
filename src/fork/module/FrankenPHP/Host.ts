@@ -8,6 +8,11 @@ import { vhostTmpl } from '../Host/Host'
 import { vhostName } from '../Host/vhostName'
 import { fetchHostList } from '../Host/HostFile'
 
+// #700: FrankenPHP has its own listening ports. For sites created before this
+// field existed, fall back to the Caddy port to preserve behavior.
+const fpPort = (host: AppHost) => host?.port?.frankenphp ?? host?.port?.caddy
+const fpPortSSL = (host: AppHost) => host?.port?.frankenphp_ssl ?? host?.port?.caddy_ssl ?? 443
+
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
   if (x && x[0]) {
@@ -40,13 +45,13 @@ export const makeFrankenPHPConf = async (host: AppHost) => {
   const httpNames: string[] = []
   const httpsNames: string[] = []
   hostAlias(host).forEach((h) => {
-    if (!host?.port?.caddy || host.port.caddy === 80) {
+    if (!fpPort(host) || fpPort(host) === 80) {
       httpNames.push(`http://${h}`)
     } else {
-      httpNames.push(`http://${h}:${host.port.caddy}`)
+      httpNames.push(`http://${h}:${fpPort(host)}`)
     }
     if (host.useSSL) {
-      httpsNames.push(`https://${h}:${host?.port?.caddy_ssl ?? 443}`)
+      httpsNames.push(`https://${h}:${fpPortSSL(host)}`)
     }
   })
 
@@ -111,8 +116,8 @@ export const updateFrankenPHPConf = async (host: AppHost, old: AppHost) => {
 
   if (
     !isEqual(oldAliasArr, newAliasArr) ||
-    old.port.caddy !== host.port.caddy ||
-    old.port.caddy_ssl !== host.port.caddy_ssl
+    fpPort(old) !== fpPort(host) ||
+    fpPortSSL(old) !== fpPortSSL(host)
   ) {
     hasChanged = true
     const oldHttpNames: string[] = []
@@ -121,24 +126,24 @@ export const updateFrankenPHPConf = async (host: AppHost, old: AppHost) => {
     const hostHttpsNames: string[] = []
 
     oldAliasArr.forEach((h) => {
-      if (!old?.port?.caddy || old.port.caddy === 80) {
+      if (!fpPort(old) || fpPort(old) === 80) {
         oldHttpNames.push(`http://${h}`)
       } else {
-        oldHttpNames.push(`http://${h}:${old.port.caddy}`)
+        oldHttpNames.push(`http://${h}:${fpPort(old)}`)
       }
       if (old.useSSL) {
-        oldHttpsNames.push(`https://${h}:${old?.port?.caddy_ssl ?? 443}`)
+        oldHttpsNames.push(`https://${h}:${fpPortSSL(old)}`)
       }
     })
 
     newAliasArr.forEach((h) => {
-      if (!host?.port?.caddy || host.port.caddy === 80) {
+      if (!fpPort(host) || fpPort(host) === 80) {
         hostHttpNames.push(`http://${h}`)
       } else {
-        hostHttpNames.push(`http://${h}:${host.port.caddy}`)
+        hostHttpNames.push(`http://${h}:${fpPort(host)}`)
       }
       if (host.useSSL) {
-        hostHttpsNames.push(`https://${h}:${host?.port?.caddy_ssl ?? 443}`)
+        hostHttpsNames.push(`https://${h}:${fpPortSSL(host)}`)
       }
     })
 
@@ -208,13 +213,13 @@ export const fixVHost = async () => {
     const httpNames: string[] = []
     const httpsNames: string[] = []
     hostAlias(host).forEach((h) => {
-      if (!host?.port?.caddy || host.port.caddy === 80) {
+      if (!fpPort(host) || fpPort(host) === 80) {
         httpNames.push(`http://${h}`)
       } else {
-        httpNames.push(`http://${h}:${host.port.caddy}`)
+        httpNames.push(`http://${h}:${fpPort(host)}`)
       }
       if (host.useSSL) {
-        httpsNames.push(`https://${h}:${host?.port?.caddy_ssl ?? 443}`)
+        httpsNames.push(`https://${h}:${fpPortSSL(host)}`)
       }
     })
 

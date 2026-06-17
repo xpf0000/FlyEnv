@@ -115,8 +115,11 @@
   }
 
   const baseDir = window.Server.BaseDir!
+  // #700: vhost config files are named by host.id (unique, rename-stable),
+  // not host.name, so multiple same-name sites (e.g. localhost:port) don't
+  // collide. Read/write the id-based file accordingly.
   configpath.value =
-    props?.file ?? join(baseDir, 'vhost', props.item.flag, `${props.item.item.name}.conf`)
+    props?.file ?? join(baseDir, 'vhost', props.item.flag, `${props.item.item.id}.conf`)
   getConfig()
 
   onMounted(() => {

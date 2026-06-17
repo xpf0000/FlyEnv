@@ -120,7 +120,10 @@
                   type="number"
                   :class="
                     'input' +
-                    (errs['port_nginx'] || errs['port_caddy'] || errs['port_apache']
+                    (errs['port_nginx'] ||
+                    errs['port_caddy'] ||
+                    errs['port_apache'] ||
+                    errs['port_frankenphp']
                       ? ' error'
                       : '')
                   "
@@ -159,6 +162,17 @@
                   :class="'input' + (errs['port_apache'] ? ' error' : '')"
                   placeholder="Default: 80"
                   @input="onPortTouched('apache')"
+                />
+              </div>
+
+              <div class="port-set mb-5">
+                <div class="port-type"> FrankenPHP </div>
+                <input
+                  v-model.number="item.port.frankenphp"
+                  type="number"
+                  :class="'input' + (errs['port_frankenphp'] ? ' error' : '')"
+                  placeholder="Default: 80"
+                  @input="onPortTouched('frankenphp')"
                 />
               </div>
             </template>
@@ -226,7 +240,10 @@
                     type="number"
                     :class="
                       'input' +
-                      (errs['port_nginx_ssl'] || errs['port_caddy_ssl'] || errs['port_apache_ssl']
+                      (errs['port_nginx_ssl'] ||
+                      errs['port_caddy_ssl'] ||
+                      errs['port_apache_ssl'] ||
+                      errs['port_frankenphp_ssl']
                         ? ' error'
                         : '')
                     "
@@ -263,6 +280,16 @@
                     :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
                     placeholder="Default: 443"
                     @input="onPortTouched('apache_ssl')"
+                  />
+                </div>
+                <div class="port-set port-ssl mb-5">
+                  <div class="port-type"> FrankenPHP </div>
+                  <input
+                    v-model.number="item.port.frankenphp_ssl"
+                    type="number"
+                    :class="'input' + (errs['port_frankenphp_ssl'] ? ' error' : '')"
+                    placeholder="Default: 443"
+                    @input="onPortTouched('frankenphp_ssl')"
                   />
                 </div>
               </template>
@@ -339,6 +366,8 @@
       apache_ssl: 443,
       caddy: 80,
       caddy_ssl: 443,
+      frankenphp: 80,
+      frankenphp_ssl: 443,
       tomcat: 80,
       tomcat_ssl: 443
     },
@@ -359,9 +388,11 @@
     port_nginx: false,
     port_caddy: false,
     port_apache: false,
+    port_frankenphp: false,
     port_nginx_ssl: false,
     port_apache_ssl: false,
     port_caddy_ssl: false,
+    port_frankenphp_ssl: false,
     port_tomcat: false,
     port_tomcat_ssl: false
   })
@@ -378,7 +409,8 @@
     const httpDup =
       a.port.nginx === b.port.nginx ||
       a.port.apache === b.port.apache ||
-      a.port.caddy === b.port.caddy
+      a.port.caddy === b.port.caddy ||
+      (a.port.frankenphp ?? a.port.caddy) === (b.port.frankenphp ?? b.port.caddy)
     if (httpDup) {
       return true
     }
@@ -386,7 +418,8 @@
       return (
         a.port.nginx_ssl === b.port.nginx_ssl ||
         a.port.apache_ssl === b.port.apache_ssl ||
-        a.port.caddy_ssl === b.port.caddy_ssl
+        a.port.caddy_ssl === b.port.caddy_ssl ||
+        (a.port.frankenphp_ssl ?? a.port.caddy_ssl) === (b.port.frankenphp_ssl ?? b.port.caddy_ssl)
       )
     }
     return false
@@ -401,9 +434,11 @@
     nginx: false,
     caddy: false,
     apache: false,
+    frankenphp: false,
     nginx_ssl: false,
     caddy_ssl: false,
-    apache_ssl: false
+    apache_ssl: false,
+    frankenphp_ssl: false
   })
   const onPortTouched = (key: keyof typeof portTouched) => {
     portTouched[key] = true
@@ -420,6 +455,9 @@
       if (!portTouched.apache) {
         item.value.port.apache = v
       }
+      if (!portTouched.frankenphp) {
+        item.value.port.frankenphp = v
+      }
     }
   })
   const primaryPortSSL = computed<number>({
@@ -434,6 +472,9 @@
       if (!portTouched.apache_ssl) {
         item.value.port.apache_ssl = v
       }
+      if (!portTouched.frankenphp_ssl) {
+        item.value.port.frankenphp_ssl = v
+      }
     }
   })
   // When editing a site whose servers use different ports, the simple single
@@ -441,14 +482,24 @@
   // diverging ports as touched so the follow-linking won't clobber them.
   if (props?.isEdit) {
     const p = item.value.port
-    const httpDiff = !(p.nginx === p.caddy && p.caddy === p.apache)
-    const sslDiff = !(p.nginx_ssl === p.caddy_ssl && p.caddy_ssl === p.apache_ssl)
+    const httpDiff = !(
+      p.nginx === p.caddy &&
+      p.caddy === p.apache &&
+      p.apache === (p.frankenphp ?? p.caddy)
+    )
+    const sslDiff = !(
+      p.nginx_ssl === p.caddy_ssl &&
+      p.caddy_ssl === p.apache_ssl &&
+      p.apache_ssl === (p.frankenphp_ssl ?? p.caddy_ssl)
+    )
     if (httpDiff || sslDiff) {
       portAdvanced.value = true
       portTouched.caddy = true
       portTouched.apache = true
+      portTouched.frankenphp = true
       portTouched.caddy_ssl = true
       portTouched.apache_ssl = true
+      portTouched.frankenphp_ssl = true
     }
   }
   const php = computed(() => {
@@ -527,7 +578,26 @@
     return item.value.name
   })
 
+  // #700: when the user types a domain containing a port (e.g.
+  // `localhost:8080`), apply that port to the http listening port field(s) so
+  // it doesn't get silently dropped on save (`data.name` becomes the hostname).
+  const applyPortFromName = (name: string) => {
+    let u: URL | undefined
+    try {
+      u = new URL(name.includes('http') ? name : `https://${name}`)
+    } catch {}
+    if (!u || !u.port) {
+      return
+    }
+    const port = Number(u.port)
+    if (!Number.isInteger(port)) {
+      return
+    }
+    primaryPort.value = port
+  }
+
   watch(itemName, (name) => {
+    applyPortFromName(name)
     for (const h of hosts.value) {
       if (h.name === name && h.id !== item.value.id && samePort(h, item.value)) {
         errs.value['name'] = true
@@ -605,6 +675,9 @@
     if (!Number.isInteger(item.value.port.caddy)) {
       errs.value['port_caddy'] = true
     }
+    if (!Number.isInteger(item.value.port.frankenphp)) {
+      errs.value['port_frankenphp'] = true
+    }
     if (!Number.isInteger(item.value.port.tomcat)) {
       errs.value['port_tomcat'] = true
     }
@@ -618,6 +691,9 @@
       }
       if (!Number.isInteger(item.value.port.caddy_ssl)) {
         errs.value['port_caddy_ssl'] = true
+      }
+      if (!Number.isInteger(item.value.port.frankenphp_ssl)) {
+        errs.value['port_frankenphp_ssl'] = true
       }
       if (!Number.isInteger(item.value.port.tomcat_ssl)) {
         errs.value['port_tomcat_ssl'] = true
