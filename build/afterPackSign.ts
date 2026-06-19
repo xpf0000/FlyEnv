@@ -1,5 +1,5 @@
 import type { AfterPackContext } from 'electron-builder'
-import { join, relative } from 'node:path'
+import { join, relative, dirname, basename } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import _fs from 'fs-extra'
 
@@ -37,7 +37,7 @@ function collectPeFiles(root: string): string[] {
 // 1) 用 .NET ZipFile 按相对路径名打包收集到的 PE 文件(保留嵌套目录)
 // 2) Submit-SigningRequest 提交 SignPath,等待完成,下载签名后的 zip
 // 3) 逐 entry 解压覆盖回 appOutDir
-function buildPsScript(appOutDir: string, relPaths: string[], opts: SignOpts): string {
+function buildPsScript(appOutDir: string, relPaths: string[], opts: SignOpts, workName: string): string {
   const list = relPaths.map((p) => `'${p.replace(/'/g, "''")}'`).join(',\n    ')
   return `
 $ErrorActionPreference = 'Stop'
@@ -45,7 +45,7 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $appDir = '${appOutDir.replace(/'/g, "''")}'
-$work   = Join-Path $env:RUNNER_TEMP 'signpath-app'
+$work   = Join-Path $env:RUNNER_TEMP '${workName}'
 $inZip  = Join-Path $work 'unsigned.zip'
 $outZip = Join-Path $work 'signed.zip'
 if (Test-Path $work) { Remove-Item -Recurse -Force $work }
@@ -137,6 +137,34 @@ Write-Host 'SignPath app-signing done.'
 `
 }
 
+function resolveOpts(): SignOpts {
+  return {
+    orgId: process.env.SIGNPATH_ORGANIZATION_ID || '4db4007d-ac9e-4889-a8d5-52d4a421d989',
+    projectSlug: process.env.SIGNPATH_PROJECT_SLUG || 'FlyEnv',
+    policySlug: process.env.SIGNPATH_POLICY_SLUG || 'test-signing',
+    artifactConfigSlug: process.env.SIGNPATH_APP_ARTIFACT_CONFIG_SLUG || 'windows-app'
+  }
+}
+
+// 在 baseDir 内对给定相对路径集合做 SignPath 批量签名(生成 ps 脚本并执行)
+function signViaSignPath(baseDir: string, relPaths: string[], opts: SignOpts, workName: string, tag: string) {
+  const script = buildPsScript(baseDir, relPaths, opts, workName)
+  const scriptPath = join(baseDir, '..', `${workName}-${tag}.ps1`)
+  writeFileSync(scriptPath, script, 'utf-8')
+  try {
+    const res = spawnSync(
+      'pwsh',
+      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', scriptPath],
+      { stdio: 'inherit', env: process.env }
+    )
+    if (res.status !== 0) {
+      throw new Error(`SignPath signing failed (exit ${res.status}, signal ${res.signal})`)
+    }
+  } finally {
+    removeSync(scriptPath)
+  }
+}
+
 export default async function (context: AfterPackContext) {
   if (context.electronPlatformName !== 'windows' && context.electronPlatformName !== 'win32') {
     return
@@ -151,13 +179,7 @@ export default async function (context: AfterPackContext) {
     return
   }
 
-  const opts: SignOpts = {
-    orgId: process.env.SIGNPATH_ORGANIZATION_ID || '4db4007d-ac9e-4889-a8d5-52d4a421d989',
-    projectSlug: process.env.SIGNPATH_PROJECT_SLUG || 'FlyEnv',
-    policySlug: process.env.SIGNPATH_POLICY_SLUG || 'test-signing',
-    artifactConfigSlug: process.env.SIGNPATH_APP_ARTIFACT_CONFIG_SLUG || 'windows-app'
-  }
-
+  const opts = resolveOpts()
   const appOutDir = context.appOutDir
   const peFiles = collectPeFiles(appOutDir)
   if (peFiles.length === 0) {
@@ -167,23 +189,39 @@ export default async function (context: AfterPackContext) {
 
   const relPaths = peFiles.map((f) => relative(appOutDir, f))
   console.log(`[signpath] submitting ${relPaths.length} PE files for app signing (policy=${opts.policySlug})`)
+  signViaSignPath(appOutDir, relPaths, opts, 'signpath-app', `${context.arch}`)
+}
 
-  const script = buildPsScript(appOutDir, relPaths, opts)
-  const scriptPath = join(appOutDir, '..', `signpath-app-sign-${context.arch}.ps1`)
-  writeFileSync(scriptPath, script, 'utf-8')
+// NSIS 阶段才生成的 PE(elevate.exe / 卸载器),afterPack/afterSign 钩子够不着。
+// electron-builder 复制 elevate.exe 后会调 signIf → 触发 win.signtoolOptions.sign 自定义钩子。
+// 该钩子对**所有** PE 都会触发,这里只对白名单内的文件真签,其余 no-op
+// (FlyEnv.exe / dll 等由 afterSign 批量签;安装器外壳由 workflow 第二段签)。
+const CUSTOM_SIGN_WHITELIST = ['elevate.exe', 'uninstall.exe']
 
-  try {
-    const res = spawnSync(
-      'pwsh',
-      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', scriptPath],
-      { stdio: 'inherit', env: process.env }
-    )
-    if (res.status !== 0) {
-      throw new Error(`SignPath app signing failed (exit ${res.status}, signal ${res.signal})`)
-    }
-  } finally {
-    removeSync(scriptPath)
+export async function customSign(configuration: { path: string; isNest?: boolean }) {
+  // electron-builder 默认对每个文件按 [sha1, sha256] 调用两次(isNest: false→true);
+  // SignPath 一次签名即为双签,只在第一次(isNest=false)处理,避免重复请求。
+  if (configuration.isNest) {
+    return
   }
+  const filePath = configuration.path
+  const name = basename(filePath).toLowerCase()
+  const hit =
+    CUSTOM_SIGN_WHITELIST.includes(name) || name.includes('uninstall')
+  if (!hit) {
+    return // 非白名单文件:交给其它流程,这里不处理
+  }
+
+  if (!process.env.SIGNPATH_API_TOKEN) {
+    console.log(`[signpath] SIGNPATH_API_TOKEN not set, skip signing ${name}.`)
+    return
+  }
+
+  const opts = resolveOpts()
+  const baseDir = dirname(filePath)
+  console.log(`[signpath] custom-signing NSIS artifact: ${name}`)
+  // 以该文件所在目录为基准,只把这一个文件送签;zip 内 entry 名即文件名,windows-app 配置的 *.exe 可匹配
+  signViaSignPath(baseDir, [basename(filePath)], opts, 'signpath-nsis', name.replace(/[^a-z0-9]/g, '_'))
 }
 
 

@@ -1,6 +1,6 @@
 import type { Configuration } from 'electron-builder'
 import AfterSign from '../build/afterSign'
-import AfterPackSign from '../build/afterPackSign'
+import AfterPackSign, { customSign } from '../build/afterPackSign'
 
 const conf: Configuration = {
   productName: 'FlyEnv',
@@ -36,6 +36,11 @@ const conf: Configuration = {
     ],
     // helper 由 SignPath 在打包前预签(见 .github/workflows + build/signpath),
     // 不再使用 electron-builder 自带签名(CI 无本地证书)。
+    // signtoolOptions.sign 自定义钩子:仅用于签 NSIS 阶段才生成的 elevate.exe / 卸载器
+    // (它们在 afterSign 之后才出现,批量签名够不着);对其它 PE 该钩子是 no-op。
+    signtoolOptions: {
+      sign: customSign
+    },
     icon: 'build/icon.ico',
     target: [
       {
