@@ -63,31 +63,22 @@ jobs:
           # 使用 PowerShell 脚本构建
           .\build-win.ps1
 
-      # ---- 第 1 段签名:先签 helper,再打包 ----
-      # helper 会被打进安装包内部,必须在打包前签名(否则杀软会拦截内部的 helper)。
-      - name: Upload unsigned helper (for signing)
-        id: upload-helper-unsigned
-        uses: actions/upload-artifact@v4
-        with:
-          name: flyenv-helper-unsigned
-          path: src/helper-go/dist/flyenv-helper-windows-*.exe
+      # 安装 SignPath PowerShell 模块,供 electron-builder 的 afterPack 钩子调用
+      - name: Install SignPath PowerShell module
+        run: |
+          Install-Module -Name SignPath -Force -Scope CurrentUser -AllowClobber
+          Import-Module SignPath
 
-      - name: Sign helper with SignPath
-        uses: signpath/github-action-submit-signing-request@v1
-        with:
-          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id: '4db4007d-ac9e-4889-a8d5-52d4a421d989'
-          project-slug: 'FlyEnv'
-          signing-policy-slug: 'test-signing'
-          artifact-configuration-slug: 'windows-helper'
-          github-artifact-id: ${{ steps.upload-helper-unsigned.outputs.artifact-id }}
-          wait-for-completion: true
-          # 把签名后的 helper 直接覆盖回原路径,供后续 electron-builder 打包使用
-          output-artifact-directory: src/helper-go/dist
-
+      # 打包:afterPack 钩子会把 win-unpacked 内所有 PE(FlyEnv.exe / dll / .node / helper)
+      # 收集成 zip,一次性提交 SignPath 用 windows-app 配置签名,再覆盖回原位。
       - name: Build Electron packages with electron-builder
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORGANIZATION_ID: '4db4007d-ac9e-4889-a8d5-52d4a421d989'
+          SIGNPATH_PROJECT_SLUG: 'FlyEnv'
+          SIGNPATH_POLICY_SLUG: 'test-signing'
+          SIGNPATH_APP_ARTIFACT_CONFIG_SLUG: 'windows-app'
         run: |
           cd "$env:GITHUB_WORKSPACE"
           yarn build

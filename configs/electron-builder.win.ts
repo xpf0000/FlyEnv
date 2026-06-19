@@ -1,5 +1,6 @@
 import type { Configuration } from 'electron-builder'
 import AfterSign from '../build/afterSign'
+import AfterPackSign from '../build/afterPackSign'
 
 const conf: Configuration = {
   productName: 'FlyEnv',
@@ -54,6 +55,7 @@ const conf: Configuration = {
     unpackDirName: 'FlyEnv-Portable-${version}'
   },
   publish: [],
+  afterPack: AfterPackSign,
   afterSign: AfterSign
 }
 
