@@ -142,6 +142,8 @@ export default async function (context: AfterPackContext) {
     return
   }
 
+  // 本钩子由 electron-builder.win.ts 在 afterSign 阶段调用(rcedit 之后、NSIS 打包之前),
+  // 确保对 FlyEnv.exe 的签名不会被 signApp 里的 rcedit 改写抹掉。
   // 守卫:本地构建(无 token)直接跳过,不影响开发
   const apiToken = process.env.SIGNPATH_API_TOKEN
   if (!apiToken) {

@@ -58,8 +58,13 @@ const conf: Configuration = {
     unpackDirName: 'FlyEnv-Portable-${version}'
   },
   publish: [],
-  afterPack: AfterPackSign,
-  afterSign: AfterSign
+  // 注意顺序:electron-builder 的 signApp 会对 FlyEnv.exe 跑 rcedit 改写版本号/图标/manifest,
+  // 这会抹掉签名。因此签名必须放在 afterSign(rcedit 之后):先移动 helper 到最终位置,
+  // 再对整个 win-unpacked 做 SignPath 签名,确保 FlyEnv.exe 等所有 PE 的签名是最后落定的。
+  afterSign: async (context) => {
+    await AfterSign(context)
+    await AfterPackSign(context)
+  }
 }
 
 export default conf
