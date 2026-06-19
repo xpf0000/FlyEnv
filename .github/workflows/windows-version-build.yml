@@ -63,6 +63,28 @@ jobs:
           # 使用 PowerShell 脚本构建
           .\build-win.ps1
 
+      # ---- 第 1 段签名:先签 helper,再打包 ----
+      # helper 会被打进安装包内部,必须在打包前签名(否则杀软会拦截内部的 helper)。
+      - name: Upload unsigned helper (for signing)
+        id: upload-helper-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: flyenv-helper-unsigned
+          path: src/helper-go/dist/flyenv-helper-windows-*.exe
+
+      - name: Sign helper with SignPath
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: '4db4007d-ac9e-4889-a8d5-52d4a421d989'
+          project-slug: 'FlyEnv'
+          signing-policy-slug: 'test-signing'
+          artifact-configuration-slug: 'windows-helper'
+          github-artifact-id: ${{ steps.upload-helper-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          # 把签名后的 helper 直接覆盖回原路径,供后续 electron-builder 打包使用
+          output-artifact-directory: src/helper-go/dist
+
       - name: Build Electron packages with electron-builder
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -70,12 +92,38 @@ jobs:
           cd "$env:GITHUB_WORKSPACE"
           yarn build
 
-      - name: Upload artifacts
+      # ---- 第 2 段签名:打包后签外层安装包/便携版 ----
+      # 1) 先把待签名的 exe 作为一个独立 artifact 上传;upload-artifact 会自动打成 zip,
+      #    SignPath 的 installer.artifact-configuration.xml 以 <zip-file> 为根来匹配里面的 exe。
+      - name: Upload unsigned artifacts (for signing)
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlyEnv-Windows-x64-unsigned
+          path: |
+            release/FlyEnv-Setup-*.exe
+            release/FlyEnv-Portable-*.exe
+
+      # 2) 提交给 SignPath 签名,并把签名后的文件下载回 release/signed/
+      - name: Submit signing request to SignPath
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: '4db4007d-ac9e-4889-a8d5-52d4a421d989'
+          project-slug: 'FlyEnv'
+          signing-policy-slug: 'test-signing'
+          artifact-configuration-slug: 'windows-installer'
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: 'release/signed'
+
+      # 3) 上传签名后的产物 + 其余文件(installer/portable 用已签名版本)
+      - name: Upload signed artifacts
         uses: actions/upload-artifact@v4
         with:
           name: FlyEnv-Windows-x64
           path: |
-            release/*.exe
+            release/signed/*.exe
             release/*.msi
             release/*.yml
             release/*.blockmap

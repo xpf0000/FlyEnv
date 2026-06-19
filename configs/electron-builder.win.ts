@@ -4,7 +4,7 @@ import AfterSign from '../build/afterSign'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.15.4',
+  buildVersion: '4.15.5',
   electronVersion: '39.8.7',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -30,7 +30,8 @@ const conf: Configuration = {
         to: 'app.asar.unpacked/node_modules/helper/flyenv-helper.exe'
       }
     ],
-    signExts: ['flyenv-helper.exe'],
+    // helper 由 SignPath 在打包前预签(见 .github/workflows + build/signpath),
+    // 不再使用 electron-builder 自带签名(CI 无本地证书)。
     icon: 'build/icon.ico',
     target: [
       {
