@@ -19,7 +19,10 @@ const conf: Configuration = {
     '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}',
     '!**/node_modules/*.d.ts',
     '!**/node_modules/.bin',
-    '!**/node_modules/node-pty/build/node_gyp_bins'
+    '!**/node_modules/node-pty/build/node_gyp_bins',
+    // node-pty ships prebuilds for all platforms; Windows build is x64-only, keep only win32-x64
+    '!**/node_modules/node-pty/prebuilds/{darwin-arm64,darwin-x64,linux-arm64,linux-x64,win32-arm64}/**',
+    '!**/node_modules/node-pty/third_party/conpty/*/win10-arm64/**'
   ],
   artifactName: 'FlyEnv-Setup-${version}.${ext}',
   win: {

@@ -7,6 +7,13 @@ import AfterPack from '../build/afterPack'
 // 注意：这只影响产物文件名，包内部架构标识由 fpm --architecture 单独处理，不受影响。
 const archName = process.arch === 'arm64' ? 'arm64' : 'x64'
 
+// node-pty 自带全部平台的 prebuilds;linux 构建只需当前架构对应的 linux-* 一个,
+// 其余平台(含 Windows 专用的 third_party/conpty)全部裁掉以减小体积。
+const ptyKeep = `linux-${archName}`
+const ptyPrebuildExcludes = ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64', 'win32-arm64', 'win32-x64']
+  .filter((d) => d !== ptyKeep)
+  .map((d) => `!**/node_modules/node-pty/prebuilds/${d}/**`)
+
 const desktop: any = {
   Name: 'FlyEnv',
   Comment: 'All-In-One Full-Stack Environment Management Tool',
@@ -36,7 +43,10 @@ const conf: Configuration = {
     '!**/node_modules/*.d.ts',
     '!**/node_modules/.bin',
     '!**/node_modules/node-pty/build/node_gyp_bins',
-    '!**/node_modules/nodejieba/dict'
+    '!**/node_modules/nodejieba/dict',
+    ...ptyPrebuildExcludes,
+    // third_party/conpty is Windows-only, not needed on Linux
+    '!**/node_modules/node-pty/third_party/**'
   ],
   deb: {
     packageName: 'flyenv'

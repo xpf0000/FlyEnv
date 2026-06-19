@@ -6,6 +6,13 @@ import Notarize from '../build/notarize'
 // 获取当前 Node.js 运行环境的架构
 const currentArch = process.arch === 'arm64' ? 'arm64' : 'x64'
 
+// node-pty 自带全部平台的 prebuilds;mac 构建只需当前架构对应的 darwin-* 一个,
+// 其余平台(含 Windows 专用的 third_party/conpty)全部裁掉以减小体积。
+const ptyKeep = `darwin-${currentArch}`
+const ptyPrebuildExcludes = ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64', 'win32-arm64', 'win32-x64']
+  .filter((d) => d !== ptyKeep)
+  .map((d) => `!**/node_modules/node-pty/prebuilds/${d}/**`)
+
 /**
  * one environment
  * envlab
@@ -34,7 +41,10 @@ const conf: Configuration = {
     '!**/node_modules/*.d.ts',
     '!**/node_modules/.bin',
     '!**/node_modules/node-pty/build/node_gyp_bins',
-    '!**/node_modules/nodejieba/dict'
+    '!**/node_modules/nodejieba/dict',
+    ...ptyPrebuildExcludes,
+    // third_party/conpty is Windows-only, not needed on macOS
+    '!**/node_modules/node-pty/third_party/**'
   ],
   dmg: {
     sign: false,

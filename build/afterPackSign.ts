@@ -56,14 +56,35 @@ $rel = @(
     ${list}
 )
 
-# Pack by explicit entry name via .NET to avoid Compress-Archive flattening nested dirs;
-# before packing, check each file's signature and skip those already Valid (e.g. Microsoft-signed dll).
+# Pack by explicit entry name via .NET to avoid Compress-Archive flattening nested dirs.
+# Two filters before packing:
+#   1) Skip non-PE files (must start with 'MZ' header) - e.g. darwin/linux .node prebuilds
+#      whose extension matches but content is Mach-O/ELF, which SignPath rejects.
+#   2) Skip files already validly signed (e.g. Microsoft-signed dll).
+function Test-IsPeFile {
+  param([string]$Path)
+  try {
+    $fs = [System.IO.File]::OpenRead($Path)
+    try {
+      if ($fs.Length -lt 2) { return $false }
+      $b0 = $fs.ReadByte(); $b1 = $fs.ReadByte()
+      return ($b0 -eq 0x4D -and $b1 -eq 0x5A)
+    } finally { $fs.Dispose() }
+  } catch { return $false }
+}
+
 $zip = [System.IO.Compression.ZipFile]::Open($inZip, [System.IO.Compression.ZipArchiveMode]::Create)
 $packed = 0
 $skipped = 0
+$nonpe = 0
 try {
   foreach ($r in $rel) {
     $src = Join-Path $appDir $r
+    if (-not (Test-IsPeFile $src)) {
+      Write-Host ("[skip non-PE] {0}" -f $r)
+      $nonpe++
+      continue
+    }
     $sig = Get-AuthenticodeSignature -FilePath $src
     if ($sig.Status -eq 'Valid') {
       Write-Host ("[skip already-signed] {0}" -f $r)
@@ -72,14 +93,15 @@ try {
     }
     $entryName = $r -replace '\\\\', '/'
     [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $src, $entryName) | Out-Null
+    Write-Host ("[pack] {0}" -f $r)
     $packed++
   }
 } finally {
   $zip.Dispose()
 }
-Write-Host ("[signpath] pack {0} file(s), skip {1} already-signed." -f $packed, $skipped)
+Write-Host ("[signpath] pack {0} file(s), skip {1} already-signed, skip {2} non-PE." -f $packed, $skipped, $nonpe)
 if ($packed -eq 0) {
-  Write-Host '[signpath] nothing to sign, all files already validly signed.'
+  Write-Host '[signpath] nothing to sign.'
   Remove-Item -Recurse -Force $work
   return
 }
