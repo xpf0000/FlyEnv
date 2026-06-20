@@ -38,9 +38,15 @@ import hermes from './hermes.json'
 import flutter from './flutter.json'
 import cronIT from './cron.json'
 import kimi from './kimi.json'
+import claudeCode from './claude-code.json'
+import codex from './codex.json'
+import openCode from './opencode.json'
 export default {
   it: {
     kimi,
+    claudeCode,
+    codex,
+    openCode,
     cron: cronIT,
     rustfs: rustfsIT,
     mkcert,

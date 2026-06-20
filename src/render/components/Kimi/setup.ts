@@ -1,6 +1,6 @@
 import IPC from '@/util/IPC'
 import { reactiveBind } from '@/util/Index'
-import { shell } from '@/util/NodeFn'
+import { shell, clipboard } from '@/util/NodeFn'
 import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
@@ -26,15 +26,14 @@ export interface CommandDataType {
 export interface SessionItem {
   id: string
   title: string
+  lastPrompt: string
   workDir: string
   updatedAt: string
 }
 
-export interface QuickSettings {
-  default_permission_mode: string
-  default_thinking: boolean
-  default_plan_mode: boolean
-  telemetry: boolean
+export interface SessionGroup {
+  workDir: string
+  sessions: SessionItem[]
 }
 
 class Kimi {
@@ -53,13 +52,6 @@ class Kimi {
 
   confTab = ''
   logTab = ''
-
-  quickSettings: QuickSettings = {
-    default_permission_mode: 'manual',
-    default_thinking: false,
-    default_plan_mode: false,
-    telemetry: true
-  }
 
   get actions(): string[] {
     const actions: string[] = []
@@ -110,7 +102,7 @@ class Kimi {
 
   init() {
     this.loading = true
-    Promise.all([this.checkInstalled(), this.getConfigPath(), this.getQuickSettings()]).then(() => {
+    Promise.all([this.checkInstalled(), this.getConfigPath()]).then(() => {
       this.loading = false
     })
   }
@@ -151,25 +143,10 @@ class Kimi {
     this.installEnd = true
   }
 
-  async doAction(item: CommandItem, domRef: Ref<HTMLElement>) {
-    if (this.installing) {
-      return
-    }
-    this.currentAction = item.label
-    this.installEnd = false
-    this.installing = true
-    await nextTick()
-
-    const execXTerm = new XTerm()
-    this.xterm = markRaw(execXTerm)
-    await execXTerm.mount(domRef.value)
-    if (item.needInput) {
-      execXTerm.writeToNodePty(item.label + ' ')
-    } else {
-      const command: string[] = [item.label]
-      await execXTerm.send(command, false)
-      this.installEnd = true
-    }
+  doAction(item: CommandItem) {
+    clipboard.writeText(item.label).then(() => {
+      MessageSuccess(I18nT('base.copySuccess'))
+    })
   }
 
   getLogFiles(): Promise<Array<{ name: string; path: string }>> {
@@ -214,21 +191,20 @@ class Kimi {
     })
   }
 
-  async resumeSession(sessionId: string, domRef: Ref<HTMLElement>) {
-    if (this.installing) {
-      return
-    }
-    this.currentAction = 'resumeSession'
-    this.installEnd = false
-    this.installing = true
-    await nextTick()
-
-    const execXTerm = new XTerm()
-    this.xterm = markRaw(execXTerm)
-    await execXTerm.mount(domRef.value)
-    const command: string[] = [`kimi --session "${sessionId}"`]
-    await execXTerm.send(command, false)
-    this.installEnd = true
+  resumeSession(sessionId: string, workDir: string) {
+    return new Promise((resolve) => {
+      IPC.send('app-fork:kimi', 'runInTerminal', workDir, sessionId).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          if (res?.code === 0) {
+            MessageSuccess(I18nT('kimi.sessionResumed'))
+          } else {
+            MessageError(res?.msg ?? I18nT('base.fail'))
+          }
+          resolve(true)
+        }
+      )
+    })
   }
 
   async exportSession(sessionId: string, domRef: Ref<HTMLElement>) {
@@ -248,30 +224,19 @@ class Kimi {
     this.installEnd = true
   }
 
-  getQuickSettings() {
-    return new Promise((resolve) => {
-      IPC.send('app-fork:kimi', 'getQuickSettings').then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          this.quickSettings = res?.data ?? this.quickSettings
-        }
-        resolve(true)
-      })
+  get sessionGroups(): SessionGroup[] {
+    const groupMap: Record<string, SessionItem[]> = {}
+    this.sessions.forEach((session) => {
+      const dir = session.workDir || 'Unknown'
+      if (!groupMap[dir]) {
+        groupMap[dir] = []
+      }
+      groupMap[dir].push(session)
     })
-  }
-
-  setQuickSettings() {
-    return new Promise((resolve) => {
-      IPC.send('app-fork:kimi', 'setQuickSettings', this.quickSettings).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          MessageSuccess(I18nT('kimi.quickSettingsSaved'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        resolve(true)
-      })
-    })
+    return Object.entries(groupMap).map(([workDir, sessions]) => ({
+      workDir,
+      sessions
+    }))
   }
 
   taskConfirm() {

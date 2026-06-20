@@ -41,6 +41,9 @@ import type rustfs from './zh/rustfs.json'
 import type mkcert from './zh/mkcert.json'
 import type flutter from './zh/flutter.json'
 import type cron from './zh/cron.json'
+import type claudeCode from './zh/claude-code.json'
+import type codex from './zh/codex.json'
+import type openCode from './zh/opencode.json'
 
 import AR from './ar/index'
 import AZ from './az/index'
@@ -127,6 +130,9 @@ type LangKey =
   | AppendStringToKeys<typeof mkcert, 'mkcert'>
   | AppendStringToKeys<typeof flutter, 'flutter'>
   | AppendStringToKeys<typeof cron, 'cron'>
+  | AppendStringToKeys<typeof claudeCode, 'claudeCode'>
+  | AppendStringToKeys<typeof codex, 'codex'>
+  | AppendStringToKeys<typeof openCode, 'openCode'>
 
 export const AppAllLang: Record<string, string> = {
   ar: 'العربية',

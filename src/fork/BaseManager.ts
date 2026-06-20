@@ -67,6 +67,9 @@ class BaseManager {
   Numa: any
   Rnacos: any
   Kimi: any
+  ClaudeCode: any
+  Codex: any
+  OpenCode: any
   FrankenPHP: any
   RoadRunner: any
   SwooleCli: any
@@ -576,6 +579,24 @@ class BaseManager {
         this.Kimi = res.default
       }
       doRun(this.Kimi)
+    } else if (module === 'claudeCode') {
+      if (!this.ClaudeCode) {
+        const res = await import('./module/ClaudeCode')
+        this.ClaudeCode = res.default
+      }
+      doRun(this.ClaudeCode)
+    } else if (module === 'codex') {
+      if (!this.Codex) {
+        const res = await import('./module/Codex')
+        this.Codex = res.default
+      }
+      doRun(this.Codex)
+    } else if (module === 'openCode') {
+      if (!this.OpenCode) {
+        const res = await import('./module/OpenCode')
+        this.OpenCode = res.default
+      }
+      doRun(this.OpenCode)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

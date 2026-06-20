@@ -2,19 +2,12 @@
   <div class="module-config">
     <el-card class="app-base-el-card">
       <template #header>
-        <div class="flex items-center justify-between">
+        <div class="flex items-center">
           <el-radio-group v-model="filepath">
             <template v-for="(item, _index) in logFiles" :key="_index">
               <el-radio-button :value="item.path" :label="item.name"></el-radio-button>
             </template>
           </el-radio-group>
-          <el-button link :disabled="KimiSetup.loading" @click="init">
-            <yb-icon
-              :svg="import('@/svg/icon_refresh.svg?raw')"
-              class="refresh-icon"
-              :class="{ 'fa-spin': KimiSetup.loading }"
-            ></yb-icon>
-          </el-button>
         </div>
       </template>
       <template #default>

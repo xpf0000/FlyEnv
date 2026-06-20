@@ -1,0 +1,30 @@
+{
+  "categories": [
+    {
+      "nameKey": "claudeCode.category.basic",
+      "commands": [
+        { "label": "claude --help", "descriptionKey": "claudeCode.cmd.help", "needInput": false },
+        { "label": "claude --version", "descriptionKey": "claudeCode.cmd.version", "needInput": false },
+        { "label": "claude update", "descriptionKey": "claudeCode.cmd.update", "needInput": false, "needRefresh": true },
+        { "label": "claude doctor", "descriptionKey": "claudeCode.cmd.doctor", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "claudeCode.category.session",
+      "commands": [
+        { "label": "claude", "descriptionKey": "claudeCode.cmd.start", "needInput": false },
+        { "label": "claude --continue", "descriptionKey": "claudeCode.cmd.continue", "needInput": false },
+        { "label": "claude --resume", "descriptionKey": "claudeCode.cmd.resume", "needInput": false },
+        { "label": "claude -p", "descriptionKey": "claudeCode.cmd.print", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "claudeCode.category.config",
+      "commands": [
+        { "label": "claude mcp list", "descriptionKey": "claudeCode.cmd.mcpList", "needInput": false },
+        { "label": "claude plugin list", "descriptionKey": "claudeCode.cmd.pluginList", "needInput": false },
+        { "label": "claude setup-token", "descriptionKey": "claudeCode.cmd.setupToken", "needInput": false }
+      ]
+    }
+  ]
+}

@@ -6,7 +6,7 @@
         <el-button link :disabled="KimiSetup.loading" @click="KimiSetup.refreshSessions()">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
-            class="refresh-icon"
+            class="w-[24px] h-[24px]"
             :class="{ 'fa-spin': KimiSetup.loading }"
           ></yb-icon>
         </el-button>
@@ -26,26 +26,29 @@
             clearable
             class="mb-3"
           />
-          <el-scrollbar class="flex-1">
-            <el-table :data="filteredSessions" show-overflow-tooltip style="width: 100%">
-              <el-table-column prop="title" :label="I18nT('kimi.sessionTitle')">
-                <template #default="scope">
-                  <span class="truncate">{{ scope.row.title }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="workDir" :label="I18nT('kimi.workDir')" show-overflow-tooltip />
-              <el-table-column prop="updatedAt" :label="I18nT('kimi.lastActive')" width="160" />
-              <el-table-column prop="id" :label="I18nT('kimi.id')" width="220" />
-              <el-table-column width="180" :label="I18nT('base.operation')" align="center">
-                <template #default="{ row }">
-                  <el-button link :icon="VideoPlay" @click="resumeSession(row)" />
-                  <el-button link :icon="Download" @click="exportSession(row)" />
-                  <el-button link type="danger" :icon="Delete" @click="deleteSession(row)" />
-                </template>
-              </el-table-column>
-            </el-table>
-            <el-empty v-if="filteredSessions.length === 0" />
-          </el-scrollbar>
+          <div ref="containerRef" class="flex-1 overflow-hidden">
+            <el-scrollbar>
+              <el-collapse v-if="filteredGroups.length > 0" v-model="activeNames">
+                <el-collapse-item
+                  v-for="group in filteredGroups"
+                  :key="group.workDir"
+                  :name="group.workDir"
+                  :title="group.workDir"
+                >
+                  <el-table-v2
+                    :columns="columns"
+                    :data="group.sessions"
+                    :width="tableWidth"
+                    :height="group.sessions.length * 59 + 59"
+                    :header-height="59"
+                    :row-height="59"
+                    :row-event-handlers="{ onClick: (_e: Event, row: SessionItem) => resumeSession(row.id, row.workDir) }"
+                  />
+                </el-collapse-item>
+              </el-collapse>
+              <el-empty v-else />
+            </el-scrollbar>
+          </div>
         </div>
       </template>
     </div>
@@ -62,26 +65,55 @@
   </el-card>
 </template>
 
-<script lang="ts" setup>
+<script lang="tsx" setup>
   import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
   import { I18nT } from '@lang/index'
   import { KimiSetup, SessionItem } from './setup'
-  import { Delete, Download, VideoPlay } from '@element-plus/icons-vue'
-  import { ElMessageBox } from 'element-plus'
+  import { MoreFilled, VideoPlay, Download, Delete } from '@element-plus/icons-vue'
+  import { ElMessageBox, ElPopover, ElButton, ElIcon, ElTooltip, type Column } from 'element-plus'
   import XTerm from '@/util/XTerm'
+  import { clipboard } from '@/util/NodeFn'
+  import { MessageSuccess } from '@/util/Element'
 
   const search = ref('')
   const xtermDom = ref()
+  const containerRef = ref<HTMLElement>()
+  const tableWidth = ref(800)
+  const activeNames = ref<string[]>([])
 
-  const filteredSessions = computed(() => {
-    if (!search.value) return KimiSetup.sessions
-    return KimiSetup.sessions.filter((s) =>
-      s.title.toLowerCase().includes(search.value.toLowerCase())
-    )
+  const filteredGroups = computed(() => {
+    const groups = KimiSetup.sessionGroups
+    if (!search.value) {
+      return groups
+    }
+    const keyword = search.value.toLowerCase()
+    return groups
+      .map((group) => ({
+        workDir: group.workDir,
+        sessions: group.sessions.filter(
+          (session) =>
+            session.title.toLowerCase().includes(keyword) ||
+            session.id.toLowerCase().includes(keyword) ||
+            session.workDir.toLowerCase().includes(keyword) ||
+            session.lastPrompt.toLowerCase().includes(keyword)
+        )
+      }))
+      .filter((group) => group.sessions.length > 0)
   })
 
-  const resumeSession = (row: SessionItem) => {
-    KimiSetup.resumeSession(row.id, xtermDom)
+  const updateTableWidth = () => {
+    if (containerRef.value) {
+      tableWidth.value = containerRef.value.clientWidth
+    }
+  }
+
+  const resumeSession = (sessionId: string, workDir: string) => {
+    KimiSetup.resumeSession(sessionId, workDir)
+  }
+
+  const copyText = (text: string) => {
+    clipboard.writeText(text)
+    MessageSuccess(I18nT('base.copySuccess'))
   }
 
   const exportSession = (row: SessionItem) => {
@@ -100,6 +132,105 @@
       .catch(() => {})
   }
 
+  const columns: Column<SessionItem>[] = [
+    {
+      key: 'id',
+      title: I18nT('kimi.sessionId'),
+      dataKey: 'id',
+      width: 180,
+      align: 'center',
+      headerCellRenderer: () => (
+        <span class="flex items-center justify-center">{I18nT('kimi.sessionId')}</span>
+      ),
+      cellRenderer: ({ rowData: row }) => (
+        <ElTooltip content={row.id} placement="top" show-after={300}>
+          <span
+            class="truncate cursor-pointer hover:text-yellow-500"
+            onClick={() => copyText(row.id)}
+          >
+            {row.id}
+          </span>
+        </ElTooltip>
+      )
+    },
+    {
+      key: 'title',
+      title: I18nT('kimi.sessionTitle'),
+      dataKey: 'title',
+      width: 200,
+      headerCellRenderer: () => <span class="flex items-center">{I18nT('kimi.sessionTitle')}</span>,
+      cellRenderer: ({ rowData: row }) => (
+        <ElTooltip content={row.title} placement="top" show-after={300}>
+          <span class="truncate">{row.title}</span>
+        </ElTooltip>
+      )
+    },
+    {
+      key: 'lastPrompt',
+      title: I18nT('kimi.lastPrompt'),
+      dataKey: 'lastPrompt',
+      class: 'flex-1',
+      headerClass: 'flex-1',
+      width: 0,
+      flexGrow: 1,
+      headerCellRenderer: () => <span class="flex items-center">{I18nT('kimi.lastPrompt')}</span>,
+      cellRenderer: ({ rowData: row }) => (
+        <ElTooltip content={row.lastPrompt} placement="top" show-after={300}>
+          <span class="truncate text-gray-500">{row.lastPrompt}</span>
+        </ElTooltip>
+      )
+    },
+    {
+      key: 'operation',
+      title: I18nT('base.action'),
+      dataKey: 'operation',
+      width: 80,
+      align: 'center',
+      headerCellRenderer: () => (
+        <span class="flex items-center justify-center">{I18nT('base.action')}</span>
+      ),
+      cellRenderer: ({ rowData: row }) => (
+        <ElPopover
+          effect="dark"
+          popper-class="host-list-poper"
+          placement="left-start"
+          width="auto"
+          show-arrow={false}
+        >
+          {{
+            default: () => (
+              <ul class="host-list-menu">
+                <li onClick={() => resumeSession(row.id, row.workDir)}>
+                  <ElIcon size="13">
+                    <VideoPlay />
+                  </ElIcon>
+                  <span class="ml-3">{I18nT('kimi.resume')}</span>
+                </li>
+                <li onClick={() => exportSession(row)}>
+                  <ElIcon size="13">
+                    <Download />
+                  </ElIcon>
+                  <span class="ml-3">{I18nT('kimi.cmd.export')}</span>
+                </li>
+                <li onClick={() => deleteSession(row)}>
+                  <ElIcon size="13">
+                    <Delete />
+                  </ElIcon>
+                  <span class="ml-3">{I18nT('base.del')}</span>
+                </li>
+              </ul>
+            ),
+            reference: () => (
+              <div class="flex justify-center">
+                <ElButton link icon={MoreFilled} onClick={(e: Event) => e.stopPropagation()} />
+              </div>
+            )
+          }}
+        </ElPopover>
+      )
+    }
+  ]
+
   onMounted(() => {
     if (KimiSetup.installing) {
       nextTick().then(() => {
@@ -109,10 +240,13 @@
         }
       })
     }
+    updateTableWidth()
+    window.addEventListener('resize', updateTableWidth)
     KimiSetup.refreshSessions()
   })
 
   onUnmounted(() => {
     KimiSetup?.xterm?.unmounted?.()
+    window.removeEventListener('resize', updateTableWidth)
   })
 </script>

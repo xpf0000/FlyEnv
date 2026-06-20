@@ -1,21 +1,16 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import {
-  execPromiseWithEnv,
-  readFile,
-  remove,
-  existsSync,
-  readdir,
-  writeFile
-} from '../../Fn'
+import { execPromiseWithEnv, readFile, remove, existsSync, readdir } from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
-import { parse as TOMLParse, stringify as TOMLStringify } from '@iarna/toml'
+import { ExecCommand } from '@shared/Exec'
+import { isWindows } from '@shared/utils'
 
 export interface KimiSessionItem {
   id: string
   title: string
+  lastPrompt: string
   workDir: string
   updatedAt: string
 }
@@ -41,7 +36,7 @@ class Kimi extends Base {
         await execPromiseWithEnv(`${command} > "${tmp}" 2>&1`)
         const content = await readFile(tmp, 'utf-8')
         resolve(content)
-      } catch (e) {
+      } catch {
         resolve('')
       } finally {
         if (existsSync(tmp)) {
@@ -134,6 +129,21 @@ class Kimi extends Base {
     return map
   }
 
+  runInTerminal(workDir: string, sessionId: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const kimiCommand = `kimi --session "${sessionId}"`
+      const terminalCommand = isWindows()
+        ? `cd "${workDir}"; ${kimiCommand}`
+        : `cd "${workDir}" && ${kimiCommand}`
+      try {
+        await ExecCommand.runInTerminal(terminalCommand)
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? e?.toString() ?? 'fail')
+      }
+    })
+  }
+
   listSessions() {
     return new ForkPromise(async (resolve) => {
       const list: KimiSessionItem[] = []
@@ -150,14 +160,19 @@ class Kimi extends Base {
           try {
             const entries = await readdir(bucketPath)
             for (const sessionId of entries) {
+              if (sessionId === '.DS_Store') {
+                continue
+              }
               const sessionDir = join(bucketPath, sessionId)
               const stateFile = join(sessionDir, 'state.json')
               let title = sessionId
+              let lastPrompt = ''
               let updatedAt = ''
               try {
                 if (existsSync(stateFile)) {
                   const state = JSON.parse(await readFile(stateFile, 'utf-8'))
-                  title = state?.title || state?.lastPrompt || sessionId
+                  title = state?.title || sessionId
+                  lastPrompt = state?.lastPrompt || ''
                   updatedAt = state?.updatedAt || state?.lastActive || ''
                 }
               } catch {
@@ -166,6 +181,7 @@ class Kimi extends Base {
               list.push({
                 id: sessionId,
                 title,
+                lastPrompt,
                 workDir: workDirMap[sessionId] || '',
                 updatedAt
               })
@@ -203,65 +219,6 @@ class Kimi extends Base {
             return
           }
         }
-        resolve(true)
-      } catch (e: any) {
-        reject(e?.message ?? 'fail')
-      }
-    })
-  }
-
-  getQuickSettings() {
-    return new ForkPromise(async (resolve) => {
-      const configFile = join(this.kimiHome(), 'config.toml')
-      const defaults = {
-        default_permission_mode: 'manual',
-        default_thinking: false,
-        default_plan_mode: false,
-        telemetry: true
-      }
-      try {
-        if (!existsSync(configFile)) {
-          resolve(defaults)
-          return
-        }
-        const content = await readFile(configFile, 'utf-8')
-        const config: any = TOMLParse(content)
-        resolve({
-          default_permission_mode: config?.default_permission_mode ?? defaults.default_permission_mode,
-          default_thinking: config?.default_thinking ?? defaults.default_thinking,
-          default_plan_mode: config?.default_plan_mode ?? defaults.default_plan_mode,
-          telemetry: config?.telemetry ?? defaults.telemetry
-        })
-      } catch (e) {
-        console.log('kimi getQuickSettings error: ', e)
-        resolve(defaults)
-      }
-    })
-  }
-
-  setQuickSettings(settings: {
-    default_permission_mode?: string
-    default_thinking?: boolean
-    default_plan_mode?: boolean
-    telemetry?: boolean
-  }) {
-    return new ForkPromise(async (resolve, reject) => {
-      const configFile = join(this.kimiHome(), 'config.toml')
-      try {
-        let config: any = {}
-        if (existsSync(configFile)) {
-          try {
-            const content = await readFile(configFile, 'utf-8')
-            config = TOMLParse(content)
-          } catch {
-            config = {}
-          }
-        }
-        config.default_permission_mode = settings.default_permission_mode ?? config.default_permission_mode ?? 'manual'
-        config.default_thinking = settings.default_thinking ?? config.default_thinking ?? false
-        config.default_plan_mode = settings.default_plan_mode ?? config.default_plan_mode ?? false
-        config.telemetry = settings.telemetry ?? config.telemetry ?? true
-        await writeFile(configFile, TOMLStringify(config))
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')

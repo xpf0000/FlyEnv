@@ -38,9 +38,15 @@ import hermes from './hermes.json'
 import cronHR from './cron.json'
 import flutter from './flutter.json'
 import kimi from './kimi.json'
+import claudeCode from './claude-code.json'
+import codex from './codex.json'
+import openCode from './opencode.json'
 export default {
   hu: {
     kimi,
+    claudeCode,
+    codex,
+    openCode,
     cron: cronHR,
     rustfs,
     mkcert,

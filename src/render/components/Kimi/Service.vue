@@ -4,22 +4,22 @@
       <div class="card-header">
         <div class="left">
           <span>Kimi Code CLI</span>
-          <el-tooltip :content="I18nT('kimi.officialWebsite')" :show-after="600">
-            <el-button link @click.stop="KimiSetup.openURL('home')">
+          <el-dropdown>
+            <el-button link style="margin-left: 10px">
               <yb-icon
-                style="width: 20px; height: 20px; margin-left: 10px"
+                style="width: 20px; height: 20px"
                 :svg="import('@/svg/http.svg?raw')"
               ></yb-icon>
             </el-button>
-          </el-tooltip>
-          <el-tooltip :content="I18nT('kimi.officialDocs')" :show-after="600">
-            <el-button link @click.stop="KimiSetup.openURL('docs')">
-              <yb-icon
-                style="width: 20px; height: 20px; margin-left: 4px"
-                :svg="import('@/svg/http.svg?raw')"
-              ></yb-icon>
-            </el-button>
-          </el-tooltip>
+            <template #dropdown>
+              <el-dropdown-item @click.stop="KimiSetup.openURL('home')">
+                {{ I18nT('kimi.officialWebsite') }}
+              </el-dropdown-item>
+              <el-dropdown-item @click.stop="KimiSetup.openURL('docs')">
+                {{ I18nT('kimi.officialDocs') }}
+              </el-dropdown-item>
+            </template>
+          </el-dropdown>
         </div>
         <el-button
           class="button"
@@ -29,7 +29,7 @@
         >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
-            class="refresh-icon"
+            class="w-[24px] h-[24px]"
             :class="{ 'fa-spin': KimiSetup.loading }"
           ></yb-icon>
         </el-button>
@@ -142,7 +142,7 @@
   }
 
   const doAction = (item: CommandItem) => {
-    KimiSetup.doAction(item, xtermDom)
+    KimiSetup.doAction(item)
   }
 
   onMounted(() => {

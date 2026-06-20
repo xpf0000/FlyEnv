@@ -1,0 +1,14 @@
+<svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="#1a1a1a" />
+  <text
+    x="512"
+    y="660"
+    text-anchor="middle"
+    font-size="420"
+    font-family="'Courier New', monospace"
+    font-weight="bold"
+    fill="#ffffff"
+  >
+    &gt;_
+  </text>
+</svg>

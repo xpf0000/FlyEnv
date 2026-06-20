@@ -98,7 +98,10 @@ export enum AppModuleEnum {
   flutter = 'flutter',
   git = 'git',
   dotnet = 'dotnet',
-  kimi = 'kimi'
+  kimi = 'kimi',
+  claudeCode = 'claudeCode',
+  codex = 'codex',
+  openCode = 'openCode'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum
