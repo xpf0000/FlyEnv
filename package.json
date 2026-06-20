@@ -164,7 +164,7 @@
     "electron-debug": "^4.1.0",
     "electron-devtools-installer": "^4.0.0",
     "element-plus": "^2.11.8",
-    "esbuild": "^0.25.5",
+    "esbuild": "^0.28.1",
     "eslint": "^9.29.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-friendly-formatter": "^4.0.1",
