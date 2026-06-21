@@ -30,6 +30,46 @@ const initCARoot = () => {
   })
 }
 
+const ensureCARootTrusted = async () => {
+  const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
+  if (!existsSync(CARoot)) {
+    return false
+  }
+
+  const CADir = dirname(CARoot)
+  if (isWindows()) {
+    try {
+      await Helper.send('host', 'sslAddTrustedCert', CADir, 'FlyEnv-Root-CA.crt')
+      return true
+    } catch (e) {
+      await appDebugLog('[makeAutoSSL][trust-root-error]', `${e}`)
+      return false
+    }
+  }
+
+  try {
+    const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
+    const out = `${res?.stdout ?? ''}\n${res?.stderr ?? ''}`
+    if (out.includes('FlyEnv-Root-CA')) {
+      return true
+    }
+  } catch {}
+
+  try {
+    await Helper.send('host', 'sslAddTrustedCert', CADir, 'FlyEnv-Root-CA.crt')
+  } catch (e) {
+    await appDebugLog('[makeAutoSSL][trust-root-error]', `${e}`)
+  }
+
+  try {
+    const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
+    const out = `${res?.stdout ?? ''}\n${res?.stderr ?? ''}`
+    return out.includes('FlyEnv-Root-CA')
+  } catch {
+    return false
+  }
+}
+
 export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: string } | false> => {
   // Serialize all certificate issuance. Without this, batch site creation
   // (park / Promise.all over many hosts) races on (a) first-time Root CA
@@ -92,6 +132,11 @@ authorityKeyIdentifier = keyid:always,issuer`
           await initCARoot()
         }
 
+        if (!(await ensureCARootTrusted())) {
+          resolve(false)
+          return
+        }
+
         const hostCAName = `CA-${host.id}`
 
         if (existsSync(hostCADir)) {
@@ -101,6 +146,7 @@ authorityKeyIdentifier = keyid:always,issuer`
         let ext = `authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
 keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage=serverAuth
 subjectAltName=@alt_names
 
 [alt_names]${EOL}`
@@ -121,7 +167,7 @@ subjectAltName=@alt_names
 
         const caCRT = join(hostCADir, `${hostCAName}.crt`)
         const caEXT = join(hostCADir, `${hostCAName}.ext`)
-        command = `"${openssl}" x509 -req -in "${caCSR}" -out "${caCRT}" -extfile "${caEXT}" -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -CAserial "${rootCA}.srl" -sha256 -days 3650`
+        command = `"${openssl}" x509 -req -in "${caCSR}" -out "${caCRT}" -extfile "${caEXT}" -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -CAserial "${rootCA}.srl" -sha256 -days 365`
         console.log('command: ', command)
         await execPromiseWithEnv(command, { cwd: hostCADir })
 
@@ -137,9 +183,13 @@ subjectAltName=@alt_names
       } else {
         if (!existsSync(CARoot)) {
           await mkdirp(CADir)
+          const cnf = `basicConstraints = critical,CA:TRUE
+keyUsage = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer`
+          await writeFile(join(CADir, `${caFileName}.cnf`), cnf)
           let command = `openssl genrsa -out ${caFileName}.key 2048;`
           command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=${caFileName}";`
-          command += `echo "basicConstraints = critical,CA:TRUE\nkeyUsage = critical,keyCertSign,cRLSign\nsubjectKeyIdentifier = hash\nauthorityKeyIdentifier = keyid:always,issuer" > ${caFileName}.cnf;`
           command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
           await execPromiseWithEnv(command, {
             cwd: CADir
@@ -157,6 +207,9 @@ subjectAltName=@alt_names
             resolve(false)
             return
           }
+        } else if (!(await ensureCARootTrusted())) {
+          resolve(false)
+          return
         }
         const hostCAName = `CA-${host.id}`
         const hostCADir = join(CADir, `${host.id}`)
@@ -167,6 +220,7 @@ subjectAltName=@alt_names
         let ext = `authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
 keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage=serverAuth
 subjectAltName=@alt_names
 
 [alt_names]${EOL}`
@@ -177,7 +231,7 @@ subjectAltName=@alt_names
         await writeFile(join(hostCADir, `${hostCAName}.ext`), ext)
 
         let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}";`
-        command += `openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -CAserial "${rootCA}.srl" -sha256 -days 3650;`
+        command += `openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -CAserial "${rootCA}.srl" -sha256 -days 365;`
         console.log('makeAutoSSL command: ', command)
         await execPromiseWithEnv(command, {
           cwd: hostCADir

@@ -148,17 +148,6 @@ export default class IPCHandler extends EventEmitter {
       ServiceProcessManager.delPid(module, arr)
     }
 
-    // 处理许可证码
-    if (info?.data?.['APP-Licenses-Code']) {
-      const code: string = info.data['APP-Licenses-Code']
-      this.deps.configManager?.setConfig('setup.license', code)
-      this.deps.windowManager.sendCommandTo(
-        this.deps.mainWindow!,
-        'APP-License-Need-Update',
-        'APP-License-Need-Update',
-        true
-      )
-    }
 
     // 处理日志
     if (info?.msg?.['APP-On-Log']) {

@@ -50,7 +50,7 @@ const customerCommand = buildUnixCustomerServiceStartScript({
   commandFile: '',
   outFile: '/tmp/flyenv out.log',
   errFile: '/tmp/flyenv err.log',
-  shell: 'bash'
+  shell: '/bin/bash'
 })
 assert.ok(customerCommand.includes('cd "/tmp/flyenv project"'))
 assert.ok(customerCommand.includes("nohup bash -lc 'npm run dev'"))
@@ -66,7 +66,7 @@ const customerFile = buildUnixCustomerServiceStartScript({
   commandFile: '/tmp/flyenv project/run.sh',
   outFile: '/tmp/flyenv out.log',
   errFile: '/tmp/flyenv err.log',
-  shell: 'zsh'
+  shell: '/bin/zsh'
 })
 assert.ok(customerFile.includes('nohup "/tmp/flyenv project/run.sh"'))
 assert.ok(!customerFile.includes('.start.sh'))

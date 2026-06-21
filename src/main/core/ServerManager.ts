@@ -109,7 +109,8 @@ export default class ServerManager {
   updateGlobalConfig() {
     global.Server.Lang = this.configManager.getConfig('setup.lang') ?? 'en'
     global.Server.ForceStart = this.configManager.getConfig('setup.forceStart')
-    global.Server.Licenses = this.configManager.getConfig('setup.license')
+    // Removed license setting for unrestricted usage
+    // global.Server.Licenses = this.configManager.getConfig('setup.license')
     global.Server.UserUUID = this.configManager.getConfig('setup.user_uuid')
     CustomerLang.initLangCustomer()
   }

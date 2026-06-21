@@ -1,11 +1,10 @@
-import type MarkdownIt from 'markdown-it'
 import container from 'markdown-it-container'
 import type { RenderRule } from 'markdown-it/lib/renderer.mjs'
 import type Token from 'markdown-it/lib/token.mjs'
 import { extractTitle, getAdaptiveThemeMarker, type Options } from './preWrapper'
 
 export const containerPlugin = (
-  md: MarkdownIt,
+  md: any,
   options: Options,
   containerOptions?: ContainerOptions
 ) => {
@@ -28,7 +27,7 @@ export const containerPlugin = (
 
 type ContainerArgs = [typeof container, string, { render: RenderRule }]
 
-function createContainer(klass: string, defaultTitle: string, md: MarkdownIt): ContainerArgs {
+function createContainer(klass: string, defaultTitle: string, md: any): ContainerArgs {
   return [
     container,
     klass,
@@ -48,7 +47,7 @@ function createContainer(klass: string, defaultTitle: string, md: MarkdownIt): C
   ]
 }
 
-function createCodeGroup(options: Options, md: MarkdownIt): ContainerArgs {
+function createCodeGroup(options: Options, md: any): ContainerArgs {
   return [
     container,
     'code-group',

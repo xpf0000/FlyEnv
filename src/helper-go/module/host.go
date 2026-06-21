@@ -84,7 +84,7 @@ func (h *HostManager) SslFindCertificate(cwd string, commonName ...string) (stri
 	}
 
 	if utils.IsMacOS() {
-		stdout, stderr, err := utils.ExecCommand("security", []string{"find-certificate", "-c", cn}, map[string]interface{}{"cwd": cwd})
+		stdout, stderr, err := utils.ExecCommand("security", []string{"find-certificate", "-c", cn, "/Library/Keychains/System.keychain"}, map[string]interface{}{"cwd": cwd})
 		return stdout, stderr, err
 	} else if utils.IsLinux() {
 		commonCaPaths := []string{
