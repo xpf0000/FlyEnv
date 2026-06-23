@@ -6,7 +6,6 @@ const module: AppModuleItem = {
   typeFlag: 'kimi',
   label: 'Kimi',
   icon: import('@/svg/kimi.svg?raw'),
-  iconPadding: 4,
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 102,

@@ -2,7 +2,7 @@ import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
@@ -12,7 +12,6 @@ import {
   versionLocalFetch,
   versionSort,
   chmod,
-  copyFile,
   mkdirp,
   readFile,
   writeFile,
@@ -21,7 +20,7 @@ import {
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/index'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Minio extends Base {
   constructor() {
@@ -49,56 +48,28 @@ class Minio extends Base {
 
   fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
-      if (isMacOS()) {
-        const bin = join(global.Server.AppDir!, `minio`, 'minio')
-        const zip = join(global.Server.Cache!, 'minio')
-        const arch = global.Server.isArmArch ? 'arm64' : 'amd64'
-        const all: any[] = [
-          {
-            url: `https://dl.min.io/server/minio/release/darwin-${arch}/minio`,
-            appDir: join(global.Server.AppDir!, `minio`),
-            bin,
-            zip,
-            downloaded: existsSync(zip),
-            installed: existsSync(bin),
-            version: 'lasted',
-            name: `Minio-lasted`
+      try {
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('minio')
+        all.forEach((a: any) => {
+          let bin = ''
+          let zip = ''
+          if (isWindows()) {
+            bin = join(global.Server.AppDir!, `minio-${a.version}`, 'minio.exe')
+            zip = join(global.Server.Cache!, `minio-${a.version}.tar.gz`)
+          } else {
+            bin = join(global.Server.AppDir!, `minio-${a.version}`, 'minio')
+            zip = join(global.Server.Cache!, `minio-${a.version}.tar.gz`)
           }
-        ]
+          a.appDir = join(global.Server.AppDir!, `minio-${a.version}`)
+          a.zip = zip
+          a.bin = bin
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(bin)
+          a.name = `Minio-${a.version}`
+        })
         resolve(all)
-      } else if (isLinux()) {
-        const bin = join(global.Server.AppDir!, `minio`, 'minio')
-        const zip = join(global.Server.Cache!, 'minio')
-        const arch = global.Server.isArmArch ? 'arm64' : 'amd64'
-        const all: any[] = [
-          {
-            url: `https://dl.min.io/server/minio/release/linux-${arch}/minio`,
-            appDir: join(global.Server.AppDir!, `minio`),
-            bin,
-            zip,
-            downloaded: existsSync(zip),
-            installed: existsSync(bin),
-            version: 'lasted',
-            name: `Minio-lasted`
-          }
-        ]
-        resolve(all)
-      } else if (isWindows()) {
-        const bin = join(global.Server.AppDir!, `minio`, 'minio.exe')
-        const zip = join(global.Server.Cache!, 'minio.exe')
-        const all: any[] = [
-          {
-            url: 'https://dl.min.io/server/minio/release/windows-amd64/minio.exe',
-            appDir: join(global.Server.AppDir!, `minio`),
-            bin,
-            zip,
-            downloaded: existsSync(zip),
-            installed: existsSync(bin),
-            version: 'lasted',
-            name: `Minio-lasted`
-          }
-        ]
-        resolve(all)
+      } catch {
+        resolve([])
       }
     })
   }
@@ -228,13 +199,9 @@ class Minio extends Base {
   }
 
   async _installSoftHandle(row: any): Promise<void> {
-    if (isWindows()) {
-      await mkdirp(dirname(row.bin))
-      await copyFile(row.zip, row.bin)
-    } else {
-      await mkdirp(dirname(row.bin))
-      await copyFile(row.zip, row.bin)
-      await chmod(row.bin, '0777')
+    await super._installSoftHandle(row)
+    if (!isWindows()) {
+      await chmod(row.bin, '0755')
       if (isMacOS()) {
         try {
           await binXattrFix(row.bin)
