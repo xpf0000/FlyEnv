@@ -27,6 +27,12 @@ export interface MCPConfigOptions {
   approval: Record<string, 'auto' | 'confirm'>
   /** 是否允许非回环地址访问。默认 false（强制 127.0.0.1） */
   allowRemote: boolean
+  /**
+   * 是否对出站内容做密钥掩码（日志/配置里的 password= 等）。默认 false。
+   * FlyEnv 是本地开发工具，bin/path/凭据本就是 AI 代理执行任务所需，默认不屏蔽；
+   * 仅给「会共享屏幕 / 担心云端日志」的谨慎用户保留可选开关。
+   */
+  maskSecrets: boolean
 }
 
 /**
@@ -74,7 +80,8 @@ export default class MCPConfigManager {
         token: '',
         enabledTools: [...MCP_DEFAULT_ENABLED_TOOLS],
         approval: { ...MCP_DEFAULT_APPROVAL },
-        allowRemote: false
+        allowRemote: false,
+        maskSecrets: false
       }
     }
     this.config = new Store<MCPConfigOptions>(options)

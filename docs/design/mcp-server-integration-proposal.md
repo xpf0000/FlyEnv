@@ -228,10 +228,10 @@ MCP Server 跑在 main 进程（非 fork），因为它要长期持有 `ForkMana
 2. **Bearer Token 鉴权**：启动时生成随机 token，客户端配置片段内置；HTTP transport 校验 `Authorization`。
 3. **工具白名单**：`MCPConfigManager` 的 `enabledTools`，用户可关闭任意高风险 tool；默认只读 + 启停开，**写配置/安装/删除默认关闭**。
 4. **写操作确认**：高风险 tool 触发时，可选「弹 FlyEnv 原生确认框」模式（main 进程 `dialog`），AI 无法静默执行破坏性操作。
-5. **敏感信息脱敏（按「输出白名单」做，不是访问控制）**：MCP 返回给 AI 的任何内容都会离开本机（经 AI 客户端发往云端模型），因此**靠「FlyEnv 不把敏感字段写进响应」来保证 AI 读不到**，而非靠拦截 AI。
-   - **结构化字段**：`service_status` / `list_services` 序列化版本对象时，**剔除 `rootPassword` 等字段**。注意 MySQL/MariaDB 的 root 密码就存在版本对象上（`src/shared/app.d.ts:21` `rootPassword?`，默认 `'root'`），若直接序列化 `SoftInstalled` 会原样带出去 —— 必须走显式字段白名单，只输出 `version`/`path`/`run` 等安全字段。
-   - **配置文件**（`read_config`：`my.cnf` / `.env` 可能含 `password=...`）与**日志**（`read_log`：栈里可能有连接串）：对疑似密钥行做掩码（复用项目「读 .env 不回显」规范）。
-   - 本质：这是**服务端出站字段白名单/掩码**，不是加密、也不是对 AI 的权限校验。
+5. **bin / path / 凭据：默认返回，不屏蔽（已修正设计）**：FlyEnv 是本地开发工具，`bin`/`path`/`version` 是 AI 代理执行任务的**必需材料**（如「用 PHP 7.3 跑某文件」需要该版本 bin 绝对路径、「用 mysql.exe 连本地库」需要 bin + root 密码）。这些命令只能由代理在自己的 shell 里执行，FlyEnv 不可能内建万能 exec，因此必须把执行材料交给代理。
+   - 威胁模型澄清：本 server 是 loopback + token，连入的代理跑在用户本机、通常已有用户权限（能直接读磁盘/进程）。**凡 MCP 能返回的，代理本就能拿到**，屏蔽只是 security theater，代价却是废掉核心场景。
+   - 故 `serializeVersion` 默认返回 `bin`/`path`/`phpBin`/`rootPassword` 等；`serializeSite` 默认返回 `root`/`port`/`ssl`/`envFile` 等。
+   - **可选 `maskSecrets` 开关（默认 false）**：仅给「会共享屏幕 / 担心云端日志」的谨慎用户保留——开启后剔除 `rootPassword`、SSL 私钥，并对 `read_log`/`read_config` 的疑似密钥行掩码。不删能力，只改默认。
 6. **审计日志**：所有 tool 调用记入 `BaseDir/mcp/audit.log`，UI 可查。
 
 ---
@@ -338,7 +338,7 @@ sequenceDiagram
 | **AI 误操作破坏环境** | AI 可能调用 `write_config` / `delete_site` 造成损坏 | 风险分级 + 默认关闭高风险 tool + 写操作原生确认 + 配置写前 `.bak` 备份 |
 | **本地端口被恶意网页探测** | 浏览器型工具或恶意页面访问 `127.0.0.1:7682` | 强制 Bearer token；默认仅回环；CORS/Origin 校验 |
 | **stdio 与运行态进程的桥接复杂度** | MCP stdio 习惯 fork 新进程，FlyEnv 能力在常驻进程 | bridge 脚本转发到 HTTP endpoint；FlyEnv 未启动时给清晰提示 |
-| **敏感信息经 AI 外泄** | 日志/配置含密钥，AI 可能上传云端 | resource/tool 输出脱敏；root 密码等不暴露；UI 明示「数据将发送给你配置的 AI」 |
+| **敏感信息经 AI 外泄** | 日志/配置含密钥，AI 可能上传云端 | FlyEnv 本地工具定位：bin/path/凭据默认返回（执行任务所需）；提供可选 `maskSecrets`（默认 false）给谨慎用户；loopback + token 限制连接方 |
 | **SDK 与 Electron 打包兼容** | ESM/CJS、esbuild bundle 兼容 | 与现有 `--packages=external` 构建策略一致，提前在 dev-runner 验证 |
 | **多客户端并发** | 多个 AI 同时调操作类 tool | tool 调用串行化（复用 `TaskQueue`）；状态类 tool 可并发 |
 | **与现有 AI 模块定位混淆** | 用户分不清「ClaudeCode 的 MCP.vue」和「本方案」 | 文档与 UI 明确：`MCP.vue` = 「FlyEnv 帮 AI CLI 配置要连的 MCP Server（Client 侧）」；本方案 = 「FlyEnv 自己当 MCP Server（被 AI 调用）」。命名上前者保持「MCP Servers」，本模块叫「MCP Provider / Expose FlyEnv」。 |
@@ -391,7 +391,7 @@ sequenceDiagram
 
 **后端（main 进程）**
 - `src/main/core/MCPConfigManager.ts`：独立 electron-store（`name:'mcp'` → `mcp.json`），`MCPConfigOptions`（enabled/transport/host/port/token/enabledTools/approval/allowRemote）；默认白名单仅「只读 + 启停」，启停类默认 `approval: confirm`；首次启动自动生成 token；`allowRemote` 默认 false。
-- `src/main/core/MCPTools.ts`：tool/resource → `ForkManager.send(module, fn, ...)` 映射。**出站字段白名单** `safeVersion`（剔除 `rootPassword`/`bin`）、`safeSite`；`maskSecrets` 对日志/配置密钥行掩码。
+- `src/main/core/MCPTools.ts`：tool/resource → `ForkManager.send(module, fn, ...)` 映射。`serializeVersion`/`serializeSite` **默认返回 bin/path/凭据**（本地开发工具，执行任务所需）；可选 `maskSecrets`（默认 false）开启后才剔除凭据并对日志/配置掩码。
 - `src/main/core/MCPServer.ts`：SDK 低层 `Server` + `StreamableHTTPServerTransport`（无状态模式），绑 `127.0.0.1`，Bearer token + 回环校验；注册 7 个 tool（list_services / service_status / list_sites / read_log / start/stop/restart_service）+ 2 个 resource（services/sites），按白名单过滤。
 - `src/main/Application.ts`：实例化 `mcpConfigManager` + `mcpServer`（在 `initForkManager` 内，依赖 forkManager 句柄），上次启用则自动拉起，`doStop` 内 `mcpServer.stop()`。
 - `src/main/core/IPCHandler.ts`：新增普通命令 `mcp:start` / `mcp:stop` / `mcp:status` / `mcp:getConfig` / `mcp:setConfig`，依赖接口新增 `mcpConfigManager` / `mcpServer`。

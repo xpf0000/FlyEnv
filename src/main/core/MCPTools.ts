@@ -40,39 +40,63 @@ function callFork(forkManager: ForkManager, module: string, fn: string, ...args:
 }
 
 /**
- * 安全版本对象：显式白名单，绝不带出 rootPassword / bin 绝对路径等。
- * 对应方案 §5.3「敏感信息脱敏（按输出白名单做）」。
+ * 版本对象序列化。FlyEnv 是本地开发工具，bin/path/version 是 AI 代理执行任务
+ * （如「用 PHP 7.3 跑某文件」「用 mysql.exe 连本地库」）的必需材料，默认全部返回。
+ * 仅在用户显式开启 maskSecrets 时，才剔除 rootPassword 等凭据字段。
  */
-function safeVersion(v: any, run?: boolean) {
+function serializeVersion(v: any, run: boolean, mask: boolean) {
   if (!v || typeof v !== 'object') return v
-  return {
+  const out: Record<string, any> = {
     typeFlag: v.typeFlag,
     version: v.version,
+    bin: v.bin,
+    path: v.path,
     enable: v.enable,
-    run: typeof run === 'boolean' ? run : !!v.run,
+    run,
     num: v.num,
     note: v.note,
-    error: v.error ? '[error]' : undefined
+    error: v.error || undefined
   }
+  // PHP 等的附属可执行路径，代理执行命令时可能需要
+  if (v.phpBin) out.phpBin = v.phpBin
+  if (v.phpConfig) out.phpConfig = v.phpConfig
+  if (!mask && v.rootPassword !== undefined) {
+    out.rootPassword = v.rootPassword
+  }
+  return out
 }
 
-/** 安全站点对象：只暴露 AI 需要的字段，不带 SSL 私钥路径、env 文件内容等 */
-function safeSite(h: any) {
+/**
+ * 站点对象序列化。本地开发工具，默认暴露 AI 代理所需的完整信息（根目录、端口、
+ * SSL 证书路径、env 文件路径等）。maskSecrets 开启时仅去掉 SSL 私钥路径。
+ */
+function serializeSite(h: any, mask: boolean) {
   if (!h || typeof h !== 'object') return h
-  return {
+  const out: Record<string, any> = {
     id: h.id,
     name: h.name,
     alias: h.alias,
     type: h.type,
     phpVersion: h.phpVersion,
     useSSL: h.useSSL,
+    autoSSL: h.autoSSL,
     url: h.url,
     root: h.root,
-    projectPort: h.projectPort
+    projectName: h.projectName,
+    projectPort: h.projectPort,
+    startCommand: h.startCommand,
+    port: h.port,
+    envFile: h.envFile
   }
+  if (!mask) {
+    out.ssl = h.ssl
+  } else if (h.ssl) {
+    out.ssl = { cert: h.ssl.cert, key: '******' }
+  }
+  return out
 }
 
-/** 对一段文本做密钥行掩码（用于日志 / 配置输出） */
+/** 对一段文本做密钥行掩码（仅在 maskSecrets 开启时调用） */
 export function maskSecrets(text: string): string {
   if (!text) return text
   return text
@@ -106,6 +130,11 @@ export class MCPTools {
     this.mcpConfig = mcpConfig
   }
 
+  /** 是否对出站内容做掩码（默认 false，本地开发工具不屏蔽 bin/path/凭据） */
+  private get mask(): boolean {
+    return !!this.mcpConfig.getConfig('maskSecrets')
+  }
+
   /** 读取某个模块的全部已安装版本（原始，含 bin，仅供内部匹配用，不直接出站） */
   private async rawServiceVersions(flag: string): Promise<any[]> {
     const data = await callFork(this.forkManager, 'version', 'allInstalledVersions', [flag], {})
@@ -113,15 +142,16 @@ export class MCPTools {
     return Array.isArray(arr) ? arr : []
   }
 
-  /** 读取某个模块的全部已安装版本（只读，已脱敏） */
+  /** 读取某个模块的全部已安装版本 */
   async listServiceVersions(flag: string): Promise<any[]> {
     const arr = await this.rawServiceVersions(flag)
-    return arr.map((v) => safeVersion(v))
+    return arr.map((v) => serializeVersion(v, !!v.run, this.mask))
   }
 
   /** list_services：返回一组模块及其安装/运行状态摘要 */
   async listServices(flags: string[]): Promise<any> {
     const status = ServiceProcessManager.getStatus(flags)
+    const mask = this.mask
     const out: Record<string, any> = {}
     for (const flag of flags) {
       try {
@@ -131,7 +161,7 @@ export class MCPTools {
         out[flag] = {
           running: st?.running ?? false,
           runningVersions: (st?.instances ?? []).map((i) => i.version).filter(Boolean),
-          versions: raw.map((v: any) => safeVersion(v, runningBins.has(v.bin)))
+          versions: raw.map((v: any) => serializeVersion(v, runningBins.has(v.bin), mask))
         }
       } catch (e) {
         out[flag] = { error: `${e instanceof Error ? e.message : e}` }
@@ -145,20 +175,22 @@ export class MCPTools {
     const raw = await this.rawServiceVersions(flag)
     const st = ServiceProcessManager.statusOf(flag)
     const runningBins = new Set(st.instances.map((i) => i.bin))
+    const mask = this.mask
     return {
       flag,
       installed: raw.length,
       running: st.running,
       runningVersions: st.instances.map((i) => i.version).filter(Boolean),
-      versions: raw.map((v: any) => safeVersion(v, runningBins.has(v.bin)))
+      versions: raw.map((v: any) => serializeVersion(v, runningBins.has(v.bin), mask))
     }
   }
 
-  /** list_sites：本地站点列表（已脱敏） */
+  /** list_sites：本地站点列表 */
   async listSites(): Promise<any[]> {
     const data = await callFork(this.forkManager, 'host', 'hostList')
     const list = data?.host ?? data ?? []
-    return Array.isArray(list) ? list.map(safeSite) : []
+    const mask = this.mask
+    return Array.isArray(list) ? list.map((h) => serializeSite(h, mask)) : []
   }
 
   /** start_service / stop_service / restart_service 的底层：需要一个 version 对象 */
@@ -233,12 +265,13 @@ export class MCPTools {
     return this.startService(flag, version)
   }
 
-  /** read_log：读取服务日志尾部（已掩码） */
+  /** read_log：读取服务日志尾部（仅 maskSecrets 开启时掩码） */
   async readLog(flag: string, lines = 200): Promise<string> {
     // 复用各模块的日志能力；不同模块日志获取方式不同，这里统一走一个约定方法名。
     // 若模块未实现 getLogs，则 callFork 抛错，由上层转成 isError。
     const data = await callFork(this.forkManager, flag, 'getLogs', lines)
-    return maskSecrets(typeof data === 'string' ? data : JSON.stringify(data))
+    const text = typeof data === 'string' ? data : JSON.stringify(data)
+    return this.mask ? maskSecrets(text) : text
   }
 
   // ===== MCP 响应包装 =====
