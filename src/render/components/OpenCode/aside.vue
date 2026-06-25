@@ -8,45 +8,18 @@
       <div class="icon-block">
         <yb-icon
           :svg="import('@/svg/opencode.svg?raw')"
-          style="padding: 4px"
+          style="padding: 0"
           width="28"
           height="28"
         />
       </div>
       <span class="title">OpenCode</span>
     </div>
-    <el-switch
-      v-model="serviceRunning"
-      :disabled="serviceDisabled"
-      @click.stop="stopNav"
-      @change="switchChange"
-    >
-    </el-switch>
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from './ASide'
-  import { AppServiceModule } from '@/core/ASide'
 
-  const {
-    showItem,
-    serviceDisabled,
-    serviceFetching,
-    currentPage,
-    groupDo,
-    switchChange,
-    nav,
-    stopNav,
-    serviceRunning
-  } = AsideSetup()
-
-  AppServiceModule.openCode = {
-    groupDo,
-    switchChange,
-    serviceRunning,
-    serviceFetching,
-    serviceDisabled,
-    showItem
-  } as any
+  const { showItem, currentPage, nav } = AsideSetup()
 </script>

@@ -6,7 +6,6 @@ const module: AppModuleItem = {
   typeFlag: 'openCode',
   label: 'OpenCode',
   icon: import('@/svg/opencode.svg?raw'),
-  iconPadding: 4,
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 105,
