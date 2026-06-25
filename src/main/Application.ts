@@ -20,6 +20,8 @@ import { AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import OAuth from './core/OAuth'
 import ConfigManager from './core/ConfigManager'
+import MCPConfigManager from './core/MCPConfigManager'
+import MCPServer from './core/MCPServer'
 import ServerManager from './core/ServerManager'
 import IPCHandler from './core/IPCHandler'
 import { CheckBrewOrPort } from './utils/CheckBrew'
@@ -30,6 +32,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export default class Application extends EventEmitter {
   isReady: boolean = false
   configManager: ConfigManager
+  mcpConfigManager: MCPConfigManager
+  mcpServer?: MCPServer
   menuManager: MenuManager
   trayManager: TrayManager
   windowManager: WindowManager
@@ -46,6 +50,7 @@ export default class Application extends EventEmitter {
     super()
     this.setupInitialConfig()
     this.configManager = new ConfigManager()
+    this.mcpConfigManager = new MCPConfigManager()
     this.serverManager = new ServerManager(this.configManager)
 
     AppNodeFnManager.nativeTheme_watch()
@@ -68,6 +73,7 @@ export default class Application extends EventEmitter {
     // 初始化 IPC 处理器
     this.ipcHandler = new IPCHandler({
       configManager: this.configManager,
+      mcpConfigManager: this.mcpConfigManager,
       windowManager: this.windowManager,
       trayManager: this.trayManager,
       serverManager: this.serverManager,
@@ -193,8 +199,29 @@ export default class Application extends EventEmitter {
     })
     ServiceProcessManager.forkManager = this.forkManager
 
-    // 更新 IPC 处理器的 forkManager 引用
-    this.ipcHandler.updateDependencies({ forkManager: this.forkManager })
+    // 服务运行态变更时，广播给 render，使「非本端发起」（MCP / 托盘 / 其它窗口）的启停也能同步到 UI
+    ServiceProcessManager.onStatusChange((status) => {
+      if (!this.mainWindow) {
+        return
+      }
+      this.windowManager.sendCommandTo(
+        this.mainWindow,
+        'APP-Service-Status-Changed',
+        'APP-Service-Status-Changed',
+        status
+      )
+    })
+
+    // MCP Server 需要 forkManager 句柄，在此创建并注入
+    this.mcpServer = new MCPServer(this.forkManager, this.mcpConfigManager)
+    this.ipcHandler.updateDependencies({ forkManager: this.forkManager, mcpServer: this.mcpServer })
+
+    // 若用户上次启用了 MCP Server，则自动拉起
+    if (this.mcpConfigManager.getConfig('enabled')) {
+      this.mcpServer.start().catch((e) => {
+        console.log('MCP Server auto-start failed: ', e)
+      })
+    }
   }
 
   /**
@@ -540,6 +567,11 @@ export default class Application extends EventEmitter {
       NodePTY.exitAllPty()
     } catch (e) {
       console.log('NodePTY.exitAllPty e: ', e)
+    }
+    try {
+      await this.mcpServer?.stop()
+    } catch (e) {
+      console.log('mcpServer.stop e: ', e)
     }
     try {
       await this.serverManager.stopServer()

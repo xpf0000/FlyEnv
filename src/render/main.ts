@@ -5,6 +5,7 @@ import App from './App.vue'
 import './index.scss'
 import IPC from '@/util/IPC'
 import { AppStore } from '@/store/app'
+import { BrewStore } from '@/store/brew'
 import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
 import './style/index.scss'
 import './style/dark.scss'
@@ -84,6 +85,45 @@ IPC.on('APP-User-UUID-Need-Update').then((key: string, res: any) => {
 })
 IPC.on('APP-License-Need-Update').then(() => {
   SetupStore().init()
+})
+IPC.on('APP-Service-Status-Changed').then((key: string, res: any) => {
+  // 主进程 ServiceProcessManager 状态变更广播（MCP / 托盘 / 其它窗口发起的启停）
+  const flag = res?.flag
+  if (!flag) {
+    return
+  }
+  try {
+    const brewStore = BrewStore()
+    const module = brewStore.module(flag)
+    if (!module) {
+      return
+    }
+    // 按 bin 路径匹配——同一 version 可能装在不同位置，bin 才是实例唯一键
+    const instances: Array<{ bin: string; path?: string; pid: string }> = res?.instances ?? []
+    const runningByBin = new Map<string, { pid: string }>()
+    instances.forEach((ins) => {
+      if (ins?.bin) {
+        runningByBin.set(ins.bin, { pid: ins.pid })
+      }
+    })
+    module.installed.forEach((i: any) => {
+      const hit = runningByBin.get(i.bin)
+      if (hit) {
+        i.run = true
+        i.running = false
+        if (hit.pid) {
+          i.pid = `${hit.pid}`
+        }
+      } else {
+        // 不在运行列表里 → 标记为停止
+        i.run = false
+        i.running = false
+        i.pid = ''
+      }
+    })
+  } catch (e) {
+    console.log('APP-Service-Status-Changed handle error: ', e)
+  }
 })
 IPC.on('APP-FlyEnv-Helper-Notice').then((key: string, res: any) => {
   if (res?.code === 0) {

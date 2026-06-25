@@ -41,12 +41,14 @@ import kimi from './kimi.json'
 import claudeCode from './claude-code.json'
 import codex from './codex.json'
 import openCode from './opencode.json'
+import mcp from './mcp.json'
 export default {
   zh: {
     kimi,
     claudeCode,
     codex,
     openCode,
+    mcp,
     cron: cronZH,
     rustfs,
     mkcert,

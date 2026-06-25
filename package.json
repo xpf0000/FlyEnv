@@ -21,7 +21,7 @@
     "test:helper:go:vet:admin": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/helper-go-admin-test.ps1 vet",
     "test:helper:admin": "yarn run test:helper:contract && yarn run test:helper:go:admin && yarn run test:helper:go:vet:admin",
     "test:helper": "yarn run test:helper:contract && yarn run test:helper:go && yarn run test:helper:go:vet",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "patch-package && electron-builder install-app-deps"
   },
   "type": "module",
   "main": "./dist/electron/main.mjs",
@@ -38,6 +38,7 @@
     "@mdit-vue/plugin-title": "^2.1.4",
     "@mdit-vue/plugin-toc": "^2.1.4",
     "@mdit-vue/shared": "^2.1.4",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@regexper/render": "^1.0.0",
     "@shikijs/core": "^3.4.2",
     "@shikijs/transformers": "^3.4.2",
@@ -182,6 +183,7 @@
     "localforage": "^1.10.0",
     "md5": "^2.3.0",
     "monaco-editor": "^0.55.1",
+    "patch-package": "^8.0.1",
     "php-parser": "^3.2.3",
     "pinia": "^3.0.3",
     "plist": "^3.1.0",

@@ -1,0 +1,6 @@
+<svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M512 64L128 256v512l384 192 384-192V256L512 64z m0 96l256 128-256 128-256-128 256-128z m-288 184l256 128v288L224 632V344z m576 0v288l-256 120V472l256-128z" fill="currentColor"/>
+  <circle cx="512" cy="288" r="48" fill="currentColor"/>
+  <circle cx="288" cy="416" r="40" fill="currentColor"/>
+  <circle cx="736" cy="416" r="40" fill="currentColor"/>
+</svg>

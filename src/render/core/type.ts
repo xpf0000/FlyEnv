@@ -101,7 +101,8 @@ export enum AppModuleEnum {
   kimi = 'kimi',
   claudeCode = 'claudeCode',
   codex = 'codex',
-  openCode = 'openCode'
+  openCode = 'openCode',
+  mcp = 'mcp'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

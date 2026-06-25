@@ -9,6 +9,8 @@ import { AppHelperCheck } from '@shared/AppHelperCheck'
 import OAuth from './OAuth'
 import Capturer from './Capturer'
 import ConfigManager from './ConfigManager'
+import type MCPConfigManager from './MCPConfigManager'
+import type MCPServer from './MCPServer'
 import type WindowManager from '../ui/WindowManager'
 import type TrayManager from '../ui/TrayManager'
 import type { ForkManager } from './ForkManager'
@@ -26,6 +28,8 @@ import { CheckBrewOrPort } from '../utils/CheckBrew'
 
 export interface IPCHandlerDependencies {
   configManager: ConfigManager
+  mcpConfigManager?: MCPConfigManager
+  mcpServer?: MCPServer
   windowManager: WindowManager
   trayManager: TrayManager
   forkManager?: ForkManager
@@ -370,6 +374,23 @@ export default class IPCHandler extends EventEmitter {
         this.handleOAuthLicenseAddBind(command, key, args)
         break
 
+      // MCP Server
+      case 'mcp:start':
+        this.handleMcpStart(command, key)
+        break
+      case 'mcp:stop':
+        this.handleMcpStop(command, key)
+        break
+      case 'mcp:status':
+        this.handleMcpStatus(command, key)
+        break
+      case 'mcp:getConfig':
+        this.handleMcpGetConfig(command, key)
+        break
+      case 'mcp:setConfig':
+        this.handleMcpSetConfig(command, key, args)
+        break
+
       default:
         console.log('Unknown command:', command)
     }
@@ -665,6 +686,76 @@ export default class IPCHandler extends EventEmitter {
     OAuth.addBind(args[0], args[1]).then((res) => {
       this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
     })
+  }
+
+  // ===== MCP Server =====
+
+  private handleMcpStart(command: string, key: string) {
+    const server = this.deps.mcpServer
+    const mcpConfig = this.deps.mcpConfigManager
+    if (!server || !mcpConfig) {
+      this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
+      return
+    }
+    mcpConfig.setConfig('enabled', true)
+    server
+      .start()
+      .then((res) => {
+        this.sendToMainWindow(command, key, { code: 0, data: res })
+      })
+      .catch((e: any) => {
+        mcpConfig.setConfig('enabled', false)
+        this.sendToMainWindow(command, key, { code: 1, msg: `${e?.message ?? e}` })
+      })
+  }
+
+  private handleMcpStop(command: string, key: string) {
+    const server = this.deps.mcpServer
+    const mcpConfig = this.deps.mcpConfigManager
+    if (!server || !mcpConfig) {
+      this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
+      return
+    }
+    mcpConfig.setConfig('enabled', false)
+    server
+      .stop()
+      .then((res) => {
+        this.sendToMainWindow(command, key, { code: 0, data: res })
+      })
+      .catch((e: any) => {
+        this.sendToMainWindow(command, key, { code: 1, msg: `${e?.message ?? e}` })
+      })
+  }
+
+  private handleMcpStatus(command: string, key: string) {
+    const server = this.deps.mcpServer
+    if (!server) {
+      this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
+      return
+    }
+    this.sendToMainWindow(command, key, { code: 0, data: server.status() })
+  }
+
+  private handleMcpGetConfig(command: string, key: string) {
+    const mcpConfig = this.deps.mcpConfigManager
+    if (!mcpConfig) {
+      this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
+      return
+    }
+    this.sendToMainWindow(command, key, { code: 0, data: mcpConfig.getConfig() })
+  }
+
+  private handleMcpSetConfig(command: string, key: string, args: any[]) {
+    const mcpConfig = this.deps.mcpConfigManager
+    if (!mcpConfig) {
+      this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
+      return
+    }
+    const patch = args?.[0]
+    if (patch && typeof patch === 'object') {
+      mcpConfig.setConfig(patch)
+    }
+    this.sendToMainWindow(command, key, { code: 0, data: mcpConfig.getConfig() })
   }
 
   // ===== 工具方法 =====
