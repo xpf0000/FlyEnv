@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import Router from '@/router/index'
 import { AppStore } from '@/store/app'
 import { MCPSetup } from '@/components/MCP/setup'
+import { AppServiceModule } from '@/core/ASide'
 
 export const AsideSetup = () => {
   MCPSetup.init()
@@ -31,7 +32,7 @@ export const AsideSetup = () => {
   }
 
   const serviceDisabled = computed(() => {
-    return true
+    return MCPSetup.starting
   })
 
   const serviceRunning = computed({
@@ -42,7 +43,7 @@ export const AsideSetup = () => {
   })
 
   const serviceFetching = computed(() => {
-    return MCPSetup.loading
+    return MCPSetup.starting
   })
 
   const showItem = computed(() => {
@@ -53,9 +54,24 @@ export const AsideSetup = () => {
     return []
   }
 
-  const switchChange = () => {}
+  const switchChange = () => {
+    if (MCPSetup.running) {
+      MCPSetup.stop()
+    } else {
+      MCPSetup.start()
+    }
+  }
 
   const stopNav = () => {}
+
+  AppServiceModule[flag] = {
+    groupDo,
+    switchChange,
+    serviceRunning,
+    serviceFetching,
+    serviceDisabled,
+    showItem
+  } as any
 
   return {
     nav,

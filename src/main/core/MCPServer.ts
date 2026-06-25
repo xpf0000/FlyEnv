@@ -1,4 +1,10 @@
-import { createServer, type Server as HttpServer, type IncomingMessage, type ServerResponse } from 'http'
+import {
+  createServer,
+  type Server as HttpServer,
+  type IncomingMessage,
+  type ServerResponse
+} from 'http'
+import { dialog } from 'electron'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import {
@@ -9,6 +15,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
+import MCPAudit from './MCPAudit'
 import { MCPTools, textResult } from './MCPTools'
 import type { MCPToolResult } from './MCPTools'
 
@@ -129,7 +136,7 @@ export default class MCPServer {
       {
         name: 'list_log_files',
         description:
-          'List a service\'s log files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql.',
+          "List a service's log files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql.",
         inputSchema: {
           type: 'object',
           properties: {
@@ -143,7 +150,7 @@ export default class MCPServer {
       {
         name: 'list_config_files',
         description:
-          'List a service\'s config files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql. Pass version for version-scoped configs (redis/mongodb/postgresql/apache/mysql/mariadb).',
+          "List a service's config files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql. Pass version for version-scoped configs (redis/mongodb/postgresql/apache/mysql/mariadb).",
         inputSchema: {
           type: 'object',
           properties: {
@@ -203,6 +210,158 @@ export default class MCPServer {
           await this.tools.restartService(args.flag, args.version)
           return textResult(`${args.flag} restarted`)
         }
+      },
+      {
+        name: 'create_site',
+        description:
+          'Create a new local development site in FlyEnv. Requires name (domain) and root (absolute directory).',
+        risky: true,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Site domain, e.g. demo.test' },
+            root: { type: 'string', description: 'Absolute path to the site root directory.' },
+            alias: { type: 'string', description: 'Line-separated aliases.' },
+            phpVersion: {
+              type: 'number',
+              description: 'PHP version number for the site (e.g. 83).'
+            },
+            useSSL: { type: 'boolean' },
+            autoSSL: { type: 'boolean' },
+            ssl: {
+              type: 'object',
+              properties: { cert: { type: 'string' }, key: { type: 'string' } }
+            },
+            port: {
+              type: 'object',
+              properties: {
+                nginx: { type: 'number' },
+                nginx_ssl: { type: 'number' },
+                apache: { type: 'number' },
+                apache_ssl: { type: 'number' },
+                caddy: { type: 'number' },
+                caddy_ssl: { type: 'number' }
+              }
+            },
+            nginx: {
+              type: 'object',
+              properties: { rewrite: { type: 'string' } }
+            }
+          },
+          required: ['name', 'root']
+        },
+        handler: async (args) => {
+          const data = await this.tools.createSite(args)
+          return textResult({ created: args.name, data })
+        }
+      },
+      {
+        name: 'update_site',
+        description:
+          'Update an existing local site in FlyEnv. Only the fields you provide are changed.',
+        risky: true,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            siteName: { type: 'string', description: 'Current domain name of the site to update.' },
+            alias: { type: 'string' },
+            root: { type: 'string' },
+            phpVersion: { type: 'number' },
+            useSSL: { type: 'boolean' },
+            autoSSL: { type: 'boolean' },
+            ssl: {
+              type: 'object',
+              properties: { cert: { type: 'string' }, key: { type: 'string' } }
+            },
+            port: {
+              type: 'object',
+              properties: {
+                nginx: { type: 'number' },
+                nginx_ssl: { type: 'number' },
+                apache: { type: 'number' },
+                apache_ssl: { type: 'number' },
+                caddy: { type: 'number' },
+                caddy_ssl: { type: 'number' }
+              }
+            },
+            nginx: {
+              type: 'object',
+              properties: { rewrite: { type: 'string' } }
+            }
+          },
+          required: ['siteName']
+        },
+        handler: async (args) => {
+          const { siteName, ...patch } = args
+          const data = await this.tools.updateSite(siteName, patch)
+          return textResult({ updated: siteName, data })
+        }
+      },
+      {
+        name: 'delete_site',
+        description: 'Delete a local site managed by FlyEnv.',
+        risky: true,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            siteName: { type: 'string', description: 'Domain name of the site to delete.' }
+          },
+          required: ['siteName']
+        },
+        handler: async (args) => {
+          const data = await this.tools.deleteSite(args.siteName)
+          return textResult({ deleted: args.siteName, data })
+        }
+      },
+      {
+        name: 'write_config',
+        description:
+          'Write content to a service config file. Use "name" to pick a file returned by list_config_files, or provide an absolute "path". A .bak backup is created automatically.',
+        risky: true,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            flag: flagEnum,
+            version: { type: 'string', description: 'Version for version-scoped configs.' },
+            name: {
+              type: 'string',
+              description: 'Config file name from list_config_files (e.g. "main").'
+            },
+            path: {
+              type: 'string',
+              description: 'Absolute config file path. If provided, takes precedence over name.'
+            },
+            content: { type: 'string', description: 'Full config content to write.' }
+          },
+          required: ['flag', 'content']
+        },
+        handler: async (args) => {
+          const data = await this.tools.writeConfig(
+            args.flag,
+            args.content,
+            args.version,
+            args.name,
+            args.path
+          )
+          return textResult(data)
+        }
+      },
+      {
+        name: 'install_service',
+        description: 'Download and install a specific version of a FlyEnv-managed service.',
+        risky: true,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            flag: flagEnum,
+            version: { type: 'string', description: 'Version to install (e.g. "1.29.0").' }
+          },
+          required: ['flag', 'version']
+        },
+        handler: async (args) => {
+          const data = await this.tools.installService(args.flag, args.version)
+          return textResult(data)
+        }
       }
     ]
   }
@@ -231,10 +390,25 @@ export default class MCPServer {
       if (!def) {
         return textResult(`Tool not enabled or unknown: ${name}`, true)
       }
+      const approval = this.mcpConfig.getConfig('approval', {}) as Record<
+        string,
+        'auto' | 'confirm'
+      >
+      const needsConfirm = def.risky && (approval[name] ?? 'auto') === 'confirm'
+      if (needsConfirm) {
+        const confirmed = await this.confirmTool(name, args)
+        if (!confirmed) {
+          return textResult(`Tool ${name} was cancelled by user`, true)
+        }
+      }
       try {
-        return await def.handler(args)
+        const result = await def.handler(args)
+        MCPAudit.log(name, args, true)
+        return result
       } catch (e) {
-        return textResult(`Tool ${name} failed: ${e instanceof Error ? e.message : e}`, true)
+        const msg = e instanceof Error ? e.message : `${e}`
+        MCPAudit.log(name, args, false, msg)
+        return textResult(`Tool ${name} failed: ${msg}`, true)
       }
     })
 
@@ -265,10 +439,31 @@ export default class MCPServer {
     return server
   }
 
-  /** 校验请求鉴权 + 来源 */
+  /** 高风险 tool 的原生确认框 */
+  private async confirmTool(name: string, args: Record<string, any>): Promise<boolean> {
+    try {
+      const detail = Object.entries(args)
+        .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+        .join('\n')
+      const { response } = await dialog.showMessageBox({
+        type: 'warning',
+        buttons: ['Cancel', 'Confirm'],
+        defaultId: 0,
+        cancelId: 0,
+        title: 'FlyEnv MCP',
+        message: `Allow MCP tool "${name}"?`,
+        detail: detail || undefined
+      })
+      return response === 1
+    } catch (e) {
+      console.log('MCP confirmTool error: ', e)
+      return false
+    }
+  }
+
+  /** 校验请求鉴权 + 来源 + Origin */
   private checkAuth(req: IncomingMessage): { ok: boolean; reason?: string } {
     const cfg = this.mcpConfig.getConfig() as any
-    // 来源限制：非回环且未允许远程 → 拒绝
     const remoteAddr = req.socket.remoteAddress ?? ''
     const isLoopback =
       remoteAddr === '127.0.0.1' ||
@@ -278,6 +473,26 @@ export default class MCPServer {
     if (!cfg?.allowRemote && !isLoopback) {
       return { ok: false, reason: 'remote access disabled' }
     }
+
+    // Origin 校验：浏览器型客户端会带 Origin，必须匹配当前服务地址或回环
+    const origin = this.headerValue(req, 'origin')
+    if (origin) {
+      const port: number = cfg?.port ?? 7682
+      const host: string = cfg?.allowRemote ? cfg?.host : '127.0.0.1'
+      const allowed = [
+        `http://127.0.0.1:${port}`,
+        `https://127.0.0.1:${port}`,
+        `http://localhost:${port}`,
+        `https://localhost:${port}`
+      ]
+      if (cfg?.allowRemote && host && host !== '127.0.0.1') {
+        allowed.push(`http://${host}:${port}`, `https://${host}:${port}`)
+      }
+      if (!allowed.includes(origin)) {
+        return { ok: false, reason: 'invalid origin' }
+      }
+    }
+
     // token 校验
     const token: string = cfg?.token ?? ''
     if (token) {
@@ -288,6 +503,12 @@ export default class MCPServer {
       }
     }
     return { ok: true }
+  }
+
+  private headerValue(req: IncomingMessage, name: string): string | undefined {
+    const v = req.headers[name.toLowerCase()]
+    if (Array.isArray(v)) return v[0]
+    return v
   }
 
   async start(): Promise<{ running: boolean; port: number; host: string }> {

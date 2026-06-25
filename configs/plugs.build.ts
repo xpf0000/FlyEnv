@@ -1,4 +1,5 @@
 import type { Plugin, PluginBuild } from 'esbuild'
+import { build as esbuildBuild } from 'esbuild'
 import { resolve as pathResolve, join } from 'path'
 import _fs from 'fs-extra'
 import { fileURLToPath } from 'node:url'
@@ -55,6 +56,24 @@ export const BuildPlugin: () => Plugin = () => {
           await moveChildDirToParent(join(base, 'sh'))
           await moveChildDirToParent(join(base, 'tmpl'))
           await moveChildDirToParent(join(base, 'zip'))
+
+          // Bundle MCP stdio bridge into a single runnable file (no external deps),
+          // so AI clients can execute it with plain Node even in production asar.
+          try {
+            await esbuildBuild({
+              platform: 'node',
+              entryPoints: [pathResolve(__dirname, '../static/mcp/flyenv-mcp-stdio.mjs')],
+              outfile: join(base, 'mcp/flyenv-mcp-stdio.mjs'),
+              bundle: true,
+              packages: 'bundle',
+              format: 'esm',
+              target: 'esnext',
+              minify: true
+            })
+          } catch (e) {
+            console.log('build mcp stdio bridge error: ', e)
+          }
+
           hasCopyed = true
           resolve()
         })

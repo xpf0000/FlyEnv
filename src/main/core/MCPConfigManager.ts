@@ -47,14 +47,21 @@ export const MCP_DEFAULT_ENABLED_TOOLS: string[] = [
   'list_sites',
   'start_service',
   'stop_service',
-  'restart_service'
+  'restart_service',
+  'create_site',
+  'update_site'
 ]
 
 /** 高风险工具：即使被加入白名单，默认也要求确认 */
 export const MCP_DEFAULT_APPROVAL: Record<string, 'auto' | 'confirm'> = {
   start_service: 'confirm',
   stop_service: 'confirm',
-  restart_service: 'confirm'
+  restart_service: 'confirm',
+  create_site: 'confirm',
+  update_site: 'confirm',
+  delete_site: 'confirm',
+  write_config: 'confirm',
+  install_service: 'confirm'
 }
 
 export const MCP_DEFAULT_PORT = 7682

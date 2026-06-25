@@ -1,3 +1,5 @@
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { dirname } from 'node:path'
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
 import ServiceProcessManager from './ServiceProcess'
@@ -30,7 +32,12 @@ const SINGLE_INSTANCE_SERVICES = new Set<string>([
  */
 
 /** 调用 fork 的统一封装：返回 { code, data } 里的 data，失败抛错 */
-function callFork(forkManager: ForkManager, module: string, fn: string, ...args: any[]): Promise<any> {
+function callFork(
+  forkManager: ForkManager,
+  module: string,
+  fn: string,
+  ...args: any[]
+): Promise<any> {
   return new Promise((resolve, reject) => {
     let settled = false
     forkManager
@@ -122,6 +129,105 @@ function textResult(data: any, isError = false): MCPToolResult {
   return { content: [{ type: 'text', text }], isError }
 }
 
+/** 新建站点时的默认 AppHost 骨架 */
+function defaultHost(): Record<string, any> {
+  return {
+    id: new Date().getTime(),
+    type: 'php',
+    name: '',
+    alias: '',
+    useSSL: false,
+    autoSSL: false,
+    ssl: {
+      cert: '',
+      key: ''
+    },
+    port: {
+      nginx: 80,
+      nginx_ssl: 443,
+      apache: 80,
+      apache_ssl: 443,
+      caddy: 80,
+      caddy_ssl: 443,
+      frankenphp: 80,
+      frankenphp_ssl: 443,
+      tomcat: 80,
+      tomcat_ssl: 443
+    },
+    nginx: {
+      rewrite: ''
+    },
+    url: '',
+    root: '',
+    mark: '',
+    bookmark: '',
+    phpVersion: undefined,
+    phpVersionFull: '',
+    reverseProxy: [],
+    envFile: '',
+    projectName: '',
+    projectPort: 0,
+    startCommand: ''
+  }
+}
+
+/** 用输入构建一个可写入 host.json 的 AppHost */
+function buildHostFromInput(input: Record<string, any>): Record<string, any> {
+  const host = defaultHost()
+  if (!input?.name || !input?.root) {
+    throw new Error('create_site requires "name" and "root"')
+  }
+  host.name = input.name
+  host.root = input.root
+  host.url = input.url ?? `http://${input.name}`
+  if (input.alias !== undefined) host.alias = input.alias
+  if (input.phpVersion !== undefined) host.phpVersion = input.phpVersion
+  if (input.useSSL !== undefined) host.useSSL = !!input.useSSL
+  if (input.autoSSL !== undefined) host.autoSSL = !!input.autoSSL
+  if (input.ssl) host.ssl = { ...host.ssl, ...input.ssl }
+  if (input.port) host.port = { ...host.port, ...input.port }
+  if (input.nginx) host.nginx = { ...host.nginx, ...input.nginx }
+  if (input.reverseProxy) host.reverseProxy = input.reverseProxy
+  return host
+}
+
+/** 合并用户提供的 patch 到现有站点 */
+function mergeHostPatch(
+  site: Record<string, any>,
+  patch: Record<string, any>
+): Record<string, any> {
+  const updated = { ...site }
+  const allowed = [
+    'alias',
+    'root',
+    'phpVersion',
+    'phpVersionFull',
+    'useSSL',
+    'autoSSL',
+    'ssl',
+    'port',
+    'nginx',
+    'url',
+    'mark',
+    'bookmark',
+    'reverseProxy',
+    'envFile',
+    'projectName',
+    'projectPort',
+    'startCommand'
+  ]
+  for (const key of allowed) {
+    if (patch[key] !== undefined) {
+      if (key === 'ssl' || key === 'port' || key === 'nginx') {
+        updated[key] = { ...updated[key], ...patch[key] }
+      } else {
+        updated[key] = patch[key]
+      }
+    }
+  }
+  return updated
+}
+
 export class MCPTools {
   forkManager: ForkManager
   mcpConfig: MCPConfigManager
@@ -199,6 +305,32 @@ export class MCPTools {
     const list = data?.host ?? data ?? []
     const mask = this.mask
     return Array.isArray(list) ? list.map((h) => serializeSite(h, mask)) : []
+  }
+
+  /** 根据站点名查找原始站点对象（内部用，不序列化） */
+  private async findSiteByName(name: string): Promise<any | undefined> {
+    const data = await callFork(this.forkManager, 'host', 'hostList')
+    const list = data?.host ?? data ?? []
+    if (!Array.isArray(list)) return undefined
+    return list.find((h: any) => h?.name === name)
+  }
+
+  /** create_site：新增本地站点 */
+  async createSite(input: Record<string, any>): Promise<any> {
+    const host = buildHostFromInput(input)
+    const data = await callFork(this.forkManager, 'host', 'handleHost', host, 'add')
+    return data
+  }
+
+  /** update_site：按站点名更新字段 */
+  async updateSite(siteName: string, patch: Record<string, any>): Promise<any> {
+    const site = await this.findSiteByName(siteName)
+    if (!site) {
+      throw new Error(`Site ${siteName} not found`)
+    }
+    const updated = mergeHostPatch(site, patch)
+    const data = await callFork(this.forkManager, 'host', 'handleHost', updated, 'edit', site)
+    return data
   }
 
   /** start_service / stop_service / restart_service 的底层：需要一个 version 对象 */
@@ -312,7 +444,9 @@ export class MCPTools {
     if (st.instances[0]?.version) {
       const raw = await this.rawServiceVersions(flag)
       const bin = st.instances[0].bin
-      return raw.find((r: any) => r.bin === bin) ?? { version: st.instances[0].version, typeFlag: flag }
+      return (
+        raw.find((r: any) => r.bin === bin) ?? { version: st.instances[0].version, typeFlag: flag }
+      )
     }
     const raw = await this.rawServiceVersions(flag)
     return raw.find((r: any) => r.enable) ?? raw[0]
@@ -337,6 +471,63 @@ export class MCPTools {
     const v = await this.resolveVersionObj(flag, version)
     const list = await callFork(this.forkManager, flag, 'listConfigFiles', v)
     return Array.isArray(list) ? list : []
+  }
+
+  /** delete_site：删除本地站点 */
+  async deleteSite(siteName: string): Promise<any> {
+    const site = await this.findSiteByName(siteName)
+    if (!site) {
+      throw new Error(`Site ${siteName} not found`)
+    }
+    const data = await callFork(this.forkManager, 'host', 'handleHost', site, 'del')
+    return data
+  }
+
+  /**
+   * write_config：写入服务配置文件。
+   * 通过 name 或 path 指定要写的文件（优先 name），写入前自动 .bak 备份。
+   */
+  async writeConfig(
+    flag: string,
+    content: string,
+    version?: string,
+    name?: string,
+    path?: string
+  ): Promise<any> {
+    let target: { name: string; path: string } | undefined
+    if (path) {
+      target = { name: name || 'custom', path }
+    } else if (name) {
+      const files = await this.listConfigFiles(flag, version)
+      target = files.find((f: any) => f?.name === name)
+    }
+    if (!target) {
+      throw new Error(`Config file not found: name=${name}, path=${path}`)
+    }
+    const dir = dirname(target.path)
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true })
+    }
+    if (existsSync(target.path)) {
+      copyFileSync(target.path, `${target.path}.bak`)
+    }
+    writeFileSync(target.path, content, 'utf-8')
+    return { written: target.path, backup: existsSync(`${target.path}.bak`) }
+  }
+
+  /** install_service：下载并安装某个服务的指定版本 */
+  async installService(flag: string, version: string): Promise<any> {
+    const data = await callFork(this.forkManager, flag, 'fetchAllOnlineVersion')
+    const list: any[] = Array.isArray(data) ? data : []
+    if (list.length === 0) {
+      throw new Error(`No online version available for ${flag}`)
+    }
+    const row = list.find((v: any) => v?.version === version)
+    if (!row) {
+      throw new Error(`Version ${version} of ${flag} not found in online list`)
+    }
+    const result = await callFork(this.forkManager, flag, 'installSoft', row)
+    return { installed: version, result }
   }
 
   // ===== MCP 响应包装 =====

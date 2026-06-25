@@ -11,6 +11,7 @@ import Capturer from './Capturer'
 import ConfigManager from './ConfigManager'
 import type MCPConfigManager from './MCPConfigManager'
 import type MCPServer from './MCPServer'
+import type MCPBridgeManager from './MCPBridgeManager'
 import type WindowManager from '../ui/WindowManager'
 import type TrayManager from '../ui/TrayManager'
 import type { ForkManager } from './ForkManager'
@@ -22,6 +23,7 @@ import type SiteSuckerManager from '../ui/SiteSucker'
 import ServiceProcessManager from './ServiceProcess'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
+import { existsSync, readFileSync } from 'node:fs'
 import CustomerLang from './CustomerLang'
 import { AppI18n } from '@lang/index'
 import { CheckBrewOrPort } from '../utils/CheckBrew'
@@ -30,6 +32,7 @@ export interface IPCHandlerDependencies {
   configManager: ConfigManager
   mcpConfigManager?: MCPConfigManager
   mcpServer?: MCPServer
+  mcpBridgeManager?: MCPBridgeManager
   windowManager: WindowManager
   trayManager: TrayManager
   forkManager?: ForkManager
@@ -389,6 +392,12 @@ export default class IPCHandler extends EventEmitter {
         break
       case 'mcp:setConfig':
         this.handleMcpSetConfig(command, key, args)
+        break
+      case 'mcp:getBridgePath':
+        this.handleMcpGetBridgePath(command, key)
+        break
+      case 'mcp:getAuditLog':
+        this.handleMcpGetAuditLog(command, key)
         break
 
       default:
@@ -756,6 +765,31 @@ export default class IPCHandler extends EventEmitter {
       mcpConfig.setConfig(patch)
     }
     this.sendToMainWindow(command, key, { code: 0, data: mcpConfig.getConfig() })
+  }
+
+  private handleMcpGetBridgePath(command: string, key: string) {
+    const bridgeManager = this.deps.mcpBridgeManager
+    if (!bridgeManager) {
+      this.sendToMainWindow(command, key, { code: 1, msg: 'MCP bridge not initialized' })
+      return
+    }
+    this.sendToMainWindow(command, key, {
+      code: 0,
+      data: bridgeManager.getBridgePath()
+    })
+  }
+
+  private handleMcpGetAuditLog(command: string, key: string) {
+    const file = join(global.Server.BaseDir!, 'mcp', 'audit.log')
+    let data = ''
+    try {
+      if (existsSync(file)) {
+        data = readFileSync(file, 'utf-8')
+      }
+    } catch (e) {
+      console.log('handleMcpGetAuditLog error: ', e)
+    }
+    this.sendToMainWindow(command, key, { code: 0, data })
   }
 
   // ===== 工具方法 =====

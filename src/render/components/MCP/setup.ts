@@ -22,6 +22,7 @@ export interface MCPConfig {
   enabledTools: string[]
   approval: Record<string, 'auto' | 'confirm'>
   allowRemote: boolean
+  maskSecrets: boolean
 }
 
 export const ALL_TOOLS: string[] = [
@@ -32,15 +33,30 @@ export const ALL_TOOLS: string[] = [
   'list_sites',
   'start_service',
   'stop_service',
-  'restart_service'
+  'restart_service',
+  'create_site',
+  'update_site',
+  'delete_site',
+  'write_config',
+  'install_service'
 ]
 
-export const RISKY_TOOLS: string[] = ['start_service', 'stop_service', 'restart_service']
+export const RISKY_TOOLS: string[] = [
+  'start_service',
+  'stop_service',
+  'restart_service',
+  'create_site',
+  'update_site',
+  'delete_site',
+  'write_config',
+  'install_service'
+]
 
 class MCP {
   loading = false
   starting = false
   running = false
+  bridgePath = ''
   config: MCPConfig = {
     enabled: false,
     transport: { http: true, stdio: false },
@@ -48,13 +64,24 @@ class MCP {
     port: 7682,
     token: '',
     enabledTools: [...ALL_TOOLS],
-    approval: {},
-    allowRemote: false
+    approval: {
+      start_service: 'confirm',
+      stop_service: 'confirm',
+      restart_service: 'confirm',
+      create_site: 'confirm',
+      update_site: 'confirm',
+      delete_site: 'confirm',
+      write_config: 'confirm',
+      install_service: 'confirm'
+    },
+    allowRemote: false,
+    maskSecrets: false
   }
 
   init() {
     this.fetchConfig()
     this.fetchStatus()
+    this.fetchBridgePath()
   }
 
   fetchConfig() {
@@ -73,6 +100,15 @@ class MCP {
       IPC.off(key)
       if (res?.code === 0 && res?.data) {
         this.running = !!res.data.running
+      }
+    })
+  }
+
+  fetchBridgePath() {
+    IPC.send('mcp:getBridgePath').then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0 && res?.data) {
+        this.bridgePath = res.data
       }
     })
   }
@@ -129,6 +165,12 @@ class MCP {
     this.saveConfig({ enabledTools: Array.from(set) })
   }
 
+  setApproval(tool: string, policy: 'auto' | 'confirm') {
+    this.saveConfig({
+      approval: { ...this.config.approval, [tool]: policy }
+    })
+  }
+
   get serverUrl(): string {
     const host = this.config.host || '127.0.0.1'
     return `http://${host}:${this.config.port}`
@@ -149,8 +191,31 @@ class MCP {
     return JSON.stringify(snippet, null, 2)
   }
 
+  get stdioConfigSnippet(): string {
+    const bridgePath = this.bridgePath || '<FlyEnv>/mcp/flyenv-mcp-stdio.mjs'
+    const snippet = {
+      mcpServers: {
+        flyenv: {
+          command: 'node',
+          args: [bridgePath],
+          env: {
+            FLYENV_MCP_URL: this.serverUrl,
+            FLYENV_MCP_TOKEN: this.config.token
+          }
+        }
+      }
+    }
+    return JSON.stringify(snippet, null, 2)
+  }
+
   copySnippet() {
     clipboard.writeText(this.clientConfigSnippet).then(() => {
+      MessageSuccess(I18nT('mcp.copied'))
+    })
+  }
+
+  copyStdioSnippet() {
+    clipboard.writeText(this.stdioConfigSnippet).then(() => {
       MessageSuccess(I18nT('mcp.copied'))
     })
   }

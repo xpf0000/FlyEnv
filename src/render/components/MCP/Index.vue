@@ -9,6 +9,7 @@
       <ServiceVM v-if="tab === 0"></ServiceVM>
       <ClientConfigVM v-else-if="tab === 1"></ClientConfigVM>
       <ToolsVM v-else-if="tab === 2"></ToolsVM>
+      <AuditVM v-else-if="tab === 3"></AuditVM>
     </div>
   </div>
 </template>
@@ -18,8 +19,14 @@
   import ServiceVM from './Service.vue'
   import ClientConfigVM from './ClientConfig.vue'
   import ToolsVM from './Tools.vue'
+  import AuditVM from './Audit.vue'
   import { I18nT } from '@lang/index'
 
   const tab = ref(0)
-  const tabs = [I18nT('mcp.service'), I18nT('mcp.clientConfig'), I18nT('mcp.tools')]
+  const tabs = [
+    I18nT('mcp.service'),
+    I18nT('mcp.clientConfig'),
+    I18nT('mcp.tools'),
+    I18nT('mcp.auditLog')
+  ]
 </script>

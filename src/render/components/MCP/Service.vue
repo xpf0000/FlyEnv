@@ -48,9 +48,9 @@
         </el-form-item>
         <el-form-item>
           <el-checkbox
-            v-model="MCPSetup.config.allowRemote"
+            :model-value="MCPSetup.config.allowRemote"
             :disabled="MCPSetup.running"
-            @change="onSave"
+            @change="onAllowRemoteChange"
           >
             {{ I18nT('mcp.allowRemote') }}
           </el-checkbox>
@@ -65,6 +65,7 @@
   import { I18nT } from '@lang/index'
   import { MCPSetup } from './setup'
   import { uuid } from '@/util/Index'
+  import { ElMessageBox } from 'element-plus'
 
   const onSave = () => {
     MCPSetup.saveConfig({
@@ -72,6 +73,27 @@
       port: MCPSetup.config.port,
       allowRemote: MCPSetup.config.allowRemote
     })
+  }
+
+  const onAllowRemoteChange = (value: any) => {
+    const enabled = !!value
+    if (!enabled) {
+      MCPSetup.config.allowRemote = false
+      onSave()
+      return
+    }
+    ElMessageBox.confirm(I18nT('mcp.allowRemoteWarning'), I18nT('mcp.allowRemote'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      type: 'warning'
+    })
+      .then(() => {
+        MCPSetup.config.allowRemote = true
+        onSave()
+      })
+      .catch(() => {
+        MCPSetup.config.allowRemote = false
+      })
   }
 
   const regenerate = () => {

@@ -22,6 +22,7 @@ import OAuth from './core/OAuth'
 import ConfigManager from './core/ConfigManager'
 import MCPConfigManager from './core/MCPConfigManager'
 import MCPServer from './core/MCPServer'
+import MCPBridgeManager from './core/MCPBridgeManager'
 import ServerManager from './core/ServerManager'
 import IPCHandler from './core/IPCHandler'
 import { CheckBrewOrPort } from './utils/CheckBrew'
@@ -34,6 +35,7 @@ export default class Application extends EventEmitter {
   configManager: ConfigManager
   mcpConfigManager: MCPConfigManager
   mcpServer?: MCPServer
+  mcpBridgeManager?: MCPBridgeManager
   menuManager: MenuManager
   trayManager: TrayManager
   windowManager: WindowManager
@@ -51,6 +53,7 @@ export default class Application extends EventEmitter {
     this.setupInitialConfig()
     this.configManager = new ConfigManager()
     this.mcpConfigManager = new MCPConfigManager()
+    this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
 
     AppNodeFnManager.nativeTheme_watch()
@@ -74,6 +77,7 @@ export default class Application extends EventEmitter {
     this.ipcHandler = new IPCHandler({
       configManager: this.configManager,
       mcpConfigManager: this.mcpConfigManager,
+      mcpBridgeManager: this.mcpBridgeManager,
       windowManager: this.windowManager,
       trayManager: this.trayManager,
       serverManager: this.serverManager,
