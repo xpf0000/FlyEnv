@@ -36,6 +36,18 @@ class Nginx extends Base {
     this.pidPath = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
   }
 
+  getConfigFiles() {
+    return [{ name: 'main', path: join(global.Server.NginxDir!, 'common/conf/nginx.conf') }]
+  }
+
+  getLogFiles() {
+    const dir = join(global.Server.NginxDir!, 'common/logs')
+    return [
+      { name: 'error', path: join(dir, 'error.log') },
+      { name: 'access', path: join(dir, 'access.log') }
+    ]
+  }
+
   async #handlePhpEnableConf() {
     let host: AppHost[] = []
     try {

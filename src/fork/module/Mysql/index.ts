@@ -50,6 +50,19 @@ class Mysql extends Base {
     this.pidPath = join(global.Server.MysqlDir!, 'mysql.pid')
   }
 
+  getConfigFiles(version?: SoftInstalled) {
+    const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+    if (!v) return []
+    return [{ name: 'main', path: join(global.Server.MysqlDir!, `my-${v}.cnf`) }]
+  }
+
+  getLogFiles() {
+    return [
+      { name: 'error', path: join(global.Server.MysqlDir!, 'error.log') },
+      { name: 'slow', path: join(global.Server.MysqlDir!, 'slow.log') }
+    ]
+  }
+
   _initPassword(version: SoftInstalled, password?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({

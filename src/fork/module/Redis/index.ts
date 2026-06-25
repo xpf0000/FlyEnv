@@ -38,6 +38,18 @@ class Redis extends Base {
     this.pidPath = join(global.Server.RedisDir!, 'redis.pid')
   }
 
+  getConfigFiles(version?: SoftInstalled) {
+    const v = version?.version?.split('.')?.[0] ?? ''
+    if (!v) return []
+    return [{ name: 'main', path: join(global.Server.RedisDir!, `redis-${v}.conf`) }]
+  }
+
+  getLogFiles(version?: SoftInstalled) {
+    const v = version?.version?.split('.')?.[0] ?? ''
+    if (!v) return []
+    return [{ name: 'log', path: join(global.Server.RedisDir!, `redis-${v}.log`) }]
+  }
+
   initConf(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
       if (!existsSync(version?.bin)) {

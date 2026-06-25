@@ -1,8 +1,6 @@
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
 import ServiceProcessManager from './ServiceProcess'
-import { resolveConfigPath, resolveLogPath } from './MCPPaths'
-import { existsSync, promises as fsp } from 'node:fs'
 
 /**
  * 单实例服务（isOnlyRunOne）：同一时刻只跑一个版本，启动某版本即「切到该版本」。
@@ -112,21 +110,6 @@ function serializeSite(h: any, mask: boolean) {
     out.ssl = { cert: h.ssl.cert, key: '******' }
   }
   return out
-}
-
-/** 对一段文本做密钥行掩码（仅在 maskSecrets 开启时调用） */
-export function maskSecrets(text: string): string {
-  if (!text) return text
-  return text
-    .split('\n')
-    .map((line) => {
-      // password= / pwd: / token= / secret= / api_key= 之类
-      if (/(pass(word)?|pwd|secret|token|api[_-]?key|auth)\s*[:=]/i.test(line)) {
-        return line.replace(/([:=]\s*).+$/, '$1******')
-      }
-      return line
-    })
-    .join('\n')
 }
 
 export interface MCPToolResult {
@@ -319,45 +302,41 @@ export class MCPTools {
     return this.startService(flag, version)
   }
 
-  /**
-   * read_log：读取服务日志尾部（仅 maskSecrets 开启时掩码）
-   */
-  async readLog(flag: string, lines = 200): Promise<string> {
-    const logPath = resolveLogPath(flag)
-    if (!logPath) {
-      throw new Error(`read_log not supported for "${flag}" (no known log path)`)
+  /** 解析一个版本对象供按版本的路径计算（缺省取运行中/第一个已装版本） */
+  private async resolveVersionObj(flag: string, version?: string): Promise<any | undefined> {
+    if (version) {
+      const raw = await this.rawServiceVersions(flag)
+      return raw.find((r: any) => r.version === version) ?? { version, typeFlag: flag }
     }
-    if (!existsSync(logPath)) {
-      return `(log file not found: ${logPath})`
+    const st = ServiceProcessManager.statusOf(flag)
+    if (st.instances[0]?.version) {
+      const raw = await this.rawServiceVersions(flag)
+      const bin = st.instances[0].bin
+      return raw.find((r: any) => r.bin === bin) ?? { version: st.instances[0].version, typeFlag: flag }
     }
-    const content = await fsp.readFile(logPath, 'utf-8')
-    const tail = content.split('\n').slice(-Math.max(1, lines)).join('\n')
-    return this.mask ? maskSecrets(tail) : tail
+    const raw = await this.rawServiceVersions(flag)
+    return raw.find((r: any) => r.enable) ?? raw[0]
   }
 
-  /** read_config：读取服务配置文件（仅 maskSecrets 开启时掩码） */
-  async readConfig(flag: string, version?: string): Promise<string> {
-    // version 缺省时，取当前运行实例或第一个已装版本（redis/mongo/pg 的配置是按版本的）
-    let v = version
-    if (!v) {
-      const st = ServiceProcessManager.statusOf(flag)
-      v = st.instances[0]?.version ?? undefined
-      if (!v) {
-        const raw = await this.rawServiceVersions(flag)
-        v = raw.find((r: any) => r.enable)?.version ?? raw[0]?.version
-      }
-    }
-    const confPath = resolveConfigPath(flag, v)
-    if (!confPath) {
-      throw new Error(
-        `read_config not supported for "${flag}"${version ? '' : ' (try specifying a version)'}`
-      )
-    }
-    if (!existsSync(confPath)) {
-      return `(config file not found: ${confPath})`
-    }
-    const content = await fsp.readFile(confPath, 'utf-8')
-    return this.mask ? maskSecrets(content) : content
+  /**
+   * list_log_files：返回某服务的日志文件清单（name + path + exists）。
+   * 不返回内容——FlyEnv 是本地工具，AI 代理拿到 path 自行读文件（日志可能很大）。
+   * 各模块在 fork 侧 getLogFiles 覆写自己的路径，新模块自带，单点维护。
+   */
+  async listLogFiles(flag: string, version?: string): Promise<any[]> {
+    const v = await this.resolveVersionObj(flag, version)
+    const list = await callFork(this.forkManager, flag, 'listLogFiles', v)
+    return Array.isArray(list) ? list : []
+  }
+
+  /**
+   * list_config_files：返回某服务的配置文件清单（name + path + exists）。
+   * 同上，只给路径，AI 代理自行读取。
+   */
+  async listConfigFiles(flag: string, version?: string): Promise<any[]> {
+    const v = await this.resolveVersionObj(flag, version)
+    const list = await callFork(this.forkManager, flag, 'listConfigFiles', v)
+    return Array.isArray(list) ? list : []
   }
 
   // ===== MCP 响应包装 =====

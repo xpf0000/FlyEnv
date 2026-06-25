@@ -127,23 +127,23 @@ export default class MCPServer {
         handler: async () => textResult(await this.tools.listSites())
       },
       {
-        name: 'read_log',
+        name: 'list_log_files',
         description:
-          'Read the tail of a FlyEnv service log file. Supported: nginx, apache, mysql, mariadb.',
+          'List a service\'s log files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql.',
         inputSchema: {
           type: 'object',
           properties: {
             flag: flagEnum,
-            lines: { type: 'number', description: 'Number of trailing lines (default 200).' }
+            version: { type: 'string', description: 'Version for version-scoped paths.' }
           },
           required: ['flag']
         },
-        handler: async (args) => textResult(await this.tools.readLog(args.flag, args.lines ?? 200))
+        handler: async (args) => textResult(await this.tools.listLogFiles(args.flag, args.version))
       },
       {
-        name: 'read_config',
+        name: 'list_config_files',
         description:
-          'Read a FlyEnv service config file. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql. For version-scoped configs (redis/mongodb/postgresql) pass the version, otherwise the running/first installed version is used.',
+          'List a service\'s config files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql. Pass version for version-scoped configs (redis/mongodb/postgresql/apache/mysql/mariadb).',
         inputSchema: {
           type: 'object',
           properties: {
@@ -152,7 +152,8 @@ export default class MCPServer {
           },
           required: ['flag']
         },
-        handler: async (args) => textResult(await this.tools.readConfig(args.flag, args.version))
+        handler: async (args) =>
+          textResult(await this.tools.listConfigFiles(args.flag, args.version))
       },
       {
         name: 'start_service',

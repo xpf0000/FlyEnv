@@ -384,6 +384,19 @@ class Manager extends Base {
     this.pidPath = join(global.Server.MariaDBDir!, 'mariadb.pid')
   }
 
+  getConfigFiles(version?: SoftInstalled) {
+    const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+    if (!v) return []
+    return [{ name: 'main', path: join(global.Server.MariaDBDir!, `my-${v}.cnf`) }]
+  }
+
+  getLogFiles() {
+    return [
+      { name: 'error', path: join(global.Server.MariaDBDir!, 'error.log') },
+      { name: 'slow', path: join(global.Server.MariaDBDir!, 'slow.log') }
+    ]
+  }
+
   _initPassword(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({

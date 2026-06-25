@@ -103,8 +103,8 @@ MCP tool handler（main 进程内）
 | 切「当前版本」 | **不是独立操作**，见 §3.2.1 | 并入 tool `start_service`（启动单实例服务某版本 = 切到该版本） |
 | 在线版本 | `fetchAllOnlineVersion` | resource `available_versions` |
 | 安装 | `installSoft` | tool `install_service`（**高风险，默认需确认**） |
-| 配置读写 | `getConfig` / `editConfig` | tool `read_config` / `write_config`（写默认需确认） |
-| 日志 | 日志文件 `tail` | tool `read_log` |
+| 配置文件 | 各模块 `getConfigFiles(version)` | tool `list_config_files`（返回 name+path 清单，AI 自读） |
+| 日志文件 | 各模块 `getLogFiles(version)` | tool `list_log_files`（返回 name+path 清单，AI 自读） |
 
 模块清单：`src/render/core/type.ts` 的 `AppModuleEnum`（101 个 `typeFlag`，即 `AllAppModule`）是工具枚举参数的权威来源。
 
@@ -215,8 +215,8 @@ MCP Server 跑在 main 进程（非 fork），因为它要长期持有 `ForkMana
 | Tool | 参数 | 风险 | 审批 |
 |------|------|------|------|
 | `service_status` | `flag` | 只读 | 否 |
-| `read_log` | `flag`, `lines?` | 只读 | 否 |
-| `read_config` | `flag`, `version?` | 只读 | 否 |
+| `list_log_files` | `flag`, `version?` | 只读 | 否；返回 name+path 清单，AI 自读文件 |
+| `list_config_files` | `flag`, `version?` | 只读 | 否；返回 name+path 清单，AI 自读文件 |
 | `start_service` | `flag`, `version?` | 中 | 单实例服务：启动某版本即切到该版本（停其它+写 current）；多实例（php/node…）：并存 |
 | `stop_service` | `flag`, `version?` | 中 | 带 version 停单个；不带停全部 |
 | `restart_service` | `flag`, `version?` | 中 | 可配置 |
@@ -234,7 +234,7 @@ MCP Server 跑在 main 进程（非 fork），因为它要长期持有 `ForkMana
 5. **bin / path / 凭据：默认返回，不屏蔽（已修正设计）**：FlyEnv 是本地开发工具，`bin`/`path`/`version` 是 AI 代理执行任务的**必需材料**（如「用 PHP 7.3 跑某文件」需要该版本 bin 绝对路径、「用 mysql.exe 连本地库」需要 bin + root 密码）。这些命令只能由代理在自己的 shell 里执行，FlyEnv 不可能内建万能 exec，因此必须把执行材料交给代理。
    - 威胁模型澄清：本 server 是 loopback + token，连入的代理跑在用户本机、通常已有用户权限（能直接读磁盘/进程）。**凡 MCP 能返回的，代理本就能拿到**，屏蔽只是 security theater，代价却是废掉核心场景。
    - 故 `serializeVersion` 默认返回 `bin`/`path`/`phpBin`/`rootPassword` 等；`serializeSite` 默认返回 `root`/`port`/`ssl`/`envFile` 等。
-   - **可选 `maskSecrets` 开关（默认 false）**：仅给「会共享屏幕 / 担心云端日志」的谨慎用户保留——开启后剔除 `rootPassword`、SSL 私钥，并对 `read_log`/`read_config` 的疑似密钥行掩码。不删能力，只改默认。
+   - **可选 `maskSecrets` 开关（默认 false）**：仅给「会共享屏幕 / 担心云端日志」的谨慎用户保留——开启后对结构化输出（`service_status`/`list_services`/`list_sites`）剔除 `rootPassword`、SSL 私钥。日志/配置只返回文件路径（不返回内容），故不涉及内容掩码。不删能力，只改默认。
 6. **审计日志**：所有 tool 调用记入 `BaseDir/mcp/audit.log`，UI 可查。
 
 ---
@@ -245,7 +245,6 @@ MCP Server 跑在 main 进程（非 fork），因为它要长期持有 `ForkMana
 src/main/core/
   MCPServer.ts                 # 新增：MCP Server 宿主（HTTP+SSE transport、token、生命周期）
   MCPTools.ts                  # 新增：tool/resource → ForkManager 调用的映射层
-  MCPPaths.ts                  # 新增：服务配置/日志文件路径解析（read_config / read_log 用）
   MCPConfigManager.ts          # 新增：独立 electron-store（name:'mcp' → mcp.json），与 user.json 解耦
   MCPAudit.ts                  # 新增：审计日志
   IPCHandler.ts                # 改：注册 mcp:start / mcp:stop / mcp:status / mcp:getConfig / mcp:setConfig
@@ -360,7 +359,7 @@ sequenceDiagram
 - [ ] 验收：在 Claude Code 里配置 FlyEnv MCP，能 `list services`、读 Nginx 日志、重启 Nginx。
 
 ### 二期（操作面补全 + stdio）
-- [x] `read_config`（按 `MCPPaths` 路径表读配置文件）+ 修复 `read_log`（早期错误假设了不存在的 `getLogs()`，改为按路径表读日志文件）。
+- [x] `list_config_files` / `list_log_files`：配置/日志**文件清单**（name+path，AI 自读）。路径方法 `getConfigFiles`/`getLogFiles` 放在 **`Base` + 各模块覆写**（不再集中在一个 `MCPPaths`），新模块自带、单点维护；支持多文件（如 nginx/apache 的 error+access、mysql 的 error+slow）。早期 `read_log` 错误假设了不存在的 `getLogs()`，已废弃。
 - [x] 切版本并入 `start_service`（单实例服务启动某版本即切到该版本，停其它+写 `current`；废弃独立的 `set_current_version`，FlyEnv 本无此独立概念）。
 - [ ] `set_site_php_version`（走 `Host`）/ `create_site` / `update_site`。
 - [ ] stdio bridge 脚本，覆盖 Cursor / Cline / Windsurf。
@@ -398,7 +397,7 @@ sequenceDiagram
 **后端（main 进程）**
 - `src/main/core/MCPConfigManager.ts`：独立 electron-store（`name:'mcp'` → `mcp.json`），`MCPConfigOptions`（enabled/transport/host/port/token/enabledTools/approval/allowRemote）；默认白名单仅「只读 + 启停」，启停类默认 `approval: confirm`；首次启动自动生成 token；`allowRemote` 默认 false。
 - `src/main/core/MCPTools.ts`：tool/resource → `ForkManager.send(module, fn, ...)` 映射。`serializeVersion`/`serializeSite` **默认返回 bin/path/凭据**（本地开发工具，执行任务所需）；可选 `maskSecrets`（默认 false）开启后才剔除凭据并对日志/配置掩码。
-- `src/main/core/MCPServer.ts`：SDK 低层 `Server` + `StreamableHTTPServerTransport`（无状态模式），绑 `127.0.0.1`，Bearer token + 回环校验；注册 7 个 tool（list_services / service_status / list_sites / read_log / start/stop/restart_service）+ 2 个 resource（services/sites），按白名单过滤。
+- `src/main/core/MCPServer.ts`：SDK 低层 `Server` + `StreamableHTTPServerTransport`（无状态模式），绑 `127.0.0.1`，Bearer token + 回环校验；注册 tool（list_services / service_status / list_sites / list_log_files / list_config_files / start/stop/restart_service）+ 2 个 resource（services/sites），按白名单过滤。
 - `src/main/Application.ts`：实例化 `mcpConfigManager` + `mcpServer`（在 `initForkManager` 内，依赖 forkManager 句柄），上次启用则自动拉起，`doStop` 内 `mcpServer.stop()`。
 - `src/main/core/IPCHandler.ts`：新增普通命令 `mcp:start` / `mcp:stop` / `mcp:status` / `mcp:getConfig` / `mcp:setConfig`，依赖接口新增 `mcpConfigManager` / `mcpServer`。
 
@@ -425,7 +424,7 @@ sequenceDiagram
 | --- | --- | --- | --- |
 | 1 | **核心链路已验证通过** | 真实环境 curl 直连验证：initialize / tools/list / list_services（读到真实 nginx·php 版本，字段脱敏生效）/ start_service（nginx 1.29.0 + php 7.3.33 实际启动成功）全部通过 | ✅ 已完成 |
 | 1b | **服务运行态前后端同步（已解决并验证）** | 主进程 `ServiceProcessManager` 作唯一状态源 + 变更广播 + UI 按 bin 刷新；并修复「停单版本误停全部」与「重复登记」两个 bug。详见 §14。 | ✅ 已完成 |
-| 2 | **`read_log` / `read_config`（已解决）** | 早期 `read_log` 错误假设各模块有 `getLogs(lines)`；服务模块实际无此方法，配置/日志是文件。改为 `MCPPaths.ts` 按 `global.Server.*Dir` 路径表读文件（nginx/apache/mysql/mariadb 日志；nginx/apache/mysql/mariadb/redis/mongodb/postgresql 配置）。 | ✅ 已完成 |
+| 2 | **配置/日志文件清单（已解决）** | 早期 `read_log` 错误假设各模块有 `getLogs(lines)`；服务模块实际无此方法，且配置/日志常是多文件。改为 `Base.getConfigFiles/getLogFiles` + 各模块覆写（路径与创建文件的代码同处，单点维护），MCP 经 `list_config_files`/`list_log_files` 返回 name+path 清单，AI 自读。覆盖 nginx/apache/mysql/mariadb/redis/mongodb/postgresql。 | ✅ 已完成 |
 | 3 | **切版本并入 `start_service`（已解决）** | 废弃独立 `set_current_version`——FlyEnv 中启动单实例服务某版本即切到该版本。`set_site_php_version`（PHP 按站点）仍待二期。 | 部分完成 |
 | 4 | **写配置 / 安装 / 删除站点等高风险 tool** | 默认不在白名单，未实现 | 三期 + 原生确认框 + 审计日志 |
 | 5 | **stdio bridge** | 一期仅 HTTP | 二期覆盖 Cursor/Cline/Windsurf |
