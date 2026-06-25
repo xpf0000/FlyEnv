@@ -43,6 +43,7 @@ export const MCP_DEFAULT_ENABLED_TOOLS: string[] = [
   'list_services',
   'service_status',
   'read_log',
+  'read_config',
   'list_sites',
   'start_service',
   'stop_service',

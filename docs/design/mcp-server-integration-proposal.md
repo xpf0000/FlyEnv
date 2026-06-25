@@ -100,7 +100,7 @@ MCP tool handler（main 进程内）
 | 启动 | `_startServer(version)` / `startService` | tool `start_service` |
 | 停止 | `_stopService()` | tool `stop_service` |
 | 重启 | `restart` | tool `restart_service` |
-| 切「当前版本」 | **非单一 fork 方法**，见 §3.2.1 | tool `set_current_version`（**需在 main 层编排**） |
+| 切「当前版本」 | **不是独立操作**，见 §3.2.1 | 并入 tool `start_service`（启动单实例服务某版本 = 切到该版本） |
 | 在线版本 | `fetchAllOnlineVersion` | resource `available_versions` |
 | 安装 | `installSoft` | tool `install_service`（**高风险，默认需确认**） |
 | 配置读写 | `getConfig` / `editConfig` | tool `read_config` / `write_config`（写默认需确认） |
@@ -117,7 +117,11 @@ MCP tool handler（main 进程内）
 - **用户实际怎么切**：
   - **单实例服务**（`isOnlyRunOne`，如多数后台服务）：用户「启动某个已安装版本」即完成切换 —— `onItemStart`（`Module.ts:43`）会停掉其它版本、把所选版本写入 `server[flag].current` 并 `saveConfig`。所以「切版本」= 选定版本后启动它 + 落 `current`。
   - **PHP 特殊**：`resetCurrentVersion`（`Module.ts:75`）显式 `typeFlag !== 'php'` —— PHP 的版本是**按站点**（`AppHost.phpVersion`）或 CLI 默认版本管理的，不是全局单一 current。
-- **对 MCP 的设计含义**：`set_current_version` tool **不能简单转发给某个 fork 方法**，必须在 main 层编排：①更新 `server[flag].current` 配置 → ②（单实例服务）停其它版本 + 启所选版本。PHP 需单独的 `set_site_php_version`（走 `Host` 模块）。一期可先不做切版本，避免踩这块状态逻辑（见 §9）。
+- **对 MCP 的设计含义（已落地，修正了早期设计）**：FlyEnv 里「切版本」不是独立动作——启动单实例服务的某版本 **本身就等于切到该版本**（`onItemStart` 同时停其它、写 `current`、saveConfig）。因此**不设独立的 `set_current_version` tool**，而是把这套语义**并入 `start_service`**：
+  - 单实例服务（nginx/apache/caddy/mysql/mariadb/postgresql/redis/memcached/mongodb，见 `MCPTools.SINGLE_INSTANCE_SERVICES`）：`start_service(flag, version)` → 先停其它运行版本 + 启动所选 + 写 `server[flag].current`（经注入的 ConfigManager，剔除 note，与渲染层同口径）。
+  - 多实例语言运行时（php/node/python… `isOnlyRunOne: false`）：多版本并存，启动不停其它。
+  - PHP 按站点切版本是另一回事（`AppHost.phpVersion`，走 `Host` 模块），对应 `set_site_php_version`，本期未实现。
+  - AI 代理的真实流程即：`list_services` 看可用版本 → `start_service` 启动选定版本。无需额外的「设当前版本」工具。
 
 ### 3.3 站点 / 项目控制面
 
@@ -212,12 +216,11 @@ MCP Server 跑在 main 进程（非 fork），因为它要长期持有 `ForkMana
 |------|------|------|------|
 | `service_status` | `flag` | 只读 | 否 |
 | `read_log` | `flag`, `lines?` | 只读 | 否 |
-| `read_config` | `flag` | 只读 | 否 |
-| `start_service` | `flag`, `version?` | 中 | 可配置 |
-| `stop_service` | `flag` | 中 | 可配置 |
-| `restart_service` | `flag` | 中 | 可配置 |
-| `set_current_version` | `flag`, `version` | 中 | 可配置；**main 层编排，非单一 fork 调用**，见 §3.2.1 |
-| `set_site_php_version` | `siteName`, `phpVersion` | 中 | PHP 按站点切版本，走 `Host` 模块 |
+| `read_config` | `flag`, `version?` | 只读 | 否 |
+| `start_service` | `flag`, `version?` | 中 | 单实例服务：启动某版本即切到该版本（停其它+写 current）；多实例（php/node…）：并存 |
+| `stop_service` | `flag`, `version?` | 中 | 带 version 停单个；不带停全部 |
+| `restart_service` | `flag`, `version?` | 中 | 可配置 |
+| `set_site_php_version` | `siteName`, `phpVersion` | 中 | PHP 按站点切版本，走 `Host` 模块（本期未实现） |
 | `list_sites` / `create_site` / `update_site` | `AppHost` 字段 | 中-高 | `create/update` 默认需确认 |
 | `write_config` | `flag`, `content` | 高 | **默认强制确认** |
 | `install_service` / `delete_site` | … | 高 | **默认强制确认** |
@@ -242,6 +245,7 @@ MCP Server 跑在 main 进程（非 fork），因为它要长期持有 `ForkMana
 src/main/core/
   MCPServer.ts                 # 新增：MCP Server 宿主（HTTP+SSE transport、token、生命周期）
   MCPTools.ts                  # 新增：tool/resource → ForkManager 调用的映射层
+  MCPPaths.ts                  # 新增：服务配置/日志文件路径解析（read_config / read_log 用）
   MCPConfigManager.ts          # 新增：独立 electron-store（name:'mcp' → mcp.json），与 user.json 解耦
   MCPAudit.ts                  # 新增：审计日志
   IPCHandler.ts                # 改：注册 mcp:start / mcp:stop / mcp:status / mcp:getConfig / mcp:setConfig
@@ -356,7 +360,9 @@ sequenceDiagram
 - [ ] 验收：在 Claude Code 里配置 FlyEnv MCP，能 `list services`、读 Nginx 日志、重启 Nginx。
 
 ### 二期（操作面补全 + stdio）
-- [ ] `set_current_version`（main 层编排：更新 `server[flag].current` + 单实例服务停其它/启所选）/ `set_site_php_version`（走 `Host`）/ `read_config` / `create_site` / `update_site`。
+- [x] `read_config`（按 `MCPPaths` 路径表读配置文件）+ 修复 `read_log`（早期错误假设了不存在的 `getLogs()`，改为按路径表读日志文件）。
+- [x] 切版本并入 `start_service`（单实例服务启动某版本即切到该版本，停其它+写 `current`；废弃独立的 `set_current_version`，FlyEnv 本无此独立概念）。
+- [ ] `set_site_php_version`（走 `Host`）/ `create_site` / `update_site`。
 - [ ] stdio bridge 脚本，覆盖 Cursor / Cline / Windsurf。
 - [ ] 工具白名单 UI（Tools.vue）+ 写操作原生确认。
 
@@ -419,8 +425,8 @@ sequenceDiagram
 | --- | --- | --- | --- |
 | 1 | **核心链路已验证通过** | 真实环境 curl 直连验证：initialize / tools/list / list_services（读到真实 nginx·php 版本，字段脱敏生效）/ start_service（nginx 1.29.0 + php 7.3.33 实际启动成功）全部通过 | ✅ 已完成 |
 | 1b | **服务运行态前后端同步（已解决并验证）** | 主进程 `ServiceProcessManager` 作唯一状态源 + 变更广播 + UI 按 bin 刷新；并修复「停单版本误停全部」与「重复登记」两个 bug。详见 §14。 | ✅ 已完成 |
-| 2 | **`read_log` 依赖各模块 `getLogs(lines)`** | 统一约定方法名，部分模块未实现会返回 isError | 二期核对各模块日志能力，补齐或按模块映射 |
-| 3 | **`set_current_version` / `set_site_php_version`** | 切版本需 main 层编排（见 §3.2.1），一期未做 | 二期实现 |
+| 2 | **`read_log` / `read_config`（已解决）** | 早期 `read_log` 错误假设各模块有 `getLogs(lines)`；服务模块实际无此方法，配置/日志是文件。改为 `MCPPaths.ts` 按 `global.Server.*Dir` 路径表读文件（nginx/apache/mysql/mariadb 日志；nginx/apache/mysql/mariadb/redis/mongodb/postgresql 配置）。 | ✅ 已完成 |
+| 3 | **切版本并入 `start_service`（已解决）** | 废弃独立 `set_current_version`——FlyEnv 中启动单实例服务某版本即切到该版本。`set_site_php_version`（PHP 按站点）仍待二期。 | 部分完成 |
 | 4 | **写配置 / 安装 / 删除站点等高风险 tool** | 默认不在白名单，未实现 | 三期 + 原生确认框 + 审计日志 |
 | 5 | **stdio bridge** | 一期仅 HTTP | 二期覆盖 Cursor/Cline/Windsurf |
 | 6 | **`MCPAudit.ts` 审计日志** | 方案 §5.3-6 列出，一期未落地 | 三期 |

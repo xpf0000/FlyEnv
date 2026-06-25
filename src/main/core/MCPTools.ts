@@ -1,6 +1,24 @@
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
 import ServiceProcessManager from './ServiceProcess'
+import { resolveConfigPath, resolveLogPath } from './MCPPaths'
+import { existsSync, promises as fsp } from 'node:fs'
+
+/**
+ * 单实例服务（isOnlyRunOne）：同一时刻只跑一个版本，启动某版本即「切到该版本」。
+ * 对应 FlyEnv 渲染层 onItemStart 行为。语言运行时（php/node/python...）是多实例，不在此列。
+ */
+const SINGLE_INSTANCE_SERVICES = new Set<string>([
+  'nginx',
+  'apache',
+  'caddy',
+  'mysql',
+  'mariadb',
+  'postgresql',
+  'redis',
+  'memcached',
+  'mongodb'
+])
 
 /**
  * MCPTools —— MCP 协议层与 FlyEnv 能力层之间的映射。
@@ -124,10 +142,17 @@ function textResult(data: any, isError = false): MCPToolResult {
 export class MCPTools {
   forkManager: ForkManager
   mcpConfig: MCPConfigManager
+  /** 主配置（user.json），用于写 server[flag].current；可选注入 */
+  appConfig?: { getConfig: (k?: any, d?: any) => any; setConfig: (k: string, ...a: any) => any }
 
-  constructor(forkManager: ForkManager, mcpConfig: MCPConfigManager) {
+  constructor(
+    forkManager: ForkManager,
+    mcpConfig: MCPConfigManager,
+    appConfig?: { getConfig: (k?: any, d?: any) => any; setConfig: (k: string, ...a: any) => any }
+  ) {
     this.forkManager = forkManager
     this.mcpConfig = mcpConfig
+    this.appConfig = appConfig
   }
 
   /** 是否对出站内容做掩码（默认 false，本地开发工具不屏蔽 bin/path/凭据） */
@@ -212,12 +237,41 @@ export class MCPTools {
 
   async startService(flag: string, version?: string): Promise<any> {
     const v = await this.pickVersion(flag, version)
+    // 单实例服务（nginx/mysql/redis... isOnlyRunOne）：启动某版本即「切到该版本」——
+    // 与 FlyEnv UI 的 onItemStart 行为对齐，先停掉其它正在运行的版本。
+    // 多实例运行时（php/node/python... 语言类）：多版本可并存，不停其它。
+    if (SINGLE_INSTANCE_SERVICES.has(flag)) {
+      const running = ServiceProcessManager.statusOf(flag).instances
+      if (running.some((ins) => ins.bin !== v.bin)) {
+        const raw = await this.rawServiceVersions(flag)
+        for (const ins of running) {
+          if (ins.bin === v.bin) continue
+          const full = raw.find((r: any) => r.bin === ins.bin) ?? { ...ins, typeFlag: flag }
+          try {
+            await callFork(this.forkManager, flag, 'stopService', full)
+            ServiceProcessManager.delByBin(flag, [ins.bin])
+          } catch (e) {
+            console.log(`startService stop other ${flag} ${ins.version} error:`, e)
+          }
+        }
+      }
+    }
     const data = await callFork(this.forkManager, flag, 'startService', v)
     // 把 PID 登记进主进程唯一状态源（与 IPCHandler.handleForkCallback 同口径），
     // 否则 MCP 启动的服务既不被 UI 感知，也不会在退出时被统一清理。
     const pid = data?.['APP-Service-Start-PID']
     if (pid) {
       ServiceProcessManager.addPid(flag, `${pid}`, v)
+    }
+    // 单实例服务：持久化 current（与渲染层 onItemStart→saveConfig 同口径，剔除 note）
+    if (SINGLE_INSTANCE_SERVICES.has(flag) && this.appConfig) {
+      try {
+        const current: any = { ...v }
+        delete current.note
+        this.appConfig.setConfig(`server.${flag}.current`, current)
+      } catch (e) {
+        console.log(`startService persist current ${flag} error:`, e)
+      }
     }
     return data
   }
@@ -265,13 +319,45 @@ export class MCPTools {
     return this.startService(flag, version)
   }
 
-  /** read_log：读取服务日志尾部（仅 maskSecrets 开启时掩码） */
+  /**
+   * read_log：读取服务日志尾部（仅 maskSecrets 开启时掩码）
+   */
   async readLog(flag: string, lines = 200): Promise<string> {
-    // 复用各模块的日志能力；不同模块日志获取方式不同，这里统一走一个约定方法名。
-    // 若模块未实现 getLogs，则 callFork 抛错，由上层转成 isError。
-    const data = await callFork(this.forkManager, flag, 'getLogs', lines)
-    const text = typeof data === 'string' ? data : JSON.stringify(data)
-    return this.mask ? maskSecrets(text) : text
+    const logPath = resolveLogPath(flag)
+    if (!logPath) {
+      throw new Error(`read_log not supported for "${flag}" (no known log path)`)
+    }
+    if (!existsSync(logPath)) {
+      return `(log file not found: ${logPath})`
+    }
+    const content = await fsp.readFile(logPath, 'utf-8')
+    const tail = content.split('\n').slice(-Math.max(1, lines)).join('\n')
+    return this.mask ? maskSecrets(tail) : tail
+  }
+
+  /** read_config：读取服务配置文件（仅 maskSecrets 开启时掩码） */
+  async readConfig(flag: string, version?: string): Promise<string> {
+    // version 缺省时，取当前运行实例或第一个已装版本（redis/mongo/pg 的配置是按版本的）
+    let v = version
+    if (!v) {
+      const st = ServiceProcessManager.statusOf(flag)
+      v = st.instances[0]?.version ?? undefined
+      if (!v) {
+        const raw = await this.rawServiceVersions(flag)
+        v = raw.find((r: any) => r.enable)?.version ?? raw[0]?.version
+      }
+    }
+    const confPath = resolveConfigPath(flag, v)
+    if (!confPath) {
+      throw new Error(
+        `read_config not supported for "${flag}"${version ? '' : ' (try specifying a version)'}`
+      )
+    }
+    if (!existsSync(confPath)) {
+      return `(config file not found: ${confPath})`
+    }
+    const content = await fsp.readFile(confPath, 'utf-8')
+    return this.mask ? maskSecrets(content) : content
   }
 
   // ===== MCP 响应包装 =====

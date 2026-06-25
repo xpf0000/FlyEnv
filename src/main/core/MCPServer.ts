@@ -53,9 +53,13 @@ export default class MCPServer {
   private running = false
   private toolDefs: ToolDef[] = []
 
-  constructor(forkManager: ForkManager, mcpConfig: MCPConfigManager) {
+  constructor(
+    forkManager: ForkManager,
+    mcpConfig: MCPConfigManager,
+    appConfig?: { getConfig: (k?: any, d?: any) => any; setConfig: (k: string, ...a: any) => any }
+  ) {
     this.mcpConfig = mcpConfig
-    this.tools = new MCPTools(forkManager, mcpConfig)
+    this.tools = new MCPTools(forkManager, mcpConfig, appConfig)
     this.buildToolDefs()
   }
 
@@ -125,7 +129,7 @@ export default class MCPServer {
       {
         name: 'read_log',
         description:
-          'Read the tail of a FlyEnv service log. Secret-looking lines are masked before returning.',
+          'Read the tail of a FlyEnv service log file. Supported: nginx, apache, mysql, mariadb.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -135,6 +139,20 @@ export default class MCPServer {
           required: ['flag']
         },
         handler: async (args) => textResult(await this.tools.readLog(args.flag, args.lines ?? 200))
+      },
+      {
+        name: 'read_config',
+        description:
+          'Read a FlyEnv service config file. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql. For version-scoped configs (redis/mongodb/postgresql) pass the version, otherwise the running/first installed version is used.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            flag: flagEnum,
+            version: { type: 'string', description: 'Version for version-scoped configs.' }
+          },
+          required: ['flag']
+        },
+        handler: async (args) => textResult(await this.tools.readConfig(args.flag, args.version))
       },
       {
         name: 'start_service',

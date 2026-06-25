@@ -28,6 +28,7 @@ export const ALL_TOOLS: string[] = [
   'list_services',
   'service_status',
   'read_log',
+  'read_config',
   'list_sites',
   'start_service',
   'stop_service',

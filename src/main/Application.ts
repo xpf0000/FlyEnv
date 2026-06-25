@@ -213,7 +213,7 @@ export default class Application extends EventEmitter {
     })
 
     // MCP Server 需要 forkManager 句柄，在此创建并注入
-    this.mcpServer = new MCPServer(this.forkManager, this.mcpConfigManager)
+    this.mcpServer = new MCPServer(this.forkManager, this.mcpConfigManager, this.configManager)
     this.ipcHandler.updateDependencies({ forkManager: this.forkManager, mcpServer: this.mcpServer })
 
     // 若用户上次启用了 MCP Server，则自动拉起
