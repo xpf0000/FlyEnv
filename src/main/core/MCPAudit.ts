@@ -12,7 +12,7 @@ export interface MCPAuditEntry {
 /**
  * MCP 工具调用审计日志。
  *
- * 所有 tool 调用（无论成败）都会追加到 `global.Server.BaseDir/mcp/audit.log`，
+ * 所有 tool 调用与 resource 读取（无论成败）都会追加到 `global.Server.BaseDir/mcp/audit.log`，
  * 方便用户在 Audit.vue 中查看 AI 客户端对 FlyEnv 做了什么操作。
  */
 class MCPAudit {

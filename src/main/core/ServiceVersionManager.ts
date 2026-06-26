@@ -112,6 +112,15 @@ class ServiceVersionManager {
     return out
   }
 
+  /** 批量只读缓存；绝不触发刷新 */
+  getCachedVersionsBatch(flags: string[]): Record<string, SoftInstalled[]> {
+    const out: Record<string, SoftInstalled[]> = {}
+    for (const f of flags) {
+      out[f] = this.cache[f] ?? []
+    }
+    return out
+  }
+
   /**
    * 刷新指定 flag 的已安装版本；不传 flags 时刷新全部模块。
    * 不再做全局锁合并：某个 flag 卡住不应阻塞其它 flag 的查询。

@@ -16,12 +16,21 @@
     <div class="p-5">
       <template v-if="activeTab === 'http'">
         <p class="text-sm text-gray-500 mb-3">{{ I18nT('mcp.configHint') }}</p>
+        <el-radio-group v-model="httpClient" size="small" class="mb-3">
+          <el-radio-button label="Claude Code" :value="'claudeCode'">Claude Code</el-radio-button>
+          <el-radio-button label="Codex" :value="'codex'">Codex</el-radio-button>
+          <el-radio-button label="OpenCode" :value="'openCode'">OpenCode</el-radio-button>
+        </el-radio-group>
         <div class="relative">
           <pre
             class="bg-gray-900 text-gray-100 rounded-md p-4 overflow-auto text-xs leading-relaxed"
-            >{{ MCPSetup.clientConfigSnippet }}</pre
+            >{{ MCPSetup.httpConfigSnippet(httpClient) }}</pre
           >
-          <el-button class="absolute top-2 right-2" size="small" @click="MCPSetup.copySnippet()">
+          <el-button
+            class="absolute top-2 right-2"
+            size="small"
+            @click="MCPSetup.copySnippet(httpClient)"
+          >
             {{ I18nT('mcp.copyConfig') }}
           </el-button>
         </div>
@@ -67,8 +76,10 @@
   import { ref } from 'vue'
   import { I18nT } from '@lang/index'
   import { MCPSetup } from './setup'
+  import type { MCPHttpClientFlag } from '@shared/mcpClientConfig'
 
   const activeTab = ref('http')
+  const httpClient = ref<MCPHttpClientFlag>('claudeCode')
 
   const add = (flag: 'claudeCode' | 'codex' | 'openCode') => {
     MCPSetup.addToClient(flag)

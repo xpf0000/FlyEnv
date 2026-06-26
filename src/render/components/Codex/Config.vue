@@ -53,9 +53,7 @@
   import { I18nT } from '@lang/index'
   import { CodexSetup } from '@/components/Codex/setup'
   import { debounce } from 'lodash-es'
-  import * as TOML from '@ltd/j-toml'
-  const TOMLParse = TOML.parse
-  const TOMLStringify = TOML.stringify
+  import { parseToml as TOMLParse, stringifyToml as TOMLStringify } from '@shared/toml'
   import { uuid } from '@/util/Index'
 
   const conf = ref()

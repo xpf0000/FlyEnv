@@ -69,6 +69,18 @@ class Git extends Base {
     })
   }
 
+  fetchAllOnlineVersion() {
+    return new ForkPromise(async (resolve) => {
+      resolve([])
+    })
+  }
+
+  allInstalledVersions() {
+    return new ForkPromise(async (resolve) => {
+      resolve([])
+    })
+  }
+
   private async checkCommand(
     command: string,
     label: string,

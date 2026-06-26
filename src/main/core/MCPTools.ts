@@ -256,7 +256,16 @@ export class MCPTools {
   }
 
   /** 批量读取多个模块的已安装版本，优先读主进程缓存 */
-  private async rawServiceVersionsBatch(flags: string[]): Promise<Record<string, any[]>> {
+  private async rawServiceVersionsBatch(
+    flags: string[],
+    options?: { refreshMissing?: boolean }
+  ): Promise<Record<string, any[]>> {
+    if (flags.length === 0) {
+      return {}
+    }
+    if (options?.refreshMissing === false) {
+      return ServiceVersionManager.getCachedVersionsBatch(flags)
+    }
     return ServiceVersionManager.getVersionsBatch(flags)
   }
 
@@ -272,12 +281,16 @@ export class MCPTools {
   }
 
   /** list_services：返回一组模块及其安装/运行状态摘要 */
-  async listServices(flags: string[]): Promise<any> {
-    const status = ServiceProcessManager.getStatus(flags)
+  async listServices(flags?: string[]): Promise<any> {
+    const requested = Array.isArray(flags) && flags.length > 0
+    const targetFlags = requested ? flags : this.getCachedFlags()
+    const status = ServiceProcessManager.getStatus(targetFlags)
     const mask = this.mask
     const out: Record<string, any> = {}
-    const rawMap = await this.rawServiceVersionsBatch(flags)
-    for (const flag of flags) {
+    const rawMap = await this.rawServiceVersionsBatch(targetFlags, {
+      refreshMissing: requested
+    })
+    for (const flag of targetFlags) {
       try {
         const raw = rawMap[flag] ?? []
         const st = status[flag]
@@ -423,19 +436,25 @@ export class MCPTools {
     }
     const raw = await this.rawServiceVersions(flag)
     const stopped: string[] = []
+    const stoppedBins: string[] = []
+    const failed: string[] = []
     for (const ins of running) {
       // 用完整版本对象（含 bin/path）停，匹配不到则用最小对象兜底
       const full = raw.find((r: any) => r.bin === ins.bin) ?? { ...ins, typeFlag: flag }
       try {
         await callFork(this.forkManager, flag, 'stopService', full)
         stopped.push(ins.version ?? ins.bin)
+        stoppedBins.push(ins.bin)
       } catch (e) {
         // 单个失败不阻断其它
         console.log(`stopAllService ${flag} ${ins.version} error:`, e)
+        failed.push(ins.version ?? ins.bin)
       }
     }
-    ServiceProcessManager.delAll(flag)
-    return { stopped }
+    if (stoppedBins.length > 0) {
+      ServiceProcessManager.delByBin(flag, stoppedBins)
+    }
+    return { stopped, failed }
   }
 
   async restartService(flag: string, version?: string): Promise<any> {
@@ -521,10 +540,12 @@ export class MCPTools {
       throw new Error(`Version ${version} of ${flag} not found in online list`)
     }
     const result = await callFork(this.forkManager, flag, 'installSoft', row)
+    const refreshed = await ServiceVersionManager.refresh([flag])
     // 安装成功后通知前端刷新该 flag 的已安装版本
-    // 前端 fetchInstalled 的结果会通过 IPCHandler 同步到 MCP 缓存
-    ServiceVersionManager.notifyRenderer({ type: 'service-installed-need-update', flag })
-    return { installed: version, result }
+    // 直接携带刷新后的数据，避免前端再次触发 fetchInstalled。
+    const versions = refreshed[flag] ?? []
+    ServiceVersionManager.notifyRenderer({ type: 'service-installed-need-update', flag, versions })
+    return { installed: version, result, versions }
   }
 
   // ===== MCP 响应包装 =====

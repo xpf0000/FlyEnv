@@ -14,6 +14,7 @@ import {
   ReadResourceRequestSchema
 } from '@modelcontextprotocol/sdk/types.js'
 import { AppModuleEnum } from '@/core/type'
+import { getEnabledResourceDefs } from '@shared/mcpResourcePolicy'
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
 import MCPAudit from './MCPAudit'
@@ -41,6 +42,17 @@ interface ToolDef {
 }
 
 const MODULE_FLAGS = Object.values(AppModuleEnum)
+
+function resultText(result: MCPToolResult): string | undefined {
+  const parts = result?.content
+    ?.filter((item) => item?.type === 'text' && typeof item?.text === 'string')
+    .map((item) => item.text)
+    .filter(Boolean)
+  if (!parts?.length) {
+    return undefined
+  }
+  return parts.join('\n')
+}
 
 export default class MCPServer {
   private mcpConfig: MCPConfigManager
@@ -82,6 +94,11 @@ export default class MCPServer {
     return this.toolDefs.filter((t) => enabled.includes(t.name))
   }
 
+  private enabledResourceDefs() {
+    const enabled: string[] = (this.mcpConfig.getConfig('enabledTools', []) as string[]) ?? []
+    return getEnabledResourceDefs(enabled)
+  }
+
   private buildToolDefs() {
     const flagEnum = { type: 'string', enum: MODULE_FLAGS }
 
@@ -96,17 +113,11 @@ export default class MCPServer {
             flags: {
               type: 'array',
               items: flagEnum,
-              description: 'Service flags to query. Omit to query all cached services.'
+              description: 'Service flags to query. Omit or pass [] to return all cached services.'
             }
           }
         },
-        handler: async (args) => {
-          const flags: string[] =
-            Array.isArray(args?.flags) && args.flags.length
-              ? args.flags
-              : this.tools.getCachedFlags()
-          return textResult(await this.tools.listServices(flags))
-        }
+        handler: async (args) => textResult(await this.tools.listServices(args?.flags))
       },
       {
         name: 'service_status',
@@ -198,6 +209,16 @@ export default class MCPServer {
             return textResult(`${args.flag} ${args.version} stopped`)
           }
           const res = await this.tools.stopAllService(args.flag)
+          if (res?.failed?.length) {
+            return textResult(
+              {
+                flag: args.flag,
+                stopped: res?.stopped ?? [],
+                failed: res.failed
+              },
+              true
+            )
+          }
           return textResult(
             `${args.flag} stopped${res?.stopped?.length ? ` (${res.stopped.join(', ')})` : ''}`
           )
@@ -361,7 +382,9 @@ export default class MCPServer {
       const args = request?.params?.arguments ?? {}
       const def = this.enabledToolDefs().find((t) => t.name === name)
       if (!def) {
-        return textResult(`Tool not enabled or unknown: ${name}`, true)
+        const msg = `Tool not enabled or unknown: ${name}`
+        MCPAudit.log(name ?? 'unknown_tool', args, false, msg)
+        return textResult(msg, true)
       }
       const approval = this.mcpConfig.getConfig('approval', {}) as Record<
         string,
@@ -371,12 +394,15 @@ export default class MCPServer {
       if (needsConfirm) {
         const confirmed = await this.confirmTool(name, args)
         if (!confirmed) {
-          return textResult(`Tool ${name} was cancelled by user`, true)
+          const msg = `Tool ${name} was cancelled by user`
+          MCPAudit.log(name, args, false, msg)
+          return textResult(msg, true)
         }
       }
       try {
         const result = await def.handler(args)
-        MCPAudit.log(name, args, true)
+        const success = !result?.isError
+        MCPAudit.log(name, args, success, success ? undefined : resultText(result))
         return result
       } catch (e) {
         const msg = e instanceof Error ? e.message : `${e}`
@@ -387,25 +413,39 @@ export default class MCPServer {
 
     server.setRequestHandler(ListResourcesRequestSchema, async () => {
       return {
-        resources: [
-          { uri: 'flyenv://services', name: 'FlyEnv services', mimeType: 'application/json' },
-          { uri: 'flyenv://sites', name: 'FlyEnv local sites', mimeType: 'application/json' }
-        ]
+        resources: this.enabledResourceDefs().map((item) => ({
+          uri: item.uri,
+          name: item.name,
+          mimeType: item.mimeType
+        }))
       }
     })
 
     server.setRequestHandler(ReadResourceRequestSchema, async (request: any) => {
       const uri = request?.params?.uri
-      let data: any
-      if (uri === 'flyenv://services') {
-        data = await this.tools.listServices(MODULE_FLAGS)
-      } else if (uri === 'flyenv://sites') {
-        data = await this.tools.listSites()
-      } else {
-        throw new Error(`Unknown resource: ${uri}`)
-      }
-      return {
-        contents: [{ uri, mimeType: 'application/json', text: JSON.stringify(data, null, 2) }]
+      try {
+        const def = this.enabledResourceDefs().find((item) => item.uri === uri)
+        if (!def) {
+          throw new Error(`Resource not enabled or unknown: ${uri}`)
+        }
+
+        let data: any
+        if (uri === 'flyenv://services') {
+          data = await this.tools.listServices(MODULE_FLAGS)
+        } else if (uri === 'flyenv://sites') {
+          data = await this.tools.listSites()
+        } else {
+          throw new Error(`Unknown resource: ${uri}`)
+        }
+
+        MCPAudit.log('read_resource', { uri }, true)
+        return {
+          contents: [{ uri, mimeType: def.mimeType, text: JSON.stringify(data, null, 2) }]
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : `${e}`
+        MCPAudit.log('read_resource', { uri }, false, msg)
+        throw e
       }
     })
 

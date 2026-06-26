@@ -29,7 +29,6 @@
   "dependencies": {
     "7zip-min-electron": "^1.4.4",
     "@ayonli/jsext": "^1.7.4",
-    "@iarna/toml": "^2.2.5",
     "@ltd/j-toml": "^1.38.0",
     "@mdit-vue/plugin-component": "^2.1.4",
     "@mdit-vue/plugin-frontmatter": "^2.1.4",

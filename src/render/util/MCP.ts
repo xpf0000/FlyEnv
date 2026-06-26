@@ -42,6 +42,7 @@ function handleServiceStatusChanged(res: any) {
 
 function handleServiceInstalledNeedUpdate(res: any) {
   const flag = res?.flag
+  const versions = Array.isArray(res?.versions) ? res.versions : []
   if (!flag) {
     return
   }
@@ -51,7 +52,7 @@ function handleServiceInstalledNeedUpdate(res: any) {
     if (!module) {
       return
     }
-    module.fetchInstalled().catch()
+    module.applyInstalledVersions(versions).catch()
   } catch (e) {
     console.log('service-installed-need-update handle error: ', e)
   }

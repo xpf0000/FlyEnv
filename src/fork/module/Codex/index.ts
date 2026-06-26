@@ -12,7 +12,7 @@ import {
 } from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { parse as parseToml, stringify as stringifyToml } from '@iarna/toml'
+import { parseToml, stringifyToml } from '@shared/toml'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'

@@ -3,6 +3,12 @@ import { reactiveBind } from '@/util/Index'
 import { clipboard } from '@/util/NodeFn'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import {
+  buildHttpClientConfigSnippet,
+  buildStdioClientConfigSnippet,
+  getMcpServerUrl,
+  type MCPHttpClientFlag
+} from '@shared/mcpClientConfig'
 
 export interface MCPStatus {
   running: boolean
@@ -184,44 +190,24 @@ class MCP {
   }
 
   get serverUrl(): string {
-    const host = this.config.host || '127.0.0.1'
-    return `http://${host}:${this.config.port}`
+    return getMcpServerUrl(this.config)
   }
 
   get clientConfigSnippet(): string {
-    const snippet = {
-      mcpServers: {
-        flyenv: {
-          type: 'http',
-          url: this.serverUrl,
-          headers: {
-            Authorization: `Bearer ${this.config.token}`
-          }
-        }
-      }
-    }
-    return JSON.stringify(snippet, null, 2)
+    return this.httpConfigSnippet('claudeCode')
+  }
+
+  httpConfigSnippet(client: MCPHttpClientFlag): string {
+    return buildHttpClientConfigSnippet(client, this.serverUrl, this.config.token)
   }
 
   get stdioConfigSnippet(): string {
     const bridgePath = this.bridgePath || '<FlyEnv>/mcp/flyenv-mcp-stdio.mjs'
-    const snippet = {
-      mcpServers: {
-        flyenv: {
-          command: 'node',
-          args: [bridgePath],
-          env: {
-            FLYENV_MCP_URL: this.serverUrl,
-            FLYENV_MCP_TOKEN: this.config.token
-          }
-        }
-      }
-    }
-    return JSON.stringify(snippet, null, 2)
+    return buildStdioClientConfigSnippet(bridgePath, this.serverUrl, this.config.token)
   }
 
-  copySnippet() {
-    clipboard.writeText(this.clientConfigSnippet).then(() => {
+  copySnippet(client: MCPHttpClientFlag = 'claudeCode') {
+    clipboard.writeText(this.httpConfigSnippet(client)).then(() => {
       MessageSuccess(I18nT('mcp.copied'))
     })
   }
