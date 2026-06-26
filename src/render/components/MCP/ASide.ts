@@ -50,8 +50,11 @@ export const AsideSetup = () => {
     return appStore.config.setup.common.showItem?.[flag] !== false
   })
 
-  const groupDo = (): Array<Promise<string | boolean>> => {
-    return []
+  const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
+    if (MCPSetup.starting) {
+      return []
+    }
+    return [isRunning ? MCPSetup.stop() : MCPSetup.start()]
   }
 
   const switchChange = () => {

@@ -153,5 +153,15 @@ class Java extends Base {
       resolve(Info)
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Java module only manages JDK installations; no service config files
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Java module only manages JDK installations; no service log files
+    return []
+  }
 }
 export default new Java()

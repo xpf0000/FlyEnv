@@ -8,6 +8,7 @@ import { ImageInfoFetchTask } from './ImageInfoFetchTask'
 import { ImageCompressTask } from './ImageCompressTask'
 import { cpus } from 'node:os'
 import type { SharpConfig } from './imageCompress.type'
+import type { SoftInstalled } from '@shared/app'
 import axios from 'axios'
 import {
   imageBaseTest,
@@ -282,6 +283,14 @@ class Image extends Base {
 
   imageBaseTest(base64OrFilepath: string, config: SharpConfig) {
     return imageBaseTest(base64OrFilepath, config)
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 export default new Image()

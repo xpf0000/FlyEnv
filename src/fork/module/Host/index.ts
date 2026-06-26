@@ -597,5 +597,16 @@ export class Host extends Base {
   addPhpMyAdminSite(phpVersion?: number, write = true, ipv6 = true) {
     return TaskAddPhpMyAdminSite.call(this, phpVersion, write, ipv6)
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Host 是虚拟主机管理模块，不运行独立服务，也没有固定模块级配置文件
+    // （host.json / app.hosts.txt 是数据/中间文件，vhost/*.conf 与日志按站点动态生成）
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Host 模块自身不写日志，站点日志由 Nginx/Apache/Caddy/FrankenPHP 等服务生成
+    return []
+  }
 }
 export default new Host()

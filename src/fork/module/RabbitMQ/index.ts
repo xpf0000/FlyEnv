@@ -452,5 +452,31 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
       resolve(Info)
     })
   }
+
+  getConfigFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const v = version?.version?.split('.')?.[0] ?? ''
+    if (!v) return []
+    const confExt = isWindows() ? 'bat' : 'conf'
+    return [
+      { name: `rabbitmq-${v}.${confExt}`, path: join(this.baseDir, `rabbitmq-${v}.${confExt}`) },
+      {
+        name: `rabbitmq-${v}-default.conf`,
+        path: join(this.baseDir, `rabbitmq-${v}-default.conf`)
+      },
+      { name: `enabled_plugins-${v}`, path: join(this.baseDir, `enabled_plugins-${v}`) }
+    ]
+  }
+
+  getLogFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const v = version?.version?.split('.')?.[0] ?? ''
+    if (!v) return []
+    const logDir = join(this.baseDir, `log-${v}`)
+    return [
+      {
+        name: 'rabbit@localhost.log',
+        path: join(logDir, 'rabbit@localhost.log')
+      }
+    ]
+  }
 }
 export default new RabbitMQ()

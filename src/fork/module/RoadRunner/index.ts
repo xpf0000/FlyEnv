@@ -225,6 +225,32 @@ fileserver:
       await binXattrFix(row.bin)
     }
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'roadrunner')
+    return [
+      { name: '.rr.yaml', path: join(baseDir, '.rr.yaml') },
+      { name: '.rr.yaml.default', path: join(baseDir, '.rr.yaml.default') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'roadrunner')
+    const versionStr = _version.version.trim()
+    return [
+      {
+        name: 'start-out',
+        path: join(baseDir, `roadrunner-${versionStr}-start-out.log`.split(' ').join(''))
+      },
+      {
+        name: 'start-error',
+        path: join(baseDir, `roadrunner-${versionStr}-start-error.log`.split(' ').join(''))
+      }
+    ]
+  }
 }
 
 export default new RoadRunner()

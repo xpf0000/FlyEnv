@@ -1,8 +1,7 @@
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { dirname } from 'node:path'
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
 import ServiceProcessManager from './ServiceProcess'
+import ServiceVersionManager from './ServiceVersionManager'
 
 /**
  * 单实例服务（isOnlyRunOne）：同一时刻只跑一个版本，启动某版本即「切到该版本」。
@@ -26,7 +25,8 @@ const SINGLE_INSTANCE_SERVICES = new Set<string>([
  * 它做三件事：
  *   1. 把 MCP 的 tools/call、resources/read 翻译成 ForkManager.send(module, fn, ...args)
  *   2. 把 fork 返回结果翻译回 MCP 响应（文本/JSON）
- *   3. 出站字段白名单/脱敏：绝不把 rootPassword、bin 绝对路径等敏感信息发给 AI
+ *   3. 出站字段白名单/脱敏：FlyEnv 是本地开发工具，bin/path/凭据默认返回给 AI 代理用于执行命令；
+ *      仅在用户开启 maskSecrets 时才会对 rootPassword、SSL 私钥等做脱敏。
  *
  * 注意：这里不直接 import 渲染层类型（@/...），只用 main 进程可达的依赖。
  */
@@ -242,6 +242,7 @@ export class MCPTools {
     this.forkManager = forkManager
     this.mcpConfig = mcpConfig
     this.appConfig = appConfig
+    ServiceVersionManager.setForkManager(forkManager)
   }
 
   /** 是否对出站内容做掩码（默认 false，本地开发工具不屏蔽 bin/path/凭据） */
@@ -251,9 +252,12 @@ export class MCPTools {
 
   /** 读取某个模块的全部已安装版本（原始，含 bin，仅供内部匹配用，不直接出站） */
   private async rawServiceVersions(flag: string): Promise<any[]> {
-    const data = await callFork(this.forkManager, 'version', 'allInstalledVersions', [flag], {})
-    const arr = data?.[flag] ?? []
-    return Array.isArray(arr) ? arr : []
+    return ServiceVersionManager.getVersions(flag)
+  }
+
+  /** 批量读取多个模块的已安装版本，优先读主进程缓存 */
+  private async rawServiceVersionsBatch(flags: string[]): Promise<Record<string, any[]>> {
+    return ServiceVersionManager.getVersionsBatch(flags)
   }
 
   /** 读取某个模块的全部已安装版本 */
@@ -262,14 +266,20 @@ export class MCPTools {
     return arr.map((v) => serializeVersion(v, !!v.run, this.mask))
   }
 
+  /** 当前缓存里已有的 flag 列表 */
+  getCachedFlags(): string[] {
+    return ServiceVersionManager.getCacheKeys()
+  }
+
   /** list_services：返回一组模块及其安装/运行状态摘要 */
   async listServices(flags: string[]): Promise<any> {
     const status = ServiceProcessManager.getStatus(flags)
     const mask = this.mask
     const out: Record<string, any> = {}
+    const rawMap = await this.rawServiceVersionsBatch(flags)
     for (const flag of flags) {
       try {
-        const raw = await this.rawServiceVersions(flag)
+        const raw = rawMap[flag] ?? []
         const st = status[flag]
         const runningBins = new Set((st?.instances ?? []).map((i) => i.bin))
         out[flag] = {
@@ -335,8 +345,7 @@ export class MCPTools {
 
   /** start_service / stop_service / restart_service 的底层：需要一个 version 对象 */
   private async pickVersion(flag: string, version?: string): Promise<any> {
-    const data = await callFork(this.forkManager, 'version', 'allInstalledVersions', [flag], {})
-    const arr: any[] = data?.[flag] ?? []
+    const arr: any[] = await this.rawServiceVersions(flag)
     if (!Array.isArray(arr) || arr.length === 0) {
       throw new Error(`No installed version for ${flag}`)
     }
@@ -484,35 +493,20 @@ export class MCPTools {
   }
 
   /**
-   * write_config：写入服务配置文件。
-   * 通过 name 或 path 指定要写的文件（优先 name），写入前自动 .bak 备份。
+   * list_online_versions：查询某个模块的线上可用版本列表。
+   * 供 AI 在安装前选择版本，也支持普通的信息查询。
    */
-  async writeConfig(
-    flag: string,
-    content: string,
-    version?: string,
-    name?: string,
-    path?: string
-  ): Promise<any> {
-    let target: { name: string; path: string } | undefined
-    if (path) {
-      target = { name: name || 'custom', path }
-    } else if (name) {
-      const files = await this.listConfigFiles(flag, version)
-      target = files.find((f: any) => f?.name === name)
-    }
-    if (!target) {
-      throw new Error(`Config file not found: name=${name}, path=${path}`)
-    }
-    const dir = dirname(target.path)
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
-    }
-    if (existsSync(target.path)) {
-      copyFileSync(target.path, `${target.path}.bak`)
-    }
-    writeFileSync(target.path, content, 'utf-8')
-    return { written: target.path, backup: existsSync(`${target.path}.bak`) }
+  async listOnlineVersions(flag: string): Promise<any[]> {
+    const data = await callFork(this.forkManager, flag, 'fetchAllOnlineVersion')
+    const list: any[] = Array.isArray(data) ? data : []
+    return list.map((v: any) => ({
+      version: v?.version,
+      mVersion: v?.mVersion,
+      url: v?.url,
+      bin: v?.bin,
+      installed: v?.installed,
+      downloaded: v?.downloaded
+    }))
   }
 
   /** install_service：下载并安装某个服务的指定版本 */
@@ -527,6 +521,9 @@ export class MCPTools {
       throw new Error(`Version ${version} of ${flag} not found in online list`)
     }
     const result = await callFork(this.forkManager, flag, 'installSoft', row)
+    // 安装成功后通知前端刷新该 flag 的已安装版本
+    // 前端 fetchInstalled 的结果会通过 IPCHandler 同步到 MCP 缓存
+    ServiceVersionManager.notifyRenderer({ type: 'service-installed-need-update', flag })
     return { installed: version, result }
   }
 

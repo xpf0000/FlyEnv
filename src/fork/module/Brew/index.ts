@@ -3,6 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from '../Base'
 import { execPromiseWithEnv, spawnPromiseWithEnv, copyFile, unlink, chmod } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 
 class Brew extends Base {
   constructor() {
@@ -158,6 +159,14 @@ class Brew extends Base {
         reject(err)
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

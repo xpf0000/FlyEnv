@@ -335,6 +335,24 @@ class Manager extends Base {
       resolve(Info)
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return [
+      {
+        name: 'pure-ftpd.conf',
+        path: join(global.Server.FTPDir!, 'pure-ftpd.conf')
+      },
+      {
+        name: 'pure-ftpd.conf.default',
+        path: join(global.Server.FTPDir!, 'pure-ftpd.conf.default')
+      }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Pure-FTPd 默认通过 syslog 输出日志，不生成由本模块管理的独立日志文件
+    return []
+  }
 }
 
 export default new Manager()

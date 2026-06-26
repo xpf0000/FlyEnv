@@ -15,7 +15,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { existsSync } from 'fs'
 import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { I18nT } from '@lang/index'
-import type { ModuleExecItem } from '@shared/app'
+import type { ModuleExecItem, SoftInstalled } from '@shared/app'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessPidListByPid } from '@shared/Process.win'
 
@@ -192,6 +192,14 @@ class ModuleCustomer {
         return
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 export default new ModuleCustomer()

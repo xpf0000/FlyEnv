@@ -211,5 +211,29 @@ cors-domains = *
       }
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'typesense')
+    return [
+      {
+        name: 'Typesense server config',
+        path: join(baseDir, 'typesense-server.ini')
+      },
+      {
+        name: 'Typesense server config default',
+        path: join(baseDir, 'typesense-server.ini.default')
+      }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'typesense')
+    return [
+      {
+        name: 'Typesense server log',
+        path: join(baseDir, 'log', 'typesense.log')
+      }
+    ]
+  }
 }
 export default new Typesense()

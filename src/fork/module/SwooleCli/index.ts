@@ -279,6 +279,28 @@ pm.max_spare_servers = 3
     }
     await this.initRuntimeFiles(row.appDir, row.bin, true)
   }
+
+  getConfigFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!version?.bin) {
+      return []
+    }
+    const runtimeDir = isWindows() ? dirname(version.bin) : version.path
+    return [
+      { name: 'php.ini', path: join(runtimeDir!, 'php.ini') },
+      { name: 'php-fpm.conf', path: join(runtimeDir!, 'php-fpm.conf') }
+    ]
+  }
+
+  getLogFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!version?.bin) {
+      return []
+    }
+    const runtimeDir = isWindows() ? dirname(version.bin) : version.path
+    return [
+      { name: 'php-fpm.error.log', path: join(runtimeDir!, 'log', 'php-fpm.log') },
+      { name: 'php-fpm.slow.log', path: join(runtimeDir!, 'log', 'www.log.slow') }
+    ]
+  }
 }
 
 export default new SwooleCli()

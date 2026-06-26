@@ -44,6 +44,7 @@ export const MCP_DEFAULT_ENABLED_TOOLS: string[] = [
   'service_status',
   'list_log_files',
   'list_config_files',
+  'list_online_versions',
   'list_sites',
   'start_service',
   'stop_service',
@@ -60,7 +61,6 @@ export const MCP_DEFAULT_APPROVAL: Record<string, 'auto' | 'confirm'> = {
   create_site: 'confirm',
   update_site: 'confirm',
   delete_site: 'confirm',
-  write_config: 'confirm',
   install_service: 'confirm'
 }
 

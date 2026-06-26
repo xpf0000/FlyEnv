@@ -1,10 +1,21 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseWithEnv, readFile, remove, existsSync, readdir, uuid } from '../../Fn'
+import {
+  execPromiseWithEnv,
+  readFile,
+  writeFile,
+  remove,
+  existsSync,
+  readdir,
+  mkdirp,
+  uuid
+} from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { parse as parseToml, stringify as stringifyToml } from '@iarna/toml'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
+import type { SoftInstalled } from '@shared/app'
 
 export interface CodexSessionItem {
   id: string
@@ -352,15 +363,30 @@ class Codex extends Base {
     })
   }
 
-  addMcp(name: string, type: string, commandOrUrl: string) {
+  addMcp(name: string, type: string, commandOrUrl: string, token?: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        let cmd: string
         if (type === 'http' || type === 'sse') {
-          cmd = `${this.codexBin()} mcp add ${name} --url "${commandOrUrl}"`
-        } else {
-          cmd = `${this.codexBin()} mcp add ${name} -- ${commandOrUrl}`
+          const file = join(this.codexHome(), 'config.toml')
+          let data: any = {}
+          if (existsSync(file)) {
+            data = parseToml(await readFile(file, 'utf-8'))
+          }
+          data.features = data.features ?? {}
+          data.features.rmcp_client = true
+          data.mcp_servers = data.mcp_servers ?? {}
+          data.mcp_servers[name] = {
+            url: commandOrUrl,
+            http_headers: {
+              Authorization: `Bearer ${token ?? ''}`
+            }
+          }
+          await mkdirp(dirname(file))
+          await writeFile(file, stringifyToml(data))
+          resolve(true)
+          return
         }
+        const cmd = `${this.codexBin()} mcp add ${name} -- ${commandOrUrl}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -390,6 +416,18 @@ class Codex extends Base {
     return new ForkPromise(async (resolve) => {
       resolve([])
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const home = this.codexHome()
+    return [
+      { name: 'config.toml', path: join(home, 'config.toml') },
+      { name: 'auth.json', path: join(home, 'auth.json') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

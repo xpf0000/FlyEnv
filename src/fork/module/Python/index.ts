@@ -262,5 +262,15 @@ class Python extends Base {
       resolve(Info)
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Python module only manages Python versions; no service config files
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Python module only manages Python versions; no service log files
+    return []
+  }
 }
 export default new Python()

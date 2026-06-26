@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
+import ServiceVersionManager from './core/ServiceVersionManager'
 import { AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import OAuth from './core/OAuth'
@@ -208,24 +209,27 @@ export default class Application extends EventEmitter {
       if (!this.mainWindow) {
         return
       }
-      this.windowManager.sendCommandTo(
-        this.mainWindow,
-        'APP-Service-Status-Changed',
-        'APP-Service-Status-Changed',
-        status
-      )
+      this.windowManager.sendCommandTo(this.mainWindow, 'APP-MCP-Notify', 'APP-MCP-Notify', {
+        type: 'service-status-changed',
+        ...status
+      })
     })
 
     // MCP Server 需要 forkManager 句柄，在此创建并注入
     this.mcpServer = new MCPServer(this.forkManager, this.mcpConfigManager, this.configManager)
     this.ipcHandler.updateDependencies({ forkManager: this.forkManager, mcpServer: this.mcpServer })
 
-    // 若用户上次启用了 MCP Server，则自动拉起
-    if (this.mcpConfigManager.getConfig('enabled')) {
-      this.mcpServer.start().catch((e) => {
-        console.log('MCP Server auto-start failed: ', e)
-      })
-    }
+    // MCP 通知统一通过 ServiceVersionManager 中转，再广播给渲染进程
+    ServiceVersionManager.onMcpNotify((payload) => {
+      if (this.mainWindow) {
+        this.windowManager.sendCommandTo(
+          this.mainWindow,
+          'APP-MCP-Notify',
+          'APP-MCP-Notify',
+          payload
+        )
+      }
+    })
   }
 
   /**

@@ -1,5 +1,6 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import { join } from 'node:path'
 import { existsSync } from 'node:fs'
 import { mkdirp, remove, spawnPromiseWithEnv, uuid, writeFile } from '../../Fn'
@@ -248,6 +249,16 @@ class Code extends Base {
         await remove(runDir)
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Code 模块仅临时生成运行文件，执行后立即清理，没有持久化配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Code 模块不输出持久化日志文件
+    return []
   }
 }
 export default new Code()

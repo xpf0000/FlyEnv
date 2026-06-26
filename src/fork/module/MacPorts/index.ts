@@ -1,6 +1,8 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import { readFile, writeFileByRoot } from '../../Fn'
+import { join } from 'path'
 class MacPorts extends Base {
   constructor() {
     super()
@@ -52,6 +54,17 @@ class MacPorts extends Base {
         reject(e)
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return [
+      { name: 'MacPorts 主配置', path: join('/opt/local/etc/macports', 'macports.conf') },
+      { name: 'MacPorts 源配置', path: join('/opt/local/etc/macports', 'sources.conf') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

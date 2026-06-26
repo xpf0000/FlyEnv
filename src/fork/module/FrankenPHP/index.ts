@@ -1,5 +1,5 @@
 import { dirname, join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
@@ -13,7 +13,6 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  readdir,
   execPromiseWithEnv,
   zipUnpack,
   copyFile,
@@ -260,27 +259,29 @@ class FrankenPHP extends Base {
     })
   }
 
-  getLogFiles() {
-    return new ForkPromise(async (resolve) => {
-      const baseDir = join(global.Server.BaseDir!, 'frankenphp')
-      const files: Array<{ name: string; path: string }> = []
-      try {
-        if (existsSync(baseDir)) {
-          const list = await readdir(baseDir)
-          list.forEach((name) => {
-            if (name.startsWith('frankenphp-') && name.endsWith('.log')) {
-              files.push({
-                name: name.replace('.log', ''),
-                path: join(baseDir, name)
-              })
-            }
-          })
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'frankenphp')
+    const files: Array<{ name: string; path: string }> = []
+    try {
+      if (existsSync(baseDir)) {
+        const mainLog = join(baseDir, 'frankenphp.log')
+        if (existsSync(mainLog)) {
+          files.push({ name: 'frankenphp', path: mainLog })
         }
-      } catch (e) {
-        console.log('frankenphp getLogFiles error: ', e)
+        const list = readdirSync(baseDir)
+        list.forEach((name) => {
+          if (name.startsWith('frankenphp-') && name.endsWith('.log')) {
+            files.push({
+              name: name.replace('.log', ''),
+              path: join(baseDir, name)
+            })
+          }
+        })
       }
-      resolve(files)
-    })
+    } catch (e) {
+      console.log('frankenphp getLogFiles error: ', e)
+    }
+    return files
   }
 
   brewinfo() {
@@ -307,6 +308,14 @@ class FrankenPHP extends Base {
         return
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'frankenphp')
+    return [
+      { name: 'Caddyfile', path: join(baseDir, 'Caddyfile') },
+      { name: 'Caddyfile.default', path: join(baseDir, 'Caddyfile.default') }
+    ]
   }
 }
 

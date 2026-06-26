@@ -618,6 +618,32 @@ class N8N extends Base {
       resolve(found)
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'n8n')
+    return [
+      { name: 'n8n.env', path: join(baseDir, 'n8n.env') },
+      { name: 'n8n.env.default', path: join(baseDir, 'n8n.env.default') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'n8n')
+    const versionStr = _version.version.trim()
+    return [
+      {
+        name: 'start-out',
+        path: join(baseDir, `${this.type}-${versionStr}-start-out.log`.split(' ').join(''))
+      },
+      {
+        name: 'start-error',
+        path: join(baseDir, `${this.type}-${versionStr}-start-error.log`.split(' ').join(''))
+      }
+    ]
+  }
 }
 
 export default new N8N()

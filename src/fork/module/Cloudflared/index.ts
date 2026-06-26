@@ -123,5 +123,13 @@ class Cloudflared extends Base {
       await copyFile(row.zip, row.bin)
     }
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
 }
 export default new Cloudflared()

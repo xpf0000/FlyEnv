@@ -189,5 +189,37 @@ log-outputs: ["stdout"]`
       }
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'etcd')
+    return [
+      {
+        name: 'etcd.yaml',
+        path: join(baseDir, 'etcd.yaml')
+      },
+      {
+        name: 'etcd.yaml.default',
+        path: join(baseDir, 'etcd.yaml.default')
+      }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'etcd')
+    const versionStr = _version.version.trim()
+    return [
+      {
+        name: 'start-out',
+        path: join(baseDir, `etcd-${versionStr}-start-out.log`.split(' ').join(''))
+      },
+      {
+        name: 'start-error',
+        path: join(baseDir, `etcd-${versionStr}-start-error.log`.split(' ').join(''))
+      }
+    ]
+  }
 }
 export default new Etcd()

@@ -198,5 +198,28 @@ class Qdrant extends Base {
       resolve({})
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.bin) {
+      return []
+    }
+    const configDir = join(dirname(_version.bin), 'config')
+    return [
+      { name: 'config.yaml', path: join(configDir, 'config.yaml') },
+      { name: 'config.default.yaml', path: join(configDir, 'config.default.yaml') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'qdrant')
+    const versionStr = `qdrant-${_version.version.trim()}-start`.split(' ').join('')
+    return [
+      { name: 'start-out.log', path: join(baseDir, `${versionStr}-out.log`) },
+      { name: 'start-error.log', path: join(baseDir, `${versionStr}-error.log`) }
+    ]
+  }
 }
 export default new Qdrant()

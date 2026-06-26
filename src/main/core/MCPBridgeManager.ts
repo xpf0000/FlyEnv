@@ -9,16 +9,16 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
  * 并返回该外部可执行路径给渲染层生成客户端配置片段。
  */
 export default class MCPBridgeManager {
-  /** bridge 脚本在 app 资源中的路径（asar 内也可被 Electron 进程读取） */
-  private sourcePath: string
-  /** bridge 脚本复制到外部后的可执行路径 */
-  private externalDir: string
-  private externalPath: string
+  private get sourcePath(): string {
+    return join(global.Server.Static!, 'mcp', 'flyenv-mcp-stdio.mjs')
+  }
 
-  constructor() {
-    this.sourcePath = join(global.Server.Static!, 'mcp', 'flyenv-mcp-stdio.mjs')
-    this.externalDir = join(dirname(global.Server.BaseDir!), 'mcp')
-    this.externalPath = join(this.externalDir, 'flyenv-mcp-stdio.mjs')
+  private get externalDir(): string {
+    return join(dirname(global.Server.BaseDir!), 'mcp')
+  }
+
+  private get externalPath(): string {
+    return join(this.externalDir, 'flyenv-mcp-stdio.mjs')
   }
 
   /** 确保外部存在最新 bridge 脚本，返回外部路径 */

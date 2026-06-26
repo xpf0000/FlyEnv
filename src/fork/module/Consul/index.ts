@@ -229,5 +229,20 @@ class Consul extends Base {
       resolve(Info)
     })
   }
+
+  getConfigFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const v = version?.version?.split('.')?.shift() ?? ''
+    if (!v) return []
+    const baseDir = join(global.Server.BaseDir!, 'consul')
+    return [
+      { name: 'config', path: join(baseDir, `consul-${v}.json`) },
+      { name: 'default', path: join(baseDir, `consul-${v}.default`) }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'consul')
+    return [{ name: 'log', path: join(baseDir, 'consul.log') }]
+  }
 }
 export default new Consul()

@@ -13,6 +13,7 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema
 } from '@modelcontextprotocol/sdk/types.js'
+import { AppModuleEnum } from '@/core/type'
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
 import MCPAudit from './MCPAudit'
@@ -39,18 +40,7 @@ interface ToolDef {
   handler: (args: Record<string, any>) => Promise<MCPToolResult>
 }
 
-const MODULE_FLAGS = [
-  'nginx',
-  'apache',
-  'caddy',
-  'php',
-  'mysql',
-  'mariadb',
-  'postgresql',
-  'redis',
-  'memcached',
-  'mongodb'
-]
+const MODULE_FLAGS = Object.values(AppModuleEnum)
 
 export default class MCPServer {
   private mcpConfig: MCPConfigManager
@@ -106,13 +96,15 @@ export default class MCPServer {
             flags: {
               type: 'array',
               items: flagEnum,
-              description: 'Service flags to query. Omit to query the common set.'
+              description: 'Service flags to query. Omit to query all cached services.'
             }
           }
         },
         handler: async (args) => {
           const flags: string[] =
-            Array.isArray(args?.flags) && args.flags.length ? args.flags : MODULE_FLAGS
+            Array.isArray(args?.flags) && args.flags.length
+              ? args.flags
+              : this.tools.getCachedFlags()
           return textResult(await this.tools.listServices(flags))
         }
       },
@@ -124,7 +116,10 @@ export default class MCPServer {
           properties: { flag: flagEnum },
           required: ['flag']
         },
-        handler: async (args) => textResult(await this.tools.serviceStatus(args.flag))
+        handler: async (args) => {
+          const flag = Array.isArray(args.flag) ? args.flag[0] : args.flag
+          return textResult(await this.tools.serviceStatus(flag))
+        }
       },
       {
         name: 'list_sites',
@@ -136,7 +131,7 @@ export default class MCPServer {
       {
         name: 'list_log_files',
         description:
-          "List a service's log files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql.",
+          "List a service's log files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Modules without specific log files return an empty list.",
         inputSchema: {
           type: 'object',
           properties: {
@@ -150,7 +145,7 @@ export default class MCPServer {
       {
         name: 'list_config_files',
         description:
-          "List a service's config files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Supported: nginx, apache, mysql, mariadb, redis, mongodb, postgresql. Pass version for version-scoped configs (redis/mongodb/postgresql/apache/mysql/mariadb).",
+          "List a service's config files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Modules without specific config files return an empty list. Pass version for version-scoped configs.",
         inputSchema: {
           type: 'object',
           properties: {
@@ -161,6 +156,17 @@ export default class MCPServer {
         },
         handler: async (args) =>
           textResult(await this.tools.listConfigFiles(args.flag, args.version))
+      },
+      {
+        name: 'list_online_versions',
+        description:
+          'List online available versions of a FlyEnv-managed module. Use this before install_service to pick an existing version.',
+        inputSchema: {
+          type: 'object',
+          properties: { flag: flagEnum },
+          required: ['flag']
+        },
+        handler: async (args) => textResult(await this.tools.listOnlineVersions(args.flag))
       },
       {
         name: 'start_service',
@@ -311,39 +317,6 @@ export default class MCPServer {
         handler: async (args) => {
           const data = await this.tools.deleteSite(args.siteName)
           return textResult({ deleted: args.siteName, data })
-        }
-      },
-      {
-        name: 'write_config',
-        description:
-          'Write content to a service config file. Use "name" to pick a file returned by list_config_files, or provide an absolute "path". A .bak backup is created automatically.',
-        risky: true,
-        inputSchema: {
-          type: 'object',
-          properties: {
-            flag: flagEnum,
-            version: { type: 'string', description: 'Version for version-scoped configs.' },
-            name: {
-              type: 'string',
-              description: 'Config file name from list_config_files (e.g. "main").'
-            },
-            path: {
-              type: 'string',
-              description: 'Absolute config file path. If provided, takes precedence over name.'
-            },
-            content: { type: 'string', description: 'Full config content to write.' }
-          },
-          required: ['flag', 'content']
-        },
-        handler: async (args) => {
-          const data = await this.tools.writeConfig(
-            args.flag,
-            args.content,
-            args.version,
-            args.name,
-            args.path
-          )
-          return textResult(data)
         }
       },
       {

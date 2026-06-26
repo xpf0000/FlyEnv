@@ -102,14 +102,18 @@ export class Base {
   }
 
   /** fork 可调：返回配置文件清单（存在性标记），供 MCP read_config 用 */
-  listConfigFiles(version?: SoftInstalled): ForkPromise<Array<{ name: string; path: string; exists: boolean }>> {
+  listConfigFiles(
+    version?: SoftInstalled
+  ): ForkPromise<Array<{ name: string; path: string; exists: boolean }>> {
     return new ForkPromise((resolve) => {
       resolve(this.getConfigFiles(version).map((f) => ({ ...f, exists: existsSync(f.path) })))
     })
   }
 
   /** fork 可调：返回日志文件清单（存在性标记），供 MCP read_log 用 */
-  listLogFiles(version?: SoftInstalled): ForkPromise<Array<{ name: string; path: string; exists: boolean }>> {
+  listLogFiles(
+    version?: SoftInstalled
+  ): ForkPromise<Array<{ name: string; path: string; exists: boolean }>> {
     return new ForkPromise((resolve) => {
       resolve(this.getLogFiles(version).map((f) => ({ ...f, exists: existsSync(f.path) })))
     })

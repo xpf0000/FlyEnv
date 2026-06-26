@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -16,7 +16,6 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  readdir,
   binXattrFix,
   waitTime
 } from '../../Fn'
@@ -223,27 +222,25 @@ class Numa extends Base {
     })
   }
 
-  getLogFiles() {
-    return new ForkPromise(async (resolve) => {
-      const baseDir = join(global.Server.BaseDir!, 'numa')
-      const files: Array<{ name: string; path: string }> = []
-      try {
-        if (existsSync(baseDir)) {
-          const list = await readdir(baseDir)
-          list.forEach((name) => {
-            if (name.startsWith('numa-') && name.endsWith('.log')) {
-              files.push({
-                name: name.replace('.log', ''),
-                path: join(baseDir, name)
-              })
-            }
-          })
-        }
-      } catch (e) {
-        console.log('numa getLogFiles error: ', e)
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'numa')
+    const files: Array<{ name: string; path: string }> = []
+    try {
+      if (existsSync(baseDir)) {
+        const list = readdirSync(baseDir)
+        list.forEach((name) => {
+          if (name.startsWith('numa-') && name.endsWith('.log')) {
+            files.push({
+              name: name.replace(/\.log$/, ''),
+              path: join(baseDir, name)
+            })
+          }
+        })
       }
-      resolve(files)
-    })
+    } catch (e) {
+      console.log('numa getLogFiles error: ', e)
+    }
+    return files.sort((a, b) => a.name.localeCompare(b.name))
   }
 
   brewinfo() {
@@ -268,6 +265,14 @@ class Numa extends Base {
     if (isMacOS()) {
       await binXattrFix(row.bin)
     }
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'numa')
+    return [
+      { name: 'numa', path: join(baseDir, 'numa.toml') },
+      { name: 'numa.default', path: join(baseDir, 'numa.default.toml') }
+    ]
   }
 }
 

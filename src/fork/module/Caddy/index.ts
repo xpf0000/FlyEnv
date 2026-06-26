@@ -304,5 +304,23 @@ class Caddy extends Base {
       resolve(Info)
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return [
+      {
+        name: 'Caddyfile',
+        path: join(global.Server.BaseDir!, 'caddy', 'Caddyfile')
+      }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return [
+      {
+        name: 'caddy.log',
+        path: join(global.Server.BaseDir!, 'caddy', 'caddy.log')
+      }
+    ]
+  }
 }
 export default new Caddy()

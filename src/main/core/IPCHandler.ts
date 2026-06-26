@@ -12,6 +12,7 @@ import ConfigManager from './ConfigManager'
 import type MCPConfigManager from './MCPConfigManager'
 import type MCPServer from './MCPServer'
 import type MCPBridgeManager from './MCPBridgeManager'
+import MCPAudit from './MCPAudit'
 import type WindowManager from '../ui/WindowManager'
 import type TrayManager from '../ui/TrayManager'
 import type { ForkManager } from './ForkManager'
@@ -21,6 +22,7 @@ import type { BrowserWindow } from 'electron'
 import type AppNodeFnManager from './AppNodeFn'
 import type SiteSuckerManager from '../ui/SiteSucker'
 import ServiceProcessManager from './ServiceProcess'
+import ServiceVersionManager from './ServiceVersionManager'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { existsSync, readFileSync } from 'node:fs'
@@ -142,6 +144,16 @@ export default class IPCHandler extends EventEmitter {
   private handleForkCallback(command: string, key: string, module: string, info: any, args: any[]) {
     const win = this.deps.mainWindow!
     this.deps.windowManager.sendCommandTo(win, command, key, info)
+
+    // 把前端获取已安装版本的结果同步到 MCP 缓存
+    if (
+      module === 'version' &&
+      args?.[0] === 'allInstalledVersions' &&
+      info?.code === 0 &&
+      info?.data
+    ) {
+      ServiceVersionManager.updateCache(info.data)
+    }
 
     // 处理服务启动 PID
     if (info?.data?.['APP-Service-Start-PID']) {
@@ -398,6 +410,9 @@ export default class IPCHandler extends EventEmitter {
         break
       case 'mcp:getAuditLog':
         this.handleMcpGetAuditLog(command, key)
+        break
+      case 'mcp:getAuditLogFile':
+        this.handleMcpGetAuditLogFile(command, key)
         break
 
       default:
@@ -780,7 +795,7 @@ export default class IPCHandler extends EventEmitter {
   }
 
   private handleMcpGetAuditLog(command: string, key: string) {
-    const file = join(global.Server.BaseDir!, 'mcp', 'audit.log')
+    const file = MCPAudit.getLogFile()
     let data = ''
     try {
       if (existsSync(file)) {
@@ -790,6 +805,10 @@ export default class IPCHandler extends EventEmitter {
       console.log('handleMcpGetAuditLog error: ', e)
     }
     this.sendToMainWindow(command, key, { code: 0, data })
+  }
+
+  private handleMcpGetAuditLogFile(command: string, key: string) {
+    this.sendToMainWindow(command, key, { code: 0, data: MCPAudit.getLogFile() })
   }
 
   // ===== 工具方法 =====

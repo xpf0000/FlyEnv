@@ -5,6 +5,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseWithEnv, mkdirp, remove, zipUnpack } from '../../Fn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
+import type { SoftInstalled } from '@shared/app'
 
 type GitCheckItem = {
   label: string
@@ -102,6 +103,16 @@ class Git extends Base {
         message: e?.message ?? 'Check failed'
       }
     }
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Git 模块仅做命令可用性检查，不管理 Git 服务的配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Git 模块不管理日志文件
+    return []
   }
 }
 

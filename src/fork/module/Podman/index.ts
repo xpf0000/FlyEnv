@@ -1,5 +1,6 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { uuid, execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
@@ -319,7 +320,7 @@ class Podman extends Base {
           if (existsSync(tmp)) {
             await remove(tmp)
           }
-        } catch (e) {
+        } catch {
           // ignore
         }
 
@@ -576,6 +577,16 @@ class Podman extends Base {
     return new ForkPromise(async (resolve, reject) => {
       fetchTags(image).then(resolve).catch(reject)
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Podman 通过系统 CLI 与 machine 管理容器，FlyEnv 未为其维护独立的配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Podman 通过系统 CLI 与 machine 管理容器，FlyEnv 未为其维护独立的日志文件
+    return []
   }
 }
 

@@ -16,10 +16,8 @@ export interface MCPAuditEntry {
  * 方便用户在 Audit.vue 中查看 AI 客户端对 FlyEnv 做了什么操作。
  */
 class MCPAudit {
-  private logFile: string
-
-  constructor() {
-    this.logFile = join(global.Server.BaseDir!, 'mcp', 'audit.log')
+  private get logFile(): string {
+    return join(global.Server.BaseDir!, 'mcp', 'audit.log')
   }
 
   private ensureDir() {

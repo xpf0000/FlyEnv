@@ -30,6 +30,7 @@ export const ALL_TOOLS: string[] = [
   'service_status',
   'list_log_files',
   'list_config_files',
+  'list_online_versions',
   'list_sites',
   'start_service',
   'stop_service',
@@ -37,7 +38,6 @@ export const ALL_TOOLS: string[] = [
   'create_site',
   'update_site',
   'delete_site',
-  'write_config',
   'install_service'
 ]
 
@@ -48,7 +48,6 @@ export const RISKY_TOOLS: string[] = [
   'create_site',
   'update_site',
   'delete_site',
-  'write_config',
   'install_service'
 ]
 
@@ -71,7 +70,6 @@ class MCP {
       create_site: 'confirm',
       update_site: 'confirm',
       delete_site: 'confirm',
-      write_config: 'confirm',
       install_service: 'confirm'
     },
     allowRemote: false,
@@ -125,33 +123,47 @@ class MCP {
     })
   }
 
-  start() {
-    if (this.starting) return
-    this.starting = true
-    IPC.send('mcp:start').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        this.running = true
-        MessageSuccess(I18nT('mcp.running'))
-      } else {
-        MessageError(res?.msg ?? I18nT('base.fail'))
+  start(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (this.starting) {
+        resolve(false)
+        return
       }
-      this.starting = false
+      this.starting = true
+      IPC.send('mcp:start').then((key: string, res: any) => {
+        IPC.off(key)
+        this.starting = false
+        if (res?.code === 0) {
+          this.running = true
+          MessageSuccess(I18nT('mcp.running'))
+          resolve(true)
+        } else {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          resolve(false)
+        }
+      })
     })
   }
 
-  stop() {
-    if (this.starting) return
-    this.starting = true
-    IPC.send('mcp:stop').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        this.running = false
-        MessageSuccess(I18nT('mcp.stopped'))
-      } else {
-        MessageError(res?.msg ?? I18nT('base.fail'))
+  stop(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (this.starting) {
+        resolve(false)
+        return
       }
-      this.starting = false
+      this.starting = true
+      IPC.send('mcp:stop').then((key: string, res: any) => {
+        IPC.off(key)
+        this.starting = false
+        if (res?.code === 0) {
+          this.running = false
+          MessageSuccess(I18nT('mcp.stopped'))
+          resolve(true)
+        } else {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          resolve(false)
+        }
+      })
     })
   }
 
@@ -222,18 +234,29 @@ class MCP {
 
   /** 一键把 FlyEnv 注册进某个 AI CLI 的 MCP 列表（复用现有 addMcp） */
   addToClient(clientFlag: 'claudeCode' | 'codex' | 'openCode') {
+    // 各 CLI 对 HTTP/SSE 型 MCP 的 type 标识不同
+    const typeMap: Record<typeof clientFlag, string> = {
+      claudeCode: 'http',
+      codex: 'http',
+      openCode: 'remote'
+    }
     return new Promise((resolve) => {
-      IPC.send(`app-fork:${clientFlag}`, 'addMcp', 'flyenv', 'http', this.serverUrl).then(
-        (key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            MessageSuccess(I18nT('base.success'))
-          } else {
-            MessageError(res?.msg ?? I18nT('base.fail'))
-          }
-          resolve(res?.code === 0)
+      IPC.send(
+        `app-fork:${clientFlag}`,
+        'addMcp',
+        'flyenv',
+        typeMap[clientFlag],
+        this.serverUrl,
+        this.config.token
+      ).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          MessageSuccess(I18nT('base.success'))
+        } else {
+          MessageError(res?.msg ?? I18nT('base.fail'))
         }
-      )
+        resolve(res?.code === 0)
+      })
     })
   }
 }

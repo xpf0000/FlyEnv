@@ -1,5 +1,6 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import { execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
 import { join } from 'node:path'
@@ -166,6 +167,26 @@ class OpenClaw extends Base {
         reject(e?.message ?? 'fail')
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const files: Array<{ name: string; path: string }> = [
+      {
+        name: 'openclaw.json',
+        path: join(homedir(), '.openclaw', 'openclaw.json')
+      }
+    ]
+    if (isMacOS()) {
+      files.push({
+        name: 'ai.openclaw.gateway.plist',
+        path: join(homedir(), 'Library', 'LaunchAgents', 'ai.openclaw.gateway.plist')
+      })
+    }
+    return files
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

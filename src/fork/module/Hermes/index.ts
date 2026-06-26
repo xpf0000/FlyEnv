@@ -1,15 +1,9 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import {
-  execPromiseWithEnv,
-  readFile,
-  remove,
-  existsSync,
-  waitTime,
-  readdir,
-  writeFile
-} from '../../Fn'
+import type { SoftInstalled } from '@shared/app'
+import { execPromiseWithEnv, readFile, remove, existsSync, waitTime, writeFile } from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
+import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
 import { appDebugLog, isWindows } from '@shared/utils'
@@ -418,28 +412,25 @@ class Hermes extends Base {
     })
   }
 
-  getLogFiles() {
-    return new ForkPromise(async (resolve) => {
-      const hermesHome = this.hermesHome()
-      const logDir = join(hermesHome, 'logs')
-      const files: Array<{ name: string; path: string }> = []
-      try {
-        if (existsSync(logDir)) {
-          const list = await readdir(logDir)
-          list.forEach((name) => {
-            if (name.endsWith('.log')) {
-              files.push({
-                name: name.replace('.log', ''),
-                path: join(logDir, name)
-              })
-            }
-          })
-        }
-      } catch (e) {
-        console.log('hermes getLogFiles error: ', e)
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const files: Array<{ name: string; path: string }> = []
+    const logDir = join(this.hermesHome(), 'logs')
+    try {
+      if (existsSync(logDir)) {
+        const list = readdirSync(logDir)
+        list.forEach((name) => {
+          if (name.endsWith('.log')) {
+            files.push({
+              name: name.replace('.log', ''),
+              path: join(logDir, name)
+            })
+          }
+        })
       }
-      resolve(files)
-    })
+    } catch (e) {
+      console.log('hermes getLogFiles error: ', e)
+    }
+    return files
   }
 
   getLogs(type: string, lines = 100) {
@@ -756,6 +747,15 @@ class Hermes extends Base {
     return new ForkPromise(async (resolve) => {
       resolve([])
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const hermesHome = this.hermesHome()
+    return [
+      { name: 'config', path: join(hermesHome, 'config.yaml') },
+      { name: 'env', path: join(hermesHome, '.env') },
+      { name: 'SOUL', path: join(hermesHome, 'SOUL.md') }
+    ]
   }
 }
 

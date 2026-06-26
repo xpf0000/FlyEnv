@@ -474,6 +474,16 @@ class Manager extends Base {
         })
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Node module only manages Node.js versions; no service config files
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Node module only manages Node.js versions; no service log files
+    return []
+  }
 }
 
 export default new Manager()

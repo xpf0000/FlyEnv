@@ -720,8 +720,8 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          argsIgnorePattern: '^[hH]$', // Changed to handle both h and H
-          varsIgnorePattern: '^[hH]$'
+          argsIgnorePattern: '^[_hH]', // Allow underscore-prefixed unused args and h/H
+          varsIgnorePattern: '^[_hH]'
         }
       ],
       'no-unused-vars': 'off', // Disable the base ESLint rule

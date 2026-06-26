@@ -680,6 +680,14 @@ class Manager extends Base {
         })
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
 }
 
 export default new Manager()

@@ -7,6 +7,7 @@ import { publicDecrypt } from 'crypto'
 import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import YAML from 'yamljs'
 import { compareVersions } from '@shared/compare-versions'
+import type { SoftInstalled } from '@shared/app'
 import { isDEB } from '../../util/Linux'
 
 class App extends Base {
@@ -269,6 +270,16 @@ class App extends Base {
         reject(e)
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // App 模块负责启动上报/许可证/更新检查，不管理任何服务的配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // App 模块没有独立的运行时日志文件
+    return []
   }
 }
 

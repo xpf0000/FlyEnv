@@ -1,8 +1,18 @@
 import { Base } from '../Base'
+import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseWithEnv, readFile, remove, existsSync, readdir, uuid } from '../../Fn'
+import {
+  execPromiseWithEnv,
+  readFile,
+  writeFile,
+  remove,
+  existsSync,
+  readdir,
+  mkdirp,
+  uuid
+} from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 
@@ -404,15 +414,29 @@ class ClaudeCode extends Base {
     })
   }
 
-  addMcp(name: string, type: string, commandOrUrl: string) {
+  addMcp(name: string, type: string, commandOrUrl: string, token?: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        let cmd: string
         if (type === 'http' || type === 'sse') {
-          cmd = `${this.claudeBin()} mcp add --transport ${type} ${name} "${commandOrUrl}"`
-        } else {
-          cmd = `${this.claudeBin()} mcp add ${name} -- ${commandOrUrl}`
+          const file = join(homedir(), '.claude.json')
+          let data: any = {}
+          if (existsSync(file)) {
+            data = JSON.parse(await readFile(file, 'utf-8'))
+          }
+          data.mcpServers = data.mcpServers ?? {}
+          data.mcpServers[name] = {
+            type: 'http',
+            url: commandOrUrl,
+            headers: {
+              Authorization: `Bearer ${token ?? ''}`
+            }
+          }
+          await mkdirp(dirname(file))
+          await writeFile(file, JSON.stringify(data, null, 2))
+          resolve(true)
+          return
         }
+        const cmd = `${this.claudeBin()} mcp add ${name} -- ${commandOrUrl}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -442,6 +466,20 @@ class ClaudeCode extends Base {
     return new ForkPromise(async (resolve) => {
       resolve([])
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const home = this.claudeHome()
+    return [
+      { name: 'settings.json', path: join(home, 'settings.json') },
+      { name: 'settings.local.json', path: join(home, 'settings.local.json') },
+      { name: 'known_marketplaces.json', path: join(home, 'plugins', 'known_marketplaces.json') },
+      { name: 'claude.json', path: join(homedir(), '.claude.json') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

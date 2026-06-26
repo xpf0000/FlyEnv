@@ -210,5 +210,31 @@ class MeiliSearch extends Base {
       }
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'meilisearch')
+    return [
+      { name: 'MeiliSearch config', path: join(baseDir, 'meilisearch.toml') },
+      { name: 'MeiliSearch default config', path: join(baseDir, 'meilisearch.default.toml') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'meilisearch')
+    const versionStr = _version.version.trim()
+    return [
+      {
+        name: 'start-out',
+        path: join(baseDir, `meilisearch-${versionStr}-start-out.log`.split(' ').join(''))
+      },
+      {
+        name: 'start-error',
+        path: join(baseDir, `meilisearch-${versionStr}-start-error.log`.split(' ').join(''))
+      }
+    ]
+  }
 }
 export default new MeiliSearch()

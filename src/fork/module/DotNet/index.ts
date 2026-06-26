@@ -191,6 +191,16 @@ class DotNet extends Base {
       resolve({})
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // .NET SDK 是运行时/开发工具包，FlyEnv 仅负责下载安装，不生成服务端配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // .NET SDK 没有由本模块管理的运行日志文件
+    return []
+  }
 }
 
 export default new DotNet()

@@ -12,6 +12,7 @@ import {
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
+import type { SoftInstalled } from '@shared/app'
 import { basename, dirname, join } from 'path'
 import { EOL } from 'os'
 import { BomCleanTask } from '../../util/BomCleanTask'
@@ -293,6 +294,14 @@ subjectAltName=@alt_names
         reject(e)
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

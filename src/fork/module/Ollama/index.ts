@@ -1,5 +1,5 @@
 import { dirname, join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
@@ -468,6 +468,41 @@ class Ollama extends Base {
         nvidia: []
       })
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'ollama')
+    return [
+      {
+        name: 'ollama.conf',
+        path: join(baseDir, 'ollama.conf')
+      },
+      {
+        name: 'ollama.conf.default',
+        path: join(baseDir, 'ollama.conf.default')
+      }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'ollama')
+    const files: Array<{ name: string; path: string }> = []
+    try {
+      if (existsSync(baseDir)) {
+        const list = readdirSync(baseDir)
+        list.forEach((name) => {
+          if (/^ollama-.*-start-(out|error)\.log$/.test(name)) {
+            files.push({
+              name: name.replace('.log', ''),
+              path: join(baseDir, name)
+            })
+          }
+        })
+      }
+    } catch (e) {
+      console.log('ollama getLogFiles error: ', e)
+    }
+    return files
   }
 }
 export default new Ollama()

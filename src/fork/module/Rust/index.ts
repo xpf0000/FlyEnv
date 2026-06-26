@@ -254,5 +254,15 @@ class Rust extends Base {
       })
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Rust 模块仅管理 Rust 工具链版本，不生成服务端配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Rust 模块没有由本模块管理的运行日志文件
+    return []
+  }
 }
 export default new Rust()

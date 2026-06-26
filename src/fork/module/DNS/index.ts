@@ -3,6 +3,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import DNS2 from 'dns2'
 import { createRequire } from 'node:module'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import type { SoftInstalled } from '@shared/app'
 import { mkdirp, existsSync, writeFile, readFile, readFileByRoot } from '../../Fn'
 import { dirname, join } from 'node:path'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
@@ -258,6 +259,18 @@ class Manager extends Base {
 
   startService(): ForkPromise<any> {
     return this.start()
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'dns')
+    return [
+      { name: 'DNS config', path: join(baseDir, 'dns.json') },
+      { name: 'DNS default config', path: join(baseDir, 'dns.default.json') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

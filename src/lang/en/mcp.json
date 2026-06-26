@@ -34,5 +34,20 @@
   "auditLog": "Audit Log",
   "auditLogHint": "All MCP tool calls are recorded here for review.",
   "auditLogEmpty": "No audit entries yet.",
-  "riskyTip": "Service control tools can change your running environment. Keep only the tools you trust enabled."
+  "riskyTip": "Service control tools can change your running environment. Keep only the tools you trust enabled.",
+  "toolDescriptions": {
+    "list_services": "List all FlyEnv-managed services and their installed versions / running state.",
+    "service_status": "Get the detailed running status and process info for selected services.",
+    "list_log_files": "List available log file paths for a service.",
+    "list_config_files": "List available config file paths for a service.",
+    "list_online_versions": "List installable online versions of a service.",
+    "list_sites": "List FlyEnv-managed local sites / hosts.",
+    "start_service": "Start a specific version of a service.",
+    "stop_service": "Stop a running service version.",
+    "restart_service": "Restart a specific version of a service.",
+    "create_site": "Create a new local site / host.",
+    "update_site": "Update the configuration of an existing local site.",
+    "delete_site": "Delete a local site.",
+    "install_service": "Download and install a version of a service."
+  }
 }

@@ -135,6 +135,16 @@ class MkCertBase extends Base {
       }
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // mkcert is a one-shot CLI tool; FlyEnv does not generate or manage config files for it.
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // mkcert does not keep persistent log files.
+    return []
+  }
 }
 
 export default new MkCertBase()

@@ -1,8 +1,9 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import { execPromiseWithEnv, readFile, writeFile, remove, existsSync, mkdirp, uuid } from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 
@@ -195,15 +196,26 @@ class OpenCode extends Base {
     })
   }
 
-  addMcp(name: string, type: string, commandOrUrl: string) {
+  addMcp(name: string, type: string, commandOrUrl: string, token?: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        let cmd: string
-        if (type === 'remote') {
-          cmd = `${this.openCodeBin()} mcp add ${name} --url "${commandOrUrl}"`
-        } else {
-          cmd = `${this.openCodeBin()} mcp add ${name} -- ${commandOrUrl}`
+        if (type === 'remote' || type === 'http' || type === 'sse') {
+          const file = this.configFile()
+          const config = await this.readConfig()
+          config.mcp = config.mcp ?? {}
+          config.mcp[name] = {
+            type: 'remote',
+            url: commandOrUrl,
+            headers: {
+              Authorization: `Bearer ${token ?? ''}`
+            }
+          }
+          await mkdirp(dirname(file))
+          await writeFile(file, JSON.stringify(config, null, 2))
+          resolve(true)
+          return
         }
+        const cmd = `${this.openCodeBin()} mcp add ${name} -- ${commandOrUrl}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -306,6 +318,16 @@ class OpenCode extends Base {
     return new ForkPromise(async (resolve) => {
       resolve([])
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const file = this.configFile()
+    const name = file.endsWith('.jsonc') ? 'opencode.jsonc' : 'opencode.json'
+    return [{ name, path: file }]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

@@ -3,9 +3,11 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseWithEnv, readFile, remove, existsSync, readdir } from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
 import { join } from 'node:path'
+import { readdirSync } from 'node:fs'
 import { uuid } from '../../Fn'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
+import type { SoftInstalled } from '@shared/app'
 
 export interface KimiSessionItem {
   id: string
@@ -66,27 +68,25 @@ class Kimi extends Base {
     })
   }
 
-  getLogFiles() {
-    return new ForkPromise(async (resolve) => {
-      const logDir = join(this.kimiHome(), 'logs')
-      const files: Array<{ name: string; path: string }> = []
-      try {
-        if (existsSync(logDir)) {
-          const list = await readdir(logDir)
-          list.forEach((name) => {
-            if (name.endsWith('.log')) {
-              files.push({
-                name: name.replace('.log', ''),
-                path: join(logDir, name)
-              })
-            }
-          })
-        }
-      } catch (e) {
-        console.log('kimi getLogFiles error: ', e)
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const logDir = join(this.kimiHome(), 'logs')
+    const files: Array<{ name: string; path: string }> = []
+    try {
+      if (existsSync(logDir)) {
+        const list = readdirSync(logDir)
+        list.forEach((name) => {
+          if (name.endsWith('.log')) {
+            files.push({
+              name: name.replace('.log', ''),
+              path: join(logDir, name)
+            })
+          }
+        })
       }
-      resolve(files)
-    })
+    } catch (e) {
+      console.log('kimi getLogFiles error: ', e)
+    }
+    return files
   }
 
   getLogs(type: string) {
@@ -236,6 +236,14 @@ class Kimi extends Base {
     return new ForkPromise(async (resolve) => {
       resolve([])
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const home = this.kimiHome()
+    return [
+      { name: 'config.toml', path: join(home, 'config.toml') },
+      { name: 'tui.toml', path: join(home, 'tui.toml') }
+    ]
   }
 }
 
