@@ -46,12 +46,16 @@
   })
 
   const fetchInstallCommand = (): Promise<string> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (FlyEnvHelperSetup.command) {
         return resolve(FlyEnvHelperSetup.command)
       }
       IPC.send('APP:FlyEnv-Helper-Command').then((key: string, res: any) => {
         IPC.off(key)
+        if (res?.code !== 0 || !res?.command) {
+          reject(new Error(res?.reason ?? 'helper_binary_missing'))
+          return
+        }
         FlyEnvHelperSetup.command = res.command
         resolve(FlyEnvHelperSetup.command)
       })
@@ -63,17 +67,22 @@
       return
     }
     loading.value = true
-    const execXTerm = new XTerm()
-    const c = await fetchInstallCommand()
+    try {
+      const execXTerm = new XTerm()
+      const c = await fetchInstallCommand()
 
-    nextTick().then(() => {
-      execXTerm.mount(xterm.value!).then(() => {
-        execXTerm?.send([c])?.then(() => {
-          loading.value = false
+      nextTick().then(() => {
+        execXTerm.mount(xterm.value!).then(() => {
+          execXTerm?.send([c])?.then(() => {
+            loading.value = false
+          })
         })
       })
-    })
-    FlyEnvHelperSetup.execXTerm = markRaw(execXTerm)
+      FlyEnvHelperSetup.execXTerm = markRaw(execXTerm)
+    } catch {
+      loading.value = false
+      show.value = false
+    }
   }
 
   onMounted(() => {

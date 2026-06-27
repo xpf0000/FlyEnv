@@ -6,6 +6,7 @@ import NodePTY from './NodePTY'
 import HttpServer from './HttpServer'
 import AppHelper from './AppHelper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
+import { buildHelperCheckResponse } from '@shared/WindowsHelperState'
 import OAuth from './OAuth'
 import Capturer from './Capturer'
 import ConfigManager from './ConfigManager'
@@ -431,9 +432,13 @@ export default class IPCHandler extends EventEmitter {
   }
 
   private handleHelperCommand(command: string, key: string) {
-    AppHelper.command().then((res) => {
-      this.sendToMainWindow(command, key, res)
-    })
+    AppHelper.command()
+      .then((res) => {
+        this.sendToMainWindow(command, key, { code: 0, ...res })
+      })
+      .catch((error) => {
+        this.sendToMainWindow(command, key, buildHelperCheckResponse(error))
+      })
   }
 
   private handleHelperCheck(command: string, key: string) {
@@ -441,8 +446,8 @@ export default class IPCHandler extends EventEmitter {
       .then(() => {
         this.sendToMainWindow(command, key, { code: 0, data: true })
       })
-      .catch(() => {
-        this.sendToMainWindow(command, key, { code: 1, data: false })
+      .catch((error) => {
+        this.sendToMainWindow(command, key, buildHelperCheckResponse(error))
       })
   }
 

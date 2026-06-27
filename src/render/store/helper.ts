@@ -5,11 +5,19 @@ import { app, dialog, shell } from '@/util/NodeFn'
 import { join } from '@/util/path-browserify'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { reactiveBind } from '@/util/Index'
+import { shouldOpenHelperInstaller } from '@shared/WindowsHelperState'
 
 class Helper {
   show: boolean = false
 
-  showNeedInstallDialog() {
+  shouldShowNeedInstallDialog(reason?: string) {
+    return shouldOpenHelperInstaller(reason)
+  }
+
+  showNeedInstallDialog(reason?: string) {
+    if (!shouldOpenHelperInstaller(reason)) {
+      return
+    }
     if (this.show) {
       return
     }
@@ -30,16 +38,23 @@ class Helper {
       })
   }
 
-  showInstallFailDialog() {
+  showInstallFailDialog(reason?: string) {
     if (window.Server.isWindows) {
+      const message =
+        reason === 'helper_binary_missing'
+          ? I18nT('menu.helperInstallFailTips')
+          : I18nT('setup.flyenvHelperInstallFailTips')
       dialog
         .showMessageBox({
           type: 'info',
           title: I18nT('host.warning'),
-          message: I18nT('setup.flyenvHelperInstallFailTips'),
+          message,
           buttons: [I18nT('base.confirm')]
         })
         .then(() => {
+          if (reason === 'helper_binary_missing') {
+            return
+          }
           app.getPath('exe').then((path: string) => {
             const item = join(path, 'resources/helper/flyenv-helper.exe')
             shell.showItemInFolder(item).catch()

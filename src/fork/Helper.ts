@@ -9,7 +9,12 @@ import {
 } from '@shared/AppHelperCheck'
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
-import { appDebugLog } from '@shared/utils'
+import { appDebugLog, isWindows } from '@shared/utils'
+import {
+  AppHelperError,
+  resolveWindowsHelperTransport
+} from '@shared/WindowsHelperState'
+import { runWindowsHelperFallback } from '@shared/WindowsHelperFallback'
 
 type Module =
   | 'helper'
@@ -49,14 +54,36 @@ type FN =
   | 'setAutoStartWin'
   | 'removeLoginItemMac'
 
-class Helper {
+type HelperDeps = {
+  createConnection: typeof createConnection
+  appHelperCheck: typeof AppHelperCheck
+  getHelperKey: typeof getHelperKey
+  isWindows: typeof isWindows
+  resolveWindowsHelperTransport: typeof resolveWindowsHelperTransport
+  runWindowsHelperFallback: typeof runWindowsHelperFallback
+  socketResponseTimeoutMs: number
+}
+
+const defaultHelperDeps: HelperDeps = {
+  createConnection,
+  appHelperCheck: AppHelperCheck,
+  getHelperKey,
+  isWindows,
+  resolveWindowsHelperTransport,
+  runWindowsHelperFallback,
+  socketResponseTimeoutMs: 2000
+}
+
+export class Helper {
   enable = false
   appHelper?: AppHelper
   private helperKey: Buffer | null = null
 
+  constructor(private readonly deps: HelperDeps = defaultHelperDeps) {}
+
   async ensureKey() {
     if (this.helperKey) return
-    this.helperKey = await getHelperKey()
+    this.helperKey = await this.deps.getHelperKey()
   }
 
   private validatePathArg(arg: any): boolean {
@@ -80,6 +107,54 @@ class Helper {
       }
     }
     return true
+  }
+
+  private notifyNeedInstall() {
+    if (this.appHelper) {
+      this.appHelper.needInstall()
+      return
+    }
+    process?.send?.({
+      on: true,
+      key: 'App-Need-Init-FlyEnv-Helper',
+      info: {
+        code: 200,
+        msg: 'App-Need-Init-FlyEnv-Helper'
+      }
+    })
+  }
+
+  private normalizeError(error: unknown): Error {
+    if (error instanceof Error) {
+      return error
+    }
+    return new Error(`${error}`)
+  }
+
+  private async routeUnavailableHelper<T>(
+    error: unknown,
+    module: Module,
+    fn: FN,
+    args: any[]
+  ): Promise<{ handled: boolean; value?: T }> {
+    const transport = this.deps.isWindows()
+      ? this.deps.resolveWindowsHelperTransport(error, module, fn)
+      : 'prompt'
+
+    if (transport === 'fallback') {
+      this.enable = false
+      const result = (await this.deps.runWindowsHelperFallback(module, fn, args)) as T
+      return { handled: true, value: result }
+    }
+
+    if (transport === 'prompt') {
+      this.enable = false
+      this.notifyNeedInstall()
+      throw this.normalizeError(error)
+    }
+
+    this.enable = false
+    throw this.normalizeError(error)
   }
 
   send<T>(module: Module, fn: FN, ...args: any): Promise<T> {
@@ -110,38 +185,49 @@ class Helper {
 
       if (!this.enable) {
         try {
-          await AppHelperCheck()
+          await this.deps.appHelperCheck()
           this.enable = true
-        } catch (e) {
-          this.enable = false
-          if (this.appHelper) {
-            this.appHelper.needInstall()
-          } else {
-            process?.send?.({
-              on: true,
-              key: 'App-Need-Init-FlyEnv-Helper',
-              info: {
-                code: 200,
-                msg: 'App-Need-Init-FlyEnv-Helper'
-              }
-            })
+        } catch (error) {
+          try {
+            const routed = await this.routeUnavailableHelper<T>(error, module, fn, args)
+            if (routed.handled) {
+              resolveOnce(routed.value as T)
+            }
+          } catch (routeError) {
+            rejectOnce(this.normalizeError(routeError))
           }
-          rejectOnce(e instanceof Error ? e : new Error(`${e}`))
           return
         }
       }
       await this.ensureKey()
       const key = uuid()
-      const client = createConnection(AppHelperSocketPathGet())
+      const client = this.deps.createConnection(AppHelperSocketPathGet())
       const buffer: Buffer[] = []
+      let transportFailed = false
+      let responseTimer: NodeJS.Timeout | undefined
 
       const closeClient = () => {
+        clearTimeout(responseTimer)
         try {
           client.destroy()
         } catch {}
       }
 
-      const handleSocketError = (error: Error) => {
+      const armResponseTimeout = () => {
+        clearTimeout(responseTimer)
+        responseTimer = setTimeout(() => {
+          closeClient()
+          handleSocketError(new Error('Helper response timeout')).catch((routeError) => {
+            rejectOnce(this.normalizeError(routeError))
+          })
+        }, this.deps.socketResponseTimeoutMs)
+      }
+
+      const handleSocketError = async (error: Error) => {
+        if (settled || transportFailed) {
+          return
+        }
+        transportFailed = true
         appDebugLog(
           '[Fork][Helper][error]',
           `${JSON.stringify({
@@ -156,7 +242,19 @@ class Helper {
         ).catch()
         closeClient()
         console.log('connect failed error: ', error)
-        rejectOnce(error)
+        try {
+          const routed = await this.routeUnavailableHelper<T>(
+            new AppHelperError('helper_execution_failed', error.message),
+            module,
+            fn,
+            args
+          )
+          if (routed.handled) {
+            resolveOnce(routed.value as T)
+          }
+        } catch (routeError) {
+          rejectOnce(this.normalizeError(routeError))
+        }
       }
 
       client.on('connect', () => {
@@ -174,15 +272,22 @@ class Helper {
         try {
           client.write(JSON.stringify(param), (error?: Error | null) => {
             if (error) {
-              handleSocketError(error)
+              handleSocketError(error).catch((routeError) => {
+                rejectOnce(this.normalizeError(routeError))
+              })
+              return
             }
+            armResponseTimeout()
           })
         } catch (e) {
-          handleSocketError(e instanceof Error ? e : new Error(`${e}`))
+          handleSocketError(e instanceof Error ? e : new Error(`${e}`)).catch((routeError) => {
+            rejectOnce(this.normalizeError(routeError))
+          })
         }
       })
 
       client.on('data', (data: any) => {
+        armResponseTimeout()
         buffer.push(data)
       })
 
@@ -204,9 +309,19 @@ class Helper {
       })
 
       client.on('error', (error) => {
-        handleSocketError(error)
+        handleSocketError(error).catch((routeError) => {
+          rejectOnce(this.normalizeError(routeError))
+        })
       })
     })
   }
 }
-export default new Helper()
+
+export const createHelper = (deps: Partial<HelperDeps> = {}) => {
+  return new Helper({
+    ...defaultHelperDeps,
+    ...deps
+  })
+}
+
+export default createHelper()

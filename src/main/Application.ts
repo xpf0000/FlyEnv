@@ -159,11 +159,11 @@ export default class Application extends EventEmitter {
     AppHelperRoleFix().catch()
     Helper.appHelper = AppHelper
 
-    AppHelper.onStatusMessage((flag) => {
+    AppHelper.onStatusMessage((message) => {
       if (!this?.mainWindow) {
         return
       }
-      this.handleHelperStatusMessage(flag)
+      this.handleHelperStatusMessage(message)
     })
 
     AppHelper.onSuduExecSuccess(() => {
@@ -174,7 +174,7 @@ export default class Application extends EventEmitter {
   /**
    * 处理 Helper 状态消息
    */
-  private handleHelperStatusMessage(flag: string) {
+  private handleHelperStatusMessage(message: { state: string; reason?: string }) {
     const key = 'APP-FlyEnv-Helper-Notice'
     const messages: Record<string, { code: number; msg: string; status?: string }> = {
       needInstall: { code: 1, msg: I18nT('menu.needInstallHelper') },
@@ -184,9 +184,12 @@ export default class Application extends EventEmitter {
       checkSuccess: { code: 0, msg: I18nT('menu.helperInstallSuccessTips') }
     }
 
-    const message = messages[flag]
-    if (message) {
-      this.windowManager.sendCommandTo(this.mainWindow!, key, key, message)
+    const base = messages[message.state]
+    if (base) {
+      this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
+        ...base,
+        reason: message.reason
+      })
     }
   }
 

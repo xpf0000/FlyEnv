@@ -1,16 +1,33 @@
 import { exec as Sudo } from '@shared/Sudo'
 import { join, resolve as PathResolve, basename, dirname } from 'node:path'
 import is from 'electron-is'
-import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
-import { AppHelperCheck } from '@shared/AppHelperCheck'
+import { appDebugLog, isLinux, isMacOS, isWindows, uuid } from '@shared/utils'
+import {
+  AppHelperCheck,
+  getWindowsHelperBinaryPath,
+  windowsHelperBinaryExists
+} from '@shared/AppHelperCheck'
+import { AppHelperError, isAppHelperError } from '@shared/WindowsHelperState'
 import { tmpdir, userInfo } from 'node:os'
-import { uuid } from '../utils'
 import { copyFile, chmod, mkdirp, readFile, writeFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
 
-type AppHelperCallback = (
+type AppHelperMessage = {
   state: 'needInstall' | 'installing' | 'installed' | 'installFaild' | 'checkSuccess'
-) => void
+  reason?: string
+}
+
+type AppHelperCallback = (message: AppHelperMessage) => void
+
+type AppHelperDeps = {
+  appHelperCheck: typeof AppHelperCheck
+  sudo: typeof Sudo
+}
+
+const defaultAppHelperDeps: AppHelperDeps = {
+  appHelperCheck: AppHelperCheck,
+  sudo: Sudo
+}
 
 export class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
@@ -19,12 +36,18 @@ export class AppHelper {
 
   private _onSuduExecSuccess?: CallbackFn
 
+  constructor(private readonly deps: AppHelperDeps = defaultAppHelperDeps) {}
+
   onStatusMessage(fn: AppHelperCallback) {
     this._onMessage = fn
   }
 
   onSuduExecSuccess(fn: CallbackFn) {
     this._onSuduExecSuccess = fn
+  }
+
+  private emitStatus(state: AppHelperMessage['state'], reason?: string) {
+    this._onMessage?.({ state, reason })
   }
 
   async command() {
@@ -79,9 +102,14 @@ export class AppHelper {
         command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
       } else if (isWindows()) {
+        if (!windowsHelperBinaryExists()) {
+          throw new AppHelperError(
+            'helper_binary_missing',
+            `Windows helper binary missing: ${getWindowsHelperBinaryPath()}`
+          )
+        }
         const binDir = PathResolve(global.Server.Static!, '../../../../')
-        // const srcBin = join(binDir, 'helper-backup/flyenv-helper.exe')
-        const bin = join(binDir, 'helper/flyenv-helper.exe')
+        const bin = getWindowsHelperBinaryPath()
         const tmpl = await readFile(
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
@@ -145,9 +173,14 @@ export class AppHelper {
         command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
       } else if (isWindows()) {
-        const helperFile = 'flyenv-helper-windows-amd64-v1.exe'
+        if (!windowsHelperBinaryExists()) {
+          throw new AppHelperError(
+            'helper_binary_missing',
+            `Windows helper binary missing: ${getWindowsHelperBinaryPath()}`
+          )
+        }
         const binDir = PathResolve(global.Server.Static!, '../../../build/')
-        const bin = PathResolve(binDir, `../src/helper-go/dist/${helperFile}`)
+        const bin = getWindowsHelperBinaryPath()
         const tmpl = await readFile(
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
@@ -173,7 +206,7 @@ export class AppHelper {
 
   needInstall() {
     if (this.state === 'normal') {
-      this?._onMessage?.('needInstall')
+      this.emitStatus('needInstall')
     }
   }
 
@@ -181,33 +214,41 @@ export class AppHelper {
     return new Promise(async (resolve, reject) => {
       if (this.state !== 'normal') {
         if (this.state === 'installing') {
-          this?._onMessage?.('installing')
+          this.emitStatus('installing')
         } else if (this.state === 'installed') {
-          this?._onMessage?.('installed')
+          this.emitStatus('installed')
         }
         reject(new Error('Please Wait'))
         return
       }
       try {
-        await AppHelperCheck()
+        await this.deps.appHelperCheck()
         this.state = 'normal'
-        this?._onMessage?.('checkSuccess')
+        this.emitStatus('checkSuccess')
         resolve(true)
         return
-      } catch {}
+      } catch (error) {
+        if (isAppHelperError(error, 'helper_binary_missing')) {
+          this.state = 'normal'
+          this.emitStatus('installFaild', error.code)
+          reject(error)
+          return
+        }
+      }
 
-      this?._onMessage?.('needInstall')
+      this.emitStatus('needInstall')
       const doChech = (time = 0) => {
         if (time > 9) {
           this.state = 'normal'
           reject(new Error('Install helper failed'))
-          this?._onMessage?.('installFaild')
+          this.emitStatus('installFaild')
           return
         }
-        AppHelperCheck()
+        this.deps
+          .appHelperCheck()
           .then(() => {
             this.state = 'normal'
-            this?._onMessage?.('checkSuccess')
+            this.emitStatus('checkSuccess')
             this?._onSuduExecSuccess?.()
             resolve(true)
           })
@@ -218,26 +259,40 @@ export class AppHelper {
           })
       }
 
-      this.state = 'installing'
-
-      const { command, icns } = await this.command()
-      Sudo(command, {
-        name: 'FlyEnv',
-        icns: icns
-      })
-        .then(({ stdout, stderr }) => {
-          console.log('initHelper: ', stdout, stderr)
-          this.state = 'installed'
-          doChech()
+      try {
+        this.state = 'installing'
+        this.emitStatus('installing')
+        const { command, icns } = await this.command()
+        this.deps.sudo(command, {
+          name: 'FlyEnv',
+          icns: icns
         })
-        .catch((e) => {
-          appDebugLog('[AppHelper][initHelper][error]', `${e})}`).catch()
-          console.log('initHelper err: ', e)
-          this.state = 'normal'
-          this?._onMessage?.('installFaild')
-          reject(e)
-        })
+          .then(({ stdout, stderr }) => {
+            console.log('initHelper: ', stdout, stderr)
+            this.state = 'installed'
+            doChech()
+          })
+          .catch((e) => {
+            appDebugLog('[AppHelper][initHelper][error]', `${e})}`).catch()
+            console.log('initHelper err: ', e)
+            this.state = 'normal'
+            this.emitStatus('installFaild', isAppHelperError(e) ? e.code : undefined)
+            reject(e)
+          })
+      } catch (error) {
+        this.state = 'normal'
+        this.emitStatus('installFaild', isAppHelperError(error) ? error.code : undefined)
+        reject(error)
+      }
     })
   }
 }
-export default new AppHelper()
+
+export const createAppHelper = (deps: Partial<AppHelperDeps> = {}) => {
+  return new AppHelper({
+    ...defaultAppHelperDeps,
+    ...deps
+  })
+}
+
+export default createAppHelper()

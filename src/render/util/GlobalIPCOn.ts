@@ -48,9 +48,9 @@ class GlobalIPCOn {
       } else if (res.code === 1) {
         MessageError(res?.msg)
         if (res?.status === 'installFaild' && this.inited && !FlyEnvHelperSetup.show) {
-          HelperStore.showInstallFailDialog()
-        } else if (!res?.status) {
-          HelperStore.showNeedInstallDialog()
+          HelperStore.showInstallFailDialog(res?.reason)
+        } else if (!res?.status && HelperStore.shouldShowNeedInstallDialog(res?.reason)) {
+          HelperStore.showNeedInstallDialog(res?.reason)
         }
       } else if (res.code === 2) {
         MessageWarning(res?.msg)

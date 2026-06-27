@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { lstatSync, readFileSync } from 'node:fs'
+import { lstatSync, readFileSync, statSync } from 'node:fs'
 import * as fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -302,13 +302,17 @@ function pathHasSymlinkComponent(targetPath: string): boolean {
 
 function isBusinessPathAllowed(targetPath: string): boolean {
   const configured = readConfiguredAllowedRoots()
-  return (
-    isConfiguredAllowedRoot(targetPath, configured.roots) ||
-    isExplicitSystemFile(targetPath) ||
-    isManagedPathByName(targetPath) ||
-    isManagedPathByExecutable(targetPath) ||
-    isWindowsProgramFilesFlyEnvPath(targetPath)
-  )
+  if (isConfiguredAllowedRoot(targetPath, configured.roots) || isExplicitSystemFile(targetPath)) {
+    return true
+  }
+  if (!configured.filePresent) {
+    return (
+      isManagedPathByName(targetPath) ||
+      isManagedPathByExecutable(targetPath) ||
+      isWindowsProgramFilesFlyEnvPath(targetPath)
+    )
+  }
+  return false
 }
 
 function validatePathAccess(targetPath: string, label: string, forWrite: boolean): string {

@@ -96,6 +96,20 @@ assert.throws(
   () =>
     buildWindowsHelperFallbackPlan(
       'tools',
+      'writeFileByRoot',
+      ['D:/outside/flyenv/test.txt', 'x'],
+      2000
+    ),
+  (error: unknown) => {
+    assert.equal((error as { code?: string }).code, 'helper_execution_failed')
+    return true
+  }
+)
+
+assert.throws(
+  () =>
+    buildWindowsHelperFallbackPlan(
+      'tools',
       'writeBufferBase64ByRoot',
       ['C:/FlyEnv/buffer.bin', '***not-base64***'],
       2000
