@@ -34,8 +34,7 @@ export const resolveSitePhpVersion = (
 export const isDirectProjectSite = (site: Pick<AppHost, 'type' | 'subType' | 'projectPort'>) => {
   const type = site?.type ?? ''
   return (
-    ['node', 'go', 'python'].includes(type) ||
-    (type === 'java' && site?.subType === 'springboot')
+    ['node', 'go', 'python'].includes(type) || (type === 'java' && site?.subType === 'springboot')
   )
 }
 

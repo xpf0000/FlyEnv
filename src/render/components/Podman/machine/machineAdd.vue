@@ -45,7 +45,9 @@
     </el-scrollbar>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" :loading="submitting" @click="onSubmit">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" :loading="submitting" @click="onSubmit">{{
+          I18nT('base.confirm')
+        }}</el-button>
         <el-button @click="onCancel">{{ I18nT('base.cancel') }}</el-button>
       </div>
     </template>

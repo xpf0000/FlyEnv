@@ -100,9 +100,7 @@ class ServiceProcess {
     }
     // 按 bin 去重：同一可执行文件已登记则更新其 pid，避免重复登记（如重复 start）
     const bin = item?.bin
-    const existing = bin
-      ? this.servicePID[type].find((i) => i.item?.bin === bin)
-      : undefined
+    const existing = bin ? this.servicePID[type].find((i) => i.item?.bin === bin) : undefined
     if (existing) {
       existing.pid = pid
       existing.item = item

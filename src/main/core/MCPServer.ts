@@ -188,7 +188,8 @@ export default class MCPServer {
           },
           required: ['flag']
         },
-        handler: async (args) => textResult(await this.tools.getServiceExecInfo(args.flag, args.version))
+        handler: async (args) =>
+          textResult(await this.tools.getServiceExecInfo(args.flag, args.version))
       },
       {
         name: 'resolve_site_urls',

@@ -4,7 +4,7 @@ import { markRaw, toRaw } from 'vue'
 class BaseDialog {
   private _component: any
   private _resolve: Function | undefined
-  private _componentData: Object
+  private _componentData: object
   private _dialogWidth: string
   private _dialogClassName: string
   private _dialogTitle: string
@@ -24,7 +24,7 @@ class BaseDialog {
    * @param d
    * @returns {Dialog}
    */
-  data(d: Object) {
+  data(d: object) {
     this._componentData = d
     return this
   }
@@ -122,4 +122,3 @@ class BaseDialog {
   }
 }
 export default BaseDialog
-

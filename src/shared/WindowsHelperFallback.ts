@@ -199,11 +199,7 @@ function isManagedPathByExecutable(targetPath: string): boolean {
   let current = path.win32.normalize(executableDir)
   for (;;) {
     const base = path.win32.basename(current).toLowerCase()
-    if (
-      base.includes('flyenv') ||
-      base.includes('phpwebstudy') ||
-      base.includes('php-web-study')
-    ) {
+    if (base.includes('flyenv') || base.includes('phpwebstudy') || base.includes('php-web-study')) {
       return pathInDir(targetPath, current)
     }
     const parent = path.win32.dirname(current)
@@ -246,7 +242,11 @@ function readConfiguredAllowedRoots(): ConfiguredAllowedRoots {
   }
 
   try {
-    if (lstatSync(targetPath).isSymbolicLink() || !stats.isFile() || stats.size > MAX_ALLOWED_ROOTS_FILE_BYTES) {
+    if (
+      lstatSync(targetPath).isSymbolicLink() ||
+      !stats.isFile() ||
+      stats.size > MAX_ALLOWED_ROOTS_FILE_BYTES
+    ) {
       return { roots: [], filePresent: true }
     }
   } catch {
@@ -522,7 +522,9 @@ function validateSetSystemEnvArgs(args: unknown[]): ValidatedSetSystemEnvArgs {
 function validateSetAutoStartArgs(args: unknown[]): ValidatedSetAutoStartArgs {
   ensureArgCount(args, 3, 'setAutoStartWin')
   if (typeof args[0] !== 'boolean') {
-    helperExecutionFailed(`setAutoStartWin arg[0] (enabled) must be a boolean, got ${typeof args[0]}`)
+    helperExecutionFailed(
+      `setAutoStartWin arg[0] (enabled) must be a boolean, got ${typeof args[0]}`
+    )
   }
   const enabled = args[0]
   const taskName = ensureString(args[1], 'setAutoStartWin arg[1] (taskName)')
@@ -578,10 +580,7 @@ $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 [System.IO.File]::WriteAllText($targetPath, $content, $utf8NoBom)`
 }
 
-function buildWriteBufferScript(
-  args: ValidatedWriteBufferArgs,
-  tempFilePath?: string
-): string {
+function buildWriteBufferScript(args: ValidatedWriteBufferArgs, tempFilePath?: string): string {
   const base64Expression = tempFilePath
     ? `(Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw).Trim()`
     : powerShellString(args.base64Content)
@@ -604,10 +603,7 @@ if (Test-Path -LiteralPath $targetPath) {
 }`
 }
 
-function buildSetSystemPathScript(
-  args: ValidatedSetSystemPathArgs,
-  tempFilePath?: string
-): string {
+function buildSetSystemPathScript(args: ValidatedSetSystemPathArgs, tempFilePath?: string): string {
   const runtimeSetup = tempFilePath
     ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
 $paths = @($payload.paths)
@@ -645,25 +641,23 @@ Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Na
 ${buildNotifyEnvironmentChangedScript()}`
 }
 
-function buildSetSystemEnvScript(
-  args: ValidatedSetSystemEnvArgs,
-  tempFilePath?: string
-): string {
+function buildSetSystemEnvScript(args: ValidatedSetSystemEnvArgs, tempFilePath?: string): string {
   const runtimeSetup = tempFilePath
     ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
 $key = [string]$payload.key
 $value = [string]$payload.value`
     : `$key = ${powerShellString(args.key)}
 $value = ${powerShellString(args.value)}`
-  const writeValue = tempFilePath || args.value.includes('%')
-    ? `if ($value.Contains('%')) {
+  const writeValue =
+    tempFilePath || args.value.includes('%')
+      ? `if ($value.Contains('%')) {
   New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value -PropertyType ExpandString -Force | Out-Null
 }
 else {
   New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value -PropertyType String -Force | Out-Null
   Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value
 }`
-    : `New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value -PropertyType String -Force | Out-Null
+      : `New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value -PropertyType String -Force | Out-Null
 Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value`
   return `${buildPowerShellPreamble()}
 ${runtimeSetup}
@@ -671,10 +665,7 @@ ${writeValue}
 ${buildNotifyEnvironmentChangedScript()}`
 }
 
-function buildSetAutoStartScript(
-  args: ValidatedSetAutoStartArgs,
-  tempFilePath?: string
-): string {
+function buildSetAutoStartScript(args: ValidatedSetAutoStartArgs, tempFilePath?: string): string {
   const runtimeSetup = tempFilePath
     ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
 $enabled = [bool]$payload.enabled

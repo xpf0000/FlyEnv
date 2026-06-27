@@ -15,11 +15,7 @@ export class ForkPromise<T> {
   private onData: Array<Array<any>> = []
 
   constructor(
-    executor: (
-      resolve: ResolveType<T>,
-      reject: RejectType,
-      on: OnType
-    ) => void | PromiseLike<void>
+    executor: (resolve: ResolveType<T>, reject: RejectType, on: OnType) => void | PromiseLike<void>
   ) {
     this.promise = new Promise<T>((resolve, reject) => {
       this.res = resolve

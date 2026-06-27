@@ -27,14 +27,7 @@ import type MCPConfigManager from './MCPConfigManager'
 import ServiceProcessManager from './ServiceProcess'
 import ServiceVersionManager from './ServiceVersionManager'
 
-const DATABASE_FLAGS = new Set([
-  'mysql',
-  'mariadb',
-  'postgresql',
-  'redis',
-  'mongodb',
-  'memcached'
-])
+const DATABASE_FLAGS = new Set(['mysql', 'mariadb', 'postgresql', 'redis', 'mongodb', 'memcached'])
 
 const WEB_SERVER_FLAGS = ['caddy', 'nginx', 'apache', 'frankenphp', 'tomcat'] as const
 
@@ -177,7 +170,9 @@ function preferredPortForServer(site: AppHost, preferred: string | null, ssl = f
     return undefined
   }
   if (preferred === 'frankenphp') {
-    return ssl ? site.port?.frankenphp_ssl ?? site.port?.caddy_ssl : site.port?.frankenphp ?? site.port?.caddy
+    return ssl
+      ? (site.port?.frankenphp_ssl ?? site.port?.caddy_ssl)
+      : (site.port?.frankenphp ?? site.port?.caddy)
   }
   if (preferred === 'tomcat') {
     return ssl ? site.port?.tomcat_ssl : site.port?.tomcat
@@ -340,7 +335,9 @@ export default class MCPContextResolver {
     if (flag === 'mysql' || flag === 'mariadb') {
       return {
         value: version?.rootPassword ?? 'root',
-        source: version?.rootPassword ? ('runtime' as MCPContextSourceHint) : ('default' as MCPContextSourceHint)
+        source: version?.rootPassword
+          ? ('runtime' as MCPContextSourceHint)
+          : ('default' as MCPContextSourceHint)
       }
     }
     return {
@@ -357,7 +354,9 @@ export default class MCPContextResolver {
       ]
     }
     if (flag === 'mysql' || flag === 'mariadb') {
-      return ['Use sibling client binaries such as mysql, mysqladmin, and dump tools from the same bin directory.']
+      return [
+        'Use sibling client binaries such as mysql, mysqladmin, and dump tools from the same bin directory.'
+      ]
     }
     if (flag === 'postgresql') {
       return ['Use sibling client binaries such as psql and pg_ctl from the same bin directory.']
@@ -403,7 +402,9 @@ export default class MCPContextResolver {
     if (flag === 'postgresql') {
       const parsed = parsePostgresqlConfigText(configText)
       if (parsed.unixSocketDirectories) {
-        const dir = parsed.unixSocketDirectories.split(',').map((item) => stripQuotes(item.trim()))[0]
+        const dir = parsed.unixSocketDirectories
+          .split(',')
+          .map((item) => stripQuotes(item.trim()))[0]
         if (dir) {
           return join(dir, `.s.PGSQL.${port}`)
         }
@@ -436,14 +437,23 @@ export default class MCPContextResolver {
       'config',
       makePathItem('frankenphp-vhost', join(baseDir, 'vhost', 'frankenphp', `${siteId}.conf`))
     )
-    push('config', makePathItem('nginx-rewrite', join(baseDir, 'vhost', 'rewrite', `${siteId}.conf`)))
+    push(
+      'config',
+      makePathItem('nginx-rewrite', join(baseDir, 'vhost', 'rewrite', `${siteId}.conf`))
+    )
     if (isTomcatSite(site)) {
-      push('config', makePathItem('tomcat-server.xml', join(baseDir, 'tomcat', siteId, 'conf', 'server.xml')))
+      push(
+        'config',
+        makePathItem('tomcat-server.xml', join(baseDir, 'tomcat', siteId, 'conf', 'server.xml'))
+      )
     }
 
     push('log', makePathItem('nginx-access', join(baseDir, 'vhost', 'logs', `${siteId}.log`)))
     push('log', makePathItem('nginx-error', join(baseDir, 'vhost', 'logs', `${siteId}.error.log`)))
-    push('log', makePathItem('apache-access', join(baseDir, 'vhost', 'logs', `${siteId}-access_log`)))
+    push(
+      'log',
+      makePathItem('apache-access', join(baseDir, 'vhost', 'logs', `${siteId}-access_log`))
+    )
     push('log', makePathItem('apache-error', join(baseDir, 'vhost', 'logs', `${siteId}-error_log`)))
     push('log', makePathItem('caddy', join(baseDir, 'vhost', 'logs', `${siteId}.caddy.log`)))
     push(
@@ -476,11 +486,11 @@ export default class MCPContextResolver {
     const configText = readTextIfExists(firstExistingConfigFile(files.config))
     const port =
       flag === 'mysql' || flag === 'mariadb'
-        ? parsePort(parseMySqlStyleConfigText(configText).values.port) ?? 3306
+        ? (parsePort(parseMySqlStyleConfigText(configText).values.port) ?? 3306)
         : flag === 'postgresql'
-          ? parsePort(parsePostgresqlConfigText(configText).port) ?? 5432
+          ? (parsePort(parsePostgresqlConfigText(configText).port) ?? 5432)
           : flag === 'redis'
-            ? parsePort(parseRedisConfigText(configText).port) ?? 6379
+            ? (parsePort(parseRedisConfigText(configText).port) ?? 6379)
             : flag === 'mongodb'
               ? 27017
               : flag === 'memcached'
@@ -638,7 +648,9 @@ export default class MCPContextResolver {
       WEB_SERVER_FLAGS.filter((flag) => ServiceProcessManager.statusOf(flag).running)
     )
     const preferred = resolvePreferredWebServer(site, runningFlags, installedFlags)
-    const preferredVersion = preferred ? await this.webServerVersion(preferred).catch(() => undefined) : undefined
+    const preferredVersion = preferred
+      ? await this.webServerVersion(preferred).catch(() => undefined)
+      : undefined
     const managed = this.buildSiteManagedFiles(site)
 
     const response: ResolveSiteRuntimeResponse = {

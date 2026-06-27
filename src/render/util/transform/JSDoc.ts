@@ -110,12 +110,7 @@ function parseArray(this: any, array: any[], objectName: string | null): any {
  * @param {boolean} doNotReinsert - If we want to reinsert the type, usually when we parse
  * an array of objects, we do not want to reinsert.
  */
-function parseObject(
-  this: any,
-  obj: any,
-  objectName: string | null,
-  doNotReinsert = false
-): any {
+function parseObject(this: any, obj: any, objectName: string | null, doNotReinsert = false): any {
   const prefix = objectName ? `${objectName}.` : ''
 
   Object.keys(obj).forEach((propertyName) => {

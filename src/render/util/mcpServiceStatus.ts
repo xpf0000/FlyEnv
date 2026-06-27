@@ -17,7 +17,10 @@ type InstalledVersionLike = CurrentVersionLike & {
   running?: boolean
 }
 
-type SyncServiceStatusFromMcpInput<TCurrent extends CurrentVersionLike, TInstalled extends InstalledVersionLike> = {
+type SyncServiceStatusFromMcpInput<
+  TCurrent extends CurrentVersionLike,
+  TInstalled extends InstalledVersionLike
+> = {
   current?: TCurrent
   installed: TInstalled[]
   instances?: RunningInstance[]
@@ -27,7 +30,12 @@ type SyncServiceStatusFromMcpInput<TCurrent extends CurrentVersionLike, TInstall
 export function syncServiceStatusFromMcp<
   TCurrent extends CurrentVersionLike,
   TInstalled extends InstalledVersionLike
->({ current, installed, instances = [], isOnlyRunOne = false }: SyncServiceStatusFromMcpInput<TCurrent, TInstalled>) {
+>({
+  current,
+  installed,
+  instances = [],
+  isOnlyRunOne = false
+}: SyncServiceStatusFromMcpInput<TCurrent, TInstalled>) {
   const runningByBin = new Map<string, RunningInstance>()
   instances.forEach((ins) => {
     if (ins?.bin) {

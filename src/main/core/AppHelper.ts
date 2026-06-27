@@ -263,10 +263,11 @@ export class AppHelper {
         this.state = 'installing'
         this.emitStatus('installing')
         const { command, icns } = await this.command()
-        this.deps.sudo(command, {
-          name: 'FlyEnv',
-          icns: icns
-        })
+        this.deps
+          .sudo(command, {
+            name: 'FlyEnv',
+            icns: icns
+          })
           .then(({ stdout, stderr }) => {
             console.log('initHelper: ', stdout, stderr)
             this.state = 'installed'

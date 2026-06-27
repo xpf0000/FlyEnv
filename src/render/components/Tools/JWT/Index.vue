@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Store from './store'
-import { I18nT } from '@lang/index'
+  import Store from './store'
+  import { I18nT } from '@lang/index'
 </script>
 
 <template>

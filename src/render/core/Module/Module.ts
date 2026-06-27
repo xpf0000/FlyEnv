@@ -109,7 +109,8 @@ export class Module {
     const installItems: ModuleInstalledItem[] = installed
       .filter((v) => {
         return (
-          !v?.isLocal7Z || (v?.isLocal7Z && !excludeLocalVersion.includes(`${this.typeFlag}-${v.version}`))
+          !v?.isLocal7Z ||
+          (v?.isLocal7Z && !excludeLocalVersion.includes(`${this.typeFlag}-${v.version}`))
         )
       })
       .map((item) => {

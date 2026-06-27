@@ -10,10 +10,7 @@ import {
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
 import { appDebugLog, isWindows } from '@shared/utils'
-import {
-  AppHelperError,
-  resolveWindowsHelperTransport
-} from '@shared/WindowsHelperState'
+import { AppHelperError, resolveWindowsHelperTransport } from '@shared/WindowsHelperState'
 import { runWindowsHelperFallback } from '@shared/WindowsHelperFallback'
 
 type Module =

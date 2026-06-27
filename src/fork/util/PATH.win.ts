@@ -105,9 +105,7 @@ export const createReadSystemPathDirect = (deps: Partial<ReadSystemPathDirectDep
           registryError: `${registryError}`
         })}`
       ).catch()
-      throw (registryError instanceof Error
-        ? registryError
-        : new Error(`${registryError}`))
+      throw registryError instanceof Error ? registryError : new Error(`${registryError}`)
     }
   }
 }

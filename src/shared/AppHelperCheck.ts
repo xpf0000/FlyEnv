@@ -183,10 +183,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
           })
         } catch (error) {
           closeClient()
-          rejectOnce(
-            'helper_unreachable',
-            error instanceof Error ? error.message : `${error}`
-          )
+          rejectOnce('helper_unreachable', error instanceof Error ? error.message : `${error}`)
           return
         }
 
