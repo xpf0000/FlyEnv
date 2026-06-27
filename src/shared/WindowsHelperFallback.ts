@@ -1,15 +1,13 @@
 import { randomUUID } from 'node:crypto'
-import { accessSync, constants } from 'node:fs'
+import { constants, lstatSync, readFileSync, statSync } from 'node:fs'
 import * as fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
+import process from 'node:process'
 import EnvSync from './EnvSync'
 import { buildPowerShellEncodedCommand } from './PowerShellCommand'
 import { exec as Sudo } from './Sudo'
-import {
-  AppHelperError,
-  isWindowsHelperFallbackAllowed
-} from './WindowsHelperState'
+import { AppHelperError, isWindowsHelperFallbackAllowed } from './WindowsHelperState'
 
 export type WindowsHelperFallbackMode = 'inline' | 'data-file'
 export type WindowsHelperFallbackTempFileKind = 'text' | 'base64'
@@ -24,6 +22,7 @@ export type WindowsHelperFallbackPlan = {
 }
 
 const DEFAULT_INLINE_LIMIT = 6000
+const MAX_ALLOWED_ROOTS_FILE_BYTES = 64 * 1024
 const MACHINE_ENV_REGISTRY_PATH =
   'Registry::HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment'
 const ALLOWED_OTHER_ENV_KEYS = new Set(['ERLANG_HOME', 'GRADLE_HOME', 'JAVA_HOME'])
@@ -34,11 +33,18 @@ const ALLOWED_AUTO_START_BASENAMES = new Set([
   'flyenv.exe',
   'phpwebstudy.exe'
 ])
+const MANAGED_PATH_FRAGMENTS = [
+  '/flyenv',
+  '/flyenv.app',
+  '/php-web-study',
+  '/phpwebstudy',
+  '/phpwebstudy-data'
+]
 const CONTROL_CHAR_PATTERN = /[\x00\r\n]/u
-const INVALID_WIN_PATH_CHAR_PATTERN = /[<>"|?*\x00\r\n]/u
 const ENV_KEY_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/
 const CERT_NAME_PATTERN = /^[A-Za-z0-9_.-]{1,128}\.crt$/
-const ENV_PATH_PATTERN = /^%[A-Za-z0-9_]+%(?:[\\/][^<>"|?*\x00\r\n;]*)?$/
+const AUTO_TASK_NAME_PATTERN = /^[A-Za-z0-9_. -]{1,64}$/
+const ENV_PATH_PATTERN = /^%[A-Za-z0-9_]+%(?:\\[^<>"|?*\x00\r\n;]*)?$/
 
 type ValidatedWriteFileArgs = {
   targetPath: string
@@ -71,6 +77,11 @@ type ValidatedSslAddTrustedCertArgs = {
   caName: string
 }
 
+type ConfiguredAllowedRoots = {
+  roots: string[]
+  filePresent: boolean
+}
+
 function helperExecutionFailed(message: string): never {
   throw new AppHelperError('helper_execution_failed', message)
 }
@@ -99,6 +110,24 @@ function ensureString(value: unknown, label: string): string {
   return value
 }
 
+function comparePath(value: string): string {
+  return path.win32
+    .normalize(value)
+    .replace(/[\\/]+/g, '/')
+    .replace(/\/+$/g, '')
+    .toLowerCase()
+}
+
+function pathEqual(a: string, b: string): boolean {
+  return comparePath(a) === comparePath(b)
+}
+
+function pathInDir(targetPath: string, dirPath: string): boolean {
+  const target = comparePath(targetPath)
+  const dir = comparePath(dirPath)
+  return target === dir || target.startsWith(`${dir}/`)
+}
+
 function hasPathTraversal(value: string): boolean {
   return value
     .split(/[\\/]/)
@@ -106,7 +135,14 @@ function hasPathTraversal(value: string): boolean {
     .some((part) => part === '..')
 }
 
-function validateAbsoluteWindowsPath(value: string, label: string): string {
+function isRootPath(targetPath: string): boolean {
+  const normalized = path.win32.normalize(targetPath)
+  const parsed = path.win32.parse(normalized)
+  const rest = normalized.slice(parsed.root.length)
+  return rest === '' || rest === '.'
+}
+
+function cleanAbsPath(value: string, label: string): string {
   const trimmed = value.trim()
   if (!trimmed) {
     helperExecutionFailed(`${label} must not be empty`)
@@ -114,24 +150,204 @@ function validateAbsoluteWindowsPath(value: string, label: string): string {
   if (CONTROL_CHAR_PATTERN.test(trimmed)) {
     helperExecutionFailed(`${label} contains control characters`)
   }
-  if (INVALID_WIN_PATH_CHAR_PATTERN.test(trimmed)) {
-    helperExecutionFailed(`${label} contains invalid Windows path characters`)
-  }
   if (hasPathTraversal(trimmed)) {
     helperExecutionFailed(`${label} contains path traversal`)
   }
-
   const normalized = path.win32.normalize(trimmed)
   if (!path.win32.isAbsolute(normalized)) {
     helperExecutionFailed(`${label} must be an absolute path`)
   }
-
-  const root = path.win32.parse(normalized).root
-  if (normalized === root) {
+  if (isRootPath(normalized)) {
     helperExecutionFailed(`${label} must not be a root path`)
   }
-
   return normalized
+}
+
+function windowsHostsPathCandidates(): string[] {
+  const systemRoot = process.env.SystemRoot || 'C:\\Windows'
+  return [
+    path.win32.join(systemRoot, 'System32', 'drivers', 'etc', 'hosts'),
+    'C:\\Windows\\System32\\drivers\\etc\\hosts',
+    'c:\\windows\\system32\\drivers\\etc\\hosts'
+  ]
+}
+
+function isExplicitSystemFile(targetPath: string): boolean {
+  return windowsHostsPathCandidates().some((candidate) => pathEqual(targetPath, candidate))
+}
+
+function isSensitiveSystemPath(targetPath: string): boolean {
+  const systemRoot = process.env.SystemRoot || 'C:\\Windows'
+  const sensitivePaths = [
+    path.win32.join(systemRoot, 'System32'),
+    path.win32.join(systemRoot, 'SysWOW64')
+  ]
+  return sensitivePaths.some((candidate) => pathInDir(targetPath, candidate))
+}
+
+function isManagedPathByName(targetPath: string): boolean {
+  const normalized = comparePath(targetPath)
+  return MANAGED_PATH_FRAGMENTS.some((fragment) => normalized.includes(fragment))
+}
+
+function isManagedDirectoryByName(targetPath: string): boolean {
+  return isManagedPathByName(path.win32.dirname(targetPath))
+}
+
+function isManagedPathByExecutable(targetPath: string): boolean {
+  const executableDir = path.win32.dirname(process.execPath)
+  let current = path.win32.normalize(executableDir)
+  for (;;) {
+    const base = path.win32.basename(current).toLowerCase()
+    if (
+      base.includes('flyenv') ||
+      base.includes('phpwebstudy') ||
+      base.includes('php-web-study')
+    ) {
+      return pathInDir(targetPath, current)
+    }
+    const parent = path.win32.dirname(current)
+    if (parent === current) {
+      return false
+    }
+    current = parent
+  }
+}
+
+function isWindowsProgramFilesFlyEnvPath(targetPath: string): boolean {
+  const candidates = [process.env.ProgramFiles, process.env['ProgramFiles(x86)']].filter(
+    Boolean
+  ) as string[]
+  return candidates.some((candidate) => {
+    if (!pathInDir(targetPath, candidate)) {
+      return false
+    }
+    const normalized = comparePath(targetPath)
+    return (
+      normalized.includes('/flyenv') ||
+      normalized.includes('/phpwebstudy') ||
+      normalized.includes('/php-web-study')
+    )
+  })
+}
+
+function allowedRootsFilePath(): string {
+  const programData = process.env.ProgramData || 'C:\\ProgramData'
+  return path.win32.join(programData, 'FlyEnv', 'flyenv.allowed-roots')
+}
+
+function readConfiguredAllowedRoots(): ConfiguredAllowedRoots {
+  const targetPath = allowedRootsFilePath()
+  let stats: ReturnType<typeof statSync>
+  try {
+    stats = statSync(targetPath)
+  } catch {
+    return { roots: [], filePresent: false }
+  }
+
+  try {
+    if (lstatSync(targetPath).isSymbolicLink() || !stats.isFile() || stats.size > MAX_ALLOWED_ROOTS_FILE_BYTES) {
+      return { roots: [], filePresent: true }
+    }
+  } catch {
+    return { roots: [], filePresent: true }
+  }
+
+  let data = ''
+  try {
+    data = readFileSync(targetPath, 'utf8')
+  } catch {
+    return { roots: [], filePresent: true }
+  }
+
+  const roots: string[] = []
+  const seen = new Set<string>()
+  for (const rawLine of data.split(/\r?\n/)) {
+    const line = rawLine.replace(/^\ufeff/u, '').trim()
+    if (!line || line.startsWith('#')) {
+      continue
+    }
+    try {
+      const clean = cleanAbsPath(line, 'configured allowed root')
+      const key = comparePath(clean)
+      if (!seen.has(key)) {
+        seen.add(key)
+        roots.push(clean)
+      }
+    } catch {}
+  }
+
+  return { roots, filePresent: true }
+}
+
+function isConfiguredAllowedRoot(targetPath: string, roots: string[]): boolean {
+  return roots.some((root) => pathInDir(targetPath, root))
+}
+
+function pathHasSymlinkComponent(targetPath: string): boolean {
+  let current = cleanAbsPath(targetPath, 'path')
+  for (;;) {
+    try {
+      if (lstatSync(current).isSymbolicLink()) {
+        return true
+      }
+    } catch {}
+    const parent = path.win32.dirname(current)
+    if (parent === current) {
+      return false
+    }
+    current = parent
+  }
+}
+
+function isBusinessPathAllowed(targetPath: string): boolean {
+  const configured = readConfiguredAllowedRoots()
+  return (
+    isConfiguredAllowedRoot(targetPath, configured.roots) ||
+    isExplicitSystemFile(targetPath) ||
+    isManagedPathByName(targetPath) ||
+    isManagedPathByExecutable(targetPath) ||
+    isWindowsProgramFilesFlyEnvPath(targetPath)
+  )
+}
+
+function validatePathAccess(targetPath: string, label: string, forWrite: boolean): string {
+  const clean = cleanAbsPath(targetPath, label)
+  if (isExplicitSystemFile(clean)) {
+    if (pathHasSymlinkComponent(clean)) {
+      helperExecutionFailed(`${label} contains symlink component`)
+    }
+    return clean
+  }
+  if (isSensitiveSystemPath(clean)) {
+    helperExecutionFailed(`sensitive system path is not allowed: ${targetPath}`)
+  }
+  if (!isBusinessPathAllowed(clean)) {
+    helperExecutionFailed(`path outside FlyEnv allowed scope: ${targetPath}`)
+  }
+  if (pathHasSymlinkComponent(clean)) {
+    helperExecutionFailed(`${label} contains symlink component`)
+  }
+  if (forWrite && isRootPath(clean)) {
+    helperExecutionFailed(`refusing root path: ${targetPath}`)
+  }
+  return clean
+}
+
+function validatePathForRead(targetPath: string, label: string): string {
+  return validatePathAccess(targetPath, label, false)
+}
+
+function validatePathForWrite(targetPath: string, label: string): string {
+  return validatePathAccess(targetPath, label, true)
+}
+
+function validatePathForRemove(targetPath: string, label: string): string {
+  const clean = cleanAbsPath(targetPath, label)
+  if (isExplicitSystemFile(clean)) {
+    helperExecutionFailed(`refusing to remove protected system file: ${targetPath}`)
+  }
+  return validatePathAccess(clean, label, true)
 }
 
 function validatePathLikeEnvEntry(value: string, label: string): string {
@@ -140,21 +356,22 @@ function validatePathLikeEnvEntry(value: string, label: string): string {
     helperExecutionFailed(`${label} must not be empty`)
   }
   if (CONTROL_CHAR_PATTERN.test(trimmed) || /[;"']/u.test(trimmed)) {
-    helperExecutionFailed(`${label} contains invalid characters`)
+    helperExecutionFailed(`invalid PATH entry: ${trimmed}`)
   }
   if (/\$env:/iu.test(trimmed)) {
-    helperExecutionFailed(`${label} must not use PowerShell env syntax`)
-  }
-  if (hasPathTraversal(trimmed)) {
-    helperExecutionFailed(`${label} contains path traversal`)
+    helperExecutionFailed(`PowerShell-style PATH entries are not allowed: ${trimmed}`)
   }
   if (trimmed.includes('%')) {
-    if (!ENV_PATH_PATTERN.test(trimmed)) {
+    if (!ENV_PATH_PATTERN.test(trimmed) || hasPathTraversal(trimmed)) {
       helperExecutionFailed(`${label} must be an absolute path or %ENVVAR%-style path`)
     }
     return trimmed
   }
-  return validateAbsoluteWindowsPath(trimmed, label)
+  const clean = cleanAbsPath(trimmed, label)
+  if (hasPathTraversal(clean)) {
+    helperExecutionFailed(`PATH entry contains traversal: ${trimmed}`)
+  }
+  return clean
 }
 
 function validateSystemEnvKey(key: string, allowWhitelisted: boolean): string {
@@ -181,7 +398,7 @@ function validateSystemEnvValue(key: string, value: string): string {
     return validatePathLikeEnvEntry(value, `environment variable value for ${key}`)
   }
   if (path.win32.isAbsolute(value.trim())) {
-    return validateAbsoluteWindowsPath(value, `environment variable value for ${key}`)
+    return validatePathForWrite(value, `environment variable value for ${key}`)
   }
   if (/[\\/]/u.test(value)) {
     helperExecutionFailed(`environment variable value must be an allowed path: ${key}`)
@@ -234,33 +451,32 @@ $notifyResult = [System.UIntPtr]::Zero
 
 function validateWriteFileArgs(args: unknown[]): ValidatedWriteFileArgs {
   ensureArgCount(args, 2, 'writeFileByRoot')
-  const targetPath = validateAbsoluteWindowsPath(
-    ensureString(args[0], 'writeFileByRoot arg[0] (targetPath)'),
-    'writeFileByRoot targetPath'
-  )
-  const content = ensureString(args[1], 'writeFileByRoot arg[1] (content)')
-  if (!content || CONTROL_CHAR_PATTERN.test(content)) {
-    helperExecutionFailed('writeFileByRoot content must be a non-empty single-line string')
+  return {
+    targetPath: validatePathForWrite(
+      ensureString(args[0], 'writeFileByRoot arg[0] (targetPath)'),
+      'writeFileByRoot targetPath'
+    ),
+    content: ensureString(args[1], 'writeFileByRoot arg[1] (content)')
   }
-  return { targetPath, content }
 }
 
 function validateWriteBufferArgs(args: unknown[]): ValidatedWriteBufferArgs {
   ensureArgCount(args, 2, 'writeBufferBase64ByRoot')
-  const targetPath = validateAbsoluteWindowsPath(
-    ensureString(args[0], 'writeBufferBase64ByRoot arg[0] (targetPath)'),
-    'writeBufferBase64ByRoot targetPath'
-  )
-  const base64Content = validateBase64(
-    ensureString(args[1], 'writeBufferBase64ByRoot arg[1] (base64Content)'),
-    'writeBufferBase64ByRoot base64Content'
-  )
-  return { targetPath, base64Content }
+  return {
+    targetPath: validatePathForWrite(
+      ensureString(args[0], 'writeBufferBase64ByRoot arg[0] (targetPath)'),
+      'writeBufferBase64ByRoot targetPath'
+    ),
+    base64Content: validateBase64(
+      ensureString(args[1], 'writeBufferBase64ByRoot arg[1] (base64Content)'),
+      'writeBufferBase64ByRoot base64Content'
+    )
+  }
 }
 
 function validateRmArgs(args: unknown[]): string {
   ensureArgCount(args, 1, 'rm')
-  return validateAbsoluteWindowsPath(ensureString(args[0], 'rm arg[0] (targetPath)'), 'rm targetPath')
+  return validatePathForRemove(ensureString(args[0], 'rm arg[0] (targetPath)'), 'rm targetPath')
 }
 
 function validateSetSystemPathArgs(args: unknown[]): ValidatedSetSystemPathArgs {
@@ -269,7 +485,10 @@ function validateSetSystemPathArgs(args: unknown[]): ValidatedSetSystemPathArgs 
     helperExecutionFailed('setSystemPath arg[0] (paths) must be a string array')
   }
   const paths = args[0].map((entry, index) =>
-    validatePathLikeEnvEntry(ensureString(entry, `setSystemPath paths[${index}]`), `setSystemPath paths[${index}]`)
+    validatePathLikeEnvEntry(
+      ensureString(entry, `setSystemPath paths[${index}]`),
+      `setSystemPath paths[${index}]`
+    )
   )
   if (typeof args[1] !== 'object' || args[1] === null || Array.isArray(args[1])) {
     helperExecutionFailed('setSystemPath arg[1] (otherVars) must be a map[string]string')
@@ -289,10 +508,7 @@ function validateSetSystemPathArgs(args: unknown[]): ValidatedSetSystemPathArgs 
 function validateSetSystemEnvArgs(args: unknown[]): ValidatedSetSystemEnvArgs {
   ensureArgCount(args, 2, 'setSystemEnv')
   const key = validateSystemEnvKey(ensureString(args[0], 'setSystemEnv arg[0] (key)'), false)
-  const value = validateSystemEnvValue(
-    key,
-    ensureString(args[1], 'setSystemEnv arg[1] (value)')
-  )
+  const value = validateSystemEnvValue(key, ensureString(args[1], 'setSystemEnv arg[1] (value)'))
   return { key, value }
 }
 
@@ -302,28 +518,44 @@ function validateSetAutoStartArgs(args: unknown[]): ValidatedSetAutoStartArgs {
     helperExecutionFailed(`setAutoStartWin arg[0] (enabled) must be a boolean, got ${typeof args[0]}`)
   }
   const taskName = ensureString(args[1], 'setAutoStartWin arg[1] (taskName)')
-  if (!ALLOWED_AUTO_START_TASKS.has(taskName)) {
+  if (!AUTO_TASK_NAME_PATTERN.test(taskName) || !ALLOWED_AUTO_START_TASKS.has(taskName)) {
     helperExecutionFailed(`invalid auto-start task name: ${taskName}`)
   }
-  const exePath = validateAbsoluteWindowsPath(
+  const exePath = cleanAbsPath(
     ensureString(args[2], 'setAutoStartWin arg[2] (exePath)'),
     'setAutoStartWin exePath'
   )
+  if (isSensitiveSystemPath(exePath)) {
+    helperExecutionFailed(`sensitive system path is not allowed: ${exePath}`)
+  }
   const exeBasename = path.win32.basename(exePath).toLowerCase()
   if (!ALLOWED_AUTO_START_BASENAMES.has(exeBasename)) {
     helperExecutionFailed(`invalid auto-start executable: ${exeBasename}`)
+  }
+  if (
+    !isManagedDirectoryByName(exePath) &&
+    !isManagedPathByExecutable(exePath) &&
+    !isWindowsProgramFilesFlyEnvPath(exePath)
+  ) {
+    helperExecutionFailed(`auto-start executable outside FlyEnv allowed scope: ${exePath}`)
+  }
+  if (pathHasSymlinkComponent(exePath)) {
+    helperExecutionFailed(`setAutoStartWin exePath contains symlink component`)
   }
   return { enabled: args[0], taskName, exePath }
 }
 
 function validateSslAddTrustedCertArgs(args: unknown[]): ValidatedSslAddTrustedCertArgs {
   ensureArgCount(args, 2, 'sslAddTrustedCert')
-  const cwd = validateAbsoluteWindowsPath(
+  const cwd = validatePathForRead(
     ensureString(args[0], 'sslAddTrustedCert arg[0] (cwd)'),
     'sslAddTrustedCert cwd'
   )
   try {
-    accessSync(cwd, constants.R_OK)
+    const mode = statSync(cwd).mode
+    if ((mode & constants.S_IRUSR) === 0 && (mode & constants.S_IRGRP) === 0 && (mode & constants.S_IROTH) === 0) {
+      helperExecutionFailed(`sslAddTrustedCert cwd is not readable: ${cwd}`)
+    }
   } catch {
     helperExecutionFailed(`sslAddTrustedCert cwd is not readable: ${cwd}`)
   }
@@ -337,10 +569,7 @@ function validateSslAddTrustedCertArgs(args: unknown[]): ValidatedSslAddTrustedC
   return { cwd, caName }
 }
 
-function buildWriteFileScript(
-  args: ValidatedWriteFileArgs,
-  tempFilePath?: string
-): string {
+function buildWriteFileScript(args: ValidatedWriteFileArgs, tempFilePath?: string): string {
   const contentExpression = tempFilePath
     ? `Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw`
     : powerShellString(args.content)
@@ -451,7 +680,7 @@ if ($LASTEXITCODE -ne 0) {
 }`
 }
 
-function buildPlanFromScript(
+function createPlan(
   script: string,
   tempFileKind?: WindowsHelperFallbackTempFileKind,
   tempFileContent?: string,
@@ -467,6 +696,21 @@ function buildPlanFromScript(
   }
 }
 
+function buildInlineOrDataFilePlan(
+  buildScript: (tempFilePath?: string) => string,
+  tempFileKind: WindowsHelperFallbackTempFileKind,
+  tempFileContent: string,
+  inlineLimit: number
+): WindowsHelperFallbackPlan {
+  const inlinePlan = createPlan(buildScript())
+  if (inlinePlan.command.length <= inlineLimit) {
+    return inlinePlan
+  }
+
+  const tempFilePath = buildTempFilePath(tempFileKind)
+  return createPlan(buildScript(tempFilePath), tempFileKind, tempFileContent, tempFilePath)
+}
+
 export function buildWindowsHelperFallbackPlan(
   module: string,
   fn: string,
@@ -479,50 +723,42 @@ export function buildWindowsHelperFallbackPlan(
 
   if (module === 'tools' && fn === 'writeFileByRoot') {
     const validated = validateWriteFileArgs(args)
-    if (validated.content.length > inlineLimit) {
-      const tempFilePath = buildTempFilePath('text')
-      return buildPlanFromScript(
-        buildWriteFileScript(validated, tempFilePath),
-        'text',
-        validated.content,
-        tempFilePath
-      )
-    }
-    return buildPlanFromScript(buildWriteFileScript(validated))
+    return buildInlineOrDataFilePlan(
+      (tempFilePath) => buildWriteFileScript(validated, tempFilePath),
+      'text',
+      validated.content,
+      inlineLimit
+    )
   }
 
   if (module === 'tools' && fn === 'writeBufferBase64ByRoot') {
     const validated = validateWriteBufferArgs(args)
-    if (validated.base64Content.length > inlineLimit) {
-      const tempFilePath = buildTempFilePath('base64')
-      return buildPlanFromScript(
-        buildWriteBufferScript(validated, tempFilePath),
-        'base64',
-        validated.base64Content,
-        tempFilePath
-      )
-    }
-    return buildPlanFromScript(buildWriteBufferScript(validated))
+    return buildInlineOrDataFilePlan(
+      (tempFilePath) => buildWriteBufferScript(validated, tempFilePath),
+      'base64',
+      validated.base64Content,
+      inlineLimit
+    )
   }
 
   if (module === 'tools' && fn === 'rm') {
-    return buildPlanFromScript(buildRmScript(validateRmArgs(args)))
+    return createPlan(buildRmScript(validateRmArgs(args)))
   }
 
   if (module === 'tools' && fn === 'setSystemPath') {
-    return buildPlanFromScript(buildSetSystemPathScript(validateSetSystemPathArgs(args)))
+    return createPlan(buildSetSystemPathScript(validateSetSystemPathArgs(args)))
   }
 
   if (module === 'tools' && fn === 'setSystemEnv') {
-    return buildPlanFromScript(buildSetSystemEnvScript(validateSetSystemEnvArgs(args)))
+    return createPlan(buildSetSystemEnvScript(validateSetSystemEnvArgs(args)))
   }
 
   if (module === 'tools' && fn === 'setAutoStartWin') {
-    return buildPlanFromScript(buildSetAutoStartScript(validateSetAutoStartArgs(args)))
+    return createPlan(buildSetAutoStartScript(validateSetAutoStartArgs(args)))
   }
 
   if (module === 'host' && fn === 'sslAddTrustedCert') {
-    return buildPlanFromScript(buildSslAddTrustedCertScript(validateSslAddTrustedCertArgs(args)))
+    return createPlan(buildSslAddTrustedCertScript(validateSslAddTrustedCertArgs(args)))
   }
 
   fallbackNotSupported(module, fn)

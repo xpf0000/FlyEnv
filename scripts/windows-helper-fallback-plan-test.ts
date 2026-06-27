@@ -6,24 +6,62 @@ import {
 const inlineWritePlan = buildWindowsHelperFallbackPlan(
   'tools',
   'writeFileByRoot',
-  ['C:/Temp/flyenv-inline.txt', 'ok'],
+  ['C:/FlyEnv/flyenv-inline.txt', 'ok'],
   2000
 )
 assert.equal(inlineWritePlan.mode, 'inline')
 assert.match(inlineWritePlan.command, /-EncodedCommand/)
 assert.equal(inlineWritePlan.tempFileContent, undefined)
 
+const emptyWritePlan = buildWindowsHelperFallbackPlan(
+  'tools',
+  'writeFileByRoot',
+  ['C:/FlyEnv/empty.txt', ''],
+  2000
+)
+assert.equal(emptyWritePlan.mode, 'inline')
+
+const multilineWritePlan = buildWindowsHelperFallbackPlan(
+  'tools',
+  'writeFileByRoot',
+  ['C:/FlyEnv/multiline.txt', 'line1\nline2'],
+  2000
+)
+assert.equal(multilineWritePlan.mode, 'inline')
+
+const tinyLimitPlan = buildWindowsHelperFallbackPlan(
+  'tools',
+  'writeFileByRoot',
+  ['C:/FlyEnv/final-length.txt', 'ok'],
+  80
+)
+assert.equal(tinyLimitPlan.mode, 'data-file')
+assert.equal(tinyLimitPlan.tempFileKind, 'text')
+assert.equal(tinyLimitPlan.tempFileContent, 'ok')
+assert.match(tinyLimitPlan.script, /Get-Content -LiteralPath/)
+
 const largeContent = 'x'.repeat(5000)
 const dataFilePlan = buildWindowsHelperFallbackPlan(
   'tools',
   'writeFileByRoot',
-  ['C:/Temp/flyenv-large.txt', largeContent],
+  ['C:/FlyEnv/flyenv-large.txt', largeContent],
   2000
 )
 assert.equal(dataFilePlan.mode, 'data-file')
 assert.equal(dataFilePlan.tempFileKind, 'text')
 assert.equal(dataFilePlan.tempFileContent, largeContent)
 assert.match(dataFilePlan.script, /Get-Content -LiteralPath/)
+
+const tinyBase64LimitPlan = buildWindowsHelperFallbackPlan(
+  'tools',
+  'writeBufferBase64ByRoot',
+  ['C:/FlyEnv/bin/flyenv-helper.exe', 'T0s='],
+  80
+)
+assert.equal(tinyBase64LimitPlan.mode, 'data-file')
+assert.equal(tinyBase64LimitPlan.tempFileKind, 'base64')
+assert.equal(tinyBase64LimitPlan.tempFileContent, 'T0s=')
+assert.match(tinyBase64LimitPlan.script, /Get-Content -LiteralPath/)
 
 const setEnvPlan = buildWindowsHelperFallbackPlan(
   'tools',
@@ -47,7 +85,7 @@ assert.throws(
     buildWindowsHelperFallbackPlan(
       'tools',
       'writeBufferBase64ByRoot',
-      ['C:/Temp/buffer.bin', '***not-base64***'],
+      ['C:/FlyEnv/buffer.bin', '***not-base64***'],
       2000
     ),
   (error: unknown) => {
@@ -58,6 +96,28 @@ assert.throws(
 
 assert.throws(
   () => buildWindowsHelperFallbackPlan('tools', 'setAutoStartWin', ['true', 'FlyEnvStartup', 'C:/FlyEnv/flyenv.exe'], 2000),
+  (error: unknown) => {
+    assert.equal((error as { code?: string }).code, 'helper_execution_failed')
+    return true
+  }
+)
+
+assert.throws(
+  () => buildWindowsHelperFallbackPlan('tools', 'writeFileByRoot', ['C:/Temp/not-allowed.txt', 'x'], 2000),
+  (error: unknown) => {
+    assert.equal((error as { code?: string }).code, 'helper_execution_failed')
+    return true
+  }
+)
+
+assert.throws(
+  () =>
+    buildWindowsHelperFallbackPlan(
+      'tools',
+      'setAutoStartWin',
+      [true, 'FlyEnvStartup', 'C:/Temp/flyenv.exe'],
+      2000
+    ),
   (error: unknown) => {
     assert.equal((error as { code?: string }).code, 'helper_execution_failed')
     return true

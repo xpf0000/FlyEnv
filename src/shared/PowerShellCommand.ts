@@ -22,7 +22,7 @@ export function quoteCmdArg(value: string): string {
     return value
   }
 
-  return `"${value.replace(/"/g, '\\"')}"`
+  return `"${value.replace(/"/g, '""')}"`
 }
 
 export function buildPowerShellEncodedCommand(
