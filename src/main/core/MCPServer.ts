@@ -15,6 +15,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { AppModuleEnum } from '@/core/type'
 import { getEnabledResourceDefs } from '@shared/mcpResourcePolicy'
+import type { GetManagedFileMapInput } from '@shared/mcpContext'
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
 import MCPAudit from './MCPAudit'
@@ -101,6 +102,10 @@ export default class MCPServer {
 
   private buildToolDefs() {
     const flagEnum = { type: 'string', enum: MODULE_FLAGS }
+    const databaseFlagEnum = {
+      type: 'string',
+      enum: ['mysql', 'mariadb', 'postgresql', 'redis', 'mongodb', 'memcached']
+    }
 
     this.toolDefs = [
       {
@@ -138,6 +143,94 @@ export default class MCPServer {
           'List local development sites managed by FlyEnv (domain, root, type, PHP version, SSL).',
         inputSchema: { type: 'object', properties: {} },
         handler: async () => textResult(await this.tools.listSites())
+      },
+      {
+        name: 'get_database_connection_info',
+        description:
+          'Return FlyEnv-known connection facts for a managed local database or cache service, including host, port, socket, credentials, config files, and logs.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            flag: databaseFlagEnum,
+            version: {
+              type: 'string',
+              description:
+                'Optional installed version. If omitted, prefer the running version, otherwise the enabled version.'
+            }
+          },
+          required: ['flag']
+        },
+        handler: async (args) =>
+          textResult(await this.tools.getDatabaseConnectionInfo(args.flag, args.version))
+      },
+      {
+        name: 'resolve_site_runtime',
+        description:
+          'Resolve a FlyEnv-managed site into its hosted runtime facts: site root, PHP runtime, preferred web server, managed files, and project runtime metadata.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            siteName: { type: 'string' }
+          },
+          required: ['siteName']
+        },
+        handler: async (args) => textResult(await this.tools.resolveSiteRuntime(args.siteName))
+      },
+      {
+        name: 'get_service_exec_info',
+        description:
+          'Return executable/runtime facts for a FlyEnv-managed service version, including bin, path, phpBin/phpConfig when present, config files, logs, and exec hints.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            flag: flagEnum,
+            version: { type: 'string' }
+          },
+          required: ['flag']
+        },
+        handler: async (args) => textResult(await this.tools.getServiceExecInfo(args.flag, args.version))
+      },
+      {
+        name: 'resolve_site_urls',
+        description:
+          'Return the canonical URL set for a FlyEnv-managed site, including aliases, SSL entrypoints, port summary, and reverse proxy declarations.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            siteName: { type: 'string' }
+          },
+          required: ['siteName']
+        },
+        handler: async (args) => textResult(await this.tools.resolveSiteUrls(args.siteName))
+      },
+      {
+        name: 'get_managed_file_map',
+        description:
+          'Return the important FlyEnv-managed file paths for a site or service, grouped by env/config/log/cert/runtime/data.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            scope: {
+              type: 'string',
+              enum: ['site', 'service']
+            },
+            name: {
+              type: 'string',
+              description: 'Required when scope=site.'
+            },
+            flag: {
+              type: 'string',
+              description: 'Required when scope=service.'
+            },
+            version: {
+              type: 'string',
+              description: 'Optional version when scope=service.'
+            }
+          },
+          required: ['scope']
+        },
+        handler: async (args) =>
+          textResult(await this.tools.getManagedFileMap(args as GetManagedFileMapInput))
       },
       {
         name: 'list_log_files',
@@ -291,7 +384,9 @@ export default class MCPServer {
           type: 'object',
           properties: {
             siteName: { type: 'string', description: 'Current domain name of the site to update.' },
+            name: { type: 'string', description: 'New primary domain name for the site.' },
             alias: { type: 'string' },
+            mark: { type: 'string' },
             root: { type: 'string' },
             phpVersion: { type: 'number' },
             useSSL: { type: 'boolean' },
@@ -308,12 +403,26 @@ export default class MCPServer {
                 apache: { type: 'number' },
                 apache_ssl: { type: 'number' },
                 caddy: { type: 'number' },
-                caddy_ssl: { type: 'number' }
+                caddy_ssl: { type: 'number' },
+                frankenphp: { type: 'number' },
+                frankenphp_ssl: { type: 'number' },
+                tomcat: { type: 'number' },
+                tomcat_ssl: { type: 'number' }
               }
             },
             nginx: {
               type: 'object',
               properties: { rewrite: { type: 'string' } }
+            },
+            reverseProxy: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  path: { type: 'string' },
+                  url: { type: 'string' }
+                }
+              }
             }
           },
           required: ['siteName']

@@ -1,40 +1,40 @@
 import IPC from '@/util/IPC'
 import { BrewStore } from '@/store/brew'
+import { AppStore } from '@/store/app'
+import { syncServiceStatusFromMcp } from '@/util/mcpServiceStatus'
+import type { AllAppModule } from '@/core/type'
+import { HostStore } from '@/components/Host/store'
 
 function handleServiceStatusChanged(res: any) {
-  const flag = res?.flag
+  const flag = res?.flag as AllAppModule | undefined
   if (!flag) {
     return
   }
   try {
+    const appStore = AppStore()
     const brewStore = BrewStore()
     const module = brewStore.module(flag)
     if (!module) {
       return
     }
-    // 按 bin 路径匹配——同一 version 可能装在不同位置，bin 才是实例唯一键
-    const instances: Array<{ bin: string; path?: string; pid: string }> = res?.instances ?? []
-    const runningByBin = new Map<string, { pid: string }>()
-    instances.forEach((ins) => {
-      if (ins?.bin) {
-        runningByBin.set(ins.bin, { pid: ins.pid })
-      }
+    const current = appStore.config.server?.[flag]?.current
+    const nextCurrent = syncServiceStatusFromMcp({
+      current,
+      installed: module.installed,
+      instances: res?.instances ?? [],
+      isOnlyRunOne: module.isOnlyRunOne
     })
-    module.installed.forEach((i: any) => {
-      const hit = runningByBin.get(i.bin)
-      if (hit) {
-        i.run = true
-        i.running = false
-        if (hit.pid) {
-          i.pid = `${hit.pid}`
-        }
-      } else {
-        // 不在运行列表里 → 标记为停止
-        i.run = false
-        i.running = false
-        i.pid = ''
-      }
-    })
+    if (
+      nextCurrent &&
+      (current?.version !== nextCurrent.version ||
+        current?.path !== nextCurrent.path ||
+        current?.bin !== nextCurrent.bin)
+    ) {
+      appStore.UPDATE_SERVER_CURRENT({
+        flag,
+        data: JSON.parse(JSON.stringify(nextCurrent))
+      })
+    }
   } catch (e) {
     console.log('service-status-changed handle error: ', e)
   }
@@ -58,6 +58,17 @@ function handleServiceInstalledNeedUpdate(res: any) {
   }
 }
 
+function handleHostListChanged(res: any) {
+  const hosts = Array.isArray(res?.hosts) ? res.hosts : []
+  try {
+    const appStore = AppStore()
+    appStore.UPDATE_HOSTS(hosts)
+    HostStore.updateCurrentList()
+  } catch (e) {
+    console.log('host-list-changed handle error: ', e)
+  }
+}
+
 export function setupMcpIpc() {
   IPC.on('APP-MCP-Notify').then((key: string, res: any) => {
     try {
@@ -66,9 +77,13 @@ export function setupMcpIpc() {
         handleServiceStatusChanged(res)
       } else if (type === 'service-installed-need-update') {
         handleServiceInstalledNeedUpdate(res)
+      } else if (type === 'host-list-changed') {
+        handleHostListChanged(res)
       }
     } catch (e) {
       console.log('APP-MCP-Notify handle error: ', e)
     }
   })
 }
+
+export { syncServiceStatusFromMcp as applyServiceStatusChangeFromMcp }

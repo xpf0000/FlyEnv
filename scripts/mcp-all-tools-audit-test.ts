@@ -8,8 +8,10 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 
 type ToolResult = {
+  [key: string]: unknown
   content?: Array<{ type?: string; text?: string }>
   isError?: boolean
+  toolResult?: unknown
 }
 
 type ServiceStatus = {
@@ -17,6 +19,12 @@ type ServiceStatus = {
   installed: number
   running: boolean
   versions: Array<{ version?: string; enable?: boolean }>
+}
+
+type OnlineVersion = {
+  version?: string
+  installed?: boolean
+  downloaded?: boolean
 }
 
 const url = process.argv[2] || 'http://127.0.0.1:7682'
@@ -99,7 +107,7 @@ async function waitForServiceState(
 }
 
 async function chooseService(client: Client): Promise<{ flag: string; version: string; running: boolean }> {
-  const candidates = [
+  const selected = await chooseOptionalService(client, [
     'nginx',
     'mailpit',
     'caddy',
@@ -110,8 +118,19 @@ async function chooseService(client: Client): Promise<{ flag: string; version: s
     'mariadb',
     'mongodb',
     'memcached'
-  ]
+  ])
 
+  if (selected) {
+    return selected
+  }
+
+  throw new Error('No controllable installed service found for start/stop/restart testing')
+}
+
+async function chooseOptionalService(
+  client: Client,
+  candidates: string[]
+): Promise<{ flag: string; version: string; running: boolean } | undefined> {
   for (const flag of candidates) {
     const result = await client.callTool({ name: 'service_status', arguments: { flag } })
     if (result.isError) continue
@@ -125,8 +144,13 @@ async function chooseService(client: Client): Promise<{ flag: string; version: s
       }
     }
   }
+}
 
-  throw new Error('No controllable installed service found for start/stop/restart testing')
+function chooseInstallCandidate(list: OnlineVersion[], flag: string): OnlineVersion & { version: string } {
+  assert.ok(Array.isArray(list) && list.length > 0, `${flag} online version list should not be empty`)
+  const candidate = list.find((item) => item?.version && !item.installed)
+  assert.ok(candidate?.version, `No installable online ${flag} version found`)
+  return candidate as OnlineVersion & { version: string }
 }
 
 function assertAuditContains(entries: any[], tool: string, success?: boolean) {
@@ -138,6 +162,11 @@ function assertAuditContains(entries: any[], tool: string, success?: boolean) {
     return true
   })
   assert.ok(match, `audit.log should contain ${tool}${typeof success === 'boolean' ? ` success=${success}` : ''}`)
+}
+
+function assertAuditContainsWhere(entries: any[], label: string, predicate: (entry: any) => boolean) {
+  const match = entries.find(predicate)
+  assert.ok(match, `audit.log should contain ${label}`)
 }
 
 async function main() {
@@ -187,6 +216,32 @@ async function main() {
     )
     assert.equal(serviceStatus.isError, false)
 
+    assert.equal(
+      (
+        await withTimeout(
+          'get_service_exec_info',
+          client.callTool({
+            name: 'get_service_exec_info',
+            arguments: { flag: service.flag, version: service.version }
+          })
+        )
+      ).isError,
+      false
+    )
+
+    assert.equal(
+      (
+        await withTimeout(
+          'get_managed_file_map service',
+          client.callTool({
+            name: 'get_managed_file_map',
+            arguments: { scope: 'service', flag: service.flag, version: service.version }
+          })
+        )
+      ).isError,
+      false
+    )
+
     const listSites = await withTimeout('list_sites', client.callTool({ name: 'list_sites', arguments: {} }))
     assert.equal(listSites.isError, false)
 
@@ -207,6 +262,8 @@ async function main() {
       client.callTool({ name: 'list_online_versions', arguments: { flag: 'nginx' } })
     )
     assert.equal(listOnlineVersions.isError, false)
+    const onlineVersions = parseText<OnlineVersion[]>(listOnlineVersions)
+    const nginxInstallCandidate = chooseInstallCandidate(onlineVersions, 'nginx')
 
     const servicesResource = await withTimeout(
       'read_resource flyenv://services',
@@ -307,6 +364,72 @@ async function main() {
     )
     assert.equal(updated.isError, false)
 
+    assert.equal(
+      (
+        await withTimeout(
+          'resolve_site_runtime',
+          client.callTool({
+            name: 'resolve_site_runtime',
+            arguments: { siteName }
+          })
+        )
+      ).isError,
+      false
+    )
+
+    assert.equal(
+      (
+        await withTimeout(
+          'resolve_site_urls',
+          client.callTool({
+            name: 'resolve_site_urls',
+            arguments: { siteName }
+          })
+        )
+      ).isError,
+      false
+    )
+
+    assert.equal(
+      (
+        await withTimeout(
+          'get_managed_file_map site',
+          client.callTool({
+            name: 'get_managed_file_map',
+            arguments: { scope: 'site', name: siteName }
+          })
+        )
+      ).isError,
+      false
+    )
+
+    const databaseService = await chooseOptionalService(client, [
+      'mysql',
+      'mariadb',
+      'postgresql',
+      'redis',
+      'mongodb',
+      'memcached'
+    ])
+    const dbInfo = await withTimeout(
+      'get_database_connection_info',
+      client.callTool({
+        name: 'get_database_connection_info',
+        arguments: databaseService
+          ? { flag: databaseService.flag, version: databaseService.version }
+          : { flag: 'mysql' }
+      })
+    )
+    if (databaseService) {
+      assert.equal(dbInfo.isError, false)
+    } else {
+      assert.equal(
+        dbInfo.isError,
+        true,
+        'get_database_connection_info should fail safely when no database is installed'
+      )
+    }
+
     const deleted = await withTimeout(
       'delete_site',
       client.callTool({
@@ -321,10 +444,28 @@ async function main() {
       'install_service',
       client.callTool({
         name: 'install_service',
-        arguments: { flag: 'git', version: '0.0.0' }
-      })
+        arguments: { flag: 'nginx', version: nginxInstallCandidate.version }
+      }),
+      30 * 60 * 1000
     )
-    assert.equal(installed.isError, true, 'install_service git should fail safely')
+    assert.equal(installed.isError, false, 'install_service nginx should succeed')
+    const installedData = parseText<{ installed?: string }>(installed)
+    assert.equal(installedData.installed, nginxInstallCandidate.version)
+
+    const nginxStatusAfterInstall = await withTimeout(
+      'service_status nginx after install',
+      client.callTool({
+        name: 'service_status',
+        arguments: { flag: 'nginx' }
+      }),
+      60 * 1000
+    )
+    assert.equal(nginxStatusAfterInstall.isError, false)
+    const nginxStatus = parseText<ServiceStatus>(nginxStatusAfterInstall)
+    assert.ok(
+      nginxStatus.versions.some((item) => item.version === nginxInstallCandidate.version),
+      `service_status nginx should include installed version ${nginxInstallCandidate.version}`
+    )
 
     await delay(500)
 
@@ -337,7 +478,12 @@ async function main() {
     for (const tool of [
       'list_services',
       'service_status',
+      'get_service_exec_info',
       'list_sites',
+      'get_database_connection_info',
+      'resolve_site_runtime',
+      'resolve_site_urls',
+      'get_managed_file_map',
       'list_log_files',
       'list_config_files',
       'list_online_versions',
@@ -354,13 +500,37 @@ async function main() {
 
     assertAuditContains(entries, 'read_resource', true)
 
+    assertAuditContains(entries, 'get_service_exec_info', true)
     assertAuditContains(entries, 'start_service', true)
     assertAuditContains(entries, 'stop_service', true)
     assertAuditContains(entries, 'restart_service', true)
+    if (databaseService) {
+      assertAuditContains(entries, 'get_database_connection_info', true)
+    } else {
+      assertAuditContains(entries, 'get_database_connection_info', false)
+    }
+    assertAuditContains(entries, 'resolve_site_runtime', true)
+    assertAuditContains(entries, 'resolve_site_urls', true)
+    assertAuditContains(entries, 'get_managed_file_map', true)
     assertAuditContains(entries, 'create_site', true)
     assertAuditContains(entries, 'update_site', true)
     assertAuditContains(entries, 'delete_site', true)
-    assertAuditContains(entries, 'install_service', false)
+    assertAuditContains(entries, 'install_service', true)
+    assertAuditContainsWhere(
+      entries,
+      'get_managed_file_map scope=service success=true',
+      (item) => item.tool === 'get_managed_file_map' && item.success === true && item.args?.scope === 'service'
+    )
+    assertAuditContainsWhere(
+      entries,
+      'get_managed_file_map scope=site success=true',
+      (item) => item.tool === 'get_managed_file_map' && item.success === true && item.args?.scope === 'site'
+    )
+    assertAuditContainsWhere(
+      entries,
+      'install_service nginx success=true',
+      (item) => item.tool === 'install_service' && item.success === true && item.args?.flag === 'nginx'
+    )
 
     console.log('mcp all tools audit test passed')
   } finally {

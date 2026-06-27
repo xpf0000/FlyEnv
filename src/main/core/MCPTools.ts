@@ -1,5 +1,7 @@
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
+import type { GetManagedFileMapInput } from '@shared/mcpContext'
+import MCPContextResolver from './MCPContextResolver'
 import ServiceProcessManager from './ServiceProcess'
 import ServiceVersionManager from './ServiceVersionManager'
 
@@ -136,8 +138,8 @@ function defaultHost(): Record<string, any> {
     type: 'php',
     name: '',
     alias: '',
-    useSSL: false,
-    autoSSL: false,
+    useSSL: true,
+    autoSSL: true,
     ssl: {
       cert: '',
       key: ''
@@ -171,6 +173,14 @@ function defaultHost(): Record<string, any> {
   }
 }
 
+function normalizeSiteName(name: string): string {
+  try {
+    return new URL(name.includes('http') ? name : `https://${name}`).hostname
+  } catch {
+    throw new Error(`Invalid site name: ${name}`)
+  }
+}
+
 /** 用输入构建一个可写入 host.json 的 AppHost */
 function buildHostFromInput(input: Record<string, any>): Record<string, any> {
   const host = defaultHost()
@@ -197,7 +207,12 @@ function mergeHostPatch(
   patch: Record<string, any>
 ): Record<string, any> {
   const updated = { ...site }
+  const nextPatch = { ...patch }
+  if (typeof nextPatch.name === 'string') {
+    nextPatch.name = normalizeSiteName(nextPatch.name)
+  }
   const allowed = [
+    'name',
     'alias',
     'root',
     'phpVersion',
@@ -217,11 +232,11 @@ function mergeHostPatch(
     'startCommand'
   ]
   for (const key of allowed) {
-    if (patch[key] !== undefined) {
+    if (nextPatch[key] !== undefined) {
       if (key === 'ssl' || key === 'port' || key === 'nginx') {
-        updated[key] = { ...updated[key], ...patch[key] }
+        updated[key] = { ...updated[key], ...nextPatch[key] }
       } else {
-        updated[key] = patch[key]
+        updated[key] = nextPatch[key]
       }
     }
   }
@@ -231,6 +246,7 @@ function mergeHostPatch(
 export class MCPTools {
   forkManager: ForkManager
   mcpConfig: MCPConfigManager
+  contextResolver: MCPContextResolver
   /** 主配置（user.json），用于写 server[flag].current；可选注入 */
   appConfig?: { getConfig: (k?: any, d?: any) => any; setConfig: (k: string, ...a: any) => any }
 
@@ -241,6 +257,7 @@ export class MCPTools {
   ) {
     this.forkManager = forkManager
     this.mcpConfig = mcpConfig
+    this.contextResolver = new MCPContextResolver(forkManager, mcpConfig)
     this.appConfig = appConfig
     ServiceVersionManager.setForkManager(forkManager)
   }
@@ -338,10 +355,75 @@ export class MCPTools {
     return list.find((h: any) => h?.name === name)
   }
 
+  private hostWriteConfig() {
+    return {
+      write: this.appConfig?.getConfig('setup.hosts.write', true) ?? true,
+      ipv6: this.appConfig?.getConfig('setup.hosts.ipv6', true) ?? true
+    }
+  }
+
+  private async reloadWebServer(hosts?: Array<Record<string, any>>) {
+    let useSeted = false
+
+    for (const flag of ['apache', 'nginx', 'caddy', 'tomcat']) {
+      const running = ServiceProcessManager.statusOf(flag).instances[0]
+      if (!running?.version) {
+        continue
+      }
+      await this.restartService(flag, running.version).catch((e) => {
+        console.log(`reloadWebServer restart ${flag} error:`, e)
+      })
+      useSeted = true
+    }
+
+    if (useSeted || !hosts || hosts.length > 1) {
+      return
+    }
+
+    if (hosts.length === 1) {
+      for (const flag of ['caddy', 'nginx', 'apache']) {
+        const installed = await this.rawServiceVersions(flag).catch(() => [])
+        if (installed.length > 0) {
+          await this.startService(flag).catch((e) => {
+            console.log(`reloadWebServer start ${flag} error:`, e)
+          })
+          break
+        }
+      }
+
+      const host = hosts[0]
+      if (host?.phpVersion) {
+        const phpVersions = await this.rawServiceVersions('php').catch(() => [])
+        const php = phpVersions.find((p: any) => p.num === host.phpVersion)
+        if (php?.version) {
+          await this.startService('php', php.version).catch((e) => {
+            console.log(`reloadWebServer start php ${php.version} error:`, e)
+          })
+        }
+      }
+    }
+  }
+
+  private async finalizeHostMutation(hosts: Array<Record<string, any>>, isAdd = false) {
+    await this.reloadWebServer(isAdd ? hosts : undefined)
+
+    const { write, ipv6 } = this.hostWriteConfig()
+    await callFork(this.forkManager, 'host', 'writeHosts', write, ipv6)
+
+    ServiceVersionManager.notifyRenderer({
+      type: 'host-list-changed',
+      hosts
+    })
+  }
+
   /** create_site：新增本地站点 */
   async createSite(input: Record<string, any>): Promise<any> {
     const host = buildHostFromInput(input)
     const data = await callFork(this.forkManager, 'host', 'handleHost', host, 'add')
+    const list = data?.host ?? []
+    if (Array.isArray(list)) {
+      await this.finalizeHostMutation(list, true)
+    }
     return data
   }
 
@@ -353,6 +435,10 @@ export class MCPTools {
     }
     const updated = mergeHostPatch(site, patch)
     const data = await callFork(this.forkManager, 'host', 'handleHost', updated, 'edit', site)
+    const list = data?.host ?? []
+    if (Array.isArray(list)) {
+      await this.finalizeHostMutation(list, false)
+    }
     return data
   }
 
@@ -508,6 +594,10 @@ export class MCPTools {
       throw new Error(`Site ${siteName} not found`)
     }
     const data = await callFork(this.forkManager, 'host', 'handleHost', site, 'del')
+    const list = data?.host ?? []
+    if (Array.isArray(list)) {
+      await this.finalizeHostMutation(list, false)
+    }
     return data
   }
 
@@ -546,6 +636,26 @@ export class MCPTools {
     const versions = refreshed[flag] ?? []
     ServiceVersionManager.notifyRenderer({ type: 'service-installed-need-update', flag, versions })
     return { installed: version, result, versions }
+  }
+
+  async getDatabaseConnectionInfo(flag: string, version?: string) {
+    return this.contextResolver.getDatabaseConnectionInfo(flag, version)
+  }
+
+  async resolveSiteRuntime(siteName: string) {
+    return this.contextResolver.resolveSiteRuntime(siteName)
+  }
+
+  async getServiceExecInfo(flag: string, version?: string) {
+    return this.contextResolver.getServiceExecInfo(flag, version)
+  }
+
+  async resolveSiteUrls(siteName: string) {
+    return this.contextResolver.resolveSiteUrls(siteName)
+  }
+
+  async getManagedFileMap(input: GetManagedFileMapInput) {
+    return this.contextResolver.getManagedFileMap(input)
   }
 
   // ===== MCP 响应包装 =====

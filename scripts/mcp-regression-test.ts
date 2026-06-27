@@ -112,6 +112,42 @@ class FakeMcpConfigManager {
   }
 }
 
+class FakeAppConfig {
+  store: Record<string, any>
+
+  constructor(store?: Record<string, any>) {
+    this.store = {
+      setup: {
+        hosts: {
+          write: true,
+          ipv6: true
+        }
+      },
+      ...(store ?? {})
+    }
+  }
+
+  getConfig(key?: string, defaultValue?: any) {
+    if (!key) {
+      return this.store
+    }
+    const value = key.split('.').reduce((acc: any, part) => acc?.[part], this.store)
+    return value ?? defaultValue
+  }
+
+  setConfig(key: string, value: any) {
+    const parts = key.split('.')
+    let cursor = this.store
+    while (parts.length > 1) {
+      const part = parts.shift()!
+      cursor[part] ??= {}
+      cursor = cursor[part]
+    }
+    cursor[parts[0]!] = value
+    return this.store
+  }
+}
+
 function resetManagers() {
   ;(ServiceVersionManager as any).cache = {}
   ;(ServiceVersionManager as any).notifyCallbacks = []
@@ -140,6 +176,170 @@ async function testInstallServiceRefreshesCacheAndNotifiesVersions() {
   assert.equal(payloads.length, 1)
   assert.equal(payloads[0]?.flag, 'nginx')
   assert.equal(payloads[0]?.versions?.[0]?.version, '1.30.0')
+}
+
+async function testCreateSiteMirrorsUiFollowUpActions() {
+  resetManagers()
+  const forkManager = new FakeForkManager()
+  const nginx = makeVersion('nginx', '1.29.0')
+  forkManager.installedByFlag.nginx = [nginx]
+  ServiceVersionManager.updateCache({ nginx: [nginx] })
+  ServiceProcessManager.addPid('nginx', '1001', nginx)
+
+  const payloads: any[] = []
+  ServiceVersionManager.onMcpNotify((payload) => {
+    payloads.push(payload)
+  })
+
+  const createdHosts = [{ id: 1, name: 'demo.test', root: 'F:/www/demo', type: 'php' }]
+  const originalSend = forkManager.send.bind(forkManager)
+  forkManager.send = ((module: string, fn: string, ...args: any[]) => {
+    forkManager.calls.push({ module, fn, args })
+    if (module === 'host' && fn === 'handleHost') {
+      return createSendResult({ code: 0, data: { host: createdHosts } })
+    }
+    if (module === 'host' && fn === 'writeHosts') {
+      return createSendResult({ code: 0, data: true })
+    }
+    forkManager.calls.pop()
+    return originalSend(module, fn, ...args)
+  }) as any
+
+  const tools = new MCPTools(
+    forkManager as any,
+    new FakeMcpConfigManager() as any,
+    new FakeAppConfig({
+      setup: {
+        hosts: {
+          write: true,
+          ipv6: false
+        }
+      }
+    }) as any
+  )
+
+  await tools.createSite({ name: 'demo.test', root: 'F:/www/demo' })
+
+  assert.equal(forkManager.calls[0]?.module, 'host')
+  assert.equal(forkManager.calls[0]?.fn, 'handleHost')
+  assert.equal(forkManager.calls[0]?.args[0]?.useSSL, true)
+  assert.equal(forkManager.calls[0]?.args[0]?.autoSSL, true)
+  assert.deepEqual(
+    forkManager.calls.map((item) => `${item.module}:${item.fn}`),
+    ['host:handleHost', 'nginx:stopService', 'nginx:startService', 'host:writeHosts']
+  )
+  assert.deepEqual(forkManager.calls[3]?.args, [true, false])
+  assert.equal(payloads.length, 1)
+  assert.equal(payloads[0]?.type, 'host-list-changed')
+  assert.equal(payloads[0]?.hosts?.[0]?.name, 'demo.test')
+}
+
+async function testUpdateSiteMirrorsUiEditableFields() {
+  resetManagers()
+  const forkManager = new FakeForkManager()
+  const nginx = makeVersion('nginx', '1.29.0')
+  forkManager.installedByFlag.nginx = [nginx]
+  ServiceVersionManager.updateCache({ nginx: [nginx] })
+  ServiceProcessManager.addPid('nginx', '1001', nginx)
+
+  const payloads: any[] = []
+  ServiceVersionManager.onMcpNotify((payload) => {
+    payloads.push(payload)
+  })
+
+  const oldSite = {
+    id: 11,
+    type: 'php',
+    name: 'old.test',
+    alias: '',
+    useSSL: false,
+    autoSSL: false,
+    ssl: {
+      cert: '',
+      key: ''
+    },
+    port: {
+      nginx: 80,
+      nginx_ssl: 443,
+      apache: 80,
+      apache_ssl: 443,
+      caddy: 80,
+      caddy_ssl: 443,
+      frankenphp: 80,
+      frankenphp_ssl: 443,
+      tomcat: 80,
+      tomcat_ssl: 443
+    },
+    nginx: {
+      rewrite: ''
+    },
+    url: 'http://old.test',
+    root: 'F:/www/old',
+    mark: '',
+    reverseProxy: []
+  }
+
+  const originalSend = forkManager.send.bind(forkManager)
+  forkManager.send = ((module: string, fn: string, ...args: any[]) => {
+    forkManager.calls.push({ module, fn, args })
+    if (module === 'host' && fn === 'hostList') {
+      return createSendResult({ code: 0, data: { host: [oldSite] } })
+    }
+    if (module === 'host' && fn === 'handleHost') {
+      return createSendResult({ code: 0, data: { host: [args[0]] } })
+    }
+    if (module === 'host' && fn === 'writeHosts') {
+      return createSendResult({ code: 0, data: true })
+    }
+    forkManager.calls.pop()
+    return originalSend(module, fn, ...args)
+  }) as any
+
+  const tools = new MCPTools(
+    forkManager as any,
+    new FakeMcpConfigManager() as any,
+    new FakeAppConfig({
+      setup: {
+        hosts: {
+          write: true,
+          ipv6: false
+        }
+      }
+    }) as any
+  )
+
+  await tools.updateSite('old.test', {
+    name: 'https://new.test:8443',
+    mark: 'renamed by mcp',
+    reverseProxy: [{ path: '/', url: 'http://127.0.0.1:3000' }],
+    port: {
+      frankenphp: 8080,
+      frankenphp_ssl: 8443,
+      tomcat: 9090,
+      tomcat_ssl: 9443
+    }
+  })
+
+  assert.equal(forkManager.calls[0]?.module, 'host')
+  assert.equal(forkManager.calls[0]?.fn, 'hostList')
+  assert.equal(forkManager.calls[1]?.module, 'host')
+  assert.equal(forkManager.calls[1]?.fn, 'handleHost')
+  assert.equal(forkManager.calls[1]?.args[0]?.name, 'new.test')
+  assert.equal(forkManager.calls[1]?.args[0]?.mark, 'renamed by mcp')
+  assert.deepEqual(forkManager.calls[1]?.args[0]?.reverseProxy, [
+    { path: '/', url: 'http://127.0.0.1:3000' }
+  ])
+  assert.equal(forkManager.calls[1]?.args[0]?.port?.frankenphp, 8080)
+  assert.equal(forkManager.calls[1]?.args[0]?.port?.frankenphp_ssl, 8443)
+  assert.equal(forkManager.calls[1]?.args[0]?.port?.tomcat, 9090)
+  assert.equal(forkManager.calls[1]?.args[0]?.port?.tomcat_ssl, 9443)
+  assert.deepEqual(
+    forkManager.calls.map((item) => `${item.module}:${item.fn}`),
+    ['host:hostList', 'host:handleHost', 'nginx:stopService', 'nginx:startService', 'host:writeHosts']
+  )
+  assert.equal(payloads.length, 1)
+  assert.equal(payloads[0]?.type, 'host-list-changed')
+  assert.equal(payloads[0]?.hosts?.[0]?.name, 'new.test')
 }
 
 async function testStopAllServiceKeepsFailedInstancesInStatus() {
@@ -237,6 +437,8 @@ async function testClientConfigHelpers() {
 
 async function main() {
   await testInstallServiceRefreshesCacheAndNotifiesVersions()
+  await testCreateSiteMirrorsUiFollowUpActions()
+  await testUpdateSiteMirrorsUiEditableFields()
   await testStopAllServiceKeepsFailedInstancesInStatus()
   await testResourcePolicyHelpersAndAudit()
   await testClientConfigHelpers()
