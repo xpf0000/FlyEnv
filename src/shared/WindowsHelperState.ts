@@ -7,6 +7,10 @@ export type AppHelperErrorCode =
 
 export type WindowsHelperTransport = 'socket' | 'fallback' | 'prompt' | 'reject'
 
+export type HelperCheckResponse =
+  | { code: 0; data: true }
+  | { code: 1; data: false; reason: AppHelperErrorCode }
+
 const FALLBACK_ALLOWLIST = new Set([
   'tools/writeFileByRoot',
   'tools/writeBufferBase64ByRoot',
@@ -71,18 +75,18 @@ export const resolveWindowsHelperTransport = (
   return 'prompt'
 }
 
-export const buildHelperCheckResponse = (error: unknown) => {
+export const buildHelperCheckResponse = (error: unknown): HelperCheckResponse => {
   if (!error) {
-    return { code: 0, data: true as const }
+    return { code: 0, data: true }
   }
 
   if (isAppHelperError(error)) {
-    return { code: 1, data: false as const, reason: error.code }
+    return { code: 1, data: false, reason: error.code }
   }
 
-  return { code: 1, data: false as const, reason: 'helper_execution_failed' as const }
+  return { code: 1, data: false, reason: 'helper_execution_failed' }
 }
 
-export const shouldOpenHelperInstaller = (reason?: AppHelperErrorCode) => {
+export const shouldOpenHelperInstaller = (reason?: string) => {
   return reason !== 'helper_binary_missing'
 }
