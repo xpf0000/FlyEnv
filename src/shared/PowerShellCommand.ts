@@ -12,3 +12,22 @@ export function powerShellInlineArgs(script: string): string[] {
     encodePowerShellCommand(script)
   ]
 }
+
+export function quoteCmdArg(value: string): string {
+  if (value.length === 0) {
+    return '""'
+  }
+
+  if (!/[\s"]/u.test(value)) {
+    return value
+  }
+
+  return `"${value.replace(/"/g, '\\"')}"`
+}
+
+export function buildPowerShellEncodedCommand(
+  script: string,
+  powershellPath = 'powershell.exe'
+): string {
+  return [powershellPath, ...powerShellInlineArgs(script)].map(quoteCmdArg).join(' ')
+}
