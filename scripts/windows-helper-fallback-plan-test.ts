@@ -1,7 +1,19 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import {
   buildWindowsHelperFallbackPlan
 } from '../src/shared/WindowsHelperFallback'
+
+const originalProgramData = process.env.ProgramData
+const tempProgramData = path.join(os.tmpdir(), `flyenv-helper-plan-test-${Date.now()}`)
+const allowedRootsDir = path.join(tempProgramData, 'FlyEnv')
+const allowedRootsFile = path.join(allowedRootsDir, 'flyenv.allowed-roots')
+
+process.env.ProgramData = tempProgramData
+fs.mkdirSync(allowedRootsDir, { recursive: true })
+fs.writeFileSync(allowedRootsFile, 'C:\\FlyEnv\n', 'utf8')
 
 const inlineWritePlan = buildWindowsHelperFallbackPlan(
   'tools',
@@ -131,3 +143,10 @@ assert.throws(
 )
 
 console.log('windows helper fallback plan test passed')
+
+if (originalProgramData == null) {
+  delete process.env.ProgramData
+} else {
+  process.env.ProgramData = originalProgramData
+}
+fs.rmSync(tempProgramData, { recursive: true, force: true })
