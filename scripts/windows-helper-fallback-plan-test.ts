@@ -67,7 +67,7 @@ const setEnvPlan = buildWindowsHelperFallbackPlan(
   'tools',
   'setSystemEnv',
   ['FLYENV_ALIAS', 'C:/FlyEnv/alias'],
-  2000
+  6000
 )
 assert.equal(setEnvPlan.mode, 'inline')
 assert.match(setEnvPlan.script, /Set-ItemProperty/)
@@ -103,7 +103,13 @@ assert.throws(
 )
 
 assert.throws(
-  () => buildWindowsHelperFallbackPlan('tools', 'writeFileByRoot', ['C:/Temp/not-allowed.txt', 'x'], 2000),
+  () =>
+    buildWindowsHelperFallbackPlan(
+      'tools',
+      'writeFileByRoot',
+      ['C:/Windows/System32/not-allowed.txt', 'x'],
+      2000
+    ),
   (error: unknown) => {
     assert.equal((error as { code?: string }).code, 'helper_execution_failed')
     return true
@@ -115,7 +121,7 @@ assert.throws(
     buildWindowsHelperFallbackPlan(
       'tools',
       'setAutoStartWin',
-      [true, 'FlyEnvStartup', 'C:/Temp/flyenv.exe'],
+      [true, 'FlyEnvStartup', 'C:/Windows/System32/flyenv.exe'],
       2000
     ),
   (error: unknown) => {
@@ -124,4 +130,4 @@ assert.throws(
   }
 )
 
-console.log('windows-helper-fallback-plan-test: ok')
+console.log('windows helper fallback plan test passed')

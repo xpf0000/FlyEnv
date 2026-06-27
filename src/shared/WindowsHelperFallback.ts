@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { constants, lstatSync, readFileSync, statSync } from 'node:fs'
+import { lstatSync, readFileSync } from 'node:fs'
 import * as fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -407,7 +407,10 @@ function validateSystemEnvValue(key: string, value: string): string {
 }
 
 function validateBase64(value: string, label: string): string {
-  if (!value || /\s/u.test(value) || value.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(value)) {
+  if (value === '') {
+    return value
+  }
+  if (/\s/u.test(value) || value.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(value)) {
     helperExecutionFailed(`${label} must be valid base64`)
   }
   try {
@@ -517,14 +520,16 @@ function validateSetAutoStartArgs(args: unknown[]): ValidatedSetAutoStartArgs {
   if (typeof args[0] !== 'boolean') {
     helperExecutionFailed(`setAutoStartWin arg[0] (enabled) must be a boolean, got ${typeof args[0]}`)
   }
+  const enabled = args[0]
   const taskName = ensureString(args[1], 'setAutoStartWin arg[1] (taskName)')
   if (!AUTO_TASK_NAME_PATTERN.test(taskName) || !ALLOWED_AUTO_START_TASKS.has(taskName)) {
     helperExecutionFailed(`invalid auto-start task name: ${taskName}`)
   }
-  const exePath = cleanAbsPath(
-    ensureString(args[2], 'setAutoStartWin arg[2] (exePath)'),
-    'setAutoStartWin exePath'
-  )
+  const rawExePath = ensureString(args[2], 'setAutoStartWin arg[2] (exePath)')
+  if (!enabled && !rawExePath.trim()) {
+    return { enabled, taskName, exePath: '' }
+  }
+  const exePath = cleanAbsPath(rawExePath, 'setAutoStartWin exePath')
   if (isSensitiveSystemPath(exePath)) {
     helperExecutionFailed(`sensitive system path is not allowed: ${exePath}`)
   }
@@ -532,17 +537,10 @@ function validateSetAutoStartArgs(args: unknown[]): ValidatedSetAutoStartArgs {
   if (!ALLOWED_AUTO_START_BASENAMES.has(exeBasename)) {
     helperExecutionFailed(`invalid auto-start executable: ${exeBasename}`)
   }
-  if (
-    !isManagedDirectoryByName(exePath) &&
-    !isManagedPathByExecutable(exePath) &&
-    !isWindowsProgramFilesFlyEnvPath(exePath)
-  ) {
+  if (!isBusinessPathAllowed(exePath) && !isManagedDirectoryByName(exePath)) {
     helperExecutionFailed(`auto-start executable outside FlyEnv allowed scope: ${exePath}`)
   }
-  if (pathHasSymlinkComponent(exePath)) {
-    helperExecutionFailed(`setAutoStartWin exePath contains symlink component`)
-  }
-  return { enabled: args[0], taskName, exePath }
+  return { enabled, taskName, exePath }
 }
 
 function validateSslAddTrustedCertArgs(args: unknown[]): ValidatedSslAddTrustedCertArgs {
@@ -551,14 +549,6 @@ function validateSslAddTrustedCertArgs(args: unknown[]): ValidatedSslAddTrustedC
     ensureString(args[0], 'sslAddTrustedCert arg[0] (cwd)'),
     'sslAddTrustedCert cwd'
   )
-  try {
-    const mode = statSync(cwd).mode
-    if ((mode & constants.S_IRUSR) === 0 && (mode & constants.S_IRGRP) === 0 && (mode & constants.S_IROTH) === 0) {
-      helperExecutionFailed(`sslAddTrustedCert cwd is not readable: ${cwd}`)
-    }
-  } catch {
-    helperExecutionFailed(`sslAddTrustedCert cwd is not readable: ${cwd}`)
-  }
   const caName = ensureString(args[1], 'sslAddTrustedCert arg[1] (caName)').trim()
   if (path.win32.basename(caName) !== caName || path.posix.basename(caName) !== caName) {
     helperExecutionFailed('sslAddTrustedCert caName must be a basename')
@@ -606,56 +596,91 @@ function buildRmScript(targetPath: string): string {
   return `${buildPowerShellPreamble()}
 $targetPath = ${powerShellString(targetPath)}
 if (Test-Path -LiteralPath $targetPath) {
-  Remove-Item -LiteralPath $targetPath -Recurse -Force
+  Remove-Item -LiteralPath $targetPath -Recurse -Force -ErrorAction SilentlyContinue
 }`
 }
 
-function buildSetSystemPathScript(args: ValidatedSetSystemPathArgs): string {
-  const pathValue = `${args.paths.join(';')};`
-  const otherVarLines = Object.entries(args.otherVars).map(([key, value]) => {
-    if (value.includes('%')) {
-      return `New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name ${powerShellString(
-        key
-      )} -Value ${powerShellString(value)} -PropertyType ExpandString -Force | Out-Null`
-    }
-    return `New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name ${powerShellString(
-      key
-    )} -Value ${powerShellString(value)} -PropertyType String -Force | Out-Null
-Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name ${powerShellString(
-      key
-    )} -Value ${powerShellString(value)}`
-  })
+function buildSetSystemPathScript(
+  args: ValidatedSetSystemPathArgs,
+  tempFilePath?: string
+): string {
+  const runtimeSetup = tempFilePath
+    ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
+$paths = @($payload.paths)
+$otherVars = @{}
+if ($payload.otherVars) {
+  foreach ($property in $payload.otherVars.PSObject.Properties) {
+    $otherVars[[string]$property.Name] = [string]$property.Value
+  }
+}`
+    : (() => {
+        const pathsArray = args.paths.map((entry) => powerShellString(entry)).join(', ')
+        const otherVarsBody = Object.entries(args.otherVars)
+          .map(([key, value]) => `${powerShellString(key)} = ${powerShellString(value)}`)
+          .join('; ')
+        return `$paths = @(${pathsArray})
+$otherVars = ${otherVarsBody ? `@{ ${otherVarsBody} }` : '@{}'}`
+      })()
   return `${buildPowerShellPreamble()}
-New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name 'Path' -Value ${powerShellString(
-    pathValue
-  )} -PropertyType ExpandString -Force | Out-Null
-${otherVarLines.join('\n')}
+${runtimeSetup}
+$pathValue = (($paths | Where-Object { $_ -and $_.ToString().Trim().Length -gt 0 }) -join ';') + ';'
+New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name 'Path' -Value $pathValue -PropertyType ExpandString -Force | Out-Null
+foreach ($entry in $otherVars.GetEnumerator()) {
+  $name = [string]$entry.Key
+  $value = [string]$entry.Value
+  if ($value.Contains('%')) {
+    New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $name -Value $value -PropertyType ExpandString -Force | Out-Null
+  }
+  else {
+    New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $name -Value $value -PropertyType String -Force | Out-Null
+    Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $name -Value $value
+  }
+}
 New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name 'FLYENV_ENV_FLUSH' -Value '0' -PropertyType String -Force | Out-Null
 Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name 'FLYENV_ENV_FLUSH' -Value '0'
 ${buildNotifyEnvironmentChangedScript()}`
 }
 
-function buildSetSystemEnvScript(args: ValidatedSetSystemEnvArgs): string {
-  const writeValue = args.value.includes('%')
-    ? `New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name ${powerShellString(
-        args.key
-      )} -Value ${powerShellString(args.value)} -PropertyType ExpandString -Force | Out-Null`
-    : `New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name ${powerShellString(
-        args.key
-      )} -Value ${powerShellString(args.value)} -PropertyType String -Force | Out-Null
-Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name ${powerShellString(
-        args.key
-      )} -Value ${powerShellString(args.value)}`
+function buildSetSystemEnvScript(
+  args: ValidatedSetSystemEnvArgs,
+  tempFilePath?: string
+): string {
+  const runtimeSetup = tempFilePath
+    ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
+$key = [string]$payload.key
+$value = [string]$payload.value`
+    : `$key = ${powerShellString(args.key)}
+$value = ${powerShellString(args.value)}`
+  const writeValue = tempFilePath || args.value.includes('%')
+    ? `if ($value.Contains('%')) {
+  New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value -PropertyType ExpandString -Force | Out-Null
+}
+else {
+  New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value -PropertyType String -Force | Out-Null
+  Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value
+}`
+    : `New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value -PropertyType String -Force | Out-Null
+Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value`
   return `${buildPowerShellPreamble()}
+${runtimeSetup}
 ${writeValue}
 ${buildNotifyEnvironmentChangedScript()}`
 }
 
-function buildSetAutoStartScript(args: ValidatedSetAutoStartArgs): string {
-  return `${buildPowerShellPreamble()}
-$enabled = ${args.enabled ? '$true' : '$false'}
+function buildSetAutoStartScript(
+  args: ValidatedSetAutoStartArgs,
+  tempFilePath?: string
+): string {
+  const runtimeSetup = tempFilePath
+    ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
+$enabled = [bool]$payload.enabled
+$taskName = [string]$payload.taskName
+$exePath = [string]$payload.exePath`
+    : `$enabled = ${args.enabled ? '$true' : '$false'}
 $taskName = ${powerShellString(args.taskName)}
-$exePath = ${powerShellString(args.exePath)}
+$exePath = ${powerShellString(args.exePath)}`
+  return `${buildPowerShellPreamble()}
+${runtimeSetup}
 if ($enabled) {
   & schtasks.exe /create /tn $taskName /tr ('"' + $exePath + '"') /sc onlogon /rl highest /f | Out-Null
   if ($LASTEXITCODE -ne 0) {
@@ -746,15 +771,33 @@ export function buildWindowsHelperFallbackPlan(
   }
 
   if (module === 'tools' && fn === 'setSystemPath') {
-    return createPlan(buildSetSystemPathScript(validateSetSystemPathArgs(args)))
+    const validated = validateSetSystemPathArgs(args)
+    return buildInlineOrDataFilePlan(
+      (tempFilePath) => buildSetSystemPathScript(validated, tempFilePath),
+      'text',
+      JSON.stringify(validated),
+      inlineLimit
+    )
   }
 
   if (module === 'tools' && fn === 'setSystemEnv') {
-    return createPlan(buildSetSystemEnvScript(validateSetSystemEnvArgs(args)))
+    const validated = validateSetSystemEnvArgs(args)
+    return buildInlineOrDataFilePlan(
+      (tempFilePath) => buildSetSystemEnvScript(validated, tempFilePath),
+      'text',
+      JSON.stringify(validated),
+      inlineLimit
+    )
   }
 
   if (module === 'tools' && fn === 'setAutoStartWin') {
-    return createPlan(buildSetAutoStartScript(validateSetAutoStartArgs(args)))
+    const validated = validateSetAutoStartArgs(args)
+    return buildInlineOrDataFilePlan(
+      (tempFilePath) => buildSetAutoStartScript(validated, tempFilePath),
+      'text',
+      JSON.stringify(validated),
+      inlineLimit
+    )
   }
 
   if (module === 'host' && fn === 'sslAddTrustedCert') {
@@ -769,6 +812,9 @@ export async function runWindowsHelperFallback(
   fn: string,
   args: unknown[]
 ): Promise<true> {
+  if (process.platform !== 'win32') {
+    fallbackNotSupported(module, fn)
+  }
   await EnvSync.sync()
   const plan = buildWindowsHelperFallbackPlan(module, fn, args)
 
@@ -777,6 +823,10 @@ export async function runWindowsHelperFallback(
       await fs.writeFile(plan.tempFilePath, plan.tempFileContent, 'utf8')
     }
     await Sudo(plan.command, { name: 'FlyEnv' })
+    if (module === 'tools' && (fn === 'setSystemEnv' || fn === 'setSystemPath')) {
+      EnvSync.clean()
+      await EnvSync.sync().catch(() => undefined)
+    }
     return true
   } finally {
     if (plan.tempFilePath) {

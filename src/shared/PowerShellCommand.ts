@@ -13,11 +13,7 @@ export function powerShellInlineArgs(script: string): string[] {
   ]
 }
 
-export function quoteCmdArg(value: string): string {
-  if (value.length === 0) {
-    return '""'
-  }
-
+function quoteCmdArg(value: string): string {
   if (!/[\s"]/u.test(value)) {
     return value
   }
