@@ -30,6 +30,10 @@ const version = {
         version: '*'
       },
       {
+        name: 'laravel 13',
+        version: '13.*'
+      },
+      {
         name: 'laravel 12',
         version: '12.*'
       },
