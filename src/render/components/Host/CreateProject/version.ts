@@ -31,39 +31,48 @@ const version = {
       },
       {
         name: 'laravel 13',
-        version: '13.*'
+        version: '13.*',
+        php: '^8.3'
       },
       {
         name: 'laravel 12',
-        version: '12.*'
+        version: '12.*',
+        php: '^8.2'
       },
       {
         name: 'laravel 11',
-        version: '11.*'
+        version: '11.*',
+        php: '^8.2'
       },
       {
         name: 'laravel 10',
-        version: '10.*'
+        version: '10.*',
+        php: '^8.1'
       },
       {
         name: 'laravel 9',
-        version: '9.*'
+        version: '9.*',
+        php: '^8.0'
       },
       {
         name: 'laravel 8',
-        version: '8.*'
+        version: '8.*',
+        php: '^7.3'
       },
       {
         name: 'laravel 7',
-        version: '7.*'
+        version: '7.*',
+        php: '^7.2.5'
       },
       {
         name: 'laravel 6',
-        version: '6.*'
+        version: '6.*',
+        php: '^7.2'
       },
       {
         name: 'laravel 5',
-        version: '5.8.*'
+        version: '5.8.*',
+        php: '^7.1.3'
       }
     ]
   },
