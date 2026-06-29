@@ -4,7 +4,7 @@ import type { AppModuleItem } from '@/core/type'
 const module: AppModuleItem = {
   moduleType: 'ai',
   typeFlag: 'mcp',
-  label: 'MCP Server',
+  label: 'FlyEnv MCP Server',
   icon: import('@/svg/mcp.svg?raw'),
   iconPadding: 3,
   index: defineAsyncComponent(() => import('./Index.vue')),
