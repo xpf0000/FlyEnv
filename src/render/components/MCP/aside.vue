@@ -6,7 +6,7 @@
   >
     <div class="left">
       <div class="icon-block" :class="{ run: serviceRunning }">
-        <yb-icon :svg="import('@/svg/mcp.svg?raw')" style="padding: 6px" width="28" height="28" />
+        <yb-icon :svg="import('@/svg/mcp.svg?raw')" style="padding: 3px" width="28" height="28" />
       </div>
       <span class="title">MCP Server</span>
     </div>

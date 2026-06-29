@@ -91,6 +91,7 @@
   const fileExt = computed(() => {
     const name = currentFile.value?.name ?? ''
     if (name.endsWith('.toml')) return 'toml'
+    if (name.endsWith('.json') || name.endsWith('.jsonc')) return 'json'
     if (name.endsWith('.yaml') || name.endsWith('.yml')) return 'yaml'
     if (name === '.env') return 'env'
     return 'txt'
@@ -99,6 +100,7 @@
   const configLanguage = computed(() => {
     const name = currentFile.value?.name ?? ''
     if (name.endsWith('.toml')) return 'ini'
+    if (name.endsWith('.json') || name.endsWith('.jsonc')) return 'json'
     if (name.endsWith('.yaml') || name.endsWith('.yml')) return 'yaml'
     if (name === '.env') return 'ini'
     return 'plaintext'

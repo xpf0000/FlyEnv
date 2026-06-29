@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it via npm.",
+  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
   "officialWebsite": "Codex GitHub",
   "officialDocs": "Codex CLI Docs",
   "model": "Model",

@@ -47,14 +47,16 @@
           </el-input>
         </el-form-item>
         <el-form-item>
-          <el-checkbox
-            :model-value="MCPSetup.config.allowRemote"
-            :disabled="MCPSetup.running"
-            @change="onAllowRemoteChange"
-          >
-            {{ I18nT('mcp.allowRemote') }}
-          </el-checkbox>
-          <p class="text-xs text-orange-500 mt-1">{{ I18nT('mcp.allowRemoteTip') }}</p>
+          <div class="w-full flex flex-col gap-1">
+            <el-checkbox
+              :model-value="MCPSetup.config.allowRemote"
+              :disabled="MCPSetup.running"
+              @change="onAllowRemoteChange"
+            >
+              {{ I18nT('mcp.allowRemote') }}
+            </el-checkbox>
+            <p class="text-xs text-orange-500 mt-1">{{ I18nT('mcp.allowRemoteTip') }}</p>
+          </div>
         </el-form-item>
       </el-form>
     </div>

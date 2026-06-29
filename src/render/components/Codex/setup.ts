@@ -5,6 +5,7 @@ import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import { getCodexInstallCommandLines, resolveCodexInstallPlatform } from './install'
 import CommandData from './command.json'
 
 export interface CommandItem {
@@ -150,14 +151,13 @@ class Codex {
     const execXTerm = new XTerm()
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
-    const command: string[] = []
-    if (window.Server.Proxy) {
-      for (const k in window.Server.Proxy) {
-        const v = window.Server.Proxy[k]
-        command.push(`export ${k}="${v}"`)
-      }
-    }
-    command.push('npm install -g @openai/codex')
+    const installPlatform = resolveCodexInstallPlatform(
+      window.Server.isWindows ? 'win32' : window.Server.isMacOS ? 'darwin' : 'linux'
+    )
+    const command = getCodexInstallCommandLines(
+      installPlatform,
+      (window.Server.Proxy ?? {}) as Record<string, string>
+    )
     await execXTerm.send(command, false)
     this.installEnd = true
   }

@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Codex CLI belum terinstal. Klik tombol di bawah untuk menginstalnya melalui npm.",
+  "notInstalled": "Codex CLI belum terinstal. Klik tombol di bawah untuk menginstalnya dengan penginstal resmi.",
   "officialWebsite": "GitHub Codex",
   "officialDocs": "Dokumentasi Codex CLI",
   "model": "Model",

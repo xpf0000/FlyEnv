@@ -4,6 +4,12 @@ import type { GetManagedFileMapInput } from '@shared/mcpContext'
 import MCPContextResolver from './MCPContextResolver'
 import ServiceProcessManager from './ServiceProcess'
 import ServiceVersionManager from './ServiceVersionManager'
+import {
+  isMcpDatabaseFlag,
+  isMcpInstallableFlag,
+  isMcpLifecycleFlag,
+  isMcpQueryableFlag
+} from './mcpToolMetadata'
 
 /**
  * 单实例服务（isOnlyRunOne）：同一时刻只跑一个版本，启动某版本即「切到该版本」。
@@ -267,6 +273,47 @@ export class MCPTools {
     return !!this.mcpConfig.getConfig('maskSecrets')
   }
 
+  private assertLifecycleFlag(flag: string, action: 'start' | 'stop' | 'restart') {
+    if (isMcpLifecycleFlag(flag)) {
+      return
+    }
+    throw new Error(
+      `${flag} is not a lifecycle-managed FlyEnv service and cannot be ${action}ed via MCP. ` +
+        'Use list_online_versions plus install_service for installable runtimes/toolchains such as bun, ' +
+        'and manage project execution outside these service lifecycle tools.'
+    )
+  }
+
+  private assertInstallableFlag(flag: string) {
+    if (isMcpInstallableFlag(flag)) {
+      return
+    }
+    throw new Error(
+      `${flag} does not support version download/install via FlyEnv MCP. ` +
+        'Use an installable module flag from list_online_versions instead.'
+    )
+  }
+
+  private assertQueryableFlag(flag: string) {
+    if (isMcpQueryableFlag(flag)) {
+      return
+    }
+    throw new Error(
+      `${flag} is not a version-managed FlyEnv module for this MCP tool. ` +
+        'Use supported module flags such as bun, node, php, nginx, mysql, python, golang, redis, or pure-ftpd.'
+    )
+  }
+
+  private assertDatabaseFlag(flag: string) {
+    if (isMcpDatabaseFlag(flag)) {
+      return
+    }
+    throw new Error(
+      `${flag} is not a database/cache module for this MCP tool. ` +
+        'Use one of: mysql, mariadb, postgresql, redis, mongodb, memcached.'
+    )
+  }
+
   /** 读取某个模块的全部已安装版本（原始，含 bin，仅供内部匹配用，不直接出站） */
   private async rawServiceVersions(flag: string): Promise<any[]> {
     return ServiceVersionManager.getVersions(flag)
@@ -300,7 +347,12 @@ export class MCPTools {
   /** list_services：返回一组模块及其安装/运行状态摘要 */
   async listServices(flags?: string[]): Promise<any> {
     const requested = Array.isArray(flags) && flags.length > 0
-    const targetFlags = requested ? flags : this.getCachedFlags()
+    const targetFlags = requested
+      ? flags
+      : this.getCachedFlags().filter((flag) => isMcpQueryableFlag(flag))
+    if (requested) {
+      targetFlags.forEach((flag) => this.assertQueryableFlag(flag))
+    }
     const status = ServiceProcessManager.getStatus(targetFlags)
     const mask = this.mask
     const out: Record<string, any> = {}
@@ -326,6 +378,7 @@ export class MCPTools {
 
   /** service_status：单个模块状态。运行态以主进程 ServiceProcessManager 为准 */
   async serviceStatus(flag: string): Promise<any> {
+    this.assertQueryableFlag(flag)
     const raw = await this.rawServiceVersions(flag)
     const st = ServiceProcessManager.statusOf(flag)
     const runningBins = new Set(st.instances.map((i) => i.bin))
@@ -446,19 +499,31 @@ export class MCPTools {
   private async pickVersion(flag: string, version?: string): Promise<any> {
     const arr: any[] = await this.rawServiceVersions(flag)
     if (!Array.isArray(arr) || arr.length === 0) {
-      throw new Error(`No installed version for ${flag}`)
+      throw new Error(
+        `No installed version for ${flag}. Use list_online_versions and install_service before start_service.`
+      )
     }
     if (version) {
       const find = arr.find((v) => v?.version === version && v?.enable)
-      if (!find) throw new Error(`Version ${version} of ${flag} not found or not enabled`)
+      if (!find) {
+        throw new Error(
+          `Version ${version} of ${flag} is not installed or not enabled. ` +
+            'Use list_online_versions to inspect available versions and install_service to install one first.'
+        )
+      }
       return find
     }
     const enabled = arr.find((v) => v?.enable)
-    if (!enabled) throw new Error(`No enabled version for ${flag}`)
+    if (!enabled) {
+      throw new Error(
+        `No enabled installed version for ${flag}. Install or enable a version before using start_service.`
+      )
+    }
     return enabled
   }
 
   async startService(flag: string, version?: string): Promise<any> {
+    this.assertLifecycleFlag(flag, 'start')
     const v = await this.pickVersion(flag, version)
     // 单实例服务（nginx/mysql/redis... isOnlyRunOne）：启动某版本即「切到该版本」——
     // 与 FlyEnv UI 的 onItemStart 行为对齐，先停掉其它正在运行的版本。
@@ -500,6 +565,7 @@ export class MCPTools {
   }
 
   async stopService(flag: string, version?: string): Promise<any> {
+    this.assertLifecycleFlag(flag, 'stop')
     const v = await this.pickVersion(flag, version)
     const data = await callFork(this.forkManager, flag, 'stopService', v)
     // 停服登记清理：按 bin 精确删除——只删被停的那个版本，绝不波及同模块其它版本。
@@ -512,6 +578,7 @@ export class MCPTools {
 
   /** 停掉某模块当前登记的所有运行实例 */
   async stopAllService(flag: string): Promise<any> {
+    this.assertLifecycleFlag(flag, 'stop')
     const running = ServiceProcessManager.statusOf(flag).instances
     if (running.length === 0) {
       // 没有登记在案的实例，尝试用任一已装版本触发一次 stop（兜底）
@@ -544,6 +611,7 @@ export class MCPTools {
   }
 
   async restartService(flag: string, version?: string): Promise<any> {
+    this.assertLifecycleFlag(flag, 'restart')
     await this.stopService(flag, version)
     return this.startService(flag, version)
   }
@@ -572,6 +640,7 @@ export class MCPTools {
    * 各模块在 fork 侧 getLogFiles 覆写自己的路径，新模块自带，单点维护。
    */
   async listLogFiles(flag: string, version?: string): Promise<any[]> {
+    this.assertQueryableFlag(flag)
     const v = await this.resolveVersionObj(flag, version)
     const list = await callFork(this.forkManager, flag, 'listLogFiles', v)
     return Array.isArray(list) ? list : []
@@ -582,6 +651,7 @@ export class MCPTools {
    * 同上，只给路径，AI 代理自行读取。
    */
   async listConfigFiles(flag: string, version?: string): Promise<any[]> {
+    this.assertQueryableFlag(flag)
     const v = await this.resolveVersionObj(flag, version)
     const list = await callFork(this.forkManager, flag, 'listConfigFiles', v)
     return Array.isArray(list) ? list : []
@@ -606,6 +676,7 @@ export class MCPTools {
    * 供 AI 在安装前选择版本，也支持普通的信息查询。
    */
   async listOnlineVersions(flag: string): Promise<any[]> {
+    this.assertInstallableFlag(flag)
     const data = await callFork(this.forkManager, flag, 'fetchAllOnlineVersion')
     const list: any[] = Array.isArray(data) ? data : []
     return list.map((v: any) => ({
@@ -620,6 +691,7 @@ export class MCPTools {
 
   /** install_service：下载并安装某个服务的指定版本 */
   async installService(flag: string, version: string): Promise<any> {
+    this.assertInstallableFlag(flag)
     const data = await callFork(this.forkManager, flag, 'fetchAllOnlineVersion')
     const list: any[] = Array.isArray(data) ? data : []
     if (list.length === 0) {
@@ -639,6 +711,7 @@ export class MCPTools {
   }
 
   async getDatabaseConnectionInfo(flag: string, version?: string) {
+    this.assertDatabaseFlag(flag)
     return this.contextResolver.getDatabaseConnectionInfo(flag, version)
   }
 
@@ -647,6 +720,7 @@ export class MCPTools {
   }
 
   async getServiceExecInfo(flag: string, version?: string) {
+    this.assertQueryableFlag(flag)
     return this.contextResolver.getServiceExecInfo(flag, version)
   }
 
@@ -655,6 +729,9 @@ export class MCPTools {
   }
 
   async getManagedFileMap(input: GetManagedFileMapInput) {
+    if (input.scope === 'service') {
+      this.assertQueryableFlag(`${input.flag ?? ''}`)
+    }
     return this.contextResolver.getManagedFileMap(input)
   }
 

@@ -123,6 +123,7 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import { I18nT } from '@lang/index'
+  import { getCodexInstallDisplayCommand, resolveCodexInstallPlatform } from './install'
   import { CommandItem, CodexSetup } from './setup'
   import { nextTick, onMounted, onUnmounted } from 'vue'
   import XTerm from '@/util/XTerm'
@@ -130,7 +131,11 @@
   const xtermDom = ref()
   const activeCategories = ref(['codex.category.basic'])
 
-  const installCommand = 'npm install -g @openai/codex'
+  const installCommand = getCodexInstallDisplayCommand(
+    resolveCodexInstallPlatform(
+      window.Server.isWindows ? 'win32' : window.Server.isMacOS ? 'darwin' : 'linux'
+    )
+  )
 
   const installCodex = () => {
     CodexSetup.installCodex(xtermDom)

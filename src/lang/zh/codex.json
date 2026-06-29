@@ -1,5 +1,5 @@
 {
-  "notInstalled": "Codex CLI 尚未安装。点击下方按钮通过 npm 安装。",
+  "notInstalled": "Codex CLI 尚未安装。点击下方按钮使用官方安装器安装。",
   "officialWebsite": "Codex GitHub",
   "officialDocs": "Codex CLI 文档",
   "model": "模型",

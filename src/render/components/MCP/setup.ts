@@ -219,12 +219,13 @@ class MCP {
   }
 
   /** 一键把 FlyEnv 注册进某个 AI CLI 的 MCP 列表（复用现有 addMcp） */
-  addToClient(clientFlag: 'claudeCode' | 'codex' | 'openCode') {
+  addToClient(clientFlag: 'claudeCode' | 'codex' | 'openCode' | 'kimi') {
     // 各 CLI 对 HTTP/SSE 型 MCP 的 type 标识不同
     const typeMap: Record<typeof clientFlag, string> = {
       claudeCode: 'http',
       codex: 'http',
-      openCode: 'remote'
+      openCode: 'remote',
+      kimi: 'http'
     }
     return new Promise((resolve) => {
       IPC.send(

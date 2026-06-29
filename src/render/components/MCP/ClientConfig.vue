@@ -4,12 +4,8 @@
       <div class="card-header">
         <span>{{ I18nT('mcp.clientConfig') }}</span>
         <el-radio-group v-model="activeTab" size="small">
-          <el-radio-button label="HTTP" :value="'http'">
-            {{ I18nT('mcp.httpConfig') }}
-          </el-radio-button>
-          <el-radio-button label="stdio" :value="'stdio'">
-            {{ I18nT('mcp.stdioConfig') }}
-          </el-radio-button>
+          <el-radio-button label="HTTP" :value="'http'"> HTTP </el-radio-button>
+          <el-radio-button label="stdio" :value="'stdio'"> stdio </el-radio-button>
         </el-radio-group>
       </div>
     </template>
@@ -20,6 +16,7 @@
           <el-radio-button label="Claude Code" :value="'claudeCode'">Claude Code</el-radio-button>
           <el-radio-button label="Codex" :value="'codex'">Codex</el-radio-button>
           <el-radio-button label="OpenCode" :value="'openCode'">OpenCode</el-radio-button>
+          <el-radio-button label="Kimi" :value="'kimi'">Kimi</el-radio-button>
         </el-radio-group>
         <div class="relative">
           <pre
@@ -39,14 +36,17 @@
 
         <p class="text-sm text-gray-500 mb-3">{{ I18nT('mcp.addToClientTip') }}</p>
         <div class="flex gap-3 flex-wrap">
-          <el-button :disabled="!MCPSetup.running" @click="add('claudeCode')">
+          <el-button @click="add('claudeCode')">
             {{ I18nT('mcp.addToClient', { client: 'Claude Code' }) }}
           </el-button>
-          <el-button :disabled="!MCPSetup.running" @click="add('codex')">
+          <el-button @click="add('codex')">
             {{ I18nT('mcp.addToClient', { client: 'Codex' }) }}
           </el-button>
-          <el-button :disabled="!MCPSetup.running" @click="add('openCode')">
+          <el-button @click="add('openCode')">
             {{ I18nT('mcp.addToClient', { client: 'OpenCode' }) }}
+          </el-button>
+          <el-button @click="add('kimi')">
+            {{ I18nT('mcp.addToClient', { client: 'Kimi' }) }}
           </el-button>
         </div>
       </template>
@@ -81,7 +81,7 @@
   const activeTab = ref('http')
   const httpClient = ref<MCPHttpClientFlag>('claudeCode')
 
-  const add = (flag: 'claudeCode' | 'codex' | 'openCode') => {
+  const add = (flag: 'claudeCode' | 'codex' | 'openCode' | 'kimi') => {
     MCPSetup.addToClient(flag)
   }
 </script>

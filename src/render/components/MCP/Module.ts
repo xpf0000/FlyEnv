@@ -6,7 +6,7 @@ const module: AppModuleItem = {
   typeFlag: 'mcp',
   label: 'MCP Server',
   icon: import('@/svg/mcp.svg?raw'),
-  iconPadding: 6,
+  iconPadding: 3,
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 106,

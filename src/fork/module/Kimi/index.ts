@@ -1,6 +1,14 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseWithEnv, readFile, remove, existsSync, readdir } from '../../Fn'
+import {
+  execPromiseWithEnv,
+  readFile,
+  writeFile,
+  remove,
+  existsSync,
+  readdir,
+  mkdirp
+} from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
 import { join } from 'node:path'
 import { readdirSync } from 'node:fs'
@@ -29,6 +37,10 @@ class Kimi extends Base {
 
   private kimiBin() {
     return 'kimi'
+  }
+
+  private mcpFile() {
+    return join(this.kimiHome(), 'mcp.json')
   }
 
   private runCommand(command: string) {
@@ -63,8 +75,40 @@ class Kimi extends Base {
       const home = this.kimiHome()
       resolve({
         'config.toml': join(home, 'config.toml'),
-        'tui.toml': join(home, 'tui.toml')
+        'tui.toml': join(home, 'tui.toml'),
+        'mcp.json': this.mcpFile()
       })
+    })
+  }
+
+  addMcp(name: string, type: string, commandOrUrl: string, token?: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        if (type !== 'http' && type !== 'sse') {
+          reject('Kimi only supports HTTP/SSE MCP config files')
+          return
+        }
+        const file = this.mcpFile()
+        let data: any = {}
+        if (existsSync(file)) {
+          data = JSON.parse(await readFile(file, 'utf-8'))
+        }
+        data.mcpServers = data.mcpServers ?? {}
+        data.mcpServers[name] = {
+          url: commandOrUrl,
+          headers: {
+            Authorization: `Bearer ${token ?? ''}`
+          }
+        }
+        if (type === 'sse') {
+          data.mcpServers[name].transport = 'sse'
+        }
+        await mkdirp(this.kimiHome())
+        await writeFile(file, JSON.stringify(data, null, 2))
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      }
     })
   }
 
@@ -242,7 +286,8 @@ class Kimi extends Base {
     const home = this.kimiHome()
     return [
       { name: 'config.toml', path: join(home, 'config.toml') },
-      { name: 'tui.toml', path: join(home, 'tui.toml') }
+      { name: 'tui.toml', path: join(home, 'tui.toml') },
+      { name: 'mcp.json', path: this.mcpFile() }
     ]
   }
 }

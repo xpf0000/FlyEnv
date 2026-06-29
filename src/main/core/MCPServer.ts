@@ -13,7 +13,6 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema
 } from '@modelcontextprotocol/sdk/types.js'
-import { AppModuleEnum } from '@/core/type'
 import { getEnabledResourceDefs } from '@shared/mcpResourcePolicy'
 import type { GetManagedFileMapInput } from '@shared/mcpContext'
 import type { ForkManager } from './ForkManager'
@@ -21,6 +20,16 @@ import type MCPConfigManager from './MCPConfigManager'
 import MCPAudit from './MCPAudit'
 import { MCPTools, textResult } from './MCPTools'
 import type { MCPToolResult } from './MCPTools'
+import { stopHttpServer } from '@shared/httpServerStop'
+import {
+  MCP_DATABASE_FLAGS,
+  MCP_FLAG_DESCRIPTIONS,
+  MCP_INSTALLABLE_FLAGS,
+  MCP_LIFECYCLE_FLAGS,
+  MCP_PARAM_DESCRIPTIONS,
+  MCP_QUERYABLE_FLAGS,
+  MCP_TOOL_DESCRIPTIONS
+} from './mcpToolMetadata'
 
 /**
  * MCPServer —— FlyEnv 作为 MCP Server 的宿主（main 进程内）。
@@ -42,8 +51,6 @@ interface ToolDef {
   handler: (args: Record<string, any>) => Promise<MCPToolResult>
 }
 
-const MODULE_FLAGS = Object.values(AppModuleEnum)
-
 function resultText(result: MCPToolResult): string | undefined {
   const parts = result?.content
     ?.filter((item) => item?.type === 'text' && typeof item?.text === 'string')
@@ -62,6 +69,7 @@ export default class MCPServer {
   private httpServer?: HttpServer
   private running = false
   private toolDefs: ToolDef[] = []
+  private activeTransports = new Set<StreamableHTTPServerTransport>()
 
   constructor(
     forkManager: ForkManager,
@@ -101,24 +109,26 @@ export default class MCPServer {
   }
 
   private buildToolDefs() {
-    const flagEnum = { type: 'string', enum: MODULE_FLAGS }
+    const queryableFlagEnum = { type: 'string', enum: [...MCP_QUERYABLE_FLAGS] }
+    const lifecycleFlagEnum = { type: 'string', enum: [...MCP_LIFECYCLE_FLAGS] }
+    const installableFlagEnum = { type: 'string', enum: [...MCP_INSTALLABLE_FLAGS] }
     const databaseFlagEnum = {
       type: 'string',
-      enum: ['mysql', 'mariadb', 'postgresql', 'redis', 'mongodb', 'memcached']
+      enum: [...MCP_DATABASE_FLAGS]
     }
 
     this.toolDefs = [
       {
         name: 'list_services',
-        description:
-          'List FlyEnv-managed services with their installed versions and running state. Returns a map keyed by service flag.',
+        description: MCP_TOOL_DESCRIPTIONS.listServices,
         inputSchema: {
           type: 'object',
           properties: {
             flags: {
               type: 'array',
-              items: flagEnum,
-              description: 'Service flags to query. Omit or pass [] to return all cached services.'
+              items: queryableFlagEnum,
+              description:
+                'Optional list of version-managed module flags to inspect. Omit or pass [] to return only currently cached version-managed modules.'
             }
           }
         },
@@ -126,10 +136,15 @@ export default class MCPServer {
       },
       {
         name: 'service_status',
-        description: 'Get installed versions and running state for a single FlyEnv service.',
+        description: MCP_TOOL_DESCRIPTIONS.serviceStatus,
         inputSchema: {
           type: 'object',
-          properties: { flag: flagEnum },
+          properties: {
+            flag: {
+              ...queryableFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.queryable
+            }
+          },
           required: ['flag']
         },
         handler: async (args) => {
@@ -139,23 +154,23 @@ export default class MCPServer {
       },
       {
         name: 'list_sites',
-        description:
-          'List local development sites managed by FlyEnv (domain, root, type, PHP version, SSL).',
+        description: MCP_TOOL_DESCRIPTIONS.listSites,
         inputSchema: { type: 'object', properties: {} },
         handler: async () => textResult(await this.tools.listSites())
       },
       {
         name: 'get_database_connection_info',
-        description:
-          'Return FlyEnv-known connection facts for a managed local database or cache service, including host, port, socket, credentials, config files, and logs.',
+        description: MCP_TOOL_DESCRIPTIONS.getDatabaseConnectionInfo,
         inputSchema: {
           type: 'object',
           properties: {
-            flag: databaseFlagEnum,
+            flag: {
+              ...databaseFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.database
+            },
             version: {
               type: 'string',
-              description:
-                'Optional installed version. If omitted, prefer the running version, otherwise the enabled version.'
+              description: MCP_PARAM_DESCRIPTIONS.installedVersion
             }
           },
           required: ['flag']
@@ -165,12 +180,11 @@ export default class MCPServer {
       },
       {
         name: 'resolve_site_runtime',
-        description:
-          'Resolve a FlyEnv-managed site into its hosted runtime facts: site root, PHP runtime, preferred web server, managed files, and project runtime metadata.',
+        description: MCP_TOOL_DESCRIPTIONS.resolveSiteRuntime,
         inputSchema: {
           type: 'object',
           properties: {
-            siteName: { type: 'string' }
+            siteName: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteName }
           },
           required: ['siteName']
         },
@@ -178,13 +192,18 @@ export default class MCPServer {
       },
       {
         name: 'get_service_exec_info',
-        description:
-          'Return executable/runtime facts for a FlyEnv-managed service version, including bin, path, phpBin/phpConfig when present, config files, logs, and exec hints.',
+        description: MCP_TOOL_DESCRIPTIONS.getServiceExecInfo,
         inputSchema: {
           type: 'object',
           properties: {
-            flag: flagEnum,
-            version: { type: 'string' }
+            flag: {
+              ...queryableFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.queryable
+            },
+            version: {
+              type: 'string',
+              description: MCP_PARAM_DESCRIPTIONS.installedVersion
+            }
           },
           required: ['flag']
         },
@@ -193,12 +212,11 @@ export default class MCPServer {
       },
       {
         name: 'resolve_site_urls',
-        description:
-          'Return the canonical URL set for a FlyEnv-managed site, including aliases, SSL entrypoints, port summary, and reverse proxy declarations.',
+        description: MCP_TOOL_DESCRIPTIONS.resolveSiteUrls,
         inputSchema: {
           type: 'object',
           properties: {
-            siteName: { type: 'string' }
+            siteName: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteName }
           },
           required: ['siteName']
         },
@@ -206,42 +224,65 @@ export default class MCPServer {
       },
       {
         name: 'get_managed_file_map',
-        description:
-          'Return the important FlyEnv-managed file paths for a site or service, grouped by env/config/log/cert/runtime/data.',
+        description: MCP_TOOL_DESCRIPTIONS.getManagedFileMap,
         inputSchema: {
           type: 'object',
           properties: {
             scope: {
               type: 'string',
-              enum: ['site', 'service']
+              enum: ['site', 'service'],
+              description: MCP_PARAM_DESCRIPTIONS.managedFileScope
             },
             name: {
               type: 'string',
-              description: 'Required when scope=site.'
+              description: MCP_PARAM_DESCRIPTIONS.siteName
             },
             flag: {
-              type: 'string',
-              description: 'Required when scope=service.'
+              ...queryableFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.queryable
             },
             version: {
               type: 'string',
-              description: 'Optional version when scope=service.'
+              description: MCP_PARAM_DESCRIPTIONS.managedFileVersion
             }
           },
-          required: ['scope']
+          required: ['scope'],
+          allOf: [
+            {
+              if: {
+                properties: {
+                  scope: { const: 'site' }
+                }
+              },
+              then: { required: ['name'] }
+            },
+            {
+              if: {
+                properties: {
+                  scope: { const: 'service' }
+                }
+              },
+              then: { required: ['flag'] }
+            }
+          ]
         },
         handler: async (args) =>
           textResult(await this.tools.getManagedFileMap(args as GetManagedFileMapInput))
       },
       {
         name: 'list_log_files',
-        description:
-          "List a service's log files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Modules without specific log files return an empty list.",
+        description: MCP_TOOL_DESCRIPTIONS.listLogFiles,
         inputSchema: {
           type: 'object',
           properties: {
-            flag: flagEnum,
-            version: { type: 'string', description: 'Version for version-scoped paths.' }
+            flag: {
+              ...queryableFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.queryable
+            },
+            version: {
+              type: 'string',
+              description: MCP_PARAM_DESCRIPTIONS.installedVersion
+            }
           },
           required: ['flag']
         },
@@ -249,13 +290,18 @@ export default class MCPServer {
       },
       {
         name: 'list_config_files',
-        description:
-          "List a service's config files as {name, path, exists}. Returns paths only (not contents) — read the files yourself. Modules without specific config files return an empty list. Pass version for version-scoped configs.",
+        description: MCP_TOOL_DESCRIPTIONS.listConfigFiles,
         inputSchema: {
           type: 'object',
           properties: {
-            flag: flagEnum,
-            version: { type: 'string', description: 'Version for version-scoped configs.' }
+            flag: {
+              ...queryableFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.queryable
+            },
+            version: {
+              type: 'string',
+              description: MCP_PARAM_DESCRIPTIONS.installedVersion
+            }
           },
           required: ['flag']
         },
@@ -264,22 +310,35 @@ export default class MCPServer {
       },
       {
         name: 'list_online_versions',
-        description:
-          'List online available versions of a FlyEnv-managed module. Use this before install_service to pick an existing version.',
+        description: MCP_TOOL_DESCRIPTIONS.listOnlineVersions,
         inputSchema: {
           type: 'object',
-          properties: { flag: flagEnum },
+          properties: {
+            flag: {
+              ...installableFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.installable
+            }
+          },
           required: ['flag']
         },
         handler: async (args) => textResult(await this.tools.listOnlineVersions(args.flag))
       },
       {
         name: 'start_service',
-        description: 'Start a FlyEnv service. Optionally specify an installed version.',
+        description: MCP_TOOL_DESCRIPTIONS.startService,
         risky: true,
         inputSchema: {
           type: 'object',
-          properties: { flag: flagEnum, version: { type: 'string' } },
+          properties: {
+            flag: {
+              ...lifecycleFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.lifecycle
+            },
+            version: {
+              type: 'string',
+              description: MCP_PARAM_DESCRIPTIONS.lifecycleVersion
+            }
+          },
           required: ['flag']
         },
         handler: async (args) => {
@@ -289,12 +348,21 @@ export default class MCPServer {
       },
       {
         name: 'stop_service',
-        description:
-          'Stop a FlyEnv service. With "version", stops only that version; without it, stops all running versions of the service.',
+        description: MCP_TOOL_DESCRIPTIONS.stopService,
         risky: true,
         inputSchema: {
           type: 'object',
-          properties: { flag: flagEnum, version: { type: 'string' } },
+          properties: {
+            flag: {
+              ...lifecycleFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.lifecycle
+            },
+            version: {
+              type: 'string',
+              description:
+                'Optional installed version string to stop. If omitted, FlyEnv stops every running instance currently tracked for that lifecycle-managed service.'
+            }
+          },
           required: ['flag']
         },
         handler: async (args) => {
@@ -320,11 +388,21 @@ export default class MCPServer {
       },
       {
         name: 'restart_service',
-        description: 'Restart a FlyEnv service.',
+        description: MCP_TOOL_DESCRIPTIONS.restartService,
         risky: true,
         inputSchema: {
           type: 'object',
-          properties: { flag: flagEnum, version: { type: 'string' } },
+          properties: {
+            flag: {
+              ...lifecycleFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.lifecycle
+            },
+            version: {
+              type: 'string',
+              description:
+                'Optional installed version string to restart. If omitted, FlyEnv restarts the current enabled version for that lifecycle-managed service.'
+            }
+          },
           required: ['flag']
         },
         handler: async (args) => {
@@ -334,67 +412,27 @@ export default class MCPServer {
       },
       {
         name: 'create_site',
-        description:
-          'Create a new local development site in FlyEnv. Requires name (domain) and root (absolute directory).',
+        description: MCP_TOOL_DESCRIPTIONS.createSite,
         risky: true,
         inputSchema: {
           type: 'object',
           properties: {
-            name: { type: 'string', description: 'Site domain, e.g. demo.test' },
-            root: { type: 'string', description: 'Absolute path to the site root directory.' },
-            alias: { type: 'string', description: 'Line-separated aliases.' },
+            name: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteName },
+            root: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteRoot },
+            alias: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteAlias },
+            url: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteUrl },
             phpVersion: {
               type: 'number',
-              description: 'PHP version number for the site (e.g. 83).'
+              description: MCP_PARAM_DESCRIPTIONS.sitePhpVersion
             },
-            useSSL: { type: 'boolean' },
-            autoSSL: { type: 'boolean' },
+            useSSL: { type: 'boolean', description: MCP_PARAM_DESCRIPTIONS.siteUseSsl },
+            autoSSL: { type: 'boolean', description: MCP_PARAM_DESCRIPTIONS.siteAutoSsl },
             ssl: {
-              type: 'object',
-              properties: { cert: { type: 'string' }, key: { type: 'string' } }
-            },
-            port: {
               type: 'object',
               properties: {
-                nginx: { type: 'number' },
-                nginx_ssl: { type: 'number' },
-                apache: { type: 'number' },
-                apache_ssl: { type: 'number' },
-                caddy: { type: 'number' },
-                caddy_ssl: { type: 'number' }
+                cert: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteSslCert },
+                key: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteSslKey }
               }
-            },
-            nginx: {
-              type: 'object',
-              properties: { rewrite: { type: 'string' } }
-            }
-          },
-          required: ['name', 'root']
-        },
-        handler: async (args) => {
-          const data = await this.tools.createSite(args)
-          return textResult({ created: args.name, data })
-        }
-      },
-      {
-        name: 'update_site',
-        description:
-          'Update an existing local site in FlyEnv. Only the fields you provide are changed.',
-        risky: true,
-        inputSchema: {
-          type: 'object',
-          properties: {
-            siteName: { type: 'string', description: 'Current domain name of the site to update.' },
-            name: { type: 'string', description: 'New primary domain name for the site.' },
-            alias: { type: 'string' },
-            mark: { type: 'string' },
-            root: { type: 'string' },
-            phpVersion: { type: 'number' },
-            useSSL: { type: 'boolean' },
-            autoSSL: { type: 'boolean' },
-            ssl: {
-              type: 'object',
-              properties: { cert: { type: 'string' }, key: { type: 'string' } }
             },
             port: {
               type: 'object',
@@ -413,15 +451,91 @@ export default class MCPServer {
             },
             nginx: {
               type: 'object',
-              properties: { rewrite: { type: 'string' } }
+              properties: {
+                rewrite: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.rewriteSnippet }
+              }
             },
             reverseProxy: {
               type: 'array',
               items: {
                 type: 'object',
                 properties: {
-                  path: { type: 'string' },
-                  url: { type: 'string' }
+                  path: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.reverseProxyPath },
+                  url: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.reverseProxyUrl }
+                }
+              }
+            }
+          },
+          required: ['name', 'root']
+        },
+        handler: async (args) => {
+          const data = await this.tools.createSite(args)
+          return textResult({ created: args.name, data })
+        }
+      },
+      {
+        name: 'update_site',
+        description: MCP_TOOL_DESCRIPTIONS.updateSite,
+        risky: true,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            siteName: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteName },
+            name: { type: 'string', description: 'New primary FlyEnv site domain name.' },
+            alias: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteAlias },
+            mark: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteMark },
+            bookmark: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteBookmark },
+            root: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteRoot },
+            url: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteUrl },
+            envFile: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteEnvFile },
+            phpVersion: { type: 'number', description: MCP_PARAM_DESCRIPTIONS.sitePhpVersion },
+            phpVersionFull: {
+              type: 'string',
+              description: 'Optional full PHP version string stored with the FlyEnv site.'
+            },
+            useSSL: { type: 'boolean', description: MCP_PARAM_DESCRIPTIONS.siteUseSsl },
+            autoSSL: { type: 'boolean', description: MCP_PARAM_DESCRIPTIONS.siteAutoSsl },
+            ssl: {
+              type: 'object',
+              properties: {
+                cert: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteSslCert },
+                key: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteSslKey }
+              }
+            },
+            port: {
+              type: 'object',
+              properties: {
+                nginx: { type: 'number' },
+                nginx_ssl: { type: 'number' },
+                apache: { type: 'number' },
+                apache_ssl: { type: 'number' },
+                caddy: { type: 'number' },
+                caddy_ssl: { type: 'number' },
+                frankenphp: { type: 'number' },
+                frankenphp_ssl: { type: 'number' },
+                tomcat: { type: 'number' },
+                tomcat_ssl: { type: 'number' }
+              }
+            },
+            nginx: {
+              type: 'object',
+              properties: {
+                rewrite: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.rewriteSnippet }
+              }
+            },
+            projectName: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.projectName },
+            projectPort: { type: 'number', description: MCP_PARAM_DESCRIPTIONS.projectPort },
+            startCommand: {
+              type: 'string',
+              description: MCP_PARAM_DESCRIPTIONS.projectStartCommand
+            },
+            reverseProxy: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  path: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.reverseProxyPath },
+                  url: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.reverseProxyUrl }
                 }
               }
             }
@@ -436,12 +550,12 @@ export default class MCPServer {
       },
       {
         name: 'delete_site',
-        description: 'Delete a local site managed by FlyEnv.',
+        description: MCP_TOOL_DESCRIPTIONS.deleteSite,
         risky: true,
         inputSchema: {
           type: 'object',
           properties: {
-            siteName: { type: 'string', description: 'Domain name of the site to delete.' }
+            siteName: { type: 'string', description: MCP_PARAM_DESCRIPTIONS.siteName }
           },
           required: ['siteName']
         },
@@ -452,13 +566,20 @@ export default class MCPServer {
       },
       {
         name: 'install_service',
-        description: 'Download and install a specific version of a FlyEnv-managed service.',
+        description: MCP_TOOL_DESCRIPTIONS.installService,
         risky: true,
         inputSchema: {
           type: 'object',
           properties: {
-            flag: flagEnum,
-            version: { type: 'string', description: 'Version to install (e.g. "1.29.0").' }
+            flag: {
+              ...installableFlagEnum,
+              description: MCP_FLAG_DESCRIPTIONS.installable
+            },
+            version: {
+              type: 'string',
+              description:
+                'Exact downloadable version from list_online_versions, for example "1.3.14". Installation does not start the module.'
+            }
           },
           required: ['flag', 'version']
         },
@@ -541,7 +662,7 @@ export default class MCPServer {
 
         let data: any
         if (uri === 'flyenv://services') {
-          data = await this.tools.listServices(MODULE_FLAGS)
+          data = await this.tools.listServices([...MCP_QUERYABLE_FLAGS])
         } else if (uri === 'flyenv://sites') {
           data = await this.tools.listSites()
         } else {
@@ -654,10 +775,13 @@ export default class MCPServer {
         // 每个请求新建一个无状态 transport + server（stateless 模式：sessionIdGenerator: undefined）
         const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
         const server = this.createMcpServer()
-        res.on('close', () => {
+        this.activeTransports.add(transport)
+        const cleanup = () => {
+          this.activeTransports.delete(transport)
           transport.close().catch(() => {})
           server.close().catch(() => {})
-        })
+        }
+        res.on('close', cleanup)
         await server.connect(transport)
         await transport.handleRequest(req, res)
       } catch (e) {
@@ -683,11 +807,10 @@ export default class MCPServer {
 
   async stop(): Promise<{ running: boolean }> {
     if (this.httpServer) {
-      await new Promise<void>((resolve) => {
-        this.httpServer!.close(() => resolve())
-      })
+      await stopHttpServer(this.httpServer, this.activeTransports)
       this.httpServer = undefined
     }
+    this.activeTransports.clear()
     this.running = false
     return { running: false }
   }

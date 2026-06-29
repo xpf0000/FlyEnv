@@ -5,6 +5,7 @@ import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import { buildInstallProxyEnvCommands, type InstallProxyPlatform } from '@shared/installProxyEnv'
 import CommandData from './command.json'
 
 export interface CommandItem {
@@ -127,13 +128,15 @@ class Kimi {
     const execXTerm = new XTerm()
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
-    const command: string[] = []
-    if (window.Server.Proxy) {
-      for (const k in window.Server.Proxy) {
-        const v = window.Server.Proxy[k]
-        command.push(`export ${k}="${v}"`)
-      }
-    }
+    const installPlatform: InstallProxyPlatform = window.Server.isWindows
+      ? 'windows'
+      : window.Server.isMacOS
+        ? 'macos'
+        : 'linux'
+    const command = buildInstallProxyEnvCommands(
+      installPlatform,
+      (window.Server.Proxy ?? {}) as Record<string, string>
+    )
     if (window.Server.isWindows) {
       command.push('irm https://code.kimi.com/kimi-code/install.ps1 | iex')
     } else {

@@ -1,6 +1,6 @@
 import { parseToml, stringifyToml } from '@shared/toml'
 
-export type MCPHttpClientFlag = 'claudeCode' | 'codex' | 'openCode'
+export type MCPHttpClientFlag = 'claudeCode' | 'codex' | 'openCode' | 'kimi'
 
 type MCPServerUrlOptions = {
   host?: string
@@ -49,6 +49,23 @@ export function buildHttpClientConfigSnippet(
         mcp: {
           flyenv: {
             type: 'remote',
+            url,
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        }
+      },
+      null,
+      2
+    )
+  }
+
+  if (client === 'kimi') {
+    return JSON.stringify(
+      {
+        mcpServers: {
+          flyenv: {
             url,
             headers: {
               Authorization: `Bearer ${token}`
