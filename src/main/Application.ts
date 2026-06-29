@@ -26,6 +26,7 @@ import MCPServer from './core/MCPServer'
 import MCPBridgeManager from './core/MCPBridgeManager'
 import ServerManager from './core/ServerManager'
 import IPCHandler from './core/IPCHandler'
+import { startMcpOnLaunchIfNeeded } from './core/MCPLifecycle'
 import { CheckBrewOrPort } from './utils/CheckBrew'
 import { MakeServerDir } from './utils/ServerPath'
 
@@ -221,6 +222,7 @@ export default class Application extends EventEmitter {
     // MCP Server 需要 forkManager 句柄，在此创建并注入
     this.mcpServer = new MCPServer(this.forkManager, this.mcpConfigManager, this.configManager)
     this.ipcHandler.updateDependencies({ forkManager: this.forkManager, mcpServer: this.mcpServer })
+    startMcpOnLaunchIfNeeded(this.mcpConfigManager, this.mcpServer).catch(() => {})
 
     // MCP 通知统一通过 ServiceVersionManager 中转，再广播给渲染进程
     ServiceVersionManager.onMcpNotify((payload) => {

@@ -13,6 +13,7 @@ export interface AppServiceModuleItem {
   serviceFetching: boolean
   serviceDisabled: boolean
   showItem: boolean
+  participatesInGroup?: boolean
 }
 export const AppServiceModule: Record<AllAppModule, AppServiceModuleItem | undefined> = reactive(
   {}

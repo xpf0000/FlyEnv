@@ -122,6 +122,7 @@
   import { AppServiceModule, type AppServiceModuleItem } from '@/core/ASide'
   import { type AllAppModule, AppModuleTypeList } from '@/core/type'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { getGroupManagedTypeFlags } from '@/components/Aside/groupService'
   import { AppCustomerModule } from '@/core/Module'
   import CustomerModule from '@/components/CustomerModule/aside.vue'
   import type { CallbackFn } from '@shared/app'
@@ -297,24 +298,29 @@
     }
   )
 
-  const allShowTypeFlag = computed(() => {
-    return platformAppModules.value
-      .filter((f) => f.isService && showItem.value?.[f.typeFlag] !== false)
-      .map((f) => f.typeFlag)
+  const groupManagedTypeFlags = computed(() => {
+    return getGroupManagedTypeFlags(
+      platformAppModules.value as any,
+      showItem.value,
+      AppServiceModule as any
+    )
+  })
+
+  const groupManagedServiceModules = computed(() => {
+    return groupManagedTypeFlags.value.map((f) => AppServiceModule?.[f]).filter((f) => !!f)
   })
 
   /**
    * Aside service vue component
    */
   const asideServiceShowModule = computed(() => {
-    return allShowTypeFlag.value.map((f) => AppServiceModule?.[f]).filter((f) => !!f)
+    return groupManagedServiceModules.value
   })
 
   const serviceShowSystem = computed(() => {
-    return platformAppModules.value
-      .filter((f) => f.isService && showItem.value?.[f.typeFlag] !== false)
-      .filter((f) => !['php', 'php-fpm'].includes(f.typeFlag))
-      .map((f) => brewStore.module(f.typeFlag).installed)
+    return groupManagedTypeFlags.value
+      .filter((f) => !['php', 'php-fpm'].includes(f))
+      .map((f) => brewStore.module(f as AllAppModule).installed)
       .flat()
   })
 
@@ -329,7 +335,7 @@
    * All Aside service is set not group start. And no customer service exists
    */
   const noGroupStart = computed(() => {
-    const a = allShowTypeFlag.value.every((typeFlag) => {
+    const a = groupManagedTypeFlags.value.every((typeFlag) => {
       const appModule = platformAppModules.value.find((m) => m.typeFlag === typeFlag)
       const serviceModule = AppServiceModule?.[typeFlag]
       if (appModule?.moduleType === 'language' && typeFlag !== 'php-fpm') {
@@ -371,7 +377,7 @@
   // })
 
   const groupDisabled = computed(() => {
-    const modules = Object.values(AppServiceModule)
+    const modules = groupManagedServiceModules.value
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
     const running = modules.some((m) => !!m?.serviceFetching)
     console.log('groupDisabled', allDisabled, running, appStore.versionInitiated)

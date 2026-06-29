@@ -50,8 +50,12 @@ export const AsideSetup = () => {
     return appStore.config.setup.common.showItem?.[flag] !== false
   })
 
+  const participatesInGroup = computed(() => {
+    return !MCPSetup.config.independentService
+  })
+
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
-    if (MCPSetup.starting) {
+    if (MCPSetup.starting || !participatesInGroup.value) {
       return []
     }
     return [isRunning ? MCPSetup.stop() : MCPSetup.start()]
@@ -73,7 +77,8 @@ export const AsideSetup = () => {
     serviceRunning,
     serviceFetching,
     serviceDisabled,
-    showItem
+    showItem,
+    participatesInGroup
   } as any
 
   return {

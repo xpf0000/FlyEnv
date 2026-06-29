@@ -8,8 +8,10 @@ import { type Options } from 'electron-store'
  * MCP 的开关 / 端口 / token / 工具白名单 / 审批策略不应再往里塞。
  */
 export interface MCPConfigOptions {
-  /** MCP Server 是否启用（用户在面板里的开关，决定 App 启动时是否自动拉起） */
-  enabled: boolean
+  /** FlyEnv 启动时是否自动拉起 MCP Server */
+  autoStart: boolean
+  /** 群组启动/关闭是否跳过 MCP 服务 */
+  independentService: boolean
   /** 传输方式开关。一期只实现 http；stdio 预留 */
   transport: {
     http: boolean
@@ -83,7 +85,8 @@ export default class MCPConfigManager {
     const options: Options<MCPConfigOptions> = {
       name: 'mcp',
       defaults: {
-        enabled: false,
+        autoStart: false,
+        independentService: false,
         transport: {
           http: true,
           stdio: false

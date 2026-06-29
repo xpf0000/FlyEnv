@@ -47,6 +47,24 @@
           </el-input>
         </el-form-item>
         <el-form-item>
+          <div class="w-full flex items-center justify-between gap-4">
+            <div class="flex flex-col gap-1">
+              <span>{{ I18nT('mcp.autoStart') }}</span>
+              <p class="text-xs text-gray-500">{{ I18nT('mcp.autoStartTip') }}</p>
+            </div>
+            <el-switch v-model="MCPSetup.config.autoStart" @change="onLifecycleChange" />
+          </div>
+        </el-form-item>
+        <el-form-item>
+          <div class="w-full flex items-center justify-between gap-4">
+            <div class="flex flex-col gap-1">
+              <span>{{ I18nT('mcp.independentService') }}</span>
+              <p class="text-xs text-gray-500">{{ I18nT('mcp.independentServiceTip') }}</p>
+            </div>
+            <el-switch v-model="MCPSetup.config.independentService" @change="onLifecycleChange" />
+          </div>
+        </el-form-item>
+        <el-form-item>
           <div class="w-full flex flex-col gap-1">
             <el-checkbox
               :model-value="MCPSetup.config.allowRemote"
@@ -74,6 +92,13 @@
       host: MCPSetup.config.host,
       port: MCPSetup.config.port,
       allowRemote: MCPSetup.config.allowRemote
+    })
+  }
+
+  const onLifecycleChange = () => {
+    MCPSetup.saveConfig({
+      autoStart: MCPSetup.config.autoStart,
+      independentService: MCPSetup.config.independentService
     })
   }
 

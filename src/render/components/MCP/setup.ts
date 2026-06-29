@@ -20,7 +20,8 @@ export interface MCPStatus {
 }
 
 export interface MCPConfig {
-  enabled: boolean
+  autoStart: boolean
+  independentService: boolean
   transport: { http: boolean; stdio: boolean }
   host: string
   port: number
@@ -63,7 +64,8 @@ class MCP {
   running = false
   bridgePath = ''
   config: MCPConfig = {
-    enabled: false,
+    autoStart: false,
+    independentService: false,
     transport: { http: true, stdio: false },
     host: '127.0.0.1',
     port: 7682,

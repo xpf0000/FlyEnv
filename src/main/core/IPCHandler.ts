@@ -27,6 +27,7 @@ import ServiceVersionManager from './ServiceVersionManager'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { existsSync, readFileSync } from 'node:fs'
+import { startMcpRuntime, stopMcpRuntime } from './MCPLifecycle'
 import CustomerLang from './CustomerLang'
 import { AppI18n } from '@lang/index'
 import { CheckBrewOrPort } from '../utils/CheckBrew'
@@ -726,14 +727,11 @@ export default class IPCHandler extends EventEmitter {
       this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
       return
     }
-    mcpConfig.setConfig('enabled', true)
-    server
-      .start()
+    startMcpRuntime(server)
       .then((res) => {
         this.sendToMainWindow(command, key, { code: 0, data: res })
       })
       .catch((e: any) => {
-        mcpConfig.setConfig('enabled', false)
         this.sendToMainWindow(command, key, { code: 1, msg: `${e?.message ?? e}` })
       })
   }
@@ -745,9 +743,7 @@ export default class IPCHandler extends EventEmitter {
       this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
       return
     }
-    mcpConfig.setConfig('enabled', false)
-    server
-      .stop()
+    stopMcpRuntime(server)
       .then((res) => {
         this.sendToMainWindow(command, key, { code: 0, data: res })
       })
