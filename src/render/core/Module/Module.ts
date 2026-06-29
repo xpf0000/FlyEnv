@@ -10,6 +10,7 @@ import { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
 import { ModuleSdkmanItem } from '@/core/Module/ModuleSdkmanItem'
 import { brewInfo, fetchVerion, portInfo, sdkmanInfo } from '@/util/Brew'
 import { installedVersionNote, syncInstalledVersionNotes } from '@/util/InstalledVersionNote'
+import { syncStaticInstalledFlags } from './syncStaticInstalledFlags'
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
@@ -134,6 +135,7 @@ export class Module {
 
     this.installed.splice(0)
     this.installed.push(...installItems)
+    syncStaticInstalledFlags(this.static, this.installed)
 
     const needSaveConfig = this.resetCurrentVersion(false)
     try {
