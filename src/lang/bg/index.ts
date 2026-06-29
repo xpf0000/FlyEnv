@@ -41,6 +41,8 @@ import kimi from './kimi.json'
 import claudeCode from './claude-code.json'
 import codex from './codex.json'
 import openCode from './opencode.json'
+import antigravity from './antigravity.json'
+import copilotCli from './copilot-cli.json'
 
 export default {
   bg: {
@@ -48,6 +50,8 @@ export default {
     claudeCode,
     codex,
     openCode,
+    antigravity,
+    copilotCli,
     cron,
     rustfs,
     mkcert,

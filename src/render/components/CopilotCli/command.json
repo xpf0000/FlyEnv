@@ -1,0 +1,30 @@
+{
+  "categories": [
+    {
+      "nameKey": "copilotCli.category.basic",
+      "commands": [
+        { "label": "copilot --help", "descriptionKey": "copilotCli.cmd.help", "needInput": false },
+        { "label": "copilot --version", "descriptionKey": "copilotCli.cmd.version", "needInput": false },
+        { "label": "copilot update", "descriptionKey": "copilotCli.cmd.update", "needInput": false, "needRefresh": true }
+      ]
+    },
+    {
+      "nameKey": "copilotCli.category.session",
+      "commands": [
+        { "label": "copilot", "descriptionKey": "copilotCli.cmd.start", "needInput": false },
+        { "label": "copilot --continue", "descriptionKey": "copilotCli.cmd.continue", "needInput": false },
+        { "label": "copilot --resume", "descriptionKey": "copilotCli.cmd.resume", "needInput": false },
+        { "label": "copilot -p", "descriptionKey": "copilotCli.cmd.prompt", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "copilotCli.category.config",
+      "commands": [
+        { "label": "copilot mcp list", "descriptionKey": "copilotCli.cmd.mcpList", "needInput": false },
+        { "label": "copilot skill list", "descriptionKey": "copilotCli.cmd.skillList", "needInput": false },
+        { "label": "copilot login", "descriptionKey": "copilotCli.cmd.login", "needInput": false },
+        { "label": "copilot init", "descriptionKey": "copilotCli.cmd.init", "needInput": false }
+      ]
+    }
+  ]
+}

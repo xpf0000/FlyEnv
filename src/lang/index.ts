@@ -44,6 +44,8 @@ import type cron from './zh/cron.json'
 import type claudeCode from './zh/claude-code.json'
 import type codex from './zh/codex.json'
 import type openCode from './zh/opencode.json'
+import type antigravity from './zh/antigravity.json'
+import type copilotCli from './zh/copilot-cli.json'
 import type mcp from './zh/mcp.json'
 
 import AR from './ar/index'
@@ -134,6 +136,8 @@ type LangKey =
   | AppendStringToKeys<typeof claudeCode, 'claudeCode'>
   | AppendStringToKeys<typeof codex, 'codex'>
   | AppendStringToKeys<typeof openCode, 'openCode'>
+  | AppendStringToKeys<typeof antigravity, 'antigravity'>
+  | AppendStringToKeys<typeof copilotCli, 'copilotCli'>
   | AppendStringToKeys<typeof mcp, 'mcp'>
 
 export const AppAllLang: Record<string, string> = {

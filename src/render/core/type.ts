@@ -104,6 +104,8 @@ export enum AppModuleEnum {
   claudeCode = 'claudeCode',
   codex = 'codex',
   openCode = 'openCode',
+  antigravity = 'antigravity',
+  copilotCli = 'copilotCli',
   mcp = 'mcp'
 }
 
