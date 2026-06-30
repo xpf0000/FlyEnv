@@ -16,6 +16,7 @@ import { parseToml, stringifyToml } from '@shared/toml'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
+import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
 
 export interface CodexSessionItem {
   id: string
@@ -345,10 +346,10 @@ class Codex extends Base {
           ? data
           : Object.entries(data ?? {}).map(([name, v]: any) => ({ name, ...v }))
         servers.forEach((s) => {
-          const type = s?.type ?? (s?.url ? 'http' : 'stdio')
+          const transport = s?.transport ?? {}
+          const type = transport?.type ?? s?.type ?? (transport?.url || s?.url ? 'http' : 'stdio')
           const commandOrUrl =
-            s?.url ??
-            [s?.command, ...(Array.isArray(s?.args) ? s.args : [])].filter(Boolean).join(' ')
+            transport?.url ?? s?.url ?? joinMcpCommand(s?.command, Array.isArray(s?.args) ? s.args : [])
           list.push({
             name: s?.name ?? '',
             type,
@@ -372,14 +373,15 @@ class Codex extends Base {
           if (existsSync(file)) {
             data = parseToml(await readFile(file, 'utf-8'))
           }
+          const httpHeaders = optionalBearerHeaders(token)
           data.features = data.features ?? {}
           data.features.rmcp_client = true
           data.mcp_servers = data.mcp_servers ?? {}
           data.mcp_servers[name] = {
-            url: commandOrUrl,
-            http_headers: {
-              Authorization: `Bearer ${token ?? ''}`
-            }
+            url: commandOrUrl
+          }
+          if (httpHeaders) {
+            data.mcp_servers[name].http_headers = httpHeaders
           }
           await mkdirp(dirname(file))
           await writeFile(file, stringifyToml(data))

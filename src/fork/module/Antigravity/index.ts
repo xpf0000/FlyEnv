@@ -17,6 +17,7 @@ import { createRequire } from 'node:module'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
+import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
 
 const require = createRequire(import.meta.url)
 
@@ -39,6 +40,7 @@ export interface AntigravitySkillItem {
   name: string
   description: string
   path: string
+  builtin: boolean
   enabled: boolean
 }
 
@@ -277,16 +279,14 @@ class Antigravity extends Base {
         const servers = data?.mcpServers ?? data ?? {}
         Object.entries(servers).forEach(([name, v]: any) => {
           const s = v ?? {}
-          const type = s?.type ?? (s?.url || s?.httpUrl ? 'http' : 'stdio')
-          const commandOrUrl =
-            s?.httpUrl ??
-            s?.url ??
-            [s?.command, ...(Array.isArray(s?.args) ? s.args : [])].filter(Boolean).join(' ')
+          const remoteUrl = s?.serverUrl ?? s?.url ?? s?.httpUrl ?? ''
+          const type = s?.type ?? (remoteUrl ? 'http' : 'stdio')
+          const commandOrUrl = remoteUrl || joinMcpCommand(s?.command, s?.args)
           list.push({
             name,
             type,
             commandOrUrl,
-            scope: 'user'
+            scope: 'shared'
           })
         })
       } catch (e) {
@@ -313,13 +313,12 @@ class Antigravity extends Base {
         }
         data.mcpServers = data.mcpServers ?? {}
         if (type === 'http' || type === 'sse') {
+          const headers = optionalBearerHeaders(token)
           data.mcpServers[name] = {
-            httpUrl: commandOrUrl
+            serverUrl: commandOrUrl
           }
-          if (token) {
-            data.mcpServers[name].headers = {
-              Authorization: `Bearer ${token}`
-            }
+          if (headers) {
+            data.mcpServers[name].headers = headers
           }
         } else {
           const parts = commandOrUrl.split(' ').filter(Boolean)
@@ -409,9 +408,10 @@ class Antigravity extends Base {
         continue
       }
       list.push({
-        name: builtin ? `${name} (builtin)` : name,
+        name,
         description,
         path: skillPath,
+        builtin,
         enabled: true
       })
     }
@@ -428,6 +428,12 @@ class Antigravity extends Base {
         console.log('antigravity listSkills error: ', e)
       }
       resolve(list)
+    })
+  }
+
+  openSkillsDir() {
+    return new ForkPromise(async (resolve) => {
+      resolve(join(this.antigravityHome(), 'skills'))
     })
   }
 
