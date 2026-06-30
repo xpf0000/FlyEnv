@@ -16,6 +16,87 @@ const LANG_DIR = path.join(PROJECT_ROOT, 'lang')
 const FILE_EXTENSIONS = ['.vue', '.js', '.ts', '.mjs', '.json']
 const STRICT_KEY_PATTERN = /['"`]([a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-.]+)['"`]/g
 const DUPLICATE_KEY_ALLOWLIST = new Set(['podman.common.yes', 'podman.common.no'])
+const INDEX_IMPORT_PATTERN = /import\s+([A-Za-z_$][\w$]*)\s+from\s+['"]\.\/([^'"]+)\.json['"]/g
+const INDEX_ENTRY_PATTERN = /^(['"]?)([^'":]+)\1:\s*([A-Za-z_$][\w$]*)[,]?$/
+const INDEX_SHORTHAND_PATTERN = /^([A-Za-z_$][\w$]*)[,]?$/
+
+function getNamespaceIndexFile() {
+  const preferredPacks = ['zh', 'en']
+  const existingPacks = fs
+    .readdirSync(LANG_DIR)
+    .filter((file) => fs.statSync(path.join(LANG_DIR, file)).isDirectory())
+  const orderedPacks = [...new Set([...preferredPacks, ...existingPacks])]
+
+  for (const pack of orderedPacks) {
+    const indexFile = path.join(LANG_DIR, pack, 'index.ts')
+    if (fs.existsSync(indexFile)) {
+      return { pack, indexFile }
+    }
+  }
+
+  return null
+}
+
+function loadRegisteredNamespaces() {
+  const source = getNamespaceIndexFile()
+  if (!source) {
+    return new Map()
+  }
+
+  const { pack, indexFile } = source
+  const content = fs.readFileSync(indexFile, 'utf8')
+  const importVarToFile = new Map()
+  let importMatch
+
+  while ((importMatch = INDEX_IMPORT_PATTERN.exec(content)) !== null) {
+    importVarToFile.set(importMatch[1], importMatch[2])
+  }
+
+  const namespaceByFile = new Map()
+  const lines = content.split(/\r?\n/)
+  let inPackBlock = false
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim()
+    if (!inPackBlock) {
+      if (line === `${pack}: {`) {
+        inPackBlock = true
+      }
+      continue
+    }
+
+    if (line === '}' || line === '},') {
+      break
+    }
+
+    let entryMatch = line.match(INDEX_ENTRY_PATTERN)
+    if (entryMatch) {
+      const [, , namespace, importVar] = entryMatch
+      const fileName = importVarToFile.get(importVar)
+      if (fileName) {
+        namespaceByFile.set(fileName, namespace)
+      }
+      continue
+    }
+
+    entryMatch = line.match(INDEX_SHORTHAND_PATTERN)
+    if (entryMatch) {
+      const importVar = entryMatch[1]
+      const fileName = importVarToFile.get(importVar)
+      if (fileName) {
+        namespaceByFile.set(fileName, importVar)
+      }
+    }
+  }
+
+  return namespaceByFile
+}
+
+const REGISTERED_NAMESPACE_BY_FILE = loadRegisteredNamespaces()
+
+function getRegisteredNamespace(fileName) {
+  return REGISTERED_NAMESPACE_BY_FILE.get(fileName) ?? fileName
+}
 
 function getFlattenedKeys(obj, prefix = '') {
   let keys = []
@@ -152,7 +233,7 @@ function checkNoUseKey() {
   const excludeLangFile = ['menu', 'aside', 'toolType']
   const excludeKeys = ['openclaw.category.', 'openclaw.cmd.', 'hermes.category.', 'hermes.cmd.']
 
-  const allLangFile = new Set()
+  const allLangNamespace = new Set()
   const allKeys = new Map() // 格式: { '文件名.key': Set(包含此键的语言包) }
   const usedKeys = new Set()
   // 1. 收集所有语言键
@@ -167,13 +248,14 @@ function checkNoUseKey() {
 
       jsonFiles.forEach((file) => {
         const fileName = path.basename(file, '.json')
-        allLangFile.add(fileName)
+        const namespace = getRegisteredNamespace(fileName)
+        allLangNamespace.add(namespace)
 
         const content = require(file)
         const keys = getFlattenedKeys(content)
 
         for (const key of keys) {
-          const fullKey = `${fileName}.${key}`
+          const fullKey = `${namespace}.${key}`
           if (excludeKeys.some((k) => fullKey.includes(k))) {
             continue
           }
@@ -196,7 +278,7 @@ function checkNoUseKey() {
         let match
 
         while ((match = STRICT_KEY_PATTERN.exec(content)) !== null) {
-          // 只匹配符合 json文件名.key 格式的字符串
+          // 只匹配符合已注册 i18n namespace.key 格式的字符串
           if (isValidKeyFormat(match[1])) {
             usedKeys.add(match[1])
           }
@@ -210,9 +292,9 @@ function checkNoUseKey() {
     const parts = key.split('.')
     if (parts.length < 2) return false
 
-    // 第一部分应该是json文件名（不含扩展名）
-    const fileName = parts[0]
-    return allLangFile.has(fileName)
+    // 第一部分应该是实际注册的 i18n namespace
+    const namespace = parts[0]
+    return allLangNamespace.has(namespace)
   }
 
   // 4. 主函数
@@ -248,7 +330,7 @@ function checkNoUseKey() {
 
     console.log('\n💡 建议：')
     console.log('1. 这些键可能是废弃键，可以考虑移除')
-    console.log('2. 如果是动态生成的键，请确保其格式为 json文件名.key')
+    console.log('2. 如果是动态生成的键，请确保其格式为已注册的 i18n namespace.key')
   }
 
   // 运行检测
@@ -270,7 +352,7 @@ function reportDuplicateCandidates() {
 
       keys.forEach((key) => {
         const value = getValueByPath(content, key)
-        const fullKey = `${fileName}.${key}`
+        const fullKey = `${getRegisteredNamespace(fileName)}.${key}`
 
         if (DUPLICATE_KEY_ALLOWLIST.has(fullKey) || typeof value !== 'string') {
           return
