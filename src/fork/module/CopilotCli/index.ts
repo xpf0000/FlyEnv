@@ -1,12 +1,13 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseWithEnv, readFile, remove, existsSync, uuid } from '../../Fn'
+import { execPromiseWithEnv, readFile, writeFile, remove, existsSync, mkdirp, uuid } from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
+import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
 
 const require = createRequire(import.meta.url)
 
@@ -222,16 +223,13 @@ class CopilotCli extends Base {
               ...(v ?? {})
             }))
         servers.forEach((s) => {
-          const type = s?.type ?? (s?.url || s?.httpUrl ? 'http' : 'stdio')
-          const commandOrUrl =
-            s?.url ??
-            s?.httpUrl ??
-            [s?.command, ...(Array.isArray(s?.args) ? s.args : [])].filter(Boolean).join(' ')
+          const type = s?.type ?? (s?.url || s?.httpUrl ? 'http' : 'local')
+          const commandOrUrl = s?.url ?? s?.httpUrl ?? joinMcpCommand(s?.command, s?.args)
           list.push({
             name: s?.name ?? '',
             type,
             commandOrUrl,
-            scope: s?.scope ?? 'user'
+            scope: s?.source ?? s?.scope ?? 'user'
           })
         })
       } catch (e) {
@@ -241,17 +239,42 @@ class CopilotCli extends Base {
     })
   }
 
-  addMcp(name: string, type: string, commandOrUrl: string) {
+  addMcp(name: string, type: string, commandOrUrl: string, token?: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
+        if (type === 'http' || type === 'sse') {
+          const file = this.mcpConfigFile()
+          let data: any = {}
+          if (existsSync(file)) {
+            const raw = await readFile(file, 'utf-8')
+            if (raw.trim()) {
+              try {
+                data = JSON.parse(raw)
+              } catch {
+                data = {}
+              }
+            }
+          }
+          data.mcpServers = data.mcpServers ?? {}
+          const headers = optionalBearerHeaders(token)
+          data.mcpServers[name] = {
+            tools: ['*'],
+            type: 'http',
+            url: commandOrUrl,
+            source: 'user'
+          }
+          if (headers) {
+            data.mcpServers[name].headers = headers
+          }
+          await mkdirp(this.copilotHome())
+          await writeFile(file, JSON.stringify(data, null, 2))
+          resolve(true)
+          return
+        }
         const bin = this.copilotBin()
         let cmd: string
-        if (type === 'http' || type === 'sse') {
-          cmd = `${bin} mcp add --transport ${type} ${name} ${commandOrUrl}`
-        } else {
-          // stdio: everything after `--` is the command and its args.
-          cmd = `${bin} mcp add ${name} -- ${commandOrUrl}`
-        }
+        // stdio/local: everything after `--` is the command and its args.
+        cmd = `${bin} mcp add ${name} -- ${commandOrUrl}`
         const output = await this.runCommand(cmd)
         // The CLI prints an error to stdout/stderr on failure; treat known markers as errors.
         if (/error|failed|usage:/i.test(output) && !/added|success/i.test(output)) {

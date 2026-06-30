@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import Antigravity from '../src/fork/module/Antigravity'
 import Codex from '../src/fork/module/Codex'
+import CopilotCli from '../src/fork/module/CopilotCli'
+import Kimi from '../src/fork/module/Kimi'
 
 async function runFork<T>(promiseLike: Promise<T>): Promise<T> {
   return await promiseLike
@@ -79,7 +81,74 @@ async function testCodexParsesNestedTransportOutput() {
   }
 }
 
+async function testCopilotUsesSourceAndConfigFileForRemoteAuth() {
+  const root = mkdtempSync(join(tmpdir(), 'flyenv-copilot-mcp-'))
+  const prevConfigDir = process.env.COPILOT_CONFIG_DIR
+  const prevRunCommand = (CopilotCli as any).runCommand
+  process.env.COPILOT_CONFIG_DIR = root
+  ;(CopilotCli as any).runCommand = async () =>
+    JSON.stringify({
+      mcpServers: {
+        flyenv: {
+          tools: ['*'],
+          type: 'http',
+          url: 'http://127.0.0.1:7682',
+          source: 'user'
+        }
+      }
+    })
+  try {
+    mkdirSync(root, { recursive: true })
+    const list = await runFork((CopilotCli as any).listMcp())
+    assert.equal(list[0]?.scope, 'user')
+
+    await runFork((CopilotCli as any).addMcp('flyenv', 'http', 'http://127.0.0.1:7682', 'abc'))
+    const config = JSON.parse(readFileSync(join(root, 'mcp-config.json'), 'utf8'))
+    assert.equal(config.mcpServers.flyenv.url, 'http://127.0.0.1:7682')
+    assert.equal(config.mcpServers.flyenv.headers.Authorization, 'Bearer abc')
+  } finally {
+    if (typeof prevConfigDir === 'undefined') {
+      delete process.env.COPILOT_CONFIG_DIR
+    } else {
+      process.env.COPILOT_CONFIG_DIR = prevConfigDir
+    }
+    ;(CopilotCli as any).runCommand = prevRunCommand
+    rmSync(root, { recursive: true, force: true })
+  }
+}
+
+async function testKimiListsAndWritesRemoteServersWithoutEmptyBearer() {
+  const root = mkdtempSync(join(tmpdir(), 'flyenv-kimi-mcp-'))
+  const prevKimiHome = process.env.KIMI_CODE_HOME
+  process.env.KIMI_CODE_HOME = root
+  try {
+    mkdirSync(root, { recursive: true })
+
+    await runFork((Kimi as any).addMcp('flyenv', 'http', 'http://127.0.0.1:7682', ''))
+    const config = JSON.parse(readFileSync(join(root, 'mcp.json'), 'utf8'))
+    assert.equal(config.mcpServers.flyenv.url, 'http://127.0.0.1:7682')
+    assert.equal('headers' in config.mcpServers.flyenv, false)
+
+    const list = await runFork((Kimi as any).listMcp())
+    assert.equal(list[0]?.type, 'http')
+    assert.equal(list[0]?.scope, 'user')
+
+    await runFork((Kimi as any).removeMcp('flyenv'))
+    const afterDelete = JSON.parse(readFileSync(join(root, 'mcp.json'), 'utf8'))
+    assert.equal(afterDelete.mcpServers.flyenv, undefined)
+  } finally {
+    if (typeof prevKimiHome === 'undefined') {
+      delete process.env.KIMI_CODE_HOME
+    } else {
+      process.env.KIMI_CODE_HOME = prevKimiHome
+    }
+    rmSync(root, { recursive: true, force: true })
+  }
+}
+
 await testAntigravityParsesServerUrlAndSharedScope()
 await testCodexParsesNestedTransportOutput()
+await testCopilotUsesSourceAndConfigFileForRemoteAuth()
+await testKimiListsAndWritesRemoteServersWithoutEmptyBearer()
 
-console.log('ai-cli-mcp-integration-test: partial ok')
+console.log('ai-cli-mcp-integration-test: fork ok')

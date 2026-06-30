@@ -16,6 +16,7 @@ import { uuid } from '../../Fn'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
+import { optionalBearerHeaders } from '@shared/aiCliMcp'
 
 export interface KimiSessionItem {
   id: string
@@ -23,6 +24,13 @@ export interface KimiSessionItem {
   lastPrompt: string
   workDir: string
   updatedAt: string
+}
+
+export interface KimiMcpItem {
+  name: string
+  type: string
+  commandOrUrl: string
+  scope: string
 }
 
 class Kimi extends Base {
@@ -94,17 +102,70 @@ class Kimi extends Base {
           data = JSON.parse(await readFile(file, 'utf-8'))
         }
         data.mcpServers = data.mcpServers ?? {}
+        const headers = optionalBearerHeaders(token)
         data.mcpServers[name] = {
-          url: commandOrUrl,
-          headers: {
-            Authorization: `Bearer ${token ?? ''}`
-          }
+          url: commandOrUrl
+        }
+        if (headers) {
+          data.mcpServers[name].headers = headers
         }
         if (type === 'sse') {
           data.mcpServers[name].transport = 'sse'
         }
         await mkdirp(this.kimiHome())
         await writeFile(file, JSON.stringify(data, null, 2))
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      }
+    })
+  }
+
+  listMcp() {
+    return new ForkPromise(async (resolve) => {
+      const list: KimiMcpItem[] = []
+      try {
+        const file = this.mcpFile()
+        if (!existsSync(file)) {
+          resolve(list)
+          return
+        }
+        const raw = await readFile(file, 'utf-8')
+        if (!raw.trim()) {
+          resolve(list)
+          return
+        }
+        const data = JSON.parse(raw)
+        Object.entries(data?.mcpServers ?? {}).forEach(([name, value]: any) => {
+          list.push({
+            name,
+            type: value?.transport === 'sse' ? 'sse' : 'http',
+            commandOrUrl: value?.url ?? '',
+            scope: 'user'
+          })
+        })
+      } catch (e) {
+        console.log('kimi listMcp error: ', e)
+      }
+      resolve(list)
+    })
+  }
+
+  removeMcp(name: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const file = this.mcpFile()
+        let data: any = {}
+        if (existsSync(file)) {
+          const raw = await readFile(file, 'utf-8')
+          if (raw.trim()) {
+            data = JSON.parse(raw)
+          }
+        }
+        if (data?.mcpServers?.[name]) {
+          delete data.mcpServers[name]
+          await writeFile(file, JSON.stringify(data, null, 2))
+        }
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
