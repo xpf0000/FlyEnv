@@ -1,0 +1,36 @@
+{
+  "label": {
+    "model": "Model"
+  },
+  "action": {
+    "enable": "Aktifkan",
+    "disable": "Nonaktifkan",
+    "resume": "Lanjutkan",
+    "uninstall": "Copot"
+  },
+  "state": {
+    "running": "Berjalan",
+    "installed": "Terinstal",
+    "enabled": "Diaktifkan",
+    "disabled": "Dinonaktifkan"
+  },
+  "session": {
+    "list": "Sesi",
+    "title": "Judul",
+    "id": "ID Sesi",
+    "lastPrompt": "Prompt Terakhir",
+    "search": "Cari sesi",
+    "deleted": "Sesi dihapus",
+    "resumed": "Sesi dilanjutkan di terminal"
+  },
+  "mcp": {
+    "name": "Nama",
+    "type": "Tipe",
+    "commandOrUrl": "Perintah / URL",
+    "scope": "Cakupan",
+    "addServer": "Tambah Server"
+  },
+  "category": {
+    "basic": "Dasar"
+  }
+}

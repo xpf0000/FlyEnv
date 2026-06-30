@@ -1,0 +1,36 @@
+{
+  "label": {
+    "model": "模型"
+  },
+  "action": {
+    "enable": "啟用",
+    "disable": "停用",
+    "resume": "恢復",
+    "uninstall": "解除安裝"
+  },
+  "state": {
+    "running": "執行中",
+    "installed": "已安裝",
+    "enabled": "已啟用",
+    "disabled": "已停用"
+  },
+  "session": {
+    "list": "工作階段",
+    "title": "標題",
+    "id": "工作階段 ID",
+    "lastPrompt": "最後提示詞",
+    "search": "搜尋工作階段",
+    "deleted": "工作階段已刪除",
+    "resumed": "已在終端中恢復工作階段"
+  },
+  "mcp": {
+    "name": "名稱",
+    "type": "類型",
+    "commandOrUrl": "命令 / URL",
+    "scope": "範圍",
+    "addServer": "新增伺服器"
+  },
+  "category": {
+    "basic": "基礎"
+  }
+}

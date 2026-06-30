@@ -10,6 +10,7 @@
   "containerRuntime": "Trình quản lý Container",
   "other": "Khác",
   "appLog": "Nhật ký ứng dụng",
+  "aiCoding": "Lập trình AI",
   "ai": "Máy chủ AI",
   "objectStorage": "Lưu trữ đối tượng",
   "appExit": "Dừng tất cả các dịch vụ đang chạy và thoát FlyEnv",

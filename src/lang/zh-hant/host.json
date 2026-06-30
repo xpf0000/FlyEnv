@@ -17,6 +17,8 @@
   "placeholderComment": "備註",
   "placeholderRootPath": "站台根目錄",
   "port": "通訊埠",
+  "portAdvanced": "進階",
+  "portSimple": "簡單",
   "hostSSL": "SSL 憑證",
   "parkConfirm": "確定根據子目錄產生站台？",
   "autoSSL": "自動管理憑證",
@@ -38,6 +40,7 @@
   "projectRuby": "Ruby 專案",
   "projectRust": "Rust 專案",
   "projectZig": "Zig 專案",
+  "projectFlutter": "Flutter 專案",
   "startCommand": "啟動命令",
   "envVar": "環境變數",
   "specifyVar": "指定變數",
@@ -59,6 +62,7 @@
   "vhostCaddyEdit": "編輯 Caddy Vhost 範本",
   "vhostCaddySSLEdit": "編輯 Caddy SSL Vhost 範本",
   "licenseTips": "未取得許可證，只可以建立三個站台",
+  "samePortTips": "已存在相同網域且監聽連接埠相同的站台。使用不同的連接埠即可新增同名站台。",
   "composerVersion": "Composer 版本",
   "useSysVersion": "使用環境變數設定版本",
   "sslTips": "自動 SSL 憑證功能需要向鑰匙串中添加一個名稱為 FlyEnv-Root-CA 的憑證，並設定為始終信任。\n\n正常此功能會自動完成。如果此功能異常，也可複製執行命令在終端自行執行。或者在開啟的資料夾中，雙擊添加憑證，並在鑰匙串程式中，手動設定信任為始終信任",
@@ -79,6 +83,5 @@
   "runSetting": "執行設定",
   "exec": "執行",
   "runInTerminal": "在終端中執行",
-  "portSetting": "通訊埠設定",
-  "projectFlutter": "Flutter 專案"
+  "portSetting": "通訊埠設定"
 }

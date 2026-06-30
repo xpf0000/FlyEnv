@@ -6,37 +6,8 @@
   "defaultThinking": "Düşünme Modu",
   "defaultPlanMode": "Plan Modu",
   "telemetry": "Telemetri",
-  "quickSettings": "Hızlı Ayarlar",
-  "quickSettingsSaved": "Hızlı ayarlar kaydedildi",
-  "sessions": "Oturumlar",
-  "sessionTitle": "Başlık",
-  "sessionId": "Oturum Kimliği",
-  "lastPrompt": "Son İstem",
-  "resume": "Sürdür",
-  "sessionResumed": "Oturum terminalde sürdürüldü",
-  "workDir": "Çalışma Dizini",
-  "lastActive": "Son Etkinlik",
-  "id": "ID",
-  "searchSession": "Oturumlarda ara",
-  "sessionDeleted": "Oturum silindi",
-  "category": {
-    "basic": "Temel",
-    "session": "Oturum",
-    "config": "Yapılandırma"
-  },
+  "mcp": "MCP",
   "cmd": {
-    "help": "Yardım bilgisini göster",
-    "version": "Sürüm numarasını göster",
-    "upgrade": "Kimi Code CLI'yi güncelle",
-    "start": "Yeni etkileşimli oturum başlat",
-    "continue": "Geçerli dizindeki en son oturumu sürdür",
-    "sessionSelect": "Oturum seç ve sürdür",
-    "plan": "Plan modunda başlat",
-    "yolo": "Normal araç çağrılarını otomatik onayla",
-    "export": "Oturumu ZIP olarak dışa aktar",
-    "vis": "Oturum görselleştiricisini tarayıcıda aç",
-    "providerList": "Yapılandırılmış sağlayıcıları listele",
-    "providerAdd": "Kayıt defteri URL'sinden sağlayıcı ekle",
-    "providerRemove": "Sağlayıcıyı kaldır"
+    "export": "Oturumu ZIP olarak dışa aktar"
   }
 }

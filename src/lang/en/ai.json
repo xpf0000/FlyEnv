@@ -59,7 +59,6 @@
   "NeedChatName": "Please input Name",
   "NeedChatPrompt": "Please input Instruction(System Prompt)",
   "apiUrl": "API Host",
-  "model": "Model",
   "reset": "RESET",
   "NeedApiUrl": "Please input API Host",
   "docTips": "Select a file and read its contents",

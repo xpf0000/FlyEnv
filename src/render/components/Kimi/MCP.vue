@@ -4,7 +4,7 @@
       <div class="card-header">
         <div class="left flex items-center">
           <span>{{ I18nT('kimi.mcp') }}</span>
-          <el-tooltip :content="I18nT('kimi.addServer')" placement="top" :show-after="300">
+          <el-tooltip :content="I18nT('common.mcp.addServer')" placement="top" :show-after="300">
             <el-button link class="ml-3" :icon="Plus" @click="openAdd" />
           </el-tooltip>
         </div>
@@ -21,14 +21,14 @@
       <div v-loading="KimiSetup.mcpLoading" class="p-5 h-full overflow-hidden flex flex-col">
         <el-scrollbar v-if="KimiSetup.mcpServers.length > 0">
           <el-table :data="KimiSetup.mcpServers" style="width: 100%">
-            <el-table-column prop="name" :label="I18nT('kimi.mcpName')" width="180" />
-            <el-table-column prop="type" :label="I18nT('kimi.mcpType')" width="100" />
+            <el-table-column prop="name" :label="I18nT('common.mcp.name')" width="180" />
+            <el-table-column prop="type" :label="I18nT('common.mcp.type')" width="100" />
             <el-table-column
               prop="commandOrUrl"
-              :label="I18nT('kimi.mcpCommandOrUrl')"
+              :label="I18nT('common.mcp.commandOrUrl')"
               show-overflow-tooltip
             />
-            <el-table-column prop="scope" :label="I18nT('kimi.mcpScope')" width="100" />
+            <el-table-column prop="scope" :label="I18nT('common.mcp.scope')" width="100" />
             <el-table-column :label="I18nT('base.action')" width="100" align="center">
               <template #default="{ row }">
                 <el-button link type="danger" @click="confirmRemove(row.name)">{{
@@ -42,18 +42,18 @@
       </div>
     </div>
 
-    <el-dialog v-model="addVisible" :title="I18nT('kimi.addServer')" width="500" append-to-body>
+    <el-dialog v-model="addVisible" :title="I18nT('common.mcp.addServer')" width="500" append-to-body>
       <el-form label-position="top" @submit.prevent>
-        <el-form-item :label="I18nT('kimi.mcpName')">
+        <el-form-item :label="I18nT('common.mcp.name')">
           <el-input v-model="form.name" placeholder="my-server" />
         </el-form-item>
-        <el-form-item :label="I18nT('kimi.mcpType')">
+        <el-form-item :label="I18nT('common.mcp.type')">
           <el-radio-group v-model="form.type">
             <el-radio-button value="http">http</el-radio-button>
             <el-radio-button value="sse">sse</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="I18nT('kimi.mcpCommandOrUrl')">
+        <el-form-item :label="I18nT('common.mcp.commandOrUrl')">
           <el-input v-model="form.commandOrUrl" placeholder="https://example.com/mcp" />
         </el-form-item>
         <el-form-item :label="I18nT('mcp.token')">

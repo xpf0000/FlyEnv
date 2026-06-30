@@ -30,6 +30,6 @@
     I18nT('base.configFile'),
     I18nT('base.log'),
     I18nT('hermes.skills'),
-    I18nT('hermes.sessions')
+    I18nT('common.session.list')
   ]
 </script>

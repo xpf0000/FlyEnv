@@ -59,7 +59,6 @@
   "NeedChatName": "Silakan isi Nama",
   "NeedChatPrompt": "Silakan isi Instruksi(System Prompt)",
   "apiUrl": "URL API",
-  "model": "Model",
   "reset": "Setel Ulang",
   "NeedApiUrl": "Silakan isi URL API terlebih dahulu",
   "docTips": "Silakan pilih file untuk dibaca isinya",

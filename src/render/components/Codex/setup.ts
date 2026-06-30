@@ -184,7 +184,7 @@ class Codex {
       IPC.send('app-fork:codex', 'deleteSession', sessionId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('codex.sessionDeleted'))
+          MessageSuccess(I18nT('common.session.deleted'))
           this.refreshSessions()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -200,7 +200,7 @@ class Codex {
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            MessageSuccess(I18nT('codex.sessionResumed'))
+            MessageSuccess(I18nT('common.session.resumed'))
           } else {
             MessageError(res?.msg ?? I18nT('base.fail'))
           }

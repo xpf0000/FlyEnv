@@ -46,6 +46,7 @@ import type codex from './zh/codex.json'
 import type openCode from './zh/opencode.json'
 import type antigravity from './zh/antigravity.json'
 import type copilotCli from './zh/copilot-cli.json'
+import type common from './zh/common.json'
 import type mcp from './zh/mcp.json'
 
 import AR from './ar/index'
@@ -93,6 +94,7 @@ type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
 }[keyof T] // Extract the union type of all values
 
 type LangKey =
+  | AppendStringToKeys<typeof common, 'common'>
   | AppendStringToKeys<typeof ai, 'ai'>
   | AppendStringToKeys<typeof apache, 'apache'>
   | AppendStringToKeys<typeof appLog, 'appLog'>

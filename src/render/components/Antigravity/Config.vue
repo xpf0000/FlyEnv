@@ -85,7 +85,7 @@
       value: '',
       enable: true,
       tips() {
-        return I18nT('antigravity.model')
+        return I18nT('common.label.model')
       }
     },
     {

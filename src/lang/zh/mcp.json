@@ -1,14 +1,9 @@
 {
   "title": "MCP 服务",
-  "subTitle": "把 FlyEnv 暴露给 AI 编码助手",
   "description": "让 FlyEnv 作为 MCP Server 运行，使 AI 编码工具（Claude Code、Cursor、Cline 等）能够读取本地环境并控制服务。",
   "service": "服务",
   "clientConfig": "客户端配置",
-  "httpConfig": "HTTP (Claude Code / Antigravity CLI / Codex / GitHub Copilot CLI / OpenCode / Kimi)",
-  "stdioConfig": "stdio (Cursor / Cline / Windsurf)",
   "tools": "工具",
-  "status": "状态",
-  "running": "运行中",
   "stopped": "已停止",
   "start": "启动",
   "stop": "停止",
@@ -36,22 +31,5 @@
   "approvalConfirm": "弹窗确认",
   "approvalTip": "弹窗确认会在执行该工具前显示系统原生确认框。",
   "auditLog": "审计日志",
-  "auditLogHint": "所有 MCP 工具调用都会记录在这里，方便你回顾 AI 客户端执行了什么操作。",
-  "auditLogEmpty": "暂无审计记录。",
-  "riskyTip": "服务控制类工具会改变你正在运行的环境，请只保留你信任的工具。",
-  "toolDescriptions": {
-    "list_services": "列出 FlyEnv 管理的所有服务及其已安装版本、运行状态。",
-    "service_status": "获取指定服务的详细运行状态与进程信息。",
-    "list_log_files": "列出某个服务可用的日志文件路径。",
-    "list_config_files": "列出某个服务可用的配置文件路径。",
-    "list_online_versions": "列出某个服务可安装的在线版本。",
-    "list_sites": "列出 FlyEnv 管理的本地站点 / Host。",
-    "start_service": "启动指定服务的某个版本。",
-    "stop_service": "停止正在运行的服务版本。",
-    "restart_service": "重启指定服务的某个版本。",
-    "create_site": "创建新的本地站点 / Host。",
-    "update_site": "更新已有本地站点的配置。",
-    "delete_site": "删除本地站点。",
-    "install_service": "下载并安装某个服务的版本。"
-  }
+  "riskyTip": "服务控制类工具会改变你正在运行的环境，请只保留你信任的工具。"
 }

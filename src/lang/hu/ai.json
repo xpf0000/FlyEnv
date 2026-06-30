@@ -23,7 +23,6 @@
   "NeedChatName": "Adja meg a nevet",
   "NeedChatPrompt": "Adja meg az utasítást (rendszerutasítás)",
   "apiUrl": "API gazdagép",
-  "model": "Modell",
   "reset": "VISSZAÁLLÍTÁS",
   "NeedApiUrl": "Adja meg az API gazdagépet",
   "docTips": "Válasszon ki egy fájlt, és olvassa be a tartalmát",

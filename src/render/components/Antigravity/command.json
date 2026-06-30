@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "nameKey": "antigravity.category.basic",
+      "nameKey": "common.category.basic",
       "commands": [
         { "label": "agy --help", "descriptionKey": "antigravity.cmd.help", "needInput": false },
         { "label": "agy --version", "descriptionKey": "antigravity.cmd.version", "needInput": false },

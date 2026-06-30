@@ -10,6 +10,7 @@
   "containerRuntime": "コンテナランタイム",
   "other": "その他",
   "appLog": "アプリログ",
+  "aiCoding": "AIコーディング",
   "ai": "AI",
   "objectStorage": "オブジェクトストレージ",
   "appExit": "起動中のすべてのサービスを停止してFlyEnvを終了します",

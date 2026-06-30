@@ -43,14 +43,18 @@ import codex from './codex.json'
 import openCode from './opencode.json'
 import antigravity from './antigravity.json'
 import copilotCli from './copilot-cli.json'
+import common from './common.json'
+import mcp from './mcp.json'
 export default {
   ja: {
+    common,
     kimi,
     claudeCode,
     codex,
     openCode,
     antigravity,
     copilotCli,
+    mcp,
     cron: cron,
     rustfs,
     mkcert,

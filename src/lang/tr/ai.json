@@ -59,7 +59,6 @@
   "NeedChatName": "Lütfen İsim girin",
   "NeedChatPrompt": "Lütfen Sistem Komutu girin",
   "apiUrl": "API Host",
-  "model": "Model",
   "reset": "SIFIRLA",
   "NeedApiUrl": "Lütfen API Host girin",
   "docTips": "Bir dosya seçin ve içeriğini okuyun",

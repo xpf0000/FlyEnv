@@ -96,7 +96,7 @@
       value: '',
       enable: true,
       tips() {
-        return I18nT('codex.model')
+        return I18nT('common.label.model')
       }
     },
     {

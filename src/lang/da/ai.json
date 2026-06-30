@@ -59,7 +59,6 @@
   "NeedChatName": "Indtast venligst navn",
   "NeedChatPrompt": "Angiv venligst Instruktion (Systemprompt)",
   "apiUrl": "API Vært",
-  "model": "Model",
   "reset": "RESET",
   "NeedApiUrl": "Indtast venligst API-vært",
   "docTips": "Vælg en fil og læs dens indhold",

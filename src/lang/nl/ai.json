@@ -59,7 +59,6 @@
   "NeedChatName": "Voer naam in",
   "NeedChatPrompt": "Voer instructie in (Systeemsnelheid)",
   "apiUrl": "API host",
-  "model": "Model",
   "reset": "RESET",
   "NeedApiUrl": "Voer de API-host in",
   "docTips": "Selecteer een bestand en lees de inhoud ervan",

@@ -16,7 +16,7 @@
             </template>
           </el-input>
         </el-form-item>
-        <el-form-item :error="modelsError" :label="I18nT('ai.model')">
+        <el-form-item :error="modelsError" :label="I18nT('common.label.model')">
           <el-select v-model="form.model" class="w-full" filterable>
             <template v-for="model in models" :key="model">
               <el-option :value="model" :label="model"></el-option>

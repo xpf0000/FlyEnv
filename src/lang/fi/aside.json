@@ -10,6 +10,7 @@
   "containerRuntime": "Kontti Ajoaika",
   "other": "Muu",
   "appLog": "Sovelluksen Loki",
+  "aiCoding": "Tekoälykoodaus",
   "ai": "AI",
   "objectStorage": "Objektin Tallennustila",
   "appExit": "Pysäytä kaikki käynnissä olevat palvelut ja poistu FlyEnv",

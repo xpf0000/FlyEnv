@@ -10,6 +10,7 @@
   "containerRuntime": "容器執行環境",
   "other": "其他",
   "appLog": "App 日誌",
+  "aiCoding": "AI 編碼",
   "ai": "AI",
   "objectStorage": "物件儲存",
   "appExit": "停止所有已啟動的服務並離開 FlyEnv",

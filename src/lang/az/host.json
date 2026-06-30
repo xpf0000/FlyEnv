@@ -17,6 +17,8 @@
   "placeholderComment": "Açıqlama",
   "placeholderRootPath": "Sənəd Kök Qovluğu",
   "port": "Port",
+  "portAdvanced": "Qabaqcıl",
+  "portSimple": "Sadə",
   "hostSSL": "SSL",
   "parkConfirm": "Alt qovluqları alt domen kimi yönləndirmək istəyirsiniz?",
   "autoSSL": "Avtomatik SSL Sertifikatları",
@@ -38,6 +40,7 @@
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
+  "projectFlutter": "Flutter Layiheleri",
   "startCommand": "Başlatma Əmri",
   "envVar": "Mühit Dəyişəni",
   "specifyVar": "Təyin Et",
@@ -59,6 +62,7 @@
   "vhostCaddyEdit": "Caddy Vhost Şablonu",
   "vhostCaddySSLEdit": "Caddy Vhost Şablonu (SSL)",
   "licenseTips": "Lisenziya olmadan yalnız üç sayt yaradıla bilər",
+  "samePortTips": "Eyni domen və dinləmə portu olan sayt artıq mövcuddur. Eyni domenli başqa bir sayt əlavə etmək üçün başqa bir limandan istifadə edin.",
   "composerVersion": "Composer Versiyası",
   "useSysVersion": "Mühit dəyişənlərindən təyin edilən versiyalar",
   "sslTips": "<p>Avtomatik SSL sertifikat funksiyası, FlyEnv-Root-CA adlı sertifikatın açar zəncirinə əlavə edilməsini və 'həmişə etibar et' olaraq təyin edilməsini tələb edir</p>\n<p>Bu proses adətən avtomatik həyata keçirilir.</p>\n<p>Əgər funksiya düzgün işləmirsə, terminalda əmrləri əl ilə icra edə bilərsiniz.</p>\n<p>Həmçinin sertifikat faylına iki dəfə klikləyərək açılan pəncərədə sertifikatı əlavə edib açar zəncirində 'həmişə etibar et' olaraq dəyişə bilərsiniz.</p>",
@@ -79,6 +83,5 @@
   "runSetting": "İşləmə Parametrləri",
   "exec": "İcra et",
   "runInTerminal": "Terminalda işlət",
-  "portSetting": "Port Parametrləri",
-  "projectFlutter": "Flutter Layiheleri"
+  "portSetting": "Port Parametrləri"
 }

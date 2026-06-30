@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "nameKey": "kimi.category.basic",
+      "nameKey": "common.category.basic",
       "commands": [
         { "label": "kimi --help", "descriptionKey": "kimi.cmd.help", "needInput": false },
         { "label": "kimi --version", "descriptionKey": "kimi.cmd.version", "needInput": false },

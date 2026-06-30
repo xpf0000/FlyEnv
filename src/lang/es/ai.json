@@ -59,7 +59,6 @@
   "NeedChatName": "Por favor ingresa el Nombre",
   "NeedChatPrompt": "Por favor ingresa la Instrucción (Prompt del Sistema)",
   "apiUrl": "Host de la API",
-  "model": "Modelo",
   "reset": "REINICIAR",
   "NeedApiUrl": "Por favor ingrese el Host de la API",
   "docTips": "Selecciona un archivo y lee su contenido",

@@ -1,0 +1,36 @@
+{
+  "label": {
+    "model": "Mô hình"
+  },
+  "action": {
+    "enable": "Bật",
+    "disable": "Tắt",
+    "resume": "Khôi phục",
+    "uninstall": "Gỡ cài đặt"
+  },
+  "state": {
+    "running": "Dang chay",
+    "installed": "Đã cài đặt",
+    "enabled": "Đã bật",
+    "disabled": "Đã tắt"
+  },
+  "session": {
+    "list": "Các phiên làm việc",
+    "title": "Tiêu đề",
+    "id": "ID phiên",
+    "lastPrompt": "Prompt cuối cùng",
+    "search": "Tìm kiếm phiên làm việc",
+    "deleted": "Đã xóa phiên làm việc",
+    "resumed": "Phiên làm việc đã được khôi phục trong terminal"
+  },
+  "mcp": {
+    "name": "Tên",
+    "type": "Loại",
+    "commandOrUrl": "Lệnh / URL",
+    "scope": "Phạm vi",
+    "addServer": "Thêm máy chủ"
+  },
+  "category": {
+    "basic": "Cơ bản"
+  }
+}

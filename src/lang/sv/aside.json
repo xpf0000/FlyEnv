@@ -10,6 +10,7 @@
   "containerRuntime": "Containerkörning",
   "other": "Övrigt",
   "appLog": "App-logg",
+  "aiCoding": "AI-kodning",
   "ai": "AI",
   "objectStorage": "Objektlagring",
   "appExit": "Stoppa alla startade tjänster och avsluta FlyEnv",

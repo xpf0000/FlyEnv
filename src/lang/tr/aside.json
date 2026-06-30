@@ -10,6 +10,7 @@
   "containerRuntime": "Kapsayıcı Çalışma Zamanı",
   "other": "Diğer",
   "appLog": "Uygulama Günlüğü",
+  "aiCoding": "Yapay Zeka Kodlama",
   "ai": "Yapay Zeka",
   "objectStorage": "Nesne Depolama",
   "appExit": "Başlatılan tüm hizmetleri durdur ve FlyEnv'ten çık",

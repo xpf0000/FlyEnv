@@ -59,7 +59,6 @@
   "NeedChatName": "Zəhmət olmasa Ad daxil edin",
   "NeedChatPrompt": "Zəhmət olmasa Sistem Təlimatını daxil edin",
   "apiUrl": "API Host",
-  "model": "Model",
   "reset": "Sıfırla",
   "NeedApiUrl": "Zəhmət olmasa API Host daxil edin",
   "docTips": "Faylı seçin və məzmununu oxuyun",

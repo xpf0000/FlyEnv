@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "nameKey": "codex.category.basic",
+      "nameKey": "common.category.basic",
       "commands": [
         { "label": "codex --help", "descriptionKey": "codex.cmd.help", "needInput": false },
         { "label": "codex --version", "descriptionKey": "codex.cmd.version", "needInput": false },

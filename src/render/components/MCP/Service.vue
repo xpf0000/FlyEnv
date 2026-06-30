@@ -5,7 +5,7 @@
         <div class="left flex items-center gap-3">
           <span>{{ I18nT('mcp.title') }}</span>
           <el-tag :type="MCPSetup.running ? 'success' : 'info'" effect="light" round>
-            {{ MCPSetup.running ? I18nT('mcp.running') : I18nT('mcp.stopped') }}
+            {{ MCPSetup.running ? I18nT('common.state.running') : I18nT('mcp.stopped') }}
           </el-tag>
         </div>
         <div class="right">

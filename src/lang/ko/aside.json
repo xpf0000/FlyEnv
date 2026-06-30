@@ -10,6 +10,7 @@
   "containerRuntime": "컨테이너 런타임",
   "other": "기타",
   "appLog": "애플리케이션 로그",
+  "aiCoding": "AI 코딩",
   "ai": "AI",
   "objectStorage": "오브젝트 스토리지",
   "appExit": "실행 중인 모든 서비스를 중지하고 FlyEnv 종료",

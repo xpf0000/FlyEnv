@@ -10,6 +10,7 @@
   "containerRuntime": "Env. d'exécution du Conteneur",
   "other": "Autre",
   "appLog": "Journal de l'Application",
+  "aiCoding": "Codage AI",
   "ai": "IA",
   "objectStorage": "Stockage d'Objets",
   "appExit": "Arrêter tous les services démarrés et quitter FlyEnv",

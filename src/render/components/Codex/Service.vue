@@ -129,7 +129,7 @@
   import XTerm from '@/util/XTerm'
 
   const xtermDom = ref()
-  const activeCategories = ref(['codex.category.basic'])
+  const activeCategories = ref(['common.category.basic'])
 
   const installCommand = getCodexInstallDisplayCommand(
     resolveCodexInstallPlatform(

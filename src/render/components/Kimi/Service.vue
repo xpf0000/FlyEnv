@@ -128,7 +128,7 @@
   import XTerm from '@/util/XTerm'
 
   const xtermDom = ref()
-  const activeCategories = ref(['kimi.category.basic'])
+  const activeCategories = ref(['common.category.basic'])
 
   const installCommand = computed(() => {
     if (window.Server.isWindows) {

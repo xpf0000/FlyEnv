@@ -1,0 +1,36 @@
+{
+  "label": {
+    "model": "模型"
+  },
+  "action": {
+    "enable": "启用",
+    "disable": "禁用",
+    "resume": "恢复",
+    "uninstall": "卸载"
+  },
+  "state": {
+    "running": "运行中",
+    "installed": "已安装",
+    "enabled": "已启用",
+    "disabled": "已禁用"
+  },
+  "session": {
+    "list": "会话",
+    "title": "标题",
+    "id": "会话 ID",
+    "lastPrompt": "最后提示词",
+    "search": "搜索会话",
+    "deleted": "会话已删除",
+    "resumed": "已在终端中恢复会话"
+  },
+  "mcp": {
+    "name": "名称",
+    "type": "类型",
+    "commandOrUrl": "命令 / URL",
+    "scope": "范围",
+    "addServer": "添加服务器"
+  },
+  "category": {
+    "basic": "基础"
+  }
+}

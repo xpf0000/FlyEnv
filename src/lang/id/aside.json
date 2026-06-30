@@ -10,6 +10,7 @@
   "containerRuntime": "Runtime Kontainer",
   "other": "Lainnya",
   "appLog": "Log Aplikasi",
+  "aiCoding": "Pemrograman AI",
   "ai": "Kecerdasan Buatan (AI)",
   "objectStorage": "Penyimpanan Objek",
   "appExit": "Hentikan semua layanan yang telah dimulai dan keluar dari FlyEnv",

@@ -193,7 +193,7 @@ class Kimi {
       IPC.send('app-fork:kimi', 'deleteSession', sessionId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('kimi.sessionDeleted'))
+          MessageSuccess(I18nT('common.session.deleted'))
           this.refreshSessions()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -252,7 +252,7 @@ class Kimi {
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            MessageSuccess(I18nT('kimi.sessionResumed'))
+            MessageSuccess(I18nT('common.session.resumed'))
           } else {
             MessageError(res?.msg ?? I18nT('base.fail'))
           }

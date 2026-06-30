@@ -59,7 +59,6 @@
   "NeedChatName": "Vă rugăm să introduceți numele",
   "NeedChatPrompt": "Vă rugăm să introduceți instrucțiunile (Sistem Prompt)",
   "apiUrl": "Gazdă API",
-  "model": "Model",
   "reset": "RESET",
   "NeedApiUrl": "Vă rugăm să introduceți API Host",
   "docTips": "Selectează un fișier și citește conținutul său",

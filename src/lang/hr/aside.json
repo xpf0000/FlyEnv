@@ -10,6 +10,7 @@
   "containerRuntime": "Okruženje Izvođenja Kontejnera",
   "other": "Ostalo",
   "appLog": "Log Aplikacije",
+  "aiCoding": "AI kodiranje",
   "ai": "AI",
   "objectStorage": "Objektna Pohrana",
   "appExit": "Zaustavi sve pokrenute servise i izađi iz FlyEnv",

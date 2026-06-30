@@ -10,6 +10,7 @@
   "containerRuntime": "Čas běhu kontejneru",
   "other": "Ostatní",
   "appLog": "Protokol aplikací",
+  "aiCoding": "Kódování AI",
   "ai": "AI",
   "objectStorage": "Úložiště objektů",
   "appExit": "Zastavit všechny běžící služby a ukončit FlyEnv",

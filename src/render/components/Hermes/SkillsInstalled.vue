@@ -54,9 +54,9 @@
     <el-table-column :label="I18nT('hermes.status')" width="90" align="center">
       <template #default="{ row }">
         <el-tag v-if="row.enabled" size="small" type="success">{{
-          I18nT('hermes.enabled')
+          I18nT('common.state.enabled')
         }}</el-tag>
-        <el-tag v-else size="small" type="danger">{{ I18nT('hermes.disabled') }}</el-tag>
+        <el-tag v-else size="small" type="danger">{{ I18nT('common.state.disabled') }}</el-tag>
       </template>
     </el-table-column>
     <el-table-column :label="I18nT('base.action')" width="100px" align="center">
@@ -89,7 +89,7 @@
               <li @click.stop="HermesSetup.toggleSkillEnabled(row.name, !row.enabled)">
                 <yb-icon :svg="import('@/svg/switch.svg?raw')" width="13" height="13" />
                 <span class="ml-3">{{
-                  row.enabled ? I18nT('hermes.disable') : I18nT('hermes.enable')
+                  row.enabled ? I18nT('common.action.disable') : I18nT('common.action.enable')
                 }}</span>
               </li>
             </ul>

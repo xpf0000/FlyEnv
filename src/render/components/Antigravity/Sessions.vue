@@ -174,7 +174,7 @@
                   <ElIcon size="13">
                     <VideoPlay />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('antigravity.resume')}</span>
+                  <span class="ml-3">{I18nT('common.action.resume')}</span>
                 </li>
                 <li onClick={() => deleteSession(row)}>
                   <ElIcon size="13">

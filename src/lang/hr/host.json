@@ -17,6 +17,8 @@
   "placeholderComment": "Komentar",
   "placeholderRootPath": "Putanja Root Dokumenta",
   "port": "Port",
+  "portAdvanced": "Napredno",
+  "portSimple": "Jednostavno",
   "hostSSL": "SSL",
   "parkConfirm": "Želite li razriješiti podmape kao poddomene?",
   "autoSSL": "Automatski SSL Certifikati",
@@ -38,6 +40,7 @@
   "projectRuby": "Ruby Projekti",
   "projectRust": "Rust Projekti",
   "projectZig": "Zig Projekti",
+  "projectFlutter": "Flutter projekti",
   "startCommand": "Naredba za Pokretanje",
   "envVar": "Varijabla Okruženja",
   "specifyVar": "Odredi",
@@ -59,6 +62,7 @@
   "vhostCaddyEdit": "Caddy Vhost Predložak",
   "vhostCaddySSLEdit": "Caddy Vhost Predložak (SSL)",
   "licenseTips": "Bez dobivanja licence, mogu se kreirati samo tri stranice",
+  "samePortTips": "Web-lokacija s istom domenom i priključkom za slušanje već postoji. Upotrijebite drugi priključak za dodavanje drugog web-mjesta s istom domenom.",
   "composerVersion": "Verzija Composera",
   "useSysVersion": "Verzije postavljene korištenjem varijabli okruženja",
   "sslTips": "<p>Funkcija automatskog SSL certifikata zahtijeva dodavanje certifikata nazvanog FlyEnv-Root-CA u lanac ključeva i postavljanje da mu se uvijek vjeruje</p>\n<p>Normalno, ova funkcija će biti automatski dovršena. </p>\n<p>Ako ova funkcija ne radi ispravno. Možete i kopirati i izvršiti naredbe u terminalu. </p>\n<p>Možete i dvostruko kliknuti za dodavanje certifikata u otvorenu mapu i ručno postaviti povjerenje na uvijek vjerovati u aplikaciji za lanac ključeva</p>",
@@ -79,6 +83,5 @@
   "runSetting": "Postavke Pokretanja",
   "exec": "Izvrši",
   "runInTerminal": "Pokreni u Terminalu",
-  "portSetting": "Postavke Portova",
-  "projectFlutter": "Flutter projekti"
+  "portSetting": "Postavke Portova"
 }

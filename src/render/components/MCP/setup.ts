@@ -143,7 +143,7 @@ class MCP {
         this.starting = false
         if (res?.code === 0) {
           this.running = true
-          MessageSuccess(I18nT('mcp.running'))
+          MessageSuccess(I18nT('common.state.running'))
           resolve(true)
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))

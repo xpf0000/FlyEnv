@@ -1,0 +1,36 @@
+{
+  "label": {
+    "model": "Modelo"
+  },
+  "action": {
+    "enable": "Enable",
+    "disable": "Disable",
+    "resume": "Resume",
+    "uninstall": "Uninstall"
+  },
+  "state": {
+    "running": "En ejecución",
+    "installed": "Installed",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "session": {
+    "list": "Sessions",
+    "title": "Title",
+    "id": "Session ID",
+    "lastPrompt": "Last Prompt",
+    "search": "Search sessions",
+    "deleted": "Session deleted",
+    "resumed": "Session resumed in terminal"
+  },
+  "mcp": {
+    "name": "Name",
+    "type": "Type",
+    "commandOrUrl": "Command / URL",
+    "scope": "Scope",
+    "addServer": "Add Server"
+  },
+  "category": {
+    "basic": "Basic"
+  }
+}

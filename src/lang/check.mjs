@@ -15,6 +15,24 @@ const PROJECT_ROOT = path.join(__dirname, '..')
 const LANG_DIR = path.join(PROJECT_ROOT, 'lang')
 const FILE_EXTENSIONS = ['.vue', '.js', '.ts', '.mjs']
 const STRICT_KEY_PATTERN = /['"`]([a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-.]+)['"`]/g
+const DUPLICATE_KEY_ALLOWLIST = new Set(['podman.common.yes', 'podman.common.no'])
+
+function getFlattenedKeys(obj, prefix = '') {
+  let keys = []
+  for (const key in obj) {
+    const fullKey = prefix ? `${prefix}.${key}` : key
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      keys = keys.concat(getFlattenedKeys(obj[key], fullKey))
+    } else {
+      keys.push(fullKey)
+    }
+  }
+  return keys
+}
+
+function getValueByPath(obj, keyPath) {
+  return keyPath.split('.').reduce((cur, key) => cur?.[key], obj)
+}
 
 function diffKey() {
   const FILE_EXTENSION = '.json'
@@ -126,20 +144,6 @@ function diffKey() {
     }
   }
 
-  // 获取嵌套键（保持原样）
-  function getFlattenedKeys(obj, prefix = '') {
-    let keys = []
-    for (const key in obj) {
-      const fullKey = prefix ? `${prefix}.${key}` : key
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        keys = keys.concat(getFlattenedKeys(obj[key], fullKey))
-      } else {
-        keys.push(fullKey)
-      }
-    }
-    return keys
-  }
-
   // 执行检测
   detectLanguageDifferences()
 }
@@ -211,20 +215,6 @@ function checkNoUseKey() {
     return allLangFile.has(fileName)
   }
 
-  // 3. 获取嵌套键（保持原样）
-  function getFlattenedKeys(obj, prefix = '') {
-    let keys = []
-    for (const key in obj) {
-      const fullKey = prefix ? `${prefix}.${key}` : key
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        keys = keys.concat(getFlattenedKeys(obj[key], fullKey))
-      } else {
-        keys.push(fullKey)
-      }
-    }
-    return keys
-  }
-
   // 4. 主函数
   function findUnusedKeys() {
     console.log('🔍 开始检测未使用的国际化键（严格模式）...\n')
@@ -265,5 +255,55 @@ function checkNoUseKey() {
   findUnusedKeys()
 }
 
+function reportDuplicateCandidates() {
+  const seedLangs = ['zh', 'en']
+  const byValue = new Map()
+
+  seedLangs.forEach((lang) => {
+    const langDir = path.join(LANG_DIR, lang)
+    const files = fs.readdirSync(langDir).filter((file) => file.endsWith('.json'))
+
+    files.forEach((file) => {
+      const fileName = path.basename(file, '.json')
+      const content = require(path.join(langDir, file))
+      const keys = getFlattenedKeys(content)
+
+      keys.forEach((key) => {
+        const value = getValueByPath(content, key)
+        const fullKey = `${fileName}.${key}`
+
+        if (DUPLICATE_KEY_ALLOWLIST.has(fullKey) || typeof value !== 'string') {
+          return
+        }
+
+        if (!byValue.has(value)) {
+          byValue.set(value, new Set())
+        }
+        byValue.get(value).add(fullKey)
+      })
+    })
+  })
+
+  const candidates = Array.from(byValue.entries())
+    .map(([value, keys]) => [value, Array.from(keys).sort()])
+    .filter(([, keys]) => keys.length >= 3)
+    .sort((a, b) => b[1].length - a[1].length)
+
+  console.log('\n🔍 重复文案候选（zh/en）\n')
+
+  if (candidates.length === 0) {
+    console.log('✅ 没有发现需要关注的重复文案候选')
+    return
+  }
+
+  candidates.forEach(([value, keys]) => {
+    console.log(`• ${JSON.stringify(value)}`)
+    keys.forEach((key) => {
+      console.log(`  - ${key}`)
+    })
+  })
+}
+
 diffKey()
 checkNoUseKey()
+reportDuplicateCandidates()

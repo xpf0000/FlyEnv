@@ -59,7 +59,6 @@
   "NeedChatName": "名前を入力してください",
   "NeedChatPrompt": "指示（システムプロンプト）を入力してください",
   "apiUrl": "APIホスト",
-  "model": "モデル",
   "reset": "リセット",
   "NeedApiUrl": "APIホストを入力してください",
   "docTips": "ファイルを選択して内容を読み取ります",

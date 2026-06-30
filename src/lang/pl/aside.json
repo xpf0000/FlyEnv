@@ -10,6 +10,7 @@
   "containerRuntime": "Czas uruchomienia kontenera",
   "other": "Inne",
   "appLog": "Dziennik aplikacji",
+  "aiCoding": "Kodowanie AI",
   "ai": "AI",
   "objectStorage": "Przechowywanie obiektów",
   "appExit": "Zatrzymaj wszystkie uruchomione usługi i wyjdź z FlyEnv",

@@ -59,7 +59,6 @@
   "NeedChatName": "Skriv inn navn",
   "NeedChatPrompt": "Angi instruksjon (System Prompt)",
   "apiUrl": "API vert",
-  "model": "Modell",
   "reset": "RESET",
   "NeedApiUrl": "Skriv inn API vert",
   "docTips": "Velg en fil og les dens innhold",

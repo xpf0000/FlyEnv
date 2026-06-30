@@ -59,7 +59,6 @@
   "NeedChatName": "Por favor, insira um nome",
   "NeedChatPrompt": "Por favor, insira o prompt do sistema (definição de papel)",
   "apiUrl": "Domínio da API",
-  "model": "Modelo",
   "reset": "Redefinir",
   "NeedApiUrl": "Por favor, insira o domínio da API",
   "docTips": "Selecione o arquivo e leia o conteúdo",

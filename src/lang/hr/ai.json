@@ -59,7 +59,6 @@
   "NeedChatName": "Molimo unesite ime",
   "NeedChatPrompt": "Molimo unesite Uputu (Sistemski Prompt)",
   "apiUrl": "API Host",
-  "model": "Model",
   "reset": "RESET",
   "NeedApiUrl": "Molimo unesite API Host",
   "docTips": "Odaberite datoteku i pročitajte njen sadržaj",

@@ -1,0 +1,36 @@
+{
+  "label": {
+    "model": "Model"
+  },
+  "action": {
+    "enable": "Etkinleştir",
+    "disable": "Devre dışı bırak",
+    "resume": "Sürdür",
+    "uninstall": "Kaldır"
+  },
+  "state": {
+    "running": "Calisiyor",
+    "installed": "Yüklü",
+    "enabled": "Etkin",
+    "disabled": "Devre dışı"
+  },
+  "session": {
+    "list": "Oturumlar",
+    "title": "Başlık",
+    "id": "Oturum Kimliği",
+    "lastPrompt": "Son İstem",
+    "search": "Oturumlarda ara",
+    "deleted": "Oturum silindi",
+    "resumed": "Oturum terminalde sürdürüldü"
+  },
+  "mcp": {
+    "name": "Ad",
+    "type": "Tür",
+    "commandOrUrl": "Komut / URL",
+    "scope": "Kapsam",
+    "addServer": "Sunucu Ekle"
+  },
+  "category": {
+    "basic": "Temel"
+  }
+}

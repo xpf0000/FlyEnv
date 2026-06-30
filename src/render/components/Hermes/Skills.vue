@@ -30,7 +30,7 @@
               >
                 <el-radio-button
                   class="flex-1"
-                  :label="I18nT('hermes.installed')"
+                  :label="I18nT('common.state.installed')"
                   value="installed"
                 ></el-radio-button>
                 <el-radio-button class="flex-1" label="All" value="all"></el-radio-button>
