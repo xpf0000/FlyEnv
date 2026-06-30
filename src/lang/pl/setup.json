@@ -37,8 +37,7 @@
     "needPasswordToStart": "Wymagane prawa administratora. Wprowadź swoje hasło (zostanie zapisane do przyszłego użycia). Alternatywnie, wpisz je ręcznie w terminalu, ale ten monit może się pojawić.",
     "hadOpenInTerminal": "Już działa w terminalu—wyniki niedostępne.",
     "licenseTips": "Nie znaleziono licencji. Tylko 3 moduły/elementy wykonania mogą zostać utworzone.",
-    "outputLog": "Logi wyjściowe",
-    "errorLog": "Dziennik błędów"
+    "outputLog": "Logi wyjściowe"
   },
   "flyenvHelper": "Napraw pomocnik FlyEnv",
   "flyenvHelperBtn": "Napraw",

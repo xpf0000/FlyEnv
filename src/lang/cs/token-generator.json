@@ -5,8 +5,5 @@
   "numbers": "Čísla 123...)",
   "symbols": "Symboly (!-;...)",
   "length": "Délka",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "refresh": "Aktualizovat"
-  }
+  "tokenPlaceholder": "Token..."
 }

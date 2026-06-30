@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="item?.user ? $t('base.edit') : $t('base.add')"
+    :title="item?.user ? $t('common.action.edit') : $t('common.action.add')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"

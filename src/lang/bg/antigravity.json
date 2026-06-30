@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Отворете каталога с умения",
-  "openSkillDir": "Отваряне на директория с умения",
-  "revealSkillFile": "Разкриване на файл с умения",
-  "builtin": "Вграден",
-  "skillFileMissing": "Файлът с умения не е намерен",
-  "skillLoadFailed": "Неуспешно зареждане на файла с умения"
+  "sessionDeleted": "Conversation deleted"
 }

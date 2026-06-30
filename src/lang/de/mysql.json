@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Dieser Vorgang wird das Passwort des Datenbank-Root-Benutzers ändern. Sind Sie sicher, dass Sie fortfahren möchten?",
   "mysqlNeedRunTips": "Bitte starten Sie {app} zuerst",
   "databaseName": "Datenbankname",
-  "databaseUser": "Benutzer",
-  "databasePassword": "Passwort",
   "addDatabase": "Datenbank hinzufügen",
   "inputDatabaseName": "Bitte geben Sie den Datenbanknamen ein",
   "databaseNameFormatError": "Datenbankname muss mit einem Buchstaben, 3-64 Zeichen beginnen und darf nur Buchstaben, Zahlen und Unterstriche enthalten",

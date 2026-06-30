@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "مسار جذر CA",
   "certificates": "الشهادات",
-  "generate": "توليد",
   "noSSLHosts": "لم يتم تمكين أي مضيف مع SSL. تمكين SSL على المضيف أولاً."
 }

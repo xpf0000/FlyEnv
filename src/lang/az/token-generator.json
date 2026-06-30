@@ -5,8 +5,5 @@
   "numbers": "Rəqəmlər (123...)",
   "symbols": "Simvollar (!-;...)",
   "length": "Uzunluq",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "refresh": "Yenilə"
-  }
+  "tokenPlaceholder": "Token..."
 }

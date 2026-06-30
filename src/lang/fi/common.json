@@ -6,7 +6,26 @@
     "workingDirectory": "Työhakemisto",
     "action": "Toiminto",
     "comment": "Kommentti",
-    "source": "Lähde"
+    "source": "Lähde",
+    "site": "Sivusto",
+    "errorLog": "Virhe Loki",
+    "library": "Kirjasto",
+    "path": "Polku",
+    "description": "Kuvaus",
+    "port": "Portti",
+    "startCommand": "Käynnistä Komento",
+    "licenseDescription": "Lisenssin kuvaus",
+    "password": "Salasana",
+    "username": "Käyttäjätunnus",
+    "size": "Koko",
+    "containerEnvVars": "Container Environment Muuttujat",
+    "createdTime": "Luotu Aika",
+    "image": "Kuva",
+    "state": "Tila",
+    "grid": "Ruudukko",
+    "gridSpacing": "Ruudukon Välistys (Kuvapisteet)",
+    "fontSize": "Font Size",
+    "code": "Koodi"
   },
   "action": {
     "enable": "Aktivoi",
@@ -18,13 +37,26 @@
     "search": "Etsi",
     "clear": "Tyhjennä",
     "resetPassword": "Nollaa Salasana",
-    "delete": "Poista"
+    "delete": "Poista",
+    "add": "Lisää",
+    "edit": "Muokkaa",
+    "generate": "Luo",
+    "refresh": "Päivitä",
+    "save": "Tallenna",
+    "start": "Aloita",
+    "stop": "Pysäytä",
+    "close": "Sulje",
+    "selectAll": "Valitse Kaikki",
+    "changeName": "Muokkaa Nimi",
+    "changeOwnerPassword": "Vaihda Omistajan Salasana",
+    "changeRole": "Vaihda Roolia"
   },
   "state": {
     "running": "Käynnissä",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Perustiedot",
     "configuration": "Asetukset",
-    "favorites": "Suosikit"
+    "favorites": "Suosikit",
+    "plugins": "Plugins",
+    "backupUpdate": "Varmuuskopioi Ja Päivitä"
+  },
+  "skills": {
+    "openSkillsDir": "Avaa taitokansio",
+    "openSkillDir": "Avaa taitohakemisto",
+    "revealSkillFile": "Paljasta taitotiedosto",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Taitotiedostoa ei löytynyt",
+    "skillLoadFailed": "Taitotiedoston lataaminen epäonnistui",
+    "builtin": "Sisäänrakennettu"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Suorita terveystarkastuksia",
+    "doctorFix": "Suorita terveystarkastukset automaattisella korjauksella",
+    "gatewayStart": "Käynnistä yhdyskäytävä palvelu",
+    "gatewayStop": "Pysäytä yhdyskäytävä palvelu",
+    "gatewayRestart": "Käynnistä yhdyspalvelu uudelleen",
+    "gatewayStatus": "Näytä yhdyskäytävän tila",
+    "gatewayRun": "Suorita portti etualalla",
+    "gatewayUninstall": "Poista yhdyskäytävä palvelu",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Yhdyskäytävän Palvelu",
+    "status": "Yhdyskäytävän Tila",
+    "running": "Yhdyskäytävä on käynnissä",
+    "stopped": "Yhdyskäytävä on pysäytetty",
+    "startFailed": "Yhdyskäytävän käynnistys epäonnistui"
+  },
+  "value": {
+    "yes": "Kyllä",
+    "no": "Ei",
+    "other": "Muu",
+    "default": "Oletus",
+    "none": "Ei Mitään",
+    "local": "Paikallinen"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Joka tunti",
+    "everyMinute": "Joka minuutti"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini-tiedostoa ei löytynyt"
   }
 }

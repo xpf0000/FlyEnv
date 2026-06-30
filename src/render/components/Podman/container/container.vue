@@ -3,7 +3,7 @@
     <div class="flex items-center">
       <el-button size="small" class="flex-shrink-0" @click="addContainer()">
         <template #default>
-          <span>{{ I18nT('base.add') }}</span>
+          <span>{{ I18nT('common.action.add') }}</span>
           <template v-if="machine?.containerCreating">
             <el-button link loading></el-button>
           </template>
@@ -29,7 +29,7 @@
           </el-tooltip>
         </template>
       </el-table-column>
-      <el-table-column prop="Image" :label="I18nT('podman.Image')">
+      <el-table-column prop="Image" :label="I18nT('common.label.image')">
         <template #default="scope">
           <span
             class="truncate cursor-pointer hover:text-yellow-500"
@@ -39,7 +39,7 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="running" :label="I18nT('podman.Status')" width="110" align="center">
+      <el-table-column prop="running" :label="I18nT('common.label.status')" width="110" align="center">
         <template #default="scope">
           <template v-if="scope.row?.statusError">
             <el-tooltip :content="scope.row?.statusError">

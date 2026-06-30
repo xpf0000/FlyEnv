@@ -188,7 +188,7 @@
                   }}</div>
                 </div>
                 <el-button size="small" @click="addDependency(pkg, false)">{{
-                  I18nT('flutter.add')
+                  I18nT('common.action.add')
                 }}</el-button>
                 <el-button size="small" type="warning" @click="addDependency(pkg, true)">{{
                   I18nT('flutter.addDev')

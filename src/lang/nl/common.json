@@ -6,7 +6,26 @@
     "workingDirectory": "Werken Map",
     "action": "actie",
     "comment": "Commentaar",
-    "source": "Bron"
+    "source": "Bron",
+    "site": "Website",
+    "errorLog": "Fout Log",
+    "library": "Bibliotheek",
+    "path": "Pad",
+    "description": "Beschrijving",
+    "port": "Poort",
+    "startCommand": "Opdracht starten",
+    "licenseDescription": "Licentieomschrijving",
+    "password": "Paswoord",
+    "username": "Gebruikersnaam",
+    "size": "Grootte",
+    "containerEnvVars": "Container Omgevingsvariabelen",
+    "createdTime": "Aangemaakt op",
+    "image": "Afbeelding",
+    "state": "Provincie",
+    "grid": "Rooster",
+    "gridSpacing": "Raster afstand (pixels)",
+    "fontSize": "Font Size",
+    "code": "Code"
   },
   "action": {
     "enable": "Inschakelen",
@@ -18,13 +37,26 @@
     "search": "Zoeken",
     "clear": "Wissen",
     "resetPassword": "Wachtwoord opnieuw instellen",
-    "delete": "Verwijder"
+    "delete": "Verwijder",
+    "add": "Toevoegen",
+    "edit": "Bewerking",
+    "generate": "Genereren",
+    "refresh": "Vernieuwen",
+    "save": "Bewaar",
+    "start": "Beginnen",
+    "stop": "Stoppen",
+    "close": "Afsluiten",
+    "selectAll": "Alles selecteren",
+    "changeName": "Naam bewerken",
+    "changeOwnerPassword": "Wijzig eigenaarwachtwoord",
+    "changeRole": "Rol wijzigen"
   },
   "state": {
     "running": "Hardlopen",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Algemene gegevens",
     "configuration": "Configuratie",
-    "favorites": "Favorieten"
+    "favorites": "Favorieten",
+    "plugins": "Plugins",
+    "backupUpdate": "Backup & Update"
+  },
+  "skills": {
+    "openSkillsDir": "Open vaardighedenmap",
+    "openSkillDir": "Skill directory openen",
+    "revealSkillFile": "Vaardighedenbestand onthullen",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Vaardigheidsbestand niet gevonden",
+    "skillLoadFailed": "Het laden van het vaardigheidsbestand is mislukt",
+    "builtin": "Ingebouwd"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Voer gezondheidscontroles uit",
+    "doctorFix": "Voer gezondheidscontroles uit met auto-fix",
+    "gatewayStart": "Start gateway service",
+    "gatewayStop": "Stop gateway service",
+    "gatewayRestart": "Herstart gateway service",
+    "gatewayStatus": "Toon gateway status",
+    "gatewayRun": "Voer gateway uit op de voorgrond",
+    "gatewayUninstall": "Gateway service deïnstalleren",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Gateway Service",
+    "status": "Gateway Status",
+    "running": "Gateway is lopend",
+    "stopped": "Gateway is gestopt",
+    "startFailed": "Gateway start mislukt"
+  },
+  "value": {
+    "yes": "ja",
+    "no": "Neen",
+    "other": "anders",
+    "default": "Standaard",
+    "none": "Geen",
+    "local": "lokaal"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Elk uur",
+    "everyMinute": "Elke minuut"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini bestand niet gevonden"
   }
 }

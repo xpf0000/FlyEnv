@@ -131,11 +131,11 @@
         </el-card>
         <el-card v-if="!store.isActive">
           <template #header>
-            <span>{{ I18nT('licenses.licenseDescription') }}</span>
+            <span>{{ I18nT('common.label.licenseDescription') }}</span>
           </template>
           <template #default>
             <div class="flex flex-col gap-2 items-start">
-              <div class="text-xl">{{ I18nT('licenses.title') }}</div>
+              <div class="text-xl">{{ I18nT('common.label.licenseDescription') }}</div>
               <p>{{ I18nT('licenses.description') }}</p>
               <p>{{ I18nT('licenses.restrictions.title') }} </p>
               <p>1. {{ I18nT('licenses.restrictions.items.0') }}</p>

@@ -25,13 +25,13 @@
               :icon="Lock"
               style="padding-left: 30px; padding-right: 30px"
               @click="toLicense"
-              >{{ I18nT('base.add') }}</el-button
+              >{{ I18nT('common.action.add') }}</el-button
             >
           </el-tooltip>
         </template>
         <template v-else>
           <el-button style="padding-left: 30px; padding-right: 30px" @click="toAdd">{{
-            I18nT('base.add')
+            I18nT('common.action.add')
           }}</el-button>
         </template>
         <el-dropdown trigger="click" @command="handleCommand">

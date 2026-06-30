@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "스킬 디렉터리 열기",
-  "openSkillDir": "스킬 디렉토리 열기",
-  "revealSkillFile": "스킬 파일 공개",
-  "builtin": "내장",
-  "skillFileMissing": "스킬 파일을 찾을 수 없습니다",
-  "skillLoadFailed": "스킬 파일을 불러오지 못했습니다"
+  "sessionDeleted": "Conversation deleted"
 }

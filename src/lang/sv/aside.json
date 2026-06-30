@@ -1,5 +1,4 @@
 {
-  "site": "Plats",
   "webServer": "Webbserver",
   "dataBaseServer": "Databasserver",
   "emailServer": "E-postserver",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS-server",
   "ftpServer": "FTP-server",
   "containerRuntime": "Containerkörning",
-  "other": "Övrigt",
   "appLog": "App-logg",
   "aiCoding": "AI-kodning",
   "ai": "AI",

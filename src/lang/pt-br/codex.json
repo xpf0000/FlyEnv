@@ -5,11 +5,6 @@
   "reasoningEffort": "Reasoning Effort",
   "approvalPolicy": "Approval Policy",
   "sandboxMode": "Sandbox Mode",
-  "plugins": "Plugins",
-  "available": "Available",
-  "searchPlugin": "Search plugins",
   "pluginEnabled": "Plugin installed",
-  "pluginDisabled": "Plugin removed",
-  "pluginUninstalled": "Plugin removed",
   "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?"
 }

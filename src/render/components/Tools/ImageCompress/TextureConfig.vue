@@ -18,7 +18,7 @@
             I18nT('tools.ImageCompress.textureConfig.textureType')
           }}</label>
           <el-select v-model="config.texture.type" class="w-full" @change="onTextureTypeChange">
-            <el-option :label="I18nT('tools.ImageCompress.textureConfig.grid')" value="grid" />
+            <el-option :label="I18nT('common.label.grid')" value="grid" />
             <el-option :label="I18nT('tools.ImageCompress.textureConfig.dot')" value="dot" />
             <el-option :label="I18nT('tools.ImageCompress.textureConfig.line')" value="line" />
             <el-option :label="I18nT('tools.ImageCompress.textureConfig.noise')" value="noise" />
@@ -93,7 +93,7 @@
 
               <div>
                 <label class="block text-sm font-medium mb-2">{{
-                  I18nT('tools.ImageCompress.textureConfig.gridSpacing')
+                  I18nT('common.label.gridSpacing')
                 }}</label>
                 <el-slider
                   v-model="config.texture.size"
@@ -167,7 +167,7 @@
                 I18nT('tools.ImageCompress.textureConfig.blendMode')
               }}</label>
               <el-select v-model="config.texture.blendMode" class="w-full">
-                <el-option :label="I18nT('tools.ImageCompress.textureConfig.none')" value="over" />
+                <el-option :label="I18nT('common.value.none')" value="over" />
                 <el-option
                   :label="I18nT('tools.ImageCompress.textureConfig.overlay')"
                   value="overlay"

@@ -9,6 +9,5 @@
   "postgresqlInit": "Usługa rozpoczęta pomyślnie\nDir danych to {dir}\nPoczątkowy użytkownik jest rootem, hasło jest rootem",
   "downloadFileFail": "Pobieranie pliku nie powiodło się!",
   "trialEnd": "Okres próbny wygasł. Aby kontynuować korzystanie z tej funkcji, uzyskaj licencję",
-  "phpiniNotFound": "Nie znaleziono pliku php.ini",
   "noEPMD": "Proces epmd nie został znaleziony. Proszę zresetować zmienne środowiskowe Erlang."
 }

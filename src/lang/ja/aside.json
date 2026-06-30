@@ -1,5 +1,4 @@
 {
-  "site": "サイト",
   "webServer": "Webサーバー",
   "dataBaseServer": "データベースサーバー",
   "emailServer": "メールサーバー",
@@ -8,7 +7,6 @@
   "dnsServer": "DNSサーバー",
   "ftpServer": "FTPサーバー",
   "containerRuntime": "コンテナランタイム",
-  "other": "その他",
   "appLog": "アプリログ",
   "aiCoding": "AIコーディング",
   "ai": "AI",

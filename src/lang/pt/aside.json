@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "webServer": "Servidor Web",
   "dataBaseServer": "Servidor de Banco de Dados",
   "emailServer": "Servidor de E-mail",
@@ -8,7 +7,6 @@
   "dnsServer": "Servidor DNS",
   "ftpServer": "Servidor FTP",
   "containerRuntime": "Tempo de Execução do Contêiner",
-  "other": "Outro",
   "appLog": "Log da Aplicação",
   "aiCoding": "Programação com IA",
   "ai": "IA",

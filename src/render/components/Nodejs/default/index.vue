@@ -167,7 +167,7 @@
         if (NodeDefaultSetup.versionInstalling[row.version]) {
           return <ElButton loading={true} link></ElButton>
         } else {
-          const t = row.installed ? I18nT('base.uninstall') : I18nT('base.install')
+          const t = row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')
           const a = row.installed ? 'uninstall' : 'install'
           return (
             <ElButton

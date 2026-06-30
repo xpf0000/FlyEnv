@@ -4,8 +4,6 @@
   "update-not-available-message": "Ești actualizat!",
   "update-downloaded-message": "Gata de instalare...",
   "update-error-message": "Eroare la actualizare",
-  "yes": "Da",
-  "no": "Nr",
   "view-update-log": "Vezi jurnalul actualizărilor",
   "download-new-version": "Descarcă versiunea nouă"
 }

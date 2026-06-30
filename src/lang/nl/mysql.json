@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Deze bewerking zal het wachtwoord van de root gebruiker van de database wijzigen, weet u zeker dat u wilt doorgaan?",
   "mysqlNeedRunTips": "Voer {app} eerst uit",
   "databaseName": "Naam database",
-  "databaseUser": "Gebruikersnaam",
-  "databasePassword": "Paswoord",
   "addDatabase": "Database toevoegen",
   "inputDatabaseName": "Voer een databasenaam in",
   "databaseNameFormatError": "Database naam moet beginnen met een letter, 3-64 tekens, en kan alleen letters, cijfers en onderstrepingstekens bevatten",

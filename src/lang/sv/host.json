@@ -1,5 +1,4 @@
 {
-  "site": "Webbplats",
   "phpVersion": "PHP-version",
   "newProject": "Nytt projekt",
   "frameworkVersion": "Framework-version",
@@ -13,7 +12,6 @@
   "placeholderName": "Värdnamn (Exempel: mydomain.tld)",
   "placeholderAlias": "Domänalias (Example: www.mydomain.tld)",
   "placeholderRootPath": "Sökväg till dokumentrot",
-  "port": "Port",
   "portAdvanced": "Avancerat",
   "portSimple": "Enkelt",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projekt",
   "projectZig": "Zig projekt",
   "projectFlutter": "Flutter projekt",
-  "startCommand": "Startkommando",
   "envVar": "Miljövariabel",
   "specifyVar": "Specificera",
   "fileVar": "Fil",

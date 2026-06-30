@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Denna åtgärd kommer att ändra databasens root-användares lösenord, är du säker på att du vill fortsätta?",
   "mysqlNeedRunTips": "Vänligen kör {app} först",
   "databaseName": "Databasnamn",
-  "databaseUser": "Användarnamn",
-  "databasePassword": "Lösenord",
   "addDatabase": "Lägg till databas",
   "inputDatabaseName": "Ange databasnamn",
   "databaseNameFormatError": "Databasnamn måste börja med en bokstav, 3-64 tecken och får endast innehålla bokstäver, siffror och understreck",

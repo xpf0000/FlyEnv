@@ -1,5 +1,4 @@
 {
-  "title": "Licensbeskrivning",
   "description": "Licensen är ett erkännande och stöd för det hårda arbetet av FlyEnv och dess författare. Syftet är inte att begränsa användare utan att påminna dem om att respektera utvecklarnas ansträngningar och följa de relevanta villkoren vid användning av programvaran. Genom att följa licensen stödjer användarna inte bara den fortsatta utvecklingen av projektet utan bidrar också till andan av förtroende och samarbete inom open-source-gemenskapen.",
   "restrictions": {
     "title": "Användare utan licens kommer att omfattas av följande begränsningar:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Bundet UUID",
   "delBind": "Ta bort bindning",
   "bindCurrentUUID": "Bind denna enhet",
-  "licenseDescription": "Licensbeskrivning",
   "loginFail": "Inloggning misslyckades",
   "oauthCanceledTitle": "Auktorisering avbruten",
   "oauthCanceledMessage": "Användaren avbröt auktoriseringsprocessen",

@@ -15,10 +15,10 @@
             :loading="MCPSetup.starting"
             @click="MCPSetup.start()"
           >
-            {{ I18nT('mcp.start') }}
+            {{ I18nT('common.action.start') }}
           </el-button>
           <el-button v-else type="danger" :loading="MCPSetup.starting" @click="MCPSetup.stop()">
-            {{ I18nT('mcp.stop') }}
+            {{ I18nT('common.action.stop') }}
           </el-button>
         </div>
       </div>
@@ -29,7 +29,7 @@
         <el-form-item :label="I18nT('mcp.host')">
           <el-input v-model="MCPSetup.config.host" :disabled="MCPSetup.running" @change="onSave" />
         </el-form-item>
-        <el-form-item :label="I18nT('mcp.port')">
+        <el-form-item :label="I18nT('common.label.port')">
           <el-input-number
             v-model="MCPSetup.config.port"
             :min="1024"

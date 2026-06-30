@@ -111,7 +111,7 @@
         <el-table-column type="selection" width="55"></el-table-column>
         <el-table-column type="index"></el-table-column>
         <el-table-column
-          :label="I18nT('tools.ImageCompress.batchProcessing.path')"
+          :label="I18nT('common.label.path')"
           width="auto"
           prop="path"
         >

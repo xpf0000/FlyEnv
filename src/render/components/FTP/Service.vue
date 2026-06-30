@@ -65,7 +65,7 @@
             </template>
           </el-select>
         </div>
-        <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
+        <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('common.action.add') }}</el-button>
       </div>
     </template>
     <el-auto-resizer>
@@ -258,7 +258,7 @@
       headerCellRenderer: () => {
         return (
           <span style="padding-left: 24px;" class="flex items-center">
-            {I18nT('util.ftpTableHeadUser')}
+            {I18nT('common.label.username')}
           </span>
         )
       },
@@ -274,7 +274,7 @@
       dataKey: 'pass',
       width: 200,
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.ftpTableHeadPass')}</span>
+        return <span class="flex items-center">{I18nT('common.label.password')}</span>
       },
       cellRenderer: ({ cellData: pass }) => (
         <span class="pass" onClick={() => copyPass(pass)}>

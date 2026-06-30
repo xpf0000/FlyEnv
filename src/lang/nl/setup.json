@@ -37,8 +37,7 @@
     "needPasswordToStart": "Beheerrechten vereist. Voer uw wachtwoord in (het wordt opgeslagen voor toekomstig gebruik). U kunt het ook handmatig invoeren in de terminal, maar deze prompt kan opnieuw verschijnen.",
     "hadOpenInTerminal": "Al actief in terminal—resultaten niet beschikbaar.",
     "licenseTips": "Geen licentie gevonden. Alleen 3 modules/uitvoeringsitems kunnen worden aangemaakt.",
-    "outputLog": "Uitvoer Logboek",
-    "errorLog": "Fout Log"
+    "outputLog": "Uitvoer Logboek"
   },
   "flyenvHelper": "Herstel FlyEnv Helper",
   "flyenvHelperBtn": "Repareer",

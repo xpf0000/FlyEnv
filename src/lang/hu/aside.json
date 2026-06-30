@@ -1,5 +1,4 @@
 {
-  "site": "Webhely",
   "webServer": "Webszerver",
   "dataBaseServer": "Adatbázis-szerver",
   "emailServer": "E-mail szerver",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS-szerver",
   "ftpServer": "FTP-szerver",
   "containerRuntime": "Konténer futtatókörnyezet",
-  "other": "Egyéb",
   "appLog": "Alkalmazásnapló",
   "aiCoding": "AI-kódolás",
   "ai": "AI",

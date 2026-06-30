@@ -1,5 +1,4 @@
 {
-  "site": "الموقع",
   "webServer": "خادم الويب",
   "dataBaseServer": "خادم قاعدة البيانات",
   "emailServer": "خادم البريد الإلكتروني",
@@ -8,7 +7,6 @@
   "dnsServer": "خادم DNS",
   "ftpServer": "خادم FTP",
   "containerRuntime": "مشغّل الحاويات",
-  "other": "أخرى",
   "appLog": "سجل التطبيق",
   "aiCoding": "ترميز الذكاء الاصطناعي",
   "ai": "الذكاء الاصطناعي",

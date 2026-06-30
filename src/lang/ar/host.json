@@ -1,5 +1,4 @@
 {
-  "site": "الموقع",
   "phpVersion": "إصدار PHP",
   "newProject": "مشروع جديد",
   "frameworkVersion": "إصدار الإطار",
@@ -13,7 +12,6 @@
   "placeholderName": "اسم النطاق (مثال: mydomain.tld)",
   "placeholderAlias": "الأسماء المستعارة للنطاق (مثال: www.mydomain.tld)",
   "placeholderRootPath": "مسار جذر المستند",
-  "port": "المنفذ",
   "portAdvanced": "متقدم",
   "portSimple": "بسيط",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust مشاريع",
   "projectZig": "Zig مشاريع",
   "projectFlutter": "مشاريع Flutter",
-  "startCommand": "أمر التشغيل",
   "envVar": "متغيرات البيئة",
   "specifyVar": "تحديد",
   "fileVar": "ملف",

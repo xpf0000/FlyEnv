@@ -79,17 +79,17 @@
                               :disabled="item.running"
                               @click.stop="item.start()"
                             >
-                              {{ I18nT('podman.Start') }}
+                              {{ I18nT('common.action.start') }}
                             </el-dropdown-item>
                             <el-dropdown-item
                               v-else
                               :disabled="item.running"
                               @click.stop="item.stop()"
                             >
-                              {{ I18nT('podman.Stop') }}
+                              {{ I18nT('common.action.stop') }}
                             </el-dropdown-item>
                             <el-dropdown-item @click.stop="addMachine(item)">
-                              {{ I18nT('base.edit') }}
+                              {{ I18nT('common.action.edit') }}
                             </el-dropdown-item>
                             <el-dropdown-item divided @click.stop="item.remove()">
                               <span class="text-red-500">{{ I18nT('common.action.delete') }}</span>

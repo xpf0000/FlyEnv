@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Bu işlem veritabanı root kullanıcısının şifresini değiştirecektir, bu işlemi gerçekleştirmek istediğinizden emin misiniz?",
   "mysqlNeedRunTips": "Lütfen önce {app}'ı çalıştırın",
   "databaseName": "Veritabanı adı",
-  "databaseUser": "Kullanıcı adı",
-  "databasePassword": "Şifre",
   "addDatabase": "Veritabanı ekle",
   "inputDatabaseName": "Lütfen veritabanı adını girin",
   "databaseNameFormatError": "Veritabanı adı bir harfle başlamalı, 3-64 karakter uzunluğunda olmalı ve sadece harf, rakam ve alt çizgi içerebilir",

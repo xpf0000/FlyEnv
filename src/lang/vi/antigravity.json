@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Mở thư mục kỹ năng",
-  "openSkillDir": "Mở thư mục kỹ năng",
-  "revealSkillFile": "Hiện tệp kỹ năng",
-  "builtin": "Tích hợp sẵn",
-  "skillFileMissing": "Không tìm thấy tệp kỹ năng",
-  "skillLoadFailed": "Không thể tải tệp kỹ năng"
+  "sessionDeleted": "Conversation deleted"
 }

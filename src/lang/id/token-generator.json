@@ -5,8 +5,5 @@
   "numbers": "Angka (123...)",
   "symbols": "Simbol (!-;...)",
   "length": "Panjang",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "refresh": "Segarkan"
-  }
+  "tokenPlaceholder": "Token..."
 }

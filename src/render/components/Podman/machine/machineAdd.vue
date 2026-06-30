@@ -3,8 +3,8 @@
     v-model="visible"
     :title="
       isEdit
-        ? I18nT('base.edit') + I18nT('podman.Machine')
-        : I18nT('podman.Machine') + I18nT('base.add')
+        ? I18nT('common.action.edit') + I18nT('podman.Machine')
+        : I18nT('podman.Machine') + I18nT('common.action.add')
     "
     width="600px"
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"

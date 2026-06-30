@@ -10,8 +10,6 @@
   "providerId": "Nhà cung cấp",
   "noProviders": "Chưa cấu hình thông tin xác thực. Chạy lệnh `opencode auth login` để thêm.",
   "cmd": {
-    "help": "Hiển thị thông tin trợ giúp",
-    "version": "Hiển thị số phiên bản",
     "upgrade": "Cập nhật OpenCode lên phiên bản mới nhất",
     "models": "Liệt kê tất cả các mô hình hiện có",
     "start": "Khởi động giao diện OpenCode TUI",

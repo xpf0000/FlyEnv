@@ -1,5 +1,4 @@
 {
-  "site": "Witryna",
   "webServer": "Serwer WWW",
   "dataBaseServer": "Serwer bazy danych",
   "emailServer": "Serwer e-mail",
@@ -8,7 +7,6 @@
   "dnsServer": "Serwer DNS",
   "ftpServer": "Serwer FTP",
   "containerRuntime": "Czas uruchomienia kontenera",
-  "other": "Inne",
   "appLog": "Dziennik aplikacji",
   "aiCoding": "Kodowanie AI",
   "ai": "AI",

@@ -6,7 +6,26 @@
     "workingDirectory": "Directorio de trabajo",
     "action": "Acción",
     "comment": "Comentario",
-    "source": "Fuente"
+    "source": "Fuente",
+    "site": "Sitio",
+    "errorLog": "Registro de Errores",
+    "library": "Biblioteca",
+    "path": "Ruta",
+    "description": "Descripción",
+    "port": "Puerto",
+    "startCommand": "Comando de inicio",
+    "licenseDescription": "Descripción de la Licencia",
+    "password": "Contraseña",
+    "username": "Nombre de Usuario",
+    "size": "Tamaño",
+    "containerEnvVars": "Variables de entorno del contenedor",
+    "createdTime": "Tiempo de creación",
+    "image": "Imagen",
+    "state": "Estado",
+    "grid": "Rejilla",
+    "gridSpacing": "Espaciado en cuadrícula (píxeles)",
+    "fontSize": "Tamaño Fuente",
+    "code": "Código"
   },
   "action": {
     "enable": "Habilitar",
@@ -18,13 +37,26 @@
     "search": "Buscar",
     "clear": "Limpiar",
     "resetPassword": "Restablecer contraseña",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "add": "Agregar",
+    "edit": "Editar",
+    "generate": "Generar",
+    "refresh": "Actualizar",
+    "save": "Guardar",
+    "start": "Iniciar",
+    "stop": "Detener",
+    "close": "Cerrar",
+    "selectAll": "Seleccionar Todo",
+    "changeName": "Editar nombre",
+    "changeOwnerPassword": "Cambiar contraseña del propietario",
+    "changeRole": "Cambiar rol"
   },
   "state": {
     "running": "En ejecución",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Información básica",
     "configuration": "Configuración",
-    "favorites": "Favoritos"
+    "favorites": "Favoritos",
+    "plugins": "Plugins",
+    "backupUpdate": "Copia de seguridad y actualización"
+  },
+  "skills": {
+    "openSkillsDir": "Abrir directorio de habilidades",
+    "openSkillDir": "Abrir directorio de habilidades",
+    "revealSkillFile": "Revelar archivo de habilidades",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Archivo de habilidad no encontrado",
+    "skillLoadFailed": "No se ha podido cargar el archivo de habilidades",
+    "builtin": "Integrado"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Ejecutar cheques de salud",
+    "doctorFix": "Ejecutar cheques de salud con autofix",
+    "gatewayStart": "Iniciar servicio de pasarela",
+    "gatewayStop": "Detener servicio de puerta de enlace",
+    "gatewayRestart": "Reiniciar servicio de pasarela",
+    "gatewayStatus": "Mostrar estado de la pasarela",
+    "gatewayRun": "Ejecutar puerta de enlace en primer plano",
+    "gatewayUninstall": "Desinstalar servicio de gateway",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Servicio Gateway",
+    "status": "Estado del Gateway",
+    "running": "Gateway está ejecutándose",
+    "stopped": "Gateway está detenido",
+    "startFailed": "Inicio de puerta de enlace fallido"
+  },
+  "value": {
+    "yes": "Sí",
+    "no": "Nu",
+    "other": "Otro",
+    "default": "Predeterminado",
+    "none": "Ninguno",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Cada hora",
+    "everyMinute": "Cada minuto"
+  },
+  "error": {
+    "phpiniNotFound": "No se encontró el archivo php.ini"
   }
 }

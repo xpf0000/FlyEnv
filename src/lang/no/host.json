@@ -1,5 +1,4 @@
 {
-  "site": "Nettsted",
   "phpVersion": "PHP versjon",
   "newProject": "Nytt prosjekt",
   "frameworkVersion": "Framework versjon",
@@ -13,7 +12,6 @@
   "placeholderName": "Vertsnavn (Eksempel: mittdomain.tld)",
   "placeholderAlias": "DomenAliaser (Eksempel: www.mydomain.tld)",
   "placeholderRootPath": "Dokument rotbane",
-  "port": "Port",
   "portAdvanced": "Avansert",
   "portSimple": "Enkel",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Prosjekter",
   "projectZig": "Zig prosjekter",
   "projectFlutter": "Flutter prosjekter",
-  "startCommand": "Start kommando",
   "envVar": "Miljøvariabel",
   "specifyVar": "Angi",
   "fileVar": "Fil",

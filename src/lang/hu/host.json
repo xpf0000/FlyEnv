@@ -1,5 +1,4 @@
 {
-  "site": "Webhely",
   "phpVersion": "php verzió",
   "newProject": "Új projekt",
   "frameworkVersion": "Keretrendszer verzió",
@@ -13,7 +12,6 @@
   "placeholderName": "host név pl.: www.xxx.com",
   "placeholderAlias": "host álnév pl.: www.xxx.com",
   "placeholderRootPath": "host gyökérútvonal",
-  "port": "Port",
   "portAdvanced": "Speciális",
   "portSimple": "Egyszerű",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust projektek",
   "projectZig": "Zig projektek",
   "projectFlutter": "Flutter projektek",
-  "startCommand": "Indítási parancs",
   "envVar": "Környezeti változó",
   "specifyVar": "Megadás",
   "fileVar": "Fájl",

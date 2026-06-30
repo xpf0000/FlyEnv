@@ -3,8 +3,8 @@
     {
       "nameKey": "common.category.basic",
       "commands": [
-        { "label": "opencode --help", "descriptionKey": "openCode.cmd.help", "needInput": false },
-        { "label": "opencode --version", "descriptionKey": "openCode.cmd.version", "needInput": false },
+        { "label": "opencode --help", "descriptionKey": "common.cli.help", "needInput": false },
+        { "label": "opencode --version", "descriptionKey": "common.cli.version", "needInput": false },
         { "label": "opencode upgrade", "descriptionKey": "openCode.cmd.upgrade", "needInput": false, "needRefresh": true },
         { "label": "opencode models", "descriptionKey": "openCode.cmd.models", "needInput": false }
       ]

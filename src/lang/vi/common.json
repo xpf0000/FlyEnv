@@ -6,7 +6,26 @@
     "workingDirectory": "Thư mục làm việc",
     "action": "Hành động",
     "comment": "Bình luận",
-    "source": "Nguồn"
+    "source": "Nguồn",
+    "site": "Trang web",
+    "errorLog": "Nhật ký lỗi",
+    "library": "Thư viện",
+    "path": "Đường dẫn",
+    "description": "Mô tả",
+    "port": "Cổng",
+    "startCommand": "Lệnh khởi động",
+    "licenseDescription": "Mô tả giấy phép",
+    "password": "Mật khẩu",
+    "username": "Tên người dùng",
+    "size": "Kích thước",
+    "containerEnvVars": "Biến môi trường trong container",
+    "createdTime": "Thời gian tạo",
+    "image": "Ảnh",
+    "state": "Trạng thái",
+    "grid": "Lưới",
+    "gridSpacing": "Khoảng cách lưới (pixel)",
+    "fontSize": "Cỡ chữ",
+    "code": "Mã"
   },
   "action": {
     "enable": "Kích hoạt",
@@ -18,13 +37,26 @@
     "search": "Tìm kiếm",
     "clear": "Xóa",
     "resetPassword": "Đặt lại mật khẩu",
-    "delete": "Xóa"
+    "delete": "Xóa",
+    "add": "Thêm",
+    "edit": "Sửa",
+    "generate": "Tạo",
+    "refresh": "Làm mới",
+    "save": "Lưu",
+    "start": "Khởi động",
+    "stop": "Dừng",
+    "close": "Đóng",
+    "selectAll": "Chọn tất cả",
+    "changeName": "Chỉnh sửa tên",
+    "changeOwnerPassword": "Thay đổi mật khẩu Chủ sở hữu",
+    "changeRole": "Thay đổi vai trò"
   },
   "state": {
     "running": "Dang chay",
     "installed": "Đã cài đặt",
     "enabled": "Đã bật",
-    "disabled": "Đã tắt"
+    "disabled": "Đã tắt",
+    "available": "Có sẵn"
   },
   "session": {
     "list": "Các phiên làm việc",
@@ -36,7 +68,6 @@
     "resumed": "Phiên làm việc đã được khôi phục trong terminal"
   },
   "mcp": {
-    "name": "Tên",
     "type": "Loại",
     "commandOrUrl": "Lệnh / URL",
     "scope": "Phạm vi",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Thông tin cơ bản",
     "configuration": "Cấu hình",
-    "favorites": "Yêu thích"
+    "favorites": "Yêu thích",
+    "plugins": "Plugins",
+    "backupUpdate": "Sao lưu & Cập nhật"
+  },
+  "skills": {
+    "openSkillsDir": "Mở thư mục kỹ năng",
+    "openSkillDir": "Mở thư mục kỹ năng",
+    "revealSkillFile": "Hiện tệp kỹ năng",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Không tìm thấy tệp kỹ năng",
+    "skillLoadFailed": "Không thể tải tệp kỹ năng",
+    "builtin": "Tích hợp sẵn"
+  },
+  "cli": {
+    "help": "Hiển thị thông tin trợ giúp",
+    "version": "Hiển thị số phiên bản",
+    "start": "Bắt đầu một phiên tương tác mới",
+    "mcpList": "Liệt kê các máy chủ MCP đã cấu hình",
+    "doctor": "Chạy kiểm tra sức khỏe hệ thống",
+    "doctorFix": "Kiểm tra sức khỏe và tự động sửa lỗi",
+    "gatewayStart": "Khởi động dịch vụ gateway",
+    "gatewayStop": "Dừng dịch vụ gateway",
+    "gatewayRestart": "Khởi động lại dịch vụ gateway",
+    "gatewayStatus": "Hiển thị trạng thái gateway",
+    "gatewayRun": "Chạy gateway ở chế độ foreground",
+    "gatewayUninstall": "Gỡ cài đặt dịch vụ gateway",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Dịch vụ Gateway",
+    "status": "Trạng thái Gateway",
+    "running": "Gateway đang chạy",
+    "stopped": "Gateway đã dừng",
+    "startFailed": "Khởi động Gateway thất bại"
+  },
+  "value": {
+    "yes": "Có",
+    "no": "Không",
+    "other": "Khác",
+    "default": "Mặc định",
+    "none": "Không có",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Tìm kiếm plugin",
+    "removed": "Plugin đã bị xóa"
+  },
+  "schedule": {
+    "everyHour": "Mỗi giờ",
+    "everyMinute": "Mỗi phút"
+  },
+  "error": {
+    "phpiniNotFound": "Không tìm thấy tệp php.ini"
   }
 }

@@ -1,5 +1,4 @@
 {
-  "site": "Stranica",
   "webServer": "Web Poslužitelj",
   "dataBaseServer": "Poslužitelj Baze Podataka",
   "emailServer": "E-mail Poslužitelj",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS Poslužitelj",
   "ftpServer": "FTP Poslužitelj",
   "containerRuntime": "Okruženje Izvođenja Kontejnera",
-  "other": "Ostalo",
   "appLog": "Log Aplikacije",
   "aiCoding": "AI kodiranje",
   "ai": "AI",

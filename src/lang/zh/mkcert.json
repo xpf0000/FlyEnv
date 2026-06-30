@@ -8,6 +8,5 @@
   "installCA": "安装 CA",
   "carootLabel": "CA 根目录",
   "certificates": "证书",
-  "generate": "生成",
   "noSSLHosts": "没有启用 SSL 的主机，请先为主机启用 SSL。"
 }

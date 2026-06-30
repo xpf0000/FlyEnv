@@ -1,5 +1,4 @@
 {
-  "site": "站点",
   "phpVersion": "php版本",
   "newProject": "新建项目",
   "frameworkVersion": "框架版本",
@@ -13,7 +12,6 @@
   "placeholderName": "站点域名 (Example: mydomain.tld)",
   "placeholderAlias": "站点域名别名 (Example: www.mydomain.tld)",
   "placeholderRootPath": "站点根目录",
-  "port": "端口",
   "portAdvanced": "高级",
   "portSimple": "简单",
   "hostSSL": "SSL证书",
@@ -37,7 +35,6 @@
   "projectRuby": "Ruby项目",
   "projectRust": "Rust项目",
   "projectZig": "Zig项目",
-  "startCommand": "启动命令",
   "envVar": "环境变量",
   "specifyVar": "指定变量",
   "fileVar": "从文件加载",

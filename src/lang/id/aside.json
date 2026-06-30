@@ -1,5 +1,4 @@
 {
-  "site": "Situs",
   "webServer": "Server Web",
   "dataBaseServer": "Server Basis Data",
   "emailServer": "Server Surel",
@@ -8,7 +7,6 @@
   "dnsServer": "Server DNS",
   "ftpServer": "Server FTP",
   "containerRuntime": "Runtime Kontainer",
-  "other": "Lainnya",
   "appLog": "Log Aplikasi",
   "aiCoding": "Pemrograman AI",
   "ai": "Kecerdasan Buatan (AI)",

@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Dành một phần VRAM cho mỗi GPU (byte)",
   "OLLAMA_LOAD_TIMEOUT": "Thời gian chờ tối đa khi tải mô hình trước khi ngắt (mặc định \"5m\")",
   "needServiceRun": "Vui lòng khởi động dịch vụ Ollama trước",
-  "size": "Kích thước",
   "model": "Mô hình"
 }

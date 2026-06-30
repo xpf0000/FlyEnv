@@ -22,10 +22,10 @@
             <el-descriptions-item :label="I18nT('podman.container.id')">
               {{ containerDetail.Id.substring(0, 12) }}
             </el-descriptions-item>
-            <el-descriptions-item :label="I18nT('podman.container.image')">
+            <el-descriptions-item :label="I18nT('common.label.image')">
               {{ containerDetail.ImageName || containerDetail.Config.Image }}
             </el-descriptions-item>
-            <el-descriptions-item :label="I18nT('podman.container.status')">
+            <el-descriptions-item :label="I18nT('common.label.status')">
               <el-tag :type="getStatusType(containerDetail.State.Status)">
                 {{ containerDetail.State.Status }}
               </el-tag>
@@ -40,15 +40,15 @@
               <el-tag :type="containerDetail.HostConfig.AutoRemove ? 'success' : 'info'">
                 {{
                   containerDetail.HostConfig.AutoRemove
-                    ? I18nT('podman.common.yes')
-                    : I18nT('podman.common.no')
+                    ? I18nT('common.value.yes')
+                    : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
             <el-descriptions-item :label="I18nT('podman.container.isInfra')">
               <el-tag :type="containerDetail.IsInfra ? 'warning' : 'info'">
                 {{
-                  containerDetail.IsInfra ? I18nT('podman.common.yes') : I18nT('podman.common.no')
+                  containerDetail.IsInfra ? I18nT('common.value.yes') : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
@@ -61,12 +61,12 @@
             :column="2"
             direction="vertical"
           >
-            <el-descriptions-item :label="I18nT('podman.container.running')">
+            <el-descriptions-item :label="I18nT('common.state.running')">
               <el-tag :type="containerDetail.State.Running ? 'success' : 'info'">
                 {{
                   containerDetail.State.Running
-                    ? I18nT('podman.common.yes')
-                    : I18nT('podman.common.no')
+                    ? I18nT('common.value.yes')
+                    : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
@@ -74,8 +74,8 @@
               <el-tag :type="containerDetail.State.Paused ? 'warning' : 'info'">
                 {{
                   containerDetail.State.Paused
-                    ? I18nT('podman.common.yes')
-                    : I18nT('podman.common.no')
+                    ? I18nT('common.value.yes')
+                    : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
@@ -83,8 +83,8 @@
               <el-tag :type="containerDetail.State.Restarting ? 'warning' : 'info'">
                 {{
                   containerDetail.State.Restarting
-                    ? I18nT('podman.common.yes')
-                    : I18nT('podman.common.no')
+                    ? I18nT('common.value.yes')
+                    : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
@@ -92,8 +92,8 @@
               <el-tag :type="containerDetail.State.OOMKilled ? 'danger' : 'info'">
                 {{
                   containerDetail.State.OOMKilled
-                    ? I18nT('podman.common.yes')
-                    : I18nT('podman.common.no')
+                    ? I18nT('common.value.yes')
+                    : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
@@ -101,8 +101,8 @@
               <el-tag :type="containerDetail.State.Dead ? 'danger' : 'info'">
                 {{
                   containerDetail.State.Dead
-                    ? I18nT('podman.common.yes')
-                    : I18nT('podman.common.no')
+                    ? I18nT('common.value.yes')
+                    : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
@@ -121,7 +121,7 @@
             :column="2"
             direction="vertical"
           >
-            <el-descriptions-item :label="I18nT('podman.container.createdTime')">
+            <el-descriptions-item :label="I18nT('common.label.createdTime')">
               {{ formatTime(containerDetail.Created) }}
             </el-descriptions-item>
             <el-descriptions-item :label="I18nT('podman.container.startedAt')">
@@ -200,7 +200,7 @@
                     </el-descriptions-item>
                     <el-descriptions-item :label="I18nT('podman.container.mountPermission')">
                       <el-tag :type="mount.RW ? 'success' : 'info'" size="small" class="ml-1">
-                        {{ mount.RW ? I18nT('podman.common.yes') : I18nT('podman.common.no') }}
+                        {{ mount.RW ? I18nT('common.value.yes') : I18nT('common.value.no') }}
                       </el-tag>
                     </el-descriptions-item>
                     <el-descriptions-item :label="I18nT('podman.container.mountPath')" :span="2">
@@ -248,7 +248,7 @@
             :column="1"
             direction="vertical"
           >
-            <el-descriptions-item :label="I18nT('podman.container.startCmd')">
+            <el-descriptions-item :label="I18nT('common.label.startCommand')">
               <pre class="command-pre"
                 >{{ containerDetail.Path }} {{ containerDetail.Args.join(' ') }}</pre
               >
@@ -274,7 +274,7 @@
             :column="1"
             direction="vertical"
           >
-            <el-descriptions-item :label="I18nT('podman.container.environmentVars')">
+            <el-descriptions-item :label="I18nT('common.label.containerEnvVars')">
               <div class="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                 <el-tag
                   v-for="env in containerDetail.Config.Env"
@@ -315,8 +315,8 @@
               >
                 {{
                   containerDetail.HostConfig.Privileged
-                    ? I18nT('podman.common.yes')
-                    : I18nT('podman.common.no')
+                    ? I18nT('common.value.yes')
+                    : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
@@ -327,8 +327,8 @@
               >
                 {{
                   containerDetail.HostConfig.ReadonlyRootfs
-                    ? I18nT('podman.common.yes')
-                    : I18nT('podman.common.no')
+                    ? I18nT('common.value.yes')
+                    : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>
@@ -341,7 +341,7 @@
 
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="closedFn">{{ I18nT('podman.common.close') }}</el-button>
+        <el-button @click="closedFn">{{ I18nT('common.action.close') }}</el-button>
       </span>
     </template>
   </el-dialog>

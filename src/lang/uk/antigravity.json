@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Відкрити каталог навичок",
-  "openSkillDir": "Відкрити папку навички",
-  "revealSkillFile": "Показати файл навички",
-  "builtin": "Вбудований",
-  "skillFileMissing": "Файл навички не знайдено",
-  "skillLoadFailed": "Не вдалося завантажити файл навички"
+  "sessionDeleted": "Conversation deleted"
 }

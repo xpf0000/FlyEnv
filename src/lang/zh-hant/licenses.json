@@ -1,5 +1,4 @@
 {
-  "title": "許可證說明",
   "description": "許可證代表了對 FlyEnv 和作者辛勤工作的認可。其初衷並非限制使用者使用，而是希望提醒使用者尊重開發者的勞動成果，並在使用軟體時遵守相關條款。透過遵守許可證，使用者不僅支持了專案的持續發展，也為開源社群的互信與合作精神貢獻了力量。",
   "restrictions": {
     "title": "未取得許可證的使用者仍可正常使用，但受到以下限制：",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "已綁定 UUID",
   "delBind": "解除綁定",
   "bindCurrentUUID": "綁定本機",
-  "licenseDescription": "許可證說明",
   "loginFail": "登入失敗",
   "oauthCanceledTitle": "授權已取消",
   "oauthCanceledMessage": "使用者取消了授權流程",

@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Esta operação irá alterar a senha do usuário root do banco de dados. Tem certeza que quer continuar?",
   "mysqlNeedRunTips": "Por favor, inicie {app} primeiro",
   "databaseName": "Nome do banco de dados",
-  "databaseUser": "Nome de usuário",
-  "databasePassword": "Senha",
   "addDatabase": "Adicionar banco de dados",
   "inputDatabaseName": "Por favor, insira o nome do banco de dados",
   "databaseNameFormatError": "O nome do banco de dados deve começar com uma letra, ter de 3 a 64 caracteres e conter apenas letras, números e sublinhados",

@@ -5,8 +5,5 @@
   "numbers": "数字 (123...)",
   "symbols": "符号 (!-;...)",
   "length": "长度",
-  "tokenPlaceholder": "令牌...",
-  "button": {
-    "refresh": "刷新"
-  }
+  "tokenPlaceholder": "令牌..."
 }

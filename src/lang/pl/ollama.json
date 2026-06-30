@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Zarezerwuj część VRAM na GPU (bajty)",
   "OLLAMA_LOAD_TIMEOUT": "Jak długo pozwolić na zatrzymanie obciążeń modelu przed rezygnacją (domyślnie \"5m\")",
   "needServiceRun": "Proszę najpierw uruchomić usługę Olama",
-  "size": "Rozmiar pliku",
   "model": "Modele"
 }

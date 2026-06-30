@@ -1,5 +1,4 @@
 {
-  "site": "사이트",
   "webServer": "웹 서버",
   "dataBaseServer": "데이터베이스 서버",
   "emailServer": "이메일 서버",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS 서버",
   "ftpServer": "FTP 서버",
   "containerRuntime": "컨테이너 런타임",
-  "other": "기타",
   "appLog": "애플리케이션 로그",
   "aiCoding": "AI 코딩",
   "ai": "AI",

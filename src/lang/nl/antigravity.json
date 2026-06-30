@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Open vaardighedenmap",
-  "openSkillDir": "Skill directory openen",
-  "revealSkillFile": "Vaardighedenbestand onthullen",
-  "builtin": "Ingebouwd",
-  "skillFileMissing": "Vaardigheidsbestand niet gevonden",
-  "skillLoadFailed": "Het laden van het vaardigheidsbestand is mislukt"
+  "sessionDeleted": "Conversation deleted"
 }

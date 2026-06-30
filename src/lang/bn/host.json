@@ -1,5 +1,4 @@
 {
-  "site": "সাইট",
   "phpVersion": "PHP সংস্করণ",
   "newProject": "নতুন প্রজেক্ট",
   "frameworkVersion": "ফ্রেমওয়ার্ক সংস্করণ",
@@ -13,7 +12,6 @@
   "placeholderName": "হোস্টনাম (উদাহরণ: mydomain.tld)",
   "placeholderAlias": "ডোমেইন এলিয়াস (উদাহরণ: www.mydomain.tld)",
   "placeholderRootPath": "ডকুমেন্ট রুট পাথ",
-  "port": "পোর্ট",
   "portAdvanced": "উন্নত",
   "portSimple": "সহজ",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
   "projectFlutter": "Flutter প্রকল্প",
-  "startCommand": "স্টার্ট কমান্ড",
   "envVar": "এনভায়রনমেন্ট ভেরিয়েবল",
   "specifyVar": "নির্দিষ্ট করুন",
   "fileVar": "ফাইল",

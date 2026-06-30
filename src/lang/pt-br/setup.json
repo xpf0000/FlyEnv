@@ -37,8 +37,7 @@
     "needPasswordToStart": "É necessária a permissão de administrador para iniciar. Por favor, insira a senha do usuário atual. Esta senha será usada para preenchimento automático. Você também pode clicar no botão abaixo para inseri-la manualmente no terminal, mas esta mensagem pode aparecer novamente.",
     "hadOpenInTerminal": "Executado a partir do terminal, não é possível obter o resultado da execução",
     "licenseTips": "Nenhuma licença foi obtida, apenas três módulos e itens de execução de módulos podem ser criados.",
-    "outputLog": "Log de saída",
-    "errorLog": "Log de erro"
+    "outputLog": "Log de saída"
   },
   "flyenvHelper": "Reparar FlyEnv Helper",
   "flyenvHelperBtn": "Reparar",

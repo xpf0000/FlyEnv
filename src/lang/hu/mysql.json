@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Ez a művelet megváltoztatja az adatbázis root felhasználójának jelszavát, biztosan folytatja?",
   "mysqlNeedRunTips": "Kérjük, előbb indítsa el a(z) {app} szolgáltatást",
   "databaseName": "Adatbázis neve",
-  "databaseUser": "Felhasználónév",
-  "databasePassword": "Jelszó",
   "addDatabase": "Adatbázis hozzáadása",
   "inputDatabaseName": "Kérjük, adja meg az adatbázis nevét",
   "databaseNameFormatError": "Az adatbázis nevének betűvel kell kezdődnie, 3-64 karakter hosszú lehet, és csak betűket, számokat és aláhúzásjeleket tartalmazhat",

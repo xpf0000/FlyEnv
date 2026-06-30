@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "スキルディレクトリを開く",
-  "openSkillDir": "スキルディレクトリを開く",
-  "revealSkillFile": "スキルファイルを表示する",
-  "builtin": "ビルトイン",
-  "skillFileMissing": "スキルファイルが見つかりません",
-  "skillLoadFailed": "スキルファイルの読み込みに失敗しました"
+  "sessionDeleted": "Conversation deleted"
 }

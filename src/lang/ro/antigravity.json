@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Deschide directorul cu abilități",
-  "openSkillDir": "Deschide dosarul abilității",
-  "revealSkillFile": "Arată fișierul abilității",
-  "builtin": "Încorporat",
-  "skillFileMissing": "Fișierul abilității nu a fost găsit",
-  "skillLoadFailed": "Nu s-a putut încărca fișierul abilității"
+  "sessionDeleted": "Conversation deleted"
 }

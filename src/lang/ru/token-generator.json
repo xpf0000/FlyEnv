@@ -5,8 +5,5 @@
   "numbers": "Числа (123...)",
   "symbols": "Символы (!-;...)",
   "length": "Длина",
-  "tokenPlaceholder": "Метка...",
-  "button": {
-    "refresh": "Обновить"
-  }
+  "tokenPlaceholder": "Метка..."
 }

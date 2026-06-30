@@ -1,5 +1,4 @@
 {
-  "site": "Stránka",
   "phpVersion": "Verze PHP",
   "newProject": "Nový projekt",
   "frameworkVersion": "Verze rámce",
@@ -13,7 +12,6 @@
   "placeholderName": "Název hostitele (Example: mydomain.tld)",
   "placeholderAlias": "Aliasy domén (Example: www.mydomain.tld)",
   "placeholderRootPath": "Kořenová cesta dokumentu",
-  "port": "Přístav",
   "portAdvanced": "Pokročilé",
   "portSimple": "Jednoduché",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Důvěryhodné projekty",
   "projectZig": "Zig projekty",
   "projectFlutter": "Flutter projekty",
-  "startCommand": "Začít příkaz",
   "envVar": "Proměnná prostředí",
   "specifyVar": "Upřesnit",
   "fileVar": "Soubor",

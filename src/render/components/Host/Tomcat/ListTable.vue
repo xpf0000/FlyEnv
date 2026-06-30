@@ -8,11 +8,11 @@
         default-expand-all
         :row-class-name="tableRowClassName"
       >
-        <el-table-column :label="I18nT('host.site')">
+        <el-table-column :label="I18nT('common.label.site')">
           <template #header>
             <div class="w-full name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
-                I18nT('host.site')
+                I18nT('common.label.site')
               }}</span>
               <el-input
                 v-model.trim="search"
@@ -88,7 +88,7 @@
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'edit')">
                       <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                      <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                      <span class="ml-3">{{ I18nT('common.action.edit') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />

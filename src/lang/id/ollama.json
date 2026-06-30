@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Cadangkan sebagian VRAM per GPU (dalam byte)",
   "OLLAMA_LOAD_TIMEOUT": "Berapa lama untuk membiarkan pemuatan model terhenti sebelum menyerah (default \"5m\")",
   "needServiceRun": "Harap mulai layanan Olama terlebih dahulu",
-  "size": "Ukuran",
   "model": "Model"
 }

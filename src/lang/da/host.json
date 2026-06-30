@@ -1,5 +1,4 @@
 {
-  "site": "Websted",
   "phpVersion": "PHP Version",
   "newProject": "Nyt Projekt",
   "frameworkVersion": "Framework Version",
@@ -13,7 +12,6 @@
   "placeholderName": "Værtsnavn (Eksempel: mydomain.tld)",
   "placeholderAlias": "Domænenavne (eksempel: www.mydomain.tld)",
   "placeholderRootPath": "Sti Til Dokument Rod",
-  "port": "Port",
   "portAdvanced": "Avanceret",
   "portSimple": "Enkel",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projekter",
   "projectZig": "Zig Projekter",
   "projectFlutter": "Flutter Projekter",
-  "startCommand": "Start Kommando",
   "envVar": "Miljø Variabel",
   "specifyVar": "Angiv",
   "fileVar": "Fil",

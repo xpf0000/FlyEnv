@@ -45,7 +45,7 @@
           />
           <el-table-column
             prop="description"
-            :label="I18nT('hermes.description')"
+            :label="I18nT('common.label.description')"
             min-width="240"
             show-overflow-tooltip
           />

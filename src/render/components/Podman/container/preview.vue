@@ -16,7 +16,7 @@
       <pre>{{ composeYaml }}</pre>
     </el-scrollbar>
     <template #footer>
-      <el-button @click="dialogVisible = false">{{ I18nT('menu.close') }}</el-button>
+      <el-button @click="dialogVisible = false">{{ I18nT('common.action.close') }}</el-button>
       <el-button type="primary" @click="copyToClipboard">{{
         I18nT('common.action.copy')
       }}</el-button>

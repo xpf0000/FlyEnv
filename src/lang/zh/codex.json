@@ -5,11 +5,6 @@
   "reasoningEffort": "推理强度",
   "approvalPolicy": "审批策略",
   "sandboxMode": "沙箱模式",
-  "plugins": "插件",
-  "available": "可用",
-  "searchPlugin": "搜索插件",
   "pluginEnabled": "插件已安装",
-  "pluginDisabled": "插件已移除",
-  "pluginUninstalled": "插件已移除",
   "uninstallConfirm": "确定要移除插件 \"{name}\" 吗?"
 }

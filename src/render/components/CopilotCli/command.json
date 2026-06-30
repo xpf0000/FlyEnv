@@ -3,15 +3,15 @@
     {
       "nameKey": "common.category.basic",
       "commands": [
-        { "label": "copilot --help", "descriptionKey": "copilotCli.cmd.help", "needInput": false },
-        { "label": "copilot --version", "descriptionKey": "copilotCli.cmd.version", "needInput": false },
+        { "label": "copilot --help", "descriptionKey": "common.cli.help", "needInput": false },
+        { "label": "copilot --version", "descriptionKey": "common.cli.version", "needInput": false },
         { "label": "copilot update", "descriptionKey": "copilotCli.cmd.update", "needInput": false, "needRefresh": true }
       ]
     },
     {
       "nameKey": "common.session.list",
       "commands": [
-        { "label": "copilot", "descriptionKey": "copilotCli.cmd.start", "needInput": false },
+        { "label": "copilot", "descriptionKey": "common.cli.start", "needInput": false },
         { "label": "copilot --continue", "descriptionKey": "copilotCli.cmd.continue", "needInput": false },
         { "label": "copilot --resume", "descriptionKey": "copilotCli.cmd.resume", "needInput": false },
         { "label": "copilot -p", "descriptionKey": "copilotCli.cmd.prompt", "needInput": true }
@@ -20,8 +20,8 @@
     {
       "nameKey": "common.category.configuration",
       "commands": [
-        { "label": "copilot mcp list", "descriptionKey": "copilotCli.cmd.mcpList", "needInput": false },
-        { "label": "copilot skill list", "descriptionKey": "copilotCli.cmd.skillList", "needInput": false },
+        { "label": "copilot mcp list", "descriptionKey": "common.cli.mcpList", "needInput": false },
+        { "label": "copilot skill list", "descriptionKey": "common.cli.skillsList", "needInput": false },
         { "label": "copilot login", "descriptionKey": "copilotCli.cmd.login", "needInput": false },
         { "label": "copilot init", "descriptionKey": "copilotCli.cmd.init", "needInput": false }
       ]

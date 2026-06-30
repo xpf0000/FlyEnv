@@ -5,8 +5,5 @@
   "numbers": "Rakamlar (123...)",
   "symbols": "Semboller (!-;...)",
   "length": "Uzunluk",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "refresh": "Yenile"
-  }
+  "tokenPlaceholder": "Token..."
 }

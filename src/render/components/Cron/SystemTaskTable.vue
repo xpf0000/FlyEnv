@@ -17,7 +17,7 @@
       </el-select>
 
       <el-button :icon="Refresh" @click="loadData({ force: true })">
-        {{ I18nT('base.refresh') }}
+        {{ I18nT('common.action.refresh') }}
       </el-button>
 
       <el-tag class="ml-auto" type="info">{{ filteredTasks.length }} / {{ tasks.length }}</el-tag>

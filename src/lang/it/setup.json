@@ -37,8 +37,7 @@
     "needPasswordToStart": "Sono necessari diritti di amministratore. Inserisci la tua password (verrà salvata per usi futuri). In alternativa, inseriscila manualmente nel terminale, ma questo avviso potrebbe riapparire.",
     "hadOpenInTerminal": "Già in esecuzione nel terminale — risultati non disponibili.",
     "licenseTips": "Licenza non trovata. È possibile creare solo 3 moduli/elementi di esecuzione.",
-    "outputLog": "Log di output",
-    "errorLog": "Log errori"
+    "outputLog": "Log di output"
   },
   "flyenvHelper": "Riparazione del programma di supporto FlyEnv",
   "flyenvHelperBtn": "Ripara",

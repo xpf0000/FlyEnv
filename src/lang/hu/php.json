@@ -22,7 +22,6 @@
   "default_socket_timeout": "Socket időtúllépés",
   "error_reporting": "hibajelentési szint",
   "timezone": "Időzóna",
-  "phpiniNotFound": "php.ini fájl nem található",
   "editPhpIni": "php.ini szerkesztése",
   "phpExtensions": "PHP bővítmények",
   "extensions": "Bővítmények",

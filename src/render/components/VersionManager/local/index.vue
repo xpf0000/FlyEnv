@@ -31,7 +31,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.path')">
+      <el-table-column :label="I18nT('common.label.path')">
         <template #default="scope">
           <template v-if="scope.row?.path">
             <span

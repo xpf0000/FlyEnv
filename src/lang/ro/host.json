@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "phpVersion": "Versiune PHP",
   "newProject": "Proiect nou",
   "frameworkVersion": "Versiune Framework",
@@ -13,7 +12,6 @@
   "placeholderName": "Nume gazdă (exemplu: domeniu.tld)",
   "placeholderAlias": "Aliasuri domeniu (exemplu: www.mydomain.tld)",
   "placeholderRootPath": "Cale rădăcină Document",
-  "port": "Portul",
   "portAdvanced": "Avansat",
   "portSimple": "Simplu",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Proiecte Rust",
   "projectZig": "Proiecte Zig",
   "projectFlutter": "Proiecte Flutter",
-  "startCommand": "Comandă de pornire",
   "envVar": "Variabilă de mediu",
   "specifyVar": "Specifică",
   "fileVar": "Fişier",

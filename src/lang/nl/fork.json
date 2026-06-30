@@ -9,6 +9,5 @@
   "postgresqlInit": "Service met succes gestart\nData Dir is {dir}\nInitial User is root, Wachtwoord is root",
   "downloadFileFail": "Download bestand mislukt!",
   "trialEnd": "De proefperiode is verlopen. Om deze functie te blijven gebruiken, moet u een licentie verkrijgen",
-  "phpiniNotFound": "php.ini bestand niet gevonden",
   "noEPMD": "Het epmd proces is niet gevonden. Herstel de Erlang omgevingsvariabelen"
 }

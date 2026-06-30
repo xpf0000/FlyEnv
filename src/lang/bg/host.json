@@ -1,5 +1,4 @@
 {
-  "site": "Сайт",
   "phpVersion": "Версия на PHP",
   "newProject": "Нов проект",
   "frameworkVersion": "Версия на платформата",
@@ -13,7 +12,6 @@
   "placeholderName": "Име на хост (пример: mydomain.tld)",
   "placeholderAlias": "Псевдоними на домейни (пример: www.mydomain.tld)",
   "placeholderRootPath": "Път към главната root директория",
-  "port": "Порт",
   "portAdvanced": "Разширени",
   "portSimple": "Обикновено",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust проекти",
   "projectZig": "Zig Проекти",
   "projectFlutter": "Flutter проекти",
-  "startCommand": "Команда за стартиране",
   "envVar": "Променлива на средата",
   "specifyVar": "Посочете",
   "fileVar": "Файл",

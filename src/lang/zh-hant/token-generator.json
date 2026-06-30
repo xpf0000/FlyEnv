@@ -5,8 +5,5 @@
   "numbers": "數字 (123...)",
   "symbols": "符號 (!-;...)",
   "length": "長度",
-  "tokenPlaceholder": "權杖...",
-  "button": {
-    "refresh": "重新整理"
-  }
+  "tokenPlaceholder": "權杖..."
 }

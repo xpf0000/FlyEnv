@@ -37,8 +37,7 @@
     "needPasswordToStart": "Este necesară introducerea drepturilor de administrator. Introduceți parola (aceasta va fi salvată pentru utilizarea viitoare). Alternativ, introduceți-o manual în terminal, dar aceasta poate reapărea.",
     "hadOpenInTerminal": "Deja rulează în terminal—rezultate indisponibile.",
     "licenseTips": "Nici o licență găsită. Pot fi create doar 3 module/execuție.",
-    "outputLog": "Jurnal de ieşire",
-    "errorLog": "Jurnal de Erori"
+    "outputLog": "Jurnal de ieşire"
   },
   "flyenvHelper": "Fix Helper FlyEnv",
   "flyenvHelperBtn": "Repară",

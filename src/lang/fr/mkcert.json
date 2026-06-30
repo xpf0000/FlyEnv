@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "Chemin racine de l’AC",
   "certificates": "Certificats",
-  "generate": "Générer",
   "noSSLHosts": "Aucun hôte avec SSL activé. Activez SSL sur un hôte d'abord."
 }

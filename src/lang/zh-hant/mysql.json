@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "此操作會變更資料庫 root 使用者的密碼，確定執行此操作？",
   "mysqlNeedRunTips": "請先執行 {app}",
   "databaseName": "資料庫名",
-  "databaseUser": "使用者名稱",
-  "databasePassword": "密碼",
   "addDatabase": "添加資料庫",
   "inputDatabaseName": "請輸入資料庫名稱",
   "databaseNameFormatError": "資料庫名必須以字母開頭，3-64 個字元，只能包含字母、數字和底線",

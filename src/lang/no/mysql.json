@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Denne operasjonen vil endre roten til databasen brukerens passord, er du sikker på at du vil fortsette?",
   "mysqlNeedRunTips": "Vennligst kjør {app} først",
   "databaseName": "Database navn",
-  "databaseUser": "Brukernavn",
-  "databasePassword": "Passord",
   "addDatabase": "Legg til database",
   "inputDatabaseName": "Angi databasenavn",
   "databaseNameFormatError": "Databasenavn må begynne med bokstaver, 3-64 tegn, og kan kun inneholde bokstaver, tall og understrekingstegn",

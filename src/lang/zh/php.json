@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "php.ini文件获取失败",
   "editPhpIni": "编辑 php.ini",
   "phpExtensions": "PHP 扩展",
   "copyConfTemplate": "复制配置模板",

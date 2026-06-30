@@ -5,8 +5,5 @@
   "numbers": "Nummers (123...)",
   "symbols": "Symbolen (!-;...)",
   "length": "longueur",
-  "tokenPlaceholder": "De token...",
-  "button": {
-    "refresh": "Vernieuwen"
-  }
+  "tokenPlaceholder": "De token..."
 }

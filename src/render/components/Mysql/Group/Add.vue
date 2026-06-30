@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="item?.dataDir ? I18nT('base.edit') : I18nT('base.add')"
+    :title="item?.dataDir ? I18nT('common.action.edit') : I18nT('common.action.add')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"

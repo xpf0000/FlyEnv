@@ -6,7 +6,26 @@
     "workingDirectory": "مجلد العمل",
     "action": "الإجراء",
     "comment": "ملاحظة",
-    "source": "المصدر"
+    "source": "المصدر",
+    "site": "الموقع",
+    "errorLog": "سجل الأخطاء",
+    "library": "المكتبة",
+    "path": "المسار",
+    "description": "الوصف",
+    "port": "المنفذ",
+    "startCommand": "أمر البدء",
+    "licenseDescription": "وصف الترخيص",
+    "password": "كلمة المرور",
+    "username": "اسم المستخدم",
+    "size": "الحجم",
+    "containerEnvVars": "متغيرات البيئة داخل الحاوية",
+    "createdTime": "وقت الإنشاء",
+    "image": "الصورة",
+    "state": "الحالة",
+    "grid": "الشبكة",
+    "gridSpacing": "تباعد الشبكة (بكسل)",
+    "fontSize": "حجم الخط",
+    "code": "الكود"
   },
   "action": {
     "enable": "تفعيل",
@@ -18,13 +37,26 @@
     "search": "بحث",
     "clear": "مسح",
     "resetPassword": "إعادة تعيين كلمة المرور",
-    "delete": "حذف"
+    "delete": "حذف",
+    "add": "إضافة",
+    "edit": "تعديل",
+    "generate": "توليد",
+    "refresh": "تحديث",
+    "save": "حفظ",
+    "start": "بدء",
+    "stop": "إيقاف",
+    "close": "إغلاق",
+    "selectAll": "تحديد الكل",
+    "changeName": "تعديل الاسم",
+    "changeOwnerPassword": "تغيير كلمة مرور المالك",
+    "changeRole": "تغيير الدور"
   },
   "state": {
     "running": "قيد التشغيل",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "معلومات أساسية",
     "configuration": "الإعدادات",
-    "favorites": "المفضلة"
+    "favorites": "المفضلة",
+    "plugins": "Plugins",
+    "backupUpdate": "النسخ الاحتياطي والتحديث"
+  },
+  "skills": {
+    "openSkillsDir": "فتح دليل المهارات",
+    "openSkillDir": "فتح دليل المهارات",
+    "revealSkillFile": "كشف ملف المهارات",
+    "noSkills": "No skills found",
+    "skillFileMissing": "لم يتم العثور على ملف المهارة",
+    "skillLoadFailed": "تعذر تحميل ملف المهارات",
+    "builtin": "مدمج"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "تشغيل الفحوص الصحية",
+    "doctorFix": "تشغيل الفحوص الصحية مع الإصلاح التلقائي",
+    "gatewayStart": "بدء خدمة البوابة",
+    "gatewayStop": "إيقاف خدمة البوابة",
+    "gatewayRestart": "إعادة تشغيل خدمة البوابة",
+    "gatewayStatus": "إظهار حالة البوابة",
+    "gatewayRun": "تشغيل البوابة في المقدمة",
+    "gatewayUninstall": "إلغاء تثبيت خدمة البوابة",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "خدمة البوابة",
+    "status": "حالة البوابة",
+    "running": "البوابة قيد التشغيل",
+    "stopped": "تم إيقاف البوابة",
+    "startFailed": "فشل بدء تشغيل البوابة"
+  },
+  "value": {
+    "yes": "نعم",
+    "no": "لا",
+    "other": "اخرى",
+    "default": "افتراضي",
+    "none": "لا شيء",
+    "local": "محلي"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "كل ساعة",
+    "everyMinute": "كل دقيقة"
+  },
+  "error": {
+    "phpiniNotFound": "لم يتم العثور على ملف php.ini"
   }
 }

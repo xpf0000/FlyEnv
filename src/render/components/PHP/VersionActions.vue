@@ -13,7 +13,7 @@
   </li>
   <li @click.stop="action('log-error')">
     <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
-    <span class="ml-3">{{ I18nT('base.errorLog') }}</span>
+    <span class="ml-3">{{ I18nT('common.label.errorLog') }}</span>
   </li>
   <li @click.stop="action('extend')">
     <yb-icon :svg="import('@/svg/extend.svg?raw')" width="17" height="17" />

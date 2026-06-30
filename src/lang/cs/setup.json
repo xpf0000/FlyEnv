@@ -37,8 +37,7 @@
     "needPasswordToStart": "Vyžaduje se administrátorská práva. Zadejte své heslo (bude uloženo pro budoucí použití). Případně jej vložte ručně do terminálu, ale tato výzva se může znovu objevit.",
     "hadOpenInTerminal": "Již běží v terminálu – výsledky jsou nedostupné.",
     "licenseTips": "Žádná licence nebyla nalezena. Pouze 3 moduly/exekuční položky.",
-    "outputLog": "Výstupní protokol",
-    "errorLog": "Protokol chyb"
+    "outputLog": "Výstupní protokol"
   },
   "flyenvHelper": "Opravit FlyEnv pomocníka",
   "flyenvHelperBtn": "Opravit",

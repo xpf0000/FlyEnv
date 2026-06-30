@@ -17,7 +17,7 @@
         </div>
         <div class="flex items-center">
           <el-button type="primary" @click.stop="showPHPIni">php.ini</el-button>
-          <el-button type="primary" @click.stop="doSave">{{ I18nT('base.save') }}</el-button>
+          <el-button type="primary" @click.stop="doSave">{{ I18nT('common.action.save') }}</el-button>
         </div>
       </div>
 

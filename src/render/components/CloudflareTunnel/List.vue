@@ -84,7 +84,7 @@
                                   width="13"
                                   height="13"
                                 />
-                                <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                                <span class="ml-3">{{ I18nT('common.action.edit') }}</span>
                               </div>
                             </template>
                           </el-dropdown-item>
@@ -185,7 +185,7 @@
                     <template #default>
                       <div class="flex items-center">
                         <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                        <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                        <span class="ml-3">{{ I18nT('common.action.edit') }}</span>
                       </div>
                     </template>
                   </el-dropdown-item>

@@ -5,8 +5,5 @@
   "numbers": "Tall (123...)",
   "symbols": "Symboler (!-;...)",
   "length": "Lengde",
-  "tokenPlaceholder": "Tegnkoden...",
-  "button": {
-    "refresh": "Oppdater"
-  }
+  "tokenPlaceholder": "Tegnkoden..."
 }

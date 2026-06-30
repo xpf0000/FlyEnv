@@ -37,8 +37,7 @@
     "needPasswordToStart": "Potrebne su administratorske ovlasti. Unesite svoju lozinku (bit će spremljena za buduće korištenje). Alternativno, ručno je unesite u terminalu, ali ovaj upit se može ponovo pojaviti.",
     "hadOpenInTerminal": "Već se izvodi u terminalu—rezultati nisu dostupni.",
     "licenseTips": "Nije pronađena licenca. Mogu se kreirati samo 3 modula/stavke izvršavanja.",
-    "outputLog": "Log Izlaza",
-    "errorLog": "Log Grešaka"
+    "outputLog": "Log Izlaza"
   },
   "flyenvHelper": "Popravak FlyEnv Helpera",
   "flyenvHelperBtn": "Popravi",

@@ -9,6 +9,5 @@
   "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
   "downloadFileFail": "Tiedoston lataus epäonnistui!",
   "trialEnd": "Kokeilu on vanhentunut. Voit jatkaa tämän ominaisuuden käyttöä, ole hyvä ja hanki lisenssi",
-  "phpiniNotFound": "php.ini-tiedostoa ei löytynyt",
   "noEPMD": "epmd prosessia ei löytynyt. Palauta Erlangin ympäristömuuttujat"
 }

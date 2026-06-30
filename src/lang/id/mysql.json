@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Operasi ini akan mengubah kata sandi pengguna root database, yakin ingin melanjutkan?",
   "mysqlNeedRunTips": "Harap jalankan {app} terlebih dahulu",
   "databaseName": "Nama database",
-  "databaseUser": "Nama pengguna",
-  "databasePassword": "Kata sandi",
   "addDatabase": "Tambah database",
   "inputDatabaseName": "Masukkan nama database",
   "databaseNameFormatError": "Nama database harus diawali huruf, 3-64 karakter, dan hanya boleh berisi huruf, angka dan garis bawah",

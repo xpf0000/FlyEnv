@@ -6,7 +6,26 @@
     "workingDirectory": "Arbejdsmappe",
     "action": "Handling",
     "comment": "Kommentar",
-    "source": "Kilde"
+    "source": "Kilde",
+    "site": "Websted",
+    "errorLog": "Fejllog",
+    "library": "Bibliotek",
+    "path": "Sti",
+    "description": "Varebeskrivelse",
+    "port": "Port",
+    "startCommand": "Start Kommando",
+    "licenseDescription": "Licensbeskrivelse",
+    "password": "Adgangskode",
+    "username": "Dit brugernavn",
+    "size": "Størrelse",
+    "containerEnvVars": "Container Environment Variabler",
+    "createdTime": "Oprettet Tid",
+    "image": "Billede",
+    "state": "Stat",
+    "grid": "Gitter",
+    "gridSpacing": "Gitterafstand (pixels)",
+    "fontSize": "Font Size",
+    "code": "Kode"
   },
   "action": {
     "enable": "Aktiver",
@@ -18,13 +37,26 @@
     "search": "Søg",
     "clear": "Ryd",
     "resetPassword": "Nulstil Adgangskode",
-    "delete": "Slet"
+    "delete": "Slet",
+    "add": "Tilføj",
+    "edit": "Rediger",
+    "generate": "Generer",
+    "refresh": "Opdater",
+    "save": "Gem",
+    "start": "Start",
+    "stop": "Stop",
+    "close": "Luk",
+    "selectAll": "Vælg Alle",
+    "changeName": "Rediger Navn",
+    "changeOwnerPassword": "Skift Ejerens Adgangskode",
+    "changeRole": "Skift Rolle"
   },
   "state": {
     "running": "Kører",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Grundlæggende Info",
     "configuration": "Konfiguration",
-    "favorites": "Favoritter"
+    "favorites": "Favoritter",
+    "plugins": "Plugins",
+    "backupUpdate": "Sikkerhedskopiér Og Opdatér"
+  },
+  "skills": {
+    "openSkillsDir": "Åbn kompetencemappe",
+    "openSkillDir": "Åbn færdighedsmappe",
+    "revealSkillFile": "Afslør færdighedsfil",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Færdighedsfil ikke fundet",
+    "skillLoadFailed": "Kunne ikke indlæse færdighedsfil",
+    "builtin": "Indbygget"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Kør sundhedskontrol",
+    "doctorFix": "Kør sundhedstjek med auto-fix",
+    "gatewayStart": "Start gateway service",
+    "gatewayStop": "Stop gateway service",
+    "gatewayRestart": "Genstart gateway service",
+    "gatewayStatus": "Vis gateway status",
+    "gatewayRun": "Kør gateway i forgrunden",
+    "gatewayUninstall": "Afinstaller gateway-tjeneste",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Gateway Service",
+    "status": "Gateway Status",
+    "running": "Gateway kører",
+    "stopped": "Gateway stoppes",
+    "startFailed": "Gateway start mislykkedes"
+  },
+  "value": {
+    "yes": "Ja",
+    "no": "Nej",
+    "other": "Andet",
+    "default": "Standard",
+    "none": "Ingen",
+    "local": "Lokal"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Hver time",
+    "everyMinute": "Hvert minut"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini-fil ikke fundet"
   }
 }

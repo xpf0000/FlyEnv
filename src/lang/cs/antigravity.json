@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Otevřít složku dovedností",
-  "openSkillDir": "Otevřít adresář dovedností",
-  "revealSkillFile": "Odhalit soubor dovedností",
-  "builtin": "Vestavěné",
-  "skillFileMissing": "Soubor dovedností nebyl nalezen",
-  "skillLoadFailed": "Načtení souboru dovedností se nezdařilo"
+  "sessionDeleted": "Conversation deleted"
 }

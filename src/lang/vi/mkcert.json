@@ -8,6 +8,5 @@
   "installCA": "Cài đặt CA",
   "carootLabel": "Đường dẫn CA Root",
   "certificates": "Chứng chỉ",
-  "generate": "Tạo",
   "noSSLHosts": "Không có host nào được bật SSL. Vui lòng bật SSL trên một host trước."
 }

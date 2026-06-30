@@ -50,7 +50,7 @@
               <div class="fg-card-hd">
                 <span>{{ I18nT('flutter.sdkDetails') }}</span>
                 <el-button link size="small" :loading="sdkLoading" @click="loadSdkInfo">
-                  {{ I18nT('base.refresh') }}
+                  {{ I18nT('common.action.refresh') }}
                 </el-button>
               </div>
             </template>
@@ -157,7 +157,7 @@
               <div class="fg-card-hd">
                 <span>{{ I18nT('flutter.doctorSnapshot') }}</span>
                 <el-button link size="small" :loading="doctorLoading" @click="loadDoctor">
-                  {{ I18nT('base.refresh') }}
+                  {{ I18nT('common.action.refresh') }}
                 </el-button>
               </div>
             </template>

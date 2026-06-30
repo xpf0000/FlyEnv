@@ -15,7 +15,7 @@
         >
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('mysql.databaseUser')" prop="user" width="200px">
+    <el-table-column :label="I18nT('common.label.username')" prop="user" width="200px">
       <template #default="scope">
         <span
           class="truncate hover:text-yellow-500 cursor-pointer"
@@ -24,7 +24,7 @@
         >
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('mysql.databasePassword')" prop="password" width="240px">
+    <el-table-column :label="I18nT('common.label.password')" prop="password" width="240px">
       <template #default="scope">
         <template v-if="scope.row.password">
           <div class="flex items-center">

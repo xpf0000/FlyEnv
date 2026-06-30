@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "Ścieżka główna CA",
   "certificates": "Certyfikaty",
-  "generate": "Wygeneruj",
   "noSSLHosts": "Nie włączono hostów z SSL. Najpierw włącz SSL na serwerze."
 }

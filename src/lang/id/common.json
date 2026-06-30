@@ -6,7 +6,26 @@
     "workingDirectory": "Direktori Kerja",
     "action": "Aksi",
     "comment": "Komentar",
-    "source": "Sumber"
+    "source": "Sumber",
+    "site": "Situs",
+    "errorLog": "Log Error",
+    "library": "Library",
+    "path": "Path",
+    "description": "Description",
+    "port": "Port",
+    "startCommand": "Perintah Mulai",
+    "licenseDescription": "Deskripsi Lisensi",
+    "password": "Kata Sandi",
+    "username": "Nama Pengguna",
+    "size": "Ukuran",
+    "containerEnvVars": "Variabel Lingkungan dalam Kontainer",
+    "createdTime": "Waktu Dibuat",
+    "image": "Citra",
+    "state": "Status",
+    "grid": "Grid",
+    "gridSpacing": "Grid Spacing (pixels)",
+    "fontSize": "Ukuran Font",
+    "code": "Kode"
   },
   "action": {
     "enable": "Aktifkan",
@@ -18,13 +37,26 @@
     "search": "Cari",
     "clear": "Bersihkan",
     "resetPassword": "Reset Kata Sandi",
-    "delete": "Hapus"
+    "delete": "Hapus",
+    "add": "Tambah",
+    "edit": "Edit",
+    "generate": "Buat",
+    "refresh": "Muat Ulang",
+    "save": "Simpan",
+    "start": "Mulai",
+    "stop": "Berhenti",
+    "close": "Tutup",
+    "selectAll": "Pilih Semua",
+    "changeName": "Edit Nama",
+    "changeOwnerPassword": "Change Owner Password",
+    "changeRole": "Ubah Peran"
   },
   "state": {
     "running": "Berjalan",
     "installed": "Terinstal",
     "enabled": "Diaktifkan",
-    "disabled": "Dinonaktifkan"
+    "disabled": "Dinonaktifkan",
+    "available": "Tersedia"
   },
   "session": {
     "list": "Sesi",
@@ -36,7 +68,6 @@
     "resumed": "Sesi dilanjutkan di terminal"
   },
   "mcp": {
-    "name": "Nama",
     "type": "Tipe",
     "commandOrUrl": "Perintah / URL",
     "scope": "Cakupan",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Informasi Dasar",
     "configuration": "Configuration",
-    "favorites": "Favorit"
+    "favorites": "Favorit",
+    "plugins": "Plugin",
+    "backupUpdate": "Backup & Update"
+  },
+  "skills": {
+    "openSkillsDir": "Open skills directory",
+    "openSkillDir": "Buka direktori keterampilan",
+    "revealSkillFile": "Ungkapkan file keterampilan",
+    "noSkills": "No skills found",
+    "skillFileMissing": "File keterampilan tidak ditemukan",
+    "skillLoadFailed": "Gagal memuat file keterampilan",
+    "builtin": "Built-in"
+  },
+  "cli": {
+    "help": "Tampilkan informasi bantuan",
+    "version": "Tampilkan nomor versi",
+    "start": "Mulai sesi interaktif baru",
+    "mcpList": "Tampilkan daftar server MCP yang dikonfigurasi",
+    "doctor": "Run health checks",
+    "doctorFix": "Run health checks with auto-fix",
+    "gatewayStart": "Start gateway service",
+    "gatewayStop": "Stop gateway service",
+    "gatewayRestart": "Restart gateway service",
+    "gatewayStatus": "Show gateway status",
+    "gatewayRun": "Run gateway in foreground",
+    "gatewayUninstall": "Uninstall gateway service",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Gateway Service",
+    "status": "Status Gateway",
+    "running": "Gateway sedang berjalan",
+    "stopped": "Gateway dihentikan",
+    "startFailed": "Gateway start failed"
+  },
+  "value": {
+    "yes": "Ya",
+    "no": "Tidak",
+    "other": "Other",
+    "default": "Default",
+    "none": "Tidak ada",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Cari plugin",
+    "removed": "Plugin dihapus"
+  },
+  "schedule": {
+    "everyHour": "Setiap jam",
+    "everyMinute": "Setiap menit"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini file not found"
   }
 }

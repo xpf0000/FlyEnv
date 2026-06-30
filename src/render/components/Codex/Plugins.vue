@@ -3,12 +3,12 @@
     <template #header>
       <div class="card-header">
         <div class="left flex items-center">
-          <span>{{ I18nT('codex.plugins') }}</span>
+          <span>{{ I18nT('common.category.plugins') }}</span>
           <el-radio-group v-model="pluginTab" size="small" class="ml-4">
             <el-radio-button value="installed">{{
               I18nT('common.state.installed')
             }}</el-radio-button>
-            <el-radio-button value="available">{{ I18nT('codex.available') }}</el-radio-button>
+            <el-radio-button value="available">{{ I18nT('common.state.available') }}</el-radio-button>
           </el-radio-group>
         </div>
         <el-button link :disabled="CodexSetup.pluginsLoading" @click="CodexSetup.refreshPlugins()">
@@ -30,7 +30,7 @@
         <div class="p-5 h-full overflow-hidden flex flex-col">
           <el-input
             v-model="search"
-            :placeholder="I18nT('codex.searchPlugin')"
+            :placeholder="I18nT('common.plugin.search')"
             clearable
             class="mb-3"
           />

@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "CA ルートパス",
   "certificates": "証明書",
-  "generate": "生成",
   "noSSLHosts": "SSLが有効なホストがありません。最初にホストでSSLを有効にしてください。"
 }

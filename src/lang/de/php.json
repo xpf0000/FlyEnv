@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "php.ini Datei nicht gefunden",
   "editPhpIni": "php.ini bearbeiten",
   "phpExtensions": "PHP Erweiterungen",
   "copyConfTemplate": "Konfigurationsvorlage kopieren",

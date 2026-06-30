@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Bu əməliyyat verilənlər bazasının root istifadəçisinin parolunu dəyişəcək. Bu əməliyyatı yerinə yetirmək istədiyinizə əminsiniz?",
   "mysqlNeedRunTips": "Zəhmət olmasa əvvəlcə {app} işlədin",
   "databaseName": "Verilənlər bazasının adı",
-  "databaseUser": "İstifadəçi adı",
-  "databasePassword": "Parol",
   "addDatabase": "Verilənlər bazası əlavə et",
   "inputDatabaseName": "Zəhmət olmasa verilənlər bazasının adını daxil edin",
   "databaseNameFormatError": "Verilənlər bazasının adı hərflə başlamalı, 3-64 simvol uzunluğunda olmalı və yalnız hərf, rəqəm və alt xətt simvolu ehtiva etməlidir",

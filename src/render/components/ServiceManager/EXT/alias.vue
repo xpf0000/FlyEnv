@@ -32,7 +32,7 @@
             </template>
           </el-table-column>
         </template>
-        <el-table-column align="left" :label="I18nT('base.path')">
+        <el-table-column align="left" :label="I18nT('common.label.path')">
           <template #default="scope">
             <el-button
               class="overflow-hidden truncate max-w-full justify-start"

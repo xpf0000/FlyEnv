@@ -6,7 +6,26 @@
     "workingDirectory": "Director de lucru",
     "action": "Acțiune",
     "comment": "Comentariu",
-    "source": "Sursa"
+    "source": "Sursa",
+    "site": "Site",
+    "errorLog": "Jurnal de Erori",
+    "library": "Bibliotecă",
+    "path": "Cale",
+    "description": "Descriere",
+    "port": "Portul",
+    "startCommand": "Comandă de pornire",
+    "licenseDescription": "Descriere Licență",
+    "password": "Parolă",
+    "username": "Nume",
+    "size": "Dimensiune",
+    "containerEnvVars": "Variabile de mediu pentru container",
+    "createdTime": "Timp Creat",
+    "image": "Imagine",
+    "state": "Județ",
+    "grid": "Grilă",
+    "gridSpacing": "Spațiere grilă (pixeli)",
+    "fontSize": "Font Size",
+    "code": "Cod"
   },
   "action": {
     "enable": "Activare",
@@ -18,13 +37,26 @@
     "search": "Caută",
     "clear": "Curăță",
     "resetPassword": "Resetare parolă",
-    "delete": "Ștergere"
+    "delete": "Ștergere",
+    "add": "Adăugare",
+    "edit": "Editare",
+    "generate": "Genereaza",
+    "refresh": "Împrospătează",
+    "save": "Salvează",
+    "start": "Pornire",
+    "stop": "Oprește",
+    "close": "Inchide",
+    "selectAll": "Selectează tot",
+    "changeName": "Editează numele",
+    "changeOwnerPassword": "Schimbare parolă proprietar",
+    "changeRole": "Schimbă rolul"
   },
   "state": {
     "running": "În execuție",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Informații de bază",
     "configuration": "Configurare",
-    "favorites": "Favorite"
+    "favorites": "Favorite",
+    "plugins": "Plugins",
+    "backupUpdate": "Backup & Actualizare"
+  },
+  "skills": {
+    "openSkillsDir": "Deschide directorul cu abilități",
+    "openSkillDir": "Deschide dosarul abilității",
+    "revealSkillFile": "Arată fișierul abilității",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Fișierul abilității nu a fost găsit",
+    "skillLoadFailed": "Nu s-a putut încărca fișierul abilității",
+    "builtin": "Încorporat"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Executarea controalelor de sănătate",
+    "doctorFix": "Executaţi controalele de sănătate cu auto-fixare",
+    "gatewayStart": "Pornește serviciul gateway",
+    "gatewayStop": "Oprește serviciul gateway",
+    "gatewayRestart": "Repornește serviciul gateway",
+    "gatewayStatus": "Arată starea gateway-ului",
+    "gatewayRun": "Rulează gateway-ul în prim-plan",
+    "gatewayUninstall": "Dezinstalaţi serviciul gateway",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Serviciu gateway",
+    "status": "Stare gateway",
+    "running": "Gateway-ul rulează",
+    "stopped": "Gateway-ul este oprit",
+    "startFailed": "Pornirea gateway-ului a eșuat"
+  },
+  "value": {
+    "yes": "Da",
+    "no": "Nr",
+    "other": "Altele",
+    "default": "Implicit",
+    "none": "Niciunul",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "În fiecare oră",
+    "everyMinute": "În fiecare minut"
+  },
+  "error": {
+    "phpiniNotFound": "fisierul php.ini nu a fost gasit"
   }
 }

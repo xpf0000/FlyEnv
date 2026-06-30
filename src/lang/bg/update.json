@@ -4,8 +4,6 @@
   "update-not-available-message": "Вече сте в крак с новостите!",
   "update-downloaded-message": "Готово за инсталиране...",
   "update-error-message": "Грешка при актуализиране",
-  "yes": "Да",
-  "no": "Не",
   "view-update-log": "Виж лога с актуализациите",
   "download-new-version": "Изтегли новата версия"
 }

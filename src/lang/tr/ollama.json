@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Her GPU için ayrılacak VRAM miktarı (bayt cinsinden)",
   "OLLAMA_LOAD_TIMEOUT": "Model yüklemelerinin ne kadar süreyle duraklamasına izin verilir (varsayılan \"5dk\")",
   "needServiceRun": "Lütfen önce Olama servisini başlatın",
-  "size": "Boyut",
   "model": "Modeller"
 }

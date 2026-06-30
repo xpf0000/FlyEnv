@@ -6,7 +6,26 @@
     "workingDirectory": "Κατάλογος Εργασίας",
     "action": "Ενέργεια",
     "comment": "Σχόλιο",
-    "source": "Πηγή"
+    "source": "Πηγή",
+    "site": "Ιστοσελίδα",
+    "errorLog": "Αρχείο Καταγραφής Σφαλμάτων",
+    "library": "Βιβλιοθήκη",
+    "path": "Διαδρομή",
+    "description": "Περιγραφή",
+    "port": "Θύρα",
+    "startCommand": "Έναρξη Εντολής",
+    "licenseDescription": "Περιγραφή Άδειας",
+    "password": "Συνθηματικό",
+    "username": "Όνομα χρήστη",
+    "size": "Μέγεθος",
+    "containerEnvVars": "Μεταβλητές Περιβάλλοντος Περιέκτη",
+    "createdTime": "Ώρα Δημιουργίας",
+    "image": "Εικόνα",
+    "state": "Κατάσταση",
+    "grid": "Πλέγμα",
+    "gridSpacing": "Απόσταση Πλέγματος (pixel)",
+    "fontSize": "Font Size",
+    "code": "Κωδικός"
   },
   "action": {
     "enable": "Ενεργοποίηση",
@@ -18,13 +37,26 @@
     "search": "Αναζήτηση",
     "clear": "Καθαρισμός",
     "resetPassword": "Επαναφορά Κωδικού Πρόσβασης",
-    "delete": "διαγραφή"
+    "delete": "διαγραφή",
+    "add": "Προσθήκη",
+    "edit": "Επεξεργασία",
+    "generate": "Δημιουργία",
+    "refresh": "Ανανέωση",
+    "save": "Αποθήκευση",
+    "start": "Έναρξη",
+    "stop": "Διακοπή",
+    "close": "Κλείσιμο",
+    "selectAll": "Επιλογή Όλων",
+    "changeName": "Επεξεργασία Ονόματος",
+    "changeOwnerPassword": "Αλλαγή Κωδικού Πρόσβασης Ιδιοκτήτη",
+    "changeRole": "Αλλαγή Ρόλου"
   },
   "state": {
     "running": "Τρέξιμο",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Βασικές Πληροφορίες",
     "configuration": "Διαμόρφωση",
-    "favorites": "Αγαπημένα"
+    "favorites": "Αγαπημένα",
+    "plugins": "Plugins",
+    "backupUpdate": "Αντίγραφο Ασφαλείας & Ενημέρωση"
+  },
+  "skills": {
+    "openSkillsDir": "Άνοιγμα καταλόγου δεξιοτήτων",
+    "openSkillDir": "Άνοιγμα καταλόγου δεξιοτήτων",
+    "revealSkillFile": "Αποκάλυψη αρχείου δεξιοτήτων",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Το αρχείο δεξιοτήτων δεν βρέθηκε",
+    "skillLoadFailed": "Αποτυχία φόρτωσης αρχείου δεξιοτήτων",
+    "builtin": "Ενσωματωμένο"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Εκτέλεση υγειονομικών ελέγχων",
+    "doctorFix": "Εκτέλεση ελέγχων υγείας με αυτόματη επιδιόρθωση",
+    "gatewayStart": "Έναρξη υπηρεσίας πύλης",
+    "gatewayStop": "Διακοπή υπηρεσίας πύλης",
+    "gatewayRestart": "Επανεκκίνηση υπηρεσίας πύλης",
+    "gatewayStatus": "Εμφάνιση κατάστασης πύλης",
+    "gatewayRun": "Εκτέλεση πύλης στο προσκήνιο",
+    "gatewayUninstall": "Απεγκατάσταση υπηρεσίας πύλης",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Υπηρεσία Πύλης",
+    "status": "Κατάσταση Πύλης",
+    "running": "Η πύλη εκτελείται",
+    "stopped": "Η πύλη σταμάτησε",
+    "startFailed": "Έναρξη πύλης απέτυχε"
+  },
+  "value": {
+    "yes": "Ναι",
+    "no": "Όχι",
+    "other": "Άλλο",
+    "default": "Προεπιλογή",
+    "none": "Καμία",
+    "local": "Τοπικό"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Κάθε ώρα",
+    "everyMinute": "Κάθε λεπτό"
+  },
+  "error": {
+    "phpiniNotFound": "το αρχείο php.ini δεν βρέθηκε"
   }
 }

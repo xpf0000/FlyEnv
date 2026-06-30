@@ -4,8 +4,6 @@
   "update-not-available-message": "Bạn đang sử dụng phiên bản mới nhất!",
   "update-downloaded-message": "Sẵn sàng để cài đặt...",
   "update-error-message": "Lỗi cập nhật",
-  "yes": "Có",
-  "no": "Không",
   "view-update-log": "Xem nhật ký cập nhật",
   "download-new-version": "Tải phiên bản mới"
 }

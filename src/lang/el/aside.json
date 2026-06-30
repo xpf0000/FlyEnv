@@ -1,5 +1,4 @@
 {
-  "site": "Ιστοσελίδα",
   "webServer": "Διακομιστής Web",
   "dataBaseServer": "Εξυπηρετητής Βάσης Δεδομένων",
   "emailServer": "Διακομιστής Email",
@@ -8,7 +7,6 @@
   "dnsServer": "Εξυπηρετητής DNS",
   "ftpServer": "Εξυπηρετητής FTP",
   "containerRuntime": "Χρόνος Εκτέλεσης Περιέκτη",
-  "other": "Άλλο",
   "appLog": "Αρχείο Καταγραφής Εφαρμογών",
   "aiCoding": "Κωδικοποίηση AI",
   "ai": "AI",

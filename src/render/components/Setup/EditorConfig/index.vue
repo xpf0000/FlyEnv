@@ -14,7 +14,7 @@
             <el-radio-button label="auto" value="auto">{{ I18nT('util.auto') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="I18nT('util.fontSize')">
+        <el-form-item :label="I18nT('common.label.fontSize')">
           <el-input v-model.number="editorConfig.fontSize" type="number"></el-input>
         </el-form-item>
         <el-form-item :label="I18nT('util.lineHeight')">

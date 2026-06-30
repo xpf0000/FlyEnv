@@ -1,5 +1,4 @@
 {
-  "title": "License Description",
   "description": "This license acknowledges and supports the efforts of FlyEnv and its authors. It is not intended to restrict users, but to encourage respect for the developers’ work and intellectual property. Please ensure you obtain a valid license before using FlyEnv for commercial purposes.",
   "restrictions": {
     "title": "Users without a license will be subject to the following restrictions:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Bound UUID",
   "delBind": "Unbind",
   "bindCurrentUUID": "Bind This Device",
-  "licenseDescription": "License Description",
   "loginFail": "Login failed",
   "oauthCanceledTitle": "Authorization Canceled",
   "oauthCanceledMessage": "User canceled the authorization process",

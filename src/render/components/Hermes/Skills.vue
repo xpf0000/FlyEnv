@@ -6,7 +6,7 @@
           <span class="flex-shrink-0">{{ I18nT('common.category.skills') }}</span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ I18nT('hermes.openSkillsDir') }}</span>
+              <span>{{ I18nT('common.skills.openSkillsDir') }}</span>
             </template>
             <template #reference>
               <el-button class="ml-2 flex-shrink-0" link @click.stop="HermesSetup.openSkillsDir()">

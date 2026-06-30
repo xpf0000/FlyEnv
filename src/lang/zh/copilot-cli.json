@@ -2,22 +2,11 @@
   "notInstalled": "尚未安装 GitHub Copilot CLI。点击下方按钮通过 npm 安装（需要 Node.js 22 及以上版本）。",
   "officialWebsite": "Copilot CLI GitHub",
   "officialDocs": "Copilot CLI 文档",
-  "noSkills": "未找到技能",
-  "openSkillsDir": "打开技能目录",
-  "openSkillDir": "打开技能文件夹",
-  "revealSkillFile": "定位技能文件",
-  "skillFileMissing": "未找到技能文件",
-  "skillLoadFailed": "加载技能文件失败",
   "cmd": {
-    "help": "显示帮助信息",
-    "version": "显示版本号",
     "update": "下载最新版本的 Copilot CLI",
-    "start": "启动新的交互式会话",
     "resume": "恢复之前的会话（选择器）",
     "continue": "恢复最近的会话",
     "prompt": "以非交互方式运行单条提示",
-    "mcpList": "列出已配置的 MCP 服务器",
-    "skillList": "列出可用技能",
     "login": "登录 Copilot",
     "init": "为仓库初始化 Copilot 指令"
   }

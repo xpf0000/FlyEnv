@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "Ca Juuren Polku",
   "certificates": "Sertifikaatit",
-  "generate": "Luo",
   "noSSLHosts": "Ei palvelimia, joissa SSL on käytössä. Ota SSL käyttöön ensin palvelimella."
 }

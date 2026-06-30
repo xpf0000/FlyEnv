@@ -13,10 +13,10 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{ isEdit ? I18nT('common.action.edit') : I18nT('common.action.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
-          I18nT('base.save')
+          I18nT('common.action.save')
         }}</el-button>
       </div>
 
@@ -106,7 +106,7 @@
           </div>
 
           <div class="plant-title flex items-center justify-between">
-            <span>{{ I18nT('host.port') }}</span>
+            <span>{{ I18nT('common.label.port') }}</span>
             <el-button link @click.stop="portAdvanced = !portAdvanced">
               {{ portAdvanced ? I18nT('host.portSimple') : I18nT('host.portAdvanced') }}
             </el-button>
@@ -114,7 +114,7 @@
           <div class="main p-5">
             <template v-if="!portAdvanced">
               <div class="port-set mb-5">
-                <div class="port-type"> {{ I18nT('host.port') }} </div>
+                <div class="port-type"> {{ I18nT('common.label.port') }} </div>
                 <input
                   v-model.number="primaryPort"
                   type="number"
@@ -304,7 +304,7 @@
           </div>
           <div class="main p-5 flex flex-col gap-3">
             <template v-if="item.reverseProxy.length === 0">
-              <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+              <div class="flex justify-center">{{ I18nT('common.value.none') }}</div>
             </template>
             <template v-else>
               <template v-for="(proxy, index) in item.reverseProxy" :key="index">

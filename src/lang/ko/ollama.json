@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "GPU당 예약할 VRAM 양(바이트)",
   "OLLAMA_LOAD_TIMEOUT": "모델 로드가 중단된 것으로 간주하고 포기할 때까지의 시간(기본값 \"5m\")",
   "needServiceRun": "먼저 Ollama 서비스를 시작해 주세요",
-  "size": "파일 크기",
   "model": "모델"
 }

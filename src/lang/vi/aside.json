@@ -1,5 +1,4 @@
 {
-  "site": "Trang web",
   "webServer": "Dịch vụ web",
   "dataBaseServer": "Máy chủ cơ sở dữ liệu",
   "emailServer": "Máy chủ Email",
@@ -8,7 +7,6 @@
   "dnsServer": "Máy chủ DNS",
   "ftpServer": "Máy chủ FTP",
   "containerRuntime": "Trình quản lý Container",
-  "other": "Khác",
   "appLog": "Nhật ký ứng dụng",
   "aiCoding": "Lập trình AI",
   "ai": "Máy chủ AI",

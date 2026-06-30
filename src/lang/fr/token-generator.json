@@ -5,8 +5,5 @@
   "numbers": "Nombres (123...)",
   "symbols": "Symboles (!-;...)",
   "length": "Longueur",
-  "tokenPlaceholder": "Jeton...",
-  "button": {
-    "refresh": "Rafraîchir"
-  }
+  "tokenPlaceholder": "Jeton..."
 }

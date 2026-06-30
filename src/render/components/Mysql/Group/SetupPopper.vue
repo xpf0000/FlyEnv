@@ -8,7 +8,7 @@
   >
     <ul v-poper-fix class="host-list-menu">
       <li @click.stop="action('edit')">
-        <span class="ml-3">{{ I18nT('base.edit') }}</span>
+        <span class="ml-3">{{ I18nT('common.action.edit') }}</span>
       </li>
       <li @click.stop="action('socket')">
         <span class="ml-3"> {{ I18nT('util.mysqlPopperSocket') }} </span>

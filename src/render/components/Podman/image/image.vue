@@ -2,7 +2,7 @@
   <div class="w-full h-full overflow-hidden flex flex-col gap-2 items-start">
     <div class="flex items-center">
       <el-button size="small" class="flex-shrink-0" @click="addImage()">{{
-        I18nT('base.add')
+        I18nT('common.action.add')
       }}</el-button>
       <el-button size="small" class="flex-shrink-0" @click="importImage()">
         <template #default>
@@ -20,7 +20,7 @@
       :data="images"
       style="width: 100%"
     >
-      <el-table-column prop="name" :label="I18nT('podman.Image')">
+      <el-table-column prop="name" :label="I18nT('common.label.image')">
         <template #default="scope">
           <el-tooltip
             :content="scope.row?.name?.join(', ')"
@@ -35,7 +35,7 @@
           </el-tooltip>
         </template>
       </el-table-column>
-      <el-table-column prop="size" width="120px" :label="I18nT('podman.Size')">
+      <el-table-column prop="size" width="120px" :label="I18nT('common.label.size')">
         <template #default="scope">
           <template v-if="scope.row.pulling && !scope.row.size">
             <el-button loading link></el-button>
@@ -45,7 +45,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column prop="created" width="170px" :label="I18nT('podman.Created')" />
+      <el-table-column prop="created" width="170px" :label="I18nT('common.label.createdTime')" />
       <el-table-column align="center" :label="I18nT('common.label.action')" width="100">
         <template #default="scope">
           <template v-if="scope.row.pulling">

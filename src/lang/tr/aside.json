@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "webServer": "Web Sunucusu",
   "dataBaseServer": "Veritabanı Sunucusu",
   "emailServer": "E-posta Sunucusu",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS Sunucusu",
   "ftpServer": "FTP Sunucusu",
   "containerRuntime": "Kapsayıcı Çalışma Zamanı",
-  "other": "Diğer",
   "appLog": "Uygulama Günlüğü",
   "aiCoding": "Yapay Zeka Kodlama",
   "ai": "Yapay Zeka",

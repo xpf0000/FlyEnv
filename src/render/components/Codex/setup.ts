@@ -283,7 +283,7 @@ class Codex {
       IPC.send('app-fork:codex', 'disablePlugin', pluginId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('codex.pluginDisabled'))
+          MessageSuccess(I18nT('claudeCode.pluginDisabled'))
           this.refreshPlugins()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -298,7 +298,7 @@ class Codex {
       IPC.send('app-fork:codex', 'uninstallPlugin', pluginId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('codex.pluginUninstalled'))
+          MessageSuccess(I18nT('common.plugin.removed'))
           this.refreshPlugins()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))

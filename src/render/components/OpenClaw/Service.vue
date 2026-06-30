@@ -78,12 +78,12 @@
             <el-form-item class="flex-shrink-0" :label="'OpenClaw ' + I18nT('base.version')">
               <span>{{ OpenClawSetup.version }}</span>
             </el-form-item>
-            <el-form-item class="flex-shrink-0" :label="I18nT('openclaw.gatewayStatus')">
+            <el-form-item class="flex-shrink-0" :label="I18nT('common.gateway.status')">
               <template v-if="OpenClawSetup.gatewayRunning">
-                <span class="text-[#01cc74]">{{ I18nT('openclaw.gatewayRunning') }}</span>
+                <span class="text-[#01cc74]">{{ I18nT('common.gateway.running') }}</span>
               </template>
               <template v-else>
-                <span>{{ I18nT('openclaw.gatewayStopped') }}</span>
+                <span>{{ I18nT('common.gateway.stopped') }}</span>
               </template>
             </el-form-item>
             <el-form-item class="flex-shrink-0">

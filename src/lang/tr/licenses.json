@@ -1,5 +1,4 @@
 {
-  "title": "Lisans Açıklaması",
   "description": "Lisans, FlyEnv ve yazarlarının emeğine bir takdir ve destektir. Amacı kullanıcıları kısıtlamak değil, geliştiricilerin çabalarına saygı gösterilmesini ve yazılımı kullanırken ilgili koşullara uyulmasını hatırlatmaktır. Lisansa uyarak, kullanıcılar sadece projenin sürekli gelişimini desteklemekle kalmaz, aynı zamanda açık kaynak topluluğundaki güven ve iş birliği ruhuna katkıda bulunurlar.",
   "restrictions": {
     "title": "Lisansı olmayan kullanıcılar aşağıdaki kısıtlamalara tabi olacaktır:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Bağlı UUID",
   "delBind": "Bağlamayı Kaldır",
   "bindCurrentUUID": "Bu Cihazı Bağla",
-  "licenseDescription": "Lisans Açıklaması",
   "loginFail": "Giriş başarısız",
   "oauthCanceledTitle": "Yetkilendirme İptal Edildi",
   "oauthCanceledMessage": "Kullanıcı yetkilendirme sürecini iptal etti",

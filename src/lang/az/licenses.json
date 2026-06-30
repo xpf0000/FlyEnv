@@ -1,5 +1,4 @@
 {
-  "title": "Lisenziya İzahı",
   "description": "Lisenziya, FlyEnv və müəlliflərinin əməyinə verilən bir təşəkkür və dəstəkdir. Məqsədi istifadəçiləri məhdudlaşdırmaq deyil, inkişaf etdiricilərin səylərinə hörmət göstərilməsini və proqramdan istifadə edərkən müvafiq şərtlərə əməl edilməsini xatırlatmaqdır. Lisenziyaya riayət etməklə, istifadəçilər təkcə layihənin davamlı inkişafını dəstəkləmir, həm də açıq mənbə icmasında etimad və əməkdaşlıq ruhuna töhfə verirlər.",
   "restrictions": {
     "title": "Lisenziyası olmayan istifadəçilər aşağıdakı məhdudiyyətlərə tabe olacaqlar:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Bağlanmış UUID",
   "delBind": "Bağlantını Ləğv Et",
   "bindCurrentUUID": "Bu Cihazı Bağla",
-  "licenseDescription": "Lisenziya Təsviri",
   "loginFail": "Daxil Olmaq Uğursuz Oldu",
   "oauthCanceledTitle": "Yetki Ləğv Edildi",
   "oauthCanceledMessage": "İstifadəçi yetki prosesini ləğv etdi",

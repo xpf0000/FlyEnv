@@ -6,7 +6,26 @@
     "workingDirectory": "কাজের ডিরেক্টরি",
     "action": "কাজ",
     "comment": "মন্তব্য",
-    "source": "উৎস"
+    "source": "উৎস",
+    "site": "সাইট",
+    "errorLog": "ত্রুটি লগ",
+    "library": "লাইব্রেরি",
+    "path": "পাথ",
+    "description": "Description",
+    "port": "পোর্ট",
+    "startCommand": "চালুর কমান্ড",
+    "licenseDescription": "লাইসেন্স বিবরণ",
+    "password": "পাসওয়ার্ড",
+    "username": "ব্যবহারকারীর নাম",
+    "size": "আকার",
+    "containerEnvVars": "কন্টেইনারের অভ্যন্তরীণ পরিবেশ ভেরিয়েবল",
+    "createdTime": "তৈরির সময়",
+    "image": "ইমেজ",
+    "state": "অবস্থা",
+    "grid": "Grid",
+    "gridSpacing": "Grid Spacing (pixels)",
+    "fontSize": "ফন্ট সাইজ",
+    "code": "কোড"
   },
   "action": {
     "enable": "সক্রিয় করুন",
@@ -18,13 +37,26 @@
     "search": "অনুসন্ধান করুন",
     "clear": "পরিষ্কার",
     "resetPassword": "পাসওয়ার্ড রিসেট",
-    "delete": "মুছুন"
+    "delete": "মুছুন",
+    "add": "যোগ করুন",
+    "edit": "সম্পাদনা করুন",
+    "generate": "তৈরি করুন",
+    "refresh": "রিফ্রেশ করুন",
+    "save": "সংরক্ষণ করুন",
+    "start": "চালু করুন",
+    "stop": "বন্ধ করুন",
+    "close": "বন্ধ করুন",
+    "selectAll": "সব নির্বাচন করুন",
+    "changeName": "নাম সম্পাদনা করুন",
+    "changeOwnerPassword": "Change Owner Password",
+    "changeRole": "ভূমিকা পরিবর্তন"
   },
   "state": {
     "running": "চলমান",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "মৌলিক তথ্য",
     "configuration": "Configuration",
-    "favorites": "প্রিয়"
+    "favorites": "প্রিয়",
+    "plugins": "Plugins",
+    "backupUpdate": "Backup & Update"
+  },
+  "skills": {
+    "openSkillsDir": "Open skills directory",
+    "openSkillDir": "ওপেন স্কিল ডিরেক্টরি",
+    "revealSkillFile": "দক্ষতা ফাইল প্রকাশ করুন",
+    "noSkills": "No skills found",
+    "skillFileMissing": "স্কিল ফাইল পাওয়া যায়নি",
+    "skillLoadFailed": "দক্ষতা ফাইল লোড করতে ব্যর্থ হয়েছে",
+    "builtin": "Built-in"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Run health checks",
+    "doctorFix": "Run health checks with auto-fix",
+    "gatewayStart": "Start gateway service",
+    "gatewayStop": "Stop gateway service",
+    "gatewayRestart": "Restart gateway service",
+    "gatewayStatus": "Show gateway status",
+    "gatewayRun": "Run gateway in foreground",
+    "gatewayUninstall": "Uninstall gateway service",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Gateway Service",
+    "status": "Gateway Status",
+    "running": "Gateway is running",
+    "stopped": "Gateway is stopped",
+    "startFailed": "Gateway start failed"
+  },
+  "value": {
+    "yes": "হ্যাঁ",
+    "no": "না",
+    "other": "Other",
+    "default": "ডিফল্ট",
+    "none": "কিছু নেই",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "প্রতি ঘণ্টায়",
+    "everyMinute": "প্রতি মিনিটে"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini ফাইল পাওয়া যায়নি"
   }
 }

@@ -5,8 +5,5 @@
   "numbers": "সংখ্যা (123...)",
   "symbols": "চিহ্ন (!-;...)",
   "length": "দৈর্ঘ্য",
-  "tokenPlaceholder": "টোকেন...",
-  "button": {
-    "refresh": "রিফ্রেশ করুন"
-  }
+  "tokenPlaceholder": "টোকেন..."
 }

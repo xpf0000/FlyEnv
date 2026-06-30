@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="index >= 0 ? I18nT('base.edit') : I18nT('base.add')"
+    :title="index >= 0 ? I18nT('common.action.edit') : I18nT('common.action.add')"
     size="600px"
     :destroy-on-close="true"
     @closed="closedFn"

@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Questa operazione cambierà la password dell'utente root del database, sei sicuro di voler procedere?",
   "mysqlNeedRunTips": "Per favore esegui prima {app}",
   "databaseName": "Nome database",
-  "databaseUser": "Nome utente",
-  "databasePassword": "Password",
   "addDatabase": "Aggiungi database",
   "inputDatabaseName": "Inserisci il nome del database",
   "databaseNameFormatError": "Il nome del database deve iniziare con una lettera, contenere 3-64 caratteri e può contenere solo lettere, numeri e underscore",

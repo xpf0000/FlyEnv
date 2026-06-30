@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "CA Root Path",
   "certificates": "Certificates",
-  "generate": "Generate",
   "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
 }

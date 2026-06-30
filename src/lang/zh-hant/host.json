@@ -1,5 +1,4 @@
 {
-  "site": "站台",
   "phpVersion": "php 版本",
   "newProject": "新建專案",
   "frameworkVersion": "框架版本",
@@ -13,7 +12,6 @@
   "placeholderName": "站台域名 (Example: mydomain.tld)",
   "placeholderAlias": "站台域名別名 (Example: www.mydomain.tld)",
   "placeholderRootPath": "站台根目錄",
-  "port": "通訊埠",
   "portAdvanced": "進階",
   "portSimple": "簡單",
   "hostSSL": "SSL 憑證",
@@ -38,7 +36,6 @@
   "projectRust": "Rust 專案",
   "projectZig": "Zig 專案",
   "projectFlutter": "Flutter 專案",
-  "startCommand": "啟動命令",
   "envVar": "環境變數",
   "specifyVar": "指定變數",
   "fileVar": "從檔案載入",

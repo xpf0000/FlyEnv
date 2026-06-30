@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Tato operace změní heslo root uživatele databáze, chcete pokračovat?",
   "mysqlNeedRunTips": "Nejprve spusťte {app}",
   "databaseName": "Název databáze",
-  "databaseUser": "Uživatelské jméno",
-  "databasePassword": "Heslo",
   "addDatabase": "Přidat databázi",
   "inputDatabaseName": "Zadejte název databáze",
   "databaseNameFormatError": "Název databáze musí začínat písmenem, 3-64 znaků a může obsahovat pouze písmena, čísla a podtržítka",

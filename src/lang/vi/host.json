@@ -1,5 +1,4 @@
 {
-  "site": "Trang web",
   "phpVersion": "Phiên bản PHP",
   "newProject": "Dự án mới",
   "frameworkVersion": "Phiên bản Framework",
@@ -13,7 +12,6 @@
   "placeholderName": "Tên host ví dụ: mydomain.tld",
   "placeholderAlias": "Bí danh host ví dụ: www.mydomain.tld",
   "placeholderRootPath": "Thư mục gốc",
-  "port": "Cổng",
   "portAdvanced": "Nâng cao",
   "portSimple": "Đơn giản",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Dự án Rust",
   "projectZig": "Dự án Zig",
   "projectFlutter": "Dự án Flutter",
-  "startCommand": "Lệnh khởi động",
   "envVar": "Biến môi trường",
   "specifyVar": "Chỉ định",
   "fileVar": "Tệp",

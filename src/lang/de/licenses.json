@@ -1,5 +1,4 @@
 {
-  "title": "Lizenzbeschreibung",
   "description": "Diese Lizenz würdigt und unterstützt die Bemühungen von FlyEnv und seinen Autoren. Es soll nicht die Nutzer einschränken, sondern die Achtung der Arbeit und des geistigen Eigentums der Entwickler fördern. Bitte stellen Sie sicher, dass Sie vor der Nutzung von FlyEnv eine gültige Lizenz erhalten.",
   "restrictions": {
     "title": "Benutzer ohne Lizenz unterliegen folgenden Einschränkungen:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Gebundene UUID",
   "delBind": "Bindung aufheben",
   "bindCurrentUUID": "Dieses Gerät binden",
-  "licenseDescription": "Lizenzbeschreibung",
   "loginFail": "Anmeldung fehlgeschlagen",
   "oauthCanceledTitle": "Autorisierung abgebrochen",
   "oauthCanceledMessage": "Der Benutzer hat den Autorisierungsprozess abgebrochen",

@@ -1,5 +1,4 @@
 {
-  "site": "Сайт",
   "phpVersion": "Версия PHP",
   "newProject": "Новый проект",
   "frameworkVersion": "Версия среды",
@@ -13,7 +12,6 @@
   "placeholderName": "Имя хоста (Пример: mydomain.tld)",
   "placeholderAlias": "Алиасы домена (например: www.mydomain.tld)",
   "placeholderRootPath": "Корневой путь документа",
-  "port": "Порт",
   "portAdvanced": "Расширенный",
   "portSimple": "Простой",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Проекты Rust",
   "projectZig": "Проекты Zig",
   "projectFlutter": "Проекты Flutter",
-  "startCommand": "Начать команду",
   "envVar": "Переменная окружения",
   "specifyVar": "Указать",
   "fileVar": "файлов",

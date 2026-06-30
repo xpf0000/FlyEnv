@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Hər GPU üçün ayrılacaq VRAM miqdarı (baytla)",
   "OLLAMA_LOAD_TIMEOUT": "Model yükləmələrinin nə qədər müddət dayanmasına icazə verilir (standart \"5 dəq\")",
   "needServiceRun": "Zəhmət olmasa əvvəlcə Ollama xidmətini başladın",
-  "size": "Ölçü",
   "model": "Modellər"
 }

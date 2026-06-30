@@ -1,5 +1,4 @@
 {
-  "site": "Sayt",
   "phpVersion": "PHP Versiyası",
   "newProject": "Yeni Layihə",
   "frameworkVersion": "Framework Versiyası",
@@ -13,7 +12,6 @@
   "placeholderName": "Domen adı (Nümunə: mydomain.tld)",
   "placeholderAlias": "Domen ləqəbləri (Nümunə: www.mydomain.tld)",
   "placeholderRootPath": "Sənəd Kök Qovluğu",
-  "port": "Port",
   "portAdvanced": "Qabaqcıl",
   "portSimple": "Sadə",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
   "projectFlutter": "Flutter Layiheleri",
-  "startCommand": "Başlatma Əmri",
   "envVar": "Mühit Dəyişəni",
   "specifyVar": "Təyin Et",
   "fileVar": "Fayl",

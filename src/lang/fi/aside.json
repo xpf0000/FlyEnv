@@ -1,5 +1,4 @@
 {
-  "site": "Sivusto",
   "webServer": "Web- Palvelin",
   "dataBaseServer": "Tietokannan Palvelin",
   "emailServer": "Sähköpostin Palvelin",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS Palvelin",
   "ftpServer": "Ftp Palvelin",
   "containerRuntime": "Kontti Ajoaika",
-  "other": "Muu",
   "appLog": "Sovelluksen Loki",
   "aiCoding": "Tekoälykoodaus",
   "ai": "AI",

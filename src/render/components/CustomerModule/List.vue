@@ -82,7 +82,7 @@
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'edit')">
                 <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                <span class="ml-3">{{ I18nT('common.action.edit') }}</span>
               </li>
               <template v-for="(c, _i) in logs(scope.row)" :key="_i">
                 <li @click.stop="action(c, _i, 'log')">
@@ -159,7 +159,7 @@
         path: join(window.Server.BaseDir!, 'module-customer', `${item.id}.out.log`)
       },
       {
-        label: I18nT('setup.module.errorLog'),
+        label: I18nT('common.label.errorLog'),
         path: join(window.Server.BaseDir!, 'module-customer', `${item.id}.error.log`)
       }
     ]

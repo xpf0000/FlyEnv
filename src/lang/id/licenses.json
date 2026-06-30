@@ -1,5 +1,4 @@
 {
-  "title": "Deskripsi Lisensi",
   "description": "Lisensi ini adalah pengakuan dan dukungan untuk kerja keras FlyEnv dan penulisnya. Tujuannya bukan untuk membatasi pengguna, tetapi untuk mengingatkan mereka untuk menghormati upaya para pengembang dan mematuhi ketentuan yang relevan saat menggunakan perangkat lunak. Dengan mematuhi lisensi ini, pengguna tidak hanya mendukung pengembangan proyek yang berkelanjutan tetapi juga berkontribusi pada semangat kepercayaan dan kolaborasi dalam komunitas sumber terbuka.",
   "restrictions": {
     "title": "Pengguna tanpa lisensi akan dikenakan pembatasan berikut:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "UUID yang Terikat",
   "delBind": "Batalkan Ikat",
   "bindCurrentUUID": "Ikat Perangkat Ini",
-  "licenseDescription": "Deskripsi Lisensi",
   "loginFail": "Gagal masuk",
   "oauthCanceledTitle": "Otorisasi Dibatalkan",
   "oauthCanceledMessage": "Pengguna membatalkan proses otorisasi",

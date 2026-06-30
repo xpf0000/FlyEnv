@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    :title="isEdit ? I18nT('base.edit') : I18nT('cron.add')"
+    :title="isEdit ? I18nT('common.action.edit') : I18nT('cron.add')"
     width="860px"
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     @close="handleClose"
@@ -10,7 +10,7 @@
       <div class="dialog-grid">
         <div class="form-pane">
           <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-            <el-form-item v-if="!targetFixed" :label="I18nT('cron.scope')" prop="scope">
+            <el-form-item v-if="!targetFixed" :label="I18nT('common.mcp.scope')" prop="scope">
               <el-radio-group v-model="form.scope">
                 <el-radio-button value="global">{{ I18nT('cron.global') }}</el-radio-button>
                 <el-radio-button value="host">{{ I18nT('cron.siteTask') }}</el-radio-button>
@@ -19,7 +19,7 @@
 
             <el-form-item
               v-if="!targetFixed && form.scope === 'host'"
-              :label="I18nT('host.site')"
+              :label="I18nT('common.label.site')"
               prop="hostId"
             >
               <el-select v-model="form.hostId" class="w-full" filterable>
@@ -85,7 +85,7 @@
               />
             </el-form-item>
 
-            <el-form-item :label="I18nT('cron.description')" prop="description">
+            <el-form-item :label="I18nT('common.label.description')" prop="description">
               <el-input
                 v-model="form.description"
                 :placeholder="I18nT('cron.descriptionPlaceholder')"
@@ -113,7 +113,7 @@
               }}</div>
             </el-form-item>
 
-            <el-form-item :label="I18nT('cron.enabled')" prop="enabled">
+            <el-form-item :label="I18nT('common.state.enabled')" prop="enabled">
               <el-switch v-model="form.enabled" />
             </el-form-item>
           </el-form>
@@ -138,7 +138,7 @@
 
             <div class="preview-sub mt-3">
               {{ I18nT('common.label.status') }}:
-              <strong>{{ form.enabled ? I18nT('cron.enabled') : I18nT('cron.disabled') }}</strong>
+              <strong>{{ form.enabled ? I18nT('common.state.enabled') : I18nT('cron.disabled') }}</strong>
             </div>
           </div>
 
@@ -199,7 +199,7 @@
         <el-button plain @click="resetForm">Reset</el-button>
         <el-button @click="handleClose">{{ I18nT('base.cancel') }}</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          {{ isEdit ? I18nT('base.save') : I18nT('base.add') }}
+          {{ isEdit ? I18nT('common.action.save') : I18nT('common.action.add') }}
         </el-button>
       </div>
     </template>

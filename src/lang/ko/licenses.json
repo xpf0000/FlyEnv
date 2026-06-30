@@ -1,5 +1,4 @@
 {
-  "title": "라이선스 설명",
   "description": "이 라이선스는 FlyEnv와 그 저작자들의 노력을 인정하고 지지합니다. 사용자를 제한하려는 목적이 아니라 개발자의 작업과 지적 재산에 대한 존중을 권장하기 위한 것입니다. FlyEnv를 상업적 목적으로 사용하기 전에 유효한 라이선스를 반드시 취득해 주시기 바랍니다.",
   "restrictions": {
     "title": "라이선스가 없는 사용자는 다음과 같은 제한이 적용됩니다:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "바인딩된 UUID",
   "delBind": "바인딩 해제",
   "bindCurrentUUID": "이 기기 바인딩",
-  "licenseDescription": "라이선스 설명",
   "loginFail": "로그인 실패",
   "oauthCanceledTitle": "승인 취소",
   "oauthCanceledMessage": "사용자가 승인 과정을 취소했습니다",

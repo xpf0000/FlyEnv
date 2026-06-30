@@ -3,11 +3,11 @@
     {
       "nameKey": "common.category.basicInfo",
       "commands": [
-        { "label": "openclaw help", "descriptionKey": "openclaw.cmd.help", "needInput": false },
-        { "label": "openclaw --version", "descriptionKey": "openclaw.cmd.version", "needInput": false },
+        { "label": "openclaw help", "descriptionKey": "common.cli.help", "needInput": false },
+        { "label": "openclaw --version", "descriptionKey": "common.cli.version", "needInput": false },
         { "label": "openclaw dashboard", "descriptionKey": "openclaw.cmd.dashboard", "needInput": false },
-        { "label": "openclaw doctor", "descriptionKey": "openclaw.cmd.doctor", "needInput": false },
-        { "label": "openclaw doctor --fix", "descriptionKey": "openclaw.cmd.doctorFix", "needInput": false },
+        { "label": "openclaw doctor", "descriptionKey": "common.cli.doctor", "needInput": false },
+        { "label": "openclaw doctor --fix", "descriptionKey": "common.cli.doctorFix", "needInput": false },
         { "label": "openclaw health", "descriptionKey": "openclaw.cmd.health", "needInput": false },
         { "label": "openclaw status", "descriptionKey": "openclaw.cmd.status", "needInput": false },
         { "label": "openclaw logs", "descriptionKey": "openclaw.cmd.logs", "needInput": false }
@@ -27,21 +27,21 @@
       ]
     },
     {
-      "nameKey": "openclaw.category.gateway",
+      "nameKey": "common.gateway.category",
       "commands": [
         { "label": "openclaw gateway --help", "descriptionKey": "openclaw.cmd.gatewayHelp", "needInput": false },
         { "label": "openclaw gateway usage-cost", "descriptionKey": "openclaw.cmd.gatewayUsageCost", "needInput": false },
         { "label": "openclaw gateway probe", "descriptionKey": "openclaw.cmd.gatewayProbe", "needInput": false },
         { "label": "openclaw gateway discover", "descriptionKey": "openclaw.cmd.gatewayDiscover", "needInput": false },
         { "label": "openclaw gateway health", "descriptionKey": "openclaw.cmd.gatewayHealth", "needInput": false },
-        { "label": "openclaw gateway status", "descriptionKey": "openclaw.cmd.gatewayStatus", "needInput": false },
+        { "label": "openclaw gateway status", "descriptionKey": "common.cli.gatewayStatus", "needInput": false },
         { "label": "openclaw gateway status --deep", "descriptionKey": "openclaw.cmd.gatewayStatusDeep", "needInput": false },
         { "label": "openclaw gateway install", "descriptionKey": "openclaw.cmd.gatewayInstall", "needInput": false, "needRefresh": true },
-        { "label": "openclaw gateway uninstall", "descriptionKey": "openclaw.cmd.gatewayUninstall", "needInput": false, "needRefresh": true },
-        { "label": "openclaw gateway start", "descriptionKey": "openclaw.cmd.gatewayStart", "needInput": false, "needRefresh": true },
-        { "label": "openclaw gateway stop", "descriptionKey": "openclaw.cmd.gatewayStop", "needInput": false, "needRefresh": true },
-        { "label": "openclaw gateway restart", "descriptionKey": "openclaw.cmd.gatewayRestart", "needInput": false, "needRefresh": true },
-        { "label": "openclaw gateway run", "descriptionKey": "openclaw.cmd.gatewayRun", "needInput": false },
+        { "label": "openclaw gateway uninstall", "descriptionKey": "common.cli.gatewayUninstall", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway start", "descriptionKey": "common.cli.gatewayStart", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway stop", "descriptionKey": "common.cli.gatewayStop", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway restart", "descriptionKey": "common.cli.gatewayRestart", "needInput": false, "needRefresh": true },
+        { "label": "openclaw gateway run", "descriptionKey": "common.cli.gatewayRun", "needInput": false },
         { "label": "openclaw gateway call", "descriptionKey": "openclaw.cmd.gatewayCall", "needInput": true }
       ]
     },
@@ -120,7 +120,7 @@
     {
       "nameKey": "openclaw.category.skills",
       "commands": [
-        { "label": "openclaw skills list", "descriptionKey": "openclaw.cmd.skillsList", "needInput": false },
+        { "label": "openclaw skills list", "descriptionKey": "common.cli.skillsList", "needInput": false },
         { "label": "openclaw skills check", "descriptionKey": "openclaw.cmd.skillsCheck", "needInput": false },
         { "label": "openclaw skills info", "descriptionKey": "openclaw.cmd.skillsInfo", "needInput": true }
       ]
@@ -162,7 +162,7 @@
       ]
     },
     {
-      "nameKey": "openclaw.category.plugins",
+      "nameKey": "common.category.plugins",
       "commands": [
         { "label": "openclaw plugins list", "descriptionKey": "openclaw.cmd.pluginsList", "needInput": false },
         { "label": "openclaw plugins install", "descriptionKey": "openclaw.cmd.pluginsInstall", "needInput": true },
@@ -173,7 +173,7 @@
       ]
     },
     {
-      "nameKey": "openclaw.category.other",
+      "nameKey": "common.value.other",
       "commands": [
         { "label": "openclaw acp client", "descriptionKey": "openclaw.cmd.acpClient", "needInput": false },
         { "label": "openclaw approvals get", "descriptionKey": "openclaw.cmd.approvalsGet", "needInput": false },

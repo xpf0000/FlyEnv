@@ -5,8 +5,5 @@
   "numbers": "Numere (123,..)",
   "symbols": "Simboluri (!-;...)",
   "length": "Lungime",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "refresh": "Împrospătează"
-  }
+  "tokenPlaceholder": "Token..."
 }

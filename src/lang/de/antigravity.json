@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Öffne Qualifikationsverzeichnis",
-  "openSkillDir": "Skill-Verzeichnis öffnen",
-  "revealSkillFile": "Skill-Datei aufdecken",
-  "builtin": "Integriert",
-  "skillFileMissing": "Fertigkeitsdatei nicht gefunden",
-  "skillLoadFailed": "Fertigkeitsdatei konnte nicht geladen werden"
+  "sessionDeleted": "Conversation deleted"
 }

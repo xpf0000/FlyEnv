@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "Calea rădăcinii AC",
   "certificates": "Certificate",
-  "generate": "Genereaza",
   "noSSLHosts": "Nu este activată nicio gazdă cu SSL. Activează SSL pe o gazdă."
 }

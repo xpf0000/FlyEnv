@@ -10,8 +10,6 @@
   "providerId": "Provider",
   "noProviders": "No credentials configured. Run `opencode auth login` to add one.",
   "cmd": {
-    "help": "Display help information",
-    "version": "Show version number",
     "upgrade": "Upgrade OpenCode to the latest version",
     "models": "List all available models",
     "start": "Start the OpenCode TUI",

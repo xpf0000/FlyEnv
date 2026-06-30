@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "GPUあたりのVRAMの一部を予約（バイト）",
   "OLLAMA_LOAD_TIMEOUT": "モデル読み込みが諦める前に許可する時間（デフォルト \"5m\"）",
   "needServiceRun": "先にOllamaサービスを開始してください",
-  "size": "サイズ",
   "model": "モデル"
 }

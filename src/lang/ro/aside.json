@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "webServer": "Server Web",
   "dataBaseServer": "Server de baze de date",
   "emailServer": "Server de e-mail",
@@ -8,7 +7,6 @@
   "dnsServer": "Server DNS",
   "ftpServer": "Server FTP",
   "containerRuntime": "Recipient Runtime",
-  "other": "Altele",
   "appLog": "Jurnal Aplicații",
   "aiCoding": "Programare AI",
   "ai": "AI",

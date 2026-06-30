@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "php.ini ফাইল পাওয়া যায়নি",
   "editPhpIni": "php.ini সম্পাদনা করুন",
   "phpExtensions": "PHP এক্সটেনশন",
   "copyConfTemplate": "কনফিগ টেমপ্লেট কপি করুন",

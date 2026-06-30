@@ -37,8 +37,7 @@
     "needPasswordToStart": "Admin rettigheder kræves. Indtast din adgangskode (det vil blive gemt til fremtidig brug). Alternativt, manuelt indtaste det i terminalen, men denne prompt kan dukke op igen.",
     "hadOpenInTerminal": "Kører allerede i terminal—resultater er ikke tilgængelige.",
     "licenseTips": "Ingen licens fundet. Kun 3 moduler/eksekveringselementer kan oprettes.",
-    "outputLog": "Output Log",
-    "errorLog": "Fejllog"
+    "outputLog": "Output Log"
   },
   "flyenvHelper": "Fix FlyEnv Helper",
   "flyenvHelperBtn": "Ret",

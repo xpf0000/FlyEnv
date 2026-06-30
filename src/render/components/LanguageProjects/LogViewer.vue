@@ -45,7 +45,7 @@
         path: outFile
       },
       {
-        name: I18nT('base.errorLog'),
+        name: I18nT('common.label.errorLog'),
         path: errFile
       },
       ...props.item.logPath

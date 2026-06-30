@@ -57,7 +57,7 @@
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item :icon="Edit" @click.stop="editChat(citem as any)">
-                        {{ I18nT('base.edit') }}
+                        {{ I18nT('common.action.edit') }}
                       </el-dropdown-item>
                       <el-dropdown-item :icon="CopyDocument" @click.stop="copyChat(citem as any)">
                         {{ I18nT('common.action.copy') }}

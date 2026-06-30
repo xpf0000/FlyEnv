@@ -37,8 +37,7 @@
     "needPasswordToStart": "Rendszergazdai jogosultság szükséges. Adja meg a jelszavát; a rendszer elmenti későbbi használatra. Alternatívaként kézzel is megadhatja a terminálban, de ez az üzenet újra megjelenhet.",
     "hadOpenInTerminal": "Már fut a terminálban, ezért az eredmény nem érhető el.",
     "licenseTips": "Nem található licenc. Csak 3 modul vagy futtatási elem hozható létre.",
-    "outputLog": "Kimeneti napló",
-    "errorLog": "Hibanapló"
+    "outputLog": "Kimeneti napló"
   },
   "flyenvHelper": "FlyEnv Helper javítása",
   "flyenvHelperBtn": "Javítás",

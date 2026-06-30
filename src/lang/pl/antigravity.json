@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Otwórz katalog umiejętności",
-  "openSkillDir": "Otwórz folder umiejętności",
-  "revealSkillFile": "Pokaż plik umiejętności",
-  "builtin": "Wbudowany",
-  "skillFileMissing": "Nie znaleziono pliku umiejętności",
-  "skillLoadFailed": "Nie udało się wczytać pliku umiejętności"
+  "sessionDeleted": "Conversation deleted"
 }

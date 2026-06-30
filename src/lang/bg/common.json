@@ -6,7 +6,26 @@
     "workingDirectory": "Работна директория",
     "action": "Действие",
     "comment": "Коментар",
-    "source": "Източник"
+    "source": "Източник",
+    "site": "Сайт",
+    "errorLog": "Лог файл за грешки",
+    "library": "Библиотека",
+    "path": "Път",
+    "description": "Описание",
+    "port": "Порт",
+    "startCommand": "Команда за стартиране",
+    "licenseDescription": "Описание на лиценза",
+    "password": "Парола",
+    "username": "Потребителско име",
+    "size": "Размер",
+    "containerEnvVars": "Променливи на средата в контейнера",
+    "createdTime": "Време на създаване",
+    "image": "Изображение",
+    "state": "Област",
+    "grid": "Таблица",
+    "gridSpacing": "Разстояние между решетките (пиксели)",
+    "fontSize": "Размер на шрифта",
+    "code": "Код"
   },
   "action": {
     "enable": "Включи",
@@ -18,13 +37,26 @@
     "search": "Търсене",
     "clear": "Изчистване",
     "resetPassword": "Нулиране на паролата",
-    "delete": "Изтрий"
+    "delete": "Изтрий",
+    "add": "Добавяне",
+    "edit": "Редактирай",
+    "generate": "Създаване",
+    "refresh": "Обновяване",
+    "save": "Запази",
+    "start": "Старт",
+    "stop": "Спри",
+    "close": "Затвори",
+    "selectAll": "Избeрете всичко",
+    "changeName": "Редактиране на името",
+    "changeOwnerPassword": "Промяна на паролата на собственика",
+    "changeRole": "Смяна на ролята"
   },
   "state": {
     "running": "Бягане",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Основна информация",
     "configuration": "Конфигурация",
-    "favorites": "Любими"
+    "favorites": "Любими",
+    "plugins": "Plugins",
+    "backupUpdate": "Архивиране и актуализиране"
+  },
+  "skills": {
+    "openSkillsDir": "Отворете каталога с умения",
+    "openSkillDir": "Отваряне на директория с умения",
+    "revealSkillFile": "Разкриване на файл с умения",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Файлът с умения не е намерен",
+    "skillLoadFailed": "Неуспешно зареждане на файла с умения",
+    "builtin": "Вграден"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Извършване на проверки за състоянието",
+    "doctorFix": "Извършвайте проверки на състоянието с автоматично отстраняване на проблеми",
+    "gatewayStart": "Стартиране на шлюз услугата",
+    "gatewayStop": "Спиране на шлюз услугата",
+    "gatewayRestart": "Рестартиране на услугата на шлюза",
+    "gatewayStatus": "Покажи състоянието на шлюза",
+    "gatewayRun": "Стартирай шлюза на преден план",
+    "gatewayUninstall": "Деинсталиране на Шлюз услугата",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Услуги за шлюзове",
+    "status": "Състояние на шлюза",
+    "running": "Шлюзът работи",
+    "stopped": "Шлюзът е спрян",
+    "startFailed": "Стартирането на шлюз се провали"
+  },
+  "value": {
+    "yes": "Да",
+    "no": "Не",
+    "other": "Друго",
+    "default": "По подразбиране",
+    "none": "Без",
+    "local": "Местен"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Всеки час",
+    "everyMinute": "Всяка минута"
+  },
+  "error": {
+    "phpiniNotFound": "Файлът php.ini не е намерен"
   }
 }

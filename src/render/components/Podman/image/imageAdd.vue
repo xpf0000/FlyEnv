@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="I18nT('podman.Image') + I18nT('base.add')"
+    :title="I18nT('common.label.image') + I18nT('common.action.add')"
     width="600px"
     class="host-edit new-project"
     @closed="closedFn"
@@ -19,7 +19,7 @@
       <el-form-item :label="I18nT('podman.DockerImageMirror')" prop="flag">
         <el-autocomplete v-model="form.mirror" :fetch-suggestions="querySearch" clearable />
       </el-form-item>
-      <el-form-item :label="I18nT('podman.Image')" prop="name" required>
+      <el-form-item :label="I18nT('common.label.image')" prop="name" required>
         <el-input v-model="form.name" :placeholder="I18nT('podman.NamePlaceholder')" />
       </el-form-item>
     </el-form>
@@ -165,7 +165,7 @@
 
   const doSubmit = async () => {
     if (!form.value.name) {
-      ElMessage.error(I18nT('podman.Image') + I18nT('podman.require'))
+      ElMessage.error(I18nT('common.label.image') + I18nT('podman.require'))
       return
     }
     show.value = false

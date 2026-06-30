@@ -9,6 +9,5 @@
   "postgresqlInit": "서비스가 성공적으로 시작되었습니다\n데이터 디렉터리: {dir}\n초기 사용자: root, 비밀번호: root",
   "downloadFileFail": "파일 다운로드에 실패했습니다!",
   "trialEnd": "체험 기간이 만료되었습니다. 이 기능을 계속 사용하려면 라이선스를 구매하세요",
-  "phpiniNotFound": "php.ini 파일을 찾을 수 없습니다",
   "noEPMD": "epmd 프로세스를 찾을 수 없습니다. Erlang 환경 변수를 재설정해주세요"
 }

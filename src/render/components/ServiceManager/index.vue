@@ -46,7 +46,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.path')" :prop="null">
+      <el-table-column :label="I18nT('common.label.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
             <el-popover

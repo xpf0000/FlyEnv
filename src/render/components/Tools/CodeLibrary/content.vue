@@ -46,7 +46,7 @@
                         <el-dropdown-item
                           :icon="Edit"
                           @click.stop="CodeLibrary.addGroup(langType, item)"
-                          >{{ I18nT('base.edit') }}</el-dropdown-item
+                          >{{ I18nT('common.action.edit') }}</el-dropdown-item
                         >
                         <el-dropdown-item
                           :icon="Top"
@@ -67,7 +67,7 @@
           </div>
           <div class="flex flex-col">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-[12px]">{{ I18nT('tools.Code') }}</span>
+              <span class="text-[12px]">{{ I18nT('common.label.code') }}</span>
               <el-button link :icon="Plus" @click.stop="addCode(undefined)"></el-button>
             </div>
             <template v-if="codesNoGroup.length === 0">
@@ -123,7 +123,7 @@
                             I18nT('tools.BatchOperations')
                           }}</el-dropdown-item>
                           <el-dropdown-item :icon="Edit" @click.stop="addCode(item)">{{
-                            I18nT('base.edit')
+                            I18nT('common.action.edit')
                           }}</el-dropdown-item>
                           <el-dropdown-item
                             :icon="Top"
@@ -160,7 +160,7 @@
               <el-checkbox
                 v-model="chooseAll"
                 :value="true"
-                :label="I18nT('tools.SelectAll')"
+                :label="I18nT('common.action.selectAll')"
                 @change="onChooseAllChanged"
               ></el-checkbox>
             </div>
@@ -256,7 +256,7 @@
     if (item.comment) {
       content += `\n\n${item.comment}`
     }
-    content += `\n\n## ${I18nT('tools.Code')}\n\n\`\`\`${item.fromType}\n${item.value}\n\`\`\``
+    content += `\n\n## ${I18nT('common.label.code')}\n\n\`\`\`${item.fromType}\n${item.value}\n\`\`\``
     content += `\n\n## ${I18nT('tools.CodeResult')}\n\n\`\`\`${item.fromType}\n${item.toValue}\n\`\`\``
 
     return await md.render(content)

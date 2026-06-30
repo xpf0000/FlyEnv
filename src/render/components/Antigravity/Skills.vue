@@ -4,7 +4,7 @@
       <div class="card-header gap-4">
         <div class="flex items-center gap-2">
           <span>{{ I18nT('common.category.skills') }}</span>
-          <el-tooltip :content="I18nT('antigravity.openSkillsDir')" placement="top">
+          <el-tooltip :content="I18nT('common.skills.openSkillsDir')" placement="top">
             <el-button
               :disabled="!AntigravitySetup.skillDir"
               link
@@ -38,7 +38,7 @@
               <div class="skill-title">
                 <span class="name">{{ item.name }}</span>
                 <el-tag v-if="item.builtin" size="small" type="info">
-                  {{ I18nT('antigravity.builtin') }}
+                  {{ I18nT('common.skills.builtin') }}
                 </el-tag>
               </div>
               <div class="skill-desc">
@@ -62,11 +62,11 @@
                 <ul v-poper-fix class="host-list-menu">
                   <li @click.stop="AntigravitySetup.openSkillDir(item)">
                     <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                    <span class="ml-3">{{ I18nT('antigravity.openSkillDir') }}</span>
+                    <span class="ml-3">{{ I18nT('common.skills.openSkillDir') }}</span>
                   </li>
                   <li @click.stop="AntigravitySetup.revealSkillFile(item)">
                     <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="13" height="13" />
-                    <span class="ml-3">{{ I18nT('antigravity.revealSkillFile') }}</span>
+                    <span class="ml-3">{{ I18nT('common.skills.revealSkillFile') }}</span>
                   </li>
                   <li @click.stop="AntigravitySetup.viewSkill(item)">
                     <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
@@ -85,7 +85,7 @@
         </el-scrollbar>
         <el-empty
           v-else-if="!AntigravitySetup.skillsLoading"
-          :description="I18nT('antigravity.noSkills')"
+          :description="I18nT('common.skills.noSkills')"
         />
       </div>
     </div>

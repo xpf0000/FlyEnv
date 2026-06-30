@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "php.ini datoteka nije pronađena",
   "editPhpIni": "Uredi php.ini",
   "phpExtensions": "PHP Proširenja",
   "copyConfTemplate": "Kopiraj predložak konfiguracije",
@@ -29,7 +28,6 @@
   "loadedExtensions": "Učitana Proširenja",
   "log_errors": "Omogući zapisivanje grešaka",
   "error_log_dir": "Odredi putanju PHP log datoteke grešaka",
-
   "disableFunction": {
     "title": "Onemogući Funkcije",
     "function": "Funkcija",

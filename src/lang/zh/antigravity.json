@@ -7,12 +7,5 @@
   "sessionId": "对话 ID",
   "updatedAt": "更新时间",
   "sessionResumed": "已在终端恢复对话",
-  "sessionDeleted": "对话已删除",
-  "noSkills": "未找到技能",
-  "openSkillsDir": "打开技能目录",
-  "openSkillDir": "打开技能文件夹",
-  "revealSkillFile": "定位技能文件",
-  "builtin": "内置",
-  "skillFileMissing": "未找到技能文件",
-  "skillLoadFailed": "加载技能文件失败"
+  "sessionDeleted": "对话已删除"
 }

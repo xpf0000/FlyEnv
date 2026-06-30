@@ -9,6 +9,5 @@
   "postgresqlInit": "Dienst erfolgreich gestartet\nDatenverzeichnis ist {dir}\nInitialer Benutzer ist Root, Passwort ist root",
   "downloadFileFail": "Download fehlgeschlagen!",
   "trialEnd": "Die Testphase ist abgelaufen. Um diese Funktion weiterhin nutzen zu können, erwerben Sie bitte eine Lizenz.",
-  "phpiniNotFound": "php.ini Datei nicht gefunden",
   "noEPMD": "Der epmd-Prozess wurde nicht gefunden. Bitte setzen Sie die Erlang-Umgebungsvariablen zurück"
 }

@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "Шлях до кореню CA",
   "certificates": "Сертифікати",
-  "generate": "Згенерувати",
   "noSSLHosts": "Не включені хости з SSL. Увімкніть SSL для цього хоста."
 }

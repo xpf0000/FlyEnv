@@ -5,11 +5,6 @@
   "reasoningEffort": "Tingkat Penalaran",
   "approvalPolicy": "Kebijakan Persetujuan",
   "sandboxMode": "Mode Sandbox",
-  "plugins": "Plugin",
-  "available": "Tersedia",
-  "searchPlugin": "Cari plugin",
   "pluginEnabled": "Plugin terinstal",
-  "pluginDisabled": "Plugin dihapus",
-  "pluginUninstalled": "Plugin dihapus",
   "uninstallConfirm": "Apakah Anda yakin ingin menghapus plugin \"{name}\"?"
 }

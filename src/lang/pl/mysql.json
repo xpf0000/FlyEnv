@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Ta operacja zmieni hasło użytkownika bazy danych, czy na pewno chcesz kontynuować?",
   "mysqlNeedRunTips": "Najpierw uruchom {app}",
   "databaseName": "Nazwa bazy danych",
-  "databaseUser": "Nazwa użytkownika",
-  "databasePassword": "Hasło",
   "addDatabase": "Dodaj bazę danych",
   "inputDatabaseName": "Wprowadź nazwę bazy danych",
   "databaseNameFormatError": "Nazwa bazy danych musi zaczynać się od litery, 3-64 znaków, i może zawierać tylko litery, cyfry i podkreślenia",

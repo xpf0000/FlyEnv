@@ -4,7 +4,7 @@
       <div class="card-header gap-4">
         <div class="flex items-center gap-2">
           <span>{{ I18nT('common.category.skills') }}</span>
-          <el-tooltip :content="I18nT('copilotCli.openSkillsDir')" placement="top">
+          <el-tooltip :content="I18nT('common.skills.openSkillsDir')" placement="top">
             <el-button link @click="CopilotCliSetup.openSkillsDir()">
               <FolderOpened class="w-[18px] h-[18px]" />
             </el-button>
@@ -59,11 +59,11 @@
                 <ul v-poper-fix class="host-list-menu">
                   <li v-if="item.path" @click.stop="CopilotCliSetup.openSkillDir(item)">
                     <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                    <span class="ml-3">{{ I18nT('copilotCli.openSkillDir') }}</span>
+                    <span class="ml-3">{{ I18nT('common.skills.openSkillDir') }}</span>
                   </li>
                   <li v-if="item.path" @click.stop="CopilotCliSetup.revealSkillFile(item)">
                     <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="13" height="13" />
-                    <span class="ml-3">{{ I18nT('copilotCli.revealSkillFile') }}</span>
+                    <span class="ml-3">{{ I18nT('common.skills.revealSkillFile') }}</span>
                   </li>
                   <li @click.stop="CopilotCliSetup.viewSkill(item)">
                     <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
@@ -82,7 +82,7 @@
         </el-scrollbar>
         <el-empty
           v-else-if="!CopilotCliSetup.skillsLoading"
-          :description="I18nT('copilotCli.noSkills')"
+          :description="I18nT('common.skills.noSkills')"
         />
       </div>
     </div>

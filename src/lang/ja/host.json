@@ -1,5 +1,4 @@
 {
-  "site": "サイト",
   "phpVersion": "PHPバージョン",
   "newProject": "新しいプロジェクト",
   "frameworkVersion": "フレームワークバージョン",
@@ -13,7 +12,6 @@
   "placeholderName": "ホスト名（例：mydomain.tld）",
   "placeholderAlias": "ドメインエイリアス（例：www.mydomain.tld）",
   "placeholderRootPath": "ドキュメントルートパス",
-  "port": "ポート",
   "portAdvanced": "高度",
   "portSimple": "シンプル",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust プロジェクト",
   "projectZig": "Zig プロジェクト",
   "projectFlutter": "Flutter プロジェクト",
-  "startCommand": "起動コマンド",
   "envVar": "環境変数",
   "specifyVar": "指定",
   "fileVar": "ファイル",

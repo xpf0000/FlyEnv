@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="I18nT('host.CloudflareTunnel.TunnelRule') + ' ' + I18nT('base.add')"
+    :title="I18nT('host.CloudflareTunnel.TunnelRule') + ' ' + I18nT('common.action.add')"
     class="el-dialog-content-flex-1 dark:bg-[#1d2033]"
     width="600px"
     @closed="closedFn"

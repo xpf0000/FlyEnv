@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "CA Root Pad",
   "certificates": "Certificaten",
-  "generate": "Genereren",
   "noSSLHosts": "Geen hosts met SSL ingeschakeld. Schakel SSL eerst in op een host."
 }

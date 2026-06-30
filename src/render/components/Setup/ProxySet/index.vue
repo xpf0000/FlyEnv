@@ -63,7 +63,7 @@
             <template #append>
               <el-button-group>
                 <el-button @click="copyProxy">{{ $t('common.action.copy') }}</el-button>
-                <el-button @click="editProxy">{{ $t('base.edit') }}</el-button>
+                <el-button @click="editProxy">{{ $t('common.action.edit') }}</el-button>
               </el-button-group>
             </template>
           </el-input>

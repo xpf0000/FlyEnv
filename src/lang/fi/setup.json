@@ -37,8 +37,7 @@
     "needPasswordToStart": "Ylläpitäjän oikeudet. Syötä salasanasi (se tallennetaan tulevaa käyttöä varten). Vaihtoehtoisesti syötä se manuaalisesti päätteeseen, mutta tämä kehotus voi ilmestyä uudelleen.",
     "hadOpenInTerminal": "Käytössä jo terminaalissa—tulokset eivät ole käytettävissä.",
     "licenseTips": "Lisenssiä ei löytynyt. Vain 3 moduulia/suoritus kohteita voidaan luoda.",
-    "outputLog": "Ulostulon Loki",
-    "errorLog": "Virhe Loki"
+    "outputLog": "Ulostulon Loki"
   },
   "flyenvHelper": "Korjaa FlyEnv -auttaja",
   "flyenvHelperBtn": "Korjaa",

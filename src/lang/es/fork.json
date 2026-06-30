@@ -9,6 +9,5 @@
   "postgresqlInit": "Servicio iniciado correctamente\nDirectorio de datos es {dir}\nUsuario inicial es root, contraseña es root",
   "downloadFileFail": "¡Error al descargar el archivo!",
   "trialEnd": "La prueba ha expirado. Para seguir usando esta función, obtén una licencia",
-  "phpiniNotFound": "No se encontró el archivo php.ini",
   "noEPMD": "No se encontró el proceso epmd. Por favor, restablece las variables de entorno de Erlang"
 }

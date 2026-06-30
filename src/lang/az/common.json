@@ -6,7 +6,26 @@
     "workingDirectory": "İş Qovluğu",
     "action": "Əməliyyat",
     "comment": "Açıqlama",
-    "source": "Mənbə"
+    "source": "Mənbə",
+    "site": "Sayt",
+    "errorLog": "Xəta Jurnalı",
+    "library": "Kitabxana",
+    "path": "Yol",
+    "description": "Description",
+    "port": "Port",
+    "startCommand": "İşə salma əmri",
+    "licenseDescription": "Lisenziya Təsviri",
+    "password": "Şifrə",
+    "username": "İstifadəçi Adı",
+    "size": "Ölçü",
+    "containerEnvVars": "Konteyner içindəki mühit dəyişənləri",
+    "createdTime": "Yaradılma vaxtı",
+    "image": "Obraz",
+    "state": "Vəziyyət",
+    "grid": "Grid",
+    "gridSpacing": "Grid Spacing (pixels)",
+    "fontSize": "Şrift Ölçüsü",
+    "code": "Kod"
   },
   "action": {
     "enable": "Aktiv et",
@@ -18,13 +37,26 @@
     "search": "Axtar",
     "clear": "Təmizlə",
     "resetPassword": "Şifrəni sıfırla",
-    "delete": "Sil"
+    "delete": "Sil",
+    "add": "Əlavə et",
+    "edit": "Redaktə et",
+    "generate": "Yarat",
+    "refresh": "Yenilə",
+    "save": "Yadda saxla",
+    "start": "İşə Sal",
+    "stop": "Dayandır",
+    "close": "Bağla",
+    "selectAll": "Hamısını Seç",
+    "changeName": "Adı dəyiş",
+    "changeOwnerPassword": "Change Owner Password",
+    "changeRole": "Rolu dəyiş"
   },
   "state": {
     "running": "Qaçış",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Əsas məlumat",
     "configuration": "Configuration",
-    "favorites": "Sevimlilər"
+    "favorites": "Sevimlilər",
+    "plugins": "Plugins",
+    "backupUpdate": "Backup & Update"
+  },
+  "skills": {
+    "openSkillsDir": "Open skills directory",
+    "openSkillDir": "Bacarıqlar kataloqunu aç",
+    "revealSkillFile": "Bacarıq faylını aşkar et",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Bacarıq faylı tapılmadı",
+    "skillLoadFailed": "Bacarıq faylı yüklənmədi",
+    "builtin": "Built-in"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Run health checks",
+    "doctorFix": "Run health checks with auto-fix",
+    "gatewayStart": "Start gateway service",
+    "gatewayStop": "Stop gateway service",
+    "gatewayRestart": "Restart gateway service",
+    "gatewayStatus": "Show gateway status",
+    "gatewayRun": "Run gateway in foreground",
+    "gatewayUninstall": "Uninstall gateway service",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Gateway Service",
+    "status": "Gateway Status",
+    "running": "Gateway is running",
+    "stopped": "Gateway is stopped",
+    "startFailed": "Gateway start failed"
+  },
+  "value": {
+    "yes": "Bəli",
+    "no": "Xeyir",
+    "other": "Other",
+    "default": "Standart",
+    "none": "Heç biri",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Hər saat",
+    "everyMinute": "Hər dəqiqə"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini faylı tapılmadı"
   }
 }

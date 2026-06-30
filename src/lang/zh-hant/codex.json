@@ -5,11 +5,6 @@
   "reasoningEffort": "推理強度",
   "approvalPolicy": "審批策略",
   "sandboxMode": "沙箱模式",
-  "plugins": "外掛",
-  "available": "可用",
-  "searchPlugin": "搜尋外掛",
   "pluginEnabled": "外掛已安裝",
-  "pluginDisabled": "外掛已移除",
-  "pluginUninstalled": "外掛已移除",
   "uninstallConfirm": "確定要移除外掛「{name}」嗎？"
 }

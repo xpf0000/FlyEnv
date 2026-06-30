@@ -83,7 +83,7 @@
                 {{ I18nT('common.action.copy') }}
               </el-button>
               <el-button @click="Store.refreshToken()">
-                {{ I18nT('token-generator.button.refresh') }}
+                {{ I18nT('common.action.refresh') }}
               </el-button>
             </div>
           </el-card>

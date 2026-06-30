@@ -1,5 +1,4 @@
 {
-  "site": "Sivusto",
   "phpVersion": "Php Versio",
   "newProject": "Uusi Projekti",
   "frameworkVersion": "Kehyksen Versio",
@@ -13,7 +12,6 @@
   "placeholderName": "Isäntänimi (esimerkki: mydomain.tld)",
   "placeholderAlias": "Domain Aliases (esimerkki: www.mydomain.tld)",
   "placeholderRootPath": "Asiakirjan Juuren Polku",
-  "port": "Portti",
   "portAdvanced": "Edistynyt",
   "portSimple": "Yksinkertainen",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projektit",
   "projectZig": "Zig Projektit",
   "projectFlutter": "Flutter Projektit",
-  "startCommand": "Käynnistä Komento",
   "envVar": "Ympäristön Muuttuja",
   "specifyVar": "Määritä",
   "fileVar": "Tiedosto",

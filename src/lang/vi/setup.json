@@ -37,8 +37,7 @@
     "needPasswordToStart": "Cần quyền quản trị. Nhập mật khẩu của bạn (sẽ được lưu cho lần dùng sau). Hoặc nhập thủ công trong terminal, nhưng thông báo này có thể xuất hiện lại.",
     "hadOpenInTerminal": "Đang chạy trong terminal — không thể trích xuất kết quả.",
     "licenseTips": "Không tìm thấy giấy phép. Chỉ có thể tạo tối đa 3 module/mục thực thi.",
-    "outputLog": "Nhật ký đầu ra (stdout)",
-    "errorLog": "Nhật ký lỗi (stderr)"
+    "outputLog": "Nhật ký đầu ra (stdout)"
   },
   "flyenvHelper": "Sửa FlyEnv Helper",
   "flyenvHelperBtn": "Sửa",

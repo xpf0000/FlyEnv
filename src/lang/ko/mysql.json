@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "이 작업은 데이터베이스 루트 사용자의 비밀번호를 변경합니다. 계속하시겠습니까?",
   "mysqlNeedRunTips": "먼저 {app}을(를) 실행하세요",
   "databaseName": "데이터베이스 이름",
-  "databaseUser": "사용자 이름",
-  "databasePassword": "비밀번호",
   "addDatabase": "데이터베이스 추가",
   "inputDatabaseName": "데이터베이스 이름을 입력하세요",
   "databaseNameFormatError": "데이터베이스 이름은 영문자로 시작해야 하며, 3~64자 사이여야 하고 영문자, 숫자, 밑줄(_)만 사용할 수 있습니다",

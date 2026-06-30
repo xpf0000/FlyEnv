@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "phpVersion": "Versão do PHP",
   "newProject": "Novo projeto",
   "frameworkVersion": "Versão do framework",
@@ -13,7 +12,6 @@
   "placeholderName": "Domínio do site (Exemplo: mydomain.tld)",
   "placeholderAlias": "Alias do domínio do site (Exemplo: www.mydomain.tld)",
   "placeholderRootPath": "Diretório raiz do site",
-  "port": "Porta",
   "portAdvanced": "Avançado",
   "portSimple": "Simples",
   "hostSSL": "Certificado SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Projetos de ferrugem",
   "projectZig": "Projetos Zig",
   "projectFlutter": "Projetos de Flauta",
-  "startCommand": "Comando de início",
   "envVar": "Variáveis de ambiente",
   "specifyVar": "Especificar variáveis",
   "fileVar": "Carregar do ficheiro",

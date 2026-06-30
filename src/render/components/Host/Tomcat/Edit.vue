@@ -13,10 +13,10 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{ isEdit ? I18nT('common.action.edit') : I18nT('common.action.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
-          I18nT('base.save')
+          I18nT('common.action.save')
         }}</el-button>
       </div>
 
@@ -53,7 +53,7 @@
             </div>
           </div>
 
-          <div class="plant-title">{{ I18nT('host.port') }}</div>
+          <div class="plant-title">{{ I18nT('common.label.port') }}</div>
           <div class="main p-5">
             <div class="port-set mb-5">
               <div class="port-type"> Tomcat </div>

@@ -1,5 +1,4 @@
 {
-  "site": "সাইট",
   "webServer": "ওয়েব সার্ভার",
   "dataBaseServer": "ডেটাবেস সার্ভার",
   "emailServer": "ইমেইল সার্ভার",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS সার্ভার",
   "ftpServer": "FTP সার্ভার",
   "containerRuntime": "কন্টেইনার রানটাইম",
-  "other": "অন্যান্য",
   "appLog": "অ্যাপ লগ",
   "aiCoding": "AI কোডিং",
   "ai": "AI",

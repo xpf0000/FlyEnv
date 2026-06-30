@@ -34,7 +34,7 @@
     I18nT('base.service'),
     I18nT('base.versionManager'),
     I18nT('base.configFile'),
-    I18nT('base.errorLog'),
+    I18nT('common.label.errorLog'),
     I18nT('base.log')
   ]
   checkVersion()

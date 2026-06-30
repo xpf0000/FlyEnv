@@ -6,7 +6,26 @@
     "workingDirectory": "Munkakönyvtár",
     "action": "Művelet",
     "comment": "Megjegyzés",
-    "source": "Forrás"
+    "source": "Forrás",
+    "site": "Webhely",
+    "errorLog": "Hibanapló",
+    "library": "Könyvtár",
+    "path": "Útvonal",
+    "description": "Leírás",
+    "port": "Port",
+    "startCommand": "Indítási parancs",
+    "licenseDescription": "Licenc leírása",
+    "password": "Jelszó",
+    "username": "Felhasználónév",
+    "size": "Méret",
+    "containerEnvVars": "Konténer környezeti változói",
+    "createdTime": "Létrehozás ideje",
+    "image": "Lemezkép",
+    "state": "Állapot",
+    "grid": "Rács",
+    "gridSpacing": "Rácstávolság (pixel)",
+    "fontSize": "Betűméret",
+    "code": "Kód"
   },
   "action": {
     "enable": "Engedélyezés",
@@ -18,13 +37,26 @@
     "search": "Keresés",
     "clear": "Törlés",
     "resetPassword": "Jelszó visszaállítása",
-    "delete": "Törlés"
+    "delete": "Törlés",
+    "add": "Hozzáadás",
+    "edit": "Szerkesztés",
+    "generate": "Generálás",
+    "refresh": "Frissítés",
+    "save": "Mentés",
+    "start": "Indítás",
+    "stop": "Leállítás",
+    "close": "Bezárás",
+    "selectAll": "Összes kijelölése",
+    "changeName": "Név szerkesztése",
+    "changeOwnerPassword": "Tulajdonosi jelszó módosítása",
+    "changeRole": "Szerepkör módosítása"
   },
   "state": {
     "running": "Futás",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Alapadatok",
     "configuration": "Konfiguráció",
-    "favorites": "Kedvencek"
+    "favorites": "Kedvencek",
+    "plugins": "Plugins",
+    "backupUpdate": "Biztonsági mentés és frissítés"
+  },
+  "skills": {
+    "openSkillsDir": "Készségek könyvtárának megnyitása",
+    "openSkillDir": "Készségkönyvtár megnyitása",
+    "revealSkillFile": "Készségfájl felfedése",
+    "noSkills": "No skills found",
+    "skillFileMissing": "A készségfájl nem található",
+    "skillLoadFailed": "Készségfájl betöltése sikertelen",
+    "builtin": "Beépített"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Állapotellenőrzések futtatása",
+    "doctorFix": "Állapotellenőrzések futtatása automatikus javítással",
+    "gatewayStart": "Átjáró szolgáltatás indítása",
+    "gatewayStop": "Átjáró szolgáltatás leállítása",
+    "gatewayRestart": "Átjáró szolgáltatás újraindítása",
+    "gatewayStatus": "Átjáró állapotának megjelenítése",
+    "gatewayRun": "Átjáró futtatása előtérben",
+    "gatewayUninstall": "Átjáró szolgáltatás eltávolítása",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Átjáró szolgáltatás",
+    "status": "Átjáró állapota",
+    "running": "Az átjáró fut",
+    "stopped": "Az átjáró leállt",
+    "startFailed": "Az átjáró indítása sikertelen"
+  },
+  "value": {
+    "yes": "Igen",
+    "no": "Nem",
+    "other": "Egyéb",
+    "default": "Alapértelmezett",
+    "none": "Nincs",
+    "local": "Helyi"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Minden órában",
+    "everyMinute": "Minden percben"
+  },
+  "error": {
+    "phpiniNotFound": "A php.ini fájl nem található"
   }
 }

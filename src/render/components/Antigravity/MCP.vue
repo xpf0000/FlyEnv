@@ -27,7 +27,7 @@
           <el-table :data="AntigravitySetup.mcpServers" style="width: 100%" show-overflow-tooltip>
             <el-table-column width="180">
               <template #header>
-                <div class="w-full min-w-0 truncate">{{ I18nT('common.mcp.name') }}</div>
+                <div class="w-full min-w-0 truncate">{{ I18nT('common.label.name') }}</div>
               </template>
               <template #default="{ row }">
                 <div class="w-full min-w-0 truncate">{{ row.name }}</div>
@@ -72,7 +72,7 @@
       append-to-body
     >
       <el-form label-position="top" @submit.prevent>
-        <el-form-item :label="I18nT('common.mcp.name')">
+        <el-form-item :label="I18nT('common.label.name')">
           <el-input v-model="form.name" placeholder="my-server" />
         </el-form-item>
         <el-form-item :label="I18nT('common.mcp.type')">

@@ -6,7 +6,26 @@
     "workingDirectory": "Рабочая папка",
     "action": "Действие",
     "comment": "комментарий",
-    "source": "Источник"
+    "source": "Источник",
+    "site": "Сайт",
+    "errorLog": "Журнал ошибок",
+    "library": "Библиотека",
+    "path": "Путь",
+    "description": "Описание",
+    "port": "Порт",
+    "startCommand": "Начать команду",
+    "licenseDescription": "Описание лицензии",
+    "password": "Пароль",
+    "username": "Имя участника",
+    "size": "Объем",
+    "containerEnvVars": "Переменные среды контейнеров",
+    "createdTime": "Создано",
+    "image": "Изображение",
+    "state": "Область",
+    "grid": "Сетка",
+    "gridSpacing": "Интервал в сетке (пикселей)",
+    "fontSize": "Font Size",
+    "code": "Код"
   },
   "action": {
     "enable": "Включить",
@@ -18,13 +37,26 @@
     "search": "Поиск",
     "clear": "Очистить",
     "resetPassword": "Сбросить пароль",
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "add": "Добавить",
+    "edit": "Редактировать",
+    "generate": "Сгенерировать",
+    "refresh": "Обновить",
+    "save": "Сохранить",
+    "start": "Начать",
+    "stop": "Остановить",
+    "close": "Закрыть",
+    "selectAll": "Выделить все",
+    "changeName": "Изменить имя",
+    "changeOwnerPassword": "Изменить пароль владельца",
+    "changeRole": "Изменить роль"
   },
   "state": {
     "running": "Запущен",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Основная информация",
     "configuration": "Конфигурация",
-    "favorites": "Избранное"
+    "favorites": "Избранное",
+    "plugins": "Plugins",
+    "backupUpdate": "Резервное копирование и обновление"
+  },
+  "skills": {
+    "openSkillsDir": "Открыть каталог навыков",
+    "openSkillDir": "Открыть папку навыка",
+    "revealSkillFile": "Показать файл навыка",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Файл навыка не найден",
+    "skillLoadFailed": "Не удалось загрузить файл навыка",
+    "builtin": "Встроенный"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Запуск проверки здоровья",
+    "doctorFix": "Запустить проверку здоровья с автоисправлением",
+    "gatewayStart": "Запустить сервис шлюза",
+    "gatewayStop": "Остановить службу шлюза",
+    "gatewayRestart": "Перезапустить службу шлюза",
+    "gatewayStatus": "Показать статус шлюза",
+    "gatewayRun": "Запуск шлюза на переднем плане",
+    "gatewayUninstall": "Удалить сервис шлюза",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Сервис шлюза",
+    "status": "Статус шлюза",
+    "running": "Шлюз запущен",
+    "stopped": "Шлюз остановлен",
+    "startFailed": "Не удалось запустить шлюз"
+  },
+  "value": {
+    "yes": "Да",
+    "no": "Нет",
+    "other": "Прочие вопросы",
+    "default": "По умолчанию",
+    "none": "Нет",
+    "local": "Локальный"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Каждый час",
+    "everyMinute": "Каждую минуту"
+  },
+  "error": {
+    "phpiniNotFound": "Файл php.ini не найден"
   }
 }

@@ -1,5 +1,4 @@
 {
-  "site": "站台",
   "webServer": "Web 伺服器",
   "dataBaseServer": "資料庫伺服器",
   "emailServer": "郵件伺服器",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS 伺服器",
   "ftpServer": "FTP 伺服器",
   "containerRuntime": "容器執行環境",
-  "other": "其他",
   "appLog": "App 日誌",
   "aiCoding": "AI 編碼",
   "ai": "AI",

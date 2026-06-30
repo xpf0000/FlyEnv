@@ -3,8 +3,8 @@
     v-model="show"
     :title="
       isEdit
-        ? I18nT('base.edit') + I18nT('podman.Container')
-        : I18nT('podman.Container') + I18nT('base.add')
+        ? I18nT('common.action.edit') + I18nT('podman.Container')
+        : I18nT('podman.Container') + I18nT('common.action.add')
     "
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     width="600px"
@@ -34,7 +34,7 @@
           <el-input v-model="form.name" maxlength="32" />
         </el-form-item>
 
-        <el-form-item :label="I18nT('podman.Image')" prop="image" required :show-message="false">
+        <el-form-item :label="I18nT('common.label.image')" prop="image" required :show-message="false">
           <el-select v-model="form.image" filterable style="width: 100%">
             <el-option
               v-for="img in images"
@@ -124,10 +124,10 @@
           </div>
         </el-form-item>
 
-        <el-form-item :label="I18nT('podman.ContainerEnvVars')" prop="env">
+        <el-form-item :label="I18nT('common.label.containerEnvVars')" prop="env">
           <template #label>
             <div class="inline-flex items-center gap-3">
-              <span>{{ I18nT('podman.ContainerEnvVars') }}</span>
+              <span>{{ I18nT('common.label.containerEnvVars') }}</span>
               <el-button link type="primary" :icon="Plus" @click.stop="addEnv"></el-button>
             </div>
           </template>

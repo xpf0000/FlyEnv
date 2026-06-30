@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "phpVersion": "Version PHP",
   "newProject": "Nouveau projet",
   "frameworkVersion": "Version du framework",
@@ -13,7 +12,6 @@
   "placeholderName": "Nom d'hôte (Exemple : mondomaine.tld)",
   "placeholderAlias": "Alias de domaine (Exemple : www.mondomaine.tld)",
   "placeholderRootPath": "Chemin racine du document",
-  "port": "Port",
   "portAdvanced": "Avancé",
   "portSimple": "Simple",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Projets rouillés",
   "projectZig": "Projets Zig",
   "projectFlutter": "Projets de lutte contre le fléau",
-  "startCommand": "Commande de démarrage",
   "envVar": "Variable d'environnement",
   "specifyVar": "Spécifier",
   "fileVar": "Fichier",

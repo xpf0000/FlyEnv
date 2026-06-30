@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "webServer": "Webserver",
   "dataBaseServer": "Datenbankserver",
   "emailServer": "E-Mail-Server",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS-Server",
   "ftpServer": "FTP-Server",
   "containerRuntime": "Container Laufzeit",
-  "other": "Andere",
   "appLog": "Anwendungsprotokoll",
   "aiCoding": "AI-Codierung",
   "ai": "AI",

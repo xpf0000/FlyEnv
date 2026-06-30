@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Beceriler dizinini aç",
-  "openSkillDir": "Beceri klasörünü aç",
-  "revealSkillFile": "Beceri dosyasını göster",
-  "builtin": "Yerleşik",
-  "skillFileMissing": "Beceri dosyası bulunamadı",
-  "skillLoadFailed": "Beceri dosyası yüklenemedi"
+  "sessionDeleted": "Conversation deleted"
 }

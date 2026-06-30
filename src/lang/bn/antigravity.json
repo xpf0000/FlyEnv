@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Open skills directory",
-  "openSkillDir": "ওপেন স্কিল ডিরেক্টরি",
-  "revealSkillFile": "দক্ষতা ফাইল প্রকাশ করুন",
-  "builtin": "Built-in",
-  "skillFileMissing": "স্কিল ফাইল পাওয়া যায়নি",
-  "skillLoadFailed": "দক্ষতা ফাইল লোড করতে ব্যর্থ হয়েছে"
+  "sessionDeleted": "Conversation deleted"
 }

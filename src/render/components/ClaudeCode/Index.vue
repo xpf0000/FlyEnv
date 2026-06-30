@@ -29,7 +29,7 @@
     I18nT('base.service'),
     I18nT('base.configFile'),
     I18nT('common.session.list'),
-    I18nT('claudeCode.plugins'),
+    I18nT('common.category.plugins'),
     I18nT('common.category.mcp')
   ]
 </script>

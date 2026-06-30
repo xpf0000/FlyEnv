@@ -6,7 +6,26 @@
     "workingDirectory": "Pracovní adresář",
     "action": "Akce",
     "comment": "Komentář",
-    "source": "Zdroj"
+    "source": "Zdroj",
+    "site": "Stránka",
+    "errorLog": "Protokol chyb",
+    "library": "Knihovna",
+    "path": "Cesta",
+    "description": "L 343, 22.12.2009, s. 1).",
+    "port": "Přístav",
+    "startCommand": "Začít příkaz",
+    "licenseDescription": "Popis licence",
+    "password": "Heslo",
+    "username": "Uživatelské jméno",
+    "size": "Velikost",
+    "containerEnvVars": "Proměnné prostředí kontejneru",
+    "createdTime": "Čas vytvoření",
+    "image": "Obrázek",
+    "state": "Stát",
+    "grid": "Mřížka",
+    "gridSpacing": "Mezery v mřížce (body)",
+    "fontSize": "Font Size",
+    "code": "Kód"
   },
   "action": {
     "enable": "Povolit",
@@ -18,13 +37,26 @@
     "search": "Hledat",
     "clear": "Vyčistit",
     "resetPassword": "Obnovit heslo",
-    "delete": "Vymazat"
+    "delete": "Vymazat",
+    "add": "Přidat",
+    "edit": "Upravit",
+    "generate": "Generovat",
+    "refresh": "Aktualizovat",
+    "save": "Uložit",
+    "start": "Začít",
+    "stop": "Zastavit",
+    "close": "Zavřít",
+    "selectAll": "Vybrat vše",
+    "changeName": "Upravit název",
+    "changeOwnerPassword": "Změnit heslo vlastníka",
+    "changeRole": "Změnit roli"
   },
   "state": {
     "running": "Běh",
     "installed": "Installed",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "available": "Available"
   },
   "session": {
     "list": "Sessions",
@@ -36,7 +68,6 @@
     "resumed": "Session resumed in terminal"
   },
   "mcp": {
-    "name": "Name",
     "type": "Type",
     "commandOrUrl": "Command / URL",
     "scope": "Scope",
@@ -48,6 +79,58 @@
     "skills": "Skills",
     "basicInfo": "Základní informace",
     "configuration": "Konfigurace",
-    "favorites": "Oblíbené"
+    "favorites": "Oblíbené",
+    "plugins": "Plugins",
+    "backupUpdate": "Zálohování a aktualizace"
+  },
+  "skills": {
+    "openSkillsDir": "Otevřít složku dovedností",
+    "openSkillDir": "Otevřít adresář dovedností",
+    "revealSkillFile": "Odhalit soubor dovedností",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Soubor dovedností nebyl nalezen",
+    "skillLoadFailed": "Načtení souboru dovedností se nezdařilo",
+    "builtin": "Vestavěné"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Spustit zdravotní kontroly",
+    "doctorFix": "Spustit zdravotní kontroly s automatickou opravou",
+    "gatewayStart": "Spustit službu brány",
+    "gatewayStop": "Zastavit službu brány",
+    "gatewayRestart": "Restartovat službu brány",
+    "gatewayStatus": "Zobrazit stav brány",
+    "gatewayRun": "Spustit brána v popředí",
+    "gatewayUninstall": "Odinstalovat službu brány",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Služba brány",
+    "status": "Stav brány",
+    "running": "Brána je spuštěna",
+    "stopped": "Brána je zastavena",
+    "startFailed": "Spuštění brány selhalo"
+  },
+  "value": {
+    "yes": "Ano",
+    "no": "Ne",
+    "other": "Ostatní",
+    "default": "Výchozí",
+    "none": "Nic",
+    "local": "Místní"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Každou hodinu",
+    "everyMinute": "Každou minutu"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini soubor nebyl nalezen"
   }
 }

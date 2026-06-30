@@ -37,8 +37,7 @@
     "needPasswordToStart": "Se requieren derechos de administrador. Ingresa tu contraseña (se guardará para uso futuro). Alternativamente, introdúcela manualmente en el terminal, pero este mensaje puede reaparecer.",
     "hadOpenInTerminal": "Ya está en ejecución en el terminal—resultados no disponibles.",
     "licenseTips": "No se encontró licencia. Solo se pueden crear 3 módulos/elementos de ejecución.",
-    "outputLog": "Registro de Salida",
-    "errorLog": "Registro de Errores"
+    "outputLog": "Registro de Salida"
   },
   "flyenvHelper": "Corregir FlyEnv Helper",
   "flyenvHelperBtn": "Corregir",

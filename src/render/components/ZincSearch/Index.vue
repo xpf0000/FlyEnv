@@ -54,7 +54,7 @@
     I18nT('base.versionManager'),
     I18nT('base.configFile'),
     I18nT('base.log'),
-    I18nT('base.errorLog')
+    I18nT('common.label.errorLog')
   ]
   checkVersion()
 

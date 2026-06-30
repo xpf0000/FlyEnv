@@ -1,5 +1,4 @@
 {
-  "site": "站点",
   "webServer": "Web服务器",
   "dataBaseServer": "数据库服务器",
   "emailServer": "邮件服务器",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS服务器",
   "ftpServer": "FTP服务器",
   "containerRuntime": "容器运行时",
-  "other": "其他",
   "appLog": "App日志",
   "aiCoding": "AI 编码",
   "ai": "AI",

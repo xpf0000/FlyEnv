@@ -21,7 +21,7 @@
       <div v-loading="OpenCodeSetup.mcpLoading" class="p-5 h-full overflow-hidden flex flex-col">
         <el-scrollbar v-if="OpenCodeSetup.mcpServers.length > 0">
           <el-table :data="OpenCodeSetup.mcpServers" style="width: 100%">
-            <el-table-column prop="name" :label="I18nT('common.mcp.name')" width="180" />
+            <el-table-column prop="name" :label="I18nT('common.label.name')" width="180" />
             <el-table-column prop="type" :label="I18nT('common.mcp.type')" width="100" />
             <el-table-column
               prop="commandOrUrl"
@@ -49,7 +49,7 @@
       append-to-body
     >
       <el-form label-position="top" @submit.prevent>
-        <el-form-item :label="I18nT('common.mcp.name')">
+        <el-form-item :label="I18nT('common.label.name')">
           <el-input v-model="form.name" placeholder="my-server" />
         </el-form-item>
         <el-form-item :label="I18nT('common.mcp.type')">

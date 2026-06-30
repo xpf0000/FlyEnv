@@ -5,8 +5,5 @@
   "numbers": "Numeri (123...)",
   "symbols": "Simboli (!-;...)",
   "length": "Lunghezza",
-  "tokenPlaceholder": "Il token...",
-  "button": {
-    "refresh": "Genera"
-  }
+  "tokenPlaceholder": "Il token..."
 }

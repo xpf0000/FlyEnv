@@ -1,5 +1,4 @@
 {
-  "site": "Stranica",
   "phpVersion": "PHP Verzija",
   "newProject": "Novi Projekt",
   "frameworkVersion": "Verzija Okvira",
@@ -13,7 +12,6 @@
   "placeholderName": "Naziv hosta (Primjer: mojadomena.tld)",
   "placeholderAlias": "Aliasi domene (Primjer: www.mojadomena.tld)",
   "placeholderRootPath": "Putanja Root Dokumenta",
-  "port": "Port",
   "portAdvanced": "Napredno",
   "portSimple": "Jednostavno",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projekti",
   "projectZig": "Zig Projekti",
   "projectFlutter": "Flutter projekti",
-  "startCommand": "Naredba za Pokretanje",
   "envVar": "Varijabla Okruženja",
   "specifyVar": "Odredi",
   "fileVar": "Datoteka",

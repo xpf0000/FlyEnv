@@ -1,5 +1,4 @@
 {
-  "title": "Descriere licenta",
   "description": "Această licență recunoaște și sprijină eforturile lui FlyEnv și ale autorilor săi. Aceasta nu este destinată restricţionării utilizatorilor, ci încurajării respectului pentru activitatea dezvoltatorilor şi pentru proprietatea intelectuală. Asigurați-vă că obțineți o licență valabilă înainte de a utiliza FlyEnv în scopuri comerciale.",
   "restrictions": {
     "title": "Utilizatorii care nu dețin o licență vor face obiectul următoarelor restricții:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "UUID Legat",
   "delBind": "Dezleagă",
   "bindCurrentUUID": "Leagă acest Dispozitiv",
-  "licenseDescription": "Descriere Licență",
   "loginFail": "Autentificare eșuată",
   "oauthCanceledTitle": "Autorizare anulată",
   "oauthCanceledMessage": "Utilizatorul a anulat procesul de autorizare",

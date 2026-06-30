@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "CA rotsökväg",
   "certificates": "Certifikat",
-  "generate": "Generera",
   "noSSLHosts": "Inga värdar med SSL aktiverade. Aktivera SSL på en värd först."
 }

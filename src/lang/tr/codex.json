@@ -5,11 +5,6 @@
   "reasoningEffort": "Akıl Yürütme Düzeyi",
   "approvalPolicy": "Onay Politikası",
   "sandboxMode": "Sandbox Modu",
-  "plugins": "Eklentiler",
-  "available": "Kullanılabilir",
-  "searchPlugin": "Eklenti ara",
   "pluginEnabled": "Eklenti yüklendi",
-  "pluginDisabled": "Eklenti kaldırıldı",
-  "pluginUninstalled": "Eklenti kaldırıldı",
   "uninstallConfirm": "\"{name}\" eklentisini kaldırmak istediğinizden emin misiniz?"
 }

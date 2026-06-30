@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Riserva una porzione di VRAM per GPU (in byte)",
   "OLLAMA_LOAD_TIMEOUT": "Tempo massimo di attesa per il caricamento dei modelli prima di rinunciare (predefinito \"5m\")",
   "needServiceRun": "Avvia prima il servizio Ollama",
-  "size": "Dimensione",
   "model": "Modelli"
 }

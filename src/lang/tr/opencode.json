@@ -10,8 +10,6 @@
   "providerId": "Sağlayıcı",
   "noProviders": "Kimlik bilgisi yapılandırılmadı. Eklemek için `opencode auth login` komutunu çalıştırın.",
   "cmd": {
-    "help": "Yardım bilgisini göster",
-    "version": "Sürüm numarasını göster",
     "upgrade": "OpenCode'u en son sürüme güncelle",
     "models": "Tüm kullanılabilir modelleri listele",
     "start": "OpenCode TUI'yi başlat",

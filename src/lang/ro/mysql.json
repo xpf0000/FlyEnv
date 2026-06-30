@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Această operațiune va schimba parola utilizatorului rădăcină a bazei de date, sunteți sigur că doriți să continuați?",
   "mysqlNeedRunTips": "Vă rugăm să executați {app} mai întâi",
   "databaseName": "Nume bază de date",
-  "databaseUser": "Nume",
-  "databasePassword": "Parolă",
   "addDatabase": "Adaugă baza de date",
   "inputDatabaseName": "Vă rugăm să introduceţi numele bazei de date",
   "databaseNameFormatError": "Numele bazei de date trebuie să înceapă cu o literă, 3-64 de caractere și poate conține doar litere, numere și underscore",

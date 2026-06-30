@@ -1,5 +1,4 @@
 {
-  "site": "Ιστοσελίδα",
   "phpVersion": "Έκδοση PHP",
   "newProject": "Νέο Έργο",
   "frameworkVersion": "Έκδοση Πλαισίου",
@@ -13,7 +12,6 @@
   "placeholderName": "Όνομα κεντρικού υπολογιστή (Παράδειγμα: mydomain.tld)",
   "placeholderAlias": "Ψευδώνυμα Τομέα (Παράδειγμα: www.mydomain.tld)",
   "placeholderRootPath": "Ριζική Διαδρομή Εγγράφου",
-  "port": "Θύρα",
   "portAdvanced": "Για προχωρημένους",
   "portSimple": "Απλό",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projects",
   "projectZig": "Έργα Zig",
   "projectFlutter": "Έργα Flutter",
-  "startCommand": "Έναρξη Εντολής",
   "envVar": "Μεταβλητή Περιβάλλοντος",
   "specifyVar": "Καθορισμός",
   "fileVar": "Αρχείο",

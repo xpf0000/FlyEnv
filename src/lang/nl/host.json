@@ -1,5 +1,4 @@
 {
-  "site": "Website",
   "phpVersion": "PHP Versie",
   "newProject": "Nieuw project",
   "frameworkVersion": "Framework versie",
@@ -13,7 +12,6 @@
   "placeholderName": "Hostnaam (Voorbeeld: mijndomein.tld)",
   "placeholderAlias": "Domein aliassen (Voorbeeld: www.mijndomein.tld)",
   "placeholderRootPath": "Document basis pad",
-  "port": "Poort",
   "portAdvanced": "Geavanceerd",
   "portSimple": "Eenvoudig",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projecten",
   "projectZig": "Zig Projecten",
   "projectFlutter": "Flutter projecten",
-  "startCommand": "Opdracht starten",
   "envVar": "Omgeving Variabele",
   "specifyVar": "Specificeer",
   "fileVar": "Bestand",

@@ -1,5 +1,4 @@
 {
-  "site": "Sito",
   "phpVersion": "Versione PHP",
   "newProject": "Nuovo Progetto",
   "frameworkVersion": "Versione del Framework",
@@ -13,7 +12,6 @@
   "placeholderName": "Nome host (Es: miodominio.it)",
   "placeholderAlias": "Alias di dominio (Es: www.miodominio.it)",
   "placeholderRootPath": "Percorso della radice del documento",
-  "port": "Porta",
   "portAdvanced": "Avanzato",
   "portSimple": "Semplice",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Progetti Rust",
   "projectZig": "Progetti Zig",
   "projectFlutter": "Progetti Flutter",
-  "startCommand": "Comando di Avvio",
   "envVar": "Variabili d'Ambiente",
   "specifyVar": "Specifica",
   "fileVar": "File",

@@ -5,8 +5,5 @@
   "numbers": "Số (123...)",
   "symbols": "Ký hiệu (!-;...)",
   "length": "Độ dài",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "refresh": "Làm mới"
-  }
+  "tokenPlaceholder": "Token..."
 }

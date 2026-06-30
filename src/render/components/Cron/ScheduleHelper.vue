@@ -298,8 +298,8 @@
   const generatedSchedule = computed(() => partValues.value.join(' '))
 
   const description = computed(() => {
-    if (generatedSchedule.value === '* * * * *') return I18nT('cron.descEveryMinute')
-    if (generatedSchedule.value === '0 * * * *') return I18nT('cron.descEveryHour')
+    if (generatedSchedule.value === '* * * * *') return I18nT('common.schedule.everyMinute')
+    if (generatedSchedule.value === '0 * * * *') return I18nT('common.schedule.everyHour')
     if (generatedSchedule.value === '0 0 * * *') return I18nT('cron.descDailyMidnight')
     if (generatedSchedule.value === '0 0 * * 0') return I18nT('cron.descEverySundayMidnight')
     if (generatedSchedule.value === '0 0 1 * *') return I18nT('cron.descMonthly1st')

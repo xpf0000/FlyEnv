@@ -51,7 +51,7 @@
               <div class="flex items-center justify-between mb-3">
                 <span class="font-semibold text-base">{{ host.name }}</span>
                 <el-button type="primary" size="small" @click="doGenerate(host)">
-                  {{ I18nT('mkcert.generate') }}
+                  {{ I18nT('common.action.generate') }}
                 </el-button>
               </div>
 

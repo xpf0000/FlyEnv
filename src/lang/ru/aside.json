@@ -1,5 +1,4 @@
 {
-  "site": "Сайт",
   "webServer": "Веб-сервер",
   "dataBaseServer": "Сервер базы данных",
   "emailServer": "Сервер электронной почты",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS-сервер",
   "ftpServer": "FTP сервер",
   "containerRuntime": "Время работы контейнера",
-  "other": "Прочие вопросы",
   "appLog": "Журнал приложений",
   "aiCoding": "AI-кодинг",
   "ai": "AI",

@@ -37,8 +37,7 @@
     "needPasswordToStart": "Adminrättigheter krävs. Ange lösenord (sparas för framtida bruk). Eller ange manuellt i terminalen, men denna prompt kan dyka upp igen.",
     "hadOpenInTerminal": "Körs redan i terminalen—resultat ej tillgängliga.",
     "licenseTips": "Ingen licens hittades. Endast 3 moduler/utföringsobjekt kan skapas.",
-    "outputLog": "Output Log",
-    "errorLog": "Error Log"
+    "outputLog": "Output Log"
   },
   "flyenvHelper": "Reparera FlyEnv-hjälpprogram",
   "flyenvHelperBtn": "Reparera",

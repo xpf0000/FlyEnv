@@ -58,12 +58,12 @@
                 >{{ HermesSetup.version }}</span
               >
             </el-form-item>
-            <el-form-item class="flex-shrink-0" :label="I18nT('hermes.gatewayStatus')">
+            <el-form-item class="flex-shrink-0" :label="I18nT('common.gateway.status')">
               <template v-if="HermesSetup.gatewayRunning">
-                <span class="text-[#01cc74]">{{ I18nT('hermes.gatewayRunning') }}</span>
+                <span class="text-[#01cc74]">{{ I18nT('common.gateway.running') }}</span>
               </template>
               <template v-else>
-                <span>{{ I18nT('hermes.gatewayStopped') }}</span>
+                <span>{{ I18nT('common.gateway.stopped') }}</span>
               </template>
             </el-form-item>
             <el-form-item class="flex-shrink-0">

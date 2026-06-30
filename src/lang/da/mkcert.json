@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "Cas Rod Sti",
   "certificates": "Certifikater",
-  "generate": "Generer",
   "noSSLHosts": "Ingen værter med SSL aktiveret. Aktiver SSL på en vært først."
 }

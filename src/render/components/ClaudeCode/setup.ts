@@ -317,7 +317,7 @@ class ClaudeCode {
       IPC.send('app-fork:claudeCode', 'uninstallPlugin', pluginId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('claudeCode.pluginUninstalled'))
+          MessageSuccess(I18nT('common.plugin.removed'))
           this.refreshPlugins()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))

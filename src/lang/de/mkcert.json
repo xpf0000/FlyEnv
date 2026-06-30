@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "CA Wurzelpfad",
   "certificates": "Zertifikate",
-  "generate": "Generieren",
   "noSSLHosts": "Keine Hosts mit SSL aktiviert. SSL zuerst auf einem Host aktivieren."
 }

@@ -1,5 +1,4 @@
 {
-  "title": "Licencinformációk",
   "description": "Ez a licenc elismeri és támogatja a FlyEnv és szerzőinek munkáját. Nem célja a felhasználók korlátozása, hanem arra ösztönöz, hogy tiszteletben tartsák a fejlesztők munkáját és szellemi tulajdonát. Kérjük, gondoskodjon érvényes licenc beszerzéséről, mielőtt a FlyEnv-et kereskedelmi célokra használná.",
   "restrictions": {
     "title": "A licenccel nem rendelkező felhasználókra az alábbi korlátozások vonatkoznak:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Hozzákötött UUID",
   "delBind": "Leválasztás",
   "bindCurrentUUID": "Eszköz hozzákötése",
-  "licenseDescription": "Licenc leírása",
   "loginFail": "Bejelentkezés sikertelen",
   "oauthCanceledTitle": "Engedélyezés megszakítva",
   "oauthCanceledMessage": "A felhasználó megszakította az engedélyezési folyamatot",

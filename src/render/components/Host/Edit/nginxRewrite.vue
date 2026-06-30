@@ -56,7 +56,7 @@
             <el-option v-for="(_v, _k) in rewriteCustom" :key="_k" :label="_v.name" :value="_k">
             </el-option>
           </el-option-group>
-          <el-option-group :label="I18nT('base.default')">
+          <el-option-group :label="I18nT('common.value.default')">
             <el-option v-for="(_v, _k) in rewriteDefault" :key="_k" :label="_v.name" :value="_k">
             </el-option>
           </el-option-group>

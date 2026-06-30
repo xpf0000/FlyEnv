@@ -45,7 +45,7 @@
       <el-table-column prop="name">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
-            I18nT('base.Library')
+            I18nT('common.label.library')
           }}</span>
         </template>
         <template #default="scope">
@@ -83,7 +83,7 @@
             :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
             :disabled="PodmanSetup.installing"
             @click="handlePodmanVersion(scope.row)"
-            >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}</el-button
+            >{{ scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install') }}</el-button
           >
         </template>
       </el-table-column>

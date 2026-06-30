@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="I18nT('base.edit')"
+    :title="I18nT('common.action.edit')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project overflow-hidden el-dialog-content-flex-1"
@@ -41,13 +41,13 @@
               </div>
             </template>
             <el-select v-model="form.groupID">
-              <el-option :label="I18nT('base.none')" :value="''"></el-option>
+              <el-option :label="I18nT('common.value.none')" :value="''"></el-option>
               <template v-for="(l, _l) in groups" :key="_l">
                 <el-option :label="l.name" :value="l.id"></el-option>
               </template>
             </el-select>
           </el-form-item>
-          <el-form-item :label="I18nT('tools.Code')" prop="value">
+          <el-form-item :label="I18nT('common.label.code')" prop="value">
             <el-input v-model="form.value" type="textarea" :rows="6" resize="none"></el-input>
           </el-form-item>
           <el-form-item :label="I18nT('tools.CodeResult')" prop="value">

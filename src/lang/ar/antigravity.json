@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "فتح دليل المهارات",
-  "openSkillDir": "فتح دليل المهارات",
-  "revealSkillFile": "كشف ملف المهارات",
-  "builtin": "مدمج",
-  "skillFileMissing": "لم يتم العثور على ملف المهارة",
-  "skillLoadFailed": "تعذر تحميل ملف المهارات"
+  "sessionDeleted": "Conversation deleted"
 }

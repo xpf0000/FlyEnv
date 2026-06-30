@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Open skills directory",
-  "openSkillDir": "Bacarıqlar kataloqunu aç",
-  "revealSkillFile": "Bacarıq faylını aşkar et",
-  "builtin": "Built-in",
-  "skillFileMissing": "Bacarıq faylı tapılmadı",
-  "skillLoadFailed": "Bacarıq faylı yüklənmədi"
+  "sessionDeleted": "Conversation deleted"
 }

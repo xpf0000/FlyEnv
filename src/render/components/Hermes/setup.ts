@@ -207,10 +207,10 @@ class Hermes {
         IPC.off(key)
         if (res?.code === 0) {
           this.gatewayRunning = true
-          MessageSuccess(I18nT('hermes.gatewayRunning'))
+          MessageSuccess(I18nT('common.gateway.running'))
         } else {
           this.gatewayRunning = false
-          MessageError(res?.msg ?? I18nT('hermes.startGatewayFail'))
+          MessageError(res?.msg ?? I18nT('common.gateway.startFailed'))
         }
         this.loading = false
         resolve(true)

@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "phpVersion": "PHP Sürümü",
   "newProject": "Yeni Proje",
   "frameworkVersion": "Framework Sürümü",
@@ -13,7 +12,6 @@
   "placeholderName": "Alan adı (Örnek: mydomain.tld)",
   "placeholderAlias": "Alan adı takma adları (Örnek: www.mydomain.tld)",
   "placeholderRootPath": "Belge Kök Dizini",
-  "port": "Port",
   "portAdvanced": "Gelişmiş",
   "portSimple": "Basit",
   "hostSSL": "SSL",
@@ -37,7 +35,6 @@
   "projectRuby": "Ruby Projects",
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
-  "startCommand": "Başlatma Komutu",
   "envVar": "Ortam Değişkeni",
   "specifyVar": "Belirt",
   "fileVar": "Dosya",

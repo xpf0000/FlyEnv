@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="I18nT('base.add') + ' Compose'"
+    :title="I18nT('common.action.add') + ' Compose'"
     width="600px"
     :destroy-on-close="true"
     class="dark:bg-[#1d2033]"

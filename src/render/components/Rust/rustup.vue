@@ -78,7 +78,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column align="center" :label="I18nT('base.default')" width="150">
+          <el-table-column align="center" :label="I18nT('common.value.default')" width="150">
             <template #default="scope">
               <template v-if="scope.row.isDefault">
                 <el-button link type="primary">
@@ -106,7 +106,7 @@
                 :loading="RustupSetup.installing"
                 :disabled="RustupSetup.installing"
                 @click="doVersionAction(scope.row)"
-                >{{ scope.row.isInstalled ? I18nT('base.uninstall') : I18nT('base.install') }}
+                >{{ scope.row.isInstalled ? I18nT('common.action.uninstall') : I18nT('base.install') }}
               </el-button>
             </template>
           </el-table-column>
@@ -155,7 +155,7 @@
                 link
                 :disabled="RustupSetup.installing"
                 @click="doTargetAction(scope.row)"
-                >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}
+                >{{ scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install') }}
               </el-button>
             </template>
           </el-table-column>

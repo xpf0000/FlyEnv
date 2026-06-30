@@ -1,5 +1,4 @@
 {
-  "site": "Situs",
   "phpVersion": "Versi PHP",
   "newProject": "Proyek Baru",
   "frameworkVersion": "Versi Framework",
@@ -13,7 +12,6 @@
   "placeholderName": "Hostname (Contoh: mydomain.tld)",
   "placeholderAlias": "Alias Domain (Contoh: www.mydomain.tld)",
   "placeholderRootPath": "Path Root Dokumen",
-  "port": "Port",
   "portAdvanced": "Lanjutan",
   "portSimple": "Sederhana",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust Projects",
   "projectZig": "Zig Projects",
   "projectFlutter": "Flutter Projects",
-  "startCommand": "Perintah Mulai",
   "envVar": "Variabel Lingkungan",
   "specifyVar": "Tentukan",
   "fileVar": "File",

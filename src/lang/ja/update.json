@@ -4,8 +4,6 @@
   "update-not-available-message": "最新版です！",
   "update-downloaded-message": "インストール準備完了...",
   "update-error-message": "更新エラー",
-  "yes": "はい",
-  "no": "いいえ",
   "view-update-log": "更新ログを表示",
   "download-new-version": "新しいバージョンをダウンロード"
 }

@@ -5,8 +5,5 @@
   "numbers": "Tal (123...)",
   "symbols": "Symboler (!-;...)",
   "length": "Længde",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "refresh": "Opdater"
-  }
+  "tokenPlaceholder": "Token..."
 }

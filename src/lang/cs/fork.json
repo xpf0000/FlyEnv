@@ -9,6 +9,5 @@
   "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
   "downloadFileFail": "Stahování souboru selhalo!",
   "trialEnd": "Zkušební verze vypršela. Chcete-li nadále používat tuto funkci, získejte licenci",
-  "phpiniNotFound": "php.ini soubor nebyl nalezen",
   "noEPMD": "Proces epmd nebyl nalezen. Prosím resetujte proměnné prostředí Erlang"
 }

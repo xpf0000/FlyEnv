@@ -13,13 +13,13 @@
         <li v-for="(item, _key) in service" :key="_key" class="http-serve-item">
           <div class="left">
             <div class="top">
-              <span class="name"> {{ $t('base.path') }}:</span>
+              <span class="name"> {{ $t('common.label.path') }}:</span>
               <span class="value" @click.stop="openDir(_key as any)">{{ _key }} </span>
             </div>
             <div class="bottom">
               <span class="name">{{ $t('base.links') }}:</span>
               <template v-if="!item.host">
-                <span class="url empty">{{ $t('base.none') }}</span>
+                <span class="url empty">{{ $t('common.value.none') }}</span>
               </template>
               <template v-else>
                 <template v-for="(url, _index) in item.host" :key="_index">

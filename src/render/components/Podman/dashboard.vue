@@ -14,7 +14,7 @@
           :label="I18nT('podman.Machine')"
           >{{ info.Name }}</el-descriptions-item
         >
-        <el-descriptions-item class-name="w-[50%] overflow-hidden" :label="I18nT('podman.State')">{{
+        <el-descriptions-item class-name="w-[50%] overflow-hidden" :label="I18nT('common.label.state')">{{
           info.State
         }}</el-descriptions-item>
         <el-descriptions-item :label="I18nT('podman.CPU')">{{
@@ -27,15 +27,15 @@
           >{{ info.Resources?.DiskSize }} MB</el-descriptions-item
         >
         <el-descriptions-item :label="I18nT('podman.rootful')">{{
-          info.Rootful ? I18nT('podman.yes') : I18nT('podman.no')
+          info.Rootful ? I18nT('common.value.yes') : I18nT('common.value.no')
         }}</el-descriptions-item>
         <el-descriptions-item :label="I18nT('podman.userModeNetworking')">
-          {{ info.UserModeNetworking ? I18nT('podman.yes') : I18nT('podman.no') }}
+          {{ info.UserModeNetworking ? I18nT('common.value.yes') : I18nT('common.value.no') }}
         </el-descriptions-item>
         <el-descriptions-item :label="I18nT('podman.rosetta')">{{
-          info.Rosetta ? I18nT('podman.yes') : I18nT('podman.no')
+          info.Rosetta ? I18nT('common.value.yes') : I18nT('common.value.no')
         }}</el-descriptions-item>
-        <el-descriptions-item :label="I18nT('podman.Created')">{{
+        <el-descriptions-item :label="I18nT('common.label.createdTime')">{{
           info.Created
         }}</el-descriptions-item>
         <el-descriptions-item :label="I18nT('podman.LastUp')">{{

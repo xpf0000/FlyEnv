@@ -27,7 +27,7 @@
             <el-radio-group v-model="libSrc" size="small" class="ml-6">
               <el-radio-button
                 class="flex-1"
-                :label="I18nT('versionmanager.Local')"
+                :label="I18nT('common.value.local')"
                 value="local"
               ></el-radio-button>
               <template v-if="hasStatic">
@@ -48,12 +48,12 @@
             <el-radio-group v-model="libSrc" size="small" class="ml-6">
               <el-radio-button
                 class="flex-1"
-                :label="I18nT('versionmanager.Local')"
+                :label="I18nT('common.value.local')"
                 value="local"
               ></el-radio-button>
               <el-radio-button
                 class="flex-1"
-                :label="I18nT('versionmanager.Library')"
+                :label="I18nT('common.label.library')"
                 value="static"
               ></el-radio-button>
             </el-radio-group>
@@ -62,7 +62,7 @@
             <el-radio-group v-model="libSrc" size="small" class="ml-6">
               <el-radio-button
                 class="flex-1"
-                :label="I18nT('versionmanager.Local')"
+                :label="I18nT('common.value.local')"
                 value="local"
               ></el-radio-button>
               <template v-if="hasStatic">

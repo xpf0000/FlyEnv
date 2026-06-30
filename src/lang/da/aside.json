@@ -1,5 +1,4 @@
 {
-  "site": "Websted",
   "webServer": "Webserver",
   "dataBaseServer": "Database Server",
   "emailServer": "Email Server",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS Server",
   "ftpServer": "FTP Server",
   "containerRuntime": "Container Runtime",
-  "other": "Andet",
   "appLog": "App Log",
   "aiCoding": "AI-kodning",
   "ai": "AI",

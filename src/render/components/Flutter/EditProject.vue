@@ -23,7 +23,7 @@
           :disabled="saving || !projectPath"
           @click="doSave"
         >
-          {{ I18nT('flutter.save') }}
+          {{ I18nT('common.action.save') }}
         </el-button>
       </div>
 
@@ -162,7 +162,7 @@
                   }}</div>
                 </div>
                 <el-button size="small" @click="addDependency(pkg, false)">{{
-                  I18nT('flutter.add')
+                  I18nT('common.action.add')
                 }}</el-button>
                 <el-button size="small" type="warning" @click="addDependency(pkg, true)">{{
                   I18nT('flutter.addDev')

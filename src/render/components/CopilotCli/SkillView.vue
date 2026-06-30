@@ -170,14 +170,14 @@
     try {
       const exists = await fs.existsSync(filePath)
       if (!exists) {
-        content.value = `# ${I18nT('copilotCli.skillFileMissing')}`
+        content.value = `# ${I18nT('common.skills.skillFileMissing')}`
         canSave.value = false
       } else {
         const fileContent = await fs.readFile(filePath)
         const readable = await fs.access(filePath, 'r')
         const writable = await fs.access(filePath, 'w')
         if (!readable && !fileContent) {
-          content.value = `# ${I18nT('copilotCli.skillLoadFailed')}`
+          content.value = `# ${I18nT('common.skills.skillLoadFailed')}`
           canSave.value = false
         } else {
           content.value = fileContent
@@ -185,7 +185,7 @@
         }
       }
     } catch {
-      content.value = `# ${I18nT('copilotCli.skillLoadFailed')}`
+      content.value = `# ${I18nT('common.skills.skillLoadFailed')}`
       canSave.value = false
     }
 

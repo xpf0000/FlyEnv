@@ -42,7 +42,7 @@
                       <el-radio-button value="macports">Macports</el-radio-button>
                     </template>
                     <template v-else-if="!isStatic">
-                      <el-radio-button value="flyenv">{{ I18nT('base.default') }}</el-radio-button>
+                      <el-radio-button value="flyenv">{{ I18nT('common.value.default') }}</el-radio-button>
                     </template>
                   </el-radio-group>
                 </template>
@@ -53,12 +53,12 @@
                     }}</el-radio-button>
                     <el-radio-button
                       class="flex-1"
-                      :label="I18nT('versionmanager.Local')"
+                      :label="I18nT('common.value.local')"
                       value="local"
                     ></el-radio-button>
                     <el-radio-button
                       class="flex-1"
-                      :label="I18nT('versionmanager.Library')"
+                      :label="I18nT('common.label.library')"
                       value="lib"
                     ></el-radio-button>
                   </el-radio-group>

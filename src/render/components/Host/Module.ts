@@ -5,7 +5,7 @@ import { I18nT } from '@lang/index'
 const module: AppModuleItem = {
   moduleType: 'site',
   typeFlag: 'hosts',
-  label: () => I18nT('base.leftHosts'),
+  label: () => I18nT('common.label.site'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 0

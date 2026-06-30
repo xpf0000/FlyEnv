@@ -142,7 +142,7 @@ class OpenClaw {
           this.gatewayRunning = true
         } else {
           this.gatewayRunning = false
-          MessageError(res?.msg ?? I18nT('openclaw.startGatewayFail'))
+          MessageError(res?.msg ?? I18nT('common.gateway.startFailed'))
         }
         this.loading = false
         resolve(true)

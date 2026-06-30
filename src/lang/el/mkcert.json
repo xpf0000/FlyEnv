@@ -8,6 +8,5 @@
   "installCA": "Install CA",
   "carootLabel": "CA Root Διαδρομή",
   "certificates": "Πιστοποιητικά",
-  "generate": "Δημιουργία",
   "noSSLHosts": "Κανένας υπολογιστής με ενεργοποιημένο SSL. Ενεργοποιήστε το SSL σε έναν υπολογιστή πρώτα."
 }

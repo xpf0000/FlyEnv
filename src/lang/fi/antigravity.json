@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Avaa taitokansio",
-  "openSkillDir": "Avaa taitohakemisto",
-  "revealSkillFile": "Paljasta taitotiedosto",
-  "builtin": "Sisäänrakennettu",
-  "skillFileMissing": "Taitotiedostoa ei löytynyt",
-  "skillLoadFailed": "Taitotiedoston lataaminen epäonnistui"
+  "sessionDeleted": "Conversation deleted"
 }

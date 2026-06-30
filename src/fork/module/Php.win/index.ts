@@ -152,7 +152,7 @@ class Php extends Base {
         }
       }
 
-      reject(new Error(I18nT('fork.phpiniNotFound')))
+      reject(new Error(I18nT('common.error.phpiniNotFound')))
     })
   }
 

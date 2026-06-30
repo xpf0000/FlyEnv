@@ -17,12 +17,12 @@
       <div class="h-full overflow-hidden flex flex-col">
         <!-- Toolbar -->
         <div class="flex items-center gap-2 mb-4 flex-shrink-0">
-          <el-button :loading="loading" @click="loadUsers">{{ I18nT('base.refresh') }}</el-button>
+          <el-button :loading="loading" @click="loadUsers">{{ I18nT('common.action.refresh') }}</el-button>
           <el-button type="primary" @click="openAddDialog">
             {{ I18nT('n8n.usersAddUser') }}
           </el-button>
           <el-button @click="openChangePasswordDialog">{{
-            I18nT('n8n.usersChangePassword')
+            I18nT('common.action.changeOwnerPassword')
           }}</el-button>
         </div>
 
@@ -43,7 +43,7 @@
               >
                 {{
                   row.disabled
-                    ? I18nT('n8n.usersDisabled')
+                    ? I18nT('common.state.disabled')
                     : row.isPending
                       ? I18nT('n8n.usersPending')
                       : I18nT('n8n.usersActive')
@@ -59,20 +59,20 @@
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item command="name">{{
-                        I18nT('n8n.usersChangeName')
+                        I18nT('common.action.changeName')
                       }}</el-dropdown-item>
                       <el-dropdown-item command="password">{{
                         I18nT('common.action.resetPassword')
                       }}</el-dropdown-item>
                       <el-dropdown-item v-if="row.roleSlug !== 'global:owner'" command="role">{{
-                        I18nT('n8n.usersChangeRole')
+                        I18nT('common.action.changeRole')
                       }}</el-dropdown-item>
                       <el-dropdown-item
                         v-if="row.roleSlug !== 'global:owner'"
                         :command="row.disabled ? 'enable' : 'disable'"
                       >
                         {{
-                          row.disabled ? I18nT('common.action.enable') : I18nT('n8n.usersDisable')
+                          row.disabled ? I18nT('common.action.enable') : I18nT('common.action.disable')
                         }}
                       </el-dropdown-item>
                       <el-dropdown-item
@@ -133,7 +133,7 @@
     <!-- Edit Name Dialog -->
     <el-dialog
       v-model="showEditNameDialog"
-      :title="I18nT('n8n.usersChangeNameTitle')"
+      :title="I18nT('common.action.changeName')"
       width="440px"
       :destroy-on-close="true"
     >
@@ -156,7 +156,7 @@
     <!-- Change Role Dialog -->
     <el-dialog
       v-model="showChangeRoleDialog"
-      :title="I18nT('n8n.usersChangeRoleTitle')"
+      :title="I18nT('common.action.changeRole')"
       width="400px"
       :destroy-on-close="true"
     >
@@ -250,7 +250,7 @@
     <!-- Change Owner Password Dialog -->
     <el-dialog
       v-model="showChangePasswordDialog"
-      :title="I18nT('n8n.usersChangePasswordTitle')"
+      :title="I18nT('common.action.changeOwnerPassword')"
       width="480px"
       :destroy-on-close="true"
     >

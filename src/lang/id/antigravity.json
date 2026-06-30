@@ -7,12 +7,5 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
-  "noSkills": "No skills found",
-  "openSkillsDir": "Open skills directory",
-  "openSkillDir": "Buka direktori keterampilan",
-  "revealSkillFile": "Ungkapkan file keterampilan",
-  "builtin": "Built-in",
-  "skillFileMissing": "File keterampilan tidak ditemukan",
-  "skillLoadFailed": "Gagal memuat file keterampilan"
+  "sessionDeleted": "Conversation deleted"
 }

@@ -1,5 +1,4 @@
 {
-  "site": "Nettsted",
   "webServer": "Webserver",
   "dataBaseServer": "Databaseserver (Automatic Translation)",
   "emailServer": "E-post server",
@@ -8,7 +7,6 @@
   "dnsServer": "DNS server",
   "ftpServer": "FTP server",
   "containerRuntime": "Container kjøretid",
-  "other": "Annet",
   "appLog": "App logg",
   "aiCoding": "AI-koding",
   "ai": "AI",

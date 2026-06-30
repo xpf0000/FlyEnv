@@ -4,8 +4,6 @@
   "update-not-available-message": "U bent up-to-date!",
   "update-downloaded-message": "Klaar om te installeren...",
   "update-error-message": "Update fout",
-  "yes": "Ja",
-  "no": "Nee",
   "view-update-log": "Bekijk updatelogboek",
   "download-new-version": "Nieuwe versie downloaden"
 }

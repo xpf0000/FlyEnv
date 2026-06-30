@@ -5,8 +5,5 @@
   "numbers": "Números (123...)",
   "symbols": "Símbolos (!-;...)",
   "length": "Comprimento",
-  "tokenPlaceholder": "O token...",
-  "button": {
-    "refresh": "Atualizar"
-  }
+  "tokenPlaceholder": "O token..."
 }

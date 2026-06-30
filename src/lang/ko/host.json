@@ -1,5 +1,4 @@
 {
-  "site": "사이트",
   "phpVersion": "PHP 버전",
   "newProject": "새 프로젝트",
   "frameworkVersion": "프레임워크 버전",
@@ -13,7 +12,6 @@
   "placeholderName": "호스트명 (예: mydomain.tld)",
   "placeholderAlias": "도메인 별칭 (예: www.mydomain.tld)",
   "placeholderRootPath": "문서 루트 경로",
-  "port": "포트",
   "portAdvanced": "고급",
   "portSimple": "단순",
   "hostSSL": "SSL",
@@ -38,7 +36,6 @@
   "projectRust": "Rust 프로젝트",
   "projectZig": "Zig 프로젝트",
   "projectFlutter": "Flutter Projects",
-  "startCommand": "시작 명령",
   "envVar": "환경 변수",
   "specifyVar": "지정",
   "fileVar": "파일",

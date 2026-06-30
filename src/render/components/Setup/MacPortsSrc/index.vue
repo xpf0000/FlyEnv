@@ -22,7 +22,7 @@
   const srcs = computed(() => {
     return [
       {
-        name: I18nT('util.macPortsSrcDefault'),
+        name: I18nT('common.value.default'),
         url: 'rsync://rsync.macports.org/macports/release/tarballs/ports.tar',
         rsync_server: '',
         rsync_dir: ''

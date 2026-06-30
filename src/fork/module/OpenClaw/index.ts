@@ -122,9 +122,9 @@ class OpenClaw extends Base {
         if (res?.isRunning) {
           return resolve(true)
         }
-        reject(I18nT('openclaw.startGatewayFail'))
+        reject(I18nT('common.gateway.startFailed'))
       } catch (e: any) {
-        reject(e?.message ?? I18nT('openclaw.startGatewayFail'))
+        reject(e?.message ?? I18nT('common.gateway.startFailed'))
       }
     })
   }

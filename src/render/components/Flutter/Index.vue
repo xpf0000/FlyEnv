@@ -23,7 +23,7 @@
         <template #operation="scope">
           <li @click.stop="openProjectEdit(scope.row.path)">
             <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-            <span class="ml-3">{{ I18nT('base.edit') }} (Flutter)</span>
+            <span class="ml-3">{{ I18nT('common.action.edit') }} (Flutter)</span>
           </li>
         </template>
       </ProjectIndex>

@@ -112,7 +112,7 @@
                               <el-dropdown-menu>
                                 <el-dropdown-item :command="{ action: 'edit', item }"
                                   ><EditPen class="w-4 h-4 mr-2" /><span>{{
-                                    I18nT('base.edit')
+                                    I18nT('common.action.edit')
                                   }}</span></el-dropdown-item
                                 >
                                 <el-dropdown-item :command="{ action: 'del', item }"
@@ -172,7 +172,7 @@
                             <el-dropdown-menu>
                               <el-dropdown-item :command="{ action: 'edit', item }"
                                 ><EditPen class="w-4 h-4 mr-2" /><span>{{
-                                  I18nT('base.edit')
+                                  I18nT('common.action.edit')
                                 }}</span></el-dropdown-item
                               >
                               <el-dropdown-item :command="{ action: 'del', item }"

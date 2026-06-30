@@ -21,8 +21,6 @@
   "resetPasswordConfirm": "Ova operacija će promijeniti lozinku root korisnika baze podataka, jeste li sigurni da želite nastaviti?",
   "mysqlNeedRunTips": "Molimo prvo pokrenite {app}",
   "databaseName": "Naziv baze podataka",
-  "databaseUser": "Korisničko ime",
-  "databasePassword": "Lozinka",
   "addDatabase": "Dodaj bazu podataka",
   "inputDatabaseName": "Molimo unesite naziv baze podataka",
   "databaseNameFormatError": "Naziv baze podataka mora početi slovom, 3-64 znakova, i može sadržavati samo slova, brojeve i podcrtaje",
