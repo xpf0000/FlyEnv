@@ -67,6 +67,7 @@ class Antigravity {
   mcpServers: McpItem[] = []
   mcpLoading = false
 
+  skillDir: string = ''
   skills: SkillItem[] = []
   skillsLoading = false
   skillViewTab: 'code' | 'both' | 'preview' = 'both'
@@ -283,15 +284,18 @@ class Antigravity {
     })
   }
 
-  openSkillsDir() {
+  fetchSkillsDir() {
+    if (this.skillDir) {
+      return
+    }
     IPC.send('app-fork:antigravity', 'openSkillsDir').then((key: string, res: any) => {
       IPC.off(key)
-      if (res?.code === 0 && res?.data) {
-        shell.openPath(res.data).catch()
-      } else {
-        MessageError(res?.msg ?? I18nT('base.fail'))
-      }
+      this.skillDir = res?.data ?? ''
     })
+  }
+
+  openSkillsDir() {
+    shell.openPath(this.skillDir).catch()
   }
 
   openSkillDir(item: SkillItem) {

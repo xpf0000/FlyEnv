@@ -220,6 +220,7 @@ export const fs = {
   copy: createIPCCall<[src: string, dest: string], void>('fs', 'copy'),
   copyFile: createIPCCall<[src: string, dest: string], void>('fs', 'copyFile'),
   existsSync: createIPCCall<[string], boolean>('fs', 'existsSync'),
+  access: createIPCCall<[path: string, mode?: 'r' | 'w' | 'rw'], boolean>('fs', 'access'),
   readFile: createIPCCall<[path: string], string>('fs', 'readFile'),
   writeFile: createIPCCall<[path: string, data: string], void>('fs', 'writeFile'),
   realpath: createIPCCall<[path: string], string>('fs', 'realpath'),

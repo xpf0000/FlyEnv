@@ -5,7 +5,11 @@
         <div class="flex items-center gap-2">
           <span>{{ I18nT('antigravity.skills') }}</span>
           <el-tooltip :content="I18nT('antigravity.openSkillsDir')" placement="top">
-            <el-button link @click="AntigravitySetup.openSkillsDir()">
+            <el-button
+              :disabled="!AntigravitySetup.skillDir"
+              link
+              @click="AntigravitySetup.openSkillsDir()"
+            >
               <FolderOpened class="w-[18px] h-[18px]" />
             </el-button>
           </el-tooltip>
@@ -48,29 +52,34 @@
               </div>
             </div>
             <div class="skill-actions">
-              <el-tooltip
-                :content="I18nT('antigravity.openSkillDir')"
-                placement="top"
-                :show-after="300"
+              <el-popover
+                effect="dark"
+                popper-class="host-list-poper"
+                placement="left-start"
+                width="auto"
+                :show-arrow="false"
               >
-                <el-button link @click="AntigravitySetup.openSkillDir(item)">
-                  <yb-icon :svg="import('@/svg/folder.svg?raw')" width="18" height="18" />
-                </el-button>
-              </el-tooltip>
-              <el-tooltip
-                :content="I18nT('antigravity.revealSkillFile')"
-                placement="top"
-                :show-after="300"
-              >
-                <el-button link @click="AntigravitySetup.revealSkillFile(item)">
-                  <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="18" height="18" />
-                </el-button>
-              </el-tooltip>
-              <el-tooltip :content="I18nT('base.info')" placement="top" :show-after="300">
-                <el-button link @click="AntigravitySetup.viewSkill(item)">
-                  <yb-icon :svg="import('@/svg/eye.svg?raw')" width="18" height="18" />
-                </el-button>
-              </el-tooltip>
+                <ul v-poper-fix class="host-list-menu">
+                  <li @click.stop="AntigravitySetup.openSkillDir(item)">
+                    <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
+                    <span class="ml-3">{{ I18nT('antigravity.openSkillDir') }}</span>
+                  </li>
+                  <li @click.stop="AntigravitySetup.revealSkillFile(item)">
+                    <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="13" height="13" />
+                    <span class="ml-3">{{ I18nT('antigravity.revealSkillFile') }}</span>
+                  </li>
+                  <li @click.stop="AntigravitySetup.viewSkill(item)">
+                    <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
+                    <span class="ml-3">{{ I18nT('base.preview') }}</span>
+                  </li>
+                </ul>
+
+                <template #reference>
+                  <div class="flex justify-center hover:text-yellow-500">
+                    <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+                  </div>
+                </template>
+              </el-popover>
             </div>
           </div>
         </el-scrollbar>
@@ -88,6 +97,8 @@
   import { FolderOpened } from '@element-plus/icons-vue'
   import { I18nT } from '@lang/index'
   import { AntigravitySetup } from './setup'
+
+  AntigravitySetup.fetchSkillsDir()
 
   onMounted(() => {
     AntigravitySetup.refreshSkills()
@@ -128,9 +139,6 @@
 
     .skill-actions {
       flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
   }
 </style>

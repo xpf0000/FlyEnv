@@ -72,8 +72,7 @@
                       :show-after="300"
                     >
                       <el-button
-                        size="small"
-                        circle
+                        link
                         :icon="VideoPause"
                         @click="CodexSetup.disablePlugin(item.pluginId)"
                       />
@@ -85,8 +84,7 @@
                       :show-after="300"
                     >
                       <el-button
-                        size="small"
-                        circle
+                        link
                         type="success"
                         :icon="VideoPlay"
                         @click="CodexSetup.enablePlugin(item.pluginId)"
@@ -98,8 +96,7 @@
                       :show-after="300"
                     >
                       <el-button
-                        size="small"
-                        circle
+                        link
                         type="danger"
                         :icon="Delete"
                         @click="confirmUninstall(item.pluginId)"
@@ -109,8 +106,7 @@
                   <template v-else>
                     <el-tooltip :content="I18nT('base.install')" placement="top" :show-after="300">
                       <el-button
-                        size="small"
-                        circle
+                        link
                         type="primary"
                         :icon="Download"
                         @click="installPlugin(item.pluginId)"

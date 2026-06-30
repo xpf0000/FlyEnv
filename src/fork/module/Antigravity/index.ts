@@ -433,7 +433,11 @@ class Antigravity extends Base {
 
   openSkillsDir() {
     return new ForkPromise(async (resolve) => {
-      resolve(join(this.antigravityHome(), 'skills'))
+      const dir = join(this.antigravityHome(), 'skills')
+      try {
+        await mkdirp(dir)
+      } catch {}
+      resolve(dir)
     })
   }
 

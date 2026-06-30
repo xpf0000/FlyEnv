@@ -7,9 +7,9 @@ import {
 import { createRequire } from 'node:module'
 import ConfigManager from './ConfigManager'
 import { execPromise } from '@shared/child-process'
-import { type FSWatcher, rm, stat, existsSync, watch, createReadStream } from 'node:fs'
+import { type FSWatcher, rm, stat, existsSync, watch, createReadStream, constants } from 'node:fs'
 import { join } from 'node:path'
-import { readdir } from 'node:fs/promises'
+import { readdir, access as fsAccess } from 'node:fs/promises'
 import Helper from '../../fork/Helper'
 import { resolve as PathResolve, resolve } from 'path'
 import ZH from '@lang/zh'
@@ -553,6 +553,24 @@ X-GNOME-Autostart-enabled=true`
   fs_existsSync(command: string, key: string, path: string) {
     const exists = existsSync(path)
     this?.mainWindow?.webContents.send('command', command, key, exists)
+  }
+
+  fs_access(command: string, key: string, path: string, mode: 'r' | 'w' | 'rw' = 'r') {
+    path = pathFixedToUnix(path)
+    const accessMode =
+      mode === 'rw'
+        ? constants.R_OK | constants.W_OK
+        : mode === 'w'
+          ? constants.W_OK
+          : constants.R_OK
+
+    fsAccess(path, accessMode)
+      .then(() => {
+        this?.mainWindow?.webContents.send('command', command, key, true)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, false)
+      })
   }
 
   fs_realpath(command: string, key: string, path: string) {

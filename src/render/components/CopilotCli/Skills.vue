@@ -1,8 +1,15 @@
 <template>
   <el-card class="version-manager">
     <template #header>
-      <div class="card-header">
-        <span>{{ I18nT('copilotCli.skills') }}</span>
+      <div class="card-header gap-4">
+        <div class="flex items-center gap-2">
+          <span>{{ I18nT('copilotCli.skills') }}</span>
+          <el-tooltip :content="I18nT('copilotCli.openSkillsDir')" placement="top">
+            <el-button link @click="CopilotCliSetup.openSkillsDir()">
+              <FolderOpened class="w-[18px] h-[18px]" />
+            </el-button>
+          </el-tooltip>
+        </div>
         <el-button
           link
           :disabled="CopilotCliSetup.skillsLoading"
@@ -42,14 +49,34 @@
               </div>
             </div>
             <div class="skill-actions">
-              <el-tooltip
-                v-if="item.path"
-                :content="I18nT('base.copy')"
-                placement="top"
-                :show-after="300"
+              <el-popover
+                effect="dark"
+                popper-class="host-list-poper"
+                placement="left-start"
+                width="auto"
+                :show-arrow="false"
               >
-                <el-button size="small" circle :icon="CopyDocument" @click="copyText(item.path)" />
-              </el-tooltip>
+                <ul v-poper-fix class="host-list-menu">
+                  <li v-if="item.path" @click.stop="CopilotCliSetup.openSkillDir(item)">
+                    <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
+                    <span class="ml-3">{{ I18nT('copilotCli.openSkillDir') }}</span>
+                  </li>
+                  <li v-if="item.path" @click.stop="CopilotCliSetup.revealSkillFile(item)">
+                    <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="13" height="13" />
+                    <span class="ml-3">{{ I18nT('copilotCli.revealSkillFile') }}</span>
+                  </li>
+                  <li @click.stop="CopilotCliSetup.viewSkill(item)">
+                    <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
+                    <span class="ml-3">{{ I18nT('base.preview') }}</span>
+                  </li>
+                </ul>
+
+                <template #reference>
+                  <div class="flex justify-center">
+                    <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+                  </div>
+                </template>
+              </el-popover>
             </div>
           </div>
         </el-scrollbar>
@@ -64,16 +91,9 @@
 
 <script lang="ts" setup>
   import { onMounted } from 'vue'
+  import { FolderOpened } from '@element-plus/icons-vue'
   import { I18nT } from '@lang/index'
   import { CopilotCliSetup } from './setup'
-  import { CopyDocument } from '@element-plus/icons-vue'
-  import { clipboard } from '@/util/NodeFn'
-  import { MessageSuccess } from '@/util/Element'
-
-  const copyText = (text: string) => {
-    clipboard.writeText(text)
-    MessageSuccess(I18nT('base.copySuccess'))
-  }
 
   onMounted(() => {
     CopilotCliSetup.refreshSkills()

@@ -10,10 +10,7 @@ export function getCopilotCliSkillDir(skillPath: string): string {
   return slashIndex >= 0 ? normalized.slice(0, slashIndex) : normalized
 }
 
-export function getCopilotCliSkillsRoot(
-  skills: CopilotCliSkillLike[],
-  homeDir: string
-): string {
+export function getCopilotCliSkillsRoot(skills: CopilotCliSkillLike[], homeDir: string): string {
   const firstPath = skills.find((item) => item.path?.trim())?.path
   if (!firstPath) {
     return `${homeDir}/.copilot`

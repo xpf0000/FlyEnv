@@ -24,14 +24,33 @@
     <div class="w-full h-full overflow-hidden">
       <div v-loading="CopilotCliSetup.mcpLoading" class="p-5 h-full overflow-hidden flex flex-col">
         <el-scrollbar v-if="CopilotCliSetup.mcpServers.length > 0">
-          <el-table :data="CopilotCliSetup.mcpServers" style="width: 100%">
-            <el-table-column prop="name" :label="I18nT('copilotCli.mcpName')" width="180" />
-            <el-table-column prop="type" :label="I18nT('copilotCli.mcpType')" width="100" />
-            <el-table-column
-              prop="commandOrUrl"
-              :label="I18nT('copilotCli.mcpCommandOrUrl')"
-              show-overflow-tooltip
-            />
+          <el-table :data="CopilotCliSetup.mcpServers" style="width: 100%" show-overflow-tooltip>
+            <el-table-column width="180">
+              <template #header>
+                <div class="w-full min-w-0 truncate">{{ I18nT('copilotCli.mcpName') }}</div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.name }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column width="100">
+              <template #header>
+                <div class="w-full min-w-0 truncate">{{ I18nT('copilotCli.mcpType') }}</div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.type }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column>
+              <template #header>
+                <div class="w-full min-w-0 truncate">
+                  {{ I18nT('copilotCli.mcpCommandOrUrl') }}
+                </div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.commandOrUrl }}</div>
+              </template>
+            </el-table-column>
             <el-table-column prop="scope" :label="I18nT('copilotCli.mcpScope')" width="100" />
             <el-table-column :label="I18nT('base.action')" width="100" align="center">
               <template #default="{ row }">

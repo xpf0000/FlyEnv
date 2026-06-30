@@ -1,12 +1,16 @@
 import IPC from '@/util/IPC'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { reactiveBind } from '@/util/Index'
-import { shell, clipboard } from '@/util/NodeFn'
+import { app, shell, clipboard } from '@/util/NodeFn'
 import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import { getCopilotCliSkillDir, getCopilotCliSkillsRoot } from '@shared/copilotCliSkills'
 import { getCopilotCliInstallCommandLines, resolveCopilotCliInstallPlatform } from './install'
 import CommandData from './command.json'
+
+let SkillViewVM: any
 
 export interface CommandItem {
   label: string
@@ -66,6 +70,7 @@ class CopilotCli {
 
   skills: SkillItem[] = []
   skillsLoading = false
+  skillViewTab: 'code' | 'both' | 'preview' = 'both'
 
   commandData: CommandDataType = CommandData as CommandDataType
   currentAction = ''
@@ -278,6 +283,42 @@ class CopilotCli {
       }
       this.skillsLoading = false
     })
+  }
+
+  async openSkillsDir() {
+    const home = await app.getPath('home')
+    const dir = getCopilotCliSkillsRoot(this.skills, home)
+    shell.openPath(dir).catch()
+  }
+
+  openSkillDir(item: SkillItem) {
+    if (!item.path) {
+      return
+    }
+    shell.openPath(getCopilotCliSkillDir(item.path)).catch()
+  }
+
+  revealSkillFile(item: SkillItem) {
+    if (!item.path) {
+      return
+    }
+    shell.showItemInFolder(item.path).catch()
+  }
+
+  viewSkill(item: SkillItem) {
+    const showDrawer = () => {
+      AsyncComponentShow(SkillViewVM, { skill: item }).then()
+    }
+
+    if (!SkillViewVM) {
+      import('./SkillView.vue').then((res) => {
+        SkillViewVM = res.default
+        showDrawer()
+      })
+      return
+    }
+
+    showDrawer()
   }
 
   taskConfirm() {

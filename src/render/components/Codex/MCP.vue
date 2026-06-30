@@ -20,14 +20,31 @@
     <div class="w-full h-full overflow-hidden">
       <div v-loading="CodexSetup.mcpLoading" class="p-5 h-full overflow-hidden flex flex-col">
         <el-scrollbar v-if="CodexSetup.mcpServers.length > 0">
-          <el-table :data="CodexSetup.mcpServers" style="width: 100%">
-            <el-table-column prop="name" :label="I18nT('codex.mcpName')" width="180" />
-            <el-table-column prop="type" :label="I18nT('codex.mcpType')" width="100" />
-            <el-table-column
-              prop="commandOrUrl"
-              :label="I18nT('codex.mcpCommandOrUrl')"
-              show-overflow-tooltip
-            />
+          <el-table :data="CodexSetup.mcpServers" style="width: 100%" show-overflow-tooltip>
+            <el-table-column width="180">
+              <template #header>
+                <div class="w-full min-w-0 truncate">{{ I18nT('codex.mcpName') }}</div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.name }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column width="100">
+              <template #header>
+                <div class="w-full min-w-0 truncate">{{ I18nT('codex.mcpType') }}</div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.type }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column>
+              <template #header>
+                <div class="w-full min-w-0 truncate">{{ I18nT('codex.mcpCommandOrUrl') }}</div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.commandOrUrl }}</div>
+              </template>
+            </el-table-column>
             <el-table-column prop="scope" :label="I18nT('codex.mcpScope')" width="100" />
             <el-table-column :label="I18nT('base.action')" width="100" align="center">
               <template #default="{ row }">
