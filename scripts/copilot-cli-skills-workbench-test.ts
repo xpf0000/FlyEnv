@@ -1,8 +1,5 @@
 import assert from 'node:assert/strict'
-import {
-  getCopilotCliSkillDir,
-  getCopilotCliSkillsRoot
-} from '../src/shared/copilotCliSkills'
+import { getCopilotCliSkillDir, getCopilotCliSkillsRoot } from '../src/shared/copilotCliSkills'
 
 assert.equal(
   getCopilotCliSkillDir('/Users/dev/.copilot/skills/reviewer/SKILL.md'),
