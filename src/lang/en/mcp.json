@@ -4,7 +4,7 @@
   "description": "Run FlyEnv as an MCP Server so AI coding tools (Claude Code, Cursor, Cline, ...) can read your local environment and control services.",
   "service": "Server",
   "clientConfig": "Client Config",
-  "httpConfig": "HTTP (Claude Code / Codex / OpenCode)",
+  "httpConfig": "HTTP (Claude Code / Antigravity CLI / Codex / GitHub Copilot CLI / OpenCode / Kimi)",
   "stdioConfig": "stdio (Cursor / Cline / Windsurf)",
   "tools": "Tools",
   "status": "Status",

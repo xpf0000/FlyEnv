@@ -321,9 +321,9 @@ class Codex {
     })
   }
 
-  addMcp(name: string, type: string, commandOrUrl: string) {
+  addMcp(name: string, type: string, commandOrUrl: string, token = '') {
     return new Promise((resolve) => {
-      IPC.send('app-fork:codex', 'addMcp', name, type, commandOrUrl).then(
+      IPC.send('app-fork:codex', 'addMcp', name, type, commandOrUrl, token).then(
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {

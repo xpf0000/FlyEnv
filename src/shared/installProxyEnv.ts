@@ -12,6 +12,7 @@ export function buildInstallProxyEnvCommands(
   platform: InstallProxyPlatform,
   proxyEnv: Record<string, string | undefined> = {}
 ): string[] {
+  console.log('buildInstallProxyEnvCommands: ', platform, proxyEnv)
   const commands: string[] = []
 
   Object.entries(proxyEnv).forEach(([key, value]) => {

@@ -1,12 +1,16 @@
 import IPC from '@/util/IPC'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { reactiveBind } from '@/util/Index'
 import { shell, clipboard } from '@/util/NodeFn'
 import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import { getAntigravitySkillDir, type AntigravitySkillLike } from '@shared/antigravitySkills'
 import { getAntigravityInstallCommandLines, resolveAntigravityInstallPlatform } from './install'
 import CommandData from './command.json'
+
+let SkillViewVM: any
 
 export interface CommandItem {
   label: string
@@ -44,10 +48,8 @@ export interface McpItem {
   scope: string
 }
 
-export interface SkillItem {
-  name: string
+export interface SkillItem extends AntigravitySkillLike {
   description: string
-  path: string
   enabled: boolean
 }
 
@@ -67,6 +69,7 @@ class Antigravity {
 
   skills: SkillItem[] = []
   skillsLoading = false
+  skillViewTab: 'code' | 'both' | 'preview' = 'both'
 
   commandData: CommandDataType = CommandData as CommandDataType
   currentAction = ''
@@ -154,6 +157,7 @@ class Antigravity {
       installPlatform,
       (window.Server.Proxy ?? {}) as Record<string, string>
     )
+    console.log('command: ', command)
     await execXTerm.send(command, false)
     this.installEnd = true
   }
@@ -234,9 +238,9 @@ class Antigravity {
     })
   }
 
-  addMcp(name: string, type: string, commandOrUrl: string) {
+  addMcp(name: string, type: string, commandOrUrl: string, token = '') {
     return new Promise((resolve) => {
-      IPC.send('app-fork:antigravity', 'addMcp', name, type, commandOrUrl).then(
+      IPC.send('app-fork:antigravity', 'addMcp', name, type, commandOrUrl, token).then(
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
@@ -277,6 +281,41 @@ class Antigravity {
       }
       this.skillsLoading = false
     })
+  }
+
+  openSkillsDir() {
+    IPC.send('app-fork:antigravity', 'openSkillsDir').then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0 && res?.data) {
+        shell.openPath(res.data).catch()
+      } else {
+        MessageError(res?.msg ?? I18nT('base.fail'))
+      }
+    })
+  }
+
+  openSkillDir(item: SkillItem) {
+    shell.openPath(getAntigravitySkillDir(item.path)).catch()
+  }
+
+  revealSkillFile(item: SkillItem) {
+    shell.showItemInFolder(item.path).catch()
+  }
+
+  viewSkill(item: SkillItem) {
+    const showDrawer = () => {
+      AsyncComponentShow(SkillViewVM, { skill: item }).then()
+    }
+
+    if (!SkillViewVM) {
+      import('./SkillView.vue').then((res) => {
+        SkillViewVM = res.default
+        showDrawer()
+      })
+      return
+    }
+
+    showDrawer()
   }
 
   taskConfirm() {

@@ -349,7 +349,9 @@ class Codex extends Base {
           const transport = s?.transport ?? {}
           const type = transport?.type ?? s?.type ?? (transport?.url || s?.url ? 'http' : 'stdio')
           const commandOrUrl =
-            transport?.url ?? s?.url ?? joinMcpCommand(s?.command, Array.isArray(s?.args) ? s.args : [])
+            transport?.url ??
+            s?.url ??
+            joinMcpCommand(s?.command, Array.isArray(s?.args) ? s.args : [])
           list.push({
             name: s?.name ?? '',
             type,

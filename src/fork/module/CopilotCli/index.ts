@@ -272,9 +272,8 @@ class CopilotCli extends Base {
           return
         }
         const bin = this.copilotBin()
-        let cmd: string
         // stdio/local: everything after `--` is the command and its args.
-        cmd = `${bin} mcp add ${name} -- ${commandOrUrl}`
+        const cmd = `${bin} mcp add ${name} -- ${commandOrUrl}`
         const output = await this.runCommand(cmd)
         // The CLI prints an error to stdout/stderr on failure; treat known markers as errors.
         if (/error|failed|usage:/i.test(output) && !/added|success/i.test(output)) {

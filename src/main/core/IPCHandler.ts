@@ -546,13 +546,7 @@ export default class IPCHandler extends EventEmitter {
 
   private handleCheckBrewPort(command: string, key: string) {
     console.log('app-check-brewport checkBrewOrPort !!!')
-    CheckBrewOrPort(() => {
-      this.sendToMainWindow(
-        'APP-Update-Global-Server',
-        'APP-Update-Global-Server',
-        this.deps.serverManager.getGlobalServer()
-      )
-    })
+    CheckBrewOrPort(() => {})
     this.sendToMainWindow(command, key, true)
   }
 

@@ -4,7 +4,7 @@
   "description": "让 FlyEnv 作为 MCP Server 运行，使 AI 编码工具（Claude Code、Cursor、Cline 等）能够读取本地环境并控制服务。",
   "service": "服务",
   "clientConfig": "客户端配置",
-  "httpConfig": "HTTP (Claude Code / Codex / OpenCode)",
+  "httpConfig": "HTTP (Claude Code / Antigravity CLI / Codex / GitHub Copilot CLI / OpenCode / Kimi)",
   "stdioConfig": "stdio (Cursor / Cline / Windsurf)",
   "tools": "工具",
   "status": "状态",

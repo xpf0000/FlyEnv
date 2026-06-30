@@ -1,8 +1,15 @@
 <template>
   <el-card class="version-manager">
     <template #header>
-      <div class="card-header">
-        <span>{{ I18nT('antigravity.skills') }}</span>
+      <div class="card-header gap-4">
+        <div class="flex items-center gap-2">
+          <span>{{ I18nT('antigravity.skills') }}</span>
+          <el-tooltip :content="I18nT('antigravity.openSkillsDir')" placement="top">
+            <el-button link @click="AntigravitySetup.openSkillsDir()">
+              <FolderOpened class="w-[18px] h-[18px]" />
+            </el-button>
+          </el-tooltip>
+        </div>
         <el-button
           link
           :disabled="AntigravitySetup.skillsLoading"
@@ -26,6 +33,9 @@
             <div class="skill-info">
               <div class="skill-title">
                 <span class="name">{{ item.name }}</span>
+                <el-tag v-if="item.builtin" size="small" type="info">
+                  {{ I18nT('antigravity.builtin') }}
+                </el-tag>
               </div>
               <div class="skill-desc">
                 <el-tooltip
@@ -38,8 +48,28 @@
               </div>
             </div>
             <div class="skill-actions">
-              <el-tooltip :content="I18nT('base.copy')" placement="top" :show-after="300">
-                <el-button size="small" circle :icon="CopyDocument" @click="copyText(item.path)" />
+              <el-tooltip
+                :content="I18nT('antigravity.openSkillDir')"
+                placement="top"
+                :show-after="300"
+              >
+                <el-button link @click="AntigravitySetup.openSkillDir(item)">
+                  <yb-icon :svg="import('@/svg/folder.svg?raw')" width="18" height="18" />
+                </el-button>
+              </el-tooltip>
+              <el-tooltip
+                :content="I18nT('antigravity.revealSkillFile')"
+                placement="top"
+                :show-after="300"
+              >
+                <el-button link @click="AntigravitySetup.revealSkillFile(item)">
+                  <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="18" height="18" />
+                </el-button>
+              </el-tooltip>
+              <el-tooltip :content="I18nT('base.info')" placement="top" :show-after="300">
+                <el-button link @click="AntigravitySetup.viewSkill(item)">
+                  <yb-icon :svg="import('@/svg/eye.svg?raw')" width="18" height="18" />
+                </el-button>
               </el-tooltip>
             </div>
           </div>
@@ -55,16 +85,9 @@
 
 <script lang="ts" setup>
   import { onMounted } from 'vue'
+  import { FolderOpened } from '@element-plus/icons-vue'
   import { I18nT } from '@lang/index'
   import { AntigravitySetup } from './setup'
-  import { CopyDocument } from '@element-plus/icons-vue'
-  import { clipboard } from '@/util/NodeFn'
-  import { MessageSuccess } from '@/util/Element'
-
-  const copyText = (text: string) => {
-    clipboard.writeText(text)
-    MessageSuccess(I18nT('base.copySuccess'))
-  }
 
   onMounted(() => {
     AntigravitySetup.refreshSkills()
@@ -86,6 +109,7 @@
       .skill-title {
         display: flex;
         align-items: center;
+        gap: 8px;
 
         .name {
           font-weight: 500;
@@ -104,6 +128,9 @@
 
     .skill-actions {
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
   }
 </style>

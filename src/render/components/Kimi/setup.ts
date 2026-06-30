@@ -37,6 +37,13 @@ export interface SessionGroup {
   sessions: SessionItem[]
 }
 
+export interface McpItem {
+  name: string
+  type: string
+  commandOrUrl: string
+  scope: string
+}
+
 class Kimi {
   xterm: XTerm | undefined
   installing = false
@@ -47,6 +54,8 @@ class Kimi {
 
   configPaths: Record<string, string> = {}
   sessions: SessionItem[] = []
+  mcpServers: McpItem[] = []
+  mcpLoading = false
 
   commandData: CommandDataType = CommandData as CommandDataType
   currentAction = ''
@@ -190,6 +199,49 @@ class Kimi {
           MessageError(res?.msg ?? I18nT('base.fail'))
         }
         resolve(true)
+      })
+    })
+  }
+
+  refreshMcp() {
+    this.mcpLoading = true
+    IPC.send('app-fork:kimi', 'listMcp').then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        this.mcpServers = res?.data ?? []
+      }
+      this.mcpLoading = false
+    })
+  }
+
+  addMcp(name: string, type: string, commandOrUrl: string, token = '') {
+    return new Promise((resolve) => {
+      IPC.send('app-fork:kimi', 'addMcp', name, type, commandOrUrl, token).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          if (res?.code === 0) {
+            MessageSuccess(I18nT('base.success'))
+            this.refreshMcp()
+          } else {
+            MessageError(res?.msg ?? I18nT('base.fail'))
+          }
+          resolve(res?.code === 0)
+        }
+      )
+    })
+  }
+
+  removeMcp(name: string) {
+    return new Promise((resolve) => {
+      IPC.send('app-fork:kimi', 'removeMcp', name).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          MessageSuccess(I18nT('base.success'))
+          this.refreshMcp()
+        } else {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+        }
+        resolve(res?.code === 0)
       })
     })
   }

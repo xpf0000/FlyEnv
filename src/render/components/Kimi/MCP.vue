@@ -3,36 +3,32 @@
     <template #header>
       <div class="card-header">
         <div class="left flex items-center">
-          <span>{{ I18nT('antigravity.mcp') }}</span>
-          <el-tooltip :content="I18nT('antigravity.addServer')" placement="top" :show-after="300">
+          <span>{{ I18nT('kimi.mcp') }}</span>
+          <el-tooltip :content="I18nT('kimi.addServer')" placement="top" :show-after="300">
             <el-button link class="ml-3" :icon="Plus" @click="openAdd" />
           </el-tooltip>
         </div>
-        <el-button
-          link
-          :disabled="AntigravitySetup.mcpLoading"
-          @click="AntigravitySetup.refreshMcp()"
-        >
+        <el-button link :disabled="KimiSetup.mcpLoading" @click="KimiSetup.refreshMcp()">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="w-[24px] h-[24px]"
-            :class="{ 'fa-spin': AntigravitySetup.mcpLoading }"
+            :class="{ 'fa-spin': KimiSetup.mcpLoading }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
     <div class="w-full h-full overflow-hidden">
-      <div v-loading="AntigravitySetup.mcpLoading" class="p-5 h-full overflow-hidden flex flex-col">
-        <el-scrollbar v-if="AntigravitySetup.mcpServers.length > 0">
-          <el-table :data="AntigravitySetup.mcpServers" style="width: 100%">
-            <el-table-column prop="name" :label="I18nT('antigravity.mcpName')" width="180" />
-            <el-table-column prop="type" :label="I18nT('antigravity.mcpType')" width="100" />
+      <div v-loading="KimiSetup.mcpLoading" class="p-5 h-full overflow-hidden flex flex-col">
+        <el-scrollbar v-if="KimiSetup.mcpServers.length > 0">
+          <el-table :data="KimiSetup.mcpServers" style="width: 100%">
+            <el-table-column prop="name" :label="I18nT('kimi.mcpName')" width="180" />
+            <el-table-column prop="type" :label="I18nT('kimi.mcpType')" width="100" />
             <el-table-column
               prop="commandOrUrl"
-              :label="I18nT('antigravity.mcpCommandOrUrl')"
+              :label="I18nT('kimi.mcpCommandOrUrl')"
               show-overflow-tooltip
             />
-            <el-table-column prop="scope" :label="I18nT('antigravity.mcpScope')" width="100" />
+            <el-table-column prop="scope" :label="I18nT('kimi.mcpScope')" width="100" />
             <el-table-column :label="I18nT('base.action')" width="100" align="center">
               <template #default="{ row }">
                 <el-button link type="danger" @click="confirmRemove(row.name)">{{
@@ -42,33 +38,25 @@
             </el-table-column>
           </el-table>
         </el-scrollbar>
-        <el-empty v-else-if="!AntigravitySetup.mcpLoading" />
+        <el-empty v-else-if="!KimiSetup.mcpLoading" />
       </div>
     </div>
 
-    <el-dialog
-      v-model="addVisible"
-      :title="I18nT('antigravity.addServer')"
-      width="500"
-      append-to-body
-    >
+    <el-dialog v-model="addVisible" :title="I18nT('kimi.addServer')" width="500" append-to-body>
       <el-form label-position="top" @submit.prevent>
-        <el-form-item :label="I18nT('antigravity.mcpName')">
+        <el-form-item :label="I18nT('kimi.mcpName')">
           <el-input v-model="form.name" placeholder="my-server" />
         </el-form-item>
-        <el-form-item :label="I18nT('antigravity.mcpType')">
+        <el-form-item :label="I18nT('kimi.mcpType')">
           <el-radio-group v-model="form.type">
-            <el-radio-button value="stdio">stdio</el-radio-button>
             <el-radio-button value="http">http</el-radio-button>
+            <el-radio-button value="sse">sse</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="I18nT('antigravity.mcpCommandOrUrl')">
-          <el-input
-            v-model="form.commandOrUrl"
-            :placeholder="form.type === 'stdio' ? 'npx my-mcp-server' : 'https://example.com/mcp'"
-          />
+        <el-form-item :label="I18nT('kimi.mcpCommandOrUrl')">
+          <el-input v-model="form.commandOrUrl" placeholder="https://example.com/mcp" />
         </el-form-item>
-        <el-form-item v-if="isRemoteType" :label="I18nT('mcp.token')">
+        <el-form-item :label="I18nT('mcp.token')">
           <el-input v-model="form.token" placeholder="Bearer token" show-password />
         </el-form-item>
       </el-form>
@@ -83,33 +71,32 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, reactive, computed, onMounted } from 'vue'
-  import { I18nT } from '@lang/index'
-  import { AntigravitySetup } from './setup'
-  import { ElMessageBox } from 'element-plus'
+  import { computed, onMounted, reactive, ref } from 'vue'
   import { Plus } from '@element-plus/icons-vue'
+  import { ElMessageBox } from 'element-plus'
+  import { I18nT } from '@lang/index'
+  import { KimiSetup } from './setup'
 
   const addVisible = ref(false)
   const form = reactive({
     name: '',
-    type: 'stdio',
+    type: 'http',
     commandOrUrl: '',
     token: ''
   })
 
   const canSubmit = computed(() => form.name.trim() && form.commandOrUrl.trim())
-  const isRemoteType = computed(() => ['http', 'sse'].includes(form.type))
 
   const openAdd = () => {
     form.name = ''
-    form.type = 'stdio'
+    form.type = 'http'
     form.commandOrUrl = ''
     form.token = ''
     addVisible.value = true
   }
 
   const submitAdd = async () => {
-    const ok = await AntigravitySetup.addMcp(
+    const ok = await KimiSetup.addMcp(
       form.name.trim(),
       form.type,
       form.commandOrUrl.trim(),
@@ -127,12 +114,12 @@
       type: 'warning'
     })
       .then(() => {
-        AntigravitySetup.removeMcp(name)
+        KimiSetup.removeMcp(name)
       })
       .catch(() => {})
   }
 
   onMounted(() => {
-    AntigravitySetup.refreshMcp()
+    KimiSetup.refreshMcp()
   })
 </script>

@@ -59,6 +59,9 @@
             :placeholder="form.type === 'stdio' ? 'npx my-mcp-server' : 'https://example.com/mcp'"
           />
         </el-form-item>
+        <el-form-item v-if="isRemoteType" :label="I18nT('mcp.token')">
+          <el-input v-model="form.token" placeholder="Bearer token" show-password />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="addVisible = false">{{ I18nT('base.cancel') }}</el-button>
@@ -81,20 +84,28 @@
   const form = reactive({
     name: '',
     type: 'stdio',
-    commandOrUrl: ''
+    commandOrUrl: '',
+    token: ''
   })
 
   const canSubmit = computed(() => form.name.trim() && form.commandOrUrl.trim())
+  const isRemoteType = computed(() => ['http', 'sse'].includes(form.type))
 
   const openAdd = () => {
     form.name = ''
     form.type = 'stdio'
     form.commandOrUrl = ''
+    form.token = ''
     addVisible.value = true
   }
 
   const submitAdd = async () => {
-    const ok = await CodexSetup.addMcp(form.name.trim(), form.type, form.commandOrUrl.trim())
+    const ok = await CodexSetup.addMcp(
+      form.name.trim(),
+      form.type,
+      form.commandOrUrl.trim(),
+      form.token.trim()
+    )
     if (ok) {
       addVisible.value = false
     }

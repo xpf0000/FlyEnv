@@ -14,7 +14,13 @@
         <p class="text-sm text-gray-500 mb-3">{{ I18nT('mcp.configHint') }}</p>
         <el-radio-group v-model="httpClient" size="small" class="mb-3">
           <el-radio-button label="Claude Code" :value="'claudeCode'">Claude Code</el-radio-button>
+          <el-radio-button label="Antigravity CLI" :value="'antigravity'"
+            >Antigravity CLI</el-radio-button
+          >
           <el-radio-button label="Codex" :value="'codex'">Codex</el-radio-button>
+          <el-radio-button label="GitHub Copilot CLI" :value="'copilotCli'"
+            >GitHub Copilot CLI</el-radio-button
+          >
           <el-radio-button label="OpenCode" :value="'openCode'">OpenCode</el-radio-button>
           <el-radio-button label="Kimi" :value="'kimi'">Kimi</el-radio-button>
         </el-radio-group>
@@ -39,8 +45,14 @@
           <el-button @click="add('claudeCode')">
             {{ I18nT('mcp.addToClient', { client: 'Claude Code' }) }}
           </el-button>
+          <el-button @click="add('antigravity')">
+            {{ I18nT('mcp.addToClient', { client: 'Antigravity CLI' }) }}
+          </el-button>
           <el-button @click="add('codex')">
             {{ I18nT('mcp.addToClient', { client: 'Codex' }) }}
+          </el-button>
+          <el-button @click="add('copilotCli')">
+            {{ I18nT('mcp.addToClient', { client: 'GitHub Copilot CLI' }) }}
           </el-button>
           <el-button @click="add('openCode')">
             {{ I18nT('mcp.addToClient', { client: 'OpenCode' }) }}
@@ -81,7 +93,9 @@
   const activeTab = ref('http')
   const httpClient = ref<MCPHttpClientFlag>('claudeCode')
 
-  const add = (flag: 'claudeCode' | 'codex' | 'openCode' | 'kimi') => {
+  const add = (
+    flag: 'claudeCode' | 'codex' | 'openCode' | 'kimi' | 'antigravity' | 'copilotCli'
+  ) => {
     MCPSetup.addToClient(flag)
   }
 </script>

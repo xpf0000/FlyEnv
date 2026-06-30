@@ -6,6 +6,7 @@ import Antigravity from '../src/fork/module/Antigravity'
 import Codex from '../src/fork/module/Codex'
 import CopilotCli from '../src/fork/module/CopilotCli'
 import Kimi from '../src/fork/module/Kimi'
+import { buildHttpClientConfigSnippet } from '../src/shared/mcpClientConfig'
 
 async function runFork<T>(promiseLike: Promise<T>): Promise<T> {
   return await promiseLike
@@ -35,7 +36,7 @@ async function testAntigravityParsesServerUrlAndSharedScope() {
       )
     )
 
-    const list = await runFork((Antigravity as any).listMcp())
+    const list = (await runFork((Antigravity as any).listMcp())) as any[]
     assert.equal(list[0]?.type, 'http')
     assert.equal(list[0]?.commandOrUrl, 'http://127.0.0.1:7682')
     assert.equal(list[0]?.scope, 'shared')
@@ -72,7 +73,7 @@ async function testCodexParsesNestedTransportOutput() {
       }
     ])
   try {
-    const list = await runFork((Codex as any).listMcp())
+    const list = (await runFork((Codex as any).listMcp())) as any[]
     assert.equal(list[0]?.type, 'streamable_http')
     assert.equal(list[0]?.commandOrUrl, 'http://127.0.0.1:7682')
     assert.equal(list[0]?.scope, 'user')
@@ -99,7 +100,7 @@ async function testCopilotUsesSourceAndConfigFileForRemoteAuth() {
     })
   try {
     mkdirSync(root, { recursive: true })
-    const list = await runFork((CopilotCli as any).listMcp())
+    const list = (await runFork((CopilotCli as any).listMcp())) as any[]
     assert.equal(list[0]?.scope, 'user')
 
     await runFork((CopilotCli as any).addMcp('flyenv', 'http', 'http://127.0.0.1:7682', 'abc'))
@@ -129,7 +130,7 @@ async function testKimiListsAndWritesRemoteServersWithoutEmptyBearer() {
     assert.equal(config.mcpServers.flyenv.url, 'http://127.0.0.1:7682')
     assert.equal('headers' in config.mcpServers.flyenv, false)
 
-    const list = await runFork((Kimi as any).listMcp())
+    const list = (await runFork((Kimi as any).listMcp())) as any[]
     assert.equal(list[0]?.type, 'http')
     assert.equal(list[0]?.scope, 'user')
 
@@ -146,9 +147,28 @@ async function testKimiListsAndWritesRemoteServersWithoutEmptyBearer() {
   }
 }
 
+function testSnippetGenerationOmitsEmptyBearerAndSupportsNewClients() {
+  const antigravitySnippet = buildHttpClientConfigSnippet(
+    'antigravity' as any,
+    'http://127.0.0.1:7682',
+    ''
+  )
+  assert.match(antigravitySnippet, /serverUrl/)
+  assert.doesNotMatch(antigravitySnippet, /Authorization/)
+
+  const copilotSnippet = buildHttpClientConfigSnippet(
+    'copilotCli' as any,
+    'http://127.0.0.1:7682',
+    'abc'
+  )
+  assert.match(copilotSnippet, /"type": "http"/)
+  assert.match(copilotSnippet, /"Authorization": "Bearer abc"/)
+}
+
 await testAntigravityParsesServerUrlAndSharedScope()
 await testCodexParsesNestedTransportOutput()
 await testCopilotUsesSourceAndConfigFileForRemoteAuth()
 await testKimiListsAndWritesRemoteServersWithoutEmptyBearer()
+testSnippetGenerationOmitsEmptyBearerAndSupportsNewClients()
 
-console.log('ai-cli-mcp-integration-test: fork ok')
+console.log('ai-cli-mcp-integration-test: snippet ok')

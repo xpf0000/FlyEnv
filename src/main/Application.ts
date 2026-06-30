@@ -29,6 +29,8 @@ import IPCHandler from './core/IPCHandler'
 import { startMcpOnLaunchIfNeeded } from './core/MCPLifecycle'
 import { CheckBrewOrPort } from './utils/CheckBrew'
 import { MakeServerDir } from './utils/ServerPath'
+import { reactive, watch } from 'vue'
+import { debounce } from 'lodash-es'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -64,6 +66,8 @@ export default class Application extends EventEmitter {
     this.initLang()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
+
+    this.serverManager.setProxy()
     this.serverManager.initServerDir()
 
     this.windowManager = new WindowManager({
@@ -106,10 +110,11 @@ export default class Application extends EventEmitter {
    * 设置初始全局配置
    */
   private setupInitialConfig() {
-    global.Server = {
+    global.Server = reactive({
       Local: getLocale(),
       APPVersion: app.getVersion()
-    } as any
+    }) as any
+    watch(global.Server, debounce(this.sendGlobalServerUpdate, 350).bind(this))
     this.isReady = false
   }
 
@@ -366,9 +371,7 @@ export default class Application extends EventEmitter {
     AppNodeFnManager.mainWindow = win
 
     console.log('showPage checkBrewOrPort !!!')
-    CheckBrewOrPort(() => {
-      this.sendGlobalServerUpdate()
-    })
+    CheckBrewOrPort(() => {})
 
     AppLog.init(this.mainWindow)
     this.sendGlobalServerUpdate()
@@ -411,6 +414,9 @@ export default class Application extends EventEmitter {
    * 发送全局服务器配置更新
    */
   private sendGlobalServerUpdate() {
+    if (!this.windowManager || !this.mainWindow || !this.serverManager) {
+      return
+    }
     this.windowManager.sendCommandTo(
       this.mainWindow!,
       'APP-Update-Global-Server',
