@@ -15,7 +15,6 @@
   "rootPasswordChange": "Vaihda {user} salasanaa",
   "passwordNoEmpty": "root salasana ei voi olla tyhjä",
   "passwordFormatError": "Tietokannan salasana ei voi sisältää kiinalaisia tai erikoismerkkejä",
-  "resetPassword": "Nollaa salasana",
   "savePassword": "Päivitä salasana",
   "resetPasswordTips": "Tämä toiminto muuttaa tietokannan juurikäyttäjän salasanaa",
   "savePasswordTips": "Päivittää vain FlyEnviin tallennetun salasanan, ei muuta tietokannan käyttäjän salasanaa. Tätä salasanaa käytetään pääasiassa turvallisesti pysäyttämään {app} instanssit.",

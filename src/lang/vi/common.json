@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Mô hình"
+    "model": "Mô hình",
+    "name": "Tên",
+    "status": "Trạng thái",
+    "workingDirectory": "Thư mục làm việc",
+    "action": "Hành động",
+    "comment": "Bình luận",
+    "source": "Nguồn"
   },
   "action": {
-    "enable": "Bật",
+    "enable": "Kích hoạt",
     "disable": "Tắt",
     "resume": "Khôi phục",
-    "uninstall": "Gỡ cài đặt"
+    "uninstall": "Gỡ cài đặt",
+    "copy": "Sao chép",
+    "preview": "Xem trước",
+    "search": "Tìm kiếm",
+    "clear": "Xóa",
+    "resetPassword": "Đặt lại mật khẩu",
+    "delete": "Xóa"
   },
   "state": {
     "running": "Dang chay",
@@ -31,6 +43,11 @@
     "addServer": "Thêm máy chủ"
   },
   "category": {
-    "basic": "Cơ bản"
+    "basic": "Cơ bản",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Thông tin cơ bản",
+    "configuration": "Cấu hình",
+    "favorites": "Yêu thích"
   }
 }

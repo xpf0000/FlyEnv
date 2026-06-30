@@ -66,7 +66,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="I18nT('base.action')" width="120">
+      <el-table-column align="center" :label="I18nT('common.label.action')" width="120">
         <template #default="scope">
           <el-button
             type="primary"

@@ -15,7 +15,6 @@
   "rootPasswordChange": "{user} jelszó módosítása",
   "passwordNoEmpty": "A root jelszó nem lehet üres",
   "passwordFormatError": "Az adatbázis jelszava nem tartalmazhat kínai vagy speciális karaktereket",
-  "resetPassword": "Jelszó visszaállítása",
   "savePassword": "Jelszó frissítése",
   "resetPasswordTips": "Ez a művelet megváltoztatja az adatbázis root felhasználójának jelszavát",
   "savePasswordTips": "Csak a FlyEnv-ben tárolt jelszót frissíti, nem változtatja meg az adatbázis root felhasználójának jelszavát. Ez a jelszó főként a(z) {app} példányok biztonságos leállításához használatos.",

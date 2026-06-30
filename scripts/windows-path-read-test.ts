@@ -56,7 +56,7 @@ async function main() {
       throw new Error('direct read failed')
     }
   })
-  await assert.rejects(directFailureFetch(true), /direct read failed/)
+  await assert.rejects(() => Promise.resolve(directFailureFetch(true)), /direct read failed/)
   assert.equal(readFailures, 1)
 
   console.log('windows path read test passed')

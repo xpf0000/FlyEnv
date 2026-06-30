@@ -23,7 +23,7 @@
         <span class="ml-3">{{ I18nT('base.slowLog') }}</span>
       </li>
       <li @click.stop="action('del')">
-        <span class="ml-3">{{ I18nT('base.del') }}</span>
+        <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
       </li>
     </ul>
     <template #reference>

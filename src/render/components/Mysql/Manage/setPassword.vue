@@ -22,7 +22,7 @@
         <template v-if="showResetBtn">
           <el-tooltip :content="I18nT('mysql.resetPasswordTips')">
             <el-button :loading="updating" :disabled="updating" type="warning" @click="doRest">{{
-              I18nT('mysql.resetPassword')
+              I18nT('common.action.resetPassword')
             }}</el-button>
           </el-tooltip>
         </template>

@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Doar un singur serviciu poate rula o dată",
   "moduleExecItem": "Element de execuție modul",
   "module": {
-    "name": "Nume",
     "path": "Calea fișierului",
-    "comment": "Comentariu",
     "exec": "Rulează",
     "command": "Comanda",
     "commandFile": "Fişier",

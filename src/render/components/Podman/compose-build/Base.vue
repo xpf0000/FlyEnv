@@ -1,6 +1,6 @@
 <template>
   <el-form ref="formRef" :model="form" label-width="110px" label-position="top" class="pt-2">
-    <el-form-item :label="I18nT('base.name')" prop="name" required :show-message="false">
+    <el-form-item :label="I18nT('common.label.name')" prop="name" required :show-message="false">
       <el-input v-model="form.name" />
     </el-form-item>
     <el-form-item
@@ -18,7 +18,7 @@
     <el-form-item :label="I18nT('host.projectName')" prop="flag">
       <el-input v-model="form.flag" placeholder="docker-compose -p xxxx" />
     </el-form-item>
-    <el-form-item :label="I18nT('host.comment')" prop="comment">
+    <el-form-item :label="I18nT('common.label.comment')" prop="comment">
       <el-input v-model="form.comment" type="textarea" :rows="4" />
     </el-form-item>
     <el-form-item :label="I18nT('podman.DockerImageMirror')" prop="flag">

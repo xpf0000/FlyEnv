@@ -9,7 +9,7 @@
         <el-input
           v-model="search"
           size="small"
-          :placeholder="I18nT('base.placeholderSearch')"
+          :placeholder="I18nT('common.action.search')"
           clearable
           :prefix-icon="Search"
         ></el-input>
@@ -37,7 +37,7 @@
               <el-dropdown-item
                 :icon="Delete"
                 @click.stop="CodeLibrary.delGroup(langType, currentGroup!)"
-                >{{ I18nT('base.del') }}</el-dropdown-item
+                >{{ I18nT('common.action.delete') }}</el-dropdown-item
               >
             </el-dropdown-menu>
           </template>
@@ -126,7 +126,7 @@
                       I18nT('tools.MoveToTop')
                     }}</el-dropdown-item>
                     <el-dropdown-item :icon="Delete" @click.stop="doDelItems(item)">{{
-                      I18nT('base.del')
+                      I18nT('common.action.delete')
                     }}</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>

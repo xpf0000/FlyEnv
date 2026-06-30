@@ -2,6 +2,10 @@ import BaseDialog from '@/components/YbBaseDialog/dialog'
 export {}
 type CallbackFn = (...args: any) => void
 declare module 'vue' {
+  export interface GlobalComponents {
+    YbIcon: typeof import('@/components/VueSvgIcon/use.vue')['default']
+  }
+
   interface ComponentCustomProperties {
     callback?: CallbackFn | null
     $baseDialog(componant: any): BaseDialog
@@ -26,4 +30,12 @@ declare module 'vue' {
     installExtensionDir?: any
     dropNode?: any
   }
+}
+
+declare module 'svg-inline-loader' {
+  export function getExtractedSVG(svg: string, options?: Record<string, unknown>): string
+}
+
+declare global {
+  const YbIcon: typeof import('@/components/VueSvgIcon/use.vue')['default']
 }

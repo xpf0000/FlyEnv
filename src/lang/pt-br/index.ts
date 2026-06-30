@@ -47,6 +47,7 @@ import common from './common.json'
 import mcp from './mcp.json'
 export default {
   'pt-br': {
+    common,
     kimi,
     claudeCode,
     codex,

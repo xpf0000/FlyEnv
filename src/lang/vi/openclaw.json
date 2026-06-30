@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "Trang chủ OpenClaw",
   "OpenClawLocalDashboard": "Bảng điều khiển OpenClaw",
   "category": {
-    "basicInfo": "Thông tin cơ bản",
-    "configuration": "Cấu hình",
     "gateway": "Dịch vụ Cổng kết nối",
     "agents": "Tác nhân (Agents)",
     "browser": "Trình duyệt",

@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Solo un servicio puede estar en ejecución a la vez",
   "moduleExecItem": "Elemento de Ejecución del Módulo",
   "module": {
-    "name": "Nombre",
     "path": "Ruta del Archivo",
-    "comment": "Comentario",
     "exec": "Ejecutar",
     "command": "Comando",
     "commandFile": "Archivo",

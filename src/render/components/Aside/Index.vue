@@ -84,11 +84,11 @@
               >{{ item.label }}</div
             >
             <template v-for="(i, _j) in item.sub" :key="_j">
-              <template v-if="i?.isCustomer">
-                <CustomerModule :item="i as any" />
+              <template v-if="isCustomerModule(i)">
+                <CustomerModule :item="i" />
               </template>
               <template v-else>
-                <component :is="i.aside"></component>
+                <component :is="getAsideComponent(i)"></component>
               </template>
             </template>
           </template>
@@ -120,11 +120,12 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AppModules } from '@/core/App'
   import { AppServiceModule, type AppServiceModuleItem } from '@/core/ASide'
-  import { type AllAppModule, AppModuleTypeList } from '@/core/type'
+  import { type AllAppModule, type AppModuleItem, AppModuleTypeList } from '@/core/type'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { getGroupManagedTypeFlags } from '@/components/Aside/groupService'
   import { AppCustomerModule } from '@/core/Module'
   import CustomerModule from '@/components/CustomerModule/aside.vue'
+  import type { ModuleCustomer } from '@/core/ModuleCustomer'
   import type { CallbackFn } from '@shared/app'
   import { BrewStore } from '@/store/brew'
   import { ElMessageBox } from 'element-plus'
@@ -133,6 +134,28 @@
 
   const appStore = AppStore()
   const brewStore = BrewStore()
+
+  type AsideEntry = AppModuleItem | ModuleCustomer
+  type AsideGroup = {
+    label: string
+    sub: AsideEntry[]
+  }
+
+  const isCustomerModule = (item: AsideEntry): item is ModuleCustomer => {
+    return 'isCustomer' in item
+  }
+
+  const isBuiltInModule = (item: AsideEntry): item is AppModuleItem => {
+    return 'aside' in item
+  }
+
+  const isBuiltInServiceModule = (item: AsideEntry): item is AppModuleItem => {
+    return isBuiltInModule(item) && (!!item.isService || !!item.isTray)
+  }
+
+  const getAsideComponent = (item: AsideEntry) => {
+    return isBuiltInModule(item) ? item.aside : undefined
+  }
 
   appStore.chechAutoHide()
 
@@ -170,7 +193,7 @@
 
   const firstItem = computed(() => {
     const m = 'site'
-    const sub = platformAppModules.value
+    const sub: AsideEntry[] = platformAppModules.value
       .filter((a) => a?.moduleType === m)
       .filter((a) => showItem.value?.[a.typeFlag] !== false)
     sub.sort((a, b) => {
@@ -180,7 +203,7 @@
       if (lowerA > lowerB) return 1
       return 0
     })
-    const customer: any = AppCustomerModule.module
+    const customer = AppCustomerModule.module
       .filter((f) => f.moduleType === m)
       .filter((a) => showItem.value?.[a.typeFlag] !== false)
     console.log('customer: ', customer, m)
@@ -196,7 +219,7 @@
   const allList = computed(() => {
     return AppModuleTypeList.filter((f) => f !== 'site')
       .map((m) => {
-        const sub = platformAppModules.value
+        const sub: AsideEntry[] = platformAppModules.value
           .filter((a) => showItem.value?.[a.typeFlag] !== false)
           .filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
         sub.sort((a, b) => {
@@ -206,7 +229,7 @@
           if (lowerA > lowerB) return 1
           return 0
         })
-        const customer: any = AppCustomerModule.module
+        const customer = AppCustomerModule.module
           .filter((f) => f.moduleType === m)
           .filter((a) => showItem.value?.[a.typeFlag] !== false)
         sub.unshift(...customer)
@@ -234,8 +257,10 @@
       .filter((s) => s.sub.length > 0)
   })
 
-  const allModule = computed(() => {
-    return [firstItem.value, ...customerList.value, ...allList.value].filter((f) => !!f)
+  const allModule = computed<AsideGroup[]>(() => {
+    return [firstItem.value, ...customerList.value, ...allList.value].filter(
+      (f): f is AsideGroup => !!f
+    )
   })
 
   const isRouteCurrent = computed(() => {
@@ -265,12 +290,12 @@
       if (!v.current && v.module > 0) {
         const item = allModule.value[0]
         if (item) {
-          const sub: any = item?.sub?.[0]
+          const sub = item?.sub?.[0]
           if (!sub) {
             return
           }
           console.log('sub: ', sub)
-          if (sub?.isCustomer) {
+          if (isCustomerModule(sub)) {
             const path = `/${sub.typeFlag}`
             AppCustomerModule.currentModule = AppCustomerModule.module.find(
               (f) => f.id === sub.typeFlag
@@ -303,11 +328,13 @@
       platformAppModules.value as any,
       showItem.value,
       AppServiceModule as any
-    )
+    ) as AllAppModule[]
   })
 
   const groupManagedServiceModules = computed(() => {
-    return groupManagedTypeFlags.value.map((f) => AppServiceModule?.[f]).filter((f) => !!f)
+    return groupManagedTypeFlags.value
+      .map((f) => AppServiceModule[f])
+      .filter((f): f is AppServiceModuleItem => !!f)
   })
 
   /**
@@ -467,9 +494,9 @@
         const service = allModule.value
           .map((m) => m.sub)
           .flat()
-          .filter((f: any) => !f.isCustomer && (f.isService || f.isTray))
+          .filter(isBuiltInServiceModule)
           .map((m) => {
-            const key = m?.typeFlag ?? m?.id ?? ''
+            const key = m.typeFlag
             const item = obj[key]
             delete obj[key]
             const icon = m.icon
@@ -477,9 +504,9 @@
               if (typeof icon === 'string') {
                 resolve({
                   ...item,
-                  id: m?.id,
-                  label: typeof m.label === 'function' ? m.label() : m.label,
-                  typeFlag: m?.typeFlag,
+                  id: m.typeFlag,
+                  label: typeof m.label === 'function' ? m.label() : (m.label ?? m.typeFlag),
+                  typeFlag: m.typeFlag,
                   icon
                 })
               } else {
@@ -487,9 +514,9 @@
                 icon.then((res: any) => {
                   resolve({
                     ...item,
-                    id: m?.id,
-                    label: typeof m.label === 'function' ? m.label() : m.label,
-                    typeFlag: m?.typeFlag,
+                    id: m.typeFlag,
+                    label: typeof m.label === 'function' ? m.label() : (m.label ?? m.typeFlag),
+                    typeFlag: m.typeFlag,
                     icon: res.default
                   })
                 })

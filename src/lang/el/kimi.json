@@ -6,7 +6,6 @@
   "defaultThinking": "Thinking Mode",
   "defaultPlanMode": "Plan Mode",
   "telemetry": "Telemetry",
-  "mcp": "MCP",
   "cmd": {
     "export": "Export a session to ZIP"
   }

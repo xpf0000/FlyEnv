@@ -1,7 +1,6 @@
 {
   "sdkDetails": "Dettagli SDK",
   "sdkNotFound": "Flutter SDK non trovato. Aggiungere una versione nella scheda Versione.",
-  "source": "Fonte",
   "searchDirs": "Cerca Dirs",
   "scanned": "{0} scansionato",
   "show": "Mostra",
@@ -40,7 +39,6 @@
   "desktopBundleId": "ID bundle desktop",
   "packagesPubdev": "Pacchetti (pub.dev)",
   "searchPackagePlaceholder": "Pacchetto di ricerca (es. dio)",
-  "search": "Cerca",
   "latest": "più recente",
   "noDescription": "Nessuna descrizione",
   "add": "Aggiungi",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "creazione flutter fallita",
   "flutterProjectSettings": "Impostazioni Progetto Flutter",
   "save": "Salva",
-  "preview": "Anteprima",
   "previewChanges": "Anteprima Modifiche",
   "projectTarget": "Project target",
   "projectIdentity": "Identità del progetto",

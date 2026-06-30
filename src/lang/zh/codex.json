@@ -11,6 +11,5 @@
   "pluginEnabled": "插件已安装",
   "pluginDisabled": "插件已移除",
   "pluginUninstalled": "插件已移除",
-  "uninstallConfirm": "确定要移除插件 \"{name}\" 吗?",
-  "mcp": "MCP"
+  "uninstallConfirm": "确定要移除插件 \"{name}\" 吗?"
 }

@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "Αρχική Σελίδα OpenClaw",
   "OpenClawLocalDashboard": "Πίνακας Ελέγχου OpenClaw",
   "category": {
-    "basicInfo": "Βασικές Πληροφορίες",
-    "configuration": "Διαμόρφωση",
     "gateway": "Υπηρεσία Πύλης",
     "agents": "Πράκτορες",
     "browser": "Περιηγητής",

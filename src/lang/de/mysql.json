@@ -15,7 +15,6 @@
   "rootPasswordChange": "{user} Passwort ändern",
   "passwordNoEmpty": "root-Passwort darf nicht leer sein",
   "passwordFormatError": "Das Datenbankpasswort darf keine chinesischen oder Sonderzeichen enthalten",
-  "resetPassword": "Passwort zurücksetzen",
   "savePassword": "Passwort aktualisieren",
   "resetPasswordTips": "Dieser Vorgang wird das Passwort des Datenbank-Root-Benutzers ändern",
   "savePasswordTips": "Aktualisiert nur das in FlyEnv gespeicherte Passwort, ändert nicht das root-Passwort der Datenbank. Dieses Passwort wird hauptsächlich verwendet, um {app} Instanzen sicher zu beenden.",

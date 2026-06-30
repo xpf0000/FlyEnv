@@ -5,7 +5,7 @@
         <div class="left flex items-center">
           <span>{{ I18nT('claudeCode.plugins') }}</span>
           <el-radio-group v-model="pluginTab" size="small" class="ml-4">
-            <el-radio-button value="installed">{{ I18nT('claudeCode.installed') }}</el-radio-button>
+            <el-radio-button value="installed">{{ I18nT('common.state.installed') }}</el-radio-button>
             <el-radio-button value="available">{{ I18nT('claudeCode.available') }}</el-radio-button>
           </el-radio-group>
         </div>
@@ -51,7 +51,7 @@
                       :type="item.enabled ? 'success' : 'warning'"
                       class="ml-2"
                       >{{
-                        item.enabled ? I18nT('claudeCode.enabled') : I18nT('claudeCode.disabled')
+                        item.enabled ? I18nT('common.state.enabled') : I18nT('common.state.disabled')
                       }}</el-tag
                     >
                     <span v-if="item.installCount" class="install-count">{{
@@ -73,7 +73,7 @@
                   <template v-if="item.installed">
                     <el-tooltip
                       v-if="item.enabled"
-                      :content="I18nT('claudeCode.disable')"
+                      :content="I18nT('common.action.disable')"
                       placement="top"
                       :show-after="300"
                     >
@@ -85,7 +85,7 @@
                     </el-tooltip>
                     <el-tooltip
                       v-else
-                      :content="I18nT('claudeCode.enable')"
+                      :content="I18nT('common.action.enable')"
                       placement="top"
                       :show-after="300"
                     >
@@ -97,7 +97,7 @@
                       />
                     </el-tooltip>
                     <el-tooltip
-                      :content="I18nT('claudeCode.uninstall')"
+                      :content="I18nT('common.action.uninstall')"
                       placement="top"
                       :show-after="300"
                     >

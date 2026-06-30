@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "Начало на OpenClaw",
   "OpenClawLocalDashboard": "OpenClaw табло",
   "category": {
-    "basicInfo": "Основна информация",
-    "configuration": "Конфигурация",
     "gateway": "Услуги за шлюзове",
     "agents": "Агенти",
     "browser": "Браузър",

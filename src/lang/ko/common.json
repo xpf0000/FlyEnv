@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "모델"
+    "model": "모델",
+    "name": "이름",
+    "status": "상태",
+    "workingDirectory": "작업 디렉터리",
+    "action": "동작",
+    "comment": "댓글",
+    "source": "출처"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "활성화",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "복사",
+    "preview": "미리보기",
+    "search": "검색",
+    "clear": "지우기",
+    "resetPassword": "비밀번호 초기화",
+    "delete": "삭제"
   },
   "state": {
     "running": "달리기",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "기본 정보",
+    "configuration": "구성",
+    "favorites": "즐겨찾기"
   }
 }

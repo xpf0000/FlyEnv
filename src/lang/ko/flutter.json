@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK 세부 정보",
   "sdkNotFound": "Flutter SDK를 찾을 수 없습니다. 버전 탭에서 버전을 추가하세요.",
-  "source": "출처",
   "searchDirs": "검색 디렉터리",
   "scanned": "{0} 스캔됨",
   "show": "표시",
@@ -40,7 +39,6 @@
   "desktopBundleId": "데스크톱 번들 id",
   "packagesPubdev": "패키지 (pub.dev)",
   "searchPackagePlaceholder": "패키지 검색 (예: dio)",
-  "search": "검색",
   "latest": "최신",
   "noDescription": "설명 없음",
   "add": "추가",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "flutter create에 실패했습니다",
   "flutterProjectSettings": "Flutter 프로젝트 설정",
   "save": "저장",
-  "preview": "미리보기",
   "previewChanges": "변경 사항 미리보기",
   "projectTarget": "프로젝트 대상",
   "projectIdentity": "프로젝트 식별 정보",

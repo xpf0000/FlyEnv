@@ -1,7 +1,6 @@
 {
   "sdkDetails": "Детали SDK",
   "sdkNotFound": "Flutter SDK не найден. Добавить версию во вкладке Version .",
-  "source": "Источник",
   "searchDirs": "Искать диры",
   "scanned": "{0} отсканирован",
   "show": "Показать",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Идентификатор набора рабочего стола",
   "packagesPubdev": "Пакеты (pub.dev)",
   "searchPackagePlaceholder": "Искать пакет (напр. dio)",
-  "search": "Искать",
   "latest": "последний",
   "noDescription": "Нет описания",
   "add": "Добавить",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "не удалось создать flutter",
   "flutterProjectSettings": "Настройки проекта Flutter",
   "save": "Сохранить",
-  "preview": "Предпросмотр",
   "previewChanges": "Просмотр изменений",
   "projectTarget": "Project target",
   "projectIdentity": "Идентификатор проекта",

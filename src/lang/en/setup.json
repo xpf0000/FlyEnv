@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Only one service can run at a time",
   "moduleExecItem": "Module Execution Item",
   "module": {
-    "name": "Name",
     "path": "File Path",
-    "comment": "Comment",
     "exec": "Run",
     "command": "Command",
     "commandFile": "File",

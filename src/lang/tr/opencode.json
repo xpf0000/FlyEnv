@@ -1,1 +1,26 @@
-{}
+{
+  "notInstalled": "OpenCode CLI yüklü değil. npm ile yüklemek için aşağıdaki düğmeye tıklayın.",
+  "officialWebsite": "OpenCode GitHub",
+  "officialDocs": "OpenCode Belgeleri",
+  "stats": "İstatistikler",
+  "allTime": "Tüm Zamanlar",
+  "last7Days": "Son 7 Gün",
+  "last30Days": "Son 30 Gün",
+  "providers": "Sağlayıcılar",
+  "providerId": "Sağlayıcı",
+  "noProviders": "Kimlik bilgisi yapılandırılmadı. Eklemek için `opencode auth login` komutunu çalıştırın.",
+  "cmd": {
+    "help": "Yardım bilgisini göster",
+    "version": "Sürüm numarasını göster",
+    "upgrade": "OpenCode'u en son sürüme güncelle",
+    "models": "Tüm kullanılabilir modelleri listele",
+    "start": "OpenCode TUI'yi başlat",
+    "continue": "Son oturumu sürdür",
+    "resume": "Kimliğe göre oturumu sürdür",
+    "run": "OpenCode'u bir mesajla çalıştır",
+    "mcpList": "MCP sunucularını ve durumlarını listele",
+    "stats": "Belirteç kullanımı ve maliyet istatistiklerini göster",
+    "providersList": "Sağlayıcıları ve kimlik bilgilerini listele",
+    "agentList": "Tüm kullanılabilir ajanları listele"
+  }
+}

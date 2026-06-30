@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK Ayrıntıları",
   "sdkNotFound": "Flutter SDK bulunamadı. Versiyon sekmesinde bir sürüm ekleyin.",
-  "source": "Kaynak",
   "searchDirs": "Arama Dizinleri",
   "scanned": "{0} tarandı",
   "show": "Göster",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Masaüstü bundle id",
   "packagesPubdev": "Paketler (pub.dev)",
   "searchPackagePlaceholder": "Paket ara (ör. dio)",
-  "search": "Ara",
   "latest": "en son",
   "noDescription": "Açıklama yok",
   "add": "Ekle",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "flutter create başarısız oldu",
   "flutterProjectSettings": "Flutter Proje Ayarları",
   "save": "Kaydet",
-  "preview": "Önizleme",
   "previewChanges": "Değişiklikleri Önizle",
   "projectTarget": "Proje hedefi",
   "projectIdentity": "Proje kimliği",

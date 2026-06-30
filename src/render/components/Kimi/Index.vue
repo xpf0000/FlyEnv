@@ -30,6 +30,6 @@
     I18nT('base.configFile'),
     I18nT('base.log'),
     I18nT('common.session.list'),
-    I18nT('kimi.mcp')
+    I18nT('common.category.mcp')
   ]
 </script>

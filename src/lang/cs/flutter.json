@@ -1,7 +1,6 @@
 {
   "sdkDetails": "Detaily SDK",
   "sdkNotFound": "Sada Flutter SDK nenalezena. Přidejte verzi do karty verze.",
-  "source": "Zdroj",
   "searchDirs": "Hledat Dirs",
   "scanned": "{0} naskenováno",
   "show": "Zobrazit",
@@ -40,7 +39,6 @@
   "desktopBundleId": "ID desktopového balíčku",
   "packagesPubdev": "Balení (pub.dev)",
   "searchPackagePlaceholder": "Hledat balíček (např. dio)",
-  "search": "Hledat",
   "latest": "poslední",
   "noDescription": "Bez popisu",
   "add": "Přidat",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "Vytvoření flutteru se nezdařilo",
   "flutterProjectSettings": "Nastavení projektu Flutter",
   "save": "Uložit",
-  "preview": "Náhled",
   "previewChanges": "Náhled změn",
   "projectTarget": "Project target",
   "projectIdentity": "Identita projektu",

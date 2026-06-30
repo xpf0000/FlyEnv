@@ -235,12 +235,12 @@
       },
       cellRenderer: ({ rowData: data }) => (
         <div class="setup">
-          <Edit class="setup-icon" onClick={() => doEdit(data)}>
-            编辑
-          </Edit>
-          <Delete class="setup-icon" onClick={() => doDel(data)}>
-            编辑
-          </Delete>
+          <span class="setup-icon" onClick={() => doEdit(data)}>
+            <Edit />
+          </span>
+          <span class="setup-icon" onClick={() => doDel(data)}>
+            <Delete />
+          </span>
         </div>
       )
     }

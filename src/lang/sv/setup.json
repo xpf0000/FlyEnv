@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Endast en tjänst kan köras åt gången",
   "moduleExecItem": "Modulutföringsobjekt",
   "module": {
-    "name": "Namn",
     "path": "Filsökväg",
-    "comment": "Kommentar",
     "exec": "Kör",
     "command": "Command",
     "commandFile": "Fil",

@@ -1,4 +1,4 @@
-﻿{
+{
   "N8N_PORT": "Порт за уеб интерфейса на n8n (по подразбиране: 5678)",
   "N8N_HOST": "Име на хост или IP адрес за уеб интерфейса на n8n (по подразбиране: localhost)",
   "N8N_PROTOCOL": "Протокол: http или https (по подразбиране: http)",
@@ -22,10 +22,8 @@
   "usersLoadFailed": "Не успях да заредя потребителите",
   "usersAddUser": "Добавяне на потребител",
   "usersChangePassword": "Промяна на паролата на собственика",
-  "usersName": "Име",
   "usersEmail": "Е-поща",
   "usersRole": "Роля",
-  "usersStatus": "Статус",
   "usersActions": "Действия",
   "usersActive": "Активно",
   "usersPending": "Изчаква одобрение",
@@ -54,7 +52,6 @@
   "usersDataDirScanNone": "Не беше открита директория с данни за n8n на стандартните места.",
   "usersDisabled": "Изключено",
   "usersDisable": "Изключи",
-  "usersEnable": "Включи",
   "usersChangeName": "Редактиране на името",
   "usersChangeNameTitle": "Редактиране на името",
   "usersChangeNameSuccess": "Името е актуализирано",
@@ -63,8 +60,6 @@
   "usersChangeRoleTitle": "Смяна на ролята",
   "usersChangeRoleSuccess": "Ролята е актуализирана",
   "usersChangeRoleFailed": "Не успях да актуализирам ролята",
-  "usersResetPassword": "Нулиране на паролата",
-  "usersResetPasswordTitle": "Нулиране на паролата",
   "usersResetPasswordSuccess": "Възстановяване на парола",
   "usersResetPasswordFailed": "Не успях да нулирам паролата",
   "usersDisableSuccess": "Потребителят е деактивиран",

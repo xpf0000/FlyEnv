@@ -1,5 +1,4 @@
 {
-  "working_dir": "Çalışma Rehberi",
   "db_path": "Veritabanı dosyalarının oluşturulacağı ve alınacağı konumu belirtir",
   "env": "Örneğin ortamını yapılandırır. Değer `production` veya `development` olmalıdır.",
   "http_addr": "HTTP sunucusunun dinleyeceği adres.",

@@ -19,7 +19,7 @@
       <el-table-column prop="name" width="280px">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
-            I18nT('setup.module.name')
+            I18nT('common.label.name')
           }}</span>
         </template>
         <template #default="scope">
@@ -32,7 +32,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('setup.module.comment')" prop="comment"> </el-table-column>
+      <el-table-column :label="I18nT('common.label.comment')" prop="comment"> </el-table-column>
       <el-table-column :label="I18nT('base.service')" :prop="null" width="100px">
         <template #default="scope">
           <template v-if="scope.row.running">
@@ -64,7 +64,12 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.action')" :prop="null" width="100px" align="center">
+      <el-table-column
+        :label="I18nT('common.label.action')"
+        :prop="null"
+        width="100px"
+        align="center"
+      >
         <template #default="scope">
           <el-popover
             ref="popper"
@@ -99,7 +104,7 @@
               </template>
               <li @click.stop="action(scope.row, scope.$index, 'del')">
                 <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                <span class="ml-3">{{ I18nT('base.del') }}</span>
+                <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
               </li>
             </ul>
             <template #reference>

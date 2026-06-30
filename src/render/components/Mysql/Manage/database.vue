@@ -53,7 +53,7 @@
     </el-table-column>
     <el-table-column
       class-name="mysql-database-mark-cell"
-      :label="I18nT('host.comment')"
+      :label="I18nT('common.label.comment')"
       prop="mark"
     >
       <template #default="scope">
@@ -67,7 +67,7 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('host.action')" width="100px" align="center">
+    <el-table-column :label="I18nT('common.label.action')" width="100px" align="center">
       <template #default="scope">
         <el-dropdown>
           <el-button link>
@@ -97,7 +97,7 @@
                   :content="I18nT('mysql.resetPasswordTips')"
                 >
                   <div class="flex items-center w-full h-full">
-                    {{ I18nT('mysql.resetPassword') }}
+                    {{ I18nT('common.action.resetPassword') }}
                   </div>
                 </el-tooltip>
               </el-dropdown-item>

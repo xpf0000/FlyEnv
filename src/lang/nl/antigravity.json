@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Open vaardighedenmap",
   "openSkillDir": "Skill directory openen",
   "revealSkillFile": "Vaardighedenbestand onthullen",
   "builtin": "Ingebouwd",
   "skillFileMissing": "Vaardigheidsbestand niet gevonden",
-  "skillLoadFailed": "Het laden van het vaardigheidsbestand is mislukt",
-  "mcp": "MCP"
+  "skillLoadFailed": "Het laden van het vaardigheidsbestand is mislukt"
 }

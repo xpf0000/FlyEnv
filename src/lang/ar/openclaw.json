@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "منزل OpenClaw",
   "OpenClawLocalDashboard": "لوحة معلومات OpenClaw",
   "category": {
-    "basicInfo": "معلومات أساسية",
-    "configuration": "الإعدادات",
     "gateway": "خدمة البوابة",
     "agents": "الوكلاء",
     "browser": "المتصفح",

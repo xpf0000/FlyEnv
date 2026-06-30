@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenClaw Početna",
   "OpenClawLocalDashboard": "OpenClaw Nadzorna Ploča",
   "category": {
-    "basicInfo": "Osnovne Informacije",
-    "configuration": "Konfiguracija",
     "gateway": "Servis Pristupnika",
     "agents": "Agenti",
     "browser": "Preglednik",

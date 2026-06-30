@@ -15,7 +15,6 @@
   "rootPasswordChange": "Đổi mật khẩu {user}",
   "passwordNoEmpty": "Mật khẩu root không được để trống",
   "passwordFormatError": "Mật khẩu cơ sở dữ liệu không được chứa ký tự có dấu hoặc ký tự đặc biệt",
-  "resetPassword": "Đặt lại mật khẩu",
   "savePassword": "Cập nhật mật khẩu",
   "resetPasswordTips": "Thao tác này sẽ thay đổi mật khẩu người dùng root của cơ sở dữ liệu",
   "savePasswordTips": "Chỉ cập nhật mật khẩu lưu trong FlyEnv, không thay đổi mật khẩu người dùng root của cơ sở dữ liệu. Mật khẩu này chủ yếu dùng để dừng an toàn các tiến trình của {app}.",

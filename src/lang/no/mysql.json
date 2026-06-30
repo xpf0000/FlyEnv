@@ -15,7 +15,6 @@
   "rootPasswordChange": "Endre {user} passord",
   "passwordNoEmpty": "rot passord kan ikke være tomt",
   "passwordFormatError": "Databasepassordet kan ikke inneholde kinesiske eller spesialtegn",
-  "resetPassword": "Tilbakestill passord",
   "savePassword": "Oppdater passord",
   "resetPasswordTips": "Denne operasjonen vil endre roten til databasen brukerens passord",
   "savePasswordTips": "Bare oppdaterer passordet som er lagret i FlyEnv, endrer ikke roten av databasen roten brukerens passord. Dette passordet brukes hovedsakelig til å stoppe {app} forekomster.",

@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Едновременно може да работи само една услуга",
   "moduleExecItem": "Елемент за изпълнение на модул",
   "module": {
-    "name": "Име",
     "path": "Файл път",
-    "comment": "Коментар",
     "exec": "Изпълни",
     "command": "Команда",
     "commandFile": "Файл",

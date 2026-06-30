@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Modell"
+    "model": "Modell",
+    "name": "Namn",
+    "status": "Status",
+    "workingDirectory": "Arbetskatalog",
+    "action": "Åtgärd",
+    "comment": "Kommentar",
+    "source": "Källa"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Aktivera",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Kopiera",
+    "preview": "Förhandsgranskning",
+    "search": "Sök",
+    "clear": "Rensa",
+    "resetPassword": "Återställ lösenord",
+    "delete": "Radera"
   },
   "state": {
     "running": "Körs",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Grundläggande information",
+    "configuration": "Konfiguration",
+    "favorites": "Favoriter"
   }
 }

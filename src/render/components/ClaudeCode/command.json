@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "nameKey": "claudeCode.category.basic",
+      "nameKey": "common.category.basic",
       "commands": [
         { "label": "claude --help", "descriptionKey": "claudeCode.cmd.help", "needInput": false },
         { "label": "claude --version", "descriptionKey": "claudeCode.cmd.version", "needInput": false },
@@ -10,7 +10,7 @@
       ]
     },
     {
-      "nameKey": "claudeCode.category.session",
+      "nameKey": "common.session.list",
       "commands": [
         { "label": "claude", "descriptionKey": "claudeCode.cmd.start", "needInput": false },
         { "label": "claude --continue", "descriptionKey": "claudeCode.cmd.continue", "needInput": false },
@@ -19,7 +19,7 @@
       ]
     },
     {
-      "nameKey": "claudeCode.category.config",
+      "nameKey": "common.category.configuration",
       "commands": [
         { "label": "claude mcp list", "descriptionKey": "claudeCode.cmd.mcpList", "needInput": false },
         { "label": "claude plugin list", "descriptionKey": "claudeCode.cmd.pluginList", "needInput": false },

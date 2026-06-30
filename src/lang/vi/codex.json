@@ -11,6 +11,5 @@
   "pluginEnabled": "Plugin đã được cài đặt",
   "pluginDisabled": "Plugin đã bị xóa",
   "pluginUninstalled": "Plugin đã bị xóa",
-  "uninstallConfirm": "Bạn có chắc chắn muốn xóa plugin \"{name}\" không?",
-  "mcp": "MCP"
+  "uninstallConfirm": "Bạn có chắc chắn muốn xóa plugin \"{name}\" không?"
 }

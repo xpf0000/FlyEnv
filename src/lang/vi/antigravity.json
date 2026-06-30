@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Mở thư mục kỹ năng",
   "openSkillDir": "Mở thư mục kỹ năng",
   "revealSkillFile": "Hiện tệp kỹ năng",
   "builtin": "Tích hợp sẵn",
   "skillFileMissing": "Không tìm thấy tệp kỹ năng",
-  "skillLoadFailed": "Không thể tải tệp kỹ năng",
-  "mcp": "MCP"
+  "skillLoadFailed": "Không thể tải tệp kỹ năng"
 }

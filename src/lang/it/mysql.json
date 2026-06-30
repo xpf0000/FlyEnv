@@ -15,7 +15,6 @@
   "rootPasswordChange": "Cambia password {user}",
   "passwordNoEmpty": "la password root non può essere vuota",
   "passwordFormatError": "La password del database non può contenere caratteri cinesi o speciali",
-  "resetPassword": "Reimposta password",
   "savePassword": "Aggiorna password",
   "resetPasswordTips": "Questa operazione cambierà la password dell'utente root del database",
   "savePasswordTips": "Aggiorna solo la password memorizzata in FlyEnv, non cambia la password dell'utente root del database. Questa password è principalmente utilizzata per arrestare in sicurezza le istanze {app}.",

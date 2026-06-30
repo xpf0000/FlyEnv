@@ -13,7 +13,7 @@ const glob = require('glob')
 // 配置
 const PROJECT_ROOT = path.join(__dirname, '..')
 const LANG_DIR = path.join(PROJECT_ROOT, 'lang')
-const FILE_EXTENSIONS = ['.vue', '.js', '.ts', '.mjs']
+const FILE_EXTENSIONS = ['.vue', '.js', '.ts', '.mjs', '.json']
 const STRICT_KEY_PATTERN = /['"`]([a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-.]+)['"`]/g
 const DUPLICATE_KEY_ALLOWLIST = new Set(['podman.common.yes', 'podman.common.no'])
 

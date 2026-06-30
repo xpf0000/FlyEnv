@@ -25,7 +25,7 @@
               <template #default="{ data }">
                 <template v-if="data.isTop">
                   <span class="text-gray-400 select-none">{{
-                    I18nT(`toolType.${data.label}`)
+                    data.i18nKey ? I18nT(data.i18nKey) : I18nT(`toolType.${data.label}`)
                   }}</span>
                 </template>
                 <template v-else>
@@ -77,7 +77,7 @@
           <template v-if="AppToolStore.id === 'home'">
             <el-scrollbar class="flex-1">
               <template v-if="likeData.length > 0">
-                <div class="py-3">{{ I18nT('tools.FavoriteTools') }}</div>
+                <div class="py-3">{{ I18nT('common.category.favorites') }}</div>
                 <div
                   class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                 >
@@ -117,7 +117,7 @@
                                 >
                                 <el-dropdown-item :command="{ action: 'del', item }"
                                   ><Delete class="w-4 h-4 mr-2" /><span>{{
-                                    I18nT('base.del')
+                                    I18nT('common.action.delete')
                                   }}</span></el-dropdown-item
                                 >
                               </el-dropdown-menu>
@@ -177,7 +177,7 @@
                               >
                               <el-dropdown-item :command="{ action: 'del', item }"
                                 ><Delete class="w-4 h-4 mr-2" /><span>{{
-                                  I18nT('base.del')
+                                  I18nT('common.action.delete')
                                 }}</span></el-dropdown-item
                               >
                             </el-dropdown-menu>
@@ -242,6 +242,7 @@
   type AsideTreeDataType = {
     isTop: boolean
     label: string
+    i18nKey?: string
     children: AppToolModuleItem[]
   }
 
@@ -297,6 +298,7 @@
       const likeItem: AsideTreeDataType = {
         isTop: true,
         label: 'Favorites',
+        i18nKey: 'common.category.favorites',
         children: []
       }
       for (const id of like) {

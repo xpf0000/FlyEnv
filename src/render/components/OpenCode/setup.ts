@@ -196,7 +196,7 @@ class OpenCode {
       IPC.send('app-fork:openCode', 'deleteSession', sessionId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('openCode.sessionDeleted'))
+          MessageSuccess(I18nT('common.session.deleted'))
           this.refreshSessions()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -212,7 +212,7 @@ class OpenCode {
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            MessageSuccess(I18nT('openCode.sessionResumed'))
+            MessageSuccess(I18nT('common.session.resumed'))
           } else {
             MessageError(res?.msg ?? I18nT('base.fail'))
           }

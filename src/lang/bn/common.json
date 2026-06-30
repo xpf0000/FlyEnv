@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "মডেল"
+    "model": "মডেল",
+    "name": "নাম",
+    "status": "অবস্থা",
+    "workingDirectory": "কাজের ডিরেক্টরি",
+    "action": "কাজ",
+    "comment": "মন্তব্য",
+    "source": "উৎস"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "সক্রিয় করুন",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "কপি করুন",
+    "preview": "প্রাকদর্শন",
+    "search": "অনুসন্ধান করুন",
+    "clear": "পরিষ্কার",
+    "resetPassword": "পাসওয়ার্ড রিসেট",
+    "delete": "মুছুন"
   },
   "state": {
     "running": "চলমান",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "মৌলিক তথ্য",
+    "configuration": "Configuration",
+    "favorites": "প্রিয়"
   }
 }

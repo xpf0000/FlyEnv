@@ -7,7 +7,6 @@
   "length": "Lunghezza",
   "tokenPlaceholder": "Il token...",
   "button": {
-    "copy": "Copia",
     "refresh": "Genera"
   }
 }

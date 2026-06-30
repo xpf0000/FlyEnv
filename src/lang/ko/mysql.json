@@ -15,7 +15,6 @@
   "rootPasswordChange": "{user} 비밀번호 변경",
   "passwordNoEmpty": "루트 비밀번호는 비워둘 수 없습니다",
   "passwordFormatError": "데이터베이스 비밀번호에는 한글(또는 중국어) 또는 특수문자를 포함할 수 없습니다",
-  "resetPassword": "비밀번호 초기화",
   "savePassword": "비밀번호 업데이트",
   "resetPasswordTips": "이 작업은 데이터베이스 루트 사용자의 비밀번호를 변경합니다",
   "savePasswordTips": "FlyEnv에 저장된 비밀번호만 업데이트하며, 데이터베이스 루트 사용자의 실제 비밀번호는 변경하지 않습니다. 이 비밀번호는 주로 {app} 인스턴스를 안전하게 중지할 때 사용됩니다.",

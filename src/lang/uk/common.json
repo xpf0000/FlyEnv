@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Модель"
+    "model": "Модель",
+    "name": "Ім'я",
+    "status": "Стан",
+    "workingDirectory": "Робочий каталог",
+    "action": "Дія",
+    "comment": "Коментар",
+    "source": "Джерело"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Увімкнути",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Копіювати",
+    "preview": "Попередній перегляд",
+    "search": "Пошук",
+    "clear": "Очистити",
+    "resetPassword": "Скидання пароля",
+    "delete": "Видалити"
   },
   "state": {
     "running": "Запущено",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Основна інформація",
+    "configuration": "Конфігурація",
+    "favorites": "Улюблені"
   }
 }

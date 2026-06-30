@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Otvori direktorij vještina",
   "openSkillDir": "Otvori direktorij vještina",
   "revealSkillFile": "Otkrij datoteku s vještinama",
   "builtin": "Ugrađeno",
   "skillFileMissing": "Datoteka s vještinama nije pronađena",
-  "skillLoadFailed": "Učitavanje datoteke s vještinama nije uspjelo",
-  "mcp": "MCP"
+  "skillLoadFailed": "Učitavanje datoteke s vještinama nije uspjelo"
 }

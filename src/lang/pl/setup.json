@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Tylko jedna usługa może być uruchomiona jednocześnie.",
   "moduleExecItem": "Element Wykonania Modułu",
   "module": {
-    "name": "Nazwa pliku (opcjonalnie)",
     "path": "Ścieżka pliku",
-    "comment": "Komentarz",
     "exec": "Uruchom",
     "command": "Polecenie",
     "commandFile": "Plik",

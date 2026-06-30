@@ -3,7 +3,7 @@
     <template #header>
       <div class="card-header gap-5">
         <div class="flex items-center flex-1 overflow-hidden">
-          <span class="flex-shrink-0">{{ I18nT('hermes.skills') }}</span>
+          <span class="flex-shrink-0">{{ I18nT('common.category.skills') }}</span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
               <span>{{ I18nT('hermes.openSkillsDir') }}</span>

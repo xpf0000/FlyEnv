@@ -25,7 +25,12 @@
           </el-input>
         </el-form-item>
 
-        <el-form-item :label="I18nT('base.name')" prop="name" required :show-message="false">
+        <el-form-item
+          :label="I18nT('common.label.name')"
+          prop="name"
+          required
+          :show-message="false"
+        >
           <el-input v-model="form.name" maxlength="32" />
         </el-form-item>
 

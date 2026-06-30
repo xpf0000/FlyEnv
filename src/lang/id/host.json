@@ -1,8 +1,6 @@
 {
   "site": "Situs",
   "phpVersion": "Versi PHP",
-  "action": "Tindakan",
-  "comment": "Komentar",
   "newProject": "Proyek Baru",
   "frameworkVersion": "Versi Framework",
   "newProjectTips": "Membuat proyek baru dengan composer, menginisialisasi dengan framework yang dipilih, mendukung: wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "Buka file hosts kustom",
   "placeholderName": "Hostname (Contoh: mydomain.tld)",
   "placeholderAlias": "Alias Domain (Contoh: www.mydomain.tld)",
-  "placeholderComment": "Komentar",
   "placeholderRootPath": "Path Root Dokumen",
   "port": "Port",
   "portAdvanced": "Lanjutan",

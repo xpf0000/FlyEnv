@@ -15,7 +15,7 @@
           <span class="ml-3">{{ I18nT('flutter.flutterProjectSettings') }}</span>
         </div>
         <el-button :disabled="saving || !projectPath" @click="showPreview = true">{{
-          I18nT('flutter.preview')
+          I18nT('common.action.preview')
         }}</el-button>
         <el-button
           type="primary"
@@ -143,7 +143,7 @@
                 :placeholder="I18nT('flutter.searchPackagePlaceholder')"
               />
               <el-button :loading="packageSearching" @click="searchPackages">{{
-                I18nT('flutter.search')
+                I18nT('common.action.search')
               }}</el-button>
               <el-button :loading="loadingPackages" @click="refreshPackages">{{
                 I18nT('flutter.refreshInstalled')

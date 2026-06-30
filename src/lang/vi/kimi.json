@@ -6,7 +6,6 @@
   "defaultThinking": "Chế độ Suy nghĩ mặc định",
   "defaultPlanMode": "Chế độ Lập kế hoạch mặc định",
   "telemetry": "Thu thập dữ liệu (Telemetry)",
-  "mcp": "MCP",
   "cmd": {
     "export": "Xuất phiên làm việc ra tệp ZIP"
   }

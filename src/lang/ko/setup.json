@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "한 번에 하나의 서비스만 실행",
   "moduleExecItem": "모듈 실행 항목",
   "module": {
-    "name": "파일 이름",
     "path": "파일 경로",
-    "comment": "설명",
     "exec": "실행",
     "command": "명령",
     "commandFile": "파일",

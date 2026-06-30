@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Bare en tjeneste kan kjøre om gangen",
   "moduleExecItem": "Utførelse av modul",
   "module": {
-    "name": "Navn",
     "path": "Filbane",
-    "comment": "Kommentar",
     "exec": "Kjør",
     "command": "Kommando",
     "commandFile": "Fil",

@@ -8,6 +8,9 @@
 </template>
 
 <script lang="ts" setup>
-  import List from './List.vue'
+  import { computed } from 'vue'
   import { I18nT } from '@lang/index'
+  import List from './List.vue'
+
+  const tab = computed(() => 0)
 </script>

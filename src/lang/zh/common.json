@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "模型"
+    "model": "模型",
+    "name": "名称",
+    "status": "状态",
+    "workingDirectory": "工作目录",
+    "action": "操作",
+    "comment": "备注",
+    "source": "来源"
   },
   "action": {
     "enable": "启用",
     "disable": "禁用",
     "resume": "恢复",
-    "uninstall": "卸载"
+    "uninstall": "卸载",
+    "copy": "复制",
+    "preview": "预览",
+    "search": "搜索",
+    "clear": "清空",
+    "resetPassword": "重置密码",
+    "delete": "删除"
   },
   "state": {
     "running": "运行中",
@@ -31,6 +43,11 @@
     "addServer": "添加服务器"
   },
   "category": {
-    "basic": "基础"
+    "basic": "基础",
+    "mcp": "MCP",
+    "skills": "技能",
+    "basicInfo": "基本信息",
+    "configuration": "配置",
+    "favorites": "我的收藏"
   }
 }

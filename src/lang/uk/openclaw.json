@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "Домівка з відкритим кодом",
   "OpenClawLocalDashboard": "Панель управління OpenClaw",
   "category": {
-    "basicInfo": "Основна інформація",
-    "configuration": "Конфігурація",
     "gateway": "Служба шлюзу",
     "agents": "Агенти",
     "browser": "Браузер",

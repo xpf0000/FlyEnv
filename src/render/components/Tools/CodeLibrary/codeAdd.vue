@@ -10,10 +10,10 @@
     <template #default>
       <el-scrollbar max-height="55vh">
         <el-form ref="formRef" class="pb-7" label-position="top" :rules="rules" :model="form">
-          <el-form-item :label="I18nT('base.name')" prop="name" :required="true">
+          <el-form-item :label="I18nT('common.label.name')" prop="name" :required="true">
             <el-input v-model="form.name"></el-input>
           </el-form-item>
-          <el-form-item :label="I18nT('host.comment')" prop="comment">
+          <el-form-item :label="I18nT('common.label.comment')" prop="comment">
             <el-input v-model="form.comment" type="textarea" :rows="2" resize="none"></el-input>
           </el-form-item>
           <el-form-item

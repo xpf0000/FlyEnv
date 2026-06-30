@@ -22,13 +22,15 @@
 
       <el-scrollbar class="flex-1">
         <div class="main-wapper p-3">
-          <div class="plant-title" style="padding-top: 6px">{{ I18nT('base.baseInfo') }}</div>
+          <div class="plant-title" style="padding-top: 6px">{{
+            I18nT('common.category.basicInfo')
+          }}</div>
           <div class="main p-5">
             <input
               v-model.trim="item.comment"
               type="text"
               :class="'input mb-4' + (errs.comment ? ' error' : '')"
-              :placeholder="I18nT('host.comment')"
+              :placeholder="I18nT('common.label.comment')"
             />
             <div class="path-choose mb-4">
               <input
@@ -209,6 +211,7 @@
   import { join } from '@/util/path-browserify'
   import { uuid } from '@/util/Index'
   import { BrewStore } from '@/store/brew'
+  import type { AllAppModule } from '@/core/type'
   import type { ProjectItemType } from '@/components/LanguageProjects/ProjectItem'
   import {
     defaultRoadRunnerConfigPath,
@@ -233,7 +236,7 @@
   const props = defineProps<{
     isEdit: boolean
     edit: Partial<ProjectItemType>
-    typeFlag?: string
+    typeFlag?: AllAppModule
   }>()
 
   const presets: Array<{ label: string; value: RoadRunnerProjectPreset }> = [
@@ -248,6 +251,7 @@
   const isWindows = computed(() => window.Server.isWindows)
   const item = ref<RoadRunnerProjectItem & ProjectItemType>({
     id: uuid(),
+    typeFlag: props.typeFlag ?? 'roadrunner',
     isService: true,
     path: '',
     comment: '',
@@ -304,10 +308,10 @@
   })
 
   const needsPHP = computed(() => {
-    return ['php-worker', 'laravel-octane'].includes(item.value.roadRunnerPreset)
+    return ['php-worker', 'laravel-octane'].includes(item.value.roadRunnerPreset ?? 'custom')
   })
   const usesConfigFile = computed(() => {
-    return ['existing', 'php-worker', 'fileserver'].includes(item.value.roadRunnerPreset)
+    return ['existing', 'php-worker', 'fileserver'].includes(item.value.roadRunnerPreset ?? 'custom')
   })
 
   const refreshRoadRunnerVersion = () => {
@@ -408,7 +412,7 @@
 
   const onPresetChange = () => {
     item.value.roadRunnerConfigManaged = ['php-worker', 'fileserver'].includes(
-      item.value.roadRunnerPreset
+      item.value.roadRunnerPreset ?? 'custom'
     )
     if (!usesConfigFile.value) {
       const configPath = item.value.roadRunnerConfigPath
@@ -422,7 +426,7 @@
 
   const onConfigPathChange = () => {
     item.value.roadRunnerConfigManaged = ['php-worker', 'fileserver'].includes(
-      item.value.roadRunnerPreset
+      item.value.roadRunnerPreset ?? 'custom'
     )
     syncFromConfigFile()
       .catch()
@@ -464,7 +468,7 @@
     }
     const exists = await fs.existsSync(configPath)
     if (!exists) {
-      if (!['php-worker', 'fileserver'].includes(item.value.roadRunnerPreset)) {
+      if (!['php-worker', 'fileserver'].includes(item.value.roadRunnerPreset ?? 'custom')) {
         return
       }
       const content =

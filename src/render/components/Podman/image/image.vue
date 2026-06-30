@@ -46,7 +46,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="created" width="170px" :label="I18nT('podman.Created')" />
-      <el-table-column align="center" :label="I18nT('podman.Action')" width="100">
+      <el-table-column align="center" :label="I18nT('common.label.action')" width="100">
         <template #default="scope">
           <template v-if="scope.row.pulling">
             <el-button link type="warning" @click.stop="showExec(scope.row)">{{
@@ -69,7 +69,7 @@
                     {{ I18nT('podman.Rename') }}
                   </el-dropdown-item>
                   <el-dropdown-item @click.stop="scope.row.remove()">
-                    {{ I18nT('podman.Delete') }}
+                    {{ I18nT('common.action.delete') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>

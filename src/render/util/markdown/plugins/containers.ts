@@ -4,6 +4,8 @@ import type { RenderRule } from 'markdown-it/lib/renderer.mjs'
 import type Token from 'markdown-it/lib/token.mjs'
 import { extractTitle, getAdaptiveThemeMarker, type Options } from './preWrapper'
 
+const containerCompat = container as any
+
 export const containerPlugin = (
   md: MarkdownIt,
   options: Options,
@@ -15,22 +17,22 @@ export const containerPlugin = (
     .use(...createContainer('danger', containerOptions?.dangerLabel || 'DANGER', md))
     .use(...createContainer('details', containerOptions?.detailsLabel || 'Details', md))
     // explicitly escape Vue syntax
-    .use(container, 'v-pre', {
+    .use(containerCompat, 'v-pre', {
       render: (tokens: Token[], idx: number) =>
         tokens[idx].nesting === 1 ? `<div v-pre>\n` : `</div>\n`
     })
-    .use(container, 'raw', {
+    .use(containerCompat, 'raw', {
       render: (tokens: Token[], idx: number) =>
         tokens[idx].nesting === 1 ? `<div class="vp-raw">\n` : `</div>\n`
     })
     .use(...createCodeGroup(options, md))
 }
 
-type ContainerArgs = [typeof container, string, { render: RenderRule }]
+type ContainerArgs = [any, string, { render: RenderRule }]
 
 function createContainer(klass: string, defaultTitle: string, md: MarkdownIt): ContainerArgs {
   return [
-    container,
+    containerCompat,
     klass,
     {
       render(tokens, idx) {
@@ -50,7 +52,7 @@ function createContainer(klass: string, defaultTitle: string, md: MarkdownIt): C
 
 function createCodeGroup(options: Options, md: MarkdownIt): ContainerArgs {
   return [
-    container,
+    containerCompat,
     'code-group',
     {
       render(tokens, idx) {

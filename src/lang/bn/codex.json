@@ -11,6 +11,5 @@
   "pluginEnabled": "Plugin installed",
   "pluginDisabled": "Plugin removed",
   "pluginUninstalled": "Plugin removed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
-  "mcp": "MCP"
+  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?"
 }

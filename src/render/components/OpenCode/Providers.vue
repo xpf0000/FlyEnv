@@ -24,7 +24,7 @@
         <el-scrollbar v-if="OpenCodeSetup.providers.length > 0">
           <el-table :data="OpenCodeSetup.providers" style="width: 100%">
             <el-table-column prop="id" :label="I18nT('openCode.providerId')" />
-            <el-table-column prop="type" :label="I18nT('openCode.providerType')" width="160" />
+            <el-table-column prop="type" :label="I18nT('common.mcp.type')" width="160" />
           </el-table>
         </el-scrollbar>
         <el-empty

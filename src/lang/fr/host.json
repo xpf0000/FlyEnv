@@ -1,8 +1,6 @@
 {
   "site": "Site",
   "phpVersion": "Version PHP",
-  "action": "Action",
-  "comment": "Commentaire",
   "newProject": "Nouveau projet",
   "frameworkVersion": "Version du framework",
   "newProjectTips": "Création d'un nouveau projet avec composer, initialisation avec le framework sélectionné, prend en charge : wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "Ouvrir le fichier hosts personnalisé",
   "placeholderName": "Nom d'hôte (Exemple : mondomaine.tld)",
   "placeholderAlias": "Alias de domaine (Exemple : www.mondomaine.tld)",
-  "placeholderComment": "Commentaire",
   "placeholderRootPath": "Chemin racine du document",
   "port": "Port",
   "portAdvanced": "Avancé",

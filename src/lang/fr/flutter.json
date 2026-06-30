@@ -1,7 +1,6 @@
 {
   "sdkDetails": "Détails du SDK",
   "sdkNotFound": "Flutter SDK introuvable. Ajouter une version dans l'onglet Versions.",
-  "source": "Source",
   "searchDirs": "Rechercher dans les répertoires",
   "scanned": "{0} scanné",
   "show": "Afficher",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Identifiant du lot de bureau",
   "packagesPubdev": "Paquets (pub.dev)",
   "searchPackagePlaceholder": "Paquet de recherche (par exemple dio)",
-  "search": "Chercher",
   "latest": "Dernier",
   "noDescription": "Pas de description",
   "add": "Ajouter",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "Échec de la création de flotteur",
   "flutterProjectSettings": "Paramètres du projet Flutter",
   "save": "Enregistrer",
-  "preview": "Aperçu",
   "previewChanges": "Aperçu des modifications",
   "projectTarget": "Project target",
   "projectIdentity": "Identité du projet",

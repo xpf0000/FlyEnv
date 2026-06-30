@@ -1,1 +1,26 @@
-{}
+{
+  "notInstalled": "OpenCode CLI chưa được cài đặt. Nhấp vào nút bên dưới để cài đặt thông qua npm.",
+  "officialWebsite": "GitHub của OpenCode",
+  "officialDocs": "Tài liệu OpenCode",
+  "stats": "Thống kê",
+  "allTime": "Tổng cộng",
+  "last7Days": "7 ngày qua",
+  "last30Days": "30 ngày qua",
+  "providers": "Nhà cung cấp",
+  "providerId": "Nhà cung cấp",
+  "noProviders": "Chưa cấu hình thông tin xác thực. Chạy lệnh `opencode auth login` để thêm.",
+  "cmd": {
+    "help": "Hiển thị thông tin trợ giúp",
+    "version": "Hiển thị số phiên bản",
+    "upgrade": "Cập nhật OpenCode lên phiên bản mới nhất",
+    "models": "Liệt kê tất cả các mô hình hiện có",
+    "start": "Khởi động giao diện OpenCode TUI",
+    "continue": "Tiếp tục phiên làm việc cuối cùng",
+    "resume": "Tiếp tục một phiên làm việc bằng ID",
+    "run": "Chạy OpenCode với một tin nhắn",
+    "mcpList": "Liệt kê các máy chủ MCP và trạng thái của chúng",
+    "stats": "Hiển thị thống kê về mức sử dụng token và chi phí",
+    "providersList": "Liệt kê các nhà cung cấp và thông tin xác thực",
+    "agentList": "Liệt kê tất cả các agent hiện có"
+  }
+}

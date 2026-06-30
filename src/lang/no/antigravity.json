@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Åpne ferdighetskatalog",
   "openSkillDir": "Åpne ferdighetsmappe",
   "revealSkillFile": "Vis ferdighetsfil",
   "builtin": "Innebygget",
   "skillFileMissing": "Ferdighetsfilen ble ikke funnet",
-  "skillLoadFailed": "Kunne ikke laste inn ferdighetsfilen",
-  "mcp": "MCP"
+  "skillLoadFailed": "Kunne ikke laste inn ferdighetsfilen"
 }

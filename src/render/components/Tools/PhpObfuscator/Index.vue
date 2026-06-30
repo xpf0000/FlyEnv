@@ -161,6 +161,7 @@
       properties: opt,
       filters: [
         {
+          name: 'PHP',
           extensions: ['php']
         }
       ]
@@ -202,6 +203,7 @@
         properties: opt,
         filters: [
           {
+            name: 'PHP',
             extensions: ['php']
           }
         ]

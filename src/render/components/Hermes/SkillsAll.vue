@@ -29,17 +29,17 @@
             @keyup.enter="handleSearch"
           />
           <el-button size="small" type="primary" @click="handleSearch">{{
-            I18nT('hermes.search')
+            I18nT('common.action.search')
           }}</el-button>
           <el-button style="margin-left: 0" size="small" @click="handleClearSearch">{{
-            I18nT('hermes.clear')
+            I18nT('common.action.clear')
           }}</el-button>
         </div>
         <el-table :data="currentSource.skills" style="width: 100%; flex: 1">
           <el-table-column type="index" width="50" />
           <el-table-column
             prop="name"
-            :label="I18nT('hermes.name')"
+            :label="I18nT('common.label.name')"
             min-width="140"
             show-overflow-tooltip
           />
@@ -51,7 +51,7 @@
           />
           <el-table-column
             prop="source"
-            :label="I18nT('hermes.source')"
+            :label="I18nT('common.label.source')"
             width="120"
             show-overflow-tooltip
           />
@@ -61,7 +61,7 @@
             width="120"
             show-overflow-tooltip
           />
-          <el-table-column :label="I18nT('base.action')" width="100px" align="center">
+          <el-table-column :label="I18nT('common.label.action')" width="100px" align="center">
             <template #default="{ row }">
               <div class="h-full w-full flex items-center justify-center">
                 <el-popover
@@ -74,7 +74,7 @@
                   <ul v-poper-fix class="host-list-menu">
                     <li @click.stop="HermesSetup.inspectSkill(row.name)">
                       <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
-                      <span class="ml-3">{{ I18nT('hermes.preview') }}</span>
+                      <span class="ml-3">{{ I18nT('common.action.preview') }}</span>
                     </li>
                     <li @click.stop="installSkill(row.name)">
                       <yb-icon :svg="import('@/svg/Download.svg?raw')" width="13" height="13" />

@@ -7,7 +7,6 @@
   "length": "길이",
   "tokenPlaceholder": "토큰...",
   "button": {
-    "copy": "복사",
     "refresh": "새로고침"
   }
 }

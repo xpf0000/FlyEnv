@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "nameKey": "hermes.category.basicInfo",
+      "nameKey": "common.category.basicInfo",
       "commands": [
         { "label": "hermes --help", "descriptionKey": "hermes.cmd.help", "needInput": false },
         { "label": "hermes --version", "descriptionKey": "hermes.cmd.version", "needInput": false },
@@ -39,7 +39,7 @@
       ]
     },
     {
-      "nameKey": "hermes.category.configuration",
+      "nameKey": "common.category.configuration",
       "commands": [
         { "label": "hermes config show", "descriptionKey": "hermes.cmd.configShow", "needInput": false },
         { "label": "hermes config edit", "descriptionKey": "hermes.cmd.configEdit", "needInput": false },
@@ -92,7 +92,7 @@
       ]
     },
     {
-      "nameKey": "hermes.category.mcp",
+      "nameKey": "common.category.mcp",
       "commands": [
         { "label": "hermes mcp list", "descriptionKey": "hermes.cmd.mcpList", "needInput": false },
         { "label": "hermes mcp add", "descriptionKey": "hermes.cmd.mcpAdd", "needInput": true },

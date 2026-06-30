@@ -180,18 +180,19 @@
         }
       })
       monacoInstance = EditorCreate(input.value, config)
+      const editorInstance = monacoInstance
+      if (!editorInstance) {
+        return
+      }
 
-      monacoInstance.onDidChangeModelContent(() => {
-        if (!monacoInstance) {
-          return
-        }
-        const currentValue = monacoInstance?.getValue()
+      editorInstance.onDidChangeModelContent(() => {
+        const currentValue = editorInstance.getValue()
         if (props.modelValue !== currentValue) {
           emits('update:modelValue', currentValue)
         }
       })
     } else {
-      monacoInstance.setValue(props.modelValue)
+      monacoInstance?.setValue(props.modelValue)
     }
   }
 

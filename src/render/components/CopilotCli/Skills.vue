@@ -3,7 +3,7 @@
     <template #header>
       <div class="card-header gap-4">
         <div class="flex items-center gap-2">
-          <span>{{ I18nT('copilotCli.skills') }}</span>
+          <span>{{ I18nT('common.category.skills') }}</span>
           <el-tooltip :content="I18nT('copilotCli.openSkillsDir')" placement="top">
             <el-button link @click="CopilotCliSetup.openSkillsDir()">
               <FolderOpened class="w-[18px] h-[18px]" />
@@ -67,7 +67,7 @@
                   </li>
                   <li @click.stop="CopilotCliSetup.viewSkill(item)">
                     <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
-                    <span class="ml-3">{{ I18nT('base.preview') }}</span>
+                    <span class="ml-3">{{ I18nT('common.action.preview') }}</span>
                   </li>
                 </ul>
 

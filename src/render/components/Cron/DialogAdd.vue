@@ -137,7 +137,7 @@
             </div>
 
             <div class="preview-sub mt-3">
-              {{ I18nT('cron.status') }}:
+              {{ I18nT('common.label.status') }}:
               <strong>{{ form.enabled ? I18nT('cron.enabled') : I18nT('cron.disabled') }}</strong>
             </div>
           </div>
@@ -167,7 +167,7 @@
                   >{{ I18nT('cron.duration') }}: {{ testResult.duration }}ms</span
                 >
                 <el-button text size="small" class="ml-auto" @click="testResult = null">{{
-                  I18nT('cron.clearOutput')
+                  I18nT('common.action.clear')
                 }}</el-button>
               </div>
               <pre class="output-pre">{{

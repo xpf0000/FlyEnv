@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "يمكن تشغيل خدمة واحدة فقط في كل مرة",
   "moduleExecItem": "عنصر تنفيذ الوحدة",
   "module": {
-    "name": "الاسم",
     "path": "مسار الملف",
-    "comment": "تعليق",
     "exec": "تشغيل",
     "command": "الأمر",
     "commandFile": "ملف",

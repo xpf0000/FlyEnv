@@ -8,18 +8,15 @@
   "systemProxyUsed": "Setting successful. If you want to modify it, please do so in Settings->Proxy Settings.",
   "windowCount": "Window Count",
   "codemake": "Code Generation",
-  "FavoriteTools": "Favorite Tools",
   "AllTools": "All the tools",
   "label": "Tool Name",
   "component": "Tool URL",
   "addTool": "Add Tool",
   "editTool": "Edit Tool",
-
   "envValue": "Value",
   "rawEnvPath": "Actual Path",
   "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
   "invalidPath": "Invalid Path",
-
   "base64-file-converter-title": "Base64 File Converter",
   "base64-string-converter-title": "Base64 String Encoder/Decoder",
   "chmod-calculator-title": "Chmod Calculator",
@@ -27,7 +24,6 @@
   "diff-compare-title": "Diff Compare",
   "diff-compare-load-sample": "Load Sample",
   "diff-compare-swap": "Swap",
-  "diff-compare-clear": "Clear",
   "diff-compare-previous-diff": "Previous Diff",
   "diff-compare-next-diff": "Next Diff",
   "diff-compare-copy-result": "Copy Result",
@@ -66,7 +62,6 @@
   "websocket-sse-title": "WebSocket / SSE",
   "wifi-qr-code-generator-title": "WiFi QR Code Generator",
   "URLTimingAnalyzer": "URL Timing Analyzer",
-
   "CodePlayGround": "Code Playground",
   "CodeLibrary": "Code Library",
   "GroupName": "Group Name",
@@ -84,7 +79,6 @@
   "MoveToTop": "Move To Top",
   "MoveToGroup": "Move To Group",
   "MarkdownPreview": "Markdown Preview",
-
   "Capturer": "Screenshot",
   "CapturerShortcut": "Screenshot Shortcut",
   "CapturerShortcutTips": "Press the keys you want to use for taking a screenshot, e.g. Ctrl+Shift+A",
@@ -99,7 +93,6 @@
   "CapturerDo": "Screenshot",
   "CapturerHideWindowDo": "Hide This Window and Screenshot",
   "CapturerPointPosition": "Coordinates",
-
   "ImageCompress": {
     "title": "Image Compression",
     "preview": {

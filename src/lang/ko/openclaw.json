@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenClaw 홈페이지",
   "OpenClawLocalDashboard": "OpenClaw 대시보드",
   "category": {
-    "basicInfo": "기본 정보",
-    "configuration": "구성",
     "gateway": "게이트웨이 서비스",
     "agents": "에이전트",
     "browser": "브라우저",

@@ -1,7 +1,6 @@
 {
   "sdkDetails": "Detalhes do SDK",
   "sdkNotFound": "O Flutter SDK não foi encontrado. Adicione uma versão na aba Versão.",
-  "source": "fonte",
   "searchDirs": "Procurar por Dirs",
   "scanned": "{0} digitalizado",
   "show": "Apresentar",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Identificação da área de trabalho",
   "packagesPubdev": "Pacotes (pub.dev)",
   "searchPackagePlaceholder": "Pesquisar pacote (por exemplo, dio)",
-  "search": "Pesquisa",
   "latest": "último",
   "noDescription": "Sem descrição",
   "add": "Adicionar",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "falha ao criar flamejante",
   "flutterProjectSettings": "Configurações do Projeto Flutter",
   "save": "Salvar",
-  "preview": "Pré-visualização",
   "previewChanges": "Visualizar alterações",
   "projectTarget": "Project target",
   "projectIdentity": "Identidade do projeto",

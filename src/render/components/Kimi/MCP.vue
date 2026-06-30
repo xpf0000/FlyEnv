@@ -3,7 +3,7 @@
     <template #header>
       <div class="card-header">
         <div class="left flex items-center">
-          <span>{{ I18nT('kimi.mcp') }}</span>
+          <span>{{ I18nT('common.category.mcp') }}</span>
           <el-tooltip :content="I18nT('common.mcp.addServer')" placement="top" :show-after="300">
             <el-button link class="ml-3" :icon="Plus" @click="openAdd" />
           </el-tooltip>
@@ -29,10 +29,10 @@
               show-overflow-tooltip
             />
             <el-table-column prop="scope" :label="I18nT('common.mcp.scope')" width="100" />
-            <el-table-column :label="I18nT('base.action')" width="100" align="center">
+            <el-table-column :label="I18nT('common.label.action')" width="100" align="center">
               <template #default="{ row }">
                 <el-button link type="danger" @click="confirmRemove(row.name)">{{
-                  I18nT('base.del')
+                  I18nT('common.action.delete')
                 }}</el-button>
               </template>
             </el-table-column>
@@ -42,7 +42,12 @@
       </div>
     </div>
 
-    <el-dialog v-model="addVisible" :title="I18nT('common.mcp.addServer')" width="500" append-to-body>
+    <el-dialog
+      v-model="addVisible"
+      :title="I18nT('common.mcp.addServer')"
+      width="500"
+      append-to-body
+    >
       <el-form label-position="top" @submit.prevent>
         <el-form-item :label="I18nT('common.mcp.name')">
           <el-input v-model="form.name" placeholder="my-server" />

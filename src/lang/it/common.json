@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Modello"
+    "model": "Modello",
+    "name": "Nome",
+    "status": "Stato",
+    "workingDirectory": "Directory di lavoro",
+    "action": "Azione",
+    "comment": "Commento",
+    "source": "Fonte"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Abilita",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Copia",
+    "preview": "Anteprima",
+    "search": "Cerca",
+    "clear": "Pulisci",
+    "resetPassword": "Reimposta Password",
+    "delete": "Elimina"
   },
   "state": {
     "running": "Corsa",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Informazioni di base",
+    "configuration": "Configurazione",
+    "favorites": "Preferiti"
   }
 }

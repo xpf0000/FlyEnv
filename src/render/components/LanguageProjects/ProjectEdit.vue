@@ -23,13 +23,15 @@
       <el-scrollbar class="flex-1">
         <div class="main-wapper p-3">
           <!-- 基本信息 -->
-          <div class="plant-title" style="padding-top: 6px">{{ I18nT('base.baseInfo') }}</div>
+          <div class="plant-title" style="padding-top: 6px">{{
+            I18nT('common.category.basicInfo')
+          }}</div>
           <div class="main p-5">
             <input
               v-model.trim="item.comment"
               type="text"
               :class="'input mb-4' + (errs['comment'] ? ' error' : '')"
-              :placeholder="I18nT('host.comment')"
+              :placeholder="I18nT('common.label.comment')"
             />
             <div class="path-choose mb-4">
               <input
@@ -188,7 +190,7 @@
                         type="text"
                         class="input"
                         style="height: 32px; width: 120px; flex: unset"
-                        :placeholder="I18nT('base.name')"
+                        :placeholder="I18nT('common.label.name')"
                       />
                       <input
                         v-model.trim="c.path"
@@ -237,7 +239,7 @@
                         type="text"
                         class="input"
                         style="height: 32px; width: 120px; flex: unset"
-                        :placeholder="I18nT('base.name')"
+                        :placeholder="I18nT('common.label.name')"
                       />
                       <input
                         v-model.trim="c.path"
@@ -324,6 +326,7 @@
 
   const item = ref<ProjectItemType>({
     id: uuid(),
+    typeFlag: props.typeFlag,
     isService: true,
     path: '',
     comment: '',

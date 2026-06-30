@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Chỉ cho phép chạy một dịch vụ cùng lúc",
   "moduleExecItem": "Tiến trình thực thi module",
   "module": {
-    "name": "Tên",
     "path": "Đường dẫn tệp",
-    "comment": "Ghi chú",
     "exec": "Chạy",
     "command": "Lệnh",
     "commandFile": "Tệp",

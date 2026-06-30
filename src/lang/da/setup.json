@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Kun én tjeneste kan køre ad gangen",
   "moduleExecItem": "Modul Kørselement",
   "module": {
-    "name": "Indtast wikinavn (valgfrit)",
     "path": "Fil Sti",
-    "comment": "Kommentar",
     "exec": "Kør",
     "command": "Kommando",
     "commandFile": "Fil",

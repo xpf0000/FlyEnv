@@ -1,8 +1,6 @@
 {
   "site": "Websted",
   "phpVersion": "PHP Version",
-  "action": "Handling",
-  "comment": "Kommentar",
   "newProject": "Nyt Projekt",
   "frameworkVersion": "Framework Version",
   "newProjectTips": "Oprettelse af et nyt projekt med komponist, initialisere med udvalgte rammer, understøtter: wordpress, laravel, yii2, symfoni, thinkphp, codeIgniter, cakephp, slank",
@@ -14,7 +12,6 @@
   "hostsOpen": "Åbn brugerdefineret hosts fil",
   "placeholderName": "Værtsnavn (Eksempel: mydomain.tld)",
   "placeholderAlias": "Domænenavne (eksempel: www.mydomain.tld)",
-  "placeholderComment": "Kommentar",
   "placeholderRootPath": "Sti Til Dokument Rod",
   "port": "Port",
   "portAdvanced": "Avanceret",

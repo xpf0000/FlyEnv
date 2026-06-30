@@ -63,7 +63,7 @@
   const commonSetting: Ref<CommonSetItem[]> = ref([])
 
   const fetchIniFile = () => {
-    return new Promise((resolve) => {
+    return new Promise<string>((resolve) => {
       IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
         (key: string, res: any) => {
           console.log(res)
@@ -80,12 +80,13 @@
     })
   }
 
-  const file = asyncComputed(async () => {
-    if (ConfStore.phpIniFiles?.[flag?.value]) {
-      return ConfStore.phpIniFiles?.[flag?.value]
+  const file = asyncComputed<string>(async () => {
+    const cached = ConfStore.phpIniFiles?.[flag?.value]
+    if (cached) {
+      return cached
     }
-    return await fetchIniFile()
-  })
+    return (await fetchIniFile()) ?? ''
+  }, '')
   const defaultFile = computed(() => {
     if (!file.value) {
       return ''

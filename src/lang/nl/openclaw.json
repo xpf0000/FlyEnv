@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenKlauw Home",
   "OpenClawLocalDashboard": "OpenClaw Dashboard",
   "category": {
-    "basicInfo": "Algemene gegevens",
-    "configuration": "Configuratie",
     "gateway": "Gateway Service",
     "agents": "Agenten",
     "browser": "browser",

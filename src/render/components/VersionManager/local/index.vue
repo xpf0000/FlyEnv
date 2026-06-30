@@ -157,7 +157,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="I18nT('base.action')" width="150">
+      <el-table-column align="center" :label="I18nT('common.label.action')" width="150">
         <template #default="scope">
           <ExtSet :item="scope.row" :type="typeFlag" />
         </template>

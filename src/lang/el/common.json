@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Μοντέλο"
+    "model": "Μοντέλο",
+    "name": "Όνομα",
+    "status": "Κατάσταση",
+    "workingDirectory": "Κατάλογος Εργασίας",
+    "action": "Ενέργεια",
+    "comment": "Σχόλιο",
+    "source": "Πηγή"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Ενεργοποίηση",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Αντιγραφή",
+    "preview": "Προεπισκόπηση",
+    "search": "Αναζήτηση",
+    "clear": "Καθαρισμός",
+    "resetPassword": "Επαναφορά Κωδικού Πρόσβασης",
+    "delete": "διαγραφή"
   },
   "state": {
     "running": "Τρέξιμο",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Βασικές Πληροφορίες",
+    "configuration": "Διαμόρφωση",
+    "favorites": "Αγαπημένα"
   }
 }

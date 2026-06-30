@@ -17,7 +17,7 @@
             class="w-[24px] h-[24px] p-[3px] cursor-pointer hover:text-yellow-500"
             @click="show = false"
           />
-          <span class="truncate">{{ I18nT('hermes.preview') }}</span>
+          <span class="truncate">{{ I18nT('common.action.preview') }}</span>
         </div>
       </div>
 

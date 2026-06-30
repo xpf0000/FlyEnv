@@ -1,8 +1,6 @@
 {
   "site": "Website",
   "phpVersion": "PHP Versie",
-  "action": "actie",
-  "comment": "Commentaar",
   "newProject": "Nieuw project",
   "frameworkVersion": "Framework versie",
   "newProjectTips": "Creëren van een nieuw project met composer, initialiseren met een geselecteerd kader, ondersteuningen: wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "Open aangepast hosts bestand",
   "placeholderName": "Hostnaam (Voorbeeld: mijndomein.tld)",
   "placeholderAlias": "Domein aliassen (Voorbeeld: www.mijndomein.tld)",
-  "placeholderComment": "Commentaar",
   "placeholderRootPath": "Document basis pad",
   "port": "Poort",
   "portAdvanced": "Geavanceerd",

@@ -7,7 +7,6 @@
   "length": "Longitud",
   "tokenPlaceholder": "El token...",
   "button": {
-    "copy": "Copiar",
     "refresh": "Actualizar"
   }
 }

@@ -28,8 +28,8 @@
   const tabs = [
     I18nT('base.service'),
     I18nT('base.configFile'),
-    I18nT('antigravity.sessions'),
-    I18nT('antigravity.mcp'),
-    I18nT('antigravity.skills')
+    I18nT('common.session.list'),
+    I18nT('common.category.mcp'),
+    I18nT('common.category.skills')
   ]
 </script>

@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Otevřít složku dovedností",
   "openSkillDir": "Otevřít adresář dovedností",
   "revealSkillFile": "Odhalit soubor dovedností",
   "builtin": "Vestavěné",
   "skillFileMissing": "Soubor dovedností nebyl nalezen",
-  "skillLoadFailed": "Načtení souboru dovedností se nezdařilo",
-  "mcp": "MCP"
+  "skillLoadFailed": "Načtení souboru dovedností se nezdařilo"
 }

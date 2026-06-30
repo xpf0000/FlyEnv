@@ -56,7 +56,7 @@
                         <el-dropdown-item
                           :icon="Delete"
                           @click.stop="CodeLibrary.delGroup(langType, item)"
-                          >{{ I18nT('base.del') }}</el-dropdown-item
+                          >{{ I18nT('common.action.delete') }}</el-dropdown-item
                         >
                       </el-dropdown-menu>
                     </template>
@@ -141,7 +141,7 @@
                             </div>
                           </el-dropdown-item>
                           <el-dropdown-item :icon="Delete" @click.stop="doDelItems(item)">{{
-                            I18nT('base.del')
+                            I18nT('common.action.delete')
                           }}</el-dropdown-item>
                         </el-dropdown-menu>
                       </template>

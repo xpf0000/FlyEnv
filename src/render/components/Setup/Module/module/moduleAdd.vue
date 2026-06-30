@@ -112,7 +112,7 @@
                       type="text"
                       class="input"
                       style="height: 32px; width: 120px; flex: unset"
-                      :placeholder="I18nT('setup.module.name')"
+                      :placeholder="I18nT('common.label.name')"
                     />
                     <input
                       v-model.trim="c.path"
@@ -160,7 +160,7 @@
                       type="text"
                       class="input"
                       style="height: 32px; width: 120px; flex: unset"
-                      :placeholder="I18nT('setup.module.name')"
+                      :placeholder="I18nT('common.label.name')"
                     />
                     <input
                       v-model.trim="c.path"

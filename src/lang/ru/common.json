@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Модель"
+    "model": "Модель",
+    "name": "Наименование",
+    "status": "Статус",
+    "workingDirectory": "Рабочая папка",
+    "action": "Действие",
+    "comment": "комментарий",
+    "source": "Источник"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Включить",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Копировать",
+    "preview": "Предпросмотр",
+    "search": "Поиск",
+    "clear": "Очистить",
+    "resetPassword": "Сбросить пароль",
+    "delete": "Удалить"
   },
   "state": {
     "running": "Запущен",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Основная информация",
+    "configuration": "Конфигурация",
+    "favorites": "Избранное"
   }
 }

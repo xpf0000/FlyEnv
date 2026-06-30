@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK подробности",
   "sdkNotFound": "Не е открит Flutter SDK. Добавете версия в раздела Версия.",
-  "source": "Източник",
   "searchDirs": "Търсене в директории",
   "scanned": "{0} сканирано",
   "show": "Покажи",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Идентификатор на пакет за настолни компютри",
   "packagesPubdev": "Пакет (pub.dev)",
   "searchPackagePlaceholder": "Пакет за търсене (например dio)",
-  "search": "Търсене",
   "latest": "последни",
   "noDescription": "Описание на блога",
   "add": "Добавяне",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "Операцията създай flutter възникна грешка",
   "flutterProjectSettings": "Настройки на Flutter проекта",
   "save": "Запази",
-  "preview": "Предварителен преглед",
   "previewChanges": "Предварителен преглед на промените",
   "projectTarget": "Цел на проекта",
   "projectIdentity": "Идентичност на проекта",

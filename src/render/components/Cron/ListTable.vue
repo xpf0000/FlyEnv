@@ -4,7 +4,7 @@
       <div class="toolbar flex-shrink-0">
         <el-input
           v-model="searchText"
-          :placeholder="I18nT('base.placeholderSearch')"
+          :placeholder="I18nT('common.action.search')"
           clearable
           class="search-input"
         />
@@ -80,7 +80,12 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="enabled" :label="I18nT('cron.status')" width="100" align="center">
+        <el-table-column
+          prop="enabled"
+          :label="I18nT('common.label.status')"
+          width="100"
+          align="center"
+        >
           <template #default="{ row }">
             <div class="status-cell">
               <el-tooltip :content="jobStatusLabel(row)" placement="top">
@@ -117,7 +122,12 @@
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" :label="I18nT('base.action')" width="100" align="center">
+        <el-table-column
+          fixed="right"
+          :label="I18nT('common.label.action')"
+          width="100"
+          align="center"
+        >
           <template #default="{ row }">
             <el-popover
               effect="dark"
@@ -146,7 +156,7 @@
                 </li>
                 <li @click.stop="deleteCron(row)">
                   <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.del') }}</span>
+                  <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
                 </li>
               </ul>
 

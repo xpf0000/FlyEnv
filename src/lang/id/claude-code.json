@@ -1,1 +1,27 @@
-{}
+{
+  "notInstalled": "Claude Code CLI belum terinstal. Klik tombol di bawah untuk menjalankan installer resmi.",
+  "officialWebsite": "GitHub Claude Code",
+  "officialDocs": "Dokumentasi Claude Code",
+  "plugins": "Plugin",
+  "available": "Tersedia",
+  "searchPlugin": "Cari plugin",
+  "includeCoAuthoredBy": "Sertakan Co-Authored-By",
+  "cleanupPeriodDays": "Penyimpanan Chat (hari)",
+  "pluginEnabled": "Plugin diaktifkan",
+  "pluginDisabled": "Plugin dinonaktifkan",
+  "pluginUninstalled": "Plugin dicopot",
+  "uninstallConfirm": "Apakah Anda yakin ingin mencopot plugin \"{name}\"?",
+  "cmd": {
+    "help": "Tampilkan informasi bantuan",
+    "version": "Tampilkan nomor versi",
+    "update": "Periksa update dan instal jika tersedia",
+    "doctor": "Periksa kesehatan instalasi Claude Code",
+    "start": "Mulai sesi interaktif baru",
+    "continue": "Lanjutkan percakapan terbaru di direktori saat ini",
+    "resume": "Pilih dan lanjutkan percakapan sebelumnya",
+    "print": "Jalankan prompt sekali jalan dan cetak hasilnya",
+    "mcpList": "Tampilkan daftar server MCP yang dikonfigurasi",
+    "pluginList": "Tampilkan daftar plugin yang terinstal",
+    "setupToken": "Atur token autentikasi jangka panjang"
+  }
+}

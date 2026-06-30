@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenClaw 官網",
   "OpenClawLocalDashboard": "OpenClaw 面板",
   "category": {
-    "basicInfo": "基礎資訊",
-    "configuration": "設定管理",
     "gateway": "閘道服務",
     "agents": "代理管理",
     "browser": "瀏覽器",

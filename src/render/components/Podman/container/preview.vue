@@ -1,7 +1,7 @@
 <template>
   <el-form-item>
     <el-button type="primary" @click="generateCompose"
-      >Docker Compose {{ I18nT('base.preview') }}</el-button
+      >Docker Compose {{ I18nT('common.action.preview') }}</el-button
     >
   </el-form-item>
 
@@ -17,7 +17,9 @@
     </el-scrollbar>
     <template #footer>
       <el-button @click="dialogVisible = false">{{ I18nT('menu.close') }}</el-button>
-      <el-button type="primary" @click="copyToClipboard">{{ I18nT('base.copy') }}</el-button>
+      <el-button type="primary" @click="copyToClipboard">{{
+        I18nT('common.action.copy')
+      }}</el-button>
     </template>
   </el-dialog>
 </template>

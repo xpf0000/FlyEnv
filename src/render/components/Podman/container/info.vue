@@ -11,7 +11,7 @@
         <div class="flex flex-col gap-5">
           <!-- 基本信息 -->
           <el-descriptions
-            :title="I18nT('podman.container.basicInfo')"
+            :title="I18nT('common.category.basicInfo')"
             border
             :column="2"
             direction="vertical"
@@ -253,7 +253,7 @@
                 >{{ containerDetail.Path }} {{ containerDetail.Args.join(' ') }}</pre
               >
             </el-descriptions-item>
-            <el-descriptions-item :label="I18nT('podman.container.workDir')">
+            <el-descriptions-item :label="I18nT('common.label.workingDirectory')">
               <span class="font-mono text-sm">{{ containerDetail.Config.WorkingDir }}</span>
             </el-descriptions-item>
             <el-descriptions-item

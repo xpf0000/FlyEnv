@@ -15,7 +15,6 @@
   "rootPasswordChange": "Ändra {user} lösenord",
   "passwordNoEmpty": "root-lösenord får inte vara tomt",
   "passwordFormatError": "Databaslösenord får inte innehålla kinesiska tecken eller specialtecken",
-  "resetPassword": "Återställ lösenord",
   "savePassword": "Uppdatera lösenord",
   "resetPasswordTips": "Denna åtgärd kommer att ändra databasens root-användares lösenord",
   "savePasswordTips": "Uppdaterar endast lösenordet som lagras i FlyEnv, ändrar inte databasens root-användares lösenord. Detta lösenord används främst för att säkert stoppa {app}-instanser.",

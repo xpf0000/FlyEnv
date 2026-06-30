@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Открыть каталог навыков",
   "openSkillDir": "Открыть папку навыка",
   "revealSkillFile": "Показать файл навыка",
   "builtin": "Встроенный",
   "skillFileMissing": "Файл навыка не найден",
-  "skillLoadFailed": "Не удалось загрузить файл навыка",
-  "mcp": "MCP"
+  "skillLoadFailed": "Не удалось загрузить файл навыка"
 }

@@ -1,9 +1,9 @@
 <template>
   <el-table v-loading="fetching" height="100%" :data="showTableLibFilter" style="width: 100%">
-    <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('base.name')">
+    <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('common.label.name')">
       <template #header>
         <div class="w-p100 name-cell">
-          <span style="display: inline-flex; padding: 2px 0">{{ I18nT('base.name') }}</span>
+          <span style="display: inline-flex; padding: 2px 0">{{ I18nT('common.label.name') }}</span>
           <el-input v-model.trim="search" placeholder="search" clearable></el-input>
         </div>
       </template>
@@ -13,7 +13,7 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column align="center" :label="I18nT('base.status')">
+    <el-table-column align="center" :label="I18nT('common.label.status')">
       <template #default="scope">
         <template v-if="PHPSetup.libExecing[scope.row.name]">
           <el-button :loading="true" link></el-button>

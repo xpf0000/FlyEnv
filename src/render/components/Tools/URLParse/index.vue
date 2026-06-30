@@ -1,14 +1,28 @@
 <script setup lang="ts">
-  import { watch, computed, ComputedRef } from 'vue'
+  import { watch, computed } from 'vue'
   import Store from './store'
   import { I18nT } from '@lang/index'
   import { CopyDocument } from '@element-plus/icons-vue'
 
-  const dict: ComputedRef<Record<string, string>> = computed(() => {
-    return Store.urlDict
+  const dict = computed<Record<string, string>>(() => {
+    const { hash, host, hostname, href, origin, password, pathname, port, protocol, search, username } =
+      Store.urlDict
+    return {
+      hash,
+      host,
+      hostname,
+      href,
+      origin,
+      password,
+      pathname,
+      port,
+      protocol,
+      search,
+      username
+    }
   })
 
-  const urlObject: ComputedRef<URL> = computed(() => {
+  const urlObject = computed(() => {
     return Store.urlDict
   })
 

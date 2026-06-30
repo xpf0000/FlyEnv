@@ -15,7 +15,6 @@
   "rootPasswordChange": "Alterar a senha de {user}",
   "passwordNoEmpty": "A senha do root não pode ser vazia",
   "passwordFormatError": "A senha do banco de dados não pode conter caracteres chineses ou especiais",
-  "resetPassword": "Redefinir senha",
   "savePassword": "Atualizar senha",
   "resetPasswordTips": "Esta operação irá alterar a senha do usuário root do banco de dados.",
   "savePasswordTips": "Apenas atualiza a senha armazenada no FlyEnv, não altera a senha do usuário root do banco de dados. Esta senha é usada principalmente para parar com segurança a instância {app}.",

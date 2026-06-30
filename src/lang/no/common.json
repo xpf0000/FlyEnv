@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Modell"
+    "model": "Modell",
+    "name": "Navn",
+    "status": "Status",
+    "workingDirectory": "Arbeidskatalog (arbeid)",
+    "action": "Handling",
+    "comment": "Kommentar",
+    "source": "Kilde"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Aktiver",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Kopier",
+    "preview": "Forhåndsvisning",
+    "search": "Søk",
+    "clear": "Tøm",
+    "resetPassword": "Tilbakestill passord",
+    "delete": "Slett"
   },
   "state": {
     "running": "Kjører",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Grunnleggende info",
+    "configuration": "Konfigurasjon",
+    "favorites": "Favoritter"
   }
 }

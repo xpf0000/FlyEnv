@@ -28,7 +28,7 @@
               <div class="left">
                 <el-input
                   v-model.trim="search"
-                  :placeholder="I18nT('base.placeholderSearch')"
+                  :placeholder="I18nT('common.action.search')"
                   clearable
                 ></el-input>
               </div>
@@ -39,12 +39,12 @@
             <el-table height="100%" :data="tableData" style="width: 100%">
               <el-table-column prop="name" :label="I18nT('php.disableFunction.function')">
               </el-table-column>
-              <el-table-column align="center" :label="I18nT('base.status')">
+              <el-table-column align="center" :label="I18nT('common.label.status')">
                 <template #default="scope">
                   <el-checkbox :value="scope.row.name"></el-checkbox>
                 </template>
               </el-table-column>
-              <el-table-column width="150" align="center" :label="I18nT('base.action')">
+              <el-table-column width="150" align="center" :label="I18nT('common.label.action')">
                 <template #default="scope">
                   <div class="flex items-center justify-center">
                     <el-button

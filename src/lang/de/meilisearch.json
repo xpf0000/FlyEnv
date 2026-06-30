@@ -1,5 +1,4 @@
 {
-  "working_dir": "Arbeitsverzeichnis",
   "db_path": "Legt den Speicherort fest, an dem Datenbankdateien erstellt und abgerufen werden sollen",
   "env": "Konfiguriert die Instanzumgebung. Der Wert muss entweder `production` oder `development` sein.",
   "http_addr": "Die Adresse, auf der der HTTP-Server lauschen wird.",

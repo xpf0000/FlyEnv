@@ -1,8 +1,6 @@
 {
   "site": "站台",
   "phpVersion": "php 版本",
-  "action": "操作",
-  "comment": "備註",
   "newProject": "新建專案",
   "frameworkVersion": "框架版本",
   "newProjectTips": "使用 composer 新建專案，以選定的框架初始化，支援：wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "開啟自訂 hosts 檔案",
   "placeholderName": "站台域名 (Example: mydomain.tld)",
   "placeholderAlias": "站台域名別名 (Example: www.mydomain.tld)",
-  "placeholderComment": "備註",
   "placeholderRootPath": "站台根目錄",
   "port": "通訊埠",
   "portAdvanced": "進階",

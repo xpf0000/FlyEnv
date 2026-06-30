@@ -17,7 +17,7 @@
             </el-button>
           </template>
           <div class="flex items-center gap-1 pl-4 pr-2">
-            <span class="flex-shrink-0">{{ I18nT('meilisearch.working_dir') }}: </span>
+            <span class="flex-shrink-0">{{ I18nT('common.label.workingDirectory') }}: </span>
             <span
               class="cursor-pointer hover:text-yellow-500 truncate"
               @click.stop="shell.openPath(DATA_DIR)"

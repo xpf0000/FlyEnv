@@ -15,7 +15,7 @@
       label-position="top"
       class="pt-2"
     >
-      <el-form-item :label="I18nT('base.name')" prop="name" required>
+      <el-form-item :label="I18nT('common.label.name')" prop="name" required>
         <el-input v-model="form.name" />
       </el-form-item>
       <el-form-item prop="paths" required>
@@ -65,7 +65,7 @@
       <el-form-item :label="I18nT('host.projectName')" prop="flag">
         <el-input v-model="form.flag" placeholder="docker-compose -p xxxx" />
       </el-form-item>
-      <el-form-item :label="I18nT('host.comment')" prop="comment">
+      <el-form-item :label="I18nT('common.label.comment')" prop="comment">
         <el-input v-model="form.comment" type="textarea" :rows="4" />
       </el-form-item>
     </el-form>
@@ -127,7 +127,11 @@
   // 定义表单验证规则
   const rules = ref<FormRules>({
     name: [
-      { required: true, message: I18nT('base.name') + I18nT('podman.require'), trigger: 'blur' }
+      {
+        required: true,
+        message: I18nT('common.label.name') + I18nT('podman.require'),
+        trigger: 'blur'
+      }
     ],
     flag: [
       {
@@ -190,7 +194,7 @@
 
   const doSubmit = async () => {
     if (!form.value.name) {
-      ElMessage.error(I18nT('base.name') + I18nT('podman.require'))
+      ElMessage.error(I18nT('common.label.name') + I18nT('podman.require'))
       return
     }
 

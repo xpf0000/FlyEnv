@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "モデル"
+    "model": "モデル",
+    "name": "名前",
+    "status": "ステータス",
+    "workingDirectory": "作業ディレクトリ",
+    "action": "アクション",
+    "comment": "コメント",
+    "source": "ソース"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "有効にする",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "コピー",
+    "preview": "プレビュー",
+    "search": "検索",
+    "clear": "クリア",
+    "resetPassword": "パスワードのリセット",
+    "delete": "削除"
   },
   "state": {
     "running": "実行中",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "基本情報",
+    "configuration": "設定",
+    "favorites": "お気に入り"
   }
 }

@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Hanya satu layanan yang dapat berjalan sekaligus",
   "moduleExecItem": "Item Eksekusi Modul",
   "module": {
-    "name": "Nama",
     "path": "Lokasi File",
-    "comment": "Komentar",
     "exec": "Jalankan",
     "command": "Command",
     "commandFile": "File",

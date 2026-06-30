@@ -1,1 +1,27 @@
-{}
+{
+  "notInstalled": "Claude Code CLI yüklü değil. Resmi yükleyiciyi çalıştırmak için aşağıdaki düğmeye tıklayın.",
+  "officialWebsite": "Claude Code GitHub",
+  "officialDocs": "Claude Code Belgeleri",
+  "plugins": "Eklentiler",
+  "available": "Kullanılabilir",
+  "searchPlugin": "Eklenti ara",
+  "includeCoAuthoredBy": "Co-Authored-By Ekle",
+  "cleanupPeriodDays": "Sohbet Saklama (gün)",
+  "pluginEnabled": "Eklenti etkinleştirildi",
+  "pluginDisabled": "Eklenti devre dışı bırakıldı",
+  "pluginUninstalled": "Eklenti kaldırıldı",
+  "uninstallConfirm": "\"{name}\" eklentisini kaldırmak istediğinizden emin misiniz?",
+  "cmd": {
+    "help": "Yardım bilgisini göster",
+    "version": "Sürüm numarasını göster",
+    "update": "Güncellemeleri kontrol et ve varsa yükle",
+    "doctor": "Claude Code kurulumunun sağlığını kontrol et",
+    "start": "Yeni etkileşimli oturum başlat",
+    "continue": "Geçerli dizindeki en son konuşmayı sürdür",
+    "resume": "Önceki bir konuşmayı seç ve sürdür",
+    "print": "Tek seferlik istem çalıştır ve yanıtı yazdır",
+    "mcpList": "Yapılandırılmış MCP sunucularını listele",
+    "pluginList": "Yüklü eklentileri listele",
+    "setupToken": "Uzun ömürlü kimlik doğrulama belirteci ayarla"
+  }
+}

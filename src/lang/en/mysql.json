@@ -11,12 +11,10 @@
   "thread_cache_size": "Pool thread size",
   "table_open_cache": "Table Cache",
   "max_connections": "maximum connection",
-
   "rootPassword": "root password",
   "rootPasswordChange": "Change {user} password",
   "passwordNoEmpty": "root password cannot be empty",
   "passwordFormatError": "Database password cannot contain Chinese or special characters",
-  "resetPassword": "Reset password",
   "savePassword": "Update password",
   "resetPasswordTips": "This operation will change the database root user's password",
   "savePasswordTips": "Only updates the password stored in FlyEnv, does not change the database root user's password. This password is mainly used to safely stop {app} instances.",

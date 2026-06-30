@@ -1,5 +1,4 @@
 {
-  "working_dir": "Radni Direktorij",
   "db_path": "Označava lokaciju gdje će se kreirati i dohvaćati datoteke baze podataka",
   "env": "Konfigurira okruženje instance. Vrijednost mora biti `production` ili `development`.",
   "http_addr": "Adresa na kojoj će HTTP poslužitelj slušati.",

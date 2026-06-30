@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "Hjem til OpenClaw",
   "OpenClawLocalDashboard": "OpenClaw dashbord",
   "category": {
-    "basicInfo": "Grunnleggende info",
-    "configuration": "Konfigurasjon",
     "gateway": "Gateway Service",
     "agents": "Agenter",
     "browser": "Nettleser",

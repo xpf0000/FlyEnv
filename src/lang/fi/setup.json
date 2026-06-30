@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Vain yksi palvelu voi suorittaa kerrallaan",
   "moduleExecItem": "Moduulin Suorituskohde",
   "module": {
-    "name": "Nimi",
     "path": "Tiedoston Polku",
-    "comment": "Kommentti",
     "exec": "Suorita",
     "command": "Komento",
     "commandFile": "Tiedosto",

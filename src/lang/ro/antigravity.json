@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Deschide directorul cu abilități",
   "openSkillDir": "Deschide dosarul abilității",
   "revealSkillFile": "Arată fișierul abilității",
   "builtin": "Încorporat",
   "skillFileMissing": "Fișierul abilității nu a fost găsit",
-  "skillLoadFailed": "Nu s-a putut încărca fișierul abilității",
-  "mcp": "MCP"
+  "skillLoadFailed": "Nu s-a putut încărca fișierul abilității"
 }

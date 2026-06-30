@@ -15,7 +15,6 @@
   "rootPasswordChange": "{user} wachtwoord wijzigen",
   "passwordNoEmpty": "root wachtwoord mag niet leeg zijn",
   "passwordFormatError": "Wachtwoord van de database mag geen Chinese of speciale tekens bevatten",
-  "resetPassword": "Wachtwoord opnieuw instellen",
   "savePassword": "Wachtwoord bijwerken",
   "resetPasswordTips": "Deze bewerking zal het wachtwoord van de root gebruiker van de database wijzigen",
   "savePasswordTips": "Alleen het wachtwoord dat is opgeslagen in FlyEnv, verandert niet het wachtwoord van de root gebruiker van de database. Dit wachtwoord wordt voornamelijk gebruikt om {app} instanties veilig te stoppen.",

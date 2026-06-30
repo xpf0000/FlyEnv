@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "فتح دليل المهارات",
   "openSkillDir": "فتح دليل المهارات",
   "revealSkillFile": "كشف ملف المهارات",
   "builtin": "مدمج",
   "skillFileMissing": "لم يتم العثور على ملف المهارة",
-  "skillLoadFailed": "تعذر تحميل ملف المهارات",
-  "mcp": "MCP"
+  "skillLoadFailed": "تعذر تحميل ملف المهارات"
 }

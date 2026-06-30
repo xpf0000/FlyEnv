@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "Acasă OpenClaw",
   "OpenClawLocalDashboard": "Tablou de bord OpenClaw",
   "category": {
-    "basicInfo": "Informații de bază",
-    "configuration": "Configurare",
     "gateway": "Serviciu gateway",
     "agents": "Agenți",
     "browser": "Browser",

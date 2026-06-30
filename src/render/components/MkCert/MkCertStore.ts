@@ -7,6 +7,9 @@ import type { SoftInstalled } from '@shared/app'
 import { fs } from '@/util/NodeFn'
 import { dirname } from '@/util/path-browserify'
 import { handleHost, hostAlias, hostDefaultSSLCert } from '@/util/Host'
+import localForage from 'localforage'
+
+const MKCERT_STORE_KEY = 'flyenv-mkcert-store'
 
 class MkCertStore {
   mkcertBin: string = 'mkcert'
@@ -107,6 +110,19 @@ class MkCertStore {
 
   onUnmounted() {
     this.xterm?.unmounted?.()
+  }
+
+  save() {
+    return localForage.setItem(
+      MKCERT_STORE_KEY,
+      JSON.parse(
+        JSON.stringify({
+          mkcertBin: this.mkcertBin,
+          mkcertVersion: this.mkcertVersion,
+          caroot: this.caroot
+        })
+      )
+    )
   }
 
   fetchCARoot(version?: SoftInstalled) {

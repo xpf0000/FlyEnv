@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Avaa taitokansio",
   "openSkillDir": "Avaa taitohakemisto",
   "revealSkillFile": "Paljasta taitotiedosto",
   "builtin": "Sisäänrakennettu",
   "skillFileMissing": "Taitotiedostoa ei löytynyt",
-  "skillLoadFailed": "Taitotiedoston lataaminen epäonnistui",
-  "mcp": "MCP"
+  "skillLoadFailed": "Taitotiedoston lataaminen epäonnistui"
 }

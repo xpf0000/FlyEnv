@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenClaw Ana Sayfa",
   "OpenClawLocalDashboard": "OpenClaw Kontrol Paneli",
   "category": {
-    "basicInfo": "Temel Bilgiler",
-    "configuration": "Yapılandırma",
     "gateway": "Ağ Geçidi Servisi",
     "agents": "Ajanlar",
     "browser": "Tarayıcı",

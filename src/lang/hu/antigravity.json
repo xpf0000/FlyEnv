@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Készségek könyvtárának megnyitása",
   "openSkillDir": "Készségkönyvtár megnyitása",
   "revealSkillFile": "Készségfájl felfedése",
   "builtin": "Beépített",
   "skillFileMissing": "A készségfájl nem található",
-  "skillLoadFailed": "Készségfájl betöltése sikertelen",
-  "mcp": "MCP"
+  "skillLoadFailed": "Készségfájl betöltése sikertelen"
 }

@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI 文件",
   "sandboxMode": "終端沙箱",
   "toolPermission": "工具權限",
-  "sessions": "對話",
   "sessionId": "對話 ID",
   "updatedAt": "更新時間",
   "sessionResumed": "已在終端恢復對話",
-  "searchSession": "搜尋對話",
   "sessionDeleted": "對話已刪除",
-  "skills": "技能",
   "noSkills": "未找到技能",
   "openSkillsDir": "打開技能目錄",
   "openSkillDir": "打開技能資料夾",
   "revealSkillFile": "定位技能檔案",
   "builtin": "內建",
   "skillFileMissing": "找不到技能檔案",
-  "skillLoadFailed": "載入技能檔案失敗",
-  "mcp": "MCP"
+  "skillLoadFailed": "載入技能檔案失敗"
 }

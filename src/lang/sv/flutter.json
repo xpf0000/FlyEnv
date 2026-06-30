@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK Detaljer",
   "sdkNotFound": "Flutter SDK hittades inte. Lägg till en version i versionsfliken.",
-  "source": "Källa",
   "searchDirs": "Sök Dirs",
   "scanned": "{0} skannad",
   "show": "Visa",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Skrivbord bunt id",
   "packagesPubdev": "Paket (pub.dev)",
   "searchPackagePlaceholder": "Sök paket (t.ex. dio)",
-  "search": "Sök",
   "latest": "senaste",
   "noDescription": "Ingen beskrivning",
   "add": "Lägg till",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "fladder skapade misslyckades",
   "flutterProjectSettings": "Inställningar för Flutter Project",
   "save": "Spara",
-  "preview": "Förhandsgranskning",
   "previewChanges": "Förhandsgranska ändringar",
   "projectTarget": "Project target",
   "projectIdentity": "Projektets identitet",

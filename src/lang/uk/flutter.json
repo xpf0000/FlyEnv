@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK Деталі",
   "sdkNotFound": "Віддалений SDK не знайдено. Додайте версію в вкладці Версії.",
-  "source": "Джерело",
   "searchDirs": "Знайти директорії",
   "scanned": "{0} відскановано",
   "show": "Показати",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Ідентифікатор робочого столу",
   "packagesPubdev": "Пакунки (pub.dev)",
   "searchPackagePlaceholder": "Пошук пакунку (напр. dio)",
-  "search": "Пошук",
   "latest": "останній",
   "noDescription": "Без опису",
   "add": "Додати",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "створення прошивки не вдалося",
   "flutterProjectSettings": "Налаштування блимання проекту",
   "save": "Зберегти",
-  "preview": "Попередній перегляд",
   "previewChanges": "Попередній перегляд змін",
   "projectTarget": "Project target",
   "projectIdentity": "Ідентифікація проекту",

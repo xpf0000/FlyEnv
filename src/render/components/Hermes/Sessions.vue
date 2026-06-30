@@ -34,7 +34,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="lastActive" :label="I18nT('hermes.lastActive')" width="140" />
-              <el-table-column prop="src" :label="I18nT('hermes.source')" width="100" />
+              <el-table-column prop="src" :label="I18nT('common.label.source')" width="100" />
               <el-table-column prop="id" :label="I18nT('hermes.id')" width="220" />
               <el-table-column width="100" :label="I18nT('base.operation')" align="center">
                 <template #default="{ row }">

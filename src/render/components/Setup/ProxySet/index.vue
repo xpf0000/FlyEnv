@@ -62,7 +62,7 @@
           <el-input v-model="proxy.proxy" readonly>
             <template #append>
               <el-button-group>
-                <el-button @click="copyProxy">{{ $t('base.copy') }}</el-button>
+                <el-button @click="copyProxy">{{ $t('common.action.copy') }}</el-button>
                 <el-button @click="editProxy">{{ $t('base.edit') }}</el-button>
               </el-button-group>
             </template>

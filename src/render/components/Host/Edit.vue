@@ -39,7 +39,7 @@
               v-model.trim="item.mark"
               style="margin: 15px 0 10px"
               class="input"
-              :placeholder="I18nT('host.placeholderComment')"
+              :placeholder="I18nT('common.label.comment')"
             />
             <div class="path-choose my-5">
               <input
@@ -348,7 +348,18 @@
   }>()
   const running = ref(false)
   const park = ref(false)
-  const item = ref({
+  type HostReverseProxyItem = {
+    path: string
+    url: string
+  }
+  type HostEditForm = AppHost & {
+    reverseProxy: HostReverseProxyItem[]
+    port: AppHost['port'] & {
+      frankenphp: number
+      frankenphp_ssl: number
+    }
+  }
+  const item = ref<HostEditForm>({
     id: new Date().getTime(),
     type: 'php',
     name: `flyenv-test-${uuid(8)}.test`.toLowerCase(),

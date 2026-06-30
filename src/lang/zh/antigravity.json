@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI 文档",
   "sandboxMode": "终端沙箱",
   "toolPermission": "工具权限",
-  "sessions": "对话",
   "sessionId": "对话 ID",
   "updatedAt": "更新时间",
   "sessionResumed": "已在终端恢复对话",
-  "searchSession": "搜索对话",
   "sessionDeleted": "对话已删除",
-  "skills": "技能",
   "noSkills": "未找到技能",
   "openSkillsDir": "打开技能目录",
   "openSkillDir": "打开技能文件夹",
   "revealSkillFile": "定位技能文件",
   "builtin": "内置",
   "skillFileMissing": "未找到技能文件",
-  "skillLoadFailed": "加载技能文件失败",
-  "mcp": "MCP"
+  "skillLoadFailed": "加载技能文件失败"
 }

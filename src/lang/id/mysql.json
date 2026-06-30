@@ -15,7 +15,6 @@
   "rootPasswordChange": "Ubah kata sandi {user}",
   "passwordNoEmpty": "kata sandi root tidak boleh kosong",
   "passwordFormatError": "Kata sandi database tidak boleh mengandung karakter Cina atau karakter khusus",
-  "resetPassword": "Atur ulang kata sandi",
   "savePassword": "Perbarui kata sandi",
   "resetPasswordTips": "Operasi ini akan mengubah kata sandi pengguna root database",
   "savePasswordTips": "Hanya memperbarui kata sandi yang disimpan di FlyEnv, tidak mengubah kata sandi pengguna root database. Kata sandi ini terutama digunakan untuk menghentikan instance {app} dengan aman.",

@@ -305,16 +305,16 @@
       align: 'center',
       width: 100,
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('base.action')}</span>
+        return <span class="flex items-center">{I18nT('common.label.action')}</span>
       },
       cellRenderer: ({ rowData: data }): any => (
         <div class="setup">
-          <Edit class="setup-icon" onClick={() => doEdit(data)}>
-            Edit
-          </Edit>
-          <Delete class="setup-icon" onClick={() => doDel(data)}>
-            Delete
-          </Delete>
+          <span class="setup-icon" onClick={() => doEdit(data)}>
+            <Edit />
+          </span>
+          <span class="setup-icon" onClick={() => doDel(data)}>
+            <Delete />
+          </span>
         </div>
       )
     }

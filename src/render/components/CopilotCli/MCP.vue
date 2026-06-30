@@ -1,10 +1,10 @@
 <template>
   <el-card class="version-manager">
     <template #header>
-      <div class="card-header">
+        <div class="card-header">
         <div class="left flex items-center">
-          <span>{{ I18nT('copilotCli.mcp') }}</span>
-          <el-tooltip :content="I18nT('copilotCli.addServer')" placement="top" :show-after="300">
+          <span>{{ I18nT('common.category.mcp') }}</span>
+          <el-tooltip :content="I18nT('common.mcp.addServer')" placement="top" :show-after="300">
             <el-button link class="ml-3" :icon="Plus" @click="openAdd" />
           </el-tooltip>
         </div>
@@ -27,7 +27,7 @@
           <el-table :data="CopilotCliSetup.mcpServers" style="width: 100%" show-overflow-tooltip>
             <el-table-column width="180">
               <template #header>
-                <div class="w-full min-w-0 truncate">{{ I18nT('copilotCli.mcpName') }}</div>
+                <div class="w-full min-w-0 truncate">{{ I18nT('common.mcp.name') }}</div>
               </template>
               <template #default="{ row }">
                 <div class="w-full min-w-0 truncate">{{ row.name }}</div>
@@ -35,7 +35,7 @@
             </el-table-column>
             <el-table-column width="100">
               <template #header>
-                <div class="w-full min-w-0 truncate">{{ I18nT('copilotCli.mcpType') }}</div>
+                <div class="w-full min-w-0 truncate">{{ I18nT('common.mcp.type') }}</div>
               </template>
               <template #default="{ row }">
                 <div class="w-full min-w-0 truncate">{{ row.type }}</div>
@@ -44,18 +44,18 @@
             <el-table-column>
               <template #header>
                 <div class="w-full min-w-0 truncate">
-                  {{ I18nT('copilotCli.mcpCommandOrUrl') }}
+                  {{ I18nT('common.mcp.commandOrUrl') }}
                 </div>
               </template>
               <template #default="{ row }">
                 <div class="w-full min-w-0 truncate">{{ row.commandOrUrl }}</div>
               </template>
             </el-table-column>
-            <el-table-column prop="scope" :label="I18nT('copilotCli.mcpScope')" width="100" />
-            <el-table-column :label="I18nT('base.action')" width="100" align="center">
+            <el-table-column prop="scope" :label="I18nT('common.mcp.scope')" width="100" />
+            <el-table-column :label="I18nT('common.label.action')" width="100" align="center">
               <template #default="{ row }">
                 <el-button link type="danger" @click="confirmRemove(row.name)">{{
-                  I18nT('base.del')
+                  I18nT('common.action.delete')
                 }}</el-button>
               </template>
             </el-table-column>
@@ -67,21 +67,21 @@
 
     <el-dialog
       v-model="addVisible"
-      :title="I18nT('copilotCli.addServer')"
+      :title="I18nT('common.mcp.addServer')"
       width="500"
       append-to-body
     >
       <el-form label-position="top" @submit.prevent>
-        <el-form-item :label="I18nT('copilotCli.mcpName')">
+        <el-form-item :label="I18nT('common.mcp.name')">
           <el-input v-model="form.name" placeholder="my-server" />
         </el-form-item>
-        <el-form-item :label="I18nT('copilotCli.mcpType')">
+        <el-form-item :label="I18nT('common.mcp.type')">
           <el-radio-group v-model="form.type">
             <el-radio-button value="stdio">stdio</el-radio-button>
             <el-radio-button value="http">http</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="I18nT('copilotCli.mcpCommandOrUrl')">
+        <el-form-item :label="I18nT('common.mcp.commandOrUrl')">
           <el-input
             v-model="form.commandOrUrl"
             :placeholder="form.type === 'stdio' ? 'npx my-mcp-server' : 'https://example.com/mcp'"

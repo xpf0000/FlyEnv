@@ -35,7 +35,7 @@
           <span
             class="w-[80px] text-right opacity-80 overflow-hidden truncate"
             :style="{ fontFamily: item.value || defaultFont }"
-            >{{ $t('base.name') }}</span
+            >{{ $t('common.label.name') }}</span
           >
         </div>
       </template>

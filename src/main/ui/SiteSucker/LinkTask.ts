@@ -112,16 +112,25 @@ class LinkTaskItem {
         })
           .then((res) => {
             clearTimeout(timer)
-            const type = res.headers['content-type']
-            const size = parseInt(res.headers['content-length'] ?? '0')
-            link.type = type
+            const typeHeader = res.headers['content-type']
+            const contentType =
+              Array.isArray(typeHeader) ? typeHeader[0] : typeof typeHeader === 'string' ? typeHeader : ''
+            const lengthHeader = res.headers['content-length']
+            const contentLength =
+              Array.isArray(lengthHeader)
+                ? lengthHeader[0]
+                : typeof lengthHeader === 'string'
+                  ? lengthHeader
+                  : '0'
+            const size = Number.parseInt(contentLength, 10) || 0
+            link.type = contentType || undefined
             link.size = size
-            if (type.startsWith('image/')) {
+            if (contentType.startsWith('image/')) {
               if (size > 0 && Config.maxImgSize > 0 && size > Config.maxImgSize * 1024 * 1024) {
                 taskFail()
                 return
               }
-            } else if (type.startsWith('audio/') || type.startsWith('video/')) {
+            } else if (contentType.startsWith('audio/') || contentType.startsWith('video/')) {
               if (size > 0 && Config.maxVideoSize > 0 && size > Config.maxVideoSize * 1024 * 1024) {
                 taskFail()
                 return

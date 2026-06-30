@@ -65,7 +65,11 @@
         input.value,
         await EditorConfigMake(content.value, false, 'off')
       )
-      monacoInstance.addAction({
+      const editorInstance = monacoInstance
+      if (!editorInstance) {
+        return
+      }
+      editorInstance.addAction({
         id: 'save',
         label: 'save',
         keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
@@ -74,7 +78,7 @@
         }
       })
     } else {
-      monacoInstance.setValue(content.value)
+      monacoInstance?.setValue(content.value)
     }
   }
 

@@ -14,7 +14,7 @@ const base = reactive({
   mirrors: [],
   check() {
     if (!this.name) {
-      return I18nT('base.name') + I18nT('podman.require')
+      return I18nT('common.label.name') + I18nT('podman.require')
     }
     if (!this.dir) {
       return I18nT('podman.ComposeFileSaveDir') + I18nT('podman.require')

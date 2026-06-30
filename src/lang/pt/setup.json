@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Apenas um serviço pode ser iniciado de cada vez",
   "moduleExecItem": "Item de execução do módulo",
   "module": {
-    "name": "Nome",
     "path": "Caminho do ficheiro",
-    "comment": "Comentário",
     "exec": "Executar",
     "command": "Comando",
     "commandFile": "Ficheiro",

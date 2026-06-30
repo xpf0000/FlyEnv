@@ -15,7 +15,6 @@
   "rootPasswordChange": "Change {user} password",
   "passwordNoEmpty": "parola rădăcină nu poate fi goală",
   "passwordFormatError": "Parola bazei de date nu poate conține caractere chinezești sau speciale",
-  "resetPassword": "Resetare parolă",
   "savePassword": "Actualizare parolă",
   "resetPasswordTips": "Această operaţie va schimba parola utilizatorului rădăcină a bazei de date",
   "savePasswordTips": "Doar actualizările parolei stocate în FlyEnv, nu schimbă parola utilizatorului rădăcină a bazei de date. Această parolă este folosită în principal pentru a opri în siguranță {app} instanțe.",

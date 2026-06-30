@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Pouze jedna služba může běžet najednou",
   "moduleExecItem": "Položka spuštění modulu",
   "module": {
-    "name": "Název",
     "path": "Cesta k souboru",
-    "comment": "Komentář",
     "exec": "Spustit",
     "command": "Příkaz",
     "commandFile": "Soubor",

@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Model"
+    "model": "Model",
+    "name": "Nume",
+    "status": "Status",
+    "workingDirectory": "Director de lucru",
+    "action": "Acțiune",
+    "comment": "Comentariu",
+    "source": "Sursa"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Activare",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Copiază",
+    "preview": "Previzualizare",
+    "search": "Caută",
+    "clear": "Curăță",
+    "resetPassword": "Resetare parolă",
+    "delete": "Ștergere"
   },
   "state": {
     "running": "În execuție",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Informații de bază",
+    "configuration": "Configurare",
+    "favorites": "Favorite"
   }
 }

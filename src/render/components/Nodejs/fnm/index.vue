@@ -126,7 +126,7 @@
             </span>
             <ElInput
               v-model={FNMSetup.search}
-              placeholder={I18nT('base.placeholderSearch')}
+              placeholder={I18nT('common.action.search')}
               clearable={true}
             ></ElInput>
           </div>
@@ -224,7 +224,7 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',

@@ -1,5 +1,4 @@
 {
-  "working_dir": "Working Directory",
   "db_path": "Menentukan lokasi pembuatan dan pengambilan file database",
   "env": "Mengkonfigurasi lingkungan instance. Nilai harus `production` atau `development`.",
   "http_addr": "Alamat yang akan didengarkan oleh server HTTP.",

@@ -2,7 +2,7 @@
   <el-card class="version-manager">
     <template #header>
       <div class="card-header">
-        <span>{{ I18nT('antigravity.sessions') }}</span>
+        <span>{{ I18nT('common.session.list') }}</span>
         <el-button
           link
           :disabled="AntigravitySetup.loading"
@@ -20,7 +20,7 @@
       <div class="p-5 h-full overflow-hidden flex flex-col">
         <el-input
           v-model="search"
-          :placeholder="I18nT('antigravity.searchSession')"
+          :placeholder="I18nT('common.session.search')"
           clearable
           class="mb-3"
         />
@@ -152,12 +152,12 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       width: 80,
       align: 'center',
       headerCellRenderer: () => (
-        <span class="flex items-center justify-center">{I18nT('base.action')}</span>
+        <span class="flex items-center justify-center">{I18nT('common.label.action')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElPopover
@@ -180,7 +180,7 @@
                   <ElIcon size="13">
                     <Delete />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('base.del')}</span>
+                  <span class="ml-3">{I18nT('common.action.delete')}</span>
                 </li>
               </ul>
             ),

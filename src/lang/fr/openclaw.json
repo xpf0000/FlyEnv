@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "Accueil OpenClaw",
   "OpenClawLocalDashboard": "Tableau de bord OpenClaw",
   "category": {
-    "basicInfo": "Informations de base",
-    "configuration": "Configuration",
     "gateway": "Service de passerelle",
     "agents": "Agents",
     "browser": "Navigateur",

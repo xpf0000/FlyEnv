@@ -99,7 +99,7 @@
                 :label="I18nT('licenses.licenseBindUUID')"
                 prop="uuid"
               ></el-table-column>
-              <el-table-column :label="I18nT('base.action')" width="100px">
+              <el-table-column :label="I18nT('common.label.action')" width="100px">
                 <template #default="scope">
                   <el-dropdown>
                     <template #default>

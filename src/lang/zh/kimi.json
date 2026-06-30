@@ -6,7 +6,6 @@
   "defaultThinking": "深度思考模式",
   "defaultPlanMode": "计划模式",
   "telemetry": "遥测",
-  "mcp": "MCP",
   "cmd": {
     "export": "导出会话为 ZIP"
   }

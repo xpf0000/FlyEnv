@@ -172,7 +172,7 @@
                 :placeholder="I18nT('flutter.searchPackagePlaceholder')"
               />
               <el-button :loading="packageSearching" @click="searchPackages">{{
-                I18nT('flutter.search')
+                I18nT('common.action.search')
               }}</el-button>
             </div>
 

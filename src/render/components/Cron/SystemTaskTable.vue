@@ -5,7 +5,7 @@
     <div class="flex shrink-0 flex-wrap items-center gap-2">
       <el-input
         v-model="searchText"
-        :placeholder="I18nT('base.placeholderSearch')"
+        :placeholder="I18nT('common.action.search')"
         clearable
         class="w-full md:w-[280px]"
       />
@@ -39,7 +39,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="I18nT('cron.taskSource')" width="130" align="center">
+      <el-table-column :label="I18nT('common.label.source')" width="130" align="center">
         <template #default="{ row }">
           <el-tag
             :type="row.isFlyEnv ? 'success' : 'info'"
@@ -76,7 +76,12 @@
         </template>
       </el-table-column>
 
-      <el-table-column fixed="right" :label="I18nT('base.action')" width="80" align="center">
+      <el-table-column
+        fixed="right"
+        :label="I18nT('common.label.action')"
+        width="80"
+        align="center"
+      >
         <template #default="{ row }">
           <el-button :icon="Delete" link type="danger" @click="deleteTask(row)" />
         </template>

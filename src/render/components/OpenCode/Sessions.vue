@@ -2,7 +2,7 @@
   <el-card class="version-manager">
     <template #header>
       <div class="card-header">
-        <span>{{ I18nT('openCode.sessions') }}</span>
+        <span>{{ I18nT('common.session.list') }}</span>
         <el-button link :disabled="OpenCodeSetup.loading" @click="OpenCodeSetup.refreshSessions()">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
@@ -16,7 +16,7 @@
       <div class="p-5 h-full overflow-hidden flex flex-col">
         <el-input
           v-model="search"
-          :placeholder="I18nT('openCode.searchSession')"
+          :placeholder="I18nT('common.session.search')"
           clearable
           class="mb-3"
         />
@@ -112,12 +112,12 @@
   const columns: Column<SessionItem>[] = [
     {
       key: 'id',
-      title: I18nT('openCode.sessionId'),
+      title: I18nT('common.session.id'),
       dataKey: 'id',
       width: 220,
       align: 'center',
       headerCellRenderer: () => (
-        <span class="flex items-center justify-center">{I18nT('openCode.sessionId')}</span>
+        <span class="flex items-center justify-center">{I18nT('common.session.id')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.id} placement="top" show-after={300}>
@@ -132,14 +132,14 @@
     },
     {
       key: 'title',
-      title: I18nT('openCode.sessionTitle'),
+      title: I18nT('common.session.title'),
       dataKey: 'title',
       class: 'flex-1',
       headerClass: 'flex-1',
       width: 0,
       flexGrow: 1,
       headerCellRenderer: () => (
-        <span class="flex items-center">{I18nT('openCode.sessionTitle')}</span>
+        <span class="flex items-center">{I18nT('common.session.title')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.title} placement="top" show-after={300}>
@@ -149,12 +149,12 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       width: 80,
       align: 'center',
       headerCellRenderer: () => (
-        <span class="flex items-center justify-center">{I18nT('base.action')}</span>
+        <span class="flex items-center justify-center">{I18nT('common.label.action')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElPopover
@@ -171,13 +171,13 @@
                   <ElIcon size="13">
                     <VideoPlay />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('openCode.resume')}</span>
+                  <span class="ml-3">{I18nT('common.action.resume')}</span>
                 </li>
                 <li onClick={() => deleteSession(row)}>
                   <ElIcon size="13">
                     <Delete />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('base.del')}</span>
+                  <span class="ml-3">{I18nT('common.action.delete')}</span>
                 </li>
               </ul>
             ),

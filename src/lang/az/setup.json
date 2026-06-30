@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Eyni anda yalnız bir xidmət işlədilə bilər",
   "moduleExecItem": "Modul İcra Elementi",
   "module": {
-    "name": "Ad",
     "path": "Fayl Yolu",
-    "comment": "Açıqlama",
     "exec": "İcra Et",
     "command": "Əmr",
     "commandFile": "Fayl",

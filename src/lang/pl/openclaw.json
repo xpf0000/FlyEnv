@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "Strona domowa OpenClaw",
   "OpenClawLocalDashboard": "Panel OpenClaw",
   "category": {
-    "basicInfo": "Podstawowe informacje",
-    "configuration": "Konfiguracja",
     "gateway": "Usługa bramy",
     "agents": "Agenci",
     "browser": "Przeglądarki",

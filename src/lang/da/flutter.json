@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK Detaljer",
   "sdkNotFound": "Flutter SDK ikke fundet. Tilføj en version i fanen Version.",
-  "source": "Kilde",
   "searchDirs": "Søg Dirs",
   "scanned": "{0} scannet",
   "show": "Vis",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Desktop bundle id",
   "packagesPubdev": "Pakker (pub.dev)",
   "searchPackagePlaceholder": "Søgepakke (f.eks. dio)",
-  "search": "Søg",
   "latest": "seneste",
   "noDescription": "Ingen beskrivelse",
   "add": "Tilføj",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "oprettelse af flutter mislykkedes",
   "flutterProjectSettings": "Flutter Projektindstillinger",
   "save": "Gem",
-  "preview": "Eksempelvisning",
   "previewChanges": "Forhåndsvis Ændringer",
   "projectTarget": "Project target",
   "projectIdentity": "Projekt identitet",

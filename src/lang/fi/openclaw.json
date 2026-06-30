@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenClaw Koti",
   "OpenClawLocalDashboard": "OpenClaw Kojelauta",
   "category": {
-    "basicInfo": "Perustiedot",
-    "configuration": "Asetukset",
     "gateway": "Yhdyskäytävän Palvelu",
     "agents": "Agentit",
     "browser": "Selain",

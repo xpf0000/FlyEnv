@@ -11,6 +11,5 @@
   "pluginEnabled": "外掛已安裝",
   "pluginDisabled": "外掛已移除",
   "pluginUninstalled": "外掛已移除",
-  "uninstallConfirm": "確定要移除外掛「{name}」嗎？",
-  "mcp": "MCP"
+  "uninstallConfirm": "確定要移除外掛「{name}」嗎？"
 }

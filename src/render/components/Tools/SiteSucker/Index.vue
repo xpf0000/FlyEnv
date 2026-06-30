@@ -175,7 +175,7 @@
             </span>
             <ElInput
               v-model={search.value}
-              placeholder={I18nT('base.placeholderSearch')}
+              placeholder={I18nT('common.action.search')}
               clearable={true}
             ></ElInput>
           </div>
@@ -242,7 +242,7 @@
             <span class="flex items-center">host</span>
             <ElInput
               v-model={searchHost.value}
-              placeholder={I18nT('base.placeholderSearch')}
+              placeholder={I18nT('common.action.search')}
               clearable={true}
             ></ElInput>
           </div>
@@ -259,9 +259,11 @@
       cellRenderer: ({ cellData: host }) => {
         const c = excludeLink.value.includes(host) ? 'not-allow' : 'allow'
         return (
-          <ElIcon class={c} onClick={() => allowChange(host)}>
-            <Check />
-          </ElIcon>
+          <span class={c} onClick={() => allowChange(host)}>
+            <ElIcon>
+              <Check />
+            </ElIcon>
+          </span>
         )
       }
     }

@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "nameKey": "openclaw.category.basicInfo",
+      "nameKey": "common.category.basicInfo",
       "commands": [
         { "label": "openclaw help", "descriptionKey": "openclaw.cmd.help", "needInput": false },
         { "label": "openclaw --version", "descriptionKey": "openclaw.cmd.version", "needInput": false },
@@ -14,7 +14,7 @@
       ]
     },
     {
-      "nameKey": "openclaw.category.configuration",
+      "nameKey": "common.category.configuration",
       "commands": [
         { "label": "openclaw configure", "descriptionKey": "openclaw.cmd.configure", "needInput": false },
         { "label": "openclaw config file", "descriptionKey": "openclaw.cmd.configFile", "needInput": false },

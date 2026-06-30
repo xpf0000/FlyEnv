@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Modell"
+    "model": "Modell",
+    "name": "Név",
+    "status": "Állapot",
+    "workingDirectory": "Munkakönyvtár",
+    "action": "Művelet",
+    "comment": "Megjegyzés",
+    "source": "Forrás"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Engedélyezés",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Másolás",
+    "preview": "Előnézet",
+    "search": "Keresés",
+    "clear": "Törlés",
+    "resetPassword": "Jelszó visszaállítása",
+    "delete": "Törlés"
   },
   "state": {
     "running": "Futás",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Alapadatok",
+    "configuration": "Konfiguráció",
+    "favorites": "Kedvencek"
   }
 }

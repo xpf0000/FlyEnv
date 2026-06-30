@@ -1,8 +1,6 @@
 {
   "site": "الموقع",
   "phpVersion": "إصدار PHP",
-  "action": "الإجراء",
-  "comment": "ملاحظة",
   "newProject": "مشروع جديد",
   "frameworkVersion": "إصدار الإطار",
   "newProjectTips": "يتم إنشاء مشروع جديد باستخدام Composer، وتهيئته بالإطار المحدد. الإطارات المدعومة: WordPress و Laravel و Yii2 و Symfony و ThinkPHP و CodeIgniter و CakePHP و Slim.",
@@ -14,7 +12,6 @@
   "hostsOpen": "فتح ملف Hosts المخصص",
   "placeholderName": "اسم النطاق (مثال: mydomain.tld)",
   "placeholderAlias": "الأسماء المستعارة للنطاق (مثال: www.mydomain.tld)",
-  "placeholderComment": "ملاحظة",
   "placeholderRootPath": "مسار جذر المستند",
   "port": "المنفذ",
   "portAdvanced": "متقدم",

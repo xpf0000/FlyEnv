@@ -80,7 +80,7 @@
 
             <div class="mt-5 flex justify-center gap-3">
               <el-button @click="Store.copy()">
-                {{ I18nT('token-generator.button.copy') }}
+                {{ I18nT('common.action.copy') }}
               </el-button>
               <el-button @click="Store.refreshToken()">
                 {{ I18nT('token-generator.button.refresh') }}

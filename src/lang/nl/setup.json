@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Slechts één service tegelijk kan worden uitgevoerd",
   "moduleExecItem": "Module Uitvoer Item",
   "module": {
-    "name": "Vul nieuwe naam in (optioneel)",
     "path": "Bestandspad",
-    "comment": "Commentaar",
     "exec": "Uitvoeren",
     "command": "Opdracht",
     "commandFile": "Bestand",

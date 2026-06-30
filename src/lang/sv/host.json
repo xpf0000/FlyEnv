@@ -1,8 +1,6 @@
 {
   "site": "Webbplats",
   "phpVersion": "PHP-version",
-  "action": "Åtgärd",
-  "comment": "Kommentar",
   "newProject": "Nytt projekt",
   "frameworkVersion": "Framework-version",
   "newProjectTips": "Skapar ett nytt projekt med composer, initierar med valt ramverk, stöder: wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "Öppna anpassad hosts-fil",
   "placeholderName": "Värdnamn (Exempel: mydomain.tld)",
   "placeholderAlias": "Domänalias (Example: www.mydomain.tld)",
-  "placeholderComment": "Kommentar",
   "placeholderRootPath": "Sökväg till dokumentrot",
   "port": "Port",
   "portAdvanced": "Avancerat",

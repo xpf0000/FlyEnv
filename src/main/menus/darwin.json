@@ -17,7 +17,7 @@
       "id": "menu.edit",
       "submenu": [
         { "id": "menu.cut", "accelerator": "CmdOrCtrl+X", "selector": "cut:", "role": "cut" },
-        { "id": "menu.copy", "accelerator": "CmdOrCtrl+C", "selector": "copy:", "role": "copy"},
+        { "id": "common.action.copy", "accelerator": "CmdOrCtrl+C", "selector": "copy:", "role": "copy"},
         { "id": "menu.paste", "accelerator": "CmdOrCtrl+V", "selector": "paste:", "role": "paste" },
         { "id": "menu.selectAll", "accelerator": "CmdOrCtrl+A", "selector": "selectAll:", "role": "selectAll" }
       ]

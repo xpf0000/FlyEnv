@@ -152,7 +152,9 @@
       headerClass: 'flex-1',
       width: 0,
       flexGrow: 1,
-      headerCellRenderer: () => <span class="flex items-center">{I18nT('common.session.lastPrompt')}</span>,
+      headerCellRenderer: () => (
+        <span class="flex items-center">{I18nT('common.session.lastPrompt')}</span>
+      ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.lastPrompt} placement="top" show-after={300}>
           <span class="truncate text-gray-500">{row.lastPrompt}</span>
@@ -161,12 +163,12 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       width: 80,
       align: 'center',
       headerCellRenderer: () => (
-        <span class="flex items-center justify-center">{I18nT('base.action')}</span>
+        <span class="flex items-center justify-center">{I18nT('common.label.action')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElPopover
@@ -189,7 +191,7 @@
                   <ElIcon size="13">
                     <Delete />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('base.del')}</span>
+                  <span class="ml-3">{I18nT('common.action.delete')}</span>
                 </li>
               </ul>
             ),

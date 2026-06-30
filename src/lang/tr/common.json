@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Model"
+    "model": "Model",
+    "name": "Ad",
+    "status": "Durum",
+    "workingDirectory": "Çalışma Dizini",
+    "action": "Eylem",
+    "comment": "Açıklama",
+    "source": "Kaynak"
   },
   "action": {
     "enable": "Etkinleştir",
     "disable": "Devre dışı bırak",
     "resume": "Sürdür",
-    "uninstall": "Kaldır"
+    "uninstall": "Kaldır",
+    "copy": "Kopyala",
+    "preview": "Önizleme",
+    "search": "Ara",
+    "clear": "Temizle",
+    "resetPassword": "Şifreyi sıfırla",
+    "delete": "Sil"
   },
   "state": {
     "running": "Calisiyor",
@@ -31,6 +43,11 @@
     "addServer": "Sunucu Ekle"
   },
   "category": {
-    "basic": "Temel"
+    "basic": "Temel",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Temel Bilgiler",
+    "configuration": "Yapılandırma",
+    "favorites": "Favoriler"
   }
 }

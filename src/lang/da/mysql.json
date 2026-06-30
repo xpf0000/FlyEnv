@@ -15,7 +15,6 @@
   "rootPasswordChange": "Skift {user} adgangskode",
   "passwordNoEmpty": "root adgangskode må ikke være tom",
   "passwordFormatError": "Database adgangskode kan ikke indeholde kinesiske eller specielle tegn",
-  "resetPassword": "Nulstil adgangskode",
   "savePassword": "Opdater adgangskode",
   "resetPasswordTips": "Denne handling vil ændre database root brugers adgangskode",
   "savePasswordTips": "Kun opdaterer den adgangskode, der er gemt i FlyEnv, ændrer ikke databasens rodbrugers adgangskode. Denne adgangskode bruges hovedsageligt til sikkert at stoppe {app} instanser.",

@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Es kann jeweils nur ein Dienst ausgeführt werden",
   "moduleExecItem": "Modulausführung Element",
   "module": {
-    "name": "Name",
     "path": "Dateipfad",
-    "comment": "Kommentar",
     "exec": "Ausführen",
     "command": "Befehl",
     "commandFile": "Datei",

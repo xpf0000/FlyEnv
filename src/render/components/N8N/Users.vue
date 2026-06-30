@@ -28,14 +28,14 @@
 
         <!-- Users table — reads from SQLite directly, works offline -->
         <el-table v-loading="loading" class="flex-1 overflow-hidden" :data="users" border>
-          <el-table-column :label="I18nT('n8n.usersName')" min-width="150">
+          <el-table-column :label="I18nT('common.label.name')" min-width="150">
             <template #default="{ row }">{{ row.firstName }} {{ row.lastName }}</template>
           </el-table-column>
           <el-table-column prop="email" :label="I18nT('n8n.usersEmail')" min-width="200" />
           <el-table-column :label="I18nT('n8n.usersRole')" width="120">
             <template #default="{ row }">{{ formatRole(row.roleSlug) }}</template>
           </el-table-column>
-          <el-table-column :label="I18nT('n8n.usersStatus')" width="100">
+          <el-table-column :label="I18nT('common.label.status')" width="100">
             <template #default="{ row }">
               <el-tag
                 :type="row.disabled ? 'info' : row.isPending ? 'warning' : 'success'"
@@ -62,7 +62,7 @@
                         I18nT('n8n.usersChangeName')
                       }}</el-dropdown-item>
                       <el-dropdown-item command="password">{{
-                        I18nT('n8n.usersResetPassword')
+                        I18nT('common.action.resetPassword')
                       }}</el-dropdown-item>
                       <el-dropdown-item v-if="row.roleSlug !== 'global:owner'" command="role">{{
                         I18nT('n8n.usersChangeRole')
@@ -71,13 +71,15 @@
                         v-if="row.roleSlug !== 'global:owner'"
                         :command="row.disabled ? 'enable' : 'disable'"
                       >
-                        {{ row.disabled ? I18nT('n8n.usersEnable') : I18nT('n8n.usersDisable') }}
+                        {{
+                          row.disabled ? I18nT('common.action.enable') : I18nT('n8n.usersDisable')
+                        }}
                       </el-dropdown-item>
                       <el-dropdown-item
                         v-if="row.roleSlug !== 'global:owner'"
                         command="delete"
                         style="color: var(--el-color-danger)"
-                        >{{ I18nT('base.del') }}</el-dropdown-item
+                        >{{ I18nT('common.action.delete') }}</el-dropdown-item
                       >
                     </el-dropdown-menu>
                   </template>
@@ -124,7 +126,7 @@
       <template #footer>
         <el-button @click="showDeleteDialog = false">{{ I18nT('base.cancel') }}</el-button>
         <el-button type="danger" :loading="!!deletingId" @click="confirmDelete">
-          {{ I18nT('base.del') }}
+          {{ I18nT('common.action.delete') }}
         </el-button>
       </template>
     </el-dialog>
@@ -177,7 +179,7 @@
     <!-- Reset Password Dialog -->
     <el-dialog
       v-model="showResetPasswordDialog"
-      :title="I18nT('n8n.usersResetPasswordTitle')"
+      :title="I18nT('common.action.resetPassword')"
       width="440px"
       :destroy-on-close="true"
     >
@@ -238,7 +240,9 @@
       <p class="text-sm text-gray-500 mb-3">{{ I18nT('n8n.usersInviteUrlTip') }}</p>
       <el-input v-model="inviteUrl" type="textarea" :rows="3" readonly />
       <template #footer>
-        <el-button type="primary" @click="copyInviteUrl">{{ I18nT('base.copy') }}</el-button>
+        <el-button type="primary" @click="copyInviteUrl">{{
+          I18nT('common.action.copy')
+        }}</el-button>
         <el-button @click="showInviteUrlDialog = false">{{ I18nT('base.cancel') }}</el-button>
       </template>
     </el-dialog>

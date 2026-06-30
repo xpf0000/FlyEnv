@@ -15,7 +15,6 @@
   "rootPasswordChange": "{user} parolunu dəyiş",
   "passwordNoEmpty": "root parolu boş ola bilməz",
   "passwordFormatError": "Verilənlər bazası parolu Çin simvolları və ya xüsusi simvollar ehtiva edə bilməz",
-  "resetPassword": "Parolu sıfırla",
   "savePassword": "Parolu yenilə",
   "resetPasswordTips": "Bu əməliyyat verilənlər bazasının root istifadəçisinin parolunu dəyişəcək",
   "savePasswordTips": "Yalnız FlyEnv-də saxlanılan parolu yeniləyir, verilənlər bazasının root istifadəçisinin parolunu dəyişmir. Bu parol əsasən {app} nümunələrini təhlükəsiz şəkildə dayandırmaq üçün istifadə olunur.",

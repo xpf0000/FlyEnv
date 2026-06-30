@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenClaw Domů",
   "OpenClawLocalDashboard": "OpenClaw Dashboard",
   "category": {
-    "basicInfo": "Základní informace",
-    "configuration": "Konfigurace",
     "gateway": "Služba brány",
     "agents": "Agenti",
     "browser": "Prohlížeč",

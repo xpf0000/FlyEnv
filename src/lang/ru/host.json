@@ -1,8 +1,6 @@
 {
   "site": "Сайт",
   "phpVersion": "Версия PHP",
-  "action": "Действие",
-  "comment": "комментарий",
   "newProject": "Новый проект",
   "frameworkVersion": "Версия среды",
   "newProjectTips": "Создание нового проекта с композитором, инициализацией с выбранным фреймворком, поддержками: wordpress, laravel, yii2, симфония, thinkphp, codeIgniter, cakephp, slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "Открыть пользовательский файл узлов",
   "placeholderName": "Имя хоста (Пример: mydomain.tld)",
   "placeholderAlias": "Алиасы домена (например: www.mydomain.tld)",
-  "placeholderComment": "комментарий",
   "placeholderRootPath": "Корневой путь документа",
   "port": "Порт",
   "portAdvanced": "Расширенный",

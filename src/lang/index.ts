@@ -225,7 +225,7 @@ export const AppI18n = (l?: string): I18n => {
   return i18n
 }
 
-export const I18nT = (key: LangKey, ...args: any) => {
+export const I18nT = (key: LangKey | string, ...args: any) => {
   const t: any = i18n.global.t
   return t(key, ...args)
 }

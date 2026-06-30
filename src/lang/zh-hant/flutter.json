@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK 詳情",
   "sdkNotFound": "找不到 Flutter SDK。請在版本標籤頁新增版本。",
-  "source": "來源",
   "searchDirs": "搜尋目錄",
   "scanned": "已掃描 {0} 個",
   "show": "顯示",
@@ -40,7 +39,6 @@
   "desktopBundleId": "桌面應用 Bundle ID",
   "packagesPubdev": "套件（pub.dev）",
   "searchPackagePlaceholder": "搜尋套件（例如 dio）",
-  "search": "搜尋",
   "latest": "最新",
   "noDescription": "無描述",
   "add": "添加",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "flutter create 失敗",
   "flutterProjectSettings": "Flutter 專案設定",
   "save": "儲存",
-  "preview": "預覽",
   "previewChanges": "預覽變更",
   "projectTarget": "專案目標",
   "projectIdentity": "專案識別",

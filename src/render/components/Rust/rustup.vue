@@ -51,7 +51,7 @@
                   style="width: 188px"
                   class="w-[188px]"
                   size="small"
-                  :placeholder="I18nT('base.placeholderSearch')"
+                  :placeholder="I18nT('common.action.search')"
                   clearable
                 ></el-input>
               </div>
@@ -98,7 +98,7 @@
               </template>
             </template>
           </el-table-column>
-          <el-table-column align="center" :label="I18nT('base.action')" width="150">
+          <el-table-column align="center" :label="I18nT('common.label.action')" width="150">
             <template #default="scope">
               <el-button
                 type="primary"
@@ -124,7 +124,7 @@
                   v-model.trim="RustupSetup.targetSearchKey"
                   class="w-[188px]"
                   size="small"
-                  :placeholder="I18nT('base.placeholderSearch')"
+                  :placeholder="I18nT('common.action.search')"
                   clearable
                 ></el-input>
               </div>
@@ -148,7 +148,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column align="center" :label="I18nT('base.action')" width="150">
+          <el-table-column align="center" :label="I18nT('common.label.action')" width="150">
             <template #default="scope">
               <el-button
                 type="primary"
@@ -257,7 +257,9 @@
 
   const showVersionDir = (item: any) => {
     const dir = RustupSetup.toolchainList.find((t) => t.version === item.version)?.path
-    shell.showItemInFolder(dir).catch()
+    if (dir) {
+      shell.showItemInFolder(dir).catch()
+    }
   }
 
   const taskConfirm = () => {

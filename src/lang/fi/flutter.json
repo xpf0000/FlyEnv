@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK Yksityiskohdat",
   "sdkNotFound": "Flutter SDK ei löytynyt. Lisää versio Versiovälilehteen.",
-  "source": "Lähde",
   "searchDirs": "Hae Portaita",
   "scanned": "{0} skannattu",
   "show": "Näytä",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Työpöydän nipun tunnus",
   "packagesPubdev": "Paketit (pub.dev)",
   "searchPackagePlaceholder": "Hae pakettia (esim. dio)",
-  "search": "Etsi",
   "latest": "viimeisin",
   "noDescription": "Ei kuvausta",
   "add": "Lisää",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "flutterin luonti epäonnistui",
   "flutterProjectSettings": "Flutter Projektin Asetukset",
   "save": "Tallenna",
-  "preview": "Esikatselu",
   "previewChanges": "Muutosten Esikatselu",
   "projectTarget": "Project target",
   "projectIdentity": "Projektin identiteetti",

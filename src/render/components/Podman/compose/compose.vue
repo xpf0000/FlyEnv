@@ -16,7 +16,7 @@
         :data="composeList"
         style="width: 100%"
       >
-        <el-table-column prop="name" :label="I18nT('base.name')" width="160" />
+        <el-table-column prop="name" :label="I18nT('common.label.name')" width="160" />
         <el-table-column prop="flag" :label="I18nT('host.projectName')" width="160" />
         <el-table-column prop="path" :label="I18nT('base.path')">
           <template #default="scope">
@@ -25,7 +25,7 @@
             }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="comment" :label="I18nT('host.comment')"></el-table-column>
+        <el-table-column prop="comment" :label="I18nT('common.label.comment')"></el-table-column>
         <el-table-column prop="running" :label="I18nT('podman.Status')" width="110" align="center">
           <template #default="scope">
             <template v-if="scope.row?.statusError">
@@ -56,7 +56,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('podman.Action')" width="100" align="center">
+        <el-table-column :label="I18nT('common.label.action')" width="100" align="center">
           <template #default="scope">
             <el-dropdown>
               <template #default>
@@ -84,7 +84,7 @@
                     </el-dropdown-item>
                   </template>
                   <el-dropdown-item @click.stop="removeCompose(scope.row)">
-                    {{ I18nT('podman.Delete') }}
+                    {{ I18nT('common.action.delete') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>

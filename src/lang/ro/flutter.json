@@ -1,7 +1,6 @@
 {
   "sdkDetails": "Detalii SDK",
   "sdkNotFound": "Flutter SDK nu a fost găsit. Adăugați o versiune în fila Versiune.",
-  "source": "Sursa",
   "searchDirs": "Caută diguri",
   "scanned": "{0} scanat",
   "show": "Afișare",
@@ -40,7 +39,6 @@
   "desktopBundleId": "ID pachet desktop",
   "packagesPubdev": "Pachete (pub.dev)",
   "searchPackagePlaceholder": "Pachet de căutare (ex. dio)",
-  "search": "Caută",
   "latest": "ultima",
   "noDescription": "Nici o descriere",
   "add": "Adăugare",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "crearea flutterului a eșuat",
   "flutterProjectSettings": "Setările proiectului Flutter",
   "save": "Salvează",
-  "preview": "Previzualizare",
   "previewChanges": "Previzualizare modificări",
   "projectTarget": "Project target",
   "projectIdentity": "Identitate proiect",

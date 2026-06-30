@@ -22,13 +22,15 @@
 
       <el-scrollbar class="flex-1">
         <div class="main-wapper p-3">
-          <div class="plant-title" style="padding-top: 6px">{{ I18nT('base.baseInfo') }}</div>
+          <div class="plant-title" style="padding-top: 6px">{{
+            I18nT('common.category.basicInfo')
+          }}</div>
           <div class="main p-5">
             <input
               v-model.trim="item.comment"
               type="text"
               :class="'input mb-4' + (errs.comment ? ' error' : '')"
-              :placeholder="I18nT('host.comment')"
+              :placeholder="I18nT('common.label.comment')"
             />
             <div class="path-choose mb-4">
               <input
@@ -179,7 +181,7 @@
                       type="text"
                       class="input"
                       style="height: 32px; width: 120px; flex: unset"
-                      :placeholder="I18nT('base.name')"
+                      :placeholder="I18nT('common.label.name')"
                     />
                     <input
                       v-model.trim="c.path"
@@ -270,6 +272,7 @@
   const isWindows = computed(() => window.Server.isWindows)
   const item = ref<SwooleCliProjectItem & ProjectItemType>({
     id: uuid(),
+    typeFlag: props.typeFlag ?? 'swoole-cli',
     isService: true,
     path: '',
     comment: '',
@@ -470,7 +473,7 @@
     errs.value.projectPort =
       !Number.isInteger(item.value.projectPort) || item.value.projectPort <= 0
     errs.value.swooleCliScriptPath =
-      needsScript.value && item.value.swooleCliScriptPath.length === 0
+      needsScript.value && (item.value.swooleCliScriptPath?.length ?? 0) === 0
     return !Object.values(errs.value).some(Boolean)
   }
 

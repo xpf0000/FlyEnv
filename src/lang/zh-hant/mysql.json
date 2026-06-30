@@ -15,7 +15,6 @@
   "rootPasswordChange": "修改 {user} 密碼",
   "passwordNoEmpty": "root 密碼不能為空",
   "passwordFormatError": "資料庫密碼不能包含中文和特殊字元",
-  "resetPassword": "重置密碼",
   "savePassword": "更新密碼",
   "resetPasswordTips": "此操作會變更資料庫 root 使用者的密碼",
   "savePasswordTips": "只更新 FlyEnv 儲存的密碼，不會變更資料庫 root 使用者的密碼。此密碼主要用於安全停止 {app} 執行個體。",

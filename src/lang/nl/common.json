@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Model"
+    "model": "Model",
+    "name": "naam",
+    "status": "status",
+    "workingDirectory": "Werken Map",
+    "action": "actie",
+    "comment": "Commentaar",
+    "source": "Bron"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Inschakelen",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Kopiëren",
+    "preview": "Voorvertoning",
+    "search": "Zoeken",
+    "clear": "Wissen",
+    "resetPassword": "Wachtwoord opnieuw instellen",
+    "delete": "Verwijder"
   },
   "state": {
     "running": "Hardlopen",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Algemene gegevens",
+    "configuration": "Configuratie",
+    "favorites": "Favorieten"
   }
 }

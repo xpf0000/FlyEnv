@@ -6,7 +6,6 @@
   "defaultThinking": "深度思考模式",
   "defaultPlanMode": "計劃模式",
   "telemetry": "遙測",
-  "mcp": "MCP",
   "cmd": {
     "export": "匯出工作階段為 ZIP"
   }

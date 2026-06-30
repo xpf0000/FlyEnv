@@ -1,8 +1,6 @@
 {
   "site": "Ιστοσελίδα",
   "phpVersion": "Έκδοση PHP",
-  "action": "Ενέργεια",
-  "comment": "Σχόλιο",
   "newProject": "Νέο Έργο",
   "frameworkVersion": "Έκδοση Πλαισίου",
   "newProjectTips": "Δημιουργία ενός νέου έργου με συνθέτη, προετοιμασία με επιλεγμένο πλαίσιο υποστήριξης: wordpress, laravel, yii2, συμφωνία, thinkphp, codeIgniter, cakephp, slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "Άνοιγμα προσαρμοσμένου αρχείου hosts",
   "placeholderName": "Όνομα κεντρικού υπολογιστή (Παράδειγμα: mydomain.tld)",
   "placeholderAlias": "Ψευδώνυμα Τομέα (Παράδειγμα: www.mydomain.tld)",
-  "placeholderComment": "Σχόλιο",
   "placeholderRootPath": "Ριζική Διαδρομή Εγγράφου",
   "port": "Θύρα",
   "portAdvanced": "Για προχωρημένους",

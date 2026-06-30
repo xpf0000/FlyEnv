@@ -1,1 +1,27 @@
-{}
+{
+  "notInstalled": "Claude Code CLI 尚未安装。点击下方按钮运行官方安装命令。",
+  "officialWebsite": "Claude Code GitHub",
+  "officialDocs": "Claude Code 文档",
+  "plugins": "插件",
+  "available": "可用",
+  "searchPlugin": "搜索插件",
+  "includeCoAuthoredBy": "提交包含 Co-Authored-By",
+  "cleanupPeriodDays": "聊天保留天数",
+  "pluginEnabled": "插件已启用",
+  "pluginDisabled": "插件已禁用",
+  "pluginUninstalled": "插件已卸载",
+  "uninstallConfirm": "确定要卸载插件 \"{name}\" 吗?",
+  "cmd": {
+    "help": "显示帮助信息",
+    "version": "显示版本号",
+    "update": "检查并安装更新",
+    "doctor": "检查 Claude Code 安装的健康状态",
+    "start": "启动新的交互式会话",
+    "continue": "继续当前目录最近的对话",
+    "resume": "选择并恢复历史对话",
+    "print": "执行一次性提示并打印结果",
+    "mcpList": "列出已配置的 MCP 服务器",
+    "pluginList": "列出已安装的插件",
+    "setupToken": "设置长期认证令牌"
+  }
+}

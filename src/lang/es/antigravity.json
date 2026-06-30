@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "Abrir directorio de habilidades",
   "openSkillDir": "Abrir directorio de habilidades",
   "revealSkillFile": "Revelar archivo de habilidades",
   "builtin": "Integrado",
   "skillFileMissing": "Archivo de habilidad no encontrado",
-  "skillLoadFailed": "No se ha podido cargar el archivo de habilidades",
-  "mcp": "MCP"
+  "skillLoadFailed": "No se ha podido cargar el archivo de habilidades"
 }

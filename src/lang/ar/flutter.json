@@ -1,7 +1,6 @@
 {
   "sdkDetails": "تفاصيل SDK",
   "sdkNotFound": "لم يتم العثور على Flutter SDK. أضف إصداراً في تبويب الإصدارات.",
-  "source": "المصدر",
   "searchDirs": "مجلدات البحث",
   "scanned": "تم فحص {0}",
   "show": "عرض",
@@ -40,7 +39,6 @@
   "desktopBundleId": "معرف سطح المكتب Bundle",
   "packagesPubdev": "الحزم (pub.dev)",
   "searchPackagePlaceholder": "ابحث عن حزمة (مثل dio)",
-  "search": "بحث",
   "latest": "الأحدث",
   "noDescription": "بدون وصف",
   "add": "إضافة",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "فشل أمر flutter create",
   "flutterProjectSettings": "إعدادات مشروع Flutter",
   "save": "حفظ",
-  "preview": "معاينة",
   "previewChanges": "معاينة التغييرات",
   "projectTarget": "المشروع المستهدف",
   "projectIdentity": "هوية المشروع",

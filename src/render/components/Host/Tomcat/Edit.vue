@@ -33,7 +33,7 @@
               v-model.trim="item.mark"
               style="margin: 15px 0 10px"
               class="input"
-              :placeholder="I18nT('host.placeholderComment')"
+              :placeholder="I18nT('common.label.comment')"
             />
             <div class="path-choose my-5">
               <input

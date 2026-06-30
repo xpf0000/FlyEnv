@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Model"
+    "model": "Model",
+    "name": "Naziv",
+    "status": "Status",
+    "workingDirectory": "Radni Direktorij",
+    "action": "Akcija",
+    "comment": "Komentar",
+    "source": "Izvor"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Omogući",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Kopiraj",
+    "preview": "Pregled",
+    "search": "Pretraži",
+    "clear": "Očisti",
+    "resetPassword": "Resetiraj Lozinku",
+    "delete": "Obriši"
   },
   "state": {
     "running": "Trčanje",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Osnovne Informacije",
+    "configuration": "Konfiguracija",
+    "favorites": "Favoriti"
   }
 }

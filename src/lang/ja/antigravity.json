@@ -4,19 +4,15 @@
   "officialDocs": "Antigravity CLI Docs",
   "sandboxMode": "Terminal Sandbox",
   "toolPermission": "Tool Permission",
-  "sessions": "Conversations",
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "searchSession": "Search conversations",
   "sessionDeleted": "Conversation deleted",
-  "skills": "Skills",
   "noSkills": "No skills found",
   "openSkillsDir": "スキルディレクトリを開く",
   "openSkillDir": "スキルディレクトリを開く",
   "revealSkillFile": "スキルファイルを表示する",
   "builtin": "ビルトイン",
   "skillFileMissing": "スキルファイルが見つかりません",
-  "skillLoadFailed": "スキルファイルの読み込みに失敗しました",
-  "mcp": "MCP"
+  "skillLoadFailed": "スキルファイルの読み込みに失敗しました"
 }

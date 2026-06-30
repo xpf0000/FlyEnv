@@ -14,7 +14,9 @@
     const dom: HTMLElement = e.target as any
     if (dom.tagName.toUpperCase() === 'A') {
       const url = dom.getAttribute('href')
-      shell.openExternal(url)
+      if (url) {
+        shell.openExternal(url)
+      }
     }
   }
 </script>

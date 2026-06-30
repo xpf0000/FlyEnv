@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "同一時間只能啟動一個服務",
   "moduleExecItem": "模組執行項",
   "module": {
-    "name": "名稱",
     "path": "檔案路徑",
-    "comment": "備註",
     "exec": "執行",
     "command": "命令",
     "commandFile": "檔案",

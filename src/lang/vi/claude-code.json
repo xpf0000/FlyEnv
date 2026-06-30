@@ -1,1 +1,27 @@
-{}
+{
+  "notInstalled": "Claude Code CLI chưa được cài đặt. Nhấp vào nút bên dưới để chạy trình cài đặt chính thức.",
+  "officialWebsite": "GitHub của Claude Code",
+  "officialDocs": "Tài liệu Claude Code",
+  "plugins": "Plugins",
+  "available": "Có sẵn",
+  "searchPlugin": "Tìm kiếm plugin",
+  "includeCoAuthoredBy": "Bao gồm Co-Authored-By",
+  "cleanupPeriodDays": "Thời gian lưu trữ chat (ngày)",
+  "pluginEnabled": "Plugin đã được bật",
+  "pluginDisabled": "Plugin đã được tắt",
+  "pluginUninstalled": "Plugin đã được gỡ cài đặt",
+  "uninstallConfirm": "Bạn có chắc chắn muốn gỡ cài đặt plugin \"{name}\" không?",
+  "cmd": {
+    "help": "Hiển thị thông tin trợ giúp",
+    "version": "Hiển thị số phiên bản",
+    "update": "Kiểm tra và cài đặt bản cập nhật nếu có",
+    "doctor": "Kiểm tra tình trạng cài đặt Claude Code",
+    "start": "Bắt đầu một phiên tương tác mới",
+    "continue": "Tiếp tục cuộc hội thoại gần nhất trong thư mục hiện tại",
+    "resume": "Chọn và khôi phục một cuộc hội thoại trước đó",
+    "print": "Chạy một prompt một lần (one-shot) và in kết quả",
+    "mcpList": "Liệt kê các máy chủ MCP đã cấu hình",
+    "pluginList": "Liệt kê các plugin đã cài đặt",
+    "setupToken": "Thiết lập token xác thực dài hạn"
+  }
+}

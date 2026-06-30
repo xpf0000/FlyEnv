@@ -11,6 +11,5 @@
   "pluginEnabled": "Eklenti yüklendi",
   "pluginDisabled": "Eklenti kaldırıldı",
   "pluginUninstalled": "Eklenti kaldırıldı",
-  "uninstallConfirm": "\"{name}\" eklentisini kaldırmak istediğinizden emin misiniz?",
-  "mcp": "MCP"
+  "uninstallConfirm": "\"{name}\" eklentisini kaldırmak istediğinizden emin misiniz?"
 }

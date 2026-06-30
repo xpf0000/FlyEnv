@@ -15,7 +15,6 @@
   "rootPasswordChange": "Cambiar la contraseña de {user}",
   "passwordNoEmpty": "La contraseña root no puede estar vacía",
   "passwordFormatError": "La contraseña de la base de datos no puede contener caracteres chinos ni especiales",
-  "resetPassword": "Restablecer contraseña",
   "savePassword": "Actualizar contraseña",
   "resetPasswordTips": "Esta operación cambiará la contraseña del usuario root de la base de datos",
   "savePasswordTips": "Solo actualiza la contraseña almacenada en FlyEnv, no cambia la contraseña root de la base de datos. Esta contraseña se usa principalmente para detener de forma segura instancias de {app}.",

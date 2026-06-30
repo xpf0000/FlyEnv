@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Samo jedan servis može raditi odjednom",
   "moduleExecItem": "Stavka Izvršavanja Modula",
   "module": {
-    "name": "Naziv",
     "path": "Putanja Datoteke",
-    "comment": "Komentar",
     "exec": "Pokreni",
     "command": "Naredba",
     "commandFile": "Datoteka",

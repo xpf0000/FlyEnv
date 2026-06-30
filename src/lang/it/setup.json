@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "È consentita l'esecuzione di un solo servizio alla volta",
   "moduleExecItem": "Elemento di esecuzione del modulo",
   "module": {
-    "name": "Nome",
     "path": "Percorso file",
-    "comment": "Commento",
     "exec": "Esegui",
     "command": "Command",
     "commandFile": "File",

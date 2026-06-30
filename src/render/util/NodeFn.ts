@@ -6,6 +6,13 @@ import type { Stats } from 'node:fs'
 
 // 创建类型工具
 type IPCMethod<T extends any[], R> = (...args: T) => Promise<R>
+type DialogProperties = string[]
+type OpenDialogCompatOptions = Omit<Electron.OpenDialogOptions, 'properties'> & {
+  properties?: DialogProperties
+}
+type SaveDialogCompatOptions = Omit<Electron.SaveDialogOptions, 'properties'> & {
+  properties?: DialogProperties
+}
 
 // 工厂函数
 const createIPCCall = <T extends any[], R>(namespace: string, method: string): IPCMethod<T, R> => {
@@ -168,11 +175,11 @@ export const app = {
 }
 
 export const dialog = {
-  showSaveDialog: createIPCCall<[Electron.SaveDialogOptions], Electron.SaveDialogReturnValue>(
+  showSaveDialog: createIPCCall<[SaveDialogCompatOptions], Electron.SaveDialogReturnValue>(
     'dialog',
     'showSaveDialog'
   ),
-  showOpenDialog: createIPCCall<[Electron.OpenDialogOptions], Electron.OpenDialogReturnValue>(
+  showOpenDialog: createIPCCall<[OpenDialogCompatOptions], Electron.OpenDialogReturnValue>(
     'dialog',
     'showOpenDialog'
   ),

@@ -12,7 +12,7 @@
         <el-input :model-value="item" readonly>
           <template #append>
             <el-button-group>
-              <el-button @click="copy(item)">{{ $t('base.copy') }}</el-button>
+              <el-button @click="copy(item)">{{ $t('common.action.copy') }}</el-button>
               <el-button @click="open(item)">{{ $t('base.open') }}</el-button>
             </el-button-group>
           </template>

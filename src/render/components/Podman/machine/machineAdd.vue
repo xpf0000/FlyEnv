@@ -12,7 +12,7 @@
   >
     <el-scrollbar class="px-2">
       <el-form ref="formRef" :model="form" label-width="110px" class="pt-2" label-position="top">
-        <el-form-item v-if="!isEdit" :label="I18nT('base.name')" prop="name" required>
+        <el-form-item v-if="!isEdit" :label="I18nT('common.label.name')" prop="name" required>
           <el-input v-model="form.name" maxlength="32" />
         </el-form-item>
         <el-form-item :label="I18nT('podman.CPU')" prop="cpus">
@@ -123,7 +123,7 @@
 
   const onSubmit = async () => {
     if (!form.value.name && !isEdit) {
-      ElMessage.error(I18nT('base.name') + I18nT('podman.require'))
+      ElMessage.error(I18nT('common.label.name') + I18nT('podman.require'))
       return
     }
     if (submitting.value) return

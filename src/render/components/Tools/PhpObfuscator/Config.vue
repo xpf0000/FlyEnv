@@ -97,6 +97,7 @@
       defaultPath: 'php-obfuscator.cnf',
       filters: [
         {
+          name: 'Config',
           extensions: ['cnf']
         }
       ]

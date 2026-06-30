@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenClawホーム",
   "OpenClawLocalDashboard": "OpenClawダッシュボード",
   "category": {
-    "basicInfo": "基本情報",
-    "configuration": "設定",
     "gateway": "ゲートウェイサービス",
     "agents": "エージェント",
     "browser": "ブラウザー",

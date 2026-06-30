@@ -11,7 +11,7 @@
               clearable
               class="ml-4"
               size="small"
-              :placeholder="I18nT('base.placeholderSearch')"
+              :placeholder="I18nT('common.action.search')"
             ></el-input>
           </div>
           <div class="flex items-center gap-2">
@@ -119,9 +119,9 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('host.comment')" prop="comment">
+        <el-table-column :label="I18nT('common.label.comment')" prop="comment">
           <template #header>
-            <span class="truncate">{{ I18nT('host.comment') }}</span>
+            <span class="truncate">{{ I18nT('common.label.comment') }}</span>
           </template>
           <template #default="scope">
             <template v-if="scope.row.id === quickEdit?.id">
@@ -305,7 +305,7 @@
                 </li>
                 <li @click.stop="project.delProject(scope.$index)">
                   <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.del') }}</span>
+                  <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
                 </li>
               </ul>
 

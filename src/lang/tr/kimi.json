@@ -6,7 +6,6 @@
   "defaultThinking": "Düşünme Modu",
   "defaultPlanMode": "Plan Modu",
   "telemetry": "Telemetri",
-  "mcp": "MCP",
   "cmd": {
     "export": "Oturumu ZIP olarak dışa aktar"
   }

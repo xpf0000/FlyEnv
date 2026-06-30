@@ -92,7 +92,7 @@
                               {{ I18nT('base.edit') }}
                             </el-dropdown-item>
                             <el-dropdown-item divided @click.stop="item.remove()">
-                              <span class="text-red-500">{{ I18nT('podman.Delete') }}</span>
+                              <span class="text-red-500">{{ I18nT('common.action.delete') }}</span>
                             </el-dropdown-item>
                           </el-dropdown-menu>
                         </template>

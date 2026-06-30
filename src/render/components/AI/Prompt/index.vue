@@ -7,6 +7,7 @@
     width="auto"
     trigger="click"
     @show="onPoperShow"
+    @hide="onPoperHide"
   >
     <template #reference>
       <el-button link>
@@ -55,13 +56,13 @@
                           :icon="CopyDocument"
                           @click.stop="showAdd({ name: item.name, prompt: item.prompt })"
                         >
-                          {{ I18nT('base.copy') }}
+                          {{ I18nT('common.action.copy') }}
                         </el-dropdown-item>
                         <el-dropdown-item
                           :icon="Delete"
                           divided
                           @click.stop="PromptSetup.delCustomPrompt(item)"
-                          >{{ I18nT('base.del') }}</el-dropdown-item
+                          >{{ I18nT('common.action.delete') }}</el-dropdown-item
                         >
                       </el-dropdown-menu>
                     </template>

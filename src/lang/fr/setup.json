@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Un seul service peut fonctionner à la fois",
   "moduleExecItem": "Élément d'exécution du module",
   "module": {
-    "name": "Nom",
     "path": "Chemin du fichier",
-    "comment": "Commentaire",
     "exec": "Exécuter",
     "command": "Commande",
     "commandFile": "Fichier",

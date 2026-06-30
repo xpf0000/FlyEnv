@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK gegevens",
   "sdkNotFound": "Flutter SDK niet gevonden. Voeg een versie toe in het tabblad versie.",
-  "source": "Bron",
   "searchDirs": "Doorzoek de Dirs",
   "scanned": "{0} gescand",
   "show": "Weergeven",
@@ -40,7 +39,6 @@
   "desktopBundleId": "ID desktop bundel",
   "packagesPubdev": "Pakketten (pub.dev)",
   "searchPackagePlaceholder": "Zoekpakket (bijv. dio)",
-  "search": "Zoeken",
   "latest": "nieuwste",
   "noDescription": "Geen beschrijving",
   "add": "Toevoegen",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "flutter maken mislukt",
   "flutterProjectSettings": "Flutter projectinstellingen",
   "save": "Opslaan",
-  "preview": "Voorvertoning",
   "previewChanges": "Wijzigingen bekijken",
   "projectTarget": "Project target",
   "projectIdentity": "Project identiteit",

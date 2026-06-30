@@ -11,6 +11,5 @@
   "pluginEnabled": "Plugin terinstal",
   "pluginDisabled": "Plugin dihapus",
   "pluginUninstalled": "Plugin dihapus",
-  "uninstallConfirm": "Apakah Anda yakin ingin menghapus plugin \"{name}\"?",
-  "mcp": "MCP"
+  "uninstallConfirm": "Apakah Anda yakin ingin menghapus plugin \"{name}\"?"
 }

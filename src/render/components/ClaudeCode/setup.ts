@@ -197,7 +197,7 @@ class ClaudeCode {
       IPC.send('app-fork:claudeCode', 'deleteSession', sessionId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('claudeCode.sessionDeleted'))
+          MessageSuccess(I18nT('common.session.deleted'))
           this.refreshSessions()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -213,7 +213,7 @@ class ClaudeCode {
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            MessageSuccess(I18nT('claudeCode.sessionResumed'))
+            MessageSuccess(I18nT('common.session.resumed'))
           } else {
             MessageError(res?.msg ?? I18nT('base.fail'))
           }

@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "同一时间只能启动一个服务",
   "moduleExecItem": "模块执行项",
   "module": {
-    "name": "名称",
     "path": "文件路径",
-    "comment": "备注",
     "exec": "运行",
     "command": "命令",
     "commandFile": "文件",

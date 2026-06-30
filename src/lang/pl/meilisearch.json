@@ -1,5 +1,4 @@
 {
-  "working_dir": "Katalog roboczy",
   "db_path": "Określa lokalizację, w której pliki bazy danych będą tworzone i pobierane",
   "env": "Konfiguruje środowisko instancji. Wartością musi być `produkcja` lub `development`.",
   "http_addr": "Adres, na którym będzie słuchany serwer HTTP.",

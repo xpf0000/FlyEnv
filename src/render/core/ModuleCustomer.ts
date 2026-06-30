@@ -174,8 +174,8 @@ class ModuleCustomer implements CustomerModuleItem {
   label: string = ''
   moduleType: string = ''
   currentItemID = ''
-  configPath = []
-  logPath = []
+  configPath: Array<{ name: string; path: string }> = []
+  logPath: Array<{ name: string; path: string }> = []
 
   showHideWatcher: any
 

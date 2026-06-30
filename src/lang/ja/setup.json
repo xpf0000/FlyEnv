@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "同時に1つのサービスのみ起動可能",
   "moduleExecItem": "モジュール実行項目",
   "module": {
-    "name": "名前",
     "path": "ファイルパス",
-    "comment": "備考",
     "exec": "実行",
     "command": "Command",
     "commandFile": "ファイル",

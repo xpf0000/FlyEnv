@@ -63,7 +63,7 @@
               </el-table-column>
               <el-table-column width="100px"></el-table-column>
               <el-table-column width="100px"></el-table-column>
-              <el-table-column align="center" :label="I18nT('host.action')" width="100px">
+              <el-table-column align="center" :label="I18nT('common.label.action')" width="100px">
                 <template #default="scope">
                   <div class="w-full h-full flex items-center justify-center">
                     <el-dropdown class="h-full">
@@ -98,7 +98,7 @@
                                   width="13"
                                   height="13"
                                 />
-                                <span class="ml-3">{{ I18nT('base.del') }}</span>
+                                <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
                               </div>
                             </template>
                           </el-dropdown-item>
@@ -170,7 +170,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="I18nT('host.action')" width="100px">
+      <el-table-column align="center" :label="I18nT('common.label.action')" width="100px">
         <template #default="scope">
           <div class="w-full h-full flex items-center justify-center">
             <el-dropdown class="h-full">
@@ -201,7 +201,7 @@
                     <template #default>
                       <div class="flex items-center">
                         <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                        <span class="ml-3">{{ I18nT('base.del') }}</span>
+                        <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
                       </div>
                     </template>
                   </el-dropdown-item>

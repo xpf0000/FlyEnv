@@ -1,7 +1,6 @@
 {
   "sdkDetails": "Λεπτομέρειες SDK",
   "sdkNotFound": "Ο Flutter SDK δεν βρέθηκε. Προσθέστε μια έκδοση στην καρτέλα Έκδοση.",
-  "source": "Πηγή",
   "searchDirs": "Αναζήτηση Dirs",
   "scanned": "{0} scanned",
   "show": "Εμφάνιση",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Αναγνωριστικό δέσμης επιφάνειας εργασίας",
   "packagesPubdev": "Πακέτα (pub.dev)",
   "searchPackagePlaceholder": "Αναζήτηση πακέτου (π.χ. dio)",
-  "search": "Αναζήτηση",
   "latest": "τελευταία",
   "noDescription": "Χωρίς περιγραφή",
   "add": "Προσθήκη",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "η δημιουργία flutter απέτυχε",
   "flutterProjectSettings": "Ρυθμίσεις Έργου Flutter",
   "save": "Αποθήκευση",
-  "preview": "Προεπισκόπηση",
   "previewChanges": "Προεπισκόπηση Αλλαγών",
   "projectTarget": "Project target",
   "projectIdentity": "Ταυτότητα έργου",

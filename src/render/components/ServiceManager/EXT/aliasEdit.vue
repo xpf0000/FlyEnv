@@ -81,10 +81,6 @@
   const isWindows = computed(() => {
     return window.Server.isWindows
   })
-  const isLinux = computed(() => {
-    return window.Server.isLinux
-  })
-
   const phpVersions = computed(() => {
     return brewStore.module('php').installed.map((i) => {
       let bin = ''

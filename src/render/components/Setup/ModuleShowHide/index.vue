@@ -13,24 +13,23 @@
 <script lang="ts" setup>
   import { AppStore } from '@/store/app'
   import { computed } from 'vue'
-  import type { AllAppModule } from '@/core/type'
-  import { AppModules } from '@/core/App'
-  import { BrewStore } from '@/store/brew'
   import { AppCustomerModule } from '@/core/Module'
 
   type StringFn = () => string
 
   const props = defineProps<{
-    label: string | StringFn
-    typeFlag: AllAppModule
+    label: string | StringFn | undefined
+    typeFlag: string
   }>()
 
   const title = computed(() => {
-    return typeof props.label === 'string' ? props.label : props.label()
+    if (typeof props.label === 'string') {
+      return props.label
+    }
+    return props.label?.() ?? ''
   })
 
   const appStore = AppStore()
-  const brewStore = BrewStore()
   const showItem = computed({
     get() {
       return appStore.config.setup.common.showItem?.[props.typeFlag] !== false
@@ -41,7 +40,7 @@
       // Stop Service when hide module
       if (!v) {
         const customer = AppCustomerModule.module.find(
-          (v) => v.typeFlag === v.typeFlag && v.isService
+          (item) => item.typeFlag === props.typeFlag && item.isService
         )
         if (customer) {
           customer.stop().catch()

@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Malli"
+    "model": "Malli",
+    "name": "Nimi",
+    "status": "Tila",
+    "workingDirectory": "Työhakemisto",
+    "action": "Toiminto",
+    "comment": "Kommentti",
+    "source": "Lähde"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Aktivoi",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Kopioi",
+    "preview": "Esikatselu",
+    "search": "Etsi",
+    "clear": "Tyhjennä",
+    "resetPassword": "Nollaa Salasana",
+    "delete": "Poista"
   },
   "state": {
     "running": "Käynnissä",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Perustiedot",
+    "configuration": "Asetukset",
+    "favorites": "Suosikit"
   }
 }

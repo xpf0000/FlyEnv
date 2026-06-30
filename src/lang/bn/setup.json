@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "একবারে শুধুমাত্র একটি সার্ভিস চলতে পারে",
   "moduleExecItem": "মডিউল এক্সিকিউশন আইটেম",
   "module": {
-    "name": "নাম",
     "path": "ফাইল পাথ",
-    "comment": "মন্তব্য",
     "exec": "চালান",
     "command": "কমান্ড",
     "commandFile": "ফাইল",

@@ -3,10 +3,10 @@
     <el-table-column prop="name" min-width="160" show-overflow-tooltip>
       <template #header>
         <div class="w-full flex items-center gap-2 pl-[24px]">
-          <span>{{ I18nT('hermes.name') }}</span>
+          <span>{{ I18nT('common.label.name') }}</span>
           <el-input
             v-model.trim="search"
-            :placeholder="I18nT('base.placeholderSearch')"
+            :placeholder="I18nT('common.action.search')"
             clearable
             size="small"
             style="width: 140px"
@@ -38,7 +38,7 @@
         >
       </template>
     </el-table-column>
-    <el-table-column prop="source" :label="I18nT('hermes.source')" width="100">
+    <el-table-column prop="source" :label="I18nT('common.label.source')" width="100">
       <template #default="{ row }">
         <el-tag v-if="row.isBuiltin" size="small" type="info">{{ I18nT('hermes.builtin') }}</el-tag>
         <el-tag v-else-if="row.isHub" size="small" type="success">{{ I18nT('hermes.hub') }}</el-tag>
@@ -51,7 +51,7 @@
       width="120"
       show-overflow-tooltip
     />
-    <el-table-column :label="I18nT('hermes.status')" width="90" align="center">
+    <el-table-column :label="I18nT('common.label.status')" width="90" align="center">
       <template #default="{ row }">
         <el-tag v-if="row.enabled" size="small" type="success">{{
           I18nT('common.state.enabled')
@@ -59,7 +59,7 @@
         <el-tag v-else size="small" type="danger">{{ I18nT('common.state.disabled') }}</el-tag>
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('base.action')" width="100px" align="center">
+    <el-table-column :label="I18nT('common.label.action')" width="100px" align="center">
       <template #default="{ row }">
         <div class="h-full w-full flex items-center justify-center">
           <el-popover

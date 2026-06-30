@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "النموذج"
+    "model": "النموذج",
+    "name": "الاسم",
+    "status": "الحالة",
+    "workingDirectory": "مجلد العمل",
+    "action": "الإجراء",
+    "comment": "ملاحظة",
+    "source": "المصدر"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "تفعيل",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "نسخ",
+    "preview": "معاينة",
+    "search": "بحث",
+    "clear": "مسح",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "delete": "حذف"
   },
   "state": {
     "running": "قيد التشغيل",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "معلومات أساسية",
+    "configuration": "الإعدادات",
+    "favorites": "المفضلة"
   }
 }

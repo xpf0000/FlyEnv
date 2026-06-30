@@ -1,8 +1,6 @@
 {
   "site": "Webhely",
   "phpVersion": "php verzió",
-  "action": "Művelet",
-  "comment": "Megjegyzés",
   "newProject": "Új projekt",
   "frameworkVersion": "Keretrendszer verzió",
   "newProjectTips": "Új projekt létrehozása composerrel, inicializálás a kiválasztott keretrendszerrel. Támogatott: wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "Egyéni hosts fájl megnyitása",
   "placeholderName": "host név pl.: www.xxx.com",
   "placeholderAlias": "host álnév pl.: www.xxx.com",
-  "placeholderComment": "Megjegyzés",
   "placeholderRootPath": "host gyökérútvonal",
   "port": "Port",
   "portAdvanced": "Speciális",

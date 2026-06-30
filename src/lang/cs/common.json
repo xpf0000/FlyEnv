@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Vzor"
+    "model": "Vzor",
+    "name": "Název",
+    "status": "Stav",
+    "workingDirectory": "Pracovní adresář",
+    "action": "Akce",
+    "comment": "Komentář",
+    "source": "Zdroj"
   },
   "action": {
-    "enable": "Enable",
+    "enable": "Povolit",
     "disable": "Disable",
     "resume": "Resume",
-    "uninstall": "Uninstall"
+    "uninstall": "Uninstall",
+    "copy": "Kopírovat",
+    "preview": "Náhled",
+    "search": "Hledat",
+    "clear": "Vyčistit",
+    "resetPassword": "Obnovit heslo",
+    "delete": "Vymazat"
   },
   "state": {
     "running": "Běh",
@@ -31,6 +43,11 @@
     "addServer": "Add Server"
   },
   "category": {
-    "basic": "Basic"
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Základní informace",
+    "configuration": "Konfigurace",
+    "favorites": "Oblíbené"
   }
 }

@@ -1,5 +1,4 @@
 {
-  "working_dir": "Cartella di lavoro",
   "db_path": "Specifica la posizione in cui verranno creati e recuperati i file del database",
   "env": "Configura l'ambiente dell'istanza. Il valore deve essere `production` oppure `development`.",
   "http_addr": "Indirizzo su cui il server HTTP sarà in ascolto.",

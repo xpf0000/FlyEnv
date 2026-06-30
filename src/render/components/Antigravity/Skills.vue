@@ -3,7 +3,7 @@
     <template #header>
       <div class="card-header gap-4">
         <div class="flex items-center gap-2">
-          <span>{{ I18nT('antigravity.skills') }}</span>
+          <span>{{ I18nT('common.category.skills') }}</span>
           <el-tooltip :content="I18nT('antigravity.openSkillsDir')" placement="top">
             <el-button
               :disabled="!AntigravitySetup.skillDir"
@@ -70,7 +70,7 @@
                   </li>
                   <li @click.stop="AntigravitySetup.viewSkill(item)">
                     <yb-icon :svg="import('@/svg/eye.svg?raw')" width="13" height="13" />
-                    <span class="ml-3">{{ I18nT('base.preview') }}</span>
+                    <span class="ml-3">{{ I18nT('common.action.preview') }}</span>
                   </li>
                 </ul>
 

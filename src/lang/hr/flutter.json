@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK Details",
   "sdkNotFound": "Flutter SDK not found. Add a version in the Version tab.",
-  "source": "Source",
   "searchDirs": "Search Dirs",
   "scanned": "{0} scanned",
   "show": "Show",
@@ -40,7 +39,6 @@
   "desktopBundleId": "Desktop bundle id",
   "packagesPubdev": "Packages (pub.dev)",
   "searchPackagePlaceholder": "Search package (e.g. dio)",
-  "search": "Search",
   "latest": "latest",
   "noDescription": "No description",
   "add": "Add",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "flutter create failed",
   "flutterProjectSettings": "Flutter Project Settings",
   "save": "Save",
-  "preview": "Preview",
   "previewChanges": "Preview Changes",
   "projectTarget": "Project target",
   "projectIdentity": "Project identity",

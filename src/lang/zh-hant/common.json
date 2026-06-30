@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "模型"
+    "model": "模型",
+    "name": "名稱",
+    "status": "狀態",
+    "workingDirectory": "工作目錄",
+    "action": "操作",
+    "comment": "備註",
+    "source": "來源"
   },
   "action": {
     "enable": "啟用",
     "disable": "停用",
     "resume": "恢復",
-    "uninstall": "解除安裝"
+    "uninstall": "解除安裝",
+    "copy": "複製",
+    "preview": "預覽",
+    "search": "搜尋",
+    "clear": "清空",
+    "resetPassword": "重置密碼",
+    "delete": "刪除"
   },
   "state": {
     "running": "執行中",
@@ -31,6 +43,11 @@
     "addServer": "新增伺服器"
   },
   "category": {
-    "basic": "基礎"
+    "basic": "基礎",
+    "mcp": "MCP",
+    "skills": "技能",
+    "basicInfo": "基礎資訊",
+    "configuration": "配置",
+    "favorites": "我的收藏"
   }
 }

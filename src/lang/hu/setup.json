@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Egyszerre csak egy szolgáltatás futhat",
   "moduleExecItem": "Modul futtatási eleme",
   "module": {
-    "name": "Név",
     "path": "Fájlútvonal",
-    "comment": "Megjegyzés",
     "exec": "Futtatás",
     "command": "Parancs",
     "commandFile": "Fájl",

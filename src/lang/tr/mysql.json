@@ -15,7 +15,6 @@
   "rootPasswordChange": "{user} şifresini değiştir",
   "passwordNoEmpty": "root şifresi boş olamaz",
   "passwordFormatError": "Veritabanı şifresi Çince karakterler veya özel karakterler içeremez",
-  "resetPassword": "Şifreyi sıfırla",
   "savePassword": "Şifreyi güncelle",
   "resetPasswordTips": "Bu işlem veritabanı root kullanıcısının şifresini değiştirecektir",
   "savePasswordTips": "Sadece FlyEnv'de saklanan şifreyi günceller, veritabanı root kullanıcısının şifresini değiştirmez. Bu şifre esas olarak {app} örneklerini güvenli bir şekilde durdurmak için kullanılır.",

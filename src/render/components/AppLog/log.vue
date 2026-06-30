@@ -23,7 +23,7 @@
             <FolderOpened class="w-5 h-5 p-0.5" />
           </el-button>
         </el-tooltip>
-        <el-tooltip :show-after="600" :content="I18nT('base.clean')" placement="top">
+        <el-tooltip :show-after="600" :content="I18nT('common.action.clear')" placement="top">
           <el-button class="shrink0" :disabled="!fileExists" @click="AppLogStore.clean()">
             <Notebook class="w-5 h-5 p-0.5" />
           </el-button>
@@ -78,11 +78,15 @@
         return
       }
       monacoInstance = EditorCreate(inputDom, await EditorConfigMake(logs.value, true, 'on'))
-      monacoInstance.setScrollTop(99999999)
-      monacoInstance.onDidScrollChange(() => {
-        const scrollTop = monacoInstance!.getScrollTop()
-        const contentHeight = monacoInstance!.getContentHeight()
-        const viewportHeight = monacoInstance!.getLayoutInfo().height
+      const editorInstance = monacoInstance
+      if (!editorInstance) {
+        return
+      }
+      editorInstance.setScrollTop(99999999)
+      editorInstance.onDidScrollChange(() => {
+        const scrollTop = editorInstance.getScrollTop()
+        const contentHeight = editorInstance.getContentHeight()
+        const viewportHeight = editorInstance.getLayoutInfo().height
 
         // Check if scrolled to the bottom
         const isScrolledToBottom = scrollTop + viewportHeight >= contentHeight
@@ -96,7 +100,7 @@
         }
       })
     } else {
-      monacoInstance.setValue(logs.value)
+      monacoInstance?.setValue(logs.value)
     }
   }
 

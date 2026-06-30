@@ -1,1 +1,24 @@
-{}
+{
+  "notInstalled": "GitHub Copilot CLI is not installed. Click the button below to install it via npm (requires Node.js 22+).",
+  "officialWebsite": "Copilot CLI GitHub",
+  "officialDocs": "Copilot CLI Docs",
+  "noSkills": "No skills found",
+  "openSkillsDir": "打開技能目錄",
+  "openSkillDir": "打開技能資料夾",
+  "revealSkillFile": "定位技能檔案",
+  "skillFileMissing": "找不到技能檔案",
+  "skillLoadFailed": "載入技能檔案失敗",
+  "cmd": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "update": "Download the latest version of Copilot CLI",
+    "start": "Start a new interactive session",
+    "resume": "Resume a previous session (picker)",
+    "continue": "Resume the most recent session",
+    "prompt": "Run a single prompt non-interactively",
+    "mcpList": "List configured MCP servers",
+    "skillList": "List available skills",
+    "login": "Authenticate with Copilot",
+    "init": "Initialize Copilot instructions for a repository"
+  }
+}

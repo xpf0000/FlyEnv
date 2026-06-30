@@ -1,7 +1,6 @@
 {
   "sdkDetails": "SDK 詳細",
   "sdkNotFound": "Flutter SDK が見つかりません。バージョンタブにバージョンを追加してください。",
-  "source": "ソース",
   "searchDirs": "Dirsを検索",
   "scanned": "{0} scanned",
   "show": "表示",
@@ -40,7 +39,6 @@
   "desktopBundleId": "デスクトップ バンドル id",
   "packagesPubdev": "パッケージ (pub.dev)",
   "searchPackagePlaceholder": "パッケージを検索 (例: dio)",
-  "search": "検索",
   "latest": "最新",
   "noDescription": "説明がありません",
   "add": "追加",
@@ -64,7 +62,6 @@
   "flutterCreateFailed": "フラッター生成失敗",
   "flutterProjectSettings": "Flutter Project Settings",
   "save": "保存",
-  "preview": "プレビュー",
   "previewChanges": "変更をプレビュー",
   "projectTarget": "Project target",
   "projectIdentity": "プロジェクトID",

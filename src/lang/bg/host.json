@@ -1,8 +1,6 @@
 {
   "site": "Сайт",
   "phpVersion": "Версия на PHP",
-  "action": "Действие",
-  "comment": "Коментар",
   "newProject": "Нов проект",
   "frameworkVersion": "Версия на платформата",
   "newProjectTips": "Създаване на нов проект с Composer, инициализиране с избрана платформа, поддържа: WordPress, Laravel, Yii2, Symfony, ThinkPHP, CodeIgniter, CakePHP, Slim",
@@ -14,7 +12,6 @@
   "hostsOpen": "Отвори персонализирания hosts файл",
   "placeholderName": "Име на хост (пример: mydomain.tld)",
   "placeholderAlias": "Псевдоними на домейни (пример: www.mydomain.tld)",
-  "placeholderComment": "Коментар",
   "placeholderRootPath": "Път към главната root директория",
   "port": "Порт",
   "portAdvanced": "Разширени",

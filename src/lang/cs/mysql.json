@@ -15,7 +15,6 @@
   "rootPasswordChange": "Změnit {user} heslo",
   "passwordNoEmpty": "root heslo nemůže být prázdné",
   "passwordFormatError": "Heslo databáze nesmí obsahovat čínské nebo speciální znaky",
-  "resetPassword": "Obnovit heslo",
   "savePassword": "Aktualizovat heslo",
   "resetPasswordTips": "Tato operace změní heslo root uživatele databáze",
   "savePasswordTips": "Pouze aktualizace hesla uloženého ve FlyEnv, nemění heslo root uživatele databáze. Toto heslo se používá hlavně k bezpečnému zastavení instancí {app}.",

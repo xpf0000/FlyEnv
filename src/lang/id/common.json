@@ -1,12 +1,24 @@
 {
   "label": {
-    "model": "Model"
+    "model": "Model",
+    "name": "Nama",
+    "status": "Status",
+    "workingDirectory": "Direktori Kerja",
+    "action": "Aksi",
+    "comment": "Komentar",
+    "source": "Sumber"
   },
   "action": {
     "enable": "Aktifkan",
     "disable": "Nonaktifkan",
     "resume": "Lanjutkan",
-    "uninstall": "Copot"
+    "uninstall": "Copot",
+    "copy": "Salin",
+    "preview": "Pratinjau",
+    "search": "Cari",
+    "clear": "Bersihkan",
+    "resetPassword": "Reset Kata Sandi",
+    "delete": "Hapus"
   },
   "state": {
     "running": "Berjalan",
@@ -31,6 +43,11 @@
     "addServer": "Tambah Server"
   },
   "category": {
-    "basic": "Dasar"
+    "basic": "Dasar",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Informasi Dasar",
+    "configuration": "Configuration",
+    "favorites": "Favorit"
   }
 }

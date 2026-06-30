@@ -1,5 +1,4 @@
 {
-  "working_dir": "Director de lucru",
   "db_path": "Desemnează locația în care vor fi create și preluate fișierele bazei de date",
   "env": "Configurează mediul de instanţă. Valoarea trebuie să fie fie \"producţie\" sau \"dezvoltare\".",
   "http_addr": "Adresa pe care serverul HTTP o va asculta.",

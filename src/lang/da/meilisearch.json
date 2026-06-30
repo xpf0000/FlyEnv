@@ -1,5 +1,4 @@
 {
-  "working_dir": "Arbejdsmappe",
   "db_path": "Underskriver den placering, hvor databasefiler vil blive oprettet og hentet",
   "env": "Konfigurerer instansens miljø. Værdien skal være enten 'produktion' eller 'udvikling'.",
   "http_addr": "Adressen på hvilken HTTP-serveren vil lytte.",

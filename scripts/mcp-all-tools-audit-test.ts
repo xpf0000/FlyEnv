@@ -144,6 +144,8 @@ async function chooseOptionalService(
       }
     }
   }
+
+  return undefined
 }
 
 function chooseInstallCandidate(list: OnlineVersion[], flag: string): OnlineVersion & { version: string } {

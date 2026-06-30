@@ -15,7 +15,6 @@
   "rootPasswordChange": "{user}パスワードを変更",
   "passwordNoEmpty": "rootパスワードは空にできません",
   "passwordFormatError": "データベースパスワードに中国語や特殊文字を含めることはできません",
-  "resetPassword": "パスワードをリセット",
   "savePassword": "パスワードを更新",
   "resetPasswordTips": "この操作はデータベースのrootユーザーのパスワードを変更します",
   "savePasswordTips": "FlyEnvに保存されているパスワードのみを更新し、データベースのrootユーザーのパスワードは変更しません。このパスワードは主に{app}インスタンスを安全に停止するために使用されます。",

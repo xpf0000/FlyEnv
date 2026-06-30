@@ -7,7 +7,6 @@
   "length": "Comprimento",
   "tokenPlaceholder": "O token...",
   "button": {
-    "copy": "Copiar",
     "refresh": "Atualizar"
   }
 }

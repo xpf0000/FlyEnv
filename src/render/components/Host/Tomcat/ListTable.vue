@@ -16,7 +16,7 @@
               }}</span>
               <el-input
                 v-model.trim="search"
-                :placeholder="I18nT('base.placeholderSearch')"
+                :placeholder="I18nT('common.action.search')"
                 clearable
               ></el-input>
             </div>
@@ -51,7 +51,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('host.comment')">
+        <el-table-column :label="I18nT('common.label.comment')">
           <template #default="scope">
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
@@ -70,7 +70,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="I18nT('host.action')" width="100px">
+        <el-table-column align="center" :label="I18nT('common.label.action')" width="100px">
           <template #default="scope">
             <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
               <template v-if="!scope?.row?.deling">
@@ -104,7 +104,7 @@
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'del')">
                       <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                      <span class="ml-3">{{ I18nT('base.del') }}</span>
+                      <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
                     </li>
                   </ul>
 

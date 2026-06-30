@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "nameKey": "copilotCli.category.basic",
+      "nameKey": "common.category.basic",
       "commands": [
         { "label": "copilot --help", "descriptionKey": "copilotCli.cmd.help", "needInput": false },
         { "label": "copilot --version", "descriptionKey": "copilotCli.cmd.version", "needInput": false },
@@ -9,7 +9,7 @@
       ]
     },
     {
-      "nameKey": "copilotCli.category.session",
+      "nameKey": "common.session.list",
       "commands": [
         { "label": "copilot", "descriptionKey": "copilotCli.cmd.start", "needInput": false },
         { "label": "copilot --continue", "descriptionKey": "copilotCli.cmd.continue", "needInput": false },
@@ -18,7 +18,7 @@
       ]
     },
     {
-      "nameKey": "copilotCli.category.config",
+      "nameKey": "common.category.configuration",
       "commands": [
         { "label": "copilot mcp list", "descriptionKey": "copilotCli.cmd.mcpList", "needInput": false },
         { "label": "copilot skill list", "descriptionKey": "copilotCli.cmd.skillList", "needInput": false },

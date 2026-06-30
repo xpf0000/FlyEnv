@@ -60,13 +60,13 @@
                         {{ I18nT('base.edit') }}
                       </el-dropdown-item>
                       <el-dropdown-item :icon="CopyDocument" @click.stop="copyChat(citem as any)">
-                        {{ I18nT('base.copy') }}
+                        {{ I18nT('common.action.copy') }}
                       </el-dropdown-item>
                       <el-dropdown-item
                         :icon="Delete"
                         divided
                         @click.stop="delChat(citem as any)"
-                        >{{ I18nT('base.del') }}</el-dropdown-item
+                        >{{ I18nT('common.action.delete') }}</el-dropdown-item
                       >
                     </el-dropdown-menu>
                   </template>

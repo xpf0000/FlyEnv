@@ -8,8 +8,6 @@
   "OpenClawOfficialWebsite": "OpenClaw kezdőlap",
   "OpenClawLocalDashboard": "OpenClaw vezérlőpult",
   "category": {
-    "basicInfo": "Alapadatok",
-    "configuration": "Konfiguráció",
     "gateway": "Átjáró szolgáltatás",
     "agents": "Agentek",
     "browser": "Böngésző",
