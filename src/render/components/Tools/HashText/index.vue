@@ -23,7 +23,7 @@
                 type="textarea"
                 multiline
                 placeholder="Your string to hash..."
-                rows="4"
+                :rows="4"
                 autosize
                 autofocus
               />

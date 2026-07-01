@@ -3,7 +3,7 @@
   "N8N_HOST": "Όνομα κεντρικού υπολογιστή ή διεύθυνση IP για τη διεπαφή ιστού n8n (προεπιλογή: localhost)",
   "N8N_PROTOCOL": "Πρωτόκολλο: http ή https (προεπιλογή: http)",
   "N8N_PATH": "Διαδρομή URL για τη διεπαφή ιστού n8n (προεπιλογή: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "Τύπος βάσης δεδομένων: sqlite, postgresdb, mysqldb, mariadb (προεπιλογή: sqlite)",
   "N8N_USER_FOLDER": "Προσαρμοσμένος κατάλογος όπου το n8n αποθηκεύει τα δεδομένα χρήστη (προεπιλογή: ~/.n8n)",
   "ownerResetTitle": "Επαναφορά Λογαριασμού Ιδιοκτήτη",
   "ownerResetBtn": "Επαναφορά Πιστοποιητικών & Επανεφαρμογής",

@@ -28,5 +28,26 @@
   "approvalConfirm": "Onayla",
   "approvalTip": "Onayla, aracı çalıştırmadan önce yerel bir iletişim kutusu gösterir.",
   "auditLog": "Denetim günlüğü",
-  "riskyTip": "Hizmet denetim araçları çalışan ortamınızı değiştirebilir. Yalnızca güvendiğiniz araçları etkin bırakın."
+  "riskyTip": "Hizmet denetim araçları çalışan ortamınızı değiştirebilir. Yalnızca güvendiğiniz araçları etkin bırakın.",
+  "risky": "Riskli",
+  "toolDescriptions": {
+    "list_services": "FlyEnv tarafından yönetilen modülleri, kurulu sürümleri ve çalışma durumlarıyla birlikte listele.",
+    "service_status": "Bir FlyEnv modülü için kurulu sürümleri ve çalışma durumunu al.",
+    "list_sites": "FlyEnv tarafından yönetilen yerel geliştirme sitelerini ve metadatalarını listele.",
+    "get_database_connection_info": "FlyEnv tarafından yönetilen yerel veritabanı veya önbellek hizmeti için bağlantı ayrıntılarını döndür.",
+    "resolve_site_runtime": "Bir FlyEnv sitesini kök yol, web sunucusu ve PHP/runtime seçimi gibi runtime ayrıntılarına çözümle.",
+    "get_service_exec_info": "Kurulu bir FlyEnv modül sürümü için yürütülebilir dosya, yapılandırma ve runtime ayrıntılarını döndür.",
+    "resolve_site_urls": "Bir FlyEnv sitesi için kanonik URL'leri, takma adları, SSL giriş noktalarını ve ters proxy URL'lerini döndür.",
+    "get_managed_file_map": "Bir site veya hizmet için FlyEnv tarafından yönetilen env, yapılandırma, günlük, sertifika, runtime ve veri dosyası yollarını döndür.",
+    "list_log_files": "Bir FlyEnv modülü için bilinen günlük dosyalarını listele.",
+    "list_config_files": "Bir FlyEnv modülü için bilinen yapılandırma dosyalarını listele.",
+    "list_online_versions": "Yüklenebilir bir FlyEnv modülü için indirilebilir sürümleri listele.",
+    "start_service": "Kurulu uzun süreli çalışan bir FlyEnv hizmet sürümünü başlat.",
+    "stop_service": "Çalışan uzun süreli bir FlyEnv hizmetini durdur.",
+    "restart_service": "Çalışan uzun süreli bir FlyEnv hizmetini yeniden başlat.",
+    "create_site": "Yeni bir FlyEnv yerel geliştirme sitesi oluştur.",
+    "update_site": "Mevcut bir FlyEnv yerel geliştirme sitesini güncelle.",
+    "delete_site": "FlyEnv yapılandırmasından bir yerel geliştirme sitesini sil.",
+    "install_service": "Yüklenebilir bir FlyEnv modülü için bir sürümü indir ve kur."
+  }
 }

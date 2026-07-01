@@ -2,6 +2,6 @@
   "Timeout": "Antall sekunder før er hentet og sendt.",
   "KeepAlive": "Hvorvidt vedvarende tilkoblinger tillates eller ikke",
   "KeepAliveTimeout": "Antall sekunder på neste forespørsel fra samme klient på samme tilkobling.",
-  "MaxKeepAliveRequests": "The maximum number of requests to allow during a persistent connection.\nSet to 0 to allow an unlimited amount.\nWe recommend you leave this number high, for maximum performance.",
+  "MaxKeepAliveRequests": "Maksimalt antall foresporsler som er tillatt under en vedvarende tilkobling.\nSett til 0 for et ubegrenset antall.\nVi anbefaler at du lar dette tallet vare hoyt for maksimal ytelse.",
   "LimitRequestBody": "Byte. Størrelse på filopplasting 0: ingen grense"
 }

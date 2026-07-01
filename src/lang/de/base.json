@@ -45,7 +45,7 @@
   "hostsReadFailed": "Fehler beim Lesen der Datei /private/etc/hosts. Bitte überprüfen Sie, ob die Datei existiert und ob die Dateirechte korrekt sind",
   "needSelectDir": "Bitte wähle einen Ordner!",
   "processNotFound": "Keine Prozesse gefunden",
-  "hostsTitle": "System Hosts",
+  "hostsTitle": "System-Hosts",
   "phpVersion": "PHP-Version",
   "selectPhpVersion": "PHP-Version auswählen",
   "siteLinks": "Site-Links",

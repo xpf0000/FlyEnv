@@ -77,7 +77,7 @@
   "descEveryNHours": "{n}시간마다",
   "descAtHour": "{n}:00에",
   "commandTemplates": "빠른 명령 템플릿",
-  "commandPresetPhpArtisan": "PHP Artisan",
+  "commandPresetPhpArtisan": "PHP Artisan 명령",
   "commandPresetNodeScript": "Node 스크립트",
   "commandPresetPythonScript": "Python 스크립트",
   "commandPresetShellScript": "Shell 스크립트",

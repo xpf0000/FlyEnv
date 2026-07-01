@@ -1,5 +1,5 @@
 {
-  "startInstall": "Start installing {service}",
+  "startInstall": "{service} のインストールを開始",
   "startServiceBegin": "{service}サービスを開始しています...",
   "confInit": "設定ファイルが存在しません。新しい設定ファイルを生成しています",
   "confInitSuccess": "設定ファイルが正常に生成されました。ファイルパス：{file}",

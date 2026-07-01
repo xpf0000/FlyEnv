@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI nije instaliran. Kliknite donji gumb za pokretanje službenog instalacijskog programa.",
+  "officialWebsite": "Kimi Code CLI na GitHubu",
+  "officialDocs": "Dokumentacija Kimi Code CLI-ja",
+  "permissionMode": "Način dozvola",
+  "defaultThinking": "Zadani način razmišljanja",
+  "defaultPlanMode": "Zadani način planiranja",
+  "telemetry": "Telemetrija",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "Nadogradi Kimi Code CLI",
+    "continue": "Nastavi najnoviju sesiju u trenutnom direktoriju",
+    "sessionSelect": "Odaberi i nastavi sesiju",
+    "plan": "Pokreni u načinu planiranja",
+    "yolo": "Automatski odobri uobičajene pozive alata",
+    "export": "Izvezi sesiju u ZIP",
+    "vis": "Otvori vizualizator sesije u pregledniku",
+    "providerList": "Prikaži konfigurirane davatelje",
+    "providerAdd": "Dodaj davatelje s URL-a registra",
+    "providerRemove": "Ukloni davatelja"
   }
 }

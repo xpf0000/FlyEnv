@@ -1,7 +1,7 @@
 {
   "dnsLookup": "DNS поиск",
   "tcpConnect": "TCP соединение",
-  "tlsHandshake": "TLS Handshake",
+  "tlsHandshake": "TLS-rukopozhatie",
   "requestProcessing": "Заявка обрабатывается",
   "ttfb": "Время до первой байты (TTFB)",
   "contentDownload": "Загрузка контента",

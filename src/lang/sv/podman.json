@@ -15,7 +15,7 @@
   "require": "krävs",
   "rootful": "Rootful-läge",
   "userModeNetworking": "Användarnätverksläge",
-  "rosetta": "Rosetta (Mac)",
+  "rosetta": "Rosetta for Mac",
   "identityPath": "SSH-nyckelns sökväg",
   "remoteUsername": "Fjärranvändare",
   "Dashboard": "Instrumentpanel",

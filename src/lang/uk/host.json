@@ -33,7 +33,7 @@
   "projectBun": "Проекти Bun",
   "projectPerl": "Проекти Perl",
   "projectRuby": "Проекти Ruby",
-  "projectRust": "Rust Projects",
+  "projectRust": "Проєкти Rust",
   "projectZig": "Проекти ZG",
   "projectFlutter": "Згладити проекти",
   "envVar": "Змінна середовища",
@@ -69,7 +69,7 @@
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "Таке ж онлайн-доменне ім'я вже існує.",
     "CloudflaredNoFoundTips": "Хмаринкувальний режим не знайдено. Будь ласка, встановіть його.",
-    "TunnelInitFailTips": "Tunnel creation failed: {error}. Please check if the ApiToken is correct and ensure you have Cloudflare Tunnel edit permissions.",
+    "TunnelInitFailTips": "Не вдалося створити tunnel: {error}. Перевірте, чи правильний ApiToken, і переконайтеся, що у вас є права редагування Cloudflare Tunnel.",
     "TunnelRule": "Правило тунеля",
     "licenseTips": "Не отримуючи ліцензії, Ви можете створити лише один тунель та один набір хостів."
   },

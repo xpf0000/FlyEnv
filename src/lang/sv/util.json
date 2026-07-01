@@ -27,7 +27,7 @@
   "macPortsSrcGermanyErlangen": "Tyskland, Erlangen",
   "macPortsSrcGermanyLimburg": "Tyskland, Limburg",
   "macPortsSrcIndonesiaYogyakarta": "Indonesien, Yogyakarta",
-  "macPortsSrcJapanNomiIshikawa": "Japan, Nomi, Ishikawa",
+  "macPortsSrcJapanNomiIshikawa": "Japan - Nomi, Ishikawa-prefekturen",
   "macPortsSrcSouthAfricaJohannesburg": "Sydafrika, Johannesburg",
   "macPortsSrcSouthKoreaDaejeon": "Sydkorea, Daejeon",
   "macPortsSrcUnitedKingdomCanterbury": "Storbritannien, Canterbury",
@@ -43,12 +43,12 @@
   "toolProcessKill": "Avsluta process",
   "toolPhpObfuscator": "PHP fördunklare",
   "toolUTF8BomClean": "UTF-8 BOM Rensning",
-  "toolSiteSucker": "URL Harvesting",
+  "toolSiteSucker": "URL-insamling",
   "toolFileNotExist": "Filen finns inte",
   "toolFileTooMore": "Misslyckades med att hämta filen, vänligen rensa inte för många filer samtidigt.",
   "toolSaveConfirm": "Är du säker på att du vill spara det?",
   "auto": "Auto",
   "noVerionsFoundInLib": "Ingen version tillgänglig",
   "showToolBtn": "Visa flytande verktygsknappar",
-  "inputSearchKey": "Search keyword"
+  "inputSearchKey": "Sokord"
 }

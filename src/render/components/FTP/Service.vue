@@ -65,7 +65,9 @@
             </template>
           </el-select>
         </div>
-        <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('common.action.add') }}</el-button>
+        <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{
+          $t('common.action.add')
+        }}</el-button>
       </div>
     </template>
     <el-auto-resizer>

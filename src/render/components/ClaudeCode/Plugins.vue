@@ -5,8 +5,12 @@
         <div class="left flex items-center">
           <span>{{ I18nT('common.category.plugins') }}</span>
           <el-radio-group v-model="pluginTab" size="small" class="ml-4">
-            <el-radio-button value="installed">{{ I18nT('common.state.installed') }}</el-radio-button>
-            <el-radio-button value="available">{{ I18nT('common.state.available') }}</el-radio-button>
+            <el-radio-button value="installed">{{
+              I18nT('common.state.installed')
+            }}</el-radio-button>
+            <el-radio-button value="available">{{
+              I18nT('common.state.available')
+            }}</el-radio-button>
           </el-radio-group>
         </div>
         <el-button
@@ -51,7 +55,9 @@
                       :type="item.enabled ? 'success' : 'warning'"
                       class="ml-2"
                       >{{
-                        item.enabled ? I18nT('common.state.enabled') : I18nT('common.state.disabled')
+                        item.enabled
+                          ? I18nT('common.state.enabled')
+                          : I18nT('common.state.disabled')
                       }}</el-tag
                     >
                     <span v-if="item.installCount" class="install-count">{{

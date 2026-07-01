@@ -23,15 +23,15 @@
     "image": "Obraz",
     "state": "Vəziyyət",
     "grid": "Grid",
-    "gridSpacing": "Grid Spacing (pixels)",
+    "gridSpacing": "Şəbəkə aralığı (piksel)",
     "fontSize": "Şrift Ölçüsü",
     "code": "Kod"
   },
   "action": {
     "enable": "Aktiv et",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Deaktiv et",
+    "resume": "Davam et",
+    "uninstall": "Sil",
     "copy": "Kopyala",
     "preview": "ön izahat",
     "search": "Axtar",
@@ -48,83 +48,83 @@
     "close": "Bağla",
     "selectAll": "Hamısını Seç",
     "changeName": "Adı dəyiş",
-    "changeOwnerPassword": "Change Owner Password",
+    "changeOwnerPassword": "Sahib parolunu dəyiş",
     "changeRole": "Rolu dəyiş"
   },
   "state": {
     "running": "Qaçış",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Quraşdırılıb",
+    "enabled": "Aktiv",
+    "disabled": "Deaktiv",
+    "available": "Mövcuddur"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sessiyalar",
+    "title": "Başlıq",
+    "id": "Sessiya ID-si",
+    "lastPrompt": "Son sorğu",
+    "search": "Sessiyalarda axtar",
+    "deleted": "Sessiya silindi",
+    "resumed": "Sessiya terminalda bərpa edildi"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Əmr / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Server əlavə et"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Əsas",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Bacarıqlar",
     "basicInfo": "Əsas məlumat",
     "configuration": "Configuration",
     "favorites": "Sevimlilər",
     "plugins": "Plugins",
-    "backupUpdate": "Backup & Update"
+    "backupUpdate": "Yedəkləmə və yeniləmə"
   },
   "skills": {
-    "openSkillsDir": "Open skills directory",
+    "openSkillsDir": "Bacarıqlar qovluğunu aç",
     "openSkillDir": "Bacarıqlar kataloqunu aç",
     "revealSkillFile": "Bacarıq faylını aşkar et",
-    "noSkills": "No skills found",
+    "noSkills": "Heç bir bacarıq tapılmadı",
     "skillFileMissing": "Bacarıq faylı tapılmadı",
     "skillLoadFailed": "Bacarıq faylı yüklənmədi",
-    "builtin": "Built-in"
+    "builtin": "Daxili"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
-    "doctor": "Run health checks",
-    "doctorFix": "Run health checks with auto-fix",
-    "gatewayStart": "Start gateway service",
-    "gatewayStop": "Stop gateway service",
-    "gatewayRestart": "Restart gateway service",
-    "gatewayStatus": "Show gateway status",
-    "gatewayRun": "Run gateway in foreground",
-    "gatewayUninstall": "Uninstall gateway service",
-    "skillsList": "List available skills"
+    "help": "Kömək məlumatını göstər",
+    "version": "Versiya nömrəsini göstər",
+    "start": "Yeni interaktiv sessiya başladın",
+    "mcpList": "Konfiqurasiya edilmiş MCP serverlərini siyahıla",
+    "doctor": "Sağlamlıq yoxlamalarını işə sal",
+    "doctorFix": "Avtomatik düzəlişlə sağlamlıq yoxlamalarını işə sal",
+    "gatewayStart": "Gateway xidmətini başlat",
+    "gatewayStop": "Gateway xidmətini dayandır",
+    "gatewayRestart": "Gateway xidmətini yenidən başlat",
+    "gatewayStatus": "Gateway vəziyyətini göstər",
+    "gatewayRun": "Gateway-i ön planda işə sal",
+    "gatewayUninstall": "Gateway xidmətini sil",
+    "skillsList": "Mövcud bacarıqları siyahıla"
   },
   "gateway": {
-    "category": "Gateway Service",
-    "status": "Gateway Status",
-    "running": "Gateway is running",
-    "stopped": "Gateway is stopped",
-    "startFailed": "Gateway start failed"
+    "category": "Gateway xidməti",
+    "status": "Gateway vəziyyəti",
+    "running": "Gateway işləyir",
+    "stopped": "Gateway dayandırılıb",
+    "startFailed": "Gateway başlatma uğursuz oldu"
   },
   "value": {
     "yes": "Bəli",
     "no": "Xeyir",
-    "other": "Other",
+    "other": "Digər",
     "default": "Standart",
     "none": "Heç biri",
     "local": "Local"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Pluginləri axtar",
+    "removed": "Plugin silindi"
   },
   "schedule": {
     "everyHour": "Hər saat",

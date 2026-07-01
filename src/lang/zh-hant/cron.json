@@ -77,7 +77,7 @@
   "descEveryNHours": "每 {n} 小時",
   "descAtHour": "{n}:00",
   "commandTemplates": "快捷命令範本",
-  "commandPresetPhpArtisan": "PHP Artisan",
+  "commandPresetPhpArtisan": "PHP Artisan 指令",
   "commandPresetNodeScript": "Node 腳本",
   "commandPresetPythonScript": "Python 腳本",
   "commandPresetShellScript": "Shell 腳本",

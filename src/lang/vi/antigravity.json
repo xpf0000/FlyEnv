@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI chua duoc cai dat. Bam nut ben duoi de cai dat bang bo cai dat chinh thuc.",
+  "officialWebsite": "Trang web Antigravity",
+  "officialDocs": "Tai lieu Antigravity CLI",
+  "sandboxMode": "Hop cat terminal",
+  "toolPermission": "Quyen cong cu",
+  "sessionId": "ID hoi thoai",
+  "updatedAt": "Cap nhat luc",
+  "sessionResumed": "Hoi thoai da duoc tiep tuc trong terminal",
+  "sessionDeleted": "Hoi thoai da bi xoa",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Cap nhat Antigravity CLI len phien ban moi nhat",
+    "models": "Liet ke cac mo hinh co san",
+    "continue": "Tiep tuc hoi thoai gan nhat",
+    "resume": "Tiep tuc hoi thoai truoc do bang ID",
+    "prompt": "Chay mot prompt don o che do khong tuong tac",
+    "pluginList": "Liet ke cac plugin da nhap",
+    "pluginImport": "Nhap plugin tu gemini hoac claude",
+    "install": "Cau hinh duong dan moi truong va cai dat shell"
   }
 }

@@ -28,5 +28,26 @@
   "approvalConfirm": "Konfirmasi",
   "approvalTip": "Konfirmasi akan menampilkan dialog bawaan sebelum menjalankan alat.",
   "auditLog": "Log audit",
-  "riskyTip": "Alat kontrol layanan dapat mengubah lingkungan kerja Anda. Tetap aktifkan hanya alat yang Anda percayai."
+  "riskyTip": "Alat kontrol layanan dapat mengubah lingkungan kerja Anda. Tetap aktifkan hanya alat yang Anda percayai.",
+  "risky": "Berisiko",
+  "toolDescriptions": {
+    "list_services": "Daftarkan modul yang dikelola FlyEnv beserta versi terpasang dan status jalannya.",
+    "service_status": "Dapatkan versi terpasang dan status jalan untuk satu modul FlyEnv.",
+    "list_sites": "Daftarkan situs pengembangan lokal yang dikelola FlyEnv beserta metadatanya.",
+    "get_database_connection_info": "Kembalikan detail koneksi untuk basis data lokal atau layanan cache yang dikelola FlyEnv.",
+    "resolve_site_runtime": "Uraikan situs FlyEnv ke detail runtime seperti path root, server web, dan pilihan PHP/runtime.",
+    "get_service_exec_info": "Kembalikan detail executable, konfigurasi, dan runtime untuk satu versi modul FlyEnv yang terpasang.",
+    "resolve_site_urls": "Kembalikan URL kanonis, alias, entrypoint SSL, dan URL reverse proxy untuk situs FlyEnv.",
+    "get_managed_file_map": "Kembalikan path file env, konfigurasi, log, sertifikat, runtime, dan data yang dikelola FlyEnv untuk situs atau layanan.",
+    "list_log_files": "Daftarkan file log yang diketahui untuk satu modul FlyEnv.",
+    "list_config_files": "Daftarkan file konfigurasi yang diketahui untuk satu modul FlyEnv.",
+    "list_online_versions": "Daftarkan versi yang dapat diunduh untuk modul FlyEnv yang bisa dipasang.",
+    "start_service": "Mulai versi layanan FlyEnv jangka panjang yang telah terpasang.",
+    "stop_service": "Hentikan layanan FlyEnv jangka panjang yang sedang berjalan.",
+    "restart_service": "Mulai ulang layanan FlyEnv jangka panjang yang sedang berjalan.",
+    "create_site": "Buat situs pengembangan lokal FlyEnv baru.",
+    "update_site": "Perbarui situs pengembangan lokal FlyEnv yang sudah ada.",
+    "delete_site": "Hapus situs pengembangan lokal dari konfigurasi FlyEnv.",
+    "install_service": "Unduh dan pasang versi untuk modul FlyEnv yang dapat dipasang."
+  }
 }

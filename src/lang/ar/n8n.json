@@ -3,7 +3,7 @@
   "N8N_HOST": "اسم المضيف أو عنوان IP لواجهة ويب n8n (الافتراضي: localhost)",
   "N8N_PROTOCOL": "البروتوكول: قبضة أو قبضة (الافتراضي: http)",
   "N8N_PATH": "مسار URL لواجهة ويب n8n (الافتراضي: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "نوع قاعدة البيانات: sqlite أو postgresdb أو mysqldb أو mariadb (الافتراضي: sqlite)",
   "N8N_USER_FOLDER": "الدليل المخصص حيث n8n يخزن بيانات المستخدم (الافتراضي: ~/.n8n)",
   "ownerResetTitle": "إعادة تعيين حساب المالك",
   "ownerResetBtn": "إعادة تعيين وإعادة تطبيق وثائق التفويض",

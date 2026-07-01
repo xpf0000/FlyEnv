@@ -69,7 +69,7 @@
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "Același nume de domeniu online există deja.",
     "CloudflaredNoFoundTips": "Nu s-a găsit Cloudfled. Instalați-l.",
-    "TunnelInitFailTips": "Tunnel creation failed: {error}. Please check if the ApiToken is correct and ensure you have Cloudflare Tunnel edit permissions.",
+    "TunnelInitFailTips": "Crearea tunelului a esuat: {error}. Verificati daca ApiToken este corect si asigurati-va ca aveti permisiuni de editare pentru Cloudflare Tunnel.",
     "TunnelRule": "Regulă tunel",
     "licenseTips": "Fără a obține o licență, puteți crea doar un singur tunel și un set de înregistrări de gazdă."
   },

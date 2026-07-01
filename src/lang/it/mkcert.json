@@ -2,10 +2,10 @@
   "checking": "Controllo dell'installazione...",
   "isInstalled": "installato",
   "notInstalled": "mkcert non è installato",
-  "install": "Install mkcert",
+  "install": "Installa mkcert",
   "checkAgain": "Controlla Di Nuovo",
   "recheck": "Ricontrolla",
-  "installCA": "Install CA",
+  "installCA": "Installa CA",
   "carootLabel": "Percorso Root CA",
   "certificates": "Certificati",
   "noSSLHosts": "Nessun host con SSL abilitato. Abilitare prima SSL su un host."

@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Claude Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Claude Code GitHub",
-  "officialDocs": "Claude Code Docs",
-  "includeCoAuthoredBy": "Include Co-Authored-By",
-  "cleanupPeriodDays": "Chat Retention (days)",
-  "pluginEnabled": "Plugin enabled",
-  "pluginDisabled": "Plugin disabled",
-  "uninstallConfirm": "Are you sure to uninstall plugin \"{name}\"?",
+  "notInstalled": "Claude Code CLI er ikke installeret. Klik på knappen nedenfor for at køre det officielle installationsprogram.",
+  "officialWebsite": "Claude Code på GitHub",
+  "officialDocs": "Claude Code-dokumentation",
+  "includeCoAuthoredBy": "Medtag Co-Authored-By",
+  "cleanupPeriodDays": "Chatopbevaring (dage)",
+  "pluginEnabled": "Plugin aktiveret",
+  "pluginDisabled": "Plugin deaktiveret",
+  "uninstallConfirm": "Er du sikker på, at du vil afinstallere pluginet \"{name}\"?",
   "cmd": {
-    "update": "Check for updates and install if available",
-    "doctor": "Check the health of your Claude Code installation",
-    "continue": "Continue the most recent conversation in current directory",
-    "resume": "Select and resume a previous conversation",
-    "print": "Run a one-shot prompt and print the response",
-    "pluginList": "List installed plugins",
-    "setupToken": "Set up a long-lived authentication token"
+    "update": "Tjek for opdateringer og installer, hvis de er tilgængelige",
+    "doctor": "Kontrollér tilstanden for din Claude Code-installation",
+    "continue": "Fortsæt den seneste samtale i den aktuelle mappe",
+    "resume": "Vælg og genoptag en tidligere samtale",
+    "print": "Kør en enkelt prompt og udskriv svaret",
+    "pluginList": "Vis installerede plugins",
+    "setupToken": "Opsæt en langtidsholdbar godkendelsestoken"
   }
 }

@@ -19,14 +19,14 @@
   "mysqlDataDir": "Cartella dati",
   "mysqlPopperSocket": "Copia percorso socket",
   "macPortsSrcSwitch": "Cambio mirror MacPorts",
-  "macPortsSrcAustraliBrisbane": "Australia, Brisbane",
-  "macPortsSrcCanadaManitoba": "Canada, Manitoba",
-  "macPortsSrcCanadaWaterloo": "Canada, Waterloo",
+  "macPortsSrcAustraliBrisbane": "Australia - Brisbane",
+  "macPortsSrcCanadaManitoba": "Canada - Manitoba",
+  "macPortsSrcCanadaWaterloo": "Canada - Waterloo",
   "macPortsSrcChinaBeijing": "Cina, Pechino",
   "macPortsSrcDenmarkCopenhagen": "Danimarca, Copenaghen",
   "macPortsSrcGermanyErlangen": "Germania, Erlangen",
   "macPortsSrcGermanyLimburg": "Germania, Limburg",
-  "macPortsSrcIndonesiaYogyakarta": "Indonesia, Yogyakarta",
+  "macPortsSrcIndonesiaYogyakarta": "Indonesia - Yogyakarta",
   "macPortsSrcJapanNomiIshikawa": "Giappone, Nomi, Ishikawa",
   "macPortsSrcSouthAfricaJohannesburg": "Sudafrica, Johannesburg",
   "macPortsSrcSouthKoreaDaejeon": "Corea del Sud, Daejeon",
@@ -50,5 +50,5 @@
   "auto": "Auto",
   "noVerionsFoundInLib": "Nessuna versione disponibile",
   "showToolBtn": "Mostra pulsante strumenti flottante",
-  "inputSearchKey": "Search keyword"
+  "inputSearchKey": "Parola chiave di ricerca"
 }

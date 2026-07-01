@@ -72,7 +72,7 @@
               multiline
               :placeholder="I18nT('token-generator.tokenPlaceholder')"
               readonly
-              rows="3"
+              :rows="3"
               autosize
               type="textarea"
               class="token-display"

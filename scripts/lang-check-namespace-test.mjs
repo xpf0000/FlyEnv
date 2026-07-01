@@ -34,4 +34,16 @@ assert.equal(
   'duplicate candidate output should use the registered claudeCode namespace'
 )
 
+assert.equal(
+  output.includes('✅ 所有语言包文件结构一致'),
+  true,
+  'all locale files should exist for every namespace'
+)
+
+assert.equal(
+  output.includes('✅ 所有语言包键完全一致'),
+  true,
+  'all locale keys should stay aligned across languages'
+)
+
 console.log('lang check namespace test passed')

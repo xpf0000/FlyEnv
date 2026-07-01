@@ -1,6 +1,6 @@
 {
   "notInstalled": "Codex CLI yüklü değil. Resmi yükleyici ile kurmak için aşağıdaki düğmeye tıklayın.",
-  "officialWebsite": "Codex GitHub",
+  "officialWebsite": "Codex GitHub sayfası",
   "officialDocs": "Codex CLI Belgeleri",
   "reasoningEffort": "Akıl Yürütme Düzeyi",
   "approvalPolicy": "Onay Politikası",
@@ -8,12 +8,12 @@
   "pluginEnabled": "Eklenti yüklendi",
   "uninstallConfirm": "\"{name}\" eklentisini kaldırmak istediğinizden emin misiniz?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Codex'i en son sürüme güncelle",
+    "continue": "En son oturumu sürdür",
+    "resume": "Önceki bir oturumu sürdür (seçici)",
+    "exec": "Codex'i etkileşimsiz olarak çalıştır",
+    "review": "Kod incelemesini etkileşimsiz olarak çalıştır",
+    "pluginList": "Kullanılabilir eklentileri listele",
+    "login": "Giriş / kimlik doğrulamayı yönet"
   }
 }

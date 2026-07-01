@@ -16,7 +16,7 @@
       "versionRelation": "Versionskompatibilitätsreferenz:",
       "software": "Software",
       "versionRange": "Versionsbereich",
-      "msvsVersion": "MSVC Version"
+      "msvsVersion": "MSVC-Version"
     }
   }
 }

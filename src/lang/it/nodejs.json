@@ -8,7 +8,7 @@
   "updatePackageJsonFileTips": "Questa azione modificherà il file package.json. Sei sicuro di voler procedere?",
   "copyDirPath": "Copia percorso cartella progetto",
   "openIN": "Apri con",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Editor Visual Studio Code",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "Ambiente del progetto",

@@ -1,17 +1,18 @@
 {
   "notInstalled": "OpenClaw ist nicht installiert. Bitte installieren Sie es zuerst.",
   "gatewayNotInstalled": "Gateway ist nicht installiert. Bitte installieren Sie das Gateway zuerst.",
-  "OpenClawOfficialWebsite": "OpenClaw Home",
-  "OpenClawLocalDashboard": "OpenClaw Dashboard",
+  "OpenClawOfficialWebsite": "OpenClaw Startseite",
+  "OpenClawLocalDashboard": "OpenClaw Steuerzentrale",
   "category": {
     "agents": "Agenten",
-    "browser": "Browser",
+    "browser": "Webbrowser",
     "channels": "Kanäle",
     "nodes": "Knoten & Geräte",
     "models": "Modelle",
     "skills": "Fertigkeiten",
-    "system": "System",
-    "sessions": "Sitzungen"
+    "system": "Systembereich",
+    "sessions": "Sitzungen",
+    "backup": "Sicherung und Aktualisierung"
   },
   "cmd": {
     "dashboard": "Öffne das Kontroll-UI-Dashboard",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Probe Gatewaystatus",
     "gatewayDiscover": "Gateway-Dienste entdecken",
     "gatewayHealth": "Gateway Gesundheit prüfen",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Detaillierten Gateway-Status anzeigen",
     "gatewayInstall": "Gateway-Dienst installieren",
     "gatewayCall": "Gateway-API (erfordert Parameter)",
     "agent": "Einen Agenten über Gateway ausführen",
@@ -63,7 +64,7 @@
     "messageSend": "Nachricht senden (erfordert Parameter)",
     "messageRead": "Nachrichten lesen (erfordert Parameter)",
     "nodesList": "Listenknoten",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Knotenstatus anzeigen",
     "nodesPending": "Ausstehende Knoten anzeigen",
     "nodesApprove": "Knoten genehmigen (erfordert Knoten-ID)",
     "nodesReject": "Knoten ablehnen (erfordert Knoten-ID)",
@@ -88,8 +89,8 @@
     "systemEvent": "Systemereignis senden (erfordert Parameter)",
     "cronList": "Cron-Jobs auflisten",
     "cronAdd": "Cronjob hinzufügen (erfordert Parameter)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Hooks auflisten",
+    "hooksCheck": "Hook-Status pruefen",
     "memorySearch": "Speicher suchen (erfordert Abfrage)",
     "memoryStatus": "Speicherstatus anzeigen",
     "sandboxList": "Sandboxen auflisten",
@@ -118,8 +119,8 @@
     "pairingList": "Listenkombinationsanfragen",
     "docs": "Dokumentationssuche (erfordert Abfrage)",
     "completion": "Shell-Fertigstellung generieren",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Terminal-Oberflaeche oeffnen",
+    "qr": "QR-Code erzeugen",
     "onboard": "Onboarding-Assistent ausführen",
     "uninstall": "OpenClaw deinstallieren"
   }

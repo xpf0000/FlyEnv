@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "Увімкнути",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Вимкнути",
+    "resume": "Відновити",
+    "uninstall": "Видалити",
     "copy": "Копіювати",
     "preview": "Попередній перегляд",
     "search": "Пошук",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Запущено",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Встановлено",
+    "enabled": "Увімкнено",
+    "disabled": "Вимкнено",
+    "available": "Доступно"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Сесії",
+    "title": "Заголовок",
+    "id": "ID сеансу",
+    "lastPrompt": "Останній запит",
+    "search": "Пошук сеансів",
+    "deleted": "Сеанс видалено",
+    "resumed": "Сеанс відновлено в терміналі"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Команда / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Додати сервер"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Основне",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Навички",
     "basicInfo": "Основна інформація",
     "configuration": "Конфігурація",
     "favorites": "Улюблені",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Відкрити каталог навичок",
     "openSkillDir": "Відкрити папку навички",
     "revealSkillFile": "Показати файл навички",
-    "noSkills": "No skills found",
+    "noSkills": "Навичок не знайдено",
     "skillFileMissing": "Файл навички не знайдено",
     "skillLoadFailed": "Не вдалося завантажити файл навички",
     "builtin": "Вбудований"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Показати довідку",
+    "version": "Показати номер версії",
+    "start": "Почати новий інтерактивний сеанс",
+    "mcpList": "Показати налаштовані MCP-сервери",
     "doctor": "Запустити перевірки працездатності",
     "doctorFix": "Виконувати перевірку стану стану автовиправлення",
     "gatewayStart": "Запустити службу термостата",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Показати статус термостата",
     "gatewayRun": "Запустити шлюз на передньому плані",
     "gatewayUninstall": "Установка термостата",
-    "skillsList": "List available skills"
+    "skillsList": "Показати доступні навички"
   },
   "gateway": {
     "category": "Служба шлюзу",
@@ -123,8 +123,8 @@
     "local": "Місцевий"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Пошук плагінів",
+    "removed": "Плагін видалено"
   },
   "schedule": {
     "everyHour": "Щогодини",

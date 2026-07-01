@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Claude Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Claude Code GitHub",
-  "officialDocs": "Claude Code Docs",
-  "includeCoAuthoredBy": "Include Co-Authored-By",
-  "cleanupPeriodDays": "Chat Retention (days)",
-  "pluginEnabled": "Plugin enabled",
-  "pluginDisabled": "Plugin disabled",
-  "uninstallConfirm": "Are you sure to uninstall plugin \"{name}\"?",
+  "notInstalled": "Claude Code CLI is niet geïnstalleerd. Klik op de knop hieronder om het officiële installatieprogramma uit te voeren.",
+  "officialWebsite": "Claude Code op GitHub",
+  "officialDocs": "Claude Code-documentatie",
+  "includeCoAuthoredBy": "Co-Authored-By opnemen",
+  "cleanupPeriodDays": "Chatbewaring (dagen)",
+  "pluginEnabled": "Plugin ingeschakeld",
+  "pluginDisabled": "Plugin uitgeschakeld",
+  "uninstallConfirm": "Weet je zeker dat je plugin \"{name}\" wilt verwijderen?",
   "cmd": {
-    "update": "Check for updates and install if available",
-    "doctor": "Check the health of your Claude Code installation",
-    "continue": "Continue the most recent conversation in current directory",
-    "resume": "Select and resume a previous conversation",
-    "print": "Run a one-shot prompt and print the response",
-    "pluginList": "List installed plugins",
-    "setupToken": "Set up a long-lived authentication token"
+    "update": "Controleer op updates en installeer indien beschikbaar",
+    "doctor": "Controleer de gezondheid van je Claude Code-installatie",
+    "continue": "Ga verder met het meest recente gesprek in de huidige map",
+    "resume": "Selecteer en hervat een eerder gesprek",
+    "print": "Voer een eenmalige prompt uit en druk het antwoord af",
+    "pluginList": "Geïnstalleerde plugins weergeven",
+    "setupToken": "Een langlevend authenticatietoken instellen"
   }
 }

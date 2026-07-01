@@ -1,13 +1,13 @@
 {
-  "notInstalled": "GitHub Copilot CLI is not installed. Click the button below to install it via npm (requires Node.js 22+).",
-  "officialWebsite": "Copilot CLI GitHub",
-  "officialDocs": "Copilot CLI Docs",
+  "notInstalled": "GitHub Copilot CLI nie jest zainstalowany. Kliknij przycisk poniżej, aby zainstalować go przez npm (wymaga Node.js 22+).",
+  "officialWebsite": "Copilot CLI w GitHub",
+  "officialDocs": "Dokumentacja Copilot CLI",
   "cmd": {
-    "update": "Download the latest version of Copilot CLI",
-    "resume": "Resume a previous session (picker)",
-    "continue": "Resume the most recent session",
-    "prompt": "Run a single prompt non-interactively",
-    "login": "Authenticate with Copilot",
-    "init": "Initialize Copilot instructions for a repository"
+    "update": "Pobierz najnowszą wersję Copilot CLI",
+    "resume": "Wznów poprzednią sesję (wybór)",
+    "continue": "Wznów najnowszą sesję",
+    "prompt": "Uruchom pojedynczy prompt w trybie nieinteraktywnym",
+    "login": "Uwierzytelnij za pomocą Copilot",
+    "init": "Zainicjuj instrukcje Copilot dla repozytorium"
   }
 }

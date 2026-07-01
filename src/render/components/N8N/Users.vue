@@ -17,7 +17,9 @@
       <div class="h-full overflow-hidden flex flex-col">
         <!-- Toolbar -->
         <div class="flex items-center gap-2 mb-4 flex-shrink-0">
-          <el-button :loading="loading" @click="loadUsers">{{ I18nT('common.action.refresh') }}</el-button>
+          <el-button :loading="loading" @click="loadUsers">{{
+            I18nT('common.action.refresh')
+          }}</el-button>
           <el-button type="primary" @click="openAddDialog">
             {{ I18nT('n8n.usersAddUser') }}
           </el-button>
@@ -72,7 +74,9 @@
                         :command="row.disabled ? 'enable' : 'disable'"
                       >
                         {{
-                          row.disabled ? I18nT('common.action.enable') : I18nT('common.action.disable')
+                          row.disabled
+                            ? I18nT('common.action.enable')
+                            : I18nT('common.action.disable')
                         }}
                       </el-dropdown-item>
                       <el-dropdown-item

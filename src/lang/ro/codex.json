@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Codex GitHub",
-  "officialDocs": "Codex CLI Docs",
-  "reasoningEffort": "Reasoning Effort",
-  "approvalPolicy": "Approval Policy",
-  "sandboxMode": "Sandbox Mode",
-  "pluginEnabled": "Plugin installed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
+  "notInstalled": "Codex CLI nu este instalat. Faceți clic pe butonul de mai jos pentru a-l instala cu programul oficial de instalare.",
+  "officialWebsite": "Codex pe GitHub",
+  "officialDocs": "Documentație Codex CLI",
+  "reasoningEffort": "Nivel de raționament",
+  "approvalPolicy": "Politică de aprobare",
+  "sandboxMode": "Mod sandbox",
+  "pluginEnabled": "Plugin instalat",
+  "uninstallConfirm": "Sigur doriți să eliminați pluginul „{name}”?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Actualizează Codex la cea mai nouă versiune",
+    "continue": "Continuă cea mai recentă sesiune",
+    "resume": "Reia o sesiune anterioară (selector)",
+    "exec": "Rulează Codex în mod neinteractiv",
+    "review": "Rulează o revizie de cod în mod neinteractiv",
+    "pluginList": "Listează pluginurile disponibile",
+    "login": "Gestionează autentificarea / conectarea"
   }
 }

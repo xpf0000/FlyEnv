@@ -320,8 +320,8 @@
   }
 
   const presets: Preset[] = [
-    { labelKey: 'cron.presetEveryMinute', icon: '1m', value: '* * * * *' },
-    { labelKey: 'cron.presetEveryHour', icon: '1h', value: '0 * * * *' },
+    { labelKey: 'common.schedule.everyMinute', icon: '1m', value: '* * * * *' },
+    { labelKey: 'common.schedule.everyHour', icon: '1h', value: '0 * * * *' },
     { labelKey: 'cron.presetEvery2Hours', icon: '2h', value: '0 */2 * * *' },
     { labelKey: 'cron.presetDailyMidnight', icon: '0:00', value: '0 0 * * *' },
     { labelKey: 'cron.presetDaily6', icon: '6:00', value: '0 6 * * *' },

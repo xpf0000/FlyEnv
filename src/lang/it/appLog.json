@@ -1,5 +1,5 @@
 {
-  "startInstall": "Start installing {service}",
+  "startInstall": "Avvio installazione di {service}",
   "startServiceBegin": "Avvio del servizio {service} in corso...",
   "confInit": "Il file di configurazione non esiste. Generazione di un nuovo file di configurazione",
   "confInitSuccess": "File di configurazione generato con successo, percorso file: {file}",

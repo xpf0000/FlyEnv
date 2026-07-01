@@ -11,7 +11,8 @@
     "models": "Mallit",
     "skills": "Taidot",
     "system": "Järjestelmä",
-    "sessions": "Istunnot"
+    "sessions": "Istunnot",
+    "backup": "Varmuuskopiointi ja päivitys"
   },
   "cmd": {
     "dashboard": "Avaa Control UI -käyttöliittymän hallintapaneeli",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Anturin yhdyskäytävän tila",
     "gatewayDiscover": "Löydä yhdyskäytävän palvelut",
     "gatewayHealth": "Tarkista yhdyskäytävän terveys",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Näytä yksityiskohtainen gateway-tila",
     "gatewayInstall": "Asenna yhdyskäytävä palvelu",
     "gatewayCall": "Puhelun yhdyskäytävän API (vaatii parametrit)",
     "agent": "Suorita yksi agentti käännä Gatewayn kautta",
@@ -63,7 +64,7 @@
     "messageSend": "Lähetä viesti (vaatii parametrit)",
     "messageRead": "Lue viestejä (vaatii parametrit)",
     "nodesList": "Listaa solmut",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Näytä solmujen tila",
     "nodesPending": "Näytä odottavat solmut",
     "nodesApprove": "Hyväksy solmu (vaatii solmun tunnuksen)",
     "nodesReject": "Hylkää solmu (vaatii solmun tunnuksen)",
@@ -88,8 +89,8 @@
     "systemEvent": "Lähetä järjestelmätapahtuma (vaatii parametrit)",
     "cronList": "Listaa cron työt",
     "cronAdd": "Lisää cron työ (vaatii parametrit)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Listaa hookit",
+    "hooksCheck": "Tarkista hookien tila",
     "memorySearch": "Hae muistia (vaatii kyselyn)",
     "memoryStatus": "Näytä muistin tila",
     "sandboxList": "Listaa hiekkalaatikot",
@@ -118,8 +119,8 @@
     "pairingList": "Listaa pariutumispyynnöt",
     "docs": "Hae dokumentteja (vaatii kyselyn)",
     "completion": "Generoi tulkin täydennys",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Avaa terminaalin käyttöliittymä",
+    "qr": "Luo QR-koodi",
     "onboard": "Suorita perehdyttämisavustaja",
     "uninstall": "Poista OpenClaw"
   }

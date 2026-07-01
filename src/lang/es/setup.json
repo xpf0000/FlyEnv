@@ -43,8 +43,8 @@
   "flyenvHelperBtn": "Corregir",
   "flyenvHelperFixSuccess": "FlyEnv Helper corregido exitosamente",
   "flyenvHelperInstallFailTips": "Error al instalar FlyEnv helper. Intente ejecutar FlyEnv con privilegios de administrador o haga clic en el botón Aceptar y ejecute manualmente el programa auxiliar flyenv-helper.exe en la carpeta abierta.",
-  "appFont": "UI Font",
+  "appFont": "Fuente de la interfaz",
   "appFontTips": "Establecer la fuente usada para la interfaz de la aplicación. Dejar en blanco para usar la fuente por defecto del sistema",
-  "codeFont": "Code Font",
+  "codeFont": "Fuente del código",
   "codeFontTips": "Establecer la fuente usada para terminal, editor y otras áreas de código. Dejar en blanco para usar la fuente monospacial predeterminada"
 }

@@ -3,7 +3,7 @@
   "N8N_HOST": "Nome de host ou endereço IP para a interface web n8n (padrão: localhost)",
   "N8N_PROTOCOL": "Protocolo: http ou https (padrão: http)",
   "N8N_PATH": "Caminho da URL para a interface web n8n (padrão: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "Tipo de banco de dados: sqlite, postgresdb, mysqldb, mariadb (padrao: sqlite)",
   "N8N_USER_FOLDER": "Diretório personalizado onde n8n armazena dados do usuário (padrão: ~/.n8n)",
   "ownerResetTitle": "Redefinir Conta de Proprietário",
   "ownerResetBtn": "Redefinir e re-aplicar credenciais",

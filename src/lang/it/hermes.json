@@ -14,7 +14,7 @@
     "skillsPlugins": "Abilità E Plugin",
     "memoryTools": "Strumenti E Memoria",
     "systemLogs": "& Log Di Sistema",
-    "dashboardTui": "Dashboard & TUI",
+    "dashboardTui": "Dashboard e TUI",
     "profileOther": "Profilo & Altro"
   },
   "cmd": {
@@ -105,7 +105,7 @@
   "uninstallConfirm": "Sei sicuro di disinstallare l'abilità \"{name}\"?",
   "resetConfirm": "Sei sicuro di voler ripristinare l'abilità \"{name}\"?",
   "updateSkill": "Aggiorna",
-  "resetSkill": "Reset",
+  "resetSkill": "Reimposta",
   "categoryName": "Categoria",
   "lastActive": "Ultimo Attivo",
   "id": "ID"

@@ -76,7 +76,7 @@
   "category": {
     "basic": "Cơ bản",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Kỹ năng",
     "basicInfo": "Thông tin cơ bản",
     "configuration": "Cấu hình",
     "favorites": "Yêu thích",
@@ -87,7 +87,7 @@
     "openSkillsDir": "Mở thư mục kỹ năng",
     "openSkillDir": "Mở thư mục kỹ năng",
     "revealSkillFile": "Hiện tệp kỹ năng",
-    "noSkills": "No skills found",
+    "noSkills": "Không tìm thấy kỹ năng nào",
     "skillFileMissing": "Không tìm thấy tệp kỹ năng",
     "skillLoadFailed": "Không thể tải tệp kỹ năng",
     "builtin": "Tích hợp sẵn"
@@ -105,7 +105,7 @@
     "gatewayStatus": "Hiển thị trạng thái gateway",
     "gatewayRun": "Chạy gateway ở chế độ foreground",
     "gatewayUninstall": "Gỡ cài đặt dịch vụ gateway",
-    "skillsList": "List available skills"
+    "skillsList": "Liệt kê các kỹ năng có sẵn"
   },
   "gateway": {
     "category": "Dịch vụ Gateway",

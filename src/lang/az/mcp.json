@@ -1,5 +1,5 @@
 {
-  "title": "MCP Server",
+  "title": "MCP Serveri",
   "description": "MCP Server kimi FlyEnv-i işə salın ki, AI kodlaşdırma alətləri (Klod Kodu, Kursor, Xətt, ...) yerli mühit və nəzarət xidmətlərinizi oxuya bilsin.",
   "service": "Server",
   "clientConfig": "Müştəri konfiqurasiyası",
@@ -28,5 +28,26 @@
   "approvalConfirm": "Təsdiq et",
   "approvalTip": "Aləti icra etməzdən əvvəl yerli dialoqu göstərdiyinizi təsdiq edin.",
   "auditLog": "Audit Jurnalı",
-  "riskyTip": "Xidmətə nəzarət alətləri iş mühitinizi dəyişə bilər. Yalnız etibar etdiyiniz alətləri aktiv saxlayın."
+  "riskyTip": "Xidmətə nəzarət alətləri iş mühitinizi dəyişə bilər. Yalnız etibar etdiyiniz alətləri aktiv saxlayın.",
+  "risky": "Riskli",
+  "toolDescriptions": {
+    "list_services": "FlyEnv tərəfindən idarə olunan modulları, quraşdırılmış versiyaları və işləmə vəziyyətini siyahıla.",
+    "service_status": "Bir FlyEnv modulu üçün quraşdırılmış versiyaları və işləmə vəziyyətini al.",
+    "list_sites": "FlyEnv tərəfindən idarə olunan yerli inkişaf saytlarını və metadatasını siyahıla.",
+    "get_database_connection_info": "FlyEnv tərəfindən idarə olunan yerli verilənlər bazası və ya keş xidməti üçün bağlantı məlumatlarını qaytar.",
+    "resolve_site_runtime": "FlyEnv saytını kök yol, veb server və PHP/icra mühiti seçimi kimi iş mühiti məlumatlarına uyğunlaşdır.",
+    "get_service_exec_info": "Quraşdırılmış bir FlyEnv modul versiyası üçün icra faylı, konfiqurasiya və iş mühiti məlumatlarını qaytar.",
+    "resolve_site_urls": "FlyEnv saytı üçün əsas URL-ləri, aliasları, SSL giriş nöqtələrini və reverse proxy URL-lərini qaytar.",
+    "get_managed_file_map": "Sayt və ya xidmət üçün FlyEnv tərəfindən idarə olunan env, konfiqurasiya, jurnal, sertifikat, runtime və məlumat fayl yollarını qaytar.",
+    "list_log_files": "Bir FlyEnv modulu üçün məlum jurnal fayllarını siyahıla.",
+    "list_config_files": "Bir FlyEnv modulu üçün məlum konfiqurasiya fayllarını siyahıla.",
+    "list_online_versions": "Quraşdırıla bilən FlyEnv modulu üçün yüklənə bilən versiyaları siyahıla.",
+    "start_service": "Quraşdırılmış, uzun müddət işləyən FlyEnv xidmət versiyasını başlat.",
+    "stop_service": "Hazırda işləyən uzun müddətli FlyEnv xidmətini dayandır.",
+    "restart_service": "Hazırda işləyən uzun müddətli FlyEnv xidmətini yenidən başlat.",
+    "create_site": "Yeni FlyEnv yerli inkişaf saytı yarat.",
+    "update_site": "Mövcud FlyEnv yerli inkişaf saytını yenilə.",
+    "delete_site": "FlyEnv konfiqurasiyasından yerli inkişaf saytını sil.",
+    "install_service": "Quraşdırıla bilən FlyEnv modulu üçün versiyanı yüklə və quraşdır."
+  }
 }

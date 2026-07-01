@@ -4,6 +4,6 @@
   "update-not-available-message": "Anda sudah menggunakan versi terbaru!",
   "update-downloaded-message": "Siap untuk dipasang...",
   "update-error-message": "Terjadi Kesalahan Pembaruan",
-  "view-update-log": "View Update Log",
-  "download-new-version": "Download New Version"
+  "view-update-log": "Lihat log pembaruan",
+  "download-new-version": "Unduh versi baru"
 }

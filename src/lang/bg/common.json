@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "Включи",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Деактивиране",
+    "resume": "Възобновяване",
+    "uninstall": "Деинсталиране",
     "copy": "Копирайте",
     "preview": "Предварителен преглед",
     "search": "Търсене",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Бягане",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Инсталиран",
+    "enabled": "Активиран",
+    "disabled": "Деактивиран",
+    "available": "Налично"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Сесии",
+    "title": "Заглавие",
+    "id": "ID на сесия",
+    "lastPrompt": "Последна подкана",
+    "search": "Търсене в сесиите",
+    "deleted": "Сесията е изтрита",
+    "resumed": "Сесията е възобновена в терминала"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Команда / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Добавяне на сървър"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Основни",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Умения",
     "basicInfo": "Основна информация",
     "configuration": "Конфигурация",
     "favorites": "Любими",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Отворете каталога с умения",
     "openSkillDir": "Отваряне на директория с умения",
     "revealSkillFile": "Разкриване на файл с умения",
-    "noSkills": "No skills found",
+    "noSkills": "Не са намерени умения",
     "skillFileMissing": "Файлът с умения не е намерен",
     "skillLoadFailed": "Неуспешно зареждане на файла с умения",
     "builtin": "Вграден"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Показване на помощна информация",
+    "version": "Показване на номера на версията",
+    "start": "Стартиране на нова интерактивна сесия",
+    "mcpList": "Изброяване на конфигурираните MCP сървъри",
     "doctor": "Извършване на проверки за състоянието",
     "doctorFix": "Извършвайте проверки на състоянието с автоматично отстраняване на проблеми",
     "gatewayStart": "Стартиране на шлюз услугата",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Покажи състоянието на шлюза",
     "gatewayRun": "Стартирай шлюза на преден план",
     "gatewayUninstall": "Деинсталиране на Шлюз услугата",
-    "skillsList": "List available skills"
+    "skillsList": "Изброяване на наличните умения"
   },
   "gateway": {
     "category": "Услуги за шлюзове",
@@ -123,8 +123,8 @@
     "local": "Местен"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Търсене на плъгини",
+    "removed": "Плъгинът е премахнат"
   },
   "schedule": {
     "everyHour": "Всеки час",

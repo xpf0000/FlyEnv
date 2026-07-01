@@ -28,5 +28,26 @@
   "approvalConfirm": "Megerősítés",
   "approvalTip": "A megerősítés egy natív párbeszédablakot jelenít meg az eszköz végrehajtása előtt.",
   "auditLog": "Auditnapló",
-  "riskyTip": "A szolgáltatásvezérlő eszközök megváltoztathatják a működési környezetet. Csak azokat az eszközöket engedélyezze, amelyekben megbízik."
+  "riskyTip": "A szolgáltatásvezérlő eszközök megváltoztathatják a működési környezetet. Csak azokat az eszközöket engedélyezze, amelyekben megbízik.",
+  "risky": "Kockázatos",
+  "toolDescriptions": {
+    "list_services": "Sorold fel a FlyEnv által kezelt modulokat a telepített verziókkal és futási állapotukkal együtt.",
+    "service_status": "Kérd le egy FlyEnv-modul telepített verzióit és futási állapotát.",
+    "list_sites": "Sorold fel a FlyEnv által kezelt helyi fejlesztői webhelyeket és azok metaadatait.",
+    "get_database_connection_info": "Add vissza egy FlyEnv által kezelt helyi adatbázis vagy gyorsítótár szolgáltatás kapcsolati adatait.",
+    "resolve_site_runtime": "Oldd fel a FlyEnv webhely runtime-részleteit, például gyökérútvonalat, webszervert és PHP/runtime választást.",
+    "get_service_exec_info": "Add vissza egy telepített FlyEnv-modulverzió futtatható fájlját, konfigurációját és runtime-adatait.",
+    "resolve_site_urls": "Add vissza egy FlyEnv webhely kanonikus URL-jeit, aliasait, SSL belépési pontjait és reverse proxy URL-jeit.",
+    "get_managed_file_map": "Add vissza a FlyEnv által kezelt env-, konfigurációs, napló-, tanúsítvány-, runtime- és adatfájl-útvonalakat egy webhelyhez vagy szolgáltatáshoz.",
+    "list_log_files": "Sorold fel egy FlyEnv-modul ismert naplófájljait.",
+    "list_config_files": "Sorold fel egy FlyEnv-modul ismert konfigurációs fájljait.",
+    "list_online_versions": "Sorold fel egy telepíthető FlyEnv-modul letölthető verzióit.",
+    "start_service": "Indíts el egy telepített, hosszú ideig futó FlyEnv-szolgáltatásverziót.",
+    "stop_service": "Állíts le egy futó, hosszú ideig futó FlyEnv-szolgáltatást.",
+    "restart_service": "Indíts újra egy futó, hosszú ideig futó FlyEnv-szolgáltatást.",
+    "create_site": "Hozz létre egy új FlyEnv helyi fejlesztői webhelyet.",
+    "update_site": "Frissíts egy meglévő FlyEnv helyi fejlesztői webhelyet.",
+    "delete_site": "Törölj egy helyi fejlesztői webhelyet a FlyEnv konfigurációjából.",
+    "install_service": "Tölts le és telepíts egy verziót egy telepíthető FlyEnv-modulhoz."
+  }
 }

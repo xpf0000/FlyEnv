@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "Abilita",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Disattiva",
+    "resume": "Riprendi",
+    "uninstall": "Disinstalla",
     "copy": "Copia",
     "preview": "Anteprima",
     "search": "Cerca",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Corsa",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Installato",
+    "enabled": "Abilitato",
+    "disabled": "Disabilitato",
+    "available": "Disponibile"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sessioni",
+    "title": "Titolo",
+    "id": "ID sessione",
+    "lastPrompt": "Ultimo prompt",
+    "search": "Cerca sessioni",
+    "deleted": "Sessione eliminata",
+    "resumed": "Sessione ripresa nel terminale"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Comando / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Aggiungi server"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Base",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Competenze",
     "basicInfo": "Informazioni di base",
     "configuration": "Configurazione",
     "favorites": "Preferiti",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Apri directory abilità",
     "openSkillDir": "Apri la directory delle competenze",
     "revealSkillFile": "Rivela il file delle abilità",
-    "noSkills": "No skills found",
+    "noSkills": "Nessuna skill trovata",
     "skillFileMissing": "File competenze non trovato",
     "skillLoadFailed": "Impossibile caricare il file delle competenze",
     "builtin": "Integrato"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Mostra informazioni di aiuto",
+    "version": "Mostra numero di versione",
+    "start": "Avvia una nuova sessione interattiva",
+    "mcpList": "Elenca i server MCP configurati",
     "doctor": "Esegui controlli sanitari",
     "doctorFix": "Esegui controlli di salute con correzione automatica",
     "gatewayStart": "Avvia servizio gateway",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Mostra lo stato del gateway",
     "gatewayRun": "Esegue il gateway in primo piano",
     "gatewayUninstall": "Disinstalla servizio gateway",
-    "skillsList": "List available skills"
+    "skillsList": "Elenca le skill disponibili"
   },
   "gateway": {
     "category": "Servizio Gateway",
@@ -123,14 +123,14 @@
     "local": "Locale"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Cerca plugin",
+    "removed": "Plugin rimosso"
   },
   "schedule": {
     "everyHour": "Ogni ora",
     "everyMinute": "Ogni minuto"
   },
   "error": {
-    "phpiniNotFound": "php.ini file not found"
+    "phpiniNotFound": "File php.ini non trovato"
   }
 }

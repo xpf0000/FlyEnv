@@ -11,7 +11,8 @@
     "models": "Modellek",
     "skills": "Készségek",
     "system": "Rendszer",
-    "sessions": "Munkamenetek"
+    "sessions": "Munkamenetek",
+    "backup": "Biztonsági mentés és frissítés"
   },
   "cmd": {
     "dashboard": "Vezérlő UI vezérlőpult megnyitása",

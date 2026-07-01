@@ -1,7 +1,7 @@
 <template>
   <el-card class="version-manager">
     <template #header>
-        <div class="card-header">
+      <div class="card-header">
         <div class="left flex items-center">
           <span>{{ I18nT('common.category.mcp') }}</span>
           <el-tooltip :content="I18nT('common.mcp.addServer')" placement="top" :show-after="300">

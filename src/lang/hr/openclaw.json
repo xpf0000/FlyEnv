@@ -11,7 +11,8 @@
     "models": "Modeli",
     "skills": "Vještine",
     "system": "Sustav",
-    "sessions": "Sesije"
+    "sessions": "Sesije",
+    "backup": "Sigurnosna kopija i ažuriranje"
   },
   "cmd": {
     "dashboard": "Otvori nadzornu ploču Control UI",

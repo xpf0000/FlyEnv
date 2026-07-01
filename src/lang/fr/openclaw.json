@@ -4,14 +4,15 @@
   "OpenClawOfficialWebsite": "Accueil OpenClaw",
   "OpenClawLocalDashboard": "Tableau de bord OpenClaw",
   "category": {
-    "agents": "Agents",
+    "agents": "Agents IA",
     "browser": "Navigateur",
     "channels": "Canaux",
     "nodes": "Noeuds & Périphériques",
     "models": "Modèles",
     "skills": "Compétences",
     "system": "Système",
-    "sessions": "Sessions"
+    "sessions": "Sessions de chat",
+    "backup": "Sauvegarde et mise à jour"
   },
   "cmd": {
     "dashboard": "Ouvrir le tableau de bord de l'interface utilisateur de contrôle",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Etat de la sonde de la passerelle",
     "gatewayDiscover": "Découvrez les services de passerelle",
     "gatewayHealth": "Vérifier la santé de la passerelle",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Afficher l'état détaillé de la passerelle",
     "gatewayInstall": "Installer le service de passerelle",
     "gatewayCall": "Appeler API passerelle (nécessite des paramètres)",
     "agent": "Exécuter un virage d'un agent via la passerelle",
@@ -63,7 +64,7 @@
     "messageSend": "Envoyer un message (nécessite des paramètres)",
     "messageRead": "Lire les messages (nécessite des paramètres)",
     "nodesList": "Liste des nœuds",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Afficher l'état des nœuds",
     "nodesPending": "Afficher les nœuds en attente",
     "nodesApprove": "Approuver le noeud (nécessite l'ID du nœud)",
     "nodesReject": "Noeud de rejet (ID du noeud requis)",
@@ -88,8 +89,8 @@
     "systemEvent": "Envoyer un événement système (nécessite des paramètres)",
     "cronList": "Lister les tâches cron",
     "cronAdd": "Ajouter une tâche cron (nécessite des paramètres)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Lister les hooks",
+    "hooksCheck": "Vérifier l'état des hooks",
     "memorySearch": "Rechercher dans la mémoire (nécessite une requête)",
     "memoryStatus": "Afficher l'état de la mémoire",
     "sandboxList": "Liste des boîtes à sable",
@@ -118,8 +119,8 @@
     "pairingList": "Liste des demandes d'appairage",
     "docs": "Recherche de docs (nécessite une requête)",
     "completion": "Générer la fin de l'interpréteur de commandes",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Ouvrir l'interface du terminal",
+    "qr": "Générer un code QR",
     "onboard": "Exécuter l'assistant d'intégration",
     "uninstall": "Désinstaller OpenClaw"
   }

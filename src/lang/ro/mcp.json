@@ -28,5 +28,26 @@
   "approvalConfirm": "Confirmă",
   "approvalTip": "Confirmă afișează un dialog nativ înainte de executarea instrumentului.",
   "auditLog": "Jurnal de audit",
-  "riskyTip": "Instrumentele de control al serviciilor iti pot schimba mediul in executie. Pastreaza activate doar instrumentele in care ai incredere."
+  "riskyTip": "Instrumentele de control al serviciilor iti pot schimba mediul in executie. Pastreaza activate doar instrumentele in care ai incredere.",
+  "risky": "Riscant",
+  "toolDescriptions": {
+    "list_services": "Listează modulele administrate de FlyEnv cu versiunile instalate și starea lor de rulare.",
+    "service_status": "Obține versiunile instalate și starea de rulare pentru un modul FlyEnv.",
+    "list_sites": "Listează site-urile locale de dezvoltare administrate de FlyEnv și metadatele lor.",
+    "get_database_connection_info": "Returnează detaliile de conectare pentru o bază de date locală sau un serviciu cache administrat de FlyEnv.",
+    "resolve_site_runtime": "Rezolvă un site FlyEnv în detalii runtime precum calea rădăcină, serverul web și selecția PHP/runtime.",
+    "get_service_exec_info": "Returnează executabilul, configurația și detaliile runtime pentru o versiune instalată a unui modul FlyEnv.",
+    "resolve_site_urls": "Returnează URL-urile canonice, aliasurile, punctele de intrare SSL și URL-urile reverse proxy pentru un site FlyEnv.",
+    "get_managed_file_map": "Returnează căile fișierelor env, config, log, certificate, runtime și date administrate de FlyEnv pentru un site sau serviciu.",
+    "list_log_files": "Listează fișierele log cunoscute pentru un modul FlyEnv.",
+    "list_config_files": "Listează fișierele de configurare cunoscute pentru un modul FlyEnv.",
+    "list_online_versions": "Listează versiunile disponibile pentru descărcare ale unui modul FlyEnv instalabil.",
+    "start_service": "Pornește o versiune instalată de serviciu FlyEnv de lungă durată.",
+    "stop_service": "Oprește un serviciu FlyEnv de lungă durată aflat în execuție.",
+    "restart_service": "Repornește un serviciu FlyEnv de lungă durată aflat în execuție.",
+    "create_site": "Creează un nou site local de dezvoltare FlyEnv.",
+    "update_site": "Actualizează un site local de dezvoltare FlyEnv existent.",
+    "delete_site": "Șterge un site local de dezvoltare din configurația FlyEnv.",
+    "install_service": "Descarcă și instalează o versiune pentru un modul FlyEnv instalabil."
+  }
 }

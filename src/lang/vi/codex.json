@@ -8,12 +8,12 @@
   "pluginEnabled": "Plugin đã được cài đặt",
   "uninstallConfirm": "Bạn có chắc chắn muốn xóa plugin \"{name}\" không?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Cập nhật Codex lên phiên bản mới nhất",
+    "continue": "Tiếp tục phiên gần đây nhất",
+    "resume": "Tiếp tục một phiên trước đó (bộ chọn)",
+    "exec": "Chạy Codex ở chế độ không tương tác",
+    "review": "Chạy đánh giá mã ở chế độ không tương tác",
+    "pluginList": "Liệt kê các plugin khả dụng",
+    "login": "Quản lý đăng nhập / xác thực"
   }
 }

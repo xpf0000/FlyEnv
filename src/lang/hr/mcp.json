@@ -28,5 +28,26 @@
   "approvalConfirm": "Potvrdi",
   "approvalTip": "Potvrda prikazuje izvorni dijaloški okvir prije izvršavanja alata.",
   "auditLog": "Zapisnik o reviziji",
-  "riskyTip": "Alati za upravljanje servisom mogu promijeniti vaše radno okruženje. Omogućite samo one alate koje smatrate pouzdanima."
+  "riskyTip": "Alati za upravljanje servisom mogu promijeniti vaše radno okruženje. Omogućite samo one alate koje smatrate pouzdanima.",
+  "risky": "Rizično",
+  "toolDescriptions": {
+    "list_services": "Prikaži module koje FlyEnv upravlja s instaliranim verzijama i statusom rada.",
+    "service_status": "Dohvati instalirane verzije i status rada za jedan FlyEnv modul.",
+    "list_sites": "Prikaži lokalne razvojne stranice kojima upravlja FlyEnv i njihove metapodatke.",
+    "get_database_connection_info": "Vrati podatke za povezivanje s lokalnom bazom podataka ili cache uslugom kojom upravlja FlyEnv.",
+    "resolve_site_runtime": "Razriješi FlyEnv stranicu u detalje runtimea kao što su root putanja, web poslužitelj i PHP/runtime odabir.",
+    "get_service_exec_info": "Vrati izvršnu datoteku, konfiguraciju i runtime detalje za jednu instaliranu verziju FlyEnv modula.",
+    "resolve_site_urls": "Vrati kanonske URL-ove, aliase, SSL ulazne točke i reverse proxy URL-ove za FlyEnv stranicu.",
+    "get_managed_file_map": "Vrati putanje env, konfiguracije, logova, certifikata, runtime i podatkovnih datoteka kojima upravlja FlyEnv za stranicu ili uslugu.",
+    "list_log_files": "Prikaži poznate log datoteke za jedan FlyEnv modul.",
+    "list_config_files": "Prikaži poznate konfiguracijske datoteke za jedan FlyEnv modul.",
+    "list_online_versions": "Prikaži verzije dostupne za preuzimanje za instalabilni FlyEnv modul.",
+    "start_service": "Pokreni instaliranu dugotrajnu verziju FlyEnv usluge.",
+    "stop_service": "Zaustavi pokrenutu dugotrajnu FlyEnv uslugu.",
+    "restart_service": "Ponovno pokreni pokrenutu dugotrajnu FlyEnv uslugu.",
+    "create_site": "Stvori novu FlyEnv lokalnu razvojnu stranicu.",
+    "update_site": "Ažuriraj postojeću FlyEnv lokalnu razvojnu stranicu.",
+    "delete_site": "Izbriši lokalnu razvojnu stranicu iz FlyEnv konfiguracije.",
+    "install_service": "Preuzmi i instaliraj verziju za instalabilni FlyEnv modul."
+  }
 }

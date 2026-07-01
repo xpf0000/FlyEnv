@@ -95,6 +95,6 @@
   "info": "Bilgi",
   "ForceDelete": "Zorla sil",
   "needInstallHelperTips": "Yönetici ayrıcalıkları gerektiğinden bazı işlemler başarısız oldu. Buna Hosts dosyasını değiştirme, işlem listesine erişme, 1024'ün altındaki bağlantı noktalarına bağlanma veya sistem ortam değişkenlerini yönetme dahildir. Bu görevler için gerekli izinleri vermek üzere FlyEnv Helper'ı yükleyin. Yüklemeye devam etmek için \"Tamam\"ı tıklayın.",
-  "targetPlatforms": "Target Platforms",
+  "targetPlatforms": "Hedef platformlar",
   "selectVersion": "Sürüm Seç"
 }

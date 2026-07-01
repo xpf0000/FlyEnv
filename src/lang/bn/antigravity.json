@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI ইনস্টল করা নেই। অফিসিয়াল ইনস্টলার দিয়ে এটি ইনস্টল করতে নিচের বোতামে ক্লিক করুন।",
+  "officialWebsite": "Antigravity ওয়েবসাইট",
+  "officialDocs": "Antigravity CLI ডকস",
+  "sandboxMode": "টার্মিনাল স্যান্ডবক্স",
+  "toolPermission": "টুল অনুমতি",
+  "sessionId": "কথোপকথনের ID",
+  "updatedAt": "আপডেটের সময়",
+  "sessionResumed": "টার্মিনালে কথোপকথন পুনরায় শুরু হয়েছে",
+  "sessionDeleted": "কথোপকথন মুছে ফেলা হয়েছে",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Antigravity CLI-কে সর্বশেষ সংস্করণে আপডেট করুন",
+    "models": "উপলভ্য মডেল তালিকাভুক্ত করুন",
+    "continue": "সর্বশেষ কথোপকথন চালিয়ে যান",
+    "resume": "ID দিয়ে আগের কথোপকথন পুনরায় শুরু করুন",
+    "prompt": "একটি একক prompt নন-ইন্টারঅ্যাকটিভভাবে চালান",
+    "pluginList": "ইমপোর্ট করা প্লাগইন তালিকাভুক্ত করুন",
+    "pluginImport": "gemini বা claude থেকে প্লাগইন ইমপোর্ট করুন",
+    "install": "এনভায়রনমেন্ট path ও shell সেটিংস কনফিগার করুন"
   }
 }

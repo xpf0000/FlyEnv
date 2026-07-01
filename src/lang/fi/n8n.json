@@ -3,7 +3,7 @@
   "N8N_HOST": "Isäntänimi tai IP-osoite n8n web-rajapinnalle (oletus: localhost)",
   "N8N_PROTOCOL": "Protokolla: http tai https (oletus: http)",
   "N8N_PATH": "URL polku n8n web-rajapinnalle (oletus: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "Tietokantatyyppi: sqlite, postgresdb, mysqldb, mariadb (oletus: sqlite)",
   "N8N_USER_FOLDER": "Mukautettu hakemisto, jossa n8n tallentaa käyttäjätiedot (oletus: ~/.n8n)",
   "ownerResetTitle": "Palauta Omistajan Tili",
   "ownerResetBtn": "Nollaa & Käytä Käyttöoikeustietoja Uudelleen",

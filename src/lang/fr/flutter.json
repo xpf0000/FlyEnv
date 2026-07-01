@@ -61,7 +61,7 @@
   "flutterCreateFailed": "Échec de la création de flotteur",
   "flutterProjectSettings": "Paramètres du projet Flutter",
   "previewChanges": "Aperçu des modifications",
-  "projectTarget": "Project target",
+  "projectTarget": "Cible du projet",
   "projectIdentity": "Identité du projet",
   "refreshInstalled": "Rafraîchir installé",
   "noPackagesInPubspec": "Aucun paquet trouvé dans pubspec.yaml.",

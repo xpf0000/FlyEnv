@@ -106,7 +106,9 @@
                 :loading="RustupSetup.installing"
                 :disabled="RustupSetup.installing"
                 @click="doVersionAction(scope.row)"
-                >{{ scope.row.isInstalled ? I18nT('common.action.uninstall') : I18nT('base.install') }}
+                >{{
+                  scope.row.isInstalled ? I18nT('common.action.uninstall') : I18nT('base.install')
+                }}
               </el-button>
             </template>
           </el-table-column>
@@ -155,7 +157,9 @@
                 link
                 :disabled="RustupSetup.installing"
                 @click="doTargetAction(scope.row)"
-                >{{ scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install') }}
+                >{{
+                  scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')
+                }}
               </el-button>
             </template>
           </el-table-column>

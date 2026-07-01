@@ -24,14 +24,14 @@
     "state": "Stan",
     "grid": "Siatka",
     "gridSpacing": "Odstęp siatki (w pikselach)",
-    "fontSize": "Font Size",
+    "fontSize": "Rozmiar czcionki",
     "code": "Kod"
   },
   "action": {
     "enable": "Włącz",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Wyłącz",
+    "resume": "Wznów",
+    "uninstall": "Odinstaluj",
     "copy": "Kopiuj",
     "preview": "Podgląd",
     "search": "Znajdź",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Uruchomiony",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Zainstalowano",
+    "enabled": "Włączone",
+    "disabled": "Wyłączone",
+    "available": "Dostępne"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sesje",
+    "title": "Tytuł",
+    "id": "ID sesji",
+    "lastPrompt": "Ostatni prompt",
+    "search": "Szukaj sesji",
+    "deleted": "Sesja została usunięta",
+    "resumed": "Sesję wznowiono w terminalu"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Polecenie / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Dodaj serwer"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Podstawowe",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Umiejętności",
     "basicInfo": "Podstawowe informacje",
     "configuration": "Konfiguracja",
     "favorites": "Ulubione",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Otwórz katalog umiejętności",
     "openSkillDir": "Otwórz folder umiejętności",
     "revealSkillFile": "Pokaż plik umiejętności",
-    "noSkills": "No skills found",
+    "noSkills": "Nie znaleziono umiejętności",
     "skillFileMissing": "Nie znaleziono pliku umiejętności",
     "skillLoadFailed": "Nie udało się wczytać pliku umiejętności",
     "builtin": "Wbudowany"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Wyświetl informacje pomocy",
+    "version": "Pokaż numer wersji",
+    "start": "Rozpocznij nową interaktywną sesję",
+    "mcpList": "Wyświetl skonfigurowane serwery MCP",
     "doctor": "Prowadzenie kontroli zdrowia",
     "doctorFix": "Uruchom kontrolę zdrowia z auto-fixem",
     "gatewayStart": "Uruchom usługę bramy",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Pokaż status bramy",
     "gatewayRun": "Uruchom bramę na pierwszym planie",
     "gatewayUninstall": "Odinstaluj usługę bramy",
-    "skillsList": "List available skills"
+    "skillsList": "Wyświetl dostępne umiejętności"
   },
   "gateway": {
     "category": "Usługa bramy",
@@ -123,8 +123,8 @@
     "local": "Lokalny"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Szukaj wtyczek",
+    "removed": "Wtyczka została usunięta"
   },
   "schedule": {
     "everyHour": "Co godzinę",

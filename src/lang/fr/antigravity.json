@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI n'est pas installe. Cliquez sur le bouton ci-dessous pour l'installer avec l'installateur officiel.",
+  "officialWebsite": "Site web Antigravity",
+  "officialDocs": "Documentation Antigravity CLI",
+  "sandboxMode": "Bac a sable du terminal",
+  "toolPermission": "Autorisation des outils",
+  "sessionId": "ID de conversation",
+  "updatedAt": "Mis a jour le",
+  "sessionResumed": "Conversation reprise dans le terminal",
+  "sessionDeleted": "Conversation supprimee",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Mettre a jour Antigravity CLI vers la derniere version",
+    "models": "Lister les modeles disponibles",
+    "continue": "Continuer la conversation la plus recente",
+    "resume": "Reprendre une conversation precedente par ID",
+    "prompt": "Executer une seule invite en mode non interactif",
+    "pluginList": "Lister les plugins importes",
+    "pluginImport": "Importer des plugins depuis gemini ou claude",
+    "install": "Configurer les chemins d'environnement et les parametres du shell"
   }
 }

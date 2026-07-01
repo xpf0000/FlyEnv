@@ -3,7 +3,7 @@
   "N8N_HOST": "Ім'я хоста або IP-адреса для веб-інтерфейсу n8n (за замовчуванням: localhost)",
   "N8N_PROTOCOL": "Протокол: http або https (за замовчуванням: http)",
   "N8N_PATH": "Шлях до веб-інтерфейсу n8n (за замовчуванням: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "Тип бази даних: sqlite, postgresdb, mysqldb, mariadb (типово: sqlite)",
   "N8N_USER_FOLDER": "Власний каталог, де n8n зберігає дані користувача (за замовчуванням: ~/.n8n)",
   "ownerResetTitle": "Скидання облікового запису власника",
   "ownerResetBtn": "Скинути та повторно застосувати облікові дані",

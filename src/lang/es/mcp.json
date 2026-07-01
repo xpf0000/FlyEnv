@@ -28,5 +28,26 @@
   "approvalConfirm": "Confirmar",
   "approvalTip": "Confirmar muestra un diálogo nativo antes de ejecutar la herramienta.",
   "auditLog": "Registro de auditoría",
-  "riskyTip": "Las herramientas de control de servicio pueden cambiar su entorno de ejecución. Mantenga habilitadas solo las herramientas en las que confía."
+  "riskyTip": "Las herramientas de control de servicio pueden cambiar su entorno de ejecución. Mantenga habilitadas solo las herramientas en las que confía.",
+  "risky": "Arriesgado",
+  "toolDescriptions": {
+    "list_services": "Lista los módulos administrados por FlyEnv con sus versiones instaladas y su estado de ejecución.",
+    "service_status": "Obtén las versiones instaladas y el estado de ejecución de un módulo de FlyEnv.",
+    "list_sites": "Lista los sitios de desarrollo local administrados por FlyEnv y sus metadatos.",
+    "get_database_connection_info": "Devuelve los detalles de conexión de una base de datos local o servicio de caché administrado por FlyEnv.",
+    "resolve_site_runtime": "Resuelve un sitio de FlyEnv en detalles de runtime como la ruta raíz, el servidor web y la selección de PHP/runtime.",
+    "get_service_exec_info": "Devuelve el ejecutable, la configuración y los detalles de runtime de una versión instalada de un módulo FlyEnv.",
+    "resolve_site_urls": "Devuelve las URL canónicas, alias, puntos de entrada SSL y URL de proxy inverso de un sitio de FlyEnv.",
+    "get_managed_file_map": "Devuelve las rutas de archivos env, config, logs, certificados, runtime y datos administradas por FlyEnv para un sitio o servicio.",
+    "list_log_files": "Lista los archivos de log conocidos de un módulo FlyEnv.",
+    "list_config_files": "Lista los archivos de configuración conocidos de un módulo FlyEnv.",
+    "list_online_versions": "Lista las versiones descargables de un módulo FlyEnv instalable.",
+    "start_service": "Inicia una versión instalada de un servicio de larga duración de FlyEnv.",
+    "stop_service": "Detiene un servicio de larga duración de FlyEnv que esté en ejecución.",
+    "restart_service": "Reinicia un servicio de larga duración de FlyEnv que esté en ejecución.",
+    "create_site": "Crea un nuevo sitio de desarrollo local en FlyEnv.",
+    "update_site": "Actualiza un sitio de desarrollo local existente en FlyEnv.",
+    "delete_site": "Elimina un sitio de desarrollo local de la configuración de FlyEnv.",
+    "install_service": "Descarga e instala una versión de un módulo FlyEnv instalable."
+  }
 }

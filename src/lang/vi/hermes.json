@@ -3,7 +3,7 @@
   "HermesOfficialWebsite": "Trang chủ Hermes",
   "providers": "Nhà cung cấp",
   "selectProvider": "Chọn Nhà cung cấp Mô hình",
-  "baseUrl": "Base URL",
+  "baseUrl": "URL cơ sở",
   "providerTip": "Cấu hình endpoint LLM mà Hermes sử dụng. Người dùng Ollama nên đảm bảo độ dài ngữ cảnh (context length) được thiết lập ít nhất là 32K.",
   "providerSaved": "Đã lưu cài đặt nhà cung cấp",
   "searchSkill": "Tìm kiếm hoặc nhập tên kỹ năng",
@@ -14,7 +14,7 @@
     "skillsPlugins": "Kỹ năng & Plugin",
     "memoryTools": "Bộ nhớ & Công cụ",
     "systemLogs": "Hệ thống & Nhật ký",
-    "dashboardTui": "Dashboard & TUI",
+    "dashboardTui": "Bảng điều khiển & TUI",
     "profileOther": "Hồ sơ & Khác"
   },
   "cmd": {

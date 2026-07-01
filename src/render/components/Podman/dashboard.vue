@@ -14,9 +14,11 @@
           :label="I18nT('podman.Machine')"
           >{{ info.Name }}</el-descriptions-item
         >
-        <el-descriptions-item class-name="w-[50%] overflow-hidden" :label="I18nT('common.label.state')">{{
-          info.State
-        }}</el-descriptions-item>
+        <el-descriptions-item
+          class-name="w-[50%] overflow-hidden"
+          :label="I18nT('common.label.state')"
+          >{{ info.State }}</el-descriptions-item
+        >
         <el-descriptions-item :label="I18nT('podman.CPU')">{{
           info.Resources?.CPUs
         }}</el-descriptions-item>

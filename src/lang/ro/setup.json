@@ -43,8 +43,8 @@
   "flyenvHelperBtn": "Repară",
   "flyenvHelperFixSuccess": "FlyEnv Helper fixat cu succes",
   "flyenvHelperInstallFailTips": "Instalarea programului FlyEnv helper a eșuat. Încercați să rulați FlyEnv cu privilegii de administrator sau faceți clic pe butonul OK și rulați manual programul flyenv-helper.exe din folderul deschis.",
-  "appFont": "UI Font",
+  "appFont": "Font interfață",
   "appFontTips": "Setați fontul utilizat pentru interfața aplicației. Lăsați gol pentru a utiliza fontul implicit de sistem",
-  "codeFont": "Code Font",
+  "codeFont": "Font pentru cod",
   "codeFontTips": "Setați fontul utilizat pentru terminal, editor și alte zone de cod. Lăsați gol pentru a utiliza fontul implicit monospace"
 }

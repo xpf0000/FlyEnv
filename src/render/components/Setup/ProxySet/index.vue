@@ -78,6 +78,7 @@
   import { AppStore } from '@/store/app'
   import { MessageSuccess } from '@/util/Element'
   import { clipboard } from '@/util/NodeFn'
+  import { buildProxyConfigCommand, type InstallProxyPlatform } from '@shared/installProxyEnv'
 
   export default defineComponent({
     components: {},
@@ -103,13 +104,29 @@
       }
     },
     methods: {
+      proxyPlatform(): InstallProxyPlatform {
+        if (window.Server.isWindows) {
+          return 'windows'
+        }
+        if (window.Server.isMacOS) {
+          return 'macos'
+        }
+        return 'linux'
+      },
       fastSet() {
         this.fastProxy = this.proxy.fastProxy
         this.fastEdit = true
       },
       fastSetSubmit() {
         this.proxy.fastProxy = this.fastProxy
-        this.proxy.proxy = `export https_proxy=http://${this.fastProxy} http_proxy=http://${this.fastProxy} all_proxy=socks5://${this.fastProxy} HTTPS_PROXY=http://${this.fastProxy} HTTP_PROXY=http://${this.fastProxy} ALL_PROXY=socks5://${this.fastProxy}`
+        this.proxy.proxy = buildProxyConfigCommand(this.proxyPlatform(), {
+          https_proxy: `http://${this.fastProxy}`,
+          http_proxy: `http://${this.fastProxy}`,
+          all_proxy: `socks5://${this.fastProxy}`,
+          HTTPS_PROXY: `http://${this.fastProxy}`,
+          HTTP_PROXY: `http://${this.fastProxy}`,
+          ALL_PROXY: `socks5://${this.fastProxy}`
+        })
         this.fastEdit = false
         AppStore().saveConfig()
       },

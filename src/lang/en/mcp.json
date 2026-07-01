@@ -28,5 +28,26 @@
   "approvalConfirm": "Confirm",
   "approvalTip": "Confirm shows a native dialog before executing the tool.",
   "auditLog": "Audit Log",
-  "riskyTip": "Service control tools can change your running environment. Keep only the tools you trust enabled."
+  "riskyTip": "Service control tools can change your running environment. Keep only the tools you trust enabled.",
+  "risky": "Risky",
+  "toolDescriptions": {
+    "list_services": "List FlyEnv-managed modules with installed versions and running state.",
+    "service_status": "Get installed versions and running state for one FlyEnv module.",
+    "list_sites": "List FlyEnv-managed local development sites and their metadata.",
+    "get_database_connection_info": "Return connection details for a FlyEnv-managed local database or cache service.",
+    "resolve_site_runtime": "Resolve a FlyEnv site to runtime details such as root path, web server, and PHP/runtime selection.",
+    "get_service_exec_info": "Return executable, config, and runtime details for one installed FlyEnv module version.",
+    "resolve_site_urls": "Return the canonical URLs, aliases, SSL entrypoints, and reverse proxy URLs for a FlyEnv site.",
+    "get_managed_file_map": "Return FlyEnv-managed env, config, log, cert, runtime, and data file paths for a site or service.",
+    "list_log_files": "List known log files for one FlyEnv module.",
+    "list_config_files": "List known config files for one FlyEnv module.",
+    "list_online_versions": "List downloadable versions for an installable FlyEnv module.",
+    "start_service": "Start an installed long-running FlyEnv service version.",
+    "stop_service": "Stop a running long-running FlyEnv service.",
+    "restart_service": "Restart a running long-running FlyEnv service.",
+    "create_site": "Create a new FlyEnv local development site.",
+    "update_site": "Update an existing FlyEnv local development site.",
+    "delete_site": "Delete a FlyEnv local development site from FlyEnv configuration.",
+    "install_service": "Download and install a version for an installable FlyEnv module."
+  }
 }

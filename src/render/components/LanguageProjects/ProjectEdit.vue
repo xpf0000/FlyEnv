@@ -13,7 +13,9 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ isEdit ? I18nT('common.action.edit') : I18nT('common.action.add') }}</span>
+          <span class="ml-3">{{
+            isEdit ? I18nT('common.action.edit') : I18nT('common.action.add')
+          }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">
           {{ I18nT('common.action.save') }}
@@ -138,7 +140,8 @@
             <div class="main p-5">
               <div class="ssl-switch">
                 <el-radio-group v-model="item.envVarType">
-                  <el-radio-button value="none" :label="I18nT('common.value.none')"> </el-radio-button>
+                  <el-radio-button value="none" :label="I18nT('common.value.none')">
+                  </el-radio-button>
                   <el-radio-button value="specify" :label="I18nT('host.specifyVar')">
                   </el-radio-button>
                   <el-radio-button value="file" :label="I18nT('host.fileVar')"> </el-radio-button>

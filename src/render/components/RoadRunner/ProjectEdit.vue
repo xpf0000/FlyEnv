@@ -13,7 +13,9 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ isEdit ? I18nT('common.action.edit') : I18nT('common.action.add') }}</span>
+          <span class="ml-3">{{
+            isEdit ? I18nT('common.action.edit') : I18nT('common.action.add')
+          }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">
           {{ I18nT('common.action.save') }}
@@ -311,7 +313,9 @@
     return ['php-worker', 'laravel-octane'].includes(item.value.roadRunnerPreset ?? 'custom')
   })
   const usesConfigFile = computed(() => {
-    return ['existing', 'php-worker', 'fileserver'].includes(item.value.roadRunnerPreset ?? 'custom')
+    return ['existing', 'php-worker', 'fileserver'].includes(
+      item.value.roadRunnerPreset ?? 'custom'
+    )
   })
 
   const refreshRoadRunnerVersion = () => {

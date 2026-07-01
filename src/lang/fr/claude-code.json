@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Claude Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Claude Code GitHub",
-  "officialDocs": "Claude Code Docs",
-  "includeCoAuthoredBy": "Include Co-Authored-By",
-  "cleanupPeriodDays": "Chat Retention (days)",
-  "pluginEnabled": "Plugin enabled",
-  "pluginDisabled": "Plugin disabled",
-  "uninstallConfirm": "Are you sure to uninstall plugin \"{name}\"?",
+  "notInstalled": "Claude Code CLI n'est pas installé. Cliquez sur le bouton ci-dessous pour lancer l'installeur officiel.",
+  "officialWebsite": "Claude Code sur GitHub",
+  "officialDocs": "Documentation Claude Code",
+  "includeCoAuthoredBy": "Inclure Co-Authored-By",
+  "cleanupPeriodDays": "Conservation des discussions (jours)",
+  "pluginEnabled": "Plugin activé",
+  "pluginDisabled": "Plugin désactivé",
+  "uninstallConfirm": "Voulez-vous vraiment désinstaller le plugin « {name} » ?",
   "cmd": {
-    "update": "Check for updates and install if available",
-    "doctor": "Check the health of your Claude Code installation",
-    "continue": "Continue the most recent conversation in current directory",
-    "resume": "Select and resume a previous conversation",
-    "print": "Run a one-shot prompt and print the response",
-    "pluginList": "List installed plugins",
-    "setupToken": "Set up a long-lived authentication token"
+    "update": "Vérifier les mises à jour et les installer si disponibles",
+    "doctor": "Vérifier l'état de votre installation Claude Code",
+    "continue": "Continuer la conversation la plus récente dans le répertoire courant",
+    "resume": "Sélectionner et reprendre une conversation précédente",
+    "print": "Exécuter une invite ponctuelle et afficher la réponse",
+    "pluginList": "Lister les plugins installés",
+    "setupToken": "Configurer un jeton d'authentification longue durée"
   }
 }

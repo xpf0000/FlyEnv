@@ -43,8 +43,8 @@
   "flyenvHelperBtn": "Repareer",
   "flyenvHelperFixSuccess": "FlyEnv Helper succesvol opgelost",
   "flyenvHelperInstallFailTips": "De installatie van FlyEnv helper is mislukt. Probeer FlyEnv uit te voeren met beheerdersrechten, of klik op de knop OK en voer het hulpprogramma flyenv-helper.exe handmatig uit in de geopende map.",
-  "appFont": "UI Font",
+  "appFont": "UI-lettertype",
   "appFontTips": "Stel het lettertype in dat wordt gebruikt voor de gebruikersinterface van de applicatie. Laat leeg om het standaard lettertype te gebruiken",
-  "codeFont": "Code Font",
+  "codeFont": "Codelettertype",
   "codeFontTips": "Stel het lettertype in dat wordt gebruikt voor terminal, editor en andere codegebieden. Laat leeg om het standaard lettertype voor monospace te gebruiken"
 }

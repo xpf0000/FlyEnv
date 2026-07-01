@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI qurasdirilmayib. Onu resmi qurasdirici ile qurasdirmaq ucun asagidaki duymeni klikleyin.",
+  "officialWebsite": "Antigravity Veb Sayti",
+  "officialDocs": "Antigravity CLI Senedleri",
+  "sandboxMode": "Terminal Sandbox Rejimi",
+  "toolPermission": "Alet Icazesi",
+  "sessionId": "Sohbet ID-si",
+  "updatedAt": "Yenilenme Vaxti",
+  "sessionResumed": "Sohbet terminalda davam etdirildi",
+  "sessionDeleted": "Sohbet silindi",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Antigravity CLI-ni son versiyaya yenile",
+    "models": "Movcud modelleri siyahila",
+    "continue": "En son sohbeti davam etdir",
+    "resume": "ID ile evvelki sohbeti berpa et",
+    "prompt": "Tek prompt-u qeyri-interaktiv rejimde ise sal",
+    "pluginList": "Idxal edilmis pluginleri siyahila",
+    "pluginImport": "gemini ve ya claude-dan pluginleri idxal et",
+    "install": "Muhit yollarini ve shell ayarlarini konfiqurasiya et"
   }
 }

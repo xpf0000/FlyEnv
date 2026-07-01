@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI はインストールされていません。下のボタンをクリックして公式インストーラーを実行してください。",
+  "officialWebsite": "Kimi Code CLI の GitHub",
+  "officialDocs": "Kimi Code CLI ドキュメント",
+  "permissionMode": "権限モード",
+  "defaultThinking": "既定の思考モード",
+  "defaultPlanMode": "既定の計画モード",
+  "telemetry": "テレメトリ",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "Kimi Code CLI をアップグレード",
+    "continue": "現在のディレクトリで最新のセッションを続行",
+    "sessionSelect": "セッションを選択して再開",
+    "plan": "計画モードで開始",
+    "yolo": "通常のツール呼び出しを自動承認",
+    "export": "セッションを ZIP にエクスポート",
+    "vis": "セッションビジュアライザーをブラウザで開く",
+    "providerList": "設定済みプロバイダーを一覧表示",
+    "providerAdd": "レジストリ URL からプロバイダーを追加",
+    "providerRemove": "プロバイダーを削除"
   }
 }

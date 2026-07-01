@@ -47,9 +47,7 @@
             </el-descriptions-item>
             <el-descriptions-item :label="I18nT('podman.container.isInfra')">
               <el-tag :type="containerDetail.IsInfra ? 'warning' : 'info'">
-                {{
-                  containerDetail.IsInfra ? I18nT('common.value.yes') : I18nT('common.value.no')
-                }}
+                {{ containerDetail.IsInfra ? I18nT('common.value.yes') : I18nT('common.value.no') }}
               </el-tag>
             </el-descriptions-item>
           </el-descriptions>
@@ -100,9 +98,7 @@
             <el-descriptions-item :label="I18nT('podman.container.dead')">
               <el-tag :type="containerDetail.State.Dead ? 'danger' : 'info'">
                 {{
-                  containerDetail.State.Dead
-                    ? I18nT('common.value.yes')
-                    : I18nT('common.value.no')
+                  containerDetail.State.Dead ? I18nT('common.value.yes') : I18nT('common.value.no')
                 }}
               </el-tag>
             </el-descriptions-item>

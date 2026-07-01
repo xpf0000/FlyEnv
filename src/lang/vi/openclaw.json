@@ -11,7 +11,8 @@
     "models": "Mô hình",
     "skills": "Kỹ năng",
     "system": "Hệ thống",
-    "sessions": "Phiên làm việc"
+    "sessions": "Phiên làm việc",
+    "backup": "Sao lưu và cập nhật"
   },
   "cmd": {
     "dashboard": "Mở bảng điều khiển giao diện (UI)",

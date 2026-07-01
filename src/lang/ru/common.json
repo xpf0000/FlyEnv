@@ -24,14 +24,14 @@
     "state": "Область",
     "grid": "Сетка",
     "gridSpacing": "Интервал в сетке (пикселей)",
-    "fontSize": "Font Size",
+    "fontSize": "Размер шрифта",
     "code": "Код"
   },
   "action": {
     "enable": "Включить",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Отключить",
+    "resume": "Возобновить",
+    "uninstall": "Удалить",
     "copy": "Копировать",
     "preview": "Предпросмотр",
     "search": "Поиск",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Запущен",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Установлено",
+    "enabled": "Включено",
+    "disabled": "Отключено",
+    "available": "Доступно"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Сеансы",
+    "title": "Заголовок",
+    "id": "ID сессии",
+    "lastPrompt": "Последний запрос",
+    "search": "Поиск сессий",
+    "deleted": "Сессия удалена",
+    "resumed": "Сессия возобновлена в терминале"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Команда / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Добавить сервер"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Основное",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Навыки",
     "basicInfo": "Основная информация",
     "configuration": "Конфигурация",
     "favorites": "Избранное",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Открыть каталог навыков",
     "openSkillDir": "Открыть папку навыка",
     "revealSkillFile": "Показать файл навыка",
-    "noSkills": "No skills found",
+    "noSkills": "Навыки не найдены",
     "skillFileMissing": "Файл навыка не найден",
     "skillLoadFailed": "Не удалось загрузить файл навыка",
     "builtin": "Встроенный"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Показать справку",
+    "version": "Показать номер версии",
+    "start": "Начать новую интерактивную сессию",
+    "mcpList": "Показать настроенные MCP-серверы",
     "doctor": "Запуск проверки здоровья",
     "doctorFix": "Запустить проверку здоровья с автоисправлением",
     "gatewayStart": "Запустить сервис шлюза",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Показать статус шлюза",
     "gatewayRun": "Запуск шлюза на переднем плане",
     "gatewayUninstall": "Удалить сервис шлюза",
-    "skillsList": "List available skills"
+    "skillsList": "Показать доступные навыки"
   },
   "gateway": {
     "category": "Сервис шлюза",
@@ -123,8 +123,8 @@
     "local": "Локальный"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Поиск плагинов",
+    "removed": "Плагин удалён"
   },
   "schedule": {
     "everyHour": "Каждый час",

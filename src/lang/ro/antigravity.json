@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI nu este instalat. Faceti clic pe butonul de mai jos pentru a-l instala cu programul oficial de instalare.",
+  "officialWebsite": "Site Antigravity",
+  "officialDocs": "Documentatie Antigravity CLI",
+  "sandboxMode": "Sandbox terminal",
+  "toolPermission": "Permisiune unealta",
+  "sessionId": "ID conversatie",
+  "updatedAt": "Actualizat la",
+  "sessionResumed": "Conversatie reluata in terminal",
+  "sessionDeleted": "Conversatie stearsa",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Actualizati Antigravity CLI la cea mai recenta versiune",
+    "models": "Listati modelele disponibile",
+    "continue": "Continuati cea mai recenta conversatie",
+    "resume": "Reluati o conversatie anterioara dupa ID",
+    "prompt": "Rulati un singur prompt in mod neinteractiv",
+    "pluginList": "Listati pluginurile importate",
+    "pluginImport": "Importati pluginuri din gemini sau claude",
+    "install": "Configurati caile de mediu si setarile shell-ului"
   }
 }

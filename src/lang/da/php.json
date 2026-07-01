@@ -4,7 +4,7 @@
   "copyConfTemplate": "Kopier konfigurationsskabelon",
   "extensionCopySuccess": "Udvidelse link kopieret til udklipsholder",
   "xdebugConfCopySuccess": "xdebug konfiguration skabelon kopieret til udklipsholder",
-  "fpmLog": "FPM Log",
+  "fpmLog": "FPM-log",
   "extensions": "Udvidelser",
   "extension": "Udvidelse",
   "obfuscatorPhpVersion": "Obfuscate med PHP version",

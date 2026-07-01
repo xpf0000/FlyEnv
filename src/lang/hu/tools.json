@@ -154,9 +154,9 @@
       "linearTooltip": "Közepes minőség",
       "cubic": "Bikubikus",
       "cubicTooltip": "Magas minőség, kiegyensúlyozott képminőség és fájlméret; a legtöbb helyzetben alapértelmezett választás",
-      "lanczos2": "Lanczos 2",
+      "lanczos2": "Lanczos 2 algoritmus",
       "lanczos2Tooltip": "Nagyon magas minőség",
-      "lanczos3": "Lanczos 3",
+      "lanczos3": "Lanczos 3 algoritmus",
       "lanczos3Tooltip": "Legjobb minőség, legnagyobb fájlméret"
     },
     "effectsConfig": {
@@ -259,5 +259,5 @@
   "diff-compare-changed": "Módosítva",
   "diff-compare-unchanged": "Változatlan",
   "diff-compare-empty-copy": "Nincs tartalom a másoláshoz",
-  "websocket-sse-title": "WebSocket / SSE"
+  "websocket-sse-title": "WebSocket / SSE kapcsolat"
 }

@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "有効にする",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "無効化",
+    "resume": "再開",
+    "uninstall": "アンインストール",
     "copy": "コピー",
     "preview": "プレビュー",
     "search": "検索",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "実行中",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "インストール済み",
+    "enabled": "有効",
+    "disabled": "無効",
+    "available": "利用可能"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "セッション",
+    "title": "タイトル",
+    "id": "セッションID",
+    "lastPrompt": "最後のプロンプト",
+    "search": "セッションを検索",
+    "deleted": "セッションを削除しました",
+    "resumed": "セッションをターミナルで再開しました"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "コマンド / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "サーバーを追加"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "基本",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "スキル",
     "basicInfo": "基本情報",
     "configuration": "設定",
     "favorites": "お気に入り",
@@ -87,16 +87,16 @@
     "openSkillsDir": "スキルディレクトリを開く",
     "openSkillDir": "スキルディレクトリを開く",
     "revealSkillFile": "スキルファイルを表示する",
-    "noSkills": "No skills found",
+    "noSkills": "スキルが見つかりません",
     "skillFileMissing": "スキルファイルが見つかりません",
     "skillLoadFailed": "スキルファイルの読み込みに失敗しました",
     "builtin": "ビルトイン"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "ヘルプ情報を表示",
+    "version": "バージョン番号を表示",
+    "start": "新しい対話型セッションを開始",
+    "mcpList": "設定済みのMCPサーバーを一覧表示",
     "doctor": "ヘルスチェックを実行",
     "doctorFix": "自動修正でヘルスチェックを実行",
     "gatewayStart": "ゲートウェイサービスを開始",
@@ -105,7 +105,7 @@
     "gatewayStatus": "ゲートウェイの状態を表示",
     "gatewayRun": "フォアグラウンドでゲートウェイを実行",
     "gatewayUninstall": "ゲートウェイサービスをアンインストール",
-    "skillsList": "List available skills"
+    "skillsList": "利用可能なスキルを一覧表示"
   },
   "gateway": {
     "category": "ゲートウェイサービス",
@@ -123,14 +123,14 @@
     "local": "ローカル"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "プラグインを検索",
+    "removed": "プラグインを削除しました"
   },
   "schedule": {
     "everyHour": "毎時",
     "everyMinute": "毎分"
   },
   "error": {
-    "phpiniNotFound": "php.ini file not found"
+    "phpiniNotFound": "php.ini ファイルが見つかりません"
   }
 }

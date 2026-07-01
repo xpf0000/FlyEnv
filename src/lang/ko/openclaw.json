@@ -11,7 +11,8 @@
     "models": "모델",
     "skills": "기능",
     "system": "시스템",
-    "sessions": "세션"
+    "sessions": "세션",
+    "backup": "백업 및 업데이트"
   },
   "cmd": {
     "dashboard": "제어 UI 대시보드 열기",

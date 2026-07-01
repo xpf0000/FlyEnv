@@ -37,15 +37,15 @@
   "diff-compare-empty-copy": "Nema sadržaja za kopiranje",
   "encryption-title": "Kriptiranje/Dekriptiranje Niza",
   "escape-html-title": "HTML Entity Kodiranje/Dekodiranje",
-  "git-cheatsheet-title": "Git Cheatsheet",
+  "git-cheatsheet-title": "Git šalabahter",
   "hash-text-title": "Hash Niza",
   "jwt-title": "JWT Kodiranje/Dekodiranje",
   "http-status-codes-title": "HTTP Kodovi Statusa",
   "keycode-info-title": "Informacije o Kodu Tipke",
   "mime-types-title": "MIME Vrste",
   "qr-code-generator-title": "Generator QR Koda",
-  "regex-cheatsheet-title": "Regex Cheatsheet",
-  "regex-tester-title": "Regex Tester",
+  "regex-cheatsheet-title": "Regex šalabahter",
+  "regex-tester-title": "Regex tester",
   "rsa-key-generator-title": "Generator RSA Ključ/Para",
   "url-encode-title": "URL Kodiranje/Dekodiranje",
   "url-encode": "Kodiraj",
@@ -61,7 +61,7 @@
   "url-parse-title": "Parser URL-a",
   "wifi-qr-code-generator-title": "Generator WiFi QR Koda",
   "URLTimingAnalyzer": "Analizator Vremena URL-a",
-  "CodePlayGround": "Code Playground",
+  "CodePlayGround": "Igralište koda",
   "CodeLibrary": "Knjižnica Koda",
   "GroupName": "Naziv Grupe",
   "GroupNameInput": "Molimo Unesite Naziv Grupe",
@@ -168,9 +168,9 @@
       "linearTooltip": "Srednja kvaliteta",
       "cubic": "Bikubično",
       "cubicTooltip": "Visoka kvaliteta, uravnotežena kvaliteta slike i veličina datoteke, zadani izbor za većinu situacija",
-      "lanczos2": "Lanczos 2",
+      "lanczos2": "Algoritam Lanczos 2",
       "lanczos2Tooltip": "Vrlo visoka kvaliteta",
-      "lanczos3": "Lanczos 3",
+      "lanczos3": "Algoritam Lanczos 3",
       "lanczos3Tooltip": "Najviša kvaliteta, najveća veličina datoteke"
     },
     "effectsConfig": {
@@ -259,5 +259,5 @@
       "bw": "Crno-bijelo"
     }
   },
-  "websocket-sse-title": "WebSocket / SSE"
+  "websocket-sse-title": "WebSocket / SSE veza"
 }

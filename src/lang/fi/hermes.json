@@ -3,7 +3,7 @@
   "HermesOfficialWebsite": "Hermes Etusivu",
   "providers": "Palveluntarjoajat",
   "selectProvider": "Valitse Mallin Tarjoaja",
-  "baseUrl": "Base URL",
+  "baseUrl": "Perus-URL",
   "providerTip": "Määritä Hermesin käyttämä LLM-päätepiste. Ollaman käyttäjien tulisi varmistaa kontekstin pituus vähintään 32K.",
   "providerSaved": "Tarjoajan asetukset tallennettu",
   "searchSkill": "Etsi tai kirjoita taitonimi",
@@ -105,7 +105,7 @@
   "uninstallConfirm": "Oletko varma että poistat taiton\"{name}\"?",
   "resetConfirm": "Oletko varma että palautat taitoa \"{name}\"?",
   "updateSkill": "Päivitä",
-  "resetSkill": "Reset",
+  "resetSkill": "Nollaa",
   "categoryName": "Kategoria",
   "lastActive": "Viimeisin Aktiivinen",
   "id": "ID"

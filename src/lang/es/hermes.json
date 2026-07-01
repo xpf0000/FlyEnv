@@ -105,7 +105,7 @@
   "uninstallConfirm": "¿Estás seguro de desinstalar la habilidad \"{name}\"?",
   "resetConfirm": "¿Estás seguro de reiniciar la habilidad \"{name}\"?",
   "updateSkill": "Actualizar",
-  "resetSkill": "Reset",
+  "resetSkill": "Restablecer",
   "categoryName": "Categoría",
   "lastActive": "Última actividad",
   "id": "ID"

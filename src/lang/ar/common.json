@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "تفعيل",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "تعطيل",
+    "resume": "استئناف",
+    "uninstall": "إلغاء التثبيت",
     "copy": "نسخ",
     "preview": "معاينة",
     "search": "بحث",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "قيد التشغيل",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "مثبت",
+    "enabled": "مفعّل",
+    "disabled": "معطّل",
+    "available": "متاح"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "الجلسات",
+    "title": "العنوان",
+    "id": "معرّف الجلسة",
+    "lastPrompt": "آخر مطالبة",
+    "search": "البحث في الجلسات",
+    "deleted": "تم حذف الجلسة",
+    "resumed": "تمت متابعة الجلسة في الطرفية"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "الأمر / عنوان URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "إضافة خادم"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "أساسي",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "المهارات",
     "basicInfo": "معلومات أساسية",
     "configuration": "الإعدادات",
     "favorites": "المفضلة",
@@ -87,16 +87,16 @@
     "openSkillsDir": "فتح دليل المهارات",
     "openSkillDir": "فتح دليل المهارات",
     "revealSkillFile": "كشف ملف المهارات",
-    "noSkills": "No skills found",
+    "noSkills": "لم يتم العثور على مهارات",
     "skillFileMissing": "لم يتم العثور على ملف المهارة",
     "skillLoadFailed": "تعذر تحميل ملف المهارات",
     "builtin": "مدمج"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "عرض معلومات المساعدة",
+    "version": "إظهار رقم الإصدار",
+    "start": "بدء جلسة تفاعلية جديدة",
+    "mcpList": "عرض خوادم MCP المهيأة",
     "doctor": "تشغيل الفحوص الصحية",
     "doctorFix": "تشغيل الفحوص الصحية مع الإصلاح التلقائي",
     "gatewayStart": "بدء خدمة البوابة",
@@ -105,7 +105,7 @@
     "gatewayStatus": "إظهار حالة البوابة",
     "gatewayRun": "تشغيل البوابة في المقدمة",
     "gatewayUninstall": "إلغاء تثبيت خدمة البوابة",
-    "skillsList": "List available skills"
+    "skillsList": "عرض المهارات المتاحة"
   },
   "gateway": {
     "category": "خدمة البوابة",
@@ -123,8 +123,8 @@
     "local": "محلي"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "البحث في الإضافات",
+    "removed": "تمت إزالة الإضافة"
   },
   "schedule": {
     "everyHour": "كل ساعة",

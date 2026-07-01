@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Az Antigravity CLI nincs telepítve. Kattintson az alábbi gombra a hivatalos telepítővel történő telepítéshez.",
+  "officialWebsite": "Antigravity weboldal",
+  "officialDocs": "Antigravity CLI dokumentáció",
+  "sandboxMode": "Terminál sandbox",
+  "toolPermission": "Eszközengedély",
+  "sessionId": "Beszélgetés azonosítója",
+  "updatedAt": "Frissítve ekkor",
+  "sessionResumed": "A beszélgetés a terminálban folytatódott",
+  "sessionDeleted": "A beszélgetés törölve lett",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Frissítse az Antigravity CLI-t a legújabb verzióra",
+    "models": "Sorolja fel az elérhető modelleket",
+    "continue": "Folytassa a legutóbbi beszélgetést",
+    "resume": "Folytasson egy korábbi beszélgetést azonosító alapján",
+    "prompt": "Futtasson egyetlen promptot nem interaktív módban",
+    "pluginList": "Sorolja fel az importált bővítményeket",
+    "pluginImport": "Importáljon bővítményeket a gemini vagy claude rendszerből",
+    "install": "Konfigurálja a környezeti útvonalakat és a shell beállításait"
   }
 }

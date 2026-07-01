@@ -11,7 +11,8 @@
     "models": "Моделі",
     "skills": "Навики",
     "system": "Система",
-    "sessions": "Сеанси"
+    "sessions": "Сеанси",
+    "backup": "Резервне копіювання та оновлення"
   },
   "cmd": {
     "dashboard": "Відкрити панель керування",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Статус Probe шлюзу",
     "gatewayDiscover": "Відкрийте для себе послуги шлюз",
     "gatewayHealth": "Перевірте стан термостата",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Показати детальний статус gateway",
     "gatewayInstall": "Встановити службу термостата",
     "gatewayCall": "API термостата (потребує параметрів)",
     "agent": "Запустити один агент повернутися через шлюз",
@@ -63,7 +64,7 @@
     "messageSend": "Надіслати повідомлення (необхідні параметри)",
     "messageRead": "Читання повідомлень (потребує параметрів)",
     "nodesList": "Список вузлів",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Показати стан вузлів",
     "nodesPending": "Показати очікуючі вузли",
     "nodesApprove": "Затвердити вузол (потрібен ID вузла)",
     "nodesReject": "Відхилити вузол (потрібен ID вузла)",
@@ -88,8 +89,8 @@
     "systemEvent": "Відправити системну подію (необхідні параметри)",
     "cronList": "Список завдань cron",
     "cronAdd": "Додати завдання (необхідні параметри)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Показати hooks",
+    "hooksCheck": "Перевірити стан hooks",
     "memorySearch": "Пошук у пам'яті (потрібен запит)",
     "memoryStatus": "Показати стан пам'яті",
     "sandboxList": "Список пісочниць",
@@ -118,8 +119,8 @@
     "pairingList": "Список запитів на парування",
     "docs": "Пошукові документи (потребує запиту)",
     "completion": "Створення оболонки завершене",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Відкрити інтерфейс термінала",
+    "qr": "Згенерувати QR-код",
     "onboard": "Запустити помічник наборду",
     "uninstall": "Видалити OpenClaw"
   }

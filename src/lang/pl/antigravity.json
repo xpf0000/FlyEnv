@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI nie jest zainstalowany. Kliknij przycisk ponizej, aby zainstalowac go oficjalnym instalatorem.",
+  "officialWebsite": "Strona Antigravity",
+  "officialDocs": "Dokumentacja Antigravity CLI",
+  "sandboxMode": "Piaskownica terminala",
+  "toolPermission": "Uprawnienie narzedzia",
+  "sessionId": "ID rozmowy",
+  "updatedAt": "Zaktualizowano",
+  "sessionResumed": "Rozmowa wznowiona w terminalu",
+  "sessionDeleted": "Rozmowa usunieta",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Zaktualizuj Antigravity CLI do najnowszej wersji",
+    "models": "Wyswietl dostepne modele",
+    "continue": "Kontynuuj najnowsza rozmowe",
+    "resume": "Wznow poprzednia rozmowe na podstawie ID",
+    "prompt": "Uruchom pojedynczy prompt w trybie nieinteraktywnym",
+    "pluginList": "Wyswietl zaimportowane wtyczki",
+    "pluginImport": "Importuj wtyczki z gemini lub claude",
+    "install": "Skonfiguruj sciezki srodowiska i ustawienia powloki"
   }
 }

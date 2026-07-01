@@ -8,7 +8,7 @@
   "updatePackageJsonFileTips": "Bu əməliyyat package.json faylını dəyişəcək. Yeniləmək istədiyinizə əminsiniz?",
   "copyDirPath": "Layihə qovluğunun yolunu kopyala",
   "openIN": "Burada aç",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Visual Studio Code editörü",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "Layihə Mühiti",

@@ -37,14 +37,14 @@
     "needPasswordToStart": "Adminrättigheter krävs. Ange lösenord (sparas för framtida bruk). Eller ange manuellt i terminalen, men denna prompt kan dyka upp igen.",
     "hadOpenInTerminal": "Körs redan i terminalen—resultat ej tillgängliga.",
     "licenseTips": "Ingen licens hittades. Endast 3 moduler/utföringsobjekt kan skapas.",
-    "outputLog": "Output Log"
+    "outputLog": "Utlogg"
   },
   "flyenvHelper": "Reparera FlyEnv-hjälpprogram",
   "flyenvHelperBtn": "Reparera",
   "flyenvHelperFixSuccess": "Reparation av FlyEnv-hjälpprogram lyckades",
   "flyenvHelperInstallFailTips": "Installationen av FlyEnv-hjälpprogrammet misslyckades. Försök att köra FlyEnv med administratörsbehörighet eller klicka på OK-knappen och kör hjälpprogrammet flyenv-helper.exe manuellt i den öppnade mappen.",
-  "appFont": "UI Font",
+  "appFont": "UI-typsnitt",
   "appFontTips": "Ange typsnitt som används för programgränssnittet. Lämna tomt för att använda systemets standardtypsnitt",
-  "codeFont": "Code Font",
+  "codeFont": "Kodtypsnitt",
   "codeFontTips": "Ange typsnitt som används för terminal, editor och andra kodområden. Lämna tomt för att använda standardtypsnitt för monospace"
 }

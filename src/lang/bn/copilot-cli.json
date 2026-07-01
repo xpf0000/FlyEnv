@@ -1,13 +1,13 @@
 {
-  "notInstalled": "GitHub Copilot CLI is not installed. Click the button below to install it via npm (requires Node.js 22+).",
-  "officialWebsite": "Copilot CLI GitHub",
-  "officialDocs": "Copilot CLI Docs",
+  "notInstalled": "GitHub Copilot CLI ইনস্টল করা নেই। npm এর মাধ্যমে ইনস্টল করতে নিচের বোতামে ক্লিক করুন (Node.js 22+ প্রয়োজন)।",
+  "officialWebsite": "Copilot CLI GitHub পৃষ্ঠা",
+  "officialDocs": "Copilot CLI ডকস",
   "cmd": {
-    "update": "Download the latest version of Copilot CLI",
-    "resume": "Resume a previous session (picker)",
-    "continue": "Resume the most recent session",
-    "prompt": "Run a single prompt non-interactively",
-    "login": "Authenticate with Copilot",
-    "init": "Initialize Copilot instructions for a repository"
+    "update": "Copilot CLI-এর সর্বশেষ সংস্করণ ডাউনলোড করুন",
+    "resume": "পূর্ববর্তী সেশন পুনরায় শুরু করুন (পিকার)",
+    "continue": "সাম্প্রতিকতম সেশন পুনরায় শুরু করুন",
+    "prompt": "একটি একক প্রম্পট নন-ইন্টারঅ্যাক্টিভভাবে চালান",
+    "login": "Copilot দিয়ে প্রমাণীকরণ করুন",
+    "init": "একটি রিপোজিটরির জন্য Copilot নির্দেশনা ইনিশিয়ালাইজ করুন"
   }
 }

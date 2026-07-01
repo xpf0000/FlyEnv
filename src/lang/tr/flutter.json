@@ -34,7 +34,7 @@
   "noVersionUsePath": "Sistem / PATH flutter (varsayılan)",
   "packageNames": "Paket adları",
   "androidPackage": "Android paketi",
-  "iosBundleId": "iOS bundle id",
+  "iosBundleId": "iOS bundle kimliği",
   "webAppName": "Web uygulama adı",
   "desktopBundleId": "Masaüstü bundle id",
   "packagesPubdev": "Paketler (pub.dev)",

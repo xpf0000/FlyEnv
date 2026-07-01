@@ -3,7 +3,7 @@
   "bfsu": "Beijing Foreign Studies University-nedlasting kilde",
   "tencent": "Tencent nedlastingskilde",
   "aliyun": "Alibaba nedlastingskilde",
-  "ustc": "University of Science and Technology of China download source",
+  "ustc": "Nedlastingskilde fra University of Science and Technology of China",
   "Licenses": "Lisens",
   "requestedTips": "Lisensforespørselen har blitt sendt, vær tålmodig og vent Om du trenger å endre informasjonen, kan du sende den på nytt",
   "autoStartService": "Start tjenester automatisk",
@@ -43,8 +43,8 @@
   "flyenvHelperBtn": "Reparer",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fikset",
   "flyenvHelperInstallFailTips": "FlyEnv-hjelpeprogrammet kunne ikke installeres. Prøv å kjøre FlyEnv med administratorrettigheter, eller klikk på OK-knappen og kjør hjelpeprogrammet flyenv-helper.exe manuelt i den åpnede mappen.",
-  "appFont": "UI Font",
+  "appFont": "UI-skrifttype",
   "appFontTips": "Angi skrifttypen som brukes for program-brukergrensesnittet. La stå tom for å bruke standard system skrifttype",
-  "codeFont": "Code Font",
+  "codeFont": "Skrifttype for kode",
   "codeFontTips": "Angi skriften som brukes for terminal, tekstbehandler og andre kodeområder. La stå tom for å bruke standard skrift for monospace"
 }

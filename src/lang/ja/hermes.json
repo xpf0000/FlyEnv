@@ -1,6 +1,6 @@
 {
   "notInstalled": "Hermes-Agent がインストールされていません。まずインストールしてください。Hermes は Python 3.11+。",
-  "HermesOfficialWebsite": "Hermes Home",
+  "HermesOfficialWebsite": "Hermes ホーム",
   "providers": "プロバイダー",
   "selectProvider": "モデルプロバイダを選択",
   "baseUrl": "ベースURL",
@@ -105,7 +105,7 @@
   "uninstallConfirm": "本当にスキル「{name}」をアンインストールしますか？",
   "resetConfirm": "本当にスキル「{name}」をリセットしますか？",
   "updateSkill": "更新",
-  "resetSkill": "Reset",
+  "resetSkill": "リセット",
   "categoryName": "カテゴリ",
   "lastActive": "前回のアクティブ",
   "id": "ID"

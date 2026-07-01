@@ -11,7 +11,8 @@
     "models": "モデル",
     "skills": "スキル",
     "system": "システム",
-    "sessions": "セッション"
+    "sessions": "セッション",
+    "backup": "バックアップと更新"
   },
   "cmd": {
     "dashboard": "Control UI ダッシュボードを開く",
@@ -31,7 +32,7 @@
     "gatewayProbe": "プローブゲートウェイの状態",
     "gatewayDiscover": "ゲートウェイサービスを発見する",
     "gatewayHealth": "ゲートウェイの健康状態を確認する",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "詳細な gateway 状態を表示",
     "gatewayInstall": "ゲートウェイサービスをインストール",
     "gatewayCall": "ゲートウェイAPIの呼び出し（パラメータが必要）",
     "agent": "ゲートウェイ経由でエージェントのターンを1回実行",
@@ -63,7 +64,7 @@
     "messageSend": "メッセージを送信(パラメータが必要)",
     "messageRead": "読み取りメッセージ（パラメータが必要）",
     "nodesList": "ノードの一覧",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "ノードの状態を表示",
     "nodesPending": "保留中のノードを表示",
     "nodesApprove": "承認ノード（ノードIDが必要）",
     "nodesReject": "ノードを拒否（ノードIDが必要）",
@@ -88,8 +89,8 @@
     "systemEvent": "システムイベントを送信（パラメータが必要）",
     "cronList": "Cronジョブの一覧",
     "cronAdd": "cron ジョブの追加 (パラメータが必要)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "hooks を一覧表示",
+    "hooksCheck": "hooks の状態を確認",
     "memorySearch": "メモリ検索（クエリが必要）",
     "memoryStatus": "メモリの状態を表示",
     "sandboxList": "サンドボックスの一覧",
@@ -118,8 +119,8 @@
     "pairingList": "ペアリングリクエストの一覧",
     "docs": "ドキュメントの検索（クエリが必要）",
     "completion": "シェル補完の生成",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "ターミナル UI を開く",
+    "qr": "QR コードを生成",
     "onboard": "オンボーディングウィザードを実行",
     "uninstall": "OpenClawをアンインストール"
   }

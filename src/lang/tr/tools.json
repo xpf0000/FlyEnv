@@ -59,7 +59,7 @@
   "url-your-string-decode": "Metninizin kodu çözüldü :",
   "url-your-string-decoded": "Metninizin kodu çözüldü",
   "url-parse-title": "URL Ayrıştırıcı",
-  "websocket-sse-title": "WebSocket / SSE",
+  "websocket-sse-title": "WebSocket / SSE bağlantısı",
   "wifi-qr-code-generator-title": "WiFi QR Kod Üreteci",
   "URLTimingAnalyzer": "URL İstek Zamanlama Analizörü",
   "CodePlayGround": "Kod Oyun Alanı",
@@ -169,9 +169,9 @@
       "linearTooltip": "Orta kalite",
       "cubic": "Çift kübik",
       "cubicTooltip": "Yüksek kalite, dengeli görsel kalite ve dosya boyutu",
-      "lanczos2": "Lanczos 2",
+      "lanczos2": "Lanczos 2 algoritması",
       "lanczos2Tooltip": "Çok yüksek kalite",
-      "lanczos3": "Lanczos 3",
+      "lanczos3": "Lanczos 3 algoritması",
       "lanczos3Tooltip": "En yüksek kalite, en büyük dosya boyutu"
     },
     "effectsConfig": {

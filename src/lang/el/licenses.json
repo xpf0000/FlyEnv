@@ -28,7 +28,7 @@
   },
   "submitInfo": "Μετά την ολοκλήρωση οποιασδήποτε από τις παραπάνω μεθόδους, παρακαλώ συμπληρώστε τα αποτελέσματα στο πλαίσιο εισόδου παρακάτω και κάντε κλικ στο κουμπί 'Αίτηση Άδειας' για να υποβάλετε την αίτησή σας. Τα αιτήματα αδειών υποβάλλονται συνήθως σε επεξεργασία εντός 24 ωρών.",
   "messageLabel": "Μήνυμα",
-  "messagePlaceholder": "Please submit the donor, donation link, or order ID when choosing to donate.\nPlease submit the PR link for those who choose to participate in project development.\nPlease submit a link to your article, video, blog, vlog, or comment for those who choose to promote.",
+  "messagePlaceholder": "Δώστε τον δωρητή, τον σύνδεσμο δωρεάς ή το αναγνωριστικό παραγγελίας όταν επιλέγετε δωρεά.\nΔώστε τον σύνδεσμο PR για όσους επιλέγουν να συμμετάσχουν στην ανάπτυξη του έργου.\nΔώστε σύνδεσμο προς το άρθρο, το βίντεο, το ιστολόγιο, το vlog ή το σχόλιό σας για όσους επιλέγουν να προωθήσουν το έργο.",
   "requestButton": "Αίτηση Άδειας",
   "refreshButton": "Ανανέωση Κατάστασης",
   "licenseActivated": "Η άδεια ενεργοποιήθηκε",

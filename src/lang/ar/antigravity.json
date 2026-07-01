@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "لم يتم تثبيت Antigravity CLI. انقر الزر أدناه لتثبيته باستخدام المُثبّت الرسمي.",
+  "officialWebsite": "موقع Antigravity",
+  "officialDocs": "وثائق Antigravity CLI",
+  "sandboxMode": "وضع عزل الطرفية",
+  "toolPermission": "أذونات الأدوات",
+  "sessionId": "معرف المحادثة",
+  "updatedAt": "آخر تحديث",
+  "sessionResumed": "تمت متابعة المحادثة في الطرفية",
+  "sessionDeleted": "تم حذف المحادثة",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "حدّث Antigravity CLI إلى أحدث إصدار",
+    "models": "اعرض النماذج المتاحة",
+    "continue": "تابع أحدث محادثة",
+    "resume": "استأنف محادثة سابقة باستخدام المعرف",
+    "prompt": "شغّل مطالبة واحدة بشكل غير تفاعلي",
+    "pluginList": "اعرض الإضافات المستوردة",
+    "pluginImport": "استورد الإضافات من gemini أو claude",
+    "install": "اضبط مسارات البيئة وإعدادات الصدفة"
   }
 }

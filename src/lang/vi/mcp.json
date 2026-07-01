@@ -28,5 +28,26 @@
   "approvalConfirm": "Xac nhan",
   "approvalTip": "Che do xac nhan se hien thi hop thoai he thong truoc khi thuc thi cong cu.",
   "auditLog": "Nhật ký kiểm tra",
-  "riskyTip": "Các công cụ điều khiển dịch vụ có thể thay đổi môi trường đang chạy của bạn. Chỉ bật những công cụ bạn tin tưởng."
+  "riskyTip": "Các công cụ điều khiển dịch vụ có thể thay đổi môi trường đang chạy của bạn. Chỉ bật những công cụ bạn tin tưởng.",
+  "risky": "Rủi ro",
+  "toolDescriptions": {
+    "list_services": "Liệt kê các mô-đun do FlyEnv quản lý cùng với phiên bản đã cài đặt và trạng thái chạy.",
+    "service_status": "Lấy các phiên bản đã cài đặt và trạng thái chạy của một mô-đun FlyEnv.",
+    "list_sites": "Liệt kê các trang phát triển cục bộ do FlyEnv quản lý và siêu dữ liệu của chúng.",
+    "get_database_connection_info": "Trả về thông tin kết nối cho cơ sở dữ liệu cục bộ hoặc dịch vụ bộ nhớ đệm do FlyEnv quản lý.",
+    "resolve_site_runtime": "Phân giải một trang FlyEnv thành các chi tiết runtime như đường dẫn gốc, máy chủ web và lựa chọn PHP/runtime.",
+    "get_service_exec_info": "Trả về thông tin tệp thực thi, cấu hình và runtime cho một phiên bản mô-đun FlyEnv đã cài đặt.",
+    "resolve_site_urls": "Trả về các URL chuẩn, bí danh, điểm vào SSL và URL reverse proxy của một trang FlyEnv.",
+    "get_managed_file_map": "Trả về các đường dẫn tệp env, cấu hình, log, chứng chỉ, runtime và dữ liệu do FlyEnv quản lý cho một trang hoặc dịch vụ.",
+    "list_log_files": "Liệt kê các tệp log đã biết của một mô-đun FlyEnv.",
+    "list_config_files": "Liệt kê các tệp cấu hình đã biết của một mô-đun FlyEnv.",
+    "list_online_versions": "Liệt kê các phiên bản có thể tải xuống của một mô-đun FlyEnv có thể cài đặt.",
+    "start_service": "Khởi động một phiên bản dịch vụ FlyEnv chạy dài hạn đã cài đặt.",
+    "stop_service": "Dừng một dịch vụ FlyEnv chạy dài hạn đang hoạt động.",
+    "restart_service": "Khởi động lại một dịch vụ FlyEnv chạy dài hạn đang hoạt động.",
+    "create_site": "Tạo một trang phát triển cục bộ FlyEnv mới.",
+    "update_site": "Cập nhật một trang phát triển cục bộ FlyEnv hiện có.",
+    "delete_site": "Xóa một trang phát triển cục bộ khỏi cấu hình FlyEnv.",
+    "install_service": "Tải xuống và cài đặt một phiên bản cho mô-đun FlyEnv có thể cài đặt."
+  }
 }

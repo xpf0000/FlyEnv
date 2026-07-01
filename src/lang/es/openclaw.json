@@ -1,8 +1,8 @@
 {
   "notInstalled": "OpenClaw no está instalado. Por favor, instálelo primero.",
   "gatewayNotInstalled": "La puerta de enlace no está instalada. Por favor, instale la puerta de enlace primero.",
-  "OpenClawOfficialWebsite": "OpenClaw Home",
-  "OpenClawLocalDashboard": "OpenClaw Dashboard",
+  "OpenClawOfficialWebsite": "Inicio de OpenClaw",
+  "OpenClawLocalDashboard": "Panel de OpenClaw",
   "category": {
     "agents": "Agentes",
     "browser": "Navegador",
@@ -11,7 +11,8 @@
     "models": "Modelos",
     "skills": "Habilidades",
     "system": "Sistema",
-    "sessions": "Sesiones"
+    "sessions": "Sesiones",
+    "backup": "Copia de seguridad y actualización"
   },
   "cmd": {
     "dashboard": "Abrir el panel de control de UI",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Estado de la pasarela sonda",
     "gatewayDiscover": "Descubre servicios de pasarela",
     "gatewayHealth": "Comprobar salud de la pasarela",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Mostrar estado detallado del gateway",
     "gatewayInstall": "Instalar servicio de gateway",
     "gatewayCall": "API de la pasarela de llamadas (requiere parámetros)",
     "agent": "Ejecutar un agente girar vía Gateway",
@@ -63,7 +64,7 @@
     "messageSend": "Enviar mensaje (requiere parámetros)",
     "messageRead": "Leer mensajes (requiere parámetros)",
     "nodesList": "Lista de nodos",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Mostrar estado de los nodos",
     "nodesPending": "Mostrar nodos pendientes",
     "nodesApprove": "Aprobar nodo (requiere ID del nodo)",
     "nodesReject": "Rechazar nodo (requiere ID del nodo)",
@@ -88,8 +89,8 @@
     "systemEvent": "Enviar evento del sistema (requiere parámetros)",
     "cronList": "Listar trabajos de cron",
     "cronAdd": "Añadir trabajo de cron (requiere parámetros)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Listar hooks",
+    "hooksCheck": "Comprobar estado de hooks",
     "memorySearch": "Memoria de búsqueda (requiere consulta)",
     "memoryStatus": "Mostrar estado de memoria",
     "sandboxList": "Listar sandboxes",
@@ -118,8 +119,8 @@
     "pairingList": "Listar solicitudes de emparejamiento",
     "docs": "Buscar documentos (requiere consulta)",
     "completion": "Generar finalización del shell",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Abrir interfaz de terminal",
+    "qr": "Generar código QR",
     "onboard": "Ejecutar asistente de incorporación",
     "uninstall": "Desinstalar OpenClaw"
   }

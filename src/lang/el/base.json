@@ -63,7 +63,7 @@
   "killProcessConfirm": "Είστε βέβαιοι να τερματίσετε την επιλεγμένη διαδικασία?",
   "killAllProcessConfirm": "Είστε βέβαιοι να ολοκληρώσετε όλες τις διαδικασίες?",
   "portNotUse": "Αυτή η θύρα δεν χρησιμοποιείται",
-  "sslMakeAlert": "The SSL self-signed certificate is generated successfully, please find Dev Root CA {caFileName} in the opened keychain, and modify it to \"always trust\" the certificate",
+  "sslMakeAlert": "Το αυτοϋπογεγραμμένο πιστοποιητικό SSL δημιουργήθηκε με επιτυχία. Βρείτε το Dev Root CA {caFileName} στην ανοιγμένη κλειδοθήκη και αλλάξτε το σε \"always trust\" για το πιστοποιητικό",
   "second": "Δευτερόλεπτο",
   "millisecond": "Millisecond",
   "versionError": "Η λήψη έκδοσης απέτυχε",

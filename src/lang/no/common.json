@@ -24,14 +24,14 @@
     "state": "Tilstand",
     "grid": "Rutenett",
     "gridSpacing": "Avstand mellom rutenett (piksler)",
-    "fontSize": "Font Size",
+    "fontSize": "Skriftstørrelse",
     "code": "Kode"
   },
   "action": {
     "enable": "Aktiver",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Deaktiver",
+    "resume": "Gjenoppta",
+    "uninstall": "Avinstaller",
     "copy": "Kopier",
     "preview": "Forhåndsvisning",
     "search": "Søk",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Kjører",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Installert",
+    "enabled": "Aktivert",
+    "disabled": "Deaktivert",
+    "available": "Tilgjengelig"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sesjoner",
+    "title": "Tittel",
+    "id": "Økt-ID",
+    "lastPrompt": "Siste prompt",
+    "search": "Søk i økter",
+    "deleted": "Økt slettet",
+    "resumed": "Økt gjenopptatt i terminal"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Kommando / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Legg til server"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Grunnleggende",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Ferdigheter",
     "basicInfo": "Grunnleggende info",
     "configuration": "Konfigurasjon",
     "favorites": "Favoritter",
@@ -87,29 +87,29 @@
     "openSkillsDir": "Åpne ferdighetskatalog",
     "openSkillDir": "Åpne ferdighetsmappe",
     "revealSkillFile": "Vis ferdighetsfil",
-    "noSkills": "No skills found",
+    "noSkills": "Ingen ferdigheter funnet",
     "skillFileMissing": "Ferdighetsfilen ble ikke funnet",
     "skillLoadFailed": "Kunne ikke laste inn ferdighetsfilen",
     "builtin": "Innebygget"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Vis hjelpeinformasjon",
+    "version": "Vis versjonsnummer",
+    "start": "Start en ny interaktiv økt",
+    "mcpList": "List opp konfigurerte MCP-servere",
     "doctor": "Kjør helsesjekker",
     "doctorFix": "Kjør helsesjekker med auto-fiks",
-    "gatewayStart": "Start gateway service",
+    "gatewayStart": "Start gateway-tjenesten",
     "gatewayStop": "Stopp gateway service",
     "gatewayRestart": "Restart gateway-tjeneste",
     "gatewayStatus": "Vis gateway status",
     "gatewayRun": "Kjør gateway i forgrunnen",
     "gatewayUninstall": "Avinstaller gateway-tjenesten",
-    "skillsList": "List available skills"
+    "skillsList": "List opp tilgjengelige ferdigheter"
   },
   "gateway": {
-    "category": "Gateway Service",
-    "status": "Gateway Status",
+    "category": "Gateway-tjeneste",
+    "status": "Gateway-status",
     "running": "Gateway kjører",
     "stopped": "Gateway er stoppet",
     "startFailed": "Gateway start mislyktes"
@@ -123,8 +123,8 @@
     "local": "Lokal"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Søk i plugins",
+    "removed": "Plugin fjernet"
   },
   "schedule": {
     "everyHour": "Hver time",

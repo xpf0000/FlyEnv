@@ -1,7 +1,7 @@
 {
   "dnsLookup": "Αναζήτηση DNS",
   "tcpConnect": "Σύνδεση TCP",
-  "tlsHandshake": "TLS Handshake",
+  "tlsHandshake": "Διαπραγμάτευση TLS",
   "requestProcessing": "Αίτηση Επεξεργασίας",
   "ttfb": "Ώρα για το πρώτο Byte (TTFB)",
   "contentDownload": "Λήψη Περιεχομένου",

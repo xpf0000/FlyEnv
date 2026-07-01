@@ -59,7 +59,7 @@
   "url-your-string-decode": "您的字符串已解码 :",
   "url-your-string-decoded": "您的字符串已解码",
   "url-parse-title": "URL解析",
-  "websocket-sse-title": "WebSocket / SSE",
+  "websocket-sse-title": "WebSocket / SSE 连接",
   "wifi-qr-code-generator-title": "WiFi二维码生成",
   "URLTimingAnalyzer": "URL请求计时分析",
   "CodePlayGround": "代码演练场",
@@ -169,9 +169,9 @@
       "linearTooltip": "中质量",
       "cubic": "两次立方",
       "cubicTooltip": "高质量，图片质量和文件大小较为均衡，大多数情况的默认选择",
-      "lanczos2": "Lanczos 2",
+      "lanczos2": "Lanczos 2 算法",
       "lanczos2Tooltip": "很高质量",
-      "lanczos3": "Lanczos 3",
+      "lanczos3": "Lanczos 3 算法",
       "lanczos3Tooltip": "最高质量，文件大小最大。"
     },
     "effectsConfig": {

@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI не встановлено. Натисніть кнопку нижче, щоб запустити офіційний інсталятор.",
+  "officialWebsite": "Kimi Code CLI на GitHub",
+  "officialDocs": "Документація Kimi Code CLI",
+  "permissionMode": "Режим дозволів",
+  "defaultThinking": "Типовий режим мислення",
+  "defaultPlanMode": "Типовий режим планування",
+  "telemetry": "Телеметрія",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "Оновити Kimi Code CLI",
+    "continue": "Продовжити останній сеанс у поточному каталозі",
+    "sessionSelect": "Вибрати та відновити сеанс",
+    "plan": "Запустити в режимі планування",
+    "yolo": "Автоматично схвалювати звичайні виклики інструментів",
+    "export": "Експортувати сеанс у ZIP",
+    "vis": "Відкрити візуалізатор сеансів у браузері",
+    "providerList": "Показати налаштованих постачальників",
+    "providerAdd": "Додати постачальників з URL реєстру",
+    "providerRemove": "Видалити постачальника"
   }
 }

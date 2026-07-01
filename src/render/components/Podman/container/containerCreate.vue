@@ -34,7 +34,12 @@
           <el-input v-model="form.name" maxlength="32" />
         </el-form-item>
 
-        <el-form-item :label="I18nT('common.label.image')" prop="image" required :show-message="false">
+        <el-form-item
+          :label="I18nT('common.label.image')"
+          prop="image"
+          required
+          :show-message="false"
+        >
           <el-select v-model="form.image" filterable style="width: 100%">
             <el-option
               v-for="img in images"

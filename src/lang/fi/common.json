@@ -24,14 +24,14 @@
     "state": "Tila",
     "grid": "Ruudukko",
     "gridSpacing": "Ruudukon Välistys (Kuvapisteet)",
-    "fontSize": "Font Size",
+    "fontSize": "Fonttikoko",
     "code": "Koodi"
   },
   "action": {
     "enable": "Aktivoi",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Poista käytöstä",
+    "resume": "Jatka",
+    "uninstall": "Poista asennus",
     "copy": "Kopioi",
     "preview": "Esikatselu",
     "search": "Etsi",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Käynnissä",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Asennettu",
+    "enabled": "Käytössä",
+    "disabled": "Pois käytöstä",
+    "available": "Saatavilla"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Istunnot",
+    "title": "Otsikko",
+    "id": "Istunnon tunnus",
+    "lastPrompt": "Viimeisin kehote",
+    "search": "Etsi istuntoja",
+    "deleted": "Istunto poistettu",
+    "resumed": "Istunto jatkettiin terminaalissa"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Komento / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Lisää palvelin"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Perus",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Taidot",
     "basicInfo": "Perustiedot",
     "configuration": "Asetukset",
     "favorites": "Suosikit",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Avaa taitokansio",
     "openSkillDir": "Avaa taitohakemisto",
     "revealSkillFile": "Paljasta taitotiedosto",
-    "noSkills": "No skills found",
+    "noSkills": "Taitoja ei löytynyt",
     "skillFileMissing": "Taitotiedostoa ei löytynyt",
     "skillLoadFailed": "Taitotiedoston lataaminen epäonnistui",
     "builtin": "Sisäänrakennettu"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Näytä ohjetiedot",
+    "version": "Näytä versionumero",
+    "start": "Aloita uusi interaktiivinen istunto",
+    "mcpList": "Listaa määritetyt MCP-palvelimet",
     "doctor": "Suorita terveystarkastuksia",
     "doctorFix": "Suorita terveystarkastukset automaattisella korjauksella",
     "gatewayStart": "Käynnistä yhdyskäytävä palvelu",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Näytä yhdyskäytävän tila",
     "gatewayRun": "Suorita portti etualalla",
     "gatewayUninstall": "Poista yhdyskäytävä palvelu",
-    "skillsList": "List available skills"
+    "skillsList": "Listaa saatavilla olevat taidot"
   },
   "gateway": {
     "category": "Yhdyskäytävän Palvelu",
@@ -123,8 +123,8 @@
     "local": "Paikallinen"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Etsi liitännäisiä",
+    "removed": "Liitännäinen poistettu"
   },
   "schedule": {
     "everyHour": "Joka tunti",

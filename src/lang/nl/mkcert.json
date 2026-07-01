@@ -2,10 +2,10 @@
   "checking": "Installatie controleren...",
   "isInstalled": "geïnstalleerd",
   "notInstalled": "mkcert is niet geïnstalleerd",
-  "install": "Install mkcert",
+  "install": "Installeer mkcert",
   "checkAgain": "Controleer opnieuw",
   "recheck": "Hercontroleren",
-  "installCA": "Install CA",
+  "installCA": "Installeer CA",
   "carootLabel": "CA Root Pad",
   "certificates": "Certificaten",
   "noSSLHosts": "Geen hosts met SSL ingeschakeld. Schakel SSL eerst in op een host."

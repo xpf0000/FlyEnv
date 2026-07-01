@@ -40,7 +40,9 @@
     </el-table-column>
     <el-table-column prop="source" :label="I18nT('common.label.source')" width="100">
       <template #default="{ row }">
-        <el-tag v-if="row.isBuiltin" size="small" type="info">{{ I18nT('common.skills.builtin') }}</el-tag>
+        <el-tag v-if="row.isBuiltin" size="small" type="info">{{
+          I18nT('common.skills.builtin')
+        }}</el-tag>
         <el-tag v-else-if="row.isHub" size="small" type="success">{{ I18nT('hermes.hub') }}</el-tag>
         <el-tag v-else size="small" type="warning">{{ I18nT('common.value.local') }}</el-tag>
       </template>

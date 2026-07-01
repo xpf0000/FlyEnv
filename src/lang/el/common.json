@@ -24,14 +24,14 @@
     "state": "Κατάσταση",
     "grid": "Πλέγμα",
     "gridSpacing": "Απόσταση Πλέγματος (pixel)",
-    "fontSize": "Font Size",
+    "fontSize": "Μέγεθος γραμματοσειράς",
     "code": "Κωδικός"
   },
   "action": {
     "enable": "Ενεργοποίηση",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Απενεργοποίηση",
+    "resume": "Συνέχιση",
+    "uninstall": "Απεγκατάσταση",
     "copy": "Αντιγραφή",
     "preview": "Προεπισκόπηση",
     "search": "Αναζήτηση",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Τρέξιμο",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Εγκατεστημένο",
+    "enabled": "Ενεργοποιημένο",
+    "disabled": "Απενεργοποιημένο",
+    "available": "Διαθέσιμο"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Συνεδρίες",
+    "title": "Τίτλος",
+    "id": "Αναγνωριστικό συνεδρίας",
+    "lastPrompt": "Τελευταία προτροπή",
+    "search": "Αναζήτηση συνεδριών",
+    "deleted": "Η συνεδρία διαγράφηκε",
+    "resumed": "Η συνεδρία συνεχίστηκε στο τερματικό"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Εντολή / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Προσθήκη διακομιστή"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Βασικά",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Δεξιότητες",
     "basicInfo": "Βασικές Πληροφορίες",
     "configuration": "Διαμόρφωση",
     "favorites": "Αγαπημένα",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Άνοιγμα καταλόγου δεξιοτήτων",
     "openSkillDir": "Άνοιγμα καταλόγου δεξιοτήτων",
     "revealSkillFile": "Αποκάλυψη αρχείου δεξιοτήτων",
-    "noSkills": "No skills found",
+    "noSkills": "Δεν βρέθηκαν δεξιότητες",
     "skillFileMissing": "Το αρχείο δεξιοτήτων δεν βρέθηκε",
     "skillLoadFailed": "Αποτυχία φόρτωσης αρχείου δεξιοτήτων",
     "builtin": "Ενσωματωμένο"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Εμφάνιση πληροφοριών βοήθειας",
+    "version": "Εμφάνιση αριθμού έκδοσης",
+    "start": "Έναρξη νέας διαδραστικής συνεδρίας",
+    "mcpList": "Λίστα ρυθμισμένων διακομιστών MCP",
     "doctor": "Εκτέλεση υγειονομικών ελέγχων",
     "doctorFix": "Εκτέλεση ελέγχων υγείας με αυτόματη επιδιόρθωση",
     "gatewayStart": "Έναρξη υπηρεσίας πύλης",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Εμφάνιση κατάστασης πύλης",
     "gatewayRun": "Εκτέλεση πύλης στο προσκήνιο",
     "gatewayUninstall": "Απεγκατάσταση υπηρεσίας πύλης",
-    "skillsList": "List available skills"
+    "skillsList": "Λίστα διαθέσιμων δεξιοτήτων"
   },
   "gateway": {
     "category": "Υπηρεσία Πύλης",
@@ -123,8 +123,8 @@
     "local": "Τοπικό"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Αναζήτηση προσθηκών",
+    "removed": "Η προσθήκη αφαιρέθηκε"
   },
   "schedule": {
     "everyHour": "Κάθε ώρα",

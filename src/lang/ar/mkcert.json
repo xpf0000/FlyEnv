@@ -1,12 +1,12 @@
 {
-  "checking": "التحقق من التثبيت...",
+  "checking": "جارٍ التحقق من التثبيت...",
   "isInstalled": "مثبت",
   "notInstalled": "mkcert غير مثبت",
-  "install": "Install mkcert",
+  "install": "تثبيت mkcert",
   "checkAgain": "تحقق مرة أخرى",
   "recheck": "إعادة التحقق",
-  "installCA": "Install CA",
+  "installCA": "تثبيت CA",
   "carootLabel": "مسار جذر CA",
   "certificates": "الشهادات",
-  "noSSLHosts": "لم يتم تمكين أي مضيف مع SSL. تمكين SSL على المضيف أولاً."
+  "noSSLHosts": "لا توجد مضيفات مفعّل عليها SSL. فعّل SSL على مضيف أولاً."
 }

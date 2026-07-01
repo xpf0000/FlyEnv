@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI er ikke installert. Klikk på knappen nedenfor for å kjøre det offisielle installasjonsprogrammet.",
+  "officialWebsite": "Kimi Code CLI på GitHub",
+  "officialDocs": "Kimi Code CLI-dokumentasjon",
+  "permissionMode": "Tillatelsesmodus",
+  "defaultThinking": "Standard tenkemodus",
+  "defaultPlanMode": "Standard planmodus",
+  "telemetry": "Telemetri",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "Oppgrader Kimi Code CLI",
+    "continue": "Fortsett den nyeste økten i gjeldende katalog",
+    "sessionSelect": "Velg og fortsett en økt",
+    "plan": "Start i planmodus",
+    "yolo": "Godkjenn vanlige verktøykall automatisk",
+    "export": "Eksporter en økt til ZIP",
+    "vis": "Åpne øktvisualisering i nettleseren",
+    "providerList": "List opp konfigurerte leverandører",
+    "providerAdd": "Legg til leverandører fra en register-URL",
+    "providerRemove": "Fjern en leverandør"
   }
 }

@@ -5,13 +5,14 @@
   "OpenClawLocalDashboard": "Tablou de bord OpenClaw",
   "category": {
     "agents": "Agenți",
-    "browser": "Browser",
+    "browser": "Navigator web",
     "channels": "Canale",
     "nodes": "Noduri și dispozitive",
     "models": "Modele",
     "skills": "Competențe",
     "system": "Sistem",
-    "sessions": "Sesiuni"
+    "sessions": "Sesiuni",
+    "backup": "Backup și actualizare"
   },
   "cmd": {
     "dashboard": "Deschide tabloul de bord al interfeței de control",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Starea gateway-ului",
     "gatewayDiscover": "Descoperă serviciile gateway",
     "gatewayHealth": "Verifică sănătatea gateway-ului",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Afiseaza starea detaliata a gateway-ului",
     "gatewayInstall": "Instalaţi serviciul gateway",
     "gatewayCall": "Apelează gateway API (necesită parametri)",
     "agent": "Rulează un agent prin poartă",
@@ -63,7 +64,7 @@
     "messageSend": "Trimite mesaj (necesită parametri)",
     "messageRead": "Citire mesaje (necesită parametri)",
     "nodesList": "Lista noduri",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Afiseaza starea nodurilor",
     "nodesPending": "Arată nodurile în așteptare",
     "nodesApprove": "Aprobare nod (necesită nod ID)",
     "nodesReject": "Respingere nod (necesită nod ID)",
@@ -88,8 +89,8 @@
     "systemEvent": "Trimite evenimentul de sistem (necesită parametri)",
     "cronList": "Listează joburile cron",
     "cronAdd": "Adauga cron job (necesită parametri)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Listeaza hook-urile",
+    "hooksCheck": "Verifica starea hook-urilor",
     "memorySearch": "Căutare memorie (necesită interogare)",
     "memoryStatus": "Arată starea memoriei",
     "sandboxList": "Listează sandboxele",
@@ -118,8 +119,8 @@
     "pairingList": "Cereri de împerechere listă",
     "docs": "Căutare documente (necesită interogare)",
     "completion": "Generare finalizare shell",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Deschide interfata terminalului",
+    "qr": "Genereaza cod QR",
     "onboard": "Rulează asistentul de înregistrare",
     "uninstall": "Dezinstalează OpenClaw"
   }

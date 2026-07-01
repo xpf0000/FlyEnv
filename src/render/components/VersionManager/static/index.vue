@@ -73,7 +73,9 @@
       width: 0,
       headerCellRenderer: () => {
         return (
-          <span style="padding: 2px 12px 2px 24px; display: block">{I18nT('common.label.library')}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">
+            {I18nT('common.label.library')}
+          </span>
         )
       },
       cellRenderer: ({ rowData: row }) => {

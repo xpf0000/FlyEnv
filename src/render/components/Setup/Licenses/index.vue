@@ -35,7 +35,7 @@
                 <template v-if="store.githubUser?.uuid">
                   <el-button
                     class="button"
-                    :disabled="store.githubAuthing"
+                    :disabled="!!store.githubAuthing"
                     link
                     @click="store.githubLicenseFetch()"
                   >
@@ -108,14 +108,14 @@
                     <template #dropdown>
                       <el-dropdown-menu>
                         <el-dropdown-item
-                          :disabled="store.githubAuthing || !scope.row.uuid"
+                          :disabled="!!store.githubAuthing || !scope.row.uuid"
                           @click.stop="store.githubAuthDelBind(scope.row.uuid, scope.row.license)"
                           >{{ I18nT('licenses.delBind') }}</el-dropdown-item
                         >
                         <el-dropdown-item
                           :disabled="
-                            store.githubAuthing ||
-                            scope.row.uuid ||
+                            !!store.githubAuthing ||
+                            !!scope.row.uuid ||
                             store.githubLicense?.some((s) => s.uuid === store.uuid)
                           "
                           @click.stop="store.githubAuthAddBind(store.uuid, scope.row.license)"
@@ -188,7 +188,7 @@
                   class="mt-4"
                   type="textarea"
                   resize="none"
-                  rows="6"
+                  :rows="6"
                   :placeholder="I18nT('licenses.messagePlaceholder')"
                 ></el-input>
               </el-form-item>

@@ -10,7 +10,7 @@
   "sessionName": "Název relace",
   "category": {
     "chatSession": "Chat a relace",
-    "modelAuth": "Model & Auth",
+    "modelAuth": "Modely a overeni",
     "skillsPlugins": "Dovednosti a pluginy",
     "memoryTools": "Paměť a nástroje",
     "systemLogs": "Systém a protokoly",
@@ -105,7 +105,7 @@
   "uninstallConfirm": "Opravdu chcete odinstalovat dovednost \"{name}\"?",
   "resetConfirm": "Opravdu chcete obnovit dovednost \"{name}\"?",
   "updateSkill": "Aktualizovat",
-  "resetSkill": "Reset",
+  "resetSkill": "Resetovat",
   "categoryName": "Kategorie",
   "lastActive": "Poslední aktivní",
   "id": "ID"

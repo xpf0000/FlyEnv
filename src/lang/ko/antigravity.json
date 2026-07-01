@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI가 설치되어 있지 않습니다. 공식 설치 프로그램으로 설치하려면 아래 버튼을 클릭하세요.",
+  "officialWebsite": "Antigravity 웹사이트",
+  "officialDocs": "Antigravity CLI 문서",
+  "sandboxMode": "터미널 샌드박스",
+  "toolPermission": "도구 권한",
+  "sessionId": "대화 ID",
+  "updatedAt": "업데이트 시간",
+  "sessionResumed": "대화가 터미널에서 다시 시작되었습니다",
+  "sessionDeleted": "대화가 삭제되었습니다",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Antigravity CLI를 최신 버전으로 업데이트",
+    "models": "사용 가능한 모델 목록 보기",
+    "continue": "가장 최근 대화 계속하기",
+    "resume": "ID로 이전 대화 다시 시작",
+    "prompt": "단일 프롬프트를 비대화형으로 실행",
+    "pluginList": "가져온 플러그인 목록 보기",
+    "pluginImport": "gemini 또는 claude에서 플러그인 가져오기",
+    "install": "환경 경로와 셸 설정 구성"
   }
 }

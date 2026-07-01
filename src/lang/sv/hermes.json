@@ -105,7 +105,7 @@
   "uninstallConfirm": "Är du säker på att avinstallera skicklighet \"{name}\"?",
   "resetConfirm": "Är du säker på att återställa färdighet \"{name}\"?",
   "updateSkill": "Uppdatera",
-  "resetSkill": "Reset",
+  "resetSkill": "Återställ",
   "categoryName": "Kategori",
   "lastActive": "Senast aktiv",
   "id": "ID"

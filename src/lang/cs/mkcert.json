@@ -2,10 +2,10 @@
   "checking": "Kontrola instalace...",
   "isInstalled": "nainstalováno",
   "notInstalled": "mkcert není nainstalován",
-  "install": "Install mkcert",
+  "install": "Nainstalovat mkcert",
   "checkAgain": "Zkontrolovat znovu",
   "recheck": "Znovu zkontrolovat",
-  "installCA": "Install CA",
+  "installCA": "Nainstalovat CA",
   "carootLabel": "Kořenová cesta CA",
   "certificates": "Certifikáty",
   "noSSLHosts": "Žádné hostitele s SSL povoleny. Nejprve povolte SSL na hostitele."

@@ -77,7 +77,7 @@
   "descEveryNHours": "her {n} saatte",
   "descAtHour": "{n}:00’da",
   "commandTemplates": "Hızlı komut şablonları",
-  "commandPresetPhpArtisan": "PHP Artisan",
+  "commandPresetPhpArtisan": "PHP Artisan komutu",
   "commandPresetNodeScript": "Node betiği",
   "commandPresetPythonScript": "Python betiği",
   "commandPresetShellScript": "Shell betiği",

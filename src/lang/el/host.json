@@ -33,7 +33,7 @@
   "projectBun": "Bun Έργα",
   "projectPerl": "Έργα Perl",
   "projectRuby": "Έργα Ruby",
-  "projectRust": "Rust Projects",
+  "projectRust": "Έργα Rust",
   "projectZig": "Έργα Zig",
   "projectFlutter": "Έργα Flutter",
   "envVar": "Μεταβλητή Περιβάλλοντος",
@@ -59,7 +59,7 @@
   "samePortTips": "Υπάρχει ήδη ένας ιστότοπος με τον ίδιο τομέα και θύρα ακρόασης. Χρησιμοποιήστε μια διαφορετική θύρα για να προσθέσετε έναν άλλο ιστότοπο με τον ίδιο τομέα.",
   "composerVersion": "Έκδοση Συνθέτη",
   "useSysVersion": "Σύνολο εκδόσεων με χρήση μεταβλητών περιβάλλοντος",
-  "sslTips": "<p>The automatic SSL certificate function requires adding a certificate named FlyEnv-Root-CA to the keychain and setting it to always trust</p>\n<p>Normally, this function will be automatically completed. </p>\n<p>If this function is abnormal. You can also copy and execute commands on the terminal. </p>\n<p>You can also double-click to add the certificate in the opened folder and manually set the trust to always trust in the keychain app</p>",
+  "sslTips": "<p>Η αυτόματη λειτουργία πιστοποιητικού SSL απαιτεί να προστεθεί ένα πιστοποιητικό με όνομα FlyEnv-Root-CA στην κλειδοθήκη και να οριστεί ως πάντα έμπιστο</p>\n<p>Κανονικά αυτή η λειτουργία ολοκληρώνεται αυτόματα.</p>\n<p>Αν αυτή η λειτουργία αποτύχει, μπορείτε επίσης να αντιγράψετε και να εκτελέσετε τις εντολές στο τερματικό.</p>\n<p>Μπορείτε επίσης να κάνετε διπλό κλικ για να προσθέσετε το πιστοποιητικό στον ανοιγμένο φάκελο και να ορίσετε χειροκίνητα την εμπιστοσύνη σε πάντα έμπιστο στην εφαρμογή κλειδοθήκης</p>",
   "copyCommand": "Αντιγραφή Εντολής",
   "showFile": "Εμφάνιση Αρχείου",
   "sticky": "Κολλημένο",
@@ -69,7 +69,7 @@
   "CloudflareTunnel": {
     "OnlineDomainExistsTips": "Το ίδιο όνομα τομέα υπάρχει ήδη.",
     "CloudflaredNoFoundTips": "Το Cloudflared δεν βρέθηκε. Παρακαλώ εγκαταστήστε το.",
-    "TunnelInitFailTips": "Tunnel creation failed: {error}. Please check if the ApiToken is correct and ensure you have Cloudflare Tunnel edit permissions.",
+    "TunnelInitFailTips": "Η δημιουργία tunnel απέτυχε: {error}. Ελέγξτε αν το ApiToken είναι σωστό και βεβαιωθείτε ότι έχετε δικαιώματα επεξεργασίας Cloudflare Tunnel.",
     "TunnelRule": "Κανόνας Tunnel",
     "licenseTips": "Χωρίς να αποκτήσετε άδεια χρήσης, μπορείτε να δημιουργήσετε μόνο μία σήραγγα και ένα σύνολο αρχείων κεντρικού υπολογιστή."
   },

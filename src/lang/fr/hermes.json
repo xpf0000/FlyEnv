@@ -9,7 +9,7 @@
   "searchSkill": "Rechercher ou entrer le nom de la compétence",
   "sessionName": "Nom de la session",
   "category": {
-    "chatSession": "Chat & Sessions",
+    "chatSession": "Chat et sessions",
     "modelAuth": "Modèle & Auth",
     "skillsPlugins": "Compétences & Plugins",
     "memoryTools": "Mémoire & Outils",
@@ -105,7 +105,7 @@
   "uninstallConfirm": "Êtes-vous sûr de vouloir désinstaller la compétence \"{name} \" ?",
   "resetConfirm": "Êtes-vous sûr de vouloir réinitialiser la compétence \"{name} \" ?",
   "updateSkill": "Mise à jour",
-  "resetSkill": "Reset",
+  "resetSkill": "Réinitialiser",
   "categoryName": "Catégorie",
   "lastActive": "Dernier Actif",
   "id": "ID"

@@ -1,13 +1,13 @@
 {
-  "notInstalled": "GitHub Copilot CLI is not installed. Click the button below to install it via npm (requires Node.js 22+).",
-  "officialWebsite": "Copilot CLI GitHub",
-  "officialDocs": "Copilot CLI Docs",
+  "notInstalled": "GitHub Copilot CLI가 설치되어 있지 않습니다. 아래 버튼을 클릭하여 npm으로 설치하세요(Node.js 22+ 필요).",
+  "officialWebsite": "Copilot CLI GitHub 페이지",
+  "officialDocs": "Copilot CLI 문서",
   "cmd": {
-    "update": "Download the latest version of Copilot CLI",
-    "resume": "Resume a previous session (picker)",
-    "continue": "Resume the most recent session",
-    "prompt": "Run a single prompt non-interactively",
-    "login": "Authenticate with Copilot",
-    "init": "Initialize Copilot instructions for a repository"
+    "update": "Copilot CLI의 최신 버전 다운로드",
+    "resume": "이전 세션 다시 시작(선택기)",
+    "continue": "가장 최근 세션 다시 시작",
+    "prompt": "단일 프롬프트를 비대화형으로 실행",
+    "login": "Copilot으로 인증",
+    "init": "저장소용 Copilot 지침 초기화"
   }
 }

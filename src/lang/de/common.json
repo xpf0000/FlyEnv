@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "Aktivieren",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Deaktivieren",
+    "resume": "Fortsetzen",
+    "uninstall": "Deinstallieren",
     "copy": "Kopieren",
     "preview": "Vorschau",
     "search": "Suche",
@@ -53,50 +53,50 @@
   },
   "state": {
     "running": "Läuft",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Installiert",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "available": "Verfügbar"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sitzungen",
+    "title": "Titel",
+    "id": "Sitzungs-ID",
+    "lastPrompt": "Letzte Eingabe",
+    "search": "Sitzungen durchsuchen",
+    "deleted": "Sitzung gelöscht",
+    "resumed": "Sitzung im Terminal fortgesetzt"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Befehl / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Server hinzufügen"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Grundlegend",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Fähigkeiten",
     "basicInfo": "Grundlegende Info",
     "configuration": "Konfiguration",
     "favorites": "Favoriten",
     "plugins": "Plugins",
-    "backupUpdate": "Backup & Update"
+    "backupUpdate": "Sicherung und Aktualisierung"
   },
   "skills": {
     "openSkillsDir": "Öffne Qualifikationsverzeichnis",
     "openSkillDir": "Skill-Verzeichnis öffnen",
     "revealSkillFile": "Skill-Datei aufdecken",
-    "noSkills": "No skills found",
+    "noSkills": "Keine Skills gefunden",
     "skillFileMissing": "Fertigkeitsdatei nicht gefunden",
     "skillLoadFailed": "Fertigkeitsdatei konnte nicht geladen werden",
     "builtin": "Integriert"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Hilfeinformationen anzeigen",
+    "version": "Versionsnummer anzeigen",
+    "start": "Neue interaktive Sitzung starten",
+    "mcpList": "Konfigurierte MCP-Server auflisten",
     "doctor": "Gesundheitschecks durchführen",
     "doctorFix": "Gesundheitsprüfungen mit Auto-Fix ausführen",
     "gatewayStart": "Gateway-Dienst starten",
@@ -105,10 +105,10 @@
     "gatewayStatus": "Gateway-Status anzeigen",
     "gatewayRun": "Gateway im Vordergrund ausführen",
     "gatewayUninstall": "Gateway-Dienst deinstallieren",
-    "skillsList": "List available skills"
+    "skillsList": "Verfügbare Skills auflisten"
   },
   "gateway": {
-    "category": "Gateway Service",
+    "category": "Gateway-Dienst",
     "status": "Gatewaystatus",
     "running": "Gateway läuft",
     "stopped": "Gateway wird gestoppt",
@@ -123,8 +123,8 @@
     "local": "Lokal"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Plugins durchsuchen",
+    "removed": "Plugin entfernt"
   },
   "schedule": {
     "everyHour": "Jede Stunde",

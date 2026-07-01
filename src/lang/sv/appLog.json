@@ -1,5 +1,5 @@
 {
-  "startInstall": "Start installing {service}",
+  "startInstall": "Startar installation av {service}",
   "startServiceBegin": "Starta {service}-tjänsten...",
   "confInit": "Konfigurationsfilen finns inte, generera konfigurationsfil",
   "confInitSuccess": "Konfigurationsfil genererad framgångsrikt, filväg: {file}",

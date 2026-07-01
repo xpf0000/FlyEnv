@@ -1,6 +1,6 @@
 {
   "notInstalled": "Hermes-Agent er ikke installert. Installer den først. Hermes krever Python 3.11+.",
-  "HermesOfficialWebsite": "Hermes Home",
+  "HermesOfficialWebsite": "Hermes-hjem",
   "providers": "Leverandører",
   "selectProvider": "Velg modell leverandør",
   "baseUrl": "Standard URL",
@@ -105,7 +105,7 @@
   "uninstallConfirm": "Er du sikker på at du vil avinstallere ferdighet\"{name}\"?",
   "resetConfirm": "Er du sikker på at du vil tilbakestille ferdigheten \"{name}\"?",
   "updateSkill": "Oppdater",
-  "resetSkill": "Reset",
+  "resetSkill": "Tilbakestill",
   "categoryName": "Kategori",
   "lastActive": "Siste aktive",
   "id": "ID"

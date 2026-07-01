@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Το Antigravity CLI δεν είναι εγκατεστημένο. Κάντε κλικ στο παρακάτω κουμπί για να το εγκαταστήσετε με τον επίσημο εγκαταστάτη.",
+  "officialWebsite": "Ιστότοπος Antigravity",
+  "officialDocs": "Τεκμηρίωση Antigravity CLI",
+  "sandboxMode": "Απομονωμένο περιβάλλον τερματικού",
+  "toolPermission": "Άδεια εργαλείου",
+  "sessionId": "Αναγνωριστικό συνομιλίας",
+  "updatedAt": "Ενημερώθηκε",
+  "sessionResumed": "Η συνομιλία συνεχίστηκε στο τερματικό",
+  "sessionDeleted": "Η συνομιλία διαγράφηκε",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Ενημερώστε το Antigravity CLI στην πιο πρόσφατη έκδοση",
+    "models": "Εμφανίστε τα διαθέσιμα μοντέλα",
+    "continue": "Συνεχίστε την πιο πρόσφατη συνομιλία",
+    "resume": "Συνεχίστε μια προηγούμενη συνομιλία με βάση το ID",
+    "prompt": "Εκτελέστε ένα μόνο prompt χωρίς αλληλεπίδραση",
+    "pluginList": "Εμφανίστε τα εισαγμένα πρόσθετα",
+    "pluginImport": "Εισαγάγετε πρόσθετα από gemini ή claude",
+    "install": "Ρυθμίστε διαδρομές περιβάλλοντος και ρυθμίσεις shell"
   }
 }

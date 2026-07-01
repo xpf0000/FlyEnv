@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI はインストールされていません。公式インストーラーでインストールするには、下のボタンをクリックしてください。",
+  "officialWebsite": "Antigravity 公式サイト",
+  "officialDocs": "Antigravity CLI ドキュメント",
+  "sandboxMode": "ターミナルサンドボックス",
+  "toolPermission": "ツール権限",
+  "sessionId": "会話ID",
+  "updatedAt": "更新日時",
+  "sessionResumed": "会話がターミナルで再開されました",
+  "sessionDeleted": "会話が削除されました",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Antigravity CLI を最新バージョンに更新",
+    "models": "利用可能なモデルを一覧表示",
+    "continue": "最新の会話を続行",
+    "resume": "ID で以前の会話を再開",
+    "prompt": "単一のプロンプトを非対話モードで実行",
+    "pluginList": "インポート済みプラグインを一覧表示",
+    "pluginImport": "gemini または claude からプラグインをインポート",
+    "install": "環境パスとシェル設定を構成"
   }
 }

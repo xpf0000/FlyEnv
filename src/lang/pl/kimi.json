@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI nie jest zainstalowany. Kliknij przycisk poniżej, aby uruchomić oficjalny instalator.",
+  "officialWebsite": "Kimi Code CLI na GitHubie",
+  "officialDocs": "Dokumentacja Kimi Code CLI",
+  "permissionMode": "Tryb uprawnień",
+  "defaultThinking": "Domyślny tryb myślenia",
+  "defaultPlanMode": "Domyślny tryb planowania",
+  "telemetry": "Telemetria",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "Uaktualnij Kimi Code CLI",
+    "continue": "Kontynuuj ostatnią sesję w bieżącym katalogu",
+    "sessionSelect": "Wybierz i wznów sesję",
+    "plan": "Uruchom w trybie planowania",
+    "yolo": "Automatycznie zatwierdzaj zwykłe wywołania narzędzi",
+    "export": "Eksportuj sesję do ZIP",
+    "vis": "Otwórz wizualizator sesji w przeglądarce",
+    "providerList": "Wyświetl skonfigurowanych dostawców",
+    "providerAdd": "Dodaj dostawców z adresu URL rejestru",
+    "providerRemove": "Usuń dostawcę"
   }
 }

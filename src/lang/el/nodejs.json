@@ -8,7 +8,7 @@
   "updatePackageJsonFileTips": "Αυτή η ενέργεια θα τροποποιήσει το αρχείο package.json. Είστε σίγουροι ότι θέλετε να ενημερώσετε?",
   "copyDirPath": "Αντιγραφή Διαδρομής Φακέλου Έργου",
   "openIN": "Άνοιγμα Σε",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Επεξεργαστής Visual Studio Code",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "Περιβάλλον Έργου",

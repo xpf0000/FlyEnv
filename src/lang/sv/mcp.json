@@ -28,5 +28,26 @@
   "approvalConfirm": "Bekräfta",
   "approvalTip": "Bekrafta visar en inbyggd dialogruta innan verktyget kors.",
   "auditLog": "Revisionslogg",
-  "riskyTip": "Verktyg för tjänststyrning kan ändra din körande miljö. Låt bara verktyg du litar på vara aktiverade."
+  "riskyTip": "Verktyg för tjänststyrning kan ändra din körande miljö. Låt bara verktyg du litar på vara aktiverade.",
+  "risky": "Riskfylld",
+  "toolDescriptions": {
+    "list_services": "Lista FlyEnv-hanterade moduler med installerade versioner och körstatus.",
+    "service_status": "Hämta installerade versioner och körstatus för en FlyEnv-modul.",
+    "list_sites": "Lista lokala utvecklingssajter som hanteras av FlyEnv och deras metadata.",
+    "get_database_connection_info": "Returnera anslutningsdetaljer för en lokal databas eller cachetjänst som hanteras av FlyEnv.",
+    "resolve_site_runtime": "Lös upp en FlyEnv-sajt till runtime-detaljer som root-sökväg, webbserver och PHP/runtime-val.",
+    "get_service_exec_info": "Returnera körbar fil, konfiguration och runtime-detaljer för en installerad FlyEnv-modulversion.",
+    "resolve_site_urls": "Returnera de kanoniska URL:erna, aliasen, SSL-ingångspunkterna och reverse proxy-URL:erna för en FlyEnv-sajt.",
+    "get_managed_file_map": "Returnera FlyEnv-hanterade filvägar för env, konfiguration, loggar, certifikat, runtime och data för en sajt eller tjänst.",
+    "list_log_files": "Lista kända loggfiler för en FlyEnv-modul.",
+    "list_config_files": "Lista kända konfigurationsfiler för en FlyEnv-modul.",
+    "list_online_versions": "Lista nedladdningsbara versioner för en installerbar FlyEnv-modul.",
+    "start_service": "Starta en installerad långvarigt körande FlyEnv-tjänstversion.",
+    "stop_service": "Stoppa en körande långvarig FlyEnv-tjänst.",
+    "restart_service": "Starta om en körande långvarig FlyEnv-tjänst.",
+    "create_site": "Skapa en ny lokal utvecklingssajt i FlyEnv.",
+    "update_site": "Uppdatera en befintlig lokal utvecklingssajt i FlyEnv.",
+    "delete_site": "Ta bort en lokal utvecklingssajt från FlyEnv-konfigurationen.",
+    "install_service": "Ladda ner och installera en version för en installerbar FlyEnv-modul."
+  }
 }

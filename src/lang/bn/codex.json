@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Codex GitHub",
-  "officialDocs": "Codex CLI Docs",
-  "reasoningEffort": "Reasoning Effort",
-  "approvalPolicy": "Approval Policy",
-  "sandboxMode": "Sandbox Mode",
-  "pluginEnabled": "Plugin installed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
+  "notInstalled": "Codex CLI ইনস্টল করা নেই। অফিসিয়াল ইনস্টলার দিয়ে ইনস্টল করতে নিচের বোতামে ক্লিক করুন।",
+  "officialWebsite": "Codex GitHub পৃষ্ঠা",
+  "officialDocs": "Codex CLI ডকস",
+  "reasoningEffort": "যুক্তি প্রয়াস",
+  "approvalPolicy": "অনুমোদন নীতি",
+  "sandboxMode": "স্যান্ডবক্স মোড",
+  "pluginEnabled": "প্লাগইন ইনস্টল করা হয়েছে",
+  "uninstallConfirm": "আপনি কি নিশ্চিত যে \"{name}\" প্লাগইনটি সরাতে চান?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Codex-কে সর্বশেষ সংস্করণে আপডেট করুন",
+    "continue": "সর্বশেষ সেশনটি চালিয়ে যান",
+    "resume": "পূর্ববর্তী সেশন পুনরায় শুরু করুন (পিকার)",
+    "exec": "Codex নন-ইন্টারঅ্যাক্টিভভাবে চালান",
+    "review": "কোড রিভিউ নন-ইন্টারঅ্যাক্টিভভাবে চালান",
+    "pluginList": "উপলভ্য প্লাগইনগুলোর তালিকা দেখান",
+    "login": "লগইন / প্রমাণীকরণ পরিচালনা করুন"
   }
 }

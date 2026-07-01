@@ -28,5 +28,26 @@
   "approvalConfirm": "নিশ্চিত করুন",
   "approvalTip": "নিশ্চিত করুন টুলটি কার্যকর করার আগে একটি নেটিভ ডায়ালগ দেখায় ।",
   "auditLog": "অডিট লগ",
-  "riskyTip": "পরিষেবা নিয়ন্ত্রণ সরঞ্জামগুলি আপনার চলমান পরিবেশ পরিবর্তন করতে পারে । শুধুমাত্র আপনার বিশ্বাসযোগ্য সরঞ্জামগুলিই চালু রাখুন ।"
+  "riskyTip": "পরিষেবা নিয়ন্ত্রণ সরঞ্জামগুলি আপনার চলমান পরিবেশ পরিবর্তন করতে পারে । শুধুমাত্র আপনার বিশ্বাসযোগ্য সরঞ্জামগুলিই চালু রাখুন ।",
+  "risky": "ঝুঁকিপূর্ণ",
+  "toolDescriptions": {
+    "list_services": "FlyEnv দ্বারা পরিচালিত মডিউলগুলোর ইনস্টল করা সংস্করণ ও চলমান অবস্থা তালিকাভুক্ত করুন।",
+    "service_status": "একটি FlyEnv মডিউলের ইনস্টল করা সংস্করণ ও চলমান অবস্থা দেখান।",
+    "list_sites": "FlyEnv দ্বারা পরিচালিত লোকাল ডেভেলপমেন্ট সাইট ও তাদের মেটাডেটা তালিকাভুক্ত করুন।",
+    "get_database_connection_info": "FlyEnv দ্বারা পরিচালিত লোকাল ডেটাবেস বা ক্যাশ সেবার সংযোগ তথ্য ফেরত দিন।",
+    "resolve_site_runtime": "একটি FlyEnv সাইটকে root path, web server, এবং PHP/runtime নির্বাচনসহ runtime তথ্য হিসেবে বিশ্লেষণ করুন।",
+    "get_service_exec_info": "একটি ইনস্টল করা FlyEnv মডিউল সংস্করণের executable, config এবং runtime তথ্য ফেরত দিন।",
+    "resolve_site_urls": "একটি FlyEnv সাইটের canonical URL, alias, SSL entrypoint এবং reverse proxy URL ফেরত দিন।",
+    "get_managed_file_map": "কোনো সাইট বা সেবার জন্য FlyEnv দ্বারা পরিচালিত env, config, log, cert, runtime এবং data file path ফেরত দিন।",
+    "list_log_files": "একটি FlyEnv মডিউলের পরিচিত log file তালিকাভুক্ত করুন।",
+    "list_config_files": "একটি FlyEnv মডিউলের পরিচিত config file তালিকাভুক্ত করুন।",
+    "list_online_versions": "ইনস্টলযোগ্য FlyEnv মডিউলের ডাউনলোডযোগ্য সংস্করণগুলোর তালিকা দেখান।",
+    "start_service": "ইনস্টল করা দীর্ঘমেয়াদি FlyEnv সেবা সংস্করণ চালু করুন।",
+    "stop_service": "চলমান দীর্ঘমেয়াদি FlyEnv সেবা বন্ধ করুন।",
+    "restart_service": "চলমান দীর্ঘমেয়াদি FlyEnv সেবা পুনরায় চালু করুন।",
+    "create_site": "নতুন FlyEnv লোকাল ডেভেলপমেন্ট সাইট তৈরি করুন।",
+    "update_site": "বিদ্যমান FlyEnv লোকাল ডেভেলপমেন্ট সাইট আপডেট করুন।",
+    "delete_site": "FlyEnv কনফিগারেশন থেকে একটি লোকাল ডেভেলপমেন্ট সাইট মুছে দিন।",
+    "install_service": "ইনস্টলযোগ্য FlyEnv মডিউলের একটি সংস্করণ ডাউনলোড ও ইনস্টল করুন।"
+  }
 }

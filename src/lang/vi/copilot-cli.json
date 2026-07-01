@@ -1,13 +1,13 @@
 {
-  "notInstalled": "GitHub Copilot CLI is not installed. Click the button below to install it via npm (requires Node.js 22+).",
-  "officialWebsite": "Copilot CLI GitHub",
-  "officialDocs": "Copilot CLI Docs",
+  "notInstalled": "GitHub Copilot CLI chưa được cài đặt. Nhấp vào nút bên dưới để cài đặt qua npm (yêu cầu Node.js 22+).",
+  "officialWebsite": "GitHub của Copilot CLI",
+  "officialDocs": "Tài liệu Copilot CLI",
   "cmd": {
-    "update": "Download the latest version of Copilot CLI",
-    "resume": "Resume a previous session (picker)",
-    "continue": "Resume the most recent session",
-    "prompt": "Run a single prompt non-interactively",
-    "login": "Authenticate with Copilot",
-    "init": "Initialize Copilot instructions for a repository"
+    "update": "Tải xuống phiên bản mới nhất của Copilot CLI",
+    "resume": "Tiếp tục một phiên trước đó (bộ chọn)",
+    "continue": "Tiếp tục phiên gần đây nhất",
+    "prompt": "Chạy một lời nhắc đơn ở chế độ không tương tác",
+    "login": "Xác thực với Copilot",
+    "init": "Khởi tạo hướng dẫn Copilot cho kho lưu trữ"
   }
 }

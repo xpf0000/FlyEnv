@@ -61,7 +61,7 @@
   "flutterCreateFailed": "falha ao criar flamejante",
   "flutterProjectSettings": "Configurações do Projeto Flutter",
   "previewChanges": "Visualizar alterações",
-  "projectTarget": "Project target",
+  "projectTarget": "Destino do projeto",
   "projectIdentity": "Identidade do projeto",
   "refreshInstalled": "Atualização instalada",
   "noPackagesInPubspec": "Nenhum pacote encontrado no pubspec.yaml.",

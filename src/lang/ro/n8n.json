@@ -3,7 +3,7 @@
   "N8N_HOST": "Numele gazdei sau adresa IP pentru interfata n8n (implicit: localhost)",
   "N8N_PROTOCOL": "Protocol: http sau https (implicit: http)",
   "N8N_PATH": "Calea URL pentru interfața n8n web (implicit: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "Tip de baza de date: sqlite, postgresdb, mysqldb, mariadb (implicit: sqlite)",
   "N8N_USER_FOLDER": "Directorul personalizat unde n8n stochează datele utilizatorului (implicit: ~/.n8n)",
   "ownerResetTitle": "Resetare cont proprietar",
   "ownerResetBtn": "Resetați și reaplicați acreditările",

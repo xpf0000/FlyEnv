@@ -42,22 +42,22 @@
 
         <p class="text-sm text-gray-500 mb-3">{{ I18nT('mcp.addToClientTip') }}</p>
         <div class="flex gap-3 flex-wrap">
-          <el-button @click="add('claudeCode')">
+          <el-button class="!ml-0" @click="add('claudeCode')">
             {{ I18nT('mcp.addToClient', { client: 'Claude Code' }) }}
           </el-button>
-          <el-button @click="add('antigravity')">
+          <el-button class="!ml-0" @click="add('antigravity')">
             {{ I18nT('mcp.addToClient', { client: 'Antigravity CLI' }) }}
           </el-button>
-          <el-button @click="add('codex')">
+          <el-button class="!ml-0" @click="add('codex')">
             {{ I18nT('mcp.addToClient', { client: 'Codex' }) }}
           </el-button>
-          <el-button @click="add('copilotCli')">
+          <el-button class="!ml-0" @click="add('copilotCli')">
             {{ I18nT('mcp.addToClient', { client: 'GitHub Copilot CLI' }) }}
           </el-button>
-          <el-button @click="add('openCode')">
+          <el-button class="!ml-0" @click="add('openCode')">
             {{ I18nT('mcp.addToClient', { client: 'OpenCode' }) }}
           </el-button>
-          <el-button @click="add('kimi')">
+          <el-button class="!ml-0" @click="add('kimi')">
             {{ I18nT('mcp.addToClient', { client: 'Kimi' }) }}
           </el-button>
         </div>

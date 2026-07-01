@@ -11,7 +11,8 @@
     "models": "Modeller",
     "skills": "Ferdigheter",
     "system": "Systemadministrasjon",
-    "sessions": "Økter"
+    "sessions": "Økter",
+    "backup": "Sikkerhetskopi og oppdatering"
   },
   "cmd": {
     "dashboard": "Åpne kontrollpanelet i UI dashbord",
@@ -28,10 +29,10 @@
     "reset": "Tilbakestill lokal konfigurasjon/tilstand",
     "gatewayHelp": "Gateway kommando hjelp",
     "gatewayUsageCost": "Vis brukskostnad for gateway",
-    "gatewayProbe": "Probe gateway status",
+    "gatewayProbe": "Undersok gateway-status",
     "gatewayDiscover": "Oppdag gateway-tjenester",
     "gatewayHealth": "Sjekk gateway helse",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Vis detaljert gateway-status",
     "gatewayInstall": "Installer gateway-tjeneste",
     "gatewayCall": "Call gateway API (krever parametere)",
     "agent": "Kjør en agent slår via Gateway",
@@ -63,7 +64,7 @@
     "messageSend": "Send melding (krever parametere)",
     "messageRead": "Lese meldinger (krever parametere)",
     "nodesList": "Liste noder",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Vis nodestatus",
     "nodesPending": "Vis ventende noder",
     "nodesApprove": "Godkjenn node (krever node ID)",
     "nodesReject": "Avvis node (krever node ID)",
@@ -88,8 +89,8 @@
     "systemEvent": "Send systemhendelse (krever parametere)",
     "cronList": "List cron jobber",
     "cronAdd": "Legg til cron jobb (krever parametere)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Vis hooks",
+    "hooksCheck": "Sjekk hook-status",
     "memorySearch": "Søkeminne (krever spørring)",
     "memoryStatus": "Vis minnestatus",
     "sandboxList": "List sandkasser",
@@ -118,8 +119,8 @@
     "pairingList": "List sammenkoblingsforespørsler",
     "docs": "Søk docs (krever spørring)",
     "completion": "Generer skallfullføring",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Apne terminalgrensesnitt",
+    "qr": "Generer QR-kode",
     "onboard": "Kjør oppstartsveiviser",
     "uninstall": "Avinstaller OpenClaw"
   }

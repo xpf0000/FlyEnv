@@ -23,15 +23,15 @@
     "image": "ইমেজ",
     "state": "অবস্থা",
     "grid": "Grid",
-    "gridSpacing": "Grid Spacing (pixels)",
+    "gridSpacing": "গ্রিড ব্যবধান (পিক্সেল)",
     "fontSize": "ফন্ট সাইজ",
     "code": "কোড"
   },
   "action": {
     "enable": "সক্রিয় করুন",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "নিষ্ক্রিয় করুন",
+    "resume": "পুনরায় শুরু",
+    "uninstall": "আনইনস্টল",
     "copy": "কপি করুন",
     "preview": "প্রাকদর্শন",
     "search": "অনুসন্ধান করুন",
@@ -48,83 +48,83 @@
     "close": "বন্ধ করুন",
     "selectAll": "সব নির্বাচন করুন",
     "changeName": "নাম সম্পাদনা করুন",
-    "changeOwnerPassword": "Change Owner Password",
+    "changeOwnerPassword": "মালিকের পাসওয়ার্ড পরিবর্তন করুন",
     "changeRole": "ভূমিকা পরিবর্তন"
   },
   "state": {
     "running": "চলমান",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "ইনস্টল করা হয়েছে",
+    "enabled": "সক্রিয়",
+    "disabled": "নিষ্ক্রিয়",
+    "available": "উপলভ্য"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "সেশনসমূহ",
+    "title": "শিরোনাম",
+    "id": "সেশন আইডি",
+    "lastPrompt": "সর্বশেষ প্রম্পট",
+    "search": "সেশন খুঁজুন",
+    "deleted": "সেশন মুছে ফেলা হয়েছে",
+    "resumed": "টার্মিনালে সেশন পুনরায় শুরু হয়েছে"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "কমান্ড / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "সার্ভার যোগ করুন"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "মৌলিক",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "দক্ষতা",
     "basicInfo": "মৌলিক তথ্য",
     "configuration": "Configuration",
     "favorites": "প্রিয়",
     "plugins": "Plugins",
-    "backupUpdate": "Backup & Update"
+    "backupUpdate": "ব্যাকআপ ও আপডেট"
   },
   "skills": {
-    "openSkillsDir": "Open skills directory",
+    "openSkillsDir": "স্কিলস ফোল্ডার খুলুন",
     "openSkillDir": "ওপেন স্কিল ডিরেক্টরি",
     "revealSkillFile": "দক্ষতা ফাইল প্রকাশ করুন",
-    "noSkills": "No skills found",
+    "noSkills": "কোনো স্কিল পাওয়া যায়নি",
     "skillFileMissing": "স্কিল ফাইল পাওয়া যায়নি",
     "skillLoadFailed": "দক্ষতা ফাইল লোড করতে ব্যর্থ হয়েছে",
-    "builtin": "Built-in"
+    "builtin": "অন্তর্নির্মিত"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
-    "doctor": "Run health checks",
-    "doctorFix": "Run health checks with auto-fix",
-    "gatewayStart": "Start gateway service",
-    "gatewayStop": "Stop gateway service",
-    "gatewayRestart": "Restart gateway service",
-    "gatewayStatus": "Show gateway status",
-    "gatewayRun": "Run gateway in foreground",
-    "gatewayUninstall": "Uninstall gateway service",
-    "skillsList": "List available skills"
+    "help": "সহায়তার তথ্য প্রদর্শন করুন",
+    "version": "সংস্করণ নম্বর দেখান",
+    "start": "একটি নতুন ইন্টারঅ্যাক্টিভ সেশন শুরু করুন",
+    "mcpList": "কনফিগার করা MCP সার্ভারগুলোর তালিকা দেখান",
+    "doctor": "স্বাস্থ্য পরীক্ষা চালান",
+    "doctorFix": "স্বয়ংক্রিয় সমাধানসহ স্বাস্থ্য পরীক্ষা চালান",
+    "gatewayStart": "গেটওয়ে সার্ভিস চালু করুন",
+    "gatewayStop": "গেটওয়ে সার্ভিস বন্ধ করুন",
+    "gatewayRestart": "গেটওয়ে সার্ভিস পুনরায় চালু করুন",
+    "gatewayStatus": "গেটওয়ে অবস্থা দেখান",
+    "gatewayRun": "গেটওয়েকে ফোরগ্রাউন্ডে চালান",
+    "gatewayUninstall": "গেটওয়ে সার্ভিস আনইনস্টল করুন",
+    "skillsList": "উপলব্ধ স্কিলগুলোর তালিকা দেখান"
   },
   "gateway": {
-    "category": "Gateway Service",
-    "status": "Gateway Status",
-    "running": "Gateway is running",
-    "stopped": "Gateway is stopped",
-    "startFailed": "Gateway start failed"
+    "category": "গেটওয়ে সার্ভিস",
+    "status": "গেটওয়ে অবস্থা",
+    "running": "গেটওয়ে চলছে",
+    "stopped": "গেটওয়ে বন্ধ আছে",
+    "startFailed": "গেটওয়ে চালু করা যায়নি"
   },
   "value": {
     "yes": "হ্যাঁ",
     "no": "না",
-    "other": "Other",
+    "other": "অন্যান্য",
     "default": "ডিফল্ট",
     "none": "কিছু নেই",
     "local": "Local"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "প্লাগইন খুঁজুন",
+    "removed": "প্লাগইন সরানো হয়েছে"
   },
   "schedule": {
     "everyHour": "প্রতি ঘণ্টায়",

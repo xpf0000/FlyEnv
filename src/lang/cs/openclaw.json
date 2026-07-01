@@ -2,7 +2,7 @@
   "notInstalled": "OpenClaw není nainstalován. Nejprve jej nainstalujte.",
   "gatewayNotInstalled": "Brána není nainstalována. Nejprve prosím nainstalujte bránu.",
   "OpenClawOfficialWebsite": "OpenClaw Domů",
-  "OpenClawLocalDashboard": "OpenClaw Dashboard",
+  "OpenClawLocalDashboard": "Ovládací panel OpenClaw",
   "category": {
     "agents": "Agenti",
     "browser": "Prohlížeč",
@@ -11,7 +11,8 @@
     "models": "Vzory",
     "skills": "Dovednosti",
     "system": "Systém",
-    "sessions": "Relace"
+    "sessions": "Relace",
+    "backup": "Záloha a aktualizace"
   },
   "cmd": {
     "dashboard": "Otevřít řídicí panel UI",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Stav vstupní brány",
     "gatewayDiscover": "Objevovat brány",
     "gatewayHealth": "Zkontrolovat zdraví brány",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Zobrazit podrobný stav gateway",
     "gatewayInstall": "Instalovat službu brány",
     "gatewayCall": "Volat API bránu (vyžaduje parametry)",
     "agent": "Spustit jeden agent otočit přes Gateway",
@@ -63,7 +64,7 @@
     "messageSend": "Odeslat zprávu (vyžaduje parametry)",
     "messageRead": "Čtení zpráv (vyžaduje parametry)",
     "nodesList": "Seznam uzlů",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Zobrazit stav uzlů",
     "nodesPending": "Zobrazit čekající uzly",
     "nodesApprove": "Schválit uzel (vyžaduje ID uzlu)",
     "nodesReject": "Odmítnout uzel (vyžaduje ID uzlu)",
@@ -88,8 +89,8 @@
     "systemEvent": "Odeslat systémovou událost (vyžaduje parametry)",
     "cronList": "Seznam cron úloh",
     "cronAdd": "Přidat cron úlohu (vyžaduje parametry)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Vypsat hooky",
+    "hooksCheck": "Zkontrolovat stav hooků",
     "memorySearch": "Hledat paměť (vyžaduje dotaz)",
     "memoryStatus": "Zobrazit stav paměti",
     "sandboxList": "Seznam pískových skříní",
@@ -118,8 +119,8 @@
     "pairingList": "Seznam požadavků na párování",
     "docs": "Hledat dokumenty (vyžaduje dotaz)",
     "completion": "Generovat dokončování shell",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Otevřít terminálové UI",
+    "qr": "Vygenerovat QR kód",
     "onboard": "Spustit průvodce nastavením",
     "uninstall": "Odinstalovat OpenClaw"
   }

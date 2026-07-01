@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "Aktivera",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Inaktivera",
+    "resume": "Återuppta",
+    "uninstall": "Avinstallera",
     "copy": "Kopiera",
     "preview": "Förhandsgranskning",
     "search": "Sök",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Körs",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Installerad",
+    "enabled": "Aktiverad",
+    "disabled": "Inaktiverad",
+    "available": "Tillgänglig"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sessioner",
+    "title": "Titel",
+    "id": "Sessions-ID",
+    "lastPrompt": "Senaste prompten",
+    "search": "Sök sessioner",
+    "deleted": "Sessionen har tagits bort",
+    "resumed": "Sessionen återupptogs i terminalen"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Kommando / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Lägg till server"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Grundläggande",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Färdigheter",
     "basicInfo": "Grundläggande information",
     "configuration": "Konfiguration",
     "favorites": "Favoriter",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Öppna kompetenskatalog",
     "openSkillDir": "Öppna kompetensmapp",
     "revealSkillFile": "Visa kompetensfil",
-    "noSkills": "No skills found",
+    "noSkills": "Inga färdigheter hittades",
     "skillFileMissing": "Kunde inte hitta kompetensfilen",
     "skillLoadFailed": "Det gick inte att läsa in kompetensfilen",
     "builtin": "Inbyggd"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Visa hjälpinformation",
+    "version": "Visa versionsnummer",
+    "start": "Starta en ny interaktiv session",
+    "mcpList": "Lista konfigurerade MCP-servrar",
     "doctor": "Kör hälsokontroller",
     "doctorFix": "Kör hälsokontroller med auto-fix",
     "gatewayStart": "Starta gatewayservice",
@@ -105,11 +105,11 @@
     "gatewayStatus": "Visa gatewaystatus",
     "gatewayRun": "Kör gateway i förgrunden",
     "gatewayUninstall": "Avinstallera gateway service",
-    "skillsList": "List available skills"
+    "skillsList": "Lista tillgängliga färdigheter"
   },
   "gateway": {
-    "category": "Gateway Service",
-    "status": "Gateway Status",
+    "category": "Gateway-tjänst",
+    "status": "Gateway-status",
     "running": "Gateway körs",
     "stopped": "Gateway har stoppats",
     "startFailed": "Gateway start misslyckades"
@@ -123,14 +123,14 @@
     "local": "Lokal"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Sök plugins",
+    "removed": "Plugin borttagen"
   },
   "schedule": {
     "everyHour": "Varje timme",
     "everyMinute": "Varje minut"
   },
   "error": {
-    "phpiniNotFound": "php.ini file not found"
+    "phpiniNotFound": "php.ini-filen hittades inte"
   }
 }

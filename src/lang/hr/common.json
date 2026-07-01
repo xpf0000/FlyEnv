@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "Omogući",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Onemogući",
+    "resume": "Nastavi",
+    "uninstall": "Deinstaliraj",
     "copy": "Kopiraj",
     "preview": "Pregled",
     "search": "Pretraži",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Trčanje",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Instalirano",
+    "enabled": "Omogućeno",
+    "disabled": "Onemogućeno",
+    "available": "Dostupno"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sesije",
+    "title": "Naslov",
+    "id": "ID sesije",
+    "lastPrompt": "Posljednji upit",
+    "search": "Pretraži sesije",
+    "deleted": "Sesija je izbrisana",
+    "resumed": "Sesija je nastavljena u terminalu"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Naredba / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Dodaj poslužitelj"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Osnovno",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Vještine",
     "basicInfo": "Osnovne Informacije",
     "configuration": "Konfiguracija",
     "favorites": "Favoriti",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Otvori direktorij vještina",
     "openSkillDir": "Otvori direktorij vještina",
     "revealSkillFile": "Otkrij datoteku s vještinama",
-    "noSkills": "No skills found",
+    "noSkills": "Nisu pronađene vještine",
     "skillFileMissing": "Datoteka s vještinama nije pronađena",
     "skillLoadFailed": "Učitavanje datoteke s vještinama nije uspjelo",
     "builtin": "Ugrađeno"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Prikaži informacije pomoći",
+    "version": "Prikaži broj verzije",
+    "start": "Pokreni novu interaktivnu sesiju",
+    "mcpList": "Prikaži konfigurirane MCP poslužitelje",
     "doctor": "Pokreni provjere zdravlja",
     "doctorFix": "Pokreni provjere zdravlja s automatskim popravkom",
     "gatewayStart": "Pokreni servis pristupnika",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Prikaži status pristupnika",
     "gatewayRun": "Pokreni pristupnik u prvom planu",
     "gatewayUninstall": "Deinstaliraj servis pristupnika",
-    "skillsList": "List available skills"
+    "skillsList": "Prikaži dostupne vještine"
   },
   "gateway": {
     "category": "Servis Pristupnika",
@@ -123,8 +123,8 @@
     "local": "Lokalno"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Pretraži dodatke",
+    "removed": "Dodatak je uklonjen"
   },
   "schedule": {
     "everyHour": "Svakog sata",

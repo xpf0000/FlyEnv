@@ -11,7 +11,8 @@
     "models": "模型管理",
     "skills": "技能管理",
     "system": "系統管理",
-    "sessions": "工作階段管理"
+    "sessions": "工作階段管理",
+    "backup": "備份與更新"
   },
   "cmd": {
     "dashboard": "開啟控制面板",

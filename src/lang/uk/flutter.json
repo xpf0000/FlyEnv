@@ -61,7 +61,7 @@
   "flutterCreateFailed": "створення прошивки не вдалося",
   "flutterProjectSettings": "Налаштування блимання проекту",
   "previewChanges": "Попередній перегляд змін",
-  "projectTarget": "Project target",
+  "projectTarget": "Ціль проєкту",
   "projectIdentity": "Ідентифікація проекту",
   "refreshInstalled": "Оновлення встановлено",
   "noPackagesInPubspec": "Не знайдено пакунків в pubspec.yaml.",

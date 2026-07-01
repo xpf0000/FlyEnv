@@ -50,7 +50,7 @@
   "runDirectory": "Arbeitsverzeichnis",
   "vhostEdit": "Vhost-Template bearbeiten",
   "vhostApacheEdit": "Apache Vhost Vorlage",
-  "vhostApacheSSLEdit": "Apache Vhost Template (SSL)",
+  "vhostApacheSSLEdit": "Apache-Vhost-Vorlage (SSL)",
   "vhostNginxEdit": "Nginx Vhost Vorlage",
   "vhostNginxSSLEdit": "Nginx Vhost Vorlage (SSL)",
   "vhostCaddyEdit": "Caddy Vhost Vorlage",

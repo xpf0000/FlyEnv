@@ -15,7 +15,7 @@
   "require": "обов’язково",
   "rootful": "Режим rootful",
   "userModeNetworking": "Мережа в режимі користувача",
-  "rosetta": "Rosetta (Mac)",
+  "rosetta": "Rosetta для Mac",
   "identityPath": "Шлях до SSH-ключа",
   "remoteUsername": "Віддалений користувач",
   "Dashboard": "Панель приладів",

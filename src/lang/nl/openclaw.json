@@ -2,7 +2,7 @@
   "notInstalled": "OpenClaw is niet geïnstalleerd. Installeer het alstublieft eerst.",
   "gatewayNotInstalled": "Gateway is niet geïnstalleerd. Installeer eerst de gateway.",
   "OpenClawOfficialWebsite": "OpenKlauw Home",
-  "OpenClawLocalDashboard": "OpenClaw Dashboard",
+  "OpenClawLocalDashboard": "OpenClaw-dashboard",
   "category": {
     "agents": "Agenten",
     "browser": "browser",
@@ -11,7 +11,8 @@
     "models": "Model",
     "skills": "Vaardigheden",
     "system": "Systeem",
-    "sessions": "Sessies"
+    "sessions": "Sessies",
+    "backup": "Back-up en update"
   },
   "cmd": {
     "dashboard": "Open het dashboard voor Control UI",
@@ -28,10 +29,10 @@
     "reset": "Reset lokale configuratie/status",
     "gatewayHelp": "Gateway commando help",
     "gatewayUsageCost": "Toon gateway gebruikskosten",
-    "gatewayProbe": "Probe gateway status",
+    "gatewayProbe": "Gateway-status onderzoeken",
     "gatewayDiscover": "Ontdek communicatie-eenheid",
     "gatewayHealth": "Gezondheid van gateway controleren",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Diepgaande gateway-status tonen",
     "gatewayInstall": "Installeer gateway service",
     "gatewayCall": "Oproepgateway API (vereist parameters)",
     "agent": "Voer één agent uit via Gateway",
@@ -63,7 +64,7 @@
     "messageSend": "Bericht verzenden (parameters vereist)",
     "messageRead": "Lees berichten (vereist parameters)",
     "nodesList": "Toon knooppunten",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Nodestatus tonen",
     "nodesPending": "Toon openstaande nodes",
     "nodesApprove": "Keur node goed (vereist node ID)",
     "nodesReject": "Knoop afwijzen (node ID vereist)",
@@ -88,8 +89,8 @@
     "systemEvent": "Systeem gebeurtenis verzenden (vereist parameters)",
     "cronList": "Lijst van cron taken",
     "cronAdd": "cron job toevoegen (vereist parameters)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Hooks weergeven",
+    "hooksCheck": "Hookstatus controleren",
     "memorySearch": "Zoekgeheugen (vereist query)",
     "memoryStatus": "Toon geheugenstatus",
     "sandboxList": "Toon sandboxen",
@@ -118,8 +119,8 @@
     "pairingList": "Toon pairing verzoeken",
     "docs": "Zoek documenten (vereist query)",
     "completion": "Genereer shell voltooiing",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Terminalinterface openen",
+    "qr": "QR-code genereren",
     "onboard": "Start de wizard onboarding",
     "uninstall": "Deïnstalleer OpenClaw"
   }

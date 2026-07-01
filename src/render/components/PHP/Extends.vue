@@ -42,7 +42,9 @@
                       <el-radio-button value="macports">Macports</el-radio-button>
                     </template>
                     <template v-else-if="!isStatic">
-                      <el-radio-button value="flyenv">{{ I18nT('common.value.default') }}</el-radio-button>
+                      <el-radio-button value="flyenv">{{
+                        I18nT('common.value.default')
+                      }}</el-radio-button>
                     </template>
                   </el-radio-group>
                 </template>

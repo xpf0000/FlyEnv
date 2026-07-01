@@ -8,7 +8,9 @@
             <el-radio-button value="installed">{{
               I18nT('common.state.installed')
             }}</el-radio-button>
-            <el-radio-button value="available">{{ I18nT('common.state.available') }}</el-radio-button>
+            <el-radio-button value="available">{{
+              I18nT('common.state.available')
+            }}</el-radio-button>
           </el-radio-group>
         </div>
         <el-button link :disabled="CodexSetup.pluginsLoading" @click="CodexSetup.refreshPlugins()">

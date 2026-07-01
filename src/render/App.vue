@@ -21,6 +21,7 @@
   import type { AllAppModule, AppModuleEnum } from '@/core/type'
   import { shell } from '@/util/NodeFn'
   import { AppUI } from '@/util/UI'
+  import { buildProxyConfigCommand, type InstallProxyPlatform } from '@shared/installProxyEnv'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -43,6 +44,16 @@
 
   const platformModule = computed(() => {
     return AppModules.filter((m) => !m.platform || m.platform.includes(platform.value))
+  })
+
+  const proxyPlatform = computed<InstallProxyPlatform>(() => {
+    if (window.Server.isWindows) {
+      return 'windows'
+    }
+    if (window.Server.isMacOS) {
+      return 'macos'
+    }
+    return 'linux'
   })
 
   const allService = computed(() => {
@@ -144,12 +155,11 @@
           customClass: 'confirm-del',
           type: 'warning'
         }).then(() => {
-          const arr: string[] = ['export']
-          for (const k in proxy) {
-            arr.push(`${k}=${proxy[k]}`)
-          }
           appStore.config.setup.proxy.on = true
-          appStore.config.setup.proxy.proxy = arr.join(' ')
+          appStore.config.setup.proxy.proxy = buildProxyConfigCommand(
+            proxyPlatform.value,
+            proxy as Record<string, string>
+          )
           appStore.saveConfig()
           MessageSuccess(I18nT('tools.systemProxyUsed'))
         })

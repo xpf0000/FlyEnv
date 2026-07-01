@@ -11,7 +11,8 @@
     "models": "Μοντέλα",
     "skills": "Δεξιότητες",
     "system": "Σύστημα",
-    "sessions": "Συνεδρίες"
+    "sessions": "Συνεδρίες",
+    "backup": "Αντίγραφα ασφαλείας και ενημέρωση"
   },
   "cmd": {
     "dashboard": "Άνοιγμα του πίνακα ελέγχου UI",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Κατάσταση πύλης ελέγχου",
     "gatewayDiscover": "Ανακαλύψτε τις υπηρεσίες πύλης",
     "gatewayHealth": "Έλεγχος υγείας πύλης",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Εμφάνιση αναλυτικής κατάστασης gateway",
     "gatewayInstall": "Εγκατάσταση υπηρεσίας πύλης",
     "gatewayCall": "Η πύλη API κλήσης (απαιτεί παραμέτρους)",
     "agent": "Εκτελέστε μία στροφή πράκτορα μέσω Gateway",
@@ -63,7 +64,7 @@
     "messageSend": "Αποστολή μηνύματος (απαιτεί παραμέτρους)",
     "messageRead": "Ανάγνωση μηνυμάτων (απαιτεί παραμέτρους)",
     "nodesList": "Λίστα κόμβων",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Εμφάνιση κατάστασης κόμβων",
     "nodesPending": "Εμφάνιση εκκρεμών κόμβων",
     "nodesApprove": "Έγκριση κόμβου (απαιτεί ID κόμβου)",
     "nodesReject": "Απόρριψη κόμβου (απαιτεί ID κόμβου)",
@@ -88,8 +89,8 @@
     "systemEvent": "Αποστολή συμβάντος συστήματος (απαιτεί παραμέτρους)",
     "cronList": "Λίστα cron εργασιών",
     "cronAdd": "Προσθήκη εργασίας cron (απαιτεί παραμέτρους)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Λίστα hooks",
+    "hooksCheck": "Έλεγχος κατάστασης hooks",
     "memorySearch": "Αναζήτηση μνήμης (απαιτεί ερώτημα)",
     "memoryStatus": "Εμφάνιση κατάστασης μνήμης",
     "sandboxList": "Λίστα sandbox",
@@ -118,8 +119,8 @@
     "pairingList": "Αιτήσεις σύζευξης λίστας",
     "docs": "Έγγραφα αναζήτησης (απαιτεί ερώτηση)",
     "completion": "Δημιουργία ολοκλήρωσης κελύφους",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Άνοιγμα διεπαφής τερματικού",
+    "qr": "Δημιουργία κωδικού QR",
     "onboard": "Εκτέλεση οδηγού επιβίβασης",
     "uninstall": "Απεγκατάσταση OpenClaw"
   }

@@ -28,5 +28,26 @@
   "approvalConfirm": "彈窗確認",
   "approvalTip": "彈窗確認會在執行該工具前顯示系統原生確認框。",
   "auditLog": "稽核日誌",
-  "riskyTip": "服務控制類工具會改變你正在執行的環境，請只保留你信任的工具。"
+  "riskyTip": "服務控制類工具會改變你正在執行的環境，請只保留你信任的工具。",
+  "risky": "高風險",
+  "toolDescriptions": {
+    "list_services": "列出 FlyEnv 管理的模組、已安裝版本以及運行狀態。",
+    "service_status": "查看單個 FlyEnv 模組的已安裝版本和運行狀態。",
+    "list_sites": "列出 FlyEnv 管理的本地站點及其中繼資料。",
+    "get_database_connection_info": "返回 FlyEnv 管理的本地資料庫或快取服務連線資訊。",
+    "resolve_site_runtime": "解析站點所使用的執行階段資訊，例如根目錄、Web 伺服器和 PHP/執行階段選擇。",
+    "get_service_exec_info": "返回某個已安裝 FlyEnv 模組版本的可執行檔、設定和執行階段資訊。",
+    "resolve_site_urls": "返回站點的標準 URL、別名、SSL 入口和反向代理 URL。",
+    "get_managed_file_map": "返回站點或服務的 FlyEnv 管理檔案路徑，例如 env、設定、日誌、憑證、執行階段和資料目錄。",
+    "list_log_files": "列出某個 FlyEnv 模組已知的日誌檔案。",
+    "list_config_files": "列出某個 FlyEnv 模組已知的設定檔。",
+    "list_online_versions": "列出某個可安裝 FlyEnv 模組的可下載版本。",
+    "start_service": "啟動一個已安裝的 FlyEnv 常駐服務版本。",
+    "stop_service": "停止一個正在運行的 FlyEnv 常駐服務。",
+    "restart_service": "重新啟動一個正在運行的 FlyEnv 常駐服務。",
+    "create_site": "建立一個新的 FlyEnv 本地開發站點。",
+    "update_site": "更新一個現有的 FlyEnv 本地開發站點。",
+    "delete_site": "從 FlyEnv 設定中刪除一個本地開發站點。",
+    "install_service": "下載並安裝一個可安裝 FlyEnv 模組的指定版本。"
+  }
 }

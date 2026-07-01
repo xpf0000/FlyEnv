@@ -12,11 +12,11 @@
   "customDirVersionDelTips": "Bu versiya xüsusi yol versiyasıdır, göstərilməsin?",
   "ErrorTips": {
     "VCRuntime": {
-      "title": "Your system is missing the Visual C++ Redistributable (DLLs) required to run this version. Please click the link below to download and install the VC Runtime from Microsoft's official website.",
-      "versionRelation": "Version Compatibility Reference:",
+      "title": "Sisteminizdə bu versiyanı işlətmək üçün tələb olunan Visual C++ Redistributable (DLL) yoxdur. VC Runtime-ı Microsoft-un rəsmi saytından endirib quraşdırmaq üçün aşağıdakı linkə klikləyin.",
+      "versionRelation": "Versiya uyğunluğu istinadı:",
       "software": "Software",
-      "versionRange": "Version Range",
-      "msvsVersion": "MSVC Version"
+      "versionRange": "Versiya aralığı",
+      "msvsVersion": "MSVC versiyası"
     }
   }
 }

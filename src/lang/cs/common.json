@@ -24,14 +24,14 @@
     "state": "Stát",
     "grid": "Mřížka",
     "gridSpacing": "Mezery v mřížce (body)",
-    "fontSize": "Font Size",
+    "fontSize": "Velikost písma",
     "code": "Kód"
   },
   "action": {
     "enable": "Povolit",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Zakázat",
+    "resume": "Obnovit",
+    "uninstall": "Odinstalovat",
     "copy": "Kopírovat",
     "preview": "Náhled",
     "search": "Hledat",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Běh",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Nainstalováno",
+    "enabled": "Povoleno",
+    "disabled": "Zakázáno",
+    "available": "Dostupné"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Relace",
+    "title": "Název",
+    "id": "ID relace",
+    "lastPrompt": "Poslední prompt",
+    "search": "Hledat relace",
+    "deleted": "Relace byla smazána",
+    "resumed": "Relace byla obnovena v terminálu"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Příkaz / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Přidat server"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Základní",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Dovednosti",
     "basicInfo": "Základní informace",
     "configuration": "Konfigurace",
     "favorites": "Oblíbené",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Otevřít složku dovedností",
     "openSkillDir": "Otevřít adresář dovedností",
     "revealSkillFile": "Odhalit soubor dovedností",
-    "noSkills": "No skills found",
+    "noSkills": "Nebyly nalezeny žádné dovednosti",
     "skillFileMissing": "Soubor dovedností nebyl nalezen",
     "skillLoadFailed": "Načtení souboru dovedností se nezdařilo",
     "builtin": "Vestavěné"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Zobrazit nápovědu",
+    "version": "Zobrazit číslo verze",
+    "start": "Spustit novou interaktivní relaci",
+    "mcpList": "Vypsat nakonfigurované servery MCP",
     "doctor": "Spustit zdravotní kontroly",
     "doctorFix": "Spustit zdravotní kontroly s automatickou opravou",
     "gatewayStart": "Spustit službu brány",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Zobrazit stav brány",
     "gatewayRun": "Spustit brána v popředí",
     "gatewayUninstall": "Odinstalovat službu brány",
-    "skillsList": "List available skills"
+    "skillsList": "Vypsat dostupné dovednosti"
   },
   "gateway": {
     "category": "Služba brány",
@@ -123,8 +123,8 @@
     "local": "Místní"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Hledat pluginy",
+    "removed": "Plugin byl odstraněn"
   },
   "schedule": {
     "everyHour": "Každou hodinu",

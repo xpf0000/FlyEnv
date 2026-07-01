@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Codex GitHub",
-  "officialDocs": "Codex CLI Docs",
-  "reasoningEffort": "Reasoning Effort",
-  "approvalPolicy": "Approval Policy",
-  "sandboxMode": "Sandbox Mode",
-  "pluginEnabled": "Plugin installed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
+  "notInstalled": "Codex CLI nije instaliran. Kliknite donji gumb kako biste ga instalirali službenim instalacijskim programom.",
+  "officialWebsite": "Codex na GitHubu",
+  "officialDocs": "Dokumentacija Codex CLI-ja",
+  "reasoningEffort": "Razina zaključivanja",
+  "approvalPolicy": "Pravila odobravanja",
+  "sandboxMode": "Sandbox način rada",
+  "pluginEnabled": "Dodatak je instaliran",
+  "uninstallConfirm": "Jeste li sigurni da želite ukloniti dodatak \"{name}\"?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Ažuriraj Codex na najnoviju verziju",
+    "continue": "Nastavi najnoviju sesiju",
+    "resume": "Nastavi prethodnu sesiju (odabir)",
+    "exec": "Pokreni Codex bez interaktivnog načina rada",
+    "review": "Pokreni pregled koda bez interaktivnog načina rada",
+    "pluginList": "Prikaži dostupne dodatke",
+    "login": "Upravljaj prijavom / autentifikacijom"
   }
 }

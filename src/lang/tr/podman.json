@@ -15,7 +15,7 @@
   "require": "gerekli",
   "rootful": "Rootful Modu",
   "userModeNetworking": "Kullanıcı Modu Ağı",
-  "rosetta": "Rosetta (Mac)",
+  "rosetta": "Mac icin Rosetta",
   "identityPath": "SSH Anahtar Yolu",
   "remoteUsername": "Uzak Kullanıcı",
   "Dashboard": "Gösterge Paneli",

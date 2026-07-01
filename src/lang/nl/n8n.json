@@ -3,7 +3,7 @@
   "N8N_HOST": "Hostnaam of IP-adres voor de n8n webinterface (standaard: localhost)",
   "N8N_PROTOCOL": "Protocol: http of https (standaard: http)",
   "N8N_PATH": "URL-pad voor de n8n webinterface (standaard: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "Databasetype: sqlite, postgresdb, mysqldb, mariadb (standaard: sqlite)",
   "N8N_USER_FOLDER": "Aangepaste map waar n8n gebruikersgegevens opslaat (standaard: ~/.n8n)",
   "ownerResetTitle": "Reset Eigenaarsaccount",
   "ownerResetBtn": "Reset & opnieuw toepassen inloggegevens",

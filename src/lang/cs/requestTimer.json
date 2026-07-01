@@ -1,7 +1,7 @@
 {
   "dnsLookup": "Vyhledávání DNS",
   "tcpConnect": "TCP připojení",
-  "tlsHandshake": "TLS Handshake",
+  "tlsHandshake": "Navazani TLS",
   "requestProcessing": "Zpracování žádosti",
   "ttfb": "Čas do prvního bajtu (TTFB)",
   "contentDownload": "Stahování obsahu",

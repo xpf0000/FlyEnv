@@ -34,5 +34,5 @@
   "databaseBackup": "Tietokannan varmuuskopiointi",
   "backupSaveDirSet": "Tallenna sijaintiasetukset",
   "saveDirError": "Virheellinen tallennuksen sijainti",
-  "backupFail": "{database} backup failed, error: {error}"
+  "backupFail": "Varmuuskopiointi kohteelle {database} epaonnistui, virhe: {error}"
 }

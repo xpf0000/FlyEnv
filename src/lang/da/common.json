@@ -24,14 +24,14 @@
     "state": "Stat",
     "grid": "Gitter",
     "gridSpacing": "Gitterafstand (pixels)",
-    "fontSize": "Font Size",
+    "fontSize": "Skriftstørrelse",
     "code": "Kode"
   },
   "action": {
     "enable": "Aktiver",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Deaktiver",
+    "resume": "Genoptag",
+    "uninstall": "Afinstaller",
     "copy": "Kopiér",
     "preview": "Eksempelvisning",
     "search": "Søg",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "Kører",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Installeret",
+    "enabled": "Aktiveret",
+    "disabled": "Deaktiveret",
+    "available": "Tilgængelig"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sessioner",
+    "title": "Titel",
+    "id": "Sessions-id",
+    "lastPrompt": "Seneste prompt",
+    "search": "Søg i sessioner",
+    "deleted": "Session slettet",
+    "resumed": "Session genoptaget i terminalen"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Kommando / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Tilføj server"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Grundlæggende",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Færdigheder",
     "basicInfo": "Grundlæggende Info",
     "configuration": "Konfiguration",
     "favorites": "Favoritter",
@@ -87,29 +87,29 @@
     "openSkillsDir": "Åbn kompetencemappe",
     "openSkillDir": "Åbn færdighedsmappe",
     "revealSkillFile": "Afslør færdighedsfil",
-    "noSkills": "No skills found",
+    "noSkills": "Ingen færdigheder fundet",
     "skillFileMissing": "Færdighedsfil ikke fundet",
     "skillLoadFailed": "Kunne ikke indlæse færdighedsfil",
     "builtin": "Indbygget"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Vis hjælpoplysninger",
+    "version": "Vis versionsnummer",
+    "start": "Start en ny interaktiv session",
+    "mcpList": "Vis konfigurerede MCP-servere",
     "doctor": "Kør sundhedskontrol",
     "doctorFix": "Kør sundhedstjek med auto-fix",
-    "gatewayStart": "Start gateway service",
-    "gatewayStop": "Stop gateway service",
+    "gatewayStart": "Start gateway-tjeneste",
+    "gatewayStop": "Stop gateway-tjeneste",
     "gatewayRestart": "Genstart gateway service",
     "gatewayStatus": "Vis gateway status",
     "gatewayRun": "Kør gateway i forgrunden",
     "gatewayUninstall": "Afinstaller gateway-tjeneste",
-    "skillsList": "List available skills"
+    "skillsList": "Vis tilgængelige færdigheder"
   },
   "gateway": {
-    "category": "Gateway Service",
-    "status": "Gateway Status",
+    "category": "Gateway-tjeneste",
+    "status": "Gateway-status",
     "running": "Gateway kører",
     "stopped": "Gateway stoppes",
     "startFailed": "Gateway start mislykkedes"
@@ -123,8 +123,8 @@
     "local": "Lokal"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Søg plugins",
+    "removed": "Plugin fjernet"
   },
   "schedule": {
     "everyHour": "Hver time",

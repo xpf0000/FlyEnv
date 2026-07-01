@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI не установлен. Нажмите кнопку ниже, чтобы установить его с помощью официального установщика.",
+  "officialWebsite": "Сайт Antigravity",
+  "officialDocs": "Документация Antigravity CLI",
+  "sandboxMode": "Песочница терминала",
+  "toolPermission": "Разрешение инструмента",
+  "sessionId": "ID беседы",
+  "updatedAt": "Обновлено",
+  "sessionResumed": "Беседа продолжена в терминале",
+  "sessionDeleted": "Беседа удалена",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Обновить Antigravity CLI до последней версии",
+    "models": "Показать доступные модели",
+    "continue": "Продолжить последнюю беседу",
+    "resume": "Возобновить предыдущую беседу по ID",
+    "prompt": "Запустить один prompt без взаимодействия",
+    "pluginList": "Показать импортированные плагины",
+    "pluginImport": "Импортировать плагины из gemini или claude",
+    "install": "Настроить пути окружения и параметры shell"
   }
 }

@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Claude Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Claude Code GitHub",
-  "officialDocs": "Claude Code Docs",
-  "includeCoAuthoredBy": "Include Co-Authored-By",
-  "cleanupPeriodDays": "Chat Retention (days)",
-  "pluginEnabled": "Plugin enabled",
-  "pluginDisabled": "Plugin disabled",
-  "uninstallConfirm": "Are you sure to uninstall plugin \"{name}\"?",
+  "notInstalled": "Claude Code CLI はインストールされていません。下のボタンをクリックして公式インストーラーを実行してください。",
+  "officialWebsite": "Claude Code の GitHub",
+  "officialDocs": "Claude Code ドキュメント",
+  "includeCoAuthoredBy": "Co-Authored-By を含める",
+  "cleanupPeriodDays": "チャット保持期間（日）",
+  "pluginEnabled": "プラグイン有効",
+  "pluginDisabled": "プラグイン無効",
+  "uninstallConfirm": "プラグイン「{name}」をアンインストールしてもよろしいですか？",
   "cmd": {
-    "update": "Check for updates and install if available",
-    "doctor": "Check the health of your Claude Code installation",
-    "continue": "Continue the most recent conversation in current directory",
-    "resume": "Select and resume a previous conversation",
-    "print": "Run a one-shot prompt and print the response",
-    "pluginList": "List installed plugins",
-    "setupToken": "Set up a long-lived authentication token"
+    "update": "アップデートを確認し、利用可能ならインストール",
+    "doctor": "Claude Code のインストール状態を確認",
+    "continue": "現在のディレクトリで最新の会話を続行",
+    "resume": "以前の会話を選択して再開",
+    "print": "単発のプロンプトを実行して応答を表示",
+    "pluginList": "インストール済みプラグインを一覧表示",
+    "setupToken": "長期間有効な認証トークンを設定"
   }
 }

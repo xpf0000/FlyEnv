@@ -28,6 +28,7 @@ const setToolData = async (data: any) => {
 }
 
 export type AppToolStoreType = {
+  floatShow: boolean
   id: string
   expand: boolean
   search: string
@@ -44,6 +45,7 @@ export type AppToolStoreType = {
 
 export const AppToolStore = reactive({
   id: 'home',
+  floatShow: false,
   expand: true,
   search: '',
   custom: [],

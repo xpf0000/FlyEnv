@@ -14,7 +14,7 @@
     "skillsPlugins": "Vaardigheden & plug-ins",
     "memoryTools": "Geheugen & Gereedschap",
     "systemLogs": "Systeem & Logs",
-    "dashboardTui": "Dashboard & TUI",
+    "dashboardTui": "Dashboard en TUI",
     "profileOther": "Profiel & overige"
   },
   "cmd": {
@@ -105,7 +105,7 @@
   "uninstallConfirm": "Weet u zeker dat u de vaardigheid{name} \"wilt verwijderen?",
   "resetConfirm": "Weet je zeker dat je de vaardigheid{name} \"wilt resetten?",
   "updateSkill": "Vernieuwen",
-  "resetSkill": "Reset",
+  "resetSkill": "Resetten",
   "categoryName": "categorie",
   "lastActive": "Laatst actief",
   "id": "ID"

@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Codex GitHub",
-  "officialDocs": "Codex CLI Docs",
-  "reasoningEffort": "Reasoning Effort",
-  "approvalPolicy": "Approval Policy",
-  "sandboxMode": "Sandbox Mode",
-  "pluginEnabled": "Plugin installed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
+  "notInstalled": "Codex CLI non è installato. Fai clic sul pulsante qui sotto per installarlo con il programma di installazione ufficiale.",
+  "officialWebsite": "Codex su GitHub",
+  "officialDocs": "Documentazione di Codex CLI",
+  "reasoningEffort": "Livello di ragionamento",
+  "approvalPolicy": "Criterio di approvazione",
+  "sandboxMode": "Modalità sandbox",
+  "pluginEnabled": "Plugin installato",
+  "uninstallConfirm": "Sei sicuro di voler rimuovere il plugin \"{name}\"?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Aggiorna Codex all'ultima versione",
+    "continue": "Continua la sessione più recente",
+    "resume": "Riprendi una sessione precedente (selettore)",
+    "exec": "Esegui Codex in modo non interattivo",
+    "review": "Esegui una revisione del codice in modo non interattivo",
+    "pluginList": "Elenca i plugin disponibili",
+    "login": "Gestisci accesso / autenticazione"
   }
 }

@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI ইনস্টল করা নেই। অফিসিয়াল ইনস্টলার চালাতে নিচের বোতামে ক্লিক করুন।",
+  "officialWebsite": "Kimi Code CLI GitHub পৃষ্ঠা",
+  "officialDocs": "Kimi Code CLI ডকস",
+  "permissionMode": "অনুমতি মোড",
+  "defaultThinking": "ডিফল্ট চিন্তা মোড",
+  "defaultPlanMode": "ডিফল্ট পরিকল্পনা মোড",
+  "telemetry": "টেলিমেট্রি",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "Kimi Code CLI আপগ্রেড করুন",
+    "continue": "বর্তমান ডিরেক্টরিতে সর্বশেষ সেশন চালিয়ে যান",
+    "sessionSelect": "একটি সেশন নির্বাচন করে পুনরায় শুরু করুন",
+    "plan": "পরিকল্পনা মোডে শুরু করুন",
+    "yolo": "সাধারণ টুল কলগুলো স্বয়ংক্রিয়ভাবে অনুমোদন করুন",
+    "export": "একটি সেশন ZIP এ এক্সপোর্ট করুন",
+    "vis": "ব্রাউজারে সেশন ভিজুয়ালাইজার খুলুন",
+    "providerList": "কনফিগার করা প্রোভাইডারগুলোর তালিকা দেখান",
+    "providerAdd": "রেজিস্ট্রি URL থেকে প্রোভাইডার যোগ করুন",
+    "providerRemove": "একটি প্রোভাইডার সরান"
   }
 }

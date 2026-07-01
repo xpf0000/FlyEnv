@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI ar inte installerat. Klicka pa knappen nedan for att installera det med det officiella installationsprogrammet.",
+  "officialWebsite": "Antigravity-webbplats",
+  "officialDocs": "Antigravity CLI-dokumentation",
+  "sandboxMode": "Terminalsandlada",
+  "toolPermission": "Verktygsbehorighet",
+  "sessionId": "Konversations-ID",
+  "updatedAt": "Uppdaterad",
+  "sessionResumed": "Konversationen aterupptogs i terminalen",
+  "sessionDeleted": "Konversationen raderades",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Uppdatera Antigravity CLI till den senaste versionen",
+    "models": "Lista tillgangliga modeller",
+    "continue": "Fortsatt den senaste konversationen",
+    "resume": "Ateruppta en tidigare konversation via ID",
+    "prompt": "Kor en enda prompt utan interaktion",
+    "pluginList": "Lista importerade pluginer",
+    "pluginImport": "Importera pluginer fran gemini eller claude",
+    "install": "Konfigurera miljo-sokvagar och shellinstallningar"
   }
 }

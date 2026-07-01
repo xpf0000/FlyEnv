@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI ei ole asennettu. Asenna se virallisella asentajalla napsauttamalla alla olevaa painiketta.",
+  "officialWebsite": "Antigravity-sivusto",
+  "officialDocs": "Antigravity CLI -dokumentaatio",
+  "sandboxMode": "Paatteen hiekkalaatikko",
+  "toolPermission": "Tyokalun lupa",
+  "sessionId": "Keskustelun tunnus",
+  "updatedAt": "Paivitetty",
+  "sessionResumed": "Keskustelua jatkettiin paatteessa",
+  "sessionDeleted": "Keskustelu poistettiin",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Paivita Antigravity CLI uusimpaan versioon",
+    "models": "Listaa saatavilla olevat mallit",
+    "continue": "Jatka uusinta keskustelua",
+    "resume": "Jatka aiempaa keskustelua tunnuksen perusteella",
+    "prompt": "Suorita yksi prompt ei-interaktiivisesti",
+    "pluginList": "Listaa tuodut lisäosat",
+    "pluginImport": "Tuo lisäosia gemini- tai claude-ymparistosta",
+    "install": "Määritä ymparistopolut ja shell-asetukset"
   }
 }

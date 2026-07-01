@@ -24,14 +24,14 @@
     "state": "Județ",
     "grid": "Grilă",
     "gridSpacing": "Spațiere grilă (pixeli)",
-    "fontSize": "Font Size",
+    "fontSize": "Dimensiune font",
     "code": "Cod"
   },
   "action": {
     "enable": "Activare",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Dezactivează",
+    "resume": "Reia",
+    "uninstall": "Dezinstalează",
     "copy": "Copiază",
     "preview": "Previzualizare",
     "search": "Caută",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "În execuție",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Instalat",
+    "enabled": "Activat",
+    "disabled": "Dezactivat",
+    "available": "Disponibil"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sesiuni",
+    "title": "Titlu",
+    "id": "ID sesiune",
+    "lastPrompt": "Ultimul prompt",
+    "search": "Caută sesiuni",
+    "deleted": "Sesiunea a fost ștearsă",
+    "resumed": "Sesiunea a fost reluată în terminal"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Comandă / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Adaugă server"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "De bază",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Abilități",
     "basicInfo": "Informații de bază",
     "configuration": "Configurare",
     "favorites": "Favorite",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Deschide directorul cu abilități",
     "openSkillDir": "Deschide dosarul abilității",
     "revealSkillFile": "Arată fișierul abilității",
-    "noSkills": "No skills found",
+    "noSkills": "Nu au fost găsite abilități",
     "skillFileMissing": "Fișierul abilității nu a fost găsit",
     "skillLoadFailed": "Nu s-a putut încărca fișierul abilității",
     "builtin": "Încorporat"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Afișează informațiile de ajutor",
+    "version": "Afișează numărul versiunii",
+    "start": "Pornește o nouă sesiune interactivă",
+    "mcpList": "Listează serverele MCP configurate",
     "doctor": "Executarea controalelor de sănătate",
     "doctorFix": "Executaţi controalele de sănătate cu auto-fixare",
     "gatewayStart": "Pornește serviciul gateway",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Arată starea gateway-ului",
     "gatewayRun": "Rulează gateway-ul în prim-plan",
     "gatewayUninstall": "Dezinstalaţi serviciul gateway",
-    "skillsList": "List available skills"
+    "skillsList": "Listează abilitățile disponibile"
   },
   "gateway": {
     "category": "Serviciu gateway",
@@ -123,8 +123,8 @@
     "local": "Local"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Caută pluginuri",
+    "removed": "Plugin eliminat"
   },
   "schedule": {
     "everyHour": "În fiecare oră",

@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Antigravity Website",
-  "officialDocs": "Antigravity CLI Docs",
-  "sandboxMode": "Terminal Sandbox",
-  "toolPermission": "Tool Permission",
-  "sessionId": "Conversation ID",
-  "updatedAt": "Updated At",
-  "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted",
+  "notInstalled": "Antigravity CLI er ikke installert. Klikk pa knappen nedenfor for a installere det med det offisielle installasjonsprogrammet.",
+  "officialWebsite": "Antigravity-nettsted",
+  "officialDocs": "Antigravity CLI-dokumentasjon",
+  "sandboxMode": "Terminal-sandkasse",
+  "toolPermission": "Verktoytillatelse",
+  "sessionId": "Samtale-ID",
+  "updatedAt": "Oppdatert",
+  "sessionResumed": "Samtalen ble gjenopptatt i terminalen",
+  "sessionDeleted": "Samtalen ble slettet",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "Oppdater Antigravity CLI til nyeste versjon",
+    "models": "List tilgjengelige modeller",
+    "continue": "Fortsett den nyeste samtalen",
+    "resume": "Gjenoppta en tidligere samtale med ID",
+    "prompt": "Kjor en enkelt prompt uten interaksjon",
+    "pluginList": "List importererte plugins",
+    "pluginImport": "Importer plugins fra gemini eller claude",
+    "install": "Konfigurer miljo-stier og shell-innstillinger"
   }
 }

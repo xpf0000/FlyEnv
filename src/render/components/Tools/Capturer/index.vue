@@ -246,7 +246,9 @@
           </el-form-item>
         </el-form>
 
-        <el-button type="primary" @click.stop="doSaveConfig">{{ I18nT('common.action.save') }}</el-button>
+        <el-button type="primary" @click.stop="doSaveConfig">{{
+          I18nT('common.action.save')
+        }}</el-button>
         <template v-if="isLocked">
           <el-tooltip placement="top" :content="I18nT('fork.trialEnd')">
             <el-button type="warning" :icon="Lock">{{ I18nT('tools.CapturerDo') }}</el-button>

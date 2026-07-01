@@ -28,5 +28,26 @@
   "approvalConfirm": "Vahvista",
   "approvalTip": "Vahvista näyttää alkuperäisen valintaikkunan ennen työkalun suorittamista.",
   "auditLog": "Auditointiloki",
-  "riskyTip": "Palveluiden hallintatyökalut voivat muuttaa käynnissä olevaa ympäristöäsi. Pidä käytössä vain työkalut, joihin luotat."
+  "riskyTip": "Palveluiden hallintatyökalut voivat muuttaa käynnissä olevaa ympäristöäsi. Pidä käytössä vain työkalut, joihin luotat.",
+  "risky": "Riskialtis",
+  "toolDescriptions": {
+    "list_services": "Luettele FlyEnv:n hallitsemat moduulit sekä asennetut versiot ja käynnistystila.",
+    "service_status": "Hae yhden FlyEnv-moduulin asennetut versiot ja käynnistystila.",
+    "list_sites": "Luettele FlyEnv:n hallitsemat paikalliset kehityssivustot ja niiden metadata.",
+    "get_database_connection_info": "Palauta FlyEnv:n hallitseman paikallisen tietokannan tai välimuistipalvelun yhteystiedot.",
+    "resolve_site_runtime": "Muunna FlyEnv-sivusto runtime-tiedoiksi, kuten juuripolku, verkkopalvelin ja PHP/runtime-valinta.",
+    "get_service_exec_info": "Palauta yhden asennetun FlyEnv-moduuliversion suoritettava tiedosto, asetukset ja runtime-tiedot.",
+    "resolve_site_urls": "Palauta FlyEnv-sivuston kanoniset URL-osoitteet, aliakset, SSL-sisääntulopisteet ja reverse proxy -URL-osoitteet.",
+    "get_managed_file_map": "Palauta sivuston tai palvelun FlyEnv:n hallitsemat env-, asetus-, loki-, sertifikaatti-, runtime- ja datatiedostopolut.",
+    "list_log_files": "Luettele yhden FlyEnv-moduulin tunnetut lokitiedostot.",
+    "list_config_files": "Luettele yhden FlyEnv-moduulin tunnetut asetustiedostot.",
+    "list_online_versions": "Luettele asennettavan FlyEnv-moduulin ladattavat versiot.",
+    "start_service": "Käynnistä asennettu pitkäkestoinen FlyEnv-palveluversio.",
+    "stop_service": "Pysäytä käynnissä oleva pitkäkestoinen FlyEnv-palvelu.",
+    "restart_service": "Käynnistä uudelleen käynnissä oleva pitkäkestoinen FlyEnv-palvelu.",
+    "create_site": "Luo uusi paikallinen kehityssivusto FlyEnviin.",
+    "update_site": "Päivitä olemassa oleva paikallinen kehityssivusto FlyEnvissä.",
+    "delete_site": "Poista paikallinen kehityssivusto FlyEnvin asetuksista.",
+    "install_service": "Lataa ja asenna versio asennettavasta FlyEnv-moduulista."
+  }
 }

@@ -11,7 +11,8 @@
     "models": "模型管理",
     "skills": "技能管理",
     "system": "系统管理",
-    "sessions": "会话管理"
+    "sessions": "会话管理",
+    "backup": "备份与更新"
   },
   "cmd": {
     "dashboard": "打开控制面板",

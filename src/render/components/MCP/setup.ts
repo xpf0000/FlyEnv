@@ -9,6 +9,13 @@ import {
   getMcpServerUrl,
   type MCPHttpClientFlag
 } from '@shared/mcpClientConfig'
+import {
+  MCP_ALL_TOOLS,
+  MCP_DEFAULT_APPROVAL,
+  MCP_DEFAULT_ENABLED_TOOLS,
+  MCP_RISKY_TOOLS,
+  type MCPApprovalPolicy
+} from '@shared/mcpToolCatalog'
 
 export interface MCPStatus {
   running: boolean
@@ -27,36 +34,14 @@ export interface MCPConfig {
   port: number
   token: string
   enabledTools: string[]
-  approval: Record<string, 'auto' | 'confirm'>
+  approval: Record<string, MCPApprovalPolicy>
   allowRemote: boolean
   maskSecrets: boolean
 }
 
-export const ALL_TOOLS: string[] = [
-  'list_services',
-  'service_status',
-  'list_log_files',
-  'list_config_files',
-  'list_online_versions',
-  'list_sites',
-  'start_service',
-  'stop_service',
-  'restart_service',
-  'create_site',
-  'update_site',
-  'delete_site',
-  'install_service'
-]
+export const ALL_TOOLS: string[] = [...MCP_ALL_TOOLS]
 
-export const RISKY_TOOLS: string[] = [
-  'start_service',
-  'stop_service',
-  'restart_service',
-  'create_site',
-  'update_site',
-  'delete_site',
-  'install_service'
-]
+export const RISKY_TOOLS: string[] = [...MCP_RISKY_TOOLS]
 
 class MCP {
   loading = false
@@ -70,16 +55,8 @@ class MCP {
     host: '127.0.0.1',
     port: 7682,
     token: '',
-    enabledTools: [...ALL_TOOLS],
-    approval: {
-      start_service: 'confirm',
-      stop_service: 'confirm',
-      restart_service: 'confirm',
-      create_site: 'confirm',
-      update_site: 'confirm',
-      delete_site: 'confirm',
-      install_service: 'confirm'
-    },
+    enabledTools: [...MCP_DEFAULT_ENABLED_TOOLS],
+    approval: { ...MCP_DEFAULT_APPROVAL },
     allowRemote: false,
     maskSecrets: false
   }
@@ -185,7 +162,7 @@ class MCP {
     this.saveConfig({ enabledTools: Array.from(set) })
   }
 
-  setApproval(tool: string, policy: 'auto' | 'confirm') {
+  setApproval(tool: string, policy: MCPApprovalPolicy) {
     this.saveConfig({
       approval: { ...this.config.approval, [tool]: policy }
     })

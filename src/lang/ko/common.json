@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "활성화",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "비활성화",
+    "resume": "다시 시작",
+    "uninstall": "제거",
     "copy": "복사",
     "preview": "미리보기",
     "search": "검색",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "달리기",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "설치됨",
+    "enabled": "활성화됨",
+    "disabled": "비활성화됨",
+    "available": "사용 가능"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "세션",
+    "title": "제목",
+    "id": "세션 ID",
+    "lastPrompt": "마지막 프롬프트",
+    "search": "세션 검색",
+    "deleted": "세션이 삭제되었습니다",
+    "resumed": "세션이 터미널에서 다시 시작되었습니다"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "명령 / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "서버 추가"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "기본",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "스킬",
     "basicInfo": "기본 정보",
     "configuration": "구성",
     "favorites": "즐겨찾기",
@@ -87,16 +87,16 @@
     "openSkillsDir": "스킬 디렉터리 열기",
     "openSkillDir": "스킬 디렉토리 열기",
     "revealSkillFile": "스킬 파일 공개",
-    "noSkills": "No skills found",
+    "noSkills": "스킬을 찾을 수 없습니다",
     "skillFileMissing": "스킬 파일을 찾을 수 없습니다",
     "skillLoadFailed": "스킬 파일을 불러오지 못했습니다",
     "builtin": "내장"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "도움말 정보 표시",
+    "version": "버전 번호 표시",
+    "start": "새 대화형 세션 시작",
+    "mcpList": "구성된 MCP 서버 목록 표시",
     "doctor": "건강 검사 실행",
     "doctorFix": "자동 수정과 함께 건강 검사 실행",
     "gatewayStart": "게이트웨이 서비스 시작",
@@ -105,7 +105,7 @@
     "gatewayStatus": "게이트웨이 상태 표시",
     "gatewayRun": "포그라운드에서 게이트웨이 실행",
     "gatewayUninstall": "게이트웨이 서비스 제거",
-    "skillsList": "List available skills"
+    "skillsList": "사용 가능한 스킬 목록 표시"
   },
   "gateway": {
     "category": "게이트웨이 서비스",
@@ -123,8 +123,8 @@
     "local": "로컬"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "플러그인 검색",
+    "removed": "플러그인이 제거되었습니다"
   },
   "schedule": {
     "everyHour": "매시간",

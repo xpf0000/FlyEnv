@@ -2,10 +2,10 @@
   "checking": "Kontrollerer installasjonen...",
   "isInstalled": "installert",
   "notInstalled": "mkert er ikke installert",
-  "install": "Install mkcert",
+  "install": "Installer mkcert",
   "checkAgain": "Sjekk igjen",
   "recheck": "Re-sjekk",
-  "installCA": "Install CA",
+  "installCA": "Installer CA",
   "carootLabel": "CA Rotbane",
   "certificates": "Sertifikater",
   "noSSLHosts": "Ingen verter med SSL aktivert. Aktiver SSL på en vert først."

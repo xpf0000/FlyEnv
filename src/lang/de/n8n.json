@@ -29,7 +29,7 @@
   "usersRoleOwner": "Besitzer",
   "usersRoleAdmin": "Admin",
   "usersRoleMember": "Mitglied",
-  "usersDeleteConfirm": "Delete user {email}? Their workflows will be transferred to the owner.",
+  "usersDeleteConfirm": "Benutzer {email} loschen? Seine Workflows werden an den Eigentumer ubertragen.",
   "usersDeleteSuccess": "Benutzer gelöscht",
   "usersDeleteFailed": "Fehler beim Löschen des Benutzers",
   "usersFirstName": "Vorname",

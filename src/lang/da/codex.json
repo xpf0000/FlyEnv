@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Codex GitHub",
-  "officialDocs": "Codex CLI Docs",
-  "reasoningEffort": "Reasoning Effort",
-  "approvalPolicy": "Approval Policy",
-  "sandboxMode": "Sandbox Mode",
-  "pluginEnabled": "Plugin installed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
+  "notInstalled": "Codex CLI er ikke installeret. Klik på knappen nedenfor for at installere det med det officielle installationsprogram.",
+  "officialWebsite": "Codex på GitHub",
+  "officialDocs": "Codex CLI-dokumentation",
+  "reasoningEffort": "Ræsonneringsniveau",
+  "approvalPolicy": "Godkendelsespolitik",
+  "sandboxMode": "Sandbox-tilstand",
+  "pluginEnabled": "Plugin installeret",
+  "uninstallConfirm": "Er du sikker på, at du vil fjerne pluginet \"{name}\"?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Opdater Codex til den nyeste version",
+    "continue": "Fortsæt den seneste session",
+    "resume": "Genoptag en tidligere session (vælger)",
+    "exec": "Kør Codex uden interaktiv tilstand",
+    "review": "Kør et kodegennemgang uden interaktiv tilstand",
+    "pluginList": "Vis tilgængelige plugins",
+    "login": "Administrer login / godkendelse"
   }
 }

@@ -61,7 +61,7 @@
   "flutterCreateFailed": "Vytvoření flutteru se nezdařilo",
   "flutterProjectSettings": "Nastavení projektu Flutter",
   "previewChanges": "Náhled změn",
-  "projectTarget": "Project target",
+  "projectTarget": "Cíl projektu",
   "projectIdentity": "Identita projektu",
   "refreshInstalled": "Obnovení nainstalováno",
   "noPackagesInPubspec": "V pubspec.yaml nebyly nalezeny žádné balíčky.",

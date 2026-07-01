@@ -2,10 +2,10 @@
   "checking": "Kontrollerar installation...",
   "isInstalled": "installerad",
   "notInstalled": "mkcert är inte installerat",
-  "install": "Install mkcert",
+  "install": "Installera mkcert",
   "checkAgain": "Kontrollera igen",
   "recheck": "Kontrollera igen",
-  "installCA": "Install CA",
+  "installCA": "Installera CA",
   "carootLabel": "CA rotsökväg",
   "certificates": "Certifikat",
   "noSSLHosts": "Inga värdar med SSL aktiverade. Aktivera SSL på en värd först."

@@ -83,7 +83,9 @@
             :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
             :disabled="BrewSetup.installing"
             @click="handleBrewVersion(scope.row)"
-            >{{ scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install') }}</el-button
+            >{{
+              scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')
+            }}</el-button
           >
         </template>
       </el-table-column>

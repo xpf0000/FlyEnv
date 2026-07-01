@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI غير مثبت. انقر الزر أدناه لتشغيل المثبّت الرسمي.",
+  "officialWebsite": "GitHub الخاص بـ Kimi Code CLI",
+  "officialDocs": "وثائق Kimi Code CLI",
+  "permissionMode": "وضع الأذونات",
+  "defaultThinking": "وضع التفكير الافتراضي",
+  "defaultPlanMode": "وضع التخطيط الافتراضي",
+  "telemetry": "القياس عن بعد",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "ترقية Kimi Code CLI",
+    "continue": "متابعة أحدث جلسة في الدليل الحالي",
+    "sessionSelect": "اختيار جلسة واستئنافها",
+    "plan": "البدء في وضع التخطيط",
+    "yolo": "الموافقة التلقائية على استدعاءات الأدوات العادية",
+    "export": "تصدير جلسة إلى ZIP",
+    "vis": "فتح عارض الجلسة في المتصفح",
+    "providerList": "عرض المزوّدين المهيئين",
+    "providerAdd": "إضافة مزوّدين من عنوان URL للسجل",
+    "providerRemove": "إزالة مزوّد"
   }
 }

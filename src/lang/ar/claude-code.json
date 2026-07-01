@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Claude Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Claude Code GitHub",
-  "officialDocs": "Claude Code Docs",
-  "includeCoAuthoredBy": "Include Co-Authored-By",
-  "cleanupPeriodDays": "Chat Retention (days)",
-  "pluginEnabled": "Plugin enabled",
-  "pluginDisabled": "Plugin disabled",
-  "uninstallConfirm": "Are you sure to uninstall plugin \"{name}\"?",
+  "notInstalled": "Claude Code CLI غير مثبت. انقر الزر أدناه لتشغيل المثبّت الرسمي.",
+  "officialWebsite": "GitHub الخاص بـ Claude Code",
+  "officialDocs": "وثائق Claude Code",
+  "includeCoAuthoredBy": "تضمين Co-Authored-By",
+  "cleanupPeriodDays": "الاحتفاظ بالمحادثات (بالأيام)",
+  "pluginEnabled": "تم تفعيل الإضافة",
+  "pluginDisabled": "تم تعطيل الإضافة",
+  "uninstallConfirm": "هل أنت متأكد من إلغاء تثبيت الإضافة \"{name}\"؟",
   "cmd": {
-    "update": "Check for updates and install if available",
-    "doctor": "Check the health of your Claude Code installation",
-    "continue": "Continue the most recent conversation in current directory",
-    "resume": "Select and resume a previous conversation",
-    "print": "Run a one-shot prompt and print the response",
-    "pluginList": "List installed plugins",
-    "setupToken": "Set up a long-lived authentication token"
+    "update": "التحقق من التحديثات وتثبيتها إذا كانت متاحة",
+    "doctor": "التحقق من سلامة تثبيت Claude Code لديك",
+    "continue": "متابعة أحدث محادثة في الدليل الحالي",
+    "resume": "اختيار محادثة سابقة واستئنافها",
+    "print": "تشغيل مطالبة واحدة وطباعة الاستجابة",
+    "pluginList": "عرض الإضافات المثبتة",
+    "setupToken": "إعداد رمز مصادقة طويل الأمد"
   }
 }

@@ -1,6 +1,6 @@
 {
   "notInstalled": "Codex CLI 尚未安裝。點擊下方按鈕使用官方安裝器安裝。",
-  "officialWebsite": "Codex GitHub",
+  "officialWebsite": "Codex GitHub 頁面",
   "officialDocs": "Codex CLI 文件",
   "reasoningEffort": "推理強度",
   "approvalPolicy": "審批策略",
@@ -8,12 +8,12 @@
   "pluginEnabled": "外掛已安裝",
   "uninstallConfirm": "確定要移除外掛「{name}」嗎？",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "將 Codex 更新到最新版本",
+    "continue": "繼續最近的工作階段",
+    "resume": "恢復先前的工作階段（選擇器）",
+    "exec": "以非互動方式執行 Codex",
+    "review": "以非互動方式執行程式碼審查",
+    "pluginList": "列出可用外掛",
+    "login": "管理登入 / 驗證"
   }
 }

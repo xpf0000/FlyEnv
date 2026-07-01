@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Codex GitHub",
-  "officialDocs": "Codex CLI Docs",
-  "reasoningEffort": "Reasoning Effort",
-  "approvalPolicy": "Approval Policy",
-  "sandboxMode": "Sandbox Mode",
-  "pluginEnabled": "Plugin installed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
+  "notInstalled": "Codex CLI가 설치되어 있지 않습니다. 아래 버튼을 클릭하여 공식 설치 프로그램으로 설치하세요.",
+  "officialWebsite": "Codex GitHub 페이지",
+  "officialDocs": "Codex CLI 문서",
+  "reasoningEffort": "추론 강도",
+  "approvalPolicy": "승인 정책",
+  "sandboxMode": "샌드박스 모드",
+  "pluginEnabled": "플러그인이 설치되었습니다",
+  "uninstallConfirm": "플러그인 \"{name}\"을 제거하시겠습니까?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Codex를 최신 버전으로 업데이트",
+    "continue": "가장 최근 세션 계속하기",
+    "resume": "이전 세션 다시 시작(선택기)",
+    "exec": "Codex를 비대화형으로 실행",
+    "review": "코드 리뷰를 비대화형으로 실행",
+    "pluginList": "사용 가능한 플러그인 목록 표시",
+    "login": "로그인 / 인증 관리"
   }
 }

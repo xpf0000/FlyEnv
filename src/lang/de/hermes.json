@@ -105,7 +105,7 @@
   "uninstallConfirm": "Fertigkeit \"{name} \"wirklich deinstallieren?",
   "resetConfirm": "Möchten Sie die Fähigkeit \"{name} \"zurücksetzen?",
   "updateSkill": "Aktualisieren",
-  "resetSkill": "Reset",
+  "resetSkill": "Zurücksetzen",
   "categoryName": "Kategorie",
   "lastActive": "Zuletzt aktiv",
   "id": "ID"

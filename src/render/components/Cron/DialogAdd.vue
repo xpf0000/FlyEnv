@@ -79,7 +79,7 @@
                 v-model="form.command"
                 :placeholder="I18nT('cron.commandPlaceholder')"
                 type="textarea"
-                rows="4"
+                :rows="4"
                 show-word-limit
                 maxlength="1000"
               />
@@ -90,7 +90,7 @@
                 v-model="form.description"
                 :placeholder="I18nT('cron.descriptionPlaceholder')"
                 type="textarea"
-                rows="2"
+                :rows="2"
                 maxlength="500"
                 show-word-limit
               />
@@ -138,7 +138,9 @@
 
             <div class="preview-sub mt-3">
               {{ I18nT('common.label.status') }}:
-              <strong>{{ form.enabled ? I18nT('common.state.enabled') : I18nT('cron.disabled') }}</strong>
+              <strong>{{
+                form.enabled ? I18nT('common.state.enabled') : I18nT('cron.disabled')
+              }}</strong>
             </div>
           </div>
 
@@ -253,8 +255,8 @@
   ]
 
   const schedulePresets: Array<{ labelKey: I18nKey; value: string }> = [
-    { labelKey: 'cron.presetEveryMinute', value: '* * * * *' },
-    { labelKey: 'cron.presetEveryHour', value: '0 * * * *' },
+    { labelKey: 'common.schedule.everyMinute', value: '* * * * *' },
+    { labelKey: 'common.schedule.everyHour', value: '0 * * * *' },
     { labelKey: 'cron.presetDailyMidnight', value: '0 0 * * *' },
     { labelKey: 'cron.presetWeekdays9', value: '0 9 * * 1-5' }
   ]

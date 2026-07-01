@@ -76,7 +76,7 @@
   "category": {
     "basic": "Temel",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Yetenekler",
     "basicInfo": "Temel Bilgiler",
     "configuration": "Yapılandırma",
     "favorites": "Favoriler",
@@ -87,7 +87,7 @@
     "openSkillsDir": "Beceriler dizinini aç",
     "openSkillDir": "Beceri klasörünü aç",
     "revealSkillFile": "Beceri dosyasını göster",
-    "noSkills": "No skills found",
+    "noSkills": "Hiç beceri bulunamadı",
     "skillFileMissing": "Beceri dosyası bulunamadı",
     "skillLoadFailed": "Beceri dosyası yüklenemedi",
     "builtin": "Yerleşik"
@@ -105,7 +105,7 @@
     "gatewayStatus": "Ağ geçidi durumunu göster",
     "gatewayRun": "Ağ geçidini ön planda çalıştır",
     "gatewayUninstall": "Ağ geçidi servisini kaldır",
-    "skillsList": "List available skills"
+    "skillsList": "Kullanılabilir becerileri listele"
   },
   "gateway": {
     "category": "Ağ Geçidi Servisi",

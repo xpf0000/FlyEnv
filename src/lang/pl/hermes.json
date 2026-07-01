@@ -102,10 +102,10 @@
   "skillResetFail": "Resetowanie umiejętności nie powiodło się",
   "skillEnabledSuccess": "Umiejętność włączona pomyślnie",
   "skillDisabledSuccess": "Umiejętność wyłączona pomyślnie",
-  "uninstallConfirm": "Are you sure to uninstall skill \"{name}\"?",
+  "uninstallConfirm": "Czy na pewno chcesz odinstalować umiejętność \"{name}\"?",
   "resetConfirm": "Czy na pewno chcesz zresetować umiejętność \"{name}\"?",
   "updateSkill": "Aktualizuj",
-  "resetSkill": "Reset",
+  "resetSkill": "Resetuj",
   "categoryName": "Kategoria",
   "lastActive": "Ostatnia aktywna",
   "id": "ID"

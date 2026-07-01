@@ -29,9 +29,9 @@
   },
   "action": {
     "enable": "Activer",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Désactiver",
+    "resume": "Reprendre",
+    "uninstall": "Désinstaller",
     "copy": "Copier",
     "preview": "Aperçu",
     "search": "Rechercher",
@@ -53,30 +53,30 @@
   },
   "state": {
     "running": "En cours d'exécution",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Installé",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "available": "Disponible"
   },
   "session": {
     "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "title": "Titre",
+    "id": "ID de session",
+    "lastPrompt": "Dernière invite",
+    "search": "Rechercher des sessions",
+    "deleted": "Session supprimée",
+    "resumed": "Session reprise dans le terminal"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Commande / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Ajouter un serveur"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "De base",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Compétences",
     "basicInfo": "Informations de base",
     "configuration": "Configuration",
     "favorites": "Favoris",
@@ -87,16 +87,16 @@
     "openSkillsDir": "Ouvrir le répertoire des compétences",
     "openSkillDir": "Ouvrir le répertoire des compétences",
     "revealSkillFile": "Révéler le fichier de compétences",
-    "noSkills": "No skills found",
+    "noSkills": "Aucune compétence trouvée",
     "skillFileMissing": "Fichier de compétences introuvable",
     "skillLoadFailed": "Échec du chargement du fichier de compétences",
     "builtin": "Intégrée"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Afficher les informations d'aide",
+    "version": "Afficher le numéro de version",
+    "start": "Démarrer une nouvelle session interactive",
+    "mcpList": "Lister les serveurs MCP configurés",
     "doctor": "Effectuer des contrôles de santé",
     "doctorFix": "Exécuter des contrôles de santé avec correction automatique",
     "gatewayStart": "Démarrer le service de passerelle",
@@ -105,7 +105,7 @@
     "gatewayStatus": "Afficher l'état de la passerelle",
     "gatewayRun": "Exécuter la passerelle au premier plan",
     "gatewayUninstall": "Désinstaller le service de passerelle",
-    "skillsList": "List available skills"
+    "skillsList": "Lister les compétences disponibles"
   },
   "gateway": {
     "category": "Service de passerelle",
@@ -123,8 +123,8 @@
     "local": "Locale"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Rechercher des plugins",
+    "removed": "Plugin supprimé"
   },
   "schedule": {
     "everyHour": "Chaque heure",

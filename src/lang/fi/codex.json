@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Codex GitHub",
-  "officialDocs": "Codex CLI Docs",
-  "reasoningEffort": "Reasoning Effort",
-  "approvalPolicy": "Approval Policy",
-  "sandboxMode": "Sandbox Mode",
-  "pluginEnabled": "Plugin installed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
+  "notInstalled": "Codex CLI ei ole asennettu. Napsauta alla olevaa painiketta asentaaksesi sen virallisella asentajalla.",
+  "officialWebsite": "Codex GitHubissa",
+  "officialDocs": "Codex CLI -ohjeet",
+  "reasoningEffort": "Päättelyn taso",
+  "approvalPolicy": "Hyväksyntäkäytäntö",
+  "sandboxMode": "Sandbox-tila",
+  "pluginEnabled": "Liitännäinen asennettu",
+  "uninstallConfirm": "Haluatko varmasti poistaa liitännäisen \"{name}\"?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Päivitä Codex uusimpaan versioon",
+    "continue": "Jatka uusinta istuntoa",
+    "resume": "Jatka aiempaa istuntoa (valitsin)",
+    "exec": "Suorita Codex ilman vuorovaikutusta",
+    "review": "Suorita koodikatselmointi ilman vuorovaikutusta",
+    "pluginList": "Listaa saatavilla olevat liitännäiset",
+    "login": "Hallitse kirjautumista / todennusta"
   }
 }

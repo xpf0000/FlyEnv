@@ -105,7 +105,7 @@
   "uninstallConfirm": "هل أنت متأكد من إلغاء تثبيت المهارة\"{name}\"؟",
   "resetConfirm": "هل أنت متأكد من إعادة تعيين المهارة\"{name}\"؟",
   "updateSkill": "تحديث",
-  "resetSkill": "Reset",
+  "resetSkill": "إعادة تعيين",
   "categoryName": "الفئة",
   "lastActive": "آخر نشاط",
   "id": "ID"

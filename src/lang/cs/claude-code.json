@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Claude Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Claude Code GitHub",
-  "officialDocs": "Claude Code Docs",
-  "includeCoAuthoredBy": "Include Co-Authored-By",
-  "cleanupPeriodDays": "Chat Retention (days)",
-  "pluginEnabled": "Plugin enabled",
-  "pluginDisabled": "Plugin disabled",
-  "uninstallConfirm": "Are you sure to uninstall plugin \"{name}\"?",
+  "notInstalled": "Claude Code CLI není nainstalován. Klikněte na tlačítko níže a spusťte oficiální instalátor.",
+  "officialWebsite": "GitHub Claude Code",
+  "officialDocs": "Dokumentace Claude Code",
+  "includeCoAuthoredBy": "Zahrnout Co-Authored-By",
+  "cleanupPeriodDays": "Uchování chatu (dny)",
+  "pluginEnabled": "Plugin povolen",
+  "pluginDisabled": "Plugin zakázán",
+  "uninstallConfirm": "Opravdu chcete odinstalovat plugin „{name}“?",
   "cmd": {
-    "update": "Check for updates and install if available",
-    "doctor": "Check the health of your Claude Code installation",
-    "continue": "Continue the most recent conversation in current directory",
-    "resume": "Select and resume a previous conversation",
-    "print": "Run a one-shot prompt and print the response",
-    "pluginList": "List installed plugins",
-    "setupToken": "Set up a long-lived authentication token"
+    "update": "Zkontrolovat aktualizace a nainstalovat je, pokud jsou k dispozici",
+    "doctor": "Zkontrolovat stav vaší instalace Claude Code",
+    "continue": "Pokračovat v poslední konverzaci v aktuálním adresáři",
+    "resume": "Vybrat a obnovit předchozí konverzaci",
+    "print": "Spustit jednorázový prompt a vytisknout odpověď",
+    "pluginList": "Vypsat nainstalované pluginy",
+    "setupToken": "Nastavit dlouhodobý autentizační token"
   }
 }

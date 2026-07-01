@@ -2,10 +2,10 @@
   "checking": "Kontrollerer installation...",
   "isInstalled": "installeret",
   "notInstalled": "mkcert er ikke installeret",
-  "install": "Install mkcert",
+  "install": "Installer mkcert",
   "checkAgain": "Kontroller Igen",
   "recheck": "Gentjek",
-  "installCA": "Install CA",
+  "installCA": "Installer CA",
   "carootLabel": "Cas Rod Sti",
   "certificates": "Certifikater",
   "noSSLHosts": "Ingen værter med SSL aktiveret. Aktiver SSL på en vært først."

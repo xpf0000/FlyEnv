@@ -60,7 +60,7 @@
             <el-input
               v-model="text"
               type="text"
-              rows="1"
+              :rows="1"
               autosize
               placeholder="Your link or text..."
             />

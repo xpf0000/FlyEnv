@@ -28,5 +28,26 @@
   "approvalConfirm": "Bekreft",
   "approvalTip": "Bekreft viser en innebygd dialog før verktøyet kjøres.",
   "auditLog": "Revisjonslogg",
-  "riskyTip": "Verktøy for tjenestestyring kan endre miljøet som kjører. La bare verktøy du stoler på være aktivert."
+  "riskyTip": "Verktøy for tjenestestyring kan endre miljøet som kjører. La bare verktøy du stoler på være aktivert.",
+  "risky": "Risikabel",
+  "toolDescriptions": {
+    "list_services": "List opp FlyEnv-administrerte moduler med installerte versjoner og kjørestatus.",
+    "service_status": "Hent installerte versjoner og kjørestatus for én FlyEnv-modul.",
+    "list_sites": "List opp lokale utviklingssider som administreres av FlyEnv og metadataene deres.",
+    "get_database_connection_info": "Returner tilkoblingsdetaljer for en lokal database eller cachetjeneste som administreres av FlyEnv.",
+    "resolve_site_runtime": "Løs opp et FlyEnv-nettsted til runtime-detaljer som rotsti, webserver og valg av PHP/runtime.",
+    "get_service_exec_info": "Returner kjørbar fil, konfigurasjon og runtime-detaljer for én installert FlyEnv-modulversjon.",
+    "resolve_site_urls": "Returner de kanoniske URL-ene, aliasene, SSL-inngangspunktene og reverse proxy-URL-ene for et FlyEnv-nettsted.",
+    "get_managed_file_map": "Returner FlyEnv-administrerte filbaner for env, konfigurasjon, logger, sertifikater, runtime og data for et nettsted eller en tjeneste.",
+    "list_log_files": "List opp kjente loggfiler for én FlyEnv-modul.",
+    "list_config_files": "List opp kjente konfigurasjonsfiler for én FlyEnv-modul.",
+    "list_online_versions": "List opp nedlastbare versjoner for en installerbar FlyEnv-modul.",
+    "start_service": "Start en installert langvarig FlyEnv-tjenesteversjon.",
+    "stop_service": "Stopp en kjørende langvarig FlyEnv-tjeneste.",
+    "restart_service": "Start en kjørende langvarig FlyEnv-tjeneste på nytt.",
+    "create_site": "Opprett et nytt lokalt utviklingsnettsted i FlyEnv.",
+    "update_site": "Oppdater et eksisterende lokalt utviklingsnettsted i FlyEnv.",
+    "delete_site": "Slett et lokalt utviklingsnettsted fra FlyEnv-konfigurasjonen.",
+    "install_service": "Last ned og installer en versjon for en installerbar FlyEnv-modul."
+  }
 }

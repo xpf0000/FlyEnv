@@ -1,6 +1,11 @@
 import Store from 'electron-store'
 import { randomUUID } from 'crypto'
 import { type Options } from 'electron-store'
+import {
+  MCP_DEFAULT_APPROVAL,
+  MCP_DEFAULT_ENABLED_TOOLS,
+  type MCPApprovalPolicy
+} from '@shared/mcpToolCatalog'
 
 /**
  * MCP Server 配置 —— 独立于 user.json 的 electron-store（落盘为 mcp.json）。
@@ -26,7 +31,7 @@ export interface MCPConfigOptions {
   /** 工具白名单：只有列在这里的 tool 才会注册给 MCP Client */
   enabledTools: string[]
   /** 各 tool 的审批策略：auto 直接执行，confirm 需要原生确认框 */
-  approval: Record<string, 'auto' | 'confirm'>
+  approval: Record<string, MCPApprovalPolicy>
   /** 是否允许非回环地址访问。默认 false（强制 127.0.0.1） */
   allowRemote: boolean
   /**
@@ -35,40 +40,6 @@ export interface MCPConfigOptions {
    * 仅给「会共享屏幕 / 担心云端日志」的谨慎用户保留可选开关。
    */
   maskSecrets: boolean
-}
-
-/**
- * 默认开启的工具：只读 + 启停。写配置 / 安装 / 删除站点等高风险工具默认不在白名单内。
- * 与方案 §5.3「默认安全」对齐。
- */
-export const MCP_DEFAULT_ENABLED_TOOLS: string[] = [
-  'list_services',
-  'service_status',
-  'list_log_files',
-  'list_config_files',
-  'list_online_versions',
-  'list_sites',
-  'get_database_connection_info',
-  'resolve_site_runtime',
-  'get_service_exec_info',
-  'resolve_site_urls',
-  'get_managed_file_map',
-  'start_service',
-  'stop_service',
-  'restart_service',
-  'create_site',
-  'update_site'
-]
-
-/** 高风险工具：即使被加入白名单，默认也要求确认 */
-export const MCP_DEFAULT_APPROVAL: Record<string, 'auto' | 'confirm'> = {
-  start_service: 'confirm',
-  stop_service: 'confirm',
-  restart_service: 'confirm',
-  create_site: 'confirm',
-  update_site: 'confirm',
-  delete_site: 'confirm',
-  install_service: 'confirm'
 }
 
 export const MCP_DEFAULT_PORT = 7682

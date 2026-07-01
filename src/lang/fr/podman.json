@@ -23,7 +23,7 @@
   "machineNeedRun": "Veuillez démarrer la machine virtuelle d'abord",
   "LastUp": "Dernier Démarrage",
   "SSHPort": "Port SSH",
-  "PodmanSocket": "Podman Socket",
+  "PodmanSocket": "Socket Podman",
   "StartWithTerminal": "Démarrer avec le terminal intégré",
   "StopWithTerminal": "Arrêter avec le terminal intégré",
   "ComposeFile": "Fichier Compose",

@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Claude Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Claude Code GitHub",
-  "officialDocs": "Claude Code Docs",
-  "includeCoAuthoredBy": "Include Co-Authored-By",
-  "cleanupPeriodDays": "Chat Retention (days)",
-  "pluginEnabled": "Plugin enabled",
-  "pluginDisabled": "Plugin disabled",
-  "uninstallConfirm": "Are you sure to uninstall plugin \"{name}\"?",
+  "notInstalled": "A Claude Code CLI nincs telepítve. Kattintson az alábbi gombra a hivatalos telepítő futtatásához.",
+  "officialWebsite": "Claude Code a GitHubon",
+  "officialDocs": "Claude Code dokumentáció",
+  "includeCoAuthoredBy": "Co-Authored-By belefoglalása",
+  "cleanupPeriodDays": "Csevegésmegőrzés (nap)",
+  "pluginEnabled": "Bővítmény engedélyezve",
+  "pluginDisabled": "Bővítmény letiltva",
+  "uninstallConfirm": "Biztosan el szeretné távolítani a(z) \"{name}\" bővítményt?",
   "cmd": {
-    "update": "Check for updates and install if available",
-    "doctor": "Check the health of your Claude Code installation",
-    "continue": "Continue the most recent conversation in current directory",
-    "resume": "Select and resume a previous conversation",
-    "print": "Run a one-shot prompt and print the response",
-    "pluginList": "List installed plugins",
-    "setupToken": "Set up a long-lived authentication token"
+    "update": "Frissítések keresése és telepítése, ha elérhetők",
+    "doctor": "A Claude Code telepítés állapotának ellenőrzése",
+    "continue": "A legutóbbi beszélgetés folytatása az aktuális könyvtárban",
+    "resume": "Korábbi beszélgetés kiválasztása és folytatása",
+    "print": "Egyszeri prompt futtatása és a válasz kiírása",
+    "pluginList": "A telepített bővítmények listázása",
+    "setupToken": "Hosszú élettartamú hitelesítési token beállítása"
   }
 }

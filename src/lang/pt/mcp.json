@@ -28,5 +28,26 @@
   "approvalConfirm": "Confirmar",
   "approvalTip": "Confirmar mostra uma caixa de dialogo nativa antes de executar a ferramenta.",
   "auditLog": "Registo de auditoria",
-  "riskyTip": "As ferramentas de controlo de serviços podem alterar o ambiente em execução. Mantenha ativadas apenas as ferramentas em que confia."
+  "riskyTip": "As ferramentas de controlo de serviços podem alterar o ambiente em execução. Mantenha ativadas apenas as ferramentas em que confia.",
+  "risky": "Arriscado",
+  "toolDescriptions": {
+    "list_services": "Liste os módulos geridos pelo FlyEnv com as versões instaladas e o estado de execução.",
+    "service_status": "Obtenha as versões instaladas e o estado de execução de um módulo FlyEnv.",
+    "list_sites": "Liste os sites de desenvolvimento local geridos pelo FlyEnv e os respetivos metadados.",
+    "get_database_connection_info": "Devolva os detalhes de ligação de uma base de dados local ou serviço de cache gerido pelo FlyEnv.",
+    "resolve_site_runtime": "Resolva um site FlyEnv em detalhes de runtime como caminho raiz, servidor web e seleção de PHP/runtime.",
+    "get_service_exec_info": "Devolva o executável, a configuração e os detalhes de runtime de uma versão instalada de módulo FlyEnv.",
+    "resolve_site_urls": "Devolva os URLs canónicos, aliases, pontos de entrada SSL e URLs de proxy inverso de um site FlyEnv.",
+    "get_managed_file_map": "Devolva os caminhos de ficheiros env, configuração, logs, certificados, runtime e dados geridos pelo FlyEnv para um site ou serviço.",
+    "list_log_files": "Liste os ficheiros de log conhecidos de um módulo FlyEnv.",
+    "list_config_files": "Liste os ficheiros de configuração conhecidos de um módulo FlyEnv.",
+    "list_online_versions": "Liste as versões descarregáveis de um módulo FlyEnv instalável.",
+    "start_service": "Inicie uma versão instalada de serviço FlyEnv de longa duração.",
+    "stop_service": "Pare um serviço FlyEnv de longa duração em execução.",
+    "restart_service": "Reinicie um serviço FlyEnv de longa duração em execução.",
+    "create_site": "Crie um novo site de desenvolvimento local no FlyEnv.",
+    "update_site": "Atualize um site de desenvolvimento local FlyEnv existente.",
+    "delete_site": "Elimine um site de desenvolvimento local da configuração do FlyEnv.",
+    "install_service": "Descarregue e instale uma versão para um módulo FlyEnv instalável."
+  }
 }

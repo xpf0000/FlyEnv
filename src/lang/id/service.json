@@ -8,15 +8,15 @@
   "setByApp": "Variabel lingkungan yang disetel oleh FlyEnv",
   "setByNoApp": "Variabel lingkungan yang tidak disetel oleh FlyEnv",
   "ftpdNeedPasswordToStart": "Pure-FTPd membutuhkan hak akses sudo untuk memulai. Harap masukkan kata sandi pengguna Anda. Kata sandi ini akan digunakan untuk pengisian otomatis nanti. Atau Anda dapat mengklik tombol di bawah ini untuk memasukkan secara manual di terminal, tetapi prompt ini mungkin akan muncul lagi.",
-  "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
-  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?",
+  "bundleinVersionDelTips": "Versi ini adalah versi bawaan, yakin ingin tidak menampilkannya?",
+  "customDirVersionDelTips": "Versi ini adalah versi jalur kustom, yakin ingin tidak menampilkannya?",
   "ErrorTips": {
     "VCRuntime": {
-      "title": "Your system is missing the Visual C++ Redistributable (DLLs) required to run this version. Please click the link below to download and install the VC Runtime from Microsoft's official website.",
-      "versionRelation": "Version Compatibility Reference:",
+      "title": "Sistem Anda tidak memiliki Visual C++ Redistributable (DLL) yang diperlukan untuk menjalankan versi ini. Klik tautan di bawah untuk mengunduh dan menginstal VC Runtime dari situs resmi Microsoft.",
+      "versionRelation": "Referensi kompatibilitas versi:",
       "software": "Software",
-      "versionRange": "Version Range",
-      "msvsVersion": "MSVC Version"
+      "versionRange": "Rentang versi",
+      "msvsVersion": "Versi MSVC"
     }
   }
 }

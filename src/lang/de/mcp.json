@@ -28,5 +28,26 @@
   "approvalConfirm": "Bestätigen",
   "approvalTip": "Bestätigen zeigt einen systemeigenen Dialog an, bevor das Tool ausgeführt wird.",
   "auditLog": "Audit-Protokoll",
-  "riskyTip": "Dienstesteuerungs-Tools können Ihre Betriebsumgebung verändern. Lassen Sie nur die Tools aktiviert, denen Sie vertrauen."
+  "riskyTip": "Dienstesteuerungs-Tools können Ihre Betriebsumgebung verändern. Lassen Sie nur die Tools aktiviert, denen Sie vertrauen.",
+  "risky": "Riskant",
+  "toolDescriptions": {
+    "list_services": "Liste die von FlyEnv verwalteten Module mit installierten Versionen und Laufstatus auf.",
+    "service_status": "Hole installierte Versionen und Laufstatus für ein einzelnes FlyEnv-Modul.",
+    "list_sites": "Liste die von FlyEnv verwalteten lokalen Entwicklungsseiten und ihre Metadaten auf.",
+    "get_database_connection_info": "Gib Verbindungsdetails für eine von FlyEnv verwaltete lokale Datenbank oder einen Cache-Dienst zurück.",
+    "resolve_site_runtime": "Löse eine FlyEnv-Seite in Runtime-Details wie Root-Pfad, Webserver und PHP-/Runtime-Auswahl auf.",
+    "get_service_exec_info": "Gib ausführbare Datei, Konfiguration und Runtime-Details für eine installierte FlyEnv-Modulversion zurück.",
+    "resolve_site_urls": "Gib die kanonischen URLs, Aliase, SSL-Einstiegspunkte und Reverse-Proxy-URLs für eine FlyEnv-Seite zurück.",
+    "get_managed_file_map": "Gib von FlyEnv verwaltete Pfade für env, Konfiguration, Logs, Zertifikate, Runtime und Daten einer Seite oder eines Dienstes zurück.",
+    "list_log_files": "Liste bekannte Logdateien für ein FlyEnv-Modul auf.",
+    "list_config_files": "Liste bekannte Konfigurationsdateien für ein FlyEnv-Modul auf.",
+    "list_online_versions": "Liste herunterladbare Versionen für ein installierbares FlyEnv-Modul auf.",
+    "start_service": "Starte eine installierte, dauerhaft laufende FlyEnv-Dienstversion.",
+    "stop_service": "Stoppe einen laufenden, dauerhaft laufenden FlyEnv-Dienst.",
+    "restart_service": "Starte einen laufenden, dauerhaft laufenden FlyEnv-Dienst neu.",
+    "create_site": "Erstelle eine neue lokale Entwicklungsseite in FlyEnv.",
+    "update_site": "Aktualisiere eine bestehende lokale FlyEnv-Entwicklungsseite.",
+    "delete_site": "Lösche eine lokale Entwicklungsseite aus der FlyEnv-Konfiguration.",
+    "install_service": "Lade eine Version für ein installierbares FlyEnv-Modul herunter und installiere sie."
+  }
 }

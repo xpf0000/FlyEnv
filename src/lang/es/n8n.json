@@ -3,7 +3,7 @@
   "N8N_HOST": "Nombre de host o dirección IP para la interfaz web n8n (por defecto: localhost)",
   "N8N_PROTOCOL": "Protocol: http o https (por defecto: http)",
   "N8N_PATH": "Ruta URL para la interfaz web n8n (por defecto: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "Tipo de base de datos: sqlite, postgresdb, mysqldb, mariadb (predeterminado: sqlite)",
   "N8N_USER_FOLDER": "Directorio personalizado donde n8n almacena datos de usuario (por defecto: ~/.n8n)",
   "ownerResetTitle": "Restablecer cuenta de propietario",
   "ownerResetBtn": "Restablecer y volver a aplicar credenciales",

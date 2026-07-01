@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Claude Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Claude Code GitHub",
-  "officialDocs": "Claude Code Docs",
-  "includeCoAuthoredBy": "Include Co-Authored-By",
-  "cleanupPeriodDays": "Chat Retention (days)",
-  "pluginEnabled": "Plugin enabled",
-  "pluginDisabled": "Plugin disabled",
-  "uninstallConfirm": "Are you sure to uninstall plugin \"{name}\"?",
+  "notInstalled": "Claude Code CLI가 설치되어 있지 않습니다. 아래 버튼을 클릭하여 공식 설치 프로그램을 실행하세요.",
+  "officialWebsite": "Claude Code GitHub 페이지",
+  "officialDocs": "Claude Code 문서",
+  "includeCoAuthoredBy": "Co-Authored-By 포함",
+  "cleanupPeriodDays": "채팅 보존 기간(일)",
+  "pluginEnabled": "플러그인 활성화됨",
+  "pluginDisabled": "플러그인 비활성화됨",
+  "uninstallConfirm": "플러그인 \"{name}\"을 제거하시겠습니까?",
   "cmd": {
-    "update": "Check for updates and install if available",
-    "doctor": "Check the health of your Claude Code installation",
-    "continue": "Continue the most recent conversation in current directory",
-    "resume": "Select and resume a previous conversation",
-    "print": "Run a one-shot prompt and print the response",
-    "pluginList": "List installed plugins",
-    "setupToken": "Set up a long-lived authentication token"
+    "update": "업데이트를 확인하고 가능하면 설치",
+    "doctor": "Claude Code 설치 상태 확인",
+    "continue": "현재 디렉터리에서 가장 최근 대화 계속하기",
+    "resume": "이전 대화를 선택하여 다시 시작",
+    "print": "일회성 프롬프트를 실행하고 응답 출력",
+    "pluginList": "설치된 플러그인 목록 표시",
+    "setupToken": "장기 인증 토큰 설정"
   }
 }

@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI is not installed. Click the button below to install it with the official installer.",
-  "officialWebsite": "Codex GitHub",
-  "officialDocs": "Codex CLI Docs",
-  "reasoningEffort": "Reasoning Effort",
-  "approvalPolicy": "Approval Policy",
-  "sandboxMode": "Sandbox Mode",
-  "pluginEnabled": "Plugin installed",
-  "uninstallConfirm": "Are you sure to remove plugin \"{name}\"?",
+  "notInstalled": "Codex CLI غير مثبت. انقر الزر أدناه لتثبيته باستخدام المثبّت الرسمي.",
+  "officialWebsite": "GitHub الخاص بـ Codex",
+  "officialDocs": "وثائق Codex CLI",
+  "reasoningEffort": "مستوى الاستدلال",
+  "approvalPolicy": "سياسة الموافقة",
+  "sandboxMode": "وضع العزل",
+  "pluginEnabled": "تم تثبيت الإضافة",
+  "uninstallConfirm": "هل أنت متأكد من إزالة الإضافة \"{name}\"؟",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "تحديث Codex إلى أحدث إصدار",
+    "continue": "متابعة أحدث جلسة",
+    "resume": "استئناف جلسة سابقة (منتقي)",
+    "exec": "تشغيل Codex بشكل غير تفاعلي",
+    "review": "تشغيل مراجعة كود بشكل غير تفاعلي",
+    "pluginList": "عرض الإضافات المتاحة",
+    "login": "إدارة تسجيل الدخول / المصادقة"
   }
 }

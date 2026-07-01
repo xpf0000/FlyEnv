@@ -105,7 +105,7 @@
   "uninstallConfirm": "Ești sigur că vrei să dezinstalezi abilitatea \"{name}\"?",
   "resetConfirm": "Ești sigur că vrei să resetezi abilitatea \"{name}\"?",
   "updateSkill": "Actualizare",
-  "resetSkill": "Reset",
+  "resetSkill": "Resetează",
   "categoryName": "Categorie",
   "lastActive": "Ultima dată activ",
   "id": "ID"

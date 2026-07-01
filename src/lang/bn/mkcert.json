@@ -1,12 +1,12 @@
 {
-  "checking": "Checking installation...",
+  "checking": "ইনস্টলেশন যাচাই করা হচ্ছে...",
   "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
-  "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
-  "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "notInstalled": "mkcert ইনস্টল করা নেই",
+  "install": "mkcert ইনস্টল করুন",
+  "checkAgain": "আবার যাচাই করুন",
+  "recheck": "আবার পরীক্ষা করুন",
+  "installCA": "CA ইনস্টল করুন",
+  "carootLabel": "CA রুট পথ",
+  "certificates": "সার্টিফিকেট",
+  "noSSLHosts": "SSL সক্রিয় করা কোনো হোস্ট নেই। আগে একটি হোস্টে SSL সক্রিয় করুন।"
 }

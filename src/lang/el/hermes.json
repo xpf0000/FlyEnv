@@ -105,7 +105,7 @@
   "uninstallConfirm": "Είστε βέβαιοι να απεγκαταστήσετε δεξιότητα \"{name}\"?",
   "resetConfirm": "Είστε βέβαιοι ότι θα επαναφέρετε την ικανότητα \"{name}\"?",
   "updateSkill": "Ενημέρωση",
-  "resetSkill": "Reset",
+  "resetSkill": "Επαναφορά",
   "categoryName": "Κατηγορία",
   "lastActive": "Τελευταία Ενεργή",
   "id": "ID"

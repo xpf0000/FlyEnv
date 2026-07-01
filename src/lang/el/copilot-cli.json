@@ -1,13 +1,13 @@
 {
-  "notInstalled": "GitHub Copilot CLI is not installed. Click the button below to install it via npm (requires Node.js 22+).",
-  "officialWebsite": "Copilot CLI GitHub",
-  "officialDocs": "Copilot CLI Docs",
+  "notInstalled": "Το GitHub Copilot CLI δεν είναι εγκατεστημένο. Κάντε κλικ στο παρακάτω κουμπί για εγκατάσταση μέσω npm (απαιτείται Node.js 22+).",
+  "officialWebsite": "Copilot CLI στο GitHub",
+  "officialDocs": "Τεκμηρίωση Copilot CLI",
   "cmd": {
-    "update": "Download the latest version of Copilot CLI",
-    "resume": "Resume a previous session (picker)",
-    "continue": "Resume the most recent session",
-    "prompt": "Run a single prompt non-interactively",
-    "login": "Authenticate with Copilot",
-    "init": "Initialize Copilot instructions for a repository"
+    "update": "Λήψη της πιο πρόσφατης έκδοσης του Copilot CLI",
+    "resume": "Συνέχιση προηγούμενης συνεδρίας (επιλογέας)",
+    "continue": "Συνέχιση της πιο πρόσφατης συνεδρίας",
+    "prompt": "Εκτέλεση μίας προτροπής χωρίς αλληλεπίδραση",
+    "login": "Ταυτοποίηση με το Copilot",
+    "init": "Αρχικοποίηση οδηγιών Copilot για αποθετήριο"
   }
 }

@@ -41,7 +41,7 @@
   "fileVar": "Datoteka",
   "envVarTips": "Varijable okruženja, jedna po retku",
   "fileVarTips": "Odaberi datoteku varijabli okruženja",
-  "tcpPort": "TCP Port",
+  "tcpPort": "TCP port",
   "reverseProxy": "Reverzni Proxy",
   "projectName": "Naziv Projekta",
   "projectAGroup": "Servisi Stranice",

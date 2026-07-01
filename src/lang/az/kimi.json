@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI quraşdırılmayıb. Rəsmi quraşdırıcını işə salmaq üçün aşağıdakı düyməyə klikləyin.",
+  "officialWebsite": "Kimi Code CLI GitHub səhifəsi",
+  "officialDocs": "Kimi Code CLI sənədləri",
+  "permissionMode": "İcazə rejimi",
+  "defaultThinking": "Standart düşünmə rejimi",
+  "defaultPlanMode": "Standart plan rejimi",
+  "telemetry": "Telemetriya",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "Kimi Code CLI-ni yenilə",
+    "continue": "Cari qovluqdakı ən son sessiyanı davam etdir",
+    "sessionSelect": "Sessiya seç və davam etdir",
+    "plan": "Plan rejimində başlat",
+    "yolo": "Adi alət çağırışlarını avtomatik təsdiqlə",
+    "export": "Sessiyanı ZIP olaraq ixrac et",
+    "vis": "Sessiya vizuallaşdırıcısını brauzerdə aç",
+    "providerList": "Konfiqurasiya edilmiş provayderləri siyahıla",
+    "providerAdd": "Reyestr URL-indən provayderlər əlavə et",
+    "providerRemove": "Provayderi sil"
   }
 }

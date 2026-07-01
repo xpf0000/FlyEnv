@@ -11,7 +11,8 @@
     "models": "Modelos",
     "skills": "Habilidades",
     "system": "SISTEMA",
-    "sessions": "Sessões"
+    "sessions": "Sessões",
+    "backup": "Backup e atualização"
   },
   "cmd": {
     "dashboard": "Abrir painel de controle da interface do usuário",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Status do gateway comprovante",
     "gatewayDiscover": "Descubra serviços de gateway",
     "gatewayHealth": "Verificar saúde do gateway",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Mostrar estado detalhado do gateway",
     "gatewayInstall": "Instalar serviço de gateway",
     "gatewayCall": "Chamar API do gateway (requer parâmetros)",
     "agent": "Executar um agente de virar via Gateway",
@@ -63,7 +64,7 @@
     "messageSend": "Enviar mensagem (requer parâmetros)",
     "messageRead": "Mensagens lidas (requer parâmetros)",
     "nodesList": "Listar nós",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Mostrar estado dos nos",
     "nodesPending": "Mostrar nós pendentes",
     "nodesApprove": "Aprovar nó (requer nó ID)",
     "nodesReject": "Rejeitar nó (requer nó ID)",
@@ -88,8 +89,8 @@
     "systemEvent": "Enviar evento do sistema (requer parâmetros)",
     "cronList": "Listar tarefas cron",
     "cronAdd": "Adicionar tarefa cron (requer parâmetros)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Listar hooks",
+    "hooksCheck": "Verificar estado dos hooks",
     "memorySearch": "Memória de pesquisa (requer consulta)",
     "memoryStatus": "Mostrar status da memória",
     "sandboxList": "Listar sandboxes",
@@ -118,8 +119,8 @@
     "pairingList": "Listar solicitações de emparelhamento",
     "docs": "Documentos de pesquisa (requer consulta)",
     "completion": "Gerar conclusão do shell",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Abrir interface do terminal",
+    "qr": "Gerar codigo QR",
     "onboard": "Executar assistente de integração",
     "uninstall": "Desinstalar OpenClaw"
   }

@@ -29,7 +29,7 @@
   "usersRoleOwner": "所有者",
   "usersRoleAdmin": "管理员",
   "usersRoleMember": "成员",
-  "usersDeleteConfirm": "Delete user {email}? Their workflows will be transferred to the owner.",
+  "usersDeleteConfirm": "删除用户 {email}？其工作流将转移给所有者。",
   "usersDeleteSuccess": "用户已删除",
   "usersDeleteFailed": "删除用户失败",
   "usersFirstName": "名字",

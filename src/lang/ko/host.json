@@ -35,7 +35,7 @@
   "projectRuby": "Ruby 프로젝트",
   "projectRust": "Rust 프로젝트",
   "projectZig": "Zig 프로젝트",
-  "projectFlutter": "Flutter Projects",
+  "projectFlutter": "Flutter 프로젝트",
   "envVar": "환경 변수",
   "specifyVar": "지정",
   "fileVar": "파일",

@@ -1,19 +1,19 @@
 {
-  "notInstalled": "Codex CLI belum terinstal. Klik tombol di bawah untuk menginstalnya dengan penginstal resmi.",
-  "officialWebsite": "GitHub Codex",
+  "notInstalled": "Codex CLI belum diinstal. Klik tombol di bawah untuk menginstalnya dengan penginstal resmi.",
+  "officialWebsite": "Codex di GitHub",
   "officialDocs": "Dokumentasi Codex CLI",
-  "reasoningEffort": "Tingkat Penalaran",
-  "approvalPolicy": "Kebijakan Persetujuan",
-  "sandboxMode": "Mode Sandbox",
-  "pluginEnabled": "Plugin terinstal",
-  "uninstallConfirm": "Apakah Anda yakin ingin menghapus plugin \"{name}\"?",
+  "reasoningEffort": "Tingkat penalaran",
+  "approvalPolicy": "Kebijakan persetujuan",
+  "sandboxMode": "Mode sandbox",
+  "pluginEnabled": "Plugin terpasang",
+  "uninstallConfirm": "Yakin ingin menghapus plugin \"{name}\"?",
   "cmd": {
-    "update": "Update Codex to the latest version",
-    "continue": "Continue the most recent session",
-    "resume": "Resume a previous session (picker)",
-    "exec": "Run Codex non-interactively",
-    "review": "Run a code review non-interactively",
-    "pluginList": "List available plugins",
-    "login": "Manage login / authentication"
+    "update": "Perbarui Codex ke versi terbaru",
+    "continue": "Lanjutkan sesi terbaru",
+    "resume": "Lanjutkan sesi sebelumnya (pemilih)",
+    "exec": "Jalankan Codex tanpa interaksi",
+    "review": "Jalankan peninjauan kode tanpa interaksi",
+    "pluginList": "Daftarkan plugin yang tersedia",
+    "login": "Kelola login / autentikasi"
   }
 }

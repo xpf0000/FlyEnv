@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Kimi Code CLI is not installed. Click the button below to run the official installer.",
-  "officialWebsite": "Kimi Code CLI GitHub",
-  "officialDocs": "Kimi Code CLI Docs",
-  "permissionMode": "Permission Mode",
-  "defaultThinking": "Thinking Mode",
-  "defaultPlanMode": "Plan Mode",
-  "telemetry": "Telemetry",
+  "notInstalled": "Kimi Code CLI не е инсталиран. Натиснете бутона по-долу, за да стартирате официалния инсталатор.",
+  "officialWebsite": "GitHub на Kimi Code CLI",
+  "officialDocs": "Документация за Kimi Code CLI",
+  "permissionMode": "Режим на разрешения",
+  "defaultThinking": "Режим на мислене по подразбиране",
+  "defaultPlanMode": "Режим на планиране по подразбиране",
+  "telemetry": "Телеметрия",
   "cmd": {
-    "upgrade": "Upgrade Kimi Code CLI",
-    "continue": "Continue the most recent session in current directory",
-    "sessionSelect": "Select and resume a session",
-    "plan": "Start in plan mode",
-    "yolo": "Auto-approve regular tool calls",
-    "export": "Export a session to ZIP",
-    "vis": "Open session visualizer in browser",
-    "providerList": "List configured providers",
-    "providerAdd": "Add providers from a registry URL",
-    "providerRemove": "Remove a provider"
+    "upgrade": "Надграждане на Kimi Code CLI",
+    "continue": "Продължаване на последната сесия в текущата директория",
+    "sessionSelect": "Избор и възобновяване на сесия",
+    "plan": "Стартиране в режим на планиране",
+    "yolo": "Автоматично одобряване на обикновени извиквания на инструменти",
+    "export": "Експортиране на сесия в ZIP",
+    "vis": "Отваряне на визуализатора на сесии в браузъра",
+    "providerList": "Изброяване на конфигурираните доставчици",
+    "providerAdd": "Добавяне на доставчици от URL на регистър",
+    "providerRemove": "Премахване на доставчик"
   }
 }

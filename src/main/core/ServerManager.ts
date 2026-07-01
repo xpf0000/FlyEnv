@@ -1,5 +1,6 @@
 import { isMacOS, isLinux, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+import { parseProxyConfigCommand } from '@shared/installProxyEnv'
 import { writeFileByRoot, readFileFixed } from '../utils'
 import ServiceProcessManager from './ServiceProcess'
 import ConfigManager from './ConfigManager'
@@ -29,14 +30,7 @@ export default class ServerManager {
   setProxy(): Record<string, string> | undefined {
     const proxy = this.configManager.getConfig('setup.proxy')
     if (proxy.on && proxy.proxy) {
-      const proxyDict: Record<string, string> = {}
-      proxy.proxy
-        .split(' ')
-        .filter((s: string) => s.indexOf('=') > 0)
-        .forEach((s: string) => {
-          const dict = s.split('=')
-          proxyDict[dict[0]] = dict[1]
-        })
+      const proxyDict = parseProxyConfigCommand(proxy.proxy)
       global.Server.Proxy = proxyDict
       return proxyDict
     } else {

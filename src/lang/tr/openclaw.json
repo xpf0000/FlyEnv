@@ -11,7 +11,8 @@
     "models": "Modeller",
     "skills": "Beceriler",
     "system": "Sistem",
-    "sessions": "Oturumlar"
+    "sessions": "Oturumlar",
+    "backup": "Yedekleme ve güncelleme"
   },
   "cmd": {
     "dashboard": "Kontrol arayüzünü aç",

@@ -15,7 +15,7 @@
   "require": "必須項目",
   "rootful": "Rootful モード",
   "userModeNetworking": "ユーザーモードネットワーク",
-  "rosetta": "Rosetta (Mac)",
+  "rosetta": "Mac 用 Rosetta",
   "identityPath": "SSH 鍵パス",
   "remoteUsername": "リモートユーザー",
   "Dashboard": "ダッシュボード",

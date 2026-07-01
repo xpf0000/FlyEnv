@@ -4,6 +4,6 @@
   "update-not-available-message": "আপনি আপ-টু-ডেট আছেন!",
   "update-downloaded-message": "ইনস্টল করার জন্য প্রস্তুত...",
   "update-error-message": "আপডেট ত্রুটি",
-  "view-update-log": "View Update Log",
-  "download-new-version": "Download New Version"
+  "view-update-log": "আপডেট লগ দেখুন",
+  "download-new-version": "নতুন সংস্করণ ডাউনলোড করুন"
 }

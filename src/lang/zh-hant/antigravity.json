@@ -9,13 +9,13 @@
   "sessionResumed": "已在終端恢復對話",
   "sessionDeleted": "對話已刪除",
   "cmd": {
-    "update": "Update Antigravity CLI to the latest version",
-    "models": "List available models",
-    "continue": "Continue the most recent conversation",
-    "resume": "Resume a previous conversation by ID",
-    "prompt": "Run a single prompt non-interactively",
-    "pluginList": "List imported plugins",
-    "pluginImport": "Import plugins from gemini or claude",
-    "install": "Configure environment paths and shell settings"
+    "update": "將 Antigravity CLI 更新到最新版本",
+    "models": "列出可用模型",
+    "continue": "繼續最近的對話",
+    "resume": "依 ID 繼續先前的對話",
+    "prompt": "以非互動方式執行單一提示",
+    "pluginList": "列出已匯入的外掛",
+    "pluginImport": "從 gemini 或 claude 匯入外掛",
+    "install": "設定環境路徑與 shell 設定"
   }
 }

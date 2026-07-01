@@ -39,7 +39,12 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="running" :label="I18nT('common.label.status')" width="110" align="center">
+      <el-table-column
+        prop="running"
+        :label="I18nT('common.label.status')"
+        width="110"
+        align="center"
+      >
         <template #default="scope">
           <template v-if="scope.row?.statusError">
             <el-tooltip :content="scope.row?.statusError">

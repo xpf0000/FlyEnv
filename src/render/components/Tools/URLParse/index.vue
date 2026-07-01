@@ -5,8 +5,19 @@
   import { CopyDocument } from '@element-plus/icons-vue'
 
   const dict = computed<Record<string, string>>(() => {
-    const { hash, host, hostname, href, origin, password, pathname, port, protocol, search, username } =
-      Store.urlDict
+    const {
+      hash,
+      host,
+      hostname,
+      href,
+      origin,
+      password,
+      pathname,
+      port,
+      protocol,
+      search,
+      username
+    } = Store.urlDict
     return {
       hash,
       host,

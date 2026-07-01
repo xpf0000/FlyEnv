@@ -19,14 +19,14 @@
   "mysqlDataDir": "Direktori Data",
   "mysqlPopperSocket": "Salin Jalur Socket",
   "macPortsSrcSwitch": "Switch Cermin MacPorts",
-  "macPortsSrcAustraliBrisbane": "Australia, Brisbane",
+  "macPortsSrcAustraliBrisbane": "Australia - Brisbane",
   "macPortsSrcCanadaManitoba": "Kanada, Manitoba",
   "macPortsSrcCanadaWaterloo": "Kanada, Waterloo",
-  "macPortsSrcChinaBeijing": "China, Beijing",
+  "macPortsSrcChinaBeijing": "China - Beijing",
   "macPortsSrcDenmarkCopenhagen": "Denmark, Kopenhagen",
   "macPortsSrcGermanyErlangen": "Jerman, Erlangen",
   "macPortsSrcGermanyLimburg": "Jerman, Limburg",
-  "macPortsSrcIndonesiaYogyakarta": "Indonesia, Yogyakarta",
+  "macPortsSrcIndonesiaYogyakarta": "Indonesia - Yogyakarta",
   "macPortsSrcJapanNomiIshikawa": "Jepang, Nomi, Ishikawa",
   "macPortsSrcSouthAfricaJohannesburg": "Afrika Selatan, Johannesburg",
   "macPortsSrcSouthKoreaDaejeon": "Korea Selatan, Daejeon",
@@ -50,5 +50,5 @@
   "auto": "Otomatis",
   "noVerionsFoundInLib": "Tidak ada versi yang tersedia",
   "showToolBtn": "Tampilkan Tombol Alat Mengambang",
-  "inputSearchKey": "Search keyword"
+  "inputSearchKey": "Kata kunci pencarian"
 }

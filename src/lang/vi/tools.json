@@ -59,7 +59,7 @@
   "url-your-string-decode": "Chuỗi của bạn đã giải mã :",
   "url-your-string-decoded": "Chuỗi của bạn đã giải mã",
   "url-parse-title": "Trình phân tích URL",
-  "websocket-sse-title": "WebSocket / SSE",
+  "websocket-sse-title": "Kết nối WebSocket / SSE",
   "wifi-qr-code-generator-title": "Trình tạo mã QR WiFi",
   "URLTimingAnalyzer": "Phân tích thời gian URL",
   "CodePlayGround": "Thử nghiệm mã",
@@ -169,9 +169,9 @@
       "linearTooltip": "Chất lượng trung bình",
       "cubic": "Đa tuyến tính",
       "cubicTooltip": "Chất lượng cao, cân bằng giữa chất lượng và kích thước tệp, là lựa chọn mặc định trong hầu hết trường hợp",
-      "lanczos2": "Lanczos 2",
+      "lanczos2": "Thuật toán Lanczos 2",
       "lanczos2Tooltip": "Chất lượng rất cao (Cân bằng giữa độ sắc nét và hiệu năng. Ít gây lỗi \"quầng sáng\" (ringing) ở rìa vật thể, phù hợp khi cần chất lượng tốt mà không muốn ảnh trông quá sắc cạnh hoặc giả tạo.).",
-      "lanczos3": "Lanczos 3",
+      "lanczos3": "Thuật toán Lanczos 3",
       "lanczos3Tooltip": "Chất lượng cao nhất, kích thước tệp lớn nhất (Mang lại độ chi tiết và sắc nét cao nhất. Sử dụng thuật toán phức tạp hơn để giữ lại các đường nét mảnh, cực kỳ phổ biến cho việc phóng to ảnh hoặc video nhưng có thể xuất hiện nhiễu nhẹ ở các vùng tương phản cao.)."
     },
     "effectsConfig": {
@@ -218,8 +218,8 @@
       "overlay": "Overlay",
       "multiply": "Multiply",
       "screen": "Screen",
-      "softLight": "Soft Light",
-      "hardLight": "Hard Light",
+      "softLight": "Ánh sáng mềm",
+      "hardLight": "Ánh sáng gắt",
       "rotationAngleDeg": "Góc xoay (°)",
       "scale": "Tỉ lệ"
     },

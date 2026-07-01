@@ -42,7 +42,7 @@
   "envVarTips": "متغيرات البيئة، متغير واحد في كل سطر",
   "fileVarTips": "تحديد ملف متغيرات البيئة",
   "tcpPort": "منفذ TCP",
-  "reverseProxy": "Reverse Proxy",
+  "reverseProxy": "الوكيل العكسي",
   "projectName": "اسم المشروع",
   "projectAGroup": "خدمات الموقع",
   "nodeJSVersion": "إصدار NodeJS",

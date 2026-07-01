@@ -1,12 +1,12 @@
 {
-  "webServer": "Web Server",
-  "dataBaseServer": "Database Server",
+  "webServer": "Webserver",
+  "dataBaseServer": "Databaseserver",
   "emailServer": "E-mail server",
   "language": "Taal & Runtime",
   "searchEngine": "Motor zoeken",
-  "dnsServer": "DNS Server",
+  "dnsServer": "DNS-server",
   "ftpServer": "FTP server",
-  "containerRuntime": "Container Runtime",
+  "containerRuntime": "Container-runtime",
   "appLog": "App Logboek",
   "aiCoding": "AI-codering",
   "ai": "AI",
@@ -15,6 +15,6 @@
   "groupStart": "Start met één klik alle beschikbare services die worden weergegeven op het paneel",
   "networkTunnel": "Netwerktunnel",
   "cacheAndQueue": "Cache en bericht wachtrij",
-  "serviceGovernance": "Service Governance",
+  "serviceGovernance": "Servicebeheer",
   "other": "anders"
 }

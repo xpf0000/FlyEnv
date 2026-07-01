@@ -1,6 +1,6 @@
 {
   "notInstalled": "Claude Code CLI 尚未安装。点击下方按钮运行官方安装命令。",
-  "officialWebsite": "Claude Code GitHub",
+  "officialWebsite": "Claude Code GitHub 页面",
   "officialDocs": "Claude Code 文档",
   "includeCoAuthoredBy": "提交包含 Co-Authored-By",
   "cleanupPeriodDays": "聊天保留天数",

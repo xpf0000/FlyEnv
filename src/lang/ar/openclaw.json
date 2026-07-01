@@ -11,7 +11,8 @@
     "models": "النماذج",
     "skills": "المهارات",
     "system": "النظام",
-    "sessions": "الجلسات"
+    "sessions": "الجلسات",
+    "backup": "النسخ الاحتياطي والتحديث"
   },
   "cmd": {
     "dashboard": "فتح لوحة تحكم واجهة المستخدم",
@@ -31,7 +32,7 @@
     "gatewayProbe": "حالة بوابة المسح",
     "gatewayDiscover": "اكتشاف خدمات البوابة",
     "gatewayHealth": "تحقق من صحة البوابة",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "اعرض حالة gateway التفصيلية",
     "gatewayInstall": "تثبيت خدمة البوابة",
     "gatewayCall": "بوابة الاتصال API (يتطلب المعلمات)",
     "agent": "تشغيل وكيل واحد يستدير عبر البوابة",
@@ -63,7 +64,7 @@
     "messageSend": "إرسال رسالة (يتطلب المعلمات)",
     "messageRead": "قراءة الرسائل (يتطلب المعلمات)",
     "nodesList": "قائمة العقد",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "اعرض حالة العقد",
     "nodesPending": "إظهار العقد المعلقة",
     "nodesApprove": "الموافقة على العقدة (يتطلب رقم تعريف العقدة)",
     "nodesReject": "رفض العقدة (يتطلب رقم تعريف العقدة)",
@@ -88,8 +89,8 @@
     "systemEvent": "إرسال حدث النظام (يتطلب معلمات)",
     "cronList": "قائمة وظائف كرون",
     "cronAdd": "إضافة وظيفة كرون (يتطلب المعلمات)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "اعرض hooks",
+    "hooksCheck": "تحقق من حالة hooks",
     "memorySearch": "البحث عن الذاكرة (يتطلب الاستعلام)",
     "memoryStatus": "إظهار حالة الذاكرة",
     "sandboxList": "قائمة الصناديق الرملية",
@@ -118,8 +119,8 @@
     "pairingList": "قائمة طلبات الاقتران",
     "docs": "البحث في المستندات (يتطلب استفسار)",
     "completion": "توليد اكتمال القذيفة",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "افتح واجهة الطرفية",
+    "qr": "أنشئ رمز QR",
     "onboard": "تشغيل معالج onboarding",
     "uninstall": "إلغاء تثبيت OpenClaw"
   }

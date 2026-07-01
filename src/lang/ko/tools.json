@@ -59,7 +59,7 @@
   "url-your-string-decode": "디코딩된 문자열 :",
   "url-your-string-decoded": "디코딩된 문자열",
   "url-parse-title": "URL 파서",
-  "websocket-sse-title": "WebSocket / SSE",
+  "websocket-sse-title": "WebSocket / SSE 연결",
   "wifi-qr-code-generator-title": "WiFi QR 코드 생성기",
   "URLTimingAnalyzer": "URL 응답 시간 분석기",
   "CodePlayGround": "코드 플레이그라운드",
@@ -169,9 +169,9 @@
       "linearTooltip": "중간 품질",
       "cubic": "Bicubic",
       "cubicTooltip": "높은 품질, 이미지 품질과 파일 크기의 균형. 대부분 상황의 기본 선택",
-      "lanczos2": "Lanczos 2",
+      "lanczos2": "Lanczos 2 알고리즘",
       "lanczos2Tooltip": "매우 높은 품질",
-      "lanczos3": "Lanczos 3",
+      "lanczos3": "Lanczos 3 알고리즘",
       "lanczos3Tooltip": "최고 품질, 가장 큰 파일 크기"
     },
     "effectsConfig": {

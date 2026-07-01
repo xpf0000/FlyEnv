@@ -11,7 +11,8 @@
     "models": "Модели",
     "skills": "Навыки",
     "system": "Система",
-    "sessions": "Сессии"
+    "sessions": "Сессии",
+    "backup": "Резервное копирование и обновление"
   },
   "cmd": {
     "dashboard": "Открыть панель управления",
@@ -31,7 +32,7 @@
     "gatewayProbe": "Статус зонного шлюза",
     "gatewayDiscover": "Откройте для себя службы шлюза",
     "gatewayHealth": "Проверить здоровье шлюза",
-    "gatewayStatusDeep": "Show deep gateway status",
+    "gatewayStatusDeep": "Показать подробный статус gateway",
     "gatewayInstall": "Установить сервис шлюза",
     "gatewayCall": "Вызов API шлюза (требует параметров)",
     "agent": "Запустить одного агента поворачивать через шлюз",
@@ -63,7 +64,7 @@
     "messageSend": "Отправить сообщение (требуется параметры)",
     "messageRead": "Чтение сообщений (требует параметров)",
     "nodesList": "Список узлов",
-    "nodesStatus": "Show nodes status",
+    "nodesStatus": "Показать статус узлов",
     "nodesPending": "Показать отложенные узлы",
     "nodesApprove": "Одобрить узел (требуется ID узла)",
     "nodesReject": "Отклонить узел (требуется ID узла)",
@@ -88,8 +89,8 @@
     "systemEvent": "Послать системное событие (требуется параметры)",
     "cronList": "Список заданий cron",
     "cronAdd": "Добавить задание cron (требует параметров)",
-    "hooksList": "List hooks",
-    "hooksCheck": "Check hooks status",
+    "hooksList": "Показать hooks",
+    "hooksCheck": "Проверить статус hooks",
     "memorySearch": "Поиск памяти (требуется запрос)",
     "memoryStatus": "Показать статус памяти",
     "sandboxList": "Список песочниц",
@@ -118,8 +119,8 @@
     "pairingList": "Список запросов на объединение",
     "docs": "Поиск документации (требуется запрос)",
     "completion": "Генерировать завершение оболочки",
-    "tui": "Open terminal UI",
-    "qr": "Generate QR code",
+    "tui": "Открыть интерфейс терминала",
+    "qr": "Сгенерировать QR-код",
     "onboard": "Запустить мастер настройки",
     "uninstall": "Удалить OpenClaw"
   }

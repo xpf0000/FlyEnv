@@ -10,7 +10,7 @@
   "MP_QUIET": "Hiljainen kirjaaminen (vain virheet)",
   "MP_VERBOSE": "Moniulotteinen kirjaaminen (virheenkorjaus)",
   "MP_UI_BIND_ADDR": "HTTP sitovan käyttöliittymän ja portin UI:lle.",
-  "MP_WEBROOT": "Set the webroot for web UI & API, for example mail would result in http://0.0.0.0:8025/mail/.",
+  "MP_WEBROOT": "Aseta webroot web-UI:lle ja API:lle, esimerkiksi mail tuottaa osoitteen http://0.0.0.0:8025/mail/.",
   "MP_UI_AUTH_FILE": "Määritä salasanatiedosto web-käyttöliittymän ja API:n perustunnistautumista varten (katso asiak.",
   "MP_UI_TLS_CERT": "TLS sertifikaatti web UI & API (eli HTTPS). Tämä valinta vaatii valitsimen --ui-tls-argumentin tai MP_UI_TLS_KEY ympäristömuuttujan.",
   "MP_UI_TLS_KEY": "TLS-avain web UI & API (eli HTTPS). Tämä valinta vaatii valitsimen --ui-tls-cert argumentin tai MP_UI_TLS_CERT ympäristömuuttujan.",

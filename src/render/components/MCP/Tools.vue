@@ -24,7 +24,7 @@
                     size="small"
                     effect="plain"
                   >
-                    risky
+                    {{ I18nT('mcp.risky') }}
                   </el-tag>
                 </div>
                 <p class="text-xs text-gray-500 leading-relaxed">

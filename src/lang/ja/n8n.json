@@ -3,7 +3,7 @@
   "N8N_HOST": "n8n web インターフェイスのホスト名または IP アドレス (デフォルト: localhost)",
   "N8N_PROTOCOL": "プロトコル: http または https (デフォルト: http)",
   "N8N_PATH": "n8n web インターフェイスの URL パス (デフォルト: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "データベース種別: sqlite、postgresdb、mysqldb、mariadb（既定: sqlite）",
   "N8N_USER_FOLDER": "ユーザーデータを格納するカスタムディレクトリ (デフォルト: ~/.n8n)",
   "ownerResetTitle": "所有者アカウントをリセット",
   "ownerResetBtn": "資格情報をリセットして再適用する",

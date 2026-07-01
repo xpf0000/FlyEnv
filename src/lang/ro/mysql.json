@@ -12,7 +12,7 @@
   "table_open_cache": "Cache tabel",
   "max_connections": "conexiunea maximă",
   "rootPassword": "parolă rădăcină",
-  "rootPasswordChange": "Change {user} password",
+  "rootPasswordChange": "Schimba parola pentru {user}",
   "passwordNoEmpty": "parola rădăcină nu poate fi goală",
   "passwordFormatError": "Parola bazei de date nu poate conține caractere chinezești sau speciale",
   "savePassword": "Actualizare parolă",
@@ -34,5 +34,5 @@
   "databaseBackup": "Copie de rezervă",
   "backupSaveDirSet": "Salvează setările locației",
   "saveDirError": "Locație de salvare nevalidă",
-  "backupFail": "{database} backup failed, error: {error}"
+  "backupFail": "Backupul pentru {database} a esuat, eroare: {error}"
 }

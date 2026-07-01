@@ -3,7 +3,7 @@
   "N8N_HOST": "Værtsnavn eller IP-adresse for n8n-webgrænsefladen (standard: localhost)",
   "N8N_PROTOCOL": "Protokol: http eller https (standard: http)",
   "N8N_PATH": "URL sti til n8n web-interface (standard: /)",
-  "DB_TYPE": "Database type: sqlite, postgresdb, mysqldb, mariadb (default: sqlite)",
+  "DB_TYPE": "Databasetype: sqlite, postgresdb, mysqldb, mariadb (standard: sqlite)",
   "N8N_USER_FOLDER": "Brugerdefineret mappe hvor n8n gemmer brugerdata (standard: ~/.n8n)",
   "ownerResetTitle": "Nulstil Ejerkonto",
   "ownerResetBtn": "Nulstil & Genanvend Legitimationsoplysninger",

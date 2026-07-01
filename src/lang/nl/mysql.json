@@ -31,7 +31,7 @@
   "inputPassword": "Voer wachtwoord in",
   "passwordSizeError": "Wachtwoord mag niet korter zijn dan 3 tekens",
   "manage": "Beheren",
-  "databaseBackup": "Database backup",
+  "databaseBackup": "Databaseback-up",
   "backupSaveDirSet": "Bewaar locatie instellingen",
   "saveDirError": "Ongeldige opslaglocatie",
   "backupFail": "{database} back-up mislukt, fout: {error}"

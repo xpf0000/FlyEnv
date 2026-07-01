@@ -61,7 +61,7 @@
   "flutterCreateFailed": "не удалось создать flutter",
   "flutterProjectSettings": "Настройки проекта Flutter",
   "previewChanges": "Просмотр изменений",
-  "projectTarget": "Project target",
+  "projectTarget": "Цель проекта",
   "projectIdentity": "Идентификатор проекта",
   "refreshInstalled": "Обновить установленные",
   "noPackagesInPubspec": "В pubspec.yaml пакеты не найдены.",

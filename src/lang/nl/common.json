@@ -24,14 +24,14 @@
     "state": "Provincie",
     "grid": "Rooster",
     "gridSpacing": "Raster afstand (pixels)",
-    "fontSize": "Font Size",
+    "fontSize": "Lettergrootte",
     "code": "Code"
   },
   "action": {
     "enable": "Inschakelen",
-    "disable": "Disable",
-    "resume": "Resume",
-    "uninstall": "Uninstall",
+    "disable": "Uitschakelen",
+    "resume": "Hervatten",
+    "uninstall": "Deïnstalleren",
     "copy": "Kopiëren",
     "preview": "Voorvertoning",
     "search": "Zoeken",
@@ -53,63 +53,63 @@
   },
   "state": {
     "running": "Hardlopen",
-    "installed": "Installed",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "available": "Available"
+    "installed": "Geïnstalleerd",
+    "enabled": "Ingeschakeld",
+    "disabled": "Uitgeschakeld",
+    "available": "Beschikbaar"
   },
   "session": {
-    "list": "Sessions",
-    "title": "Title",
-    "id": "Session ID",
-    "lastPrompt": "Last Prompt",
-    "search": "Search sessions",
-    "deleted": "Session deleted",
-    "resumed": "Session resumed in terminal"
+    "list": "Sessies",
+    "title": "Titel",
+    "id": "Sessie-ID",
+    "lastPrompt": "Laatste prompt",
+    "search": "Sessies zoeken",
+    "deleted": "Sessie verwijderd",
+    "resumed": "Sessie hervat in terminal"
   },
   "mcp": {
     "type": "Type",
-    "commandOrUrl": "Command / URL",
+    "commandOrUrl": "Opdracht / URL",
     "scope": "Scope",
-    "addServer": "Add Server"
+    "addServer": "Server toevoegen"
   },
   "category": {
-    "basic": "Basic",
+    "basic": "Basis",
     "mcp": "MCP",
-    "skills": "Skills",
+    "skills": "Vaardigheden",
     "basicInfo": "Algemene gegevens",
     "configuration": "Configuratie",
     "favorites": "Favorieten",
     "plugins": "Plugins",
-    "backupUpdate": "Backup & Update"
+    "backupUpdate": "Back-up en update"
   },
   "skills": {
     "openSkillsDir": "Open vaardighedenmap",
     "openSkillDir": "Skill directory openen",
     "revealSkillFile": "Vaardighedenbestand onthullen",
-    "noSkills": "No skills found",
+    "noSkills": "Geen skills gevonden",
     "skillFileMissing": "Vaardigheidsbestand niet gevonden",
     "skillLoadFailed": "Het laden van het vaardigheidsbestand is mislukt",
     "builtin": "Ingebouwd"
   },
   "cli": {
-    "help": "Display help information",
-    "version": "Show version number",
-    "start": "Start a new interactive session",
-    "mcpList": "List configured MCP servers",
+    "help": "Helpinformatie weergeven",
+    "version": "Versienummer tonen",
+    "start": "Een nieuwe interactieve sessie starten",
+    "mcpList": "Geconfigureerde MCP-servers weergeven",
     "doctor": "Voer gezondheidscontroles uit",
     "doctorFix": "Voer gezondheidscontroles uit met auto-fix",
-    "gatewayStart": "Start gateway service",
-    "gatewayStop": "Stop gateway service",
+    "gatewayStart": "Gateway-service starten",
+    "gatewayStop": "Gateway-service stoppen",
     "gatewayRestart": "Herstart gateway service",
     "gatewayStatus": "Toon gateway status",
     "gatewayRun": "Voer gateway uit op de voorgrond",
     "gatewayUninstall": "Gateway service deïnstalleren",
-    "skillsList": "List available skills"
+    "skillsList": "Beschikbare skills weergeven"
   },
   "gateway": {
-    "category": "Gateway Service",
-    "status": "Gateway Status",
+    "category": "Gateway-service",
+    "status": "Gateway-status",
     "running": "Gateway is lopend",
     "stopped": "Gateway is gestopt",
     "startFailed": "Gateway start mislukt"
@@ -123,8 +123,8 @@
     "local": "lokaal"
   },
   "plugin": {
-    "search": "Search plugins",
-    "removed": "Plugin removed"
+    "search": "Plugins zoeken",
+    "removed": "Plugin verwijderd"
   },
   "schedule": {
     "everyHour": "Elk uur",

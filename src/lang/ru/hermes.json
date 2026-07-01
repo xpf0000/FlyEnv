@@ -105,7 +105,7 @@
   "uninstallConfirm": "Вы уверены, что хотите удалить навык \"{name}?",
   "resetConfirm": "Вы уверены, что хотите сбросить навык \"{name}?",
   "updateSkill": "Обновить",
-  "resetSkill": "Reset",
+  "resetSkill": "Сброс",
   "categoryName": "Категория",
   "lastActive": "Последняя активность",
   "id": "ID"

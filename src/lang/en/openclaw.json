@@ -11,7 +11,8 @@
     "models": "Models",
     "skills": "Skills",
     "system": "System",
-    "sessions": "Sessions"
+    "sessions": "Sessions",
+    "backup": "Backup & Update"
   },
   "cmd": {
     "dashboard": "Open the Control UI dashboard",

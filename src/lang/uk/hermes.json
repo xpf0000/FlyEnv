@@ -105,7 +105,7 @@
   "uninstallConfirm": "Ви впевнені, що хочете видалити навичку\"{name}?",
   "resetConfirm": "Ви впевнені, що бажаєте скинути навичку \"{name}\"?",
   "updateSkill": "Оновити",
-  "resetSkill": "Reset",
+  "resetSkill": "Скинути",
   "categoryName": "Категорія",
   "lastActive": "Активність",
   "id": "ID"
