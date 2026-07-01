@@ -5,7 +5,7 @@ import AfterPackSign, { customSign } from '../build/afterPackSign'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.15.5',
+  buildVersion: '4.16.0',
   electronVersion: '39.8.7',
   appId: 'phpstudy.xpfme.com',
   asar: true,

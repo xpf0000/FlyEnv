@@ -9,7 +9,14 @@ const currentArch = process.arch === 'arm64' ? 'arm64' : 'x64'
 // node-pty 自带全部平台的 prebuilds;mac 构建只需当前架构对应的 darwin-* 一个,
 // 其余平台(含 Windows 专用的 third_party/conpty)全部裁掉以减小体积。
 const ptyKeep = `darwin-${currentArch}`
-const ptyPrebuildExcludes = ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64', 'win32-arm64', 'win32-x64']
+const ptyPrebuildExcludes = [
+  'darwin-arm64',
+  'darwin-x64',
+  'linux-arm64',
+  'linux-x64',
+  'win32-arm64',
+  'win32-x64'
+]
   .filter((d) => d !== ptyKeep)
   .map((d) => `!**/node_modules/node-pty/prebuilds/${d}/**`)
 
@@ -26,7 +33,7 @@ const ptyPrebuildExcludes = ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.15.5',
+  buildVersion: '4.16.0',
   electronVersion: '39.8.7',
   appId: 'phpstudy.xpfme.com',
   asar: true,
