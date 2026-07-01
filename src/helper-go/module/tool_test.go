@@ -3,6 +3,7 @@ package module
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"path/filepath"
 	"strings"
 	"testing"
 	"unicode/utf16"
@@ -38,5 +39,28 @@ func TestPowerShellEncodedArgsAvoidScriptFiles(t *testing.T) {
 	}
 	if got := decodePowerShellPayloadForTest(t, args[len(args)-1]); got != script {
 		t.Fatalf("encoded payload mismatch:\nwant: %q\n got: %q", script, got)
+	}
+}
+
+func TestResolveWindowsSystemExePrefersSysnative(t *testing.T) {
+	systemRoot := `C:\Windows`
+	sysnativePath := filepath.Join(systemRoot, "Sysnative", "schtasks.exe")
+	system32Path := filepath.Join(systemRoot, "System32", "schtasks.exe")
+	got := resolveWindowsSystemExe("schtasks", systemRoot, func(path string) bool {
+		return path == sysnativePath || path == system32Path
+	}, true)
+
+	if got != sysnativePath {
+		t.Fatalf("expected Sysnative path, got %q", got)
+	}
+}
+
+func TestResolveWindowsSystemExeFallsBackToCommandName(t *testing.T) {
+	got := resolveWindowsSystemExe("schtasks", "", func(string) bool {
+		return false
+	}, true)
+
+	if got != "schtasks.exe" {
+		t.Fatalf("expected fallback command name, got %q", got)
 	}
 }

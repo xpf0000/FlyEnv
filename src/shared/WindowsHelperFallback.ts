@@ -665,6 +665,27 @@ ${writeValue}
 ${buildNotifyEnvironmentChangedScript()}`
 }
 
+function buildResolveWindowsSystemExeScript(variableName: string, exeName: string): string {
+  const exeFileName = exeName.toLowerCase().endsWith('.exe') ? exeName : `${exeName}.exe`
+  return `$${variableName} = $null
+$systemRoot = $env:SystemRoot
+if ([string]::IsNullOrWhiteSpace($systemRoot)) {
+  $systemRoot = 'C:\\Windows'
+}
+foreach ($candidate in @(
+  [IO.Path]::Combine($systemRoot, 'Sysnative', '${exeFileName}'),
+  [IO.Path]::Combine($systemRoot, 'System32', '${exeFileName}')
+)) {
+  if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+    $${variableName} = $candidate
+    break
+  }
+}
+if (-not $${variableName}) {
+  $${variableName} = '${exeFileName}'
+}`
+}
+
 function buildSetAutoStartScript(args: ValidatedSetAutoStartArgs, tempFilePath?: string): string {
   const runtimeSetup = tempFilePath
     ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
@@ -676,16 +697,17 @@ $taskName = ${powerShellString(args.taskName)}
 $exePath = ${powerShellString(args.exePath)}`
   return `${buildPowerShellPreamble()}
 ${runtimeSetup}
+${buildResolveWindowsSystemExeScript('schtasksExe', 'schtasks')}
 if ($enabled) {
-  & schtasks.exe /create /tn $taskName /tr ('"' + $exePath + '"') /sc onlogon /rl highest /f | Out-Null
+  & $schtasksExe /create /tn $taskName /tr ('"' + $exePath + '"') /sc onlogon /rl highest /f | Out-Null
   if ($LASTEXITCODE -ne 0) {
-    throw "schtasks.exe /create failed with exit code $LASTEXITCODE"
+    throw "$schtasksExe /create failed with exit code $LASTEXITCODE"
   }
 }
 else {
-  & schtasks.exe /delete /tn $taskName /f | Out-Null
+  & $schtasksExe /delete /tn $taskName /f | Out-Null
   if ($LASTEXITCODE -ne 0) {
-    throw "schtasks.exe /delete failed with exit code $LASTEXITCODE"
+    throw "$schtasksExe /delete failed with exit code $LASTEXITCODE"
   }
 }`
 }

@@ -1,23 +1,14 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import {
-  execPromiseWithEnv,
-  readFile,
-  writeFile,
-  remove,
-  existsSync,
-  readdir,
-  mkdirp,
-  stat,
-  uuid
-} from '../../Fn'
-import { tmpdir, homedir } from 'node:os'
+import { readFile, writeFile, remove, existsSync, readdir, mkdirp, stat } from '../../Fn'
+import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
+import { checkAiCliVersion, resolveAiCliTerminalCommand } from '../../util/AiCli'
 
 const require = createRequire(import.meta.url)
 
@@ -71,30 +62,9 @@ class Antigravity extends Base {
     return join(this.geminiHome(), 'config', 'mcp_config.json')
   }
 
-  private antigravityBin() {
-    return 'agy'
-  }
-
-  private runCommand(command: string) {
-    return new ForkPromise<string>(async (resolve) => {
-      const tmp = join(tmpdir(), `${uuid()}.txt`)
-      try {
-        await execPromiseWithEnv(`${command} > "${tmp}" 2>&1`)
-        const content = await readFile(tmp, 'utf-8')
-        resolve(content)
-      } catch {
-        resolve('')
-      } finally {
-        if (existsSync(tmp)) {
-          await remove(tmp)
-        }
-      }
-    })
-  }
-
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      const version = await this.runCommand(`${this.antigravityBin()} --version`)
+      const version = await checkAiCliVersion('agy')
       resolve({
         installed: version.trim().length > 0,
         version: version.trim()
@@ -244,8 +214,8 @@ class Antigravity extends Base {
   runInTerminal(workDir: string, sessionId: string) {
     return new ForkPromise(async (resolve, reject) => {
       const agyCommand = sessionId
-        ? `${this.antigravityBin()} --conversation ${sessionId}`
-        : this.antigravityBin()
+        ? `${resolveAiCliTerminalCommand('agy')} --conversation ${sessionId}`
+        : resolveAiCliTerminalCommand('agy')
       const dir = workDir || homedir()
       const terminalCommand = isWindows()
         ? `cd "${dir}"; ${agyCommand}`

@@ -1,22 +1,14 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import {
-  execPromiseWithEnv,
-  readFile,
-  writeFile,
-  remove,
-  existsSync,
-  readdir,
-  mkdirp
-} from '../../Fn'
-import { tmpdir, homedir } from 'node:os'
+import { readFile, writeFile, remove, existsSync, readdir, mkdirp } from '../../Fn'
+import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { readdirSync } from 'node:fs'
-import { uuid } from '../../Fn'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { optionalBearerHeaders } from '@shared/aiCliMcp'
+import { checkAiCliVersion, resolveAiCliTerminalCommand } from '../../util/AiCli'
 
 export interface KimiSessionItem {
   id: string
@@ -43,34 +35,13 @@ class Kimi extends Base {
     return process.env.KIMI_CODE_HOME || join(homedir(), '.kimi-code')
   }
 
-  private kimiBin() {
-    return 'kimi'
-  }
-
   private mcpFile() {
     return join(this.kimiHome(), 'mcp.json')
   }
 
-  private runCommand(command: string) {
-    return new ForkPromise<string>(async (resolve) => {
-      const tmp = join(tmpdir(), `${uuid()}.txt`)
-      try {
-        await execPromiseWithEnv(`${command} > "${tmp}" 2>&1`)
-        const content = await readFile(tmp, 'utf-8')
-        resolve(content)
-      } catch {
-        resolve('')
-      } finally {
-        if (existsSync(tmp)) {
-          await remove(tmp)
-        }
-      }
-    })
-  }
-
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      const version = await this.runCommand(`${this.kimiBin()} --version`)
+      const version = await checkAiCliVersion('kimi')
       resolve({
         installed: version.trim().length > 0,
         version: version.trim()
@@ -236,7 +207,7 @@ class Kimi extends Base {
 
   runInTerminal(workDir: string, sessionId: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const kimiCommand = `kimi --session "${sessionId}"`
+      const kimiCommand = `${resolveAiCliTerminalCommand('kimi')} --session "${sessionId}"`
       const terminalCommand = isWindows()
         ? `cd "${workDir}"; ${kimiCommand}`
         : `cd "${workDir}" && ${kimiCommand}`

@@ -8,6 +8,7 @@ import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
+import { checkAiCliVersion, resolveAiCliCommand, resolveAiCliTerminalCommand } from '../../util/AiCli'
 
 const require = createRequire(import.meta.url)
 
@@ -52,7 +53,7 @@ class CopilotCli extends Base {
   }
 
   private copilotBin() {
-    return 'copilot'
+    return resolveAiCliCommand('copilot')
   }
 
   private runCommand(command: string) {
@@ -74,7 +75,7 @@ class CopilotCli extends Base {
 
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      const version = await this.runCommand(`${this.copilotBin()} --version`)
+      const version = await checkAiCliVersion('copilot')
       const trimmed = version.trim()
       // `copilot --version` prints e.g. "GitHub Copilot CLI 1.0.65.".
       const match = trimmed.match(/([0-9]+\.[0-9]+\.[0-9]+)/)
@@ -188,8 +189,8 @@ class CopilotCli extends Base {
   runInTerminal(workDir: string, sessionId: string) {
     return new ForkPromise(async (resolve, reject) => {
       const copilotCommand = sessionId
-        ? `${this.copilotBin()} --resume=${sessionId}`
-        : this.copilotBin()
+        ? `${resolveAiCliTerminalCommand('copilot')} --resume=${sessionId}`
+        : resolveAiCliTerminalCommand('copilot')
       const dir = workDir || homedir()
       const terminalCommand = isWindows()
         ? `cd "${dir}"; ${copilotCommand}`

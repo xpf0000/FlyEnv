@@ -15,6 +15,7 @@ import { tmpdir, homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
+import { checkAiCliVersion, resolveAiCliCommand, resolveAiCliTerminalCommand } from '../../util/AiCli'
 
 export interface ClaudeCodeSessionItem {
   id: string
@@ -57,7 +58,7 @@ class ClaudeCode extends Base {
   }
 
   private claudeBin() {
-    return 'claude'
+    return resolveAiCliCommand('claude')
   }
 
   private runCommand(command: string) {
@@ -79,7 +80,7 @@ class ClaudeCode extends Base {
 
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      const version = await this.runCommand(`${this.claudeBin()} --version`)
+      const version = await checkAiCliVersion('claude')
       resolve({
         installed: version.trim().length > 0,
         version: version.trim()
@@ -227,7 +228,7 @@ class ClaudeCode extends Base {
 
   runInTerminal(workDir: string, sessionId: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const claudeCommand = `${this.claudeBin()} --resume ${sessionId}`
+      const claudeCommand = `${resolveAiCliTerminalCommand('claude')} --resume ${sessionId}`
       const dir = workDir || homedir()
       const terminalCommand = isWindows()
         ? `cd "${dir}"; ${claudeCommand}`

@@ -10,6 +10,7 @@ import { appDebugLog, isWindows } from '@shared/utils'
 import { PItem, ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidList } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
+import { checkAiCliVersion, resolveAiCliCommand } from '../../util/AiCli'
 
 interface SkillItem {
   name: string
@@ -49,7 +50,7 @@ class Hermes extends Base {
   }
 
   private hermesBin() {
-    return 'hermes'
+    return resolveAiCliCommand('hermes')
   }
 
   private async runCommand(command: string): Promise<string> {
@@ -208,20 +209,7 @@ class Hermes extends Base {
 
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      let version = ''
-      const tmp = join(tmpdir(), `${uuid()}.txt`)
-      try {
-        await execPromiseWithEnv(`${this.hermesBin()} --version > "${tmp}" 2>&1`)
-        const content = await readFile(tmp, 'utf-8')
-        version = content.trim()
-      } catch (e) {
-        console.log('hermes --version error: ', e)
-        version = ''
-      } finally {
-        if (existsSync(tmp)) {
-          await remove(tmp)
-        }
-      }
+      const version = await checkAiCliVersion('hermes')
       resolve({
         installed: version.length > 0,
         version

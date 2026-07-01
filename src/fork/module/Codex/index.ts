@@ -17,6 +17,7 @@ import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
+import { checkAiCliVersion, resolveAiCliCommand, resolveAiCliTerminalCommand } from '../../util/AiCli'
 
 export interface CodexSessionItem {
   id: string
@@ -54,7 +55,7 @@ class Codex extends Base {
   }
 
   private codexBin() {
-    return 'codex'
+    return resolveAiCliCommand('codex')
   }
 
   private runCommand(command: string) {
@@ -76,7 +77,7 @@ class Codex extends Base {
 
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      const version = await this.runCommand(`${this.codexBin()} --version`)
+      const version = await checkAiCliVersion('codex')
       resolve({
         installed: version.trim().length > 0,
         version: version.trim()
@@ -238,7 +239,7 @@ class Codex extends Base {
 
   runInTerminal(workDir: string, sessionId: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const codexCommand = `${this.codexBin()} resume ${sessionId}`
+      const codexCommand = `${resolveAiCliTerminalCommand('codex')} resume ${sessionId}`
       const dir = workDir || homedir()
       const terminalCommand = isWindows()
         ? `cd "${dir}"; ${codexCommand}`

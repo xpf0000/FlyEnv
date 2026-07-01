@@ -84,6 +84,18 @@ const setEnvPlan = buildWindowsHelperFallbackPlan(
 assert.equal(setEnvPlan.mode, 'inline')
 assert.match(setEnvPlan.script, /Set-ItemProperty/)
 
+const setAutoStartPlan = buildWindowsHelperFallbackPlan(
+  'tools',
+  'setAutoStartWin',
+  [true, 'FlyEnvStartup', 'C:/FlyEnv/flyenv.exe'],
+  6000
+)
+assert.equal(setAutoStartPlan.mode, 'inline')
+assert.match(setAutoStartPlan.script, /\$schtasksExe = \$null/)
+assert.match(setAutoStartPlan.script, /Sysnative/)
+assert.match(setAutoStartPlan.script, /System32/)
+assert.doesNotMatch(setAutoStartPlan.script, /& schtasks\.exe /)
+
 assert.throws(
   () => buildWindowsHelperFallbackPlan('tools', 'setSystemEnv', ['FLYENV-ALIAS', 'x'], 2000),
   (error: unknown) => {
@@ -97,7 +109,7 @@ assert.throws(
     buildWindowsHelperFallbackPlan(
       'tools',
       'writeFileByRoot',
-      ['D:/outside/flyenv/test.txt', 'x'],
+      ['D:/outside/project/test.txt', 'x'],
       2000
     ),
   (error: unknown) => {

@@ -6,6 +6,7 @@ import { tmpdir, homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
+import { checkAiCliVersion, resolveAiCliCommand, resolveAiCliTerminalCommand } from '../../util/AiCli'
 
 export interface OpenCodeSessionItem {
   id: string
@@ -59,7 +60,7 @@ class OpenCode extends Base {
   }
 
   private openCodeBin() {
-    return 'opencode'
+    return resolveAiCliCommand('opencode')
   }
 
   private runCommand(command: string) {
@@ -81,7 +82,7 @@ class OpenCode extends Base {
 
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      const version = await this.runCommand(`${this.openCodeBin()} --version`)
+      const version = await checkAiCliVersion('opencode')
       const v = version.trim().split('\n').pop()?.trim() ?? ''
       resolve({
         installed: v.length > 0,
@@ -146,7 +147,7 @@ class OpenCode extends Base {
 
   runInTerminal(workDir: string, sessionId: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const command = `${this.openCodeBin()} --session ${sessionId}`
+      const command = `${resolveAiCliTerminalCommand('opencode')} --session ${sessionId}`
       const dir = workDir || homedir()
       const terminalCommand = isWindows() ? `cd "${dir}"; ${command}` : `cd "${dir}" && ${command}`
       try {
