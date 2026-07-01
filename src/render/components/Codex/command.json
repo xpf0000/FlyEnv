@@ -3,16 +3,16 @@
     {
       "nameKey": "common.category.basic",
       "commands": [
-        { "label": "codex --help", "descriptionKey": "codex.cmd.help", "needInput": false },
-        { "label": "codex --version", "descriptionKey": "codex.cmd.version", "needInput": false },
+        { "label": "codex --help", "descriptionKey": "common.cli.help", "needInput": false },
+        { "label": "codex --version", "descriptionKey": "common.cli.version", "needInput": false },
         { "label": "codex update", "descriptionKey": "codex.cmd.update", "needInput": false, "needRefresh": true },
-        { "label": "codex doctor", "descriptionKey": "codex.cmd.doctor", "needInput": false }
+        { "label": "codex doctor", "descriptionKey": "common.cli.doctor", "needInput": false }
       ]
     },
     {
-      "nameKey": "codex.category.session",
+      "nameKey": "common.session.list",
       "commands": [
-        { "label": "codex", "descriptionKey": "codex.cmd.start", "needInput": false },
+        { "label": "codex", "descriptionKey": "common.cli.start", "needInput": false },
         { "label": "codex resume --last", "descriptionKey": "codex.cmd.continue", "needInput": false },
         { "label": "codex resume", "descriptionKey": "codex.cmd.resume", "needInput": false },
         { "label": "codex exec", "descriptionKey": "codex.cmd.exec", "needInput": true },
@@ -20,9 +20,9 @@
       ]
     },
     {
-      "nameKey": "codex.category.config",
+      "nameKey": "common.category.configuration",
       "commands": [
-        { "label": "codex mcp list", "descriptionKey": "codex.cmd.mcpList", "needInput": false },
+        { "label": "codex mcp list", "descriptionKey": "common.cli.mcpList", "needInput": false },
         { "label": "codex plugin list", "descriptionKey": "codex.cmd.pluginList", "needInput": false },
         { "label": "codex login", "descriptionKey": "codex.cmd.login", "needInput": false }
       ]

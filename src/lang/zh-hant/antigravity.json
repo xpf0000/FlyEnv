@@ -7,5 +7,15 @@
   "sessionId": "對話 ID",
   "updatedAt": "更新時間",
   "sessionResumed": "已在終端恢復對話",
-  "sessionDeleted": "對話已刪除"
+  "sessionDeleted": "對話已刪除",
+  "cmd": {
+    "update": "Update Antigravity CLI to the latest version",
+    "models": "List available models",
+    "continue": "Continue the most recent conversation",
+    "resume": "Resume a previous conversation by ID",
+    "prompt": "Run a single prompt non-interactively",
+    "pluginList": "List imported plugins",
+    "pluginImport": "Import plugins from gemini or claude",
+    "install": "Configure environment paths and shell settings"
+  }
 }

@@ -15,5 +15,6 @@
   "groupStart": "Ett klikk start av alle tilgjengelige tjenester som vises i ruten",
   "networkTunnel": "Nettverks tunnel",
   "cacheAndQueue": "Cache og meldingskø",
-  "serviceGovernance": "Service Governance"
+  "serviceGovernance": "Service Governance",
+  "other": "Annet"
 }

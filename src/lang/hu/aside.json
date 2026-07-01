@@ -15,5 +15,6 @@
   "groupStart": "Az összes elérhető szolgáltatás indítása egy kattintással",
   "networkTunnel": "Hálózati alagút",
   "cacheAndQueue": "Gyorsítótár és üzenetsor",
-  "serviceGovernance": "Szolgáltatásirányítás"
+  "serviceGovernance": "Szolgáltatásirányítás",
+  "other": "Egyéb"
 }

@@ -15,5 +15,6 @@
   "groupStart": "Start alle tilgængelige tjenester på panelet med et enkelt klik",
   "networkTunnel": "Netværk Tunnel",
   "cacheAndQueue": "Cache & Brevskø",
-  "serviceGovernance": "Styring Af Tjenester"
+  "serviceGovernance": "Styring Af Tjenester",
+  "other": "Andet"
 }

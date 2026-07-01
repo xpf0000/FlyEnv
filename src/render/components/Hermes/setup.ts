@@ -6,6 +6,7 @@ import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import { getHermesInstallCommandLines, resolveHermesInstallPlatform } from './install'
 import CommandData from './command.json'
 
 let SkillInspectVM: any
@@ -248,18 +249,12 @@ class Hermes {
     const execXTerm = new XTerm()
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
-    const command: string[] = []
-    if (window.Server.Proxy) {
-      for (const k in window.Server.Proxy) {
-        const v = window.Server.Proxy[k]
-        command.push(`export ${k}="${v}"`)
-      }
-    }
-    if (window.Server.isWindows) {
-      command.push('irm https://hermes-agent.nousresearch.com/install.ps1 | iex')
-    } else {
-      command.push('curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash')
-    }
+    const command = getHermesInstallCommandLines(
+      resolveHermesInstallPlatform(
+        window.Server.isWindows ? 'win32' : window.Server.isMacOS ? 'darwin' : 'linux'
+      ),
+      (window.Server.Proxy ?? {}) as Record<string, string>
+    )
     await execXTerm.send(command, false)
     this.installEnd = true
   }

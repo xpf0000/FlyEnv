@@ -15,5 +15,6 @@
   "groupStart": "Panoda görünen kullanılabilir tüm hizmetleri tek tıkla başlat",
   "networkTunnel": "Ağ Tüneli",
   "cacheAndQueue": "Önbellek ve Mesaj Kuyruğu",
-  "serviceGovernance": "Servis Yönetimi"
+  "serviceGovernance": "Servis Yönetimi",
+  "other": "Diğer"
 }

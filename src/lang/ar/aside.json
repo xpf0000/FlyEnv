@@ -15,5 +15,6 @@
   "groupStart": "تشغيل جميع الخدمات المتوفرة على اللوحة بنقرة واحدة",
   "networkTunnel": "النفق الشبكي",
   "cacheAndQueue": "التخزين المؤقت وقائمة الانتظار",
-  "serviceGovernance": "الحوكمة الخدمية"
+  "serviceGovernance": "الحوكمة الخدمية",
+  "other": "اخرى"
 }

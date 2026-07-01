@@ -7,6 +7,15 @@
   "defaultPlanMode": "计划模式",
   "telemetry": "遥测",
   "cmd": {
-    "export": "导出会话为 ZIP"
+    "upgrade": "升级 Kimi Code CLI",
+    "continue": "继续当前目录最近会话",
+    "sessionSelect": "选择并恢复会话",
+    "plan": "以计划模式启动",
+    "yolo": "自动批准常规工具调用",
+    "export": "导出会话为 ZIP",
+    "vis": "在浏览器中打开会话可视化",
+    "providerList": "列出已配置的模型提供商",
+    "providerAdd": "从注册表 URL 添加提供商",
+    "providerRemove": "移除提供商"
   }
 }

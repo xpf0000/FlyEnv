@@ -15,5 +15,6 @@
   "groupStart": "Mulai sekaligus semua layanan yang tersedia yang ditampilkan di panel",
   "networkTunnel": "Tunnel Jaringan",
   "cacheAndQueue": "Cache & Antrian Pesan",
-  "serviceGovernance": "Tata Kelola Layanan"
+  "serviceGovernance": "Tata Kelola Layanan",
+  "other": "Other"
 }

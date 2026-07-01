@@ -15,5 +15,6 @@
   "groupStart": "패널에 표시된 사용 가능한 모든 서비스를 원클릭으로 시작",
   "networkTunnel": "네트워크 터널",
   "cacheAndQueue": "캐시 및 메시지 큐",
-  "serviceGovernance": "서비스 거버넌스"
+  "serviceGovernance": "서비스 거버넌스",
+  "other": "기타"
 }

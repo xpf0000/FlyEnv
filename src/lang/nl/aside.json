@@ -15,5 +15,6 @@
   "groupStart": "Start met één klik alle beschikbare services die worden weergegeven op het paneel",
   "networkTunnel": "Netwerktunnel",
   "cacheAndQueue": "Cache en bericht wachtrij",
-  "serviceGovernance": "Service Governance"
+  "serviceGovernance": "Service Governance",
+  "other": "anders"
 }

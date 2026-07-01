@@ -6,5 +6,14 @@
   "approvalPolicy": "审批策略",
   "sandboxMode": "沙箱模式",
   "pluginEnabled": "插件已安装",
-  "uninstallConfirm": "确定要移除插件 \"{name}\" 吗?"
+  "uninstallConfirm": "确定要移除插件 \"{name}\" 吗?",
+  "cmd": {
+    "update": "更新 Codex 到最新版本",
+    "continue": "继续最近的会话",
+    "resume": "恢复历史会话(选择器)",
+    "exec": "非交互方式运行 Codex",
+    "review": "非交互方式运行代码审查",
+    "pluginList": "列出可用插件",
+    "login": "管理登录 / 认证"
+  }
 }

@@ -15,5 +15,6 @@
   "groupStart": "Iniciar com um clique todos os serviços disponíveis exibidos no painel",
   "networkTunnel": "Túnel de rede",
   "cacheAndQueue": "Cache e Fila de Mensagens",
-  "serviceGovernance": "Administração de Serviços"
+  "serviceGovernance": "Administração de Serviços",
+  "other": "Outros"
 }

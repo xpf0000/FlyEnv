@@ -15,5 +15,6 @@
   "groupStart": "Jedním klepnutím spustit všechny dostupné služby zobrazené v panelu",
   "networkTunnel": "Síťový tunel",
   "cacheAndQueue": "Mezipaměť a fronta zpráv",
-  "serviceGovernance": "Správa služeb"
+  "serviceGovernance": "Správa služeb",
+  "other": "Ostatní"
 }

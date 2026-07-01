@@ -15,5 +15,6 @@
   "groupStart": "One-click start all available services displayed on the panel",
   "networkTunnel": "Network Tunnel",
   "cacheAndQueue": "Cache & Message Queue",
-  "serviceGovernance": "Service Governance"
+  "serviceGovernance": "Service Governance",
+  "other": "Other"
 }

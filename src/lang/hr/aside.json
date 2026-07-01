@@ -15,5 +15,6 @@
   "groupStart": "Jednim klikom pokreni sve dostupne servise prikazane na ploči",
   "networkTunnel": "Mrežni Tunel",
   "cacheAndQueue": "Cache i Red Poruka",
-  "serviceGovernance": "Upravljanje Servisima"
+  "serviceGovernance": "Upravljanje Servisima",
+  "other": "Ostalo"
 }

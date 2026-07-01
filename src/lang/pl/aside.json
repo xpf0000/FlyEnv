@@ -15,5 +15,6 @@
   "groupStart": "Uruchom wszystkie dostępne usługi wyświetlane w panelu jednym kliknięciem",
   "networkTunnel": "Tunel sieciowy",
   "cacheAndQueue": "Pamięć podręczna i kolejka wiadomości",
-  "serviceGovernance": "Zarządzanie usługami"
+  "serviceGovernance": "Zarządzanie usługami",
+  "other": "Inne"
 }

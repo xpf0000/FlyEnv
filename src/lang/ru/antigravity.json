@@ -7,5 +7,15 @@
   "sessionId": "Conversation ID",
   "updatedAt": "Updated At",
   "sessionResumed": "Conversation resumed in terminal",
-  "sessionDeleted": "Conversation deleted"
+  "sessionDeleted": "Conversation deleted",
+  "cmd": {
+    "update": "Update Antigravity CLI to the latest version",
+    "models": "List available models",
+    "continue": "Continue the most recent conversation",
+    "resume": "Resume a previous conversation by ID",
+    "prompt": "Run a single prompt non-interactively",
+    "pluginList": "List imported plugins",
+    "pluginImport": "Import plugins from gemini or claude",
+    "install": "Configure environment paths and shell settings"
+  }
 }

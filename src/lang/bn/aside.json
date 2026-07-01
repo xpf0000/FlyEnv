@@ -15,5 +15,6 @@
   "groupStart": "প্যানেলে প্রদর্শিত সব উপলব্ধ সার্ভিস এক-ক্লিকে শুরু করুন",
   "networkTunnel": "নেটওয়ার্ক টানেল",
   "cacheAndQueue": "ক্যাশ এবং বার্তা কিউ",
-  "serviceGovernance": "পরিষেবা গভর্নেন্স"
+  "serviceGovernance": "পরিষেবা গভর্নেন্স",
+  "other": "Other"
 }

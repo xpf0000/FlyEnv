@@ -6,5 +6,14 @@
   "approvalPolicy": "Onay Politikası",
   "sandboxMode": "Sandbox Modu",
   "pluginEnabled": "Eklenti yüklendi",
-  "uninstallConfirm": "\"{name}\" eklentisini kaldırmak istediğinizden emin misiniz?"
+  "uninstallConfirm": "\"{name}\" eklentisini kaldırmak istediğinizden emin misiniz?",
+  "cmd": {
+    "update": "Update Codex to the latest version",
+    "continue": "Continue the most recent session",
+    "resume": "Resume a previous session (picker)",
+    "exec": "Run Codex non-interactively",
+    "review": "Run a code review non-interactively",
+    "pluginList": "List available plugins",
+    "login": "Manage login / authentication"
+  }
 }

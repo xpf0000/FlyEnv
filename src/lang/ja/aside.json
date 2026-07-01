@@ -15,5 +15,6 @@
   "groupStart": "パネルに表示されている利用可能なすべてのサービスをワンクリックで起動",
   "networkTunnel": "ネットワークトンネル",
   "cacheAndQueue": "キャッシュとメッセージキュー",
-  "serviceGovernance": "サービスガバナンス"
+  "serviceGovernance": "サービスガバナンス",
+  "other": "その他"
 }

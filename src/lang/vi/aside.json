@@ -15,5 +15,6 @@
   "groupStart": "Khởi động tất cả các dịch vụ khả dụng hiển thị trên bảng điều khiển bằng một cú nhấp chuột",
   "networkTunnel": "Xuyên mạng nội bộ",
   "cacheAndQueue": "Bộ Nhớ Đệm & Hàng Đợi Tin Nhắn",
-  "serviceGovernance": "Quản Trị Dịch Vụ"
+  "serviceGovernance": "Quản Trị Dịch Vụ",
+  "other": "Khác"
 }

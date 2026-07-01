@@ -15,5 +15,6 @@
   "groupStart": "Yhdellä napsautuksella käynnistetään kaikki paneelissa näytettävät palvelut",
   "networkTunnel": "Verkon Tunneli",
   "cacheAndQueue": "Välimuisti & Viestijono",
-  "serviceGovernance": "Palvelun Hallinto"
+  "serviceGovernance": "Palvelun Hallinto",
+  "other": "Muu"
 }

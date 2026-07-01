@@ -15,5 +15,6 @@
   "groupStart": "Avvia con un clic tutti i servizi disponibili visualizzati nel pannello",
   "networkTunnel": "Tunnel Di Rete",
   "cacheAndQueue": "Cache E Coda Dei Messaggi",
-  "serviceGovernance": "Governance Dei Servizi"
+  "serviceGovernance": "Governance Dei Servizi",
+  "other": "Altro"
 }

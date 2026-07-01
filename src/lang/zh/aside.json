@@ -15,5 +15,6 @@
   "groupStart": "一键启动所有显示在面板上的可用服务",
   "networkTunnel": "网络隧道",
   "cacheAndQueue": "缓存&消息队列",
-  "serviceGovernance": "服务治理"
+  "serviceGovernance": "服务治理",
+  "other": "其他"
 }
