@@ -1,0 +1,11 @@
+{
+  "notInstalled": "Antigravity CLI chưa được cài đặt. Nhấp vào nút bên dưới để cài đặt bằng trình cài đặt chính thức.",
+  "officialWebsite": "Trang web Antigravity",
+  "officialDocs": "Tài liệu Antigravity CLI",
+  "sandboxMode": "Sandbox Terminal",
+  "toolPermission": "Quyền hạn công cụ",
+  "sessionId": "ID cuộc hội thoại",
+  "updatedAt": "Cập nhật lúc",
+  "sessionResumed": "Cuộc hội thoại đã được khôi phục trong terminal",
+  "sessionDeleted": "Cuộc hội thoại đã bị xóa"
+}
