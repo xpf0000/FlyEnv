@@ -1,11 +1,11 @@
-version: 4.15.4
+version: 4.16.0
 files:
-  - url: FlyEnv-4.15.4-x64.deb
-    sha512: Z/G0jfikwmzfIBgfuVHiyHrh0CSKIjNoaJ114F7bcX3tXzLRE4meQmXPm6yeomTWuJ3eU6pUpSSItshlhOjsdg==
-    size: 139153840
-  - url: FlyEnv-4.15.4-x64.rpm
-    sha512: uZUj8JaMC467FTtPh+YawyOm7iM7nPN0IQtFHRA/znpYe950xxqTdNbUHM2qPqSca7P8JkftH5le4v3l0Rh10A==
-    size: 116429849
-path: FlyEnv-4.15.4-x64.deb
-sha512: Z/G0jfikwmzfIBgfuVHiyHrh0CSKIjNoaJ114F7bcX3tXzLRE4meQmXPm6yeomTWuJ3eU6pUpSSItshlhOjsdg==
-releaseDate: '2026-06-15T12:16:59.664Z'
+  - url: FlyEnv-4.16.0-x64.deb
+    sha512: WFN7lG3vdW1WN49wpzLBPL/QiIAELNt9n0Gvrs1HcNzi97CctFyoqnLtuLf1RUo+2ypkej52ZHc7NW0+EHQugA==
+    size: 140744660
+  - url: FlyEnv-4.16.0-x64.rpm
+    sha512: k0GQGD5oc7oJ0QvtSHHYMId2I5Ez70gUp9XuFmWFRWkH72G7ZLGjEcdE21KjgCz1RdzixojTAD2VxopRA/6gbQ==
+    size: 117705097
+path: FlyEnv-4.16.0-x64.deb
+sha512: WFN7lG3vdW1WN49wpzLBPL/QiIAELNt9n0Gvrs1HcNzi97CctFyoqnLtuLf1RUo+2ypkej52ZHc7NW0+EHQugA==
+releaseDate: '2026-07-02T03:01:48.582Z'

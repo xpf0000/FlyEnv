@@ -1,11 +1,14 @@
-# FlyEnv新版本4.15.4更新日志
+# FlyEnv新版本4.16.0更新日志
 
 本次更新内容：
-1. 优化Windows版本各个服务的启动方式. 减少杀毒软件误报的几率.
-2. 优化macOS版本各个服务的启动方式. 修复和某些终端软件(会修改系统默认ZSH)有冲突,导致FlyEnv内服务无法启动的问题.
-3. 优化Windows和Linux开机启动代码. 修复在文件夹路径里有空格时, 会导致无法正确设置开机启动的问题.
-4. 修复Mailpit新版本无法正确获取版本号的问题.
-5. 修复RabbitMQ无法启用管理插件导致web面板无法正确使用的问题.
+1. 更新minio的下载地址。使用pigsty fork后继续维护的版本 https://github.com/xpf0000/FlyEnv/issues/626
+2. 修复Windows上Python环境变量设置的问题 https://github.com/xpf0000/FlyEnv/issues/633
+3. 修复Rust 加载系统环境变量的问题。 https://github.com/xpf0000/FlyEnv/issues/691
+4. 优化站点添加编辑。允许localhost+端口的方式。 https://github.com/xpf0000/FlyEnv/issues/700
+5. 修复FlyEnv设置的环境变量的顺序问题。https://github.com/xpf0000/FlyEnv/issues/713
+6. 修复Windows上定时任务设置时路径有空格导致的运行报错问题 https://github.com/xpf0000/FlyEnv/issues/728 https://github.com/xpf0000/FlyEnv/issues/729
+7. 新增 MCP 服务器。
+8. 新增 Claude Code，Codex，OpenCode，Kimi， Antigravity CLI， Copilot Cli模块 https://github.com/xpf0000/FlyEnv/issues/712
 
 参照：
 ```
