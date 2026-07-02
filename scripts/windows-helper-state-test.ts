@@ -44,7 +44,7 @@ assert.equal(
     'tools',
     'writeFileByRoot'
   ),
-  'fallback'
+  'reject'
 )
 assert.equal(
   resolveWindowsHelperTransport(
@@ -60,7 +60,7 @@ assert.equal(
     'tools',
     'setSystemEnv'
   ),
-  'fallback'
+  'prompt'
 )
 assert.equal(
   resolveWindowsHelperTransport(
@@ -75,6 +75,14 @@ assert.equal(
     new AppHelperError('helper_version_mismatch', 'mismatch'),
     'host',
     'sslAddTrustedCert'
+  ),
+  'prompt'
+)
+assert.equal(
+  resolveWindowsHelperTransport(
+    new AppHelperError('helper_execution_failed', 'execution failed'),
+    'tools',
+    'writeFileByRoot'
   ),
   'fallback'
 )

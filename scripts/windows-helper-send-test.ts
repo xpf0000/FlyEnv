@@ -50,14 +50,14 @@ async function main() {
     }
   } as any
 
-  const fallbackResult = await missingBinaryHelper.send(
-    'tools',
-    'writeFileByRoot',
-    'C:\\FlyEnv\\test.txt',
-    'content'
+  await assert.rejects(
+    missingBinaryHelper.send('tools', 'writeFileByRoot', 'C:\\FlyEnv\\test.txt', 'content'),
+    (error: any) => {
+      assert.equal(error?.code, 'helper_binary_missing')
+      return true
+    }
   )
-  assert.equal(fallbackResult, true)
-  assert.equal(fallbackCalls, 1)
+  assert.equal(fallbackCalls, 0)
   assert.equal(promptCalls, 0)
 
   await assert.rejects(
@@ -68,6 +68,35 @@ async function main() {
     }
   )
   assert.equal(promptCalls, 0)
+  assert.equal(fallbackCalls, 0)
+
+  let unavailablePromptCalls = 0
+  let unavailableFallbackCalls = 0
+  const unavailableHelper = createHelper({
+    isWindows: () => true,
+    appHelperCheck: async () => {
+      throw new AppHelperError('helper_unreachable', 'unreachable')
+    },
+    runWindowsHelperFallback: async () => {
+      unavailableFallbackCalls += 1
+      return true
+    }
+  })
+  unavailableHelper.appHelper = {
+    needInstall() {
+      unavailablePromptCalls += 1
+    }
+  } as any
+
+  await assert.rejects(
+    unavailableHelper.send('tools', 'setSystemEnv', 'FLYENV_ALIAS', 'C:\\FlyEnv\\alias'),
+    (error: any) => {
+      assert.equal(error?.code, 'helper_unreachable')
+      return true
+    }
+  )
+  assert.equal(unavailablePromptCalls, 1)
+  assert.equal(unavailableFallbackCalls, 0)
 
   let socketFallbackCalls = 0
   const socketFallbackHelper = createHelper({

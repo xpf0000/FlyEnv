@@ -22,9 +22,6 @@ const FALLBACK_ALLOWLIST = new Set([
 ])
 
 const FALLBACK_ERROR_CODES = new Set<AppHelperErrorCode>([
-  'helper_binary_missing',
-  'helper_unreachable',
-  'helper_version_mismatch',
   'helper_execution_failed'
 ])
 
