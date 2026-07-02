@@ -124,7 +124,7 @@ That is the clearest difference versus traditional local-stack tools such as XAM
 
 ### AI Workflow at a Glance
 
-![FlyEnv MCP and AI CLI workflow](./flyenv-mcp.webp)
+![FlyEnv MCP and AI CLI workflow](./flyenv-mcp.jpeg)
 
 The diagram above shows the workflow. The screenshot below shows the real FlyEnv MCP Server interface used to configure the bridge between your local stack and AI coding tools.
 
