@@ -54,17 +54,36 @@
     return !!current
   })
 
+  const parseEnvValue = (content: string, key: string) => {
+    const match = content
+      .split(/\r?\n/)
+      .find((line: string) => line.trim().startsWith(`${key}=`))
+    const raw = match?.trim().split('=').slice(1).join('=').trim()
+    return raw?.replace(/^['"]|['"]$/g, '')
+  }
+
+  const normalizeUrlPath = (value?: string) => {
+    if (!value) return '/'
+    return value.startsWith('/') ? value : `/${value}`
+  }
+
   const openDashboard = async () => {
+    let protocol = 'http'
+    let host = '127.0.0.1'
     let port = '5678'
+    let path = '/'
     try {
       const envFile = join(window.Server.BaseDir!, 'n8n/n8n.env')
       const content = await fs.readFile(envFile)
-      const match = (content as string)
-        .split('\n')
-        .find((l: string) => l.trim().startsWith('N8N_PORT='))
-      if (match) port = match.trim().split('=')[1]?.trim() || '5678'
+      protocol = parseEnvValue(content as string, 'N8N_PROTOCOL') || protocol
+      host = parseEnvValue(content as string, 'N8N_HOST') || host
+      port = parseEnvValue(content as string, 'N8N_PORT') || port
+      path = normalizeUrlPath(parseEnvValue(content as string, 'N8N_PATH') || path)
     } catch {}
-    shell.openExternal(`http://127.0.0.1:${port}`).catch()
+    if (host === '0.0.0.0' || host === '::') {
+      host = '127.0.0.1'
+    }
+    shell.openExternal(`${protocol}://${host}:${port}${path}`).catch()
   }
 
   checkVersion()
