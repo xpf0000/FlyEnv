@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI neni nainstalovane. Kliknutim na tlacitko nize jej nainstalujete pomoci oficialniho instalatoru.",
+  "officialWebsite": "Web Antigravity",
+  "officialDocs": "Dokumentace Antigravity CLI",
+  "sandboxMode": "Terminalovy sandbox",
+  "toolPermission": "Opravneni nastroju",
+  "sessionId": "ID konverzace",
+  "updatedAt": "Aktualizovano",
+  "sessionResumed": "Konverzace obnovena v terminalu",
+  "sessionDeleted": "Konverzace smazana",
+  "cmd": {
+    "update": "Aktualizovat Antigravity CLI na nejnovejsi verzi",
+    "models": "Vypsat dostupne modely",
+    "continue": "Pokracovat v posledni konverzaci",
+    "resume": "Obnovit predchozi konverzaci podle ID",
+    "prompt": "Spustit jeden prompt neinteraktivne",
+    "pluginList": "Vypsat importovane pluginy",
+    "pluginImport": "Importovat pluginy z gemini nebo claude",
+    "install": "Nastavit cesty prostredi a nastaveni shellu"
+  }
+}

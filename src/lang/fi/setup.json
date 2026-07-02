@@ -1,9 +1,9 @@
 {
-  "tsinghua": "Tsinghua University download source",
+  "tsinghua": "Latauslahde Tsinghuan yliopistosta",
   "bfsu": "Peking Foreign Studies Yliopiston latauslähde",
   "tencent": "Tencentin latauslähde",
   "aliyun": "Alibaban latauslähde",
-  "ustc": "University of Science and Technology of China download source",
+  "ustc": "Latauslahde University of Science and Technology of Chinasta",
   "Licenses": "Lisenssi",
   "requestedTips": "Lisenssipyyntö on lähetetty, ole kärsivällinen ja odota Jos haluat muokata tietoja, voit lähettää sen uudelleen",
   "autoStartService": "Käynnistä Palvelut Automaattisesti",
@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Vain yksi palvelu voi suorittaa kerrallaan",
   "moduleExecItem": "Moduulin Suorituskohde",
   "module": {
-    "name": "Nimi",
     "path": "Tiedoston Polku",
-    "comment": "Kommentti",
     "exec": "Suorita",
     "command": "Komento",
     "commandFile": "Tiedosto",
@@ -39,8 +37,7 @@
     "needPasswordToStart": "Ylläpitäjän oikeudet. Syötä salasanasi (se tallennetaan tulevaa käyttöä varten). Vaihtoehtoisesti syötä se manuaalisesti päätteeseen, mutta tämä kehotus voi ilmestyä uudelleen.",
     "hadOpenInTerminal": "Käytössä jo terminaalissa—tulokset eivät ole käytettävissä.",
     "licenseTips": "Lisenssiä ei löytynyt. Vain 3 moduulia/suoritus kohteita voidaan luoda.",
-    "outputLog": "Ulostulon Loki",
-    "errorLog": "Virhe Loki"
+    "outputLog": "Ulostulon Loki"
   },
   "flyenvHelper": "Korjaa FlyEnv -auttaja",
   "flyenvHelperBtn": "Korjaa",

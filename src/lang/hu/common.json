@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Modell",
+    "name": "Név",
+    "status": "Állapot",
+    "workingDirectory": "Munkakönyvtár",
+    "action": "Művelet",
+    "comment": "Megjegyzés",
+    "source": "Forrás",
+    "site": "Webhely",
+    "errorLog": "Hibanapló",
+    "library": "Könyvtár",
+    "path": "Útvonal",
+    "description": "Leírás",
+    "port": "Port",
+    "startCommand": "Indítási parancs",
+    "licenseDescription": "Licenc leírása",
+    "password": "Jelszó",
+    "username": "Felhasználónév",
+    "size": "Méret",
+    "containerEnvVars": "Konténer környezeti változói",
+    "createdTime": "Létrehozás ideje",
+    "image": "Lemezkép",
+    "state": "Állapot",
+    "grid": "Rács",
+    "gridSpacing": "Rácstávolság (pixel)",
+    "fontSize": "Betűméret",
+    "code": "Kód"
+  },
+  "action": {
+    "enable": "Engedélyezés",
+    "disable": "Letiltás",
+    "resume": "Folytatás",
+    "uninstall": "Eltávolítás",
+    "copy": "Másolás",
+    "preview": "Előnézet",
+    "search": "Keresés",
+    "clear": "Törlés",
+    "resetPassword": "Jelszó visszaállítása",
+    "delete": "Törlés",
+    "add": "Hozzáadás",
+    "edit": "Szerkesztés",
+    "generate": "Generálás",
+    "refresh": "Frissítés",
+    "save": "Mentés",
+    "start": "Indítás",
+    "stop": "Leállítás",
+    "close": "Bezárás",
+    "selectAll": "Összes kijelölése",
+    "changeName": "Név szerkesztése",
+    "changeOwnerPassword": "Tulajdonosi jelszó módosítása",
+    "changeRole": "Szerepkör módosítása"
+  },
+  "state": {
+    "running": "Futás",
+    "installed": "Telepítve",
+    "enabled": "Engedélyezve",
+    "disabled": "Letiltva",
+    "available": "Elérhető"
+  },
+  "session": {
+    "list": "Munkamenetek",
+    "title": "Cím",
+    "id": "Munkamenetazonosító",
+    "lastPrompt": "Utolsó prompt",
+    "search": "Munkamenetek keresése",
+    "deleted": "A munkamenet törölve",
+    "resumed": "A munkamenet a terminálban folytatódott"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Parancs / URL",
+    "scope": "Scope",
+    "addServer": "Szerver hozzáadása"
+  },
+  "category": {
+    "basic": "Alap",
+    "mcp": "MCP",
+    "skills": "Készségek",
+    "basicInfo": "Alapadatok",
+    "configuration": "Konfiguráció",
+    "favorites": "Kedvencek",
+    "plugins": "Plugins",
+    "backupUpdate": "Biztonsági mentés és frissítés"
+  },
+  "skills": {
+    "openSkillsDir": "Készségek könyvtárának megnyitása",
+    "openSkillDir": "Készségkönyvtár megnyitása",
+    "revealSkillFile": "Készségfájl felfedése",
+    "noSkills": "Nem találhatók készségek",
+    "skillFileMissing": "A készségfájl nem található",
+    "skillLoadFailed": "Készségfájl betöltése sikertelen",
+    "builtin": "Beépített"
+  },
+  "cli": {
+    "help": "Súgóinformációk megjelenítése",
+    "version": "Verziószám megjelenítése",
+    "start": "Új interaktív munkamenet indítása",
+    "mcpList": "A konfigurált MCP-szerverek listázása",
+    "doctor": "Állapotellenőrzések futtatása",
+    "doctorFix": "Állapotellenőrzések futtatása automatikus javítással",
+    "gatewayStart": "Átjáró szolgáltatás indítása",
+    "gatewayStop": "Átjáró szolgáltatás leállítása",
+    "gatewayRestart": "Átjáró szolgáltatás újraindítása",
+    "gatewayStatus": "Átjáró állapotának megjelenítése",
+    "gatewayRun": "Átjáró futtatása előtérben",
+    "gatewayUninstall": "Átjáró szolgáltatás eltávolítása",
+    "skillsList": "Az elérhető készségek listázása"
+  },
+  "gateway": {
+    "category": "Átjáró szolgáltatás",
+    "status": "Átjáró állapota",
+    "running": "Az átjáró fut",
+    "stopped": "Az átjáró leállt",
+    "startFailed": "Az átjáró indítása sikertelen"
+  },
+  "value": {
+    "yes": "Igen",
+    "no": "Nem",
+    "other": "Egyéb",
+    "default": "Alapértelmezett",
+    "none": "Nincs",
+    "local": "Helyi"
+  },
+  "plugin": {
+    "search": "Bővítmények keresése",
+    "removed": "Bővítmény eltávolítva"
+  },
+  "schedule": {
+    "everyHour": "Minden órában",
+    "everyMinute": "Minden percben"
+  },
+  "error": {
+    "phpiniNotFound": "A php.ini fájl nem található"
+  }
+}

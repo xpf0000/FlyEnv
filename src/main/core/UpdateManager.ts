@@ -64,7 +64,7 @@ export default class UpdateManager extends EventEmitter {
         type: 'info',
         title: I18nT('update.checkForUpdates'),
         message: I18nT('update.update-available-message'),
-        buttons: [I18nT('update.yes'), I18nT('update.no')],
+        buttons: [I18nT('common.value.yes'), I18nT('common.value.no')],
         cancelId: 1
       })
       .then(({ response }) => {

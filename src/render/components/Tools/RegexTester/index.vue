@@ -81,7 +81,7 @@
               v-model="Store.regex"
               placeholder="Put the regex to test"
               type="textarea"
-              rows="3"
+              :rows="3"
             />
           </el-form-item>
 
@@ -111,7 +111,7 @@
               v-model="Store.text"
               placeholder="Put the text to match"
               type="textarea"
-              rows="5"
+              :rows="5"
             />
           </el-form-item>
         </el-card>

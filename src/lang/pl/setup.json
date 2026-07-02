@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Tylko jedna usługa może być uruchomiona jednocześnie.",
   "moduleExecItem": "Element Wykonania Modułu",
   "module": {
-    "name": "Nazwa pliku (opcjonalnie)",
     "path": "Ścieżka pliku",
-    "comment": "Komentarz",
     "exec": "Uruchom",
     "command": "Polecenie",
     "commandFile": "Plik",
@@ -39,15 +37,14 @@
     "needPasswordToStart": "Wymagane prawa administratora. Wprowadź swoje hasło (zostanie zapisane do przyszłego użycia). Alternatywnie, wpisz je ręcznie w terminalu, ale ten monit może się pojawić.",
     "hadOpenInTerminal": "Już działa w terminalu—wyniki niedostępne.",
     "licenseTips": "Nie znaleziono licencji. Tylko 3 moduły/elementy wykonania mogą zostać utworzone.",
-    "outputLog": "Logi wyjściowe",
-    "errorLog": "Dziennik błędów"
+    "outputLog": "Logi wyjściowe"
   },
   "flyenvHelper": "Napraw pomocnik FlyEnv",
   "flyenvHelperBtn": "Napraw",
   "flyenvHelperFixSuccess": "Pomocnik FlyEnv został naprawiony",
   "flyenvHelperInstallFailTips": "Instalacja programu pomocniczego FlyEnv nie powiodła się. Spróbuj uruchomić FlyEnv z uprawnieniami administratora lub kliknij przycisk OK i ręcznie uruchom program pomocniczy flyenv-helper.exe w otwartym folderze.",
-  "appFont": "UI Font",
+  "appFont": "Czcionka interfejsu",
   "appFontTips": "Ustaw czcionkę używaną dla interfejsu aplikacji. Pozostaw puste, aby użyć domyślnej czcionki systemowej",
-  "codeFont": "Code Font",
+  "codeFont": "Czcionka kodu",
   "codeFontTips": "Ustaw czcionkę używaną w terminalu, edytorze i innych obszarach kodowych. Pozostaw puste, aby użyć domyślnej czcionki jednoprzestrzeni"
 }

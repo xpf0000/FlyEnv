@@ -3,7 +3,7 @@
   "bfsu": "Beijing Foreign Studies University download kilde",
   "tencent": "Tencent download kilde",
   "aliyun": "Alibaba download kilde",
-  "ustc": "University of Science and Technology of China download source",
+  "ustc": "Downloadkilde fra University of Science and Technology of China",
   "Licenses": "Licens",
   "requestedTips": "Licensanmodningen er sendt, vær tålmodig og vent Hvis du har brug for at ændre oplysningerne, kan du sende den igen",
   "autoStartService": "Start Tjenester Automatisk",
@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Kun én tjeneste kan køre ad gangen",
   "moduleExecItem": "Modul Kørselement",
   "module": {
-    "name": "Indtast wikinavn (valgfrit)",
     "path": "Fil Sti",
-    "comment": "Kommentar",
     "exec": "Kør",
     "command": "Kommando",
     "commandFile": "Fil",
@@ -39,15 +37,14 @@
     "needPasswordToStart": "Admin rettigheder kræves. Indtast din adgangskode (det vil blive gemt til fremtidig brug). Alternativt, manuelt indtaste det i terminalen, men denne prompt kan dukke op igen.",
     "hadOpenInTerminal": "Kører allerede i terminal—resultater er ikke tilgængelige.",
     "licenseTips": "Ingen licens fundet. Kun 3 moduler/eksekveringselementer kan oprettes.",
-    "outputLog": "Output Log",
-    "errorLog": "Fejllog"
+    "outputLog": "Outputlog"
   },
-  "flyenvHelper": "Fix FlyEnv Helper",
+  "flyenvHelper": "Ret FlyEnv Helper",
   "flyenvHelperBtn": "Ret",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fast Med Succesfuld",
   "flyenvHelperInstallFailTips": "Installationen af FlyEnv-hjælpeprogrammet mislykkedes. Prøv at køre FlyEnv med administratorrettigheder, eller klik på OK-knappen og kør flyenv-helper.exe-hjælpeprogrammet manuelt i den åbnede mappe.",
-  "appFont": "UI Font",
+  "appFont": "UI-skrifttype",
   "appFontTips": "Sæt skrifttypen der bruges til programmets UI. Efterlad blank for at bruge systemets standardskrifttype",
-  "codeFont": "Code Font",
+  "codeFont": "Kodeskrifttype",
   "codeFontTips": "Angiv skrifttypen der bruges til terminal, editor og andre kodeområder. Efterlad blank for at bruge standard monospace skrifttype"
 }

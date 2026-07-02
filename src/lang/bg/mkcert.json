@@ -1,4 +1,4 @@
-﻿{
+{
   "checking": "Проверява се инсталацията...",
   "isInstalled": "инсталиран",
   "notInstalled": "mkcert не е инсталиран",
@@ -8,6 +8,5 @@
   "installCA": "Инсталиране на CA",
   "carootLabel": "CA основна директория",
   "certificates": "Сертификати",
-  "generate": "Създаване",
   "noSSLHosts": "Няма хостове с активиран SSL. Първо активирайте SSL на хоста."
 }

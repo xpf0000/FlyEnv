@@ -8,6 +8,5 @@
   "installCA": "安裝 CA",
   "carootLabel": "CA 根目錄",
   "certificates": "憑證",
-  "generate": "產生",
   "noSSLHosts": "沒有啟用 SSL 的主機，請先為主機啟用 SSL。"
 }

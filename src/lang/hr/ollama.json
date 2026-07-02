@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Rezerviraj dio VRAM-a po GPU-u (bajtovi)",
   "OLLAMA_LOAD_TIMEOUT": "Koliko dugo dopustiti zastajanje učitavanja modela prije odustajanja (zadano \"5m\")",
   "needServiceRun": "Molimo prvo pokrenite Olama servis",
-  "size": "Veličina",
   "model": "Modeli"
 }

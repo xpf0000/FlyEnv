@@ -10,6 +10,7 @@ import { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
 import { ModuleSdkmanItem } from '@/core/Module/ModuleSdkmanItem'
 import { brewInfo, fetchVerion, portInfo, sdkmanInfo } from '@/util/Brew'
 import { installedVersionNote, syncInstalledVersionNotes } from '@/util/InstalledVersionNote'
+import { syncStaticInstalledFlags } from './syncStaticInstalledFlags'
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
@@ -102,6 +103,57 @@ export class Module {
     return false
   }
 
+  async applyInstalledVersions(installed: SoftInstalled[]) {
+    const appStore = AppStore()
+    const setup = JSON.parse(JSON.stringify(appStore.config.setup))
+    const excludeLocalVersion = setup?.excludeLocalVersion ?? []
+    const installItems: ModuleInstalledItem[] = installed
+      .filter((v) => {
+        return (
+          !v?.isLocal7Z ||
+          (v?.isLocal7Z && !excludeLocalVersion.includes(`${this.typeFlag}-${v.version}`))
+        )
+      })
+      .map((item) => {
+        const find = this.installed.find((o) => o.path === item.path && o.version === item.version)
+        if (find) {
+          const copy: any = { ...item }
+          delete copy?.run
+          delete copy?.running
+          Object.assign(find, copy)
+          return find
+        }
+
+        const installItem = reactive(new ModuleInstalledItem(item))
+        installItem.typeFlag = this.typeFlag
+        installItem.start = installItem.start.bind(installItem)
+        installItem.stop = installItem.stop.bind(installItem)
+        installItem.setEnv = installItem.setEnv.bind(installItem)
+        installItem._onStart = this.onItemStart
+        return installItem as any
+      })
+
+    this.installed.splice(0)
+    this.installed.push(...installItems)
+    syncStaticInstalledFlags(this.static, this.installed)
+
+    const needSaveConfig = this.resetCurrentVersion(false)
+    try {
+      await syncInstalledVersionNotes(this.typeFlag, this.installed)
+      this.installed.forEach((item) => {
+        item.note = installedVersionNote(item, this.typeFlag)
+      })
+    } catch (e) {
+      console.error('syncInstalledVersionNotes error: ', e)
+    }
+
+    if (needSaveConfig) {
+      appStore.saveConfig().catch()
+    }
+    this.installedFetched = true
+    this.fetchInstalleding = false
+  }
+
   fetchInstalled(): Promise<boolean> {
     const appStore = AppStore()
     return new Promise((resolve) => {
@@ -118,63 +170,13 @@ export class Module {
       console.trace('fetchInstalled run: ', this.typeFlag)
       this.fetchInstalleding = true
       const setup = JSON.parse(JSON.stringify(appStore.config.setup))
-      const excludeLocalVersion = setup?.excludeLocalVersion ?? []
       IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup).then(
         async (key: string, res: any) => {
           IPC.off(key)
           const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
-          let needSaveConfig = false
-          for (const f in versions) {
-            const flag: AllAppModule = f as AllAppModule
-            const installed = versions[flag]
-            const installItems: ModuleInstalledItem[] = installed
-              .filter((v) => {
-                return (
-                  !v?.isLocal7Z ||
-                  (v?.isLocal7Z && !excludeLocalVersion.includes(`${flag}-${v.version}`))
-                )
-              })
-              .map((item) => {
-                const find = this.installed.find(
-                  (o) => o.path === item.path && o.version === item.version
-                )
-                if (find) {
-                  const copy: any = { ...item }
-                  delete copy?.run
-                  delete copy?.running
-                  Object.assign(find, copy)
-                  return find
-                } else {
-                  const installItem = reactive(new ModuleInstalledItem(item))
-                  installItem.typeFlag = this.typeFlag
-                  installItem.start = installItem.start.bind(installItem)
-                  installItem.stop = installItem.stop.bind(installItem)
-                  installItem.setEnv = installItem.setEnv.bind(installItem)
-                  installItem._onStart = this.onItemStart
-                  return installItem as any
-                }
-              })
-            this.installed.splice(0)
-            this.installed.push(...installItems)
-            // this.installed = installItems as any
-            console.log('this.installed: ', this.installed, this.typeFlag, this)
-            needSaveConfig = needSaveConfig || this.resetCurrentVersion(false)
-          }
           if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
-            try {
-              await syncInstalledVersionNotes(this.typeFlag, this.installed)
-              this.installed.forEach((item) => {
-                item.note = installedVersionNote(item, this.typeFlag)
-              })
-            } catch (e) {
-              console.error('syncInstalledVersionNotes error: ', e)
-            }
+            await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
           }
-          if (needSaveConfig) {
-            appStore.saveConfig().catch()
-          }
-          this.installedFetched = true
-          this.fetchInstalleding = false
           this._fetchInstalledResolves.forEach((f) => f(true))
           this._fetchInstalledResolves.splice(0)
           resolve(true)

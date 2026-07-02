@@ -25,7 +25,9 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="saveProvider">{{ I18nT('base.save') }}</el-button>
+          <el-button type="primary" @click="saveProvider">{{
+            I18nT('common.action.save')
+          }}</el-button>
         </el-form-item>
       </el-form>
       <el-divider />

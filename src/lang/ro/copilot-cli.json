@@ -1,0 +1,13 @@
+{
+  "notInstalled": "GitHub Copilot CLI nu este instalat. Faceți clic pe butonul de mai jos pentru a-l instala prin npm (necesită Node.js 22+).",
+  "officialWebsite": "Copilot CLI pe GitHub",
+  "officialDocs": "Documentație Copilot CLI",
+  "cmd": {
+    "update": "Descarcă cea mai nouă versiune Copilot CLI",
+    "resume": "Reia o sesiune anterioară (selector)",
+    "continue": "Reia cea mai recentă sesiune",
+    "prompt": "Rulează un singur prompt în mod neinteractiv",
+    "login": "Autentificare cu Copilot",
+    "init": "Inițializează instrucțiunile Copilot pentru un depozit"
+  }
+}

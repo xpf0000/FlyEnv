@@ -1,5 +1,4 @@
 {
-  "site": "站台",
   "webServer": "Web 伺服器",
   "dataBaseServer": "資料庫伺服器",
   "emailServer": "郵件伺服器",
@@ -8,13 +7,14 @@
   "dnsServer": "DNS 伺服器",
   "ftpServer": "FTP 伺服器",
   "containerRuntime": "容器執行環境",
-  "other": "其他",
   "appLog": "App 日誌",
+  "aiCoding": "AI 編碼",
   "ai": "AI",
   "objectStorage": "物件儲存",
   "appExit": "停止所有已啟動的服務並離開 FlyEnv",
   "groupStart": "一鍵啟動所有顯示在面板上的可用服務",
   "networkTunnel": "網路隧道",
   "cacheAndQueue": "緩存&訊息佇列",
-  "serviceGovernance": "服務治理"
+  "serviceGovernance": "服務治理",
+  "other": "其他"
 }

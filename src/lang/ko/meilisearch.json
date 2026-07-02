@@ -1,5 +1,4 @@
 {
-  "working_dir": "작업 디렉터리",
   "db_path": "데이터베이스 파일이 생성되고 불러와질 위치를 지정합니다",
   "env": "인스턴스의 환경을 설정합니다. 값은 `production` 또는 `development` 중 하나여야 합니다.",
   "http_addr": "HTTP 서버가 수신할 주소입니다.",

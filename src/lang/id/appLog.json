@@ -1,5 +1,5 @@
 {
-  "startInstall": "Start installing {service}",
+  "startInstall": "Mulai menginstal {service}",
   "startServiceBegin": "Memulai layanan {service}...",
   "confInit": "File konfigurasi belum ada. Membuat file konfigurasi baru.",
   "confInitSuccess": "File konfigurasi berhasil dibuat. Lokasi file: {file}",

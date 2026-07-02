@@ -1,5 +1,4 @@
 {
-  "site": "Sito",
   "webServer": "Server Web",
   "dataBaseServer": "Server Database",
   "emailServer": "Server Email",
@@ -8,13 +7,14 @@
   "dnsServer": "Server DNS",
   "ftpServer": "Server FTP",
   "containerRuntime": "Runtime del Contenitore",
-  "other": "Altro",
   "appLog": "Log dell'App",
+  "aiCoding": "Codifica AI",
   "ai": "Intelligenza Artificiale",
   "objectStorage": "Archiviazione Oggetti",
   "appExit": "Arresta tutti i servizi avviati ed esci da FlyEnv",
   "groupStart": "Avvia con un clic tutti i servizi disponibili visualizzati nel pannello",
   "networkTunnel": "Tunnel Di Rete",
   "cacheAndQueue": "Cache E Coda Dei Messaggi",
-  "serviceGovernance": "Governance Dei Servizi"
+  "serviceGovernance": "Governance Dei Servizi",
+  "other": "Altro"
 }

@@ -4,12 +4,10 @@
   "Web": "Webes",
   "Images": "Képek és videók",
   "Development": "Fejlesztés",
+  "Code": "Kód",
   "Network": "Hálózat",
   "Math": "Matematika",
   "Measurement": "Mérés",
   "Text": "Szöveg",
-  "Custom": "Egyéni",
-  "Favorite": "Kedvenc",
-  "Favorites": "Kedvencek",
-  "Code": "Kód"
+  "Custom": "Egyéni"
 }

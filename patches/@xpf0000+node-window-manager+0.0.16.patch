@@ -1,0 +1,14 @@
+diff --git a/node_modules/@xpf0000/node-window-manager/binding.gyp b/node_modules/@xpf0000/node-window-manager/binding.gyp
+index 666f0d3..7dff8c8 100644
+--- a/node_modules/@xpf0000/node-window-manager/binding.gyp
++++ b/node_modules/@xpf0000/node-window-manager/binding.gyp
+@@ -31,7 +31,8 @@
+                   "ExceptionHandling": 1,
+                   "AdditionalOptions": [
+                      "/std:c++20",
+-                     "/EHsc"
++                     "/EHsc",
++                     "/utf-8"
+                   ]
+                }
+             }

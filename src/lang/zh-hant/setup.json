@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "同一時間只能啟動一個服務",
   "moduleExecItem": "模組執行項",
   "module": {
-    "name": "名稱",
     "path": "檔案路徑",
-    "comment": "備註",
     "exec": "執行",
     "command": "命令",
     "commandFile": "檔案",
@@ -39,8 +37,7 @@
     "needPasswordToStart": "需要管理員權限啟動，請輸入當前使用者密碼。後續會使用此密碼自動填充。您也可以點擊下方按鈕在終端中手動輸入，但此提示可能會再次出現。",
     "hadOpenInTerminal": "已從終端執行，無法取得執行結果",
     "licenseTips": "未取得許可證，只可以建立三個模組和模組執行項",
-    "outputLog": "輸出日誌",
-    "errorLog": "錯誤日誌"
+    "outputLog": "輸出日誌"
   },
   "flyenvHelper": "FlyEnv 輔助程式修復",
   "flyenvHelperBtn": "修復",

@@ -55,7 +55,9 @@
                 ></el-input>
               </el-form-item>
               <div class="flex justify-center">
-                <el-button @click.stop="Store.copyEncode()">{{ $t('base.copy') }}</el-button>
+                <el-button @click.stop="Store.copyEncode()">{{
+                  $t('common.action.copy')
+                }}</el-button>
               </div>
             </el-card>
           </div>
@@ -79,7 +81,9 @@
                 ></el-input>
               </el-form-item>
               <div class="flex justify-center">
-                <el-button @click.stop="Store.copyDecode()">{{ $t('base.copy') }}</el-button>
+                <el-button @click.stop="Store.copyDecode()">{{
+                  $t('common.action.copy')
+                }}</el-button>
               </div>
             </el-card>
           </div>

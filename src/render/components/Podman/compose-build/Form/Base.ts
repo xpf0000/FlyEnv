@@ -14,7 +14,7 @@ const base = reactive({
   mirrors: [],
   check() {
     if (!this.name) {
-      return I18nT('base.name') + I18nT('podman.require')
+      return I18nT('common.label.name') + I18nT('podman.require')
     }
     if (!this.dir) {
       return I18nT('podman.ComposeFileSaveDir') + I18nT('podman.require')
@@ -38,14 +38,16 @@ const base = reactive({
   },
   initMirrors() {
     const storeKey = 'flyenv-podman-mirrors'
-    StorageGetAsync<string[]>(storeKey).then((res) => {
-      const mirrors: string[] = this.mirrors as any
-      mirrors.splice(0)
-      mirrors.push(...res)
-    }).catch(() => {
-      const mirrors: string[] = this.mirrors as any
-      mirrors.splice(0)
-    })
+    StorageGetAsync<string[]>(storeKey)
+      .then((res) => {
+        const mirrors: string[] = this.mirrors as any
+        mirrors.splice(0)
+        mirrors.push(...res)
+      })
+      .catch(() => {
+        const mirrors: string[] = this.mirrors as any
+        mirrors.splice(0)
+      })
   },
   saveMirrors() {
     if (this.mirror.trim()) {

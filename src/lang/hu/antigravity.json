@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Az Antigravity CLI nincs telepítve. Kattintson az alábbi gombra a hivatalos telepítővel történő telepítéshez.",
+  "officialWebsite": "Antigravity weboldal",
+  "officialDocs": "Antigravity CLI dokumentáció",
+  "sandboxMode": "Terminál sandbox",
+  "toolPermission": "Eszközengedély",
+  "sessionId": "Beszélgetés azonosítója",
+  "updatedAt": "Frissítve ekkor",
+  "sessionResumed": "A beszélgetés a terminálban folytatódott",
+  "sessionDeleted": "A beszélgetés törölve lett",
+  "cmd": {
+    "update": "Frissítse az Antigravity CLI-t a legújabb verzióra",
+    "models": "Sorolja fel az elérhető modelleket",
+    "continue": "Folytassa a legutóbbi beszélgetést",
+    "resume": "Folytasson egy korábbi beszélgetést azonosító alapján",
+    "prompt": "Futtasson egyetlen promptot nem interaktív módban",
+    "pluginList": "Sorolja fel az importált bővítményeket",
+    "pluginImport": "Importáljon bővítményeket a gemini vagy claude rendszerből",
+    "install": "Konfigurálja a környezeti útvonalakat és a shell beállításait"
+  }
+}

@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="item?.id ? I18nT('base.edit') : I18nT('base.add')"
+    :title="item?.id ? I18nT('common.action.edit') : I18nT('common.action.add')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -81,10 +81,6 @@
   const isWindows = computed(() => {
     return window.Server.isWindows
   })
-  const isLinux = computed(() => {
-    return window.Server.isLinux
-  })
-
   const phpVersions = computed(() => {
     return brewStore.module('php').installed.map((i) => {
       let bin = ''

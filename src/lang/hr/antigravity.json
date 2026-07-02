@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI nije instaliran. Kliknite gumb ispod da ga instalirate pomoću službenog instalera.",
+  "officialWebsite": "Antigravity web-stranica",
+  "officialDocs": "Antigravity CLI dokumentacija",
+  "sandboxMode": "Terminalski sandbox",
+  "toolPermission": "Dozvola alata",
+  "sessionId": "ID razgovora",
+  "updatedAt": "Ažurirano u",
+  "sessionResumed": "Razgovor je nastavljen u terminalu",
+  "sessionDeleted": "Razgovor je izbrisan",
+  "cmd": {
+    "update": "Ažuriraj Antigravity CLI na najnoviju verziju",
+    "models": "Prikaži dostupne modele",
+    "continue": "Nastavi najnoviji razgovor",
+    "resume": "Nastavi prethodni razgovor po ID-u",
+    "prompt": "Pokreni jedan prompt bez interakcije",
+    "pluginList": "Prikaži uvezene dodatke",
+    "pluginImport": "Uvezi dodatke iz gemini ili claude",
+    "install": "Konfiguriraj putanje okruženja i postavke ljuske"
+  }
+}

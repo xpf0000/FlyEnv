@@ -221,5 +221,33 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
       resolve(Info)
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.path) {
+      return []
+    }
+    const confDir = join(_version.path, 'config')
+    return [
+      { name: 'elasticsearch.yml', path: join(confDir, 'elasticsearch.yml') },
+      { name: 'jvm.options', path: join(confDir, 'jvm.options') },
+      { name: 'log4j2.properties', path: join(confDir, 'log4j2.properties') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.path) {
+      return []
+    }
+    const logDir = join(_version.path, 'logs')
+    return [
+      { name: 'elasticsearch.log', path: join(logDir, 'elasticsearch.log') },
+      { name: 'elasticsearch_server.json', path: join(logDir, 'elasticsearch_server.json') },
+      {
+        name: 'elasticsearch_deprecation.json',
+        path: join(logDir, 'elasticsearch_deprecation.json')
+      },
+      { name: 'gc.log', path: join(logDir, 'gc.log') }
+    ]
+  }
 }
 export default new Elasticsearch()

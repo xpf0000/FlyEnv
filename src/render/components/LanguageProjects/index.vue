@@ -11,7 +11,7 @@
               clearable
               class="ml-4"
               size="small"
-              :placeholder="I18nT('base.placeholderSearch')"
+              :placeholder="I18nT('common.action.search')"
             ></el-input>
           </div>
           <div class="flex items-center gap-2">
@@ -42,7 +42,7 @@
         <el-table-column prop="path">
           <template #header>
             <span class="truncate" style="padding: 2px 12px 2px 24px; display: block">{{
-              I18nT('base.path')
+              I18nT('common.label.path')
             }}</span>
           </template>
           <template #default="scope">
@@ -86,7 +86,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('host.port')" width="100px">
+        <el-table-column :label="I18nT('common.label.port')" width="100px">
           <template #default="scope">
             <template v-if="scope.row.isService">
               <template v-if="scope.row.id === quickEdit?.id">
@@ -119,9 +119,9 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('host.comment')" prop="comment">
+        <el-table-column :label="I18nT('common.label.comment')" prop="comment">
           <template #header>
-            <span class="truncate">{{ I18nT('host.comment') }}</span>
+            <span class="truncate">{{ I18nT('common.label.comment') }}</span>
           </template>
           <template #default="scope">
             <template v-if="scope.row.id === quickEdit?.id">
@@ -213,7 +213,7 @@
                   @click.stop="project.action(scope.row, scope.$index, 'edit')"
                 >
                   <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                  <span class="ml-3">{{ I18nT('common.action.edit') }}</span>
                 </li>
                 <slot name="operation" :row="scope.row as ProjectItem"></slot>
                 <li
@@ -305,7 +305,7 @@
                 </li>
                 <li @click.stop="project.delProject(scope.$index)">
                   <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.del') }}</span>
+                  <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
                 </li>
               </ul>
 

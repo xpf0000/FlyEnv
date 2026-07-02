@@ -53,11 +53,11 @@ export class Image {
         delete XTermExecCache[id]
         this.pulling = false
       })
-      xtermExec.title = I18nT('base.del')
+      xtermExec.title = I18nT('common.action.delete')
       XTermExecCache[id] = xtermExec
       import('@/components/XTermExecDialog/index.vue').then((res) => {
         AsyncComponentShow(res.default, {
-          title: I18nT('base.del'),
+          title: I18nT('common.action.delete'),
           item: xtermExec
         }).then()
       })

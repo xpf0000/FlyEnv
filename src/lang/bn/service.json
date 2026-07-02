@@ -12,11 +12,11 @@
   "customDirVersionDelTips": "এই সংস্করণ একটি কাস্টম পাথ সংস্করণ, প্রদর্শিত না করার বিষয়টি নিশ্চিত করুন?",
   "ErrorTips": {
     "VCRuntime": {
-      "title": "Your system is missing the Visual C++ Redistributable (DLLs) required to run this version. Please click the link below to download and install the VC Runtime from Microsoft's official website.",
-      "versionRelation": "Version Compatibility Reference:",
+      "title": "এই সংস্করণ চালানোর জন্য প্রয়োজনীয় Visual C++ Redistributable (DLL) আপনার সিস্টেমে নেই। Microsoft-এর অফিসিয়াল ওয়েবসাইট থেকে VC Runtime ডাউনলোড ও ইনস্টল করতে নিচের লিংকে ক্লিক করুন।",
+      "versionRelation": "সংস্করণ সামঞ্জস্যতার রেফারেন্স:",
       "software": "Software",
-      "versionRange": "Version Range",
-      "msvsVersion": "MSVC Version"
+      "versionRange": "সংস্করণ পরিসর",
+      "msvsVersion": "MSVC সংস্করণ"
     }
   }
 }

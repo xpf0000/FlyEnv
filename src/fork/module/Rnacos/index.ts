@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -15,7 +15,6 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  readdir,
   binXattrFix
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
@@ -214,27 +213,25 @@ class Rnacos extends Base {
     })
   }
 
-  getLogFiles() {
-    return new ForkPromise(async (resolve) => {
-      const baseDir = join(global.Server.BaseDir!, 'rnacos')
-      const files: Array<{ name: string; path: string }> = []
-      try {
-        if (existsSync(baseDir)) {
-          const list = await readdir(baseDir)
-          list.forEach((name) => {
-            if (name.startsWith('rnacos-') && name.endsWith('.log')) {
-              files.push({
-                name: name.replace('.log', ''),
-                path: join(baseDir, name)
-              })
-            }
-          })
-        }
-      } catch (e) {
-        console.log('rnacos getLogFiles error: ', e)
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'rnacos')
+    const files: Array<{ name: string; path: string }> = []
+    try {
+      if (existsSync(baseDir)) {
+        const list = readdirSync(baseDir)
+        list.forEach((name) => {
+          if (name.startsWith('rnacos-') && name.endsWith('.log')) {
+            files.push({
+              name: name.replace('.log', ''),
+              path: join(baseDir, name)
+            })
+          }
+        })
       }
-      resolve(files)
-    })
+    } catch (e) {
+      console.log('rnacos getLogFiles error: ', e)
+    }
+    return files
   }
 
   brewinfo() {
@@ -259,6 +256,16 @@ class Rnacos extends Base {
     if (isMacOS()) {
       await binXattrFix(row.bin)
     }
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'rnacos')
+    return [
+      {
+        name: 'R-Nacos Env',
+        path: join(baseDir, 'rnacos.env')
+      }
+    ]
   }
 }
 

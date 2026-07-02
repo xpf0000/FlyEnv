@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "php.ini-tiedostoa ei löytynyt",
   "editPhpIni": "Muokkaa php.ini",
   "phpExtensions": "Php Laajennukset",
   "copyConfTemplate": "Kopioi asetusmalli",

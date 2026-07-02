@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "النموذج",
+    "name": "الاسم",
+    "status": "الحالة",
+    "workingDirectory": "مجلد العمل",
+    "action": "الإجراء",
+    "comment": "ملاحظة",
+    "source": "المصدر",
+    "site": "الموقع",
+    "errorLog": "سجل الأخطاء",
+    "library": "المكتبة",
+    "path": "المسار",
+    "description": "الوصف",
+    "port": "المنفذ",
+    "startCommand": "أمر البدء",
+    "licenseDescription": "وصف الترخيص",
+    "password": "كلمة المرور",
+    "username": "اسم المستخدم",
+    "size": "الحجم",
+    "containerEnvVars": "متغيرات البيئة داخل الحاوية",
+    "createdTime": "وقت الإنشاء",
+    "image": "الصورة",
+    "state": "الحالة",
+    "grid": "الشبكة",
+    "gridSpacing": "تباعد الشبكة (بكسل)",
+    "fontSize": "حجم الخط",
+    "code": "الكود"
+  },
+  "action": {
+    "enable": "تفعيل",
+    "disable": "تعطيل",
+    "resume": "استئناف",
+    "uninstall": "إلغاء التثبيت",
+    "copy": "نسخ",
+    "preview": "معاينة",
+    "search": "بحث",
+    "clear": "مسح",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "delete": "حذف",
+    "add": "إضافة",
+    "edit": "تعديل",
+    "generate": "توليد",
+    "refresh": "تحديث",
+    "save": "حفظ",
+    "start": "بدء",
+    "stop": "إيقاف",
+    "close": "إغلاق",
+    "selectAll": "تحديد الكل",
+    "changeName": "تعديل الاسم",
+    "changeOwnerPassword": "تغيير كلمة مرور المالك",
+    "changeRole": "تغيير الدور"
+  },
+  "state": {
+    "running": "قيد التشغيل",
+    "installed": "مثبت",
+    "enabled": "مفعّل",
+    "disabled": "معطّل",
+    "available": "متاح"
+  },
+  "session": {
+    "list": "الجلسات",
+    "title": "العنوان",
+    "id": "معرّف الجلسة",
+    "lastPrompt": "آخر مطالبة",
+    "search": "البحث في الجلسات",
+    "deleted": "تم حذف الجلسة",
+    "resumed": "تمت متابعة الجلسة في الطرفية"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "الأمر / عنوان URL",
+    "scope": "Scope",
+    "addServer": "إضافة خادم"
+  },
+  "category": {
+    "basic": "أساسي",
+    "mcp": "MCP",
+    "skills": "المهارات",
+    "basicInfo": "معلومات أساسية",
+    "configuration": "الإعدادات",
+    "favorites": "المفضلة",
+    "plugins": "Plugins",
+    "backupUpdate": "النسخ الاحتياطي والتحديث"
+  },
+  "skills": {
+    "openSkillsDir": "فتح دليل المهارات",
+    "openSkillDir": "فتح دليل المهارات",
+    "revealSkillFile": "كشف ملف المهارات",
+    "noSkills": "لم يتم العثور على مهارات",
+    "skillFileMissing": "لم يتم العثور على ملف المهارة",
+    "skillLoadFailed": "تعذر تحميل ملف المهارات",
+    "builtin": "مدمج"
+  },
+  "cli": {
+    "help": "عرض معلومات المساعدة",
+    "version": "إظهار رقم الإصدار",
+    "start": "بدء جلسة تفاعلية جديدة",
+    "mcpList": "عرض خوادم MCP المهيأة",
+    "doctor": "تشغيل الفحوص الصحية",
+    "doctorFix": "تشغيل الفحوص الصحية مع الإصلاح التلقائي",
+    "gatewayStart": "بدء خدمة البوابة",
+    "gatewayStop": "إيقاف خدمة البوابة",
+    "gatewayRestart": "إعادة تشغيل خدمة البوابة",
+    "gatewayStatus": "إظهار حالة البوابة",
+    "gatewayRun": "تشغيل البوابة في المقدمة",
+    "gatewayUninstall": "إلغاء تثبيت خدمة البوابة",
+    "skillsList": "عرض المهارات المتاحة"
+  },
+  "gateway": {
+    "category": "خدمة البوابة",
+    "status": "حالة البوابة",
+    "running": "البوابة قيد التشغيل",
+    "stopped": "تم إيقاف البوابة",
+    "startFailed": "فشل بدء تشغيل البوابة"
+  },
+  "value": {
+    "yes": "نعم",
+    "no": "لا",
+    "other": "اخرى",
+    "default": "افتراضي",
+    "none": "لا شيء",
+    "local": "محلي"
+  },
+  "plugin": {
+    "search": "البحث في الإضافات",
+    "removed": "تمت إزالة الإضافة"
+  },
+  "schedule": {
+    "everyHour": "كل ساعة",
+    "everyMinute": "كل دقيقة"
+  },
+  "error": {
+    "phpiniNotFound": "لم يتم العثور على ملف php.ini"
+  }
+}

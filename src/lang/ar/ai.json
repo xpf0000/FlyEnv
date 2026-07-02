@@ -59,7 +59,6 @@
   "NeedChatName": "يرجى إدخال الاسم",
   "NeedChatPrompt": "يرجى إدخال تعليمات النظام",
   "apiUrl": "عنوان API",
-  "model": "النموذج",
   "reset": "إعادة تعيين",
   "NeedApiUrl": "يرجى إدخال عنوان API",
   "docTips": "اختر ملفًا واقرأ محتواه",

@@ -6,7 +6,7 @@
         <slot name="like"></slot>
       </div>
       <el-button type="primary" class="shrink0" :loading="running" @click="doSave">{{
-        I18nT('base.generate')
+        I18nT('common.action.generate')
       }}</el-button>
     </div>
 
@@ -161,6 +161,7 @@
       properties: opt,
       filters: [
         {
+          name: 'PHP',
           extensions: ['php']
         }
       ]
@@ -202,6 +203,7 @@
         properties: opt,
         filters: [
           {
+            name: 'PHP',
             extensions: ['php']
           }
         ]

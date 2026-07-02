@@ -1,7 +1,7 @@
 {
   "dnsLookup": "DNS oppslag",
   "tcpConnect": "TCP koble til",
-  "tlsHandshake": "TLS Handshake",
+  "tlsHandshake": "TLS-handtrykk",
   "requestProcessing": "Be om behandling",
   "ttfb": "Tid til første Byte (TTFB)",
   "contentDownload": "Innholds nedlasting",

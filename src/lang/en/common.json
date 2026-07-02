@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "Name",
+    "status": "Status",
+    "workingDirectory": "Working Directory",
+    "action": "Action",
+    "comment": "Comment",
+    "source": "Source",
+    "site": "Site",
+    "errorLog": "Error Log",
+    "library": "Library",
+    "path": "Path",
+    "description": "Description",
+    "port": "Port",
+    "startCommand": "Start Command",
+    "licenseDescription": "License Description",
+    "password": "Password",
+    "username": "Username",
+    "size": "Size",
+    "containerEnvVars": "Container Environment Variables",
+    "createdTime": "Created Time",
+    "image": "Image",
+    "state": "State",
+    "grid": "Grid",
+    "gridSpacing": "Grid Spacing (pixels)",
+    "fontSize": "Font Size",
+    "code": "Code"
+  },
+  "action": {
+    "enable": "Enable",
+    "disable": "Disable",
+    "resume": "Resume",
+    "uninstall": "Uninstall",
+    "copy": "Copy",
+    "preview": "Preview",
+    "search": "Search",
+    "clear": "Clear",
+    "resetPassword": "Reset Password",
+    "delete": "Delete",
+    "add": "Add",
+    "edit": "Edit",
+    "generate": "Generate",
+    "refresh": "Refresh",
+    "save": "Save",
+    "start": "Start",
+    "stop": "Stop",
+    "close": "Close",
+    "selectAll": "Select All",
+    "changeName": "Edit Name",
+    "changeOwnerPassword": "Change Owner Password",
+    "changeRole": "Change Role"
+  },
+  "state": {
+    "running": "Running",
+    "installed": "Installed",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "available": "Available"
+  },
+  "session": {
+    "list": "Sessions",
+    "title": "Title",
+    "id": "Session ID",
+    "lastPrompt": "Last Prompt",
+    "search": "Search sessions",
+    "deleted": "Session deleted",
+    "resumed": "Session resumed in terminal"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Command / URL",
+    "scope": "Scope",
+    "addServer": "Add Server"
+  },
+  "category": {
+    "basic": "Basic",
+    "mcp": "MCP",
+    "skills": "Skills",
+    "basicInfo": "Basic Info",
+    "configuration": "Configuration",
+    "favorites": "Favorites",
+    "plugins": "Plugins",
+    "backupUpdate": "Backup & Update"
+  },
+  "skills": {
+    "openSkillsDir": "Open skills directory",
+    "openSkillDir": "Open skill directory",
+    "revealSkillFile": "Reveal skill file",
+    "noSkills": "No skills found",
+    "skillFileMissing": "Skill file not found",
+    "skillLoadFailed": "Failed to load skill file",
+    "builtin": "Built-in"
+  },
+  "cli": {
+    "help": "Display help information",
+    "version": "Show version number",
+    "start": "Start a new interactive session",
+    "mcpList": "List configured MCP servers",
+    "doctor": "Run health checks",
+    "doctorFix": "Run health checks with auto-fix",
+    "gatewayStart": "Start gateway service",
+    "gatewayStop": "Stop gateway service",
+    "gatewayRestart": "Restart gateway service",
+    "gatewayStatus": "Show gateway status",
+    "gatewayRun": "Run gateway in foreground",
+    "gatewayUninstall": "Uninstall gateway service",
+    "skillsList": "List available skills"
+  },
+  "gateway": {
+    "category": "Gateway Service",
+    "status": "Gateway Status",
+    "running": "Gateway is running",
+    "stopped": "Gateway is stopped",
+    "startFailed": "Gateway start failed"
+  },
+  "value": {
+    "yes": "Yes",
+    "no": "No",
+    "other": "Other",
+    "default": "Default",
+    "none": "None",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Search plugins",
+    "removed": "Plugin removed"
+  },
+  "schedule": {
+    "everyHour": "Every hour",
+    "everyMinute": "Every minute"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini file not found"
+  }
+}

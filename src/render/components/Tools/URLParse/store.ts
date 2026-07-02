@@ -3,9 +3,12 @@ import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { clipboard } from '@/util/NodeFn'
 
+const defaultUrl =
+  'https://me:pwd@www.macphpstudy.com:3000/sponsor.html?key1=value&key2=value2#thanks'
+
 const store = reactive({
-  url: 'https://me:pwd@www.macphpstudy.com:3000/sponsor.html?key1=value&key2=value2#thanks',
-  urlDict: {},
+  url: defaultUrl,
+  urlDict: new URL(defaultUrl),
   list: [
     { title: 'Protocol', key: 'protocol' },
     { title: 'Username', key: 'username' },

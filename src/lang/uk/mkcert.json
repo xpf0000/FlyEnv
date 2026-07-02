@@ -2,12 +2,11 @@
   "checking": "Перевірка встановлення...",
   "isInstalled": "встановлено",
   "notInstalled": "mkcert не встановлено",
-  "install": "Install mkcert",
+  "install": "Встановити mkcert",
   "checkAgain": "Повторити перевірку",
   "recheck": "Перевірити знову",
-  "installCA": "Install CA",
+  "installCA": "Встановити CA",
   "carootLabel": "Шлях до кореню CA",
   "certificates": "Сертифікати",
-  "generate": "Згенерувати",
   "noSSLHosts": "Не включені хости з SSL. Увімкніть SSL для цього хоста."
 }

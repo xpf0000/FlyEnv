@@ -63,7 +63,7 @@
   const columns: Column<any>[] = [
     {
       key: 'name',
-      title: I18nT('base.Library'),
+      title: I18nT('common.label.library'),
       dataKey: 'name',
       class: 'flex-1',
       headerClass: 'flex-1',
@@ -73,11 +73,11 @@
         return (
           <div class="w-full name-cell">
             <span style="display: inline-flex; align-items: center; padding: 2px 0">
-              {I18nT('base.Library')}
+              {I18nT('common.label.library')}
             </span>
             <ElInput
               v-model={OllamaAllModelsSetup.search}
-              placeholder={I18nT('base.placeholderSearch')}
+              placeholder={I18nT('common.action.search')}
               clearable={true}
             ></ElInput>
           </div>
@@ -107,7 +107,7 @@
     },
     {
       key: 'size',
-      title: I18nT('ollama.size'),
+      title: I18nT('common.label.size'),
       dataKey: 'size',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',
@@ -141,7 +141,7 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',

@@ -4,8 +4,6 @@
   "update-not-available-message": "Naprakész!",
   "update-downloaded-message": "Készen áll a telepítésre...",
   "update-error-message": "Frissítési hiba",
-  "yes": "Igen",
-  "no": "Nem",
   "view-update-log": "Frissítési napló megtekintése",
   "download-new-version": "Új verzió letöltése"
 }

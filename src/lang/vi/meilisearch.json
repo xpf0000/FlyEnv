@@ -1,5 +1,4 @@
 {
-  "working_dir": "Thư mục làm việc",
   "db_path": "Chỉ định vị trí nơi các tệp cơ sở dữ liệu sẽ được tạo và truy xuất",
   "env": "Cấu hình môi trường của instance. Giá trị phải là `production` hoặc `development`.",
   "http_addr": "Địa chỉ mà máy chủ HTTP sẽ lắng nghe.",

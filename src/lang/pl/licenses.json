@@ -1,5 +1,4 @@
 {
-  "title": "Opis licencji",
   "description": "Ta licencja potwierdza i wspiera wysiłki FlyEnv i jego autorów. Jego celem nie jest ograniczanie użytkowników, lecz wspieranie poszanowania dzieł wykonawców i własności intelektualnej. Upewnij się, że otrzymasz ważną licencję przed użyciem FlyEnv do celów komercyjnych.",
   "restrictions": {
     "title": "Użytkownicy bez licencji będą podlegali następującym ograniczeniom:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Powiązany UUID",
   "delBind": "Usuń powiązanie",
   "bindCurrentUUID": "Powiąż to urządzenie",
-  "licenseDescription": "Opis licencji",
   "loginFail": "Logowanie nie powiodło się",
   "oauthCanceledTitle": "Autoryzacja anulowana",
   "oauthCanceledMessage": "Użytkownik anulował proces autoryzacji",

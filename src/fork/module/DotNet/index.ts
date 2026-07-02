@@ -1,4 +1,4 @@
-import { join, basename } from 'path'
+import { join, basename, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -9,6 +9,7 @@ import {
   brewSearch,
   mkdirp,
   remove,
+  execPromiseWithEnv,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -18,6 +19,7 @@ import {
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
+import { getDotNetVersionFromOutput } from './version'
 
 import axios from 'axios'
 
@@ -109,6 +111,54 @@ class DotNet extends Base {
     })
   }
 
+  private async detectVersion(item: SoftInstalled): Promise<{ version?: string; error?: string }> {
+    const versionCommand = `"${item.bin}" --version`
+    const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
+    const versionResult = await TaskQueue.run(versionBinVersion, item.bin, versionCommand, reg)
+    if (versionResult.version) {
+      return versionResult
+    }
+
+    const infoCommand = `"${item.bin}" --info`
+    const cwd = dirname(item.bin)
+    const infoErrorPrefix = versionResult.error ? `${versionResult.error}\n` : ''
+    const parseInfoOutput = (output: string) => {
+      const version = getDotNetVersionFromOutput(output)
+      if (!version) {
+        return undefined
+      }
+      return { version }
+    }
+
+    try {
+      const res = await execPromiseWithEnv(infoCommand, {
+        cwd,
+        shell: undefined,
+        env: {
+          DOTNET_CLI_UI_LANGUAGE: 'en'
+        }
+      })
+      const parsed = parseInfoOutput(`${res.stdout}\n${res.stderr}`)
+      if (parsed) {
+        return parsed
+      }
+      return {
+        error: `${infoErrorPrefix}${infoCommand}\nFailed to parse dotnet --info output`
+      }
+    } catch (e: any) {
+      const output = [e?.stdout, e?.stderr, `${e}`]
+        .filter((s) => `${s ?? ''}`.trim().length > 0)
+        .join('\n')
+      const parsed = parseInfoOutput(output)
+      if (parsed) {
+        return parsed
+      }
+      return {
+        error: `${infoErrorPrefix}${infoCommand}\n${output}`.trim()
+      }
+    }
+  }
+
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
@@ -123,11 +173,7 @@ class DotNet extends Base {
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all = versions.map((item) => {
-            const command = `"${item.bin}" --version`
-            const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
-            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
-          })
+          const all = versions.map((item) => this.detectVersion(item))
           return Promise.all(all)
         })
         .then((list) => {
@@ -190,6 +236,16 @@ class DotNet extends Base {
     return new ForkPromise(async (resolve) => {
       resolve({})
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // .NET SDK 是运行时/开发工具包，FlyEnv 仅负责下载安装，不生成服务端配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // .NET SDK 没有由本模块管理的运行日志文件
+    return []
   }
 }
 

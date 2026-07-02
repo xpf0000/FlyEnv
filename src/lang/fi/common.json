@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Malli",
+    "name": "Nimi",
+    "status": "Tila",
+    "workingDirectory": "Työhakemisto",
+    "action": "Toiminto",
+    "comment": "Kommentti",
+    "source": "Lähde",
+    "site": "Sivusto",
+    "errorLog": "Virhe Loki",
+    "library": "Kirjasto",
+    "path": "Polku",
+    "description": "Kuvaus",
+    "port": "Portti",
+    "startCommand": "Käynnistä Komento",
+    "licenseDescription": "Lisenssin kuvaus",
+    "password": "Salasana",
+    "username": "Käyttäjätunnus",
+    "size": "Koko",
+    "containerEnvVars": "Container Environment Muuttujat",
+    "createdTime": "Luotu Aika",
+    "image": "Kuva",
+    "state": "Tila",
+    "grid": "Ruudukko",
+    "gridSpacing": "Ruudukon Välistys (Kuvapisteet)",
+    "fontSize": "Fonttikoko",
+    "code": "Koodi"
+  },
+  "action": {
+    "enable": "Aktivoi",
+    "disable": "Poista käytöstä",
+    "resume": "Jatka",
+    "uninstall": "Poista asennus",
+    "copy": "Kopioi",
+    "preview": "Esikatselu",
+    "search": "Etsi",
+    "clear": "Tyhjennä",
+    "resetPassword": "Nollaa Salasana",
+    "delete": "Poista",
+    "add": "Lisää",
+    "edit": "Muokkaa",
+    "generate": "Luo",
+    "refresh": "Päivitä",
+    "save": "Tallenna",
+    "start": "Aloita",
+    "stop": "Pysäytä",
+    "close": "Sulje",
+    "selectAll": "Valitse Kaikki",
+    "changeName": "Muokkaa Nimi",
+    "changeOwnerPassword": "Vaihda Omistajan Salasana",
+    "changeRole": "Vaihda Roolia"
+  },
+  "state": {
+    "running": "Käynnissä",
+    "installed": "Asennettu",
+    "enabled": "Käytössä",
+    "disabled": "Pois käytöstä",
+    "available": "Saatavilla"
+  },
+  "session": {
+    "list": "Istunnot",
+    "title": "Otsikko",
+    "id": "Istunnon tunnus",
+    "lastPrompt": "Viimeisin kehote",
+    "search": "Etsi istuntoja",
+    "deleted": "Istunto poistettu",
+    "resumed": "Istunto jatkettiin terminaalissa"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Komento / URL",
+    "scope": "Scope",
+    "addServer": "Lisää palvelin"
+  },
+  "category": {
+    "basic": "Perus",
+    "mcp": "MCP",
+    "skills": "Taidot",
+    "basicInfo": "Perustiedot",
+    "configuration": "Asetukset",
+    "favorites": "Suosikit",
+    "plugins": "Plugins",
+    "backupUpdate": "Varmuuskopioi Ja Päivitä"
+  },
+  "skills": {
+    "openSkillsDir": "Avaa taitokansio",
+    "openSkillDir": "Avaa taitohakemisto",
+    "revealSkillFile": "Paljasta taitotiedosto",
+    "noSkills": "Taitoja ei löytynyt",
+    "skillFileMissing": "Taitotiedostoa ei löytynyt",
+    "skillLoadFailed": "Taitotiedoston lataaminen epäonnistui",
+    "builtin": "Sisäänrakennettu"
+  },
+  "cli": {
+    "help": "Näytä ohjetiedot",
+    "version": "Näytä versionumero",
+    "start": "Aloita uusi interaktiivinen istunto",
+    "mcpList": "Listaa määritetyt MCP-palvelimet",
+    "doctor": "Suorita terveystarkastuksia",
+    "doctorFix": "Suorita terveystarkastukset automaattisella korjauksella",
+    "gatewayStart": "Käynnistä yhdyskäytävä palvelu",
+    "gatewayStop": "Pysäytä yhdyskäytävä palvelu",
+    "gatewayRestart": "Käynnistä yhdyspalvelu uudelleen",
+    "gatewayStatus": "Näytä yhdyskäytävän tila",
+    "gatewayRun": "Suorita portti etualalla",
+    "gatewayUninstall": "Poista yhdyskäytävä palvelu",
+    "skillsList": "Listaa saatavilla olevat taidot"
+  },
+  "gateway": {
+    "category": "Yhdyskäytävän Palvelu",
+    "status": "Yhdyskäytävän Tila",
+    "running": "Yhdyskäytävä on käynnissä",
+    "stopped": "Yhdyskäytävä on pysäytetty",
+    "startFailed": "Yhdyskäytävän käynnistys epäonnistui"
+  },
+  "value": {
+    "yes": "Kyllä",
+    "no": "Ei",
+    "other": "Muu",
+    "default": "Oletus",
+    "none": "Ei Mitään",
+    "local": "Paikallinen"
+  },
+  "plugin": {
+    "search": "Etsi liitännäisiä",
+    "removed": "Liitännäinen poistettu"
+  },
+  "schedule": {
+    "everyHour": "Joka tunti",
+    "everyMinute": "Joka minuutti"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini-tiedostoa ei löytynyt"
+  }
+}

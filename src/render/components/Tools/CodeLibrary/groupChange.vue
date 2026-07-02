@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="I18nT('base.edit')"
+    :title="I18nT('common.action.edit')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -21,7 +21,7 @@
             </div>
           </template>
           <el-select v-model="form.groupID">
-            <el-option :label="I18nT('base.none')" :value="''"></el-option>
+            <el-option :label="I18nT('common.value.none')" :value="''"></el-option>
             <template v-for="(l, _l) in groups" :key="_l">
               <el-option :label="l.name" :value="l.id"></el-option>
             </template>

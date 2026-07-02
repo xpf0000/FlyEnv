@@ -1,5 +1,4 @@
 {
-  "site": "Situs",
   "webServer": "Server Web",
   "dataBaseServer": "Server Basis Data",
   "emailServer": "Server Surel",
@@ -8,13 +7,14 @@
   "dnsServer": "Server DNS",
   "ftpServer": "Server FTP",
   "containerRuntime": "Runtime Kontainer",
-  "other": "Lainnya",
   "appLog": "Log Aplikasi",
+  "aiCoding": "Pemrograman AI",
   "ai": "Kecerdasan Buatan (AI)",
   "objectStorage": "Penyimpanan Objek",
   "appExit": "Hentikan semua layanan yang telah dimulai dan keluar dari FlyEnv",
   "groupStart": "Mulai sekaligus semua layanan yang tersedia yang ditampilkan di panel",
   "networkTunnel": "Tunnel Jaringan",
   "cacheAndQueue": "Cache & Antrian Pesan",
-  "serviceGovernance": "Tata Kelola Layanan"
+  "serviceGovernance": "Tata Kelola Layanan",
+  "other": "Lainnya"
 }

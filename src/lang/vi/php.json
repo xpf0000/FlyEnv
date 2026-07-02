@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "Không tìm thấy tệp php.ini",
   "editPhpIni": "Sửa php.ini",
   "phpExtensions": "Tiện ích mở rộng PHP",
   "copyConfTemplate": "Sao chép mẫu cấu hình",

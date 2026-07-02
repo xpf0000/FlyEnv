@@ -5,9 +5,5 @@
   "numbers": "Nombres (123...)",
   "symbols": "Symboles (!-;...)",
   "length": "Longueur",
-  "tokenPlaceholder": "Jeton...",
-  "button": {
-    "copy": "Copier",
-    "refresh": "Rafraîchir"
-  }
+  "tokenPlaceholder": "Jeton..."
 }

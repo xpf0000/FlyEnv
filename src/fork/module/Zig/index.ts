@@ -142,5 +142,15 @@ class Zig extends Base {
       resolve(Info)
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Zig 是编译器工具链，不运行常驻服务，没有固定的模块级/版本级配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Zig 编译命令直接输出到 stdout/stderr，没有固定的模块级/版本级日志文件
+    return []
+  }
 }
 export default new Zig()

@@ -28,8 +28,8 @@
   const tabs = [
     I18nT('base.service'),
     I18nT('base.configFile'),
-    I18nT('codex.sessions'),
-    I18nT('codex.plugins'),
-    I18nT('codex.mcp')
+    I18nT('common.session.list'),
+    I18nT('common.category.plugins'),
+    I18nT('common.category.mcp')
   ]
 </script>

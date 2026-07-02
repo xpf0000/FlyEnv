@@ -1,0 +1,13 @@
+{
+  "notInstalled": "GitHub Copilot CLI quraşdırılmayıb. Onu npm vasitəsilə quraşdırmaq üçün aşağıdakı düyməyə klikləyin (Node.js 22+ tələb olunur).",
+  "officialWebsite": "Copilot CLI GitHub səhifəsi",
+  "officialDocs": "Copilot CLI sənədləri",
+  "cmd": {
+    "update": "Copilot CLI-nin ən son versiyasını yüklə",
+    "resume": "Əvvəlki sessiyanı bərpa et (seçici)",
+    "continue": "Ən son sessiyanı bərpa et",
+    "prompt": "Tək sorğunu interaktiv olmayan rejimdə işə sal",
+    "login": "Copilot ilə autentifikasiya et",
+    "init": "Depo üçün Copilot təlimatlarını başlat"
+  }
+}

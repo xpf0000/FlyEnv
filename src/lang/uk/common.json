@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Модель",
+    "name": "Ім'я",
+    "status": "Стан",
+    "workingDirectory": "Робочий каталог",
+    "action": "Дія",
+    "comment": "Коментар",
+    "source": "Джерело",
+    "site": "Сайт",
+    "errorLog": "Журнал помилок",
+    "library": "Бібліотека",
+    "path": "Шлях",
+    "description": "Опис",
+    "port": "Порт",
+    "startCommand": "Команда запуску",
+    "licenseDescription": "Опис ліцензії",
+    "password": "Пароль",
+    "username": "Ім'я користувача",
+    "size": "Розмір",
+    "containerEnvVars": "Змінні середовища контейнера",
+    "createdTime": "Час створення",
+    "image": "Образ",
+    "state": "Стан",
+    "grid": "Сітка",
+    "gridSpacing": "Інтервал сітки (пікселі)",
+    "fontSize": "Розмір шрифту",
+    "code": "Код"
+  },
+  "action": {
+    "enable": "Увімкнути",
+    "disable": "Вимкнути",
+    "resume": "Відновити",
+    "uninstall": "Видалити",
+    "copy": "Копіювати",
+    "preview": "Попередній перегляд",
+    "search": "Пошук",
+    "clear": "Очистити",
+    "resetPassword": "Скидання пароля",
+    "delete": "Видалити",
+    "add": "Додати",
+    "edit": "Редагувати",
+    "generate": "Згенерувати",
+    "refresh": "Оновити",
+    "save": "Зберегти",
+    "start": "Запустити",
+    "stop": "Зупинити",
+    "close": "Закрити",
+    "selectAll": "Вибрати все",
+    "changeName": "Редагувати ім'я",
+    "changeOwnerPassword": "Змінити пароль власника",
+    "changeRole": "Змінити роль"
+  },
+  "state": {
+    "running": "Запущено",
+    "installed": "Встановлено",
+    "enabled": "Увімкнено",
+    "disabled": "Вимкнено",
+    "available": "Доступно"
+  },
+  "session": {
+    "list": "Сесії",
+    "title": "Заголовок",
+    "id": "ID сеансу",
+    "lastPrompt": "Останній запит",
+    "search": "Пошук сеансів",
+    "deleted": "Сеанс видалено",
+    "resumed": "Сеанс відновлено в терміналі"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Команда / URL",
+    "scope": "Scope",
+    "addServer": "Додати сервер"
+  },
+  "category": {
+    "basic": "Основне",
+    "mcp": "MCP",
+    "skills": "Навички",
+    "basicInfo": "Основна інформація",
+    "configuration": "Конфігурація",
+    "favorites": "Улюблені",
+    "plugins": "Plugins",
+    "backupUpdate": "Резервне копіювання та оновлення"
+  },
+  "skills": {
+    "openSkillsDir": "Відкрити каталог навичок",
+    "openSkillDir": "Відкрити папку навички",
+    "revealSkillFile": "Показати файл навички",
+    "noSkills": "Навичок не знайдено",
+    "skillFileMissing": "Файл навички не знайдено",
+    "skillLoadFailed": "Не вдалося завантажити файл навички",
+    "builtin": "Вбудований"
+  },
+  "cli": {
+    "help": "Показати довідку",
+    "version": "Показати номер версії",
+    "start": "Почати новий інтерактивний сеанс",
+    "mcpList": "Показати налаштовані MCP-сервери",
+    "doctor": "Запустити перевірки працездатності",
+    "doctorFix": "Виконувати перевірку стану стану автовиправлення",
+    "gatewayStart": "Запустити службу термостата",
+    "gatewayStop": "Зупинити службу термостата",
+    "gatewayRestart": "Перезапустити службу термостата",
+    "gatewayStatus": "Показати статус термостата",
+    "gatewayRun": "Запустити шлюз на передньому плані",
+    "gatewayUninstall": "Установка термостата",
+    "skillsList": "Показати доступні навички"
+  },
+  "gateway": {
+    "category": "Служба шлюзу",
+    "status": "Статус шлюзу",
+    "running": "Працює шлюз",
+    "stopped": "Термостат зупинено",
+    "startFailed": "Помилка запуску шлюзу"
+  },
+  "value": {
+    "yes": "Так",
+    "no": "Ні",
+    "other": "Інше",
+    "default": "За замовчуванням",
+    "none": "Немає",
+    "local": "Місцевий"
+  },
+  "plugin": {
+    "search": "Пошук плагінів",
+    "removed": "Плагін видалено"
+  },
+  "schedule": {
+    "everyHour": "Щогодини",
+    "everyMinute": "Щохвилини"
+  },
+  "error": {
+    "phpiniNotFound": "Файл php.ini не знайдено"
+  }
+}

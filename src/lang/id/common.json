@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "Nama",
+    "status": "Status",
+    "workingDirectory": "Direktori Kerja",
+    "action": "Aksi",
+    "comment": "Komentar",
+    "source": "Sumber",
+    "site": "Situs",
+    "errorLog": "Log Error",
+    "library": "Library",
+    "path": "Path",
+    "description": "Description",
+    "port": "Port",
+    "startCommand": "Perintah Mulai",
+    "licenseDescription": "Deskripsi Lisensi",
+    "password": "Kata Sandi",
+    "username": "Nama Pengguna",
+    "size": "Ukuran",
+    "containerEnvVars": "Variabel Lingkungan dalam Kontainer",
+    "createdTime": "Waktu Dibuat",
+    "image": "Citra",
+    "state": "Status",
+    "grid": "Grid",
+    "gridSpacing": "Jarak grid (piksel)",
+    "fontSize": "Ukuran Font",
+    "code": "Kode"
+  },
+  "action": {
+    "enable": "Aktifkan",
+    "disable": "Nonaktifkan",
+    "resume": "Lanjutkan",
+    "uninstall": "Copot",
+    "copy": "Salin",
+    "preview": "Pratinjau",
+    "search": "Cari",
+    "clear": "Bersihkan",
+    "resetPassword": "Reset Kata Sandi",
+    "delete": "Hapus",
+    "add": "Tambah",
+    "edit": "Edit",
+    "generate": "Buat",
+    "refresh": "Muat Ulang",
+    "save": "Simpan",
+    "start": "Mulai",
+    "stop": "Berhenti",
+    "close": "Tutup",
+    "selectAll": "Pilih Semua",
+    "changeName": "Edit Nama",
+    "changeOwnerPassword": "Ubah kata sandi pemilik",
+    "changeRole": "Ubah Peran"
+  },
+  "state": {
+    "running": "Berjalan",
+    "installed": "Terinstal",
+    "enabled": "Diaktifkan",
+    "disabled": "Dinonaktifkan",
+    "available": "Tersedia"
+  },
+  "session": {
+    "list": "Sesi",
+    "title": "Judul",
+    "id": "ID Sesi",
+    "lastPrompt": "Prompt Terakhir",
+    "search": "Cari sesi",
+    "deleted": "Sesi dihapus",
+    "resumed": "Sesi dilanjutkan di terminal"
+  },
+  "mcp": {
+    "type": "Tipe",
+    "commandOrUrl": "Perintah / URL",
+    "scope": "Cakupan",
+    "addServer": "Tambah Server"
+  },
+  "category": {
+    "basic": "Dasar",
+    "mcp": "MCP",
+    "skills": "Keterampilan",
+    "basicInfo": "Informasi Dasar",
+    "configuration": "Configuration",
+    "favorites": "Favorit",
+    "plugins": "Plugin",
+    "backupUpdate": "Cadangan & Pembaruan"
+  },
+  "skills": {
+    "openSkillsDir": "Buka direktori skill",
+    "openSkillDir": "Buka direktori keterampilan",
+    "revealSkillFile": "Ungkapkan file keterampilan",
+    "noSkills": "Tidak ada skill yang ditemukan",
+    "skillFileMissing": "File keterampilan tidak ditemukan",
+    "skillLoadFailed": "Gagal memuat file keterampilan",
+    "builtin": "Bawaan"
+  },
+  "cli": {
+    "help": "Tampilkan informasi bantuan",
+    "version": "Tampilkan nomor versi",
+    "start": "Mulai sesi interaktif baru",
+    "mcpList": "Tampilkan daftar server MCP yang dikonfigurasi",
+    "doctor": "Jalankan pemeriksaan kesehatan",
+    "doctorFix": "Jalankan pemeriksaan kesehatan dengan perbaikan otomatis",
+    "gatewayStart": "Mulai layanan gateway",
+    "gatewayStop": "Hentikan layanan gateway",
+    "gatewayRestart": "Mulai ulang layanan gateway",
+    "gatewayStatus": "Tampilkan status gateway",
+    "gatewayRun": "Jalankan gateway di latar depan",
+    "gatewayUninstall": "Copot layanan gateway",
+    "skillsList": "Daftarkan skill yang tersedia"
+  },
+  "gateway": {
+    "category": "Layanan Gateway",
+    "status": "Status Gateway",
+    "running": "Gateway sedang berjalan",
+    "stopped": "Gateway dihentikan",
+    "startFailed": "Gagal memulai gateway"
+  },
+  "value": {
+    "yes": "Ya",
+    "no": "Tidak",
+    "other": "Lainnya",
+    "default": "Default",
+    "none": "Tidak ada",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Cari plugin",
+    "removed": "Plugin dihapus"
+  },
+  "schedule": {
+    "everyHour": "Setiap jam",
+    "everyMinute": "Setiap menit"
+  },
+  "error": {
+    "phpiniNotFound": "File php.ini tidak ditemukan"
+  }
+}

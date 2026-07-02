@@ -1,0 +1,21 @@
+{
+  "notInstalled": "لم يتم تثبيت Antigravity CLI. انقر الزر أدناه لتثبيته باستخدام المُثبّت الرسمي.",
+  "officialWebsite": "موقع Antigravity",
+  "officialDocs": "وثائق Antigravity CLI",
+  "sandboxMode": "وضع عزل الطرفية",
+  "toolPermission": "أذونات الأدوات",
+  "sessionId": "معرف المحادثة",
+  "updatedAt": "آخر تحديث",
+  "sessionResumed": "تمت متابعة المحادثة في الطرفية",
+  "sessionDeleted": "تم حذف المحادثة",
+  "cmd": {
+    "update": "حدّث Antigravity CLI إلى أحدث إصدار",
+    "models": "اعرض النماذج المتاحة",
+    "continue": "تابع أحدث محادثة",
+    "resume": "استأنف محادثة سابقة باستخدام المعرف",
+    "prompt": "شغّل مطالبة واحدة بشكل غير تفاعلي",
+    "pluginList": "اعرض الإضافات المستوردة",
+    "pluginImport": "استورد الإضافات من gemini أو claude",
+    "install": "اضبط مسارات البيئة وإعدادات الصدفة"
+  }
+}

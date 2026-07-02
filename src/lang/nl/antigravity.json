@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI is niet geïnstalleerd. Klik op de knop hieronder om het met het officiële installatieprogramma te installeren.",
+  "officialWebsite": "Antigravity-website",
+  "officialDocs": "Antigravity CLI-documentatie",
+  "sandboxMode": "Terminalsandbox",
+  "toolPermission": "Toolmachtiging",
+  "sessionId": "Gespreks-ID",
+  "updatedAt": "Bijgewerkt op",
+  "sessionResumed": "Gesprek hervat in terminal",
+  "sessionDeleted": "Gesprek verwijderd",
+  "cmd": {
+    "update": "Werk Antigravity CLI bij naar de nieuwste versie",
+    "models": "Toon beschikbare modellen",
+    "continue": "Ga verder met het meest recente gesprek",
+    "resume": "Hervat een vorig gesprek via ID",
+    "prompt": "Voer één prompt niet-interactief uit",
+    "pluginList": "Toon geïmporteerde plugins",
+    "pluginImport": "Importeer plugins uit gemini of claude",
+    "install": "Configureer omgevingspaden en shellinstellingen"
+  }
+}

@@ -2,12 +2,11 @@
   "checking": "Installation wird überprüft...",
   "isInstalled": "installiert",
   "notInstalled": "mkcert ist nicht installiert",
-  "install": "Install mkcert",
+  "install": "mkcert installieren",
   "checkAgain": "Erneut prüfen",
   "recheck": "Erneut prüfen",
-  "installCA": "Install CA",
+  "installCA": "CA installieren",
   "carootLabel": "CA Wurzelpfad",
   "certificates": "Zertifikate",
-  "generate": "Generieren",
   "noSSLHosts": "Keine Hosts mit SSL aktiviert. SSL zuerst auf einem Host aktivieren."
 }

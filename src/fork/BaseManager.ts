@@ -70,6 +70,8 @@ class BaseManager {
   ClaudeCode: any
   Codex: any
   OpenCode: any
+  Antigravity: any
+  CopilotCli: any
   FrankenPHP: any
   RoadRunner: any
   SwooleCli: any
@@ -597,6 +599,18 @@ class BaseManager {
         this.OpenCode = res.default
       }
       doRun(this.OpenCode)
+    } else if (module === 'antigravity') {
+      if (!this.Antigravity) {
+        const res = await import('./module/Antigravity')
+        this.Antigravity = res.default
+      }
+      doRun(this.Antigravity)
+    } else if (module === 'copilotCli') {
+      if (!this.CopilotCli) {
+        const res = await import('./module/CopilotCli')
+        this.CopilotCli = res.default
+      }
+      doRun(this.CopilotCli)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

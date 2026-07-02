@@ -1,6 +1,9 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import { CloudflareTunnel } from './CloudflareTunnel'
+import { join } from 'path'
+import { readdirSync } from 'fs'
 
 class CloudflareTunnelBase extends Base {
   constructor() {
@@ -63,6 +66,31 @@ class CloudflareTunnelBase extends Base {
       }
       resolve(true)
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Cloudflare Tunnel 通过 Cloudflare API 管理配置，无本地配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // 日志文件按隧道实例 id 命名，动态扫描 cloudflare-tunnel 目录
+    const baseDir = global.Server.BaseDir ? join(global.Server.BaseDir, 'cloudflare-tunnel') : ''
+    if (!baseDir) {
+      return []
+    }
+    try {
+      const files = readdirSync(baseDir)
+      return files
+        .filter((f) => f.endsWith('-out.log') || f.endsWith('-error.log'))
+        .map((f) => {
+          const id = f.replace(/-(out|error)\.log$/, '')
+          const name = f.endsWith('-error.log') ? `error-${id}` : `out-${id}`
+          return { name, path: join(baseDir, f) }
+        })
+    } catch {
+      return []
+    }
   }
 }
 export default new CloudflareTunnelBase()

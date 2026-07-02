@@ -3,8 +3,8 @@
     v-model="visible"
     :title="
       isEdit
-        ? I18nT('base.edit') + I18nT('podman.Machine')
-        : I18nT('podman.Machine') + I18nT('base.add')
+        ? I18nT('common.action.edit') + I18nT('podman.Machine')
+        : I18nT('podman.Machine') + I18nT('common.action.add')
     "
     width="600px"
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
@@ -12,7 +12,7 @@
   >
     <el-scrollbar class="px-2">
       <el-form ref="formRef" :model="form" label-width="110px" class="pt-2" label-position="top">
-        <el-form-item v-if="!isEdit" :label="I18nT('base.name')" prop="name" required>
+        <el-form-item v-if="!isEdit" :label="I18nT('common.label.name')" prop="name" required>
           <el-input v-model="form.name" maxlength="32" />
         </el-form-item>
         <el-form-item :label="I18nT('podman.CPU')" prop="cpus">
@@ -45,7 +45,9 @@
     </el-scrollbar>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" :loading="submitting" @click="onSubmit">{{ I18nT('base.confirm') }}</el-button>
+        <el-button type="primary" :loading="submitting" @click="onSubmit">{{
+          I18nT('base.confirm')
+        }}</el-button>
         <el-button @click="onCancel">{{ I18nT('base.cancel') }}</el-button>
       </div>
     </template>
@@ -121,7 +123,7 @@
 
   const onSubmit = async () => {
     if (!form.value.name && !isEdit) {
-      ElMessage.error(I18nT('base.name') + I18nT('podman.require'))
+      ElMessage.error(I18nT('common.label.name') + I18nT('podman.require'))
       return
     }
     if (submitting.value) return

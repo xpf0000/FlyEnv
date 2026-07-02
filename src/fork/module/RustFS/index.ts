@@ -280,5 +280,32 @@ class RustFS extends Base {
       }
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return [
+      {
+        name: 'rustfs.conf',
+        path: join(global.Server.BaseDir!, 'rustfs', 'rustfs.conf')
+      }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'rustfs')
+    const versionStr = _version.version.trim().split(' ').join('')
+    return [
+      {
+        name: `rustfs-${versionStr}-start-out.log`,
+        path: join(baseDir, `rustfs-${versionStr}-start-out.log`)
+      },
+      {
+        name: `rustfs-${versionStr}-start-error.log`,
+        path: join(baseDir, `rustfs-${versionStr}-start-error.log`)
+      }
+    ]
+  }
 }
 export default new RustFS()

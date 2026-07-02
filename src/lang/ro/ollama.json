@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Rezervă o porțiune de VRAM per GPU (octechar)",
   "OLLAMA_LOAD_TIMEOUT": "Cât timp se permite ca sarcinile modelului să se blocheze înainte de a renunța (implicit \"5m\")",
   "needServiceRun": "Vă rugăm să porniţi mai întâi serviciul Olama",
-  "size": "Dimensiune",
   "model": "Modele"
 }

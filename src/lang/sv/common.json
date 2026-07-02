@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Modell",
+    "name": "Namn",
+    "status": "Status",
+    "workingDirectory": "Arbetskatalog",
+    "action": "Åtgärd",
+    "comment": "Kommentar",
+    "source": "Källa",
+    "site": "Plats",
+    "errorLog": "Fellogg",
+    "library": "Bibliotek",
+    "path": "Sökväg",
+    "description": "Beskrivning",
+    "port": "Port",
+    "startCommand": "Startkommando",
+    "licenseDescription": "Licensbeskrivning",
+    "password": "Lösenord",
+    "username": "Användarnamn",
+    "size": "Storlek",
+    "containerEnvVars": "Miljövariabler i containern",
+    "createdTime": "Skapad tid",
+    "image": "Bild",
+    "state": "Tillstånd",
+    "grid": "Rutnät",
+    "gridSpacing": "Avstånd mellan rutnät (pixlar)",
+    "fontSize": "Teckenstorlek",
+    "code": "Kod"
+  },
+  "action": {
+    "enable": "Aktivera",
+    "disable": "Inaktivera",
+    "resume": "Återuppta",
+    "uninstall": "Avinstallera",
+    "copy": "Kopiera",
+    "preview": "Förhandsgranskning",
+    "search": "Sök",
+    "clear": "Rensa",
+    "resetPassword": "Återställ lösenord",
+    "delete": "Radera",
+    "add": "Lägg till",
+    "edit": "Redigera",
+    "generate": "Generera",
+    "refresh": "Uppdatera",
+    "save": "Spara",
+    "start": "Starta",
+    "stop": "Stoppa",
+    "close": "Stäng",
+    "selectAll": "Välj alla",
+    "changeName": "Redigera namn",
+    "changeOwnerPassword": "Ändra ägarens lösenord",
+    "changeRole": "Ändra roll"
+  },
+  "state": {
+    "running": "Körs",
+    "installed": "Installerad",
+    "enabled": "Aktiverad",
+    "disabled": "Inaktiverad",
+    "available": "Tillgänglig"
+  },
+  "session": {
+    "list": "Sessioner",
+    "title": "Titel",
+    "id": "Sessions-ID",
+    "lastPrompt": "Senaste prompten",
+    "search": "Sök sessioner",
+    "deleted": "Sessionen har tagits bort",
+    "resumed": "Sessionen återupptogs i terminalen"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Kommando / URL",
+    "scope": "Scope",
+    "addServer": "Lägg till server"
+  },
+  "category": {
+    "basic": "Grundläggande",
+    "mcp": "MCP",
+    "skills": "Färdigheter",
+    "basicInfo": "Grundläggande information",
+    "configuration": "Konfiguration",
+    "favorites": "Favoriter",
+    "plugins": "Plugins",
+    "backupUpdate": "Säkerhetskopiera och uppdatera"
+  },
+  "skills": {
+    "openSkillsDir": "Öppna kompetenskatalog",
+    "openSkillDir": "Öppna kompetensmapp",
+    "revealSkillFile": "Visa kompetensfil",
+    "noSkills": "Inga färdigheter hittades",
+    "skillFileMissing": "Kunde inte hitta kompetensfilen",
+    "skillLoadFailed": "Det gick inte att läsa in kompetensfilen",
+    "builtin": "Inbyggd"
+  },
+  "cli": {
+    "help": "Visa hjälpinformation",
+    "version": "Visa versionsnummer",
+    "start": "Starta en ny interaktiv session",
+    "mcpList": "Lista konfigurerade MCP-servrar",
+    "doctor": "Kör hälsokontroller",
+    "doctorFix": "Kör hälsokontroller med auto-fix",
+    "gatewayStart": "Starta gatewayservice",
+    "gatewayStop": "Stoppa gateway-tjänsten",
+    "gatewayRestart": "Starta om gateway-tjänsten",
+    "gatewayStatus": "Visa gatewaystatus",
+    "gatewayRun": "Kör gateway i förgrunden",
+    "gatewayUninstall": "Avinstallera gateway service",
+    "skillsList": "Lista tillgängliga färdigheter"
+  },
+  "gateway": {
+    "category": "Gateway-tjänst",
+    "status": "Gateway-status",
+    "running": "Gateway körs",
+    "stopped": "Gateway har stoppats",
+    "startFailed": "Gateway start misslyckades"
+  },
+  "value": {
+    "yes": "Ja",
+    "no": "Nej",
+    "other": "Annat",
+    "default": "Standard",
+    "none": "Ingen",
+    "local": "Lokal"
+  },
+  "plugin": {
+    "search": "Sök plugins",
+    "removed": "Plugin borttagen"
+  },
+  "schedule": {
+    "everyHour": "Varje timme",
+    "everyMinute": "Varje minut"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini-filen hittades inte"
+  }
+}

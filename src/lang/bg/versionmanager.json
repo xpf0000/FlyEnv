@@ -1,8 +1,6 @@
 {
-  "Local": "Локален",
   "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> не е открит\nЗа да инсталирате Homebrew, натиснете бутона Инсталирай, за да продължите\nМожете също да кликнете върху този линк <a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">\nhttps://flyenv.com/guide/getting-started.html#macos-1\n</a>Следвайте инструкциите в документацията за инсталиране.",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> не беше открит.\nЗа да инсталирате Macports, можете да кликнете върху този линк\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nСледвайте инструкциите в документацията за инсталиране.",
   "brewErrorTips": "На това място {bin} бяха открити изпълними файлове на Homebrew.\nFlyEnv обаче не може да ги стартира. Съобщение за грешка:\n{error}",
-  "Library": "Библиотека",
   "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> не е намерен\nЗа да инсталирате SDKMAN, натиснете бутона Инсталирай, за да продължите"
 }

@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI はインストールされていません。公式インストーラーでインストールするには、下のボタンをクリックしてください。",
+  "officialWebsite": "Antigravity 公式サイト",
+  "officialDocs": "Antigravity CLI ドキュメント",
+  "sandboxMode": "ターミナルサンドボックス",
+  "toolPermission": "ツール権限",
+  "sessionId": "会話ID",
+  "updatedAt": "更新日時",
+  "sessionResumed": "会話がターミナルで再開されました",
+  "sessionDeleted": "会話が削除されました",
+  "cmd": {
+    "update": "Antigravity CLI を最新バージョンに更新",
+    "models": "利用可能なモデルを一覧表示",
+    "continue": "最新の会話を続行",
+    "resume": "ID で以前の会話を再開",
+    "prompt": "単一のプロンプトを非対話モードで実行",
+    "pluginList": "インポート済みプラグインを一覧表示",
+    "pluginImport": "gemini または claude からプラグインをインポート",
+    "install": "環境パスとシェル設定を構成"
+  }
+}

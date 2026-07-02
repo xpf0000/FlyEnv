@@ -1,5 +1,4 @@
 {
-  "working_dir": "Munkakönyvtár",
   "db_path": "Megadja azt a helyet, ahol az adatbázisfájlok létrejönnek és elérhetők lesznek",
   "env": "Beállítja a példány környezetét. Az érték csak `production` vagy `development` lehet.",
   "http_addr": "Az a cím, amelyen a HTTP szerver figyelni fog.",

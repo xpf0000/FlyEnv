@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "È consentita l'esecuzione di un solo servizio alla volta",
   "moduleExecItem": "Elemento di esecuzione del modulo",
   "module": {
-    "name": "Nome",
     "path": "Percorso file",
-    "comment": "Commento",
     "exec": "Esegui",
     "command": "Command",
     "commandFile": "File",
@@ -39,15 +37,14 @@
     "needPasswordToStart": "Sono necessari diritti di amministratore. Inserisci la tua password (verrà salvata per usi futuri). In alternativa, inseriscila manualmente nel terminale, ma questo avviso potrebbe riapparire.",
     "hadOpenInTerminal": "Già in esecuzione nel terminale — risultati non disponibili.",
     "licenseTips": "Licenza non trovata. È possibile creare solo 3 moduli/elementi di esecuzione.",
-    "outputLog": "Log di output",
-    "errorLog": "Log errori"
+    "outputLog": "Log di output"
   },
   "flyenvHelper": "Riparazione del programma di supporto FlyEnv",
   "flyenvHelperBtn": "Ripara",
   "flyenvHelperFixSuccess": "Riparazione del programma di supporto FlyEnv riuscita",
   "flyenvHelperInstallFailTips": "Installazione dell'helper FlyEnv non riuscita. Prova a eseguire FlyEnv con privilegi di amministratore oppure fai clic sul pulsante OK ed esegui manualmente il programma helper flyenv-helper.exe nella cartella aperta.",
-  "appFont": "UI Font",
+  "appFont": "Font interfaccia",
   "appFontTips": "Imposta il carattere usato per l'interfaccia utente dell'applicazione. Lasciare vuoto per usare il carattere di sistema predefinito",
-  "codeFont": "Code Font",
+  "codeFont": "Font del codice",
   "codeFontTips": "Imposta il carattere usato per terminale, editor e altre aree di codice. Lasciare vuoto per usare il carattere a spaziatura variabile predefinito"
 }

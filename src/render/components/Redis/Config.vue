@@ -59,7 +59,7 @@
       value: '6379',
       enable: true,
       tips() {
-        return I18nT('host.port')
+        return I18nT('common.label.port')
       }
     },
     {

@@ -30,8 +30,8 @@
   const tabs = [
     I18nT('base.service'),
     I18nT('base.configFile'),
-    I18nT('openCode.sessions'),
-    I18nT('openCode.mcp'),
+    I18nT('common.session.list'),
+    I18nT('common.category.mcp'),
     I18nT('openCode.stats'),
     I18nT('openCode.providers')
   ]

@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Only one service can run at a time",
   "moduleExecItem": "Module Execution Item",
   "module": {
-    "name": "Name",
     "path": "File Path",
-    "comment": "Comment",
     "exec": "Run",
     "command": "Command",
     "commandFile": "File",
@@ -39,8 +37,7 @@
     "needPasswordToStart": "Admin rights required. Enter your password (it will be saved for future use). Alternatively, manually enter it in the terminal, but this prompt may reappear.",
     "hadOpenInTerminal": "Already running in terminal—results unavailable.",
     "licenseTips": "No license found. Only 3 modules/execution items can be created.",
-    "outputLog": "Output Log",
-    "errorLog": "Error Log"
+    "outputLog": "Output Log"
   },
   "flyenvHelper": "Fix FlyEnv Helper",
   "flyenvHelperBtn": "Fix",

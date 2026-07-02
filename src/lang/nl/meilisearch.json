@@ -1,5 +1,4 @@
 {
-  "working_dir": "Werken Map",
   "db_path": "Noteert de locatie waar databasebestanden worden gemaakt en opgehaald",
   "env": "Configureert de instance's omgeving. Waarde moet `productie` of `development` zijn.",
   "http_addr": "Het adres waarop de HTTP-server zal luisteren.",

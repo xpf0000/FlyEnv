@@ -298,8 +298,8 @@
   const generatedSchedule = computed(() => partValues.value.join(' '))
 
   const description = computed(() => {
-    if (generatedSchedule.value === '* * * * *') return I18nT('cron.descEveryMinute')
-    if (generatedSchedule.value === '0 * * * *') return I18nT('cron.descEveryHour')
+    if (generatedSchedule.value === '* * * * *') return I18nT('common.schedule.everyMinute')
+    if (generatedSchedule.value === '0 * * * *') return I18nT('common.schedule.everyHour')
     if (generatedSchedule.value === '0 0 * * *') return I18nT('cron.descDailyMidnight')
     if (generatedSchedule.value === '0 0 * * 0') return I18nT('cron.descEverySundayMidnight')
     if (generatedSchedule.value === '0 0 1 * *') return I18nT('cron.descMonthly1st')
@@ -320,8 +320,8 @@
   }
 
   const presets: Preset[] = [
-    { labelKey: 'cron.presetEveryMinute', icon: '1m', value: '* * * * *' },
-    { labelKey: 'cron.presetEveryHour', icon: '1h', value: '0 * * * *' },
+    { labelKey: 'common.schedule.everyMinute', icon: '1m', value: '* * * * *' },
+    { labelKey: 'common.schedule.everyHour', icon: '1h', value: '0 * * * *' },
     { labelKey: 'cron.presetEvery2Hours', icon: '2h', value: '0 */2 * * *' },
     { labelKey: 'cron.presetDailyMidnight', icon: '0:00', value: '0 0 * * *' },
     { labelKey: 'cron.presetDaily6', icon: '6:00', value: '0 6 * * *' },

@@ -13,9 +13,11 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{
+            isEdit ? I18nT('common.action.edit') : I18nT('common.action.add')
+          }}</span>
         </div>
-        <el-button class="shrink0" @click="doSave">{{ I18nT('base.save') }}</el-button>
+        <el-button class="shrink0" @click="doSave">{{ I18nT('common.action.save') }}</el-button>
       </div>
 
       <el-scrollbar class="flex-1">
@@ -25,13 +27,13 @@
               v-model.trim="item.name"
               type="text"
               :class="'input' + (errs['name'] ? ' error' : '')"
-              :placeholder="I18nT('setup.module.name')"
+              :placeholder="I18nT('common.label.name')"
             />
             <input
               v-model.trim="item.comment"
               type="text"
               class="input mt-6"
-              :placeholder="I18nT('setup.module.comment')"
+              :placeholder="I18nT('common.label.comment')"
             />
             <template v-if="!isWindows">
               <div class="ssl-switch mt-6">
@@ -114,7 +116,7 @@
           </div>
           <div class="main p-5">
             <template v-if="!item?.configPath?.length">
-              <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+              <div class="flex justify-center">{{ I18nT('common.value.none') }}</div>
             </template>
             <template v-else>
               <div class="flex flex-col gap-4">
@@ -125,7 +127,7 @@
                       type="text"
                       class="input"
                       style="height: 32px; width: 120px; flex: unset"
-                      :placeholder="I18nT('setup.module.name')"
+                      :placeholder="I18nT('common.label.name')"
                     />
                     <input
                       v-model.trim="c.path"
@@ -162,7 +164,7 @@
           </div>
           <div class="main p-5">
             <template v-if="!item?.logPath?.length">
-              <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+              <div class="flex justify-center">{{ I18nT('common.value.none') }}</div>
             </template>
             <template v-else>
               <div class="flex flex-col gap-4">
@@ -173,7 +175,7 @@
                       type="text"
                       class="input"
                       style="height: 32px; width: 120px; flex: unset"
-                      :placeholder="I18nT('setup.module.name')"
+                      :placeholder="I18nT('common.label.name')"
                     />
                     <input
                       v-model.trim="c.path"
@@ -220,14 +222,8 @@
   import { Delete, Plus } from '@element-plus/icons-vue'
   import { dialog } from '@/util/NodeFn'
 
-  const isMacOS = computed(() => {
-    return window.Server.isMacOS
-  })
   const isWindows = computed(() => {
     return window.Server.isWindows
-  })
-  const isLinux = computed(() => {
-    return window.Server.isLinux
   })
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()

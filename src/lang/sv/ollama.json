@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Reservera en del av VRAM per GPU (bytes)",
   "OLLAMA_LOAD_TIMEOUT": "Hur länge modellinladdningar får stanna innan de avbryts (standard \"5m\")",
   "needServiceRun": "Vänligen starta Ollama-tjänsten först",
-  "size": "Storlek",
   "model": "Modeller"
 }

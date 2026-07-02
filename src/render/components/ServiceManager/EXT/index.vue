@@ -41,7 +41,7 @@
       <template v-if="isWindows">
         <li @click.stop="ServiceActionStore.delVersion(item, type)">
           <yb-icon :svg="import('@/svg/trash.svg?raw')" width="17" height="17" />
-          <span class="ml-3">{{ I18nT('base.del') }}</span>
+          <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
         </li>
       </template>
     </ul>
@@ -71,10 +71,6 @@
   const isWindows = computed(() => {
     return window.Server.isWindows
   })
-  const isLinux = computed(() => {
-    return window.Server.isLinux
-  })
-
   const popper = ref()
 
   const loading = computed(() => {

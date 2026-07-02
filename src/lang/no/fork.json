@@ -9,6 +9,5 @@
   "postgresqlInit": "Tjenesten ble startet med\nData Dir er {dir}\nInitial bruker er rot, passord er rot",
   "downloadFileFail": "Nedlastingsfilen mislyktes!",
   "trialEnd": "Prøveperioden er utløpt. For å fortsette å bruke denne funksjonen, vennligst skaffe en lisens",
-  "phpiniNotFound": "php.ini-fil ikke funnet",
   "noEPMD": "Finner ikke epmd-prosessen. Vennligst tilbakestill Erlang miljøvariabler."
 }

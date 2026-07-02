@@ -179,5 +179,15 @@ class Memcached extends Base {
       resolve(Info)
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Memcached is started via command-line args only; no configuration file is used.
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Memcached logs to stdout/stderr (-vv); no log file is written by FlyEnv.
+    return []
+  }
 }
 export default new Memcached()

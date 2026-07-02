@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "Файл php.ini не знайдено",
   "editPhpIni": "Редагувати php.ini",
   "phpExtensions": "Розширення PHP",
   "copyConfTemplate": "Копіювати шаблон конфігурації",

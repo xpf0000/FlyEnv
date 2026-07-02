@@ -1,5 +1,4 @@
 {
-  "working_dir": "Directorio de Trabajo",
   "db_path": "Designa la ubicación donde se crearán y recuperarán los archivos de la base de datos",
   "env": "Configura el entorno de la instancia. El valor debe ser `production` o `development`.",
   "http_addr": "La dirección en la que el servidor HTTP escuchará.",

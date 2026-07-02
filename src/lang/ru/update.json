@@ -4,8 +4,6 @@
   "update-not-available-message": "У вас актуальный!",
   "update-downloaded-message": "Готово к установке...",
   "update-error-message": "Ошибка обновления",
-  "yes": "ДА",
-  "no": "НЕТ",
   "view-update-log": "Просмотр журнала обновлений",
   "download-new-version": "Скачать новую версию"
 }

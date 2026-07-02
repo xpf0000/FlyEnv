@@ -1,5 +1,4 @@
 {
-  "title": "Descrição da Licença",
   "description": "A licença é um reconhecimento e apoio ao trabalho árduo do FlyEnv e seus autores. Seu propósito não é restringir usuários, mas lembrá-los de respeitar os esforços dos desenvolvedores e cumprir os termos relevantes ao usar o software. Ao aderir à licença, os usuários não apenas apoiam o desenvolvimento contínuo do projeto, mas também contribuem para o espírito de confiança e colaboração dentro da comunidade de código aberto.",
   "restrictions": {
     "title": "Usuários sem licença estarão sujeitos às seguintes restrições:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "UUID Vinculado",
   "delBind": "Desvincular",
   "bindCurrentUUID": "Vincular este Dispositivo",
-  "licenseDescription": "Descrição da Licença",
   "loginFail": "Falha no login",
   "oauthCanceledTitle": "Autorização Cancelada",
   "oauthCanceledMessage": "O usuário cancelou o processo de autorização",

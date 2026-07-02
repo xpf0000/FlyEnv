@@ -387,5 +387,25 @@ class Tomcat extends Base {
       resolve({})
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const v = _version?.version?.split('.')?.shift() ?? ''
+    const confDir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`, 'conf')
+    return [
+      { name: 'server.xml', path: join(confDir, 'server.xml') },
+      { name: 'web.xml', path: join(confDir, 'web.xml') },
+      { name: 'context.xml', path: join(confDir, 'context.xml') },
+      { name: 'tomcat-users.xml', path: join(confDir, 'tomcat-users.xml') },
+      { name: 'logging.properties', path: join(confDir, 'logging.properties') },
+      { name: 'catalina.properties', path: join(confDir, 'catalina.properties') },
+      { name: 'catalina.policy', path: join(confDir, 'catalina.policy') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const v = _version?.version?.split('.')?.shift() ?? ''
+    const logsDir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`, 'logs')
+    return [{ name: 'catalina.out', path: join(logsDir, 'catalina.out') }]
+  }
 }
 export default new Tomcat()

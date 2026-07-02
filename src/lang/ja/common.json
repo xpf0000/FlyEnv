@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "モデル",
+    "name": "名前",
+    "status": "ステータス",
+    "workingDirectory": "作業ディレクトリ",
+    "action": "アクション",
+    "comment": "コメント",
+    "source": "ソース",
+    "site": "サイト",
+    "errorLog": "エラーログ",
+    "library": "ライブラリ",
+    "path": "パス",
+    "description": "説明",
+    "port": "ポート",
+    "startCommand": "起動コマンド",
+    "licenseDescription": "ライセンス説明",
+    "password": "パスワード",
+    "username": "ユーザー名",
+    "size": "サイズ",
+    "containerEnvVars": "コンテナ内環境変数",
+    "createdTime": "作成時間",
+    "image": "イメージ",
+    "state": "状態",
+    "grid": "グリッド",
+    "gridSpacing": "グリッド間隔（ピクセル）",
+    "fontSize": "フォントサイズ",
+    "code": "コード"
+  },
+  "action": {
+    "enable": "有効にする",
+    "disable": "無効化",
+    "resume": "再開",
+    "uninstall": "アンインストール",
+    "copy": "コピー",
+    "preview": "プレビュー",
+    "search": "検索",
+    "clear": "クリア",
+    "resetPassword": "パスワードのリセット",
+    "delete": "削除",
+    "add": "追加",
+    "edit": "編集",
+    "generate": "生成",
+    "refresh": "更新",
+    "save": "保存",
+    "start": "起動",
+    "stop": "停止",
+    "close": "閉じる",
+    "selectAll": "すべて選択",
+    "changeName": "名前を編集",
+    "changeOwnerPassword": "所有者パスワードの変更",
+    "changeRole": "役割の変更"
+  },
+  "state": {
+    "running": "実行中",
+    "installed": "インストール済み",
+    "enabled": "有効",
+    "disabled": "無効",
+    "available": "利用可能"
+  },
+  "session": {
+    "list": "セッション",
+    "title": "タイトル",
+    "id": "セッションID",
+    "lastPrompt": "最後のプロンプト",
+    "search": "セッションを検索",
+    "deleted": "セッションを削除しました",
+    "resumed": "セッションをターミナルで再開しました"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "コマンド / URL",
+    "scope": "Scope",
+    "addServer": "サーバーを追加"
+  },
+  "category": {
+    "basic": "基本",
+    "mcp": "MCP",
+    "skills": "スキル",
+    "basicInfo": "基本情報",
+    "configuration": "設定",
+    "favorites": "お気に入り",
+    "plugins": "Plugins",
+    "backupUpdate": "バックアップと更新"
+  },
+  "skills": {
+    "openSkillsDir": "スキルディレクトリを開く",
+    "openSkillDir": "スキルディレクトリを開く",
+    "revealSkillFile": "スキルファイルを表示する",
+    "noSkills": "スキルが見つかりません",
+    "skillFileMissing": "スキルファイルが見つかりません",
+    "skillLoadFailed": "スキルファイルの読み込みに失敗しました",
+    "builtin": "ビルトイン"
+  },
+  "cli": {
+    "help": "ヘルプ情報を表示",
+    "version": "バージョン番号を表示",
+    "start": "新しい対話型セッションを開始",
+    "mcpList": "設定済みのMCPサーバーを一覧表示",
+    "doctor": "ヘルスチェックを実行",
+    "doctorFix": "自動修正でヘルスチェックを実行",
+    "gatewayStart": "ゲートウェイサービスを開始",
+    "gatewayStop": "ゲートウェイサービスを停止",
+    "gatewayRestart": "ゲートウェイサービスを再起動",
+    "gatewayStatus": "ゲートウェイの状態を表示",
+    "gatewayRun": "フォアグラウンドでゲートウェイを実行",
+    "gatewayUninstall": "ゲートウェイサービスをアンインストール",
+    "skillsList": "利用可能なスキルを一覧表示"
+  },
+  "gateway": {
+    "category": "ゲートウェイサービス",
+    "status": "ゲートウェイステータス",
+    "running": "ゲートウェイが稼働しています",
+    "stopped": "ゲートウェイが停止しています",
+    "startFailed": "ゲートウェイの開始に失敗しました"
+  },
+  "value": {
+    "yes": "はい",
+    "no": "いいえ",
+    "other": "その他",
+    "default": "デフォルト",
+    "none": "なし",
+    "local": "ローカル"
+  },
+  "plugin": {
+    "search": "プラグインを検索",
+    "removed": "プラグインを削除しました"
+  },
+  "schedule": {
+    "everyHour": "毎時",
+    "everyMinute": "毎分"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini ファイルが見つかりません"
+  }
+}

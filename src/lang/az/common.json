@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "Ad",
+    "status": "Vəziyyət",
+    "workingDirectory": "İş Qovluğu",
+    "action": "Əməliyyat",
+    "comment": "Açıqlama",
+    "source": "Mənbə",
+    "site": "Sayt",
+    "errorLog": "Xəta Jurnalı",
+    "library": "Kitabxana",
+    "path": "Yol",
+    "description": "Description",
+    "port": "Port",
+    "startCommand": "İşə salma əmri",
+    "licenseDescription": "Lisenziya Təsviri",
+    "password": "Şifrə",
+    "username": "İstifadəçi Adı",
+    "size": "Ölçü",
+    "containerEnvVars": "Konteyner içindəki mühit dəyişənləri",
+    "createdTime": "Yaradılma vaxtı",
+    "image": "Obraz",
+    "state": "Vəziyyət",
+    "grid": "Grid",
+    "gridSpacing": "Şəbəkə aralığı (piksel)",
+    "fontSize": "Şrift Ölçüsü",
+    "code": "Kod"
+  },
+  "action": {
+    "enable": "Aktiv et",
+    "disable": "Deaktiv et",
+    "resume": "Davam et",
+    "uninstall": "Sil",
+    "copy": "Kopyala",
+    "preview": "ön izahat",
+    "search": "Axtar",
+    "clear": "Təmizlə",
+    "resetPassword": "Şifrəni sıfırla",
+    "delete": "Sil",
+    "add": "Əlavə et",
+    "edit": "Redaktə et",
+    "generate": "Yarat",
+    "refresh": "Yenilə",
+    "save": "Yadda saxla",
+    "start": "İşə Sal",
+    "stop": "Dayandır",
+    "close": "Bağla",
+    "selectAll": "Hamısını Seç",
+    "changeName": "Adı dəyiş",
+    "changeOwnerPassword": "Sahib parolunu dəyiş",
+    "changeRole": "Rolu dəyiş"
+  },
+  "state": {
+    "running": "Qaçış",
+    "installed": "Quraşdırılıb",
+    "enabled": "Aktiv",
+    "disabled": "Deaktiv",
+    "available": "Mövcuddur"
+  },
+  "session": {
+    "list": "Sessiyalar",
+    "title": "Başlıq",
+    "id": "Sessiya ID-si",
+    "lastPrompt": "Son sorğu",
+    "search": "Sessiyalarda axtar",
+    "deleted": "Sessiya silindi",
+    "resumed": "Sessiya terminalda bərpa edildi"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Əmr / URL",
+    "scope": "Scope",
+    "addServer": "Server əlavə et"
+  },
+  "category": {
+    "basic": "Əsas",
+    "mcp": "MCP",
+    "skills": "Bacarıqlar",
+    "basicInfo": "Əsas məlumat",
+    "configuration": "Configuration",
+    "favorites": "Sevimlilər",
+    "plugins": "Plugins",
+    "backupUpdate": "Yedəkləmə və yeniləmə"
+  },
+  "skills": {
+    "openSkillsDir": "Bacarıqlar qovluğunu aç",
+    "openSkillDir": "Bacarıqlar kataloqunu aç",
+    "revealSkillFile": "Bacarıq faylını aşkar et",
+    "noSkills": "Heç bir bacarıq tapılmadı",
+    "skillFileMissing": "Bacarıq faylı tapılmadı",
+    "skillLoadFailed": "Bacarıq faylı yüklənmədi",
+    "builtin": "Daxili"
+  },
+  "cli": {
+    "help": "Kömək məlumatını göstər",
+    "version": "Versiya nömrəsini göstər",
+    "start": "Yeni interaktiv sessiya başladın",
+    "mcpList": "Konfiqurasiya edilmiş MCP serverlərini siyahıla",
+    "doctor": "Sağlamlıq yoxlamalarını işə sal",
+    "doctorFix": "Avtomatik düzəlişlə sağlamlıq yoxlamalarını işə sal",
+    "gatewayStart": "Gateway xidmətini başlat",
+    "gatewayStop": "Gateway xidmətini dayandır",
+    "gatewayRestart": "Gateway xidmətini yenidən başlat",
+    "gatewayStatus": "Gateway vəziyyətini göstər",
+    "gatewayRun": "Gateway-i ön planda işə sal",
+    "gatewayUninstall": "Gateway xidmətini sil",
+    "skillsList": "Mövcud bacarıqları siyahıla"
+  },
+  "gateway": {
+    "category": "Gateway xidməti",
+    "status": "Gateway vəziyyəti",
+    "running": "Gateway işləyir",
+    "stopped": "Gateway dayandırılıb",
+    "startFailed": "Gateway başlatma uğursuz oldu"
+  },
+  "value": {
+    "yes": "Bəli",
+    "no": "Xeyir",
+    "other": "Digər",
+    "default": "Standart",
+    "none": "Heç biri",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Pluginləri axtar",
+    "removed": "Plugin silindi"
+  },
+  "schedule": {
+    "everyHour": "Hər saat",
+    "everyMinute": "Hər dəqiqə"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini faylı tapılmadı"
+  }
+}

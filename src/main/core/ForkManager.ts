@@ -97,7 +97,7 @@ class ForkItem {
 
     this.loading = true
     const child = utilityProcess.fork(file)
-    child.postMessage({ Server })
+    child.postMessage({ Server: JSON.parse(JSON.stringify(Server)) })
     child.on('message', this.onMessage)
     child.on('error', this.onError)
     child.on('exit', this.onExit)
@@ -134,7 +134,7 @@ class ForkItem {
       } else {
         console.log('!!!! this.isChildDisabled Not')
       }
-      child.postMessage({ Server })
+      child.postMessage({ Server: JSON.parse(JSON.stringify(Server)) })
       child.postMessage([thenKey, ...args])
       this.child = child
     })

@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Modello",
+    "name": "Nome",
+    "status": "Stato",
+    "workingDirectory": "Directory di lavoro",
+    "action": "Azione",
+    "comment": "Commento",
+    "source": "Fonte",
+    "site": "Sito",
+    "errorLog": "Log Errori",
+    "library": "Libreria",
+    "path": "Percorso",
+    "description": "Descrizione",
+    "port": "Porta",
+    "startCommand": "Comando di avvio",
+    "licenseDescription": "Descrizione Licenza",
+    "password": "Password",
+    "username": "Nome utente",
+    "size": "Dimensione",
+    "containerEnvVars": "Variabili d'ambiente nel contenitore",
+    "createdTime": "Data di creazione",
+    "image": "Immagine",
+    "state": "Stato",
+    "grid": "Griglia",
+    "gridSpacing": "Spaziatura Griglia (pixel)",
+    "fontSize": "Dimensione carattere",
+    "code": "Codice"
+  },
+  "action": {
+    "enable": "Abilita",
+    "disable": "Disattiva",
+    "resume": "Riprendi",
+    "uninstall": "Disinstalla",
+    "copy": "Copia",
+    "preview": "Anteprima",
+    "search": "Cerca",
+    "clear": "Pulisci",
+    "resetPassword": "Reimposta Password",
+    "delete": "Elimina",
+    "add": "Aggiungi",
+    "edit": "Modifica",
+    "generate": "Genera",
+    "refresh": "Aggiorna",
+    "save": "Salva",
+    "start": "Avvia",
+    "stop": "Ferma",
+    "close": "Chiudi",
+    "selectAll": "Seleziona tutto",
+    "changeName": "Modifica Nome",
+    "changeOwnerPassword": "Cambia Password Del Proprietario",
+    "changeRole": "Cambia Ruolo"
+  },
+  "state": {
+    "running": "Corsa",
+    "installed": "Installato",
+    "enabled": "Abilitato",
+    "disabled": "Disabilitato",
+    "available": "Disponibile"
+  },
+  "session": {
+    "list": "Sessioni",
+    "title": "Titolo",
+    "id": "ID sessione",
+    "lastPrompt": "Ultimo prompt",
+    "search": "Cerca sessioni",
+    "deleted": "Sessione eliminata",
+    "resumed": "Sessione ripresa nel terminale"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Comando / URL",
+    "scope": "Scope",
+    "addServer": "Aggiungi server"
+  },
+  "category": {
+    "basic": "Base",
+    "mcp": "MCP",
+    "skills": "Competenze",
+    "basicInfo": "Informazioni di base",
+    "configuration": "Configurazione",
+    "favorites": "Preferiti",
+    "plugins": "Plugins",
+    "backupUpdate": "Backup & Aggiornamento"
+  },
+  "skills": {
+    "openSkillsDir": "Apri directory abilità",
+    "openSkillDir": "Apri la directory delle competenze",
+    "revealSkillFile": "Rivela il file delle abilità",
+    "noSkills": "Nessuna skill trovata",
+    "skillFileMissing": "File competenze non trovato",
+    "skillLoadFailed": "Impossibile caricare il file delle competenze",
+    "builtin": "Integrato"
+  },
+  "cli": {
+    "help": "Mostra informazioni di aiuto",
+    "version": "Mostra numero di versione",
+    "start": "Avvia una nuova sessione interattiva",
+    "mcpList": "Elenca i server MCP configurati",
+    "doctor": "Esegui controlli sanitari",
+    "doctorFix": "Esegui controlli di salute con correzione automatica",
+    "gatewayStart": "Avvia servizio gateway",
+    "gatewayStop": "Interrompi servizio gateway",
+    "gatewayRestart": "Riavvia il servizio gateway",
+    "gatewayStatus": "Mostra lo stato del gateway",
+    "gatewayRun": "Esegue il gateway in primo piano",
+    "gatewayUninstall": "Disinstalla servizio gateway",
+    "skillsList": "Elenca le skill disponibili"
+  },
+  "gateway": {
+    "category": "Servizio Gateway",
+    "status": "Stato Gateway",
+    "running": "Gateway in esecuzione",
+    "stopped": "Gateway fermato",
+    "startFailed": "Avvio del gateway non riuscito"
+  },
+  "value": {
+    "yes": "Sì",
+    "no": "No",
+    "other": "Altro",
+    "default": "Predefinito",
+    "none": "Nessuno",
+    "local": "Locale"
+  },
+  "plugin": {
+    "search": "Cerca plugin",
+    "removed": "Plugin rimosso"
+  },
+  "schedule": {
+    "everyHour": "Ogni ora",
+    "everyMinute": "Ogni minuto"
+  },
+  "error": {
+    "phpiniNotFound": "File php.ini non trovato"
+  }
+}

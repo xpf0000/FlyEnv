@@ -33,7 +33,7 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item :label="I18nT('mysql.databaseUser')" prop="user">
+          <el-form-item :label="I18nT('common.label.username')" prop="user">
             <el-input
               v-model="form.user"
               :placeholder="I18nT('mysql.inputUser')"
@@ -41,7 +41,7 @@
             ></el-input>
           </el-form-item>
 
-          <el-form-item :label="I18nT('mysql.databasePassword')" prop="password">
+          <el-form-item :label="I18nT('common.label.password')" prop="password">
             <el-input v-model="form.password" :placeholder="I18nT('mysql.inputPassword')"
               ><template #append>
                 <el-button :icon="Refresh" @click.stop="passwordChange()"></el-button> </template

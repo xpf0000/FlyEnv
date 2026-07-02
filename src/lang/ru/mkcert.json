@@ -2,12 +2,11 @@
   "checking": "Проверка установки...",
   "isInstalled": "установлен",
   "notInstalled": "mkcert не установлен",
-  "install": "Install mkcert",
+  "install": "Установить mkcert",
   "checkAgain": "Проверить снова",
   "recheck": "Перепроверить",
-  "installCA": "Install CA",
+  "installCA": "Установить CA",
   "carootLabel": "Корневой путь ЦС",
   "certificates": "Сертификаты",
-  "generate": "Сгенерировать",
   "noSSLHosts": "Нет хостов с включенным SSL. Сначала включите SSL на хосте."
 }

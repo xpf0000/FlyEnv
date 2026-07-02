@@ -1,11 +1,10 @@
 {
-  "phpiniNotFound": "php.ini datoteka nije pronađena",
   "editPhpIni": "Uredi php.ini",
   "phpExtensions": "PHP Proširenja",
   "copyConfTemplate": "Kopiraj predložak konfiguracije",
   "extensionCopySuccess": "Veza proširenja kopirana u međuspremnik",
   "xdebugConfCopySuccess": "Predložak konfiguracije xdebug-a kopiran u međuspremnik",
-  "fpmLog": "FPM Log",
+  "fpmLog": "FPM dnevnik",
   "extensions": "Proširenja",
   "extension": "Proširenje",
   "obfuscatorPhpVersion": "Zamagli s PHP verzijom",
@@ -29,7 +28,6 @@
   "loadedExtensions": "Učitana Proširenja",
   "log_errors": "Omogući zapisivanje grešaka",
   "error_log_dir": "Odredi putanju PHP log datoteke grešaka",
-
   "disableFunction": {
     "title": "Onemogući Funkcije",
     "function": "Funkcija",

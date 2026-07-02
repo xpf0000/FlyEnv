@@ -9,6 +9,5 @@
   "postgresqlInit": "服務啟動成功\n資料資料夾位於 {dir}\n初始使用者 root，密碼 root",
   "downloadFileFail": "檔案下載失敗",
   "trialEnd": "試用已到期，如需繼續使用此功能，請取得許可證",
-  "phpiniNotFound": "php.ini 檔案取得失敗",
   "noEPMD": "未找到 epmd 處理程序。請重新設定 erlang 環境變數"
 }

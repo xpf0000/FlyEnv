@@ -39,7 +39,7 @@
             </div>
           </template>
         </div>
-        <el-button @click.stop="doAdd">{{ $t('base.add') }}</el-button>
+        <el-button @click.stop="doAdd">{{ $t('common.action.add') }}</el-button>
       </div>
     </template>
     <el-auto-resizer>
@@ -184,7 +184,7 @@
       headerCellRenderer: () => {
         return (
           <span style="padding-left: 24px;" class="flex items-center">
-            {I18nT('util.ftpTableHeadUser')}
+            {I18nT('common.label.username')}
           </span>
         )
       },
@@ -200,7 +200,7 @@
       dataKey: 'pass',
       width: 200,
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.ftpTableHeadPass')}</span>
+        return <span class="flex items-center">{I18nT('common.label.password')}</span>
       },
       cellRenderer: ({ cellData: pass }) => (
         <span class="pass" onClick={() => copyPass(pass)}>
@@ -235,12 +235,12 @@
       },
       cellRenderer: ({ rowData: data }) => (
         <div class="setup">
-          <Edit class="setup-icon" onClick={() => doEdit(data)}>
-            编辑
-          </Edit>
-          <Delete class="setup-icon" onClick={() => doDel(data)}>
-            编辑
-          </Delete>
+          <span class="setup-icon" onClick={() => doEdit(data)}>
+            <Edit />
+          </span>
+          <span class="setup-icon" onClick={() => doDel(data)}>
+            <Delete />
+          </span>
         </div>
       )
     }

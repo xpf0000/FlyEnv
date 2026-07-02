@@ -1,5 +1,4 @@
 {
-  "working_dir": "工作目錄",
   "db_path": "指定資料庫檔案的建立和檢索位置",
   "env": "設定執行個體環境。值必須為 `production` 或 `development`。",
   "http_addr": "HTTP 伺服器監聽的位址。",

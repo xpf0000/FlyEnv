@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="'Cloudflare Tunnel' + ' ' + I18nT('base.add')"
+    :title="'Cloudflare Tunnel' + ' ' + I18nT('common.action.add')"
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     width="600px"
     :close-on-click-modal="false"

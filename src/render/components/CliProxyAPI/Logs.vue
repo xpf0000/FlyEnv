@@ -4,7 +4,7 @@
       <template #header>
         <el-radio-group v-model="logType">
           <el-radio-button value="out" :label="I18nT('base.log')"></el-radio-button>
-          <el-radio-button value="error" :label="I18nT('base.errorLog')"></el-radio-button>
+          <el-radio-button value="error" :label="I18nT('common.label.errorLog')"></el-radio-button>
         </el-radio-group>
       </template>
       <template #default>

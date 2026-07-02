@@ -2,7 +2,7 @@
   <div class="plant-title">{{ $t('base.brewSrcSwitch') }}</div>
   <div class="main brew-src">
     <el-select v-model="currentBrewSrc" :disabled="!checkBrew()">
-      <template v-for="(label, value) in brewSrc" :key="value">
+      <template v-for="(_label, value) in brewSrc" :key="value">
         <el-option :label="srcLabel[value]" :value="value"></el-option>
       </template>
     </el-select>
@@ -43,7 +43,7 @@
     computed: {
       srcLabel() {
         return {
-          default: I18nT('base.default'),
+          default: I18nT('common.value.default'),
           tsinghua: I18nT('setup.tsinghua'),
           bfsu: I18nT('setup.bfsu'),
           tencent: I18nT('setup.tencent'),

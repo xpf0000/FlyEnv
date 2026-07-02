@@ -97,7 +97,7 @@
         { value: 'light', label: 'light' }
       ],
       tips() {
-        return I18nT('claudeCode.theme')
+        return I18nT('base.theme')
       }
     },
     {
@@ -105,7 +105,7 @@
       value: '',
       enable: true,
       tips() {
-        return I18nT('claudeCode.model')
+        return I18nT('common.label.model')
       }
     },
     {

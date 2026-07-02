@@ -2,12 +2,11 @@
   "checking": "Έλεγχος εγκατάστασης...",
   "isInstalled": "εγκαταστάθηκε",
   "notInstalled": "το mkcert δεν είναι εγκατεστημένο",
-  "install": "Install mkcert",
+  "install": "Εγκατάσταση mkcert",
   "checkAgain": "Έλεγχος Ξανά",
   "recheck": "Επανέλεγχος",
-  "installCA": "Install CA",
+  "installCA": "Εγκατάσταση CA",
   "carootLabel": "CA Root Διαδρομή",
   "certificates": "Πιστοποιητικά",
-  "generate": "Δημιουργία",
   "noSSLHosts": "Κανένας υπολογιστής με ενεργοποιημένο SSL. Ενεργοποιήστε το SSL σε έναν υπολογιστή πρώτα."
 }

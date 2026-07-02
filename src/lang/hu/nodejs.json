@@ -8,7 +8,7 @@
   "updatePackageJsonFileTips": "Ez a művelet módosítani fogja a package.json fájlt. Biztosan frissíteni szeretné?",
   "copyDirPath": "Projektmappa elérési útjának másolása",
   "openIN": "Megnyitás",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Visual Studio Code szerkesztő",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "Projektkörnyezet",

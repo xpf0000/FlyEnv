@@ -3,8 +3,8 @@
     <template #header>
       <div class="card-header">
         <div class="left flex items-center">
-          <span>{{ I18nT('openCode.mcp') }}</span>
-          <el-tooltip :content="I18nT('openCode.addServer')" placement="top" :show-after="300">
+          <span>{{ I18nT('common.category.mcp') }}</span>
+          <el-tooltip :content="I18nT('common.mcp.addServer')" placement="top" :show-after="300">
             <el-button link class="ml-3" :icon="Plus" @click="openAdd" />
           </el-tooltip>
         </div>
@@ -21,18 +21,18 @@
       <div v-loading="OpenCodeSetup.mcpLoading" class="p-5 h-full overflow-hidden flex flex-col">
         <el-scrollbar v-if="OpenCodeSetup.mcpServers.length > 0">
           <el-table :data="OpenCodeSetup.mcpServers" style="width: 100%">
-            <el-table-column prop="name" :label="I18nT('openCode.mcpName')" width="180" />
-            <el-table-column prop="type" :label="I18nT('openCode.mcpType')" width="100" />
+            <el-table-column prop="name" :label="I18nT('common.label.name')" width="180" />
+            <el-table-column prop="type" :label="I18nT('common.mcp.type')" width="100" />
             <el-table-column
               prop="commandOrUrl"
-              :label="I18nT('openCode.mcpCommandOrUrl')"
+              :label="I18nT('common.mcp.commandOrUrl')"
               show-overflow-tooltip
             />
-            <el-table-column prop="scope" :label="I18nT('openCode.mcpScope')" width="100" />
-            <el-table-column :label="I18nT('base.action')" width="100" align="center">
+            <el-table-column prop="scope" :label="I18nT('common.mcp.scope')" width="100" />
+            <el-table-column :label="I18nT('common.label.action')" width="100" align="center">
               <template #default="{ row }">
                 <el-button link type="danger" @click="confirmRemove(row.name)">{{
-                  I18nT('base.del')
+                  I18nT('common.action.delete')
                 }}</el-button>
               </template>
             </el-table-column>
@@ -42,18 +42,23 @@
       </div>
     </div>
 
-    <el-dialog v-model="addVisible" :title="I18nT('openCode.addServer')" width="500" append-to-body>
+    <el-dialog
+      v-model="addVisible"
+      :title="I18nT('common.mcp.addServer')"
+      width="500"
+      append-to-body
+    >
       <el-form label-position="top" @submit.prevent>
-        <el-form-item :label="I18nT('openCode.mcpName')">
+        <el-form-item :label="I18nT('common.label.name')">
           <el-input v-model="form.name" placeholder="my-server" />
         </el-form-item>
-        <el-form-item :label="I18nT('openCode.mcpType')">
+        <el-form-item :label="I18nT('common.mcp.type')">
           <el-radio-group v-model="form.type">
             <el-radio-button value="local">local</el-radio-button>
             <el-radio-button value="remote">remote</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="I18nT('openCode.mcpCommandOrUrl')">
+        <el-form-item :label="I18nT('common.mcp.commandOrUrl')">
           <el-input
             v-model="form.commandOrUrl"
             :placeholder="form.type === 'local' ? 'npx my-mcp-server' : 'https://example.com/mcp'"

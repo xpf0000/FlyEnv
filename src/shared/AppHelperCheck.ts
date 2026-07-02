@@ -1,17 +1,20 @@
-import { mkdirp, writeFile, readFile } from '@shared/fs-extra'
+import { mkdirp, writeFile, readFile, existsSync } from '@shared/fs-extra'
 import { createConnection } from 'node:net'
 import { userInfo, tmpdir } from 'node:os'
-import { basename, dirname, join } from 'node:path'
+import { basename, dirname, join, resolve as pathResolve } from 'node:path'
+import is from 'electron-is'
 import { isWindows } from './utils'
 import JSON5 from 'json5'
 import crypto from 'node:crypto'
+import { AppHelperError, type AppHelperErrorCode } from './WindowsHelperState'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
-export const HelperVersion = 14
+export const HelperVersion = 15
 
 const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
+const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 
 export const HelperKeyPath = (): string => {
   return isWindows() ? join(tmpdir(), 'flyenv-helper.key') : Key_Path_Unix
@@ -60,7 +63,6 @@ export const AppHelperSocketPathGet = (): string => {
   let actualPath = SOCKET_PATH
 
   if (isWindows()) {
-    // Convert Unix socket path to Windows named pipe format
     const pipeName = basename(SOCKET_PATH).replace(/[^a-zA-Z0-9_-]/g, '_')
     actualPath = `\\\\.\\pipe\\${pipeName}`
   }
@@ -81,128 +83,150 @@ export const AppHelperRoleFix = async () => {
   } catch {}
 }
 
-export const AppHelperCheck = () => {
-  return new Promise(async (resolve, reject) => {
-    console.time('AppHelper check')
-    let timer: NodeJS.Timeout | undefined
-    let settled = false
-    let checkTimerEnded = false
-    const key = 'flyenv-helper-version-check'
-    const buffer: Buffer[] = []
+export const getWindowsHelperBinaryPath = (): string => {
+  const staticPath = global.Server.Static ?? ''
+  if (!staticPath) {
+    return ''
+  }
+  if (is.production()) {
+    return join(pathResolve(staticPath, '../../../../'), 'helper/flyenv-helper.exe')
+  }
+  const buildDir = pathResolve(staticPath, '../../../build/')
+  return pathResolve(buildDir, `../src/helper-go/dist/${WINDOWS_HELPER_FILE}`)
+}
 
-    const timeEndOnce = () => {
-      if (checkTimerEnded) {
+export const windowsHelperBinaryExists = (): boolean => {
+  if (!isWindows()) {
+    return true
+  }
+  const helperPath = getWindowsHelperBinaryPath()
+  return !!helperPath && existsSync(helperPath)
+}
+
+type AppHelperCheckDeps = {
+  isWindows: () => boolean
+  helperBinaryExists: () => boolean
+  createConnection: typeof createConnection
+  getHelperKey: typeof getHelperKey
+}
+
+export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) => {
+  const runtime = {
+    isWindows,
+    helperBinaryExists: windowsHelperBinaryExists,
+    createConnection,
+    getHelperKey,
+    ...deps
+  }
+
+  return () =>
+    new Promise<boolean>(async (resolve, reject) => {
+      if (runtime.isWindows() && !runtime.helperBinaryExists()) {
+        reject(new AppHelperError('helper_binary_missing', 'Windows helper binary missing'))
         return
       }
-      checkTimerEnded = true
-      console.timeEnd('AppHelper check')
-    }
 
-    const resolveOnce = (value: boolean) => {
-      if (settled) {
-        return
-      }
-      settled = true
-      clearTimeout(timer)
-      resolve(value)
-    }
+      let timer: NodeJS.Timeout | undefined
+      let settled = false
+      const key = 'flyenv-helper-version-check'
+      const buffer: Buffer[] = []
 
-    const rejectOnce = (error: Error) => {
-      if (settled) {
-        return
+      const resolveOnce = (value: boolean) => {
+        if (settled) {
+          return
+        }
+        settled = true
+        clearTimeout(timer)
+        resolve(value)
       }
-      settled = true
-      clearTimeout(timer)
-      reject(error)
-    }
 
-    let helperKey: Buffer | null = null
-    try {
-      helperKey = await getHelperKey()
-    } catch {}
+      const rejectOnce = (code: AppHelperErrorCode, message: string) => {
+        if (settled) {
+          return
+        }
+        settled = true
+        clearTimeout(timer)
+        reject(new AppHelperError(code, message))
+      }
 
-    const client = createConnection(AppHelperSocketPathGet())
-    client.on('connect', () => {
-      console.log('Connected to the server')
-      const param: any = {
-        key,
-        module: 'helper',
-        function: 'version',
-        args: [],
-        ...helperTaskAuthFields()
-      }
-      if (helperKey) {
-        param.sig = signTaskItem(helperKey, param)
-      }
+      let helperKey: Buffer | null = null
       try {
-        client.write(JSON.stringify(param), (error?: Error | null) => {
-          if (error) {
-            try {
-              client.destroy()
-            } catch {}
-            rejectOnce(error)
-            timeEndOnce()
-          }
-        })
-      } catch (e) {
+        helperKey = await runtime.getHelperKey()
+      } catch {}
+
+      const client = runtime.createConnection(AppHelperSocketPathGet())
+
+      const closeClient = () => {
         try {
           client.destroy()
         } catch {}
-        rejectOnce(e instanceof Error ? e : new Error(`${e}`))
-        timeEndOnce()
       }
-      timer = setTimeout(() => {
-        onEnd()
-      }, 2000)
-    })
 
-    const onEnd = () => {
-      if (settled) {
-        return
-      }
-      clearTimeout(timer)
-      try {
-        client.destroy()
-      } catch {}
-      if (!buffer.length) {
-        timeEndOnce()
-        return rejectOnce(new Error(`Helper Need Install Or Update`))
-      }
-      let res: any
-      try {
-        const content = Buffer.concat(buffer).toString().trim()
-        res = JSON5.parse(content)
-      } catch {}
-      timeEndOnce()
-      console.log(`${key}: `, res)
-      if (res && res?.key && res?.key === key) {
-        buffer.splice(0)
-        if (res?.code === 0) {
-          const version = res?.data
-          if (version === HelperVersion) {
-            return resolveOnce(true)
-          }
+      client.on('connect', () => {
+        const param: any = {
+          key,
+          module: 'helper',
+          function: 'version',
+          args: [],
+          ...helperTaskAuthFields()
         }
-      }
-      return rejectOnce(new Error(`Helper Need Install Or Update`))
-    }
+        if (helperKey) {
+          param.sig = signTaskItem(helperKey, param)
+        }
 
-    client.on('data', (data: any) => {
-      buffer.push(data)
-      client.end()
-    })
+        try {
+          client.write(JSON.stringify(param), (error?: Error | null) => {
+            if (error) {
+              closeClient()
+              rejectOnce('helper_unreachable', error.message)
+            }
+          })
+        } catch (error) {
+          closeClient()
+          rejectOnce('helper_unreachable', error instanceof Error ? error.message : `${error}`)
+          return
+        }
 
-    client.on('end', () => {
-      console.log('Disconnected from the server')
-      onEnd()
-    })
+        timer = setTimeout(() => {
+          closeClient()
+          rejectOnce('helper_unreachable', 'Connect helper failed')
+        }, 2000)
+      })
 
-    client.on('error', () => {
-      try {
-        client.destroy()
-      } catch {}
-      rejectOnce(new Error('Connect helper failed'))
-      timeEndOnce()
+      client.on('data', (data: any) => {
+        buffer.push(data)
+        client.end()
+      })
+
+      client.on('end', () => {
+        closeClient()
+        if (!buffer.length) {
+          rejectOnce('helper_unreachable', 'Connect helper failed')
+          return
+        }
+
+        let res: any
+        try {
+          const content = Buffer.concat(buffer).toString().trim()
+          res = JSON5.parse(content)
+        } catch {
+          rejectOnce('helper_execution_failed', 'Invalid helper response payload')
+          return
+        }
+
+        if (res?.key === key && res?.code === 0 && res?.data === HelperVersion) {
+          resolveOnce(true)
+          return
+        }
+
+        rejectOnce('helper_version_mismatch', 'Helper Need Install Or Update')
+      })
+
+      client.on('error', (error) => {
+        closeClient()
+        rejectOnce('helper_unreachable', error?.message || 'Connect helper failed')
+      })
     })
-  })
 }
+
+export const AppHelperCheck = createAppHelperChecker()

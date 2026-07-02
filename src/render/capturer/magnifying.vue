@@ -24,6 +24,7 @@
 </template>
 <script setup lang="ts">
   import { computed, ref, watch, nextTick, onMounted } from 'vue'
+  import type { CSSProperties } from 'vue'
   import { CapturerStore } from '@/capturer/store/app'
   import { I18nT } from '@lang/index'
 
@@ -74,7 +75,7 @@
    * 获取放大镜位置
    * 默认在鼠标右下角，需要根据鼠标位置调整避免超出屏幕
    */
-  const style = computed(() => {
+  const style = computed<CSSProperties>(() => {
     if (!info.value || !info.value.show) {
       return { display: 'none' }
     }
@@ -114,7 +115,7 @@
     return {
       left: `${left}px`,
       top: `${top}px`,
-      'pointer-events': 'none' // 防止组件拦截鼠标事件
+      pointerEvents: 'none' // 防止组件拦截鼠标事件
     }
   })
 </script>

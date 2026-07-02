@@ -1,16 +1,16 @@
 {
   "categories": [
     {
-      "nameKey": "openCode.category.basic",
+      "nameKey": "common.category.basic",
       "commands": [
-        { "label": "opencode --help", "descriptionKey": "openCode.cmd.help", "needInput": false },
-        { "label": "opencode --version", "descriptionKey": "openCode.cmd.version", "needInput": false },
+        { "label": "opencode --help", "descriptionKey": "common.cli.help", "needInput": false },
+        { "label": "opencode --version", "descriptionKey": "common.cli.version", "needInput": false },
         { "label": "opencode upgrade", "descriptionKey": "openCode.cmd.upgrade", "needInput": false, "needRefresh": true },
         { "label": "opencode models", "descriptionKey": "openCode.cmd.models", "needInput": false }
       ]
     },
     {
-      "nameKey": "openCode.category.session",
+      "nameKey": "common.session.list",
       "commands": [
         { "label": "opencode", "descriptionKey": "openCode.cmd.start", "needInput": false },
         { "label": "opencode --continue", "descriptionKey": "openCode.cmd.continue", "needInput": false },
@@ -19,7 +19,7 @@
       ]
     },
     {
-      "nameKey": "openCode.category.config",
+      "nameKey": "common.category.configuration",
       "commands": [
         { "label": "opencode mcp list", "descriptionKey": "openCode.cmd.mcpList", "needInput": false },
         { "label": "opencode stats", "descriptionKey": "openCode.cmd.stats", "needInput": false },

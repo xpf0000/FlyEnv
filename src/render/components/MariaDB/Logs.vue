@@ -20,5 +20,5 @@
   }>()
 
   const log = ref()
-  const filepath = ref(join(window.Server.MariaDBDir, `${props.type}.log`))
+  const filepath = ref(join(window.Server.MariaDBDir ?? '', `${props.type}.log`))
 </script>

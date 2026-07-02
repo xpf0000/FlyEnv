@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Hanya satu layanan yang dapat berjalan sekaligus",
   "moduleExecItem": "Item Eksekusi Modul",
   "module": {
-    "name": "Nama",
     "path": "Lokasi File",
-    "comment": "Komentar",
     "exec": "Jalankan",
     "command": "Command",
     "commandFile": "File",
@@ -39,8 +37,7 @@
     "needPasswordToStart": "Diperlukan hak admin. Masukkan sandi (akan disimpan untuk penggunaan selanjutnya). Atau masukkan manual di terminal, tetapi pesan ini mungkin muncul lagi.",
     "hadOpenInTerminal": "Sudah berjalan di terminal—hasil tidak tersedia.",
     "licenseTips": "Lisensi tidak ditemukan. Hanya 3 modul/item eksekusi yang dapat dibuat.",
-    "outputLog": "Output Log",
-    "errorLog": "Error Log"
+    "outputLog": "Log keluaran"
   },
   "flyenvHelper": "Perbaikan Program Bantu FlyEnv",
   "flyenvHelperBtn": "Perbaiki",

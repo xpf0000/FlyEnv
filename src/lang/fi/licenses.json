@@ -1,5 +1,4 @@
 {
-  "title": "Lisenssin Kuvaus",
   "description": "Tämä lisenssi tunnustaa FlyEnvin ja sen kirjoittajien pyrkimykset ja tukee niitä. Tarkoituksena ei ole rajoittaa käyttäjiä, vaan edistää kehittäjien työn ja henkisen omaisuuden kunnioittamista. Varmista, että saat voimassa olevan lisenssin ennen kuin käytät FlyEnv kaupallisiin tarkoituksiin.",
   "restrictions": {
     "title": "Käyttäjiin, joilla ei ole lisenssiä, sovelletaan seuraavia rajoituksia:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Sidottu UUID",
   "delBind": "Irrota sidos",
   "bindCurrentUUID": "Sido tämä laite",
-  "licenseDescription": "Lisenssin kuvaus",
   "loginFail": "Sisäänkirjautuminen epäonnistui",
   "oauthCanceledTitle": "Valtuutus peruutettu",
   "oauthCanceledMessage": "Käyttäjä peruutti valtuutusprosessin",

@@ -20,5 +20,5 @@
   }>()
 
   const log = ref()
-  const filepath = ref(join(window.Server.MysqlDir, `${props.type}.log`))
+  const filepath = ref(join(window.Server.MysqlDir ?? '', `${props.type}.log`))
 </script>

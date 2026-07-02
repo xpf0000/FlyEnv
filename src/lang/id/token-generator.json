@@ -5,9 +5,5 @@
   "numbers": "Angka (123...)",
   "symbols": "Simbol (!-;...)",
   "length": "Panjang",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "copy": "Salin",
-    "refresh": "Segarkan"
-  }
+  "tokenPlaceholder": "Token..."
 }

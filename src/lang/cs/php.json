@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "php.ini soubor nebyl nalezen",
   "editPhpIni": "Upravit php.ini",
   "phpExtensions": "PHP rozšíření",
   "copyConfTemplate": "Kopírovat konfigurační šablonu",

@@ -4,8 +4,6 @@
   "update-not-available-message": "Olet ajan tasalla!",
   "update-downloaded-message": "Valmis asentamaan...",
   "update-error-message": "Virhe Päivityksessä",
-  "yes": "Kyllä",
-  "no": "Ei",
   "view-update-log": "Näytä Päivitysloki",
   "download-new-version": "Lataa Uusi Versio"
 }

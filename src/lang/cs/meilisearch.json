@@ -1,5 +1,4 @@
 {
-  "working_dir": "Pracovní adresář",
   "db_path": "Označuje umístění, kde budou vytvořeny a načteny databázové soubory",
   "env": "Konfiguruje prostředí instance. Hodnota musí být buď `výroba` nebo `development`.",
   "http_addr": "Adresa, na které bude HTTP server naslouchat.",

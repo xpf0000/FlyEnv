@@ -1,13 +1,12 @@
 {
-  "checking": "Checking installation...",
+  "checking": "Memeriksa instalasi...",
   "isInstalled": "installed",
-  "notInstalled": "mkcert is not installed",
-  "install": "Install mkcert",
-  "checkAgain": "Check Again",
-  "recheck": "Re-check",
-  "installCA": "Install CA",
-  "carootLabel": "CA Root Path",
-  "certificates": "Certificates",
-  "generate": "Buat",
-  "noSSLHosts": "No hosts with SSL enabled. Enable SSL on a host first."
+  "notInstalled": "mkcert belum diinstal",
+  "install": "Instal mkcert",
+  "checkAgain": "Periksa Lagi",
+  "recheck": "Periksa lagi",
+  "installCA": "Instal CA",
+  "carootLabel": "Path Root CA",
+  "certificates": "Sertifikat",
+  "noSSLHosts": "Tidak ada host dengan SSL yang diaktifkan. Aktifkan SSL pada host terlebih dahulu."
 }

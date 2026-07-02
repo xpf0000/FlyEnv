@@ -4,12 +4,10 @@
   "Web": "Webb",
   "Images": "Bilder & videor",
   "Development": "Utveckling",
+  "Code": "Kod",
   "Network": "Nätverk",
   "Math": "Matematik",
   "Measurement": "Mätning",
   "Text": "Text",
-  "Custom": "Anpassade",
-  "Favorites": "Favoriter",
-  "Favorite": "Favorit",
-  "Code": "Code"
+  "Custom": "Anpassade"
 }

@@ -3,10 +3,10 @@
     <template #header>
       <div class="card-header gap-5">
         <div class="flex items-center flex-1 overflow-hidden">
-          <span class="flex-shrink-0">{{ I18nT('hermes.skills') }}</span>
+          <span class="flex-shrink-0">{{ I18nT('common.category.skills') }}</span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ I18nT('hermes.openSkillsDir') }}</span>
+              <span>{{ I18nT('common.skills.openSkillsDir') }}</span>
             </template>
             <template #reference>
               <el-button class="ml-2 flex-shrink-0" link @click.stop="HermesSetup.openSkillsDir()">
@@ -30,7 +30,7 @@
               >
                 <el-radio-button
                   class="flex-1"
-                  :label="I18nT('hermes.installed')"
+                  :label="I18nT('common.state.installed')"
                   value="installed"
                 ></el-radio-button>
                 <el-radio-button class="flex-1" label="All" value="all"></el-radio-button>

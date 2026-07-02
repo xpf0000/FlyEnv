@@ -4,8 +4,6 @@
   "update-not-available-message": "최신 버전입니다!",
   "update-downloaded-message": "설치를 준비 중...",
   "update-error-message": "업데이트 오류",
-  "yes": "예",
-  "no": "아니요",
   "view-update-log": "업데이트 기록 보기",
   "download-new-version": "새 버전 다운로드"
 }

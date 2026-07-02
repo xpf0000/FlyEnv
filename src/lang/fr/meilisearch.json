@@ -1,5 +1,4 @@
 {
-  "working_dir": "Répertoire de travail",
   "db_path": "Désigne l'emplacement où les fichiers de base de données seront créés et récupérés",
   "env": "Configure l'environnement de l'instance. La valeur doit être soit \"production\" soit \"development\".",
   "http_addr": "L'adresse sur laquelle le serveur HTTP écoutera.",

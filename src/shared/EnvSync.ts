@@ -10,7 +10,7 @@ import { powerShellInlineArgs } from './PowerShellCommand'
 
 const execFilePromise = promisify(execFile)
 
-const WINDOWS_ENV_SCRIPT = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+export const WINDOWS_ENV_SCRIPT = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $userVars = [Environment]::GetEnvironmentVariables('User')
 $machineVars = [Environment]::GetEnvironmentVariables('Machine')

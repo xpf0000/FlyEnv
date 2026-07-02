@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
-import type { FtpItem } from '@shared/app'
+import type { FtpItem, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import FtpServer from 'ftp-srv'
 import { readFile, writeFile, mkdirp, copyFile, remove } from '../../Fn'
@@ -178,6 +178,19 @@ class Manager extends Base {
       await writeFile(json, JSON.stringify(all))
       resolve(true)
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return [
+      {
+        name: 'ftp-srv.json',
+        path: join(this.baseDir, 'ftp-srv.json')
+      }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

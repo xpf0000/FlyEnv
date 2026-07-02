@@ -1,6 +1,5 @@
 {
-  "phpiniNotFound": "File php.ini tidak ditemukan",
-  "editPhpIni": "Edit php.ini",
+  "editPhpIni": "Edit berkas php.ini",
   "phpExtensions": "Ekstensi PHP",
   "copyConfTemplate": "Salin template konfigurasi",
   "extensionCopySuccess": "Link ekstensi disalin ke clipboard",
@@ -30,10 +29,10 @@
   "log_errors": "Aktifkan pencatatan kesalahan",
   "error_log_dir": "Tentukan jalur file log kesalahan PHP",
   "disableFunction": {
-    "title": "Disable Functions",
+    "title": "Nonaktifkan Fungsi",
     "function": "Function",
-    "emptyFunction": "Please enter function name",
-    "sameName": "Function already exists",
-    "invalidName": "Invalid function name. Function name can only contain letters, numbers, and underscores"
+    "emptyFunction": "Silakan masukkan nama fungsi",
+    "sameName": "Fungsi sudah ada",
+    "invalidName": "Nama fungsi tidak valid. Nama fungsi hanya boleh berisi huruf, angka, dan garis bawah"
   }
 }

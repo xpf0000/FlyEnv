@@ -4,7 +4,7 @@
 
     <WwwRoot :form-name="formName" />
 
-    <el-form-item :label="I18nT('host.startCommand')">
+    <el-form-item :label="I18nT('common.label.startCommand')">
       <el-input v-model="form.command"></el-input>
     </el-form-item>
 

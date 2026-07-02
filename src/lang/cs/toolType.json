@@ -4,12 +4,10 @@
   "Web": "Webová",
   "Images": "Obrázky a videa",
   "Development": "Rozvoj",
+  "Code": "Kód",
   "Network": "Síť",
   "Math": "Matematika",
   "Measurement": "Měření",
   "Text": "Text",
-  "Custom": "Vlastní",
-  "Favorites": "Oblíbené",
-  "Favorite": "Oblíbená",
-  "Code": "Kód"
+  "Custom": "Vlastní"
 }

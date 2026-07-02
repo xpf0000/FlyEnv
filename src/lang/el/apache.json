@@ -2,6 +2,6 @@
   "Timeout": "Ο αριθμός των δευτερολέπτων πριν από την παραλαβή και την αποστολή του χρονικού ορίου.",
   "KeepAlive": "Αν θα επιτρέπονται ή όχι επίμονες συνδέσεις",
   "KeepAliveTimeout": "Αριθμός δευτερολέπτων για αναμονή για το επόμενο αίτημα από τον ίδιο πελάτη στην ίδια σύνδεση.",
-  "MaxKeepAliveRequests": "The maximum number of requests to allow during a persistent connection.\nSet to 0 to allow an unlimited amount.\nWe recommend you leave this number high, for maximum performance.",
+  "MaxKeepAliveRequests": "Μέγιστος αριθμός αιτημάτων που επιτρέπονται κατά τη διάρκεια μόνιμης σύνδεσης.\nΟρίστε 0 για απεριόριστο αριθμό.\nΣυνιστούμε να αφήσετε αυτόν τον αριθμό υψηλό για μέγιστη απόδοση.",
   "LimitRequestBody": "Byte. Όριο μεγέθους ανεβάσματος αρχείου. 0: χωρίς όριο"
 }

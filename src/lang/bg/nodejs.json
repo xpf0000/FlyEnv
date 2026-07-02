@@ -8,8 +8,9 @@
   "updatePackageJsonFileTips": "Тази операция ще промени файла package.json. Сигурен ли сте, че искате да го актуализирате?",
   "copyDirPath": "Копиране на пътя към папката на проекта",
   "openIN": "Отвори в",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Редактор Visual Studio Code",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
-  "projectEnvSet": "Среда на проекта"
+  "projectEnvSet": "Среда на проекта",
+  "installGit": "Инсталиране на <a href=\"javascript:void();\" onclick=\"openUrl('https://git-scm.com')\">Git</a>"
 }

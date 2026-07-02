@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "모델",
+    "name": "이름",
+    "status": "상태",
+    "workingDirectory": "작업 디렉터리",
+    "action": "동작",
+    "comment": "댓글",
+    "source": "출처",
+    "site": "사이트",
+    "errorLog": "오류 로그",
+    "library": "라이브러리",
+    "path": "경로",
+    "description": "설명",
+    "port": "포트",
+    "startCommand": "시작 명령",
+    "licenseDescription": "라이선스 설명",
+    "password": "비밀번호",
+    "username": "사용자 이름",
+    "size": "파일 크기",
+    "containerEnvVars": "컨테이너 환경 변수",
+    "createdTime": "생성 시간",
+    "image": "이미지",
+    "state": "상태",
+    "grid": "격자",
+    "gridSpacing": "격자 간격 (픽셀)",
+    "fontSize": "글꼴 크기",
+    "code": "코드"
+  },
+  "action": {
+    "enable": "활성화",
+    "disable": "비활성화",
+    "resume": "다시 시작",
+    "uninstall": "제거",
+    "copy": "복사",
+    "preview": "미리보기",
+    "search": "검색",
+    "clear": "지우기",
+    "resetPassword": "비밀번호 초기화",
+    "delete": "삭제",
+    "add": "추가",
+    "edit": "편집",
+    "generate": "생성",
+    "refresh": "새로고침",
+    "save": "저장",
+    "start": "시작",
+    "stop": "중지",
+    "close": "닫기",
+    "selectAll": "전체 선택",
+    "changeName": "이름 편집",
+    "changeOwnerPassword": "소유자 비밀번호 변경",
+    "changeRole": "역할 변경"
+  },
+  "state": {
+    "running": "달리기",
+    "installed": "설치됨",
+    "enabled": "활성화됨",
+    "disabled": "비활성화됨",
+    "available": "사용 가능"
+  },
+  "session": {
+    "list": "세션",
+    "title": "제목",
+    "id": "세션 ID",
+    "lastPrompt": "마지막 프롬프트",
+    "search": "세션 검색",
+    "deleted": "세션이 삭제되었습니다",
+    "resumed": "세션이 터미널에서 다시 시작되었습니다"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "명령 / URL",
+    "scope": "Scope",
+    "addServer": "서버 추가"
+  },
+  "category": {
+    "basic": "기본",
+    "mcp": "MCP",
+    "skills": "스킬",
+    "basicInfo": "기본 정보",
+    "configuration": "구성",
+    "favorites": "즐겨찾기",
+    "plugins": "Plugins",
+    "backupUpdate": "백업 & 업데이트"
+  },
+  "skills": {
+    "openSkillsDir": "스킬 디렉터리 열기",
+    "openSkillDir": "스킬 디렉토리 열기",
+    "revealSkillFile": "스킬 파일 공개",
+    "noSkills": "스킬을 찾을 수 없습니다",
+    "skillFileMissing": "스킬 파일을 찾을 수 없습니다",
+    "skillLoadFailed": "스킬 파일을 불러오지 못했습니다",
+    "builtin": "내장"
+  },
+  "cli": {
+    "help": "도움말 정보 표시",
+    "version": "버전 번호 표시",
+    "start": "새 대화형 세션 시작",
+    "mcpList": "구성된 MCP 서버 목록 표시",
+    "doctor": "건강 검사 실행",
+    "doctorFix": "자동 수정과 함께 건강 검사 실행",
+    "gatewayStart": "게이트웨이 서비스 시작",
+    "gatewayStop": "게이트웨이 서비스 중지",
+    "gatewayRestart": "게이트웨이 서비스 재시작",
+    "gatewayStatus": "게이트웨이 상태 표시",
+    "gatewayRun": "포그라운드에서 게이트웨이 실행",
+    "gatewayUninstall": "게이트웨이 서비스 제거",
+    "skillsList": "사용 가능한 스킬 목록 표시"
+  },
+  "gateway": {
+    "category": "게이트웨이 서비스",
+    "status": "게이트웨이 상태",
+    "running": "게이트웨이가 실행 중입니다",
+    "stopped": "게이트웨이가 중지되었습니다",
+    "startFailed": "게이트웨이 시작 실패"
+  },
+  "value": {
+    "yes": "예",
+    "no": "아니요",
+    "other": "기타",
+    "default": "기본",
+    "none": "없음",
+    "local": "로컬"
+  },
+  "plugin": {
+    "search": "플러그인 검색",
+    "removed": "플러그인이 제거되었습니다"
+  },
+  "schedule": {
+    "everyHour": "매시간",
+    "everyMinute": "매분"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini 파일을 찾을 수 없습니다"
+  }
+}

@@ -4,12 +4,10 @@
   "Web": "Web",
   "Images": "Imágenes y Videos",
   "Development": "Desarrollo",
+  "Code": "Código",
   "Network": "Red",
   "Math": "Matemáticas",
   "Measurement": "Medición",
   "Text": "Texto",
-  "Custom": "Personalizado",
-  "Favorites": "Favoritos",
-  "Favorite": "Favorito",
-  "Code": "Código"
+  "Custom": "Personalizado"
 }

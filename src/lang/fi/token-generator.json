@@ -5,9 +5,5 @@
   "numbers": "Numerot (123...)",
   "symbols": "Symbolit (!-;...)",
   "length": "Pituus",
-  "tokenPlaceholder": "Tunnuksen...",
-  "button": {
-    "copy": "Kopioi",
-    "refresh": "Päivitä"
-  }
+  "tokenPlaceholder": "Tunnuksen..."
 }

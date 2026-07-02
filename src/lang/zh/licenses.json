@@ -1,5 +1,4 @@
 {
-  "title": "许可证说明",
   "description": "许可证代表了对 FlyEnv 和作者辛勤工作的认可。其初衷并非限制用户使用，而是希望提醒用户尊重开发者的劳动成果，并在使用软件时遵守相关条款。通过遵守许可证，用户不仅支持了项目的持续发展，也为开源社区的互信与合作精神贡献了力量。",
   "restrictions": {
     "title": "未获取许可证的用户仍可正常使用，但受到以下限制:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "已绑定UUID",
   "delBind": "解除绑定",
   "bindCurrentUUID": "绑定本机",
-  "licenseDescription": "许可证说明",
   "loginFail": "登录失败",
   "oauthCanceledTitle": "授权已取消",
   "oauthCanceledMessage": "用户取消了授权流程",

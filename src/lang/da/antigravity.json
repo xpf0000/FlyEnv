@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI er ikke installeret. Klik pa knappen nedenfor for at installere det med det officielle installationsprogram.",
+  "officialWebsite": "Antigravity-websted",
+  "officialDocs": "Antigravity CLI-dokumentation",
+  "sandboxMode": "Terminal-sandkasse",
+  "toolPermission": "Vaerktojstilladelse",
+  "sessionId": "Samtale-ID",
+  "updatedAt": "Opdateret",
+  "sessionResumed": "Samtalen blev genoptaget i terminalen",
+  "sessionDeleted": "Samtalen blev slettet",
+  "cmd": {
+    "update": "Opdater Antigravity CLI til den nyeste version",
+    "models": "Vis tilgaengelige modeller",
+    "continue": "Fortsat den nyeste samtale",
+    "resume": "Genoptag en tidligere samtale via ID",
+    "prompt": "Kør en enkelt prompt ikke-interaktivt",
+    "pluginList": "Vis importerede plugins",
+    "pluginImport": "Importer plugins fra gemini eller claude",
+    "install": "Konfigurer miljoestier og shellindstillinger"
+  }
+}

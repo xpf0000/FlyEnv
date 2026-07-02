@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI не е инсталиран. Натиснете бутона по-долу, за да го инсталирате с официалния инсталатор.",
+  "officialWebsite": "Уебсайт на Antigravity",
+  "officialDocs": "Документация на Antigravity CLI",
+  "sandboxMode": "Пясъчник на терминала",
+  "toolPermission": "Разрешение за инструмент",
+  "sessionId": "ID на разговор",
+  "updatedAt": "Обновено на",
+  "sessionResumed": "Разговорът беше подновен в терминала",
+  "sessionDeleted": "Разговорът беше изтрит",
+  "cmd": {
+    "update": "Обновете Antigravity CLI до най-новата версия",
+    "models": "Покажете наличните модели",
+    "continue": "Продължете последния разговор",
+    "resume": "Подновете предишен разговор по ID",
+    "prompt": "Изпълнете единичен prompt без интеракция",
+    "pluginList": "Покажете импортираните плъгини",
+    "pluginImport": "Импортирайте плъгини от gemini или claude",
+    "install": "Конфигурирайте пътищата на средата и настройките на shell-а"
+  }
+}

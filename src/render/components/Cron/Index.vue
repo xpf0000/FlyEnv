@@ -23,14 +23,14 @@
               </el-button>
             </template>
             <el-button :icon="Refresh" @click="refreshList">
-              {{ I18nT('base.refresh') }}
+              {{ I18nT('common.action.refresh') }}
             </el-button>
           </div>
 
           <div class="stats">
             <el-tag effect="plain">{{ I18nT('cron.total') }}: {{ stats.total }}</el-tag>
             <el-tag type="success" effect="plain"
-              >{{ I18nT('cron.enabled') }}: {{ stats.enabled }}</el-tag
+              >{{ I18nT('common.state.enabled') }}: {{ stats.enabled }}</el-tag
             >
             <el-tag type="info" effect="plain"
               >{{ I18nT('cron.disabled') }}: {{ stats.disabled }}</el-tag

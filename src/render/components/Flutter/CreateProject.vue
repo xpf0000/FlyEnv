@@ -172,7 +172,7 @@
                 :placeholder="I18nT('flutter.searchPackagePlaceholder')"
               />
               <el-button :loading="packageSearching" @click="searchPackages">{{
-                I18nT('flutter.search')
+                I18nT('common.action.search')
               }}</el-button>
             </div>
 
@@ -188,7 +188,7 @@
                   }}</div>
                 </div>
                 <el-button size="small" @click="addDependency(pkg, false)">{{
-                  I18nT('flutter.add')
+                  I18nT('common.action.add')
                 }}</el-button>
                 <el-button size="small" type="warning" @click="addDependency(pkg, true)">{{
                   I18nT('flutter.addDev')

@@ -4,12 +4,10 @@
   "Web": "Web",
   "Images": "Gambar & Video",
   "Development": "Pengembangan",
+  "Code": "Kode",
   "Network": "Jaringan",
   "Math": "Matematika",
   "Measurement": "Pengukuran",
   "Text": "Teks",
-  "Custom": "Kustom",
-  "Favorites": "Favorit",
-  "Favorite": "Favorit",
-  "Code": "Code"
+  "Custom": "Kustom"
 }

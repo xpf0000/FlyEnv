@@ -20,6 +20,6 @@
 
   const { showItem, currentPage, nav } = AsideSetup('hosts')
   const title = computed(() => {
-    return I18nT('base.leftHosts')
+    return I18nT('common.label.site')
   })
 </script>

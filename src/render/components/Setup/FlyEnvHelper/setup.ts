@@ -16,6 +16,8 @@ export const FlyEnvHelperFix = reactive({
       IPC.off(key)
       if (res?.code === 0) {
         ElMessage.success(I18nT('setup.flyenvHelperFixSuccess'))
+      } else if (res?.reason === 'helper_binary_missing') {
+        ElMessage.error(I18nT('menu.helperInstallFailTips'))
       } else {
         if (!FlyEnvHelperSetup.show) {
           import('@/components/FlyEnvHelper/index.vue').then((m) => {

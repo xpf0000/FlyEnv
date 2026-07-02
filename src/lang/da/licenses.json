@@ -1,5 +1,4 @@
 {
-  "title": "Licens Beskrivelse",
   "description": "Denne licens anerkender og understøtter indsatsen fra FlyEnv og dens forfattere. Formålet er ikke at begrænse brugerne, men at tilskynde til respekt for udviklernes arbejde og intellektuelle ejendomsret. Sørg for at du får en gyldig licens, før du bruger FlyEnv til kommercielle formål.",
   "restrictions": {
     "title": "Brugere uden licens vil være underlagt følgende begrænsninger:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Bundet UUID",
   "delBind": "Ophæv binding",
   "bindCurrentUUID": "Bind denne enhed",
-  "licenseDescription": "Licensbeskrivelse",
   "loginFail": "Login mislykkedes",
   "oauthCanceledTitle": "Godkendelse annulleret",
   "oauthCanceledMessage": "Brugeren annullerede godkendelsesprocessen",

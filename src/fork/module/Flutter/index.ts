@@ -833,6 +833,18 @@ class Flutter extends Base {
     await moveChildDirToParent(dir)
     await execPromiseWithEnv('git init', { cwd: dir })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Flutter 是 SDK/项目工具链，不是常驻服务；
+    // pubspec.yaml / build.gradle / analysis_options.yaml 等配置均在具体项目目录下，
+    // 不存在版本级或模块级固定配置文件路径。
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Flutter 命令直接输出到 stdout/stderr，没有固定版本级/模块级日志文件路径。
+    return []
+  }
 }
 
 Object.assign(Flutter.prototype, androidMethods, projectMethods)

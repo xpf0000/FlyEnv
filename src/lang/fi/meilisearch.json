@@ -1,5 +1,4 @@
 {
-  "working_dir": "Työhakemisto",
   "db_path": "Tarkoittaa sijaintia, jossa tietokantatiedostot luodaan ja haetaan",
   "env": "Määrittää ilmentymän ympäristön. Arvon on oltava joko `production` tai `development`.",
   "http_addr": "Osoite, jossa HTTP palvelin kuuntelee.",

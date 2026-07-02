@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Reservieren Sie einen Teil von VRAM pro GPU (Bytes)",
   "OLLAMA_LOAD_TIMEOUT": "Wie lange soll das Laden des Modells vor dem Aufgeben gestoppt werden (Standard \"5m\")",
   "needServiceRun": "Bitte starten Sie zuerst den Olama-Dienst",
-  "size": "Größe",
   "model": "Modelle"
 }

@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Modell",
+    "name": "Navn",
+    "status": "Status",
+    "workingDirectory": "Arbeidskatalog (arbeid)",
+    "action": "Handling",
+    "comment": "Kommentar",
+    "source": "Kilde",
+    "site": "Nettsted",
+    "errorLog": "Feil logg",
+    "library": "Bibliotek",
+    "path": "Sti",
+    "description": "Beskrivelse",
+    "port": "Port",
+    "startCommand": "Start kommando",
+    "licenseDescription": "Lisensbeskrivelse",
+    "password": "Passord",
+    "username": "Brukernavn",
+    "size": "Størrelse",
+    "containerEnvVars": "Miljøvariabler for beholder",
+    "createdTime": "Opprettet tid",
+    "image": "Bilde",
+    "state": "Tilstand",
+    "grid": "Rutenett",
+    "gridSpacing": "Avstand mellom rutenett (piksler)",
+    "fontSize": "Skriftstørrelse",
+    "code": "Kode"
+  },
+  "action": {
+    "enable": "Aktiver",
+    "disable": "Deaktiver",
+    "resume": "Gjenoppta",
+    "uninstall": "Avinstaller",
+    "copy": "Kopier",
+    "preview": "Forhåndsvisning",
+    "search": "Søk",
+    "clear": "Tøm",
+    "resetPassword": "Tilbakestill passord",
+    "delete": "Slett",
+    "add": "Legg til",
+    "edit": "Rediger",
+    "generate": "Generer",
+    "refresh": "Oppdater",
+    "save": "Lagre",
+    "start": "Begynn",
+    "stop": "Stopp",
+    "close": "Lukk",
+    "selectAll": "Velg alle",
+    "changeName": "Rediger navn",
+    "changeOwnerPassword": "Endre passord for eier",
+    "changeRole": "Endre rolle"
+  },
+  "state": {
+    "running": "Kjører",
+    "installed": "Installert",
+    "enabled": "Aktivert",
+    "disabled": "Deaktivert",
+    "available": "Tilgjengelig"
+  },
+  "session": {
+    "list": "Sesjoner",
+    "title": "Tittel",
+    "id": "Økt-ID",
+    "lastPrompt": "Siste prompt",
+    "search": "Søk i økter",
+    "deleted": "Økt slettet",
+    "resumed": "Økt gjenopptatt i terminal"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Kommando / URL",
+    "scope": "Scope",
+    "addServer": "Legg til server"
+  },
+  "category": {
+    "basic": "Grunnleggende",
+    "mcp": "MCP",
+    "skills": "Ferdigheter",
+    "basicInfo": "Grunnleggende info",
+    "configuration": "Konfigurasjon",
+    "favorites": "Favoritter",
+    "plugins": "Plugins",
+    "backupUpdate": "Sikkerhetskopier og oppdater"
+  },
+  "skills": {
+    "openSkillsDir": "Åpne ferdighetskatalog",
+    "openSkillDir": "Åpne ferdighetsmappe",
+    "revealSkillFile": "Vis ferdighetsfil",
+    "noSkills": "Ingen ferdigheter funnet",
+    "skillFileMissing": "Ferdighetsfilen ble ikke funnet",
+    "skillLoadFailed": "Kunne ikke laste inn ferdighetsfilen",
+    "builtin": "Innebygget"
+  },
+  "cli": {
+    "help": "Vis hjelpeinformasjon",
+    "version": "Vis versjonsnummer",
+    "start": "Start en ny interaktiv økt",
+    "mcpList": "List opp konfigurerte MCP-servere",
+    "doctor": "Kjør helsesjekker",
+    "doctorFix": "Kjør helsesjekker med auto-fiks",
+    "gatewayStart": "Start gateway-tjenesten",
+    "gatewayStop": "Stopp gateway service",
+    "gatewayRestart": "Restart gateway-tjeneste",
+    "gatewayStatus": "Vis gateway status",
+    "gatewayRun": "Kjør gateway i forgrunnen",
+    "gatewayUninstall": "Avinstaller gateway-tjenesten",
+    "skillsList": "List opp tilgjengelige ferdigheter"
+  },
+  "gateway": {
+    "category": "Gateway-tjeneste",
+    "status": "Gateway-status",
+    "running": "Gateway kjører",
+    "stopped": "Gateway er stoppet",
+    "startFailed": "Gateway start mislyktes"
+  },
+  "value": {
+    "yes": "Ja",
+    "no": "Nei",
+    "other": "Annet",
+    "default": "Standard",
+    "none": "Ingen",
+    "local": "Lokal"
+  },
+  "plugin": {
+    "search": "Søk i plugins",
+    "removed": "Plugin fjernet"
+  },
+  "schedule": {
+    "everyHour": "Hver time",
+    "everyMinute": "Hvert minutt"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini-fil ikke funnet"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "installFNM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
-  "installNVM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "installFNM": "Instalar <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Instalar <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
   "Terminal": "Terminal",
   "registry": "Fonte",
   "checkPackageJsonUpdate": "Verificar atualizações",
@@ -8,9 +8,9 @@
   "updatePackageJsonFileTips": "Esta ação modificará o arquivo package.json. Tem certeza de que deseja atualizar?",
   "copyDirPath": "Copiar Caminho da Pasta do Projeto",
   "openIN": "Abrir Em",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Editor Visual Studio Code",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "Ambiente do Projeto",
-  "installGit": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://git-scm.com')\">Git</a>"
+  "installGit": "Instalar <a href=\"javascript:void();\" onclick=\"openUrl('https://git-scm.com')\">Git</a>"
 }

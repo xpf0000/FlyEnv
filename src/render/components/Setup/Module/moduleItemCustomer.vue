@@ -55,7 +55,7 @@
                 <el-button link class="absolute left-1 top-1" @click.stop="showAddModule(i)">
                   <Edit width="16" height="16"></Edit>
                 </el-button>
-                <el-button link class="absolute right-1 top-1" @click.stop="doDelModule(i, _j)">
+                <el-button link class="absolute right-1 top-1" @click.stop="doDelModule(i)">
                   <Delete width="16" height="16"></Delete>
                 </el-button>
               </div>

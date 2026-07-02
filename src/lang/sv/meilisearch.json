@@ -1,5 +1,4 @@
 {
-  "working_dir": "Working Directory",
   "db_path": "Anger platsen där databasfiler skapas och hämtas",
   "env": "Konfigurerar instansens miljö. Värdet måste vara antingen `production` eller `development`.",
   "http_addr": "Adressen som HTTP-servern kommer att lyssna på.",

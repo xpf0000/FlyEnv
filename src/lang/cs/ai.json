@@ -59,7 +59,6 @@
   "NeedChatName": "Zadejte název",
   "NeedChatPrompt": "Zadejte, prosím, instrukci (System Prompt)",
   "apiUrl": "Hostitel API",
-  "model": "Vzor",
   "reset": "RESET",
   "NeedApiUrl": "Prosím zadejte API Host",
   "docTips": "Vyberte soubor a přečtěte jeho obsah",

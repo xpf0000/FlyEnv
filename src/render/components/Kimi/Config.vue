@@ -53,9 +53,7 @@
   import { I18nT } from '@lang/index'
   import { KimiSetup } from '@/components/Kimi/setup'
   import { debounce } from 'lodash-es'
-  import * as TOML from '@ltd/j-toml'
-  const TOMLParse = TOML.parse
-  const TOMLStringify = TOML.stringify
+  import { parseToml as TOMLParse, stringifyToml as TOMLStringify } from '@shared/toml'
   import { uuid } from '@/util/Index'
 
   const conf = ref()
@@ -93,6 +91,7 @@
   const fileExt = computed(() => {
     const name = currentFile.value?.name ?? ''
     if (name.endsWith('.toml')) return 'toml'
+    if (name.endsWith('.json') || name.endsWith('.jsonc')) return 'json'
     if (name.endsWith('.yaml') || name.endsWith('.yml')) return 'yaml'
     if (name === '.env') return 'env'
     return 'txt'
@@ -101,6 +100,7 @@
   const configLanguage = computed(() => {
     const name = currentFile.value?.name ?? ''
     if (name.endsWith('.toml')) return 'ini'
+    if (name.endsWith('.json') || name.endsWith('.jsonc')) return 'json'
     if (name.endsWith('.yaml') || name.endsWith('.yml')) return 'yaml'
     if (name === '.env') return 'ini'
     return 'plaintext'

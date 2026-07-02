@@ -8,7 +8,7 @@
   "updatePackageJsonFileTips": "Deze actie zal het package.json bestand wijzigen. Weet u zeker dat u wilt updaten?",
   "copyDirPath": "Kopieer mappad van de projectmap",
   "openIN": "Open in",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Visual Studio Code-editor",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "Project omgeving",

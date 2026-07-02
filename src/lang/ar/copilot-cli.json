@@ -1,0 +1,13 @@
+{
+  "notInstalled": "GitHub Copilot CLI غير مثبت. انقر الزر أدناه لتثبيته عبر npm (يتطلب Node.js 22+).",
+  "officialWebsite": "GitHub الخاص بـ Copilot CLI",
+  "officialDocs": "وثائق Copilot CLI",
+  "cmd": {
+    "update": "تنزيل أحدث إصدار من Copilot CLI",
+    "resume": "استئناف جلسة سابقة (منتقي)",
+    "continue": "استئناف أحدث جلسة",
+    "prompt": "تشغيل مطالبة واحدة بشكل غير تفاعلي",
+    "login": "المصادقة باستخدام Copilot",
+    "init": "تهيئة تعليمات Copilot لمستودع"
+  }
+}

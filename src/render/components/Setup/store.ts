@@ -50,8 +50,10 @@ export const SetupStore = defineStore('setup', {
       return new Promise<void>((resolve) => {
         this.message = localStorage.getItem('flyenv-licenses-post-message') ?? ''
         localForage.getItem('flyenv-user-github').then((res: any) => {
-          if (res) {
+          if (res?.githubUser) {
             this.githubUser = reactive(res.githubUser)
+          }
+          if (res?.githubLicense) {
             this.githubLicense = reactive(res.githubLicense)
           }
         })

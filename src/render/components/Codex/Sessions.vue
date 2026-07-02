@@ -2,7 +2,7 @@
   <el-card class="version-manager">
     <template #header>
       <div class="card-header">
-        <span>{{ I18nT('codex.sessions') }}</span>
+        <span>{{ I18nT('common.session.list') }}</span>
         <el-button link :disabled="CodexSetup.loading" @click="CodexSetup.refreshSessions()">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
@@ -16,7 +16,7 @@
       <div class="p-5 h-full overflow-hidden flex flex-col">
         <el-input
           v-model="search"
-          :placeholder="I18nT('codex.searchSession')"
+          :placeholder="I18nT('common.session.search')"
           clearable
           class="mb-3"
         />
@@ -112,12 +112,12 @@
   const columns: Column<SessionItem>[] = [
     {
       key: 'id',
-      title: I18nT('codex.sessionId'),
+      title: I18nT('common.session.id'),
       dataKey: 'id',
       width: 180,
       align: 'center',
       headerCellRenderer: () => (
-        <span class="flex items-center justify-center">{I18nT('codex.sessionId')}</span>
+        <span class="flex items-center justify-center">{I18nT('common.session.id')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.id} placement="top" show-after={300}>
@@ -132,11 +132,11 @@
     },
     {
       key: 'title',
-      title: I18nT('codex.sessionTitle'),
+      title: I18nT('common.session.title'),
       dataKey: 'title',
       width: 200,
       headerCellRenderer: () => (
-        <span class="flex items-center">{I18nT('codex.sessionTitle')}</span>
+        <span class="flex items-center">{I18nT('common.session.title')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.title} placement="top" show-after={300}>
@@ -146,13 +146,15 @@
     },
     {
       key: 'lastPrompt',
-      title: I18nT('codex.lastPrompt'),
+      title: I18nT('common.session.lastPrompt'),
       dataKey: 'lastPrompt',
       class: 'flex-1',
       headerClass: 'flex-1',
       width: 0,
       flexGrow: 1,
-      headerCellRenderer: () => <span class="flex items-center">{I18nT('codex.lastPrompt')}</span>,
+      headerCellRenderer: () => (
+        <span class="flex items-center">{I18nT('common.session.lastPrompt')}</span>
+      ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.lastPrompt} placement="top" show-after={300}>
           <span class="truncate text-gray-500">{row.lastPrompt}</span>
@@ -161,12 +163,12 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       width: 80,
       align: 'center',
       headerCellRenderer: () => (
-        <span class="flex items-center justify-center">{I18nT('base.action')}</span>
+        <span class="flex items-center justify-center">{I18nT('common.label.action')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElPopover
@@ -183,13 +185,13 @@
                   <ElIcon size="13">
                     <VideoPlay />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('codex.resume')}</span>
+                  <span class="ml-3">{I18nT('common.action.resume')}</span>
                 </li>
                 <li onClick={() => deleteSession(row)}>
                   <ElIcon size="13">
                     <Delete />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('base.del')}</span>
+                  <span class="ml-3">{I18nT('common.action.delete')}</span>
                 </li>
               </ul>
             ),

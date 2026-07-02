@@ -42,11 +42,15 @@
               :data="tableData"
               style="width: 100%"
             >
-              <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('base.name')">
+              <el-table-column
+                prop="name"
+                class-name="name-cell-td"
+                :label="I18nT('common.label.name')"
+              >
                 <template #header>
                   <div class="w-full name-cell">
                     <span style="display: inline-flex; padding: 2px 12px">{{
-                      I18nT('base.name')
+                      I18nT('common.label.name')
                     }}</span>
                   </div>
                 </template>
@@ -54,7 +58,7 @@
                   <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
                 </template>
               </el-table-column>
-              <el-table-column align="center" :label="I18nT('base.status')">
+              <el-table-column align="center" :label="I18nT('common.label.status')">
                 <template #default="scope">
                   <div class="cell-status">
                     <yb-icon
@@ -69,7 +73,7 @@
               <el-table-column
                 width="150px"
                 align="left"
-                :label="I18nT('base.action')"
+                :label="I18nT('common.label.action')"
                 class-name="operation"
               >
                 <template #default="scope">

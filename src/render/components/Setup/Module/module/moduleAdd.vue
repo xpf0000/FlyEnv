@@ -13,10 +13,12 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{
+            isEdit ? I18nT('common.action.edit') : I18nT('common.action.add')
+          }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
-          I18nT('base.save')
+          I18nT('common.action.save')
         }}</el-button>
       </div>
 
@@ -71,7 +73,7 @@
           </div>
           <div class="main p-5 flex flex-col gap-3">
             <template v-if="item.item.length === 0">
-              <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+              <div class="flex justify-center">{{ I18nT('common.value.none') }}</div>
             </template>
             <template v-else>
               <template v-for="(execItem, _index) in item.item" :key="_index">
@@ -101,7 +103,7 @@
           </div>
           <div class="main p-5">
             <template v-if="!item?.configPath?.length">
-              <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+              <div class="flex justify-center">{{ I18nT('common.value.none') }}</div>
             </template>
             <template v-else>
               <div class="flex flex-col gap-4">
@@ -112,7 +114,7 @@
                       type="text"
                       class="input"
                       style="height: 32px; width: 120px; flex: unset"
-                      :placeholder="I18nT('setup.module.name')"
+                      :placeholder="I18nT('common.label.name')"
                     />
                     <input
                       v-model.trim="c.path"
@@ -149,7 +151,7 @@
           </div>
           <div class="main p-5">
             <template v-if="!item?.logPath?.length">
-              <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+              <div class="flex justify-center">{{ I18nT('common.value.none') }}</div>
             </template>
             <template v-else>
               <div class="flex flex-col gap-4">
@@ -160,7 +162,7 @@
                       type="text"
                       class="input"
                       style="height: 32px; width: 120px; flex: unset"
-                      :placeholder="I18nT('setup.module.name')"
+                      :placeholder="I18nT('common.label.name')"
                     />
                     <input
                       v-model.trim="c.path"

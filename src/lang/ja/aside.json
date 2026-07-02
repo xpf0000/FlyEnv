@@ -1,5 +1,4 @@
 {
-  "site": "サイト",
   "webServer": "Webサーバー",
   "dataBaseServer": "データベースサーバー",
   "emailServer": "メールサーバー",
@@ -8,13 +7,14 @@
   "dnsServer": "DNSサーバー",
   "ftpServer": "FTPサーバー",
   "containerRuntime": "コンテナランタイム",
-  "other": "その他",
   "appLog": "アプリログ",
+  "aiCoding": "AIコーディング",
   "ai": "AI",
   "objectStorage": "オブジェクトストレージ",
   "appExit": "起動中のすべてのサービスを停止してFlyEnvを終了します",
   "groupStart": "パネルに表示されている利用可能なすべてのサービスをワンクリックで起動",
   "networkTunnel": "ネットワークトンネル",
   "cacheAndQueue": "キャッシュとメッセージキュー",
-  "serviceGovernance": "サービスガバナンス"
+  "serviceGovernance": "サービスガバナンス",
+  "other": "その他"
 }

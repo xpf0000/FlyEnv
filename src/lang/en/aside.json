@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "webServer": "Web Server",
   "dataBaseServer": "Database Server",
   "emailServer": "Email Server",
@@ -8,13 +7,14 @@
   "dnsServer": "DNS Server",
   "ftpServer": "FTP Server",
   "containerRuntime": "Container Runtime",
-  "other": "Other",
   "appLog": "App Log",
+  "aiCoding": "AI Coding",
   "ai": "AI",
   "objectStorage": "Object Storage",
   "appExit": "Stop all running services and exit FlyEnv",
   "groupStart": "One-click start all available services displayed on the panel",
   "networkTunnel": "Network Tunnel",
   "cacheAndQueue": "Cache & Message Queue",
-  "serviceGovernance": "Service Governance"
+  "serviceGovernance": "Service Governance",
+  "other": "Other"
 }

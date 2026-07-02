@@ -43,6 +43,18 @@ class Manager extends Base {
     this.pidPath = join(global.Server.MongoDBDir!, 'mongodb.pid')
   }
 
+  getConfigFiles(version?: SoftInstalled) {
+    const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+    if (!v) return []
+    return [{ name: 'main', path: join(global.Server.MongoDBDir!, `mongodb-${v}.conf`) }]
+  }
+
+  getLogFiles(version?: SoftInstalled) {
+    const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+    if (!v) return []
+    return [{ name: 'log', path: join(global.Server.MongoDBDir!, `mongodb-${v}.log`) }]
+  }
+
   initMongosh() {
     return new ForkPromise(async (resolve) => {
       const version = this.mongoshVersion

@@ -1,4 +1,5 @@
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import type { RunProjectItem } from '@shared/LanguageProjectRunner'
 import {
   customerServiceStartExec,
@@ -314,6 +315,14 @@ class LanguageProject {
         return
       }
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

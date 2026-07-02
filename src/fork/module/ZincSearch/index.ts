@@ -237,5 +237,31 @@ ZINC_LOG_LEVEL=info
       resolve({})
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'zincsearch')
+    return [
+      { name: 'zincsearch.env', path: join(baseDir, 'zincsearch.env') },
+      { name: 'zincsearch.env.default', path: join(baseDir, 'zincsearch.env.default') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'zincsearch')
+    const versionStr = _version.version.trim()
+    return [
+      {
+        name: 'start-out',
+        path: join(baseDir, `zincsearch-${versionStr}-start-out.log`.split(' ').join(''))
+      },
+      {
+        name: 'start-error',
+        path: join(baseDir, `zincsearch-${versionStr}-start-error.log`.split(' ').join(''))
+      }
+    ]
+  }
 }
 export default new ZincSearch()

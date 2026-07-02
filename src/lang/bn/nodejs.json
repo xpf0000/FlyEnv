@@ -8,7 +8,7 @@
   "updatePackageJsonFileTips": "এই কাজটি package.json ফাইল পরিবর্তন করবে। আপনি কি আপডেট করতে চান?",
   "copyDirPath": "প্রজেক্ট ফোল্ডার পাথ কপি করুন",
   "openIN": "খুলুন",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Visual Studio Code এডিটর",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "প্রজেক্ট এনভায়রনমেন্ট",

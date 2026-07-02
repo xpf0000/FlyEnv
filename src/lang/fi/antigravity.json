@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI ei ole asennettu. Asenna se virallisella asentajalla napsauttamalla alla olevaa painiketta.",
+  "officialWebsite": "Antigravity-sivusto",
+  "officialDocs": "Antigravity CLI -dokumentaatio",
+  "sandboxMode": "Paatteen hiekkalaatikko",
+  "toolPermission": "Tyokalun lupa",
+  "sessionId": "Keskustelun tunnus",
+  "updatedAt": "Paivitetty",
+  "sessionResumed": "Keskustelua jatkettiin paatteessa",
+  "sessionDeleted": "Keskustelu poistettiin",
+  "cmd": {
+    "update": "Paivita Antigravity CLI uusimpaan versioon",
+    "models": "Listaa saatavilla olevat mallit",
+    "continue": "Jatka uusinta keskustelua",
+    "resume": "Jatka aiempaa keskustelua tunnuksen perusteella",
+    "prompt": "Suorita yksi prompt ei-interaktiivisesti",
+    "pluginList": "Listaa tuodut lisäosat",
+    "pluginImport": "Tuo lisäosia gemini- tai claude-ymparistosta",
+    "install": "Määritä ymparistopolut ja shell-asetukset"
+  }
+}

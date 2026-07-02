@@ -76,14 +76,8 @@
   const arrs = ref<ProcessItem[]>([])
   const select = ref<ProcessItem[]>([])
 
-  const isMacOS = computed(() => {
-    return window.Server.isMacOS
-  })
   const isWindows = computed(() => {
     return window.Server.isWindows
-  })
-  const isLinux = computed(() => {
-    return window.Server.isLinux
   })
 
   SearchHistory.init()

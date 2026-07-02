@@ -4,7 +4,7 @@
       <div class="toolbar flex-shrink-0">
         <el-input
           v-model="searchText"
-          :placeholder="I18nT('base.placeholderSearch')"
+          :placeholder="I18nT('common.action.search')"
           clearable
           class="search-input"
         />
@@ -44,7 +44,7 @@
         <el-table-column
           v-if="showHostColumn"
           prop="hostId"
-          :label="I18nT('cron.scope')"
+          :label="I18nT('common.mcp.scope')"
           min-width="80"
         >
           <template #default="{ row }">
@@ -80,7 +80,12 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="enabled" :label="I18nT('cron.status')" width="100" align="center">
+        <el-table-column
+          prop="enabled"
+          :label="I18nT('common.label.status')"
+          width="100"
+          align="center"
+        >
           <template #default="{ row }">
             <div class="status-cell">
               <el-tooltip :content="jobStatusLabel(row)" placement="top">
@@ -117,7 +122,12 @@
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" :label="I18nT('base.action')" width="100" align="center">
+        <el-table-column
+          fixed="right"
+          :label="I18nT('common.label.action')"
+          width="100"
+          align="center"
+        >
           <template #default="{ row }">
             <el-popover
               effect="dark"
@@ -142,11 +152,11 @@
                 </li>
                 <li @click.stop="editCron(row)">
                   <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.edit') }}</span>
+                  <span class="ml-3">{{ I18nT('common.action.edit') }}</span>
                 </li>
                 <li @click.stop="deleteCron(row)">
                   <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                  <span class="ml-3">{{ I18nT('base.del') }}</span>
+                  <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
                 </li>
               </ul>
 
@@ -296,7 +306,7 @@
       return I18nT('cron.global')
     }
     const host = AppStore().hosts.find((item) => item.id === hostId)
-    return host?.name || `${I18nT('host.site')} #${hostId}`
+    return host?.name || `${I18nT('common.label.site')} #${hostId}`
   }
 
   const toggleCron = (row: CronJob) => {

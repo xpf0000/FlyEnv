@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "Файлът php.ini не е намерен",
   "editPhpIni": "Редактиране на php.ini",
   "phpExtensions": "PHP Разширения",
   "copyConfTemplate": "Копиране на шаблон за конфигурация",

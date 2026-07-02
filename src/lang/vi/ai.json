@@ -59,7 +59,6 @@
   "NeedChatName": "Vui lòng nhập Tên",
   "NeedChatPrompt": "Vui lòng nhập Hướng dẫn (Lời nhắc hệ thống)",
   "apiUrl": "Máy chủ API",
-  "model": "Mô hình",
   "reset": "ĐẶT LẠI",
   "NeedApiUrl": "Vui lòng nhập Máy chủ API",
   "docTips": "Chọn một tệp và đọc nội dung của nó",

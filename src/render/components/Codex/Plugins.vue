@@ -3,10 +3,14 @@
     <template #header>
       <div class="card-header">
         <div class="left flex items-center">
-          <span>{{ I18nT('codex.plugins') }}</span>
+          <span>{{ I18nT('common.category.plugins') }}</span>
           <el-radio-group v-model="pluginTab" size="small" class="ml-4">
-            <el-radio-button value="installed">{{ I18nT('codex.installed') }}</el-radio-button>
-            <el-radio-button value="available">{{ I18nT('codex.available') }}</el-radio-button>
+            <el-radio-button value="installed">{{
+              I18nT('common.state.installed')
+            }}</el-radio-button>
+            <el-radio-button value="available">{{
+              I18nT('common.state.available')
+            }}</el-radio-button>
           </el-radio-group>
         </div>
         <el-button link :disabled="CodexSetup.pluginsLoading" @click="CodexSetup.refreshPlugins()">
@@ -28,7 +32,7 @@
         <div class="p-5 h-full overflow-hidden flex flex-col">
           <el-input
             v-model="search"
-            :placeholder="I18nT('codex.searchPlugin')"
+            :placeholder="I18nT('common.plugin.search')"
             clearable
             class="mb-3"
           />
@@ -46,7 +50,11 @@
                       size="small"
                       :type="item.enabled ? 'success' : 'warning'"
                       class="ml-2"
-                      >{{ item.enabled ? I18nT('codex.enabled') : I18nT('codex.disabled') }}</el-tag
+                      >{{
+                        item.enabled
+                          ? I18nT('common.state.enabled')
+                          : I18nT('common.state.disabled')
+                      }}</el-tag
                     >
                     <span v-if="item.installCount" class="install-count">{{
                       item.installCount
@@ -67,39 +75,36 @@
                   <template v-if="item.installed">
                     <el-tooltip
                       v-if="item.enabled"
-                      :content="I18nT('codex.disable')"
+                      :content="I18nT('common.action.disable')"
                       placement="top"
                       :show-after="300"
                     >
                       <el-button
-                        size="small"
-                        circle
+                        link
                         :icon="VideoPause"
                         @click="CodexSetup.disablePlugin(item.pluginId)"
                       />
                     </el-tooltip>
                     <el-tooltip
                       v-else
-                      :content="I18nT('codex.enable')"
+                      :content="I18nT('common.action.enable')"
                       placement="top"
                       :show-after="300"
                     >
                       <el-button
-                        size="small"
-                        circle
+                        link
                         type="success"
                         :icon="VideoPlay"
                         @click="CodexSetup.enablePlugin(item.pluginId)"
                       />
                     </el-tooltip>
                     <el-tooltip
-                      :content="I18nT('codex.uninstall')"
+                      :content="I18nT('common.action.uninstall')"
                       placement="top"
                       :show-after="300"
                     >
                       <el-button
-                        size="small"
-                        circle
+                        link
                         type="danger"
                         :icon="Delete"
                         @click="confirmUninstall(item.pluginId)"
@@ -109,8 +114,7 @@
                   <template v-else>
                     <el-tooltip :content="I18nT('base.install')" placement="top" :show-after="300">
                       <el-button
-                        size="small"
-                        circle
+                        link
                         type="primary"
                         :icon="Download"
                         @click="installPlugin(item.pluginId)"

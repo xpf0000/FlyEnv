@@ -1,5 +1,4 @@
 {
-  "site": "Sivusto",
   "webServer": "Web- Palvelin",
   "dataBaseServer": "Tietokannan Palvelin",
   "emailServer": "Sähköpostin Palvelin",
@@ -8,13 +7,14 @@
   "dnsServer": "DNS Palvelin",
   "ftpServer": "Ftp Palvelin",
   "containerRuntime": "Kontti Ajoaika",
-  "other": "Muu",
   "appLog": "Sovelluksen Loki",
+  "aiCoding": "Tekoälykoodaus",
   "ai": "AI",
   "objectStorage": "Objektin Tallennustila",
   "appExit": "Pysäytä kaikki käynnissä olevat palvelut ja poistu FlyEnv",
   "groupStart": "Yhdellä napsautuksella käynnistetään kaikki paneelissa näytettävät palvelut",
   "networkTunnel": "Verkon Tunneli",
   "cacheAndQueue": "Välimuisti & Viestijono",
-  "serviceGovernance": "Palvelun Hallinto"
+  "serviceGovernance": "Palvelun Hallinto",
+  "other": "Muu"
 }

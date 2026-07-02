@@ -66,7 +66,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="I18nT('base.action')" width="150">
+        <el-table-column align="center" :label="I18nT('common.label.action')" width="150">
           <template #default="scope">
             <el-button
               type="primary"
@@ -74,7 +74,7 @@
               :disabled="setup.installing"
               @click.stop="handleAction(scope.row)"
             >
-              {{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}
+              {{ scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install') }}
             </el-button>
           </template>
         </el-table-column>

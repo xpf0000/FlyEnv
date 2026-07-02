@@ -5,9 +5,5 @@
   "numbers": "Числа (123...)",
   "symbols": "Символи (!-;...)",
   "length": "Довжина",
-  "tokenPlaceholder": "Токен...",
-  "button": {
-    "copy": "Копіювати",
-    "refresh": "Оновити"
-  }
+  "tokenPlaceholder": "Токен..."
 }

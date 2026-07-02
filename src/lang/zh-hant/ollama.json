@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "為每個 GPU 保留一部分 VRAM（位元組）",
   "OLLAMA_LOAD_TIMEOUT": "在放棄之前允許模型負載停滯多長時間（預設為 \"5m\"）",
   "needServiceRun": "請先啟動 Ollama 服務",
-  "size": "大小",
   "model": "模型"
 }

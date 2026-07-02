@@ -1,5 +1,4 @@
 {
-  "working_dir": "Working Directory",
   "db_path": "Designates the location where database files will be created and retrieved",
   "env": "Configures the instance's environment. Value must be either `production` or `development`.",
   "http_addr": "The address on which the HTTP server will listen.",

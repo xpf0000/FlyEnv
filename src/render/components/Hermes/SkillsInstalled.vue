@@ -3,10 +3,10 @@
     <el-table-column prop="name" min-width="160" show-overflow-tooltip>
       <template #header>
         <div class="w-full flex items-center gap-2 pl-[24px]">
-          <span>{{ I18nT('hermes.name') }}</span>
+          <span>{{ I18nT('common.label.name') }}</span>
           <el-input
             v-model.trim="search"
-            :placeholder="I18nT('base.placeholderSearch')"
+            :placeholder="I18nT('common.action.search')"
             clearable
             size="small"
             style="width: 140px"
@@ -38,11 +38,13 @@
         >
       </template>
     </el-table-column>
-    <el-table-column prop="source" :label="I18nT('hermes.source')" width="100">
+    <el-table-column prop="source" :label="I18nT('common.label.source')" width="100">
       <template #default="{ row }">
-        <el-tag v-if="row.isBuiltin" size="small" type="info">{{ I18nT('hermes.builtin') }}</el-tag>
+        <el-tag v-if="row.isBuiltin" size="small" type="info">{{
+          I18nT('common.skills.builtin')
+        }}</el-tag>
         <el-tag v-else-if="row.isHub" size="small" type="success">{{ I18nT('hermes.hub') }}</el-tag>
-        <el-tag v-else size="small" type="warning">{{ I18nT('hermes.local') }}</el-tag>
+        <el-tag v-else size="small" type="warning">{{ I18nT('common.value.local') }}</el-tag>
       </template>
     </el-table-column>
     <el-table-column
@@ -51,15 +53,15 @@
       width="120"
       show-overflow-tooltip
     />
-    <el-table-column :label="I18nT('hermes.status')" width="90" align="center">
+    <el-table-column :label="I18nT('common.label.status')" width="90" align="center">
       <template #default="{ row }">
         <el-tag v-if="row.enabled" size="small" type="success">{{
-          I18nT('hermes.enabled')
+          I18nT('common.state.enabled')
         }}</el-tag>
-        <el-tag v-else size="small" type="danger">{{ I18nT('hermes.disabled') }}</el-tag>
+        <el-tag v-else size="small" type="danger">{{ I18nT('common.state.disabled') }}</el-tag>
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('base.action')" width="100px" align="center">
+    <el-table-column :label="I18nT('common.label.action')" width="100px" align="center">
       <template #default="{ row }">
         <div class="h-full w-full flex items-center justify-center">
           <el-popover
@@ -80,7 +82,7 @@
               </li>
               <li v-if="!row.isBuiltin" @click.stop="handleUninstall(row.name)">
                 <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                <span class="ml-3">{{ I18nT('base.uninstall') }}</span>
+                <span class="ml-3">{{ I18nT('common.action.uninstall') }}</span>
               </li>
               <li @click.stop="handleReset(row.name)">
                 <yb-icon :svg="import('@/svg/load-default.svg?raw')" width="13" height="13" />
@@ -89,7 +91,7 @@
               <li @click.stop="HermesSetup.toggleSkillEnabled(row.name, !row.enabled)">
                 <yb-icon :svg="import('@/svg/switch.svg?raw')" width="13" height="13" />
                 <span class="ml-3">{{
-                  row.enabled ? I18nT('hermes.disable') : I18nT('hermes.enable')
+                  row.enabled ? I18nT('common.action.disable') : I18nT('common.action.enable')
                 }}</span>
               </li>
             </ul>

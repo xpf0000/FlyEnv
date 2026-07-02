@@ -1,21 +1,16 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import {
-  execPromiseWithEnv,
-  readFile,
-  remove,
-  existsSync,
-  waitTime,
-  readdir,
-  writeFile
-} from '../../Fn'
+import type { SoftInstalled } from '@shared/app'
+import { execPromiseWithEnv, readFile, remove, existsSync, waitTime, writeFile } from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
+import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
 import { appDebugLog, isWindows } from '@shared/utils'
 import { PItem, ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
 import { ProcessPidList } from '@shared/Process.win'
 import { I18nT } from '@lang/index'
+import { checkAiCliVersion, resolveAiCliCommand } from '../../util/AiCli'
 
 interface SkillItem {
   name: string
@@ -55,7 +50,7 @@ class Hermes extends Base {
   }
 
   private hermesBin() {
-    return 'hermes'
+    return resolveAiCliCommand('hermes')
   }
 
   private async runCommand(command: string): Promise<string> {
@@ -214,20 +209,7 @@ class Hermes extends Base {
 
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      let version = ''
-      const tmp = join(tmpdir(), `${uuid()}.txt`)
-      try {
-        await execPromiseWithEnv(`${this.hermesBin()} --version > "${tmp}" 2>&1`)
-        const content = await readFile(tmp, 'utf-8')
-        version = content.trim()
-      } catch (e) {
-        console.log('hermes --version error: ', e)
-        version = ''
-      } finally {
-        if (existsSync(tmp)) {
-          await remove(tmp)
-        }
-      }
+      const version = await checkAiCliVersion('hermes')
       resolve({
         installed: version.length > 0,
         version
@@ -292,9 +274,9 @@ class Hermes extends Base {
         if (res?.isRunning) {
           return resolve(true)
         }
-        reject(I18nT('hermes.startGatewayFail'))
+        reject(I18nT('common.gateway.startFailed'))
       } catch (e: any) {
-        reject(e?.message ?? I18nT('hermes.startGatewayFail'))
+        reject(e?.message ?? I18nT('common.gateway.startFailed'))
       }
     })
   }
@@ -418,28 +400,25 @@ class Hermes extends Base {
     })
   }
 
-  getLogFiles() {
-    return new ForkPromise(async (resolve) => {
-      const hermesHome = this.hermesHome()
-      const logDir = join(hermesHome, 'logs')
-      const files: Array<{ name: string; path: string }> = []
-      try {
-        if (existsSync(logDir)) {
-          const list = await readdir(logDir)
-          list.forEach((name) => {
-            if (name.endsWith('.log')) {
-              files.push({
-                name: name.replace('.log', ''),
-                path: join(logDir, name)
-              })
-            }
-          })
-        }
-      } catch (e) {
-        console.log('hermes getLogFiles error: ', e)
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const files: Array<{ name: string; path: string }> = []
+    const logDir = join(this.hermesHome(), 'logs')
+    try {
+      if (existsSync(logDir)) {
+        const list = readdirSync(logDir)
+        list.forEach((name) => {
+          if (name.endsWith('.log')) {
+            files.push({
+              name: name.replace('.log', ''),
+              path: join(logDir, name)
+            })
+          }
+        })
       }
-      resolve(files)
-    })
+    } catch (e) {
+      console.log('hermes getLogFiles error: ', e)
+    }
+    return files
   }
 
   getLogs(type: string, lines = 100) {
@@ -756,6 +735,15 @@ class Hermes extends Base {
     return new ForkPromise(async (resolve) => {
       resolve([])
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const hermesHome = this.hermesHome()
+    return [
+      { name: 'config', path: join(hermesHome, 'config.yaml') },
+      { name: 'env', path: join(hermesHome, '.env') },
+      { name: 'SOUL', path: join(hermesHome, 'SOUL.md') }
+    ]
   }
 }
 

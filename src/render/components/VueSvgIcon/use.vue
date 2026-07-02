@@ -1,5 +1,10 @@
 <template>
-  <svg class="fa-icon">
+  <svg
+    class="fa-icon"
+    :width="props.width"
+    :height="props.height"
+    :style="props.color ? { color: props.color } : undefined"
+  >
     <use :xlink:href="`#${id}`"></use>
   </svg>
 </template>
@@ -9,9 +14,18 @@
   import { computed, Ref, ref } from 'vue'
   import { getExtractedSVG } from 'svg-inline-loader'
 
+  type SvgModule = {
+    default: string
+  }
+
+  type SvgSource = string | Promise<string | SvgModule>
+
   const props = defineProps<{
-    svg: string | Promise<string>
+    svg: SvgSource
     rawColor?: boolean
+    width?: string | number
+    height?: string | number
+    color?: string
   }>()
 
   const store = SVGStore()
@@ -55,14 +69,14 @@
         }
       }
       const content = getExtractedSVG(svg, config)
-      let viewBoxReg = new RegExp('viewBox="(.*?) (.*?) (.*?) (.*?)"')
-      let viewBox = content.match(viewBoxReg)
-      let x = viewBox?.[1] ?? 0
-      let y = viewBox?.[2] ?? 0
-      let width = viewBox?.[3] ?? 1024
-      let height = viewBox?.[4] ?? 1024
-      let rawReg = new RegExp('<svg.*?>(.*?)</svg>')
-      let raw = content.match(rawReg)[1]
+      const viewBoxReg = new RegExp('viewBox="(.*?) (.*?) (.*?) (.*?)"')
+      const viewBox = content.match(viewBoxReg)
+      const x = viewBox?.[1] ?? 0
+      const y = viewBox?.[2] ?? 0
+      const width = viewBox?.[3] ?? 1024
+      const height = viewBox?.[4] ?? 1024
+      const rawReg = new RegExp('<svg.*?>(.*?)</svg>')
+      const raw = content.match(rawReg)?.[1] ?? ''
       store.svgs[id.value] = {
         viewBox: `${x} ${y} ${width} ${height}`,
         raw
@@ -72,13 +86,18 @@
 
   const id: Ref<string> = ref('')
 
+  const resolveSvg = (svg: string | SvgModule) => {
+    return typeof svg === 'string' ? svg : svg.default
+  }
+
   if (typeof props.svg === 'string') {
     id.value = 'svg-' + hashCode(props.svg) + (props.rawColor ? '-raw-color' : '')
     init(props.svg)
   } else {
-    props.svg.then((res: any) => {
-      id.value = 'svg-' + hashCode(res.default) + (props.rawColor ? '-raw-color' : '')
-      init(res.default)
+    props.svg.then((res) => {
+      const svg = resolveSvg(res)
+      id.value = 'svg-' + hashCode(svg) + (props.rawColor ? '-raw-color' : '')
+      init(svg)
     })
   }
 </script>

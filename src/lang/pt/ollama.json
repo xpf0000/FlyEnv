@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Reservar uma porção de VRAM por GPU (bytes)",
   "OLLAMA_LOAD_TIMEOUT": "Quanto tempo permitir que carregamentos de modelo travem antes de desistir (padrão \"5m\")",
   "needServiceRun": "Por favor, inicie o serviço Ollama primeiro",
-  "size": "Tamanho",
   "model": "Modelos"
 }

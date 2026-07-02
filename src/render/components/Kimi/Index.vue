@@ -10,6 +10,7 @@
       <ConfigVM v-else-if="tab === 1"></ConfigVM>
       <LogsVM v-else-if="tab === 2"></LogsVM>
       <SessionsVM v-else-if="tab === 3"></SessionsVM>
+      <McpVM v-else-if="tab === 4"></McpVM>
     </div>
   </div>
 </template>
@@ -19,6 +20,7 @@
   import ConfigVM from './Config.vue'
   import SessionsVM from './Sessions.vue'
   import LogsVM from './Logs.vue'
+  import McpVM from './MCP.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
 
@@ -27,6 +29,7 @@
     I18nT('base.service'),
     I18nT('base.configFile'),
     I18nT('base.log'),
-    I18nT('kimi.sessions')
+    I18nT('common.session.list'),
+    I18nT('common.category.mcp')
   ]
 </script>

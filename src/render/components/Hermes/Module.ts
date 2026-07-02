@@ -11,7 +11,7 @@ const module: AppModuleItem = {
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 101,
   isService: false,
-  isTray: false,
+  isTray: false
   // platform: ['macOS', 'Linux']
 }
 export default module

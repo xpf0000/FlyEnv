@@ -53,7 +53,7 @@
                 </div>
               </template>
             </div>
-            <el-button @click.stop="cleanLog">{{ I18nT('base.clean') }}</el-button>
+            <el-button @click.stop="cleanLog">{{ I18nT('common.action.clear') }}</el-button>
           </div>
         </template>
         <el-auto-resizer>

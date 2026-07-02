@@ -13,10 +13,10 @@
   "ErrorTips": {
     "VCRuntime": {
       "title": "Dit system mangler Visual C++ Redistributable (DLL), der kræves for at køre denne version. Klik på linket nedenfor for at downloade og installere VC Runtime fra Microsofts officielle hjemmeside.",
-      "versionRelation": "Version Compatibility Reference:",
+      "versionRelation": "Reference for versionskompatibilitet:",
       "software": "Software",
       "versionRange": "Versions Område",
-      "msvsVersion": "MSVC Version"
+      "msvsVersion": "MSVC-version"
     }
   }
 }

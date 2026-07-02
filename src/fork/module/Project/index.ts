@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { Base } from '../Base'
 import { md5, moveDirToDir, uuid, remove, writeFile } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import { I18nT } from '@lang/index'
 import { existsSync } from 'node:fs'
 
@@ -35,6 +36,14 @@ APP_KEY=${key}`
       }
       resolve(true)
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

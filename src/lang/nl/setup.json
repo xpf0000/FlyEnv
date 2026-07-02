@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Slechts één service tegelijk kan worden uitgevoerd",
   "moduleExecItem": "Module Uitvoer Item",
   "module": {
-    "name": "Vul nieuwe naam in (optioneel)",
     "path": "Bestandspad",
-    "comment": "Commentaar",
     "exec": "Uitvoeren",
     "command": "Opdracht",
     "commandFile": "Bestand",
@@ -39,15 +37,14 @@
     "needPasswordToStart": "Beheerrechten vereist. Voer uw wachtwoord in (het wordt opgeslagen voor toekomstig gebruik). U kunt het ook handmatig invoeren in de terminal, maar deze prompt kan opnieuw verschijnen.",
     "hadOpenInTerminal": "Al actief in terminal—resultaten niet beschikbaar.",
     "licenseTips": "Geen licentie gevonden. Alleen 3 modules/uitvoeringsitems kunnen worden aangemaakt.",
-    "outputLog": "Uitvoer Logboek",
-    "errorLog": "Fout Log"
+    "outputLog": "Uitvoer Logboek"
   },
   "flyenvHelper": "Herstel FlyEnv Helper",
   "flyenvHelperBtn": "Repareer",
   "flyenvHelperFixSuccess": "FlyEnv Helper succesvol opgelost",
   "flyenvHelperInstallFailTips": "De installatie van FlyEnv helper is mislukt. Probeer FlyEnv uit te voeren met beheerdersrechten, of klik op de knop OK en voer het hulpprogramma flyenv-helper.exe handmatig uit in de geopende map.",
-  "appFont": "UI Font",
+  "appFont": "UI-lettertype",
   "appFontTips": "Stel het lettertype in dat wordt gebruikt voor de gebruikersinterface van de applicatie. Laat leeg om het standaard lettertype te gebruiken",
-  "codeFont": "Code Font",
+  "codeFont": "Codelettertype",
   "codeFontTips": "Stel het lettertype in dat wordt gebruikt voor terminal, editor en andere codegebieden. Laat leeg om het standaard lettertype voor monospace te gebruiken"
 }

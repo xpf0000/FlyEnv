@@ -1,5 +1,4 @@
 {
-  "title": "Deskripsi Lisensi",
   "description": "Lisensi ini adalah pengakuan dan dukungan untuk kerja keras FlyEnv dan penulisnya. Tujuannya bukan untuk membatasi pengguna, tetapi untuk mengingatkan mereka untuk menghormati upaya para pengembang dan mematuhi ketentuan yang relevan saat menggunakan perangkat lunak. Dengan mematuhi lisensi ini, pengguna tidak hanya mendukung pengembangan proyek yang berkelanjutan tetapi juga berkontribusi pada semangat kepercayaan dan kolaborasi dalam komunitas sumber terbuka.",
   "restrictions": {
     "title": "Pengguna tanpa lisensi akan dikenakan pembatasan berikut:",
@@ -32,8 +31,8 @@
   "messagePlaceholder": "Harap kirimkan donatur, tautan donasi, atau ID pesanan saat memilih untuk mendonasikan.\nHarap kirimkan tautan PR bagi mereka yang memilih untuk berpartisipasi dalam pengembangan proyek.\nHarap kirimkan tautan artikel/video jika Anda memilih untuk membantu mempromosikan proyek",
   "requestButton": "Ajukan Lisensi",
   "refreshButton": "Segarkan Status",
-  "licenseActivated": "License activated",
-  "licenseNoActivated": "License not activated",
+  "licenseActivated": "Lisensi diaktifkan",
+  "licenseNoActivated": "Lisensi tidak diaktifkan",
   "licenseInfo": "Lisensi yang disediakan saat ini adalah lisensi permanen, setiap komputer sesuai dengan satu lisensi. Jika Anda mengganti komputer, Anda perlu mengikat uuid perangkat baru di 'Lisensi Saya', atau mengajukan lisensi baru.",
   "logoutTips": "Apakah Anda yakin ingin keluar?",
   "delBindTips": "Apakah Anda yakin ingin membatalkan ikatan lisensi dari UUID ini?",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "UUID yang Terikat",
   "delBind": "Batalkan Ikat",
   "bindCurrentUUID": "Ikat Perangkat Ini",
-  "licenseDescription": "Deskripsi Lisensi",
   "loginFail": "Gagal masuk",
   "oauthCanceledTitle": "Otorisasi Dibatalkan",
   "oauthCanceledMessage": "Pengguna membatalkan proses otorisasi",

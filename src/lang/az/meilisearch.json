@@ -1,5 +1,4 @@
 {
-  "working_dir": "İş Qovluğu",
   "db_path": "Verilənlər bazası fayllarının yaradılacağı və əldə ediləcəyi yeri göstərir",
   "env": "Nümunənin mühiti konfiqurasiya edir. Dəyər `production` və ya `development` olmalıdır.",
   "http_addr": "HTTP serverin dinləyəcəyi ünvan.",

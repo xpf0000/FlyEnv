@@ -3,7 +3,7 @@
   "bfsu": "Beijing Foreign Studies University-nedlasting kilde",
   "tencent": "Tencent nedlastingskilde",
   "aliyun": "Alibaba nedlastingskilde",
-  "ustc": "University of Science and Technology of China download source",
+  "ustc": "Nedlastingskilde fra University of Science and Technology of China",
   "Licenses": "Lisens",
   "requestedTips": "Lisensforespørselen har blitt sendt, vær tålmodig og vent Om du trenger å endre informasjonen, kan du sende den på nytt",
   "autoStartService": "Start tjenester automatisk",
@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Bare en tjeneste kan kjøre om gangen",
   "moduleExecItem": "Utførelse av modul",
   "module": {
-    "name": "Navn",
     "path": "Filbane",
-    "comment": "Kommentar",
     "exec": "Kjør",
     "command": "Kommando",
     "commandFile": "Fil",
@@ -39,15 +37,14 @@
     "needPasswordToStart": "Admin rettigheter kreves. Angi passordet ditt (det vil bli lagret for fremtidig bruk). Alternativt kan du skrive det inn i terminalen manuelt, men denne ledeteksten kan komme på nytt.",
     "hadOpenInTerminal": "Kjører allerede når terminalen—resultater er utilgjengelige.",
     "licenseTips": "Ingen lisens funnet. Bare 3 moduler/utførelseselementer kan opprettes.",
-    "outputLog": "Utgang Logg",
-    "errorLog": "Feil logg"
+    "outputLog": "Utgang Logg"
   },
   "flyenvHelper": "Fiks FlyEnv Hjelper",
   "flyenvHelperBtn": "Reparer",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fikset",
   "flyenvHelperInstallFailTips": "FlyEnv-hjelpeprogrammet kunne ikke installeres. Prøv å kjøre FlyEnv med administratorrettigheter, eller klikk på OK-knappen og kjør hjelpeprogrammet flyenv-helper.exe manuelt i den åpnede mappen.",
-  "appFont": "UI Font",
+  "appFont": "UI-skrifttype",
   "appFontTips": "Angi skrifttypen som brukes for program-brukergrensesnittet. La stå tom for å bruke standard system skrifttype",
-  "codeFont": "Code Font",
+  "codeFont": "Skrifttype for kode",
   "codeFontTips": "Angi skriften som brukes for terminal, tekstbehandler og andre kodeområder. La stå tom for å bruke standard skrift for monospace"
 }

@@ -5,6 +5,7 @@ import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import { buildInstallProxyEnvCommands, type InstallProxyPlatform } from '@shared/installProxyEnv'
 import CommandData from './command.json'
 
 export interface CommandItem {
@@ -159,13 +160,15 @@ class OpenCode {
     const execXTerm = new XTerm()
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
-    const command: string[] = []
-    if (window.Server.Proxy) {
-      for (const k in window.Server.Proxy) {
-        const v = window.Server.Proxy[k]
-        command.push(`export ${k}="${v}"`)
-      }
-    }
+    const installPlatform: InstallProxyPlatform = window.Server.isWindows
+      ? 'windows'
+      : window.Server.isMacOS
+        ? 'macos'
+        : 'linux'
+    const command = buildInstallProxyEnvCommands(
+      installPlatform,
+      (window.Server.Proxy ?? {}) as Record<string, string>
+    )
     command.push('npm install -g opencode-ai')
     await execXTerm.send(command, false)
     this.installEnd = true
@@ -193,7 +196,7 @@ class OpenCode {
       IPC.send('app-fork:openCode', 'deleteSession', sessionId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('openCode.sessionDeleted'))
+          MessageSuccess(I18nT('common.session.deleted'))
           this.refreshSessions()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -209,7 +212,7 @@ class OpenCode {
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            MessageSuccess(I18nT('openCode.sessionResumed'))
+            MessageSuccess(I18nT('common.session.resumed'))
           } else {
             MessageError(res?.msg ?? I18nT('base.fail'))
           }

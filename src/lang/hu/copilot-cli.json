@@ -1,0 +1,13 @@
+{
+  "notInstalled": "A GitHub Copilot CLI nincs telepítve. Az alábbi gombra kattintva telepítheti npm-en keresztül (Node.js 22+ szükséges).",
+  "officialWebsite": "Copilot CLI a GitHubon",
+  "officialDocs": "Copilot CLI dokumentáció",
+  "cmd": {
+    "update": "A Copilot CLI legújabb verziójának letöltése",
+    "resume": "Korábbi munkamenet folytatása (választó)",
+    "continue": "A legutóbbi munkamenet folytatása",
+    "prompt": "Egyetlen prompt futtatása nem interaktív módban",
+    "login": "Hitelesítés Copilottal",
+    "init": "Copilot-utasítások inicializálása egy tárolóhoz"
+  }
+}

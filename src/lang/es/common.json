@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Modelo",
+    "name": "Nombre",
+    "status": "Estado",
+    "workingDirectory": "Directorio de trabajo",
+    "action": "Acción",
+    "comment": "Comentario",
+    "source": "Fuente",
+    "site": "Sitio",
+    "errorLog": "Registro de Errores",
+    "library": "Biblioteca",
+    "path": "Ruta",
+    "description": "Descripción",
+    "port": "Puerto",
+    "startCommand": "Comando de inicio",
+    "licenseDescription": "Descripción de la Licencia",
+    "password": "Contraseña",
+    "username": "Nombre de Usuario",
+    "size": "Tamaño",
+    "containerEnvVars": "Variables de entorno del contenedor",
+    "createdTime": "Tiempo de creación",
+    "image": "Imagen",
+    "state": "Estado",
+    "grid": "Rejilla",
+    "gridSpacing": "Espaciado en cuadrícula (píxeles)",
+    "fontSize": "Tamaño Fuente",
+    "code": "Código"
+  },
+  "action": {
+    "enable": "Habilitar",
+    "disable": "Desactivar",
+    "resume": "Reanudar",
+    "uninstall": "Desinstalar",
+    "copy": "Copiar",
+    "preview": "Vista previa",
+    "search": "Buscar",
+    "clear": "Limpiar",
+    "resetPassword": "Restablecer contraseña",
+    "delete": "Eliminar",
+    "add": "Agregar",
+    "edit": "Editar",
+    "generate": "Generar",
+    "refresh": "Actualizar",
+    "save": "Guardar",
+    "start": "Iniciar",
+    "stop": "Detener",
+    "close": "Cerrar",
+    "selectAll": "Seleccionar Todo",
+    "changeName": "Editar nombre",
+    "changeOwnerPassword": "Cambiar contraseña del propietario",
+    "changeRole": "Cambiar rol"
+  },
+  "state": {
+    "running": "En ejecución",
+    "installed": "Instalado",
+    "enabled": "Habilitado",
+    "disabled": "Deshabilitado",
+    "available": "Disponible"
+  },
+  "session": {
+    "list": "Sesiones",
+    "title": "Título",
+    "id": "ID de sesión",
+    "lastPrompt": "Último prompt",
+    "search": "Buscar sesiones",
+    "deleted": "Sesión eliminada",
+    "resumed": "Sesión reanudada en la terminal"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Comando / URL",
+    "scope": "Scope",
+    "addServer": "Agregar servidor"
+  },
+  "category": {
+    "basic": "Básico",
+    "mcp": "MCP",
+    "skills": "Habilidades",
+    "basicInfo": "Información básica",
+    "configuration": "Configuración",
+    "favorites": "Favoritos",
+    "plugins": "Plugins",
+    "backupUpdate": "Copia de seguridad y actualización"
+  },
+  "skills": {
+    "openSkillsDir": "Abrir directorio de habilidades",
+    "openSkillDir": "Abrir directorio de habilidades",
+    "revealSkillFile": "Revelar archivo de habilidades",
+    "noSkills": "No se encontraron habilidades",
+    "skillFileMissing": "Archivo de habilidad no encontrado",
+    "skillLoadFailed": "No se ha podido cargar el archivo de habilidades",
+    "builtin": "Integrado"
+  },
+  "cli": {
+    "help": "Mostrar información de ayuda",
+    "version": "Mostrar número de versión",
+    "start": "Iniciar una nueva sesión interactiva",
+    "mcpList": "Listar servidores MCP configurados",
+    "doctor": "Ejecutar cheques de salud",
+    "doctorFix": "Ejecutar cheques de salud con autofix",
+    "gatewayStart": "Iniciar servicio de pasarela",
+    "gatewayStop": "Detener servicio de puerta de enlace",
+    "gatewayRestart": "Reiniciar servicio de pasarela",
+    "gatewayStatus": "Mostrar estado de la pasarela",
+    "gatewayRun": "Ejecutar puerta de enlace en primer plano",
+    "gatewayUninstall": "Desinstalar servicio de gateway",
+    "skillsList": "Listar habilidades disponibles"
+  },
+  "gateway": {
+    "category": "Servicio Gateway",
+    "status": "Estado del Gateway",
+    "running": "Gateway está ejecutándose",
+    "stopped": "Gateway está detenido",
+    "startFailed": "Inicio de puerta de enlace fallido"
+  },
+  "value": {
+    "yes": "Sí",
+    "no": "Nu",
+    "other": "Otro",
+    "default": "Predeterminado",
+    "none": "Ninguno",
+    "local": "Local"
+  },
+  "plugin": {
+    "search": "Buscar complementos",
+    "removed": "Complemento eliminado"
+  },
+  "schedule": {
+    "everyHour": "Cada hora",
+    "everyMinute": "Cada minuto"
+  },
+  "error": {
+    "phpiniNotFound": "No se encontró el archivo php.ini"
+  }
+}

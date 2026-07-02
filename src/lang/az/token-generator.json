@@ -5,9 +5,5 @@
   "numbers": "Rəqəmlər (123...)",
   "symbols": "Simvollar (!-;...)",
   "length": "Uzunluq",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "copy": "Kopyala",
-    "refresh": "Yenilə"
-  }
+  "tokenPlaceholder": "Token..."
 }

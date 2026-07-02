@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "한 번에 하나의 서비스만 실행",
   "moduleExecItem": "모듈 실행 항목",
   "module": {
-    "name": "파일 이름",
     "path": "파일 경로",
-    "comment": "설명",
     "exec": "실행",
     "command": "명령",
     "commandFile": "파일",
@@ -39,8 +37,7 @@
     "needPasswordToStart": "관리자 권한이 필요합니다. 비밀번호를 입력하세요(향후 사용을 위해 저장됩니다). 또는 터미널에서 수동으로 입력할 수 있지만 이 프롬프트가 다시 나타날 수 있습니다.",
     "hadOpenInTerminal": "이미 터미널에서 실행 중이므로 결과를 볼 수 없습니다.",
     "licenseTips": "라이선스를 찾을 수 없습니다. 모듈/실행 항목은 최대 3개만 생성할 수 있습니다.",
-    "outputLog": "출력 로그",
-    "errorLog": "오류 로그"
+    "outputLog": "출력 로그"
   },
   "flyenvHelper": "FlyEnv 헬퍼 복구",
   "flyenvHelperBtn": "복구",

@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Reserver en andel av VRAM per GPU (bytes)",
   "OLLAMA_LOAD_TIMEOUT": "Hvor lang tid modelllastene skal være steile før de gir opp (standard «5m»)",
   "needServiceRun": "Vennligst begynn Olama-tjenesten først",
-  "size": "Størrelse",
   "model": "Modeller"
 }

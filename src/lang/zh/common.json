@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "模型",
+    "name": "名称",
+    "status": "状态",
+    "workingDirectory": "工作目录",
+    "action": "操作",
+    "comment": "备注",
+    "source": "来源",
+    "site": "站点",
+    "errorLog": "错误日志",
+    "library": "库",
+    "path": "路径",
+    "description": "描述",
+    "port": "端口",
+    "startCommand": "启动命令",
+    "licenseDescription": "许可证说明",
+    "password": "密码",
+    "username": "用户名",
+    "size": "大小",
+    "containerEnvVars": "容器内环境变量",
+    "createdTime": "创建时间",
+    "image": "镜像",
+    "state": "状态",
+    "grid": "网格",
+    "gridSpacing": "网格间距 (像素)",
+    "fontSize": "字体大小",
+    "code": "代码"
+  },
+  "action": {
+    "enable": "启用",
+    "disable": "禁用",
+    "resume": "恢复",
+    "uninstall": "卸载",
+    "copy": "复制",
+    "preview": "预览",
+    "search": "搜索",
+    "clear": "清空",
+    "resetPassword": "重置密码",
+    "delete": "删除",
+    "add": "添加",
+    "edit": "编辑",
+    "generate": "生成",
+    "refresh": "刷新",
+    "save": "保存",
+    "start": "启动",
+    "stop": "停止",
+    "close": "关闭",
+    "selectAll": "全选",
+    "changeName": "修改名称",
+    "changeOwnerPassword": "更改所有者密码",
+    "changeRole": "更改角色"
+  },
+  "state": {
+    "running": "运行中",
+    "installed": "已安装",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "available": "可用"
+  },
+  "session": {
+    "list": "会话",
+    "title": "标题",
+    "id": "会话 ID",
+    "lastPrompt": "最后提示词",
+    "search": "搜索会话",
+    "deleted": "会话已删除",
+    "resumed": "已在终端中恢复会话"
+  },
+  "mcp": {
+    "type": "类型",
+    "commandOrUrl": "命令 / URL",
+    "scope": "范围",
+    "addServer": "添加服务器"
+  },
+  "category": {
+    "basic": "基础",
+    "mcp": "MCP",
+    "skills": "技能",
+    "basicInfo": "基本信息",
+    "configuration": "配置",
+    "favorites": "我的收藏",
+    "plugins": "插件",
+    "backupUpdate": "备份与更新"
+  },
+  "skills": {
+    "openSkillsDir": "打开技能目录",
+    "openSkillDir": "打开技能文件夹",
+    "revealSkillFile": "定位技能文件",
+    "noSkills": "未找到技能",
+    "skillFileMissing": "未找到技能文件",
+    "skillLoadFailed": "加载技能文件失败",
+    "builtin": "内置"
+  },
+  "cli": {
+    "help": "显示帮助信息",
+    "version": "显示版本号",
+    "start": "启动新的交互式会话",
+    "mcpList": "列出已配置的 MCP 服务器",
+    "doctor": "运行健康检查",
+    "doctorFix": "运行健康检查并自动修复",
+    "gatewayStart": "启动网关服务",
+    "gatewayStop": "停止网关服务",
+    "gatewayRestart": "重启网关服务",
+    "gatewayStatus": "显示网关状态",
+    "gatewayRun": "前台运行网关",
+    "gatewayUninstall": "卸载网关服务",
+    "skillsList": "列出可用技能"
+  },
+  "gateway": {
+    "category": "网关服务",
+    "status": "网关状态",
+    "running": "网关运行中",
+    "stopped": "网关已停止",
+    "startFailed": "网关启动失败"
+  },
+  "value": {
+    "yes": "是",
+    "no": "否",
+    "other": "其他",
+    "default": "默认",
+    "none": "无",
+    "local": "本地"
+  },
+  "plugin": {
+    "search": "搜索插件",
+    "removed": "插件已移除"
+  },
+  "schedule": {
+    "everyHour": "每小时",
+    "everyMinute": "每分钟"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini文件获取失败"
+  }
+}

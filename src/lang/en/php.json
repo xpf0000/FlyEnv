@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "php.ini file not found",
   "editPhpIni": "Edit php.ini",
   "phpExtensions": "PHP Extensions",
   "copyConfTemplate": "Copy config template",
@@ -29,7 +28,6 @@
   "loadedExtensions": "Loaded Extensions",
   "log_errors": "Enable error logging",
   "error_log_dir": "Specify the PHP error log file path",
-
   "disableFunction": {
     "title": "Disable Functions",
     "function": "Function",

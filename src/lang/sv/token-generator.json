@@ -5,9 +5,5 @@
   "numbers": "Siffror (123...)",
   "symbols": "Symboler (!-;...)",
   "length": "Längd",
-  "tokenPlaceholder": "Token...",
-  "button": {
-    "copy": "Kopiera",
-    "refresh": "Uppdatera"
-  }
+  "tokenPlaceholder": "Token..."
 }

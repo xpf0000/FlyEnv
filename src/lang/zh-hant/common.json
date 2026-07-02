@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "模型",
+    "name": "名稱",
+    "status": "狀態",
+    "workingDirectory": "工作目錄",
+    "action": "操作",
+    "comment": "備註",
+    "source": "來源",
+    "site": "站台",
+    "errorLog": "錯誤日誌",
+    "library": "庫",
+    "path": "路徑",
+    "description": "描述",
+    "port": "通訊埠",
+    "startCommand": "啟動命令",
+    "licenseDescription": "許可證說明",
+    "password": "密碼",
+    "username": "使用者名稱",
+    "size": "大小",
+    "containerEnvVars": "容器內環境變數",
+    "createdTime": "建立時間",
+    "image": "映像",
+    "state": "狀態",
+    "grid": "網格",
+    "gridSpacing": "網格間距 (像素)",
+    "fontSize": "字型大小",
+    "code": "程式碼"
+  },
+  "action": {
+    "enable": "啟用",
+    "disable": "停用",
+    "resume": "恢復",
+    "uninstall": "解除安裝",
+    "copy": "複製",
+    "preview": "預覽",
+    "search": "搜尋",
+    "clear": "清空",
+    "resetPassword": "重置密碼",
+    "delete": "刪除",
+    "add": "添加",
+    "edit": "編輯",
+    "generate": "產生",
+    "refresh": "重新整理",
+    "save": "儲存",
+    "start": "啟動",
+    "stop": "停止",
+    "close": "關閉",
+    "selectAll": "全選",
+    "changeName": "修改名稱",
+    "changeOwnerPassword": "更改所有者密碼",
+    "changeRole": "更改角色"
+  },
+  "state": {
+    "running": "執行中",
+    "installed": "已安裝",
+    "enabled": "已啟用",
+    "disabled": "已停用",
+    "available": "可用"
+  },
+  "session": {
+    "list": "工作階段",
+    "title": "標題",
+    "id": "工作階段 ID",
+    "lastPrompt": "最後提示詞",
+    "search": "搜尋工作階段",
+    "deleted": "工作階段已刪除",
+    "resumed": "已在終端中恢復工作階段"
+  },
+  "mcp": {
+    "type": "類型",
+    "commandOrUrl": "命令 / URL",
+    "scope": "範圍",
+    "addServer": "新增伺服器"
+  },
+  "category": {
+    "basic": "基礎",
+    "mcp": "MCP",
+    "skills": "技能",
+    "basicInfo": "基礎資訊",
+    "configuration": "配置",
+    "favorites": "我的收藏",
+    "plugins": "Plugins",
+    "backupUpdate": "備份與更新"
+  },
+  "skills": {
+    "openSkillsDir": "打開技能目錄",
+    "openSkillDir": "打開技能資料夾",
+    "revealSkillFile": "定位技能檔案",
+    "noSkills": "未找到技能",
+    "skillFileMissing": "找不到技能檔案",
+    "skillLoadFailed": "載入技能檔案失敗",
+    "builtin": "內建"
+  },
+  "cli": {
+    "help": "顯示說明資訊",
+    "version": "顯示版本號",
+    "start": "開始新的互動式工作階段",
+    "mcpList": "列出已設定的 MCP 伺服器",
+    "doctor": "執行健康檢查",
+    "doctorFix": "執行健康檢查並自動修復",
+    "gatewayStart": "啟動閘道服務",
+    "gatewayStop": "停止閘道服務",
+    "gatewayRestart": "重啟閘道服務",
+    "gatewayStatus": "顯示閘道狀態",
+    "gatewayRun": "前景執行閘道",
+    "gatewayUninstall": "解除安裝閘道服務",
+    "skillsList": "列出可用技能"
+  },
+  "gateway": {
+    "category": "閘道服務",
+    "status": "閘道狀態",
+    "running": "閘道運行中",
+    "stopped": "閘道已停止",
+    "startFailed": "閘道啟動失敗"
+  },
+  "value": {
+    "yes": "是",
+    "no": "否",
+    "other": "其他",
+    "default": "預設",
+    "none": "無",
+    "local": "本地"
+  },
+  "plugin": {
+    "search": "搜尋外掛",
+    "removed": "外掛已移除"
+  },
+  "schedule": {
+    "everyHour": "每小時",
+    "everyMinute": "每分鐘"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini 檔案取得失敗"
+  }
+}

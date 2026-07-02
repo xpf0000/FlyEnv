@@ -1,7 +1,7 @@
 {
   "dnsLookup": "Wyszukiwanie DNS",
   "tcpConnect": "Połącz z TCP",
-  "tlsHandshake": "TLS Handshake",
+  "tlsHandshake": "Uzgodnienie TLS",
   "requestProcessing": "Przetwarzanie żądania",
   "ttfb": "Czas do pierwszego bajtu (TTFB)",
   "contentDownload": "Pobieranie treści",

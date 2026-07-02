@@ -12,7 +12,7 @@
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-3 truncate"
-            >{{ I18nT('base.errorLog') }} - {{ version.version }} - {{ version.path }}</span
+            >{{ I18nT('common.label.errorLog') }} - {{ version.version }} - {{ version.path }}</span
           >
         </div>
       </div>

@@ -46,11 +46,14 @@ export function fetchPATH(): ForkPromise<any> {
 export function removePATH(item: SoftInstalled, typeFlag: string) {
   return new ForkPromise(async (resolve, reject) => {
     let oldPath: string[] = []
+    let oldPathError: unknown
     try {
       oldPath = await fetchRawPATH(true)
-    } catch {}
+    } catch (error) {
+      oldPathError = error
+    }
     if (oldPath.length === 0) {
-      reject(new Error('Fail'))
+      reject(oldPathError instanceof Error ? oldPathError : new Error('Fail'))
       return
     }
 
@@ -123,6 +126,7 @@ export function updatePATH(item: SoftInstalled, typeFlag: string) {
   return new ForkPromise(async (resolve, reject) => {
     let oldPath: string[] = []
     let rawOldPath: string[] = []
+    let oldPathError: unknown
     try {
       oldPath = await fetchRawPATH(true)
       rawOldPath = oldPath.map((s) => {
@@ -131,9 +135,11 @@ export function updatePATH(item: SoftInstalled, typeFlag: string) {
         }
         return s
       })
-    } catch {}
+    } catch (error) {
+      oldPathError = error
+    }
     if (oldPath.length === 0) {
-      reject(new Error('Fail'))
+      reject(oldPathError instanceof Error ? oldPathError : new Error('Fail'))
       return
     }
     console.log('oldPath 001: ', oldPath)
@@ -333,11 +339,14 @@ export function envPathList() {
   return new ForkPromise(async (resolve, reject) => {
     console.log('envPathList !!!!!')
     let oldPath: string[] = []
+    let oldPathError: unknown
     try {
       oldPath = await fetchRawPATH(true)
-    } catch {}
+    } catch (error) {
+      oldPathError = error
+    }
     if (oldPath.length === 0) {
-      reject(new Error('Fail'))
+      reject(oldPathError instanceof Error ? oldPathError : new Error('Fail'))
       return
     }
     const list: any = []

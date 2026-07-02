@@ -1,5 +1,4 @@
 {
-  "site": "Trang web",
   "webServer": "Dịch vụ web",
   "dataBaseServer": "Máy chủ cơ sở dữ liệu",
   "emailServer": "Máy chủ Email",
@@ -8,13 +7,14 @@
   "dnsServer": "Máy chủ DNS",
   "ftpServer": "Máy chủ FTP",
   "containerRuntime": "Trình quản lý Container",
-  "other": "Khác",
   "appLog": "Nhật ký ứng dụng",
+  "aiCoding": "Lập trình AI",
   "ai": "Máy chủ AI",
   "objectStorage": "Lưu trữ đối tượng",
   "appExit": "Dừng tất cả các dịch vụ đang chạy và thoát FlyEnv",
   "groupStart": "Khởi động tất cả các dịch vụ khả dụng hiển thị trên bảng điều khiển bằng một cú nhấp chuột",
   "networkTunnel": "Xuyên mạng nội bộ",
   "cacheAndQueue": "Bộ Nhớ Đệm & Hàng Đợi Tin Nhắn",
-  "serviceGovernance": "Quản Trị Dịch Vụ"
+  "serviceGovernance": "Quản Trị Dịch Vụ",
+  "other": "Khác"
 }

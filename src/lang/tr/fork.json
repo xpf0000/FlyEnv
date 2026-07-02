@@ -9,6 +9,5 @@
   "postgresqlInit": "Servis başarıyla başlatıldı\nVeri Dizin: {dir}\nİlk Kullanıcı: root, Parola: root",
   "downloadFileFail": "Dosya indirilemedi!",
   "trialEnd": "Deneme süresi sona erdi. Bu özelliği kullanmaya devam etmek için lütfen bir lisans edinin",
-  "phpiniNotFound": "php.ini dosyası bulunamadı",
   "noEPMD": "EPMD işlemi bulunamadı. Lütfen Erlang ortam değişkenlerini sıfırlayın."
 }

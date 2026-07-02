@@ -35,7 +35,7 @@
           <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.version }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.path')" :prop="null">
+      <el-table-column :label="I18nT('common.label.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
             <el-popover
@@ -76,7 +76,7 @@
       </el-table-column>
       <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
         <template #header>
-          <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.env') }}</span>
           </el-tooltip>
         </template>
@@ -130,7 +130,7 @@
         align="left"
       >
         <template #header>
-          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.alias') }}</span>
           </el-tooltip>
         </template>
@@ -173,7 +173,12 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.action')" :prop="null" width="100px" align="center">
+      <el-table-column
+        :label="I18nT('common.label.action')"
+        :prop="null"
+        width="100px"
+        align="center"
+      >
         <template #default="scope">
           <EXT :item="scope.row" type="php">
             <li @click.stop="action(scope.row, scope.$index, 'open')">
@@ -190,7 +195,7 @@
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'log-error')">
               <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
-              <span class="ml-3">{{ I18nT('base.errorLog') }}</span>
+              <span class="ml-3">{{ I18nT('common.label.errorLog') }}</span>
             </li>
             <template v-if="!isWindows">
               <li @click.stop="action(scope.row, scope.$index, 'fpm-conf')">

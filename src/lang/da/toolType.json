@@ -4,12 +4,10 @@
   "Web": "Web",
   "Images": "Billeder Og Videoer",
   "Development": "Udvikling",
+  "Code": "Kode",
   "Network": "Netværk",
   "Math": "Matematisk",
   "Measurement": "Måling",
   "Text": "Tekst",
-  "Custom": "Tilpasset",
-  "Favorites": "Favoritter",
-  "Favorite": "Favorit",
-  "Code": "Kode"
+  "Custom": "Tilpasset"
 }

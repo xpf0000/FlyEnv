@@ -32,7 +32,7 @@
             </template>
           </el-table-column>
         </template>
-        <el-table-column align="left" :label="I18nT('base.path')">
+        <el-table-column align="left" :label="I18nT('common.label.path')">
           <template #default="scope">
             <el-button
               class="overflow-hidden truncate max-w-full justify-start"
@@ -43,7 +43,12 @@
             >
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('base.action')" :prop="null" width="100px" align="center">
+        <el-table-column
+          :label="I18nT('common.label.action')"
+          :prop="null"
+          width="100px"
+          align="center"
+        >
           <template #default="scope">
             <el-button link type="primary" :icon="Edit" @click.stop="doEdit(scope.row)"></el-button>
             <el-popconfirm

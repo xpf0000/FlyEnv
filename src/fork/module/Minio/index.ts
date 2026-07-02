@@ -227,5 +227,28 @@ class Minio extends Base {
       }
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'minio')
+    return [{ name: 'minio.conf', path: join(baseDir, 'minio.conf') }]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'minio')
+    const versionStr = _version.version.trim()
+    return [
+      {
+        name: 'start-out',
+        path: join(baseDir, `minio-${versionStr}-start-out.log`.split(' ').join(''))
+      },
+      {
+        name: 'start-error',
+        path: join(baseDir, `minio-${versionStr}-start-error.log`.split(' ').join(''))
+      }
+    ]
+  }
 }
 export default new Minio()

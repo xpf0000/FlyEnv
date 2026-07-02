@@ -45,7 +45,7 @@
       <el-table-column prop="name">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
-            I18nT('base.Library')
+            I18nT('common.label.library')
           }}</span>
         </template>
         <template #default="scope">
@@ -75,7 +75,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="I18nT('base.action')" width="120">
+      <el-table-column align="center" :label="I18nT('common.label.action')" width="120">
         <template #default="scope">
           <el-button
             type="primary"
@@ -83,7 +83,9 @@
             :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
             :disabled="BrewSetup.installing"
             @click="handleBrewVersion(scope.row)"
-            >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}</el-button
+            >{{
+              scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')
+            }}</el-button
           >
         </template>
       </el-table-column>

@@ -8,6 +8,5 @@
   "installCA": "Instaliraj CA",
   "carootLabel": "Putanja CA Root-a",
   "certificates": "Certifikati",
-  "generate": "Generiraj",
   "noSSLHosts": "Nema hostova s omogućenim SSL-om. Prvo omogućite SSL na hostu."
 }

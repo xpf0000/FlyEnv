@@ -18,5 +18,5 @@
   "RUSTFS_KMS_DEFAULT_KEY_ID": "Standard KMS nøkkel-ID for kryptering.",
   "RUSTFS_OBS_ENDPOINT": "Observasjonsendepunkt for spor, måltall og logger (kun gRPC-modus).",
   "RUSTFS_BUFFER_PROFILE_DISABLE": "Deaktiver adaptiv bufferstørrelse med arbeidsbelastningsprofiler. Sett til \"sann\" for å bruke hurtigstørrelse buffere.",
-  "RUSTFS_BUFFER_PROFILE": "Workload profile for adaptive buffer sizing. Options: GeneralPurpose, AiTraining, DataAnalytics, WebWorkload, IndustrialIoT, SecureStorage."
+  "RUSTFS_BUFFER_PROFILE": "Arbeidslastprofil for adaptiv bufferdimensjonering. Alternativer: GeneralPurpose, AiTraining, DataAnalytics, WebWorkload, IndustrialIoT, SecureStorage."
 }

@@ -2,7 +2,7 @@
   <el-card class="version-manager">
     <template #header>
       <div class="card-header">
-        <span>{{ I18nT('kimi.sessions') }}</span>
+        <span>{{ I18nT('common.session.list') }}</span>
         <el-button link :disabled="KimiSetup.loading" @click="KimiSetup.refreshSessions()">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
@@ -22,7 +22,7 @@
         <div class="p-5 h-full overflow-hidden flex flex-col">
           <el-input
             v-model="search"
-            :placeholder="I18nT('kimi.searchSession')"
+            :placeholder="I18nT('common.session.search')"
             clearable
             class="mb-3"
           />
@@ -135,12 +135,12 @@
   const columns: Column<SessionItem>[] = [
     {
       key: 'id',
-      title: I18nT('kimi.sessionId'),
+      title: I18nT('common.session.id'),
       dataKey: 'id',
       width: 180,
       align: 'center',
       headerCellRenderer: () => (
-        <span class="flex items-center justify-center">{I18nT('kimi.sessionId')}</span>
+        <span class="flex items-center justify-center">{I18nT('common.session.id')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.id} placement="top" show-after={300}>
@@ -155,10 +155,12 @@
     },
     {
       key: 'title',
-      title: I18nT('kimi.sessionTitle'),
+      title: I18nT('common.session.title'),
       dataKey: 'title',
       width: 200,
-      headerCellRenderer: () => <span class="flex items-center">{I18nT('kimi.sessionTitle')}</span>,
+      headerCellRenderer: () => (
+        <span class="flex items-center">{I18nT('common.session.title')}</span>
+      ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.title} placement="top" show-after={300}>
           <span class="truncate">{row.title}</span>
@@ -167,13 +169,15 @@
     },
     {
       key: 'lastPrompt',
-      title: I18nT('kimi.lastPrompt'),
+      title: I18nT('common.session.lastPrompt'),
       dataKey: 'lastPrompt',
       class: 'flex-1',
       headerClass: 'flex-1',
       width: 0,
       flexGrow: 1,
-      headerCellRenderer: () => <span class="flex items-center">{I18nT('kimi.lastPrompt')}</span>,
+      headerCellRenderer: () => (
+        <span class="flex items-center">{I18nT('common.session.lastPrompt')}</span>
+      ),
       cellRenderer: ({ rowData: row }) => (
         <ElTooltip content={row.lastPrompt} placement="top" show-after={300}>
           <span class="truncate text-gray-500">{row.lastPrompt}</span>
@@ -182,12 +186,12 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       width: 80,
       align: 'center',
       headerCellRenderer: () => (
-        <span class="flex items-center justify-center">{I18nT('base.action')}</span>
+        <span class="flex items-center justify-center">{I18nT('common.label.action')}</span>
       ),
       cellRenderer: ({ rowData: row }) => (
         <ElPopover
@@ -204,7 +208,7 @@
                   <ElIcon size="13">
                     <VideoPlay />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('kimi.resume')}</span>
+                  <span class="ml-3">{I18nT('common.action.resume')}</span>
                 </li>
                 <li onClick={() => exportSession(row)}>
                   <ElIcon size="13">
@@ -216,7 +220,7 @@
                   <ElIcon size="13">
                     <Delete />
                   </ElIcon>
-                  <span class="ml-3">{I18nT('base.del')}</span>
+                  <span class="ml-3">{I18nT('common.action.delete')}</span>
                 </li>
               </ul>
             ),

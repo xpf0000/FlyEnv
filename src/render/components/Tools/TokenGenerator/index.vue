@@ -72,7 +72,7 @@
               multiline
               :placeholder="I18nT('token-generator.tokenPlaceholder')"
               readonly
-              rows="3"
+              :rows="3"
               autosize
               type="textarea"
               class="token-display"
@@ -80,10 +80,10 @@
 
             <div class="mt-5 flex justify-center gap-3">
               <el-button @click="Store.copy()">
-                {{ I18nT('token-generator.button.copy') }}
+                {{ I18nT('common.action.copy') }}
               </el-button>
               <el-button @click="Store.refreshToken()">
-                {{ I18nT('token-generator.button.refresh') }}
+                {{ I18nT('common.action.refresh') }}
               </el-button>
             </div>
           </el-card>

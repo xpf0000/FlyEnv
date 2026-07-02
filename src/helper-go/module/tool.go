@@ -12,6 +12,28 @@ import (
 	"unicode/utf16"
 )
 
+func resolveWindowsSystemExe(name string, systemRoot string, exists func(string) bool, isWindows bool) string {
+	if !isWindows {
+		return name
+	}
+	exeName := name
+	if !strings.HasSuffix(strings.ToLower(exeName), ".exe") {
+		exeName += ".exe"
+	}
+	if systemRoot == "" {
+		systemRoot = `C:\Windows`
+	}
+	for _, candidate := range []string{
+		filepath.Join(systemRoot, "Sysnative", exeName),
+		filepath.Join(systemRoot, "System32", exeName),
+	} {
+		if exists(candidate) {
+			return candidate
+		}
+	}
+	return exeName
+}
+
 // getWindowsSystemExe 获取 Windows System32 下可执行文件的完整路径
 // 如果文件存在则返回完整路径，否则回退到命令名本身
 func getWindowsSystemExe(name string) string {
@@ -24,20 +46,9 @@ func getWindowsSystemExe(name string) string {
 		systemRoot = `C:\Windows`
 		utils.AppDebugLog("getWindowsSystemExe", "SystemRoot empty, fallback to C:\\Windows")
 	}
-	fullPath := filepath.Join(systemRoot, "System32", name+".exe")
-	utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Checking System32 path: %s", fullPath))
-	if utils.ExistsSync(fullPath) {
-		utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Found %s at: %s", name, fullPath))
-		return fullPath
-	}
-	sysnativePath := filepath.Join(systemRoot, "Sysnative", name+".exe")
-	utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Checking Sysnative path: %s", sysnativePath))
-	if utils.ExistsSync(sysnativePath) {
-		utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Found %s at Sysnative: %s", name, sysnativePath))
-		return sysnativePath
-	}
-	utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Not found, fallback to: %s", name))
-	return name
+	resolved := resolveWindowsSystemExe(name, systemRoot, utils.ExistsSync, true)
+	utils.AppDebugLog("getWindowsSystemExe", fmt.Sprintf("Resolved %s to: %s", name, resolved))
+	return resolved
 }
 
 // ToolManager embeds BaseManager, providing various system utility functionalities.
@@ -537,13 +548,14 @@ func (t *ToolManager) SetAutoStartWin(enabled bool, taskName, exePath string) (b
 	if err := utils.ValidateAutoStartTask(enabled, taskName, exePath); err != nil {
 		return false, err
 	}
+	schtasksExe := getWindowsSystemExe("schtasks")
 
 	if enabled {
 		// schtasks 的 /tr 值在路径含空格时需要内层引号，否则 Task Scheduler
 		// 会把首个空格前的部分当作可执行文件，导致登录时启动失败。
 		// Go 的 exec.Command 在 Windows 上会用 syscall.EscapeArg 处理内层引号。
 		trValue := `"` + exePath + `"`
-		_, stderr, err := utils.ExecCommand("schtasks.exe", []string{
+		_, stderr, err := utils.ExecCommand(schtasksExe, []string{
 			"/create", "/tn", taskName, "/tr", trValue,
 			"/sc", "onlogon", "/rl", "highest", "/f",
 		}, nil)
@@ -551,7 +563,7 @@ func (t *ToolManager) SetAutoStartWin(enabled bool, taskName, exePath string) (b
 			return false, fmt.Errorf("failed to create auto start task: %w, stderr: %s", err, stderr)
 		}
 	} else {
-		_, stderr, err := utils.ExecCommand("schtasks.exe", []string{"/delete", "/tn", taskName, "/f"}, nil)
+		_, stderr, err := utils.ExecCommand(schtasksExe, []string{"/delete", "/tn", taskName, "/f"}, nil)
 		if err != nil {
 			return false, fmt.Errorf("failed to delete auto start task: %w, stderr: %s", err, stderr)
 		}

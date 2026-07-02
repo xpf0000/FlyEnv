@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Eyni anda yalnız bir xidmət işlədilə bilər",
   "moduleExecItem": "Modul İcra Elementi",
   "module": {
-    "name": "Ad",
     "path": "Fayl Yolu",
-    "comment": "Açıqlama",
     "exec": "İcra Et",
     "command": "Əmr",
     "commandFile": "Fayl",
@@ -39,8 +37,7 @@
     "needPasswordToStart": "Administrator icazəsi tələb olunur. Şifrənizi daxil edin (gələcək istifadə üçün saxlanacaq). Alternativ olaraq terminalda əl ilə daxil edə bilərsiniz, lakin bu xəbərdarlıq yenidən görünə bilər.",
     "hadOpenInTerminal": "Artıq terminalda işləyir — nəticələr göstərilə bilmir.",
     "licenseTips": "Lisenziya tapılmadı. Yalnız 3 modul və ya icra elementi yaradıla bilər.",
-    "outputLog": "Çıxış Jurnalı",
-    "errorLog": "Xəta Jurnalı"
+    "outputLog": "Çıxış Jurnalı"
   },
   "flyenvHelper": "FlyEnv Yardımçı Proqramını Bərpa Et",
   "flyenvHelperBtn": "Bərpa Et",

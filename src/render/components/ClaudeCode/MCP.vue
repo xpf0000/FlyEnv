@@ -3,8 +3,8 @@
     <template #header>
       <div class="card-header">
         <div class="left flex items-center">
-          <span>{{ I18nT('claudeCode.mcp') }}</span>
-          <el-tooltip :content="I18nT('claudeCode.addServer')" placement="top" :show-after="300">
+          <span>{{ I18nT('common.category.mcp') }}</span>
+          <el-tooltip :content="I18nT('common.mcp.addServer')" placement="top" :show-after="300">
             <el-button link class="ml-3" :icon="Plus" @click="openAdd" />
           </el-tooltip>
         </div>
@@ -24,19 +24,38 @@
     <div class="w-full h-full overflow-hidden">
       <div v-loading="ClaudeCodeSetup.mcpLoading" class="p-5 h-full overflow-hidden flex flex-col">
         <el-scrollbar v-if="ClaudeCodeSetup.mcpServers.length > 0">
-          <el-table :data="ClaudeCodeSetup.mcpServers" style="width: 100%">
-            <el-table-column prop="name" :label="I18nT('claudeCode.mcpName')" width="180" />
-            <el-table-column prop="type" :label="I18nT('claudeCode.mcpType')" width="100" />
-            <el-table-column
-              prop="commandOrUrl"
-              :label="I18nT('claudeCode.mcpCommandOrUrl')"
-              show-overflow-tooltip
-            />
-            <el-table-column prop="scope" :label="I18nT('claudeCode.mcpScope')" width="100" />
-            <el-table-column :label="I18nT('base.action')" width="100" align="center">
+          <el-table :data="ClaudeCodeSetup.mcpServers" style="width: 100%" show-overflow-tooltip>
+            <el-table-column width="180">
+              <template #header>
+                <div class="w-full min-w-0 truncate">{{ I18nT('common.label.name') }}</div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.name }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column width="100">
+              <template #header>
+                <div class="w-full min-w-0 truncate">{{ I18nT('common.mcp.type') }}</div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.type }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column>
+              <template #header>
+                <div class="w-full min-w-0 truncate">
+                  {{ I18nT('common.mcp.commandOrUrl') }}
+                </div>
+              </template>
+              <template #default="{ row }">
+                <div class="w-full min-w-0 truncate">{{ row.commandOrUrl }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="scope" :label="I18nT('common.mcp.scope')" width="100" />
+            <el-table-column :label="I18nT('common.label.action')" width="100" align="center">
               <template #default="{ row }">
                 <el-button link type="danger" @click="confirmRemove(row.name)">{{
-                  I18nT('base.del')
+                  I18nT('common.action.delete')
                 }}</el-button>
               </template>
             </el-table-column>
@@ -48,22 +67,22 @@
 
     <el-dialog
       v-model="addVisible"
-      :title="I18nT('claudeCode.addServer')"
+      :title="I18nT('common.mcp.addServer')"
       width="500"
       append-to-body
     >
       <el-form label-position="top" @submit.prevent>
-        <el-form-item :label="I18nT('claudeCode.mcpName')">
+        <el-form-item :label="I18nT('common.label.name')">
           <el-input v-model="form.name" placeholder="my-server" />
         </el-form-item>
-        <el-form-item :label="I18nT('claudeCode.mcpType')">
+        <el-form-item :label="I18nT('common.mcp.type')">
           <el-radio-group v-model="form.type">
             <el-radio-button value="stdio">stdio</el-radio-button>
             <el-radio-button value="http">http</el-radio-button>
             <el-radio-button value="sse">sse</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="I18nT('claudeCode.mcpCommandOrUrl')">
+        <el-form-item :label="I18nT('common.mcp.commandOrUrl')">
           <el-input
             v-model="form.commandOrUrl"
             :placeholder="form.type === 'stdio' ? 'npx my-mcp-server' : 'https://example.com/mcp'"

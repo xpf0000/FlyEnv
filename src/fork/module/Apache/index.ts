@@ -36,6 +36,28 @@ class Apache extends Base {
     this.pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
   }
 
+  getConfigFiles(version?: SoftInstalled) {
+    if (!version?.bin) return []
+    const path = isWindows()
+      ? join(global.Server.ApacheDir!, `${version.version}.conf`)
+      : join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
+    return [{ name: 'main', path }]
+  }
+
+  getLogFiles(version?: SoftInstalled) {
+    if (isWindows() && version?.version) {
+      return [
+        { name: 'error', path: join(global.Server.ApacheDir!, `${version.version}.error.log`) },
+        { name: 'access', path: join(global.Server.ApacheDir!, `${version.version}.access.log`) }
+      ]
+    }
+    const dir = join(global.Server.ApacheDir!, 'common/logs')
+    return [
+      { name: 'error', path: join(dir, 'error_log') },
+      { name: 'access', path: join(dir, 'access_log') }
+    ]
+  }
+
   #resetConf(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       let defaultFile = ''

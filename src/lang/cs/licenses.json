@@ -1,5 +1,4 @@
 {
-  "title": "Popis licence",
   "description": "Tato licence uznává a podporuje úsilí FlyEnv a jeho autorů. Jejím cílem není omezovat uživatele, ale podporovat úctu k práci a duševnímu vlastnictví vývojářů. Před použitím FlyEnv pro komerční účely se ujistěte, že jste získali platnou licenci.",
   "restrictions": {
     "title": "Uživatelé bez licence budou podléhat následujícím omezením:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Navázané UUID",
   "delBind": "Zrušit vazbu",
   "bindCurrentUUID": "Navázat toto zařízení",
-  "licenseDescription": "Popis licence",
   "loginFail": "Přihlášení se nezdařilo",
   "oauthCanceledTitle": "Oprávnění zrušeno",
   "oauthCanceledMessage": "Uživatel zrušil proces ověření",

@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Main from '@/components/Main.vue'
-import { defineAsyncComponent } from 'vue'
 import { AppModules } from '@/core/App'
+import { normalizeRouteComponent } from './route-component'
 
 const routes = [
   {
@@ -12,16 +12,16 @@ const routes = [
     children: [
       {
         path: '/setup',
-        component: defineAsyncComponent(() => import('@/components/Setup/Index.vue'))
+        component: () => import('@/components/Setup/Index.vue')
       },
       {
         path: '/customer-module',
-        component: defineAsyncComponent(() => import('@/components/CustomerModule/Index.vue'))
+        component: () => import('@/components/CustomerModule/Index.vue')
       },
       ...AppModules.map((item) => {
         return {
           path: item.typeFlag,
-          component: item.index
+          component: normalizeRouteComponent(item.index)
         }
       })
     ]

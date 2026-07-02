@@ -1,6 +1,6 @@
 {
-  "installFNM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
-  "installNVM": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "installFNM": "Instal <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "Instal <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
   "Terminal": "Terminal",
   "registry": "Sumber",
   "checkPackageJsonUpdate": "Periksa pembaruan",
@@ -8,9 +8,9 @@
   "updatePackageJsonFileTips": "Tindakan ini akan memodifikasi file package.json. Apakah Anda yakin ingin memperbarui?",
   "copyDirPath": "Salin Path Folder Proyek",
   "openIN": "Buka di",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Editor Visual Studio Code",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "Lingkungan Proyek",
-  "installGit": "Install <a href=\"javascript:void();\" onclick=\"openUrl('https://git-scm.com')\">Git</a>"
+  "installGit": "Instal <a href=\"javascript:void();\" onclick=\"openUrl('https://git-scm.com')\">Git</a>"
 }

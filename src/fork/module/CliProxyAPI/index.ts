@@ -14,7 +14,6 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  readdir,
   binXattrFix
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
@@ -213,27 +212,22 @@ class CliProxyAPI extends Base {
     })
   }
 
-  getLogFiles() {
-    return new ForkPromise(async (resolve) => {
-      const baseDir = join(global.Server.BaseDir!, 'cliproxyapi')
-      const files: Array<{ name: string; path: string }> = []
-      try {
-        if (existsSync(baseDir)) {
-          const list = await readdir(baseDir)
-          list.forEach((name) => {
-            if (name.startsWith('cliproxyapi-') && name.endsWith('.log')) {
-              files.push({
-                name: name.replace('.log', ''),
-                path: join(baseDir, name)
-              })
-            }
-          })
-        }
-      } catch (e) {
-        console.log('cliproxyapi getLogFiles error: ', e)
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    if (!_version?.version) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'cliproxyapi')
+    const versionStr = _version.version.trim().split(' ').join('')
+    return [
+      {
+        name: 'start-out',
+        path: join(baseDir, `cliproxyapi-${versionStr}-start-out.log`)
+      },
+      {
+        name: 'start-error',
+        path: join(baseDir, `cliproxyapi-${versionStr}-start-error.log`)
       }
-      resolve(files)
-    })
+    ]
   }
 
   brewinfo() {
@@ -254,6 +248,15 @@ class CliProxyAPI extends Base {
     if (isMacOS()) {
       await binXattrFix(row.bin)
     }
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'cliproxyapi')
+    return [
+      { name: 'config', path: join(baseDir, 'config.yaml') },
+      { name: 'config.default', path: join(baseDir, 'config.default.yaml') },
+      { name: 'env', path: join(baseDir, 'cliproxyapi.env') }
+    ]
   }
 }
 

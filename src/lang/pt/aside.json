@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "webServer": "Servidor Web",
   "dataBaseServer": "Servidor de Banco de Dados",
   "emailServer": "Servidor de E-mail",
@@ -8,13 +7,14 @@
   "dnsServer": "Servidor DNS",
   "ftpServer": "Servidor FTP",
   "containerRuntime": "Tempo de Execução do Contêiner",
-  "other": "Outro",
   "appLog": "Log da Aplicação",
+  "aiCoding": "Programação com IA",
   "ai": "IA",
   "objectStorage": "Armazenamento de Objetos",
   "appExit": "Parar todos os serviços iniciados e sair do FlyEnv",
   "groupStart": "Iniciar com um clique todos os serviços disponíveis exibidos no painel",
   "networkTunnel": "Túnel de rede",
   "cacheAndQueue": "Cache e Fila de Mensagens",
-  "serviceGovernance": "Administração de Serviços"
+  "serviceGovernance": "Administração de Serviços",
+  "other": "Outros"
 }

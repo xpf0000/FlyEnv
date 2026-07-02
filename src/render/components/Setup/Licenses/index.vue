@@ -35,7 +35,7 @@
                 <template v-if="store.githubUser?.uuid">
                   <el-button
                     class="button"
-                    :disabled="store.githubAuthing"
+                    :disabled="!!store.githubAuthing"
                     link
                     @click="store.githubLicenseFetch()"
                   >
@@ -99,7 +99,7 @@
                 :label="I18nT('licenses.licenseBindUUID')"
                 prop="uuid"
               ></el-table-column>
-              <el-table-column :label="I18nT('base.action')" width="100px">
+              <el-table-column :label="I18nT('common.label.action')" width="100px">
                 <template #default="scope">
                   <el-dropdown>
                     <template #default>
@@ -108,14 +108,14 @@
                     <template #dropdown>
                       <el-dropdown-menu>
                         <el-dropdown-item
-                          :disabled="store.githubAuthing || !scope.row.uuid"
+                          :disabled="!!store.githubAuthing || !scope.row.uuid"
                           @click.stop="store.githubAuthDelBind(scope.row.uuid, scope.row.license)"
                           >{{ I18nT('licenses.delBind') }}</el-dropdown-item
                         >
                         <el-dropdown-item
                           :disabled="
-                            store.githubAuthing ||
-                            scope.row.uuid ||
+                            !!store.githubAuthing ||
+                            !!scope.row.uuid ||
                             store.githubLicense?.some((s) => s.uuid === store.uuid)
                           "
                           @click.stop="store.githubAuthAddBind(store.uuid, scope.row.license)"
@@ -131,11 +131,11 @@
         </el-card>
         <el-card v-if="!store.isActive">
           <template #header>
-            <span>{{ I18nT('licenses.licenseDescription') }}</span>
+            <span>{{ I18nT('common.label.licenseDescription') }}</span>
           </template>
           <template #default>
             <div class="flex flex-col gap-2 items-start">
-              <div class="text-xl">{{ I18nT('licenses.title') }}</div>
+              <div class="text-xl">{{ I18nT('common.label.licenseDescription') }}</div>
               <p>{{ I18nT('licenses.description') }}</p>
               <p>{{ I18nT('licenses.restrictions.title') }} </p>
               <p>1. {{ I18nT('licenses.restrictions.items.0') }}</p>
@@ -188,7 +188,7 @@
                   class="mt-4"
                   type="textarea"
                   resize="none"
-                  rows="6"
+                  :rows="6"
                   :placeholder="I18nT('licenses.messagePlaceholder')"
                 ></el-input>
               </el-form-item>

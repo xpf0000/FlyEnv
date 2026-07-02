@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "Solo un servicio puede estar en ejecución a la vez",
   "moduleExecItem": "Elemento de Ejecución del Módulo",
   "module": {
-    "name": "Nombre",
     "path": "Ruta del Archivo",
-    "comment": "Comentario",
     "exec": "Ejecutar",
     "command": "Comando",
     "commandFile": "Archivo",
@@ -39,15 +37,14 @@
     "needPasswordToStart": "Se requieren derechos de administrador. Ingresa tu contraseña (se guardará para uso futuro). Alternativamente, introdúcela manualmente en el terminal, pero este mensaje puede reaparecer.",
     "hadOpenInTerminal": "Ya está en ejecución en el terminal—resultados no disponibles.",
     "licenseTips": "No se encontró licencia. Solo se pueden crear 3 módulos/elementos de ejecución.",
-    "outputLog": "Registro de Salida",
-    "errorLog": "Registro de Errores"
+    "outputLog": "Registro de Salida"
   },
   "flyenvHelper": "Corregir FlyEnv Helper",
   "flyenvHelperBtn": "Corregir",
   "flyenvHelperFixSuccess": "FlyEnv Helper corregido exitosamente",
   "flyenvHelperInstallFailTips": "Error al instalar FlyEnv helper. Intente ejecutar FlyEnv con privilegios de administrador o haga clic en el botón Aceptar y ejecute manualmente el programa auxiliar flyenv-helper.exe en la carpeta abierta.",
-  "appFont": "UI Font",
+  "appFont": "Fuente de la interfaz",
   "appFontTips": "Establecer la fuente usada para la interfaz de la aplicación. Dejar en blanco para usar la fuente por defecto del sistema",
-  "codeFont": "Code Font",
+  "codeFont": "Fuente del código",
   "codeFontTips": "Establecer la fuente usada para terminal, editor y otras áreas de código. Dejar en blanco para usar la fuente monospacial predeterminada"
 }

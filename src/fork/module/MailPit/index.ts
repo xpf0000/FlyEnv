@@ -249,5 +249,18 @@ class MailPit extends Base {
       resolve({})
     })
   }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'mailpit')
+    return [
+      { name: 'mailpit.conf', path: join(baseDir, 'mailpit.conf') },
+      { name: 'mailpit.conf.default', path: join(baseDir, 'mailpit.conf.default') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'mailpit')
+    return [{ name: 'mailpit.log', path: join(baseDir, 'mailpit.log') }]
+  }
 }
 export default new MailPit()

@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "Naziv",
+    "status": "Status",
+    "workingDirectory": "Radni Direktorij",
+    "action": "Akcija",
+    "comment": "Komentar",
+    "source": "Izvor",
+    "site": "Stranica",
+    "errorLog": "Log Grešaka",
+    "library": "Knjižnica",
+    "path": "Putanja",
+    "description": "Opis",
+    "port": "Port",
+    "startCommand": "Naredba za Pokretanje",
+    "licenseDescription": "Opis Licence",
+    "password": "Lozinka",
+    "username": "Korisničko Ime",
+    "size": "Veličina",
+    "containerEnvVars": "Varijable Okruženja Kontejnera",
+    "createdTime": "Vrijeme Kreiranja",
+    "image": "Slika",
+    "state": "Stanje",
+    "grid": "Rešetka",
+    "gridSpacing": "Razmak Rešetke (pikseli)",
+    "fontSize": "Veličina Fonta",
+    "code": "Kod"
+  },
+  "action": {
+    "enable": "Omogući",
+    "disable": "Onemogući",
+    "resume": "Nastavi",
+    "uninstall": "Deinstaliraj",
+    "copy": "Kopiraj",
+    "preview": "Pregled",
+    "search": "Pretraži",
+    "clear": "Očisti",
+    "resetPassword": "Resetiraj Lozinku",
+    "delete": "Obriši",
+    "add": "Dodaj",
+    "edit": "Uredi",
+    "generate": "Generiraj",
+    "refresh": "Osvježi",
+    "save": "Spremi",
+    "start": "Pokreni",
+    "stop": "Zaustavi",
+    "close": "Zatvori",
+    "selectAll": "Odaberi Sve",
+    "changeName": "Uredi Ime",
+    "changeOwnerPassword": "Promijeni Vlasničku Lozinku",
+    "changeRole": "Promijeni Ulogu"
+  },
+  "state": {
+    "running": "Trčanje",
+    "installed": "Instalirano",
+    "enabled": "Omogućeno",
+    "disabled": "Onemogućeno",
+    "available": "Dostupno"
+  },
+  "session": {
+    "list": "Sesije",
+    "title": "Naslov",
+    "id": "ID sesije",
+    "lastPrompt": "Posljednji upit",
+    "search": "Pretraži sesije",
+    "deleted": "Sesija je izbrisana",
+    "resumed": "Sesija je nastavljena u terminalu"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Naredba / URL",
+    "scope": "Scope",
+    "addServer": "Dodaj poslužitelj"
+  },
+  "category": {
+    "basic": "Osnovno",
+    "mcp": "MCP",
+    "skills": "Vještine",
+    "basicInfo": "Osnovne Informacije",
+    "configuration": "Konfiguracija",
+    "favorites": "Favoriti",
+    "plugins": "Plugins",
+    "backupUpdate": "Sigurnosna Kopija i Ažuriranje"
+  },
+  "skills": {
+    "openSkillsDir": "Otvori direktorij vještina",
+    "openSkillDir": "Otvori direktorij vještina",
+    "revealSkillFile": "Otkrij datoteku s vještinama",
+    "noSkills": "Nisu pronađene vještine",
+    "skillFileMissing": "Datoteka s vještinama nije pronađena",
+    "skillLoadFailed": "Učitavanje datoteke s vještinama nije uspjelo",
+    "builtin": "Ugrađeno"
+  },
+  "cli": {
+    "help": "Prikaži informacije pomoći",
+    "version": "Prikaži broj verzije",
+    "start": "Pokreni novu interaktivnu sesiju",
+    "mcpList": "Prikaži konfigurirane MCP poslužitelje",
+    "doctor": "Pokreni provjere zdravlja",
+    "doctorFix": "Pokreni provjere zdravlja s automatskim popravkom",
+    "gatewayStart": "Pokreni servis pristupnika",
+    "gatewayStop": "Zaustavi servis pristupnika",
+    "gatewayRestart": "Ponovo pokreni servis pristupnika",
+    "gatewayStatus": "Prikaži status pristupnika",
+    "gatewayRun": "Pokreni pristupnik u prvom planu",
+    "gatewayUninstall": "Deinstaliraj servis pristupnika",
+    "skillsList": "Prikaži dostupne vještine"
+  },
+  "gateway": {
+    "category": "Servis Pristupnika",
+    "status": "Status Pristupnika",
+    "running": "Pristupnik radi",
+    "stopped": "Pristupnik je zaustavljen",
+    "startFailed": "Pokretanje pristupnika nije uspjelo"
+  },
+  "value": {
+    "yes": "Da",
+    "no": "Ne",
+    "other": "Ostalo",
+    "default": "Zadano",
+    "none": "Ništa",
+    "local": "Lokalno"
+  },
+  "plugin": {
+    "search": "Pretraži dodatke",
+    "removed": "Dodatak je uklonjen"
+  },
+  "schedule": {
+    "everyHour": "Svakog sata",
+    "everyMinute": "Svake minute"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini datoteka nije pronađena"
+  }
+}

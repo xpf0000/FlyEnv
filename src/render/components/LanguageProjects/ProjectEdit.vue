@@ -13,23 +13,27 @@
       <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{
+            isEdit ? I18nT('common.action.edit') : I18nT('common.action.add')
+          }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">
-          {{ I18nT('base.save') }}
+          {{ I18nT('common.action.save') }}
         </el-button>
       </div>
 
       <el-scrollbar class="flex-1">
         <div class="main-wapper p-3">
           <!-- 基本信息 -->
-          <div class="plant-title" style="padding-top: 6px">{{ I18nT('base.baseInfo') }}</div>
+          <div class="plant-title" style="padding-top: 6px">{{
+            I18nT('common.category.basicInfo')
+          }}</div>
           <div class="main p-5">
             <input
               v-model.trim="item.comment"
               type="text"
               :class="'input mb-4' + (errs['comment'] ? ' error' : '')"
-              :placeholder="I18nT('host.comment')"
+              :placeholder="I18nT('common.label.comment')"
             />
             <div class="path-choose mb-4">
               <input
@@ -89,7 +93,7 @@
                   style="margin-top: 0"
                   type="text"
                   :class="'input-textarea w-full' + (errs['runCommand'] ? ' error' : '')"
-                  :placeholder="I18nT('host.startCommand')"
+                  :placeholder="I18nT('common.label.startCommand')"
                 ></textarea>
               </div>
               <div v-else class="path-choose">
@@ -136,7 +140,8 @@
             <div class="main p-5">
               <div class="ssl-switch">
                 <el-radio-group v-model="item.envVarType">
-                  <el-radio-button value="none" :label="I18nT('base.none')"> </el-radio-button>
+                  <el-radio-button value="none" :label="I18nT('common.value.none')">
+                  </el-radio-button>
                   <el-radio-button value="specify" :label="I18nT('host.specifyVar')">
                   </el-radio-button>
                   <el-radio-button value="file" :label="I18nT('host.fileVar')"> </el-radio-button>
@@ -177,7 +182,7 @@
             </div>
             <div class="main p-5">
               <template v-if="item.configPath.length === 0">
-                <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+                <div class="flex justify-center">{{ I18nT('common.value.none') }}</div>
               </template>
               <template v-else>
                 <div class="flex flex-col gap-4">
@@ -188,14 +193,14 @@
                         type="text"
                         class="input"
                         style="height: 32px; width: 120px; flex: unset"
-                        :placeholder="I18nT('base.name')"
+                        :placeholder="I18nT('common.label.name')"
                       />
                       <input
                         v-model.trim="c.path"
                         type="text"
                         class="input"
                         style="height: 32px; margin-left: 12px"
-                        :placeholder="I18nT('base.path')"
+                        :placeholder="I18nT('common.label.path')"
                       />
                       <div class="icon-block" @click="chooseConfigPath(c)">
                         <yb-icon
@@ -226,7 +231,7 @@
             </div>
             <div class="main p-5">
               <template v-if="item.logPath.length === 0">
-                <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+                <div class="flex justify-center">{{ I18nT('common.value.none') }}</div>
               </template>
               <template v-else>
                 <div class="flex flex-col gap-4">
@@ -237,14 +242,14 @@
                         type="text"
                         class="input"
                         style="height: 32px; width: 120px; flex: unset"
-                        :placeholder="I18nT('base.name')"
+                        :placeholder="I18nT('common.label.name')"
                       />
                       <input
                         v-model.trim="c.path"
                         type="text"
                         class="input"
                         style="height: 32px; margin-left: 12px"
-                        :placeholder="I18nT('base.path')"
+                        :placeholder="I18nT('common.label.path')"
                       />
                       <div class="icon-block" @click="chooseLogPath(c)">
                         <yb-icon
@@ -324,6 +329,7 @@
 
   const item = ref<ProjectItemType>({
     id: uuid(),
+    typeFlag: props.typeFlag,
     isService: true,
     path: '',
     comment: '',

@@ -9,6 +9,5 @@
   "hostsFileNotFound": "A hosts fájl nem létezik",
   "versionNotFound": "A szoftververzió lekérése sikertelen, a művelet megszakadt.",
   "downloadFileFail": "A fájl letöltése sikertelen!",
-  "phpiniNotFound": "A php.ini fájl nem található",
   "noEPMD": "Az epmd folyamat nem található. Kérjük, állítsa vissza az Erlang környezeti változókat"
 }

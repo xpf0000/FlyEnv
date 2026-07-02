@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "VRAM egy részének fenntartása GPU-nként (bájt)",
   "OLLAMA_LOAD_TIMEOUT": "Mennyi ideig állhat meg a modell betöltése, mielőtt feladja (alapértelmezett \"5m\")",
   "needServiceRun": "Előbb indítsa el az Olama szolgáltatást",
-  "size": "Méret",
   "model": "Modellek"
 }

@@ -44,6 +44,10 @@ import type cron from './zh/cron.json'
 import type claudeCode from './zh/claude-code.json'
 import type codex from './zh/codex.json'
 import type openCode from './zh/opencode.json'
+import type antigravity from './zh/antigravity.json'
+import type copilotCli from './zh/copilot-cli.json'
+import type common from './zh/common.json'
+import type mcp from './zh/mcp.json'
 
 import AR from './ar/index'
 import AZ from './az/index'
@@ -90,6 +94,7 @@ type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
 }[keyof T] // Extract the union type of all values
 
 type LangKey =
+  | AppendStringToKeys<typeof common, 'common'>
   | AppendStringToKeys<typeof ai, 'ai'>
   | AppendStringToKeys<typeof apache, 'apache'>
   | AppendStringToKeys<typeof appLog, 'appLog'>
@@ -133,6 +138,9 @@ type LangKey =
   | AppendStringToKeys<typeof claudeCode, 'claudeCode'>
   | AppendStringToKeys<typeof codex, 'codex'>
   | AppendStringToKeys<typeof openCode, 'openCode'>
+  | AppendStringToKeys<typeof antigravity, 'antigravity'>
+  | AppendStringToKeys<typeof copilotCli, 'copilotCli'>
+  | AppendStringToKeys<typeof mcp, 'mcp'>
 
 export const AppAllLang: Record<string, string> = {
   ar: 'العربية',
@@ -217,7 +225,7 @@ export const AppI18n = (l?: string): I18n => {
   return i18n
 }
 
-export const I18nT = (key: LangKey, ...args: any) => {
+export const I18nT = (key: LangKey | string, ...args: any) => {
   const t: any = i18n.global.t
   return t(key, ...args)
 }

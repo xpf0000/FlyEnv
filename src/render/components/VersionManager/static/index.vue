@@ -66,14 +66,16 @@
   const columns: Column<any>[] = [
     {
       key: 'name',
-      title: I18nT('base.Library'),
+      title: I18nT('common.label.library'),
       dataKey: 'name',
       class: 'flex-1',
       headerClass: 'flex-1',
       width: 0,
       headerCellRenderer: () => {
         return (
-          <span style="padding: 2px 12px 2px 24px; display: block">{I18nT('base.Library')}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">
+            {I18nT('common.label.library')}
+          </span>
         )
       },
       cellRenderer: ({ rowData: row }) => {
@@ -151,7 +153,7 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',
@@ -167,7 +169,7 @@
             disabled={row.downing}
             onClick={() => handleVersion(row)}
           >
-            {row.installed ? I18nT('base.uninstall') : I18nT('base.install')}
+            {row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')}
           </ElButton>
         )
       }

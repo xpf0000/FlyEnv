@@ -17,6 +17,7 @@ import { fetchEnvPath, fetchPATH, handleUpdatePath, updatePATH, removePATH } fro
 import { setAlias, cleanAlias } from './alias'
 import { runInTerminal, openPathByApp } from './terminal'
 import { initAllowDir, initFlyEnvSH } from './init'
+import type { SoftInstalled } from '@shared/app'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -75,7 +76,7 @@ class Manager extends Base {
   systemEnvSave(file: string, content: string) {
     return new ForkPromise(async (resolve, reject) => {
       if (!existsSync(file)) {
-        reject(new Error(I18nT('php.phpiniNotFound')))
+        reject(new Error(I18nT('common.error.phpiniNotFound')))
         return
       }
       try {
@@ -158,6 +159,16 @@ class Manager extends Base {
 
   initAllowDir = initAllowDir
   initFlyEnvSH = initFlyEnvSH
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Tool 是通用工具模块，不管理具体服务，没有固定的配置文件
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    // Tool 是通用工具模块，不产生专属的日志文件
+    return []
+  }
 }
 
 export default new Manager()

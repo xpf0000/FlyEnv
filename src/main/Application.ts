@@ -16,20 +16,30 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
+import ServiceVersionManager from './core/ServiceVersionManager'
 import { AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import OAuth from './core/OAuth'
 import ConfigManager from './core/ConfigManager'
+import MCPConfigManager from './core/MCPConfigManager'
+import MCPServer from './core/MCPServer'
+import MCPBridgeManager from './core/MCPBridgeManager'
 import ServerManager from './core/ServerManager'
 import IPCHandler from './core/IPCHandler'
+import { startMcpOnLaunchIfNeeded } from './core/MCPLifecycle'
 import { CheckBrewOrPort } from './utils/CheckBrew'
 import { MakeServerDir } from './utils/ServerPath'
+import { reactive, watch } from 'vue'
+import { debounce } from 'lodash-es'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default class Application extends EventEmitter {
   isReady: boolean = false
   configManager: ConfigManager
+  mcpConfigManager: MCPConfigManager
+  mcpServer?: MCPServer
+  mcpBridgeManager?: MCPBridgeManager
   menuManager: MenuManager
   trayManager: TrayManager
   windowManager: WindowManager
@@ -46,6 +56,8 @@ export default class Application extends EventEmitter {
     super()
     this.setupInitialConfig()
     this.configManager = new ConfigManager()
+    this.mcpConfigManager = new MCPConfigManager()
+    this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
 
     AppNodeFnManager.nativeTheme_watch()
@@ -54,6 +66,8 @@ export default class Application extends EventEmitter {
     this.initLang()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
+
+    this.serverManager.setProxy()
     this.serverManager.initServerDir()
 
     this.windowManager = new WindowManager({
@@ -68,6 +82,8 @@ export default class Application extends EventEmitter {
     // 初始化 IPC 处理器
     this.ipcHandler = new IPCHandler({
       configManager: this.configManager,
+      mcpConfigManager: this.mcpConfigManager,
+      mcpBridgeManager: this.mcpBridgeManager,
       windowManager: this.windowManager,
       trayManager: this.trayManager,
       serverManager: this.serverManager,
@@ -94,10 +110,11 @@ export default class Application extends EventEmitter {
    * 设置初始全局配置
    */
   private setupInitialConfig() {
-    global.Server = {
+    global.Server = reactive({
       Local: getLocale(),
       APPVersion: app.getVersion()
-    } as any
+    }) as any
+    watch(global.Server, debounce(this.sendGlobalServerUpdate, 350).bind(this))
     this.isReady = false
   }
 
@@ -148,11 +165,11 @@ export default class Application extends EventEmitter {
     AppHelperRoleFix().catch()
     Helper.appHelper = AppHelper
 
-    AppHelper.onStatusMessage((flag) => {
+    AppHelper.onStatusMessage((message) => {
       if (!this?.mainWindow) {
         return
       }
-      this.handleHelperStatusMessage(flag)
+      this.handleHelperStatusMessage(message)
     })
 
     AppHelper.onSuduExecSuccess(() => {
@@ -163,7 +180,7 @@ export default class Application extends EventEmitter {
   /**
    * 处理 Helper 状态消息
    */
-  private handleHelperStatusMessage(flag: string) {
+  private handleHelperStatusMessage(message: { state: string; reason?: string }) {
     const key = 'APP-FlyEnv-Helper-Notice'
     const messages: Record<string, { code: number; msg: string; status?: string }> = {
       needInstall: { code: 1, msg: I18nT('menu.needInstallHelper') },
@@ -173,9 +190,12 @@ export default class Application extends EventEmitter {
       checkSuccess: { code: 0, msg: I18nT('menu.helperInstallSuccessTips') }
     }
 
-    const message = messages[flag]
-    if (message) {
-      this.windowManager.sendCommandTo(this.mainWindow!, key, key, message)
+    const base = messages[message.state]
+    if (base) {
+      this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
+        ...base,
+        reason: message.reason
+      })
     }
   }
 
@@ -193,8 +213,33 @@ export default class Application extends EventEmitter {
     })
     ServiceProcessManager.forkManager = this.forkManager
 
-    // 更新 IPC 处理器的 forkManager 引用
-    this.ipcHandler.updateDependencies({ forkManager: this.forkManager })
+    // 服务运行态变更时，广播给 render，使「非本端发起」（MCP / 托盘 / 其它窗口）的启停也能同步到 UI
+    ServiceProcessManager.onStatusChange((status) => {
+      if (!this.mainWindow) {
+        return
+      }
+      this.windowManager.sendCommandTo(this.mainWindow, 'APP-MCP-Notify', 'APP-MCP-Notify', {
+        type: 'service-status-changed',
+        ...status
+      })
+    })
+
+    // MCP Server 需要 forkManager 句柄，在此创建并注入
+    this.mcpServer = new MCPServer(this.forkManager, this.mcpConfigManager, this.configManager)
+    this.ipcHandler.updateDependencies({ forkManager: this.forkManager, mcpServer: this.mcpServer })
+    startMcpOnLaunchIfNeeded(this.mcpConfigManager, this.mcpServer).catch(() => {})
+
+    // MCP 通知统一通过 ServiceVersionManager 中转，再广播给渲染进程
+    ServiceVersionManager.onMcpNotify((payload) => {
+      if (this.mainWindow) {
+        this.windowManager.sendCommandTo(
+          this.mainWindow,
+          'APP-MCP-Notify',
+          'APP-MCP-Notify',
+          payload
+        )
+      }
+    })
   }
 
   /**
@@ -326,9 +371,7 @@ export default class Application extends EventEmitter {
     AppNodeFnManager.mainWindow = win
 
     console.log('showPage checkBrewOrPort !!!')
-    CheckBrewOrPort(() => {
-      this.sendGlobalServerUpdate()
-    })
+    CheckBrewOrPort(() => {})
 
     AppLog.init(this.mainWindow)
     this.sendGlobalServerUpdate()
@@ -371,6 +414,9 @@ export default class Application extends EventEmitter {
    * 发送全局服务器配置更新
    */
   private sendGlobalServerUpdate() {
+    if (!this.windowManager || !this.mainWindow || !this.serverManager) {
+      return
+    }
     this.windowManager.sendCommandTo(
       this.mainWindow!,
       'APP-Update-Global-Server',
@@ -540,6 +586,11 @@ export default class Application extends EventEmitter {
       NodePTY.exitAllPty()
     } catch (e) {
       console.log('NodePTY.exitAllPty e: ', e)
+    }
+    try {
+      await this.mcpServer?.stop()
+    } catch (e) {
+      console.log('mcpServer.stop e: ', e)
     }
     try {
       await this.serverManager.stopServer()

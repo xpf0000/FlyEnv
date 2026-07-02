@@ -7,5 +7,15 @@
   "sessionId": "ID cuộc hội thoại",
   "updatedAt": "Cập nhật lúc",
   "sessionResumed": "Cuộc hội thoại đã được khôi phục trong terminal",
-  "sessionDeleted": "Cuộc hội thoại đã bị xóa"
+  "sessionDeleted": "Cuộc hội thoại đã bị xóa",
+  "cmd": {
+    "update": "Cap nhat Antigravity CLI len phien ban moi nhat",
+    "models": "Liet ke cac mo hinh co san",
+    "continue": "Tiep tuc hoi thoai gan nhat",
+    "resume": "Tiep tuc hoi thoai truoc do bang ID",
+    "prompt": "Chay mot prompt don o che do khong tuong tac",
+    "pluginList": "Liet ke cac plugin da nhap",
+    "pluginImport": "Nhap plugin tu gemini hoac claude",
+    "install": "Cau hinh duong dan moi truong va cai dat shell"
+  }
 }

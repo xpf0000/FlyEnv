@@ -3,7 +3,7 @@
     <template v-if="PodmanManager.dockerComposeExists">
       <div class="flex items-center">
         <el-button size="small" class="flex-shrink-0" @click="addCompose(undefined)">
-          {{ I18nT('base.add') }}
+          {{ I18nT('common.action.add') }}
         </el-button>
         <el-button size="small" class="flex-shrink-0" @click="buildCompose()">
           {{ I18nT('podman.Build') }}
@@ -16,17 +16,22 @@
         :data="composeList"
         style="width: 100%"
       >
-        <el-table-column prop="name" :label="I18nT('base.name')" width="160" />
+        <el-table-column prop="name" :label="I18nT('common.label.name')" width="160" />
         <el-table-column prop="flag" :label="I18nT('host.projectName')" width="160" />
-        <el-table-column prop="path" :label="I18nT('base.path')">
+        <el-table-column prop="path" :label="I18nT('common.label.path')">
           <template #default="scope">
             <span class="truncate hover:text-yellow-500 cursor-pointer">{{
               scope.row.paths.join(' ')
             }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="comment" :label="I18nT('host.comment')"></el-table-column>
-        <el-table-column prop="running" :label="I18nT('podman.Status')" width="110" align="center">
+        <el-table-column prop="comment" :label="I18nT('common.label.comment')"></el-table-column>
+        <el-table-column
+          prop="running"
+          :label="I18nT('common.label.status')"
+          width="110"
+          align="center"
+        >
           <template #default="scope">
             <template v-if="scope.row?.statusError">
               <el-tooltip :content="scope.row?.statusError">
@@ -56,7 +61,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('podman.Action')" width="100" align="center">
+        <el-table-column :label="I18nT('common.label.action')" width="100" align="center">
           <template #default="scope">
             <el-dropdown>
               <template #default>
@@ -76,15 +81,15 @@
                     {{ I18nT('base.log') }}
                   </el-dropdown-item>
                   <el-dropdown-item @click.stop="addCompose(scope.row)">
-                    {{ I18nT('base.edit') }}
+                    {{ I18nT('common.action.edit') }}
                   </el-dropdown-item>
                   <template v-for="(f, _i) in scope.row.paths" :key="_i">
                     <el-dropdown-item @click.stop="toEditFile(f)">
-                      {{ I18nT('base.edit') }} {{ basename(f) }}
+                      {{ I18nT('common.action.edit') }} {{ basename(f) }}
                     </el-dropdown-item>
                   </template>
                   <el-dropdown-item @click.stop="removeCompose(scope.row)">
-                    {{ I18nT('podman.Delete') }}
+                    {{ I18nT('common.action.delete') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>

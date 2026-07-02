@@ -26,9 +26,7 @@
   "moduleIsOnlyRunOne": "同時に1つのサービスのみ起動可能",
   "moduleExecItem": "モジュール実行項目",
   "module": {
-    "name": "名前",
     "path": "ファイルパス",
-    "comment": "備考",
     "exec": "実行",
     "command": "Command",
     "commandFile": "ファイル",
@@ -39,15 +37,14 @@
     "needPasswordToStart": "管理者権限で起動する必要があります。現在のユーザーパスワードを入力してください。後でこのパスワードが自動入力されます。下のボタンをクリックしてターミナルで手動入力することもできますが、このプロンプトが再表示される場合があります。",
     "hadOpenInTerminal": "ターミナルから実行されたため、実行結果を取得できません",
     "licenseTips": "ライセンスが取得されていないため、3つのモジュールとモジュール実行項目のみ作成できます",
-    "outputLog": "出力ログ",
-    "errorLog": "エラーログ"
+    "outputLog": "出力ログ"
   },
   "flyenvHelper": "FlyEnvヘルパープログラムの修復",
   "flyenvHelperBtn": "修復",
   "flyenvHelperFixSuccess": "FlyEnvヘルパープログラムの修復に成功しました",
   "flyenvHelperInstallFailTips": "FlyEnv ヘルパーのインストールに失敗しました。管理者権限で FlyEnv を実行するか、[OK] ボタンをクリックして開いたフォルダ内の flyenv-helper.exe ヘルパープログラムを手動で実行してください。",
-  "appFont": "UI Font",
+  "appFont": "UI フォント",
   "appFontTips": "アプリケーションUIに使用するフォントを設定します。デフォルトのシステムフォントを使用する場合は空のままにします。",
-  "codeFont": "Code Font",
+  "codeFont": "コードフォント",
   "codeFontTips": "端末、エディタ、およびその他のコード領域に使用されるフォントを設定します。デフォルトの単一スペースフォントを使用する場合は空白のままにします。"
 }

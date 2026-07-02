@@ -50,7 +50,7 @@
               <div class="fg-card-hd">
                 <span>{{ I18nT('flutter.sdkDetails') }}</span>
                 <el-button link size="small" :loading="sdkLoading" @click="loadSdkInfo">
-                  {{ I18nT('base.refresh') }}
+                  {{ I18nT('common.action.refresh') }}
                 </el-button>
               </div>
             </template>
@@ -77,7 +77,7 @@
                   </span>
                 </div>
                 <div class="fg-row">
-                  <span class="fg-k">{{ I18nT('flutter.source') }}</span>
+                  <span class="fg-k">{{ I18nT('common.label.source') }}</span>
                   <span class="fg-v">{{ sdkInfo.source ? sourceLabel : '—' }}</span>
                 </div>
                 <div class="fg-row">
@@ -157,7 +157,7 @@
               <div class="fg-card-hd">
                 <span>{{ I18nT('flutter.doctorSnapshot') }}</span>
                 <el-button link size="small" :loading="doctorLoading" @click="loadDoctor">
-                  {{ I18nT('base.refresh') }}
+                  {{ I18nT('common.action.refresh') }}
                 </el-button>
               </div>
             </template>
@@ -434,10 +434,10 @@
             </div>
             <div class="fg-console-acts">
               <el-button link size="small" :disabled="!output" @click="copyOutput">{{
-                I18nT('base.copy')
+                I18nT('common.action.copy')
               }}</el-button>
               <el-button link size="small" :disabled="!output" @click="output = ''">{{
-                I18nT('base.clean')
+                I18nT('common.action.clear')
               }}</el-button>
             </div>
           </div>

@@ -124,7 +124,7 @@
             </span>
             <ElInput
               v-model={NVMSetup.search}
-              placeholder={I18nT('base.placeholderSearch')}
+              placeholder={I18nT('common.action.search')}
               clearable={true}
             ></ElInput>
           </div>
@@ -222,7 +222,7 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.action'),
+      title: I18nT('common.label.action'),
       dataKey: 'operation',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',
@@ -232,7 +232,7 @@
         if (row.installing) {
           return <ElButton loading={true} link></ElButton>
         } else {
-          const t = row.installed ? I18nT('base.uninstall') : I18nT('base.install')
+          const t = row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')
           const a = row.installed ? 'uninstall' : 'install'
           return (
             <ElButton

@@ -1,5 +1,4 @@
 {
-  "phpiniNotFound": "fisierul php.ini nu a fost gasit",
   "editPhpIni": "Editare php.ini",
   "phpExtensions": "Extensii PHP",
   "copyConfTemplate": "Copiați șablonul de configurare",

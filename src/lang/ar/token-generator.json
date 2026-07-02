@@ -5,9 +5,5 @@
   "numbers": "أرقام (123...)",
   "symbols": "رموز (!-;...)",
   "length": "الطول",
-  "tokenPlaceholder": "الرمز...",
-  "button": {
-    "copy": "نسخ",
-    "refresh": "تحديث"
-  }
+  "tokenPlaceholder": "الرمز..."
 }

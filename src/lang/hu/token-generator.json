@@ -5,9 +5,5 @@
   "numbers": "Számok (123...)",
   "symbols": "Szimbólumok (!-;...)",
   "length": "Hossz",
-  "tokenPlaceholder": "A token...",
-  "button": {
-    "copy": "Másolás",
-    "refresh": "Frissítés"
-  }
+  "tokenPlaceholder": "A token..."
 }

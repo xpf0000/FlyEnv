@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI belum diinstal. Klik tombol di bawah untuk menginstalnya dengan installer resmi.",
+  "officialWebsite": "Situs Antigravity",
+  "officialDocs": "Dokumen Antigravity CLI",
+  "sandboxMode": "Sandbox Terminal",
+  "toolPermission": "Izin Alat",
+  "sessionId": "ID Percakapan",
+  "updatedAt": "Diperbarui Pada",
+  "sessionResumed": "Percakapan dilanjutkan di terminal",
+  "sessionDeleted": "Percakapan dihapus",
+  "cmd": {
+    "update": "Perbarui Antigravity CLI ke versi terbaru",
+    "models": "Daftarkan model yang tersedia",
+    "continue": "Lanjutkan percakapan terbaru",
+    "resume": "Lanjutkan percakapan sebelumnya berdasarkan ID",
+    "prompt": "Jalankan satu prompt secara non-interaktif",
+    "pluginList": "Daftarkan plugin yang diimpor",
+    "pluginImport": "Impor plugin dari gemini atau claude",
+    "install": "Konfigurasikan path lingkungan dan pengaturan shell"
+  }
+}

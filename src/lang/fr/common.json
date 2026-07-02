@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Modèle",
+    "name": "Nom",
+    "status": "Statut",
+    "workingDirectory": "Répertoire de travail",
+    "action": "Action",
+    "comment": "Commentaire",
+    "source": "Source",
+    "site": "Site",
+    "errorLog": "Journal des erreurs",
+    "library": "Librairie",
+    "path": "Chemin",
+    "description": "Libellé",
+    "port": "Port",
+    "startCommand": "Commande de démarrage",
+    "licenseDescription": "Description de la Licence",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur",
+    "size": "Taille",
+    "containerEnvVars": "Variables d'environnement dans le conteneur",
+    "createdTime": "Heure de création",
+    "image": "Image",
+    "state": "État",
+    "grid": "Grille",
+    "gridSpacing": "Espacement de la grille (pixels)",
+    "fontSize": "Taille de la police",
+    "code": "Code"
+  },
+  "action": {
+    "enable": "Activer",
+    "disable": "Désactiver",
+    "resume": "Reprendre",
+    "uninstall": "Désinstaller",
+    "copy": "Copier",
+    "preview": "Aperçu",
+    "search": "Rechercher",
+    "clear": "Nettoyer",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "edit": "Modifier",
+    "generate": "Générer",
+    "refresh": "Rafraîchir",
+    "save": "Enregistrer",
+    "start": "Démarrer",
+    "stop": "Arrêter",
+    "close": "Fermer",
+    "selectAll": "Tout sélectionner",
+    "changeName": "Modifier le nom",
+    "changeOwnerPassword": "Changer le mot de passe du propriétaire",
+    "changeRole": "Changer le rôle"
+  },
+  "state": {
+    "running": "En cours d'exécution",
+    "installed": "Installé",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "available": "Disponible"
+  },
+  "session": {
+    "list": "Sessions",
+    "title": "Titre",
+    "id": "ID de session",
+    "lastPrompt": "Dernière invite",
+    "search": "Rechercher des sessions",
+    "deleted": "Session supprimée",
+    "resumed": "Session reprise dans le terminal"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Commande / URL",
+    "scope": "Scope",
+    "addServer": "Ajouter un serveur"
+  },
+  "category": {
+    "basic": "De base",
+    "mcp": "MCP",
+    "skills": "Compétences",
+    "basicInfo": "Informations de base",
+    "configuration": "Configuration",
+    "favorites": "Favoris",
+    "plugins": "Plugins",
+    "backupUpdate": "Sauvegarde et mise à jour"
+  },
+  "skills": {
+    "openSkillsDir": "Ouvrir le répertoire des compétences",
+    "openSkillDir": "Ouvrir le répertoire des compétences",
+    "revealSkillFile": "Révéler le fichier de compétences",
+    "noSkills": "Aucune compétence trouvée",
+    "skillFileMissing": "Fichier de compétences introuvable",
+    "skillLoadFailed": "Échec du chargement du fichier de compétences",
+    "builtin": "Intégrée"
+  },
+  "cli": {
+    "help": "Afficher les informations d'aide",
+    "version": "Afficher le numéro de version",
+    "start": "Démarrer une nouvelle session interactive",
+    "mcpList": "Lister les serveurs MCP configurés",
+    "doctor": "Effectuer des contrôles de santé",
+    "doctorFix": "Exécuter des contrôles de santé avec correction automatique",
+    "gatewayStart": "Démarrer le service de passerelle",
+    "gatewayStop": "Arrêter le service de passerelle",
+    "gatewayRestart": "Redémarrer le service de passerelle",
+    "gatewayStatus": "Afficher l'état de la passerelle",
+    "gatewayRun": "Exécuter la passerelle au premier plan",
+    "gatewayUninstall": "Désinstaller le service de passerelle",
+    "skillsList": "Lister les compétences disponibles"
+  },
+  "gateway": {
+    "category": "Service de passerelle",
+    "status": "Statut de la passerelle",
+    "running": "La passerelle est en cours d'exécution",
+    "stopped": "La passerelle est arrêtée",
+    "startFailed": "Le démarrage de la passerelle a échoué"
+  },
+  "value": {
+    "yes": "Oui",
+    "no": "Non",
+    "other": "Autres",
+    "default": "Par défaut",
+    "none": "Aucun",
+    "local": "Locale"
+  },
+  "plugin": {
+    "search": "Rechercher des plugins",
+    "removed": "Plugin supprimé"
+  },
+  "schedule": {
+    "everyHour": "Chaque heure",
+    "everyMinute": "Chaque minute"
+  },
+  "error": {
+    "phpiniNotFound": "Fichier \"php.ini\" non trouvé"
+  }
+}

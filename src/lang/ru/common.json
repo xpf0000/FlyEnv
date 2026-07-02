@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Модель",
+    "name": "Наименование",
+    "status": "Статус",
+    "workingDirectory": "Рабочая папка",
+    "action": "Действие",
+    "comment": "комментарий",
+    "source": "Источник",
+    "site": "Сайт",
+    "errorLog": "Журнал ошибок",
+    "library": "Библиотека",
+    "path": "Путь",
+    "description": "Описание",
+    "port": "Порт",
+    "startCommand": "Начать команду",
+    "licenseDescription": "Описание лицензии",
+    "password": "Пароль",
+    "username": "Имя участника",
+    "size": "Объем",
+    "containerEnvVars": "Переменные среды контейнеров",
+    "createdTime": "Создано",
+    "image": "Изображение",
+    "state": "Область",
+    "grid": "Сетка",
+    "gridSpacing": "Интервал в сетке (пикселей)",
+    "fontSize": "Размер шрифта",
+    "code": "Код"
+  },
+  "action": {
+    "enable": "Включить",
+    "disable": "Отключить",
+    "resume": "Возобновить",
+    "uninstall": "Удалить",
+    "copy": "Копировать",
+    "preview": "Предпросмотр",
+    "search": "Поиск",
+    "clear": "Очистить",
+    "resetPassword": "Сбросить пароль",
+    "delete": "Удалить",
+    "add": "Добавить",
+    "edit": "Редактировать",
+    "generate": "Сгенерировать",
+    "refresh": "Обновить",
+    "save": "Сохранить",
+    "start": "Начать",
+    "stop": "Остановить",
+    "close": "Закрыть",
+    "selectAll": "Выделить все",
+    "changeName": "Изменить имя",
+    "changeOwnerPassword": "Изменить пароль владельца",
+    "changeRole": "Изменить роль"
+  },
+  "state": {
+    "running": "Запущен",
+    "installed": "Установлено",
+    "enabled": "Включено",
+    "disabled": "Отключено",
+    "available": "Доступно"
+  },
+  "session": {
+    "list": "Сеансы",
+    "title": "Заголовок",
+    "id": "ID сессии",
+    "lastPrompt": "Последний запрос",
+    "search": "Поиск сессий",
+    "deleted": "Сессия удалена",
+    "resumed": "Сессия возобновлена в терминале"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Команда / URL",
+    "scope": "Scope",
+    "addServer": "Добавить сервер"
+  },
+  "category": {
+    "basic": "Основное",
+    "mcp": "MCP",
+    "skills": "Навыки",
+    "basicInfo": "Основная информация",
+    "configuration": "Конфигурация",
+    "favorites": "Избранное",
+    "plugins": "Plugins",
+    "backupUpdate": "Резервное копирование и обновление"
+  },
+  "skills": {
+    "openSkillsDir": "Открыть каталог навыков",
+    "openSkillDir": "Открыть папку навыка",
+    "revealSkillFile": "Показать файл навыка",
+    "noSkills": "Навыки не найдены",
+    "skillFileMissing": "Файл навыка не найден",
+    "skillLoadFailed": "Не удалось загрузить файл навыка",
+    "builtin": "Встроенный"
+  },
+  "cli": {
+    "help": "Показать справку",
+    "version": "Показать номер версии",
+    "start": "Начать новую интерактивную сессию",
+    "mcpList": "Показать настроенные MCP-серверы",
+    "doctor": "Запуск проверки здоровья",
+    "doctorFix": "Запустить проверку здоровья с автоисправлением",
+    "gatewayStart": "Запустить сервис шлюза",
+    "gatewayStop": "Остановить службу шлюза",
+    "gatewayRestart": "Перезапустить службу шлюза",
+    "gatewayStatus": "Показать статус шлюза",
+    "gatewayRun": "Запуск шлюза на переднем плане",
+    "gatewayUninstall": "Удалить сервис шлюза",
+    "skillsList": "Показать доступные навыки"
+  },
+  "gateway": {
+    "category": "Сервис шлюза",
+    "status": "Статус шлюза",
+    "running": "Шлюз запущен",
+    "stopped": "Шлюз остановлен",
+    "startFailed": "Не удалось запустить шлюз"
+  },
+  "value": {
+    "yes": "Да",
+    "no": "Нет",
+    "other": "Прочие вопросы",
+    "default": "По умолчанию",
+    "none": "Нет",
+    "local": "Локальный"
+  },
+  "plugin": {
+    "search": "Поиск плагинов",
+    "removed": "Плагин удалён"
+  },
+  "schedule": {
+    "everyHour": "Каждый час",
+    "everyMinute": "Каждую минуту"
+  },
+  "error": {
+    "phpiniNotFound": "Файл php.ini не найден"
+  }
+}

@@ -1,6 +1,7 @@
 import { reactiveBind } from '@/util/Index'
 import { AllAppModule } from '@/core/type'
 import { Project } from './Project'
+export type { ProjectItem } from './ProjectItem'
 
 const ProjectSetups: Partial<Record<AllAppModule, Project>> = {}
 

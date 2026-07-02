@@ -1,5 +1,5 @@
 import { Base } from '../Base'
-import type { CronJob, CronRunRecord, SystemScheduledTask } from '@shared/app'
+import type { CronJob, CronRunRecord, SoftInstalled, SystemScheduledTask } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { uuid } from '../../Fn'
 import { join } from 'path'
@@ -350,6 +350,14 @@ export class Cron extends Base {
       const result = await executeCronCommand(command, workDir)
       resolve(result)
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return [{ name: 'Cron Jobs', path: join(this.cronRoot, 'cron-jobs.json') }]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

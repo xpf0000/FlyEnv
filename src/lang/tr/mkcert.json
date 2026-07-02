@@ -8,6 +8,5 @@
   "installCA": "CA Yükle",
   "carootLabel": "CA Kök Yolu",
   "certificates": "Sertifikalar",
-  "generate": "Oluştur",
   "noSSLHosts": "SSL etkin olan host yok. Önce bir hostta SSL'i etkinleştirin."
 }

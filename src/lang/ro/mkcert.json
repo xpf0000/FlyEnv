@@ -2,12 +2,11 @@
   "checking": "Se verifică instalarea...",
   "isInstalled": "instalat",
   "notInstalled": "mkcert nu este instalat",
-  "install": "Install mkcert",
+  "install": "Instalează mkcert",
   "checkAgain": "Verifică din nou",
   "recheck": "Re-verificați",
-  "installCA": "Install CA",
+  "installCA": "Instalează CA",
   "carootLabel": "Calea rădăcinii AC",
   "certificates": "Certificate",
-  "generate": "Genereaza",
   "noSSLHosts": "Nu este activată nicio gazdă cu SSL. Activează SSL pe o gazdă."
 }

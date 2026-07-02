@@ -42,7 +42,7 @@
                 >
                 <el-button :disabled="noChange" type="primary" @click.stop="Setup.savePath()">
                   <el-badge :offset="[5, 0]" is-dot type="danger" :hidden="noChange">
-                    <span>{{ I18nT('base.save') }}</span>
+                    <span>{{ I18nT('common.action.save') }}</span>
                   </el-badge>
                 </el-button>
               </el-button-group>

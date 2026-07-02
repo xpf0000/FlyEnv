@@ -52,7 +52,7 @@
             <div class="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium mb-2">{{
-                  I18nT('tools.ImageCompress.watermarkConfig.fontSize')
+                  I18nT('common.label.fontSize')
                 }}</label>
                 <el-slider
                   v-model="(watermark.content as any).fontSize"
@@ -472,12 +472,12 @@
               :label="I18nT('tools.ImageCompress.watermarkConfig.single')"
               value="single"
             />
-            <el-option :label="I18nT('tools.ImageCompress.watermarkConfig.grid')" value="grid" />
+            <el-option :label="I18nT('common.label.grid')" value="grid" />
           </el-select>
 
           <div v-if="watermark.repeat === 'grid'" class="mt-4">
             <label class="block text-sm font-medium mb-2">{{
-              I18nT('tools.ImageCompress.watermarkConfig.gridSpacing')
+              I18nT('common.label.gridSpacing')
             }}</label>
             <el-input-number
               v-model="watermark.spacing"

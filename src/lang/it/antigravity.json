@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI non e installato. Fai clic sul pulsante qui sotto per installarlo con l'installer ufficiale.",
+  "officialWebsite": "Sito web di Antigravity",
+  "officialDocs": "Documentazione di Antigravity CLI",
+  "sandboxMode": "Sandbox del terminale",
+  "toolPermission": "Autorizzazione degli strumenti",
+  "sessionId": "ID conversazione",
+  "updatedAt": "Aggiornato il",
+  "sessionResumed": "Conversazione ripresa nel terminale",
+  "sessionDeleted": "Conversazione eliminata",
+  "cmd": {
+    "update": "Aggiorna Antigravity CLI all'ultima versione",
+    "models": "Elenca i modelli disponibili",
+    "continue": "Continua la conversazione piu recente",
+    "resume": "Riprendi una conversazione precedente tramite ID",
+    "prompt": "Esegui un singolo prompt in modalita non interattiva",
+    "pluginList": "Elenca i plugin importati",
+    "pluginImport": "Importa plugin da gemini o claude",
+    "install": "Configura i percorsi dell'ambiente e le impostazioni della shell"
+  }
+}

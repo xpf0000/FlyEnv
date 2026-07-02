@@ -14,18 +14,18 @@
     },
     {
       "role": "edit",
-      "id": "menu.edit",
+      "id": "common.action.edit",
       "submenu": [
         { "id": "menu.cut", "accelerator": "CmdOrCtrl+X", "selector": "cut:", "role": "cut" },
-        { "id": "menu.copy", "accelerator": "CmdOrCtrl+C", "selector": "copy:", "role": "copy"},
+        { "id": "common.action.copy", "accelerator": "CmdOrCtrl+C", "selector": "copy:", "role": "copy"},
         { "id": "menu.paste", "accelerator": "CmdOrCtrl+V", "selector": "paste:", "role": "paste" },
-        { "id": "menu.selectAll", "accelerator": "CmdOrCtrl+A", "selector": "selectAll:", "role": "selectAll" }
+        { "id": "common.action.selectAll", "accelerator": "CmdOrCtrl+A", "selector": "selectAll:", "role": "selectAll" }
       ]
     },
     {
       "id": "menu.window",
       "submenu": [
-        { "id": "menu.close", "role": "close"},
+        { "id": "common.action.close", "role": "close"},
         { "id": "menu.minimize", "role": "minimize"},
         { "id": "menu.zoom", "role": "zoom"},
         { "id": "menu.fullscreen", "role": "togglefullscreen"},

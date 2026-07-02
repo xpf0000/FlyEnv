@@ -152,7 +152,7 @@ class Php extends Base {
         }
       }
 
-      reject(new Error(I18nT('fork.phpiniNotFound')))
+      reject(new Error(I18nT('common.error.phpiniNotFound')))
     })
   }
 
@@ -277,7 +277,11 @@ class Php extends Base {
 
       const bin = join(version.path, 'php-cgi-spawner.exe')
       const pidPath = join(global.Server.PhpDir!, `php${version.num}.pid`)
-      const execArgs = [`php-cgi.exe -c php.phpwebstudy.90${version.num}.ini`, `90${version.num}`, '4']
+      const execArgs = [
+        `php-cgi.exe -c php.phpwebstudy.90${version.num}.ini`,
+        `90${version.num}`,
+        '4'
+      ]
 
       try {
         const res = await serviceStartSpawn({
@@ -712,6 +716,22 @@ xdebug.output_dir = "${output_dir}"
       }
       resolve({})
     })
+  }
+
+  getConfigFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const base = version?.path ? version.path : global.Server.BaseDir!
+    return [
+      { name: 'php.ini', path: join(base, 'php.ini') },
+      { name: 'php.ini', path: join(base, 'etc', 'php.ini') }
+    ]
+  }
+
+  getLogFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const base = version?.path ? version.path : global.Server.BaseDir!
+    return [
+      { name: 'php-fpm.error.log', path: join(base, 'var', 'log', 'php-fpm.log') },
+      { name: 'php-fpm.access.log', path: join(base, 'var', 'log', 'fpm-access.log') }
+    ]
   }
 }
 export default new Php()

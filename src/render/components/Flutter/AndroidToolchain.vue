@@ -7,7 +7,7 @@
           <span class="ml-3 text-sm opacity-70">{{ summaryText }}</span>
         </div>
         <el-button link :disabled="loading" @click="fetchReadiness">{{
-          I18nT('base.refresh')
+          I18nT('common.action.refresh')
         }}</el-button>
       </div>
     </template>
@@ -77,7 +77,7 @@
                   <span class="ml-3 text-sm opacity-70">{{ devicesSummaryText }}</span>
                 </div>
                 <el-button link :disabled="devicesLoading" @click="fetchDevices">{{
-                  I18nT('base.refresh')
+                  I18nT('common.action.refresh')
                 }}</el-button>
               </div>
             </template>
@@ -156,7 +156,7 @@
                   <span class="ml-3 text-sm opacity-70">{{ doctorSummaryText }}</span>
                 </div>
                 <el-button link :loading="doctorLoading" @click="fetchDoctor">{{
-                  I18nT('base.refresh')
+                  I18nT('common.action.refresh')
                 }}</el-button>
                 <el-button class="button" :disabled="!doctorRaw" link @click="copyDoctorReport"
                   >Copy Report</el-button

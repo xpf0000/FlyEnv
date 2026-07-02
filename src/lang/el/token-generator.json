@@ -5,9 +5,5 @@
   "numbers": "Αριθμοί (123...)",
   "symbols": "Σύμβολα (!-;...)",
   "length": "Μήκος",
-  "tokenPlaceholder": "Το token...",
-  "button": {
-    "copy": "Αντιγραφή",
-    "refresh": "Ανανέωση"
-  }
+  "tokenPlaceholder": "Το token..."
 }

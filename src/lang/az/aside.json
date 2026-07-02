@@ -1,5 +1,4 @@
 {
-  "site": "Sayt",
   "webServer": "Web server",
   "dataBaseServer": "Verilənlər bazası serveri",
   "emailServer": "E-poçt serveri",
@@ -8,13 +7,14 @@
   "dnsServer": "DNS serveri",
   "ftpServer": "FTP serveri",
   "containerRuntime": "Konteyner icra zamanı",
-  "other": "Digər",
   "appLog": "Tətbiq logu",
+  "aiCoding": "AI Kodlaşdırma",
   "ai": "Yapay Zəka",
   "objectStorage": "Obyekt saxlama",
   "appExit": "Başladılmış bütün xidmətləri dayandırın və FlyEnv-dən çıxın",
   "groupStart": "Paneldə göstərilən bütün mövcud xidmətləri bir dəfəyə başlatın",
   "networkTunnel": "Şəbəkə Tuneli",
   "cacheAndQueue": "Keş və Mesaj Qrupu",
-  "serviceGovernance": "Xidmət İdarəetməsi"
+  "serviceGovernance": "Xidmət İdarəetməsi",
+  "other": "Digər"
 }

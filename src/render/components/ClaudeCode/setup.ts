@@ -5,6 +5,7 @@ import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import { buildInstallProxyEnvCommands, type InstallProxyPlatform } from '@shared/installProxyEnv'
 import CommandData from './command.json'
 
 export interface CommandItem {
@@ -156,13 +157,15 @@ class ClaudeCode {
     const execXTerm = new XTerm()
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
-    const command: string[] = []
-    if (window.Server.Proxy) {
-      for (const k in window.Server.Proxy) {
-        const v = window.Server.Proxy[k]
-        command.push(`export ${k}="${v}"`)
-      }
-    }
+    const installPlatform: InstallProxyPlatform = window.Server.isWindows
+      ? 'windows'
+      : window.Server.isMacOS
+        ? 'macos'
+        : 'linux'
+    const command = buildInstallProxyEnvCommands(
+      installPlatform,
+      (window.Server.Proxy ?? {}) as Record<string, string>
+    )
     if (window.Server.isWindows) {
       command.push('irm https://claude.ai/install.ps1 | iex')
     } else {
@@ -194,7 +197,7 @@ class ClaudeCode {
       IPC.send('app-fork:claudeCode', 'deleteSession', sessionId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('claudeCode.sessionDeleted'))
+          MessageSuccess(I18nT('common.session.deleted'))
           this.refreshSessions()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -210,7 +213,7 @@ class ClaudeCode {
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            MessageSuccess(I18nT('claudeCode.sessionResumed'))
+            MessageSuccess(I18nT('common.session.resumed'))
           } else {
             MessageError(res?.msg ?? I18nT('base.fail'))
           }
@@ -314,7 +317,7 @@ class ClaudeCode {
       IPC.send('app-fork:claudeCode', 'uninstallPlugin', pluginId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('claudeCode.pluginUninstalled'))
+          MessageSuccess(I18nT('common.plugin.removed'))
           this.refreshPlugins()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))

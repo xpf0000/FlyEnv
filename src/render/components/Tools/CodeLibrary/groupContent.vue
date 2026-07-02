@@ -9,7 +9,7 @@
         <el-input
           v-model="search"
           size="small"
-          :placeholder="I18nT('base.placeholderSearch')"
+          :placeholder="I18nT('common.action.search')"
           clearable
           :prefix-icon="Search"
         ></el-input>
@@ -32,12 +32,12 @@
               <el-dropdown-item
                 :icon="Edit"
                 @click.stop="CodeLibrary.addGroup(langType, currentGroup)"
-                >{{ I18nT('base.edit') }}</el-dropdown-item
+                >{{ I18nT('common.action.edit') }}</el-dropdown-item
               >
               <el-dropdown-item
                 :icon="Delete"
                 @click.stop="CodeLibrary.delGroup(langType, currentGroup!)"
-                >{{ I18nT('base.del') }}</el-dropdown-item
+                >{{ I18nT('common.action.delete') }}</el-dropdown-item
               >
             </el-dropdown-menu>
           </template>
@@ -54,7 +54,7 @@
             <el-checkbox
               v-model="chooseAll"
               :value="true"
-              :label="I18nT('tools.SelectAll')"
+              :label="I18nT('common.action.selectAll')"
               @change="onChooseAllChanged"
             ></el-checkbox>
             <el-button link :disabled="!choosedItemID.length" @click.stop="doChangeGroups">
@@ -84,7 +84,7 @@
             <div class="flex flex-col gap-1 flex-1 overflow-hidden">
               <span class="text-[16px] truncate font-bold">{{ item.name }}</span>
               <span class="truncate text-[14px] text-[#999]">{{
-                item.comment || item.value || I18nT('base.none')
+                item.comment || item.value || I18nT('common.value.none')
               }}</span>
             </div>
           </div>
@@ -120,13 +120,13 @@
                       I18nT('tools.BatchOperations')
                     }}</el-dropdown-item>
                     <el-dropdown-item :icon="Edit" @click.stop="addCode(item)">{{
-                      I18nT('base.edit')
+                      I18nT('common.action.edit')
                     }}</el-dropdown-item>
                     <el-dropdown-item :icon="Top" @click.stop="CodeLibrary.itemMoveToTop(item)">{{
                       I18nT('tools.MoveToTop')
                     }}</el-dropdown-item>
                     <el-dropdown-item :icon="Delete" @click.stop="doDelItems(item)">{{
-                      I18nT('base.del')
+                      I18nT('common.action.delete')
                     }}</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -135,7 +135,7 @@
             <div class="flex-1 flex items-center gap-2">
               <div class="w-[20px] h-[20px]"></div>
               <span class="truncate text-[14px] text-[#999]">{{
-                item.comment || item.value || I18nT('base.none')
+                item.comment || item.value || I18nT('common.value.none')
               }}</span>
             </div>
           </div>

@@ -1,11 +1,14 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseWithEnv, readFile, remove, existsSync, readdir } from '../../Fn'
-import { tmpdir, homedir } from 'node:os'
+import { readFile, writeFile, remove, existsSync, readdir, mkdirp } from '../../Fn'
+import { homedir } from 'node:os'
 import { join } from 'node:path'
-import { uuid } from '../../Fn'
+import { readdirSync } from 'node:fs'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
+import type { SoftInstalled } from '@shared/app'
+import { optionalBearerHeaders } from '@shared/aiCliMcp'
+import { checkAiCliVersion, resolveAiCliTerminalCommand } from '../../util/AiCli'
 
 export interface KimiSessionItem {
   id: string
@@ -13,6 +16,13 @@ export interface KimiSessionItem {
   lastPrompt: string
   workDir: string
   updatedAt: string
+}
+
+export interface KimiMcpItem {
+  name: string
+  type: string
+  commandOrUrl: string
+  scope: string
 }
 
 class Kimi extends Base {
@@ -25,30 +35,13 @@ class Kimi extends Base {
     return process.env.KIMI_CODE_HOME || join(homedir(), '.kimi-code')
   }
 
-  private kimiBin() {
-    return 'kimi'
-  }
-
-  private runCommand(command: string) {
-    return new ForkPromise<string>(async (resolve) => {
-      const tmp = join(tmpdir(), `${uuid()}.txt`)
-      try {
-        await execPromiseWithEnv(`${command} > "${tmp}" 2>&1`)
-        const content = await readFile(tmp, 'utf-8')
-        resolve(content)
-      } catch {
-        resolve('')
-      } finally {
-        if (existsSync(tmp)) {
-          await remove(tmp)
-        }
-      }
-    })
+  private mcpFile() {
+    return join(this.kimiHome(), 'mcp.json')
   }
 
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      const version = await this.runCommand(`${this.kimiBin()} --version`)
+      const version = await checkAiCliVersion('kimi')
       resolve({
         installed: version.trim().length > 0,
         version: version.trim()
@@ -61,32 +54,115 @@ class Kimi extends Base {
       const home = this.kimiHome()
       resolve({
         'config.toml': join(home, 'config.toml'),
-        'tui.toml': join(home, 'tui.toml')
+        'tui.toml': join(home, 'tui.toml'),
+        'mcp.json': this.mcpFile()
       })
     })
   }
 
-  getLogFiles() {
-    return new ForkPromise(async (resolve) => {
-      const logDir = join(this.kimiHome(), 'logs')
-      const files: Array<{ name: string; path: string }> = []
+  addMcp(name: string, type: string, commandOrUrl: string, token?: string) {
+    return new ForkPromise(async (resolve, reject) => {
       try {
-        if (existsSync(logDir)) {
-          const list = await readdir(logDir)
-          list.forEach((name) => {
-            if (name.endsWith('.log')) {
-              files.push({
-                name: name.replace('.log', ''),
-                path: join(logDir, name)
-              })
-            }
-          })
+        if (type !== 'http' && type !== 'sse') {
+          reject('Kimi only supports HTTP/SSE MCP config files')
+          return
         }
-      } catch (e) {
-        console.log('kimi getLogFiles error: ', e)
+        const file = this.mcpFile()
+        let data: any = {}
+        if (existsSync(file)) {
+          data = JSON.parse(await readFile(file, 'utf-8'))
+        }
+        data.mcpServers = data.mcpServers ?? {}
+        const headers = optionalBearerHeaders(token)
+        data.mcpServers[name] = {
+          url: commandOrUrl
+        }
+        if (headers) {
+          data.mcpServers[name].headers = headers
+        }
+        if (type === 'sse') {
+          data.mcpServers[name].transport = 'sse'
+        }
+        await mkdirp(this.kimiHome())
+        await writeFile(file, JSON.stringify(data, null, 2))
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
       }
-      resolve(files)
     })
+  }
+
+  listMcp() {
+    return new ForkPromise(async (resolve) => {
+      const list: KimiMcpItem[] = []
+      try {
+        const file = this.mcpFile()
+        if (!existsSync(file)) {
+          resolve(list)
+          return
+        }
+        const raw = await readFile(file, 'utf-8')
+        if (!raw.trim()) {
+          resolve(list)
+          return
+        }
+        const data = JSON.parse(raw)
+        Object.entries(data?.mcpServers ?? {}).forEach(([name, value]: any) => {
+          list.push({
+            name,
+            type: value?.transport === 'sse' ? 'sse' : 'http',
+            commandOrUrl: value?.url ?? '',
+            scope: 'user'
+          })
+        })
+      } catch (e) {
+        console.log('kimi listMcp error: ', e)
+      }
+      resolve(list)
+    })
+  }
+
+  removeMcp(name: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const file = this.mcpFile()
+        let data: any = {}
+        if (existsSync(file)) {
+          const raw = await readFile(file, 'utf-8')
+          if (raw.trim()) {
+            data = JSON.parse(raw)
+          }
+        }
+        if (data?.mcpServers?.[name]) {
+          delete data.mcpServers[name]
+          await writeFile(file, JSON.stringify(data, null, 2))
+        }
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? 'fail')
+      }
+    })
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const logDir = join(this.kimiHome(), 'logs')
+    const files: Array<{ name: string; path: string }> = []
+    try {
+      if (existsSync(logDir)) {
+        const list = readdirSync(logDir)
+        list.forEach((name) => {
+          if (name.endsWith('.log')) {
+            files.push({
+              name: name.replace('.log', ''),
+              path: join(logDir, name)
+            })
+          }
+        })
+      }
+    } catch (e) {
+      console.log('kimi getLogFiles error: ', e)
+    }
+    return files
   }
 
   getLogs(type: string) {
@@ -131,7 +207,7 @@ class Kimi extends Base {
 
   runInTerminal(workDir: string, sessionId: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const kimiCommand = `kimi --session "${sessionId}"`
+      const kimiCommand = `${resolveAiCliTerminalCommand('kimi')} --session "${sessionId}"`
       const terminalCommand = isWindows()
         ? `cd "${workDir}"; ${kimiCommand}`
         : `cd "${workDir}" && ${kimiCommand}`
@@ -236,6 +312,15 @@ class Kimi extends Base {
     return new ForkPromise(async (resolve) => {
       resolve([])
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const home = this.kimiHome()
+    return [
+      { name: 'config.toml', path: join(home, 'config.toml') },
+      { name: 'tui.toml', path: join(home, 'tui.toml') },
+      { name: 'mcp.json', path: this.mcpFile() }
+    ]
   }
 }
 

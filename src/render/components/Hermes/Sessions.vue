@@ -2,7 +2,7 @@
   <el-card class="version-manager">
     <template #header>
       <div class="card-header">
-        <span>{{ I18nT('hermes.sessions') }}</span>
+        <span>{{ I18nT('common.session.list') }}</span>
         <el-button link :disabled="HermesSetup.loading" @click="HermesSetup.refreshSessions()">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
@@ -22,7 +22,7 @@
         <div class="p-5 h-full overflow-hidden flex flex-col">
           <el-input
             v-model="search"
-            :placeholder="I18nT('hermes.searchSession')"
+            :placeholder="I18nT('common.session.search')"
             clearable
             class="mb-3"
           />
@@ -34,7 +34,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="lastActive" :label="I18nT('hermes.lastActive')" width="140" />
-              <el-table-column prop="src" :label="I18nT('hermes.source')" width="100" />
+              <el-table-column prop="src" :label="I18nT('common.label.source')" width="100" />
               <el-table-column prop="id" :label="I18nT('hermes.id')" width="220" />
               <el-table-column width="100" :label="I18nT('base.operation')" align="center">
                 <template #default="{ row }">

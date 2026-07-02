@@ -497,7 +497,7 @@ JWT, Cron and Diff tools are available.`
                 I18nT('tools.diff-compare-load-sample')
               }}</el-button>
               <el-button @click="swapInputs">{{ I18nT('tools.diff-compare-swap') }}</el-button>
-              <el-button @click="clearInputs">{{ I18nT('tools.diff-compare-clear') }}</el-button>
+              <el-button @click="clearInputs">{{ I18nT('common.action.clear') }}</el-button>
               <el-button :disabled="diffTargets.length === 0" @click="goToDiff(-1)">{{
                 I18nT('tools.diff-compare-previous-diff')
               }}</el-button>

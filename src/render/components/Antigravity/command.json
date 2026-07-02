@@ -1,0 +1,30 @@
+{
+  "categories": [
+    {
+      "nameKey": "common.category.basic",
+      "commands": [
+        { "label": "agy --help", "descriptionKey": "common.cli.help", "needInput": false },
+        { "label": "agy --version", "descriptionKey": "common.cli.version", "needInput": false },
+        { "label": "agy update", "descriptionKey": "antigravity.cmd.update", "needInput": false, "needRefresh": true },
+        { "label": "agy models", "descriptionKey": "antigravity.cmd.models", "needInput": false }
+      ]
+    },
+    {
+      "nameKey": "common.session.list",
+      "commands": [
+        { "label": "agy", "descriptionKey": "common.cli.start", "needInput": false },
+        { "label": "agy --continue", "descriptionKey": "antigravity.cmd.continue", "needInput": false },
+        { "label": "agy --conversation", "descriptionKey": "antigravity.cmd.resume", "needInput": true },
+        { "label": "agy -p", "descriptionKey": "antigravity.cmd.prompt", "needInput": true }
+      ]
+    },
+    {
+      "nameKey": "common.category.configuration",
+      "commands": [
+        { "label": "agy plugin list", "descriptionKey": "antigravity.cmd.pluginList", "needInput": false },
+        { "label": "agy plugin import", "descriptionKey": "antigravity.cmd.pluginImport", "needInput": true },
+        { "label": "agy install", "descriptionKey": "antigravity.cmd.install", "needInput": false }
+      ]
+    }
+  ]
+}

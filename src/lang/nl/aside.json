@@ -1,20 +1,20 @@
 {
-  "site": "Website",
-  "webServer": "Web Server",
-  "dataBaseServer": "Database Server",
+  "webServer": "Webserver",
+  "dataBaseServer": "Databaseserver",
   "emailServer": "E-mail server",
   "language": "Taal & Runtime",
   "searchEngine": "Motor zoeken",
-  "dnsServer": "DNS Server",
+  "dnsServer": "DNS-server",
   "ftpServer": "FTP server",
-  "containerRuntime": "Container Runtime",
-  "other": "anders",
+  "containerRuntime": "Container-runtime",
   "appLog": "App Logboek",
+  "aiCoding": "AI-codering",
   "ai": "AI",
   "objectStorage": "Object Opslag",
   "appExit": "Stop alle actieve services en verlaat FlyEnv",
   "groupStart": "Start met één klik alle beschikbare services die worden weergegeven op het paneel",
   "networkTunnel": "Netwerktunnel",
   "cacheAndQueue": "Cache en bericht wachtrij",
-  "serviceGovernance": "Service Governance"
+  "serviceGovernance": "Servicebeheer",
+  "other": "anders"
 }

@@ -4,12 +4,10 @@
   "Web": "Веб",
   "Images": "Изображения и видео",
   "Development": "Развитие",
+  "Code": "Код",
   "Network": "Сеть",
   "Math": "Математика",
   "Measurement": "Измерение",
   "Text": "Текст",
-  "Custom": "Свой",
-  "Favorites": "Избранное",
-  "Favorite": "Избранное",
-  "Code": "Код"
+  "Custom": "Свой"
 }

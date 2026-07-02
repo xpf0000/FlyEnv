@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    :title="isEdit ? I18nT('base.edit') : I18nT('cron.add')"
+    :title="isEdit ? I18nT('common.action.edit') : I18nT('cron.add')"
     width="860px"
     class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     @close="handleClose"
@@ -10,7 +10,7 @@
       <div class="dialog-grid">
         <div class="form-pane">
           <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-            <el-form-item v-if="!targetFixed" :label="I18nT('cron.scope')" prop="scope">
+            <el-form-item v-if="!targetFixed" :label="I18nT('common.mcp.scope')" prop="scope">
               <el-radio-group v-model="form.scope">
                 <el-radio-button value="global">{{ I18nT('cron.global') }}</el-radio-button>
                 <el-radio-button value="host">{{ I18nT('cron.siteTask') }}</el-radio-button>
@@ -19,7 +19,7 @@
 
             <el-form-item
               v-if="!targetFixed && form.scope === 'host'"
-              :label="I18nT('host.site')"
+              :label="I18nT('common.label.site')"
               prop="hostId"
             >
               <el-select v-model="form.hostId" class="w-full" filterable>
@@ -79,18 +79,18 @@
                 v-model="form.command"
                 :placeholder="I18nT('cron.commandPlaceholder')"
                 type="textarea"
-                rows="4"
+                :rows="4"
                 show-word-limit
                 maxlength="1000"
               />
             </el-form-item>
 
-            <el-form-item :label="I18nT('cron.description')" prop="description">
+            <el-form-item :label="I18nT('common.label.description')" prop="description">
               <el-input
                 v-model="form.description"
                 :placeholder="I18nT('cron.descriptionPlaceholder')"
                 type="textarea"
-                rows="2"
+                :rows="2"
                 maxlength="500"
                 show-word-limit
               />
@@ -113,7 +113,7 @@
               }}</div>
             </el-form-item>
 
-            <el-form-item :label="I18nT('cron.enabled')" prop="enabled">
+            <el-form-item :label="I18nT('common.state.enabled')" prop="enabled">
               <el-switch v-model="form.enabled" />
             </el-form-item>
           </el-form>
@@ -137,8 +137,10 @@
             </div>
 
             <div class="preview-sub mt-3">
-              {{ I18nT('cron.status') }}:
-              <strong>{{ form.enabled ? I18nT('cron.enabled') : I18nT('cron.disabled') }}</strong>
+              {{ I18nT('common.label.status') }}:
+              <strong>{{
+                form.enabled ? I18nT('common.state.enabled') : I18nT('cron.disabled')
+              }}</strong>
             </div>
           </div>
 
@@ -167,7 +169,7 @@
                   >{{ I18nT('cron.duration') }}: {{ testResult.duration }}ms</span
                 >
                 <el-button text size="small" class="ml-auto" @click="testResult = null">{{
-                  I18nT('cron.clearOutput')
+                  I18nT('common.action.clear')
                 }}</el-button>
               </div>
               <pre class="output-pre">{{
@@ -199,7 +201,7 @@
         <el-button plain @click="resetForm">Reset</el-button>
         <el-button @click="handleClose">{{ I18nT('base.cancel') }}</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          {{ isEdit ? I18nT('base.save') : I18nT('base.add') }}
+          {{ isEdit ? I18nT('common.action.save') : I18nT('common.action.add') }}
         </el-button>
       </div>
     </template>
@@ -253,8 +255,8 @@
   ]
 
   const schedulePresets: Array<{ labelKey: I18nKey; value: string }> = [
-    { labelKey: 'cron.presetEveryMinute', value: '* * * * *' },
-    { labelKey: 'cron.presetEveryHour', value: '0 * * * *' },
+    { labelKey: 'common.schedule.everyMinute', value: '* * * * *' },
+    { labelKey: 'common.schedule.everyHour', value: '0 * * * *' },
     { labelKey: 'cron.presetDailyMidnight', value: '0 0 * * *' },
     { labelKey: 'cron.presetWeekdays9', value: '0 9 * * 1-5' }
   ]

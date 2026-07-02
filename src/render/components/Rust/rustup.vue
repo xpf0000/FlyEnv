@@ -51,7 +51,7 @@
                   style="width: 188px"
                   class="w-[188px]"
                   size="small"
-                  :placeholder="I18nT('base.placeholderSearch')"
+                  :placeholder="I18nT('common.action.search')"
                   clearable
                 ></el-input>
               </div>
@@ -78,7 +78,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column align="center" :label="I18nT('base.default')" width="150">
+          <el-table-column align="center" :label="I18nT('common.value.default')" width="150">
             <template #default="scope">
               <template v-if="scope.row.isDefault">
                 <el-button link type="primary">
@@ -98,7 +98,7 @@
               </template>
             </template>
           </el-table-column>
-          <el-table-column align="center" :label="I18nT('base.action')" width="150">
+          <el-table-column align="center" :label="I18nT('common.label.action')" width="150">
             <template #default="scope">
               <el-button
                 type="primary"
@@ -106,7 +106,9 @@
                 :loading="RustupSetup.installing"
                 :disabled="RustupSetup.installing"
                 @click="doVersionAction(scope.row)"
-                >{{ scope.row.isInstalled ? I18nT('base.uninstall') : I18nT('base.install') }}
+                >{{
+                  scope.row.isInstalled ? I18nT('common.action.uninstall') : I18nT('base.install')
+                }}
               </el-button>
             </template>
           </el-table-column>
@@ -124,7 +126,7 @@
                   v-model.trim="RustupSetup.targetSearchKey"
                   class="w-[188px]"
                   size="small"
-                  :placeholder="I18nT('base.placeholderSearch')"
+                  :placeholder="I18nT('common.action.search')"
                   clearable
                 ></el-input>
               </div>
@@ -148,14 +150,16 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column align="center" :label="I18nT('base.action')" width="150">
+          <el-table-column align="center" :label="I18nT('common.label.action')" width="150">
             <template #default="scope">
               <el-button
                 type="primary"
                 link
                 :disabled="RustupSetup.installing"
                 @click="doTargetAction(scope.row)"
-                >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}
+                >{{
+                  scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')
+                }}
               </el-button>
             </template>
           </el-table-column>
@@ -257,7 +261,9 @@
 
   const showVersionDir = (item: any) => {
     const dir = RustupSetup.toolchainList.find((t) => t.version === item.version)?.path
-    shell.showItemInFolder(dir).catch()
+    if (dir) {
+      shell.showItemInFolder(dir).catch()
+    }
   }
 
   const taskConfirm = () => {

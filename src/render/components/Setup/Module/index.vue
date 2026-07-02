@@ -49,7 +49,7 @@
     })
     return {
       moduleType: m,
-      label: I18nT(`aside.site`),
+      label: I18nT(`common.label.site`),
       sub
     }
   })

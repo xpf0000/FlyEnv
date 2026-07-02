@@ -5,13 +5,13 @@
     </div>
   </template>
   <el-table v-else v-loading="fetching" height="100%" :data="tableData" style="width: 100%">
-    <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('base.name')">
+    <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('common.label.name')">
       <template #header>
         <div class="w-full name-cell">
-          <span style="display: inline-flex; padding: 2px 0">{{ I18nT('base.name') }}</span>
+          <span style="display: inline-flex; padding: 2px 0">{{ I18nT('common.label.name') }}</span>
           <el-input
             v-model.trim="search"
-            :placeholder="I18nT('base.placeholderSearch')"
+            :placeholder="I18nT('common.action.search')"
             clearable
           ></el-input>
         </div>
@@ -20,7 +20,7 @@
         <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
       </template>
     </el-table-column>
-    <el-table-column align="center" :label="I18nT('base.status')">
+    <el-table-column align="center" :label="I18nT('common.label.status')">
       <template #default="scope">
         <div class="cell-status">
           <yb-icon
@@ -35,7 +35,7 @@
     <el-table-column
       width="150px"
       align="left"
-      :label="I18nT('base.action')"
+      :label="I18nT('common.label.action')"
       class-name="operation"
     >
       <template v-if="version?.version" #default="scope">
@@ -65,7 +65,7 @@
           </template>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ I18nT('base.del') }}</span>
+              <span>{{ I18nT('common.action.delete') }}</span>
             </template>
             <template #reference>
               <el-button type="primary" link :icon="Delete" @click="doDel(scope.row)"></el-button>

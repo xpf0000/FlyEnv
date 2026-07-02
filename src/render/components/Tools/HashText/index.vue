@@ -23,7 +23,7 @@
                 type="textarea"
                 multiline
                 placeholder="Your string to hash..."
-                rows="4"
+                :rows="4"
                 autosize
                 autofocus
               />
@@ -37,7 +37,7 @@
               </el-select>
             </el-form-item>
 
-            <div v-for="(item, algo) in Store.algoList" :key="algo" style="margin: 5px 0">
+            <div v-for="(_item, algo) in Store.algoList" :key="algo" style="margin: 5px 0">
               <el-input :model-value="Store.hashText(algo)">
                 <template #prepend
                   ><div class="flex items-center w-16">{{ algo }}</div></template

@@ -4,8 +4,6 @@
   "update-not-available-message": "已是最新版",
   "update-downloaded-message": "更新下載完成，應用程式將離開並開始更新...",
   "update-error-message": "檢查更新失敗",
-  "yes": "是",
-  "no": "否",
   "view-update-log": "檢視更新日誌",
   "download-new-version": "下載新版"
 }

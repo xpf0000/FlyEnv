@@ -380,10 +380,16 @@ class Manager extends Base {
         }
       }
       const keys: string[] = []
-      const tasks = []
+      const tasks: Promise<SoftInstalled[]>[] = []
       for (const k in versions) {
-        keys.push(k)
-        tasks.push(versions[k])
+        const typeFlag: any = k
+        keys.push(typeFlag)
+        tasks.push(
+          Promise.resolve(versions[k] as unknown as Promise<SoftInstalled[]>).catch((e) => {
+            console.log(`Version.allInstalledVersions ${typeFlag} error: `, e)
+            return [] as SoftInstalled[]
+          })
+        )
       }
       const list = await Promise.all(tasks)
       list.forEach((arr, i) => {
@@ -395,6 +401,14 @@ class Manager extends Base {
       })
       resolve(versions)
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

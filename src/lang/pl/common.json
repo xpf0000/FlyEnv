@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Wzór",
+    "name": "Nazwa",
+    "status": "Status",
+    "workingDirectory": "Katalog roboczy",
+    "action": "Akcja",
+    "comment": "Komentarz",
+    "source": "Źródło",
+    "site": "Witryna",
+    "errorLog": "Dziennik błędów",
+    "library": "Biblioteka",
+    "path": "Ścieżka",
+    "description": "Opis",
+    "port": "Port",
+    "startCommand": "Rozpocznij polecenie",
+    "licenseDescription": "Opis licencji",
+    "password": "Hasło",
+    "username": "Nazwa użytkownika",
+    "size": "Rozmiar pliku",
+    "containerEnvVars": "Zmienne środowiskowe kontenera",
+    "createdTime": "Czas utworzenia",
+    "image": "Obraz",
+    "state": "Stan",
+    "grid": "Siatka",
+    "gridSpacing": "Odstęp siatki (w pikselach)",
+    "fontSize": "Rozmiar czcionki",
+    "code": "Kod"
+  },
+  "action": {
+    "enable": "Włącz",
+    "disable": "Wyłącz",
+    "resume": "Wznów",
+    "uninstall": "Odinstaluj",
+    "copy": "Kopiuj",
+    "preview": "Podgląd",
+    "search": "Znajdź",
+    "clear": "Wyczyść",
+    "resetPassword": "Resetuj hasło",
+    "delete": "Usuń",
+    "add": "Dodaj",
+    "edit": "Edytuj",
+    "generate": "Wygeneruj",
+    "refresh": "Odśwież",
+    "save": "Zachowaj",
+    "start": "Rozpocznij",
+    "stop": "Zatrzymaj",
+    "close": "Zamknij",
+    "selectAll": "Zaznacz wszystko",
+    "changeName": "Edytuj nazwę",
+    "changeOwnerPassword": "Zmień hasło właściciela",
+    "changeRole": "Zmień rolę"
+  },
+  "state": {
+    "running": "Uruchomiony",
+    "installed": "Zainstalowano",
+    "enabled": "Włączone",
+    "disabled": "Wyłączone",
+    "available": "Dostępne"
+  },
+  "session": {
+    "list": "Sesje",
+    "title": "Tytuł",
+    "id": "ID sesji",
+    "lastPrompt": "Ostatni prompt",
+    "search": "Szukaj sesji",
+    "deleted": "Sesja została usunięta",
+    "resumed": "Sesję wznowiono w terminalu"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Polecenie / URL",
+    "scope": "Scope",
+    "addServer": "Dodaj serwer"
+  },
+  "category": {
+    "basic": "Podstawowe",
+    "mcp": "MCP",
+    "skills": "Umiejętności",
+    "basicInfo": "Podstawowe informacje",
+    "configuration": "Konfiguracja",
+    "favorites": "Ulubione",
+    "plugins": "Plugins",
+    "backupUpdate": "Kopia zapasowa i aktualizacja"
+  },
+  "skills": {
+    "openSkillsDir": "Otwórz katalog umiejętności",
+    "openSkillDir": "Otwórz folder umiejętności",
+    "revealSkillFile": "Pokaż plik umiejętności",
+    "noSkills": "Nie znaleziono umiejętności",
+    "skillFileMissing": "Nie znaleziono pliku umiejętności",
+    "skillLoadFailed": "Nie udało się wczytać pliku umiejętności",
+    "builtin": "Wbudowany"
+  },
+  "cli": {
+    "help": "Wyświetl informacje pomocy",
+    "version": "Pokaż numer wersji",
+    "start": "Rozpocznij nową interaktywną sesję",
+    "mcpList": "Wyświetl skonfigurowane serwery MCP",
+    "doctor": "Prowadzenie kontroli zdrowia",
+    "doctorFix": "Uruchom kontrolę zdrowia z auto-fixem",
+    "gatewayStart": "Uruchom usługę bramy",
+    "gatewayStop": "Zatrzymaj usługę bramy",
+    "gatewayRestart": "Uruchom ponownie usługę bramy",
+    "gatewayStatus": "Pokaż status bramy",
+    "gatewayRun": "Uruchom bramę na pierwszym planie",
+    "gatewayUninstall": "Odinstaluj usługę bramy",
+    "skillsList": "Wyświetl dostępne umiejętności"
+  },
+  "gateway": {
+    "category": "Usługa bramy",
+    "status": "Status bramy",
+    "running": "Brama jest uruchomiona",
+    "stopped": "Brama jest zatrzymana",
+    "startFailed": "Start bramy nie powiódł się"
+  },
+  "value": {
+    "yes": "Tak",
+    "no": "Nie",
+    "other": "Inne",
+    "default": "Domyślny",
+    "none": "Brak",
+    "local": "Lokalny"
+  },
+  "plugin": {
+    "search": "Szukaj wtyczek",
+    "removed": "Wtyczka została usunięta"
+  },
+  "schedule": {
+    "everyHour": "Co godzinę",
+    "everyMinute": "Co minutę"
+  },
+  "error": {
+    "phpiniNotFound": "Nie znaleziono pliku php.ini"
+  }
+}

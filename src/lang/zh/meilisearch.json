@@ -1,5 +1,4 @@
 {
-  "working_dir": "工作目录",
   "db_path": "指定数据库文件的创建和检索位置",
   "env": "配置实例环境。值必须为`production`或`development`。",
   "http_addr": "HTTP服务器监听的地址。",

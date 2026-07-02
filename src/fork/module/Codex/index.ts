@@ -1,10 +1,23 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseWithEnv, readFile, remove, existsSync, readdir, uuid } from '../../Fn'
+import {
+  execPromiseWithEnv,
+  readFile,
+  writeFile,
+  remove,
+  existsSync,
+  readdir,
+  mkdirp,
+  uuid
+} from '../../Fn'
 import { tmpdir, homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { parseToml, stringifyToml } from '@shared/toml'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
+import type { SoftInstalled } from '@shared/app'
+import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
+import { checkAiCliVersion, resolveAiCliCommand, resolveAiCliTerminalCommand } from '../../util/AiCli'
 
 export interface CodexSessionItem {
   id: string
@@ -42,7 +55,7 @@ class Codex extends Base {
   }
 
   private codexBin() {
-    return 'codex'
+    return resolveAiCliCommand('codex')
   }
 
   private runCommand(command: string) {
@@ -64,7 +77,7 @@ class Codex extends Base {
 
   checkInstalled() {
     return new ForkPromise(async (resolve) => {
-      const version = await this.runCommand(`${this.codexBin()} --version`)
+      const version = await checkAiCliVersion('codex')
       resolve({
         installed: version.trim().length > 0,
         version: version.trim()
@@ -226,7 +239,7 @@ class Codex extends Base {
 
   runInTerminal(workDir: string, sessionId: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const codexCommand = `${this.codexBin()} resume ${sessionId}`
+      const codexCommand = `${resolveAiCliTerminalCommand('codex')} resume ${sessionId}`
       const dir = workDir || homedir()
       const terminalCommand = isWindows()
         ? `cd "${dir}"; ${codexCommand}`
@@ -334,10 +347,12 @@ class Codex extends Base {
           ? data
           : Object.entries(data ?? {}).map(([name, v]: any) => ({ name, ...v }))
         servers.forEach((s) => {
-          const type = s?.type ?? (s?.url ? 'http' : 'stdio')
+          const transport = s?.transport ?? {}
+          const type = transport?.type ?? s?.type ?? (transport?.url || s?.url ? 'http' : 'stdio')
           const commandOrUrl =
+            transport?.url ??
             s?.url ??
-            [s?.command, ...(Array.isArray(s?.args) ? s.args : [])].filter(Boolean).join(' ')
+            joinMcpCommand(s?.command, Array.isArray(s?.args) ? s.args : [])
           list.push({
             name: s?.name ?? '',
             type,
@@ -352,15 +367,31 @@ class Codex extends Base {
     })
   }
 
-  addMcp(name: string, type: string, commandOrUrl: string) {
+  addMcp(name: string, type: string, commandOrUrl: string, token?: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        let cmd: string
         if (type === 'http' || type === 'sse') {
-          cmd = `${this.codexBin()} mcp add ${name} --url "${commandOrUrl}"`
-        } else {
-          cmd = `${this.codexBin()} mcp add ${name} -- ${commandOrUrl}`
+          const file = join(this.codexHome(), 'config.toml')
+          let data: any = {}
+          if (existsSync(file)) {
+            data = parseToml(await readFile(file, 'utf-8'))
+          }
+          const httpHeaders = optionalBearerHeaders(token)
+          data.features = data.features ?? {}
+          data.features.rmcp_client = true
+          data.mcp_servers = data.mcp_servers ?? {}
+          data.mcp_servers[name] = {
+            url: commandOrUrl
+          }
+          if (httpHeaders) {
+            data.mcp_servers[name].http_headers = httpHeaders
+          }
+          await mkdirp(dirname(file))
+          await writeFile(file, stringifyToml(data))
+          resolve(true)
+          return
         }
+        const cmd = `${this.codexBin()} mcp add ${name} -- ${commandOrUrl}`
         await execPromiseWithEnv(cmd)
         resolve(true)
       } catch (e: any) {
@@ -390,6 +421,18 @@ class Codex extends Base {
     return new ForkPromise(async (resolve) => {
       resolve([])
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const home = this.codexHome()
+    return [
+      { name: 'config.toml', path: join(home, 'config.toml') },
+      { name: 'auth.json', path: join(home, 'auth.json') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

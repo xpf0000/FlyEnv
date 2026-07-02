@@ -1,5 +1,4 @@
 {
-  "site": "Webhely",
   "webServer": "Webszerver",
   "dataBaseServer": "Adatbázis-szerver",
   "emailServer": "E-mail szerver",
@@ -7,14 +6,15 @@
   "searchEngine": "Keresőmotor",
   "dnsServer": "DNS-szerver",
   "ftpServer": "FTP-szerver",
-  "other": "Egyéb",
-  "appLog": "Alkalmazásnapló",
-  "ai": "AI",
   "containerRuntime": "Konténer futtatókörnyezet",
+  "appLog": "Alkalmazásnapló",
+  "aiCoding": "AI-kódolás",
+  "ai": "AI",
   "objectStorage": "Objektumtároló",
   "appExit": "Az összes futó szolgáltatás leállítása és a FlyEnv bezárása",
   "groupStart": "Az összes elérhető szolgáltatás indítása egy kattintással",
   "networkTunnel": "Hálózati alagút",
   "cacheAndQueue": "Gyorsítótár és üzenetsor",
-  "serviceGovernance": "Szolgáltatásirányítás"
+  "serviceGovernance": "Szolgáltatásirányítás",
+  "other": "Egyéb"
 }

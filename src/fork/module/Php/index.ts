@@ -160,7 +160,7 @@ class Php extends Base {
           }
         }
       }
-      reject(new Error(I18nT('php.phpiniNotFound')))
+      reject(new Error(I18nT('common.error.phpiniNotFound')))
     })
   }
 
@@ -659,6 +659,22 @@ xdebug.output_dir = "${output_dir}"
       }
       resolve({})
     })
+  }
+
+  getConfigFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const base = version?.path ? version.path : global.Server.BaseDir!
+    return [
+      { name: 'php.ini', path: join(base, 'etc', 'php.ini') },
+      { name: 'php.ini', path: join(base, 'php.ini') }
+    ]
+  }
+
+  getLogFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const base = version?.path ? version.path : global.Server.BaseDir!
+    return [
+      { name: 'php-fpm.error.log', path: join(base, 'var', 'log', 'php-fpm.log') },
+      { name: 'php-fpm.access.log', path: join(base, 'var', 'log', 'fpm-access.log') }
+    ]
   }
 }
 export default new Php()

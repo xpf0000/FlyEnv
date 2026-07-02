@@ -8,6 +8,5 @@
   "installCA": "CA telepítése",
   "carootLabel": "CA gyökérútvonal",
   "certificates": "Tanúsítványok",
-  "generate": "Generálás",
   "noSSLHosts": "Nincs SSL-lel engedélyezett host. Előbb engedélyezze az SSL-t egy hoston."
 }

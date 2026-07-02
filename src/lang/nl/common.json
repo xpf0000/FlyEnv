@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "naam",
+    "status": "status",
+    "workingDirectory": "Werken Map",
+    "action": "actie",
+    "comment": "Commentaar",
+    "source": "Bron",
+    "site": "Website",
+    "errorLog": "Fout Log",
+    "library": "Bibliotheek",
+    "path": "Pad",
+    "description": "Beschrijving",
+    "port": "Poort",
+    "startCommand": "Opdracht starten",
+    "licenseDescription": "Licentieomschrijving",
+    "password": "Paswoord",
+    "username": "Gebruikersnaam",
+    "size": "Grootte",
+    "containerEnvVars": "Container Omgevingsvariabelen",
+    "createdTime": "Aangemaakt op",
+    "image": "Afbeelding",
+    "state": "Provincie",
+    "grid": "Rooster",
+    "gridSpacing": "Raster afstand (pixels)",
+    "fontSize": "Lettergrootte",
+    "code": "Code"
+  },
+  "action": {
+    "enable": "Inschakelen",
+    "disable": "Uitschakelen",
+    "resume": "Hervatten",
+    "uninstall": "Deïnstalleren",
+    "copy": "Kopiëren",
+    "preview": "Voorvertoning",
+    "search": "Zoeken",
+    "clear": "Wissen",
+    "resetPassword": "Wachtwoord opnieuw instellen",
+    "delete": "Verwijder",
+    "add": "Toevoegen",
+    "edit": "Bewerking",
+    "generate": "Genereren",
+    "refresh": "Vernieuwen",
+    "save": "Bewaar",
+    "start": "Beginnen",
+    "stop": "Stoppen",
+    "close": "Afsluiten",
+    "selectAll": "Alles selecteren",
+    "changeName": "Naam bewerken",
+    "changeOwnerPassword": "Wijzig eigenaarwachtwoord",
+    "changeRole": "Rol wijzigen"
+  },
+  "state": {
+    "running": "Hardlopen",
+    "installed": "Geïnstalleerd",
+    "enabled": "Ingeschakeld",
+    "disabled": "Uitgeschakeld",
+    "available": "Beschikbaar"
+  },
+  "session": {
+    "list": "Sessies",
+    "title": "Titel",
+    "id": "Sessie-ID",
+    "lastPrompt": "Laatste prompt",
+    "search": "Sessies zoeken",
+    "deleted": "Sessie verwijderd",
+    "resumed": "Sessie hervat in terminal"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Opdracht / URL",
+    "scope": "Scope",
+    "addServer": "Server toevoegen"
+  },
+  "category": {
+    "basic": "Basis",
+    "mcp": "MCP",
+    "skills": "Vaardigheden",
+    "basicInfo": "Algemene gegevens",
+    "configuration": "Configuratie",
+    "favorites": "Favorieten",
+    "plugins": "Plugins",
+    "backupUpdate": "Back-up en update"
+  },
+  "skills": {
+    "openSkillsDir": "Open vaardighedenmap",
+    "openSkillDir": "Skill directory openen",
+    "revealSkillFile": "Vaardighedenbestand onthullen",
+    "noSkills": "Geen skills gevonden",
+    "skillFileMissing": "Vaardigheidsbestand niet gevonden",
+    "skillLoadFailed": "Het laden van het vaardigheidsbestand is mislukt",
+    "builtin": "Ingebouwd"
+  },
+  "cli": {
+    "help": "Helpinformatie weergeven",
+    "version": "Versienummer tonen",
+    "start": "Een nieuwe interactieve sessie starten",
+    "mcpList": "Geconfigureerde MCP-servers weergeven",
+    "doctor": "Voer gezondheidscontroles uit",
+    "doctorFix": "Voer gezondheidscontroles uit met auto-fix",
+    "gatewayStart": "Gateway-service starten",
+    "gatewayStop": "Gateway-service stoppen",
+    "gatewayRestart": "Herstart gateway service",
+    "gatewayStatus": "Toon gateway status",
+    "gatewayRun": "Voer gateway uit op de voorgrond",
+    "gatewayUninstall": "Gateway service deïnstalleren",
+    "skillsList": "Beschikbare skills weergeven"
+  },
+  "gateway": {
+    "category": "Gateway-service",
+    "status": "Gateway-status",
+    "running": "Gateway is lopend",
+    "stopped": "Gateway is gestopt",
+    "startFailed": "Gateway start mislukt"
+  },
+  "value": {
+    "yes": "ja",
+    "no": "Neen",
+    "other": "anders",
+    "default": "Standaard",
+    "none": "Geen",
+    "local": "lokaal"
+  },
+  "plugin": {
+    "search": "Plugins zoeken",
+    "removed": "Plugin verwijderd"
+  },
+  "schedule": {
+    "everyHour": "Elk uur",
+    "everyMinute": "Elke minuut"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini bestand niet gevonden"
+  }
+}

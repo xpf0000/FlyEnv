@@ -2,12 +2,11 @@
   "checking": "インストールを確認中...",
   "isInstalled": "インストール済み",
   "notInstalled": "MKcertはインストールされていません",
-  "install": "Install mkcert",
+  "install": "mkcert をインストール",
   "checkAgain": "もう一度チェック",
   "recheck": "再チェック",
-  "installCA": "Install CA",
+  "installCA": "CA をインストール",
   "carootLabel": "CA ルートパス",
   "certificates": "証明書",
-  "generate": "生成",
   "noSSLHosts": "SSLが有効なホストがありません。最初にホストでSSLを有効にしてください。"
 }

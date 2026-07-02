@@ -1,0 +1,13 @@
+{
+  "notInstalled": "GitHub Copilot CLI 尚未安裝。點擊下方按鈕透過 npm 安裝（需要 Node.js 22+）。",
+  "officialWebsite": "Copilot CLI GitHub 頁面",
+  "officialDocs": "Copilot CLI 文件",
+  "cmd": {
+    "update": "下載最新版 Copilot CLI",
+    "resume": "恢復先前的工作階段（選擇器）",
+    "continue": "恢復最近的工作階段",
+    "prompt": "以非互動方式執行單一提示",
+    "login": "使用 Copilot 驗證",
+    "init": "為儲存庫初始化 Copilot 指示"
+  }
+}

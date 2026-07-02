@@ -1,5 +1,4 @@
 {
-  "site": "Site",
   "webServer": "Server Web",
   "dataBaseServer": "Server de baze de date",
   "emailServer": "Server de e-mail",
@@ -8,13 +7,14 @@
   "dnsServer": "Server DNS",
   "ftpServer": "Server FTP",
   "containerRuntime": "Recipient Runtime",
-  "other": "Altele",
   "appLog": "Jurnal Aplicații",
+  "aiCoding": "Programare AI",
   "ai": "AI",
   "objectStorage": "Stocare obiect",
   "appExit": "Opriți toate serviciile care rulează și ieșiți din FlyEnv",
   "groupStart": "Pornire cu un singur clic a tuturor serviciilor disponibile afișate pe panou",
   "networkTunnel": "Tunelul rețelei",
   "cacheAndQueue": "Coada de geocutii şi mesaje",
-  "serviceGovernance": "Guvernanța serviciilor"
+  "serviceGovernance": "Guvernanța serviciilor",
+  "other": "Altele"
 }

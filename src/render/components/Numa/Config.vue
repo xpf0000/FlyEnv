@@ -24,10 +24,7 @@
   const file = join(window.Server.BaseDir!, 'numa/numa.toml')
 
   const isZh = window.Server.Lang === 'zh'
-  const tmpl = join(
-    window.Server.Static!,
-    isZh ? 'tmpl/numa.zh.toml' : 'tmpl/numa.toml'
-  )
+  const tmpl = join(window.Server.Static!, isZh ? 'tmpl/numa.zh.toml' : 'tmpl/numa.toml')
   fs.readFile(tmpl).then((content: string) => {
     defaultConf.value = content
   })

@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI yuklu degil. Resmi yukleyici ile kurmak icin asagidaki dugmeye tiklayin.",
+  "officialWebsite": "Antigravity web sitesi",
+  "officialDocs": "Antigravity CLI belgeleri",
+  "sandboxMode": "Terminal korumali alani",
+  "toolPermission": "Arac izni",
+  "sessionId": "Konusma kimligi",
+  "updatedAt": "Guncellenme zamani",
+  "sessionResumed": "Konusma terminalde surduruldu",
+  "sessionDeleted": "Konusma silindi",
+  "cmd": {
+    "update": "Antigravity CLI'yi en son surume guncelle",
+    "models": "Kullanilabilir modelleri listele",
+    "continue": "En son konusmaya devam et",
+    "resume": "Kimlige gore onceki konusmayi surdur",
+    "prompt": "Tek bir istemi etkilesimsiz olarak calistir",
+    "pluginList": "Ice aktarilan eklentileri listele",
+    "pluginImport": "gemini veya claude'dan eklenti ice aktar",
+    "install": "Ortam yollarini ve kabuk ayarlarini yapilandir"
+  }
+}

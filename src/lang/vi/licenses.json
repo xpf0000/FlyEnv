@@ -1,5 +1,4 @@
 {
-  "title": "Mô tả Giấy phép",
   "description": "Giấy phép là sự công nhận và ủng hộ cho sự nỗ lực của FlyEnv và các tác giả của nó. Mục đích của nó không phải là hạn chế người dùng mà là nhắc nhở họ tôn trọng những nỗ lực của các nhà phát triển và tuân thủ các điều khoản liên quan khi sử dụng phần mềm. Bằng cách tuân thủ giấy phép, người dùng không chỉ hỗ trợ sự phát triển liên tục của dự án mà còn đóng góp vào tinh thần tin tưởng và hợp tác trong cộng đồng mã nguồn mở.",
   "restrictions": {
     "title": "Người dùng không có giấy phép sẽ phải chịu các hạn chế sau:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "UUID đã liên kết",
   "delBind": "Hủy liên kết",
   "bindCurrentUUID": "Liên kết thiết bị này",
-  "licenseDescription": "Mô tả giấy phép",
   "loginFail": "Đăng nhập thất bại",
   "oauthCanceledTitle": "Ủy quyền đã bị hủy",
   "oauthCanceledMessage": "Người dùng đã hủy quy trình ủy quyền",

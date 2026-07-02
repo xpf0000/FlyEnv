@@ -4,12 +4,10 @@
   "Web": "Verkko",
   "Images": "Kuvat Ja Videot",
   "Development": "Kehitys",
+  "Code": "Koodi",
   "Network": "Verkko",
   "Math": "Matematiikka",
   "Measurement": "Mittaus",
   "Text": "Teksti",
-  "Custom": "Mukautettu",
-  "Favorites": "Suosikit",
-  "Favorite": "Suosikki",
-  "Code": "Koodi"
+  "Custom": "Mukautettu"
 }

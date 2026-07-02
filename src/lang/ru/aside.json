@@ -1,5 +1,4 @@
 {
-  "site": "Сайт",
   "webServer": "Веб-сервер",
   "dataBaseServer": "Сервер базы данных",
   "emailServer": "Сервер электронной почты",
@@ -8,13 +7,14 @@
   "dnsServer": "DNS-сервер",
   "ftpServer": "FTP сервер",
   "containerRuntime": "Время работы контейнера",
-  "other": "Прочие вопросы",
   "appLog": "Журнал приложений",
+  "aiCoding": "AI-кодинг",
   "ai": "AI",
   "objectStorage": "Хранилище объектов",
   "appExit": "Остановить все запущенные сервисы и выйти из FlyEnv",
   "groupStart": "Один клик запустить все доступные службы, отображаемые на панели",
   "networkTunnel": "Сетевой туннель",
   "cacheAndQueue": "Кэш и очередь сообщений",
-  "serviceGovernance": "Управление услугами"
+  "serviceGovernance": "Управление услугами",
+  "other": "Прочие вопросы"
 }

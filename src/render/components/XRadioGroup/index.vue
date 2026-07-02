@@ -116,8 +116,8 @@
       return
     }
 
-    let warr = radiosWidth.reverse()
-    let darr = [...props.data].reverse()
+    const warr = radiosWidth.reverse()
+    const darr = [...props.data].reverse()
 
     let width = sdomWidth
     for (const w of warr) {

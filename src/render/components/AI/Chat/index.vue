@@ -23,7 +23,9 @@
             <PromptVM />
           </template>
         </div>
-        <el-button class="flex-shrink-0" @click="doClean">{{ I18nT('base.clean') }}</el-button>
+        <el-button class="flex-shrink-0" @click="doClean">{{
+          I18nT('common.action.clear')
+        }}</el-button>
       </div>
       <div class="flex-1 flex h-full overflow-hidden">
         <ASideVM />

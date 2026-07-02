@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "Ad",
+    "status": "Durum",
+    "workingDirectory": "Çalışma Dizini",
+    "action": "Eylem",
+    "comment": "Açıklama",
+    "source": "Kaynak",
+    "site": "Site",
+    "errorLog": "Hata Günlüğü",
+    "library": "Kütüphane",
+    "path": "Yol",
+    "description": "Açıklama",
+    "port": "Port",
+    "startCommand": "Başlangıç Komutu",
+    "licenseDescription": "Lisans Açıklaması",
+    "password": "Şifre",
+    "username": "Kullanıcı Adı",
+    "size": "Boyut",
+    "containerEnvVars": "Kapsayıcı Ortam Değişkenleri",
+    "createdTime": "Oluşturulma Zamanı",
+    "image": "Görüntü",
+    "state": "Durum",
+    "grid": "Izgara",
+    "gridSpacing": "Izgara aralığı (piksel)",
+    "fontSize": "Yazı Boyutu",
+    "code": "Kod"
+  },
+  "action": {
+    "enable": "Etkinleştir",
+    "disable": "Devre dışı bırak",
+    "resume": "Sürdür",
+    "uninstall": "Kaldır",
+    "copy": "Kopyala",
+    "preview": "Önizleme",
+    "search": "Ara",
+    "clear": "Temizle",
+    "resetPassword": "Şifreyi sıfırla",
+    "delete": "Sil",
+    "add": "Ekle",
+    "edit": "Düzenle",
+    "generate": "Oluştur",
+    "refresh": "Yenile",
+    "save": "Kaydet",
+    "start": "Başlat",
+    "stop": "Durdur",
+    "close": "Kapat",
+    "selectAll": "Tümünü Seç",
+    "changeName": "Adı düzenle",
+    "changeOwnerPassword": "Sahip Parolasını Değiştir",
+    "changeRole": "Rolü değiştir"
+  },
+  "state": {
+    "running": "Calisiyor",
+    "installed": "Yüklü",
+    "enabled": "Etkin",
+    "disabled": "Devre dışı",
+    "available": "Kullanılabilir"
+  },
+  "session": {
+    "list": "Oturumlar",
+    "title": "Başlık",
+    "id": "Oturum Kimliği",
+    "lastPrompt": "Son İstem",
+    "search": "Oturumlarda ara",
+    "deleted": "Oturum silindi",
+    "resumed": "Oturum terminalde sürdürüldü"
+  },
+  "mcp": {
+    "type": "Tür",
+    "commandOrUrl": "Komut / URL",
+    "scope": "Kapsam",
+    "addServer": "Sunucu Ekle"
+  },
+  "category": {
+    "basic": "Temel",
+    "mcp": "MCP",
+    "skills": "Yetenekler",
+    "basicInfo": "Temel Bilgiler",
+    "configuration": "Yapılandırma",
+    "favorites": "Favoriler",
+    "plugins": "Eklentiler",
+    "backupUpdate": "Yedekleme & Güncelleme"
+  },
+  "skills": {
+    "openSkillsDir": "Beceriler dizinini aç",
+    "openSkillDir": "Beceri klasörünü aç",
+    "revealSkillFile": "Beceri dosyasını göster",
+    "noSkills": "Hiç beceri bulunamadı",
+    "skillFileMissing": "Beceri dosyası bulunamadı",
+    "skillLoadFailed": "Beceri dosyası yüklenemedi",
+    "builtin": "Yerleşik"
+  },
+  "cli": {
+    "help": "Yardım bilgisini göster",
+    "version": "Sürüm numarasını göster",
+    "start": "Yeni etkileşimli oturum başlat",
+    "mcpList": "Yapılandırılmış MCP sunucularını listele",
+    "doctor": "Sağlık kontrollerini çalıştır",
+    "doctorFix": "Otomatik düzeltme ile sağlık kontrollerini çalıştır",
+    "gatewayStart": "Ağ geçidi servisini başlat",
+    "gatewayStop": "Ağ geçidi servisini durdur",
+    "gatewayRestart": "Ağ geçidi servisini yeniden başlat",
+    "gatewayStatus": "Ağ geçidi durumunu göster",
+    "gatewayRun": "Ağ geçidini ön planda çalıştır",
+    "gatewayUninstall": "Ağ geçidi servisini kaldır",
+    "skillsList": "Kullanılabilir becerileri listele"
+  },
+  "gateway": {
+    "category": "Ağ Geçidi Servisi",
+    "status": "Ağ Geçidi Durumu",
+    "running": "Ağ geçidi çalışıyor",
+    "stopped": "Ağ geçidi durduruldu",
+    "startFailed": "Ağ geçidi başlatılamadı"
+  },
+  "value": {
+    "yes": "Evet",
+    "no": "Hayır",
+    "other": "Diğer",
+    "default": "Varsayılan",
+    "none": "Hiçbiri",
+    "local": "Yerel"
+  },
+  "plugin": {
+    "search": "Eklenti ara",
+    "removed": "Eklenti kaldırıldı"
+  },
+  "schedule": {
+    "everyHour": "Her saat",
+    "everyMinute": "Her dakika"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini dosyası bulunamadı"
+  }
+}

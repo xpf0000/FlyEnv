@@ -8,7 +8,7 @@
   "updatePackageJsonFileTips": "Ova akcija će modificirati package.json datoteku. Jeste li sigurni da želite ažurirati?",
   "copyDirPath": "Kopiraj Putanju Projektne Mape",
   "openIN": "Otvori U",
-  "VSCode": "Visual Studio Code",
+  "VSCode": "Visual Studio Code uređivač",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
   "projectEnvSet": "Okruženje Projekta",

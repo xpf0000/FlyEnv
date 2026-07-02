@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI nu este instalat. Faceti clic pe butonul de mai jos pentru a-l instala cu programul oficial de instalare.",
+  "officialWebsite": "Site Antigravity",
+  "officialDocs": "Documentatie Antigravity CLI",
+  "sandboxMode": "Sandbox terminal",
+  "toolPermission": "Permisiune unealta",
+  "sessionId": "ID conversatie",
+  "updatedAt": "Actualizat la",
+  "sessionResumed": "Conversatie reluata in terminal",
+  "sessionDeleted": "Conversatie stearsa",
+  "cmd": {
+    "update": "Actualizati Antigravity CLI la cea mai recenta versiune",
+    "models": "Listati modelele disponibile",
+    "continue": "Continuati cea mai recenta conversatie",
+    "resume": "Reluati o conversatie anterioara dupa ID",
+    "prompt": "Rulati un singur prompt in mod neinteractiv",
+    "pluginList": "Listati pluginurile importate",
+    "pluginImport": "Importati pluginuri din gemini sau claude",
+    "install": "Configurati caile de mediu si setarile shell-ului"
+  }
+}

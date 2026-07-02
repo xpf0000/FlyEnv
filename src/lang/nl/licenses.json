@@ -1,5 +1,4 @@
 {
-  "title": "Licentie omschrijving",
   "description": "Deze licentie erkent en ondersteunt de inspanningen van FlyEnv en zijn auteurs. Het is niet de bedoeling om gebruikers te beperken, maar om respect voor het werk van de ontwikkelaar en het intellectuele eigendom te bevorderen. Verzeker u van een geldige licentie voordat u FlyEnv gebruikt voor commerciële doeleinden.",
   "restrictions": {
     "title": "Gebruikers zonder licentie worden onderworpen aan de volgende beperkingen:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Gekoppelde UUID",
   "delBind": "Ontkoppelen",
   "bindCurrentUUID": "Koppel dit apparaat",
-  "licenseDescription": "Licentieomschrijving",
   "loginFail": "Inloggen mislukt",
   "oauthCanceledTitle": "Autorisatie geannuleerd",
   "oauthCanceledMessage": "Gebruiker heeft het autorisatieproces geannuleerd",

@@ -10,7 +10,7 @@
 </template>
 <script setup lang="ts">
   import { computed, onMounted } from 'vue'
-  import type { ComputedRef } from 'vue'
+  import type { ComputedRef, CSSProperties } from 'vue'
   import { CapturerStore } from '@/capturer/store/app'
   import { Close } from '@element-plus/icons-vue'
   import type { Rect } from '@/capturer/store/app'
@@ -47,7 +47,7 @@
    * 获取放大镜位置
    * 默认在鼠标右下角，需要根据鼠标位置调整避免超出屏幕
    */
-  const style = computed(() => {
+  const style = computed<CSSProperties>(() => {
     const mouseX = info.value.x
     const mouseY = info.value.y
     const offset = 6 // 距离鼠标的偏移量
@@ -65,7 +65,7 @@
     return {
       left: `${left}px`,
       top: `${top}px`,
-      'pointer-events': 'none' // 防止组件拦截鼠标事件
+      pointerEvents: 'none' // 防止组件拦截鼠标事件
     }
   })
 </script>

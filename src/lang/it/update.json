@@ -4,8 +4,6 @@
   "update-not-available-message": "Sei già aggiornato!",
   "update-downloaded-message": "Pronto per l'installazione...",
   "update-error-message": "Errore durante l'aggiornamento",
-  "yes": "Sì",
-  "no": "No",
   "view-update-log": "Visualizza Registro Aggiornamenti",
   "download-new-version": "Scarica Nuova Versione"
 }

@@ -3,6 +3,7 @@ import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseWithEnv, versionFixed } from '../../Fn'
 import { compareVersions } from '@shared/compare-versions'
+import type { SoftInstalled } from '@shared/app'
 
 class Sdkman extends Base {
   constructor() {
@@ -128,6 +129,14 @@ class Sdkman extends Base {
       const list = await this.sdkmanOtherSearch(this._initPrefix(), flag)
       return resolve(list)
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 

@@ -1,5 +1,4 @@
 {
-  "site": "Stranica",
   "webServer": "Web Poslužitelj",
   "dataBaseServer": "Poslužitelj Baze Podataka",
   "emailServer": "E-mail Poslužitelj",
@@ -8,13 +7,14 @@
   "dnsServer": "DNS Poslužitelj",
   "ftpServer": "FTP Poslužitelj",
   "containerRuntime": "Okruženje Izvođenja Kontejnera",
-  "other": "Ostalo",
   "appLog": "Log Aplikacije",
+  "aiCoding": "AI kodiranje",
   "ai": "AI",
   "objectStorage": "Objektna Pohrana",
   "appExit": "Zaustavi sve pokrenute servise i izađi iz FlyEnv",
   "groupStart": "Jednim klikom pokreni sve dostupne servise prikazane na ploči",
   "networkTunnel": "Mrežni Tunel",
   "cacheAndQueue": "Cache i Red Poruka",
-  "serviceGovernance": "Upravljanje Servisima"
+  "serviceGovernance": "Upravljanje Servisima",
+  "other": "Ostalo"
 }

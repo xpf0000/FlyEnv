@@ -1,5 +1,4 @@
 {
-  "title": "Opis Licence",
   "description": "Ova licenca priznaje i podržava napore FlyEnv-a i njegovih autora. Nije namijenjena ograničavanju korisnika, već poticanju poštovanja rada programera i intelektualnog vlasništva. Molimo osigurajte da imate valjanu licencu prije korištenja FlyEnv-a u komercijalne svrhe.",
   "restrictions": {
     "title": "Korisnici bez licence bit će podložni sljedećim ograničenjima:",
@@ -47,7 +46,6 @@
   "licenseBindUUID": "Vezani UUID",
   "delBind": "Odveži",
   "bindCurrentUUID": "Veži Ovaj Uređaj",
-  "licenseDescription": "Opis Licence",
   "loginFail": "Prijava nije uspjela",
   "oauthCanceledTitle": "Autorizacija Otkazana",
   "oauthCanceledMessage": "Korisnik je otkazao proces autorizacije",

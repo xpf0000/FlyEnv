@@ -14,17 +14,27 @@ export class ForkPromise<T> {
   private readonly promise: Promise<T>
   private onData: Array<Array<any>> = []
 
-  constructor(executor: (resolve: ResolveType<T>, reject: RejectType, on: OnType) => void) {
+  constructor(
+    executor: (resolve: ResolveType<T>, reject: RejectType, on: OnType) => void | PromiseLike<void>
+  ) {
     this.promise = new Promise<T>((resolve, reject) => {
       this.res = resolve
       this.rej = reject
-      executor(resolve, reject, (...args: any) => {
-        if (!this?._cbOn) {
-          this.onData.push(args)
-        } else {
-          this?._cbOn?.(...args)
+      try {
+        const pending = executor(resolve, reject, (...args: any) => {
+          if (!this?._cbOn) {
+            this.onData.push(args)
+          } else {
+            this?._cbOn?.(...args)
+          }
+        })
+
+        if (pending && typeof (pending as PromiseLike<void>).then === 'function') {
+          Promise.resolve(pending).catch(reject)
         }
-      })
+      } catch (error) {
+        reject(error)
+      }
     })
   }
 

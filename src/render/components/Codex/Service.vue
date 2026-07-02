@@ -71,7 +71,7 @@
             </el-form-item>
             <el-form-item
               class="flex-1 overflow-hidden el-form-item-flex-1 flex flex-col w-full"
-              :label="I18nT('host.action')"
+              :label="I18nT('common.label.action')"
             >
               <el-scrollbar class="w-full">
                 <div class="w-full command-categories">
@@ -123,14 +123,19 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import { I18nT } from '@lang/index'
+  import { getCodexInstallDisplayCommand, resolveCodexInstallPlatform } from './install'
   import { CommandItem, CodexSetup } from './setup'
   import { nextTick, onMounted, onUnmounted } from 'vue'
   import XTerm from '@/util/XTerm'
 
   const xtermDom = ref()
-  const activeCategories = ref(['codex.category.basic'])
+  const activeCategories = ref(['common.category.basic'])
 
-  const installCommand = 'npm install -g @openai/codex'
+  const installCommand = getCodexInstallDisplayCommand(
+    resolveCodexInstallPlatform(
+      window.Server.isWindows ? 'win32' : window.Server.isMacOS ? 'darwin' : 'linux'
+    )
+  )
 
   const installCodex = () => {
     CodexSetup.installCodex(xtermDom)

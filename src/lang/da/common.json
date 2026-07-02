@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "Navn",
+    "status": "Status",
+    "workingDirectory": "Arbejdsmappe",
+    "action": "Handling",
+    "comment": "Kommentar",
+    "source": "Kilde",
+    "site": "Websted",
+    "errorLog": "Fejllog",
+    "library": "Bibliotek",
+    "path": "Sti",
+    "description": "Varebeskrivelse",
+    "port": "Port",
+    "startCommand": "Start Kommando",
+    "licenseDescription": "Licensbeskrivelse",
+    "password": "Adgangskode",
+    "username": "Dit brugernavn",
+    "size": "Størrelse",
+    "containerEnvVars": "Container Environment Variabler",
+    "createdTime": "Oprettet Tid",
+    "image": "Billede",
+    "state": "Stat",
+    "grid": "Gitter",
+    "gridSpacing": "Gitterafstand (pixels)",
+    "fontSize": "Skriftstørrelse",
+    "code": "Kode"
+  },
+  "action": {
+    "enable": "Aktiver",
+    "disable": "Deaktiver",
+    "resume": "Genoptag",
+    "uninstall": "Afinstaller",
+    "copy": "Kopiér",
+    "preview": "Eksempelvisning",
+    "search": "Søg",
+    "clear": "Ryd",
+    "resetPassword": "Nulstil Adgangskode",
+    "delete": "Slet",
+    "add": "Tilføj",
+    "edit": "Rediger",
+    "generate": "Generer",
+    "refresh": "Opdater",
+    "save": "Gem",
+    "start": "Start",
+    "stop": "Stop",
+    "close": "Luk",
+    "selectAll": "Vælg Alle",
+    "changeName": "Rediger Navn",
+    "changeOwnerPassword": "Skift Ejerens Adgangskode",
+    "changeRole": "Skift Rolle"
+  },
+  "state": {
+    "running": "Kører",
+    "installed": "Installeret",
+    "enabled": "Aktiveret",
+    "disabled": "Deaktiveret",
+    "available": "Tilgængelig"
+  },
+  "session": {
+    "list": "Sessioner",
+    "title": "Titel",
+    "id": "Sessions-id",
+    "lastPrompt": "Seneste prompt",
+    "search": "Søg i sessioner",
+    "deleted": "Session slettet",
+    "resumed": "Session genoptaget i terminalen"
+  },
+  "mcp": {
+    "type": "Type",
+    "commandOrUrl": "Kommando / URL",
+    "scope": "Scope",
+    "addServer": "Tilføj server"
+  },
+  "category": {
+    "basic": "Grundlæggende",
+    "mcp": "MCP",
+    "skills": "Færdigheder",
+    "basicInfo": "Grundlæggende Info",
+    "configuration": "Konfiguration",
+    "favorites": "Favoritter",
+    "plugins": "Plugins",
+    "backupUpdate": "Sikkerhedskopiér Og Opdatér"
+  },
+  "skills": {
+    "openSkillsDir": "Åbn kompetencemappe",
+    "openSkillDir": "Åbn færdighedsmappe",
+    "revealSkillFile": "Afslør færdighedsfil",
+    "noSkills": "Ingen færdigheder fundet",
+    "skillFileMissing": "Færdighedsfil ikke fundet",
+    "skillLoadFailed": "Kunne ikke indlæse færdighedsfil",
+    "builtin": "Indbygget"
+  },
+  "cli": {
+    "help": "Vis hjælpoplysninger",
+    "version": "Vis versionsnummer",
+    "start": "Start en ny interaktiv session",
+    "mcpList": "Vis konfigurerede MCP-servere",
+    "doctor": "Kør sundhedskontrol",
+    "doctorFix": "Kør sundhedstjek med auto-fix",
+    "gatewayStart": "Start gateway-tjeneste",
+    "gatewayStop": "Stop gateway-tjeneste",
+    "gatewayRestart": "Genstart gateway service",
+    "gatewayStatus": "Vis gateway status",
+    "gatewayRun": "Kør gateway i forgrunden",
+    "gatewayUninstall": "Afinstaller gateway-tjeneste",
+    "skillsList": "Vis tilgængelige færdigheder"
+  },
+  "gateway": {
+    "category": "Gateway-tjeneste",
+    "status": "Gateway-status",
+    "running": "Gateway kører",
+    "stopped": "Gateway stoppes",
+    "startFailed": "Gateway start mislykkedes"
+  },
+  "value": {
+    "yes": "Ja",
+    "no": "Nej",
+    "other": "Andet",
+    "default": "Standard",
+    "none": "Ingen",
+    "local": "Lokal"
+  },
+  "plugin": {
+    "search": "Søg plugins",
+    "removed": "Plugin fjernet"
+  },
+  "schedule": {
+    "everyHour": "Hver time",
+    "everyMinute": "Hvert minut"
+  },
+  "error": {
+    "phpiniNotFound": "php.ini-fil ikke fundet"
+  }
+}

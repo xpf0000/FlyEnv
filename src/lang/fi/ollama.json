@@ -15,6 +15,5 @@
   "OLLAMA_GPU_OVERHEAD": "Varaa osa VRAMista GPU:ta kohden (tavua)",
   "OLLAMA_LOAD_TIMEOUT": "Kuinka kauan mallissa olevien kuormien voi pysäyttää ennen luopumista (oletus \"5m\")",
   "needServiceRun": "Ole hyvä ja käynnistä Olama palvelu ensin",
-  "size": "Koko",
   "model": "Mallit"
 }

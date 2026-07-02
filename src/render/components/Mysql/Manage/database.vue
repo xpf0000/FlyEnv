@@ -15,7 +15,7 @@
         >
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('mysql.databaseUser')" prop="user" width="200px">
+    <el-table-column :label="I18nT('common.label.username')" prop="user" width="200px">
       <template #default="scope">
         <span
           class="truncate hover:text-yellow-500 cursor-pointer"
@@ -24,7 +24,7 @@
         >
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('mysql.databasePassword')" prop="password" width="240px">
+    <el-table-column :label="I18nT('common.label.password')" prop="password" width="240px">
       <template #default="scope">
         <template v-if="scope.row.password">
           <div class="flex items-center">
@@ -53,7 +53,7 @@
     </el-table-column>
     <el-table-column
       class-name="mysql-database-mark-cell"
-      :label="I18nT('host.comment')"
+      :label="I18nT('common.label.comment')"
       prop="mark"
     >
       <template #default="scope">
@@ -67,7 +67,7 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('host.action')" width="100px" align="center">
+    <el-table-column :label="I18nT('common.label.action')" width="100px" align="center">
       <template #default="scope">
         <el-dropdown>
           <el-button link>
@@ -97,7 +97,7 @@
                   :content="I18nT('mysql.resetPasswordTips')"
                 >
                   <div class="flex items-center w-full h-full">
-                    {{ I18nT('mysql.resetPassword') }}
+                    {{ I18nT('common.action.resetPassword') }}
                   </div>
                 </el-tooltip>
               </el-dropdown-item>

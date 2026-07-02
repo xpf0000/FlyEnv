@@ -58,12 +58,12 @@
                 >{{ HermesSetup.version }}</span
               >
             </el-form-item>
-            <el-form-item class="flex-shrink-0" :label="I18nT('hermes.gatewayStatus')">
+            <el-form-item class="flex-shrink-0" :label="I18nT('common.gateway.status')">
               <template v-if="HermesSetup.gatewayRunning">
-                <span class="text-[#01cc74]">{{ I18nT('hermes.gatewayRunning') }}</span>
+                <span class="text-[#01cc74]">{{ I18nT('common.gateway.running') }}</span>
               </template>
               <template v-else>
-                <span>{{ I18nT('hermes.gatewayStopped') }}</span>
+                <span>{{ I18nT('common.gateway.stopped') }}</span>
               </template>
             </el-form-item>
             <el-form-item class="flex-shrink-0">
@@ -97,7 +97,7 @@
             </el-form-item>
             <el-form-item
               class="flex-1 overflow-hidden el-form-item-flex-1 flex flex-col w-full"
-              :label="I18nT('host.action')"
+              :label="I18nT('common.label.action')"
             >
               <el-scrollbar class="w-full">
                 <div class="w-full command-categories">
@@ -154,7 +154,7 @@
   import XTerm from '@/util/XTerm'
 
   const xtermDom = ref()
-  const activeCategories = ref(['hermes.category.basicInfo'])
+  const activeCategories = ref(['common.category.basicInfo'])
 
   const installHermes = () => {
     HermesSetup.installHermes(xtermDom)

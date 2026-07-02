@@ -15,7 +15,7 @@
             <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="groupDo('start')" />
           </div>
         </div>
-        <el-button @click.stop="doAdd(undefined)">{{ $t('base.add') }}</el-button>
+        <el-button @click.stop="doAdd(undefined)">{{ $t('common.action.add') }}</el-button>
       </div>
     </template>
     <el-auto-resizer>
@@ -123,7 +123,7 @@
       width: 90,
       align: 'center',
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('host.port')}</span>
+        return <span class="flex items-center">{I18nT('common.label.port')}</span>
       },
       cellRenderer: ({ cellData: port }) => <span class="dir">{port}</span>
     },
@@ -151,7 +151,7 @@
       align: 'center',
       class: 'state-column',
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.mysqlState')}</span>
+        return <span class="flex items-center">{I18nT('common.label.state')}</span>
       },
       cellRenderer: ({ rowData: data }) => {
         if (data?.version?.running) {

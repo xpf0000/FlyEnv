@@ -1,0 +1,21 @@
+{
+  "notInstalled": "尚未安装 Antigravity CLI。点击下方按钮使用官方安装器进行安装。",
+  "officialWebsite": "Antigravity 官网",
+  "officialDocs": "Antigravity CLI 文档",
+  "sandboxMode": "终端沙箱",
+  "toolPermission": "工具权限",
+  "sessionId": "对话 ID",
+  "updatedAt": "更新时间",
+  "sessionResumed": "已在终端恢复对话",
+  "sessionDeleted": "对话已删除",
+  "cmd": {
+    "update": "将 Antigravity CLI 更新到最新版本",
+    "models": "列出可用模型",
+    "continue": "继续最近的对话",
+    "resume": "通过 ID 恢复之前的对话",
+    "prompt": "以非交互方式运行单条提示",
+    "pluginList": "列出已导入的插件",
+    "pluginImport": "从 gemini 或 claude 导入插件",
+    "install": "配置环境路径与 Shell 设置"
+  }
+}

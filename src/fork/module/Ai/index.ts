@@ -1,5 +1,6 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import type { SoftInstalled } from '@shared/app'
 import axios from 'axios'
 import http from 'http'
 import https from 'https'
@@ -50,6 +51,14 @@ class Ai extends Base {
       }
       resolve(list)
     })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    return []
   }
 }
 export default new Ai()

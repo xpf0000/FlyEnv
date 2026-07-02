@@ -5,6 +5,7 @@ import { markRaw, nextTick, Ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
+import { getCodexInstallCommandLines, resolveCodexInstallPlatform } from './install'
 import CommandData from './command.json'
 
 export interface CommandItem {
@@ -150,14 +151,13 @@ class Codex {
     const execXTerm = new XTerm()
     this.xterm = markRaw(execXTerm)
     await execXTerm.mount(domRef.value)
-    const command: string[] = []
-    if (window.Server.Proxy) {
-      for (const k in window.Server.Proxy) {
-        const v = window.Server.Proxy[k]
-        command.push(`export ${k}="${v}"`)
-      }
-    }
-    command.push('npm install -g @openai/codex')
+    const installPlatform = resolveCodexInstallPlatform(
+      window.Server.isWindows ? 'win32' : window.Server.isMacOS ? 'darwin' : 'linux'
+    )
+    const command = getCodexInstallCommandLines(
+      installPlatform,
+      (window.Server.Proxy ?? {}) as Record<string, string>
+    )
     await execXTerm.send(command, false)
     this.installEnd = true
   }
@@ -184,7 +184,7 @@ class Codex {
       IPC.send('app-fork:codex', 'deleteSession', sessionId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('codex.sessionDeleted'))
+          MessageSuccess(I18nT('common.session.deleted'))
           this.refreshSessions()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -200,7 +200,7 @@ class Codex {
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            MessageSuccess(I18nT('codex.sessionResumed'))
+            MessageSuccess(I18nT('common.session.resumed'))
           } else {
             MessageError(res?.msg ?? I18nT('base.fail'))
           }
@@ -283,7 +283,7 @@ class Codex {
       IPC.send('app-fork:codex', 'disablePlugin', pluginId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('codex.pluginDisabled'))
+          MessageSuccess(I18nT('claudeCode.pluginDisabled'))
           this.refreshPlugins()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -298,7 +298,7 @@ class Codex {
       IPC.send('app-fork:codex', 'uninstallPlugin', pluginId).then((key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          MessageSuccess(I18nT('codex.pluginUninstalled'))
+          MessageSuccess(I18nT('common.plugin.removed'))
           this.refreshPlugins()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -321,9 +321,9 @@ class Codex {
     })
   }
 
-  addMcp(name: string, type: string, commandOrUrl: string) {
+  addMcp(name: string, type: string, commandOrUrl: string, token = '') {
     return new Promise((resolve) => {
-      IPC.send('app-fork:codex', 'addMcp', name, type, commandOrUrl).then(
+      IPC.send('app-fork:codex', 'addMcp', name, type, commandOrUrl, token).then(
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
