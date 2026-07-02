@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI chua duoc cai dat. Bam nut ben duoi de cai dat bang bo cai dat chinh thuc.",
+  "notInstalled": "Antigravity CLI chưa được cài đặt. Nhấp vào nút bên dưới để cài đặt bằng trình cài đặt chính thức.",
   "officialWebsite": "Trang web Antigravity",
-  "officialDocs": "Tai lieu Antigravity CLI",
-  "sandboxMode": "Hop cat terminal",
-  "toolPermission": "Quyen cong cu",
-  "sessionId": "ID hoi thoai",
-  "updatedAt": "Cap nhat luc",
-  "sessionResumed": "Hoi thoai da duoc tiep tuc trong terminal",
-  "sessionDeleted": "Hoi thoai da bi xoa",
+  "officialDocs": "Tài liệu Antigravity CLI",
+  "sandboxMode": "Sandbox Terminal",
+  "toolPermission": "Quyền hạn công cụ",
+  "sessionId": "ID cuộc hội thoại",
+  "updatedAt": "Cập nhật lúc",
+  "sessionResumed": "Cuộc hội thoại đã được khôi phục trong terminal",
+  "sessionDeleted": "Cuộc hội thoại đã bị xóa",
   "cmd": {
-    "update": "Cap nhat Antigravity CLI len phien ban moi nhat",
-    "models": "Liet ke cac mo hinh co san",
-    "continue": "Tiep tuc hoi thoai gan nhat",
-    "resume": "Tiep tuc hoi thoai truoc do bang ID",
-    "prompt": "Chay mot prompt don o che do khong tuong tac",
-    "pluginList": "Liet ke cac plugin da nhap",
-    "pluginImport": "Nhap plugin tu gemini hoac claude",
-    "install": "Cau hinh duong dan moi truong va cai dat shell"
+    "update": "Cập nhật Antigravity CLI lên phiên bản mới nhất",
+    "models": "Liệt kê các mô hình hiện có",
+    "continue": "Tiếp tục cuộc hội thoại gần nhất",
+    "resume": "Khôi phục một cuộc hội thoại trước đó bằng ID",
+    "prompt": "Chạy một prompt duy nhất ở chế độ không tương tác",
+    "pluginList": "Liệt kê các plugin đã nhập",
+    "pluginImport": "Nhập plugin từ Gemini hoặc Claude",
+    "install": "Cấu hình đường dẫn môi trường và cài đặt shell"
   }
 }

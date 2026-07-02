@@ -14,7 +14,7 @@
     "models": "Liệt kê tất cả các mô hình hiện có",
     "start": "Khởi động giao diện OpenCode TUI",
     "continue": "Tiếp tục phiên làm việc cuối cùng",
-    "resume": "Tiếp tục một phiên làm việc bằng ID",
+    "resume": "Khôi phục một phiên làm việc bằng ID",
     "run": "Chạy OpenCode với một tin nhắn",
     "mcpList": "Liệt kê các máy chủ MCP và trạng thái của chúng",
     "stats": "Hiển thị thống kê về mức sử dụng token và chi phí",

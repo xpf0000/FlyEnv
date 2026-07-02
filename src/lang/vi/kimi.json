@@ -7,15 +7,15 @@
   "defaultPlanMode": "Chế độ Lập kế hoạch mặc định",
   "telemetry": "Thu thập dữ liệu (Telemetry)",
   "cmd": {
-    "upgrade": "Nâng cấp Kimi Code CLI",
-    "continue": "Tiếp tục phiên gần đây nhất trong thư mục hiện tại",
-    "sessionSelect": "Chọn và tiếp tục một phiên",
+    "upgrade": "Cập nhật Kimi Code CLI",
+    "continue": "Tiếp tục phiên làm việc gần nhất trong thư mục hiện tại",
+    "sessionSelect": "Chọn và khôi phục một phiên làm việc",
     "plan": "Bắt đầu ở chế độ lập kế hoạch",
     "yolo": "Tự động phê duyệt các lệnh gọi công cụ thông thường",
-    "export": "Xuất một phiên thành ZIP",
-    "vis": "Mở trình trực quan hóa phiên trong trình duyệt",
+    "export": "Xuất phiên làm việc ra tệp ZIP",
+    "vis": "Mở công cụ trực quan hóa phiên trong trình duyệt",
     "providerList": "Liệt kê các nhà cung cấp đã cấu hình",
-    "providerAdd": "Thêm nhà cung cấp từ URL registry",
+    "providerAdd": "Thêm nhà cung cấp từ một URL registry",
     "providerRemove": "Xóa một nhà cung cấp"
   }
 }
