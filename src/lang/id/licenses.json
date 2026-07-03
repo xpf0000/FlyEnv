@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Pengguna tanpa lisensi akan dikenakan pembatasan berikut:",
     "items": {
-      "0": "Maksimal tiga situs dapat dibuat.",
+      "0": "Maksimal enam situs dapat dibuat.",
       "1": "Fitur obrolan AI tersedia hanya untuk periode percobaan tiga hari.",
       "2": "Pembatasan tambahan mungkin berlaku untuk fitur mendatang."
     }

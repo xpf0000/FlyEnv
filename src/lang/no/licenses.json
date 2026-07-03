@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Brukere uten lisens vil være underlagt følgende begrensninger:",
     "items": {
-      "0": "Du kan opprette maksimalt tre nettsider.",
+      "0": "Du kan opprette maksimalt 6 nettsider.",
       "1": "AI chat funksjonen er kun tilgjengelig for prøveperiode på tre dager.",
       "2": "Ytterligere restriksjoner kan gjelde for fremtidige egenskaper."
     }

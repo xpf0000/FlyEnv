@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Gebruikers zonder licentie worden onderworpen aan de volgende beperkingen:",
     "items": {
-      "0": "Maximaal drie sites kunnen worden aangemaakt.",
+      "0": "Er kunnen maximaal zes sites worden aangemaakt.",
       "1": "De AI-chatfunctie is beschikbaar voor een proefperiode van slechts drie dagen.",
       "2": "Extra beperkingen kunnen van toepassing zijn op toekomstige functies."
     }

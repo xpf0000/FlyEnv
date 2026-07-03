@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Benutzer ohne Lizenz unterliegen folgenden Einschränkungen:",
     "items": {
-      "0": "Es können maximal drei Seiten erstellt werden.",
+      "0": "Es können maximal sechs Seiten erstellt werden.",
       "1": "Das KI-Chat-Feature ist nur für einen Testzeitraum von drei Tagen verfügbar.",
       "2": "Weitere Einschränkungen können für zukünftige Funktionen gelten."
     }

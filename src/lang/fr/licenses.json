@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Les utilisateurs sans licence seront soumis aux restrictions suivantes :",
     "items": {
-      "0": "Un maximum de trois sites peut être créés.",
+      "0": "Un maximum de six sites peut être créés.",
       "1": "La fonctionnalité de chat IA est disponible pour une période d'essai de trois jours seulement.",
       "2": "Des restrictions supplémentaires peuvent s'appliquer aux fonctionnalités futures."
     }

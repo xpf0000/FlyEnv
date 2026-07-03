@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Lisansı olmayan kullanıcılar aşağıdaki kısıtlamalara tabi olacaktır:",
     "items": {
-      "0": "En fazla üç site oluşturulabilir.",
+      "0": "En fazla altı site oluşturulabilir.",
       "1": "Yapay zeka sohbet özelliği yalnızca üç günlük deneme süresiyle kullanılabilir.",
       "2": "Gelecekteki özelliklerde ek kısıtlamalar olabilir."
     }

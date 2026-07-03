@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Käyttäjiin, joilla ei ole lisenssiä, sovelletaan seuraavia rajoituksia:",
     "items": {
-      "0": "Voidaan luoda enintään kolme kohdetta.",
+      "0": "Voidaan luoda enintään kuusi kohdetta.",
       "1": "AI chat -ominaisuus on saatavilla vain kolmen päivän kokeilujaksolle.",
       "2": "Tuleviin ominaisuuksiin voidaan soveltaa lisärajoituksia."
     }

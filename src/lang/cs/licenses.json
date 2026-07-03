@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Uživatelé bez licence budou podléhat následujícím omezením:",
     "items": {
-      "0": "Je možné vytvořit maximálně tři stránky.",
+      "0": "Je možné vytvořit maximálně šest stránek.",
       "1": "Funkce AI chatu je dostupná pouze po dobu tří dnů.",
       "2": "Další omezení mohou platit pro budoucí funkce."
     }

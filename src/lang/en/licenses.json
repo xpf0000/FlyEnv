@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Users without a license will be subject to the following restrictions:",
     "items": {
-      "0": "A maximum of three sites can be created.",
+      "0": "A maximum of six sites can be created.",
       "1": "The AI chat feature is available for a trial period of three days only.",
       "2": "Additional restrictions may apply to future features."
     }

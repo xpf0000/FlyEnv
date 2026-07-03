@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Korisnici bez licence bit će podložni sljedećim ograničenjima:",
     "items": {
-      "0": "Mogu se kreirati maksimalno tri stranice.",
+      "0": "Mogu se kreirati maksimalno šest stranice.",
       "1": "Značajka AI chata dostupna je samo za probno razdoblje od tri dana.",
       "2": "Dodatna ograničenja mogu se primijeniti na buduće značajke."
     }

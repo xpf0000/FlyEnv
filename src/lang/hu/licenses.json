@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "A licenccel nem rendelkező felhasználókra az alábbi korlátozások vonatkoznak:",
     "items": {
-      "0": "Legfeljebb három webhely hozható létre.",
+      "0": "Legfeljebb hat weboldal hozható létre.",
       "1": "Az AI chat funkció kizárólag háromnapos próbaidőszakban érhető el.",
       "2": "A jövőbeli funkciókra további korlátozások vonatkozhatnak."
     }

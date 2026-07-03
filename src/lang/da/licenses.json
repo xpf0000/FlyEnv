@@ -3,7 +3,7 @@
   "restrictions": {
     "title": "Brugere uden licens vil være underlagt følgende begrænsninger:",
     "items": {
-      "0": "Der kan højst oprettes tre websteder.",
+      "0": "Der kan højst oprettes seks websteder.",
       "1": "AI chat funktionen er tilgængelig for en prøveperiode på kun tre dage.",
       "2": "Der kan gælde yderligere begrænsninger for fremtidige træk."
     }
