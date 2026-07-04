@@ -14,6 +14,16 @@ class Podman extends Base {
     this.type = 'podman'
   }
 
+  private async getComposeCommand(): Promise<string> {
+    try {
+      await execPromiseWithEnv('docker-compose --version')
+      return 'docker-compose'
+    } catch {}
+
+    await execPromiseWithEnv('docker compose version')
+    return 'docker compose'
+  }
+
   podmanInit() {
     return new ForkPromise(async (resolve) => {
       let version = ''
@@ -440,16 +450,16 @@ class Podman extends Base {
 
   composeStart(paths: string[], projectName: string, socket?: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const arr: string[] = ['docker-compose', ...paths.map((p) => `-f "${p}"`)]
-      if (projectName) {
-        arr.push(`-p ${projectName}`)
-      }
-      arr.push('up -d')
       const env: any = {}
       if (!isWindows() && socket) {
         env.DOCKER_HOST = `unix://${socket}`
       }
       try {
+        const arr: string[] = [await this.getComposeCommand(), ...paths.map((p) => `-f "${p}"`)]
+        if (projectName) {
+          arr.push(`-p ${projectName}`)
+        }
+        arr.push('up -d')
         await execPromiseWithEnv(arr.join(' '), { env })
         resolve(true)
       } catch (e: any) {
@@ -460,16 +470,16 @@ class Podman extends Base {
 
   composeStop(paths: string[], projectName: string, socket?: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const arr: string[] = ['docker-compose', ...paths.map((p) => `-f "${p}"`)]
-      if (projectName) {
-        arr.push(`-p ${projectName}`)
-      }
-      arr.push('down')
       const env: any = {}
       if (!isWindows() && socket) {
         env.DOCKER_HOST = `unix://${socket}`
       }
       try {
+        const arr: string[] = [await this.getComposeCommand(), ...paths.map((p) => `-f "${p}"`)]
+        if (projectName) {
+          arr.push(`-p ${projectName}`)
+        }
+        arr.push('down')
         await execPromiseWithEnv(arr.join(' '), { env })
         resolve(true)
       } catch (e: any) {
@@ -481,8 +491,7 @@ class Podman extends Base {
   checkIsComposeExists() {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const command = 'docker-compose --version'
-        await execPromiseWithEnv(command)
+        await this.getComposeCommand()
         resolve(true)
       } catch (err: any) {
         reject(err?.message ?? 'fail')
@@ -494,17 +503,17 @@ class Podman extends Base {
   isComposeRunning(paths: string[], projectName: string, socket?: string) {
     return new ForkPromise(async (resolve, reject) => {
       const tmp = join(tmpdir(), `${uuid()}.txt`)
-      const list: string[] = ['docker-compose', ...paths.map((p) => `-f "${p}"`)]
-      if (projectName) {
-        list.push(`-p ${projectName}`)
-      }
-      list.push('ps --format json')
       const env: any = {}
       if (!isWindows() && socket) {
         env.DOCKER_HOST = `unix://${socket}`
       }
       console.log('isComposeRunning env: ', { env })
       try {
+        const list: string[] = [await this.getComposeCommand(), ...paths.map((p) => `-f "${p}"`)]
+        if (projectName) {
+          list.push(`-p ${projectName}`)
+        }
+        list.push('ps --format json')
         await execPromiseWithEnv(`${list.join(' ')} > "${tmp}" ${getRedirect()}`, { env })
         const content = await readFile(tmp, 'utf-8')
         const arr = content.split('\n').filter((f) => {
