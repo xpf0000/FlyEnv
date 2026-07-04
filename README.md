@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/xpf0000-flyenv-badge.png)](https://mseep.ai/app/xpf0000-flyenv)
+
 # FlyEnv
 
 <div align="center">
