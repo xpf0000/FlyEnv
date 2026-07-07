@@ -480,8 +480,14 @@
           title: 'Create the Demo Database and Table',
           stageType: 'local shell step',
           why: 'Use FlyEnv-provided context to bootstrap the database structure for the rest of the demo.',
-          prompt:
-            'Use FlyEnv MCP to get the local MySQL connection details and execution hints. Then use the local mysql client on this machine to create a database named flyenv_ai_demo if it does not already exist, and create a table named demo_items with these columns:\\n\\n- id INT PRIMARY KEY AUTO_INCREMENT\\n- title VARCHAR(255) NOT NULL\\n- status VARCHAR(50) NOT NULL DEFAULT \\'new\\'\\n- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n\\nAfter that, show me the exact SQL you ran and confirm the table exists.',
+          prompt: `Use FlyEnv MCP to get the local MySQL connection details and execution hints. Then use the local mysql client on this machine to create a database named flyenv_ai_demo if it does not already exist, and create a table named demo_items with these columns:
+
+- id INT PRIMARY KEY AUTO_INCREMENT
+- title VARCHAR(255) NOT NULL
+- status VARCHAR(50) NOT NULL DEFAULT 'new'
+- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+After that, show me the exact SQL you ran and confirm the table exists.`,
           note: ''
         },
         {
@@ -490,8 +496,13 @@
           title: 'Seed Three Demo Rows',
           stageType: 'local shell step',
           why: 'Prepare visible initial data for the later browser CRUD flow.',
-          prompt:
-            'Using the same local MySQL connection, insert three rows into flyenv_ai_demo.demo_items with these titles:\\n\\n- First demo item\\n- Second demo item\\n- Third demo item\\n\\nSet the status to \\'new\\' for all of them. Then query all rows from flyenv_ai_demo.demo_items ordered by id ascending and show the full result.',
+          prompt: `Using the same local MySQL connection, insert three rows into flyenv_ai_demo.demo_items with these titles:
+
+- First demo item
+- Second demo item
+- Third demo item
+
+Set the status to 'new' for all of them. Then query all rows from flyenv_ai_demo.demo_items ordered by id ascending and show the full result.`,
           note: ''
         },
         {
@@ -500,8 +511,21 @@
           title: 'Generate a Minimal PHP CRUD App',
           stageType: 'local file generation step',
           why: 'Generate a small framework-free app so the demo stays fast and easy to understand.',
-          prompt:
-            'Create a minimal plain PHP CRUD demo app under /Users/x/Sites/ai-mysql-demo.\\n\\nRequirements:\\n- use plain PHP, not a framework\\n- use PDO to connect to the local MySQL database flyenv_ai_demo\\n- keep the web root at /Users/x/Sites/ai-mysql-demo/public\\n- support listing all rows from demo_items\\n- support creating a new row\\n- support updating an existing row\\n- support deleting an existing row\\n- keep the UI simple and readable\\n- do not add authentication\\n- do not add external dependencies unless absolutely necessary\\n\\nCreate the required directories and files, and briefly summarize the file structure when done.',
+          prompt: `Create a minimal plain PHP CRUD demo app under /Users/x/Sites/ai-mysql-demo.
+
+Requirements:
+- use plain PHP, not a framework
+- use PDO to connect to the local MySQL database flyenv_ai_demo
+- keep the web root at /Users/x/Sites/ai-mysql-demo/public
+- support listing all rows from demo_items
+- support creating a new row
+- support updating an existing row
+- support deleting an existing row
+- keep the UI simple and readable
+- do not add authentication
+- do not add external dependencies unless absolutely necessary
+
+Create the required directories and files, and briefly summarize the file structure when done.`,
           note: 'This is intentionally framework-free for recording speed and clarity.'
         },
         {
@@ -510,8 +534,15 @@
           title: 'Create the FlyEnv Site and Start PHP / Nginx',
           stageType: 'MCP provisioning step',
           why: 'Turn the generated local files into an actual FlyEnv-managed site and launch the web stack.',
-          prompt:
-            'Use FlyEnv MCP to create a FlyEnv site for this app with these settings:\\n\\n- site name: ai-mysql-demo.test\\n- root: /Users/x/Sites/ai-mysql-demo/public\\n- phpVersion: 83\\n- useSSL: false\\n- autoSSL: false\\n\\nThen use FlyEnv MCP to start PHP and Nginx if they are not already running. After that, use FlyEnv MCP to resolve the site URLs and tell me the best local URL to open in the browser.',
+          prompt: `Use FlyEnv MCP to create a FlyEnv site for this app with these settings:
+
+- site name: ai-mysql-demo.test
+- root: /Users/x/Sites/ai-mysql-demo/public
+- phpVersion: 83
+- useSSL: false
+- autoSSL: false
+
+Then use FlyEnv MCP to start PHP and Nginx if they are not already running. After that, use FlyEnv MCP to resolve the site URLs and tell me the best local URL to open in the browser.`,
           note: ''
         },
         {
@@ -520,8 +551,17 @@
           title: 'Summarize the Local Setup',
           stageType: 'capture summary step',
           why: 'Create one clean on-screen checkpoint before switching to the browser.',
-          prompt:
-            'Before I open the site in the browser, summarize the current local setup in one short checklist:\\n\\n- MySQL status\\n- database name\\n- table name\\n- app root\\n- site URL\\n- whether PHP is running\\n- whether Nginx is running\\n\\nKeep it concise and ready for on-screen capture.',
+          prompt: `Before I open the site in the browser, summarize the current local setup in one short checklist:
+
+- MySQL status
+- database name
+- table name
+- app root
+- site URL
+- whether PHP is running
+- whether Nginx is running
+
+Keep it concise and ready for on-screen capture.`,
           note: ''
         },
         {
@@ -606,7 +646,7 @@
 
           item.addEventListener('click', () => {
             state.currentIndex = index
-            showToast(\`Viewing step ${step.id}\`)
+            showToast(`Viewing step ${step.id}`)
             render()
           })
 
@@ -642,7 +682,7 @@
         try {
           await navigator.clipboard.writeText(current.prompt)
           copyButton.textContent = 'Copied'
-          showToast(\`Prompt copied for step ${current.id}\`)
+          showToast(`Prompt copied for step ${current.id}`)
 
           if (!state.done.includes(current.id)) {
             state.done = [...state.done, current.id]
@@ -670,7 +710,7 @@
         }
 
         state.currentIndex = targetIndex
-        showToast(\`Moved to step ${steps[state.currentIndex].id}\`)
+        showToast(`Moved to step ${steps[state.currentIndex].id}`)
         render()
       }
 
@@ -679,10 +719,10 @@
 
         if (state.done.includes(currentId)) {
           state.done = state.done.filter((id) => id !== currentId)
-          showToast(\`Step ${currentId} marked active\`)
+          showToast(`Step ${currentId} marked active`)
         } else {
           state.done = [...state.done, currentId]
-          showToast(\`Step ${currentId} marked done\`)
+          showToast(`Step ${currentId} marked done`)
         }
 
         render()
