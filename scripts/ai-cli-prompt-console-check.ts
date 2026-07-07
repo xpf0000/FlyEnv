@@ -11,6 +11,7 @@ assert.equal(
 )
 
 const html = readFileSync(htmlPath, 'utf8')
+const normalizedHtml = html.replace(/\s+/g, ' ').trim()
 
 const requiredStrings = [
   'Use FlyEnv MCP and Codex to turn a local MySQL environment into a working PHP CRUD demo site.',
@@ -34,7 +35,8 @@ const requiredStrings = [
 ]
 
 for (const entry of requiredStrings) {
-  assert.match(html, new RegExp(entry.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+  const normalizedEntry = entry.replace(/\s+/g, ' ').trim()
+  assert.match(normalizedHtml, new RegExp(normalizedEntry.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
 }
 
 assert.match(html, /const steps = \[/)

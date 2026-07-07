@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -37,8 +37,7 @@
       }
 
       body {
-        font-family:
-          'Avenir Next', 'Segoe UI', sans-serif;
+        font-family: 'Avenir Next', 'Segoe UI', sans-serif;
         color: var(--text);
         background:
           radial-gradient(circle at top left, rgba(215, 162, 67, 0.13), transparent 28%),
@@ -297,8 +296,7 @@
         color: #f8f4ec;
         white-space: pre-wrap;
         overflow: auto;
-        font-family:
-          'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+        font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
         font-size: 15px;
         line-height: 1.72;
       }
@@ -411,7 +409,10 @@
         <div>
           <p class="eyebrow">FlyEnv Demo Console</p>
           <h1>AI CLI + MCP Prompt Console</h1>
-          <p class="goal">Use FlyEnv MCP and Codex to turn a local MySQL environment into a working PHP CRUD demo site.</p>
+          <p class="goal"
+            >Use FlyEnv MCP and Codex to turn a local MySQL environment into a working PHP CRUD demo
+            site.</p
+          >
         </div>
         <div class="progress-box">
           <div class="progress-label">Current Progress</div>
@@ -642,6 +643,11 @@
           await navigator.clipboard.writeText(current.prompt)
           copyButton.textContent = 'Copied'
           showToast(\`Prompt copied for step ${current.id}\`)
+
+          if (!state.done.includes(current.id)) {
+            state.done = [...state.done, current.id]
+            render()
+          }
 
           window.setTimeout(() => {
             copyButton.textContent = 'Copy Prompt'
