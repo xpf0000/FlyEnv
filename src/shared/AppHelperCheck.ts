@@ -16,6 +16,8 @@ export const HelperVersion = 15
 const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 
+const Helper_Check_Timeout = 3000
+
 export const HelperKeyPath = (): string => {
   return isWindows() ? join(tmpdir(), 'flyenv-helper.key') : Key_Path_Unix
 }
@@ -190,7 +192,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
         timer = setTimeout(() => {
           closeClient()
           rejectOnce('helper_unreachable', 'Connect helper failed')
-        }, 2000)
+        }, Helper_Check_Timeout)
       })
 
       client.on('data', (data: any) => {

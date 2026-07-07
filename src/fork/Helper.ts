@@ -58,7 +58,6 @@ type HelperDeps = {
   isWindows: typeof isWindows
   resolveWindowsHelperTransport: typeof resolveWindowsHelperTransport
   runWindowsHelperFallback: typeof runWindowsHelperFallback
-  socketResponseTimeoutMs: number
 }
 
 const defaultHelperDeps: HelperDeps = {
@@ -67,8 +66,7 @@ const defaultHelperDeps: HelperDeps = {
   getHelperKey,
   isWindows,
   resolveWindowsHelperTransport,
-  runWindowsHelperFallback,
-  socketResponseTimeoutMs: 2000
+  runWindowsHelperFallback
 }
 
 export class Helper {
@@ -201,23 +199,11 @@ export class Helper {
       const client = this.deps.createConnection(AppHelperSocketPathGet())
       const buffer: Buffer[] = []
       let transportFailed = false
-      let responseTimer: NodeJS.Timeout | undefined
 
       const closeClient = () => {
-        clearTimeout(responseTimer)
         try {
           client.destroy()
         } catch {}
-      }
-
-      const armResponseTimeout = () => {
-        clearTimeout(responseTimer)
-        responseTimer = setTimeout(() => {
-          closeClient()
-          handleSocketError(new Error('Helper response timeout')).catch((routeError) => {
-            rejectOnce(this.normalizeError(routeError))
-          })
-        }, this.deps.socketResponseTimeoutMs)
       }
 
       const handleSocketError = async (error: Error) => {
@@ -274,7 +260,6 @@ export class Helper {
               })
               return
             }
-            armResponseTimeout()
           })
         } catch (e) {
           handleSocketError(e instanceof Error ? e : new Error(`${e}`)).catch((routeError) => {
@@ -284,7 +269,6 @@ export class Helper {
       })
 
       client.on('data', (data: any) => {
-        armResponseTimeout()
         buffer.push(data)
       })
 

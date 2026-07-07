@@ -145,16 +145,15 @@ async function main() {
     runWindowsHelperFallback: async () => {
       noResponseFallbackCalls += 1
       return true
-    },
-    socketResponseTimeoutMs: 20
+    }
   } as any)
 
   const noResponseResult = await Promise.race([
     noResponseHelper.send('tools', 'writeFileByRoot', 'C:\\FlyEnv\\slow.txt', 'x'),
-    new Promise((resolve) => setTimeout(() => resolve('timeout'), 200))
+    new Promise((resolve) => setTimeout(() => resolve('timeout'), 2500))
   ])
-  assert.equal(noResponseResult, true)
-  assert.equal(noResponseFallbackCalls, 1)
+  assert.equal(noResponseResult, 'timeout')
+  assert.equal(noResponseFallbackCalls, 0)
 
   console.log('windows helper send test passed')
 }
