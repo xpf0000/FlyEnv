@@ -86,7 +86,6 @@ const elementIds = [
   'copyButton',
   'prevButton',
   'nextButton',
-  'doneButton',
   'resetButton',
   'notesButton'
 ]
@@ -181,7 +180,6 @@ const requiredStrings = [
   'Copy Prompt',
   'Previous',
   'Next',
-  'Mark Done',
   'Reset to Step 1',
   'navigator.clipboard.writeText',
   'localStorage',
@@ -200,5 +198,8 @@ assert.match(html, /function render\(/)
 assert.match(html, /function copyPrompt\(/)
 assert.match(html, /function saveState\(/)
 assert.match(html, /function loadState\(/)
+assert.doesNotMatch(html, /doneButton/)
+assert.doesNotMatch(normalizedHtml, /Mark Done/)
+assert.doesNotMatch(html, /function toggleDone\(/)
 
 console.log('ai-cli-prompt-console-check: ok')

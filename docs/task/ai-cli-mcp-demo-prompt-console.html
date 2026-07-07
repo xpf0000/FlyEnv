@@ -445,7 +445,6 @@
           <button class="btn btn-primary" id="copyButton">Copy Prompt</button>
           <button class="btn btn-secondary" id="prevButton">Previous</button>
           <button class="btn btn-secondary" id="nextButton">Next</button>
-          <button class="btn btn-done" id="doneButton">Mark Done</button>
         </div>
 
         <div class="secondary-actions">
@@ -590,7 +589,6 @@ Keep it concise and ready for on-screen capture.`,
       const copyButton = document.getElementById('copyButton')
       const prevButton = document.getElementById('prevButton')
       const nextButton = document.getElementById('nextButton')
-      const doneButton = document.getElementById('doneButton')
       const resetButton = document.getElementById('resetButton')
       const notesButton = document.getElementById('notesButton')
 
@@ -669,7 +667,6 @@ Keep it concise and ready for on-screen capture.`,
 
         prevButton.disabled = state.currentIndex === 0
         nextButton.disabled = state.currentIndex === steps.length - 1
-        doneButton.textContent = state.done.includes(current.id) ? 'Marked Done' : 'Mark Done'
         notesButton.textContent = state.showNotes ? 'Hide Notes' : 'Show Notes'
 
         renderList()
@@ -714,20 +711,6 @@ Keep it concise and ready for on-screen capture.`,
         render()
       }
 
-      function toggleDone() {
-        const currentId = steps[state.currentIndex].id
-
-        if (state.done.includes(currentId)) {
-          state.done = state.done.filter((id) => id !== currentId)
-          showToast(`Step ${currentId} marked active`)
-        } else {
-          state.done = [...state.done, currentId]
-          showToast(`Step ${currentId} marked done`)
-        }
-
-        render()
-      }
-
       function resetFlow() {
         const confirmed = window.confirm('Reset to Step 1 and clear all completed markers?')
 
@@ -750,7 +733,6 @@ Keep it concise and ready for on-screen capture.`,
       copyButton.addEventListener('click', copyPrompt)
       prevButton.addEventListener('click', () => move(-1))
       nextButton.addEventListener('click', () => move(1))
-      doneButton.addEventListener('click', toggleDone)
       resetButton.addEventListener('click', resetFlow)
       notesButton.addEventListener('click', toggleNotes)
 
