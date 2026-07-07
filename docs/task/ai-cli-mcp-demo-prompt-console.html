@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlyEnv AI CLI MCP Prompt Console</title>
+    <style>
+      :root {
+        --bg: #101316;
+        --bg-soft: #151a1e;
+        --panel: rgba(23, 28, 33, 0.9);
+        --panel-strong: rgba(18, 22, 26, 0.96);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f6efe2;
+        --muted: #b5ab9c;
+        --muted-2: #8b8276;
+        --accent: #d7a243;
+        --accent-soft: rgba(215, 162, 67, 0.12);
+        --accent-2: #77c5b5;
+        --accent-2-soft: rgba(119, 197, 181, 0.12);
+        --done: #50756b;
+        --shadow: 0 22px 70px rgba(0, 0, 0, 0.32);
+        --radius-xl: 28px;
+        --radius-lg: 22px;
+        --radius-md: 18px;
+        --radius-sm: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family:
+          'Avenir Next', 'Segoe UI', sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(215, 162, 67, 0.13), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(119, 197, 181, 0.1), transparent 26%),
+          linear-gradient(180deg, #0d1114 0%, #13181c 100%);
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+
+      .app {
+        width: min(1460px, calc(100vw - 40px));
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 24px 0;
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 22px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .header {
+        grid-column: 1 / -1;
+        padding: 26px 30px;
+        display: flex;
+        justify-content: space-between;
+        gap: 26px;
+        align-items: flex-start;
+        animation: rise-in 260ms ease-out;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--accent);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-family: 'Georgia', 'Times New Roman', serif;
+        font-size: clamp(34px, 4vw, 56px);
+        line-height: 0.94;
+        letter-spacing: -0.03em;
+      }
+
+      .goal {
+        margin: 0;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.6;
+      }
+
+      .progress-box {
+        min-width: 190px;
+        padding: 16px 18px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .progress-label {
+        color: var(--muted-2);
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .progress-value {
+        margin-top: 8px;
+        font-size: 30px;
+        font-weight: 700;
+      }
+
+      .rail {
+        padding: 18px;
+      }
+
+      .rail-title {
+        margin: 0 0 14px;
+        color: var(--muted-2);
+        font-size: 12px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .step-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .step-item {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.018);
+        padding: 14px 14px 14px 16px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 12px;
+        align-items: center;
+        cursor: pointer;
+        transition:
+          transform 140ms ease,
+          background 140ms ease,
+          border-color 140ms ease;
+      }
+
+      .step-item:hover {
+        transform: translateX(4px);
+        border-color: rgba(215, 162, 67, 0.28);
+      }
+
+      .step-item.active {
+        background: linear-gradient(90deg, var(--accent-soft), rgba(215, 162, 67, 0.03));
+        border-color: rgba(215, 162, 67, 0.42);
+      }
+
+      .step-item.done {
+        border-color: rgba(119, 197, 181, 0.24);
+      }
+
+      .step-index {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .step-item.active .step-index {
+        background: var(--accent);
+        color: #231a0c;
+      }
+
+      .step-item.done .step-index {
+        background: var(--done);
+        color: #f1f7f5;
+      }
+
+      .step-name {
+        font-size: 15px;
+        line-height: 1.3;
+      }
+
+      .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .step-item.active .step-dot {
+        background: var(--accent);
+      }
+
+      .step-item.done .step-dot {
+        background: var(--accent-2);
+      }
+
+      .stage {
+        padding: 26px;
+        animation: rise-in 220ms ease-out;
+      }
+
+      .stage-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+      }
+
+      .stage-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .stage-title {
+        margin: 18px 0 10px;
+        font-size: clamp(28px, 3vw, 42px);
+        line-height: 1.02;
+        letter-spacing: -0.03em;
+      }
+
+      .stage-why {
+        margin: 0;
+        max-width: 920px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.62;
+      }
+
+      .note {
+        display: none;
+        margin-top: 18px;
+        padding: 15px 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(119, 197, 181, 0.2);
+        background: var(--accent-2-soft);
+        color: #e2f0ed;
+        line-height: 1.55;
+      }
+
+      .note.visible {
+        display: block;
+      }
+
+      .prompt-wrap {
+        margin-top: 24px;
+      }
+
+      .prompt-label {
+        margin: 0 0 10px;
+        color: var(--muted-2);
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      pre {
+        margin: 0;
+        padding: 22px;
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(180deg, rgba(10, 12, 14, 0.98), rgba(17, 20, 23, 0.98));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        color: #f8f4ec;
+        white-space: pre-wrap;
+        overflow: auto;
+        font-family:
+          'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+        font-size: 15px;
+        line-height: 1.72;
+      }
+
+      .actions,
+      .secondary-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .actions {
+        margin-top: 20px;
+      }
+
+      .secondary-actions {
+        margin-top: 14px;
+      }
+
+      .btn {
+        appearance: none;
+        border: 0;
+        border-radius: var(--radius-sm);
+        padding: 12px 16px;
+        cursor: pointer;
+        transition:
+          transform 140ms ease,
+          background 140ms ease,
+          opacity 140ms ease;
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      .btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #251b0b;
+        font-weight: 700;
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--text);
+      }
+
+      .btn-done {
+        background: rgba(119, 197, 181, 0.18);
+        color: #e8f5f2;
+      }
+
+      .utility {
+        grid-column: 1 / -1;
+        padding: 14px 18px;
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+        color: var(--muted);
+      }
+
+      .utility-type {
+        font-size: 14px;
+      }
+
+      .toast {
+        color: var(--accent-2);
+        min-height: 1.3em;
+        text-align: right;
+      }
+
+      @keyframes rise-in {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 1080px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        .rail {
+          order: 2;
+        }
+
+        .stage {
+          order: 1;
+        }
+
+        .utility {
+          order: 3;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="panel header">
+        <div>
+          <p class="eyebrow">FlyEnv Demo Console</p>
+          <h1>AI CLI + MCP Prompt Console</h1>
+          <p class="goal">Use FlyEnv MCP and Codex to turn a local MySQL environment into a working PHP CRUD demo site.</p>
+        </div>
+        <div class="progress-box">
+          <div class="progress-label">Current Progress</div>
+          <div class="progress-value" id="progressValue">Step 1 / 7</div>
+        </div>
+      </header>
+
+      <aside class="panel rail">
+        <p class="rail-title">Flow</p>
+        <ul class="step-list" id="stepList"></ul>
+      </aside>
+
+      <main class="panel stage">
+        <div class="stage-top">
+          <div>
+            <span class="stage-tag" id="stageType">MCP control step</span>
+            <h2 class="stage-title" id="stageTitle"></h2>
+            <p class="stage-why" id="stageWhy"></p>
+          </div>
+        </div>
+
+        <div class="note" id="stageNote"></div>
+
+        <div class="prompt-wrap">
+          <p class="prompt-label">Current Prompt</p>
+          <pre id="stagePrompt"></pre>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="copyButton">Copy Prompt</button>
+          <button class="btn btn-secondary" id="prevButton">Previous</button>
+          <button class="btn btn-secondary" id="nextButton">Next</button>
+          <button class="btn btn-done" id="doneButton">Mark Done</button>
+        </div>
+
+        <div class="secondary-actions">
+          <button class="btn btn-secondary" id="resetButton">Reset to Step 1</button>
+          <button class="btn btn-secondary" id="notesButton">Hide Notes</button>
+        </div>
+      </main>
+
+      <footer class="panel utility">
+        <div class="utility-type" id="utilityType">MCP control step</div>
+        <div class="toast" id="toast">Ready</div>
+      </footer>
+    </div>
+
+    <script>
+      const storageKey = 'flyenv-ai-cli-prompt-console'
+
+      const steps = [
+        {
+          id: 1,
+          shortTitle: 'Start MySQL',
+          title: 'Start MySQL Through FlyEnv MCP',
+          stageType: 'MCP control step',
+          why: 'Start with environment control so the viewer sees FlyEnv MCP in action immediately.',
+          prompt:
+            'Use FlyEnv MCP to inspect the local MySQL service. If MySQL is not running, start the enabled MySQL service through FlyEnv MCP. Then confirm that MySQL is running and tell me which version is active.',
+          note: ''
+        },
+        {
+          id: 2,
+          shortTitle: 'Create DB and table',
+          title: 'Create the Demo Database and Table',
+          stageType: 'local shell step',
+          why: 'Use FlyEnv-provided context to bootstrap the database structure for the rest of the demo.',
+          prompt:
+            'Use FlyEnv MCP to get the local MySQL connection details and execution hints. Then use the local mysql client on this machine to create a database named flyenv_ai_demo if it does not already exist, and create a table named demo_items with these columns:\\n\\n- id INT PRIMARY KEY AUTO_INCREMENT\\n- title VARCHAR(255) NOT NULL\\n- status VARCHAR(50) NOT NULL DEFAULT \\'new\\'\\n- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\\n\\nAfter that, show me the exact SQL you ran and confirm the table exists.',
+          note: ''
+        },
+        {
+          id: 3,
+          shortTitle: 'Seed rows',
+          title: 'Seed Three Demo Rows',
+          stageType: 'local shell step',
+          why: 'Prepare visible initial data for the later browser CRUD flow.',
+          prompt:
+            'Using the same local MySQL connection, insert three rows into flyenv_ai_demo.demo_items with these titles:\\n\\n- First demo item\\n- Second demo item\\n- Third demo item\\n\\nSet the status to \\'new\\' for all of them. Then query all rows from flyenv_ai_demo.demo_items ordered by id ascending and show the full result.',
+          note: ''
+        },
+        {
+          id: 4,
+          shortTitle: 'Generate PHP app',
+          title: 'Generate a Minimal PHP CRUD App',
+          stageType: 'local file generation step',
+          why: 'Generate a small framework-free app so the demo stays fast and easy to understand.',
+          prompt:
+            'Create a minimal plain PHP CRUD demo app under /Users/x/Sites/ai-mysql-demo.\\n\\nRequirements:\\n- use plain PHP, not a framework\\n- use PDO to connect to the local MySQL database flyenv_ai_demo\\n- keep the web root at /Users/x/Sites/ai-mysql-demo/public\\n- support listing all rows from demo_items\\n- support creating a new row\\n- support updating an existing row\\n- support deleting an existing row\\n- keep the UI simple and readable\\n- do not add authentication\\n- do not add external dependencies unless absolutely necessary\\n\\nCreate the required directories and files, and briefly summarize the file structure when done.',
+          note: 'This is intentionally framework-free for recording speed and clarity.'
+        },
+        {
+          id: 5,
+          shortTitle: 'Create site and start services',
+          title: 'Create the FlyEnv Site and Start PHP / Nginx',
+          stageType: 'MCP provisioning step',
+          why: 'Turn the generated local files into an actual FlyEnv-managed site and launch the web stack.',
+          prompt:
+            'Use FlyEnv MCP to create a FlyEnv site for this app with these settings:\\n\\n- site name: ai-mysql-demo.test\\n- root: /Users/x/Sites/ai-mysql-demo/public\\n- phpVersion: 83\\n- useSSL: false\\n- autoSSL: false\\n\\nThen use FlyEnv MCP to start PHP and Nginx if they are not already running. After that, use FlyEnv MCP to resolve the site URLs and tell me the best local URL to open in the browser.',
+          note: ''
+        },
+        {
+          id: 6,
+          shortTitle: 'Pre-browser summary',
+          title: 'Summarize the Local Setup',
+          stageType: 'capture summary step',
+          why: 'Create one clean on-screen checkpoint before switching to the browser.',
+          prompt:
+            'Before I open the site in the browser, summarize the current local setup in one short checklist:\\n\\n- MySQL status\\n- database name\\n- table name\\n- app root\\n- site URL\\n- whether PHP is running\\n- whether Nginx is running\\n\\nKeep it concise and ready for on-screen capture.',
+          note: ''
+        },
+        {
+          id: 7,
+          shortTitle: 'Browser test checklist',
+          title: 'Prepare the Browser Test Checklist',
+          stageType: 'browser action step',
+          why: 'Prepare a clean script for the browser segment rather than another environment step.',
+          prompt:
+            'Give me a short browser test checklist for this CRUD demo so I can demonstrate it on screen. Include one create action, one update action, one delete action, and one quick visual verification for each.',
+          note: ''
+        }
+      ]
+
+      const state = loadState()
+
+      const stepList = document.getElementById('stepList')
+      const stageType = document.getElementById('stageType')
+      const stageTitle = document.getElementById('stageTitle')
+      const stageWhy = document.getElementById('stageWhy')
+      const stagePrompt = document.getElementById('stagePrompt')
+      const stageNote = document.getElementById('stageNote')
+      const progressValue = document.getElementById('progressValue')
+      const utilityType = document.getElementById('utilityType')
+      const toast = document.getElementById('toast')
+      const copyButton = document.getElementById('copyButton')
+      const prevButton = document.getElementById('prevButton')
+      const nextButton = document.getElementById('nextButton')
+      const doneButton = document.getElementById('doneButton')
+      const resetButton = document.getElementById('resetButton')
+      const notesButton = document.getElementById('notesButton')
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || '{}')
+          return {
+            currentIndex: Number.isInteger(saved.currentIndex) ? saved.currentIndex : 0,
+            done: Array.isArray(saved.done) ? saved.done : [],
+            showNotes: saved.showNotes !== false
+          }
+        } catch {
+          return {
+            currentIndex: 0,
+            done: [],
+            showNotes: true
+          }
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(state))
+        } catch {
+          showToast('State not persisted')
+        }
+      }
+
+      function showToast(message) {
+        toast.textContent = message
+      }
+
+      function renderList() {
+        stepList.innerHTML = ''
+
+        steps.forEach((step, index) => {
+          const item = document.createElement('li')
+          item.className = 'step-item'
+
+          if (index === state.currentIndex) {
+            item.classList.add('active')
+          }
+
+          if (state.done.includes(step.id)) {
+            item.classList.add('done')
+          }
+
+          item.innerHTML = `
+            <span class="step-index">${step.id}</span>
+            <span class="step-name">${step.shortTitle}</span>
+            <span class="step-dot"></span>
+          `
+
+          item.addEventListener('click', () => {
+            state.currentIndex = index
+            showToast(\`Viewing step ${step.id}\`)
+            render()
+          })
+
+          stepList.appendChild(item)
+        })
+      }
+
+      function render() {
+        const current = steps[state.currentIndex]
+
+        progressValue.textContent = `Step ${current.id} / ${steps.length}`
+        stageType.textContent = current.stageType
+        stageTitle.textContent = current.title
+        stageWhy.textContent = current.why
+        stagePrompt.textContent = current.prompt
+        utilityType.textContent = current.stageType
+
+        stageNote.textContent = current.note || ''
+        stageNote.classList.toggle('visible', Boolean(current.note) && state.showNotes)
+
+        prevButton.disabled = state.currentIndex === 0
+        nextButton.disabled = state.currentIndex === steps.length - 1
+        doneButton.textContent = state.done.includes(current.id) ? 'Marked Done' : 'Mark Done'
+        notesButton.textContent = state.showNotes ? 'Hide Notes' : 'Show Notes'
+
+        renderList()
+        saveState()
+      }
+
+      async function copyPrompt() {
+        const current = steps[state.currentIndex]
+
+        try {
+          await navigator.clipboard.writeText(current.prompt)
+          copyButton.textContent = 'Copied'
+          showToast(\`Prompt copied for step ${current.id}\`)
+
+          window.setTimeout(() => {
+            copyButton.textContent = 'Copy Prompt'
+          }, 1200)
+        } catch {
+          const selection = window.getSelection()
+          const range = document.createRange()
+          range.selectNodeContents(stagePrompt)
+          selection.removeAllRanges()
+          selection.addRange(range)
+          showToast('Clipboard failed. Prompt selected for manual copy.')
+        }
+      }
+
+      function move(delta) {
+        const targetIndex = state.currentIndex + delta
+
+        if (targetIndex < 0 || targetIndex >= steps.length) {
+          return
+        }
+
+        state.currentIndex = targetIndex
+        showToast(\`Moved to step ${steps[state.currentIndex].id}\`)
+        render()
+      }
+
+      function toggleDone() {
+        const currentId = steps[state.currentIndex].id
+
+        if (state.done.includes(currentId)) {
+          state.done = state.done.filter((id) => id !== currentId)
+          showToast(\`Step ${currentId} marked active\`)
+        } else {
+          state.done = [...state.done, currentId]
+          showToast(\`Step ${currentId} marked done\`)
+        }
+
+        render()
+      }
+
+      function resetFlow() {
+        const confirmed = window.confirm('Reset to Step 1 and clear all completed markers?')
+
+        if (!confirmed) {
+          return
+        }
+
+        state.currentIndex = 0
+        state.done = []
+        showToast('Progress reset')
+        render()
+      }
+
+      function toggleNotes() {
+        state.showNotes = !state.showNotes
+        showToast(state.showNotes ? 'Notes shown' : 'Notes hidden')
+        render()
+      }
+
+      copyButton.addEventListener('click', copyPrompt)
+      prevButton.addEventListener('click', () => move(-1))
+      nextButton.addEventListener('click', () => move(1))
+      doneButton.addEventListener('click', toggleDone)
+      resetButton.addEventListener('click', resetFlow)
+      notesButton.addEventListener('click', toggleNotes)
+
+      render()
+    </script>
+  </body>
+</html>
