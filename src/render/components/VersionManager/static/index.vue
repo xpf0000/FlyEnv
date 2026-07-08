@@ -127,9 +127,13 @@
       dataKey: 'version',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',
-      width: 200,
+      width: 280,
       cellRenderer: ({ rowData: row }) => {
-        return <span class="truncate">{row.version}</span>
+        return (
+          <ElTooltip show-after={600} placement="top" content={row.version}>
+            <span class="truncate">{row.version}</span>
+          </ElTooltip>
+        )
       }
     },
     {
