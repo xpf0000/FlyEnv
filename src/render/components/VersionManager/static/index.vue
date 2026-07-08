@@ -127,7 +127,7 @@
       dataKey: 'version',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',
-      width: 280,
+      width: 200,
       cellRenderer: ({ rowData: row }) => {
         return (
           <ElTooltip show-after={600} placement="top" content={row.version}>
