@@ -14,11 +14,11 @@
     "methods": {
       "0": {
         "title": "Přispět na projekt",
-        "description": "Pro dary není vyžadována pevně stanovená částka. Vezměme v úvahu proměnlivou ekonomickou situaci uživatelů v různých zemích (např. ., mnoho uživatelů jsou studenti), vyberte si prosím částku, která je pro vás pohodlná."
+        "description": "Pro dary není vyžadována pevně stanovená částka. S ohledem na různou ekonomickou situaci uživatelů v různých zemích (např. mnoho uživatelů jsou studenti) si prosím vyberte částku, která je pro vás příjemná."
       },
       "1": {
         "title": "Přispět k vývoji",
-        "description": "Účast na projektu předložením Pull Request. Bez ohledu na množství kódu, pokud projekt pozitivně zlepšuje (např. ., oprava chyby překladu), počítání příspěvků."
+        "description": "Zapojte se do projektu odesláním Pull Requestu. Bez ohledu na množství kódu, pokud projekt pozitivně zlepšuje (např. oprava chyby v překladu), váš příspěvek se počítá."
       },
       "2": {
         "title": "Propagovat projekt",
@@ -28,7 +28,7 @@
   },
   "submitInfo": "Po dokončení některé z výše uvedených metod vyplňte prosím výsledky do vstupního pole níže a pro odeslání vaší žádosti klikněte na tlačítko 'Požádat o licenci'. Žádosti o licence jsou obvykle zpracovávány do 24 hodin.",
   "messageLabel": "Zpráva",
-  "messagePlaceholder": "Pošlete prosím dárce, odkaz na dárce nebo ID objednávky při výběru darování.\nPředložte prosím odkaz na PR pro ty, kteří se rozhodnou podílet se na vývoji projektu.\nProsím nahrajte odkaz na váš článek, video, blog, vlog nebo komentář pro ty, kteří se rozhodnou propagovat.",
+  "messagePlaceholder": "Při volbě daru prosím uveďte dárce, odkaz na dar nebo ID objednávky.\nPokud se rozhodnete podílet na vývoji projektu, uveďte prosím odkaz na PR.\nPokud se rozhodnete projekt propagovat, nahrajte prosím odkaz na svůj článek, video, blog, vlog nebo komentář.",
   "requestButton": "Žádost o licenci",
   "refreshButton": "Obnovit stav",
   "licenseActivated": "Licence aktivována",

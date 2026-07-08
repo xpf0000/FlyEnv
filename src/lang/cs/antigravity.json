@@ -1,21 +1,21 @@
 {
-  "notInstalled": "Antigravity CLI neni nainstalovane. Kliknutim na tlacitko nize jej nainstalujete pomoci oficialniho instalatoru.",
+  "notInstalled": "Antigravity CLI není nainstalováno. Kliknutím na tlačítko níže jej nainstalujete pomocí oficiálního instalátoru.",
   "officialWebsite": "Web Antigravity",
   "officialDocs": "Dokumentace Antigravity CLI",
-  "sandboxMode": "Terminalovy sandbox",
-  "toolPermission": "Opravneni nastroju",
+  "sandboxMode": "Terminálový sandbox",
+  "toolPermission": "Oprávnění nástrojů",
   "sessionId": "ID konverzace",
-  "updatedAt": "Aktualizovano",
-  "sessionResumed": "Konverzace obnovena v terminalu",
-  "sessionDeleted": "Konverzace smazana",
+  "updatedAt": "Aktualizováno",
+  "sessionResumed": "Konverzace obnovena v terminálu",
+  "sessionDeleted": "Konverzace smazána",
   "cmd": {
-    "update": "Aktualizovat Antigravity CLI na nejnovejsi verzi",
-    "models": "Vypsat dostupne modely",
-    "continue": "Pokracovat v posledni konverzaci",
-    "resume": "Obnovit predchozi konverzaci podle ID",
-    "prompt": "Spustit jeden prompt neinteraktivne",
-    "pluginList": "Vypsat importovane pluginy",
+    "update": "Aktualizovat Antigravity CLI na nejnovější verzi",
+    "models": "Vypsat dostupné modely",
+    "continue": "Pokračovat v poslední konverzaci",
+    "resume": "Obnovit předchozí konverzaci podle ID",
+    "prompt": "Spustit jeden prompt neinteraktivně",
+    "pluginList": "Vypsat importované pluginy",
     "pluginImport": "Importovat pluginy z gemini nebo claude",
-    "install": "Nastavit cesty prostredi a nastaveni shellu"
+    "install": "Nastavit cesty prostředí a nastavení shellu"
   }
 }

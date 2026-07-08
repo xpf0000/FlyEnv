@@ -1,24 +1,24 @@
 {
-  "notInstalled": "OpenCode CLI neni nainstalovane. Kliknutim na tlacitko nize jej nainstalujete pres npm.",
-  "officialWebsite": "GitHub stranka OpenCode",
+  "notInstalled": "OpenCode CLI není nainstalováno. Kliknutím na tlačítko níže jej nainstalujete přes npm.",
+  "officialWebsite": "GitHub stránka OpenCode",
   "officialDocs": "Dokumentace OpenCode",
   "stats": "Statistiky",
   "allTime": "Za celou dobu",
-  "last7Days": "Poslednich 7 dni",
-  "last30Days": "Poslednich 30 dni",
-  "providers": "Poskytovatele",
+  "last7Days": "Posledních 7 dní",
+  "last30Days": "Posledních 30 dní",
+  "providers": "Poskytovatelé",
   "providerId": "Poskytovatel",
-  "noProviders": "Nejsou nakonfigurovane zadne prihlasovaci udaje. Spustenim `opencode auth login` pridate jedny.",
+  "noProviders": "Nejsou nakonfigurovány žádné přihlašovací údaje. Spuštěním `opencode auth login` jedny přidáte.",
   "cmd": {
-    "upgrade": "Aktualizovat OpenCode na nejnovejsi verzi",
-    "models": "Vypsat vsechny dostupne modely",
+    "upgrade": "Aktualizovat OpenCode na nejnovější verzi",
+    "models": "Vypsat všechny dostupné modely",
     "start": "Spustit OpenCode TUI",
-    "continue": "Pokracovat v posledni relaci",
-    "resume": "Pokracovat v relaci podle id",
-    "run": "Spustit OpenCode se zpravou",
+    "continue": "Pokračovat v poslední relaci",
+    "resume": "Pokračovat v relaci podle id",
+    "run": "Spustit OpenCode se zprávou",
     "mcpList": "Vypsat MCP servery a jejich stav",
-    "stats": "Zobrazit statistiky vyuziti tokenu a nakladu",
-    "providersList": "Vypsat poskytovatele a prihlasovaci udaje",
-    "agentList": "Vypsat vsechny dostupne agenty"
+    "stats": "Zobrazit statistiky využití tokenů a nákladů",
+    "providersList": "Vypsat poskytovatele a přihlašovací údaje",
+    "agentList": "Vypsat všechny dostupné agenty"
   }
 }

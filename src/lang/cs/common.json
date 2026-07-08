@@ -1,6 +1,6 @@
 {
   "label": {
-    "model": "Vzor",
+    "model": "Model",
     "name": "Název",
     "status": "Stav",
     "workingDirectory": "Pracovní adresář",
@@ -11,19 +11,19 @@
     "errorLog": "Protokol chyb",
     "library": "Knihovna",
     "path": "Cesta",
-    "description": "L 343, 22.12.2009, s. 1).",
-    "port": "Přístav",
-    "startCommand": "Začít příkaz",
+    "description": "Popis",
+    "port": "Port",
+    "startCommand": "Spouštěcí příkaz",
     "licenseDescription": "Popis licence",
     "password": "Heslo",
     "username": "Uživatelské jméno",
     "size": "Velikost",
     "containerEnvVars": "Proměnné prostředí kontejneru",
     "createdTime": "Čas vytvoření",
-    "image": "Obrázek",
-    "state": "Stát",
+    "image": "Obraz",
+    "state": "Stav",
     "grid": "Mřížka",
-    "gridSpacing": "Mezery v mřížce (body)",
+    "gridSpacing": "Mezery v mřížce (pixely)",
     "fontSize": "Velikost písma",
     "code": "Kód"
   },
@@ -37,13 +37,13 @@
     "search": "Hledat",
     "clear": "Vyčistit",
     "resetPassword": "Obnovit heslo",
-    "delete": "Vymazat",
+    "delete": "Smazat",
     "add": "Přidat",
     "edit": "Upravit",
     "generate": "Generovat",
     "refresh": "Aktualizovat",
     "save": "Uložit",
-    "start": "Začít",
+    "start": "Spustit",
     "stop": "Zastavit",
     "close": "Zavřít",
     "selectAll": "Vybrat vše",
@@ -52,7 +52,7 @@
     "changeRole": "Změnit roli"
   },
   "state": {
-    "running": "Běh",
+    "running": "Běží",
     "installed": "Nainstalováno",
     "enabled": "Povoleno",
     "disabled": "Zakázáno",
@@ -68,9 +68,9 @@
     "resumed": "Relace byla obnovena v terminálu"
   },
   "mcp": {
-    "type": "Type",
+    "type": "Typ",
     "commandOrUrl": "Příkaz / URL",
-    "scope": "Scope",
+    "scope": "Rozsah",
     "addServer": "Přidat server"
   },
   "category": {
@@ -80,7 +80,7 @@
     "basicInfo": "Základní informace",
     "configuration": "Konfigurace",
     "favorites": "Oblíbené",
-    "plugins": "Plugins",
+    "plugins": "Pluginy",
     "backupUpdate": "Zálohování a aktualizace"
   },
   "skills": {
@@ -103,7 +103,7 @@
     "gatewayStop": "Zastavit službu brány",
     "gatewayRestart": "Restartovat službu brány",
     "gatewayStatus": "Zobrazit stav brány",
-    "gatewayRun": "Spustit brána v popředí",
+    "gatewayRun": "Spustit bránu v popředí",
     "gatewayUninstall": "Odinstalovat službu brány",
     "skillsList": "Vypsat dostupné dovednosti"
   },
