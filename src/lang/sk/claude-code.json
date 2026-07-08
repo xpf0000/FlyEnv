@@ -1,0 +1,19 @@
+{
+  "notInstalled": "Claude Code CLI nie je nainštalovaný. Kliknite na tlačidlo nižšie a spustite oficiálny inštalátor.",
+  "officialWebsite": "GitHub Claude Code",
+  "officialDocs": "Dokumentácia Claude Code",
+  "includeCoAuthoredBy": "Zahrnúť Co-Authored-By",
+  "cleanupPeriodDays": "Uchovanie chatu (dni)",
+  "pluginEnabled": "Plugin povolený",
+  "pluginDisabled": "Plugin zakázaný",
+  "uninstallConfirm": "Naozaj chcete odinštalovať plugin „{name}“?",
+  "cmd": {
+    "update": "Skontrolovať aktualizácie a nainštalovať ich, ak sú k dispozícii",
+    "doctor": "Skontrolovať stav vašej inštalácie Claude Code",
+    "continue": "Pokračovať v poslednej konverzácii v aktuálnom adresári",
+    "resume": "Vybrať a obnoviť predchádzajúcu konverzáciu",
+    "print": "Spustiť jednorazový prompt a vypísať odpoveď",
+    "pluginList": "Vypísať nainštalované pluginy",
+    "setupToken": "Nastaviť dlhodobý autentifikačný token"
+  }
+}

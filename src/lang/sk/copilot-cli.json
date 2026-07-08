@@ -1,0 +1,13 @@
+{
+  "notInstalled": "GitHub Copilot CLI nie je nainštalovaný. Kliknutím na tlačidlo nižšie ho nainštalujete cez npm (vyžaduje Node.js 22+).",
+  "officialWebsite": "GitHub Copilot CLI",
+  "officialDocs": "Dokumentácia Copilot CLI",
+  "cmd": {
+    "update": "Stiahnuť najnovšiu verziu Copilot CLI",
+    "resume": "Obnoviť predchádzajúcu reláciu (výber)",
+    "continue": "Obnoviť najnovšiu reláciu",
+    "prompt": "Spustiť jeden prompt neinteraktívne",
+    "login": "Overiť pomocou Copilotu",
+    "init": "Inicializovať inštrukcie Copilotu pre repozitár"
+  }
+}

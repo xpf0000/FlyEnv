@@ -1,0 +1,60 @@
+{
+  "description": "Táto licencia uznáva a podporuje úsilie FlyEnv a jeho autorov. Jej cieľom nie je obmedzovať používateľov, ale podporovať úctu k práci a duševnému vlastníctvu vývojárov. Pred použitím FlyEnv na komerčné účely sa prosím uistite, že ste získali platnú licenciu.",
+  "restrictions": {
+    "title": "Používatelia bez licencie budú podliehať nasledujúcim obmedzeniam:",
+    "items": {
+      "0": "Možno vytvoriť maximálne tri stránky.",
+      "1": "Funkcia AI chatu je dostupná iba počas trojdňového skúšobného obdobia.",
+      "2": "Na budúce funkcie sa môžu vzťahovať ďalšie obmedzenia."
+    }
+  },
+  "howToObtain": {
+    "title": "Ako získať licenciu",
+    "description": "FlyEnv poskytuje flexibilné spôsoby, ako získať licenciu. Používatelia si môžu vybrať ktorúkoľvek z nasledujúcich metód:",
+    "methods": {
+      "0": {
+        "title": "Prispieť na projekt",
+        "description": "Pre dary nie je vyžadovaná pevne stanovená suma. Vzhľadom na rozdielnu ekonomickú situáciu používateľov v rôznych krajinách (napr. mnohí používatelia sú študenti) si prosím vyberte sumu, ktorá je pre vás pohodlná."
+      },
+      "1": {
+        "title": "Prispieť k vývoju",
+        "description": "Zapojte sa do projektu odoslaním Pull Requestu. Bez ohľadu na množstvo kódu, pokiaľ projekt pozitívne zlepšuje (napr. oprava chyby v preklade), váš príspevok sa počíta."
+      },
+      "2": {
+        "title": "Propagovať projekt",
+        "description": "Propagujte FlyEnv zdieľaním svojich skúseností v článkoch, videách, blogoch, vlogoch alebo komentároch. Uprednostňuje sa autentická spätná väzba používateľov. Obsah môže byť v akomkoľvek jazyku a na akejkoľvek platforme."
+      }
+    }
+  },
+  "submitInfo": "Po dokončení ktorejkoľvek z vyššie uvedených metód prosím vyplňte výsledky do vstupného poľa nižšie a kliknutím na tlačidlo „Požiadať o licenciu“ odošlite svoju žiadosť. Žiadosti o licenciu sa zvyčajne spracujú do 24 hodín.",
+  "messageLabel": "Správa",
+  "messagePlaceholder": "Pri voľbe daru prosím uveďte darcu, odkaz na dar alebo ID objednávky.\nAk sa rozhodnete zapojiť do vývoja projektu, uveďte prosím odkaz na PR.\nAk sa rozhodnete projekt propagovať, uveďte prosím odkaz na svoj článok, video, blog, vlog alebo komentár.",
+  "requestButton": "Požiadať o licenciu",
+  "refreshButton": "Obnoviť stav",
+  "licenseActivated": "Licencia aktivovaná",
+  "licenseNoActivated": "Licencia nie je aktivovaná",
+  "licenseInfo": "Aktuálne poskytovaná licencia je trvalá licencia, každý počítač zodpovedá jednej licencii. Ak vymeníte počítač, je potrebné v časti „Moje licencie“ naviazať uuid nového zariadenia alebo požiadať o novú licenciu.",
+  "logoutTips": "Naozaj sa chcete odhlásiť?",
+  "delBindTips": "Naozaj chcete zrušiť naviazanie licencie na toto UUID?",
+  "addBindTips": "Naozaj chcete naviazať licenciu na toto UUID?",
+  "currentLicenseState": "Stav licencie na tomto zariadení",
+  "activeState": "Stav aktivácie",
+  "myLicense": "Moje licencie",
+  "loginTips": "Najprv sa prosím prihláste",
+  "logingTips": "Prebieha prihlásenie cez GitHub...",
+  "licenseNo": "Číslo licencie",
+  "licenseBindUUID": "Naviazané UUID",
+  "delBind": "Zrušiť naviazanie",
+  "bindCurrentUUID": "Naviazať toto zariadenie",
+  "loginFail": "Prihlásenie zlyhalo",
+  "oauthCanceledTitle": "Autorizácia zrušená",
+  "oauthCanceledMessage": "Používateľ zrušil proces autorizácie",
+  "oauthFailedTitle": "Autorizácia zlyhala",
+  "oauthFailedMessage": "Autorizácia zlyhala. Dôvod: {error}",
+  "oauthFailedByNoAuthCode": "Autorizačný kód nebol prijatý",
+  "oauthTimeout": "Čas autorizácie vypršal",
+  "oauthSuccessTitle": "Autorizácia úspešná",
+  "oauthSuccessMessage": "Túto stránku môžete zavrieť. Vráťte sa prosím do FlyEnv a zobrazte si informácie o licencii.",
+  "trialExpiredTitle": "Licencia nie je aktivovaná",
+  "trialExpiredTips": "FlyEnv používate už {days} dní. Ak vám bol FlyEnv nápomocný, zvážte prosím získanie licencie na podporu projektu."
+}

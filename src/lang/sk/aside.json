@@ -1,0 +1,20 @@
+{
+  "webServer": "Webový server",
+  "dataBaseServer": "Databázový server",
+  "emailServer": "E-mailový server",
+  "language": "Jazyk a behové prostredie",
+  "searchEngine": "Vyhľadávač",
+  "dnsServer": "DNS server",
+  "ftpServer": "FTP server",
+  "containerRuntime": "Behové prostredie kontajnera",
+  "appLog": "Protokol aplikácie",
+  "aiCoding": "Programovanie s AI",
+  "ai": "AI",
+  "objectStorage": "Úložisko objektov",
+  "appExit": "Zastaviť všetky bežiace služby a ukončiť FlyEnv",
+  "groupStart": "Jedným kliknutím spustiť všetky dostupné služby zobrazené na paneli",
+  "networkTunnel": "Sieťový tunel",
+  "cacheAndQueue": "Vyrovnávacia pamäť a fronta správ",
+  "serviceGovernance": "Správa služieb",
+  "other": "Ostatné"
+}

@@ -1,0 +1,10 @@
+{
+  "gzip": "Povoliť prenos s kompresiou GZIP",
+  "gzip_min_length": "Minimálna veľkosť komprimovaného súboru",
+  "gzip_comp_level": "Miera kompresie",
+  "client_max_body_size": "Maximálna veľkosť nahrávaného súboru",
+  "server_names_hash_max_size": "Maximálna veľkosť hašovacej tabuľky pre názov servera",
+  "server_names_hash_bucket_size": "Veľkosť hašovacej tabuľky pre názov servera",
+  "client_header_buffer_size": "Veľkosť vyrovnávacej pamäte hlavičky požiadavky klienta",
+  "client_body_buffer_size": "Veľkosť vyrovnávacej pamäte tela požiadavky"
+}

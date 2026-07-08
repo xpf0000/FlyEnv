@@ -1,0 +1,24 @@
+{
+  "notInstalled": "Rozhranie OpenCode CLI nie je nainštalované. Kliknutím na tlačidlo nižšie ho nainštalujete cez npm.",
+  "officialWebsite": "OpenCode GitHub",
+  "officialDocs": "Dokumentácia OpenCode",
+  "stats": "Štatistiky",
+  "allTime": "Za celé obdobie",
+  "last7Days": "Posledných 7 dní",
+  "last30Days": "Posledných 30 dní",
+  "providers": "Poskytovatelia",
+  "providerId": "Poskytovateľ",
+  "noProviders": "Nie sú nastavené žiadne prihlasovacie údaje. Spustite `opencode auth login` na pridanie údajov.",
+  "cmd": {
+    "upgrade": "Aktualizovať OpenCode na najnovšiu verziu",
+    "models": "Zobraziť zoznam všetkých dostupných modelov",
+    "start": "Spustiť rozhranie OpenCode TUI",
+    "continue": "Pokračovať v poslednej relácii",
+    "resume": "Pokračovať v relácii podľa ID",
+    "run": "Spustiť OpenCode so správou",
+    "mcpList": "Zobraziť zoznam serverov MCP a ich stav",
+    "stats": "Zobraziť štatistiky využitia tokenov a nákladov",
+    "providersList": "Zobraziť zoznam poskytovateľov a prihlasovacích údajov",
+    "agentList": "Zobraziť zoznam všetkých dostupných agentov"
+  }
+}

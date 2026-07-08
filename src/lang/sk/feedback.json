@@ -1,0 +1,10 @@
+{
+  "email": "E-mail",
+  "country": "Krajina",
+  "message": "Správa",
+  "messagelengthErr": "Dĺžka správy je 5 - 1024",
+  "sendMessage": "Odoslať správu",
+  "anythingToSay": "Čokoľvek, čo chcete povedať",
+  "noSelected": "Nič nie je vybrané",
+  "inputFilter": "Zadajte na filtrovanie"
+}

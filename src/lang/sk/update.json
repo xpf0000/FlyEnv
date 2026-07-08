@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Skontrolovať aktualizácie",
+  "update-available-message": "Je k dispozícii novšia verzia FlyEnv, aktualizovať teraz?",
+  "update-not-available-message": "Máte aktuálnu verziu!",
+  "update-downloaded-message": "Pripravené na inštaláciu...",
+  "update-error-message": "Chyba aktualizácie",
+  "view-update-log": "Zobraziť protokol aktualizácií",
+  "download-new-version": "Stiahnuť novú verziu"
+}

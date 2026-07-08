@@ -1,0 +1,22 @@
+{
+  "setaliase": "Nastaviť alias",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Bola cesta pridaná do premennej prostredia",
+  "aliasTips": "Alias použitý v termináli",
+  "useSysPHP": "Použiť predvolenú verziu PHP",
+  "setByApp": "Premenné prostredia nastavené FlyEnv",
+  "setByNoApp": "Premenné prostredia nenastavené FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd vyžaduje na spustenie oprávnenia sudo. Zadajte svoje používateľské heslo. Heslo sa neskôr použije na automatické vyplnenie. Alebo môžete kliknúť na tlačidlo nižšie a zadať ho ručne v termináli, ale táto výzva sa môže znova objaviť.",
+  "bundleinVersionDelTips": "Táto verzia je vstavaná verzia, potvrdiť, že sa nemá zobrazovať?",
+  "customDirVersionDelTips": "Táto verzia je verzia z vlastnej cesty, potvrdiť, že sa nemá zobrazovať?",
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Vášmu systému chýba Visual C++ Redistributable (DLL) potrebný na spustenie tejto verzie. Kliknite na odkaz nižšie a stiahnite a nainštalujte VC Runtime z oficiálnej webovej stránky Microsoftu.",
+      "versionRelation": "Referencia kompatibility verzií:",
+      "software": "Softvér",
+      "versionRange": "Rozsah verzií",
+      "msvsVersion": "Verzia MSVC"
+    }
+  }
+}

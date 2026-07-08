@@ -1,0 +1,9 @@
+{
+  "showMainWin": "Zobraziť hlavné okno",
+  "exit": "Ukončiť",
+  "notRun": "Nebeží",
+  "trayMenuBarStyle": "Štýl vyskakovacieho okna v systémovej lište",
+  "classic": "Klasický",
+  "modern": "Moderný",
+  "trayMenuBarStyleTips": "Vyberte štýl vyskakovacieho okna v systémovej lište. Na niektorých linuxových desktopoch môže mať moderný štýl problémy, takže môžete zvoliť klasický štýl."
+}

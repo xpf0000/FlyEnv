@@ -1,0 +1,13 @@
+{
+  "binNotFound": "Spúšťací súbor neexistuje, operácia zlyhala.",
+  "confNotFound": "Konfiguračný súbor neexistuje, server sa nepodarilo spustiť",
+  "apacheLogPathErr": "Cesta k protokolu v konfiguračnom súbore je nesprávna a prepnutie zlyhalo",
+  "versionError": "Verzia je nesprávna, vyberte prosím znova",
+  "hostsFileNotFound": "Súbor hosts neexistuje",
+  "startFail": "Nepodarilo sa spustiť, skontrolujte prosím súbor protokolu",
+  "versionNotFound": "Nepodarilo sa získať verziu softvéru, operácia zlyhala.",
+  "postgresqlInit": "Služba úspešne spustená\nDátový adresár je {dir}\nPočiatočný používateľ je root, heslo je root",
+  "downloadFileFail": "Stiahnutie súboru zlyhalo!",
+  "trialEnd": "Skúšobná verzia vypršala. Ak chcete túto funkciu naďalej používať, získajte prosím licenciu",
+  "noEPMD": "Proces epmd sa nenašiel. Prosím resetujte premenné prostredia Erlang"
+}

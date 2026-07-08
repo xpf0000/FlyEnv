@@ -1,0 +1,12 @@
+{
+  "checking": "Kontrola inštalácie...",
+  "isInstalled": "nainštalované",
+  "notInstalled": "mkcert nie je nainštalovaný",
+  "install": "Nainštalovať mkcert",
+  "checkAgain": "Skontrolovať znova",
+  "recheck": "Znovu skontrolovať",
+  "installCA": "Nainštalovať CA",
+  "carootLabel": "Koreňová cesta CA",
+  "certificates": "Certifikáty",
+  "noSSLHosts": "Žiadni hostitelia nemajú povolené SSL. Najprv povoľte SSL na niektorom hostiteľovi."
+}

@@ -1,0 +1,6 @@
+{
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> nebol nájdený\nPre inštaláciu Homebrew kliknite na tlačidlo inštalácie a pokračujte\nMôžete tiež kliknúť na tento odkaz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nPri inštalácii postupujte podľa dokumentácie.",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> nebol nájdený.\nPre inštaláciu Macports môžete kliknúť na tento odkaz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nPri inštalácii postupujte podľa dokumentácie.",
+  "brewErrorTips": "Na tomto mieste {bin} boli zistené spustiteľné súbory Homebrew.\nFlyEnv ich však nedokáže spustiť. Chybové hlásenie:\n{error}",
+  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> nebol nájdený\nPre inštaláciu SDKMAN kliknite na tlačidlo inštalácie a pokračujte"
+}

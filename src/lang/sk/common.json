@@ -1,0 +1,136 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "Názov",
+    "status": "Stav",
+    "workingDirectory": "Pracovný adresár",
+    "action": "Akcia",
+    "comment": "Komentár",
+    "source": "Zdroj",
+    "site": "Stránka",
+    "errorLog": "Protokol chýb",
+    "library": "Knižnica",
+    "path": "Cesta",
+    "description": "Popis",
+    "port": "Port",
+    "startCommand": "Spúšťací príkaz",
+    "licenseDescription": "Popis licencie",
+    "password": "Heslo",
+    "username": "Používateľské meno",
+    "size": "Veľkosť",
+    "containerEnvVars": "Premenné prostredia kontajnera",
+    "createdTime": "Čas vytvorenia",
+    "image": "Obraz",
+    "state": "Stav",
+    "grid": "Mriežka",
+    "gridSpacing": "Rozostup mriežky (pixely)",
+    "fontSize": "Veľkosť písma",
+    "code": "Kód"
+  },
+  "action": {
+    "enable": "Povoliť",
+    "disable": "Zakázať",
+    "resume": "Obnoviť",
+    "uninstall": "Odinštalovať",
+    "copy": "Kopírovať",
+    "preview": "Náhľad",
+    "search": "Hľadať",
+    "clear": "Vyčistiť",
+    "resetPassword": "Obnoviť heslo",
+    "delete": "Zmazať",
+    "add": "Pridať",
+    "edit": "Upraviť",
+    "generate": "Generovať",
+    "refresh": "Obnoviť",
+    "save": "Uložiť",
+    "start": "Spustiť",
+    "stop": "Zastaviť",
+    "close": "Zavrieť",
+    "selectAll": "Vybrať všetko",
+    "changeName": "Upraviť názov",
+    "changeOwnerPassword": "Zmeniť heslo vlastníka",
+    "changeRole": "Zmeniť rolu"
+  },
+  "state": {
+    "running": "Beží",
+    "installed": "Nainštalované",
+    "enabled": "Povolené",
+    "disabled": "Zakázané",
+    "available": "Dostupné"
+  },
+  "session": {
+    "list": "Relácie",
+    "title": "Názov",
+    "id": "ID relácie",
+    "lastPrompt": "Posledný prompt",
+    "search": "Hľadať relácie",
+    "deleted": "Relácia bola zmazaná",
+    "resumed": "Relácia bola obnovená v termináli"
+  },
+  "mcp": {
+    "type": "Typ",
+    "commandOrUrl": "Príkaz / URL",
+    "scope": "Rozsah",
+    "addServer": "Pridať server"
+  },
+  "category": {
+    "basic": "Základné",
+    "mcp": "MCP",
+    "skills": "Zručnosti",
+    "basicInfo": "Základné informácie",
+    "configuration": "Konfigurácia",
+    "favorites": "Obľúbené",
+    "plugins": "Doplnky",
+    "backupUpdate": "Zálohovanie a aktualizácia"
+  },
+  "skills": {
+    "openSkillsDir": "Otvoriť priečinok zručností",
+    "openSkillDir": "Otvoriť adresár zručnosti",
+    "revealSkillFile": "Zobraziť súbor zručnosti",
+    "noSkills": "Neboli nájdené žiadne zručnosti",
+    "skillFileMissing": "Súbor zručnosti nebol nájdený",
+    "skillLoadFailed": "Načítanie súboru zručnosti zlyhalo",
+    "builtin": "Vstavané"
+  },
+  "cli": {
+    "help": "Zobraziť informácie nápovedy",
+    "version": "Zobraziť číslo verzie",
+    "start": "Spustiť novú interaktívnu reláciu",
+    "mcpList": "Vypísať nakonfigurované servery MCP",
+    "doctor": "Spustiť zdravotné kontroly",
+    "doctorFix": "Spustiť zdravotné kontroly s automatickou opravou",
+    "gatewayStart": "Spustiť službu brány",
+    "gatewayStop": "Zastaviť službu brány",
+    "gatewayRestart": "Reštartovať službu brány",
+    "gatewayStatus": "Zobraziť stav brány",
+    "gatewayRun": "Spustiť bránu v popredí",
+    "gatewayUninstall": "Odinštalovať službu brány",
+    "skillsList": "Vypísať dostupné zručnosti"
+  },
+  "gateway": {
+    "category": "Služba brány",
+    "status": "Stav brány",
+    "running": "Brána beží",
+    "stopped": "Brána je zastavená",
+    "startFailed": "Spustenie brány zlyhalo"
+  },
+  "value": {
+    "yes": "Áno",
+    "no": "Nie",
+    "other": "Ostatné",
+    "default": "Predvolené",
+    "none": "Žiadne",
+    "local": "Lokálne"
+  },
+  "plugin": {
+    "search": "Hľadať doplnky",
+    "removed": "Doplnok bol odstránený"
+  },
+  "schedule": {
+    "everyHour": "Každú hodinu",
+    "everyMinute": "Každú minútu"
+  },
+  "error": {
+    "phpiniNotFound": "Súbor php.ini nebol nájdený"
+  }
+}
