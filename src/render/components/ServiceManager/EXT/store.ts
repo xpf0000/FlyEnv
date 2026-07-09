@@ -287,7 +287,9 @@ export const ServiceActionStore: {
           delete ServiceActionStore.versionDeling[item.bin]
         })
     } else {
-      staticVersionDel(item)
+      staticVersionDel(item, () => {
+        delete ServiceActionStore.versionDeling[item.bin]
+      })
     }
   }
 })

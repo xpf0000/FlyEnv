@@ -5,7 +5,7 @@
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
-    @closed="closedFn"
+    @closed="handleClosed"
   >
     <template #default>
       <div class="main-wapper">
@@ -35,16 +35,26 @@
   import type { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
   import { computed } from 'vue'
   import { installedVersionNote, setInstalledVersionNote } from '@/util/InstalledVersionNote'
+  import { createVersionDeleteLifecycle } from '@/util/versionDeleteLifecycle'
+  import type { CallbackFn } from '@shared/app'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
     item: ModuleInstalledItem & ModuleStaticItem
+    onDone?: CallbackFn
   }>()
+
+  const lifecycle = createVersionDeleteLifecycle(props.onDone)
 
   const note = computed(() => {
     return installedVersionNote(props.item, props.item.typeFlag)
   })
+
+  const handleClosed = () => {
+    lifecycle.handleClosed()
+    closedFn()
+  }
 
   const doShowDir = () => {
     show.value = false
@@ -55,6 +65,7 @@
 
   const doDel = () => {
     console.log('doDel: ', props.item)
+    lifecycle.markDeleting()
     show.value = false
     const m = props.item
     m.running = true
@@ -86,6 +97,7 @@
           .installed.filter((f) => f.bin !== props.item.bin)
         module.resetCurrentVersion(true)
         module.fetchStatic()
+        lifecycle.handleDeleteFinished()
       })
   }
 
