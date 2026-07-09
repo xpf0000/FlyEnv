@@ -192,6 +192,7 @@ export class Module {
     this.brewFetching = true
     brewInfo(this.typeFlag)
       .then((res: any) => {
+        const newItems: any[] = []
         for (const item of res) {
           const find = this.brew.find((d) => d.name === item.name && d.version === item.version)
           if (!find) {
@@ -200,10 +201,13 @@ export class Module {
             obj.fetchCommand = obj.fetchCommand.bind(obj)
             obj.copyCommand = obj.copyCommand.bind(obj)
             obj.runCommand = obj.runCommand.bind(obj)
-            this.brew.push(obj)
+            newItems.push(obj)
           } else {
             Object.assign(find, item)
           }
+        }
+        if (newItems.length > 0) {
+          this.brew.push(...newItems)
         }
         this.brewFetching = false
       })
@@ -219,6 +223,7 @@ export class Module {
     this.portFetching = true
     portInfo(this.typeFlag)
       .then((res: any) => {
+        const newItems: any[] = []
         for (const item of res) {
           const find = this.port.find((d) => d.name === item.name && d.version === item.version)
           if (!find) {
@@ -227,10 +232,13 @@ export class Module {
             obj.fetchCommand = obj.fetchCommand.bind(obj)
             obj.copyCommand = obj.copyCommand.bind(obj)
             obj.runCommand = obj.runCommand.bind(obj)
-            this.port.push(obj)
+            newItems.push(obj)
           } else {
             Object.assign(find, item)
           }
+        }
+        if (newItems.length > 0) {
+          this.port.push(...newItems)
         }
         this.portFetching = false
       })
@@ -247,6 +255,7 @@ export class Module {
     fetchVerion(this.typeFlag)
       .then((res: any) => {
         console.log('fetchVerion res: ', res)
+        const newItems: any[] = []
         for (const item of res) {
           const find = this.static.find(
             (d) => d.url === item.url && d.version === item.version && d.bin === item.bin
@@ -256,14 +265,14 @@ export class Module {
               (d) => d.url === item.url && d.version === item.version && d.bin === item.bin
             )
             if (findDowing) {
-              this.static.push(findDowing)
+              newItems.push(findDowing)
             } else {
               const obj = reactive(new ModuleStaticItem(item))
               obj.typeFlag = this.typeFlag
               obj.fetchCommand = obj.fetchCommand.bind(obj)
               obj.copyCommand = obj.copyCommand.bind(obj)
               obj.runCommand = obj.runCommand.bind(obj)
-              this.static.push(obj)
+              newItems.push(obj)
             }
           } else {
             console.log('find: ', find, item)
@@ -271,6 +280,9 @@ export class Module {
             Object.assign(find, item)
             find.downing = downing
           }
+        }
+        if (newItems.length > 0) {
+          this.static.push(...newItems)
         }
         this.staticFetching = false
       })
@@ -286,15 +298,19 @@ export class Module {
     this.sdkmanFetching = true
     sdkmanInfo(this.typeFlag)
       .then((res: any) => {
+        const newItems: any[] = []
         for (const item of res) {
           const find = this.sdkman.find((d) => d.name === item.name && d.version === item.version)
           if (!find) {
             const obj = reactive(new ModuleSdkmanItem(item))
             obj.typeFlag = this.typeFlag
-            this.sdkman.push(obj)
+            newItems.push(obj)
           } else {
             Object.assign(find, item)
           }
+        }
+        if (newItems.length > 0) {
+          this.sdkman.push(...newItems)
         }
         this.sdkmanFetching = false
       })

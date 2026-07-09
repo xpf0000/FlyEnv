@@ -5,5 +5,5 @@
   "trayMenuBarStyle": "Styl vyskakovacího okna v systémové liště",
   "classic": "Klasický",
   "modern": "Moderní",
-  "trayMenuBarStyleTips": "Vyberte si styl vyskakovacího okna na některých desktorech Linuxu může mít problémy, takže si můžete zvolit klasický styl."
+  "trayMenuBarStyleTips": "Vyberte styl vyskakovacího okna v systémové liště. Na některých linuxových desktopech může mít moderní styl problémy, takže můžete zvolit klasický styl."
 }

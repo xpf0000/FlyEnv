@@ -1,5 +1,5 @@
 {
-  "RUSTFS_ADDRESS": "Vázáno na konkrétní ADDRES: PORT, ADRESA může být IP nebo název hostitele. Výchozí hodnota je ':9000'.",
+  "RUSTFS_ADDRESS": "Navázat na konkrétní ADDRESS:PORT, ADDRESS může být IP adresa nebo název hostitele. Výchozí hodnota je ':9000'.",
   "RUSTFS_ACCESS_KEY": "Přístupový klíč používaný pro ověření S3 API.",
   "RUSTFS_ACCESS_KEY_FILE": "Cesta k souboru obsahující přístupový klíč pro S3 ověření API.",
   "RUSTFS_SECRET_KEY": "Tajný klíč použitý pro ověření S3 API.",
@@ -11,12 +11,12 @@
   "RUSTFS_REGION": "Název regionu pro server.",
   "RUSTFS_LICENSE": "Licenční klíč pro komerční funkce.",
   "RUSTFS_KMS_ENABLE": "Povolte šifrování KMS pro šifrování na straně serveru. Nastavte \"true\" pro umožnění.",
-  "RUSTFS_KMS_BACKEND": "Typ KMS backendu: 'lokální' nebo 'trezor'. Výchozí hodnota je 'lokální'.",
-  "RUSTFS_KMS_KEY_DIR": "Adresář klíčů KMS pro místní backend.",
-  "RUSTFS_KMS_VAULT_ADDRESS": "Adresa serveru trezoru pro administraci trezoru.",
-  "RUSTFS_KMS_VAULT_TOKEN": "Token trezoru pro přihlášení do administrace.",
+  "RUSTFS_KMS_BACKEND": "Typ KMS backendu: 'local' nebo 'vault'. Výchozí hodnota je 'local'.",
+  "RUSTFS_KMS_KEY_DIR": "Adresář klíčů KMS pro backend local.",
+  "RUSTFS_KMS_VAULT_ADDRESS": "Adresa serveru Vault pro backend vault.",
+  "RUSTFS_KMS_VAULT_TOKEN": "Token Vault pro ověření backendu vault.",
   "RUSTFS_KMS_DEFAULT_KEY_ID": "Výchozí ID klíče KMS pro šifrování.",
-  "RUSTFS_OBS_ENDPOINT": "Sledovatelnost koncového bodu pro sledování, metriku a logy (pouze gRPC režim).",
+  "RUSTFS_OBS_ENDPOINT": "Koncový bod pro pozorovatelnost (observability) pro trasování, metriky a logy (pouze režim gRPC).",
   "RUSTFS_BUFFER_PROFILE_DISABLE": "Zakažte adaptivní velikost vyrovnávací paměti s profily pracovního zatížení. Nastavte \"true\" pro použití fixované velikosti vyrovnávací paměti.",
   "RUSTFS_BUFFER_PROFILE": "Profil pracovního zatížení pro adaptivní velikost vyrovnávací paměti. Volby: GeneralPurpose, AiTraining, DataAnalytics, WebWorkload, IndustrialIoT, SecureStorage."
 }

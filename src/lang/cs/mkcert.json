@@ -8,5 +8,5 @@
   "installCA": "Nainstalovat CA",
   "carootLabel": "Kořenová cesta CA",
   "certificates": "Certifikáty",
-  "noSSLHosts": "Žádné hostitele s SSL povoleny. Nejprve povolte SSL na hostitele."
+  "noSSLHosts": "Žádní hostitelé nemají povolené SSL. Nejprve povolte SSL na některém hostiteli."
 }

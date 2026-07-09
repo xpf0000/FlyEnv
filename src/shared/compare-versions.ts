@@ -11,6 +11,7 @@ export function versionFixed(version?: string | null) {
         }
         return `${vn}`
       })
+      ?.slice(0, 3)
       ?.join('.') ?? '0'
   )
 }
