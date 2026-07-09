@@ -88,7 +88,8 @@ export const Setup = (typeFlag: AllAppModule) => {
           continue
         }
       }
-      const nums = value.version.split('.').map((n: string, i: number) => {
+      const versionStr = value?.version || ''
+      const nums = versionStr.split('.').map((n: string, i: number) => {
         if (i > 0) {
           const num = parseInt(n)
           if (isNaN(num)) {
@@ -101,12 +102,8 @@ export const Setup = (typeFlag: AllAppModule) => {
         }
         return n
       })
-      const num = parseInt(nums.join(''))
-      Object.assign(value, {
-        version: value.version,
-        installed: value.installed,
-        num
-      })
+      const num = parseInt(nums.join('') || '0')
+      ;(value as any).num = num
       arr.push(value)
     }
     arr.sort((a: any, b: any) => compareVersions(versionFixed(b.version), versionFixed(a.version)))
