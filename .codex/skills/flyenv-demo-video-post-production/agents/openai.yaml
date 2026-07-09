@@ -1,0 +1,4 @@
+interface:
+  display_name: "FlyEnv Demo Video Post"
+  short_description: "Edit FlyEnv screen recordings into publishable demo videos"
+  default_prompt: "Edit this FlyEnv recording into a publishable English demo video with speed-ramped pacing, subtitles, neural voiceover, thumbnail, and upload assets."
