@@ -30,8 +30,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
-import { ProcessListSearch } from '@shared/Process.win'
-import { PItem, ProcessKill } from '@shared/Process'
+import { ProcessListSearch, ProcessPidList } from '@shared/Process.win'
+import { PItem, ProcessKill, ProcessOwnedPidsByPid } from '@shared/Process'
 import { EOL } from 'os'
 import { createConnection } from 'mysql2/promise'
 import type { Connection } from 'mysql2/promise'
@@ -130,15 +130,33 @@ class Mysql extends Base {
 
     return new ForkPromise(async (resolve, reject, on) => {
       const pids = new Set<string>()
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      const killPids = new Set<string>()
+      const appPidFile = this.appPidFile()
       if (existsSync(appPidFile)) {
-        const pid = (await readFile(appPidFile, 'utf-8')).trim()
-        pids.add(pid)
+        try {
+          const pid = await this.readPidFromFile(appPidFile)
+          if (pid) {
+            pids.add(pid)
+          }
+        } catch {}
         TaskQueue.run(remove, appPidFile).then().catch()
       }
+      try {
+        const pid = await this.readPidFromFile()
+        if (pid) {
+          pids.add(pid)
+        }
+      } catch {}
       if (version?.pid) {
         pids.add(`${version.pid}`)
       }
+      try {
+        const processList = await ProcessPidList()
+        const ownedMarkers = this.ownedProcessMarkers(version)
+        for (const pid of pids) {
+          ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) => killPids.add(item))
+        }
+      } catch {}
       if (pids.size > 0) {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
@@ -169,11 +187,13 @@ class Mysql extends Base {
         }
 
         if (!success) {
-          const arr: string[] = Array.from(pids)
-          const str = arr.map((s) => `/pid ${s}`).join(' ')
-          try {
-            await execPromise(`taskkill /f /t ${str}`)
-          } catch {}
+          const arr = Array.from(killPids)
+          if (arr.length > 0) {
+            const str = arr.map((s) => `/pid ${s}`).join(' ')
+            try {
+              await execPromise(`taskkill /f /t ${str}`)
+            } catch {}
+          }
         } else {
           await waitTime(1500)
         }
@@ -186,7 +206,7 @@ class Mysql extends Base {
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
       })
       return resolve({
-        'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
+        'APP-Service-Stop-PID': [...new Set([...pids, ...killPids])].map((p) => Number(p))
       })
     })
   }

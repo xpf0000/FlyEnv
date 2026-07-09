@@ -21,7 +21,6 @@ import {
   readFile,
   unlink,
   writeFile,
-  remove,
   serviceStartExecCMD,
   mkdirp,
   execPromiseWithEnv,
@@ -130,12 +129,22 @@ class Manager extends Base {
       }
 
       const pids = new Set<string>()
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      const appPidFile = this.appPidFile()
       if (existsSync(appPidFile)) {
-        const pid = (await readFile(appPidFile, 'utf-8')).trim()
-        pids.add(pid)
-        TaskQueue.run(remove, appPidFile).then().catch()
+        try {
+          const pid = await this.readPidFromFile(appPidFile)
+          if (pid) {
+            pids.add(pid)
+          }
+        } catch {}
+        TaskQueue.run(unlink, appPidFile).then().catch()
       }
+      try {
+        const pid = await this.readPidFromFile(join(dbPath, 'postmaster.pid'))
+        if (pid) {
+          pids.add(pid)
+        }
+      } catch {}
       if (version?.pid) {
         pids.add(`${version.pid}`)
       }

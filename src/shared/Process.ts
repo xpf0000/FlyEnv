@@ -70,6 +70,45 @@ export const ProcessPidsByPid = (pid: string, arr: PItem[]): string[] => {
   return [...all]
 }
 
+/**
+ * 按精确 PID 获取该根进程及其完整子进程树。
+ * 只接受 PID 完全相等的根节点，避免把数字 PID 当搜索词做模糊扩散匹配。
+ */
+export const ProcessListByExactPid = (pid: string, arr: PItem[]): PItem[] => {
+  const rootPid = `${pid}`.trim()
+  if (!rootPid) {
+    return []
+  }
+  const root = arr.find((item) => item.PID === rootPid)
+  if (!root) {
+    return []
+  }
+
+  const all: Set<string> = new Set([rootPid])
+  const find = (ppid: string) => {
+    for (const item of arr) {
+      if (item.PPID === ppid && !all.has(item.PID)) {
+        all.add(item.PID)
+        find(item.PID)
+      }
+    }
+  }
+  find(rootPid)
+
+  return Array.from(all).map((currentPid) => {
+    const item = arr.find((processItem) => processItem.PID === currentPid)
+    if (item) {
+      return item
+    }
+    return {
+      USER: '',
+      PID: currentPid,
+      PPID: '',
+      COMMAND: ''
+    } as PItem
+  })
+}
+
 export const ProcessListByPid = (pid: string, arr: PItem[]): PItem[] => {
   const all: Set<string> = new Set()
   const find = (ppid: string) => {
@@ -103,6 +142,53 @@ export const ProcessListByPid = (pid: string, arr: PItem[]): PItem[] => {
       COMMAND: ''
     } as PItem
   })
+}
+
+/**
+ * Electron/Chromium 的 renderer、gpu、utility 子进程不应被当作服务根进程回收。
+ * stale PID 被这些子进程复用时，必须直接拒绝清理，避免误杀整棵应用进程树。
+ */
+export const ProcessCommandLooksLikeElectronChild = (command = '') => {
+  if (!command) {
+    return false
+  }
+  return (
+    command.includes(' --type=renderer') ||
+    command.includes(' --type=gpu-process') ||
+    command.includes(' --type=utility')
+  )
+}
+
+/**
+ * 仅当 PID 当前仍归属于 FlyEnv 管理的服务时，才返回可安全回收的进程树。
+ * 这里既校验 root PID 精确存在，也要求 root command 仍包含服务自身路径标记，
+ * 从而拦住 stale PID 复用到 VS Code / FlyEnv Electron 进程后的误杀问题。
+ */
+export const ProcessOwnedPidsByPid = (
+  pid: string,
+  arr: PItem[],
+  ownedMarkers: Array<string | null | undefined>
+): string[] => {
+  const tree = ProcessListByExactPid(pid, arr)
+  if (tree.length === 0) {
+    return []
+  }
+  const rootPid = `${pid}`.trim()
+  const root = tree.find((item) => item.PID === rootPid)
+  const command = root?.COMMAND ?? ''
+  if (!command || ProcessCommandLooksLikeElectronChild(command)) {
+    return []
+  }
+  const markers = ownedMarkers
+    .map((marker) => `${marker ?? ''}`.trim())
+    .filter((marker) => marker.length > 0)
+  if (markers.length === 0) {
+    return []
+  }
+  if (!markers.some((marker) => command.includes(marker))) {
+    return []
+  }
+  return tree.map((item) => item.PID)
 }
 
 export const ProcessSearch = (search: string, aA = true, arr: PItem[]) => {

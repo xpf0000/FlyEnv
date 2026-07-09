@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { homedir } from 'os'
 import { Base } from '../Base'
@@ -17,12 +17,7 @@ import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import { isWindows } from '@shared/utils'
-import {
-  ProcessListSearch,
-  fetchProcessPidByPort,
-  ProcessPidList,
-  ProcessPidListByPid
-} from '@shared/Process.win'
+import { ProcessListSearch, fetchProcessPidByPort, ProcessPidList } from '@shared/Process.win'
 import axios from 'axios'
 import http from 'http'
 import {
@@ -45,6 +40,7 @@ import {
 } from './database'
 import {
   ProcessKill,
+  ProcessOwnedPidsByPid,
   fetchProcessPidByPort as fetchPidByPort,
   PItem,
   ProcessListFetch
@@ -64,7 +60,7 @@ class N8N extends Base {
   /** Clean up pid files */
   private async _cleanupPidFiles(): Promise<void> {
     try {
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      const appPidFile = this.appPidFile()
       if (existsSync(appPidFile)) await remove(appPidFile)
     } catch {}
     try {
@@ -83,31 +79,37 @@ class N8N extends Base {
       const allPid = new Set<string>()
 
       const processList = await ProcessPidList()
+      const ownedMarkers = this.ownedProcessMarkers(version)
 
-      // 1. Kill by saved pid file (cmd.exe wrapper + its children)
+      // 1. Kill by saved app pid file
       try {
-        const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-        if (existsSync(appPidFile)) {
-          const savedPid = (await readFile(appPidFile, 'utf-8')).trim()
-          if (savedPid) {
-            const tree = await ProcessPidListByPid(savedPid, processList)
-            tree.forEach((p) => allPid.add(p))
-            allPid.add(savedPid)
-          }
+        const savedPid = await this.readPidFromFile(this.appPidFile())
+        if (savedPid) {
+          ProcessOwnedPidsByPid(savedPid, processList, ownedMarkers).forEach((pid) =>
+            allPid.add(pid)
+          )
         }
       } catch {}
 
-      // 2. Kill by port — most reliable: finds node.exe actually listening
+      // 2. Kill by n8n.pid (persisted real node pid from the last successful start)
+      try {
+        const savedPid = await this.readPidFromFile()
+        if (savedPid) {
+          ProcessOwnedPidsByPid(savedPid, processList, ownedMarkers).forEach((pid) =>
+            allPid.add(pid)
+          )
+        }
+      } catch {}
+
+      // 3. Kill by port — most reliable: finds node.exe actually listening
       try {
         const portPids = await fetchProcessPidByPort(port)
         for (const pid of portPids) {
-          const tree = await ProcessPidListByPid(pid, processList)
-          tree.forEach((p) => allPid.add(p))
-          allPid.add(pid)
+          ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) => allPid.add(item))
         }
       } catch {}
 
-      // 3. Kill any node.exe whose command contains '\\n8n\\'
+      // 4. Kill any node.exe whose command contains '\\n8n\\'
       try {
         const n8nProcs = await ProcessListSearch('\\n8n\\', false, processList)
         n8nProcs.forEach((p) => allPid.add(p.PID!))
@@ -249,6 +251,10 @@ class N8N extends Base {
           pid = `${startRes['APP-Service-Start-PID']}`
         } else {
           pid = await checkPid()
+        }
+        if (pid) {
+          await mkdirp(dirname(this.pidPath))
+          await writeFile(this.pidPath, `${pid}`.trim())
         }
 
         resolve({

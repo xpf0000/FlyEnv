@@ -31,7 +31,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
-import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPid } from '@shared/Process'
 import Helper from '../../Helper'
 import { unpack } from '../../util/Zip'
 import { parse as iniParse } from 'ini'
@@ -242,7 +242,11 @@ xdebug.output_dir = "${output_dir}"
       const arr: Array<string> = []
       if (version?.pid?.trim()) {
         const plist: any = await ProcessListFetch()
-        const pids = ProcessPidsByPid(version.pid.trim(), plist)
+        const pids = ProcessOwnedPidsByPid(
+          version.pid.trim(),
+          plist,
+          this.ownedProcessMarkers(version)
+        )
         arr.push(...pids)
       } else {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''

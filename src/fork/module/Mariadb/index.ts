@@ -33,6 +33,8 @@ import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { compareVersions } from '@shared/compare-versions'
+import { ProcessPidList } from '@shared/Process.win'
+import { ProcessOwnedPidsByPid } from '@shared/Process'
 import { parse as iniParse } from 'ini'
 import { Connection, createConnection } from 'mysql2/promise'
 import { format } from 'date-fns'
@@ -460,17 +462,35 @@ class Manager extends Base {
 
     return new ForkPromise(async (resolve, reject, on) => {
       const pids = new Set<string>()
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      const killPids = new Set<string>()
+      const appPidFile = this.appPidFile()
       if (existsSync(appPidFile)) {
         try {
-          const pid = (await readFile(appPidFile, 'utf-8')).trim()
-          pids.add(pid)
+          const pid = await this.readPidFromFile(appPidFile)
+          if (pid) {
+            pids.add(pid)
+          }
         } catch {}
         TaskQueue.run(remove, appPidFile).then().catch()
       }
+      try {
+        const pid = await this.readPidFromFile()
+        if (pid) {
+          pids.add(pid)
+        }
+      } catch {}
       if (version?.pid) {
         pids.add(`${version.pid}`)
       }
+      try {
+        const processList = await ProcessPidList()
+        const ownedMarkers = this.ownedProcessMarkers(version)
+        for (const pid of pids) {
+          ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) =>
+            killPids.add(item)
+          )
+        }
+      } catch {}
       if (pids.size > 0) {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
@@ -502,11 +522,13 @@ class Manager extends Base {
         }
 
         if (!success) {
-          const arr: string[] = Array.from(pids)
-          const str = arr.map((s) => `/pid ${s}`).join(' ')
-          try {
-            await execPromise(`taskkill /f /t ${str}`)
-          } catch {}
+          const arr = Array.from(killPids)
+          if (arr.length > 0) {
+            const str = arr.map((s) => `/pid ${s}`).join(' ')
+            try {
+              await execPromise(`taskkill /f /t ${str}`)
+            } catch {}
+          }
         } else {
           await waitTime(1500)
         }
@@ -519,7 +541,7 @@ class Manager extends Base {
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
       })
       return resolve({
-        'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
+        'APP-Service-Stop-PID': [...new Set([...pids, ...killPids])].map((p) => Number(p))
       })
     })
   }
@@ -566,7 +588,7 @@ datadir=${dataDir}`
 
       const doStart = async () => {
         return new Promise(async (resolve, reject) => {
-          const p = join(global.Server.MariaDBDir!, 'mariadb.pid')
+          const p = this.pidPath
           const s = join(global.Server.MariaDBDir!, 'slow.log')
           const e = join(global.Server.MariaDBDir!, 'error.log')
           const bin = version.bin

@@ -18,7 +18,13 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
-import { type PItem, ProcessKill, ProcessListFetch, ProcessSearch } from '@shared/Process'
+import {
+  type PItem,
+  ProcessKill,
+  ProcessListFetch,
+  ProcessOwnedPidsByPid,
+  ProcessSearch
+} from '@shared/Process'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { unpack } from '../../util/Zip'
 import { ProcessPidList } from '@shared/Process.win'
@@ -119,6 +125,10 @@ export class Base {
     })
   }
 
+  stopService(version: SoftInstalled, ...args: any) {
+    return this._stopServer(version, ...args)
+  }
+
   protected async ensureAppPidDirWritable() {
     const pidDir = join(global.Server.BaseDir!, 'pid')
     const probeFile = join(
@@ -181,6 +191,23 @@ export class Base {
     throw new Error(`PID directory is not writable: ${pidDir}. ${error}`)
   }
 
+  /** 读取模块自己的 pid 文件，只取首行根 PID，兼容 postmaster.pid 这类多行状态文件。 */
+  protected async readPidFromFile(pidFile = this.pidPath): Promise<string> {
+    if (!pidFile || !existsSync(pidFile)) {
+      return ''
+    }
+    const content = (await readFile(pidFile, 'utf-8')).trim()
+    if (!content) {
+      return ''
+    }
+    return (
+      content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .find(Boolean) ?? ''
+    )
+  }
+
   protected async saveAppPid(pid: string | number) {
     const appPidFile = this.appPidFile()
     await this.ensureAppPidDirWritable()
@@ -189,8 +216,15 @@ export class Base {
     await chmod(appPidFile, '0755').catch(() => {})
   }
 
-  stopService(version: SoftInstalled, ...args: any) {
-    return this._stopServer(version, ...args)
+  /** 生成用于校验 PID 归属的路径标记，只有命令行仍命中这些标记时才允许按 PID 回收。 */
+  protected ownedProcessMarkers(version: SoftInstalled): string[] {
+    return Array.from(
+      new Set(
+        [version?.bin, version?.path, global.Server.BaseDir, global.Server.AppDir].filter(
+          (item): item is string => !!item?.trim()
+        )
+      )
+    )
   }
 
   startService(version: SoftInstalled, ...args: any) {
@@ -253,18 +287,21 @@ export class Base {
         'APP-Service-Stop-Success': true
       })
       const appPidFile = this.appPidFile()
+      const ownedMarkers = this.ownedProcessMarkers(version)
       try {
-        if (existsSync(appPidFile)) {
-          const pid = (await readFile(appPidFile, 'utf-8')).trim()
-          allPid.push(pid)
-          const list = ProcessSearch(pid, false, plist).map((p) => p.PID)
-          allPid.push(...list)
+        const appPid = await this.readPidFromFile(appPidFile)
+        if (appPid) {
+          allPid.push(...ProcessOwnedPidsByPid(appPid, plist, ownedMarkers))
+        }
+      } catch {}
+      try {
+        const pid = await this.readPidFromFile()
+        if (pid) {
+          allPid.push(...ProcessOwnedPidsByPid(pid, plist, ownedMarkers))
         }
       } catch {}
       if (version?.pid) {
-        allPid.push(version.pid)
-        const list = ProcessSearch(version.pid, false, plist).map((p) => p.PID)
-        allPid.push(...list)
+        allPid.push(...ProcessOwnedPidsByPid(version.pid, plist, ownedMarkers))
       }
       const dis: { [k: string]: string } = {
         caddy: 'caddy',

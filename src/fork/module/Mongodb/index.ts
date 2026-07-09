@@ -129,12 +129,22 @@ class Manager extends Base {
           console.log('mongosh shutdown error: ', e)
         }
         const pids = new Set<string>()
-        const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+        const appPidFile = this.appPidFile()
         if (existsSync(appPidFile)) {
-          const pid = (await readFile(appPidFile, 'utf-8')).trim()
-          pids.add(pid)
+          try {
+            const pid = await this.readPidFromFile(appPidFile)
+            if (pid) {
+              pids.add(pid)
+            }
+          } catch {}
           TaskQueue.run(remove, appPidFile).then().catch()
         }
+        try {
+          const pid = await this.readPidFromFile()
+          if (pid) {
+            pids.add(pid)
+          }
+        } catch {}
         if (version?.pid) {
           pids.add(`${version.pid}`)
         }
