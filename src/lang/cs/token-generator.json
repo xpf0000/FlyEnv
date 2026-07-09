@@ -2,7 +2,7 @@
   "title": "Generátor tokenů",
   "uppercase": "Velká písmena (ABC...)",
   "lowercase": "Malá písmena (abc...)",
-  "numbers": "Čísla 123...)",
+  "numbers": "Čísla (123...)",
   "symbols": "Symboly (!-;...)",
   "length": "Délka",
   "tokenPlaceholder": "Token..."

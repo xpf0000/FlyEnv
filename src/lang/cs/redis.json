@@ -1,6 +1,6 @@
 {
-  "timeout": "Časový limit připojení v klidovém stavu, 0 označuje plynulé otevírání",
+  "timeout": "Časový limit nečinného připojení, 0 znamená trvalé otevření",
   "databases": "Počet databází",
-  "requirepass": "Redis heslo",
+  "requirepass": "Heslo Redis",
   "maxmemory": "Byte, maximální využití paměti, 0 znamená bez limitu"
 }

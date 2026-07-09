@@ -8,9 +8,9 @@
   "updatePackageJsonFileTips": "Tato akce změní soubor package.json. Jste si jisti, že chcete aktualizovat?",
   "copyDirPath": "Kopírovat cestu ke složce projektu",
   "openIN": "Otevřít v",
-  "VSCode": "Kód vizuálního studia",
+  "VSCode": "Visual Studio Code",
   "PhpStorm": "PhpStorm",
-  "WebStorm": "Webová bouře",
+  "WebStorm": "WebStorm",
   "projectEnvSet": "Projektové prostředí",
   "installGit": "Nainstalujte <a href=\"javascript:void();\" onclick=\"openUrl('https://git-scm.com')\">Git</a>"
 }

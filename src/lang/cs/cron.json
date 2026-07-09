@@ -77,7 +77,7 @@
   "descEveryNHours": "každých {n} hodin",
   "descAtHour": "v {n}:00",
   "commandTemplates": "Rychlé šablony příkazů",
-  "commandPresetPhpArtisan": "Prikaz PHP Artisan",
+  "commandPresetPhpArtisan": "PHP Artisan",
   "commandPresetNodeScript": "Node skript",
   "commandPresetPythonScript": "Python skript",
   "commandPresetShellScript": "Shell skript",
