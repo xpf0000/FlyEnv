@@ -95,6 +95,15 @@ assert.match(setAutoStartPlan.script, /\$schtasksExe = \$null/)
 assert.match(setAutoStartPlan.script, /Sysnative/)
 assert.match(setAutoStartPlan.script, /System32/)
 assert.doesNotMatch(setAutoStartPlan.script, /& schtasks\.exe /)
+assert.match(setAutoStartPlan.script, /\/rl limited/)
+
+const setHelperAutoStartPlan = buildWindowsHelperFallbackPlan(
+  'tools',
+  'setAutoStartWin',
+  [true, 'FlyEnvHelperTask', 'C:/FlyEnv/flyenv-helper.exe'],
+  6000
+)
+assert.match(setHelperAutoStartPlan.script, /\/rl highest/)
 
 assert.throws(
   () => buildWindowsHelperFallbackPlan('tools', 'setSystemEnv', ['FLYENV-ALIAS', 'x'], 2000),

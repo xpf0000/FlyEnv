@@ -687,6 +687,7 @@ if (-not $${variableName}) {
 }
 
 function buildSetAutoStartScript(args: ValidatedSetAutoStartArgs, tempFilePath?: string): string {
+  const runLevel = args.taskName === 'FlyEnvStartup' ? 'limited' : 'highest'
   const runtimeSetup = tempFilePath
     ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
 $enabled = [bool]$payload.enabled
@@ -699,7 +700,7 @@ $exePath = ${powerShellString(args.exePath)}`
 ${runtimeSetup}
 ${buildResolveWindowsSystemExeScript('schtasksExe', 'schtasks')}
 if ($enabled) {
-  & $schtasksExe /create /tn $taskName /tr ('"' + $exePath + '"') /sc onlogon /rl highest /f | Out-Null
+  & $schtasksExe /create /tn $taskName /tr ('"' + $exePath + '"') /sc onlogon /rl ${runLevel} /f | Out-Null
   if ($LASTEXITCODE -ne 0) {
     throw "$schtasksExe /create failed with exit code $LASTEXITCODE"
   }

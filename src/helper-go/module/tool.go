@@ -540,6 +540,13 @@ func (t *ToolManager) RunScript(shell, scriptPath string) (ExecResult, error) {
 	return ExecResult{Stdout: stdout, Stderr: stderr}, nil
 }
 
+func autoStartRunLevel(taskName string) string {
+	if taskName == "FlyEnvStartup" {
+		return "limited"
+	}
+	return "highest"
+}
+
 // SetAutoStartWin creates or deletes a Windows scheduled task for auto-start.
 func (t *ToolManager) SetAutoStartWin(enabled bool, taskName, exePath string) (bool, error) {
 	if !utils.IsWindows() {
@@ -557,7 +564,7 @@ func (t *ToolManager) SetAutoStartWin(enabled bool, taskName, exePath string) (b
 		trValue := `"` + exePath + `"`
 		_, stderr, err := utils.ExecCommand(schtasksExe, []string{
 			"/create", "/tn", taskName, "/tr", trValue,
-			"/sc", "onlogon", "/rl", "highest", "/f",
+			"/sc", "onlogon", "/rl", autoStartRunLevel(taskName), "/f",
 		}, nil)
 		if err != nil {
 			return false, fmt.Errorf("failed to create auto start task: %w, stderr: %s", err, stderr)

@@ -64,3 +64,23 @@ func TestResolveWindowsSystemExeFallsBackToCommandName(t *testing.T) {
 		t.Fatalf("expected fallback command name, got %q", got)
 	}
 }
+
+func TestAutoStartRunLevel(t *testing.T) {
+	tests := []struct {
+		name     string
+		taskName string
+		want     string
+	}{
+		{name: "FlyEnv app uses normal user integrity", taskName: "FlyEnvStartup", want: "limited"},
+		{name: "helper task keeps elevated integrity", taskName: "FlyEnvHelperTask", want: "highest"},
+		{name: "legacy helper task keeps elevated integrity", taskName: "flyenv-helper", want: "highest"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := autoStartRunLevel(tt.taskName); got != tt.want {
+				t.Fatalf("autoStartRunLevel(%q) = %q, want %q", tt.taskName, got, tt.want)
+			}
+		})
+	}
+}
