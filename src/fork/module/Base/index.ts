@@ -282,20 +282,44 @@ export class Base {
     })
   }
 
+  protected _stopServerExactGracefully(_version: SoftInstalled): ForkPromise<boolean> {
+    return new ForkPromise((resolve) => resolve(false))
+  }
+
   stopServiceExact(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
       try {
-        const processes = isWindows() ? await ProcessPidList() : await ProcessListFetch()
         const markers = [version?.bin, version?.path]
-        const allPid = ProcessOwnedPidsByMarkers(markers, processes, !isWindows())
-        if (version?.pid) {
-          allPid.push(...ProcessOwnedPidsByPid(version.pid, processes, markers))
+        const findExactPids = async () => {
+          const processes = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+          const found = ProcessOwnedPidsByMarkers(markers, processes, !isWindows())
+          if (version?.pid) {
+            found.push(...ProcessOwnedPidsByPid(version.pid, processes, markers))
+          }
+          return Array.from(new Set(found))
         }
-        const pids = Array.from(new Set(allPid))
+        const waitForExactExit = async () => {
+          let remainingPids: string[] = []
+          for (let attempt = 0; attempt < 20; attempt += 1) {
+            await waitTime(500)
+            remainingPids = await findExactPids()
+            if (remainingPids.length === 0) break
+          }
+          return remainingPids
+        }
+
+        const pids = await findExactPids()
         if (pids.length > 0) {
+          let remainingPids = [...pids]
+          try {
+            if (await this._stopServerExactGracefully(version).on(on)) {
+              remainingPids = await waitForExactExit()
+            }
+          } catch {}
+
           let signal = '-INT'
           if (
             !isWindows() &&
@@ -312,18 +336,9 @@ export class Base {
           ) {
             signal = '-TERM'
           }
-          await ProcessKillStrict(signal, pids)
-
-          let remainingPids = [...pids]
-          for (let attempt = 0; attempt < 20; attempt += 1) {
-            await waitTime(500)
-            const currentProcesses = isWindows() ? await ProcessPidList() : await ProcessListFetch()
-            remainingPids = ProcessOwnedPidsByMarkers(markers, currentProcesses, !isWindows())
-            if (version?.pid) {
-              remainingPids.push(...ProcessOwnedPidsByPid(version.pid, currentProcesses, markers))
-            }
-            remainingPids = Array.from(new Set(remainingPids))
-            if (remainingPids.length === 0) break
+          if (remainingPids.length > 0) {
+            await ProcessKillStrict(signal, remainingPids)
+            remainingPids = await waitForExactExit()
           }
           if (remainingPids.length > 0) {
             throw new Error(`Failed to stop exact service target: ${remainingPids.join(', ')}`)

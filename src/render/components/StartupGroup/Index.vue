@@ -67,6 +67,9 @@
   const editorVisible = ref(false)
   const editingGroup = ref<StartupGroup>()
   let refreshGeneration = 0
+  let refreshInFlight: Promise<void> | undefined
+  let refreshQueued = false
+  let reloadCandidatesQueued = false
   let stateRefreshTimer: number | undefined
 
   const candidateByKey = computed(
@@ -101,8 +104,7 @@
     }
   }
 
-  const refreshAll = async (reloadCandidates = true) => {
-    const generation = ++refreshGeneration
+  const refreshOnce = async (reloadCandidates: boolean, generation: number) => {
     const groupSnapshot = [...groups.value]
     const [nextCandidates, states] = await Promise.all([
       reloadCandidates ? startupGroupRuntime.listCandidates() : Promise.resolve(candidates.value),
@@ -121,6 +123,26 @@
       stateMap[item.id] = item.state
       runningMap[item.id] = item.running
     }
+  }
+
+  const refreshAll = (reloadCandidates = true): Promise<void> => {
+    refreshGeneration += 1
+    refreshQueued = true
+    reloadCandidatesQueued = reloadCandidatesQueued || reloadCandidates
+    if (refreshInFlight) return refreshInFlight
+
+    refreshInFlight = (async () => {
+      do {
+        refreshQueued = false
+        const generation = refreshGeneration
+        const shouldReloadCandidates = reloadCandidatesQueued
+        reloadCandidatesQueued = false
+        await refreshOnce(shouldReloadCandidates, generation)
+      } while (refreshQueued)
+    })().finally(() => {
+      refreshInFlight = undefined
+    })
+    return refreshInFlight
   }
 
   const openEditor = (group?: StartupGroup) => {

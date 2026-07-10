@@ -55,6 +55,23 @@ class Manager extends Base {
     return [{ name: 'log', path: join(dbPath, 'pg.log') }]
   }
 
+  protected _stopServerExactGracefully(version: SoftInstalled): ForkPromise<boolean> {
+    return new ForkPromise(async (resolve) => {
+      const versionTop = version?.version?.split('.')?.shift() ?? ''
+      const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+      const logFile = join(dbPath, 'pg.log')
+      try {
+        await spawnPromiseWithEnv(version.bin, ['stop', '-D', dbPath, '-l', logFile], {
+          cwd: dirname(version.bin),
+          shell: false
+        })
+        resolve(true)
+      } catch {
+        resolve(false)
+      }
+    })
+  }
+
   _stopServer(
     version: SoftInstalled,
     DATA_DIR?: string

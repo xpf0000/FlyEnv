@@ -508,6 +508,10 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const forkBaseSource = readSource('src/fork/module/Base/index.ts')
   const projectSource = readSource('src/render/components/LanguageProjects/Project.ts')
   const startupRuntimeSource = readSource('src/render/components/StartupGroup/runtime.ts')
+  const mysqlForkSource = readSource('src/fork/module/Mysql/index.ts')
+  const mariaDBForkSource = readSource('src/fork/module/Mariadb/index.ts')
+  const postgreSQLForkSource = readSource('src/fork/module/Postgresql/index.ts')
+  const mongoDBForkSource = readSource('src/fork/module/Mongodb/index.ts')
   assert.match(typeSource, /console = 'console'/)
   assert.match(typeSource, /'startup-group' = 'startup-group'/)
   assert.match(moduleSource, /moduleType: 'console'/)
@@ -522,12 +526,16 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   )
   assert.match(indexSource, /:busy="busy"/)
   assert.match(indexSource, /let refreshGeneration = 0/)
+  assert.match(indexSource, /let refreshInFlight: Promise<void> \| undefined/)
+  assert.match(indexSource, /while \(refreshQueued\)/)
   assert.match(indexSource, /startupGroupRuntime\.runner\.revision\.value/)
   assert.match(indexSource, /window\.setInterval\(\(\) => refreshAll\(false\), 2000\)/)
   assert.match(asideSource, /const legacyGroupDo =/)
   assert.match(asideSource, /resolveGroupExecutionRoute/)
   assert.match(asideSource, /startupGroupRuntime\.runner\.run/)
   assert.match(asideSource, /let startupGroupRefreshGeneration = 0/)
+  assert.match(asideSource, /let startupGroupRefreshInFlight: Promise<void> \| undefined/)
+  assert.match(asideSource, /while \(startupGroupRefreshQueued\)/)
   assert.match(asideSource, /startupGroupRuntime\.runner\.revision\.value/)
   assert.match(
     asideSource,
@@ -549,11 +557,20 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(installedItemSource, /resolve\(options\?\.exactTarget \? `\$\{error\}` : true\)/)
   assert.match(forkBaseSource, /startServiceExact/)
   assert.match(forkBaseSource, /stopServiceExact/)
+  assert.match(forkBaseSource, /_stopServerExactGracefully/)
+  assert.ok(
+    forkBaseSource.indexOf('await this._stopServerExactGracefully') <
+      forkBaseSource.indexOf('await ProcessKillStrict')
+  )
   assert.match(forkBaseSource, /ProcessKillStrict/)
   assert.match(forkBaseSource, /for \(let attempt = 0; attempt < 20; attempt \+= 1\)/)
   assert.match(forkBaseSource, /throw new Error\(`Failed to stop exact service target:/)
   assert.match(projectSource, /fetched = false/)
   assert.match(startupRuntimeSource, /if \(!project\.fetched\)/)
+  assert.match(mysqlForkSource, /_stopServerExactGracefully/)
+  assert.match(mariaDBForkSource, /_stopServerExactGracefully/)
+  assert.match(postgreSQLForkSource, /_stopServerExactGracefully/)
+  assert.match(mongoDBForkSource, /_stopServerExactGracefully/)
 }
 
 {

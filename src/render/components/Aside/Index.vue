@@ -216,10 +216,11 @@
   const startupGroupBusy = ref(false)
   const startupGroupRunnerBusy = computed(() => startupGroupRuntime.runner.executing.value)
   let startupGroupRefreshGeneration = 0
+  let startupGroupRefreshInFlight: Promise<void> | undefined
+  let startupGroupRefreshQueued = false
   let startupGroupRefreshTimer: number | undefined
 
-  const refreshStartupGroupState = async () => {
-    const generation = ++startupGroupRefreshGeneration
+  const refreshStartupGroupStateOnce = async (generation: number) => {
     const group = defaultStartupGroup.value
     if (!group || !startupGroupsVisible.value) {
       startupGroupState.value = 'stopped'
@@ -246,6 +247,22 @@
           : states.every((state) => state === 'running')
             ? 'running'
             : 'partial-running'
+  }
+
+  const refreshStartupGroupState = (): Promise<void> => {
+    startupGroupRefreshGeneration += 1
+    startupGroupRefreshQueued = true
+    if (startupGroupRefreshInFlight) return startupGroupRefreshInFlight
+
+    startupGroupRefreshInFlight = (async () => {
+      do {
+        startupGroupRefreshQueued = false
+        await refreshStartupGroupStateOnce(startupGroupRefreshGeneration)
+      } while (startupGroupRefreshQueued)
+    })().finally(() => {
+      startupGroupRefreshInFlight = undefined
+    })
+    return startupGroupRefreshInFlight
   }
 
   const consoleItem = computed(() => {

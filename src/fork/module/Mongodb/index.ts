@@ -110,6 +110,40 @@ class Manager extends Base {
     })
   }
 
+  protected _stopServerExactGracefully(version: SoftInstalled): ForkPromise<boolean> {
+    if (!isWindows()) return super._stopServerExactGracefully(version)
+    return new ForkPromise(async (resolve) => {
+      try {
+        await this.initMongosh()
+        const mongosh = join(
+          global.Server.AppDir!,
+          'mongosh',
+          this.mongoshVersion,
+          'bin/mongosh.exe'
+        )
+        if (!existsSync(mongosh)) {
+          resolve(false)
+          return
+        }
+        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+        const configFile = join(global.Server.MongoDBDir!, `mongodb-${v}.conf`)
+        let port = 27017
+        if (existsSync(configFile)) {
+          const content = await readFile(configFile, 'utf8')
+          port = Number(content.match(/^\s*port:\s*(\d+)/m)?.[1] ?? 27017)
+        }
+        await spawnPromise(
+          'mongosh.exe',
+          ['--host', '127.0.0.1', '--port', `${port}`, '--eval', 'db.shutdownServer()'],
+          { cwd: dirname(mongosh), shell: false }
+        )
+        resolve(true)
+      } catch {
+        resolve(false)
+      }
+    })
+  }
+
   _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     if (!isWindows()) {
       return super._stopServer(version) as any
