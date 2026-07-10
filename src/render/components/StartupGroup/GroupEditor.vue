@@ -175,6 +175,7 @@
   import {
     filterValidStartupGroupItems,
     getStartupGroupCandidateWarnings,
+    normalizeStartupGroupCandidateSelection,
     startupGroupCandidateAllowsMultiple,
     startupGroupCandidateMatchesItem,
     syncStartupGroupSelectedItems,
@@ -326,7 +327,16 @@
     try {
       candidates.value = await startupGroupRuntime.listCandidates()
       draft.items = filterValidStartupGroupItems(draft.items, candidates.value)
-      selectedKeys.value = draft.items.map(itemKey)
+      selectedKeys.value = normalizeStartupGroupCandidateSelection(
+        draft.items.map(itemKey),
+        candidates.value
+      )
+      draft.items = syncStartupGroupSelectedItems(
+        draft.items,
+        candidates.value,
+        selectedKeys.value,
+        uuid
+      )
 
       const selected = new Set(selectedKeys.value)
       expandedCategories.value = candidateSections.value.map((category) => category.key)

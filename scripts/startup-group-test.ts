@@ -24,6 +24,7 @@ import {
   filterValidStartupGroupItems,
   getStartupGroupCandidateWarnings,
   createStartupGroupRuntime,
+  normalizeStartupGroupCandidateSelection,
   startupGroupCandidateAllowsMultiple,
   updateStartupGroupCandidateSelection,
   type StartupGroupCandidate,
@@ -283,6 +284,12 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       return true
     }
   }
+  const missingProjectTarget: StartupGroupProjectTarget = {
+    ...projectTarget,
+    id: 'project-missing',
+    comment: 'Missing Service',
+    path: 'D:/projects/missing'
+  }
   const current: StartupGroupInstalledTarget = {
     id: 'current',
     version: '8.0',
@@ -364,7 +371,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     },
     getProjects: async (module) => {
       projectLoadCalls += 1
-      return module === 'node' ? [projectTarget] : []
+      return module === 'node' ? [projectTarget, missingProjectTarget] : []
     },
     pathExists: async (path) => existingProjectPaths.has(path)
   })
@@ -507,6 +514,14 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 
   selected = updateStartupGroupCandidateSelection(selected, php82, all, false)
   assert.deepEqual(selected, ['mysql-84', 'php-fpm-84', 'node-api', 'node-admin'])
+
+  assert.deepEqual(
+    normalizeStartupGroupCandidateSelection(
+      ['mysql-80', 'mysql-84', 'php-fpm-82', 'php-fpm-84', 'node-api', 'node-admin'],
+      all
+    ),
+    ['mysql-84', 'php-fpm-82', 'php-fpm-84', 'node-api', 'node-admin']
+  )
 
   const validMysql: StartupGroupCandidate = {
     key: getStartupGroupItemKey(mysql),
@@ -700,6 +715,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(editorSource, /<el-checkbox/)
   assert.match(editorSource, /candidate\.displayPath/)
   assert.match(editorSource, /common\.startupGroup\.noRemark/)
+  assert.match(editorSource, /normalizeStartupGroupCandidateSelection/)
   assert.doesNotMatch(editorSource, /<el-checkbox-group/)
   assert.doesNotMatch(editorSource, /invalidItems\.length/)
   assert.match(enCommonSource, /"noRemark": "No remark"/)

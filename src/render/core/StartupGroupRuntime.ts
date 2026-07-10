@@ -99,6 +99,19 @@ export function updateStartupGroupCandidateSelection(
   return [...next.filter((key) => !sameModuleKeys.has(key)), candidate.key]
 }
 
+export function normalizeStartupGroupCandidateSelection(
+  selectedKeys: string[],
+  candidates: StartupGroupCandidate[]
+) {
+  const candidateByKey = new Map(candidates.map((candidate) => [candidate.key, candidate]))
+  return selectedKeys.reduce<string[]>((next, key) => {
+    const candidate = candidateByKey.get(key)
+    return candidate
+      ? updateStartupGroupCandidateSelection(next, candidate, candidates, true)
+      : next
+  }, [])
+}
+
 export function filterValidStartupGroupItems(
   items: StartupGroupItem[],
   candidates: StartupGroupCandidate[]
@@ -321,6 +334,7 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
     for (const module of modules.filter((item) => item.moduleType === 'language')) {
       const projects = await projectsFor(module.typeFlag)
       for (const project of projects.filter((item) => item.isService)) {
+        if (!(await dependencies.pathExists(project.path))) continue
         const item: StartupGroupItem = {
           id: dependencies.createId(),
           type: 'language-project',
