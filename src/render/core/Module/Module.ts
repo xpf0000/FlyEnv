@@ -14,6 +14,11 @@ import { syncStaticInstalledFlags } from './syncStaticInstalledFlags'
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
+export type ModuleStartOptions = {
+  updateCurrent?: boolean
+  stopOtherVersions?: boolean
+}
+
 export class Module {
   typeFlag: AllAppModule = 'dns'
   isService: boolean = true
@@ -41,25 +46,31 @@ export class Module {
   staticFetching: boolean = false
   sdkmanFetching: boolean = false
 
-  onItemStart(item: ModuleInstalledItem): Promise<Module> {
+  onItemStart(item: ModuleInstalledItem, options: ModuleStartOptions = {}): Promise<Module> {
     return new Promise((resolve) => {
       if (!this.isOnlyRunOne) {
         console.log('onItemStart exit: ', this.typeFlag)
         resolve(this)
         return
       }
-      const appStore = AppStore()
-      const current = appStore.serverCurrent(this.typeFlag)
-      if (
-        current?.current?.version !== item.version ||
-        current?.current?.path !== item.path ||
-        current?.current?.bin !== item.bin
-      ) {
-        appStore.UPDATE_SERVER_CURRENT({
-          flag: this.typeFlag,
-          data: JSON.parse(JSON.stringify(item))
-        })
-        appStore.saveConfig().catch()
+      if (options.updateCurrent !== false) {
+        const appStore = AppStore()
+        const current = appStore.serverCurrent(this.typeFlag)
+        if (
+          current?.current?.version !== item.version ||
+          current?.current?.path !== item.path ||
+          current?.current?.bin !== item.bin
+        ) {
+          appStore.UPDATE_SERVER_CURRENT({
+            flag: this.typeFlag,
+            data: JSON.parse(JSON.stringify(item))
+          })
+          appStore.saveConfig().catch()
+        }
+      }
+      if (options.stopOtherVersions === false) {
+        resolve(this)
+        return
       }
       Promise.all(this.installed.map((a) => a.stop()))
         .then(() => {

@@ -12,6 +12,11 @@ import {
   type StartupGroupItem,
   type StartupGroupMemberState
 } from '../src/render/core/StartupGroup'
+import {
+  createStartupGroupRuntime,
+  type StartupGroupInstalledTarget,
+  type StartupGroupProjectTarget
+} from '../src/render/core/StartupGroupRuntime'
 
 const mysql: StartupGroupItem = {
   id: 'mysql',
@@ -144,6 +149,120 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       defaultStartupGroupId: 'empty'
     }),
     { groups: [makeGroup('empty', [])] }
+  )
+}
+
+{
+  const startCalls: Array<{ id: string; options?: unknown }> = []
+  const stopCalls: string[] = []
+  const current: StartupGroupInstalledTarget = {
+    id: 'current',
+    version: '8.0',
+    bin: 'mysqld',
+    path: 'D:/mysql/8.0',
+    enable: true,
+    run: true,
+    running: false,
+    start: async (options) => {
+      startCalls.push({ id: 'current', options })
+      return true
+    },
+    stop: async () => true
+  }
+  const target: StartupGroupInstalledTarget = {
+    id: 'target',
+    version: '8.4',
+    bin: 'mysqld',
+    path: 'D:/mysql/8.4',
+    enable: true,
+    run: false,
+    running: false,
+    start: async (options) => {
+      startCalls.push({ id: 'target', options })
+      return true
+    },
+    stop: async () => {
+      stopCalls.push('target')
+      return true
+    }
+  }
+
+  const runtime = createStartupGroupRuntime({
+    createId: () => 'candidate-id',
+    modules: [
+      { typeFlag: 'mysql', moduleType: 'dataBaseServer', label: 'MySQL', isService: true },
+      { typeFlag: 'node', moduleType: 'language', label: 'NodeJS', isService: true },
+      { typeFlag: 'php-fpm', moduleType: 'language', label: 'PHP-FPM', isService: true }
+    ],
+    getInstalled: async (module) => {
+      if (module === 'mysql') return [current, target]
+      if (module === 'php') {
+        return [
+          {
+            ...target,
+            id: 'php-84',
+            version: '8.4.8',
+            path: 'D:/php/8.4.8'
+          }
+        ]
+      }
+      return []
+    },
+    getProjects: async (module) =>
+      module === 'node'
+        ? [
+            {
+              id: 'project-api',
+              comment: 'API Server',
+              path: 'D:/projects/api',
+              isService: true,
+              state: { isRun: false, running: false },
+              start: async (showMessage) => {
+                projectCalls.push(`start:project-api:${showMessage}`)
+                return true
+              },
+              stop: async (showMessage) => {
+                projectCalls.push(`stop:project-api:${showMessage}`)
+                return true
+              }
+            } satisfies StartupGroupProjectTarget
+          ]
+        : []
+  })
+
+  await runtime.getAdapter(mysql)?.start(mysql)
+  await runtime.getAdapter(mysql)?.stop(mysql)
+
+  assert.deepEqual(startCalls, [
+    {
+      id: 'target',
+      options: { updateCurrent: false, stopOtherVersions: false }
+    }
+  ])
+  assert.deepEqual(stopCalls, ['target'])
+  const missingVersion = { ...mysql, versionPath: 'D:/missing' }
+  assert.equal(await runtime.getAdapter(missingVersion)?.exists(missingVersion), false)
+
+  const projectCalls: string[] = []
+  await runtime.getAdapter(api)?.start(api)
+  await runtime.getAdapter(api)?.stop(api)
+  assert.deepEqual(projectCalls, ['start:project-api:false', 'stop:project-api:false'])
+  assert.equal(
+    await runtime
+      .getAdapter({ ...api, projectId: 'missing' })
+      ?.exists({ ...api, projectId: 'missing' }),
+    false
+  )
+
+  const candidates = await runtime.listCandidates()
+  assert.deepEqual(
+    candidates.map((candidate) => [candidate.item.module, candidate.label]),
+    [
+      ['mysql', 'MySQL 8.0'],
+      ['mysql', 'MySQL 8.4'],
+      ['php-fpm', 'PHP-FPM 8.4.8'],
+      ['node', 'API Server']
+    ]
   )
 }
 

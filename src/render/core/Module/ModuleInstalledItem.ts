@@ -3,7 +3,7 @@ import type { AllAppModule } from '@/core/type'
 import type { SoftInstalled } from '@shared/app'
 import IPC from '@/util/IPC'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-import { Module } from '@/core/Module/Module'
+import { Module, type ModuleStartOptions } from '@/core/Module/Module'
 import { MessageError } from '@/util/Element'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
@@ -35,20 +35,20 @@ export class ModuleInstalledItem implements SoftInstalled {
     return computed(() => ServiceActionStore.isInAppEnv(this))
   }
 
-  _onStart!: (item: ModuleInstalledItem) => Promise<Module>
+  _onStart!: (item: ModuleInstalledItem, options?: ModuleStartOptions) => Promise<Module>
 
   constructor(json: SoftInstalled) {
     Object.assign(this, json)
   }
 
   // 使用箭头函数绑定 this
-  start(): Promise<string | boolean> {
+  start(options?: ModuleStartOptions): Promise<string | boolean> {
     return new Promise(async (resolve) => {
       if (this.run && this.pid) {
         return resolve(true)
       }
       this.running = true
-      const module = await this._onStart(this)
+      const module = await this._onStart(this, options)
 
       let params: any[] = []
       if (module?.startExtParam) {
