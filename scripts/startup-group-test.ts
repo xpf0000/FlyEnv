@@ -24,7 +24,8 @@ import {
   getStartupGroupCandidateWarnings,
   createStartupGroupRuntime,
   type StartupGroupInstalledTarget,
-  type StartupGroupProjectTarget
+  type StartupGroupProjectTarget,
+  type StartupGroupRuntimeModule
 } from '../src/render/core/StartupGroupRuntime'
 import { resolveGroupExecutionRoute } from '../src/render/components/Aside/groupService'
 import {
@@ -313,29 +314,31 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     }
   }
 
+  const runtimeModules: StartupGroupRuntimeModule[] = [
+    {
+      typeFlag: 'mysql',
+      moduleType: 'dataBaseServer',
+      label: 'MySQL',
+      isService: true
+    },
+    {
+      typeFlag: 'node',
+      moduleType: 'language',
+      label: 'NodeJS',
+      isService: true
+    },
+    {
+      typeFlag: 'php-fpm',
+      moduleType: 'language',
+      label: 'PHP-FPM',
+      isService: true
+    }
+  ]
+  let availableModules: StartupGroupRuntimeModule[] = []
   let moduleLoadCalls = 0
   const getModules = () => {
     moduleLoadCalls += 1
-    return [
-      {
-        typeFlag: 'mysql' as const,
-        moduleType: 'dataBaseServer' as const,
-        label: 'MySQL',
-        isService: true
-      },
-      {
-        typeFlag: 'node' as const,
-        moduleType: 'language' as const,
-        label: 'NodeJS',
-        isService: true
-      },
-      {
-        typeFlag: 'php-fpm' as const,
-        moduleType: 'language' as const,
-        label: 'PHP-FPM',
-        isService: true
-      }
-    ]
+    return availableModules
   }
 
   const runtime = createStartupGroupRuntime({
@@ -393,8 +396,11 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     false
   )
 
-  const candidates = await runtime.listCandidates()
+  assert.deepEqual(await runtime.listCandidates(), [])
   assert.equal(moduleLoadCalls, 1)
+  availableModules = runtimeModules
+  const candidates = await runtime.listCandidates()
+  assert.equal(moduleLoadCalls, 2)
   assert.deepEqual(
     candidates.map((candidate) => [candidate.item.module, candidate.label]),
     [
@@ -591,8 +597,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(forkBaseSource, /throw new Error\(`Failed to stop exact service target:/)
   assert.match(projectSource, /fetched = false/)
   assert.match(startupRuntimeSource, /if \(!project\.fetched\)/)
-  assert.match(startupRuntimeSource, /getModules:\s*platformModules/)
-  assert.doesNotMatch(startupRuntimeSource, /modules:\s*platformModules\(\)/)
+  assert.match(startupRuntimeSource, /getModules:\s*platformModules,/)
+  assert.doesNotMatch(startupRuntimeSource, /getModules:\s*platformModules\(\)/)
   assert.match(mysqlForkSource, /_stopServerExactGracefully/)
   assert.match(mariaDBForkSource, /_stopServerExactGracefully/)
   assert.match(postgreSQLForkSource, /_stopServerExactGracefully/)
