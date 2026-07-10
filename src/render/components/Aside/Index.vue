@@ -237,6 +237,23 @@
             : 'partial-running'
   }
 
+  const consoleItem = computed(() => {
+    const moduleType = 'console'
+    const sub: AsideEntry[] = platformAppModules.value
+      .filter((item) => item.moduleType === moduleType)
+      .filter((item) => showItem.value?.[item.typeFlag] !== false)
+    const customer = AppCustomerModule.module
+      .filter((item) => item.moduleType === moduleType)
+      .filter((item) => showItem.value?.[item.typeFlag] !== false)
+    sub.unshift(...customer)
+    return sub.length
+      ? {
+          label: I18nT('aside.console'),
+          sub
+        }
+      : undefined
+  })
+
   const firstItem = computed(() => {
     const m = 'site'
     const sub: AsideEntry[] = platformAppModules.value
@@ -263,7 +280,7 @@
   })
 
   const allList = computed(() => {
-    return AppModuleTypeList.filter((f) => f !== 'site')
+    return AppModuleTypeList.filter((f) => !['console', 'site'].includes(f))
       .map((m) => {
         const sub: AsideEntry[] = platformAppModules.value
           .filter((a) => showItem.value?.[a.typeFlag] !== false)
@@ -304,7 +321,7 @@
   })
 
   const allModule = computed<AsideGroup[]>(() => {
-    return [firstItem.value, ...customerList.value, ...allList.value].filter(
+    return [consoleItem.value, firstItem.value, ...customerList.value, ...allList.value].filter(
       (f): f is AsideGroup => !!f
     )
   })

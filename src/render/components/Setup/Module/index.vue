@@ -2,6 +2,7 @@
   <div class="h-full overflow-hidden">
     <el-scrollbar>
       <ul class="menu top-menu">
+        <ModuleItem :item="consoleItem" :index="-1" />
         <ModuleItem :item="firstItem" :index="0" />
         <template v-for="(item, _index) in customerList" :key="item.id">
           <ModuleItemCustomer :is-customer="true" :item="item" :index="_index + 1" />
@@ -54,8 +55,19 @@
     }
   })
 
+  const consoleItem = computed(() => {
+    const moduleType = 'console'
+    const sub = platformAppModules.value.filter((item) => item.moduleType === moduleType)
+    sub.sort((a, b) => a.typeFlag.localeCompare(b.typeFlag))
+    return {
+      moduleType,
+      label: I18nT('aside.console'),
+      sub
+    }
+  })
+
   const allList = computed(() => {
-    return AppModuleTypeList.filter((f) => f !== 'site').map((m) => {
+    return AppModuleTypeList.filter((f) => !['console', 'site'].includes(f)).map((m) => {
       const sub = platformAppModules.value.filter(
         (a) => a?.moduleType === m || (!a?.moduleType && m === 'other')
       )

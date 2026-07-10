@@ -355,6 +355,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const asideSource = readSource('src/render/components/Aside/Index.vue')
   const showHideSource = readSource('src/render/components/Setup/ModuleShowHide/index.vue')
   const moduleItemSource = readSource('src/render/components/Setup/Module/moduleItem.vue')
+  const setupModuleSource = readSource('src/render/components/Setup/Module/index.vue')
 
   assert.match(typeSource, /console = 'console'/)
   assert.match(typeSource, /'startup-group' = 'startup-group'/)
@@ -370,6 +371,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(moduleSource, /registerModuleVisibilityGuard/)
   assert.match(showHideSource, /canSetModuleVisibility/)
   assert.match(moduleItemSource, /canSetModuleVisibility/)
+  assert.match(asideSource, /consoleItem\.value, firstItem\.value/)
+  assert.match(setupModuleSource, /:item="consoleItem"/)
 }
 
 {
