@@ -26,7 +26,7 @@
           :running-count="runningMap[group.id] || 0"
           :member-labels="group.items.map(itemLabel)"
           :is-default="config.defaultStartupGroupId === group.id"
-          :busy="startupGroupRuntime.runner.isExecuting"
+          :busy="busy"
           @start="execute($event, 'start')"
           @stop="execute($event, 'stop')"
           @edit="openEditor"
@@ -63,6 +63,7 @@
   const stateMap = reactive<Record<string, StartupGroupCardState>>({})
   const runningMap = reactive<Record<string, number>>({})
   const candidates = ref<StartupGroupCandidate[]>([])
+  const busy = ref(false)
   const editorVisible = ref(false)
   const editingGroup = ref<StartupGroup>()
 
@@ -114,6 +115,9 @@
   }
 
   const execute = async (group: StartupGroup, action: 'start' | 'stop') => {
+    if (busy.value) return
+    busy.value = true
+    stateMap[group.id] = 'executing'
     try {
       const result = await startupGroupRuntime.runner.run(group, action)
       const hasError = result.members.some((item) => ['failed', 'invalid'].includes(item.outcome))
@@ -122,7 +126,11 @@
     } catch (error) {
       MessageError(error instanceof Error ? error.message : `${error}`)
     } finally {
-      await refreshAll()
+      try {
+        await refreshAll()
+      } finally {
+        busy.value = false
+      }
     }
   }
 
