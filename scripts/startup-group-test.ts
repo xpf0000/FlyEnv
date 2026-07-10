@@ -313,13 +313,34 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     }
   }
 
+  let moduleLoadCalls = 0
+  const getModules = () => {
+    moduleLoadCalls += 1
+    return [
+      {
+        typeFlag: 'mysql' as const,
+        moduleType: 'dataBaseServer' as const,
+        label: 'MySQL',
+        isService: true
+      },
+      {
+        typeFlag: 'node' as const,
+        moduleType: 'language' as const,
+        label: 'NodeJS',
+        isService: true
+      },
+      {
+        typeFlag: 'php-fpm' as const,
+        moduleType: 'language' as const,
+        label: 'PHP-FPM',
+        isService: true
+      }
+    ]
+  }
+
   const runtime = createStartupGroupRuntime({
     createId: () => 'candidate-id',
-    modules: [
-      { typeFlag: 'mysql', moduleType: 'dataBaseServer', label: 'MySQL', isService: true },
-      { typeFlag: 'node', moduleType: 'language', label: 'NodeJS', isService: true },
-      { typeFlag: 'php-fpm', moduleType: 'language', label: 'PHP-FPM', isService: true }
-    ],
+    getModules,
     getInstalled: async (module) => {
       if (module === 'mysql') return [current, target]
       if (module === 'php') {
@@ -340,6 +361,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     },
     pathExists: async (path) => existingProjectPaths.has(path)
   })
+
+  assert.equal(moduleLoadCalls, 0)
 
   await runtime.getAdapter(mysql)?.start(mysql)
   await runtime.getAdapter(mysql)?.stop(mysql)
@@ -371,6 +394,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   )
 
   const candidates = await runtime.listCandidates()
+  assert.equal(moduleLoadCalls, 1)
   assert.deepEqual(
     candidates.map((candidate) => [candidate.item.module, candidate.label]),
     [
@@ -567,6 +591,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(forkBaseSource, /throw new Error\(`Failed to stop exact service target:/)
   assert.match(projectSource, /fetched = false/)
   assert.match(startupRuntimeSource, /if \(!project\.fetched\)/)
+  assert.match(startupRuntimeSource, /getModules:\s*platformModules/)
+  assert.doesNotMatch(startupRuntimeSource, /modules:\s*platformModules\(\)/)
   assert.match(mysqlForkSource, /_stopServerExactGracefully/)
   assert.match(mariaDBForkSource, /_stopServerExactGracefully/)
   assert.match(postgreSQLForkSource, /_stopServerExactGracefully/)

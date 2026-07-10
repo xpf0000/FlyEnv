@@ -43,7 +43,7 @@ export type StartupGroupRuntimeModule = {
 
 export type StartupGroupRuntimeDependencies = {
   createId(): string
-  modules: StartupGroupRuntimeModule[]
+  getModules(): StartupGroupRuntimeModule[]
   getInstalled(module: AllAppModule): Promise<StartupGroupInstalledTarget[]>
   getProjects(module: AllAppModule): Promise<StartupGroupProjectTarget[]>
   pathExists(path: string): Promise<boolean>
@@ -244,10 +244,11 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
 
   const listCandidates = async (): Promise<StartupGroupCandidate[]> => {
     const candidates: StartupGroupCandidate[] = []
-    const serviceModules = dependencies.modules.filter(
+    const modules = dependencies.getModules()
+    const serviceModules = modules.filter(
       (module) => module.isService && module.moduleType !== 'language'
     )
-    const phpFpm = dependencies.modules.find((module) => module.typeFlag === 'php-fpm')
+    const phpFpm = modules.find((module) => module.typeFlag === 'php-fpm')
     if (phpFpm) serviceModules.push(phpFpm)
 
     for (const module of serviceModules) {
@@ -273,7 +274,7 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
       }
     }
 
-    for (const module of dependencies.modules.filter((item) => item.moduleType === 'language')) {
+    for (const module of modules.filter((item) => item.moduleType === 'language')) {
       const projects = await projectsFor(module.typeFlag)
       for (const project of projects.filter((item) => item.isService)) {
         const item: StartupGroupItem = {

@@ -21,7 +21,7 @@ function platformModules() {
 
 export const startupGroupRuntime = createStartupGroupRuntime({
   createId: uuid,
-  modules: platformModules(),
+  getModules: platformModules,
   getInstalled: async (module: AllAppModule) => {
     const manager = BrewStore().module(module)
     await manager.fetchInstalled()
