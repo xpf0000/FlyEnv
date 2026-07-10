@@ -192,6 +192,9 @@ export class Module {
           const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
           if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
             await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
+          } else {
+            this.installedFetched = true
+            this.fetchInstalleding = false
           }
           this._fetchInstalledResolves.forEach((f) => f(true))
           this._fetchInstalledResolves.splice(0)

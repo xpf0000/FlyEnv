@@ -534,6 +534,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const showHideSource = readSource('src/render/components/Setup/ModuleShowHide/index.vue')
   const moduleItemSource = readSource('src/render/components/Setup/Module/moduleItem.vue')
   const setupModuleSource = readSource('src/render/components/Setup/Module/index.vue')
+  const moduleCoreSource = readSource('src/render/core/Module/Module.ts')
   const installedItemSource = readSource('src/render/core/Module/ModuleInstalledItem.ts')
   const forkBaseSource = readSource('src/fork/module/Base/index.ts')
   const projectSource = readSource('src/render/components/LanguageProjects/Project.ts')
@@ -581,6 +582,10 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(moduleItemSource, /canSetModuleVisibility/)
   assert.match(asideSource, /consoleItem\.value, firstItem\.value/)
   assert.match(setupModuleSource, /:item="consoleItem"/)
+  assert.match(
+    moduleCoreSource,
+    /if \(Object\.prototype\.hasOwnProperty\.call\(versions, this\.typeFlag\)\) \{[\s\S]*?await this\.applyInstalledVersions\(versions\[this\.typeFlag\] \?\? \[\]\)[\s\S]*?\} else \{[\s\S]*?this\.installedFetched = true[\s\S]*?this\.fetchInstalleding = false[\s\S]*?\}/
+  )
   assert.match(installedItemSource, /startServiceExact/)
   assert.match(installedItemSource, /stopServiceExact/)
   assert.match(installedItemSource, /this\.run = options\.exactTarget === true/)
