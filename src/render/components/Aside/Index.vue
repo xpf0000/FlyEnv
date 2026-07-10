@@ -122,13 +122,25 @@
   import { AppServiceModule, type AppServiceModuleItem } from '@/core/ASide'
   import { type AllAppModule, type AppModuleItem, AppModuleTypeList } from '@/core/type'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { getGroupManagedTypeFlags } from '@/components/Aside/groupService'
+  import {
+    getGroupManagedTypeFlags,
+    resolveGroupExecutionRoute
+  } from '@/components/Aside/groupService'
   import { AppCustomerModule } from '@/core/Module'
   import CustomerModule from '@/components/CustomerModule/aside.vue'
   import type { ModuleCustomer } from '@/core/ModuleCustomer'
   import type { CallbackFn } from '@shared/app'
   import { BrewStore } from '@/store/brew'
   import { ElMessageBox } from 'element-plus'
+  import {
+    normalizeStartupGroupConfig,
+    resolveDefaultStartupGroup,
+    setDefaultStartupGroup,
+    type StartupGroupCardState,
+    type StartupGroupItem,
+    type StartupGroupRunResult
+  } from '@/core/StartupGroup'
+  import { startupGroupRuntime } from '@/components/StartupGroup/runtime'
 
   let lastTray = ''
 
@@ -190,6 +202,40 @@
   const showItem = computed(() => {
     return appStore.config.setup.common.showItem
   })
+
+  const startupGroupsVisible = computed(() => showItem.value?.['startup-group'] !== false)
+  const startupGroupConfig = computed(() =>
+    normalizeStartupGroupConfig(appStore.config.setup.startupGroups)
+  )
+  const defaultStartupGroup = computed(() => resolveDefaultStartupGroup(startupGroupConfig.value))
+  const startupGroupRoute = computed(() =>
+    resolveGroupExecutionRoute(startupGroupsVisible.value, defaultStartupGroup.value)
+  )
+  const startupGroupState = ref<StartupGroupCardState>('stopped')
+  const startupGroupHasRunning = ref(false)
+  const startupGroupBusy = ref(false)
+
+  const refreshStartupGroupState = async () => {
+    const group = defaultStartupGroup.value
+    if (!group || !startupGroupsVisible.value) {
+      startupGroupState.value = 'stopped'
+      startupGroupHasRunning.value = false
+      return
+    }
+    const states = await Promise.all(
+      group.items.map((item) => startupGroupRuntime.runner.getItemState(item))
+    )
+    startupGroupHasRunning.value = states.some((state) => state === 'running')
+    startupGroupState.value = states.includes('invalid')
+      ? 'invalid'
+      : states.includes('executing')
+        ? 'executing'
+        : states.length === 0 || states.every((state) => state === 'stopped')
+          ? 'stopped'
+          : states.every((state) => state === 'running')
+            ? 'running'
+            : 'partial-running'
+  }
 
   const firstItem = computed(() => {
     const m = 'site'
@@ -379,7 +425,7 @@
     return a && b
   })
 
-  const groupIsRunning = computed(() => {
+  const legacyGroupIsRunning = computed(() => {
     return (
       asideServiceShowModule.value.some((m) => !!m?.serviceRunning) ||
       serviceShowSystem.value.some((m) => m.run) ||
@@ -403,7 +449,7 @@
   //   }
   // })
 
-  const groupDisabled = computed(() => {
+  const legacyGroupDisabled = computed(() => {
     const modules = groupManagedServiceModules.value
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
     const running = modules.some((m) => !!m?.serviceFetching)
@@ -416,6 +462,18 @@
       serviceShowCustomer.value.some((s) => s.running)
     )
   })
+
+  const groupIsRunning = computed(() =>
+    startupGroupRoute.value === 'startup-group'
+      ? startupGroupHasRunning.value
+      : legacyGroupIsRunning.value
+  )
+
+  const groupDisabled = computed(() =>
+    startupGroupRoute.value === 'startup-group'
+      ? startupGroupBusy.value || startupGroupState.value === 'executing'
+      : legacyGroupDisabled.value
+  )
 
   const groupClass = computed(() => {
     return {
@@ -480,6 +538,7 @@
   watch(
     trayStore,
     (v) => {
+      refreshStartupGroupState().catch()
       const current = JSON.stringify(v)
       if (lastTray !== current) {
         lastTray = current
@@ -562,11 +621,11 @@
       .catch()
   }
 
-  const groupDo = () => {
-    if (groupDisabled.value) {
+  const legacyGroupDo = () => {
+    if (legacyGroupDisabled.value) {
       return
     }
-    const isRun = groupIsRunning.value
+    const isRun = legacyGroupIsRunning.value
     const asideModules = asideServiceShowModule.value
     const all: Array<Promise<string | boolean>> = []
     asideModules.forEach((m) => {
@@ -604,6 +663,59 @@
         }
       }
       run()
+    }
+  }
+
+  const startupGroupItemLabel = (item: StartupGroupItem) =>
+    item.type === 'service-version'
+      ? `${item.module} · ${item.versionBin}`
+      : `${item.module} · ${item.projectId}`
+
+  const startupGroupResultMessage = (result: StartupGroupRunResult) =>
+    result.members
+      .map((member) => {
+        const error = member.error ? `: ${member.error}` : ''
+        return `${startupGroupItemLabel(member.item)} — ${I18nT(
+          `common.startupGroup.outcome.${member.outcome}`
+        )}${error}`
+      })
+      .join('<br/>')
+
+  const groupDo = async () => {
+    if (groupDisabled.value) return
+
+    const group = defaultStartupGroup.value
+    if (!group && startupGroupConfig.value.defaultStartupGroupId) {
+      appStore.config.setup.startupGroups = setDefaultStartupGroup(
+        startupGroupConfig.value,
+        undefined
+      )
+      await appStore.saveConfig()
+    }
+
+    if (resolveGroupExecutionRoute(startupGroupsVisible.value, group) === 'legacy') {
+      legacyGroupDo()
+      return
+    }
+
+    startupGroupBusy.value = true
+    try {
+      const states = await Promise.all(
+        group!.items.map((item) => startupGroupRuntime.runner.getItemState(item))
+      )
+      const action = states.some((state) => state === 'running') ? 'stop' : 'start'
+      const result = await startupGroupRuntime.runner.run(group!, action)
+      const message = startupGroupResultMessage(result)
+      if (result.members.some((item) => ['failed', 'invalid'].includes(item.outcome))) {
+        MessageError(message)
+      } else {
+        MessageSuccess(message || I18nT('base.success'))
+      }
+    } catch (error) {
+      MessageError(error instanceof Error ? error.message : `${error}`)
+    } finally {
+      startupGroupBusy.value = false
+      await refreshStartupGroupState()
     }
   }
 
@@ -685,6 +797,18 @@
     }
   )
 
+  watch(
+    () => ({
+      visible: startupGroupsVisible.value,
+      defaultId: startupGroupConfig.value.defaultStartupGroupId,
+      groups: startupGroupConfig.value.groups
+        .map((group) => `${group.id}:${group.updatedAt}`)
+        .join('|')
+    }),
+    () => refreshStartupGroupState(),
+    { immediate: true }
+  )
+
   const canExpand = ref(true)
 
   const checkAppWidth = () => {
@@ -711,6 +835,7 @@
 
   onMounted(() => {
     checkAppWidth()
+    refreshStartupGroupState().catch()
   })
 
   window.addEventListener('resize', () => {

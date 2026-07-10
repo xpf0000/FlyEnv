@@ -22,6 +22,7 @@ import {
   type StartupGroupInstalledTarget,
   type StartupGroupProjectTarget
 } from '../src/render/core/StartupGroupRuntime'
+import { resolveGroupExecutionRoute } from '../src/render/components/Aside/groupService'
 
 const mysql: StartupGroupItem = {
   id: 'mysql',
@@ -347,6 +348,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const moduleSource = readSource('src/render/components/StartupGroup/Module.ts')
   const editorSource = readSource('src/render/components/StartupGroup/GroupEditor.vue')
   const cardSource = readSource('src/render/components/StartupGroup/GroupCard.vue')
+  const asideSource = readSource('src/render/components/Aside/Index.vue')
 
   assert.match(typeSource, /console = 'console'/)
   assert.match(typeSource, /'startup-group' = 'startup-group'/)
@@ -356,6 +358,16 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(editorSource, /<draggable/)
   assert.match(editorSource, /item-key="id"/)
   assert.match(cardSource, /default-change/)
+  assert.match(asideSource, /const legacyGroupDo =/)
+  assert.match(asideSource, /resolveGroupExecutionRoute/)
+  assert.match(asideSource, /startupGroupRuntime\.runner\.run/)
+}
+
+{
+  const defaultGroup = makeGroup('default', [mysql])
+  assert.equal(resolveGroupExecutionRoute(true, defaultGroup), 'startup-group')
+  assert.equal(resolveGroupExecutionRoute(true, undefined), 'legacy')
+  assert.equal(resolveGroupExecutionRoute(false, defaultGroup), 'legacy')
 }
 
 console.log('startup group tests passed')

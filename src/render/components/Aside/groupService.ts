@@ -1,4 +1,5 @@
 import type { AppServiceModuleItem } from '../../core/ASide'
+import type { StartupGroup } from '../../core/StartupGroup'
 
 type ServiceModuleMap = Partial<Record<string, AppServiceModuleItem | undefined>>
 type ServiceModuleDef = {
@@ -28,4 +29,11 @@ export function getGroupManagedServiceEntries(serviceModules: ServiceModuleMap) 
       typeFlag,
       module: module!
     }))
+}
+
+export function resolveGroupExecutionRoute(
+  startupGroupsVisible: boolean,
+  defaultGroup: StartupGroup | undefined
+) {
+  return startupGroupsVisible && defaultGroup ? 'startup-group' : 'legacy'
 }
