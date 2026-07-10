@@ -56,6 +56,42 @@ export type StartupGroupCandidate = {
   port?: number
 }
 
+export type StartupGroupCandidateWarning = 'same-module' | 'same-port'
+
+export function getStartupGroupCandidateWarnings(
+  candidates: StartupGroupCandidate[],
+  selectedKeys: string[]
+) {
+  const selected = candidates.filter((candidate) => selectedKeys.includes(candidate.key))
+  const moduleCount = new Map<string, number>()
+  const portCount = new Map<number, number>()
+
+  for (const candidate of selected) {
+    if (candidate.item.type === 'service-version') {
+      moduleCount.set(candidate.item.module, (moduleCount.get(candidate.item.module) ?? 0) + 1)
+    }
+    if (candidate.port) {
+      portCount.set(candidate.port, (portCount.get(candidate.port) ?? 0) + 1)
+    }
+  }
+
+  const warnings = new Map<string, StartupGroupCandidateWarning[]>()
+  for (const candidate of selected) {
+    const itemWarnings: StartupGroupCandidateWarning[] = []
+    if (
+      candidate.item.type === 'service-version' &&
+      (moduleCount.get(candidate.item.module) ?? 0) > 1
+    ) {
+      itemWarnings.push('same-module')
+    }
+    if (candidate.port && (portCount.get(candidate.port) ?? 0) > 1) {
+      itemWarnings.push('same-port')
+    }
+    if (itemWarnings.length > 0) warnings.set(candidate.key, itemWarnings)
+  }
+  return warnings
+}
+
 function moduleLabel(module: StartupGroupRuntimeModule) {
   if (typeof module.label === 'function') return module.label()
   return module.label || module.typeFlag

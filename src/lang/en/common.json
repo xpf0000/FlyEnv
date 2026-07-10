@@ -132,5 +132,49 @@
   },
   "error": {
     "phpiniNotFound": "php.ini file not found"
+  },
+  "startupGroup": {
+    "title": "Startup Groups",
+    "description": "Start and stop exact service versions and language projects in a controlled order.",
+    "add": "Add startup group",
+    "edit": "Edit startup group",
+    "default": "Default startup group",
+    "defaultEmptyDisabled": "An empty startup group cannot be the default.",
+    "basicInfo": "Basic information",
+    "selectServices": "Select services",
+    "startOrder": "Startup order",
+    "previous": "Previous",
+    "next": "Next",
+    "color": "Color",
+    "nameRequired": "Enter a startup group name.",
+    "noGroups": "Create a startup group to start related services in order.",
+    "noCandidates": "No independently runnable installed services or projects were found.",
+    "emptyMembers": "No members selected",
+    "memberCount": "Services",
+    "runningCount": "Running",
+    "invalid": "Configuration invalid",
+    "invalidMember": "These saved members no longer exist. Remove them or keep them as invalid entries.",
+    "sameModuleWarning": "Multiple versions of this module may conflict",
+    "samePortWarning": "Selected services use the same known port",
+    "defaultEmpty": "Empty startup groups cannot be default",
+    "deleteConfirm": "Delete startup group {name}? Running services will not be stopped.",
+    "hideConfirm": "Hiding Startup Groups stops every service contained in any startup group. Continue?",
+    "hideFailed": "Startup Groups stays visible because these services could not be stopped:",
+    "hideBusy": "Wait for the current startup group operation to finish.",
+    "state": {
+      "stopped": "Stopped",
+      "running": "Running",
+      "partial-running": "Partially running",
+      "executing": "Executing",
+      "invalid": "Configuration invalid"
+    },
+    "outcome": {
+      "started": "Started",
+      "stopped": "Stopped",
+      "skipped": "Skipped",
+      "failed": "Failed",
+      "not-run": "Not run",
+      "invalid": "Configuration invalid"
+    }
   }
 }

@@ -1,18 +1,23 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import {
   buildStartupGroupStopQueue,
+  createStartupGroup,
   createStartupGroupRunner,
+  deleteStartupGroup,
   getStartupGroupCardState,
   normalizeStartupGroupConfig,
   resolveDefaultStartupGroup,
   setDefaultStartupGroup,
+  updateStartupGroup,
   type StartupGroup,
   type StartupGroupAdapter,
   type StartupGroupItem,
   type StartupGroupMemberState
 } from '../src/render/core/StartupGroup'
 import {
+  getStartupGroupCandidateWarnings,
   createStartupGroupRuntime,
   type StartupGroupInstalledTarget,
   type StartupGroupProjectTarget
@@ -264,6 +269,93 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       ['node', 'API Server']
     ]
   )
+}
+
+{
+  const initial = { groups: [] }
+  const created = createStartupGroup(
+    initial,
+    { name: 'Backend', description: 'API stack', color: '#409eff', items: [mysql, api] },
+    'group-backend',
+    100
+  )
+  assert.equal(created.group.id, 'group-backend')
+  assert.equal(created.group.createdAt, 100)
+  assert.deepEqual(
+    created.group.items.map((item) => item.id),
+    ['mysql', 'api']
+  )
+
+  const updated = updateStartupGroup(
+    created.config,
+    'group-backend',
+    { name: 'Backend v2', items: [api, mysql] },
+    200
+  )
+  assert.equal(updated.groups[0].createdAt, 100)
+  assert.equal(updated.groups[0].updatedAt, 200)
+  assert.deepEqual(
+    updated.groups[0].items.map((item) => item.id),
+    ['api', 'mysql']
+  )
+
+  const deleted = deleteStartupGroup(
+    { ...updated, defaultStartupGroupId: 'group-backend' },
+    'group-backend'
+  )
+  assert.deepEqual(deleted, { groups: [] })
+}
+
+{
+  const runtimeCandidates = [
+    {
+      key: 'mysql-80',
+      label: 'MySQL 8.0',
+      moduleLabel: 'MySQL',
+      item: { ...mysql, id: 'mysql-80', versionPath: 'D:/mysql/8.0' },
+      port: 3306
+    },
+    {
+      key: 'mysql-84',
+      label: 'MySQL 8.4',
+      moduleLabel: 'MySQL',
+      item: { ...mysql, id: 'mysql-84' },
+      port: 3307
+    },
+    {
+      key: 'redis-7',
+      label: 'Redis 7',
+      moduleLabel: 'Redis',
+      item: redis,
+      port: 3306
+    }
+  ]
+  const warnings = getStartupGroupCandidateWarnings(runtimeCandidates, [
+    'mysql-80',
+    'mysql-84',
+    'redis-7'
+  ])
+  assert.deepEqual(warnings.get('mysql-80'), ['same-module', 'same-port'])
+  assert.deepEqual(warnings.get('mysql-84'), ['same-module'])
+  assert.deepEqual(warnings.get('redis-7'), ['same-port'])
+}
+
+{
+  const readSource = (relativePath: string) =>
+    readFileSync(new URL('../' + relativePath, import.meta.url), 'utf8')
+  const typeSource = readSource('src/render/core/type.ts')
+  const moduleSource = readSource('src/render/components/StartupGroup/Module.ts')
+  const editorSource = readSource('src/render/components/StartupGroup/GroupEditor.vue')
+  const cardSource = readSource('src/render/components/StartupGroup/GroupCard.vue')
+
+  assert.match(typeSource, /console = 'console'/)
+  assert.match(typeSource, /'startup-group' = 'startup-group'/)
+  assert.match(moduleSource, /moduleType: 'console'/)
+  assert.match(moduleSource, /typeFlag: 'startup-group'/)
+  assert.match(editorSource, /<el-steps/)
+  assert.match(editorSource, /<draggable/)
+  assert.match(editorSource, /item-key="id"/)
+  assert.match(cardSource, /default-change/)
 }
 
 console.log('startup group tests passed')

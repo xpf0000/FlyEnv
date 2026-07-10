@@ -30,6 +30,7 @@ export class Project {
   project: ProjectItem[] = []
   search = ''
   flagType: AllAppModule = 'golang'
+  private fetchProjectPromise?: Promise<void>
 
   constructor(flagType: AllAppModule) {
     this.flagType = flagType
@@ -186,12 +187,12 @@ export class Project {
       .then()
       .catch()
   }
-  fetchProject() {
+  fetchProject(): Promise<void> {
     if (this.fetching) {
-      return
+      return this.fetchProjectPromise ?? Promise.resolve()
     }
     this.fetching = true
-    localForage
+    this.fetchProjectPromise = localForage
       .getItem(`flyenv-${this.flagType}-projects`)
       .then((res: ProjectItem[]) => {
         if (res) {
@@ -210,7 +211,9 @@ export class Project {
       .catch()
       .finally(() => {
         this.fetching = false
+        this.fetchProjectPromise = undefined
       })
+    return this.fetchProjectPromise
   }
   addProject() {
     const setupStore = SetupStore()

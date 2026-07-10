@@ -1,4 +1,5 @@
 export enum AppModuleTypeEnum {
+  console = 'console',
   site = 'site',
   webServer = 'webServer',
   dataBaseServer = 'dataBaseServer',
@@ -20,6 +21,7 @@ export enum AppModuleTypeEnum {
 export type AllAppModuleType = keyof typeof AppModuleTypeEnum
 
 export const AppModuleTypeList: AllAppModuleType[] = [
+  'console',
   'site',
   'aiCoding',
   'ai',
@@ -39,6 +41,7 @@ export const AppModuleTypeList: AllAppModuleType[] = [
 ]
 
 export enum AppModuleEnum {
+  'startup-group' = 'startup-group',
   caddy = 'caddy',
   nginx = 'nginx',
   php = 'php',

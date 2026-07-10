@@ -32,6 +32,8 @@ export interface StartupGroupConfig {
   defaultStartupGroupId?: string
 }
 
+export type StartupGroupDraft = Pick<StartupGroup, 'name' | 'description' | 'color' | 'items'>
+
 export type StartupGroupMemberState = 'stopped' | 'running' | 'executing' | 'invalid'
 export type StartupGroupCardState =
   | 'stopped'
@@ -96,6 +98,61 @@ export function setDefaultStartupGroup(
   const group = groupId ? config.groups.find((item) => item.id === groupId) : undefined
   const defaultStartupGroupId = group && group.items.length > 0 ? group.id : undefined
   return defaultStartupGroupId ? { ...config, defaultStartupGroupId } : { groups: config.groups }
+}
+
+export function createStartupGroup(
+  config: StartupGroupConfig,
+  draft: StartupGroupDraft,
+  id: string,
+  now: number
+) {
+  const group: StartupGroup = {
+    id,
+    name: draft.name,
+    description: draft.description,
+    color: draft.color,
+    items: draft.items.map((item) => ({ ...item })),
+    createdAt: now,
+    updatedAt: now
+  }
+  return {
+    group,
+    config: {
+      ...config,
+      groups: [...config.groups, group]
+    }
+  }
+}
+
+export function updateStartupGroup(
+  config: StartupGroupConfig,
+  groupId: string,
+  draft: StartupGroupDraft,
+  now: number
+): StartupGroupConfig {
+  return {
+    ...config,
+    groups: config.groups.map((group) =>
+      group.id === groupId
+        ? {
+            ...group,
+            name: draft.name,
+            description: draft.description,
+            color: draft.color,
+            items: draft.items.map((item) => ({ ...item })),
+            updatedAt: now
+          }
+        : group
+    )
+  }
+}
+
+export function deleteStartupGroup(
+  config: StartupGroupConfig,
+  groupId: string
+): StartupGroupConfig {
+  const groups = config.groups.filter((group) => group.id !== groupId)
+  return config.defaultStartupGroupId === groupId ? { groups } : { ...config, groups }
 }
 
 export function getStartupGroupCardState(states: StartupGroupMemberState[]): StartupGroupCardState {

@@ -1,4 +1,5 @@
 {
+  "console": "Console",
   "webServer": "Web Server",
   "dataBaseServer": "Database Server",
   "emailServer": "Email Server",

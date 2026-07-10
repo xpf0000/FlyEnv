@@ -1,4 +1,5 @@
 {
+  "console": "控制台",
   "webServer": "Web服务器",
   "dataBaseServer": "数据库服务器",
   "emailServer": "邮件服务器",
