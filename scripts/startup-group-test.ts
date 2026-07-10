@@ -21,8 +21,12 @@ import {
   type StartupGroupMemberState
 } from '../src/render/core/StartupGroup'
 import {
+  filterValidStartupGroupItems,
   getStartupGroupCandidateWarnings,
   createStartupGroupRuntime,
+  startupGroupCandidateAllowsMultiple,
+  updateStartupGroupCandidateSelection,
+  type StartupGroupCandidate,
   type StartupGroupInstalledTarget,
   type StartupGroupProjectTarget,
   type StartupGroupRuntimeModule
@@ -410,6 +414,116 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       ['node', 'API Server']
     ]
   )
+  assert.deepEqual(
+    candidates.map((candidate) => [
+      candidate.item.module,
+      candidate.moduleType,
+      candidate.displayName,
+      candidate.displayPath
+    ]),
+    [
+      ['mysql', 'dataBaseServer', '8.0', 'D:/mysql/8.0'],
+      ['mysql', 'dataBaseServer', '8.4', 'D:/mysql/8.4'],
+      ['php-fpm', 'language', '8.4.8', 'D:/php/8.4.8'],
+      ['node', 'language', 'API Server', 'D:/projects/api']
+    ]
+  )
+}
+
+{
+  assert.equal(typeof startupGroupCandidateAllowsMultiple, 'function')
+  assert.equal(typeof updateStartupGroupCandidateSelection, 'function')
+  assert.equal(typeof filterValidStartupGroupItems, 'function')
+
+  const makeCandidate = (
+    key: string,
+    item: StartupGroupItem,
+    moduleType: StartupGroupCandidate['moduleType'],
+    displayName: string,
+    displayPath: string
+  ): StartupGroupCandidate => ({
+    key,
+    label: displayName,
+    moduleLabel: item.module,
+    moduleType,
+    displayName,
+    displayPath,
+    item
+  })
+
+  const mysql80 = makeCandidate(
+    'mysql-80',
+    { ...mysql, id: 'mysql-80', versionPath: 'D:/mysql/8.0' },
+    'dataBaseServer',
+    '8.0',
+    'D:/mysql/8.0'
+  )
+  const mysql84 = makeCandidate(
+    'mysql-84',
+    { ...mysql, id: 'mysql-84' },
+    'dataBaseServer',
+    '8.4',
+    'D:/mysql/8.4'
+  )
+  const php82 = makeCandidate(
+    'php-fpm-82',
+    { ...mysql, id: 'php-fpm-82', module: 'php-fpm', versionPath: 'D:/php/8.2' },
+    'language',
+    '8.2',
+    'D:/php/8.2'
+  )
+  const php84 = makeCandidate(
+    'php-fpm-84',
+    { ...mysql, id: 'php-fpm-84', module: 'php-fpm', versionPath: 'D:/php/8.4' },
+    'language',
+    '8.4',
+    'D:/php/8.4'
+  )
+  const nodeApi = makeCandidate('node-api', api, 'language', 'API Server', 'D:/projects/api')
+  const nodeAdmin = makeCandidate(
+    'node-admin',
+    { ...api, id: 'admin', projectId: 'project-admin', projectPath: 'D:/projects/admin' },
+    'language',
+    'Admin Server',
+    'D:/projects/admin'
+  )
+  const all = [mysql80, mysql84, php82, php84, nodeApi, nodeAdmin]
+
+  assert.equal(startupGroupCandidateAllowsMultiple(mysql80), false)
+  assert.equal(startupGroupCandidateAllowsMultiple(php82), true)
+  assert.equal(startupGroupCandidateAllowsMultiple(nodeApi), true)
+
+  let selected = updateStartupGroupCandidateSelection([], mysql80, all, true)
+  selected = updateStartupGroupCandidateSelection(selected, mysql84, all, true)
+  assert.deepEqual(selected, ['mysql-84'])
+
+  selected = updateStartupGroupCandidateSelection(selected, php82, all, true)
+  selected = updateStartupGroupCandidateSelection(selected, php84, all, true)
+  assert.deepEqual(selected, ['mysql-84', 'php-fpm-82', 'php-fpm-84'])
+
+  selected = updateStartupGroupCandidateSelection(selected, nodeApi, all, true)
+  selected = updateStartupGroupCandidateSelection(selected, nodeAdmin, all, true)
+  assert.deepEqual(selected, ['mysql-84', 'php-fpm-82', 'php-fpm-84', 'node-api', 'node-admin'])
+
+  selected = updateStartupGroupCandidateSelection(selected, php82, all, false)
+  assert.deepEqual(selected, ['mysql-84', 'php-fpm-84', 'node-api', 'node-admin'])
+
+  const validMysql: StartupGroupCandidate = {
+    key: getStartupGroupItemKey(mysql),
+    label: 'MySQL 8.4',
+    moduleLabel: 'MySQL',
+    moduleType: 'dataBaseServer',
+    displayName: '8.4',
+    displayPath: mysql.versionPath,
+    item: mysql
+  }
+  assert.deepEqual(
+    filterValidStartupGroupItems(
+      [mysql, { ...redis, versionPath: 'D:/redis/missing' }],
+      [validMysql]
+    ),
+    [mysql]
+  )
 }
 
 {
@@ -461,6 +575,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       key: 'mysql-80',
       label: 'MySQL 8.0',
       moduleLabel: 'MySQL',
+      moduleType: 'dataBaseServer' as const,
+      displayName: '8.0',
+      displayPath: 'D:/mysql/8.0',
       item: { ...mysql, id: 'mysql-80', versionPath: 'D:/mysql/8.0' },
       port: 3306
     },
@@ -468,6 +585,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       key: 'mysql-84',
       label: 'MySQL 8.4',
       moduleLabel: 'MySQL',
+      moduleType: 'dataBaseServer' as const,
+      displayName: '8.4',
+      displayPath: 'D:/mysql/8.4',
       item: { ...mysql, id: 'mysql-84' },
       port: 3307
     },
@@ -475,6 +595,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       key: 'redis-7',
       label: 'Redis 7',
       moduleLabel: 'Redis',
+      moduleType: 'cacheAndQueue' as const,
+      displayName: '7',
+      displayPath: 'D:/redis/7',
       item: redis,
       port: 3306
     }
@@ -495,6 +618,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     key: 'node-project-api',
     label: 'API Server',
     moduleLabel: 'NodeJS',
+    moduleType: 'language' as const,
+    displayName: 'API Server',
+    displayPath: 'D:/projects/api',
     item: api
   }
   assert.equal(StartupGroupRuntimeCore.startupGroupCandidateMatchesItem(candidate, api), true)
@@ -510,8 +636,24 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const synced = StartupGroupRuntimeCore.syncStartupGroupSelectedItems(
     [mysql, api, redis],
     [
-      { key: getStartupGroupItemKey(mysql), label: 'MySQL', moduleLabel: 'DB', item: mysql },
-      { key: getStartupGroupItemKey(redis), label: 'Redis', moduleLabel: 'DB', item: redis }
+      {
+        key: getStartupGroupItemKey(mysql),
+        label: 'MySQL',
+        moduleLabel: 'DB',
+        moduleType: 'dataBaseServer',
+        displayName: 'MySQL',
+        displayPath: mysql.versionPath,
+        item: mysql
+      },
+      {
+        key: getStartupGroupItemKey(redis),
+        label: 'Redis',
+        moduleLabel: 'DB',
+        moduleType: 'cacheAndQueue',
+        displayName: 'Redis',
+        displayPath: redis.versionPath,
+        item: redis
+      }
     ],
     [getStartupGroupItemKey(mysql), getStartupGroupItemKey(redis)],
     () => 'new-id'

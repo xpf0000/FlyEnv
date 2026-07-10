@@ -53,6 +53,9 @@ export type StartupGroupCandidate = {
   key: string
   label: string
   moduleLabel: string
+  moduleType: AllAppModuleType
+  displayName: string
+  displayPath: string
   item: StartupGroupItem
   port?: number
 }
@@ -67,6 +70,44 @@ export function startupGroupCandidateMatchesItem(
   return item.type !== 'language-project' || candidate.item.type !== 'language-project'
     ? item.type === candidate.item.type
     : candidate.item.projectPath === item.projectPath
+}
+
+export function startupGroupCandidateAllowsMultiple(candidate: StartupGroupCandidate) {
+  return candidate.item.type === 'language-project' || candidate.item.module === 'php-fpm'
+}
+
+export function updateStartupGroupCandidateSelection(
+  selectedKeys: string[],
+  candidate: StartupGroupCandidate,
+  candidates: StartupGroupCandidate[],
+  selected: boolean
+) {
+  const next = selectedKeys.filter((key) => key !== candidate.key)
+  if (!selected) return next
+
+  if (startupGroupCandidateAllowsMultiple(candidate)) {
+    return [...next, candidate.key]
+  }
+
+  const sameModuleKeys = new Set(
+    candidates
+      .filter(
+        (item) => item.item.type === 'service-version' && item.item.module === candidate.item.module
+      )
+      .map((item) => item.key)
+  )
+  return [...next.filter((key) => !sameModuleKeys.has(key)), candidate.key]
+}
+
+export function filterValidStartupGroupItems(
+  items: StartupGroupItem[],
+  candidates: StartupGroupCandidate[]
+) {
+  const candidateByKey = new Map(candidates.map((candidate) => [candidate.key, candidate]))
+  return items.filter((item) => {
+    const candidate = candidateByKey.get(getStartupGroupItemKey(item))
+    return candidate ? startupGroupCandidateMatchesItem(candidate, item) : false
+  })
 }
 
 export function syncStartupGroupSelectedItems(
@@ -268,6 +309,9 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
           key: getStartupGroupItemKey(item),
           label: `${label} ${target.version || target.bin}`,
           moduleLabel: label,
+          moduleType: module.moduleType ?? 'other',
+          displayName: target.version || target.bin,
+          displayPath: target.path,
           item,
           port: target.port
         })
@@ -284,10 +328,14 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
           projectId: project.id,
           projectPath: project.path
         }
+        const label = moduleLabel(module)
         candidates.push({
           key: getStartupGroupItemKey(item),
           label: project.comment || project.path,
-          moduleLabel: moduleLabel(module),
+          moduleLabel: label,
+          moduleType: module.moduleType ?? 'other',
+          displayName: project.comment?.trim() || '',
+          displayPath: project.path,
           item,
           port: project.projectPort
         })
