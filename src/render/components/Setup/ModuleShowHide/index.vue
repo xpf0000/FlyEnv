@@ -4,7 +4,7 @@
   >
     <div class="flex items-center">
       <div class="w-[130px] truncate">{{ title }}</div>
-      <el-switch v-model="showItem" />
+      <el-switch v-model="showItem" :loading="changing" :disabled="changing" />
     </div>
     <slot name="default"></slot>
   </div>
@@ -12,8 +12,10 @@
 
 <script lang="ts" setup>
   import { AppStore } from '@/store/app'
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import { AppCustomerModule } from '@/core/Module'
+  import { canSetModuleVisibility } from '@/core/ModuleVisibility'
+  import type { AllAppModule } from '@/core/type'
 
   type StringFn = () => string
 
@@ -30,22 +32,34 @@
   })
 
   const appStore = AppStore()
+  const changing = ref(false)
+
+  const stopMatchingCustomerModule = () => {
+    const customer = AppCustomerModule.module.find(
+      (item) => item.typeFlag === props.typeFlag && item.isService
+    )
+    customer?.stop().catch()
+  }
+
+  const changeShowItem = async (visible: boolean) => {
+    if (changing.value) return
+    changing.value = true
+    try {
+      if (!(await canSetModuleVisibility(props.typeFlag as AllAppModule, visible))) return
+      appStore.config.setup.common.showItem[props.typeFlag] = visible
+      await appStore.saveConfig()
+      if (!visible) stopMatchingCustomerModule()
+    } finally {
+      changing.value = false
+    }
+  }
+
   const showItem = computed({
     get() {
       return appStore.config.setup.common.showItem?.[props.typeFlag] !== false
     },
     set(v) {
-      appStore.config.setup.common.showItem[props.typeFlag] = v
-      appStore.saveConfig()
-      // Stop Service when hide module
-      if (!v) {
-        const customer = AppCustomerModule.module.find(
-          (item) => item.typeFlag === props.typeFlag && item.isService
-        )
-        if (customer) {
-          customer.stop().catch()
-        }
-      }
+      changeShowItem(v).catch()
     }
   })
 </script>

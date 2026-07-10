@@ -23,6 +23,10 @@ import {
   type StartupGroupProjectTarget
 } from '../src/render/core/StartupGroupRuntime'
 import { resolveGroupExecutionRoute } from '../src/render/components/Aside/groupService'
+import {
+  canSetModuleVisibility,
+  registerModuleVisibilityGuard
+} from '../src/render/core/ModuleVisibility'
 
 const mysql: StartupGroupItem = {
   id: 'mysql',
@@ -349,6 +353,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const editorSource = readSource('src/render/components/StartupGroup/GroupEditor.vue')
   const cardSource = readSource('src/render/components/StartupGroup/GroupCard.vue')
   const asideSource = readSource('src/render/components/Aside/Index.vue')
+  const showHideSource = readSource('src/render/components/Setup/ModuleShowHide/index.vue')
+  const moduleItemSource = readSource('src/render/components/Setup/Module/moduleItem.vue')
 
   assert.match(typeSource, /console = 'console'/)
   assert.match(typeSource, /'startup-group' = 'startup-group'/)
@@ -361,6 +367,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(asideSource, /const legacyGroupDo =/)
   assert.match(asideSource, /resolveGroupExecutionRoute/)
   assert.match(asideSource, /startupGroupRuntime\.runner\.run/)
+  assert.match(moduleSource, /registerModuleVisibilityGuard/)
+  assert.match(showHideSource, /canSetModuleVisibility/)
+  assert.match(moduleItemSource, /canSetModuleVisibility/)
 }
 
 {
@@ -368,6 +377,19 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.equal(resolveGroupExecutionRoute(true, defaultGroup), 'startup-group')
   assert.equal(resolveGroupExecutionRoute(true, undefined), 'legacy')
   assert.equal(resolveGroupExecutionRoute(false, defaultGroup), 'legacy')
+}
+
+{
+  const calls: boolean[] = []
+  const unregister = registerModuleVisibilityGuard('startup-group', async (visible) => {
+    calls.push(visible)
+    return visible
+  })
+  assert.equal(await canSetModuleVisibility('startup-group', false), false)
+  assert.equal(await canSetModuleVisibility('startup-group', true), true)
+  assert.deepEqual(calls, [false, true])
+  unregister()
+  assert.equal(await canSetModuleVisibility('startup-group', false), true)
 }
 
 console.log('startup group tests passed')

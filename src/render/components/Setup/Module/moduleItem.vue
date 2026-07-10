@@ -40,7 +40,7 @@
     </div>
   </div>
   <div class="grid grid-cols-3 2xl:grid-cols-4 gap-4">
-    <template v-for="(i, _j) in customerModule" :key="i.id">
+    <template v-for="i in customerModule" :key="i.id">
       <div class="flex items-center justify-center w-full">
         <ModuleShowHide :label="i.label" :type-flag="i.typeFlag">
           <template #default>
@@ -78,6 +78,8 @@
   import Base from '@/core/Base'
   import { SetupStore } from '@/components/Setup/store'
   import Router from '@/router'
+  import { canSetModuleVisibility } from '@/core/ModuleVisibility'
+  import type { AllAppModule } from '@/core/type'
 
   const props = defineProps<{
     index: number
@@ -96,6 +98,26 @@
 
   const groupSetting = ref(false)
 
+  const changeGroupState = async (visible: boolean) => {
+    if (groupSetting.value) return
+    groupSetting.value = true
+    try {
+      for (const item of props.item.sub) {
+        if (!(await canSetModuleVisibility(item.typeFlag as AllAppModule, visible))) return
+      }
+      for (const item of props.item.sub) {
+        appStore.config.setup.common.showItem[item.typeFlag] = visible
+      }
+      for (const item of customerModule.value) {
+        appStore.config.setup.common.showItem[item.typeFlag] = visible
+      }
+      await appStore.saveConfig()
+      await nextTick()
+    } finally {
+      groupSetting.value = false
+    }
+  }
+
   const groupState = computed({
     get() {
       const a = props.item.sub.some(
@@ -107,18 +129,7 @@
       return a || b
     },
     set(v) {
-      groupSetting.value = true
-      for (const s of props.item.sub) {
-        appStore.config.setup.common.showItem[s.typeFlag] = v
-      }
-      for (const s of customerModule.value) {
-        appStore.config.setup.common.showItem[s.typeFlag] = v
-      }
-      appStore.saveConfig().then(() => {
-        nextTick().then(() => {
-          groupSetting.value = false
-        })
-      })
+      changeGroupState(v).catch()
     }
   })
 
