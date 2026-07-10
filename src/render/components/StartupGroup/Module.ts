@@ -4,8 +4,8 @@ import { ElMessageBox } from 'element-plus'
 import { I18nT } from '@lang/index'
 import { registerModuleVisibilityGuard } from '@/core/ModuleVisibility'
 import {
-  buildStartupGroupStopQueue,
   normalizeStartupGroupConfig,
+  stopStartupGroupsForHide,
   type StartupGroupItem
 } from '@/core/StartupGroup'
 import type { AppModuleItem } from '@/core/type'
@@ -35,29 +35,34 @@ registerModuleVisibilityGuard('startup-group', async (visible) => {
   }
 
   const config = normalizeStartupGroupConfig(AppStore().config.setup.startupGroups)
-  const queue = buildStartupGroupStopQueue(config.groups)
-  if (queue.length === 0) return true
+  const stopped = await stopStartupGroupsForHide(config.groups, startupGroupRuntime.runner)
+  if (['runner-busy', 'member-busy'].includes(stopped.reason ?? '')) {
+    MessageWarning(I18nT('common.startupGroup.hideBusy'))
+    return false
+  }
 
-  const result = await startupGroupRuntime.runner.run(
-    {
-      id: 'startup-group-hide',
-      name: 'startup-group-hide',
-      items: [...queue].reverse(),
-      createdAt: 0,
-      updatedAt: 0
-    },
-    'stop'
+  const summary =
+    stopped.result?.members.map((member) => {
+      const error = member.error ? `: ${member.error}` : ''
+      return `${itemLabel(member.item)} — ${I18nT(
+        `common.startupGroup.outcome.${member.outcome}`
+      )}${error}`
+    }) ?? []
+  summary.push(
+    ...stopped.remaining.map(
+      (member) =>
+        `${itemLabel(member.item)} — ${I18nT(`common.startupGroup.state.${member.state}`)}`
+    )
   )
-  const failed = result.members.filter((item) => item.outcome === 'failed')
-  if (failed.length === 0) return true
 
-  MessageError(
-    [
-      I18nT('common.startupGroup.hideFailed'),
-      ...failed.map((item) => `${itemLabel(item.item)}: ${item.error || I18nT('base.fail')}`)
-    ].join('<br/>')
-  )
-  return false
+  if (!stopped.ok) {
+    MessageError([I18nT('common.startupGroup.hideFailed'), ...summary].join('<br/>'))
+    return false
+  }
+  if (stopped.result?.members.some((member) => ['invalid', 'skipped'].includes(member.outcome))) {
+    MessageWarning(summary.join('<br/>'))
+  }
+  return true
 })
 
 const module: AppModuleItem = {

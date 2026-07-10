@@ -17,6 +17,11 @@ type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 export type ModuleStartOptions = {
   updateCurrent?: boolean
   stopOtherVersions?: boolean
+  exactTarget?: boolean
+}
+
+export type ModuleStopOptions = {
+  exactTarget?: boolean
 }
 
 export class Module {

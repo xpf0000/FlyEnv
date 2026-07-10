@@ -95,7 +95,7 @@
                 :svg="import('@/svg/handle.svg?raw')"
               />
               <span class="min-w-0 flex-1 truncate">{{ itemLabel(element) }}</span>
-              <el-tag v-if="!candidateByKey.has(itemKey(element))" type="danger" effect="plain">
+              <el-tag v-if="!candidateFor(element)" type="danger" effect="plain">
                 {{ I18nT('common.startupGroup.invalid') }}
               </el-tag>
               <el-button link type="danger" @click="removeItem(element.id)">
@@ -139,6 +139,8 @@
   } from '@/core/StartupGroup'
   import {
     getStartupGroupCandidateWarnings,
+    startupGroupCandidateMatchesItem,
+    syncStartupGroupSelectedItems,
     type StartupGroupCandidate
   } from '@/core/StartupGroupRuntime'
   import { MessageWarning } from '@/util/Element'
@@ -187,17 +189,18 @@
   const candidateWarnings = computed(() =>
     getStartupGroupCandidateWarnings(candidates.value, selectedKeys.value)
   )
-  const invalidItems = computed(() =>
-    draft.items.filter((item) => !candidateByKey.value.has(getStartupGroupItemKey(item)))
-  )
+  const candidateFor = (item: StartupGroupItem) => {
+    const candidate = candidateByKey.value.get(getStartupGroupItemKey(item))
+    return candidate && startupGroupCandidateMatchesItem(candidate, item) ? candidate : undefined
+  }
+  const invalidItems = computed(() => draft.items.filter((item) => !candidateFor(item)))
 
   const itemKey = getStartupGroupItemKey
   const fallbackItemLabel = (item: StartupGroupItem) =>
     item.type === 'service-version'
       ? `${item.module} · ${item.versionBin}`
       : `${item.module} · ${item.projectId}`
-  const itemLabel = (item: StartupGroupItem) =>
-    candidateByKey.value.get(itemKey(item))?.label ?? fallbackItemLabel(item)
+  const itemLabel = (item: StartupGroupItem) => candidateFor(item)?.label ?? fallbackItemLabel(item)
   const warningLabel = (key: string) => {
     const warnings = candidateWarnings.value.get(key) ?? []
     return warnings
@@ -220,7 +223,7 @@
     loading.value = true
     try {
       candidates.value = await startupGroupRuntime.listCandidates()
-      selectedKeys.value = draft.items.map(itemKey).filter((key) => candidateByKey.value.has(key))
+      selectedKeys.value = draft.items.filter(candidateFor).map(itemKey)
     } finally {
       loading.value = false
     }
@@ -233,22 +236,17 @@
   )
 
   const syncSelectedItems = () => {
-    const selected = new Set(selectedKeys.value)
-    const existingValid = draft.items.filter(
-      (item) => candidateByKey.value.has(itemKey(item)) && selected.has(itemKey(item))
+    draft.items = syncStartupGroupSelectedItems(
+      draft.items,
+      candidates.value,
+      selectedKeys.value,
+      uuid
     )
-    const existingKeys = new Set(existingValid.map(itemKey))
-    const added = selectedKeys.value
-      .filter((key) => !existingKeys.has(key))
-      .map((key) => candidateByKey.value.get(key))
-      .filter((candidate): candidate is StartupGroupCandidate => !!candidate)
-      .map((candidate) => ({ ...candidate.item, id: uuid() }))
-    draft.items = [...existingValid, ...added, ...invalidItems.value]
   }
 
   const removeItem = (id: string) => {
     draft.items = draft.items.filter((item) => item.id !== id)
-    selectedKeys.value = draft.items.map(itemKey).filter((key) => candidateByKey.value.has(key))
+    selectedKeys.value = draft.items.filter(candidateFor).map(itemKey)
   }
 
   const nextStep = () => {

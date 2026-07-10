@@ -1,4 +1,4 @@
-import type { ModuleStartOptions } from './Module/Module'
+import type { ModuleStartOptions, ModuleStopOptions } from './Module/Module'
 import {
   createStartupGroupRunner,
   getStartupGroupItemKey,
@@ -17,7 +17,7 @@ export type StartupGroupInstalledTarget = {
   running: boolean
   port?: number
   start(options?: ModuleStartOptions): Promise<string | boolean>
-  stop(): Promise<string | boolean>
+  stop(options?: ModuleStopOptions): Promise<string | boolean>
 }
 
 export type StartupGroupProjectTarget = {
@@ -46,6 +46,7 @@ export type StartupGroupRuntimeDependencies = {
   modules: StartupGroupRuntimeModule[]
   getInstalled(module: AllAppModule): Promise<StartupGroupInstalledTarget[]>
   getProjects(module: AllAppModule): Promise<StartupGroupProjectTarget[]>
+  pathExists(path: string): Promise<boolean>
 }
 
 export type StartupGroupCandidate = {
@@ -57,6 +58,60 @@ export type StartupGroupCandidate = {
 }
 
 export type StartupGroupCandidateWarning = 'same-module' | 'same-port'
+
+export function startupGroupCandidateMatchesItem(
+  candidate: StartupGroupCandidate,
+  item: StartupGroupItem
+) {
+  if (getStartupGroupItemKey(candidate.item) !== getStartupGroupItemKey(item)) return false
+  return item.type !== 'language-project' || candidate.item.type !== 'language-project'
+    ? item.type === candidate.item.type
+    : candidate.item.projectPath === item.projectPath
+}
+
+export function syncStartupGroupSelectedItems(
+  items: StartupGroupItem[],
+  candidates: StartupGroupCandidate[],
+  selectedKeys: string[],
+  createId: () => string
+) {
+  const candidateByKey = new Map(candidates.map((candidate) => [candidate.key, candidate]))
+  const selected = new Set(selectedKeys)
+  const used = new Set<string>()
+  const next: StartupGroupItem[] = []
+
+  for (const item of items) {
+    const key = getStartupGroupItemKey(item)
+    const candidate = candidateByKey.get(key)
+    if (!candidate) {
+      next.push(item)
+      continue
+    }
+    if (startupGroupCandidateMatchesItem(candidate, item)) {
+      if (selected.has(key)) {
+        next.push(item)
+        used.add(key)
+      }
+      continue
+    }
+    if (selected.has(key)) {
+      next.push({ ...candidate.item, id: createId() })
+      used.add(key)
+    } else {
+      next.push(item)
+    }
+  }
+
+  for (const key of selectedKeys) {
+    if (used.has(key)) continue
+    const candidate = candidateByKey.get(key)
+    if (candidate) {
+      next.push({ ...candidate.item, id: createId() })
+      used.add(key)
+    }
+  }
+  return next
+}
 
 export function getStartupGroupCandidateWarnings(
   candidates: StartupGroupCandidate[],
@@ -104,6 +159,19 @@ async function ensureSuccess(result: Promise<string | boolean>) {
 }
 
 export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDependencies) {
+  const projectSources = new Map<AllAppModule, Promise<StartupGroupProjectTarget[]>>()
+  const projectsFor = (module: AllAppModule) => {
+    let source = projectSources.get(module)
+    if (!source) {
+      source = dependencies.getProjects(module).catch((error) => {
+        projectSources.delete(module)
+        throw error
+      })
+      projectSources.set(module, source)
+    }
+    return source
+  }
+
   const installedModule = (item: StartupGroupItem): AllAppModule =>
     item.type === 'service-version' && item.module === 'php-fpm' ? 'php' : item.module
 
@@ -115,8 +183,12 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
 
   const projectTarget = async (item: StartupGroupItem) => {
     if (item.type !== 'language-project') return undefined
-    const projects = await dependencies.getProjects(item.module)
-    return projects.find((project) => project.id === item.projectId && project.isService)
+    const projects = await projectsFor(item.module)
+    const project = projects.find(
+      (project) =>
+        project.id === item.projectId && project.path === item.projectPath && project.isService
+    )
+    return project && (await dependencies.pathExists(project.path)) ? project : undefined
   }
 
   const serviceAdapter: StartupGroupAdapter = {
@@ -133,14 +205,15 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
       await ensureSuccess(
         target.start({
           updateCurrent: false,
-          stopOtherVersions: false
+          stopOtherVersions: false,
+          exactTarget: true
         })
       )
     },
     stop: async (item) => {
       const target = await installedTarget(item)
       if (!target) throw new Error('Service version not found')
-      await ensureSuccess(target.stop())
+      await ensureSuccess(target.stop({ exactTarget: true }))
     }
   }
 
@@ -201,13 +274,14 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
     }
 
     for (const module of dependencies.modules.filter((item) => item.moduleType === 'language')) {
-      const projects = await dependencies.getProjects(module.typeFlag)
+      const projects = await projectsFor(module.typeFlag)
       for (const project of projects.filter((item) => item.isService)) {
         const item: StartupGroupItem = {
           id: dependencies.createId(),
           type: 'language-project',
           module: module.typeFlag,
-          projectId: project.id
+          projectId: project.id,
+          projectPath: project.path
         }
         candidates.push({
           key: getStartupGroupItemKey(item),

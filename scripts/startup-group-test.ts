@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import * as ProcessTools from '../src/shared/Process'
+import * as StartupGroupCore from '../src/render/core/StartupGroup'
+import * as StartupGroupRuntimeCore from '../src/render/core/StartupGroupRuntime'
 
 import {
   buildStartupGroupStopQueue,
@@ -7,6 +10,7 @@ import {
   createStartupGroupRunner,
   deleteStartupGroup,
   getStartupGroupCardState,
+  getStartupGroupItemKey,
   normalizeStartupGroupConfig,
   resolveDefaultStartupGroup,
   setDefaultStartupGroup,
@@ -48,7 +52,8 @@ const api: StartupGroupItem = {
   id: 'api',
   type: 'language-project',
   module: 'node',
-  projectId: 'project-api'
+  projectId: 'project-api',
+  projectPath: 'D:/projects/api'
 }
 
 function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
@@ -92,6 +97,36 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 }
 
 {
+  let releaseStart!: () => void
+  let markStarted!: () => void
+  const startGate = new Promise<void>((resolve) => {
+    releaseStart = resolve
+  })
+  const started = new Promise<void>((resolve) => {
+    markStarted = resolve
+  })
+  const adapter: StartupGroupAdapter = {
+    exists: async () => true,
+    getState: async () => 'stopped',
+    start: async () => {
+      markStarted()
+      await startGate
+    },
+    stop: async () => undefined
+  }
+  const runner = createStartupGroupRunner(() => adapter)
+  const initialRevision = runner.revision?.value
+  const runPromise = runner.run(makeGroup('reactive', [redis]), 'start')
+  await started
+  assert.equal(runner.executing?.value, true)
+  assert.equal(await runner.getItemState(redis), 'executing')
+  assert.ok((runner.revision?.value ?? 0) > (initialRevision ?? 0))
+  releaseStart()
+  await runPromise
+  assert.equal(runner.executing?.value, false)
+}
+
+{
   const calls: string[] = []
   const adapter: StartupGroupAdapter = {
     exists: async () => true,
@@ -124,6 +159,66 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     queue.map((item) => item.id),
     ['redis', 'mysql', 'api']
   )
+}
+
+{
+  assert.equal(typeof StartupGroupCore.stopStartupGroupsForHide, 'function')
+  const calls: string[] = []
+  const states: Record<string, StartupGroupMemberState> = {
+    mysql: 'executing',
+    redis: 'running'
+  }
+  const adapter: StartupGroupAdapter = {
+    exists: async () => true,
+    getState: async (item) => states[item.id],
+    start: async () => undefined,
+    stop: async (item) => {
+      calls.push(item.id)
+      states[item.id] = 'stopped'
+    }
+  }
+  const runner = createStartupGroupRunner(() => adapter)
+  const busy = await StartupGroupCore.stopStartupGroupsForHide(
+    [makeGroup('hide', [mysql, redis])],
+    runner
+  )
+  assert.equal(busy.ok, false)
+  assert.equal(busy.reason, 'member-busy')
+  assert.equal(calls.length, 0)
+
+  states.mysql = 'running'
+  states.redis = 'running'
+  const stuckAdapter: StartupGroupAdapter = {
+    ...adapter,
+    stop: async (item) => {
+      calls.push(item.id)
+      if (item.id !== 'redis') states[item.id] = 'stopped'
+    }
+  }
+  const stuck = await StartupGroupCore.stopStartupGroupsForHide(
+    [makeGroup('hide', [mysql, redis])],
+    createStartupGroupRunner(() => stuckAdapter)
+  )
+  assert.equal(stuck.ok, false)
+  assert.equal(stuck.reason, 'not-stopped')
+  assert.deepEqual(
+    stuck.remaining.map((item) => item.item.id),
+    ['redis']
+  )
+}
+
+{
+  assert.equal(typeof ProcessTools.ProcessOwnedPidsByMarkers, 'function')
+  const processes = [
+    { PID: '10', PPID: '1', USER: 'dev', COMMAND: 'D:/mysql/8.0/bin/mysqld.exe' },
+    { PID: '11', PPID: '10', USER: 'dev', COMMAND: 'mysql worker' },
+    { PID: '20', PPID: '1', USER: 'dev', COMMAND: 'D:/mysql/8.4/bin/mysqld.exe' },
+    { PID: '21', PPID: '20', USER: 'dev', COMMAND: 'mysql worker' }
+  ]
+  assert.deepEqual(ProcessTools.ProcessOwnedPidsByMarkers(['D:/mysql/8.4'], processes, false), [
+    '20',
+    '21'
+  ])
 }
 
 {
@@ -164,7 +259,25 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 
 {
   const startCalls: Array<{ id: string; options?: unknown }> = []
-  const stopCalls: string[] = []
+  const stopCalls: Array<{ id: string; options?: unknown }> = []
+  const projectCalls: string[] = []
+  let projectLoadCalls = 0
+  const existingProjectPaths = new Set(['D:/projects/api'])
+  const projectTarget: StartupGroupProjectTarget = {
+    id: 'project-api',
+    comment: 'API Server',
+    path: 'D:/projects/api',
+    isService: true,
+    state: { isRun: false, running: false },
+    start: async (showMessage) => {
+      projectCalls.push(`start:project-api:${showMessage}`)
+      return true
+    },
+    stop: async (showMessage) => {
+      projectCalls.push(`stop:project-api:${showMessage}`)
+      return true
+    }
+  }
   const current: StartupGroupInstalledTarget = {
     id: 'current',
     version: '8.0',
@@ -177,7 +290,10 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       startCalls.push({ id: 'current', options })
       return true
     },
-    stop: async () => true
+    stop: async (options) => {
+      stopCalls.push({ id: 'current', options })
+      return true
+    }
   }
   const target: StartupGroupInstalledTarget = {
     id: 'target',
@@ -191,8 +307,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       startCalls.push({ id: 'target', options })
       return true
     },
-    stop: async () => {
-      stopCalls.push('target')
+    stop: async (options) => {
+      stopCalls.push({ id: 'target', options })
       return true
     }
   }
@@ -218,26 +334,11 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       }
       return []
     },
-    getProjects: async (module) =>
-      module === 'node'
-        ? [
-            {
-              id: 'project-api',
-              comment: 'API Server',
-              path: 'D:/projects/api',
-              isService: true,
-              state: { isRun: false, running: false },
-              start: async (showMessage) => {
-                projectCalls.push(`start:project-api:${showMessage}`)
-                return true
-              },
-              stop: async (showMessage) => {
-                projectCalls.push(`stop:project-api:${showMessage}`)
-                return true
-              }
-            } satisfies StartupGroupProjectTarget
-          ]
-        : []
+    getProjects: async (module) => {
+      projectLoadCalls += 1
+      return module === 'node' ? [projectTarget] : []
+    },
+    pathExists: async (path) => existingProjectPaths.has(path)
   })
 
   await runtime.getAdapter(mysql)?.start(mysql)
@@ -246,17 +347,22 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.deepEqual(startCalls, [
     {
       id: 'target',
-      options: { updateCurrent: false, stopOtherVersions: false }
+      options: { updateCurrent: false, stopOtherVersions: false, exactTarget: true }
     }
   ])
-  assert.deepEqual(stopCalls, ['target'])
+  assert.deepEqual(stopCalls, [{ id: 'target', options: { exactTarget: true } }])
   const missingVersion = { ...mysql, versionPath: 'D:/missing' }
   assert.equal(await runtime.getAdapter(missingVersion)?.exists(missingVersion), false)
 
-  const projectCalls: string[] = []
   await runtime.getAdapter(api)?.start(api)
   await runtime.getAdapter(api)?.stop(api)
   assert.deepEqual(projectCalls, ['start:project-api:false', 'stop:project-api:false'])
+  assert.equal(projectLoadCalls, 1)
+  const movedProject = { ...api, projectPath: 'D:/projects/api-moved' }
+  assert.equal(await runtime.getAdapter(movedProject)?.exists(movedProject), false)
+  existingProjectPaths.delete(api.projectPath)
+  assert.equal(await runtime.getAdapter(api)?.exists(api), false)
+  existingProjectPaths.add(api.projectPath)
   assert.equal(
     await runtime
       .getAdapter({ ...api, projectId: 'missing' })
@@ -304,6 +410,14 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     ['api', 'mysql']
   )
 
+  const emptied = updateStartupGroup(
+    { ...updated, defaultStartupGroupId: 'group-backend' },
+    'group-backend',
+    { name: 'Empty backend', items: [] },
+    300
+  )
+  assert.equal(emptied.defaultStartupGroupId, undefined)
+
   const deleted = deleteStartupGroup(
     { ...updated, defaultStartupGroupId: 'group-backend' },
     'group-backend'
@@ -346,6 +460,39 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 }
 
 {
+  assert.equal(typeof StartupGroupRuntimeCore.startupGroupCandidateMatchesItem, 'function')
+  const candidate = {
+    key: 'node-project-api',
+    label: 'API Server',
+    moduleLabel: 'NodeJS',
+    item: api
+  }
+  assert.equal(StartupGroupRuntimeCore.startupGroupCandidateMatchesItem(candidate, api), true)
+  assert.equal(
+    StartupGroupRuntimeCore.startupGroupCandidateMatchesItem(candidate, {
+      ...api,
+      projectPath: 'D:/projects/api-moved'
+    }),
+    false
+  )
+
+  assert.equal(typeof StartupGroupRuntimeCore.syncStartupGroupSelectedItems, 'function')
+  const synced = StartupGroupRuntimeCore.syncStartupGroupSelectedItems(
+    [mysql, api, redis],
+    [
+      { key: getStartupGroupItemKey(mysql), label: 'MySQL', moduleLabel: 'DB', item: mysql },
+      { key: getStartupGroupItemKey(redis), label: 'Redis', moduleLabel: 'DB', item: redis }
+    ],
+    [getStartupGroupItemKey(mysql), getStartupGroupItemKey(redis)],
+    () => 'new-id'
+  )
+  assert.deepEqual(
+    synced.map((item) => item.id),
+    ['mysql', 'api', 'redis']
+  )
+}
+
+{
   const readSource = (relativePath: string) =>
     readFileSync(new URL('../' + relativePath, import.meta.url), 'utf8')
   const typeSource = readSource('src/render/core/type.ts')
@@ -357,7 +504,10 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const showHideSource = readSource('src/render/components/Setup/ModuleShowHide/index.vue')
   const moduleItemSource = readSource('src/render/components/Setup/Module/moduleItem.vue')
   const setupModuleSource = readSource('src/render/components/Setup/Module/index.vue')
-
+  const installedItemSource = readSource('src/render/core/Module/ModuleInstalledItem.ts')
+  const forkBaseSource = readSource('src/fork/module/Base/index.ts')
+  const projectSource = readSource('src/render/components/LanguageProjects/Project.ts')
+  const startupRuntimeSource = readSource('src/render/components/StartupGroup/runtime.ts')
   assert.match(typeSource, /console = 'console'/)
   assert.match(typeSource, /'startup-group' = 'startup-group'/)
   assert.match(moduleSource, /moduleType: 'console'/)
@@ -366,17 +516,44 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(editorSource, /<draggable/)
   assert.match(editorSource, /item-key="id"/)
   assert.match(cardSource, /default-change/)
-  assert.match(indexSource, /const busy = ref\(false\)/)
-  assert.match(indexSource, /busy\.value = true/)
+  assert.match(
+    indexSource,
+    /const busy = computed\(\(\) => startupGroupRuntime\.runner\.executing\.value\)/
+  )
   assert.match(indexSource, /:busy="busy"/)
+  assert.match(indexSource, /let refreshGeneration = 0/)
+  assert.match(indexSource, /startupGroupRuntime\.runner\.revision\.value/)
+  assert.match(indexSource, /window\.setInterval\(\(\) => refreshAll\(false\), 2000\)/)
   assert.match(asideSource, /const legacyGroupDo =/)
   assert.match(asideSource, /resolveGroupExecutionRoute/)
   assert.match(asideSource, /startupGroupRuntime\.runner\.run/)
+  assert.match(asideSource, /let startupGroupRefreshGeneration = 0/)
+  assert.match(asideSource, /startupGroupRuntime\.runner\.revision\.value/)
+  assert.match(
+    asideSource,
+    /window\.setInterval\([\s\S]*refreshStartupGroupState\(\)\.catch\(\)[\s\S]*2000/
+  )
   assert.match(moduleSource, /registerModuleVisibilityGuard/)
+  assert.match(moduleSource, /stopStartupGroupsForHide/)
+  assert.ok(
+    moduleSource.indexOf('ElMessageBox.confirm') <
+      moduleSource.indexOf('const stopped = await stopStartupGroupsForHide')
+  )
   assert.match(showHideSource, /canSetModuleVisibility/)
   assert.match(moduleItemSource, /canSetModuleVisibility/)
   assert.match(asideSource, /consoleItem\.value, firstItem\.value/)
   assert.match(setupModuleSource, /:item="consoleItem"/)
+  assert.match(installedItemSource, /startServiceExact/)
+  assert.match(installedItemSource, /stopServiceExact/)
+  assert.match(installedItemSource, /this\.run = options\.exactTarget === true/)
+  assert.match(installedItemSource, /resolve\(options\?\.exactTarget \? `\$\{error\}` : true\)/)
+  assert.match(forkBaseSource, /startServiceExact/)
+  assert.match(forkBaseSource, /stopServiceExact/)
+  assert.match(forkBaseSource, /ProcessKillStrict/)
+  assert.match(forkBaseSource, /for \(let attempt = 0; attempt < 20; attempt \+= 1\)/)
+  assert.match(forkBaseSource, /throw new Error\(`Failed to stop exact service target:/)
+  assert.match(projectSource, /fetched = false/)
+  assert.match(startupRuntimeSource, /if \(!project\.fetched\)/)
 }
 
 {

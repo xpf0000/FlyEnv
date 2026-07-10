@@ -191,6 +191,30 @@ export const ProcessOwnedPidsByPid = (
   return tree.map((item) => item.PID)
 }
 
+export const ProcessOwnedPidsByMarkers = (
+  ownedMarkers: Array<string | null | undefined>,
+  arr: PItem[],
+  caseSensitive = true
+): string[] => {
+  const markers = ownedMarkers
+    .map((marker) => `${marker ?? ''}`.trim())
+    .filter((marker) => marker.length > 0)
+  if (markers.length === 0) return []
+
+  const normalizedMarkers = caseSensitive ? markers : markers.map((marker) => marker.toLowerCase())
+  const pids = new Set<string>()
+  for (const item of arr) {
+    const command = item.COMMAND ?? ''
+    if (!command || ProcessCommandLooksLikeElectronChild(command)) continue
+    const normalizedCommand = caseSensitive ? command : command.toLowerCase()
+    if (!normalizedMarkers.some((marker) => normalizedCommand.includes(marker))) continue
+    for (const process of ProcessListByExactPid(item.PID, arr)) {
+      pids.add(process.PID)
+    }
+  }
+  return [...pids]
+}
+
 export const ProcessSearch = (search: string, aA = true, arr: PItem[]) => {
   const all: PItem[] = []
   if (!search) {
@@ -232,7 +256,7 @@ export const ProcessSearch = (search: string, aA = true, arr: PItem[]) => {
   return all
 }
 
-export const ProcessKill = async (sig: string, pids: string[]) => {
+export const ProcessKillStrict = async (sig: string, pids: string[]) => {
   if (!pids.length) {
     return
   }
@@ -247,12 +271,8 @@ export const ProcessKill = async (sig: string, pids: string[]) => {
     useHelper = false
   }
   if (useHelper) {
-    try {
-      const res = await Helper.send('tools', 'kill', sig, pids)
-      appDebugLog(`[ProcessKill][helper]`, `${JSON.stringify({ res, sig, pids })}`).catch()
-    } catch (e) {
-      appDebugLog(`[ProcessKill][helper][error]`, `${e}`).catch()
-    }
+    const res = await Helper.send('tools', 'kill', sig, pids)
+    appDebugLog(`[ProcessKill][helper]`, `${JSON.stringify({ res, sig, pids })}`).catch()
     return
   }
 
@@ -262,9 +282,13 @@ export const ProcessKill = async (sig: string, pids: string[]) => {
   } else {
     command = `kill ${sig} ${pids.join(' ')}`
   }
+  const res = await execPromiseWithEnv(command)
+  appDebugLog(`[ProcessKill][command]`, `${JSON.stringify({ res, command })}`).catch()
+}
+
+export const ProcessKill = async (sig: string, pids: string[]) => {
   try {
-    const res = await execPromiseWithEnv(command)
-    appDebugLog(`[ProcessKill][command]`, `${JSON.stringify({ res, command })}`).catch()
+    await ProcessKillStrict(sig, pids)
   } catch (e) {
     appDebugLog(`[ProcessKill][command][error]`, `${e}`).catch()
   }

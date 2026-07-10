@@ -1,4 +1,5 @@
 import type { AllAppModule } from './type'
+import { readonly, ref } from 'vue'
 
 export type StartupGroupServiceVersionItem = {
   id: string
@@ -13,6 +14,7 @@ export type StartupGroupLanguageProjectItem = {
   type: 'language-project'
   module: AllAppModule
   projectId: string
+  projectPath: string
 }
 
 export type StartupGroupItem = StartupGroupServiceVersionItem | StartupGroupLanguageProjectItem
@@ -130,7 +132,7 @@ export function updateStartupGroup(
   draft: StartupGroupDraft,
   now: number
 ): StartupGroupConfig {
-  return {
+  return normalizeStartupGroupConfig({
     ...config,
     groups: config.groups.map((group) =>
       group.id === groupId
@@ -144,7 +146,7 @@ export function updateStartupGroup(
           }
         : group
     )
-  }
+  })
 }
 
 export function deleteStartupGroup(
@@ -179,6 +181,56 @@ export function buildStartupGroupStopQueue(groups: StartupGroup[]) {
   return queue
 }
 
+export type StartupGroupHideStopResult = {
+  ok: boolean
+  reason?: 'runner-busy' | 'member-busy' | 'stop-failed' | 'not-stopped'
+  result?: StartupGroupRunResult
+  remaining: Array<{ item: StartupGroupItem; state: StartupGroupMemberState }>
+}
+
+export async function stopStartupGroupsForHide(
+  groups: StartupGroup[],
+  runner: StartupGroupRunner
+): Promise<StartupGroupHideStopResult> {
+  if (runner.isExecuting) {
+    return { ok: false, reason: 'runner-busy', remaining: [] }
+  }
+
+  const queue = buildStartupGroupStopQueue(groups)
+  const before = await Promise.all(
+    queue.map(async (item) => ({ item, state: await runner.getItemState(item) }))
+  )
+  const executing = before.filter((item) => item.state === 'executing')
+  if (executing.length > 0 || runner.isExecuting) {
+    return { ok: false, reason: 'member-busy', remaining: executing }
+  }
+  if (queue.length === 0) {
+    return { ok: true, remaining: [] }
+  }
+
+  const result = await runner.run(
+    {
+      id: 'startup-group-hide',
+      name: 'startup-group-hide',
+      items: [...queue].reverse(),
+      createdAt: 0,
+      updatedAt: 0
+    },
+    'stop'
+  )
+  const after = await Promise.all(
+    queue.map(async (item) => ({ item, state: await runner.getItemState(item) }))
+  )
+  const remaining = after.filter((item) => ['running', 'executing'].includes(item.state))
+  if (result.members.some((item) => item.outcome === 'failed')) {
+    return { ok: false, reason: 'stop-failed', result, remaining }
+  }
+  if (remaining.length > 0) {
+    return { ok: false, reason: 'not-stopped', result, remaining }
+  }
+  return { ok: true, result, remaining: [] }
+}
+
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : `${error}`
 }
@@ -186,7 +238,12 @@ function errorMessage(error: unknown) {
 export function createStartupGroupRunner(
   getAdapter: (item: StartupGroupItem) => StartupGroupAdapter | undefined
 ) {
-  let isExecuting = false
+  const executing = ref(false)
+  const revision = ref(0)
+  const activeItems = new Set<string>()
+  const changed = () => {
+    revision.value += 1
+  }
 
   const resolveItem = async (item: StartupGroupItem) => {
     const adapter = getAdapter(item)
@@ -195,6 +252,7 @@ export function createStartupGroupRunner(
   }
 
   const getItemState = async (item: StartupGroupItem): Promise<StartupGroupMemberState> => {
+    if (activeItems.has(getStartupGroupItemKey(item))) return 'executing'
     try {
       const adapter = await resolveItem(item)
       return adapter ? await adapter.getState(item) : 'invalid'
@@ -212,8 +270,9 @@ export function createStartupGroupRunner(
     group: StartupGroup,
     action: StartupGroupRunAction
   ): Promise<StartupGroupRunResult> => {
-    if (isExecuting) throw new Error('Startup group runner is already executing')
-    isExecuting = true
+    if (executing.value) throw new Error('Startup group runner is already executing')
+    executing.value = true
+    changed()
     const members: StartupGroupRunMemberResult[] = []
     const items = action === 'start' ? group.items : [...group.items].reverse()
     let startFailed = false
@@ -225,6 +284,7 @@ export function createStartupGroupRunner(
           continue
         }
 
+        let active = false
         try {
           const adapter = await resolveItem(item)
           if (!adapter) {
@@ -242,6 +302,9 @@ export function createStartupGroupRunner(
             continue
           }
 
+          activeItems.add(getStartupGroupItemKey(item))
+          active = true
+          changed()
           if (action === 'start') {
             await adapter.start(item)
             members.push({ item, outcome: 'started' })
@@ -252,10 +315,16 @@ export function createStartupGroupRunner(
         } catch (error) {
           members.push({ item, outcome: 'failed', error: errorMessage(error) })
           if (action === 'start') startFailed = true
+        } finally {
+          if (active) {
+            activeItems.delete(getStartupGroupItemKey(item))
+            changed()
+          }
         }
       }
     } finally {
-      isExecuting = false
+      executing.value = false
+      changed()
     }
 
     return { action, members }
@@ -263,8 +332,10 @@ export function createStartupGroupRunner(
 
   return {
     get isExecuting() {
-      return isExecuting
+      return executing.value
     },
+    executing: readonly(executing),
+    revision: readonly(revision),
     getItemState,
     getGroupState,
     run

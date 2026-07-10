@@ -27,6 +27,7 @@ import {
 export class Project {
   allDirs: string[] = []
   fetching = false
+  fetched = false
   project: ProjectItem[] = []
   search = ''
   flagType: AllAppModule = 'golang'
@@ -207,8 +208,11 @@ export class Project {
             this.saveProject()
           }
         }
+        this.fetched = true
       })
-      .catch()
+      .catch(() => {
+        this.fetched = false
+      })
       .finally(() => {
         this.fetching = false
         this.fetchProjectPromise = undefined

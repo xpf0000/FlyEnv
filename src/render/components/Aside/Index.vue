@@ -112,7 +112,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, ref, watch } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
@@ -214,8 +214,12 @@
   const startupGroupState = ref<StartupGroupCardState>('stopped')
   const startupGroupHasRunning = ref(false)
   const startupGroupBusy = ref(false)
+  const startupGroupRunnerBusy = computed(() => startupGroupRuntime.runner.executing.value)
+  let startupGroupRefreshGeneration = 0
+  let startupGroupRefreshTimer: number | undefined
 
   const refreshStartupGroupState = async () => {
+    const generation = ++startupGroupRefreshGeneration
     const group = defaultStartupGroup.value
     if (!group || !startupGroupsVisible.value) {
       startupGroupState.value = 'stopped'
@@ -225,6 +229,13 @@
     const states = await Promise.all(
       group.items.map((item) => startupGroupRuntime.runner.getItemState(item))
     )
+    if (
+      generation !== startupGroupRefreshGeneration ||
+      defaultStartupGroup.value?.id !== group.id ||
+      !startupGroupsVisible.value
+    ) {
+      return
+    }
     startupGroupHasRunning.value = states.some((state) => state === 'running')
     startupGroupState.value = states.includes('invalid')
       ? 'invalid'
@@ -488,7 +499,9 @@
 
   const groupDisabled = computed(() =>
     startupGroupRoute.value === 'startup-group'
-      ? startupGroupBusy.value || startupGroupState.value === 'executing'
+      ? startupGroupBusy.value ||
+        startupGroupRunnerBusy.value ||
+        startupGroupState.value === 'executing'
       : legacyGroupDisabled.value
   )
 
@@ -825,6 +838,10 @@
     () => refreshStartupGroupState(),
     { immediate: true }
   )
+  watch(
+    () => startupGroupRuntime.runner.revision.value,
+    () => refreshStartupGroupState()
+  )
 
   const canExpand = ref(true)
 
@@ -853,6 +870,10 @@
   onMounted(() => {
     checkAppWidth()
     refreshStartupGroupState().catch()
+    startupGroupRefreshTimer = window.setInterval(() => refreshStartupGroupState().catch(), 2000)
+  })
+  onBeforeUnmount(() => {
+    if (startupGroupRefreshTimer) window.clearInterval(startupGroupRefreshTimer)
   })
 
   window.addEventListener('resize', () => {

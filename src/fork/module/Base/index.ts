@@ -21,8 +21,10 @@ import * as https from 'https'
 import {
   type PItem,
   ProcessKill,
+  ProcessKillStrict,
   ProcessListFetch,
   ProcessOwnedPidsByPid,
+  ProcessOwnedPidsByMarkers,
   ProcessSearch
 } from '@shared/Process'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
@@ -258,6 +260,81 @@ export class Base {
         }
       } catch (e) {
         console.error('save app pid error: ', e)
+      }
+    })
+  }
+
+  startServiceExact(version: SoftInstalled, ...args: any) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      if (!isWindows() && !existsSync(version?.bin) && version.typeFlag !== 'ftp-srv') {
+        reject(new Error(I18nT('fork.binNotFound')))
+        return
+      }
+      if (!version?.version) {
+        reject(new Error(I18nT('fork.versionNotFound')))
+        return
+      }
+      try {
+        resolve(await this._startServer(version, ...args).on(on))
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  stopServiceExact(version: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+      })
+      try {
+        const processes = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+        const markers = [version?.bin, version?.path]
+        const allPid = ProcessOwnedPidsByMarkers(markers, processes, !isWindows())
+        if (version?.pid) {
+          allPid.push(...ProcessOwnedPidsByPid(version.pid, processes, markers))
+        }
+        const pids = Array.from(new Set(allPid))
+        if (pids.length > 0) {
+          let signal = '-INT'
+          if (
+            !isWindows() &&
+            [
+              'mysql',
+              'mariadb',
+              'mongodb',
+              'tomcat',
+              'rabbitmq',
+              'elasticsearch',
+              'etcd',
+              'numa'
+            ].includes(this.type)
+          ) {
+            signal = '-TERM'
+          }
+          await ProcessKillStrict(signal, pids)
+
+          let remainingPids = [...pids]
+          for (let attempt = 0; attempt < 20; attempt += 1) {
+            await waitTime(500)
+            const currentProcesses = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+            remainingPids = ProcessOwnedPidsByMarkers(markers, currentProcesses, !isWindows())
+            if (version?.pid) {
+              remainingPids.push(...ProcessOwnedPidsByPid(version.pid, currentProcesses, markers))
+            }
+            remainingPids = Array.from(new Set(remainingPids))
+            if (remainingPids.length === 0) break
+          }
+          if (remainingPids.length > 0) {
+            throw new Error(`Failed to stop exact service target: ${remainingPids.join(', ')}`)
+          }
+        }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+        })
+        resolve({ 'APP-Service-Stop-PID': pids })
+      } catch (error) {
+        reject(error)
       }
     })
   }

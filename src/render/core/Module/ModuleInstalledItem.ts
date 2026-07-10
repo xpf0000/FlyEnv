@@ -3,7 +3,7 @@ import type { AllAppModule } from '@/core/type'
 import type { SoftInstalled } from '@shared/app'
 import IPC from '@/util/IPC'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-import { Module, type ModuleStartOptions } from '@/core/Module/Module'
+import { Module, type ModuleStartOptions, type ModuleStopOptions } from '@/core/Module/Module'
 import { MessageError } from '@/util/Element'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
@@ -54,17 +54,17 @@ export class ModuleInstalledItem implements SoftInstalled {
       if (module?.startExtParam) {
         try {
           params = await module.startExtParam(this)
-        } catch {
+        } catch (error) {
           this.run = false
           this.running = false
-          resolve(true)
+          resolve(options?.exactTarget ? `${error}` : true)
           return
         }
       }
       const error: string[] = []
       IPC.send(
         `app-fork:${this.typeFlag}`,
-        'startService',
+        options?.exactTarget ? 'startServiceExact' : 'startService',
         JSON.parse(JSON.stringify(this)),
         ...params
       ).then((key: string, res: any) => {
@@ -93,7 +93,7 @@ export class ModuleInstalledItem implements SoftInstalled {
     })
   }
 
-  stop(): Promise<string | boolean> {
+  stop(options: ModuleStopOptions = {}): Promise<string | boolean> {
     return new Promise(async (resolve) => {
       if (!this.run) {
         return resolve(true)
@@ -107,12 +107,35 @@ export class ModuleInstalledItem implements SoftInstalled {
       if (module?.stopExtParam) {
         try {
           params = await module.stopExtParam(this)
-        } catch {
-          this.run = false
+        } catch (error) {
+          this.run = options.exactTarget === true
           this.running = false
-          resolve(true)
+          resolve(options.exactTarget ? `${error}` : true)
           return
         }
+      }
+
+      if (options.exactTarget) {
+        this.run = true
+        IPC.send(
+          `app-fork:${this.typeFlag}`,
+          'stopServiceExact',
+          JSON.parse(JSON.stringify(this)),
+          ...params
+        ).then((key: string, res: any) => {
+          if (res?.code === 200) return
+          IPC.off(key)
+          this.running = false
+          if (res?.code === 0) {
+            this.run = false
+            this.pid = ''
+            resolve(true)
+          } else {
+            this.run = true
+            resolve(res?.msg ?? 'Operation failed')
+          }
+        })
+        return
       }
 
       IPC.send(

@@ -4,6 +4,7 @@ import type { AllAppModule } from '@/core/type'
 import { BrewStore } from '@/store/brew'
 import { uuid } from '@/util/Index'
 import { ProjectSetup } from '@/components/LanguageProjects/setup'
+import { fs } from '@/util/NodeFn'
 
 function platformModules() {
   const platform = window.Server.isMacOS
@@ -28,7 +29,10 @@ export const startupGroupRuntime = createStartupGroupRuntime({
   },
   getProjects: async (module: AllAppModule) => {
     const project = ProjectSetup(module)
-    await project.fetchProject()
+    if (!project.fetched) {
+      await project.fetchProject()
+    }
     return project.project
-  }
+  },
+  pathExists: (path: string) => fs.existsSync(path)
 })

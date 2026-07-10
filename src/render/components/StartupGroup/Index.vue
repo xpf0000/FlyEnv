@@ -41,7 +41,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, reactive, ref, watch } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
   import { ElMessageBox } from 'element-plus'
 
   import { I18nT } from '@lang/index'
@@ -63,9 +63,11 @@
   const stateMap = reactive<Record<string, StartupGroupCardState>>({})
   const runningMap = reactive<Record<string, number>>({})
   const candidates = ref<StartupGroupCandidate[]>([])
-  const busy = ref(false)
+  const busy = computed(() => startupGroupRuntime.runner.executing.value)
   const editorVisible = ref(false)
   const editingGroup = ref<StartupGroup>()
+  let refreshGeneration = 0
+  let stateRefreshTimer: number | undefined
 
   const candidateByKey = computed(
     () => new Map(candidates.value.map((candidate) => [candidate.key, candidate]))
@@ -80,25 +82,45 @@
       ? `${item.module} · ${item.versionBin}`
       : `${item.module} · ${item.projectId}`)
 
-  const refreshGroup = async (group: StartupGroup) => {
+  const fetchGroupState = async (group: StartupGroup) => {
     const states = await Promise.all(
       group.items.map((item) => startupGroupRuntime.runner.getItemState(item))
     )
-    stateMap[group.id] = states.includes('invalid')
-      ? 'invalid'
-      : states.includes('executing')
-        ? 'executing'
-        : states.length === 0 || states.every((state) => state === 'stopped')
-          ? 'stopped'
-          : states.every((state) => state === 'running')
-            ? 'running'
-            : 'partial-running'
-    runningMap[group.id] = states.filter((state) => state === 'running').length
+    return {
+      id: group.id,
+      state: states.includes('invalid')
+        ? ('invalid' as const)
+        : states.includes('executing')
+          ? ('executing' as const)
+          : states.length === 0 || states.every((state) => state === 'stopped')
+            ? ('stopped' as const)
+            : states.every((state) => state === 'running')
+              ? ('running' as const)
+              : ('partial-running' as const),
+      running: states.filter((state) => state === 'running').length
+    }
   }
 
-  const refreshAll = async () => {
-    candidates.value = await startupGroupRuntime.listCandidates()
-    await Promise.all(groups.value.map(refreshGroup))
+  const refreshAll = async (reloadCandidates = true) => {
+    const generation = ++refreshGeneration
+    const groupSnapshot = [...groups.value]
+    const [nextCandidates, states] = await Promise.all([
+      reloadCandidates ? startupGroupRuntime.listCandidates() : Promise.resolve(candidates.value),
+      Promise.all(groupSnapshot.map(fetchGroupState))
+    ])
+    if (generation !== refreshGeneration) return
+    candidates.value = nextCandidates
+    const currentIds = new Set(groupSnapshot.map((group) => group.id))
+    for (const id of Object.keys(stateMap)) {
+      if (!currentIds.has(id)) {
+        delete stateMap[id]
+        delete runningMap[id]
+      }
+    }
+    for (const item of states) {
+      stateMap[item.id] = item.state
+      runningMap[item.id] = item.running
+    }
   }
 
   const openEditor = (group?: StartupGroup) => {
@@ -116,7 +138,6 @@
 
   const execute = async (group: StartupGroup, action: 'start' | 'stop') => {
     if (busy.value) return
-    busy.value = true
     stateMap[group.id] = 'executing'
     try {
       const result = await startupGroupRuntime.runner.run(group, action)
@@ -126,11 +147,7 @@
     } catch (error) {
       MessageError(error instanceof Error ? error.message : `${error}`)
     } finally {
-      try {
-        await refreshAll()
-      } finally {
-        busy.value = false
-      }
+      await refreshAll(false)
     }
   }
 
@@ -161,7 +178,17 @@
     () => refreshAll(),
     { immediate: false }
   )
-  onMounted(refreshAll)
+  watch(
+    () => startupGroupRuntime.runner.revision.value,
+    () => refreshAll(false)
+  )
+  onMounted(() => {
+    refreshAll()
+    stateRefreshTimer = window.setInterval(() => refreshAll(false), 2000)
+  })
+  onBeforeUnmount(() => {
+    if (stateRefreshTimer) window.clearInterval(stateRefreshTimer)
+  })
 </script>
 
 <style scoped lang="scss">
