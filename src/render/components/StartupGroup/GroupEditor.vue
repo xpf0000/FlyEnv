@@ -35,42 +35,80 @@
           v-if="!loading && candidates.length === 0"
           :description="I18nT('common.startupGroup.noCandidates')"
         />
-        <el-checkbox-group v-else v-model="selectedKeys" @change="syncSelectedItems">
-          <div v-for="section in groupedCandidates" :key="section.label" class="mb-5">
-            <div class="mb-2 border-b pb-2 font-semibold">{{ section.label }}</div>
-            <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-              <div
-                v-for="candidate in section.items"
-                :key="candidate.key"
-                class="rounded border border-zinc-200 p-3 dark:border-zinc-700"
-              >
-                <el-checkbox :value="candidate.key">
-                  <span class="break-all">{{ candidate.label }}</span>
-                </el-checkbox>
-                <div
-                  v-if="candidateWarnings.get(candidate.key)?.length"
-                  class="mt-1 pl-6 text-xs text-amber-500"
-                >
-                  {{ warningLabel(candidate.key) }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </el-checkbox-group>
-
-        <div v-if="invalidItems.length" class="rounded border border-red-300 p-3">
-          <div class="mb-2 text-red-500">{{ I18nT('common.startupGroup.invalidMember') }}</div>
-          <div
-            v-for="item in invalidItems"
-            :key="item.id"
-            class="flex items-center justify-between gap-3 py-1"
+        <el-collapse v-else v-model="expandedCategories" class="startup-group-category-collapse">
+          <el-collapse-item
+            v-for="category in candidateSections"
+            :key="category.key"
+            :name="category.key"
           >
-            <span class="truncate">{{ fallbackItemLabel(item) }}</span>
-            <el-button link type="danger" @click="removeItem(item.id)">
-              {{ I18nT('common.action.delete') }}
-            </el-button>
-          </div>
-        </div>
+            <template #title>
+              <span class="font-semibold">{{ I18nT(`aside.${category.key}`) }}</span>
+            </template>
+
+            <el-collapse
+              :model-value="expandedModules[category.key] ?? []"
+              class="startup-group-module-collapse"
+              @update:model-value="setExpandedModules(category.key, $event)"
+            >
+              <el-collapse-item
+                v-for="module in category.modules"
+                :key="module.key"
+                :name="module.key"
+              >
+                <template #title>
+                  <span class="font-medium">{{ module.label }}</span>
+                </template>
+
+                <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <div
+                    v-for="candidate in module.items"
+                    :key="candidate.key"
+                    class="startup-group-candidate-card cursor-pointer rounded border p-3"
+                    :class="
+                      isCandidateSelected(candidate)
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                        : 'border-zinc-200 dark:border-zinc-700'
+                    "
+                    role="button"
+                    tabindex="0"
+                    @click="toggleCandidate(candidate)"
+                    @keydown.enter.prevent="toggleCandidate(candidate)"
+                  >
+                    <div class="flex items-start gap-2">
+                      <el-checkbox
+                        v-if="startupGroupCandidateAllowsMultiple(candidate)"
+                        :model-value="isCandidateSelected(candidate)"
+                        @click.stop
+                        @change="updateCandidateSelection(candidate, Boolean($event))"
+                      />
+                      <el-radio
+                        v-else
+                        :model-value="selectedSingleKey(candidate)"
+                        :value="candidate.key"
+                        @click.stop
+                        @change="updateCandidateSelection(candidate, true)"
+                      />
+                      <div class="min-w-0 flex-1">
+                        <div class="break-all font-medium">
+                          {{ candidate.displayName || I18nT('common.startupGroup.noRemark') }}
+                        </div>
+                        <div class="mt-1 break-all text-xs text-zinc-500">
+                          {{ candidate.displayPath }}
+                        </div>
+                        <div
+                          v-if="candidateWarnings.get(candidate.key)?.length"
+                          class="mt-1 text-xs text-amber-500"
+                        >
+                          {{ warningLabel(candidate.key) }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </el-collapse-item>
+        </el-collapse>
       </div>
 
       <div v-else>
@@ -95,9 +133,6 @@
                 :svg="import('@/svg/handle.svg?raw')"
               />
               <span class="min-w-0 flex-1 truncate">{{ itemLabel(element) }}</span>
-              <el-tag v-if="!candidateFor(element)" type="danger" effect="plain">
-                {{ I18nT('common.startupGroup.invalid') }}
-              </el-tag>
               <el-button link type="danger" @click="removeItem(element.id)">
                 {{ I18nT('common.action.delete') }}
               </el-button>
@@ -138,11 +173,15 @@
     type StartupGroupItem
   } from '@/core/StartupGroup'
   import {
+    filterValidStartupGroupItems,
     getStartupGroupCandidateWarnings,
+    startupGroupCandidateAllowsMultiple,
     startupGroupCandidateMatchesItem,
     syncStartupGroupSelectedItems,
+    updateStartupGroupCandidateSelection,
     type StartupGroupCandidate
   } from '@/core/StartupGroupRuntime'
+  import { AppModuleTypeList, type AllAppModule, type AllAppModuleType } from '@/core/type'
   import { MessageWarning } from '@/util/Element'
   import { uuid } from '@/util/Index'
   import { startupGroupRuntime } from './runtime'
@@ -177,14 +216,43 @@
   const candidateByKey = computed(
     () => new Map(candidates.value.map((candidate) => [candidate.key, candidate]))
   )
-  const groupedCandidates = computed(() => {
-    const grouped = new Map<string, StartupGroupCandidate[]>()
+
+  type CandidateModuleSection = {
+    key: AllAppModule
+    label: string
+    items: StartupGroupCandidate[]
+  }
+
+  type CandidateCategorySection = {
+    key: AllAppModuleType
+    modules: CandidateModuleSection[]
+  }
+
+  const expandedCategories = ref<AllAppModuleType[]>([])
+  const expandedModules = reactive<Partial<Record<AllAppModuleType, AllAppModule[]>>>({})
+
+  const candidateSections = computed<CandidateCategorySection[]>(() => {
+    const categories = new Map<AllAppModuleType, Map<AllAppModule, CandidateModuleSection>>()
+
     for (const candidate of candidates.value) {
-      const items = grouped.get(candidate.moduleLabel) ?? []
-      items.push(candidate)
-      grouped.set(candidate.moduleLabel, items)
+      let modules = categories.get(candidate.moduleType)
+      if (!modules) {
+        modules = new Map()
+        categories.set(candidate.moduleType, modules)
+      }
+      const moduleKey = candidate.item.module
+      let module = modules.get(moduleKey)
+      if (!module) {
+        module = { key: moduleKey, label: candidate.moduleLabel, items: [] }
+        modules.set(moduleKey, module)
+      }
+      module.items.push(candidate)
     }
-    return [...grouped.entries()].map(([label, items]) => ({ label, items }))
+
+    return AppModuleTypeList.flatMap((key) => {
+      const modules = categories.get(key)
+      return modules ? [{ key, modules: [...modules.values()] }] : []
+    })
   })
   const candidateWarnings = computed(() =>
     getStartupGroupCandidateWarnings(candidates.value, selectedKeys.value)
@@ -193,7 +261,41 @@
     const candidate = candidateByKey.value.get(getStartupGroupItemKey(item))
     return candidate && startupGroupCandidateMatchesItem(candidate, item) ? candidate : undefined
   }
-  const invalidItems = computed(() => draft.items.filter((item) => !candidateFor(item)))
+
+  const isCandidateSelected = (candidate: StartupGroupCandidate) =>
+    selectedKeys.value.includes(candidate.key)
+
+  const selectedSingleKey = (candidate: StartupGroupCandidate) =>
+    selectedKeys.value.find((key) => {
+      const selected = candidateByKey.value.get(key)
+      return (
+        selected?.item.type === 'service-version' && selected.item.module === candidate.item.module
+      )
+    })
+
+  const updateCandidateSelection = (candidate: StartupGroupCandidate, selected: boolean) => {
+    selectedKeys.value = updateStartupGroupCandidateSelection(
+      selectedKeys.value,
+      candidate,
+      candidates.value,
+      selected
+    )
+  }
+
+  const toggleCandidate = (candidate: StartupGroupCandidate) => {
+    updateCandidateSelection(
+      candidate,
+      startupGroupCandidateAllowsMultiple(candidate) ? !isCandidateSelected(candidate) : true
+    )
+  }
+
+  const setExpandedModules = (
+    category: AllAppModuleType,
+    value: string | number | Array<string | number>
+  ) => {
+    const values = Array.isArray(value) ? value : [value]
+    expandedModules[category] = values.map((item) => `${item}` as AllAppModule)
+  }
 
   const itemKey = getStartupGroupItemKey
   const fallbackItemLabel = (item: StartupGroupItem) =>
@@ -223,7 +325,19 @@
     loading.value = true
     try {
       candidates.value = await startupGroupRuntime.listCandidates()
-      selectedKeys.value = draft.items.filter(candidateFor).map(itemKey)
+      draft.items = filterValidStartupGroupItems(draft.items, candidates.value)
+      selectedKeys.value = draft.items.map(itemKey)
+
+      const selected = new Set(selectedKeys.value)
+      expandedCategories.value = candidateSections.value.map((category) => category.key)
+      for (const key of Object.keys(expandedModules) as AllAppModuleType[]) {
+        delete expandedModules[key]
+      }
+      for (const category of candidateSections.value) {
+        expandedModules[category.key] = category.modules
+          .filter((module) => module.items.some((candidate) => selected.has(candidate.key)))
+          .map((module) => module.key)
+      }
     } finally {
       loading.value = false
     }

@@ -149,6 +149,7 @@
     "nameRequired": "请输入启动组名称。",
     "noGroups": "创建启动组后，可以按顺序启动相关服务。",
     "noCandidates": "未找到已安装且支持独立启停的服务或项目。",
+    "noRemark": "无备注",
     "emptyMembers": "尚未选择成员",
     "memberCount": "服务数",
     "runningCount": "运行数",
