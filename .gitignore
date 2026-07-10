@@ -30,5 +30,6 @@ yarn-error.log
 .vscode/settings.json
 /data
 package-lock.json
+.worktrees/
 src/helper-go/rsrc_windows_amd64.syso
 src/helper-go/rsrc_windows_386.syso
