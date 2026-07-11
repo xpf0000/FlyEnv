@@ -18,8 +18,10 @@ import {
   type StartupGroup,
   type StartupGroupAdapter,
   type StartupGroupItem,
-  type StartupGroupMemberState
+  type StartupGroupMemberState,
+  type StartupGroupRunner
 } from '../src/render/core/StartupGroup'
+import { StartupGroupManager } from '../src/render/core/StartupGroupManager'
 import {
   filterValidStartupGroupItems,
   getStartupGroupCandidateWarnings,
@@ -71,6 +73,92 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     createdAt: 1,
     updatedAt: 1
   }
+}
+
+{
+  const service = {
+    version: '8.4.0',
+    bin: 'mysqld',
+    path: mysql.versionPath,
+    enable: true,
+    run: false,
+    running: false,
+    start: async () => true,
+    stop: async () => true
+  }
+  const project = {
+    id: api.projectId,
+    comment: 'API service',
+    path: api.projectPath,
+    isService: true,
+    state: { isRun: false, running: false },
+    start: async () => true,
+    stop: async () => true
+  }
+  const calls: Array<{ group: StartupGroup; action: 'start' | 'stop' }> = []
+  let executing = false
+  const runner: Pick<StartupGroupRunner, 'isExecuting' | 'run'> = {
+    get isExecuting() {
+      return executing
+    },
+    run: async (group: StartupGroup, action: 'start' | 'stop') => {
+      calls.push({ group, action })
+      return { action, members: [] }
+    }
+  }
+  const fetched: string[] = []
+  const manager = new StartupGroupManager({
+    runner,
+    getInstalled: () => [service],
+    fetchInstalled: async (module) => {
+      fetched.push(`installed:${module}`)
+    },
+    getProjectSource: () => ({
+      fetched: false,
+      project: [project],
+      fetchProject: async () => {
+        fetched.push('project:node')
+      }
+    })
+  })
+
+  assert.equal(manager.getMemberState(mysql), 'stopped')
+  service.run = true
+  assert.equal(manager.getMemberState(mysql), 'running')
+  service.running = true
+  assert.equal(manager.getMemberState(mysql), 'executing')
+  assert.equal(manager.isMemberRunning(mysql), true)
+  assert.equal(manager.isGroupExecuting(makeGroup('executing', [mysql, api])), true)
+  assert.equal(manager.isMemberDisabled(makeGroup('executing', [mysql, api]), api), true)
+  service.running = false
+  assert.equal(manager.getMemberTitle(mysql), '8.4.0')
+
+  assert.equal(manager.getMemberState(api), 'stopped')
+  project.state.isRun = true
+  assert.equal(manager.getMemberState(api), 'running')
+  assert.equal(manager.isMemberRunning(api), true)
+  assert.equal(manager.getMemberTitle(api), 'API service')
+  assert.equal(manager.getMemberPath(api), api.projectPath)
+  assert.equal(manager.isGroupRunning(makeGroup('live', [mysql, api])), true)
+
+  await manager.setGroupEnabled(makeGroup('partial', [mysql, redis]), false)
+  assert.equal(calls.at(-1)?.action, 'stop')
+  await manager.setGroupEnabled(makeGroup('stopped', [redis]), true)
+  assert.equal(calls.at(-1)?.action, 'start')
+  await manager.setMemberEnabled(makeGroup('single', [mysql, api]), api, false)
+  assert.equal(calls.at(-1)?.action, 'stop')
+  assert.deepEqual(calls.at(-1)?.group.items, [api])
+
+  assert.equal(manager.getMemberState(redis), 'invalid')
+  assert.equal(manager.isMemberDisabled(makeGroup('invalid', [redis]), redis), true)
+  executing = true
+  const callCount = calls.length
+  assert.equal(await manager.setMemberEnabled(makeGroup('busy', [mysql]), mysql, false), undefined)
+  assert.equal(calls.length, callCount)
+  executing = false
+
+  await manager.ensureSources([makeGroup('sources', [mysql, api])])
+  assert.deepEqual(fetched, ['installed:mysql', 'project:node'])
 }
 
 {
