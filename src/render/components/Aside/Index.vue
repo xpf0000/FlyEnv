@@ -48,7 +48,7 @@
           popper-class="app-popover-min-w-auto"
         >
           <template #default>
-            <span>{{ I18nT('aside.groupStart') }}</span>
+            <span>{{ groupTooltip }}</span>
           </template>
           <template #reference>
             <li class="cursor-pointer" :class="groupClass" @click="groupDo">
@@ -124,6 +124,7 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import {
     getGroupManagedTypeFlags,
+    resolveGroupAutoStartAction,
     resolveGroupExecutionRoute
   } from '@/components/Aside/groupService'
   import { AppCustomerModule } from '@/core/Module'
@@ -141,6 +142,7 @@
     type StartupGroupRunResult
   } from '@/core/StartupGroup'
   import { startupGroupRuntime } from '@/components/StartupGroup/runtime'
+  import { StartupGroupSetup } from '@/components/StartupGroup/setup'
 
   let lastTray = ''
 
@@ -208,11 +210,19 @@
     normalizeStartupGroupConfig(appStore.config.setup.startupGroups)
   )
   const defaultStartupGroup = computed(() => resolveDefaultStartupGroup(startupGroupConfig.value))
+  const groupTooltip = computed(() =>
+    defaultStartupGroup.value
+      ? I18nT('common.startupGroup.controlDefaultTooltip', {
+          name: defaultStartupGroup.value.name
+        })
+      : I18nT('common.startupGroup.controlLegacyTooltip')
+  )
   const startupGroupRoute = computed(() =>
     resolveGroupExecutionRoute(startupGroupsVisible.value, defaultStartupGroup.value)
   )
   const startupGroupState = ref<StartupGroupCardState>('stopped')
   const startupGroupHasRunning = ref(false)
+  const startupGroupStateForId = ref<string>()
   const startupGroupBusy = ref(false)
   const startupGroupRunnerBusy = computed(() => startupGroupRuntime.runner.executing.value)
   let startupGroupRefreshGeneration = 0
@@ -225,6 +235,7 @@
     if (!group || !startupGroupsVisible.value) {
       startupGroupState.value = 'stopped'
       startupGroupHasRunning.value = false
+      startupGroupStateForId.value = undefined
       return
     }
     const states = await Promise.all(
@@ -237,6 +248,7 @@
     ) {
       return
     }
+    startupGroupStateForId.value = group.id
     startupGroupHasRunning.value = states.some((state) => state === 'running')
     startupGroupState.value = states.includes('invalid')
       ? 'invalid'
@@ -616,7 +628,6 @@
                   icon
                 })
               } else {
-                console.log('icon: ', icon)
                 icon.then((res: any) => {
                   resolve({
                     ...item,
@@ -714,9 +725,7 @@
   }
 
   const startupGroupItemLabel = (item: StartupGroupItem) =>
-    item.type === 'service-version'
-      ? `${item.module} · ${item.versionBin}`
-      : `${item.module} · ${item.projectId}`
+    StartupGroupSetup.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
 
   const startupGroupResultMessage = (result: StartupGroupRunResult) =>
     result.members
@@ -810,7 +819,6 @@
   let autoStarted = false
 
   const doAutoStart = () => {
-    autoStarted = true
     if (window.Server.isWindows) {
       groupDo()
       return
@@ -824,20 +832,23 @@
     })
   }
 
-  const needAutoStart = computed(() => {
-    return (
-      appStore.config.setup?.autoStartService === true &&
-      !groupDisabled.value &&
-      !groupIsRunning.value
-    )
-  })
+  const autoStartAction = computed(() =>
+    resolveGroupAutoStartAction({
+      enabled: appStore.config.setup?.autoStartService === true,
+      disabled:
+        groupDisabled.value ||
+        (startupGroupRoute.value === 'startup-group' &&
+          defaultStartupGroup.value?.id !== startupGroupStateForId.value),
+      running: groupIsRunning.value
+    })
+  )
 
   watch(
-    needAutoStart,
-    (v) => {
-      if (v && !autoStarted) {
-        doAutoStart()
-      }
+    autoStartAction,
+    (action) => {
+      if (autoStarted || action === 'wait') return
+      autoStarted = true
+      if (action === 'start') doAutoStart()
     },
     {
       immediate: true

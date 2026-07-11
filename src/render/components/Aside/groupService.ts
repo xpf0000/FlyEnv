@@ -37,3 +37,12 @@ export function resolveGroupExecutionRoute(
 ) {
   return startupGroupsVisible && defaultGroup ? 'startup-group' : 'legacy'
 }
+
+export function resolveGroupAutoStartAction(state: {
+  enabled: boolean
+  disabled: boolean
+  running: boolean
+}): 'wait' | 'handled' | 'start' {
+  if (!state.enabled || state.disabled) return 'wait'
+  return state.running ? 'handled' : 'start'
+}

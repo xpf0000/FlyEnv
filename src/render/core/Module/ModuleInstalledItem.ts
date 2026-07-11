@@ -3,9 +3,8 @@ import type { AllAppModule } from '@/core/type'
 import type { SoftInstalled } from '@shared/app'
 import IPC from '@/util/IPC'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-import { Module, type ModuleStartOptions, type ModuleStopOptions } from '@/core/Module/Module'
+import { Module } from '@/core/Module/Module'
 import { MessageError } from '@/util/Element'
-import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 
 export class ModuleInstalledItem implements SoftInstalled {
@@ -35,43 +34,42 @@ export class ModuleInstalledItem implements SoftInstalled {
     return computed(() => ServiceActionStore.isInAppEnv(this))
   }
 
-  _onStart!: (item: ModuleInstalledItem, options?: ModuleStartOptions) => Promise<Module>
+  _onStart!: (item: ModuleInstalledItem) => Promise<Module>
 
   constructor(json: SoftInstalled) {
     Object.assign(this, json)
   }
 
   // 使用箭头函数绑定 this
-  start(options?: ModuleStartOptions): Promise<string | boolean> {
+  start(): Promise<string | boolean> {
     return new Promise(async (resolve) => {
       if (this.run && this.pid) {
         return resolve(true)
       }
       this.running = true
-      const module = await this._onStart(this, options)
+      const module = await this._onStart(this)
 
       let params: any[] = []
       if (module?.startExtParam) {
         try {
           params = await module.startExtParam(this)
-        } catch (error) {
+        } catch {
           this.run = false
           this.running = false
-          resolve(options?.exactTarget ? `${error}` : true)
+          resolve(true)
           return
         }
       }
       const error: string[] = []
       IPC.send(
         `app-fork:${this.typeFlag}`,
-        options?.exactTarget ? 'startServiceExact' : 'startService',
+        'startService',
         JSON.parse(JSON.stringify(this)),
         ...params
       ).then((key: string, res: any) => {
         if (res.code === 0) {
           IPC.off(key)
-          const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
-          this.pid = pid
+          this.pid = res?.data?.['APP-Service-Start-PID'] ?? ''
           this.run = true
           this.running = false
           resolve(true)
@@ -93,7 +91,7 @@ export class ModuleInstalledItem implements SoftInstalled {
     })
   }
 
-  stop(options: ModuleStopOptions = {}): Promise<string | boolean> {
+  stop(): Promise<string | boolean> {
     return new Promise(async (resolve) => {
       if (!this.run) {
         return resolve(true)
@@ -108,34 +106,11 @@ export class ModuleInstalledItem implements SoftInstalled {
         try {
           params = await module.stopExtParam(this)
         } catch (error) {
-          this.run = options.exactTarget === true
+          this.run = true
           this.running = false
-          resolve(options.exactTarget ? `${error}` : true)
+          resolve(`${error}`)
           return
         }
-      }
-
-      if (options.exactTarget) {
-        this.run = true
-        IPC.send(
-          `app-fork:${this.typeFlag}`,
-          'stopServiceExact',
-          JSON.parse(JSON.stringify(this)),
-          ...params
-        ).then((key: string, res: any) => {
-          if (res?.code === 200) return
-          IPC.off(key)
-          this.running = false
-          if (res?.code === 0) {
-            this.run = false
-            this.pid = ''
-            resolve(true)
-          } else {
-            this.run = true
-            resolve(res?.msg ?? 'Operation failed')
-          }
-        })
-        return
       }
 
       IPC.send(
@@ -143,12 +118,20 @@ export class ModuleInstalledItem implements SoftInstalled {
         'stopService',
         JSON.parse(JSON.stringify(this)),
         ...params
-      ).then((key: string) => {
+      ).then((key: string, res: any) => {
+        if (res?.code === 200) return
         IPC.off(key)
-        this.run = false
-        this.pid = ''
+        if (res?.code === 0) {
+          this.run = false
+          this.pid = ''
+          this.running = false
+          resolve(true)
+          return
+        }
+
+        this.run = true
         this.running = false
-        resolve(true)
+        resolve(res?.msg ?? 'Operation failed')
       })
     })
   }
@@ -180,24 +163,6 @@ export class ModuleInstalledItem implements SoftInstalled {
       action.then((res: any) => {
         if (typeof res === 'string') {
           MessageError(res)
-        } else {
-          if (flag === 'stop') {
-            this.run = false
-            this.running = false
-          } else {
-            this.run = true
-            this.running = false
-            const appStore = AppStore()
-            const brewStore = BrewStore()
-            const currentVersion = brewStore.currentVersion(this.typeFlag)
-            if (this.version !== currentVersion?.version || this.path !== currentVersion?.path) {
-              appStore.UPDATE_SERVER_CURRENT({
-                flag: this.typeFlag,
-                data: JSON.parse(JSON.stringify(this))
-              })
-              appStore.saveConfig()
-            }
-          }
         }
         resolve(true)
       })

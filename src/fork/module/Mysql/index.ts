@@ -123,31 +123,6 @@ class Mysql extends Base {
     })
   }
 
-  protected _stopServerExactGracefully(version: SoftInstalled): ForkPromise<boolean> {
-    if (!isWindows()) return super._stopServerExactGracefully(version)
-    return new ForkPromise(async (resolve) => {
-      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const configFile = join(global.Server.MysqlDir!, `my-${v}.cnf`)
-      const adminBin = join(dirname(version.bin), 'mysqladmin.exe')
-      const password = version?.rootPassword ?? 'root'
-      let port = 3306
-      if (existsSync(configFile)) {
-        try {
-          const config = iniParse(await readFile(configFile, 'utf8'))
-          port = config?.mysqld?.port ?? 3306
-        } catch {}
-      }
-      try {
-        await execPromise(
-          `"${adminBin}" --defaults-file="${configFile}" --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
-        )
-        resolve(true)
-      } catch {
-        resolve(false)
-      }
-    })
-  }
-
   _stopServer(version: SoftInstalled): ForkPromise<any> {
     if (!isWindows()) {
       return super._stopServer(version)

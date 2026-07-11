@@ -5,35 +5,42 @@
         <h2 class="text-xl font-semibold">{{ I18nT('common.startupGroup.title') }}</h2>
         <p class="text-sm text-zinc-500">{{ I18nT('common.startupGroup.description') }}</p>
       </div>
-      <el-button type="primary" @click="openEditor()">
+      <el-tooltip
+        v-if="isAddLocked"
+        placement="left"
+        :content="I18nT('common.startupGroup.licenseTips')"
+      >
+        <el-button :icon="Lock" type="warning" @click="toLicense">
+          {{ I18nT('common.startupGroup.add') }}
+        </el-button>
+      </el-tooltip>
+      <el-button v-else type="primary" @click="openEditor()">
         {{ I18nT('common.startupGroup.add') }}
       </el-button>
     </div>
 
-    <div class="main-block startup-group-main">
-      <el-empty v-if="groups.length === 0" :description="I18nT('common.startupGroup.noGroups')">
-        <el-button type="primary" @click="openEditor()">
-          {{ I18nT('common.startupGroup.add') }}
-        </el-button>
-      </el-empty>
+    <div class="main-block">
+      <el-scrollbar>
+        <el-empty v-if="groups.length === 0" :description="I18nT('common.startupGroup.noGroups')">
+          <el-button type="primary" @click="openEditor()">
+            {{ I18nT('common.startupGroup.add') }}
+          </el-button>
+        </el-empty>
 
-      <div v-else class="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-        <GroupCard
-          v-for="group in groups"
-          :key="group.id"
-          :group="group"
-          :state="stateMap[group.id] || 'stopped'"
-          :running-count="runningMap[group.id] || 0"
-          :member-labels="group.items.map(itemLabel)"
-          :is-default="config.defaultStartupGroupId === group.id"
-          :busy="busy"
-          @start="execute($event, 'start')"
-          @stop="execute($event, 'stop')"
-          @edit="openEditor"
-          @delete="removeGroup"
-          @default-change="defaultChange"
-        />
-      </div>
+        <div v-else class="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-3">
+          <GroupCard
+            v-for="group in groups"
+            :key="group.id"
+            :group="group"
+            :is-default="config.defaultStartupGroupId === group.id"
+            @group-change="executeGroup"
+            @member-change="executeMember"
+            @edit="openEditor"
+            @delete="removeGroup"
+            @default-change="defaultChange"
+          />
+        </div>
+      </el-scrollbar>
     </div>
 
     <GroupEditor v-model="editorVisible" :group="editingGroup" @saved="refreshAfterMutation" />
@@ -41,111 +48,49 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+  import { Lock } from '@element-plus/icons-vue'
   import { ElMessageBox } from 'element-plus'
+  import { computed, onMounted, ref, watch } from 'vue'
 
   import { I18nT } from '@lang/index'
-  import type {
-    StartupGroup,
-    StartupGroupCardState,
-    StartupGroupItem,
-    StartupGroupRunResult
+  import { SetupStore } from '@/components/Setup/store'
+  import {
+    isStartupGroupCreationLocked,
+    type StartupGroup,
+    type StartupGroupItem,
+    type StartupGroupRunResult
   } from '@/core/StartupGroup'
-  import type { StartupGroupCandidate } from '@/core/StartupGroupRuntime'
+  import Router from '@/router'
+  import { AppStore } from '@/store/app'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import GroupCard from './GroupCard.vue'
   import GroupEditor from './GroupEditor.vue'
-  import { startupGroupRuntime } from './runtime'
+  import { StartupGroupSetup } from './setup'
   import { useStartupGroupStore } from './store'
 
   const store = useStartupGroupStore()
   const { groups, config } = store
-  const stateMap = reactive<Record<string, StartupGroupCardState>>({})
-  const runningMap = reactive<Record<string, number>>({})
-  const candidates = ref<StartupGroupCandidate[]>([])
-  const busy = computed(() => startupGroupRuntime.runner.executing.value)
+  const appStore = AppStore()
+  const setupStore = SetupStore()
+  const isAddLocked = computed(() =>
+    isStartupGroupCreationLocked(setupStore.isActive, groups.value.length)
+  )
   const editorVisible = ref(false)
   const editingGroup = ref<StartupGroup>()
-  let refreshGeneration = 0
-  let refreshInFlight: Promise<void> | undefined
-  let refreshQueued = false
-  let reloadCandidatesQueued = false
-  let stateRefreshTimer: number | undefined
-
-  const candidateByKey = computed(
-    () => new Map(candidates.value.map((candidate) => [candidate.key, candidate]))
-  )
-  const itemKey = (item: StartupGroupItem) =>
-    item.type === 'service-version'
-      ? `service-version:${item.module}:${item.versionPath}`
-      : `language-project:${item.module}:${item.projectId}`
   const itemLabel = (item: StartupGroupItem) =>
-    candidateByKey.value.get(itemKey(item))?.label ??
-    (item.type === 'service-version'
-      ? `${item.module} · ${item.versionBin}`
-      : `${item.module} · ${item.projectId}`)
+    StartupGroupSetup.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
 
-  const fetchGroupState = async (group: StartupGroup) => {
-    const states = await Promise.all(
-      group.items.map((item) => startupGroupRuntime.runner.getItemState(item))
-    )
-    return {
-      id: group.id,
-      state: states.includes('invalid')
-        ? ('invalid' as const)
-        : states.includes('executing')
-          ? ('executing' as const)
-          : states.length === 0 || states.every((state) => state === 'stopped')
-            ? ('stopped' as const)
-            : states.every((state) => state === 'running')
-              ? ('running' as const)
-              : ('partial-running' as const),
-      running: states.filter((state) => state === 'running').length
-    }
-  }
-
-  const refreshOnce = async (reloadCandidates: boolean, generation: number) => {
-    const groupSnapshot = [...groups.value]
-    const [nextCandidates, states] = await Promise.all([
-      reloadCandidates ? startupGroupRuntime.listCandidates() : Promise.resolve(candidates.value),
-      Promise.all(groupSnapshot.map(fetchGroupState))
-    ])
-    if (generation !== refreshGeneration) return
-    candidates.value = nextCandidates
-    const currentIds = new Set(groupSnapshot.map((group) => group.id))
-    for (const id of Object.keys(stateMap)) {
-      if (!currentIds.has(id)) {
-        delete stateMap[id]
-        delete runningMap[id]
-      }
-    }
-    for (const item of states) {
-      stateMap[item.id] = item.state
-      runningMap[item.id] = item.running
-    }
-  }
-
-  const refreshAll = (reloadCandidates = true): Promise<void> => {
-    refreshGeneration += 1
-    refreshQueued = true
-    reloadCandidatesQueued = reloadCandidatesQueued || reloadCandidates
-    if (refreshInFlight) return refreshInFlight
-
-    refreshInFlight = (async () => {
-      do {
-        refreshQueued = false
-        const generation = refreshGeneration
-        const shouldReloadCandidates = reloadCandidatesQueued
-        reloadCandidatesQueued = false
-        await refreshOnce(shouldReloadCandidates, generation)
-      } while (refreshQueued)
-    })().finally(() => {
-      refreshInFlight = undefined
-    })
-    return refreshInFlight
+  const toLicense = () => {
+    setupStore.tab = 'licenses'
+    appStore.currentPage = '/setup'
+    Router.push({ path: '/setup' }).then().catch()
   }
 
   const openEditor = (group?: StartupGroup) => {
+    if (!group && isAddLocked.value) {
+      toLicense()
+      return
+    }
     editingGroup.value = group
     editorVisible.value = true
   }
@@ -158,20 +103,28 @@
     return lines.join('<br/>') || I18nT('base.success')
   }
 
-  const execute = async (group: StartupGroup, action: 'start' | 'stop') => {
-    if (busy.value) return
-    stateMap[group.id] = 'executing'
+  const execute = async (operation: () => Promise<StartupGroupRunResult | undefined>) => {
     try {
-      const result = await startupGroupRuntime.runner.run(group, action)
+      const result = await operation()
+      if (!result) return
       const hasError = result.members.some((item) => ['failed', 'invalid'].includes(item.outcome))
       if (hasError) MessageError(resultMessage(result))
       else MessageSuccess(resultMessage(result))
     } catch (error) {
       MessageError(error instanceof Error ? error.message : `${error}`)
-    } finally {
-      await refreshAll(false)
     }
   }
+
+  const executeGroup = (group: StartupGroup, enabled: boolean) =>
+    execute(() => StartupGroupSetup.setGroupEnabled(group, enabled))
+
+  const executeMember = (group: StartupGroup, item: StartupGroupItem, enabled: boolean) =>
+    execute(() => StartupGroupSetup.setMemberEnabled(group, item, enabled))
+
+  const ensureSources = () =>
+    StartupGroupSetup.ensureSources(groups.value).catch((error) => {
+      MessageError(error instanceof Error ? error.message : `${error}`)
+    })
 
   const removeGroup = async (group: StartupGroup) => {
     try {
@@ -181,7 +134,7 @@
         { type: 'warning' }
       )
       await store.remove(group.id)
-      await refreshAll()
+      await ensureSources()
     } catch {}
   }
 
@@ -192,25 +145,14 @@
 
   const refreshAfterMutation = async () => {
     editingGroup.value = undefined
-    await refreshAll()
+    await ensureSources()
   }
 
   watch(
     () => groups.value.map((group) => `${group.id}:${group.updatedAt}`).join('|'),
-    () => refreshAll(),
-    { immediate: false }
+    ensureSources
   )
-  watch(
-    () => startupGroupRuntime.runner.revision.value,
-    () => refreshAll(false)
-  )
-  onMounted(() => {
-    refreshAll()
-    stateRefreshTimer = window.setInterval(() => refreshAll(false), 2000)
-  })
-  onBeforeUnmount(() => {
-    if (stateRefreshTimer) window.clearInterval(stateRefreshTimer)
-  })
+  onMounted(ensureSources)
 </script>
 
 <style scoped lang="scss">

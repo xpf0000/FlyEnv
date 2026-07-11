@@ -1,4 +1,3 @@
-import type { ModuleStartOptions, ModuleStopOptions } from './Module/Module'
 import {
   createStartupGroupRunner,
   getStartupGroupItemKey,
@@ -16,8 +15,8 @@ export type StartupGroupInstalledTarget = {
   run: boolean
   running: boolean
   port?: number
-  start(options?: ModuleStartOptions): Promise<string | boolean>
-  stop(options?: ModuleStopOptions): Promise<string | boolean>
+  start(): Promise<string | boolean>
+  stop(): Promise<string | boolean>
 }
 
 export type StartupGroupProjectTarget = {
@@ -269,18 +268,12 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
     start: async (item) => {
       const target = await installedTarget(item)
       if (!target) throw new Error('Service version not found')
-      await ensureSuccess(
-        target.start({
-          updateCurrent: false,
-          stopOtherVersions: false,
-          exactTarget: true
-        })
-      )
+      await ensureSuccess(target.start())
     },
     stop: async (item) => {
       const target = await installedTarget(item)
       if (!target) throw new Error('Service version not found')
-      await ensureSuccess(target.stop({ exactTarget: true }))
+      await ensureSuccess(target.stop())
     }
   }
 
@@ -347,7 +340,6 @@ export function createStartupGroupRuntime(dependencies: StartupGroupRuntimeDepen
     for (const module of modules.filter((item) => item.moduleType === 'language')) {
       const projects = await projectsFor(module.typeFlag)
       for (const project of projects.filter((item) => item.isService)) {
-        if (!(await dependencies.pathExists(project.path))) continue
         const item: StartupGroupItem = {
           id: dependencies.createId(),
           type: 'language-project',

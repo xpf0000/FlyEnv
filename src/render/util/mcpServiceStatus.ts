@@ -44,14 +44,15 @@ export function syncServiceStatusFromMcp<
   })
 
   installed.forEach((item) => {
+    if (item.running) {
+      return
+    }
     const hit = item.bin ? runningByBin.get(item.bin) : undefined
     if (hit) {
       item.run = true
-      item.running = false
       item.pid = hit.pid ? `${hit.pid}` : item.pid
     } else {
       item.run = false
-      item.running = false
       item.pid = ''
     }
   })

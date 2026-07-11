@@ -182,7 +182,7 @@ const state: State = {
   httpServe: [],
   versionInitiated: false,
   httpServeService: {},
-  currentPage: '/hosts',
+  currentPage: '/startup-group',
   floatBtnShow: true,
   appVersion: {
     app: '',

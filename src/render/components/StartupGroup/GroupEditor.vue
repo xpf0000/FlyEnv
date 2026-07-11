@@ -3,145 +3,158 @@
     v-model="show"
     :title="group ? I18nT('common.startupGroup.edit') : I18nT('common.startupGroup.add')"
     width="760px"
+    class="el-dialog-content-flex-1 h-[75%] dark:bg-[#1d2033]"
     destroy-on-close
   >
-    <el-steps :active="step" align-center class="mb-6">
-      <el-step :title="I18nT('common.startupGroup.basicInfo')" />
-      <el-step :title="I18nT('common.startupGroup.selectServices')" />
-      <el-step :title="I18nT('common.startupGroup.startOrder')" />
-    </el-steps>
+    <div class="h-full overflow-hidden flex flex-col">
+      <el-steps :active="step" align-center class="mb-6 flex-shrink-0">
+        <el-step :title="I18nT('common.startupGroup.basicInfo')" />
+        <el-step :title="I18nT('common.startupGroup.selectServices')" />
+        <el-step :title="I18nT('common.startupGroup.startOrder')" />
+      </el-steps>
 
-    <el-scrollbar max-height="58vh">
-      <div class="startup-group-editor-body">
-        <el-form v-if="step === 0" label-position="top">
-          <el-form-item :label="I18nT('common.label.name')" required>
-            <el-input v-model="draft.name" maxlength="64" show-word-limit />
-          </el-form-item>
-          <el-form-item :label="I18nT('common.label.description')">
-            <el-input
-              v-model="draft.description"
-              type="textarea"
-              :rows="4"
-              maxlength="240"
-              show-word-limit
-            />
-          </el-form-item>
-          <el-form-item :label="I18nT('common.startupGroup.color')">
-            <el-color-picker v-model="draft.color" />
-          </el-form-item>
-        </el-form>
+      <div class="flex-1 overflow-hidden">
+        <el-scrollbar>
+          <div class="startup-group-editor-body min-h-full">
+            <el-form v-if="step === 0" label-position="top">
+              <el-form-item :label="I18nT('common.label.name')" required>
+                <el-input v-model="draft.name" maxlength="64" show-word-limit />
+              </el-form-item>
+              <el-form-item :label="I18nT('common.label.description')">
+                <el-input
+                  v-model="draft.description"
+                  type="textarea"
+                  :rows="4"
+                  maxlength="240"
+                  show-word-limit
+                />
+              </el-form-item>
+              <el-form-item :label="I18nT('common.startupGroup.color')">
+                <el-color-picker v-model="draft.color" />
+              </el-form-item>
+            </el-form>
 
-        <div v-else-if="step === 1" v-loading="loading" class="flex flex-col gap-4">
-          <el-empty
-            v-if="!loading && candidates.length === 0"
-            :description="I18nT('common.startupGroup.noCandidates')"
-          />
-          <el-collapse v-else v-model="expandedCategories" class="startup-group-category-collapse">
-            <el-collapse-item
-              v-for="category in candidateSections"
-              :key="category.key"
-              :name="category.key"
+            <div
+              v-else-if="step === 1"
+              v-loading="loading"
+              class="flex flex-col gap-4 min-h-8 h-full"
             >
-              <template #title>
-                <span class="font-semibold">{{ I18nT(`aside.${category.key}`) }}</span>
-              </template>
-
+              <el-empty
+                v-if="!loading && candidates.length === 0"
+                :description="I18nT('common.startupGroup.noCandidates')"
+              />
               <el-collapse
-                :model-value="expandedModules[category.key] ?? []"
-                class="startup-group-module-collapse ml-4"
-                @update:model-value="setExpandedModules(category.key, $event)"
+                v-else
+                v-model="expandedCategories"
+                class="startup-group-category-collapse"
               >
                 <el-collapse-item
-                  v-for="module in category.modules"
-                  :key="module.key"
-                  :name="module.key"
+                  v-for="category in candidateSections"
+                  :key="category.key"
+                  :name="category.key"
                 >
                   <template #title>
-                    <span class="font-medium">{{ module.label }}</span>
+                    <span class="font-semibold pl-2">{{ I18nT(`aside.${category.key}`) }}</span>
                   </template>
 
-                  <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    <div
-                      v-for="candidate in module.items"
-                      :key="candidate.key"
-                      class="startup-group-candidate-card cursor-pointer rounded border p-3"
-                      :class="
-                        isCandidateSelected(candidate)
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                          : 'border-zinc-200 dark:border-zinc-700'
-                      "
-                      role="button"
-                      tabindex="0"
-                      @click="toggleCandidate(candidate)"
-                      @keydown.enter.prevent="toggleCandidate(candidate)"
+                  <el-collapse
+                    :model-value="expandedModules[category.key] ?? []"
+                    class="startup-group-module-collapse ml-4"
+                    @update:model-value="setExpandedModules(category.key, $event)"
+                  >
+                    <el-collapse-item
+                      v-for="module in category.modules"
+                      :key="module.key"
+                      :name="module.key"
                     >
-                      <div class="flex items-start gap-2">
-                        <el-checkbox
-                          v-if="startupGroupCandidateAllowsMultiple(candidate)"
-                          :model-value="isCandidateSelected(candidate)"
-                          @click.stop
-                          @change="updateCandidateSelection(candidate, Boolean($event))"
-                        />
-                        <el-radio
-                          v-else
-                          :model-value="selectedSingleKey(candidate)"
-                          :value="candidate.key"
-                          @click.capture.prevent.stop="toggleCandidate(candidate)"
-                        />
-                        <div class="min-w-0 flex-1">
-                          <div class="break-all font-medium">
-                            {{ candidate.displayName || I18nT('common.startupGroup.noRemark') }}
-                          </div>
-                          <div class="mt-1 break-all text-xs text-zinc-500">
-                            {{ candidate.displayPath }}
-                          </div>
-                          <div
-                            v-if="candidateWarnings.get(candidate.key)?.length"
-                            class="mt-1 text-xs text-amber-500"
-                          >
-                            {{ warningLabel(candidate.key) }}
+                      <template #title>
+                        <span class="font-medium pl-1">{{ module.label }}</span>
+                      </template>
+
+                      <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+                        <div
+                          v-for="candidate in module.items"
+                          :key="candidate.key"
+                          class="startup-group-candidate-card cursor-pointer rounded border p-3"
+                          :class="
+                            isCandidateSelected(candidate)
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                              : 'border-zinc-200 dark:border-zinc-700'
+                          "
+                          role="button"
+                          tabindex="0"
+                          @click="toggleCandidate(candidate)"
+                          @keydown.enter.prevent="toggleCandidate(candidate)"
+                        >
+                          <div class="flex items-start gap-2">
+                            <el-checkbox
+                              v-if="startupGroupCandidateAllowsMultiple(candidate)"
+                              :model-value="isCandidateSelected(candidate)"
+                              @click.stop
+                              @change="updateCandidateSelection(candidate, Boolean($event))"
+                            />
+                            <el-radio
+                              v-else
+                              :model-value="selectedSingleKey(candidate)"
+                              :value="candidate.key"
+                              @click.capture.prevent.stop="toggleCandidate(candidate)"
+                            />
+                            <div class="min-w-0 flex-1">
+                              <div class="break-all font-medium">
+                                {{ candidate.displayName || I18nT('common.startupGroup.noRemark') }}
+                              </div>
+                              <div class="mt-1 break-all text-xs text-zinc-500">
+                                {{ candidate.displayPath }}
+                              </div>
+                              <div
+                                v-if="candidateWarnings.get(candidate.key)?.length"
+                                class="mt-1 text-xs text-amber-500"
+                              >
+                                {{ warningLabel(candidate.key) }}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </el-collapse-item>
+                  </el-collapse>
                 </el-collapse-item>
               </el-collapse>
-            </el-collapse-item>
-          </el-collapse>
-        </div>
+            </div>
 
-        <div v-else>
-          <el-empty
-            v-if="draft.items.length === 0"
-            :description="I18nT('common.startupGroup.emptyMembers')"
-          />
-          <draggable
-            v-else
-            v-model="draft.items"
-            item-key="id"
-            handle=".startup-group-drag-handle"
-            class="flex flex-col gap-2"
-          >
-            <template #item="{ element, index }">
-              <div
-                class="flex items-center gap-3 rounded border border-zinc-200 px-3 py-2 dark:border-zinc-700"
+            <div v-else>
+              <el-empty
+                v-if="draft.items.length === 0"
+                :description="I18nT('common.startupGroup.emptyMembers')"
+              />
+              <draggable
+                v-else
+                v-model="draft.items"
+                item-key="id"
+                handle=".startup-group-drag-handle"
+                class="flex flex-col gap-2"
               >
-                <span class="w-7 text-center text-zinc-500">{{ index + 1 }}</span>
-                <yb-icon
-                  class="startup-group-drag-handle h-5 w-5 cursor-move"
-                  :svg="import('@/svg/handle.svg?raw')"
-                />
-                <span class="min-w-0 flex-1 truncate">{{ itemLabel(element) }}</span>
-                <el-button link type="danger" @click="removeItem(element.id)">
-                  {{ I18nT('common.action.delete') }}
-                </el-button>
-              </div>
-            </template>
-          </draggable>
-        </div>
+                <template #item="{ element, index }">
+                  <div
+                    class="flex items-center gap-3 rounded border border-zinc-200 px-3 py-2 dark:border-zinc-700"
+                  >
+                    <span class="w-7 text-center text-zinc-500">{{ index + 1 }}</span>
+                    <yb-icon
+                      class="startup-group-drag-handle h-5 w-5 cursor-move"
+                      :svg="import('@/svg/handle.svg?raw')"
+                    />
+                    <span class="min-w-0 flex-1 truncate">{{ itemLabel(element) }}</span>
+                    <el-button link type="danger" @click="removeItem(element.id)">
+                      {{ I18nT('common.action.delete') }}
+                    </el-button>
+                  </div>
+                </template>
+              </draggable>
+            </div>
+          </div>
+        </el-scrollbar>
       </div>
-    </el-scrollbar>
+    </div>
 
     <template #footer>
       <div class="flex justify-between">

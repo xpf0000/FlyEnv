@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import * as ProcessTools from '../src/shared/Process'
 import * as StartupGroupCore from '../src/render/core/StartupGroup'
 import * as StartupGroupRuntimeCore from '../src/render/core/StartupGroupRuntime'
 
@@ -35,7 +34,10 @@ import {
   type StartupGroupProjectTarget,
   type StartupGroupRuntimeModule
 } from '../src/render/core/StartupGroupRuntime'
-import { resolveGroupExecutionRoute } from '../src/render/components/Aside/groupService'
+import {
+  resolveGroupAutoStartAction,
+  resolveGroupExecutionRoute
+} from '../src/render/components/Aside/groupService'
 import {
   canSetModuleVisibility,
   registerModuleVisibilityGuard
@@ -107,6 +109,10 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     }
   }
   const fetched: string[] = []
+  const moduleLabels: Record<string, string> = {
+    mysql: 'MySQL',
+    node: 'NodeJS'
+  }
   const manager = new StartupGroupManager({
     runner,
     getInstalled: () => [service],
@@ -119,7 +125,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       fetchProject: async () => {
         fetched.push('project:node')
       }
-    })
+    }),
+    getModuleLabel: (module) => moduleLabels[module]
   })
 
   assert.equal(manager.getMemberState(mysql), 'stopped')
@@ -132,14 +139,38 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.equal(manager.isMemberDisabled(makeGroup('executing', [mysql, api]), api), true)
   service.running = false
   assert.equal(manager.getMemberTitle(mysql), '8.4.0')
+  assert.equal(manager.getMemberModuleLabel(mysql), 'MySQL')
+  assert.equal(typeof manager.getMemberDisplayTitle, 'function')
+  assert.equal(manager.getMemberDisplayTitle(mysql), 'MySQL · 8.4.0')
+  assert.equal(manager.getMemberPath(mysql), mysql.versionPath)
 
   assert.equal(manager.getMemberState(api), 'stopped')
   project.state.isRun = true
   assert.equal(manager.getMemberState(api), 'running')
   assert.equal(manager.isMemberRunning(api), true)
   assert.equal(manager.getMemberTitle(api), 'API service')
+  assert.equal(manager.getMemberModuleLabel(api), 'NodeJS')
+  assert.equal(manager.getMemberDisplayTitle(api, '无备注'), 'NodeJS · API service')
   assert.equal(manager.getMemberPath(api), api.projectPath)
+  const missingProject = {
+    ...api,
+    projectId: 'missing-project',
+    projectPath: 'D:/projects/missing'
+  }
+  assert.equal(manager.getMemberPath(missingProject), missingProject.projectPath)
+  assert.equal(manager.getMemberDisplayTitle(missingProject, '无备注'), 'NodeJS · 无备注')
+  assert.equal(manager.getMemberModuleLabel(redis), 'redis')
   assert.equal(manager.isGroupRunning(makeGroup('live', [mysql, api])), true)
+  assert.equal(typeof manager.isAnyGroupRunning, 'function')
+  assert.equal(
+    manager.isAnyGroupRunning([makeGroup('default', [redis]), makeGroup('secondary', [api])]),
+    true
+  )
+  project.state.isRun = false
+  assert.equal(
+    manager.isAnyGroupRunning([makeGroup('default', [redis]), makeGroup('secondary', [api])]),
+    false
+  )
 
   await manager.setGroupEnabled(makeGroup('partial', [mysql, redis]), false)
   assert.equal(calls.at(-1)?.action, 'stop')
@@ -223,13 +254,19 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 
 {
   const calls: string[] = []
+  const states: Record<string, StartupGroupMemberState> = {
+    mysql: 'running',
+    redis: 'running',
+    api: 'running'
+  }
   const adapter: StartupGroupAdapter = {
     exists: async () => true,
-    getState: async () => 'running',
+    getState: async (item) => states[item.id],
     start: async () => undefined,
     stop: async (item) => {
       calls.push(`stop:${item.id}`)
       if (item.id === 'redis') throw new Error('redis did not stop')
+      states[item.id] = 'stopped'
     }
   }
 
@@ -243,6 +280,22 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     result.members.map((item) => item.outcome),
     ['stopped', 'failed', 'stopped']
   )
+}
+
+{
+  const adapter: StartupGroupAdapter = {
+    exists: async () => true,
+    getState: async () => 'running',
+    start: async () => undefined,
+    stop: async () => undefined
+  }
+
+  const result = await createStartupGroupRunner(() => adapter).run(
+    makeGroup('stop-native-result', [mysql]),
+    'stop'
+  )
+
+  assert.equal(result.members[0].outcome, 'stopped')
 }
 
 {
@@ -303,20 +356,6 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 }
 
 {
-  assert.equal(typeof ProcessTools.ProcessOwnedPidsByMarkers, 'function')
-  const processes = [
-    { PID: '10', PPID: '1', USER: 'dev', COMMAND: 'D:/mysql/8.0/bin/mysqld.exe' },
-    { PID: '11', PPID: '10', USER: 'dev', COMMAND: 'mysql worker' },
-    { PID: '20', PPID: '1', USER: 'dev', COMMAND: 'D:/mysql/8.4/bin/mysqld.exe' },
-    { PID: '21', PPID: '20', USER: 'dev', COMMAND: 'mysql worker' }
-  ]
-  assert.deepEqual(ProcessTools.ProcessOwnedPidsByMarkers(['D:/mysql/8.4'], processes, false), [
-    '20',
-    '21'
-  ])
-}
-
-{
   assert.equal(getStartupGroupCardState([]), 'stopped')
   assert.equal(getStartupGroupCardState(['running', 'running']), 'running')
   assert.equal(getStartupGroupCardState(['stopped', 'stopped']), 'stopped')
@@ -350,6 +389,14 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     }),
     { groups: [makeGroup('empty', [])] }
   )
+}
+
+{
+  assert.equal(typeof StartupGroupCore.isStartupGroupCreationLocked, 'function')
+  assert.equal(StartupGroupCore.isStartupGroupCreationLocked(false, 0), false)
+  assert.equal(StartupGroupCore.isStartupGroupCreationLocked(false, 1), true)
+  assert.equal(StartupGroupCore.isStartupGroupCreationLocked(true, 1), false)
+  assert.equal(StartupGroupCore.isStartupGroupCreationLocked(true, 10), false)
 }
 
 {
@@ -387,12 +434,12 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     enable: true,
     run: true,
     running: false,
-    start: async (options) => {
-      startCalls.push({ id: 'current', options })
+    start: async () => {
+      startCalls.push({ id: 'current', options: undefined })
       return true
     },
-    stop: async (options) => {
-      stopCalls.push({ id: 'current', options })
+    stop: async () => {
+      stopCalls.push({ id: 'current', options: undefined })
       return true
     }
   }
@@ -404,12 +451,12 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     enable: true,
     run: false,
     running: false,
-    start: async (options) => {
-      startCalls.push({ id: 'target', options })
+    start: async () => {
+      startCalls.push({ id: 'target', options: undefined })
       return true
     },
-    stop: async (options) => {
-      stopCalls.push({ id: 'target', options })
+    stop: async () => {
+      stopCalls.push({ id: 'target', options: undefined })
       return true
     }
   }
@@ -470,13 +517,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   await runtime.getAdapter(mysql)?.start(mysql)
   await runtime.getAdapter(mysql)?.stop(mysql)
 
-  assert.deepEqual(startCalls, [
-    {
-      id: 'target',
-      options: { updateCurrent: false, stopOtherVersions: false, exactTarget: true }
-    }
-  ])
-  assert.deepEqual(stopCalls, [{ id: 'target', options: { exactTarget: true } }])
+  assert.deepEqual(startCalls, [{ id: 'target', options: undefined }])
+  assert.deepEqual(stopCalls, [{ id: 'target', options: undefined }])
   const missingVersion = { ...mysql, versionPath: 'D:/missing' }
   assert.equal(await runtime.getAdapter(missingVersion)?.exists(missingVersion), false)
 
@@ -499,15 +541,23 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.deepEqual(await runtime.listCandidates(), [])
   assert.equal(moduleLoadCalls, 1)
   availableModules = runtimeModules
+  existingProjectPaths.clear()
   const candidates = await runtime.listCandidates()
   assert.equal(moduleLoadCalls, 2)
+  assert.deepEqual(
+    candidates
+      .filter((candidate) => candidate.item.module === 'node')
+      .map((candidate) => candidate.displayName),
+    ['API Server', 'Missing Service']
+  )
   assert.deepEqual(
     candidates.map((candidate) => [candidate.item.module, candidate.label]),
     [
       ['mysql', 'MySQL 8.0'],
       ['mysql', 'MySQL 8.4'],
       ['php-fpm', 'PHP-FPM 8.4.8'],
-      ['node', 'API Server']
+      ['node', 'API Server'],
+      ['node', 'Missing Service']
     ]
   )
   assert.deepEqual(
@@ -521,7 +571,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       ['mysql', 'dataBaseServer', '8.0', 'D:/mysql/8.0'],
       ['mysql', 'dataBaseServer', '8.4', 'D:/mysql/8.4'],
       ['php-fpm', 'language', '8.4.8', 'D:/php/8.4.8'],
-      ['node', 'language', 'API Server', 'D:/projects/api']
+      ['node', 'language', 'API Server', 'D:/projects/api'],
+      ['node', 'language', 'Missing Service', 'D:/projects/missing']
     ]
   )
 }
@@ -792,11 +843,16 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const forkBaseSource = readSource('src/fork/module/Base/index.ts')
   const projectSource = readSource('src/render/components/LanguageProjects/Project.ts')
   const startupRuntimeSource = readSource('src/render/components/StartupGroup/runtime.ts')
+  const startupRuntimeCoreSource = readSource('src/render/core/StartupGroupRuntime.ts')
+  const startupGroupAsideSource = readSource('src/render/components/StartupGroup/aside.vue')
   const startupGroupSetupSource = readSource('src/render/components/StartupGroup/setup.ts')
+  const routerSource = readSource('src/render/router/index.ts')
+  const appStoreSource = readSource('src/render/store/app.ts')
   const mysqlForkSource = readSource('src/fork/module/Mysql/index.ts')
   const mariaDBForkSource = readSource('src/fork/module/Mariadb/index.ts')
   const postgreSQLForkSource = readSource('src/fork/module/Postgresql/index.ts')
   const mongoDBForkSource = readSource('src/fork/module/Mongodb/index.ts')
+  const processSource = readSource('src/shared/Process.ts')
   const enCommonSource = readSource('src/lang/en/common.json')
   const zhCommonSource = readSource('src/lang/zh/common.json')
   assert.match(typeSource, /console = 'console'/)
@@ -825,19 +881,93 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.doesNotMatch(editorSource, /overflow:\s*auto/)
   assert.match(enCommonSource, /"noRemark": "No remark"/)
   assert.match(zhCommonSource, /"noRemark": "无备注"/)
-  assert.match(cardSource, /default-change/)
+  assert.match(zhCommonSource, /"controlDefaultTooltip": "启动或停止默认启动组：\{name\}"/)
+  assert.match(zhCommonSource, /"controlLegacyTooltip": "启动或停止所有已显示的服务"/)
   assert.match(
-    indexSource,
-    /const busy = computed\(\(\) => startupGroupRuntime\.runner\.executing\.value\)/
+    zhCommonSource,
+    /"defaultTooltip": "左上角一键启停和应用自动启动服务时，将使用此启动组。"/
   )
-  assert.match(indexSource, /:busy="busy"/)
-  assert.match(indexSource, /let refreshGeneration = 0/)
-  assert.match(indexSource, /let refreshInFlight: Promise<void> \| undefined/)
-  assert.match(indexSource, /while \(refreshQueued\)/)
-  assert.match(indexSource, /startupGroupRuntime\.runner\.revision\.value/)
-  assert.match(indexSource, /window\.setInterval\(\(\) => refreshAll\(false\), 2000\)/)
+  assert.match(
+    enCommonSource,
+    /"controlDefaultTooltip": "Start or stop the default startup group: \{name\}"/
+  )
+  assert.match(enCommonSource, /"controlLegacyTooltip": "Start or stop all displayed services"/)
+  assert.match(
+    enCommonSource,
+    /"defaultTooltip": "The top-left one-click control and automatic service startup will use this startup group\."/
+  )
+  assert.match(zhCommonSource, /"licenseTips": "未获得许可证，只能创建一个启动组。"/)
+  assert.match(
+    enCommonSource,
+    /"licenseTips": "Without a license, only one startup group can be created\."/
+  )
+  assert.match(cardSource, /StartupGroupSetup\.isGroupRunning/)
+  assert.match(cardSource, /StartupGroupSetup\.isMemberRunning/)
+  assert.match(cardSource, /StartupGroupSetup\.isMemberDisabled/)
+  assert.match(cardSource, /:before-change="groupBeforeChange"/)
+  assert.match(cardSource, /:before-change="\(\) => memberBeforeChange\(item\)"/)
+  assert.doesNotMatch(cardSource, /@change="groupChange"/)
+  assert.doesNotMatch(cardSource, /@change="memberChange\(item, \$event\)"/)
+  assert.match(
+    cardSource,
+    /emit\('group-change', props\.group, !groupRunning\.value\)[\s\S]*?return false/
+  )
+  assert.match(
+    cardSource,
+    /emit\('member-change', props\.group, item, !memberRunning\(item\)\)[\s\S]*?return false/
+  )
+  assert.match(cardSource, /<el-checkbox/)
+  assert.match(cardSource, /:icon="Edit"/)
+  assert.match(cardSource, /:icon="Delete"/)
+  assert.match(cardSource, /size="small"/)
+  assert.match(cardSource, /<el-tooltip/)
+  assert.match(cardSource, /<el-scrollbar[^>]*height="248px"/)
+  assert.match(cardSource, /class="flex h-14 items-center/)
+  assert.match(cardSource, /StartupGroupSetup\.getMemberDisplayTitle/)
+  assert.match(cardSource, /memberDisplayTitle/)
+  assert.match(cardSource, /memberPath\(item\)/)
+  assert.match(cardSource, /h-\[248px\]/)
+  assert.doesNotMatch(cardSource, /<el-tag/)
+  assert.doesNotMatch(cardSource, /common\.action\.start/)
+  assert.doesNotMatch(cardSource, /common\.action\.stop/)
+  assert.match(
+    cardSource,
+    /<el-tooltip[^>]*:content="I18nT\('common\.startupGroup\.defaultTooltip'\)"/
+  )
+  assert.match(cardSource, /<el-checkbox[^>]*:model-value="isDefault"/)
+  assert.match(startupGroupAsideSource, /StartupGroupSetup\.isAnyGroupRunning/)
+  assert.match(startupGroupAsideSource, /normalizeStartupGroupConfig/)
+  assert.match(startupGroupAsideSource, /StartupGroupSetup\.ensureSources/)
+  assert.match(startupGroupAsideSource, /:class="\{ run: startupGroupRunning \}"/)
+  assert.doesNotMatch(startupGroupAsideSource, /setInterval/)
+  assert.doesNotMatch(startupGroupAsideSource, /runningMap/)
+  assert.match(indexSource, /StartupGroupSetup\.ensureSources/)
+  assert.match(indexSource, /SetupStore/)
+  assert.match(indexSource, /isStartupGroupCreationLocked/)
+  assert.match(indexSource, /const isAddLocked = computed/)
+  assert.match(indexSource, /:icon="Lock"/)
+  assert.match(indexSource, /common\.startupGroup\.licenseTips/)
+  assert.match(indexSource, /const toLicense =/)
+  assert.match(indexSource, /setupStore\.tab = 'licenses'/)
+  assert.match(indexSource, /if \(!group && isAddLocked\.value\)/)
+  assert.match(indexSource, /StartupGroupSetup\.setGroupEnabled/)
+  assert.match(indexSource, /StartupGroupSetup\.setMemberEnabled/)
+  assert.match(indexSource, /@group-change="executeGroup"/)
+  assert.match(indexSource, /@member-change="executeMember"/)
+  assert.doesNotMatch(indexSource, /stateMap/)
+  assert.doesNotMatch(indexSource, /runningMap/)
+  assert.doesNotMatch(indexSource, /setInterval/)
+  assert.doesNotMatch(indexSource, /runner\.getItemState/)
   assert.match(asideSource, /const legacyGroupDo =/)
   assert.match(asideSource, /resolveGroupExecutionRoute/)
+  assert.match(asideSource, /const groupTooltip = computed/)
+  assert.match(asideSource, /common\.startupGroup\.controlDefaultTooltip/)
+  assert.match(asideSource, /common\.startupGroup\.controlLegacyTooltip/)
+  assert.match(asideSource, /name: defaultStartupGroup\.value\.name/)
+  assert.match(asideSource, /\{\{ groupTooltip \}\}/)
+  assert.doesNotMatch(asideSource, /I18nT\('aside\.groupStart'\)/)
+  assert.match(asideSource, /startupGroupStateForId/)
+  assert.match(asideSource, /defaultStartupGroup\.value\?\.id !== startupGroupStateForId\.value/)
   assert.match(asideSource, /startupGroupRuntime\.runner\.run/)
   assert.match(asideSource, /let startupGroupRefreshGeneration = 0/)
   assert.match(asideSource, /let startupGroupRefreshInFlight: Promise<void> \| undefined/)
@@ -856,25 +986,23 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(showHideSource, /canSetModuleVisibility/)
   assert.match(moduleItemSource, /canSetModuleVisibility/)
   assert.match(asideSource, /consoleItem\.value, firstItem\.value/)
+  assert.match(routerSource, /redirect: '\/startup-group'/)
+  assert.match(appStoreSource, /currentPage: '\/startup-group'/)
+  assert.match(asideSource, /const isRouteCurrent = computed/)
+  assert.match(asideSource, /const item = allModule\.value\[0\]/)
+  assert.match(asideSource, /const sub = item\?\.sub\?\.\[0\]/)
   assert.match(setupModuleSource, /:item="consoleItem"/)
   assert.match(
     moduleCoreSource,
     /if \(Object\.prototype\.hasOwnProperty\.call\(versions, this\.typeFlag\)\) \{[\s\S]*?await this\.applyInstalledVersions\(versions\[this\.typeFlag\] \?\? \[\]\)[\s\S]*?\} else \{[\s\S]*?this\.installedFetched = true[\s\S]*?this\.fetchInstalleding = false[\s\S]*?\}/
   )
-  assert.match(installedItemSource, /startServiceExact/)
-  assert.match(installedItemSource, /stopServiceExact/)
-  assert.match(installedItemSource, /this\.run = options\.exactTarget === true/)
-  assert.match(installedItemSource, /resolve\(options\?\.exactTarget \? `\$\{error\}` : true\)/)
-  assert.match(forkBaseSource, /startServiceExact/)
-  assert.match(forkBaseSource, /stopServiceExact/)
-  assert.match(forkBaseSource, /_stopServerExactGracefully/)
-  assert.ok(
-    forkBaseSource.indexOf('await this._stopServerExactGracefully') <
-      forkBaseSource.indexOf('await ProcessKillStrict')
+  assert.doesNotMatch(moduleCoreSource, /ModuleStartOptions|ModuleStopOptions/)
+  assert.doesNotMatch(installedItemSource, /exactTarget|startServiceExact|stopServiceExact/)
+  assert.doesNotMatch(
+    forkBaseSource,
+    /startServiceExact|stopServiceExact|_stopServerExactGracefully/
   )
-  assert.match(forkBaseSource, /ProcessKillStrict/)
-  assert.match(forkBaseSource, /for \(let attempt = 0; attempt < 20; attempt \+= 1\)/)
-  assert.match(forkBaseSource, /throw new Error\(`Failed to stop exact service target:/)
+  assert.doesNotMatch(processSource, /ProcessOwnedPidsByMarkers/)
   assert.match(projectSource, /fetched = false/)
   assert.match(startupRuntimeSource, /if \(!project\.fetched\)/)
   assert.match(startupRuntimeSource, /getModules:\s*platformModules,/)
@@ -885,10 +1013,21 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(startupGroupSetupSource, /BrewStore\(\)\.module/)
   assert.match(startupGroupSetupSource, /ProjectSetup/)
   assert.match(startupGroupSetupSource, /startupGroupRuntime\.runner/)
-  assert.match(mysqlForkSource, /_stopServerExactGracefully/)
-  assert.match(mariaDBForkSource, /_stopServerExactGracefully/)
-  assert.match(postgreSQLForkSource, /_stopServerExactGracefully/)
-  assert.match(mongoDBForkSource, /_stopServerExactGracefully/)
+  assert.match(startupGroupSetupSource, /AppModules/)
+  assert.match(startupGroupSetupSource, /getModuleLabel/)
+  assert.match(startupGroupSetupSource, /typeof label === 'function'/)
+  assert.doesNotMatch(
+    startupRuntimeCoreSource,
+    /for \(const project of projects\.filter[\s\S]*?if \(!\(await dependencies\.pathExists\(project\.path\)\)\) continue/
+  )
+  assert.match(
+    startupRuntimeCoreSource,
+    /return project && \(await dependencies\.pathExists\(project\.path\)\) \? project : undefined/
+  )
+  assert.doesNotMatch(mysqlForkSource, /_stopServerExactGracefully/)
+  assert.doesNotMatch(mariaDBForkSource, /_stopServerExactGracefully/)
+  assert.doesNotMatch(postgreSQLForkSource, /_stopServerExactGracefully/)
+  assert.doesNotMatch(mongoDBForkSource, /_stopServerExactGracefully/)
 }
 
 {
@@ -896,6 +1035,32 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.equal(resolveGroupExecutionRoute(true, defaultGroup), 'startup-group')
   assert.equal(resolveGroupExecutionRoute(true, undefined), 'legacy')
   assert.equal(resolveGroupExecutionRoute(false, defaultGroup), 'legacy')
+
+  assert.equal(typeof resolveGroupAutoStartAction, 'function')
+  assert.equal(
+    resolveGroupAutoStartAction({
+      enabled: true,
+      disabled: true,
+      running: false
+    }),
+    'wait'
+  )
+  assert.equal(
+    resolveGroupAutoStartAction({
+      enabled: true,
+      disabled: false,
+      running: true
+    }),
+    'handled'
+  )
+  assert.equal(
+    resolveGroupAutoStartAction({
+      enabled: true,
+      disabled: false,
+      running: false
+    }),
+    'start'
+  )
 }
 
 {

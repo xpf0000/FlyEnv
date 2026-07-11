@@ -191,30 +191,6 @@ export const ProcessOwnedPidsByPid = (
   return tree.map((item) => item.PID)
 }
 
-export const ProcessOwnedPidsByMarkers = (
-  ownedMarkers: Array<string | null | undefined>,
-  arr: PItem[],
-  caseSensitive = true
-): string[] => {
-  const markers = ownedMarkers
-    .map((marker) => `${marker ?? ''}`.trim())
-    .filter((marker) => marker.length > 0)
-  if (markers.length === 0) return []
-
-  const normalizedMarkers = caseSensitive ? markers : markers.map((marker) => marker.toLowerCase())
-  const pids = new Set<string>()
-  for (const item of arr) {
-    const command = item.COMMAND ?? ''
-    if (!command || ProcessCommandLooksLikeElectronChild(command)) continue
-    const normalizedCommand = caseSensitive ? command : command.toLowerCase()
-    if (!normalizedMarkers.some((marker) => normalizedCommand.includes(marker))) continue
-    for (const process of ProcessListByExactPid(item.PID, arr)) {
-      pids.add(process.PID)
-    }
-  }
-  return [...pids]
-}
-
 export const ProcessSearch = (search: string, aA = true, arr: PItem[]) => {
   const all: PItem[] = []
   if (!search) {

@@ -8,7 +8,7 @@ const routes = [
     path: '/',
     name: 'main',
     component: Main,
-    redirect: '/hosts',
+    redirect: '/startup-group',
     children: [
       {
         path: '/setup',

@@ -14,99 +14,117 @@
             {{ group.description }}
           </div>
         </div>
-        <el-tag :type="statusType" effect="plain">{{ statusLabel }}</el-tag>
+        <el-switch
+          class="flex-shrink-0"
+          :model-value="groupRunning"
+          :disabled="groupDisabled"
+          :before-change="groupBeforeChange"
+        />
       </div>
     </template>
 
-    <div class="flex flex-col gap-4">
-      <div class="flex gap-5 text-sm text-zinc-500">
-        <span>{{ I18nT('common.startupGroup.memberCount') }}: {{ group.items.length }}</span>
-        <span>{{ I18nT('common.startupGroup.runningCount') }}: {{ runningCount }}</span>
+    <el-scrollbar v-if="group.items.length" height="248px">
+      <div class="flex flex-col gap-2 pr-2">
+        <div
+          v-for="item in group.items"
+          :key="item.id"
+          class="flex h-14 items-center justify-between gap-3 rounded border border-zinc-200 px-3 py-2 dark:border-zinc-700"
+        >
+          <div class="min-w-0 flex-1">
+            <div class="truncate text-sm font-medium">
+              {{ memberDisplayTitle(item) }}
+            </div>
+            <div class="mt-1 truncate text-xs text-zinc-500">
+              {{ memberPath(item) }}
+            </div>
+          </div>
+          <el-switch
+            :model-value="memberRunning(item)"
+            :disabled="StartupGroupSetup.isMemberDisabled(group, item)"
+            :before-change="() => memberBeforeChange(item)"
+          />
+        </div>
       </div>
-
-      <div class="min-h-12 text-sm">
-        <template v-if="memberLabels.length">
-          <el-tag
-            v-for="label in memberLabels.slice(0, 3)"
-            :key="label"
-            class="mr-2 mb-2 max-w-full"
-            effect="plain"
-          >
-            <span class="inline-block max-w-52 truncate align-middle">{{ label }}</span>
-          </el-tag>
-          <el-tag v-if="memberLabels.length > 3" class="mb-2" type="info" effect="plain">
-            +{{ memberLabels.length - 3 }}
-          </el-tag>
-        </template>
-        <span v-else class="text-zinc-400">{{ I18nT('common.startupGroup.emptyMembers') }}</span>
-      </div>
-
-      <div class="flex flex-wrap gap-2">
-        <el-button type="primary" :disabled="startDisabled" @click="emit('start', group)">
-          {{ I18nT('common.action.start') }}
-        </el-button>
-        <el-button :disabled="stopDisabled" @click="emit('stop', group)">
-          {{ I18nT('common.action.stop') }}
-        </el-button>
-        <el-button @click="emit('edit', group)">{{ I18nT('common.action.edit') }}</el-button>
-        <el-button type="danger" plain @click="emit('delete', group)">
-          {{ I18nT('common.action.delete') }}
-        </el-button>
-      </div>
+    </el-scrollbar>
+    <div v-else class="flex h-[248px] items-center text-sm text-zinc-400">
+      {{ I18nT('common.startupGroup.emptyMembers') }}
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-between">
-        <span>{{ I18nT('common.startupGroup.default') }}</span>
-        <el-switch :model-value="isDefault" :disabled="defaultDisabled" @change="defaultChange" />
+      <div class="flex items-center justify-between gap-3">
+        <el-tooltip
+          :content="I18nT('common.startupGroup.defaultTooltip')"
+          placement="top"
+          :show-after="600"
+        >
+          <el-checkbox :model-value="isDefault" :disabled="defaultDisabled" @change="defaultChange">
+            {{ I18nT('common.startupGroup.default') }}
+          </el-checkbox>
+        </el-tooltip>
+        <div class="flex items-center gap-2">
+          <el-tooltip :content="I18nT('common.action.edit')" placement="top">
+            <el-button :icon="Edit" size="small" circle @click="emit('edit', group)" />
+          </el-tooltip>
+          <el-tooltip :content="I18nT('common.action.delete')" placement="top">
+            <el-button
+              :icon="Delete"
+              size="small"
+              circle
+              type="danger"
+              plain
+              @click="emit('delete', group)"
+            />
+          </el-tooltip>
+        </div>
       </div>
     </template>
   </el-card>
 </template>
 
 <script lang="ts" setup>
+  import { Delete, Edit } from '@element-plus/icons-vue'
   import { computed } from 'vue'
 
   import { I18nT } from '@lang/index'
-  import type { StartupGroup, StartupGroupCardState } from '@/core/StartupGroup'
+  import type { StartupGroup, StartupGroupItem } from '@/core/StartupGroup'
+  import { StartupGroupSetup } from './setup'
 
   const props = defineProps<{
     group: StartupGroup
-    state: StartupGroupCardState
-    runningCount: number
-    memberLabels: string[]
     isDefault: boolean
-    busy: boolean
   }>()
 
   const emit = defineEmits<{
-    start: [group: StartupGroup]
-    stop: [group: StartupGroup]
+    'group-change': [group: StartupGroup, enabled: boolean]
+    'member-change': [group: StartupGroup, item: StartupGroupItem, enabled: boolean]
     edit: [group: StartupGroup]
     delete: [group: StartupGroup]
     'default-change': [group: StartupGroup, enabled: boolean]
   }>()
 
-  const statusLabel = computed(() => I18nT(`common.startupGroup.state.${props.state}`))
-  const statusType = computed(() => {
-    if (props.state === 'running') return 'success'
-    if (props.state === 'invalid') return 'danger'
-    if (props.state === 'executing' || props.state === 'partial-running') return 'warning'
-    return 'info'
-  })
-  const startDisabled = computed(
-    () => props.busy || props.state === 'running' || props.state === 'executing'
+  const groupRunning = computed(() => StartupGroupSetup.isGroupRunning(props.group))
+  const groupDisabled = computed(
+    () =>
+      StartupGroupSetup.busy ||
+      StartupGroupSetup.isGroupExecuting(props.group) ||
+      props.group.items.length === 0
   )
-  const stopDisabled = computed(
-    () => props.busy || props.state === 'stopped' || props.state === 'executing'
-  )
-  const defaultDisabled = computed(
-    () => props.busy || props.group.items.length === 0 || props.state === 'executing'
-  )
+  const defaultDisabled = computed(() => StartupGroupSetup.busy || props.group.items.length === 0)
 
-  const defaultChange = (value: string | number | boolean) => {
-    emit('default-change', props.group, value === true)
+  const memberPath = (item: StartupGroupItem) => StartupGroupSetup.getMemberPath(item)
+  const memberDisplayTitle = (item: StartupGroupItem) =>
+    StartupGroupSetup.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
+  const memberRunning = (item: StartupGroupItem) => StartupGroupSetup.isMemberRunning(item)
+  const groupBeforeChange = () => {
+    emit('group-change', props.group, !groupRunning.value)
+    return false
   }
+  const memberBeforeChange = (item: StartupGroupItem) => {
+    emit('member-change', props.group, item, !memberRunning(item))
+    return false
+  }
+  const defaultChange = (value: string | number | boolean) =>
+    emit('default-change', props.group, value === true)
 </script>
 
 <style scoped lang="scss">

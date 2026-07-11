@@ -145,7 +145,6 @@ export default class IPCHandler extends EventEmitter {
    */
   private handleForkCallback(command: string, key: string, module: string, info: any, args: any[]) {
     const win = this.deps.mainWindow!
-    this.deps.windowManager.sendCommandTo(win, command, key, info)
 
     // 把前端获取已安装版本的结果同步到 MCP 缓存
     if (
@@ -168,6 +167,8 @@ export default class IPCHandler extends EventEmitter {
       const arr: string[] = info.data['APP-Service-Stop-PID']
       ServiceProcessManager.delPid(module, arr)
     }
+
+    this.deps.windowManager.sendCommandTo(win, command, key, info)
 
     // 处理许可证码
     if (info?.data?.['APP-Licenses-Code']) {

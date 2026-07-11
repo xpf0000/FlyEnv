@@ -132,27 +132,6 @@ export const Setup = (typeFlag: AllAppModule) => {
             mysqlStore.groupStart().then()
           }
         }
-        if (typeFlag !== 'php' && currentVersion.value) {
-          currentVersion.value.run = false
-          currentVersion.value.running = false
-        }
-        if (flag === 'stop') {
-          item.run = false
-          item.running = false
-        } else {
-          item.run = true
-          item.running = false
-          if (
-            item.version !== currentVersion.value?.version ||
-            item.path !== currentVersion.value?.path
-          ) {
-            appStore.UPDATE_SERVER_CURRENT({
-              flag: typeFlag,
-              data: JSON.parse(JSON.stringify(item))
-            })
-            appStore.saveConfig()
-          }
-        }
       }
     })
   }

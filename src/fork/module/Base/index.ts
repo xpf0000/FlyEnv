@@ -21,10 +21,8 @@ import * as https from 'https'
 import {
   type PItem,
   ProcessKill,
-  ProcessKillStrict,
   ProcessListFetch,
   ProcessOwnedPidsByPid,
-  ProcessOwnedPidsByMarkers,
   ProcessSearch
 } from '@shared/Process'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
@@ -260,96 +258,6 @@ export class Base {
         }
       } catch (e) {
         console.error('save app pid error: ', e)
-      }
-    })
-  }
-
-  startServiceExact(version: SoftInstalled, ...args: any) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      if (!isWindows() && !existsSync(version?.bin) && version.typeFlag !== 'ftp-srv') {
-        reject(new Error(I18nT('fork.binNotFound')))
-        return
-      }
-      if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNotFound')))
-        return
-      }
-      try {
-        resolve(await this._startServer(version, ...args).on(on))
-      } catch (error) {
-        reject(error)
-      }
-    })
-  }
-
-  protected _stopServerExactGracefully(_version: SoftInstalled): ForkPromise<boolean> {
-    return new ForkPromise((resolve) => resolve(false))
-  }
-
-  stopServiceExact(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
-      })
-      try {
-        const markers = [version?.bin, version?.path]
-        const findExactPids = async () => {
-          const processes = isWindows() ? await ProcessPidList() : await ProcessListFetch()
-          const found = ProcessOwnedPidsByMarkers(markers, processes, !isWindows())
-          if (version?.pid) {
-            found.push(...ProcessOwnedPidsByPid(version.pid, processes, markers))
-          }
-          return Array.from(new Set(found))
-        }
-        const waitForExactExit = async () => {
-          let remainingPids: string[] = []
-          for (let attempt = 0; attempt < 20; attempt += 1) {
-            await waitTime(500)
-            remainingPids = await findExactPids()
-            if (remainingPids.length === 0) break
-          }
-          return remainingPids
-        }
-
-        const pids = await findExactPids()
-        if (pids.length > 0) {
-          let remainingPids = [...pids]
-          try {
-            if (await this._stopServerExactGracefully(version).on(on)) {
-              remainingPids = await waitForExactExit()
-            }
-          } catch {}
-
-          let signal = '-INT'
-          if (
-            !isWindows() &&
-            [
-              'mysql',
-              'mariadb',
-              'mongodb',
-              'tomcat',
-              'rabbitmq',
-              'elasticsearch',
-              'etcd',
-              'numa'
-            ].includes(this.type)
-          ) {
-            signal = '-TERM'
-          }
-          if (remainingPids.length > 0) {
-            await ProcessKillStrict(signal, remainingPids)
-            remainingPids = await waitForExactExit()
-          }
-          if (remainingPids.length > 0) {
-            throw new Error(`Failed to stop exact service target: ${remainingPids.join(', ')}`)
-          }
-        }
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
-        })
-        resolve({ 'APP-Service-Stop-PID': pids })
-      } catch (error) {
-        reject(error)
       }
     })
   }

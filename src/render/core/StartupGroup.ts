@@ -82,6 +82,10 @@ export function normalizeStartupGroupConfig(value: unknown): StartupGroupConfig 
   return defaultStartupGroupId ? { groups, defaultStartupGroupId } : { groups }
 }
 
+export function isStartupGroupCreationLocked(isLicenseActive: boolean, groupCount: number) {
+  return !isLicenseActive && groupCount >= 1
+}
+
 export function getStartupGroupItemKey(item: StartupGroupItem) {
   return item.type === 'service-version'
     ? `service-version:${item.module}:${item.versionPath}`
