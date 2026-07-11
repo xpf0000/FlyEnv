@@ -7,21 +7,53 @@ import {
   setDefaultStartupGroup,
   updateStartupGroup,
   type StartupGroup,
+  type StartupGroupConfig,
   type StartupGroupDraft
 } from '@/core/StartupGroup'
-import { AppStore } from '@/store/app'
 import { uuid } from '@/util/Index'
+import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 
-export function useStartupGroupStore() {
-  const appStore = AppStore()
-  const config = computed(() => normalizeStartupGroupConfig(appStore.config.setup.startupGroups))
-  const groups = computed(() => config.value.groups)
+const storageKey = 'flyenv-startup-groups'
+const state = reactive<{ config: StartupGroupConfig }>({
+  config: normalizeStartupGroupConfig(undefined)
+})
+const config = computed(() => state.config)
+const groups = computed(() => state.config.groups)
 
-  const save = async (next: ReturnType<typeof normalizeStartupGroupConfig>) => {
-    appStore.config.setup.startupGroups = reactive(next)
-    await appStore.saveConfig()
+let loaded = false
+let loading: Promise<StartupGroupConfig> | undefined
+
+const replaceConfig = (value: unknown) => {
+  state.config = normalizeStartupGroupConfig(value)
+  return state.config
+}
+
+export const initStartupGroupStore = async (): Promise<StartupGroupConfig> => {
+  if (loaded) return state.config
+
+  if (!loading) {
+    loading = StorageGetAsync<StartupGroupConfig>(storageKey)
+      .catch(() => normalizeStartupGroupConfig(undefined))
+      .then((saved) => {
+        loaded = true
+        return replaceConfig(saved)
+      })
+      .finally(() => {
+        loading = undefined
+      })
   }
 
+  return loading
+}
+
+const save = async (next: StartupGroupConfig) => {
+  await initStartupGroupStore()
+  const normalized = normalizeStartupGroupConfig(next)
+  await StorageSetAsync(storageKey, JSON.parse(JSON.stringify(normalized)))
+  replaceConfig(normalized)
+}
+
+export function useStartupGroupStore() {
   const add = async (draft: StartupGroupDraft) => {
     const result = createStartupGroup(config.value, draft, uuid(), Date.now())
     await save(result.config)
@@ -46,5 +78,5 @@ export function useStartupGroupStore() {
   const find = (id: string): StartupGroup | undefined =>
     groups.value.find((group) => group.id === id)
 
-  return { config, groups, add, update, remove, setDefault, find }
+  return { config, groups, init: initStartupGroupStore, add, update, remove, setDefault, find }
 }
