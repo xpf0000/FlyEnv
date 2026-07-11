@@ -1,53 +1,136 @@
-# Local Lifecycle Status Sync Protection
+# Versioned Service Status Synchronization
 
 ## Goal
 
-Prevent delayed main-process service-status notifications from overwriting a renderer version object while that version is executing a local start or stop operation.
+Make renderer service state deterministic when lifecycle responses and service-status notifications arrive asynchronously or out of order from renderer, MCP, tray, or other main-process entry points.
 
-## Root Cause
+## Problem
 
-`ModuleInstalledItem.start()` and `stop()` use `running=true` to mark a local lifecycle operation. The main process separately tracks registered service PIDs and broadcasts `service-status-changed` notifications.
+FlyEnv currently has two renderer state writers:
 
-During a stop, the renderer can set `run=false` before the main process removes the registered PID. A delayed notification still contains that PID, and `syncServiceStatusFromMcp()` currently overwrites the same object with `run=true`, `running=false`, and the old PID. The final stop response then restores `run=false`, producing the observed false-true-false sequence.
+- A local lifecycle callback updates a version object's `run`, `running`, and `pid` fields.
+- Main-process `service-status-changed` notifications update the same fields from `ServiceProcessManager`.
 
-## Design
+Changing the order in which the main process calls `sendCommandTo()` reduces one race but does not guarantee delivery order across asynchronous Electron IPC. A notification created by an earlier start can arrive after a later stop response and restore an obsolete PID.
 
-The fix has two layers:
+The `running` guard is also insufficient. Once the local response sets `running=false`, a delayed older notification is indistinguishable from a current external update.
 
-1. `syncServiceStatusFromMcp()` skips any installed version whose `running` field is already `true`.
-2. The main-process fork callback updates `ServiceProcessManager` and emits the resulting status notification before returning the lifecycle result to the renderer caller.
+## Main-Process Status Revisions
 
-This keeps the local lifecycle operation authoritative for that version until its own renderer IPC callback completes. Versions that are not executing locally continue to accept main-process and MCP status updates normally.
+`ServiceProcessManager` will maintain a monotonically increasing revision for each module flag.
 
-The callback ordering is required because renderer completion changes `running` back to false. If a status notification created by the same lifecycle action is emitted after that completion response, the per-version guard can no longer identify it as an in-progress update.
+Every mutation that can change visible service state increments the module revision and produces a complete snapshot:
 
-The guard is per version rather than per module so a PHP module with multiple independently running PHP-FPM versions can still synchronize unaffected versions.
+```ts
+type ServiceStatusItem = {
+  flag: string
+  revision: number
+  running: boolean
+  instances: RunningInstance[]
+}
+```
 
-No state fields, timers, queues, or startup-group-specific exceptions will be added.
+Affected mutations include:
 
-## Alternatives Considered
+- `addPid`
+- `delPid`
+- `delByBin`
+- `delAll`
 
-- Ignoring all status notifications while any version in a module is executing would prevent the race but unnecessarily blocks valid updates for other PHP-FPM versions.
-- Delaying the renderer's `run=false` assignment until stop completion reduces one transition but does not stop status synchronization from clearing `running` or overwriting an in-progress start.
-- Adding startup-group-local pending state would duplicate the global lifecycle state and would not fix the same race on module pages.
-- Adding notification revisions could reject out-of-order messages, but it adds persistent ordering state when the lifecycle callback already has a natural causal order that can be corrected at its source.
+The mutation method returns the same snapshot that is broadcast to renderer listeners. The revision belongs to the module state, not to an individual IPC request.
 
-## Error Behavior
+## Lifecycle Responses
 
-If the local lifecycle operation fails, its existing callback remains responsible for the final `run`, `running`, and `pid` values. A later main-process notification can synchronize the version once `running` becomes false.
+When renderer IPC starts or stops a service, `IPCHandler` will:
+
+1. Apply the PID mutation to `ServiceProcessManager`.
+2. Obtain the resulting versioned status snapshot.
+3. Attach that snapshot to the lifecycle response sent to the renderer.
+
+The normal `service-status-changed` broadcast remains enabled. The direct response and broadcast may arrive in any order, but they carry the same revision and snapshot.
+
+MCP lifecycle methods continue calling `ServiceProcessManager` after fork success. Their mutations automatically produce versioned broadcasts; MCP protocol responses remain unchanged.
+
+## Renderer Status Coordinator
+
+Add a renderer-lifetime singleton coordinator. It stores, per module:
+
+```ts
+type PendingServiceStatus = {
+  latestRevision: number
+  latestSnapshot: ServiceStatusItem
+}
+```
+
+This is ordering metadata, not a duplicate service-running state. It is not persisted and is independent of page component lifetime.
+
+The coordinator follows these rules:
+
+1. A snapshot with `revision` lower than or equal to the latest known revision is ignored.
+2. A newer snapshot replaces the stored snapshot.
+3. If the module has a locally executing installed version, the snapshot is retained but not applied yet.
+4. When the local lifecycle callback completes, the coordinator stores the response snapshot, clears the local execution flag, and applies only the highest-revision snapshot.
+5. If no local lifecycle operation is active, a new snapshot is applied immediately.
+
+Snapshots update `run` and `pid`. External status synchronization must never set `running`; that field is owned exclusively by local lifecycle execution.
+
+## Ordering Examples
+
+### Late start notification after stop
+
+```text
+start snapshot revision 10: running instance PID 24528
+stop snapshot revision 11: no instances
+
+arrival: stop response 11 → start notification 10
+result: apply 11, discard 10
+```
+
+### External MCP start during a local operation
+
+```text
+local stop response revision 11
+MCP start notification revision 12
+
+while local action is active: retain revision 12
+after local completion: apply revision 12
+```
+
+The final UI state therefore follows the newest committed main-process state rather than the arrival order.
+
+## Multi-Version Modules
+
+Revisions are per module because each status notification is a complete module snapshot. For PHP/PHP-FPM, one revision can describe multiple running version instances. Applying a snapshot updates every idle installed version in that module consistently.
+
+Local execution detection remains per installed version. A snapshot is deferred while any installed version in that module is performing a local lifecycle operation, then applied atomically after completion.
+
+## Compatibility
+
+Status payloads without a valid numeric revision are applied using the existing behavior for compatibility with initialization or older callers. Versioned lifecycle broadcasts and direct responses use the new coordinator path.
+
+Services that do not return a trackable PID retain their existing direct lifecycle result behavior. The versioned snapshot path applies when `ServiceProcessManager` produces a committed status.
+
+## Error Handling
+
+If a local lifecycle request fails before a committed status snapshot exists, its existing error handling clears `running` and retains or restores the appropriate local state.
+
+If a newer external snapshot was retained during the failed request, the coordinator applies that snapshot after local execution ends.
 
 ## Testing
 
-Extend `scripts/mcp-render-status-sync-test.ts` with two regression cases:
+Tests will cover:
 
-- A locally stopping version with `running=true` must not be restored to `run=true` by a notification containing its old PID.
-- A locally starting version with `running=true` must not have its execution state cleared by an empty notification.
-- The main-process fork callback must update start/stop PID registration before sending the lifecycle result to the renderer.
+- Per-module revisions increase on every PID mutation.
+- Broadcast and direct lifecycle response use the same snapshot revision.
+- Duplicate snapshots are idempotent.
+- A lower revision arriving after a higher revision is ignored.
+- A newer snapshot is deferred during local execution and applied afterward.
+- Status synchronization never clears the local `running` flag.
+- Renderer-originated start/stop and MCP-originated start/stop both update the UI.
+- PHP multi-version snapshots update the correct installed versions.
 
-Existing synchronization behavior for idle versions must remain unchanged.
-
-Run the MCP renderer status test, startup-group regression, targeted ESLint, `vue-tsc --noEmit`, and `git diff --check`.
+Run dedicated status synchronization tests, startup-group regressions, main-process tests where available, targeted ESLint, `vue-tsc --noEmit`, and `git diff --check`.
 
 ## Scope
 
-The renderer synchronization function, the main-process fork callback ordering, and the dedicated test change. PID tracking data structures, module lifecycle implementations, and startup-group state ownership remain unchanged.
+The change affects main-process service status metadata, renderer status coordination, lifecycle response metadata, and related tests. It does not change fork service commands, startup-group ordering, persisted module configuration, or MCP protocol response schemas.
