@@ -16,6 +16,7 @@
     "build": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production node electron/app-builder.mjs",
     "test:helper:contract": "tsx scripts/helper-contract-check.ts",
     "test:startup-groups": "tsx scripts/startup-group-test.ts",
+    "test:stop-process-list-cache": "tsx scripts/stop-process-list-cache-test.ts",
     "test:helper:go": "tsx scripts/helper-go-test.ts test",
     "test:helper:go:vet": "tsx scripts/helper-go-test.ts vet",
     "test:helper:go:admin": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/helper-go-admin-test.ps1 test",
