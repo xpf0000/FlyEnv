@@ -951,7 +951,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   )
   assert.match(cardSource, /<el-checkbox[^>]*:model-value="isDefault"/)
   assert.match(startupGroupAsideSource, /StartupGroupSetup\.isAnyGroupRunning/)
-  assert.match(startupGroupAsideSource, /normalizeStartupGroupConfig/)
+  assert.match(startupGroupAsideSource, /useStartupGroupStore/)
   assert.match(startupGroupAsideSource, /StartupGroupSetup\.ensureSources/)
   assert.match(startupGroupAsideSource, /:class="\{ run: startupGroupRunning \}"/)
   assert.doesNotMatch(startupGroupAsideSource, /setInterval/)

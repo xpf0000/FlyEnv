@@ -8,7 +8,6 @@ import type { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
 import type { AppServiceAliasItem } from '@shared/app'
 import { shell, app, dialog } from '@/util/NodeFn'
-import { normalizeStartupGroupConfig, type StartupGroupConfig } from '@/core/StartupGroup'
 
 export interface AppHost {
   id: number
@@ -118,7 +117,6 @@ type StateBase = SetupBase & {
   trayMenuBarStyle?: 'classic' | 'modern'
   appFont?: string
   codeFont?: string
-  startupGroups?: StartupGroupConfig
 }
 
 interface State {
@@ -241,9 +239,6 @@ export const AppStore = defineStore('app', {
       if (!this.config.setup.phpGroupStart) {
         this.config.setup.phpGroupStart = reactive({})
       }
-      this.config.setup.startupGroups = reactive(
-        normalizeStartupGroupConfig(this.config.setup.startupGroups)
-      )
     },
     INIT_HTTP_SERVE(obj: any) {
       this.httpServe = reactive(obj)

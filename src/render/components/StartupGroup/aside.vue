@@ -23,15 +23,11 @@
 
   import { I18nT } from '@lang/index'
   import { AsideSetup } from '@/core/ASide'
-  import { normalizeStartupGroupConfig } from '@/core/StartupGroup'
-  import { AppStore } from '@/store/app'
   import { StartupGroupSetup } from './setup'
+  import { useStartupGroupStore } from './store'
 
   const { showItem, currentPage, nav } = AsideSetup('startup-group')
-  const appStore = AppStore()
-  const groups = computed(
-    () => normalizeStartupGroupConfig(appStore.config.setup.startupGroups).groups
-  )
+  const { groups } = useStartupGroupStore()
   const startupGroupRunning = computed(() => StartupGroupSetup.isAnyGroupRunning(groups.value))
   const ensureSources = () => StartupGroupSetup.ensureSources(groups.value).catch(() => {})
 

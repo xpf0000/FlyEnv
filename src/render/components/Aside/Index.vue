@@ -134,20 +134,20 @@
   import { BrewStore } from '@/store/brew'
   import { ElMessageBox } from 'element-plus'
   import {
-    normalizeStartupGroupConfig,
     resolveDefaultStartupGroup,
-    setDefaultStartupGroup,
     type StartupGroupCardState,
     type StartupGroupItem,
     type StartupGroupRunResult
   } from '@/core/StartupGroup'
   import { startupGroupRuntime } from '@/components/StartupGroup/runtime'
   import { StartupGroupSetup } from '@/components/StartupGroup/setup'
+  import { useStartupGroupStore } from '@/components/StartupGroup/store'
 
   let lastTray = ''
 
   const appStore = AppStore()
   const brewStore = BrewStore()
+  const startupGroupStore = useStartupGroupStore()
 
   type AsideEntry = AppModuleItem | ModuleCustomer
   type AsideGroup = {
@@ -206,9 +206,7 @@
   })
 
   const startupGroupsVisible = computed(() => showItem.value?.['startup-group'] !== false)
-  const startupGroupConfig = computed(() =>
-    normalizeStartupGroupConfig(appStore.config.setup.startupGroups)
-  )
+  const startupGroupConfig = startupGroupStore.config
   const defaultStartupGroup = computed(() => resolveDefaultStartupGroup(startupGroupConfig.value))
   const groupTooltip = computed(() =>
     defaultStartupGroup.value
@@ -742,11 +740,7 @@
 
     const group = defaultStartupGroup.value
     if (!group && startupGroupConfig.value.defaultStartupGroupId) {
-      appStore.config.setup.startupGroups = setDefaultStartupGroup(
-        startupGroupConfig.value,
-        undefined
-      )
-      await appStore.saveConfig()
+      await startupGroupStore.setDefault()
     }
 
     if (resolveGroupExecutionRoute(startupGroupsVisible.value, group) === 'legacy') {
