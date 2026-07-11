@@ -6,8 +6,9 @@ Redesign each Startup Group card so the group and its individual members can be 
 
 ## State Ownership
 
-- Add an independent setup-style Pinia store named `useStartupGroupRuntimeStore` outside the page component.
-- The store must not maintain a second member-state map, running-count map, polling timer, or cached runtime status.
+- Add an independent `StartupGroupManager` class outside the page component.
+- Export one module-level singleton as `StartupGroupSetup = reactiveBind(new StartupGroupManager())`, following existing FlyEnv setup/store patterns.
+- The manager must not maintain a second member-state map, running-count map, polling timer, or cached runtime status.
 - A service-version member resolves to its live `ModuleInstalledItem` in `BrewStore` by normalized module and `versionPath`.
 - A language-project member resolves to its live project object in `ProjectSetup` by module, project ID, and saved project path.
 - Service-version state is derived directly from `target.run` and `target.running`.
@@ -16,9 +17,9 @@ Redesign each Startup Group card so the group and its individual members can be 
 - The existing runner's `executing` value remains an operation/serialization lock. It is not treated as a copy of service runtime state.
 - Because the resolved targets belong to global reactive stores, destroying and recreating the Startup Group page does not reset or stale their displayed state.
 
-## Store Responsibilities
+## Manager Responsibilities
 
-The independent store provides a single adapter layer for Startup Group UI consumers:
+The independent reactive class singleton provides a single adapter layer for Startup Group UI consumers:
 
 - Ensure the global module-installed and language-project collections required by configured groups have been loaded through their existing fetch methods.
 - Resolve a saved `StartupGroupItem` to its live global target.
@@ -29,7 +30,7 @@ The independent store provides a single adapter layer for Startup Group UI consu
 - Expose the existing global runner busy state so all switches are disabled for the duration of any Startup Group operation.
 - Preserve the existing result aggregation and error-message behavior.
 
-The page component only obtains groups from the configuration store, asks the runtime store to ensure their global source collections are loaded, consumes derived values, and dispatches edit, delete, default-selection, and switch events. Loading the source collections does not copy their runtime state into the Startup Group store.
+The manager resolves and returns references to the existing reactive targets rather than snapshots of their status fields. The page component only obtains groups from the configuration store, asks `StartupGroupSetup` to ensure their global source collections are loaded, consumes derived live member data, and dispatches edit, delete, default-selection, and switch events. Loading the source collections does not copy their runtime state into the manager.
 
 ## Card Layout
 
@@ -64,7 +65,7 @@ The page component only obtains groups from the configuration store, asks the ru
 
 ## Data Flow
 
-1. `GroupCard` receives the group and derived live member view models from the page/store boundary.
+1. `GroupCard` receives the group and member descriptors containing references to the live reactive targets resolved by `StartupGroupSetup`.
 2. Vue tracks the resolved global targets, so changes to `run`, `running`, `state.isRun`, or `state.running` update switches without page-owned polling.
 3. A group-switch event is interpreted from live state: any running member means stop the group; otherwise start the group.
 4. A member-switch event starts or stops only the selected saved item.
