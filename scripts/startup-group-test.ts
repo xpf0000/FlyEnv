@@ -819,6 +819,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(startupGroupManagerSource, /new StartupGroupStore/)
   assert.match(startupGroupManagerSource, /new StartupGroupCandidate/)
   assert.match(startupGroupManagerSource, /export const StartupGroupManager = reactiveBind/)
+  assert.match(startupGroupStoreSource, /reactiveBind\(new StartupGroup/)
   assert.match(mainSource, /StartupGroupManager\.store\.init\(\)/)
   assert.match(asideSource, /StartupGroupManager/)
   assert.match(indexSource, /StartupGroupManager/)
