@@ -26,6 +26,7 @@ import {
   createStartupGroupRuntime,
   normalizeStartupGroupCandidateSelection,
   startupGroupCandidateAllowsMultiple,
+  toggleStartupGroupCandidateSelection,
   updateStartupGroupCandidateSelection,
   type StartupGroupCandidate,
   type StartupGroupInstalledTarget,
@@ -523,6 +524,13 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     ['mysql-84', 'php-fpm-82', 'php-fpm-84', 'node-api', 'node-admin']
   )
 
+  assert.deepEqual(toggleStartupGroupCandidateSelection([], mysql84, all), ['mysql-84'])
+  assert.deepEqual(toggleStartupGroupCandidateSelection(['mysql-84'], mysql84, all), [])
+  assert.deepEqual(toggleStartupGroupCandidateSelection(['php-fpm-82'], php84, all), [
+    'php-fpm-82',
+    'php-fpm-84'
+  ])
+
   const validMysql: StartupGroupCandidate = {
     key: getStartupGroupItemKey(mysql),
     label: 'MySQL 8.4',
@@ -716,8 +724,16 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(editorSource, /candidate\.displayPath/)
   assert.match(editorSource, /common\.startupGroup\.noRemark/)
   assert.match(editorSource, /normalizeStartupGroupCandidateSelection/)
+  assert.match(editorSource, /<el-scrollbar/)
+  assert.match(editorSource, /max-height="58vh"/)
+  assert.match(editorSource, /startup-group-module-collapse ml-4/)
+  assert.match(editorSource, /toggleStartupGroupCandidateSelection/)
+  assert.match(editorSource, /@click\.capture\.prevent\.stop="toggleCandidate\(candidate\)"/)
+  assert.match(editorSource, /expandedCategories\.value = candidateSections\.value/)
+  assert.match(editorSource, /\.filter\(\(category\) =>/)
   assert.doesNotMatch(editorSource, /<el-checkbox-group/)
   assert.doesNotMatch(editorSource, /invalidItems\.length/)
+  assert.doesNotMatch(editorSource, /overflow:\s*auto/)
   assert.match(enCommonSource, /"noRemark": "No remark"/)
   assert.match(zhCommonSource, /"noRemark": "无备注"/)
   assert.match(cardSource, /default-change/)

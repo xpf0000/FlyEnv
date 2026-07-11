@@ -99,6 +99,19 @@ export function updateStartupGroupCandidateSelection(
   return [...next.filter((key) => !sameModuleKeys.has(key)), candidate.key]
 }
 
+export function toggleStartupGroupCandidateSelection(
+  selectedKeys: string[],
+  candidate: StartupGroupCandidate,
+  candidates: StartupGroupCandidate[]
+) {
+  return updateStartupGroupCandidateSelection(
+    selectedKeys,
+    candidate,
+    candidates,
+    !selectedKeys.includes(candidate.key)
+  )
+}
+
 export function normalizeStartupGroupCandidateSelection(
   selectedKeys: string[],
   candidates: StartupGroupCandidate[]
