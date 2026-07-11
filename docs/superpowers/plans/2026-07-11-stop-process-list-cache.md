@@ -34,6 +34,7 @@
 ### Task 1: 建立主进程缓存核心和测试入口
 
 **Files:**
+
 - Create: `src/main/core/StopProcessListCache.ts`
 - Create: `scripts/stop-process-list-cache-test.ts`
 - Modify: `package.json`
@@ -47,9 +48,7 @@ import assert from 'node:assert/strict'
 import type { PItem } from '../src/shared/Process'
 import { StopProcessListCache } from '../src/main/core/StopProcessListCache'
 
-const firstList: PItem[] = [
-  { USER: 'user', PID: '10', PPID: '1', COMMAND: '/opt/flyenv/nginx' }
-]
+const firstList: PItem[] = [{ USER: 'user', PID: '10', PPID: '1', COMMAND: '/opt/flyenv/nginx' }]
 
 let now = 0
 let fetchCount = 0
@@ -86,9 +85,7 @@ assert.strictEqual(await cache.get(), firstList)
 assert.equal(fetchCount, 1)
 
 now = 450
-const secondList: PItem[] = [
-  { USER: 'user', PID: '11', PPID: '1', COMMAND: '/opt/flyenv/mysql' }
-]
+const secondList: PItem[] = [{ USER: 'user', PID: '11', PPID: '1', COMMAND: '/opt/flyenv/mysql' }]
 let retryCount = 0
 const retryCache = new StopProcessListCache(
   async () => {
@@ -249,6 +246,7 @@ git commit -m "feat: add stop process list cache core"
 ### Task 2: 定义 IPC 协议、Fork 客户端和主进程 Bridge
 
 **Files:**
+
 - Create: `src/shared/StopProcessList.ts`
 - Create: `src/fork/StopProcessListClient.ts`
 - Create: `src/main/core/StopProcessListBridge.ts`
@@ -286,9 +284,8 @@ const bridge = new StopProcessListBridge({
   get: async () => firstList
 })
 assert.equal(
-  bridge.handle(
-    { type: 'stop-process-list-request', requestId: 'bridge-request' },
-    (message) => bridgeReplies.push(message)
+  bridge.handle({ type: 'stop-process-list-request', requestId: 'bridge-request' }, (message) =>
+    bridgeReplies.push(message)
   ),
   true
 )
@@ -300,7 +297,10 @@ assert.deepEqual(bridgeReplies, [
     list: firstList
   }
 ])
-assert.equal(bridge.handle({ key: 'normal-task' }, () => {}), false)
+assert.equal(
+  bridge.handle({ key: 'normal-task' }, () => {}),
+  false
+)
 
 let sentRequest: unknown
 let scheduledTimeout: (() => void) | undefined
@@ -332,17 +332,14 @@ assert.equal(
 )
 assert.strictEqual(await clientResult, firstList)
 
-const timeoutClient = new StopProcessListClient(
-  () => {},
-  {
-    requestId: () => 'timeout-request',
-    scheduleTimeout: (handler) => {
-      scheduledTimeout = handler
-      return 2
-    },
-    cancelTimeout: () => {}
-  }
-)
+const timeoutClient = new StopProcessListClient(() => {}, {
+  requestId: () => 'timeout-request',
+  scheduleTimeout: (handler) => {
+    scheduledTimeout = handler
+    return 2
+  },
+  cancelTimeout: () => {}
+})
 const timeoutResult = timeoutClient.request()
 scheduledTimeout?.()
 await assert.rejects(() => timeoutResult, /timed out after 10000ms/)
@@ -401,10 +398,7 @@ export const isStopProcessListResponse = (value: unknown): value is StopProcessL
 Create `src/main/core/StopProcessListBridge.ts`:
 
 ```ts
-import {
-  isStopProcessListRequest,
-  type StopProcessListResponse
-} from '@shared/StopProcessList'
+import { isStopProcessListRequest, type StopProcessListResponse } from '@shared/StopProcessList'
 import type { PItem } from '@shared/Process'
 
 type StopProcessListSource = {
@@ -444,10 +438,7 @@ Create `src/fork/StopProcessListClient.ts`:
 ```ts
 import { randomUUID } from 'node:crypto'
 import type { PItem } from '@shared/Process'
-import {
-  isStopProcessListResponse,
-  type StopProcessListRequest
-} from '@shared/StopProcessList'
+import { isStopProcessListResponse, type StopProcessListRequest } from '@shared/StopProcessList'
 
 type TimeoutToken = ReturnType<typeof setTimeout> | number
 type StopProcessListClientOptions = {
@@ -527,6 +518,7 @@ Expected: `stop process list cache tests passed`.
 ### Task 3: Wire the Main/Fork UtilityProcess Channel
 
 **Files:**
+
 - Modify: `src/main/core/ForkManager.ts`
 - Modify: `src/fork/index.ts`
 - Modify: `scripts/stop-process-list-cache-test.ts`
@@ -699,6 +691,7 @@ git commit -m "feat: bridge stop process lists through main"
 ### Task 4: Add Strict Local Fetch and Stop-Only Query Facade
 
 **Files:**
+
 - Modify: `src/shared/Process.win.ts`
 - Modify: `src/shared/StopProcessList.ts`
 - Modify: `scripts/stop-process-list-cache-test.ts`
@@ -764,7 +757,9 @@ export const ProcessPidListStrict = async (): Promise<PItem[]> => {
     }
   }
 
-  const file = join(tmpdir(), uuid() + '.json').split('\\').join('/')
+  const file = join(tmpdir(), uuid() + '.json')
+    .split('\\')
+    .join('/')
   try {
     const command =
       '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;' +
@@ -826,15 +821,8 @@ Replace the initial `PItem` type-only import and extend `src/shared/StopProcessL
 
 ```ts
 import { appDebugLog, isWindows } from './utils'
-import {
-  ProcessListFetch,
-  ProcessSearch,
-  type PItem
-} from './Process'
-import {
-  ProcessPidListByPid,
-  ProcessPidListStrict
-} from './Process.win'
+import { ProcessListFetch, ProcessSearch, type PItem } from './Process'
+import { ProcessPidListByPid, ProcessPidListStrict } from './Process.win'
 
 export type StopProcessListProvider = () => Promise<PItem[]>
 
@@ -898,6 +886,7 @@ Expected: tests pass and ESLint exits 0.
 ### Task 5: Migrate Only Stop-Phase Call Sites
 
 **Files:**
+
 - Modify: `src/fork/module/Base/index.ts`
 - Modify: `src/fork/module/Php/index.ts`
 - Modify: `src/fork/module/Php.win/index.ts`
@@ -974,10 +963,7 @@ import {
 Use:
 
 ```ts
-import {
-  StopProcessListFetch,
-  StopProcessPidListByPid
-} from '@shared/StopProcessList'
+import { StopProcessListFetch, StopProcessPidListByPid } from '@shared/StopProcessList'
 ```
 
 In `ModuleCustomer.stopService()` and `LanguageProject.stopService()`:
@@ -1058,6 +1044,7 @@ Expected: tests and formatting checks pass.
 ### Task 6: Full Verification and Manual Burst Check
 
 **Files:**
+
 - Modify only if verification exposes a defect in the files already listed.
 
 - [ ] **Step 1: Run the dedicated behavioral suite**
