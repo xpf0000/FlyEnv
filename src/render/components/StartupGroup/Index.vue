@@ -64,6 +64,7 @@
   import type { StartupGroupItem, StartupGroupRunResult } from './type'
 
   const store = StartupGroupManager.store
+  store.init().catch()
   const groups = computed(() => store.groups)
   const config = computed(() => store.config)
   const appStore = AppStore()
