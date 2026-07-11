@@ -180,28 +180,11 @@
   import draggable from 'vuedraggable'
 
   import { I18nT } from '@lang/index'
-  import {
-    getStartupGroupItemKey,
-    type StartupGroup,
-    type StartupGroupDraft,
-    type StartupGroupItem
-  } from '@/core/StartupGroup'
-  import {
-    filterValidStartupGroupItems,
-    getStartupGroupCandidateWarnings,
-    normalizeStartupGroupCandidateSelection,
-    startupGroupCandidateAllowsMultiple,
-    startupGroupCandidateMatchesItem,
-    syncStartupGroupSelectedItems,
-    toggleStartupGroupCandidateSelection,
-    updateStartupGroupCandidateSelection,
-    type StartupGroupCandidate
-  } from '@/core/StartupGroupRuntime'
   import { AppModuleTypeList, type AllAppModule, type AllAppModuleType } from '@/core/type'
   import { MessageWarning } from '@/util/Element'
-  import { uuid } from '@/util/Index'
-  import { startupGroupRuntime } from './runtime'
-  import { useStartupGroupStore } from './store'
+  import { StartupGroup } from './class/StartupGroup'
+  import { StartupGroupManager } from './class/StartupGroupManager'
+  import type { StartupGroupCandidateData, StartupGroupDraft, StartupGroupItem } from './type'
 
   const props = defineProps<{
     modelValue: boolean
@@ -212,7 +195,8 @@
     saved: []
   }>()
 
-  const store = useStartupGroupStore()
+  const store = StartupGroupManager.store
+  const candidateManager = StartupGroupManager.candidate
   const show = computed({
     get: () => props.modelValue,
     set: (value) => emit('update:modelValue', value)
@@ -220,7 +204,7 @@
   const step = ref(0)
   const loading = ref(false)
   const saving = ref(false)
-  const candidates = ref<StartupGroupCandidate[]>([])
+  const candidates = ref<StartupGroupCandidateData[]>([])
   const selectedKeys = ref<string[]>([])
   const draft = reactive<StartupGroupDraft>({
     name: '',
@@ -236,7 +220,7 @@
   type CandidateModuleSection = {
     key: AllAppModule
     label: string
-    items: StartupGroupCandidate[]
+    items: StartupGroupCandidateData[]
   }
 
   type CandidateCategorySection = {
@@ -271,17 +255,17 @@
     })
   })
   const candidateWarnings = computed(() =>
-    getStartupGroupCandidateWarnings(candidates.value, selectedKeys.value)
+    candidateManager.warnings(candidates.value, selectedKeys.value)
   )
   const candidateFor = (item: StartupGroupItem) => {
-    const candidate = candidateByKey.value.get(getStartupGroupItemKey(item))
-    return candidate && startupGroupCandidateMatchesItem(candidate, item) ? candidate : undefined
+    const candidate = candidateByKey.value.get(StartupGroup.itemKey(item))
+    return candidate && candidateManager.matchesItem(candidate, item) ? candidate : undefined
   }
 
-  const isCandidateSelected = (candidate: StartupGroupCandidate) =>
+  const isCandidateSelected = (candidate: StartupGroupCandidateData) =>
     selectedKeys.value.includes(candidate.key)
 
-  const selectedSingleKey = (candidate: StartupGroupCandidate) =>
+  const selectedSingleKey = (candidate: StartupGroupCandidateData) =>
     selectedKeys.value.find((key) => {
       const selected = candidateByKey.value.get(key)
       return (
@@ -289,8 +273,8 @@
       )
     })
 
-  const updateCandidateSelection = (candidate: StartupGroupCandidate, selected: boolean) => {
-    selectedKeys.value = updateStartupGroupCandidateSelection(
+  const updateCandidateSelection = (candidate: StartupGroupCandidateData, selected: boolean) => {
+    selectedKeys.value = candidateManager.updateSelection(
       selectedKeys.value,
       candidate,
       candidates.value,
@@ -298,8 +282,8 @@
     )
   }
 
-  const toggleCandidate = (candidate: StartupGroupCandidate) => {
-    selectedKeys.value = toggleStartupGroupCandidateSelection(
+  const toggleCandidate = (candidate: StartupGroupCandidateData) => {
+    selectedKeys.value = candidateManager.toggleSelection(
       selectedKeys.value,
       candidate,
       candidates.value
@@ -314,7 +298,9 @@
     expandedModules[category] = values.map((item) => `${item}` as AllAppModule)
   }
 
-  const itemKey = getStartupGroupItemKey
+  const itemKey = StartupGroup.itemKey
+  const startupGroupCandidateAllowsMultiple = (candidate: StartupGroupCandidateData) =>
+    candidateManager.allowsMultiple(candidate)
   const fallbackItemLabel = (item: StartupGroupItem) =>
     item.type === 'service-version'
       ? `${item.module} · ${item.versionBin}`
@@ -341,17 +327,16 @@
     draft.items = (props.group?.items ?? []).map((item) => ({ ...item }))
     loading.value = true
     try {
-      candidates.value = await startupGroupRuntime.listCandidates()
-      draft.items = filterValidStartupGroupItems(draft.items, candidates.value)
-      selectedKeys.value = normalizeStartupGroupCandidateSelection(
+      candidates.value = await StartupGroupManager.runtime.listCandidates()
+      draft.items = candidateManager.filterValidItems(draft.items, candidates.value)
+      selectedKeys.value = candidateManager.normalizeSelection(
         draft.items.map(itemKey),
         candidates.value
       )
-      draft.items = syncStartupGroupSelectedItems(
+      draft.items = candidateManager.syncSelectedItems(
         draft.items,
         candidates.value,
-        selectedKeys.value,
-        uuid
+        selectedKeys.value
       )
 
       const selected = new Set(selectedKeys.value)
@@ -382,11 +367,10 @@
   )
 
   const syncSelectedItems = () => {
-    draft.items = syncStartupGroupSelectedItems(
+    draft.items = candidateManager.syncSelectedItems(
       draft.items,
       candidates.value,
-      selectedKeys.value,
-      uuid
+      selectedKeys.value
     )
   }
 

@@ -40,7 +40,7 @@
           </div>
           <el-switch
             :model-value="memberRunning(item)"
-            :disabled="StartupGroupSetup.isMemberDisabled(group, item)"
+            :disabled="StartupGroupManager.isMemberDisabled(group, item)"
             :before-change="() => memberBeforeChange(item)"
           />
         </div>
@@ -86,8 +86,9 @@
   import { computed } from 'vue'
 
   import { I18nT } from '@lang/index'
-  import type { StartupGroup, StartupGroupItem } from '@/core/StartupGroup'
-  import { StartupGroupSetup } from './setup'
+  import { StartupGroup } from './class/StartupGroup'
+  import { StartupGroupManager } from './class/StartupGroupManager'
+  import type { StartupGroupItem } from './type'
 
   const props = defineProps<{
     group: StartupGroup
@@ -102,19 +103,19 @@
     'default-change': [group: StartupGroup, enabled: boolean]
   }>()
 
-  const groupRunning = computed(() => StartupGroupSetup.isGroupRunning(props.group))
+  const groupRunning = computed(() => StartupGroupManager.isGroupRunning(props.group))
   const groupDisabled = computed(
     () =>
-      StartupGroupSetup.busy ||
-      StartupGroupSetup.isGroupExecuting(props.group) ||
+      StartupGroupManager.busy ||
+      StartupGroupManager.isGroupExecuting(props.group) ||
       props.group.items.length === 0
   )
-  const defaultDisabled = computed(() => StartupGroupSetup.busy || props.group.items.length === 0)
+  const defaultDisabled = computed(() => StartupGroupManager.busy || props.group.items.length === 0)
 
-  const memberPath = (item: StartupGroupItem) => StartupGroupSetup.getMemberPath(item)
+  const memberPath = (item: StartupGroupItem) => StartupGroupManager.getMemberPath(item)
   const memberDisplayTitle = (item: StartupGroupItem) =>
-    StartupGroupSetup.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
-  const memberRunning = (item: StartupGroupItem) => StartupGroupSetup.isMemberRunning(item)
+    StartupGroupManager.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
+  const memberRunning = (item: StartupGroupItem) => StartupGroupManager.isMemberRunning(item)
   const groupBeforeChange = () => {
     emit('group-change', props.group, !groupRunning.value)
     return false

@@ -1,5 +1,5 @@
 import type { AppServiceModuleItem } from '../../core/ASide'
-import type { StartupGroup } from '../../core/StartupGroup'
+import type { StartupGroup } from '../StartupGroup/class/StartupGroup'
 
 type ServiceModuleMap = Partial<Record<string, AppServiceModuleItem | undefined>>
 type ServiceModuleDef = {

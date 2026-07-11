@@ -33,10 +33,7 @@ export interface StartupGroupConfigData {
   defaultStartupGroupId?: string
 }
 
-export type StartupGroupDraft = Pick<
-  StartupGroupData,
-  'name' | 'description' | 'color' | 'items'
->
+export type StartupGroupDraft = Pick<StartupGroupData, 'name' | 'description' | 'color' | 'items'>
 export type StartupGroupMemberState = 'stopped' | 'running' | 'executing' | 'invalid'
 export type StartupGroupCardState =
   | 'stopped'

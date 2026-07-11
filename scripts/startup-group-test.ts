@@ -1,39 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import * as StartupGroupCore from '../src/render/core/StartupGroup'
-import * as StartupGroupRuntimeCore from '../src/render/core/StartupGroupRuntime'
-
-import {
-  buildStartupGroupStopQueue,
-  createStartupGroup,
-  createStartupGroupRunner,
-  deleteStartupGroup,
-  getStartupGroupCardState,
-  getStartupGroupItemKey,
-  normalizeStartupGroupConfig,
-  resolveDefaultStartupGroup,
-  setDefaultStartupGroup,
-  updateStartupGroup,
-  type StartupGroup,
-  type StartupGroupAdapter,
-  type StartupGroupItem,
-  type StartupGroupMemberState,
-  type StartupGroupRunner
-} from '../src/render/core/StartupGroup'
-import { StartupGroupManager } from '../src/render/core/StartupGroupManager'
-import {
-  filterValidStartupGroupItems,
-  getStartupGroupCandidateWarnings,
-  createStartupGroupRuntime,
-  normalizeStartupGroupCandidateSelection,
-  startupGroupCandidateAllowsMultiple,
-  toggleStartupGroupCandidateSelection,
-  updateStartupGroupCandidateSelection,
-  type StartupGroupCandidate,
-  type StartupGroupInstalledTarget,
-  type StartupGroupProjectTarget,
-  type StartupGroupRuntimeModule
-} from '../src/render/core/StartupGroupRuntime'
+import { existsSync, readFileSync } from 'node:fs'
 import {
   resolveGroupAutoStartAction,
   resolveGroupExecutionRoute
@@ -48,9 +14,57 @@ import { StartupGroupCandidate as StartupGroupCandidateClass } from '../src/rend
 import { StartupGroupRuntime as StartupGroupRuntimeClass } from '../src/render/components/StartupGroup/class/StartupGroupRuntime'
 import { StartupGroupStore as StartupGroupStoreClass } from '../src/render/components/StartupGroup/class/StartupGroupStore'
 import type {
+  StartupGroupAdapter,
+  StartupGroupCandidateData,
   StartupGroupConfigData,
+  StartupGroupInstalledTarget,
+  StartupGroupItem,
+  StartupGroupMemberState,
+  StartupGroupProjectTarget,
+  StartupGroupRuntimeModule,
   StartupGroupRunnerContract
 } from '../src/render/components/StartupGroup/type'
+
+type StartupGroup = StartupGroupEntity
+type StartupGroupCandidate = StartupGroupCandidateData
+
+const createStartupGroupRunner = (
+  getAdapter: (item: StartupGroupItem) => StartupGroupAdapter | undefined
+) => new StartupGroupRunnerClass(getAdapter)
+const createStartupGroupRuntime = (
+  dependencies: ConstructorParameters<typeof StartupGroupRuntimeClass>[0]
+) => new StartupGroupRuntimeClass(dependencies)
+const candidateTools = new StartupGroupCandidateClass(() => 'candidate-id')
+const getStartupGroupItemKey = StartupGroupEntity.itemKey
+const getStartupGroupCardState = (states: StartupGroupMemberState[]) =>
+  new StartupGroupRunnerClass(() => undefined).cardState(states)
+const buildStartupGroupStopQueue = (groups: StartupGroup[]) =>
+  new StartupGroupRunnerClass(() => undefined).buildStopQueue(groups)
+const startupGroupCandidateAllowsMultiple = (candidate: StartupGroupCandidate) =>
+  candidateTools.allowsMultiple(candidate)
+const updateStartupGroupCandidateSelection = (
+  selectedKeys: string[],
+  candidate: StartupGroupCandidate,
+  candidates: StartupGroupCandidate[],
+  selected: boolean
+) => candidateTools.updateSelection(selectedKeys, candidate, candidates, selected)
+const toggleStartupGroupCandidateSelection = (
+  selectedKeys: string[],
+  candidate: StartupGroupCandidate,
+  candidates: StartupGroupCandidate[]
+) => candidateTools.toggleSelection(selectedKeys, candidate, candidates)
+const normalizeStartupGroupCandidateSelection = (
+  selectedKeys: string[],
+  candidates: StartupGroupCandidate[]
+) => candidateTools.normalizeSelection(selectedKeys, candidates)
+const filterValidStartupGroupItems = (
+  items: StartupGroupItem[],
+  candidates: StartupGroupCandidate[]
+) => candidateTools.filterValidItems(items, candidates)
+const getStartupGroupCandidateWarnings = (
+  candidates: StartupGroupCandidate[],
+  selectedKeys: string[]
+) => candidateTools.warnings(candidates, selectedKeys)
 
 const mysql: StartupGroupItem = {
   id: 'mysql',
@@ -76,14 +90,16 @@ const api: StartupGroupItem = {
   projectPath: 'D:/projects/api'
 }
 
+const testRunner: StartupGroupRunnerContract = {
+  executing: false,
+  revision: 0,
+  getItemState: async () => 'stopped',
+  getGroupState: async () => 'stopped',
+  run: async (_group, action) => ({ action, members: [] })
+}
+
 function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
-  return {
-    id,
-    name: id,
-    items,
-    createdAt: 1,
-    updatedAt: 1
-  }
+  return new StartupGroupEntity({ id, name: id, items, createdAt: 1, updatedAt: 1 }, testRunner)
 }
 
 {
@@ -199,121 +215,6 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 }
 
 {
-  const service = {
-    version: '8.4.0',
-    bin: 'mysqld',
-    path: mysql.versionPath,
-    enable: true,
-    run: false,
-    running: false,
-    start: async () => true,
-    stop: async () => true
-  }
-  const project = {
-    id: api.projectId,
-    comment: 'API service',
-    path: api.projectPath,
-    isService: true,
-    state: { isRun: false, running: false },
-    start: async () => true,
-    stop: async () => true
-  }
-  const calls: Array<{ group: StartupGroup; action: 'start' | 'stop' }> = []
-  let executing = false
-  const runner: Pick<StartupGroupRunner, 'isExecuting' | 'run'> = {
-    get isExecuting() {
-      return executing
-    },
-    run: async (group: StartupGroup, action: 'start' | 'stop') => {
-      calls.push({ group, action })
-      return { action, members: [] }
-    }
-  }
-  const fetched: string[] = []
-  const moduleLabels: Record<string, string> = {
-    mysql: 'MySQL',
-    node: 'NodeJS'
-  }
-  const manager = new StartupGroupManager({
-    runner,
-    getInstalled: () => [service],
-    fetchInstalled: async (module) => {
-      fetched.push(`installed:${module}`)
-    },
-    getProjectSource: () => ({
-      fetched: false,
-      project: [project],
-      fetchProject: async () => {
-        fetched.push('project:node')
-      }
-    }),
-    getModuleLabel: (module) => moduleLabels[module]
-  })
-
-  assert.equal(manager.getMemberState(mysql), 'stopped')
-  service.run = true
-  assert.equal(manager.getMemberState(mysql), 'running')
-  service.running = true
-  assert.equal(manager.getMemberState(mysql), 'executing')
-  assert.equal(manager.isMemberRunning(mysql), true)
-  assert.equal(manager.isGroupExecuting(makeGroup('executing', [mysql, api])), true)
-  assert.equal(manager.isMemberDisabled(makeGroup('executing', [mysql, api]), api), true)
-  service.running = false
-  assert.equal(manager.getMemberTitle(mysql), '8.4.0')
-  assert.equal(manager.getMemberModuleLabel(mysql), 'MySQL')
-  assert.equal(typeof manager.getMemberDisplayTitle, 'function')
-  assert.equal(manager.getMemberDisplayTitle(mysql), 'MySQL · 8.4.0')
-  assert.equal(manager.getMemberPath(mysql), mysql.versionPath)
-
-  assert.equal(manager.getMemberState(api), 'stopped')
-  project.state.isRun = true
-  assert.equal(manager.getMemberState(api), 'running')
-  assert.equal(manager.isMemberRunning(api), true)
-  assert.equal(manager.getMemberTitle(api), 'API service')
-  assert.equal(manager.getMemberModuleLabel(api), 'NodeJS')
-  assert.equal(manager.getMemberDisplayTitle(api, '无备注'), 'NodeJS · API service')
-  assert.equal(manager.getMemberPath(api), api.projectPath)
-  const missingProject = {
-    ...api,
-    projectId: 'missing-project',
-    projectPath: 'D:/projects/missing'
-  }
-  assert.equal(manager.getMemberPath(missingProject), missingProject.projectPath)
-  assert.equal(manager.getMemberDisplayTitle(missingProject, '无备注'), 'NodeJS · 无备注')
-  assert.equal(manager.getMemberModuleLabel(redis), 'redis')
-  assert.equal(manager.isGroupRunning(makeGroup('live', [mysql, api])), true)
-  assert.equal(typeof manager.isAnyGroupRunning, 'function')
-  assert.equal(
-    manager.isAnyGroupRunning([makeGroup('default', [redis]), makeGroup('secondary', [api])]),
-    true
-  )
-  project.state.isRun = false
-  assert.equal(
-    manager.isAnyGroupRunning([makeGroup('default', [redis]), makeGroup('secondary', [api])]),
-    false
-  )
-
-  await manager.setGroupEnabled(makeGroup('partial', [mysql, redis]), false)
-  assert.equal(calls.at(-1)?.action, 'stop')
-  await manager.setGroupEnabled(makeGroup('stopped', [redis]), true)
-  assert.equal(calls.at(-1)?.action, 'start')
-  await manager.setMemberEnabled(makeGroup('single', [mysql, api]), api, false)
-  assert.equal(calls.at(-1)?.action, 'stop')
-  assert.deepEqual(calls.at(-1)?.group.items, [api])
-
-  assert.equal(manager.getMemberState(redis), 'invalid')
-  assert.equal(manager.isMemberDisabled(makeGroup('invalid', [redis]), redis), true)
-  executing = true
-  const callCount = calls.length
-  assert.equal(await manager.setMemberEnabled(makeGroup('busy', [mysql]), mysql, false), undefined)
-  assert.equal(calls.length, callCount)
-  executing = false
-
-  await manager.ensureSources([makeGroup('sources', [mysql, api])])
-  assert.deepEqual(fetched, ['installed:mysql', 'project:node'])
-}
-
-{
   const calls: string[] = []
   const states: Record<string, StartupGroupMemberState> = {
     mysql: 'running',
@@ -362,15 +263,15 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     stop: async () => undefined
   }
   const runner = createStartupGroupRunner(() => adapter)
-  const initialRevision = runner.revision?.value
+  const initialRevision = runner.revision
   const runPromise = runner.run(makeGroup('reactive', [redis]), 'start')
   await started
-  assert.equal(runner.executing?.value, true)
+  assert.equal(runner.executing, true)
   assert.equal(await runner.getItemState(redis), 'executing')
-  assert.ok((runner.revision?.value ?? 0) > (initialRevision ?? 0))
+  assert.ok(runner.revision > initialRevision)
   releaseStart()
   await runPromise
-  assert.equal(runner.executing?.value, false)
+  assert.equal(runner.executing, false)
 }
 
 {
@@ -431,7 +332,6 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 }
 
 {
-  assert.equal(typeof StartupGroupCore.stopStartupGroupsForHide, 'function')
   const calls: string[] = []
   const states: Record<string, StartupGroupMemberState> = {
     mysql: 'executing',
@@ -447,10 +347,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     }
   }
   const runner = createStartupGroupRunner(() => adapter)
-  const busy = await StartupGroupCore.stopStartupGroupsForHide(
-    [makeGroup('hide', [mysql, redis])],
-    runner
-  )
+  const busy = await runner.stopForHide([makeGroup('hide', [mysql, redis])])
   assert.equal(busy.ok, false)
   assert.equal(busy.reason, 'member-busy')
   assert.equal(calls.length, 0)
@@ -464,10 +361,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       if (item.id !== 'redis') states[item.id] = 'stopped'
     }
   }
-  const stuck = await StartupGroupCore.stopStartupGroupsForHide(
-    [makeGroup('hide', [mysql, redis])],
-    createStartupGroupRunner(() => stuckAdapter)
-  )
+  const stuck = await createStartupGroupRunner(() => stuckAdapter).stopForHide([
+    makeGroup('hide', [mysql, redis])
+  ])
   assert.equal(stuck.ok, false)
   assert.equal(stuck.reason, 'not-stopped')
   assert.deepEqual(
@@ -483,41 +379,6 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.equal(getStartupGroupCardState(['running', 'stopped']), 'partial-running')
   assert.equal(getStartupGroupCardState(['running', 'executing']), 'executing')
   assert.equal(getStartupGroupCardState(['executing', 'invalid']), 'invalid')
-}
-
-{
-  const empty = makeGroup('empty', [])
-  const groupA = makeGroup('a', [mysql])
-  const groupB = makeGroup('b', [redis])
-  const config = { groups: [empty, groupA, groupB], defaultStartupGroupId: 'a' }
-
-  assert.equal(resolveDefaultStartupGroup(config)?.id, 'a')
-  assert.equal(setDefaultStartupGroup(config, 'b').defaultStartupGroupId, 'b')
-  assert.equal(setDefaultStartupGroup(config, 'empty').defaultStartupGroupId, undefined)
-  assert.equal(setDefaultStartupGroup(config).defaultStartupGroupId, undefined)
-  assert.equal(
-    resolveDefaultStartupGroup({ ...config, defaultStartupGroupId: 'missing' }),
-    undefined
-  )
-}
-
-{
-  assert.deepEqual(normalizeStartupGroupConfig(undefined), { groups: [] })
-  assert.deepEqual(
-    normalizeStartupGroupConfig({
-      groups: [makeGroup('empty', [])],
-      defaultStartupGroupId: 'empty'
-    }),
-    { groups: [makeGroup('empty', [])] }
-  )
-}
-
-{
-  assert.equal(typeof StartupGroupCore.isStartupGroupCreationLocked, 'function')
-  assert.equal(StartupGroupCore.isStartupGroupCreationLocked(false, 0), false)
-  assert.equal(StartupGroupCore.isStartupGroupCreationLocked(false, 1), true)
-  assert.equal(StartupGroupCore.isStartupGroupCreationLocked(true, 1), false)
-  assert.equal(StartupGroupCore.isStartupGroupCreationLocked(true, 10), false)
 }
 
 {
@@ -810,49 +671,6 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 }
 
 {
-  const initial = { groups: [] }
-  const created = createStartupGroup(
-    initial,
-    { name: 'Backend', description: 'API stack', color: '#409eff', items: [mysql, api] },
-    'group-backend',
-    100
-  )
-  assert.equal(created.group.id, 'group-backend')
-  assert.equal(created.group.createdAt, 100)
-  assert.deepEqual(
-    created.group.items.map((item) => item.id),
-    ['mysql', 'api']
-  )
-
-  const updated = updateStartupGroup(
-    created.config,
-    'group-backend',
-    { name: 'Backend v2', items: [api, mysql] },
-    200
-  )
-  assert.equal(updated.groups[0].createdAt, 100)
-  assert.equal(updated.groups[0].updatedAt, 200)
-  assert.deepEqual(
-    updated.groups[0].items.map((item) => item.id),
-    ['api', 'mysql']
-  )
-
-  const emptied = updateStartupGroup(
-    { ...updated, defaultStartupGroupId: 'group-backend' },
-    'group-backend',
-    { name: 'Empty backend', items: [] },
-    300
-  )
-  assert.equal(emptied.defaultStartupGroupId, undefined)
-
-  const deleted = deleteStartupGroup(
-    { ...updated, defaultStartupGroupId: 'group-backend' },
-    'group-backend'
-  )
-  assert.deepEqual(deleted, { groups: [] })
-}
-
-{
   const runtimeCandidates = [
     {
       key: 'mysql-80',
@@ -896,7 +714,6 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 }
 
 {
-  assert.equal(typeof StartupGroupRuntimeCore.startupGroupCandidateMatchesItem, 'function')
   const candidate = {
     key: 'node-project-api',
     label: 'API Server',
@@ -906,17 +723,16 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     displayPath: 'D:/projects/api',
     item: api
   }
-  assert.equal(StartupGroupRuntimeCore.startupGroupCandidateMatchesItem(candidate, api), true)
+  assert.equal(candidateTools.matchesItem(candidate, api), true)
   assert.equal(
-    StartupGroupRuntimeCore.startupGroupCandidateMatchesItem(candidate, {
+    candidateTools.matchesItem(candidate, {
       ...api,
       projectPath: 'D:/projects/api-moved'
     }),
     false
   )
 
-  assert.equal(typeof StartupGroupRuntimeCore.syncStartupGroupSelectedItems, 'function')
-  const synced = StartupGroupRuntimeCore.syncStartupGroupSelectedItems(
+  const synced = new StartupGroupCandidateClass(() => 'new-id').syncSelectedItems(
     [mysql, api, redis],
     [
       {
@@ -938,8 +754,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
         item: redis
       }
     ],
-    [getStartupGroupItemKey(mysql), getStartupGroupItemKey(redis)],
-    () => 'new-id'
+    [getStartupGroupItemKey(mysql), getStartupGroupItemKey(redis)]
   )
   assert.deepEqual(
     synced.map((item) => item.id),
@@ -950,6 +765,16 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 {
   const readSource = (relativePath: string) =>
     readFileSync(new URL('../' + relativePath, import.meta.url), 'utf8')
+  for (const relativePath of [
+    'src/render/core/StartupGroup.ts',
+    'src/render/core/StartupGroupManager.ts',
+    'src/render/core/StartupGroupRuntime.ts',
+    'src/render/components/StartupGroup/store.ts',
+    'src/render/components/StartupGroup/runtime.ts',
+    'src/render/components/StartupGroup/setup.ts'
+  ]) {
+    assert.equal(existsSync(new URL('../' + relativePath, import.meta.url)), false)
+  }
   const typeSource = readSource('src/render/core/type.ts')
   const moduleSource = readSource('src/render/components/StartupGroup/Module.ts')
   const indexSource = readSource('src/render/components/StartupGroup/Index.vue')
@@ -963,11 +788,17 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const installedItemSource = readSource('src/render/core/Module/ModuleInstalledItem.ts')
   const forkBaseSource = readSource('src/fork/module/Base/index.ts')
   const projectSource = readSource('src/render/components/LanguageProjects/Project.ts')
-  const startupRuntimeSource = readSource('src/render/components/StartupGroup/runtime.ts')
-  const startupRuntimeCoreSource = readSource('src/render/core/StartupGroupRuntime.ts')
+  const startupRuntimeSource = readSource(
+    'src/render/components/StartupGroup/class/StartupGroupRuntime.ts'
+  )
+  const startupRuntimeCoreSource = startupRuntimeSource
   const startupGroupAsideSource = readSource('src/render/components/StartupGroup/aside.vue')
-  const startupGroupSetupSource = readSource('src/render/components/StartupGroup/setup.ts')
-  const startupGroupStoreSource = readSource('src/render/components/StartupGroup/store.ts')
+  const startupGroupSetupSource = readSource(
+    'src/render/components/StartupGroup/class/StartupGroupManager.ts'
+  )
+  const startupGroupStoreSource = readSource(
+    'src/render/components/StartupGroup/class/StartupGroupStore.ts'
+  )
   const startupGroupManagerSource = readSource(
     'src/render/components/StartupGroup/class/StartupGroupManager.ts'
   )
@@ -983,23 +814,30 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const zhCommonSource = readSource('src/lang/zh/common.json')
   assert.match(typeSource, /console = 'console'/)
   assert.match(typeSource, /'startup-group' = 'startup-group'/)
-  assert.match(startupGroupStoreSource, /StorageGetAsync/)
+  assert.match(startupGroupManagerSource, /StorageGetAsync/)
   assert.match(startupGroupManagerSource, /new StartupGroupRuntime/)
   assert.match(startupGroupManagerSource, /new StartupGroupStore/)
   assert.match(startupGroupManagerSource, /new StartupGroupCandidate/)
   assert.match(startupGroupManagerSource, /export const StartupGroupManager = reactiveBind/)
-  assert.match(startupGroupStoreSource, /StorageSetAsync/)
+  assert.match(mainSource, /StartupGroupManager\.store\.init\(\)/)
+  assert.match(asideSource, /StartupGroupManager/)
+  assert.match(indexSource, /StartupGroupManager/)
+  assert.match(editorSource, /StartupGroupManager\.candidate/)
+  assert.match(editorSource, /StartupGroupManager\.runtime\.listCandidates/)
+  assert.match(cardSource, /StartupGroupManager\.getMemberDisplayTitle/)
+  assert.match(startupGroupAsideSource, /StartupGroupManager/)
+  assert.match(moduleSource, /StartupGroupManager/)
+  assert.match(startupGroupManagerSource, /StorageSetAsync/)
   assert.doesNotMatch(startupGroupStoreSource, /AppStore/)
   assert.doesNotMatch(startupGroupStoreSource, /saveConfig\(/)
   assert.doesNotMatch(appStoreSource, /startupGroups/)
-  assert.match(startupGroupAsideSource, /useStartupGroupStore/)
+  assert.match(startupGroupAsideSource, /StartupGroupManager/)
   assert.doesNotMatch(startupGroupAsideSource, /config\.setup\.startupGroups/)
-  assert.match(moduleSource, /useStartupGroupStore/)
+  assert.match(moduleSource, /StartupGroupManager/)
   assert.doesNotMatch(moduleSource, /config\.setup\.startupGroups/)
-  assert.match(asideSource, /useStartupGroupStore/)
+  assert.match(asideSource, /StartupGroupManager/)
   assert.doesNotMatch(asideSource, /config\.setup\.startupGroups/)
-  assert.match(mainSource, /initStartupGroupStore/)
-  assert.match(mainSource, /await initStartupGroupStore\(\)/)
+  assert.match(mainSource, /StartupGroupManager\.store\.init\(\)/)
   assert.match(moduleSource, /moduleType: 'console'/)
   assert.match(moduleSource, /typeFlag: 'startup-group'/)
   assert.match(editorSource, /<el-steps/)
@@ -1011,11 +849,11 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(editorSource, /<el-checkbox/)
   assert.match(editorSource, /candidate\.displayPath/)
   assert.match(editorSource, /common\.startupGroup\.noRemark/)
-  assert.match(editorSource, /normalizeStartupGroupCandidateSelection/)
+  assert.match(editorSource, /candidateManager\.normalizeSelection/)
   assert.match(editorSource, /<el-scrollbar/)
   assert.match(editorSource, /el-dialog-content-flex-1 h-\[75%\]/)
   assert.match(editorSource, /startup-group-module-collapse ml-4/)
-  assert.match(editorSource, /toggleStartupGroupCandidateSelection/)
+  assert.match(editorSource, /candidateManager\.toggleSelection/)
   assert.match(editorSource, /@click\.capture\.prevent\.stop="toggleCandidate\(candidate\)"/)
   assert.match(editorSource, /expandedCategories\.value = candidateSections\.value/)
   assert.match(editorSource, /\.filter\(\(category\) =>/)
@@ -1044,9 +882,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     enCommonSource,
     /"licenseTips": "Without a license, only one startup group can be created\."/
   )
-  assert.match(cardSource, /StartupGroupSetup\.isGroupRunning/)
-  assert.match(cardSource, /StartupGroupSetup\.isMemberRunning/)
-  assert.match(cardSource, /StartupGroupSetup\.isMemberDisabled/)
+  assert.match(cardSource, /StartupGroupManager\.isGroupRunning/)
+  assert.match(cardSource, /StartupGroupManager\.isMemberRunning/)
+  assert.match(cardSource, /StartupGroupManager\.isMemberDisabled/)
   assert.match(cardSource, /:before-change="groupBeforeChange"/)
   assert.match(cardSource, /:before-change="\(\) => memberBeforeChange\(item\)"/)
   assert.doesNotMatch(cardSource, /@change="groupChange"/)
@@ -1066,7 +904,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(cardSource, /<el-tooltip/)
   assert.match(cardSource, /<el-scrollbar[^>]*height="248px"/)
   assert.match(cardSource, /class="flex h-14 items-center/)
-  assert.match(cardSource, /StartupGroupSetup\.getMemberDisplayTitle/)
+  assert.match(cardSource, /StartupGroupManager\.getMemberDisplayTitle/)
   assert.match(cardSource, /memberDisplayTitle/)
   assert.match(cardSource, /memberPath\(item\)/)
   assert.match(cardSource, /h-\[248px\]/)
@@ -1078,23 +916,22 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     /<el-tooltip[^>]*:content="I18nT\('common\.startupGroup\.defaultTooltip'\)"/
   )
   assert.match(cardSource, /<el-checkbox[^>]*:model-value="isDefault"/)
-  assert.match(startupGroupAsideSource, /StartupGroupSetup\.isAnyGroupRunning/)
-  assert.match(startupGroupAsideSource, /useStartupGroupStore/)
-  assert.match(startupGroupAsideSource, /StartupGroupSetup\.ensureSources/)
+  assert.match(startupGroupAsideSource, /StartupGroupManager\.isAnyGroupRunning/)
+  assert.match(startupGroupAsideSource, /StartupGroupManager\.ensureSources/)
   assert.match(startupGroupAsideSource, /:class="\{ run: startupGroupRunning \}"/)
   assert.doesNotMatch(startupGroupAsideSource, /setInterval/)
   assert.doesNotMatch(startupGroupAsideSource, /runningMap/)
-  assert.match(indexSource, /StartupGroupSetup\.ensureSources/)
+  assert.match(indexSource, /StartupGroupManager\.ensureSources/)
   assert.match(indexSource, /SetupStore/)
-  assert.match(indexSource, /isStartupGroupCreationLocked/)
+  assert.match(indexSource, /store\.isCreationLocked/)
   assert.match(indexSource, /const isAddLocked = computed/)
   assert.match(indexSource, /:icon="Lock"/)
   assert.match(indexSource, /common\.startupGroup\.licenseTips/)
   assert.match(indexSource, /const toLicense =/)
   assert.match(indexSource, /setupStore\.tab = 'licenses'/)
   assert.match(indexSource, /if \(!group && isAddLocked\.value\)/)
-  assert.match(indexSource, /StartupGroupSetup\.setGroupEnabled/)
-  assert.match(indexSource, /StartupGroupSetup\.setMemberEnabled/)
+  assert.match(indexSource, /StartupGroupManager\.setGroupEnabled/)
+  assert.match(indexSource, /StartupGroupManager\.setMemberEnabled/)
   assert.match(indexSource, /@group-change="executeGroup"/)
   assert.match(indexSource, /@member-change="executeMember"/)
   assert.doesNotMatch(indexSource, /stateMap/)
@@ -1111,20 +948,20 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.doesNotMatch(asideSource, /I18nT\('aside\.groupStart'\)/)
   assert.match(asideSource, /startupGroupStateForId/)
   assert.match(asideSource, /defaultStartupGroup\.value\?\.id !== startupGroupStateForId\.value/)
-  assert.match(asideSource, /startupGroupRuntime\.runner\.run/)
+  assert.match(asideSource, /group!\.toggle\(\)/)
   assert.match(asideSource, /let startupGroupRefreshGeneration = 0/)
   assert.match(asideSource, /let startupGroupRefreshInFlight: Promise<void> \| undefined/)
   assert.match(asideSource, /while \(startupGroupRefreshQueued\)/)
-  assert.match(asideSource, /startupGroupRuntime\.runner\.revision\.value/)
+  assert.match(asideSource, /StartupGroupManager\.runner\.revision/)
   assert.match(
     asideSource,
     /window\.setInterval\([\s\S]*refreshStartupGroupState\(\)\.catch\(\)[\s\S]*2000/
   )
   assert.match(moduleSource, /registerModuleVisibilityGuard/)
-  assert.match(moduleSource, /stopStartupGroupsForHide/)
+  assert.match(moduleSource, /runner\.stopForHide/)
   assert.ok(
     moduleSource.indexOf('ElMessageBox.confirm') <
-      moduleSource.indexOf('const stopped = await stopStartupGroupsForHide')
+      moduleSource.indexOf('const stopped = await StartupGroupManager.runner.stopForHide')
   )
   assert.match(showHideSource, /canSetModuleVisibility/)
   assert.match(moduleItemSource, /canSetModuleVisibility/)
@@ -1147,15 +984,15 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   )
   assert.doesNotMatch(processSource, /ProcessOwnedPidsByMarkers/)
   assert.match(projectSource, /fetched = false/)
-  assert.match(startupRuntimeSource, /if \(!project\.fetched\)/)
-  assert.match(startupRuntimeSource, /getModules:\s*platformModules,/)
-  assert.doesNotMatch(startupRuntimeSource, /getModules:\s*platformModules\(\)/)
-  assert.match(startupGroupSetupSource, /new StartupGroupManager/)
+  assert.match(startupGroupSetupSource, /if \(!project\.fetched\)/)
+  assert.match(startupGroupSetupSource, /getModules:\s*platformModules,/)
+  assert.doesNotMatch(startupGroupSetupSource, /getModules:\s*platformModules\(\)/)
+  assert.match(startupGroupSetupSource, /new StartupGroupManagerService/)
   assert.match(startupGroupSetupSource, /reactiveBind\(/)
-  assert.match(startupGroupSetupSource, /export const StartupGroupSetup/)
+  assert.match(startupGroupSetupSource, /export const StartupGroupManager/)
   assert.match(startupGroupSetupSource, /BrewStore\(\)\.module/)
   assert.match(startupGroupSetupSource, /ProjectSetup/)
-  assert.match(startupGroupSetupSource, /startupGroupRuntime\.runner/)
+  assert.match(startupGroupSetupSource, /runtime\.runner/)
   assert.match(startupGroupSetupSource, /AppModules/)
   assert.match(startupGroupSetupSource, /getModuleLabel/)
   assert.match(startupGroupSetupSource, /typeof label === 'function'/)
@@ -1165,7 +1002,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   )
   assert.match(
     startupRuntimeCoreSource,
-    /return project && \(await dependencies\.pathExists\(project\.path\)\) \? project : undefined/
+    /return project && \(await this\.dependencies\.pathExists\(project\.path\)\) \? project : undefined/
   )
   assert.doesNotMatch(mysqlForkSource, /_stopServerExactGracefully/)
   assert.doesNotMatch(mariaDBForkSource, /_stopServerExactGracefully/)

@@ -106,7 +106,10 @@ export class StartupGroupRunner implements StartupGroupRunnerContract {
     return { ok: true, result, remaining: [] }
   }
 
-  async run(group: StartupGroupData, action: StartupGroupRunAction): Promise<StartupGroupRunResult> {
+  async run(
+    group: StartupGroupData,
+    action: StartupGroupRunAction
+  ): Promise<StartupGroupRunResult> {
     if (this.executing) throw new Error('Startup group runner is already executing')
     this.executing = true
     this.changed()

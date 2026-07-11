@@ -23,13 +23,12 @@
 
   import { I18nT } from '@lang/index'
   import { AsideSetup } from '@/core/ASide'
-  import { StartupGroupSetup } from './setup'
-  import { useStartupGroupStore } from './store'
+  import { StartupGroupManager } from './class/StartupGroupManager'
 
   const { showItem, currentPage, nav } = AsideSetup('startup-group')
-  const { groups } = useStartupGroupStore()
-  const startupGroupRunning = computed(() => StartupGroupSetup.isAnyGroupRunning(groups.value))
-  const ensureSources = () => StartupGroupSetup.ensureSources(groups.value).catch(() => {})
+  const groups = computed(() => StartupGroupManager.store.groups)
+  const startupGroupRunning = computed(() => StartupGroupManager.isAnyGroupRunning(groups.value))
+  const ensureSources = () => StartupGroupManager.ensureSources(groups.value).catch(() => {})
 
   watch(
     () => groups.value.map((group) => `${group.id}:${group.updatedAt}`).join('|'),

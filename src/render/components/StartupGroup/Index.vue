@@ -54,31 +54,25 @@
 
   import { I18nT } from '@lang/index'
   import { SetupStore } from '@/components/Setup/store'
-  import {
-    isStartupGroupCreationLocked,
-    type StartupGroup,
-    type StartupGroupItem,
-    type StartupGroupRunResult
-  } from '@/core/StartupGroup'
   import Router from '@/router'
   import { AppStore } from '@/store/app'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import GroupCard from './GroupCard.vue'
   import GroupEditor from './GroupEditor.vue'
-  import { StartupGroupSetup } from './setup'
-  import { useStartupGroupStore } from './store'
+  import { StartupGroup } from './class/StartupGroup'
+  import { StartupGroupManager } from './class/StartupGroupManager'
+  import type { StartupGroupItem, StartupGroupRunResult } from './type'
 
-  const store = useStartupGroupStore()
-  const { groups, config } = store
+  const store = StartupGroupManager.store
+  const groups = computed(() => store.groups)
+  const config = computed(() => store.config)
   const appStore = AppStore()
   const setupStore = SetupStore()
-  const isAddLocked = computed(() =>
-    isStartupGroupCreationLocked(setupStore.isActive, groups.value.length)
-  )
+  const isAddLocked = computed(() => store.isCreationLocked(setupStore.isActive))
   const editorVisible = ref(false)
   const editingGroup = ref<StartupGroup>()
   const itemLabel = (item: StartupGroupItem) =>
-    StartupGroupSetup.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
+    StartupGroupManager.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
 
   const toLicense = () => {
     setupStore.tab = 'licenses'
@@ -116,13 +110,13 @@
   }
 
   const executeGroup = (group: StartupGroup, enabled: boolean) =>
-    execute(() => StartupGroupSetup.setGroupEnabled(group, enabled))
+    execute(() => StartupGroupManager.setGroupEnabled(group, enabled))
 
   const executeMember = (group: StartupGroup, item: StartupGroupItem, enabled: boolean) =>
-    execute(() => StartupGroupSetup.setMemberEnabled(group, item, enabled))
+    execute(() => StartupGroupManager.setMemberEnabled(group, item, enabled))
 
   const ensureSources = () =>
-    StartupGroupSetup.ensureSources(groups.value).catch((error) => {
+    StartupGroupManager.ensureSources(groups.value).catch((error) => {
       MessageError(error instanceof Error ? error.message : `${error}`)
     })
 

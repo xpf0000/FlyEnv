@@ -17,7 +17,7 @@ import { AppCustomerModule } from '@/core/Module'
 import { lang } from '@/util/NodeFn'
 import CapturerSetup from '@/components/Tools/Capturer/setup'
 import GlobalIPCOn from '@/util/GlobalIPCOn'
-import { initStartupGroupStore } from '@/components/StartupGroup/store'
+import { StartupGroupManager } from '@/components/StartupGroup/class/StartupGroupManager'
 
 window.Server = reactive({}) as any
 
@@ -35,7 +35,7 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
     store
       .initConfig()
       .then(async () => {
-        await initStartupGroupStore()
+        await StartupGroupManager.store.init()
         ThemeInit()
         const config = store.config.setup
         AppI18n(config?.lang)

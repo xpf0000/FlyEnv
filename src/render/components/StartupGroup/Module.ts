@@ -3,10 +3,9 @@ import { ElMessageBox } from 'element-plus'
 
 import { I18nT } from '@lang/index'
 import { registerModuleVisibilityGuard } from '@/core/ModuleVisibility'
-import { stopStartupGroupsForHide, type StartupGroupItem } from '@/core/StartupGroup'
 import type { AppModuleItem } from '@/core/type'
 import { MessageError, MessageWarning } from '@/util/Element'
-import { useStartupGroupStore } from './store'
+import type { StartupGroupItem } from './type'
 
 const itemLabel = (item: StartupGroupItem) =>
   item.type === 'service-version'
@@ -16,8 +15,8 @@ const itemLabel = (item: StartupGroupItem) =>
 registerModuleVisibilityGuard('startup-group', async (visible) => {
   if (visible) return true
 
-  const { startupGroupRuntime } = await import('./runtime')
-  if (startupGroupRuntime.runner.isExecuting) {
+  const { StartupGroupManager } = await import('./class/StartupGroupManager')
+  if (StartupGroupManager.runner.executing) {
     MessageWarning(I18nT('common.startupGroup.hideBusy'))
     return false
   }
@@ -30,8 +29,7 @@ registerModuleVisibilityGuard('startup-group', async (visible) => {
     return false
   }
 
-  const config = useStartupGroupStore().config.value
-  const stopped = await stopStartupGroupsForHide(config.groups, startupGroupRuntime.runner)
+  const stopped = await StartupGroupManager.runner.stopForHide(StartupGroupManager.store.groups)
   if (['runner-busy', 'member-busy'].includes(stopped.reason ?? '')) {
     MessageWarning(I18nT('common.startupGroup.hideBusy'))
     return false

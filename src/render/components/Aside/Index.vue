@@ -133,21 +133,18 @@
   import type { CallbackFn } from '@shared/app'
   import { BrewStore } from '@/store/brew'
   import { ElMessageBox } from 'element-plus'
-  import {
-    resolveDefaultStartupGroup,
-    type StartupGroupCardState,
-    type StartupGroupItem,
-    type StartupGroupRunResult
-  } from '@/core/StartupGroup'
-  import { startupGroupRuntime } from '@/components/StartupGroup/runtime'
-  import { StartupGroupSetup } from '@/components/StartupGroup/setup'
-  import { useStartupGroupStore } from '@/components/StartupGroup/store'
+  import { StartupGroupManager } from '@/components/StartupGroup/class/StartupGroupManager'
+  import type {
+    StartupGroupCardState,
+    StartupGroupItem,
+    StartupGroupRunResult
+  } from '@/components/StartupGroup/type'
 
   let lastTray = ''
 
   const appStore = AppStore()
   const brewStore = BrewStore()
-  const startupGroupStore = useStartupGroupStore()
+  const startupGroupStore = StartupGroupManager.store
 
   type AsideEntry = AppModuleItem | ModuleCustomer
   type AsideGroup = {
@@ -206,8 +203,8 @@
   })
 
   const startupGroupsVisible = computed(() => showItem.value?.['startup-group'] !== false)
-  const startupGroupConfig = startupGroupStore.config
-  const defaultStartupGroup = computed(() => resolveDefaultStartupGroup(startupGroupConfig.value))
+  const startupGroupConfig = computed(() => startupGroupStore.config)
+  const defaultStartupGroup = computed(() => startupGroupStore.defaultGroup)
   const groupTooltip = computed(() =>
     defaultStartupGroup.value
       ? I18nT('common.startupGroup.controlDefaultTooltip', {
@@ -222,7 +219,7 @@
   const startupGroupHasRunning = ref(false)
   const startupGroupStateForId = ref<string>()
   const startupGroupBusy = ref(false)
-  const startupGroupRunnerBusy = computed(() => startupGroupRuntime.runner.executing.value)
+  const startupGroupRunnerBusy = computed(() => StartupGroupManager.runner.executing)
   let startupGroupRefreshGeneration = 0
   let startupGroupRefreshInFlight: Promise<void> | undefined
   let startupGroupRefreshQueued = false
@@ -237,7 +234,7 @@
       return
     }
     const states = await Promise.all(
-      group.items.map((item) => startupGroupRuntime.runner.getItemState(item))
+      group.items.map((item) => StartupGroupManager.runner.getItemState(item))
     )
     if (
       generation !== startupGroupRefreshGeneration ||
@@ -723,7 +720,7 @@
   }
 
   const startupGroupItemLabel = (item: StartupGroupItem) =>
-    StartupGroupSetup.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
+    StartupGroupManager.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
 
   const startupGroupResultMessage = (result: StartupGroupRunResult) =>
     result.members
@@ -750,11 +747,7 @@
 
     startupGroupBusy.value = true
     try {
-      const states = await Promise.all(
-        group!.items.map((item) => startupGroupRuntime.runner.getItemState(item))
-      )
-      const action = states.some((state) => state === 'running') ? 'stop' : 'start'
-      const result = await startupGroupRuntime.runner.run(group!, action)
+      const result = await group!.toggle()
       const message = startupGroupResultMessage(result)
       if (result.members.some((item) => ['failed', 'invalid'].includes(item.outcome))) {
         MessageError(message)
@@ -861,7 +854,7 @@
     { immediate: true }
   )
   watch(
-    () => startupGroupRuntime.runner.revision.value,
+    () => StartupGroupManager.runner.revision,
     () => refreshStartupGroupState()
   )
 
