@@ -14,6 +14,7 @@
 
 - `scripts/mcp-render-status-sync-test.ts`: regression coverage for local start/stop races.
 - `src/render/util/mcpServiceStatus.ts`: per-version local lifecycle guard.
+- `src/main/core/IPCHandler.ts`: register lifecycle PID changes before returning the result to renderer.
 
 Implementation changes remain uncommitted because the current `master` worktree contains existing user-owned changes.
 
@@ -150,3 +151,68 @@ git status --short
 ```
 
 Expected: no whitespace errors; the new implementation diff is limited to the dedicated test and synchronization function, alongside pre-existing worktree changes.
+
+### Task 3: Preserve lifecycle notification order
+
+**Files:**
+- Modify: `scripts/mcp-render-status-sync-test.ts`
+- Modify: `src/main/core/IPCHandler.ts`
+
+- [ ] **Step 1: Add a failing source-order regression**
+
+Read `src/main/core/IPCHandler.ts` and assert that both PID updates occur before the lifecycle response:
+
+```ts
+const ipcHandlerSource = readFileSync(
+  new URL('../src/main/core/IPCHandler.ts', import.meta.url),
+  'utf8'
+)
+const lifecycleResponse = ipcHandlerSource.indexOf(
+  'this.deps.windowManager.sendCommandTo(win, command, key, info)'
+)
+assert.ok(ipcHandlerSource.indexOf('ServiceProcessManager.addPid') < lifecycleResponse)
+assert.ok(ipcHandlerSource.indexOf('ServiceProcessManager.delPid') < lifecycleResponse)
+```
+
+- [ ] **Step 2: Run the dedicated test and verify RED**
+
+Run:
+
+```powershell
+npx tsx scripts/mcp-render-status-sync-test.ts
+```
+
+Expected: FAIL because the renderer response is currently sent before PID registration changes.
+
+- [ ] **Step 3: Move the lifecycle response after PID registration updates**
+
+In `IPCHandler.handleForkCallback`, keep the version cache update first, process `APP-Service-Start-PID` and `APP-Service-Stop-PID`, then call:
+
+```ts
+this.deps.windowManager.sendCommandTo(win, command, key, info)
+```
+
+Do not change the PID registration data or notification payload.
+
+- [ ] **Step 4: Run the dedicated and related tests**
+
+Run:
+
+```powershell
+npx tsx scripts/mcp-render-status-sync-test.ts
+yarn test:startup-groups
+```
+
+Expected: both pass.
+
+- [ ] **Step 5: Run final checks**
+
+Run:
+
+```powershell
+npx eslint scripts/mcp-render-status-sync-test.ts src/render/util/mcpServiceStatus.ts src/main/core/IPCHandler.ts
+npx vue-tsc --noEmit
+git diff --check
+```
+
+Expected: all commands exit with code 0.
