@@ -23,7 +23,8 @@ The independent reactive class singleton provides a single adapter layer for Sta
 
 - Ensure the global module-installed and language-project collections required by configured groups have been loaded through their existing fetch methods.
 - Resolve a saved `StartupGroupItem` to its live global target.
-- Produce derived member presentation data: key, type, title, optional path, running state, executing state, invalid state, and switch-disabled state.
+- Resolve the module display label from `AppModules`, supporting string labels, label functions, and type-flag fallback.
+- Produce derived member presentation data: key, type, module label, title, path, running state, executing state, invalid state, and switch-disabled state.
 - Derive group state from live members. The group is on when at least one valid member is running.
 - Execute a full group start or stop through the existing runner.
 - Execute one member by running the existing runner with a temporary one-member group payload.
@@ -46,8 +47,11 @@ The manager resolves and returns references to the existing reactive targets rat
 ### Member Area
 
 - Replace the existing member tag summary with one compact card/row for every configured member.
-- A service-version member displays its live version value, falling back to the saved binary name when necessary.
-- A language-project member displays its live comment/remark as the primary label and its live path as secondary text. If no remark exists, use the existing no-remark translation.
+- Every member row uses the same fixed 56px, two-line layout.
+- A service-version member displays `<module label> · <live version>` on the first line, falling back to the saved binary name when necessary, and displays its installation path on the second line.
+- A language-project member displays `<module label> · <live comment/remark>` on the first line and its project path on the second line. If no remark exists, use the existing no-remark translation after the module label.
+- Wrap the member rows in an Element Plus scrollbar with a fixed 248px height: four 56px rows plus three 8px gaps are visible without scrolling.
+- Groups with fewer than four members retain the fixed member-area height so cards remain aligned; groups with more than four members scroll vertically.
 - Each member row has an Element Plus switch on the right.
 - A member switch is on only when that member's live global state is running.
 - Turning a member switch on starts only that member; turning it off stops only that member.
@@ -65,12 +69,20 @@ The manager resolves and returns references to the existing reactive targets rat
 
 ## Data Flow
 
-1. `GroupCard` receives the group and member descriptors containing references to the live reactive targets resolved by `StartupGroupSetup`.
+1. `GroupCard` receives the group and derives module labels, display text, paths, and switch state through `StartupGroupSetup`.
 2. Vue tracks the resolved global targets, so changes to `run`, `running`, `state.isRun`, or `state.running` update switches without page-owned polling.
 3. A group-switch event is interpreted from live state: any running member means stop the group; otherwise start the group.
 4. A member-switch event starts or stops only the selected saved item.
 5. The runner serializes the action and updates the real global target objects through their existing `start` and `stop` methods.
 6. Existing success and failure messages are generated from the runner result.
+
+## Service Selection Candidates
+
+- Language-project candidates come from the same global `ProjectSetup(module).project` collections used by their module pages.
+- A project marked `isService` is shown in the Startup Group selector even when an immediate `pathExists(project.path)` IPC check returns false.
+- This prevents an entire module such as NodeJS from disappearing when every configured project is rejected by the eager path check.
+- Candidate generation remains limited to projects marked as services.
+- The runner keeps its existing target/path validation before start and stop operations, so a genuinely missing project is reported as invalid at execution time instead of being silently hidden from the selector.
 
 ## Error and Edge-Case Handling
 
@@ -79,6 +91,7 @@ The manager resolves and returns references to the existing reactive targets rat
 - A partially running group renders the group switch on; clicking it always requests a full-group stop.
 - Repeated switch input is prevented by the runner-wide busy lock.
 - If a live target disappears after the group was configured, derived resolution changes it to invalid instead of retaining stale cached state.
+- A configured language-project service with a missing path remains visible in the selector and card so the user can identify and edit it; attempting to execute it reports the existing invalid-target result.
 - Existing edit and delete behavior remains unchanged.
 
 ## Testing
@@ -89,7 +102,10 @@ The manager resolves and returns references to the existing reactive targets rat
 - Verify a stopped group input chooses full-group start.
 - Verify a member input creates a one-member execution request with the correct action.
 - Verify invalid members and runner-busy state disable the appropriate switches.
-- Add source-contract checks for the header switch, member switches, footer checkbox, and small icon buttons where component mounting is not available.
+- Verify module labels support literal labels, label functions, and type-flag fallback.
+- Verify service-version and language-project rows expose their paths and produce the required `<module> · <version/remark>` primary text.
+- Verify a NodeJS project marked as a service remains in the candidate list when the eager path check returns false.
+- Add source-contract checks for the fixed-height Element Plus scrollbar, header switch, member switches, footer checkbox, and small icon buttons where component mounting is not available.
 - Run the Startup Group test, formatting, targeted lint/type checking, and `git diff --check` before completion.
 
 ## Out of Scope
