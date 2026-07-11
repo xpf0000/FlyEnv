@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { StopProcessListClient } from '../src/fork/StopProcessListClient'
 import { StopProcessListBridge } from '../src/main/core/StopProcessListBridge'
 import { StopProcessListCache } from '../src/main/core/StopProcessListCache'
@@ -189,5 +190,14 @@ assert.equal(localCalls, 1)
 setStopProcessListProvider(async () => firstList)
 assert.strictEqual(await StopProcessListFetch(), firstList)
 setStopProcessListProvider(undefined)
+
+const forkManagerSource = readFileSync('src/main/core/ForkManager.ts', 'utf8')
+const forkEntrySource = readFileSync('src/fork/index.ts', 'utf8')
+assert.match(forkManagerSource, /StopProcessListCache/)
+assert.match(forkManagerSource, /StopProcessListBridge/)
+assert.match(forkManagerSource, /stopProcessListBridge\.handle/)
+assert.match(forkEntrySource, /StopProcessListClient/)
+assert.match(forkEntrySource, /setStopProcessListProvider/)
+assert.match(forkEntrySource, /handleMessage\(data\)/)
 
 console.log('stop process list cache tests passed')

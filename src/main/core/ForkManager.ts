@@ -3,6 +3,10 @@ import { uuid, appendFile } from '../utils'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { cpus } from 'os'
+import { appDebugLog } from '@shared/utils'
+import { fetchStopProcessListLocal } from '@shared/StopProcessList'
+import { StopProcessListBridge } from './StopProcessListBridge'
+import { StopProcessListCache } from './StopProcessListCache'
 
 type Callback = (...args: any) => void
 
@@ -33,7 +37,17 @@ class ForkItem {
       }, 10000)
     }
   }
-  onMessage({ on, key, info }: { on?: boolean; key: string; info: any }) {
+  onMessage(child: UtilityProcess, message: any) {
+    if (
+      this.stopProcessListBridge.handle(message, (response) => {
+        try {
+          child.postMessage(response)
+        } catch {}
+      })
+    ) {
+      return
+    }
+    const { on, key, info } = message ?? {}
     if (on) {
       this._on({ key, info })
       return
@@ -85,12 +99,15 @@ class ForkItem {
     console.log('onSpawn: ', this.pid)
   }
 
-  constructor(file: string, autoDestroy: boolean) {
+  constructor(
+    file: string,
+    autoDestroy: boolean,
+    private readonly stopProcessListBridge: StopProcessListBridge
+  ) {
     this.forkFile = file
     this.autoDestroy = autoDestroy
     this.callback = {}
 
-    this.onMessage = this.onMessage.bind(this)
     this.onError = this.onError.bind(this)
     this.onExit = this.onExit.bind(this)
     this.onSpawn = this.onSpawn.bind(this)
@@ -98,11 +115,15 @@ class ForkItem {
     this.loading = true
     const child = utilityProcess.fork(file)
     child.postMessage({ Server: JSON.parse(JSON.stringify(Server)) })
-    child.on('message', this.onMessage)
+    this.attachChild(child)
+    this.child = child
+  }
+
+  private attachChild(child: UtilityProcess) {
+    child.on('message', (message) => this.onMessage(child, message))
     child.on('error', this.onError)
     child.on('exit', this.onExit)
     child.on('spawn', this.onSpawn)
-    this.child = child
   }
 
   isChildDisabled() {
@@ -126,10 +147,7 @@ class ForkItem {
         console.log('this.isChildDisabled !!!!', this.childExited, this?.pid)
         this.loading = true
         child = utilityProcess.fork(this.forkFile)
-        child.on('message', this.onMessage)
-        child.on('error', this.onError)
-        child.on('exit', this.onExit)
-        child.on('spawn', this.onSpawn)
+        this.attachChild(child)
         console.log('this.isChildDisabled pid: ', child.pid)
       } else {
         console.log('!!!! this.isChildDisabled Not')
@@ -162,6 +180,14 @@ export class ForkManager {
   ollamaChatFork?: ForkItem
 
   _on: Callback = () => {}
+  private readonly stopProcessListCache = new StopProcessListCache(fetchStopProcessListLocal, {
+    ttlMs: 350,
+    onEvent: (event) => {
+      appDebugLog('[StopProcessListCache]', JSON.stringify(event)).catch()
+    }
+  })
+  private readonly stopProcessListBridge = new StopProcessListBridge(this.stopProcessListCache)
+
   constructor(file: string) {
     this.file = file
   }
@@ -175,14 +201,14 @@ export class ForkManager {
     const module = param.shift()
     if (module === 'ftp-srv') {
       if (!this.ftpsrvFork) {
-        this.ftpsrvFork = new ForkItem(this.file, false)
+        this.ftpsrvFork = new ForkItem(this.file, false, this.stopProcessListBridge)
         this.ftpsrvFork._on = this._on
       }
       return this.ftpsrvFork!.send(...args)
     }
     if (module === 'dns') {
       if (!this.dnsFork) {
-        this.dnsFork = new ForkItem(this.file, false)
+        this.dnsFork = new ForkItem(this.file, false, this.stopProcessListBridge)
         this.dnsFork._on = this._on
       }
       return this.dnsFork!.send(...args)
@@ -190,7 +216,7 @@ export class ForkManager {
     const fn = param.shift()
     if (module === 'ollama' && ['chat', 'stopOutput'].includes(fn)) {
       if (!this.ollamaChatFork) {
-        this.ollamaChatFork = new ForkItem(this.file, true)
+        this.ollamaChatFork = new ForkItem(this.file, true, this.stopProcessListBridge)
       }
       return this.ollamaChatFork!.send(...args)
     }
@@ -210,7 +236,7 @@ export class ForkManager {
       const forksCount = this.forks.length
       console.log('forksCount: ', forksCount, CupCount)
       if (forksCount < CupCount) {
-        find = new ForkItem(this.file, this.forks.length > 0)
+        find = new ForkItem(this.file, this.forks.length > 0, this.stopProcessListBridge)
         // find = new ForkItem(this.file, true)
         this.forks.push(find)
       } else {

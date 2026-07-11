@@ -2,26 +2,41 @@ import { AppI18n } from '@lang/index'
 import BaseManager from './BaseManager'
 import { appDebugLog } from '@shared/utils'
 import { ProcessSendError } from './Fn'
+import { StopProcessListClient } from './StopProcessListClient'
+import { setStopProcessListProvider } from '@shared/StopProcessList'
+
+const parentPort = process.parentPort
+const stopProcessListClient = parentPort
+  ? new StopProcessListClient((message) => parentPort.postMessage(message))
+  : undefined
+
+if (stopProcessListClient) {
+  setStopProcessListProvider(() => stopProcessListClient.request())
+}
 
 // ---------------------- 兼容层开始 ----------------------
 // 只有在 electron 环境下且存在 parentPort 时才执行兼容逻辑
-if (process.parentPort) {
+if (parentPort) {
   // 1. 挂载 send 方法：让内部调用的 process.send 变为 process.parentPort.postMessage
   // @ts-ignore: 忽略 TS 对 process 上不存在 send 方法的报错
   if (!process.send) {
     // @ts-ignore
     process.send = (message: any) => {
-      process.parentPort.postMessage(message)
+      parentPort.postMessage(message)
       return true // Node.js 的 process.send 返回 boolean
     }
   }
 
   // 2. 转发 message 事件：让 process.on('message') 也能收到消息
   // 这样你连入口的监听逻辑都不用改成 parentPort.on
-  process.parentPort.on('message', (e) => {
+  parentPort.on('message', (e) => {
+    const data = e.data
+    if (stopProcessListClient?.handleMessage(data)) {
+      return
+    }
     // 将 electron 的消息结构 e.data 转发给 node 的标准事件
     // @ts-ignore
-    process.emit('message', e.data)
+    process.emit('message', data)
   })
 }
 // ---------------------- 兼容层结束 ----------------------
