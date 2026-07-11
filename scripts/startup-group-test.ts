@@ -42,6 +42,9 @@ import {
   canSetModuleVisibility,
   registerModuleVisibilityGuard
 } from '../src/render/core/ModuleVisibility'
+import { StartupGroup as StartupGroupEntity } from '../src/render/components/StartupGroup/class/StartupGroup'
+import { StartupGroupRunner as StartupGroupRunnerClass } from '../src/render/components/StartupGroup/class/StartupGroupRunner'
+import type { StartupGroupRunnerContract } from '../src/render/components/StartupGroup/type'
 
 const mysql: StartupGroupItem = {
   id: 'mysql',
@@ -75,6 +78,71 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     createdAt: 1,
     updatedAt: 1
   }
+}
+
+{
+  const calls: string[] = []
+  const runner: StartupGroupRunnerContract = {
+    executing: false,
+    revision: 0,
+    getItemState: async (item) => (item.id === 'mysql' ? 'running' : 'stopped'),
+    getGroupState: async () => 'stopped',
+    run: async (_group, action) => {
+      calls.push(action)
+      return { action, members: [] }
+    }
+  }
+  const group = new StartupGroupEntity(
+    { id: 'dev', name: 'Dev', items: [mysql, redis], createdAt: 1, updatedAt: 1 },
+    runner
+  )
+  assert.equal(group.empty, false)
+  assert.equal(group.canBeDefault, true)
+  assert.deepEqual(group.itemKeys, [
+    'service-version:mysql:D:/mysql/8.4',
+    'service-version:redis:D:/redis/7'
+  ])
+  assert.deepEqual(
+    group.stopItems.map((item) => item.id),
+    ['redis', 'mysql']
+  )
+  group.update({ name: 'Local', items: [api] }, 2)
+  assert.equal(group.name, 'Local')
+  assert.equal(group.updatedAt, 2)
+  assert.deepEqual(group.toJSON(), {
+    id: 'dev',
+    name: 'Local',
+    description: undefined,
+    color: undefined,
+    items: [api],
+    createdAt: 1,
+    updatedAt: 2
+  })
+  await group.start()
+  await group.stop()
+  await group.toggle()
+  assert.deepEqual(calls, ['start', 'stop', 'start'])
+}
+
+{
+  const runner = new StartupGroupRunnerClass(() => ({
+    exists: async () => true,
+    getState: async () => 'stopped',
+    start: async () => undefined,
+    stop: async () => undefined
+  }))
+  assert.equal(runner.executing, false)
+  assert.equal(runner.revision, 0)
+  assert.equal(runner.cardState(['running', 'stopped']), 'partial-running')
+  assert.deepEqual(
+    runner
+      .buildStopQueue([
+        new StartupGroupEntity(makeGroup('first', [mysql, redis]), runner),
+        new StartupGroupEntity(makeGroup('second', [redis, api]), runner)
+      ])
+      .map((item) => item.id),
+    ['redis', 'mysql', 'api']
+  )
 }
 
 {
