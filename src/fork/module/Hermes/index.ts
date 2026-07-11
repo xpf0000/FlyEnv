@@ -6,9 +6,9 @@ import { tmpdir, homedir } from 'node:os'
 import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
-import { appDebugLog, isWindows } from '@shared/utils'
-import { PItem, ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
-import { ProcessPidList } from '@shared/Process.win'
+import { appDebugLog } from '@shared/utils'
+import { PItem, ProcessKill, ProcessPidsByPid } from '@shared/Process'
+import { StopProcessListFetch } from '@shared/StopProcessList'
 import { I18nT } from '@lang/index'
 import { checkAiCliVersion, resolveAiCliCommand } from '../../util/AiCli'
 
@@ -285,12 +285,7 @@ class Hermes extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         await execPromiseWithEnv(`${this.hermesBin()} gateway stop`)
-        let all: PItem[] = []
-        if (isWindows()) {
-          all = await ProcessPidList()
-        } else {
-          all = await ProcessListFetch()
-        }
+        const all: PItem[] = await StopProcessListFetch()
 
         if (!all.length) {
           resolve(true)

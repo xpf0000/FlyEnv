@@ -45,6 +45,7 @@ import {
   PItem,
   ProcessListFetch
 } from '@shared/Process'
+import { StopProcessPidList } from '@shared/StopProcessList'
 import { allInstalledVersions, fetchAllOnlineVersion } from './version'
 
 class N8N extends Base {
@@ -78,7 +79,7 @@ class N8N extends Base {
       const port = await getPort()
       const allPid = new Set<string>()
 
-      const processList = await ProcessPidList()
+      const processList = await StopProcessPidList()
       const ownedMarkers = this.ownedProcessMarkers(version)
 
       // 1. Kill by saved app pid file

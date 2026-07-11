@@ -30,8 +30,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
-import { ProcessListSearch, ProcessPidList } from '@shared/Process.win'
 import { PItem, ProcessKill, ProcessOwnedPidsByPid } from '@shared/Process'
+import { StopProcessListSearch, StopProcessPidList } from '@shared/StopProcessList'
 import { EOL } from 'os'
 import { createConnection } from 'mysql2/promise'
 import type { Connection } from 'mysql2/promise'
@@ -151,7 +151,7 @@ class Mysql extends Base {
         pids.add(`${version.pid}`)
       }
       try {
-        const processList = await ProcessPidList()
+        const processList = await StopProcessPidList()
         const ownedMarkers = this.ownedProcessMarkers(version)
         for (const pid of pids) {
           ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) =>
@@ -460,7 +460,7 @@ datadir=${pathFixedToUnix(dataDir)}`
         const arr: Array<string> = []
         let all: PItem[] = []
         try {
-          all = await ProcessListSearch(`my-group-${id}.cnf`, false)
+          all = await StopProcessListSearch(`my-group-${id}.cnf`, false)
         } catch {}
 
         all.forEach((item) => arr.push(item.PID))

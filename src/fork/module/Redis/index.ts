@@ -27,6 +27,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
+import { StopProcessListSearch } from '@shared/StopProcessList'
 
 class Redis extends Base {
   constructor() {
@@ -103,7 +104,7 @@ class Redis extends Base {
       })
       const v = version?.version?.split('.')?.[0] ?? ''
       const appConfName = `pws-app-redis-${v}.conf`
-      const all = await ProcessListSearch(appConfName, false)
+      const all = await StopProcessListSearch(appConfName, false)
       const arr: Array<string> = []
       all.forEach((item) => {
         arr.push(item.PID)

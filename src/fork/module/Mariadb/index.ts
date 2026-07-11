@@ -33,8 +33,8 @@ import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { compareVersions } from '@shared/compare-versions'
-import { ProcessPidList } from '@shared/Process.win'
 import { ProcessOwnedPidsByPid } from '@shared/Process'
+import { StopProcessPidList } from '@shared/StopProcessList'
 import { parse as iniParse } from 'ini'
 import { Connection, createConnection } from 'mysql2/promise'
 import { format } from 'date-fns'
@@ -483,7 +483,7 @@ class Manager extends Base {
         pids.add(`${version.pid}`)
       }
       try {
-        const processList = await ProcessPidList()
+        const processList = await StopProcessPidList()
         const ownedMarkers = this.ownedProcessMarkers(version)
         for (const pid of pids) {
           ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) =>

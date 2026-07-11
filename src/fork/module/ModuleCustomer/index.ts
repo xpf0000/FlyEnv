@@ -13,11 +13,11 @@ import {
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { existsSync } from 'fs'
-import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
+import { ProcessKill, ProcessPidsByPid } from '@shared/Process'
 import { I18nT } from '@lang/index'
 import type { ModuleExecItem, SoftInstalled } from '@shared/app'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { ProcessPidListByPid } from '@shared/Process.win'
+import { StopProcessListFetch, StopProcessPidListByPid } from '@shared/StopProcessList'
 
 class ModuleCustomer {
   constructor() {}
@@ -36,7 +36,7 @@ class ModuleCustomer {
   stopService(pid: string) {
     return new ForkPromise(async (resolve) => {
       if (isWindows()) {
-        const pids = await ProcessPidListByPid(`${pid}`.trim())
+        const pids = await StopProcessPidListByPid(`${pid}`.trim())
 
         if (pids.length > 0) {
           try {
@@ -49,7 +49,7 @@ class ModuleCustomer {
         })
       } else {
         const allPid: string[] = []
-        const plist: any = await ProcessListFetch()
+        const plist: any = await StopProcessListFetch()
         const pids = ProcessPidsByPid(pid.trim(), plist)
         allPid.push(...pids)
         const arr: string[] = Array.from(new Set(allPid))

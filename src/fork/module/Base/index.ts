@@ -18,16 +18,10 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
-import {
-  type PItem,
-  ProcessKill,
-  ProcessListFetch,
-  ProcessOwnedPidsByPid,
-  ProcessSearch
-} from '@shared/Process'
+import { type PItem, ProcessKill, ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { unpack } from '../../util/Zip'
-import { ProcessPidList } from '@shared/Process.win'
+import { StopProcessListFetch } from '@shared/StopProcessList'
 import { getAxiosProxy } from '../../util/Axios'
 import Helper from '../../Helper'
 
@@ -272,11 +266,7 @@ export class Base {
       let plist: PItem[] = []
       const allPid: string[] = []
       try {
-        if (isWindows()) {
-          plist = await ProcessPidList()
-        } else {
-          plist = await ProcessListFetch()
-        }
+        plist = await StopProcessListFetch()
       } catch (e) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.processListFail'))

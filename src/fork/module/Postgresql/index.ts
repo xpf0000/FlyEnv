@@ -31,7 +31,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
-import { ProcessListFetch, ProcessSearch } from '@shared/Process'
+import { ProcessSearch } from '@shared/Process'
+import { StopProcessListFetch } from '@shared/StopProcessList'
 
 class Manager extends Base {
   constructor() {
@@ -104,7 +105,7 @@ class Manager extends Base {
               return
             }
             try {
-              const plist = await ProcessListFetch()
+              const plist = await StopProcessListFetch()
               const postgresProcs = ProcessSearch('postgres', false, plist).filter(
                 (p) =>
                   p.COMMAND.includes(dbPath) &&

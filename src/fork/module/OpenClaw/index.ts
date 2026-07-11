@@ -5,9 +5,9 @@ import { execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../.
 import { tmpdir, homedir } from 'node:os'
 import { join } from 'node:path'
 import { uuid } from '../../Fn'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { PItem, ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
-import { ProcessPidList } from '@shared/Process.win'
+import { isLinux, isMacOS } from '@shared/utils'
+import { PItem, ProcessKill, ProcessPidsByPid } from '@shared/Process'
+import { StopProcessListFetch } from '@shared/StopProcessList'
 import { I18nT } from '@lang/index'
 
 class OpenClaw extends Base {
@@ -136,12 +136,7 @@ class OpenClaw extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         await execPromiseWithEnv(`openclaw gateway stop`)
-        let all: PItem[] = []
-        if (isWindows()) {
-          all = await ProcessPidList()
-        } else {
-          all = await ProcessListFetch()
-        }
+        const all: PItem[] = await StopProcessListFetch()
 
         if (!all.length) {
           resolve(true)

@@ -10,8 +10,8 @@ import {
   existsSync
 } from '../../Fn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { ProcessKill, ProcessListFetch, ProcessPidsByPid } from '@shared/Process'
-import { ProcessPidListByPid } from '@shared/Process.win'
+import { ProcessKill, ProcessPidsByPid } from '@shared/Process'
+import { StopProcessListFetch, StopProcessPidListByPid } from '@shared/StopProcessList'
 import { I18nT } from '@lang/index'
 import { basename, dirname, join } from 'path'
 import { chmod, remove, writeFile, copyFile, readFile, spawnPromiseWithEnv } from '../../Fn'
@@ -38,7 +38,7 @@ class LanguageProject {
     return new ForkPromise(async (resolve) => {
       console.log('LanguageProject stopService: ', pid, typeFlag)
       if (isWindows()) {
-        const pids = await ProcessPidListByPid(`${pid}`.trim())
+        const pids = await StopProcessPidListByPid(`${pid}`.trim())
         if (pids.length > 0) {
           try {
             await ProcessKill('-INT', pids)
@@ -49,7 +49,7 @@ class LanguageProject {
         })
       } else {
         const allPid: string[] = []
-        const plist: any = await ProcessListFetch()
+        const plist: any = await StopProcessListFetch()
         const pids = ProcessPidsByPid(pid.trim(), plist)
         allPid.push(...pids)
         const arr: string[] = Array.from(new Set(allPid))

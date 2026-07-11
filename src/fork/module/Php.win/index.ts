@@ -23,7 +23,7 @@ import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import axios from 'axios'
-import { ProcessListSearch } from '@shared/Process.win'
+import { StopProcessListSearch } from '@shared/StopProcessList'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
 import { ProcessKill } from '@shared/Process'
@@ -176,7 +176,7 @@ class Php extends Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
-      const all = await ProcessListSearch(`phpwebstudy.90${version.num}`, false)
+      const all = await StopProcessListSearch(`phpwebstudy.90${version.num}`, false)
       const arr: Array<string> = []
       const fpm: Array<string> = []
       all.forEach((item) => {
