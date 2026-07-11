@@ -725,7 +725,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(editorSource, /common\.startupGroup\.noRemark/)
   assert.match(editorSource, /normalizeStartupGroupCandidateSelection/)
   assert.match(editorSource, /<el-scrollbar/)
-  assert.match(editorSource, /max-height="58vh"/)
+  assert.match(editorSource, /el-dialog-content-flex-1 h-\[75%\]/)
   assert.match(editorSource, /startup-group-module-collapse ml-4/)
   assert.match(editorSource, /toggleStartupGroupCandidateSelection/)
   assert.match(editorSource, /@click\.capture\.prevent\.stop="toggleCandidate\(candidate\)"/)
