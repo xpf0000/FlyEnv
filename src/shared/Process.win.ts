@@ -9,7 +9,7 @@ import { execPromiseWithEnv } from '@shared/child-process'
 import { readFile, remove } from '@shared/fs-extra'
 import EnvSync from '@shared/EnvSync'
 
-export const ProcessPidList = async (): Promise<PItem[]> => {
+const shouldUseHelper = async () => {
   let useHelper = false
   try {
     if (Helper.enable) {
@@ -20,50 +20,50 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
   } catch {
     useHelper = false
   }
-  const all: PItem[] = []
+  return useHelper
+}
 
-  if (useHelper) {
-    const content: string = (await Helper.send('tools', 'processListWin')) as any
-    const parsed = JSON5.parse(content)
-    const list = Array.isArray(parsed) ? parsed : parsed ? [parsed] : []
-    all.push(
-      ...list.map((m: any) => {
-        return {
-          PID: `${m.ProcessId}`,
-          PPID: `${m.ParentProcessId}`,
-          USER: '',
-          COMMAND: m.CommandLine
-        }
-      })
-    )
-    return all
+const normalizeWindowsProcessList = (parsed: any): PItem[] => {
+  const list = Array.isArray(parsed) ? parsed : parsed ? [parsed] : []
+  return list.map((m: any) => ({
+    PID: `${m.ProcessId}`,
+    PPID: `${m.ParentProcessId}`,
+    USER: '',
+    COMMAND: m.CommandLine ?? ''
+  }))
+}
+
+export const ProcessPidListStrict = async (): Promise<PItem[]> => {
+  if (await shouldUseHelper()) {
+    try {
+      const content: string = (await Helper.send('tools', 'processListWin')) as any
+      return normalizeWindowsProcessList(JSON5.parse(content))
+    } catch (error) {
+      appDebugLog('[ProcessPidList][helper-fallback]', `${error}`).catch()
+    }
   }
 
+  const file = join(tmpdir(), `${uuid()}.json`).split('\\').join('/')
   try {
-    const file = join(tmpdir(), `${uuid()}.json`).split('\\').join('/')
     const command = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId,CreationClassName | ConvertTo-Json | Out-File -FilePath "${file}" -Encoding utf8`
     await EnvSync.sync()
     await execPromiseWithEnv(command, {
       shell: EnvSync.PowerShellPath || 'powershell.exe'
     })
     const content = await readFile(file, 'utf-8')
-    const parsed = JSON5.parse(content)
-    const list = Array.isArray(parsed) ? parsed : parsed ? [parsed] : []
-    all.push(
-      ...list.map((m: any) => {
-        return {
-          PID: `${m.ProcessId}`,
-          PPID: `${m.ParentProcessId}`,
-          USER: '',
-          COMMAND: m.CommandLine
-        }
-      })
-    )
-    remove(file).catch()
-  } catch (e) {
-    appDebugLog(`[ProcessPidList][error]`, `${e}`).catch()
+    return normalizeWindowsProcessList(JSON5.parse(content))
+  } finally {
+    await remove(file).catch(() => {})
   }
-  return all
+}
+
+export const ProcessPidList = async (): Promise<PItem[]> => {
+  try {
+    return await ProcessPidListStrict()
+  } catch (error) {
+    appDebugLog('[ProcessPidList][error]', `${error}`).catch()
+    return []
+  }
 }
 
 export const ProcessPidListByPids = async (

@@ -4,8 +4,11 @@ import { StopProcessListBridge } from '../src/main/core/StopProcessListBridge'
 import { StopProcessListCache } from '../src/main/core/StopProcessListCache'
 import type { PItem } from '../src/shared/Process'
 import {
+  StopProcessListAccess,
+  StopProcessListFetch,
   isStopProcessListRequest,
   isStopProcessListResponse,
+  setStopProcessListProvider,
   type StopProcessListResponse
 } from '../src/shared/StopProcessList'
 
@@ -158,5 +161,33 @@ const timeoutClient = new StopProcessListClient(() => {}, {
 const timeoutResult = timeoutClient.request()
 scheduledTimeout?.()
 await assert.rejects(() => timeoutResult, /timed out after 10000ms/)
+
+let providerCalls = 0
+let localCalls = 0
+const access = new StopProcessListAccess(
+  async () => {
+    localCalls += 1
+    return secondList
+  },
+  () => {}
+)
+access.setProvider(async () => {
+  providerCalls += 1
+  return firstList
+})
+assert.strictEqual(await access.fetch(), firstList)
+assert.equal(providerCalls, 1)
+assert.equal(localCalls, 0)
+assert.deepEqual(await access.search('NGINX', false), firstList)
+
+access.setProvider(async () => {
+  throw new Error('main unavailable')
+})
+assert.strictEqual(await access.fetch(), secondList)
+assert.equal(localCalls, 1)
+
+setStopProcessListProvider(async () => firstList)
+assert.strictEqual(await StopProcessListFetch(), firstList)
+setStopProcessListProvider(undefined)
 
 console.log('stop process list cache tests passed')
