@@ -44,7 +44,13 @@ import {
 } from '../src/render/core/ModuleVisibility'
 import { StartupGroup as StartupGroupEntity } from '../src/render/components/StartupGroup/class/StartupGroup'
 import { StartupGroupRunner as StartupGroupRunnerClass } from '../src/render/components/StartupGroup/class/StartupGroupRunner'
-import type { StartupGroupRunnerContract } from '../src/render/components/StartupGroup/type'
+import { StartupGroupCandidate as StartupGroupCandidateClass } from '../src/render/components/StartupGroup/class/StartupGroupCandidate'
+import { StartupGroupRuntime as StartupGroupRuntimeClass } from '../src/render/components/StartupGroup/class/StartupGroupRuntime'
+import { StartupGroupStore as StartupGroupStoreClass } from '../src/render/components/StartupGroup/class/StartupGroupStore'
+import type {
+  StartupGroupConfigData,
+  StartupGroupRunnerContract
+} from '../src/render/components/StartupGroup/type'
 
 const mysql: StartupGroupItem = {
   id: 'mysql',
@@ -143,6 +149,53 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
       .map((item) => item.id),
     ['redis', 'mysql', 'api']
   )
+}
+
+{
+  const candidate = new StartupGroupCandidateClass(() => 'candidate-id')
+  assert.equal(typeof candidate.toggleSelection, 'function')
+  const runtime = new StartupGroupRuntimeClass({
+    createId: () => 'runtime-id',
+    getModules: () => [],
+    getInstalled: async () => [],
+    getProjects: async () => [],
+    pathExists: async () => true
+  })
+  assert.ok(runtime.runner instanceof StartupGroupRunnerClass)
+  assert.deepEqual(await runtime.listCandidates(), [])
+}
+
+{
+  const writes: StartupGroupConfigData[] = []
+  const storeRunner: StartupGroupRunnerContract = {
+    executing: false,
+    revision: 0,
+    getItemState: async () => 'stopped',
+    getGroupState: async () => 'stopped',
+    run: async (_group, action) => ({ action, members: [] })
+  }
+  const store = new StartupGroupStoreClass(storeRunner, {
+    createId: () => 'created',
+    now: () => 10,
+    get: async () => ({
+      groups: [{ id: 'saved', name: 'Saved', items: [mysql], createdAt: 1, updatedAt: 1 }],
+      defaultStartupGroupId: 'saved'
+    }),
+    set: async (value) => {
+      writes.push(value)
+    }
+  })
+  await store.init()
+  assert.ok(store.groups[0] instanceof StartupGroupEntity)
+  assert.equal(store.defaultGroup?.id, 'saved')
+  const created = await store.add({ name: 'Created', items: [redis] })
+  assert.ok(created instanceof StartupGroupEntity)
+  assert.deepEqual(writes.at(-1)?.groups.at(-1), JSON.parse(JSON.stringify(created.toJSON())))
+  await store.setDefault('created')
+  await store.update('created', { name: 'Updated', items: [api] })
+  assert.equal(store.find('created')?.name, 'Updated')
+  await store.remove('created')
+  assert.equal(store.find('created'), undefined)
 }
 
 {
@@ -915,6 +968,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const startupGroupAsideSource = readSource('src/render/components/StartupGroup/aside.vue')
   const startupGroupSetupSource = readSource('src/render/components/StartupGroup/setup.ts')
   const startupGroupStoreSource = readSource('src/render/components/StartupGroup/store.ts')
+  const startupGroupManagerSource = readSource(
+    'src/render/components/StartupGroup/class/StartupGroupManager.ts'
+  )
   const routerSource = readSource('src/render/router/index.ts')
   const appStoreSource = readSource('src/render/store/app.ts')
   const mainSource = readSource('src/render/main.ts')
@@ -928,6 +984,10 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(typeSource, /console = 'console'/)
   assert.match(typeSource, /'startup-group' = 'startup-group'/)
   assert.match(startupGroupStoreSource, /StorageGetAsync/)
+  assert.match(startupGroupManagerSource, /new StartupGroupRuntime/)
+  assert.match(startupGroupManagerSource, /new StartupGroupStore/)
+  assert.match(startupGroupManagerSource, /new StartupGroupCandidate/)
+  assert.match(startupGroupManagerSource, /export const StartupGroupManager = reactiveBind/)
   assert.match(startupGroupStoreSource, /StorageSetAsync/)
   assert.doesNotMatch(startupGroupStoreSource, /AppStore/)
   assert.doesNotMatch(startupGroupStoreSource, /saveConfig\(/)
