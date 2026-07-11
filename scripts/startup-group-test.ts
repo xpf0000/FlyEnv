@@ -804,7 +804,6 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   )
   const routerSource = readSource('src/render/router/index.ts')
   const appStoreSource = readSource('src/render/store/app.ts')
-  const mainSource = readSource('src/render/main.ts')
   const mysqlForkSource = readSource('src/fork/module/Mysql/index.ts')
   const mariaDBForkSource = readSource('src/fork/module/Mariadb/index.ts')
   const postgreSQLForkSource = readSource('src/fork/module/Postgresql/index.ts')
