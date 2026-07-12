@@ -10,6 +10,9 @@ import {
 } from '../src/shared/EnvSyncProtocol'
 import { EnvSyncCoordinator } from '../src/main/core/EnvSyncCoordinator'
 import { EnvSyncAccess } from '../src/shared/EnvSync'
+import { EnvSyncBridge } from '../src/main/core/EnvSyncBridge'
+import { EnvSyncClient } from '../src/fork/EnvSyncClient'
+import type { EnvSyncResponse } from '../src/shared/EnvSyncProtocol'
 
 const snapshot: EnvSyncSnapshot = {
   revision: 3,
@@ -216,5 +219,81 @@ assert.equal(fallbackGets, 2)
 assert.equal(localFetches, 2)
 
 global.Server = previousServer
+
+const bridgeReplies: EnvSyncResponse[] = []
+const bridge = new EnvSyncBridge({
+  get: async () => snapshot,
+  invalidate: async () => 5
+})
+assert.equal(
+  bridge.handle({ type: 'env-sync-get', requestId: 'bridge-get' }, (message) =>
+    bridgeReplies.push(message)
+  ),
+  true
+)
+assert.equal(
+  bridge.handle({ type: 'env-sync-invalidate', requestId: 'bridge-clean' }, (message) =>
+    bridgeReplies.push(message)
+  ),
+  true
+)
+assert.equal(
+  bridge.handle({ type: 'normal-task' }, () => {}),
+  false
+)
+await new Promise((resolve) => setTimeout(resolve, 0))
+assert.deepEqual(bridgeReplies, [
+  { type: 'env-sync-get-response', requestId: 'bridge-get', snapshot },
+  { type: 'env-sync-invalidate-response', requestId: 'bridge-clean', revision: 5 }
+])
+
+const sent: unknown[] = []
+const invalidated: number[] = []
+let requestNumber = 0
+const client = new EnvSyncClient(
+  (message) => sent.push(message),
+  (revision) => invalidated.push(revision),
+  { requestId: () => `request-${++requestNumber}` }
+)
+const clientGet = client.get()
+assert.deepEqual(sent[0], { type: 'env-sync-get', requestId: 'request-1' })
+assert.equal(
+  client.handleMessage({
+    type: 'env-sync-get-response',
+    requestId: 'request-1',
+    snapshot
+  }),
+  true
+)
+assert.strictEqual(await clientGet, snapshot)
+
+const clientInvalidate = client.invalidate()
+assert.deepEqual(sent[1], { type: 'env-sync-invalidate', requestId: 'request-2' })
+client.handleMessage({
+  type: 'env-sync-invalidate-response',
+  requestId: 'request-2',
+  revision: 6
+})
+assert.equal(await clientInvalidate, 6)
+assert.equal(client.handleMessage({ type: 'env-sync-invalidated', revision: 6 }), true)
+assert.deepEqual(invalidated, [6])
+assert.equal(client.handleMessage({ type: 'normal-task' }), false)
+
+let triggerTimeout: (() => void) | undefined
+const timeoutClient = new EnvSyncClient(
+  () => {},
+  () => {},
+  {
+    requestId: () => 'timeout-get',
+    scheduleTimeout: (handler) => {
+      triggerTimeout = handler
+      return 1
+    },
+    cancelTimeout: () => {}
+  }
+)
+const timedOut = timeoutClient.get()
+triggerTimeout?.()
+await assert.rejects(() => timedOut, /timed out after 10000ms/)
 
 console.log('env sync coordinator tests passed')
