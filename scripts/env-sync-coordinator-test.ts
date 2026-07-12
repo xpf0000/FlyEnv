@@ -219,6 +219,28 @@ assert.equal((await fallbackAccess.sync()).PATH, '/local')
 assert.equal(fallbackGets, 2)
 assert.equal(localFetches, 2)
 
+let localGenerationFetches = 0
+let releaseOldLocal!: () => void
+const oldLocalGate = new Promise<void>((resolve) => {
+  releaseOldLocal = resolve
+})
+const generationAccess = new EnvSyncAccess({
+  localFetch: async () => {
+    localGenerationFetches += 1
+    if (localGenerationFetches === 1) await oldLocalGate
+    return { env: { PATH: `/local-generation-${localGenerationFetches}` } }
+  }
+})
+const oldLocalRequest = generationAccess.sync()
+await Promise.resolve()
+await generationAccess.clean()
+const freshLocalRequest = generationAccess.sync()
+await Promise.resolve()
+assert.equal(localGenerationFetches, 2)
+releaseOldLocal()
+assert.equal((await freshLocalRequest).PATH, '/local-generation-2')
+assert.equal((await oldLocalRequest).PATH, '/local-generation-2')
+
 global.Server = previousServer
 
 const bridgeReplies: EnvSyncResponse[] = []

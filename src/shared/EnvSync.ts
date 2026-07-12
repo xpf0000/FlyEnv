@@ -32,6 +32,7 @@ export class EnvSyncAccess {
   private inFlight?: Promise<Record<string, string>>
   private invalidateInFlight: Promise<void> = Promise.resolve()
   private minimumRevision = 0
+  private generation = 0
   private readonly localFetch: () => Promise<EnvSyncLocalResult>
   private readonly now: () => number
   private readonly localTtlMs: number
@@ -54,7 +55,9 @@ export class EnvSyncAccess {
     if (revision !== undefined && revision > this.minimumRevision) {
       this.minimumRevision = revision
     }
+    this.generation += 1
     this.cached = undefined
+    this.inFlight = undefined
     this.AppEnv = undefined
     this.CMDPath = undefined
     this.PowerShellPath = undefined
@@ -85,18 +88,21 @@ export class EnvSyncAccess {
     return snapshot
   }
 
-  private async load(): Promise<Record<string, string>> {
+  private async load(generation: number): Promise<Record<string, string>> {
     if (this.provider) {
       try {
         const snapshot = await this.providerSnapshot()
+        if (this.generation !== generation) return this.sync()
         this.cached = { snapshot, source: 'provider' }
         return this.apply(snapshot)
       } catch (error) {
+        if (this.generation !== generation) return this.sync()
         appDebugLog('[EnvSync][local-fallback]', `${error}`).catch()
       }
     }
 
     const local = await this.localFetch()
+    if (this.generation !== generation) return this.sync()
     const fetchedAt = this.now()
     const source = this.provider ? 'local-fallback' : 'local-primary'
     const snapshot: EnvSyncSnapshot = {
@@ -115,7 +121,8 @@ export class EnvSyncAccess {
     const cached = this.cached
     if (cached && this.now() < cached.snapshot.expiresAt) return this.apply(cached.snapshot)
     if (this.inFlight) return this.inFlight
-    const promise = this.load().finally(() => {
+    const generation = this.generation
+    const promise = this.load(generation).finally(() => {
       if (this.inFlight === promise) this.inFlight = undefined
     })
     this.inFlight = promise
