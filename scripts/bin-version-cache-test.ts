@@ -158,6 +158,45 @@ assert.deepEqual(await failingStore.get(nginxFingerprint), {
   value: { version: '1.27.4' }
 })
 
+let releaseConcurrentSave: (() => void) | undefined
+const concurrentSavedValues: unknown[] = []
+const concurrentStore = new BinVersionCacheStore(
+  {
+    load: () => ({ schemaVersion: 1, entries: {} }),
+    save: async (value) => {
+      concurrentSavedValues.push(value)
+      if (concurrentSavedValues.length === 1) {
+        await new Promise<void>((resolve) => {
+          releaseConcurrentSave = resolve
+        })
+      }
+    }
+  },
+  {
+    schedule: () => 1,
+    cancel: () => {}
+  }
+)
+await concurrentStore.ready
+await concurrentStore.set(nginxFingerprint, { version: '1.27.4' })
+const concurrentFlush = concurrentStore.flush()
+await Promise.resolve()
+await Promise.resolve()
+await concurrentStore.set(nginxFingerprint, { version: '1.27.5' })
+releaseConcurrentSave?.()
+await concurrentFlush
+assert.equal(concurrentSavedValues.length, 2)
+assert.deepEqual(concurrentSavedValues[1], {
+  schemaVersion: 1,
+  entries: {
+    '/opt/flyenv/nginx': {
+      mtimeMs: 100,
+      size: 200,
+      value: { version: '1.27.5' }
+    }
+  }
+})
+
 const bridgeReplies: BinVersionCacheGetResponse[] = []
 const bridgeSets: Array<{ fingerprint: BinVersionFingerprint; value: unknown }> = []
 const bridge = new BinVersionCacheBridge({

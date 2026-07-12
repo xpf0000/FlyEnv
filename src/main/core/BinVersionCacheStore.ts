@@ -119,31 +119,36 @@ export class BinVersionCacheStore {
 
   async flush(): Promise<void> {
     await this.ready
-    if (this.saveTimer !== undefined) {
-      this.cancel(this.saveTimer)
-      this.saveTimer = undefined
-    }
-    if (this.saveInFlight) await this.saveInFlight
-    if (!this.dirty) return
+    while (true) {
+      if (this.saveTimer !== undefined) {
+        this.cancel(this.saveTimer)
+        this.saveTimer = undefined
+      }
+      if (this.saveInFlight) {
+        await this.saveInFlight
+        continue
+      }
+      if (!this.dirty) return
 
-    const revision = this.revision
-    const snapshot = this.snapshot()
-    this.saveInFlight = Promise.resolve()
-      .then(() => this.persistence.save(snapshot))
-      .then(() => {
-        if (this.revision === revision) this.dirty = false
-        this.emit({ type: 'save-success', entryCount: this.entries.size })
-      })
-      .catch((error) => {
-        this.emit({
-          type: 'save-error',
-          error: error instanceof Error ? error.message : String(error)
+      const revision = this.revision
+      const snapshot = this.snapshot()
+      this.saveInFlight = Promise.resolve()
+        .then(() => this.persistence.save(snapshot))
+        .then(() => {
+          if (this.revision === revision) this.dirty = false
+          this.emit({ type: 'save-success', entryCount: this.entries.size })
         })
-      })
-      .finally(() => {
-        this.saveInFlight = undefined
-      })
-    await this.saveInFlight
-    if (this.dirty && this.revision !== revision) this.scheduleSave()
+        .catch((error) => {
+          this.emit({
+            type: 'save-error',
+            error: error instanceof Error ? error.message : String(error)
+          })
+        })
+        .finally(() => {
+          this.saveInFlight = undefined
+        })
+      await this.saveInFlight
+      if (this.dirty && this.revision === revision) return
+    }
   }
 }
