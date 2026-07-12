@@ -10,6 +10,11 @@ import { StopProcessListCache } from './StopProcessListCache'
 import { BinVersionCacheStore } from './BinVersionCacheStore'
 import { ElectronStoreBinVersionCachePersistence } from './BinVersionCachePersistence'
 import { BinVersionCacheBridge } from './BinVersionCacheBridge'
+import EnvSync from '@shared/EnvSync'
+import { fetchEnvSyncLocal } from '@shared/EnvSyncLocal'
+import type { EnvSyncInvalidated } from '@shared/EnvSyncProtocol'
+import { EnvSyncCoordinator } from './EnvSyncCoordinator'
+import { EnvSyncBridge } from './EnvSyncBridge'
 
 type Callback = (...args: any) => void
 
@@ -41,6 +46,15 @@ class ForkItem {
     }
   }
   onMessage(child: UtilityProcess, message: any) {
+    if (
+      this.envSyncBridge.handle(message, (response) => {
+        try {
+          child.postMessage(response)
+        } catch {}
+      })
+    ) {
+      return
+    }
     if (
       this.stopProcessListBridge.handle(message, (response) => {
         try {
@@ -114,6 +128,7 @@ class ForkItem {
   constructor(
     file: string,
     autoDestroy: boolean,
+    private readonly envSyncBridge: EnvSyncBridge,
     private readonly stopProcessListBridge: StopProcessListBridge,
     private readonly binVersionCacheBridge: BinVersionCacheBridge
   ) {
@@ -193,6 +208,17 @@ export class ForkManager {
   ollamaChatFork?: ForkItem
 
   _on: Callback = () => {}
+  private readonly envSyncCoordinator = new EnvSyncCoordinator(fetchEnvSyncLocal, {
+    ttlMs: 300_000,
+    onEvent: (event) => {
+      console.log('[EnvSyncCoordinator]: ', event)
+    }
+  })
+  private readonly envSyncBridge = new EnvSyncBridge(this.envSyncCoordinator)
+  private readonly unsubscribeEnvSync = this.envSyncCoordinator.subscribe((revision) => {
+    EnvSync.clearLocal(revision)
+    this.broadcastEnvSyncInvalidated(revision)
+  })
   private readonly stopProcessListCache = new StopProcessListCache(fetchStopProcessListLocal, {
     ttlMs: 650,
     onEvent: (event) => {
@@ -215,6 +241,22 @@ export class ForkManager {
 
   constructor(file: string) {
     this.file = file
+    EnvSync.setProvider(this.envSyncCoordinator)
+  }
+
+  private broadcastEnvSyncInvalidated(revision: number) {
+    const message: EnvSyncInvalidated = { type: 'env-sync-invalidated', revision }
+    const forks = new Set(
+      [this.ftpsrvFork, this.dnsFork, this.ollamaChatFork, ...this.forks].filter(
+        (item): item is ForkItem => !!item
+      )
+    )
+    for (const fork of forks) {
+      if (fork.childExited) continue
+      try {
+        fork.child.postMessage(message)
+      } catch {}
+    }
   }
 
   on(fn: Callback) {
@@ -229,6 +271,7 @@ export class ForkManager {
         this.ftpsrvFork = new ForkItem(
           this.file,
           false,
+          this.envSyncBridge,
           this.stopProcessListBridge,
           this.binVersionCacheBridge
         )
@@ -241,6 +284,7 @@ export class ForkManager {
         this.dnsFork = new ForkItem(
           this.file,
           false,
+          this.envSyncBridge,
           this.stopProcessListBridge,
           this.binVersionCacheBridge
         )
@@ -254,6 +298,7 @@ export class ForkManager {
         this.ollamaChatFork = new ForkItem(
           this.file,
           true,
+          this.envSyncBridge,
           this.stopProcessListBridge,
           this.binVersionCacheBridge
         )
@@ -279,6 +324,7 @@ export class ForkManager {
         find = new ForkItem(
           this.file,
           this.forks.length > 0,
+          this.envSyncBridge,
           this.stopProcessListBridge,
           this.binVersionCacheBridge
         )
@@ -295,6 +341,8 @@ export class ForkManager {
 
   async destroy() {
     await this.binVersionCacheStore.flush()
+    this.unsubscribeEnvSync()
+    EnvSync.setProvider(undefined)
     this?.dnsFork?.destroy()
     this?.ftpsrvFork?.destroy()
     this?.ollamaChatFork?.destroy()

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import {
   isEnvSyncGetRequest,
   isEnvSyncGetResponse,
@@ -295,5 +296,16 @@ const timeoutClient = new EnvSyncClient(
 const timedOut = timeoutClient.get()
 triggerTimeout?.()
 await assert.rejects(() => timedOut, /timed out after 10000ms/)
+
+const forkManagerSource = readFileSync('src/main/core/ForkManager.ts', 'utf8')
+const forkEntrySource = readFileSync('src/fork/index.ts', 'utf8')
+assert.match(forkManagerSource, /EnvSyncCoordinator/)
+assert.match(forkManagerSource, /EnvSyncBridge/)
+assert.match(forkManagerSource, /envSyncBridge\.handle/)
+assert.match(forkManagerSource, /env-sync-invalidated/)
+assert.match(forkManagerSource, /EnvSync\.setProvider/)
+assert.match(forkEntrySource, /EnvSyncClient/)
+assert.match(forkEntrySource, /EnvSync\.setProvider/)
+assert.match(forkEntrySource, /envSyncClient\?\.handleMessage\(data\)/)
 
 console.log('env sync coordinator tests passed')

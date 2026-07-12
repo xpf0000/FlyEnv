@@ -6,6 +6,8 @@ import { StopProcessListClient } from './StopProcessListClient'
 import { setStopProcessListProvider } from '@shared/StopProcessList'
 import { BinVersionCacheClient } from './BinVersionCacheClient'
 import { setBinVersionCacheProvider } from './util/BinVersionCache'
+import EnvSync from '@shared/EnvSync'
+import { EnvSyncClient } from './EnvSyncClient'
 
 const parentPort = process.parentPort
 const stopProcessListClient = parentPort
@@ -14,6 +16,19 @@ const stopProcessListClient = parentPort
 const binVersionCacheClient = parentPort
   ? new BinVersionCacheClient((message) => parentPort.postMessage(message))
   : undefined
+const envSyncClient = parentPort
+  ? new EnvSyncClient(
+      (message) => parentPort.postMessage(message),
+      (revision) => EnvSync.clearLocal(revision)
+    )
+  : undefined
+
+if (envSyncClient) {
+  EnvSync.setProvider({
+    get: () => envSyncClient.get(),
+    invalidate: () => envSyncClient.invalidate()
+  })
+}
 
 if (stopProcessListClient) {
   setStopProcessListProvider(() => stopProcessListClient.request())
@@ -43,6 +58,9 @@ if (parentPort) {
   // 这样你连入口的监听逻辑都不用改成 parentPort.on
   parentPort.on('message', (e) => {
     const data = e.data
+    if (envSyncClient?.handleMessage(data)) {
+      return
+    }
     if (stopProcessListClient?.handleMessage(data)) {
       return
     }
