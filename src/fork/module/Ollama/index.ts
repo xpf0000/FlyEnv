@@ -30,6 +30,7 @@ import { pcReportMacOS } from './macOS'
 import { pcReportLinux } from './Linux'
 import { pcReportWindows } from './Windows'
 import process from 'node:process'
+import { withBinVersionCache } from '../../util/BinVersionCache'
 
 class Ollama extends Base {
   chats: Record<string, AbortController> = {}
@@ -206,7 +207,7 @@ class Ollama extends Base {
           versions = list.flat()
           versions = versionFilterSame(versions)
 
-          const binVersion = (
+          const binVersionRaw = (
             bin: string,
             command: string
           ): Promise<{ version?: string; error?: string }> => {
@@ -250,6 +251,17 @@ class Ollama extends Base {
               }
             })
           }
+
+          const binVersion = (bin: string, command: string) =>
+            withBinVersionCache(
+              bin,
+              () => binVersionRaw(bin, command),
+              (value): value is { version?: string; error?: string } =>
+                !!value &&
+                typeof value === 'object' &&
+                typeof (value as { version?: unknown }).version === 'string' &&
+                (value as { version: string }).version.trim().length > 0
+            )
 
           const all = versions.map((item) =>
             TaskQueue.run(binVersion, item.bin, `"${item.bin}" --version`)

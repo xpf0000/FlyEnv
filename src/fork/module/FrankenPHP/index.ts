@@ -26,6 +26,7 @@ import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import process from 'node:process'
 import { fixVHost } from './Host'
+import { withBinVersionCache } from '../../util/BinVersionCache'
 
 class FrankenPHP extends Base {
   constructor() {
@@ -169,7 +170,7 @@ class FrankenPHP extends Base {
     }
   }
 
-  binVersion = (
+  private binVersionRaw = (
     bin: string,
     command: string
   ): Promise<{ version?: string; php?: string; caddy?: string; error?: string }> => {
@@ -216,6 +217,24 @@ class FrankenPHP extends Base {
       }
     })
   }
+
+  binVersion = (bin: string, command: string) =>
+    withBinVersionCache(
+      bin,
+      () => this.binVersionRaw(bin, command),
+      (
+        value
+      ): value is {
+        version?: string
+        php?: string
+        caddy?: string
+        error?: string
+      } =>
+        !!value &&
+        typeof value === 'object' &&
+        typeof (value as { version?: unknown }).version === 'string' &&
+        (value as { version: string }).version.trim().length > 0
+    )
 
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {

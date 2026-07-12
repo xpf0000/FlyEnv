@@ -21,6 +21,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
+import { withBinVersionCache } from '../../util/BinVersionCache'
 
 const composerDownloadUrl = 'https://getcomposer.org/download/latest-stable/composer.phar'
 const cacertDownloadUrl = 'https://curl.se/ca/cacert.pem'
@@ -145,7 +146,9 @@ pm.max_spare_servers = 3
     })
   }
 
-  binVersion = (bin: string): Promise<{ version?: string; php?: string; error?: string }> => {
+  private binVersionRaw = (
+    bin: string
+  ): Promise<{ version?: string; php?: string; error?: string }> => {
     return new Promise(async (resolve) => {
       const cwd = dirname(bin)
       const iniFile = join(cwd, 'php.ini')
@@ -197,6 +200,17 @@ pm.max_spare_servers = 3
       })
     })
   }
+
+  binVersion = (bin: string) =>
+    withBinVersionCache(
+      bin,
+      () => this.binVersionRaw(bin),
+      (value): value is { version?: string; php?: string; error?: string } =>
+        !!value &&
+        typeof value === 'object' &&
+        typeof (value as { version?: unknown }).version === 'string' &&
+        (value as { version: string }).version.trim().length > 0
+    )
 
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {

@@ -20,6 +20,7 @@ import {
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
 import { getDotNetVersionFromOutput } from './version'
+import { withBinVersionCache } from '../../util/BinVersionCache'
 
 import axios from 'axios'
 
@@ -111,7 +112,9 @@ class DotNet extends Base {
     })
   }
 
-  private async detectVersion(item: SoftInstalled): Promise<{ version?: string; error?: string }> {
+  private async detectVersionRaw(
+    item: SoftInstalled
+  ): Promise<{ version?: string; error?: string }> {
     const versionCommand = `"${item.bin}" --version`
     const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
     const versionResult = await TaskQueue.run(versionBinVersion, item.bin, versionCommand, reg)
@@ -157,6 +160,18 @@ class DotNet extends Base {
         error: `${infoErrorPrefix}${infoCommand}\n${output}`.trim()
       }
     }
+  }
+
+  private detectVersion(item: SoftInstalled) {
+    return withBinVersionCache(
+      item.bin,
+      () => this.detectVersionRaw(item),
+      (value): value is { version?: string; error?: string } =>
+        !!value &&
+        typeof value === 'object' &&
+        typeof (value as { version?: unknown }).version === 'string' &&
+        (value as { version: string }).version.trim().length > 0
+    )
   }
 
   allInstalledVersions(setup: any) {

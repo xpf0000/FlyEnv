@@ -21,6 +21,7 @@ import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
 import { existsSync } from 'fs'
+import { withBinVersionCache } from '../../util/BinVersionCache'
 
 class RoadRunner extends Base {
   constructor() {
@@ -134,7 +135,7 @@ fileserver:
     })
   }
 
-  binVersion = (bin: string): Promise<{ version?: string; error?: string }> => {
+  private binVersionRaw = (bin: string): Promise<{ version?: string; error?: string }> => {
     return new Promise(async (resolve) => {
       const cwd = dirname(bin)
       const commands = [`"${bin}" --version`, `"${bin}" version`]
@@ -172,6 +173,17 @@ fileserver:
       })
     })
   }
+
+  binVersion = (bin: string) =>
+    withBinVersionCache(
+      bin,
+      () => this.binVersionRaw(bin),
+      (value): value is { version?: string; error?: string } =>
+        !!value &&
+        typeof value === 'object' &&
+        typeof (value as { version?: unknown }).version === 'string' &&
+        (value as { version: string }).version.trim().length > 0
+    )
 
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {

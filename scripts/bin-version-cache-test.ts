@@ -335,3 +335,13 @@ assert.match(versionSource, /versionBinVersionRaw/)
 assert.match(versionSource, /versionBinVersionOutputRaw/)
 assert.match(versionSource, /isValidVersionResult/)
 assert.match(versionSource, /export const versionBinVersionSync/)
+
+for (const path of [
+  'src/fork/module/RoadRunner/index.ts',
+  'src/fork/module/Ollama/index.ts',
+  'src/fork/module/SwooleCli/index.ts',
+  'src/fork/module/FrankenPHP/index.ts',
+  'src/fork/module/DotNet/index.ts'
+]) {
+  assert.match(readSource(path), /withBinVersionCache/)
+}
