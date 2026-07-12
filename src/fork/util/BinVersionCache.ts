@@ -44,9 +44,13 @@ export class BinVersionCacheAccess {
     if (!fingerprint || !this.provider) return loader()
     try {
       const cached = await this.provider.get(fingerprint)
-      if (cached.hit && isValid(cached.value)) return cached.value
+      if (cached.hit && isValid(cached.value)) {
+        console.log('[BinVersionCacheAccess] cached.hit: ', bin, cached)
+        return cached.value
+      }
     } catch {}
     const value = await loader()
+    console.log('[BinVersionCacheAccess] not cached.hit: ', bin, value)
     if (isValid(value)) this.provider.set(fingerprint, value)
     return value
   }

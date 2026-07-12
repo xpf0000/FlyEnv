@@ -3,7 +3,7 @@ import { uuid, appendFile } from '../utils'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { cpus } from 'os'
-import { appDebugLog } from '@shared/utils'
+// import { appDebugLog } from '@shared/utils'
 import { fetchStopProcessListLocal } from '@shared/StopProcessList'
 import { StopProcessListBridge } from './StopProcessListBridge'
 import { StopProcessListCache } from './StopProcessListCache'
@@ -194,9 +194,10 @@ export class ForkManager {
 
   _on: Callback = () => {}
   private readonly stopProcessListCache = new StopProcessListCache(fetchStopProcessListLocal, {
-    ttlMs: 350,
+    ttlMs: 650,
     onEvent: (event) => {
-      appDebugLog('[StopProcessListCache]', JSON.stringify(event)).catch()
+      console.log('[StopProcessListCache]: ', event)
+      // appDebugLog('[StopProcessListCache]', JSON.stringify(event)).catch()
     }
   })
   private readonly stopProcessListBridge = new StopProcessListBridge(this.stopProcessListCache)
@@ -205,7 +206,8 @@ export class ForkManager {
     {
       debounceMs: 2_000,
       onEvent: (event) => {
-        appDebugLog('[BinVersionCache]', JSON.stringify(event)).catch()
+        console.log('[BinVersionCache]: ', event)
+        // appDebugLog('[BinVersionCache]', JSON.stringify(event)).catch()
       }
     }
   )
