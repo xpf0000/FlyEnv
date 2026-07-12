@@ -1,11 +1,11 @@
-version: 4.16.1
+version: 4.16.2
 files:
-  - url: FlyEnv-4.16.1-x64.deb
-    sha512: 0lKAhO3Y5a5SfHLq969VflnqnmXwO0DDINdcNPZla+a0ZRoGC1SWl1QLL2C2Aab1S6HU2Hm+VK7lWTrlYB4pqw==
-    size: 140741976
-  - url: FlyEnv-4.16.1-x64.rpm
-    sha512: pbRYtcre6TD59z88jUOafdoefjRjM6j7pfvuIBHEcDa+zFiuFkEh3UQDKRcYdui4/7y/EkZXbylByORHWlXWcg==
-    size: 117682149
-path: FlyEnv-4.16.1-x64.deb
-sha512: 0lKAhO3Y5a5SfHLq969VflnqnmXwO0DDINdcNPZla+a0ZRoGC1SWl1QLL2C2Aab1S6HU2Hm+VK7lWTrlYB4pqw==
-releaseDate: '2026-07-07T06:36:26.856Z'
+  - url: FlyEnv-4.16.2-x64.deb
+    sha512: WQpao/RMZVd252FMTy13VGcGlsau9XPxyAqcNXOUq267Y805Dgrw3f+4w8oYIQTMcuB3C3RUz0EcTb+h4SM4Lg==
+    size: 140805480
+  - url: FlyEnv-4.16.2-x64.rpm
+    sha512: KQqfh2XstTLYxkCdwRwRmEIeEnJQxKVZ/ONXx1HxOFgX7Heek2Q8P2ZBdFw1G1dzHRABjBIeK+S30gxNtB9gcw==
+    size: 117740929
+path: FlyEnv-4.16.2-x64.deb
+sha512: WQpao/RMZVd252FMTy13VGcGlsau9XPxyAqcNXOUq267Y805Dgrw3f+4w8oYIQTMcuB3C3RUz0EcTb+h4SM4Lg==
+releaseDate: '2026-07-12T11:24:08.271Z'

@@ -1,104 +1,98 @@
-# FlyEnv新版本4.16.0更新日志
+# FlyEnv新版本4.16.2更新日志
 
 本次更新内容：
-1. 更新minio的下载地址。使用pigsty fork后继续维护的版本 https://github.com/xpf0000/FlyEnv/issues/626
-2. 修复Windows上Python环境变量设置的问题 https://github.com/xpf0000/FlyEnv/issues/633
-3. 修复Rust 加载系统环境变量的问题。 https://github.com/xpf0000/FlyEnv/issues/691
-4. 优化站点添加编辑。允许localhost+端口的方式。 https://github.com/xpf0000/FlyEnv/issues/700
-5. 修复FlyEnv设置的环境变量的顺序问题。https://github.com/xpf0000/FlyEnv/issues/713
-6. 修复Windows上定时任务设置时路径有空格导致的运行报错问题 https://github.com/xpf0000/FlyEnv/issues/728 https://github.com/xpf0000/FlyEnv/issues/729
-7. 新增 MCP 服务器。
-8. 新增 Claude Code，Codex，OpenCode，Kimi， Antigravity CLI， Copilot Cli模块 https://github.com/xpf0000/FlyEnv/issues/712
+1. 新增启动组模块 https://github.com/xpf0000/FlyEnv/discussions/706 https://github.com/xpf0000/FlyEnv/issues/742 https://github.com/xpf0000/FlyEnv/issues/757
+2. 修复.NET 版本检查问题 https://github.com/xpf0000/FlyEnv/pull/770
+3. 优化启动速度和资源占用
+
 
 参照：
 ```
-# **FlyEnv v4.15.3 Update Release Notes**
+# **FlyEnv v4.16.0 Update Release Notes**
 
 ## **🚀 New Features**
 
-### **1. Added RoadRunner Module**
+### **1. Added FlyEnv MCP Server**
 
-FlyEnv now includes a dedicated **RoadRunner** module for PHP application server workflows. You can install, detect, configure, and run RoadRunner directly from FlyEnv, then bind RoadRunner-backed projects into the standard project service experience.
+FlyEnv now includes a built-in **MCP Server** that lets AI clients connect directly to your local FlyEnv environment. You can start the server from FlyEnv, generate ready-to-use client configuration snippets, and register the server into supported AI coding CLIs without editing everything by hand.
 
 This integration provides:
-- **RoadRunner Version Management**: Discover, install, and manage RoadRunner releases from the Version Manager
-- **Standalone Service Mode**: Start RoadRunner with a generated `.rr.yaml` fileserver configuration for quick local testing
-- **PHP Project Services**: Manage RoadRunner projects from the project service view with start/stop, port, environment, log, and config workflows
-- **Project Presets**: Quickly configure PHP Worker, Existing Config, Laravel Octane, Fileserver, or Custom command projects
-- **PHP Runtime Binding**: Select a FlyEnv-managed PHP runtime for RoadRunner PHP Worker and Laravel Octane projects
-- **Config File Sync**: Generate `.rr.yaml` files, detect existing RoadRunner configs, and keep project ports synchronized
+- **MCP Service Control**: Start and stop the FlyEnv MCP server from the UI, configure host, port, access token, and local/remote access behavior
+- **Client Quick Config**: Generate HTTP and stdio-compatible configuration snippets and copy them directly from FlyEnv
+- **One-Click Client Registration**: Register the FlyEnv MCP server into Claude Code, Codex, OpenCode, Kimi, Antigravity CLI, and GitHub Copilot CLI
+- **Tool Policy Management**: Enable or disable individual MCP tools and require confirmation for risky operations such as service control, installation, or site changes
+- **Audit Logging**: Review MCP tool activity through the built-in audit log
 
 ---
 
-### **2. Added Swoole CLI Module**
+### **2. Added AI Coding CLI Modules**
 
-FlyEnv now supports **Swoole CLI** as a first-class PHP runtime and project service module. You can install Swoole CLI versions, initialize the runtime files FlyEnv needs, and run Swoole-based PHP projects with purpose-built presets.
-
-This integration provides:
-- **Swoole CLI Version Management**: Discover, install, and manage Swoole CLI binaries across supported platforms
-- **Runtime Bootstrap**: Prepare `php.ini`, `php-fpm.conf`, Composer, and CA certificate files for FlyEnv-managed Swoole CLI runtimes
-- **Project Presets**: Run Native Swoole, Hyperf, EasySwoole, Laravel Octane, PHP Script, or Custom command projects
-- **Config Detection**: Automatically detect common framework config files such as Hyperf server/routes, EasySwoole configs, Laravel Octane config, and `server.php`
-- **Project Service Workflow**: Configure ports, startup commands, environment variables, config files, logs, and service lifecycle from the same project UI
-
----
-
-### **3. Split PHP into PHP-FPM and PHP Project Services**
-
-The PHP experience has been reorganized into clearer responsibilities. **PHP-FPM** is now available as its own module for PHP runtime and FPM service management, while the **PHP** module now leads with PHP project service management.
-
-This update makes PHP deployment workflows easier to understand:
-- **PHP-FPM Module**: Manage PHP-FPM services and PHP runtime versions separately
-- **PHP Project Services**: Start and stop PHP projects through the common project service workflow
-- **Cleaner Navigation**: Keep PHP runtime/service management separate from PHP project deployment
-- **Complete PHP Deployment Coverage**: FlyEnv now covers PHP, PHP-FPM, FrankenPHP, RoadRunner, and Swoole CLI deployment shapes in one desktop app
-
-Thanks to [@chunbo007](https://github.com/chunbo007) for the discussion! [Discussion #694](https://github.com/xpf0000/FlyEnv/discussions/694)
-
----
-
-### **4. Added ZincSearch Module**
-
-FlyEnv now includes a dedicated **ZincSearch** module for running the lightweight search engine locally. You can install ZincSearch, manage the service lifecycle, edit environment configuration, inspect logs, and open the ZincSearch UI directly from FlyEnv.
+FlyEnv now includes dedicated modules for **Claude Code**, **Codex**, **OpenCode**, **Kimi**, **Antigravity CLI**, and **GitHub Copilot CLI**. These integrations bring AI coding CLIs into the same desktop workflow as your local runtimes and services, making them easier to install, inspect, and manage from one place.
 
 This integration provides:
-- **Service Management**: Start and stop ZincSearch through the standard FlyEnv service workflow
-- **Version Management**: Install and manage ZincSearch releases from GitHub
-- **Environment Configuration**: Configure admin credentials, data path, bind address, port, and log level through `zincsearch.env`
-- **Log Access**: View standard and error logs directly in the ZincSearch module
-- **Quick UI Access**: Open the ZincSearch web UI using the configured host and port when the service is running
+- **CLI Installation & Detection**: Install supported AI coding CLIs and check their installed version from FlyEnv
+- **Config File Access**: View important config file paths and manage client configuration from the UI
+- **Session Management**: Browse saved sessions, reopen them in a terminal, and clean up old sessions when supported
+- **MCP Management**: List configured MCP servers and add or remove FlyEnv MCP connections directly from each client module
+- **Client-Specific Extras**: Manage plugins for Claude Code and Codex, skills for Antigravity CLI and GitHub Copilot CLI, provider/stats views for OpenCode, and logs/session export workflows for Kimi
 
-Thanks to [@zzdboy](https://github.com/zzdboy) for the feature request! [Issue #440](https://github.com/xpf0000/FlyEnv/issues/440)
+[Issue #712](https://github.com/xpf0000/FlyEnv/issues/712)
 
 ---
 
 ## **🛠️ Improvements & Bug Fixes**
 
-### **5. Added Remarks to Installed Version Lists**
+### **3. Updated MinIO Download Source**
 
-Installed version lists now include a **Remark** column, making it easier to label local runtime versions and remember what each installed version is used for. Remarks can be edited directly from the installed list, are persisted locally, and are shown in service-related version management views.
+FlyEnv now uses the maintained **pgsty/minio** fork as the updated MinIO download source, improving install availability after upstream distribution changes and making MinIO version downloads more reliable.
 
-This helps prevent accidental deletion or confusion when multiple versions of the same runtime are installed for different projects.
-
-Thanks to [@Y0n3er](https://github.com/Y0n3er) for the feature request! [Issue #543](https://github.com/xpf0000/FlyEnv/issues/543)
+[Issue #626](https://github.com/xpf0000/FlyEnv/issues/626)
 
 ---
 
-### **6. Fixed MariaDB 11.4+ / 12+ Startup Issue on Windows**
+### **4. Fixed Windows Python Environment Variable Setup**
 
-Resolved a Windows startup failure affecting newer MariaDB builds that require PEM files for zero-configuration SSL and authentication key handling. FlyEnv now generates and supplies the required `ca.pem`, `server-cert.pem`, `server-key.pem`, `private_key.pem`, and `public_key.pem` files when needed, preventing MariaDB 12+ from failing to start because those files are missing.
+Resolved a Windows issue where FlyEnv could register an incorrect Python environment path during setup. Python environment registration now points to the correct FlyEnv-managed runtime layout, so newly installed Python versions are exposed more reliably.
 
----
-
-### **7. Improved Cloudflare Tunnel Local Domain Binding**
-
-Cloudflare Tunnel local service bindings now support choosing **HTTP** or **HTTPS** per local domain rule. This lets each tunnel rule forward to the correct local protocol and helps avoid WordPress redirect issues caused by forcing the wrong protocol during local-to-public forwarding.
+[Issue #633](https://github.com/xpf0000/FlyEnv/issues/633)
 
 ---
 
-### **8. Fixed macOS Service Startup State**
+### **5. Fixed Rust Toolchain Detection for Custom `CARGO_HOME` / `RUSTUP_HOME`**
 
-Resolved an issue on macOS where a service could remain stuck in the "starting" state after the startup command completed. Service state now settles correctly after startup succeeds or fails.
+Resolved an issue where FlyEnv could miss Rust toolchains installed through `rustup` when `CARGO_HOME` or `RUSTUP_HOME` had been customized. FlyEnv now respects those environment variables when locating `rustup`, toolchains, and related runtime data.
+
+[Issue #691](https://github.com/xpf0000/FlyEnv/issues/691)
+
+---
+
+### **6. Improved Local Site Support for `localhost` + Port Workflows**
+
+FlyEnv site management now supports using **`localhost` with explicit ports** such as `localhost:8080` when adding or editing sites. This makes local multi-port workflows easier to model without creating extra fake domains just to separate ports.
+
+This improvement includes:
+- **Port-Aware Duplicate Checks**: Sites with the same hostname are allowed as long as their listening ports do not conflict
+- **Port Extraction from Host Input**: Entering `localhost:port` now applies that port to the site configuration instead of dropping it on save
+- **Cleaner Hosts File Behavior**: Pure loopback sites no longer require redundant hosts-file writes, which reduces unnecessary admin prompts
+- **Stable Vhost File Naming**: Generated vhost, rewrite, and log files now avoid same-name collisions across multi-port localhost sites
+
+[Issue #700](https://github.com/xpf0000/FlyEnv/issues/700)
+
+---
+
+### **7. Fixed FlyEnv Environment Variable Ordering**
+
+Resolved an issue where FlyEnv-managed environment variables could appear in the wrong order, allowing system or Homebrew Python binaries to take precedence over the version selected in FlyEnv. FlyEnv now rebuilds Python PATH entries with dedicated shims so `python` and `python3` resolve consistently to the active FlyEnv version.
+
+[Issue #713](https://github.com/xpf0000/FlyEnv/issues/713)
+
+---
+
+### **8. Fixed Windows Cron Jobs for Paths Containing Spaces**
+
+Resolved a Windows scheduled-task issue where cron jobs could fail when the generated task wrapper or working directory path contained spaces. FlyEnv now launches the PowerShell wrapper through a safer quoted command path, improving reliability for projects stored under directories such as `C:\\Program Files\\...` or other spaced workspace paths.
+
+[Issue #728](https://github.com/xpf0000/FlyEnv/issues/728) [Issue #729](https://github.com/xpf0000/FlyEnv/issues/729)
 
 ---
 
