@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini dosyası bulunamadı"
+  },
+  "startupGroup": {
+    "title": "Başlangıç grupları",
+    "description": "Belirli hizmet sürümlerini ve dil projelerini kontrollü bir sırayla başlatın ve durdurun.",
+    "add": "Başlangıç grubu ekle",
+    "edit": "Başlangıç grubunu düzenle",
+    "default": "Varsayılan başlangıç grubu",
+    "controlDefaultTooltip": "Varsayılan başlangıç grubunu başlat veya durdur: {name}",
+    "controlLegacyTooltip": "Görüntülenen tüm hizmetleri başlat veya durdur",
+    "defaultTooltip": "Sol üstteki tek tıklamalı kontrol ve otomatik hizmet başlatma bu grubu kullanır.",
+    "licenseTips": "Lisans olmadan yalnızca bir başlangıç grubu oluşturulabilir.",
+    "defaultEmptyDisabled": "Boş bir başlangıç grubu varsayılan olamaz.",
+    "basicInfo": "Temel bilgiler",
+    "selectServices": "Hizmetleri seç",
+    "startOrder": "Başlatma sırası",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "color": "Renk",
+    "nameRequired": "Başlangıç grubu adını girin.",
+    "noGroups": "İlgili hizmetleri sırayla başlatmak için bir başlangıç grubu oluşturun.",
+    "noCandidates": "Bağımsız olarak çalıştırılabilen yüklü bir hizmet veya proje bulunamadı.",
+    "noRemark": "Not yok",
+    "emptyMembers": "Hiçbir öğe seçilmedi",
+    "sameModuleWarning": "Bu modülün birden fazla sürümü çakışabilir",
+    "samePortWarning": "Seçilen hizmetler aynı bilinen bağlantı noktasını kullanıyor",
+    "deleteConfirm": "{name} başlangıç grubu silinsin mi? Çalışan hizmetler durdurulmayacak.",
+    "hideConfirm": "Başlangıç gruplarını gizlemek, içerdikleri tüm hizmetleri durdurur. Devam edilsin mi?",
+    "hideFailed": "Şu hizmetler durdurulamadığı için Başlangıç Grupları görünür kalacak:",
+    "hideBusy": "Geçerli başlangıç grubu işleminin tamamlanmasını bekleyin."
   }
 }

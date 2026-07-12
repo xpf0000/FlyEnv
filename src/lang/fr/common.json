@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "Fichier \"php.ini\" non trouvé"
+  },
+  "startupGroup": {
+    "title": "Groupes de démarrage",
+    "description": "Démarrez et arrêtez des versions précises de services et des projets de langage dans un ordre maîtrisé.",
+    "add": "Ajouter un groupe de démarrage",
+    "edit": "Modifier le groupe de démarrage",
+    "default": "Groupe de démarrage par défaut",
+    "controlDefaultTooltip": "Démarrer ou arrêter le groupe par défaut : {name}",
+    "controlLegacyTooltip": "Démarrer ou arrêter tous les services affichés",
+    "defaultTooltip": "La commande en un clic en haut à gauche et le démarrage automatique des services utiliseront ce groupe.",
+    "licenseTips": "Sans licence, un seul groupe de démarrage peut être créé.",
+    "defaultEmptyDisabled": "Un groupe de démarrage vide ne peut pas être défini par défaut.",
+    "basicInfo": "Informations générales",
+    "selectServices": "Sélectionner les services",
+    "startOrder": "Ordre de démarrage",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "color": "Couleur",
+    "nameRequired": "Saisissez un nom pour le groupe de démarrage.",
+    "noGroups": "Créez un groupe de démarrage pour lancer les services associés dans l’ordre.",
+    "noCandidates": "Aucun service ou projet installé pouvant être exécuté indépendamment n’a été trouvé.",
+    "noRemark": "Aucune remarque",
+    "emptyMembers": "Aucun élément sélectionné",
+    "sameModuleWarning": "Plusieurs versions de ce module peuvent entrer en conflit",
+    "samePortWarning": "Les services sélectionnés utilisent le même port connu",
+    "deleteConfirm": "Supprimer le groupe de démarrage {name} ? Les services en cours d’exécution ne seront pas arrêtés.",
+    "hideConfirm": "Masquer les groupes de démarrage arrêtera tous les services qu’ils contiennent. Continuer ?",
+    "hideFailed": "Les groupes de démarrage resteront visibles, car les services suivants n’ont pas pu être arrêtés :",
+    "hideBusy": "Attendez la fin de l’opération en cours sur le groupe de démarrage."
   }
 }

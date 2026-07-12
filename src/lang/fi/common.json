@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini-tiedostoa ei löytynyt"
+  },
+  "startupGroup": {
+    "title": "Käynnistysryhmät",
+    "description": "Käynnistä ja pysäytä tietyt palveluversiot ja kieliprojektit hallitussa järjestyksessä.",
+    "add": "Lisää käynnistysryhmä",
+    "edit": "Muokkaa käynnistysryhmää",
+    "default": "Oletuskäynnistysryhmä",
+    "controlDefaultTooltip": "Käynnistä tai pysäytä oletuskäynnistysryhmä: {name}",
+    "controlLegacyTooltip": "Käynnistä tai pysäytä kaikki näkyvät palvelut",
+    "defaultTooltip": "Vasemman yläkulman yhden napsautuksen ohjaus ja palvelujen automaattinen käynnistys käyttävät tätä ryhmää.",
+    "licenseTips": "Ilman lisenssiä voidaan luoda vain yksi käynnistysryhmä.",
+    "defaultEmptyDisabled": "Tyhjä käynnistysryhmä ei voi olla oletusryhmä.",
+    "basicInfo": "Perustiedot",
+    "selectServices": "Valitse palvelut",
+    "startOrder": "Käynnistysjärjestys",
+    "previous": "Edellinen",
+    "next": "Seuraava",
+    "color": "Väri",
+    "nameRequired": "Anna käynnistysryhmän nimi.",
+    "noGroups": "Luo käynnistysryhmä, jotta liittyvät palvelut voidaan käynnistää järjestyksessä.",
+    "noCandidates": "Itsenäisesti suoritettavia asennettuja palveluja tai projekteja ei löytynyt.",
+    "noRemark": "Ei huomautusta",
+    "emptyMembers": "Kohteita ei ole valittu",
+    "sameModuleWarning": "Tämän moduulin useat versiot voivat olla ristiriidassa",
+    "samePortWarning": "Valitut palvelut käyttävät samaa tunnettua porttia",
+    "deleteConfirm": "Poistetaanko käynnistysryhmä {name}? Käynnissä olevia palveluja ei pysäytetä.",
+    "hideConfirm": "Käynnistysryhmien piilottaminen pysäyttää kaikki niihin kuuluvat palvelut. Jatketaanko?",
+    "hideFailed": "Käynnistysryhmät jäävät näkyviin, koska seuraavia palveluja ei voitu pysäyttää:",
+    "hideBusy": "Odota, että nykyinen käynnistysryhmätoiminto valmistuu."
   }
 }

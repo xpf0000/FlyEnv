@@ -16,5 +16,6 @@
   "networkTunnel": "Tunnel Jaringan",
   "cacheAndQueue": "Cache & Antrian Pesan",
   "serviceGovernance": "Tata Kelola Layanan",
-  "other": "Lainnya"
+  "other": "Lainnya",
+  "console": "Konsol"
 }

@@ -16,5 +16,6 @@
   "networkTunnel": "Мережевий тунель",
   "cacheAndQueue": "Черга кешу і повідомлень",
   "serviceGovernance": "Керування послугами",
-  "other": "Інше"
+  "other": "Інше",
+  "console": "Консоль"
 }

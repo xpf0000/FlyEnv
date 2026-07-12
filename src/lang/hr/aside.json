@@ -16,5 +16,6 @@
   "networkTunnel": "Mrežni Tunel",
   "cacheAndQueue": "Cache i Red Poruka",
   "serviceGovernance": "Upravljanje Servisima",
-  "other": "Ostalo"
+  "other": "Ostalo",
+  "console": "Konzola"
 }

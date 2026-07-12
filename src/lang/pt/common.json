@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "Falha ao obter arquivo php.ini"
+  },
+  "startupGroup": {
+    "title": "Grupos de arranque",
+    "description": "Inicie e pare versões específicas de serviços e projetos de linguagens numa ordem controlada.",
+    "add": "Adicionar grupo de arranque",
+    "edit": "Editar grupo de arranque",
+    "default": "Grupo de arranque predefinido",
+    "controlDefaultTooltip": "Iniciar ou parar o grupo de arranque predefinido: {name}",
+    "controlLegacyTooltip": "Iniciar ou parar todos os serviços apresentados",
+    "defaultTooltip": "O controlo de um clique no canto superior esquerdo e o arranque automático dos serviços utilizarão este grupo.",
+    "licenseTips": "Sem licença, só pode ser criado um grupo de arranque.",
+    "defaultEmptyDisabled": "Um grupo de arranque vazio não pode ser o predefinido.",
+    "basicInfo": "Informações básicas",
+    "selectServices": "Selecionar serviços",
+    "startOrder": "Ordem de arranque",
+    "previous": "Anterior",
+    "next": "Seguinte",
+    "color": "Cor",
+    "nameRequired": "Introduza um nome para o grupo de arranque.",
+    "noGroups": "Crie um grupo de arranque para iniciar os serviços relacionados por ordem.",
+    "noCandidates": "Não foram encontrados serviços ou projetos instalados que possam ser executados de forma independente.",
+    "noRemark": "Sem observações",
+    "emptyMembers": "Nenhum item selecionado",
+    "sameModuleWarning": "Várias versões deste módulo podem entrar em conflito",
+    "samePortWarning": "Os serviços selecionados utilizam a mesma porta conhecida",
+    "deleteConfirm": "Eliminar o grupo de arranque {name}? Os serviços em execução não serão parados.",
+    "hideConfirm": "Ocultar os grupos de arranque irá parar todos os serviços neles contidos. Continuar?",
+    "hideFailed": "Os grupos de arranque continuarão visíveis porque não foi possível parar estes serviços:",
+    "hideBusy": "Aguarde até que a operação atual do grupo de arranque termine."
   }
 }

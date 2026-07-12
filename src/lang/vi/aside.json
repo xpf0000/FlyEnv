@@ -16,5 +16,6 @@
   "networkTunnel": "Xuyên mạng nội bộ",
   "cacheAndQueue": "Bộ Nhớ Đệm & Hàng Đợi Tin Nhắn",
   "serviceGovernance": "Quản Trị Dịch Vụ",
-  "other": "Khác"
+  "other": "Khác",
+  "console": "Bảng điều khiển"
 }

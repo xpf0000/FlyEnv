@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini ファイルが見つかりません"
+  },
+  "startupGroup": {
+    "title": "起動グループ",
+    "description": "指定したサービスのバージョンや言語プロジェクトを、設定した順序で起動・停止します。",
+    "add": "起動グループを追加",
+    "edit": "起動グループを編集",
+    "default": "デフォルトの起動グループ",
+    "controlDefaultTooltip": "デフォルトの起動グループを起動または停止: {name}",
+    "controlLegacyTooltip": "表示中のすべてのサービスを起動または停止",
+    "defaultTooltip": "左上のワンクリック操作とサービスの自動起動では、この起動グループが使用されます。",
+    "licenseTips": "ライセンスがない場合、作成できる起動グループは1つだけです。",
+    "defaultEmptyDisabled": "空の起動グループをデフォルトにすることはできません。",
+    "basicInfo": "基本情報",
+    "selectServices": "サービスを選択",
+    "startOrder": "起動順序",
+    "previous": "前へ",
+    "next": "次へ",
+    "color": "色",
+    "nameRequired": "起動グループ名を入力してください。",
+    "noGroups": "関連するサービスを順番に起動するための起動グループを作成してください。",
+    "noCandidates": "単独で実行できるインストール済みのサービスまたはプロジェクトが見つかりません。",
+    "noRemark": "備考なし",
+    "emptyMembers": "項目が選択されていません",
+    "sameModuleWarning": "このモジュールの複数バージョンが競合する可能性があります",
+    "samePortWarning": "選択したサービスが同じ既知のポートを使用しています",
+    "deleteConfirm": "起動グループ {name} を削除しますか？実行中のサービスは停止されません。",
+    "hideConfirm": "起動グループを非表示にすると、いずれかのグループに含まれるすべてのサービスが停止します。続行しますか？",
+    "hideFailed": "次のサービスを停止できなかったため、起動グループは表示されたままになります:",
+    "hideBusy": "現在の起動グループ操作が完了するまでお待ちください。"
   }
 }

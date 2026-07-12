@@ -155,31 +155,11 @@
     "noCandidates": "未找到已安装且支持独立启停的服务或项目。",
     "noRemark": "无备注",
     "emptyMembers": "尚未选择成员",
-    "memberCount": "服务数",
-    "runningCount": "运行数",
-    "invalid": "配置异常",
-    "invalidMember": "以下已保存成员已经失效，可以移除或继续保留为异常项。",
     "sameModuleWarning": "同一模块的多个版本可能发生冲突",
     "samePortWarning": "所选服务使用相同的已知端口",
-    "defaultEmpty": "空启动组不能设置为默认组",
     "deleteConfirm": "确定删除启动组 {name}？正在运行的服务不会被停止。",
     "hideConfirm": "隐藏启动组会停止任意启动组包含的所有服务，是否继续？",
     "hideFailed": "以下服务停止失败，启动组模块将保持显示：",
-    "hideBusy": "请等待当前启动组操作完成。",
-    "state": {
-      "stopped": "已停止",
-      "running": "运行中",
-      "partial-running": "部分运行",
-      "executing": "执行中",
-      "invalid": "配置异常"
-    },
-    "outcome": {
-      "started": "已启动",
-      "stopped": "已停止",
-      "skipped": "已跳过",
-      "failed": "失败",
-      "not-run": "未执行",
-      "invalid": "配置异常"
-    }
+    "hideBusy": "请等待当前启动组操作完成。"
   }
 }

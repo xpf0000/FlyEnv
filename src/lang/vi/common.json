@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "Không tìm thấy tệp php.ini"
+  },
+  "startupGroup": {
+    "title": "Nhóm khởi động",
+    "description": "Khởi động và dừng đúng phiên bản dịch vụ cùng các dự án ngôn ngữ theo thứ tự được kiểm soát.",
+    "add": "Thêm nhóm khởi động",
+    "edit": "Sửa nhóm khởi động",
+    "default": "Nhóm khởi động mặc định",
+    "controlDefaultTooltip": "Khởi động hoặc dừng nhóm mặc định: {name}",
+    "controlLegacyTooltip": "Khởi động hoặc dừng tất cả dịch vụ đang hiển thị",
+    "defaultTooltip": "Nút điều khiển một chạm ở góc trên bên trái và tính năng tự động khởi động dịch vụ sẽ dùng nhóm này.",
+    "licenseTips": "Nếu không có giấy phép, bạn chỉ có thể tạo một nhóm khởi động.",
+    "defaultEmptyDisabled": "Không thể đặt nhóm khởi động trống làm mặc định.",
+    "basicInfo": "Thông tin cơ bản",
+    "selectServices": "Chọn dịch vụ",
+    "startOrder": "Thứ tự khởi động",
+    "previous": "Trước",
+    "next": "Tiếp theo",
+    "color": "Màu sắc",
+    "nameRequired": "Nhập tên nhóm khởi động.",
+    "noGroups": "Tạo nhóm khởi động để chạy các dịch vụ liên quan theo thứ tự.",
+    "noCandidates": "Không tìm thấy dịch vụ hoặc dự án đã cài đặt nào có thể chạy độc lập.",
+    "noRemark": "Không có ghi chú",
+    "emptyMembers": "Chưa chọn mục nào",
+    "sameModuleWarning": "Nhiều phiên bản của mô-đun này có thể xung đột",
+    "samePortWarning": "Các dịch vụ đã chọn sử dụng cùng một cổng đã biết",
+    "deleteConfirm": "Xóa nhóm khởi động {name}? Các dịch vụ đang chạy sẽ không bị dừng.",
+    "hideConfirm": "Ẩn Nhóm khởi động sẽ dừng mọi dịch vụ có trong các nhóm. Tiếp tục?",
+    "hideFailed": "Nhóm khởi động vẫn hiển thị vì không thể dừng các dịch vụ sau:",
+    "hideBusy": "Hãy chờ thao tác nhóm khởi động hiện tại hoàn tất."
   }
 }

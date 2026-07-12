@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini Datei nicht gefunden"
+  },
+  "startupGroup": {
+    "title": "Startgruppen",
+    "description": "Starten und stoppen Sie bestimmte Dienstversionen und Sprachprojekte in einer festgelegten Reihenfolge.",
+    "add": "Startgruppe hinzufügen",
+    "edit": "Startgruppe bearbeiten",
+    "default": "Standard-Startgruppe",
+    "controlDefaultTooltip": "Standard-Startgruppe starten oder stoppen: {name}",
+    "controlLegacyTooltip": "Alle angezeigten Dienste starten oder stoppen",
+    "defaultTooltip": "Die Ein-Klick-Steuerung oben links und der automatische Dienststart verwenden diese Startgruppe.",
+    "licenseTips": "Ohne Lizenz kann nur eine Startgruppe erstellt werden.",
+    "defaultEmptyDisabled": "Eine leere Startgruppe kann nicht als Standard festgelegt werden.",
+    "basicInfo": "Grundlegende Informationen",
+    "selectServices": "Dienste auswählen",
+    "startOrder": "Startreihenfolge",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "color": "Farbe",
+    "nameRequired": "Geben Sie einen Namen für die Startgruppe ein.",
+    "noGroups": "Erstellen Sie eine Startgruppe, um zusammengehörige Dienste der Reihe nach zu starten.",
+    "noCandidates": "Es wurden keine installierten Dienste oder Projekte gefunden, die eigenständig ausgeführt werden können.",
+    "noRemark": "Keine Anmerkung",
+    "emptyMembers": "Keine Einträge ausgewählt",
+    "sameModuleWarning": "Mehrere Versionen dieses Moduls können miteinander in Konflikt stehen",
+    "samePortWarning": "Die ausgewählten Dienste verwenden denselben bekannten Port",
+    "deleteConfirm": "Startgruppe {name} löschen? Laufende Dienste werden nicht gestoppt.",
+    "hideConfirm": "Beim Ausblenden der Startgruppen werden alle darin enthaltenen Dienste gestoppt. Fortfahren?",
+    "hideFailed": "Die Startgruppen bleiben sichtbar, da folgende Dienste nicht gestoppt werden konnten:",
+    "hideBusy": "Warten Sie, bis der aktuelle Vorgang der Startgruppe abgeschlossen ist."
   }
 }

@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini 파일을 찾을 수 없습니다"
+  },
+  "startupGroup": {
+    "title": "시작 그룹",
+    "description": "지정한 서비스 버전과 언어 프로젝트를 설정된 순서로 시작하고 중지합니다.",
+    "add": "시작 그룹 추가",
+    "edit": "시작 그룹 편집",
+    "default": "기본 시작 그룹",
+    "controlDefaultTooltip": "기본 시작 그룹 시작 또는 중지: {name}",
+    "controlLegacyTooltip": "표시된 모든 서비스 시작 또는 중지",
+    "defaultTooltip": "왼쪽 위의 원클릭 제어와 서비스 자동 시작에서 이 시작 그룹을 사용합니다.",
+    "licenseTips": "라이선스가 없으면 시작 그룹을 하나만 만들 수 있습니다.",
+    "defaultEmptyDisabled": "빈 시작 그룹은 기본 그룹으로 설정할 수 없습니다.",
+    "basicInfo": "기본 정보",
+    "selectServices": "서비스 선택",
+    "startOrder": "시작 순서",
+    "previous": "이전",
+    "next": "다음",
+    "color": "색상",
+    "nameRequired": "시작 그룹 이름을 입력하세요.",
+    "noGroups": "관련 서비스를 순서대로 시작할 시작 그룹을 만드세요.",
+    "noCandidates": "독립적으로 실행할 수 있는 설치된 서비스 또는 프로젝트를 찾지 못했습니다.",
+    "noRemark": "메모 없음",
+    "emptyMembers": "선택한 항목 없음",
+    "sameModuleWarning": "이 모듈의 여러 버전이 충돌할 수 있습니다",
+    "samePortWarning": "선택한 서비스가 동일한 알려진 포트를 사용합니다",
+    "deleteConfirm": "시작 그룹 {name}을(를) 삭제할까요? 실행 중인 서비스는 중지되지 않습니다.",
+    "hideConfirm": "시작 그룹을 숨기면 그룹에 포함된 모든 서비스가 중지됩니다. 계속할까요?",
+    "hideFailed": "다음 서비스를 중지하지 못해 시작 그룹이 계속 표시됩니다:",
+    "hideBusy": "현재 시작 그룹 작업이 끝날 때까지 기다려 주세요."
   }
 }

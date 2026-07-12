@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini 檔案取得失敗"
+  },
+  "startupGroup": {
+    "title": "啟動群組",
+    "description": "依設定順序精確啟動或停止服務版本與語言專案。",
+    "add": "新增啟動群組",
+    "edit": "編輯啟動群組",
+    "default": "預設啟動群組",
+    "controlDefaultTooltip": "啟動或停止預設啟動群組：{name}",
+    "controlLegacyTooltip": "啟動或停止所有已顯示的服務",
+    "defaultTooltip": "左上角的一鍵啟停與服務自動啟動將使用此啟動群組。",
+    "licenseTips": "未取得授權時，只能建立一個啟動群組。",
+    "defaultEmptyDisabled": "空的啟動群組不能設為預設群組。",
+    "basicInfo": "基本資訊",
+    "selectServices": "選擇服務",
+    "startOrder": "啟動順序",
+    "previous": "上一步",
+    "next": "下一步",
+    "color": "顏色",
+    "nameRequired": "請輸入啟動群組名稱。",
+    "noGroups": "建立啟動群組後，即可依序啟動相關服務。",
+    "noCandidates": "找不到已安裝且可獨立啟停的服務或專案。",
+    "noRemark": "無備註",
+    "emptyMembers": "尚未選擇任何項目",
+    "sameModuleWarning": "同一模組的多個版本可能發生衝突",
+    "samePortWarning": "所選服務使用相同的已知通訊埠",
+    "deleteConfirm": "確定要刪除啟動群組 {name}？執行中的服務不會停止。",
+    "hideConfirm": "隱藏啟動群組會停止任何群組內包含的所有服務。是否繼續？",
+    "hideFailed": "下列服務無法停止，因此啟動群組會保持顯示：",
+    "hideBusy": "請等待目前的啟動群組操作完成。"
   }
 }

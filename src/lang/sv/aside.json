@@ -16,5 +16,6 @@
   "networkTunnel": "Nätverkstunnel",
   "cacheAndQueue": "Cache & Meddelandekö",
   "serviceGovernance": "Styrning av tjänster",
-  "other": "Annat"
+  "other": "Annat",
+  "console": "Konsol"
 }

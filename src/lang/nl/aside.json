@@ -16,5 +16,6 @@
   "networkTunnel": "Netwerktunnel",
   "cacheAndQueue": "Cache en bericht wachtrij",
   "serviceGovernance": "Servicebeheer",
-  "other": "anders"
+  "other": "anders",
+  "console": "Console"
 }

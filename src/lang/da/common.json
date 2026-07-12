@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini-fil ikke fundet"
+  },
+  "startupGroup": {
+    "title": "Startgrupper",
+    "description": "Start og stop bestemte serviceversioner og sprogprojekter i en kontrolleret rækkefølge.",
+    "add": "Tilføj startgruppe",
+    "edit": "Rediger startgruppe",
+    "default": "Standardstartgruppe",
+    "controlDefaultTooltip": "Start eller stop standardstartgruppen: {name}",
+    "controlLegacyTooltip": "Start eller stop alle viste tjenester",
+    "defaultTooltip": "Etkliksknappen øverst til venstre og automatisk opstart af tjenester bruger denne startgruppe.",
+    "licenseTips": "Uden en licens kan der kun oprettes én startgruppe.",
+    "defaultEmptyDisabled": "En tom startgruppe kan ikke være standard.",
+    "basicInfo": "Grundlæggende oplysninger",
+    "selectServices": "Vælg tjenester",
+    "startOrder": "Startrækkefølge",
+    "previous": "Forrige",
+    "next": "Næste",
+    "color": "Farve",
+    "nameRequired": "Indtast et navn til startgruppen.",
+    "noGroups": "Opret en startgruppe for at starte relaterede tjenester i rækkefølge.",
+    "noCandidates": "Der blev ikke fundet installerede tjenester eller projekter, som kan køres uafhængigt.",
+    "noRemark": "Ingen bemærkning",
+    "emptyMembers": "Ingen elementer valgt",
+    "sameModuleWarning": "Flere versioner af dette modul kan være i konflikt",
+    "samePortWarning": "De valgte tjenester bruger den samme kendte port",
+    "deleteConfirm": "Vil du slette startgruppen {name}? Kørende tjenester stoppes ikke.",
+    "hideConfirm": "Hvis startgrupper skjules, stoppes alle tjenester i dem. Vil du fortsætte?",
+    "hideFailed": "Startgrupper forbliver synlige, fordi disse tjenester ikke kunne stoppes:",
+    "hideBusy": "Vent, til den aktuelle startgruppehandling er afsluttet."
   }
 }

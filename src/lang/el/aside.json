@@ -16,5 +16,6 @@
   "networkTunnel": "Δικτυακή Σήραγγα",
   "cacheAndQueue": "Ουρά Προσωρινής Αποθήκευσης & Μηνύματος",
   "serviceGovernance": "Διακυβέρνηση Υπηρεσιών",
-  "other": "Άλλο"
+  "other": "Άλλο",
+  "console": "Κονσόλα"
 }

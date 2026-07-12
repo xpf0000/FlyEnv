@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "A php.ini fájl nem található"
+  },
+  "startupGroup": {
+    "title": "Indítási csoportok",
+    "description": "Adott szolgáltatásverziók és nyelvi projektek indítása és leállítása szabályozott sorrendben.",
+    "add": "Indítási csoport hozzáadása",
+    "edit": "Indítási csoport szerkesztése",
+    "default": "Alapértelmezett indítási csoport",
+    "controlDefaultTooltip": "Az alapértelmezett indítási csoport indítása vagy leállítása: {name}",
+    "controlLegacyTooltip": "Az összes megjelenített szolgáltatás indítása vagy leállítása",
+    "defaultTooltip": "A bal felső egykattintásos vezérlés és a szolgáltatások automatikus indítása ezt a csoportot használja.",
+    "licenseTips": "Licenc nélkül csak egy indítási csoport hozható létre.",
+    "defaultEmptyDisabled": "Üres indítási csoport nem lehet alapértelmezett.",
+    "basicInfo": "Alapadatok",
+    "selectServices": "Szolgáltatások kiválasztása",
+    "startOrder": "Indítási sorrend",
+    "previous": "Előző",
+    "next": "Következő",
+    "color": "Szín",
+    "nameRequired": "Adja meg az indítási csoport nevét.",
+    "noGroups": "Hozzon létre indítási csoportot a kapcsolódó szolgáltatások sorrendben történő indításához.",
+    "noCandidates": "Nem található önállóan futtatható telepített szolgáltatás vagy projekt.",
+    "noRemark": "Nincs megjegyzés",
+    "emptyMembers": "Nincs kiválasztott elem",
+    "sameModuleWarning": "A modul több verziója ütközhet egymással",
+    "samePortWarning": "A kiválasztott szolgáltatások ugyanazt az ismert portot használják",
+    "deleteConfirm": "Törli a(z) {name} indítási csoportot? A futó szolgáltatások nem állnak le.",
+    "hideConfirm": "Az indítási csoportok elrejtése leállítja az összes bennük lévő szolgáltatást. Folytatja?",
+    "hideFailed": "Az indítási csoportok láthatók maradnak, mert ezeket a szolgáltatásokat nem sikerült leállítani:",
+    "hideBusy": "Várja meg, amíg a jelenlegi indítási csoport művelete befejeződik."
   }
 }

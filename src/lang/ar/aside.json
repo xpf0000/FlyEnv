@@ -16,5 +16,6 @@
   "networkTunnel": "النفق الشبكي",
   "cacheAndQueue": "التخزين المؤقت وقائمة الانتظار",
   "serviceGovernance": "الحوكمة الخدمية",
-  "other": "اخرى"
+  "other": "اخرى",
+  "console": "وحدة التحكم"
 }

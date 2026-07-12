@@ -16,5 +16,6 @@
   "networkTunnel": "Сетевой туннель",
   "cacheAndQueue": "Кэш и очередь сообщений",
   "serviceGovernance": "Управление услугами",
-  "other": "Прочие вопросы"
+  "other": "Прочие вопросы",
+  "console": "Консоль"
 }

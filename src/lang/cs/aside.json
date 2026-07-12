@@ -16,5 +16,6 @@
   "networkTunnel": "Síťový tunel",
   "cacheAndQueue": "Mezipaměť a fronta zpráv",
   "serviceGovernance": "Správa služeb",
-  "other": "Ostatní"
+  "other": "Ostatní",
+  "console": "Konzole"
 }

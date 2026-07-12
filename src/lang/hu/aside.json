@@ -16,5 +16,6 @@
   "networkTunnel": "Hálózati alagút",
   "cacheAndQueue": "Gyorsítótár és üzenetsor",
   "serviceGovernance": "Szolgáltatásirányítás",
-  "other": "Egyéb"
+  "other": "Egyéb",
+  "console": "Konzol"
 }

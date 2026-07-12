@@ -16,5 +16,6 @@
   "networkTunnel": "네트워크 터널",
   "cacheAndQueue": "캐시 및 메시지 큐",
   "serviceGovernance": "서비스 거버넌스",
-  "other": "기타"
+  "other": "기타",
+  "console": "콘솔"
 }

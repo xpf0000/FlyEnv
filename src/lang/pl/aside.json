@@ -16,5 +16,6 @@
   "networkTunnel": "Tunel sieciowy",
   "cacheAndQueue": "Pamięć podręczna i kolejka wiadomości",
   "serviceGovernance": "Zarządzanie usługami",
-  "other": "Inne"
+  "other": "Inne",
+  "console": "Konsola"
 }

@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "File php.ini non trovato"
+  },
+  "startupGroup": {
+    "title": "Gruppi di avvio",
+    "description": "Avvia e arresta versioni specifiche dei servizi e progetti linguistici in un ordine controllato.",
+    "add": "Aggiungi gruppo di avvio",
+    "edit": "Modifica gruppo di avvio",
+    "default": "Gruppo di avvio predefinito",
+    "controlDefaultTooltip": "Avvia o arresta il gruppo predefinito: {name}",
+    "controlLegacyTooltip": "Avvia o arresta tutti i servizi visualizzati",
+    "defaultTooltip": "Il controllo con un clic in alto a sinistra e l’avvio automatico dei servizi useranno questo gruppo.",
+    "licenseTips": "Senza licenza è possibile creare un solo gruppo di avvio.",
+    "defaultEmptyDisabled": "Un gruppo di avvio vuoto non può essere quello predefinito.",
+    "basicInfo": "Informazioni di base",
+    "selectServices": "Seleziona servizi",
+    "startOrder": "Ordine di avvio",
+    "previous": "Precedente",
+    "next": "Successivo",
+    "color": "Colore",
+    "nameRequired": "Inserisci un nome per il gruppo di avvio.",
+    "noGroups": "Crea un gruppo di avvio per avviare in ordine i servizi correlati.",
+    "noCandidates": "Non sono stati trovati servizi o progetti installati eseguibili in modo indipendente.",
+    "noRemark": "Nessuna nota",
+    "emptyMembers": "Nessun elemento selezionato",
+    "sameModuleWarning": "Più versioni di questo modulo potrebbero entrare in conflitto",
+    "samePortWarning": "I servizi selezionati usano la stessa porta nota",
+    "deleteConfirm": "Eliminare il gruppo di avvio {name}? I servizi in esecuzione non verranno arrestati.",
+    "hideConfirm": "Nascondendo i gruppi di avvio verranno arrestati tutti i servizi che contengono. Continuare?",
+    "hideFailed": "I gruppi di avvio resteranno visibili perché non è stato possibile arrestare questi servizi:",
+    "hideBusy": "Attendi il completamento dell’operazione corrente del gruppo di avvio."
   }
 }

@@ -16,5 +16,6 @@
   "networkTunnel": "網路隧道",
   "cacheAndQueue": "緩存&訊息佇列",
   "serviceGovernance": "服務治理",
-  "other": "其他"
+  "other": "其他",
+  "console": "控制台"
 }

@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "No se encontró el archivo php.ini"
+  },
+  "startupGroup": {
+    "title": "Grupos de inicio",
+    "description": "Inicia y detén versiones concretas de servicios y proyectos de lenguajes en un orden controlado.",
+    "add": "Añadir grupo de inicio",
+    "edit": "Editar grupo de inicio",
+    "default": "Grupo de inicio predeterminado",
+    "controlDefaultTooltip": "Iniciar o detener el grupo de inicio predeterminado: {name}",
+    "controlLegacyTooltip": "Iniciar o detener todos los servicios mostrados",
+    "defaultTooltip": "El control con un clic de la esquina superior izquierda y el inicio automático de servicios usarán este grupo.",
+    "licenseTips": "Sin licencia solo se puede crear un grupo de inicio.",
+    "defaultEmptyDisabled": "Un grupo de inicio vacío no puede ser el predeterminado.",
+    "basicInfo": "Información básica",
+    "selectServices": "Seleccionar servicios",
+    "startOrder": "Orden de inicio",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "color": "Color",
+    "nameRequired": "Introduce un nombre para el grupo de inicio.",
+    "noGroups": "Crea un grupo de inicio para iniciar los servicios relacionados en orden.",
+    "noCandidates": "No se encontraron servicios o proyectos instalados que puedan ejecutarse de forma independiente.",
+    "noRemark": "Sin observaciones",
+    "emptyMembers": "No se seleccionaron elementos",
+    "sameModuleWarning": "Varias versiones de este módulo pueden entrar en conflicto",
+    "samePortWarning": "Los servicios seleccionados usan el mismo puerto conocido",
+    "deleteConfirm": "¿Eliminar el grupo de inicio {name}? Los servicios en ejecución no se detendrán.",
+    "hideConfirm": "Al ocultar los grupos de inicio se detendrán todos los servicios que contengan. ¿Continuar?",
+    "hideFailed": "Los grupos de inicio seguirán visibles porque no se pudieron detener estos servicios:",
+    "hideBusy": "Espera a que finalice la operación actual del grupo de inicio."
   }
 }

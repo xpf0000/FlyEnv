@@ -16,5 +16,6 @@
   "networkTunnel": "Netzwerk-Tunnel",
   "cacheAndQueue": "Cache- & Nachrichtenwarteschlange",
   "serviceGovernance": "Service-Steuerung",
-  "other": "Andere"
+  "other": "Andere",
+  "console": "Konsole"
 }

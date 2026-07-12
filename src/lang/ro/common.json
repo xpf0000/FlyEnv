@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "fisierul php.ini nu a fost gasit"
+  },
+  "startupGroup": {
+    "title": "Grupuri de pornire",
+    "description": "Porniți și opriți versiuni exacte ale serviciilor și proiecte de limbaj într-o ordine controlată.",
+    "add": "Adăugați un grup de pornire",
+    "edit": "Editați grupul de pornire",
+    "default": "Grup de pornire implicit",
+    "controlDefaultTooltip": "Porniți sau opriți grupul implicit: {name}",
+    "controlLegacyTooltip": "Porniți sau opriți toate serviciile afișate",
+    "defaultTooltip": "Controlul cu un clic din stânga sus și pornirea automată a serviciilor vor utiliza acest grup.",
+    "licenseTips": "Fără licență poate fi creat un singur grup de pornire.",
+    "defaultEmptyDisabled": "Un grup de pornire gol nu poate fi implicit.",
+    "basicInfo": "Informații de bază",
+    "selectServices": "Selectați serviciile",
+    "startOrder": "Ordinea de pornire",
+    "previous": "Anterior",
+    "next": "Următor",
+    "color": "Culoare",
+    "nameRequired": "Introduceți un nume pentru grupul de pornire.",
+    "noGroups": "Creați un grup de pornire pentru a porni serviciile asociate în ordine.",
+    "noCandidates": "Nu au fost găsite servicii sau proiecte instalate care pot rula independent.",
+    "noRemark": "Fără observații",
+    "emptyMembers": "Nu a fost selectat niciun element",
+    "sameModuleWarning": "Mai multe versiuni ale acestui modul pot intra în conflict",
+    "samePortWarning": "Serviciile selectate folosesc același port cunoscut",
+    "deleteConfirm": "Ștergeți grupul de pornire {name}? Serviciile active nu vor fi oprite.",
+    "hideConfirm": "Ascunderea grupurilor de pornire va opri toate serviciile pe care le conțin. Continuați?",
+    "hideFailed": "Grupurile de pornire vor rămâne vizibile deoarece aceste servicii nu au putut fi oprite:",
+    "hideBusy": "Așteptați finalizarea operației curente a grupului de pornire."
   }
 }

@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "Falha ao obter arquivo php.ini"
+  },
+  "startupGroup": {
+    "title": "Grupos de inicialização",
+    "description": "Inicie e pare versões específicas de serviços e projetos de linguagem em uma ordem controlada.",
+    "add": "Adicionar grupo de inicialização",
+    "edit": "Editar grupo de inicialização",
+    "default": "Grupo de inicialização padrão",
+    "controlDefaultTooltip": "Iniciar ou parar o grupo de inicialização padrão: {name}",
+    "controlLegacyTooltip": "Iniciar ou parar todos os serviços exibidos",
+    "defaultTooltip": "O controle de um clique no canto superior esquerdo e a inicialização automática dos serviços usarão este grupo.",
+    "licenseTips": "Sem licença, apenas um grupo de inicialização pode ser criado.",
+    "defaultEmptyDisabled": "Um grupo de inicialização vazio não pode ser o padrão.",
+    "basicInfo": "Informações básicas",
+    "selectServices": "Selecionar serviços",
+    "startOrder": "Ordem de inicialização",
+    "previous": "Anterior",
+    "next": "Próximo",
+    "color": "Cor",
+    "nameRequired": "Digite um nome para o grupo de inicialização.",
+    "noGroups": "Crie um grupo de inicialização para iniciar os serviços relacionados na ordem definida.",
+    "noCandidates": "Nenhum serviço ou projeto instalado que possa ser executado de forma independente foi encontrado.",
+    "noRemark": "Sem observações",
+    "emptyMembers": "Nenhum item selecionado",
+    "sameModuleWarning": "Várias versões deste módulo podem entrar em conflito",
+    "samePortWarning": "Os serviços selecionados usam a mesma porta conhecida",
+    "deleteConfirm": "Excluir o grupo de inicialização {name}? Os serviços em execução não serão interrompidos.",
+    "hideConfirm": "Ocultar os grupos de inicialização interromperá todos os serviços contidos neles. Continuar?",
+    "hideFailed": "Os grupos de inicialização continuarão visíveis porque estes serviços não puderam ser interrompidos:",
+    "hideBusy": "Aguarde a conclusão da operação atual do grupo de inicialização."
   }
 }

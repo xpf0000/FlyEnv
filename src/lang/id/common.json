@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "File php.ini tidak ditemukan"
+  },
+  "startupGroup": {
+    "title": "Grup startup",
+    "description": "Jalankan dan hentikan versi layanan tertentu serta proyek bahasa dalam urutan yang terkontrol.",
+    "add": "Tambah grup startup",
+    "edit": "Edit grup startup",
+    "default": "Grup startup default",
+    "controlDefaultTooltip": "Jalankan atau hentikan grup startup default: {name}",
+    "controlLegacyTooltip": "Jalankan atau hentikan semua layanan yang ditampilkan",
+    "defaultTooltip": "Kontrol sekali klik di kiri atas dan startup layanan otomatis akan menggunakan grup ini.",
+    "licenseTips": "Tanpa lisensi, hanya satu grup startup yang dapat dibuat.",
+    "defaultEmptyDisabled": "Grup startup kosong tidak dapat dijadikan default.",
+    "basicInfo": "Informasi dasar",
+    "selectServices": "Pilih layanan",
+    "startOrder": "Urutan startup",
+    "previous": "Sebelumnya",
+    "next": "Berikutnya",
+    "color": "Warna",
+    "nameRequired": "Masukkan nama grup startup.",
+    "noGroups": "Buat grup startup untuk menjalankan layanan terkait secara berurutan.",
+    "noCandidates": "Tidak ditemukan layanan atau proyek terinstal yang dapat dijalankan secara mandiri.",
+    "noRemark": "Tidak ada catatan",
+    "emptyMembers": "Belum ada item yang dipilih",
+    "sameModuleWarning": "Beberapa versi modul ini dapat saling bertentangan",
+    "samePortWarning": "Layanan yang dipilih menggunakan port umum yang sama",
+    "deleteConfirm": "Hapus grup startup {name}? Layanan yang sedang berjalan tidak akan dihentikan.",
+    "hideConfirm": "Menyembunyikan Grup Startup akan menghentikan semua layanan di dalam grup. Lanjutkan?",
+    "hideFailed": "Grup Startup tetap ditampilkan karena layanan berikut tidak dapat dihentikan:",
+    "hideBusy": "Tunggu hingga operasi grup startup saat ini selesai."
   }
 }

@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini datoteka nije pronađena"
+  },
+  "startupGroup": {
+    "title": "Grupe za pokretanje",
+    "description": "Pokrećite i zaustavljajte određene verzije servisa i jezične projekte kontroliranim redoslijedom.",
+    "add": "Dodaj grupu za pokretanje",
+    "edit": "Uredi grupu za pokretanje",
+    "default": "Zadana grupa za pokretanje",
+    "controlDefaultTooltip": "Pokreni ili zaustavi zadanu grupu: {name}",
+    "controlLegacyTooltip": "Pokreni ili zaustavi sve prikazane servise",
+    "defaultTooltip": "Upravljanje jednim klikom gore lijevo i automatsko pokretanje servisa koristit će ovu grupu.",
+    "licenseTips": "Bez licence moguće je stvoriti samo jednu grupu za pokretanje.",
+    "defaultEmptyDisabled": "Prazna grupa za pokretanje ne može biti zadana.",
+    "basicInfo": "Osnovne informacije",
+    "selectServices": "Odaberi servise",
+    "startOrder": "Redoslijed pokretanja",
+    "previous": "Prethodno",
+    "next": "Dalje",
+    "color": "Boja",
+    "nameRequired": "Unesite naziv grupe za pokretanje.",
+    "noGroups": "Stvorite grupu za pokretanje kako biste povezane servise pokretali redom.",
+    "noCandidates": "Nisu pronađeni instalirani servisi ili projekti koji se mogu pokretati samostalno.",
+    "noRemark": "Bez napomene",
+    "emptyMembers": "Nema odabranih stavki",
+    "sameModuleWarning": "Više verzija ovog modula može biti u sukobu",
+    "samePortWarning": "Odabrani servisi koriste isti poznati priključak",
+    "deleteConfirm": "Izbrisati grupu za pokretanje {name}? Aktivni servisi neće biti zaustavljeni.",
+    "hideConfirm": "Skrivanjem grupa za pokretanje zaustavit će se svi servisi koje sadrže. Nastaviti?",
+    "hideFailed": "Grupe za pokretanje ostat će vidljive jer sljedeće servise nije bilo moguće zaustaviti:",
+    "hideBusy": "Pričekajte da se trenutna radnja grupe za pokretanje dovrši."
   }
 }

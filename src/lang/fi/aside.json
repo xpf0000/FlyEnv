@@ -16,5 +16,6 @@
   "networkTunnel": "Verkon Tunneli",
   "cacheAndQueue": "Välimuisti & Viestijono",
   "serviceGovernance": "Palvelun Hallinto",
-  "other": "Muu"
+  "other": "Muu",
+  "console": "Konsoli"
 }

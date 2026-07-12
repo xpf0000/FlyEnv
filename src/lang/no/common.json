@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini-fil ikke funnet"
+  },
+  "startupGroup": {
+    "title": "Oppstartsgrupper",
+    "description": "Start og stopp bestemte tjenesteversjoner og språkprosjekter i en kontrollert rekkefølge.",
+    "add": "Legg til oppstartsgruppe",
+    "edit": "Rediger oppstartsgruppe",
+    "default": "Standard oppstartsgruppe",
+    "controlDefaultTooltip": "Start eller stopp standard oppstartsgruppe: {name}",
+    "controlLegacyTooltip": "Start eller stopp alle viste tjenester",
+    "defaultTooltip": "Ettklikkskontrollen øverst til venstre og automatisk tjenesteoppstart bruker denne gruppen.",
+    "licenseTips": "Uten lisens kan bare én oppstartsgruppe opprettes.",
+    "defaultEmptyDisabled": "En tom oppstartsgruppe kan ikke være standard.",
+    "basicInfo": "Grunnleggende informasjon",
+    "selectServices": "Velg tjenester",
+    "startOrder": "Oppstartsrekkefølge",
+    "previous": "Forrige",
+    "next": "Neste",
+    "color": "Farge",
+    "nameRequired": "Skriv inn et navn på oppstartsgruppen.",
+    "noGroups": "Opprett en oppstartsgruppe for å starte relaterte tjenester i rekkefølge.",
+    "noCandidates": "Fant ingen installerte tjenester eller prosjekter som kan kjøres uavhengig.",
+    "noRemark": "Ingen merknad",
+    "emptyMembers": "Ingen elementer valgt",
+    "sameModuleWarning": "Flere versjoner av denne modulen kan komme i konflikt",
+    "samePortWarning": "De valgte tjenestene bruker samme kjente port",
+    "deleteConfirm": "Slette oppstartsgruppen {name}? Tjenester som kjører, blir ikke stoppet.",
+    "hideConfirm": "Hvis oppstartsgrupper skjules, stoppes alle tjenestene de inneholder. Fortsette?",
+    "hideFailed": "Oppstartsgrupper forblir synlige fordi disse tjenestene ikke kunne stoppes:",
+    "hideBusy": "Vent til den gjeldende oppstartsgruppeoperasjonen er fullført."
   }
 }

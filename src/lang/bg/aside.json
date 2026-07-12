@@ -16,5 +16,6 @@
   "networkTunnel": "Мрежов тунел",
   "cacheAndQueue": "Кеш и опашка за съобщения",
   "serviceGovernance": "Управление на услугите",
-  "other": "Друго"
+  "other": "Друго",
+  "console": "Конзола"
 }

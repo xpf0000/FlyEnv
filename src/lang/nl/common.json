@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini bestand niet gevonden"
+  },
+  "startupGroup": {
+    "title": "Opstartgroepen",
+    "description": "Start en stop specifieke serviceversies en taalprojecten in een gecontroleerde volgorde.",
+    "add": "Opstartgroep toevoegen",
+    "edit": "Opstartgroep bewerken",
+    "default": "Standaard opstartgroep",
+    "controlDefaultTooltip": "De standaard opstartgroep starten of stoppen: {name}",
+    "controlLegacyTooltip": "Alle weergegeven services starten of stoppen",
+    "defaultTooltip": "De eenkliksknop linksboven en het automatisch starten van services gebruiken deze opstartgroep.",
+    "licenseTips": "Zonder licentie kan slechts één opstartgroep worden gemaakt.",
+    "defaultEmptyDisabled": "Een lege opstartgroep kan niet de standaardgroep zijn.",
+    "basicInfo": "Basisinformatie",
+    "selectServices": "Services selecteren",
+    "startOrder": "Opstartvolgorde",
+    "previous": "Vorige",
+    "next": "Volgende",
+    "color": "Kleur",
+    "nameRequired": "Voer een naam voor de opstartgroep in.",
+    "noGroups": "Maak een opstartgroep om gerelateerde services op volgorde te starten.",
+    "noCandidates": "Er zijn geen geïnstalleerde services of projecten gevonden die zelfstandig kunnen worden uitgevoerd.",
+    "noRemark": "Geen opmerking",
+    "emptyMembers": "Geen items geselecteerd",
+    "sameModuleWarning": "Meerdere versies van deze module kunnen conflicteren",
+    "samePortWarning": "De geselecteerde services gebruiken dezelfde bekende poort",
+    "deleteConfirm": "Opstartgroep {name} verwijderen? Actieve services worden niet gestopt.",
+    "hideConfirm": "Als u opstartgroepen verbergt, worden alle services erin gestopt. Doorgaan?",
+    "hideFailed": "Opstartgroepen blijven zichtbaar omdat deze services niet konden worden gestopt:",
+    "hideBusy": "Wacht tot de huidige opstartgroepbewerking is voltooid."
   }
 }

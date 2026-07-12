@@ -16,5 +16,6 @@
   "networkTunnel": "Ağ Tüneli",
   "cacheAndQueue": "Önbellek ve Mesaj Kuyruğu",
   "serviceGovernance": "Servis Yönetimi",
-  "other": "Diğer"
+  "other": "Diğer",
+  "console": "Konsol"
 }

@@ -155,31 +155,11 @@
     "noCandidates": "No independently runnable installed services or projects were found.",
     "noRemark": "No remark",
     "emptyMembers": "No members selected",
-    "memberCount": "Services",
-    "runningCount": "Running",
-    "invalid": "Configuration invalid",
-    "invalidMember": "These saved members no longer exist. Remove them or keep them as invalid entries.",
     "sameModuleWarning": "Multiple versions of this module may conflict",
     "samePortWarning": "Selected services use the same known port",
-    "defaultEmpty": "Empty startup groups cannot be default",
     "deleteConfirm": "Delete startup group {name}? Running services will not be stopped.",
     "hideConfirm": "Hiding Startup Groups stops every service contained in any startup group. Continue?",
     "hideFailed": "Startup Groups stays visible because these services could not be stopped:",
-    "hideBusy": "Wait for the current startup group operation to finish.",
-    "state": {
-      "stopped": "Stopped",
-      "running": "Running",
-      "partial-running": "Partially running",
-      "executing": "Executing",
-      "invalid": "Configuration invalid"
-    },
-    "outcome": {
-      "started": "Started",
-      "stopped": "Stopped",
-      "skipped": "Skipped",
-      "failed": "Failed",
-      "not-run": "Not run",
-      "invalid": "Configuration invalid"
-    }
+    "hideBusy": "Wait for the current startup group operation to finish."
   }
 }

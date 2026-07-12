@@ -132,5 +132,34 @@
   },
   "error": {
     "phpiniNotFound": "php.ini soubor nebyl nalezen"
+  },
+  "startupGroup": {
+    "title": "Spouštěcí skupiny",
+    "description": "Spouštějte a zastavujte konkrétní verze služeb a jazykové projekty v řízeném pořadí.",
+    "add": "Přidat spouštěcí skupinu",
+    "edit": "Upravit spouštěcí skupinu",
+    "default": "Výchozí spouštěcí skupina",
+    "controlDefaultTooltip": "Spustit nebo zastavit výchozí spouštěcí skupinu: {name}",
+    "controlLegacyTooltip": "Spustit nebo zastavit všechny zobrazené služby",
+    "defaultTooltip": "Ovládání jedním kliknutím vlevo nahoře a automatické spouštění služeb použije tuto skupinu.",
+    "licenseTips": "Bez licence lze vytvořit pouze jednu spouštěcí skupinu.",
+    "defaultEmptyDisabled": "Prázdná spouštěcí skupina nemůže být výchozí.",
+    "basicInfo": "Základní informace",
+    "selectServices": "Vybrat služby",
+    "startOrder": "Pořadí spouštění",
+    "previous": "Předchozí",
+    "next": "Další",
+    "color": "Barva",
+    "nameRequired": "Zadejte název spouštěcí skupiny.",
+    "noGroups": "Vytvořte spouštěcí skupinu a spouštějte související služby v daném pořadí.",
+    "noCandidates": "Nebyly nalezeny žádné nainstalované služby ani projekty, které lze spouštět samostatně.",
+    "noRemark": "Bez poznámky",
+    "emptyMembers": "Nebyly vybrány žádné položky",
+    "sameModuleWarning": "Více verzí tohoto modulu může být ve vzájemném konfliktu",
+    "samePortWarning": "Vybrané služby používají stejný známý port",
+    "deleteConfirm": "Odstranit spouštěcí skupinu {name}? Spuštěné služby nebudou zastaveny.",
+    "hideConfirm": "Skrytím spouštěcích skupin se zastaví všechny služby, které obsahují. Pokračovat?",
+    "hideFailed": "Spouštěcí skupiny zůstanou zobrazené, protože tyto služby se nepodařilo zastavit:",
+    "hideBusy": "Počkejte na dokončení aktuální operace se spouštěcí skupinou."
   }
 }

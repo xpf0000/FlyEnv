@@ -231,7 +231,13 @@ function diffKey() {
 
 function checkNoUseKey() {
   const excludeLangFile = ['menu', 'aside', 'toolType']
-  const excludeKeys = ['openclaw.category.', 'openclaw.cmd.', 'hermes.category.', 'hermes.cmd.']
+  const excludeKeys = [
+    'openclaw.category.',
+    'openclaw.cmd.',
+    'hermes.category.',
+    'hermes.cmd.',
+    'mcp.toolDescriptions.'
+  ]
 
   const allLangNamespace = new Set()
   const allKeys = new Map() // 格式: { '文件名.key': Set(包含此键的语言包) }

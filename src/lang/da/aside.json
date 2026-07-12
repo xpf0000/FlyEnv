@@ -16,5 +16,6 @@
   "networkTunnel": "Netværk Tunnel",
   "cacheAndQueue": "Cache & Brevskø",
   "serviceGovernance": "Styring Af Tjenester",
-  "other": "Andet"
+  "other": "Andet",
+  "console": "Konsol"
 }

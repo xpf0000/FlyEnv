@@ -16,5 +16,6 @@
   "networkTunnel": "Túnel de red",
   "cacheAndQueue": "Cola de mensajes y cachés",
   "serviceGovernance": "Gobierno del servicio",
-  "other": "Otro"
+  "other": "Otro",
+  "console": "Consola"
 }
