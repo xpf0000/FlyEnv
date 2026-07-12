@@ -9,6 +9,7 @@ import {
   type EnvSyncSnapshot
 } from '../src/shared/EnvSyncProtocol'
 import { EnvSyncCoordinator } from '../src/main/core/EnvSyncCoordinator'
+import { EnvSyncAccess } from '../src/shared/EnvSync'
 
 const snapshot: EnvSyncSnapshot = {
   revision: 3,
@@ -110,5 +111,110 @@ const retryCoordinator = new EnvSyncCoordinator(async () => {
 await assert.rejects(() => retryCoordinator.get(), /env load failed/)
 assert.deepEqual((await retryCoordinator.get()).env, {})
 assert.equal(failureCount, 2)
+
+const previousServer = global.Server
+global.Server = { Proxy: { HTTPS_PROXY: 'http://127.0.0.1:7890' } } as any
+
+let providerGets = 0
+let providerInvalidates = 0
+let accessNow = 10
+const access = new EnvSyncAccess({
+  now: () => accessNow,
+  localFetch: async () => ({ env: { PATH: '/fallback' } })
+})
+access.setProvider({
+  get: async () => {
+    providerGets += 1
+    return {
+      revision: providerInvalidates,
+      env: { PATH: '/shared' },
+      cmdPath: 'cmd.exe',
+      powerShellPath: 'powershell.exe',
+      systemPath: 'C:/Windows/System32',
+      fetchedAt: 10,
+      expiresAt: 310
+    }
+  },
+  invalidate: async () => {
+    providerInvalidates += 1
+    return providerInvalidates
+  }
+})
+
+const [sharedA, sharedB] = await Promise.all([access.sync(), access.sync()])
+assert.strictEqual(sharedA, sharedB)
+assert.equal(providerGets, 1)
+assert.equal(sharedA.PATH, '/shared')
+assert.equal(sharedA.HTTPS_PROXY, 'http://127.0.0.1:7890')
+assert.equal(access.CMDPath, 'cmd.exe')
+assert.equal(access.PowerShellPath, 'powershell.exe')
+assert.equal(access.SystemPath, 'C:/Windows/System32')
+
+const manualAccess = new EnvSyncAccess({
+  localFetch: async () => {
+    throw new Error('manual AppEnv should bypass loading')
+  }
+})
+manualAccess.AppEnv = { PATH: '/manual' }
+assert.equal((await manualAccess.sync()).PATH, '/manual')
+await manualAccess.clean()
+assert.equal(manualAccess.AppEnv, undefined)
+
+const cleanPromise = access.clean()
+assert.equal(access.AppEnv, undefined)
+const afterClean = await access.sync()
+await cleanPromise
+assert.equal(providerInvalidates, 1)
+assert.equal(providerGets, 2)
+assert.equal(afterClean.PATH, '/shared')
+
+access.clearLocal(3)
+accessNow = 400
+let lowRevisionGets = 0
+access.setProvider({
+  get: async () => {
+    lowRevisionGets += 1
+    return {
+      revision: lowRevisionGets === 1 ? 2 : 3,
+      env: { PATH: '/revision-3' },
+      fetchedAt: 400,
+      expiresAt: 700
+    }
+  },
+  invalidate: async () => 3
+})
+assert.equal((await access.sync()).PATH, '/revision-3')
+assert.equal(lowRevisionGets, 2)
+access.clearLocal(2)
+assert.equal((await access.sync()).PATH, '/revision-3')
+assert.equal(lowRevisionGets, 2)
+
+let fallbackGets = 0
+let localFetches = 0
+const fallbackAccess = new EnvSyncAccess({
+  now: () => accessNow,
+  fallbackTtlMs: 5_000,
+  localFetch: async () => {
+    localFetches += 1
+    return { env: { PATH: '/local' } }
+  }
+})
+fallbackAccess.setProvider({
+  get: async () => {
+    fallbackGets += 1
+    throw new Error('main unavailable')
+  },
+  invalidate: async () => 0
+})
+assert.equal((await fallbackAccess.sync()).PATH, '/local')
+assert.equal((await fallbackAccess.sync()).PATH, '/local')
+assert.equal(fallbackGets, 1)
+assert.equal(localFetches, 1)
+accessNow += 5_000
+assert.equal((await fallbackAccess.sync()).PATH, '/local')
+assert.equal(fallbackGets, 2)
+assert.equal(localFetches, 2)
+
+global.Server = previousServer
 
 console.log('env sync coordinator tests passed')
