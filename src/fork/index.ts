@@ -4,14 +4,26 @@ import { appDebugLog } from '@shared/utils'
 import { ProcessSendError } from './Fn'
 import { StopProcessListClient } from './StopProcessListClient'
 import { setStopProcessListProvider } from '@shared/StopProcessList'
+import { BinVersionCacheClient } from './BinVersionCacheClient'
+import { setBinVersionCacheProvider } from './util/BinVersionCache'
 
 const parentPort = process.parentPort
 const stopProcessListClient = parentPort
   ? new StopProcessListClient((message) => parentPort.postMessage(message))
   : undefined
+const binVersionCacheClient = parentPort
+  ? new BinVersionCacheClient((message) => parentPort.postMessage(message))
+  : undefined
 
 if (stopProcessListClient) {
   setStopProcessListProvider(() => stopProcessListClient.request())
+}
+
+if (binVersionCacheClient) {
+  setBinVersionCacheProvider({
+    get: (fingerprint) => binVersionCacheClient.get(fingerprint),
+    set: (fingerprint, value) => binVersionCacheClient.set(fingerprint, value)
+  })
 }
 
 // ---------------------- 兼容层开始 ----------------------
@@ -32,6 +44,9 @@ if (parentPort) {
   parentPort.on('message', (e) => {
     const data = e.data
     if (stopProcessListClient?.handleMessage(data)) {
+      return
+    }
+    if (binVersionCacheClient?.handleMessage(data)) {
       return
     }
     // 将 electron 的消息结构 e.data 转发给 node 的标准事件

@@ -16,8 +16,6 @@ import { BinVersionCacheBridge } from '../src/main/core/BinVersionCacheBridge'
 import type { BinVersionCacheGetResponse } from '../src/shared/BinVersionCache'
 import { BinVersionCacheAccess, normalizeBinVersionPath } from '../src/fork/util/BinVersionCache'
 
-void readFileSync
-
 const nginxFingerprint: BinVersionFingerprint = {
   path: '/opt/flyenv/nginx',
   mtimeMs: 100,
@@ -315,3 +313,18 @@ assert.deepEqual(
   ),
   { version: 'fallback' }
 )
+
+const readSource = (path: string) => readFileSync(path, 'utf8')
+const forkManagerSource = readSource('src/main/core/ForkManager.ts')
+const applicationSource = readSource('src/main/Application.ts')
+const forkEntrySource = readSource('src/fork/index.ts')
+
+assert.match(forkManagerSource, /BinVersionCacheStore/)
+assert.match(forkManagerSource, /ElectronStoreBinVersionCachePersistence/)
+assert.match(forkManagerSource, /BinVersionCacheBridge/)
+assert.match(forkManagerSource, /binVersionCacheBridge\.handle/)
+assert.match(forkManagerSource, /await this\.binVersionCacheStore\.flush\(\)/)
+assert.match(applicationSource, /await this\.forkManager\?\.destroy\(\)/)
+assert.match(forkEntrySource, /BinVersionCacheClient/)
+assert.match(forkEntrySource, /setBinVersionCacheProvider/)
+assert.match(forkEntrySource, /binVersionCacheClient\?\.handleMessage\(data\)/)

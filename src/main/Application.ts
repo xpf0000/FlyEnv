@@ -598,7 +598,7 @@ export default class Application extends EventEmitter {
       console.log('serverManager.stopServer e: ', e)
     }
     try {
-      this.forkManager?.destroy()
+      await this.forkManager?.destroy()
     } catch (e) {
       console.log('forkManager.destroy e: ', e)
     }

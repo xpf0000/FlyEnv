@@ -7,6 +7,9 @@ import { appDebugLog } from '@shared/utils'
 import { fetchStopProcessListLocal } from '@shared/StopProcessList'
 import { StopProcessListBridge } from './StopProcessListBridge'
 import { StopProcessListCache } from './StopProcessListCache'
+import { BinVersionCacheStore } from './BinVersionCacheStore'
+import { ElectronStoreBinVersionCachePersistence } from './BinVersionCachePersistence'
+import { BinVersionCacheBridge } from './BinVersionCacheBridge'
 
 type Callback = (...args: any) => void
 
@@ -40,6 +43,15 @@ class ForkItem {
   onMessage(child: UtilityProcess, message: any) {
     if (
       this.stopProcessListBridge.handle(message, (response) => {
+        try {
+          child.postMessage(response)
+        } catch {}
+      })
+    ) {
+      return
+    }
+    if (
+      this.binVersionCacheBridge.handle(message, (response) => {
         try {
           child.postMessage(response)
         } catch {}
@@ -102,7 +114,8 @@ class ForkItem {
   constructor(
     file: string,
     autoDestroy: boolean,
-    private readonly stopProcessListBridge: StopProcessListBridge
+    private readonly stopProcessListBridge: StopProcessListBridge,
+    private readonly binVersionCacheBridge: BinVersionCacheBridge
   ) {
     this.forkFile = file
     this.autoDestroy = autoDestroy
@@ -187,6 +200,16 @@ export class ForkManager {
     }
   })
   private readonly stopProcessListBridge = new StopProcessListBridge(this.stopProcessListCache)
+  private readonly binVersionCacheStore = new BinVersionCacheStore(
+    new ElectronStoreBinVersionCachePersistence(),
+    {
+      debounceMs: 2_000,
+      onEvent: (event) => {
+        appDebugLog('[BinVersionCache]', JSON.stringify(event)).catch()
+      }
+    }
+  )
+  private readonly binVersionCacheBridge = new BinVersionCacheBridge(this.binVersionCacheStore)
 
   constructor(file: string) {
     this.file = file
@@ -201,14 +224,24 @@ export class ForkManager {
     const module = param.shift()
     if (module === 'ftp-srv') {
       if (!this.ftpsrvFork) {
-        this.ftpsrvFork = new ForkItem(this.file, false, this.stopProcessListBridge)
+        this.ftpsrvFork = new ForkItem(
+          this.file,
+          false,
+          this.stopProcessListBridge,
+          this.binVersionCacheBridge
+        )
         this.ftpsrvFork._on = this._on
       }
       return this.ftpsrvFork!.send(...args)
     }
     if (module === 'dns') {
       if (!this.dnsFork) {
-        this.dnsFork = new ForkItem(this.file, false, this.stopProcessListBridge)
+        this.dnsFork = new ForkItem(
+          this.file,
+          false,
+          this.stopProcessListBridge,
+          this.binVersionCacheBridge
+        )
         this.dnsFork._on = this._on
       }
       return this.dnsFork!.send(...args)
@@ -216,7 +249,12 @@ export class ForkManager {
     const fn = param.shift()
     if (module === 'ollama' && ['chat', 'stopOutput'].includes(fn)) {
       if (!this.ollamaChatFork) {
-        this.ollamaChatFork = new ForkItem(this.file, true, this.stopProcessListBridge)
+        this.ollamaChatFork = new ForkItem(
+          this.file,
+          true,
+          this.stopProcessListBridge,
+          this.binVersionCacheBridge
+        )
       }
       return this.ollamaChatFork!.send(...args)
     }
@@ -236,7 +274,12 @@ export class ForkManager {
       const forksCount = this.forks.length
       console.log('forksCount: ', forksCount, CupCount)
       if (forksCount < CupCount) {
-        find = new ForkItem(this.file, this.forks.length > 0, this.stopProcessListBridge)
+        find = new ForkItem(
+          this.file,
+          this.forks.length > 0,
+          this.stopProcessListBridge,
+          this.binVersionCacheBridge
+        )
         // find = new ForkItem(this.file, true)
         this.forks.push(find)
       } else {
@@ -248,7 +291,8 @@ export class ForkManager {
     return find.send(...args)
   }
 
-  destroy() {
+  async destroy() {
+    await this.binVersionCacheStore.flush()
     this?.dnsFork?.destroy()
     this?.ftpsrvFork?.destroy()
     this?.ollamaChatFork?.destroy()
