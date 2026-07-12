@@ -345,3 +345,24 @@ for (const path of [
 ]) {
   assert.match(readSource(path), /withBinVersionCache/)
 }
+
+assert.match(readSource('src/fork/module/Composer/index.ts'), /withBinVersionCache/)
+assert.match(readSource('src/fork/module/PureFtpd/index.ts'), /withBinVersionCache/)
+assert.match(readSource('src/fork/module/Caddy/index.ts'), /versionBinVersionSync/)
+assert.match(readSource('src/fork/module/Consul/index.ts'), /versionBinVersionSync/)
+
+for (const path of [
+  'src/fork/util/ServiceStart.ts',
+  'src/fork/module/Tool/process.ts',
+  'src/fork/module/Tool.win/process.ts'
+]) {
+  assert.doesNotMatch(readSource(path), /withBinVersionCache/)
+}
+
+// Coverage audit:
+// - Common async probes are covered by versionBinVersion/versionBinVersionOutput.
+// - RoadRunner, Ollama, SwooleCli, FrankenPHP and DotNet use withBinVersionCache.
+// - Composer and PureFtpd file readers use withBinVersionCache.
+// - Caddy/Consul versionBinVersionSync calls belong to MacPorts portinfo, not installed scans.
+// - Service start, install validation and Tool module checks remain real-time by design.
+// - Modules whose allInstalledVersions returns [] execute no installed-version probe.

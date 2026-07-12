@@ -22,6 +22,7 @@ import {
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
+import { withBinVersionCache } from '../../util/BinVersionCache'
 
 class Manager extends Base {
   constructor() {
@@ -241,7 +242,7 @@ class Manager extends Base {
 
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
-      const binVersion = (bin: string): Promise<{ version?: string; error?: string }> => {
+      const binVersionRaw = (bin: string): Promise<{ version?: string; error?: string }> => {
         return new Promise(async (resolve) => {
           const reg = /(#Software: Pure-FTPd )(\d+(\.\d+){1,4})(.*?)/g
           const handleCatch = (err: any) => {
@@ -272,6 +273,16 @@ class Manager extends Base {
           }
         })
       }
+      const binVersion = (bin: string) =>
+        withBinVersionCache(
+          bin,
+          () => binVersionRaw(bin),
+          (value): value is { version?: string; error?: string } =>
+            !!value &&
+            typeof value === 'object' &&
+            typeof (value as { version?: unknown }).version === 'string' &&
+            (value as { version: string }).version.trim().length > 0
+        )
       let versions: SoftInstalled[] = []
       Promise.all([versionLocalFetch(setup?.['pure-ftpd']?.dirs ?? [], 'pure-ftpd', 'pure-ftpd')])
         .then(async (list) => {

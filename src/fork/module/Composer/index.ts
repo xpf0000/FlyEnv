@@ -17,6 +17,7 @@ import {
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isWindows } from '@shared/utils'
+import { withBinVersionCache } from '../../util/BinVersionCache'
 
 class Composer extends Base {
   constructor() {
@@ -77,7 +78,7 @@ php "%~dp0composer.phar" %*`
 
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
-      const binVersion = (bin: string): Promise<{ version?: string; error?: string }> => {
+      const binVersionRaw = (bin: string): Promise<{ version?: string; error?: string }> => {
         return new Promise(async (resolve) => {
           const reg = /(public const VERSION = ')(\d+(\.\d+){1,4})(';)/g
           const handleCatch = (err: any) => {
@@ -108,6 +109,16 @@ php "%~dp0composer.phar" %*`
           }
         })
       }
+      const binVersion = (bin: string) =>
+        withBinVersionCache(
+          bin,
+          () => binVersionRaw(bin),
+          (value): value is { version?: string; error?: string } =>
+            !!value &&
+            typeof value === 'object' &&
+            typeof (value as { version?: unknown }).version === 'string' &&
+            (value as { version: string }).version.trim().length > 0
+        )
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
       if (isWindows()) {
