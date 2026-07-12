@@ -366,3 +366,5 @@ for (const path of [
 // - Caddy/Consul versionBinVersionSync calls belong to MacPorts portinfo, not installed scans.
 // - Service start, install validation and Tool module checks remain real-time by design.
 // - Modules whose allInstalledVersions returns [] execute no installed-version probe.
+
+console.log('bin version cache tests passed')
