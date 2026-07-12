@@ -308,4 +308,21 @@ assert.match(forkEntrySource, /EnvSyncClient/)
 assert.match(forkEntrySource, /EnvSync\.setProvider/)
 assert.match(forkEntrySource, /envSyncClient\?\.handleMessage\(data\)/)
 
+const envSyncConsumers = [
+  'src/fork/module/Tool/path.ts',
+  'src/fork/module/Git/index.ts',
+  'src/fork/util/AiCli.ts',
+  'src/shared/WindowsHelperFallback.ts',
+  'src/main/core/AppNodeFn.ts'
+].map((path) => [path, readFileSync(path, 'utf8')] as const)
+
+for (const [path, source] of envSyncConsumers) {
+  assert.doesNotMatch(
+    source,
+    /EnvSync\.(AppEnv|CMDPath|PowerShellPath|SystemPath)\s*=\s*undefined/,
+    path
+  )
+}
+assert.match(readFileSync('src/fork/module/Tool/path.ts', 'utf8'), /await EnvSync\.clean\(\)/)
+
 console.log('env sync coordinator tests passed')

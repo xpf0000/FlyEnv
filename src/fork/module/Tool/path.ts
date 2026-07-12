@@ -207,7 +207,7 @@ async function rebuildEnvPath(envDir: string, resolve: any, reject: any, actionL
     reject(e)
     return
   }
-  EnvSync.AppEnv = undefined
+  await EnvSync.clean()
   const allPath = await fetchPATH()
   resolve(allPath)
 }
