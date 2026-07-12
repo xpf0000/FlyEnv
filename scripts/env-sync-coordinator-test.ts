@@ -8,6 +8,7 @@ import {
   isEnvSyncSnapshot,
   type EnvSyncSnapshot
 } from '../src/shared/EnvSyncProtocol'
+import { EnvSyncCoordinator } from '../src/main/core/EnvSyncCoordinator'
 
 const snapshot: EnvSyncSnapshot = {
   revision: 3,
@@ -42,5 +43,72 @@ assert.equal(
 )
 assert.equal(isEnvSyncInvalidated({ type: 'env-sync-invalidated', revision: 4 }), true)
 assert.equal(isEnvSyncInvalidated({ type: 'env-sync-invalidated', revision: -1 }), false)
+
+let now = 1_000
+let fetchCount = 0
+let releaseFirst!: () => void
+const firstGate = new Promise<void>((resolve) => {
+  releaseFirst = resolve
+})
+const events: string[] = []
+const coordinator = new EnvSyncCoordinator(
+  async () => {
+    fetchCount += 1
+    await firstGate
+    return { env: { PATH: `/env-${fetchCount}` } }
+  },
+  {
+    now: () => now,
+    ttlMs: 300_000,
+    onEvent: (event) => events.push(event.type)
+  }
+)
+
+const firstGet = coordinator.get()
+const joinedGet = coordinator.get()
+await Promise.resolve()
+assert.equal(fetchCount, 1)
+releaseFirst()
+assert.strictEqual(await firstGet, await joinedGet)
+assert.deepEqual(events.slice(0, 3), ['miss', 'join', 'fetch-success'])
+
+now = 300_999
+assert.equal((await coordinator.get()).env.PATH, '/env-1')
+assert.equal(fetchCount, 1)
+now = 301_000
+assert.equal((await coordinator.get()).env.PATH, '/env-2')
+assert.equal(fetchCount, 2)
+
+let revisionFetchCount = 0
+let releaseOld!: () => void
+const oldGate = new Promise<void>((resolve) => {
+  releaseOld = resolve
+})
+const invalidationEvents: number[] = []
+const revisionCoordinator = new EnvSyncCoordinator(async () => {
+  revisionFetchCount += 1
+  if (revisionFetchCount === 1) await oldGate
+  return { env: { VALUE: `fetch-${revisionFetchCount}` } }
+})
+revisionCoordinator.subscribe((revision) => invalidationEvents.push(revision))
+const oldRequest = revisionCoordinator.get()
+await Promise.resolve()
+assert.equal(await revisionCoordinator.invalidate(), 1)
+const newRequest = revisionCoordinator.get()
+releaseOld()
+assert.equal((await oldRequest).revision, 1)
+assert.equal((await newRequest).revision, 1)
+assert.equal(revisionFetchCount, 2)
+assert.deepEqual(invalidationEvents, [1])
+
+let failureCount = 0
+const retryCoordinator = new EnvSyncCoordinator(async () => {
+  failureCount += 1
+  if (failureCount === 1) throw new Error('env load failed')
+  return { env: {} }
+})
+await assert.rejects(() => retryCoordinator.get(), /env load failed/)
+assert.deepEqual((await retryCoordinator.get()).env, {})
+assert.equal(failureCount, 2)
 
 console.log('env sync coordinator tests passed')
