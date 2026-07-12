@@ -14,6 +14,7 @@ import { appDebugLog, isLinux, isWindows } from '@shared/utils'
 import * as process from 'node:process'
 import { userInfo } from 'node:os'
 import { execSync } from 'node:child_process'
+import { withBinVersionCache } from './BinVersionCache'
 
 export function versionFixed(version?: string | null) {
   return (
@@ -87,12 +88,20 @@ export const versionBinVersionSync = (bin: string, command: string, reg: RegExp)
   return version ?? ''
 }
 
-export const versionBinVersion = (
+type VersionResult = { version?: string; error?: string }
+
+const isValidVersionResult = (value: unknown): value is VersionResult =>
+  !!value &&
+  typeof value === 'object' &&
+  typeof (value as VersionResult).version === 'string' &&
+  (value as VersionResult).version!.trim().length > 0
+
+const versionBinVersionRaw = (
   bin: string,
   command: string,
   reg: RegExp,
   findInError?: boolean
-): Promise<{ version?: string; error?: string }> => {
+): Promise<VersionResult> => {
   return new Promise(async (resolve) => {
     const outputFromExecError = (err: any) => {
       return [err?.stdout, err?.stderr]
@@ -147,10 +156,19 @@ export const versionBinVersion = (
   })
 }
 
-export const versionBinVersionOutput = (
+export const versionBinVersion = (
   bin: string,
-  command: string
-): Promise<{ version?: string; error?: string }> => {
+  command: string,
+  reg: RegExp,
+  findInError?: boolean
+) =>
+  withBinVersionCache(
+    bin,
+    () => versionBinVersionRaw(bin, command, reg, findInError),
+    isValidVersionResult
+  )
+
+const versionBinVersionOutputRaw = (bin: string, command: string): Promise<VersionResult> => {
   return new Promise(async (resolve) => {
     const handleCatch = (err: any) => {
       resolve({
@@ -173,6 +191,9 @@ export const versionBinVersionOutput = (
     }
   })
 }
+
+export const versionBinVersionOutput = (bin: string, command: string) =>
+  withBinVersionCache(bin, () => versionBinVersionOutputRaw(bin, command), isValidVersionResult)
 
 export const versionDirCache: Record<string, string[]> = {}
 
