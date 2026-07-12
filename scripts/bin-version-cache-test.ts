@@ -11,6 +11,9 @@ import {
   BinVersionCacheStore,
   type BinVersionCachePersistence
 } from '../src/main/core/BinVersionCacheStore'
+import { BinVersionCacheClient } from '../src/fork/BinVersionCacheClient'
+import { BinVersionCacheBridge } from '../src/main/core/BinVersionCacheBridge'
+import type { BinVersionCacheGetResponse } from '../src/shared/BinVersionCache'
 
 void readFileSync
 
@@ -155,3 +158,101 @@ assert.deepEqual(await failingStore.get(nginxFingerprint), {
   hit: true,
   value: { version: '1.27.4' }
 })
+
+const bridgeReplies: BinVersionCacheGetResponse[] = []
+const bridgeSets: Array<{ fingerprint: BinVersionFingerprint; value: unknown }> = []
+const bridge = new BinVersionCacheBridge({
+  get: async () => ({ hit: true, value: { version: '1.27.4' } }),
+  set: async (fingerprint, value) => {
+    bridgeSets.push({ fingerprint, value })
+    return true
+  }
+})
+
+assert.equal(
+  bridge.handle(
+    {
+      type: 'bin-version-cache-get',
+      requestId: 'bridge-get',
+      fingerprint: nginxFingerprint
+    },
+    (message) => bridgeReplies.push(message)
+  ),
+  true
+)
+await Promise.resolve()
+assert.deepEqual(bridgeReplies[0], {
+  type: 'bin-version-cache-get-response',
+  requestId: 'bridge-get',
+  hit: true,
+  value: { version: '1.27.4' }
+})
+
+assert.equal(
+  bridge.handle(
+    {
+      type: 'bin-version-cache-set',
+      fingerprint: nginxFingerprint,
+      value: { version: '1.27.5' }
+    },
+    () => {}
+  ),
+  true
+)
+await Promise.resolve()
+assert.deepEqual(bridgeSets[0], {
+  fingerprint: nginxFingerprint,
+  value: { version: '1.27.5' }
+})
+assert.equal(
+  bridge.handle({ key: 'normal-task' }, () => {}),
+  false
+)
+
+const sentMessages: unknown[] = []
+let clientTimeout: (() => void) | undefined
+const client = new BinVersionCacheClient((message) => sentMessages.push(message), {
+  requestId: () => 'client-get',
+  scheduleTimeout: (handler) => {
+    clientTimeout = handler
+    return 1
+  },
+  cancelTimeout: () => {}
+})
+const result = client.get(nginxFingerprint)
+assert.deepEqual(sentMessages[0], {
+  type: 'bin-version-cache-get',
+  requestId: 'client-get',
+  fingerprint: nginxFingerprint
+})
+client.handleMessage({
+  type: 'bin-version-cache-get-response',
+  requestId: 'client-get',
+  hit: true,
+  value: { version: '1.27.4' }
+})
+assert.deepEqual(await result, {
+  type: 'bin-version-cache-get-response',
+  requestId: 'client-get',
+  hit: true,
+  value: { version: '1.27.4' }
+})
+
+client.set(nginxFingerprint, { version: '1.27.5' })
+assert.deepEqual(sentMessages[1], {
+  type: 'bin-version-cache-set',
+  fingerprint: nginxFingerprint,
+  value: { version: '1.27.5' }
+})
+
+const timeoutClient = new BinVersionCacheClient(() => {}, {
+  requestId: () => 'timeout-get',
+  scheduleTimeout: (handler) => {
+    clientTimeout = handler
+    return 2
+  },
+  cancelTimeout: () => {}
+})
+const timeoutResult = timeoutClient.get(nginxFingerprint)
+clientTimeout?.()
+await assert.rejects(() => timeoutResult, /timed out after 2000ms/)
