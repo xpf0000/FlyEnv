@@ -18,6 +18,7 @@
     "test:startup-groups": "tsx scripts/startup-group-test.ts",
     "test:stop-process-list-cache": "tsx scripts/stop-process-list-cache-test.ts",
     "test:bin-version-cache": "tsx scripts/bin-version-cache-test.ts",
+    "test:env-sync-coordinator": "tsx scripts/env-sync-coordinator-test.ts",
     "test:helper:go": "tsx scripts/helper-go-test.ts test",
     "test:helper:go:vet": "tsx scripts/helper-go-test.ts vet",
     "test:helper:go:admin": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/helper-go-admin-test.ps1 test",
