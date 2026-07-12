@@ -160,6 +160,21 @@
     "deleteConfirm": "Eliminar o grupo de arranque {name}? Os serviços em execução não serão parados.",
     "hideConfirm": "Ocultar os grupos de arranque irá parar todos os serviços neles contidos. Continuar?",
     "hideFailed": "Os grupos de arranque continuarão visíveis porque não foi possível parar estes serviços:",
-    "hideBusy": "Aguarde até que a operação atual do grupo de arranque termine."
+    "hideBusy": "Aguarde até que a operação atual do grupo de arranque termine.",
+    "state":   {
+      "stopped": "Parado",
+      "running": "Em execução",
+      "partial-running": "Parcialmente em execução",
+      "executing": "A executar",
+      "invalid": "Configuração inválida"
+    },
+    "outcome":   {
+      "started": "Iniciado",
+      "stopped": "Parado",
+      "skipped": "Ignorado",
+      "failed": "Falhou",
+      "not-run": "Não executado",
+      "invalid": "Configuração inválida"
+    }
   }
 }

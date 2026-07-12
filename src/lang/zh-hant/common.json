@@ -160,6 +160,21 @@
     "deleteConfirm": "確定要刪除啟動群組 {name}？執行中的服務不會停止。",
     "hideConfirm": "隱藏啟動群組會停止任何群組內包含的所有服務。是否繼續？",
     "hideFailed": "下列服務無法停止，因此啟動群組會保持顯示：",
-    "hideBusy": "請等待目前的啟動群組操作完成。"
+    "hideBusy": "請等待目前的啟動群組操作完成。",
+    "state":   {
+      "stopped": "已停止",
+      "running": "執行中",
+      "partial-running": "部分執行",
+      "executing": "處理中",
+      "invalid": "設定無效"
+    },
+    "outcome":   {
+      "started": "已啟動",
+      "stopped": "已停止",
+      "skipped": "已略過",
+      "failed": "失敗",
+      "not-run": "未執行",
+      "invalid": "設定無效"
+    }
   }
 }

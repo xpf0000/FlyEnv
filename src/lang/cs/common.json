@@ -160,6 +160,21 @@
     "deleteConfirm": "Odstranit spouštěcí skupinu {name}? Spuštěné služby nebudou zastaveny.",
     "hideConfirm": "Skrytím spouštěcích skupin se zastaví všechny služby, které obsahují. Pokračovat?",
     "hideFailed": "Spouštěcí skupiny zůstanou zobrazené, protože tyto služby se nepodařilo zastavit:",
-    "hideBusy": "Počkejte na dokončení aktuální operace se spouštěcí skupinou."
+    "hideBusy": "Počkejte na dokončení aktuální operace se spouštěcí skupinou.",
+    "state":   {
+      "stopped": "Zastaveno",
+      "running": "Běží",
+      "partial-running": "Částečně spuštěno",
+      "executing": "Provádí se",
+      "invalid": "Neplatná konfigurace"
+    },
+    "outcome":   {
+      "started": "Spuštěno",
+      "stopped": "Zastaveno",
+      "skipped": "Přeskočeno",
+      "failed": "Selhalo",
+      "not-run": "Nespuštěno",
+      "invalid": "Neplatná konfigurace"
+    }
   }
 }

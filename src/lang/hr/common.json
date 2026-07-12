@@ -160,6 +160,21 @@
     "deleteConfirm": "Izbrisati grupu za pokretanje {name}? Aktivni servisi neće biti zaustavljeni.",
     "hideConfirm": "Skrivanjem grupa za pokretanje zaustavit će se svi servisi koje sadrže. Nastaviti?",
     "hideFailed": "Grupe za pokretanje ostat će vidljive jer sljedeće servise nije bilo moguće zaustaviti:",
-    "hideBusy": "Pričekajte da se trenutna radnja grupe za pokretanje dovrši."
+    "hideBusy": "Pričekajte da se trenutna radnja grupe za pokretanje dovrši.",
+    "state":   {
+      "stopped": "Zaustavljeno",
+      "running": "Pokrenuto",
+      "partial-running": "Djelomično pokrenuto",
+      "executing": "Izvršavanje",
+      "invalid": "Neispravna konfiguracija"
+    },
+    "outcome":   {
+      "started": "Pokrenuto",
+      "stopped": "Zaustavljeno",
+      "skipped": "Preskočeno",
+      "failed": "Neuspješno",
+      "not-run": "Nije izvršeno",
+      "invalid": "Neispravna konfiguracija"
+    }
   }
 }

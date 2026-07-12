@@ -160,6 +160,21 @@
     "deleteConfirm": "Poistetaanko käynnistysryhmä {name}? Käynnissä olevia palveluja ei pysäytetä.",
     "hideConfirm": "Käynnistysryhmien piilottaminen pysäyttää kaikki niihin kuuluvat palvelut. Jatketaanko?",
     "hideFailed": "Käynnistysryhmät jäävät näkyviin, koska seuraavia palveluja ei voitu pysäyttää:",
-    "hideBusy": "Odota, että nykyinen käynnistysryhmätoiminto valmistuu."
+    "hideBusy": "Odota, että nykyinen käynnistysryhmätoiminto valmistuu.",
+    "state":   {
+      "stopped": "Pysäytetty",
+      "running": "Käynnissä",
+      "partial-running": "Osittain käynnissä",
+      "executing": "Suoritetaan",
+      "invalid": "Virheellinen määritys"
+    },
+    "outcome":   {
+      "started": "Käynnistetty",
+      "stopped": "Pysäytetty",
+      "skipped": "Ohitettu",
+      "failed": "Epäonnistui",
+      "not-run": "Ei suoritettu",
+      "invalid": "Virheellinen määritys"
+    }
   }
 }

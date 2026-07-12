@@ -160,6 +160,21 @@
     "deleteConfirm": "Slette oppstartsgruppen {name}? Tjenester som kjører, blir ikke stoppet.",
     "hideConfirm": "Hvis oppstartsgrupper skjules, stoppes alle tjenestene de inneholder. Fortsette?",
     "hideFailed": "Oppstartsgrupper forblir synlige fordi disse tjenestene ikke kunne stoppes:",
-    "hideBusy": "Vent til den gjeldende oppstartsgruppeoperasjonen er fullført."
+    "hideBusy": "Vent til den gjeldende oppstartsgruppeoperasjonen er fullført.",
+    "state":   {
+      "stopped": "Stoppet",
+      "running": "Kjører",
+      "partial-running": "Kjører delvis",
+      "executing": "Utfører",
+      "invalid": "Ugyldig konfigurasjon"
+    },
+    "outcome":   {
+      "started": "Startet",
+      "stopped": "Stoppet",
+      "skipped": "Hoppet over",
+      "failed": "Mislyktes",
+      "not-run": "Ikke kjørt",
+      "invalid": "Ugyldig konfigurasjon"
+    }
   }
 }

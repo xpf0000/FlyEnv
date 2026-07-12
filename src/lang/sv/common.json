@@ -160,6 +160,21 @@
     "deleteConfirm": "Ta bort startgruppen {name}? Tjänster som körs stoppas inte.",
     "hideConfirm": "Om startgrupper döljs stoppas alla tjänster som ingår i dem. Fortsätta?",
     "hideFailed": "Startgrupper förblir synliga eftersom följande tjänster inte kunde stoppas:",
-    "hideBusy": "Vänta tills den aktuella startgruppsåtgärden är klar."
+    "hideBusy": "Vänta tills den aktuella startgruppsåtgärden är klar.",
+    "state":   {
+      "stopped": "Stoppad",
+      "running": "Körs",
+      "partial-running": "Körs delvis",
+      "executing": "Utförs",
+      "invalid": "Ogiltig konfiguration"
+    },
+    "outcome":   {
+      "started": "Startad",
+      "stopped": "Stoppad",
+      "skipped": "Hoppades över",
+      "failed": "Misslyckades",
+      "not-run": "Inte körd",
+      "invalid": "Ogiltig konfiguration"
+    }
   }
 }

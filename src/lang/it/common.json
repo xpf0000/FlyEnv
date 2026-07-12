@@ -160,6 +160,21 @@
     "deleteConfirm": "Eliminare il gruppo di avvio {name}? I servizi in esecuzione non verranno arrestati.",
     "hideConfirm": "Nascondendo i gruppi di avvio verranno arrestati tutti i servizi che contengono. Continuare?",
     "hideFailed": "I gruppi di avvio resteranno visibili perché non è stato possibile arrestare questi servizi:",
-    "hideBusy": "Attendi il completamento dell’operazione corrente del gruppo di avvio."
+    "hideBusy": "Attendi il completamento dell’operazione corrente del gruppo di avvio.",
+    "state":   {
+      "stopped": "Arrestato",
+      "running": "In esecuzione",
+      "partial-running": "Parzialmente in esecuzione",
+      "executing": "Operazione in corso",
+      "invalid": "Configurazione non valida"
+    },
+    "outcome":   {
+      "started": "Avviato",
+      "stopped": "Arrestato",
+      "skipped": "Ignorato",
+      "failed": "Non riuscito",
+      "not-run": "Non eseguito",
+      "invalid": "Configurazione non valida"
+    }
   }
 }

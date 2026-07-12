@@ -160,6 +160,21 @@
     "deleteConfirm": "Delete startup group {name}? Running services will not be stopped.",
     "hideConfirm": "Hiding Startup Groups stops every service contained in any startup group. Continue?",
     "hideFailed": "Startup Groups stays visible because these services could not be stopped:",
-    "hideBusy": "Wait for the current startup group operation to finish."
+    "hideBusy": "Wait for the current startup group operation to finish.",
+    "state":   {
+      "stopped": "Stopped",
+      "running": "Running",
+      "partial-running": "Partially running",
+      "executing": "Executing",
+      "invalid": "Configuration invalid"
+    },
+    "outcome":   {
+      "started": "Started",
+      "stopped": "Stopped",
+      "skipped": "Skipped",
+      "failed": "Failed",
+      "not-run": "Not run",
+      "invalid": "Configuration invalid"
+    }
   }
 }

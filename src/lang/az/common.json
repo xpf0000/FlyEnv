@@ -160,6 +160,21 @@
     "deleteConfirm": "{name} başlanğıc qrupu silinsin? İşləyən xidmətlər dayandırılmayacaq.",
     "hideConfirm": "Başlanğıc qruplarını gizlətmək qruplardakı bütün xidmətləri dayandıracaq. Davam edilsin?",
     "hideFailed": "Bu xidmətləri dayandırmaq mümkün olmadığı üçün Başlanğıc qrupları görünən qalacaq:",
-    "hideBusy": "Cari başlanğıc qrupu əməliyyatının bitməsini gözləyin."
+    "hideBusy": "Cari başlanğıc qrupu əməliyyatının bitməsini gözləyin.",
+    "state":   {
+      "stopped": "Dayandırılıb",
+      "running": "İşləyir",
+      "partial-running": "Qismən işləyir",
+      "executing": "İcra olunur",
+      "invalid": "Konfiqurasiya etibarsızdır"
+    },
+    "outcome":   {
+      "started": "Başladıldı",
+      "stopped": "Dayandırıldı",
+      "skipped": "Buraxıldı",
+      "failed": "Uğursuz oldu",
+      "not-run": "İşə salınmadı",
+      "invalid": "Konfiqurasiya etibarsızdır"
+    }
   }
 }

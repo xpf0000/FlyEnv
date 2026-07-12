@@ -160,6 +160,21 @@
     "deleteConfirm": "Törli a(z) {name} indítási csoportot? A futó szolgáltatások nem állnak le.",
     "hideConfirm": "Az indítási csoportok elrejtése leállítja az összes bennük lévő szolgáltatást. Folytatja?",
     "hideFailed": "Az indítási csoportok láthatók maradnak, mert ezeket a szolgáltatásokat nem sikerült leállítani:",
-    "hideBusy": "Várja meg, amíg a jelenlegi indítási csoport művelete befejeződik."
+    "hideBusy": "Várja meg, amíg a jelenlegi indítási csoport művelete befejeződik.",
+    "state":   {
+      "stopped": "Leállítva",
+      "running": "Fut",
+      "partial-running": "Részben fut",
+      "executing": "Végrehajtás alatt",
+      "invalid": "Érvénytelen konfiguráció"
+    },
+    "outcome":   {
+      "started": "Elindítva",
+      "stopped": "Leállítva",
+      "skipped": "Kihagyva",
+      "failed": "Sikertelen",
+      "not-run": "Nem futott le",
+      "invalid": "Érvénytelen konfiguráció"
+    }
   }
 }

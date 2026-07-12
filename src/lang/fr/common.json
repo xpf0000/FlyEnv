@@ -160,6 +160,21 @@
     "deleteConfirm": "Supprimer le groupe de démarrage {name} ? Les services en cours d’exécution ne seront pas arrêtés.",
     "hideConfirm": "Masquer les groupes de démarrage arrêtera tous les services qu’ils contiennent. Continuer ?",
     "hideFailed": "Les groupes de démarrage resteront visibles, car les services suivants n’ont pas pu être arrêtés :",
-    "hideBusy": "Attendez la fin de l’opération en cours sur le groupe de démarrage."
+    "hideBusy": "Attendez la fin de l’opération en cours sur le groupe de démarrage.",
+    "state":   {
+      "stopped": "Arrêté",
+      "running": "En cours d’exécution",
+      "partial-running": "Partiellement en cours",
+      "executing": "Exécution en cours",
+      "invalid": "Configuration non valide"
+    },
+    "outcome":   {
+      "started": "Démarré",
+      "stopped": "Arrêté",
+      "skipped": "Ignoré",
+      "failed": "Échec",
+      "not-run": "Non exécuté",
+      "invalid": "Configuration non valide"
+    }
   }
 }

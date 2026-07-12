@@ -160,6 +160,21 @@
     "deleteConfirm": "Opstartgroep {name} verwijderen? Actieve services worden niet gestopt.",
     "hideConfirm": "Als u opstartgroepen verbergt, worden alle services erin gestopt. Doorgaan?",
     "hideFailed": "Opstartgroepen blijven zichtbaar omdat deze services niet konden worden gestopt:",
-    "hideBusy": "Wacht tot de huidige opstartgroepbewerking is voltooid."
+    "hideBusy": "Wacht tot de huidige opstartgroepbewerking is voltooid.",
+    "state":   {
+      "stopped": "Gestopt",
+      "running": "Actief",
+      "partial-running": "Gedeeltelijk actief",
+      "executing": "Bezig met uitvoeren",
+      "invalid": "Ongeldige configuratie"
+    },
+    "outcome":   {
+      "started": "Gestart",
+      "stopped": "Gestopt",
+      "skipped": "Overgeslagen",
+      "failed": "Mislukt",
+      "not-run": "Niet uitgevoerd",
+      "invalid": "Ongeldige configuratie"
+    }
   }
 }

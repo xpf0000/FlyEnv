@@ -160,6 +160,21 @@
     "deleteConfirm": "시작 그룹 {name}을(를) 삭제할까요? 실행 중인 서비스는 중지되지 않습니다.",
     "hideConfirm": "시작 그룹을 숨기면 그룹에 포함된 모든 서비스가 중지됩니다. 계속할까요?",
     "hideFailed": "다음 서비스를 중지하지 못해 시작 그룹이 계속 표시됩니다:",
-    "hideBusy": "현재 시작 그룹 작업이 끝날 때까지 기다려 주세요."
+    "hideBusy": "현재 시작 그룹 작업이 끝날 때까지 기다려 주세요.",
+    "state":   {
+      "stopped": "중지됨",
+      "running": "실행 중",
+      "partial-running": "일부 실행 중",
+      "executing": "작업 중",
+      "invalid": "잘못된 구성"
+    },
+    "outcome":   {
+      "started": "시작됨",
+      "stopped": "중지됨",
+      "skipped": "건너뜀",
+      "failed": "실패",
+      "not-run": "실행되지 않음",
+      "invalid": "잘못된 구성"
+    }
   }
 }

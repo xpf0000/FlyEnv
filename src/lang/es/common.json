@@ -160,6 +160,21 @@
     "deleteConfirm": "¿Eliminar el grupo de inicio {name}? Los servicios en ejecución no se detendrán.",
     "hideConfirm": "Al ocultar los grupos de inicio se detendrán todos los servicios que contengan. ¿Continuar?",
     "hideFailed": "Los grupos de inicio seguirán visibles porque no se pudieron detener estos servicios:",
-    "hideBusy": "Espera a que finalice la operación actual del grupo de inicio."
+    "hideBusy": "Espera a que finalice la operación actual del grupo de inicio.",
+    "state":   {
+      "stopped": "Detenido",
+      "running": "En ejecución",
+      "partial-running": "En ejecución parcial",
+      "executing": "Ejecutando",
+      "invalid": "Configuración no válida"
+    },
+    "outcome":   {
+      "started": "Iniciado",
+      "stopped": "Detenido",
+      "skipped": "Omitido",
+      "failed": "Fallido",
+      "not-run": "No ejecutado",
+      "invalid": "Configuración no válida"
+    }
   }
 }

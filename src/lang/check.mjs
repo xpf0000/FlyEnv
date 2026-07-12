@@ -15,6 +15,8 @@ const PROJECT_ROOT = path.join(__dirname, '..')
 const LANG_DIR = path.join(PROJECT_ROOT, 'lang')
 const FILE_EXTENSIONS = ['.vue', '.js', '.ts', '.mjs', '.json']
 const STRICT_KEY_PATTERN = /['"`]([a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-.]+)['"`]/g
+const DYNAMIC_KEY_PREFIX_PATTERN =
+  /`([a-zA-Z0-9_\-]+(?:\.[a-zA-Z0-9_\-]+)+\.)\$\{[^}]+\}`/g
 const DUPLICATE_KEY_ALLOWLIST = new Set(['podman.common.yes', 'podman.common.no'])
 const INDEX_IMPORT_PATTERN = /import\s+([A-Za-z_$][\w$]*)\s+from\s+['"]\.\/([^'"]+)\.json['"]/g
 const INDEX_ENTRY_PATTERN = /^(['"]?)([^'":]+)\1:\s*([A-Za-z_$][\w$]*)[,]?$/
@@ -288,6 +290,18 @@ function checkNoUseKey() {
           if (isValidKeyFormat(match[1])) {
             usedKeys.add(match[1])
           }
+        }
+
+        while ((match = DYNAMIC_KEY_PREFIX_PATTERN.exec(content)) !== null) {
+          const prefix = match[1]
+          if (!isValidKeyFormat(prefix)) {
+            continue
+          }
+          allKeys.forEach((_packs, key) => {
+            if (key.startsWith(prefix)) {
+              usedKeys.add(key)
+            }
+          })
         }
       })
     })

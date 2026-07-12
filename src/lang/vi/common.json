@@ -160,6 +160,21 @@
     "deleteConfirm": "Xóa nhóm khởi động {name}? Các dịch vụ đang chạy sẽ không bị dừng.",
     "hideConfirm": "Ẩn Nhóm khởi động sẽ dừng mọi dịch vụ có trong các nhóm. Tiếp tục?",
     "hideFailed": "Nhóm khởi động vẫn hiển thị vì không thể dừng các dịch vụ sau:",
-    "hideBusy": "Hãy chờ thao tác nhóm khởi động hiện tại hoàn tất."
+    "hideBusy": "Hãy chờ thao tác nhóm khởi động hiện tại hoàn tất.",
+    "state":   {
+      "stopped": "Đã dừng",
+      "running": "Đang chạy",
+      "partial-running": "Đang chạy một phần",
+      "executing": "Đang thực thi",
+      "invalid": "Cấu hình không hợp lệ"
+    },
+    "outcome":   {
+      "started": "Đã khởi động",
+      "stopped": "Đã dừng",
+      "skipped": "Đã bỏ qua",
+      "failed": "Thất bại",
+      "not-run": "Chưa chạy",
+      "invalid": "Cấu hình không hợp lệ"
+    }
   }
 }

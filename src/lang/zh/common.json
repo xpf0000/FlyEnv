@@ -160,6 +160,21 @@
     "deleteConfirm": "确定删除启动组 {name}？正在运行的服务不会被停止。",
     "hideConfirm": "隐藏启动组会停止任意启动组包含的所有服务，是否继续？",
     "hideFailed": "以下服务停止失败，启动组模块将保持显示：",
-    "hideBusy": "请等待当前启动组操作完成。"
+    "hideBusy": "请等待当前启动组操作完成。",
+    "state":   {
+      "stopped": "已停止",
+      "running": "运行中",
+      "partial-running": "部分运行",
+      "executing": "执行中",
+      "invalid": "配置异常"
+    },
+    "outcome":   {
+      "started": "已启动",
+      "stopped": "已停止",
+      "skipped": "已跳过",
+      "failed": "失败",
+      "not-run": "未执行",
+      "invalid": "配置异常"
+    }
   }
 }

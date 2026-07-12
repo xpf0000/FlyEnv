@@ -160,6 +160,21 @@
     "deleteConfirm": "Ștergeți grupul de pornire {name}? Serviciile active nu vor fi oprite.",
     "hideConfirm": "Ascunderea grupurilor de pornire va opri toate serviciile pe care le conțin. Continuați?",
     "hideFailed": "Grupurile de pornire vor rămâne vizibile deoarece aceste servicii nu au putut fi oprite:",
-    "hideBusy": "Așteptați finalizarea operației curente a grupului de pornire."
+    "hideBusy": "Așteptați finalizarea operației curente a grupului de pornire.",
+    "state":   {
+      "stopped": "Oprit",
+      "running": "În rulare",
+      "partial-running": "Rulează parțial",
+      "executing": "În curs de executare",
+      "invalid": "Configurație nevalidă"
+    },
+    "outcome":   {
+      "started": "Pornit",
+      "stopped": "Oprit",
+      "skipped": "Omis",
+      "failed": "Eșuat",
+      "not-run": "Neexecutat",
+      "invalid": "Configurație nevalidă"
+    }
   }
 }

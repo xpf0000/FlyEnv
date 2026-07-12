@@ -160,6 +160,21 @@
     "deleteConfirm": "Startgruppe {name} löschen? Laufende Dienste werden nicht gestoppt.",
     "hideConfirm": "Beim Ausblenden der Startgruppen werden alle darin enthaltenen Dienste gestoppt. Fortfahren?",
     "hideFailed": "Die Startgruppen bleiben sichtbar, da folgende Dienste nicht gestoppt werden konnten:",
-    "hideBusy": "Warten Sie, bis der aktuelle Vorgang der Startgruppe abgeschlossen ist."
+    "hideBusy": "Warten Sie, bis der aktuelle Vorgang der Startgruppe abgeschlossen ist.",
+    "state":   {
+      "stopped": "Gestoppt",
+      "running": "Aktiv",
+      "partial-running": "Teilweise aktiv",
+      "executing": "Vorgang läuft",
+      "invalid": "Ungültige Konfiguration"
+    },
+    "outcome":   {
+      "started": "Gestartet",
+      "stopped": "Gestoppt",
+      "skipped": "Übersprungen",
+      "failed": "Fehlgeschlagen",
+      "not-run": "Nicht ausgeführt",
+      "invalid": "Ungültige Konfiguration"
+    }
   }
 }

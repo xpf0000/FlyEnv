@@ -160,6 +160,21 @@
     "deleteConfirm": "Hapus grup startup {name}? Layanan yang sedang berjalan tidak akan dihentikan.",
     "hideConfirm": "Menyembunyikan Grup Startup akan menghentikan semua layanan di dalam grup. Lanjutkan?",
     "hideFailed": "Grup Startup tetap ditampilkan karena layanan berikut tidak dapat dihentikan:",
-    "hideBusy": "Tunggu hingga operasi grup startup saat ini selesai."
+    "hideBusy": "Tunggu hingga operasi grup startup saat ini selesai.",
+    "state":   {
+      "stopped": "Dihentikan",
+      "running": "Berjalan",
+      "partial-running": "Berjalan sebagian",
+      "executing": "Sedang dijalankan",
+      "invalid": "Konfigurasi tidak valid"
+    },
+    "outcome":   {
+      "started": "Dimulai",
+      "stopped": "Dihentikan",
+      "skipped": "Dilewati",
+      "failed": "Gagal",
+      "not-run": "Tidak dijalankan",
+      "invalid": "Konfigurasi tidak valid"
+    }
   }
 }

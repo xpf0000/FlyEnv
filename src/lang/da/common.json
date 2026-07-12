@@ -160,6 +160,21 @@
     "deleteConfirm": "Vil du slette startgruppen {name}? Kørende tjenester stoppes ikke.",
     "hideConfirm": "Hvis startgrupper skjules, stoppes alle tjenester i dem. Vil du fortsætte?",
     "hideFailed": "Startgrupper forbliver synlige, fordi disse tjenester ikke kunne stoppes:",
-    "hideBusy": "Vent, til den aktuelle startgruppehandling er afsluttet."
+    "hideBusy": "Vent, til den aktuelle startgruppehandling er afsluttet.",
+    "state":   {
+      "stopped": "Stoppet",
+      "running": "Kører",
+      "partial-running": "Kører delvist",
+      "executing": "Udfører",
+      "invalid": "Ugyldig konfiguration"
+    },
+    "outcome":   {
+      "started": "Startet",
+      "stopped": "Stoppet",
+      "skipped": "Sprunget over",
+      "failed": "Mislykkedes",
+      "not-run": "Ikke kørt",
+      "invalid": "Ugyldig konfiguration"
+    }
   }
 }

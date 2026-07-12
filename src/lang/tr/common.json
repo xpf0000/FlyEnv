@@ -160,6 +160,21 @@
     "deleteConfirm": "{name} başlangıç grubu silinsin mi? Çalışan hizmetler durdurulmayacak.",
     "hideConfirm": "Başlangıç gruplarını gizlemek, içerdikleri tüm hizmetleri durdurur. Devam edilsin mi?",
     "hideFailed": "Şu hizmetler durdurulamadığı için Başlangıç Grupları görünür kalacak:",
-    "hideBusy": "Geçerli başlangıç grubu işleminin tamamlanmasını bekleyin."
+    "hideBusy": "Geçerli başlangıç grubu işleminin tamamlanmasını bekleyin.",
+    "state":   {
+      "stopped": "Durduruldu",
+      "running": "Çalışıyor",
+      "partial-running": "Kısmen çalışıyor",
+      "executing": "Yürütülüyor",
+      "invalid": "Geçersiz yapılandırma"
+    },
+    "outcome":   {
+      "started": "Başlatıldı",
+      "stopped": "Durduruldu",
+      "skipped": "Atlandı",
+      "failed": "Başarısız",
+      "not-run": "Çalıştırılmadı",
+      "invalid": "Geçersiz yapılandırma"
+    }
   }
 }
