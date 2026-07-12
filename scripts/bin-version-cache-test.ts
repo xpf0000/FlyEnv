@@ -14,6 +14,7 @@ import {
 import { BinVersionCacheClient } from '../src/fork/BinVersionCacheClient'
 import { BinVersionCacheBridge } from '../src/main/core/BinVersionCacheBridge'
 import type { BinVersionCacheGetResponse } from '../src/shared/BinVersionCache'
+import { BinVersionCacheAccess, normalizeBinVersionPath } from '../src/fork/util/BinVersionCache'
 
 void readFileSync
 
@@ -256,3 +257,61 @@ const timeoutClient = new BinVersionCacheClient(() => {}, {
 const timeoutResult = timeoutClient.get(nginxFingerprint)
 clientTimeout?.()
 await assert.rejects(() => timeoutResult, /timed out after 2000ms/)
+
+const isVersionResult = (value: unknown): value is { version: string } =>
+  !!value &&
+  typeof value === 'object' &&
+  typeof (value as { version?: unknown }).version === 'string' &&
+  (value as { version: string }).version.length > 0
+
+assert.equal(normalizeBinVersionPath('C:\\FlyEnv\\PHP.EXE', true), 'c:/flyenv/php.exe')
+assert.equal(normalizeBinVersionPath('/Opt/FlyEnv/php', false), '/Opt/FlyEnv/php')
+
+const cachedAccess = new BinVersionCacheAccess(async () => nginxFingerprint, {
+  get: async () => ({ hit: true, value: { version: '1.27.4' } }),
+  set: () => {}
+})
+assert.deepEqual(
+  await cachedAccess.run(
+    '/opt/flyenv/nginx',
+    async () => {
+      throw new Error('loader must not run')
+    },
+    isVersionResult
+  ),
+  { version: '1.27.4' }
+)
+
+let setValue: unknown
+const missedAccess = new BinVersionCacheAccess(async () => nginxFingerprint, {
+  get: async () => ({ hit: false }),
+  set: (_fingerprint, value) => {
+    setValue = value
+  }
+})
+assert.deepEqual(
+  await missedAccess.run('/opt/flyenv/nginx', async () => ({ version: '1.27.5' }), isVersionResult),
+  { version: '1.27.5' }
+)
+assert.deepEqual(setValue, { version: '1.27.5' })
+
+setValue = undefined
+await missedAccess.run('/opt/flyenv/nginx', async () => ({ version: '' }), isVersionResult)
+assert.equal(setValue, undefined)
+
+const noFingerprintAccess = new BinVersionCacheAccess(async () => undefined, {
+  get: async () => {
+    throw new Error('provider get must not run')
+  },
+  set: () => {
+    throw new Error('provider set must not run')
+  }
+})
+assert.deepEqual(
+  await noFingerprintAccess.run(
+    '/missing/nginx',
+    async () => ({ version: 'fallback' }),
+    isVersionResult
+  ),
+  { version: 'fallback' }
+)
