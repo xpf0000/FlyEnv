@@ -367,7 +367,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
               const bin = join(dirname(item.bin), 'rabbitmqctl.bat')
               const command = `"${bin}" version`
               const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
-              return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+              return TaskQueue.run(versionBinVersion, bin, command, reg)
             })
             return Promise.all(all)
           } else {
@@ -387,7 +387,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
               const bin = join(dirname(item.bin), 'rabbitmqctl')
               const command = `"${bin}" version`
               const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
-              return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+              return TaskQueue.run(versionBinVersion, bin, command, reg)
             })
             return Promise.all(all)
           }

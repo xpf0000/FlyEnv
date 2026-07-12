@@ -74,7 +74,7 @@ class GoLang extends Base {
             }
             const command = `"${bin}" version`
             const reg = /( go)(.*?)( )/g
-            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+            return TaskQueue.run(versionBinVersion, bin, command, reg)
           })
           return Promise.all(all)
         })

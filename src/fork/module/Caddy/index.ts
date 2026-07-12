@@ -5,8 +5,8 @@ import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
-  hostAlias,
   portSearch,
+  removeByRoot,
   serviceStartExec,
   versionBinVersion,
   versionFilterSame,
@@ -24,6 +24,8 @@ import { I18nT } from '@lang/index'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
+import { makeCaddyConf } from './Host'
+import { vhostName } from '../Host/vhostName'
 
 class Caddy extends Base {
   constructor() {
@@ -73,65 +75,22 @@ class Caddy extends Base {
     } catch {}
     hostAll = hostAll.filter((h) => !h.type || h.type === 'php')
     await mkdirp(vhostDir)
-    let tmplContent = ''
-    let tmplSSLContent = ''
     for (const host of hostAll) {
-      const name = host.name
-      const confFile = join(vhostDir, `${name}.conf`)
-      if (existsSync(confFile)) {
-        continue
+      const fileBase = vhostName(host)
+      const confFile = join(vhostDir, `${fileBase}.conf`)
+      const logFile = join(global.Server.BaseDir!, `vhost/logs/${fileBase}.caddy.log`)
+      if (!existsSync(confFile)) {
+        await makeCaddyConf(host)
       }
-      if (!tmplContent) {
-        const tmplFile = join(global.Server.Static!, 'tmpl/CaddyfileVhost')
-        tmplContent = await readFile(tmplFile, 'utf-8')
+
+      const legacyConf = join(vhostDir, `${host.name}.conf`)
+      const legacyLog = join(global.Server.BaseDir!, `vhost/logs/${host.name}.caddy.log`)
+      if (legacyConf !== confFile && existsSync(legacyConf)) {
+        await removeByRoot(legacyConf)
       }
-      if (!tmplSSLContent) {
-        const tmplFile = join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
-        tmplSSLContent = await readFile(tmplFile, 'utf-8')
+      if (legacyLog !== logFile && existsSync(legacyLog)) {
+        await removeByRoot(legacyLog)
       }
-      const httpNames: string[] = []
-      const httpsNames: string[] = []
-      hostAlias(host).forEach((h) => {
-        if (!host?.port?.caddy || host.port.caddy === 80) {
-          httpNames.push(`http://${h}`)
-        } else {
-          httpNames.push(`http://${h}:${host.port.caddy}`)
-        }
-        if (host.useSSL) {
-          httpsNames.push(`https://${h}:${host?.port?.caddy_ssl ?? 443}`)
-        }
-      })
-
-      const contentList: string[] = []
-
-      const hostName = host.name
-      const root = host.root
-      const phpv = host.phpVersion
-      const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
-
-      const httpHostNameAll = httpNames.join(',\n')
-      const content = tmplContent
-        .replace('##HOST-ALL##', httpHostNameAll)
-        .replace('##LOG-PATH##', pathFixedToUnix(logFile))
-        .replace('##ROOT##', pathFixedToUnix(root))
-        .replace('##PHP-VERSION##', `${phpv}`)
-      contentList.push(content)
-
-      if (host.useSSL) {
-        let tls = 'internal'
-        if (host.ssl.cert && host.ssl.key) {
-          tls = `${pathFixedToUnix(host.ssl.cert)} ${pathFixedToUnix(host.ssl.key)}`
-        }
-        const httpHostNameAll = httpsNames.join(',\n')
-        const content = tmplSSLContent
-          .replace('##HOST-ALL##', httpHostNameAll)
-          .replace('##LOG-PATH##', pathFixedToUnix(logFile))
-          .replace('##SSL##', tls)
-          .replace('##ROOT##', pathFixedToUnix(root))
-          .replace('##PHP-VERSION##', `${phpv}`)
-        contentList.push(content)
-      }
-      await writeFile(confFile, contentList.join('\n'))
     }
   }
 

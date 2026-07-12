@@ -21,7 +21,9 @@ foreach ($key in $userVars.Keys) { $result[$key] = $userVars[$key] }
 
 $mPath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
 $uPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-$combinedPath = ($mPath.Split(';') + $uPath.Split(';')) | Where-Object { $_ } | Select-Object -Unique
+$mPaths = if ($mPath) { $mPath.Split(';') } else { @() }
+$uPaths = if ($uPath) { $uPath.Split(';') } else { @() }
+$combinedPath = ($mPaths + $uPaths) | Where-Object { $_ } | Select-Object -Unique
 $rawPath = $combinedPath -join ';'
 
 foreach ($key in @($result.Keys)) {
@@ -59,6 +61,29 @@ const stringEnv = (value: NodeJS.ProcessEnv | Record<string, unknown>) => {
   return result
 }
 
+export const buildUnixPath = (currentPath: string, home?: string) => {
+  const paths = [
+    ...currentPath.split(':'),
+    '/opt/podman/bin',
+    '/home/linuxbrew/.linuxbrew/bin',
+    ...(home ? [join(home, '.linuxbrew/bin')] : []),
+    '/opt',
+    '/opt/homebrew/bin',
+    '/opt/homebrew/sbin',
+    '/usr/local/Homebrew/bin',
+    '/opt/local/bin',
+    '/opt/local/sbin',
+    '/usr/local/bin',
+    '/usr/bin',
+    '/usr/sbin'
+  ]
+  const expanded = paths.map((item) => {
+    const path = item.trim()
+    return home ? path.replace(/^\$(?:HOME|\{HOME\})(?=\/|$)/, home) : path
+  })
+  return Array.from(new Set(expanded.filter((item) => item.length > 0))).join(':')
+}
+
 class EnvSyncLocalLoader {
   private cmdPath?: string
   private powerShellPath?: string
@@ -67,6 +92,14 @@ class EnvSyncLocalLoader {
   private findProcessEnv(key: string): string | undefined {
     const lowKey = key.toLowerCase()
     for (const [envKey, value] of Object.entries(process.env)) {
+      if (envKey.toLowerCase() === lowKey) return value
+    }
+    return undefined
+  }
+
+  private findEnv(env: Record<string, string>, key: string): string | undefined {
+    const lowKey = key.toLowerCase()
+    for (const [envKey, value] of Object.entries(env)) {
       if (envKey.toLowerCase() === lowKey) return value
     }
     return undefined
@@ -87,12 +120,20 @@ class EnvSyncLocalLoader {
       this.systemPath = 'C:\\Windows\\System32'
     }
 
-    const powershellDefault = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+    const programFiles = this.findProcessEnv('ProgramFiles')
+    const programFilesX86 = this.findProcessEnv('ProgramFiles(x86)')
+    const powershellCandidates = [
+      systemRoot ? join(systemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe') : undefined,
+      'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+      programFiles ? join(programFiles, 'PowerShell/7/pwsh.exe') : undefined,
+      programFilesX86 ? join(programFilesX86, 'PowerShell/7/pwsh.exe') : undefined
+    ]
     let powershell = 'powershell.exe'
-    if (systemRoot) {
-      powershell = join(systemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe')
-    } else if (existsSync(powershellDefault)) {
-      powershell = powershellDefault
+    for (const candidate of powershellCandidates) {
+      if (candidate && existsSync(candidate)) {
+        powershell = candidate
+        break
+      }
     }
 
     try {
@@ -149,23 +190,18 @@ class EnvSyncLocalLoader {
       }
     }
 
-    const powershellPath = 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
-    if (existsSync(powershellPath)) {
-      this.powerShellPath = powershellPath
-      return
-    }
-    for (const [key, value] of Object.entries(env)) {
-      const lowKey = key.toLowerCase()
-      if (lowKey === 'systemroot' && existsSync(value)) {
-        this.powerShellPath = join(value, 'System32/WindowsPowerShell/v1.0/powershell.exe')
-        return
-      }
-      if (lowKey === 'programfiles' && existsSync(value)) {
-        this.powerShellPath = join(value, 'PowerShell/7/pwsh.exe')
-        return
-      }
-      if (lowKey === 'programfiles(x86)' && existsSync(value)) {
-        this.powerShellPath = join(value, 'PowerShell/7/pwsh.exe')
+    const systemRoot = this.findEnv(env, 'SystemRoot')
+    const programFiles = this.findEnv(env, 'ProgramFiles')
+    const programFilesX86 = this.findEnv(env, 'ProgramFiles(x86)')
+    const candidates = [
+      'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+      systemRoot ? join(systemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe') : undefined,
+      programFiles ? join(programFiles, 'PowerShell/7/pwsh.exe') : undefined,
+      programFilesX86 ? join(programFilesX86, 'PowerShell/7/pwsh.exe') : undefined
+    ]
+    for (const candidate of candidates) {
+      if (candidate && existsSync(candidate)) {
+        this.powerShellPath = candidate
         return
       }
     }
@@ -222,8 +258,8 @@ class EnvSyncLocalLoader {
   async fetch(): Promise<EnvSyncLocalResult> {
     if (isWindows()) return this.fetchWindows()
     const env = stringEnv(await shellEnv())
-    const PATH = `${env.PATH ?? ''}:/opt/podman/bin:/home/linuxbrew/.linuxbrew/bin:$HOME/.linuxbrew/bin:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
-    env.PATH = Array.from(new Set(PATH.split(':'))).join(':')
+    const home = env.HOME ?? process.env.HOME
+    env.PATH = buildUnixPath(env.PATH ?? '', home)
     return { env }
   }
 }

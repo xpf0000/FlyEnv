@@ -222,9 +222,7 @@ class ServiceProcess {
       )
       try {
         all = await ProcessPidListByPids(pids)
-      } catch {
-        all = pids
-      }
+      } catch {}
       if (all.length > 0) {
         try {
           await ProcessKill('-INT', all)

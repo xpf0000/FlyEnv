@@ -62,9 +62,9 @@ class Cloudflared extends Base {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
       if (isWindows()) {
-        all = [versionLocalFetch(setup?.caddy?.dirs ?? [], 'cloudflared.exe')]
+        all = [versionLocalFetch(setup?.cloudflared?.dirs ?? [], 'cloudflared.exe')]
       } else {
-        all = [versionLocalFetch(setup?.caddy?.dirs ?? [], 'cloudflared', 'cloudflared')]
+        all = [versionLocalFetch(setup?.cloudflared?.dirs ?? [], 'cloudflared', 'cloudflared')]
       }
       Promise.all(all)
         .then(async (list) => {

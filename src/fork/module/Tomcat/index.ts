@@ -313,7 +313,7 @@ class Tomcat extends Base {
               const bin = join(dirname(item.bin), 'version.bat')
               const command = `call "${bin}"`
               const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
-              return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+              return TaskQueue.run(versionBinVersion, bin, command, reg)
             })
             return Promise.all(all)
           } else {

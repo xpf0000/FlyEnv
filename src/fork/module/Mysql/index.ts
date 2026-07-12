@@ -851,15 +851,16 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           versions = list.flat().filter((v) => !v.bin.includes('mariadb'))
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
+            let bin = item.bin
             let command = ''
             if (isWindows()) {
-              command = `"${item.bin}" -V`
+              command = `"${bin}" -V`
             } else {
-              const bin = join(dirname(item.bin), 'mysqld')
+              bin = join(dirname(item.bin), 'mysqld')
               command = `"${bin}" -V`
             }
             const reg = /(Ver )(\d+(\.\d+){1,4})( )/g
-            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+            return TaskQueue.run(versionBinVersion, bin, command, reg)
           })
           return Promise.all(all)
         })

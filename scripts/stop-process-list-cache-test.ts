@@ -4,6 +4,7 @@ import { StopProcessListClient } from '../src/fork/StopProcessListClient'
 import { StopProcessListBridge } from '../src/main/core/StopProcessListBridge'
 import { StopProcessListCache } from '../src/main/core/StopProcessListCache'
 import type { PItem } from '../src/shared/Process'
+import { ProcessPidListByPid, ProcessPidListByPids } from '../src/shared/Process.win'
 import {
   StopProcessListAccess,
   StopProcessListFetch,
@@ -191,6 +192,12 @@ setStopProcessListProvider(async () => firstList)
 assert.strictEqual(await StopProcessListFetch(), firstList)
 setStopProcessListProvider(undefined)
 
+assert.deepEqual(await ProcessPidListByPid('9999', []), [])
+assert.deepEqual(await ProcessPidListByPids(['9999'], []), [])
+const orphanChild: PItem[] = [{ USER: 'user', PID: '10000', PPID: '9999', COMMAND: 'child' }]
+assert.deepEqual(await ProcessPidListByPid('9999', orphanChild), ['10000'])
+assert.deepEqual(await ProcessPidListByPids(['9999'], orphanChild), ['10000'])
+
 const forkManagerSource = readFileSync('src/main/core/ForkManager.ts', 'utf8')
 const forkEntrySource = readFileSync('src/fork/index.ts', 'utf8')
 assert.match(forkManagerSource, /StopProcessListCache/)
@@ -221,5 +228,6 @@ assert.doesNotMatch(source('src/fork/module/Tool/process.ts'), /StopProcess/)
 assert.doesNotMatch(source('src/fork/module/Tool.win/process.ts'), /StopProcess/)
 assert.doesNotMatch(source('src/fork/module/Numa/index.ts'), /StopProcess/)
 assert.doesNotMatch(source('src/fork/module/Tomcat/index.ts'), /StopProcess/)
+assert.doesNotMatch(source('src/main/core/ServiceProcess.ts'), /all = pids/)
 
 console.log('stop process list cache tests passed')

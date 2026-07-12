@@ -437,7 +437,7 @@ class Manager extends Base {
         all = [versionLocalFetch(setup?.postgresql?.dirs ?? [], 'pg_ctl.exe')]
       } else {
         all = [
-          versionLocalFetch(setup?.apache?.dirs ?? [], 'pg_ctl', 'postgresql'),
+          versionLocalFetch(setup?.postgresql?.dirs ?? [], 'pg_ctl', 'postgresql'),
           versionMacportsFetch(fpms)
         ]
       }

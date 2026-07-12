@@ -801,7 +801,7 @@ datadir=${dataDir}`
         all = [versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe')]
       } else {
         all = [
-          versionLocalFetch(setup?.mariadbd?.dirs ?? [], 'mariadbd-safe', 'mariadb'),
+          versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd-safe', 'mariadb'),
           versionMacportsFetch(fpms)
         ]
       }
@@ -816,7 +816,7 @@ datadir=${dataDir}`
             }
             const command = `"${bin}" -V`
             const reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
-            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+            return TaskQueue.run(versionBinVersion, bin, command, reg)
           })
           return Promise.all(all)
         })

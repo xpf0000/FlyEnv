@@ -391,6 +391,25 @@ assert.match(readSource('src/fork/module/Caddy/index.ts'), /versionBinVersionSyn
 assert.match(readSource('src/fork/module/Consul/index.ts'), /versionBinVersionSync/)
 
 for (const path of [
+  'src/fork/module/Mysql/index.ts',
+  'src/fork/module/Mariadb/index.ts',
+  'src/fork/module/GoLang/index.ts',
+  'src/fork/module/Tomcat/index.ts',
+  'src/fork/module/RabbitMQ/index.ts'
+]) {
+  assert.doesNotMatch(
+    readSource(path),
+    /TaskQueue\.run\(versionBinVersion, item\.bin, command, reg\)/,
+    `${path} must fingerprint the executable used by the version command`
+  )
+}
+
+assert.match(readSource('src/fork/module/Cloudflared/index.ts'), /setup\?\.cloudflared\?\.dirs/)
+assert.doesNotMatch(readSource('src/fork/module/Cloudflared/index.ts'), /setup\?\.caddy\?\.dirs/)
+assert.doesNotMatch(readSource('src/fork/module/Postgresql/index.ts'), /setup\?\.apache\?\.dirs/)
+assert.doesNotMatch(readSource('src/fork/module/Mariadb/index.ts'), /setup\?\.mariadbd\?\.dirs/)
+
+for (const path of [
   'src/fork/util/ServiceStart.ts',
   'src/fork/module/Tool/process.ts',
   'src/fork/module/Tool.win/process.ts'

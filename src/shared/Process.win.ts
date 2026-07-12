@@ -70,7 +70,7 @@ export const ProcessPidListByPids = async (
   pids: (string | number)[],
   processList?: PItem[]
 ): Promise<string[]> => {
-  const all: Set<string> = new Set(pids as any)
+  const all: Set<string> = new Set()
   const arr = processList ?? (await ProcessPidList())
   const find = (ppid: string | number) => {
     ppid = Number(ppid)
@@ -87,15 +87,8 @@ export const ProcessPidListByPids = async (
     const pidNum = `${pid}`
     if (arr.find((a) => `${a.PID}` === pidNum)) {
       all.add(pidNum)
-      find(pidNum)
     }
-    const item = arr.find((a) => `${a.PPID}` === pidNum)
-    if (item) {
-      all.add(pidNum)
-      all.add(item.PID)
-      find(pidNum)
-      find(item.PID)
-    }
+    find(pidNum)
   }
   return [...all]
 }
@@ -105,7 +98,7 @@ export const ProcessPidListByPid = async (
   processList?: PItem[]
 ): Promise<string[]> => {
   pid = `${pid}`
-  const all: Set<string> = new Set([pid])
+  const all: Set<string> = new Set()
   const arr = processList ?? (await ProcessPidList())
   const find = (ppid: string | number) => {
     ppid = `${ppid}`
@@ -119,15 +112,8 @@ export const ProcessPidListByPid = async (
   }
   if (arr.find((a) => `${a.PID}` === `${pid}`)) {
     all.add(pid)
-    find(pid)
   }
-  const item = arr.find((a) => `${a.PPID}` === `${pid}`)
-  if (item) {
-    all.add(pid)
-    all.add(item.PID)
-    find(pid)
-    find(item.PID)
-  }
+  find(pid)
   return [...all]
 }
 
