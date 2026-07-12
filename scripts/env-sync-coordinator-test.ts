@@ -325,4 +325,37 @@ for (const [path, source] of envSyncConsumers) {
 }
 assert.match(readFileSync('src/fork/module/Tool/path.ts', 'utf8'), /await EnvSync\.clean\(\)/)
 
+let groupFetches = 0
+let releaseGroupFetch!: () => void
+const groupGate = new Promise<void>((resolve) => {
+  releaseGroupFetch = resolve
+})
+const groupCoordinator = new EnvSyncCoordinator(async () => {
+  groupFetches += 1
+  await groupGate
+  return { env: { GROUP_ENV: 'shared' } }
+})
+const groupBridge = new EnvSyncBridge(groupCoordinator)
+
+const makeLoopbackClient = (prefix: string) => {
+  let number = 0
+  const loopbackClient = new EnvSyncClient(
+    (message) => {
+      groupBridge.handle(message, (response) => loopbackClient.handleMessage(response))
+    },
+    () => {},
+    { requestId: () => `${prefix}-${++number}` }
+  )
+  return loopbackClient
+}
+
+const groupClients = Array.from({ length: 8 }, (_, index) => makeLoopbackClient(`fork-${index}`))
+const groupResults = groupClients.map((groupClient) => groupClient.get())
+await Promise.resolve()
+assert.equal(groupFetches, 1)
+releaseGroupFetch()
+const groupSnapshots = await Promise.all(groupResults)
+assert.deepEqual(new Set(groupSnapshots.map((item) => item.revision)), new Set([0]))
+assert.deepEqual(new Set(groupSnapshots.map((item) => item.env.GROUP_ENV)), new Set(['shared']))
+
 console.log('env sync coordinator tests passed')

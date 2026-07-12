@@ -58,8 +58,7 @@ export class EnvSyncCoordinator {
     const revision = this.revision
     const startedAt = this.now()
     this.onEvent({ type: 'miss', revision })
-    let promise!: Promise<EnvSyncSnapshot>
-    promise = Promise.resolve()
+    const promise = Promise.resolve()
       .then(() => this.fetchLocal())
       .then((local) => {
         if (this.revision !== revision) return this.get()

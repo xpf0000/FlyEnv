@@ -115,8 +115,7 @@ export class EnvSyncAccess {
     const cached = this.cached
     if (cached && this.now() < cached.snapshot.expiresAt) return this.apply(cached.snapshot)
     if (this.inFlight) return this.inFlight
-    let promise!: Promise<Record<string, string>>
-    promise = this.load().finally(() => {
+    const promise = this.load().finally(() => {
       if (this.inFlight === promise) this.inFlight = undefined
     })
     this.inFlight = promise
