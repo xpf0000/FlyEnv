@@ -132,7 +132,7 @@
 
   const installCommand = computed(() => {
     if (window.Server.isWindows) {
-      return 'irm https://claude.ai/install.ps1 | iex'
+      return '[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; irm https://claude.ai/install.ps1 | iex'
     }
     return 'curl -fsSL https://claude.ai/install.sh | bash'
   })
