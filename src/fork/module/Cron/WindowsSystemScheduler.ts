@@ -34,10 +34,23 @@ $env:Path = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base6
 New-Item -ItemType Directory -Force -Path $RunDir | Out-Null
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $LogFile) | Out-Null
 $LockDir = Join-Path $RunDir "$JobId.lock"
+$LockMaxAgeSeconds = 300
+$LockAcquired = $false
 try {
   New-Item -ItemType Directory -Path $LockDir -ErrorAction Stop | Out-Null
+  $LockAcquired = $true
 } catch {
-  exit 0
+  try {
+    $lockAgeSeconds = ([DateTime]::UtcNow - (Get-Item -LiteralPath $LockDir -ErrorAction Stop).LastWriteTimeUtc).TotalSeconds
+    if ($lockAgeSeconds -ge $LockMaxAgeSeconds) {
+      Remove-Item -Recurse -Force -LiteralPath $LockDir -ErrorAction Stop
+      New-Item -ItemType Directory -Path $LockDir -ErrorAction Stop | Out-Null
+      $LockAcquired = $true
+    }
+  } catch {}
+  if (-not $LockAcquired) {
+    exit 0
+  }
 }
 
 $RunId = "$(Get-Date -Format yyyyMMddHHmmss)-$PID"
@@ -45,10 +58,7 @@ $OutFile = Join-Path $RunDir "$JobId-$RunId.out"
 $ErrFile = Join-Path $RunDir "$JobId-$RunId.err"
 $StartedAt = [DateTimeOffset]::Now.ToUnixTimeMilliseconds()
 $ExitCode = 0
-$CmdEncoding = [Text.Encoding]::Default
-try {
-  $CmdEncoding = [Text.Encoding]::GetEncoding([Globalization.CultureInfo]::CurrentCulture.TextInfo.OEMCodePage)
-} catch {}
+$CmdEncoding = [Text.UTF8Encoding]::new($false)
 
 try {
   if (-not (Test-Path -LiteralPath $WorkDir -PathType Container)) {
