@@ -60,6 +60,23 @@ test('module boards place every dark-default SVG on a high-contrast icon tile', 
   assert.equal(svg.match(/data-icon-tile=/g)?.length, 8)
 })
 
+test('module boards use a solid outer background without gradients', async () => {
+  const svg = await moduleBoardSvg(partitionModules(MODULES)[0])
+  assert.match(svg, /data-board-background="solid"/)
+  assert.equal(svg.includes('<radialGradient id="bg">'), false)
+})
+
+test('module boards leave at least 64px between icon tile and module name', async () => {
+  const svg = await moduleBoardSvg(partitionModules(MODULES)[0])
+  const tile = svg.match(/data-icon-tile="Nginx" x="(\d+)" y="\d+" width="(\d+)"/)
+  const text = svg.match(/data-module="Nginx"[\s\S]*?<text x="(\d+)"/)
+  assert.ok(tile)
+  assert.ok(text)
+  const tileRight = Number(tile[1]) + Number(tile[2])
+  const textStart = Number(text[1])
+  assert.ok(textStart - tileRight >= 64, `gap=${textStart - tileRight}`)
+})
+
 test('renderer creates six compliant 1920x1080 PNG references', async () => {
   const output = await mkdtemp(path.join(os.tmpdir(), 'flyenv-dreamina-ref-'))
   try {

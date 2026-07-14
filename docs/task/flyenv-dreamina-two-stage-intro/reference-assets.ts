@@ -66,6 +66,13 @@ function documentSvg(content: string): string {
   </svg>`
 }
 
+function solidBoardSvg(content: string): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+    <rect data-board-background="solid" width="1920" height="1080" fill="#020713"/>
+    ${content}
+  </svg>`
+}
+
 export async function moduleBoardSvg(items: readonly ModuleSpec[]): Promise<string> {
   const cards = await Promise.all(
     items.map(async (item, index) => {
@@ -78,11 +85,11 @@ export async function moduleBoardSvg(items: readonly ModuleSpec[]): Promise<stri
         <rect width="840" height="205" rx="30" fill="#06152d" stroke="#58ddff" stroke-width="4"/>
         <rect data-icon-tile="${escapeXml(item.name)}" x="24" y="22" width="168" height="161" rx="24" fill="#f7fbff" stroke="#d9efff" stroke-width="3"/>
         <image href="${icon}" x="38" y="32" width="140" height="140" preserveAspectRatio="xMidYMid meet"/>
-        <text x="215" y="128" fill="#ffffff" font-size="58" font-weight="700" font-family="Arial, Helvetica, sans-serif">${escapeXml(item.name)}</text>
+        <text x="264" y="128" fill="#ffffff" font-size="58" font-weight="700" font-family="Arial, Helvetica, sans-serif">${escapeXml(item.name)}</text>
       </g>`
     })
   )
-  return documentSvg(cards.join(''))
+  return solidBoardSvg(cards.join(''))
 }
 
 function activeSwitchOverlay(x: number, y: number, size: number): string {
