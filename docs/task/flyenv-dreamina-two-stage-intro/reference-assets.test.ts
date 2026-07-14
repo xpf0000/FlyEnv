@@ -87,10 +87,11 @@ test('renderer creates only five compliant 1920x1080 PNG references', async () =
   }
 })
 
-test('Clip A web prompt locks the inside-sphere camera and omits the wordmark', async () => {
+test('Clip A uses positive center-POV camera language and omits the wordmark', async () => {
   const prompt = await readFile(path.join(import.meta.dirname, 'clip-a-prompt-zh.txt'), 'utf8')
   assert.match(prompt, /球心向外/)
-  assert.match(prompt, /禁止从球体外部观察/)
+  assert.match(prompt, /摄影机固定在球心/)
+  assert.match(prompt, /原地旋转扫描约 120 度/)
   assert.match(prompt, /不要生成 FlyEnv 字标/)
 })
 
@@ -111,15 +112,25 @@ test('Clip A treats module boards as identity contact sheets rather than complet
   assert.match(prompt, /2×4 网格/)
 })
 
-test('Clip A treats the interior image as topology only and defines rotational parallax', async () => {
+test('Clip A has no camera image or schematic vocabulary', async () => {
   const prompt = await readFile(path.join(import.meta.dirname, 'clip-a-prompt-zh.txt'), 'utf8')
-  assert.match(prompt, /空间关系示意图/)
-  assert.match(prompt, /不是最终美术画面/)
-  assert.match(prompt, /禁止复制.*椭圆.*二维环形排布/)
+  for (const forbidden of [
+    '@interior-camera.png',
+    '空间关系示意图',
+    '椭圆',
+    '圆圈',
+    '线框',
+    '占位铭牌',
+    '二维环形排布',
+    '二维圆环',
+    '平面信息图',
+    '外部球体视角'
+  ]) {
+    assert.equal(prompt.includes(forbidden), false, forbidden)
+  }
   assert.match(prompt, /近景.*画面边缘/)
   assert.match(prompt, /中景.*完整可读/)
   assert.match(prompt, /远景.*轮廓清楚/)
-  assert.match(prompt, /原地旋转扫描约 120 度/)
 })
 
 test('Clip B web prompt locks switch mechanics and the exact end card', async () => {
@@ -131,10 +142,12 @@ test('Clip B web prompt locks switch mechanics and the exact end card', async ()
   assert.match(prompt, /不得重新绘制或改写尾帧中的 FlyEnv/)
 })
 
-test('web guide uses upload filenames and requires UI-level 16:9', async () => {
+test('web guide uses exactly four Clip A filenames and requires UI-level 16:9', async () => {
   const guide = await readFile(path.join(import.meta.dirname, 'web-execution.md'), 'utf8')
   assert.match(guide, /@module-board-a\.png/)
-  assert.match(guide, /@interior-camera\.png/)
+  assert.match(guide, /@logo-off\.png/)
+  assert.match(guide, /以上四个文件名/)
+  assert.doesNotMatch(guide, /interior-camera\.png/)
   assert.doesNotMatch(guide, /图片\s*\d/)
   assert.match(guide, /必须在网页参数中选择 `16:9`/)
   assert.match(guide, /不要只在提示词里写 16:9/)
