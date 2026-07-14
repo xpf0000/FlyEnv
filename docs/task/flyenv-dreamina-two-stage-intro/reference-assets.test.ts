@@ -124,6 +124,17 @@ test('Clip A treats module boards as identity contact sheets rather than complet
   assert.match(prompt, /2×4 网格/)
 })
 
+test('Clip A treats the interior image as topology only and defines rotational parallax', async () => {
+  const prompt = await readFile(path.join(import.meta.dirname, 'clip-a-prompt-zh.txt'), 'utf8')
+  assert.match(prompt, /空间关系示意图/)
+  assert.match(prompt, /不是最终美术画面/)
+  assert.match(prompt, /禁止复制.*椭圆.*二维环形排布/)
+  assert.match(prompt, /近景.*画面边缘/)
+  assert.match(prompt, /中景.*完整可读/)
+  assert.match(prompt, /远景.*轮廓清楚/)
+  assert.match(prompt, /原地旋转扫描约 120 度/)
+})
+
 test('Clip B web prompt locks switch mechanics and the exact end card', async () => {
   const prompt = await readFile(path.join(import.meta.dirname, 'clip-b-prompt-zh.txt'), 'utf8')
   assert.match(prompt, /从上到下/)

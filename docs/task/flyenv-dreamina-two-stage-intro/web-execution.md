@@ -14,6 +14,8 @@
 
 其中 `module-board-a.png`、`module-board-b.png`、`module-board-c.png` 只是模块身份素材索引表。即梦必须读取板内 24 组 Logo 和名称并分别生成独立铭牌，不能复制整张板、两列网格、外框、底板或原始排版。
 
+`interior-camera.png` 只是球内 POV 的空间关系示意图，不是最终画面。不要让即梦复制参考图中的占位铭牌或示意造型；最终画面应使用模块板中的真实模块身份，并表现近景裁切、中景可读、远景缩小和球心原地旋转约 120 度的多层视差。
+
 上传后确认网页显示以上五个文件名，然后粘贴 `clip-a-prompt-zh.txt`。提示词使用 `@module-board-a.png`、`@module-board-b.png`、`@module-board-c.png`、`@logo-off.png` 和 `@interior-camera.png` 直接引用对应素材。
 
 网页参数：
