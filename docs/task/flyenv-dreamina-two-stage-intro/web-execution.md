@@ -6,13 +6,13 @@
 
 在即梦网页版选择支持多图参考的视频生成模式，按以下固定顺序上传：
 
-1. 图片 1：`references/module-board-a.png`
-2. 图片 2：`references/module-board-b.png`
-3. 图片 3：`references/module-board-c.png`
-4. 图片 4：`references/logo-off.png`
-5. 图片 5：`references/interior-camera.png`
+1. `module-board-a.png`
+2. `module-board-b.png`
+3. `module-board-c.png`
+4. `logo-off.png`
+5. `interior-camera.png`
 
-确认网页中的 `@图片1` 至 `@图片5` 与上述顺序一致，然后粘贴 `clip-a-prompt-zh.txt`。
+上传后确认网页显示以上五个文件名，然后粘贴 `clip-a-prompt-zh.txt`。提示词使用 `@module-board-a.png`、`@module-board-b.png`、`@module-board-c.png`、`@logo-off.png` 和 `@interior-camera.png` 直接引用对应素材。
 
 网页参数：
 

@@ -102,6 +102,14 @@ test('Clip A web prompt locks the inside-sphere camera and omits the wordmark', 
   assert.match(prompt, /不要生成 FlyEnv 字标/)
 })
 
+test('Clip A prompt references uploads by filename instead of numbered image labels', async () => {
+  const prompt = await readFile(path.join(import.meta.dirname, 'clip-a-prompt-zh.txt'), 'utf8')
+  for (const filename of CLIP_A_REFERENCE_FILES) {
+    assert.ok(prompt.includes(`@${filename}`), filename)
+  }
+  assert.doesNotMatch(prompt, /@图片\d+/)
+})
+
 test('Clip B web prompt locks switch mechanics and the exact end card', async () => {
   const prompt = await readFile(path.join(import.meta.dirname, 'clip-b-prompt-zh.txt'), 'utf8')
   assert.match(prompt, /从上到下/)
@@ -111,10 +119,11 @@ test('Clip B web prompt locks switch mechanics and the exact end card', async ()
   assert.match(prompt, /不得重新绘制或改写尾帧中的 FlyEnv/)
 })
 
-test('web guide fixes upload order and requires UI-level 16:9', async () => {
+test('web guide uses upload filenames and requires UI-level 16:9', async () => {
   const guide = await readFile(path.join(import.meta.dirname, 'web-execution.md'), 'utf8')
-  assert.match(guide, /图片 1.*module-board-a\.png/s)
-  assert.match(guide, /图片 5.*interior-camera\.png/s)
+  assert.match(guide, /@module-board-a\.png/)
+  assert.match(guide, /@interior-camera\.png/)
+  assert.doesNotMatch(guide, /图片\s*\d/)
   assert.match(guide, /必须在网页参数中选择 `16:9`/)
   assert.match(guide, /不要只在提示词里写 16:9/)
 })
