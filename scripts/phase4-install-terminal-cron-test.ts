@@ -9,7 +9,10 @@ import {
   renderWindowsPipInstallScript,
   renderWindowsPythonInstallScript
 } from '../src/fork/module/Python/index'
-import { buildWindowsCronWrapperScript } from '../src/fork/module/Cron/WindowsSystemScheduler'
+import {
+  buildWindowsCronLauncherScript,
+  buildWindowsCronWrapperScript
+} from '../src/fork/module/Cron/WindowsSystemScheduler'
 import { buildWindowsTerminalInlineScript } from '../src/shared/WindowsTerminal'
 import { powerShellInlineArgs } from '../src/shared/PowerShellCommand'
 
@@ -61,10 +64,19 @@ assert.ok(!cronWrapper.includes('$CmdFile'))
 assert.ok(!cronWrapper.includes('WriteAllText($CmdFile'))
 assert.ok(!cronWrapper.includes('.cmd'))
 
+const cronLauncher = buildWindowsCronLauncherScript({
+  powerShell: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+  scriptPath: 'C:\\FlyEnv\\cron\\tasks\\job-1.ps1'
+})
+assert.ok(cronLauncher.includes('CreateObject("WScript.Shell")'))
+assert.ok(cronLauncher.includes(', 0, True)'))
+assert.ok(cronLauncher.includes('-WindowStyle Hidden'))
+
 const cronLockRoot = await mkdtemp(join(tmpdir(), 'flyenv-cron-lock-'))
 const cronLockRunDir = join(cronLockRoot, 'tmp')
 const cronLockLogFile = join(cronLockRoot, 'runs', 'job-lock.jsonl')
 const cronLockScript = join(cronLockRoot, 'job-lock.ps1')
+const cronLockLauncher = join(cronLockRoot, 'job-lock.vbs')
 const cronLockDir = join(cronLockRunDir, 'job-lock.lock')
 const utf8Output = 'FlyEnv 中文输出'
 const utf8OutputBase64 = Buffer.from(utf8Output, 'utf-8').toString('base64')
@@ -87,16 +99,18 @@ try {
     })
   )
 
-  const powerShell = join(
-    process.env.SystemRoot || 'C:\\Windows',
-    'System32',
-    'WindowsPowerShell',
-    'v1.0',
-    'powershell.exe'
+  const systemRoot = process.env.SystemRoot || 'C:\\Windows'
+  const powerShell = join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
+  await writeFile(
+    cronLockLauncher,
+    buildWindowsCronLauncherScript({
+      powerShell,
+      scriptPath: cronLockScript
+    })
   )
   const result = await execFileAsync(
-    powerShell,
-    ['-NoProfile', '-NonInteractive', '-File', cronLockScript],
+    join(systemRoot, 'System32', 'wscript.exe'),
+    ['//B', '//Nologo', cronLockLauncher],
     {
       encoding: 'utf-8',
       timeout: 15_000,

@@ -17,7 +17,7 @@ export interface CronCommandResult {
   duration: number
 }
 
-export type CronTaskScriptExt = 'sh' | 'ps1' | 'cmd'
+export type CronTaskScriptExt = 'sh' | 'ps1' | 'cmd' | 'vbs'
 
 export const GLOBAL_HOST_ID = 0
 export const RUN_HISTORY_LIMIT = 50

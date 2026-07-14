@@ -1,0 +1,13 @@
+diff --git a/node_modules/vite-plugin-monaco-editor/dist/workerMiddleware.js b/node_modules/vite-plugin-monaco-editor/dist/workerMiddleware.js
+index 5925339..10bcece 100644
+--- a/node_modules/vite-plugin-monaco-editor/dist/workerMiddleware.js
++++ b/node_modules/vite-plugin-monaco-editor/dist/workerMiddleware.js
+@@ -43,7 +43,7 @@ function workerMiddleware(middlewares, config, options) {
+     const works = index_1.getWorks(options);
+     // clear cacheDir
+     if (fs.existsSync(exports.cacheDir)) {
+-        fs.rmdirSync(exports.cacheDir, { recursive: true, force: true });
++        fs.rmSync(exports.cacheDir, { recursive: true, force: true });
+     }
+     for (const work of works) {
+         middlewares.use(config.base + options.publicPath + '/' + getFilenameByEntry(work.entry), function (req, res, next) {

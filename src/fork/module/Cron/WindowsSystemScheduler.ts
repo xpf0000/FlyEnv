@@ -19,6 +19,27 @@ type WindowsCronWrapperScriptParams = {
   envPath: string
 }
 
+type WindowsCronLauncherScriptParams = {
+  powerShell: string
+  scriptPath: string
+}
+
+function vbString(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`
+}
+
+export function buildWindowsCronLauncherScript(params: WindowsCronLauncherScriptParams): string {
+  const command = `${vbString(params.powerShell)} -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${vbString(params.scriptPath)}`
+
+  return `Option Explicit
+Dim shell
+Dim command
+command = ${vbString(command)}
+Set shell = CreateObject("WScript.Shell")
+WScript.Quit shell.Run(command, 0, True)
+`
+}
+
 export function buildWindowsCronWrapperScript(params: WindowsCronWrapperScriptParams): string {
   return `$ErrorActionPreference = 'Continue'
 $JobId = '${params.jobId}'
@@ -122,7 +143,7 @@ export class WindowsSystemScheduler {
     return runLogPath(this.cronRoot, jobId)
   }
 
-  private taskScriptPath(jobId: string, ext: 'ps1' | 'cmd'): string {
+  private taskScriptPath(jobId: string, ext: 'ps1' | 'cmd' | 'vbs'): string {
     return taskScriptPath(this.cronRoot, jobId, ext)
   }
 
@@ -178,6 +199,16 @@ export class WindowsSystemScheduler {
     return candidates.find((path) => existsSync(path)) || 'powershell.exe'
   }
 
+  private async windowsScriptHostPath(): Promise<string> {
+    await this.syncEnv()
+    const systemRoot = this.systemRoot()
+    const candidates = [
+      join(systemRoot, 'Sysnative', 'wscript.exe'),
+      join(systemRoot, 'System32', 'wscript.exe')
+    ]
+    return candidates.find((path) => existsSync(path)) || 'wscript.exe'
+  }
+
   private async resolvePath(): Promise<string> {
     await this.syncEnv()
     const env = { ...process.env, ...(EnvSync.AppEnv ?? {}) }
@@ -186,6 +217,7 @@ export class WindowsSystemScheduler {
 
   private async writeWrapper(job: CronJob): Promise<string> {
     const psFile = this.taskScriptPath(job.id, 'ps1')
+    const vbsFile = this.taskScriptPath(job.id, 'vbs')
     const workDir = job.workDir || homePath()
     const runDir = join(this.cronRoot, 'tmp')
     const logFile = this.runLogPath(job.id)
@@ -208,7 +240,14 @@ export class WindowsSystemScheduler {
 
     await mkdirp(dirname(psFile))
     await writeFile(psFile, psContent)
-    return `${this.cmdQuote(powerShell)} -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${this.cmdQuote(psFile)}`
+    await writeFile(
+      vbsFile,
+      buildWindowsCronLauncherScript({
+        powerShell,
+        scriptPath: psFile
+      })
+    )
+    return `${this.cmdQuote(await this.windowsScriptHostPath())} //B //Nologo ${this.cmdQuote(vbsFile)}`
   }
 
   private taskTime(hour: number, minute: number): string {
@@ -301,6 +340,7 @@ export class WindowsSystemScheduler {
   async remove(jobId: string) {
     await this.removeTask(jobId)
     await remove(this.taskScriptPath(jobId, 'ps1')).catch(() => {})
+    await remove(this.taskScriptPath(jobId, 'vbs')).catch(() => {})
     await remove(this.taskScriptPath(jobId, 'cmd')).catch(() => {})
   }
 
