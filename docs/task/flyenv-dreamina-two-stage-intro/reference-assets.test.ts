@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm, stat } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
@@ -10,40 +10,26 @@ import {
   CLIP_B_FRAME_FILES,
   REFERENCE_FILES,
   endCardSvg,
-  interiorCameraSvg,
   logoOffSvg,
   moduleBoardSvg,
   renderReferenceAssets
 } from './reference-assets.ts'
 
-test('reference routing uses five Clip A images and two Clip B frames', () => {
+test('reference routing uses four Clip A images and two Clip B frames', () => {
   assert.deepEqual(REFERENCE_FILES, [
     'module-board-a.png',
     'module-board-b.png',
     'module-board-c.png',
     'logo-off.png',
-    'end-card.png',
-    'interior-camera.png'
+    'end-card.png'
   ])
   assert.deepEqual(CLIP_A_REFERENCE_FILES, [
     'module-board-a.png',
     'module-board-b.png',
     'module-board-c.png',
-    'logo-off.png',
-    'interior-camera.png'
+    'logo-off.png'
   ])
   assert.deepEqual(CLIP_B_FRAME_FILES, ['logo-off.png', 'end-card.png'])
-})
-
-test('interior camera reference is a layered POV rather than a flat ring diagram', () => {
-  const svg = interiorCameraSvg()
-  assert.match(svg, /data-camera="inside-sphere-pov"/)
-  assert.equal(svg.match(/data-depth="foreground"/g)?.length, 4)
-  assert.equal(svg.match(/data-depth="middle"/g)?.length, 6)
-  assert.equal(svg.match(/data-depth="far"/g)?.length, 8)
-  assert.equal(svg.match(/data-blank-plaque="true"/g)?.length, 18)
-  assert.doesNotMatch(svg, /<(?:ellipse|circle)\b/)
-  assert.doesNotMatch(svg, /<(?:text|image)\b/)
 })
 
 test('end card contains one exact FlyEnv wordmark and three on-state switches', async () => {
@@ -82,10 +68,11 @@ test('module boards leave at least 64px between icon tile and module name', asyn
   assert.ok(textStart - tileRight >= 64, `gap=${textStart - tileRight}`)
 })
 
-test('renderer creates six compliant 1920x1080 PNG references', async () => {
+test('renderer creates only five compliant 1920x1080 PNG references', async () => {
   const output = await mkdtemp(path.join(os.tmpdir(), 'flyenv-dreamina-ref-'))
   try {
     await renderReferenceAssets(output)
+    assert.deepEqual((await readdir(output)).sort(), [...REFERENCE_FILES].sort())
     for (const filename of REFERENCE_FILES) {
       const fullPath = path.join(output, filename)
       const metadata = await sharp(fullPath).metadata()
