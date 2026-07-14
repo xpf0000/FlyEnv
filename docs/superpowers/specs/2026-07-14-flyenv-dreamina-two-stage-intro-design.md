@@ -45,6 +45,8 @@ Create three clean reference boards containing eight official modules each. They
 
 Each board contains only eight large `official Logo + exact English name` plaques. Remove board titles, explanatory captions, numbering, and other text that could leak into the generated video. Use a dark neutral background, high-contrast white names, and generous spacing.
 
+The three boards are identity contact sheets, not scene or composition references. Clip A's prompt must identify them by their uploaded filenames and state that Dreamina must treat each `Logo + English name` pair as one independent plaque. The complete board image, its two-column grid, cyan card outlines, solid background, and original layout must never appear in a generated frame or fly out of the monitor as one object.
+
 ### Branding frames
 
 - `logo-off.png`: the official FlyEnv Logo centered on a deep-blue background, with all three switches in the off position.
@@ -52,7 +54,19 @@ Each board contains only eight large `official Logo + exact English name` plaque
 
 ### Interior-camera reference
 
-Create one composition-only image showing a first-person camera at the center of a hollow sphere, looking outward at plaques distributed across the inner surface. The image contains no labels or explanatory text. It establishes the camera coordinate system and must not be treated as a final branded frame.
+Create one composition-only image showing a first-person camera at the center of a hollow sphere, looking outward at plaques distributed across the inner surface. It is a spatial-topology demonstration rather than a final art frame.
+
+The replacement reference must communicate depth through perspective rather than diagram lines:
+
+- remove every complete ellipse, circle, orbital guide, sphere outline, arrow, caption, and explanatory label;
+- do not show the complete sphere as an object inside the frame;
+- place oversized foreground plaques partly outside the frame edges, fully visible readable-scale plaques in the middle distance, and smaller plaques deeper in the scene;
+- distribute plaques above, below, left, right, in front of, and behind the camera's viewing direction instead of arranging them on one flat ring;
+- use overlaps, scale changes, converging perspective, cyan rim light, volumetric haze, and restrained depth falloff to establish a cinematic three-dimensional interior;
+- leave the monitor behind the camera and therefore invisible during the interior scan;
+- keep every demonstration plaque blank so it cannot introduce substitute names, Logos, or random text.
+
+The Clip A prompt must identify `interior-camera.png` as a camera-relationship reference only. It must explicitly prohibit copying any schematic geometry, flat illustration style, placeholder plaque graphics, or ring layout from that image. The intended motion is a roughly 120-degree rotation from the sphere center while looking outward, with foreground plaques crossing the frame faster than distant plaques.
 
 The first Dreamina submission uses the three module boards, `logo-off.png`, and the interior-camera reference: five images, within the live `multimodal2video` limit of nine images. The second submission uses `logo-off.png` as its first frame and `end-card.png` as its last frame.
 
@@ -69,8 +83,11 @@ Use Dreamina `multimodal2video` (the all-around-reference mode) with a model and
 
 ### Prompt rules
 
-- Refer to the module boards only as identity references; do not ask Dreamina to invent missing brands.
-- Explicitly describe the interior phase as first-person POV from the sphere center, looking outward.
+- Refer to each module board by its uploaded filename and call all three identity contact sheets, not scenes, compositions, UI panels, or complete flying objects.
+- Require Dreamina to separate the 24 `Logo + exact English name` pairs into 24 independent plaques, and prohibit reproducing a complete board, two-column grid, board background, or board layout.
+- Refer to `interior-camera.png` as a spatial-topology demonstration only, not a final art frame.
+- Explicitly describe the interior phase as first-person POV from the sphere center, looking outward, with near/middle/far layers, edge cropping, occlusion, scale differences, and strong rotational parallax.
+- Prohibit copying flat rings, complete sphere outlines, ellipses, guide lines, central circles, placeholder graphics, or a flat infographic style from the camera reference.
 - Remove “orbit around the monitor” and any equivalent external-camera wording.
 - Do not request a final wordmark in this clip.
 - Permit only green that already exists inside official module Logos; the overall palette remains deep blue, cyan, and restrained violet.
@@ -106,6 +123,8 @@ The flash makes the transition appear continuous even though two generations are
 - Re-read live help for `multimodal2video` and `frames2video`.
 - Confirm the selected model exposes 1080p, the required durations, and the intended input count.
 - Verify every reference image is 1920×1080 and contains no unintended captions.
+- Verify the module boards use a solid background and the prompt describes them as identity contact sheets whose complete layouts are forbidden in the output.
+- Verify `interior-camera.png` contains no complete ellipse, circle, sphere outline, guide line, caption, Logo, or module name and visibly includes foreground, middle-distance, and far plaques at different apparent scales.
 - Present the final prompts and paid command parameters to the user before submission.
 
 ### After each generation
