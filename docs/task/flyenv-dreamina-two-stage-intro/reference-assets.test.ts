@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, rm, stat } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, stat } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
@@ -68,4 +68,28 @@ test('renderer creates six compliant 1920x1080 PNG references', async () => {
   } finally {
     await rm(output, { recursive: true, force: true })
   }
+})
+
+test('Clip A web prompt locks the inside-sphere camera and omits the wordmark', async () => {
+  const prompt = await readFile(path.join(import.meta.dirname, 'clip-a-prompt-zh.txt'), 'utf8')
+  assert.match(prompt, /球心向外/)
+  assert.match(prompt, /禁止从球体外部观察/)
+  assert.match(prompt, /不要生成 FlyEnv 字标/)
+})
+
+test('Clip B web prompt locks switch mechanics and the exact end card', async () => {
+  const prompt = await readFile(path.join(import.meta.dirname, 'clip-b-prompt-zh.txt'), 'utf8')
+  assert.match(prompt, /从上到下/)
+  assert.match(prompt, /滑块清楚滑到轨道另一侧/)
+  assert.match(prompt, /底色变为绿色/)
+  assert.match(prompt, /完整环绕一圈/)
+  assert.match(prompt, /不得重新绘制或改写尾帧中的 FlyEnv/)
+})
+
+test('web guide fixes upload order and requires UI-level 16:9', async () => {
+  const guide = await readFile(path.join(import.meta.dirname, 'web-execution.md'), 'utf8')
+  assert.match(guide, /图片 1.*module-board-a\.png/s)
+  assert.match(guide, /图片 5.*interior-camera\.png/s)
+  assert.match(guide, /必须在网页参数中选择 `16:9`/)
+  assert.match(guide, /不要只在提示词里写 16:9/)
 })
