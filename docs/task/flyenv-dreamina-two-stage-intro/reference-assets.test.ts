@@ -11,6 +11,7 @@ import {
   REFERENCE_FILES,
   endCardSvg,
   interiorCameraSvg,
+  logoOffSvg,
   moduleBoardSvg,
   renderReferenceAssets
 } from './reference-assets.ts'
@@ -45,6 +46,13 @@ test('end card contains one exact FlyEnv wordmark and three on-state switches', 
   assert.equal(svg.match(/data-switch-on=/g)?.length, 3)
   assert.equal(svg.match(/>FlyEnv<\/text>/g)?.length, 1)
   assert.equal(svg.includes('FlyEnb'), false)
+})
+
+test('brand anchor frames omit non-brand ring decorations', async () => {
+  const logoOff = await logoOffSvg()
+  const endCard = await endCardSvg()
+  assert.equal(logoOff.includes('<circle'), false)
+  assert.equal(endCard.includes('<ellipse'), false)
 })
 
 test('module boards place every dark-default SVG on a high-contrast icon tile', async () => {

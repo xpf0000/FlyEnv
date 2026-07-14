@@ -108,10 +108,11 @@ function activeSwitchOverlay(x: number, y: number, size: number): string {
     .join('')
 }
 
-async function logoOffSvg(): Promise<string> {
+export async function logoOffSvg(): Promise<string> {
   const logo = await dataUri(logoPath)
-  return documentSvg(`<circle cx="960" cy="540" r="390" fill="none" stroke="#59ddff" stroke-width="4" opacity="0.25" filter="url(#glow)"/>
-    <image href="${logo}" x="660" y="240" width="600" height="600" preserveAspectRatio="xMidYMid meet"/>`)
+  return documentSvg(
+    `<image href="${logo}" x="660" y="240" width="600" height="600" preserveAspectRatio="xMidYMid meet"/>`
+  )
 }
 
 export async function endCardSvg(): Promise<string> {
@@ -121,8 +122,7 @@ export async function endCardSvg(): Promise<string> {
   const logoSize = 500
   return documentSvg(`<image href="${logo}" x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}" preserveAspectRatio="xMidYMid meet"/>
     ${activeSwitchOverlay(logoX, logoY, logoSize)}
-    <text x="960" y="615" fill="#ffffff" font-size="166" font-weight="700" font-family="Arial, Helvetica, sans-serif">FlyEnv</text>
-    <ellipse cx="955" cy="835" rx="570" ry="80" fill="none" stroke="#5fe7ff" stroke-width="7" opacity="0.68" filter="url(#glow)"/>`)
+    <text x="960" y="615" fill="#ffffff" font-size="166" font-weight="700" font-family="Arial, Helvetica, sans-serif">FlyEnv</text>`)
 }
 
 export function interiorCameraSvg(): string {
