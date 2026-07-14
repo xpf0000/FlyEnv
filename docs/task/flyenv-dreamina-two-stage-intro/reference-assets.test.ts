@@ -35,10 +35,15 @@ test('reference routing uses five Clip A images and two Clip B frames', () => {
   assert.deepEqual(CLIP_B_FRAME_FILES, ['logo-off.png', 'end-card.png'])
 })
 
-test('interior camera reference contains no text element', () => {
+test('interior camera reference is a layered POV rather than a flat ring diagram', () => {
   const svg = interiorCameraSvg()
-  assert.equal(svg.includes('<text'), false)
-  assert.match(svg, /data-camera="inside-sphere"/)
+  assert.match(svg, /data-camera="inside-sphere-pov"/)
+  assert.equal(svg.match(/data-depth="foreground"/g)?.length, 4)
+  assert.equal(svg.match(/data-depth="middle"/g)?.length, 6)
+  assert.equal(svg.match(/data-depth="far"/g)?.length, 8)
+  assert.equal(svg.match(/data-blank-plaque="true"/g)?.length, 18)
+  assert.doesNotMatch(svg, /<(?:ellipse|circle)\b/)
+  assert.doesNotMatch(svg, /<(?:text|image)\b/)
 })
 
 test('end card contains one exact FlyEnv wordmark and three on-state switches', async () => {

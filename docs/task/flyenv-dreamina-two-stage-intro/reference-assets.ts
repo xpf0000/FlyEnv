@@ -132,39 +132,75 @@ export async function endCardSvg(): Promise<string> {
     <text x="960" y="615" fill="#ffffff" font-size="166" font-weight="700" font-family="Arial, Helvetica, sans-serif">FlyEnv</text>`)
 }
 
+type InteriorDepth = 'far' | 'middle' | 'foreground'
+
+interface InteriorPlaque {
+  depth: InteriorDepth
+  path: string
+}
+
+const INTERIOR_PLAQUES: readonly InteriorPlaque[] = [
+  { depth: 'far', path: 'M690 170 L870 135 L885 205 L700 245 Z' },
+  { depth: 'far', path: 'M1030 115 L1210 150 L1195 225 L1015 190 Z' },
+  { depth: 'far', path: 'M520 330 L745 285 L760 380 L505 430 Z' },
+  { depth: 'far', path: 'M865 300 L1070 292 L1075 382 L855 390 Z' },
+  { depth: 'far', path: 'M1210 355 L1445 405 L1420 500 L1195 450 Z' },
+  { depth: 'far', path: 'M620 590 L835 555 L850 650 L605 690 Z' },
+  { depth: 'far', path: 'M960 535 L1170 555 L1160 650 L945 620 Z' },
+  { depth: 'far', path: 'M1100 735 L1280 770 L1260 850 L1080 815 Z' },
+  { depth: 'middle', path: 'M40 40 L520 -10 L580 190 L90 280 Z' },
+  { depth: 'middle', path: 'M1300 -10 L1800 70 L1720 260 L1260 170 Z' },
+  { depth: 'middle', path: 'M-60 310 L420 250 L480 520 L-80 600 Z' },
+  { depth: 'middle', path: 'M1490 250 L2010 350 L1980 650 L1430 545 Z' },
+  { depth: 'middle', path: 'M50 680 L540 760 L480 1030 L-20 900 Z' },
+  { depth: 'middle', path: 'M1280 760 L1790 670 L1900 930 L1350 1040 Z' },
+  { depth: 'foreground', path: 'M-350 -250 L600 -100 L520 310 L-260 420 Z' },
+  { depth: 'foreground', path: 'M1430 -160 L2320 -40 L2180 470 L1360 300 Z' },
+  { depth: 'foreground', path: 'M-350 690 L520 780 L620 1280 L-280 1180 Z' },
+  { depth: 'foreground', path: 'M1380 720 L2280 650 L2350 1200 L1290 1280 Z' }
+] as const
+
+const INTERIOR_DEPTH_STYLE: Record<
+  InteriorDepth,
+  { fill: string; stroke: string; fillOpacity: number; strokeOpacity: number; strokeWidth: number }
+> = {
+  far: {
+    fill: '#071a34',
+    stroke: '#35769d',
+    fillOpacity: 0.64,
+    strokeOpacity: 0.62,
+    strokeWidth: 3
+  },
+  middle: {
+    fill: '#082342',
+    stroke: '#4cc8e8',
+    fillOpacity: 0.82,
+    strokeOpacity: 0.86,
+    strokeWidth: 5
+  },
+  foreground: {
+    fill: '#0a2d50',
+    stroke: '#6ce9ff',
+    fillOpacity: 0.94,
+    strokeOpacity: 1,
+    strokeWidth: 8
+  }
+}
+
 export function interiorCameraSvg(): string {
-  const placements = [
-    [70, 95, 350, 130, -10],
-    [500, 45, 330, 120, -4],
-    [1090, 45, 330, 120, 4],
-    [1500, 95, 350, 130, 10],
-    [25, 330, 390, 145, -5],
-    [1480, 330, 390, 145, 5],
-    [35, 605, 410, 155, 6],
-    [1475, 605, 410, 155, -6],
-    [130, 850, 370, 135, 11],
-    [520, 900, 330, 120, 4],
-    [1070, 900, 330, 120, -4],
-    [1420, 850, 370, 135, -11]
-  ] as const
+  const plaques = INTERIOR_PLAQUES.map((plaque, index) => {
+    const style = INTERIOR_DEPTH_STYLE[plaque.depth]
+    const glow = plaque.depth === 'foreground' ? ' filter="url(#glow)"' : ''
+    return `<g data-plaque="${index + 1}" data-depth="${plaque.depth}" data-blank-plaque="true"${glow}>
+      <path d="${plaque.path}" fill="${style.fill}" fill-opacity="${style.fillOpacity}" stroke="${style.stroke}" stroke-opacity="${style.strokeOpacity}" stroke-width="${style.strokeWidth}"/>
+    </g>`
+  }).join('')
 
-  const plaques = placements
-    .map(
-      ([x, y, width, height, rotation], index) =>
-        `<g transform="rotate(${rotation} ${x + width / 2} ${y + height / 2})" data-plaque="${index + 1}">
-          <rect x="${x}" y="${y}" width="${width}" height="${height}" rx="24" fill="#07172f" stroke="#60e3ff" stroke-width="4"/>
-          <circle cx="${x + 48}" cy="${y + height / 2}" r="20" fill="#5fe5ff"/>
-          <rect x="${x + 88}" y="${y + height / 2 - 11}" width="${width - 125}" height="22" rx="11" fill="#ffffff"/>
-        </g>`
-    )
-    .join('')
-
-  return documentSvg(`<g data-camera="inside-sphere">
+  return documentSvg(`<g data-camera="inside-sphere-pov">
     <rect width="1920" height="1080" fill="url(#dome)"/>
-    <ellipse cx="960" cy="540" rx="900" ry="500" fill="none" stroke="#4fd9ff" stroke-width="5" opacity="0.45"/>
-    <ellipse cx="960" cy="540" rx="660" ry="365" fill="none" stroke="#6a8fff" stroke-width="3" opacity="0.32"/>
-    <path d="M960 10 C680 260 680 820 960 1070 M960 10 C1240 260 1240 820 960 1070" fill="none" stroke="#51c8ff" stroke-width="3" opacity="0.22"/>
-    <circle cx="960" cy="540" r="150" fill="#031027" stroke="#58e3ff" stroke-width="3" opacity="0.72"/>
+    <path d="M960 500 L40 0 L0 0 L0 1080 L80 1080 Z" fill="#0b3156" opacity="0.12"/>
+    <path d="M960 500 L1880 0 L1920 0 L1920 1080 L1840 1080 Z" fill="#14365a" opacity="0.1"/>
+    <path d="M960 480 L1320 1080 L600 1080 Z" fill="#071d38" opacity="0.2"/>
     ${plaques}
   </g>`)
 }
