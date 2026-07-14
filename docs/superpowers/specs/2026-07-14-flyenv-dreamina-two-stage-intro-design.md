@@ -10,7 +10,7 @@ Produce one eight-second, 16:9, 1920×1080 FlyEnv intro by combining two Dreamin
 
 The final timing is `5 + 4 - 1 = 8` seconds. The design favors correct official reference material and a reliable final wordmark over a single all-in-one generation. It deliberately avoids post-production tracking of 24 independent plaques.
 
-## Evidence from the three Dreamina trials
+## Evidence from the Dreamina trials
 
 The three existing Dreamina outputs share four repeatable failures:
 
@@ -20,6 +20,18 @@ The three existing Dreamina outputs share four repeatable failures:
 4. Exact module names, Logo identity, and switch motion are not reliably preserved from prompt text alone.
 
 The new workflow addresses these failures through clean visual references, an explicit first-person camera coordinate system, a forced final frame, and a two-clip structure.
+
+### Revised Clip A trial 5392
+
+The 2026-07-14 `5392` generation tested the three identity contact sheets, `logo-off.png`, the revised blank-plaque `interior-camera.png`, and the stronger role-separation prompt. The rendered file is 5.062 seconds with stereo audio at 1280×720. It provides decisive evidence that the composition-reference strategy is counterproductive:
+
+1. Only four prominent named plaques appear instead of 24, with visible errors such as `Rostuhe`, `MpaoDB`, and `RostgreSttion`; the plaque labeled PostgreSQL also uses the wrong Logo.
+2. The video directly reproduces the blank quadrilateral plaques from `interior-camera.png` during the transition into the module field.
+3. It then renders an almost static ellipse-and-central-circle infographic even though those forms appear only inside negative prompt clauses.
+4. The camera morphs between reference layouts instead of performing a clear 120-degree rotation from the center of a three-dimensional module field.
+5. The module cadence is a small group of slowly enlarging plaques rather than one sparse-to-dense Boom burst.
+
+This trial invalidates the earlier assumption that a schematic camera image can be constrained to topology only. Dreamina gives the uploaded visual composition more weight than the prompt's requested role, and visual nouns inside negative clauses can still materialize. The active workflow therefore removes `interior-camera.png` entirely and describes the camera using only positive motion and depth language.
 
 ## Output contract
 
@@ -52,27 +64,15 @@ The three boards are identity contact sheets, not scene or composition reference
 - `logo-off.png`: the official FlyEnv Logo centered on a deep-blue background, with all three switches in the off position.
 - `end-card.png`: the official FlyEnv Logo plus a pre-rendered, exact `FlyEnv` wordmark. This is the forced last frame of the second clip; Dreamina must not redraw the wordmark from prompt text.
 
-### Interior-camera reference
+### Removed interior-camera reference
 
-Create one composition-only image showing a first-person camera at the center of a hollow sphere, looking outward at plaques distributed across the inner surface. It is a spatial-topology demonstration rather than a final art frame.
+`interior-camera.png` is retired from the active workflow. It must be removed from the generated reference set, the Clip A upload list, prompt references, execution guide, and deliverables so it cannot be uploaded accidentally. No replacement composition diagram is created.
 
-The replacement reference must communicate depth through perspective rather than diagram lines:
-
-- remove every complete ellipse, circle, orbital guide, sphere outline, arrow, caption, and explanatory label;
-- do not show the complete sphere as an object inside the frame;
-- place oversized foreground plaques partly outside the frame edges, fully visible readable-scale plaques in the middle distance, and smaller plaques deeper in the scene;
-- distribute plaques above, below, left, right, in front of, and behind the camera's viewing direction instead of arranging them on one flat ring;
-- use overlaps, scale changes, converging perspective, cyan rim light, volumetric haze, and restrained depth falloff to establish a cinematic three-dimensional interior;
-- leave the monitor behind the camera and therefore invisible during the interior scan;
-- keep every demonstration plaque blank so it cannot introduce substitute names, Logos, or random text.
-
-The Clip A prompt must identify `interior-camera.png` as a camera-relationship reference only. It must explicitly prohibit copying any schematic geometry, flat illustration style, placeholder plaque graphics, or ring layout from that image. The intended motion is a roughly 120-degree rotation from the sphere center while looking outward, with foreground plaques crossing the frame faster than distant plaques.
-
-The first Dreamina submission uses the three module boards, `logo-off.png`, and the interior-camera reference: five images, within the live `multimodal2video` limit of nine images. The second submission uses `logo-off.png` as its first frame and `end-card.png` as its last frame.
+The first Dreamina submission uses exactly four images: the three module identity contact sheets and `logo-off.png`. Camera topology is text-only. The prompt describes only the desired result: the camera crosses the display, stays at the center of a surrounding three-dimensional module field, looks outward, rotates in place by roughly 120 degrees, and sees foreground plaques cross the frame faster than distant plaques. It does not enumerate unwanted diagram shapes or name the retired reference. The second submission still uses `logo-off.png` as its first frame and `end-card.png` as its last frame.
 
 ## Clip A: five-second module burst
 
-Use Dreamina `multimodal2video` (the all-around-reference mode) with a model and account tier that expose 1080p. Set `ratio=16:9`, `video_resolution=1080p`, and `duration=5` as command or web parameters; never rely on the prompt to enforce them.
+Use Dreamina's web all-around-reference mode and upload exactly the four active Clip A references. Set 16:9, the highest available resolution, and five seconds in the web UI; never rely on the prompt to enforce them. Trial 5392 shows that the current web tier may return 1280×720 even when the source references are 1920×1080, so record the actual output resolution and upscale only during final composition if 1080p is unavailable.
 
 ### Timeline
 
@@ -85,16 +85,16 @@ Use Dreamina `multimodal2video` (the all-around-reference mode) with a model and
 
 - Refer to each module board by its uploaded filename and call all three identity contact sheets, not scenes, compositions, UI panels, or complete flying objects.
 - Require Dreamina to separate the 24 `Logo + exact English name` pairs into 24 independent plaques, and prohibit reproducing a complete board, two-column grid, board background, or board layout.
-- Refer to `interior-camera.png` as a spatial-topology demonstration only, not a final art frame.
-- Explicitly describe the interior phase as first-person POV from the sphere center, looking outward, with near/middle/far layers, edge cropping, occlusion, scale differences, and strong rotational parallax.
-- Prohibit copying flat rings, complete sphere outlines, ellipses, guide lines, central circles, placeholder graphics, or a flat infographic style from the camera reference.
+- Do not reference `interior-camera.png` or any other composition diagram.
+- Describe the interior phase only with positive target language: first-person POV at the center of a surrounding three-dimensional module field, looking outward, with near/middle/far layers, edge cropping, occlusion, scale differences, and strong rotational parallax during an in-place 120-degree rotation.
+- Do not list unwanted visual primitives in the prompt; trial 5392 demonstrated that nouns inside negative clauses can be rendered as requested content.
 - Remove “orbit around the monitor” and any equivalent external-camera wording.
 - Do not request a final wordmark in this clip.
 - Permit only green that already exists inside official module Logos; the overall palette remains deep blue, cyan, and restrained violet.
 
 ## Clip B: four-second Logo sequence
 
-Use Dreamina `frames2video` with `logo-off.png` as the first frame and `end-card.png` as the last frame. Both frames are 1920×1080, causing the command to infer 16:9. Use a model/tier supporting 1080p and set `duration=4`.
+Use Dreamina's web first/last-frame mode with `logo-off.png` as the first frame and `end-card.png` as the last frame. Both frames are 1920×1080. Confirm 16:9 in the UI, choose the highest available resolution, and set the duration to four seconds.
 
 ### Timeline
 
@@ -119,12 +119,13 @@ The flash makes the transition appear continuous even though two generations are
 
 ### Before paid generation
 
-- Confirm the Dreamina CLI/session and available credit without submitting.
-- Re-read live help for `multimodal2video` and `frames2video`.
-- Confirm the selected model exposes 1080p, the required durations, and the intended input count.
+- Confirm the web task is in all-around-reference mode for Clip A or first/last-frame mode for Clip B before uploading.
+- Confirm the account exposes the required duration, intended input count, and highest available resolution without submitting a generation.
 - Verify every reference image is 1920×1080 and contains no unintended captions.
 - Verify the module boards use a solid background and the prompt describes them as identity contact sheets whose complete layouts are forbidden in the output.
-- Verify `interior-camera.png` contains no complete ellipse, circle, sphere outline, guide line, caption, Logo, or module name and visibly includes foreground, middle-distance, and far plaques at different apparent scales.
+- Verify Clip A has exactly four active references: the three module boards and `logo-off.png`.
+- Verify `interior-camera.png` is absent from the generated reference set, Clip A reference list, prompt, execution guide, and deliverables.
+- Verify the prompt uses positive near/middle/far camera language and does not enumerate unwanted diagram primitives.
 - Present the final prompts and paid command parameters to the user before submission.
 
 ### After each generation
@@ -132,14 +133,14 @@ The flash makes the transition appear continuous even though two generations are
 - Treat a submission as successful only when it returns a `submit_id` and `gen_status` is `querying` or `success`.
 - Poll the returned `submit_id`; never invent or replace it.
 - Verify width, height, duration, frame rate, video stream, and audio stream with `ffprobe`.
-- Extract full-timeline contact sheets plus dense frames for the interior-camera and switch windows.
+- Extract full-timeline contact sheets plus dense frames for the inside-module-field and switch windows.
 - Record module spelling/Logo defects and switch-order defects before composition.
 
 ### Final acceptance
 
 - Exactly 8.0 seconds at 1920×1080 and 16:9
 - One continuous-looking camera path with the module scan visibly inside the hollow sphere
-- A dense field representing all 24 referenced modules; every readable name exactly matches its reference board, every visible Logo belongs to its named module, and no invented module name is accepted
+- A dense field of at least 20 distinct plaques representing the 24-module ecosystem; six to eight hero plaques may be prominent and readable, every readable name must exactly match its reference board, every readable Logo/name pair must be correct, and background plaques must not display prominent gibberish
 - Collapse into the official FlyEnv Logo at the hidden transition
 - Three separately visible switch slides in top-to-bottom order; activated tracks turn green and remain on
 - Full lightning wrap
@@ -159,7 +160,7 @@ Dreamina generation consumes credits. Do not automatically resubmit a failed or 
 ## Deliverables
 
 - clean module boards A/B/C
-- `logo-off.png`, `end-card.png`, and the interior-camera reference
+- `logo-off.png` and `end-card.png`
 - versioned prompts and exact Dreamina submit metadata for both clips
 - original downloaded Clip A and Clip B
 - composed eight-second MP4
