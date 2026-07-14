@@ -110,6 +110,15 @@ test('Clip A prompt references uploads by filename instead of numbered image lab
   assert.doesNotMatch(prompt, /@图片\d+/)
 })
 
+test('Clip A treats module boards as identity contact sheets rather than complete scenes', async () => {
+  const prompt = await readFile(path.join(import.meta.dirname, 'clip-a-prompt-zh.txt'), 'utf8')
+  assert.match(prompt, /模块身份素材索引表/)
+  assert.match(prompt, /不是场景画面、构图参考、UI 面板/)
+  assert.match(prompt, /24 组.*相互独立/)
+  assert.match(prompt, /严禁.*整张素材表/)
+  assert.match(prompt, /2×4 网格/)
+})
+
 test('Clip B web prompt locks switch mechanics and the exact end card', async () => {
   const prompt = await readFile(path.join(import.meta.dirname, 'clip-b-prompt-zh.txt'), 'utf8')
   assert.match(prompt, /从上到下/)
