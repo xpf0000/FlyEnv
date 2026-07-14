@@ -4,12 +4,14 @@ import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 import sharp from 'sharp'
+import { MODULES, partitionModules } from '../flyenv-kling-intro/module-manifest.ts'
 import {
   CLIP_A_REFERENCE_FILES,
   CLIP_B_FRAME_FILES,
   REFERENCE_FILES,
   endCardSvg,
   interiorCameraSvg,
+  moduleBoardSvg,
   renderReferenceAssets
 } from './reference-assets.ts'
 
@@ -43,6 +45,11 @@ test('end card contains one exact FlyEnv wordmark and three on-state switches', 
   assert.equal(svg.match(/data-switch-on=/g)?.length, 3)
   assert.equal(svg.match(/>FlyEnv<\/text>/g)?.length, 1)
   assert.equal(svg.includes('FlyEnb'), false)
+})
+
+test('module boards place every dark-default SVG on a high-contrast icon tile', async () => {
+  const svg = await moduleBoardSvg(partitionModules(MODULES)[0])
+  assert.equal(svg.match(/data-icon-tile=/g)?.length, 8)
 })
 
 test('renderer creates six compliant 1920x1080 PNG references', async () => {

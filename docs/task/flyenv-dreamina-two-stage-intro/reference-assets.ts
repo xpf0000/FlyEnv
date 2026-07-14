@@ -66,7 +66,7 @@ function documentSvg(content: string): string {
   </svg>`
 }
 
-async function moduleBoardSvg(items: readonly ModuleSpec[]): Promise<string> {
+export async function moduleBoardSvg(items: readonly ModuleSpec[]): Promise<string> {
   const cards = await Promise.all(
     items.map(async (item, index) => {
       const column = index % 2
@@ -76,6 +76,7 @@ async function moduleBoardSvg(items: readonly ModuleSpec[]): Promise<string> {
       const icon = await dataUri(path.join(REPO_ROOT, item.asset))
       return `<g transform="translate(${x} ${y})" data-module="${escapeXml(item.name)}">
         <rect width="840" height="205" rx="30" fill="#06152d" stroke="#58ddff" stroke-width="4"/>
+        <rect data-icon-tile="${escapeXml(item.name)}" x="24" y="22" width="168" height="161" rx="24" fill="#f7fbff" stroke="#d9efff" stroke-width="3"/>
         <image href="${icon}" x="38" y="32" width="140" height="140" preserveAspectRatio="xMidYMid meet"/>
         <text x="215" y="128" fill="#ffffff" font-size="58" font-weight="700" font-family="Arial, Helvetica, sans-serif">${escapeXml(item.name)}</text>
       </g>`
