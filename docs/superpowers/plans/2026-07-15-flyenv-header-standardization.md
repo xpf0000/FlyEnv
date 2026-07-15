@@ -15,6 +15,7 @@
 ## File map
 
 - Preserve `docs/flyenv-header.mp4`: immutable Dreamina source.
+- Modify `.gitattributes`: treat all `*.mp4` files as binary to prevent line-ending conversion.
 - Create `docs/flyenv-header-master.mp4`: standardized delivery master.
 - Create `docs/task/flyenv-header-standardization/flyenv-wordmark.svg`: deterministic exact wordmark source.
 - Create `docs/task/flyenv-header-standardization/flyenv-wordmark.png`: transparent rendered overlay.
@@ -163,7 +164,7 @@ magick -background none "$WORDMARK_SVG" "$WORDMARK_PNG"
 ffmpeg -y \
   -i "$SOURCE" \
   -loop 1 -framerate 30 -i "$WORDMARK_PNG" \
-  -filter_complex "[0:v]trim=duration=5,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags=lanczos,setsar=1[base];[1:v]trim=duration=5,setpts=PTS-STARTPTS,format=rgba,fade=t=in:st=4.00:d=0.15:alpha=1,fade=t=out:st=4.55:d=0.15:alpha=1[wordmark];[base][wordmark]overlay=680:700:shortest=0:eof_action=pass,fade=t=out:st=4.70:d=0.23,format=yuv420p[video];[0:a]atrim=duration=5,asetpts=PTS-STARTPTS,aresample=48000,afade=t=out:st=4.70:d=0.23[audio]" \
+  -filter_complex "[0:v]trim=duration=5,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags=lanczos,setsar=1[base];[1:v]trim=duration=5,setpts=PTS-STARTPTS,format=rgba,fade=t=in:st=4.00:d=0.15:alpha=1,fade=t=out:st=4.55:d=0.15:alpha=1[wordmark];[base][wordmark]overlay=680:800:shortest=0:eof_action=pass,fade=t=out:st=4.70:d=0.23,format=yuv420p[video];[0:a]atrim=duration=5,asetpts=PTS-STARTPTS,aresample=48000,afade=t=out:st=4.70:d=0.23[audio]" \
   -map "[video]" -map "[audio]" \
   -map_metadata 0 \
   -metadata title="FlyEnv Standard Header Master" \
@@ -247,13 +248,20 @@ git diff --check -- docs/flyenv-header-master.mp4 docs/task/flyenv-header-standa
 git status --short -- docs/flyenv-header.mp4 docs/flyenv-header-master.mp4 docs/task/flyenv-header-standardization
 ```
 
-Expected: the source is absent from status; only the new master and task-local assets appear.
+Expected: the source working file remains byte-for-byte unchanged. If it was independently staged before this task, it remains staged but is excluded from the isolated commit below.
 
 - [ ] **Step 6: Commit the standardized master with path isolation**
 
 ```bash
-git add docs/flyenv-header-master.mp4 docs/task/flyenv-header-standardization
-git commit --only -m "feat: add standardized FlyEnv header master" -- docs/flyenv-header-master.mp4 docs/task/flyenv-header-standardization
+git add .gitattributes docs/flyenv-header-master.mp4 docs/task/flyenv-header-standardization
+git commit --only -m "feat: add standardized FlyEnv header master" -- .gitattributes docs/flyenv-header-master.mp4 docs/task/flyenv-header-standardization
 ```
 
 Expected: one commit containing the master, render/verify scripts, wordmark assets, and verification frames; source remains unchanged.
+
+## Implementation notes
+
+- Visual review moved the wordmark overlay from `y=700` to `y=800` to keep it below the Logo without overlap.
+- The SVG's initial letter spacing was removed after a verification-frame review found the wordmark too wide.
+- The acceptance script now also checks the rendered wordmark width, overlay position, and Git binary attributes.
+- After adding `*.mp4 binary`, `git add --renormalize` is required once for MP4 files already staged under the previous text rule.

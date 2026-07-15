@@ -23,6 +23,7 @@ The source is suitable visually but not yet a delivery master:
 - Create: `docs/flyenv-header-master.mp4`
 - Create task workspace: `docs/task/flyenv-header-standardization/`
 - Create task-local render script: `docs/task/flyenv-header-standardization/render-header.sh`
+- Mark `*.mp4` as binary in `.gitattributes` so Git never applies line-ending conversion to source or master media.
 - Create deterministic wordmark source and overlay:
   - `docs/task/flyenv-header-standardization/flyenv-wordmark.svg`
   - `docs/task/flyenv-header-standardization/flyenv-wordmark.png`
@@ -38,7 +39,7 @@ During the final hold:
 
 - show the exact text `FlyEnv` in bold white type centered below the existing Logo;
 - render the wordmark as a 560×150 transparent asset using Arial Bold at 96 px;
-- place its top-left corner at `(680, 700)`, centered in the 1920×1080 frame without covering the Logo;
+- place its top-left corner at `(680, 800)`, centered in the 1920×1080 frame below the Logo without overlap;
 - begin the wordmark at 4.00 seconds;
 - fade it in over 0.15 seconds;
 - keep it stable through 4.55 seconds;
@@ -94,6 +95,7 @@ The render is accepted only when all checks pass:
 5. A frame near 4.90 seconds confirms the complete frame is fading to black.
 6. The final frame is black and the audio has faded to silence.
 7. `docs/flyenv-header.mp4` remains byte-for-byte unchanged.
+8. Git reports `text: unset` for both MP4 files, and their staged blobs match the working-file bytes.
 
 ## Usage contract
 
