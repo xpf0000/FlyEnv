@@ -2,18 +2,13 @@ import { ipcMain, shell, app } from 'electron'
 import { EventEmitter } from 'events'
 import { isMacOS, isWindows, isLinux } from '@shared/utils'
 import { execPromiseSudo } from '@shared/child-process'
-import NodePTY from './NodePTY'
-import HttpServer from './HttpServer'
 import AppHelper from './AppHelper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { buildHelperCheckResponse } from '@shared/WindowsHelperState'
-import OAuth from './OAuth'
-import Capturer from './Capturer'
 import ConfigManager from './ConfigManager'
 import type MCPConfigManager from './MCPConfigManager'
 import type MCPServer from './MCPServer'
 import type MCPBridgeManager from './MCPBridgeManager'
-import MCPAudit from './MCPAudit'
 import type WindowManager from '../ui/WindowManager'
 import type TrayManager from '../ui/TrayManager'
 import type { ForkManager } from './ForkManager'
@@ -21,7 +16,6 @@ import type { AppNodeFn } from './AppNodeFn'
 import type ServerManager from './ServerManager'
 import type { BrowserWindow } from 'electron'
 import type AppNodeFnManager from './AppNodeFn'
-import type SiteSuckerManager from '../ui/SiteSucker'
 import ServiceProcessManager from './ServiceProcess'
 import ServiceVersionManager from './ServiceVersionManager'
 import { join } from 'node:path'
@@ -30,6 +24,14 @@ import { existsSync, readFileSync } from 'node:fs'
 import { startMcpRuntime, stopMcpRuntime } from './MCPLifecycle'
 import { CheckBrewOrPort } from '../utils/CheckBrew'
 import type { LanguageCoordinator } from './LanguageCoordinator'
+import {
+  capturerRuntime,
+  httpServerRuntime,
+  mcpAuditRuntime,
+  nodePtyRuntime,
+  oauthRuntime,
+  siteSuckerRuntime
+} from './lazy/OptionalRuntimes'
 
 export interface IPCHandlerDependencies {
   configManager: ConfigManager
@@ -44,15 +46,64 @@ export interface IPCHandlerDependencies {
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
   appNodeFnManager: typeof AppNodeFnManager
-  siteSuckerManager: typeof SiteSuckerManager
 }
 
 export default class IPCHandler extends EventEmitter {
   private deps: IPCHandlerDependencies
+  private capturerConfig?: any
 
   constructor(dependencies: IPCHandlerDependencies) {
     super()
     this.deps = dependencies
+  }
+
+  private loadCapturer() {
+    return capturerRuntime.load().then((capturer) => {
+      if (this.capturerConfig) capturer.configUpdate(this.capturerConfig)
+      return capturer
+    })
+  }
+
+  private loadNodePty() {
+    return nodePtyRuntime.load().then((nodePty) => {
+      nodePty.onSendCommand((command: string, ...args: any[]) => {
+        if (this.deps.mainWindow) {
+          this.deps.windowManager.sendCommandTo(this.deps.mainWindow, command, ...args)
+        }
+      })
+      return nodePty
+    })
+  }
+
+  private loadSiteSucker() {
+    return siteSuckerRuntime.load().then((siteSucker) => {
+      siteSucker.setCallback((link: any) => this.handleSiteSuckerLink(link))
+      return siteSucker
+    })
+  }
+
+  private handleSiteSuckerLink(link: any) {
+    if (!this.deps.mainWindow) return
+    if (link === 'window-close') {
+      this.deps.windowManager.sendCommandTo(
+        this.deps.mainWindow,
+        'App-SiteSucker-Link-Stop',
+        'App-SiteSucker-Link-Stop',
+        true
+      )
+      return
+    }
+    this.deps.windowManager.sendCommandTo(
+      this.deps.mainWindow,
+      'App-SiteSucker-Link',
+      'App-SiteSucker-Link',
+      link
+    )
+  }
+
+  private sendRuntimeError(command: string, key: string, error: unknown) {
+    const message = error instanceof Error ? error.message : `${error}`
+    this.sendToMainWindow(command, key, { code: 1, msg: message })
   }
 
   /**
@@ -381,7 +432,7 @@ export default class IPCHandler extends EventEmitter {
 
       // SiteSucker
       case 'app-sitesucker-run':
-        this.handleSiteSuckerRun(args)
+        this.handleSiteSuckerRun(command, key, args)
         break
       case 'app-sitesucker-setup':
         this.handleSiteSuckerSetup(command, key)
@@ -604,13 +655,20 @@ export default class IPCHandler extends EventEmitter {
   // ===== HTTP 服务 =====
 
   private handleHttpServeRun(command: string, key: string, args: any[]) {
-    HttpServer.start(args[0]).then((res) => {
-      this.sendToMainWindow(command, key, res)
-    })
+    httpServerRuntime
+      .load()
+      .then((httpServer) => httpServer.start(args[0]))
+      .then((res) => this.sendToMainWindow(command, key, res))
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleHttpServeStop(command: string, key: string, args: any[]) {
-    HttpServer.stop(args[0]).then((res) => {
+    const httpServer = httpServerRuntime.peek()
+    if (!httpServer) {
+      this.sendToMainWindow(command, key, { path: args[0] })
+      return
+    }
+    httpServer.stop(args[0]).then((res) => {
       this.sendToMainWindow(command, key, { path: res })
     })
   }
@@ -618,91 +676,110 @@ export default class IPCHandler extends EventEmitter {
   // ===== 屏幕捕获 =====
 
   private handleCapturer(command: string, key: string, args: any[]) {
-    const isHide: any = args[0]
-    if (isHide && this.deps.mainWindow?.isVisible()) {
-      this.deps.mainWindow?.once('hide', () => {
-        setTimeout(() => {
-          Capturer.initWatchPointWindow().catch()
-          this.deps.mainWindow?.setOpacity(1)
-        }, 150)
+    this.loadCapturer()
+      .then((capturer) => {
+        const isHide: any = args[0]
+        if (isHide && this.deps.mainWindow?.isVisible()) {
+          this.deps.mainWindow.once('hide', () => {
+            setTimeout(() => {
+              capturer.initWatchPointWindow().catch()
+              this.deps.mainWindow?.setOpacity(1)
+            }, 150)
+          })
+          this.deps.mainWindow.setOpacity(0)
+          this.deps.mainWindow.hide()
+        } else {
+          capturer.initWatchPointWindow().catch()
+        }
+        this.sendToMainWindow(command, key, true)
       })
-      this.deps.mainWindow?.setOpacity(0)
-      this.deps.mainWindow?.hide()
-    } else {
-      Capturer.initWatchPointWindow().catch()
-    }
-    this.sendToMainWindow(command, key, true)
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleStopCapturer(command: string, key: string) {
-    Capturer.stopCapturer()
-    if (Capturer.window) {
-      this.deps.windowManager.sendCommandTo(Capturer.window, command, key, true)
+    const capturer = capturerRuntime.peek()
+    capturer?.stopCapturer()
+    if (capturer?.window) {
+      this.deps.windowManager.sendCommandTo(capturer.window, command, key, true)
     }
   }
 
   private handleGetWindowCapturer(command: string, key: string, args: any[]) {
-    Capturer.getWindowCapturer(args[0])
-    if (Capturer.window) {
-      this.deps.windowManager.sendCommandTo(Capturer.window, command, key, true)
-    }
+    this.loadCapturer()
+      .then((capturer) => {
+        capturer.getWindowCapturer(args[0])
+        if (capturer.window) {
+          this.deps.windowManager.sendCommandTo(capturer.window, command, key, true)
+        }
+      })
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleStopCheckWindowInPoint(command: string, key: string) {
-    Capturer.stopCheckWindowInPoint()
-    if (Capturer.window) {
-      this.deps.windowManager.sendCommandTo(Capturer.window, command, key, true)
+    const capturer = capturerRuntime.peek()
+    capturer?.stopCheckWindowInPoint()
+    if (capturer?.window) {
+      this.deps.windowManager.sendCommandTo(capturer.window, command, key, true)
     }
   }
 
   private handleSaveImage(command: string, key: string, args: any[]) {
-    Capturer.saveImage(args[0], args[1])
-    if (Capturer.window) {
-      this.deps.windowManager.sendCommandTo(Capturer.window, command, key, true)
+    const capturer = capturerRuntime.peek()
+    capturer?.saveImage(args[0], args[1])
+    if (capturer?.window) {
+      this.deps.windowManager.sendCommandTo(capturer.window, command, key, true)
     }
   }
 
   private handleCapturerConfigUpdate(command: string, key: string, args: any[]) {
-    Capturer.configUpdate(args[0])
+    this.capturerConfig = args[0]
+    capturerRuntime.peek()?.configUpdate(this.capturerConfig)
     this.sendToMainWindow(command, key, true)
   }
 
   // ===== NodePty =====
 
   private handleNodePtyInit(command: string, key: string) {
-    NodePTY.initNodePty().then((res) => {
-      this.sendToMainWindow(command, key, { code: 0, data: res })
-    })
+    this.loadNodePty()
+      .then((nodePty) => nodePty.initNodePty())
+      .then((res) => this.sendToMainWindow(command, key, { code: 0, data: res }))
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleNodePtyExec(command: string, key: string, args: any[]) {
-    NodePTY.exec(args[0], args[1], args[2], command, key)
+    this.loadNodePty()
+      .then((nodePty) => nodePty.exec(args[0], args[1], args[2], command, key))
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleNodePtyWrite(args: any[]) {
-    NodePTY.write(args[0], args[1])
+    nodePtyRuntime.peek()?.write(args[0], args[1])
   }
 
   private handleNodePtyClear(command: string, key: string, args: any[]) {
-    NodePTY.clean(args[0])
+    nodePtyRuntime.peek()?.clean(args[0])
     this.sendToMainWindow(command, key, { code: 0 })
   }
 
   private handleNodePtyResize(command: string, key: string, args: any[]) {
-    NodePTY.resize(args[0], args[1])
+    nodePtyRuntime.peek()?.resize(args[0], args[1])
     this.sendToMainWindow(command, key, { code: 0 })
   }
 
   private handleNodePtyStop(command: string, key: string, args: any[]) {
-    NodePTY.stop(args[0])
+    nodePtyRuntime.peek()?.stop(args[0])
     this.sendToMainWindow(command, key, { code: 0 })
   }
 
   // ===== SiteSucker =====
 
-  private handleSiteSuckerRun(args: any[]) {
-    const url = args[0]
-    this.deps.siteSuckerManager.show(url)
+  private handleSiteSuckerRun(command: string, key: string, args: any[]) {
+    this.loadSiteSucker()
+      .then((siteSucker) => {
+        siteSucker.show(args[0])
+        this.sendToMainWindow(command, key, true)
+      })
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleSiteSuckerSetup(command: string, key: string) {
@@ -713,13 +790,15 @@ export default class IPCHandler extends EventEmitter {
   private handleSiteSuckerSetupSave(command: string, key: string, args: any[]) {
     this.deps.configManager.setConfig('tools.siteSucker', args[0])
     this.sendToMainWindow(command, key, true)
-    this.deps.siteSuckerManager.updateConfig(args[0])
+    siteSuckerRuntime.peek()?.updateConfig(args[0])
   }
 
   // ===== OAuth =====
 
   private handleOAuthStart(command: string, key: string) {
-    OAuth.startOAuth()
+    oauthRuntime
+      .load()
+      .then((oauth) => oauth.startOAuth())
       .then((res) => {
         this.sendToMainWindow(command, key, { code: 0, data: res })
       })
@@ -729,28 +808,38 @@ export default class IPCHandler extends EventEmitter {
   }
 
   private handleOAuthCancel(command: string, key: string) {
-    OAuth.cancel()
+    oauthRuntime.peek()?.cancel()
     this.sendToMainWindow(command, key, { code: 0, data: true })
   }
 
   private handleOAuthLicenseFetch(command: string, key: string) {
-    OAuth.fetchUserLicense()
+    oauthRuntime
+      .load()
+      .then((oauth) => oauth.fetchUserLicense())
       .then((res) => {
         this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
       })
-      .catch()
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleOAuthLicenseDelBind(command: string, key: string, args: any[]) {
-    OAuth.delBind(args[0], args[1]).then((res) => {
-      this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
-    })
+    oauthRuntime
+      .load()
+      .then((oauth) => oauth.delBind(args[0], args[1]))
+      .then((res) => {
+        this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
+      })
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleOAuthLicenseAddBind(command: string, key: string, args: any[]) {
-    OAuth.addBind(args[0], args[1]).then((res) => {
-      this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
-    })
+    oauthRuntime
+      .load()
+      .then((oauth) => oauth.addBind(args[0], args[1]))
+      .then((res) => {
+        this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
+      })
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   // ===== MCP Server =====
@@ -831,20 +920,28 @@ export default class IPCHandler extends EventEmitter {
   }
 
   private handleMcpGetAuditLog(command: string, key: string) {
-    const file = MCPAudit.getLogFile()
-    let data = ''
-    try {
-      if (existsSync(file)) {
-        data = readFileSync(file, 'utf-8')
-      }
-    } catch (e) {
-      console.log('handleMcpGetAuditLog error: ', e)
-    }
-    this.sendToMainWindow(command, key, { code: 0, data })
+    mcpAuditRuntime
+      .load()
+      .then((audit) => {
+        const file = audit.getLogFile()
+        let data = ''
+        try {
+          if (existsSync(file)) data = readFileSync(file, 'utf-8')
+        } catch (e) {
+          console.log('handleMcpGetAuditLog error: ', e)
+        }
+        this.sendToMainWindow(command, key, { code: 0, data })
+      })
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   private handleMcpGetAuditLogFile(command: string, key: string) {
-    this.sendToMainWindow(command, key, { code: 0, data: MCPAudit.getLogFile() })
+    mcpAuditRuntime
+      .load()
+      .then((audit) => {
+        this.sendToMainWindow(command, key, { code: 0, data: audit.getLogFile() })
+      })
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   // ===== 工具方法 =====

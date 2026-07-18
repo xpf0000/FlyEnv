@@ -6,9 +6,7 @@ import MenuManager from './ui/MenuManager'
 import TrayManager from './ui/TrayManager'
 import { getLanguage, getLocale, logger } from './utils'
 import { applyLanguagePayload, I18nT } from '@lang/runtime'
-import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
-import NodePTY from './core/NodePTY'
 import AppHelper from './core/AppHelper'
 import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
@@ -19,7 +17,6 @@ import ServiceProcessManager from './core/ServiceProcess'
 import ServiceVersionManager from './core/ServiceVersionManager'
 import { AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
-import OAuth from './core/OAuth'
 import ConfigManager from './core/ConfigManager'
 import MCPConfigManager from './core/MCPConfigManager'
 import MCPServer from './core/MCPServer'
@@ -34,6 +31,13 @@ import { debounce } from '@shared/debounce'
 import { LanguageRepository } from './core/LanguageRepository'
 import { LanguageCoordinator } from './core/LanguageCoordinator'
 import type { LanguageChanged } from '@shared/LanguageProtocol'
+import {
+  capturerRuntime,
+  httpServerRuntime,
+  nodePtyRuntime,
+  oauthRuntime,
+  siteSuckerRuntime
+} from './core/lazy/OptionalRuntimes'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -117,8 +121,7 @@ export default class Application extends EventEmitter {
       trayManager: this.trayManager,
       serverManager: this.serverManager,
       languageCoordinator: this.languageCoordinator,
-      appNodeFnManager: AppNodeFnManager,
-      siteSuckerManager: SiteSuckerManager
+      appNodeFnManager: AppNodeFnManager
     })
 
     this.setupEventHandlers()
@@ -126,8 +129,6 @@ export default class Application extends EventEmitter {
     this.initFontAccessPermission()
     this.initAppHelper()
     this.initForkManager()
-    this.setupSiteSuckerCallback()
-    this.setupNodePTYCallback()
 
     if (!is.dev()) {
       this.ipcHandler.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
@@ -277,38 +278,6 @@ export default class Application extends EventEmitter {
   }
 
   /**
-   * 设置 SiteSucker 回调
-   */
-  private setupSiteSuckerCallback() {
-    SiteSuckerManager.setCallback((link: any) => {
-      if (link === 'window-close') {
-        this.windowManager.sendCommandTo(
-          this.mainWindow!,
-          'App-SiteSucker-Link-Stop',
-          'App-SiteSucker-Link-Stop',
-          true
-        )
-        return
-      }
-      this.windowManager.sendCommandTo(
-        this.mainWindow!,
-        'App-SiteSucker-Link',
-        'App-SiteSucker-Link',
-        link
-      )
-    })
-  }
-
-  /**
-   * 设置 NodePTY 回调
-   */
-  private setupNodePTYCallback() {
-    NodePTY.onSendCommand((command: string, ...args: any) => {
-      this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
-    })
-  }
-
-  /**
    * 设置事件处理器
    */
   private setupEventHandlers() {
@@ -421,7 +390,9 @@ export default class Application extends EventEmitter {
       )
 
       global.Server.UserUUID = this.configManager?.getConfig('setup.user_uuid')
-      OAuth.fetchUser()
+      oauthRuntime
+        .load()
+        .then((oauth) => oauth.fetchUser())
         .then((res) => {
           this.windowManager.sendCommandTo(
             win,
@@ -614,19 +585,29 @@ export default class Application extends EventEmitter {
       console.log('ScreenManager.destroy e: ', e)
     }
     try {
-      SiteSuckerManager.destroy()
+      siteSuckerRuntime.peek()?.destroy()
     } catch (e) {
       console.log('SiteSuckerManager.destroy e: ', e)
     }
     try {
-      OAuth.cancel()
+      oauthRuntime.peek()?.cancel()
     } catch (e) {
       console.log('OAuth.cancel e: ', e)
     }
     try {
-      NodePTY.exitAllPty()
+      nodePtyRuntime.peek()?.exitAllPty()
     } catch (e) {
       console.log('NodePTY.exitAllPty e: ', e)
+    }
+    try {
+      capturerRuntime.peek()?.stopCapturer()
+    } catch (e) {
+      console.log('Capturer.stopCapturer e: ', e)
+    }
+    try {
+      await httpServerRuntime.peek()?.stopAll()
+    } catch (e) {
+      console.log('HttpServer.stopAll e: ', e)
     }
     try {
       await this.mcpServer?.stop()

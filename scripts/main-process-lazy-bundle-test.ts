@@ -83,6 +83,28 @@ for (const dependency of [
   )
 }
 assert.equal(eagerInputs.has('src/render/util/markdown/markdown.ts'), false)
+for (const input of [
+  'src/main/core/NodePTY.ts',
+  'src/main/core/Capturer.ts',
+  'src/main/core/HttpServer.ts',
+  'src/main/ui/SiteSucker/index.ts'
+]) {
+  assert.equal(eagerInputs.has(input), false, `${input} must not be eager`)
+}
+for (const dependency of ['node-pty', '@xpf0000/node-window-manager', 'serve-handler', 'hpagent']) {
+  assert.equal(
+    eagerExternalImports.some((item) => item === dependency || item.startsWith(`${dependency}/`)),
+    false,
+    `${dependency} must not be eager`
+  )
+}
+
+const ipcHandlerSource = readFileSync('src/main/core/IPCHandler.ts', 'utf8')
+assert.match(
+  ipcHandlerSource,
+  /handleCapturerConfigUpdate[\s\S]*?capturerRuntime\.peek\(\)\?\.configUpdate/,
+  'capture config updates must use peek without loading the native runtime'
+)
 assert.ok(
   Object.values(result.metafile!.outputs).some((output) =>
     output.imports.some((item) => item.kind === 'dynamic-import')

@@ -64,6 +64,11 @@ class HttpServer {
       resolve(path)
     })
   }
+
+  async stopAll() {
+    const paths = Object.keys(this.httpServes)
+    await Promise.all(paths.map((path) => this.stop(path)))
+  }
 }
 
 export default new HttpServer()
