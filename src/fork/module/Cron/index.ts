@@ -51,6 +51,7 @@ export class Cron extends Base {
 
   private async syncCronMetadata(): Promise<void> {
     const data = await this.storage.load()
+    await this.systemScheduler.repair(flattenJobs(data))
     if (ensureNextRunTimes(data) || (await this.runRecords.syncLatest(data))) {
       await this.storage.save(data)
     }

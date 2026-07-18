@@ -4,7 +4,7 @@ import { getPortableCronSchedule } from '@shared/CronExpression'
 import type { PortableCronSchedule } from '@shared/CronExpression'
 import { existsSync } from 'fs'
 import { dirname, join } from 'path'
-import { mkdirp, remove, spawnPromiseWithEnv, writeFile } from '../../Fn'
+import { mkdirp, readFile, remove, spawnPromiseWithEnv, writeFile } from '../../Fn'
 import { base64, homePath, runLogPath, systemTaskName, taskScriptPath } from './utils'
 
 type WindowsCronWrapperScriptParams = {
@@ -308,6 +308,25 @@ export class WindowsSystemScheduler {
   async install(job: CronJob) {
     const taskAction = await this.writeWrapper(job)
     await this.installTask(job, taskAction)
+  }
+
+  async repair(jobs: CronJob[]): Promise<void> {
+    for (const job of jobs) {
+      if (!job.enabled) {
+        continue
+      }
+
+      try {
+        const psFile = this.taskScriptPath(job.id, 'ps1')
+        const content = await readFile(psFile, 'utf8').catch(() => undefined)
+        if (isCurrentWindowsCronWrapper(content)) {
+          continue
+        }
+        await this.writeWrapper(job)
+      } catch (error) {
+        console.error(`[Cron][Windows] wrapper repair failed for ${job.id}:`, error)
+      }
+    }
   }
 
   async remove(jobId: string) {

@@ -9,6 +9,7 @@ import { WindowsSystemScheduler } from './WindowsSystemScheduler'
 interface PlatformSystemScheduler {
   install(job: CronJob): Promise<void>
   remove(jobId: string): Promise<void>
+  repair?(jobs: CronJob[]): Promise<void>
   listSystemTasks(): Promise<SystemScheduledTask[]>
   deleteSystemTask(id: string): Promise<void>
 }
@@ -34,6 +35,10 @@ export class CronSystemScheduler {
 
   async remove(jobId: string) {
     await this.platformScheduler()?.remove(jobId)
+  }
+
+  async repair(jobs: CronJob[]): Promise<void> {
+    await this.platformScheduler()?.repair?.(jobs)
   }
 
   async listSystemTasks(): Promise<SystemScheduledTask[]> {
