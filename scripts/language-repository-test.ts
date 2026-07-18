@@ -31,10 +31,7 @@ await writeFile(
   join(customRoot, 'pirate', 'index.json'),
   JSON.stringify({ lang: 'pirate', label: 'Pirate' })
 )
-await writeFile(
-  join(customRoot, 'pirate', 'base.json'),
-  JSON.stringify({ title: 'Ahoy' })
-)
+await writeFile(join(customRoot, 'pirate', 'base.json'), JSON.stringify({ title: 'Ahoy' }))
 
 let readCount = 0
 const repository = new LanguageRepository({

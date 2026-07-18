@@ -35,9 +35,7 @@ export const BuiltInLocaleCatalog = {
 } as const
 
 export type BuiltInLocale = keyof typeof BuiltInLocaleCatalog
-export type LocaleCatalog = Readonly<
-  Record<string, Readonly<{ label: string; sourceDir: string }>>
->
+export type LocaleCatalog = Readonly<Record<string, Readonly<{ label: string; sourceDir: string }>>>
 
 export const AppAllLang: Record<string, string> = Object.fromEntries(
   Object.entries(BuiltInLocaleCatalog).map(([code, item]) => [code, item.label])

@@ -26,8 +26,6 @@ const changed: LanguageChanged = {
 }
 assert.equal(service.handle(changed), true)
 assert.deepEqual(applied, ['zh', 'de'])
-assert.deepEqual(sent, [
-  { type: 'language-changed-ack', requestId: 'change-1', locale: 'de' }
-])
+assert.deepEqual(sent, [{ type: 'language-changed-ack', requestId: 'change-1', locale: 'de' }])
 assert.equal(service.handle({ type: 'normal-command' }), false)
 console.log('language fork tests passed')

@@ -16,10 +16,7 @@ import {
 const english = { base: { greeting: 'Hello', fallbackOnly: 'Fallback' } }
 const chinese = { base: { greeting: '你好' } }
 
-assert.equal(
-  isLanguageAsset({ schemaVersion: 1, locale: 'en', messages: english }),
-  true
-)
+assert.equal(isLanguageAsset({ schemaVersion: 1, locale: 'en', messages: english }), true)
 assert.equal(isLanguageAsset({ schemaVersion: 2, locale: 'en', messages: english }), false)
 assert.equal(
   isLanguageManifest({

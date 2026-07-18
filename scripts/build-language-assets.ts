@@ -1,11 +1,7 @@
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import {
-  BuiltInLocaleCatalog,
-  FALLBACK_LOCALE,
-  type LocaleCatalog
-} from '../src/lang/catalog'
+import { BuiltInLocaleCatalog, FALLBACK_LOCALE, type LocaleCatalog } from '../src/lang/catalog'
 
 export interface BuildLanguageAssetsOptions {
   sourceRoot: string

@@ -58,9 +58,9 @@ export class LanguageRepository {
     const entries = await readdir(this.options.customRoot, { withFileTypes: true }).catch(() => [])
     for (const entry of entries) {
       if (!entry.isDirectory()) continue
-      const metadata = await this.readJson(join(this.options.customRoot, entry.name, 'index.json')).catch(
-        () => undefined
-      )
+      const metadata = await this.readJson(
+        join(this.options.customRoot, entry.name, 'index.json')
+      ).catch(() => undefined)
       if (
         metadata &&
         typeof metadata === 'object' &&
@@ -154,9 +154,11 @@ export class LanguageRepository {
     await mkdir(directory, { recursive: true })
     for (const [namespace, messages] of Object.entries(asset.messages)) {
       const file = join(directory, `${namespace}.json`)
-      await writeFile(file, JSON.stringify(messages, null, 2), { flag: 'wx' }).catch((error: any) => {
-        if (error?.code !== 'EEXIST') throw error
-      })
+      await writeFile(file, JSON.stringify(messages, null, 2), { flag: 'wx' }).catch(
+        (error: any) => {
+          if (error?.code !== 'EEXIST') throw error
+        }
+      )
     }
     await writeFile(
       join(directory, 'index.json'),
