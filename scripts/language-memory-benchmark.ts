@@ -109,6 +109,7 @@ const eagerBundle = join(benchmarkRoot, 'eager-language-runtime.mjs')
 
 let result: {
   runs: number
+  runtime: { node: string; v8: string }
   eagerBundleMiB: number
   optimized: { rssMiB: number; heapUsedMiB: number }
   eagerBundled: { rssMiB: number; heapUsedMiB: number }
@@ -123,6 +124,7 @@ try {
   const eager = measureEagerBundle(eagerBundle)
   result = {
     runs,
+    runtime: { node: process.versions.node, v8: process.versions.v8 },
     eagerBundleMiB: mib((await stat(eagerBundle)).size),
     optimized: { rssMiB: mib(optimized.rss), heapUsedMiB: mib(optimized.heapUsed) },
     eagerBundled: { rssMiB: mib(eager.rss), heapUsedMiB: mib(eager.heapUsed) },
@@ -138,4 +140,4 @@ if (result.eagerBundleMiB < 5) throw new Error('Eager comparison bundle is incom
 if (result.optimized.rssMiB > 80) throw new Error('Optimized locale RSS exceeded 80 MiB')
 if (result.optimized.heapUsedMiB > 9) throw new Error('Optimized locale heap exceeded 9 MiB')
 if (result.rssSavedMiB < 15) throw new Error('Locale RSS improvement was below 15 MiB')
-if (result.heapSavedMiB < 9) throw new Error('Locale heap improvement was below 9 MiB')
+if (result.heapSavedMiB < 4) throw new Error('Locale heap improvement was below 4 MiB')

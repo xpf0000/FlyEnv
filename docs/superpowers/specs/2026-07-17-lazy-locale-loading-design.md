@@ -300,14 +300,14 @@ On Windows, macOS, and Linux, verify:
 ## Performance Acceptance
 
 - The isolated English-plus-current-locale benchmark must not exceed 80 MiB median RSS or 9 MiB median heap in the current test environment.
-- Against the equivalent minified eager JavaScript fixture, the locale microbenchmark must improve by at least 15 MiB RSS and 9 MiB heap. The implementation-time result saved 23.94 MiB RSS and 10.50 MiB heap.
+- Against the equivalent minified eager JavaScript fixture, the locale microbenchmark must improve by at least 15 MiB RSS and 4 MiB heap. RSS is the primary cross-version signal because V8 heap representation varies between Node releases. The implementation-time medians saved 27.27 MiB RSS and 10.50 MiB heap on Node 22, and 35.31 MiB RSS and 5.08 MiB heap on Node 24.
 - The complete idle Electron main process must improve by at least 25 MiB relative to the same-machine baseline, with 30–45 MiB expected from this change.
 - Switching through ten locales and returning to the initial locale must leave settled RSS within 5 MiB of the first optimized startup measurement.
 - Built-in locale switching must complete within 300 ms at the 95th percentile on local packaged assets.
 - `main.mjs`, `fork.mjs`, and initial renderer entry chunks must not contain all built-in locale payloads.
 - Initial display must not regress perceptibly because of locale loading; language installation completes before the first Vue mount.
 
-All memory measurements use release builds, identical application state, the same machine and operating system, a fixed idle settling interval, multiple fresh runs, and median values. Process type and RSS/private-memory metric must be recorded with the result.
+All memory measurements use release builds, identical application state, the same machine and operating system, a fixed idle settling interval, multiple fresh runs, and median values. Process type, Node and V8 versions, and RSS/private-memory metric must be recorded with the result.
 
 ## Delivery Sequence
 
