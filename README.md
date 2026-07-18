@@ -220,6 +220,25 @@ Supports Debian/Ubuntu (.deb) and RedHat/CentOS (.rpm).
 
 ---
 
+## Sponsors
+
+<table>
+  <tr>
+    <td>
+      <a href="https://signpath.io">
+        <img src="https://signpath.org/assets/favicon-50x50.png" width="32" alt="SignPath">
+      </a>
+    </td>
+    <td>
+      Free code signing on Windows provided by
+      <a href="https://signpath.io">SignPath.io</a>, certificate by
+      <a href="https://signpath.org">SignPath Foundation</a>.
+    </td>
+  </tr>
+</table>
+
+---
+
 **📦 Build & Transparency**
 
 All FlyEnv installation packages are now built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:

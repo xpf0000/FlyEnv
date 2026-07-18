@@ -1,11 +1,15 @@
 name: Build FlyEnv Windows Packages
 on:
+  workflow_dispatch:
   push:
+    branches:
+      - master
     paths:
       - 'build/windows.build.yml'
 
 jobs:
   build-windows:
+    if: github.ref == 'refs/heads/master'
     name: Build Windows Packages (x64)
     runs-on: windows-2022
     timeout-minutes: 60
@@ -77,7 +81,7 @@ jobs:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
           SIGNPATH_ORGANIZATION_ID: '4db4007d-ac9e-4889-a8d5-52d4a421d989'
           SIGNPATH_PROJECT_SLUG: 'FlyEnv'
-          SIGNPATH_POLICY_SLUG: 'test-signing'
+          SIGNPATH_POLICY_SLUG: 'release-signing'
           SIGNPATH_APP_ARTIFACT_CONFIG_SLUG: 'windows-app'
         run: |
           cd "$env:GITHUB_WORKSPACE"
@@ -102,7 +106,7 @@ jobs:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: '4db4007d-ac9e-4889-a8d5-52d4a421d989'
           project-slug: 'FlyEnv'
-          signing-policy-slug: 'test-signing'
+          signing-policy-slug: 'release-signing'
           artifact-configuration-slug: 'windows-installer'
           github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
           wait-for-completion: true
