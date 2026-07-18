@@ -167,7 +167,9 @@ class ClaudeCode {
       (window.Server.Proxy ?? {}) as Record<string, string>
     )
     if (window.Server.isWindows) {
-      command.push('[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; irm https://claude.ai/install.ps1 | iex')
+      command.push(
+        '[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; irm https://claude.ai/install.ps1 | iex'
+      )
     } else {
       command.push('curl -fsSL https://claude.ai/install.sh | bash')
     }
