@@ -4,7 +4,6 @@ import {
   getPrimaryLocalIPAddress,
   type NetworkInterfaceInfo
 } from '@shared/network'
-import { createRequire } from 'node:module'
 import ConfigManager from './ConfigManager'
 import { execPromise } from '@shared/child-process'
 import { type FSWatcher, rm, stat, existsSync, watch, createReadStream, constants } from 'node:fs'
@@ -12,21 +11,30 @@ import { join } from 'node:path'
 import { readdir, access as fsAccess } from 'node:fs/promises'
 import Helper from '../../fork/Helper'
 import { resolve as PathResolve } from 'path'
-import { createMarkdownRenderer } from '@/util/markdown/markdown'
 import { isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import { realpath } from '@shared/fs-extra'
-import { parseToml as TOMLParse, stringifyToml as TOMLStringify } from '@shared/toml'
 import { copy, mkdirp, writeFile, readFile, copyFile, chmod, remove } from '@shared/fs-extra'
 import crypto from 'node:crypto'
 import is from 'electron-is'
 import { homedir } from 'node:os'
 import EnvSync from '@shared/EnvSync'
 import { mergeProcessOptions } from '@shared/process-options'
+import { LazyRuntime } from './lazy/LazyRuntime'
 
-const require = createRequire(import.meta.url)
-
-const { pki } = require('node-forge')
-const { types, extensions } = require('mime-types')
+const markdownRuntime = new LazyRuntime(async () => {
+  const { createMarkdownRenderer } = await import('@/util/markdown/markdown')
+  return createMarkdownRenderer
+})
+const forgeRuntime = new LazyRuntime(async () => {
+  // @ts-expect-error node-forge does not publish TypeScript declarations
+  const module = await import('node-forge')
+  return ((module as any).default ?? module) as any
+})
+const mimeRuntime = new LazyRuntime(async () => {
+  const module = await import('mime-types')
+  return ((module as any).default ?? module) as any
+})
+const tomlRuntime = new LazyRuntime(() => import('@shared/toml'))
 
 async function readdirRecursive(dir: string): Promise<string[]> {
   const items = await readdir(dir, { withFileTypes: true })
@@ -162,7 +170,17 @@ export class AppNodeFn {
   }
 
   mime_types(command: string, key: string) {
-    this?.mainWindow?.webContents.send('command', command, key, { types, extensions })
+    mimeRuntime
+      .load()
+      .then(({ types, extensions }) => {
+        this?.mainWindow?.webContents.send('command', command, key, { types, extensions })
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, {
+          types: {},
+          extensions: {}
+        })
+      })
   }
 
   /**
@@ -190,31 +208,52 @@ export class AppNodeFn {
 
   node_forge_rsaGenerateKeyPair(command: string, key: string, opt: any) {
     console.log('node_forge_rsaGenerateKeyPair: ', opt)
-    pki.rsa.generateKeyPair(
-      { ...opt, workers: 4 },
-      (err: any, keyPair: { privateKey: string; publicKey: string }) => {
-        console.log('generateRawPairs: ', opt, err, keyPair)
-        if (err) {
-          this?.mainWindow?.webContents.send('command', command, key, undefined)
-          return
-        }
-        const keys = {
-          privateKey: pki.privateKeyToPem(keyPair.privateKey),
-          publicKey: pki.publicKeyToPem(keyPair.publicKey)
-        }
-        this?.mainWindow?.webContents.send('command', command, key, keys)
-      }
-    )
+    forgeRuntime
+      .load()
+      .then(({ pki }) => {
+        pki.rsa.generateKeyPair(
+          { ...opt, workers: 4 },
+          (err: any, keyPair: { privateKey: string; publicKey: string }) => {
+            console.log('generateRawPairs: ', opt, err, keyPair)
+            if (err) {
+              this?.mainWindow?.webContents.send('command', command, key, undefined)
+              return
+            }
+            const keys = {
+              privateKey: pki.privateKeyToPem(keyPair.privateKey),
+              publicKey: pki.publicKeyToPem(keyPair.publicKey)
+            }
+            this?.mainWindow?.webContents.send('command', command, key, keys)
+          }
+        )
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, undefined)
+      })
   }
 
   node_forge_privateKeyToPem(command: string, key: string, txt: string) {
-    const pem = pki.privateKeyToPem(txt)
-    this?.mainWindow?.webContents.send('command', command, key, pem)
+    forgeRuntime
+      .load()
+      .then(({ pki }) => {
+        const pem = pki.privateKeyToPem(txt)
+        this?.mainWindow?.webContents.send('command', command, key, pem)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, undefined)
+      })
   }
 
   node_forge_publicKeyToPem(command: string, key: string, txt: string) {
-    const pem = pki.publicKeyToPem(txt)
-    this?.mainWindow?.webContents.send('command', command, key, pem)
+    forgeRuntime
+      .load()
+      .then(({ pki }) => {
+        const pem = pki.publicKeyToPem(txt)
+        this?.mainWindow?.webContents.send('command', command, key, pem)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, undefined)
+      })
   }
 
   nativeTheme_shouldUseDarkColors(command: string, key: string) {
@@ -242,21 +281,27 @@ export class AppNodeFn {
   }
 
   toml_parse(command: string, key: string, json: any) {
-    try {
-      const res = TOMLParse(json)
-      this?.mainWindow?.webContents.send('command', command, key, res)
-    } catch {
-      this?.mainWindow?.webContents.send('command', command, key, null)
-    }
+    tomlRuntime
+      .load()
+      .then(({ parseToml }) => {
+        const res = parseToml(json)
+        this?.mainWindow?.webContents.send('command', command, key, res)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, null)
+      })
   }
 
   toml_stringify(command: string, key: string, json: any) {
-    try {
-      const res = TOMLStringify(json)
-      this?.mainWindow?.webContents.send('command', command, key, res)
-    } catch {
-      this?.mainWindow?.webContents.send('command', command, key, null)
-    }
+    tomlRuntime
+      .load()
+      .then(({ stringifyToml }) => {
+        const res = stringifyToml(json)
+        this?.mainWindow?.webContents.send('command', command, key, res)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, null)
+      })
   }
 
   app_getPath(command: string, key: string, flag: AppPathFlag) {
@@ -298,12 +343,7 @@ X-GNOME-Autostart-enabled=true`
       await writeFile(desktopFilePath, desktopFileContent)
       await chmod(desktopFilePath, '0755')
     } else {
-      const desktopFilePath = join(
-        require('os').homedir(),
-        '.config',
-        'autostart',
-        `${app.name}.desktop`
-      )
+      const desktopFilePath = join(homedir(), '.config', 'autostart', `${app.name}.desktop`)
 
       if (existsSync(desktopFilePath)) {
         await remove(desktopFilePath)
@@ -686,9 +726,11 @@ X-GNOME-Autostart-enabled=true`
   }
 
   md_render(command: string, key: string, content: string) {
-    createMarkdownRenderer()
-      .then((res) => {
-        const html = res.render(content)
+    markdownRuntime
+      .load()
+      .then((createMarkdownRenderer) => createMarkdownRenderer())
+      .then((renderer) => {
+        const html = renderer.render(content)
         this?.mainWindow?.webContents.send('command', command, key, html)
       })
       .catch(() => {

@@ -69,6 +69,20 @@ assert.equal(eagerExternalImports.includes('lodash-es'), false)
 assert.equal(eagerExternalImports.includes('compressing'), false)
 assert.equal(eagerInputs.has('src/shared/Sudo.ts'), false)
 assert.equal(eagerInputs.has('src/shared/WindowsHelperFallback.ts'), false)
+for (const dependency of [
+  'node-forge',
+  'mime-types',
+  'markdown-it-async',
+  'shiki',
+  '@mdit-vue/plugin-frontmatter'
+]) {
+  assert.equal(
+    eagerExternalImports.some((item) => item === dependency || item.startsWith(`${dependency}/`)),
+    false,
+    `${dependency} must not be eager`
+  )
+}
+assert.equal(eagerInputs.has('src/render/util/markdown/markdown.ts'), false)
 assert.ok(
   Object.values(result.metafile!.outputs).some((output) =>
     output.imports.some((item) => item.kind === 'dynamic-import')
