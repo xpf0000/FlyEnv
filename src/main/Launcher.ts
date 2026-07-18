@@ -79,9 +79,11 @@ export default class Launcher extends EventEmitter {
   handelAppReady() {
     app.on('ready', async () => {
       console.log('app on ready !!!!!!')
-      global.application = new Application()
-      global.application.start('index')
-      global.application.on('ready', () => {})
+      const application = new Application()
+      await application.init()
+      global.application = application
+      application.start('index')
+      application.on('ready', () => {})
       if (isWindows() || isLinux()) {
         Menu.setApplicationMenu(null)
       }

@@ -1,4 +1,4 @@
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 
 export function concat(template: any, submenu: any, submenuToAdd: any) {
   submenuToAdd.forEach((sub: any) => {

@@ -31,6 +31,7 @@ import { startMcpRuntime, stopMcpRuntime } from './MCPLifecycle'
 import CustomerLang from './CustomerLang'
 import { AppI18n } from '@lang/index'
 import { CheckBrewOrPort } from '../utils/CheckBrew'
+import type { LanguageCoordinator } from './LanguageCoordinator'
 
 export interface IPCHandlerDependencies {
   configManager: ConfigManager
@@ -41,6 +42,7 @@ export interface IPCHandlerDependencies {
   trayManager: TrayManager
   forkManager?: ForkManager
   serverManager: ServerManager
+  languageCoordinator: LanguageCoordinator
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
   appNodeFnManager: typeof AppNodeFnManager
@@ -249,6 +251,16 @@ export default class IPCHandler extends EventEmitter {
    */
   private handleRegularCommand(command: string, key: string, ...args: any[]) {
     switch (command) {
+      case 'application:language-bootstrap':
+        this.handleLanguageBootstrap(command, key)
+        break
+      case 'application:language-prepare':
+        this.handleLanguagePrepare(command, key, args[0])
+        break
+      case 'application:language-commit':
+        this.handleLanguageCommit(command, key, args[0])
+        break
+
       // FlyEnv Helper 相关
       case 'APP-FlyEnv-Helper-Install':
         this.handleHelperInstall(command, key)
@@ -421,6 +433,27 @@ export default class IPCHandler extends EventEmitter {
       default:
         console.log('Unknown command:', command)
     }
+  }
+
+  private handleLanguageBootstrap(command: string, key: string) {
+    this.sendToMainWindow(command, key, {
+      code: 0,
+      data: this.deps.languageCoordinator.bootstrap()
+    })
+  }
+
+  private handleLanguagePrepare(command: string, key: string, locale: string) {
+    this.deps.languageCoordinator
+      .prepare(locale)
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handleLanguageCommit(command: string, key: string, token: string) {
+    this.deps.languageCoordinator
+      .commit(token)
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
   }
 
   // ===== FlyEnv Helper 相关 =====

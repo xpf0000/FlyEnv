@@ -1,5 +1,4 @@
 import Store from 'electron-store'
-import { AppI18n } from '@lang/index'
 import { type Options } from 'electron-store'
 
 interface ConfigOptions {
@@ -240,11 +239,12 @@ export default class ConfigManager {
     return this.config?.get(key, defaultValue)
   }
 
-  setConfig(key: string, ...args: any) {
-    // @ts-ignore
-    this.config?.set(key, ...args)
-    const lang: string = this.config?.get('setup.lang') ?? 'en'
-    AppI18n(lang)
+  setConfig(key: string | Partial<ConfigOptions>, ...args: any[]) {
+    if (typeof key === 'string') {
+      this.config?.set(key as any, ...args)
+    } else {
+      this.config?.set(key)
+    }
   }
 
   reset() {

@@ -3,7 +3,7 @@ import { join } from 'path'
 import { Tray, nativeImage, screen, Menu, BrowserWindow } from 'electron'
 import NativeImage = Electron.NativeImage
 import { isWindows } from '@shared/utils'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions
 
 export default class TrayManager extends EventEmitter {

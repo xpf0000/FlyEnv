@@ -17,7 +17,7 @@ import { ViteDevPort } from '../../../configs/vite.port'
 import { isWindows } from '@shared/utils'
 import { existsSync, mkdirp, readdir, writeFile } from '@shared/fs-extra'
 import { randomUUID } from 'node:crypto'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const index = PathResolve(__dirname, '../render/capturer/capturer.html')

@@ -15,6 +15,7 @@ import { fetchEnvSyncLocal } from '@shared/EnvSyncLocal'
 import type { EnvSyncInvalidated } from '@shared/EnvSyncProtocol'
 import { EnvSyncCoordinator } from './EnvSyncCoordinator'
 import { EnvSyncBridge } from './EnvSyncBridge'
+import type { LanguageChanged } from '@shared/LanguageProtocol'
 
 type Callback = (...args: any) => void
 
@@ -337,6 +338,10 @@ export class ForkManager {
     }
     find._on = this._on
     return find.send(...args)
+  }
+
+  async broadcastLanguage(_message: LanguageChanged) {
+    return [] as boolean[]
   }
 
   async destroy() {

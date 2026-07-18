@@ -5,7 +5,7 @@ import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
 import TrayManager from './ui/TrayManager'
 import { getLanguage, getLocale, logger } from './utils'
-import { AppI18n, I18nT } from '@lang/index'
+import { applyLanguagePayload, I18nT } from '@lang/runtime'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import NodePTY from './core/NodePTY'
@@ -13,7 +13,7 @@ import AppHelper from './core/AppHelper'
 import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
 import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
 import ServiceVersionManager from './core/ServiceVersionManager'
@@ -31,6 +31,9 @@ import { CheckBrewOrPort } from './utils/CheckBrew'
 import { MakeServerDir } from './utils/ServerPath'
 import { reactive, watch } from 'vue'
 import { debounce } from 'lodash-es'
+import { LanguageRepository } from './core/LanguageRepository'
+import { LanguageCoordinator } from './core/LanguageCoordinator'
+import type { LanguageChanged } from '@shared/LanguageProtocol'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -40,16 +43,18 @@ export default class Application extends EventEmitter {
   mcpConfigManager: MCPConfigManager
   mcpServer?: MCPServer
   mcpBridgeManager?: MCPBridgeManager
-  menuManager: MenuManager
-  trayManager: TrayManager
-  windowManager: WindowManager
+  menuManager!: MenuManager
+  trayManager!: TrayManager
+  windowManager!: WindowManager
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
   forkManager?: ForkManager
+  languageRepository: LanguageRepository
+  languageCoordinator: LanguageCoordinator
 
   // 新提取的管理器
   private serverManager: ServerManager
-  private ipcHandler: IPCHandler
+  private ipcHandler!: IPCHandler
   private stopPromise?: Promise<void>
 
   constructor() {
@@ -59,17 +64,42 @@ export default class Application extends EventEmitter {
     this.mcpConfigManager = new MCPConfigManager()
     this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
+    this.serverManager.initServerDir()
+
+    this.languageRepository = new LanguageRepository({
+      builtInRoot: resolve(global.Server.Static!, 'lang'),
+      customRoot: resolve(global.Server.BaseDir!, '../lang')
+    })
+    this.languageCoordinator = new LanguageCoordinator({
+      repository: this.languageRepository,
+      runtime: { apply: applyLanguagePayload },
+      persist: (locale) => this.configManager.setConfig('setup.lang', locale),
+      setServerLocale: (locale) => {
+        global.Server.Lang = locale
+      },
+      refreshNativeUi: () => {
+        this.menuManager?.rebuild()
+        if (this.trayManager?.status) {
+          this.trayManager.menuChange(this.trayManager.status)
+        }
+      },
+      publish: (message) => this.publishLanguage(message),
+      onError: (error) => logger.error('[Language]', error)
+    })
+  }
+
+  async init() {
+    const requestedLocale = getLanguage(this.configManager.getConfig('setup.lang'))
+    await this.languageRepository.ready()
+    await this.languageCoordinator.initialize(requestedLocale)
 
     AppNodeFnManager.nativeTheme_watch()
     AppNodeFnManager.configManager = this.configManager
 
-    this.initLang()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
 
     this.serverManager.setProxy()
-    this.serverManager.initServerDir()
-
     this.windowManager = new WindowManager({
       configManager: this.configManager
     })
@@ -79,7 +109,6 @@ export default class Application extends EventEmitter {
     this.trayManager = new TrayManager()
     this.windowManager.trayManager = this.trayManager
 
-    // 初始化 IPC 处理器
     this.ipcHandler = new IPCHandler({
       configManager: this.configManager,
       mcpConfigManager: this.mcpConfigManager,
@@ -87,6 +116,7 @@ export default class Application extends EventEmitter {
       windowManager: this.windowManager,
       trayManager: this.trayManager,
       serverManager: this.serverManager,
+      languageCoordinator: this.languageCoordinator,
       appNodeFnManager: AppNodeFnManager,
       siteSuckerManager: SiteSuckerManager
     })
@@ -104,6 +134,21 @@ export default class Application extends EventEmitter {
     }
 
     console.log('Application inited !!!')
+    return this
+  }
+
+  private async publishLanguage(message: LanguageChanged) {
+    const command = 'APP-Language-Changed'
+    if (this.trayWindow) {
+      this.windowManager.sendCommandTo(this.trayWindow, command, command, message.payload)
+    }
+    if (this.forkManager) {
+      void this.forkManager.broadcastLanguage(message).then((results) => {
+        if (results.some((result) => !result)) {
+          logger.warn('[Language] one or more forks missed the locale acknowledgement')
+        }
+      })
+    }
   }
 
   /**
@@ -144,18 +189,6 @@ export default class Application extends EventEmitter {
       [page]: bounds
     }
     this.configManager.setConfig('window-state', newState)
-  }
-
-  /**
-   * 初始化语言
-   */
-  private initLang() {
-    const lang = getLanguage(this.configManager.getConfig('setup.lang'))
-    if (lang) {
-      this.configManager.setConfig('setup.lang', lang)
-      AppI18n(lang)
-      global.Server.Lang = lang
-    }
   }
 
   /**

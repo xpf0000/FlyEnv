@@ -4,7 +4,6 @@ import { parseProxyConfigCommand } from '@shared/installProxyEnv'
 import { writeFileByRoot, readFileFixed } from '../utils'
 import ServiceProcessManager from './ServiceProcess'
 import ConfigManager from './ConfigManager'
-import CustomerLang from './CustomerLang'
 import { DetermineRunPath } from '../utils/RunPath'
 import { SetupGlobalPaths } from '../utils/ServerPath'
 
@@ -101,10 +100,8 @@ export default class ServerManager {
    * 更新全局配置
    */
   updateGlobalConfig() {
-    global.Server.Lang = this.configManager.getConfig('setup.lang') ?? 'en'
     global.Server.ForceStart = this.configManager.getConfig('setup.forceStart')
     global.Server.Licenses = this.configManager.getConfig('setup.license')
     global.Server.UserUUID = this.configManager.getConfig('setup.user_uuid')
-    CustomerLang.initLangCustomer()
   }
 }

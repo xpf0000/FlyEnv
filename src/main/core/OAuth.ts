@@ -4,7 +4,7 @@ import axios from 'axios'
 import { getAxiosProxy } from '../../fork/util/Axios'
 import http from 'http'
 import url from 'url'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 
 const { machineId } = _node_machine_id
 // 添加常量定义
