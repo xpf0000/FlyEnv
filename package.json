@@ -23,6 +23,7 @@
     "test:language-assets": "tsx scripts/language-assets-test.ts",
     "test:language-runtime": "tsx scripts/language-runtime-test.ts",
     "test:language-repository": "tsx scripts/language-repository-test.ts",
+    "test:language-coordinator": "tsx scripts/language-coordinator-test.ts",
     "test:caddy-vhost-id-repair": "tsx scripts/caddy-vhost-id-repair-test.ts",
     "test:helper:go": "tsx scripts/helper-go-test.ts test",
     "test:helper:go:vet": "tsx scripts/helper-go-test.ts vet",
