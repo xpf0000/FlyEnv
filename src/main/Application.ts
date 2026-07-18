@@ -522,6 +522,13 @@ export default class Application extends EventEmitter {
           command,
           this.trayManager.status
         )
+        const languageCommand = 'APP-Language-Changed'
+        this.windowManager.sendCommandTo(
+          this.trayWindow!,
+          languageCommand,
+          languageCommand,
+          this.languageCoordinator.snapshot()
+        )
         this.trayManager.addModernStyleListener()
       })
 
