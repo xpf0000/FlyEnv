@@ -56,6 +56,19 @@ for (const source of [configSource, windowsConfigSource]) {
 
 const eager = eagerOutputs(result.metafile!)
 assert.ok(eager.size >= 1)
+const eagerInputs = new Set(
+  [...eager].flatMap((output) => Object.keys(result.metafile!.outputs[output]?.inputs ?? {}))
+)
+const eagerExternalImports = [...eager].flatMap((output) =>
+  (result.metafile!.outputs[output]?.imports ?? [])
+    .filter((item) => item.external && item.kind !== 'dynamic-import')
+    .map((item) => item.path)
+)
+
+assert.equal(eagerExternalImports.includes('lodash-es'), false)
+assert.equal(eagerExternalImports.includes('compressing'), false)
+assert.equal(eagerInputs.has('src/shared/Sudo.ts'), false)
+assert.equal(eagerInputs.has('src/shared/WindowsHelperFallback.ts'), false)
 assert.ok(
   Object.values(result.metafile!.outputs).some((output) =>
     output.imports.some((item) => item.kind === 'dynamic-import')

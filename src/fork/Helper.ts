@@ -11,7 +11,6 @@ import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
 import { appDebugLog, isWindows } from '@shared/utils'
 import { AppHelperError, resolveWindowsHelperTransport } from '@shared/WindowsHelperState'
-import { runWindowsHelperFallback } from '@shared/WindowsHelperFallback'
 
 type Module =
   | 'helper'
@@ -51,13 +50,20 @@ type FN =
   | 'setAutoStartWin'
   | 'removeLoginItemMac'
 
+type WindowsHelperFallback = typeof import('@shared/WindowsHelperFallback').runWindowsHelperFallback
+
+const lazyWindowsHelperFallback: WindowsHelperFallback = async (...args) => {
+  const { runWindowsHelperFallback } = await import('@shared/WindowsHelperFallback')
+  return runWindowsHelperFallback(...args)
+}
+
 type HelperDeps = {
   createConnection: typeof createConnection
   appHelperCheck: typeof AppHelperCheck
   getHelperKey: typeof getHelperKey
   isWindows: typeof isWindows
   resolveWindowsHelperTransport: typeof resolveWindowsHelperTransport
-  runWindowsHelperFallback: typeof runWindowsHelperFallback
+  runWindowsHelperFallback: WindowsHelperFallback
 }
 
 const defaultHelperDeps: HelperDeps = {
@@ -66,7 +72,7 @@ const defaultHelperDeps: HelperDeps = {
   getHelperKey,
   isWindows,
   resolveWindowsHelperTransport,
-  runWindowsHelperFallback
+  runWindowsHelperFallback: lazyWindowsHelperFallback
 }
 
 export class Helper {

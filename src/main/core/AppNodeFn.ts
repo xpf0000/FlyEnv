@@ -21,7 +21,7 @@ import crypto from 'node:crypto'
 import is from 'electron-is'
 import { homedir } from 'node:os'
 import EnvSync from '@shared/EnvSync'
-import { merge } from 'lodash-es'
+import { mergeProcessOptions } from '@shared/process-options'
 
 const require = createRequire(import.meta.url)
 
@@ -411,7 +411,7 @@ X-GNOME-Autostart-enabled=true`
     EnvSync.clean()
     EnvSync.sync()
       .then((env) => {
-        const options = merge(
+        const options = mergeProcessOptions(
           {
             env
           },
@@ -695,7 +695,6 @@ X-GNOME-Autostart-enabled=true`
         this?.mainWindow?.webContents.send('command', command, key, '')
       })
   }
-
 }
 
 export default new AppNodeFn()

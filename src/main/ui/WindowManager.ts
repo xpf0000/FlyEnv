@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import { app, BrowserWindow, nativeImage, screen } from 'electron'
 import pageConfig from '../configs/page'
-import { debounce } from 'lodash-es'
+import { debounce } from '@shared/debounce'
 import Event = Electron.Main.Event
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
 import { join } from 'path'

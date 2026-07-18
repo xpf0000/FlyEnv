@@ -1,18 +1,14 @@
 import { join } from 'node:path'
 import { mkdirp, readFile, writeFile } from '@shared/fs-extra'
 import { existsSync } from 'node:fs'
-import compressing from 'compressing'
 
 /**
  * 解压并配置 Nginx
  */
-const extractNginxConfig = () => {
-  compressing.zip
-    .uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir!)
-    .then(() => {
-      return configureNginxFile()
-    })
-    .catch()
+const extractNginxConfig = async () => {
+  const { default: compressing } = await import('compressing')
+  await compressing.zip.uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir!)
+  await configureNginxFile()
 }
 
 /**
@@ -38,6 +34,6 @@ export const SetupNginxConfig = () => {
 
   const ngconf = join(global.Server.NginxDir!, 'common/conf/nginx.conf')
   if (!existsSync(ngconf)) {
-    extractNginxConfig()
+    void extractNginxConfig().catch(() => {})
   }
 }

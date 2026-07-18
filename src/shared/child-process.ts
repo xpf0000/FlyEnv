@@ -1,6 +1,6 @@
 import { type ChildProcess, exec, spawn } from 'child_process'
 import { promisify } from 'util'
-import { merge } from 'lodash-es'
+import { mergeProcessOptions } from './process-options'
 import EnvSync from './EnvSync'
 import { isMacOS, uuid } from '@shared/utils'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -40,7 +40,7 @@ export function execPromiseSudo(
       child = spawn(
         'sudo',
         args,
-        merge(
+        mergeProcessOptions(
           {
             shell: '/bin/zsh',
             env
@@ -111,7 +111,7 @@ export const execPromiseWithEnv = (
       if (isMacOS()) {
         option.shell = '/bin/zsh'
       }
-      const res = await execPromise(command, merge(option, opt))
+      const res = await execPromise(command, mergeProcessOptions(option, opt))
       resolve({
         stdout: res.stdout.toString(),
         stderr: res.stderr.toString()
@@ -182,7 +182,7 @@ export const spawnPromiseWithEnv = (
     if (isMacOS()) {
       optdefault.shell = '/bin/zsh'
     }
-    const opt = merge(optdefault, options)
+    const opt = mergeProcessOptions(optdefault, options)
     let cp: ChildProcess
     try {
       cp = spawn(command, arg, opt)

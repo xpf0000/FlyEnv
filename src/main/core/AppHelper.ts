@@ -1,4 +1,3 @@
-import { exec as Sudo } from '@shared/Sudo'
 import { join, resolve as PathResolve, basename, dirname } from 'node:path'
 import is from 'electron-is'
 import { appDebugLog, isLinux, isMacOS, isWindows, uuid } from '@shared/utils'
@@ -19,14 +18,21 @@ type AppHelperMessage = {
 
 type AppHelperCallback = (message: AppHelperMessage) => void
 
+type SudoExec = typeof import('@shared/Sudo').exec
+
+const lazySudo: SudoExec = async (...args) => {
+  const { exec } = await import('@shared/Sudo')
+  return exec(...args)
+}
+
 type AppHelperDeps = {
   appHelperCheck: typeof AppHelperCheck
-  sudo: typeof Sudo
+  sudo: SudoExec
 }
 
 const defaultAppHelperDeps: AppHelperDeps = {
   appHelperCheck: AppHelperCheck,
-  sudo: Sudo
+  sudo: lazySudo
 }
 
 export class AppHelper {
