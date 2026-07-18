@@ -12,6 +12,7 @@ import { EnvSyncBridge } from './EnvSyncBridge'
 import { EnvSyncCoordinator } from './EnvSyncCoordinator'
 import { PRIMARY_FORK_IDLE_TIMEOUT_MS, TRANSIENT_FORK_IDLE_TIMEOUT_MS } from './ForkIdleLifecycle'
 import { ForkItem } from './ForkItem'
+import { getDedicatedServiceTransition } from './ForkWorkerPolicy'
 import { StopProcessListBridge } from './StopProcessListBridge'
 import { StopProcessListCache } from './StopProcessListCache'
 
@@ -85,6 +86,18 @@ export class ForkManager {
     )
   }
 
+  private sendDedicatedService(fork: ForkItem, module: string, args: any[]) {
+    const command = args[1]
+    return fork.sendWithTerminalHook(
+      (info) => {
+        const transition = getDedicatedServiceTransition(module, command, info?.code)
+        if (transition === 'pin') fork.pin()
+        if (transition === 'unpin') fork.unpin()
+      },
+      ...args
+    )
+  }
+
   private broadcastEnvSyncInvalidated(revision: number) {
     const message: EnvSyncInvalidated = { type: 'env-sync-invalidated', revision }
     const forks = new Set(
@@ -112,14 +125,14 @@ export class ForkManager {
         this.ftpsrvFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
         this.ftpsrvFork._on = this._on
       }
-      return this.ftpsrvFork.send(...args)
+      return this.sendDedicatedService(this.ftpsrvFork, module, args)
     }
     if (module === 'dns') {
       if (!this.dnsFork) {
         this.dnsFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
         this.dnsFork._on = this._on
       }
-      return this.dnsFork.send(...args)
+      return this.sendDedicatedService(this.dnsFork, module, args)
     }
     const fn = param.shift()
     if (module === 'ollama' && ['chat', 'stopOutput'].includes(fn)) {
