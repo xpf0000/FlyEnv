@@ -7,7 +7,7 @@ import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { buildHelperCheckResponse } from '@shared/WindowsHelperState'
 import ConfigManager from './ConfigManager'
 import type MCPConfigManager from './MCPConfigManager'
-import type MCPServer from './MCPServer'
+import type { MCPRuntime } from './MCPRuntime'
 import type MCPBridgeManager from './MCPBridgeManager'
 import type WindowManager from '../ui/WindowManager'
 import type TrayManager from '../ui/TrayManager'
@@ -21,7 +21,6 @@ import ServiceVersionManager from './ServiceVersionManager'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { existsSync, readFileSync } from 'node:fs'
-import { startMcpRuntime, stopMcpRuntime } from './MCPLifecycle'
 import { CheckBrewOrPort } from '../utils/CheckBrew'
 import type { LanguageCoordinator } from './LanguageCoordinator'
 import {
@@ -36,7 +35,7 @@ import {
 export interface IPCHandlerDependencies {
   configManager: ConfigManager
   mcpConfigManager?: MCPConfigManager
-  mcpServer?: MCPServer
+  mcpRuntime?: MCPRuntime
   mcpBridgeManager?: MCPBridgeManager
   windowManager: WindowManager
   trayManager: TrayManager
@@ -832,13 +831,13 @@ export default class IPCHandler extends EventEmitter {
   // ===== MCP Server =====
 
   private handleMcpStart(command: string, key: string) {
-    const server = this.deps.mcpServer
-    const mcpConfig = this.deps.mcpConfigManager
-    if (!server || !mcpConfig) {
+    const runtime = this.deps.mcpRuntime
+    if (!runtime) {
       this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
       return
     }
-    startMcpRuntime(server)
+    runtime
+      .start()
       .then((res) => {
         this.sendToMainWindow(command, key, { code: 0, data: res })
       })
@@ -848,13 +847,13 @@ export default class IPCHandler extends EventEmitter {
   }
 
   private handleMcpStop(command: string, key: string) {
-    const server = this.deps.mcpServer
-    const mcpConfig = this.deps.mcpConfigManager
-    if (!server || !mcpConfig) {
+    const runtime = this.deps.mcpRuntime
+    if (!runtime) {
       this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
       return
     }
-    stopMcpRuntime(server)
+    runtime
+      .stopLoaded()
       .then((res) => {
         this.sendToMainWindow(command, key, { code: 0, data: res })
       })
@@ -864,12 +863,12 @@ export default class IPCHandler extends EventEmitter {
   }
 
   private handleMcpStatus(command: string, key: string) {
-    const server = this.deps.mcpServer
-    if (!server) {
+    const runtime = this.deps.mcpRuntime
+    if (!runtime) {
       this.sendToMainWindow(command, key, { code: 1, msg: 'MCP not initialized' })
       return
     }
-    this.sendToMainWindow(command, key, { code: 0, data: server.status() })
+    this.sendToMainWindow(command, key, { code: 0, data: runtime.status() })
   }
 
   private handleMcpGetConfig(command: string, key: string) {

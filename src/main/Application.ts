@@ -19,11 +19,10 @@ import { AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import ConfigManager from './core/ConfigManager'
 import MCPConfigManager from './core/MCPConfigManager'
-import MCPServer from './core/MCPServer'
 import MCPBridgeManager from './core/MCPBridgeManager'
+import { MCPRuntime } from './core/MCPRuntime'
 import ServerManager from './core/ServerManager'
 import IPCHandler from './core/IPCHandler'
-import { startMcpOnLaunchIfNeeded } from './core/MCPLifecycle'
 import { CheckBrewOrPort } from './utils/CheckBrew'
 import { MakeServerDir } from './utils/ServerPath'
 import { reactive, watch } from 'vue'
@@ -45,7 +44,7 @@ export default class Application extends EventEmitter {
   isReady: boolean = false
   configManager: ConfigManager
   mcpConfigManager: MCPConfigManager
-  mcpServer?: MCPServer
+  mcpRuntime?: MCPRuntime
   mcpBridgeManager?: MCPBridgeManager
   menuManager!: MenuManager
   trayManager!: TrayManager
@@ -259,10 +258,16 @@ export default class Application extends EventEmitter {
       })
     })
 
-    // MCP Server 需要 forkManager 句柄，在此创建并注入
-    this.mcpServer = new MCPServer(this.forkManager, this.mcpConfigManager, this.configManager)
-    this.ipcHandler.updateDependencies({ forkManager: this.forkManager, mcpServer: this.mcpServer })
-    startMcpOnLaunchIfNeeded(this.mcpConfigManager, this.mcpServer).catch(() => {})
+    // MCP Server 需要 forkManager 句柄；仅在自动启动或首次手动启动时加载实现。
+    this.mcpRuntime = new MCPRuntime(this.mcpConfigManager, async () => {
+      const { default: MCPServer } = await import('./core/MCPServer')
+      return new MCPServer(this.forkManager!, this.mcpConfigManager, this.configManager)
+    })
+    this.ipcHandler.updateDependencies({
+      forkManager: this.forkManager,
+      mcpRuntime: this.mcpRuntime
+    })
+    void this.mcpRuntime.startOnLaunch()
 
     // MCP 通知统一通过 ServiceVersionManager 中转，再广播给渲染进程
     ServiceVersionManager.onMcpNotify((payload) => {
@@ -596,9 +601,9 @@ export default class Application extends EventEmitter {
       console.log('HttpServer.stopAll e: ', e)
     }
     try {
-      await this.mcpServer?.stop()
+      await this.mcpRuntime?.stopLoaded()
     } catch (e) {
-      console.log('mcpServer.stop e: ', e)
+      console.log('mcpRuntime.stop e: ', e)
     }
     try {
       await this.serverManager.stopServer()

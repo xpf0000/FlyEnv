@@ -138,6 +138,20 @@ assert.doesNotMatch(
   readFileSync('src/render/util/GlobalIPCOn.ts', 'utf8'),
   /APP-User-UUID-Need-Update/
 )
+for (const input of [
+  'src/main/core/MCPServer.ts',
+  'src/main/core/MCPTools.ts',
+  'src/main/core/MCPContextResolver.ts'
+]) {
+  assert.equal(eagerInputs.has(input), false, `${input} must not be eager`)
+}
+assert.equal(
+  eagerExternalImports.some((item) => item.startsWith('@modelcontextprotocol/sdk/')),
+  false,
+  'MCP SDK must not be eager'
+)
+assert.match(applicationSource, /await import\('\.\/core\/MCPServer'\)/)
+assert.doesNotMatch(applicationSource, /import MCPServer from '\.\/core\/MCPServer'/)
 assert.ok(
   Object.values(result.metafile!.outputs).some((output) =>
     output.imports.some((item) => item.kind === 'dynamic-import')

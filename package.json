@@ -23,6 +23,7 @@
     "test:main-lazy-bundle": "tsx scripts/main-process-lazy-bundle-test.ts",
     "test:main-lazy-utilities": "tsx scripts/main-process-eager-utilities-test.ts",
     "test:github-account": "tsx scripts/github-account-service-test.ts",
+    "test:mcp-lazy-runtime": "tsx scripts/mcp-lazy-runtime-test.ts",
     "build:language-assets": "tsx scripts/build-language-assets.ts",
     "test:language-assets": "tsx scripts/language-assets-test.ts",
     "test:language-runtime": "tsx scripts/language-runtime-test.ts",
