@@ -1,10 +1,21 @@
 import type { BuildOptions } from 'esbuild'
 import { BuildPlugin } from './plugs.build'
 
+const mainOutput: Pick<
+  BuildOptions,
+  'outdir' | 'entryNames' | 'chunkNames' | 'outExtension' | 'splitting'
+> = {
+  outdir: 'dist/electron',
+  entryNames: '[name]',
+  chunkNames: 'chunks/[name]-[hash]',
+  outExtension: { '.js': '.mjs' },
+  splitting: true
+}
+
 const dev: BuildOptions = {
+  ...mainOutput,
   platform: 'node',
-  entryPoints: ['src/main/index.dev.ts'],
-  outfile: 'dist/electron/main.mjs',
+  entryPoints: { main: 'src/main/index.dev.ts' },
   minify: false,
   bundle: true,
   packages: 'external',
@@ -14,9 +25,9 @@ const dev: BuildOptions = {
 }
 
 const dist: BuildOptions = {
+  ...mainOutput,
   platform: 'node',
-  entryPoints: ['src/main/index.ts'],
-  outfile: 'dist/electron/main.mjs',
+  entryPoints: { main: 'src/main/index.ts' },
   minify: true,
   bundle: true,
   packages: 'external',
