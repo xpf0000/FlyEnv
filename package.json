@@ -28,6 +28,8 @@
     "test:language-main": "tsx scripts/language-main-integration-test.ts",
     "test:language-renderer": "tsx scripts/language-renderer-test.ts",
     "test:language-fork": "tsx scripts/language-fork-test.ts",
+    "test:language-bundle": "tsx scripts/language-bundle-audit-test.ts",
+    "test:language-lazy": "yarn test:language-assets && yarn test:language-runtime && yarn test:language-repository && yarn test:language-coordinator && yarn test:language-build-hook && yarn test:language-main && yarn test:language-renderer && yarn test:language-fork && yarn test:language-bundle",
     "test:caddy-vhost-id-repair": "tsx scripts/caddy-vhost-id-repair-test.ts",
     "test:helper:go": "tsx scripts/helper-go-test.ts test",
     "test:helper:go:vet": "tsx scripts/helper-go-test.ts vet",
