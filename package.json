@@ -20,6 +20,7 @@
     "test:bin-version-cache": "tsx scripts/bin-version-cache-test.ts",
     "test:env-sync-coordinator": "tsx scripts/env-sync-coordinator-test.ts",
     "test:fork-idle-lifecycle": "tsx scripts/fork-idle-lifecycle-test.ts",
+    "test:fork-item-idle": "tsx scripts/fork-item-idle-restart-test.ts",
     "test:main-lazy-runtime": "tsx scripts/main-process-lazy-runtime-test.ts",
     "test:main-lazy-bundle": "tsx scripts/main-process-lazy-bundle-test.ts",
     "test:main-lazy-utilities": "tsx scripts/main-process-eager-utilities-test.ts",

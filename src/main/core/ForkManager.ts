@@ -1,258 +1,25 @@
-import { utilityProcess, UtilityProcess } from 'electron'
-import { uuid, appendFile } from '../utils'
-import { ForkPromise } from '@shared/ForkPromise'
-import { join } from 'path'
+import { utilityProcess } from 'electron'
 import { cpus } from 'os'
-// import { appDebugLog } from '@shared/utils'
 import { fetchStopProcessListLocal } from '@shared/StopProcessList'
-import { StopProcessListBridge } from './StopProcessListBridge'
-import { StopProcessListCache } from './StopProcessListCache'
-import { BinVersionCacheStore } from './BinVersionCacheStore'
-import { ElectronStoreBinVersionCachePersistence } from './BinVersionCachePersistence'
-import { BinVersionCacheBridge } from './BinVersionCacheBridge'
 import EnvSync from '@shared/EnvSync'
 import { fetchEnvSyncLocal } from '@shared/EnvSyncLocal'
 import type { EnvSyncInvalidated } from '@shared/EnvSyncProtocol'
-import { EnvSyncCoordinator } from './EnvSyncCoordinator'
+import type { LanguageChanged, LanguageRuntimePayload } from '@shared/LanguageProtocol'
+import { BinVersionCacheBridge } from './BinVersionCacheBridge'
+import { ElectronStoreBinVersionCachePersistence } from './BinVersionCachePersistence'
+import { BinVersionCacheStore } from './BinVersionCacheStore'
 import { EnvSyncBridge } from './EnvSyncBridge'
-import {
-  isLanguageChangedAck,
-  type LanguageChanged,
-  type LanguageRuntimePayload
-} from '@shared/LanguageProtocol'
+import { EnvSyncCoordinator } from './EnvSyncCoordinator'
+import { PRIMARY_FORK_IDLE_TIMEOUT_MS, TRANSIENT_FORK_IDLE_TIMEOUT_MS } from './ForkIdleLifecycle'
+import { ForkItem } from './ForkItem'
+import { StopProcessListBridge } from './StopProcessListBridge'
+import { StopProcessListCache } from './StopProcessListCache'
+
+export { ForkItem } from './ForkItem'
 
 type Callback = (...args: any) => void
 
 const CupCount = cpus().length
-
-class ForkItem {
-  forkFile: string
-  child: UtilityProcess
-  autoDestroy: boolean
-  destroyTimer?: NodeJS.Timeout
-  childExited: boolean = false
-  pid?: number = undefined
-  loading: boolean = false
-  taskFlag: Array<number> = []
-  _on: Callback = () => {}
-  callback: {
-    [k: string]: {
-      resolve: Callback
-      on: Callback
-    }
-  }
-  private readonly languageAcks = new Map<
-    string,
-    { resolve: (value: boolean) => void; timer: NodeJS.Timeout }
-  >()
-  waitDestroy() {
-    if (this.autoDestroy && this.taskFlag.length === 0) {
-      this.destroyTimer = setTimeout(() => {
-        if (this.taskFlag.length === 0) {
-          this.destroy()
-        }
-      }, 10000)
-    }
-  }
-  onMessage(child: UtilityProcess, message: any) {
-    if (isLanguageChangedAck(message)) {
-      const pending = this.languageAcks.get(message.requestId)
-      if (pending) {
-        clearTimeout(pending.timer)
-        this.languageAcks.delete(message.requestId)
-        pending.resolve(true)
-      }
-      return
-    }
-    if (
-      this.envSyncBridge.handle(message, (response) => {
-        try {
-          child.postMessage(response)
-        } catch {}
-      })
-    ) {
-      return
-    }
-    if (
-      this.stopProcessListBridge.handle(message, (response) => {
-        try {
-          child.postMessage(response)
-        } catch {}
-      })
-    ) {
-      return
-    }
-    if (
-      this.binVersionCacheBridge.handle(message, (response) => {
-        try {
-          child.postMessage(response)
-        } catch {}
-      })
-    ) {
-      return
-    }
-    const { on, key, info } = message ?? {}
-    if (on) {
-      this._on({ key, info })
-      return
-    }
-    const fn = this.callback?.[key]
-    if (fn) {
-      if (info?.code === 0 || info?.code === 1) {
-        fn.resolve(info)
-        delete this.callback?.[key]
-        this.taskFlag.pop()
-        this.waitDestroy()
-      } else if (info?.code === 200) {
-        fn.on(info)
-      }
-    }
-  }
-  onError(type: string, location: string, report: string) {
-    this.loading = false
-    const error = JSON.stringify({
-      type,
-      location,
-      report
-    })
-    appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${error}`).then()
-    for (const k in this.callback) {
-      const fn = this.callback?.[k]
-      if (fn) {
-        fn.resolve({
-          code: 1,
-          msg: error
-        })
-      }
-      delete this.callback?.[k]
-    }
-    this.taskFlag.pop()
-    this.waitDestroy()
-  }
-
-  onExit() {
-    this.resolveLanguageAcks()
-    this.childExited = true
-    this.pid = undefined
-    this.loading = false
-  }
-
-  onSpawn() {
-    this.childExited = false
-    this.pid = this?.child?.pid
-    this.loading = false
-    console.log('onSpawn: ', this.pid)
-  }
-
-  constructor(
-    file: string,
-    autoDestroy: boolean,
-    private readonly envSyncBridge: EnvSyncBridge,
-    private readonly stopProcessListBridge: StopProcessListBridge,
-    private readonly binVersionCacheBridge: BinVersionCacheBridge,
-    private readonly languageSnapshotProvider: () => LanguageRuntimePayload | undefined
-  ) {
-    this.forkFile = file
-    this.autoDestroy = autoDestroy
-    this.callback = {}
-
-    this.onError = this.onError.bind(this)
-    this.onExit = this.onExit.bind(this)
-    this.onSpawn = this.onSpawn.bind(this)
-
-    this.loading = true
-    const child = utilityProcess.fork(file)
-    this.postInitialization(child)
-    this.attachChild(child)
-    this.child = child
-  }
-
-  private postInitialization(child: UtilityProcess) {
-    child.postMessage({
-      Server: JSON.parse(JSON.stringify(Server)),
-      Language: this.languageSnapshotProvider()
-    })
-  }
-
-  private attachChild(child: UtilityProcess) {
-    child.on('message', (message) => this.onMessage(child, message))
-    child.on('error', this.onError)
-    child.on('exit', this.onExit)
-    child.on('spawn', this.onSpawn)
-  }
-
-  isChildDisabled() {
-    if (this.loading) {
-      return false
-    }
-    return this?.childExited || !this?.pid
-  }
-
-  send(...args: any) {
-    return new ForkPromise((resolve, reject, on) => {
-      clearTimeout(this.destroyTimer)
-      this.taskFlag.push(1)
-      const thenKey = uuid()
-      this.callback[thenKey] = {
-        resolve,
-        on
-      }
-      let child = this.child
-      if (this.isChildDisabled()) {
-        console.log('this.isChildDisabled !!!!', this.childExited, this?.pid)
-        this.loading = true
-        child = utilityProcess.fork(this.forkFile)
-        this.attachChild(child)
-        console.log('this.isChildDisabled pid: ', child.pid)
-      } else {
-        console.log('!!!! this.isChildDisabled Not')
-      }
-      this.postInitialization(child)
-      child.postMessage([thenKey, ...args])
-      this.child = child
-    })
-  }
-
-  sendLanguage(message: LanguageChanged, timeoutMs = 1_000) {
-    if (this.childExited) return Promise.resolve(false)
-    return new Promise<boolean>((resolve) => {
-      const timer = setTimeout(() => {
-        this.languageAcks.delete(message.requestId)
-        resolve(false)
-      }, timeoutMs)
-      this.languageAcks.set(message.requestId, { resolve, timer })
-      try {
-        this.child.postMessage(message)
-      } catch {
-        clearTimeout(timer)
-        this.languageAcks.delete(message.requestId)
-        resolve(false)
-      }
-    })
-  }
-
-  private resolveLanguageAcks() {
-    for (const pending of this.languageAcks.values()) {
-      clearTimeout(pending.timer)
-      pending.resolve(false)
-    }
-    this.languageAcks.clear()
-  }
-
-  destroy() {
-    this.resolveLanguageAcks()
-    this.childExited = true
-    try {
-      this.child?.kill()
-    } catch {}
-    try {
-      const pid = this?.child?.pid || this.pid
-      if (pid) {
-        process.kill(pid)
-      }
-    } catch {}
-  }
-}
 
 export class ForkManager {
   file: string
@@ -303,6 +70,21 @@ export class ForkManager {
     this.languageSnapshotProvider = provider
   }
 
+  private createForkItem(idleTimeoutMs: number, primary = false) {
+    return new ForkItem(
+      this.file,
+      {
+        idleTimeoutMs,
+        primary,
+        forkProcess: (forkFile) => utilityProcess.fork(forkFile)
+      },
+      this.envSyncBridge,
+      this.stopProcessListBridge,
+      this.binVersionCacheBridge,
+      () => this.languageSnapshotProvider?.()
+    )
+  }
+
   private broadcastEnvSyncInvalidated(revision: number) {
     const message: EnvSyncInvalidated = { type: 'env-sync-invalidated', revision }
     const forks = new Set(
@@ -322,76 +104,49 @@ export class ForkManager {
     this._on = fn
   }
 
-  send(...args: any) {
+  send(...args: any[]) {
     const param = [...args]
     const module = param.shift()
     if (module === 'ftp-srv') {
       if (!this.ftpsrvFork) {
-        this.ftpsrvFork = new ForkItem(
-          this.file,
-          false,
-          this.envSyncBridge,
-          this.stopProcessListBridge,
-          this.binVersionCacheBridge,
-          () => this.languageSnapshotProvider?.()
-        )
+        this.ftpsrvFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
         this.ftpsrvFork._on = this._on
       }
-      return this.ftpsrvFork!.send(...args)
+      return this.ftpsrvFork.send(...args)
     }
     if (module === 'dns') {
       if (!this.dnsFork) {
-        this.dnsFork = new ForkItem(
-          this.file,
-          false,
-          this.envSyncBridge,
-          this.stopProcessListBridge,
-          this.binVersionCacheBridge,
-          () => this.languageSnapshotProvider?.()
-        )
+        this.dnsFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
         this.dnsFork._on = this._on
       }
-      return this.dnsFork!.send(...args)
+      return this.dnsFork.send(...args)
     }
     const fn = param.shift()
     if (module === 'ollama' && ['chat', 'stopOutput'].includes(fn)) {
       if (!this.ollamaChatFork) {
-        this.ollamaChatFork = new ForkItem(
-          this.file,
-          true,
-          this.envSyncBridge,
-          this.stopProcessListBridge,
-          this.binVersionCacheBridge,
-          () => this.languageSnapshotProvider?.()
-        )
+        this.ollamaChatFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
       }
-      return this.ollamaChatFork!.send(...args)
+      return this.ollamaChatFork.send(...args)
     }
     /**
-     * Find a thread with no tasks
-     * If not found, and the number of threads is less than the number of CPU cores, create a new thread that will automatically destroy itself 10 seconds after completing the task.
-     * If the number of threads equals the number of CPU cores, poll from front to back.
+     * Find a thread with no tasks.
+     * The first generic item is always the three-minute primary. Every additional generic item
+     * is reclaimed ten seconds after becoming idle.
      */
-    let find = this.forks.find((p) => p.taskFlag.length === 0 && !p.autoDestroy)
-    if (!find) {
-      find = this.forks.find((p) => p.taskFlag.length === 0)
-    }
+    let find = this.forks.find((item) => item.activeTaskCount === 0 && item.isPrimary)
+    if (!find) find = this.forks.find((item) => item.activeTaskCount === 0)
     if (find) {
-      console.log('fork find: ', this.forks.indexOf(find), find.autoDestroy)
+      console.log('fork find: ', this.forks.indexOf(find), find.isPrimary)
     }
     if (!find) {
       const forksCount = this.forks.length
       console.log('forksCount: ', forksCount, CupCount)
       if (forksCount < CupCount) {
-        find = new ForkItem(
-          this.file,
-          this.forks.length > 0,
-          this.envSyncBridge,
-          this.stopProcessListBridge,
-          this.binVersionCacheBridge,
-          () => this.languageSnapshotProvider?.()
+        const primary = this.forks.length === 0
+        find = this.createForkItem(
+          primary ? PRIMARY_FORK_IDLE_TIMEOUT_MS : TRANSIENT_FORK_IDLE_TIMEOUT_MS,
+          primary
         )
-        // find = new ForkItem(this.file, true)
         this.forks.push(find)
       } else {
         find = this.forks.shift()!
@@ -415,9 +170,9 @@ export class ForkManager {
     await this.binVersionCacheStore.flush()
     this.unsubscribeEnvSync()
     EnvSync.setProvider(undefined)
-    this?.dnsFork?.destroy()
-    this?.ftpsrvFork?.destroy()
-    this?.ollamaChatFork?.destroy()
+    this.dnsFork?.destroy()
+    this.ftpsrvFork?.destroy()
+    this.ollamaChatFork?.destroy()
     this.forks.forEach((fork) => {
       fork.destroy()
     })
