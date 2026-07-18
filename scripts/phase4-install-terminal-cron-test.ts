@@ -53,6 +53,7 @@ assert.ok(cronWrapper.includes('$LockFile = Join-Path $RunDir "$JobId.running.lo
 assert.ok(cronWrapper.includes('[IO.FileMode]::OpenOrCreate'))
 assert.ok(cronWrapper.includes('[IO.FileAccess]::ReadWrite'))
 assert.ok(cronWrapper.includes('[IO.FileShare]::None'))
+assert.ok(cronWrapper.includes('$LockError.InnerException -is [IO.IOException]'))
 assert.ok(cronWrapper.includes('$LockHandle.Dispose()'))
 assert.match(cronWrapper, /finally\s*\{[\s\S]*\$LockHandle\.Dispose\(\)/)
 assert.ok(cronWrapper.includes('$psi.FileName = $CmdExe'))

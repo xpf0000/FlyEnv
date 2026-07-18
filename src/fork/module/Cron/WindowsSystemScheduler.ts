@@ -50,9 +50,11 @@ try {
     [IO.FileAccess]::ReadWrite,
     [IO.FileShare]::None
   )
-} catch [IO.IOException] {
-  exit 0
 } catch {
+  $LockError = $_.Exception
+  if ($LockError -is [IO.IOException] -or $LockError.InnerException -is [IO.IOException]) {
+    exit 0
+  }
   exit 1
 }
 
