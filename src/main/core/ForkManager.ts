@@ -15,7 +15,11 @@ import { fetchEnvSyncLocal } from '@shared/EnvSyncLocal'
 import type { EnvSyncInvalidated } from '@shared/EnvSyncProtocol'
 import { EnvSyncCoordinator } from './EnvSyncCoordinator'
 import { EnvSyncBridge } from './EnvSyncBridge'
-import type { LanguageChanged } from '@shared/LanguageProtocol'
+import {
+  isLanguageChangedAck,
+  type LanguageChanged,
+  type LanguageRuntimePayload
+} from '@shared/LanguageProtocol'
 
 type Callback = (...args: any) => void
 
@@ -37,6 +41,10 @@ class ForkItem {
       on: Callback
     }
   }
+  private readonly languageAcks = new Map<
+    string,
+    { resolve: (value: boolean) => void; timer: NodeJS.Timeout }
+  >()
   waitDestroy() {
     if (this.autoDestroy && this.taskFlag.length === 0) {
       this.destroyTimer = setTimeout(() => {
@@ -47,6 +55,15 @@ class ForkItem {
     }
   }
   onMessage(child: UtilityProcess, message: any) {
+    if (isLanguageChangedAck(message)) {
+      const pending = this.languageAcks.get(message.requestId)
+      if (pending) {
+        clearTimeout(pending.timer)
+        this.languageAcks.delete(message.requestId)
+        pending.resolve(true)
+      }
+      return
+    }
     if (
       this.envSyncBridge.handle(message, (response) => {
         try {
@@ -114,6 +131,7 @@ class ForkItem {
   }
 
   onExit() {
+    this.resolveLanguageAcks()
     this.childExited = true
     this.pid = undefined
     this.loading = false
@@ -131,7 +149,8 @@ class ForkItem {
     autoDestroy: boolean,
     private readonly envSyncBridge: EnvSyncBridge,
     private readonly stopProcessListBridge: StopProcessListBridge,
-    private readonly binVersionCacheBridge: BinVersionCacheBridge
+    private readonly binVersionCacheBridge: BinVersionCacheBridge,
+    private readonly languageSnapshotProvider: () => LanguageRuntimePayload | undefined
   ) {
     this.forkFile = file
     this.autoDestroy = autoDestroy
@@ -143,9 +162,16 @@ class ForkItem {
 
     this.loading = true
     const child = utilityProcess.fork(file)
-    child.postMessage({ Server: JSON.parse(JSON.stringify(Server)) })
+    this.postInitialization(child)
     this.attachChild(child)
     this.child = child
+  }
+
+  private postInitialization(child: UtilityProcess) {
+    child.postMessage({
+      Server: JSON.parse(JSON.stringify(Server)),
+      Language: this.languageSnapshotProvider()
+    })
   }
 
   private attachChild(child: UtilityProcess) {
@@ -181,13 +207,40 @@ class ForkItem {
       } else {
         console.log('!!!! this.isChildDisabled Not')
       }
-      child.postMessage({ Server: JSON.parse(JSON.stringify(Server)) })
+      this.postInitialization(child)
       child.postMessage([thenKey, ...args])
       this.child = child
     })
   }
 
+  sendLanguage(message: LanguageChanged, timeoutMs = 1_000) {
+    if (this.childExited) return Promise.resolve(false)
+    return new Promise<boolean>((resolve) => {
+      const timer = setTimeout(() => {
+        this.languageAcks.delete(message.requestId)
+        resolve(false)
+      }, timeoutMs)
+      this.languageAcks.set(message.requestId, { resolve, timer })
+      try {
+        this.child.postMessage(message)
+      } catch {
+        clearTimeout(timer)
+        this.languageAcks.delete(message.requestId)
+        resolve(false)
+      }
+    })
+  }
+
+  private resolveLanguageAcks() {
+    for (const pending of this.languageAcks.values()) {
+      clearTimeout(pending.timer)
+      pending.resolve(false)
+    }
+    this.languageAcks.clear()
+  }
+
   destroy() {
+    this.resolveLanguageAcks()
     this.childExited = true
     try {
       this.child?.kill()
@@ -239,10 +292,15 @@ export class ForkManager {
     }
   )
   private readonly binVersionCacheBridge = new BinVersionCacheBridge(this.binVersionCacheStore)
+  private languageSnapshotProvider?: () => LanguageRuntimePayload
 
   constructor(file: string) {
     this.file = file
     EnvSync.setProvider(this.envSyncCoordinator)
+  }
+
+  setLanguageSnapshotProvider(provider: () => LanguageRuntimePayload) {
+    this.languageSnapshotProvider = provider
   }
 
   private broadcastEnvSyncInvalidated(revision: number) {
@@ -274,7 +332,8 @@ export class ForkManager {
           false,
           this.envSyncBridge,
           this.stopProcessListBridge,
-          this.binVersionCacheBridge
+          this.binVersionCacheBridge,
+          () => this.languageSnapshotProvider?.()
         )
         this.ftpsrvFork._on = this._on
       }
@@ -287,7 +346,8 @@ export class ForkManager {
           false,
           this.envSyncBridge,
           this.stopProcessListBridge,
-          this.binVersionCacheBridge
+          this.binVersionCacheBridge,
+          () => this.languageSnapshotProvider?.()
         )
         this.dnsFork._on = this._on
       }
@@ -301,7 +361,8 @@ export class ForkManager {
           true,
           this.envSyncBridge,
           this.stopProcessListBridge,
-          this.binVersionCacheBridge
+          this.binVersionCacheBridge,
+          () => this.languageSnapshotProvider?.()
         )
       }
       return this.ollamaChatFork!.send(...args)
@@ -327,7 +388,8 @@ export class ForkManager {
           this.forks.length > 0,
           this.envSyncBridge,
           this.stopProcessListBridge,
-          this.binVersionCacheBridge
+          this.binVersionCacheBridge,
+          () => this.languageSnapshotProvider?.()
         )
         // find = new ForkItem(this.file, true)
         this.forks.push(find)
@@ -340,8 +402,13 @@ export class ForkManager {
     return find.send(...args)
   }
 
-  async broadcastLanguage(_message: LanguageChanged) {
-    return [] as boolean[]
+  async broadcastLanguage(message: LanguageChanged) {
+    const forks = new Set(
+      [this.ftpsrvFork, this.dnsFork, this.ollamaChatFork, ...this.forks].filter(
+        (item): item is ForkItem => !!item && !item.childExited
+      )
+    )
+    return Promise.all([...forks].map((fork) => fork.sendLanguage(message)))
   }
 
   async destroy() {

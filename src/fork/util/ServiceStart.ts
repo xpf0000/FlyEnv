@@ -1,6 +1,6 @@
 import type { ModuleExecItem, SoftInstalled } from '@shared/app'
 import { dirname, join } from 'path'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import Helper from '../Helper'
 import { userInfo } from 'os'
 import {

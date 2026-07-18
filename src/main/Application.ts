@@ -237,6 +237,7 @@ export default class Application extends EventEmitter {
    */
   private initForkManager() {
     this.forkManager = new ForkManager(join(__dirname, './fork.mjs'))
+    this.forkManager.setLanguageSnapshotProvider(() => this.languageCoordinator.snapshot())
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
       if (key === 'App-Need-Init-FlyEnv-Helper') {
         AppHelper.needInstall()

@@ -15,7 +15,7 @@ import {
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { isWindows } from '@shared/utils'
 import { ProcessListSearch, fetchProcessPidByPort, ProcessPidList } from '@shared/Process.win'
 import axios from 'axios'

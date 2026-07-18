@@ -1,5 +1,5 @@
 import { basename, dirname, join } from 'path'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import {
   AppLog,
   spawnPromiseWithEnv,

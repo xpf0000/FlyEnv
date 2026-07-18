@@ -1,4 +1,3 @@
-import { AppI18n } from '@lang/index'
 import BaseManager from './BaseManager'
 import { appDebugLog } from '@shared/utils'
 import { ProcessSendError } from './Fn'
@@ -8,6 +7,7 @@ import { BinVersionCacheClient } from './BinVersionCacheClient'
 import { setBinVersionCacheProvider } from './util/BinVersionCache'
 import EnvSync from '@shared/EnvSync'
 import { EnvSyncClient } from './EnvSyncClient'
+import ForkLanguageService from './LanguageService'
 
 const parentPort = process.parentPort
 const stopProcessListClient = parentPort
@@ -78,13 +78,16 @@ const manager = new BaseManager()
 
 // ↓↓↓↓ 下面这里的代码完全不用动，保持原来的 child_process 写法即可 ↓↓↓↓
 process.on('message', function (args: any) {
+  if (ForkLanguageService.handle(args)) {
+    return
+  }
   if (args.Server) {
     global.Server = args.Server
-    if (global.Server.LangCustomer) {
-      AppI18n().global.setLocaleMessage(global.Server.Lang!, global.Server.LangCustomer)
+    if (args.Language) {
+      ForkLanguageService.initialize(args.Language)
     }
-    AppI18n(args.Server.Lang)
     manager.init()
+    return
   } else {
     // 假设 manager 内部使用了 process.send，现在也能正常工作了
     manager

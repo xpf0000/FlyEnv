@@ -5,7 +5,7 @@ import { performance } from 'perf_hooks'
 import { URL } from 'url'
 import type { IncomingMessage, RequestOptions } from 'http'
 import type { AgentOptions } from 'https'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 
 interface TimingResults {
   dnsLookup: number

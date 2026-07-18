@@ -12,7 +12,7 @@ import {
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessPidsByPid } from '@shared/Process'
 import { StopProcessListFetch, StopProcessPidListByPid } from '@shared/StopProcessList'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { basename, dirname, join } from 'path'
 import { chmod, remove, writeFile, copyFile, readFile, spawnPromiseWithEnv } from '../../Fn'
 import { execPromise } from '../../Fn'

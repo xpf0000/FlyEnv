@@ -20,7 +20,7 @@ import {
   waitTime
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { serviceStartSpawn } from '../../util/ServiceStart'

@@ -9,7 +9,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { join } from 'path'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { BomCleanTask } from '../../util/BomCleanTask'
 import RequestTimer from '@shared/requestTimer'
 import { killPorts, killPids, getPortPids, getPidsByKey } from './process'

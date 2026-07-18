@@ -1,4 +1,4 @@
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { createWriteStream, existsSync } from 'fs'
 import { join } from 'path'
 import { userInfo } from 'os'

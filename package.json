@@ -27,6 +27,7 @@
     "test:language-build-hook": "tsx scripts/language-build-hook-test.ts",
     "test:language-main": "tsx scripts/language-main-integration-test.ts",
     "test:language-renderer": "tsx scripts/language-renderer-test.ts",
+    "test:language-fork": "tsx scripts/language-fork-test.ts",
     "test:caddy-vhost-id-repair": "tsx scripts/caddy-vhost-id-repair-test.ts",
     "test:helper:go": "tsx scripts/helper-go-test.ts test",
     "test:helper:go:vet": "tsx scripts/helper-go-test.ts vet",

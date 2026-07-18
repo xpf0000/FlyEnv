@@ -8,7 +8,7 @@ import { uuid } from '../../Fn'
 import { isLinux, isMacOS } from '@shared/utils'
 import { PItem, ProcessKill, ProcessPidsByPid } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 
 class OpenClaw extends Base {
   constructor() {

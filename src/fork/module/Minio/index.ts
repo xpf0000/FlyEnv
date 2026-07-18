@@ -19,7 +19,7 @@ import {
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { isMacOS, isWindows } from '@shared/utils'
 
 class Minio extends Base {

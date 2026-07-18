@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import {
   hostAlias,

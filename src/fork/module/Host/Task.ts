@@ -3,7 +3,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { setDirRole } from './Host'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import compressing from 'compressing'
 import {
   downloadFile,

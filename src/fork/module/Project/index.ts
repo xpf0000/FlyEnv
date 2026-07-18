@@ -3,7 +3,7 @@ import { Base } from '../Base'
 import { md5, moveDirToDir, uuid, remove, writeFile } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { SoftInstalled } from '@shared/app'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { existsSync } from 'node:fs'
 
 class Manager extends Base {

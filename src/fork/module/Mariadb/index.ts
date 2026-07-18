@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import { join, basename, dirname, isAbsolute } from 'path'
 import { existsSync, readdirSync, statSync } from 'fs'
 import { Base } from '../Base'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,

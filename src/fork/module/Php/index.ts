@@ -1,7 +1,7 @@
 import { join, dirname } from 'path'
 import { createWriteStream, existsSync, statSync, unlinkSync } from 'fs'
 import { Base } from '../Base'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,

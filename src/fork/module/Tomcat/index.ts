@@ -27,7 +27,7 @@ import {
 import TaskQueue from '../../TaskQueue'
 import { makeGlobalTomcatServerXML } from './ServerXML'
 import { serviceStartSpawn } from '../../util/ServiceStart'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { isLinux, isWindows } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 import EnvSync from '@shared/EnvSync'

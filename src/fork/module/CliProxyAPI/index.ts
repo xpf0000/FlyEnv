@@ -18,7 +18,7 @@ import {
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
 

@@ -9,7 +9,7 @@ import { uuid } from '../../Fn'
 import { appDebugLog } from '@shared/utils'
 import { PItem, ProcessKill, ProcessPidsByPid } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { checkAiCliVersion, resolveAiCliCommand } from '../../util/AiCli'
 
 interface SkillItem {

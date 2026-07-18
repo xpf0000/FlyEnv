@@ -19,7 +19,7 @@ import {
 } from './ImageCompressTest'
 import { machineId } from '../../Fn'
 import { publicDecrypt } from 'crypto'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 
 type ImageFileItemType = {
   path: string

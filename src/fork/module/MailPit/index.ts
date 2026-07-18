@@ -18,7 +18,7 @@ import {
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 
 class MailPit extends Base {

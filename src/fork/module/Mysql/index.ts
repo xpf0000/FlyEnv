@@ -1,7 +1,7 @@
 import { join, basename, dirname, isAbsolute } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from '../Base'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import type { MysqlGroupItem, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,

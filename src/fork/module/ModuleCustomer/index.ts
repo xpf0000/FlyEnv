@@ -14,7 +14,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { existsSync } from 'fs'
 import { ProcessKill, ProcessPidsByPid } from '@shared/Process'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import type { ModuleExecItem, SoftInstalled } from '@shared/app'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { StopProcessListFetch, StopProcessPidListByPid } from '@shared/StopProcessList'

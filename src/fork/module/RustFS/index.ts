@@ -17,7 +17,7 @@ import {
   binXattrFix
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { isMacOS, isWindows } from '@shared/utils'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 

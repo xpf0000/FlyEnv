@@ -22,7 +22,7 @@ import {
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
-import { I18nT } from '@lang/index'
+import { I18nT } from '@lang/runtime'
 import { isLinux, isWindows } from '@shared/utils'
 import { userInfo } from 'node:os'
 
