@@ -355,13 +355,15 @@ assert.deepEqual(
 
 const readSource = (path: string) => readFileSync(path, 'utf8')
 const forkManagerSource = readSource('src/main/core/ForkManager.ts')
+const forkItemSource = readSource('src/main/core/ForkItem.ts')
 const applicationSource = readSource('src/main/Application.ts')
 const forkEntrySource = readSource('src/fork/index.ts')
 
 assert.match(forkManagerSource, /BinVersionCacheStore/)
 assert.match(forkManagerSource, /ElectronStoreBinVersionCachePersistence/)
 assert.match(forkManagerSource, /BinVersionCacheBridge/)
-assert.match(forkManagerSource, /binVersionCacheBridge\.handle/)
+assert.match(forkManagerSource, /this\.binVersionCacheBridge/)
+assert.match(forkItemSource, /binVersionCacheBridge\.handle/)
 assert.match(forkManagerSource, /await this\.binVersionCacheStore\.flush\(\)/)
 assert.match(applicationSource, /await this\.forkManager\?\.destroy\(\)/)
 assert.match(forkEntrySource, /BinVersionCacheClient/)
