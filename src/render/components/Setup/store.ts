@@ -49,14 +49,17 @@ export const SetupStore = defineStore('setup', {
     init() {
       return new Promise<void>((resolve) => {
         this.message = localStorage.getItem('flyenv-licenses-post-message') ?? ''
-        localForage.getItem('flyenv-user-github').then((res: any) => {
-          if (res?.githubUser) {
-            this.githubUser = reactive(res.githubUser)
-          }
-          if (res?.githubLicense) {
-            this.githubLicense = reactive(res.githubLicense)
-          }
-        })
+        localForage
+          .getItem('flyenv-user-github')
+          .then((res: any) => {
+            if (res?.githubUser) {
+              this.githubUser = reactive(res.githubUser)
+            }
+            if (res?.githubLicense) {
+              this.githubLicense = reactive(res.githubLicense)
+            }
+          })
+          .finally(() => this.githubUserRefresh())
         let time = Number(localStorage.getItem('flyenv-init-time') ?? '0')
         if (!time || isNaN(time)) {
           time = Math.round(new Date().getTime() / 1000)
@@ -169,6 +172,15 @@ export const SetupStore = defineStore('setup', {
           )
         )
         .catch()
+    },
+    githubUserRefresh() {
+      IPC.send('app-fork:app', 'githubUserFetch').then((key: string, res?: any) => {
+        IPC.off(key)
+        if (res?.code !== 0 || !res?.data?.user) return
+        this.githubUser = reactive(res.data.user)
+        this.githubLicense = reactive(res.data.license ?? [])
+        this.githubInfoSave()
+      })
     },
     githubAuthStart() {
       if (this.githubAuthing) {

@@ -141,6 +141,10 @@ export default class IPCHandler extends EventEmitter {
    */
   private handleForkCommand(command: string, key: string, ...args: any[]) {
     const module = command.replace('app-fork:', '')
+    this.dispatchForkCommand(command, key, module, args)
+  }
+
+  private dispatchForkCommand(command: string, key: string, module: string, args: any[]) {
     const action = args?.[0]
     const debugAction = {
       command,
@@ -172,6 +176,7 @@ export default class IPCHandler extends EventEmitter {
     const forkManager = this.deps.forkManager
     if (!forkManager) {
       this.clearDebugForkAction(debugAction)
+      this.sendToMainWindow(command, key, { code: 1, msg: 'Fork manager not initialized' })
       return
     }
 
@@ -813,33 +818,15 @@ export default class IPCHandler extends EventEmitter {
   }
 
   private handleOAuthLicenseFetch(command: string, key: string) {
-    oauthRuntime
-      .load()
-      .then((oauth) => oauth.fetchUserLicense())
-      .then((res) => {
-        this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
-      })
-      .catch((error) => this.sendRuntimeError(command, key, error))
+    this.dispatchForkCommand(command, key, 'app', ['githubLicenseFetch'])
   }
 
   private handleOAuthLicenseDelBind(command: string, key: string, args: any[]) {
-    oauthRuntime
-      .load()
-      .then((oauth) => oauth.delBind(args[0], args[1]))
-      .then((res) => {
-        this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
-      })
-      .catch((error) => this.sendRuntimeError(command, key, error))
+    this.dispatchForkCommand(command, key, 'app', ['githubLicenseDelete', args[0], args[1]])
   }
 
   private handleOAuthLicenseAddBind(command: string, key: string, args: any[]) {
-    oauthRuntime
-      .load()
-      .then((oauth) => oauth.addBind(args[0], args[1]))
-      .then((res) => {
-        this.sendToMainWindow(command, key, JSON.parse(JSON.stringify(res)))
-      })
-      .catch((error) => this.sendRuntimeError(command, key, error))
+    this.dispatchForkCommand(command, key, 'app', ['githubLicenseAdd', args[0], args[1]])
   }
 
   // ===== MCP Server =====

@@ -105,6 +105,39 @@ assert.match(
   /handleCapturerConfigUpdate[\s\S]*?capturerRuntime\.peek\(\)\?\.configUpdate/,
   'capture config updates must use peek without loading the native runtime'
 )
+assert.equal(eagerInputs.has('src/main/core/OAuth.ts'), false)
+for (const dependency of ['axios', 'node-machine-id']) {
+  assert.equal(
+    eagerExternalImports.some((item) => item === dependency || item.startsWith(`${dependency}/`)),
+    false,
+    `${dependency} must not be eager in main`
+  )
+}
+
+const applicationSource = readFileSync('src/main/Application.ts', 'utf8')
+assert.doesNotMatch(
+  applicationSource,
+  /oauthRuntime\s*\.load\(\)[\s\S]*?fetchUser\(\)/,
+  'application startup must not load OAuth for cached-user refresh'
+)
+assert.doesNotMatch(applicationSource, /APP-User-UUID-Need-Update/)
+
+for (const [command, action] of [
+  ['GitHub-OAuth-License-Fetch', 'githubLicenseFetch'],
+  ['GitHub-OAuth-License-Del-Bind', 'githubLicenseDelete'],
+  ['GitHub-OAuth-License-Add-Bind', 'githubLicenseAdd']
+]) {
+  assert.match(ipcHandlerSource, new RegExp(`case '${command}'`))
+  assert.match(ipcHandlerSource, new RegExp(`['"]${action}['"]`))
+}
+
+const setupStoreSource = readFileSync('src/render/components/Setup/store.ts', 'utf8')
+assert.match(setupStoreSource, /githubUserRefresh\(\)/)
+assert.match(setupStoreSource, /IPC\.send\('app-fork:app', 'githubUserFetch'\)/)
+assert.doesNotMatch(
+  readFileSync('src/render/util/GlobalIPCOn.ts', 'utf8'),
+  /APP-User-UUID-Need-Update/
+)
 assert.ok(
   Object.values(result.metafile!.outputs).some((output) =>
     output.imports.some((item) => item.kind === 'dynamic-import')

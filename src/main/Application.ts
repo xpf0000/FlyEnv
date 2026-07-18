@@ -388,20 +388,6 @@ export default class Application extends EventEmitter {
         'APP-Ready-To-Show',
         this.serverManager.getGlobalServer()
       )
-
-      global.Server.UserUUID = this.configManager?.getConfig('setup.user_uuid')
-      oauthRuntime
-        .load()
-        .then((oauth) => oauth.fetchUser())
-        .then((res) => {
-          this.windowManager.sendCommandTo(
-            win,
-            'APP-User-UUID-Need-Update',
-            'APP-User-UUID-Need-Update',
-            JSON.parse(JSON.stringify(res))
-          )
-        })
-        .catch()
     })
 
     ScreenManager.initWindow(win)

@@ -1,5 +1,4 @@
 import { createConnection } from 'net'
-import { uuid } from './Fn'
 import {
   AppHelperCheck,
   AppHelperSocketPathGet,
@@ -9,7 +8,7 @@ import {
 } from '@shared/AppHelperCheck'
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
-import { appDebugLog, isWindows } from '@shared/utils'
+import { appDebugLog, isWindows, uuid } from '@shared/utils'
 import { AppHelperError, resolveWindowsHelperTransport } from '@shared/WindowsHelperState'
 
 type Module =

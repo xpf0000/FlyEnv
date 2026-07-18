@@ -9,10 +9,37 @@ import YAML from 'yamljs'
 import { compareVersions } from '@shared/compare-versions'
 import type { SoftInstalled } from '@shared/app'
 import { isDEB } from '../../util/Linux'
+import { GitHubAccountService } from './GitHubAccount'
 
 class App extends Base {
+  private readonly githubAccount = new GitHubAccountService()
+
   constructor() {
     super()
+  }
+
+  githubUserFetch() {
+    return new ForkPromise(async (resolve) => {
+      resolve(await this.githubAccount.fetchUser(global.Server.UserUUID ?? ''))
+    })
+  }
+
+  githubLicenseFetch() {
+    return new ForkPromise(async (resolve) => {
+      resolve(await this.githubAccount.fetchLicenses(global.Server.UserUUID ?? ''))
+    })
+  }
+
+  githubLicenseDelete(uuid: string, license: string) {
+    return new ForkPromise(async (resolve) => {
+      resolve(await this.githubAccount.deleteBinding(global.Server.UserUUID ?? '', uuid, license))
+    })
+  }
+
+  githubLicenseAdd(uuid: string, license: string) {
+    return new ForkPromise(async (resolve) => {
+      resolve(await this.githubAccount.addBinding(global.Server.UserUUID ?? '', uuid, license))
+    })
   }
 
   private getRSAKey() {
