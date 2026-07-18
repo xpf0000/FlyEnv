@@ -7,6 +7,7 @@ import wasm from 'vite-plugin-wasm'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 import { createRequire } from 'node:module'
+import { ElementPlusLocaleModules } from './element-plus-locales'
 const require = createRequire(import.meta.url)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -39,6 +40,7 @@ const config: UserConfig = {
   },
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
+    include: [...ElementPlusLocaleModules],
     esbuildOptions: {
       jsx: 'preserve',
       target: 'esnext',
