@@ -11,10 +11,7 @@ import { type FSWatcher, rm, stat, existsSync, watch, createReadStream, constant
 import { join } from 'node:path'
 import { readdir, access as fsAccess } from 'node:fs/promises'
 import Helper from '../../fork/Helper'
-import { resolve as PathResolve, resolve } from 'path'
-import ZH from '@lang/zh'
-import EN from '@lang/en'
-import { AppAllLang, AppI18n } from '@lang/index'
+import { resolve as PathResolve } from 'path'
 import { createMarkdownRenderer } from '@/util/markdown/markdown'
 import { isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import { realpath } from '@shared/fs-extra'
@@ -23,7 +20,6 @@ import { copy, mkdirp, writeFile, readFile, copyFile, chmod, remove } from '@sha
 import crypto from 'node:crypto'
 import is from 'electron-is'
 import { homedir } from 'node:os'
-import CustomerLang from './CustomerLang'
 import EnvSync from '@shared/EnvSync'
 import { merge } from 'lodash-es'
 
@@ -50,12 +46,6 @@ type WatcherItem = {
   watcher: FSWatcher
   command: string
   key: string
-}
-
-type CustomerLangItem = {
-  label: string
-  key: string
-  lang: any
 }
 
 type AppPathFlag =
@@ -706,99 +696,6 @@ X-GNOME-Autostart-enabled=true`
       })
   }
 
-  async lang_initCustomerLang(command: string, key: string) {
-    const langDir = resolve(global.Server.BaseDir!, '../lang')
-    await mkdirp(langDir)
-    const currentLang = global.Server.Lang!
-    await mkdirp(join(langDir, currentLang))
-    const lang: any = currentLang === 'zh' ? ZH.zh : EN.en
-    for (const k in lang) {
-      const v: any = lang[k]
-      const f = join(langDir, currentLang, `${k}.json`)
-      if (!existsSync(f)) {
-        await writeFile(f, JSON.stringify(v, null, 2))
-      }
-    }
-    const indexJson =
-      currentLang === 'zh'
-        ? {
-            lang: 'zh',
-            label: '中文'
-          }
-        : {
-            lang: 'en',
-            label: 'English'
-          }
-    const file = join(langDir, currentLang, `index.json`)
-    await writeFile(file, JSON.stringify(indexJson, null, 2))
-    this?.mainWindow?.webContents.send('command', command, key, true)
-  }
-
-  async lang_loadCustomerLang(command: string, key: string) {
-    const langDir = resolve(global.Server.BaseDir!, '../lang')
-    if (!existsSync(langDir)) {
-      return
-    }
-    const dir = await readdir(langDir)
-    if (!dir.length) {
-      return
-    }
-    const langArr: CustomerLangItem[] = []
-    for (const d of dir) {
-      const f = join(langDir, d, 'index.json')
-      if (!existsSync(f)) {
-        continue
-      }
-      const content = await readFile(f, 'utf-8')
-      let json: any
-      try {
-        json = JSON.parse(content)
-      } catch {}
-      if (!json) {
-        continue
-      }
-      if (!json?.lang || !json?.label) {
-        continue
-      }
-      if (Object.keys(AppAllLang).includes(json.lang)) {
-        continue
-      }
-      const files = await readdir(join(langDir, d))
-      const langFiles = files.filter((f: string) => f.endsWith('.json') && f !== 'index.json')
-      if (!langFiles.length) {
-        continue
-      }
-      const item: CustomerLangItem = {
-        label: json.label,
-        key: json.lang,
-        lang: {}
-      }
-      const lang = item.lang
-      for (const f of langFiles) {
-        const content = await readFile(join(langDir, d, f), 'utf-8')
-        let json: any
-        try {
-          json = JSON.parse(content)
-        } catch {}
-        if (!json) {
-          continue
-        }
-        const key = f.replace('.json', '')
-        lang[key] = json
-      }
-      if (!Object.keys(lang).length) {
-        continue
-      }
-      langArr.push(item)
-    }
-    console.log('langArr: ', langArr)
-    this?.mainWindow?.webContents.send('command', command, key, langArr)
-
-    for (const item of langArr) {
-      CustomerLang.lang[item.key] = item.lang
-      AppI18n().global.setLocaleMessage(item.key, item.lang)
-    }
-  }
 }
 
 export default new AppNodeFn()

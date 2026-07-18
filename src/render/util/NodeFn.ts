@@ -1,6 +1,4 @@
 import IPC from '@/util/IPC'
-import { CustomerLangs } from '@lang/customer'
-import { AppI18n } from '@lang/index'
 import type { ExecOptions } from 'node:child_process'
 import type { Stats } from 'node:fs'
 
@@ -67,33 +65,25 @@ export class DirWatcher {
   }
 }
 
-type CustomerLangItem = {
-  label: string
-  key: string
-  lang: any
-}
+type CustomLocaleMetadata = { locale: string; label: string }
+type LanguageResponse<T> = { code: number; data?: T; msg?: string }
+
+const languageRequest = <T>(command: string, ...args: unknown[]) =>
+  new Promise<T>((resolve, reject) => {
+    IPC.send(command, ...args).then((key: string, response: LanguageResponse<T>) => {
+      IPC.off(key)
+      if (response?.code === 0 && response.data !== undefined) resolve(response.data)
+      else reject(new Error(response?.msg || `Language request failed: ${command}`))
+    })
+  })
 
 export const lang = {
-  initCustomerLang: createIPCCall<[], any>('lang', 'initCustomerLang'),
-  loadCustomerLang: () => {
-    return new Promise((resolve) => {
-      createIPCCall<[], CustomerLangItem[]>('lang', 'loadCustomerLang')()
-        .then((langArr) => {
-          CustomerLangs.splice(0)
-          for (const item of langArr) {
-            CustomerLangs.push({
-              label: item.label,
-              lang: item.key
-            })
-            AppI18n().global.setLocaleMessage(item.key, item.lang)
-          }
-        })
-        .catch()
-        .finally(() => {
-          resolve(true)
-        })
-    })
-  }
+  listCustom: () =>
+    languageRequest<CustomLocaleMetadata[]>('application:language-list-custom'),
+  invalidate: (locale: string) =>
+    languageRequest<boolean>('application:language-invalidate', locale),
+  initCustom: (locale: 'en' | 'zh') =>
+    languageRequest<string>('application:language-init-custom', locale)
 }
 
 export interface NetworkInterfaceInfo {

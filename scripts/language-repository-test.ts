@@ -64,6 +64,15 @@ try {
   })
   assert.deepEqual(await repository.listCustom(), [{ locale: 'pirate', label: 'Pirate' }])
 
+  const templateDirectory = await repository.initializeCustomTemplate('en')
+  assert.equal(templateDirectory, join(customRoot, 'en'))
+  assert.deepEqual(await repository.listCustom(), [{ locale: 'pirate', label: 'Pirate' }])
+  await writeFile(join(customRoot, 'pirate', 'base.json'), JSON.stringify({ title: 'Ahoy again' }))
+  repository.invalidate('pirate')
+  assert.deepEqual((await repository.load('pirate')).messages, {
+    base: { title: 'Ahoy again' }
+  })
+
   await assert.rejects(() => repository.load('../en'), /Unsupported or unsafe locale/)
   await assert.rejects(() => repository.load('missing'), /Unsupported or unsafe locale/)
 

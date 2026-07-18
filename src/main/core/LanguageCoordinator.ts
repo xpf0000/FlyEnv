@@ -10,6 +10,9 @@ import type {
 interface RepositoryContract {
   load(locale: string): Promise<LanguageAsset>
   retain(locale: string): void
+  listCustom?(): Promise<Array<{ locale: string; label: string }>>
+  initializeCustomTemplate?(locale: 'en' | 'zh'): Promise<string>
+  invalidate?(locale: string): void
 }
 
 interface RuntimeContract {
@@ -125,5 +128,20 @@ export class LanguageCoordinator {
     const result = { payload: this.snapshot(), warning: this.startupWarning }
     this.startupWarning = undefined
     return result
+  }
+
+  listCustom() {
+    return this.options.repository.listCustom?.() ?? Promise.resolve([])
+  }
+
+  initializeCustomTemplate(locale: 'en' | 'zh') {
+    if (!this.options.repository.initializeCustomTemplate) {
+      return Promise.reject(new Error('Custom locale templates are unavailable'))
+    }
+    return this.options.repository.initializeCustomTemplate(locale)
+  }
+
+  invalidate(locale: string) {
+    this.options.repository.invalidate?.(locale)
   }
 }

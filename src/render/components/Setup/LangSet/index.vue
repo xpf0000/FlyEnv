@@ -14,14 +14,15 @@
       </template>
     </div>
     <el-tooltip :placement="'top'" :show-after="600" :content="I18nT('setup.openLangDir')">
-      <el-button link @click.stop="LangSetup.openLangDir()">
+      <el-button link @click.stop="LangSetup.openLangDir(appLang)">
         <FolderOpened class="w-4 h-4" />
       </el-button>
     </el-tooltip>
   </div>
   <div class="main brew-src">
     <el-select
-      v-model="appLang"
+      :model-value="appLang"
+      @change="onLanguageChange"
       :loading="running"
       :disabled="running"
       :placeholder="$t('base.changeLang')"
@@ -37,29 +38,35 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { Refresh, FolderOpened } from '@element-plus/icons-vue'
   import { AppStore } from '@/store/app'
-  import { AppAllLang, AppI18n, I18nT } from '@lang/index'
+  import { AppAllLang, I18nT } from '@lang/index'
   import { LangSetup } from '@/components/Setup/LangSet/setup'
   import { CustomerLangs } from '@lang/customer'
+  import { RendererLanguage } from '@/core/LanguageService'
+  import { MessageError } from '@/util/Element'
 
   const appStore = AppStore()
   const running = ref(false)
-  const appLang = computed({
-    get() {
-      return appStore.config.setup.lang
-    },
-    set(v: string) {
-      running.value = true
-      AppStore().config.setup.lang = v
-      AppI18n(v)
-      AppStore().saveConfig()
-      nextTick().then(() => {
-        running.value = false
-      })
-    }
+  const appLang = computed(() => appStore.config.setup.lang)
+
+  onMounted(() => {
+    LangSetup.doLoad().catch((error) => MessageError(String(error)))
   })
+
+  const onLanguageChange = async (locale: string) => {
+    if (running.value || locale === appLang.value) return
+    running.value = true
+    try {
+      const committedLocale = await RendererLanguage.switchLocale(locale)
+      appStore.config.setup.lang = committedLocale
+    } catch (error) {
+      MessageError(String(error))
+    } finally {
+      running.value = false
+    }
+  }
 
   const langList = computed(() => {
     const all = Object.keys(AppAllLang).sort()

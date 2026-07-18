@@ -28,8 +28,6 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { existsSync, readFileSync } from 'node:fs'
 import { startMcpRuntime, stopMcpRuntime } from './MCPLifecycle'
-import CustomerLang from './CustomerLang'
-import { AppI18n } from '@lang/index'
 import { CheckBrewOrPort } from '../utils/CheckBrew'
 import type { LanguageCoordinator } from './LanguageCoordinator'
 
@@ -260,6 +258,16 @@ export default class IPCHandler extends EventEmitter {
       case 'application:language-commit':
         this.handleLanguageCommit(command, key, args[0])
         break
+      case 'application:language-list-custom':
+        this.handleLanguageListCustom(command, key)
+        break
+      case 'application:language-init-custom':
+        this.handleLanguageInitCustom(command, key, args[0] === 'zh' ? 'zh' : 'en')
+        break
+      case 'application:language-invalidate':
+        this.deps.languageCoordinator.invalidate(args[0])
+        this.sendToMainWindow(command, key, { code: 0, data: true })
+        break
 
       // FlyEnv Helper 相关
       case 'APP-FlyEnv-Helper-Install':
@@ -382,11 +390,6 @@ export default class IPCHandler extends EventEmitter {
         this.handleSiteSuckerSetupSave(command, key, args)
         break
 
-      // 自定义语言
-      case 'app-customer-lang-update':
-        this.handleCustomerLangUpdate(args)
-        break
-
       // OAuth
       case 'GitHub-OAuth-Start':
         this.handleOAuthStart(command, key)
@@ -452,6 +455,20 @@ export default class IPCHandler extends EventEmitter {
   private handleLanguageCommit(command: string, key: string, token: string) {
     this.deps.languageCoordinator
       .commit(token)
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handleLanguageListCustom(command: string, key: string) {
+    this.deps.languageCoordinator
+      .listCustom()
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handleLanguageInitCustom(command: string, key: string, locale: 'en' | 'zh') {
+    this.deps.languageCoordinator
+      .initializeCustomTemplate(locale)
       .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
       .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
   }
@@ -697,16 +714,6 @@ export default class IPCHandler extends EventEmitter {
     this.deps.configManager.setConfig('tools.siteSucker', args[0])
     this.sendToMainWindow(command, key, true)
     this.deps.siteSuckerManager.updateConfig(args[0])
-  }
-
-  // ===== 自定义语言 =====
-
-  private handleCustomerLangUpdate(args: any[]) {
-    const langKey = args[0]
-    const langValue = args[1]
-    CustomerLang.lang[langKey] = langValue
-    // 更新语言
-    AppI18n().global.setLocaleMessage(langKey, langValue)
   }
 
   // ===== OAuth =====
