@@ -46,7 +46,7 @@ The removed `AppStore()` call is not the root cause. `app.use(pinia)` correctly 
 - `scripts/language-vite-optimize-test.ts` extracts all Element Plus locale imports from `src/lang/render.ts`, compares the unique sorted identifiers with the configuration array, and verifies there are no missing or stale entries.
 - `package.json` exposes the focused test and adds it to `test:language-lazy`.
 
-At development startup, Vite prebundles the declared modules under one browser hash. The renderer loads Vue, Pinia, and the selected Element Plus locale from that stable dependency graph. Later async sidebar imports therefore retain the original application injection context.
+At development startup, Vite prebundles the declared modules during one optimizer run with a stable global browser hash. Individual optimized dependencies may have different per-file query hashes, but each dependency has only one active version in the page. The renderer therefore loads Vue, Pinia, and the selected Element Plus locale from one coherent dependency graph, so later async sidebar imports retain the original application injection context.
 
 ## Testing
 
@@ -59,7 +59,7 @@ Verification will include:
 - the locale memory benchmark, confirming runtime lazy-loading thresholds remain satisfied;
 - `vue-tsc --noEmit` and focused ESLint;
 - a production renderer build and bundle audit;
-- a clean development reload with one Vue hash and one Pinia hash, a mounted main UI, and no captured `getActivePinia`, `resolveComponent`, virtual-DOM `el`, or component setup errors.
+- a clean development reload with one version URL for Vue and one for Pinia, an unchanged Vite optimizer browser hash after lazy loads, a mounted main UI, and no captured `getActivePinia`, `resolveComponent`, virtual-DOM `el`, or component setup errors.
 
 ## Acceptance Criteria
 

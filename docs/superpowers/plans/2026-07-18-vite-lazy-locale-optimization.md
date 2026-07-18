@@ -47,8 +47,7 @@ assert.equal(
 const { ElementPlusLocaleModules } = await import(pathToFileURL(manifestFile).href)
 const { default: viteConfig } = await import('../configs/vite.config')
 const rendererSource = readFileSync(resolve(root, 'src/lang/render.ts'), 'utf8')
-const localeImportPattern =
-  /(?:from\s+|import\()['"](element-plus\/es\/locale\/lang\/[^'"]+)['"]/g
+const localeImportPattern = /(?:from\s+|import\()['"](element-plus\/es\/locale\/lang\/[^'"]+)['"]/g
 const rendererModules = [...rendererSource.matchAll(localeImportPattern)].map((match) => match[1])
 const expected = [...new Set(rendererModules)].sort()
 const configured = [...ElementPlusLocaleModules].sort()
@@ -214,7 +213,7 @@ Expected: all language tests pass. The memory benchmark must retain its current 
 Run:
 
 ```bash
-npx tsx -e "import { build } from 'vite'; import config from './configs/vite.config'; await build(config.buildConfig)"
+NODE_OPTIONS=--max-old-space-size=4096 npx tsx -e "import { build } from 'vite'; import config from './configs/vite.config'; (async () => { await build(config.buildConfig) })().catch((error) => { console.error(error); process.exitCode = 1 })"
 ```
 
 Expected: Vite exits 0 and emits the main, tray, capturer, and locale chunks under `dist/render/static/js/`.
@@ -251,7 +250,7 @@ performance
   .filter((name) => /\/deps\/(?:vue|pinia)\.js/.test(name))
 ```
 
-Expected: one `vue.js?v=<hash>` URL and one `pinia.js?v=<same hash>` URL. Navigate between at least three modules whose sidebars are async components. The console must contain none of:
+Expected: one `vue.js?v=<vue-hash>` URL and one `pinia.js?v=<pinia-hash>` URL, with no second version of either dependency. The two per-dependency hashes may differ. Navigate between at least three modules whose sidebars are async components. The console must contain none of:
 
 ```text
 getActivePinia()
@@ -259,6 +258,14 @@ resolveComponent can only be used in render() or setup()
 Cannot read properties of undefined (reading 'el')
 Unhandled error during execution of setup function
 ```
+
+Before and after loading at least three previously inactive Element Plus locales, run:
+
+```bash
+node -e "const fs=require('node:fs'); const m=require('./node_modules/.vite/deps/_metadata.json'); console.log(JSON.stringify({browserHash:m.browserHash,mtime:fs.statSync('./node_modules/.vite/deps/_metadata.json').mtimeMs}))"
+```
+
+Expected: `browserHash` and `mtime` are identical before and after the lazy locale loads, proving Vite did not re-optimize dependencies while the renderer was mounted.
 
 - [ ] **Step 6: Confirm the repository is clean and record the result**
 
