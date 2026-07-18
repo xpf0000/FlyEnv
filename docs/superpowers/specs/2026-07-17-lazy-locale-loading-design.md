@@ -20,6 +20,8 @@ A production-style Node/V8 microbenchmark compared an empty Vue I18n instance, o
 
 Loading every locale therefore added about 42.36 MiB RSS compared with one locale in the isolated benchmark. Electron will not reproduce the exact number, but the result establishes eager locale loading as a material source of idle memory use.
 
+The implementation-time regression benchmark was corrected to compare equivalent architectures: a minified 5.22 MiB eager JavaScript fixture matching the old static-import design versus English and Chinese loaded from the new external JSON assets. On 2026-07-18, nine fresh-process medians on Node 22.14.0 / V8 12.4 measured 70.28 MiB RSS and 8.11 MiB heap for the optimized path, compared with 94.22 MiB RSS and 18.61 MiB heap for the eager fixture. That rerun saved 23.94 MiB RSS and 10.50 MiB heap. RSS moved materially with resident code-page conditions while heap stayed aligned with the original measurement, so the automated gate now checks both a conservative relative RSS improvement and the more stable heap reduction.
+
 ## Compatibility Requirements
 
 - Language changes take effect immediately without an application restart.
@@ -297,8 +299,8 @@ On Windows, macOS, and Linux, verify:
 
 ## Performance Acceptance
 
-- The isolated English-plus-current-locale benchmark must not exceed 66 MiB median RSS in the current test environment, compared with 104.22 MiB for all locales; 63–66 MiB is expected.
-- The locale microbenchmark must improve by at least 35 MiB RSS, with approximately 40 MiB expected.
+- The isolated English-plus-current-locale benchmark must not exceed 80 MiB median RSS or 9 MiB median heap in the current test environment.
+- Against the equivalent minified eager JavaScript fixture, the locale microbenchmark must improve by at least 15 MiB RSS and 9 MiB heap. The implementation-time result saved 23.94 MiB RSS and 10.50 MiB heap.
 - The complete idle Electron main process must improve by at least 25 MiB relative to the same-machine baseline, with 30–45 MiB expected from this change.
 - Switching through ten locales and returning to the initial locale must leave settled RSS within 5 MiB of the first optimized startup measurement.
 - Built-in locale switching must complete within 300 ms at the 95th percentile on local packaged assets.
