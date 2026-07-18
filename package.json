@@ -19,6 +19,7 @@
     "test:stop-process-list-cache": "tsx scripts/stop-process-list-cache-test.ts",
     "test:bin-version-cache": "tsx scripts/bin-version-cache-test.ts",
     "test:env-sync-coordinator": "tsx scripts/env-sync-coordinator-test.ts",
+    "test:main-lazy-runtime": "tsx scripts/main-process-lazy-runtime-test.ts",
     "build:language-assets": "tsx scripts/build-language-assets.ts",
     "test:language-assets": "tsx scripts/language-assets-test.ts",
     "test:language-runtime": "tsx scripts/language-runtime-test.ts",
