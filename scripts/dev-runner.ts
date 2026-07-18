@@ -12,6 +12,7 @@ import { dirname } from 'node:path'
 import { createRequire } from 'node:module'
 import { ElectronKill, ElectronKillWin } from './electron-process-kill'
 import { isLinux, isMacOS, isWindows } from '../src/shared/utils'
+import { buildLanguageAssets } from './build-language-assets'
 
 const require = createRequire(import.meta.url)
 
@@ -46,7 +47,18 @@ function buildMainProcess() {
       return
     }
     building = true
-    await DoFix()
+    try {
+      await DoFix()
+      await buildLanguageAssets({
+        sourceRoot: _path.resolve(__dirname, '../src/lang'),
+        outputRoot: _path.resolve(__dirname, '../dist/electron/static/lang')
+      })
+    } catch (error) {
+      building = false
+      for (const callback of buildCallback.splice(0)) callback.reject(error)
+      reject(error)
+      return
+    }
     let promise: Promise<any> | undefined
     if (isMacOS() || isLinux()) {
       console.log('isMacOS || isLinux !!!')
@@ -195,6 +207,15 @@ _fs.watch(
   },
   (event, filename) => {
     next(forkPath, filename)
+  }
+)
+
+const langPath = _path.resolve(__dirname, '../src/lang/')
+_fs.watch(
+  langPath,
+  { recursive: true },
+  (event, filename) => {
+    next(langPath, filename)
   }
 )
 

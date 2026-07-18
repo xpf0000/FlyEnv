@@ -1,14 +1,23 @@
 import { build as viteBuild } from 'vite'
 import { build as esbuild } from 'esbuild'
 import { build as electronBuild, Platform } from 'electron-builder'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import viteConfig from '../configs/vite.config'
 import { DoFix } from './fix'
 import { isLinux, isMacOS, isWindows } from '../src/shared/utils'
+import { buildLanguageAssets } from './build-language-assets'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 async function packMain() {
   try {
     await DoFix()
+    await buildLanguageAssets({
+      sourceRoot: path.resolve(__dirname, '../src/lang'),
+      outputRoot: path.resolve(__dirname, '../dist/electron/static/lang')
+    })
     if (isMacOS() || isLinux()) {
       console.log('packMain isMacOS !!!')
       const config = (await import('../configs/esbuild.config')).default
