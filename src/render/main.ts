@@ -1,6 +1,5 @@
 import { reactive } from 'vue'
 import { VueExtend } from './core/VueExtend'
-import { AppI18n } from '@lang/index'
 import App from './App.vue'
 import './index.scss'
 import IPC from '@/util/IPC'
@@ -14,14 +13,14 @@ import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
 import { AppCustomerModule } from '@/core/Module'
-import { lang } from '@/util/NodeFn'
 import CapturerSetup from '@/components/Tools/Capturer/setup'
 import GlobalIPCOn from '@/util/GlobalIPCOn'
+import { RendererLanguage } from '@/core/LanguageService'
+import { MessageError } from '@/util/Element'
 
 window.Server = reactive({}) as any
 
 const appRoot = VueExtend(App)
-lang.loadCustomerLang().then().catch()
 
 IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
   console.log('APP-Ready-To-Show !!!!!!', key, res)
@@ -33,13 +32,18 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
     AppCustomerModule.init()
     store
       .initConfig()
-      .then(() => {
+      .then(async () => {
+        const bootstrap = await RendererLanguage.initialize()
+        store.config.setup.lang = bootstrap.locale
         ThemeInit()
-        const config = store.config.setup
-        AppI18n(config?.lang)
         appRoot.mount('#app')
+        if (bootstrap.warning) {
+          MessageError(bootstrap.warning)
+        }
       })
-      .catch()
+      .catch((error) => {
+        console.error('Renderer initialization failed:', error)
+      })
     SiteSuckerStore().init()
     AppToolStore.init()
     SetupStore()

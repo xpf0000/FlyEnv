@@ -101,6 +101,11 @@ const buildConfig: UserConfig = {
         chunkFileNames: 'static/js/[name].[hash].js',
         assetFileNames: 'static/[ext]/[name].[hash].[ext]',
         manualChunks(id) {
+          const normalizedId = id.replaceAll('\\', '/')
+          const elementLocale = normalizedId.match(/element-plus\/es\/locale\/lang\/([^/.]+)/)
+          if (elementLocale) {
+            return `element-plus-locale-${elementLocale[1]}`
+          }
           if (id.includes('node_modules')) {
             return id.toString().split('node_modules/')[1].split('/')[0].toString()
           }

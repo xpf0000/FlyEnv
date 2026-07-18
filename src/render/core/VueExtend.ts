@@ -5,7 +5,6 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import PoperFix from './directive/PoperFix/index'
-import { AppStore } from '@/store/app'
 import { AppI18n } from '@lang/index'
 import { createPinia } from 'pinia'
 import VueSvg from '@/components/VueSvgIcon/use.vue'
@@ -19,8 +18,7 @@ export function VueExtend(App: any, data?: any) {
   app.component('YbIcon', VueSvg)
   app.use(ElementPlus, { size: 'default' })
   app.use(baseStore)
-  const appStore = AppStore()
-  app.use(AppI18n(appStore?.config?.setup?.lang))
+  app.use(AppI18n())
   app.mixin({
     beforeCreate() {
       this.$children = new Set()

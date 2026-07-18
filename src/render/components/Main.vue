@@ -16,17 +16,11 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
+  import { computed } from 'vue'
   import Aside from '@/components/Aside/Index.vue'
-  import { AppStore } from '@/store/app'
-  import { ElementPlusLang } from '@lang/render'
+  import { RendererLanguage } from '@/core/LanguageService'
   import { AppToolStore } from '@/components/Tools/store'
   import ToolIndex from '@/components/Tools/Index.vue'
 
-  const appStore = AppStore()
-  const language = ref(appStore?.config?.setup?.lang)
-
-  const locale = computed(() => {
-    return ElementPlusLang?.[language.value] ?? ElementPlusLang.en
-  })
+  const locale = computed(() => RendererLanguage.elementPlusLocale.value)
 </script>

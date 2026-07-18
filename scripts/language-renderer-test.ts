@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+
+const rendererService = readFileSync('src/render/core/LanguageService.ts', 'utf8')
+const elementLocales = readFileSync('src/lang/render.ts', 'utf8')
+const rendererMain = readFileSync('src/render/main.ts', 'utf8')
+const vueExtend = readFileSync('src/render/core/VueExtend.ts', 'utf8')
+const viteConfig = readFileSync('configs/vite.config.ts', 'utf8')
+
+assert.match(rendererService, /application:language-bootstrap/)
+assert.match(rendererService, /application:language-prepare/)
+assert.match(rendererService, /application:language-commit/)
+assert.match(rendererService, /requestSequence/)
+assert.match(elementLocales, /\(\) => import\('element-plus/)
+assert.doesNotMatch(elementLocales, /^import ar from/m)
+assert.match(rendererMain, /await RendererLanguage\.initialize/)
+assert.match(rendererMain, /bootstrap\.warning/)
+assert.match(vueExtend, /app\.use\(AppI18n\(\)\)/)
+assert.match(viteConfig, /element-plus-locale-/)
+console.log('language renderer tests passed')
