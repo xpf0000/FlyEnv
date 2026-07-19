@@ -61,4 +61,14 @@ assert.match(
 )
 assert.match(auditedSources.updater, /getAppResourcePath\('app-update\.yml'\)/)
 
+const capturerSource = auditedSources.capturer
+assert.doesNotMatch(capturerSource, /load(?:URL|File)\([^\n]+\)\.catch\(\)/)
+assert.match(capturerSource, /private handleWindowLoadError\(/)
+assert.match(capturerSource, /globalShortcut\.unregister\('Escape'\)/)
+assert.match(capturerSource, /this\.windowImage = null/)
+assert.match(capturerSource, /this\.capturering = false/)
+assert.match(capturerSource, /window\.isDestroyed\(\)/)
+assert.match(capturerSource, /dialog\.showErrorBox\(/)
+assert.match(capturerSource, /loadPage\.catch\(\(error\) =>/)
+
 console.log('main process resource path tests passed')

@@ -70,6 +70,23 @@ class Capturer {
 
   windowImage: Record<number, string> | null = null
 
+  private handleWindowLoadError(window: BrowserWindow, error: unknown) {
+    globalShortcut.unregister('Escape')
+    this.windowImage = null
+    this.capturering = false
+    if (this.window === window) {
+      this.window = undefined
+    }
+    if (!window.isDestroyed()) {
+      window.destroy()
+    }
+    const message = error instanceof Error ? error.message : `${error}`
+    dialog.showErrorBox(
+      I18nT('tools.CapturerFailTitle'),
+      `${I18nT('tools.CapturerFailContent')}\n\n${message}`
+    )
+  }
+
   stopCapturer() {
     globalShortcut.unregister('Escape')
     this.windowImage = null
@@ -355,11 +372,12 @@ class Capturer {
 
     window.setMenu(null)
 
-    if (is.dev()) {
-      window.loadURL(`http://localhost:${ViteDevPort}/capturer/capturer.html`).catch()
-    } else {
-      window.loadFile(index).catch()
-    }
+    const loadPage = is.dev()
+      ? window.loadURL(`http://localhost:${ViteDevPort}/capturer/capturer.html`)
+      : window.loadFile(index)
+    void loadPage.catch((error) => {
+      this.handleWindowLoadError(window, error)
+    })
     window.once('ready-to-show', () => {
       init(window)
     })
