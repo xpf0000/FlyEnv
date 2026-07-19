@@ -8,11 +8,8 @@ const runtimePathModule = 'src/main/utils/AppRuntimePath.ts'
 assert.equal(existsSync(purePathModule), true, 'pure resource path resolver must exist')
 assert.equal(existsSync(runtimePathModule), true, 'Electron runtime path wrapper must exist')
 
-const {
-  resolveAppResourcePath,
-  resolveElectronResourcePath,
-  resolveRendererResourcePath
-} = await import('../src/main/utils/AppResourcePath')
+const { resolveAppResourcePath, resolveElectronResourcePath, resolveRendererResourcePath } =
+  await import('../src/main/utils/AppResourcePath')
 
 const appRoot = resolve('tmp', 'flyenv-app')
 assert.equal(resolveAppResourcePath(appRoot, 'app-update.yml'), resolve(appRoot, 'app-update.yml'))
@@ -55,10 +52,7 @@ assert.match(auditedSources.index, /getElectronResourcePath\('static'\)/)
 assert.match(auditedSources.pages, /getRendererResourcePath\('index\.html'\)/)
 assert.match(auditedSources.pages, /getRendererResourcePath\('tray\.html'\)/)
 assert.match(auditedSources.application, /getElectronResourcePath\('fork\.mjs'\)/)
-assert.match(
-  auditedSources.capturer,
-  /getRendererResourcePath\('capturer', 'capturer\.html'\)/
-)
+assert.match(auditedSources.capturer, /getRendererResourcePath\('capturer', 'capturer\.html'\)/)
 assert.match(auditedSources.updater, /getAppResourcePath\('app-update\.yml'\)/)
 
 const capturerSource = auditedSources.capturer
@@ -70,5 +64,12 @@ assert.match(capturerSource, /this\.capturering = false/)
 assert.match(capturerSource, /window\.isDestroyed\(\)/)
 assert.match(capturerSource, /dialog\.showErrorBox\(/)
 assert.match(capturerSource, /loadPage\.catch\(\(error\) =>/)
+
+const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
+assert.equal(
+  packageJson.scripts['test:main-resource-path'],
+  'tsx scripts/main-process-resource-path-test.ts'
+)
+assert.match(packageJson.scripts['test:main-lazy'], /yarn test:main-resource-path/)
 
 console.log('main process resource path tests passed')

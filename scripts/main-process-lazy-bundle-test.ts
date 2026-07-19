@@ -52,9 +52,7 @@ assert.match(
   'Capturer must remain a dynamically loaded chunk'
 )
 const capturerOutputFile = result.outputFiles?.find((output) =>
-  output.path
-    .replaceAll('\\', '/')
-    .endsWith(capturerOutputEntry[0].replaceAll('\\', '/'))
+  output.path.replaceAll('\\', '/').endsWith(capturerOutputEntry[0].replaceAll('\\', '/'))
 )
 assert.ok(capturerOutputFile, 'Capturer generated file must be available for inspection')
 assert.doesNotMatch(
