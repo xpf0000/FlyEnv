@@ -1,98 +1,56 @@
-# FlyEnv新版本4.16.2更新日志
+# FlyEnv新版本4.17.0更新日志
 
 本次更新内容：
-1. 新增启动组模块 https://github.com/xpf0000/FlyEnv/discussions/706 https://github.com/xpf0000/FlyEnv/issues/742 https://github.com/xpf0000/FlyEnv/issues/757
-2. 修复.NET 版本检查问题 https://github.com/xpf0000/FlyEnv/pull/770
-3. 优化启动速度和资源占用
+1. Windows版新增代码签名. 感谢SignPath的赞助
+2. 优化内存使用.
+3. 修复Windows上定时任务执行失败的问题.
 
 
 参照：
 ```
-# **FlyEnv v4.16.0 Update Release Notes**
+# **FlyEnv v4.16.2 Update Release Notes**
 
 ## **🚀 New Features**
 
-### **1. Added FlyEnv MCP Server**
+### **1. Added Startup Groups**
 
-FlyEnv now includes a built-in **MCP Server** that lets AI clients connect directly to your local FlyEnv environment. You can start the server from FlyEnv, generate ready-to-use client configuration snippets, and register the server into supported AI coding CLIs without editing everything by hand.
-
-This integration provides:
-- **MCP Service Control**: Start and stop the FlyEnv MCP server from the UI, configure host, port, access token, and local/remote access behavior
-- **Client Quick Config**: Generate HTTP and stdio-compatible configuration snippets and copy them directly from FlyEnv
-- **One-Click Client Registration**: Register the FlyEnv MCP server into Claude Code, Codex, OpenCode, Kimi, Antigravity CLI, and GitHub Copilot CLI
-- **Tool Policy Management**: Enable or disable individual MCP tools and require confirmation for risky operations such as service control, installation, or site changes
-- **Audit Logging**: Review MCP tool activity through the built-in audit log
-
----
-
-### **2. Added AI Coding CLI Modules**
-
-FlyEnv now includes dedicated modules for **Claude Code**, **Codex**, **OpenCode**, **Kimi**, **Antigravity CLI**, and **GitHub Copilot CLI**. These integrations bring AI coding CLIs into the same desktop workflow as your local runtimes and services, making them easier to install, inspect, and manage from one place.
+FlyEnv now includes a dedicated **Startup Groups** module for organizing exact service versions and language projects into reusable development environments. Instead of starting every visible service or switching services one by one, you can create groups for specific projects and control only the runtimes, databases, and project services each workflow needs.
 
 This integration provides:
-- **CLI Installation & Detection**: Install supported AI coding CLIs and check their installed version from FlyEnv
-- **Config File Access**: View important config file paths and manage client configuration from the UI
-- **Session Management**: Browse saved sessions, reopen them in a terminal, and clean up old sessions when supported
-- **MCP Management**: List configured MCP servers and add or remove FlyEnv MCP connections directly from each client module
-- **Client-Specific Extras**: Manage plugins for Claude Code and Codex, skills for Antigravity CLI and GitHub Copilot CLI, provider/stats views for OpenCode, and logs/session export workflows for Kimi
+- **Custom Environment Groups**: Create named, color-coded groups with descriptions for different projects or development scenarios
+- **Service and Project Selection**: Add installed service versions and independently runnable language projects to the same group
+- **Controlled Startup Order**: Arrange members in the required startup sequence; FlyEnv starts them in order and stops them in reverse order
+- **Group and Member Controls**: Start or stop a complete group with one switch, or control an individual member without changing the rest of the group
+- **Default Group Integration**: Choose a default startup group for the top-left one-click control and automatic service startup when FlyEnv launches
+- **Live Status and Safety Feedback**: See stopped, running, partially running, executing, and invalid states, with warnings for potential module or port conflicts
 
-[Issue #712](https://github.com/xpf0000/FlyEnv/issues/712)
+The same service can be reused across multiple groups, making it easy to share common infrastructure such as MySQL or Redis while keeping project-specific environments separate.
+
+Thanks to [@branll](https://github.com/branll), [@freenessfish](https://github.com/freenessfish), and [@SevenJoker](https://github.com/SevenJoker) for the feature requests! [Discussion #706](https://github.com/xpf0000/FlyEnv/discussions/706) [Issue #742](https://github.com/xpf0000/FlyEnv/issues/742) [Issue #757](https://github.com/xpf0000/FlyEnv/issues/757)
 
 ---
 
 ## **🛠️ Improvements & Bug Fixes**
 
-### **3. Updated MinIO Download Source**
+### **2. Fixed .NET Version Detection for Long Preview Versions**
 
-FlyEnv now uses the maintained **pgsty/minio** fork as the updated MinIO download source, improving install availability after upstream distribution changes and making MinIO version downloads more reliable.
+Resolved an issue where long .NET preview version strings such as `11.0.100-preview.5.26302.115` could leave the available-version view stuck on loading or crash the UI during version comparison. FlyEnv now normalizes these values safely for semantic version sorting, keeps download progress state reactive, and batches version-list updates to reduce unnecessary rendering work.
 
-[Issue #626](https://github.com/xpf0000/FlyEnv/issues/626)
+Long version names are also truncated cleanly in the table and can be viewed in full by hovering over them.
 
----
-
-### **4. Fixed Windows Python Environment Variable Setup**
-
-Resolved a Windows issue where FlyEnv could register an incorrect Python environment path during setup. Python environment registration now points to the correct FlyEnv-managed runtime layout, so newly installed Python versions are exposed more reliably.
-
-[Issue #633](https://github.com/xpf0000/FlyEnv/issues/633)
+Thanks to [@TanNhatCMS](https://github.com/TanNhatCMS) for the contribution! [Pull Request #770](https://github.com/xpf0000/FlyEnv/pull/770)
 
 ---
 
-### **5. Fixed Rust Toolchain Detection for Custom `CARGO_HOME` / `RUSTUP_HOME`**
+### **3. Improved Startup Performance and Resource Usage**
 
-Resolved an issue where FlyEnv could miss Rust toolchains installed through `rustup` when `CARGO_HOME` or `RUSTUP_HOME` had been customized. FlyEnv now respects those environment variables when locating `rustup`, toolchains, and related runtime data.
-
-[Issue #691](https://github.com/xpf0000/FlyEnv/issues/691)
-
----
-
-### **6. Improved Local Site Support for `localhost` + Port Workflows**
-
-FlyEnv site management now supports using **`localhost` with explicit ports** such as `localhost:8080` when adding or editing sites. This makes local multi-port workflows easier to model without creating extra fake domains just to separate ports.
+FlyEnv now performs less repeated work while detecting runtimes, synchronizing environment variables, and stopping services. These internal optimizations improve application startup and service-management responsiveness while reducing duplicate filesystem scans, process enumeration, and cross-process environment loading.
 
 This improvement includes:
-- **Port-Aware Duplicate Checks**: Sites with the same hostname are allowed as long as their listening ports do not conflict
-- **Port Extraction from Host Input**: Entering `localhost:port` now applies that port to the site configuration instead of dropping it on save
-- **Cleaner Hosts File Behavior**: Pure loopback sites no longer require redundant hosts-file writes, which reduces unnecessary admin prompts
-- **Stable Vhost File Naming**: Generated vhost, rewrite, and log files now avoid same-name collisions across multi-port localhost sites
-
-[Issue #700](https://github.com/xpf0000/FlyEnv/issues/700)
-
----
-
-### **7. Fixed FlyEnv Environment Variable Ordering**
-
-Resolved an issue where FlyEnv-managed environment variables could appear in the wrong order, allowing system or Homebrew Python binaries to take precedence over the version selected in FlyEnv. FlyEnv now rebuilds Python PATH entries with dedicated shims so `python` and `python3` resolve consistently to the active FlyEnv version.
-
-[Issue #713](https://github.com/xpf0000/FlyEnv/issues/713)
-
----
-
-### **8. Fixed Windows Cron Jobs for Paths Containing Spaces**
-
-Resolved a Windows scheduled-task issue where cron jobs could fail when the generated task wrapper or working directory path contained spaces. FlyEnv now launches the PowerShell wrapper through a safer quoted command path, improving reliability for projects stored under directories such as `C:\\Program Files\\...` or other spaced workspace paths.
-
-[Issue #728](https://github.com/xpf0000/FlyEnv/issues/728) [Issue #729](https://github.com/xpf0000/FlyEnv/issues/729)
+- **Persistent Version Probe Cache**: Reuses runtime version results instead of repeatedly launching binaries or reading the same version files
+- **Shared Environment Snapshots**: Coordinates environment loading across forked workers so they can reuse a current snapshot instead of rebuilding identical environment data
+- **Shared Stop Process Lists**: Reuses process enumeration results while stopping multiple services, avoiding repeated full process scans during the same operation
+- **Automatic Cache Invalidation**: Refreshes cached data after relevant environment or path changes so performance gains do not leave stale runtime information behind
 
 ---
 

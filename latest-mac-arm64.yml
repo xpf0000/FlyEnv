@@ -1,11 +1,11 @@
-version: 4.16.2
+version: 4.17.0
 files:
-  - url: FlyEnv-4.16.2-arm64-mac.zip
-    sha512: Q44q8vKbJBKbGRO2AwYHR6l0dv95fKdketEy8oJxskT7wVkrMcJwAPrkN3wvpgXGQ1mt2VG/F6NeuWLsNG95Ag==
-    size: 165201885
-  - url: FlyEnv-4.16.2-arm64.dmg
-    sha512: dAkqygku6WtWFnDNgxBedCHFOV/dKMRTFFUDQ/+XPEpk8fNSr44jw2iuvIlx5gomwwkGvDpfm8N33g+AWBxtYg==
-    size: 173442879
-path: FlyEnv-4.16.2-arm64-mac.zip
-sha512: Q44q8vKbJBKbGRO2AwYHR6l0dv95fKdketEy8oJxskT7wVkrMcJwAPrkN3wvpgXGQ1mt2VG/F6NeuWLsNG95Ag==
-releaseDate: '2026-07-12T11:27:30.457Z'
+  - url: FlyEnv-4.17.0-arm64-mac.zip
+    sha512: 1h1Zh6YWCXIdhTqlW5SQz2iZmGNrMffgALTRVeKnPEGAwsOdH+DG42UUYvB+XEHUwGgce7r0RLWPD1H+zrndhA==
+    size: 162591415
+  - url: FlyEnv-4.17.0-arm64.dmg
+    sha512: 2V3QJ9WYGgteT/hlpBH42W305iBa/vM0sTnWUjAatel2MWquW0+hfL6zLkS0cyfjrK5xplmHpD47kCnZHgClPQ==
+    size: 170720624
+path: FlyEnv-4.17.0-arm64-mac.zip
+sha512: 1h1Zh6YWCXIdhTqlW5SQz2iZmGNrMffgALTRVeKnPEGAwsOdH+DG42UUYvB+XEHUwGgce7r0RLWPD1H+zrndhA==
+releaseDate: '2026-07-19T09:08:41.264Z'
