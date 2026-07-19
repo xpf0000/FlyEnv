@@ -2,6 +2,46 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.17.0] - 2026-07-19
+
+# **FlyEnv v4.17.0 Update Release Notes**
+
+## **🔐 Security & Trust**
+
+### **1. Added Code Signing for Windows**
+
+FlyEnv releases for Windows are now digitally signed, making it easier to verify the publisher and confirm that downloaded application files have not been altered after signing.
+
+Special thanks to [SignPath](https://signpath.io/) for sponsoring open-source code signing for FlyEnv.
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **2. Reduced Memory Usage**
+
+FlyEnv now uses memory more efficiently during everyday operation, reducing its resource footprint and leaving more system memory available for your development services and tools.
+
+---
+
+### **3. Fixed Scheduled Task Execution on Windows**
+
+Resolved an issue that could prevent scheduled tasks from executing correctly on Windows. Scheduled jobs created and managed through FlyEnv now run more reliably.
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)
+
+**Enjoy the update!**
+
 ## [4.16.2] - 2026-07-12
 
 # **FlyEnv v4.16.2 Update Release Notes**
