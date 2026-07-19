@@ -2,17 +2,20 @@ import { app } from 'electron'
 import {
   resolveAppResourcePath,
   resolveElectronResourcePath,
-  resolveRendererResourcePath
+  resolveRendererResourcePath,
+  resolveRuntimeAppRoot
 } from './AppResourcePath'
 
+const getRuntimeAppRoot = () => resolveRuntimeAppRoot(app.getAppPath())
+
 export const getAppResourcePath = (...segments: string[]) => {
-  return resolveAppResourcePath(app.getAppPath(), ...segments)
+  return resolveAppResourcePath(getRuntimeAppRoot(), ...segments)
 }
 
 export const getElectronResourcePath = (...segments: string[]) => {
-  return resolveElectronResourcePath(app.getAppPath(), ...segments)
+  return resolveElectronResourcePath(getRuntimeAppRoot(), ...segments)
 }
 
 export const getRendererResourcePath = (...segments: string[]) => {
-  return resolveRendererResourcePath(app.getAppPath(), ...segments)
+  return resolveRendererResourcePath(getRuntimeAppRoot(), ...segments)
 }

@@ -8,10 +8,30 @@ const runtimePathModule = 'src/main/utils/AppRuntimePath.ts'
 assert.equal(existsSync(purePathModule), true, 'pure resource path resolver must exist')
 assert.equal(existsSync(runtimePathModule), true, 'Electron runtime path wrapper must exist')
 
+const resourcePathModule = await import('../src/main/utils/AppResourcePath')
 const { resolveAppResourcePath, resolveElectronResourcePath, resolveRendererResourcePath } =
-  await import('../src/main/utils/AppResourcePath')
+  resourcePathModule
+assert.equal(
+  typeof resourcePathModule.resolveRuntimeAppRoot,
+  'function',
+  'runtime app root resolver must exist'
+)
+const { resolveRuntimeAppRoot } = resourcePathModule
 
 const appRoot = resolve('tmp', 'flyenv-app')
+const developmentAppPath = resolve(appRoot, 'dist', 'electron')
+const packagedAppPath = resolve(appRoot, 'resources', 'app.asar')
+assert.equal(resolveRuntimeAppRoot(developmentAppPath), appRoot)
+assert.equal(resolveRuntimeAppRoot(packagedAppPath), packagedAppPath)
+assert.equal(
+  resolveElectronResourcePath(
+    resolveRuntimeAppRoot(developmentAppPath),
+    'static',
+    'lang',
+    'manifest.json'
+  ),
+  resolve(appRoot, 'dist', 'electron', 'static', 'lang', 'manifest.json')
+)
 assert.equal(resolveAppResourcePath(appRoot, 'app-update.yml'), resolve(appRoot, 'app-update.yml'))
 assert.equal(
   resolveElectronResourcePath(appRoot, 'fork.mjs'),
@@ -28,6 +48,7 @@ assert.equal(
 
 const runtimeSource = readFileSync(runtimePathModule, 'utf8')
 assert.match(runtimeSource, /app\.getAppPath\(\)/)
+assert.match(runtimeSource, /resolveRuntimeAppRoot\(app\.getAppPath\(\)\)/)
 assert.match(runtimeSource, /getAppResourcePath/)
 assert.match(runtimeSource, /getElectronResourcePath/)
 assert.match(runtimeSource, /getRendererResourcePath/)
