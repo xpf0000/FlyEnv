@@ -28,6 +28,7 @@
     "test:main-lazy-bundle": "tsx scripts/main-process-lazy-bundle-test.ts",
     "test:main-lazy-utilities": "tsx scripts/main-process-eager-utilities-test.ts",
     "test:main-resource-path": "tsx scripts/main-process-resource-path-test.ts",
+    "test:windows-signing": "tsx scripts/windows-signpath-workflow-test.ts",
     "test:github-account": "tsx scripts/github-account-service-test.ts",
     "test:mcp-lazy-runtime": "tsx scripts/mcp-lazy-runtime-test.ts",
     "test:main-lazy": "yarn test:main-lazy-runtime && yarn test:main-lazy-utilities && yarn test:main-resource-path && yarn test:github-account && yarn test:mcp-lazy-runtime && yarn test:main-lazy-bundle",
