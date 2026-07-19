@@ -24,7 +24,7 @@ const configuredShortcutLoadsRuntime = async () => {
   })
   const config = { key: ['Control', 'Shift', 'A'], name: 'capture' }
 
-  await syncCapturerConfig(runtime, config)
+  await syncCapturerConfig(runtime, () => config)
 
   assert.equal(loads, 1, 'a configured shortcut must load the capturer runtime')
   assert.deepEqual(updates, [config], 'the loaded runtime must receive the saved config')
@@ -37,7 +37,7 @@ const emptyShortcutStaysLazy = async () => {
     return { configUpdate() {} }
   })
 
-  await syncCapturerConfig(runtime, { key: [], name: 'capture' })
+  await syncCapturerConfig(runtime, () => ({ key: [], name: 'capture' }))
 
   assert.equal(loads, 0, 'an empty shortcut must not load the capturer runtime')
   assert.equal(runtime.peek(), undefined)
@@ -57,7 +57,7 @@ const loadedRuntimeReceivesEmptyShortcut = async () => {
   await runtime.load()
   const config = { key: [], name: 'capture' }
 
-  await syncCapturerConfig(runtime, config)
+  await syncCapturerConfig(runtime, () => config)
 
   assert.equal(loads, 1, 'an already loaded runtime must be reused')
   assert.deepEqual(updates, [config], 'an empty update must reach the loaded runtime')
@@ -77,16 +77,48 @@ const failedLoadCanRetry = async () => {
   })
   const config = { key: ['Control', 'Shift', 'A'], name: 'capture' }
 
-  await assert.rejects(syncCapturerConfig(runtime, config), /capturer load failed/)
-  await syncCapturerConfig(runtime, config)
+  await assert.rejects(
+    syncCapturerConfig(runtime, () => config),
+    /capturer load failed/
+  )
+  await syncCapturerConfig(runtime, () => config)
 
   assert.equal(attempts, 2, 'a rejected lazy load must be retried')
   assert.deepEqual(updates, [config])
+}
+
+const latestConfigWinsDuringInitialLoad = async () => {
+  let release: (() => void) | undefined
+  const updates: TestConfig[] = []
+  const runtime = new LazyRuntime<TestCapturer>(
+    () =>
+      new Promise<TestCapturer>((resolve) => {
+        release = () =>
+          resolve({
+            configUpdate(config) {
+              updates.push(config)
+            }
+          })
+      })
+  )
+  const configured = { key: ['Control', 'Shift', 'A'], name: 'capture' }
+  const cleared = { key: [], name: 'capture' }
+  let config: TestConfig = configured
+
+  const loading = syncCapturerConfig(runtime, () => config)
+  await Promise.resolve()
+  config = cleared
+  await syncCapturerConfig(runtime, () => config)
+  release?.()
+  await loading
+
+  assert.deepEqual(updates, [cleared], 'the latest config must win while the runtime loads')
 }
 
 await configuredShortcutLoadsRuntime()
 await emptyShortcutStaysLazy()
 await loadedRuntimeReceivesEmptyShortcut()
 await failedLoadCanRetry()
+await latestConfigWinsDuringInitialLoad()
 
 console.log('capturer shortcut startup tests passed')

@@ -10,8 +10,9 @@ type ConfigurableCapturer<TConfig extends CapturerConfigLike> = {
 
 export const syncCapturerConfig = async <TConfig extends CapturerConfigLike>(
   runtime: Pick<LazyRuntime<ConfigurableCapturer<TConfig>>, 'load' | 'peek'>,
-  config: TConfig
+  getConfig: () => TConfig
 ): Promise<void> => {
+  const config = getConfig()
   const capturer = runtime.peek()
   if (capturer) {
     capturer.configUpdate(config)
@@ -20,7 +21,7 @@ export const syncCapturerConfig = async <TConfig extends CapturerConfigLike>(
   if (config.key.length === 0) return
 
   const loadedCapturer = await runtime.load()
-  loadedCapturer.configUpdate(config)
+  loadedCapturer.configUpdate(getConfig())
 }
 
 export const oauthRuntime = new LazyRuntime(async () => (await import('../OAuth')).default)
