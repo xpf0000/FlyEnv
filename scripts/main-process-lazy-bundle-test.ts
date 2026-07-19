@@ -42,6 +42,31 @@ export const eagerOutputs = (metafile: Metafile) => {
 }
 
 const result = await buildMainFixture()
+const capturerOutputEntry = Object.entries(result.metafile!.outputs).find(([, output]) =>
+  Object.hasOwn(output.inputs, 'src/main/core/Capturer.ts')
+)
+assert.ok(capturerOutputEntry, 'Capturer output must exist')
+assert.match(
+  capturerOutputEntry[0].replaceAll('\\', '/'),
+  /\/chunks\/Capturer-[^/]+\.mjs$/,
+  'Capturer must remain a dynamically loaded chunk'
+)
+const capturerOutputFile = result.outputFiles?.find((output) =>
+  output.path
+    .replaceAll('\\', '/')
+    .endsWith(capturerOutputEntry[0].replaceAll('\\', '/'))
+)
+assert.ok(capturerOutputFile, 'Capturer generated file must be available for inspection')
+assert.doesNotMatch(
+  capturerOutputFile.text,
+  /\.\.\/render\/capturer\/capturer\.html/,
+  'Capturer chunk must not resolve renderer files relative to the chunk directory'
+)
+assert.match(
+  capturerOutputFile.text,
+  /getRendererResourcePath\("capturer", "capturer\.html"\)/,
+  'Capturer chunk must use the stable renderer resource path API'
+)
 const configSource = readFileSync('configs/esbuild.config.ts', 'utf8')
 const windowsConfigSource = readFileSync('configs/esbuild.config.win.ts', 'utf8')
 const packageMain = JSON.parse(readFileSync('package.json', 'utf8')).main
@@ -164,7 +189,15 @@ for (const builder of [
   'configs/electron-builder.win.ts',
   'configs/electron-builder.linux.ts'
 ]) {
-  assert.match(readFileSync(builder, 'utf8'), /dist\/electron\/\*\*\/\*/)
+  const builderSource = readFileSync(builder, 'utf8')
+  assert.match(builderSource, /dist\/electron\/\*\*\/\*/)
+  assert.match(builderSource, /dist\/render\/\*\*\/\*/)
 }
+
+const viteConfigSource = readFileSync('configs/vite.config.ts', 'utf8')
+assert.match(
+  viteConfigSource,
+  /capturer:\s*path\.resolve\(__dirname, '\.\.\/src\/render\/capturer\/capturer\.html'\)/
+)
 
 console.log('main process lazy bundle tests passed')

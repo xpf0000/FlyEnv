@@ -1,13 +1,10 @@
 import is from 'electron-is'
-import path from 'path'
 import { ViteDevPort } from '../../../configs/vite.port'
+import { getRendererResourcePath } from '../utils/AppRuntimePath'
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
-import { fileURLToPath } from 'node:url'
-import { dirname } from 'node:path'
-const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const index = path.resolve(__dirname, '../render/index.html')
-const tray = path.resolve(__dirname, '../render/tray.html')
+const index = getRendererResourcePath('index.html')
+const tray = getRendererResourcePath('tray.html')
 
 interface PageOptions {
   [key: string]: {

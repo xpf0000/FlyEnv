@@ -1,13 +1,10 @@
 import { app } from 'electron'
 import path from 'path'
 import Launcher from './Launcher'
-import { fileURLToPath } from 'node:url'
-import { dirname } from 'node:path'
 import { existsSync } from 'node:fs'
 import is from 'electron-is'
 import { isLinux } from '@shared/utils'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
+import { getElectronResourcePath } from './utils/AppRuntimePath'
 
 if (is.production() && !isLinux()) {
   if (process.env?.PORTABLE_EXECUTABLE_DIR) {
@@ -24,7 +21,7 @@ if (is.production() && !isLinux()) {
   }
 }
 
-global.__static = path.resolve(__dirname, 'static/').replace(/\\/g, '\\\\')
+global.__static = getElectronResourcePath('static').replace(/\\/g, '\\\\')
 global.launcher = new Launcher()
 
 export default () => {}

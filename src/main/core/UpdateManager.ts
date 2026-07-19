@@ -2,18 +2,15 @@ import { EventEmitter } from 'events'
 import { dialog } from 'electron'
 import is from 'electron-is'
 import _updater from 'electron-updater'
-import { resolve } from 'path'
 import logger from './Logger'
 import { I18nT } from '@lang/runtime'
 import type { AppUpdater } from 'electron-updater/out/AppUpdater'
-import { fileURLToPath } from 'node:url'
-import { dirname } from 'node:path'
+import { getAppResourcePath } from '../utils/AppRuntimePath'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
 const { autoUpdater } = _updater
 
 if (is.dev()) {
-  autoUpdater.updateConfigPath = resolve(__dirname, '../../app-update.yml')
+  autoUpdater.updateConfigPath = getAppResourcePath('app-update.yml')
 }
 
 export default class UpdateManager extends EventEmitter {

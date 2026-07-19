@@ -35,4 +35,30 @@ assert.match(runtimeSource, /getAppResourcePath/)
 assert.match(runtimeSource, /getElectronResourcePath/)
 assert.match(runtimeSource, /getRendererResourcePath/)
 
+const auditedSources = {
+  index: readFileSync('src/main/index.ts', 'utf8'),
+  pages: readFileSync('src/main/configs/page.ts', 'utf8'),
+  application: readFileSync('src/main/Application.ts', 'utf8'),
+  capturer: readFileSync('src/main/core/Capturer.ts', 'utf8'),
+  updater: readFileSync('src/main/core/UpdateManager.ts', 'utf8')
+}
+
+for (const [name, source] of Object.entries(auditedSources)) {
+  assert.doesNotMatch(
+    source,
+    /fileURLToPath\(import\.meta\.url\)|\b__dirname\b/,
+    `${name} must not derive application resources from its generated module location`
+  )
+}
+
+assert.match(auditedSources.index, /getElectronResourcePath\('static'\)/)
+assert.match(auditedSources.pages, /getRendererResourcePath\('index\.html'\)/)
+assert.match(auditedSources.pages, /getRendererResourcePath\('tray\.html'\)/)
+assert.match(auditedSources.application, /getElectronResourcePath\('fork\.mjs'\)/)
+assert.match(
+  auditedSources.capturer,
+  /getRendererResourcePath\('capturer', 'capturer\.html'\)/
+)
+assert.match(auditedSources.updater, /getAppResourcePath\('app-update\.yml'\)/)
+
 console.log('main process resource path tests passed')

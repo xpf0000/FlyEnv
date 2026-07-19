@@ -10,17 +10,16 @@ import {
   shell
 } from 'electron'
 import { Window, windowManager } from '@xpf0000/node-window-manager'
-import { fileURLToPath } from 'node:url'
-import { dirname, join, resolve as PathResolve } from 'node:path'
+import { join } from 'node:path'
 import is from 'electron-is'
 import { ViteDevPort } from '../../../configs/vite.port'
 import { isWindows } from '@shared/utils'
 import { existsSync, mkdirp, readdir, writeFile } from '@shared/fs-extra'
 import { randomUUID } from 'node:crypto'
 import { I18nT } from '@lang/runtime'
+import { getRendererResourcePath } from '../utils/AppRuntimePath'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const index = PathResolve(__dirname, '../render/capturer/capturer.html')
+const index = getRendererResourcePath('capturer', 'capturer.html')
 
 type WindowItem = {
   id: string

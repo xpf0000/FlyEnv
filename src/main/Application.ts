@@ -10,8 +10,7 @@ import { ForkManager } from './core/ForkManager'
 import AppHelper from './core/AppHelper'
 import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
-import { fileURLToPath } from 'node:url'
-import { dirname, join, resolve } from 'node:path'
+import { resolve } from 'node:path'
 import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
 import ServiceVersionManager from './core/ServiceVersionManager'
@@ -37,8 +36,7 @@ import {
   oauthRuntime,
   siteSuckerRuntime
 } from './core/lazy/OptionalRuntimes'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
+import { getElectronResourcePath } from './utils/AppRuntimePath'
 
 export default class Application extends EventEmitter {
   isReady: boolean = false
@@ -236,7 +234,7 @@ export default class Application extends EventEmitter {
    * 初始化 Fork 管理器
    */
   private initForkManager() {
-    this.forkManager = new ForkManager(join(__dirname, './fork.mjs'))
+    this.forkManager = new ForkManager(getElectronResourcePath('fork.mjs'))
     this.forkManager.setLanguageSnapshotProvider(() => this.languageCoordinator.snapshot())
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
       if (key === 'App-Need-Init-FlyEnv-Helper') {
