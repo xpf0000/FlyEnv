@@ -29,7 +29,8 @@ import {
   mcpAuditRuntime,
   nodePtyRuntime,
   oauthRuntime,
-  siteSuckerRuntime
+  siteSuckerRuntime,
+  syncCapturerConfig
 } from './lazy/OptionalRuntimes'
 
 export interface IPCHandlerDependencies {
@@ -737,8 +738,9 @@ export default class IPCHandler extends EventEmitter {
 
   private handleCapturerConfigUpdate(command: string, key: string, args: any[]) {
     this.capturerConfig = args[0]
-    capturerRuntime.peek()?.configUpdate(this.capturerConfig)
-    this.sendToMainWindow(command, key, true)
+    syncCapturerConfig(capturerRuntime, this.capturerConfig)
+      .then(() => this.sendToMainWindow(command, key, true))
+      .catch((error) => this.sendRuntimeError(command, key, error))
   }
 
   // ===== NodePty =====

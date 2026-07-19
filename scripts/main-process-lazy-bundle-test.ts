@@ -125,8 +125,8 @@ for (const dependency of ['node-pty', '@xpf0000/node-window-manager', 'serve-han
 const ipcHandlerSource = readFileSync('src/main/core/IPCHandler.ts', 'utf8')
 assert.match(
   ipcHandlerSource,
-  /handleCapturerConfigUpdate[\s\S]*?capturerRuntime\.peek\(\)\?\.configUpdate/,
-  'capture config updates must use peek without loading the native runtime'
+  /handleCapturerConfigUpdate[\s\S]*?syncCapturerConfig\(capturerRuntime, this\.capturerConfig\)[\s\S]*?sendRuntimeError\(command, key, error\)/,
+  'capture config updates must conditionally load and configure the capturer runtime'
 )
 assert.equal(eagerInputs.has('src/main/core/OAuth.ts'), false)
 for (const dependency of ['axios', 'node-machine-id']) {
