@@ -10,6 +10,7 @@ import is from 'electron-is'
 import { AppStartErrorCallback } from '../app'
 import TrayManager from './TrayManager'
 import logger from '../core/Logger'
+import { createScaledPageOptions } from './PageOptions'
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
@@ -69,17 +70,7 @@ export default class WindowManager extends EventEmitter {
   }
 
   getPageOptions(page: string) {
-    const result = pageConfig[page]
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize
-    const widthScale = width >= 1280 ? 1 : 0.875
-    const heightScale = height >= 800 ? 1 : 0.875
-    if (result?.attrs?.width) {
-      result.attrs.width *= widthScale
-    }
-    if (result?.attrs?.height) {
-      result.attrs.height *= heightScale
-    }
-    return result
+    return createScaledPageOptions(pageConfig[page], screen.getPrimaryDisplay().workAreaSize)
   }
 
   getPageBounds(page: string) {
