@@ -37,14 +37,17 @@ func TestTrustedImmutableHomeAliasPolicy(t *testing.T) {
 		{name: "alias is not root owned", mutate: func(m *immutableHomeAliasMetadata) { m.aliasUID = 1000 }},
 		{name: "alias parent is not root owned", mutate: func(m *immutableHomeAliasMetadata) { m.aliasParentUID = 1000 }},
 		{name: "alias parent is not directory", mutate: func(m *immutableHomeAliasMetadata) { m.aliasParentMode = 0755 }},
-		{name: "alias parent is writable", mutate: func(m *immutableHomeAliasMetadata) { m.aliasParentMode = os.ModeDir | 0775 }},
+		{name: "alias parent is group writable", mutate: func(m *immutableHomeAliasMetadata) { m.aliasParentMode = os.ModeDir | 0775 }},
+		{name: "alias parent is world writable", mutate: func(m *immutableHomeAliasMetadata) { m.aliasParentMode = os.ModeDir | 0757 }},
 		{name: "target is symlink", mutate: func(m *immutableHomeAliasMetadata) { m.targetMode = os.ModeSymlink | 0777 }},
 		{name: "target is not directory", mutate: func(m *immutableHomeAliasMetadata) { m.targetMode = 0644 }},
 		{name: "target is not root owned", mutate: func(m *immutableHomeAliasMetadata) { m.targetUID = 1000 }},
-		{name: "target is writable", mutate: func(m *immutableHomeAliasMetadata) { m.targetMode = os.ModeDir | 0775 }},
+		{name: "target is group writable", mutate: func(m *immutableHomeAliasMetadata) { m.targetMode = os.ModeDir | 0775 }},
+		{name: "target is world writable", mutate: func(m *immutableHomeAliasMetadata) { m.targetMode = os.ModeDir | 0757 }},
 		{name: "target parent is not root owned", mutate: func(m *immutableHomeAliasMetadata) { m.targetParentUID = 1000 }},
 		{name: "target parent is not directory", mutate: func(m *immutableHomeAliasMetadata) { m.targetParentMode = 0755 }},
-		{name: "target parent is writable", mutate: func(m *immutableHomeAliasMetadata) { m.targetParentMode = os.ModeDir | 0775 }},
+		{name: "target parent is group writable", mutate: func(m *immutableHomeAliasMetadata) { m.targetParentMode = os.ModeDir | 0775 }},
+		{name: "target parent is world writable", mutate: func(m *immutableHomeAliasMetadata) { m.targetParentMode = os.ModeDir | 0757 }},
 	}
 
 	for _, test := range tests {

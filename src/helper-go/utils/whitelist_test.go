@@ -208,6 +208,10 @@ func TestPythonExecutableSymlinkRule(t *testing.T) {
 }
 
 func TestPathHasSymlinkComponentRejectsOrdinarySymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("creating symlinks may require elevated privileges on Windows")
+	}
+
 	root, err := filepath.EvalSymlinks(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
@@ -230,6 +234,10 @@ func TestPathHasSymlinkComponentRejectsOrdinarySymlink(t *testing.T) {
 }
 
 func TestPathSymlinkWalkerSkipsOnlyTrustedComponent(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("creating symlinks may require elevated privileges on Windows")
+	}
+
 	root, err := filepath.EvalSymlinks(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
