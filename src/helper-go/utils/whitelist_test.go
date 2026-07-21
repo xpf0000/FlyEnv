@@ -206,3 +206,66 @@ func TestPythonExecutableSymlinkRule(t *testing.T) {
 		t.Fatal("only python3 -> python should match the Python executable symlink rule")
 	}
 }
+
+func TestPathHasSymlinkComponentRejectsOrdinarySymlink(t *testing.T) {
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	realDir := filepath.Join(root, "real")
+	aliasDir := filepath.Join(root, "alias")
+	if err := os.MkdirAll(realDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(realDir, aliasDir); err != nil {
+		t.Fatal(err)
+	}
+	hasSymlink, err := PathHasSymlinkComponent(filepath.Join(aliasDir, "start-1.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasSymlink {
+		t.Fatal("ordinary symlink component should be rejected")
+	}
+}
+
+func TestPathSymlinkWalkerSkipsOnlyTrustedComponent(t *testing.T) {
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	realHome := filepath.Join(root, "var-home")
+	aliasHome := filepath.Join(root, "home")
+	serviceDir := filepath.Join(realHome, "user", "FlyEnv", "server")
+	if err := os.MkdirAll(serviceDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(realHome, aliasHome); err != nil {
+		t.Fatal(err)
+	}
+	scriptPath := filepath.Join(aliasHome, "user", "FlyEnv", "server", "start-1.sh")
+	trustAlias := func(path string, _ os.FileInfo) bool { return pathEqual(path, aliasHome) }
+	hasSymlink, err := pathHasSymlinkComponent(scriptPath, trustAlias)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if hasSymlink {
+		t.Fatal("modeled trusted home alias should be skipped")
+	}
+
+	outsideDir := filepath.Join(root, "outside")
+	if err := os.MkdirAll(outsideDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outsideDir, filepath.Join(serviceDir, "nested")); err != nil {
+		t.Fatal(err)
+	}
+	nestedScriptPath := filepath.Join(aliasHome, "user", "FlyEnv", "server", "nested", "start-2.sh")
+	hasSymlink, err = pathHasSymlinkComponent(nestedScriptPath, trustAlias)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasSymlink {
+		t.Fatal("nested user-controlled symlink should still be rejected")
+	}
+}

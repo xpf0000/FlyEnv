@@ -429,7 +429,9 @@ func isBusinessPathAllowed(path string) bool {
 	return false
 }
 
-func PathHasSymlinkComponent(path string) (bool, error) {
+type trustedSymlinkComponentFunc func(string, os.FileInfo) bool
+
+func pathHasSymlinkComponent(path string, trust trustedSymlinkComponentFunc) (bool, error) {
 	clean, err := cleanAbsPath(path)
 	if err != nil {
 		return false, err
@@ -437,7 +439,7 @@ func PathHasSymlinkComponent(path string) (bool, error) {
 	for {
 		info, statErr := os.Lstat(clean)
 		if statErr == nil {
-			if info.Mode()&os.ModeSymlink != 0 {
+			if info.Mode()&os.ModeSymlink != 0 && !trust(clean, info) {
 				return true, nil
 			}
 		} else if !os.IsNotExist(statErr) {
@@ -451,6 +453,10 @@ func PathHasSymlinkComponent(path string) (bool, error) {
 		clean = parent
 	}
 	return false, nil
+}
+
+func PathHasSymlinkComponent(path string) (bool, error) {
+	return pathHasSymlinkComponent(path, isTrustedSystemSymlinkComponent)
 }
 
 func validatePathAccess(path string, forWrite bool) error {
