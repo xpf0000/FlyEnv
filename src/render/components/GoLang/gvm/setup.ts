@@ -4,11 +4,7 @@ import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import IPC from '@/util/IPC'
 import XTerm from '@/util/XTerm'
-import {
-  GVM_INSTALL_COMMAND,
-  buildGvmVersionCommand,
-  type GvmVersionAction
-} from './command'
+import { GVM_INSTALL_COMMAND, buildGvmVersionCommand, type GvmVersionAction } from './command'
 
 async function mountAndRun(commands: string[], xtermDom: HTMLElement): Promise<void> {
   const params: string[] = []
@@ -57,34 +53,25 @@ export const GvmSetup = reactive<{
   fetching: false,
   xterm: undefined,
   checkGvm() {
-    IPC.send('app-fork:golang', 'checkGvm')
-      .then((key: string, res) => {
-        IPC.off(key)
-        GvmSetup.initScript = res?.data ?? ''
-        GvmSetup.installed = !!GvmSetup.initScript
-        if (GvmSetup.installed) {
-          GvmSetup.fetchData()
-        }
-      })
-      .catch(() => {
-        GvmSetup.installed = false
-      })
+    IPC.send('app-fork:golang', 'checkGvm').then((key: string, res) => {
+      IPC.off(key)
+      GvmSetup.initScript = res?.data ?? ''
+      GvmSetup.installed = !!GvmSetup.initScript
+      if (GvmSetup.installed) {
+        GvmSetup.fetchData()
+      }
+    })
   },
   fetchData() {
     if (!GvmSetup.installed || GvmSetup.fetching) {
       return
     }
     GvmSetup.fetching = true
-    IPC.send('app-fork:golang', 'gvmData')
-      .then((key: string, res) => {
-        IPC.off(key)
-        GvmSetup.versions = reactive(res?.data ?? [])
-        GvmSetup.fetching = false
-      })
-      .catch(() => {
-        GvmSetup.versions = []
-        GvmSetup.fetching = false
-      })
+    IPC.send('app-fork:golang', 'gvmData').then((key: string, res) => {
+      IPC.off(key)
+      GvmSetup.versions = reactive(res?.data ?? [])
+      GvmSetup.fetching = false
+    })
   },
   async installGvm(xtermDom: HTMLElement) {
     GvmSetup.installEnd = false
@@ -95,11 +82,7 @@ export const GvmSetup = reactive<{
       GvmSetup.installEnd = true
     }
   },
-  async versionAction(
-    item: GvmVersionItem,
-    action: GvmVersionAction,
-    xtermDom: HTMLElement
-  ) {
+  async versionAction(item: GvmVersionItem, action: GvmVersionAction, xtermDom: HTMLElement) {
     GvmSetup.installEnd = false
     try {
       const command = buildGvmVersionCommand(GvmSetup.initScript, action, item.name)

@@ -45,7 +45,9 @@
               />
             </div>
           </template>
-          <template #default="scope"><span class="pl-12">{{ scope.row.version }}</span></template>
+          <template #default="scope"
+            ><span class="pl-12">{{ scope.row.version }}</span></template
+          >
         </el-table-column>
         <el-table-column align="center" :label="I18nT('base.isInstalled')" width="150">
           <template #default="scope">
@@ -87,9 +89,7 @@
               :disabled="GvmSetup.installing"
               @click="doVersionAction(scope.row)"
             >
-              {{
-                scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')
-              }}
+              {{ scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install') }}
             </el-button>
           </template>
         </el-table-column>
@@ -118,9 +118,7 @@
   const versionList = computed(() => {
     const key = GvmSetup.searchKey.trim()
     const list = key
-      ? GvmSetup.versions.filter(
-          (item) => item.version.includes(key) || item.name.includes(key)
-        )
+      ? GvmSetup.versions.filter((item) => item.version.includes(key) || item.name.includes(key))
       : [...GvmSetup.versions]
     return list.sort((a, b) => Number(b.installed) - Number(a.installed))
   })

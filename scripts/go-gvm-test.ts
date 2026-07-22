@@ -153,7 +153,7 @@ const goIndexSource = readFileSync('src/render/components/GoLang/Index.vue', 'ut
 assert.match(goIndexSource, /<GvmVM v-else-if="tab === 4" \/>/)
 assert.match(goIndexSource, /import GvmVM from '\.\/gvm\/index\.vue'/)
 assert.match(goIndexSource, /appendGvmTab\(/)
-assert.match(goIndexSource, /window\.Server\.isWindows/)
+assert.match(goIndexSource, /window\.Server\.isWindows === true/)
 
 const gvmSetupSource = readFileSync('src/render/components/GoLang/gvm/setup.ts', 'utf8')
 assert.match(gvmSetupSource, /IPC\.send\('app-fork:golang', 'checkGvm'\)/)
@@ -161,6 +161,7 @@ assert.match(gvmSetupSource, /IPC\.send\('app-fork:golang', 'gvmData'\)/)
 assert.match(gvmSetupSource, /buildGvmVersionCommand/)
 assert.match(gvmSetupSource, /GVM_INSTALL_COMMAND/)
 assert.match(gvmSetupSource, /module\.installedFetched = false/)
+assert.doesNotMatch(gvmSetupSource, /\.then\([\s\S]*?\)\s*\.catch\(/)
 
 const gvmPageSource = readFileSync('src/render/components/GoLang/gvm/index.vue', 'utf8')
 assert.match(gvmPageSource, /GvmSetup\.installGvm/)

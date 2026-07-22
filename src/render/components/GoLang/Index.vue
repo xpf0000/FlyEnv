@@ -52,6 +52,6 @@
       I18nT('base.versionManager'),
       I18nT('host.newProject')
     ],
-    window.Server.isWindows
+    window.Server.isWindows === true
   )
 </script>
