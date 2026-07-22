@@ -915,6 +915,10 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(asideSource, /startupGroupStore\.find\(id\)/)
   assert.match(asideSource, /StartupGroupManager\.setGroupEnabled/)
   assert.match(asideSource, /startupGroupDo,\s*switchChange/)
+  assert.match(
+    asideSource,
+    /const find =\s*fn === 'switchChange'\s*\? AppCustomerModule\.module\.find/
+  )
   assert.match(startupGroupTraySource, /groups\.map\(\(group\)/)
   assert.match(trayStoreSource, /TrayState/)
   assert.match(trayAppSource, /v-for="group in startupGroups"/)

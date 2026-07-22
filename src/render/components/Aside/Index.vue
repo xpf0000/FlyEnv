@@ -806,7 +806,8 @@
 
   IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
     console.log('on APP:Tray-Command', key, fn, arg)
-    const find = AppCustomerModule.module.find((m) => m.id === arg)
+    const find =
+      fn === 'switchChange' ? AppCustomerModule.module.find((m) => m.id === arg) : undefined
     if (find) {
       const run = find.item.some((s) => s.run)
       if (run) {
