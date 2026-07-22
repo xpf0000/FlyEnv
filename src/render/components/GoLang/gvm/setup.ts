@@ -17,7 +17,7 @@ async function mountAndRun(commands: string[], xtermDom: HTMLElement): Promise<v
   const xterm = new XTerm()
   GvmSetup.xterm = xterm
   await xterm.mount(xtermDom)
-  await xterm.send(params)
+  await xterm.send(params, false)
 }
 
 async function refreshInstalledVersions(): Promise<void> {

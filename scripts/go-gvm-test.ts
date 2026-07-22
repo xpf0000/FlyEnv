@@ -162,6 +162,7 @@ assert.match(gvmSetupSource, /buildGvmVersionCommand/)
 assert.match(gvmSetupSource, /GVM_INSTALL_COMMAND/)
 assert.match(gvmSetupSource, /module\.installedFetched = false/)
 assert.doesNotMatch(gvmSetupSource, /\.then\([\s\S]*?\)\s*\.catch\(/)
+assert.match(gvmSetupSource, /await xterm\.send\(params, false\)/)
 
 const gvmPageSource = readFileSync('src/render/components/GoLang/gvm/index.vue', 'utf8')
 assert.match(gvmPageSource, /GvmSetup\.installGvm/)
