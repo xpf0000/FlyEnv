@@ -554,6 +554,7 @@
         const running = m.item.some((s) => s.running)
         return {
           id: m.id,
+          typeFlag: m.typeFlag,
           label: m.label,
           icon: m.icon,
           show: true,

@@ -911,6 +911,11 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     /buildStartupGroupTrayItems\(startupGroupStore\.groups, StartupGroupManager\)/
   )
   assert.match(asideSource, /startupGroups: startupGroups\.value/)
+  const customerModuleProjectionSource = asideSource.slice(
+    asideSource.indexOf('const customerModule = computed'),
+    asideSource.indexOf('const trayStore = computed')
+  )
+  assert.match(customerModuleProjectionSource, /typeFlag: m\.typeFlag/)
   assert.match(asideSource, /const startupGroupDo = async \(id: string\)/)
   assert.match(asideSource, /startupGroupStore\.find\(id\)/)
   assert.match(asideSource, /StartupGroupManager\.setGroupEnabled/)
