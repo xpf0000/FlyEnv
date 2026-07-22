@@ -864,6 +864,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const startupGroupManagerSource = readSource(
     'src/render/components/StartupGroup/class/StartupGroupManager.ts'
   )
+  const startupGroupTraySource = readSource('src/render/components/StartupGroup/tray.ts')
   const routerSource = readSource('src/render/router/index.ts')
   const appStoreSource = readSource('src/render/store/app.ts')
   const mysqlForkSource = readSource('src/fork/module/Mysql/index.ts')
@@ -899,6 +900,17 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.doesNotMatch(moduleSource, /config\.setup\.startupGroups/)
   assert.match(asideSource, /StartupGroupManager/)
   assert.doesNotMatch(asideSource, /config\.setup\.startupGroups/)
+  assert.match(asideSource, /startupGroupStore\.init\(\)\.catch\(\)/)
+  assert.match(
+    asideSource,
+    /buildStartupGroupTrayItems\(startupGroupStore\.groups, StartupGroupManager\)/
+  )
+  assert.match(asideSource, /startupGroups: startupGroups\.value/)
+  assert.match(asideSource, /const startupGroupDo = async \(id: string\)/)
+  assert.match(asideSource, /startupGroupStore\.find\(id\)/)
+  assert.match(asideSource, /StartupGroupManager\.setGroupEnabled/)
+  assert.match(asideSource, /startupGroupDo,\s*switchChange/)
+  assert.match(startupGroupTraySource, /groups\.map\(\(group\)/)
   assert.match(indexSource, /store\.init\(\)\.catch\(\)/)
   assert.match(moduleSource, /moduleType: 'console'/)
   assert.match(moduleSource, /typeFlag: 'startup-group'/)
@@ -1010,7 +1022,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.doesNotMatch(asideSource, /I18nT\('aside\.groupStart'\)/)
   assert.match(asideSource, /startupGroupStateForId/)
   assert.match(asideSource, /defaultStartupGroup\.value\?\.id !== startupGroupStateForId\.value/)
-  assert.match(asideSource, /group!\.toggle\(\)/)
+  assert.match(asideSource, /await executeStartupGroup\(group!\)/)
   assert.match(asideSource, /let startupGroupRefreshGeneration = 0/)
   assert.match(asideSource, /let startupGroupRefreshInFlight: Promise<void> \| undefined/)
   assert.match(asideSource, /while \(startupGroupRefreshQueued\)/)

@@ -134,6 +134,8 @@
   import { BrewStore } from '@/store/brew'
   import { ElMessageBox } from 'element-plus'
   import { StartupGroupManager } from '@/components/StartupGroup/class/StartupGroupManager'
+  import { buildStartupGroupTrayItems } from '@/components/StartupGroup/tray'
+  import type { StartupGroup } from '@/components/StartupGroup/class/StartupGroup'
   import type {
     StartupGroupCardState,
     StartupGroupItem,
@@ -145,6 +147,7 @@
   const appStore = AppStore()
   const brewStore = BrewStore()
   const startupGroupStore = StartupGroupManager.store
+  startupGroupStore.init().catch()
 
   type AsideEntry = AppModuleItem | ModuleCustomer
   type AsideGroup = {
@@ -538,6 +541,10 @@
     }
   })
 
+  const startupGroups = computed(() =>
+    buildStartupGroupTrayItems(startupGroupStore.groups, StartupGroupManager)
+  )
+
   const customerModule = computed(() => {
     return AppCustomerModule.module
       .filter((f) => f.isService)
@@ -576,6 +583,7 @@
       theme: appStore?.config?.setup?.theme,
       groupDisabled: groupDisabled.value,
       groupIsRunning: groupIsRunning.value,
+      startupGroups: startupGroups.value,
       customerModule: customerModule.value,
       isWindows: window.Server.isWindows,
       isMacOS: window.Server.isMacOS,
@@ -732,6 +740,30 @@
       })
       .join('<br/>')
 
+  const executeStartupGroup = async (group: StartupGroup) => {
+    if (StartupGroupManager.busy || group.empty) return
+
+    startupGroupBusy.value = true
+    try {
+      const result = await StartupGroupManager.setGroupEnabled(
+        group,
+        !StartupGroupManager.isGroupRunning(group)
+      )
+      if (!result) return
+      const message = startupGroupResultMessage(result)
+      if (result.members.some((item) => ['failed', 'invalid'].includes(item.outcome))) {
+        MessageError(message)
+      } else {
+        MessageSuccess(message || I18nT('base.success'))
+      }
+    } catch (error) {
+      MessageError(error instanceof Error ? error.message : `${error}`)
+    } finally {
+      startupGroupBusy.value = false
+      await refreshStartupGroupState()
+    }
+  }
+
   const groupDo = async () => {
     if (groupDisabled.value) return
 
@@ -745,21 +777,13 @@
       return
     }
 
-    startupGroupBusy.value = true
-    try {
-      const result = await group!.toggle()
-      const message = startupGroupResultMessage(result)
-      if (result.members.some((item) => ['failed', 'invalid'].includes(item.outcome))) {
-        MessageError(message)
-      } else {
-        MessageSuccess(message || I18nT('base.success'))
-      }
-    } catch (error) {
-      MessageError(error instanceof Error ? error.message : `${error}`)
-    } finally {
-      startupGroupBusy.value = false
-      await refreshStartupGroupState()
-    }
+    await executeStartupGroup(group!)
+  }
+
+  const startupGroupDo = async (id: string) => {
+    const group = startupGroupStore.find(id)
+    if (!group) return
+    await executeStartupGroup(group)
   }
 
   const switchChange = (flag: AllAppModule) => {
@@ -798,6 +822,7 @@
     }
     const fns: { [k: string]: CallbackFn } = {
       groupDo,
+      startupGroupDo,
       switchChange
     }
     fns?.[fn]?.(arg)
