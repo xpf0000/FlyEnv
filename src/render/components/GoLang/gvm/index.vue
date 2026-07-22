@@ -29,71 +29,19 @@
       </div>
     </template>
     <template v-else>
-      <el-table height="100%" :data="versionList" :border="false" style="width: 100%">
-        <el-table-column prop="version">
-          <template #header>
-            <div class="w-full flex items-center gap-3">
-              <span class="inline-flex items-center py-[2px] flex-shrink-0">{{
-                I18nT('base.version')
-              }}</span>
-              <el-input
-                v-model.trim="GvmSetup.searchKey"
-                style="width: 188px"
-                size="small"
-                :placeholder="I18nT('common.action.search')"
-                clearable
-              />
-            </div>
-          </template>
-          <template #default="scope"
-            ><span class="pl-12">{{ scope.row.version }}</span></template
-          >
-        </el-table-column>
-        <el-table-column align="center" :label="I18nT('base.isInstalled')" width="150">
-          <template #default="scope">
-            <div class="cell-status">
-              <yb-icon
-                v-if="scope.row.installed"
-                :svg="import('@/svg/ok.svg?raw')"
-                class="installed"
-              />
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" :label="I18nT('common.value.default')" width="150">
-          <template #default="scope">
-            <el-button v-if="scope.row.isDefault" link type="primary">
-              <yb-icon :svg="import('@/svg/select.svg?raw')" width="18" height="18" />
-            </el-button>
-            <el-button
-              v-else-if="scope.row.installed"
-              class="current-set row-hover-show"
-              link
-              @click.stop="setVersionDefault(scope.row)"
-            >
-              <yb-icon
-                class="current-not"
-                :svg="import('@/svg/select.svg?raw')"
-                width="18"
-                height="18"
-              />
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" :label="I18nT('common.label.action')" width="150">
-          <template #default="scope">
-            <el-button
-              v-if="!scope.row.installed || (scope.row.installed && !scope.row.isDefault)"
-              type="primary"
-              link
-              :disabled="GvmSetup.installing"
-              @click="doVersionAction(scope.row)"
-            >
-              {{ scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install') }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <el-auto-resizer>
+        <template #default="{ height, width }">
+          <el-table-v2
+            class="app-el-table-v2"
+            :columns="columns"
+            :data="versionList"
+            :width="width"
+            :height="height"
+            :header-height="59"
+            :row-height="59"
+          />
+        </template>
+      </el-auto-resizer>
     </template>
     <template v-if="GvmSetup.installing" #footer>
       <el-button v-if="GvmSetup.installEnd" type="primary" @click.stop="taskConfirm">
@@ -104,10 +52,11 @@
   </el-card>
 </template>
 
-<script lang="ts" setup>
+<script lang="tsx" setup>
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { sortGvmVersionsNewestFirst, type GvmVersionItem } from '@shared/Gvm'
   import { I18nT } from '@lang/index'
+  import { ElButton, ElInput, type Column } from 'element-plus'
   import XTerm from '@/util/XTerm'
   import { GvmSetup } from './setup'
 
@@ -134,6 +83,111 @@
     )
   const setVersionDefault = (item: GvmVersionItem) =>
     startTask(() => GvmSetup.versionAction(item, 'default', xtermDom.value!))
+
+  const columns: Column<GvmVersionItem>[] = [
+    {
+      key: 'version',
+      title: I18nT('base.version'),
+      dataKey: 'version',
+      class: 'flex-1',
+      headerClass: 'flex-1',
+      width: 0,
+      headerCellRenderer: () => (
+        <div class="w-full flex items-center gap-3">
+          <span class="inline-flex items-center py-[2px] flex-shrink-0">
+            {I18nT('base.version')}
+          </span>
+          <ElInput
+            v-model={GvmSetup.searchKey}
+            style={{ width: '188px' }}
+            size="small"
+            placeholder={I18nT('common.action.search')}
+            clearable={true}
+          />
+        </div>
+      ),
+      cellRenderer: ({ rowData: row }) => <span class="pl-12">{row.version}</span>
+    },
+    {
+      key: 'installed',
+      title: I18nT('base.isInstalled'),
+      dataKey: 'installed',
+      class: 'flex-shrink-0',
+      headerClass: 'flex-shrink-0',
+      width: 150,
+      align: 'center',
+      cellRenderer: ({ rowData: row }) =>
+        row.installed ? (
+          <div class="cell-status">
+            <YbIcon svg={import('@/svg/ok.svg?raw')} class="installed" />
+          </div>
+        ) : (
+          <span></span>
+        )
+    },
+    {
+      key: 'default',
+      title: I18nT('common.value.default'),
+      dataKey: 'isDefault',
+      class: 'flex-shrink-0',
+      headerClass: 'flex-shrink-0',
+      width: 150,
+      align: 'center',
+      cellRenderer: ({ rowData: row }) => {
+        if (row.isDefault) {
+          return (
+            <ElButton link type="primary">
+              <YbIcon svg={import('@/svg/select.svg?raw')} width="18" height="18" />
+            </ElButton>
+          )
+        }
+        if (row.installed) {
+          return (
+            <ElButton
+              class="current-set row-hover-show"
+              link
+              onClick={(event: MouseEvent) => {
+                event.stopPropagation()
+                setVersionDefault(row)
+              }}
+            >
+              <YbIcon
+                class="current-not"
+                svg={import('@/svg/select.svg?raw')}
+                width="18"
+                height="18"
+              />
+            </ElButton>
+          )
+        }
+        return <span></span>
+      }
+    },
+    {
+      key: 'operation',
+      title: I18nT('common.label.action'),
+      dataKey: 'operation',
+      class: 'flex-shrink-0',
+      headerClass: 'flex-shrink-0',
+      width: 150,
+      align: 'center',
+      cellRenderer: ({ rowData: row }) => {
+        if (row.installed && row.isDefault) {
+          return <span></span>
+        }
+        return (
+          <ElButton
+            type="primary"
+            link
+            disabled={GvmSetup.installing}
+            onClick={() => doVersionAction(row)}
+          >
+            {row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')}
+          </ElButton>
+        )
+      }
+    }
+  ]
 
   const taskConfirm = () => {
     GvmSetup.installing = false
