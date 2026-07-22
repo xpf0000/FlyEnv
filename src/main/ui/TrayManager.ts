@@ -3,6 +3,7 @@ import { join } from 'path'
 import { Tray, nativeImage, screen, Menu, BrowserWindow } from 'electron'
 import NativeImage = Electron.NativeImage
 import { isWindows } from '@shared/utils'
+import type { TrayState } from '@shared/Tray'
 import { I18nT } from '@lang/runtime'
 import MenuItemConstructorOptions = Electron.MenuItemConstructorOptions
 
@@ -14,7 +15,7 @@ export default class TrayManager extends EventEmitter {
   active: boolean
   tray: Tray
   style: 'modern' | 'classic' | '' = ''
-  status: any
+  status: TrayState | undefined
   show: boolean = false
   clicking: boolean = false
   window: BrowserWindow | undefined
@@ -61,7 +62,7 @@ export default class TrayManager extends EventEmitter {
     }
   }
 
-  menuChange(status: any) {
+  menuChange(status: TrayState) {
     this.status = status
     if (this.style !== 'classic') {
       return
@@ -82,25 +83,40 @@ export default class TrayManager extends EventEmitter {
       type: 'separator'
     })
 
-    const service: any[] = status?.service ?? []
+    const startupGroups = status?.startupGroups ?? []
+    const service = status?.service ?? []
 
-    if (service.length > 0) {
-      for (const item of service) {
-        menus.push({
-          label: item.label,
-          type: 'normal',
-          enabled: !item.disabled && !item.running,
-          icon: item.run ? this.runIcon : this.stopIcon,
-          click: () => {
-            console.log('action service: ', item)
-            this.emit('action', 'switchChange', item?.typeFlag ?? item?.id)
-          }
-        })
-      }
-
+    for (const group of startupGroups) {
       menus.push({
-        type: 'separator'
+        label: group.name,
+        type: 'normal',
+        enabled: !group.disabled && !group.running,
+        icon: group.run ? this.runIcon : this.stopIcon,
+        click: () => {
+          this.emit('action', 'startupGroupDo', group.id)
+        }
       })
+    }
+
+    if (startupGroups.length > 0 && service.length > 0) {
+      menus.push({ type: 'separator' })
+    }
+
+    for (const item of service) {
+      menus.push({
+        label: item.label,
+        type: 'normal',
+        enabled: !item.disabled && !item.running,
+        icon: item.run ? this.runIcon : this.stopIcon,
+        click: () => {
+          console.log('action service: ', item)
+          this.emit('action', 'switchChange', item?.typeFlag ?? item?.id)
+        }
+      })
+    }
+
+    if (startupGroups.length > 0 || service.length > 0) {
+      menus.push({ type: 'separator' })
     }
 
     menus.push({

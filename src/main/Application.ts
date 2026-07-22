@@ -37,6 +37,7 @@ import {
   siteSuckerRuntime
 } from './core/lazy/OptionalRuntimes'
 import { getElectronResourcePath } from './utils/AppRuntimePath'
+import type { TrayAction } from '@shared/Tray'
 
 export default class Application extends EventEmitter {
   isReady: boolean = false
@@ -459,12 +460,9 @@ export default class Application extends EventEmitter {
       this.show('index')
     })
 
-    this.trayManager.on(
-      'action',
-      (action: 'groupDo' | 'switchChange' | 'show' | 'exit', typeFlag?: string) => {
-        this.handleTrayAction(action, typeFlag)
-      }
-    )
+    this.trayManager.on('action', (action: TrayAction, typeFlag?: string) => {
+      this.handleTrayAction(action, typeFlag)
+    })
 
     const style = this.configManager.getConfig('setup.trayMenuBarStyle') ?? 'modern'
     this.trayManager.setStyle(style)
@@ -518,10 +516,7 @@ export default class Application extends EventEmitter {
     }
   }
 
-  private handleTrayAction(
-    action: 'groupDo' | 'switchChange' | 'show' | 'exit',
-    typeFlag?: string
-  ) {
+  private handleTrayAction(action: TrayAction, typeFlag?: string) {
     console.log('TrayManager action: ', action, typeFlag)
     switch (action) {
       case 'exit':
@@ -536,6 +531,15 @@ export default class Application extends EventEmitter {
           'APP:Tray-Command',
           'APP:Tray-Command',
           'groupDo'
+        )
+        break
+      case 'startupGroupDo':
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'APP:Tray-Command',
+          'APP:Tray-Command',
+          'startupGroupDo',
+          typeFlag
         )
         break
       case 'switchChange':

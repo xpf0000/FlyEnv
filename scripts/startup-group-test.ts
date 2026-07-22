@@ -868,6 +868,8 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const trayAppSource = readSource('src/render/tray/App.vue')
   const trayStartupGroupItemSource = readSource('src/render/tray/StartupGroupItem.vue')
   const trayStoreSource = readSource('src/render/tray/store/app.ts')
+  const trayManagerSource = readSource('src/main/ui/TrayManager.ts')
+  const applicationSource = readSource('src/main/Application.ts')
   const routerSource = readSource('src/render/router/index.ts')
   const appStoreSource = readSource('src/render/store/app.ts')
   const mysqlForkSource = readSource('src/fork/module/Mysql/index.ts')
@@ -930,6 +932,18 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     trayStartupGroupItemSource,
     /IPC\.send\('APP:Tray-Command', 'startupGroupDo', props\.item\.id\)/
   )
+  assert.match(trayManagerSource, /status: TrayState \| undefined/)
+  assert.match(trayManagerSource, /const startupGroups = status\?\.startupGroups \?\? \[\]/)
+  assert.ok(
+    trayManagerSource.indexOf('for (const group of startupGroups)') <
+      trayManagerSource.indexOf('for (const item of service)')
+  )
+  assert.match(trayManagerSource, /label: group\.name/)
+  assert.match(trayManagerSource, /enabled: !group\.disabled && !group\.running/)
+  assert.match(trayManagerSource, /this\.emit\('action', 'startupGroupDo', group\.id\)/)
+  assert.match(trayManagerSource, /startupGroups\.length > 0 && service\.length > 0/)
+  assert.match(applicationSource, /case 'startupGroupDo':/)
+  assert.match(applicationSource, /'APP:Tray-Command',[\s\S]*?'startupGroupDo',[\s\S]*?typeFlag/)
   assert.match(indexSource, /store\.init\(\)\.catch\(\)/)
   assert.match(moduleSource, /moduleType: 'console'/)
   assert.match(moduleSource, /typeFlag: 'startup-group'/)
