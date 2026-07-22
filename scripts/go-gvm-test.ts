@@ -16,6 +16,11 @@ import {
   gvmInitScript,
   resolveGvmRoot
 } from '../src/fork/module/GoLang/gvm'
+import {
+  GVM_INSTALL_COMMAND,
+  buildGvmVersionCommand
+} from '../src/render/components/GoLang/gvm/command'
+import { appendGvmTab } from '../src/render/components/GoLang/tabs'
 
 const availableOutput = `
 gvm gos (available)
@@ -111,6 +116,32 @@ assert.deepEqual(gvmCommands, [
 assert.deepEqual(gvmData, [
   { name: 'go1.24.5', version: '1.24.5', installed: true, isDefault: true }
 ])
+
+assert.equal(
+  GVM_INSTALL_COMMAND,
+  'bash < <(curl -sSL https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)'
+)
+assert.equal(
+  buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'install', 'go1.24.5'),
+  "source '/Users/test/.gvm/scripts/gvm' && gvm install go1.24.5 -B"
+)
+assert.equal(
+  buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'uninstall', 'go1.23.9'),
+  "source '/Users/test/.gvm/scripts/gvm' && gvm uninstall go1.23.9"
+)
+assert.equal(
+  buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'default', 'go1.24.5'),
+  "source '/Users/test/.gvm/scripts/gvm' && gvm use go1.24.5 --default"
+)
+assert.throws(
+  () => buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'install', 'go1.24;rm'),
+  /Invalid GVM version/
+)
+
+const baseTabs = ['projects', 'service', 'versions', 'new-project']
+assert.deepEqual(appendGvmTab(baseTabs, true), baseTabs)
+assert.deepEqual(appendGvmTab(baseTabs, false), [...baseTabs, 'GVM'])
+assert.deepEqual(baseTabs, ['projects', 'service', 'versions', 'new-project'])
 
 const goLangSource = readFileSync('src/fork/module/GoLang/index.ts', 'utf8')
 assert.match(goLangSource, /findGvmGoDirectories/)
