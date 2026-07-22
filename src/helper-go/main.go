@@ -25,7 +25,7 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 17
+	Helper_Version   = 18
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
@@ -37,7 +37,7 @@ var rolePattern = regexp.MustCompile(`^([0-9]+):([0-9]+)$`)
 
 func getKeyPath() string {
 	if runtime.GOOS == "windows" {
-		return filepath.Join(os.TempDir(), "flyenv-helper.key")
+		return utils.WindowsHelperKeyPath()
 	}
 	return Key_Path_Unix
 }
