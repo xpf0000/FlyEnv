@@ -106,7 +106,7 @@
 
 <script lang="ts" setup>
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import type { GvmVersionItem } from '@shared/Gvm'
+  import { sortGvmVersionsNewestFirst, type GvmVersionItem } from '@shared/Gvm'
   import { I18nT } from '@lang/index'
   import XTerm from '@/util/XTerm'
   import { GvmSetup } from './setup'
@@ -120,7 +120,7 @@
     const list = key
       ? GvmSetup.versions.filter((item) => item.version.includes(key) || item.name.includes(key))
       : [...GvmSetup.versions]
-    return list.sort((a, b) => Number(b.installed) - Number(a.installed))
+    return sortGvmVersionsNewestFirst(list)
   })
 
   const startTask = (run: () => Promise<void>) => {

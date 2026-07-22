@@ -8,7 +8,8 @@ import {
   mergeGvmVersionData,
   parseGvmAvailableVersions,
   parseGvmInstalledVersions,
-  quotePosixShell
+  quotePosixShell,
+  sortGvmVersionsNewestFirst
 } from '../src/shared/Gvm'
 import {
   fetchGvmVersionData,
@@ -68,6 +69,20 @@ assert.deepEqual(mergeGvmVersionData(availableOutput, installedOutput), [
   },
   { name: 'go1.23.9', version: '1.23.9', installed: true, isDefault: false }
 ])
+
+const unsortedVersions = [
+  { name: 'go1.22.9', version: '1.22.9', installed: true, isDefault: true },
+  { name: 'go1.24.5', version: '1.24.5', installed: false, isDefault: false },
+  { name: 'go1.23.10', version: '1.23.10', installed: false, isDefault: false }
+]
+assert.deepEqual(
+  sortGvmVersionsNewestFirst(unsortedVersions).map((item) => item.name),
+  ['go1.24.5', 'go1.23.10', 'go1.22.9']
+)
+assert.deepEqual(
+  unsortedVersions.map((item) => item.name),
+  ['go1.22.9', 'go1.24.5', 'go1.23.10']
+)
 
 assert.equal(isGvmVersionIdentifier('go1.24.5'), true)
 assert.equal(isGvmVersionIdentifier('release.r60.3'), true)
@@ -168,6 +183,7 @@ const gvmPageSource = readFileSync('src/render/components/GoLang/gvm/index.vue',
 assert.match(gvmPageSource, /GvmSetup\.installGvm/)
 assert.match(gvmPageSource, /GvmSetup\.versionAction/)
 assert.match(gvmPageSource, /setVersionDefault/)
+assert.match(gvmPageSource, /sortGvmVersionsNewestFirst\(list\)/)
 assert.match(gvmPageSource, /scope\.row\.installed && !scope\.row\.isDefault/)
 
 console.log('go gvm tests passed')

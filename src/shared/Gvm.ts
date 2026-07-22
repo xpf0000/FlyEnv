@@ -1,3 +1,5 @@
+import { compareVersions } from './compare-versions'
+
 export type GvmVersionItem = {
   name: string
   version: string
@@ -72,6 +74,14 @@ export function mergeGvmVersionData(
     installed: installed.has(name),
     isDefault: installed.get(name)?.isDefault ?? false
   }))
+}
+
+export function sortGvmVersionsNewestFirst<T extends GvmVersionItem>(versions: readonly T[]): T[] {
+  return [...versions].sort(
+    (a, b) =>
+      compareVersions(b.version, a.version) ||
+      b.name.localeCompare(a.name, undefined, { numeric: true })
+  )
 }
 
 export function quotePosixShell(value: string): string {
