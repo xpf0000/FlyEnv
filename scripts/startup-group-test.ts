@@ -865,6 +865,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
     'src/render/components/StartupGroup/class/StartupGroupManager.ts'
   )
   const startupGroupTraySource = readSource('src/render/components/StartupGroup/tray.ts')
+  const trayAppSource = readSource('src/render/tray/App.vue')
+  const trayStartupGroupItemSource = readSource('src/render/tray/StartupGroupItem.vue')
+  const trayStoreSource = readSource('src/render/tray/store/app.ts')
   const routerSource = readSource('src/render/router/index.ts')
   const appStoreSource = readSource('src/render/store/app.ts')
   const mysqlForkSource = readSource('src/fork/module/Mysql/index.ts')
@@ -911,6 +914,22 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(asideSource, /StartupGroupManager\.setGroupEnabled/)
   assert.match(asideSource, /startupGroupDo,\s*switchChange/)
   assert.match(startupGroupTraySource, /groups\.map\(\(group\)/)
+  assert.match(trayStoreSource, /TrayState/)
+  assert.match(trayAppSource, /v-for="group in startupGroups"/)
+  assert.match(trayAppSource, /<StartupGroupItem[^>]*:item="group"/)
+  assert.match(trayAppSource, /startupGroups\.length && service\.length/)
+  assert.ok(
+    trayAppSource.indexOf('v-for="group in startupGroups"') <
+      trayAppSource.indexOf('v-for="item in service"')
+  )
+  assert.match(trayStartupGroupItemSource, /item\.color \|\| '#409eff'/)
+  assert.match(trayStartupGroupItemSource, /:model-value="item\.run"/)
+  assert.match(trayStartupGroupItemSource, /:disabled="item\.disabled"/)
+  assert.match(trayStartupGroupItemSource, /:loading="item\.running"/)
+  assert.match(
+    trayStartupGroupItemSource,
+    /IPC\.send\('APP:Tray-Command', 'startupGroupDo', props\.item\.id\)/
+  )
   assert.match(indexSource, /store\.init\(\)\.catch\(\)/)
   assert.match(moduleSource, /moduleType: 'console'/)
   assert.match(moduleSource, /typeFlag: 'startup-group'/)

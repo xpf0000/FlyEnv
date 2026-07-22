@@ -1,9 +1,4 @@
-export type TrayAction =
-  | 'groupDo'
-  | 'startupGroupDo'
-  | 'switchChange'
-  | 'show'
-  | 'exit'
+export type TrayAction = 'groupDo' | 'startupGroupDo' | 'switchChange' | 'show' | 'exit'
 
 export type TrayModuleItemState = {
   show: boolean

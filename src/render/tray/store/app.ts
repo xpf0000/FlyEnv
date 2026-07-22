@@ -1,31 +1,8 @@
 import { defineStore } from 'pinia'
+import type { TrayServiceItem, TrayState } from '@shared/Tray'
 
-type ModuleItemState = {
-  show: boolean
-  run: boolean
-  running: boolean
-  disabled: boolean
-  typeFlag: string
-}
-
-export type CustomerModuleItem = {
-  id: string
-  label: string
-  icon: string
-  iconPadding?: number
-} & ModuleItemState
-
-export interface TrayState {
-  password: string
-  lang: string
-  theme: string
-  groupIsRunning: boolean
-  groupDisabled: boolean
-  service: CustomerModuleItem[]
-  isMacOS?: boolean
-  isLinux?: boolean
-  isWindows?: boolean
-}
+export type CustomerModuleItem = TrayServiceItem
+export type { TrayState }
 
 const state: TrayState = {
   lang: '',
@@ -33,6 +10,7 @@ const state: TrayState = {
   password: '',
   groupIsRunning: false,
   groupDisabled: true,
+  startupGroups: [],
   service: [],
   isMacOS: undefined,
   isLinux: undefined,
