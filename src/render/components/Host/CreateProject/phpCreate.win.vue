@@ -37,17 +37,43 @@
             </div>
             <div class="park">
               <div class="title">
+                <span>{{ I18nT('host.frameworkVersion') }}</span>
+              </div>
+              <el-select
+                v-model="ProjectSetup.form.PHP.version"
+                class="w-56 max-w-56"
+                filterable
+                :disabled="loading || created"
+              >
+                <template v-for="(v, _k) in app.list" :key="_k">
+                  <el-option :value="v.version" :label="getLabel(v)"></el-option>
+                </template>
+              </el-select>
+            </div>
+            <div class="park">
+              <div class="title">
+                <span>{{ I18nT('host.projectName') }}</span>
+              </div>
+              <el-input
+                v-model="ProjectSetup.form.PHP.name"
+                class="w-56 max-w-56"
+                placeholder="example-app"
+                :disabled="loading || created"
+              />
+            </div>
+            <div class="park">
+              <div class="title">
                 <span>{{ I18nT('base.phpVersion') }}</span>
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.php"
                 class="w-56 max-w-56"
                 filterable
-                :disabled="loading || created"
+                :disabled="loading || created || !ProjectSetup.form.PHP.version"
               >
                 <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
                 <template v-for="(v, _k) in phpVersions" :key="_k">
-                  <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
+                  <el-option :value="v.bin" :label="`${v.version}-${v.bin}`" :disabled="isPhpVersionDisabled(v.version)"></el-option>
                 </template>
               </el-select>
             </div>
@@ -64,21 +90,6 @@
                 <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
                 <template v-for="(v, _k) in composerVersions" :key="_k">
                   <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
-                </template>
-              </el-select>
-            </div>
-            <div class="park">
-              <div class="title">
-                <span>{{ I18nT('host.frameworkVersion') }}</span>
-              </div>
-              <el-select
-                v-model="ProjectSetup.form.PHP.version"
-                class="w-56 max-w-56"
-                filterable
-                :disabled="loading || created"
-              >
-                <template v-for="(v, _k) in app.list" :key="_k">
-                  <el-option :value="v.version" :label="v.name"></el-option>
                 </template>
               </el-select>
             </div>
@@ -114,10 +125,11 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+  import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
   import { BrewStore } from '@/store/brew'
+  import { compareVersions } from '@shared/compare-versions'
   import AppVersions from './version'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
@@ -131,6 +143,8 @@
   const props = defineProps<{
     type: keyof typeof AppVersions
   }>()
+
+  ProjectSetup.form.PHP.name = props.type.toLowerCase()
 
   const xterm = ref<HTMLElement>()
 
@@ -167,7 +181,53 @@
   })
 
   const createAble = computed(() => {
-    return !!ProjectSetup.form.PHP.dir && !!ProjectSetup.form.PHP.version
+    return (
+      !!ProjectSetup.form.PHP.dir &&
+      !!ProjectSetup.form.PHP.version &&
+      !!ProjectSetup.form.PHP.name.trim()
+    )
+  })
+
+  const getLabel = (v: any) => {
+    return v.php ? `${v.name} (${v.php})` : v.name
+  }
+
+  const isLaravel8OrAbove = (version?: string) => {
+    if (!version) return false
+    if (version === '*') return true
+    const major = parseInt(version.split('.')[0])
+    return !isNaN(major) && major >= 8
+  }
+
+  const getMinPhpVersion = (phpConstraint?: string) => {
+    if (!phpConstraint) return null
+    return phpConstraint.replace(/[^\d.]/g, '')
+  }
+
+  const isPhpVersionDisabled = (phpVersion: string) => {
+    const currentFrameworkVersion = ProjectSetup.form.PHP.version
+    if (!currentFrameworkVersion) return false
+
+    const currentFramework = app.value.list.find((f: any) => f.version === currentFrameworkVersion)
+    if (!currentFramework || !currentFramework.php) return false
+
+    const minPhp = getMinPhpVersion(currentFramework.php)
+    if (!minPhp) return false
+
+    try {
+      return compareVersions(phpVersion, minPhp) < 0
+    } catch (e) {
+      return false
+    }
+  }
+
+  watch(() => ProjectSetup.form.PHP.version, () => {
+    if (ProjectSetup.form.PHP.php) {
+      const selectedVersionObj = phpVersions.value.find(p => p.bin === ProjectSetup.form.PHP.php)
+      if (selectedVersionObj && isPhpVersionDisabled(selectedVersionObj.version)) {
+        ProjectSetup.form.PHP.php = ''
+      }
+    }
   })
 
   const phpVersions = computed(() => {
@@ -217,8 +277,7 @@
         command.push(`$env:${k}="${v}"`)
       }
     }
-    command.push(`cd "${form.dir}"`)
-
+    const projectDir = join(form.dir, form.name)
     if (props.type === 'WordPress') {
       const tmpl = `{
   "require": {
@@ -231,8 +290,10 @@
   }
 }
 `
-      await fs.writeFile(join(form.dir, 'composer.json'), tmpl)
+      await fs.mkdirp(projectDir)
+      await fs.writeFile(join(projectDir, 'composer.json'), tmpl)
 
+      command.push(`cd "${projectDir}"`)
       if (form.php && form.composer) {
         command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
         command.push(`php "${form.composer}" update`)
@@ -244,25 +305,41 @@
       } else {
         command.push(`composer update`)
       }
+    } else if (props.type === 'Laravel' && form.version === '*') {
+      command.push(`cd "${form.dir}"`)
+      if (form.php) {
+        command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
+      }
+      let composerCmd = 'composer'
+      if (form.composer) {
+        composerCmd = `php "${form.composer}"`
+      }
+      command.push(`${composerCmd} global require laravel/installer`)
+      command.push(
+        `$composer_bin = & ${composerCmd} global config bin-dir --absolute; if (-not $composer_bin) { $composer_bin = "$env:APPDATA\\Composer\\vendor\\bin" }; $env:PATH = "$composer_bin;" + $env:PATH`
+      )
+      command.push(`laravel new "${form.name}" --no-interaction`)
     } else {
+      await fs.mkdirp(projectDir)
+      command.push(`cd "${projectDir}"`)
       const name = app.value.package
       if (form.php && form.composer) {
         command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
         command.push(
-          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else if (form.php) {
         command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
         command.push(
-          `composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `composer create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else if (form.composer) {
         command.push(
-          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else {
         command.push(
-          `composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `composer create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       }
     }
@@ -270,13 +347,13 @@
     nextTick().then(() => {
       execXTerm.mount(xterm.value!).then(() => {
         execXTerm?.send(command, false)?.then(() => {
-          if (props.type === 'WordPress') {
+          if (props.type === 'WordPress' || (props.type === 'Laravel' && form.version === '*')) {
             created.value = true
           } else {
             IPC.send(
               'app-fork:project',
               'handleProjectDir',
-              ProjectSetup.form.PHP.dir,
+              projectDir,
               props.type.toLowerCase()
             ).then((key: string, res: any) => {
               IPC.off(key)
@@ -321,7 +398,7 @@
     let dir = ProjectSetup.form.PHP.dir
     let nginxRewrite = ''
     if (framework.includes('wordpress')) {
-      dir = join(ProjectSetup.form.PHP.dir, 'wordpress')
+      dir = join(ProjectSetup.form.PHP.dir, ProjectSetup.form.PHP.name, 'wordpress')
       nginxRewrite = `location /
 {
 \t try_files $uri $uri/ /index.php?$args;
@@ -329,39 +406,39 @@
 
 rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     } else if (framework.includes('laravel')) {
-      dir = join(ProjectSetup.form.PHP.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, ProjectSetup.form.PHP.name, 'public')
       nginxRewrite = `location / {
 \ttry_files $uri $uri/ /index.php$is_args$query_string;
 }`
     } else if (framework.includes('yii2')) {
-      dir = join(ProjectSetup.form.PHP.dir, 'web')
+      dir = join(ProjectSetup.form.PHP.dir, ProjectSetup.form.PHP.name, 'web')
       nginxRewrite = `location / {
     try_files $uri $uri/ /index.php?$args;
 }`
     } else if (framework.includes('thinkphp')) {
-      dir = join(ProjectSetup.form.PHP.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, ProjectSetup.form.PHP.name, 'public')
       nginxRewrite = `location / {
 \tif (!-e $request_filename){
 \t\trewrite  ^(.*)$  /index.php?s=$1  last;   break;
 \t}
 }`
     } else if (framework.includes('symfony')) {
-      dir = join(ProjectSetup.form.PHP.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, ProjectSetup.form.PHP.name, 'public')
       nginxRewrite = `location / {
         try_files $uri /index.php$is_args$args;
 }`
     } else if (framework.includes('cakephp')) {
-      dir = join(ProjectSetup.form.PHP.dir, 'webroot')
+      dir = join(ProjectSetup.form.PHP.dir, ProjectSetup.form.PHP.name, 'webroot')
       nginxRewrite = `location / {
     try_files $uri $uri/ /index.php?$args;
 }`
     } else if (framework.includes('slim')) {
-      dir = join(ProjectSetup.form.PHP.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, ProjectSetup.form.PHP.name, 'public')
       nginxRewrite = `location / {
         try_files $uri /index.php$is_args$args;
 }`
     } else if (framework.includes('codeIgniter')) {
-      dir = join(ProjectSetup.form.PHP.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, ProjectSetup.form.PHP.name, 'public')
       nginxRewrite = `location / {
         try_files $uri $uri/ /index.php$is_args$args;
 }`
