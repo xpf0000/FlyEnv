@@ -876,7 +876,10 @@
         .map((group) => `${group.id}:${group.updatedAt}`)
         .join('|')
     }),
-    () => refreshStartupGroupState(),
+    async () => {
+      await StartupGroupManager.ensureSources(startupGroupStore.groups).catch(() => {})
+      await refreshStartupGroupState()
+    },
     { immediate: true }
   )
   watch(

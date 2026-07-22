@@ -914,6 +914,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(asideSource, /const startupGroupDo = async \(id: string\)/)
   assert.match(asideSource, /startupGroupStore\.find\(id\)/)
   assert.match(asideSource, /StartupGroupManager\.setGroupEnabled/)
+  assert.match(asideSource, /StartupGroupManager\.ensureSources\(startupGroupStore\.groups\)/)
   assert.match(asideSource, /startupGroupDo,\s*switchChange/)
   assert.match(
     asideSource,
