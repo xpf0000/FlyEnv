@@ -85,7 +85,12 @@ export const GvmSetup = reactive<{
   async versionAction(item: GvmVersionItem, action: GvmVersionAction, xtermDom: HTMLElement) {
     GvmSetup.installEnd = false
     try {
-      const command = buildGvmVersionCommand(GvmSetup.initScript, action, item.name)
+      const command = buildGvmVersionCommand(
+        GvmSetup.initScript,
+        action,
+        item.name,
+        item.isDefault
+      )
       await mountAndRun([command], xtermDom)
       GvmSetup.fetchData()
       await refreshInstalledVersions()

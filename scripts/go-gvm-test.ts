@@ -136,17 +136,23 @@ assert.equal(
   GVM_INSTALL_COMMAND,
   'bash < <(curl -sSL https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)'
 )
+const sanitizeInvalidDefault =
+  'if [ -n "$GOROOT" ] && [ ! -d "$GOROOT" ]; then rm -f "$GVM_ROOT/environments/default"; unset GOROOT GOPATH GOBIN gvm_go_name gvm_pkgset_name; fi'
 assert.equal(
   buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'install', 'go1.24.5'),
-  "source '/Users/test/.gvm/scripts/gvm' && gvm install go1.24.5 -B"
+  `source '/Users/test/.gvm/scripts/gvm' && ${sanitizeInvalidDefault} && gvm install go1.24.5 -B`
 )
 assert.equal(
   buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'uninstall', 'go1.23.9'),
-  "source '/Users/test/.gvm/scripts/gvm' && gvm uninstall go1.23.9"
+  `source '/Users/test/.gvm/scripts/gvm' && ${sanitizeInvalidDefault} && gvm uninstall go1.23.9`
+)
+assert.equal(
+  buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'uninstall', 'go1.24.5', true),
+  `source '/Users/test/.gvm/scripts/gvm' && ${sanitizeInvalidDefault} && gvm uninstall go1.24.5 && rm -f "$GVM_ROOT/environments/default"`
 )
 assert.equal(
   buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'default', 'go1.24.5'),
-  "source '/Users/test/.gvm/scripts/gvm' && gvm use go1.24.5 --default"
+  `source '/Users/test/.gvm/scripts/gvm' && ${sanitizeInvalidDefault} && gvm use go1.24.5 --default`
 )
 assert.throws(
   () => buildGvmVersionCommand('/Users/test/.gvm/scripts/gvm', 'install', 'go1.24;rm'),
@@ -174,6 +180,7 @@ const gvmSetupSource = readFileSync('src/render/components/GoLang/gvm/setup.ts',
 assert.match(gvmSetupSource, /IPC\.send\('app-fork:golang', 'checkGvm'\)/)
 assert.match(gvmSetupSource, /IPC\.send\('app-fork:golang', 'gvmData'\)/)
 assert.match(gvmSetupSource, /buildGvmVersionCommand/)
+assert.match(gvmSetupSource, /buildGvmVersionCommand\([\s\S]*?item\.name,[\s\S]*?item\.isDefault/)
 assert.match(gvmSetupSource, /GVM_INSTALL_COMMAND/)
 assert.match(gvmSetupSource, /module\.installedFetched = false/)
 assert.doesNotMatch(gvmSetupSource, /\.then\([\s\S]*?\)\s*\.catch\(/)
