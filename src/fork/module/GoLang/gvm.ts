@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import { readdir } from 'node:fs/promises'
-import { join } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { execPromiseWithEnv } from '@shared/child-process'
 import { mergeGvmVersionData, quotePosixShell, type GvmVersionItem } from '@shared/Gvm'
 
@@ -18,6 +18,20 @@ export function gvmInitScript(gvmRoot: string): string {
 
 export function hasGvm(gvmRoot: string): boolean {
   return existsSync(gvmInitScript(gvmRoot))
+}
+
+export function buildGoVersionCommand(bin: string, gvmRoot: string): string {
+  const resolvedBin = resolve(bin)
+  const gosRoot = resolve(gvmRoot, 'gos')
+  const relativeBin = relative(gosRoot, resolvedBin)
+  const isManaged =
+    relativeBin !== '..' && !relativeBin.startsWith(`..${sep}`) && !isAbsolute(relativeBin)
+  const command = `${quotePosixShell(resolvedBin)} version`
+  if (!isManaged) {
+    return command
+  }
+  const goRoot = dirname(dirname(resolvedBin))
+  return `GOROOT=${quotePosixShell(goRoot)} ${command}`
 }
 
 export async function findGvmGoDirectories(gvmRoot: string): Promise<string[]> {

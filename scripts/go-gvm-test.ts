@@ -12,6 +12,7 @@ import {
   sortGvmVersionsNewestFirst
 } from '../src/shared/Gvm'
 import {
+  buildGoVersionCommand,
   fetchGvmVersionData,
   findGvmGoDirectories,
   gvmInitScript,
@@ -97,6 +98,14 @@ assert.equal(
 assert.equal(resolveGvmRoot(' /custom/gvm ', '/Users/test'), '/custom/gvm')
 assert.equal(resolveGvmRoot('', '/Users/test'), '/Users/test/.gvm')
 assert.equal(gvmInitScript('/Users/test/.gvm'), '/Users/test/.gvm/scripts/gvm')
+assert.equal(
+  buildGoVersionCommand("/Users/Test O'Neil/.gvm/gos/go1.24.5/bin/go", "/Users/Test O'Neil/.gvm"),
+  "GOROOT='/Users/Test O'\\''Neil/.gvm/gos/go1.24.5' '/Users/Test O'\\''Neil/.gvm/gos/go1.24.5/bin/go' version"
+)
+assert.equal(
+  buildGoVersionCommand('/opt/homebrew/bin/go', "/Users/Test O'Neil/.gvm"),
+  "'/opt/homebrew/bin/go' version"
+)
 
 const temporaryHome = await mkdtemp(join(tmpdir(), 'flyenv-go-gvm-'))
 try {
@@ -169,6 +178,7 @@ assert.match(goLangSource, /findGvmGoDirectories/)
 assert.match(goLangSource, /checkGvm\(\)/)
 assert.match(goLangSource, /gvmData\(\)/)
 assert.match(goLangSource, /fetchGvmVersionData/)
+assert.match(goLangSource, /buildGoVersionCommand\(bin, this\.gvmRoot\(\)\)/)
 
 const goIndexSource = readFileSync('src/render/components/GoLang/Index.vue', 'utf8')
 assert.match(goIndexSource, /<GvmVM v-else-if="tab === 4" \/>/)
@@ -192,7 +202,7 @@ assert.match(
   /if \(GvmSetup\.installed === undefined\) \{\s*GvmSetup\.checkGvm\(\)\s*\}/
 )
 const taskConfirmSource = gvmPageSource.match(
-  /const taskConfirm = \(\) => \{[\s\S]*?\n  \}\n  const taskCancel/
+  /const taskConfirm = \(\) => \{[\s\S]*?\n {2}\}\n {2}const taskCancel/
 )?.[0]
 assert.ok(taskConfirmSource)
 assert.doesNotMatch(taskConfirmSource, /GvmSetup\.checkGvm\(\)/)

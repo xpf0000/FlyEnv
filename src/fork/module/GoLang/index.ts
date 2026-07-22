@@ -21,6 +21,7 @@ import TaskQueue from '../../TaskQueue'
 import { isWindows } from '@shared/utils'
 import { homedir } from 'node:os'
 import {
+  buildGoVersionCommand,
   fetchGvmVersionData,
   findGvmGoDirectories,
   gvmInitScript,
@@ -110,7 +111,9 @@ class GoLang extends Base {
             if (!isWindows()) {
               bin = join(dirname(item.bin), 'go')
             }
-            const command = `"${bin}" version`
+            const command = isWindows()
+              ? `"${bin}" version`
+              : buildGoVersionCommand(bin, this.gvmRoot())
             const reg = /( go)(.*?)( )/g
             return TaskQueue.run(versionBinVersion, bin, command, reg)
           })

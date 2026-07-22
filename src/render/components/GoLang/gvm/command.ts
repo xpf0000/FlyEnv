@@ -23,9 +23,7 @@ export function buildGvmVersionCommand(
   }
   if (action === 'uninstall') {
     const uninstall = `${init} && gvm uninstall ${version}`
-    return isDefault
-      ? `${uninstall} && rm -f "$GVM_ROOT/environments/default"`
-      : uninstall
+    return isDefault ? `${uninstall} && rm -f "$GVM_ROOT/environments/default"` : uninstall
   }
   return `${init} && gvm use ${version} --default`
 }
