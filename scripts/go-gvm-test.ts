@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   isGvmVersionIdentifier,
   mergeGvmVersionData,
@@ -6,6 +10,12 @@ import {
   parseGvmInstalledVersions,
   quotePosixShell
 } from '../src/shared/Gvm'
+import {
+  fetchGvmVersionData,
+  findGvmGoDirectories,
+  gvmInitScript,
+  resolveGvmRoot
+} from '../src/fork/module/GoLang/gvm'
 
 const availableOutput = `
 gvm gos (available)
@@ -63,5 +73,49 @@ assert.equal(
   quotePosixShell("/Users/Test O'Neil/.gvm/scripts/gvm"),
   "'/Users/Test O'\\''Neil/.gvm/scripts/gvm'"
 )
+
+assert.equal(resolveGvmRoot(' /custom/gvm ', '/Users/test'), '/custom/gvm')
+assert.equal(resolveGvmRoot('', '/Users/test'), '/Users/test/.gvm')
+assert.equal(gvmInitScript('/Users/test/.gvm'), '/Users/test/.gvm/scripts/gvm')
+
+const temporaryHome = await mkdtemp(join(tmpdir(), 'flyenv-go-gvm-'))
+try {
+  const gvmRoot = join(temporaryHome, '.gvm')
+  await mkdir(join(gvmRoot, 'gos', 'go1.23.9'), { recursive: true })
+  await mkdir(join(gvmRoot, 'gos', 'go1.24.5'), { recursive: true })
+  assert.deepEqual(await findGvmGoDirectories(gvmRoot), [
+    join(gvmRoot, 'gos', 'go1.23.9'),
+    join(gvmRoot, 'gos', 'go1.24.5')
+  ])
+  assert.deepEqual(await findGvmGoDirectories(join(temporaryHome, 'missing')), [])
+} finally {
+  await rm(temporaryHome, { recursive: true, force: true })
+}
+
+const gvmCommands: string[] = []
+const gvmData = await fetchGvmVersionData(
+  "/Users/Test O'Neil/.gvm/scripts/gvm",
+  async (command) => {
+    gvmCommands.push(command)
+    return {
+      stdout: command.endsWith('gvm listall')
+        ? 'gvm gos (available)\n   go1.24.5\n'
+        : 'gvm gos (installed)\n=> go1.24.5\n'
+    }
+  }
+)
+assert.deepEqual(gvmCommands, [
+  "source '/Users/Test O'\\''Neil/.gvm/scripts/gvm' && gvm listall",
+  "source '/Users/Test O'\\''Neil/.gvm/scripts/gvm' && gvm list"
+])
+assert.deepEqual(gvmData, [
+  { name: 'go1.24.5', version: '1.24.5', installed: true, isDefault: true }
+])
+
+const goLangSource = readFileSync('src/fork/module/GoLang/index.ts', 'utf8')
+assert.match(goLangSource, /findGvmGoDirectories/)
+assert.match(goLangSource, /checkGvm\(\)/)
+assert.match(goLangSource, /gvmData\(\)/)
+assert.match(goLangSource, /fetchGvmVersionData/)
 
 console.log('go gvm tests passed')
