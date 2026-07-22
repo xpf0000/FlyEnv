@@ -189,6 +189,10 @@ assert.match(gvmPageSource, /<el-table-v2/)
 assert.match(gvmPageSource, /:columns="columns"/)
 assert.match(gvmPageSource, /:data="versionList"/)
 assert.doesNotMatch(gvmPageSource, /<el-table(?:\s|>)/)
-assert.match(gvmPageSource, /row\.installed && row\.isDefault/)
+assert.doesNotMatch(gvmPageSource, /row\.installed && row\.isDefault/)
+assert.match(
+  gvmPageSource,
+  /row\.installed \? I18nT\('common\.action\.uninstall'\) : I18nT\('base\.install'\)/
+)
 
 console.log('go gvm tests passed')

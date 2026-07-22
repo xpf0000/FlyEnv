@@ -172,9 +172,6 @@
       width: 150,
       align: 'center',
       cellRenderer: ({ rowData: row }) => {
-        if (row.installed && row.isDefault) {
-          return <span></span>
-        }
         return (
           <ElButton
             type="primary"
