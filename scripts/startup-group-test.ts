@@ -13,6 +13,8 @@ import { StartupGroupRunner as StartupGroupRunnerClass } from '../src/render/com
 import { StartupGroupCandidate as StartupGroupCandidateClass } from '../src/render/components/StartupGroup/class/StartupGroupCandidate'
 import { StartupGroupRuntime as StartupGroupRuntimeClass } from '../src/render/components/StartupGroup/class/StartupGroupRuntime'
 import { StartupGroupStore as StartupGroupStoreClass } from '../src/render/components/StartupGroup/class/StartupGroupStore'
+import { buildStartupGroupTrayItems } from '../src/render/components/StartupGroup/tray'
+import type { StartupGroupTrayState } from '../src/render/components/StartupGroup/tray'
 import type {
   StartupGroupAdapter,
   StartupGroupCandidateData,
@@ -100,6 +102,66 @@ const testRunner: StartupGroupRunnerContract = {
 
 function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   return new StartupGroupEntity({ id, name: id, items, createdAt: 1, updatedAt: 1 }, testRunner)
+}
+
+{
+  const work = new StartupGroupEntity(
+    {
+      id: 'work',
+      name: 'Work',
+      color: '#ff6600',
+      items: [mysql],
+      createdAt: 1,
+      updatedAt: 1
+    },
+    testRunner
+  )
+  const empty = new StartupGroupEntity(
+    { id: 'empty', name: 'Empty', items: [], createdAt: 2, updatedAt: 2 },
+    testRunner
+  )
+  let busy = false
+  let executingId = ''
+  const state: StartupGroupTrayState = {
+    get busy() {
+      return busy
+    },
+    isGroupRunning: (group) => group.id === 'work',
+    isGroupExecuting: (group) => group.id === executingId
+  }
+
+  assert.deepEqual(buildStartupGroupTrayItems([work, empty], state), [
+    {
+      id: 'work',
+      name: 'Work',
+      color: '#ff6600',
+      run: true,
+      running: false,
+      disabled: false
+    },
+    {
+      id: 'empty',
+      name: 'Empty',
+      color: undefined,
+      run: false,
+      running: false,
+      disabled: true
+    }
+  ])
+
+  executingId = 'work'
+  assert.deepEqual(buildStartupGroupTrayItems([work], state)[0], {
+    id: 'work',
+    name: 'Work',
+    color: '#ff6600',
+    run: true,
+    running: true,
+    disabled: true
+  })
+
+  executingId = ''
+  busy = true
+  assert.equal(buildStartupGroupTrayItems([work], state)[0]?.disabled, true)
 }
 
 {
