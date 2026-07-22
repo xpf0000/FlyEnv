@@ -180,6 +180,15 @@ assert.doesNotMatch(gvmSetupSource, /\.then\([\s\S]*?\)\s*\.catch\(/)
 assert.match(gvmSetupSource, /await xterm\.send\(params, false\)/)
 
 const gvmPageSource = readFileSync('src/render/components/GoLang/gvm/index.vue', 'utf8')
+assert.match(
+  gvmPageSource,
+  /if \(GvmSetup\.installed === undefined\) \{\s*GvmSetup\.checkGvm\(\)\s*\}/
+)
+const taskConfirmSource = gvmPageSource.match(
+  /const taskConfirm = \(\) => \{[\s\S]*?\n  \}\n  const taskCancel/
+)?.[0]
+assert.ok(taskConfirmSource)
+assert.doesNotMatch(taskConfirmSource, /GvmSetup\.checkGvm\(\)/)
 assert.match(gvmPageSource, /GvmSetup\.installGvm/)
 assert.match(gvmPageSource, /GvmSetup\.versionAction/)
 assert.match(gvmPageSource, /setVersionDefault/)

@@ -61,7 +61,9 @@
   import { GvmSetup } from './setup'
 
   const xtermDom = ref<HTMLElement>()
-  GvmSetup.checkGvm()
+  if (GvmSetup.installed === undefined) {
+    GvmSetup.checkGvm()
+  }
 
   const refreshDisabled = computed(() => GvmSetup.fetching || GvmSetup.installing)
   const versionList = computed(() => {
@@ -191,7 +193,6 @@
     GvmSetup.installEnd = false
     GvmSetup.xterm?.destroy()
     delete GvmSetup.xterm
-    GvmSetup.checkGvm()
   }
   const taskCancel = () => {
     GvmSetup.installing = false
