@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { basename, join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -176,15 +176,20 @@ class Temporal extends Base {
     for (let i = 0; i < 3; i++) {
       try {
         await waitTime(3000)
-        await spawnPromise(basename(bin), ['operator', 'namespace', 'create', '--namespace', 'default', '--address', '127.0.0.1:7233'], {
-          shell: false,
-          cwd: dirname(bin)
+        await spawnPromise(bin, ['operator', 'namespace', 'create', '--namespace', 'default', '--address', '127.0.0.1:7233'], {
+          shell: false
         })
         on({
           'APP-On-Log': AppLog('info', 'Temporal default namespace is ready')
         })
         return
       } catch (e) {
+        if (/already exist/i.test(`${e}`)) {
+          on({
+            'APP-On-Log': AppLog('info', 'Temporal default namespace is ready')
+          })
+          return
+        }
         console.log(`temporal namespace create attempt ${i + 1} err: `, e)
       }
     }
@@ -316,7 +321,7 @@ class Temporal extends Base {
       await remove(row.appDir)
     }
     await mkdirp(row.appDir)
-    if (`${row.zip}`.endsWith('.zip')) {
+    if (isWindows()) {
       await zipUnpack(row.zip, row.appDir)
     } else {
       await unpack(row.zip, row.appDir)
@@ -337,18 +342,16 @@ class Temporal extends Base {
     if (isUi) {
       await writeFile(join(row.appDir, 'version.txt'), `${row.version ?? ''}`)
       try {
-        await spawnPromise(basename(row.bin), ['--version'], {
-          shell: false,
-          cwd: dirname(row.bin)
+        await spawnPromise(row.bin, ['--version'], {
+          shell: false
         })
       } catch (e) {
         console.log('ui-server --version check failed (ignored): ', e)
       }
       return
     }
-    await spawnPromise(basename(row.bin), ['--version'], {
-      shell: false,
-      cwd: dirname(row.bin)
+    await spawnPromise(row.bin, ['--version'], {
+      shell: false
     })
   }
 

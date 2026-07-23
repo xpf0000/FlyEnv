@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -166,9 +166,8 @@ class TemporalCli extends Base {
         } catch {}
       }
     }
-    await spawnPromise(basename(row.bin), ['--version'], {
-      shell: false,
-      cwd: dirname(row.bin)
+    await spawnPromise(row.bin, ['--version'], {
+      shell: false
     })
   }
 
