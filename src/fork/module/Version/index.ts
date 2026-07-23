@@ -56,6 +56,8 @@ class Manager extends Base {
   Git: any
   DotNet: any
   ClickHouse: any
+  Temporal: any
+  TemporalCli: any
 
   constructor() {
     super()
@@ -282,6 +284,18 @@ class Manager extends Base {
             this.Consul = res.default
           }
           versions.consul = this.Consul.allInstalledVersions(setup)
+        } else if (type === 'temporal') {
+          if (!this.Temporal) {
+            const res = await import('../Temporal')
+            this.Temporal = res.default
+          }
+          versions.temporal = this.Temporal.allInstalledVersions(setup)
+        } else if (type === 'temporal-cli') {
+          if (!this.TemporalCli) {
+            const res = await import('../TemporalCli')
+            this.TemporalCli = res.default
+          }
+          versions['temporal-cli'] = this.TemporalCli.allInstalledVersions(setup)
         } else if (type === 'gradle') {
           if (!this.Gradle) {
             const res = await import('../Gradle')

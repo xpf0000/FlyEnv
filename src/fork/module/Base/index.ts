@@ -313,7 +313,9 @@ export class Base {
         frankenphp: 'frankenphp',
         roadrunner: 'rr',
         'swoole-cli': 'swoole-cli',
-        numa: 'numa'
+        numa: 'numa',
+        temporal: 'temporal-server',
+        'temporal-cli': 'temporal'
       }
       const serverName = dis?.[this.type]
       if (serverName) {
