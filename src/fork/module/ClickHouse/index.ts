@@ -10,6 +10,7 @@ import {
   copyFile,
   execPromise,
   mkdirp,
+  remove,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -197,10 +198,16 @@ class Manager extends Base {
         throw new Error(`clickhouse binary not found in ${row.appDir}`)
       }
       await copyFile(extracted, row.bin)
+      await remove(join(row.appDir, `clickhouse-common-static-${bare}`))
     }
     await chmod(row.bin, '0755')
-    // 验证二进制可执行（失败则 Base.installSoft 走 fail 清理）
-    await execPromise(`"${row.bin}" --version`)
+    // 验证二进制可执行；失败则删除落位文件，避免残缺下载被误判为已安装
+    try {
+      await execPromise(`"${row.bin}" --version`)
+    } catch (e) {
+      await remove(row.bin)
+      throw e
+    }
   }
 
   allInstalledVersions(setup: any) {
