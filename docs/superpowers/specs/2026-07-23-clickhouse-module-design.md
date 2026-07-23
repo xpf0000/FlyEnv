@@ -117,7 +117,7 @@ GitHub API 核实：近期每个 release（stable 与 lts 频道）均固定挂 
 1. `src/render/core/type.ts` — `AppModuleEnum` 加 `clickhouse = 'clickhouse'`（无特权端口，**不**加 `AppWithRoot`）。
 2. `src/fork/BaseManager.ts` — exec 分发链加 `else if (module === 'clickhouse')` 分支。
 3. `src/fork/module/Version/index.ts`（约 93 行）— `allInstalledVersions` 分发链加分支。
-4. `src/global.d.ts` — `ServerType` 加 `ClickHouseDir?: string`；`src/main/utils/ServerPath.ts` — `SetupGlobalPaths` 设置 `global.Server.ClickHouseDir = join(runpath, 'server/clickhouse')` 并加入 `createBaseDirectories`。
+4. `src/global.d.ts` — `ServerType` 加 `ClickHouseDir?: string`；`src/main/utils/ServerPath.ts` — `SetupGlobalPaths` 设置 `global.Server.ClickHouseDir = join(runpath, 'server/clickhouse')`；**不**加入 `createBaseDirectories`（遵循 PostgreSqlDir 先例，fork 首启自行 `mkdirp`）。
 5. MCP（v1 纳入）：`src/main/core/mcpToolMetadata.ts`（flag 列表 + `MCP_DATABASE_FLAGS`）、`src/main/core/MCPTools.ts`（`SINGLE_INSTANCE_SERVICES` 与提示文案）、`src/main/core/MCPContextResolver.ts`（`DATABASE_FLAGS`）三处加 `clickhouse`。
 
 ## 8. 验证方案

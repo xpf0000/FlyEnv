@@ -772,6 +772,8 @@ export default module
         type-flag="clickhouse"
         url="https://github.com/ClickHouse/ClickHouse/releases"
         title="ClickHouse"
+        :has-static="true"
+        :show-port-lib="false"
       ></Manager>
       <Config v-else-if="tab === 2"></Config>
       <Logs v-else-if="tab === 3"></Logs>
