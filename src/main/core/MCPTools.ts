@@ -22,6 +22,7 @@ const SINGLE_INSTANCE_SERVICES = new Set<string>([
   'mysql',
   'mariadb',
   'postgresql',
+  'clickhouse',
   'redis',
   'memcached',
   'mongodb'
@@ -310,7 +311,7 @@ export class MCPTools {
     }
     throw new Error(
       `${flag} is not a database/cache module for this MCP tool. ` +
-        'Use one of: mysql, mariadb, postgresql, redis, mongodb, memcached.'
+        'Use one of: mysql, mariadb, postgresql, clickhouse, redis, mongodb, memcached.'
     )
   }
 
