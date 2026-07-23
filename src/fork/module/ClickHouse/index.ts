@@ -95,6 +95,38 @@ class Manager extends Base {
     return { config, users }
   }
 
+  initConfig(): ForkPromise<string> {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const baseDir = global.Server.ClickHouseDir!
+        const confFile = join(baseDir, 'config.xml')
+        const usersFile = join(baseDir, 'users.xml')
+        const { config, users } = this.configContent()
+
+        await mkdirp(baseDir)
+        await mkdirp(join(baseDir, 'data'))
+        await mkdirp(join(baseDir, 'log'))
+
+        if (!existsSync(confFile)) {
+          await writeFile(confFile, config)
+        }
+        if (!existsSync(`${confFile}.default`)) {
+          await writeFile(`${confFile}.default`, config)
+        }
+        if (!existsSync(usersFile)) {
+          await writeFile(usersFile, users)
+        }
+        if (!existsSync(`${usersFile}.default`)) {
+          await writeFile(`${usersFile}.default`, users)
+        }
+
+        resolve(confFile)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
@@ -105,24 +137,8 @@ class Manager extends Base {
       })
       const bin = version.bin
       const baseDir = global.Server.ClickHouseDir!
-      const confFile = join(baseDir, 'config.xml')
-      const usersFile = join(baseDir, 'users.xml')
+      const confFile = await this.initConfig().on(on)
       const logDir = join(baseDir, 'log')
-
-      await mkdirp(baseDir)
-      await mkdirp(join(baseDir, 'data'))
-      await mkdirp(logDir)
-
-      // 首次启动生成配置；.default 副本供 Conf 编辑器 "load default" 使用
-      if (!existsSync(confFile)) {
-        const { config, users } = this.configContent()
-        await writeFile(confFile, config)
-        await writeFile(`${confFile}.default`, config)
-        if (!existsSync(usersFile)) {
-          await writeFile(usersFile, users)
-          await writeFile(`${usersFile}.default`, users)
-        }
-      }
 
       const execEnv: Record<string, string> = {
         LC_ALL: global.Server.Local!,
