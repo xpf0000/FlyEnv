@@ -78,6 +78,7 @@ class BaseManager {
   Git: any
   Cron: any
   DotNet: any
+  ClickHouse: any
 
   modules: Set<string> = new Set()
 
@@ -203,6 +204,12 @@ class BaseManager {
         this.Postgresql = res.default
       }
       doRun(this.Postgresql)
+    } else if (module === 'clickhouse') {
+      if (!this.ClickHouse) {
+        const res = await import('./module/ClickHouse')
+        this.ClickHouse = res.default
+      }
+      doRun(this.ClickHouse)
     } else if (module === 'pure-ftpd') {
       if (!this.PureFtpd) {
         const res = await import('./module/PureFtpd')

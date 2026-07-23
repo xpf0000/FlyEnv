@@ -27,7 +27,15 @@ import type MCPConfigManager from './MCPConfigManager'
 import ServiceProcessManager from './ServiceProcess'
 import ServiceVersionManager from './ServiceVersionManager'
 
-const DATABASE_FLAGS = new Set(['mysql', 'mariadb', 'postgresql', 'redis', 'mongodb', 'memcached'])
+const DATABASE_FLAGS = new Set([
+  'mysql',
+  'mariadb',
+  'postgresql',
+  'clickhouse',
+  'redis',
+  'mongodb',
+  'memcached'
+])
 
 const WEB_SERVER_FLAGS = ['caddy', 'nginx', 'apache', 'frankenphp', 'tomcat'] as const
 

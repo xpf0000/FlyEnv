@@ -15,13 +15,17 @@
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
         </li>
       </ul>
-      <ul class="menu top-menu">
+      <div class="menu-scroll">
         <el-scrollbar>
-          <template v-for="(item, _index) in service" :key="_index">
-            <CustomerItem :item="item" />
-          </template>
+          <ul v-if="startupGroups.length" class="menu startup-group-menu">
+            <StartupGroupItem v-for="group in startupGroups" :key="group.id" :item="group" />
+          </ul>
+          <div v-if="startupGroups.length && service.length" class="tray-menu-separator"></div>
+          <ul v-if="service.length" class="menu service-menu">
+            <CustomerItem v-for="item in service" :key="item.id" :item="item" />
+          </ul>
         </el-scrollbar>
-      </ul>
+      </div>
       <ul class="bottom-tool">
         <li @click="showMainWin"> {{ I18nT('tray.showMainWin') }} </li>
         <li @click="doExit"> {{ I18nT('tray.exit') }} </li>
@@ -38,6 +42,7 @@
   import { I18nT } from '@lang/index'
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
   import CustomerItem from './CustomerItem.vue'
+  import StartupGroupItem from './StartupGroupItem.vue'
 
   const store = AppStore()
   const groupIsRunning = computed(() => {
@@ -50,6 +55,7 @@
   const service = computed(() => {
     return store.service
   })
+  const startupGroups = computed(() => store.startupGroups)
 
   const left: Ref<string | null> = ref(null)
   IPC.on('APP:Poper-Left').then((key: string, res: any) => {
@@ -188,9 +194,22 @@
             padding: 6px;
           }
         }
-        .top-menu {
+        .menu-scroll {
           flex: 1;
           overflow: hidden;
+        }
+
+        .startup-group-color {
+          width: 10px;
+          height: 10px;
+          border-radius: 9999px;
+          flex-shrink: 0;
+        }
+
+        .tray-menu-separator {
+          margin: 4px 18px;
+          border-top: 1px solid currentColor;
+          opacity: 0.16;
         }
 
         > .bottom-tool {

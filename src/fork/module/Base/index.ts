@@ -302,6 +302,7 @@ export class Base {
         memcached: 'memcached',
         mongodb: 'mongod',
         postgresql: 'postgres',
+        clickhouse: 'clickhouse',
         'pure-ftpd': 'pure-ftpd',
         tomcat: 'org.apache.catalina.startup.Bootstrap',
         rabbitmq: 'rabbit',

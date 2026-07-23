@@ -11,7 +11,7 @@
     "errorLog": "Log Error",
     "library": "Library",
     "path": "Path",
-    "description": "Description",
+    "description": "Deskripsi",
     "port": "Port",
     "startCommand": "Perintah Mulai",
     "licenseDescription": "Deskripsi Lisensi",
@@ -78,7 +78,7 @@
     "mcp": "MCP",
     "skills": "Keterampilan",
     "basicInfo": "Informasi Dasar",
-    "configuration": "Configuration",
+    "configuration": "Konfigurasi",
     "favorites": "Favorit",
     "plugins": "Plugin",
     "backupUpdate": "Cadangan & Pembaruan"
@@ -120,7 +120,7 @@
     "other": "Lainnya",
     "default": "Default",
     "none": "Tidak ada",
-    "local": "Local"
+    "local": "Lokal"
   },
   "plugin": {
     "search": "Cari plugin",

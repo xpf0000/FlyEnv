@@ -53,6 +53,7 @@ export enum AppModuleEnum {
   redis = 'redis',
   mongodb = 'mongodb',
   postgresql = 'postgresql',
+  clickhouse = 'clickhouse',
   tomcat = 'tomcat',
   'pure-ftpd' = 'pure-ftpd',
   java = 'java',

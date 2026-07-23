@@ -55,6 +55,7 @@ class Manager extends Base {
   Flutter: any
   Git: any
   DotNet: any
+  ClickHouse: any
 
   constructor() {
     super()
@@ -126,6 +127,12 @@ class Manager extends Base {
             this.Postgresql = res.default
           }
           versions.postgresql = this.Postgresql.allInstalledVersions(setup)
+        } else if (type === 'clickhouse') {
+          if (!this.ClickHouse) {
+            const res = await import('../ClickHouse')
+            this.ClickHouse = res.default
+          }
+          versions.clickhouse = this.ClickHouse.allInstalledVersions(setup)
         } else if (type === 'pure-ftpd') {
           if (!this.PureFtpd) {
             const res = await import('../PureFtpd')

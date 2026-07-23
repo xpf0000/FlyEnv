@@ -9,6 +9,7 @@ export const MCP_LIFECYCLE_FLAGS = [
   'mongodb',
   'mariadb',
   'postgresql',
+  'clickhouse',
   'pure-ftpd',
   'tomcat',
   'rabbitmq',
@@ -36,6 +37,7 @@ export const MCP_QUERYABLE_FLAGS = [
   'apache',
   'bun',
   'caddy',
+  'clickhouse',
   'cliproxyapi',
   'cloudflared',
   'composer',
@@ -87,6 +89,7 @@ export const MCP_DATABASE_FLAGS = [
   'mysql',
   'mariadb',
   'postgresql',
+  'clickhouse',
   'redis',
   'mongodb',
   'memcached'
@@ -96,6 +99,7 @@ export const MCP_INSTALLABLE_FLAGS = [
   'apache',
   'bun',
   'caddy',
+  'clickhouse',
   'cliproxyapi',
   'cloudflared',
   'composer',
@@ -206,7 +210,7 @@ export const MCP_FLAG_DESCRIPTIONS = {
   queryable:
     'Version-managed FlyEnv module flag for read-only inspection tools. Examples: bun, node, php, nginx, mysql, python, golang, redis, pure-ftpd. Excludes UI-only modules such as hosts, tools, mcp, codex, kimi, and openCode.',
   database:
-    'Database/cache module flag. Allowed values: mysql, mariadb, postgresql, redis, mongodb, memcached.',
+    'Database/cache module flag. Allowed values: mysql, mariadb, postgresql, clickhouse, redis, mongodb, memcached.',
   installable:
     'Installable FlyEnv module flag. Examples: bun, php, nginx, mysql, python, golang, mkcert. Use list_online_versions first to see available versions.'
 } as const

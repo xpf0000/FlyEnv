@@ -13,6 +13,8 @@ import { StartupGroupRunner as StartupGroupRunnerClass } from '../src/render/com
 import { StartupGroupCandidate as StartupGroupCandidateClass } from '../src/render/components/StartupGroup/class/StartupGroupCandidate'
 import { StartupGroupRuntime as StartupGroupRuntimeClass } from '../src/render/components/StartupGroup/class/StartupGroupRuntime'
 import { StartupGroupStore as StartupGroupStoreClass } from '../src/render/components/StartupGroup/class/StartupGroupStore'
+import { buildStartupGroupTrayItems } from '../src/render/components/StartupGroup/tray'
+import type { StartupGroupTrayState } from '../src/render/components/StartupGroup/tray'
 import type {
   StartupGroupAdapter,
   StartupGroupCandidateData,
@@ -100,6 +102,66 @@ const testRunner: StartupGroupRunnerContract = {
 
 function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   return new StartupGroupEntity({ id, name: id, items, createdAt: 1, updatedAt: 1 }, testRunner)
+}
+
+{
+  const work = new StartupGroupEntity(
+    {
+      id: 'work',
+      name: 'Work',
+      color: '#ff6600',
+      items: [mysql],
+      createdAt: 1,
+      updatedAt: 1
+    },
+    testRunner
+  )
+  const empty = new StartupGroupEntity(
+    { id: 'empty', name: 'Empty', items: [], createdAt: 2, updatedAt: 2 },
+    testRunner
+  )
+  let busy = false
+  let executingId = ''
+  const state: StartupGroupTrayState = {
+    get busy() {
+      return busy
+    },
+    isGroupRunning: (group) => group.id === 'work',
+    isGroupExecuting: (group) => group.id === executingId
+  }
+
+  assert.deepEqual(buildStartupGroupTrayItems([work, empty], state), [
+    {
+      id: 'work',
+      name: 'Work',
+      color: '#ff6600',
+      run: true,
+      running: false,
+      disabled: false
+    },
+    {
+      id: 'empty',
+      name: 'Empty',
+      color: undefined,
+      run: false,
+      running: false,
+      disabled: true
+    }
+  ])
+
+  executingId = 'work'
+  assert.deepEqual(buildStartupGroupTrayItems([work], state)[0], {
+    id: 'work',
+    name: 'Work',
+    color: '#ff6600',
+    run: true,
+    running: true,
+    disabled: true
+  })
+
+  executingId = ''
+  busy = true
+  assert.equal(buildStartupGroupTrayItems([work], state)[0]?.disabled, true)
 }
 
 {
@@ -802,6 +864,12 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   const startupGroupManagerSource = readSource(
     'src/render/components/StartupGroup/class/StartupGroupManager.ts'
   )
+  const startupGroupTraySource = readSource('src/render/components/StartupGroup/tray.ts')
+  const trayAppSource = readSource('src/render/tray/App.vue')
+  const trayStartupGroupItemSource = readSource('src/render/tray/StartupGroupItem.vue')
+  const trayStoreSource = readSource('src/render/tray/store/app.ts')
+  const trayManagerSource = readSource('src/main/ui/TrayManager.ts')
+  const applicationSource = readSource('src/main/Application.ts')
   const routerSource = readSource('src/render/router/index.ts')
   const appStoreSource = readSource('src/render/store/app.ts')
   const mysqlForkSource = readSource('src/fork/module/Mysql/index.ts')
@@ -837,6 +905,55 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.doesNotMatch(moduleSource, /config\.setup\.startupGroups/)
   assert.match(asideSource, /StartupGroupManager/)
   assert.doesNotMatch(asideSource, /config\.setup\.startupGroups/)
+  assert.match(asideSource, /startupGroupStore\.init\(\)\.catch\(\)/)
+  assert.match(
+    asideSource,
+    /buildStartupGroupTrayItems\(startupGroupStore\.groups, StartupGroupManager\)/
+  )
+  assert.match(asideSource, /startupGroups: startupGroups\.value/)
+  const customerModuleProjectionSource = asideSource.slice(
+    asideSource.indexOf('const customerModule = computed'),
+    asideSource.indexOf('const trayStore = computed')
+  )
+  assert.match(customerModuleProjectionSource, /typeFlag: m\.typeFlag/)
+  assert.match(asideSource, /const startupGroupDo = async \(id: string\)/)
+  assert.match(asideSource, /startupGroupStore\.find\(id\)/)
+  assert.match(asideSource, /StartupGroupManager\.setGroupEnabled/)
+  assert.match(asideSource, /StartupGroupManager\.ensureSources\(startupGroupStore\.groups\)/)
+  assert.match(asideSource, /startupGroupDo,\s*switchChange/)
+  assert.match(
+    asideSource,
+    /const find =\s*fn === 'switchChange'\s*\? AppCustomerModule\.module\.find/
+  )
+  assert.match(startupGroupTraySource, /groups\.map\(\(group\)/)
+  assert.match(trayStoreSource, /TrayState/)
+  assert.match(trayAppSource, /v-for="group in startupGroups"/)
+  assert.match(trayAppSource, /<StartupGroupItem[^>]*:item="group"/)
+  assert.match(trayAppSource, /startupGroups\.length && service\.length/)
+  assert.ok(
+    trayAppSource.indexOf('v-for="group in startupGroups"') <
+      trayAppSource.indexOf('v-for="item in service"')
+  )
+  assert.match(trayStartupGroupItemSource, /item\.color \|\| '#409eff'/)
+  assert.match(trayStartupGroupItemSource, /:model-value="item\.run"/)
+  assert.match(trayStartupGroupItemSource, /:disabled="item\.disabled"/)
+  assert.match(trayStartupGroupItemSource, /:loading="item\.running"/)
+  assert.match(
+    trayStartupGroupItemSource,
+    /IPC\.send\('APP:Tray-Command', 'startupGroupDo', props\.item\.id\)/
+  )
+  assert.match(trayManagerSource, /status: TrayState \| undefined/)
+  assert.match(trayManagerSource, /const startupGroups = status\?\.startupGroups \?\? \[\]/)
+  assert.ok(
+    trayManagerSource.indexOf('for (const group of startupGroups)') <
+      trayManagerSource.indexOf('for (const item of service)')
+  )
+  assert.match(trayManagerSource, /label: group\.name/)
+  assert.match(trayManagerSource, /enabled: !group\.disabled && !group\.running/)
+  assert.match(trayManagerSource, /this\.emit\('action', 'startupGroupDo', group\.id\)/)
+  assert.match(trayManagerSource, /startupGroups\.length > 0 && service\.length > 0/)
+  assert.match(applicationSource, /case 'startupGroupDo':/)
+  assert.match(applicationSource, /'APP:Tray-Command',[\s\S]*?'startupGroupDo',[\s\S]*?typeFlag/)
   assert.match(indexSource, /store\.init\(\)\.catch\(\)/)
   assert.match(moduleSource, /moduleType: 'console'/)
   assert.match(moduleSource, /typeFlag: 'startup-group'/)
@@ -948,7 +1065,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.doesNotMatch(asideSource, /I18nT\('aside\.groupStart'\)/)
   assert.match(asideSource, /startupGroupStateForId/)
   assert.match(asideSource, /defaultStartupGroup\.value\?\.id !== startupGroupStateForId\.value/)
-  assert.match(asideSource, /group!\.toggle\(\)/)
+  assert.match(asideSource, /await executeStartupGroup\(group!\)/)
   assert.match(asideSource, /let startupGroupRefreshGeneration = 0/)
   assert.match(asideSource, /let startupGroupRefreshInFlight: Promise<void> \| undefined/)
   assert.match(asideSource, /while \(startupGroupRefreshQueued\)/)
