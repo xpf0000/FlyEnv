@@ -10,6 +10,7 @@ import {
   copyFile,
   execPromise,
   mkdirp,
+  readFile,
   remove,
   versionBinVersion,
   versionFilterSame,
@@ -80,6 +81,29 @@ class Manager extends Base {
 </clickhouse>
 `
     const users = `<clickhouse>
+    <profiles>
+        <default/>
+    </profiles>
+    <users>
+        <default>
+            <password></password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+        </default>
+    </users>
+    <quotas>
+        <default/>
+    </quotas>
+</clickhouse>
+`
+    return { config, users }
+  }
+
+  private legacyUsersContent(): string {
+    return `<clickhouse>
     <users>
         <default>
             <password></password>
@@ -92,7 +116,6 @@ class Manager extends Base {
     </users>
 </clickhouse>
 `
-    return { config, users }
   }
 
   initConfig(): ForkPromise<string> {
@@ -113,12 +136,18 @@ class Manager extends Base {
         if (!existsSync(`${confFile}.default`)) {
           await writeFile(`${confFile}.default`, config)
         }
-        if (!existsSync(usersFile)) {
-          await writeFile(usersFile, users)
+        const migrateUsersFile = async (file: string) => {
+          if (!existsSync(file)) {
+            await writeFile(file, users)
+            return
+          }
+          const content = await readFile(file, 'utf-8')
+          if (content.trim() === this.legacyUsersContent().trim()) {
+            await writeFile(file, users)
+          }
         }
-        if (!existsSync(`${usersFile}.default`)) {
-          await writeFile(`${usersFile}.default`, users)
-        }
+        await migrateUsersFile(usersFile)
+        await migrateUsersFile(`${usersFile}.default`)
 
         resolve(confFile)
       } catch (error) {

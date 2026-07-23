@@ -29,6 +29,8 @@ try {
   const usersPath = join(temporaryDir, 'users.xml')
   assert.match(await readFile(configPath, 'utf-8'), /<clickhouse>/)
   assert.match(await readFile(usersPath, 'utf-8'), /<users>/)
+  assert.match(await readFile(usersPath, 'utf-8'), /<profiles>\s*<default\s*\/>\s*<\/profiles>/)
+  assert.match(await readFile(usersPath, 'utf-8'), /<quotas>\s*<default\s*\/>\s*<\/quotas>/)
   assert.match(await readFile(`${configPath}.default`, 'utf-8'), /<clickhouse>/)
   assert.match(await readFile(`${usersPath}.default`, 'utf-8'), /<users>/)
 
@@ -38,6 +40,29 @@ try {
     await readFile(configPath, 'utf-8'),
     '<clickhouse>custom</clickhouse>',
     'initialization must preserve existing config.xml content'
+  )
+
+  await writeFile(
+    usersPath,
+    `<clickhouse>
+    <users>
+        <default>
+            <password></password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+        </default>
+    </users>
+</clickhouse>
+`
+  )
+  await initConfig.call(manager)
+  assert.match(
+    await readFile(usersPath, 'utf-8'),
+    /<profiles>\s*<default\s*\/>\s*<\/profiles>/,
+    'initialization must migrate the previous built-in users.xml template'
   )
 } finally {
   await rm(temporaryDir, { recursive: true, force: true })
