@@ -22,6 +22,7 @@ export interface ServerType {
   NginxDir?: string
   MysqlDir?: string
   PostgreSqlDir?: string
+  ClickHouseDir?: string
   MariaDBDir?: string
   MemcachedDir?: string
   BaseDir?: string

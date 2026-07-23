@@ -58,6 +58,7 @@ export const SetupGlobalPaths = (runpath: string) => {
   global.Server.MongoDBDir = join(runpath, 'server/mongodb')
   global.Server.FTPDir = join(runpath, 'server/ftp')
   global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
+  global.Server.ClickHouseDir = join(runpath, 'server/clickhouse')
   global.Server.Cache = join(runpath, 'server/cache')
   global.Server.Static = __static
   global.Server.Arch = arch() === 'x64' ? 'x86_64' : 'arm64'
