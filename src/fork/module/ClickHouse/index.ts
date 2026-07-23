@@ -50,7 +50,9 @@ class Manager extends Base {
     const logDir = join(dir, 'log')
     return [
       { name: 'server', path: join(logDir, 'server.log') },
-      { name: 'error', path: join(logDir, 'server.err.log') }
+      { name: 'error', path: join(logDir, 'server.err.log') },
+      { name: 'start-out', path: join(logDir, 'server.start.out.log') },
+      { name: 'start-error', path: join(logDir, 'server.start.err.log') }
     ]
   }
 
