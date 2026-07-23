@@ -865,11 +865,13 @@ export default module
       <el-radio-button value="users.xml">users.xml</el-radio-button>
     </el-radio-group>
     <Conf
+      :key="file"
       ref="conf"
       :type-flag="'clickhouse'"
       :default-file="defaultFile"
       :file="file"
       :file-ext="'xml'"
+      :config-language="'xml'"
       :show-commond="false"
     >
     </Conf>
