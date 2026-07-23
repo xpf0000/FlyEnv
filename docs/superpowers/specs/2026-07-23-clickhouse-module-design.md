@@ -148,3 +148,22 @@ GitHub API 核实：近期每个 release（stable 与 lts 频道）均固定挂 
 - **Admin 需先部署**：桌面端发布节奏依赖 api.one-env.com 部署，否则在线列表为空（brew 源不受影响）。
 - **资产体积**：单平台单版本约 150–170MB，下载耗时与进度提示走 `Base` 现有下载进度机制。
 - **顺带发现的安全问题**：`FlyEnv-Admin/servers/src/api/version/request.ts` 内有明文硬编码的 GitHub token 已随仓库公开，建议尽快吊销轮换（与本需求无关，不纳入本次改动）。
+
+## 11. 配置页首次打开修复（2026-07-23）
+
+### 问题与根因
+
+ClickHouse 的 `config.xml` 与 `users.xml` 原本只在 `_startServer()` 中生成。用户首次安装版本但尚未启动服务时，配置页会尝试读取不存在的文件。渲染进程的通用 `fs_readFile` 在普通读取失败后会调用 Helper 的 `readFileByRoot` 回退路径，因此错误地出现 Helper 安装提示。
+
+### 已确认方案
+
+1. 在 ClickHouse fork 模块中将配置目录与四个配置文件（两份可编辑文件及各自 `.default` 副本）的幂等初始化抽为 `initConfig()`；仅创建缺失文件，绝不覆盖已有配置。
+2. `_startServer()` 复用 `initConfig()`，保持启动路径与配置页路径一致。
+3. ClickHouse 配置页在挂载编辑器前调用该 fork 方法，并以就绪状态阻止编辑器读取尚未生成的文件；这消除了通用文件读取的 Helper 回退路径。
+4. 配置页按 Codex 的模式使用全高、可伸缩的卡片、头部文件切换控件、`Conf/conf.vue` 编辑器和底部 `Conf/tool.vue` 工具栏。XML 语法高亮、默认文件加载及文件切换重挂载须保持。
+
+### 验收标准
+
+- 首次安装 ClickHouse、未启动服务时，打开配置页不出现 Helper 安装提示。
+- `config.xml` 和 `users.xml` 均可切换、读取、编辑和保存；已有文件内容不被初始化覆盖。
+- 编辑器与 Codex 配置页一样占满可用高度，工具栏固定在卡片底部。
