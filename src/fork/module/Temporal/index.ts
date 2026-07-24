@@ -91,7 +91,7 @@ class Temporal extends Base {
     })
   }
 
-  _startServer(version: SoftInstalled, uiFlag?: string) {
+  _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog(
@@ -102,7 +102,6 @@ class Temporal extends Base {
       const baseDir = join(global.Server.BaseDir!, 'temporal')
       const configDir = join(baseDir, 'config')
       await this.initConfig(version).on(on)
-      const env = serverEnvName(version?.version ?? '')
       const execArgs = buildServerStartArgs(configDir, version?.version ?? '')
       try {
         const res = await serviceStartSpawn({
@@ -113,14 +112,6 @@ class Temporal extends Base {
           execArgs,
           on
         })
-        if (uiFlag === '1') {
-          try {
-            await this._startUiServer(version, on)
-          } catch (e) {
-            console.log('temporal ui-server start err: ', e)
-            on({ 'APP-On-Log': AppLog('info', `Temporal UI (ui-server) start failed: ${e}`) })
-          }
-        }
         this._bootstrapNamespace(on).catch((e) => {
           console.log('temporal namespace bootstrap err: ', e)
         })
@@ -132,13 +123,50 @@ class Temporal extends Base {
     })
   }
 
+  startUiServer(version: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        if (await this.isUiServerRunning()) {
+          resolve({ running: true })
+          return
+        }
+        await this._startUiServer(version, on)
+        resolve({ running: false })
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  private async isUiServerRunning(): Promise<boolean> {
+    if (!existsSync(this.uiPidPath)) {
+      return false
+    }
+    try {
+      const pid = (await readFile(this.uiPidPath, 'utf-8')).trim()
+      if (!pid) {
+        return false
+      }
+      const plist = await StopProcessListFetch()
+      return (
+        ProcessOwnedPidsByPid(pid, plist, [
+          this.uiBin(),
+          global.Server.BaseDir,
+          global.Server.AppDir
+        ]).length > 0
+      )
+    } catch {
+      return false
+    }
+  }
+
   private async _startUiServer(version: SoftInstalled, on: any): Promise<void> {
     const bin = this.uiBin()
     if (!existsSync(bin)) {
       on({
         'APP-On-Log': AppLog(
           'info',
-          'Temporal UI (ui-server) is not installed. Install it from the Web UI section on the Service tab.'
+          'Temporal UI (ui-server) is not installed.'
         )
       })
       return

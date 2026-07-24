@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import {
   buildServerStartArgs,
   buildServerYaml,
@@ -41,5 +42,13 @@ assert.deepEqual(buildServerStartArgs(configDir, '1.31.2'), [
   'start'
 ])
 assert.ok(!buildServerStartArgs(configDir, '1.31.2').includes('-r'))
+
+const temporalForkSource = readFileSync(
+  new URL('../src/fork/module/Temporal/index.ts', import.meta.url),
+  'utf8'
+)
+assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
+assert.match(temporalForkSource, /isUiServerRunning\(\)/)
+assert.doesNotMatch(temporalForkSource, /_startServer\(version: SoftInstalled, uiFlag\?: string\)/)
 
 console.log('ALL CHECKS PASSED')
