@@ -28,6 +28,7 @@
         url="https://github.com/ClickHouse/ClickHouse/releases"
         title="ClickHouse"
         :has-static="true"
+        :show-brew-lib="false"
         :show-port-lib="false"
       ></Manager>
       <Config v-else-if="tab === 2"></Config>

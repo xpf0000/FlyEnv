@@ -5,7 +5,6 @@ import { I18nT } from '@lang/runtime'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  brewInfoJson,
   chmod,
   copyFile,
   execPromise,
@@ -421,19 +420,6 @@ class Manager extends Base {
         .catch(() => {
           resolve([])
         })
-    })
-  }
-
-  brewinfo() {
-    return new ForkPromise(async (resolve, reject) => {
-      try {
-        const all = ['clickhouse']
-        const info = await brewInfoJson(all)
-        resolve(info)
-      } catch (e) {
-        reject(e)
-        return
-      }
     })
   }
 }
