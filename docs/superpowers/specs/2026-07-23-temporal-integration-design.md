@@ -128,9 +128,10 @@ Consul 式服务模块，`type = 'temporal-cli'`。
 
 ## 6. 两模块关系与边界
 
-- 默认配置下两者端口相同（7233/8233），**不能同时运行**；改其一配置即可并存。FlyEnv 不做跨模块端口仲裁，启动失败错误进 AppLog 面板（现有机制）
+- 默认配置下两者端口相同（7233/8233），**不能同时运行**。FlyEnv 不做跨模块端口仲裁，启动失败错误进 AppLog 面板（现有机制）
+- **已知限制（用户决策保留）**：除端口冲突外，`Base._stopServer` 的进程名兜底 `dis['temporal-cli'] = 'temporal'` 按子串匹配进程命令行，temporal-server 与 ui-server 的命令行同样包含子串 `temporal`——因此 temporal-cli 的**停止和启动**（启动前会先走停止流程）会连带终止 temporal-server 与 ui-server。**结论：两个模块不要同时运行。** 后续如需解除，将 `dis['temporal-cli']` 改为 `'temporal-cli'`（利用安装路径段区分）即可
 - `temporal` 模块的 namespace 自动引导依赖 `temporal-cli` 模块已装版本；未装时服务页提示用户手动执行（不阻断启动）
-- `temporal` 的 Web UI 来自独立的 `temporal-ui` 组件源；`temporal-cli` 的 UI 内嵌于 dev server，无额外组件
+- `temporal` 的 Web UI 来自独立的 `temporal-ui` 组件源（单实例）；`temporal-cli` 的 UI 内嵌于 dev server，无额外组件
 
 ## 7. one-env 服务端设计（`E:\Github\FlyEnv-Admin`）
 

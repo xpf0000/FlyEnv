@@ -1857,7 +1857,7 @@ export default module
 
 - [ ] **Step 7: 渲染构建验证**
 
-Run: `cd E:/Github/FlyEnv && npx cross-env NODE_ENV=production vite build --config configs/vite.config.ts`
+Run: `cd E:/Github/FlyEnv && npx tsx -e "import { build } from 'vite'; import c from './configs/vite.config.ts'; build(c.buildConfig).then(()=>process.exit(0)).catch((e)=>{console.error(e);process.exit(1)})"`（configs/vite.config.ts 导出的是配置映射，须以 buildConfig 编程式调用；直接 vite build --config 不可用）
 Expected: 构建成功（耗时数分钟正常）；若报内存不足，重跑或加大 `NODE_OPTIONS=--max-old-space-size=8192`
 
 - [ ] **Step 8: Commit（先向用户确认）**
@@ -2303,7 +2303,7 @@ export default module
 
 - [ ] **Step 8: 渲染构建验证**
 
-Run: `cd E:/Github/FlyEnv && npx cross-env NODE_ENV=production vite build --config configs/vite.config.ts`
+Run: `cd E:/Github/FlyEnv && npx tsx -e "import { build } from 'vite'; import c from './configs/vite.config.ts'; build(c.buildConfig).then(()=>process.exit(0)).catch((e)=>{console.error(e);process.exit(1)})"`（configs/vite.config.ts 导出的是配置映射，须以 buildConfig 编程式调用；直接 vite build --config 不可用）
 Expected: 构建成功
 
 - [ ] **Step 9: Commit（先向用户确认）**
@@ -2331,7 +2331,7 @@ Expected: `ALL CHECKS PASSED`
 Run: `cd E:/Github/FlyEnv && npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm src/main/index.dev.ts --outfile=dist/electron/main.mjs && npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm src/fork/index.ts --outfile=dist/electron/fork.mjs`
 Expected: 无报错
 
-Run: `cd E:/Github/FlyEnv && npx cross-env NODE_ENV=production vite build --config configs/vite.config.ts`
+Run: `cd E:/Github/FlyEnv && npx tsx -e "import { build } from 'vite'; import c from './configs/vite.config.ts'; build(c.buildConfig).then(()=>process.exit(0)).catch((e)=>{console.error(e);process.exit(1)})"`（configs/vite.config.ts 导出的是配置映射，须以 buildConfig 编程式调用；直接 vite build --config 不可用）
 Expected: 构建成功
 
 Run: `cd E:/Github/FlyEnv-Admin/servers && npm run build`
