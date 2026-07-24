@@ -29,6 +29,7 @@
     "test:main-lazy-runtime": "tsx scripts/main-process-lazy-runtime-test.ts",
     "test:capturer-shortcut": "tsx scripts/capturer-shortcut-startup-test.ts",
     "test:window-page-options": "tsx scripts/window-page-options-test.ts",
+    "test:site-sucker-window-lifecycle": "tsx scripts/site-sucker-window-lifecycle-test.ts",
     "test:main-lazy-bundle": "tsx scripts/main-process-lazy-bundle-test.ts",
     "test:main-lazy-utilities": "tsx scripts/main-process-eager-utilities-test.ts",
     "test:main-resource-path": "tsx scripts/main-process-resource-path-test.ts",
