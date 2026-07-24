@@ -51,4 +51,13 @@ assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
 assert.match(temporalForkSource, /isUiServerRunning\(\)/)
 assert.doesNotMatch(temporalForkSource, /_startServer\(version: SoftInstalled, uiFlag\?: string\)/)
 
+const temporalConfigSource = readFileSync(
+  new URL('../src/render/components/Temporal/Config.vue', import.meta.url),
+  'utf8'
+)
+assert.match(temporalConfigSource, /module-config h-full overflow-hidden flex flex-col/)
+assert.match(temporalConfigSource, /app-base-el-card flex-1 overflow-hidden/)
+assert.match(temporalConfigSource, /import ConfVM from '@\/components\/Conf\/conf.vue'/)
+assert.match(temporalConfigSource, /import ToolVM from '@\/components\/Conf\/tool.vue'/)
+
 console.log('ALL CHECKS PASSED')

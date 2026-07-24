@@ -1,25 +1,35 @@
 <template>
-  <div>
-    <el-radio-group v-model="confType" class="mb-2 px-3">
-      <el-radio-button label="server" value="server">Server</el-radio-button>
-      <el-radio-button label="ui" value="ui">UI</el-radio-button>
-    </el-radio-group>
-    <Conf
-      :key="file"
-      ref="conf"
-      :type-flag="'temporal'"
-      :default-file="defaultFile"
-      :file="file"
-      :file-ext="'yaml'"
-      :show-commond="false"
-    >
-    </Conf>
+  <div class="module-config h-full overflow-hidden flex flex-col">
+    <el-card class="app-base-el-card flex-1 overflow-hidden">
+      <template #header>
+        <el-radio-group v-model="confType">
+          <el-radio-button label="server" value="server">Server</el-radio-button>
+          <el-radio-button label="ui" value="ui">UI</el-radio-button>
+        </el-radio-group>
+      </template>
+      <template #default>
+        <ConfVM
+          :key="file"
+          ref="conf"
+          class="h-full overflow-hidden"
+          type-flag="temporal"
+          :default-file="defaultFile"
+          :file="file"
+          file-ext="yaml"
+          :show-commond="false"
+        />
+      </template>
+      <template #footer>
+        <ToolVM v-if="conf" :conf="conf" />
+      </template>
+    </el-card>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
-  import Conf from '@/components/Conf/index.vue'
+  import { computed, nextTick, ref, watch } from 'vue'
+  import ConfVM from '@/components/Conf/conf.vue'
+  import ToolVM from '@/components/Conf/tool.vue'
   import IPC from '@/util/IPC'
   import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
@@ -27,46 +37,55 @@
 
   const conf = ref()
   const confType = ref<'server' | 'ui'>('server')
-
   const brewStore = BrewStore()
 
-  const currentVersion = computed(() => {
-    return brewStore.currentVersion('temporal')
-  })
-
+  const currentVersion = computed(() => brewStore.currentVersion('temporal'))
   const file = computed(() => {
     const configDir = join(window.Server.BaseDir!, 'temporal', 'config')
     if (confType.value === 'ui') {
       return join(configDir, 'temporal-ui.yaml')
     }
-    const v = currentVersion?.value?.version ?? ''
-    if (!v) {
-      return ''
-    }
-    return join(configDir, `temporal-v${v}.yaml`)
+    const version = currentVersion.value?.version ?? ''
+    return version ? join(configDir, `temporal-v${version}.yaml`) : ''
   })
-  const defaultFile = computed(() => {
-    return file.value ? `${file.value}.default` : ''
-  })
+  const defaultFile = computed(() => (file.value ? `${file.value}.default` : ''))
 
-  fs.existsSync(file.value).then((e) => {
-    if (e) {
+  const invokeTemporal = (...args: any[]) => {
+    return new Promise<any>((resolve) => {
+      IPC.send('app-fork:temporal', ...args).then((key: string, res: any) => {
+        IPC.off(key)
+        resolve(res)
+      })
+    })
+  }
+
+  const ensureConfigFile = async () => {
+    if (!file.value || (await fs.existsSync(file.value))) {
       return
     }
+    let res: any
     if (confType.value === 'ui') {
-      IPC.send('app-fork:temporal', 'initUiConfig').then((key: string) => {
-        IPC.off(key)
-        conf?.value?.update()
-      })
+      res = await invokeTemporal('initUiConfig')
     } else if (currentVersion.value) {
-      IPC.send(
-        'app-fork:temporal',
+      res = await invokeTemporal(
         'initConfig',
         JSON.parse(JSON.stringify(currentVersion.value))
-      ).then((key: string) => {
-        IPC.off(key)
-        conf?.value?.update()
-      })
+      )
+    } else {
+      return
     }
-  })
+    if (res?.code !== 0) {
+      return
+    }
+    await nextTick()
+    conf.value?.update()
+  }
+
+  watch(
+    file,
+    () => {
+      ensureConfigFile().catch()
+    },
+    { immediate: true }
+  )
 </script>
