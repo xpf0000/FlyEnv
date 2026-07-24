@@ -126,7 +126,7 @@ class Manager extends Base {
     await copyFile(cacheFile, bin)
     await chmod(bin, '0755')
     try {
-      await execPromise(`"${bin}" --version`)
+      await execPromise(`"${bin}" version`)
     } catch (error) {
       await remove(bin).catch(() => {})
       throw error

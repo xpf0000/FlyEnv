@@ -43,6 +43,8 @@ assert.match(
 assert.match(forkSource, /openCHUI\(\): ForkPromise/)
 assert.match(forkSource, /await downloadFile\(chUIReleaseURL\(/)
 assert.match(forkSource, /serviceStartSpawn\(/)
+assert.match(forkSource, /execPromise\(`"\$\{bin\}" version`\)/)
+assert.doesNotMatch(forkSource, /execPromise\(`"\$\{bin\}" --version`\)/)
 assert.match(forkSource, /join\(this\.chUIDir\(\), 'server\.yaml'\)/)
 assert.match(forkSource, /join\(this\.chUIDir\(\), 'ch-ui\.pid'\)/)
 assert.match(forkSource, /const res = await serviceStartSpawn\(/)
@@ -70,7 +72,11 @@ assert.match(
 assert.match(mcpToolsSource, /ServiceProcessManager\.delPid\(flag, stoppedPids\)/)
 
 assert.match(pageSource, /<template v-if="isRunning" #tool-left>/)
-assert.match(pageSource, /:loading="chUIOpening"/)
+assert.match(pageSource, /<el-icon\s+v-if="chUIOpening"\s+class="is-loading"/)
+assert.match(pageSource, /<Loading\s*\/>/)
+assert.match(pageSource, /<yb-icon\s+v-else/)
+assert.match(pageSource, /:disabled="chUIOpening"/)
+assert.doesNotMatch(pageSource, /:loading="chUIOpening"/)
 assert.match(pageSource, /IPC\.send\('app-fork:clickhouse', 'openCHUI'\)/)
 assert.match(pageSource, /shell\.openExternal\(res\.data\.url\)/)
 

@@ -12,10 +12,18 @@
             style="color: #01cc74"
             class="button"
             link
-            :loading="chUIOpening"
+            :disabled="chUIOpening"
             @click.stop="openCHUI"
           >
+            <el-icon
+              v-if="chUIOpening"
+              class="is-loading"
+              style="width: 20px; height: 20px; margin-left: 10px"
+            >
+              <Loading />
+            </el-icon>
             <yb-icon
+              v-else
               style="width: 20px; height: 20px; margin-left: 10px"
               :svg="import('@/svg/http.svg?raw')"
             ></yb-icon>
@@ -44,6 +52,7 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { computed, ref } from 'vue'
+  import { Loading } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { MessageError } from '@/util/Element'
   import { shell } from '@/util/NodeFn'
