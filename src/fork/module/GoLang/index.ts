@@ -19,11 +19,46 @@ import {
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
 import { isWindows } from '@shared/utils'
+import { homedir } from 'node:os'
+import {
+  buildGoVersionCommand,
+  fetchGvmVersionData,
+  findGvmGoDirectories,
+  gvmInitScript,
+  hasGvm,
+  resolveGvmRoot
+} from './gvm'
 
 class GoLang extends Base {
   constructor() {
     super()
     this.type = 'golang'
+  }
+
+  private gvmRoot(): string {
+    return resolveGvmRoot(process.env.GVM_ROOT, global.Server.UserHome ?? homedir())
+  }
+
+  checkGvm() {
+    return new ForkPromise(async (resolve) => {
+      const root = this.gvmRoot()
+      resolve(hasGvm(root) ? gvmInitScript(root) : null)
+    })
+  }
+
+  gvmData() {
+    return new ForkPromise(async (resolve) => {
+      const root = this.gvmRoot()
+      if (!hasGvm(root)) {
+        resolve([])
+        return
+      }
+      try {
+        resolve(await fetchGvmVersionData(gvmInitScript(root)))
+      } catch {
+        resolve([])
+      }
+    })
   }
 
   fetchAllOnlineVersion() {
@@ -55,13 +90,17 @@ class GoLang extends Base {
   }
 
   allInstalledVersions(setup: any) {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
+      const customDirs = [...(setup?.golang?.dirs ?? [])]
+      if (!isWindows()) {
+        customDirs.push(...(await findGvmGoDirectories(this.gvmRoot())))
+      }
       if (isWindows()) {
-        all = [versionLocalFetch(setup?.golang?.dirs ?? [], 'go.exe')]
+        all = [versionLocalFetch(customDirs, 'go.exe')]
       } else {
-        all = [versionLocalFetch(setup?.golang?.dirs ?? [], 'gofmt', 'go')]
+        all = [versionLocalFetch(customDirs, 'gofmt', 'go')]
       }
       Promise.all(all)
         .then(async (list) => {
@@ -72,7 +111,9 @@ class GoLang extends Base {
             if (!isWindows()) {
               bin = join(dirname(item.bin), 'go')
             }
-            const command = `"${bin}" version`
+            const command = isWindows()
+              ? `"${bin}" version`
+              : buildGoVersionCommand(bin, this.gvmRoot())
             const reg = /( go)(.*?)( )/g
             return TaskQueue.run(versionBinVersion, bin, command, reg)
           })

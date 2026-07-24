@@ -28,6 +28,7 @@
         :has-static="true"
       ></Manager>
       <ProjectCreateVM v-else-if="tab === 3" />
+      <GvmVM v-else-if="tab === 4" />
     </div>
   </div>
 </template>
@@ -40,12 +41,17 @@
   import ProjectIndex from '@/components/LanguageProjects/index.vue'
   import { Project } from '@/util/Project'
   import ProjectCreateVM from './CreateProject.vue'
+  import GvmVM from './gvm/index.vue'
+  import { appendGvmTab } from './tabs'
 
   const { tab } = AppModuleSetup('golang')
-  const tabs = [
-    I18nT('host.projectGo'),
-    I18nT('base.service'),
-    I18nT('base.versionManager'),
-    I18nT('host.newProject')
-  ]
+  const tabs = appendGvmTab(
+    [
+      I18nT('host.projectGo'),
+      I18nT('base.service'),
+      I18nT('base.versionManager'),
+      I18nT('host.newProject')
+    ],
+    window.Server.isWindows === true
+  )
 </script>
