@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import {
+  buildServerStartArgs,
   buildServerYaml,
   buildUiYaml,
   normalizePath,
@@ -30,5 +31,15 @@ assert.ok(uiYaml.includes('enableUi: true'))
 
 // env 名 = 配置文件名主体
 assert.equal(serverEnvName('1.31.1'), 'temporal-v1.31.1')
+
+const configDir = 'E:\\FlyEnv-Data\\server\\temporal\\config'
+assert.deepEqual(buildServerStartArgs(configDir, '1.31.2'), [
+  '-c',
+  configDir,
+  '-e',
+  'temporal-v1.31.2',
+  'start'
+])
+assert.ok(!buildServerStartArgs(configDir, '1.31.2').includes('-r'))
 
 console.log('ALL CHECKS PASSED')

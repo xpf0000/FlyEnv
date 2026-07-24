@@ -7,6 +7,10 @@ export function serverEnvName(version: string): string {
   return `temporal-v${version}`
 }
 
+export function buildServerStartArgs(configDir: string, version: string): string[] {
+  return ['-c', configDir, '-e', serverEnvName(version), 'start']
+}
+
 /**
  * temporal-server standalone config (SQLite dual-store, schema auto-setup).
  * Based on the official guide: https://learn.temporal.io/tutorials/infrastructure/configuring-sqlite-binary/

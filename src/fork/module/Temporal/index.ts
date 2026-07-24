@@ -27,7 +27,7 @@ import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
-import { buildServerYaml, buildUiYaml, serverEnvName } from './util'
+import { buildServerStartArgs, buildServerYaml, buildUiYaml, serverEnvName } from './util'
 
 class Temporal extends Base {
   uiPidPath = ''
@@ -103,7 +103,7 @@ class Temporal extends Base {
       const configDir = join(baseDir, 'config')
       await this.initConfig(version).on(on)
       const env = serverEnvName(version?.version ?? '')
-      const execArgs = ['-r', '/', '-c', configDir, '-e', env, 'start']
+      const execArgs = buildServerStartArgs(configDir, version?.version ?? '')
       try {
         const res = await serviceStartSpawn({
           version,
