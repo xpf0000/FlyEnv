@@ -109,6 +109,14 @@ const baseManagerSource = readFileSync(
 )
 assert.match(baseManagerSource, /target\?\.setForkTrace\?\.\(ipcCommandKey\)/)
 
+const serviceStartSource = readFileSync(
+  new URL('../src/fork/util/ServiceStart.ts', import.meta.url),
+  'utf8'
+)
+assert.match(serviceStartSource, /\[Temporal\]\[service-spawn-input\]/)
+assert.match(serviceStartSource, /\[Temporal\]\[service-spawn-created\]/)
+assert.match(serviceStartSource, /cp\.spawnargs/)
+
 const temporalConfigSource = readFileSync(
   new URL('../src/render/components/Temporal/Config.vue', import.meta.url),
   'utf8'
