@@ -1,31 +1,26 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
-      <template v-for="(item, _index) in tabs" :key="_index">
-        <el-radio-button :label="item" :value="_index"></el-radio-button>
+      <template v-for="(item, index) in tabs" :key="index">
+        <el-radio-button :label="item" :value="index"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="temporal" title="Temporal">
-        <template #tool-left>
-          <div class="flex items-center gap-2 pl-4 pr-2">
-            <span class="flex-shrink-0">Web UI</span>
-            <el-switch v-model="uiEnabled" />
-            <template v-if="uiEnabled">
-              <span v-if="uiInfo.installed && uiInfo.version" class="text-xs opacity-70"
-                >v{{ uiInfo.version }}</span
-              >
-              <el-button link type="primary" :loading="uiInstalling" @click.stop="installUi">
-                {{ I18nT('base.install') }}
-              </el-button>
-              <el-button
-                v-if="uiInfo.installed"
-                link
-                :icon="Link"
-                @click.stop="openURL"
-              ></el-button>
-            </template>
-          </div>
+        <template v-if="isRunning" #tool-left>
+          <el-button
+            class="button"
+            link
+            :loading="uiState === 'loading'"
+            :style="{ color: uiState === 'error' ? '#f56c6c' : '#01cc74' }"
+            @click.stop="openTemporalUi"
+          >
+            <yb-icon
+              v-if="uiState !== 'loading'"
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')"
+            ></yb-icon>
+          </el-button>
         </template>
       </Service>
       <Manager
@@ -49,12 +44,11 @@
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
   import { fs, shell } from '@/util/NodeFn'
-  import { Link } from '@element-plus/icons-vue'
   import { computed, ref } from 'vue'
   import { join } from '@/util/path-browserify'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
-  import { TemporalSetup } from '@/components/Temporal/setup'
+  import { BrewStore } from '@/store/brew'
 
   const { tab, checkVersion } = AppModuleSetup('temporal')
   const tabs = [
@@ -65,69 +59,69 @@
   ]
   checkVersion()
 
-  TemporalSetup.init()
+  const brewStore = BrewStore()
+  const uiState = ref<'idle' | 'loading' | 'error'>('idle')
+  const currentVersion = computed(() => brewStore.currentVersion('temporal'))
+  const isRunning = computed(() => brewStore.module('temporal').installed.some((item) => item.run))
 
-  const uiEnabled = computed({
-    get: () => TemporalSetup.uiEnabled,
-    set: (v: boolean) => {
-      TemporalSetup.uiEnabled = v
-      TemporalSetup.save()
-    }
-  })
-
-  const uiInfo = ref<{ installed: boolean; version: string | null }>({
-    installed: false,
-    version: null
-  })
-  const uiInstalling = ref(false)
-
-  const refreshUiInfo = () => {
-    IPC.send('app-fork:temporal', 'uiServerInfo').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0 && res?.data) {
-        uiInfo.value = res.data
-      }
+  const invokeTemporal = (...args: any[]) => {
+    return new Promise<any>((resolve) => {
+      IPC.send('app-fork:temporal', ...args).then((key: string, res: any) => {
+        IPC.off(key)
+        resolve(res)
+      })
     })
   }
 
-  const installUi = () => {
-    if (uiInstalling.value) {
+  const ensureUiInstalled = async () => {
+    const info = await invokeTemporal('uiServerInfo')
+    if (info?.code !== 0) {
+      throw new Error(info?.msg ?? I18nT('fork.downloadFileFail'))
+    }
+    if (info?.data?.installed) {
       return
     }
-    uiInstalling.value = true
-    IPC.send('app-fork:temporal', 'fetchUiLatest').then((key: string, res: any) => {
-      IPC.off(key)
-      const row = res?.code === 0 ? res?.data : null
-      if (!row?.url) {
-        uiInstalling.value = false
-        MessageError(I18nT('fork.downloadFileFail'))
-        return
-      }
-      IPC.send('app-fork:temporal', 'installUiLatest', JSON.parse(JSON.stringify(row))).then(
-        (k2: string, res2: any) => {
-          IPC.off(k2)
-          uiInstalling.value = false
-          if (res2?.code === 0) {
-            refreshUiInfo()
-          } else {
-            MessageError(res2?.msg ?? I18nT('fork.downloadFileFail'))
-          }
-        }
-      )
-    })
+    const latest = await invokeTemporal('fetchUiLatest')
+    const row = latest?.code === 0 ? latest.data : null
+    if (!row?.url) {
+      throw new Error(latest?.msg ?? I18nT('fork.downloadFileFail'))
+    }
+    const installed = await invokeTemporal('installUiLatest', JSON.parse(JSON.stringify(row)))
+    if (installed?.code !== 0) {
+      throw new Error(installed?.msg ?? I18nT('fork.downloadFileFail'))
+    }
   }
 
   const openURL = async () => {
     let port = '8233'
     const confFile = join(window.Server.BaseDir!, 'temporal/config/temporal-ui.yaml')
-    const exists = await fs.existsSync(confFile)
-    if (exists) {
+    if (await fs.existsSync(confFile)) {
       const content = await fs.readFile(confFile)
-      const line = content.split('\n').find((s: string) => s.trim().startsWith('port:'))
-      port = line?.split(':')?.pop()?.trim() || '8233'
+      const line = content.split('\n').find((item: string) => item.trim().startsWith('port:'))
+      port = line?.split(':').pop()?.trim() || port
     }
-    shell.openExternal(`http://127.0.0.1:${port}/`).then().catch()
+    await shell.openExternal(`http://127.0.0.1:${port}/`)
   }
 
-  refreshUiInfo()
+  const openTemporalUi = async () => {
+    if (uiState.value === 'loading' || !currentVersion.value) {
+      return
+    }
+    uiState.value = 'loading'
+    try {
+      await ensureUiInstalled()
+      const started = await invokeTemporal(
+        'startUiServer',
+        JSON.parse(JSON.stringify(currentVersion.value))
+      )
+      if (started?.code !== 0) {
+        throw new Error(started?.msg ?? I18nT('fork.startFail'))
+      }
+      await openURL()
+      uiState.value = 'idle'
+    } catch (error) {
+      uiState.value = 'error'
+      MessageError(error instanceof Error ? error.message : String(error))
+    }
+  }
 </script>

@@ -60,4 +60,22 @@ assert.match(temporalConfigSource, /app-base-el-card flex-1 overflow-hidden/)
 assert.match(temporalConfigSource, /import ConfVM from '@\/components\/Conf\/conf.vue'/)
 assert.match(temporalConfigSource, /import ToolVM from '@\/components\/Conf\/tool.vue'/)
 
+const temporalIndexSource = readFileSync(
+  new URL('../src/render/components/Temporal/Index.vue', import.meta.url),
+  'utf8'
+)
+assert.match(temporalIndexSource, /v-if="isRunning" #tool-left/)
+assert.match(temporalIndexSource, /uiState/)
+assert.match(temporalIndexSource, /fetchUiLatest/)
+assert.match(temporalIndexSource, /installUiLatest/)
+assert.match(temporalIndexSource, /startUiServer/)
+assert.match(temporalIndexSource, /http.svg/)
+assert.doesNotMatch(temporalIndexSource, /TemporalSetup|uiEnabled|base\.install/)
+
+const temporalAsideSource = readFileSync(
+  new URL('../src/render/components/Temporal/aside.vue', import.meta.url),
+  'utf8'
+)
+assert.doesNotMatch(temporalAsideSource, /TemporalSetup|startExtParam/)
+
 console.log('ALL CHECKS PASSED')

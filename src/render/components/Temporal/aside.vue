@@ -28,8 +28,6 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
-  import { BrewStore } from '@/store/brew'
-  import { TemporalSetup } from '@/components/Temporal/setup'
 
   const {
     showItem,
@@ -42,19 +40,6 @@
     nav,
     stopNav
   } = AsideSetup('temporal')
-
-  TemporalSetup.init()
-
-  const brewStore = BrewStore()
-
-  const module = brewStore.module('temporal')
-  if (!module?.startExtParam) {
-    module.startExtParam = () => {
-      return new Promise<any[]>((resolve) => {
-        resolve([TemporalSetup.uiEnabled ? '1' : '0'])
-      })
-    }
-  }
 
   AppServiceModule.temporal = {
     groupDo,
