@@ -1,13 +1,27 @@
 import type { SoftInstalled } from '@shared/app'
-import { ProcessKill, ProcessListByPid, ProcessListFetch } from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPid } from '@shared/Process'
 import type { PItem } from '@shared/Process'
 import { isWindows } from '@shared/utils'
 import type { ForkManager } from './ForkManager'
-import { ProcessPidList, ProcessPidListByPids } from '@shared/Process.win'
+import { ProcessPidList } from '@shared/Process.win'
 
-type ServiceProcessItem = {
+export type ServiceProcessItem = {
   item: SoftInstalled
   pid: string
+}
+
+/**
+ * Only return processes whose registered root PID still belongs to the exact service binary.
+ * A path anywhere in a terminal command is not proof that FlyEnv owns that terminal.
+ */
+export const ownedServicePids = (
+  serviceItems: ServiceProcessItem[],
+  processList: PItem[]
+): string[] => {
+  const pids = serviceItems.flatMap(({ item, pid }) =>
+    ProcessOwnedPidsByPid(pid, processList, [item?.bin])
+  )
+  return Array.from(new Set(pids))
 }
 
 /** 单个运行中实例的标识（bin 是唯一键——同一 version 可能装在不同路径） */
@@ -74,26 +88,6 @@ class ServiceProcess {
     return out
   }
 
-  private protectedProcessPids(processList: PItem[]): Set<string> {
-    const protectedPids = new Set<string>([`${process.pid}`, `${process.ppid}`])
-    const processMap = new Map<string, PItem>()
-    processList.forEach((item) => {
-      processMap.set(`${item.PID}`, item)
-    })
-
-    let currentPid = `${process.pid}`
-    for (let i = 0; i < processList.length; i += 1) {
-      const item = processMap.get(currentPid)
-      const ppid = item?.PPID ? `${item.PPID}` : ''
-      if (!ppid || ppid === '0' || protectedPids.has(ppid)) {
-        break
-      }
-      protectedPids.add(ppid)
-      currentPid = ppid
-    }
-    return protectedPids
-  }
-
   addPid(type: string, pid: string, item: SoftInstalled) {
     if (!this.servicePID[type]) {
       this.servicePID[type] = []
@@ -140,54 +134,32 @@ class ServiceProcess {
   private async killAllPid() {
     if (!isWindows()) {
       const plist: any = await ProcessListFetch()
-      const arr = Array.from(
-        new Set(
-          Object.values(this.servicePID)
-            .flat()
-            .map((m) => m.pid)
-        )
-      ).map((pid) => {
-        return new Promise(async (resolve) => {
-          const TERM: Array<string> = []
-          const INT: Array<string> = []
-          let pids: PItem[] = []
-          try {
-            pids = ProcessListByPid(pid, plist)
-          } catch {}
-          if (pids.length > 0) {
-            pids.forEach((item) => {
-              if (
-                item.COMMAND.includes('mysqld') ||
-                item.COMMAND.includes('mariadbd') ||
-                item.COMMAND.includes('mongod') ||
-                item.COMMAND.includes('rabbit') ||
-                item.COMMAND.includes('org.apache.catalina') ||
-                item.COMMAND.includes('elasticsearch')
-              ) {
-                TERM.push(item.PID)
-              } else {
-                INT.push(item.PID)
-              }
-            })
-            if (TERM.length > 0) {
-              const sig = '-TERM'
-              try {
-                await ProcessKill(sig, TERM)
-              } catch {}
-            }
-            if (INT.length > 0) {
-              const sig = '-INT'
-              try {
-                await ProcessKill(sig, INT)
-              } catch {}
-            }
+      const serviceItems = Object.values(this.servicePID).flat()
+      const pids = new Set(ownedServicePids(serviceItems, plist))
+      const TERM: Array<string> = []
+      const INT: Array<string> = []
+      plist
+        .filter((item: PItem) => pids.has(item.PID))
+        .forEach((item: PItem) => {
+          if (
+            item.COMMAND.includes('mysqld') ||
+            item.COMMAND.includes('mariadbd') ||
+            item.COMMAND.includes('mongod') ||
+            item.COMMAND.includes('rabbit') ||
+            item.COMMAND.includes('org.apache.catalina') ||
+            item.COMMAND.includes('elasticsearch')
+          ) {
+            TERM.push(item.PID)
+          } else {
+            INT.push(item.PID)
           }
-          resolve(true)
         })
-      })
-      try {
-        await Promise.all(arr)
-      } catch {}
+      if (TERM.length > 0) {
+        await ProcessKill('-TERM', TERM)
+      }
+      if (INT.length > 0) {
+        await ProcessKill('-INT', INT)
+      }
       return
     }
 
@@ -212,118 +184,13 @@ class ServiceProcess {
         delete this.servicePID?.['postgresql']
       }
 
-      let all: string[] = []
-      const pids = Array.from(
-        new Set(
-          Object.values(this.servicePID)
-            .flat()
-            .map((m) => `${m.pid}`)
-        )
-      )
+      let plist: PItem[] = []
       try {
-        all = await ProcessPidListByPids(pids)
+        plist = await ProcessPidList()
       } catch {}
-      if (all.length > 0) {
-        try {
-          await ProcessKill('-INT', all)
-        } catch (e) {
-          console.log('taskkill e: ', e)
-        }
-      }
-    }
-  }
-
-  private async stopAllProcessByName() {
-    if (!isWindows()) {
-      const TERM: Array<string> = []
-      const INT: Array<string> = []
-      const all: any = await ProcessListFetch()
-      const protectedPids = this.protectedProcessPids(all)
-      const find = all.filter((p: any) => {
-        return (
-          !protectedPids.has(`${p.PID}`) &&
-          (p.COMMAND.includes(global.Server.BaseDir!) ||
-            p.COMMAND.includes(global.Server.AppDir!) ||
-            p.COMMAND.includes('redis-server')) &&
-          !p.COMMAND.includes(' grep ') &&
-          !p.COMMAND.includes(' /bin/sh -c') &&
-          !p.COMMAND.includes('/Contents/MacOS/') &&
-          !p.COMMAND.startsWith('/bin/bash ') &&
-          !p.COMMAND.includes('brew.rb ') &&
-          !p.COMMAND.includes(' install ') &&
-          !p.COMMAND.includes(' uninstall ') &&
-          !p.COMMAND.includes(' link ') &&
-          !p.COMMAND.includes(' unlink ')
-        )
-      })
-      if (find.length === 0) {
-        return
-      }
-      for (const item of find) {
-        if (
-          item.COMMAND.includes('mysqld') ||
-          item.COMMAND.includes('mariadbd') ||
-          item.COMMAND.includes('mongod') ||
-          item.COMMAND.includes('rabbit') ||
-          item.COMMAND.includes('org.apache.catalina') ||
-          item.COMMAND.includes('elasticsearch')
-        ) {
-          TERM.push(item.PID)
-        } else {
-          INT.push(item.PID)
-        }
-      }
-      if (TERM.length > 0) {
-        const sig = '-TERM'
-        try {
-          await ProcessKill(sig, TERM)
-        } catch {}
-      }
-      if (INT.length > 0) {
-        const sig = '-INT'
-        try {
-          await ProcessKill(sig, INT)
-        } catch {}
-      }
-      return
-    }
-    if (isWindows()) {
-      const arr: Array<string> = []
-      const fpm: Array<string> = []
-
-      let all: PItem[] = []
-      try {
-        all = await ProcessPidList()
-      } catch {}
-      const protectedPids = this.protectedProcessPids(all)
-      for (const item of all) {
-        if (!item.COMMAND || typeof item.COMMAND !== 'string') {
-          continue
-        }
-        if (protectedPids.has(`${item.PID}`)) {
-          continue
-        }
-        if (
-          item.COMMAND.includes('FlyEnv-Data') ||
-          item.COMMAND.includes('PhpWebStudy-Data') ||
-          item.COMMAND.includes('pws-app-') ||
-          item.COMMAND.includes('php.phpwebstudy')
-        ) {
-          if (item.COMMAND.includes('php-cgi-spawner.exe')) {
-            fpm.push(item.PID)
-          } else {
-            arr.push(item.PID)
-          }
-        }
-      }
-      arr.unshift(...fpm)
-      console.log('_stopServer arr: ', arr)
-      if (arr.length > 0) {
-        try {
-          await ProcessKill('-INT', arr)
-        } catch (e) {
-          console.log('taskkill e: ', e)
-        }
+      const pids = ownedServicePids(Object.values(this.servicePID).flat(), plist)
+      if (pids.length > 0) {
+        await ProcessKill('-INT', pids)
       }
     }
   }
@@ -333,12 +200,6 @@ class ServiceProcess {
       await this.killAllPid()
     } catch (e) {
       console.log('killAllPid e: ', e)
-    }
-
-    try {
-      await this.stopAllProcessByName()
-    } catch (e) {
-      console.log('stopAllProcessByName e: ', e)
     }
   }
 }
