@@ -6,7 +6,22 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" type-flag="clickhouse" title="ClickHouse"></Service>
+      <Service v-if="tab === 0" type-flag="clickhouse" title="ClickHouse">
+        <template v-if="isRunning" #tool-left>
+          <el-button
+            style="color: #01cc74"
+            class="button"
+            link
+            :loading="chUIOpening"
+            @click.stop="openCHUI"
+          >
+            <yb-icon
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')"
+            ></yb-icon>
+          </el-button>
+        </template>
+      </Service>
       <Manager
         v-else-if="tab === 1"
         type-flag="clickhouse"
@@ -27,8 +42,18 @@
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
+  import { computed, ref } from 'vue'
+  import { BrewStore } from '@/store/brew'
+  import { MessageError } from '@/util/Element'
+  import { shell } from '@/util/NodeFn'
+  import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
 
+  const brewStore = BrewStore()
+  const isRunning = computed(() => {
+    return brewStore.module('clickhouse').installed.some((item) => item.run)
+  })
+  const chUIOpening = ref(false)
   const { tab, checkVersion } = AppModuleSetup('clickhouse')
   const tabs = [
     I18nT('base.service'),
@@ -36,5 +61,24 @@
     I18nT('base.configFile'),
     I18nT('base.log')
   ]
+
+  const openCHUI = () => {
+    if (chUIOpening.value) {
+      return
+    }
+    chUIOpening.value = true
+    IPC.send('app-fork:clickhouse', 'openCHUI').then((key: string, res: any) => {
+      if (res?.code === 200) {
+        return
+      }
+      IPC.off(key)
+      chUIOpening.value = false
+      if (res?.code === 0 && res.data?.url) {
+        shell.openExternal(res.data.url).catch()
+        return
+      }
+      MessageError(res?.msg ?? 'CH-UI failed to start')
+    })
+  }
   checkVersion()
 </script>

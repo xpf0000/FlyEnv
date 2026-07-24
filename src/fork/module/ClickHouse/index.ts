@@ -9,6 +9,7 @@ import {
   chmod,
   copyFile,
   execPromise,
+  downloadFile,
   mkdirp,
   readFile,
   remove,
@@ -25,6 +26,14 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS } from '@shared/utils'
 
+import { ProcessListFetch } from '@shared/Process'
+import {
+  CH_UI_CONNECTION_NAME,
+  CH_UI_PORT,
+  chUIConfigContent,
+  chUIReleaseURL,
+  clickHouseHttpPort
+} from './chUI'
 class Manager extends Base {
   constructor() {
     super()
@@ -54,8 +63,133 @@ class Manager extends Base {
       { name: 'server', path: join(logDir, 'server.log') },
       { name: 'error', path: join(logDir, 'server.err.log') },
       { name: 'start-out', path: join(logDir, 'server.start.out.log') },
-      { name: 'start-error', path: join(logDir, 'server.start.err.log') }
+      { name: 'start-error', path: join(logDir, 'server.start.err.log') },
+      { name: 'ch-ui-start-out', path: join(dir, 'ch-ui/log/ch-ui.start.out.log') },
+      { name: 'ch-ui-start-error', path: join(dir, 'ch-ui/log/ch-ui.start.err.log') }
     ]
+  }
+
+  private chUIDir(): string {
+    return join(global.Server.ClickHouseDir!, 'ch-ui')
+  }
+
+  private chUIBin(): string {
+    return join(global.Server.AppDir!, 'ch-ui', 'ch-ui')
+  }
+
+  private chUIPidPath(): string {
+    return join(this.chUIDir(), 'ch-ui.pid')
+  }
+
+  private chUIConfigPath(): string {
+    return join(this.chUIDir(), 'server.yaml')
+  }
+
+  private async clickHouseURL(): Promise<string> {
+    const configFile = await this.initConfig()
+    const config = await readFile(configFile, 'utf-8')
+    return `http://127.0.0.1:${clickHouseHttpPort(config)}`
+  }
+
+  private async initCHUIConfig(clickHouseURL: string): Promise<string> {
+    const dir = this.chUIDir()
+    const configPath = this.chUIConfigPath()
+    await mkdirp(join(dir, 'data'))
+    await mkdirp(join(dir, 'log'))
+    if (!existsSync(configPath)) {
+      await writeFile(configPath, chUIConfigContent(join(dir, 'data', 'ch-ui.db'), clickHouseURL))
+    }
+    return configPath
+  }
+
+  private async ensureCHUI(on: (...args: any) => void): Promise<string> {
+    const bin = this.chUIBin()
+    if (existsSync(bin)) {
+      return bin
+    }
+
+    const cacheFile = join(global.Server.Cache!, `ch-ui-${process.platform}-${process.arch}`)
+    await mkdirp(dirname(bin))
+    await downloadFile(chUIReleaseURL(process.platform, process.arch), cacheFile).on(on)
+    await copyFile(cacheFile, bin)
+    await chmod(bin, '0755')
+    try {
+      await execPromise(`"${bin}" --version`)
+    } catch (error) {
+      await remove(bin).catch(() => {})
+      throw error
+    }
+    return bin
+  }
+
+  private async isCHUIRunning(bin: string): Promise<boolean> {
+    const pidPath = this.chUIPidPath()
+    if (!existsSync(pidPath)) {
+      return false
+    }
+    const pid = (await readFile(pidPath, 'utf-8')).trim()
+    if (!pid) {
+      await remove(pidPath)
+      return false
+    }
+    const process = (await ProcessListFetch()).find((item) => item.PID === pid)
+    if (process?.COMMAND.includes(bin)) {
+      return true
+    }
+    await remove(pidPath)
+    return false
+  }
+
+  openCHUI(): ForkPromise<{ url: string }> {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        const bin = await this.ensureCHUI(on)
+        const clickHouseURL = await this.clickHouseURL()
+        const configPath = await this.initCHUIConfig(clickHouseURL)
+
+        if (!(await this.isCHUIRunning(bin))) {
+          await serviceStartSpawn({
+            version: {
+              typeFlag: 'clickhouse',
+              version: 'ch-ui',
+              bin,
+              path: dirname(bin),
+              num: null,
+              enable: true,
+              run: false,
+              running: false
+            },
+            pidPath: this.chUIPidPath(),
+            baseDir: this.chUIDir(),
+            bin,
+            execArgs: [
+              'server',
+              '--config',
+              configPath,
+              '--port',
+              `${CH_UI_PORT}`,
+              '--clickhouse-url',
+              clickHouseURL,
+              '--connection-name',
+              CH_UI_CONNECTION_NAME
+            ],
+            execEnv: {
+              LC_ALL: global.Server.Local!,
+              LANG: global.Server.Local!
+            },
+            on,
+            waitTime: 2000,
+            cwd: this.chUIDir(),
+            outFile: join(this.chUIDir(), 'log/ch-ui.start.out.log'),
+            errFile: join(this.chUIDir(), 'log/ch-ui.start.err.log')
+          })
+        }
+
+        resolve({ url: `http://127.0.0.1:${CH_UI_PORT}` })
+      } catch (error) {
+        reject(error)
+      }
+    })
   }
 
   private configContent(): { config: string; users: string } {

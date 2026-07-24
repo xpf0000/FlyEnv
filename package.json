@@ -14,6 +14,7 @@
     "build-dev-runner": "npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/dev-runner.ts --outfile=electron/dev-runner.mjs",
     "test:documentation-version": "node scripts/documentation-version-test.mjs",
     "test:clickhouse-config-page": "cross-env NODE_ENV=production tsx scripts/clickhouse-config-page-test.ts",
+    "test:clickhouse-ch-ui": "tsx scripts/clickhouse-ch-ui-test.ts",
     "test:go-gvm": "tsx scripts/go-gvm-test.ts",
     "dev": "yarn run clean:dev && yarn run build-dev-runner && cross-env NODE_ENV=development node electron/dev-runner.mjs",
     "build": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production node electron/app-builder.mjs",
