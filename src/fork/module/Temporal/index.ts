@@ -73,7 +73,7 @@ class Temporal extends Base {
   }
 
   initUiConfig(): ForkPromise<string> {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject, _on) => {
       const configDir = join(global.Server.BaseDir!, 'temporal', 'config')
       const confFile = join(configDir, 'temporal-ui.yaml')
       if (!existsSync(confFile)) {
@@ -176,9 +176,21 @@ class Temporal extends Base {
     for (let i = 0; i < 3; i++) {
       try {
         await waitTime(3000)
-        await spawnPromise(bin, ['operator', 'namespace', 'create', '--namespace', 'default', '--address', '127.0.0.1:7233'], {
-          shell: false
-        })
+        await spawnPromise(
+          bin,
+          [
+            'operator',
+            'namespace',
+            'create',
+            '--namespace',
+            'default',
+            '--address',
+            '127.0.0.1:7233'
+          ],
+          {
+            shell: false
+          }
+        )
         on({
           'APP-On-Log': AppLog('info', 'Temporal default namespace is ready')
         })

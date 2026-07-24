@@ -7,7 +7,10 @@ import {
 } from '../src/fork/module/Temporal/util'
 
 // Windows 反斜杠路径归一化为正斜杠（避免 yaml 转义问题）
-assert.equal(normalizePath('E:\\FlyEnv-Data\\server\\temporal\\data'), 'E:/FlyEnv-Data/server/temporal/data')
+assert.equal(
+  normalizePath('E:\\FlyEnv-Data\\server\\temporal\\data'),
+  'E:/FlyEnv-Data/server/temporal/data'
+)
 assert.equal(normalizePath('/Users/x/flyenv/temporal/data'), '/Users/x/flyenv/temporal/data')
 
 // server yaml：SQLite 双库路径内插 + 关键端口

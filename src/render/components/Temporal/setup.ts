@@ -18,9 +18,6 @@ export const TemporalSetup: {
       .catch()
   },
   save() {
-    localForage
-      .setItem('flyenv-temporal-ui-enabled', TemporalSetup.uiEnabled)
-      .then()
-      .catch()
+    localForage.setItem('flyenv-temporal-ui-enabled', TemporalSetup.uiEnabled).then().catch()
   }
 })
