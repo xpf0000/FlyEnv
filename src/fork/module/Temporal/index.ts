@@ -141,16 +141,15 @@ class Temporal extends Base {
         )
       })
       const baseDir = this.baseDir()
-      const configDir = join(baseDir, 'config')
-      await this.initConfig(version).on(on)
-      const execArgs = buildServerStartArgs(configDir, version?.version ?? '')
+      const configFile = await this.initConfig(version).on(on)
+      const execArgs = buildServerStartArgs(configFile)
       appDebugLog(
         '[Temporal][fork-before-spawn]',
         JSON.stringify({
           requestKey: this.forkTrace,
           rawBaseDir: global.Server.BaseDir,
           baseDir,
-          configDir,
+          configFile,
           execArgs
         })
       ).catch()
@@ -161,7 +160,6 @@ class Temporal extends Base {
           baseDir,
           bin: version.bin,
           execArgs,
-          cwd: isWindows() ? undefined : '/',
           on
         })
         this._bootstrapNamespace(on).catch((e) => {

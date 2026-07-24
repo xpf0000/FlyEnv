@@ -47,15 +47,11 @@ assert.ok(uiYaml.includes('enableUi: true'))
 // env 名 = 配置文件名主体
 assert.equal(serverEnvName('1.31.1'), 'temporal-v1.31.1')
 
-const configDir = 'E:\\FlyEnv-Data\\server\\temporal\\config'
-assert.deepEqual(buildServerStartArgs(configDir, '1.31.2'), [
-  '-c',
-  configDir,
-  '-e',
-  'temporal-v1.31.2',
-  'start'
-])
-assert.ok(!buildServerStartArgs(configDir, '1.31.2').includes('-r'))
+const configFile = 'E:\\FlyEnv-Data\\server\\temporal\\config\\temporal-v1.31.2.yaml'
+assert.deepEqual(buildServerStartArgs(configFile), ['--config-file', configFile, 'start'])
+assert.ok(!buildServerStartArgs(configFile).includes('-c'))
+assert.ok(!buildServerStartArgs(configFile).includes('-e'))
+assert.ok(!buildServerStartArgs(configFile).includes('-r'))
 
 const temporalForkSource = readFileSync(
   new URL('../src/fork/module/Temporal/index.ts', import.meta.url),
@@ -65,7 +61,9 @@ assert.match(temporalForkSource, /return normalizeTemporalBaseDir\(global\.Serve
 assert.match(temporalForkSource, /const baseDir = this\.baseDir\(\)/)
 assert.match(temporalForkSource, /setForkTrace\(requestKey: string\)/)
 assert.match(temporalForkSource, /\[Temporal\]\[fork-before-spawn\]/)
-assert.match(temporalForkSource, /cwd: isWindows\(\) \? undefined : '\/'/)
+assert.match(temporalForkSource, /const configFile = await this\.initConfig\(version\)\.on\(on\)/)
+assert.match(temporalForkSource, /const execArgs = buildServerStartArgs\(configFile\)/)
+assert.doesNotMatch(temporalForkSource, /cwd: isWindows\(\) \? undefined : '\/'/)
 assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
 assert.match(temporalForkSource, /isUiServerRunning\(\)/)
 assert.match(temporalForkSource, /TEMPORAL_UI_RELEASE_LATEST_URL/)

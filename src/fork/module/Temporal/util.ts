@@ -20,8 +20,8 @@ export function serverEnvName(version: string): string {
   return `temporal-v${version}`
 }
 
-export function buildServerStartArgs(configDir: string, version: string): string[] {
-  return ['-c', configDir, '-e', serverEnvName(version), 'start']
+export function buildServerStartArgs(configFile: string): string[] {
+  return ['--config-file', configFile, 'start']
 }
 
 /**
