@@ -67,10 +67,7 @@
     if (confType.value === 'ui') {
       res = await invokeTemporal('initUiConfig')
     } else if (currentVersion.value) {
-      res = await invokeTemporal(
-        'initConfig',
-        JSON.parse(JSON.stringify(currentVersion.value))
-      )
+      res = await invokeTemporal('initConfig', JSON.parse(JSON.stringify(currentVersion.value)))
     } else {
       return
     }

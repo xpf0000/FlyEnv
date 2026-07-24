@@ -164,10 +164,7 @@ class Temporal extends Base {
     const bin = this.uiBin()
     if (!existsSync(bin)) {
       on({
-        'APP-On-Log': AppLog(
-          'info',
-          'Temporal UI (ui-server) is not installed.'
-        )
+        'APP-On-Log': AppLog('info', 'Temporal UI (ui-server) is not installed.')
       })
       return
     }
@@ -180,7 +177,7 @@ class Temporal extends Base {
       pidPath: this.uiPidPath,
       baseDir,
       bin,
-      execArgs: ['-r', '/', '-c', configDir, '-e', 'temporal-ui', 'start'],
+      execArgs: ['-c', configDir, '-e', 'temporal-ui', 'start'],
       outFile: join(baseDir, 'temporal-ui-start-out.log'),
       errFile: join(baseDir, 'temporal-ui-start-error.log'),
       on

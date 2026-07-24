@@ -50,6 +50,7 @@ const temporalForkSource = readFileSync(
 assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
 assert.match(temporalForkSource, /isUiServerRunning\(\)/)
 assert.doesNotMatch(temporalForkSource, /_startServer\(version: SoftInstalled, uiFlag\?: string\)/)
+assert.doesNotMatch(temporalForkSource, /\['-r', '\/', '-c', configDir/)
 
 const temporalConfigSource = readFileSync(
   new URL('../src/render/components/Temporal/Config.vue', import.meta.url),
