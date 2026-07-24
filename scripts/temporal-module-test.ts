@@ -49,6 +49,15 @@ const temporalForkSource = readFileSync(
 )
 assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
 assert.match(temporalForkSource, /isUiServerRunning\(\)/)
+assert.match(temporalForkSource, /TEMPORAL_UI_RELEASE_LATEST_URL/)
+assert.match(
+  temporalForkSource,
+  /https:\/\/api\.github\.com\/repos\/temporalio\/ui-server\/releases\/latest/
+)
+assert.match(temporalForkSource, /browser_download_url/)
+assert.match(temporalForkSource, /process\.arch === 'x64'/)
+assert.match(temporalForkSource, /Temporal UI is not supported on \$\{process\.arch\}/)
+assert.doesNotMatch(temporalForkSource, /_fetchOnlineVersion\('temporal-ui'\)/)
 assert.match(
   temporalForkSource,
   /const uiVersion: any = \{ \.\.\.version, bin, typeFlag: 'temporal' \}/

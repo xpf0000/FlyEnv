@@ -1,5 +1,6 @@
 import { basename, join } from 'path'
 import { existsSync, readdirSync } from 'fs'
+import axios from 'axios'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
@@ -28,6 +29,26 @@ import { isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import { buildServerStartArgs, buildServerYaml, buildUiYaml, serverEnvName } from './util'
+
+const TEMPORAL_UI_RELEASE_LATEST_URL =
+  'https://api.github.com/repos/temporalio/ui-server/releases/latest'
+
+function temporalUIAssetName(tag: string): string {
+  const version = tag.replace(/^v/, '')
+  const platform = process.platform === 'win32' ? 'windows' : process.platform
+  if (platform !== 'darwin' && platform !== 'linux' && platform !== 'windows') {
+    throw new Error(`Temporal UI is not supported on ${process.platform}`)
+  }
+  let arch = ''
+  if (process.arch === 'arm64') {
+    arch = 'arm64'
+  } else if (process.arch === 'x64') {
+    arch = 'amd64'
+  } else {
+    throw new Error(`Temporal UI is not supported on ${process.arch}`)
+  }
+  return `ui-server_${version}_${platform}_${arch}.tar.gz`
+}
 
 class Temporal extends Base {
   uiPidPath = ''
@@ -406,21 +427,35 @@ class Temporal extends Base {
   fetchUiLatest() {
     return new ForkPromise(async (resolve) => {
       try {
-        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('temporal-ui')
-        const first: any = all?.[0]
-        if (!first) {
+        const release = await axios.get(TEMPORAL_UI_RELEASE_LATEST_URL, {
+          timeout: 30000,
+          proxy: this.getAxiosProxy()
+        })
+        const tag = `${release?.data?.tag_name ?? ''}`.trim()
+        if (!tag) {
+          resolve(null)
+          return
+        }
+        const assetName = temporalUIAssetName(tag)
+        const asset = release?.data?.assets?.find((item: any) => item?.name === assetName)
+        const url = `${asset?.browser_download_url ?? ''}`.trim()
+        if (!url) {
           resolve(null)
           return
         }
         const appDir = join(global.Server.AppDir!, 'temporal-ui')
         const bin = this.uiBin()
-        first.appDir = appDir
-        first.bin = bin
-        first.zip = join(global.Server.Cache!, `temporal-ui-${first.version}.tar.gz`)
-        first.downloaded = existsSync(first.zip)
-        first.installed = existsSync(bin)
-        first.name = `Temporal-UI-${first.version}`
-        resolve(first)
+        const version = tag.replace(/^v/, '')
+        resolve({
+          version,
+          url,
+          appDir,
+          bin,
+          zip: join(global.Server.Cache!, assetName),
+          downloaded: existsSync(join(global.Server.Cache!, assetName)),
+          installed: existsSync(bin),
+          name: `Temporal-UI-${version}`
+        })
       } catch {
         resolve(null)
       }
