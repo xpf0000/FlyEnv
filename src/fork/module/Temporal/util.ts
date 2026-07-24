@@ -1,6 +1,19 @@
+import { posix } from 'node:path'
+
 /** Normalize to forward slashes so paths are safe inside yaml double-quoted scalars. */
 export function normalizePath(p: string): string {
   return p.replace(/\\/g, '/')
+}
+
+/**
+ * Fork startup state can contain a Unix data directory without its leading slash.
+ * Temporal treats the config directory literally, so restore that root before passing it on.
+ */
+export function normalizeTemporalBaseDir(
+  baseDir: string,
+  platform: NodeJS.Platform = process.platform
+): string {
+  return platform === 'win32' ? baseDir : posix.resolve('/', baseDir)
 }
 
 export function serverEnvName(version: string): string {

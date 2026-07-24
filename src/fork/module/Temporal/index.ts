@@ -28,7 +28,13 @@ import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
-import { buildServerStartArgs, buildServerYaml, buildUiYaml, serverEnvName } from './util'
+import {
+  buildServerStartArgs,
+  buildServerYaml,
+  buildUiYaml,
+  normalizeTemporalBaseDir,
+  serverEnvName
+} from './util'
 
 const TEMPORAL_UI_RELEASE_LATEST_URL =
   'https://api.github.com/repos/temporalio/ui-server/releases/latest'
@@ -58,9 +64,18 @@ class Temporal extends Base {
     this.type = 'temporal'
   }
 
+  private serverBaseDir(): string {
+    return normalizeTemporalBaseDir(global.Server.BaseDir!)
+  }
+
+  private baseDir(): string {
+    return join(this.serverBaseDir(), 'temporal')
+  }
+
   init() {
-    this.pidPath = join(global.Server.BaseDir!, 'temporal/temporal.pid')
-    this.uiPidPath = join(global.Server.BaseDir!, 'temporal/temporal-ui.pid')
+    const baseDir = this.baseDir()
+    this.pidPath = join(baseDir, 'temporal.pid')
+    this.uiPidPath = join(baseDir, 'temporal-ui.pid')
   }
 
   uiBin(): string {
@@ -69,7 +84,7 @@ class Temporal extends Base {
 
   initConfig(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
-      const baseDir = join(global.Server.BaseDir!, 'temporal')
+      const baseDir = this.baseDir()
       const configDir = join(baseDir, 'config')
       const env = serverEnvName(version?.version ?? 'unknown')
       const confFile = join(configDir, `${env}.yaml`)
@@ -95,7 +110,7 @@ class Temporal extends Base {
 
   initUiConfig(): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, _on) => {
-      const configDir = join(global.Server.BaseDir!, 'temporal', 'config')
+      const configDir = join(this.baseDir(), 'config')
       const confFile = join(configDir, 'temporal-ui.yaml')
       if (!existsSync(confFile)) {
         try {
@@ -120,7 +135,7 @@ class Temporal extends Base {
           I18nT('appLog.startServiceBegin', { service: `temporal-${version.version}` })
         )
       })
-      const baseDir = join(global.Server.BaseDir!, 'temporal')
+      const baseDir = this.baseDir()
       const configDir = join(baseDir, 'config')
       await this.initConfig(version).on(on)
       const execArgs = buildServerStartArgs(configDir, version?.version ?? '')
@@ -172,7 +187,7 @@ class Temporal extends Base {
       return (
         ProcessOwnedPidsByPid(pid, plist, [
           this.uiBin(),
-          global.Server.BaseDir,
+          this.serverBaseDir(),
           global.Server.AppDir
         ]).length > 0
       )
@@ -193,7 +208,7 @@ class Temporal extends Base {
       })
       return { 'APP-Service-Start-PID': '', 'APP-Service-Start-Item': uiVersion }
     }
-    const baseDir = join(global.Server.BaseDir!, 'temporal')
+    const baseDir = this.baseDir()
     const configDir = join(baseDir, 'config')
     await this.initUiConfig().on(on)
     const res = await serviceStartSpawn({
@@ -304,8 +319,7 @@ class Temporal extends Base {
           return p.COMMAND.includes('FlyEnv-Data') || p.COMMAND.includes('PhpWebStudy-Data')
         }
         return (
-          (p.COMMAND.includes(global.Server.BaseDir!) ||
-            p.COMMAND.includes(global.Server.AppDir!)) &&
+          (p.COMMAND.includes(this.serverBaseDir()) || p.COMMAND.includes(global.Server.AppDir!)) &&
           !p.COMMAND.includes(' grep ')
         )
       })
@@ -487,7 +501,7 @@ class Temporal extends Base {
     if (!version?.version) {
       return []
     }
-    const configDir = join(global.Server.BaseDir!, 'temporal', 'config')
+    const configDir = join(this.baseDir(), 'config')
     const env = serverEnvName(version.version)
     return [
       { name: 'config', path: join(configDir, `${env}.yaml`) },
@@ -501,7 +515,7 @@ class Temporal extends Base {
     if (!version?.version) {
       return []
     }
-    const baseDir = join(global.Server.BaseDir!, 'temporal')
+    const baseDir = this.baseDir()
     const v = version.version.trim().split(' ').join('')
     return [
       { name: 'start-out', path: join(baseDir, `temporal-${v}-start-out.log`) },

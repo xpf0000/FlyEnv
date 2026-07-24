@@ -5,8 +5,22 @@ import {
   buildServerYaml,
   buildUiYaml,
   normalizePath,
+  normalizeTemporalBaseDir,
   serverEnvName
 } from '../src/fork/module/Temporal/util'
+
+assert.equal(
+  normalizeTemporalBaseDir('Users/x/Library/PhpWebStudy/server', 'darwin'),
+  '/Users/x/Library/PhpWebStudy/server'
+)
+assert.equal(
+  normalizeTemporalBaseDir('/Users/x/Library/PhpWebStudy/server', 'darwin'),
+  '/Users/x/Library/PhpWebStudy/server'
+)
+assert.equal(
+  normalizeTemporalBaseDir('E:\\FlyEnv-Data\\server', 'win32'),
+  'E:\\FlyEnv-Data\\server'
+)
 
 // Windows 反斜杠路径归一化为正斜杠（避免 yaml 转义问题）
 assert.equal(
@@ -47,6 +61,8 @@ const temporalForkSource = readFileSync(
   new URL('../src/fork/module/Temporal/index.ts', import.meta.url),
   'utf8'
 )
+assert.match(temporalForkSource, /return normalizeTemporalBaseDir\(global\.Server\.BaseDir!\)/)
+assert.match(temporalForkSource, /const baseDir = this\.baseDir\(\)/)
 assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
 assert.match(temporalForkSource, /isUiServerRunning\(\)/)
 assert.match(temporalForkSource, /TEMPORAL_UI_RELEASE_LATEST_URL/)
