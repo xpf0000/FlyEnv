@@ -9,15 +9,18 @@
       <Service v-if="tab === 0" type-flag="temporal" title="Temporal">
         <template v-if="isRunning" #tool-left>
           <el-button
-            class="button"
+            class="button temporal-ui-button"
             link
-            :loading="uiState === 'loading'"
+            :disabled="uiState === 'loading'"
             :style="{ color: uiState === 'error' ? '#f56c6c' : '#01cc74' }"
             @click.stop="openTemporalUi"
           >
+            <el-icon v-if="uiState === 'loading'" class="is-loading">
+              <Loading />
+            </el-icon>
             <yb-icon
-              v-if="uiState !== 'loading'"
-              style="width: 20px; height: 20px; margin-left: 10px"
+              v-else
+              style="width: 20px; height: 20px"
               :svg="import('@/svg/http.svg?raw')"
             ></yb-icon>
           </el-button>
@@ -45,6 +48,7 @@
   import { I18nT } from '@lang/index'
   import { fs, shell } from '@/util/NodeFn'
   import { computed, ref } from 'vue'
+  import { Loading } from '@element-plus/icons-vue'
   import { join } from '@/util/path-browserify'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
@@ -67,16 +71,36 @@
   const invokeTemporal = (...args: any[]) => {
     return new Promise<any>((resolve) => {
       IPC.send('app-fork:temporal', ...args).then((key: string, res: any) => {
+        if (res?.code === 200) {
+          return
+        }
         IPC.off(key)
         resolve(res)
       })
     })
   }
 
+  const forkErrorMessage = (value: unknown, fallback: string) => {
+    if (typeof value === 'string' && value.trim()) {
+      return value
+    }
+    if (value instanceof Error && value.message) {
+      return value.message
+    }
+    if (value && typeof value === 'object') {
+      const error = value as Record<string, unknown>
+      const message = error.message ?? error.msg ?? error.error
+      if (typeof message === 'string' && message.trim()) {
+        return message
+      }
+    }
+    return fallback
+  }
+
   const ensureUiInstalled = async () => {
     const info = await invokeTemporal('uiServerInfo')
     if (info?.code !== 0) {
-      throw new Error(info?.msg ?? I18nT('fork.downloadFileFail'))
+      throw new Error(forkErrorMessage(info?.msg, I18nT('fork.downloadFileFail')))
     }
     if (info?.data?.installed) {
       return
@@ -84,11 +108,11 @@
     const latest = await invokeTemporal('fetchUiLatest')
     const row = latest?.code === 0 ? latest.data : null
     if (!row?.url) {
-      throw new Error(latest?.msg ?? I18nT('fork.downloadFileFail'))
+      throw new Error(forkErrorMessage(latest?.msg, I18nT('fork.downloadFileFail')))
     }
     const installed = await invokeTemporal('installUiLatest', JSON.parse(JSON.stringify(row)))
     if (installed?.code !== 0) {
-      throw new Error(installed?.msg ?? I18nT('fork.downloadFileFail'))
+      throw new Error(forkErrorMessage(installed?.msg, I18nT('fork.downloadFileFail')))
     }
   }
 
@@ -115,13 +139,24 @@
         JSON.parse(JSON.stringify(currentVersion.value))
       )
       if (started?.code !== 0) {
-        throw new Error(started?.msg ?? I18nT('fork.startFail'))
+        throw new Error(forkErrorMessage(started?.msg, I18nT('fork.startFail')))
       }
       await openURL()
       uiState.value = 'idle'
     } catch (error) {
       uiState.value = 'error'
-      MessageError(error instanceof Error ? error.message : String(error))
+      MessageError(forkErrorMessage(error, I18nT('base.fail')))
     }
   }
 </script>
+
+<style lang="scss" scoped>
+  .temporal-ui-button {
+    width: 40px;
+    height: 32px;
+    margin-left: 10px;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+  }
+</style>

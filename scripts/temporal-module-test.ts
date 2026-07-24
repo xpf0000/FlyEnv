@@ -71,6 +71,11 @@ assert.match(temporalIndexSource, /fetchUiLatest/)
 assert.match(temporalIndexSource, /installUiLatest/)
 assert.match(temporalIndexSource, /startUiServer/)
 assert.match(temporalIndexSource, /http.svg/)
+assert.match(temporalIndexSource, /<Loading\s*\/>/)
+assert.match(temporalIndexSource, /if \(res\?\.code === 200\) \{\s*return\s*\}/)
+assert.match(temporalIndexSource, /forkErrorMessage/)
+assert.match(temporalIndexSource, /justify-content: center/)
+assert.doesNotMatch(temporalIndexSource, /:loading="uiState === 'loading'"/)
 assert.doesNotMatch(temporalIndexSource, /TemporalSetup|uiEnabled|base\.install/)
 
 const temporalAsideSource = readFileSync(
