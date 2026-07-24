@@ -65,6 +65,7 @@ assert.match(temporalForkSource, /return normalizeTemporalBaseDir\(global\.Serve
 assert.match(temporalForkSource, /const baseDir = this\.baseDir\(\)/)
 assert.match(temporalForkSource, /setForkTrace\(requestKey: string\)/)
 assert.match(temporalForkSource, /\[Temporal\]\[fork-before-spawn\]/)
+assert.match(temporalForkSource, /cwd: isWindows\(\) \? undefined : '\/'/)
 assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
 assert.match(temporalForkSource, /isUiServerRunning\(\)/)
 assert.match(temporalForkSource, /TEMPORAL_UI_RELEASE_LATEST_URL/)

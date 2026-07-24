@@ -161,6 +161,7 @@ class Temporal extends Base {
           baseDir,
           bin: version.bin,
           execArgs,
+          cwd: isWindows() ? undefined : '/',
           on
         })
         this._bootstrapNamespace(on).catch((e) => {
