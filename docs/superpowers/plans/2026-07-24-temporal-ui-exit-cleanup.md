@@ -45,6 +45,7 @@ Expected: fail because `startUiServer` discards the `serviceStartSpawn` result a
 In `src/fork/module/Temporal/index.ts`, preserve the spawn response and expose its PID alongside the UI start item:
 
 ```ts
+const uiVersion: any = { ...version, bin, typeFlag: 'temporal' }
 const res = await serviceStartSpawn({ /* existing UI spawn arguments */ })
 resolve({
   ...res,

@@ -49,8 +49,20 @@ const temporalForkSource = readFileSync(
 )
 assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
 assert.match(temporalForkSource, /isUiServerRunning\(\)/)
+assert.match(
+  temporalForkSource,
+  /const uiVersion: any = \{ \.\.\.version, bin, typeFlag: 'temporal' \}/
+)
+assert.match(temporalForkSource, /const res = await serviceStartSpawn\(/)
+assert.match(temporalForkSource, /'APP-Service-Start-Item': uiVersion/)
 assert.doesNotMatch(temporalForkSource, /_startServer\(version: SoftInstalled, uiFlag\?: string\)/)
 assert.doesNotMatch(temporalForkSource, /\['-r', '\/', '-c', configDir/)
+
+const ipcHandlerSource = readFileSync(
+  new URL('../src/main/core/IPCHandler.ts', import.meta.url),
+  'utf8'
+)
+assert.match(ipcHandlerSource, /info\.data\?\.\['APP-Service-Start-Item'\] \?\? args\[1\]/)
 
 const temporalConfigSource = readFileSync(
   new URL('../src/render/components/Temporal/Config.vue', import.meta.url),

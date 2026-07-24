@@ -130,8 +130,8 @@ class Temporal extends Base {
           resolve({ running: true })
           return
         }
-        await this._startUiServer(version, on)
-        resolve({ running: false })
+        const res = await this._startUiServer(version, on)
+        resolve({ running: false, ...res })
       } catch (e) {
         reject(e)
       }
@@ -160,19 +160,22 @@ class Temporal extends Base {
     }
   }
 
-  private async _startUiServer(version: SoftInstalled, on: any): Promise<void> {
+  private async _startUiServer(
+    version: SoftInstalled,
+    on: any
+  ): Promise<{ 'APP-Service-Start-PID': string; 'APP-Service-Start-Item': SoftInstalled }> {
     const bin = this.uiBin()
+    const uiVersion: any = { ...version, bin, typeFlag: 'temporal' }
     if (!existsSync(bin)) {
       on({
         'APP-On-Log': AppLog('info', 'Temporal UI (ui-server) is not installed.')
       })
-      return
+      return { 'APP-Service-Start-PID': '', 'APP-Service-Start-Item': uiVersion }
     }
     const baseDir = join(global.Server.BaseDir!, 'temporal')
     const configDir = join(baseDir, 'config')
     await this.initUiConfig().on(on)
-    const uiVersion: any = { ...version, typeFlag: 'temporal' }
-    await serviceStartSpawn({
+    const res = await serviceStartSpawn({
       version: uiVersion,
       pidPath: this.uiPidPath,
       baseDir,
@@ -182,6 +185,7 @@ class Temporal extends Base {
       errFile: join(baseDir, 'temporal-ui-start-error.log'),
       on
     })
+    return { ...res, 'APP-Service-Start-Item': uiVersion }
   }
 
   private async _bootstrapNamespace(on: any): Promise<void> {
@@ -240,13 +244,19 @@ class Temporal extends Base {
 
   _stopServer(version: SoftInstalled, ...args: any) {
     return new ForkPromise(async (resolve, reject, on) => {
+      let uiPids: string[] = []
       try {
-        await this._stopUiServer(version)
+        uiPids = await this._stopUiServer(version)
       } catch (e) {
         console.log('temporal stop ui-server err: ', e)
       }
       try {
-        const res = await super._stopServer(version, ...args).on(on)
+        const res: any = await super._stopServer(version, ...args).on(on)
+        if (uiPids.length > 0) {
+          res['APP-Service-Stop-PID'] = Array.from(
+            new Set([...(res['APP-Service-Stop-PID'] ?? []), ...uiPids])
+          )
+        }
         resolve(res)
       } catch (e) {
         reject(e)
@@ -254,7 +264,7 @@ class Temporal extends Base {
     })
   }
 
-  private async _stopUiServer(version: SoftInstalled): Promise<void> {
+  private async _stopUiServer(version: SoftInstalled): Promise<string[]> {
     const plist = await StopProcessListFetch()
     const ownedMarkers = this.ownedProcessMarkers(version)
     const allPid: string[] = []
@@ -291,6 +301,7 @@ class Temporal extends Base {
         await remove(this.uiPidPath)
       }
     } catch {}
+    return arr
   }
 
   fetchAllOnlineVersion() {
