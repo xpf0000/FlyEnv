@@ -79,6 +79,8 @@ class BaseManager {
   Cron: any
   DotNet: any
   ClickHouse: any
+  Temporal: any
+  TemporalCli: any
 
   modules: Set<string> = new Set()
 
@@ -432,6 +434,18 @@ class BaseManager {
         this.Consul = res.default
       }
       doRun(this.Consul)
+    } else if (module === 'temporal') {
+      if (!this.Temporal) {
+        const res = await import('./module/Temporal')
+        this.Temporal = res.default
+      }
+      doRun(this.Temporal)
+    } else if (module === 'temporal-cli') {
+      if (!this.TemporalCli) {
+        const res = await import('./module/TemporalCli')
+        this.TemporalCli = res.default
+      }
+      doRun(this.TemporalCli)
     } else if (module === 'gradle') {
       if (!this.Gradle) {
         const res = await import('./module/Gradle')

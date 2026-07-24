@@ -110,6 +110,8 @@ export enum AppModuleEnum {
   openCode = 'openCode',
   antigravity = 'antigravity',
   copilotCli = 'copilotCli',
+  temporal = 'temporal',
+  'temporal-cli' = 'temporal-cli',
   mcp = 'mcp'
 }
 

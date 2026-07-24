@@ -30,7 +30,9 @@ export const MCP_LIFECYCLE_FLAGS = [
   'roadrunner',
   'swoole-cli',
   'n8n',
-  'rustfs'
+  'rustfs',
+  'temporal',
+  'temporal-cli'
 ] as const
 
 export const MCP_QUERYABLE_FLAGS = [
@@ -82,7 +84,9 @@ export const MCP_QUERYABLE_FLAGS = [
   'tomcat',
   'typesense',
   'zincsearch',
-  'zig'
+  'zig',
+  'temporal',
+  'temporal-cli'
 ] as const
 
 export const MCP_DATABASE_FLAGS = [
@@ -142,7 +146,9 @@ export const MCP_INSTALLABLE_FLAGS = [
   'tomcat',
   'typesense',
   'zincsearch',
-  'zig'
+  'zig',
+  'temporal',
+  'temporal-cli'
 ] as const
 
 const MCP_LIFECYCLE_FLAG_SET = new Set<string>(MCP_LIFECYCLE_FLAGS)

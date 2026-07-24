@@ -214,7 +214,7 @@ export default class IPCHandler extends EventEmitter {
 
     // 处理服务启动 PID
     if (info?.data?.['APP-Service-Start-PID']) {
-      const item = args[1]
+      const item = info.data?.['APP-Service-Start-Item'] ?? args[1]
       ServiceProcessManager.addPid(module, info.data['APP-Service-Start-PID'], item)
     }
 
