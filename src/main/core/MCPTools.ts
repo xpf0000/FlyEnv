@@ -548,9 +548,14 @@ export class MCPTools {
     const data = await callFork(this.forkManager, flag, 'startService', v)
     // 把 PID 登记进主进程唯一状态源（与 IPCHandler.handleForkCallback 同口径），
     // 否则 MCP 启动的服务既不被 UI 感知，也不会在退出时被统一清理。
+    const stoppedPids: string[] = data?.['APP-Service-Stop-PID'] ?? []
+    if (stoppedPids.length > 0) {
+      ServiceProcessManager.delPid(flag, stoppedPids)
+    }
     const pid = data?.['APP-Service-Start-PID']
     if (pid) {
-      ServiceProcessManager.addPid(flag, `${pid}`, v)
+      const item = data?.['APP-Service-Start-Item'] ?? v
+      ServiceProcessManager.addPid(flag, `${pid}`, item)
     }
     // 单实例服务：持久化 current（与渲染层 onItemStart→saveConfig 同口径，剔除 note）
     if (SINGLE_INSTANCE_SERVICES.has(flag) && this.appConfig) {
@@ -571,6 +576,10 @@ export class MCPTools {
     const data = await callFork(this.forkManager, flag, 'stopService', v)
     // 停服登记清理：按 bin 精确删除——只删被停的那个版本，绝不波及同模块其它版本。
     // （fork 的 stopService 已按版本精确停进程；这里只同步主进程状态登记）
+    const stoppedPids: string[] = data?.['APP-Service-Stop-PID'] ?? []
+    if (stoppedPids.length > 0) {
+      ServiceProcessManager.delPid(flag, stoppedPids)
+    }
     if (v?.bin) {
       ServiceProcessManager.delByBin(flag, [v.bin])
     }

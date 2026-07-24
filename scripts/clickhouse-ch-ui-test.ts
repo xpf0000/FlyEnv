@@ -45,6 +45,29 @@ assert.match(forkSource, /await downloadFile\(chUIReleaseURL\(/)
 assert.match(forkSource, /serviceStartSpawn\(/)
 assert.match(forkSource, /join\(this\.chUIDir\(\), 'server\.yaml'\)/)
 assert.match(forkSource, /join\(this\.chUIDir\(\), 'ch-ui\.pid'\)/)
+assert.match(forkSource, /const res = await serviceStartSpawn\(/)
+assert.match(forkSource, /'APP-Service-Start-Item': chUIVersion/)
+assert.match(forkSource, /_stopServer\(version: SoftInstalled, \.\.\.args: any\)/)
+assert.match(forkSource, /uiPids = await this\._stopCHUI\(\)/)
+assert.match(forkSource, /private async _stopCHUI\(\): Promise<string\[\]>/)
+assert.match(forkSource, /ProcessKill\('-INT', arr\)/)
+
+const ipcHandlerSource = readFileSync(join(root, 'src/main/core/IPCHandler.ts'), 'utf-8')
+assert.match(ipcHandlerSource, /info\.data\?\.\['APP-Service-Start-Item'\] \?\? args\[1\]/)
+
+const baseForkSource = readFileSync(join(root, 'src/fork/module/Base/index.ts'), 'utf-8')
+assert.match(
+  baseForkSource,
+  /const stopped = await this\._stopServer\(version, \.\.\.args\)\.on\(on\)/
+)
+assert.match(baseForkSource, /res\['APP-Service-Stop-PID'\] = stopped\['APP-Service-Stop-PID'\]/)
+
+const mcpToolsSource = readFileSync(join(root, 'src/main/core/MCPTools.ts'), 'utf-8')
+assert.match(
+  mcpToolsSource,
+  /const stoppedPids: string\[\] = data\?\.\['APP-Service-Stop-PID'\] \?\? \[\]/
+)
+assert.match(mcpToolsSource, /ServiceProcessManager\.delPid\(flag, stoppedPids\)/)
 
 assert.match(pageSource, /<template v-if="isRunning" #tool-left>/)
 assert.match(pageSource, /:loading="chUIOpening"/)

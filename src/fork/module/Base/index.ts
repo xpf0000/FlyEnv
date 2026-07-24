@@ -236,9 +236,12 @@ export class Base {
       } catch {}
       let res: any
       try {
-        await this._stopServer(version, ...args).on(on)
+        const stopped = await this._stopServer(version, ...args).on(on)
         await this.ensureAppPidDirWritable()
         res = await this._startServer(version, ...args).on(on)
+        if (stopped?.['APP-Service-Stop-PID']) {
+          res['APP-Service-Stop-PID'] = stopped['APP-Service-Stop-PID']
+        }
         resolve(res)
       } catch (e) {
         console.error('startService error: ', e)
@@ -256,7 +259,7 @@ export class Base {
     })
   }
 
-  _stopServer(version: SoftInstalled, ...args: any) {
+  _stopServer(version: SoftInstalled, ...args: any): ForkPromise<any> {
     console.log(version)
     console.log(args)
     return new ForkPromise(async (resolve, reject, on) => {

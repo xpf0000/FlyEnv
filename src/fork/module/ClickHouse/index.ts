@@ -25,7 +25,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS } from '@shared/utils'
 
-import { ProcessListFetch } from '@shared/Process'
+import { ProcessKill, ProcessListFetch } from '@shared/Process'
 import {
   CH_UI_CONNECTION_NAME,
   CH_UI_PORT,
@@ -76,6 +76,19 @@ class Manager extends Base {
     return join(global.Server.AppDir!, 'ch-ui', 'ch-ui')
   }
 
+  private chUIVersion(bin = this.chUIBin()): SoftInstalled {
+    return {
+      typeFlag: 'clickhouse',
+      version: 'ch-ui',
+      bin,
+      path: dirname(bin),
+      num: null,
+      enable: true,
+      run: false,
+      running: false
+    }
+  }
+
   private chUIPidPath(): string {
     return join(this.chUIDir(), 'ch-ui.pid')
   }
@@ -121,43 +134,40 @@ class Manager extends Base {
     return bin
   }
 
-  private async isCHUIRunning(bin: string): Promise<boolean> {
+  private async chUIRunningPid(bin: string): Promise<string | undefined> {
     const pidPath = this.chUIPidPath()
     if (!existsSync(pidPath)) {
-      return false
+      return undefined
     }
     const pid = (await readFile(pidPath, 'utf-8')).trim()
     if (!pid) {
       await remove(pidPath)
-      return false
+      return undefined
     }
     const process = (await ProcessListFetch()).find((item) => item.PID === pid)
     if (process?.COMMAND.includes(bin)) {
-      return true
+      return pid
     }
     await remove(pidPath)
-    return false
+    return undefined
   }
 
-  openCHUI(): ForkPromise<{ url: string }> {
+  openCHUI(): ForkPromise<{
+    url: string
+    'APP-Service-Start-PID': string
+    'APP-Service-Start-Item': SoftInstalled
+  }> {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
         const bin = await this.ensureCHUI(on)
+        const chUIVersion = this.chUIVersion(bin)
         const clickHouseURL = await this.clickHouseURL()
         const configPath = await this.initCHUIConfig(clickHouseURL)
 
-        if (!(await this.isCHUIRunning(bin))) {
-          await serviceStartSpawn({
-            version: {
-              typeFlag: 'clickhouse',
-              version: 'ch-ui',
-              bin,
-              path: dirname(bin),
-              num: null,
-              enable: true,
-              run: false,
-              running: false
-            },
+        let pid = await this.chUIRunningPid(bin)
+        if (!pid) {
+          const res = await serviceStartSpawn({
+            version: chUIVersion,
             pidPath: this.chUIPidPath(),
             baseDir: this.chUIDir(),
             bin,
@@ -182,13 +192,73 @@ class Manager extends Base {
             outFile: join(this.chUIDir(), 'log/ch-ui.start.out.log'),
             errFile: join(this.chUIDir(), 'log/ch-ui.start.err.log')
           })
+          pid = res['APP-Service-Start-PID']
         }
 
-        resolve({ url: `http://127.0.0.1:${CH_UI_PORT}` })
+        resolve({
+          url: `http://127.0.0.1:${CH_UI_PORT}`,
+          'APP-Service-Start-PID': pid,
+          'APP-Service-Start-Item': chUIVersion
+        })
       } catch (error) {
         reject(error)
       }
     })
+  }
+
+  _stopServer(version: SoftInstalled, ...args: any) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      let uiPids: string[] = []
+      try {
+        uiPids = await this._stopCHUI()
+      } catch (error) {
+        console.log('clickhouse stop CH-UI err: ', error)
+      }
+      try {
+        const res: any = await super._stopServer(version, ...args).on(on)
+        if (uiPids.length > 0) {
+          res['APP-Service-Stop-PID'] = Array.from(
+            new Set([...(res['APP-Service-Stop-PID'] ?? []), ...uiPids])
+          )
+        }
+        resolve(res)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  private async _stopCHUI(): Promise<string[]> {
+    const bin = this.chUIBin()
+    const pidPath = this.chUIPidPath()
+    const allPid: string[] = []
+    const processes = await ProcessListFetch()
+
+    if (existsSync(pidPath)) {
+      try {
+        const pid = (await readFile(pidPath, 'utf-8')).trim()
+        const process = processes.find((item) => item.PID === pid)
+        if (process?.COMMAND.includes(bin)) {
+          allPid.push(pid)
+        }
+      } catch {}
+    }
+
+    allPid.push(
+      ...processes.filter((item) => item.COMMAND.includes(bin)).map((item) => `${item.PID}`)
+    )
+    const arr = Array.from(new Set(allPid))
+    if (arr.length > 0) {
+      try {
+        await ProcessKill('-INT', arr)
+      } catch {}
+    }
+    try {
+      if (existsSync(pidPath)) {
+        await remove(pidPath)
+      }
+    } catch {}
+    return arr
   }
 
   private configContent(): { config: string; users: string } {
