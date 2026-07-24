@@ -25,7 +25,7 @@ import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
@@ -58,6 +58,7 @@ function temporalUIAssetName(tag: string): string {
 
 class Temporal extends Base {
   uiPidPath = ''
+  forkTrace = ''
 
   constructor() {
     super()
@@ -70,6 +71,10 @@ class Temporal extends Base {
 
   private baseDir(): string {
     return join(this.serverBaseDir(), 'temporal')
+  }
+
+  setForkTrace(requestKey: string) {
+    this.forkTrace = requestKey
   }
 
   init() {
@@ -139,6 +144,16 @@ class Temporal extends Base {
       const configDir = join(baseDir, 'config')
       await this.initConfig(version).on(on)
       const execArgs = buildServerStartArgs(configDir, version?.version ?? '')
+      appDebugLog(
+        '[Temporal][fork-before-spawn]',
+        JSON.stringify({
+          requestKey: this.forkTrace,
+          rawBaseDir: global.Server.BaseDir,
+          baseDir,
+          configDir,
+          execArgs
+        })
+      ).catch()
       try {
         const res = await serviceStartSpawn({
           version,

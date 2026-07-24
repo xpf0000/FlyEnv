@@ -63,6 +63,8 @@ const temporalForkSource = readFileSync(
 )
 assert.match(temporalForkSource, /return normalizeTemporalBaseDir\(global\.Server\.BaseDir!\)/)
 assert.match(temporalForkSource, /const baseDir = this\.baseDir\(\)/)
+assert.match(temporalForkSource, /setForkTrace\(requestKey: string\)/)
+assert.match(temporalForkSource, /\[Temporal\]\[fork-before-spawn\]/)
 assert.match(temporalForkSource, /startUiServer\(version: SoftInstalled\)/)
 assert.match(temporalForkSource, /isUiServerRunning\(\)/)
 assert.match(temporalForkSource, /TEMPORAL_UI_RELEASE_LATEST_URL/)
@@ -88,6 +90,24 @@ const ipcHandlerSource = readFileSync(
   'utf8'
 )
 assert.match(ipcHandlerSource, /info\.data\?\.\['APP-Service-Start-Item'\] \?\? args\[1\]/)
+
+const forkItemSource = readFileSync(
+  new URL('../src/main/core/ForkItem.ts', import.meta.url),
+  'utf8'
+)
+assert.match(forkItemSource, /\[Temporal\]\[main-before-fork\]/)
+assert.match(forkItemSource, /ForkModule: module/)
+assert.match(forkItemSource, /ForkRequestKey: requestKey/)
+
+const forkEntrySource = readFileSync(new URL('../src/fork/index.ts', import.meta.url), 'utf8')
+assert.match(forkEntrySource, /args\.ForkModule === 'temporal'/)
+assert.match(forkEntrySource, /\[Temporal\]\[fork-after-init\]/)
+
+const baseManagerSource = readFileSync(
+  new URL('../src/fork/BaseManager.ts', import.meta.url),
+  'utf8'
+)
+assert.match(baseManagerSource, /target\?\.setForkTrace\?\.\(ipcCommandKey\)/)
 
 const temporalConfigSource = readFileSync(
   new URL('../src/render/components/Temporal/Config.vue', import.meta.url),

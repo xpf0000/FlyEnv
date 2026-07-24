@@ -132,9 +132,12 @@ class BaseManager {
 
     this.modules.add(module)
 
-    const doRun = (module: any) => {
-      module?.init?.()
-      module
+    const doRun = (target: any) => {
+      target?.init?.()
+      if (module === 'temporal') {
+        target?.setForkTrace?.(ipcCommandKey)
+      }
+      target
         .exec(fn, ...commands)
         ?.on(onData)
         ?.then(then)

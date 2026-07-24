@@ -83,6 +83,16 @@ process.on('message', function (args: any) {
   }
   if (args.Server) {
     global.Server = args.Server
+    if (args.ForkModule === 'temporal') {
+      appDebugLog(
+        '[Temporal][fork-after-init]',
+        JSON.stringify({
+          requestKey: args.ForkRequestKey,
+          baseDir: global.Server.BaseDir,
+          appDir: global.Server.AppDir
+        })
+      ).catch()
+    }
     if (args.Language) {
       ForkLanguageService.initialize(args.Language)
     }
