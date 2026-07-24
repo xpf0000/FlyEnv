@@ -17,6 +17,11 @@ export type SiteSuckerSetup = {
   proxy: string
   excludeLink: string
   pageLimit: string
+  timeout: number
+  maxImgSize: number
+  maxVideoSize: number
+  maxRetryTimes: number
+  windowCount: number
 }
 
 export type SiteSuckerTask = {
@@ -40,7 +45,12 @@ const state: State = {
     dir: '',
     proxy: '',
     excludeLink: '',
-    pageLimit: ''
+    pageLimit: '',
+    timeout: 5000,
+    maxImgSize: 0,
+    maxVideoSize: 0,
+    maxRetryTimes: 3,
+    windowCount: 2
   }
 }
 

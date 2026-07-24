@@ -796,7 +796,7 @@ export default class IPCHandler extends EventEmitter {
   private handleSiteSuckerSetupSave(command: string, key: string, args: any[]) {
     this.deps.configManager.setConfig('tools.siteSucker', args[0])
     this.sendToMainWindow(command, key, true)
-    siteSuckerRuntime.peek()?.updateConfig(args[0])
+    siteSuckerRuntime.peek()?.updateConfig(args[0]?.commonSetup)
   }
 
   // ===== OAuth =====
