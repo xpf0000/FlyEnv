@@ -70,10 +70,12 @@ const serviceItems: ServiceProcessItem[] = [
   }
 ]
 
-assert.deepEqual(
-  ownedServicePids(serviceItems, processList).sort(),
-  ['4100', '4101', '6200', '6201']
-)
+assert.deepEqual(ownedServicePids(serviceItems, processList).sort(), [
+  '4100',
+  '4101',
+  '6200',
+  '6201'
+])
 
 const snapshotItems: ServiceProcessItem[] = [
   { pid: '4100', item: serviceItem('/Users/x/Library/PhpWebStudy/app/nginx-1.28.0') },
@@ -86,6 +88,8 @@ applyServiceProcessCommandSnapshots(snapshotItems, new Set(['4100', '6200']), pr
 assert.equal(snapshotItems[0].command, nginxCommand)
 assert.equal(snapshotItems[1].command, phpFpmCommand)
 assert.equal(snapshotItems[2].command, undefined)
+
+assert.deepEqual(ownedServicePids([{ pid: '6200', item: phpFpmItem }], processList), [])
 
 const serviceProcessSource = readFileSync(
   new URL('../src/main/core/ServiceProcess.ts', import.meta.url),
