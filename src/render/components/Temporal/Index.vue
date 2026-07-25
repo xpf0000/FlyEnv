@@ -30,8 +30,10 @@
         v-else-if="tab === 1"
         type-flag="temporal"
         :has-static="true"
-        url="https://docs.temporal.io/self-hosted-guide"
+        url="https://github.com/temporalio/temporal/releases"
         title="Temporal"
+        :show-brew-lib="false"
+        :show-port-lib="false"
       ></Manager>
       <Config v-if="tab === 2"></Config>
       <Logs v-if="tab === 3"></Logs>

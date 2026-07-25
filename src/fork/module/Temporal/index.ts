@@ -25,7 +25,7 @@ import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
-import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 import { ProcessKill, ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
@@ -143,16 +143,6 @@ class Temporal extends Base {
       const baseDir = this.baseDir()
       const configFile = await this.initConfig(version).on(on)
       const execArgs = buildServerStartArgs(configFile)
-      appDebugLog(
-        '[Temporal][fork-before-spawn]',
-        JSON.stringify({
-          requestKey: this.forkTrace,
-          rawBaseDir: global.Server.BaseDir,
-          baseDir,
-          configFile,
-          execArgs
-        })
-      ).catch()
       try {
         const res = await serviceStartSpawn({
           version,

@@ -2,7 +2,6 @@ import type { UtilityProcess } from 'electron'
 import { appendFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ForkPromise } from '@shared/ForkPromise'
-import { appDebugLog } from '@shared/utils'
 import {
   isLanguageChangedAck,
   type LanguageChanged,
@@ -215,12 +214,6 @@ export class ForkItem {
 
   private postInitialization(child: UtilityProcess, module?: string, requestKey?: string) {
     const server = JSON.parse(JSON.stringify(Server))
-    if (module === 'temporal') {
-      appDebugLog(
-        '[Temporal][main-before-fork]',
-        JSON.stringify({ requestKey, baseDir: server.BaseDir, appDir: server.AppDir })
-      ).catch()
-    }
     child.postMessage({
       Server: server,
       Language: this.languageSnapshotProvider(),

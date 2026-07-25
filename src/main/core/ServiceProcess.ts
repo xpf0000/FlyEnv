@@ -127,15 +127,21 @@ class ServiceProcess {
   }
 
   private scheduleCommandSnapshot(pid: string) {
+    console.log('scheduleCommandSnapshot !!!', pid)
     this.commandSnapshotPids.add(`${pid}`)
     if (this.commandSnapshotTimer) {
       clearTimeout(this.commandSnapshotTimer)
     }
     this.commandSnapshotTimer = setTimeout(() => {
       this.commandSnapshotTimer = undefined
-      this.captureCommandSnapshots().catch((error) => {
-        console.log('captureCommandSnapshots error: ', error)
-      })
+      console.log('scheduleCommandSnapshot exec !!!')
+      this.captureCommandSnapshots()
+        .catch((error) => {
+          console.log('captureCommandSnapshots error: ', error)
+        })
+        .finally(() => {
+          console.log('scheduleCommandSnapshot success !!!', this.servicePID)
+        })
     }, COMMAND_SNAPSHOT_DELAY)
   }
 

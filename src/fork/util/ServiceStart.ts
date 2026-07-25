@@ -17,7 +17,7 @@ import {
   waitTime,
   writeFile
 } from '../Fn'
-import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 import { closeSync, openSync } from 'node:fs'
 import { spawn } from 'node:child_process'
 import EnvSync from '@shared/EnvSync'
@@ -460,23 +460,8 @@ export async function serviceStartSpawn(
         options.shell = true
       }
     }
-    if (version.typeFlag === 'temporal') {
-      const temporalEnv = Object.fromEntries(
-        Object.entries(options.env).filter(([key]) => key.toUpperCase().startsWith('TEMPORAL_'))
-      )
-      appDebugLog(
-        '[Temporal][service-spawn-input]',
-        JSON.stringify({ bin, execArgs, cwd, temporalEnv })
-      ).catch()
-    }
     // 2. 启动进程
     const cp = spawn(bin, execArgs, options)
-    if (version.typeFlag === 'temporal') {
-      appDebugLog(
-        '[Temporal][service-spawn-created]',
-        JSON.stringify({ spawnfile: cp.spawnfile, spawnargs: cp.spawnargs })
-      ).catch()
-    }
     // 3. 立即关闭父进程中的句柄 (子进程已继承)
     closeSync(out)
     closeSync(err)
