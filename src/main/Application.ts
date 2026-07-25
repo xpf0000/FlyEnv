@@ -102,6 +102,7 @@ export default class Application extends EventEmitter {
     this.menuManager.setup()
 
     this.serverManager.setProxy()
+    this.serverManager.updateGlobalConfig()
     this.windowManager = new WindowManager({
       configManager: this.configManager
     })
@@ -198,9 +199,6 @@ export default class Application extends EventEmitter {
     Helper.appHelper = AppHelper
 
     AppHelper.onStatusMessage((message) => {
-      if (!this?.mainWindow) {
-        return
-      }
       this.handleHelperStatusMessage(message)
     })
 
@@ -209,10 +207,36 @@ export default class Application extends EventEmitter {
     })
   }
 
+  private setWindowsElevationMethod(method: 'helper' | 'uac', reason?: string) {
+    this.configManager.setConfig('setup.windowsElevationMethod', method)
+    this.serverManager.updateGlobalConfig()
+    if (!this.mainWindow) {
+      return
+    }
+    this.windowManager.sendCommandTo(
+      this.mainWindow,
+      'APP-Windows-Elevation-Method-Changed',
+      'APP-Windows-Elevation-Method-Changed',
+      { method, reason }
+    )
+  }
+
   /**
    * 处理 Helper 状态消息
    */
   private handleHelperStatusMessage(message: { state: string; reason?: string }) {
+    if (
+      global.Server.isWindows &&
+      (message.state === 'installFaild' || message.state === 'fallbackToUac') &&
+      global.Server.WindowsElevationMethod === 'helper'
+    ) {
+      this.setWindowsElevationMethod('uac', message.reason)
+    }
+
+    if (!this.mainWindow) {
+      return
+    }
+
     const key = 'APP-FlyEnv-Helper-Notice'
     const messages: Record<string, { code: number; msg: string; status?: string }> = {
       needInstall: { code: 1, msg: I18nT('menu.needInstallHelper') },
@@ -238,6 +262,10 @@ export default class Application extends EventEmitter {
     this.forkManager = new ForkManager(getElectronResourcePath('fork.mjs'))
     this.forkManager.setLanguageSnapshotProvider(() => this.languageCoordinator.snapshot())
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
+      if (key === 'App-Windows-Elevation-Method-Fallback') {
+        this.setWindowsElevationMethod('uac', info?.reason)
+        return
+      }
       if (key === 'App-Need-Init-FlyEnv-Helper') {
         AppHelper.needInstall()
         return
@@ -292,6 +320,7 @@ export default class Application extends EventEmitter {
       this.menuManager.rebuild()
       this.trayManager.setStyle(config?.setup?.trayMenuBarStyle ?? 'modern')
       this.serverManager.setProxy()
+      this.serverManager.updateGlobalConfig()
     })
 
     this.ipcHandler.on('application:relaunch', () => {
