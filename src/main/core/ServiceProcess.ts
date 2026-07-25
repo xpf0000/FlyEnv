@@ -5,6 +5,8 @@ import { isWindows } from '@shared/utils'
 import type { ForkManager } from './ForkManager'
 import { ProcessPidList } from '@shared/Process.win'
 
+const COMMAND_SNAPSHOT_DELAY = 2_000
+
 export type ServiceProcessItem = {
   item: SoftInstalled
   pid: string
@@ -22,6 +24,22 @@ export const ownedServicePids = (
     ProcessOwnedPidsByPidAndCommand(pid, command, processList)
   )
   return Array.from(new Set(pids))
+}
+
+/** Fill command snapshots from one process-list read for all queued service roots. */
+export const applyServiceProcessCommandSnapshots = (
+  serviceItems: ServiceProcessItem[],
+  pids: Set<string>,
+  processList: PItem[]
+) => {
+  const commandByPid = new Map(processList.map((item) => [item.PID, item.COMMAND]))
+  for (const serviceItem of serviceItems) {
+    const pid = `${serviceItem.pid}`
+    if (!pids.has(pid)) {
+      continue
+    }
+    serviceItem.command = commandByPid.get(pid) || undefined
+  }
 }
 
 /** 单个运行中实例的标识（bin 是唯一键——同一 version 可能装在不同路径） */
@@ -45,6 +63,8 @@ class ServiceProcess {
   forkManager?: ForkManager
   servicePID: Record<string, ServiceProcessItem[]> = {}
   private onChangeCallbacks: StatusChangeCallback[] = []
+  private commandSnapshotPids = new Set<string>()
+  private commandSnapshotTimer?: NodeJS.Timeout
 
   /** 注册状态变更回调（供 main 进程广播给 render 用） */
   onStatusChange(cb: StatusChangeCallback) {
@@ -98,10 +118,35 @@ class ServiceProcess {
     if (existing) {
       existing.pid = pid
       existing.item = item
+      existing.command = undefined
     } else {
       this.servicePID[type].push({ item, pid })
     }
     this.emitChange(type)
+    this.scheduleCommandSnapshot(pid)
+  }
+
+  private scheduleCommandSnapshot(pid: string) {
+    this.commandSnapshotPids.add(`${pid}`)
+    if (this.commandSnapshotTimer) {
+      clearTimeout(this.commandSnapshotTimer)
+    }
+    this.commandSnapshotTimer = setTimeout(() => {
+      this.commandSnapshotTimer = undefined
+      this.captureCommandSnapshots().catch((error) => {
+        console.log('captureCommandSnapshots error: ', error)
+      })
+    }, COMMAND_SNAPSHOT_DELAY)
+  }
+
+  private async captureCommandSnapshots() {
+    const pids = this.commandSnapshotPids
+    this.commandSnapshotPids = new Set<string>()
+    if (pids.size === 0) {
+      return
+    }
+    const processList = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+    applyServiceProcessCommandSnapshots(Object.values(this.servicePID).flat(), pids, processList)
   }
 
   delPid(type: string, pid: string[]) {

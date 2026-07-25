@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { ownedServicePids, type ServiceProcessItem } from '../src/main/core/ServiceProcess'
+import {
+  applyServiceProcessCommandSnapshots,
+  ownedServicePids,
+  type ServiceProcessItem
+} from '../src/main/core/ServiceProcess'
 import type { SoftInstalled } from '../src/shared/app'
 import type { PItem } from '../src/shared/Process'
 
@@ -71,11 +75,24 @@ assert.deepEqual(
   ['4100', '4101', '6200', '6201']
 )
 
+const snapshotItems: ServiceProcessItem[] = [
+  { pid: '4100', item: serviceItem('/Users/x/Library/PhpWebStudy/app/nginx-1.28.0') },
+  { pid: '6200', item: phpFpmItem },
+  { pid: '5200', item: serviceItem('/Users/x/Library/PhpWebStudy/app') }
+]
+
+applyServiceProcessCommandSnapshots(snapshotItems, new Set(['4100', '6200']), processList)
+
+assert.equal(snapshotItems[0].command, nginxCommand)
+assert.equal(snapshotItems[1].command, phpFpmCommand)
+assert.equal(snapshotItems[2].command, undefined)
+
 const serviceProcessSource = readFileSync(
   new URL('../src/main/core/ServiceProcess.ts', import.meta.url),
   'utf8'
 )
 assert.match(serviceProcessSource, /ownedServicePids\(/)
+assert.match(serviceProcessSource, /COMMAND_SNAPSHOT_DELAY\s*=\s*2_000/)
 assert.doesNotMatch(serviceProcessSource, /stopAllProcessByName/)
 
 console.log('service-process-exit-safety-test: ok')
