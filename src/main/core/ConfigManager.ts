@@ -1,5 +1,9 @@
 import Store from 'electron-store'
 import { type Options } from 'electron-store'
+import {
+  DEFAULT_WINDOWS_ELEVATION_METHOD,
+  type WindowsElevationMethod
+} from '@shared/WindowsHelperState'
 
 interface ConfigOptions {
   'last-check-update-time': number
@@ -85,6 +89,7 @@ interface ConfigOptions {
       proxy: string
     }
     autoCheck: boolean
+    windowsElevationMethod: WindowsElevationMethod
     editorConfig: {
       theme: 'vs-dark' | 'vs-light' | 'hc-dark' | 'hc-light'
       fontSize: number
@@ -189,6 +194,7 @@ export default class ConfigManager {
             proxy: ''
           },
           autoCheck: true,
+          windowsElevationMethod: DEFAULT_WINDOWS_ELEVATION_METHOD,
           editorConfig: {
             theme: 'vs-dark',
             fontSize: 16,
@@ -226,6 +232,9 @@ export default class ConfigManager {
     }
     if (!this.config.has('setup.autoCheck')) {
       this.config.set('setup.autoCheck', true)
+    }
+    if (!this.config.has('setup.windowsElevationMethod')) {
+      this.config.set('setup.windowsElevationMethod', DEFAULT_WINDOWS_ELEVATION_METHOD)
     }
     if (!this.config.has('tools')) {
       this.config.set('tools', {})

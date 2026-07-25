@@ -3,15 +3,23 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {
   AppHelperError,
+  DEFAULT_WINDOWS_ELEVATION_METHOD,
   buildHelperCheckResponse,
   isAppHelperError,
   isWindowsHelperFallbackAllowed,
+  resolveWindowsElevationMethod,
   resolveWindowsHelperTransport,
   shouldOpenHelperInstaller
 } from '../src/shared/WindowsHelperState'
 
 const sourcePath = path.resolve(process.cwd(), 'src/shared/WindowsHelperState.ts')
 const source = fs.readFileSync(sourcePath, 'utf8')
+
+assert.equal(DEFAULT_WINDOWS_ELEVATION_METHOD, 'helper')
+assert.equal(resolveWindowsElevationMethod(undefined), 'helper')
+assert.equal(resolveWindowsElevationMethod('helper'), 'helper')
+assert.equal(resolveWindowsElevationMethod('uac'), 'uac')
+assert.equal(resolveWindowsElevationMethod('invalid'), 'helper')
 
 const expectedAllowlist = [
   'tools/writeFileByRoot',

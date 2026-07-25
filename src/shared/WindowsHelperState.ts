@@ -17,6 +17,14 @@ export type AppHelperErrorCode =
   | 'helper_execution_failed'
   | 'windows_fallback_not_supported'
 
+export type WindowsElevationMethod = 'helper' | 'uac'
+
+export const DEFAULT_WINDOWS_ELEVATION_METHOD: WindowsElevationMethod = 'helper'
+
+export const resolveWindowsElevationMethod = (value: unknown): WindowsElevationMethod => {
+  return value === 'uac' ? 'uac' : DEFAULT_WINDOWS_ELEVATION_METHOD
+}
+
 export type WindowsHelperTransport = 'socket' | 'fallback' | 'prompt' | 'reject'
 
 export type HelperCheckResponse =

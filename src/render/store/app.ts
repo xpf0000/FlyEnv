@@ -8,6 +8,10 @@ import type { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
 import type { AppServiceAliasItem } from '@shared/app'
 import { shell, app, dialog } from '@/util/NodeFn'
+import {
+  DEFAULT_WINDOWS_ELEVATION_METHOD,
+  type WindowsElevationMethod
+} from '@shared/WindowsHelperState'
 
 export interface AppHost {
   id: number
@@ -115,6 +119,7 @@ type StateBase = SetupBase & {
   license?: string
   user_uuid?: string
   trayMenuBarStyle?: 'classic' | 'modern'
+  windowsElevationMethod?: WindowsElevationMethod
   appFont?: string
   codeFont?: string
 }
@@ -168,6 +173,7 @@ const state: State = {
       },
       lang: '',
       autoCheck: true,
+      windowsElevationMethod: DEFAULT_WINDOWS_ELEVATION_METHOD,
       forceStart: false,
       showAIRobot: true,
       phpBrewInitiated: false,

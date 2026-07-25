@@ -1,5 +1,6 @@
 import 'pinia'
 import Launcher from './main/Launcher'
+import type { WindowsElevationMethod } from './shared/WindowsHelperState'
 
 export interface ServerType {
   AppDir?: string
@@ -32,6 +33,7 @@ export interface ServerType {
   MacPorts?: string
   SdkmanHome?: string
   ForceStart?: boolean
+  WindowsElevationMethod?: WindowsElevationMethod
   UserHome?: string
   Licenses?: string
   UserUUID?: string
