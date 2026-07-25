@@ -619,7 +619,11 @@ X-GNOME-Autostart-enabled=true`
       .then((data: string) => {
         this?.mainWindow?.webContents.send('command', command, key, data)
       })
-      .catch(() => {
+      .catch((error: NodeJS.ErrnoException) => {
+        if (error.code === 'ENOENT') {
+          this?.mainWindow?.webContents.send('command', command, key, '')
+          return
+        }
         Helper.send('tools', 'readFileByRoot', path)
           .then((data) => {
             this?.mainWindow?.webContents.send('command', command, key, data)

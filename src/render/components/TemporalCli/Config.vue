@@ -37,16 +37,18 @@
     return file.value ? `${file.value}.default` : ''
   })
 
-  fs.existsSync(file.value).then((e) => {
-    if (!e && currentVersion.value) {
-      IPC.send(
-        'app-fork:temporal-cli',
-        'initConfig',
-        JSON.parse(JSON.stringify(currentVersion.value))
-      ).then((key: string) => {
-        IPC.off(key)
-        conf?.value?.update()
-      })
-    }
-  })
+  if (file.value) {
+    fs.existsSync(file.value).then((e) => {
+      if (!e && currentVersion.value) {
+        IPC.send(
+          'app-fork:temporal-cli',
+          'initConfig',
+          JSON.parse(JSON.stringify(currentVersion.value))
+        ).then((key: string) => {
+          IPC.off(key)
+          conf?.value?.update()
+        })
+      }
+    })
+  }
 </script>

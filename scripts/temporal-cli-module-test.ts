@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { buildDefaultConf, parseConfToArgs } from '../src/fork/module/TemporalCli/util'
 
 // 默认 conf 全量解析
@@ -26,5 +27,23 @@ assert.deepEqual(parseConfToArgs('  port = 7301 \ndynamic-config-value=K={"a":1}
   '--port=7301',
   '--dynamic-config-value=K={"a":1}'
 ])
+
+const temporalCliConfigSource = readFileSync(
+  new URL('../src/render/components/TemporalCli/Config.vue', import.meta.url),
+  'utf8'
+)
+assert.match(
+  temporalCliConfigSource,
+  /if \(file\.value\) \{\s*fs\.existsSync\(file\.value\)\.then\(\(e\) =>/
+)
+
+const appNodeFnSource = readFileSync(
+  new URL('../src/main/core/AppNodeFn.ts', import.meta.url),
+  'utf8'
+)
+assert.match(
+  appNodeFnSource,
+  /fs_readFile\([\s\S]*?readFile\(path, 'utf-8'\)[\s\S]*?\.catch\(\(error: NodeJS\.ErrnoException\) => \{[\s\S]*?if \(error\.code === 'ENOENT'\)/
+)
 
 console.log('ALL CHECKS PASSED')
