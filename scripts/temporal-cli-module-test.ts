@@ -34,7 +34,7 @@ const temporalCliConfigSource = readFileSync(
 )
 assert.match(
   temporalCliConfigSource,
-  /if \(file\.value\) \{\s*fs\.existsSync\(file\.value\)\.then\(\(e\) =>/
+  /if \(file\.value\) \{\s*(?:console\.log\([^)]*\);?\s*)?fs\.existsSync\(file\.value\)\.then\(\(e\) =>/
 )
 
 const appNodeFnSource = readFileSync(
