@@ -191,6 +191,31 @@ export const ProcessOwnedPidsByPid = (
   return tree.map((item) => item.PID)
 }
 
+/**
+ * 仅当 root PID 仍存在，且当前完整命令行与启动后保存的快照完全相等时，
+ * 才返回其进程树。严格相等可拦住 PID 被终端、Codex 等进程复用的情况。
+ */
+export const ProcessOwnedPidsByPidAndCommand = (
+  pid: string,
+  expectedCommand: string | undefined,
+  arr: PItem[]
+): string[] => {
+  const tree = ProcessListByExactPid(pid, arr)
+  if (tree.length === 0) {
+    return []
+  }
+  const rootPid = `${pid}`.trim()
+  const root = tree.find((item) => item.PID === rootPid)
+  const command = root?.COMMAND ?? ''
+  if (!expectedCommand || !command || ProcessCommandLooksLikeElectronChild(command)) {
+    return []
+  }
+  if (command !== expectedCommand) {
+    return []
+  }
+  return tree.map((item) => item.PID)
+}
+
 export const ProcessSearch = (search: string, aA = true, arr: PItem[]) => {
   const all: PItem[] = []
   if (!search) {

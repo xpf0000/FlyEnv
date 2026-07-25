@@ -1,5 +1,5 @@
 import type { SoftInstalled } from '@shared/app'
-import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPid } from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPidAndCommand } from '@shared/Process'
 import type { PItem } from '@shared/Process'
 import { isWindows } from '@shared/utils'
 import type { ForkManager } from './ForkManager'
@@ -8,18 +8,18 @@ import { ProcessPidList } from '@shared/Process.win'
 export type ServiceProcessItem = {
   item: SoftInstalled
   pid: string
+  command?: string
 }
 
 /**
- * Only return processes whose registered root PID still belongs to the exact service binary.
- * A path anywhere in a terminal command is not proof that FlyEnv owns that terminal.
+ * Only return process trees whose registered root command still exactly matches its snapshot.
  */
 export const ownedServicePids = (
   serviceItems: ServiceProcessItem[],
   processList: PItem[]
 ): string[] => {
-  const pids = serviceItems.flatMap(({ item, pid }) =>
-    ProcessOwnedPidsByPid(pid, processList, [item?.bin])
+  const pids = serviceItems.flatMap(({ command, pid }) =>
+    ProcessOwnedPidsByPidAndCommand(pid, command, processList)
   )
   return Array.from(new Set(pids))
 }
