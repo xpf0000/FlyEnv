@@ -533,10 +533,8 @@ export default class IPCHandler extends EventEmitter {
 
   private handleHelperInstall(command: string, key: string) {
     AppHelper.initHelper()
-      .catch()
-      .finally(() => {
-        this.sendToMainWindow(command, key, true)
-      })
+      .then(() => this.sendToMainWindow(command, key, { code: 0, data: true }))
+      .catch((error) => this.sendToMainWindow(command, key, buildHelperCheckResponse(error)))
   }
 
   private handleHelperCommand(command: string, key: string) {
