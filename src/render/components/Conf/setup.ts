@@ -93,6 +93,9 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     if (!index.value) {
       return true
     }
+    if (!props?.value?.file) {
+      return true
+    }
     const exists = await fs.existsSync(props?.value?.file ?? '')
     return !props?.value?.file || !exists
   })
@@ -277,10 +280,12 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    fs.readFile(props.value.file).then((conf: string) => {
-      config.value = conf
-      initEditor()
-    })
+    if (props?.value?.file) {
+      fs.readFile(props.value.file).then((conf: string) => {
+        config.value = conf
+        initEditor()
+      })
+    }
   }
 
   const getDefault = () => {

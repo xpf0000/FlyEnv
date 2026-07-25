@@ -38,6 +38,7 @@
   })
 
   if (file.value) {
+    console.log('temporal-cli config file:', file.value)
     fs.existsSync(file.value).then((e) => {
       if (!e && currentVersion.value) {
         IPC.send(
