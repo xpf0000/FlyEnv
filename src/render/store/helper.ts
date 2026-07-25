@@ -2,7 +2,6 @@ import { ElMessageBox } from 'element-plus'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { app, dialog, shell } from '@/util/NodeFn'
-import { dirname, join } from '@/util/path-browserify'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { reactiveBind } from '@/util/Index'
 import { shouldOpenHelperInstaller } from '@shared/WindowsHelperState'
@@ -17,6 +16,14 @@ class Helper {
 
   isInstallResultPending() {
     return this.installResultPending
+  }
+
+  beginInstall() {
+    this.installResultPending = true
+  }
+
+  completeInstall(res: any) {
+    this.handleInstallResult(res)
   }
 
   private handleInstallResult(res: any) {
@@ -41,10 +48,10 @@ class Helper {
       type: 'warning'
     })
       .then(() => {
-        this.installResultPending = true
+        this.beginInstall()
         IPC.send('APP-FlyEnv-Helper-Install').then((key: string, res: any) => {
           IPC.off(key)
-          this.handleInstallResult(res)
+          this.completeInstall(res)
         })
       })
       .catch(() => {
@@ -71,9 +78,8 @@ class Helper {
           if (reason === 'helper_binary_missing') {
             return
           }
-          app.getPath('exe').then((exePath: string) => {
-            const item = join(dirname(exePath), 'resources/helper/flyenv-helper.exe')
-            shell.showItemInFolder(item).catch()
+          app.getWindowsHelperBinaryPath().then((helperPath: string) => {
+            shell.showItemInFolder(helperPath).catch()
           })
         })
     } else {

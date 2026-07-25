@@ -52,7 +52,11 @@ class GlobalIPCOn {
           !HelperStore.isInstallResultPending()
         ) {
           HelperStore.showInstallFailDialog(res?.reason)
-        } else if (!res?.status && HelperStore.shouldShowNeedInstallDialog(res?.reason)) {
+        } else if (
+          !res?.status &&
+          !HelperStore.isInstallResultPending() &&
+          HelperStore.shouldShowNeedInstallDialog(res?.reason)
+        ) {
           HelperStore.showNeedInstallDialog(res?.reason)
         }
       } else if (res.code === 2) {

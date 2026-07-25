@@ -20,6 +20,7 @@ import { homedir } from 'node:os'
 import EnvSync from '@shared/EnvSync'
 import { mergeProcessOptions } from '@shared/process-options'
 import { LazyRuntime } from './lazy/LazyRuntime'
+import { getWindowsHelperBinaryPath } from '@shared/AppHelperCheck'
 
 const markdownRuntime = new LazyRuntime(async () => {
   const { createMarkdownRenderer } = await import('@/util/markdown/markdown')
@@ -307,6 +308,11 @@ export class AppNodeFn {
   app_getPath(command: string, key: string, flag: AppPathFlag) {
     const res = app.getPath(flag)
     this?.mainWindow?.webContents.send('command', command, key, res)
+  }
+
+  app_getWindowsHelperBinaryPath(command: string, key: string) {
+    const helperPath = getWindowsHelperBinaryPath()
+    this?.mainWindow?.webContents.send('command', command, key, helperPath)
   }
 
   app_getConfig(command: string, key: string) {

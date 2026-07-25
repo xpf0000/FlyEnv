@@ -24,6 +24,7 @@
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
   import { AppStore } from '@/store/app'
+  import HelperStore from '@/store/helper'
   import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
   import {
@@ -44,8 +45,10 @@
 
   const verifyOrInstallHelper = () =>
     new Promise<boolean>((resolve) => {
+      HelperStore.beginInstall()
       IPC.send('APP-FlyEnv-Helper-Install').then((key: string, res: any) => {
         IPC.off(key)
+        HelperStore.completeInstall(res)
         resolve(res?.code === 0)
       })
     })

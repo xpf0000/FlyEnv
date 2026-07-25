@@ -155,6 +155,7 @@ export const app = {
     ],
     string
   >('app', 'getPath'),
+  getWindowsHelperBinaryPath: createIPCCall<[], string>('app', 'getWindowsHelperBinaryPath'),
   getConfig: createIPCCall<[], any>('app', 'getConfig'),
   setLoginItemSettings: createIPCCall<[{ openAtLogin?: boolean }], string>(
     'app',
