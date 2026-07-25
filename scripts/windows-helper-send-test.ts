@@ -32,33 +32,29 @@ class FakeSocket extends EventEmitter {
 async function main() {
   assert.equal(typeof createHelper, 'function')
 
-  let promptCalls = 0
-  let fallbackCalls = 0
+  let missingFallbacks = 0
+  let missingReason = ''
   const missingBinaryHelper = createHelper({
     isWindows: () => true,
+    getWindowsElevationMethod: () => 'helper',
     appHelperCheck: async () => {
       throw new AppHelperError('helper_binary_missing', 'missing')
     },
     runWindowsHelperFallback: async () => {
-      fallbackCalls += 1
+      missingFallbacks += 1
       return true
+    },
+    notifyWindowsElevationFallback: (reason) => {
+      missingReason = reason
     }
   })
-  missingBinaryHelper.appHelper = {
-    needInstall() {
-      promptCalls += 1
-    }
-  } as any
 
-  await assert.rejects(
-    missingBinaryHelper.send('tools', 'writeFileByRoot', 'C:\\FlyEnv\\test.txt', 'content'),
-    (error: any) => {
-      assert.equal(error?.code, 'helper_binary_missing')
-      return true
-    }
+  assert.equal(
+    await missingBinaryHelper.send('tools', 'writeFileByRoot', 'C:\\FlyEnv\\test.txt', 'content'),
+    true
   )
-  assert.equal(fallbackCalls, 0)
-  assert.equal(promptCalls, 0)
+  assert.equal(missingFallbacks, 1)
+  assert.equal(missingReason, 'helper_binary_missing')
 
   await assert.rejects(
     missingBinaryHelper.send('tools', 'readFileByRoot', 'C:\\FlyEnv\\test.txt'),
@@ -67,8 +63,34 @@ async function main() {
       return true
     }
   )
-  assert.equal(promptCalls, 0)
-  assert.equal(fallbackCalls, 0)
+  assert.equal(missingFallbacks, 1)
+
+  let uacChecks = 0
+  let uacFallbacks = 0
+  const uacHelper = createHelper({
+    isWindows: () => true,
+    getWindowsElevationMethod: () => 'uac',
+    appHelperCheck: async () => {
+      uacChecks += 1
+      return true
+    },
+    runWindowsHelperFallback: async () => {
+      uacFallbacks += 1
+      return true
+    }
+  })
+
+  assert.equal(
+    await uacHelper.send('tools', 'setSystemEnv', 'FLYENV_ALIAS', 'C:\\FlyEnv\\alias'),
+    true
+  )
+  assert.equal(uacChecks, 0)
+  assert.equal(uacFallbacks, 1)
+
+  await assert.rejects(
+    uacHelper.send('tools', 'readFileByRoot', 'C:\\FlyEnv\\private.txt'),
+    (error: any) => error?.code === 'windows_fallback_not_supported'
+  )
 
   let unavailablePromptCalls = 0
   let unavailableFallbackCalls = 0

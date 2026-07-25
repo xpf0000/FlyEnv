@@ -9,7 +9,15 @@ import {
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
 import { appDebugLog, isWindows, uuid } from '@shared/utils'
-import { AppHelperError, resolveWindowsHelperTransport } from '@shared/WindowsHelperState'
+import {
+  AppHelperError,
+  isAppHelperError,
+  isWindowsHelperFallbackAllowed,
+  resolveWindowsElevationMethod,
+  resolveWindowsHelperTransport,
+  type AppHelperErrorCode,
+  type WindowsElevationMethod
+} from '@shared/WindowsHelperState'
 
 type Module =
   | 'helper'
@@ -62,6 +70,8 @@ type HelperDeps = {
   appHelperCheck: typeof AppHelperCheck
   getHelperKey: typeof getHelperKey
   isWindows: typeof isWindows
+  getWindowsElevationMethod: () => WindowsElevationMethod
+  notifyWindowsElevationFallback: (reason: AppHelperErrorCode) => void
   resolveWindowsHelperTransport: typeof resolveWindowsHelperTransport
   runWindowsHelperFallback: WindowsHelperFallback
 }
@@ -71,6 +81,15 @@ const defaultHelperDeps: HelperDeps = {
   appHelperCheck: AppHelperCheck,
   getHelperKey,
   isWindows,
+  getWindowsElevationMethod: () =>
+    resolveWindowsElevationMethod(global.Server?.WindowsElevationMethod),
+  notifyWindowsElevationFallback: (reason) => {
+    process.send?.({
+      on: true,
+      key: 'App-Windows-Elevation-Method-Fallback',
+      info: { code: 200, method: 'uac', reason }
+    })
+  },
   resolveWindowsHelperTransport,
   runWindowsHelperFallback: lazyWindowsHelperFallback
 }
@@ -132,12 +151,38 @@ export class Helper {
     return new Error(`${error}`)
   }
 
+  private async runWindowsUacFallback<T>(module: Module, fn: FN, args: any[]): Promise<T> {
+    if (!isWindowsHelperFallbackAllowed(module, fn)) {
+      throw new AppHelperError(
+        'windows_fallback_not_supported',
+        'Windows UAC does not support ' + module + '/' + fn
+      )
+    }
+    this.enable = false
+    return (await this.deps.runWindowsHelperFallback(module, fn, args)) as T
+  }
+
+  private notifyWindowsElevationFallback(reason: AppHelperErrorCode) {
+    if (this.appHelper) {
+      this.appHelper.fallbackToUac(reason)
+      return
+    }
+    this.deps.notifyWindowsElevationFallback(reason)
+  }
+
   private async routeUnavailableHelper<T>(
     error: unknown,
     module: Module,
     fn: FN,
     args: any[]
   ): Promise<{ handled: boolean; value?: T }> {
+    if (this.deps.isWindows() && isAppHelperError(error, 'helper_binary_missing')) {
+      this.notifyWindowsElevationFallback(error.code)
+      if (isWindowsHelperFallbackAllowed(module, fn)) {
+        return { handled: true, value: await this.runWindowsUacFallback<T>(module, fn, args) }
+      }
+    }
+
     const transport = this.deps.isWindows()
       ? this.deps.resolveWindowsHelperTransport(error, module, fn)
       : 'prompt'
@@ -181,6 +226,15 @@ export class Helper {
 
       if (!this.validateSendArgs(module, fn, args)) {
         rejectOnce(new Error('Path traversal detected'))
+        return
+      }
+
+      if (this.deps.isWindows() && this.deps.getWindowsElevationMethod() === 'uac') {
+        try {
+          resolveOnce(await this.runWindowsUacFallback<T>(module, fn, args))
+        } catch (error) {
+          rejectOnce(this.normalizeError(error))
+        }
         return
       }
 

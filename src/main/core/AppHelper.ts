@@ -18,7 +18,13 @@ import { copyFile, chmod, mkdirp, readFile, writeFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
 
 type AppHelperMessage = {
-  state: 'needInstall' | 'installing' | 'installed' | 'installFaild' | 'checkSuccess'
+  state:
+    | 'needInstall'
+    | 'installing'
+    | 'installed'
+    | 'installFaild'
+    | 'checkSuccess'
+    | 'fallbackToUac'
   reason?: string
 }
 
@@ -299,6 +305,10 @@ export class AppHelper {
     if (this.state === 'normal') {
       this.emitStatus('needInstall')
     }
+  }
+
+  fallbackToUac(reason?: string) {
+    this.emitStatus('fallbackToUac', reason)
   }
 
   initHelper() {
