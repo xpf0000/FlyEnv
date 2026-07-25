@@ -63,6 +63,11 @@
           <FlyEnvHelperFix />
         </div>
       </div>
+      <div v-if="isWindows" class="row-2">
+        <div class="col">
+          <WindowsElevationMethod />
+        </div>
+      </div>
     </div>
   </el-scrollbar>
 </template>
@@ -85,6 +90,7 @@
   import AutoStartService from './AutoStartService/index.vue'
   import FlyEnvHelperFix from '@/components/Setup/FlyEnvHelper/index.vue'
   import TrayStyle from './TrayStyle/index.vue'
+  import WindowsElevationMethod from './WindowsElevationMethod/index.vue'
 
   const isMacOS = computed(() => {
     return window.Server.isMacOS

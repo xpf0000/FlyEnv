@@ -34,6 +34,12 @@ class GlobalIPCOn {
       SetupStore().init()
     })
 
+    IPC.on('APP-Windows-Elevation-Method-Changed').then((key: string, res: any) => {
+      if (res?.method === 'helper' || res?.method === 'uac') {
+        AppStore().config.setup.windowsElevationMethod = res.method
+      }
+    })
+
     IPC.on('APP-FlyEnv-Helper-Notice').then((key: string, res: any) => {
       if (res?.code === 0) {
         MessageSuccess(res?.msg)

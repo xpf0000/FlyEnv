@@ -12,4 +12,21 @@ assert.match(application, /message.state === 'installFaild'/)
 assert.match(application, /message.state === 'fallbackToUac'/)
 assert.match(application, /this.serverManager.updateGlobalConfig/)
 
+const common = fs.readFileSync(path.resolve('src/render/components/Setup/Common.vue'), 'utf8')
+const control = fs.readFileSync(
+  path.resolve('src/render/components/Setup/WindowsElevationMethod/index.vue'),
+  'utf8'
+)
+const globalIpc = fs.readFileSync(path.resolve('src/render/util/GlobalIPCOn.ts'), 'utf8')
+const english = JSON.parse(fs.readFileSync(path.resolve('src/lang/en/setup.json'), 'utf8'))
+const chinese = JSON.parse(fs.readFileSync(path.resolve('src/lang/zh/setup.json'), 'utf8'))
+
+assert.match(common, /<WindowsElevationMethod \/>/)
+assert.match(control, /value="uac"/)
+assert.match(control, /value="helper"/)
+assert.match(control, /APP-FlyEnv-Helper-Install/)
+assert.match(globalIpc, /APP-Windows-Elevation-Method-Changed/)
+assert.equal(english.windowsElevationMethod, 'Elevation Method')
+assert.equal(chinese.windowsElevationMethod, '提权方式')
+
 console.log('windows elevation method test passed')
