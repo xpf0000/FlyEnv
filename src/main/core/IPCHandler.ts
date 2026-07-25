@@ -188,6 +188,16 @@ export default class IPCHandler extends EventEmitter {
         this.handleForkCallback(command, key, module, info, args)
         this.clearDebugForkAction(debugAction)
       })
+      .catch((error) => {
+        this.handleForkCallback(
+          command,
+          key,
+          module,
+          { code: 1, msg: error instanceof Error ? error.message : `${error}` },
+          args
+        )
+        this.clearDebugForkAction(debugAction)
+      })
   }
 
   private clearDebugForkAction(debugAction: { key: string; startedAt: number }) {

@@ -233,16 +233,14 @@ export class ForkItem {
     this.loading = false
     const error = JSON.stringify({ type, location, report })
     appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${error}`).catch(() => {})
-    for (const key of Object.keys(this.callback)) {
-      this.callback[key]?.resolve({ code: 1, msg: error })
-      delete this.callback[key]
-    }
+    this.settleCallbacks({ code: 1, msg: error })
     this.lifecycle.childExited()
   }
 
   private onExit(child: UtilityProcess) {
     if (child !== this.child) return
     this.resolveLanguageAcks()
+    this.settleCallbacks({ code: 1, msg: 'Fork process exited' })
     this.childExited = true
     this.pid = undefined
     this.loading = false
@@ -263,6 +261,19 @@ export class ForkItem {
       pending.resolve(false)
     }
     this.languageAcks.clear()
+  }
+
+  private settleCallbacks(info: any) {
+    for (const key of Object.keys(this.callback)) {
+      const callback = this.callback[key]
+      if (!callback) continue
+      try {
+        callback.onTerminal?.(info)
+      } catch {}
+      callback.resolve(info)
+      delete this.callback[key]
+      this.lifecycle.taskSettled()
+    }
   }
 
   private destroyChild() {

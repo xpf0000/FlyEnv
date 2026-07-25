@@ -158,4 +158,42 @@ await stopRequest
 assert.equal(service.isPinned, false)
 assert.equal(serviceScheduler.pending()[0]?.delayMs, 10_000)
 
+const exitScheduler = new FakeScheduler()
+let exitChild!: FakeChild
+const exitItem = new ForkItem(
+  '/tmp/fork.mjs',
+  {
+    idleTimeoutMs: TRANSIENT_FORK_IDLE_TIMEOUT_MS,
+    primary: false,
+    idleScheduler: exitScheduler,
+    forkProcess: () => {
+      exitChild = new FakeChild(400)
+      return exitChild as any
+    },
+    killProcess: () => {}
+  },
+  bridge,
+  bridge,
+  bridge,
+  () => undefined
+)
+let exitTerminalInfo: any
+const exitRequest = exitItem.sendWithTerminalHook(
+  (info) => {
+    exitTerminalInfo = info
+  },
+  'host',
+  'writeHosts'
+)
+assert.equal(exitItem.activeTaskCount, 1)
+exitChild.emit('exit')
+const exitResult = await Promise.race([
+  exitRequest,
+  new Promise((resolve) => setTimeout(() => resolve({ timedOut: true }), 20))
+])
+assert.deepEqual(exitResult, { code: 1, msg: 'Fork process exited' })
+assert.deepEqual(exitTerminalInfo, { code: 1, msg: 'Fork process exited' })
+assert.equal(exitItem.activeTaskCount, 0)
+assert.deepEqual(exitItem.callback, {})
+
 console.log('fork item idle restart tests passed')

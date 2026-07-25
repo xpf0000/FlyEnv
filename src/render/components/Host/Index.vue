@@ -386,6 +386,5 @@
     if (appStore.hosts.length === 0) {
       appStore.initHost()
     }
-    hostsWrite(false)
   })
 </script>

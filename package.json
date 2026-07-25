@@ -23,6 +23,7 @@
     "test:windows-helper-install-ipc": "tsx scripts/windows-helper-install-ipc-test.ts",
     "test:windows-cron": "tsx scripts/phase4-install-terminal-cron-test.ts && tsx scripts/windows-cron-wrapper-migration-test.ts && tsx scripts/windows-cron-wrapper-runtime-test.ts",
     "test:startup-groups": "tsx scripts/startup-group-test.ts",
+    "test:startup-hosts-sync": "tsx scripts/startup-hosts-sync-test.ts",
     "test:stop-process-list-cache": "tsx scripts/stop-process-list-cache-test.ts",
     "test:bin-version-cache": "tsx scripts/bin-version-cache-test.ts",
     "test:env-sync-coordinator": "tsx scripts/env-sync-coordinator-test.ts",

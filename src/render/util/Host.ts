@@ -28,13 +28,17 @@ const handleHostEnd = (arr: Array<AppHost>, isAdd?: boolean) => {
 }
 
 export const handleWriteHosts = () => {
-  return new Promise((resolve) => {
+  return new Promise<boolean>((resolve, reject) => {
     const appStore = AppStore()
     const writeHosts = appStore.config.setup.hosts.write
     const ipv6 = appStore.config.setup?.hosts?.ipv6 ?? true
-    IPC.send('app-fork:host', 'writeHosts', writeHosts, ipv6).then((key: string) => {
+    IPC.send('app-fork:host', 'writeHosts', writeHosts, ipv6).then((key: string, res: any) => {
       IPC.off(key)
-      resolve(true)
+      if (res?.code === 0) {
+        resolve(true)
+      } else {
+        reject(new Error(res?.msg ?? 'Failed to write hosts'))
+      }
     })
   })
 }
