@@ -2,7 +2,7 @@ import { ElMessageBox } from 'element-plus'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { app, dialog, shell } from '@/util/NodeFn'
-import { join } from '@/util/path-browserify'
+import { dirname, join } from '@/util/path-browserify'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { reactiveBind } from '@/util/Index'
 import { shouldOpenHelperInstaller } from '@shared/WindowsHelperState'
@@ -71,8 +71,8 @@ class Helper {
           if (reason === 'helper_binary_missing') {
             return
           }
-          app.getPath('exe').then((path: string) => {
-            const item = join(path, 'resources/helper/flyenv-helper.exe')
+          app.getPath('exe').then((exePath: string) => {
+            const item = join(dirname(exePath), 'resources/helper/flyenv-helper.exe')
             shell.showItemInFolder(item).catch()
           })
         })

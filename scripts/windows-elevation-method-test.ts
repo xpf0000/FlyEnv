@@ -18,14 +18,24 @@ const control = fs.readFileSync(
   'utf8'
 )
 const globalIpc = fs.readFileSync(path.resolve('src/render/util/GlobalIPCOn.ts'), 'utf8')
+const helperStore = fs.readFileSync(path.resolve('src/render/store/helper.ts'), 'utf8')
 const english = JSON.parse(fs.readFileSync(path.resolve('src/lang/en/setup.json'), 'utf8'))
 const chinese = JSON.parse(fs.readFileSync(path.resolve('src/lang/zh/setup.json'), 'utf8'))
 
 assert.match(common, /<WindowsElevationMethod \/>/)
+assert.match(
+  common,
+  /<div v-if="isWindows" class="row-2">\s*<div class="col">\s*<WindowsElevationMethod \/>\s*<\/div>\s*<div class="col"><\/div>\s*<\/div>/
+)
 assert.match(control, /value="uac"/)
 assert.match(control, /value="helper"/)
 assert.match(control, /APP-FlyEnv-Helper-Install/)
 assert.match(globalIpc, /APP-Windows-Elevation-Method-Changed/)
+assert.match(helperStore, /import \{ dirname, join \} from '@\/util\/path-browserify'/)
+assert.match(
+  helperStore,
+  /const item = join\(dirname\(exePath\), 'resources\/helper\/flyenv-helper\.exe'\)/
+)
 assert.equal(english.windowsElevationMethod, 'Elevation Method')
 assert.equal(chinese.windowsElevationMethod, '提权方式')
 

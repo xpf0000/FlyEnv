@@ -67,6 +67,7 @@
         <div class="col">
           <WindowsElevationMethod />
         </div>
+        <div class="col"></div>
       </div>
     </div>
   </el-scrollbar>
