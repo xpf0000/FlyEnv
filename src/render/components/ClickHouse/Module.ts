@@ -9,6 +9,7 @@ const module: AppModuleItem = {
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 24,
+  iconPadding: 5,
   isService: true,
   isTray: true,
   platform: ['macOS', 'Linux']

@@ -6,6 +6,7 @@
     :file="file"
     :file-ext="'conf'"
     :show-commond="false"
+    url="https://docs.temporal.io/cli"
   >
   </Conf>
 </template>

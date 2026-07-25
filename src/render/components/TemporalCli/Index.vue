@@ -20,8 +20,10 @@
         v-else-if="tab === 1"
         type-flag="temporal-cli"
         :has-static="true"
-        url="https://docs.temporal.io/cli"
+        url="https://github.com/temporalio/cli/releases"
         title="Temporal CLI"
+        :show-brew-lib="false"
+        :show-port-lib="false"
       ></Manager>
       <Config v-if="tab === 2"></Config>
       <Logs v-if="tab === 3"></Logs>

@@ -7,7 +7,7 @@
     <div class="left">
       <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon
-          style="padding: 7px"
+          style="padding: 5px"
           :svg="import('@/svg/clickhouse.svg?raw')"
           width="30"
           height="30"

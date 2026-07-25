@@ -213,14 +213,13 @@ class Temporal extends Base {
       return { 'APP-Service-Start-PID': '', 'APP-Service-Start-Item': uiVersion }
     }
     const baseDir = this.baseDir()
-    const configDir = join(baseDir, 'config')
     await this.initUiConfig().on(on)
     const res = await serviceStartSpawn({
       version: uiVersion,
       pidPath: this.uiPidPath,
       baseDir,
       bin,
-      execArgs: ['-c', configDir, '-e', 'temporal-ui', 'start'],
+      execArgs: ['-r', baseDir, '-c', 'config', '-e', 'temporal-ui', 'start'],
       outFile: join(baseDir, 'temporal-ui-start-out.log'),
       errFile: join(baseDir, 'temporal-ui-start-error.log'),
       on

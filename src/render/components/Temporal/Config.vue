@@ -17,6 +17,7 @@
           :file="file"
           file-ext="yaml"
           :show-commond="false"
+          url="https://docs.temporal.io/"
         />
       </template>
       <template #footer>

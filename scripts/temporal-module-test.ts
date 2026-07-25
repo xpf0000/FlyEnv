@@ -57,6 +57,10 @@ const temporalForkSource = readFileSync(
   new URL('../src/fork/module/Temporal/index.ts', import.meta.url),
   'utf8'
 )
+assert.match(
+  temporalForkSource,
+  /execArgs: \['-r', baseDir, '-c', 'config', '-e', 'temporal-ui', 'start'\]/
+)
 assert.match(temporalForkSource, /return normalizeTemporalBaseDir\(global\.Server\.BaseDir!\)/)
 assert.match(temporalForkSource, /const baseDir = this\.baseDir\(\)/)
 assert.match(temporalForkSource, /setForkTrace\(requestKey: string\)/)
@@ -147,5 +151,11 @@ const temporalAsideSource = readFileSync(
   'utf8'
 )
 assert.doesNotMatch(temporalAsideSource, /TemporalSetup|startExtParam/)
+
+const temporalModuleSource = readFileSync(
+  new URL('../src/render/components/Temporal/Module.ts', import.meta.url),
+  'utf8'
+)
+assert.match(temporalModuleSource, /moduleType: 'serviceGovernance'/)
 
 console.log('ALL CHECKS PASSED')

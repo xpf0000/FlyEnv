@@ -2,10 +2,11 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@/core/type'
 
 const module: AppModuleItem = {
-  moduleType: 'cacheAndQueue',
+  moduleType: 'serviceGovernance',
   typeFlag: 'temporal',
   label: 'Temporal',
   icon: import('@/svg/temporal.svg?raw'),
+  iconPadding: 5,
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 50,

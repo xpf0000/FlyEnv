@@ -58,4 +58,10 @@ assert.match(
 )
 assert.doesNotMatch(temporalCliIndexSource, /import \{ Link \}/)
 
+const temporalCliModuleSource = readFileSync(
+  new URL('../src/render/components/TemporalCli/Module.ts', import.meta.url),
+  'utf8'
+)
+assert.match(temporalCliModuleSource, /moduleType: 'serviceGovernance'/)
+
 console.log('ALL CHECKS PASSED')
