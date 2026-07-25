@@ -13,6 +13,42 @@ const PERMISSION_DENIED = 'User did not grant permission.'
 const NO_POLKIT_AGENT = 'No polkit authentication agent found.'
 const MAX_BUFFER = 134217728
 
+export type WindowsSudoErrorCode =
+  | 'elevation_uac_cancelled'
+  | 'elevation_launch_failed'
+  | 'elevation_status_timeout'
+
+export class WindowsSudoError extends Error {
+  constructor(
+    readonly code: WindowsSudoErrorCode,
+    message: string,
+    readonly stderr?: string
+  ) {
+    super(message)
+    this.name = 'WindowsSudoError'
+  }
+}
+
+export class WindowsSudoCommandError extends Error {
+  constructor(
+    readonly exitCode: number,
+    message: string,
+    readonly stderr: string
+  ) {
+    super(message)
+    this.name = 'WindowsSudoCommandError'
+  }
+}
+
+export const classifyWindowsElevationError = (error: unknown): WindowsSudoError => {
+  const message = error instanceof Error ? error.message : `${error}`
+  const code = (error as NodeJS.ErrnoException | undefined)?.code
+  if (code === '1223' || /\b1223\b|operation was cancel(?:ed|led)|user cancel(?:ed|led)/i.test(message)) {
+    return new WindowsSudoError('elevation_uac_cancelled', PERMISSION_DENIED, message)
+  }
+  return new WindowsSudoError('elevation_launch_failed', `Failed to launch elevated PowerShell: ${message}`, message)
+}
+
 interface Options {
   name: string
   icns?: string
@@ -168,8 +204,8 @@ async function windowsElevate(instance: Instance): Promise<void> {
     await EnvSync.sync()
     const command = `"${EnvSync.PowerShellPath}" Start-Process -FilePath "'${instance.pathExecute!.replace(/'/g, "`'")}'" -WindowStyle hidden -Verb runAs`
     await execChildProcessAsync(command, { encoding: 'utf-8', shell: EnvSync.CMDPath })
-  } catch {
-    throw new Error(PERMISSION_DENIED)
+  } catch (error) {
+    throw classifyWindowsElevationError(error)
   }
   console.log('windowsElevate !!!')
 }
@@ -183,9 +219,11 @@ async function windowsResult(instance: Instance): Promise<{ stdout: string; stde
   if (exitCode === 0) {
     return { stdout, stderr }
   } else {
-    const cmdError = new Error(`Command failed: ${instance.command}\r\n${stderr}`)
-    ;(cmdError as NodeJS.ErrnoException).code = exitCode.toString()
-    throw cmdError
+    throw new WindowsSudoCommandError(
+      exitCode,
+      `Command failed: ${instance.command}\r\n${stderr}`,
+      stderr
+    )
   }
 }
 
@@ -211,7 +249,9 @@ async function windowsWaitForStatus(instance: Instance): Promise<void> {
     await waitTime(1000)
     times += 1
   }
-  appDebugLog('[sudo][windowsWaitForStatus][timeout]', `timeout`).catch()
+  const message = 'Timed out waiting for elevated script status files'
+  appDebugLog('[sudo][windowsWaitForStatus][timeout]', message).catch()
+  throw new WindowsSudoError('elevation_status_timeout', message)
 }
 
 async function windowsWriteCommandScript(instance: Instance): Promise<void> {

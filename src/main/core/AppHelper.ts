@@ -6,7 +6,13 @@ import {
   getWindowsHelperBinaryPath,
   windowsHelperBinaryExists
 } from '@shared/AppHelperCheck'
-import { AppHelperError, isAppHelperError } from '@shared/WindowsHelperState'
+import {
+  AppHelperError,
+  type AppHelperErrorCode,
+  isAppHelperError
+} from '@shared/WindowsHelperState'
+import { getWindowsHelperIdentity } from '@shared/WindowsHelperIdentity'
+import { WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
 import { tmpdir, userInfo } from 'node:os'
 import { copyFile, chmod, mkdirp, readFile, writeFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
@@ -19,6 +25,77 @@ type AppHelperMessage = {
 type AppHelperCallback = (message: AppHelperMessage) => void
 
 type SudoExec = typeof import('@shared/Sudo').exec
+
+type HelperHealthWaitOptions = {
+  deadlineMs?: number
+  initialDelayMs?: number
+  maxDelayMs?: number
+  now?: () => number
+  sleep?: (milliseconds: number) => Promise<void>
+}
+
+export const waitForHelperHealth = async <T>(
+  check: () => Promise<T>,
+  options: HelperHealthWaitOptions = {}
+): Promise<T> => {
+  const deadlineMs = options.deadlineMs ?? 30_000
+  const maxDelayMs = options.maxDelayMs ?? 2_000
+  const now = options.now ?? Date.now
+  const sleep = options.sleep ?? ((milliseconds) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)))
+  let delayMs = options.initialDelayMs ?? 250
+  const startedAt = now()
+  let lastError: unknown
+
+  while (true) {
+    try {
+      return await check()
+    } catch (error) {
+      lastError = error
+    }
+    const remainingMs = deadlineMs - (now() - startedAt)
+    if (remainingMs <= 0) {
+      if (isAppHelperError(lastError)) {
+        throw new AppHelperError(
+          'helper_start_timeout',
+          `Timed out waiting for FlyEnv helper health: ${lastError.message}`,
+          lastError.stderr
+        )
+      }
+      throw lastError
+    }
+    const nextDelay = Math.min(delayMs, remainingMs)
+    await sleep(nextDelay)
+    delayMs = Math.min(delayMs * 2, maxDelayMs)
+  }
+}
+
+const installerErrorCodes = new Set<AppHelperErrorCode>([
+  'helper_binary_missing',
+  'helper_acl_invalid',
+  'helper_task_invalid',
+  'helper_task_start_failed',
+  'helper_execution_failed'
+])
+
+const toAppHelperInstallError = (error: unknown): AppHelperError => {
+  if (isAppHelperError(error)) {
+    return error
+  }
+  if (error instanceof WindowsSudoError) {
+    return new AppHelperError(error.code, error.message, error.stderr)
+  }
+  if (error instanceof WindowsSudoCommandError) {
+    const marker = error.stderr.match(/FLYENV_HELPER_INSTALL_ERROR:([a-z_]+):(.*)/i)
+    if (marker && installerErrorCodes.has(marker[1] as AppHelperErrorCode)) {
+      return new AppHelperError(marker[1] as AppHelperErrorCode, marker[2].trim(), error.stderr)
+    }
+    return new AppHelperError('helper_execution_failed', error.message, error.stderr)
+  }
+  return new AppHelperError(
+    'helper_execution_failed',
+    error instanceof Error ? error.message : `${error}`
+  )
+}
 
 const lazySudo: SudoExec = async (...args) => {
   const { exec } = await import('@shared/Sudo')
@@ -120,11 +197,15 @@ export class AppHelper {
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
         )
+        const windowsIdentity = await getWindowsHelperIdentity()
         const content = tmpl
           .replace('#TASKNAME#', 'FlyEnvHelperTask')
           .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
           .replace('#DATAPATH#', dataPath)
+          .replace('#APPUSERNAME#', windowsIdentity.account)
+          .replace('#APPUSERSID#', windowsIdentity.sid)
+          .replace('#KEYPATH#', windowsIdentity.keyPath)
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, '\ufeff' + content)
         command = `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
@@ -191,11 +272,15 @@ export class AppHelper {
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
         )
+        const windowsIdentity = await getWindowsHelperIdentity()
         const content = tmpl
           .replace('#TASKNAME#', 'FlyEnvHelperTask')
           .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
           .replace('#DATAPATH#', dataPath)
+          .replace('#APPUSERNAME#', windowsIdentity.account)
+          .replace('#APPUSERSID#', windowsIdentity.sid)
+          .replace('#KEYPATH#', windowsIdentity.keyPath)
 
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, '\ufeff' + content)
@@ -243,26 +328,19 @@ export class AppHelper {
       }
 
       this.emitStatus('needInstall')
-      const doChech = (time = 0) => {
-        if (time > 9) {
+      const doCheck = async () => {
+        try {
+          await waitForHelperHealth(() => this.deps.appHelperCheck())
           this.state = 'normal'
-          reject(new Error('Install helper failed'))
-          this.emitStatus('installFaild')
-          return
+          this.emitStatus('checkSuccess')
+          this?._onSuduExecSuccess?.()
+          resolve(true)
+        } catch (error) {
+          const appError = toAppHelperInstallError(error)
+          this.state = 'normal'
+          this.emitStatus('installFaild', appError.code)
+          reject(appError)
         }
-        this.deps
-          .appHelperCheck()
-          .then(() => {
-            this.state = 'normal'
-            this.emitStatus('checkSuccess')
-            this?._onSuduExecSuccess?.()
-            resolve(true)
-          })
-          .catch(() => {
-            setTimeout(() => {
-              doChech(time + 1)
-            }, 500)
-          })
       }
 
       try {
@@ -277,19 +355,21 @@ export class AppHelper {
           .then(({ stdout, stderr }) => {
             console.log('initHelper: ', stdout, stderr)
             this.state = 'installed'
-            doChech()
+            doCheck().catch(() => {})
           })
           .catch((e) => {
-            appDebugLog('[AppHelper][initHelper][error]', `${e})}`).catch()
-            console.log('initHelper err: ', e)
+            const appError = toAppHelperInstallError(e)
+            appDebugLog('[AppHelper][initHelper][error]', `${appError})}`).catch()
+            console.log('initHelper err: ', appError)
             this.state = 'normal'
-            this.emitStatus('installFaild', isAppHelperError(e) ? e.code : undefined)
-            reject(e)
+            this.emitStatus('installFaild', appError.code)
+            reject(appError)
           })
       } catch (error) {
+        const appError = toAppHelperInstallError(error)
         this.state = 'normal'
-        this.emitStatus('installFaild', isAppHelperError(error) ? error.code : undefined)
-        reject(error)
+        this.emitStatus('installFaild', appError.code)
+        reject(appError)
       }
     })
   }

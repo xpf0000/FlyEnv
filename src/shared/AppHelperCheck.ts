@@ -1,6 +1,6 @@
 import { mkdirp, writeFile, readFile, existsSync } from '@shared/fs-extra'
 import { createConnection } from 'node:net'
-import { userInfo, tmpdir } from 'node:os'
+import { tmpdir, userInfo } from 'node:os'
 import { basename, dirname, join, resolve as pathResolve } from 'node:path'
 import is from 'electron-is'
 import { isWindows } from './utils'
@@ -11,22 +11,32 @@ import { AppHelperError, type AppHelperErrorCode } from './WindowsHelperState'
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
-export const HelperVersion = 18
-
 const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
-
 const Helper_Check_Timeout = 3000
 
+export const HelperVersion = 19
+
+export type HelperHealth = {
+  version: number
+  pid: number
+  sid?: string
+}
+
+type HelperResponse = {
+  key?: string
+  code?: number
+  data?: unknown
+  msg?: string
+}
+
 export const HelperKeyPath = (): string => {
-  return isWindows() ? join(tmpdir(), 'flyenv-helper.key') : Key_Path_Unix
+  return isWindows() ? join(process.env.LOCALAPPDATA || tmpdir(), 'FlyEnv', 'flyenv-helper.key') : Key_Path_Unix
 }
 
 export const getHelperKey = async (): Promise<Buffer | null> => {
   try {
-    const path = HelperKeyPath()
-    const data = await readFile(path)
-    return data
+    return await readFile(HelperKeyPath())
   } catch {
     return null
   }
@@ -52,24 +62,19 @@ export const signTaskItem = (
   return hmac.digest('hex')
 }
 
-export const helperTaskAuthFields = () => {
-  return {
-    ts: Date.now(),
-    nonce: crypto.randomUUID(),
-    clientPid: process.pid,
-    clientExe: process.execPath ?? ''
-  }
-}
+export const helperTaskAuthFields = () => ({
+  ts: Date.now(),
+  nonce: crypto.randomUUID(),
+  clientPid: process.pid,
+  clientExe: process.execPath ?? ''
+})
 
 export const AppHelperSocketPathGet = (): string => {
-  let actualPath = SOCKET_PATH
-
-  if (isWindows()) {
-    const pipeName = basename(SOCKET_PATH).replace(/[^a-zA-Z0-9_-]/g, '_')
-    actualPath = `\\\\.\\pipe\\${pipeName}`
+  if (!isWindows()) {
+    return SOCKET_PATH
   }
-
-  return actualPath
+  const pipeName = basename(SOCKET_PATH).replace(/[^a-zA-Z0-9_-]/g, '_')
+  return `\\\\.\\pipe\\${pipeName}`
 }
 
 export const AppHelperRoleFix = async () => {
@@ -112,6 +117,16 @@ type AppHelperCheckDeps = {
   getHelperKey: typeof getHelperKey
 }
 
+const helperResponseErrorCode = (message: string): AppHelperErrorCode => {
+  if (/signature/i.test(message)) {
+    return 'helper_signature_invalid'
+  }
+  if (/allow-roots|trusted roots|allowed roots/i.test(message)) {
+    return 'helper_acl_invalid'
+  }
+  return 'helper_execution_failed'
+}
+
 export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) => {
   const runtime = {
     isWindows,
@@ -121,114 +136,124 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
     ...deps
   }
 
-  return () =>
-    new Promise<boolean>(async (resolve, reject) => {
-      if (runtime.isWindows() && !runtime.helperBinaryExists()) {
-        reject(new AppHelperError('helper_binary_missing', 'Windows helper binary missing'))
-        return
-      }
-
-      let timer: NodeJS.Timeout | undefined
-      let settled = false
-      const key = 'flyenv-helper-version-check'
+  const request = (fn: 'version' | 'health', helperKey: Buffer | null) =>
+    new Promise<HelperResponse>((resolve, reject) => {
+      const key = `flyenv-helper-${fn}-check`
       const buffer: Buffer[] = []
-
-      const resolveOnce = (value: boolean) => {
-        if (settled) {
-          return
-        }
+      let settled = false
+      let client: ReturnType<typeof createConnection> | undefined
+      const finish = (callback: () => void) => {
+        if (settled) return
         settled = true
         clearTimeout(timer)
-        resolve(value)
+        callback()
       }
-
-      const rejectOnce = (code: AppHelperErrorCode, message: string) => {
-        if (settled) {
-          return
-        }
-        settled = true
-        clearTimeout(timer)
-        reject(new AppHelperError(code, message))
-      }
-
-      let helperKey: Buffer | null = null
-      try {
-        helperKey = await runtime.getHelperKey()
-      } catch {}
-
-      const client = runtime.createConnection(AppHelperSocketPathGet())
-
       const closeClient = () => {
         try {
-          client.destroy()
+          client?.destroy()
         } catch {}
+      }
+      const fail = (code: AppHelperErrorCode, message: string) => {
+        finish(() => {
+          closeClient()
+          reject(new AppHelperError(code, message))
+        })
+      }
+      const timer = setTimeout(() => fail('helper_pipe_unreachable', 'Timed out waiting for helper pipe'), Helper_Check_Timeout)
+
+      try {
+        client = runtime.createConnection(AppHelperSocketPathGet())
+      } catch (error) {
+        fail('helper_pipe_unreachable', error instanceof Error ? error.message : `${error}`)
+        return
       }
 
       client.on('connect', () => {
         const param: any = {
           key,
           module: 'helper',
-          function: 'version',
+          function: fn,
           args: [],
           ...helperTaskAuthFields()
         }
         if (helperKey) {
           param.sig = signTaskItem(helperKey, param)
         }
-
         try {
-          client.write(JSON.stringify(param), (error?: Error | null) => {
-            if (error) {
-              closeClient()
-              rejectOnce('helper_unreachable', error.message)
-            }
+          client?.write(JSON.stringify(param), (error?: Error | null) => {
+            if (error) fail('helper_pipe_unreachable', error.message)
           })
         } catch (error) {
-          closeClient()
-          rejectOnce('helper_unreachable', error instanceof Error ? error.message : `${error}`)
-          return
+          fail('helper_pipe_unreachable', error instanceof Error ? error.message : `${error}`)
         }
-
-        timer = setTimeout(() => {
-          closeClient()
-          rejectOnce('helper_unreachable', 'Connect helper failed')
-        }, Helper_Check_Timeout)
       })
 
-      client.on('data', (data: any) => {
+      client.on('data', (data: Buffer) => {
         buffer.push(data)
-        client.end()
+        client?.end()
       })
-
       client.on('end', () => {
-        closeClient()
         if (!buffer.length) {
-          rejectOnce('helper_unreachable', 'Connect helper failed')
+          fail('helper_pipe_unreachable', 'Helper closed the health-check pipe without a response')
           return
         }
-
-        let res: any
+        let response: HelperResponse
         try {
-          const content = Buffer.concat(buffer).toString().trim()
-          res = JSON5.parse(content)
+          response = JSON5.parse(Buffer.concat(buffer).toString().trim())
         } catch {
-          rejectOnce('helper_execution_failed', 'Invalid helper response payload')
+          fail('helper_execution_failed', 'Invalid helper response payload')
           return
         }
-
-        if (res?.key === key && res?.code === 0 && res?.data === HelperVersion) {
-          resolveOnce(true)
+        if (response.key !== key) {
+          fail('helper_execution_failed', 'Helper response key did not match the health-check request')
           return
         }
-
-        rejectOnce('helper_version_mismatch', 'Helper Need Install Or Update')
+        if (response.code !== 0) {
+          fail(helperResponseErrorCode(response.msg ?? ''), response.msg ?? 'Helper rejected the health-check request')
+          return
+        }
+        finish(() => {
+          closeClient()
+          resolve(response)
+        })
       })
-
-      client.on('error', (error) => {
-        closeClient()
-        rejectOnce('helper_unreachable', error?.message || 'Connect helper failed')
-      })
+      client.on('error', (error) => fail('helper_pipe_unreachable', error?.message || 'Could not connect to helper pipe'))
     })
+
+  return async (): Promise<HelperHealth | true> => {
+    if (runtime.isWindows() && !runtime.helperBinaryExists()) {
+      throw new AppHelperError('helper_binary_missing', 'Windows helper binary missing')
+    }
+
+    const helperKey = await runtime.getHelperKey()
+    if (runtime.isWindows() && !helperKey) {
+      throw new AppHelperError('helper_key_missing', `Windows helper key missing: ${HelperKeyPath()}`)
+    }
+    if (runtime.isWindows() && helperKey && helperKey.length !== 32) {
+      throw new AppHelperError('helper_key_invalid', 'Windows helper key must contain exactly 32 bytes')
+    }
+
+    const version = await request('version', helperKey)
+    if (version.data !== HelperVersion) {
+      throw new AppHelperError('helper_version_mismatch', 'Helper version does not match FlyEnv')
+    }
+    if (!runtime.isWindows()) {
+      return true
+    }
+
+    const health = await request('health', helperKey)
+    const result = health.data as Partial<HelperHealth> | undefined
+    if (
+      !result ||
+      result.version !== HelperVersion ||
+      typeof result.pid !== 'number' ||
+      !Number.isInteger(result.pid) ||
+      result.pid <= 0
+    ) {
+      throw new AppHelperError('helper_health_invalid', 'Helper health response is missing a valid version or PID')
+    }
+    return { version: result.version, pid: result.pid, sid: result.sid }
+  }
 }
 
 export const AppHelperCheck = createAppHelperChecker()

@@ -39,7 +39,12 @@ class GlobalIPCOn {
         MessageSuccess(res?.msg)
       } else if (res.code === 1) {
         MessageError(res?.msg)
-        if (res?.status === 'installFaild' && this.inited && !FlyEnvHelperSetup.show) {
+        if (
+          res?.status === 'installFaild' &&
+          this.inited &&
+          !FlyEnvHelperSetup.show &&
+          !HelperStore.isInstallResultPending()
+        ) {
           HelperStore.showInstallFailDialog(res?.reason)
         } else if (!res?.status && HelperStore.shouldShowNeedInstallDialog(res?.reason)) {
           HelperStore.showNeedInstallDialog(res?.reason)

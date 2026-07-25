@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
-import { createAppHelper } from '../src/main/core/AppHelper'
+import { createAppHelper, waitForHelperHealth } from '../src/main/core/AppHelper'
+import { AppHelperError, isAppHelperError } from '../src/shared/WindowsHelperState'
 
 async function main() {
   assert.equal(typeof createAppHelper, 'function')
@@ -54,6 +55,54 @@ async function main() {
   await assert.rejects(firstInit, /sudo failed/)
   assert.equal(sudoCalls, 1)
   assert.equal(checkCalls, 1)
+
+  let attempts = 0
+  let now = 0
+  const delays: number[] = []
+  await waitForHelperHealth(
+    async () => {
+      attempts += 1
+      if (attempts < 3) {
+        throw new AppHelperError('helper_pipe_unreachable', 'named pipe is not ready')
+      }
+      return true
+    },
+    {
+      deadlineMs: 5000,
+      initialDelayMs: 100,
+      maxDelayMs: 500,
+      now: () => now,
+      sleep: async (milliseconds) => {
+        delays.push(milliseconds)
+        now += milliseconds
+      }
+    }
+  )
+  assert.equal(attempts, 3)
+  assert.deepEqual(delays, [100, 200])
+
+  now = 0
+  await assert.rejects(
+    waitForHelperHealth(
+      async () => {
+        throw new AppHelperError('helper_pipe_unreachable', 'named pipe is not ready')
+      },
+      {
+        deadlineMs: 100,
+        initialDelayMs: 100,
+        maxDelayMs: 100,
+        now: () => now,
+        sleep: async (milliseconds) => {
+          now += milliseconds
+        }
+      }
+    ),
+    (error: unknown) => {
+      assert.equal(isAppHelperError(error, 'helper_start_timeout'), true)
+      assert.match((error as Error).message, /named pipe is not ready/)
+      return true
+    }
+  )
 
   console.log('windows app helper init test passed')
 }

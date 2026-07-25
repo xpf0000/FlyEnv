@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net"
@@ -25,7 +26,7 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 18
+	Helper_Version   = 19
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
@@ -35,11 +36,53 @@ const (
 
 var rolePattern = regexp.MustCompile(`^([0-9]+):([0-9]+)$`)
 
+type helperRuntimeConfig struct {
+	KeyPath         string
+	ExpectedUserSID string
+}
+
+var runtimeConfig helperRuntimeConfig
+
+func parseHelperRuntimeConfig(args []string) (helperRuntimeConfig, error) {
+	flags := flag.NewFlagSet("flyenv-helper", flag.ContinueOnError)
+	flags.SetOutput(io.Discard)
+	config := helperRuntimeConfig{}
+	flags.StringVar(&config.KeyPath, "key-path", "", "explicit helper key path")
+	flags.StringVar(&config.ExpectedUserSID, "expected-user-sid", "", "expected Windows user SID")
+	if err := flags.Parse(args); err != nil {
+		return helperRuntimeConfig{}, err
+	}
+	if flags.NArg() != 0 {
+		return helperRuntimeConfig{}, fmt.Errorf("unexpected helper arguments: %s", strings.Join(flags.Args(), " "))
+	}
+	if runtime.GOOS == "windows" && (config.KeyPath == "" || config.ExpectedUserSID == "") {
+		return helperRuntimeConfig{}, fmt.Errorf("Windows helper requires --key-path and --expected-user-sid")
+	}
+	return config, nil
+}
+
 func getKeyPath() string {
 	if runtime.GOOS == "windows" {
+		if runtimeConfig.KeyPath != "" {
+			return runtimeConfig.KeyPath
+		}
 		return utils.WindowsHelperKeyPath()
 	}
 	return Key_Path_Unix
+}
+
+func validateExpectedWindowsUserSID() error {
+	if runtime.GOOS != "windows" || runtimeConfig.ExpectedUserSID == "" {
+		return nil
+	}
+	actualSID, err := utils.CurrentUserSID()
+	if err != nil {
+		return fmt.Errorf("failed to determine helper user SID: %w", err)
+	}
+	if !strings.EqualFold(actualSID, runtimeConfig.ExpectedUserSID) {
+		return fmt.Errorf("helper user SID mismatch: expected %s, got %s", runtimeConfig.ExpectedUserSID, actualSID)
+	}
+	return nil
 }
 
 // TaskItem defines the structure of the incoming JSON message
@@ -416,6 +459,32 @@ func (a *AppHelper) validateClientBinding(info TaskItem, peer utils.PeerInfo) er
 	return nil
 }
 
+func helperHealthResponse(pid int, sid string) map[string]interface{} {
+	response := map[string]interface{}{
+		"version": Helper_Version,
+		"pid":     pid,
+	}
+	if sid != "" {
+		response["sid"] = sid
+	}
+	return response
+}
+
+func helperHealth() (map[string]interface{}, error) {
+	sid := ""
+	if runtime.GOOS == "windows" {
+		if err := utils.ValidateWindowsHelperHealth(); err != nil {
+			return nil, fmt.Errorf("allow-roots health validation failed: %w", err)
+		}
+		currentSID, err := utils.CurrentUserSID()
+		if err != nil {
+			return nil, fmt.Errorf("failed to determine helper user SID: %w", err)
+		}
+		sid = currentSID
+	}
+	return helperHealthResponse(os.Getpid(), sid), nil
+}
+
 // Run sets up and starts the Unix domain socket server
 func (a *AppHelper) Run() error {
 	// Clean up existing socket file if it exists (Unix only)
@@ -625,6 +694,8 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 			case "version":
 				result = Helper_Version
 				execErr = nil
+			case "health":
+				result, execErr = helperHealth()
 			default:
 				execErr = fmt.Errorf("unknown function '%s' for module 'helper'", info.Function)
 			}
@@ -1105,6 +1176,16 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 
 // Main entry point for the Go program
 func main() {
+	config, err := parseHelperRuntimeConfig(os.Args[1:])
+	if err != nil {
+		fmt.Printf("Failed to parse helper runtime configuration: %v\n", err)
+		os.Exit(1)
+	}
+	runtimeConfig = config
+	if err := validateExpectedWindowsUserSID(); err != nil {
+		fmt.Printf("Failed to validate helper user SID: %v\n", err)
+		os.Exit(1)
+	}
 	if err := loadOrGenerateKey(); err != nil {
 		fmt.Printf("Failed to load/generate key: %v\n", err)
 		os.Exit(1)

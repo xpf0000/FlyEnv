@@ -7,11 +7,11 @@ The Windows helper reads its trusted allow-roots file from
 that file, protects it with an ACL, starts the helper, and creates the
 `FlyEnvHelperTask` scheduled task.
 
-The helper's Go path rule is intentionally simple: use `ProgramData` exactly
-as supplied, and use `C:\ProgramData` only when `os.Getenv("ProgramData")`
-returns an empty string. The installer must make the same decision. A previous
-installer condition treated whitespace-only values as absent, which could make
-the installer and helper select different allow-roots paths.
+The helper and installer use `ProgramData` exactly as supplied. When it is
+unset or empty, both resolve Windows' `CommonApplicationData` known folder; a
+final `C:\ProgramData` fallback is used only if that Windows API itself has no
+value. A previous installer condition treated whitespace-only values as absent,
+which could make the installer and helper select different allow-roots paths.
 
 ## Goals
 
@@ -41,16 +41,25 @@ The authoritative helper rule in `src/helper-go/utils/whitelist.go` is:
 ```go
 programData := os.Getenv("ProgramData")
 if programData == "" {
-    programData = `C:\ProgramData`
+    programData = commonApplicationDataPath()
 }
 ```
+
+`commonApplicationDataPath()` calls `windows.KnownFolderPath` with
+`FOLDERID_ProgramData`, then falls back to `C:\ProgramData` only if that call
+fails or returns an empty path.
 
 The installer mirrors it with PowerShell:
 
 ```powershell
 $programData = $env:ProgramData
 if ($null -eq $programData -or $programData -eq "") {
-  $programData = "C:\ProgramData"
+  $programData = [System.Environment]::GetFolderPath(
+    [System.Environment+SpecialFolder]::CommonApplicationData
+  )
+  if ($null -eq $programData -or $programData -eq "") {
+    $programData = "C:\ProgramData"
+  }
 }
 ```
 
@@ -105,6 +114,6 @@ detailed commands and expected results are in
 | P1 | Antivirus or packaging can remove the helper executable, but a health check or install command could previously treat it like an ordinary repairable failure. | Binary existence is checked before socket use and before creating an install command; the stable result is `helper_binary_missing`. | `windows-helper-check-test.ts`, `windows-helper-state-test.ts`, and `windows-helper-send-test.ts`. |
 | P1 | Replacing a running helper could continue while the old process remained alive, while the new helper immediately exited, or while the legacy task remained registered. | Stop and wait for old processes, verify the new process stays alive, replace both task names, and read back the new task. | `test:windows-helper-install`; repeated-install Windows acceptance. |
 | P1 | Empty helper data, a missing binary, a directory supplied as the binary, or scheduled-task registration errors could produce partial state. | Validate inputs and object kinds, require a non-empty roots list, clean up a newly created task/process on later failure, and propagate the final failure through IPC. | `test:windows-helper-install`, `test:windows-helper-install-ipc`, and `windows-app-helper-init-test.ts`. |
-| P2 | Installer and Go helper could choose different allow-roots paths when `ProgramData` contained whitespace. | Both use the value unchanged unless it is unset/empty; only then they use `C:\ProgramData`. | `test:windows-helper-install` checks both source contracts. |
+| P2 | Installer and Go helper could choose different allow-roots paths when `ProgramData` was missing or contained whitespace. | Both preserve non-empty values unchanged; only an unset/empty value resolves `CommonApplicationData`, with the same final `C:\ProgramData` fallback. | `test:windows-helper-install` checks both source contracts. |
 | P2 | An unsafe ProgramData object or invalid data-path shape could be silently accepted. | Reject reparse points, require a normal data directory, canonicalize stored roots, and lock both ACLs. | Source regression plus the Windows file/ACL checks. |
 | P2 | Host-independent tests cannot validate Windows UAC, NTFS ACLs, Task Scheduler, or the actual helper executable. | A bounded manual acceptance plan uses an elevated Windows test installation and records the exact expected state. | Tasks 4.2–4.6 in the implementation plan. |

@@ -45,6 +45,38 @@ func TestParseRole(t *testing.T) {
 	}
 }
 
+func TestParseWindowsHelperRuntimeConfig(t *testing.T) {
+	config, err := parseHelperRuntimeConfig([]string{
+		"--key-path", `C:\\Users\\flyenv\\AppData\\Local\\FlyEnv\\flyenv-helper.key`,
+		"--expected-user-sid", "S-1-5-21-100-200-300-400",
+	})
+	if err != nil {
+		t.Fatalf("parseHelperRuntimeConfig returned error: %v", err)
+	}
+	if config.KeyPath != `C:\\Users\\flyenv\\AppData\\Local\\FlyEnv\\flyenv-helper.key` {
+		t.Fatalf("unexpected key path: %q", config.KeyPath)
+	}
+	if config.ExpectedUserSID != "S-1-5-21-100-200-300-400" {
+		t.Fatalf("unexpected SID: %q", config.ExpectedUserSID)
+	}
+	if _, err := parseHelperRuntimeConfig([]string{"--expected-user-sid"}); err == nil {
+		t.Fatal("missing expected-user-sid value should fail")
+	}
+}
+
+func TestHelperHealthResponseIncludesVersionPIDAndSID(t *testing.T) {
+	response := helperHealthResponse(1234, "S-1-5-21-100-200-300-400")
+	if response["version"] != Helper_Version {
+		t.Fatalf("health version = %v, want %d", response["version"], Helper_Version)
+	}
+	if response["pid"] != 1234 {
+		t.Fatalf("health pid = %v, want 1234", response["pid"])
+	}
+	if response["sid"] != "S-1-5-21-100-200-300-400" {
+		t.Fatalf("health sid = %v", response["sid"])
+	}
+}
+
 func TestValidateFreshRequest(t *testing.T) {
 	app := NewAppHelper()
 	now := time.Now().UnixMilli()

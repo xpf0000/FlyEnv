@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const repoRoot = process.cwd()
-const expectedVersion = 18
+const expectedVersion = 19
 
 function readFile(relPath: string): string {
   return fs.readFileSync(path.join(repoRoot, relPath), 'utf8')

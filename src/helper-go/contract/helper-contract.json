@@ -9,6 +9,14 @@
       "privileged": false
     },
     {
+      "module": "helper",
+      "function": "health",
+      "args": [],
+      "return": "helperHealth",
+      "platform": "all",
+      "privileged": false
+    },
+    {
       "module": "tools",
       "function": "processList",
       "args": [],

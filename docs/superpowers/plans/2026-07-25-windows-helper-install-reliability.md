@@ -76,7 +76,10 @@ Expected: the same meaningful failure.
 ```powershell
 $ErrorActionPreference = 'Stop'
 $programData = $env:ProgramData
-if ($null -eq $programData -or $programData -eq '') { $programData = 'C:\\ProgramData' }
+if ($null -eq $programData -or $programData -eq '') {
+  $programData = [Environment]::GetFolderPath([Environment+SpecialFolder]::CommonApplicationData)
+  if ($null -eq $programData -or $programData -eq '') { $programData = 'C:\\ProgramData' }
+}
 $allowDir = Join-Path $programData 'FlyEnv'
 ```
 

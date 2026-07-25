@@ -38,6 +38,12 @@ func TestWindowsAllowedRootsACLRejectsUsersWrite(t *testing.T) {
 	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Skipf("failed to prepare ACL with Users write access: %v, output: %s", err, output)
 	}
+	t.Cleanup(func() {
+		sid, err := CurrentUserSID()
+		if err == nil {
+			_ = exec.Command("icacls.exe", file, "/grant", "*"+sid+":(F)").Run()
+		}
+	})
 
 	if err := validateWindowsAllowedRootsObjectSecurity(file); err == nil {
 		t.Fatal("Users write access should be rejected")

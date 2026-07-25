@@ -5,14 +5,14 @@ import (
 	"testing"
 )
 
-func TestWindowsHelperKeyPathPrefersTempOverTmp(t *testing.T) {
+func TestWindowsHelperKeyPathUsesStableLocalAppDataLocation(t *testing.T) {
 	root := t.TempDir()
+	localAppData := filepath.Join(root, "local-app-data")
 	tempDir := filepath.Join(root, "temp")
-	tmpDir := filepath.Join(root, "tmp")
+	t.Setenv("LOCALAPPDATA", localAppData)
 	t.Setenv("TEMP", tempDir)
-	t.Setenv("TMP", tmpDir)
 
-	want := filepath.Join(tempDir, "flyenv-helper.key")
+	want := filepath.Join(localAppData, "FlyEnv", "flyenv-helper.key")
 	if got := WindowsHelperKeyPath(); got != want {
 		t.Fatalf("WindowsHelperKeyPath() = %q, want %q", got, want)
 	}

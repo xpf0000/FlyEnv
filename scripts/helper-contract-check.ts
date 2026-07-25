@@ -280,7 +280,7 @@ function checkCalls(contract: Contract) {
 
   const unused = contract.methods
     .map((method) => methodKey(method.module, method.function))
-    .filter((key) => !called.has(key) && key !== 'helper/version')
+    .filter((key) => !called.has(key) && key !== 'helper/version' && key !== 'helper/health')
   if (unused.length > 0) {
     warnings.push(`Contract methods not currently called by TS: ${unused.join(', ')}`)
   }

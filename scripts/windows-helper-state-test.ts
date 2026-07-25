@@ -103,6 +103,17 @@ assert.deepEqual(
   buildHelperCheckResponse(new AppHelperError('helper_unreachable', 'unreachable')),
   { code: 1, data: false, reason: 'helper_unreachable' }
 )
+assert.deepEqual(
+  buildHelperCheckResponse(
+    new AppHelperError('helper_acl_invalid', 'allow-roots ACL verification failed', 'icacls output')
+  ),
+  {
+    code: 1,
+    data: false,
+    reason: 'helper_acl_invalid',
+    stderr: 'icacls output'
+  }
+)
 assert.deepEqual(buildHelperCheckResponse(new Error('x')), {
   code: 1,
   data: false,

@@ -122,7 +122,7 @@ func allowedRootsFilePath() string {
 	if runtime.GOOS == "windows" {
 		programData := os.Getenv("ProgramData")
 		if programData == "" {
-			programData = `C:\ProgramData`
+			programData = commonApplicationDataPath()
 		}
 		return filepath.Join(programData, "FlyEnv", "flyenv.allowed-roots")
 	}

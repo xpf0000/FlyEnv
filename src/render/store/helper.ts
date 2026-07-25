@@ -9,9 +9,22 @@ import { shouldOpenHelperInstaller } from '@shared/WindowsHelperState'
 
 class Helper {
   show: boolean = false
+  private installResultPending = false
 
   shouldShowNeedInstallDialog(reason?: string) {
     return shouldOpenHelperInstaller(reason)
+  }
+
+  isInstallResultPending() {
+    return this.installResultPending
+  }
+
+  private handleInstallResult(res: any) {
+    this.installResultPending = false
+    this.show = false
+    if (res?.code !== 0) {
+      this.showInstallFailDialog(res?.reason, res?.stderr)
+    }
   }
 
   showNeedInstallDialog(reason?: string) {
@@ -28,27 +41,30 @@ class Helper {
       type: 'warning'
     })
       .then(() => {
-        IPC.send('APP-FlyEnv-Helper-Install').then((key: string) => {
+        this.installResultPending = true
+        IPC.send('APP-FlyEnv-Helper-Install').then((key: string, res: any) => {
           IPC.off(key)
-          this.show = false
+          this.handleInstallResult(res)
         })
       })
       .catch(() => {
+        this.installResultPending = false
         this.show = false
       })
   }
 
-  showInstallFailDialog(reason?: string) {
+  showInstallFailDialog(reason?: string, stderr?: string) {
     if (window.Server.isWindows) {
       const message =
         reason === 'helper_binary_missing'
           ? I18nT('menu.helperInstallFailTips')
           : I18nT('setup.flyenvHelperInstallFailTips')
+      const diagnostic = stderr?.trim().slice(0, 1024)
       dialog
         .showMessageBox({
           type: 'info',
           title: I18nT('host.warning'),
-          message,
+          message: diagnostic ? `${message}\n\n${diagnostic}` : message,
           buttons: [I18nT('base.confirm')]
         })
         .then(() => {

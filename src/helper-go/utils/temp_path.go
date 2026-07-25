@@ -5,11 +5,13 @@ import (
 	"path/filepath"
 )
 
-// WindowsHelperKeyPath follows Node's Windows TEMP-before-TMP precedence.
+// WindowsHelperKeyPath uses a stable per-user location rather than TEMP so a
+// UAC approval account cannot change the helper's authentication key.
 func WindowsHelperKeyPath() string {
-	tempDir := os.Getenv("TEMP")
-	if tempDir == "" {
-		tempDir = os.TempDir()
+	localAppData := os.Getenv("LOCALAPPDATA")
+	if localAppData == "" {
+		localAppData = filepath.Join(os.TempDir(), "FlyEnv")
+		return filepath.Join(localAppData, "flyenv-helper.key")
 	}
-	return filepath.Join(tempDir, "flyenv-helper.key")
+	return filepath.Join(localAppData, "FlyEnv", "flyenv-helper.key")
 }

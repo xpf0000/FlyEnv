@@ -1,7 +1,19 @@
 export type AppHelperErrorCode =
   | 'helper_binary_missing'
+  | 'helper_key_missing'
+  | 'helper_key_invalid'
   | 'helper_unreachable'
+  | 'helper_pipe_unreachable'
+  | 'helper_signature_invalid'
   | 'helper_version_mismatch'
+  | 'helper_health_invalid'
+  | 'helper_acl_invalid'
+  | 'helper_task_invalid'
+  | 'helper_task_start_failed'
+  | 'helper_start_timeout'
+  | 'elevation_uac_cancelled'
+  | 'elevation_launch_failed'
+  | 'elevation_status_timeout'
   | 'helper_execution_failed'
   | 'windows_fallback_not_supported'
 
@@ -9,7 +21,7 @@ export type WindowsHelperTransport = 'socket' | 'fallback' | 'prompt' | 'reject'
 
 export type HelperCheckResponse =
   | { code: 0; data: true }
-  | { code: 1; data: false; reason: AppHelperErrorCode }
+  | { code: 1; data: false; reason: AppHelperErrorCode; stderr?: string }
 
 const FALLBACK_ALLOWLIST = new Set([
   'tools/writeFileByRoot',
@@ -27,11 +39,13 @@ const FALLBACK_ERROR_CODES = new Set<AppHelperErrorCode>([
 
 export class AppHelperError extends Error {
   code: AppHelperErrorCode
+  stderr?: string
 
-  constructor(code: AppHelperErrorCode, message: string) {
+  constructor(code: AppHelperErrorCode, message: string, stderr?: string) {
     super(message)
     this.name = 'AppHelperError'
     this.code = code
+    this.stderr = stderr
   }
 }
 
@@ -78,7 +92,10 @@ export const buildHelperCheckResponse = (error: unknown): HelperCheckResponse =>
   }
 
   if (isAppHelperError(error)) {
-    return { code: 1, data: false, reason: error.code }
+    const stderr = error.stderr?.trim()
+    return stderr
+      ? { code: 1, data: false, reason: error.code, stderr: stderr.slice(0, 4096) }
+      : { code: 1, data: false, reason: error.code }
   }
 
   return { code: 1, data: false, reason: 'helper_execution_failed' }

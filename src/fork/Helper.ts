@@ -23,6 +23,7 @@ type Module =
   | 'host'
 type FN =
   | 'version'
+  | 'health'
   | 'writeFileByRoot'
   | 'writeBufferBase64ByRoot'
   | 'readFileByRoot'
