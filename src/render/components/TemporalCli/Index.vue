@@ -7,10 +7,13 @@
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="temporal-cli" title="Temporal CLI">
-        <template #tool-left>
-          <div class="flex items-center gap-1 pl-4 pr-2">
-            <el-button class="flex-shrink-0" link :icon="Link" @click.stop="openURL"></el-button>
-          </div>
+        <template v-if="isRunning" #tool-left>
+          <el-button style="color: #01cc74" class="button" link @click.stop="openURL">
+            <yb-icon
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')"
+            ></yb-icon>
+          </el-button>
         </template>
       </Service>
       <Manager
@@ -34,7 +37,6 @@
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
   import { fs, shell } from '@/util/NodeFn'
-  import { Link } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { computed } from 'vue'
   import { join } from '@/util/path-browserify'
@@ -49,6 +51,9 @@
   checkVersion()
 
   const brewStore = BrewStore()
+  const isRunning = computed(() => {
+    return brewStore.module('temporal-cli').installed.some((m) => m.run)
+  })
 
   const currentVersion = computed(() => {
     return brewStore.currentVersion('temporal-cli')

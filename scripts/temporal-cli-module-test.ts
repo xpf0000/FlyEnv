@@ -46,4 +46,16 @@ assert.match(
   /fs_readFile\([\s\S]*?readFile\(path, 'utf-8'\)[\s\S]*?\.catch\(\(error: NodeJS\.ErrnoException\) => \{[\s\S]*?if \(error\.code === 'ENOENT'\)/
 )
 
+const temporalCliIndexSource = readFileSync(
+  new URL('../src/render/components/TemporalCli/Index.vue', import.meta.url),
+  'utf8'
+)
+assert.match(temporalCliIndexSource, /<template v-if="isRunning" #tool-left>/)
+assert.match(temporalCliIndexSource, /:svg="import\('@\/svg\/http\.svg\?raw'\)"/)
+assert.match(
+  temporalCliIndexSource,
+  /brewStore\.module\('temporal-cli'\)\.installed\.some\(\(m\) => m\.run\)/
+)
+assert.doesNotMatch(temporalCliIndexSource, /import \{ Link \}/)
+
 console.log('ALL CHECKS PASSED')
