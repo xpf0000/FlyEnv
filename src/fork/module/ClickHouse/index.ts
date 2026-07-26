@@ -11,6 +11,7 @@ import {
   downloadFile,
   mkdirp,
   readFile,
+  readdir,
   remove,
   versionBinVersion,
   versionFilterSame,
@@ -23,9 +24,9 @@ import { unpack } from '../../util/Zip'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 
-import { ProcessKill, ProcessListFetch } from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPid } from '@shared/Process'
 import {
   CH_UI_CONNECTION_NAME,
   CH_UI_PORT,
@@ -33,6 +34,7 @@ import {
   chUIReleaseURL,
   clickHouseHttpPort
 } from './chUI'
+import { clickHouseVersionPidFile } from './lifecycle'
 class Manager extends Base {
   constructor() {
     super()
@@ -206,7 +208,23 @@ class Manager extends Base {
     })
   }
 
-  _stopServer(version: SoftInstalled, ...args: any) {
+  private versionPidFile(version: SoftInstalled): string {
+    return clickHouseVersionPidFile(global.Server.BaseDir!, version.bin)
+  }
+
+  private async clearVersionPidFiles(): Promise<void> {
+    const pidDir = join(global.Server.BaseDir!, 'pid')
+    try {
+      const files = await readdir(pidDir)
+      await Promise.all(
+        files
+          .filter((file) => /^clickhouse-[a-f0-9]{32}\.pid$/.test(file))
+          .map((file) => remove(join(pidDir, file)))
+      )
+    } catch {}
+  }
+
+  private _stopAllServers(version: SoftInstalled, ...args: any): ForkPromise<any> {
     return new ForkPromise(async (resolve, reject, on) => {
       let uiPids: string[] = []
       try {
@@ -216,12 +234,83 @@ class Manager extends Base {
       }
       try {
         const res: any = await super._stopServer(version, ...args).on(on)
+        await this.clearVersionPidFiles()
         if (uiPids.length > 0) {
           res['APP-Service-Stop-PID'] = Array.from(
             new Set([...(res['APP-Service-Stop-PID'] ?? []), ...uiPids])
           )
         }
         resolve(res)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  startService(version: SoftInstalled, ...args: any) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      if (!isWindows() && !existsSync(version?.bin)) {
+        reject(new Error(I18nT('fork.binNotFound')))
+        return
+      }
+      if (!version?.version) {
+        reject(new Error(I18nT('fork.versionNotFound')))
+        return
+      }
+      try {
+        this._linkVersion(version)
+      } catch {}
+      try {
+        const stopped = await this._stopAllServers(version, ...args).on(on)
+        await this.ensureAppPidDirWritable()
+        const res: any = await this._startServer(version).on(on)
+        if (stopped?.['APP-Service-Stop-PID']) {
+          res['APP-Service-Stop-PID'] = stopped['APP-Service-Stop-PID']
+        }
+        resolve(res)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  _stopServer(version: SoftInstalled, ...args: any) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      void args
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+      })
+      try {
+        const plist = await ProcessListFetch()
+        const pids = new Set<string>()
+        const versionPid = await this.readPidFromFile(this.versionPidFile(version))
+        const legacyPid = await this.readPidFromFile(this.appPidFile())
+        let legacyPids: string[] = []
+        const candidates = [versionPid, legacyPid, `${version.pid ?? ''}`].filter(Boolean)
+        for (const pid of candidates) {
+          const ownedPids = ProcessOwnedPidsByPid(pid, plist, [version.bin])
+          if (pid === legacyPid) {
+            legacyPids = ownedPids
+          }
+          ownedPids.forEach((ownedPid) => pids.add(ownedPid))
+        }
+        const arr = Array.from(pids)
+        if (arr.length > 0) {
+          await ProcessKill('-INT', arr).catch(() => {})
+        }
+        await remove(this.versionPidFile(version)).catch(() => {})
+        if (legacyPids.length > 0) {
+          await remove(this.appPidFile()).catch(() => {})
+        }
+        if (arr.length > 0) {
+          const uiPids = await this._stopCHUI().catch(() => [])
+          arr.push(...uiPids)
+        }
+        on({ 'APP-Service-Stop-Success': true })
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+        })
+        resolve({ 'APP-Service-Stop-PID': Array.from(new Set(arr)) })
       } catch (error) {
         reject(error)
       }
@@ -382,7 +471,7 @@ class Manager extends Base {
       try {
         const res = await serviceStartSpawn({
           version,
-          pidPath: this.appPidFile(),
+          pidPath: this.versionPidFile(version),
           baseDir,
           bin,
           execArgs,
