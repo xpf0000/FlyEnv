@@ -33,7 +33,7 @@ const ptyPrebuildExcludes = [
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.17.1',
+  buildVersion: '4.17.2',
   electronVersion: '39.8.7',
   appId: 'phpstudy.xpfme.com',
   asar: true,
