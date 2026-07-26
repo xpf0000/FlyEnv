@@ -192,6 +192,51 @@ export const ProcessOwnedPidsByPid = (
 }
 
 /**
+ * Accept either an exact service root, or a known watchdog root whose descendant
+ * command contains an exact owned marker. ClickHouse uses the latter shape:
+ * `clickhouse-watchdog` is the root and the version binary is its child.
+ */
+export const ProcessOwnedPidsByPidOrDescendant = (
+  pid: string,
+  arr: PItem[],
+  ownedMarkers: Array<string | null | undefined>,
+  watchdogMarkers: Array<string | null | undefined>
+): string[] => {
+  const tree = ProcessListByExactPid(pid, arr)
+  if (tree.length === 0) {
+    return []
+  }
+  const rootPid = `${pid}`.trim()
+  const root = tree.find((item) => item.PID === rootPid)
+  const rootCommand = root?.COMMAND ?? ''
+  if (!rootCommand || ProcessCommandLooksLikeElectronChild(rootCommand)) {
+    return []
+  }
+  const markers = ownedMarkers
+    .map((marker) => `${marker ?? ''}`.trim())
+    .filter(Boolean)
+  const watchdogs = watchdogMarkers
+    .map((marker) => `${marker ?? ''}`.trim())
+    .filter(Boolean)
+  if (markers.length === 0) {
+    return []
+  }
+  if (markers.some((marker) => rootCommand.includes(marker))) {
+    return tree.map((item) => item.PID)
+  }
+  if (!watchdogs.some((marker) => rootCommand.includes(marker))) {
+    return []
+  }
+  const hasOwnedDescendant = tree.some(
+    (item) => item.PID !== rootPid && markers.some((marker) => item.COMMAND.includes(marker))
+  )
+  if (!hasOwnedDescendant) {
+    return []
+  }
+  return tree.map((item) => item.PID)
+}
+
+/**
  * 仅当 root PID 仍存在，且当前完整命令行与启动后保存的快照完全相等时，
  * 才返回其进程树。严格相等可拦住 PID 被终端、Codex 等进程复用的情况。
  */

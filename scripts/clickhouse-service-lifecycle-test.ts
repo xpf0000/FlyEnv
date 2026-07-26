@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { clickHouseVersionPidFile } from '../src/fork/module/ClickHouse/lifecycle'
+import type { PItem } from '../src/shared/Process'
+import { ProcessOwnedPidsByPidOrDescendant } from '../src/shared/Process'
 
 const baseDir = '/tmp/flyenv'
 const versionA = '/tmp/flyenv/app/clickhouse-25.8/clickhouse'
@@ -35,6 +37,37 @@ assert.doesNotMatch(
   directStopSource,
   /super\._stopServer/,
   "stopping one version must not use Base's module-wide process search"
+)
+
+const bin = '/tmp/flyenv/app/clickhouse-26.7/clickhouse'
+const processList: PItem[] = [
+  { PID: '100', PPID: '1', USER: 'x', COMMAND: 'clickhouse-watchdog' },
+  { PID: '101', PPID: '100', USER: 'x', COMMAND: `${bin} server` },
+  { PID: '200', PPID: '1', USER: 'x', COMMAND: 'clickhouse-watchdog' },
+  { PID: '201', PPID: '200', USER: 'x', COMMAND: '/tmp/other/clickhouse server' },
+  {
+    PID: '300',
+    PPID: '1',
+    USER: 'x',
+    COMMAND: '/Applications/FlyEnv.app/Contents/MacOS/FlyEnv --type=renderer'
+  },
+  { PID: '301', PPID: '300', USER: 'x', COMMAND: `${bin} server` }
+]
+
+assert.deepEqual(
+  ProcessOwnedPidsByPidOrDescendant('100', processList, [bin], ['clickhouse-watchdog']),
+  ['100', '101'],
+  'a ClickHouse watchdog is owned only when its descendant runs the exact requested binary'
+)
+assert.deepEqual(
+  ProcessOwnedPidsByPidOrDescendant('200', processList, [bin], ['clickhouse-watchdog']),
+  [],
+  'a watchdog for another ClickHouse binary must not be signalled'
+)
+assert.deepEqual(
+  ProcessOwnedPidsByPidOrDescendant('300', processList, [bin], ['clickhouse-watchdog']),
+  [],
+  'a reused Electron renderer PID must never become owned through its descendants'
 )
 
 console.log('clickhouse service lifecycle tests passed')
