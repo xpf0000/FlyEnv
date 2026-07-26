@@ -32,7 +32,27 @@ assert.match(source, /startService\(version: SoftInstalled, \.\.\.args: any\)/)
 assert.match(source, /private _stopAllServers\(version: SoftInstalled, \.\.\.args: any\)/)
 assert.match(source, /pidPath: this\.versionPidFile\(version\)/)
 assert.match(directStopSource, /const plist = await ProcessListFetch\(\)/)
-assert.match(directStopSource, /ProcessOwnedPidsByPid\(pid, plist, \[version\.bin\]\)/)
+assert.match(
+  directStopSource,
+  /ProcessOwnedPidsByPidOrDescendant\(\s*pid,\s*plist,\s*\[version\.bin\],\s*\['clickhouse-watchdog'\]\s*\)/,
+  'direct ClickHouse stop must validate a watchdog through its exact version-binary descendant'
+)
+assert.match(
+  directStopSource,
+  /'APP-Service-Stale-Bins': staleBins/,
+  'untrusted saved PIDs must request bin-specific deregistration instead of PID deregistration'
+)
+assert.match(
+  source,
+  /const managedPid = await this\.managedClickHousePid\(spawnedPid, version\)/,
+  'the PID handed to main must be the validated stable ClickHouse root'
+)
+assert.match(source, /await writeFile\(this\.versionPidFile\(version\), managedPid\)/)
+assert.doesNotMatch(
+  directStopSource,
+  /ProcessOwnedPidsByPid\(pid, plist, \[version\.bin\]\)/,
+  'the old root-command-only check cannot validate a watchdog'
+)
 assert.doesNotMatch(
   directStopSource,
   /super\._stopServer/,

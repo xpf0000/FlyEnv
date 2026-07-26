@@ -26,7 +26,11 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
 
-import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPid } from '@shared/Process'
+import {
+  ProcessKill,
+  ProcessListFetch,
+  ProcessOwnedPidsByPidOrDescendant
+} from '@shared/Process'
 import {
   CH_UI_CONNECTION_NAME,
   CH_UI_PORT,
@@ -267,11 +271,22 @@ class Manager extends Base {
         if (stopped?.['APP-Service-Stop-PID']) {
           res['APP-Service-Stop-PID'] = stopped['APP-Service-Stop-PID']
         }
+        if (stopped?.['APP-Service-Stale-Bins']) {
+          res['APP-Service-Stale-Bins'] = stopped['APP-Service-Stale-Bins']
+        }
         resolve(res)
       } catch (error) {
         reject(error)
       }
     })
+  }
+
+  private async managedClickHousePid(pid: string, version: SoftInstalled): Promise<string> {
+    const plist = await ProcessListFetch()
+    const owned = ProcessOwnedPidsByPidOrDescendant(pid, plist, [version.bin], [
+      'clickhouse-watchdog'
+    ])
+    return owned.length > 0 ? `${pid}` : ''
   }
 
   _stopServer(version: SoftInstalled, ...args: any) {
@@ -286,9 +301,21 @@ class Manager extends Base {
         const versionPid = await this.readPidFromFile(this.versionPidFile(version))
         const legacyPid = await this.readPidFromFile(this.appPidFile())
         let legacyPids: string[] = []
-        const candidates = [versionPid, legacyPid, `${version.pid ?? ''}`].filter(Boolean)
+        const staleBinSet = new Set<string>()
+        const candidates = Array.from(
+          new Set([versionPid, legacyPid, `${version.pid ?? ''}`].filter(Boolean))
+        )
         for (const pid of candidates) {
-          const ownedPids = ProcessOwnedPidsByPid(pid, plist, [version.bin])
+          const ownedPids = ProcessOwnedPidsByPidOrDescendant(
+            pid,
+            plist,
+            [version.bin],
+            ['clickhouse-watchdog']
+          )
+          if (ownedPids.length === 0) {
+            staleBinSet.add(version.bin)
+            continue
+          }
           if (pid === legacyPid) {
             legacyPids = ownedPids
           }
@@ -306,11 +333,15 @@ class Manager extends Base {
           const uiPids = await this._stopCHUI().catch(() => [])
           arr.push(...uiPids)
         }
+        const staleBins = Array.from(staleBinSet)
         on({ 'APP-Service-Stop-Success': true })
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
         })
-        resolve({ 'APP-Service-Stop-PID': Array.from(new Set(arr)) })
+        resolve({
+          'APP-Service-Stop-PID': Array.from(new Set(arr)),
+          'APP-Service-Stale-Bins': staleBins
+        })
       } catch (error) {
         reject(error)
       }
@@ -481,12 +512,17 @@ class Manager extends Base {
           outFile: join(logDir, 'server.start.out.log'),
           errFile: join(logDir, 'server.start.err.log')
         })
-        const pid = `${res['APP-Service-Start-PID']}`.trim().split('\n').shift()!.trim()
+        const spawnedPid = `${res['APP-Service-Start-PID']}`.trim().split('\n').shift()!.trim()
+        const managedPid = await this.managedClickHousePid(spawnedPid, version)
+        if (!managedPid) {
+          throw new Error(I18nT('fork.startFail'))
+        }
+        await writeFile(this.versionPidFile(version), managedPid)
         on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: managedPid }))
         })
         resolve({
-          'APP-Service-Start-PID': pid
+          'APP-Service-Start-PID': managedPid
         })
       } catch (e: any) {
         console.log('clickhouse start err: ', e)
