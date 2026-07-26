@@ -29,6 +29,7 @@
   import XTerm from '@/util/XTerm'
   import { FlyEnvHelperSetup } from '@/components/FlyEnvHelper/setup'
   import IPC from '@/util/IPC'
+  import HelperStore from '@/store/helper'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -112,6 +113,8 @@
     FlyEnvHelperSetup.execXTerm?.destroy?.()
     delete FlyEnvHelperSetup.execXTerm
     show.value = false
+    // 终端里装完帮助程序后，把之前没写成的系统 hosts 补上
+    HelperStore.verifyHelperReady()
   }
 
   defineExpose({

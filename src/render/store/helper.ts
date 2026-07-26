@@ -5,6 +5,7 @@ import { app, dialog, shell } from '@/util/NodeFn'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { reactiveBind } from '@/util/Index'
 import { shouldOpenHelperInstaller } from '@shared/WindowsHelperState'
+import { handleWriteHosts } from '@/util/Host'
 
 class Helper {
   show: boolean = false
@@ -26,12 +27,26 @@ class Helper {
     this.handleInstallResult(res)
   }
 
+  /**
+   * 手动安装（终端脚本）走不到安装结果回调，先确认帮助程序真的可用再补写。
+   */
+  verifyHelperReady() {
+    IPC.send('APP:FlyEnv-Helper-Check').then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        handleWriteHosts().catch(() => {})
+      }
+    })
+  }
+
   private handleInstallResult(res: any) {
     this.installResultPending = false
     this.show = false
     if (res?.code !== 0) {
       this.showInstallFailDialog(res?.reason, res?.stderr)
+      return
     }
+    handleWriteHosts().catch(() => {})
   }
 
   showNeedInstallDialog(reason?: string) {
