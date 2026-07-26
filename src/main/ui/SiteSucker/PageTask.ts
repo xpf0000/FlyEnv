@@ -10,10 +10,12 @@ import { dirname } from 'path'
 
 class PageTaskItem {
   private window?: BrowserWindow
+  private destroyed = false
+  private onDestroyed: (item: PageTaskItem) => void
   isDestroy?: boolean
-  onDestroyed?: (item: any) => void
 
-  constructor() {
+  constructor(onDestroyed: (item: PageTaskItem) => void) {
+    this.onDestroyed = onDestroyed
     this.window = new BrowserWindow({
       show: true,
       width: 1440,
@@ -24,6 +26,7 @@ class PageTaskItem {
         webSecurity: false
       }
     })
+    this.window.once('closed', this.handleWindowClosed)
     this.window.webContents.session.webRequest.onBeforeRequest((details, callback) => {
       if (checkIsExcludeUrl(details.url, false)) {
         callback({
@@ -138,12 +141,19 @@ class PageTaskItem {
         }
         callback({})
       }
-      this?.window?.on('close', async () => {
-        this.destroy()
-        this?.onDestroyed?.(this)
-      })
     })
   }
+
+  private handleWindowClosed = () => {
+    if (this.destroyed) {
+      return
+    }
+    this.destroyed = true
+    this.isDestroy = true
+    this.window = undefined
+    this.onDestroyed(this)
+  }
+
   async updateConfig() {
     if (Config.proxy.trim()) {
       const proxy = Config.proxy.trim()
@@ -432,29 +442,37 @@ class PageTaskItem {
   }
 
   destroy() {
-    this.isDestroy = true
-    if (this.window) {
-      this.window?.destroy()
+    if (this.destroyed) {
+      return
     }
-    this.window = undefined
+    this.isDestroy = true
+    const window = this.window
+    if (window && !window.isDestroyed()) {
+      window.destroy()
+    }
+    this.handleWindowClosed()
   }
 }
 
 class PageTask {
   private task: PageTaskItem[] = []
-  init(num: number) {
-    const destroy = (item: any) => {
-      const index = this.task.findIndex((f) => f === item)
-      if (index >= 0) {
-        this.task.splice(index, 1)
-      }
-      if (this.task.length === 0) {
-        Callback.fn('window-close')
-      }
+  private closeNotified = false
+
+  private handleDestroyed = (item: PageTaskItem) => {
+    const index = this.task.findIndex((task) => task === item)
+    if (index >= 0) {
+      this.task.splice(index, 1)
     }
+    if (this.task.length === 0 && !this.closeNotified) {
+      this.closeNotified = true
+      Callback.fn('window-close')
+    }
+  }
+
+  init(num: number) {
+    this.closeNotified = false
     for (let i = 0; i < num; i += 1) {
-      const item = new PageTaskItem()
-      item.onDestroyed = destroy
+      const item = new PageTaskItem(this.handleDestroyed)
       this.task.push(item)
     }
   }
@@ -471,10 +489,8 @@ class PageTask {
     this.task.forEach((t) => t.updateConfig())
   }
   destroy() {
-    this.task.forEach((t) => {
-      t.isDestroy = true
-    })
-    this.task.splice(0)
+    const task = [...this.task]
+    task.forEach((t) => t.destroy())
   }
 }
 
