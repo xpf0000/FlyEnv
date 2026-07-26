@@ -140,3 +140,54 @@ func TestVerifySignatureIncludesAuthFields(t *testing.T) {
 		t.Fatal("signature should fail when args change")
 	}
 }
+
+func TestParseSetSystemPathArgsAcceptsOptionalExpectedRawPath(t *testing.T) {
+	paths := []interface{}{
+		`%INTEL_DEV_REDIST%redist\intel64\compiler`,
+		`..\relative`,
+		``,
+	}
+	otherVars := map[string]interface{}{"JAVA_HOME": `C:\FlyEnv\java`}
+
+	parsedPaths, parsedVars, expectedRawPath, err := parseSetSystemPathArgs(
+		[]interface{}{paths, otherVars, `C:\SDK\bin;`},
+	)
+	if err != nil {
+		t.Fatalf("parseSetSystemPathArgs returned error: %v", err)
+	}
+	if len(parsedPaths) != len(paths) || parsedPaths[0] != paths[0] || parsedPaths[2] != "" {
+		t.Fatalf("paths were not preserved: %#v", parsedPaths)
+	}
+	if parsedVars["JAVA_HOME"] != `C:\FlyEnv\java` {
+		t.Fatalf("otherVars were not preserved: %#v", parsedVars)
+	}
+	if expectedRawPath == nil || *expectedRawPath != `C:\SDK\bin;` {
+		t.Fatalf("expected raw PATH was not preserved: %#v", expectedRawPath)
+	}
+
+	_, _, noExpectedRawPath, err := parseSetSystemPathArgs([]interface{}{paths, otherVars})
+	if err != nil {
+		t.Fatalf("two argument setSystemPath should remain supported: %v", err)
+	}
+	if noExpectedRawPath != nil {
+		t.Fatalf("two argument setSystemPath expected nil snapshot, got %#v", noExpectedRawPath)
+	}
+}
+
+func TestParseSetSystemPathArgsRejectsNonStringExpectedRawPath(t *testing.T) {
+	_, _, _, err := parseSetSystemPathArgs(
+		[]interface{}{[]interface{}{`C:\FlyEnv\bin`}, map[string]interface{}{}, true},
+	)
+	if err == nil {
+		t.Fatal("non-string expectedRawPath should fail")
+	}
+}
+
+func TestParseSetSystemPathArgsRejectsNULExpectedRawPath(t *testing.T) {
+	_, _, _, err := parseSetSystemPathArgs(
+		[]interface{}{[]interface{}{`C:\FlyEnv\bin`}, map[string]interface{}{}, "C:\\FlyEnv\x00bin"},
+	)
+	if err == nil {
+		t.Fatal("NUL expectedRawPath should fail")
+	}
+}

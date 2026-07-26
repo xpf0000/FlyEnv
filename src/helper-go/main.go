@@ -26,7 +26,7 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 19
+	Helper_Version   = 20
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
@@ -135,6 +135,50 @@ func NewAppHelper() *AppHelper {
 		nonces:   make(map[string]int64),
 		// Initialize other managers here
 	}
+}
+
+func parseSetSystemPathArgs(args []interface{}) ([]string, map[string]string, *string, error) {
+	if len(args) != 2 && len(args) != 3 {
+		return nil, nil, nil, fmt.Errorf("setSystemPath expects 2 or 3 arguments (paths, otherVars, expectedPath), got %d", len(args))
+	}
+
+	paths, ok := args[0].([]interface{})
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("setSystemPath: arg[0] (paths) must be a string array, got %T", args[0])
+	}
+	pathArr := make([]string, 0, len(paths))
+	for i, p := range paths {
+		ps, ok := p.(string)
+		if !ok {
+			return nil, nil, nil, fmt.Errorf("setSystemPath: paths[%d] must be a string, got %T", i, p)
+		}
+		pathArr = append(pathArr, ps)
+	}
+
+	otherVars, ok := args[1].(map[string]interface{})
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("setSystemPath: arg[1] (otherVars) must be a map[string]string, got %T", args[1])
+	}
+	vars := make(map[string]string, len(otherVars))
+	for k, v := range otherVars {
+		vs, ok := v.(string)
+		if !ok {
+			return nil, nil, nil, fmt.Errorf("setSystemPath: otherVars[%s] must be a string, got %T", k, v)
+		}
+		vars[k] = vs
+	}
+
+	if len(args) == 2 {
+		return pathArr, vars, nil, nil
+	}
+	expectedPath, ok := args[2].(string)
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("setSystemPath: arg[2] (expectedPath) must be a string, got %T", args[2])
+	}
+	if strings.ContainsRune(expectedPath, '\x00') {
+		return nil, nil, nil, fmt.Errorf("setSystemPath: arg[2] (expectedPath) contains NUL")
+	}
+	return pathArr, vars, &expectedPath, nil
 }
 
 var helperKey []byte
@@ -857,40 +901,11 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 					result, execErr = a.Tool.GetSystemPath()
 				}
 			case "setSystemPath":
-				if len(info.Args) == 2 {
-					if paths, ok := info.Args[0].([]interface{}); ok {
-						var pathArr []string
-						for i, p := range paths {
-							if ps, ok := p.(string); ok {
-								pathArr = append(pathArr, ps)
-							} else {
-								execErr = fmt.Errorf("setSystemPath: paths[%d] must be a string, got %T", i, p)
-								break
-							}
-						}
-						if execErr == nil {
-							if otherVars, ok := info.Args[1].(map[string]interface{}); ok {
-								var vars map[string]string = make(map[string]string)
-								for k, v := range otherVars {
-									if vs, ok := v.(string); ok {
-										vars[k] = vs
-									} else {
-										execErr = fmt.Errorf("setSystemPath: otherVars[%s] must be a string, got %T", k, v)
-										break
-									}
-								}
-								if execErr == nil {
-									result, execErr = a.Tool.SetSystemPath(pathArr, vars)
-								}
-							} else {
-								execErr = fmt.Errorf("setSystemPath: arg[1] (otherVars) must be a map[string]string, got %T", info.Args[1])
-							}
-						}
-					} else {
-						execErr = fmt.Errorf("setSystemPath: arg[0] (paths) must be a string array, got %T", info.Args[0])
-					}
+				pathArr, vars, expectedPath, err := parseSetSystemPathArgs(info.Args)
+				if err != nil {
+					execErr = err
 				} else {
-					execErr = fmt.Errorf("setSystemPath expects 2 arguments (paths, otherVars), got %d", len(info.Args))
+					result, execErr = a.Tool.SetSystemPath(pathArr, vars, expectedPath)
 				}
 			case "setSystemEnv":
 				if len(info.Args) == 2 {

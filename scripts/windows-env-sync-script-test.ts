@@ -31,6 +31,14 @@ async function main() {
     '/home/flyenv/.linuxbrew/bin:/home/flyenv/bin:/usr/bin:/opt/podman/bin:/home/linuxbrew/.linuxbrew/bin:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/sbin'
   )
 
+  const buildWindowsSyncedPath = (EnvSyncLocal as any).buildWindowsSyncedPath
+  assert.equal(typeof buildWindowsSyncedPath, 'function')
+  assert.equal(
+    buildWindowsSyncedPath('C:\\New;C:\\Tools', ['C:\\Windows\\System32']),
+    'C:\\Windows\\System32;C:\\New;C:\\Tools'
+  )
+  assert.doesNotMatch(localSource, /process\.env\[key\]\?\.split\(';'\)/)
+
   console.log('windows env sync script test passed')
 }
 

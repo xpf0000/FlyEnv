@@ -4,7 +4,7 @@ package module
 
 import "fmt"
 
-func windowsGetMachineEnv(name string) (string, error) {
+func windowsGetMachineEnvRaw(name string) (string, error) {
 	return "", fmt.Errorf("Windows registry is not available")
 }
 

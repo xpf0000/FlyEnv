@@ -115,7 +115,10 @@ export class Helper {
   }
 
   private validateSendArgs(module: string, fn: string, args: any[]): boolean {
-    for (const arg of args) {
+    for (const [index, arg] of args.entries()) {
+      if (module === 'tools' && fn === 'setSystemPath' && (index === 0 || index === 2)) {
+        continue
+      }
       if (typeof arg === 'string') {
         if (!this.validatePathArg(arg)) return false
       } else if (Array.isArray(arg)) {

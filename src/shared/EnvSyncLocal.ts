@@ -2,7 +2,7 @@ import { appDebugLog, isWindows } from '@shared/utils'
 import { shellEnv } from 'shell-env'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { dirname, isAbsolute, join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { existsSync } from 'node:fs'
 import * as process from 'node:process'
 import JSON5 from 'json5'
@@ -83,6 +83,9 @@ export const buildUnixPath = (currentPath: string, home?: string) => {
   })
   return Array.from(new Set(expanded.filter((item) => item.length > 0))).join(':')
 }
+
+export const buildWindowsSyncedPath = (registryPath: string, bootstrapEntries: readonly string[]) =>
+  [...bootstrapEntries, registryPath].join(';')
 
 class EnvSyncLocalLoader {
   private cmdPath?: string
@@ -215,35 +218,11 @@ class EnvSyncLocalLoader {
     } catch {}
     console.timeEnd('EnvSync getWindowsAllEnv')
 
-    const keys = ['PATH', 'Path', 'path']
-    const paths: string[] = []
-    for (const key of keys) {
-      lastEnv[key]?.split(';').forEach((item) => {
-        const path = item.trim()
-        if (path) paths.push(path)
-      })
-    }
-    for (const key of keys) {
-      process.env[key]?.split(';').forEach((item) => {
-        const path = item.trim()
-        if (path) paths.push(path)
-      })
-    }
-
-    const extent = `C:\\Program Files\\RedHat\\Podman;C:\\Windows\\System32\\WindowsPowerShell\\v1.0;${this.systemPath ?? 'C:\\Windows\\System32'}`
-    extent.split(';').forEach((item) => {
-      const path = item.trim()
-      if (path) paths.unshift(path)
-    })
-
-    const path = Array.from(new Set(paths))
-      .map((item) => item.trim())
-      .filter((item) => {
-        if (!item) return false
-        if (/%[^%]+%/.test(item) || item.includes('$env:')) return true
-        return isAbsolute(item)
-      })
-      .join(';')
+    const path = buildWindowsSyncedPath(this.findEnv(lastEnv, 'PATH') ?? '', [
+      this.systemPath ?? 'C:\\Windows\\System32',
+      'C:\\Windows\\System32\\WindowsPowerShell\\v1.0',
+      'C:\\Program Files\\RedHat\\Podman'
+    ])
 
     const env = stringEnv({ ...process.env, ...lastEnv, PATH: path, Path: path })
     this.fetchWinPaths(env)

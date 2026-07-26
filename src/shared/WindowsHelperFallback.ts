@@ -59,6 +59,7 @@ type ValidatedWriteBufferArgs = {
 type ValidatedSetSystemPathArgs = {
   paths: string[]
   otherVars: Record<string, string>
+  expectedPath?: string
 }
 
 type ValidatedSetSystemEnvArgs = {
@@ -378,6 +379,16 @@ function validatePathLikeEnvEntry(value: string, label: string): string {
   return clean
 }
 
+function validateSystemPathPayload(paths: unknown[]): string[] {
+  return paths.map((entry, index) => {
+    const value = ensureString(entry, `setSystemPath paths[${index}]`)
+    if (value.includes('\0')) {
+      helperExecutionFailed(`setSystemPath paths[${index}] contains NUL`)
+    }
+    return value
+  })
+}
+
 function validateSystemEnvKey(key: string, allowWhitelisted: boolean): string {
   if (!ENV_KEY_PATTERN.test(key)) {
     helperExecutionFailed(`invalid environment variable key: ${key}`)
@@ -487,16 +498,13 @@ function validateRmArgs(args: unknown[]): string {
 }
 
 function validateSetSystemPathArgs(args: unknown[]): ValidatedSetSystemPathArgs {
-  ensureArgCount(args, 2, 'setSystemPath')
+  if (args.length !== 2 && args.length !== 3) {
+    helperExecutionFailed(`setSystemPath expects 2 or 3 arguments, got ${args.length}`)
+  }
   if (!Array.isArray(args[0])) {
     helperExecutionFailed('setSystemPath arg[0] (paths) must be a string array')
   }
-  const paths = args[0].map((entry, index) =>
-    validatePathLikeEnvEntry(
-      ensureString(entry, `setSystemPath paths[${index}]`),
-      `setSystemPath paths[${index}]`
-    )
-  )
+  const paths = validateSystemPathPayload(args[0])
   if (typeof args[1] !== 'object' || args[1] === null || Array.isArray(args[1])) {
     helperExecutionFailed('setSystemPath arg[1] (otherVars) must be a map[string]string')
   }
@@ -509,7 +517,18 @@ function validateSetSystemPathArgs(args: unknown[]): ValidatedSetSystemPathArgs 
     )
     otherVars[key] = value
   }
-  return { paths, otherVars }
+  if (args.length === 2) {
+    return { paths, otherVars }
+  }
+  const expectedPath = ensureString(args[2], 'setSystemPath arg[2] (expectedPath)')
+  if (expectedPath.includes('\0')) {
+    helperExecutionFailed('setSystemPath arg[2] (expectedPath) contains NUL')
+  }
+  return {
+    paths,
+    otherVars,
+    expectedPath
+  }
 }
 
 function validateSetSystemEnvArgs(args: unknown[]): ValidatedSetSystemEnvArgs {
@@ -605,26 +624,52 @@ if (Test-Path -LiteralPath $targetPath) {
 
 function buildSetSystemPathScript(args: ValidatedSetSystemPathArgs, tempFilePath?: string): string {
   const runtimeSetup = tempFilePath
-    ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
+    ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw -Encoding UTF8 | ConvertFrom-Json
 $paths = @($payload.paths)
 $otherVars = @{}
 if ($payload.otherVars) {
   foreach ($property in $payload.otherVars.PSObject.Properties) {
     $otherVars[[string]$property.Name] = [string]$property.Value
   }
-}`
+}
+$expectedPath = if ($null -eq $payload.expectedPath) { $null } else { [string]$payload.expectedPath }`
     : (() => {
         const pathsArray = args.paths.map((entry) => powerShellString(entry)).join(', ')
         const otherVarsBody = Object.entries(args.otherVars)
           .map(([key, value]) => `${powerShellString(key)} = ${powerShellString(value)}`)
           .join('; ')
         return `$paths = @(${pathsArray})
-$otherVars = ${otherVarsBody ? `@{ ${otherVarsBody} }` : '@{}'}`
+$otherVars = ${otherVarsBody ? `@{ ${otherVarsBody} }` : '@{}'}
+$expectedPath = ${args.expectedPath === undefined ? '$null' : powerShellString(args.expectedPath)}`
       })()
   return `${buildPowerShellPreamble()}
 ${runtimeSetup}
-$pathValue = (($paths | Where-Object { $_ -and $_.ToString().Trim().Length -gt 0 }) -join ';') + ';'
-New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name 'Path' -Value $pathValue -PropertyType ExpandString -Force | Out-Null
+$pathValue = [string]::Join(';', [string[]]$paths)
+if ($null -ne $expectedPath) {
+  $readRegistryKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey('SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment', $false)
+  if ($null -eq $readRegistryKey) {
+    throw 'failed to read system PATH'
+  }
+  try {
+    $currentPath = $readRegistryKey.GetValue('Path', $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+  }
+  finally {
+    $readRegistryKey.Dispose()
+  }
+  if ($null -eq $currentPath -or [string]$currentPath -cne $expectedPath) {
+    throw 'system_path_changed'
+  }
+}
+$writeRegistryKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey('SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment', $true)
+if ($null -eq $writeRegistryKey) {
+  throw 'failed to write system PATH'
+}
+try {
+  $writeRegistryKey.SetValue('Path', $pathValue, [Microsoft.Win32.RegistryValueKind]::ExpandString)
+}
+finally {
+  $writeRegistryKey.Dispose()
+}
 foreach ($entry in $otherVars.GetEnumerator()) {
   $name = [string]$entry.Key
   $value = [string]$entry.Value

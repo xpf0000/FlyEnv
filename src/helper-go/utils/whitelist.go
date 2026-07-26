@@ -746,6 +746,17 @@ func ValidateSystemPathEntry(entry string) error {
 	return nil
 }
 
+// ValidateSystemPathPayload permits all Windows PATH entry text except embedded NUL.
+// PATH is user-owned data and must be written back without normalization.
+func ValidateSystemPathPayload(paths []string) error {
+	for _, entry := range paths {
+		if strings.ContainsRune(entry, '\x00') {
+			return fmt.Errorf("PATH entry contains NUL")
+		}
+	}
+	return nil
+}
+
 func ValidateSystemEnvValue(key, value string) error {
 	if len(value) > 4096 || hasControlChars(value) {
 		return fmt.Errorf("invalid environment variable value for %s", key)

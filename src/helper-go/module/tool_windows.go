@@ -16,7 +16,10 @@ func windowsOpenMachineEnv(access uint32) (registry.Key, error) {
 	return registry.OpenKey(registry.LOCAL_MACHINE, machineEnvRegistryPath, access)
 }
 
-func windowsGetMachineEnv(name string) (string, error) {
+// windowsGetMachineEnvRaw reads a machine environment value without expanding
+// REG_EXPAND_SZ variables. registry.GetStringValue reads the registry value
+// directly, so the returned text is suitable for byte-for-byte PATH snapshots.
+func windowsGetMachineEnvRaw(name string) (string, error) {
 	key, err := windowsOpenMachineEnv(registry.QUERY_VALUE)
 	if err != nil {
 		return "", err

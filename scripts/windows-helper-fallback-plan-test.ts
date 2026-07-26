@@ -82,6 +82,60 @@ const setEnvPlan = buildWindowsHelperFallbackPlan(
 assert.equal(setEnvPlan.mode, 'inline')
 assert.match(setEnvPlan.script, /Set-ItemProperty/)
 
+const rawPathEntries = [
+  '%INTEL_DEV_REDIST%redist\\intel64\\compiler',
+  'relative\\tool',
+  '..\\traversal',
+  '$env:SystemRoot\\System32',
+  '\\\\server\\share\\bin',
+  '路径\\工具',
+  ''
+]
+const expectedRawPath = 'C:\\SDK\\bin;%INTEL_DEV_REDIST%redist\\intel64\\compiler;'
+const setPathPlan = buildWindowsHelperFallbackPlan(
+  'tools',
+  'setSystemPath',
+  [rawPathEntries, {}, expectedRawPath],
+  6000
+)
+assert.equal(setPathPlan.mode, 'data-file')
+assert.equal(
+  setPathPlan.tempFileContent,
+  JSON.stringify({ paths: rawPathEntries, otherVars: {}, expectedPath: expectedRawPath })
+)
+assert.match(
+  setPathPlan.script,
+  /Get-Content -LiteralPath .+ -Raw -Encoding UTF8 \| ConvertFrom-Json/
+)
+assert.match(setPathPlan.script, /\[string\]::Join\(';', \[string\[\]\]\$paths\)/)
+assert.doesNotMatch(setPathPlan.script, /Where-Object/)
+assert.doesNotMatch(setPathPlan.script, /\+ ';'/)
+assert.match(setPathPlan.script, /DoNotExpandEnvironmentNames/)
+assert.match(setPathPlan.script, /\$currentPath -cne \$expectedPath/)
+assert.match(setPathPlan.script, /throw 'system_path_changed'/)
+
+assert.throws(
+  () => buildWindowsHelperFallbackPlan('tools', 'setSystemPath', [['bad\0path'], {}], 6000),
+  (error: unknown) => {
+    assert.equal((error as { code?: string }).code, 'helper_execution_failed')
+    return true
+  }
+)
+
+assert.throws(
+  () =>
+    buildWindowsHelperFallbackPlan(
+      'tools',
+      'setSystemPath',
+      [['C:\\FlyEnv\\bin'], {}, 'bad\0path'],
+      6000
+    ),
+  (error: unknown) => {
+    assert.equal((error as { code?: string }).code, 'helper_execution_failed')
+    return true
+  }
+)
+
 const setAutoStartPlan = buildWindowsHelperFallbackPlan(
   'tools',
   'setAutoStartWin',

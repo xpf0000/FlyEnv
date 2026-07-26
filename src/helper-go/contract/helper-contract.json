@@ -138,7 +138,8 @@
       "function": "setSystemPath",
       "args": [
         { "name": "paths", "type": "string[]" },
-        { "name": "otherVars", "type": "object" }
+        { "name": "otherVars", "type": "object" },
+        { "name": "expectedPath", "type": "string", "optional": true }
       ],
       "return": "boolean",
       "platform": "windows",

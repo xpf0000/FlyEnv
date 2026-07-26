@@ -466,26 +466,20 @@ func (t *ToolManager) GetSystemPath() (string, error) {
 	if !utils.IsWindows() {
 		return "", fmt.Errorf("GetSystemPath is only supported on Windows")
 	}
-	value, err := windowsGetMachineEnv("Path")
+	value, err := windowsGetMachineEnvRaw("Path")
 	if err != nil {
 		return "", fmt.Errorf("failed to get system PATH: %w", err)
 	}
-	return strings.TrimSpace(value), nil
+	return value, nil
 }
 
 // SetSystemPath writes the system PATH to Windows registry.
-func (t *ToolManager) SetSystemPath(paths []string, otherVars map[string]string) (bool, error) {
+func (t *ToolManager) SetSystemPath(paths []string, otherVars map[string]string, expectedPath *string) (bool, error) {
 	if !utils.IsWindows() {
 		return false, fmt.Errorf("SetSystemPath is only supported on Windows")
 	}
-	for _, p := range paths {
-		if err := utils.ValidateSystemPathEntry(p); err != nil {
-			return false, err
-		}
-	}
-	pathStr := strings.Join(paths, ";") + ";"
-	if err := windowsSetMachineEnvExpandString("Path", pathStr); err != nil {
-		return false, fmt.Errorf("failed to set system PATH: %w", err)
+	if err := utils.ValidateSystemPathPayload(paths); err != nil {
+		return false, err
 	}
 
 	for k, v := range otherVars {
@@ -495,6 +489,24 @@ func (t *ToolManager) SetSystemPath(paths []string, otherVars map[string]string)
 		if err := utils.ValidateSystemEnvValue(k, v); err != nil {
 			return false, err
 		}
+	}
+
+	if expectedPath != nil {
+		currentPath, err := windowsGetMachineEnvRaw("Path")
+		if err != nil {
+			return false, fmt.Errorf("failed to get system PATH: %w", err)
+		}
+		if currentPath != *expectedPath {
+			return false, fmt.Errorf("system_path_changed")
+		}
+	}
+
+	pathStr := strings.Join(paths, ";")
+	if err := windowsSetMachineEnvExpandString("Path", pathStr); err != nil {
+		return false, fmt.Errorf("failed to set system PATH: %w", err)
+	}
+
+	for k, v := range otherVars {
 		if err := windowsSetMachineEnv(k, v); err != nil {
 			return false, fmt.Errorf("failed to set system env %s: %w", k, err)
 		}

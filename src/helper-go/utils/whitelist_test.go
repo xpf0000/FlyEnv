@@ -123,6 +123,32 @@ func TestValidateSystemPathEntry(t *testing.T) {
 	}
 }
 
+func TestValidateSystemPathPayload(t *testing.T) {
+	valid := []string{
+		`%INTEL_DEV_REDIST%redist\intel64\compiler`,
+		`relative\bin`,
+		`..\relative`,
+		`$env:SystemRoot\System32`,
+		`\\server\share\bin`,
+		`C:\FlyEnv\..\Windows`,
+		`日本語\ツール`,
+		``,
+	}
+	if err := ValidateSystemPathPayload(valid); err != nil {
+		t.Fatalf("ValidateSystemPathPayload(%#v) returned error: %v", valid, err)
+	}
+
+	if err := ValidateSystemPathPayload([]string{"C:\\FlyEnv\x00bin"}); err == nil {
+		t.Fatal("ValidateSystemPathPayload should reject embedded NUL")
+	}
+}
+
+func TestValidateSystemEnvValueKeepsStrictPathValidation(t *testing.T) {
+	if err := ValidateSystemEnvValue("JAVA_HOME", `%INTEL_DEV_REDIST%redist\intel64\compiler`); err == nil {
+		t.Fatal("environment variable values must retain strict path validation")
+	}
+}
+
 func TestAllowedRootsFilePresentDisablesNameFallback(t *testing.T) {
 	oldOverride := allowedRootsFilePathForTesting
 	defer func() {

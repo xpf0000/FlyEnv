@@ -463,53 +463,81 @@ export function updatePATH(item: SoftInstalled, typeFlag: string) {
   })
 }
 
+export type EnvPathListItem = {
+  path: string
+  raw: string
+  error: boolean
+}
+
+export type EnvPathListing = {
+  rawPath: string
+  list: EnvPathListItem[]
+}
+
+type EnvPathListingDeps = {
+  isAbsolute: (path: string) => boolean
+  realpath: (path: string) => string
+  exists: (path: string) => boolean
+  expand: (path: string) => Promise<string>
+}
+
+const defaultEnvPathListingDeps: EnvPathListingDeps = {
+  isAbsolute,
+  realpath: realpathSync,
+  exists: existsSync,
+  expand: async (path) => (await execPromise(`echo ${path}`))?.stdout?.trim() ?? ''
+}
+
+/**
+ * Adds display metadata without changing the persisted PATH entries or their
+ * order. The raw registry value remains available for a compare-and-set save.
+ */
+export const buildEnvPathListing = async (
+  snapshot: WindowsPathSnapshot,
+  deps: EnvPathListingDeps = defaultEnvPathListingDeps
+): Promise<EnvPathListing> => {
+  const list: EnvPathListItem[] = []
+  for (const path of snapshot.entries) {
+    let raw = ''
+    let error = false
+    if (deps.isAbsolute(path)) {
+      try {
+        raw = deps.realpath(path)
+        error = !deps.exists(raw)
+      } catch {
+        error = true
+      }
+    } else if (path.includes('%') || path.includes('$env:')) {
+      try {
+        raw = await deps.expand(path)
+        error = !raw || !deps.exists(raw)
+      } catch {
+        error = true
+      }
+    }
+    list.push({ path, raw, error })
+  }
+  return { rawPath: snapshot.rawPath, list }
+}
+
 export function envPathList() {
   return new ForkPromise(async (resolve, reject) => {
     console.log('envPathList !!!!!')
-    let oldPath: string[] = []
-    let oldPathError: unknown
+    let snapshot: WindowsPathSnapshot
     try {
-      oldPath = await fetchRawPATH(true)
+      snapshot = await fetchRawPATHSnapshot(true)
     } catch (error) {
-      oldPathError = error
-    }
-    if (oldPath.length === 0) {
-      reject(oldPathError instanceof Error ? oldPathError : new Error('Fail'))
+      reject(error instanceof Error ? error : new Error('Fail'))
       return
     }
-    const list: any = []
-    for (const p of oldPath) {
-      let raw = ''
-      let error = false
-      if (isAbsolute(p)) {
-        try {
-          raw = realpathSync(p)
-          error = !existsSync(raw)
-        } catch {
-          error = true
-        }
-      } else if (p.includes('%') || p.includes('$env:')) {
-        try {
-          raw = (await execPromise(`echo ${p}`))?.stdout?.trim() ?? ''
-          error = !raw || !existsSync(raw)
-        } catch {
-          error = true
-        }
-      }
-      list.push({
-        path: p,
-        raw,
-        error
-      })
-    }
-    resolve(list)
+    resolve(await buildEnvPathListing(snapshot))
   })
 }
 
-export function envPathUpdate(arr: string[]) {
+export function envPathUpdate(arr: string[], expectedPath: string) {
   return new ForkPromise(async (resolve, reject) => {
     try {
-      await writePath(arr)
+      await writePath(arr, {}, expectedPath)
     } catch (e) {
       console.log('envPathUpdate err: ', e)
       return reject(e)

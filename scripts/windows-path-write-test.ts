@@ -10,6 +10,7 @@ import {
   splitWindowsPathEntries
 } from '../src/fork/util/PATH.win'
 import {
+  buildEnvPathListing,
   buildFlyEnvPreferredPaths,
   isFlyEnvManagedPathEntry,
   isWindowsJunctionOrSymlink,
@@ -19,6 +20,42 @@ import {
 } from '../src/fork/module/Tool.win/path'
 
 async function main() {
+  const editorSnapshot = {
+    rawPath: 'C:\\FlyEnv\\bin;%SDK%\\bin;relative\\tool;',
+    entries: ['C:\\FlyEnv\\bin', '%SDK%\\bin', 'relative\\tool', '']
+  }
+  const editorListing = await buildEnvPathListing(editorSnapshot, {
+    isAbsolute: (entry) => entry === 'C:\\FlyEnv\\bin',
+    realpath: (entry) => `${entry}\\resolved`,
+    exists: (entry) => entry === 'C:\\FlyEnv\\bin\\resolved' || entry === 'C:\\SDK\\bin',
+    expand: async (entry) => (entry === '%SDK%\\bin' ? 'C:\\SDK\\bin' : '')
+  })
+  assert.deepEqual(editorListing, {
+    rawPath: 'C:\\FlyEnv\\bin;%SDK%\\bin;relative\\tool;',
+    list: [
+      {
+        path: 'C:\\FlyEnv\\bin',
+        raw: 'C:\\FlyEnv\\bin\\resolved',
+        error: false
+      },
+      {
+        path: '%SDK%\\bin',
+        raw: 'C:\\SDK\\bin',
+        error: false
+      },
+      {
+        path: 'relative\\tool',
+        raw: '',
+        error: false
+      },
+      {
+        path: '',
+        raw: '',
+        error: false
+      }
+    ]
+  })
+
   const rawPath =
     '; C:\\SDK\\bin;;relative\\tool;%INTEL_DEV_REDIST%redist\\intel64\\compiler;C:\\Tools\\;'
   const entries = splitWindowsPathEntries(rawPath)

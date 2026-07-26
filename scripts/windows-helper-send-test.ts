@@ -87,6 +87,34 @@ async function main() {
   assert.equal(uacChecks, 0)
   assert.equal(uacFallbacks, 1)
 
+  let rawPathFallbackArgs: unknown[] | undefined
+  const rawPathUacHelper = createHelper({
+    isWindows: () => true,
+    getWindowsElevationMethod: () => 'uac',
+    runWindowsHelperFallback: async (_module, _fn, args) => {
+      rawPathFallbackArgs = args
+      return true
+    }
+  })
+  const rawPathEntries = ['%INTEL_DEV_REDIST%redist\\intel64\\compiler', '..\\relative', '']
+  assert.equal(
+    await rawPathUacHelper.send('tools', 'setSystemPath', rawPathEntries, {}, 'C:\\SDK\\bin;'),
+    true
+  )
+  assert.deepEqual(rawPathFallbackArgs, [rawPathEntries, {}, 'C:\\SDK\\bin;'])
+
+  const rawExpectedPath = 'C:\\FlyEnv\\..\\old;relative\\bin;'
+  assert.equal(
+    await rawPathUacHelper.send('tools', 'setSystemPath', ['C:\\FlyEnv\\bin'], {}, rawExpectedPath),
+    true
+  )
+  assert.deepEqual(rawPathFallbackArgs, [['C:\\FlyEnv\\bin'], {}, rawExpectedPath])
+
+  await assert.rejects(
+    rawPathUacHelper.send('tools', 'writeFileByRoot', 'C:\\FlyEnv\\..\\outside.txt', 'x'),
+    /Path traversal detected/
+  )
+
   await assert.rejects(
     uacHelper.send('tools', 'readFileByRoot', 'C:\\FlyEnv\\private.txt'),
     (error: any) => error?.code === 'windows_fallback_not_supported'
