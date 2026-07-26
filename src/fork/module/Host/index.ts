@@ -37,6 +37,7 @@ import Helper from '../../Helper'
 import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
+import { reconcileSystemHostsBlock } from './SystemHostsBlock'
 
 export class Host extends Base {
   hostsFile = ''
@@ -417,20 +418,15 @@ export class Host extends Base {
       }
       let content: string = ''
       content = (await readFileByRoot(this.hostsFile)) as string
-      let x: any = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-      if (x && x[0]) {
-        x = x[0]
-        content = content.replace(x, '')
-      }
+      let x = ''
       if (host.length) {
         x = `#X-HOSTS-BEGIN#\n${host.join('\n')}\n#X-HOSTS-END#`
-      } else {
-        x = ''
       }
-      content = content.trim()
-      content += `\n${x}`
-      await writeFileByRoot(this.hostsFile, content.trim())
-      resolve(x.length > 0)
+      const result = reconcileSystemHostsBlock(content, x)
+      if (result.changed) {
+        await writeFileByRoot(this.hostsFile, result.content)
+      }
+      resolve(result.changed)
     })
   }
 
