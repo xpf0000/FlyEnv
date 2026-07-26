@@ -167,6 +167,18 @@ export const mergeWindowsPathPriority = (
   ]
 }
 
+export const isSystemPathChangedError = (error: unknown): boolean => {
+  if (error === 'system_path_changed') {
+    return true
+  }
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+
+  const { code, message } = error as { code?: unknown; message?: unknown }
+  return code === 'system_path_changed' || message === 'system_path_changed'
+}
+
 const defaultFetchRawPATHDeps: FetchRawPATHDeps = {
   readSystemPathDirect
 }
@@ -234,10 +246,18 @@ export const handleWinPathArr = (paths: string[]) => {
     })
 }
 
-export const writePath = async (path: string[], otherVars: Record<string, string> = {}) => {
+export const writePath = async (
+  path: string[],
+  otherVars: Record<string, string> = {},
+  expectedRawPath?: string
+) => {
   console.log('writePath paths: ', path)
   try {
-    await Helper.send('tools', 'setSystemPath', path, otherVars)
+    if (expectedRawPath === undefined) {
+      await Helper.send('tools', 'setSystemPath', path, otherVars)
+    } else {
+      await Helper.send('tools', 'setSystemPath', path, otherVars, expectedRawPath)
+    }
   } catch (e) {
     console.log('writePath error: ', e)
     await appDebugLog('[writePath][error]', `${e}`)
@@ -246,22 +266,25 @@ export const writePath = async (path: string[], otherVars: Record<string, string
 }
 
 export const addPath = async (dir: string) => {
-  let allPath: string[] = []
-  try {
-    allPath = await fetchRawPATH(true)
-  } catch {
-    return
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const snapshot = await fetchRawPATHSnapshot(true)
+    const savePath = mergeWindowsPathPriority(snapshot.entries, [dir])
+
+    if (
+      savePath.length === snapshot.entries.length &&
+      savePath.every((entry, index) => entry === snapshot.entries[index])
+    ) {
+      return
+    }
+
+    try {
+      await writePath(savePath, {}, snapshot.rawPath)
+      return
+    } catch (error) {
+      if (attempt === 0 && isSystemPathChangedError(error)) {
+        continue
+      }
+      throw error
+    }
   }
-  const index = allPath.indexOf(dir)
-  if (index === 0) {
-    return
-  }
-  if (index > 0) {
-    allPath.splice(index, 1)
-  }
-  allPath.unshift(dir)
-  const savePath = handleWinPathArr(allPath)
-  try {
-    await writePath(savePath)
-  } catch {}
 }
