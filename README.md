@@ -141,11 +141,11 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 * **Containers**: Podman.
 * **Network Tunnel**: Cloudflared, Cloudflare Tunnel.
 * **Web Servers**: FrankenPHP, [Apache], [Nginx], Caddy, Tomcat.
-* **Databases**: [MySQL], [MariaDB], [PostgreSQL], [MongoDB], Qdrant.
+* **Databases**: [MySQL], [MariaDB], [PostgreSQL], [MongoDB], Qdrant, ClickHouse.
 * **Email Server**: [Mailpit].
 * **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, [PHP-CLI], [PHP-FPM], [RoadRunner], [Swoole Cli]), Go, [Node.js], [Python], Java (Maven, Gradle, SDKMAN), Erlang, Ruby, Rust (Rustup), Bun, Deno, Zig.
 * **Cache & Message Queue**: [Redis], Memcached, RabbitMQ.
-* **Service Governance**: Consul, Etcd, R-Nacos
+* **Service Governance**: Consul, Etcd, R-Nacos, Temporal
 * **Search Engine**: Elasticsearch, Meilisearch, Typesense, ZincSearch
 * **Object Storage**: RustFS, Minio.
 * **Automation & Scheduling**: Cron Jobs.
