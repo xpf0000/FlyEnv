@@ -57,6 +57,10 @@ export function syncServiceStatusFromMcp<
     }
   })
 
+  if (installed.some((item) => item.running)) {
+    return current
+  }
+
   if (!isOnlyRunOne || instances.length !== 1) {
     return current
   }

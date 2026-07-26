@@ -56,6 +56,36 @@ async function main() {
     'previous current version should be marked run=false'
   )
 
+  const oldVersion = makeInstalled('26.6.0', 'E:/FlyEnv/data/app')
+  oldVersion.running = true
+  const selectedVersion = makeInstalled('26.7.0', 'E:/FlyEnv/data/app')
+  const selectedCurrent = { ...selectedVersion }
+
+  const currentDuringReplacement = syncServiceStatusFromMcp({
+    current: selectedCurrent,
+    installed: [oldVersion, selectedVersion],
+    isOnlyRunOne: true,
+    instances: [
+      {
+        bin: oldVersion.bin,
+        path: oldVersion.path,
+        version: oldVersion.version,
+        pid: '2606'
+      }
+    ]
+  })
+
+  assert.equal(
+    currentDuringReplacement?.bin,
+    selectedVersion.bin,
+    'a status broadcast for the stopping version must not overwrite the locally selected version'
+  )
+  assert.equal(
+    oldVersion.run,
+    false,
+    'the stopping row remains lifecycle-owned even when main reports it'
+  )
+
   const stopping = makeInstalled('8.2.18', 'E:/FlyEnv/data/php')
   stopping.run = false
   stopping.running = true
