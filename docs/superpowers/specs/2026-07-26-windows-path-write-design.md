@@ -67,12 +67,16 @@ a string-array `paths` and a string-map `otherVars`. Strings containing an
 embedded NUL must fail because Windows UTF-16 registry APIs cannot represent
 them without ambiguous truncation. No FlyEnv PATH length limit, directory
 existence check, character whitelist, environment-variable grammar, or path
-traversal check is applied to `paths`.
+traversal check is applied to `paths`. `Helper.send()` must exempt only
+`tools/setSystemPath`'s `paths` argument from its generic path-traversal
+preflight; all other privileged helper methods retain that preflight.
 
 The Go helper continues to write the value through the Windows registry API.
 The TypeScript fallback continues to write literal values through encoded
-PowerShell with single-quote escaping or JSON payload files. The writer returns
-the native registry/UAC error if Windows rejects a requested value.
+PowerShell with single-quote escaping or JSON payload files. Both join the
+provided entries with `;` exactly as supplied: they do not trim entries, drop
+empty entries, deduplicate entries, or append a trailing separator. The writer
+returns the native registry/UAC error if Windows rejects a requested value.
 
 ## Priority merge for service activation
 
@@ -90,7 +94,8 @@ dedupeForPriority(P) + removeExactMatches(L, P)
 for example `bin`, then `sbin`, then the service root when those directories
 exist. `removeExactMatches` uses case-insensitive Windows path equality only
 for the entries being promoted. It preserves every non-promoted `L` entry,
-including duplicates and unusual strings, in its original order and spelling.
+including duplicates, empty entries, and unusual strings, in its original
+order and spelling.
 
 When replacing an old FlyEnv version, the version manager may remove entries
 only when it can prove they are under FlyEnv's known env-junction or installed
@@ -140,6 +145,8 @@ a recently observed change.
   ordered write requests, and the expected raw-path snapshot.
 - `src/fork/module/Tool.win/path.ts`: constructs only the current FlyEnv
   promotion list; stops using global filtering/sorting for legacy entries.
+- `src/fork/Helper.ts`: exempts only the generic PATH writer's path-array
+  payload from the otherwise-required traversal preflight.
 - `src/shared/WindowsHelperFallback.ts`: structural-only validation for
   `setSystemPath`, raw conflict comparison, and safe literal PowerShell write.
 - `src/helper-go/module/tool.go` and `src/helper-go/module/tool_windows.go`:
@@ -157,13 +164,14 @@ a recently observed change.
 
 Automated tests must prove all of the following:
 
-1. Go Helper and UAC fallback both accept the Intel entry unchanged and retain
-   relative, variable-based, missing, UNC, and non-ASCII entries.
+1. Go Helper, the UAC fallback, and `Helper.send()` all accept the Intel entry
+   unchanged and retain relative, variable-based, missing, UNC, non-ASCII, and
+   empty entries.
 2. Embedded-NUL PATH input fails before reaching a registry write; there is no
    FlyEnv length or syntax rejection.
 3. A version promotion prepends its explicit entries, removes only their
    case-insensitive duplicates, and leaves all remaining user entries in the
-   same relative order and spelling.
+   same relative order, spelling, and empty-entry placement.
 4. The System Environment tool writes a manually ordered list without a
    version-priority merge.
 5. A changed raw PATH returns `system_path_changed` and does not write; a
