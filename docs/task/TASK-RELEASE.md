@@ -1,10 +1,13 @@
-# FlyEnv新版本4.17.0更新日志
+# FlyEnv新版本4.17.1更新日志
 
 本次更新内容：
-1. Windows版新增代码签名. 感谢SignPath的赞助
-2. 优化内存使用.
-3. 修复Windows上定时任务执行失败的问题.
-
+1. 新增ClickHouse模块. https://github.com/xpf0000/FlyEnv/issues/774
+2. 新增Temporal模块.https://github.com/xpf0000/FlyEnv/issues/730
+3. 新增Temporal CLI模块.https://github.com/xpf0000/FlyEnv/issues/730
+4. 托盘菜单新增启动组的显示,可以直接从托盘菜单操作启动组了. https://github.com/xpf0000/FlyEnv/issues/782
+5. 修复Windows上帮助程序安装失败的问题. 新增了授权操作方法设置. 帮助程序安装失败时,会自动回退到UAC方式.
+   https://github.com/xpf0000/FlyEnv/issues/756
+   https://github.com/xpf0000/FlyEnv/issues/797
 
 参照：
 ```

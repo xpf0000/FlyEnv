@@ -1,11 +1,11 @@
-version: 4.17.0
+version: 4.17.1
 files:
-  - url: FlyEnv-4.17.0-x64.deb
-    sha512: 0c32ot28yvzcle/jxycCxk5AqlzyTUqMgSSRbreX2k/YwtN7t/B6taJs2efjhNBuAxf/itnfL1M4aJGlT4vvEw==
-    size: 138711780
-  - url: FlyEnv-4.17.0-x64.rpm
-    sha512: 6lKrkEx2nx7033GwLobhV973MpvhM/2hh+nYyy/c8bpgYV+9xocl0hDQHOgKi+qimPujvfZBEiJMbGyOwqfMsw==
-    size: 116933233
-path: FlyEnv-4.17.0-x64.deb
-sha512: 0c32ot28yvzcle/jxycCxk5AqlzyTUqMgSSRbreX2k/YwtN7t/B6taJs2efjhNBuAxf/itnfL1M4aJGlT4vvEw==
-releaseDate: '2026-07-19T09:07:19.057Z'
+  - url: FlyEnv-4.17.1-x64.deb
+    sha512: HM4+CH9SyfO343PYZ6axVfLdpLwnrxaUzIFAuZl9IwcwooUmB26pqzHdreL54vOGvsxSg1D3uMtRxt/O63ignw==
+    size: 139620436
+  - url: FlyEnv-4.17.1-x64.rpm
+    sha512: Xaka8BSdoolXFCbFoSLLh2vbzZUcK2ZZm9LmdbEo7tYWK7dc2s9Rge0wBpL+Ur/J31o034bv7nF3aWA6yBZHUQ==
+    size: 119323385
+path: FlyEnv-4.17.1-x64.deb
+sha512: HM4+CH9SyfO343PYZ6axVfLdpLwnrxaUzIFAuZl9IwcwooUmB26pqzHdreL54vOGvsxSg1D3uMtRxt/O63ignw==
+releaseDate: '2026-07-26T02:41:45.735Z'
