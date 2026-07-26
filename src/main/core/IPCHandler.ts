@@ -222,16 +222,16 @@ export default class IPCHandler extends EventEmitter {
       ServiceVersionManager.updateCache(info.data)
     }
 
-    // 处理服务启动 PID
-    if (info?.data?.['APP-Service-Start-PID']) {
-      const item = info.data?.['APP-Service-Start-Item'] ?? args[1]
-      ServiceProcessManager.addPid(module, info.data['APP-Service-Start-PID'], item)
-    }
-
     // 处理服务停止 PID
     if (info?.data?.['APP-Service-Stop-PID']) {
       const arr: string[] = info.data['APP-Service-Stop-PID']
       ServiceProcessManager.delPid(module, arr)
+    }
+
+    // 处理服务启动 PID
+    if (info?.data?.['APP-Service-Start-PID']) {
+      const item = info.data?.['APP-Service-Start-Item'] ?? args[1]
+      ServiceProcessManager.addPid(module, info.data['APP-Service-Start-PID'], item)
     }
 
     this.deps.windowManager.sendCommandTo(win, command, key, info)

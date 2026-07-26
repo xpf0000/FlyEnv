@@ -109,6 +109,11 @@ async function main() {
     ipcHandlerSource.indexOf('ServiceProcessManager.delPid') < lifecycleResponse,
     'stop PID removal must happen before the lifecycle response'
   )
+  assert.ok(
+    ipcHandlerSource.indexOf('ServiceProcessManager.delPid') <
+      ipcHandlerSource.indexOf('ServiceProcessManager.addPid'),
+    'replacement lifecycle updates must remove stopped instances before registering the new one'
+  )
   assert.doesNotMatch(ipcHandlerSource, /APP-Service-Status|serviceStatus/)
 
   const mcpSource = readFileSync(new URL('../src/render/util/MCP.ts', import.meta.url), 'utf8')
