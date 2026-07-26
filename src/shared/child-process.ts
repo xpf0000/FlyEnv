@@ -14,6 +14,11 @@ type ForkPromiseResType = ForkPromise<{
   stderr: string
 }>
 
+type SpawnPromiseWithEnvOptions = {
+  [key: string]: any
+  trimOutput?: boolean
+}
+
 export function execPromiseSudo(
   params: string | string[],
   opt?: { [k: string]: any },
@@ -172,17 +177,18 @@ export const spawnPromise = (
 export const spawnPromiseWithEnv = (
   command: string,
   arg: Array<string> = [],
-  options: { [key: string]: any } = {}
+  options: SpawnPromiseWithEnvOptions = {}
 ): ForkPromiseResType => {
   return new ForkPromise(async (resolve, reject, on) => {
     const env = await EnvSync.sync()
+    const { trimOutput = true, ...spawnOptions } = options
     const optdefault: any = {
       env
     }
     if (isMacOS()) {
       optdefault.shell = '/bin/zsh'
     }
-    const opt = mergeProcessOptions(optdefault, options)
+    const opt = mergeProcessOptions(optdefault, spawnOptions)
     let cp: ChildProcess
     try {
       cp = spawn(command, arg, opt)
@@ -211,13 +217,15 @@ export const spawnPromiseWithEnv = (
     const onEnd = async (code: number | null) => {
       if (exit) return
       exit = true
+      const stdoutText = Buffer.concat(stdout).toString()
+      const stderrText = Buffer.concat(stderr).toString()
       if (!code) {
         resolve({
-          stdout: Buffer.concat(stdout).toString().trim(),
-          stderr: Buffer.concat(stderr).toString().trim()
+          stdout: trimOutput ? stdoutText.trim() : stdoutText,
+          stderr: trimOutput ? stderrText.trim() : stderrText
         })
       } else {
-        reject(new Error(Buffer.concat(stderr).toString().trim()))
+        reject(new Error(trimOutput ? stderrText.trim() : stderrText))
       }
     }
     cp.on('error', (err: Error) => {

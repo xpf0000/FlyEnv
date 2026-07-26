@@ -1,4 +1,4 @@
-import { join, isAbsolute } from 'path'
+import { join, isAbsolute, win32 } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import { appDebugLog } from '@shared/utils'
 import Helper from '../Helper'
@@ -8,6 +8,11 @@ import { spawnPromiseWithEnv } from '@shared/child-process'
 
 type FetchRawPATHDeps = {
   readSystemPathDirect: () => Promise<string>
+}
+
+export interface WindowsPathSnapshot {
+  rawPath: string
+  entries: string[]
 }
 
 type ReadSystemPathDirectDeps = {
@@ -49,10 +54,19 @@ const getDefaultRegistryToolPath = () => {
 }
 
 const parseRegistryPathQueryOutput = (output: string): string => {
-  const match = output.match(/^\s*Path\s+REG_[A-Z_]+\s+(.*)$/im)
-  const value = match?.[1]?.trim()
-  if (!value) {
+  const match = output.match(/^\s*Path\s+REG_[A-Z_]+(?: {4}|\t+)(.*)$/im)
+  if (!match) {
     throw new Error('Failed to parse machine PATH from reg.exe output')
+  }
+  return match[1]
+}
+
+const removePowerShellFinalNewline = (value: string): string => {
+  if (value.endsWith('\r\n')) {
+    return value.slice(0, -2)
+  }
+  if (value.endsWith('\n')) {
+    return value.slice(0, -1)
   }
   return value
 }
@@ -79,10 +93,11 @@ export const createReadSystemPathDirect = (deps: Partial<ReadSystemPathDirectDep
         runtime.getPowerShellPath(),
         powerShellInlineArgs(readSystemPathPowerShellScript),
         {
-          windowsHide: true
+          windowsHide: true,
+          trimOutput: false
         }
       )
-      return res.stdout.toString().trim()
+      return removePowerShellFinalNewline(res.stdout.toString())
     } catch (error) {
       powerShellError = error
       appDebugLog('[readSystemPathDirect][powershell][error]', `${error}`).catch()
@@ -93,7 +108,8 @@ export const createReadSystemPathDirect = (deps: Partial<ReadSystemPathDirectDep
         runtime.getRegistryToolPath(),
         ['query', MACHINE_ENV_REGISTRY_KEY, '/v', 'Path'],
         {
-          windowsHide: true
+          windowsHide: true,
+          trimOutput: false
         }
       )
       return parseRegistryPathQueryOutput(res.stdout.toString())
@@ -112,38 +128,85 @@ export const createReadSystemPathDirect = (deps: Partial<ReadSystemPathDirectDep
 
 export const readSystemPathDirect = createReadSystemPathDirect()
 
-const parsePathString = (str: string): string[] => {
-  str = str.replace(new RegExp(`\r\n`, 'g'), '').replace(new RegExp(`\n`, 'g'), '')
-  if (!str.includes(':\\') && !str.includes('%')) {
-    return []
+export const splitWindowsPathEntries = (rawPath: string): string[] => rawPath.split(';')
+
+export const joinWindowsPathEntries = (entries: string[]): string => entries.join(';')
+
+const getWindowsPathEntryIdentity = (entry: string): string => {
+  if (!entry) {
+    return entry
   }
-  return Array.from(new Set(str.split(';') ?? []))
-    .filter((s: string) => !!s.trim())
-    .map((s: string) => s.trim())
+  const normalized = win32.normalize(entry)
+  const root = win32.parse(normalized).root
+  return (normalized === root ? normalized : normalized.replace(/[\\/]+$/, '')).toLowerCase()
+}
+
+/**
+ * Moves only the paths requested by the caller to the front. Every unrelated
+ * entry retains its original value, order, duplicates, and empty segments.
+ */
+export const mergeWindowsPathPriority = (
+  currentEntries: string[],
+  priorityEntries: string[]
+): string[] => {
+  const priorityKeys = new Set<string>()
+  const prioritized: string[] = []
+
+  for (const entry of priorityEntries) {
+    const key = getWindowsPathEntryIdentity(entry)
+    if (priorityKeys.has(key)) {
+      continue
+    }
+    priorityKeys.add(key)
+    prioritized.push(entry)
+  }
+
+  return [
+    ...prioritized,
+    ...currentEntries.filter((entry) => !priorityKeys.has(getWindowsPathEntryIdentity(entry)))
+  ]
 }
 
 const defaultFetchRawPATHDeps: FetchRawPATHDeps = {
   readSystemPathDirect
 }
 
-export const createFetchRawPATH = (deps: Partial<FetchRawPATHDeps> = {}) => {
+export const createFetchRawPATHSnapshot = (deps: Partial<FetchRawPATHDeps> = {}) => {
   const runtime = {
     ...defaultFetchRawPATHDeps,
     ...deps
   }
 
-  return (useHelper = false): ForkPromise<string[]> => {
+  return (useHelper = false): ForkPromise<WindowsPathSnapshot> => {
     return new ForkPromise(async (resolve, reject) => {
       console.log('fetchRawPATH !!!!!!')
       try {
-        const str = await runtime.readSystemPathDirect()
-        console.log('fetchRawPATH str: ', { str })
-        resolve(parsePathString(str))
+        const rawPath = await runtime.readSystemPathDirect()
+        console.log('fetchRawPATH str: ', { rawPath })
+        resolve({
+          rawPath,
+          entries: splitWindowsPathEntries(rawPath)
+        })
       } catch (directError) {
         console.log('fetchRawPATH direct read error: ', directError, useHelper)
         appDebugLog('[_fetchRawPATH][direct-error]', `${directError}`).catch()
         reject(directError instanceof Error ? directError : new Error(`${directError}`))
       }
+    })
+  }
+}
+
+export const fetchRawPATHSnapshot = createFetchRawPATHSnapshot()
+
+export const createFetchRawPATH = (deps: Partial<FetchRawPATHDeps> = {}) => {
+  const fetchSnapshot = createFetchRawPATHSnapshot(deps)
+
+  return (useHelper = false): ForkPromise<string[]> => {
+    return new ForkPromise((resolve, reject) => {
+      fetchSnapshot(useHelper).then(
+        (snapshot) => resolve(snapshot.entries),
+        (error) => reject(error)
+      )
     })
   }
 }
