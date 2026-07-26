@@ -552,6 +552,10 @@ export class MCPTools {
     if (stoppedPids.length > 0) {
       ServiceProcessManager.delPid(flag, stoppedPids)
     }
+    const staleBins: string[] = data?.['APP-Service-Stale-Bins'] ?? []
+    if (staleBins.length > 0) {
+      ServiceProcessManager.delByBin(flag, staleBins)
+    }
     const pid = data?.['APP-Service-Start-PID']
     if (pid) {
       const item = data?.['APP-Service-Start-Item'] ?? v

@@ -90,4 +90,31 @@ assert.deepEqual(
   'a reused Electron renderer PID must never become owned through its descendants'
 )
 
+const ipcHandlerSource = readFileSync(
+  new URL('../src/main/core/IPCHandler.ts', import.meta.url),
+  'utf8'
+)
+const staleBinCleanup = ipcHandlerSource.indexOf('APP-Service-Stale-Bins')
+const startPidRegistration = ipcHandlerSource.indexOf('ServiceProcessManager.addPid')
+assert.ok(staleBinCleanup >= 0, 'IPC must recognise ClickHouse stale-bin cleanup')
+assert.ok(
+  ipcHandlerSource.indexOf('ServiceProcessManager.delByBin', staleBinCleanup) > staleBinCleanup,
+  'stale cleanup must delete by exact bin'
+)
+assert.ok(
+  staleBinCleanup < startPidRegistration,
+  'stale registration must be deleted before a replacement PID is added'
+)
+
+const mcpToolsSource = readFileSync(new URL('../src/main/core/MCPTools.ts', import.meta.url), 'utf8')
+const mcpStart = mcpToolsSource.indexOf('async startService(flag: string, version?: string)')
+const mcpStartEnd = mcpToolsSource.indexOf('async stopService(flag: string, version?: string)')
+const mcpStartSource = mcpToolsSource.slice(mcpStart, mcpStartEnd)
+assert.match(mcpStartSource, /APP-Service-Stale-Bins/)
+assert.ok(
+  mcpStartSource.indexOf('ServiceProcessManager.delByBin') <
+    mcpStartSource.indexOf('ServiceProcessManager.addPid'),
+  'MCP replacement must also remove stale registrations before adding a PID'
+)
+
 console.log('clickhouse service lifecycle tests passed')

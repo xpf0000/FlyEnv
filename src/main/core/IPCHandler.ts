@@ -228,6 +228,12 @@ export default class IPCHandler extends EventEmitter {
       ServiceProcessManager.delPid(module, arr)
     }
 
+    // 仅清理无法按 PID 安全注销的陈旧版本登记；bin 是版本实例唯一键。
+    if (info?.data?.['APP-Service-Stale-Bins']) {
+      const bins: string[] = info.data['APP-Service-Stale-Bins']
+      ServiceProcessManager.delByBin(module, bins)
+    }
+
     // 处理服务启动 PID
     if (info?.data?.['APP-Service-Start-PID']) {
       const item = info.data?.['APP-Service-Start-Item'] ?? args[1]
