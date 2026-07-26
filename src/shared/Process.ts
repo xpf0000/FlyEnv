@@ -212,12 +212,8 @@ export const ProcessOwnedPidsByPidOrDescendant = (
   if (!rootCommand || ProcessCommandLooksLikeElectronChild(rootCommand)) {
     return []
   }
-  const markers = ownedMarkers
-    .map((marker) => `${marker ?? ''}`.trim())
-    .filter(Boolean)
-  const watchdogs = watchdogMarkers
-    .map((marker) => `${marker ?? ''}`.trim())
-    .filter(Boolean)
+  const markers = ownedMarkers.map((marker) => `${marker ?? ''}`.trim()).filter(Boolean)
+  const watchdogs = watchdogMarkers.map((marker) => `${marker ?? ''}`.trim()).filter(Boolean)
   if (markers.length === 0) {
     return []
   }

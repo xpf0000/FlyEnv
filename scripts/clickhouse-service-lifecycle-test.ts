@@ -106,7 +106,10 @@ assert.ok(
   'stale registration must be deleted before a replacement PID is added'
 )
 
-const mcpToolsSource = readFileSync(new URL('../src/main/core/MCPTools.ts', import.meta.url), 'utf8')
+const mcpToolsSource = readFileSync(
+  new URL('../src/main/core/MCPTools.ts', import.meta.url),
+  'utf8'
+)
 const mcpStart = mcpToolsSource.indexOf('async startService(flag: string, version?: string)')
 const mcpStartEnd = mcpToolsSource.indexOf('async stopService(flag: string, version?: string)')
 const mcpStartSource = mcpToolsSource.slice(mcpStart, mcpStartEnd)

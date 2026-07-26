@@ -26,11 +26,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
 
-import {
-  ProcessKill,
-  ProcessListFetch,
-  ProcessOwnedPidsByPidOrDescendant
-} from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPidOrDescendant } from '@shared/Process'
 import {
   CH_UI_CONNECTION_NAME,
   CH_UI_PORT,
@@ -283,9 +279,12 @@ class Manager extends Base {
 
   private async managedClickHousePid(pid: string, version: SoftInstalled): Promise<string> {
     const plist = await ProcessListFetch()
-    const owned = ProcessOwnedPidsByPidOrDescendant(pid, plist, [version.bin], [
-      'clickhouse-watchdog'
-    ])
+    const owned = ProcessOwnedPidsByPidOrDescendant(
+      pid,
+      plist,
+      [version.bin],
+      ['clickhouse-watchdog']
+    )
     return owned.length > 0 ? `${pid}` : ''
   }
 
