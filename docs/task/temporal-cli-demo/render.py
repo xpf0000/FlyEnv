@@ -43,6 +43,10 @@ VOICE_RATE = "-6%"
 
 W, H, FPS = 1920, 1080, 30
 DEMO_END = 102.1
+FINAL_FADE = 0.60
+CAPTION_LINGER = 0.60
+CAPTION_BAR_W, CAPTION_BAR_H = 1720, 120
+CAPTION_BAR_X, CAPTION_BAR_Y = 100, 864
 
 NARRATION: list[tuple[float, str]] = [
     (0.80, "FlyEnv brings local development services together in one native workspace."),
@@ -314,21 +318,71 @@ def stage_tts() -> None:
 
 
 def stage_subs() -> None:
-    """Burn the generated English SRT captions into the silent video master."""
+    """Burn compact, timed English caption bars into the silent video master."""
     require_file(FULL_SILENT, "subs")
-    require_file(SRT, "subs")
+    narration_path = BUILD / "narration.json"
+    require_file(narration_path, "subs")
+    header_offset, total = load_timing()
+    narration = json.loads(narration_path.read_text(encoding="utf-8"))
+    if len(narration) != 10:
+        raise SystemExit(f"subs requires exactly 10 narration entries, found {len(narration)}.")
+
+    caption_dir = BUILD / "caption-bars"
+    caption_dir.mkdir(parents=True, exist_ok=True)
+    inputs: list[str | Path] = ["ffmpeg", "-y", "-v", "error", "-stats", "-i", FULL_SILENT]
+    filters: list[str] = []
+    previous = "0:v"
+    for input_index, line in enumerate(narration, 1):
+        text = str(line["text"])
+        start = header_offset + float(line["start"])
+        end = header_offset + float(line["end"]) + CAPTION_LINGER
+        caption = caption_dir / f"caption_{input_index:02d}.png"
+        wrapped = "\n".join(textwrap.wrap(text, width=76))
+        run(
+            [
+                "magick",
+                "-size",
+                f"{CAPTION_BAR_W}x{CAPTION_BAR_H}",
+                "xc:#111827",
+                "-alpha",
+                "off",
+                "-font",
+                "Helvetica",
+                "-fill",
+                "white",
+                "-pointsize",
+                "36",
+                "-gravity",
+                "center",
+                "-interline-spacing",
+                "8",
+                "-annotate",
+                "+0+0",
+                wrapped,
+                "-alpha",
+                "off",
+                f"png24:{caption}",
+            ]
+        )
+        inputs.extend(["-loop", "1", "-framerate", str(FPS), "-i", caption])
+        current = f"v{input_index}"
+        filters.append(
+            f"[{previous}][{input_index}:v]overlay=x={CAPTION_BAR_X}:y={CAPTION_BAR_Y}:"
+            f"shortest=1:enable='between(t,{start:.3f},{end:.3f})'[{current}]"
+        )
+        previous = current
+    fade_start = max(0.0, total - FINAL_FADE)
+    filters.append(f"[{previous}]fade=t=out:st={fade_start:.3f}:d={FINAL_FADE:.3f}[video]")
     run(
         [
-            "ffmpeg",
-            "-y",
-            "-v",
-            "error",
-            "-stats",
-            "-i",
-            FULL_SILENT,
-            "-vf",
-            f"subtitles={SRT}",
+            *inputs,
+            "-filter_complex",
+            ";".join(filters),
+            "-map",
+            "[video]",
             "-an",
+            "-r",
+            str(FPS),
             *x264(),
             SUBBED,
         ]
@@ -341,7 +395,9 @@ def stage_mix() -> None:
     require_file(SUBBED, "mix")
     require_file(VOICE, "mix")
     require_file(HEADER_AUDIO, "mix")
+    header_duration, _ = load_timing()
     total = probe_duration(SUBBED)
+    fade_start = max(0.0, total - FINAL_FADE)
     run(
         [
             "ffmpeg",
@@ -357,9 +413,10 @@ def stage_mix() -> None:
             HEADER_AUDIO,
             "-filter_complex",
             f"[1:a]loudnorm=I=-15:TP=-1.5:LRA=7,aresample=48000[voice];"
-            f"[2:a]apad,atrim=0:{total:.3f}[header];"
-            f"[voice][header]amix=inputs=2:normalize=0:dropout_transition=0,"
-            f"alimiter=limit=0.97,aresample=48000[audio]",
+            f"[2:a]atrim=0:{header_duration:.3f}[header];"
+            f"[voice][header]amix=inputs=2:duration=longest:normalize=0:dropout_transition=0,"
+            f"atrim=0:{total:.3f},afade=t=out:st={fade_start:.3f}:d={FINAL_FADE:.3f},"
+            f"aresample=48000[audio]",
             "-map",
             "0:v",
             "-map",
