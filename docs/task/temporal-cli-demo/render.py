@@ -2,9 +2,8 @@
 """Post-production pipeline for the FlyEnv Temporal CLI demo.
 
 Run individual stages, for example ``python3 render.py base header concat``,
-or run the complete pipeline with ``python3 render.py all``.  The source is
-never modified.  Task 1 intentionally leaves NARRATION empty until copy is
-approved, so the TTS stage exits before making media when it has no script.
+or run the complete pipeline with ``python3 render.py all``. The source is
+never modified.
 """
 
 from __future__ import annotations
@@ -45,8 +44,18 @@ VOICE_RATE = "-6%"
 W, H, FPS = 1920, 1080, 30
 DEMO_END = 102.1
 
-# Add approved English copy as (source-time seconds, spoken caption) tuples.
-NARRATION: list[tuple[float, str]] = []
+NARRATION: list[tuple[float, str]] = [
+    (0.80, "FlyEnv brings local development services together in one native workspace."),
+    (8.00, "Open Temporal CLI from the Service Governance group."),
+    (16.00, "The Service page shows the Temporal CLI versions installed on your machine."),
+    (24.00, "Switch to Versions to browse official Temporal CLI releases ready to install."),
+    (32.00, "Choose a release and FlyEnv downloads it directly into your local environment."),
+    (41.00, "When the download finishes, the installed versions appear on the Service page."),
+    (49.00, "Open Configuration to review the local settings for your Temporal CLI environment."),
+    (61.00, "The built-in editor keeps the configuration close to the service controls."),
+    (74.00, "The Versions tab keeps the available and installed releases clearly organized."),
+    (94.00, "Use the service controls to run the selected Temporal CLI release locally."),
+]
 
 
 def run(cmd: list[str | Path]) -> None:
