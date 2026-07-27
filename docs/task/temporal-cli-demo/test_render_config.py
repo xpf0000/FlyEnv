@@ -2,6 +2,8 @@ import json
 import runpy
 from pathlib import Path
 
+import pytest
+
 
 def test_render_configuration_matches_temporal_cli_demo_requirements() -> None:
     namespace = runpy.run_path(Path(__file__).with_name("render.py"))
@@ -142,19 +144,17 @@ def test_srt_is_regenerated_from_narration_with_header_offset(tmp_path: Path) ->
     )
 
 
-def test_bilibili_cover_uses_the_available_cjk_font(tmp_path: Path) -> None:
+def test_cover_font_resolution_prefers_candidates_and_explains_missing_cjk_font() -> None:
     namespace = runpy.run_path(Path(__file__).parent / "render.py")
-    runtime = namespace["create_cover"].__globals__
-    commands: list[list[str]] = []
-    runtime["run"] = lambda cmd: commands.append([str(part) for part in cmd])
+    resolve_cover_fonts = namespace["resolve_cover_fonts"]
 
-    runtime["create_cover"](
-        tmp_path / "product.png",
-        tmp_path / "bilibili.png",
-        "FLYENV 演示",
-        "本地一键配置",
-        runtime["BILIBILI_FONT"],
+    assert resolve_cover_fonts(
+        {"Helvetica-Bold", "Noto Sans CJK SC", ".Hiragino-Sans-GB-Interface-W6"}
+    ) == ("Helvetica-Bold", "Noto Sans CJK SC")
+    assert resolve_cover_fonts({"DejaVu-Sans-Bold", "Noto Sans CJK SC"}) == (
+        "DejaVu-Sans-Bold",
+        "Noto Sans CJK SC",
     )
 
-    command = commands[-1]
-    assert command[command.index("-font") + 1] == ".Hiragino-Sans-GB-Interface-W6"
+    with pytest.raises(SystemExit, match="Install Noto Sans CJK SC"):
+        resolve_cover_fonts({"Helvetica-Bold"})

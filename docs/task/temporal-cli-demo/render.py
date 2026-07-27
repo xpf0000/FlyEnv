@@ -42,7 +42,29 @@ VENV_BIN = TASK / ".venv" / "bin"
 EDGE_TTS = VENV_BIN / "edge-tts"
 VOICE_NAME = "en-US-BrianNeural"
 VOICE_RATE = "-6%"
-BILIBILI_FONT = ".Hiragino-Sans-GB-Interface-W6"
+
+# Prefer broadly available display fonts, with platform-native names as a last resort.
+LATIN_COVER_FONT_CANDIDATES = (
+    "Helvetica-Bold",
+    "Arial-BoldMT",
+    "Arial-Bold",
+    "Noto Sans Bold",
+    "NotoSans-Bold",
+    "DejaVu-Sans-Bold",
+    "Liberation-Sans-Bold",
+)
+CJK_COVER_FONT_CANDIDATES = (
+    "Noto Sans CJK SC",
+    "NotoSansCJKsc-Bold",
+    "Noto Sans SC",
+    "NotoSansSC-Bold",
+    "Source Han Sans SC",
+    "SourceHanSansSC-Bold",
+    "Microsoft YaHei",
+    "Microsoft-YaHei",
+    "WenQuanYi Zen Hei",
+    ".Hiragino-Sans-GB-Interface-W6",
+)
 
 W, H, FPS = 1920, 1080, 30
 DEMO_END = 102.1
@@ -126,6 +148,37 @@ def srt_time(value: float) -> str:
     minutes, total_ms = divmod(total_ms, 60_000)
     seconds, millis = divmod(total_ms, 1_000)
     return f"{hours:02d}:{minutes:02d}:{seconds:02d},{millis:03d}"
+
+
+def magick_font_names() -> set[str]:
+    """Return ImageMagick's registered font identifiers."""
+    try:
+        listing = subprocess.check_output(["magick", "-list", "font"], text=True)
+    except FileNotFoundError as error:
+        raise SystemExit("Cover rendering requires ImageMagick. Install the `magick` command and retry.") from error
+    return {
+        line.strip().removeprefix("Font:").strip()
+        for line in listing.splitlines()
+        if line.strip().startswith("Font:")
+    }
+
+
+def resolve_cover_fonts(available_fonts: set[str] | None = None) -> tuple[str, str]:
+    """Choose installed Latin and CJK fonts for the English and Chinese covers."""
+    registered = magick_font_names() if available_fonts is None else available_fonts
+    latin = next((font for font in LATIN_COVER_FONT_CANDIDATES if font in registered), None)
+    if latin is None:
+        raise SystemExit(
+            "No suitable Latin font found for cover rendering. Install Noto Sans or DejaVu Sans, "
+            "then verify `magick -list font`."
+        )
+    cjk = next((font for font in CJK_COVER_FONT_CANDIDATES if font in registered), None)
+    if cjk is None:
+        raise SystemExit(
+            "No suitable CJK font found for the Bilibili cover. Install Noto Sans CJK SC, "
+            "then verify `magick -list font`."
+        )
+    return latin, cjk
 
 
 def write_srt_from_narration() -> None:
@@ -588,6 +641,7 @@ def stage_assets() -> None:
     require_file(FINAL, "assets")
     require_file(SRC, "assets")
     write_srt_from_narration()
+    latin_font, cjk_font = resolve_cover_fonts()
     run(
         [
             "ffmpeg",
@@ -605,8 +659,8 @@ def stage_assets() -> None:
             PRODUCT_FRAME,
         ]
     )
-    create_cover(PRODUCT_FRAME, THUMB, "FLYENV DEMO", "Native Local Setup", "Helvetica-Bold")
-    create_cover(PRODUCT_FRAME, BILIBILI_COVER, "FLYENV 演示", "本地一键配置", BILIBILI_FONT)
+    create_cover(PRODUCT_FRAME, THUMB, "FLYENV DEMO", "Native Local Setup", latin_font)
+    create_cover(PRODUCT_FRAME, BILIBILI_COVER, "FLYENV 演示", "本地一键配置", cjk_font)
     UPLOAD.write_text(upload_package(), encoding="utf-8")
     print(f"assets: {SRT.name}, {THUMB.name}, {BILIBILI_COVER.name}, {UPLOAD.name}")
 
