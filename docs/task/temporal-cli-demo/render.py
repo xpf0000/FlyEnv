@@ -46,7 +46,7 @@ DEMO_END = 102.1
 FINAL_FADE = 0.60
 CAPTION_LINGER = 0.60
 CAPTION_BAR_W, CAPTION_BAR_H = 1720, 120
-CAPTION_BAR_X, CAPTION_BAR_Y = 100, 864
+CAPTION_BAR_X, CAPTION_BAR_Y = 160, 864
 
 NARRATION: list[tuple[float, str]] = [
     (0.80, "FlyEnv brings local development services together in one native workspace."),

@@ -68,7 +68,7 @@ def test_subs_renders_ten_small_opaque_bars_at_header_offset_with_final_fade(
     ffmpeg = commands[-1]
     filters = ffmpeg[ffmpeg.index("-filter_complex") + 1]
     assert "subtitles=" not in filters
-    assert "overlay=x=100:y=864:shortest=1" in filters
+    assert "overlay=x=160:y=864:shortest=1" in filters
     assert "between(t,5.833,7.433)" in filters
     assert "between(t,29.033,35.249)" in filters
     assert "fade=t=out:st=106.533:d=0.600" in filters
