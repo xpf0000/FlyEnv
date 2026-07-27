@@ -1,8 +1,9 @@
 import runpy
+from pathlib import Path
 
 
 def test_render_configuration_matches_temporal_cli_demo_requirements() -> None:
-    namespace = runpy.run_path("render.py")
+    namespace = runpy.run_path(Path(__file__).with_name("render.py"))
 
     assert namespace["SLUG"] == "flyenv-temporal-cli"
     assert namespace["DEMO_END"] == 102.1
