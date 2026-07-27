@@ -1,0 +1,9 @@
+.venv/
+build/
+*.mp3
+*.wav
+*.mp4
+*.png
+*.srt
+*.tsv
+youtube_upload_package.md
