@@ -33,13 +33,16 @@ FINAL = TASK / f"{SLUG}_en_final.mp4"
 SRT = TASK / f"{SLUG}_en_subtitles.srt"
 TSV = TASK / f"{SLUG}_en_subtitles.tsv"
 THUMB = TASK / f"{SLUG}_youtube_thumbnail.png"
+BILIBILI_COVER = TASK / f"{SLUG}_bilibili_cover.png"
 UPLOAD = TASK / "youtube_upload_package.md"
 TIMING = BUILD / "timing.json"
+PRODUCT_FRAME = BUILD / "temporal-cli-product-frame.png"
 
 VENV_BIN = TASK / ".venv" / "bin"
 EDGE_TTS = VENV_BIN / "edge-tts"
 VOICE_NAME = "en-US-BrianNeural"
 VOICE_RATE = "-6%"
+BILIBILI_FONT = ".Hiragino-Sans-GB-Interface-W6"
 
 W, H, FPS = 1920, 1080, 30
 DEMO_END = 102.1
@@ -123,6 +126,22 @@ def srt_time(value: float) -> str:
     minutes, total_ms = divmod(total_ms, 60_000)
     seconds, millis = divmod(total_ms, 1_000)
     return f"{hours:02d}:{minutes:02d}:{seconds:02d},{millis:03d}"
+
+
+def write_srt_from_narration() -> None:
+    """Create final-master SRT captions from the measured narration timings."""
+    narration_path = BUILD / "narration.json"
+    require_file(narration_path, "srt")
+    header_offset, _ = load_timing()
+    narration = json.loads(narration_path.read_text(encoding="utf-8"))
+    entries = [
+        f"{int(line['index'])}\n"
+        f"{srt_time(header_offset + float(line['start']))} --> "
+        f"{srt_time(header_offset + float(line['end']))}\n"
+        f"{line['text']}\n"
+        for line in narration
+    ]
+    SRT.write_text("\n".join(entries), encoding="utf-8")
 
 
 def stage_base() -> None:
@@ -305,15 +324,8 @@ def stage_tts() -> None:
         ),
         encoding="utf-8",
     )
-    SRT.write_text(
-        "\n".join(
-            f"{index}\n{srt_time(header_offset + float(line['start']))} --> "
-            f"{srt_time(header_offset + float(line['end']))}\n{line['text']}\n"
-            for index, line in enumerate(lines, 1)
-        ),
-        encoding="utf-8",
-    )
     (BUILD / "narration.json").write_text(json.dumps(lines, indent=2) + "\n", encoding="utf-8")
+    write_srt_from_narration()
     print(f"voiceover: {probe_duration(VOICE):.3f}s, {len(lines)} captions")
 
 
@@ -444,26 +456,138 @@ def upload_package() -> str:
         f"""\
         # FlyEnv Temporal CLI Demo - Upload Package
 
-        Final master: `{FINAL.name}`
+        Final master: `{FINAL.relative_to(DOCS.parent)}`
+
+        Master format: English voiceover with burned English captions.
 
         ## YouTube
 
-        **Recommended title:** FlyEnv Temporal CLI — Local Setup and Workflow Demo
+        **Recommended title:** Temporal CLI with FlyEnv — Native Local Setup Demo
 
-        **Description:**
+        **English description:**
 
-        See FlyEnv's native Temporal CLI workflow, from local setup through the
-        everyday command-line experience.
+        Follow the FlyEnv Temporal CLI module from module entry to the official
+        release list, a local install, installed versions, configuration, and
+        service controls for the selected release.
+
+        **Chapters:**
+
+        - 00:00 FlyEnv introduction
+        - 00:13 Open the Temporal CLI module
+        - 00:29 Browse official releases
+        - 00:37 Install a release
+        - 00:46 Review installed versions
+        - 00:54 Open configuration
+        - 01:39 Use service controls
 
         **Tags:** FlyEnv, Temporal CLI, Temporal, local development, developer tools
+
+        **Publishing settings:** Category: Science & Technology. Video language:
+        English. Upload the English caption file. Select the custom thumbnail.
+        Audience: Not made for kids.
+
+        ## Bilibili
+
+        **推荐标题：** Temporal CLI 本地一键配置｜FlyEnv 演示
+
+        **中文简介：** 本视频演示 FlyEnv 中的 Temporal CLI：进入模块，查看官方版本列表，
+        安装版本，确认已安装版本，查看配置，并使用服务控制。成片为英文配音并烧录英文字幕。
+
+        **章节：**
+
+        - 00:00 FlyEnv 介绍
+        - 00:13 进入 Temporal CLI 模块
+        - 00:29 查看官方版本
+        - 00:37 安装版本
+        - 00:46 查看已安装版本
+        - 00:54 配置页面
+        - 01:39 服务控制
+
+        **标签：** FlyEnv，Temporal CLI，Temporal，本地开发，开发者工具
+
+        **推荐分区：** 科技 → 计算机技术
+
+        ## Deliverables
+
+        - Final master: `{FINAL.relative_to(DOCS.parent)}`
+        - English caption SRT: `{SRT.relative_to(DOCS.parent)}`
+        - YouTube thumbnail: `{THUMB.relative_to(DOCS.parent)}`
+        - Bilibili cover: `{BILIBILI_COVER.relative_to(DOCS.parent)}`
+        - This upload package: `{UPLOAD.relative_to(DOCS.parent)}`
+
+        ## Official publishing references
+
+        - YouTube video uploads: <https://support.google.com/youtube/answer/57407>
+        - YouTube custom thumbnails: <https://support.google.com/youtube/answer/72431>
+        - YouTube captions: <https://support.google.com/youtube/answer/2734796>
+        - YouTube audience setting: <https://support.google.com/youtube/answer/9527654>
+        - Bilibili Creator Center: <https://member.bilibili.com/platform/home>
         """
     )
 
 
+def create_cover(product_frame: Path, output: Path, eyebrow: str, support: str, font: str) -> None:
+    """Compose a FlyEnv-style text panel over a real Temporal CLI product frame."""
+    run(
+        [
+            "magick",
+            product_frame,
+            "-fill",
+            "#081225",
+            "-colorize",
+            "22%",
+            "(",
+            "-size",
+            "960x1080",
+            "gradient:#10336b-#020617",
+            ")",
+            "-geometry",
+            "+0+0",
+            "-compose",
+            "over",
+            "-composite",
+            "-fill",
+            "#60a5fa",
+            "-draw",
+            "roundrectangle 96,188 110,286 7,7",
+            "-font",
+            font,
+            "-fill",
+            "#93c5fd",
+            "-pointsize",
+            "36",
+            "-gravity",
+            "NorthWest",
+            "-annotate",
+            "+144+188",
+            eyebrow,
+            "-fill",
+            "white",
+            "-pointsize",
+            "92",
+            "-annotate",
+            "+96+312",
+            "Temporal CLI",
+            "-fill",
+            "#bfdbfe",
+            "-pointsize",
+            "44",
+            "-annotate",
+            "+100+444",
+            support,
+            "-strip",
+            "-define",
+            "png:compression-level=9",
+            f"png24:{output}",
+        ]
+    )
+
+
 def stage_assets() -> None:
-    """Create the English thumbnail and starter YouTube upload package."""
+    """Create product-frame covers, captions, and publishing metadata."""
     require_file(FINAL, "assets")
-    require_file(SRT, "assets")
+    require_file(SRC, "assets")
+    write_srt_from_narration()
     run(
         [
             "ffmpeg",
@@ -471,18 +595,20 @@ def stage_assets() -> None:
             "-v",
             "error",
             "-ss",
-            "1",
+            "32",
             "-i",
-            FINAL,
+            SRC,
             "-frames:v",
             "1",
             "-vf",
             f"scale={W}:{H}:flags=lanczos",
-            THUMB,
+            PRODUCT_FRAME,
         ]
     )
+    create_cover(PRODUCT_FRAME, THUMB, "FLYENV DEMO", "Native Local Setup", "Helvetica-Bold")
+    create_cover(PRODUCT_FRAME, BILIBILI_COVER, "FLYENV 演示", "本地一键配置", BILIBILI_FONT)
     UPLOAD.write_text(upload_package(), encoding="utf-8")
-    print(f"assets: {THUMB.name}, {UPLOAD.name}")
+    print(f"assets: {SRT.name}, {THUMB.name}, {BILIBILI_COVER.name}, {UPLOAD.name}")
 
 
 STAGE_ORDER = ("base", "header", "concat", "tts", "subs", "mix", "assets")

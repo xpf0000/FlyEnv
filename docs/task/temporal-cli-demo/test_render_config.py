@@ -113,3 +113,48 @@ def test_mix_preserves_intro_audio_and_fades_audio_at_dynamic_end(tmp_path: Path
     assert ffmpeg[ffmpeg.index("-c:v") + 1] == "copy"
     assert ffmpeg[ffmpeg.index("-ar") + 1] == "48000"
     assert ffmpeg[ffmpeg.index("-ac") + 1] == "2"
+
+
+def test_srt_is_regenerated_from_narration_with_header_offset(tmp_path: Path) -> None:
+    namespace = runpy.run_path(Path(__file__).parent / "render.py")
+    runtime = namespace["write_srt_from_narration"].__globals__
+    build = tmp_path / "build"
+    build.mkdir()
+    timing = build / "timing.json"
+    timing.write_text(json.dumps({"header_offset": 5.033008, "total": 107.133008}), encoding="utf-8")
+    (build / "narration.json").write_text(
+        json.dumps(
+            [
+                {"index": 1, "start": 0.8, "end": 2.3, "text": "First sentence."},
+                {"index": 2, "start": 8.0, "end": 9.25, "text": "Second sentence."},
+            ]
+        ),
+        encoding="utf-8",
+    )
+    srt = tmp_path / "captions.srt"
+    runtime.update({"BUILD": build, "TIMING": timing, "SRT": srt})
+
+    runtime["write_srt_from_narration"]()
+
+    assert srt.read_text(encoding="utf-8") == (
+        "1\n00:00:05,833 --> 00:00:07,333\nFirst sentence.\n\n"
+        "2\n00:00:13,033 --> 00:00:14,283\nSecond sentence.\n"
+    )
+
+
+def test_bilibili_cover_uses_the_available_cjk_font(tmp_path: Path) -> None:
+    namespace = runpy.run_path(Path(__file__).parent / "render.py")
+    runtime = namespace["create_cover"].__globals__
+    commands: list[list[str]] = []
+    runtime["run"] = lambda cmd: commands.append([str(part) for part in cmd])
+
+    runtime["create_cover"](
+        tmp_path / "product.png",
+        tmp_path / "bilibili.png",
+        "FLYENV 演示",
+        "本地一键配置",
+        runtime["BILIBILI_FONT"],
+    )
+
+    command = commands[-1]
+    assert command[command.index("-font") + 1] == ".Hiragino-Sans-GB-Interface-W6"
