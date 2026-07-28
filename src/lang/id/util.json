@@ -18,7 +18,7 @@
   "showAIRobot": "Tampilkan Asisten AI",
   "mysqlDataDir": "Direktori Data",
   "mysqlPopperSocket": "Salin Jalur Socket",
-  "macPortsSrcSwitch": "Switch Cermin MacPorts",
+  "macPortsSrcSwitch": "Ganti Sumber Port Mac",
   "macPortsSrcAustraliBrisbane": "Australia - Brisbane",
   "macPortsSrcCanadaManitoba": "Kanada, Manitoba",
   "macPortsSrcCanadaWaterloo": "Kanada, Waterloo",
