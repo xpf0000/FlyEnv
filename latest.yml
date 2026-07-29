@@ -1,8 +1,8 @@
-version: 4.17.1
+version: 4.17.2
 files:
-  - url: FlyEnv-Setup-4.17.1.exe
-    sha512: wy2dB/Vb02YrKY6jXPPUxYGc1wxuLjeH7wBvAHUMZUjtPJaFR01Qpti/qA6uc27G0a6FY5EDt2jav8n5MLnWQQ==
-    size: 146869818
-path: FlyEnv-Setup-4.17.1.exe
-sha512: wy2dB/Vb02YrKY6jXPPUxYGc1wxuLjeH7wBvAHUMZUjtPJaFR01Qpti/qA6uc27G0a6FY5EDt2jav8n5MLnWQQ==
-releaseDate: '2026-07-26T09:19:15.522Z'
+  - url: FlyEnv-Setup-4.17.2.exe
+    sha512: 1AY9WPmspwKYDx3JkDWzWw1jfgXqMMZz3aibxFOWXkD7vn2UNpjvHs5sTYe26CHzY3yCSizG3CssNX1ggwwSTg==
+    size: 146871671
+path: FlyEnv-Setup-4.17.2.exe
+sha512: 1AY9WPmspwKYDx3JkDWzWw1jfgXqMMZz3aibxFOWXkD7vn2UNpjvHs5sTYe26CHzY3yCSizG3CssNX1ggwwSTg==
+releaseDate: '2026-07-27T01:54:02.035Z'

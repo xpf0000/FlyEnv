@@ -141,11 +141,11 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 * **Containers**: Podman.
 * **Network Tunnel**: Cloudflared, Cloudflare Tunnel.
 * **Web Servers**: FrankenPHP, [Apache], [Nginx], Caddy, Tomcat.
-* **Databases**: [MySQL], [MariaDB], [PostgreSQL], [MongoDB], Qdrant, ClickHouse.
+* **Databases**: [MySQL], [MariaDB], [PostgreSQL], [MongoDB], [Qdrant], [ClickHouse].
 * **Email Server**: [Mailpit].
 * **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, [PHP-CLI], [PHP-FPM], [RoadRunner], [Swoole Cli]), Go, [Node.js], [Python], Java (Maven, Gradle, SDKMAN), Erlang, Ruby, Rust (Rustup), Bun, Deno, Zig.
 * **Cache & Message Queue**: [Redis], Memcached, RabbitMQ.
-* **Service Governance**: Consul, Etcd, R-Nacos, Temporal
+* **Service Governance**: Consul, Etcd, R-Nacos, [Temporal], [Temporal CLI]
 * **Search Engine**: Elasticsearch, Meilisearch, Typesense, ZincSearch
 * **Object Storage**: RustFS, Minio.
 * **Automation & Scheduling**: Cron Jobs.
@@ -171,6 +171,11 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 [PostgreSQL]: https://youtu.be/5gW3WHh8_Jw
 [MongoDB]: https://youtu.be/wPjgwVeA6lw
 [Mailpit]: https://youtu.be/D4MkA25Ofd0
+[ClickHouse]: https://youtu.be/3ePJYddWYmQ
+[Qdrant]: https://youtu.be/ahetMNLLS7s
+[Temporal]: https://youtu.be/E_jetPnVxBo
+[Temporal CLI]: https://youtu.be/80psOMuDK9I
+[Elasticsearch]: https://youtu.be/B9Eo2Y-aXWQ
 
 ---
 
@@ -195,14 +200,14 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 
 Finally, a fast, native environment for Windows developers.
 
-* **Installer:** [FlyEnv-Setup-4.17.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.1/FlyEnv-Setup-4.17.1.exe)
-* **Portable:** [FlyEnv-Portable-4.17.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.1/FlyEnv-Portable-4.17.1.exe)
+* **Installer:** [FlyEnv-Setup-4.17.2.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.2/FlyEnv-Setup-4.17.2.exe)
+* **Portable:** [FlyEnv-Portable-4.17.2.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.2/FlyEnv-Portable-4.17.2.exe)
 
 ### macOS
 
 * **Homebrew:** `brew install flyenv`
-* **DMG (Intel):** [FlyEnv-4.17.1.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.1/FlyEnv-4.17.1.dmg)
-* **DMG (Apple Silicon):** [FlyEnv-4.17.1-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.1/FlyEnv-4.17.1-arm64.dmg)
+* **DMG (Intel):** [FlyEnv-4.17.2.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.2/FlyEnv-4.17.2.dmg)
+* **DMG (Apple Silicon):** [FlyEnv-4.17.2-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.2/FlyEnv-4.17.2-arm64.dmg)
 
 ### Linux
 
@@ -210,13 +215,13 @@ Supports Debian/Ubuntu (.deb) and RedHat/CentOS (.rpm).
 
 #### Debian / Ubuntu
 
-- **x86_64**: [FlyEnv-4.17.1-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.1/FlyEnv-4.17.1-x64.deb)
-- **ARM64**: [FlyEnv-4.17.1-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.1/FlyEnv-4.17.1-arm64.deb)
+- **x86_64**: [FlyEnv-4.17.2-x64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.2/FlyEnv-4.17.2-x64.deb)
+- **ARM64**: [FlyEnv-4.17.2-arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.2/FlyEnv-4.17.2-arm64.deb)
 
 #### Red Hat / Fedora / SUSE / CentOS
 
-- **x86_64**: [FlyEnv-4.17.1-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.1/FlyEnv-4.17.1-x64.rpm)
-- **ARM64**: [FlyEnv-4.17.1-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.1/FlyEnv-4.17.1-arm64.rpm)
+- **x86_64**: [FlyEnv-4.17.2-x64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.2/FlyEnv-4.17.2-x64.rpm)
+- **ARM64**: [FlyEnv-4.17.2-arm64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.17.2/FlyEnv-4.17.2-arm64.rpm)
 
 ---
 
