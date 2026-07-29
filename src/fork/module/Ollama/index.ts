@@ -1,4 +1,4 @@
-import { dirname, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -31,6 +31,21 @@ import { pcReportLinux } from './Linux'
 import { pcReportWindows } from './Windows'
 import process from 'node:process'
 import { withBinVersionCache } from '../../util/BinVersionCache'
+
+const archiveSuffixes = ['.tar.zst', '.tar.gz', '.tar.xz', '.tar.bz2', '.tgz', '.tbz2', '.zip']
+
+export function archiveExtensionFromUrl(url: string | undefined, fallback: string) {
+  if (!url) {
+    return fallback
+  }
+
+  try {
+    const fileName = basename(new URL(url).pathname).toLowerCase()
+    return archiveSuffixes.find((suffix) => fileName.endsWith(suffix)) ?? fallback
+  } catch {
+    return fallback
+  }
+}
 
 class Ollama extends Base {
   chats: Record<string, AbortController> = {}
@@ -160,13 +175,14 @@ class Ollama extends Base {
         all.forEach((a: any) => {
           let dir = ''
           let zip = ''
+          const archiveExtension = archiveExtensionFromUrl(a.url, isWindows() ? '.zip' : '.tgz')
           if (isWindows()) {
             dir = join(global.Server.AppDir!, `ollama-${a.version}`, 'ollama.exe')
-            zip = join(global.Server.Cache!, `ollama-${a.version}.zip`)
+            zip = join(global.Server.Cache!, `ollama-${a.version}${archiveExtension}`)
             a.appDir = join(global.Server.AppDir!, `ollama-${a.version}`)
           } else {
             dir = join(global.Server.AppDir!, `static-ollama-${a.version}`, 'ollama')
-            zip = join(global.Server.Cache!, `static-ollama-${a.version}.tgz`)
+            zip = join(global.Server.Cache!, `static-ollama-${a.version}${archiveExtension}`)
             a.appDir = join(global.Server.AppDir!, `static-ollama-${a.version}`)
           }
 

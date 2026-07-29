@@ -39,6 +39,10 @@ const unpackWith7zip = (file: string, dist: string) => {
   })
 }
 
+export function unpackCommand(zip: string, dist: string) {
+  return `zstd -dc "${zip}" | tar -xf - -C "${dist}" > /dev/null`
+}
+
 export function zipUnpack(fp: string, dist: string) {
   console.log('zipUnpack start: ', fp, dist, global.Server.Static!)
   return new Promise(async (resolve, reject) => {
@@ -93,7 +97,9 @@ export async function unpack(zipFile: string, dist: string) {
   const zip: string = zipFile.trim()
   const maxBuffer = 1024 * 1024 * 50
   const opt = { maxBuffer }
-  if (zip.includes('.tar.xz')) {
+  if (zip.includes('.tar.zst')) {
+    await execPromise(unpackCommand(zip, dist), opt)
+  } else if (zip.includes('.tar.xz')) {
     await execPromise(`tar -xJf "${zip}" -C "${dist}" > /dev/null`, opt)
   } else if (zip.includes('.tar.gz') || zip.includes('.tgz')) {
     await execPromise(`tar -xzf "${zip}" -C "${dist}" > /dev/null`, opt)
