@@ -1,12 +1,16 @@
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
+
+import render_common
 
 from render_common import (
     Caption,
     CoverMetadata,
     DemoConfig,
     DemoRenderer,
+    FontSettings,
     NarrationSettings,
     UploadMetadata,
     schedule_captions,
@@ -14,8 +18,8 @@ from render_common import (
 )
 
 
-def make_config(tmp_path: Path) -> DemoConfig:
-    return DemoConfig(
+def make_config(tmp_path: Path, **overrides: object) -> DemoConfig:
+    config = DemoConfig(
         task_path=tmp_path,
         source=Path("/recordings/FlyEnv-Example.mp4"),
         header_source=Path("/recordings/flyenv-header.mp4"),
@@ -42,6 +46,7 @@ def make_config(tmp_path: Path) -> DemoConfig:
             bilibili_tags=("FlyEnv", "Example", "本地开发"),
         ),
     )
+    return replace(config, **overrides)
 
 
 def test_schedule_never_overlaps_and_preserves_each_anchor() -> None:
@@ -86,7 +91,9 @@ def test_srt_timestamp_is_zero_padded_and_caption_blocks_include_header_offset(t
 
 def test_base_and_header_commands_normalize_to_original_speed_export_profile(tmp_path: Path) -> None:
     commands: list[list[str]] = []
-    renderer = DemoRenderer(make_config(tmp_path), runner=commands.append)
+    renderer = DemoRenderer(
+        make_config(tmp_path), runner=commands.append, duration_probe=lambda _: 5.085
+    )
 
     renderer.stage_base()
     renderer.stage_header()
@@ -107,6 +114,7 @@ def test_base_and_header_commands_normalize_to_original_speed_export_profile(tmp
     assert "-an" in header_video
     assert header_filter == "scale=1920:1080:flags=lanczos,fps=30,format=yuv420p"
     assert header_audio[header_audio.index("-vn")] == "-vn"
+    assert header_audio[header_audio.index("-af") + 1] == "atrim=0:5.085,asetpts=N/SR/TB"
     assert "pcm_s16le" in header_audio
 
 
@@ -140,3 +148,83 @@ def test_tts_and_final_mux_commands_keep_header_audio_and_publishable_audio_prof
         final_mux.index("-c:a"):final_mux.index("-c:a") + 8
     ]
     assert "+faststart" in final_mux
+
+
+def test_concat_handles_apostrophes_as_direct_arguments_and_rejects_control_paths(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+    renderer = DemoRenderer(
+        make_config(tmp_path / "O'Reilly", source=Path("/recordings/O'Reilly.mp4")),
+        runner=commands.append,
+        duration_probe=lambda _: 5.085,
+    )
+
+    renderer.stage_concat()
+
+    concat = commands[0]
+    assert concat.count("-i") == 2
+    assert str(renderer.header_output) in concat
+    assert str(renderer.base_output) in concat
+    assert "-f" not in concat
+    with pytest.raises(ValueError, match="control character"):
+        make_config(tmp_path / "unsafe\npath")
+
+
+def test_scheduled_caption_cannot_extend_past_the_healthy_cut(tmp_path: Path) -> None:
+    renderer = DemoRenderer(make_config(tmp_path), runner=lambda _: None)
+    overrun = Caption(anchor=41.0, text="Too late", start=41.5, end=42.001)
+
+    with pytest.raises(ValueError, match="cut_at"):
+        renderer.write_caption_audio([overrun], header_offset=5.085, total_duration=47.085)
+    with pytest.raises(ValueError, match="cut_at"):
+        renderer.srt_contents([overrun], header_offset=5.085)
+
+
+def test_caption_and_cover_commands_use_configured_latin_and_cjk_fonts(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+    renderer = DemoRenderer(
+        make_config(
+            tmp_path,
+            fonts=FontSettings(
+                latin="Test Latin", latin_bold="Test Latin Bold",
+                cjk="Test CJK", cjk_bold="Test CJK Bold",
+            ),
+        ),
+        runner=commands.append,
+    )
+
+    renderer._caption_bar(1, Caption(0.6, "English caption"))
+    renderer._caption_bar(2, Caption(1.0, "中文字幕"))
+    renderer._render_cover(
+        tmp_path / "english.png", (1920, 1080), tmp_path / "frame.png",
+        "FLYENV DEMO", ("Example", "Without Docker"), ("English body",), chinese=False,
+    )
+    renderer._render_cover(
+        tmp_path / "chinese.png", (1920, 1200), tmp_path / "frame.png",
+        "FLYENV 演示", ("Example", "本地一键运行"), ("中文文案",), chinese=True,
+    )
+
+    assert "Test Latin" in commands[0]
+    assert "Test CJK" in commands[1]
+    assert "Test Latin Bold" in commands[4]
+    assert "Test Latin" in commands[4]
+    assert "Test CJK Bold" in commands[7]
+    assert "Test CJK" in commands[7]
+
+
+def test_missing_process_executables_raise_dependency_specific_runtime_errors(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def missing_runner(_: list[str]) -> None:
+        raise FileNotFoundError("missing")
+
+    renderer = DemoRenderer(make_config(tmp_path), runner=missing_runner)
+    with pytest.raises(RuntimeError, match="ffmpeg.*FFmpeg"):
+        renderer.ffmpeg("-version")
+
+    monkeypatch.setattr(
+        render_common.subprocess,
+        "check_output",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(FileNotFoundError("missing")),
+    )
+    with pytest.raises(RuntimeError, match="ffprobe.*FFmpeg"):
+        renderer.probe_duration(tmp_path / "missing.mp4")

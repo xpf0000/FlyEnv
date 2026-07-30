@@ -14,7 +14,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
 
@@ -44,6 +44,16 @@ class NarrationSettings:
     loudness_i: float = -15.0
     loudness_tp: float = -1.5
     loudness_lra: float = 7.0
+
+
+@dataclass(frozen=True)
+class FontSettings:
+    """Font names used for Latin and CJK caption/cover text."""
+
+    latin: str = "Arial"
+    latin_bold: str = "Arial-Bold"
+    cjk: str = "Hiragino-Sans-GB-W3"
+    cjk_bold: str = "Hiragino-Sans-GB-W6"
 
 
 @dataclass(frozen=True)
@@ -97,6 +107,7 @@ class DemoConfig:
     cover: CoverMetadata
     upload: UploadMetadata
     final_fade: float = 0.6
+    fonts: FontSettings = field(default_factory=FontSettings)
 
     def __post_init__(self) -> None:
         if self.cut_at <= 0:
@@ -105,6 +116,14 @@ class DemoConfig:
             raise ValueError("final_fade must be positive and shorter than cut_at")
         if not self.captions:
             raise ValueError("at least one caption is required")
+        for label, value in (
+            ("task_path", self.task_path),
+            ("source", self.source),
+            ("header_source", self.header_source),
+            ("slug", self.slug),
+        ):
+            if any(ord(character) <= 31 or 127 <= ord(character) <= 159 for character in str(value)):
+                raise ValueError(f"{label} must not contain a control character")
 
 
 def schedule_captions(
@@ -142,6 +161,17 @@ def srt_time(value: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
 
+def has_cjk(text: str) -> bool:
+    """Use the configured CJK face for Han, Kana, or Hangul text."""
+
+    return any(
+        "\u3000" <= character <= "\u30ff"
+        or "\u3400" <= character <= "\u9fff"
+        or "\uac00" <= character <= "\ud7af"
+        for character in text
+    )
+
+
 Runner = Callable[[list[str]], object]
 DurationProbe = Callable[[Path], float]
 TtsAvailable = Callable[[], bool]
@@ -151,6 +181,12 @@ class DemoRenderer:
     """Stage-oriented media renderer used by each FlyEnv module wrapper."""
 
     order = ("base", "header", "concat", "tts", "subs", "mix", "assets", "verify")
+    dependency_hints = {
+        "ffmpeg": "FFmpeg",
+        "ffprobe": "FFmpeg",
+        "magick": "ImageMagick",
+        "edge-tts": "Edge TTS (edge-tts)",
+    }
 
     def __init__(
         self,
@@ -251,12 +287,23 @@ class DemoRenderer:
     def _subprocess_runner(command: list[str]) -> subprocess.CompletedProcess[str]:
         return subprocess.run(command, check=True, text=True)
 
+    @classmethod
+    def _unavailable_command(cls, command: str, error: OSError) -> RuntimeError:
+        executable = Path(command).name
+        dependency = cls.dependency_hints.get(executable, executable)
+        return RuntimeError(
+            f"Required command '{executable}' is unavailable; install or configure {dependency}."
+        )
+
     def run(self, command: Iterable[str | Path]) -> object:
         """Emit and execute one argv-only process invocation."""
 
         argv = [str(part) for part in command]
         self._display(argv)
-        result = self._runner(argv)
+        try:
+            result = self._runner(argv)
+        except OSError as error:
+            raise self._unavailable_command(argv[0], error) from error
         return_code = getattr(result, "returncode", 0)
         if return_code not in (None, 0):
             raise subprocess.CalledProcessError(return_code, argv)
@@ -271,7 +318,10 @@ class DemoRenderer:
             "-of", "csv=p=0", str(path),
         ]
         self._display(command)
-        value = subprocess.check_output(command, text=True).strip()
+        try:
+            value = subprocess.check_output(command, text=True).strip()
+        except OSError as error:
+            raise self._unavailable_command(command[0], error) from error
         return float(value)
 
     def _edge_tts_available(self) -> bool:
@@ -319,22 +369,21 @@ class DemoRenderer:
             "-i", self.config.header_source, "-vf", self.header_filter(), "-an",
             *self.x264_profile(), self.header_output,
         )
+        header_offset = self.probe_duration(self.header_output)
         self.ffmpeg(
-            "-i", self.config.header_source, "-vn", "-ac", "2", "-ar", "48000",
+            "-i", self.config.header_source, "-vn", "-af",
+            f"atrim=0:{header_offset:.3f},asetpts=N/SR/TB", "-ac", "2", "-ar", "48000",
             "-c:a", "pcm_s16le", self.header_audio_output,
         )
 
     def stage_concat(self) -> None:
-        """Prepend the normalized header and record the offset for captions/SRT."""
+        """Prepend the normalized header without parsing task paths as text."""
 
         self.build.mkdir(parents=True, exist_ok=True)
-        listing = self.build / "full_concat.txt"
-        listing.write_text(
-            f"file '{self.header_output}'\nfile '{self.base_output}'\n", encoding="utf-8"
-        )
         self.ffmpeg(
-            "-f", "concat", "-safe", "0", "-i", listing,
-            "-c", "copy", "-movflags", "+faststart", self.full_silent_output,
+            "-i", self.header_output, "-i", self.base_output,
+            "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0,format=yuv420p[v]",
+            "-map", "[v]", "-r", str(FPS), "-an", *self.x264_profile(), self.full_silent_output,
         )
         offset = self.probe_duration(self.header_output)
         total = self.probe_duration(self.full_silent_output)
@@ -370,9 +419,25 @@ class DemoRenderer:
             ])
             self.ffmpeg("-i", mp3, "-ac", "2", "-ar", "48000", "-c:a", "pcm_s16le", wav)
             durations.append(self.probe_duration(wav))
-        return schedule_captions(self.config.captions, durations, self.config.narration.gap)
+        return self.validate_scheduled_captions(
+            schedule_captions(self.config.captions, durations, self.config.narration.gap)
+        )
+
+    def validate_scheduled_captions(self, captions: Sequence[Caption]) -> list[Caption]:
+        """Prevent speech, bars, and SRT cues from extending past the base edit."""
+
+        validated = list(captions)
+        for index, caption in enumerate(validated, 1):
+            if caption.start is not None and caption.end is not None and caption.end < caption.start:
+                raise ValueError(f"caption {index} ends before it starts")
+            if caption.end is not None and caption.end > self.config.cut_at:
+                raise ValueError(
+                    f"caption {index} ends at {caption.end:.3f}s beyond cut_at {self.config.cut_at:.3f}s"
+                )
+        return validated
 
     def _write_narration_timing(self, captions: Sequence[Caption]) -> None:
+        captions = self.validate_scheduled_captions(captions)
         records = [
             {
                 "i": index,
@@ -403,6 +468,7 @@ class DemoRenderer:
     ) -> None:
         """Place scheduled speech after the header in a full-length voice WAV."""
 
+        captions = self.validate_scheduled_captions(captions)
         if not captions:
             raise ValueError("at least one scheduled caption is required")
         inputs: list[str | Path] = []
@@ -432,13 +498,16 @@ class DemoRenderer:
 
     def scheduled_captions(self) -> list[Caption]:
         records = json.loads(self.narration_output.read_text(encoding="utf-8"))
-        return [
+        return self.validate_scheduled_captions([
             Caption(
                 anchor=float(record["anchor"]), text=str(record["text"]),
                 speak=record.get("speak"), start=float(record["start"]), end=float(record["end"]),
             )
             for record in records
-        ]
+        ])
+
+    def _caption_font(self, text: str) -> str:
+        return self.config.fonts.cjk if has_cjk(text) else self.config.fonts.latin
 
     def _caption_bar(self, index: int, caption: Caption) -> Path:
         output = self.build / f"bar_{index:02d}.png"
@@ -446,7 +515,7 @@ class DemoRenderer:
             "magick", "-size", f"{BAR_W}x{BAR_H}", "xc:none",
             "-fill", "rgba(0,0,0,0.72)",
             "-draw", f"roundrectangle 0,0 {BAR_W - 1},{BAR_H - 1} 22,22",
-            "-font", "Arial", "-fill", "white", "-pointsize", str(BAR_PT),
+            "-font", self._caption_font(caption.text), "-fill", "white", "-pointsize", str(BAR_PT),
             "-gravity", "center", "-annotate", "+0+0", caption.text, output,
         ])
         return output
@@ -502,6 +571,7 @@ class DemoRenderer:
     # --------------------------------------------------------- assets/verify
 
     def srt_contents(self, captions: Sequence[Caption], *, header_offset: float) -> str:
+        captions = self.validate_scheduled_captions(captions)
         blocks: list[str] = []
         for index, caption in enumerate(captions, 1):
             if caption.start is None or caption.end is None:
@@ -536,8 +606,8 @@ class DemoRenderer:
         directory = self.build / f"cover_{output.stem}"
         directory.mkdir(parents=True, exist_ok=True)
         background, shot = directory / "background.png", directory / "shot.png"
-        font = "Hiragino-Sans-GB-W6" if chinese else "Arial-Bold"
-        regular_font = "Hiragino-Sans-GB-W3" if chinese else "Arial"
+        font = self.config.fonts.cjk_bold if chinese else self.config.fonts.latin_bold
+        regular_font = self.config.fonts.cjk if chinese else self.config.fonts.latin
         self.run(["magick", "-size", f"{width}x{height}", "radial-gradient:#182541-#050812", background])
         self.run(["magick", frame, "-resize", "960x", "-strip", shot])
         self.run([
