@@ -1,0 +1,8 @@
+# Generated post-production artifacts; commit only the reproducible sources.
+build/
+verify/
+.venv/
+__pycache__/
+*.mp4
+*.wav
+*.png

@@ -1,0 +1,55 @@
+1
+00:00:15,233 --> 00:00:19,745
+The Version tab lists ZincSearch releases and install actions.
+
+2
+00:00:23,633 --> 00:00:28,793
+Install ZincSearch 0.4.10 from the release list.
+
+3
+00:00:31,033 --> 00:00:37,177
+Version 0.4.10 is installed while 0.4.5 downloads.
+
+4
+00:00:37,457 --> 00:00:41,369
+The Service tab lists installed versions and their paths.
+
+5
+00:00:41,649 --> 00:00:45,273
+Open the 0.4.10 folder.
+
+6
+00:00:46,033 --> 00:00:49,201
+Start version 0.4.10.
+
+7
+00:00:49,633 --> 00:00:53,689
+Configuration shows the local address and port 4080.
+
+8
+00:00:56,833 --> 00:01:00,049
+0.4.10 is running.
+
+9
+00:01:00,633 --> 00:01:04,377
+Open the local ZincSearch interface in the browser.
+
+10
+00:01:05,033 --> 00:01:08,849
+The local search screen opens with no data available.
+
+11
+00:01:15,033 --> 00:01:19,929
+Return to FlyEnv and select version 0.4.5.
+
+12
+00:01:20,209 --> 00:01:24,505
+Start version 0.4.5 from the service row.
+
+13
+00:01:25,033 --> 00:01:29,065
+The tray menu exposes a ZincSearch service toggle.
+
+14
+00:01:29,533 --> 00:01:32,389
+0.4.5 is running.
