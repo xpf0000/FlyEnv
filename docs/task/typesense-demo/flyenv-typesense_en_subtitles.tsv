@@ -1,0 +1,17 @@
+3.600	7.560	The Typesense Version tab lists the available releases.
+7.840	11.392	An installed release is marked in the version list.
+11.672	15.488	Another Typesense release shows its install action.
+15.768	19.872	The Service tab lists installed versions and local paths.
+20.152	24.376	Open Configuration to inspect the Typesense server settings.
+24.656	28.112	The Log tab shows the Typesense startup output.
+28.392	33.432	The service log reports Typesense listening on port 8108.
+41.200	44.968	A local raft status page opens in the browser.
+45.248	48.776	The raft page shows the default group as leader.
+50.800	54.256	Open the vars page to inspect process values.
+59.800	64.000	The flags page lists runtime options and descriptions.
+64.280	68.216	The RPC page offers optional recent-call tracking.
+68.496	72.312	The heap page reports that the profiler is not enabled.
+72.592	76.192	The local page links its status and health routes.
+76.472	79.304	Return to the Typesense service tab.
+81.600	85.368	The service list refreshes the installed releases.
+85.648	87.448	The release is running.
