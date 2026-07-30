@@ -50,3 +50,20 @@ class RenderWrapperTests(unittest.TestCase):
             wrapper.strip_shared_indent("                # Heading\nPlain paragraph\n"),
             "# Heading\nPlain paragraph\n",
         )
+
+    def test_verify_checkpoints_are_distinct_caption_evidence(self) -> None:
+        wrapper = load_wrapper()
+
+        checkpoints = wrapper.verify_checkpoints(header_offset=5.033008, final_duration=168.7)
+
+        self.assertEqual(
+            [name for name, _ in checkpoints],
+            [
+                "01_header.png",
+                "02_opening_caption.png",
+                "03_service_caption.png",
+                "04_product_caption.png",
+                "05_tail.png",
+            ],
+        )
+        self.assertEqual([round(at, 3) for _, at in checkpoints], [1.0, 5.783, 100.183, 129.183, 167.8])

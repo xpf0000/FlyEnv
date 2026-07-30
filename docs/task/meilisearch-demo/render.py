@@ -34,8 +34,8 @@ from render_common import (  # noqa: E402
 DOCS = TASK.parent.parent
 SLUG = "flyenv-meilisearch"
 
-# Anchors are raw-demo seconds, before the 5.085-second shared opener.  TTS is
-# measured by DemoRenderer before these become caption and SRT timings.
+# Anchors are raw-demo seconds. DemoRenderer probes the normalized shared-header
+# offset dynamically before these become final caption and SRT timings.
 CAPTIONS = (
     Caption(0.60, "Manage Meilisearch from the FlyEnv desktop app."),
     Caption(5.40, "Choose Meilisearch from the Search Engine section."),
@@ -137,6 +137,18 @@ def strip_shared_indent(markdown: str) -> str:
     )
 
 
+def verify_checkpoints(header_offset: float, final_duration: float) -> tuple[tuple[str, float], ...]:
+    """Name distinct final-master frames for the publishing-package review."""
+
+    return (
+        ("01_header.png", min(1.0, max(0.0, header_offset / 2))),
+        ("02_opening_caption.png", header_offset + CAPTIONS[0].anchor + 0.15),
+        ("03_service_caption.png", header_offset + CAPTIONS[8].anchor + 0.15),
+        ("04_product_caption.png", header_offset + CAPTIONS[11].anchor + 0.15),
+        ("05_tail.png", max(0.0, final_duration - 0.9)),
+    )
+
+
 class MeilisearchRenderer(DemoRenderer):
     """Keep shared rendering behavior while adding platform-ready release notes."""
 
@@ -187,6 +199,14 @@ class MeilisearchRenderer(DemoRenderer):
                     """
                 ).lstrip()
             )
+
+    def extract_verify_frames(self) -> None:
+        """Use explicit, distinct checkpoints instead of generic renderer samples."""
+
+        timing = self._timing()
+        final_duration = self.probe_duration(self.final_output)
+        for name, at in verify_checkpoints(timing["offset"], final_duration):
+            self._extract_frame(self.final_output, at, self.verify_dir / name)
 
 
 def normalise_stages(argv: Sequence[str]) -> list[str]:
