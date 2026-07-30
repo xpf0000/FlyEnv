@@ -68,7 +68,7 @@ FlyEnv ZincSearch 本地部署演示：安装版本、启动服务与打开界�
 
 ```
 FlyEnv 新增 ZincSearch 模块。本视频以原始录制速度展示从版本浏览、多版本共存与
-一键切换，到查看服务路径和配置、启动服务、打开本地 ZincSearch 界面的完整录制流程。
+一键切换，到查看服务路径和配置、启动服务、打开本地 ZincSearch Web管理界面的完整录制流程。
 
 视频内容
 - 选择 ZincSearch 并浏览版本列表
@@ -89,6 +89,17 @@ ZincSearch 文档：https://zincsearch-docs.zinc.dev/
 
 ```
 FlyEnv, ZincSearch, 搜索引擎, 本地开发, 开发工具, 本地部署, 服务管理, 后端开发, 开源, 程序员
+```
+
+**时间轴**
+
+```
+00:00 FlyEnv 开场
+00:15 ZincSearch 版本列表
+00:30 安装版本与多版本共存
+00:45 服务路径与配置
+01:00 本地 ZincSearch 界面
+01:15 一键切换当前 ZincSearch 版本
 ```
 
 - 封面：`flyenv-zincsearch_bilibili_cover.png`
@@ -128,17 +139,6 @@ The chapters include the shared opener; every interval is at least ten seconds.
 
 - **分区：** 科技 → 计算机技术
 - **封面：** `flyenv-zincsearch_bilibili_cover.png` — 1920x1200，中文文案，基于真实 FlyEnv 服务画面
-
-**时间轴**（包含 FlyEnv 开场；每段不少于 10 秒）
-
-```
-0:00 FlyEnv 开场
-0:15 ZincSearch 版本列表
-0:30 安装选定版本
-0:45 服务路径与配置
-1:00 本地 ZincSearch 界面
-1:15 一键切换当前 ZincSearch 版本
-```
 
 ### Official references
 
