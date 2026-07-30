@@ -372,7 +372,7 @@ class DemoRenderer:
         header_offset = self.probe_duration(self.header_output)
         self.ffmpeg(
             "-i", self.config.header_source, "-vn", "-af",
-            f"atrim=0:{header_offset:.3f},asetpts=N/SR/TB", "-ac", "2", "-ar", "48000",
+            f"atrim=0:{header_offset:.6f},asetpts=N/SR/TB", "-ac", "2", "-ar", "48000",
             "-c:a", "pcm_s16le", self.header_audio_output,
         )
 

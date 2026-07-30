@@ -92,7 +92,7 @@ def test_srt_timestamp_is_zero_padded_and_caption_blocks_include_header_offset(t
 def test_base_and_header_commands_normalize_to_original_speed_export_profile(tmp_path: Path) -> None:
     commands: list[list[str]] = []
     renderer = DemoRenderer(
-        make_config(tmp_path), runner=commands.append, duration_probe=lambda _: 5.085
+        make_config(tmp_path), runner=commands.append, duration_probe=lambda _: 5.066667
     )
 
     renderer.stage_base()
@@ -114,7 +114,7 @@ def test_base_and_header_commands_normalize_to_original_speed_export_profile(tmp
     assert "-an" in header_video
     assert header_filter == "scale=1920:1080:flags=lanczos,fps=30,format=yuv420p"
     assert header_audio[header_audio.index("-vn")] == "-vn"
-    assert header_audio[header_audio.index("-af") + 1] == "atrim=0:5.085,asetpts=N/SR/TB"
+    assert header_audio[header_audio.index("-af") + 1] == "atrim=0:5.066667,asetpts=N/SR/TB"
     assert "pcm_s16le" in header_audio
 
 
