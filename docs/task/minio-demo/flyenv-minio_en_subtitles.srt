@@ -1,0 +1,79 @@
+1
+00:00:05,533 --> 00:00:09,613
+FlyEnv brings local development services together.
+
+2
+00:00:09,893 --> 00:00:13,085
+Open the MinIO module from FlyEnv.
+
+3
+00:00:13,365 --> 00:00:19,173
+MinIO opens with Service, Version, Configuration, and Log tabs.
+
+4
+00:00:19,453 --> 00:00:23,533
+The Version tab lists the available MinIO releases.
+
+5
+00:00:23,813 --> 00:00:27,605
+Select a release to download and install it locally.
+
+6
+00:00:27,885 --> 00:00:32,037
+FlyEnv shows download progress in the release list.
+
+7
+00:00:33,533 --> 00:00:37,829
+The Service tab shows installed releases and their local paths.
+
+8
+00:00:41,533 --> 00:00:45,325
+Open Configuration to inspect the MinIO settings.
+
+9
+00:00:48,033 --> 00:00:52,305
+The Log tab displays startup details and local endpoints.
+
+10
+00:00:56,033 --> 00:00:58,865
+Open MinIO Console in a browser.
+
+11
+00:01:02,033 --> 00:01:05,801
+The Console sign-in page is ready for local access.
+
+12
+00:01:06,081 --> 00:01:09,777
+The Object Browser is available after signing in.
+
+13
+00:01:10,057 --> 00:01:13,537
+Open Access Keys from the Console navigation.
+
+14
+00:01:13,817 --> 00:01:17,393
+Start the visible access-key creation workflow.
+
+15
+00:01:17,673 --> 00:01:22,089
+The confirmation dialog displays the new access key details.
+
+16
+00:01:22,369 --> 00:01:25,489
+The Access Keys view lists the active key.
+
+17
+00:01:26,033 --> 00:01:28,769
+Browse the available Buckets page.
+
+18
+00:01:29,049 --> 00:01:33,009
+The IAM Policies page lists built-in policy names.
+
+19
+00:01:35,033 --> 00:01:39,689
+Return to FlyEnv to inspect the installed MinIO releases.
+
+20
+00:01:41,033 --> 00:01:45,257
+The final service view keeps MinIO controls in one place.

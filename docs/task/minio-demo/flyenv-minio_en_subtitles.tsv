@@ -1,0 +1,20 @@
+0.500	4.580	FlyEnv brings local development services together.
+4.860	8.052	Open the MinIO module from FlyEnv.
+8.332	14.140	MinIO opens with Service, Version, Configuration, and Log tabs.
+14.420	18.500	The Version tab lists the available MinIO releases.
+18.780	22.572	Select a release to download and install it locally.
+22.852	27.004	FlyEnv shows download progress in the release list.
+28.500	32.796	The Service tab shows installed releases and their local paths.
+36.500	40.292	Open Configuration to inspect the MinIO settings.
+43.000	47.272	The Log tab displays startup details and local endpoints.
+51.000	53.832	Open MinIO Console in a browser.
+57.000	60.768	The Console sign-in page is ready for local access.
+61.048	64.744	The Object Browser is available after signing in.
+65.024	68.504	Open Access Keys from the Console navigation.
+68.784	72.360	Start the visible access-key creation workflow.
+72.640	77.056	The confirmation dialog displays the new access key details.
+77.336	80.456	The Access Keys view lists the active key.
+81.000	83.736	Browse the available Buckets page.
+84.016	87.976	The IAM Policies page lists built-in policy names.
+90.000	94.656	Return to FlyEnv to inspect the installed MinIO releases.
+96.000	100.224	The final service view keeps MinIO controls in one place.
