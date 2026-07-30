@@ -120,8 +120,8 @@ CONFIG = DemoConfig(
             "FlyEnv", "MinIO", "对象存储", "本地开发", "开发工具", "本地部署",
             "后端开发", "S3", "开源", "程序员",
         ),
-        # These final-master chapter times include the shared opener.  Every
-        # chapter interval is at least 15 seconds, exceeding YouTube's 10s bar.
+        # These final-master chapter times include the shared opener. Every
+        # chapter interval meets YouTube's 10-second duration condition.
         chapters=(
             ("0:00", "FlyEnv intro"),
             ("0:15", "Browse MinIO releases"),
@@ -129,7 +129,7 @@ CONFIG = DemoConfig(
             ("0:45", "Configuration and service log"),
             ("1:00", "Open MinIO Console"),
             ("1:15", "Access keys, buckets, and IAM policies"),
-            ("1:30", "Final MinIO service state"),
+            ("1:35", "Final MinIO service state"),
         ),
     ),
 )
@@ -187,7 +187,7 @@ class MinioRenderer(DemoRenderer):
                     Upload `flyenv-minio_en_subtitles.srt` as the English subtitle track. Captions are
                     burned into the master and the SRT remains useful for accessibility and discovery.
                     The seven supplied chapters are timed on the final master, including the shared opener;
-                    each chapter interval is at least 15 seconds.
+                    each chapter meets YouTube's 10-second duration condition.
 
                     ### Bilibili 备选标题
 

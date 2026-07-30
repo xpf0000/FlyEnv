@@ -32,7 +32,7 @@ English narration and captions are included.
 0:45 Configuration and service log
 1:00 Open MinIO Console
 1:15 Access keys, buckets, and IAM policies
-1:30 Final MinIO service state
+1:35 Final MinIO service state
 ```
 
 **Tags**
@@ -98,7 +98,7 @@ FlyEnv, MinIO, 对象存储, 本地开发, 开发工具, 本地部署, 后端开
 Upload `flyenv-minio_en_subtitles.srt` as the English subtitle track. Captions are
 burned into the master and the SRT remains useful for accessibility and discovery.
 The seven supplied chapters are timed on the final master, including the shared opener;
-each chapter interval is at least 15 seconds.
+each chapter meets YouTube's 10-second duration condition.
 
 ### Bilibili 备选标题
 

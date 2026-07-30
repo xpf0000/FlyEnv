@@ -69,6 +69,22 @@ class RenderWrapperTests(unittest.TestCase):
         self.assertIn("MinIO", config.upload.bilibili_title)
         self.assertEqual(len(config.upload.chapters), 7)
 
+    def test_upload_chapters_match_the_final_master_timeline(self) -> None:
+        wrapper = load_wrapper()
+
+        self.assertEqual(
+            wrapper.CONFIG.upload.chapters,
+            (
+                ("0:00", "FlyEnv intro"),
+                ("0:15", "Browse MinIO releases"),
+                ("0:30", "Install and inspect service state"),
+                ("0:45", "Configuration and service log"),
+                ("1:00", "Open MinIO Console"),
+                ("1:15", "Access keys, buckets, and IAM policies"),
+                ("1:35", "Final MinIO service state"),
+            ),
+        )
+
     def test_documented_all_verify_invocation_runs_the_full_pipeline_once(self) -> None:
         wrapper = load_wrapper()
 
