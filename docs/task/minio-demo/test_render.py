@@ -48,11 +48,11 @@ class RenderWrapperTests(unittest.TestCase):
         self.assertIn("Access Keys", " ".join(cue.text for cue in wrapper.CAPTIONS))
         self.assertIn("MinIO Console", " ".join(cue.text for cue in wrapper.CAPTIONS))
 
-    def test_first_caption_is_the_visible_minio_action_not_generic_marketing(self) -> None:
+    def test_first_caption_matches_the_visible_minio_selection(self) -> None:
         wrapper = load_wrapper()
 
-        self.assertEqual(wrapper.CAPTIONS[0].anchor, 3.0)
-        self.assertEqual(wrapper.CAPTIONS[0].text, "Open the MinIO module from FlyEnv.")
+        self.assertEqual(wrapper.CAPTIONS[0].anchor, 5.5)
+        self.assertEqual(wrapper.CAPTIONS[0].text, "Choose MinIO under Object Storage.")
         self.assertNotIn(
             "FlyEnv brings local development services together.",
             [cue.text for cue in wrapper.CAPTIONS],
@@ -88,7 +88,7 @@ class RenderWrapperTests(unittest.TestCase):
                 "05_tail.png",
             ],
         )
-        self.assertEqual([round(at, 3) for _, at in checkpoints], [1.0, 8.183, 33.683, 56.183, 105.3])
+        self.assertEqual([round(at, 3) for _, at in checkpoints], [1.0, 10.683, 33.683, 56.183, 105.3])
         self.assertEqual(len({round(at, 3) for _, at in checkpoints}), 5)
 
 

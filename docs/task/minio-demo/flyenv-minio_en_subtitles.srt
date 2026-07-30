@@ -1,21 +1,21 @@
 1
-00:00:08,033 --> 00:00:11,225
-Open the MinIO module from FlyEnv.
+00:00:10,533 --> 00:00:13,509
+Choose MinIO under Object Storage.
 
 2
-00:00:11,505 --> 00:00:17,313
+00:00:13,789 --> 00:00:19,597
 MinIO opens with Service, Version, Configuration, and Log tabs.
 
 3
-00:00:17,593 --> 00:00:21,673
+00:00:19,877 --> 00:00:23,957
 The Version tab lists the available MinIO releases.
 
 4
-00:00:21,953 --> 00:00:25,745
+00:00:24,237 --> 00:00:28,029
 Select a release to download and install it locally.
 
 5
-00:00:26,033 --> 00:00:30,185
+00:00:28,309 --> 00:00:32,461
 FlyEnv shows download progress in the release list.
 
 6

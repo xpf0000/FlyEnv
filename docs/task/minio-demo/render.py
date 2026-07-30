@@ -38,7 +38,7 @@ RAW_SOURCE_SHA256 = "2a64d575d1c5f16b970c82796719f500375d7cfb4629a677c9c2625975d
 # Anchors are seconds in the untouched raw demo.  DemoRenderer measures the
 # normalized shared-header duration and offsets the spoken SRT times from it.
 CAPTIONS = (
-    Caption(3.00, "Open the MinIO module from FlyEnv."),
+    Caption(5.50, "Choose MinIO under Object Storage."),
     Caption(6.00, "MinIO opens with Service, Version, Configuration, and Log tabs."),
     Caption(10.50, "The Version tab lists the available MinIO releases."),
     Caption(16.50, "Select a release to download and install it locally."),
