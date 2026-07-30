@@ -1,0 +1,67 @@
+1
+00:00:15,033 --> 00:00:22,785
+The RustFS module opens with Service, Version, Configuration, Log, and Error Log tabs.
+
+2
+00:00:23,065 --> 00:00:32,353
+The Version tab lists RustFS 1.0.0-beta.11-preview.1 with an Install action.
+
+3
+00:00:32,633 --> 00:00:37,265
+The selected RustFS release is downloading in the Version tab.
+
+4
+00:00:37,545 --> 00:00:41,817
+The Version tab then marks that RustFS release installed.
+
+5
+00:00:42,097 --> 00:00:49,057
+The Service tab shows the installed version, data directory, environment, and start control.
+
+6
+00:00:49,337 --> 00:00:57,065
+Configuration presents RustFS address, console address, security, and KMS fields.
+
+7
+00:01:00,033 --> 00:01:06,585
+Additional configuration sections show Console, observability, and performance settings.
+
+8
+00:01:13,033 --> 00:01:17,833
+The Log tab displays the visible RustFS startup log entries.
+
+9
+00:01:23,033 --> 00:01:32,849
+The local RustFS Console opens at 127.0.0.1:9001 with Key Login and STS Login.
+
+10
+00:01:33,129 --> 00:01:39,129
+After login, the Console opens the Buckets page, which currently shows no buckets.
+
+11
+00:01:39,409 --> 00:01:42,937
+The Access Keys view opens its Create Key form.
+
+12
+00:01:47,033 --> 00:01:53,009
+The Console confirms a new access key and warns that the secret key is shown only once.
+
+13
+00:01:53,289 --> 00:01:57,057
+The Access Keys table shows the newly available key.
+
+14
+00:01:57,337 --> 00:02:00,313
+The Console then shows the Users page.
+
+15
+00:02:03,033 --> 00:02:07,281
+The User Groups page and Bucket Events navigation are visible.
+
+16
+00:02:07,561 --> 00:02:11,857
+The Lifecycle page is also visible without any buckets.
+
+17
+00:02:12,137 --> 00:02:18,377
+FlyEnv returns to the running RustFS service while the Console remains open behind it.
