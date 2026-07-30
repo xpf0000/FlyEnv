@@ -1,0 +1,59 @@
+1
+00:00:05,633 --> 00:00:09,713
+Manage Meilisearch from the FlyEnv desktop app.
+
+2
+00:00:10,433 --> 00:00:13,889
+Choose Meilisearch from the Search Engine section.
+
+3
+00:00:15,833 --> 00:00:19,913
+The Version tab lists the available Meilisearch releases.
+
+4
+00:00:22,233 --> 00:00:26,049
+Each release shows its version and an install action.
+
+5
+00:00:29,033 --> 00:00:32,825
+Select a release to download and install it locally.
+
+6
+00:00:37,033 --> 00:00:41,737
+FlyEnv shows download progress directly in the release list.
+
+7
+00:00:48,533 --> 00:00:53,117
+When the download completes, the installed release is ready to use.
+
+8
+00:01:02,033 --> 00:01:05,369
+Add another release from the same version list.
+
+9
+00:01:40,033 --> 00:01:44,281
+The Service tab lists installed versions and their local paths.
+
+10
+00:01:46,033 --> 00:01:51,433
+Configuration opens the Meilisearch settings in FlyEnv's built-in editor.
+
+11
+00:01:59,033 --> 00:02:02,201
+The Log tab displays the service output.
+
+12
+00:02:09,033 --> 00:02:13,977
+The Mini Dashboard opens the local Meilisearch interface in the browser.
+
+13
+00:02:23,033 --> 00:02:29,873
+Back in FlyEnv, installed versions, environment, and service controls stay together.
+
+14
+00:02:34,033 --> 00:02:37,945
+Start the selected version and confirm its running state.
+
+15
+00:02:42,033 --> 00:02:46,473
+The final view keeps the Meilisearch service controls within reach.
