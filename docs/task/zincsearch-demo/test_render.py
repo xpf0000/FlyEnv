@@ -59,20 +59,25 @@ class RenderWrapperTests(unittest.TestCase):
         wrapper = load_wrapper()
 
         self.assertEqual(wrapper.CAPTIONS[4].text, "Open the 0.4.10 folder.")
-        self.assertEqual(wrapper.CAPTIONS[5].text, "Start version 0.4.10.")
-        self.assertEqual(wrapper.MEASURED_BRIAN_MINUS_SIX_DURATIONS[4:6], (3.624, 3.168))
+        self.assertEqual(wrapper.CAPTIONS[5].text, "Start 0.4.10.")
+        self.assertEqual(wrapper.CAPTIONS[5].speak, "Start.")
+        self.assertEqual(wrapper.MEASURED_BRIAN_MINUS_SIX_DURATIONS[5], 0.936)
         schedule = wrapper.measured_brian_minus_six_schedule()
-        self.assertEqual((schedule[5].start, schedule[5].end), (41.0, 44.168))
+        self.assertEqual(schedule[5].start, 41.0)
+        self.assertLessEqual(schedule[5].end, 43.7)
         self.assertEqual(schedule[6].start, 44.6)
 
     def test_running_caption_finishes_before_the_local_interface_opens(self) -> None:
         wrapper = load_wrapper()
 
         self.assertEqual(wrapper.CAPTIONS[7].text, "0.4.10 is running.")
-        self.assertEqual(wrapper.MEASURED_BRIAN_MINUS_SIX_DURATIONS[7], 3.216)
+        self.assertEqual(wrapper.CAPTIONS[7].speak, "Running.")
+        self.assertEqual(wrapper.MEASURED_BRIAN_MINUS_SIX_DURATIONS[7], 0.936)
         schedule = wrapper.measured_brian_minus_six_schedule()
-        self.assertEqual(schedule[7].end, 55.016)
-        self.assertEqual(schedule[8].start, 55.6)
+        self.assertEqual(schedule[7].start, 51.8)
+        self.assertLess(schedule[7].end, 53.267)
+        self.assertEqual(wrapper.CAPTIONS[8].anchor, 53.6)
+        self.assertEqual(schedule[8].start, 53.6)
 
     def test_measured_brian_schedule_fits_the_retained_raw_tail(self) -> None:
         wrapper = load_wrapper()

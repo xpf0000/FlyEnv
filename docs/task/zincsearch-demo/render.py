@@ -44,10 +44,10 @@ CAPTIONS = (
     Caption(26.0, "Version 0.4.10 is installed while 0.4.5 downloads."),
     Caption(31.8, "The Service tab lists installed versions and their paths."),
     Caption(35.0, "Open the 0.4.10 folder."),
-    Caption(41.0, "Start version 0.4.10."),
+    Caption(41.0, "Start 0.4.10.", speak="Start."),
     Caption(44.6, "Configuration shows the local address and port 4080."),
-    Caption(51.8, "0.4.10 is running."),
-    Caption(55.6, "Open the local ZincSearch interface in the browser."),
+    Caption(51.8, "0.4.10 is running.", speak="Running."),
+    Caption(53.6, "Open the local ZincSearch interface in the browser."),
     Caption(60.0, "The local search screen opens with no data available."),
     Caption(70.0, "Return to FlyEnv and select version 0.4.5."),
     Caption(74.0, "Start version 0.4.5 from the service row."),
@@ -59,8 +59,8 @@ CAPTIONS = (
 # the first complete render.  Retain the compact schedule so future text edits
 # cannot silently push speech past the deliberately preserved final state.
 MEASURED_BRIAN_MINUS_SIX_DURATIONS = (
-    4.512, 5.160, 6.144, 3.912, 3.624, 3.168, 4.056,
-    3.216, 3.744, 3.816, 4.896, 4.296, 4.032, 2.856,
+    4.512, 5.160, 6.144, 3.912, 3.624, 0.936, 4.056,
+    0.936, 3.744, 3.816, 4.896, 4.296, 4.032, 2.856,
 )
 
 BILIBILI_CHAPTERS = (

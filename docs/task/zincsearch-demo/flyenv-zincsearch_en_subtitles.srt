@@ -19,19 +19,19 @@ The Service tab lists installed versions and their paths.
 Open the 0.4.10 folder.
 
 6
-00:00:46,033 --> 00:00:49,201
-Start version 0.4.10.
+00:00:46,033 --> 00:00:46,969
+Start 0.4.10.
 
 7
 00:00:49,633 --> 00:00:53,689
 Configuration shows the local address and port 4080.
 
 8
-00:00:56,833 --> 00:01:00,049
+00:00:56,833 --> 00:00:57,769
 0.4.10 is running.
 
 9
-00:01:00,633 --> 00:01:04,377
+00:00:58,633 --> 00:01:02,377
 Open the local ZincSearch interface in the browser.
 
 10
