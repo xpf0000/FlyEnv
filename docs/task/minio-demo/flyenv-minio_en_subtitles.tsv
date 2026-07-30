@@ -1,9 +1,8 @@
-0.500	4.580	FlyEnv brings local development services together.
-4.860	8.052	Open the MinIO module from FlyEnv.
-8.332	14.140	MinIO opens with Service, Version, Configuration, and Log tabs.
-14.420	18.500	The Version tab lists the available MinIO releases.
-18.780	22.572	Select a release to download and install it locally.
-22.852	27.004	FlyEnv shows download progress in the release list.
+3.000	6.192	Open the MinIO module from FlyEnv.
+6.472	12.280	MinIO opens with Service, Version, Configuration, and Log tabs.
+12.560	16.640	The Version tab lists the available MinIO releases.
+16.920	20.712	Select a release to download and install it locally.
+21.000	25.152	FlyEnv shows download progress in the release list.
 28.500	32.796	The Service tab shows installed releases and their local paths.
 36.500	40.292	Open Configuration to inspect the MinIO settings.
 43.000	47.272	The Log tab displays startup details and local endpoints.

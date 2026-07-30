@@ -38,7 +38,6 @@ RAW_SOURCE_SHA256 = "2a64d575d1c5f16b970c82796719f500375d7cfb4629a677c9c2625975d
 # Anchors are seconds in the untouched raw demo.  DemoRenderer measures the
 # normalized shared-header duration and offsets the spoken SRT times from it.
 CAPTIONS = (
-    Caption(0.50, "FlyEnv brings local development services together."),
     Caption(3.00, "Open the MinIO module from FlyEnv."),
     Caption(6.00, "MinIO opens with Service, Version, Configuration, and Log tabs."),
     Caption(10.50, "The Version tab lists the available MinIO releases."),
@@ -152,8 +151,8 @@ def verify_checkpoints(header_offset: float, final_duration: float) -> tuple[tup
     return (
         ("01_header.png", min(1.0, max(0.0, header_offset / 2))),
         ("02_opening_caption.png", header_offset + CAPTIONS[0].anchor + 0.15),
-        ("03_service_caption.png", header_offset + CAPTIONS[6].anchor + 0.15),
-        ("04_product_caption.png", header_offset + CAPTIONS[9].anchor + 0.15),
+        ("03_service_caption.png", header_offset + CAPTIONS[5].anchor + 0.15),
+        ("04_product_caption.png", header_offset + CAPTIONS[8].anchor + 0.15),
         ("05_tail.png", max(0.0, final_duration - 0.9)),
     )
 
