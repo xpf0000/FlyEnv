@@ -7,7 +7,7 @@
     <div class="left">
       <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon
-          :svg="import('@/svg/temporal.svg?raw')"
+          :svg="import('@/svg/temporal-cli.svg?raw')"
           style="padding: 5px"
           width="28"
           height="28"
