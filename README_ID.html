@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlyEnv — Dokumentasi & Panduan Modern (Bahasa Indonesia)</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        devbg: '#0b0f19',
+                        devcard: '#131a2c',
+                        devborder: '#1e2943',
+                        textmute: '#64748b',
+                    },
+                    fontFamily: {
+                        mono: ['Fira Code', 'Consolas', 'ui-monospace', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e2943;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+        details[open] summary svg {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-devbg text-slate-100 font-sans antialiased min-h-screen selection:bg-cyan-500 selection:text-black">
+
+    <!-- Top Glow Effect -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[300px] bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10 blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-5xl mx-auto px-4 py-12 relative z-10">
+        
+        <!-- Hero Section -->
+        <header class="text-center mb-16 border-b border-devborder/60 pb-12">
+            <div class="inline-flex p-4 bg-devcard rounded-2xl border border-devborder shadow-xl shadow-cyan-950/20 mb-6 group hover:border-cyan-500/50 transition-all duration-300">
+                <img src="https://raw.githubusercontent.com/xpf0000/FlyEnv/master/build/256x256.png" class="w-28 h-28 object-contain group-hover:scale-105 transition-transform duration-300" alt="FlyEnv Logo" />
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent mb-6">
+                Kelola Dev Stack Lokal, AI Coding CLI, <br class="hidden md:inline">dan MCP Secara Native
+            </h1>
+            <p class="text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                <strong class="text-cyan-400 font-semibold">FlyEnv</strong> adalah aplikasi desktop revolusioner untuk mengelola lingkungan pengembangan lokal di Windows, macOS, dan Linux tanpa overhead kontainer.
+            </p>
+            
+            <div class="mt-4 text-sm text-slate-500 bg-devcard/50 border border-devborder/40 inline-block px-4 py-2 rounded-full backdrop-blur-sm">
+                ⚡ PHP, Node.js, Python, Java, .NET, Databases, SSL, Reverse Proxies — <span class="text-amber-400 font-semibold">Tanpa Perlu Docker!</span>
+            </div>
+
+            <div class="mt-8 flex flex-wrap justify-center gap-4">
+                <a href="https://github.com/xpf0000/FlyEnv/releases" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-900 font-bold rounded-xl shadow-lg shadow-cyan-500/20 transform hover:-translate-y-0.5 transition-all duration-200">
+                    Unduh Rilis Terbaru
+                </a>
+                <a href="#workflow" class="px-6 py-3 bg-devcard hover:bg-devborder border border-devborder text-slate-300 font-semibold rounded-xl transition-all duration-200">
+                    Pelajari Fitur
+                </a>
+            </div>
+        </header>
+
+        <main class="space-y-16">
+            
+            <!-- Section: Fitur Utama -->
+            <section id="features" class="space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-1.5 bg-cyan-500 rounded-full"></div>
+                    <h2 class="text-2xl font-bold text-white tracking-wide">Apa Saja yang Dapat Anda Lakukan?</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-6 bg-devcard/60 border border-devborder rounded-xl hover:border-cyan-500/40 transition-all duration-200 group">
+                        <div class="text-cyan-400 text-xl mb-3 font-bold group-hover:text-cyan-300">📦 Runtime On-Demand</div>
+                        <p class="text-sm text-slate-400 leading-relaxed">Jalankan PHP, Node.js, Python, Java, .NET, Flutter, Go, Rust, Bun, hingga Deno secara berdampingan tanpa bentrokan versi.</p>
+                    </div>
+                    <div class="p-6 bg-devcard/60 border border-devborder rounded-xl hover:border-cyan-500/40 transition-all duration-200 group">
+                        <div class="text-cyan-400 text-xl mb-3 font-bold group-hover:text-cyan-300">🛠️ Layanan Lokal Komplit</div>
+                        <p class="text-sm text-slate-400 leading-relaxed">Nginx, Apache, Caddy, MySQL, PostgreSQL, MongoDB, Redis, RabbitMQ, hingga Elasticsearch siap jalan dalam sekali klik.</p>
+                    </div>
+                    <div class="p-6 bg-devcard/60 border border-devborder rounded-xl hover:border-cyan-500/40 transition-all duration-200 group">
+                        <div class="text-cyan-400 text-xl mb-3 font-bold group-hover:text-cyan-300">🤖 AI Coding Workspace</div>
+                        <p class="text-sm text-slate-400 leading-relaxed">Instal dan kelola alat AI kelas berat seperti Claude Code, Codex, OpenCode, Kimi, Antigravity CLI, dan GitHub Copilot CLI secara terpadu.</p>
+                    </div>
+                    <div class="p-6 bg-devcard/60 border border-devborder rounded-xl hover:border-cyan-500/40 transition-all duration-200 group">
+                        <div class="text-cyan-400 text-xl mb-3 font-bold group-hover:text-cyan-300">🔌 Ekspos Stack Lewat MCP</div>
+                        <p class="text-sm text-slate-400 leading-relaxed">Gunakan FlyEnv MCP Server bawaan agar agent AI eksternal bisa memeriksa status servis, konfigurasi situs, dan log proyek Anda.</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-slate-950 rounded-xl border border-devborder overflow-hidden shadow-2xl">
+                    <div class="bg-devcard px-4 py-2 border-b border-devborder flex items-center justify-between">
+                        <span class="text-xs font-mono text-slate-400">Automatic Version Switcher Demo</span>
+                        <div class="flex gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-red-500/70"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-500/70"></span>
+                            <span class="w-3 h-3 rounded-full bg-green-500/70"></span>
+                        </div>
+                    </div>
+                    <pre class="p-6 text-sm font-mono text-cyan-400 overflow-x-auto"><code><span class="text-slate-500"># Masuk ke proyek warisan (legacy)</span>
+<span class="text-emerald-400">cd</span> ~/projects/legacy-wordpress
+<span class="text-emerald-400">php</span> -v   <span class="text-slate-500"># Output: PHP 7.4 (Termuat otomatis sesuai manifest proyek)</span>
+
+<span class="text-slate-500"># Pindah ke proyek modern berbasis Laravel terbaru</span>
+<span class="text-emerald-400">cd</span> ~/projects/modern-laravel
+<span class="text-emerald-400">php</span> -v   <span class="text-slate-500"># Output: PHP 8.3 (Beralih instan secara cerdas!)</span></code></pre>
+                </div>
+            </section>
+
+            <!-- Section: Matriks Perbandingan -->
+            <section id="comparison" class="space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-1.5 bg-cyan-500 rounded-full"></div>
+                    <h2 class="text-2xl font-bold text-white tracking-wide">Apakah FlyEnv Tepat Untuk Anda?</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-6 bg-emerald-950/20 border border-emerald-500/30 rounded-xl">
+                        <h4 class="text-emerald-400 font-bold mb-3 flex items-center gap-2">
+                            <span>✅</span> Sangat Cocok Jika Anda:
+                        </h4>
+                        <ul class="space-y-2.5 text-sm text-slate-300 list-disc list-inside">
+                            <li>Menginginkan efisiensi ala XAMPP/Herd namun untuk ekosistem multi-stack.</li>
+                            <li>Bekerja dengan versi runtime berbeda di tiap proyek.</li>
+                            <li>Ingin database, antrean, dan AI tools instan tanpa pusing konfigurasi Docker.</li>
+                        </ul>
+                    </div>
+                    <div class="p-6 bg-rose-950/20 border border-rose-500/30 rounded-xl">
+                        <h4 class="text-rose-400 font-bold mb-3 flex items-center gap-2">
+                            <span>❌</span> Kurang Cocok Jika Anda:
+                        </h4>
+                        <ul class="space-y-2.5 text-sm text-slate-300 list-disc list-inside">
+                            <li>Wajib mereplikasi environment produksi secara 1:1 memakai Kubernetes.</li>
+                            <li>Hanya setia pada 1 versi runtime seumur hidup di OS Anda.</li>
+                            <li>Lebih menyukai konfigurasi manual baris demi baris via terminal unix murni.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="border border-devborder rounded-xl overflow-hidden mt-6 shadow-xl bg-devcard/30">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead>
+                                <tr class="bg-devcard/80 border-b border-devborder text-cyan-400 font-semibold">
+                                    <th class="p-4">Kapabilitas</th>
+                                    <th class="p-4">FlyEnv</th>
+                                    <th class="p-4">Docker Desktop</th>
+                                    <th class="p-4">XAMPP / MAMP</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-devborder/60 text-slate-300">
+                                <tr class="hover:bg-devcard/40 transition-colors">
+                                    <td class="p-4 font-medium text-white">Eksekusi Servis</td>
+                                    <td class="p-4">Native Proses (Cepat & Ringan)</td>
+                                    <td class="p-4 text-slate-400">Kontainerisasi (Virtualisasi)</td>
+                                    <td class="p-4 text-slate-400">Native Bundled Stack</td>
+                                </tr>
+                                <tr class="hover:bg-devcard/40 transition-colors">
+                                    <td class="p-4 font-medium text-white">Cakupan Fitur</td>
+                                    <td class="p-4">All-in-one Dev Runtimes & AI Stack</td>
+                                    <td class="p-4 text-slate-400">Bebas tergantung Docker Hub</td>
+                                    <td class="p-4 text-slate-400">Terbatas pada PHP/Web server</td>
+                                </tr>
+                                <tr class="hover:bg-devcard/40 transition-colors">
+                                    <td class="p-4 font-medium text-white">Integrasi AI & MCP</td>
+                                    <td class="p-4 text-emerald-400 font-semibold">Bawaan Pabrik (Built-in)</td>
+                                    <td class="p-4 text-slate-400">Harus Set Manual</td>
+                                    <td class="p-4 text-rose-400">Tidak Didukung</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Workflow & Arsitektur Baru -->
+            <section id="workflow" class="space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-1.5 bg-cyan-500 rounded-full"></div>
+                    <h2 class="text-2xl font-bold text-white tracking-wide">Era Baru: Ruang Kerja AI Lokal</h2>
+                </div>
+                <p class="text-slate-400 leading-relaxed text-sm">
+                    Mulai versi 4.16, FlyEnv mendefinisikan ulang batas kemampuannya. Aplikasi ini tidak lagi sekadar menjadi pengatur versi PHP atau basis data lokal. Ia bertransformasi menjadi **jembatan runtime kecerdasan buatan**. Dengan mengaktifkan FlyEnv MCP Server, Anda memberikan kemampuan taktis kepada AI Agent untuk berinteraksi langsung dengan berkas log, port, dan siklus hidup proyek yang sedang Anda bangun.
+                </p>
+
+                <div class="space-y-3 mt-4">
+                    <details class="group bg-devcard/40 border border-devborder rounded-xl overflow-hidden transition-all duration-300">
+                        <summary class="flex items-center justify-between p-4 font-semibold text-white cursor-pointer select-none hover:bg-devcard/80 list-none">
+                            <span class="flex items-center gap-2">🐘 Untuk Pengembang PHP & Laravel</span>
+                            <svg class="w-5 h-5 text-cyan-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </summary>
+                        <div class="p-4 border-t border-devborder/60 bg-slate-950/40 text-sm text-slate-400 space-y-2">
+                            <p>Merupakan pilihan alternatif Windows terbaik pengganti Laravel Herd. Nikmati performa <code class="text-cyan-400 font-mono">composer</code> native tanpa jeda sinkronisasi berkas.</p>
+                        </div>
+                    </details>
+
+                    <details class="group bg-devcard/40 border border-devborder rounded-xl overflow-hidden transition-all duration-300">
+                        <summary class="flex items-center justify-between p-4 font-semibold text-white cursor-pointer select-none hover:bg-devcard/80 list-none">
+                            <span class="flex items-center gap-2">🟢 Untuk Pengembang Node.js & Frontend</span>
+                            <svg class="w-5 h-5 text-cyan-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </summary>
+                        <div class="p-4 border-t border-devborder/60 bg-slate-950/40 text-sm text-slate-400 space-y-2">
+                            <p>Hentikan konflik konfigurasi versi Node.js via NVM. Sistem secara otomatis mendeteksi konfigurasi <code class="text-cyan-400 font-mono">package.json</code> saat Anda membuka direktori kerja.</p>
+                        </div>
+                    </details>
+
+                    <details class="group bg-devcard/40 border border-devborder rounded-xl overflow-hidden transition-all duration-300">
+                        <summary class="flex items-center justify-between p-4 font-semibold text-white cursor-pointer select-none hover:bg-devcard/80 list-none">
+                            <span class="flex items-center gap-2">🤖 Untuk Alur Kerja AI Coding & Agent</span>
+                            <svg class="w-5 h-5 text-cyan-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </summary>
+                        <div class="p-4 border-t border-devborder/60 bg-slate-950/40 text-sm text-slate-400 space-y-2">
+                            <p>Instalasi otomatis Claude Code atau Copilot CLI langsung dari ruang kerja terpadu. Hubungkan langsung ke context proyek tanpa perlu menulis konfigurasi JSON manual yang melelahkan.</p>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Section: Lisensi Berbasis Kontribusi -->
+            <section id="license" class="p-8 bg-gradient-to-br from-devcard via-devcard to-cyan-950/20 border border-devborder rounded-2xl relative overflow-hidden shadow-2xl">
+                <div class="absolute top-0 right-0 p-6 opacity-10 text-6xl font-bold select-none text-cyan-400">📜</div>
+                
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    Model Lisensi Kontribusi Kemitraan (Fair-Use)
+                </h3>
+                <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                    FlyEnv menghargai ekosistem open-source dengan menolak pembatasan kapitalistik yang kaku. Jika digunakan tanpa lisensi terdaftar, Anda hanya dibatasi maksimal membuat **3 situs lokal** dan masa kedaluwarsa uji coba AI Chat selama **3 hari**.
+                </p>
+
+                <h4 class="text-sm font-semibold text-cyan-400 mb-3 tracking-wider uppercase">Jalur Mendapatkan Lisensi Permanen Gratis:</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="p-4 bg-devbg/60 border border-devborder/80 rounded-lg">
+                        <span class="block text-sm font-bold text-white mb-1">1. Donasi Sukarela</span>
+                        Beri dukungan nominal seikhlasnya, sangat akomodatif untuk situasi ekonomi Anda.
+                    </div>
+                    <div class="p-4 bg-devbg/60 border border-devborder/80 rounded-lg">
+                        <span class="block text-sm font-bold text-white mb-1">2. Pull Request Git</span>
+                        Bantu memperbaiki dokumen penjelas, typo di file README, atau kirim perbaikan lokalisasi bahasa.
+                    </div>
+                    <div class="p-4 bg-devbg/60 border border-devborder/80 rounded-lg">
+                        <span class="block text-sm font-bold text-white mb-1">3. Ulasan Publik</span>
+                        Tulis artikel ulasan otentik atau buat video pendek di media sosial/platform publik mana saja.
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-devborder/60 text-xs text-slate-500 flex items-center justify-between">
+                    <span>* 1 Lisensi terikat pada UUID hardware perangkat keras Anda secara permanen.</span>
+                    <a href="https://github.com/xpf0000/FlyEnv" class="text-cyan-400 hover:underline font-semibold">Pelajari Detail Kontribusi →</a>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-20 border-t border-devborder/60 pt-8 text-center text-xs text-slate-500">
+            <p>Diterjemahkan secara adaptif ke Bahasa Indonesia untuk kebutuhan repositori komunitas lokal.</p>
+            <p class="mt-2">FlyEnv dilisensikan secara terbuka di bawah aturan <span class="text-slate-400">BSD 3-Clause License</span>.</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
