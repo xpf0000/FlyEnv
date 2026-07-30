@@ -106,6 +106,17 @@ seconds on the final master.
 - **分区：** 科技 → 计算机技术
 - **封面：** `flyenv-typesense_bilibili_cover.png` — 1920x1200，中文文案
 
+**时间轴**（包含 FlyEnv 开场；每段不少于 10 秒）
+
+```
+0:00 FlyEnv 开场
+0:15 Typesense 版本与安装状态
+0:30 服务、配置与启动日志
+0:45 本地 raft 状态
+1:00 vars、flags 与 RPC 页面
+1:20 返回 Typesense 服务
+```
+
 **备选标题**
 
 - `FlyEnv Typesense 模块演示：版本、日志、本地状态与服务控制`

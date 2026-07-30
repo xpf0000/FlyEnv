@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 import importlib.util
 from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 
 
@@ -49,6 +51,18 @@ class RenderWrapperTests(unittest.TestCase):
             self.assertIn(visible_term, narration)
         self.assertNotIn("FlyEnv brings local development services together.", narration)
 
+    def test_version_list_caption_waits_for_the_verified_release_list(self) -> None:
+        wrapper = load_wrapper()
+
+        version_cue = next(
+            cue for cue in wrapper.CAPTIONS if "Version tab lists" in cue.text
+        )
+        self.assertGreaterEqual(version_cue.anchor, 10.8)
+        self.assertNotIn(
+            "The Typesense Version tab lists the available releases.",
+            [cue.text for cue in wrapper.CAPTIONS],
+        )
+
     def test_final_running_caption_is_short_enough_for_the_unchanged_tail(self) -> None:
         wrapper = load_wrapper()
 
@@ -71,6 +85,55 @@ class RenderWrapperTests(unittest.TestCase):
         self.assertGreaterEqual(len(chapters), 6)
         self.assertEqual(chapters[0][0], "0:00")
         self.assertTrue(wrapper.chapters_are_publishable(header_offset=5.033008, final_duration=93.066341))
+
+    def test_bilibili_has_a_chinese_header_adjusted_chapter_timeline(self) -> None:
+        wrapper = load_wrapper()
+
+        self.assertTrue(
+            hasattr(wrapper, "BILIBILI_CHAPTERS"),
+            "the Bilibili upload notes must provide their own Chinese chapter timeline",
+        )
+        self.assertEqual(
+            wrapper.BILIBILI_CHAPTERS,
+            (
+                ("0:00", "FlyEnv 开场"),
+                ("0:15", "Typesense 版本与安装状态"),
+                ("0:30", "服务、配置与启动日志"),
+                ("0:45", "本地 raft 状态"),
+                ("1:00", "vars、flags 与 RPC 页面"),
+                ("1:20", "返回 Typesense 服务"),
+            ),
+        )
+        self.assertTrue(
+            wrapper.bilibili_chapters_are_publishable(
+                header_offset=5.033008, final_duration=93.066341
+            )
+        )
+        with TemporaryDirectory() as temporary_directory:
+            renderer = wrapper.TypesenseRenderer(
+                replace(wrapper.CONFIG, task_path=Path(temporary_directory))
+            )
+            renderer.write_upload_package()
+            package = renderer.upload_output.read_text(encoding="utf-8")
+
+        self.assertIn("0:00 FlyEnv 开场", package)
+        self.assertIn("1:20 返回 Typesense 服务", package)
+        self.assertNotIn("{chr(10)", package)
+        self.assertIn(
+            """**时间轴**（包含 FlyEnv 开场；每段不少于 10 秒）
+
+```
+0:00 FlyEnv 开场
+0:15 Typesense 版本与安装状态
+0:30 服务、配置与启动日志
+0:45 本地 raft 状态
+1:00 vars、flags 与 RPC 页面
+1:20 返回 Typesense 服务
+```
+""",
+            package,
+        )
+        self.assertNotIn("\n                    **时间轴", package)
 
     def test_all_plus_verify_requests_one_complete_render(self) -> None:
         wrapper = load_wrapper()

@@ -38,9 +38,8 @@ RAW_SOURCE_SHA256 = "f816e33bdcf6328506e8d502a472c9812a10c6194e69b35fe83c8bd3958
 # Anchors are seconds in the untouched raw capture.  Every line describes a
 # visible UI action or on-screen result; none is inferred from the silent video.
 CAPTIONS = (
-    Caption(3.60, "The Typesense Version tab lists the available releases."),
-    Caption(7.20, "An installed release is marked in the version list."),
-    Caption(10.80, "Another Typesense release shows its install action."),
+    Caption(8.50, "Typesense is selected."),
+    Caption(10.80, "The Version tab lists Typesense releases and install actions."),
     Caption(15.20, "The Service tab lists installed versions and local paths."),
     Caption(18.80, "Open Configuration to inspect the Typesense server settings."),
     Caption(22.40, "The Log tab shows the Typesense startup output."),
@@ -61,8 +60,20 @@ CAPTIONS = (
 # evidence schedule with the wrapper so an edit to the narration cannot quietly
 # overrun the deliberately retained healthy tail.
 MEASURED_BRIAN_MINUS_SIX_DURATIONS = (
-    3.960, 3.552, 3.816, 4.104, 4.224, 3.456, 5.040, 3.768, 3.528,
+    2.112, 4.512, 4.104, 4.224, 3.456, 5.040, 3.768, 3.528,
     3.456, 4.200, 3.936, 3.816, 3.600, 2.832, 3.768, 1.800,
+)
+
+# These starts are final-master times, including the normalized shared header.
+# They deliberately mirror the English chapters while giving Bilibili creators
+# a native Chinese timeline to paste into the upload description.
+BILIBILI_CHAPTERS = (
+    ("0:00", "FlyEnv 开场"),
+    ("0:15", "Typesense 版本与安装状态"),
+    ("0:30", "服务、配置与启动日志"),
+    ("0:45", "本地 raft 状态"),
+    ("1:00", "vars、flags 与 RPC 页面"),
+    ("1:20", "返回 Typesense 服务"),
 )
 
 CONFIG = DemoConfig(
@@ -187,6 +198,16 @@ def chapters_are_publishable(header_offset: float, final_duration: float) -> boo
     )
 
 
+def bilibili_chapters_are_publishable(header_offset: float, final_duration: float) -> bool:
+    """Keep the Chinese timeline aligned with the validated final-master chapters."""
+
+    return (
+        [timestamp for timestamp, _title in BILIBILI_CHAPTERS]
+        == [timestamp for timestamp, _title in CONFIG.upload.chapters]
+        and chapters_are_publishable(header_offset, final_duration)
+    )
+
+
 def verify_checkpoints(header_offset: float, final_duration: float) -> tuple[tuple[str, float], ...]:
     """Name five distinct final-master evidence frames for reviewer inspection."""
 
@@ -207,6 +228,9 @@ class TypesenseRenderer(DemoRenderer):
         self.upload_output.write_text(
             strip_shared_indent(self.upload_output.read_text(encoding="utf-8")),
             encoding="utf-8",
+        )
+        bilibili_timeline = "\n".join(
+            f"{at} {title}" for at, title in BILIBILI_CHAPTERS
         )
         with self.upload_output.open("a", encoding="utf-8") as package:
             package.write(
@@ -238,6 +262,12 @@ class TypesenseRenderer(DemoRenderer):
                     - **分区：** 科技 → 计算机技术
                     - **封面：** `flyenv-typesense_bilibili_cover.png` — 1920x1200，中文文案
 
+                    **时间轴**（包含 FlyEnv 开场；每段不少于 10 秒）
+
+                    ```
+                    __BILIBILI_CHAPTERS__
+                    ```
+
                     **备选标题**
 
                     - `FlyEnv Typesense 模块演示：版本、日志、本地状态与服务控制`
@@ -253,7 +283,7 @@ class TypesenseRenderer(DemoRenderer):
                     - Typesense documentation: https://typesense.org/docs/
                     - Typesense GitHub: https://github.com/typesense/typesense
                     """
-                ).lstrip()
+                ).lstrip().replace("__BILIBILI_CHAPTERS__", bilibili_timeline)
             )
 
     def extract_verify_frames(self) -> None:
