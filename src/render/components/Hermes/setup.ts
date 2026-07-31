@@ -8,6 +8,9 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { getHermesInstallCommandLines, resolveHermesInstallPlatform } from './install'
 import CommandData from './command.json'
+import { HermesProviders, type ProviderItem } from './providers'
+
+export type { ProviderItem } from './providers'
 
 let SkillInspectVM: any
 
@@ -25,11 +28,6 @@ export interface CommandCategory {
 
 export interface CommandDataType {
   categories: CommandCategory[]
-}
-
-export interface ProviderItem {
-  name: string
-  baseUrl: string
 }
 
 export interface SessionItem {
@@ -102,11 +100,7 @@ class Hermes {
   configPaths: Record<string, string> = {}
   skills: string[] = []
   sessions: SessionItem[] = []
-  providers: ProviderItem[] = [
-    { name: 'Ollama', baseUrl: 'http://localhost:11434/v1' },
-    { name: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1' },
-    { name: 'Anthropic', baseUrl: 'https://api.anthropic.com' }
-  ]
+  providers: ProviderItem[] = HermesProviders
   currentProvider = ''
   chatQuery = ''
   commandData: CommandDataType = CommandData as CommandDataType
