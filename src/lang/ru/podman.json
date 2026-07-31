@@ -21,7 +21,7 @@
   "Dashboard": "Панель",
   "machineIsEmpty": "Пожалуйста, выберите виртуальную машину",
   "machineNeedRun": "Сначала запустите виртуальную машину",
-  "LastUp": "Последнее начало",
+  "LastUp": "Последний запуск",
   "SSHPort": "SSH порт",
   "PodmanSocket": "Сокет Podman",
   "StartWithTerminal": "Запустить со встроенного терминала",
