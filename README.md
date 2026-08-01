@@ -137,19 +137,19 @@ The diagram above shows the workflow. The screenshot below shows the real FlyEnv
 FlyEnv allows you to install **only what you need** from a vast library of supported software:
 
 * **AI Coding & MCP**: FlyEnv MCP Server, Claude Code, Codex, OpenCode, Kimi, Antigravity CLI, GitHub Copilot CLI.
-* **AI Integration & Automation**: Hermes Agent, [OpenClaw], [n8n], [Ollama], CliProxyAPI.
+* **AI Integration & Automation**: Hermes Agent, [OpenClaw], [n8n], [Ollama], [CLIProxyAPI].
 * **Containers**: Podman.
 * **Network Tunnel**: Cloudflared, Cloudflare Tunnel.
 * **Web Servers**: FrankenPHP, [Apache], [Nginx], Caddy, Tomcat.
 * **Databases**: [MySQL], [MariaDB], [PostgreSQL], [MongoDB], [Qdrant], [ClickHouse].
 * **Email Server**: [Mailpit].
-* **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, [PHP-CLI], [PHP-FPM], [RoadRunner], [Swoole Cli]), Go, [Node.js], [Python], Java (Maven, Gradle, SDKMAN), Erlang, Ruby, Rust (Rustup), Bun, Deno, Zig.
+* **Programming Languages & Runtime**: .NET, Flutter, PHP (Composer, [PHP-CLI], [PHP-FPM], [RoadRunner], [Swoole Cli]), Go, [Node.js], [Python], Java (Maven, Gradle, SDKMAN), Erlang, Ruby, Rust (Rustup), [Bun], Deno, Zig.
 * **Cache & Message Queue**: [Redis], Memcached, RabbitMQ.
-* **Service Governance**: Consul, Etcd, R-Nacos, [Temporal], [Temporal CLI]
+* **Service Governance**: [Consul], [Etcd], [R-Nacos], [Temporal], [Temporal CLI]
 * **Search Engine**: Elasticsearch, Meilisearch, Typesense, ZincSearch
 * **Object Storage**: RustFS, Minio.
 * **Automation & Scheduling**: Cron Jobs.
-* **Utilities**: Git, MkCert, DNS Server, FTP Server, Static HTTP Server.
+* **Utilities**: Git, MkCert, DNS Server, FTP Server, Static HTTP Server, [Numa].
 * **Custom modules**: Users can add modules on their own, whether as services or commonly used commands. FlyEnv's custom module system ensures that user modules function just like system modules, delivering a seamless user experience.
 
 > *All modules support multi-version co-existence.*
@@ -173,6 +173,12 @@ FlyEnv allows you to install **only what you need** from a vast library of suppo
 [Mailpit]: https://youtu.be/D4MkA25Ofd0
 [ClickHouse]: https://youtu.be/3ePJYddWYmQ
 [Qdrant]: https://youtu.be/ahetMNLLS7s
+[Etcd]: https://youtu.be/xsw8BQxii10
+[Consul]: https://youtu.be/pa0QFgpu17w
+[R-Nacos]: https://youtu.be/8ceC7QqY4UA
+[CLIProxyAPI]: https://youtu.be/RmSl4jgmEyI
+[Numa]: https://youtu.be/0qfnkr5V7eE
+[Bun]: https://youtu.be/lu68kw8_3dY
 [Temporal]: https://youtu.be/E_jetPnVxBo
 [Temporal CLI]: https://youtu.be/80psOMuDK9I
 [Elasticsearch]: https://youtu.be/B9Eo2Y-aXWQ
