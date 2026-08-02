@@ -7,6 +7,9 @@
     "email": "250881478@qq.com"
   },
   "copyright": "Copyright © Pengfei Xu",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "clean:dev": "npx rimraf dist",
     "clean": "npx rimraf node_modules/node-pty/build",
