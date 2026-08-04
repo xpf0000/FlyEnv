@@ -244,6 +244,20 @@ assert.deepEqual(parsePgAdminServerIdentity('{"userId": "9007199254740993", "ser
   userId: '9007199254740993',
   serverId: '29'
 })
+assert.deepEqual(
+  parsePgAdminServerIdentity(
+    '{"userId": "9223372036854775807", "serverId": "9223372036854775807"}'
+  ),
+  { userId: '9223372036854775807', serverId: '9223372036854775807' }
+)
+assert.throws(
+  () => parsePgAdminServerIdentity('{"userId": "9223372036854775808", "serverId": "29"}'),
+  /identity/
+)
+assert.throws(
+  () => parsePgAdminServerIdentity('{"userId": "17", "serverId": "9223372036854775808"}'),
+  /identity/
+)
 assert.throws(() => parsePgAdminServerIdentity('{"userId": 17, "serverId": 29}'), /identity/)
 assert.throws(() => parsePgAdminServerIdentity('{"userId": "0", "serverId": "29"}'), /identity/)
 assert.throws(() => parsePgAdminServerIdentity('{"userId": "017", "serverId": "29"}'), /identity/)

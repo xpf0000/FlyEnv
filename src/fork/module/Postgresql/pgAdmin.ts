@@ -68,6 +68,17 @@ export interface PgAdminServerIdentity {
   serverId: string
 }
 
+const PGADMIN_SQLITE_INTEGER_MAX = '9223372036854775807'
+
+function validPgAdminServerIdentityId(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    /^[1-9]\d*$/.test(value) &&
+    (value.length < PGADMIN_SQLITE_INTEGER_MAX.length ||
+      (value.length === PGADMIN_SQLITE_INTEGER_MAX.length && value <= PGADMIN_SQLITE_INTEGER_MAX))
+  )
+}
+
 export function parsePgAdminServerIdentity(content: string): PgAdminServerIdentity {
   let value: unknown
   try {
@@ -88,12 +99,7 @@ export function parsePgAdminServerIdentity(content: string): PgAdminServerIdenti
   const identity = value as Record<string, unknown>
   const userId = identity.userId
   const serverId = identity.serverId
-  if (
-    typeof userId !== 'string' ||
-    typeof serverId !== 'string' ||
-    !/^[1-9]\d*$/.test(userId) ||
-    !/^[1-9]\d*$/.test(serverId)
-  ) {
+  if (!validPgAdminServerIdentityId(userId) || !validPgAdminServerIdentityId(serverId)) {
     throw new Error('Invalid pgAdmin 4 server identity')
   }
   return { userId, serverId }
