@@ -13,11 +13,11 @@
             style="color: #01cc74"
             class="button"
             link
-            :disabled="pgAdminOpening"
+            :disabled="pgAdminOpening || !pgAdminSetupReady"
             @click.stop="preparePGAdmin"
           >
             <el-icon
-              v-if="pgAdminOpening"
+              v-if="pgAdminOpening || !pgAdminSetupReady"
               class="is-loading"
               style="width: 20px; height: 20px; margin-left: 10px"
             >
@@ -101,22 +101,27 @@
   })
   const isRunning = computed(() => !!runningVersion.value)
   const runningDataDir = ref('')
-  watch(
-    runningVersion,
-    (version) => {
-      if (!version?.bin) {
-        runningDataDir.value = ''
-        return
-      }
-      const versionTop = version.version?.split('.')?.shift() ?? ''
-      runningDataDir.value =
-        PostgreSqlSetup.dir[version.bin] ??
-        join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
-    },
-    { immediate: true }
-  )
+  const updateRunningDataDir = (version: typeof runningVersion.value) => {
+    if (!version?.bin) {
+      runningDataDir.value = ''
+      return
+    }
+    const versionTop = version.version?.split('.')?.shift() ?? ''
+    runningDataDir.value =
+      PostgreSqlSetup.dir[version.bin] ??
+      join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+  }
+  watch(runningVersion, updateRunningDataDir, { immediate: true })
+  const refreshRunningDataDir = () => updateRunningDataDir(runningVersion.value)
   const pgAdminOpening = ref(false)
   const pgAdminSetupVisible = ref(false)
+  const pgAdminSetupReady = ref(false)
+  PostgreSqlSetup.init()
+    .then(() => {
+      refreshRunningDataDir()
+      pgAdminSetupReady.value = true
+    })
+    .catch()
 
   const DATA_DIR = computed({
     get() {
@@ -159,7 +164,7 @@
   }
 
   const preparePGAdmin = () => {
-    if (pgAdminOpening.value || !selectedPythonAvailable()) {
+    if (pgAdminOpening.value || !pgAdminSetupReady.value || !selectedPythonAvailable()) {
       return
     }
     pgAdminOpening.value = true
@@ -182,7 +187,12 @@
   }
 
   const openPGAdmin = (credentials?: PgAdminCredentials) => {
-    if (pgAdminOpening.value || !selectedPythonAvailable() || !runningVersion.value) {
+    if (
+      pgAdminOpening.value ||
+      !pgAdminSetupReady.value ||
+      !selectedPythonAvailable() ||
+      !runningVersion.value
+    ) {
       return
     }
     pgAdminOpening.value = true

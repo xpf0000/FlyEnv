@@ -1064,6 +1064,11 @@ const postgreSqlRendererSource = readFileSync(
   'utf-8'
 )
 const ipcSource = readFileSync(join(process.cwd(), 'src', 'render', 'util', 'IPC.ts'), 'utf-8')
+const postgreSqlSetupSource = readFileSync(
+  join(process.cwd(), 'src', 'render', 'components', 'PostgreSql', 'setup.ts'),
+  'utf-8'
+)
+const forkSource = readFileSync(join(process.cwd(), 'src', 'fork', 'index.ts'), 'utf-8')
 
 assert.match(pgAdminSetupSource, /defineProps<\{ modelValue: boolean \}>\(\)/)
 assert.match(pgAdminSetupSource, /'update:modelValue': \[value: boolean\]/)
@@ -1085,7 +1090,7 @@ assert.match(
 assert.doesNotMatch(pgAdminSetupSource, /localForage|localStorage|sessionStorage/)
 
 assert.match(postgreSqlRendererSource, /v-if="isRunning"/)
-assert.match(postgreSqlRendererSource, /:disabled="pgAdminOpening"/)
+assert.match(postgreSqlRendererSource, /:disabled="pgAdminOpening \|\| !pgAdminSetupReady"/)
 assert.match(postgreSqlRendererSource, /@click\.stop="preparePGAdmin"/)
 assert.match(
   postgreSqlRendererSource,
@@ -1100,9 +1105,20 @@ assert.match(postgreSqlRendererSource, /const runningDataDir = ref\(''\)/)
 assert.doesNotMatch(postgreSqlRendererSource, /const runningDataDir = computed/)
 assert.match(
   postgreSqlRendererSource,
-  /watch\(\s*runningVersion,\s*\(version\) => \{[\s\S]*?runningDataDir\.value =\s*PostgreSqlSetup\.dir\[version\.bin\]/
+  /const updateRunningDataDir = \(version: typeof runningVersion\.value\) => \{[\s\S]*?runningDataDir\.value =\s*PostgreSqlSetup\.dir\[version\.bin\]/
 )
-assert.match(postgreSqlRendererSource, /:disabled="isRunning \|\| !DATA_DIR"/)
+assert.match(postgreSqlRendererSource, /watch\(runningVersion, updateRunningDataDir/)
+assert.match(postgreSqlRendererSource, /const refreshRunningDataDir = \(\) => updateRunningDataDir/)
+assert.match(postgreSqlRendererSource, /const pgAdminSetupReady = ref\(false\)/)
+assert.match(
+  postgreSqlRendererSource,
+  /PostgreSqlSetup\.init\(\)\s*\.then\(\(\) => \{[\s\S]*?refreshRunningDataDir\(\)[\s\S]*?pgAdminSetupReady\.value = true/s
+)
+assert.match(postgreSqlRendererSource, /:disabled="pgAdminOpening \|\| !pgAdminSetupReady"/)
+assert.match(
+  postgreSqlRendererSource,
+  /!pgAdminSetupReady\.value \|\| !selectedPythonAvailable\(\)/
+)
 assert.match(
   postgreSqlRendererSource,
   /const chooseDir = \(\) => \{\s*if \(isRunning\.value\) \{\s*return/s
@@ -1144,5 +1160,17 @@ assert.match(
   ipcSource,
   /if \(log\) \{\s*console\.log\('ipcSendToMain: ', command, key, args\)\s*\}/s
 )
+assert.match(postgreSqlSetupSource, /let initPromise: Promise<void> \| undefined/)
+assert.match(postgreSqlSetupSource, /if \(initPromise\) \{\s*return initPromise\s*\}/s)
+assert.match(
+  postgreSqlSetupSource,
+  /initPromise = localForage[\s\S]*?getItem[\s\S]*?return initPromise/s
+)
+assert.match(forkSource, /function sanitizeForkExecArgs\(/)
+assert.match(forkSource, /module !== 'postgresql' \|\| fn !== 'openPGAdmin'/)
+assert.match(forkSource, /password: '\[REDACTED\]'/)
+assert.match(forkSource, /const logArgs = Array\.isArray\(args\) \? args\.slice\(\) : args/)
+assert.match(forkSource, /sanitizeForkExecArgs\(logArgs, commandModule, commandFunction\)/)
+assert.doesNotMatch(forkSource, /args,\s*error\s*\}\)\}/)
 
 console.log('PostgreSQL pgAdmin 4 runtime contract test passed')
