@@ -1169,7 +1169,9 @@ assert.match(
 assert.match(forkSource, /function sanitizeForkExecArgs\(/)
 assert.match(forkSource, /module !== 'postgresql' \|\| fn !== 'openPGAdmin'/)
 assert.match(forkSource, /password: '\[REDACTED\]'/)
-assert.match(forkSource, /const logArgs = Array\.isArray\(args\) \? args\.slice\(\) : args/)
+assert.match(forkSource, /const logArgs = Array\.isArray\(args\) \? args\.slice\(3\) : args/)
+assert.match(forkSource, /const credentials = sanitized\[3\]/)
+assert.match(forkSource, /sanitized\[3\] = \{/)
 assert.match(forkSource, /sanitizeForkExecArgs\(logArgs, commandModule, commandFunction\)/)
 assert.doesNotMatch(forkSource, /args,\s*error\s*\}\)\}/)
 

@@ -81,9 +81,9 @@ function sanitizeForkExecArgs(args: unknown, module: unknown, fn: unknown): unkn
     return args
   }
   const sanitized = args.slice()
-  const credentials = sanitized[6]
+  const credentials = sanitized[3]
   if (credentials && typeof credentials === 'object' && !Array.isArray(credentials)) {
-    sanitized[6] = {
+    sanitized[3] = {
       email: (credentials as { email?: unknown }).email,
       password: '[REDACTED]'
     }
@@ -117,7 +117,7 @@ process.on('message', function (args: any) {
     // 假设 manager 内部使用了 process.send，现在也能正常工作了
     const commandModule = Array.isArray(args) ? args[1] : undefined
     const commandFunction = Array.isArray(args) ? args[2] : undefined
-    const logArgs = Array.isArray(args) ? args.slice() : args
+    const logArgs = Array.isArray(args) ? args.slice(3) : args
     manager
       .exec(args)
       .then()
