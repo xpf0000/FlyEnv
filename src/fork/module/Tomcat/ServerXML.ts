@@ -122,7 +122,6 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
       hostAlias(host).forEach((h) => {
         arr.push(`<Host name="${h}" appBase="${host.root}" appFlag="FlyEnv"
                   unpackWARs="true" autoDeploy="true">
-                <Context path="" docBase=""></Context>
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
                        prefix="${host.name}-tomcat_access_log" suffix=".log"
                        pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
@@ -142,7 +141,6 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
         } else {
           const str = `<Host name="${h}" appBase="${host.root}" appFlag="FlyEnv"
                   unpackWARs="true" autoDeploy="true">
-                  <Context path="" docBase=""></Context>
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
                        prefix="${host.name}-tomcat_access_log" suffix=".log"
                        pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
@@ -173,6 +171,33 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
       const index = serverXML.Server.Service.Connector.indexOf(c)
       if (index >= 0) {
         serverXML.Server.Service.Connector.splice(index, 1)
+      }
+    }
+  }
+
+  const isEmptyContext = (context: any) => {
+    return (
+      context &&
+      context.path === '' &&
+      context.docBase === '' &&
+      Object.keys(context).length === 2
+    )
+  }
+
+  const cleanEmptyContext = () => {
+    const hosts = serverXML.Server.Service.Engine.Host
+    const list = Array.isArray(hosts) ? hosts : hosts ? [hosts] : []
+    for (const host of list) {
+      if (host.appFlag !== 'FlyEnv' || !host.Context) {
+        continue
+      }
+      if (Array.isArray(host.Context)) {
+        host.Context = host.Context.filter((context: any) => !isEmptyContext(context))
+        if (host.Context.length === 0) {
+          delete host.Context
+        }
+      } else if (isEmptyContext(host.Context)) {
+        delete host.Context
       }
     }
   }
@@ -241,6 +266,7 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
 
   cleanPort(allPort)
   cleanVhost(allName)
+  cleanEmptyContext()
 
   return builder.build(serverXML)
 }
