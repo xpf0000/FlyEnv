@@ -30,4 +30,12 @@ assert.match(consulPage, /openConsulUI/)
 assert.match(consulPage, /ports\?\.http/)
 assert.match(consulPage, /shell\.openExternal\(`http:\/\/127\.0\.0\.1:\$\{port\}\/ui\/`\)/)
 
+const minioFork = readFileSync(join(root, 'src/fork/module/Minio/index.ts'), 'utf8')
+const minioPage = readFileSync(join(root, 'src/render/components/Minio/Index.vue'), 'utf8')
+assert.match(minioFork, /readConfigValue/)
+assert.match(minioFork, /normalizeListenAddress\(console_address/)
+assert.match(minioPage, /readConfigValue\(content, 'MINIO_CONSOLE_ADDRESS'\)/)
+assert.match(minioPage, /httpUrlFromAddress/)
+assert.doesNotMatch(minioPage, /find\(\(s: string\) => s\.includes\('MINIO_ADDRESS'\)\)/)
+
 console.log('service web panel tests passed')
