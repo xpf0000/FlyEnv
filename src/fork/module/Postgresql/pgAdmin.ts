@@ -18,6 +18,7 @@ export interface PgAdminPaths {
   pid: string
   port: string
   servers: string
+  bootstrap: string
   venv: string
   python: string
 }
@@ -29,10 +30,11 @@ export function pgAdminPaths(postgreSqlDir: string, windows: boolean): PgAdminPa
   return {
     root,
     data: join(root, 'data'),
-    log: join(root, 'pgadmin4.log'),
+    log: join(root, 'log'),
     pid: join(root, 'pgadmin4.pid'),
     port: join(root, 'pgadmin4.port'),
     servers: join(root, 'servers.json'),
+    bootstrap: join(root, 'bootstrap-admin.py'),
     venv,
     python: windows ? join(venv, 'Scripts', 'python.exe') : join(venv, 'bin', 'python')
   }
@@ -42,8 +44,65 @@ export function pgAdminUrl(port: number): string {
   return `http://127.0.0.1:${port}`
 }
 
-export function pgAdminConfigContent(dataDir: string, port: number): string {
-  return `DEFAULT_SERVER = "127.0.0.1"\nDEFAULT_SERVER_PORT = ${port}\nDATA_DIR = ${JSON.stringify(dataDir)}\n`
+export function pgAdminConfigContent(dataDir: string, logDir: string, port: number): string {
+  return [
+    'DEFAULT_SERVER = "127.0.0.1"',
+    `DEFAULT_SERVER_PORT = ${port}`,
+    `DATA_DIR = ${JSON.stringify(dataDir)}`,
+    `SQLITE_PATH = ${JSON.stringify(join(dataDir, 'pgadmin4.db'))}`,
+    `SESSION_DB_PATH = ${JSON.stringify(join(dataDir, 'sessions'))}`,
+    `STORAGE_DIR = ${JSON.stringify(join(dataDir, 'storage'))}`,
+    `LOG_FILE = ${JSON.stringify(join(logDir, 'pgadmin4.log'))}`,
+    `KERBEROS_CCACHE_DIR = ${JSON.stringify(join(dataDir, 'kerberos'))}`,
+    `AZURE_CREDENTIAL_CACHE_DIR = ${JSON.stringify(join(dataDir, 'azure'))}`
+  ].join('\n') + '\n'
+}
+
+export function pgAdminBootstrapContent(): string {
+  return `import os
+import sys
+
+package_root = sys.argv[1]
+if package_root not in sys.path:
+    sys.path.insert(0, package_root)
+
+from setup import ManageUsers
+from pgadmin.utils.constants import INTERNAL
+
+email = os.environ['PGADMIN_SETUP_EMAIL']
+password = os.environ['PGADMIN_SETUP_PASSWORD']
+ManageUsers.create_user(
+    {
+        'email': email,
+        'role': 'Administrator',
+        'active': True,
+        'auth_source': INTERNAL,
+        'newPassword': password,
+        'confirmPassword': password,
+    },
+    console=False,
+    json=False,
+)
+`
+}
+
+function commandPath(value: string, windows: boolean): string {
+  const normalized = value.replace(/\\/g, '/')
+  return windows ? normalized.toLowerCase() : normalized
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+export function pgAdminCommandOwned(command: string, paths: PgAdminPaths, windows: boolean): boolean {
+  const normalizedCommand = commandPath(command, windows)
+  const pythonPath = commandPath(paths.python, windows)
+  const scriptName = windows ? 'pgadmin4.py' : 'pgAdmin4.py'
+  const pythonPattern = new RegExp(`(?:^|[\\s"'])${escapeRegExp(pythonPath)}(?=$|[\\s"'])`)
+  const scriptPattern = new RegExp(`(?:^|[\\s/"'])${escapeRegExp(scriptName)}(?=$|[\\s"'])`)
+
+  return pythonPattern.test(normalizedCommand) && scriptPattern.test(normalizedCommand)
 }
 
 export function postgresqlPortFromConfig(content: string): number {

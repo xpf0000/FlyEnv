@@ -250,13 +250,18 @@ if (!packageRoot) {
 }
 ~~~
 
-For firstStart only, initialize with one-shot credentials and import the password-free connection.
+For firstStart only, migrate the database without credentials, create the administrator through a FlyEnv-owned no-secret bootstrap script, and then import the password-free connection. `setup-db` does not create the administrator account.
 
 ~~~ts
 await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
 await spawnPromiseWithEnv(paths.python, [join(packageRoot, 'setup.py'), 'setup-db'], {
+  shell: false
+})
+await writeFile(paths.bootstrap, pgAdminBootstrapContent())
+await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
   shell: false,
-  env: { PGADMIN_SETUP_EMAIL: credentials.email, PGADMIN_SETUP_PASSWORD: credentials.password }
+  env: { PGADMIN_SETUP_EMAIL: credentials.email, PGADMIN_SETUP_PASSWORD: credentials.password },
+  cwd: packageRoot
 })
 await spawnPromiseWithEnv(paths.python, [
   join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', credentials.email

@@ -32,11 +32,19 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
-import { ProcessKill, ProcessListFetch, ProcessSearch } from '@shared/Process'
+import {
+  fetchProcessPidByPort,
+  ProcessKill,
+  ProcessListFetch,
+  ProcessSearch
+} from '@shared/Process'
+import { fetchProcessPidByPort as fetchProcessPidByPortWindows } from '@shared/Process.win'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
   findPgAdminPort,
   PGADMIN4_PACKAGE,
+  pgAdminBootstrapContent,
+  pgAdminCommandOwned,
   pgAdminConfigContent,
   pgAdminPaths,
   pgAdminServersContent,
@@ -66,11 +74,12 @@ class Manager extends Base {
     const versionTop = version?.version?.split('.')?.shift() ?? ''
     if (!versionTop) return []
     const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
-    const pgAdminLogDir = join(this.pgAdminPaths().root, 'log')
+    const paths = this.pgAdminPaths()
     return [
       { name: 'log', path: join(dbPath, 'pg.log') },
-      { name: 'pgadmin4-start-out', path: join(pgAdminLogDir, 'pgadmin4.start.out.log') },
-      { name: 'pgadmin4-start-error', path: join(pgAdminLogDir, 'pgadmin4.start.err.log') }
+      { name: 'pgadmin4', path: join(paths.log, 'pgadmin4.log') },
+      { name: 'pgadmin4-start-out', path: join(paths.log, 'pgadmin4.start.out.log') },
+      { name: 'pgadmin4-start-error', path: join(paths.log, 'pgadmin4.start.err.log') }
     ]
   }
 
@@ -100,11 +109,18 @@ class Manager extends Base {
     const pid = await this.readPidFromFile(paths.pid)
     const process = pid ? (await ProcessListFetch()).find((item) => item.PID === pid) : undefined
     const command = process?.COMMAND ?? ''
-    if (!command.includes(paths.root)) {
+    if (!pgAdminCommandOwned(command, paths, isWindows())) {
       await remove(paths.pid).catch(() => {})
       return undefined
     }
     return pid
+  }
+
+  private async pgAdminPortOwnedByPid(port: number, pid: string): Promise<boolean> {
+    const listeningPids = isWindows()
+      ? await fetchProcessPidByPortWindows(`${port}`)
+      : (await fetchProcessPidByPort(`${port}`)).map((item) => item.PID)
+    return listeningPids.includes(pid)
   }
 
   private async _stopPGAdmin(): Promise<string[]> {
@@ -155,7 +171,12 @@ class Manager extends Base {
           const runningPid = await this.pgAdminRunningPid()
           if (runningPid && existsSync(paths.port)) {
             const port = Number((await readFile(paths.port, 'utf-8')).trim())
-            if (Number.isInteger(port) && port >= 1 && port <= 65535) {
+            if (
+              Number.isInteger(port) &&
+              port >= 1 &&
+              port <= 65535 &&
+              (await this.pgAdminPortOwnedByPid(port, runningPid))
+            ) {
               resolve({
                 url: pgAdminUrl(port),
                 'APP-Service-Start-PID': runningPid
@@ -171,9 +192,8 @@ class Manager extends Base {
         const postgreSqlPort = postgresqlPortFromConfig(
           await readFile(join(dataDir, 'postgresql.conf'), 'utf-8')
         )
-        const logDir = join(paths.root, 'log')
         await mkdirp(paths.data)
-        await mkdirp(logDir)
+        await mkdirp(paths.log)
         if (!existsSync(paths.venv)) {
           await spawnPromiseWithEnv(python.bin, ['-m', 'venv', paths.venv], { shell: false })
         }
@@ -196,17 +216,25 @@ class Manager extends Base {
 
         const port = await findPgAdminPort()
         await writeFile(paths.port, `${port}`)
-        await writeFile(join(packageRoot, 'config_local.py'), pgAdminConfigContent(paths.data, port))
+        await writeFile(
+          join(packageRoot, 'config_local.py'),
+          pgAdminConfigContent(paths.data, paths.log, port)
+        )
 
         if (firstStart) {
           const admin = credentials!
           await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
           await spawnPromiseWithEnv(paths.python, [join(packageRoot, 'setup.py'), 'setup-db'], {
+            shell: false
+          })
+          await writeFile(paths.bootstrap, pgAdminBootstrapContent())
+          await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
             shell: false,
             env: {
               PGADMIN_SETUP_EMAIL: admin.email,
               PGADMIN_SETUP_PASSWORD: admin.password
-            }
+            },
+            cwd: packageRoot
           })
           await spawnPromiseWithEnv(
             paths.python,
@@ -237,8 +265,8 @@ class Manager extends Base {
           on,
           waitTime: 2000,
           cwd: packageRoot,
-          outFile: join(logDir, 'pgadmin4.start.out.log'),
-          errFile: join(logDir, 'pgadmin4.start.err.log')
+          outFile: join(paths.log, 'pgadmin4.start.out.log'),
+          errFile: join(paths.log, 'pgadmin4.start.err.log')
         })
         resolve({
           url: pgAdminUrl(port),

@@ -53,7 +53,7 @@ The module will:
 2. Create an isolated virtual environment in `server/postgresql/pgadmin4/venv` when required.
 3. Install a pinned `pgadmin4` package version into that environment using its own `pip`.
 4. Write a `config_local.py` next to pgAdmin's installed `config.py`. The config sets `DATA_DIR`, the derived SQLite/session/storage/log locations, loopback host, and the selected port.
-5. On first initialization only, pass `PGADMIN_SETUP_EMAIL` and `PGADMIN_SETUP_PASSWORD` to pgAdmin. pgAdmin hashes the account password in its own SQLite database; FlyEnv drops both environment values after the child starts.
+5. On first initialization only, run `setup.py setup-db` to migrate the SQLite database, then run a FlyEnv-owned, no-secret Python bootstrap script. The bootstrap adds the installed package root to `sys.path`, imports `ManageUsers` from pgAdmin's `setup` module, and creates the internal `Administrator` account with `PGADMIN_SETUP_EMAIL` and `PGADMIN_SETUP_PASSWORD` read only from that short-lived child environment. The password never appears in argv, logs, config, or FlyEnv settings.
 6. Generate/import `servers.json` after initialization so the active FlyEnv PostgreSQL port and `root` user are available as a connection without its password.
 7. Run pgAdmin as one owned Python process, track its PID, and return the actual loopback URL to the renderer.
 
@@ -61,7 +61,7 @@ pgAdmin data, logs, runtime state, and its virtual environment remain inside `se
 
 ### Ports and Process Ownership
 
-The preferred management port is `5050`. The fork module first reuses an owned pgAdmin process when it is healthy. If it cannot use `5050`, it chooses another free loopback TCP port and returns that port in the browser URL. It never binds an externally reachable address.
+The preferred management port is `5050`. The fork module reuses pgAdmin only when its saved PID is an exact FlyEnv virtual-environment Python command running `pgAdmin4.py`, and the saved port is actively listened to by that same PID. If it cannot use `5050`, it chooses another free loopback TCP port and returns that port in the browser URL. It never binds an externally reachable address.
 
 The pgAdmin PID file and its selected-port file are separate from PostgreSQL's `postmaster.pid`. PostgreSQL's stop flow stops the owned pgAdmin process and includes its PID in the normal service-stop result, matching CH-UI's companion lifecycle behavior. The selected-port file lets later panel clicks reuse the actual URL when the preferred port was occupied.
 
@@ -89,7 +89,7 @@ Add `scripts/postgresql-pgadmin4-test.ts` to cover pure helper behavior and stat
 - package version, supported Python version, and loopback URL construction;
 - generated `config_local.py` confines all mutable data to the pgAdmin directory;
 - generated `servers.json` uses the supplied PostgreSQL port and omits database passwords;
-- first-run credentials use one-shot environment variables and are not represented in persisted config;
+- first-run credentials are consumed only by the no-secret bootstrap child environment and are not represented in persisted config or long-running service parameters;
 - PostgreSQL source owns pgAdmin PID cleanup and the renderer exposes the IPC action only for a running PostgreSQL service.
 
 Run this new test together with the existing PostgreSQL, service-panel, and CH-UI regression scripts. Run `git diff --check` before integration.
