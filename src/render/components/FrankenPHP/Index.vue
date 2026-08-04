@@ -12,6 +12,9 @@
           <el-table-column label="Caddy" prop="caddy" width="90px" align="center">
           </el-table-column>
         </template>
+        <template #action="{ row }">
+          <VersionActions :item="row" />
+        </template>
       </Service>
       <Manager
         v-else-if="tab === 1"
@@ -32,6 +35,7 @@
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
+  import VersionActions from './VersionActions.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'

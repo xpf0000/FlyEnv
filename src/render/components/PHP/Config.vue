@@ -19,7 +19,7 @@
 
       <Conf
         ref="conf"
-        :type-flag="'php'"
+        :type-flag="typeFlag"
         :default-file="defaultFile"
         :file="file"
         :file-ext="'ini'"
@@ -49,27 +49,34 @@
   import { IniParse } from '@/util/IniParse'
   import { asyncComputed } from '@vueuse/core'
 
-  const props = defineProps<{
-    version: SoftInstalled
-  }>()
+  const props = withDefaults(
+    defineProps<{
+      version: SoftInstalled
+      typeFlag?: 'php' | 'frankenphp'
+    }>(),
+    {
+      typeFlag: 'php'
+    }
+  )
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const flag = computed(() => {
     return props?.version?.phpBin ?? props?.version?.path
   })
+  const iniCacheKey = computed(() => `${props.typeFlag}:${flag.value}`)
 
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
 
   const fetchIniFile = () => {
     return new Promise<string>((resolve) => {
-      IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
+      IPC.send(`app-fork:${props.typeFlag}`, 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
         (key: string, res: any) => {
           console.log(res)
           IPC.off(key)
           if (res.code === 0) {
-            ConfStore.phpIniFiles[flag.value] = res.data
+            ConfStore.phpIniFiles[iniCacheKey.value] = res.data
             ConfStore.save()
             resolve(res.data)
             return
@@ -81,7 +88,7 @@
   }
 
   const file = asyncComputed<string>(async () => {
-    const cached = ConfStore.phpIniFiles?.[flag?.value]
+    const cached = ConfStore.phpIniFiles?.[iniCacheKey.value]
     if (cached) {
       return cached
     }

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 type IniBuilderModule = {
@@ -32,5 +32,19 @@ assert.match(moduleSource, /ensureWindowsPhpIni/)
 assert.match(moduleSource, /this\.ensureWindowsPhpIni\(row\.appDir\)/)
 assert.match(moduleSource, /this\.ensureWindowsPhpIni\(version\.path\)/)
 assert.match(moduleSource, /getIniPath\(version: SoftInstalled\)/)
+
+const readSource = (path: string) => (existsSync(path) ? readFileSync(path, 'utf8') : '')
+const phpConfigSource = readSource(join(root, 'src/render/components/PHP/Config.vue'))
+const frankenPageSource = readSource(join(root, 'src/render/components/FrankenPHP/Index.vue'))
+const frankenActionsSource = readSource(
+  join(root, 'src/render/components/FrankenPHP/VersionActions.vue')
+)
+
+assert.match(phpConfigSource, /typeFlag\??:.*frankenphp/)
+assert.match(phpConfigSource, /app-fork:\$\{.*typeFlag/)
+assert.match(frankenPageSource, /#action/)
+assert.match(frankenPageSource, /VersionActions/)
+assert.match(frankenActionsSource, /typeFlag: 'frankenphp'/)
+assert.match(frankenActionsSource, /window\.Server\.isWindows/)
 
 console.log('frankenphp-php-ini-test: ok')
