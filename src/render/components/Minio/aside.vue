@@ -8,7 +8,7 @@
       <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon style="padding: 0" :svg="import('@/svg/minio.svg?raw')" width="30" height="30" />
       </div>
-      <span class="title">Minio</span>
+      <span class="title">MinIO</span>
     </div>
 
     <el-switch

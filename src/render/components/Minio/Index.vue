@@ -6,7 +6,7 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" type-flag="minio" title="Minio">
+      <Service v-if="tab === 0" type-flag="minio" title="MinIO">
         <template #tool-left>
           <template v-if="isRunning">
             <el-button style="color: #01cc74" class="button" link @click.stop="openURL">
@@ -37,7 +37,7 @@
       <Manager
         v-else-if="tab === 1"
         type-flag="minio"
-        title="Minio"
+        title="MinIO"
         :has-static="true"
         :show-port-lib="false"
         :show-brew-lib="true"
