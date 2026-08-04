@@ -250,7 +250,7 @@ if (!packageRoot) {
 }
 ~~~
 
-For firstStart only, migrate the database without credentials, create the administrator through a FlyEnv-owned no-secret bootstrap script, and then import the password-free connection. `setup-db` does not create the administrator account.
+For firstStart only, migrate the database without credentials, create or verify the administrator through a FlyEnv-owned no-secret bootstrap script, and then import the password-free connection. `setup-db` does not create the administrator account. Do not trust the exit status of either pgAdmin CLI helper: write the completion marker only after a separate no-secret verification script uses pgAdmin's `create_app`, `User`, and `Server` models to confirm the active internal Administrator and exact user-owned, password-free FlyEnv PostgreSQL record.
 
 ~~~ts
 await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
@@ -266,7 +266,13 @@ await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
 await spawnPromiseWithEnv(paths.python, [
   join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', credentials.email
 ], { shell: false })
-await writeFile(paths.initialized, '1')
+await writeFile(paths.verification, pgAdminInitializationVerificationContent())
+await completePgAdminInitialization({
+  verify: () => spawnPromiseWithEnv(paths.python, [
+    paths.verification, packageRoot, credentials.email, `${postgreSqlPort}`
+  ], { shell: false, cwd: packageRoot }),
+  markInitialized: () => writeFile(paths.initialized, '1')
+})
 ~~~
 
 Start the long-running process without sensitive values. serviceStartSpawn logs the parameter object.

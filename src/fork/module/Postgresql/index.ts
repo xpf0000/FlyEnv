@@ -44,12 +44,14 @@ import {
 } from '@shared/Process.win'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
+  completePgAdminInitialization,
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
   PGADMIN4_PACKAGE,
   pgAdminBootstrapContent,
   pgAdminCommandOwned,
   pgAdminConfigContent,
+  pgAdminInitializationVerificationContent,
   pgAdminInitialized,
   pgAdminOwnedPids,
   pgAdminPaths,
@@ -287,7 +289,22 @@ class Manager extends Base {
                 [join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', admin.email],
                 { shell: false }
               )
-              await writeFile(paths.initialized, '1')
+              await writeFile(
+                paths.verification,
+                pgAdminInitializationVerificationContent()
+              )
+              await completePgAdminInitialization({
+                verify: async () => {
+                  await spawnPromiseWithEnv(
+                    paths.python,
+                    [paths.verification, packageRoot, admin.email, `${postgreSqlPort}`],
+                    { shell: false, cwd: packageRoot }
+                  )
+                },
+                markInitialized: async () => {
+                  await writeFile(paths.initialized, '1')
+                }
+              })
               firstStart = false
             }
 

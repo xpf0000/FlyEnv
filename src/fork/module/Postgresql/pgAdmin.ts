@@ -19,6 +19,7 @@ export interface PgAdminPaths {
   port: string
   servers: string
   bootstrap: string
+  verification: string
   initialized: string
   venv: string
   python: string
@@ -36,6 +37,7 @@ export function pgAdminPaths(postgreSqlDir: string, windows: boolean): PgAdminPa
     port: join(root, 'pgadmin4.port'),
     servers: join(root, 'servers.json'),
     bootstrap: join(root, 'bootstrap-admin.py'),
+    verification: join(root, 'verify-initialization.py'),
     initialized: join(root, 'initialized'),
     venv,
     python: windows ? join(venv, 'Scripts', 'python.exe') : join(venv, 'bin', 'python')
@@ -47,6 +49,18 @@ export function pgAdminInitialized(
   fileExists: (file: string) => boolean
 ): boolean {
   return fileExists(paths.initialized)
+}
+
+export interface PgAdminInitializationOptions {
+  verify: () => Promise<void>
+  markInitialized: () => Promise<void>
+}
+
+export async function completePgAdminInitialization(
+  options: PgAdminInitializationOptions
+): Promise<void> {
+  await options.verify()
+  await options.markInitialized()
 }
 
 export class PgAdminSingleFlight<T> {
@@ -165,23 +179,82 @@ package_root = sys.argv[1]
 if package_root not in sys.path:
     sys.path.insert(0, package_root)
 
-from setup import ManageUsers
+import config
+from pgadmin import create_app
+from pgadmin.model import User
+from pgadmin.tools.user_management import create_user
 from pgadmin.utils.constants import INTERNAL
 
 email = os.environ['PGADMIN_SETUP_EMAIL']
 password = os.environ['PGADMIN_SETUP_PASSWORD']
-ManageUsers.create_user(
-    {
-        'email': email,
-        'role': 'Administrator',
-        'active': True,
-        'auth_source': INTERNAL,
-        'newPassword': password,
-        'confirmPassword': password,
-    },
-    console=False,
-    json=False,
-)
+app = create_app(config.APP_NAME + '-cli')
+
+with app.app_context():
+    user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    if user is None:
+        created, _ = create_user(
+            {
+                'email': email,
+                'role': 'Administrator',
+                'active': True,
+                'auth_source': INTERNAL,
+                'newPassword': password,
+                'confirmPassword': password,
+            }
+        )
+        if not created:
+            raise RuntimeError('pgAdmin administrator creation failed')
+        user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+
+    if (
+        user is None
+        or user.email != email
+        or not user.active
+        or user.auth_source != INTERNAL
+        or not any(role.name == 'Administrator' for role in user.roles)
+    ):
+        raise RuntimeError('pgAdmin administrator verification failed')
+`
+}
+
+export function pgAdminInitializationVerificationContent(): string {
+  return `import sys
+
+package_root = sys.argv[1]
+if package_root not in sys.path:
+    sys.path.insert(0, package_root)
+
+import config
+from pgadmin import create_app
+from pgadmin.model import Server, User
+from pgadmin.utils.constants import INTERNAL
+
+email = sys.argv[2]
+postgresql_port = int(sys.argv[3])
+app = create_app(config.APP_NAME + '-cli')
+
+with app.app_context():
+    user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    if (
+        user is None
+        or user.email != email
+        or not user.active
+        or user.auth_source != INTERNAL
+        or not any(role.name == 'Administrator' for role in user.roles)
+    ):
+        raise RuntimeError('pgAdmin administrator verification failed')
+
+    server = Server.query.filter_by(
+        user_id=user.id,
+        name='FlyEnv PostgreSQL',
+        host='127.0.0.1',
+        port=postgresql_port,
+        maintenance_db='postgres',
+        username='root',
+        save_password=0,
+    ).first()
+    if server is None or server.password:
+        raise RuntimeError('pgAdmin server verification failed')
 `
 }
 

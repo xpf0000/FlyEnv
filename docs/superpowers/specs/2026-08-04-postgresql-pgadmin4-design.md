@@ -53,7 +53,7 @@ The module will:
 2. Create an isolated virtual environment in `server/postgresql/pgadmin4/venv` when required.
 3. Install a pinned `pgadmin4` package version into that environment using its own `pip`.
 4. Write a `config_local.py` next to pgAdmin's installed `config.py`. The config sets `DATA_DIR`, the derived SQLite/session/storage/log locations, loopback host, and the selected port.
-5. On first initialization only, run `setup.py setup-db` to migrate the SQLite database, then run a FlyEnv-owned, no-secret Python bootstrap script. The bootstrap adds the installed package root to `sys.path`, imports `ManageUsers` from pgAdmin's `setup` module, and creates the internal `Administrator` account with `PGADMIN_SETUP_EMAIL` and `PGADMIN_SETUP_PASSWORD` read only from that short-lived child environment. The password never appears in argv, logs, config, or FlyEnv settings. FlyEnv writes its own `pgadmin4/initialized` marker only after database setup, account bootstrap, and server import all succeed; the SQLite file alone is never an initialization signal.
+5. On first initialization only, run `setup.py setup-db` to migrate the SQLite database, then run a FlyEnv-owned, no-secret Python bootstrap script. The bootstrap adds the installed package root to `sys.path`, uses pgAdmin's real `create_app` and models to create or reuse the internal `Administrator` account with `PGADMIN_SETUP_EMAIL` and `PGADMIN_SETUP_PASSWORD` read only from that short-lived child environment, and raises if the stored account is not active, internal, and an Administrator. The password never appears in argv, logs, config, or FlyEnv settings. After importing `servers.json`, a separate no-secret script loads pgAdmin's real `User` and `Server` models from the configured SQLite database and verifies the exact FlyEnv user-owned, password-free PostgreSQL connection. FlyEnv writes its own `pgadmin4/initialized` marker only after that verification subprocess exits successfully; the SQLite file or a CLI exit code alone is never an initialization signal.
 6. Generate/import `servers.json` after initialization so the active FlyEnv PostgreSQL port and `root` user are available as a connection without its password.
 7. Run pgAdmin as one owned Python process, track its PID, and return the actual loopback URL to the renderer.
 
@@ -72,7 +72,7 @@ The pgAdmin PID file and its selected-port file are separate from PostgreSQL's `
 - Invalid first-run email or password: renderer validation blocks the request; fork validation protects direct IPC callers.
 - Existing but stale PID: remove the stale PID file and start a new process. When the PID file is missing, scan only commands that strictly match FlyEnv's venv Python plus `pgAdmin4.py` before stopping or recovering a process.
 - Port startup failure: select another loopback port once; if the process still cannot start, clear the selected-port file and return its log-backed error instead of opening a browser.
-- Incomplete setup: leave the completion marker absent so the next panel click requests credentials and safely reruns the idempotent initialization steps.
+- Incomplete setup: leave the completion marker absent when account or server-state verification fails, so the next panel click requests credentials and safely reruns the idempotent initialization steps.
 - PostgreSQL is not running: do not expose the action and reject a direct request with a clear error.
 
 ## Security
@@ -91,6 +91,7 @@ Add `scripts/postgresql-pgadmin4-test.ts` to cover pure helper behavior and stat
 - generated `config_local.py` confines all mutable data to the pgAdmin directory;
 - generated `servers.json` uses the supplied PostgreSQL port and omits database passwords;
 - first-run credentials are consumed only by the no-secret bootstrap child environment and are not represented in persisted config or long-running service parameters;
+- a failed persisted-state verification cannot write the completion marker, while successful verification writes it only after confirming the internal Administrator and password-free FlyEnv PostgreSQL server record;
 - PostgreSQL source owns pgAdmin PID cleanup and the renderer exposes the IPC action only for a running PostgreSQL service.
 
 Run this new test together with the existing PostgreSQL, service-panel, and CH-UI regression scripts. Run `git diff --check` before integration.

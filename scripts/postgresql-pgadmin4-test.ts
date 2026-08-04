@@ -4,6 +4,7 @@ import { once } from 'node:events'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
+  completePgAdminInitialization,
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
   PGADMIN4_MAX_PORT,
@@ -13,6 +14,7 @@ import {
   pgAdminBootstrapContent,
   pgAdminCommandOwned,
   pgAdminConfigContent,
+  pgAdminInitializationVerificationContent,
   pgAdminInitialized,
   pgAdminOwnedPids,
   pgAdminPaths,
@@ -41,6 +43,7 @@ assert.deepEqual(unixPaths, {
   port: join(postgreSqlDir, 'pgadmin4', 'pgadmin4.port'),
   servers: join(postgreSqlDir, 'pgadmin4', 'servers.json'),
   bootstrap: join(postgreSqlDir, 'pgadmin4', 'bootstrap-admin.py'),
+  verification: join(postgreSqlDir, 'pgadmin4', 'verify-initialization.py'),
   initialized: join(postgreSqlDir, 'pgadmin4', 'initialized'),
   venv: join(postgreSqlDir, 'pgadmin4', 'venv'),
   python: join(postgreSqlDir, 'pgadmin4', 'venv', 'bin', 'python')
@@ -72,10 +75,58 @@ assert.doesNotMatch(config, /0\.0\.0\.0/)
 const bootstrap = pgAdminBootstrapContent()
 assert.match(bootstrap, /package_root = sys\.argv\[1\]/)
 assert.match(bootstrap, /sys\.path\.insert\(0, package_root\)/)
-assert.match(bootstrap, /from setup import ManageUsers/)
 assert.match(bootstrap, /PGADMIN_SETUP_EMAIL/)
 assert.match(bootstrap, /PGADMIN_SETUP_PASSWORD/)
 assert.match(bootstrap, /'role': 'Administrator'/)
+assert.match(bootstrap, /from pgadmin import create_app/)
+assert.match(bootstrap, /from pgadmin\.model import User/)
+assert.match(bootstrap, /from pgadmin\.tools\.user_management import create_user/)
+assert.match(bootstrap, /if user is None:/)
+assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator creation failed'\)/)
+assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator verification failed'\)/)
+
+const initializationVerification = pgAdminInitializationVerificationContent()
+assert.match(initializationVerification, /from pgadmin import create_app/)
+assert.match(initializationVerification, /from pgadmin\.model import Server, User/)
+assert.match(initializationVerification, /email = sys\.argv\[2\]/)
+assert.match(initializationVerification, /postgresql_port = int\(sys\.argv\[3\]\)/)
+assert.match(initializationVerification, /User\.query\.filter_by\(username=email, auth_source=INTERNAL\)\.first\(\)/)
+assert.match(initializationVerification, /any\(role\.name == 'Administrator' for role in user\.roles\)/)
+assert.match(initializationVerification, /Server\.query\.filter_by\(/)
+assert.match(initializationVerification, /user_id=user\.id/)
+assert.match(initializationVerification, /name='FlyEnv PostgreSQL'/)
+assert.match(initializationVerification, /host='127\.0\.0\.1'/)
+assert.match(initializationVerification, /port=postgresql_port/)
+assert.match(initializationVerification, /maintenance_db='postgres'/)
+assert.match(initializationVerification, /username='root'/)
+assert.match(initializationVerification, /save_password=0/)
+assert.match(initializationVerification, /if server is None or server\.password:/)
+assert.match(initializationVerification, /raise RuntimeError\('pgAdmin server verification failed'\)/)
+assert.doesNotMatch(initializationVerification, /PGADMIN_SETUP_PASSWORD/)
+
+const initializationGateEvents: string[] = []
+await assert.rejects(
+  completePgAdminInitialization({
+    verify: async () => {
+      initializationGateEvents.push('verify')
+      throw new Error('server import verification failed')
+    },
+    markInitialized: async () => {
+      initializationGateEvents.push('mark')
+    }
+  }),
+  /server import verification failed/
+)
+assert.deepEqual(initializationGateEvents, ['verify'])
+await completePgAdminInitialization({
+  verify: async () => {
+    initializationGateEvents.push('verify-success')
+  },
+  markInitialized: async () => {
+    initializationGateEvents.push('mark-success')
+  }
+})
+assert.deepEqual(initializationGateEvents, ['verify', 'verify-success', 'mark-success'])
 
 assert.equal(
   pgAdminCommandOwned(
@@ -329,6 +380,9 @@ assert.match(postgresqlSource, /openPGAdmin\([\s\S]*?credentials\?: PgAdminCrede
 assert.match(postgresqlSource, /new PgAdminSingleFlight/)
 assert.match(postgresqlSource, /pgAdminInitialized\(paths, existsSync\)/)
 assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
+assert.match(postgresqlSource, /pgAdminInitializationVerificationContent/)
+assert.match(postgresqlSource, /writeFile\(\s*paths\.verification,\s*pgAdminInitializationVerificationContent\(\)\s*\)/s)
+assert.match(postgresqlSource, /completePgAdminInitialization\(/)
 assert.match(postgresqlSource, /startPgAdminWithPortRetry/)
 assert.match(postgresqlSource, /verifyPgAdminPidPersistence/)
 assert.match(postgresqlSource, /pgAdminOwnedPids/)
@@ -364,6 +418,19 @@ assert.match(
   postgresqlSource,
   /spawnPromiseWithEnv\(paths\.python, \[paths\.bootstrap, packageRoot\], \{[\s\S]*?PGADMIN_SETUP_EMAIL:[\s\S]*?PGADMIN_SETUP_PASSWORD:[\s\S]*?cwd: packageRoot[\s\S]*?\}\)/
 )
+assert.match(
+  postgresqlSource,
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.verification, packageRoot, admin\.email, `\$\{postgreSqlPort\}`\],\s*\{ shell: false, cwd: packageRoot \}\s*\)/s
+)
+const verificationSourceIndex = postgresqlSource.indexOf('paths.verification, packageRoot')
+const completionGateIndex = postgresqlSource.lastIndexOf('completePgAdminInitialization')
+assert.notEqual(verificationSourceIndex, -1)
+assert.notEqual(completionGateIndex, -1)
+assert.doesNotMatch(
+  postgresqlSource.slice(verificationSourceIndex, completionGateIndex),
+  /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSWORD/
+)
+assert.ok(postgresqlSource.indexOf("'load-servers'") < completionGateIndex)
 const serviceStartIndex = postgresqlSource.indexOf('started = await serviceStartSpawn')
 const serviceStartEndIndex = postgresqlSource.indexOf('const startedPid', serviceStartIndex)
 assert.notEqual(serviceStartIndex, -1)
