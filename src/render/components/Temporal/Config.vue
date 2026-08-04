@@ -54,6 +54,9 @@
   const invokeTemporal = (...args: any[]) => {
     return new Promise<any>((resolve) => {
       IPC.send('app-fork:temporal', ...args).then((key: string, res: any) => {
+        if (res?.code === 200) {
+          return
+        }
         IPC.off(key)
         resolve(res)
       })

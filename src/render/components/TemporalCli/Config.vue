@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
+  import { computed, nextTick, ref, watch } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import IPC from '@/util/IPC'
   import { join } from '@/util/path-browserify'
@@ -38,19 +38,41 @@
     return file.value ? `${file.value}.default` : ''
   })
 
-  if (file.value) {
-    console.log('temporal-cli config file:', file.value)
-    fs.existsSync(file.value).then((e) => {
-      if (!e && currentVersion.value) {
-        IPC.send(
-          'app-fork:temporal-cli',
-          'initConfig',
-          JSON.parse(JSON.stringify(currentVersion.value))
-        ).then((key: string) => {
-          IPC.off(key)
-          conf?.value?.update()
-        })
-      }
+  const invokeTemporalCli = (...args: any[]) => {
+    return new Promise<any>((resolve) => {
+      IPC.send('app-fork:temporal-cli', ...args).then((key: string, res: any) => {
+        if (res?.code === 200) {
+          return
+        }
+        IPC.off(key)
+        resolve(res)
+      })
     })
   }
+
+  const ensureConfigFile = async () => {
+    if (!file.value || (await fs.existsSync(file.value))) {
+      return
+    }
+    if (!currentVersion.value) {
+      return
+    }
+    const res = await invokeTemporalCli(
+      'initConfig',
+      JSON.parse(JSON.stringify(currentVersion.value))
+    )
+    if (res?.code !== 0) {
+      return
+    }
+    await nextTick()
+    conf.value?.update()
+  }
+
+  watch(
+    file,
+    () => {
+      ensureConfigFile().catch()
+    },
+    { immediate: true }
+  )
 </script>

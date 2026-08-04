@@ -5,7 +5,7 @@ const module: AppModuleItem = {
   moduleType: 'serviceGovernance',
   typeFlag: 'temporal-cli',
   label: 'Temporal CLI',
-  icon: import('@/svg/temporal.svg?raw'),
+  icon: import('@/svg/temporal-cli.svg?raw'),
   iconPadding: 5,
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
