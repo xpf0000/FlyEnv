@@ -28,7 +28,7 @@
   "module": {
     "path": "Lokasi File",
     "exec": "Jalankan",
-    "command": "Command",
+    "command": "Perintah",
     "commandFile": "File",
     "isSudo": "Jalankan dengan sudo?",
     "pidPath": "Lokasi File PID",
