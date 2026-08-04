@@ -15,9 +15,9 @@
   "front": "Довести FlyEnv на передний план",
   "dev": "Открыть окно отладки",
   "needInstallHelper": "FlyEnv необходимо установить вспомогательную программу",
-  "helperInstalling": "Helper программа инсталляции, пожалуйста, подождите",
-  "waitHelper": "Helper программа начинается, пожалуйста, подождите",
-  "helperInstallFailTips": "Не удалось установить программу помощника. Попробуйте вручную установить ее в окне терминала",
+  "helperInstalling": "Helper устанавливается, пожалуйста, подождите",
+  "waitHelper": "Helper запускается, пожалуйста, подождите",
+  "helperInstallFailTips": "Не удалось установить Helper. Попробуйте вручную установить ее в окне терминала",
   "helperInstallSuccessTips": "Установка программы Helper прошла успешно",
   "helperInstallTitle": "Установить FlyEnv Helper"
 }
