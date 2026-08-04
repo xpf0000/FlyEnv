@@ -195,6 +195,42 @@ assert.equal(
   ),
   true
 )
+assert.equal(
+  pgAdminCommandOwned(
+    `${unixPaths.python} ${join(packageRoot, 'pgAdmin4.py')} --normal-flag`,
+    unixPaths,
+    packageRoot,
+    false
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `"${unixPaths.python}" '${join(packageRoot, 'pgAdmin4.py')}' --normal-flag`,
+    unixPaths,
+    packageRoot,
+    false
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${unixPaths.python} -c "print('${join(packageRoot, 'pgAdmin4.py')}')"`,
+    unixPaths,
+    packageRoot,
+    false
+  ),
+  false
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${unixPaths.python} /other/script.py ${join(packageRoot, 'pgAdmin4.py')}`,
+    unixPaths,
+    packageRoot,
+    false
+  ),
+  false
+)
 assert.deepEqual(
   pgAdminOwnedPids(
     [
@@ -554,6 +590,12 @@ assert.match(
 )
 assert.match(postgresqlSource, /PGADMIN4_PACKAGE/)
 assert.match(postgresqlSource, /'--upgrade', PGADMIN4_PACKAGE/)
+assert.match(postgresqlSource, /let packageRepaired = false/)
+assert.match(postgresqlSource, /packageRepaired = true/)
+assert.match(
+  postgresqlSource,
+  /if \(packageRepaired\) \{\s*await this\._stopPGAdmin\(packageRoot\)\s*\}/s
+)
 assert.match(postgresqlSource, /setup\.py/)
 assert.match(postgresqlSource, /setup-db/)
 assert.match(postgresqlSource, /pgAdminBootstrapContent\(\)/)
@@ -626,6 +668,11 @@ assert.notEqual(
 const healthCheckIndex = postgresqlSource.indexOf('isHealthy: async (port, started) =>')
 const persistPortIndex = postgresqlSource.indexOf('persistPort: async (port) =>')
 assert.ok(healthCheckIndex < persistPortIndex)
+const packageRepairStopIndex = postgresqlSource.indexOf('if (packageRepaired) {')
+const runningPidIndex = postgresqlSource.indexOf(
+  'const runningPid = await this.pgAdminRunningPid(packageRoot)'
+)
+assert.ok(packageRepairStopIndex < runningPidIndex)
 const serviceStartIndex = postgresqlSource.indexOf('started = await serviceStartSpawn')
 const serviceStartEndIndex = postgresqlSource.indexOf('const startedPid', serviceStartIndex)
 assert.notEqual(serviceStartIndex, -1)

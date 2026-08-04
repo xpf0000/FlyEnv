@@ -252,16 +252,21 @@ class Manager extends Base {
         }
 
         let packageRoot = ''
+        let packageRepaired = false
         try {
           packageRoot = await this.pgAdminPackageRoot(paths.python)
         } catch {}
         if (!packageRoot) {
+          packageRepaired = true
           await spawnPromiseWithEnv(
             paths.python,
             ['-m', 'pip', 'install', '--disable-pip-version-check', '--upgrade', PGADMIN4_PACKAGE],
             { shell: false }
           )
           packageRoot = await this.pgAdminPackageRoot(paths.python)
+        }
+        if (packageRepaired) {
+          await this._stopPGAdmin(packageRoot)
         }
 
         const runningPid = await this.pgAdminRunningPid(packageRoot)

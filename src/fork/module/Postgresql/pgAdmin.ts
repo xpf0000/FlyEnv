@@ -307,6 +307,11 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+function commandArgumentPattern(path: string): string {
+  const escapedPath = escapeRegExp(path)
+  return `(?:${escapedPath}|"${escapedPath}"|'${escapedPath}')`
+}
+
 export function pgAdminCommandOwned(
   command: string,
   paths: PgAdminPaths,
@@ -316,10 +321,11 @@ export function pgAdminCommandOwned(
   const normalizedCommand = commandPath(command, windows)
   const pythonPath = commandPath(paths.python, windows)
   const scriptPath = commandPath(join(packageRoot, 'pgAdmin4.py'), windows)
-  const pythonPattern = new RegExp(`(?:^|[\\s"'])${escapeRegExp(pythonPath)}(?=$|[\\s"'])`)
-  const scriptPattern = new RegExp(`(?:^|[\\s"'])${escapeRegExp(scriptPath)}(?=$|[\\s"'])`)
+  const commandPattern = new RegExp(
+    `^\\s*${commandArgumentPattern(pythonPath)}\\s+${commandArgumentPattern(scriptPath)}(?=\\s|$)`
+  )
 
-  return pythonPattern.test(normalizedCommand) && scriptPattern.test(normalizedCommand)
+  return commandPattern.test(normalizedCommand)
 }
 
 export interface PgAdminProcess {
