@@ -53,8 +53,8 @@ import {
   pgAdminCommandOwned,
   pgAdminOwnedPidsWithoutPackageMetadata,
   pgAdminConfigContent,
+  pgAdminInitializationState,
   pgAdminInitializationVerificationContent,
-  pgAdminInitialized,
   pgAdminOwnedPids,
   pgAdminPackageRootProbe,
   pgAdminPackageRootUnversionedProbe,
@@ -229,9 +229,12 @@ class Manager extends Base {
   }
 
   pgAdminStatus(): ForkPromise<{ initialized: boolean }> {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve) => {
       const paths = this.pgAdminPaths()
-      resolve({ initialized: pgAdminInitialized(paths, existsSync) })
+      const state = await pgAdminInitializationState(paths, existsSync, (file) =>
+        readFile(file, 'utf-8')
+      )
+      resolve({ initialized: state.initialized })
     })
   }
 
@@ -261,15 +264,11 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
         const paths = this.pgAdminPaths()
-        let firstStart = !pgAdminInitialized(paths, existsSync)
-        let serverIdentity: PgAdminServerIdentity | undefined
-        if (!firstStart) {
-          try {
-            serverIdentity = parsePgAdminServerIdentity(await readFile(paths.identity, 'utf-8'))
-          } catch {
-            firstStart = true
-          }
-        }
+        const state = await pgAdminInitializationState(paths, existsSync, (file) =>
+          readFile(file, 'utf-8')
+        )
+        let firstStart = !state.initialized
+        let serverIdentity: PgAdminServerIdentity | undefined = state.identity
         if (!existsSync(join(dataDir, 'postmaster.pid'))) {
           throw new Error('PostgreSQL is not running')
         }

@@ -149,8 +149,8 @@ try {
       })
     ).stdout
   )
-  assert.ok(serverIdentity.userId > 0)
-  assert.ok(serverIdentity.serverId > 0)
+  assert.match(serverIdentity.userId, /^[1-9]\d*$/)
+  assert.match(serverIdentity.serverId, /^[1-9]\d*$/)
   await writeFile(paths.identity, JSON.stringify(serverIdentity))
   assert.deepEqual(JSON.parse(await readFile(paths.identity, 'utf-8')), serverIdentity)
 
@@ -266,7 +266,7 @@ with app.app_context():
     sibling.connection_params = {'sslmode': 'verify-full'}
     db.session.add(sibling)
     db.session.commit()
-    print(json.dumps({'targetId': target.id, 'siblingId': sibling.id}))
+    print(json.dumps({'targetId': str(target.id), 'siblingId': str(sibling.id)}))
 `
   const seeded = JSON.parse(
     (
@@ -286,7 +286,7 @@ with app.app_context():
     ).stdout.trim()
   )
   assert.equal(seeded.targetId, serverIdentity.serverId)
-  assert.ok(seeded.siblingId > 0)
+  assert.match(seeded.siblingId, /^[1-9]\d*$/)
 
   const reconciledPostgreSqlPort = 15433
   await runPython(

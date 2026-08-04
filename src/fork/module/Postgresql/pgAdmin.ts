@@ -64,8 +64,8 @@ export function pgAdminInitialized(
 }
 
 export interface PgAdminServerIdentity {
-  userId: number
-  serverId: number
+  userId: string
+  serverId: string
 }
 
 export function parsePgAdminServerIdentity(content: string): PgAdminServerIdentity {
@@ -89,16 +89,37 @@ export function parsePgAdminServerIdentity(content: string): PgAdminServerIdenti
   const userId = identity.userId
   const serverId = identity.serverId
   if (
-    typeof userId !== 'number' ||
-    typeof serverId !== 'number' ||
-    !Number.isInteger(userId) ||
-    !Number.isInteger(serverId) ||
-    userId < 1 ||
-    serverId < 1
+    typeof userId !== 'string' ||
+    typeof serverId !== 'string' ||
+    !/^[1-9]\d*$/.test(userId) ||
+    !/^[1-9]\d*$/.test(serverId)
   ) {
     throw new Error('Invalid pgAdmin 4 server identity')
   }
   return { userId, serverId }
+}
+
+export interface PgAdminInitializationState {
+  initialized: boolean
+  identity?: PgAdminServerIdentity
+}
+
+export async function pgAdminInitializationState(
+  paths: PgAdminPaths,
+  fileExists: (file: string) => boolean,
+  readIdentity: (file: string) => Promise<string>
+): Promise<PgAdminInitializationState> {
+  if (!pgAdminInitialized(paths, fileExists)) {
+    return { initialized: false }
+  }
+  try {
+    return {
+      initialized: true,
+      identity: parsePgAdminServerIdentity(await readIdentity(paths.identity))
+    }
+  } catch {
+    return { initialized: false }
+  }
 }
 
 export interface PgAdminInitializationOptions {
@@ -434,7 +455,7 @@ with app.app_context():
     connection_params = server.connection_params or {}
     if connection_params.get('sslmode') != 'prefer':
         raise RuntimeError('pgAdmin server identity verification failed')
-    print(json.dumps({'userId': user.id, 'serverId': server.id}))
+    print(json.dumps({'userId': str(user.id), 'serverId': str(server.id)}))
 `
 }
 

@@ -17,6 +17,7 @@ import {
   pgAdminCommandOwned,
   pgAdminCommandOwnedWithoutPackageMetadata,
   pgAdminConfigContent,
+  pgAdminInitializationState,
   pgAdminInitializationVerificationContent,
   pgAdminInitialized,
   pgAdminOwnedPids,
@@ -102,6 +103,21 @@ assert.equal(
   pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)),
   true
 )
+const validInitializationState = await pgAdminInitializationState(
+  unixPaths,
+  (file) => initializationFiles.has(file),
+  async () => '{"userId": "9007199254740993", "serverId": "9007199254740994"}'
+)
+assert.deepEqual(validInitializationState, {
+  initialized: true,
+  identity: { userId: '9007199254740993', serverId: '9007199254740994' }
+})
+const malformedInitializationState = await pgAdminInitializationState(
+  unixPaths,
+  (file) => initializationFiles.has(file),
+  async () => '{not json}'
+)
+assert.deepEqual(malformedInitializationState, { initialized: false })
 
 const configDataDir = '/tmp/FlyEnv data'
 const configLogDir = '/tmp/FlyEnv logs'
@@ -219,16 +235,21 @@ assert.match(
   identityScript,
   /server\.servergroup is None or server\.servergroup\.name != 'Servers'/
 )
-assert.match(identityScript, /json\.dumps\(\{'userId': user\.id, 'serverId': server\.id\}\)/)
+assert.match(
+  identityScript,
+  /json\.dumps\(\{'userId': str\(user\.id\), 'serverId': str\(server\.id\)\}\)/
+)
 assert.doesNotMatch(identityScript, /PGADMIN_SETUP_PASSWORD|password = os/)
-assert.deepEqual(parsePgAdminServerIdentity('{"userId": 17, "serverId": 29}'), {
-  userId: 17,
-  serverId: 29
+assert.deepEqual(parsePgAdminServerIdentity('{"userId": "9007199254740993", "serverId": "29"}'), {
+  userId: '9007199254740993',
+  serverId: '29'
 })
-assert.throws(() => parsePgAdminServerIdentity('{"userId": 0, "serverId": 29}'), /identity/)
-assert.throws(() => parsePgAdminServerIdentity('{"userId": 17, "serverId": "29"}'), /identity/)
+assert.throws(() => parsePgAdminServerIdentity('{"userId": 17, "serverId": 29}'), /identity/)
+assert.throws(() => parsePgAdminServerIdentity('{"userId": "0", "serverId": "29"}'), /identity/)
+assert.throws(() => parsePgAdminServerIdentity('{"userId": "017", "serverId": "29"}'), /identity/)
 assert.throws(
-  () => parsePgAdminServerIdentity('{"userId": 17, "serverId": 29, "email": "root@example.test"}'),
+  () =>
+    parsePgAdminServerIdentity('{"userId": "17", "serverId": "29", "email": "root@example.test"}'),
   /identity/
 )
 
@@ -871,9 +892,12 @@ const postgresqlSource = readFileSync(
 )
 
 assert.match(postgresqlSource, /pgAdminStatus\(\): ForkPromise<\{ initialized: boolean \}>/)
+assert.match(
+  postgresqlSource,
+  /pgAdminInitializationState\(\s*paths,\s*existsSync,\s*\(file\) =>\s*readFile\(file, 'utf-8'\)\s*\)/s
+)
 assert.match(postgresqlSource, /openPGAdmin\([\s\S]*?credentials\?: PgAdminCredentials/)
 assert.match(postgresqlSource, /new PgAdminSingleFlight/)
-assert.match(postgresqlSource, /pgAdminInitialized\(paths, existsSync\)/)
 assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
 assert.match(postgresqlSource, /pgAdminInitializationVerificationContent/)
 assert.match(postgresqlSource, /pgAdminServerIdentityContent/)
