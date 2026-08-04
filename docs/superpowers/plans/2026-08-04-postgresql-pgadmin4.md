@@ -6,6 +6,8 @@
 
 **Architecture:** A pure PostgreSQL pgAdmin helper defines the pinned Python package, paths, generated configuration, server registration, credential validation, and loopback port lookup. The PostgreSQL fork module owns installation, one-time initialization, process tracking, and shutdown. The PostgreSQL page requests credentials only when the fork reports no initialized pgAdmin database.
 
+**Compatibility note:** pgAdmin 9.17 accepts registered database ports only from `1` through `65534`; validate the PostgreSQL configuration immediately after parsing and before virtual-environment creation. This is separate from the loopback pgAdmin management listener, which scans `5050` through `5070`. Generated server records require `Group: "Servers"` and `SSLMode: "prefer"`, and the completion verifier confirms both persisted values.
+
 **Tech Stack:** TypeScript, Vue 3, Element Plus, Electron IPC, Node net, Python virtual environments, pgAdmin 4 Python wheel.
 
 ---
@@ -239,6 +241,7 @@ if (!python?.bin || !existsSync(python.bin)) throw new Error('A selected Python 
 if (!validPgAdminPythonVersion(python.version)) throw new Error('pgAdmin 4 requires Python 3.9 or later')
 if (firstStart && !validPgAdminCredentials(credentials ?? {})) throw new Error('pgAdmin administrator credentials are required')
 const postgreSqlPort = postgresqlPortFromConfig(await readFile(join(dataDir, 'postgresql.conf'), 'utf8'))
+assertPgAdminRegistrationPort(postgreSqlPort)
 await mkdirp(paths.data)
 await mkdirp(paths.log)
 if (!existsSync(paths.python)) await spawnPromiseWithEnv(python.bin, ['-m', 'venv', paths.venv], { shell: false })
@@ -250,7 +253,7 @@ if (!packageRoot) {
 }
 ~~~
 
-For firstStart only, migrate the database without credentials, create or verify the administrator through a FlyEnv-owned no-secret bootstrap script, and then import the password-free connection. `setup-db` does not create the administrator account. Do not trust the exit status of either pgAdmin CLI helper: write the completion marker only after a separate no-secret verification script uses pgAdmin's `create_app`, `User`, and `Server` models to confirm the active internal Administrator and exact user-owned, password-free FlyEnv PostgreSQL record.
+For firstStart only, migrate the database without credentials, create or verify the administrator through a FlyEnv-owned no-secret bootstrap script, and then import the password-free connection. `setup-db` does not create the administrator account. Do not trust the exit status of either pgAdmin CLI helper: write the completion marker only after a separate no-secret verification script uses pgAdmin's `create_app`, `User`, and `Server` models to confirm the active internal Administrator and exact user-owned, password-free FlyEnv PostgreSQL record in the `Servers` group with `sslmode=prefer`.
 
 ~~~ts
 await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))

@@ -4,6 +4,7 @@ import { join } from 'node:path'
 export const PGADMIN4_PACKAGE = 'pgadmin4==9.17'
 export const PGADMIN4_DEFAULT_PORT = 5050
 export const PGADMIN4_MAX_PORT = 65535
+export const PGADMIN4_MAX_SERVER_PORT = 65534
 export const PGADMIN4_PORT_SCAN_COUNT = 21
 
 export interface PgAdminCredentials {
@@ -181,7 +182,7 @@ if package_root not in sys.path:
 
 import config
 from pgadmin import create_app
-from pgadmin.model import User
+from pgadmin.model import Role, User
 from pgadmin.tools.user_management import create_user
 from pgadmin.utils.constants import INTERNAL
 
@@ -191,11 +192,14 @@ app = create_app(config.APP_NAME + '-cli')
 
 with app.app_context():
     user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    administrator_role = Role.query.filter_by(name='Administrator').first()
+    if administrator_role is None:
+        raise RuntimeError('pgAdmin Administrator role was not found')
     if user is None:
         created, _ = create_user(
             {
                 'email': email,
-                'role': 'Administrator',
+                'role': administrator_role.id,
                 'active': True,
                 'auth_source': INTERNAL,
                 'newPassword': password,
@@ -255,6 +259,9 @@ with app.app_context():
     ).first()
     if server is None or server.password:
         raise RuntimeError('pgAdmin server verification failed')
+    connection_params = server.connection_params or {}
+    if connection_params.get('sslmode') != 'prefer':
+        raise RuntimeError('pgAdmin server verification failed')
 `
 }
 
@@ -304,12 +311,27 @@ export function postgresqlPortFromConfig(content: string): number {
   return Number.isInteger(port) && port > 0 && port <= 65535 ? port : 5432
 }
 
+export function validPgAdminRegistrationPort(port: number): boolean {
+  return Number.isInteger(port) && port > 0 && port <= PGADMIN4_MAX_SERVER_PORT
+}
+
+export function assertPgAdminRegistrationPort(port: number): void {
+  if (!validPgAdminRegistrationPort(port)) {
+    throw new Error(
+      `pgAdmin 4 only supports PostgreSQL registration ports from 1 through ${PGADMIN4_MAX_SERVER_PORT}`
+    )
+  }
+}
+
 export function pgAdminServersContent(port: number): string {
+  assertPgAdminRegistrationPort(port)
+
   return `${JSON.stringify(
     {
       Servers: {
         1: {
           Name: 'FlyEnv PostgreSQL',
+          Group: 'Servers',
           Host: '127.0.0.1',
           Port: port,
           MaintenanceDB: 'postgres',

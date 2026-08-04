@@ -44,6 +44,7 @@ import {
 } from '@shared/Process.win'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
+  assertPgAdminRegistrationPort,
   completePgAdminInitialization,
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
@@ -236,6 +237,7 @@ class Manager extends Base {
         const postgreSqlPort = postgresqlPortFromConfig(
           await readFile(join(dataDir, 'postgresql.conf'), 'utf-8')
         )
+        assertPgAdminRegistrationPort(postgreSqlPort)
         await mkdirp(paths.data)
         await mkdirp(paths.log)
         if (!existsSync(paths.venv)) {

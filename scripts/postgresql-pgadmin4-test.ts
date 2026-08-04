@@ -8,6 +8,7 @@ import {
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
   PGADMIN4_MAX_PORT,
+  PGADMIN4_MAX_SERVER_PORT,
   PGADMIN4_PACKAGE,
   PGADMIN4_PORT_SCAN_COUNT,
   PgAdminSingleFlight,
@@ -21,17 +22,26 @@ import {
   pgAdminServersContent,
   pgAdminUrl,
   postgresqlPortFromConfig,
+  assertPgAdminRegistrationPort,
   startPgAdminWithPortRetry,
   validPgAdminCredentials,
+  validPgAdminRegistrationPort,
   validPgAdminPythonVersion,
   verifyPgAdminPidPersistence
 } from '../src/fork/module/Postgresql/pgAdmin'
 
 assert.equal(PGADMIN4_DEFAULT_PORT, 5050)
 assert.equal(PGADMIN4_MAX_PORT, 65535)
+assert.equal(PGADMIN4_MAX_SERVER_PORT, 65534)
 assert.equal(PGADMIN4_PORT_SCAN_COUNT, 21)
 assert.equal(PGADMIN4_PACKAGE, 'pgadmin4==9.17')
 assert.equal(pgAdminUrl(5051), 'http://127.0.0.1:5051')
+assert.equal(validPgAdminRegistrationPort(65534), true)
+assert.equal(validPgAdminRegistrationPort(65535), false)
+assert.throws(
+  () => assertPgAdminRegistrationPort(65535),
+  /pgAdmin 4 only supports PostgreSQL registration ports from 1 through 65534/
+)
 
 const postgreSqlDir = join('/tmp', 'flyenv-postgresql')
 const unixPaths = pgAdminPaths(postgreSqlDir, false)
@@ -77,11 +87,14 @@ assert.match(bootstrap, /package_root = sys\.argv\[1\]/)
 assert.match(bootstrap, /sys\.path\.insert\(0, package_root\)/)
 assert.match(bootstrap, /PGADMIN_SETUP_EMAIL/)
 assert.match(bootstrap, /PGADMIN_SETUP_PASSWORD/)
-assert.match(bootstrap, /'role': 'Administrator'/)
 assert.match(bootstrap, /from pgadmin import create_app/)
-assert.match(bootstrap, /from pgadmin\.model import User/)
+assert.match(bootstrap, /from pgadmin\.model import Role, User/)
 assert.match(bootstrap, /from pgadmin\.tools\.user_management import create_user/)
 assert.match(bootstrap, /if user is None:/)
+assert.match(bootstrap, /administrator_role = Role\.query\.filter_by\(name='Administrator'\)\.first\(\)/)
+assert.match(bootstrap, /raise RuntimeError\('pgAdmin Administrator role was not found'\)/)
+assert.match(bootstrap, /'role': administrator_role\.id/)
+assert.doesNotMatch(bootstrap, /'role': 'Administrator'/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator creation failed'\)/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator verification failed'\)/)
 
@@ -101,6 +114,8 @@ assert.match(initializationVerification, /maintenance_db='postgres'/)
 assert.match(initializationVerification, /username='root'/)
 assert.match(initializationVerification, /save_password=0/)
 assert.match(initializationVerification, /if server is None or server\.password:/)
+assert.match(initializationVerification, /connection_params = server\.connection_params or \{\}/)
+assert.match(initializationVerification, /connection_params\.get\('sslmode'\) != 'prefer'/)
 assert.match(initializationVerification, /raise RuntimeError\('pgAdmin server verification failed'\)/)
 assert.doesNotMatch(initializationVerification, /PGADMIN_SETUP_PASSWORD/)
 
@@ -306,6 +321,7 @@ assert.equal(postgresqlPortFromConfig('port = 15432'), 15432)
 assert.equal(postgresqlPortFromConfig('port = "15433" # local port'), 15433)
 assert.equal(postgresqlPortFromConfig("port = '15434'"), 15434)
 assert.equal(postgresqlPortFromConfig('port = 0'), 5432)
+assert.equal(postgresqlPortFromConfig('port = 65535'), 65535)
 assert.equal(postgresqlPortFromConfig('port = invalid'), 5432)
 assert.equal(postgresqlPortFromConfig('# port = 15432'), 5432)
 
@@ -314,6 +330,7 @@ assert.deepEqual(servers, {
   Servers: {
     1: {
       Name: 'FlyEnv PostgreSQL',
+      Group: 'Servers',
       Host: '127.0.0.1',
       Port: 15432,
       MaintenanceDB: 'postgres',
@@ -323,6 +340,10 @@ assert.deepEqual(servers, {
   }
 })
 assert.equal('Password' in servers.Servers[1], false)
+assert.throws(
+  () => pgAdminServersContent(65535),
+  /pgAdmin 4 only supports PostgreSQL registration ports from 1 through 65534/
+)
 
 assert.equal(validPgAdminCredentials({ email: 'root@example.test', password: 'password' }), true)
 assert.equal(validPgAdminCredentials({ email: 'not-an-email', password: 'password' }), false)
@@ -388,6 +409,7 @@ assert.match(postgresqlSource, /verifyPgAdminPidPersistence/)
 assert.match(postgresqlSource, /pgAdminOwnedPids/)
 assert.match(postgresqlSource, /validPgAdminCredentials\(credentials\)/)
 assert.match(postgresqlSource, /validPgAdminPythonVersion\(python\.version\)/)
+assert.match(postgresqlSource, /assertPgAdminRegistrationPort\(postgreSqlPort\)/)
 assert.match(
   postgresqlSource,
   /spawnPromiseWithEnv\(python\.bin, \['-m', 'venv', paths\.venv\], \{[\s\S]*?shell: false/
@@ -431,6 +453,13 @@ assert.doesNotMatch(
   /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSWORD/
 )
 assert.ok(postgresqlSource.indexOf("'load-servers'") < completionGateIndex)
+const parsedPostgreSqlPortIndex = postgresqlSource.indexOf('const postgreSqlPort = postgresqlPortFromConfig')
+const registrationPortValidationIndex = postgresqlSource.indexOf(
+  'assertPgAdminRegistrationPort(postgreSqlPort)'
+)
+const virtualEnvironmentIndex = postgresqlSource.indexOf("['-m', 'venv', paths.venv]")
+assert.ok(parsedPostgreSqlPortIndex < registrationPortValidationIndex)
+assert.ok(registrationPortValidationIndex < virtualEnvironmentIndex)
 const serviceStartIndex = postgresqlSource.indexOf('started = await serviceStartSpawn')
 const serviceStartEndIndex = postgresqlSource.indexOf('const startedPid', serviceStartIndex)
 assert.notEqual(serviceStartIndex, -1)
