@@ -38,4 +38,10 @@ assert.match(minioPage, /readConfigValue\(content, 'MINIO_CONSOLE_ADDRESS'\)/)
 assert.match(minioPage, /httpUrlFromAddress/)
 assert.doesNotMatch(minioPage, /find\(\(s: string\) => s\.includes\('MINIO_ADDRESS'\)\)/)
 
+const rnacosPage = readFileSync(join(root, 'src/render/components/Rnacos/Index.vue'), 'utf8')
+assert.match(rnacosPage, /rnacos\/rnacos\.conf/)
+assert.match(rnacosPage, /readConfigValue\(content, 'RNACOS_HTTP_CONSOLE_PORT'\)/)
+assert.match(rnacosPage, /parsePort/)
+assert.doesNotMatch(rnacosPage, /127\.0\.0\.1:10848\/rnacos\//)
+
 console.log('service web panel tests passed')

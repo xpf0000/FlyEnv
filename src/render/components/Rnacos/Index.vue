@@ -41,9 +41,11 @@
   import Logs from './Logs.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
-  import { shell } from '@/util/NodeFn'
+  import { fs, shell } from '@/util/NodeFn'
   import { BrewStore } from '@/store/brew'
   import { computed } from 'vue'
+  import { join } from '@/util/path-browserify'
+  import { parsePort, readConfigValue } from '@shared/ServiceWebAddress'
 
   const { tab, checkVersion } = AppModuleSetup('rnacos')
   const tabs = [
@@ -60,8 +62,16 @@
     return brewStore.module('rnacos').installed.some((m) => m.run)
   })
 
-  const openConsole = () => {
-    const url = 'http://127.0.0.1:10848/rnacos/'
+  const openConsole = async () => {
+    let port = 10848
+    const confFile = join(window.Server.BaseDir!, 'rnacos/rnacos.conf')
+    if (await fs.existsSync(confFile)) {
+      try {
+        const content = await fs.readFile(confFile)
+        port = parsePort(readConfigValue(content, 'RNACOS_HTTP_CONSOLE_PORT'), 10848)
+      } catch {}
+    }
+    const url = `http://127.0.0.1:${port}/rnacos/`
     shell.openExternal(url).then().catch()
   }
 </script>
