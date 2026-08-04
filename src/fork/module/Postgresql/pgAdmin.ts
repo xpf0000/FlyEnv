@@ -177,7 +177,8 @@ export function pgAdminPackageRootProbe(): string {
 }
 
 export function pgAdminBootstrapContent(): string {
-  return `import sys
+  return `import os
+import sys
 
 package_root = sys.argv[1]
 if package_root not in sys.path:
@@ -186,17 +187,35 @@ if package_root not in sys.path:
 import config
 from pgadmin import create_app
 from pgadmin.model import Role, Server, User, db
+from pgadmin.tools.user_management import create_user
 from pgadmin.utils.constants import INTERNAL
 
 email = sys.argv[2]
+password = os.environ.get('PGADMIN_SETUP_PASSWORD')
 postgresql_port = int(sys.argv[3]) if len(sys.argv) > 3 else None
 app = create_app(config.APP_NAME + '-cli')
 
-with app.app_context():
+with app.test_request_context():
     user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
     administrator_role = Role.query.filter_by(name='Administrator').first()
     if administrator_role is None:
         raise RuntimeError('pgAdmin Administrator role was not found')
+    if user is None:
+        if not password:
+            raise RuntimeError('pgAdmin administrator credentials are required')
+        created, _ = create_user(
+            {
+                'email': email,
+                'role': administrator_role.id,
+                'active': True,
+                'auth_source': INTERNAL,
+                'newPassword': password,
+                'confirmPassword': password,
+            }
+        )
+        if not created:
+            raise RuntimeError('pgAdmin administrator creation failed')
+        user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
     if (
         user is None
         or user.email != email

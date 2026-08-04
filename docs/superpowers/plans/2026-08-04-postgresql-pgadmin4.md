@@ -253,7 +253,7 @@ if (!packageRoot) {
 }
 ~~~
 
-For firstStart only, migrate the database with pgAdmin's official short-lived setup environment, then verify the created administrator through a FlyEnv-owned no-secret bootstrap script before importing the password-free connection. pgAdmin 9.17's first `setup-db` migration creates the administrator from `PGADMIN_SETUP_EMAIL` and `PGADMIN_SETUP_PASSWORD`; it otherwise prompts on stdin. Run the no-secret bootstrap again after import to clear the connection password and normalize `save_password` to `0`. Do not trust the exit status of either pgAdmin CLI helper: write the completion marker only after a separate no-secret verification script uses pgAdmin's `create_app`, `User`, and `Server` models to confirm the active internal Administrator and exact user-owned, password-free FlyEnv PostgreSQL record in the `Servers` group with `sslmode=prefer`.
+For firstStart only, migrate the database with pgAdmin's official short-lived setup environment, then verify the created administrator through a FlyEnv-owned bootstrap script before importing the password-free connection. pgAdmin 9.17's first `setup-db` migration creates the administrator from `PGADMIN_SETUP_EMAIL` and `PGADMIN_SETUP_PASSWORD`; it otherwise prompts on stdin. If a partial initialization is retried with another email, the bootstrap reads `PGADMIN_SETUP_PASSWORD` only from its own short-lived environment to create that requested administrator. Run the no-secret bootstrap again after import to clear the connection password and normalize `save_password` to `0`. Do not trust the exit status of either pgAdmin CLI helper: write the completion marker only after a separate no-secret verification script uses pgAdmin's `create_app`, `User`, and `Server` models to confirm the active internal Administrator and exact user-owned, password-free FlyEnv PostgreSQL record in the `Servers` group with `sslmode=prefer`.
 
 ~~~ts
 await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
@@ -262,7 +262,11 @@ await spawnPromiseWithEnv(paths.python, [join(packageRoot, 'setup.py'), 'setup-d
   env: { PGADMIN_SETUP_EMAIL: credentials.email, PGADMIN_SETUP_PASSWORD: credentials.password }
 })
 await writeFile(paths.bootstrap, pgAdminBootstrapContent())
-await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot, credentials.email], { shell: false, cwd: packageRoot })
+await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot, credentials.email], {
+  shell: false,
+  cwd: packageRoot,
+  env: { PGADMIN_SETUP_PASSWORD: credentials.password }
+})
 await spawnPromiseWithEnv(paths.python, [
   join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', credentials.email
 ], { shell: false })
@@ -468,7 +472,7 @@ Expected: no whitespace errors and only pgAdmin implementation, tests, and docum
 PGADMIN4_INTEGRATION_PYTHON=/path/to/venv/bin/python yarn test:postgresql-pgadmin4:integration
 ~~~
 
-The check resolves the installed package through `importlib.metadata.distribution('pgadmin4')`, creates a temporary pgAdmin root, and restores any package-local `config_local.py`. It runs generated `setup-db`, no-secret bootstrap, `load-servers`, bootstrap normalization, verifier, and an independent model query. It verifies the internal Administrator, `Servers` group, FlyEnv loopback connection, `sslmode=prefer`, no stored password, and `save_password=0`, then deletes the temporary root. Credentials are passed only through the short-lived `setup-db` environment and are never placed in Python arguments or test output.
+The check resolves the installed package through `importlib.metadata.distribution('pgadmin4')`, creates a temporary pgAdmin root, and restores any package-local `config_local.py`. It runs generated `setup-db`, normal bootstrap, interrupted-initialization recovery bootstrap, `load-servers`, bootstrap normalization, verifier, and an independent model query. It verifies the internal Administrator, `Servers` group, FlyEnv loopback connection, `sslmode=prefer`, no stored password, and `save_password=0`, then deletes the temporary root. Credentials are passed only through short-lived `setup-db` or recovery-bootstrap environments and are never placed in Python arguments or test output.
 
 - [ ] **Step 4: Commit a verification correction only when needed**
 

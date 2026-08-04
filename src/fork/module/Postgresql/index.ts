@@ -288,7 +288,11 @@ class Manager extends Base {
               await spawnPromiseWithEnv(
                 paths.python,
                 [paths.bootstrap, packageRoot, admin.email],
-                { shell: false, cwd: packageRoot }
+                {
+                  shell: false,
+                  cwd: packageRoot,
+                  env: { PGADMIN_SETUP_PASSWORD: admin.password }
+                }
               )
               await spawnPromiseWithEnv(
                 paths.python,

@@ -84,19 +84,30 @@ assert.match(config, /AZURE_CREDENTIAL_CACHE_DIR = "\/tmp\/FlyEnv data\/azure"/)
 assert.doesNotMatch(config, /0\.0\.0\.0/)
 
 const bootstrap = pgAdminBootstrapContent()
+assert.match(bootstrap, /import os/)
 assert.match(bootstrap, /package_root = sys\.argv\[1\]/)
 assert.match(bootstrap, /sys\.path\.insert\(0, package_root\)/)
 assert.match(bootstrap, /email = sys\.argv\[2\]/)
+assert.match(bootstrap, /password = os\.environ\.get\('PGADMIN_SETUP_PASSWORD'\)/)
 assert.match(bootstrap, /from pgadmin import create_app/)
 assert.match(bootstrap, /from pgadmin\.model import Role, Server, User, db/)
+assert.match(bootstrap, /from pgadmin\.tools\.user_management import create_user/)
+assert.match(bootstrap, /with app\.test_request_context\(\):/)
 assert.match(bootstrap, /administrator_role = Role\.query\.filter_by\(name='Administrator'\)\.first\(\)/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin Administrator role was not found'\)/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator verification failed'\)/)
+assert.match(bootstrap, /if user is None:/)
+assert.match(bootstrap, /if not password:/)
+assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator credentials are required'\)/)
+assert.match(bootstrap, /'role': administrator_role\.id/)
+assert.match(bootstrap, /'newPassword': password/)
+assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator creation failed'\)/)
+assert.doesNotMatch(bootstrap, /str\(error\)/)
 assert.match(bootstrap, /postgresql_port = int\(sys\.argv\[3\]\) if len\(sys\.argv\) > 3 else None/)
 assert.match(bootstrap, /if postgresql_port is not None:/)
 assert.match(bootstrap, /server\.save_password = 0/)
 assert.match(bootstrap, /db\.session\.commit\(\)/)
-assert.doesNotMatch(bootstrap, /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSWORD|create_user/)
+assert.doesNotMatch(bootstrap, /PGADMIN_SETUP_EMAIL/)
 
 const initializationVerification = pgAdminInitializationVerificationContent()
 assert.match(initializationVerification, /from pgadmin import create_app/)
@@ -449,7 +460,7 @@ assert.ok(postgresqlSource.indexOf("'setup-db'") < postgresqlSource.indexOf('pat
 assert.match(postgresqlSource, /writeFile\(paths\.bootstrap, pgAdminBootstrapContent\(\)\)/)
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.bootstrap, packageRoot, admin\.email\],\s*\{\s*shell: false, cwd: packageRoot\s*\}\s*\)/s
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.bootstrap, packageRoot, admin\.email\],\s*\{[\s\S]*?env:\s*\{\s*PGADMIN_SETUP_PASSWORD:\s*admin\.password\s*\}[\s\S]*?shell: false,[\s\S]*?cwd: packageRoot[\s\S]*?\}\s*\)/s
 )
 assert.match(
   postgresqlSource,

@@ -99,8 +99,10 @@ const configLocal = join(packageRoot, 'config_local.py')
 const originalConfigLocal = await readOptional(configLocal)
 const temporaryRoot = await mkdtemp(join(tmpdir(), 'flyenv-pgadmin4-integration-'))
 const paths = pgAdminPaths(temporaryRoot, false)
-const email = `flyenv-${randomBytes(8).toString('hex')}@example.test`
-const password = `FlyEnv-${randomBytes(16).toString('hex')}`
+const setupEmail = `flyenv-setup-${randomBytes(8).toString('hex')}@example.com`
+const setupPassword = `FlyEnv-setup-${randomBytes(16).toString('hex')}`
+const email = `flyenv-retry-${randomBytes(8).toString('hex')}@example.com`
+const password = `FlyEnv-retry-${randomBytes(16).toString('hex')}`
 const postgreSqlPort = 15432
 
 try {
@@ -114,11 +116,15 @@ try {
   await runPython(python, [join(packageRoot, 'setup.py'), 'setup-db'], {
     cwd: packageRoot,
     env: {
-      PGADMIN_SETUP_EMAIL: email,
-      PGADMIN_SETUP_PASSWORD: password
+      PGADMIN_SETUP_EMAIL: setupEmail,
+      PGADMIN_SETUP_PASSWORD: setupPassword
     }
   })
-  await runPython(python, [paths.bootstrap, packageRoot, email], { cwd: packageRoot })
+  await runPython(python, [paths.bootstrap, packageRoot, setupEmail], { cwd: packageRoot })
+  await runPython(python, [paths.bootstrap, packageRoot, email], {
+    cwd: packageRoot,
+    env: { PGADMIN_SETUP_PASSWORD: password }
+  })
   const loadServers = await runPython(
     python,
     [join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', email],
