@@ -8,6 +8,27 @@
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="postgresql" title="PostgreSQL">
         <template #tool-left>
+          <el-button
+            v-if="isRunning"
+            style="color: #01cc74"
+            class="button"
+            link
+            :disabled="pgAdminOpening"
+            @click.stop="preparePGAdmin"
+          >
+            <el-icon
+              v-if="pgAdminOpening"
+              class="is-loading"
+              style="width: 20px; height: 20px; margin-left: 10px"
+            >
+              <Loading />
+            </el-icon>
+            <yb-icon
+              v-else
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')"
+            ></yb-icon>
+          </el-button>
           <div class="flex items-center gap-1 pl-4 pr-2">
             <span class="flex-shrink-0">{{ I18nT('util.mysqlDataDir') }}: </span>
             <span
@@ -34,6 +55,7 @@
       <Config v-else-if="tab === 2"></Config>
       <Logs v-else-if="tab === 3"></Logs>
     </div>
+    <PgAdminSetup v-model="pgAdminSetupVisible" @submit="openPGAdmin" />
   </div>
 </template>
 
@@ -46,11 +68,19 @@
   import { I18nT } from '@lang/index'
   import { join } from '@/util/path-browserify'
   import { BrewStore } from '@/store/brew'
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import { PostgreSqlSetup } from './setup'
   import { chooseFolder } from '@/util/File'
-  import { Edit } from '@element-plus/icons-vue'
+  import { Edit, Loading } from '@element-plus/icons-vue'
   import { shell } from '@/util/NodeFn'
+  import IPC from '@/util/IPC'
+  import { MessageError } from '@/util/Element'
+  import PgAdminSetup from './PgAdminSetup.vue'
+
+  interface PgAdminCredentials {
+    email: string
+    password: string
+  }
 
   const { tab, checkVersion } = AppModuleSetup('nginx')
   const tabs = [
@@ -66,6 +96,22 @@
   const currentVersion = computed(() => {
     return brewStore.currentVersion('postgresql')
   })
+  const runningVersion = computed(() => {
+    return brewStore.module('postgresql').installed.find((item) => item.run)
+  })
+  const isRunning = computed(() => !!runningVersion.value)
+  const runningDataDir = computed(() => {
+    if (!runningVersion.value?.bin) {
+      return ''
+    }
+    if (PostgreSqlSetup.dir[runningVersion.value.bin]) {
+      return PostgreSqlSetup.dir[runningVersion.value.bin]
+    }
+    const versionTop = runningVersion.value.version?.split('.')?.shift() ?? ''
+    return join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+  })
+  const pgAdminOpening = ref(false)
+  const pgAdminSetupVisible = ref(false)
 
   const DATA_DIR = computed({
     get() {
@@ -94,5 +140,62 @@
         DATA_DIR.value = path
       })
       .catch()
+  }
+
+  const selectedPythonAvailable = () => {
+    if (brewStore.currentVersion('python')?.bin) {
+      return true
+    }
+    MessageError(I18nT('base.needSelectVersion'))
+    return false
+  }
+
+  const preparePGAdmin = () => {
+    if (pgAdminOpening.value || !selectedPythonAvailable()) {
+      return
+    }
+    pgAdminOpening.value = true
+    IPC.send('app-fork:postgresql', 'pgAdminStatus').then((key: string, res: any) => {
+      if (res?.code === 200) {
+        return
+      }
+      IPC.off(key)
+      pgAdminOpening.value = false
+      if (res?.code !== 0) {
+        MessageError(res?.msg ?? 'pgAdmin 4 failed to check its status')
+        return
+      }
+      if (!res.data?.initialized) {
+        pgAdminSetupVisible.value = true
+        return
+      }
+      openPGAdmin()
+    })
+  }
+
+  const openPGAdmin = (credentials?: PgAdminCredentials) => {
+    if (pgAdminOpening.value || !selectedPythonAvailable() || !runningVersion.value) {
+      return
+    }
+    pgAdminOpening.value = true
+    IPC.send(
+      'app-fork:postgresql',
+      'openPGAdmin',
+      runningVersion.value,
+      runningDataDir.value,
+      brewStore.currentVersion('python'),
+      credentials
+    ).then((key: string, res: any) => {
+      if (res?.code === 200) {
+        return
+      }
+      IPC.off(key)
+      pgAdminOpening.value = false
+      if (res?.code === 0 && res.data?.url) {
+        shell.openExternal(res.data.url).catch()
+        return
+      }
+      MessageError(res?.msg ?? 'pgAdmin 4 failed to start')
+    })
   }
 </script>

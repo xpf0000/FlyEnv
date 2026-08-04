@@ -1055,4 +1055,58 @@ assert.match(serviceStartSource, /await verifyPgAdminPidPersistence/)
 assert.match(serviceStartSource, /await this\._stopPGAdmin\(packageRoot\)/)
 assert.match(postgresqlSource, /paths\.log/)
 
+const pgAdminSetupSource = readFileSync(
+  join(process.cwd(), 'src', 'render', 'components', 'PostgreSql', 'PgAdminSetup.vue'),
+  'utf-8'
+)
+const postgreSqlRendererSource = readFileSync(
+  join(process.cwd(), 'src', 'render', 'components', 'PostgreSql', 'Index.vue'),
+  'utf-8'
+)
+
+assert.match(pgAdminSetupSource, /defineProps<\{ modelValue: boolean \}>\(\)/)
+assert.match(pgAdminSetupSource, /'update:modelValue': \[value: boolean\]/)
+assert.match(pgAdminSetupSource, /submit: \[credentials: PgAdminCredentials\]/)
+assert.match(pgAdminSetupSource, /I18nT\('feedback\.email'\)/)
+assert.match(pgAdminSetupSource, /I18nT\('common\.password'\)/)
+assert.match(pgAdminSetupSource, /I18nT\('base\.cancel'\)/)
+assert.match(pgAdminSetupSource, /I18nT\('base\.confirm'\)/)
+assert.match(pgAdminSetupSource, /type="password"/)
+assert.match(pgAdminSetupSource, /show-password/)
+assert.match(pgAdminSetupSource, /autocomplete="new-password"/)
+assert.match(pgAdminSetupSource, /min:\s*8/)
+assert.match(pgAdminSetupSource, /const clearPassword = \(\) => \{\s*form\.password = ''\s*\}/s)
+assert.match(pgAdminSetupSource, /@closed="clearPassword"/)
+assert.match(
+  pgAdminSetupSource,
+  /clearPassword\(\)\s*\n\s*show\.value = false\s*\n\s*emit\('submit', credentials\)/
+)
+assert.doesNotMatch(pgAdminSetupSource, /localForage|localStorage|sessionStorage/)
+
+assert.match(postgreSqlRendererSource, /v-if="isRunning"/)
+assert.match(postgreSqlRendererSource, /:disabled="pgAdminOpening"/)
+assert.match(postgreSqlRendererSource, /@click\.stop="preparePGAdmin"/)
+assert.match(
+  postgreSqlRendererSource,
+  /<PgAdminSetup v-model="pgAdminSetupVisible" @submit="openPGAdmin"\s*\/>/
+)
+assert.match(
+  postgreSqlRendererSource,
+  /module\('postgresql'\)\.installed\.find\(\(item\) => item\.run\)/
+)
+assert.match(postgreSqlRendererSource, /PostgreSqlSetup\.dir\[runningVersion\.value\.bin\]/)
+assert.match(postgreSqlRendererSource, /`postgresql\$\{versionTop\}`/)
+assert.match(postgreSqlRendererSource, /MessageError\(I18nT\('base\.needSelectVersion'\)\)/)
+assert.match(postgreSqlRendererSource, /IPC\.send\('app-fork:postgresql', 'pgAdminStatus'\)/)
+assert.match(
+  postgreSqlRendererSource,
+  /IPC\.send\(\s*'app-fork:postgresql',\s*'openPGAdmin',\s*runningVersion\.value,\s*runningDataDir\.value,\s*brewStore\.currentVersion\('python'\),\s*credentials\s*\)/s
+)
+assert.match(postgreSqlRendererSource, /if \(res\?\.code === 200\) \{\s*return\s*\}/s)
+assert.match(postgreSqlRendererSource, /IPC\.off\(key\)/)
+assert.match(postgreSqlRendererSource, /pgAdminOpening\.value = false/)
+assert.match(postgreSqlRendererSource, /res\?\.code === 0 && res\.data\?\.url/)
+assert.match(postgreSqlRendererSource, /shell\.openExternal\(res\.data\.url\)/)
+assert.doesNotMatch(postgreSqlRendererSource, /localForage|localStorage|sessionStorage/)
+
 console.log('PostgreSQL pgAdmin 4 runtime contract test passed')
