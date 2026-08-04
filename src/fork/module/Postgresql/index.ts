@@ -38,7 +38,10 @@ import {
   ProcessListFetch,
   ProcessSearch
 } from '@shared/Process'
-import { fetchProcessPidByPort as fetchProcessPidByPortWindows } from '@shared/Process.win'
+import {
+  fetchProcessPidByPort as fetchProcessPidByPortWindows,
+  ProcessPidList
+} from '@shared/Process.win'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
   findPgAdminPort,
@@ -107,7 +110,8 @@ class Manager extends Base {
     }
 
     const pid = await this.readPidFromFile(paths.pid)
-    const process = pid ? (await ProcessListFetch()).find((item) => item.PID === pid) : undefined
+    const processList = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+    const process = pid ? processList.find((item) => item.PID === pid) : undefined
     const command = process?.COMMAND ?? ''
     if (!pgAdminCommandOwned(command, paths, isWindows())) {
       await remove(paths.pid).catch(() => {})
