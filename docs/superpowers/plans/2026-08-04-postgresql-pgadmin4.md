@@ -253,22 +253,22 @@ if (!packageRoot) {
 }
 ~~~
 
-For firstStart only, migrate the database without credentials, create or verify the administrator through a FlyEnv-owned no-secret bootstrap script, and then import the password-free connection. `setup-db` does not create the administrator account. Do not trust the exit status of either pgAdmin CLI helper: write the completion marker only after a separate no-secret verification script uses pgAdmin's `create_app`, `User`, and `Server` models to confirm the active internal Administrator and exact user-owned, password-free FlyEnv PostgreSQL record in the `Servers` group with `sslmode=prefer`.
+For firstStart only, migrate the database with pgAdmin's official short-lived setup environment, then verify the created administrator through a FlyEnv-owned no-secret bootstrap script before importing the password-free connection. pgAdmin 9.17's first `setup-db` migration creates the administrator from `PGADMIN_SETUP_EMAIL` and `PGADMIN_SETUP_PASSWORD`; it otherwise prompts on stdin. Run the no-secret bootstrap again after import to clear the connection password and normalize `save_password` to `0`. Do not trust the exit status of either pgAdmin CLI helper: write the completion marker only after a separate no-secret verification script uses pgAdmin's `create_app`, `User`, and `Server` models to confirm the active internal Administrator and exact user-owned, password-free FlyEnv PostgreSQL record in the `Servers` group with `sslmode=prefer`.
 
 ~~~ts
 await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
 await spawnPromiseWithEnv(paths.python, [join(packageRoot, 'setup.py'), 'setup-db'], {
-  shell: false
+  shell: false,
+  env: { PGADMIN_SETUP_EMAIL: credentials.email, PGADMIN_SETUP_PASSWORD: credentials.password }
 })
 await writeFile(paths.bootstrap, pgAdminBootstrapContent())
-await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
-  shell: false,
-  env: { PGADMIN_SETUP_EMAIL: credentials.email, PGADMIN_SETUP_PASSWORD: credentials.password },
-  cwd: packageRoot
-})
+await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot, credentials.email], { shell: false, cwd: packageRoot })
 await spawnPromiseWithEnv(paths.python, [
   join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', credentials.email
 ], { shell: false })
+await spawnPromiseWithEnv(paths.python, [
+  paths.bootstrap, packageRoot, credentials.email, `${postgreSqlPort}`
+], { shell: false, cwd: packageRoot })
 await writeFile(paths.verification, pgAdminInitializationVerificationContent())
 await completePgAdminInitialization({
   verify: () => spawnPromiseWithEnv(paths.python, [
@@ -459,6 +459,16 @@ git status --short --branch
 ~~~
 
 Expected: no whitespace errors and only pgAdmin implementation, tests, and documentation differ from master.
+
+## Upstream Integration Check
+
+`scripts/postgresql-pgadmin4-integration-test.ts` is an opt-in regression check for the pinned upstream package. It requires `PGADMIN4_INTEGRATION_PYTHON` to select a Python environment containing exactly `pgadmin4==9.17`:
+
+~~~bash
+PGADMIN4_INTEGRATION_PYTHON=/path/to/venv/bin/python yarn test:postgresql-pgadmin4:integration
+~~~
+
+The check resolves the installed package through `importlib.metadata.distribution('pgadmin4')`, creates a temporary pgAdmin root, and restores any package-local `config_local.py`. It runs generated `setup-db`, no-secret bootstrap, `load-servers`, bootstrap normalization, verifier, and an independent model query. It verifies the internal Administrator, `Servers` group, FlyEnv loopback connection, `sslmode=prefer`, no stored password, and `save_password=0`, then deletes the temporary root. Credentials are passed only through the short-lived `setup-db` environment and are never placed in Python arguments or test output.
 
 - [ ] **Step 4: Commit a verification correction only when needed**
 

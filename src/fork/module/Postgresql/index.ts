@@ -55,6 +55,7 @@ import {
   pgAdminInitializationVerificationContent,
   pgAdminInitialized,
   pgAdminOwnedPids,
+  pgAdminPackageRootProbe,
   pgAdminPaths,
   pgAdminServersContent,
   pgAdminUrl,
@@ -109,11 +110,11 @@ class Manager extends Base {
   private async pgAdminPackageRoot(pythonBin: string): Promise<string> {
     const result = await spawnPromiseWithEnv(
       pythonBin,
-      ['-c', 'import os, pgadmin; print(os.path.dirname(os.path.dirname(pgadmin.__file__)))'],
+      ['-c', pgAdminPackageRootProbe()],
       { shell: false }
     )
     const root = result.stdout.trim()
-    if (!root) {
+    if (!root || !existsSync(join(root, 'pgadmin')) || !existsSync(join(root, 'setup.py'))) {
       throw new Error('pgAdmin package directory was not found')
     }
     return root
@@ -275,21 +276,29 @@ class Manager extends Base {
               await spawnPromiseWithEnv(
                 paths.python,
                 [join(packageRoot, 'setup.py'), 'setup-db'],
-                { shell: false }
+                {
+                  shell: false,
+                  env: {
+                    PGADMIN_SETUP_EMAIL: admin.email,
+                    PGADMIN_SETUP_PASSWORD: admin.password
+                  }
+                }
               )
               await writeFile(paths.bootstrap, pgAdminBootstrapContent())
-              await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
-                shell: false,
-                env: {
-                  PGADMIN_SETUP_EMAIL: admin.email,
-                  PGADMIN_SETUP_PASSWORD: admin.password
-                },
-                cwd: packageRoot
-              })
+              await spawnPromiseWithEnv(
+                paths.python,
+                [paths.bootstrap, packageRoot, admin.email],
+                { shell: false, cwd: packageRoot }
+              )
               await spawnPromiseWithEnv(
                 paths.python,
                 [join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', admin.email],
                 { shell: false }
+              )
+              await spawnPromiseWithEnv(
+                paths.python,
+                [paths.bootstrap, packageRoot, admin.email, `${postgreSqlPort}`],
+                { shell: false, cwd: packageRoot }
               )
               await writeFile(
                 paths.verification,

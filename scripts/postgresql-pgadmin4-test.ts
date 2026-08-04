@@ -18,6 +18,7 @@ import {
   pgAdminInitializationVerificationContent,
   pgAdminInitialized,
   pgAdminOwnedPids,
+  pgAdminPackageRootProbe,
   pgAdminPaths,
   pgAdminServersContent,
   pgAdminUrl,
@@ -85,18 +86,17 @@ assert.doesNotMatch(config, /0\.0\.0\.0/)
 const bootstrap = pgAdminBootstrapContent()
 assert.match(bootstrap, /package_root = sys\.argv\[1\]/)
 assert.match(bootstrap, /sys\.path\.insert\(0, package_root\)/)
-assert.match(bootstrap, /PGADMIN_SETUP_EMAIL/)
-assert.match(bootstrap, /PGADMIN_SETUP_PASSWORD/)
+assert.match(bootstrap, /email = sys\.argv\[2\]/)
 assert.match(bootstrap, /from pgadmin import create_app/)
-assert.match(bootstrap, /from pgadmin\.model import Role, User/)
-assert.match(bootstrap, /from pgadmin\.tools\.user_management import create_user/)
-assert.match(bootstrap, /if user is None:/)
+assert.match(bootstrap, /from pgadmin\.model import Role, Server, User, db/)
 assert.match(bootstrap, /administrator_role = Role\.query\.filter_by\(name='Administrator'\)\.first\(\)/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin Administrator role was not found'\)/)
-assert.match(bootstrap, /'role': administrator_role\.id/)
-assert.doesNotMatch(bootstrap, /'role': 'Administrator'/)
-assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator creation failed'\)/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator verification failed'\)/)
+assert.match(bootstrap, /postgresql_port = int\(sys\.argv\[3\]\) if len\(sys\.argv\) > 3 else None/)
+assert.match(bootstrap, /if postgresql_port is not None:/)
+assert.match(bootstrap, /server\.save_password = 0/)
+assert.match(bootstrap, /db\.session\.commit\(\)/)
+assert.doesNotMatch(bootstrap, /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSWORD|create_user/)
 
 const initializationVerification = pgAdminInitializationVerificationContent()
 assert.match(initializationVerification, /from pgadmin import create_app/)
@@ -114,10 +114,19 @@ assert.match(initializationVerification, /maintenance_db='postgres'/)
 assert.match(initializationVerification, /username='root'/)
 assert.match(initializationVerification, /save_password=0/)
 assert.match(initializationVerification, /if server is None or server\.password:/)
+assert.match(
+  initializationVerification,
+  /server\.servergroup is None or server\.servergroup\.name != 'Servers'/
+)
 assert.match(initializationVerification, /connection_params = server\.connection_params or \{\}/)
 assert.match(initializationVerification, /connection_params\.get\('sslmode'\) != 'prefer'/)
 assert.match(initializationVerification, /raise RuntimeError\('pgAdmin server verification failed'\)/)
 assert.doesNotMatch(initializationVerification, /PGADMIN_SETUP_PASSWORD/)
+
+const packageRootProbe = pgAdminPackageRootProbe()
+assert.match(packageRootProbe, /from importlib\.metadata import distribution/)
+assert.match(packageRootProbe, /distribution\('pgadmin4'\)\.locate_file\('pgadmin4'\)/)
+assert.doesNotMatch(packageRootProbe, /import pgadmin/)
 
 const initializationGateEvents: string[] = []
 await assert.rejects(
@@ -402,6 +411,8 @@ assert.match(postgresqlSource, /new PgAdminSingleFlight/)
 assert.match(postgresqlSource, /pgAdminInitialized\(paths, existsSync\)/)
 assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
 assert.match(postgresqlSource, /pgAdminInitializationVerificationContent/)
+assert.match(postgresqlSource, /pgAdminPackageRootProbe\(\)/)
+assert.doesNotMatch(postgresqlSource, /import os, pgadmin/)
 assert.match(postgresqlSource, /writeFile\(\s*paths\.verification,\s*pgAdminInitializationVerificationContent\(\)\s*\)/s)
 assert.match(postgresqlSource, /completePgAdminInitialization\(/)
 assert.match(postgresqlSource, /startPgAdminWithPortRetry/)
@@ -432,13 +443,21 @@ assert.match(postgresqlSource, /_stopPGAdmin\(/)
 assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[join\(packageRoot, 'setup\.py'\), 'setup-db'\],\s*\{\s*shell: false\s*\}\s*\)/s
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[join\(packageRoot, 'setup\.py'\), 'setup-db'\],\s*\{[\s\S]*?env:\s*\{[\s\S]*?PGADMIN_SETUP_EMAIL:\s*admin\.email,[\s\S]*?PGADMIN_SETUP_PASSWORD:\s*admin\.password[\s\S]*?shell: false[\s\S]*?\}\s*\)/s
 )
 assert.ok(postgresqlSource.indexOf("'setup-db'") < postgresqlSource.indexOf('paths.bootstrap'))
 assert.match(postgresqlSource, /writeFile\(paths\.bootstrap, pgAdminBootstrapContent\(\)\)/)
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(paths\.python, \[paths\.bootstrap, packageRoot\], \{[\s\S]*?PGADMIN_SETUP_EMAIL:[\s\S]*?PGADMIN_SETUP_PASSWORD:[\s\S]*?cwd: packageRoot[\s\S]*?\}\)/
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.bootstrap, packageRoot, admin\.email\],\s*\{\s*shell: false, cwd: packageRoot\s*\}\s*\)/s
+)
+assert.match(
+  postgresqlSource,
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.bootstrap, packageRoot, admin\.email, `\$\{postgreSqlPort\}`\],\s*\{\s*shell: false, cwd: packageRoot\s*\}\s*\)/s
+)
+assert.ok(
+  postgresqlSource.indexOf("'load-servers'") <
+    postgresqlSource.lastIndexOf('admin.email, `${postgreSqlPort}`')
 )
 assert.match(
   postgresqlSource,

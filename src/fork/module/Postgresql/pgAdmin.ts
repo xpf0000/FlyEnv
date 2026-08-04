@@ -172,9 +172,12 @@ export function pgAdminConfigContent(dataDir: string, logDir: string, port: numb
   ].join('\n') + '\n'
 }
 
+export function pgAdminPackageRootProbe(): string {
+  return "from importlib.metadata import distribution; print(distribution('pgadmin4').locate_file('pgadmin4'))"
+}
+
 export function pgAdminBootstrapContent(): string {
-  return `import os
-import sys
+  return `import sys
 
 package_root = sys.argv[1]
 if package_root not in sys.path:
@@ -182,12 +185,11 @@ if package_root not in sys.path:
 
 import config
 from pgadmin import create_app
-from pgadmin.model import Role, User
-from pgadmin.tools.user_management import create_user
+from pgadmin.model import Role, Server, User, db
 from pgadmin.utils.constants import INTERNAL
 
-email = os.environ['PGADMIN_SETUP_EMAIL']
-password = os.environ['PGADMIN_SETUP_PASSWORD']
+email = sys.argv[2]
+postgresql_port = int(sys.argv[3]) if len(sys.argv) > 3 else None
 app = create_app(config.APP_NAME + '-cli')
 
 with app.app_context():
@@ -195,21 +197,6 @@ with app.app_context():
     administrator_role = Role.query.filter_by(name='Administrator').first()
     if administrator_role is None:
         raise RuntimeError('pgAdmin Administrator role was not found')
-    if user is None:
-        created, _ = create_user(
-            {
-                'email': email,
-                'role': administrator_role.id,
-                'active': True,
-                'auth_source': INTERNAL,
-                'newPassword': password,
-                'confirmPassword': password,
-            }
-        )
-        if not created:
-            raise RuntimeError('pgAdmin administrator creation failed')
-        user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
-
     if (
         user is None
         or user.email != email
@@ -218,6 +205,21 @@ with app.app_context():
         or not any(role.name == 'Administrator' for role in user.roles)
     ):
         raise RuntimeError('pgAdmin administrator verification failed')
+
+    if postgresql_port is not None:
+        server = Server.query.filter_by(
+            user_id=user.id,
+            name='FlyEnv PostgreSQL',
+            host='127.0.0.1',
+            port=postgresql_port,
+            maintenance_db='postgres',
+            username='root',
+        ).first()
+        if server is None:
+            raise RuntimeError('pgAdmin server bootstrap failed')
+        server.password = None
+        server.save_password = 0
+        db.session.commit()
 `
 }
 
@@ -258,6 +260,8 @@ with app.app_context():
         save_password=0,
     ).first()
     if server is None or server.password:
+        raise RuntimeError('pgAdmin server verification failed')
+    if server.servergroup is None or server.servergroup.name != 'Servers':
         raise RuntimeError('pgAdmin server verification failed')
     connection_params = server.connection_params or {}
     if connection_params.get('sslmode') != 'prefer':
