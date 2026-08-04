@@ -11,6 +11,7 @@ import {
   pgAdminInitializationVerificationContent,
   pgAdminPackageRootProbe,
   pgAdminPaths,
+  pgAdminServerReconciliationContent,
   pgAdminServersContent
 } from '../src/fork/module/Postgresql/pgAdmin'
 
@@ -112,6 +113,7 @@ try {
   await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
   await writeFile(paths.bootstrap, pgAdminBootstrapContent())
   await writeFile(paths.verification, pgAdminInitializationVerificationContent())
+  await writeFile(paths.reconciliation, pgAdminServerReconciliationContent())
 
   await runPython(python, [join(packageRoot, 'setup.py'), 'setup-db'], {
     cwd: packageRoot,
@@ -200,6 +202,35 @@ with app.app_context():
     group: 'Servers',
     host: '127.0.0.1',
     port: postgreSqlPort,
+    maintenance_db: 'postgres',
+    username: 'root',
+    sslmode: 'prefer',
+    save_password: 0,
+    password_empty: true
+  })
+
+  const reconciledPostgreSqlPort = 15433
+  await runPython(python, [paths.reconciliation, packageRoot, `${reconciledPostgreSqlPort}`], {
+    cwd: packageRoot
+  })
+  const reconciledState = JSON.parse(
+    (
+      await runPython(
+        python,
+        ['-c', stateScript, packageRoot, email, `${reconciledPostgreSqlPort}`],
+        {
+          cwd: packageRoot
+        }
+      )
+    ).stdout.trim()
+  )
+  assert.deepEqual(reconciledState, {
+    active: true,
+    auth_source: 'internal',
+    administrator: true,
+    group: 'Servers',
+    host: '127.0.0.1',
+    port: reconciledPostgreSqlPort,
     maintenance_db: 'postgres',
     username: 'root',
     sslmode: 'prefer',

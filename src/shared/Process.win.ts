@@ -206,3 +206,29 @@ export const fetchProcessPidByPort = async (port: string): Promise<string[]> => 
   }
   return Array.from(pids)
 }
+
+export function loopbackListeningPidsFromNetstat(content: string, port: string): string[] {
+  const pids = new Set<string>()
+  for (const entry of content.split('\n')) {
+    const parts = entry.trim().replace(/\s+/g, ' ').split(' ')
+    if (parts.length !== 5 || parts[0].toUpperCase() !== 'TCP') continue
+    const [_, localAddress, __, state, pid] = parts
+    if (localAddress === `127.0.0.1:${port}` && state === 'LISTENING' && /^\d+$/.test(pid)) {
+      pids.add(pid)
+    }
+  }
+  return Array.from(pids)
+}
+
+export const fetchLoopbackListeningPids = async (port: string): Promise<string[]> => {
+  try {
+    await EnvSync.sync()
+    const result = await execPromiseWithEnv('netstat -ano -p tcp', {
+      shell: EnvSync.PowerShellPath || 'powershell.exe'
+    })
+    return loopbackListeningPidsFromNetstat(result.stdout, port)
+  } catch (error) {
+    console.error('fetchLoopbackListeningPids error: ', error)
+    return []
+  }
+}

@@ -395,3 +395,23 @@ export const fetchProcessPidByPort = async (port: string): Promise<PItem[]> => {
   }
   return []
 }
+
+export function loopbackListeningPidsFromLsof(content: string): string[] {
+  return Array.from(
+    new Set(
+      content
+        .split('\n')
+        .map((pid) => pid.trim())
+        .filter((pid) => /^\d+$/.test(pid))
+    )
+  )
+}
+
+export const fetchLoopbackListeningPids = async (port: string): Promise<string[]> => {
+  try {
+    const result = await execPromiseWithEnv(`lsof -nP -iTCP@127.0.0.1:${port} -sTCP:LISTEN -t`)
+    return loopbackListeningPidsFromLsof(result.stdout)
+  } catch {
+    return []
+  }
+}

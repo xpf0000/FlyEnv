@@ -22,6 +22,7 @@ export interface PgAdminPaths {
   servers: string
   bootstrap: string
   verification: string
+  reconciliation: string
   initialized: string
   venv: string
   python: string
@@ -40,10 +41,15 @@ export function pgAdminPaths(postgreSqlDir: string, windows: boolean): PgAdminPa
     servers: join(root, 'servers.json'),
     bootstrap: join(root, 'bootstrap-admin.py'),
     verification: join(root, 'verify-initialization.py'),
+    reconciliation: join(root, 'reconcile-server.py'),
     initialized: join(root, 'initialized'),
     venv,
     python: windows ? join(venv, 'Scripts', 'python.exe') : join(venv, 'bin', 'python')
   }
+}
+
+export function pgAdminPrivateDirectories(paths: PgAdminPaths, windows: boolean): string[] {
+  return windows ? [] : [paths.root, paths.data, paths.log]
 }
 
 export function pgAdminInitialized(
@@ -90,6 +96,7 @@ export interface PgAdminPortStartOptions<T> {
   findPort: (excluded: readonly number[]) => Promise<number>
   writeConfig: (port: number) => Promise<void>
   start: (port: number) => Promise<T>
+  cleanupStartFailure?: (port: number, error: unknown) => Promise<void>
   isHealthy: (port: number, result: T) => Promise<boolean>
   persistPort: (port: number) => Promise<void>
   cleanupStarted: (result: T) => Promise<void>
@@ -115,10 +122,21 @@ export async function startPgAdminWithPortRetry<T>(
       try {
         result = await options.start(port)
       } catch (error) {
+        await options.cleanupStartFailure?.(port, error)
+        await options.clearPort()
         lastError = error
         continue
       }
-      if (!(await options.isHealthy(port, result))) {
+      let healthy: boolean
+      try {
+        healthy = await options.isHealthy(port, result)
+      } catch (error) {
+        await options.cleanupStarted(result)
+        await options.clearPort()
+        lastError = error
+        continue
+      }
+      if (!healthy) {
         await options.cleanupStarted(result)
         await options.clearPort()
         lastError = new Error(`pgAdmin 4 did not become healthy on port ${port}`)
@@ -137,6 +155,34 @@ export async function startPgAdminWithPortRetry<T>(
     await options.clearPort()
     throw error
   }
+}
+
+export interface PgAdminStrictStopOptions {
+  pids: string[]
+  kill: (pids: string[]) => Promise<void>
+  remainingPids: () => Promise<string[]>
+  wait: (milliseconds: number) => Promise<unknown>
+  attempts?: number
+  intervalMilliseconds?: number
+}
+
+export async function stopPgAdminPidsWithVerification(
+  options: PgAdminStrictStopOptions
+): Promise<void> {
+  const pids = Array.from(new Set(options.pids.map((pid) => pid.trim()).filter(Boolean)))
+  if (pids.length === 0) return
+
+  await options.kill(pids)
+  const attempts = Math.max(1, options.attempts ?? 10)
+  const intervalMilliseconds = options.intervalMilliseconds ?? 250
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const remaining = await options.remainingPids()
+    if (remaining.length === 0) return
+    if (attempt + 1 < attempts) {
+      await options.wait(intervalMilliseconds)
+    }
+  }
+  throw new Error(`pgAdmin 4 process did not exit: ${pids.join(', ')}`)
 }
 
 export interface PgAdminPidPersistenceOptions {
@@ -184,6 +230,10 @@ export function pgAdminConfigContent(dataDir: string, logDir: string, port: numb
 
 export function pgAdminPackageRootProbe(): string {
   return "from importlib.metadata import distribution; d = distribution('pgadmin4'); assert d.version == '9.17'; print(d.locate_file('pgadmin4'))"
+}
+
+export function pgAdminPackageRootUnversionedProbe(): string {
+  return "from importlib.metadata import distribution; print(distribution('pgadmin4').locate_file('pgadmin4'))"
 }
 
 export function pgAdminBootstrapContent(): string {
@@ -298,6 +348,40 @@ with app.app_context():
 `
 }
 
+export function pgAdminServerReconciliationContent(): string {
+  return `import sys
+
+package_root = sys.argv[1]
+if package_root not in sys.path:
+    sys.path.insert(0, package_root)
+
+import config
+from pgadmin import create_app
+from pgadmin.model import Server, db
+
+postgresql_port = int(sys.argv[2])
+app = create_app(config.APP_NAME + '-cli')
+
+with app.app_context():
+    servers = Server.query.filter_by(
+        name='FlyEnv PostgreSQL',
+        host='127.0.0.1',
+        maintenance_db='postgres',
+        username='root',
+    ).all()
+    if not servers:
+        raise RuntimeError('pgAdmin FlyEnv PostgreSQL server was not found')
+    for server in servers:
+        server.port = postgresql_port
+        server.password = None
+        server.save_password = 0
+        connection_params = server.connection_params or {}
+        connection_params['sslmode'] = 'prefer'
+        server.connection_params = connection_params
+    db.session.commit()
+`
+}
+
 function commandPath(value: string, windows: boolean): string {
   const normalized = value.replace(/\\/g, '/')
   return windows ? normalized.toLowerCase() : normalized
@@ -328,6 +412,35 @@ export function pgAdminCommandOwned(
   return commandPattern.test(normalizedCommand)
 }
 
+function pgAdminMetadataIndependentScriptPattern(paths: PgAdminPaths, windows: boolean): string {
+  const venvPath = escapeRegExp(commandPath(paths.venv, windows))
+  const relativePath = windows
+    ? 'lib/site-packages/pgadmin4/pgadmin4\\.py'
+    : 'lib/python[^/]+/site-packages/pgadmin4/pgAdmin4\\.py'
+  const scriptPath = `${venvPath}/${relativePath}`
+  return `(?:${scriptPath}|"${scriptPath}"|'${scriptPath}')`
+}
+
+/**
+ * Distribution metadata can be missing while a previous pgAdmin process is still running.
+ * This deliberately accepts only FlyEnv's venv Python followed by its canonical pgAdmin entry point.
+ */
+export function pgAdminCommandOwnedWithoutPackageMetadata(
+  command: string,
+  paths: PgAdminPaths,
+  windows: boolean
+): boolean {
+  const normalizedCommand = commandPath(command, windows)
+  const pythonPath = commandPath(paths.python, windows)
+  const commandPattern = new RegExp(
+    `^\\s*${commandArgumentPattern(pythonPath)}\\s+${pgAdminMetadataIndependentScriptPattern(
+      paths,
+      windows
+    )}(?=\\s|$)`
+  )
+  return commandPattern.test(normalizedCommand)
+}
+
 export interface PgAdminProcess {
   PID: string
   COMMAND: string
@@ -349,6 +462,23 @@ export function pgAdminOwnedPids(
   )
 }
 
+export function pgAdminOwnedPidsWithoutPackageMetadata(
+  processes: PgAdminProcess[],
+  paths: PgAdminPaths,
+  windows: boolean
+): string[] {
+  return Array.from(
+    new Set(
+      processes
+        .filter((process) =>
+          pgAdminCommandOwnedWithoutPackageMetadata(process.COMMAND, paths, windows)
+        )
+        .map((process) => `${process.PID}`.trim())
+        .filter(Boolean)
+    )
+  )
+}
+
 export function postgresqlPortFromConfig(content: string): number {
   const match = /^\s*port\s*=\s*(?:"(\d+)"|'(\d+)'|(\d+))\s*(?:#.*)?$/im.exec(content)
   const port = Number(match?.[1] ?? match?.[2] ?? match?.[3])
@@ -356,8 +486,27 @@ export function postgresqlPortFromConfig(content: string): number {
   return Number.isInteger(port) && port > 0 && port <= 65535 ? port : 5432
 }
 
-export function postgresqlPortFromPostmasterPid(content: string): number {
-  const rawPort = content.split('\n')[3]
+export interface PostgreSqlPostmasterInfo {
+  pid: string
+  dataDirectory: string
+  port: number
+}
+
+function postmasterPidLine(content: string, line: number): string {
+  const value = content.split('\n')[line - 1]
+  return value?.endsWith('\r') ? value.slice(0, -1) : (value ?? '')
+}
+
+export function postgresqlPostmasterInfo(content: string): PostgreSqlPostmasterInfo {
+  const pid = postmasterPidLine(content, 1)
+  const dataDirectory = postmasterPidLine(content, 2)
+  const rawPort = postmasterPidLine(content, 4)
+  if (!/^\d+$/.test(pid) || Number(pid) < 1) {
+    throw new Error('Invalid PostgreSQL PID in postmaster.pid line 1')
+  }
+  if (!dataDirectory) {
+    throw new Error('Invalid PostgreSQL data directory in postmaster.pid line 2')
+  }
   const portText = rawPort?.endsWith('\r') ? rawPort.slice(0, -1) : rawPort
   if (!portText || !/^\d+$/.test(portText)) {
     throw new Error('Invalid PostgreSQL port in postmaster.pid line 4')
@@ -367,7 +516,40 @@ export function postgresqlPortFromPostmasterPid(content: string): number {
   if (!Number.isInteger(port) || port < 1 || port > PGADMIN4_MAX_PORT) {
     throw new Error('Invalid PostgreSQL port in postmaster.pid line 4')
   }
-  return port
+  return { pid, dataDirectory, port }
+}
+
+export function postgresqlPortFromPostmasterPid(content: string): number {
+  return postgresqlPostmasterInfo(content).port
+}
+
+export interface PostgreSqlProcess {
+  PID: string
+  COMMAND: string
+}
+
+export function postgresqlPostmasterOwnedByDataDir(
+  postmaster: PostgreSqlPostmasterInfo,
+  dataDirectory: string,
+  processes: PostgreSqlProcess[],
+  windows: boolean
+): boolean {
+  const normalizedDataDirectory = commandPath(dataDirectory, windows)
+  if (commandPath(postmaster.dataDirectory, windows) !== normalizedDataDirectory) {
+    return false
+  }
+  const command = commandPath(
+    processes.find((process) => `${process.PID}` === postmaster.pid)?.COMMAND ?? '',
+    windows
+  )
+  if (!command) return false
+
+  const postgresPattern = /(?:^|[/\s])postgres(?:\.exe)?(?=\s|$)/
+  const dataDirectoryFlag = windows ? '-d' : '-D'
+  const dataDirectoryPattern = new RegExp(
+    `(?:^|\\s)${dataDirectoryFlag}\\s+${commandArgumentPattern(normalizedDataDirectory)}(?=\\s|$)`
+  )
+  return postgresPattern.test(command) && dataDirectoryPattern.test(command)
 }
 
 export function validPgAdminRegistrationPort(port: number): boolean {

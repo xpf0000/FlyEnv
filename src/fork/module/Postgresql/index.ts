@@ -33,14 +33,15 @@ import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
 import {
-  fetchProcessPidByPort,
-  ProcessKill,
+  fetchLoopbackListeningPids,
+  ProcessKillStrict,
   ProcessListFetch,
   ProcessSearch
 } from '@shared/Process'
 import {
-  fetchProcessPidByPort as fetchProcessPidByPortWindows,
-  ProcessPidList
+  fetchLoopbackListeningPids as fetchLoopbackListeningPidsWindows,
+  ProcessPidList,
+  ProcessPidListStrict
 } from '@shared/Process.win'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
@@ -51,17 +52,23 @@ import {
   PGADMIN4_PACKAGE,
   pgAdminBootstrapContent,
   pgAdminCommandOwned,
+  pgAdminOwnedPidsWithoutPackageMetadata,
   pgAdminConfigContent,
   pgAdminInitializationVerificationContent,
   pgAdminInitialized,
   pgAdminOwnedPids,
   pgAdminPackageRootProbe,
+  pgAdminPackageRootUnversionedProbe,
   pgAdminPaths,
+  pgAdminPrivateDirectories,
+  pgAdminServerReconciliationContent,
   pgAdminServersContent,
   pgAdminUrl,
   PgAdminSingleFlight,
-  postgresqlPortFromPostmasterPid,
+  postgresqlPostmasterInfo,
+  postgresqlPostmasterOwnedByDataDir,
   startPgAdminWithPortRetry,
+  stopPgAdminPidsWithVerification,
   type PgAdminCredentials,
   validPgAdminCredentials,
   validPgAdminPythonVersion,
@@ -108,8 +115,11 @@ class Manager extends Base {
     return pgAdminPaths(global.Server.PostgreSqlDir!, isWindows())
   }
 
-  private async pgAdminPackageRoot(pythonBin: string): Promise<string> {
-    const result = await spawnPromiseWithEnv(pythonBin, ['-c', pgAdminPackageRootProbe()], {
+  private async pgAdminPackageRoot(
+    pythonBin: string,
+    probe: () => string = pgAdminPackageRootProbe
+  ): Promise<string> {
+    const result = await spawnPromiseWithEnv(pythonBin, ['-c', probe()], {
       shell: false
     })
     const root = result.stdout.trim()
@@ -122,6 +132,10 @@ class Manager extends Base {
       throw new Error('pgAdmin package directory was not found')
     }
     return root
+  }
+
+  private async pgAdminPackageRootUnversioned(pythonBin: string): Promise<string> {
+    return this.pgAdminPackageRoot(pythonBin, pgAdminPackageRootUnversionedProbe)
   }
 
   private async pgAdminRunningPid(packageRoot: string): Promise<string | undefined> {
@@ -146,11 +160,32 @@ class Manager extends Base {
     return pgAdminOwnedPids(processList, paths, packageRoot, isWindows())
   }
 
+  private async pgAdminFallbackOwnedProcessPids(): Promise<string[]> {
+    const paths = this.pgAdminPaths()
+    const processList = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+    return pgAdminOwnedPidsWithoutPackageMetadata(processList, paths, isWindows())
+  }
+
   private async pgAdminPortOwnedByPid(port: number, pid: string): Promise<boolean> {
     const listeningPids = isWindows()
-      ? await fetchProcessPidByPortWindows(`${port}`)
-      : (await fetchProcessPidByPort(`${port}`)).map((item) => item.PID)
+      ? await fetchLoopbackListeningPidsWindows(`${port}`)
+      : await fetchLoopbackListeningPids(`${port}`)
     return listeningPids.includes(pid)
+  }
+
+  private async pgAdminPidsStillRunning(pids: string[]): Promise<string[]> {
+    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
+    const activePids = new Set(processList.map((process) => `${process.PID}`))
+    return pids.filter((pid) => activePids.has(pid))
+  }
+
+  private async stopPgAdminPidsStrict(pids: string[]): Promise<void> {
+    await stopPgAdminPidsWithVerification({
+      pids,
+      kill: (targetPids) => ProcessKillStrict('-INT', targetPids),
+      remainingPids: () => this.pgAdminPidsStillRunning(pids),
+      wait: waitTime
+    })
   }
 
   private async pgAdminHttpReachable(port: number): Promise<boolean> {
@@ -165,12 +200,15 @@ class Manager extends Base {
   private async _stopPGAdmin(packageRoot?: string): Promise<string[]> {
     const paths = this.pgAdminPaths()
     const root =
-      packageRoot ??
-      (existsSync(paths.python) ? await this.pgAdminPackageRoot(paths.python).catch(() => '') : '')
+      packageRoot ?? (await this.pgAdminPackageRootUnversioned(paths.python).catch(() => ''))
     if (!root) {
+      const pids = await this.pgAdminFallbackOwnedProcessPids()
+      if (pids.length > 0) {
+        await this.stopPgAdminPidsStrict(pids)
+      }
       await remove(paths.pid).catch(() => {})
       await remove(paths.port).catch(() => {})
-      return []
+      return pids
     }
 
     const pid = await this.pgAdminRunningPid(root)
@@ -182,12 +220,9 @@ class Manager extends Base {
       return []
     }
 
-    try {
-      await ProcessKill('-INT', pids)
-    } finally {
-      await remove(paths.pid).catch(() => {})
-      await remove(paths.port).catch(() => {})
-    }
+    await this.stopPgAdminPidsStrict(pids)
+    await remove(paths.pid).catch(() => {})
+    await remove(paths.port).catch(() => {})
     return pids
   }
 
@@ -228,9 +263,16 @@ class Manager extends Base {
         if (!existsSync(join(dataDir, 'postmaster.pid'))) {
           throw new Error('PostgreSQL is not running')
         }
-        const postgreSqlPort = postgresqlPortFromPostmasterPid(
+        const postmaster = postgresqlPostmasterInfo(
           await readFile(join(dataDir, 'postmaster.pid'), 'utf-8')
         )
+        const postgreSqlProcesses = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+        if (
+          !postgresqlPostmasterOwnedByDataDir(postmaster, dataDir, postgreSqlProcesses, isWindows())
+        ) {
+          throw new Error('PostgreSQL postmaster.pid does not belong to the running data directory')
+        }
+        const postgreSqlPort = postmaster.port
         assertPgAdminRegistrationPort(postgreSqlPort)
         if (!python?.bin || !existsSync(python.bin)) {
           throw new Error('A selected Python binary is required')
@@ -242,8 +284,12 @@ class Manager extends Base {
           throw new Error('pgAdmin administrator credentials are required')
         }
 
+        await mkdirp(paths.root)
         await mkdirp(paths.data)
         await mkdirp(paths.log)
+        await Promise.all(
+          pgAdminPrivateDirectories(paths, isWindows()).map((directory) => chmod(directory, 0o700))
+        )
         if (!existsSync(paths.venv)) {
           await spawnPromiseWithEnv(python.bin, ['-m', 'venv', paths.venv], { shell: false })
         }
@@ -257,6 +303,7 @@ class Manager extends Base {
           packageRoot = await this.pgAdminPackageRoot(paths.python)
         } catch {}
         if (!packageRoot) {
+          await this._stopPGAdmin()
           packageRepaired = true
           await spawnPromiseWithEnv(
             paths.python,
@@ -267,6 +314,18 @@ class Manager extends Base {
         }
         if (packageRepaired) {
           await this._stopPGAdmin(packageRoot)
+        }
+
+        const reconcilePgAdminServer = async () => {
+          await writeFile(paths.reconciliation, pgAdminServerReconciliationContent())
+          await spawnPromiseWithEnv(
+            paths.python,
+            [paths.reconciliation, packageRoot, `${postgreSqlPort}`],
+            { shell: false, cwd: packageRoot }
+          )
+        }
+        if (!firstStart) {
+          await reconcilePgAdminServer()
         }
 
         const runningPid = await this.pgAdminRunningPid(packageRoot)
@@ -352,9 +411,10 @@ class Manager extends Base {
               firstStart = false
             }
 
-            let started: { 'APP-Service-Start-PID': string }
+            await reconcilePgAdminServer()
+
             try {
-              started = await serviceStartSpawn({
+              const started = await serviceStartSpawn({
                 version: {
                   typeFlag: version.typeFlag,
                   version: 'pgadmin4',
@@ -379,22 +439,25 @@ class Manager extends Base {
                 outFile: join(paths.log, 'pgadmin4.start.out.log'),
                 errFile: join(paths.log, 'pgadmin4.start.err.log')
               })
+              const startedPid = `${started['APP-Service-Start-PID']}`.trim()
+              await verifyPgAdminPidPersistence({
+                spawnedPid: startedPid,
+                readPersistedPid: () => this.readPidFromFile(paths.pid),
+                stopPid: async (pid) => {
+                  await this.stopPgAdminPidsStrict([pid])
+                },
+                clearPid: async () => {
+                  await remove(paths.pid).catch(() => {})
+                }
+              })
+              return started
             } catch (error) {
               await this._stopPGAdmin(packageRoot)
               throw error
             }
-            const startedPid = `${started['APP-Service-Start-PID']}`.trim()
-            await verifyPgAdminPidPersistence({
-              spawnedPid: startedPid,
-              readPersistedPid: () => this.readPidFromFile(paths.pid),
-              stopPid: async (pid) => {
-                await ProcessKill('-INT', [pid])
-              },
-              clearPid: async () => {
-                await remove(paths.pid).catch(() => {})
-              }
-            })
-            return started
+          },
+          cleanupStartFailure: async () => {
+            await this._stopPGAdmin(packageRoot)
           },
           isHealthy: async (port, started) => {
             const startedPid = `${started['APP-Service-Start-PID']}`.trim()
@@ -411,7 +474,7 @@ class Manager extends Base {
           cleanupStarted: async (started) => {
             const startedPid = `${started['APP-Service-Start-PID']}`.trim()
             if (startedPid) {
-              await ProcessKill('-INT', [startedPid])
+              await this.stopPgAdminPidsStrict([startedPid])
             }
             await remove(paths.pid).catch(() => {})
           },
@@ -434,7 +497,7 @@ class Manager extends Base {
     DATA_DIR?: string
   ): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     return new ForkPromise(async (resolve, reject, on) => {
-      const pgAdminPids = await this._stopPGAdmin().catch(() => [])
+      const pgAdminPids = await this._stopPGAdmin()
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
