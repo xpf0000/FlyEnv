@@ -7,7 +7,14 @@
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="consul" title="Consul">
-        <template #tool-left>
+        <template v-if="isRunning" #tool-left>
+          <el-button style="color: #01cc74" class="button" link @click.stop="openConsulUI">
+            <yb-icon
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')"
+            ></yb-icon>
+          </el-button>
+
           <div class="flex items-center gap-1 pl-4 pr-2">
             <span class="flex-shrink-0">{{ I18nT('util.mysqlDataDir') }}: </span>
             <span
@@ -45,7 +52,7 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
-  import { shell } from '@/util/NodeFn'
+  import { fs, shell } from '@/util/NodeFn'
   import { Edit } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { computed } from 'vue'
@@ -63,6 +70,10 @@
   checkVersion()
 
   const brewStore = BrewStore()
+
+  const isRunning = computed(() => {
+    return brewStore.module('consul').installed.some((m) => m.run)
+  })
 
   const currentVersion = computed(() => {
     return brewStore.currentVersion('consul')
@@ -95,5 +106,24 @@
         DATA_DIR.value = path
       })
       .catch()
+  }
+
+  const openConsulUI = async () => {
+    let port = 8500
+    const versionTop = currentVersion.value?.version?.split('.')?.shift()
+    if (versionTop) {
+      const configFile = join(window.Server.BaseDir!, `consul/consul-${versionTop}.json`)
+      if (await fs.existsSync(configFile)) {
+        try {
+          const content = await fs.readFile(configFile)
+          const config = JSON.parse(content)
+          const configuredPort = Number(config.ports?.http)
+          if (Number.isInteger(configuredPort) && configuredPort > 0 && configuredPort <= 65535) {
+            port = configuredPort
+          }
+        } catch {}
+      }
+    }
+    shell.openExternal(`http://127.0.0.1:${port}/ui/`).catch()
   }
 </script>
