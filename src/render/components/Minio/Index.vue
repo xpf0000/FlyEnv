@@ -64,6 +64,7 @@
   import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
   import LogVM from './Logs.vue'
+  import { httpUrlFromAddress, readConfigValue } from '@shared/ServiceWebAddress'
 
   const { tab, checkVersion } = AppModuleSetup('minio')
   const tabs = [
@@ -113,16 +114,13 @@
 
   const openURL = async () => {
     const iniFile = join(window.Server.BaseDir!, 'minio/minio.conf')
-    let port = '9000'
+    let address = ''
     const exists = await fs.existsSync(iniFile)
     if (exists) {
       const content = await fs.readFile(iniFile)
-      const logStr = content.split('\n').find((s: string) => s.includes('MINIO_ADDRESS'))
-      port =
-        logStr?.trim()?.split('=')?.pop()?.split(':')?.pop()?.replace(`"`, '')?.replace(`'`, '') ??
-        '9000'
+      address = readConfigValue(content, 'MINIO_CONSOLE_ADDRESS')
     }
-    const url = `http://127.0.0.1:${port}/`
+    const url = httpUrlFromAddress(address, '127.0.0.1:9001', '/')
     console.log('url: ', url)
     shell.openExternal(url).then().catch()
   }

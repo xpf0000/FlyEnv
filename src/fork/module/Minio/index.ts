@@ -21,6 +21,7 @@ import { serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/runtime'
 import { isMacOS, isWindows } from '@shared/utils'
+import { normalizeListenAddress, readConfigValue } from '@shared/ServiceWebAddress'
 
 class Minio extends Base {
   constructor() {
@@ -105,11 +106,11 @@ class Minio extends Base {
           .map((s) => s.trim())
         const dict: Record<string, string> = {}
         arr.forEach((a) => {
-          const item = a.split('=')
-          const k = item.shift()
-          const v = item.join('=')
-          if (k) {
-            dict[k] = v
+          const separator = a.indexOf('=')
+          if (separator > 0) {
+            const k = a.slice(0, separator).trim()
+            const rawValue = a.slice(separator + 1)
+            dict[k] = readConfigValue(`${k}=${rawValue}`, k)
           }
         })
         return dict
@@ -119,11 +120,13 @@ class Minio extends Base {
 
       const execEnv: Record<string, string> = {}
       for (const k in opt) {
-        const v = opt[k]
+        let v = opt[k]
         if (k === 'MINIO_ADDRESS') {
           address = v
         } else if (k === 'MINIO_CONSOLE_ADDRESS') {
           console_address = v
+          console_address = normalizeListenAddress(console_address, '127.0.0.1:9001')
+          v = console_address
         } else if (k === 'MINIO_CERTS_DIR') {
           certs_dir = v
         }
