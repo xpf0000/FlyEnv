@@ -9,15 +9,20 @@ import {
   PGADMIN4_MAX_PORT,
   PGADMIN4_PACKAGE,
   PGADMIN4_PORT_SCAN_COUNT,
+  PgAdminSingleFlight,
   pgAdminBootstrapContent,
   pgAdminCommandOwned,
   pgAdminConfigContent,
+  pgAdminInitialized,
+  pgAdminOwnedPids,
   pgAdminPaths,
   pgAdminServersContent,
   pgAdminUrl,
   postgresqlPortFromConfig,
+  startPgAdminWithPortRetry,
   validPgAdminCredentials,
-  validPgAdminPythonVersion
+  validPgAdminPythonVersion,
+  verifyPgAdminPidPersistence
 } from '../src/fork/module/Postgresql/pgAdmin'
 
 assert.equal(PGADMIN4_DEFAULT_PORT, 5050)
@@ -36,6 +41,7 @@ assert.deepEqual(unixPaths, {
   port: join(postgreSqlDir, 'pgadmin4', 'pgadmin4.port'),
   servers: join(postgreSqlDir, 'pgadmin4', 'servers.json'),
   bootstrap: join(postgreSqlDir, 'pgadmin4', 'bootstrap-admin.py'),
+  initialized: join(postgreSqlDir, 'pgadmin4', 'initialized'),
   venv: join(postgreSqlDir, 'pgadmin4', 'venv'),
   python: join(postgreSqlDir, 'pgadmin4', 'venv', 'bin', 'python')
 })
@@ -43,6 +49,11 @@ assert.equal(
   pgAdminPaths(postgreSqlDir, true).python,
   join(postgreSqlDir, 'pgadmin4', 'venv', 'Scripts', 'python.exe')
 )
+
+const initializationFiles = new Set([join(unixPaths.data, 'pgadmin4.db')])
+assert.equal(pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)), false)
+initializationFiles.add(unixPaths.initialized)
+assert.equal(pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)), true)
 
 const configDataDir = '/tmp/FlyEnv data'
 const configLogDir = '/tmp/FlyEnv logs'
@@ -74,6 +85,155 @@ assert.equal(
   ),
   true
 )
+assert.deepEqual(
+  pgAdminOwnedPids(
+    [
+      { PID: '101', COMMAND: `${unixPaths.python} /package/pgAdmin4.py` },
+      { PID: '102', COMMAND: `${unixPaths.root}/other-python /package/pgAdmin4.py` },
+      { PID: '103', COMMAND: `${unixPaths.python} /package/not-pgadmin.py` },
+      { PID: '101', COMMAND: `${unixPaths.python} /package/pgAdmin4.py` }
+    ],
+    unixPaths,
+    false
+  ),
+  ['101']
+)
+
+const singleFlight = new PgAdminSingleFlight<string>()
+let singleFlightCalls = 0
+let releaseSingleFlight!: () => void
+const singleFlightGate = new Promise<void>((resolve) => {
+  releaseSingleFlight = resolve
+})
+const firstFlight = singleFlight.run(async () => {
+  singleFlightCalls += 1
+  await singleFlightGate
+  return 'ready'
+})
+const followerFlight = singleFlight.run(async () => {
+  singleFlightCalls += 1
+  return 'duplicate'
+})
+await Promise.resolve()
+assert.equal(singleFlightCalls, 1)
+releaseSingleFlight()
+assert.deepEqual(await Promise.all([firstFlight, followerFlight]), ['ready', 'ready'])
+assert.equal(
+  await singleFlight.run(async () => {
+    singleFlightCalls += 1
+    return 'next'
+  }),
+  'next'
+)
+assert.equal(singleFlightCalls, 2)
+
+const retriedPorts: number[] = []
+const configuredPorts: number[] = []
+let persistedPort: number | undefined = 5000
+let retryStartCalls = 0
+const retryResult = await startPgAdminWithPortRetry({
+  findPort: async (excluded) => (excluded.includes(5050) ? 5051 : 5050),
+  writeConfig: async (port) => {
+    configuredPorts.push(port)
+  },
+  start: async (port) => {
+    retriedPorts.push(port)
+    retryStartCalls += 1
+    if (retryStartCalls === 1) {
+      throw new Error('port claimed after probe')
+    }
+    return `pid-${port}`
+  },
+  persistPort: async (port) => {
+    persistedPort = port
+  },
+  cleanupStarted: async () => {
+    throw new Error('should not clean up a successfully persisted pgAdmin process')
+  },
+  clearPort: async () => {
+    persistedPort = undefined
+  }
+})
+assert.deepEqual(retriedPorts, [5050, 5051])
+assert.deepEqual(configuredPorts, [5050, 5051])
+assert.deepEqual(retryResult, { port: 5051, result: 'pid-5051' })
+assert.equal(persistedPort, 5051)
+
+const persistFailureStarts: number[] = []
+const cleanedPersistFailureResults: string[] = []
+await assert.rejects(
+  startPgAdminWithPortRetry({
+    findPort: async (excluded) => (excluded.includes(5050) ? 5051 : 5050),
+    writeConfig: async () => {},
+    start: async (port) => {
+      persistFailureStarts.push(port)
+      return `pid-${port}`
+    },
+    persistPort: async () => {
+      throw new Error('could not persist pgAdmin port')
+    },
+    cleanupStarted: async (result) => {
+      cleanedPersistFailureResults.push(result)
+    },
+    clearPort: async () => {}
+  }),
+  /could not persist pgAdmin port/
+)
+assert.deepEqual(persistFailureStarts, [5050])
+assert.deepEqual(cleanedPersistFailureResults, ['pid-5050'])
+
+const failedPorts: number[] = []
+let failedPersistedPort: number | undefined = 5000
+await assert.rejects(
+  startPgAdminWithPortRetry({
+    findPort: async (excluded) => (excluded.includes(5050) ? 5051 : 5050),
+    writeConfig: async () => {},
+    start: async (port) => {
+      failedPorts.push(port)
+      throw new Error('port claimed')
+    },
+    persistPort: async (port) => {
+      failedPersistedPort = port
+    },
+    cleanupStarted: async () => {
+      throw new Error('should not clean up a pgAdmin process that did not start')
+    },
+    clearPort: async () => {
+      failedPersistedPort = undefined
+    }
+  }),
+  /port claimed/
+)
+assert.deepEqual(failedPorts, [5050, 5051])
+assert.equal(failedPersistedPort, undefined)
+
+const stoppedSpawnedPids: string[] = []
+let clearedPidFile = false
+await assert.rejects(
+  verifyPgAdminPidPersistence({
+    spawnedPid: '3001',
+    readPersistedPid: async () => 'unrelated-pid',
+    stopPid: async (pid) => {
+      stoppedSpawnedPids.push(pid)
+    },
+    clearPid: async () => {
+      clearedPidFile = true
+    }
+  }),
+  /PID file was not persisted/
+)
+assert.deepEqual(stoppedSpawnedPids, ['3001'])
+assert.equal(clearedPidFile, true)
+await verifyPgAdminPidPersistence({
+  spawnedPid: '3002',
+  readPersistedPid: async () => '3002',
+  stopPid: async () => {
+    throw new Error('should not stop persisted PID')
+  },
+  clearPid: async () => {
+    throw new Error('should not clear persisted PID')
+  }
+})
 assert.equal(
   pgAdminCommandOwned(
     `${unixPaths.python} /package/not-pgadmin.py`,
@@ -166,6 +326,12 @@ const postgresqlSource = readFileSync(
 
 assert.match(postgresqlSource, /pgAdminStatus\(\): ForkPromise<\{ initialized: boolean \}>/)
 assert.match(postgresqlSource, /openPGAdmin\([\s\S]*?credentials\?: PgAdminCredentials/)
+assert.match(postgresqlSource, /new PgAdminSingleFlight/)
+assert.match(postgresqlSource, /pgAdminInitialized\(paths, existsSync\)/)
+assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
+assert.match(postgresqlSource, /startPgAdminWithPortRetry/)
+assert.match(postgresqlSource, /verifyPgAdminPidPersistence/)
+assert.match(postgresqlSource, /pgAdminOwnedPids/)
 assert.match(postgresqlSource, /validPgAdminCredentials\(credentials\)/)
 assert.match(postgresqlSource, /validPgAdminPythonVersion\(python\.version\)/)
 assert.match(
@@ -178,7 +344,7 @@ assert.match(postgresqlSource, /setup-db/)
 assert.match(postgresqlSource, /pgAdminBootstrapContent\(\)/)
 assert.match(postgresqlSource, /load-servers/)
 assert.match(postgresqlSource, /findPgAdminPort\(/)
-assert.match(postgresqlSource, /ProcessKill\('-INT', \[pid\]\)/)
+assert.match(postgresqlSource, /ProcessKill\('-INT', pids\)/)
 assert.match(postgresqlSource, /pgAdminCommandOwned\(command, paths, isWindows\(\)\)/)
 assert.match(postgresqlSource, /isWindows\(\) \? await ProcessPidList\(\) : await ProcessListFetch\(\)/)
 assert.match(postgresqlSource, /fetchProcessPidByPort/)
@@ -190,7 +356,7 @@ assert.match(postgresqlSource, /_stopPGAdmin\(/)
 assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(paths\.python, \[join\(packageRoot, 'setup\.py'\), 'setup-db'\], \{\s*shell: false\s*\}\)/s
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[join\(packageRoot, 'setup\.py'\), 'setup-db'\],\s*\{\s*shell: false\s*\}\s*\)/s
 )
 assert.ok(postgresqlSource.indexOf("'setup-db'") < postgresqlSource.indexOf('paths.bootstrap'))
 assert.match(postgresqlSource, /writeFile\(paths\.bootstrap, pgAdminBootstrapContent\(\)\)/)
@@ -198,10 +364,11 @@ assert.match(
   postgresqlSource,
   /spawnPromiseWithEnv\(paths\.python, \[paths\.bootstrap, packageRoot\], \{[\s\S]*?PGADMIN_SETUP_EMAIL:[\s\S]*?PGADMIN_SETUP_PASSWORD:[\s\S]*?cwd: packageRoot[\s\S]*?\}\)/
 )
-const serviceStartSource = postgresqlSource.slice(
-  postgresqlSource.indexOf('const started = await serviceStartSpawn'),
-  postgresqlSource.indexOf('resolve({', postgresqlSource.indexOf('const started = await serviceStartSpawn'))
-)
+const serviceStartIndex = postgresqlSource.indexOf('started = await serviceStartSpawn')
+const serviceStartEndIndex = postgresqlSource.indexOf('const startedPid', serviceStartIndex)
+assert.notEqual(serviceStartIndex, -1)
+assert.notEqual(serviceStartEndIndex, -1)
+const serviceStartSource = postgresqlSource.slice(serviceStartIndex, serviceStartEndIndex)
 assert.doesNotMatch(serviceStartSource, /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSWORD/)
 assert.match(postgresqlSource, /paths\.log/)
 

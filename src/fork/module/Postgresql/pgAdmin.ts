@@ -19,6 +19,7 @@ export interface PgAdminPaths {
   port: string
   servers: string
   bootstrap: string
+  initialized: string
   venv: string
   python: string
 }
@@ -35,9 +36,107 @@ export function pgAdminPaths(postgreSqlDir: string, windows: boolean): PgAdminPa
     port: join(root, 'pgadmin4.port'),
     servers: join(root, 'servers.json'),
     bootstrap: join(root, 'bootstrap-admin.py'),
+    initialized: join(root, 'initialized'),
     venv,
     python: windows ? join(venv, 'Scripts', 'python.exe') : join(venv, 'bin', 'python')
   }
+}
+
+export function pgAdminInitialized(
+  paths: PgAdminPaths,
+  fileExists: (file: string) => boolean
+): boolean {
+  return fileExists(paths.initialized)
+}
+
+export class PgAdminSingleFlight<T> {
+  private inFlight?: Promise<T>
+
+  run(operation: () => PromiseLike<T>): Promise<T> {
+    if (this.inFlight) {
+      return this.inFlight
+    }
+
+    const running = Promise.resolve().then(operation)
+    this.inFlight = running
+    void running
+      .finally(() => {
+        if (this.inFlight === running) {
+          this.inFlight = undefined
+        }
+      })
+      .catch(() => {})
+    return running
+  }
+}
+
+export interface PgAdminPortStartOptions<T> {
+  findPort: (excluded: readonly number[]) => Promise<number>
+  writeConfig: (port: number) => Promise<void>
+  start: (port: number) => Promise<T>
+  persistPort: (port: number) => Promise<void>
+  cleanupStarted: (result: T) => Promise<void>
+  clearPort: () => Promise<void>
+}
+
+export async function startPgAdminWithPortRetry<T>(
+  options: PgAdminPortStartOptions<T>
+): Promise<{ port: number; result: T }> {
+  const attempted: number[] = []
+  await options.clearPort()
+
+  try {
+    let lastError: unknown
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const port = await options.findPort(attempted)
+      if (attempted.includes(port)) {
+        throw new Error(`pgAdmin 4 selected port ${port} was already attempted`)
+      }
+      attempted.push(port)
+      await options.writeConfig(port)
+      let result: T
+      try {
+        result = await options.start(port)
+      } catch (error) {
+        lastError = error
+        continue
+      }
+      try {
+        await options.persistPort(port)
+        return { port, result }
+      } catch (error) {
+        await options.cleanupStarted(result)
+        throw error
+      }
+    }
+    throw lastError ?? new Error('pgAdmin 4 failed to start')
+  } catch (error) {
+    await options.clearPort()
+    throw error
+  }
+}
+
+export interface PgAdminPidPersistenceOptions {
+  spawnedPid: string
+  readPersistedPid: () => Promise<string>
+  stopPid: (pid: string) => Promise<void>
+  clearPid: () => Promise<void>
+}
+
+export async function verifyPgAdminPidPersistence(
+  options: PgAdminPidPersistenceOptions
+): Promise<void> {
+  const spawnedPid = options.spawnedPid.trim()
+  const persistedPid = (await options.readPersistedPid()).trim()
+  if (spawnedPid && persistedPid === spawnedPid) {
+    return
+  }
+
+  if (spawnedPid) {
+    await options.stopPid(spawnedPid)
+  }
+  await options.clearPid()
+  throw new Error('pgAdmin 4 PID file was not persisted for the spawned process')
 }
 
 export function pgAdminUrl(port: number): string {
@@ -105,6 +204,26 @@ export function pgAdminCommandOwned(command: string, paths: PgAdminPaths, window
   return pythonPattern.test(normalizedCommand) && scriptPattern.test(normalizedCommand)
 }
 
+export interface PgAdminProcess {
+  PID: string
+  COMMAND: string
+}
+
+export function pgAdminOwnedPids(
+  processes: PgAdminProcess[],
+  paths: PgAdminPaths,
+  windows: boolean
+): string[] {
+  return Array.from(
+    new Set(
+      processes
+        .filter((process) => pgAdminCommandOwned(process.COMMAND, paths, windows))
+        .map((process) => `${process.PID}`.trim())
+        .filter(Boolean)
+    )
+  )
+}
+
 export function postgresqlPortFromConfig(content: string): number {
   const match = /^\s*port\s*=\s*(?:"(\d+)"|'(\d+)'|(\d+))\s*(?:#.*)?$/im.exec(content)
   const port = Number(match?.[1] ?? match?.[2] ?? match?.[3])
@@ -163,7 +282,11 @@ function canBindLoopback(port: number): Promise<boolean> {
   })
 }
 
-export async function findPgAdminPort(start = PGADMIN4_DEFAULT_PORT): Promise<number> {
+export async function findPgAdminPort(
+  start = PGADMIN4_DEFAULT_PORT,
+  excluded: readonly number[] = []
+): Promise<number> {
+  const excludedPorts = new Set(excluded)
   const end = Math.min(start + PGADMIN4_PORT_SCAN_COUNT - 1, PGADMIN4_MAX_PORT)
   for (
     let offset = 0;
@@ -171,6 +294,7 @@ export async function findPgAdminPort(start = PGADMIN4_DEFAULT_PORT): Promise<nu
     offset += 1
   ) {
     const port = start + offset
+    if (excludedPorts.has(port)) continue
     if (await canBindLoopback(port)) return port
   }
 

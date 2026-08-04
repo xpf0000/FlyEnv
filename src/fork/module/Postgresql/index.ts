@@ -45,20 +45,33 @@ import {
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
   findPgAdminPort,
+  PGADMIN4_DEFAULT_PORT,
   PGADMIN4_PACKAGE,
   pgAdminBootstrapContent,
   pgAdminCommandOwned,
   pgAdminConfigContent,
+  pgAdminInitialized,
+  pgAdminOwnedPids,
   pgAdminPaths,
   pgAdminServersContent,
   pgAdminUrl,
+  PgAdminSingleFlight,
   postgresqlPortFromConfig,
+  startPgAdminWithPortRetry,
   type PgAdminCredentials,
   validPgAdminCredentials,
-  validPgAdminPythonVersion
+  validPgAdminPythonVersion,
+  verifyPgAdminPidPersistence
 } from './pgAdmin'
 
+type PgAdminOpenResult = {
+  url: string
+  'APP-Service-Start-PID': string
+}
+
 class Manager extends Base {
+  private readonly pgAdminOpenFlight = new PgAdminSingleFlight<PgAdminOpenResult>()
+
   constructor() {
     super()
     this.type = 'postgresql'
@@ -105,19 +118,24 @@ class Manager extends Base {
 
   private async pgAdminRunningPid(): Promise<string | undefined> {
     const paths = this.pgAdminPaths()
-    if (!existsSync(paths.pid)) {
-      return undefined
-    }
-
     const pid = await this.readPidFromFile(paths.pid)
     const processList = isWindows() ? await ProcessPidList() : await ProcessListFetch()
     const process = pid ? processList.find((item) => item.PID === pid) : undefined
     const command = process?.COMMAND ?? ''
-    if (!pgAdminCommandOwned(command, paths, isWindows())) {
-      await remove(paths.pid).catch(() => {})
-      return undefined
+    if (pid && pgAdminCommandOwned(command, paths, isWindows())) {
+      return pid
     }
-    return pid
+    if (pid) {
+      await remove(paths.pid).catch(() => {})
+    }
+    const ownedPids = pgAdminOwnedPids(processList, paths, isWindows())
+    return ownedPids.length === 1 ? ownedPids[0] : undefined
+  }
+
+  private async pgAdminOwnedProcessPids(): Promise<string[]> {
+    const paths = this.pgAdminPaths()
+    const processList = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+    return pgAdminOwnedPids(processList, paths, isWindows())
   }
 
   private async pgAdminPortOwnedByPid(port: number, pid: string): Promise<boolean> {
@@ -130,21 +148,25 @@ class Manager extends Base {
   private async _stopPGAdmin(): Promise<string[]> {
     const paths = this.pgAdminPaths()
     const pid = await this.pgAdminRunningPid()
-    if (!pid) {
+    const pids = Array.from(
+      new Set([pid, ...(await this.pgAdminOwnedProcessPids())].filter(Boolean))
+    ) as string[]
+    if (pids.length === 0) {
       return []
     }
 
     try {
-      await ProcessKill('-INT', [pid])
+      await ProcessKill('-INT', pids)
     } finally {
       await remove(paths.pid).catch(() => {})
     }
-    return [pid]
+    return pids
   }
 
   pgAdminStatus(): ForkPromise<{ initialized: boolean }> {
     return new ForkPromise((resolve) => {
-      resolve({ initialized: existsSync(join(this.pgAdminPaths().data, 'pgadmin4.db')) })
+      const paths = this.pgAdminPaths()
+      resolve({ initialized: pgAdminInitialized(paths, existsSync) })
     })
   }
 
@@ -153,11 +175,28 @@ class Manager extends Base {
     dataDir: string,
     python: SoftInstalled,
     credentials?: PgAdminCredentials
-  ): ForkPromise<{ url: string; 'APP-Service-Start-PID': string }> {
+  ): ForkPromise<PgAdminOpenResult> {
+    return new ForkPromise((resolve, reject, on) => {
+      this.pgAdminOpenFlight
+        .run(() =>
+          this.openPGAdminInternal(version, dataDir, python, credentials)
+            .on(on)
+            .then((result) => result)
+        )
+        .then(resolve, reject)
+    })
+  }
+
+  private openPGAdminInternal(
+    version: SoftInstalled,
+    dataDir: string,
+    python: SoftInstalled,
+    credentials?: PgAdminCredentials
+  ): ForkPromise<PgAdminOpenResult> {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
         const paths = this.pgAdminPaths()
-        const firstStart = !existsSync(join(paths.data, 'pgadmin4.db'))
+        let firstStart = !pgAdminInitialized(paths, existsSync)
         if (!existsSync(join(dataDir, 'postmaster.pid'))) {
           throw new Error('PostgreSQL is not running')
         }
@@ -171,26 +210,25 @@ class Manager extends Base {
           throw new Error('pgAdmin administrator credentials are required')
         }
 
-        if (!firstStart) {
-          const runningPid = await this.pgAdminRunningPid()
-          if (runningPid && existsSync(paths.port)) {
-            const port = Number((await readFile(paths.port, 'utf-8')).trim())
-            if (
-              Number.isInteger(port) &&
-              port >= 1 &&
-              port <= 65535 &&
-              (await this.pgAdminPortOwnedByPid(port, runningPid))
-            ) {
-              resolve({
-                url: pgAdminUrl(port),
-                'APP-Service-Start-PID': runningPid
-              })
-              return
-            }
+        const runningPid = await this.pgAdminRunningPid()
+        if (runningPid && !firstStart && existsSync(paths.port)) {
+          const port = Number((await readFile(paths.port, 'utf-8')).trim())
+          if (
+            Number.isInteger(port) &&
+            port >= 1 &&
+            port <= 65535 &&
+            (await this.pgAdminPortOwnedByPid(port, runningPid))
+          ) {
+            resolve({
+              url: pgAdminUrl(port),
+              'APP-Service-Start-PID': runningPid
+            })
+            return
           }
-          if (runningPid) {
-            await this._stopPGAdmin()
-          }
+        }
+        const ownedPids = await this.pgAdminOwnedProcessPids()
+        if (runningPid || ownedPids.length > 0) {
+          await this._stopPGAdmin()
         }
 
         const postgreSqlPort = postgresqlPortFromConfig(
@@ -218,59 +256,98 @@ class Manager extends Base {
           packageRoot = await this.pgAdminPackageRoot(paths.python)
         }
 
-        const port = await findPgAdminPort()
-        await writeFile(paths.port, `${port}`)
-        await writeFile(
-          join(packageRoot, 'config_local.py'),
-          pgAdminConfigContent(paths.data, paths.log, port)
-        )
-
-        if (firstStart) {
-          const admin = credentials!
-          await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
-          await spawnPromiseWithEnv(paths.python, [join(packageRoot, 'setup.py'), 'setup-db'], {
-            shell: false
-          })
-          await writeFile(paths.bootstrap, pgAdminBootstrapContent())
-          await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
-            shell: false,
-            env: {
-              PGADMIN_SETUP_EMAIL: admin.email,
-              PGADMIN_SETUP_PASSWORD: admin.password
-            },
-            cwd: packageRoot
-          })
-          await spawnPromiseWithEnv(
-            paths.python,
-            [join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', admin.email],
-            { shell: false }
-          )
-        }
-
-        const started = await serviceStartSpawn({
-          version: {
-            typeFlag: version.typeFlag,
-            version: 'pgadmin4',
-            bin: paths.python,
-            path: paths.root,
-            num: null,
-            enable: true,
-            run: false,
-            running: false
+        const { port, result: started } = await startPgAdminWithPortRetry({
+          findPort: (excluded) => findPgAdminPort(PGADMIN4_DEFAULT_PORT, excluded),
+          writeConfig: async (port) => {
+            await writeFile(
+              join(packageRoot, 'config_local.py'),
+              pgAdminConfigContent(paths.data, paths.log, port)
+            )
           },
-          pidPath: paths.pid,
-          baseDir: paths.root,
-          bin: paths.python,
-          execArgs: [join(packageRoot, 'pgAdmin4.py')],
-          execEnv: {
-            LC_ALL: global.Server.Local!,
-            LANG: global.Server.Local!
+          start: async () => {
+            if (firstStart) {
+              const admin = credentials!
+              await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
+              await spawnPromiseWithEnv(
+                paths.python,
+                [join(packageRoot, 'setup.py'), 'setup-db'],
+                { shell: false }
+              )
+              await writeFile(paths.bootstrap, pgAdminBootstrapContent())
+              await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
+                shell: false,
+                env: {
+                  PGADMIN_SETUP_EMAIL: admin.email,
+                  PGADMIN_SETUP_PASSWORD: admin.password
+                },
+                cwd: packageRoot
+              })
+              await spawnPromiseWithEnv(
+                paths.python,
+                [join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', admin.email],
+                { shell: false }
+              )
+              await writeFile(paths.initialized, '1')
+              firstStart = false
+            }
+
+            let started: { 'APP-Service-Start-PID': string }
+            try {
+              started = await serviceStartSpawn({
+                version: {
+                  typeFlag: version.typeFlag,
+                  version: 'pgadmin4',
+                  bin: paths.python,
+                  path: paths.root,
+                  num: null,
+                  enable: true,
+                  run: false,
+                  running: false
+                },
+                pidPath: paths.pid,
+                baseDir: paths.root,
+                bin: paths.python,
+                execArgs: [join(packageRoot, 'pgAdmin4.py')],
+                execEnv: {
+                  LC_ALL: global.Server.Local!,
+                  LANG: global.Server.Local!
+                },
+                on,
+                waitTime: 2000,
+                cwd: packageRoot,
+                outFile: join(paths.log, 'pgadmin4.start.out.log'),
+                errFile: join(paths.log, 'pgadmin4.start.err.log')
+              })
+            } catch (error) {
+              await this._stopPGAdmin()
+              throw error
+            }
+            const startedPid = `${started['APP-Service-Start-PID']}`.trim()
+            await verifyPgAdminPidPersistence({
+              spawnedPid: startedPid,
+              readPersistedPid: () => this.readPidFromFile(paths.pid),
+              stopPid: async (pid) => {
+                await ProcessKill('-INT', [pid])
+              },
+              clearPid: async () => {
+                await remove(paths.pid).catch(() => {})
+              }
+            })
+            return started
           },
-          on,
-          waitTime: 2000,
-          cwd: packageRoot,
-          outFile: join(paths.log, 'pgadmin4.start.out.log'),
-          errFile: join(paths.log, 'pgadmin4.start.err.log')
+          persistPort: async (port) => {
+            await writeFile(paths.port, `${port}`)
+          },
+          cleanupStarted: async (started) => {
+            const startedPid = `${started['APP-Service-Start-PID']}`.trim()
+            if (startedPid) {
+              await ProcessKill('-INT', [startedPid])
+            }
+            await remove(paths.pid).catch(() => {})
+          },
+          clearPort: async () => {
+            await remove(paths.port).catch(() => {})
+          }
         })
         resolve({
           url: pgAdminUrl(port),

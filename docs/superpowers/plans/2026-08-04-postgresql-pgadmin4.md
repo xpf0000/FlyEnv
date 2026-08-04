@@ -233,7 +233,7 @@ Implement openPGAdmin(version, dataDir, python, credentials?) as a ForkPromise, 
 
 ~~~ts
 const paths = this.pgAdminPaths()
-const firstStart = !existsSync(join(paths.data, 'pgadmin4.db'))
+const firstStart = !pgAdminInitialized(paths, existsSync)
 if (!existsSync(join(dataDir, 'postmaster.pid'))) throw new Error('PostgreSQL is not running')
 if (!python?.bin || !existsSync(python.bin)) throw new Error('A selected Python binary is required')
 if (!validPgAdminPythonVersion(python.version)) throw new Error('pgAdmin 4 requires Python 3.9 or later')
@@ -266,6 +266,7 @@ await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
 await spawnPromiseWithEnv(paths.python, [
   join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', credentials.email
 ], { shell: false })
+await writeFile(paths.initialized, '1')
 ~~~
 
 Start the long-running process without sensitive values. serviceStartSpawn logs the parameter object.
