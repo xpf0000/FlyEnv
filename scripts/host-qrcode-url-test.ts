@@ -10,8 +10,13 @@ const tomcatHostList = readFileSync(
 )
 
 assert.match(hostList, /<QrcodePopper :url="siteName\(scope\.row\)">/)
-assert.match(tomcatHostList, /<QrcodePopper :url="`http:\/\/\$\{siteName\(scope\.row\)\}`">/)
+assert.match(tomcatHostList, /<QrcodePopper :url="siteName\(scope\.row\)">/)
+assert.match(tomcatHostList, /if \(item\.useSSL && item\.ssl\.cert && item\.ssl\.key\)/)
+assert.match(tomcatHostList, /item\.port\?\.tomcat_ssl/)
+assert.match(tomcatHostList, /return `https:\/\/\$\{host\}\$\{portStr\}`/)
+assert.match(tomcatHostList, /const url = siteName\(item\)/)
 assert.doesNotMatch(hostList, /<QrcodePopper :url="scope\.row\.name">/)
 assert.doesNotMatch(tomcatHostList, /<QrcodePopper :url="scope\.row\.name">/)
+assert.doesNotMatch(tomcatHostList, /`http:\/\/\$\{siteName\(scope\.row\)\}`/)
 
 console.log('host QR code URL regression tests passed')
