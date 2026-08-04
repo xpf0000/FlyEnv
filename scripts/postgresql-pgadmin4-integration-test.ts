@@ -11,6 +11,8 @@ import {
   pgAdminInitializationVerificationContent,
   pgAdminPackageRootProbe,
   pgAdminPaths,
+  parsePgAdminServerIdentity,
+  pgAdminServerIdentityContent,
   pgAdminServerReconciliationContent,
   pgAdminServersContent
 } from '../src/fork/module/Postgresql/pgAdmin'
@@ -113,6 +115,7 @@ try {
   await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
   await writeFile(paths.bootstrap, pgAdminBootstrapContent())
   await writeFile(paths.verification, pgAdminInitializationVerificationContent())
+  await writeFile(paths.identityScript, pgAdminServerIdentityContent())
   await writeFile(paths.reconciliation, pgAdminServerReconciliationContent())
 
   await runPython(python, [join(packageRoot, 'setup.py'), 'setup-db'], {
@@ -139,6 +142,17 @@ try {
   await runPython(python, [paths.verification, packageRoot, email, `${postgreSqlPort}`], {
     cwd: packageRoot
   })
+  const serverIdentity = parsePgAdminServerIdentity(
+    (
+      await runPython(python, [paths.identityScript, packageRoot, email, `${postgreSqlPort}`], {
+        cwd: packageRoot
+      })
+    ).stdout
+  )
+  assert.ok(serverIdentity.userId > 0)
+  assert.ok(serverIdentity.serverId > 0)
+  await writeFile(paths.identity, JSON.stringify(serverIdentity))
+  assert.deepEqual(JSON.parse(await readFile(paths.identity, 'utf-8')), serverIdentity)
 
   const stateScript = `import json
 import sys
@@ -209,33 +223,154 @@ with app.app_context():
     password_empty: true
   })
 
-  const reconciledPostgreSqlPort = 15433
-  await runPython(python, [paths.reconciliation, packageRoot, `${reconciledPostgreSqlPort}`], {
-    cwd: packageRoot
-  })
-  const reconciledState = JSON.parse(
+  const targetPortBeforeReconciliation = 15431
+  const siblingPort = 15430
+  const seedScript = `import json
+import sys
+
+package_root = sys.argv[1]
+if package_root not in sys.path:
+    sys.path.insert(0, package_root)
+
+import config
+from pgadmin import create_app
+from pgadmin.model import Server, User, db
+from pgadmin.utils.constants import INTERNAL
+
+email = sys.argv[2]
+target_id = int(sys.argv[3])
+target_port = int(sys.argv[4])
+sibling_port = int(sys.argv[5])
+app = create_app(config.APP_NAME + '-cli')
+
+with app.app_context():
+    user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    target = Server.query.filter_by(
+        id=target_id,
+        user_id=user.id,
+        name='FlyEnv PostgreSQL',
+        host='127.0.0.1',
+        maintenance_db='postgres',
+        username='root',
+    ).first()
+    if target is None:
+        raise RuntimeError('FlyEnv target server was not found')
+    target.port = target_port
+    target.password = 'target-manual-password'
+    target.save_password = 1
+    target.connection_params = {'sslmode': 'require'}
+    sibling = target.clone()
+    sibling.port = sibling_port
+    sibling.password = 'sibling-manual-password'
+    sibling.save_password = 1
+    sibling.connection_params = {'sslmode': 'verify-full'}
+    db.session.add(sibling)
+    db.session.commit()
+    print(json.dumps({'targetId': target.id, 'siblingId': sibling.id}))
+`
+  const seeded = JSON.parse(
     (
       await runPython(
         python,
-        ['-c', stateScript, packageRoot, email, `${reconciledPostgreSqlPort}`],
-        {
-          cwd: packageRoot
-        }
+        [
+          '-c',
+          seedScript,
+          packageRoot,
+          email,
+          `${serverIdentity.serverId}`,
+          `${targetPortBeforeReconciliation}`,
+          `${siblingPort}`
+        ],
+        { cwd: packageRoot }
       )
     ).stdout.trim()
   )
-  assert.deepEqual(reconciledState, {
-    active: true,
-    auth_source: 'internal',
-    administrator: true,
-    group: 'Servers',
-    host: '127.0.0.1',
-    port: reconciledPostgreSqlPort,
-    maintenance_db: 'postgres',
-    username: 'root',
-    sslmode: 'prefer',
-    save_password: 0,
-    password_empty: true
+  assert.equal(seeded.targetId, serverIdentity.serverId)
+  assert.ok(seeded.siblingId > 0)
+
+  const reconciledPostgreSqlPort = 15433
+  await runPython(
+    python,
+    [
+      paths.reconciliation,
+      packageRoot,
+      `${serverIdentity.userId}`,
+      `${serverIdentity.serverId}`,
+      `${reconciledPostgreSqlPort}`
+    ],
+    {
+      cwd: packageRoot
+    }
+  )
+  const isolatedStateScript = `import json
+import sys
+
+package_root = sys.argv[1]
+if package_root not in sys.path:
+    sys.path.insert(0, package_root)
+
+import config
+from pgadmin import create_app
+from pgadmin.model import Server, User
+from pgadmin.utils.constants import INTERNAL
+
+email = sys.argv[2]
+target_id = int(sys.argv[3])
+sibling_id = int(sys.argv[4])
+app = create_app(config.APP_NAME + '-cli')
+
+with app.app_context():
+    user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    target = Server.query.filter_by(id=target_id, user_id=user.id).first()
+    sibling = Server.query.filter_by(id=sibling_id, user_id=user.id).first()
+    if target is None or sibling is None:
+        raise RuntimeError('Expected server records were not found')
+    target_params = target.connection_params or {}
+    sibling_params = sibling.connection_params or {}
+    print(json.dumps({
+        'target': {
+            'port': target.port,
+            'sslmode': target_params.get('sslmode'),
+            'save_password': target.save_password,
+            'password_empty': not bool(target.password),
+        },
+        'sibling': {
+            'port': sibling.port,
+            'sslmode': sibling_params.get('sslmode'),
+            'save_password': sibling.save_password,
+            'password_empty': not bool(sibling.password),
+        },
+    }))
+`
+  const isolatedState = JSON.parse(
+    (
+      await runPython(
+        python,
+        [
+          '-c',
+          isolatedStateScript,
+          packageRoot,
+          email,
+          `${serverIdentity.serverId}`,
+          `${seeded.siblingId}`
+        ],
+        { cwd: packageRoot }
+      )
+    ).stdout.trim()
+  )
+  assert.deepEqual(isolatedState, {
+    target: {
+      port: reconciledPostgreSqlPort,
+      sslmode: 'prefer',
+      save_password: 0,
+      password_empty: true
+    },
+    sibling: {
+      port: siblingPort,
+      sslmode: 'verify-full',
+      save_password: 1,
+      password_empty: false
+    }
   })
 
   console.log('pgAdmin 4 upstream integration test passed')

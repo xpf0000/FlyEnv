@@ -22,6 +22,8 @@ export interface PgAdminPaths {
   servers: string
   bootstrap: string
   verification: string
+  identityScript: string
+  identity: string
   reconciliation: string
   initialized: string
   venv: string
@@ -41,6 +43,8 @@ export function pgAdminPaths(postgreSqlDir: string, windows: boolean): PgAdminPa
     servers: join(root, 'servers.json'),
     bootstrap: join(root, 'bootstrap-admin.py'),
     verification: join(root, 'verify-initialization.py'),
+    identityScript: join(root, 'read-server-identity.py'),
+    identity: join(root, 'server-identity.json'),
     reconciliation: join(root, 'reconcile-server.py'),
     initialized: join(root, 'initialized'),
     venv,
@@ -56,7 +60,45 @@ export function pgAdminInitialized(
   paths: PgAdminPaths,
   fileExists: (file: string) => boolean
 ): boolean {
-  return fileExists(paths.initialized)
+  return fileExists(paths.initialized) && fileExists(paths.identity)
+}
+
+export interface PgAdminServerIdentity {
+  userId: number
+  serverId: number
+}
+
+export function parsePgAdminServerIdentity(content: string): PgAdminServerIdentity {
+  let value: unknown
+  try {
+    value = JSON.parse(content)
+  } catch {
+    throw new Error('Invalid pgAdmin 4 server identity')
+  }
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.keys(value).length !== 2 ||
+    !Object.hasOwn(value, 'userId') ||
+    !Object.hasOwn(value, 'serverId')
+  ) {
+    throw new Error('Invalid pgAdmin 4 server identity')
+  }
+  const identity = value as Record<string, unknown>
+  const userId = identity.userId
+  const serverId = identity.serverId
+  if (
+    typeof userId !== 'number' ||
+    typeof serverId !== 'number' ||
+    !Number.isInteger(userId) ||
+    !Number.isInteger(serverId) ||
+    userId < 1 ||
+    serverId < 1
+  ) {
+    throw new Error('Invalid pgAdmin 4 server identity')
+  }
+  return { userId, serverId }
 }
 
 export interface PgAdminInitializationOptions {
@@ -348,6 +390,54 @@ with app.app_context():
 `
 }
 
+export function pgAdminServerIdentityContent(): string {
+  return `import json
+import sys
+
+package_root = sys.argv[1]
+if package_root not in sys.path:
+    sys.path.insert(0, package_root)
+
+import config
+from pgadmin import create_app
+from pgadmin.model import Server, User
+from pgadmin.utils.constants import INTERNAL
+
+email = sys.argv[2]
+postgresql_port = int(sys.argv[3])
+app = create_app(config.APP_NAME + '-cli')
+
+with app.app_context():
+    user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    if (
+        user is None
+        or user.email != email
+        or not user.active
+        or user.auth_source != INTERNAL
+        or not any(role.name == 'Administrator' for role in user.roles)
+    ):
+        raise RuntimeError('pgAdmin administrator verification failed')
+
+    server = Server.query.filter_by(
+        user_id=user.id,
+        name='FlyEnv PostgreSQL',
+        host='127.0.0.1',
+        port=postgresql_port,
+        maintenance_db='postgres',
+        username='root',
+        save_password=0,
+    ).first()
+    if server is None or server.password:
+        raise RuntimeError('pgAdmin server identity verification failed')
+    if server.servergroup is None or server.servergroup.name != 'Servers':
+        raise RuntimeError('pgAdmin server identity verification failed')
+    connection_params = server.connection_params or {}
+    if connection_params.get('sslmode') != 'prefer':
+        raise RuntimeError('pgAdmin server identity verification failed')
+    print(json.dumps({'userId': user.id, 'serverId': server.id}))
+`
+}
+
 export function pgAdminServerReconciliationContent(): string {
   return `import sys
 
@@ -357,27 +447,41 @@ if package_root not in sys.path:
 
 import config
 from pgadmin import create_app
-from pgadmin.model import Server, db
+from pgadmin.model import Server, User, db
+from pgadmin.utils.constants import INTERNAL
 
-postgresql_port = int(sys.argv[2])
+user_id = int(sys.argv[2])
+server_id = int(sys.argv[3])
+postgresql_port = int(sys.argv[4])
 app = create_app(config.APP_NAME + '-cli')
 
 with app.app_context():
-    servers = Server.query.filter_by(
+    user = User.query.filter_by(id=user_id, auth_source=INTERNAL).first()
+    if (
+        user is None
+        or not user.active
+        or user.auth_source != INTERNAL
+        or not any(role.name == 'Administrator' for role in user.roles)
+    ):
+        raise RuntimeError('pgAdmin FlyEnv PostgreSQL user was not found')
+    server = Server.query.filter_by(
+        id=server_id,
+        user_id=user.id,
         name='FlyEnv PostgreSQL',
         host='127.0.0.1',
         maintenance_db='postgres',
         username='root',
-    ).all()
-    if not servers:
+    ).first()
+    if server is None:
         raise RuntimeError('pgAdmin FlyEnv PostgreSQL server was not found')
-    for server in servers:
-        server.port = postgresql_port
-        server.password = None
-        server.save_password = 0
-        connection_params = server.connection_params or {}
-        connection_params['sslmode'] = 'prefer'
-        server.connection_params = connection_params
+    if server.servergroup is None or server.servergroup.name != 'Servers':
+        raise RuntimeError('pgAdmin FlyEnv PostgreSQL server was not found')
+    server.port = postgresql_port
+    server.password = None
+    server.save_password = 0
+    connection_params = server.connection_params or {}
+    connection_params['sslmode'] = 'prefer'
+    server.connection_params = connection_params
     db.session.commit()
 `
 }

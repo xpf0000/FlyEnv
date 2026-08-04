@@ -25,6 +25,8 @@ import {
   pgAdminPackageRootUnversionedProbe,
   pgAdminPaths,
   pgAdminPrivateDirectories,
+  parsePgAdminServerIdentity,
+  pgAdminServerIdentityContent,
   pgAdminServerReconciliationContent,
   pgAdminServersContent,
   pgAdminUrl,
@@ -67,6 +69,8 @@ assert.deepEqual(unixPaths, {
   servers: join(postgreSqlDir, 'pgadmin4', 'servers.json'),
   bootstrap: join(postgreSqlDir, 'pgadmin4', 'bootstrap-admin.py'),
   verification: join(postgreSqlDir, 'pgadmin4', 'verify-initialization.py'),
+  identityScript: join(postgreSqlDir, 'pgadmin4', 'read-server-identity.py'),
+  identity: join(postgreSqlDir, 'pgadmin4', 'server-identity.json'),
   reconciliation: join(postgreSqlDir, 'pgadmin4', 'reconcile-server.py'),
   initialized: join(postgreSqlDir, 'pgadmin4', 'initialized'),
   venv: join(postgreSqlDir, 'pgadmin4', 'venv'),
@@ -89,6 +93,11 @@ assert.equal(
   false
 )
 initializationFiles.add(unixPaths.initialized)
+assert.equal(
+  pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)),
+  false
+)
+initializationFiles.add(unixPaths.identity)
 assert.equal(
   pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)),
   true
@@ -183,14 +192,45 @@ assert.match(unversionedPackageRootProbe, /distribution\('pgadmin4'\)\.locate_fi
 assert.doesNotMatch(unversionedPackageRootProbe, /d\.version/)
 
 const reconciliation = pgAdminServerReconciliationContent()
-assert.match(reconciliation, /postgresql_port = int\(sys\.argv\[2\]\)/)
+assert.match(reconciliation, /user_id = int\(sys\.argv\[2\]\)/)
+assert.match(reconciliation, /server_id = int\(sys\.argv\[3\]\)/)
+assert.match(reconciliation, /postgresql_port = int\(sys\.argv\[4\]\)/)
 assert.match(reconciliation, /Server\.query\.filter_by\(/)
+assert.match(reconciliation, /id=server_id/)
+assert.match(
+  reconciliation,
+  /User\.query\.filter_by\(id=user_id, auth_source=INTERNAL\)\.first\(\)/
+)
+assert.match(reconciliation, /user_id=user\.id/)
 assert.match(reconciliation, /server\.port = postgresql_port/)
 assert.match(reconciliation, /server\.password = None/)
 assert.match(reconciliation, /server\.save_password = 0/)
 assert.match(reconciliation, /connection_params\['sslmode'\] = 'prefer'/)
 assert.match(reconciliation, /db\.session\.commit\(\)/)
 assert.doesNotMatch(reconciliation, /PGADMIN_SETUP_PASSWORD|PGADMIN_SETUP_EMAIL|password = os/)
+assert.doesNotMatch(reconciliation, /\.all\(\)|for server in servers/)
+
+const identityScript = pgAdminServerIdentityContent()
+assert.match(identityScript, /email = sys\.argv\[2\]/)
+assert.match(identityScript, /postgresql_port = int\(sys\.argv\[3\]\)/)
+assert.match(identityScript, /Server\.query\.filter_by\(/)
+assert.match(identityScript, /user_id=user\.id/)
+assert.match(
+  identityScript,
+  /server\.servergroup is None or server\.servergroup\.name != 'Servers'/
+)
+assert.match(identityScript, /json\.dumps\(\{'userId': user\.id, 'serverId': server\.id\}\)/)
+assert.doesNotMatch(identityScript, /PGADMIN_SETUP_PASSWORD|password = os/)
+assert.deepEqual(parsePgAdminServerIdentity('{"userId": 17, "serverId": 29}'), {
+  userId: 17,
+  serverId: 29
+})
+assert.throws(() => parsePgAdminServerIdentity('{"userId": 0, "serverId": 29}'), /identity/)
+assert.throws(() => parsePgAdminServerIdentity('{"userId": 17, "serverId": "29"}'), /identity/)
+assert.throws(
+  () => parsePgAdminServerIdentity('{"userId": 17, "serverId": 29, "email": "root@example.test"}'),
+  /identity/
+)
 
 const initializationGateEvents: string[] = []
 await assert.rejects(
@@ -836,6 +876,8 @@ assert.match(postgresqlSource, /new PgAdminSingleFlight/)
 assert.match(postgresqlSource, /pgAdminInitialized\(paths, existsSync\)/)
 assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
 assert.match(postgresqlSource, /pgAdminInitializationVerificationContent/)
+assert.match(postgresqlSource, /pgAdminServerIdentityContent/)
+assert.match(postgresqlSource, /parsePgAdminServerIdentity/)
 assert.match(postgresqlSource, /pgAdminServerReconciliationContent/)
 assert.match(postgresqlSource, /probe: \(\) => string = pgAdminPackageRootProbe/)
 assert.doesNotMatch(postgresqlSource, /import os, pgadmin/)
@@ -871,9 +913,10 @@ assert.match(postgresqlSource, /findPgAdminPort\(/)
 assert.match(postgresqlSource, /ProcessKillStrict/)
 assert.match(postgresqlSource, /ProcessPidListStrict/)
 assert.match(postgresqlSource, /pgAdminCommandOwned\(command, paths, packageRoot, isWindows\(\)\)/)
+assert.doesNotMatch(postgresqlSource, /await ProcessPidList\(\)/)
 assert.match(
   postgresqlSource,
-  /isWindows\(\) \? await ProcessPidList\(\) : await ProcessListFetch\(\)/
+  /isWindows\(\) \? await ProcessPidListStrict\(\) : await ProcessListFetch\(\)/
 )
 assert.match(postgresqlSource, /fetchLoopbackListeningPids/)
 assert.doesNotMatch(postgresqlSource, /fetchProcessPidByPort/)
@@ -892,6 +935,11 @@ assert.match(postgresqlSource, /postgresqlPostmasterOwnedByDataDir/)
 assert.match(postgresqlSource, /pgAdminPrivateDirectories/)
 assert.match(postgresqlSource, /chmod\(directory, 0o700\)/)
 assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)
+assert.match(
+  postgresqlSource,
+  /writeFile\(paths\.identityScript, pgAdminServerIdentityContent\(\)\)/
+)
+assert.match(postgresqlSource, /writeFile\(paths\.identity, JSON\.stringify\(serverIdentity\)\)/)
 assert.match(
   postgresqlSource,
   /spawnPromiseWithEnv\(\s*paths\.python,\s*\[join\(packageRoot, 'setup\.py'\), 'setup-db'\],\s*\{[\s\S]*?env:\s*\{[\s\S]*?PGADMIN_SETUP_EMAIL:\s*admin\.email,[\s\S]*?PGADMIN_SETUP_PASSWORD:\s*admin\.password[\s\S]*?shell: false[\s\S]*?\}\s*\)/s
@@ -915,9 +963,14 @@ assert.match(
   /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.verification, packageRoot, admin\.email, `\$\{postgreSqlPort\}`\],\s*\{ shell: false, cwd: packageRoot \}\s*\)/s
 )
 const verificationSourceIndex = postgresqlSource.indexOf('paths.verification, packageRoot')
+const identityWriteIndex = postgresqlSource.indexOf(
+  'writeFile(paths.identity, JSON.stringify(serverIdentity))'
+)
 const completionGateIndex = postgresqlSource.lastIndexOf('completePgAdminInitialization')
 assert.notEqual(verificationSourceIndex, -1)
+assert.notEqual(identityWriteIndex, -1)
 assert.notEqual(completionGateIndex, -1)
+assert.ok(verificationSourceIndex < identityWriteIndex)
 assert.doesNotMatch(
   postgresqlSource.slice(verificationSourceIndex, completionGateIndex),
   /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSWORD/
@@ -948,6 +1001,10 @@ const runningPidIndex = postgresqlSource.indexOf(
 const reconciliationBeforeReuseIndex = postgresqlSource.indexOf('await reconcilePgAdminServer()')
 assert.ok(packageRepairStopIndex < runningPidIndex)
 assert.ok(reconciliationBeforeReuseIndex < runningPidIndex)
+assert.match(
+  postgresqlSource,
+  /\[\s*paths\.reconciliation,\s*packageRoot,\s*`\$\{serverIdentity\.userId\}`,\s*`\$\{serverIdentity\.serverId\}`,\s*`\$\{postgreSqlPort\}`\s*\]/s
+)
 const packageRepairIndex = postgresqlSource.indexOf("['-m', 'pip', 'install'")
 assert.ok(postgresqlSource.indexOf('await this._stopPGAdmin()', 0) < packageRepairIndex)
 const serviceStartIndex = postgresqlSource.indexOf('started = await serviceStartSpawn')

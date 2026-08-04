@@ -40,7 +40,6 @@ import {
 } from '@shared/Process'
 import {
   fetchLoopbackListeningPids as fetchLoopbackListeningPidsWindows,
-  ProcessPidList,
   ProcessPidListStrict
 } from '@shared/Process.win'
 import { StopProcessListFetch } from '@shared/StopProcessList'
@@ -61,6 +60,8 @@ import {
   pgAdminPackageRootUnversionedProbe,
   pgAdminPaths,
   pgAdminPrivateDirectories,
+  parsePgAdminServerIdentity,
+  pgAdminServerIdentityContent,
   pgAdminServerReconciliationContent,
   pgAdminServersContent,
   pgAdminUrl,
@@ -70,6 +71,7 @@ import {
   startPgAdminWithPortRetry,
   stopPgAdminPidsWithVerification,
   type PgAdminCredentials,
+  type PgAdminServerIdentity,
   validPgAdminCredentials,
   validPgAdminPythonVersion,
   verifyPgAdminPidPersistence,
@@ -141,7 +143,7 @@ class Manager extends Base {
   private async pgAdminRunningPid(packageRoot: string): Promise<string | undefined> {
     const paths = this.pgAdminPaths()
     const pid = await this.readPidFromFile(paths.pid)
-    const processList = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
     const process = pid ? processList.find((item) => item.PID === pid) : undefined
     const command = process?.COMMAND ?? ''
     if (pid && pgAdminCommandOwned(command, paths, packageRoot, isWindows())) {
@@ -156,13 +158,13 @@ class Manager extends Base {
 
   private async pgAdminOwnedProcessPids(packageRoot: string): Promise<string[]> {
     const paths = this.pgAdminPaths()
-    const processList = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
     return pgAdminOwnedPids(processList, paths, packageRoot, isWindows())
   }
 
   private async pgAdminFallbackOwnedProcessPids(): Promise<string[]> {
     const paths = this.pgAdminPaths()
-    const processList = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
     return pgAdminOwnedPidsWithoutPackageMetadata(processList, paths, isWindows())
   }
 
@@ -260,13 +262,23 @@ class Manager extends Base {
       try {
         const paths = this.pgAdminPaths()
         let firstStart = !pgAdminInitialized(paths, existsSync)
+        let serverIdentity: PgAdminServerIdentity | undefined
+        if (!firstStart) {
+          try {
+            serverIdentity = parsePgAdminServerIdentity(await readFile(paths.identity, 'utf-8'))
+          } catch {
+            firstStart = true
+          }
+        }
         if (!existsSync(join(dataDir, 'postmaster.pid'))) {
           throw new Error('PostgreSQL is not running')
         }
         const postmaster = postgresqlPostmasterInfo(
           await readFile(join(dataDir, 'postmaster.pid'), 'utf-8')
         )
-        const postgreSqlProcesses = isWindows() ? await ProcessPidList() : await ProcessListFetch()
+        const postgreSqlProcesses = isWindows()
+          ? await ProcessPidListStrict()
+          : await ProcessListFetch()
         if (
           !postgresqlPostmasterOwnedByDataDir(postmaster, dataDir, postgreSqlProcesses, isWindows())
         ) {
@@ -317,10 +329,19 @@ class Manager extends Base {
         }
 
         const reconcilePgAdminServer = async () => {
+          if (!serverIdentity) {
+            throw new Error('pgAdmin FlyEnv PostgreSQL server identity was not found')
+          }
           await writeFile(paths.reconciliation, pgAdminServerReconciliationContent())
           await spawnPromiseWithEnv(
             paths.python,
-            [paths.reconciliation, packageRoot, `${postgreSqlPort}`],
+            [
+              paths.reconciliation,
+              packageRoot,
+              `${serverIdentity.userId}`,
+              `${serverIdentity.serverId}`,
+              `${postgreSqlPort}`
+            ],
             { shell: false, cwd: packageRoot }
           )
         }
@@ -405,6 +426,14 @@ class Manager extends Base {
                   )
                 },
                 markInitialized: async () => {
+                  await writeFile(paths.identityScript, pgAdminServerIdentityContent())
+                  const identityResult = await spawnPromiseWithEnv(
+                    paths.python,
+                    [paths.identityScript, packageRoot, admin.email, `${postgreSqlPort}`],
+                    { shell: false, cwd: packageRoot }
+                  )
+                  serverIdentity = parsePgAdminServerIdentity(identityResult.stdout)
+                  await writeFile(paths.identity, JSON.stringify(serverIdentity))
                   await writeFile(paths.initialized, '1')
                 }
               })
