@@ -27,6 +27,7 @@ import { appDebugLog, isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shar
 import process from 'node:process'
 import { fixVHost } from './Host'
 import { withBinVersionCache } from '../../util/BinVersionCache'
+import { buildWindowsPhpIni } from './PhpIni'
 
 class FrankenPHP extends Base {
   constructor() {
@@ -36,6 +37,38 @@ class FrankenPHP extends Base {
 
   init() {
     this.pidPath = join(global.Server.BaseDir!, 'frankenphp/frankenphp.pid')
+  }
+
+  private async ensureWindowsPhpIni(versionPath: string): Promise<string> {
+    const ini = join(versionPath, 'php.ini')
+    if (!isWindows() || existsSync(ini)) {
+      return ini
+    }
+
+    const development = join(versionPath, 'php.ini-development')
+    const production = join(versionPath, 'php.ini-production')
+    const template = existsSync(development) ? development : production
+    if (!existsSync(template)) {
+      throw new Error(I18nT('common.error.phpiniNotFound'))
+    }
+
+    const content = buildWindowsPhpIni(
+      await readFile(template, 'utf-8'),
+      (name) => existsSync(join(versionPath, 'ext', name))
+    )
+    await writeFile(ini, content)
+    await writeFile(join(versionPath, 'php.ini.default'), content)
+    return ini
+  }
+
+  getIniPath(version: SoftInstalled): ForkPromise<string> {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        resolve(await this.ensureWindowsPhpIni(version.path))
+      } catch (error) {
+        reject(error)
+      }
+    })
   }
 
   initConfig(): ForkPromise<string> {
@@ -71,6 +104,13 @@ class FrankenPHP extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        await this.ensureWindowsPhpIni(version.path)
+      } catch (error) {
+        reject(error)
+        return
+      }
+
       on({
         'APP-On-Log': AppLog(
           'info',
@@ -159,6 +199,7 @@ class FrankenPHP extends Base {
   async _installSoftHandle(row: any): Promise<void> {
     if (isWindows()) {
       await zipUnpack(row.zip, row.appDir)
+      await this.ensureWindowsPhpIni(row.appDir)
     } else {
       const dir = row.appDir
       await mkdirp(dir)

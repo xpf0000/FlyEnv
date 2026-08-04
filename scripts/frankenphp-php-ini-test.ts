@@ -25,4 +25,12 @@ assert.match(content, /zend_extension=php_xdebug\.dll/)
 assert.doesNotMatch(content, /extension=php_gd\.dll/)
 assert.match(content, /\[PHP\]/)
 
+const root = join(import.meta.dirname, '..')
+const moduleSource = readFileSync(join(root, 'src/fork/module/FrankenPHP/index.ts'), 'utf8')
+
+assert.match(moduleSource, /ensureWindowsPhpIni/)
+assert.match(moduleSource, /this\.ensureWindowsPhpIni\(row\.appDir\)/)
+assert.match(moduleSource, /this\.ensureWindowsPhpIni\(version\.path\)/)
+assert.match(moduleSource, /getIniPath\(version: SoftInstalled\)/)
+
 console.log('frankenphp-php-ini-test: ok')
