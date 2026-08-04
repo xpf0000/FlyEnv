@@ -52,9 +52,8 @@ class FrankenPHP extends Base {
       throw new Error(I18nT('common.error.phpiniNotFound'))
     }
 
-    const content = buildWindowsPhpIni(
-      await readFile(template, 'utf-8'),
-      (name) => existsSync(join(versionPath, 'ext', name))
+    const content = buildWindowsPhpIni(await readFile(template, 'utf-8'), (name) =>
+      existsSync(join(versionPath, 'ext', name))
     )
     await writeFile(ini, content)
     await writeFile(join(versionPath, 'php.ini.default'), content)

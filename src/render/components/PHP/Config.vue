@@ -71,19 +71,21 @@
 
   const fetchIniFile = () => {
     return new Promise<string>((resolve) => {
-      IPC.send(`app-fork:${props.typeFlag}`, 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
-        (key: string, res: any) => {
-          console.log(res)
-          IPC.off(key)
-          if (res.code === 0) {
-            ConfStore.phpIniFiles[iniCacheKey.value] = res.data
-            ConfStore.save()
-            resolve(res.data)
-            return
-          }
-          resolve('')
+      IPC.send(
+        `app-fork:${props.typeFlag}`,
+        'getIniPath',
+        JSON.parse(JSON.stringify(props.version))
+      ).then((key: string, res: any) => {
+        console.log(res)
+        IPC.off(key)
+        if (res.code === 0) {
+          ConfStore.phpIniFiles[iniCacheKey.value] = res.data
+          ConfStore.save()
+          resolve(res.data)
+          return
         }
-      )
+        resolve('')
+      })
     })
   }
 

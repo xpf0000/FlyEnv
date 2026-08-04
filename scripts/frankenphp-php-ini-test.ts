@@ -6,7 +6,9 @@ type IniBuilderModule = {
   buildWindowsPhpIni?: (content: string, extensionExists: (name: string) => boolean) => string
 }
 
-const phpIni = (await import('../src/fork/module/FrankenPHP/PhpIni').catch(() => ({}))) as IniBuilderModule
+const phpIni = (await import('../src/fork/module/FrankenPHP/PhpIni').catch(
+  () => ({})
+)) as IniBuilderModule
 
 assert.equal(typeof phpIni.buildWindowsPhpIni, 'function')
 
