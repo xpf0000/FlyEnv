@@ -24,15 +24,28 @@ import {
   serviceStartExecCMD,
   mkdirp,
   execPromiseWithEnv,
-  spawnPromiseWithEnv
+  spawnPromiseWithEnv,
+  remove
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
-import { ProcessSearch } from '@shared/Process'
+import { ProcessKill, ProcessListFetch, ProcessSearch } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
+import {
+  findPgAdminPort,
+  PGADMIN4_PACKAGE,
+  pgAdminConfigContent,
+  pgAdminPaths,
+  pgAdminServersContent,
+  pgAdminUrl,
+  postgresqlPortFromConfig,
+  type PgAdminCredentials,
+  validPgAdminCredentials,
+  validPgAdminPythonVersion
+} from './pgAdmin'
 
 class Manager extends Base {
   constructor() {
@@ -53,7 +66,188 @@ class Manager extends Base {
     const versionTop = version?.version?.split('.')?.shift() ?? ''
     if (!versionTop) return []
     const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
-    return [{ name: 'log', path: join(dbPath, 'pg.log') }]
+    const pgAdminLogDir = join(this.pgAdminPaths().root, 'log')
+    return [
+      { name: 'log', path: join(dbPath, 'pg.log') },
+      { name: 'pgadmin4-start-out', path: join(pgAdminLogDir, 'pgadmin4.start.out.log') },
+      { name: 'pgadmin4-start-error', path: join(pgAdminLogDir, 'pgadmin4.start.err.log') }
+    ]
+  }
+
+  private pgAdminPaths() {
+    return pgAdminPaths(global.Server.PostgreSqlDir!, isWindows())
+  }
+
+  private async pgAdminPackageRoot(pythonBin: string): Promise<string> {
+    const result = await spawnPromiseWithEnv(
+      pythonBin,
+      ['-c', 'import os, pgadmin; print(os.path.dirname(os.path.dirname(pgadmin.__file__)))'],
+      { shell: false }
+    )
+    const root = result.stdout.trim()
+    if (!root) {
+      throw new Error('pgAdmin package directory was not found')
+    }
+    return root
+  }
+
+  private async pgAdminRunningPid(): Promise<string | undefined> {
+    const paths = this.pgAdminPaths()
+    if (!existsSync(paths.pid)) {
+      return undefined
+    }
+
+    const pid = await this.readPidFromFile(paths.pid)
+    const process = pid ? (await ProcessListFetch()).find((item) => item.PID === pid) : undefined
+    const command = process?.COMMAND ?? ''
+    if (!command.includes(paths.root)) {
+      await remove(paths.pid).catch(() => {})
+      return undefined
+    }
+    return pid
+  }
+
+  private async _stopPGAdmin(): Promise<string[]> {
+    const paths = this.pgAdminPaths()
+    const pid = await this.pgAdminRunningPid()
+    if (!pid) {
+      return []
+    }
+
+    try {
+      await ProcessKill('-INT', [pid])
+    } finally {
+      await remove(paths.pid).catch(() => {})
+    }
+    return [pid]
+  }
+
+  pgAdminStatus(): ForkPromise<{ initialized: boolean }> {
+    return new ForkPromise((resolve) => {
+      resolve({ initialized: existsSync(join(this.pgAdminPaths().data, 'pgadmin4.db')) })
+    })
+  }
+
+  openPGAdmin(
+    version: SoftInstalled,
+    dataDir: string,
+    python: SoftInstalled,
+    credentials?: PgAdminCredentials
+  ): ForkPromise<{ url: string; 'APP-Service-Start-PID': string }> {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        const paths = this.pgAdminPaths()
+        const firstStart = !existsSync(join(paths.data, 'pgadmin4.db'))
+        if (!existsSync(join(dataDir, 'postmaster.pid'))) {
+          throw new Error('PostgreSQL is not running')
+        }
+        if (!python?.bin || !existsSync(python.bin)) {
+          throw new Error('A selected Python binary is required')
+        }
+        if (!validPgAdminPythonVersion(python.version)) {
+          throw new Error('pgAdmin 4 requires Python 3.9 or later')
+        }
+        if (firstStart && !validPgAdminCredentials(credentials)) {
+          throw new Error('pgAdmin administrator credentials are required')
+        }
+
+        if (!firstStart) {
+          const runningPid = await this.pgAdminRunningPid()
+          if (runningPid && existsSync(paths.port)) {
+            const port = Number((await readFile(paths.port, 'utf-8')).trim())
+            if (Number.isInteger(port) && port >= 1 && port <= 65535) {
+              resolve({
+                url: pgAdminUrl(port),
+                'APP-Service-Start-PID': runningPid
+              })
+              return
+            }
+          }
+          if (runningPid) {
+            await this._stopPGAdmin()
+          }
+        }
+
+        const postgreSqlPort = postgresqlPortFromConfig(
+          await readFile(join(dataDir, 'postgresql.conf'), 'utf-8')
+        )
+        const logDir = join(paths.root, 'log')
+        await mkdirp(paths.data)
+        await mkdirp(logDir)
+        if (!existsSync(paths.venv)) {
+          await spawnPromiseWithEnv(python.bin, ['-m', 'venv', paths.venv], { shell: false })
+        }
+        if (!existsSync(paths.python)) {
+          throw new Error('pgAdmin virtual environment Python was not created')
+        }
+
+        let packageRoot = ''
+        try {
+          packageRoot = await this.pgAdminPackageRoot(paths.python)
+        } catch {}
+        if (!packageRoot) {
+          await spawnPromiseWithEnv(
+            paths.python,
+            ['-m', 'pip', 'install', '--disable-pip-version-check', PGADMIN4_PACKAGE],
+            { shell: false }
+          )
+          packageRoot = await this.pgAdminPackageRoot(paths.python)
+        }
+
+        const port = await findPgAdminPort()
+        await writeFile(paths.port, `${port}`)
+        await writeFile(join(packageRoot, 'config_local.py'), pgAdminConfigContent(paths.data, port))
+
+        if (firstStart) {
+          const admin = credentials!
+          await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
+          await spawnPromiseWithEnv(paths.python, [join(packageRoot, 'setup.py'), 'setup-db'], {
+            shell: false,
+            env: {
+              PGADMIN_SETUP_EMAIL: admin.email,
+              PGADMIN_SETUP_PASSWORD: admin.password
+            }
+          })
+          await spawnPromiseWithEnv(
+            paths.python,
+            [join(packageRoot, 'setup.py'), 'load-servers', paths.servers, '--user', admin.email],
+            { shell: false }
+          )
+        }
+
+        const started = await serviceStartSpawn({
+          version: {
+            typeFlag: version.typeFlag,
+            version: 'pgadmin4',
+            bin: paths.python,
+            path: paths.root,
+            num: null,
+            enable: true,
+            run: false,
+            running: false
+          },
+          pidPath: paths.pid,
+          baseDir: paths.root,
+          bin: paths.python,
+          execArgs: [join(packageRoot, 'pgAdmin4.py')],
+          execEnv: {
+            LC_ALL: global.Server.Local!,
+            LANG: global.Server.Local!
+          },
+          on,
+          waitTime: 2000,
+          cwd: packageRoot,
+          outFile: join(logDir, 'pgadmin4.start.out.log'),
+          errFile: join(logDir, 'pgadmin4.start.err.log')
+        })
+        resolve({
+          url: pgAdminUrl(port),
+          'APP-Service-Start-PID': `${started['APP-Service-Start-PID']}`
+        })
+      } catch (error) {
+        reject(error)
+      }
+    })
   }
 
   _stopServer(
@@ -61,6 +255,7 @@ class Manager extends Base {
     DATA_DIR?: string
   ): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     return new ForkPromise(async (resolve, reject, on) => {
+      const pgAdminPids = await this._stopPGAdmin().catch(() => [])
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
@@ -149,6 +344,7 @@ class Manager extends Base {
       if (version?.pid) {
         pids.add(`${version.pid}`)
       }
+      pgAdminPids.forEach((pid) => pids.add(pid))
       on({
         'APP-Service-Stop-Success': true
       })

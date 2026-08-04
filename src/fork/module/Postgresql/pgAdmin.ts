@@ -80,8 +80,8 @@ export function validPgAdminCredentials(credentials?: PgAdminCredentials | null)
   )
 }
 
-export function validPgAdminPythonVersion(version: string): boolean {
-  const match = /^(?:Python\s+)?(\d+)\.(\d+)(?:\.\d+)?\s*$/.exec(version.trim())
+export function validPgAdminPythonVersion(version: string | null | undefined): boolean {
+  const match = /^(?:Python\s+)?(\d+)\.(\d+)(?:\.\d+)?\s*$/.exec(version?.trim() ?? '')
   if (!match) return false
 
   const major = Number(match[1])

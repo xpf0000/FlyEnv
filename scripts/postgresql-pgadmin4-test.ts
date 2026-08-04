@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { createServer } from 'node:net'
 import { once } from 'node:events'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
   findPgAdminPort,
@@ -73,6 +74,7 @@ assert.equal(validPgAdminPythonVersion('3.8.18'), false)
 assert.equal(validPgAdminPythonVersion('Python 3.9.0'), true)
 assert.equal(validPgAdminPythonVersion('3.13.1'), true)
 assert.equal(validPgAdminPythonVersion('not a version'), false)
+assert.equal(validPgAdminPythonVersion(null), false)
 
 await assert.rejects(
   findPgAdminPort(65536),
@@ -110,5 +112,34 @@ try {
   occupied.close()
   await once(occupied, 'close')
 }
+
+const postgresqlSource = readFileSync(
+  join(process.cwd(), 'src', 'fork', 'module', 'Postgresql', 'index.ts'),
+  'utf-8'
+)
+
+assert.match(postgresqlSource, /pgAdminStatus\(\): ForkPromise<\{ initialized: boolean \}>/)
+assert.match(postgresqlSource, /openPGAdmin\([\s\S]*?credentials\?: PgAdminCredentials/)
+assert.match(postgresqlSource, /validPgAdminCredentials\(credentials\)/)
+assert.match(postgresqlSource, /validPgAdminPythonVersion\(python\.version\)/)
+assert.match(
+  postgresqlSource,
+  /spawnPromiseWithEnv\(python\.bin, \['-m', 'venv', paths\.venv\], \{[\s\S]*?shell: false/
+)
+assert.match(postgresqlSource, /PGADMIN4_PACKAGE/)
+assert.match(postgresqlSource, /setup\.py/)
+assert.match(postgresqlSource, /setup-db/)
+assert.match(postgresqlSource, /load-servers/)
+assert.match(postgresqlSource, /findPgAdminPort\(/)
+assert.match(postgresqlSource, /ProcessKill\('-INT', \[pid\]\)/)
+assert.match(postgresqlSource, /command\.includes\(paths\.root\)/)
+assert.match(postgresqlSource, /readFile\(paths\.port, 'utf-8'\)/)
+assert.match(postgresqlSource, /writeFile\(paths\.port, `\$\{port\}`\)/)
+assert.match(postgresqlSource, /serviceStartSpawn\([\s\S]*?bin: paths\.python/)
+assert.match(postgresqlSource, /_stopPGAdmin\(/)
+assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)
+assert.equal((postgresqlSource.match(/PGADMIN_SETUP_EMAIL/g) ?? []).length, 1)
+assert.equal((postgresqlSource.match(/PGADMIN_SETUP_PASSWORD/g) ?? []).length, 1)
+assert.ok(postgresqlSource.indexOf("'config_local.py'") < postgresqlSource.indexOf("'setup-db'"))
 
 console.log('PostgreSQL pgAdmin 4 runtime contract test passed')
