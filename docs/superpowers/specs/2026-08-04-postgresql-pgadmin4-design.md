@@ -63,7 +63,7 @@ pgAdmin data, logs, runtime state, and its virtual environment remain inside `se
 
 The preferred management port is `5050`. The fork module first reuses an owned pgAdmin process when it is healthy. If it cannot use `5050`, it chooses another free loopback TCP port and returns that port in the browser URL. It never binds an externally reachable address.
 
-The pgAdmin PID file is separate from PostgreSQL's `postmaster.pid`. PostgreSQL's stop flow stops the owned pgAdmin process and includes its PID in the normal service-stop result, matching CH-UI's companion lifecycle behavior.
+The pgAdmin PID file and its selected-port file are separate from PostgreSQL's `postmaster.pid`. PostgreSQL's stop flow stops the owned pgAdmin process and includes its PID in the normal service-stop result, matching CH-UI's companion lifecycle behavior. The selected-port file lets later panel clicks reuse the actual URL when the preferred port was occupied.
 
 ## Error Handling
 
