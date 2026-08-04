@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import {
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
+  PGADMIN4_MAX_PORT,
   PGADMIN4_PACKAGE,
   PGADMIN4_PORT_SCAN_COUNT,
   pgAdminConfigContent,
@@ -17,6 +18,7 @@ import {
 } from '../src/fork/module/Postgresql/pgAdmin'
 
 assert.equal(PGADMIN4_DEFAULT_PORT, 5050)
+assert.equal(PGADMIN4_MAX_PORT, 65535)
 assert.equal(PGADMIN4_PORT_SCAN_COUNT, 21)
 assert.equal(PGADMIN4_PACKAGE, 'pgadmin4==9.17')
 assert.equal(pgAdminUrl(5051), 'http://127.0.0.1:5051')
@@ -71,6 +73,29 @@ assert.equal(validPgAdminPythonVersion('3.8.18'), false)
 assert.equal(validPgAdminPythonVersion('Python 3.9.0'), true)
 assert.equal(validPgAdminPythonVersion('3.13.1'), true)
 assert.equal(validPgAdminPythonVersion('not a version'), false)
+
+await assert.rejects(
+  findPgAdminPort(65536),
+  /No pgAdmin 4 loopback port is available between 65536 and 65535/
+)
+
+const maxPort = PGADMIN4_MAX_PORT
+const maxPortServer = createServer()
+const maxPortAvailable = await new Promise<boolean>((resolve) => {
+  maxPortServer.once('error', () => resolve(false))
+  maxPortServer.listen({ host: '127.0.0.1', port: maxPort }, () => resolve(true))
+})
+if (maxPortAvailable) {
+  try {
+    await assert.rejects(
+      findPgAdminPort(maxPort),
+      /No pgAdmin 4 loopback port is available between 65535 and 65535/
+    )
+  } finally {
+    maxPortServer.close()
+    await once(maxPortServer, 'close')
+  }
+}
 
 const occupied = createServer()
 occupied.listen({ host: '127.0.0.1', port: 0 })

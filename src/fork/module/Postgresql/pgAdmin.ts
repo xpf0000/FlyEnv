@@ -3,6 +3,7 @@ import { join } from 'node:path'
 
 export const PGADMIN4_PACKAGE = 'pgadmin4==9.17'
 export const PGADMIN4_DEFAULT_PORT = 5050
+export const PGADMIN4_MAX_PORT = 65535
 export const PGADMIN4_PORT_SCAN_COUNT = 21
 
 export interface PgAdminCredentials {
@@ -104,14 +105,15 @@ function canBindLoopback(port: number): Promise<boolean> {
 }
 
 export async function findPgAdminPort(start = PGADMIN4_DEFAULT_PORT): Promise<number> {
-  for (let offset = 0; offset < PGADMIN4_PORT_SCAN_COUNT; offset += 1) {
+  const end = Math.min(start + PGADMIN4_PORT_SCAN_COUNT - 1, PGADMIN4_MAX_PORT)
+  for (
+    let offset = 0;
+    offset < PGADMIN4_PORT_SCAN_COUNT && start + offset <= PGADMIN4_MAX_PORT;
+    offset += 1
+  ) {
     const port = start + offset
     if (await canBindLoopback(port)) return port
   }
 
-  throw new Error(
-    `No pgAdmin 4 loopback port is available between ${start} and ${
-      start + PGADMIN4_PORT_SCAN_COUNT - 1
-    }`
-  )
+  throw new Error(`No pgAdmin 4 loopback port is available between ${start} and ${end}`)
 }
