@@ -35,7 +35,7 @@
               ></el-input>
             </template>
             <template v-else>
-              <QrcodePopper :url="scope.row.name">
+              <QrcodePopper :url="`http://${siteName(scope.row)}`">
                 <div class="link" @click.stop="openSite(scope.row)">
                   <yb-icon
                     :class="{ active: linkEnable }"
