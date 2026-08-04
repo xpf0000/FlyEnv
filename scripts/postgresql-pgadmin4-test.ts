@@ -6,6 +6,7 @@ import {
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
   PGADMIN4_PACKAGE,
+  PGADMIN4_PORT_SCAN_COUNT,
   pgAdminConfigContent,
   pgAdminPaths,
   pgAdminServersContent,
@@ -16,6 +17,7 @@ import {
 } from '../src/fork/module/Postgresql/pgAdmin'
 
 assert.equal(PGADMIN4_DEFAULT_PORT, 5050)
+assert.equal(PGADMIN4_PORT_SCAN_COUNT, 21)
 assert.equal(PGADMIN4_PACKAGE, 'pgadmin4==9.17')
 assert.equal(pgAdminUrl(5051), 'http://127.0.0.1:5051')
 
