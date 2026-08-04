@@ -11,7 +11,7 @@
           </template>
         </div>
         <div class="content">
-          <div class="text" v-html="item.content"> </div>
+          <div class="text" v-html="DOMPurify.sanitize(item.content)"> </div>
           <template v-if="item?.action === 'ChooseSiteRoot'">
             <ChooseSiteRoot :item="item" />
           </template>
@@ -31,6 +31,7 @@
   import { User } from '@element-plus/icons-vue'
   import ChooseSiteRoot from './Plant/chooseSiteRoot.vue'
   import SiteAccessIssues from './Plant/siteAccessIssues.vue'
+  import DOMPurify from 'dompurify'
   import { shell } from '@/util/NodeFn'
 
   const openDir = (dir: string) => {

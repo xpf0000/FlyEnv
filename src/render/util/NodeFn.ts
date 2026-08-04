@@ -1,4 +1,5 @@
 import IPC from '@/util/IPC'
+import DOMPurify from 'dompurify'
 import type { ExecOptions } from 'node:child_process'
 import type { Stats } from 'node:fs'
 
@@ -102,8 +103,12 @@ export const clipboard = {
   writeText: createIPCCall<[string], void>('clipboard', 'writeText')
 }
 
+const mdRenderRaw = createIPCCall<[string], string>('md', 'render')
 export const md = {
-  render: createIPCCall<[string], string>('md', 'render')
+  render: async (src: string): Promise<string> => {
+    const html = await mdRenderRaw(src)
+    return DOMPurify.sanitize(html)
+  }
 }
 
 export const nodeForge = {
