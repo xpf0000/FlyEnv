@@ -38,7 +38,7 @@
             >
             <el-button
               class="flex-shrink-0"
-              :disabled="!DATA_DIR"
+              :disabled="isRunning || !DATA_DIR"
               link
               :icon="Edit"
               @click.stop="chooseDir"
@@ -68,7 +68,7 @@
   import { I18nT } from '@lang/index'
   import { join } from '@/util/path-browserify'
   import { BrewStore } from '@/store/brew'
-  import { computed, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { PostgreSqlSetup } from './setup'
   import { chooseFolder } from '@/util/File'
   import { Edit, Loading } from '@element-plus/icons-vue'
@@ -100,16 +100,21 @@
     return brewStore.module('postgresql').installed.find((item) => item.run)
   })
   const isRunning = computed(() => !!runningVersion.value)
-  const runningDataDir = computed(() => {
-    if (!runningVersion.value?.bin) {
-      return ''
-    }
-    if (PostgreSqlSetup.dir[runningVersion.value.bin]) {
-      return PostgreSqlSetup.dir[runningVersion.value.bin]
-    }
-    const versionTop = runningVersion.value.version?.split('.')?.shift() ?? ''
-    return join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
-  })
+  const runningDataDir = ref('')
+  watch(
+    runningVersion,
+    (version) => {
+      if (!version?.bin) {
+        runningDataDir.value = ''
+        return
+      }
+      const versionTop = version.version?.split('.')?.shift() ?? ''
+      runningDataDir.value =
+        PostgreSqlSetup.dir[version.bin] ??
+        join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+    },
+    { immediate: true }
+  )
   const pgAdminOpening = ref(false)
   const pgAdminSetupVisible = ref(false)
 
@@ -126,7 +131,7 @@
       return I18nT('base.needSelectVersion')
     },
     set(v: string) {
-      if (!currentVersion?.value?.bin) {
+      if (isRunning.value || !currentVersion?.value?.bin) {
         return
       }
       PostgreSqlSetup.dir[currentVersion.value.bin] = v
@@ -135,6 +140,9 @@
   })
 
   const chooseDir = () => {
+    if (isRunning.value) {
+      return
+    }
     chooseFolder()
       .then((path: string) => {
         DATA_DIR.value = path
@@ -178,7 +186,8 @@
       return
     }
     pgAdminOpening.value = true
-    IPC.send(
+    const openPgAdminIpc = credentials ? IPC.sendSensitive.bind(IPC) : IPC.send.bind(IPC)
+    openPgAdminIpc(
       'app-fork:postgresql',
       'openPGAdmin',
       runningVersion.value,

@@ -24,15 +24,23 @@ class IPC {
    * @param command
    * @param args
    */
-  send(command: string, ...args: any) {
+  private sendInternal(command: string, args: any[], log: boolean) {
     const key = 'IPC-Key-' + uuid()
-    console.log('ipcSendToMain: ', command, key, args)
+    if (log) {
+      console.log('ipcSendToMain: ', command, key, args)
+    }
     window.FlyEnvNodeAPI.ipcSendToMain(command, key, ...args)
     return {
       then: (callback: IPCCallback) => {
         this.listens[key] = callback
       }
     }
+  }
+  send(command: string, ...args: any) {
+    return this.sendInternal(command, args, true)
+  }
+  sendSensitive(command: string, ...args: any) {
+    return this.sendInternal(command, args, false)
   }
   on(command: string) {
     return {

@@ -1063,6 +1063,7 @@ const postgreSqlRendererSource = readFileSync(
   join(process.cwd(), 'src', 'render', 'components', 'PostgreSql', 'Index.vue'),
   'utf-8'
 )
+const ipcSource = readFileSync(join(process.cwd(), 'src', 'render', 'util', 'IPC.ts'), 'utf-8')
 
 assert.match(pgAdminSetupSource, /defineProps<\{ modelValue: boolean \}>\(\)/)
 assert.match(pgAdminSetupSource, /'update:modelValue': \[value: boolean\]/)
@@ -1094,13 +1095,35 @@ assert.match(
   postgreSqlRendererSource,
   /module\('postgresql'\)\.installed\.find\(\(item\) => item\.run\)/
 )
-assert.match(postgreSqlRendererSource, /PostgreSqlSetup\.dir\[runningVersion\.value\.bin\]/)
 assert.match(postgreSqlRendererSource, /`postgresql\$\{versionTop\}`/)
+assert.match(postgreSqlRendererSource, /const runningDataDir = ref\(''\)/)
+assert.doesNotMatch(postgreSqlRendererSource, /const runningDataDir = computed/)
+assert.match(
+  postgreSqlRendererSource,
+  /watch\(\s*runningVersion,\s*\(version\) => \{[\s\S]*?runningDataDir\.value =\s*PostgreSqlSetup\.dir\[version\.bin\]/
+)
+assert.match(postgreSqlRendererSource, /:disabled="isRunning \|\| !DATA_DIR"/)
+assert.match(
+  postgreSqlRendererSource,
+  /const chooseDir = \(\) => \{\s*if \(isRunning\.value\) \{\s*return/s
+)
+assert.match(
+  postgreSqlRendererSource,
+  /set\(v: string\) \{\s*if \(isRunning\.value \|\| !currentVersion\?\.value\?\.bin\) \{/s
+)
 assert.match(postgreSqlRendererSource, /MessageError\(I18nT\('base\.needSelectVersion'\)\)/)
 assert.match(postgreSqlRendererSource, /IPC\.send\('app-fork:postgresql', 'pgAdminStatus'\)/)
 assert.match(
   postgreSqlRendererSource,
-  /IPC\.send\(\s*'app-fork:postgresql',\s*'openPGAdmin',\s*runningVersion\.value,\s*runningDataDir\.value,\s*brewStore\.currentVersion\('python'\),\s*credentials\s*\)/s
+  /const openPgAdminIpc = credentials \? IPC\.sendSensitive\.bind\(IPC\) : IPC\.send\.bind\(IPC\)/
+)
+assert.match(
+  postgreSqlRendererSource,
+  /openPgAdminIpc\(\s*'app-fork:postgresql',\s*'openPGAdmin',\s*runningVersion\.value,\s*runningDataDir\.value,\s*brewStore\.currentVersion\('python'\),\s*credentials\s*\)/s
+)
+assert.doesNotMatch(
+  postgreSqlRendererSource,
+  /IPC\.send\(\s*'app-fork:postgresql',\s*'openPGAdmin'/s
 )
 assert.match(postgreSqlRendererSource, /if \(res\?\.code === 200\) \{\s*return\s*\}/s)
 assert.match(postgreSqlRendererSource, /IPC\.off\(key\)/)
@@ -1108,5 +1131,18 @@ assert.match(postgreSqlRendererSource, /pgAdminOpening\.value = false/)
 assert.match(postgreSqlRendererSource, /res\?\.code === 0 && res\.data\?\.url/)
 assert.match(postgreSqlRendererSource, /shell\.openExternal\(res\.data\.url\)/)
 assert.doesNotMatch(postgreSqlRendererSource, /localForage|localStorage|sessionStorage/)
+
+assert.match(
+  ipcSource,
+  /send\(command: string, \.\.\.args: any\) \{\s*return this\.sendInternal\(command, args, true\)\s*\}/s
+)
+assert.match(
+  ipcSource,
+  /sendSensitive\(command: string, \.\.\.args: any\) \{\s*return this\.sendInternal\(command, args, false\)\s*\}/s
+)
+assert.match(
+  ipcSource,
+  /if \(log\) \{\s*console\.log\('ipcSendToMain: ', command, key, args\)\s*\}/s
+)
 
 console.log('PostgreSQL pgAdmin 4 runtime contract test passed')
