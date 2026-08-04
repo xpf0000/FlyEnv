@@ -2,6 +2,7 @@ import { createServer } from 'node:net'
 import { join } from 'node:path'
 
 export const PGADMIN4_PACKAGE = 'pgadmin4==9.17'
+export const PGADMIN4_PACKAGE_VERSION = '9.17'
 export const PGADMIN4_DEFAULT_PORT = 5050
 export const PGADMIN4_MAX_PORT = 65535
 export const PGADMIN4_MAX_SERVER_PORT = 65534
@@ -89,6 +90,7 @@ export interface PgAdminPortStartOptions<T> {
   findPort: (excluded: readonly number[]) => Promise<number>
   writeConfig: (port: number) => Promise<void>
   start: (port: number) => Promise<T>
+  isHealthy: (port: number, result: T) => Promise<boolean>
   persistPort: (port: number) => Promise<void>
   cleanupStarted: (result: T) => Promise<void>
   clearPort: () => Promise<void>
@@ -114,6 +116,12 @@ export async function startPgAdminWithPortRetry<T>(
         result = await options.start(port)
       } catch (error) {
         lastError = error
+        continue
+      }
+      if (!(await options.isHealthy(port, result))) {
+        await options.cleanupStarted(result)
+        await options.clearPort()
+        lastError = new Error(`pgAdmin 4 did not become healthy on port ${port}`)
         continue
       }
       try {
@@ -159,21 +167,23 @@ export function pgAdminUrl(port: number): string {
 }
 
 export function pgAdminConfigContent(dataDir: string, logDir: string, port: number): string {
-  return [
-    'DEFAULT_SERVER = "127.0.0.1"',
-    `DEFAULT_SERVER_PORT = ${port}`,
-    `DATA_DIR = ${JSON.stringify(dataDir)}`,
-    `SQLITE_PATH = ${JSON.stringify(join(dataDir, 'pgadmin4.db'))}`,
-    `SESSION_DB_PATH = ${JSON.stringify(join(dataDir, 'sessions'))}`,
-    `STORAGE_DIR = ${JSON.stringify(join(dataDir, 'storage'))}`,
-    `LOG_FILE = ${JSON.stringify(join(logDir, 'pgadmin4.log'))}`,
-    `KERBEROS_CCACHE_DIR = ${JSON.stringify(join(dataDir, 'kerberos'))}`,
-    `AZURE_CREDENTIAL_CACHE_DIR = ${JSON.stringify(join(dataDir, 'azure'))}`
-  ].join('\n') + '\n'
+  return (
+    [
+      'DEFAULT_SERVER = "127.0.0.1"',
+      `DEFAULT_SERVER_PORT = ${port}`,
+      `DATA_DIR = ${JSON.stringify(dataDir)}`,
+      `SQLITE_PATH = ${JSON.stringify(join(dataDir, 'pgadmin4.db'))}`,
+      `SESSION_DB_PATH = ${JSON.stringify(join(dataDir, 'sessions'))}`,
+      `STORAGE_DIR = ${JSON.stringify(join(dataDir, 'storage'))}`,
+      `LOG_FILE = ${JSON.stringify(join(logDir, 'pgadmin4.log'))}`,
+      `KERBEROS_CCACHE_DIR = ${JSON.stringify(join(dataDir, 'kerberos'))}`,
+      `AZURE_CREDENTIAL_CACHE_DIR = ${JSON.stringify(join(dataDir, 'azure'))}`
+    ].join('\n') + '\n'
+  )
 }
 
 export function pgAdminPackageRootProbe(): string {
-  return "from importlib.metadata import distribution; print(distribution('pgadmin4').locate_file('pgadmin4'))"
+  return "from importlib.metadata import distribution; d = distribution('pgadmin4'); assert d.version == '9.17'; print(d.locate_file('pgadmin4'))"
 }
 
 export function pgAdminBootstrapContent(): string {
@@ -297,12 +307,17 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-export function pgAdminCommandOwned(command: string, paths: PgAdminPaths, windows: boolean): boolean {
+export function pgAdminCommandOwned(
+  command: string,
+  paths: PgAdminPaths,
+  packageRoot: string,
+  windows: boolean
+): boolean {
   const normalizedCommand = commandPath(command, windows)
   const pythonPath = commandPath(paths.python, windows)
-  const scriptName = windows ? 'pgadmin4.py' : 'pgAdmin4.py'
+  const scriptPath = commandPath(join(packageRoot, 'pgAdmin4.py'), windows)
   const pythonPattern = new RegExp(`(?:^|[\\s"'])${escapeRegExp(pythonPath)}(?=$|[\\s"'])`)
-  const scriptPattern = new RegExp(`(?:^|[\\s/"'])${escapeRegExp(scriptName)}(?=$|[\\s"'])`)
+  const scriptPattern = new RegExp(`(?:^|[\\s"'])${escapeRegExp(scriptPath)}(?=$|[\\s"'])`)
 
   return pythonPattern.test(normalizedCommand) && scriptPattern.test(normalizedCommand)
 }
@@ -315,12 +330,13 @@ export interface PgAdminProcess {
 export function pgAdminOwnedPids(
   processes: PgAdminProcess[],
   paths: PgAdminPaths,
+  packageRoot: string,
   windows: boolean
 ): string[] {
   return Array.from(
     new Set(
       processes
-        .filter((process) => pgAdminCommandOwned(process.COMMAND, paths, windows))
+        .filter((process) => pgAdminCommandOwned(process.COMMAND, paths, packageRoot, windows))
         .map((process) => `${process.PID}`.trim())
         .filter(Boolean)
     )
@@ -332,6 +348,20 @@ export function postgresqlPortFromConfig(content: string): number {
   const port = Number(match?.[1] ?? match?.[2] ?? match?.[3])
 
   return Number.isInteger(port) && port > 0 && port <= 65535 ? port : 5432
+}
+
+export function postgresqlPortFromPostmasterPid(content: string): number {
+  const rawPort = content.split('\n')[3]
+  const portText = rawPort?.endsWith('\r') ? rawPort.slice(0, -1) : rawPort
+  if (!portText || !/^\d+$/.test(portText)) {
+    throw new Error('Invalid PostgreSQL port in postmaster.pid line 4')
+  }
+
+  const port = Number(portText)
+  if (!Number.isInteger(port) || port < 1 || port > PGADMIN4_MAX_PORT) {
+    throw new Error('Invalid PostgreSQL port in postmaster.pid line 4')
+  }
+  return port
 }
 
 export function validPgAdminRegistrationPort(port: number): boolean {
@@ -383,6 +413,29 @@ export function validPgAdminPythonVersion(version: string | null | undefined): b
   const major = Number(match[1])
   const minor = Number(match[2])
   return major > 3 || (major === 3 && minor >= 9)
+}
+
+export interface PgAdminHealthOptions {
+  isPortOwned: () => Promise<boolean>
+  isHttpReachable: () => Promise<boolean>
+  wait: (milliseconds: number) => Promise<unknown>
+  attempts?: number
+  intervalMilliseconds?: number
+}
+
+export async function waitForPgAdminHealth(options: PgAdminHealthOptions): Promise<boolean> {
+  const attempts = Math.max(1, options.attempts ?? 10)
+  const intervalMilliseconds = options.intervalMilliseconds ?? 250
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if ((await options.isPortOwned()) && (await options.isHttpReachable())) {
+      return true
+    }
+    if (attempt + 1 < attempts) {
+      await options.wait(intervalMilliseconds)
+    }
+  }
+  return false
 }
 
 function canBindLoopback(port: number): Promise<boolean> {

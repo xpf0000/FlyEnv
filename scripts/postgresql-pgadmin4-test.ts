@@ -22,13 +22,15 @@ import {
   pgAdminPaths,
   pgAdminServersContent,
   pgAdminUrl,
+  postgresqlPortFromPostmasterPid,
   postgresqlPortFromConfig,
   assertPgAdminRegistrationPort,
   startPgAdminWithPortRetry,
   validPgAdminCredentials,
   validPgAdminRegistrationPort,
   validPgAdminPythonVersion,
-  verifyPgAdminPidPersistence
+  verifyPgAdminPidPersistence,
+  waitForPgAdminHealth
 } from '../src/fork/module/Postgresql/pgAdmin'
 
 assert.equal(PGADMIN4_DEFAULT_PORT, 5050)
@@ -46,6 +48,7 @@ assert.throws(
 
 const postgreSqlDir = join('/tmp', 'flyenv-postgresql')
 const unixPaths = pgAdminPaths(postgreSqlDir, false)
+const packageRoot = join('/tmp', 'flyenv-pgadmin-package')
 assert.deepEqual(unixPaths, {
   root: join(postgreSqlDir, 'pgadmin4'),
   data: join(postgreSqlDir, 'pgadmin4', 'data'),
@@ -65,9 +68,15 @@ assert.equal(
 )
 
 const initializationFiles = new Set([join(unixPaths.data, 'pgadmin4.db')])
-assert.equal(pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)), false)
+assert.equal(
+  pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)),
+  false
+)
 initializationFiles.add(unixPaths.initialized)
-assert.equal(pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)), true)
+assert.equal(
+  pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)),
+  true
+)
 
 const configDataDir = '/tmp/FlyEnv data'
 const configLogDir = '/tmp/FlyEnv logs'
@@ -93,7 +102,10 @@ assert.match(bootstrap, /from pgadmin import create_app/)
 assert.match(bootstrap, /from pgadmin\.model import Role, Server, User, db/)
 assert.match(bootstrap, /from pgadmin\.tools\.user_management import create_user/)
 assert.match(bootstrap, /with app\.test_request_context\(\):/)
-assert.match(bootstrap, /administrator_role = Role\.query\.filter_by\(name='Administrator'\)\.first\(\)/)
+assert.match(
+  bootstrap,
+  /administrator_role = Role\.query\.filter_by\(name='Administrator'\)\.first\(\)/
+)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin Administrator role was not found'\)/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator verification failed'\)/)
 assert.match(bootstrap, /if user is None:/)
@@ -114,8 +126,14 @@ assert.match(initializationVerification, /from pgadmin import create_app/)
 assert.match(initializationVerification, /from pgadmin\.model import Server, User/)
 assert.match(initializationVerification, /email = sys\.argv\[2\]/)
 assert.match(initializationVerification, /postgresql_port = int\(sys\.argv\[3\]\)/)
-assert.match(initializationVerification, /User\.query\.filter_by\(username=email, auth_source=INTERNAL\)\.first\(\)/)
-assert.match(initializationVerification, /any\(role\.name == 'Administrator' for role in user\.roles\)/)
+assert.match(
+  initializationVerification,
+  /User\.query\.filter_by\(username=email, auth_source=INTERNAL\)\.first\(\)/
+)
+assert.match(
+  initializationVerification,
+  /any\(role\.name == 'Administrator' for role in user\.roles\)/
+)
 assert.match(initializationVerification, /Server\.query\.filter_by\(/)
 assert.match(initializationVerification, /user_id=user\.id/)
 assert.match(initializationVerification, /name='FlyEnv PostgreSQL'/)
@@ -131,12 +149,17 @@ assert.match(
 )
 assert.match(initializationVerification, /connection_params = server\.connection_params or \{\}/)
 assert.match(initializationVerification, /connection_params\.get\('sslmode'\) != 'prefer'/)
-assert.match(initializationVerification, /raise RuntimeError\('pgAdmin server verification failed'\)/)
+assert.match(
+  initializationVerification,
+  /raise RuntimeError\('pgAdmin server verification failed'\)/
+)
 assert.doesNotMatch(initializationVerification, /PGADMIN_SETUP_PASSWORD/)
 
 const packageRootProbe = pgAdminPackageRootProbe()
 assert.match(packageRootProbe, /from importlib\.metadata import distribution/)
-assert.match(packageRootProbe, /distribution\('pgadmin4'\)\.locate_file\('pgadmin4'\)/)
+assert.match(packageRootProbe, /d = distribution\('pgadmin4'\)/)
+assert.match(packageRootProbe, /d\.version == '9\.17'/)
+assert.match(packageRootProbe, /d\.locate_file\('pgadmin4'\)/)
 assert.doesNotMatch(packageRootProbe, /import pgadmin/)
 
 const initializationGateEvents: string[] = []
@@ -165,8 +188,9 @@ assert.deepEqual(initializationGateEvents, ['verify', 'verify-success', 'mark-su
 
 assert.equal(
   pgAdminCommandOwned(
-    `${unixPaths.python} /package/pgAdmin4.py`,
+    `${unixPaths.python} ${join(packageRoot, 'pgAdmin4.py')}`,
     unixPaths,
+    packageRoot,
     false
   ),
   true
@@ -174,12 +198,14 @@ assert.equal(
 assert.deepEqual(
   pgAdminOwnedPids(
     [
-      { PID: '101', COMMAND: `${unixPaths.python} /package/pgAdmin4.py` },
-      { PID: '102', COMMAND: `${unixPaths.root}/other-python /package/pgAdmin4.py` },
-      { PID: '103', COMMAND: `${unixPaths.python} /package/not-pgadmin.py` },
-      { PID: '101', COMMAND: `${unixPaths.python} /package/pgAdmin4.py` }
+      { PID: '101', COMMAND: `${unixPaths.python} ${join(packageRoot, 'pgAdmin4.py')}` },
+      { PID: '102', COMMAND: `${unixPaths.root}/other-python ${join(packageRoot, 'pgAdmin4.py')}` },
+      { PID: '103', COMMAND: `${unixPaths.python} /other/pgAdmin4.py` },
+      { PID: '104', COMMAND: `${unixPaths.python} ${join(packageRoot, 'not-pgadmin.py')}` },
+      { PID: '101', COMMAND: `${unixPaths.python} ${join(packageRoot, 'pgAdmin4.py')}` }
     ],
     unixPaths,
+    packageRoot,
     false
   ),
   ['101']
@@ -230,6 +256,7 @@ const retryResult = await startPgAdminWithPortRetry({
     }
     return `pid-${port}`
   },
+  isHealthy: async () => true,
   persistPort: async (port) => {
     persistedPort = port
   },
@@ -255,6 +282,7 @@ await assert.rejects(
       persistFailureStarts.push(port)
       return `pid-${port}`
     },
+    isHealthy: async () => true,
     persistPort: async () => {
       throw new Error('could not persist pgAdmin port')
     },
@@ -278,6 +306,7 @@ await assert.rejects(
       failedPorts.push(port)
       throw new Error('port claimed')
     },
+    isHealthy: async () => true,
     persistPort: async (port) => {
       failedPersistedPort = port
     },
@@ -322,21 +351,104 @@ await verifyPgAdminPidPersistence({
 })
 assert.equal(
   pgAdminCommandOwned(
-    `${unixPaths.python} /package/not-pgadmin.py`,
+    `${unixPaths.python} ${join(packageRoot, 'not-pgadmin.py')}`,
     unixPaths,
+    packageRoot,
     false
   ),
   false
 )
-assert.equal(pgAdminCommandOwned('python /package/pgAdmin4.py', unixPaths, false), false)
+assert.equal(
+  pgAdminCommandOwned('python /package/pgAdmin4.py', unixPaths, packageRoot, false),
+  false
+)
 assert.equal(
   pgAdminCommandOwned(
     'C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\SCRIPTS\\PYTHON.EXE C:\\Package\\PGADMIN4.PY',
     pgAdminPaths('C:/FlyEnv/postgresql', true),
+    'C:/Package',
     true
   ),
   true
 )
+assert.equal(
+  pgAdminCommandOwned(`${unixPaths.python} /other/pgAdmin4.py`, unixPaths, packageRoot, false),
+  false
+)
+
+assert.equal(
+  postgresqlPortFromPostmasterPid('12345\n/data/flyenv/postgresql\n1710000000\n15432\n'),
+  15432
+)
+assert.equal(
+  postgresqlPortFromPostmasterPid('12345\n/data/flyenv/postgresql\n1710000000\n5432\n'),
+  5432
+)
+assert.throws(() => postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n'), /line 4/)
+assert.throws(
+  () => postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\ninvalid\n'),
+  /line 4/
+)
+assert.throws(() => postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n0\n'), /line 4/)
+assert.throws(
+  () =>
+    assertPgAdminRegistrationPort(
+      postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n65535\n')
+    ),
+  /1 through 65534/
+)
+
+const healthEvents: string[] = []
+let healthChecks = 0
+assert.equal(
+  await waitForPgAdminHealth({
+    isPortOwned: async () => {
+      healthEvents.push('port')
+      return true
+    },
+    isHttpReachable: async () => {
+      healthChecks += 1
+      healthEvents.push('http')
+      return healthChecks === 2
+    },
+    wait: async () => {
+      healthEvents.push('wait')
+    },
+    attempts: 2
+  }),
+  true
+)
+assert.deepEqual(healthEvents, ['port', 'http', 'wait', 'port', 'http'])
+
+const unhealthyStartPorts: number[] = []
+const unhealthyCleaned: string[] = []
+const healthyPersistedPorts: number[] = []
+let healthStartCalls = 0
+let healthyRetryPortClears = 0
+const healthyRetryResult = await startPgAdminWithPortRetry({
+  findPort: async (excluded) => (excluded.includes(5050) ? 5051 : 5050),
+  writeConfig: async () => {},
+  start: async (port) => {
+    unhealthyStartPorts.push(port)
+    healthStartCalls += 1
+    return `pid-${port}`
+  },
+  isHealthy: async () => healthStartCalls === 2,
+  persistPort: async (port) => {
+    healthyPersistedPorts.push(port)
+  },
+  cleanupStarted: async (pid) => {
+    unhealthyCleaned.push(pid)
+  },
+  clearPort: async () => {
+    healthyRetryPortClears += 1
+  }
+})
+assert.deepEqual(unhealthyStartPorts, [5050, 5051])
+assert.deepEqual(unhealthyCleaned, ['pid-5050'])
+assert.deepEqual(healthyPersistedPorts, [5051])
+assert.equal(healthyRetryPortClears, 2)
+assert.deepEqual(healthyRetryResult, { port: 5051, result: 'pid-5051' })
 assert.equal(postgresqlPortFromConfig('port = 15432'), 15432)
 assert.equal(postgresqlPortFromConfig('port = "15433" # local port'), 15433)
 assert.equal(postgresqlPortFromConfig("port = '15434'"), 15434)
@@ -424,7 +536,10 @@ assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
 assert.match(postgresqlSource, /pgAdminInitializationVerificationContent/)
 assert.match(postgresqlSource, /pgAdminPackageRootProbe\(\)/)
 assert.doesNotMatch(postgresqlSource, /import os, pgadmin/)
-assert.match(postgresqlSource, /writeFile\(\s*paths\.verification,\s*pgAdminInitializationVerificationContent\(\)\s*\)/s)
+assert.match(
+  postgresqlSource,
+  /writeFile\(\s*paths\.verification,\s*pgAdminInitializationVerificationContent\(\)\s*\)/s
+)
 assert.match(postgresqlSource, /completePgAdminInitialization\(/)
 assert.match(postgresqlSource, /startPgAdminWithPortRetry/)
 assert.match(postgresqlSource, /verifyPgAdminPidPersistence/)
@@ -432,23 +547,31 @@ assert.match(postgresqlSource, /pgAdminOwnedPids/)
 assert.match(postgresqlSource, /validPgAdminCredentials\(credentials\)/)
 assert.match(postgresqlSource, /validPgAdminPythonVersion\(python\.version\)/)
 assert.match(postgresqlSource, /assertPgAdminRegistrationPort\(postgreSqlPort\)/)
+assert.match(postgresqlSource, /postgresqlPortFromPostmasterPid/)
 assert.match(
   postgresqlSource,
   /spawnPromiseWithEnv\(python\.bin, \['-m', 'venv', paths\.venv\], \{[\s\S]*?shell: false/
 )
 assert.match(postgresqlSource, /PGADMIN4_PACKAGE/)
+assert.match(postgresqlSource, /'--upgrade', PGADMIN4_PACKAGE/)
 assert.match(postgresqlSource, /setup\.py/)
 assert.match(postgresqlSource, /setup-db/)
 assert.match(postgresqlSource, /pgAdminBootstrapContent\(\)/)
 assert.match(postgresqlSource, /load-servers/)
 assert.match(postgresqlSource, /findPgAdminPort\(/)
 assert.match(postgresqlSource, /ProcessKill\('-INT', pids\)/)
-assert.match(postgresqlSource, /pgAdminCommandOwned\(command, paths, isWindows\(\)\)/)
-assert.match(postgresqlSource, /isWindows\(\) \? await ProcessPidList\(\) : await ProcessListFetch\(\)/)
+assert.match(postgresqlSource, /pgAdminCommandOwned\(command, paths, packageRoot, isWindows\(\)\)/)
+assert.match(
+  postgresqlSource,
+  /isWindows\(\) \? await ProcessPidList\(\) : await ProcessListFetch\(\)/
+)
 assert.match(postgresqlSource, /fetchProcessPidByPort/)
 assert.match(postgresqlSource, /fetchProcessPidByPortWindows/)
 assert.match(postgresqlSource, /readFile\(paths\.port, 'utf-8'\)/)
 assert.match(postgresqlSource, /writeFile\(paths\.port, `\$\{port\}`\)/)
+assert.match(postgresqlSource, /isHealthy: async \(port, started\) =>/)
+assert.match(postgresqlSource, /pgAdminHttpReachable\(port\)/)
+assert.match(postgresqlSource, /if \(!runningPid && existsSync\(paths\.port\)\)/)
 assert.match(postgresqlSource, /serviceStartSpawn\([\s\S]*?bin: paths\.python/)
 assert.match(postgresqlSource, /_stopPGAdmin\(/)
 assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)
@@ -483,13 +606,26 @@ assert.doesNotMatch(
   /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSWORD/
 )
 assert.ok(postgresqlSource.indexOf("'load-servers'") < completionGateIndex)
-const parsedPostgreSqlPortIndex = postgresqlSource.indexOf('const postgreSqlPort = postgresqlPortFromConfig')
+const parsedPostgreSqlPortIndex = postgresqlSource.indexOf(
+  'const postgreSqlPort = postgresqlPortFromPostmasterPid'
+)
 const registrationPortValidationIndex = postgresqlSource.indexOf(
   'assertPgAdminRegistrationPort(postgreSqlPort)'
 )
 const virtualEnvironmentIndex = postgresqlSource.indexOf("['-m', 'venv', paths.venv]")
 assert.ok(parsedPostgreSqlPortIndex < registrationPortValidationIndex)
 assert.ok(registrationPortValidationIndex < virtualEnvironmentIndex)
+assert.doesNotMatch(
+  postgresqlSource.slice(parsedPostgreSqlPortIndex, virtualEnvironmentIndex),
+  /postgresqlPortFromConfig/
+)
+assert.notEqual(
+  postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n15432\n'),
+  postgresqlPortFromConfig('port = 5432')
+)
+const healthCheckIndex = postgresqlSource.indexOf('isHealthy: async (port, started) =>')
+const persistPortIndex = postgresqlSource.indexOf('persistPort: async (port) =>')
+assert.ok(healthCheckIndex < persistPortIndex)
 const serviceStartIndex = postgresqlSource.indexOf('started = await serviceStartSpawn')
 const serviceStartEndIndex = postgresqlSource.indexOf('const startedPid', serviceStartIndex)
 assert.notEqual(serviceStartIndex, -1)
