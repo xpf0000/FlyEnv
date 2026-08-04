@@ -35,7 +35,7 @@
               ></el-input>
             </template>
             <template v-else>
-              <QrcodePopper :url="`http://${siteName(scope.row)}`">
+              <QrcodePopper :url="siteName(scope.row)">
                 <div class="link" @click.stop="openSite(scope.row)">
                   <yb-icon
                     :class="{ active: linkEnable }"
@@ -231,19 +231,18 @@
 
   const siteName = (item: AppHost) => {
     const host = item.name
-    const brewStore = BrewStore()
-    const tomcatRunning = brewStore.module('tomcat').installed.find((i) => i.run)
-    let port = 80
-    if (tomcatRunning) {
-      port = item.port?.tomcat ?? 80
+    if (item.useSSL && item.ssl.cert && item.ssl.key) {
+      const port = item.port?.tomcat_ssl ?? 443
+      const portStr = port === 443 ? '' : `:${port}`
+      return `https://${host}${portStr}`
     }
+    const port = item.port?.tomcat ?? 80
     const portStr = port === 80 ? '' : `:${port}`
-    return `${host}${portStr}`
+    return `http://${host}${portStr}`
   }
 
-  const openSite = (item: any) => {
-    const name = siteName(item)
-    const url = `http://${name}`
+  const openSite = (item: AppHost) => {
+    const url = siteName(item)
     shell.openExternal(url)
   }
 
