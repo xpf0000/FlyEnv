@@ -49,30 +49,29 @@ import {
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
   PGADMIN4_PACKAGE,
-  pgAdminBootstrapContent,
   pgAdminCommandOwned,
   pgAdminOwnedPidsWithoutPackageMetadata,
   pgAdminConfigContent,
+  pgAdminDesktopBootstrapContent,
+  pgAdminDesktopInitializationVerificationContent,
+  pgAdminDesktopServerIdentityContent,
+  pgAdminDesktopServerReconciliationContent,
   pgAdminInitializationState,
-  pgAdminInitializationVerificationContent,
   pgAdminOwnedPids,
   pgAdminPackageRootProbe,
   pgAdminPackageRootUnversionedProbe,
   pgAdminPaths,
   pgAdminPrivateDirectories,
   parsePgAdminServerIdentity,
-  pgAdminServerIdentityContent,
-  pgAdminServerReconciliationContent,
   pgAdminServersContent,
   pgAdminUrl,
   PgAdminSingleFlight,
   postgresqlPostmasterInfo,
   postgresqlPostmasterOwnedByDataDir,
+  postgresqlPortFromConfig,
   startPgAdminWithPortRetry,
   stopPgAdminPidsWithVerification,
-  type PgAdminCredentials,
   type PgAdminServerIdentity,
-  validPgAdminCredentials,
   validPgAdminPythonVersion,
   verifyPgAdminPidPersistence,
   waitForPgAdminHealth
@@ -228,26 +227,15 @@ class Manager extends Base {
     return pids
   }
 
-  pgAdminStatus(): ForkPromise<{ initialized: boolean }> {
-    return new ForkPromise(async (resolve) => {
-      const paths = this.pgAdminPaths()
-      const state = await pgAdminInitializationState(paths, existsSync, (file) =>
-        readFile(file, 'utf-8')
-      )
-      resolve({ initialized: state.initialized })
-    })
-  }
-
   openPGAdmin(
     version: SoftInstalled,
     dataDir: string,
-    python: SoftInstalled,
-    credentials?: PgAdminCredentials
+    python: SoftInstalled
   ): ForkPromise<PgAdminOpenResult> {
     return new ForkPromise((resolve, reject, on) => {
       this.pgAdminOpenFlight
         .run(() =>
-          this.openPGAdminInternal(version, dataDir, python, credentials)
+          this.openPGAdminInternal(version, dataDir, python)
             .on(on)
             .then((result) => result)
         )
@@ -258,8 +246,7 @@ class Manager extends Base {
   private openPGAdminInternal(
     version: SoftInstalled,
     dataDir: string,
-    python: SoftInstalled,
-    credentials?: PgAdminCredentials
+    python: SoftInstalled
   ): ForkPromise<PgAdminOpenResult> {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
@@ -272,8 +259,12 @@ class Manager extends Base {
         if (!existsSync(join(dataDir, 'postmaster.pid'))) {
           throw new Error('PostgreSQL is not running')
         }
+        const fallbackPort = postgresqlPortFromConfig(
+          await readFile(join(dataDir, 'postgresql.conf'), 'utf-8')
+        )
         const postmaster = postgresqlPostmasterInfo(
-          await readFile(join(dataDir, 'postmaster.pid'), 'utf-8')
+          await readFile(join(dataDir, 'postmaster.pid'), 'utf-8'),
+          { dataDirectory: dataDir, port: fallbackPort }
         )
         const postgreSqlProcesses = isWindows()
           ? await ProcessPidListStrict()
@@ -290,9 +281,6 @@ class Manager extends Base {
         }
         if (!validPgAdminPythonVersion(python.version)) {
           throw new Error('pgAdmin 4 requires Python 3.9 or later')
-        }
-        if (firstStart && !validPgAdminCredentials(credentials)) {
-          throw new Error('pgAdmin administrator credentials are required')
         }
 
         await mkdirp(paths.root)
@@ -331,7 +319,7 @@ class Manager extends Base {
           if (!serverIdentity) {
             throw new Error('pgAdmin FlyEnv PostgreSQL server identity was not found')
           }
-          await writeFile(paths.reconciliation, pgAdminServerReconciliationContent())
+          await writeFile(paths.reconciliation, pgAdminDesktopServerReconciliationContent())
           await spawnPromiseWithEnv(
             paths.python,
             [
@@ -384,55 +372,44 @@ class Manager extends Base {
           },
           start: async () => {
             if (firstStart) {
-              const admin = credentials!
               await writeFile(paths.servers, pgAdminServersContent(postgreSqlPort))
               await spawnPromiseWithEnv(paths.python, [join(packageRoot, 'setup.py'), 'setup-db'], {
-                shell: false,
-                env: {
-                  PGADMIN_SETUP_EMAIL: admin.email,
-                  PGADMIN_SETUP_PASSWORD: admin.password
-                }
+                shell: false
               })
-              await writeFile(paths.bootstrap, pgAdminBootstrapContent())
-              await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot, admin.email], {
+              await writeFile(paths.bootstrap, pgAdminDesktopBootstrapContent())
+              await spawnPromiseWithEnv(paths.python, [paths.bootstrap, packageRoot], {
                 shell: false,
-                cwd: packageRoot,
-                env: { PGADMIN_SETUP_PASSWORD: admin.password }
+                cwd: packageRoot
               })
               await spawnPromiseWithEnv(
                 paths.python,
-                [
-                  join(packageRoot, 'setup.py'),
-                  'load-servers',
-                  paths.servers,
-                  '--user',
-                  admin.email
-                ],
+                [join(packageRoot, 'setup.py'), 'load-servers', paths.servers],
                 { shell: false }
               )
               await spawnPromiseWithEnv(
                 paths.python,
-                [paths.bootstrap, packageRoot, admin.email, `${postgreSqlPort}`],
+                [paths.bootstrap, packageRoot, `${postgreSqlPort}`],
                 { shell: false, cwd: packageRoot }
               )
-              await writeFile(paths.verification, pgAdminInitializationVerificationContent())
+              await writeFile(paths.verification, pgAdminDesktopInitializationVerificationContent())
               await completePgAdminInitialization({
                 verify: async () => {
                   await spawnPromiseWithEnv(
                     paths.python,
-                    [paths.verification, packageRoot, admin.email, `${postgreSqlPort}`],
+                    [paths.verification, packageRoot, `${postgreSqlPort}`],
                     { shell: false, cwd: packageRoot }
                   )
                 },
                 markInitialized: async () => {
-                  await writeFile(paths.identityScript, pgAdminServerIdentityContent())
+                  await writeFile(paths.identityScript, pgAdminDesktopServerIdentityContent())
                   const identityResult = await spawnPromiseWithEnv(
                     paths.python,
-                    [paths.identityScript, packageRoot, admin.email, `${postgreSqlPort}`],
+                    [paths.identityScript, packageRoot, `${postgreSqlPort}`],
                     { shell: false, cwd: packageRoot }
                   )
                   serverIdentity = parsePgAdminServerIdentity(identityResult.stdout)
                   await writeFile(paths.identity, JSON.stringify(serverIdentity))
+                  await writeFile(paths.desktopMode, '1')
                   await writeFile(paths.initialized, '1')
                 }
               })
@@ -690,7 +667,6 @@ class Manager extends Base {
           try {
             const res = await serviceStartSpawn({
               version,
-              pidPath: pidFile,
               baseDir,
               bin: postgresBin,
               execArgs,

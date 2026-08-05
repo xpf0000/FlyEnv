@@ -991,32 +991,35 @@ const postgresqlSource = readFileSync(
   'utf-8'
 )
 
-assert.match(postgresqlSource, /pgAdminStatus\(\): ForkPromise<\{ initialized: boolean \}>/)
 assert.match(
   postgresqlSource,
   /pgAdminInitializationState\(\s*paths,\s*existsSync,\s*\(file\) =>\s*readFile\(file, 'utf-8'\)\s*\)/s
 )
-assert.match(postgresqlSource, /openPGAdmin\([\s\S]*?credentials\?: PgAdminCredentials/)
+assert.match(
+  postgresqlSource,
+  /openPGAdmin\(\s*version: SoftInstalled,\s*dataDir: string,\s*python: SoftInstalled\s*\)/s
+)
+assert.doesNotMatch(postgresqlSource, /pgAdminStatus\(/)
 assert.match(postgresqlSource, /new PgAdminSingleFlight/)
 assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
-assert.match(postgresqlSource, /pgAdminInitializationVerificationContent/)
-assert.match(postgresqlSource, /pgAdminServerIdentityContent/)
+assert.match(postgresqlSource, /pgAdminDesktopInitializationVerificationContent/)
+assert.match(postgresqlSource, /pgAdminDesktopServerIdentityContent/)
 assert.match(postgresqlSource, /parsePgAdminServerIdentity/)
-assert.match(postgresqlSource, /pgAdminServerReconciliationContent/)
+assert.match(postgresqlSource, /pgAdminDesktopServerReconciliationContent/)
 assert.match(postgresqlSource, /probe: \(\) => string = pgAdminPackageRootProbe/)
 assert.doesNotMatch(postgresqlSource, /import os, pgadmin/)
 assert.match(
   postgresqlSource,
-  /writeFile\(\s*paths\.verification,\s*pgAdminInitializationVerificationContent\(\)\s*\)/s
+  /writeFile\(\s*paths\.verification,\s*pgAdminDesktopInitializationVerificationContent\(\)\s*\)/s
 )
 assert.match(postgresqlSource, /completePgAdminInitialization\(/)
 assert.match(postgresqlSource, /startPgAdminWithPortRetry/)
 assert.match(postgresqlSource, /verifyPgAdminPidPersistence/)
 assert.match(postgresqlSource, /pgAdminOwnedPids/)
-assert.match(postgresqlSource, /validPgAdminCredentials\(credentials\)/)
 assert.match(postgresqlSource, /validPgAdminPythonVersion\(python\.version\)/)
 assert.match(postgresqlSource, /assertPgAdminRegistrationPort\(postgreSqlPort\)/)
 assert.match(postgresqlSource, /postgresqlPostmasterInfo/)
+assert.match(postgresqlSource, /postgresqlPortFromConfig/)
 assert.match(
   postgresqlSource,
   /spawnPromiseWithEnv\(python\.bin, \['-m', 'venv', paths\.venv\], \{[\s\S]*?shell: false/
@@ -1031,7 +1034,7 @@ assert.match(
 )
 assert.match(postgresqlSource, /setup\.py/)
 assert.match(postgresqlSource, /setup-db/)
-assert.match(postgresqlSource, /pgAdminBootstrapContent\(\)/)
+assert.match(postgresqlSource, /pgAdminDesktopBootstrapContent\(\)/)
 assert.match(postgresqlSource, /load-servers/)
 assert.match(postgresqlSource, /findPgAdminPort\(/)
 assert.match(postgresqlSource, /ProcessKillStrict/)
@@ -1061,55 +1064,67 @@ assert.match(postgresqlSource, /chmod\(directory, 0o700\)/)
 assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)
 assert.match(
   postgresqlSource,
-  /writeFile\(paths\.identityScript, pgAdminServerIdentityContent\(\)\)/
+  /writeFile\(paths\.identityScript, pgAdminDesktopServerIdentityContent\(\)\)/
 )
 assert.match(postgresqlSource, /writeFile\(paths\.identity, JSON\.stringify\(serverIdentity\)\)/)
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[join\(packageRoot, 'setup\.py'\), 'setup-db'\],\s*\{[\s\S]*?env:\s*\{[\s\S]*?PGADMIN_SETUP_EMAIL:\s*admin\.email,[\s\S]*?PGADMIN_SETUP_PASSWORD:\s*admin\.password[\s\S]*?shell: false[\s\S]*?\}\s*\)/s
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[join\(packageRoot, 'setup\.py'\), 'setup-db'\],\s*\{\s*shell: false\s*\}\s*\)/s
 )
 assert.ok(postgresqlSource.indexOf("'setup-db'") < postgresqlSource.indexOf('paths.bootstrap'))
-assert.match(postgresqlSource, /writeFile\(paths\.bootstrap, pgAdminBootstrapContent\(\)\)/)
+assert.match(postgresqlSource, /writeFile\(paths\.bootstrap, pgAdminDesktopBootstrapContent\(\)\)/)
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.bootstrap, packageRoot, admin\.email\],\s*\{[\s\S]*?env:\s*\{\s*PGADMIN_SETUP_PASSWORD:\s*admin\.password\s*\}[\s\S]*?shell: false,[\s\S]*?cwd: packageRoot[\s\S]*?\}\s*\)/s
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.bootstrap, packageRoot\],\s*\{\s*shell: false,\s*cwd: packageRoot\s*\}\s*\)/s
 )
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.bootstrap, packageRoot, admin\.email, `\$\{postgreSqlPort\}`\],\s*\{\s*shell: false, cwd: packageRoot\s*\}\s*\)/s
-)
-assert.ok(
-  postgresqlSource.indexOf("'load-servers'") <
-    postgresqlSource.lastIndexOf('admin.email, `${postgreSqlPort}`')
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.bootstrap, packageRoot, `\$\{postgreSqlPort\}`\],\s*\{\s*shell: false, cwd: packageRoot\s*\}\s*\)/s
 )
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.verification, packageRoot, admin\.email, `\$\{postgreSqlPort\}`\],\s*\{ shell: false, cwd: packageRoot \}\s*\)/s
+  /spawnPromiseWithEnv\(\s*paths\.python,\s*\[paths\.verification, packageRoot, `\$\{postgreSqlPort\}`\],\s*\{ shell: false, cwd: packageRoot \}\s*\)/s
 )
 const verificationSourceIndex = postgresqlSource.indexOf('paths.verification, packageRoot')
 const identityWriteIndex = postgresqlSource.indexOf(
   'writeFile(paths.identity, JSON.stringify(serverIdentity))'
 )
+const desktopModeWriteIndex = postgresqlSource.indexOf("writeFile(paths.desktopMode, '1')")
+const initializedWriteIndex = postgresqlSource.indexOf("writeFile(paths.initialized, '1')")
 const completionGateIndex = postgresqlSource.lastIndexOf('completePgAdminInitialization')
 assert.notEqual(verificationSourceIndex, -1)
 assert.notEqual(identityWriteIndex, -1)
+assert.notEqual(desktopModeWriteIndex, -1)
+assert.notEqual(initializedWriteIndex, -1)
 assert.notEqual(completionGateIndex, -1)
 assert.ok(verificationSourceIndex < identityWriteIndex)
-assert.doesNotMatch(
-  postgresqlSource.slice(verificationSourceIndex, completionGateIndex),
-  /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSWORD/
-)
-assert.ok(postgresqlSource.indexOf("'load-servers'") < completionGateIndex)
+assert.ok(identityWriteIndex < desktopModeWriteIndex)
+assert.ok(desktopModeWriteIndex < initializedWriteIndex)
+assert.ok(postgresqlSource.indexOf("'load-servers'") < verificationSourceIndex)
 const parsedPostgreSqlPortIndex = postgresqlSource.indexOf('const postgreSqlPort = postmaster.port')
 const registrationPortValidationIndex = postgresqlSource.indexOf(
   'assertPgAdminRegistrationPort(postgreSqlPort)'
 )
 const virtualEnvironmentIndex = postgresqlSource.indexOf("['-m', 'venv', paths.venv]")
+const postmasterPidCheckIndex = postgresqlSource.indexOf(
+  "existsSync(join(dataDir, 'postmaster.pid'))"
+)
+const fallbackPortIndex = postgresqlSource.indexOf('const fallbackPort = postgresqlPortFromConfig(')
+const postmasterReadIndex = postgresqlSource.indexOf('const postmaster = postgresqlPostmasterInfo(')
 assert.ok(parsedPostgreSqlPortIndex < registrationPortValidationIndex)
 assert.ok(registrationPortValidationIndex < virtualEnvironmentIndex)
-assert.doesNotMatch(
-  postgresqlSource.slice(parsedPostgreSqlPortIndex, virtualEnvironmentIndex),
-  /postgresqlPortFromConfig/
+assert.notEqual(postmasterPidCheckIndex, -1)
+assert.notEqual(fallbackPortIndex, -1)
+assert.notEqual(postmasterReadIndex, -1)
+assert.ok(postmasterPidCheckIndex < fallbackPortIndex)
+assert.ok(fallbackPortIndex < postmasterReadIndex)
+assert.match(
+  postgresqlSource,
+  /const fallbackPort = postgresqlPortFromConfig\(\s*await readFile\(join\(dataDir, 'postgresql\.conf'\), 'utf-8'\)\s*\)/s
+)
+assert.match(
+  postgresqlSource,
+  /postgresqlPostmasterInfo\(\s*await readFile\(join\(dataDir, 'postmaster\.pid'\), 'utf-8'\),\s*\{ dataDirectory: dataDir, port: fallbackPort \}\s*\)/s
 )
 assert.notEqual(
   postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n15432\n'),
@@ -1129,6 +1144,15 @@ assert.match(
   postgresqlSource,
   /\[\s*paths\.reconciliation,\s*packageRoot,\s*`\$\{serverIdentity\.userId\}`,\s*`\$\{serverIdentity\.serverId\}`,\s*`\$\{postgreSqlPort\}`\s*\]/s
 )
+assert.doesNotMatch(
+  postgresqlSource,
+  /PgAdminCredentials|validPgAdminCredentials|credentials|PGADMIN_SETUP|pgAdminBootstrapContent\(|pgAdminInitializationVerificationContent\(|pgAdminServerIdentityContent\(|pgAdminServerReconciliationContent\(/
+)
+assert.doesNotMatch(
+  postgresqlSource,
+  /\[\s*join\(packageRoot, 'setup\.py'\),\s*'load-servers',\s*paths\.servers,\s*'--user'/s
+)
+assert.doesNotMatch(postgresqlSource, /remove\(paths\.(?:root|data|log)\)/)
 const packageRepairIndex = postgresqlSource.indexOf("['-m', 'pip', 'install'")
 assert.ok(postgresqlSource.indexOf('await this._stopPGAdmin()', 0) < packageRepairIndex)
 const serviceStartIndex = postgresqlSource.indexOf('started = await serviceStartSpawn')
@@ -1140,6 +1164,15 @@ assert.doesNotMatch(serviceStartSource, /PGADMIN_SETUP_EMAIL|PGADMIN_SETUP_PASSW
 assert.match(serviceStartSource, /await verifyPgAdminPidPersistence/)
 assert.match(serviceStartSource, /await this\._stopPGAdmin\(packageRoot\)/)
 assert.match(postgresqlSource, /paths\.log/)
+const postgreSqlStartIndex = postgresqlSource.indexOf('  _startServer(')
+const postgreSqlStartSource = postgresqlSource.slice(postgreSqlStartIndex)
+const windowsPostgreSqlStart = postgreSqlStartSource.slice(
+  postgreSqlStartSource.indexOf('if (isWindows())'),
+  postgreSqlStartSource.indexOf('} else {')
+)
+const unixPostgreSqlStart = postgreSqlStartSource.slice(postgreSqlStartSource.indexOf('} else {'))
+assert.match(windowsPostgreSqlStart, /pidPath: pidFile/)
+assert.doesNotMatch(unixPostgreSqlStart, /pidPath: pidFile/)
 
 const pgAdminSetupSource = readFileSync(
   join(process.cwd(), 'src', 'render', 'components', 'PostgreSql', 'PgAdminSetup.vue'),
