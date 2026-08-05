@@ -151,7 +151,15 @@ tests, ESLint, Prettier, and `git diff --check` before completion.
 
 ## Distribution and security review
 
-`dbgate-serve` is published under GPL-3.0. Before packaging this dependency in
-FlyEnv releases, the project must complete the repository's license review and
-decide whether the package is downloaded on demand or distributed as part of
-the application. This is a release requirement, not an implementation detail.
+`dbgate-serve` is published under GPL-3.0. FlyEnv will not bundle DbGate or
+place it in the application package. The package is downloaded from npm only
+after the user explicitly opens the MongoDB Web entry, and is stored under
+`Server.BaseDir/dbgate`; users who never open the entry receive no DbGate
+files.
+
+The implementation must still expose the exact DbGate version, license, and
+source URL in the existing third-party dependency documentation. It must not
+modify or merge DbGate code into FlyEnv's main or renderer bundles. Release
+checks should verify that the production application artifacts do not contain
+the DbGate package and that the on-demand installer preserves npm package
+license metadata.
