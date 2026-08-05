@@ -43,6 +43,7 @@ import {
   ProcessPidListStrict
 } from '@shared/Process.win'
 import { StopProcessListFetch } from '@shared/StopProcessList'
+import { webPanelInstallNotice } from '@shared/WebPanelInstallNotice'
 import {
   assertPgAdminRegistrationPort,
   completePgAdminInitialization,
@@ -265,6 +266,9 @@ class Manager extends Base {
         }
         if (!validPgAdminPythonVersion(python.version)) {
           throw new Error('pgAdmin 4 requires Python 3.9 or later')
+        }
+        if (firstStart) {
+          on(webPanelInstallNotice('pgAdmin 4'))
         }
 
         await mkdirp(paths.root)

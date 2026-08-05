@@ -55,6 +55,8 @@
   import { MessageError } from '@/util/Element'
   import { shell } from '@/util/NodeFn'
   import IPC from '@/util/IPC'
+  import { ElMessage } from 'element-plus'
+  import { isWebPanelInstallNotice } from '@shared/WebPanelInstallNotice'
 
   const { tab, checkVersion } = AppModuleSetup('mongodb')
   const brewStore = BrewStore()
@@ -63,6 +65,7 @@
   })
   const nodeVersion = computed(() => brewStore.currentVersion('node'))
   const dbGateOpening = ref(false)
+  let installNotice: { close: () => void } | undefined
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),
@@ -80,7 +83,20 @@
     const selectedNode = JSON.parse(JSON.stringify(nodeVersion.value))
     IPC.sendSensitive('app-fork:mongodb', 'openDbGate', selectedNode).then(
       (key: string, res: any) => {
-        if (res?.code === 200) return
+        if (res?.code === 200) {
+          if (isWebPanelInstallNotice(res.msg)) {
+            installNotice?.close()
+            installNotice = ElMessage({
+              message: I18nT('base.webPanelFirstInstall', { service: res.msg.service }),
+              type: 'info',
+              duration: 0,
+              showClose: true
+            })
+          }
+          return
+        }
+        installNotice?.close()
+        installNotice = undefined
         IPC.off(key)
         dbGateOpening.value = false
         if (res?.code === 0 && res.data?.url) {

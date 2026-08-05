@@ -74,6 +74,8 @@
   import { shell } from '@/util/NodeFn'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
+  import { ElMessage } from 'element-plus'
+  import { isWebPanelInstallNotice } from '@shared/WebPanelInstallNotice'
 
   const { tab, checkVersion } = AppModuleSetup('nginx')
   const tabs = [
@@ -108,6 +110,7 @@
   const refreshRunningDataDir = () => updateRunningDataDir(runningVersion.value)
   const pgAdminOpening = ref(false)
   const pgAdminDataDirReady = ref(false)
+  let installNotice: { close: () => void } | undefined
   PostgreSqlSetup.init()
     .then(() => {
       refreshRunningDataDir()
@@ -179,8 +182,19 @@
       pgAdminPython
     ).then((key: string, res: any) => {
       if (res?.code === 200) {
+        if (isWebPanelInstallNotice(res.msg)) {
+          installNotice?.close()
+          installNotice = ElMessage({
+            message: I18nT('base.webPanelFirstInstall', { service: res.msg.service }),
+            type: 'info',
+            duration: 0,
+            showClose: true
+          })
+        }
         return
       }
+      installNotice?.close()
+      installNotice = undefined
       IPC.off(key)
       pgAdminOpening.value = false
       if (res?.code === 0 && res.data?.url) {

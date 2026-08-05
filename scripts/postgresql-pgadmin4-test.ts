@@ -41,7 +41,14 @@ import {
   waitForPgAdminHealth,
   waitForPostgresqlProcess
 } from '../src/fork/module/Postgresql/pgAdmin'
+import { isWebPanelInstallNotice, webPanelInstallNotice } from '../src/shared/WebPanelInstallNotice'
 
+assert.deepEqual(webPanelInstallNotice('pgAdmin 4'), {
+  type: 'web-panel-install',
+  service: 'pgAdmin 4'
+})
+assert.equal(isWebPanelInstallNotice(webPanelInstallNotice('DbGate')), true)
+assert.equal(isWebPanelInstallNotice({ type: 'other', service: 'DbGate' }), false)
 assert.equal(PGADMIN4_DEFAULT_PORT, 5050)
 assert.equal(PGADMIN4_MAX_PORT, 65535)
 assert.equal(PGADMIN4_MAX_SERVER_PORT, 65534)
@@ -1028,6 +1035,7 @@ assert.match(
   postgresqlSource,
   /pgAdminInitializationState\(\s*paths,\s*existsSync,\s*\(file\) =>\s*readFile\(file, 'utf-8'\)\s*\)/s
 )
+assert.match(postgresqlSource, /on\(webPanelInstallNotice\('pgAdmin 4'\)\)/)
 assert.match(
   postgresqlSource,
   /openPGAdmin\(\s*version: SoftInstalled,\s*dataDir: string,\s*python: SoftInstalled\s*\)/s
@@ -1258,6 +1266,9 @@ assert.match(
 assert.match(postgreSqlRendererSource, /watch\(runningVersion, updateRunningDataDir/)
 assert.match(postgreSqlRendererSource, /const refreshRunningDataDir = \(\) => updateRunningDataDir/)
 assert.match(postgreSqlRendererSource, /const pgAdminDataDirReady = ref\(false\)/)
+assert.match(postgreSqlRendererSource, /ElMessage/)
+assert.match(postgreSqlRendererSource, /isWebPanelInstallNotice/)
+assert.match(postgreSqlRendererSource, /base\.webPanelFirstInstall/)
 assert.match(
   postgreSqlRendererSource,
   /PostgreSqlSetup\.init\(\)\s*\.then\(\(\) => \{[\s\S]*?refreshRunningDataDir\(\)[\s\S]*?pgAdminDataDirReady\.value = true/s
@@ -1287,7 +1298,10 @@ assert.match(
   postgreSqlRendererSource,
   /IPC\.send\(\s*'app-fork:postgresql',\s*'openPGAdmin',\s*pgAdminVersion,\s*runningDataDir\.value,\s*pgAdminPython\s*\)/s
 )
-assert.match(postgreSqlRendererSource, /if \(res\?\.code === 200\) \{\s*return\s*\}/s)
+assert.match(
+  postgreSqlRendererSource,
+  /if \(res\?\.code === 200\) \{[\s\S]*isWebPanelInstallNotice\(res\.msg\)[\s\S]*return\s*\}/s
+)
 assert.match(postgreSqlRendererSource, /IPC\.off\(key\)/)
 assert.match(postgreSqlRendererSource, /pgAdminOpening\.value = false/)
 assert.match(postgreSqlRendererSource, /res\?\.code === 0 && res\.data\?\.url/)

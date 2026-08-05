@@ -13,6 +13,7 @@ import {
 import { isWindows } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 import { findLoopbackPort } from '@shared/LoopbackPort'
+import { webPanelInstallNotice } from '@shared/WebPanelInstallNotice'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 
 export const DBGATE_PACKAGE = 'dbgate-serve'
@@ -362,7 +363,10 @@ export class DbGateRuntime {
       await remove(this.paths.port).catch(() => {})
     }
     try {
-      if (!existsSync(this.paths.entry)) await this.installPackage(nodeBin, this.paths)
+      if (!existsSync(this.paths.entry)) {
+        on(webPanelInstallNotice('DbGate'))
+        await this.installPackage(nodeBin, this.paths)
+      }
       const port = await this.locatePort(
         DBGATE_DEFAULT_PORT,
         DBGATE_PORT_SCAN_COUNT,
