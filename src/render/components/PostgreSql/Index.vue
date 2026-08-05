@@ -13,11 +13,11 @@
             style="color: #01cc74"
             class="button"
             link
-            :disabled="pgAdminOpening || !pgAdminSetupReady"
-            @click.stop="preparePGAdmin"
+            :disabled="pgAdminOpening || !pgAdminDataDirReady"
+            @click.stop="openPGAdmin"
           >
             <el-icon
-              v-if="pgAdminOpening || !pgAdminSetupReady"
+              v-if="pgAdminOpening || !pgAdminDataDirReady"
               class="is-loading"
               style="width: 20px; height: 20px; margin-left: 10px"
             >
@@ -55,7 +55,6 @@
       <Config v-else-if="tab === 2"></Config>
       <Logs v-else-if="tab === 3"></Logs>
     </div>
-    <PgAdminSetup v-model="pgAdminSetupVisible" @submit="openPGAdmin" />
   </div>
 </template>
 
@@ -75,12 +74,6 @@
   import { shell } from '@/util/NodeFn'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
-  import PgAdminSetup from './PgAdminSetup.vue'
-
-  interface PgAdminCredentials {
-    email: string
-    password: string
-  }
 
   const { tab, checkVersion } = AppModuleSetup('nginx')
   const tabs = [
@@ -114,12 +107,11 @@
   watch(runningVersion, updateRunningDataDir, { immediate: true })
   const refreshRunningDataDir = () => updateRunningDataDir(runningVersion.value)
   const pgAdminOpening = ref(false)
-  const pgAdminSetupVisible = ref(false)
-  const pgAdminSetupReady = ref(false)
+  const pgAdminDataDirReady = ref(false)
   PostgreSqlSetup.init()
     .then(() => {
       refreshRunningDataDir()
-      pgAdminSetupReady.value = true
+      pgAdminDataDirReady.value = true
     })
     .catch()
 
@@ -163,33 +155,10 @@
     return false
   }
 
-  const preparePGAdmin = () => {
-    if (pgAdminOpening.value || !pgAdminSetupReady.value || !selectedPythonAvailable()) {
-      return
-    }
-    pgAdminOpening.value = true
-    IPC.send('app-fork:postgresql', 'pgAdminStatus').then((key: string, res: any) => {
-      if (res?.code === 200) {
-        return
-      }
-      IPC.off(key)
-      pgAdminOpening.value = false
-      if (res?.code !== 0) {
-        MessageError(res?.msg ?? 'pgAdmin 4 failed to check its status')
-        return
-      }
-      if (!res.data?.initialized) {
-        pgAdminSetupVisible.value = true
-        return
-      }
-      openPGAdmin()
-    })
-  }
-
-  const openPGAdmin = (credentials?: PgAdminCredentials) => {
+  const openPGAdmin = () => {
     if (
       pgAdminOpening.value ||
-      !pgAdminSetupReady.value ||
+      !pgAdminDataDirReady.value ||
       !selectedPythonAvailable() ||
       !runningVersion.value
     ) {
@@ -200,16 +169,14 @@
       return
     }
     pgAdminOpening.value = true
-    const openPgAdminIpc = credentials ? IPC.sendSensitive.bind(IPC) : IPC.send.bind(IPC)
     const pgAdminVersion = JSON.parse(JSON.stringify(runningVersion.value))
     const pgAdminPython = JSON.parse(JSON.stringify(selectedPython))
-    openPgAdminIpc(
+    IPC.send(
       'app-fork:postgresql',
       'openPGAdmin',
       pgAdminVersion,
       runningDataDir.value,
-      pgAdminPython,
-      credentials
+      pgAdminPython
     ).then((key: string, res: any) => {
       if (res?.code === 200) {
         return

@@ -8,11 +8,6 @@ export const PGADMIN4_MAX_PORT = 65535
 export const PGADMIN4_MAX_SERVER_PORT = 65534
 export const PGADMIN4_PORT_SCAN_COUNT = 21
 
-export interface PgAdminCredentials {
-  email: string
-  password: string
-}
-
 export interface PgAdminPaths {
   root: string
   data: string
@@ -26,6 +21,7 @@ export interface PgAdminPaths {
   identity: string
   reconciliation: string
   initialized: string
+  desktopMode: string
   venv: string
   python: string
 }
@@ -47,6 +43,7 @@ export function pgAdminPaths(postgreSqlDir: string, windows: boolean): PgAdminPa
     identity: join(root, 'server-identity.json'),
     reconciliation: join(root, 'reconcile-server.py'),
     initialized: join(root, 'initialized'),
+    desktopMode: join(root, 'desktop-mode'),
     venv,
     python: windows ? join(venv, 'Scripts', 'python.exe') : join(venv, 'bin', 'python')
   }
@@ -60,7 +57,9 @@ export function pgAdminInitialized(
   paths: PgAdminPaths,
   fileExists: (file: string) => boolean
 ): boolean {
-  return fileExists(paths.initialized) && fileExists(paths.identity)
+  return (
+    fileExists(paths.initialized) && fileExists(paths.identity) && fileExists(paths.desktopMode)
+  )
 }
 
 export interface PgAdminServerIdentity {
@@ -284,6 +283,7 @@ export function pgAdminUrl(port: number): string {
 export function pgAdminConfigContent(dataDir: string, logDir: string, port: number): string {
   return (
     [
+      'SERVER_MODE = False',
       'DEFAULT_SERVER = "127.0.0.1"',
       `DEFAULT_SERVER_PORT = ${port}`,
       `DATA_DIR = ${JSON.stringify(dataDir)}`,
@@ -305,9 +305,9 @@ export function pgAdminPackageRootUnversionedProbe(): string {
   return "from importlib.metadata import distribution; print(distribution('pgadmin4').locate_file('pgadmin4'))"
 }
 
-export function pgAdminBootstrapContent(): string {
-  return `import os
-import sys
+export function pgAdminDesktopBootstrapContent(): string {
+  return `import sys
+from secrets import token_urlsafe
 
 package_root = sys.argv[1]
 if package_root not in sys.path:
@@ -319,35 +319,32 @@ from pgadmin.model import Role, Server, User, db
 from pgadmin.tools.user_management import create_user
 from pgadmin.utils.constants import INTERNAL
 
-email = sys.argv[2]
-password = os.environ.get('PGADMIN_SETUP_PASSWORD')
-postgresql_port = int(sys.argv[3]) if len(sys.argv) > 3 else None
+postgresql_port = int(sys.argv[2]) if len(sys.argv) > 2 else None
 app = create_app(config.APP_NAME + '-cli')
 
 with app.test_request_context():
-    user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    user = User.query.filter_by(username=config.DESKTOP_USER, auth_source=INTERNAL).first()
     administrator_role = Role.query.filter_by(name='Administrator').first()
     if administrator_role is None:
         raise RuntimeError('pgAdmin Administrator role was not found')
     if user is None:
-        if not password:
-            raise RuntimeError('pgAdmin administrator credentials are required')
+        desktop_password = token_urlsafe(48)
         created, _ = create_user(
             {
-                'email': email,
+                'email': config.DESKTOP_USER,
                 'role': administrator_role.id,
                 'active': True,
                 'auth_source': INTERNAL,
-                'newPassword': password,
-                'confirmPassword': password,
+                'newPassword': desktop_password,
+                'confirmPassword': desktop_password,
             }
         )
         if not created:
             raise RuntimeError('pgAdmin administrator creation failed')
-        user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+        user = User.query.filter_by(username=config.DESKTOP_USER, auth_source=INTERNAL).first()
     if (
         user is None
-        or user.email != email
+        or user.email != config.DESKTOP_USER
         or not user.active
         or user.auth_source != INTERNAL
         or not any(role.name == 'Administrator' for role in user.roles)
@@ -371,7 +368,7 @@ with app.test_request_context():
 `
 }
 
-export function pgAdminInitializationVerificationContent(): string {
+export function pgAdminDesktopInitializationVerificationContent(): string {
   return `import sys
 
 package_root = sys.argv[1]
@@ -383,15 +380,14 @@ from pgadmin import create_app
 from pgadmin.model import Server, User
 from pgadmin.utils.constants import INTERNAL
 
-email = sys.argv[2]
-postgresql_port = int(sys.argv[3])
+postgresql_port = int(sys.argv[2])
 app = create_app(config.APP_NAME + '-cli')
 
 with app.app_context():
-    user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    user = User.query.filter_by(username=config.DESKTOP_USER, auth_source=INTERNAL).first()
     if (
         user is None
-        or user.email != email
+        or user.email != config.DESKTOP_USER
         or not user.active
         or user.auth_source != INTERNAL
         or not any(role.name == 'Administrator' for role in user.roles)
@@ -405,9 +401,8 @@ with app.app_context():
         port=postgresql_port,
         maintenance_db='postgres',
         username='root',
-        save_password=0,
     ).first()
-    if server is None or server.password:
+    if server is None:
         raise RuntimeError('pgAdmin server verification failed')
     if server.servergroup is None or server.servergroup.name != 'Servers':
         raise RuntimeError('pgAdmin server verification failed')
@@ -417,7 +412,7 @@ with app.app_context():
 `
 }
 
-export function pgAdminServerIdentityContent(): string {
+export function pgAdminDesktopServerIdentityContent(): string {
   return `import json
 import sys
 
@@ -430,15 +425,14 @@ from pgadmin import create_app
 from pgadmin.model import Server, User
 from pgadmin.utils.constants import INTERNAL
 
-email = sys.argv[2]
-postgresql_port = int(sys.argv[3])
+postgresql_port = int(sys.argv[2])
 app = create_app(config.APP_NAME + '-cli')
 
 with app.app_context():
-    user = User.query.filter_by(username=email, auth_source=INTERNAL).first()
+    user = User.query.filter_by(username=config.DESKTOP_USER, auth_source=INTERNAL).first()
     if (
         user is None
-        or user.email != email
+        or user.email != config.DESKTOP_USER
         or not user.active
         or user.auth_source != INTERNAL
         or not any(role.name == 'Administrator' for role in user.roles)
@@ -452,9 +446,8 @@ with app.app_context():
         port=postgresql_port,
         maintenance_db='postgres',
         username='root',
-        save_password=0,
     ).first()
-    if server is None or server.password:
+    if server is None:
         raise RuntimeError('pgAdmin server identity verification failed')
     if server.servergroup is None or server.servergroup.name != 'Servers':
         raise RuntimeError('pgAdmin server identity verification failed')
@@ -465,7 +458,7 @@ with app.app_context():
 `
 }
 
-export function pgAdminServerReconciliationContent(): string {
+export function pgAdminDesktopServerReconciliationContent(): string {
   return `import sys
 
 package_root = sys.argv[1]
@@ -483,7 +476,7 @@ postgresql_port = int(sys.argv[4])
 app = create_app(config.APP_NAME + '-cli')
 
 with app.app_context():
-    user = User.query.filter_by(id=user_id, auth_source=INTERNAL).first()
+    user = User.query.filter_by(id=user_id, username=config.DESKTOP_USER, auth_source=INTERNAL).first()
     if (
         user is None
         or not user.active
@@ -504,14 +497,18 @@ with app.app_context():
     if server.servergroup is None or server.servergroup.name != 'Servers':
         raise RuntimeError('pgAdmin FlyEnv PostgreSQL server was not found')
     server.port = postgresql_port
-    server.password = None
-    server.save_password = 0
     connection_params = server.connection_params or {}
     connection_params['sslmode'] = 'prefer'
     server.connection_params = connection_params
     db.session.commit()
 `
 }
+
+export const pgAdminBootstrapContent = pgAdminDesktopBootstrapContent
+export const pgAdminInitializationVerificationContent =
+  pgAdminDesktopInitializationVerificationContent
+export const pgAdminServerIdentityContent = pgAdminDesktopServerIdentityContent
+export const pgAdminServerReconciliationContent = pgAdminDesktopServerReconciliationContent
 
 function commandPath(value: string, windows: boolean): string {
   const normalized = value.replace(/\\/g, '/')
@@ -617,72 +614,6 @@ export function postgresqlPortFromConfig(content: string): number {
   return Number.isInteger(port) && port > 0 && port <= 65535 ? port : 5432
 }
 
-export interface PostgreSqlPostmasterInfo {
-  pid: string
-  dataDirectory: string
-  port: number
-}
-
-function postmasterPidLine(content: string, line: number): string {
-  const value = content.split('\n')[line - 1]
-  return value?.endsWith('\r') ? value.slice(0, -1) : (value ?? '')
-}
-
-export function postgresqlPostmasterInfo(content: string): PostgreSqlPostmasterInfo {
-  const pid = postmasterPidLine(content, 1)
-  const dataDirectory = postmasterPidLine(content, 2)
-  const rawPort = postmasterPidLine(content, 4)
-  if (!/^\d+$/.test(pid) || Number(pid) < 1) {
-    throw new Error('Invalid PostgreSQL PID in postmaster.pid line 1')
-  }
-  if (!dataDirectory) {
-    throw new Error('Invalid PostgreSQL data directory in postmaster.pid line 2')
-  }
-  const portText = rawPort?.endsWith('\r') ? rawPort.slice(0, -1) : rawPort
-  if (!portText || !/^\d+$/.test(portText)) {
-    throw new Error('Invalid PostgreSQL port in postmaster.pid line 4')
-  }
-
-  const port = Number(portText)
-  if (!Number.isInteger(port) || port < 1 || port > PGADMIN4_MAX_PORT) {
-    throw new Error('Invalid PostgreSQL port in postmaster.pid line 4')
-  }
-  return { pid, dataDirectory, port }
-}
-
-export function postgresqlPortFromPostmasterPid(content: string): number {
-  return postgresqlPostmasterInfo(content).port
-}
-
-export interface PostgreSqlProcess {
-  PID: string
-  COMMAND: string
-}
-
-export function postgresqlPostmasterOwnedByDataDir(
-  postmaster: PostgreSqlPostmasterInfo,
-  dataDirectory: string,
-  processes: PostgreSqlProcess[],
-  windows: boolean
-): boolean {
-  const normalizedDataDirectory = commandPath(dataDirectory, windows)
-  if (commandPath(postmaster.dataDirectory, windows) !== normalizedDataDirectory) {
-    return false
-  }
-  const command = commandPath(
-    processes.find((process) => `${process.PID}` === postmaster.pid)?.COMMAND ?? '',
-    windows
-  )
-  if (!command) return false
-
-  const postgresPattern = /(?:^|[/\s])postgres(?:\.exe)?(?=\s|$)/
-  const dataDirectoryFlag = windows ? '-d' : '-D'
-  const dataDirectoryPattern = new RegExp(
-    `(?:^|\\s)${dataDirectoryFlag}\\s+${commandArgumentPattern(normalizedDataDirectory)}(?=\\s|$)`
-  )
-  return postgresPattern.test(command) && dataDirectoryPattern.test(command)
-}
-
 export function validPgAdminRegistrationPort(port: number): boolean {
   return Number.isInteger(port) && port > 0 && port <= PGADMIN4_MAX_SERVER_PORT
 }
@@ -717,14 +648,6 @@ export function pgAdminServersContent(port: number): string {
   )}\n`
 }
 
-export function validPgAdminCredentials(credentials?: PgAdminCredentials | null): boolean {
-  return !!(
-    credentials &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email) &&
-    credentials.password.length >= 8
-  )
-}
-
 export function validPgAdminPythonVersion(version: string | null | undefined): boolean {
   const match = /^(?:Python\s+)?(\d+)\.(\d+)(?:\.\d+)?\s*$/.exec(version?.trim() ?? '')
   if (!match) return false
@@ -755,6 +678,63 @@ export async function waitForPgAdminHealth(options: PgAdminHealthOptions): Promi
     }
   }
   return false
+}
+
+export interface PostgreSqlProcess {
+  PID: string
+  COMMAND: string
+}
+
+function postgresqlProcessOwnsDataDirectory(
+  command: string,
+  dataDirectory: string,
+  windows: boolean
+): boolean {
+  const normalizedCommand = commandPath(command, windows)
+  const normalizedDataDirectory = commandPath(dataDirectory, windows)
+  if (!normalizedCommand || !normalizedDataDirectory) {
+    return false
+  }
+  const postgresPattern = /(?:^|[/\s])postgres(?:\.exe)?(?=["'\s]|$)/
+  const dataDirectoryFlag = windows ? '-d' : '-D'
+  const dataDirectoryPattern = new RegExp(
+    `(?:^|\\s)${commandArgumentPattern(dataDirectoryFlag)}\\s+${commandArgumentPattern(normalizedDataDirectory)}(?=\\s|$)`
+  )
+  return postgresPattern.test(normalizedCommand) && dataDirectoryPattern.test(normalizedCommand)
+}
+
+export interface PostgreSqlProcessWaitOptions {
+  listProcesses: () => Promise<PostgreSqlProcess[]>
+  dataDirectory: string
+  windows: boolean
+  wait: (milliseconds: number) => Promise<unknown>
+  attempts?: number
+  intervalMilliseconds?: number
+}
+
+export async function waitForPostgresqlProcess(
+  options: PostgreSqlProcessWaitOptions
+): Promise<string> {
+  const attempts = Math.max(1, options.attempts ?? 20)
+  const intervalMilliseconds = options.intervalMilliseconds ?? 500
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    let processes: PostgreSqlProcess[] = []
+    try {
+      processes = await options.listProcesses()
+    } catch {}
+    const process = processes.find((item) =>
+      postgresqlProcessOwnsDataDirectory(item.COMMAND, options.dataDirectory, options.windows)
+    )
+    if (process?.PID) {
+      return `${process.PID}`.trim()
+    }
+    if (attempt + 1 < attempts) {
+      await options.wait(intervalMilliseconds)
+    }
+  }
+
+  throw new Error(`PostgreSQL process did not start for data directory: ${options.dataDirectory}`)
 }
 
 function canBindLoopback(port: number): Promise<boolean> {
