@@ -1,5 +1,5 @@
 import { createServer } from 'node:net'
-import { join } from 'node:path'
+import { join, normalize } from 'node:path'
 
 export const PGADMIN4_PACKAGE = 'pgadmin4==9.17'
 export const PGADMIN4_PACKAGE_VERSION = '9.17'
@@ -515,6 +515,18 @@ function commandPath(value: string, windows: boolean): string {
   return windows ? normalized.toLowerCase() : normalized
 }
 
+function privatePath(value: string, windows: boolean): string {
+  let normalized = commandPath(value.trim(), windows)
+  if (
+    normalized.length >= 2 &&
+    (normalized.startsWith('"') || normalized.startsWith("'")) &&
+    normalized.endsWith(normalized[0])
+  ) {
+    normalized = normalized.slice(1, -1)
+  }
+  return normalize(normalized).replace(/\/+$/, '')
+}
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -528,14 +540,27 @@ function commandExecutablePattern(): string {
   return `(?:[^\\s"']+|"[^"]+"|'[^']+')`
 }
 
+export function pgAdminPackageRootOwned(
+  packageRoot: string,
+  paths: PgAdminPaths,
+  windows: boolean
+): boolean {
+  const venvPath = privatePath(paths.venv, windows)
+  const rootPath = privatePath(packageRoot, windows)
+  return rootPath.startsWith(`${venvPath}/`)
+}
+
 export function pgAdminCommandOwned(
   command: string,
   paths: PgAdminPaths,
   packageRoot: string,
   windows: boolean
 ): boolean {
+  if (!pgAdminPackageRootOwned(packageRoot, paths, windows)) {
+    return false
+  }
   const normalizedCommand = commandPath(command, windows)
-  const scriptPath = commandPath(join(packageRoot, 'pgAdmin4.py'), windows)
+  const scriptPath = commandPath(join(privatePath(packageRoot, windows), 'pgAdmin4.py'), windows)
   const commandPattern = new RegExp(
     `^\\s*${commandExecutablePattern()}\\s+${commandArgumentPattern(scriptPath)}(?=\\s|$)`
   )

@@ -57,7 +57,10 @@ assert.throws(
 
 const postgreSqlDir = join('/tmp', 'flyenv-postgresql')
 const unixPaths = pgAdminPaths(postgreSqlDir, false)
-const packageRoot = join('/tmp', 'flyenv-pgadmin-package')
+const packageRoot = join(unixPaths.venv, 'lib', 'python3.13', 'site-packages', 'pgadmin4')
+const externalPackageRoot = join('/tmp', 'external-pgadmin-package')
+const venvSiblingPackageRoot = join(`${unixPaths.venv}-external`, 'pgadmin4')
+const traversalPackageRoot = `${unixPaths.venv}/../../external-pgadmin-package`
 const resolvedPython =
   '/opt/local/Library/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python'
 assert.deepEqual(unixPaths, {
@@ -347,10 +350,46 @@ assert.equal(
   pgAdminCommandOwned(
     `${resolvedPython} ${join(packageRoot, 'pgAdmin4.py')} --normal-flag`,
     unixPaths,
+    `"${packageRoot}"`,
+    false
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${resolvedPython} ${join(packageRoot, 'pgAdmin4.py')} --normal-flag`,
+    unixPaths,
     packageRoot,
     false
   ),
   true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${resolvedPython} ${join(externalPackageRoot, 'pgAdmin4.py')}`,
+    unixPaths,
+    externalPackageRoot,
+    false
+  ),
+  false
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${resolvedPython} ${join(venvSiblingPackageRoot, 'pgAdmin4.py')}`,
+    unixPaths,
+    venvSiblingPackageRoot,
+    false
+  ),
+  false
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${resolvedPython} ${join(traversalPackageRoot, 'pgAdmin4.py')}`,
+    unixPaths,
+    traversalPackageRoot,
+    false
+  ),
+  false
 )
 assert.equal(
   pgAdminCommandOwned(
@@ -429,6 +468,15 @@ assert.equal(
   pgAdminCommandOwnedWithoutPackageMetadata(
     'C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\SCRIPTS\\PYTHON.EXE C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\LIB\\SITE-PACKAGES\\PGADMIN4\\PGADMIN4.PY',
     pgAdminPaths('C:/FlyEnv/postgresql', true),
+    true
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    'C:\\EXTERNAL\\PYTHON.EXE "C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\LIB\\SITE-PACKAGES\\PGADMIN4\\PGADMIN4.PY"',
+    pgAdminPaths('C:/FlyEnv/postgresql', true),
+    'C:/FLYENV/POSTGRESQL/PGADMIN4/VENV/LIB/SITE-PACKAGES/PGADMIN4',
     true
   ),
   true
@@ -642,9 +690,9 @@ assert.equal(
 )
 assert.equal(
   pgAdminCommandOwned(
-    'C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\SCRIPTS\\PYTHON.EXE C:\\Package\\PGADMIN4.PY',
+    'C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\SCRIPTS\\PYTHON.EXE C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\LIB\\SITE-PACKAGES\\PGADMIN4\\PGADMIN4.PY',
     pgAdminPaths('C:/FlyEnv/postgresql', true),
-    'C:/Package',
+    'C:/FlyEnv/postgresql/pgadmin4/venv/lib/site-packages/pgadmin4',
     true
   ),
   true
@@ -998,6 +1046,10 @@ assert.match(postgresqlSource, /_stopPGAdmin\(/)
 assert.match(postgresqlSource, /pgAdminPackageRootUnversionedProbe/)
 assert.match(postgresqlSource, /pgAdminOwnedPidsWithoutPackageMetadata/)
 assert.match(postgresqlSource, /pgAdminFallbackOwnedProcessPids/)
+assert.match(
+  postgresqlSource,
+  /if \(!root \|\| !pgAdminPackageRootOwned\(root, paths, isWindows\(\)\)\) \{\s*const pids = await this\.pgAdminFallbackOwnedProcessPids\(\)/s
+)
 assert.match(postgresqlSource, /pgAdminPrivateDirectories/)
 assert.match(postgresqlSource, /chmod\(directory, 0o700\)/)
 assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)
