@@ -1,5 +1,5 @@
 import { createServer } from 'node:net'
-import { join, normalize } from 'node:path'
+import { join, posix, win32 } from 'node:path'
 
 export const PGADMIN4_PACKAGE = 'pgadmin4==9.17'
 export const PGADMIN4_PACKAGE_VERSION = '9.17'
@@ -524,7 +524,7 @@ function privatePath(value: string, windows: boolean): string {
   ) {
     normalized = normalized.slice(1, -1)
   }
-  return normalize(normalized).replace(/\/+$/, '')
+  return commandPath((windows ? win32 : posix).normalize(normalized), windows).replace(/\/+$/, '')
 }
 
 function escapeRegExp(value: string): string {

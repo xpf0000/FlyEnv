@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { createServer } from 'node:net'
 import { once } from 'node:events'
 import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, win32 } from 'node:path'
 import { loopbackListeningPidsFromNetstat } from '../src/shared/Process.win'
 import {
   completePgAdminInitialization,
@@ -61,6 +61,17 @@ const packageRoot = join(unixPaths.venv, 'lib', 'python3.13', 'site-packages', '
 const externalPackageRoot = join('/tmp', 'external-pgadmin-package')
 const venvSiblingPackageRoot = join(`${unixPaths.venv}-external`, 'pgadmin4')
 const traversalPackageRoot = `${unixPaths.venv}/../../external-pgadmin-package`
+const windowsPaths = pgAdminPaths('C:/FlyEnv/postgresql', true)
+const windowsNormalizedPaths = {
+  ...windowsPaths,
+  venv: win32.normalize(windowsPaths.venv)
+}
+const windowsPackageRoot = win32.normalize(
+  `${windowsNormalizedPaths.venv}/Lib/site-packages/pgadmin4`
+)
+const windowsSiblingPackageRoot = win32.normalize(
+  `${windowsNormalizedPaths.venv}-external/pgadmin4`
+)
 const resolvedPython =
   '/opt/local/Library/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python'
 assert.deepEqual(unixPaths, {
@@ -474,12 +485,21 @@ assert.equal(
 )
 assert.equal(
   pgAdminCommandOwned(
-    'C:\\EXTERNAL\\PYTHON.EXE "C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\LIB\\SITE-PACKAGES\\PGADMIN4\\PGADMIN4.PY"',
-    pgAdminPaths('C:/FlyEnv/postgresql', true),
-    'C:/FLYENV/POSTGRESQL/PGADMIN4/VENV/LIB/SITE-PACKAGES/PGADMIN4',
+    `C:\\EXTERNAL\\PYTHON.EXE "${win32.normalize(`${windowsPackageRoot}/pgAdmin4.py`)}"`,
+    windowsNormalizedPaths,
+    windowsPackageRoot,
     true
   ),
   true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `C:\\EXTERNAL\\PYTHON.EXE "${win32.normalize(`${windowsSiblingPackageRoot}/pgAdmin4.py`)}"`,
+    windowsNormalizedPaths,
+    windowsSiblingPackageRoot,
+    true
+  ),
+  false
 )
 assert.deepEqual(
   pgAdminOwnedPidsWithoutPackageMetadata(
@@ -970,6 +990,7 @@ const openPgAdminSource = postgresqlSource.slice(
 )
 
 assert.doesNotMatch(pgAdminSource, /PgAdminCredentials|validPgAdminCredentials/)
+assert.match(pgAdminSource, /\(windows \? win32 : posix\)\.normalize\(normalized\)/)
 assert.match(
   postgresqlSource,
   /pgAdminInitializationState\(\s*paths,\s*existsSync,\s*\(file\) =>\s*readFile\(file, 'utf-8'\)\s*\)/s
