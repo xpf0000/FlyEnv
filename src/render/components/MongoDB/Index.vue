@@ -6,7 +6,30 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" type-flag="mongodb" title="MongoDB"></Service>
+      <Service v-if="tab === 0" type-flag="mongodb" title="MongoDB">
+        <template v-if="isRunning" #tool-left>
+          <el-button
+            style="color: #01cc74"
+            class="button"
+            link
+            :disabled="dbGateOpening || !nodeVersion"
+            @click.stop="openDbGate"
+          >
+            <el-icon
+              v-if="dbGateOpening"
+              class="is-loading"
+              style="width: 20px; height: 20px; margin-left: 10px"
+            >
+              <Loading />
+            </el-icon>
+            <yb-icon
+              v-else
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')"
+            ></yb-icon>
+          </el-button>
+        </template>
+      </Service>
       <Manager
         v-else-if="tab === 1"
         type-flag="mongodb"
@@ -26,13 +49,47 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import { computed, ref } from 'vue'
+  import { Loading } from '@element-plus/icons-vue'
+  import { BrewStore } from '@/store/brew'
+  import { MessageError } from '@/util/Element'
+  import { shell } from '@/util/NodeFn'
+  import IPC from '@/util/IPC'
 
   const { tab, checkVersion } = AppModuleSetup('mongodb')
+  const brewStore = BrewStore()
+  const isRunning = computed(() => {
+    return brewStore.module('mongodb').installed.some((item) => item.run)
+  })
+  const nodeVersion = computed(() => brewStore.currentVersion('node'))
+  const dbGateOpening = ref(false)
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),
     I18nT('base.configFile'),
     I18nT('base.log')
   ]
+
+  const openDbGate = () => {
+    if (dbGateOpening.value || !isRunning.value) return
+    if (!nodeVersion.value?.bin) {
+      MessageError(I18nT('base.needSelectVersion'))
+      return
+    }
+    dbGateOpening.value = true
+    const selectedNode = JSON.parse(JSON.stringify(nodeVersion.value))
+    IPC.sendSensitive('app-fork:mongodb', 'openDbGate', selectedNode).then(
+      (key: string, res: any) => {
+        if (res?.code === 200) return
+        IPC.off(key)
+        dbGateOpening.value = false
+        if (res?.code === 0 && res.data?.url) {
+          shell.openExternal(res.data.url).catch()
+          return
+        }
+        MessageError(res?.msg ?? 'DbGate failed to start')
+      }
+    )
+  }
   checkVersion()
 </script>
