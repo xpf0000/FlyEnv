@@ -158,7 +158,7 @@ after the user explicitly opens the MongoDB Web entry, and is stored under
 files.
 
 The implementation must still expose the exact DbGate version, license, and
-source URL in the existing third-party dependency documentation. It must not
+source URL in `docs/third-party-licenses.md`. It must not
 modify or merge DbGate code into FlyEnv's main or renderer bundles. Release
 checks should verify that the production application artifacts do not contain
 the DbGate package and that the on-demand installer preserves npm package
