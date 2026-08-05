@@ -19,6 +19,9 @@ whose current lifecycle owner is MongoDB.
 - Set DbGate `WORKSPACE_DIR` to the FlyEnv DbGate workspace. Do not set
   `CONNECTIONS`, so DbGate opens an empty workspace and users can create and
   save their own MongoDB connections and credentials.
+- Enable DbGate `BASIC_AUTH` with a FlyEnv-generated credential pair. The pair
+  is stored in a private file below `BaseDir/dbgate` and is never presented as
+  a user setting.
 - MongoDB owns the companion lifecycle for this first integration. Stopping
   MongoDB stops DbGate first and returns both process groups in
   `APP-Service-Stop-PID`.
@@ -75,12 +78,21 @@ starts with no preconfigured connection and persists user-created connection
 records in its FlyEnv workspace. MongoDB usernames, passwords, auth sources,
 TLS options, and saved credentials remain DbGate concerns.
 
-DbGate's own web login is disabled for the local desktop workflow. Before
-shipping, the implementation must confirm that the selected DbGate release can
-be constrained to loopback. If the npm server binds all interfaces and offers
-no supported loopback bind option, the integration must not expose an
-unauthenticated service beyond the local machine; use a supported local-only
-binding or enable an appropriate local web-auth fallback.
+DbGate is started with `BASIC_AUTH=1`, a fixed non-sensitive login name such as
+`flyenv`, and a cryptographically random password generated once per local
+installation. The credentials are stored in a private file below
+`BaseDir/dbgate` with user-only permissions. They are not MongoDB credentials
+and are not exposed in FlyEnv settings.
+
+The returned browser URL contains URL-encoded Basic Auth user information so a
+normal external browser can authenticate without showing a login prompt. The
+open request and response use the renderer's sensitive IPC path; credentials
+must not appear in IPC debug logs, error messages, or normal FlyEnv state.
+
+The DbGate npm server still binds using its own `server.listen(port)` call. The
+Basic Auth layer therefore remains mandatory even if a future release adds a
+loopback bind option. The URL is always generated with `127.0.0.1`; this
+integration does not advertise DbGate as a remote administration service.
 
 ## Lifecycle
 

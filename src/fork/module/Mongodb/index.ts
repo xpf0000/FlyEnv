@@ -30,13 +30,22 @@ import axios from 'axios'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 import { serviceStartSpawn } from '../../util/ServiceStart'
+import { DbGateRuntime, type DbGateOpenResult } from '../DbGate'
 
 class Manager extends Base {
   mongoshVersion = '2.5.2'
+  private _dbGateRuntime?: DbGateRuntime
 
   constructor() {
     super()
     this.type = 'mongodb'
+  }
+
+  private get dbGateRuntime() {
+    if (!this._dbGateRuntime) {
+      this._dbGateRuntime = new DbGateRuntime(global.Server.BaseDir!)
+    }
+    return this._dbGateRuntime
   }
 
   init() {
@@ -52,7 +61,13 @@ class Manager extends Base {
   getLogFiles(version?: SoftInstalled) {
     const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
     if (!v) return []
-    return [{ name: 'log', path: join(global.Server.MongoDBDir!, `mongodb-${v}.log`) }]
+    const dbGate = this.dbGateRuntime.paths
+    return [
+      { name: 'log', path: join(global.Server.MongoDBDir!, `mongodb-${v}.log`) },
+      { name: 'dbgate-start-out', path: dbGate.startOut },
+      { name: 'dbgate-start-error', path: dbGate.startError },
+      { name: 'dbgate', path: join(dbGate.log, 'dbgate.log') }
+    ]
   }
 
   initMongosh() {
@@ -110,11 +125,33 @@ class Manager extends Base {
     })
   }
 
+  openDbGate(node: SoftInstalled): ForkPromise<DbGateOpenResult> {
+    return new ForkPromise((resolve, reject, on) => {
+      if (!node?.bin) {
+        reject(new Error(I18nT('base.needSelectVersion')))
+        return
+      }
+      this.dbGateRuntime.open(node, on).then(resolve).catch(reject)
+    })
+  }
+
   _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
-    if (!isWindows()) {
-      return super._stopServer(version) as any
-    }
     return new ForkPromise(async (resolve, reject, on) => {
+      const dbGatePids = await this.dbGateRuntime.stop().catch((error) => {
+        console.error('stop DbGate error: ', error)
+        return [] as string[]
+      })
+      const mergePids = (result: { 'APP-Service-Stop-PID'?: Array<string | number> }) => {
+        result['APP-Service-Stop-PID'] = Array.from(
+          new Set([...(result['APP-Service-Stop-PID'] ?? []), ...dbGatePids])
+        )
+        resolve(result as { 'APP-Service-Stop-PID': number[] })
+      }
+
+      if (!isWindows()) {
+        super._stopServer(version).on(on).then(mergePids).catch(reject)
+        return
+      }
       try {
         await this.initMongosh()
       } catch {}
@@ -154,11 +191,11 @@ class Manager extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
         })
-        return resolve({
+        return mergePids({
           'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
         })
       }
-      super._stopServer(version).on(on).then(resolve).catch(reject)
+      super._stopServer(version).on(on).then(mergePids).catch(reject)
     })
   }
 

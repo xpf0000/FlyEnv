@@ -54,7 +54,9 @@ assert.equal(unix.entry, '/tmp/FlyEnv/server/dbgate/node_modules/dbgate-serve/bi
 const env = dbGateEnv(unix, 3001)
 assert.equal(env.WORKSPACE_DIR, unix.workspace)
 assert.equal(env.PORT, '3001')
-assert.equal(env.SKIP_ALL_AUTH, '1')
+assert.equal(env.BASIC_AUTH, '1')
+assert.equal(env.LOGIN, 'flyenv')
+assert.equal(env.PASSWORD, 'test-password')
 assert.equal(env.SHELL_CONNECTION, '0')
 assert.equal(env.SHELL_SCRIPTING, '0')
 assert.equal(env.CONNECTIONS, undefined)
@@ -160,13 +162,17 @@ export type DbGatePaths = {
 }
 
 export function dbGatePaths(baseDir: string, windows: boolean): DbGatePaths
-export function dbGateEnv(paths: DbGatePaths, port: number): Record<string, string>
+export function dbGateEnv(
+  paths: DbGatePaths,
+  port: number,
+  credentials?: { login: string; password: string }
+): Record<string, string>
 export function dbGateUrl(port: number): string
 export function dbGateCommandOwned(command: string, paths: DbGatePaths, windows: boolean): boolean
 export function mongodbPortFromConfig(content: string): number
 ~~~
 
-The path helper must keep all files below Server.BaseDir/dbgate and use node_modules/dbgate-serve/bin/dbgate-serve.js as the entry on every platform. The environment helper must set WORKSPACE_DIR, PORT, SKIP_ALL_AUTH=1, SHELL_CONNECTION=0, and SHELL_SCRIPTING=0, while leaving CONNECTIONS unset. The MongoDB parser accepts net.port from 1 to 65535 and defaults to 27017. Ownership matching must require the normalized package entry path and reject sibling or external paths.
+The path helper must keep all files below Server.BaseDir/dbgate and use node_modules/dbgate-serve/bin/dbgate-serve.js as the entry on every platform. The environment helper must set WORKSPACE_DIR, PORT, BASIC_AUTH=1, LOGIN, PASSWORD, SHELL_CONNECTION=0, and SHELL_SCRIPTING=0, while leaving CONNECTIONS unset. Credentials are generated once and persisted in a private file below the DbGate root. The MongoDB parser accepts net.port from 1 to 65535 and defaults to 27017. Ownership matching must require the normalized package entry path and reject sibling or external paths.
 
 - [ ] **Step 5: Run focused contracts and checks**
 
@@ -209,7 +215,7 @@ Resolve npm without a global shell lookup by checking the selected Node director
 
 - [ ] **Step 3: Implement health-aware open**
 
-Add DbGateRuntime.open(node, on) to create directories, validate persisted PID/port state, check exact command ownership, check the listener PID through the existing loopback-listener process helpers, and perform an HTTP health request to dbGateUrl(port). If no healthy instance exists, install if needed, select a loopback port, and call serviceStartSpawn with the selected Node binary and entry script. Pass PORT, WORKSPACE_DIR, SKIP_ALL_AUTH, SHELL_CONNECTION, and SHELL_SCRIPTING in execEnv; wait for PID and HTTP health before persisting the port.
+Add DbGateRuntime.open(node, on) to create directories, validate persisted PID/port state, check exact command ownership, check the listener PID through the existing loopback-listener process helpers, and perform an HTTP health request to dbGateUrl(port). If no healthy instance exists, install if needed, select a loopback port, and call serviceStartSpawn with the selected Node binary and entry script. Pass PORT, WORKSPACE_DIR, BASIC_AUTH, LOGIN, PASSWORD, SHELL_CONNECTION, and SHELL_SCRIPTING in execEnv; wait for PID and HTTP health before persisting the port. Return a URL containing URL-encoded Basic Auth user information so the user never needs to handle the generated credentials.
 
 Return { url, 'APP-Service-Start-PID', 'APP-Service-Start-Item' }, where the start item has typeFlag: 'mongodb', version: 'dbgate', bin set to the selected Node binary, and path set to the DbGate root. Wrap concurrent calls in a single-flight promise.
 
@@ -382,4 +388,3 @@ git log --oneline --decorate -8
 ~~~
 
 Expected: only intentional feature commits are present; the unrelated docs/task/clickhouse-demo directory in the main worktree remains untouched.
-
