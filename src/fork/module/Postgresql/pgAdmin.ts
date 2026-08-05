@@ -7,6 +7,8 @@ export const PGADMIN4_DEFAULT_PORT = 5050
 export const PGADMIN4_MAX_PORT = 65535
 export const PGADMIN4_MAX_SERVER_PORT = 65534
 export const PGADMIN4_PORT_SCAN_COUNT = 21
+const PGADMIN4_HEALTH_ATTEMPTS = 60
+const PGADMIN4_HEALTH_INTERVAL_MILLISECONDS = 500
 
 export interface PgAdminPaths {
   root: string
@@ -693,8 +695,8 @@ export interface PgAdminHealthOptions {
 }
 
 export async function waitForPgAdminHealth(options: PgAdminHealthOptions): Promise<boolean> {
-  const attempts = Math.max(1, options.attempts ?? 10)
-  const intervalMilliseconds = options.intervalMilliseconds ?? 250
+  const attempts = Math.max(1, options.attempts ?? PGADMIN4_HEALTH_ATTEMPTS)
+  const intervalMilliseconds = options.intervalMilliseconds ?? PGADMIN4_HEALTH_INTERVAL_MILLISECONDS
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     if ((await options.isPortOwned()) && (await options.isHttpReachable())) {

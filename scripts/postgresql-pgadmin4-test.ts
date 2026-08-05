@@ -145,12 +145,16 @@ assert.equal(config.split('\n').filter((line) => line === 'SERVER_MODE = False')
 assert.match(config, /DEFAULT_SERVER = "127\.0\.0\.1"/)
 assert.match(config, /DEFAULT_SERVER_PORT = 5051/)
 assert.match(config, /DATA_DIR = "\/tmp\/FlyEnv data"/)
-assert.match(config, /SQLITE_PATH = "\/tmp\/FlyEnv data\/pgadmin4\.db"/)
-assert.match(config, /SESSION_DB_PATH = "\/tmp\/FlyEnv data\/sessions"/)
-assert.match(config, /STORAGE_DIR = "\/tmp\/FlyEnv data\/storage"/)
-assert.match(config, /LOG_FILE = "\/tmp\/FlyEnv logs\/pgadmin4\.log"/)
-assert.match(config, /KERBEROS_CCACHE_DIR = "\/tmp\/FlyEnv data\/kerberos"/)
-assert.match(config, /AZURE_CREDENTIAL_CACHE_DIR = "\/tmp\/FlyEnv data\/azure"/)
+assert.ok(config.includes(`SQLITE_PATH = ${JSON.stringify(join(configDataDir, 'pgadmin4.db'))}`))
+assert.ok(config.includes(`SESSION_DB_PATH = ${JSON.stringify(join(configDataDir, 'sessions'))}`))
+assert.ok(config.includes(`STORAGE_DIR = ${JSON.stringify(join(configDataDir, 'storage'))}`))
+assert.ok(config.includes(`LOG_FILE = ${JSON.stringify(join(configLogDir, 'pgadmin4.log'))}`))
+assert.ok(
+  config.includes(`KERBEROS_CCACHE_DIR = ${JSON.stringify(join(configDataDir, 'kerberos'))}`)
+)
+assert.ok(
+  config.includes(`AZURE_CREDENTIAL_CACHE_DIR = ${JSON.stringify(join(configDataDir, 'azure'))}`)
+)
 assert.doesNotMatch(config, /0\.0\.0\.0/)
 
 const bootstrap = pgAdminDesktopBootstrapContent()
@@ -721,6 +725,35 @@ assert.equal(
   pgAdminCommandOwned(`${unixPaths.python} /other/pgAdmin4.py`, unixPaths, packageRoot, false),
   false
 )
+
+const defaultHealthIntervals: number[] = []
+assert.equal(
+  await waitForPgAdminHealth({
+    isPortOwned: async () => false,
+    isHttpReachable: async () => true,
+    wait: async (milliseconds) => {
+      defaultHealthIntervals.push(milliseconds)
+    }
+  }),
+  false
+)
+assert.equal(defaultHealthIntervals.length, 59)
+assert.deepEqual(new Set(defaultHealthIntervals), new Set([500]))
+
+const explicitHealthIntervals: number[] = []
+assert.equal(
+  await waitForPgAdminHealth({
+    isPortOwned: async () => false,
+    isHttpReachable: async () => true,
+    wait: async (milliseconds) => {
+      explicitHealthIntervals.push(milliseconds)
+    },
+    attempts: 2,
+    intervalMilliseconds: 17
+  }),
+  false
+)
+assert.deepEqual(explicitHealthIntervals, [17])
 
 const healthEvents: string[] = []
 let healthChecks = 0
