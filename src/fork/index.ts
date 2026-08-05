@@ -76,21 +76,6 @@ if (parentPort) {
 
 const manager = new BaseManager()
 
-function sanitizeForkExecArgs(args: unknown, module: unknown, fn: unknown): unknown {
-  if (!Array.isArray(args) || module !== 'postgresql' || fn !== 'openPGAdmin') {
-    return args
-  }
-  const sanitized = args.slice()
-  const credentials = sanitized[3]
-  if (credentials && typeof credentials === 'object' && !Array.isArray(credentials)) {
-    sanitized[3] = {
-      email: (credentials as { email?: unknown }).email,
-      password: '[REDACTED]'
-    }
-  }
-  return sanitized
-}
-
 // ↓↓↓↓ 下面这里的代码完全不用动，保持原来的 child_process 写法即可 ↓↓↓↓
 process.on('message', function (args: any) {
   if (ForkLanguageService.handle(args)) {
@@ -115,8 +100,6 @@ process.on('message', function (args: any) {
     return
   } else {
     // 假设 manager 内部使用了 process.send，现在也能正常工作了
-    const commandModule = Array.isArray(args) ? args[1] : undefined
-    const commandFunction = Array.isArray(args) ? args[2] : undefined
     const logArgs = Array.isArray(args) ? args.slice(3) : args
     manager
       .exec(args)
@@ -129,7 +112,7 @@ process.on('message', function (args: any) {
         appDebugLog(
           '[Fork][exec][error]',
           `${JSON.stringify({
-            args: sanitizeForkExecArgs(logArgs, commandModule, commandFunction),
+            args: logArgs,
             error
           })}`
         ).catch()
