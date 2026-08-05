@@ -38,7 +38,8 @@ import {
   validPgAdminRegistrationPort,
   validPgAdminPythonVersion,
   verifyPgAdminPidPersistence,
-  waitForPgAdminHealth
+  waitForPgAdminHealth,
+  waitForPostgresqlProcess
 } from '../src/fork/module/Postgresql/pgAdmin'
 
 assert.equal(PGADMIN4_DEFAULT_PORT, 5050)
@@ -757,6 +758,45 @@ await assert.rejects(
   }),
   /did not exit/
 )
+
+const postgresqlDataDirectory = 'C:/FlyEnv/PostgreSQL'
+const ownedPostgresProcess = {
+  PID: '202',
+  COMMAND: 'C:\\PostgreSQL\\bin\\postgres.exe -D C:\\FlyEnv\\PostgreSQL'
+}
+await assert.rejects(
+  waitForPostgresqlProcess({
+    listProcesses: async () => [
+      { PID: '101', COMMAND: 'C:\\PostgreSQL\\bin\\postgres.exe -D C:\\FlyEnv\\Other' },
+      { PID: '102', COMMAND: 'C:\\Tools\\node.exe -D C:\\FlyEnv\\PostgreSQL' }
+    ],
+    dataDirectory: postgresqlDataDirectory,
+    windows: true,
+    attempts: 2,
+    wait: async () => {}
+  }),
+  /PostgreSQL process/
+)
+await assert.rejects(
+  waitForPostgresqlProcess({
+    listProcesses: async () => [],
+    dataDirectory: postgresqlDataDirectory,
+    windows: true,
+    attempts: 1,
+    wait: async () => {}
+  }),
+  /PostgreSQL process/
+)
+const validPostgresqlPid = await waitForPostgresqlProcess({
+  listProcesses: async () => [ownedPostgresProcess],
+  dataDirectory: postgresqlDataDirectory,
+  windows: true,
+  attempts: 1,
+  wait: async () => {}
+})
+const persistedAppPid = validPostgresqlPid
+assert.equal(persistedAppPid, '202')
+
 assert.equal(postgresqlPortFromConfig('port = 15432'), 15432)
 assert.equal(postgresqlPortFromConfig('port = "15433" # local port'), 15433)
 assert.equal(postgresqlPortFromConfig("port = '15434'"), 15434)
@@ -1008,13 +1048,12 @@ const unixPostgreSqlStart = postgreSqlStartSource.slice(postgreSqlStartSource.in
 assert.match(windowsPostgreSqlStart, /const appPidFile = this\.appPidFile\(\)/)
 assert.match(windowsPostgreSqlStart, /pidPath: appPidFile/)
 assert.match(windowsPostgreSqlStart, /checkPidFile: false/)
-assert.match(
-  windowsPostgreSqlStart,
-  /const readPostmasterPid = async \(attempt = 0\): Promise<string> =>/
-)
-assert.match(windowsPostgreSqlStart, /pid = await this\.readPidFromFile\(pidFile\)/)
-assert.match(windowsPostgreSqlStart, /await waitTime\(500\)/)
-assert.match(windowsPostgreSqlStart, /const pid = await readPostmasterPid\(\)/)
+assert.match(windowsPostgreSqlStart, /waitForPostgresqlProcess\(/)
+assert.match(windowsPostgreSqlStart, /listProcesses: \(\) => ProcessPidListStrict\(\)/)
+assert.match(windowsPostgreSqlStart, /dataDirectory: dbPath/)
+assert.match(windowsPostgreSqlStart, /wait: waitTime/)
+assert.match(windowsPostgreSqlStart, /'APP-Service-Start-PID': pid/)
+assert.doesNotMatch(windowsPostgreSqlStart, /postmaster\.pid|readPostmasterPid/)
 assert.doesNotMatch(windowsPostgreSqlStart, /pidPath: pidFile/)
 assert.doesNotMatch(unixPostgreSqlStart, /pidPath: pidFile/)
 

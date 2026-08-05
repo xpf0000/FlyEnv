@@ -680,6 +680,63 @@ export async function waitForPgAdminHealth(options: PgAdminHealthOptions): Promi
   return false
 }
 
+export interface PostgreSqlProcess {
+  PID: string
+  COMMAND: string
+}
+
+function postgresqlProcessOwnsDataDirectory(
+  command: string,
+  dataDirectory: string,
+  windows: boolean
+): boolean {
+  const normalizedCommand = commandPath(command, windows)
+  const normalizedDataDirectory = commandPath(dataDirectory, windows)
+  if (!normalizedCommand || !normalizedDataDirectory) {
+    return false
+  }
+  const postgresPattern = /(?:^|[/\s])postgres(?:\.exe)?(?=\s|$)/
+  const dataDirectoryFlag = windows ? '-d' : '-D'
+  const dataDirectoryPattern = new RegExp(
+    `(?:^|\\s)${dataDirectoryFlag}\\s+${commandArgumentPattern(normalizedDataDirectory)}(?=\\s|$)`
+  )
+  return postgresPattern.test(normalizedCommand) && dataDirectoryPattern.test(normalizedCommand)
+}
+
+export interface PostgreSqlProcessWaitOptions {
+  listProcesses: () => Promise<PostgreSqlProcess[]>
+  dataDirectory: string
+  windows: boolean
+  wait: (milliseconds: number) => Promise<unknown>
+  attempts?: number
+  intervalMilliseconds?: number
+}
+
+export async function waitForPostgresqlProcess(
+  options: PostgreSqlProcessWaitOptions
+): Promise<string> {
+  const attempts = Math.max(1, options.attempts ?? 20)
+  const intervalMilliseconds = options.intervalMilliseconds ?? 500
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    let processes: PostgreSqlProcess[] = []
+    try {
+      processes = await options.listProcesses()
+    } catch {}
+    const process = processes.find((item) =>
+      postgresqlProcessOwnsDataDirectory(item.COMMAND, options.dataDirectory, options.windows)
+    )
+    if (process?.PID) {
+      return `${process.PID}`.trim()
+    }
+    if (attempt + 1 < attempts) {
+      await options.wait(intervalMilliseconds)
+    }
+  }
+
+  throw new Error(`PostgreSQL process did not start for data directory: ${options.dataDirectory}`)
+}
+
 function canBindLoopback(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = createServer()

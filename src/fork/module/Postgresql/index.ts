@@ -72,7 +72,8 @@ import {
   type PgAdminServerIdentity,
   validPgAdminPythonVersion,
   verifyPgAdminPidPersistence,
-  waitForPgAdminHealth
+  waitForPgAdminHealth,
+  waitForPostgresqlProcess
 } from './pgAdmin'
 
 type PgAdminOpenResult = {
@@ -598,7 +599,6 @@ class Manager extends Base {
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       const confFile = join(dbPath, 'postgresql.conf')
-      const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
       const sendUserPass = false
 
@@ -609,17 +609,6 @@ class Manager extends Base {
         if (isWindows()) {
           const execArgs = `-D "${dbPath}" -l "${logFile}" start`
           const appPidFile = this.appPidFile()
-          const readPostmasterPid = async (attempt = 0): Promise<string> => {
-            let pid = ''
-            try {
-              pid = await this.readPidFromFile(pidFile)
-            } catch {}
-            if (pid || attempt >= 20) {
-              return pid
-            }
-            await waitTime(500)
-            return readPostmasterPid(attempt + 1)
-          }
 
           try {
             await serviceStartExecCMD({
@@ -635,10 +624,12 @@ class Manager extends Base {
             if (sendUserPass) {
               on(I18nT('fork.postgresqlInit', { dir: dbPath }))
             }
-            const pid = await readPostmasterPid()
-            if (!pid) {
-              throw new Error('PostgreSQL postmaster.pid was not created')
-            }
+            const pid = await waitForPostgresqlProcess({
+              listProcesses: () => ProcessPidListStrict(),
+              dataDirectory: dbPath,
+              windows: true,
+              wait: waitTime
+            })
             on({
               'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
             })
