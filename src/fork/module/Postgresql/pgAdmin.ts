@@ -695,10 +695,10 @@ function postgresqlProcessOwnsDataDirectory(
   if (!normalizedCommand || !normalizedDataDirectory) {
     return false
   }
-  const postgresPattern = /(?:^|[/\s])postgres(?:\.exe)?(?=\s|$)/
+  const postgresPattern = /(?:^|[/\s])postgres(?:\.exe)?(?=["'\s]|$)/
   const dataDirectoryFlag = windows ? '-d' : '-D'
   const dataDirectoryPattern = new RegExp(
-    `(?:^|\\s)${dataDirectoryFlag}\\s+${commandArgumentPattern(normalizedDataDirectory)}(?=\\s|$)`
+    `(?:^|\\s)${commandArgumentPattern(dataDirectoryFlag)}\\s+${commandArgumentPattern(normalizedDataDirectory)}(?=\\s|$)`
   )
   return postgresPattern.test(normalizedCommand) && dataDirectoryPattern.test(normalizedCommand)
 }

@@ -764,11 +764,20 @@ const ownedPostgresProcess = {
   PID: '202',
   COMMAND: 'C:\\PostgreSQL\\bin\\postgres.exe -D C:\\FlyEnv\\PostgreSQL'
 }
+const quotedOwnedPostgresProcess = {
+  PID: '203',
+  COMMAND: '"C:\\Program Files\\PostgreSQL\\bin\\postgres.exe" "-D" "C:\\FlyEnv PostgreSQL"'
+}
+const quotedPostgresqlDataDirectory = 'C:/FlyEnv PostgreSQL'
 await assert.rejects(
   waitForPostgresqlProcess({
     listProcesses: async () => [
       { PID: '101', COMMAND: 'C:\\PostgreSQL\\bin\\postgres.exe -D C:\\FlyEnv\\Other' },
-      { PID: '102', COMMAND: 'C:\\Tools\\node.exe -D C:\\FlyEnv\\PostgreSQL' }
+      {
+        PID: '102',
+        COMMAND: 'C:\\PostgreSQL\\bin\\postgres.exe -D C:\\FlyEnv\\PostgreSQL-copy'
+      },
+      { PID: '103', COMMAND: 'C:\\Tools\\node.exe -D C:\\FlyEnv\\PostgreSQL' }
     ],
     dataDirectory: postgresqlDataDirectory,
     windows: true,
@@ -796,6 +805,14 @@ const validPostgresqlPid = await waitForPostgresqlProcess({
 })
 const persistedAppPid = validPostgresqlPid
 assert.equal(persistedAppPid, '202')
+const quotedPostgresqlPid = await waitForPostgresqlProcess({
+  listProcesses: async () => [quotedOwnedPostgresProcess],
+  dataDirectory: quotedPostgresqlDataDirectory,
+  windows: true,
+  attempts: 1,
+  wait: async () => {}
+})
+assert.equal(quotedPostgresqlPid, '203')
 
 assert.equal(postgresqlPortFromConfig('port = 15432'), 15432)
 assert.equal(postgresqlPortFromConfig('port = "15433" # local port'), 15433)
