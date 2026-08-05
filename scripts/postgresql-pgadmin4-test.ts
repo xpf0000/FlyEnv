@@ -58,6 +58,8 @@ assert.throws(
 const postgreSqlDir = join('/tmp', 'flyenv-postgresql')
 const unixPaths = pgAdminPaths(postgreSqlDir, false)
 const packageRoot = join('/tmp', 'flyenv-pgadmin-package')
+const resolvedPython =
+  '/opt/local/Library/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python'
 assert.deepEqual(unixPaths, {
   root: join(postgreSqlDir, 'pgadmin4'),
   data: join(postgreSqlDir, 'pgadmin4', 'data'),
@@ -343,6 +345,15 @@ assert.equal(
 )
 assert.equal(
   pgAdminCommandOwned(
+    `${resolvedPython} ${join(packageRoot, 'pgAdmin4.py')} --normal-flag`,
+    unixPaths,
+    packageRoot,
+    false
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwned(
     `${unixPaths.python} -c "print('${join(packageRoot, 'pgAdmin4.py')}')"`,
     unixPaths,
     packageRoot,
@@ -359,11 +370,15 @@ assert.equal(
   ),
   false
 )
+assert.equal(
+  pgAdminCommandOwned(`${resolvedPython} /other/script.py`, unixPaths, packageRoot, false),
+  false
+)
 assert.deepEqual(
   pgAdminOwnedPids(
     [
       { PID: '101', COMMAND: `${unixPaths.python} ${join(packageRoot, 'pgAdmin4.py')}` },
-      { PID: '102', COMMAND: `${unixPaths.root}/other-python ${join(packageRoot, 'pgAdmin4.py')}` },
+      { PID: '102', COMMAND: `${resolvedPython} ${join(packageRoot, 'pgAdmin4.py')}` },
       { PID: '103', COMMAND: `${unixPaths.python} /other/pgAdmin4.py` },
       { PID: '104', COMMAND: `${unixPaths.python} ${join(packageRoot, 'not-pgadmin.py')}` },
       { PID: '101', COMMAND: `${unixPaths.python} ${join(packageRoot, 'pgAdmin4.py')}` }
@@ -372,7 +387,7 @@ assert.deepEqual(
     packageRoot,
     false
   ),
-  ['101']
+  ['101', '102']
 )
 const metadataIndependentScript = join(
   unixPaths.venv,
@@ -392,6 +407,14 @@ assert.equal(
 )
 assert.equal(
   pgAdminCommandOwnedWithoutPackageMetadata(
+    `${resolvedPython} ${metadataIndependentScript} --normal-flag`,
+    unixPaths,
+    false
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwnedWithoutPackageMetadata(
     `${unixPaths.python} ${join(unixPaths.venv, 'site-packages', 'pgadmin4', 'pgAdmin4.py')}`,
     unixPaths,
     false
@@ -399,11 +422,7 @@ assert.equal(
   false
 )
 assert.equal(
-  pgAdminCommandOwnedWithoutPackageMetadata(
-    `/other/python ${metadataIndependentScript}`,
-    unixPaths,
-    false
-  ),
+  pgAdminCommandOwnedWithoutPackageMetadata('/other/python /other/script.py', unixPaths, false),
   false
 )
 assert.equal(
@@ -418,13 +437,13 @@ assert.deepEqual(
   pgAdminOwnedPidsWithoutPackageMetadata(
     [
       { PID: '105', COMMAND: `${unixPaths.python} ${metadataIndependentScript}` },
-      { PID: '106', COMMAND: `/other/python ${metadataIndependentScript}` },
+      { PID: '106', COMMAND: `${resolvedPython} ${metadataIndependentScript}` },
       { PID: '105', COMMAND: `${unixPaths.python} ${metadataIndependentScript}` }
     ],
     unixPaths,
     false
   ),
-  ['105']
+  ['105', '106']
 )
 
 const singleFlight = new PgAdminSingleFlight<string>()
@@ -893,6 +912,10 @@ const pgAdminSource = readFileSync(
   join(process.cwd(), 'src', 'fork', 'module', 'Postgresql', 'pgAdmin.ts'),
   'utf-8'
 )
+const postgreSqlStopSource = postgresqlSource.slice(
+  postgresqlSource.indexOf('  _stopServer('),
+  postgresqlSource.indexOf('  _startServer(')
+)
 const openPgAdminSource = postgresqlSource.slice(
   postgresqlSource.indexOf('private openPGAdminInternal'),
   postgresqlSource.indexOf('  _stopServer(')
@@ -908,6 +931,16 @@ assert.match(
   /openPGAdmin\(\s*version: SoftInstalled,\s*dataDir: string,\s*python: SoftInstalled\s*\)/s
 )
 assert.doesNotMatch(postgresqlSource, /pgAdminStatus\(/)
+assert.match(postgreSqlStopSource, /const pgAdminPids = await this\._stopPGAdmin\(\)/)
+assert.ok(
+  postgreSqlStopSource.indexOf('await this._stopPGAdmin()') <
+    postgreSqlStopSource.indexOf('await doStop()')
+)
+assert.match(postgreSqlStopSource, /pgAdminPids\.forEach\(\(pid\) => pids\.add\(pid\)\)/)
+assert.match(
+  postgreSqlStopSource,
+  /'APP-Service-Stop-PID': \[\.\.\.pids\]\.map\(\(p\) => Number\(p\)\)/
+)
 assert.match(postgresqlSource, /new PgAdminSingleFlight/)
 assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
 assert.match(postgresqlSource, /pgAdminDesktopInitializationVerificationContent/)

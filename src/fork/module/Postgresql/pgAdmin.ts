@@ -524,6 +524,10 @@ function commandArgumentPattern(path: string): string {
   return `(?:${escapedPath}|"${escapedPath}"|'${escapedPath}')`
 }
 
+function commandExecutablePattern(): string {
+  return `(?:[^\\s"']+|"[^"]+"|'[^']+')`
+}
+
 export function pgAdminCommandOwned(
   command: string,
   paths: PgAdminPaths,
@@ -531,10 +535,9 @@ export function pgAdminCommandOwned(
   windows: boolean
 ): boolean {
   const normalizedCommand = commandPath(command, windows)
-  const pythonPath = commandPath(paths.python, windows)
   const scriptPath = commandPath(join(packageRoot, 'pgAdmin4.py'), windows)
   const commandPattern = new RegExp(
-    `^\\s*${commandArgumentPattern(pythonPath)}\\s+${commandArgumentPattern(scriptPath)}(?=\\s|$)`
+    `^\\s*${commandExecutablePattern()}\\s+${commandArgumentPattern(scriptPath)}(?=\\s|$)`
   )
 
   return commandPattern.test(normalizedCommand)
@@ -551,7 +554,7 @@ function pgAdminMetadataIndependentScriptPattern(paths: PgAdminPaths, windows: b
 
 /**
  * Distribution metadata can be missing while a previous pgAdmin process is still running.
- * This deliberately accepts only FlyEnv's venv Python followed by its canonical pgAdmin entry point.
+ * This deliberately accepts only FlyEnv's venv canonical pgAdmin entry point.
  */
 export function pgAdminCommandOwnedWithoutPackageMetadata(
   command: string,
@@ -559,9 +562,8 @@ export function pgAdminCommandOwnedWithoutPackageMetadata(
   windows: boolean
 ): boolean {
   const normalizedCommand = commandPath(command, windows)
-  const pythonPath = commandPath(paths.python, windows)
   const commandPattern = new RegExp(
-    `^\\s*${commandArgumentPattern(pythonPath)}\\s+${pgAdminMetadataIndependentScriptPattern(
+    `^\\s*${commandExecutablePattern()}\\s+${pgAdminMetadataIndependentScriptPattern(
       paths,
       windows
     )}(?=\\s|$)`
