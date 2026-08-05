@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { createServer } from 'node:net'
 import { once } from 'node:events'
 import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, win32 } from 'node:path'
 import { loopbackListeningPidsFromNetstat } from '../src/shared/Process.win'
 import {
   completePgAdminInitialization,
@@ -57,7 +57,23 @@ assert.throws(
 
 const postgreSqlDir = join('/tmp', 'flyenv-postgresql')
 const unixPaths = pgAdminPaths(postgreSqlDir, false)
-const packageRoot = join('/tmp', 'flyenv-pgadmin-package')
+const packageRoot = join(unixPaths.venv, 'lib', 'python3.13', 'site-packages', 'pgadmin4')
+const externalPackageRoot = join('/tmp', 'external-pgadmin-package')
+const venvSiblingPackageRoot = join(`${unixPaths.venv}-external`, 'pgadmin4')
+const traversalPackageRoot = `${unixPaths.venv}/../../external-pgadmin-package`
+const windowsPaths = pgAdminPaths('C:/FlyEnv/postgresql', true)
+const windowsNormalizedPaths = {
+  ...windowsPaths,
+  venv: win32.normalize(windowsPaths.venv)
+}
+const windowsPackageRoot = win32.normalize(
+  `${windowsNormalizedPaths.venv}/Lib/site-packages/pgadmin4`
+)
+const windowsSiblingPackageRoot = win32.normalize(
+  `${windowsNormalizedPaths.venv}-external/pgadmin4`
+)
+const resolvedPython =
+  '/opt/local/Library/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python'
 assert.deepEqual(unixPaths, {
   root: join(postgreSqlDir, 'pgadmin4'),
   data: join(postgreSqlDir, 'pgadmin4', 'data'),
@@ -343,6 +359,51 @@ assert.equal(
 )
 assert.equal(
   pgAdminCommandOwned(
+    `${resolvedPython} ${join(packageRoot, 'pgAdmin4.py')} --normal-flag`,
+    unixPaths,
+    `"${packageRoot}"`,
+    false
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${resolvedPython} ${join(packageRoot, 'pgAdmin4.py')} --normal-flag`,
+    unixPaths,
+    packageRoot,
+    false
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${resolvedPython} ${join(externalPackageRoot, 'pgAdmin4.py')}`,
+    unixPaths,
+    externalPackageRoot,
+    false
+  ),
+  false
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${resolvedPython} ${join(venvSiblingPackageRoot, 'pgAdmin4.py')}`,
+    unixPaths,
+    venvSiblingPackageRoot,
+    false
+  ),
+  false
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `${resolvedPython} ${join(traversalPackageRoot, 'pgAdmin4.py')}`,
+    unixPaths,
+    traversalPackageRoot,
+    false
+  ),
+  false
+)
+assert.equal(
+  pgAdminCommandOwned(
     `${unixPaths.python} -c "print('${join(packageRoot, 'pgAdmin4.py')}')"`,
     unixPaths,
     packageRoot,
@@ -359,11 +420,15 @@ assert.equal(
   ),
   false
 )
+assert.equal(
+  pgAdminCommandOwned(`${resolvedPython} /other/script.py`, unixPaths, packageRoot, false),
+  false
+)
 assert.deepEqual(
   pgAdminOwnedPids(
     [
       { PID: '101', COMMAND: `${unixPaths.python} ${join(packageRoot, 'pgAdmin4.py')}` },
-      { PID: '102', COMMAND: `${unixPaths.root}/other-python ${join(packageRoot, 'pgAdmin4.py')}` },
+      { PID: '102', COMMAND: `${resolvedPython} ${join(packageRoot, 'pgAdmin4.py')}` },
       { PID: '103', COMMAND: `${unixPaths.python} /other/pgAdmin4.py` },
       { PID: '104', COMMAND: `${unixPaths.python} ${join(packageRoot, 'not-pgadmin.py')}` },
       { PID: '101', COMMAND: `${unixPaths.python} ${join(packageRoot, 'pgAdmin4.py')}` }
@@ -372,7 +437,7 @@ assert.deepEqual(
     packageRoot,
     false
   ),
-  ['101']
+  ['101', '102']
 )
 const metadataIndependentScript = join(
   unixPaths.venv,
@@ -392,6 +457,14 @@ assert.equal(
 )
 assert.equal(
   pgAdminCommandOwnedWithoutPackageMetadata(
+    `${resolvedPython} ${metadataIndependentScript} --normal-flag`,
+    unixPaths,
+    false
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwnedWithoutPackageMetadata(
     `${unixPaths.python} ${join(unixPaths.venv, 'site-packages', 'pgadmin4', 'pgAdmin4.py')}`,
     unixPaths,
     false
@@ -399,11 +472,7 @@ assert.equal(
   false
 )
 assert.equal(
-  pgAdminCommandOwnedWithoutPackageMetadata(
-    `/other/python ${metadataIndependentScript}`,
-    unixPaths,
-    false
-  ),
+  pgAdminCommandOwnedWithoutPackageMetadata('/other/python /other/script.py', unixPaths, false),
   false
 )
 assert.equal(
@@ -414,17 +483,35 @@ assert.equal(
   ),
   true
 )
+assert.equal(
+  pgAdminCommandOwned(
+    `C:\\EXTERNAL\\PYTHON.EXE "${win32.normalize(`${windowsPackageRoot}/pgAdmin4.py`)}"`,
+    windowsNormalizedPaths,
+    windowsPackageRoot,
+    true
+  ),
+  true
+)
+assert.equal(
+  pgAdminCommandOwned(
+    `C:\\EXTERNAL\\PYTHON.EXE "${win32.normalize(`${windowsSiblingPackageRoot}/pgAdmin4.py`)}"`,
+    windowsNormalizedPaths,
+    windowsSiblingPackageRoot,
+    true
+  ),
+  false
+)
 assert.deepEqual(
   pgAdminOwnedPidsWithoutPackageMetadata(
     [
       { PID: '105', COMMAND: `${unixPaths.python} ${metadataIndependentScript}` },
-      { PID: '106', COMMAND: `/other/python ${metadataIndependentScript}` },
+      { PID: '106', COMMAND: `${resolvedPython} ${metadataIndependentScript}` },
       { PID: '105', COMMAND: `${unixPaths.python} ${metadataIndependentScript}` }
     ],
     unixPaths,
     false
   ),
-  ['105']
+  ['105', '106']
 )
 
 const singleFlight = new PgAdminSingleFlight<string>()
@@ -623,9 +710,9 @@ assert.equal(
 )
 assert.equal(
   pgAdminCommandOwned(
-    'C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\SCRIPTS\\PYTHON.EXE C:\\Package\\PGADMIN4.PY',
+    'C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\SCRIPTS\\PYTHON.EXE C:\\FLYENV\\POSTGRESQL\\PGADMIN4\\VENV\\LIB\\SITE-PACKAGES\\PGADMIN4\\PGADMIN4.PY',
     pgAdminPaths('C:/FlyEnv/postgresql', true),
-    'C:/Package',
+    'C:/FlyEnv/postgresql/pgadmin4/venv/lib/site-packages/pgadmin4',
     true
   ),
   true
@@ -893,12 +980,17 @@ const pgAdminSource = readFileSync(
   join(process.cwd(), 'src', 'fork', 'module', 'Postgresql', 'pgAdmin.ts'),
   'utf-8'
 )
+const postgreSqlStopSource = postgresqlSource.slice(
+  postgresqlSource.indexOf('  _stopServer('),
+  postgresqlSource.indexOf('  _startServer(')
+)
 const openPgAdminSource = postgresqlSource.slice(
   postgresqlSource.indexOf('private openPGAdminInternal'),
   postgresqlSource.indexOf('  _stopServer(')
 )
 
 assert.doesNotMatch(pgAdminSource, /PgAdminCredentials|validPgAdminCredentials/)
+assert.match(pgAdminSource, /\(windows \? win32 : posix\)\.normalize\(normalized\)/)
 assert.match(
   postgresqlSource,
   /pgAdminInitializationState\(\s*paths,\s*existsSync,\s*\(file\) =>\s*readFile\(file, 'utf-8'\)\s*\)/s
@@ -908,6 +1000,16 @@ assert.match(
   /openPGAdmin\(\s*version: SoftInstalled,\s*dataDir: string,\s*python: SoftInstalled\s*\)/s
 )
 assert.doesNotMatch(postgresqlSource, /pgAdminStatus\(/)
+assert.match(postgreSqlStopSource, /const pgAdminPids = await this\._stopPGAdmin\(\)/)
+assert.ok(
+  postgreSqlStopSource.indexOf('await this._stopPGAdmin()') <
+    postgreSqlStopSource.indexOf('await doStop()')
+)
+assert.match(postgreSqlStopSource, /pgAdminPids\.forEach\(\(pid\) => pids\.add\(pid\)\)/)
+assert.match(
+  postgreSqlStopSource,
+  /'APP-Service-Stop-PID': \[\.\.\.pids\]\.map\(\(p\) => Number\(p\)\)/
+)
 assert.match(postgresqlSource, /new PgAdminSingleFlight/)
 assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
 assert.match(postgresqlSource, /pgAdminDesktopInitializationVerificationContent/)
@@ -965,6 +1067,10 @@ assert.match(postgresqlSource, /_stopPGAdmin\(/)
 assert.match(postgresqlSource, /pgAdminPackageRootUnversionedProbe/)
 assert.match(postgresqlSource, /pgAdminOwnedPidsWithoutPackageMetadata/)
 assert.match(postgresqlSource, /pgAdminFallbackOwnedProcessPids/)
+assert.match(
+  postgresqlSource,
+  /if \(!root \|\| !pgAdminPackageRootOwned\(root, paths, isWindows\(\)\)\) \{\s*const pids = await this\.pgAdminFallbackOwnedProcessPids\(\)/s
+)
 assert.match(postgresqlSource, /pgAdminPrivateDirectories/)
 assert.match(postgresqlSource, /chmod\(directory, 0o700\)/)
 assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)

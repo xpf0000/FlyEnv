@@ -1,5 +1,5 @@
 import { createServer } from 'node:net'
-import { join } from 'node:path'
+import { join, posix, win32 } from 'node:path'
 
 export const PGADMIN4_PACKAGE = 'pgadmin4==9.17'
 export const PGADMIN4_PACKAGE_VERSION = '9.17'
@@ -515,6 +515,18 @@ function commandPath(value: string, windows: boolean): string {
   return windows ? normalized.toLowerCase() : normalized
 }
 
+function privatePath(value: string, windows: boolean): string {
+  let normalized = commandPath(value.trim(), windows)
+  if (
+    normalized.length >= 2 &&
+    (normalized.startsWith('"') || normalized.startsWith("'")) &&
+    normalized.endsWith(normalized[0])
+  ) {
+    normalized = normalized.slice(1, -1)
+  }
+  return commandPath((windows ? win32 : posix).normalize(normalized), windows).replace(/\/+$/, '')
+}
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -524,17 +536,33 @@ function commandArgumentPattern(path: string): string {
   return `(?:${escapedPath}|"${escapedPath}"|'${escapedPath}')`
 }
 
+function commandExecutablePattern(): string {
+  return `(?:[^\\s"']+|"[^"]+"|'[^']+')`
+}
+
+export function pgAdminPackageRootOwned(
+  packageRoot: string,
+  paths: PgAdminPaths,
+  windows: boolean
+): boolean {
+  const venvPath = privatePath(paths.venv, windows)
+  const rootPath = privatePath(packageRoot, windows)
+  return rootPath.startsWith(`${venvPath}/`)
+}
+
 export function pgAdminCommandOwned(
   command: string,
   paths: PgAdminPaths,
   packageRoot: string,
   windows: boolean
 ): boolean {
+  if (!pgAdminPackageRootOwned(packageRoot, paths, windows)) {
+    return false
+  }
   const normalizedCommand = commandPath(command, windows)
-  const pythonPath = commandPath(paths.python, windows)
-  const scriptPath = commandPath(join(packageRoot, 'pgAdmin4.py'), windows)
+  const scriptPath = commandPath(join(privatePath(packageRoot, windows), 'pgAdmin4.py'), windows)
   const commandPattern = new RegExp(
-    `^\\s*${commandArgumentPattern(pythonPath)}\\s+${commandArgumentPattern(scriptPath)}(?=\\s|$)`
+    `^\\s*${commandExecutablePattern()}\\s+${commandArgumentPattern(scriptPath)}(?=\\s|$)`
   )
 
   return commandPattern.test(normalizedCommand)
@@ -551,7 +579,7 @@ function pgAdminMetadataIndependentScriptPattern(paths: PgAdminPaths, windows: b
 
 /**
  * Distribution metadata can be missing while a previous pgAdmin process is still running.
- * This deliberately accepts only FlyEnv's venv Python followed by its canonical pgAdmin entry point.
+ * This deliberately accepts only FlyEnv's venv canonical pgAdmin entry point.
  */
 export function pgAdminCommandOwnedWithoutPackageMetadata(
   command: string,
@@ -559,9 +587,8 @@ export function pgAdminCommandOwnedWithoutPackageMetadata(
   windows: boolean
 ): boolean {
   const normalizedCommand = commandPath(command, windows)
-  const pythonPath = commandPath(paths.python, windows)
   const commandPattern = new RegExp(
-    `^\\s*${commandArgumentPattern(pythonPath)}\\s+${pgAdminMetadataIndependentScriptPattern(
+    `^\\s*${commandExecutablePattern()}\\s+${pgAdminMetadataIndependentScriptPattern(
       paths,
       windows
     )}(?=\\s|$)`

@@ -58,6 +58,7 @@ import {
   pgAdminDesktopServerReconciliationContent,
   pgAdminInitializationState,
   pgAdminOwnedPids,
+  pgAdminPackageRootOwned,
   pgAdminPackageRootProbe,
   pgAdminPackageRootUnversionedProbe,
   pgAdminPaths,
@@ -201,7 +202,7 @@ class Manager extends Base {
     const paths = this.pgAdminPaths()
     const root =
       packageRoot ?? (await this.pgAdminPackageRootUnversioned(paths.python).catch(() => ''))
-    if (!root) {
+    if (!root || !pgAdminPackageRootOwned(root, paths, isWindows())) {
       const pids = await this.pgAdminFallbackOwnedProcessPids()
       if (pids.length > 0) {
         await this.stopPgAdminPidsStrict(pids)
