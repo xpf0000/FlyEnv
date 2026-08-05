@@ -186,8 +186,8 @@ assert.match(initializationVerification, /host='127\.0\.0\.1'/)
 assert.match(initializationVerification, /port=postgresql_port/)
 assert.match(initializationVerification, /maintenance_db='postgres'/)
 assert.match(initializationVerification, /username='root'/)
-assert.match(initializationVerification, /save_password=0/)
-assert.match(initializationVerification, /if server is None or server\.password:/)
+assert.match(initializationVerification, /if server is None:/)
+assert.doesNotMatch(initializationVerification, /server\.password|save_password=0/)
 assert.match(
   initializationVerification,
   /server\.servergroup is None or server\.servergroup\.name != 'Servers'/
@@ -226,8 +226,7 @@ assert.match(
 )
 assert.match(reconciliation, /user_id=user\.id/)
 assert.match(reconciliation, /server\.port = postgresql_port/)
-assert.match(reconciliation, /server\.password = None/)
-assert.match(reconciliation, /server\.save_password = 0/)
+assert.doesNotMatch(reconciliation, /server\.password|server\.save_password/)
 assert.match(reconciliation, /connection_params\['sslmode'\] = 'prefer'/)
 assert.match(reconciliation, /db\.session\.commit\(\)/)
 assert.doesNotMatch(reconciliation, /PGADMIN_SETUP|os\.environ|email = sys\.argv/)

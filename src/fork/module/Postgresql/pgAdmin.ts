@@ -401,9 +401,8 @@ with app.app_context():
         port=postgresql_port,
         maintenance_db='postgres',
         username='root',
-        save_password=0,
     ).first()
-    if server is None or server.password:
+    if server is None:
         raise RuntimeError('pgAdmin server verification failed')
     if server.servergroup is None or server.servergroup.name != 'Servers':
         raise RuntimeError('pgAdmin server verification failed')
@@ -447,9 +446,8 @@ with app.app_context():
         port=postgresql_port,
         maintenance_db='postgres',
         username='root',
-        save_password=0,
     ).first()
-    if server is None or server.password:
+    if server is None:
         raise RuntimeError('pgAdmin server identity verification failed')
     if server.servergroup is None or server.servergroup.name != 'Servers':
         raise RuntimeError('pgAdmin server identity verification failed')
@@ -499,8 +497,6 @@ with app.app_context():
     if server.servergroup is None or server.servergroup.name != 'Servers':
         raise RuntimeError('pgAdmin FlyEnv PostgreSQL server was not found')
     server.port = postgresql_port
-    server.password = None
-    server.save_password = 0
     connection_params = server.connection_params or {}
     connection_params['sslmode'] = 'prefer'
     server.connection_params = connection_params
