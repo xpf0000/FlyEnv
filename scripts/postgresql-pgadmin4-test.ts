@@ -13,12 +13,14 @@ import {
   PGADMIN4_PACKAGE,
   PGADMIN4_PORT_SCAN_COUNT,
   PgAdminSingleFlight,
-  pgAdminBootstrapContent,
   pgAdminCommandOwned,
   pgAdminCommandOwnedWithoutPackageMetadata,
   pgAdminConfigContent,
+  pgAdminDesktopBootstrapContent,
+  pgAdminDesktopInitializationVerificationContent,
+  pgAdminDesktopServerIdentityContent,
+  pgAdminDesktopServerReconciliationContent,
   pgAdminInitializationState,
-  pgAdminInitializationVerificationContent,
   pgAdminInitialized,
   pgAdminOwnedPids,
   pgAdminOwnedPidsWithoutPackageMetadata,
@@ -27,8 +29,6 @@ import {
   pgAdminPaths,
   pgAdminPrivateDirectories,
   parsePgAdminServerIdentity,
-  pgAdminServerIdentityContent,
-  pgAdminServerReconciliationContent,
   pgAdminServersContent,
   pgAdminUrl,
   postgresqlPostmasterInfo,
@@ -38,7 +38,6 @@ import {
   assertPgAdminRegistrationPort,
   startPgAdminWithPortRetry,
   stopPgAdminPidsWithVerification,
-  validPgAdminCredentials,
   validPgAdminRegistrationPort,
   validPgAdminPythonVersion,
   verifyPgAdminPidPersistence,
@@ -74,6 +73,7 @@ assert.deepEqual(unixPaths, {
   identity: join(postgreSqlDir, 'pgadmin4', 'server-identity.json'),
   reconciliation: join(postgreSqlDir, 'pgadmin4', 'reconcile-server.py'),
   initialized: join(postgreSqlDir, 'pgadmin4', 'initialized'),
+  desktopMode: join(postgreSqlDir, 'pgadmin4', 'desktop-mode'),
   venv: join(postgreSqlDir, 'pgadmin4', 'venv'),
   python: join(postgreSqlDir, 'pgadmin4', 'venv', 'bin', 'python')
 })
@@ -101,6 +101,11 @@ assert.equal(
 initializationFiles.add(unixPaths.identity)
 assert.equal(
   pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)),
+  false
+)
+initializationFiles.add(unixPaths.desktopMode)
+assert.equal(
+  pgAdminInitialized(unixPaths, (file) => initializationFiles.has(file)),
   true
 )
 const validInitializationState = await pgAdminInitializationState(
@@ -122,6 +127,7 @@ assert.deepEqual(malformedInitializationState, { initialized: false })
 const configDataDir = '/tmp/FlyEnv data'
 const configLogDir = '/tmp/FlyEnv logs'
 const config = pgAdminConfigContent(configDataDir, configLogDir, 5051)
+assert.equal(config.split('\n').filter((line) => line === 'SERVER_MODE = False').length, 1)
 assert.match(config, /DEFAULT_SERVER = "127\.0\.0\.1"/)
 assert.match(config, /DEFAULT_SERVER_PORT = 5051/)
 assert.match(config, /DATA_DIR = "\/tmp\/FlyEnv data"/)
@@ -133,12 +139,11 @@ assert.match(config, /KERBEROS_CCACHE_DIR = "\/tmp\/FlyEnv data\/kerberos"/)
 assert.match(config, /AZURE_CREDENTIAL_CACHE_DIR = "\/tmp\/FlyEnv data\/azure"/)
 assert.doesNotMatch(config, /0\.0\.0\.0/)
 
-const bootstrap = pgAdminBootstrapContent()
-assert.match(bootstrap, /import os/)
+const bootstrap = pgAdminDesktopBootstrapContent()
+assert.match(bootstrap, /from secrets import token_urlsafe/)
 assert.match(bootstrap, /package_root = sys\.argv\[1\]/)
 assert.match(bootstrap, /sys\.path\.insert\(0, package_root\)/)
-assert.match(bootstrap, /email = sys\.argv\[2\]/)
-assert.match(bootstrap, /password = os\.environ\.get\('PGADMIN_SETUP_PASSWORD'\)/)
+assert.match(bootstrap, /postgresql_port = int\(sys\.argv\[2\]\) if len\(sys\.argv\) > 2 else None/)
 assert.match(bootstrap, /from pgadmin import create_app/)
 assert.match(bootstrap, /from pgadmin\.model import Role, Server, User, db/)
 assert.match(bootstrap, /from pgadmin\.tools\.user_management import create_user/)
@@ -150,26 +155,28 @@ assert.match(
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin Administrator role was not found'\)/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator verification failed'\)/)
 assert.match(bootstrap, /if user is None:/)
-assert.match(bootstrap, /if not password:/)
-assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator credentials are required'\)/)
+assert.match(
+  bootstrap,
+  /User\.query\.filter_by\(username=config\.DESKTOP_USER, auth_source=INTERNAL\)\.first\(\)/
+)
+assert.match(bootstrap, /desktop_password = token_urlsafe\(48\)/)
+assert.match(bootstrap, /'email': config\.DESKTOP_USER/)
 assert.match(bootstrap, /'role': administrator_role\.id/)
-assert.match(bootstrap, /'newPassword': password/)
+assert.match(bootstrap, /'newPassword': desktop_password/)
 assert.match(bootstrap, /raise RuntimeError\('pgAdmin administrator creation failed'\)/)
 assert.doesNotMatch(bootstrap, /str\(error\)/)
-assert.match(bootstrap, /postgresql_port = int\(sys\.argv\[3\]\) if len\(sys\.argv\) > 3 else None/)
 assert.match(bootstrap, /if postgresql_port is not None:/)
 assert.match(bootstrap, /server\.save_password = 0/)
 assert.match(bootstrap, /db\.session\.commit\(\)/)
-assert.doesNotMatch(bootstrap, /PGADMIN_SETUP_EMAIL/)
+assert.doesNotMatch(bootstrap, /PGADMIN_SETUP|os\.environ|email = sys\.argv|print\([^\n]*password/)
 
-const initializationVerification = pgAdminInitializationVerificationContent()
+const initializationVerification = pgAdminDesktopInitializationVerificationContent()
 assert.match(initializationVerification, /from pgadmin import create_app/)
 assert.match(initializationVerification, /from pgadmin\.model import Server, User/)
-assert.match(initializationVerification, /email = sys\.argv\[2\]/)
-assert.match(initializationVerification, /postgresql_port = int\(sys\.argv\[3\]\)/)
+assert.match(initializationVerification, /postgresql_port = int\(sys\.argv\[2\]\)/)
 assert.match(
   initializationVerification,
-  /User\.query\.filter_by\(username=email, auth_source=INTERNAL\)\.first\(\)/
+  /User\.query\.filter_by\(username=config\.DESKTOP_USER, auth_source=INTERNAL\)\.first\(\)/
 )
 assert.match(
   initializationVerification,
@@ -194,7 +201,10 @@ assert.match(
   initializationVerification,
   /raise RuntimeError\('pgAdmin server verification failed'\)/
 )
-assert.doesNotMatch(initializationVerification, /PGADMIN_SETUP_PASSWORD/)
+assert.doesNotMatch(
+  initializationVerification,
+  /PGADMIN_SETUP|os\.environ|email = sys\.argv|password = /
+)
 
 const packageRootProbe = pgAdminPackageRootProbe()
 assert.match(packageRootProbe, /from importlib\.metadata import distribution/)
@@ -207,7 +217,7 @@ assert.match(unversionedPackageRootProbe, /from importlib\.metadata import distr
 assert.match(unversionedPackageRootProbe, /distribution\('pgadmin4'\)\.locate_file\('pgadmin4'\)/)
 assert.doesNotMatch(unversionedPackageRootProbe, /d\.version/)
 
-const reconciliation = pgAdminServerReconciliationContent()
+const reconciliation = pgAdminDesktopServerReconciliationContent()
 assert.match(reconciliation, /user_id = int\(sys\.argv\[2\]\)/)
 assert.match(reconciliation, /server_id = int\(sys\.argv\[3\]\)/)
 assert.match(reconciliation, /postgresql_port = int\(sys\.argv\[4\]\)/)
@@ -215,7 +225,7 @@ assert.match(reconciliation, /Server\.query\.filter_by\(/)
 assert.match(reconciliation, /id=server_id/)
 assert.match(
   reconciliation,
-  /User\.query\.filter_by\(id=user_id, auth_source=INTERNAL\)\.first\(\)/
+  /User\.query\.filter_by\(id=user_id, username=config\.DESKTOP_USER, auth_source=INTERNAL\)\.first\(\)/
 )
 assert.match(reconciliation, /user_id=user\.id/)
 assert.match(reconciliation, /server\.port = postgresql_port/)
@@ -223,12 +233,15 @@ assert.match(reconciliation, /server\.password = None/)
 assert.match(reconciliation, /server\.save_password = 0/)
 assert.match(reconciliation, /connection_params\['sslmode'\] = 'prefer'/)
 assert.match(reconciliation, /db\.session\.commit\(\)/)
-assert.doesNotMatch(reconciliation, /PGADMIN_SETUP_PASSWORD|PGADMIN_SETUP_EMAIL|password = os/)
+assert.doesNotMatch(reconciliation, /PGADMIN_SETUP|os\.environ|email = sys\.argv/)
 assert.doesNotMatch(reconciliation, /\.all\(\)|for server in servers/)
 
-const identityScript = pgAdminServerIdentityContent()
-assert.match(identityScript, /email = sys\.argv\[2\]/)
-assert.match(identityScript, /postgresql_port = int\(sys\.argv\[3\]\)/)
+const identityScript = pgAdminDesktopServerIdentityContent()
+assert.match(identityScript, /postgresql_port = int\(sys\.argv\[2\]\)/)
+assert.match(
+  identityScript,
+  /User\.query\.filter_by\(username=config\.DESKTOP_USER, auth_source=INTERNAL\)\.first\(\)/
+)
 assert.match(identityScript, /Server\.query\.filter_by\(/)
 assert.match(identityScript, /user_id=user\.id/)
 assert.match(
@@ -239,7 +252,7 @@ assert.match(
   identityScript,
   /json\.dumps\(\{'userId': str\(user\.id\), 'serverId': str\(server\.id\)\}\)/
 )
-assert.doesNotMatch(identityScript, /PGADMIN_SETUP_PASSWORD|password = os/)
+assert.doesNotMatch(identityScript, /PGADMIN_SETUP|os\.environ|email = sys\.argv|password = /)
 assert.deepEqual(parsePgAdminServerIdentity('{"userId": "9007199254740993", "serverId": "29"}'), {
   userId: '9007199254740993',
   serverId: '29'
@@ -299,6 +312,82 @@ assert.deepEqual(postmasterInfo, {
   dataDirectory: '/tmp/flyenv-postgresql/data',
   port: 15432
 })
+assert.deepEqual(
+  postgresqlPostmasterInfo(
+    '4001\n/tmp/flyenv-postgresql/data\n1710000000\n15432\n/tmp\n127.0.0.1\n12345\nready\n'
+  ),
+  postmasterInfo
+)
+assert.deepEqual(
+  postgresqlPostmasterInfo('4001', {
+    dataDirectory: '/tmp/flyenv-postgresql/data',
+    port: 15432
+  }),
+  {
+    pid: '4001',
+    dataDirectory: '/tmp/flyenv-postgresql/data',
+    port: 15432
+  }
+)
+assert.deepEqual(
+  postgresqlPostmasterInfo('4001\n', {
+    dataDirectory: '/tmp/flyenv-postgresql/data',
+    port: 15432
+  }),
+  {
+    pid: '4001',
+    dataDirectory: '/tmp/flyenv-postgresql/data',
+    port: 15432
+  }
+)
+assert.deepEqual(
+  postgresqlPostmasterInfo('4001\r\n', {
+    dataDirectory: '/tmp/flyenv-postgresql/data',
+    port: 15432
+  }),
+  {
+    pid: '4001',
+    dataDirectory: '/tmp/flyenv-postgresql/data',
+    port: 15432
+  }
+)
+assert.throws(() => postgresqlPostmasterInfo('4001'), /line 2/)
+assert.throws(
+  () =>
+    postgresqlPostmasterInfo('4001\n\n', {
+      dataDirectory: '/tmp/flyenv-postgresql/data',
+      port: 15432
+    }),
+  /line 2/
+)
+assert.throws(
+  () => postgresqlPostmasterInfo('4001\n', { dataDirectory: '', port: 15432 }),
+  /fallback/
+)
+assert.throws(
+  () =>
+    postgresqlPostmasterInfo('4001\n', {
+      dataDirectory: '/tmp/flyenv-postgresql/data',
+      port: 65536
+    }),
+  /fallback/
+)
+assert.throws(
+  () =>
+    postgresqlPostmasterInfo('4001\npartial', {
+      dataDirectory: '/tmp/flyenv-postgresql/data',
+      port: 15432
+    }),
+  /postmaster\.pid/
+)
+assert.throws(
+  () =>
+    postgresqlPostmasterInfo('4001\n/data\n1710000000', {
+      dataDirectory: '/tmp/flyenv-postgresql/data',
+      port: 15432
+    }),
+  /line 4/
+)
 assert.equal(
   postgresqlPostmasterOwnedByDataDir(
     postmasterInfo,
@@ -854,9 +943,6 @@ assert.throws(
   /pgAdmin 4 only supports PostgreSQL registration ports from 1 through 65534/
 )
 
-assert.equal(validPgAdminCredentials({ email: 'root@example.test', password: 'password' }), true)
-assert.equal(validPgAdminCredentials({ email: 'not-an-email', password: 'password' }), false)
-assert.equal(validPgAdminCredentials({ email: 'root@example.test', password: 'short' }), false)
 assert.equal(validPgAdminPythonVersion('3.8.18'), false)
 assert.equal(validPgAdminPythonVersion('Python 3.9.0'), true)
 assert.equal(validPgAdminPythonVersion('3.13.1'), true)
