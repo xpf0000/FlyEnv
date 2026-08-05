@@ -32,6 +32,7 @@ import {
   pgAdminServersContent,
   pgAdminUrl,
   postgresqlPostmasterInfo,
+  postgresqlPostmasterNeedsFallback,
   postgresqlPostmasterOwnedByDataDir,
   postgresqlPortFromPostmasterPid,
   postgresqlPortFromConfig,
@@ -307,6 +308,16 @@ assert.deepEqual(initializationGateEvents, ['verify', 'verify-success', 'mark-su
 const postmasterInfo = postgresqlPostmasterInfo(
   '4001\n/tmp/flyenv-postgresql/data\n1710000000\n15432\n'
 )
+assert.equal(postgresqlPostmasterNeedsFallback('4001'), true)
+assert.equal(postgresqlPostmasterNeedsFallback('4001\n'), true)
+assert.equal(postgresqlPostmasterNeedsFallback('4001\r\n'), true)
+assert.equal(postgresqlPostmasterNeedsFallback('0\n'), false)
+assert.equal(
+  postgresqlPostmasterNeedsFallback('4001\n/tmp/flyenv-postgresql/data\n1710000000\n15432\n'),
+  false
+)
+assert.equal(postgresqlPostmasterNeedsFallback('4001\npartial'), false)
+assert.equal(postgresqlPostmasterNeedsFallback('4001\n\n'), false)
 assert.deepEqual(postmasterInfo, {
   pid: '4001',
   dataDirectory: '/tmp/flyenv-postgresql/data',
@@ -1114,23 +1125,27 @@ const virtualEnvironmentIndex = postgresqlSource.indexOf("['-m', 'venv', paths.v
 const postmasterPidCheckIndex = postgresqlSource.indexOf(
   "existsSync(join(dataDir, 'postmaster.pid'))"
 )
-const fallbackPortIndex = postgresqlSource.indexOf('const fallbackPort = postgresqlPortFromConfig(')
+const postmasterContentIndex = postgresqlSource.indexOf(
+  'const postmasterPidContent = await readFile('
+)
+const fallbackIndex = postgresqlSource.indexOf(
+  'const fallback = postgresqlPostmasterNeedsFallback('
+)
 const postmasterReadIndex = postgresqlSource.indexOf('const postmaster = postgresqlPostmasterInfo(')
 assert.ok(parsedPostgreSqlPortIndex < registrationPortValidationIndex)
 assert.ok(registrationPortValidationIndex < virtualEnvironmentIndex)
 assert.notEqual(postmasterPidCheckIndex, -1)
-assert.notEqual(fallbackPortIndex, -1)
+assert.notEqual(postmasterContentIndex, -1)
+assert.notEqual(fallbackIndex, -1)
 assert.notEqual(postmasterReadIndex, -1)
-assert.ok(postmasterPidCheckIndex < fallbackPortIndex)
-assert.ok(fallbackPortIndex < postmasterReadIndex)
+assert.ok(postmasterPidCheckIndex < postmasterContentIndex)
+assert.ok(postmasterContentIndex < fallbackIndex)
+assert.ok(fallbackIndex < postmasterReadIndex)
 assert.match(
   postgresqlSource,
-  /const fallbackPort = postgresqlPortFromConfig\(\s*await readFile\(join\(dataDir, 'postgresql\.conf'\), 'utf-8'\)\s*\)/s
+  /const fallback = postgresqlPostmasterNeedsFallback\(postmasterPidContent\)\s*\? \{\s*dataDirectory: dataDir,\s*port: postgresqlPortFromConfig\(\s*await readFile\(join\(dataDir, 'postgresql\.conf'\), 'utf-8'\)\s*\)\s*\}\s*: undefined/s
 )
-assert.match(
-  postgresqlSource,
-  /postgresqlPostmasterInfo\(\s*await readFile\(join\(dataDir, 'postmaster\.pid'\), 'utf-8'\),\s*\{ dataDirectory: dataDir, port: fallbackPort \}\s*\)/s
-)
+assert.match(postgresqlSource, /postgresqlPostmasterInfo\(postmasterPidContent, fallback\)/)
 assert.notEqual(
   postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n15432\n'),
   postgresqlPortFromConfig('port = 5432')

@@ -67,6 +67,7 @@ import {
   pgAdminUrl,
   PgAdminSingleFlight,
   postgresqlPostmasterInfo,
+  postgresqlPostmasterNeedsFallback,
   postgresqlPostmasterOwnedByDataDir,
   postgresqlPortFromConfig,
   startPgAdminWithPortRetry,
@@ -259,13 +260,16 @@ class Manager extends Base {
         if (!existsSync(join(dataDir, 'postmaster.pid'))) {
           throw new Error('PostgreSQL is not running')
         }
-        const fallbackPort = postgresqlPortFromConfig(
-          await readFile(join(dataDir, 'postgresql.conf'), 'utf-8')
-        )
-        const postmaster = postgresqlPostmasterInfo(
-          await readFile(join(dataDir, 'postmaster.pid'), 'utf-8'),
-          { dataDirectory: dataDir, port: fallbackPort }
-        )
+        const postmasterPidContent = await readFile(join(dataDir, 'postmaster.pid'), 'utf-8')
+        const fallback = postgresqlPostmasterNeedsFallback(postmasterPidContent)
+          ? {
+              dataDirectory: dataDir,
+              port: postgresqlPortFromConfig(
+                await readFile(join(dataDir, 'postgresql.conf'), 'utf-8')
+              )
+            }
+          : undefined
+        const postmaster = postgresqlPostmasterInfo(postmasterPidContent, fallback)
         const postgreSqlProcesses = isWindows()
           ? await ProcessPidListStrict()
           : await ProcessListFetch()

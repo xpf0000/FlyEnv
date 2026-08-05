@@ -629,6 +629,8 @@ export interface PostgreSqlPostmasterFallback {
   port: number
 }
 
+const POSTMASTER_PID_FALLBACK = /^([1-9]\d*)(?:\r?\n)?$/
+
 function postmasterPidLine(content: string, line: number): string {
   const value = content.split('\n')[line - 1]
   return value?.endsWith('\r') ? value.slice(0, -1) : (value ?? '')
@@ -647,11 +649,15 @@ function validPostgreSqlPostmasterFallback(
   )
 }
 
+export function postgresqlPostmasterNeedsFallback(content: string): boolean {
+  return POSTMASTER_PID_FALLBACK.test(content)
+}
+
 export function postgresqlPostmasterInfo(
   content: string,
   fallback?: PostgreSqlPostmasterFallback
 ): PostgreSqlPostmasterInfo {
-  const fallbackPid = /^([1-9]\d*)(?:\r?\n)?$/.exec(content)
+  const fallbackPid = POSTMASTER_PID_FALLBACK.exec(content)
   if (fallbackPid) {
     if (!fallback) {
       throw new Error('Invalid PostgreSQL data directory in postmaster.pid line 2')
