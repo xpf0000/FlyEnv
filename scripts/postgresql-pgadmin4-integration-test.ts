@@ -4,7 +4,6 @@ import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promise
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
-  PGADMIN4_PACKAGE,
   pgAdminConfigContent,
   pgAdminDesktopBootstrapContent,
   pgAdminDesktopInitializationVerificationContent,
@@ -70,21 +69,11 @@ async function readOptional(file: string): Promise<string | undefined> {
 
 const python = process.env.PGADMIN4_INTEGRATION_PYTHON
 if (!python) {
-  throw new Error(
-    'PGADMIN4_INTEGRATION_PYTHON must point to a virtual environment with pgadmin4==9.17'
-  )
+  throw new Error('PGADMIN4_INTEGRATION_PYTHON must point to a virtual environment with pgadmin4')
 }
 await access(python).catch(() => {
   throw new Error(`PGADMIN4_INTEGRATION_PYTHON is not accessible: ${python}`)
 })
-
-const packageVersion = (
-  await runPython(python, [
-    '-c',
-    "from importlib.metadata import version; print(version('pgadmin4'))"
-  ])
-).stdout.trim()
-assert.equal(packageVersion, PGADMIN4_PACKAGE.split('==')[1])
 
 const packageRoot = await packageRootForPython(python)
 const configLocal = join(packageRoot, 'config_local.py')

@@ -41,12 +41,13 @@ import {
   waitForPgAdminHealth,
   waitForPostgresqlProcess
 } from '../src/fork/module/Postgresql/pgAdmin'
+import * as PgAdminHelpers from '../src/fork/module/Postgresql/pgAdmin'
 
 assert.equal(PGADMIN4_DEFAULT_PORT, 5050)
 assert.equal(PGADMIN4_MAX_PORT, 65535)
 assert.equal(PGADMIN4_MAX_SERVER_PORT, 65534)
 assert.equal(PGADMIN4_PORT_SCAN_COUNT, 21)
-assert.equal(PGADMIN4_PACKAGE, 'pgadmin4==9.17')
+assert.equal(PGADMIN4_PACKAGE, 'pgadmin4')
 assert.equal(pgAdminUrl(5051), 'http://127.0.0.1:5051')
 assert.equal(validPgAdminRegistrationPort(65534), true)
 assert.equal(validPgAdminRegistrationPort(65535), false)
@@ -227,7 +228,7 @@ assert.doesNotMatch(
 const packageRootProbe = pgAdminPackageRootProbe()
 assert.match(packageRootProbe, /from importlib\.metadata import distribution/)
 assert.match(packageRootProbe, /d = distribution\('pgadmin4'\)/)
-assert.match(packageRootProbe, /d\.version == '9\.17'/)
+assert.doesNotMatch(packageRootProbe, /d\.version/)
 assert.match(packageRootProbe, /d\.locate_file\('pgadmin4'\)/)
 assert.doesNotMatch(packageRootProbe, /import pgadmin/)
 const unversionedPackageRootProbe = pgAdminPackageRootUnversionedProbe()
@@ -1024,6 +1025,9 @@ const openPgAdminSource = postgresqlSource.slice(
 
 assert.doesNotMatch(pgAdminSource, /PgAdminCredentials|validPgAdminCredentials/)
 assert.match(pgAdminSource, /\(windows \? win32 : posix\)\.normalize\(normalized\)/)
+assert.match(pgAdminSource, /export function pgAdminPortOwnedByProcessTree/)
+assert.match(pgAdminSource, /export function pgAdminWindowsKillCommand/)
+assert.match(pgAdminSource, /export function pgAdminRuntimePythonPath/)
 assert.match(
   postgresqlSource,
   /pgAdminInitializationState\(\s*paths,\s*existsSync,\s*\(file\) =>\s*readFile\(file, 'utf-8'\)\s*\)/s
@@ -1082,6 +1086,10 @@ assert.match(postgresqlSource, /findPgAdminPort\(/)
 assert.match(postgresqlSource, /ProcessKillStrict/)
 assert.match(postgresqlSource, /ProcessPidListStrict/)
 assert.match(postgresqlSource, /pgAdminCommandOwned\(command, paths, packageRoot, isWindows\(\)\)/)
+assert.match(
+  postgresqlSource,
+  /pgAdminRuntimePythonPath\(paths\.python, isWindows\(\), existsSync\)/
+)
 assert.doesNotMatch(postgresqlSource, /await ProcessPidList\(\)/)
 assert.match(
   postgresqlSource,
@@ -1095,7 +1103,7 @@ assert.match(postgresqlSource, /writeFile\(paths\.port, `\$\{port\}`\)/)
 assert.match(postgresqlSource, /isHealthy: async \(port, started\) =>/)
 assert.match(postgresqlSource, /pgAdminHttpReachable\(port\)/)
 assert.match(postgresqlSource, /if \(!runningPid && existsSync\(paths\.port\)\)/)
-assert.match(postgresqlSource, /serviceStartSpawn\([\s\S]*?bin: paths\.python/)
+assert.match(postgresqlSource, /serviceStartSpawn\([\s\S]*?bin: servicePython/)
 assert.match(postgresqlSource, /_stopPGAdmin\(/)
 assert.match(postgresqlSource, /pgAdminPackageRootUnversionedProbe/)
 assert.match(postgresqlSource, /pgAdminOwnedPidsWithoutPackageMetadata/)
@@ -1312,6 +1320,44 @@ assert.match(pgAdminIntegrationSource, /test_client\(\)/)
 assert.doesNotMatch(
   pgAdminIntegrationSource,
   /PGADMIN_SETUP|--user|pgAdminBootstrapContent|pgAdminInitializationVerificationContent|pgAdminServerIdentityContent|pgAdminServerReconciliationContent|setupEmail|setupPassword/
+)
+
+assert.equal(
+  PgAdminHelpers.pgAdminPortOwnedByProcessTree(['17948'], '22684', [
+    { PID: '22684', PPID: '20364' },
+    { PID: '17948', PPID: '22684' }
+  ]),
+  true
+)
+assert.equal(
+  PgAdminHelpers.pgAdminPortOwnedByProcessTree(['17948'], '22684', [
+    { PID: '22684', PPID: '20364' },
+    { PID: '17948', PPID: '99999' }
+  ]),
+  false
+)
+assert.equal(
+  PgAdminHelpers.pgAdminWindowsKillCommand(['22684', '17948', '22684']),
+  'taskkill /f /pid 22684 /pid 17948'
+)
+assert.equal(
+  PgAdminHelpers.pgAdminWindowsKillCommand(['invalid', '22684']),
+  'taskkill /f /pid 22684'
+)
+const windowsPythonPath = win32.normalize('C:/FlyEnv/postgresql/pgadmin4/venv/Scripts/python.exe')
+assert.equal(
+  PgAdminHelpers.pgAdminRuntimePythonPath(windowsPythonPath, true, (file) =>
+    file.endsWith('pythonw.exe')
+  ),
+  win32.join(win32.dirname(windowsPythonPath), 'pythonw.exe')
+)
+assert.equal(
+  PgAdminHelpers.pgAdminRuntimePythonPath(windowsPythonPath, true, () => false),
+  windowsPythonPath
+)
+assert.equal(
+  PgAdminHelpers.pgAdminRuntimePythonPath(windowsPythonPath, false, () => true),
+  windowsPythonPath
 )
 
 console.log('PostgreSQL pgAdmin 4 runtime contract test passed')
