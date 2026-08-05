@@ -8,11 +8,6 @@ export const PGADMIN4_MAX_PORT = 65535
 export const PGADMIN4_MAX_SERVER_PORT = 65534
 export const PGADMIN4_PORT_SCAN_COUNT = 21
 
-export interface PgAdminCredentials {
-  email: string
-  password: string
-}
-
 export interface PgAdminPaths {
   root: string
   data: string
@@ -753,14 +748,6 @@ export function pgAdminServersContent(port: number): string {
     null,
     2
   )}\n`
-}
-
-export function validPgAdminCredentials(credentials?: PgAdminCredentials | null): boolean {
-  return !!(
-    credentials &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email) &&
-    credentials.password.length >= 8
-  )
 }
 
 export function validPgAdminPythonVersion(version: string | null | undefined): boolean {

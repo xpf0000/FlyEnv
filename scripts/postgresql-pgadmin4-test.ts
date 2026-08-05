@@ -990,7 +990,12 @@ const postgresqlSource = readFileSync(
   join(process.cwd(), 'src', 'fork', 'module', 'Postgresql', 'index.ts'),
   'utf-8'
 )
+const pgAdminSource = readFileSync(
+  join(process.cwd(), 'src', 'fork', 'module', 'Postgresql', 'pgAdmin.ts'),
+  'utf-8'
+)
 
+assert.doesNotMatch(pgAdminSource, /PgAdminCredentials|validPgAdminCredentials/)
 assert.match(
   postgresqlSource,
   /pgAdminInitializationState\(\s*paths,\s*existsSync,\s*\(file\) =>\s*readFile\(file, 'utf-8'\)\s*\)/s
