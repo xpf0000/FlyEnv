@@ -31,10 +31,6 @@ import {
   parsePgAdminServerIdentity,
   pgAdminServersContent,
   pgAdminUrl,
-  postgresqlPostmasterInfo,
-  postgresqlPostmasterNeedsFallback,
-  postgresqlPostmasterOwnedByDataDir,
-  postgresqlPortFromPostmasterPid,
   postgresqlPortFromConfig,
   assertPgAdminRegistrationPort,
   startPgAdminWithPortRetry,
@@ -304,148 +300,6 @@ await completePgAdminInitialization({
   }
 })
 assert.deepEqual(initializationGateEvents, ['verify', 'verify-success', 'mark-success'])
-
-const postmasterInfo = postgresqlPostmasterInfo(
-  '4001\n/tmp/flyenv-postgresql/data\n1710000000\n15432\n'
-)
-assert.equal(postgresqlPostmasterNeedsFallback('4001'), true)
-assert.equal(postgresqlPostmasterNeedsFallback('4001\n'), true)
-assert.equal(postgresqlPostmasterNeedsFallback('4001\r\n'), true)
-assert.equal(postgresqlPostmasterNeedsFallback('0\n'), false)
-assert.equal(
-  postgresqlPostmasterNeedsFallback('4001\n/tmp/flyenv-postgresql/data\n1710000000\n15432\n'),
-  false
-)
-assert.equal(postgresqlPostmasterNeedsFallback('4001\npartial'), false)
-assert.equal(postgresqlPostmasterNeedsFallback('4001\n\n'), false)
-assert.deepEqual(postmasterInfo, {
-  pid: '4001',
-  dataDirectory: '/tmp/flyenv-postgresql/data',
-  port: 15432
-})
-assert.deepEqual(
-  postgresqlPostmasterInfo(
-    '4001\n/tmp/flyenv-postgresql/data\n1710000000\n15432\n/tmp\n127.0.0.1\n12345\nready\n'
-  ),
-  postmasterInfo
-)
-assert.deepEqual(
-  postgresqlPostmasterInfo('4001', {
-    dataDirectory: '/tmp/flyenv-postgresql/data',
-    port: 15432
-  }),
-  {
-    pid: '4001',
-    dataDirectory: '/tmp/flyenv-postgresql/data',
-    port: 15432
-  }
-)
-assert.deepEqual(
-  postgresqlPostmasterInfo('4001\n', {
-    dataDirectory: '/tmp/flyenv-postgresql/data',
-    port: 15432
-  }),
-  {
-    pid: '4001',
-    dataDirectory: '/tmp/flyenv-postgresql/data',
-    port: 15432
-  }
-)
-assert.deepEqual(
-  postgresqlPostmasterInfo('4001\r\n', {
-    dataDirectory: '/tmp/flyenv-postgresql/data',
-    port: 15432
-  }),
-  {
-    pid: '4001',
-    dataDirectory: '/tmp/flyenv-postgresql/data',
-    port: 15432
-  }
-)
-assert.throws(() => postgresqlPostmasterInfo('4001'), /line 2/)
-assert.throws(
-  () =>
-    postgresqlPostmasterInfo('4001\n\n', {
-      dataDirectory: '/tmp/flyenv-postgresql/data',
-      port: 15432
-    }),
-  /line 2/
-)
-assert.throws(
-  () => postgresqlPostmasterInfo('4001\n', { dataDirectory: '', port: 15432 }),
-  /fallback/
-)
-assert.throws(
-  () =>
-    postgresqlPostmasterInfo('4001\n', {
-      dataDirectory: '/tmp/flyenv-postgresql/data',
-      port: 65536
-    }),
-  /fallback/
-)
-assert.throws(
-  () =>
-    postgresqlPostmasterInfo('4001\npartial', {
-      dataDirectory: '/tmp/flyenv-postgresql/data',
-      port: 15432
-    }),
-  /postmaster\.pid/
-)
-assert.throws(
-  () =>
-    postgresqlPostmasterInfo('4001\n/data\n1710000000', {
-      dataDirectory: '/tmp/flyenv-postgresql/data',
-      port: 15432
-    }),
-  /line 4/
-)
-assert.equal(
-  postgresqlPostmasterOwnedByDataDir(
-    postmasterInfo,
-    '/tmp/flyenv-postgresql/data',
-    [{ PID: '4001', COMMAND: '/usr/local/bin/postgres -D /tmp/flyenv-postgresql/data' }],
-    false
-  ),
-  true
-)
-assert.equal(
-  postgresqlPostmasterOwnedByDataDir(
-    postmasterInfo,
-    '/tmp/flyenv-postgresql/other',
-    [{ PID: '4001', COMMAND: '/usr/local/bin/postgres -D /tmp/flyenv-postgresql/data' }],
-    false
-  ),
-  false
-)
-assert.equal(
-  postgresqlPostmasterOwnedByDataDir(
-    postmasterInfo,
-    '/tmp/flyenv-postgresql/data',
-    [{ PID: '9999', COMMAND: '/usr/local/bin/postgres -D /tmp/flyenv-postgresql/data' }],
-    false
-  ),
-  false
-)
-assert.equal(
-  postgresqlPostmasterOwnedByDataDir(
-    postmasterInfo,
-    '/tmp/flyenv-postgresql/data',
-    [{ PID: '4001', COMMAND: '/usr/local/bin/node -D /tmp/flyenv-postgresql/data' }],
-    false
-  ),
-  false
-)
-assert.equal(
-  postgresqlPostmasterOwnedByDataDir(
-    { pid: '4001', dataDirectory: 'C:/FlyEnv/PostgreSQL', port: 15432 },
-    'c:\\flyenv\\postgresql',
-    [{ PID: '4001', COMMAND: 'C:\\PG\\POSTGRES.EXE -D C:\\FLYENV\\POSTGRESQL' }],
-    true
-  ),
-  true
-)
-assert.throws(() => postgresqlPostmasterInfo('invalid\n/data\n1710000000\n15432\n'), /line 1/)
-assert.throws(() => postgresqlPostmasterInfo('4001\n\n1710000000\n15432\n'), /line 2/)
 
 assert.deepEqual(
   loopbackListeningPidsFromNetstat(
@@ -781,28 +635,6 @@ assert.equal(
   false
 )
 
-assert.equal(
-  postgresqlPortFromPostmasterPid('12345\n/data/flyenv/postgresql\n1710000000\n15432\n'),
-  15432
-)
-assert.equal(
-  postgresqlPortFromPostmasterPid('12345\n/data/flyenv/postgresql\n1710000000\n5432\n'),
-  5432
-)
-assert.throws(() => postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n'), /line 4/)
-assert.throws(
-  () => postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\ninvalid\n'),
-  /line 4/
-)
-assert.throws(() => postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n0\n'), /line 4/)
-assert.throws(
-  () =>
-    assertPgAdminRegistrationPort(
-      postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n65535\n')
-    ),
-  /1 through 65534/
-)
-
 const healthEvents: string[] = []
 let healthChecks = 0
 assert.equal(
@@ -1005,6 +837,10 @@ const pgAdminSource = readFileSync(
   join(process.cwd(), 'src', 'fork', 'module', 'Postgresql', 'pgAdmin.ts'),
   'utf-8'
 )
+const openPgAdminSource = postgresqlSource.slice(
+  postgresqlSource.indexOf('private openPGAdminInternal'),
+  postgresqlSource.indexOf('  _stopServer(')
+)
 
 assert.doesNotMatch(pgAdminSource, /PgAdminCredentials|validPgAdminCredentials/)
 assert.match(
@@ -1034,7 +870,6 @@ assert.match(postgresqlSource, /verifyPgAdminPidPersistence/)
 assert.match(postgresqlSource, /pgAdminOwnedPids/)
 assert.match(postgresqlSource, /validPgAdminPythonVersion\(python\.version\)/)
 assert.match(postgresqlSource, /assertPgAdminRegistrationPort\(postgreSqlPort\)/)
-assert.match(postgresqlSource, /postgresqlPostmasterInfo/)
 assert.match(postgresqlSource, /postgresqlPortFromConfig/)
 assert.match(
   postgresqlSource,
@@ -1074,7 +909,6 @@ assert.match(postgresqlSource, /_stopPGAdmin\(/)
 assert.match(postgresqlSource, /pgAdminPackageRootUnversionedProbe/)
 assert.match(postgresqlSource, /pgAdminOwnedPidsWithoutPackageMetadata/)
 assert.match(postgresqlSource, /pgAdminFallbackOwnedProcessPids/)
-assert.match(postgresqlSource, /postgresqlPostmasterOwnedByDataDir/)
 assert.match(postgresqlSource, /pgAdminPrivateDirectories/)
 assert.match(postgresqlSource, /chmod\(directory, 0o700\)/)
 assert.match(postgresqlSource, /pgAdminPaths\(global\.Server\.PostgreSqlDir!, isWindows\(\)\)/)
@@ -1117,39 +951,20 @@ assert.ok(verificationSourceIndex < identityWriteIndex)
 assert.ok(identityWriteIndex < desktopModeWriteIndex)
 assert.ok(desktopModeWriteIndex < initializedWriteIndex)
 assert.ok(postgresqlSource.indexOf("'load-servers'") < verificationSourceIndex)
-const parsedPostgreSqlPortIndex = postgresqlSource.indexOf('const postgreSqlPort = postmaster.port')
+const parsedPostgreSqlPortIndex = postgresqlSource.indexOf(
+  'const postgreSqlPort = postgresqlPortFromConfig('
+)
 const registrationPortValidationIndex = postgresqlSource.indexOf(
   'assertPgAdminRegistrationPort(postgreSqlPort)'
 )
 const virtualEnvironmentIndex = postgresqlSource.indexOf("['-m', 'venv', paths.venv]")
-const postmasterPidCheckIndex = postgresqlSource.indexOf(
-  "existsSync(join(dataDir, 'postmaster.pid'))"
-)
-const postmasterContentIndex = postgresqlSource.indexOf(
-  'const postmasterPidContent = await readFile('
-)
-const fallbackIndex = postgresqlSource.indexOf(
-  'const fallback = postgresqlPostmasterNeedsFallback('
-)
-const postmasterReadIndex = postgresqlSource.indexOf('const postmaster = postgresqlPostmasterInfo(')
 assert.ok(parsedPostgreSqlPortIndex < registrationPortValidationIndex)
 assert.ok(registrationPortValidationIndex < virtualEnvironmentIndex)
-assert.notEqual(postmasterPidCheckIndex, -1)
-assert.notEqual(postmasterContentIndex, -1)
-assert.notEqual(fallbackIndex, -1)
-assert.notEqual(postmasterReadIndex, -1)
-assert.ok(postmasterPidCheckIndex < postmasterContentIndex)
-assert.ok(postmasterContentIndex < fallbackIndex)
-assert.ok(fallbackIndex < postmasterReadIndex)
 assert.match(
   postgresqlSource,
-  /const fallback = postgresqlPostmasterNeedsFallback\(postmasterPidContent\)\s*\? \{\s*dataDirectory: dataDir,\s*port: postgresqlPortFromConfig\(\s*await readFile\(join\(dataDir, 'postgresql\.conf'\), 'utf-8'\)\s*\)\s*\}\s*: undefined/s
+  /const postgreSqlPort = postgresqlPortFromConfig\(\s*await readFile\(join\(dataDir, 'postgresql\.conf'\), 'utf-8'\)\s*\)/s
 )
-assert.match(postgresqlSource, /postgresqlPostmasterInfo\(postmasterPidContent, fallback\)/)
-assert.notEqual(
-  postgresqlPortFromPostmasterPid('12345\n/data\n1710000000\n15432\n'),
-  postgresqlPortFromConfig('port = 5432')
-)
+assert.doesNotMatch(openPgAdminSource, /postmaster\.pid|ProcessPidListStrict|ProcessListFetch/)
 const healthCheckIndex = postgresqlSource.indexOf('isHealthy: async (port, started) =>')
 const persistPortIndex = postgresqlSource.indexOf('persistPort: async (port) =>')
 assert.ok(healthCheckIndex < persistPortIndex)

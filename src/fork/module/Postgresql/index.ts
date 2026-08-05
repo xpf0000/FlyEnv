@@ -66,9 +66,6 @@ import {
   pgAdminServersContent,
   pgAdminUrl,
   PgAdminSingleFlight,
-  postgresqlPostmasterInfo,
-  postgresqlPostmasterNeedsFallback,
-  postgresqlPostmasterOwnedByDataDir,
   postgresqlPortFromConfig,
   startPgAdminWithPortRetry,
   stopPgAdminPidsWithVerification,
@@ -257,28 +254,9 @@ class Manager extends Base {
         )
         let firstStart = !state.initialized
         let serverIdentity: PgAdminServerIdentity | undefined = state.identity
-        if (!existsSync(join(dataDir, 'postmaster.pid'))) {
-          throw new Error('PostgreSQL is not running')
-        }
-        const postmasterPidContent = await readFile(join(dataDir, 'postmaster.pid'), 'utf-8')
-        const fallback = postgresqlPostmasterNeedsFallback(postmasterPidContent)
-          ? {
-              dataDirectory: dataDir,
-              port: postgresqlPortFromConfig(
-                await readFile(join(dataDir, 'postgresql.conf'), 'utf-8')
-              )
-            }
-          : undefined
-        const postmaster = postgresqlPostmasterInfo(postmasterPidContent, fallback)
-        const postgreSqlProcesses = isWindows()
-          ? await ProcessPidListStrict()
-          : await ProcessListFetch()
-        if (
-          !postgresqlPostmasterOwnedByDataDir(postmaster, dataDir, postgreSqlProcesses, isWindows())
-        ) {
-          throw new Error('PostgreSQL postmaster.pid does not belong to the running data directory')
-        }
-        const postgreSqlPort = postmaster.port
+        const postgreSqlPort = postgresqlPortFromConfig(
+          await readFile(join(dataDir, 'postgresql.conf'), 'utf-8')
+        )
         assertPgAdminRegistrationPort(postgreSqlPort)
         if (!python?.bin || !existsSync(python.bin)) {
           throw new Error('A selected Python binary is required')
