@@ -1191,7 +1191,17 @@ const windowsPostgreSqlStart = postgreSqlStartSource.slice(
   postgreSqlStartSource.indexOf('} else {')
 )
 const unixPostgreSqlStart = postgreSqlStartSource.slice(postgreSqlStartSource.indexOf('} else {'))
-assert.match(windowsPostgreSqlStart, /pidPath: pidFile/)
+assert.match(windowsPostgreSqlStart, /const appPidFile = this\.appPidFile\(\)/)
+assert.match(windowsPostgreSqlStart, /pidPath: appPidFile/)
+assert.match(windowsPostgreSqlStart, /checkPidFile: false/)
+assert.match(
+  windowsPostgreSqlStart,
+  /const readPostmasterPid = async \(attempt = 0\): Promise<string> =>/
+)
+assert.match(windowsPostgreSqlStart, /pid = await this\.readPidFromFile\(pidFile\)/)
+assert.match(windowsPostgreSqlStart, /await waitTime\(500\)/)
+assert.match(windowsPostgreSqlStart, /const pid = await readPostmasterPid\(\)/)
+assert.doesNotMatch(windowsPostgreSqlStart, /pidPath: pidFile/)
 assert.doesNotMatch(unixPostgreSqlStart, /pidPath: pidFile/)
 
 const postgreSqlRendererSource = readFileSync(

@@ -630,21 +630,37 @@ class Manager extends Base {
         const baseDir = global.Server.PostgreSqlDir!
         if (isWindows()) {
           const execArgs = `-D "${dbPath}" -l "${logFile}" start`
+          const appPidFile = this.appPidFile()
+          const readPostmasterPid = async (attempt = 0): Promise<string> => {
+            let pid = ''
+            try {
+              pid = await this.readPidFromFile(pidFile)
+            } catch {}
+            if (pid || attempt >= 20) {
+              return pid
+            }
+            await waitTime(500)
+            return readPostmasterPid(attempt + 1)
+          }
 
           try {
-            const res = await serviceStartExecCMD({
+            await serviceStartExecCMD({
               version,
-              pidPath: pidFile,
+              pidPath: appPidFile,
               baseDir,
               bin,
               execArgs,
               execEnv: '',
+              checkPidFile: false,
               on
             })
             if (sendUserPass) {
               on(I18nT('fork.postgresqlInit', { dir: dbPath }))
             }
-            const pid = res['APP-Service-Start-PID'].trim().split('\n').shift()!.trim()
+            const pid = await readPostmasterPid()
+            if (!pid) {
+              throw new Error('PostgreSQL postmaster.pid was not created')
+            }
             on({
               'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
             })
