@@ -9,6 +9,7 @@ import {
   dbGateCommandOwned,
   dbGateCredentials,
   dbGateEnv,
+  dbGateInstallManifest,
   dbGatePaths,
   dbGateUrl,
   mongodbPortFromConfig,
@@ -17,7 +18,13 @@ import {
 import { findLoopbackPort } from '../src/shared/LoopbackPort'
 
 const unix = dbGatePaths('/tmp/FlyEnv/server', false)
-assert.equal(DBGATE_PACKAGE, 'dbgate-serve@7.2.4')
+assert.equal(DBGATE_PACKAGE, 'dbgate-serve')
+assert.deepEqual(dbGateInstallManifest(), {
+  name: 'flyenv-dbgate',
+  private: true,
+  dependencies: { 'dbgate-serve': 'latest' },
+  overrides: { 'dbgate-pg-dumper': '1.0.0' }
+})
 assert.equal(DBGATE_DEFAULT_PORT, 3000)
 assert.equal(unix.root, '/tmp/FlyEnv/server/dbgate')
 assert.equal(unix.workspace, '/tmp/FlyEnv/server/dbgate/workspace')
@@ -132,7 +139,7 @@ assert.match(pageSource, /IPC\.sendSensitive\(/)
 assert.doesNotMatch(pageSource, /password|credentials/i)
 assert.match(ipcSource, /sensitive/i)
 assert.equal(packageJson.dependencies?.['dbgate-serve'], undefined)
-assert.match(licenseSource, /dbgate-serve@7\.2\.4/)
+assert.match(licenseSource, /dbgate-serve/)
 assert.match(licenseSource, /GPL-3\.0/)
 assert.match(licenseSource, /https:\/\/github\.com\/dbgate\/dbgate/)
 

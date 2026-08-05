@@ -15,12 +15,20 @@ import { spawnPromise } from '@shared/child-process'
 import { findLoopbackPort } from '@shared/LoopbackPort'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 
-export const DBGATE_VERSION = '7.2.4'
-export const DBGATE_PACKAGE = `dbgate-serve@${DBGATE_VERSION}`
+export const DBGATE_PACKAGE = 'dbgate-serve'
 export const DBGATE_DEFAULT_PORT = 3000
 export const DBGATE_PORT_SCAN_COUNT = 20
 export const DBGATE_MAX_PORT = 65535
 export const DBGATE_LOGIN = 'flyenv'
+
+export function dbGateInstallManifest() {
+  return {
+    name: 'flyenv-dbgate',
+    private: true,
+    dependencies: { [DBGATE_PACKAGE]: 'latest' },
+    overrides: { 'dbgate-pg-dumper': '1.0.0' }
+  }
+}
 
 export type DbGatePaths = {
   root: string
@@ -213,8 +221,25 @@ export class DbGateRuntime {
     const npm = candidates.find((candidate) => existsSync(candidate))
     if (!npm) throw new Error('npm is not available for the selected Node.js version')
     await mkdirp(paths.root)
+    const manifestPath = join(paths.root, 'package.json')
+    let manifest = dbGateInstallManifest()
+    if (existsSync(manifestPath)) {
+      try {
+        const current = JSON.parse(await readFile(manifestPath, 'utf8'))
+        manifest = {
+          ...current,
+          name: current.name ?? manifest.name,
+          private: true,
+          dependencies: { ...current.dependencies, ...manifest.dependencies },
+          overrides: { ...current.overrides, ...manifest.overrides }
+        }
+      } catch {}
+    }
+    await writeFile(manifestPath, JSON.stringify(manifest, null, 2))
     const args = [
       'install',
+      '--loglevel',
+      'error',
       '--prefix',
       paths.root,
       '--no-package-lock',

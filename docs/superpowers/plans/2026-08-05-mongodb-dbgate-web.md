@@ -4,7 +4,7 @@
 
 **Goal:** Add an on-demand, shared DbGate Community Web companion that opens from the MongoDB service page, persists its workspace under Server.BaseDir, and stops with MongoDB.
 
-**Architecture:** A fork-side DbGate runtime owns generic install, start, reuse, health, and stop behavior. MongoDB supplies the lifecycle owner and renderer entry, while future database modules can reuse the runtime. dbgate-serve@7.2.4 is installed only after an explicit user click with the selected Node.js binary and is never bundled into FlyEnv.
+**Architecture:** A fork-side DbGate runtime owns generic install, start, reuse, health, and stop behavior. MongoDB supplies the lifecycle owner and renderer entry, while future database modules can reuse the runtime. The latest dbgate-serve package is installed only after an explicit user click with the selected Node.js binary and is never bundled into FlyEnv.
 
 **Tech Stack:** Electron IPC, Vue 3 Composition API, TypeScript, serviceStartSpawn, Node.js/npm, axios, existing process-list helpers, and tsx contract tests.
 
@@ -43,7 +43,7 @@ import {
 } from '../src/fork/module/DbGate'
 
 const unix = dbGatePaths('/tmp/FlyEnv/server', false)
-assert.equal(DBGATE_PACKAGE, 'dbgate-serve@7.2.4')
+assert.equal(DBGATE_PACKAGE, 'dbgate-serve')
 assert.equal(DBGATE_DEFAULT_PORT, 3000)
 assert.equal(unix.root, '/tmp/FlyEnv/server/dbgate')
 assert.equal(unix.workspace, '/tmp/FlyEnv/server/dbgate/workspace')
@@ -144,8 +144,7 @@ Replace the private duplicate bind implementation in src/fork/module/Postgresql/
 Define these exports:
 
 ~~~ts
-export const DBGATE_VERSION = '7.2.4'
-export const DBGATE_PACKAGE = 'dbgate-serve@' + DBGATE_VERSION
+export const DBGATE_PACKAGE = 'dbgate-serve'
 export const DBGATE_DEFAULT_PORT = 3000
 export const DBGATE_PORT_SCAN_COUNT = 20
 export const DBGATE_MAX_PORT = 65535
@@ -208,7 +207,7 @@ Test an injected runtime where the first open performs one install and one start
 Run the equivalent of this command with the selected Node runtime:
 
 ~~~text
-node npm-cli.js install --prefix Server.BaseDir/dbgate --no-package-lock --no-audit --no-fund dbgate-serve@7.2.4
+node npm-cli.js install --loglevel error --prefix Server.BaseDir/dbgate --no-package-lock --no-audit --no-fund dbgate-serve
 ~~~
 
 Resolve npm without a global shell lookup by checking the selected Node directory's npm/npm.cmd, its node_modules/npm/bin/npm-cli.js, and its sibling lib/node_modules/npm/bin/npm-cli.js. Reject with “npm is not available for the selected Node.js version” when none exists, and accept installation only when the DbGate entry exists afterward.
@@ -333,7 +332,7 @@ Create this inventory entry:
 ~~~markdown
 ## DbGate Community Web
 
-- Package: dbgate-serve@7.2.4
+- Package: dbgate-serve (latest version resolved from npm at first use)
 - License: GPL-3.0
 - Source: https://github.com/dbgate/dbgate
 - Distribution: downloaded from npm on first explicit use; not bundled in FlyEnv
@@ -342,7 +341,7 @@ Create this inventory entry:
 
 - [ ] **Step 2: Add the no-bundling assertion**
 
-Extend scripts/mongodb-dbgate-test.ts to assert that package.json does not list dbgate-serve as an application dependency and that the license document contains dbgate-serve@7.2.4, GPL-3.0, and the source URL.
+Extend scripts/mongodb-dbgate-test.ts to assert that package.json does not list dbgate-serve as an application dependency and that the license document contains dbgate-serve, GPL-3.0, and the source URL.
 
 - [ ] **Step 3: Run documentation checks and commit**
 

@@ -9,7 +9,8 @@ whose current lifecycle owner is MongoDB.
 
 ## Decisions
 
-- Use `dbgate-serve@7.2.4`, which bundles the MongoDB plugin.
+- Use the latest `dbgate-serve` package resolved from npm on first use. It bundles the MongoDB plugin.
+- Generate a local npm manifest with an override for the unavailable `dbgate-pg-dumper@7.2.4` package, resolving that unused PostgreSQL helper to the latest published compatible package so MongoDB installation can complete.
 - Install the package locally under `global.Server.BaseDir/dbgate`; do not use a
   global npm install and do not require Docker.
 - Use the Node.js version selected in FlyEnv's Node module. The MongoDB Web
@@ -59,7 +60,7 @@ On the first Web-entry request:
 
 1. Validate the selected Node.js binary and its supported version.
 2. Create the DbGate directory structure.
-3. Install `dbgate-serve@7.2.4` locally with the selected Node.js runtime if
+3. Install the latest `dbgate-serve` locally with the selected Node.js runtime if
    its package entry is absent.
 4. Choose an available loopback port, pass it through `PORT`, and start the
    DbGate entry script with `serviceStartSpawn`.
