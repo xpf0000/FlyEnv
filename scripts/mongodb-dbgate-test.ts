@@ -16,8 +16,15 @@ import {
   DbGateRuntime
 } from '../src/fork/module/DbGate'
 import { findLoopbackPort } from '../src/shared/LoopbackPort'
+import { isWebPanelInstallNotice, webPanelInstallNotice } from '../src/shared/WebPanelInstallNotice'
 
 const unix = dbGatePaths('/tmp/FlyEnv/server', false)
+assert.deepEqual(webPanelInstallNotice('pgAdmin 4'), {
+  type: 'web-panel-install',
+  service: 'pgAdmin 4'
+})
+assert.equal(isWebPanelInstallNotice(webPanelInstallNotice('DbGate')), true)
+assert.equal(isWebPanelInstallNotice({ type: 'other', service: 'DbGate' }), false)
 assert.equal(DBGATE_PACKAGE, 'dbgate-serve')
 assert.deepEqual(dbGateInstallManifest(), {
   name: 'flyenv-dbgate',
@@ -71,6 +78,7 @@ let installs = 0
 let starts = 0
 let kills: string[] = []
 let alive = true
+const notices: unknown[] = []
 await mkdir(join(runtimePaths.root, 'node_modules', 'dbgate-serve', 'bin'), { recursive: true })
 const node = {
   typeFlag: 'node',
@@ -103,13 +111,15 @@ const runtime = new DbGateRuntime(runtimeRoot, {
     alive = false
   }
 })
-const firstOpen = await runtime.open(node)
+const firstOpen = await runtime.open(node, (message) => notices.push(message))
 assert.equal(installs, 1)
+assert.deepEqual(notices, [webPanelInstallNotice('DbGate')])
 assert.equal(starts, 1)
 assert.equal(firstOpen['APP-Service-Start-PID'], '1234')
 assert.match(firstOpen.url, /^http:\/\/flyenv:.+@127\.0\.0\.1:3001$/)
 const secondOpen = await runtime.open(node)
 assert.equal(installs, 1)
+assert.deepEqual(notices, [webPanelInstallNotice('DbGate')])
 assert.equal(starts, 1)
 assert.equal(secondOpen.url, firstOpen.url)
 assert.deepEqual(await runtime.stop(), ['1234'])
@@ -136,6 +146,9 @@ assert.match(pageSource, /openDbGate/)
 assert.match(pageSource, /BrewStore\(\)/)
 assert.match(pageSource, /shell\.openExternal\(res\.data\.url\)/)
 assert.match(pageSource, /IPC\.sendSensitive\(/)
+assert.match(pageSource, /ElMessage/)
+assert.match(pageSource, /isWebPanelInstallNotice/)
+assert.match(pageSource, /base\.webPanelFirstInstall/)
 assert.doesNotMatch(pageSource, /password|credentials/i)
 assert.match(ipcSource, /sensitive/i)
 assert.equal(packageJson.dependencies?.['dbgate-serve'], undefined)
