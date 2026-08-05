@@ -17,7 +17,7 @@
       <el-form-item :label="I18nT('feedback.email')" prop="email">
         <el-input v-model="form.email" autocomplete="email" />
       </el-form-item>
-      <el-form-item :label="I18nT('common.password')" prop="password">
+      <el-form-item :label="I18nT('common.label.password')" prop="password">
         <el-input
           v-model="form.password"
           type="password"
@@ -55,7 +55,7 @@
   const form = reactive<PgAdminCredentials>({ email: '', password: '' })
   const rules: FormRules = {
     email: [{ required: true, type: 'email', message: I18nT('feedback.email'), trigger: 'blur' }],
-    password: [{ required: true, min: 8, message: I18nT('common.password'), trigger: 'blur' }]
+    password: [{ required: true, min: 8, message: I18nT('common.label.password'), trigger: 'blur' }]
   }
 
   const clearPassword = () => {

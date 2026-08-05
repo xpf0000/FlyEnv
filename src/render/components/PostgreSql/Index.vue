@@ -195,14 +195,20 @@
     ) {
       return
     }
+    const selectedPython = brewStore.currentVersion('python')
+    if (!selectedPython) {
+      return
+    }
     pgAdminOpening.value = true
     const openPgAdminIpc = credentials ? IPC.sendSensitive.bind(IPC) : IPC.send.bind(IPC)
+    const pgAdminVersion = JSON.parse(JSON.stringify(runningVersion.value))
+    const pgAdminPython = JSON.parse(JSON.stringify(selectedPython))
     openPgAdminIpc(
       'app-fork:postgresql',
       'openPGAdmin',
-      runningVersion.value,
+      pgAdminVersion,
       runningDataDir.value,
-      brewStore.currentVersion('python'),
+      pgAdminPython,
       credentials
     ).then((key: string, res: any) => {
       if (res?.code === 200) {

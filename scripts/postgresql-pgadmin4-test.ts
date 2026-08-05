@@ -1074,7 +1074,8 @@ assert.match(pgAdminSetupSource, /defineProps<\{ modelValue: boolean \}>\(\)/)
 assert.match(pgAdminSetupSource, /'update:modelValue': \[value: boolean\]/)
 assert.match(pgAdminSetupSource, /submit: \[credentials: PgAdminCredentials\]/)
 assert.match(pgAdminSetupSource, /I18nT\('feedback\.email'\)/)
-assert.match(pgAdminSetupSource, /I18nT\('common\.password'\)/)
+assert.match(pgAdminSetupSource, /I18nT\('common\.label\.password'\)/)
+assert.doesNotMatch(pgAdminSetupSource, /I18nT\('common\.password'\)/)
 assert.match(pgAdminSetupSource, /I18nT\('base\.cancel'\)/)
 assert.match(pgAdminSetupSource, /I18nT\('base\.confirm'\)/)
 assert.match(pgAdminSetupSource, /type="password"/)
@@ -1135,7 +1136,15 @@ assert.match(
 )
 assert.match(
   postgreSqlRendererSource,
-  /openPgAdminIpc\(\s*'app-fork:postgresql',\s*'openPGAdmin',\s*runningVersion\.value,\s*runningDataDir\.value,\s*brewStore\.currentVersion\('python'\),\s*credentials\s*\)/s
+  /const pgAdminVersion = JSON\.parse\(JSON\.stringify\(runningVersion\.value\)\)/
+)
+assert.match(
+  postgreSqlRendererSource,
+  /const pgAdminPython = JSON\.parse\(JSON\.stringify\(selectedPython\)\)/
+)
+assert.match(
+  postgreSqlRendererSource,
+  /openPgAdminIpc\(\s*'app-fork:postgresql',\s*'openPGAdmin',\s*pgAdminVersion,\s*runningDataDir\.value,\s*pgAdminPython,\s*credentials\s*\)/s
 )
 assert.doesNotMatch(
   postgreSqlRendererSource,
