@@ -4640,7 +4640,7 @@ __metadata:
     date-fns: ^4.1.0
     dns2: ^2.1.0
     dompurify: ^3.4.12
-    electron: ^39.8.7
+    electron: ^39.8.10
     electron-builder: ^26.0.17
     electron-debug: ^4.1.0
     electron-devtools-installer: ^4.0.0
@@ -6964,16 +6964,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^39.8.7":
-  version: 39.8.7
-  resolution: "electron@npm:39.8.7"
+"electron@npm:^39.8.10":
+  version: 39.8.10
+  resolution: "electron@npm:39.8.10"
   dependencies:
-    "@electron/get": "npm:^2.0.0"
-    "@types/node": "npm:^22.7.7"
-    extract-zip: "npm:^2.0.1"
+    "@electron/get": ^2.0.0
+    "@types/node": ^22.7.7
+    extract-zip: ^2.0.1
   bin:
     electron: cli.js
-  checksum: cec8fd0842f565fa5c6acf909e141bab269df1e78ff5eb2fcaf256e7f073060872f6a18dc2aced4888606445d15b79f9ef971c011e5c06b6bd7a0247ae104cdb
+  checksum: 8/cd780559a7c4bab1cf2c71825b8314dfdcb870e311a51ca6be16599ed603f04ce82c7a78dae11206ce9b79d114adcbb38073889f2835275d0411944103bf8734
   languageName: node
   linkType: hard
 
