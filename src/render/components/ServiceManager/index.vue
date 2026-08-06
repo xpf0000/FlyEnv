@@ -118,7 +118,17 @@
           </div>
         </template>
       </el-table-column>
-      <slot name="column"></slot>
+      <el-table-column
+        v-if="$slots.column"
+        :label="columnLabel"
+        :prop="null"
+        :width="columnWidth"
+        align="center"
+      >
+        <template #default="scope">
+          <slot name="column" :row="scope.row"></slot>
+        </template>
+      </el-table-column>
       <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #header>
           <span class="truncate">{{ I18nT('php.quickStart') }}</span>
@@ -285,7 +295,12 @@
   const props = defineProps<{
     typeFlag: AllAppModule
     title: string
+    columnLabel?: string
+    columnWidth?: string | number
   }>()
+
+  const columnLabel = props.columnLabel ?? ''
+  const columnWidth = props.columnWidth ?? 220
 
   const emit = defineEmits(['onVersionClick'])
 

@@ -20,6 +20,7 @@ const createBaseDirectories = () => {
     global.Server.MemcachedDir,
     global.Server.RedisDir,
     global.Server.MongoDBDir,
+    global.Server.Neo4jDir,
     global.Server.Cache
   ].filter(Boolean)
 
@@ -59,6 +60,7 @@ export const SetupGlobalPaths = (runpath: string) => {
   global.Server.FTPDir = join(runpath, 'server/ftp')
   global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
   global.Server.ClickHouseDir = join(runpath, 'server/clickhouse')
+  global.Server.Neo4jDir = join(runpath, 'server/neo4j')
   global.Server.Cache = join(runpath, 'server/cache')
   global.Server.Static = __static
   global.Server.Arch = arch() === 'x64' ? 'x86_64' : 'arm64'

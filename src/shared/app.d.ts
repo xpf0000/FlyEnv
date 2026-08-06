@@ -19,6 +19,10 @@ export interface SoftInstalled {
   note?: string
   isLocal7Z?: boolean
   rootPassword?: string
+  javaHome?: string
+  javaMajor?: number
+  neo4jInstanceDir?: string
+  neo4jNeedsPassword?: boolean
 }
 
 export interface AppHostReverseProxyItem {
