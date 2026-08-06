@@ -6,6 +6,7 @@ import { shell } from '@/util/NodeFn'
 import IPC from '@/util/IPC'
 import { ElMessage } from 'element-plus'
 import { isWebPanelInstallNotice } from '@shared/WebPanelInstallNotice'
+import { redisCommanderRequest } from './RedisCommanderRequest'
 
 export class RedisCommanderPanel {
   readonly opening = ref(false)
@@ -29,9 +30,8 @@ export class RedisCommanderPanel {
 
     this.opening.value = true
     try {
-      const selectedNode = JSON.parse(JSON.stringify(node))
-      const selectedRedis = JSON.parse(JSON.stringify(redis))
-      IPC.sendSensitive('app-fork:redis', 'openRedisCommander', selectedNode, selectedRedis).then(
+      const request = redisCommanderRequest(node, redis)
+      IPC.sendSensitive('app-fork:redis', 'openRedisCommander', request.node, request.redis).then(
         (key: string, res: any) => this.handleResponse(key, res)
       )
     } catch (error) {

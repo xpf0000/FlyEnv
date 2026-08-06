@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, join, relative } from 'node:path'
+import type { SoftInstalled } from '../src/shared/app'
+import { redisCommanderRequest } from '../src/render/components/Redis/RedisCommanderRequest'
 
 const root = join(import.meta.dirname, '..')
 const componentsDir = join(root, 'src', 'render', 'components')
@@ -123,9 +125,19 @@ for (const registration of controllers) {
 
 const redisPage = readFileSync(join(componentsDir, 'Redis/Index.vue'), 'utf-8')
 const redisPanel = readFileSync(join(componentsDir, 'Redis/RedisCommanderPanel.ts'), 'utf-8')
+const redisCommanderOpenRequest = redisCommanderRequest(
+  { bin: '/tmp/node', rootPassword: 'node-secret' } as SoftInstalled,
+  { version: '7.4.0', rootPassword: 'redis-secret' } as SoftInstalled
+)
+assert.deepEqual(redisCommanderOpenRequest, {
+  node: { bin: '/tmp/node' },
+  redis: { version: '7.4.0' }
+})
+assert.doesNotMatch(JSON.stringify(redisCommanderOpenRequest), /node-secret|redis-secret/)
 assert.match(redisPage, /<template v-if="isRunning" #tool-left>/)
 assert.match(redisPage, /:disabled="redisCommanderOpening \|\| !redisCommanderNodeAvailable"/)
 assert.match(redisPanel, /IPC\.sendSensitive\('app-fork:redis', 'openRedisCommander'/)
+assert.match(redisPanel, /redisCommanderRequest\(node, redis\)/)
 assert.match(redisPanel, /isWebPanelInstallNotice/)
 assert.match(redisPanel, /shell\.openExternal\(res\.data\.url\)/)
 assert.doesNotMatch(redisPage, /from\s+['"]@\/util\/IPC['"]/)
