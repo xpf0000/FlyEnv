@@ -78,6 +78,8 @@ assert.match(pageSource, /<yb-icon\s+v-else/)
 assert.match(pageSource, /:disabled="chUIOpening"/)
 assert.doesNotMatch(pageSource, /:loading="chUIOpening"/)
 assert.match(pageSource, /IPC\.send\('app-fork:clickhouse', 'openCHUI'\)/)
+assert.match(pageSource, /webPanelOpeningState\('ch-ui'\)/)
+assert.match(pageSource, /chUIOpeningState\.finish\(\)/)
 assert.match(pageSource, /shell\.openExternal\(res\.data\.url\)/)
 
 console.log('clickhouse CH-UI regression tests passed')
