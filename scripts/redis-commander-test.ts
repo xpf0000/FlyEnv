@@ -96,6 +96,7 @@ const runtimePaths = redisCommanderPaths(root, false)
 let installs = 0
 let starts = 0
 let running = false
+const stalePidAtStart: boolean[] = []
 let releaseStart: (() => void) | undefined
 let startedResolver: (() => void) | undefined
 const started = new Promise<void>((resolve) => {
@@ -118,6 +119,7 @@ const runtime = new RedisCommanderRuntime(root, {
   },
   starter: async (_node, currentPaths) => {
     starts += 1
+    stalePidAtStart.push(existsSync(currentPaths.pid))
     startedResolver?.()
     await startGate
     running = true
@@ -154,6 +156,13 @@ assert.deepEqual(await runtime.stop(), ['1234'])
 assert.deepEqual(kills, ['1234'])
 assert.equal(existsSync(runtimePaths.pid), false)
 assert.equal(existsSync(runtimePaths.port), false)
+
+await writeFile(runtimePaths.pid, '9999')
+await runtime.open(node, redis)
+assert.equal(starts, 2)
+assert.deepEqual(stalePidAtStart, [false, false])
+assert.deepEqual(await runtime.stop(), ['1234'])
+assert.deepEqual(kills, ['1234', '1234'])
 await rm(root, { recursive: true, force: true })
 
 const projectRoot = join(import.meta.dirname, '..')

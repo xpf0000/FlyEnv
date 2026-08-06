@@ -410,12 +410,19 @@ export class RedisCommanderRuntime {
       : ''
     const persistedPort = await this.readPort()
 
-    if (persistedPid && persistedPort) {
-      const pids = await this.ownedPids(persistedPid)
+    if (persistedPid || persistedPort) {
+      const pids = persistedPid ? await this.ownedPids(persistedPid) : []
       const listening =
+        !!persistedPid &&
+        !!persistedPort &&
         pids.length > 0 &&
         (await this.fetchListeningPids(`${persistedPort}`)).includes(persistedPid)
-      if (listening && (await this.checkHealth(persistedPort, credentials))) {
+      if (
+        persistedPid &&
+        persistedPort &&
+        listening &&
+        (await this.checkHealth(persistedPort, credentials))
+      ) {
         return this.openResult(persistedPid, persistedPort, credentials, nodeBin)
       }
       if (pids.length > 0) {
