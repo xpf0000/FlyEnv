@@ -54,6 +54,7 @@ export enum AppModuleEnum {
   mongodb = 'mongodb',
   postgresql = 'postgresql',
   clickhouse = 'clickhouse',
+  neo4j = 'neo4j',
   tomcat = 'tomcat',
   'pure-ftpd' = 'pure-ftpd',
   java = 'java',

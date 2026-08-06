@@ -25,6 +25,10 @@ export class ModuleInstalledItem implements SoftInstalled {
   version: string = ''
   isLocal7Z?: boolean
   rootPassword?: string
+  javaHome?: string
+  javaMajor?: number
+  neo4jInstanceDir?: string
+  neo4jNeedsPassword?: boolean
 
   get isInEnv() {
     return computed(() => ServiceActionStore.isInEnv(this))
@@ -42,6 +46,13 @@ export class ModuleInstalledItem implements SoftInstalled {
 
   // 使用箭头函数绑定 this
   start(): Promise<string | boolean> {
+    if (this.typeFlag === 'neo4j') {
+      if (this.enable === false)
+        return Promise.resolve(this.error ?? 'Neo4j version is unsupported')
+      return import('@/components/Neo4j/controller').then(({ default: controller }) =>
+        controller.start(this)
+      )
+    }
     return new Promise(async (resolve) => {
       if (this.run && this.pid) {
         return resolve(true)
@@ -92,6 +103,11 @@ export class ModuleInstalledItem implements SoftInstalled {
   }
 
   stop(): Promise<string | boolean> {
+    if (this.typeFlag === 'neo4j') {
+      return import('@/components/Neo4j/controller').then(({ default: controller }) =>
+        controller.stop(this)
+      )
+    }
     return new Promise(async (resolve) => {
       if (!this.run) {
         return resolve(true)

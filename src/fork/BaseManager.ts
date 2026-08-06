@@ -79,6 +79,7 @@ class BaseManager {
   Cron: any
   DotNet: any
   ClickHouse: any
+  Neo4j: any
   Temporal: any
   TemporalCli: any
 
@@ -215,6 +216,12 @@ class BaseManager {
         this.ClickHouse = res.default
       }
       doRun(this.ClickHouse)
+    } else if (module === 'neo4j') {
+      if (!this.Neo4j) {
+        const res = await import('./module/Neo4j')
+        this.Neo4j = res.default
+      }
+      doRun(this.Neo4j)
     } else if (module === 'pure-ftpd') {
       if (!this.PureFtpd) {
         const res = await import('./module/PureFtpd')

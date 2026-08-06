@@ -105,6 +105,12 @@ const controllers = [
     controller: 'Redis/RedisCommanderPanel.ts',
     instance: 'redisCommanderPanel',
     className: 'RedisCommanderPanel'
+  },
+  {
+    page: 'Neo4j/Index.vue',
+    controller: 'Neo4j/controller.ts',
+    instance: 'neo4jController',
+    className: 'Neo4jController'
   }
 ]
 

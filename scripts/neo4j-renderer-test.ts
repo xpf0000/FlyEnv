@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+const root = join(import.meta.dirname, '..')
+const read = (path: string) => readFileSync(join(root, path), 'utf-8')
+
+const store = read('src/render/components/Neo4j/store.ts')
+const controller = read('src/render/components/Neo4j/controller.ts')
+const index = read('src/render/components/Neo4j/Index.vue')
+const config = read('src/render/components/Neo4j/Config.vue')
+const logs = read('src/render/components/Neo4j/Logs.vue')
+const service = read('src/render/components/ServiceManager/index.vue')
+
+assert.match(store, /export const Neo4jStore = defineStore\('neo4j'/)
+assert.match(store, /getBinding\(/)
+assert.match(store, /setBinding\(/)
+assert.match(store, /reconcileBindings\(/)
+assert.match(store, /neo4jJavaBindings/)
+assert.match(controller, /export class Neo4jController\b/)
+assert.match(controller, /readonly opening = ref\(false\)/)
+assert.match(controller, /startService/)
+assert.match(controller, /stopService/)
+assert.match(controller, /sendSensitive/)
+assert.match(controller, /export default new Neo4jController\(\)/)
+assert.match(index, /<template #column="\{ row \}">/)
+assert.match(index, /candidatesForVersion/)
+assert.doesNotMatch(index, /from\s+['"]@\/util\/IPC['"]/)
+assert.match(config, /initConfig/)
+assert.match(logs, /getLogFiles/)
+assert.match(service, /<slot name="column" :row="scope\.row">/)
+
+console.log('Neo4j renderer tests passed')

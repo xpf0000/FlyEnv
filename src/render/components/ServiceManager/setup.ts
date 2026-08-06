@@ -111,13 +111,26 @@ export const Setup = (typeFlag: AllAppModule) => {
     let action: any
     switch (flag) {
       case 'stop':
-        action = item.stop()
+        action =
+          typeFlag === 'neo4j'
+            ? import('../Neo4j/controller').then(({ default: controller }) => controller.stop(item))
+            : item.stop()
         break
       case 'start':
-        action = item.start()
+        action =
+          typeFlag === 'neo4j'
+            ? import('../Neo4j/controller').then(({ default: controller }) =>
+                controller.start(item)
+              )
+            : item.start()
         break
       case 'restart':
-        action = item.restart()
+        action =
+          typeFlag === 'neo4j'
+            ? import('../Neo4j/controller').then(({ default: controller }) =>
+                controller.restart(item)
+              )
+            : item.restart()
         break
     }
     action.then((res: any) => {

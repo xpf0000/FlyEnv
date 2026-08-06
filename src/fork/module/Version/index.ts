@@ -56,6 +56,7 @@ class Manager extends Base {
   Git: any
   DotNet: any
   ClickHouse: any
+  Neo4j: any
   Temporal: any
   TemporalCli: any
 
@@ -135,6 +136,12 @@ class Manager extends Base {
             this.ClickHouse = res.default
           }
           versions.clickhouse = this.ClickHouse.allInstalledVersions(setup)
+        } else if (type === 'neo4j') {
+          if (!this.Neo4j) {
+            const res = await import('../Neo4j')
+            this.Neo4j = res.default
+          }
+          versions.neo4j = this.Neo4j.allInstalledVersions(setup)
         } else if (type === 'pure-ftpd') {
           if (!this.PureFtpd) {
             const res = await import('../PureFtpd')

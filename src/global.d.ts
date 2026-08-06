@@ -24,6 +24,7 @@ export interface ServerType {
   MysqlDir?: string
   PostgreSqlDir?: string
   ClickHouseDir?: string
+  Neo4jDir?: string
   MariaDBDir?: string
   MemcachedDir?: string
   BaseDir?: string
