@@ -9,11 +9,15 @@ import {
   REDIS_COMMANDER_DEFAULT_PORT,
   REDIS_COMMANDER_LOGIN,
   REDIS_COMMANDER_PACKAGE,
+  REDIS_COMMANDER_SSO_ISSUER,
   RedisCommanderRuntime,
   redisCommanderArgs,
+  redisCommanderAutoLoginUrl,
   redisCommanderConfig,
+  redisCommanderSsoEnvironment,
   redisCommanderInstallManifest,
   redisCommanderPaths,
+  redisCommanderSsoToken,
   redisCommanderUrl
 } from '../src/fork/module/Redis/RedisCommander'
 import { serviceStartSpawnLogParam } from '../src/fork/util/ServiceStart'
@@ -45,14 +49,42 @@ assert.equal(
   paths.entry,
   '/tmp/flyenv/redis-commander/node_modules/redis-commander/bin/redis-commander.js'
 )
-assert.equal(
-  redisCommanderUrl(8082, { login: 'flyenv', password: 'secret' }),
-  'http://flyenv:secret@127.0.0.1:8082'
+assert.equal(redisCommanderUrl(8082), 'http://127.0.0.1:8082')
+const autoLoginCredentials = {
+  login: 'flyenv',
+  password: 'panel-secret',
+  ssoSecret: 'sso-secret'
+}
+const autoLoginToken = redisCommanderSsoToken(autoLoginCredentials, 1_700_000_000_000, 'test-token')
+assert.deepEqual(
+  JSON.parse(Buffer.from(autoLoginToken.split('.')[1], 'base64url').toString('utf8')),
+  {
+    iss: REDIS_COMMANDER_SSO_ISSUER,
+    iat: 1_700_000_000,
+    exp: 1_700_000_060,
+    jti: 'test-token'
+  }
 )
+const autoLoginUrl = redisCommanderAutoLoginUrl(
+  8082,
+  autoLoginCredentials,
+  1_700_000_000_000,
+  'test-token'
+)
+assert.equal(new URL(autoLoginUrl).origin, 'http://127.0.0.1:8082')
+assert.equal(new URL(autoLoginUrl).pathname, '/sso')
+assert.equal(new URL(autoLoginUrl).searchParams.get('access_token'), autoLoginToken)
+assert.doesNotMatch(autoLoginUrl, /panel-secret|flyenv/)
+assert.deepEqual(redisCommanderSsoEnvironment(autoLoginCredentials), {
+  SSO_ENABLED: 'true',
+  SSO_JWT_SECRET: 'sso-secret',
+  SSO_ISSUER: REDIS_COMMANDER_SSO_ISSUER
+})
 assert.deepEqual(
   redisCommanderArgs({ host: '127.0.0.1', port: 6380, password: 'redis-secret' }, 8082, {
     login: 'flyenv',
-    password: 'panel-secret'
+    password: 'panel-secret',
+    ssoSecret: 'sso-secret'
   }),
   [
     '--address',
@@ -76,7 +108,8 @@ assert.deepEqual(
 assert.deepEqual(
   redisCommanderArgs({ host: '127.0.0.1', port: 6379 }, 8082, {
     login: 'flyenv',
-    password: 'panel-secret'
+    password: 'panel-secret',
+    ssoSecret: 'sso-secret'
   }),
   [
     '--address',
@@ -178,15 +211,19 @@ await started
 const second = runtime.open(node, redis)
 releaseStart?.()
 const [firstResult, secondResult] = await Promise.all([first, second])
-assert.match(firstResult.url, /^http:\/\/flyenv:.+@127\.0\.0\.1:8082$/)
-assert.equal(secondResult.url, firstResult.url)
+assert.equal(new URL(firstResult.url).pathname, '/sso')
+assert.ok(new URL(firstResult.url).searchParams.get('access_token'))
+assert.doesNotMatch(firstResult.url, /redis-secret/)
+assert.equal(new URL(secondResult.url).pathname, '/sso')
+assert.notEqual(secondResult.url, firstResult.url)
 assert.equal(installs, 1)
 assert.equal(starts, 1)
 assert.deepEqual(notices, [{ type: 'web-panel-install', service: 'Redis Commander' }])
 assert.equal(existsSync(runtimePaths.port), true)
 
 const thirdResult = await runtime.open(node, redis)
-assert.equal(thirdResult.url, firstResult.url)
+assert.notEqual(thirdResult.url, firstResult.url)
+assert.equal(new URL(thirdResult.url).pathname, '/sso')
 assert.equal(starts, 1)
 assert.deepEqual(await runtime.stop(), ['1234'])
 assert.deepEqual(kills, ['1234'])
@@ -200,6 +237,105 @@ assert.deepEqual(stalePidAtStart, [false, false])
 assert.deepEqual(await runtime.stop(), ['1234'])
 assert.deepEqual(kills, ['1234', '1234'])
 await rm(root, { recursive: true, force: true })
+
+const legacyRoot = await mkdtemp(join(tmpdir(), 'flyenv-redis-commander-legacy-'))
+const legacyPaths = redisCommanderPaths(legacyRoot, false)
+await mkdir(dirname(legacyPaths.entry), { recursive: true })
+await writeFile(legacyPaths.entry, '')
+await writeFile(
+  legacyPaths.credentials,
+  JSON.stringify({
+    login: 'flyenv',
+    password: 'legacy-panel-password-that-is-long-enough-to-be-valid'
+  })
+)
+await writeFile(legacyPaths.pid, '7777')
+await writeFile(legacyPaths.port, '8082')
+let legacyPid = '7777'
+let legacyStarts = 0
+const legacyKills: string[] = []
+const legacyRuntime = new RedisCommanderRuntime(legacyRoot, {
+  paths: legacyPaths,
+  config: async () => ({ host: '127.0.0.1', port: 6380 }),
+  starter: async (_node, currentPaths) => {
+    legacyStarts += 1
+    legacyPid = '8888'
+    await writeFile(currentPaths.pid, legacyPid)
+    return { 'APP-Service-Start-PID': legacyPid }
+  },
+  processList: async () =>
+    legacyPid ? [{ PID: legacyPid, PPID: '', COMMAND: `node ${legacyPaths.entry}`, USER: '' }] : [],
+  listeningPids: async () => (legacyPid ? [legacyPid] : []),
+  health: async () => true,
+  portFinder: async () => 8083,
+  kill: async (pids) => {
+    legacyKills.push(...pids)
+    if (pids.includes(legacyPid)) legacyPid = ''
+  }
+})
+
+try {
+  const legacyResult = await legacyRuntime.open(node, redis)
+  assert.equal(legacyStarts, 1)
+  assert.deepEqual(legacyKills, ['7777'])
+  assert.equal(new URL(legacyResult.url).pathname, '/sso')
+  assert.equal(JSON.parse(await readFileSync(legacyPaths.credentials, 'utf8')).ssoSecret.length, 64)
+} finally {
+  await legacyRuntime.stop()
+  await rm(legacyRoot, { recursive: true, force: true })
+}
+
+const failedRestartRoot = await mkdtemp(join(tmpdir(), 'flyenv-redis-commander-failed-restart-'))
+const failedRestartPaths = redisCommanderPaths(failedRestartRoot, false)
+await mkdir(dirname(failedRestartPaths.entry), { recursive: true })
+await writeFile(failedRestartPaths.entry, '')
+await writeFile(
+  failedRestartPaths.credentials,
+  JSON.stringify({
+    login: 'flyenv',
+    password: 'legacy-panel-password-that-is-long-enough-to-be-valid'
+  })
+)
+await writeFile(failedRestartPaths.pid, '7777')
+await writeFile(failedRestartPaths.port, '8082')
+let failedRestartStarts = 0
+let failedRestartKillAttempts = 0
+const failedRestartRuntime = new RedisCommanderRuntime(failedRestartRoot, {
+  paths: failedRestartPaths,
+  config: async () => ({ host: '127.0.0.1', port: 6380 }),
+  starter: async () => {
+    failedRestartStarts += 1
+    return { 'APP-Service-Start-PID': '8888' }
+  },
+  processList: async () => [
+    { PID: '7777', PPID: '', COMMAND: `node ${failedRestartPaths.entry}`, USER: '' }
+  ],
+  listeningPids: async () => ['7777'],
+  health: async () => true,
+  portFinder: async () => 8083,
+  kill: async () => {
+    failedRestartKillAttempts += 1
+    throw new Error('process still running')
+  }
+})
+
+try {
+  await assert.rejects(
+    forkPromiseToPromise(failedRestartRuntime.open(node, redis)),
+    /Redis Commander did not stop before restart/
+  )
+  assert.equal(failedRestartStarts, 0)
+  assert.ok(failedRestartKillAttempts >= 1)
+  assert.equal(existsSync(failedRestartPaths.pid), true)
+  assert.equal(existsSync(failedRestartPaths.port), true)
+  assert.deepEqual(JSON.parse(readFileSync(failedRestartPaths.credentials, 'utf8')), {
+    login: 'flyenv',
+    password: 'legacy-panel-password-that-is-long-enough-to-be-valid'
+  })
+} finally {
+  await failedRestartRuntime.stop().catch(() => {})
+  await rm(failedRestartRoot, { recursive: true, force: true })
+}
 
 const stopDuringInstallRoot = await mkdtemp(join(tmpdir(), 'flyenv-redis-commander-stop-'))
 const stopDuringInstallPaths = redisCommanderPaths(stopDuringInstallRoot, false)

@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto'
+import { createHmac, randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { chmod, mkdirp, readFile, remove, writeFile } from '@shared/fs-extra'
 import { dirname, join, normalize, win32 } from 'node:path'
@@ -21,6 +21,8 @@ export const REDIS_COMMANDER_DEFAULT_PORT = 8081
 export const REDIS_COMMANDER_PORT_SCAN_COUNT = 20
 export const REDIS_COMMANDER_MAX_PORT = 65535
 export const REDIS_COMMANDER_LOGIN = 'flyenv'
+export const REDIS_COMMANDER_SSO_ISSUER = 'FlyEnv'
+const REDIS_COMMANDER_SSO_TOKEN_TTL_SECONDS = 60
 
 export type RedisCommanderPaths = {
   root: string
@@ -36,6 +38,12 @@ export type RedisCommanderPaths = {
 export type RedisCommanderCredentials = {
   login: string
   password: string
+  ssoSecret: string
+}
+
+type RedisCommanderCredentialsState = {
+  credentials: RedisCommanderCredentials
+  refreshed: boolean
 }
 
 export type RedisCommanderConnection = {
@@ -48,6 +56,13 @@ export type RedisCommanderOpenResult = {
   url: string
   'APP-Service-Start-PID': string
   'APP-Service-Start-Item': SoftInstalled
+}
+
+type RedisCommanderOpened = {
+  pid: string
+  port: number
+  credentials: RedisCommanderCredentials
+  nodeBin: string
 }
 
 const normalizeForPlatform = (value: string, windows: boolean) => {
@@ -142,11 +157,50 @@ export function redisCommanderArgs(
   return args
 }
 
-export function redisCommanderUrl(port: number, credentials?: RedisCommanderCredentials): string {
-  const userInfo = credentials
-    ? `${encodeURIComponent(credentials.login)}:${encodeURIComponent(credentials.password)}@`
-    : ''
-  return `http://${userInfo}127.0.0.1:${port}`
+export function redisCommanderUrl(port: number): string {
+  return `http://127.0.0.1:${port}`
+}
+
+export function redisCommanderSsoToken(
+  credentials: RedisCommanderCredentials,
+  now = Date.now(),
+  tokenId = randomBytes(16).toString('base64url')
+): string {
+  const issuedAt = Math.floor(now / 1000)
+  const encode = (value: Record<string, string | number>) =>
+    Buffer.from(JSON.stringify(value)).toString('base64url')
+  const unsigned = [
+    encode({ alg: 'HS256', typ: 'JWT' }),
+    encode({
+      iss: REDIS_COMMANDER_SSO_ISSUER,
+      iat: issuedAt,
+      exp: issuedAt + REDIS_COMMANDER_SSO_TOKEN_TTL_SECONDS,
+      jti: tokenId
+    })
+  ].join('.')
+  const signature = createHmac('sha256', credentials.ssoSecret).update(unsigned).digest('base64url')
+  return `${unsigned}.${signature}`
+}
+
+export function redisCommanderAutoLoginUrl(
+  port: number,
+  credentials: RedisCommanderCredentials,
+  now?: number,
+  tokenId?: string
+): string {
+  return `${redisCommanderUrl(port)}/sso?access_token=${encodeURIComponent(
+    redisCommanderSsoToken(credentials, now, tokenId)
+  )}`
+}
+
+export function redisCommanderSsoEnvironment(
+  credentials: RedisCommanderCredentials
+): Record<string, string> {
+  return {
+    SSO_ENABLED: 'true',
+    SSO_JWT_SECRET: credentials.ssoSecret,
+    SSO_ISSUER: REDIS_COMMANDER_SSO_ISSUER
+  }
 }
 
 export function redisCommanderCommandOwned(
@@ -167,7 +221,9 @@ const validCredentials = (value: unknown): value is RedisCommanderCredentials =>
     !!item &&
     item.login === REDIS_COMMANDER_LOGIN &&
     typeof item.password === 'string' &&
-    item.password.length >= 32
+    item.password.length >= 32 &&
+    typeof item.ssoSecret === 'string' &&
+    item.ssoSecret.length >= 32
   )
 }
 
@@ -219,7 +275,7 @@ export class RedisCommanderRuntime {
   private readonly startPackage: NonNullable<RedisCommanderRuntimeOptions['starter']>
   private readonly readConfig: (redis: SoftInstalled) => Promise<RedisCommanderConnection>
   private readonly killProcesses: (pids: string[]) => Promise<void>
-  private openFlight?: Promise<RedisCommanderOpenResult>
+  private openFlight?: Promise<RedisCommanderOpened>
   private stoppingFlight?: Promise<string[]>
   private openGeneration = 0
 
@@ -245,10 +301,10 @@ export class RedisCommanderRuntime {
 
   private async defaultHealth(
     port: number,
-    credentials: RedisCommanderCredentials
+    _credentials: RedisCommanderCredentials
   ): Promise<boolean> {
     try {
-      const response = await axios.get(redisCommanderUrl(port, credentials), { timeout: 1200 })
+      const response = await axios.get(redisCommanderUrl(port), { timeout: 1200 })
       return response.status >= 200 && response.status < 400
     } catch {
       return false
@@ -265,20 +321,24 @@ export class RedisCommanderRuntime {
     return redisCommanderConfig(await readFile(configPath, 'utf8'))
   }
 
-  private async ensureCredentials(): Promise<RedisCommanderCredentials> {
+  private async ensureCredentials(): Promise<RedisCommanderCredentialsState> {
     if (existsSync(this.paths.credentials)) {
       try {
         const value = JSON.parse(await readFile(this.paths.credentials, 'utf8'))
-        if (validCredentials(value)) return value
+        if (validCredentials(value)) return { credentials: value, refreshed: false }
       } catch {}
     }
     const credentials = {
       login: REDIS_COMMANDER_LOGIN,
-      password: randomBytes(32).toString('hex')
+      password: randomBytes(32).toString('hex'),
+      ssoSecret: randomBytes(32).toString('hex')
     }
+    return { credentials, refreshed: true }
+  }
+
+  private async saveCredentials(credentials: RedisCommanderCredentials): Promise<void> {
     await writeFile(this.paths.credentials, JSON.stringify(credentials), { mode: 0o600 })
     await chmod(this.paths.credentials, 0o600).catch(() => {})
-    return credentials
   }
 
   private async defaultInstall(nodeBin: string, paths: RedisCommanderPaths): Promise<void> {
@@ -354,6 +414,7 @@ export class RedisCommanderRuntime {
       errFile: paths.startError,
       on,
       waitTime: 1500,
+      execEnv: redisCommanderSsoEnvironment(credentials),
       sensitive: true
     })
   }
@@ -394,11 +455,23 @@ export class RedisCommanderRuntime {
     return false
   }
 
-  private async waitForStopped(pids: string[]): Promise<void> {
+  private async waitForStopped(pids: string[]): Promise<boolean> {
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const active = await this.listProcesses().catch(() => [])
-      if (!pids.some((pid) => active.some((item) => `${item.PID}` === `${pid}`))) return
+      if (!pids.some((pid) => active.some((item) => `${item.PID}` === `${pid}`))) return true
       await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+    return false
+  }
+
+  private async stopPids(pids: string[], failureMessage: string): Promise<void> {
+    try {
+      await this.killProcesses(pids)
+    } catch {
+      throw new Error(failureMessage)
+    }
+    if (!(await this.waitForStopped(pids))) {
+      throw new Error(failureMessage)
     }
   }
 
@@ -413,7 +486,7 @@ export class RedisCommanderRuntime {
     redis: SoftInstalled,
     on: (...args: any[]) => void,
     generation: number
-  ): Promise<RedisCommanderOpenResult> {
+  ): Promise<RedisCommanderOpened> {
     try {
       const nodeBin = `${node?.bin ?? ''}`.trim()
       if (!nodeBin) {
@@ -423,7 +496,8 @@ export class RedisCommanderRuntime {
       const connection = await this.readConfig(redis)
       this.assertOpenActive(generation)
       await mkdirp(this.paths.root)
-      const credentials = await this.ensureCredentials()
+      const credentialsState = await this.ensureCredentials()
+      const credentials = credentialsState.credentials
       this.assertOpenActive(generation)
       const persistedPid = existsSync(this.paths.pid)
         ? (await readFile(this.paths.pid, 'utf8')).trim()
@@ -440,17 +514,15 @@ export class RedisCommanderRuntime {
         if (
           persistedPid &&
           persistedPort &&
+          !credentialsState.refreshed &&
           listening &&
           (await this.checkHealth(persistedPort, credentials))
         ) {
           this.assertOpenActive(generation)
-          return this.openResult(persistedPid, persistedPort, credentials, nodeBin)
+          return { pid: persistedPid, port: persistedPort, credentials, nodeBin }
         }
         if (pids.length > 0) {
-          try {
-            await this.killProcesses(pids)
-            await this.waitForStopped(pids)
-          } catch {}
+          await this.stopPids(pids, 'Redis Commander did not stop before restart')
         }
         await remove(this.paths.pid).catch(() => {})
         await remove(this.paths.port).catch(() => {})
@@ -469,6 +541,10 @@ export class RedisCommanderRuntime {
         persistedPort ? [persistedPort] : []
       )
       this.assertOpenActive(generation)
+      if (credentialsState.refreshed) {
+        await this.saveCredentials(credentials)
+        this.assertOpenActive(generation)
+      }
       const start = await this.startPackage(node, this.paths, connection, port, credentials, on)
       this.assertOpenActive(generation)
       if (!(await this.waitHealth(port, credentials))) {
@@ -483,7 +559,7 @@ export class RedisCommanderRuntime {
       }
       await writeFile(this.paths.port, `${port}`)
       this.assertOpenActive(generation)
-      return this.openResult(startedPid, port, credentials, nodeBin)
+      return { pid: startedPid, port, credentials, nodeBin }
     } catch (error) {
       if (!(error instanceof RedisCommanderOpenCanceledError)) {
         await this.stopOwned().catch(() => {})
@@ -492,19 +568,14 @@ export class RedisCommanderRuntime {
     }
   }
 
-  private openResult(
-    pid: string,
-    port: number,
-    credentials: RedisCommanderCredentials,
-    nodeBin: string
-  ): RedisCommanderOpenResult {
+  private openResult(opened: RedisCommanderOpened): RedisCommanderOpenResult {
     return {
-      url: redisCommanderUrl(port, credentials),
-      'APP-Service-Start-PID': pid,
+      url: redisCommanderAutoLoginUrl(opened.port, opened.credentials),
+      'APP-Service-Start-PID': opened.pid,
       'APP-Service-Start-Item': {
         typeFlag: 'redis',
         version: 'redis-commander',
-        bin: nodeBin,
+        bin: opened.nodeBin,
         path: this.paths.root
       } as SoftInstalled
     }
@@ -526,22 +597,20 @@ export class RedisCommanderRuntime {
         }
         return this.openFlight
       }
-      start().then(resolve).catch(reject)
+      start()
+        .then((opened) => resolve(this.openResult(opened)))
+        .catch(reject)
     })
   }
 
   private async stopOwned(): Promise<string[]> {
     const pid = existsSync(this.paths.pid) ? (await readFile(this.paths.pid, 'utf8')).trim() : ''
     const pids = pid ? await this.ownedPids(pid) : []
-    try {
-      if (pids.length > 0) {
-        await this.killProcesses(pids)
-        await this.waitForStopped(pids)
-      }
-    } finally {
-      await remove(this.paths.pid).catch(() => {})
-      await remove(this.paths.port).catch(() => {})
+    if (pids.length > 0) {
+      await this.stopPids(pids, 'Redis Commander did not stop')
     }
+    await remove(this.paths.pid).catch(() => {})
+    await remove(this.paths.port).catch(() => {})
     return pids
   }
 
