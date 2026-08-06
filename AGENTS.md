@@ -200,6 +200,18 @@ yarn postinstall                  # Install Electron app dependencies
 - Use Pinia for state management
 - Follow existing module patterns for new services
 
+## Module Boundaries and Operation Ownership
+
+Apply these rules to every new or changed module, renderer IPC flow, service lifecycle, background operation, download, installation, web panel, or external process. Before making such a change, read `.codex/skills/flyenv-module-boundaries/SKILL.md` and record the required operation contract in the implementation plan.
+
+- UI state belongs to the mounted Vue component only. It includes inputs, dialogs, selections, and display-only filters; it may reset when the page is destroyed.
+- Domain state belongs to Pinia or the established module store. It includes selected versions, installed service lists, and application settings.
+- Long-running renderer operations belong to a module-local singleton controller. This includes work that can outlive its initiating page, reports progress, starts or waits for an external process, downloads or installs software, opens a panel, or requires terminal cleanup.
+- Fork modules own child processes, PID/port state, and companion shutdown. Renderer state is never the source of truth for process liveness.
+- Entry pages bind controller state and commands; they do not own operation IPC, progress, notices, terminal errors, or listener cleanup. The state owner follows its lifetime, not the button that first triggers it.
+- A generic loading-state map cannot replace a controller. A controller owns the complete operation lifecycle: preconditions, request snapshot, IPC callbacks, notices, terminal result, re-entry guard, and cleanup.
+- Each long-running operation plan must record its owner, lifetime, intermediate events, terminal events, duplicate invocation behavior, service interaction, and lifecycle tests.
+
 ## Adding a New Module
 
 ### Step 1: Define Module Type

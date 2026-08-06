@@ -1,0 +1,4 @@
+interface:
+  display_name: 'FlyEnv Module Boundaries'
+  short_description: 'Keep module UI, operations, and processes separate'
+  default_prompt: 'Apply FlyEnv module boundary rules to this change.'
