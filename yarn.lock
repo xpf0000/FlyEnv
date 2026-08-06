@@ -4632,7 +4632,6 @@ __metadata:
     cfonts: ^3.3.0
     chalk: ^5.4.1
     chardet: ^2.1.0
-    compare-versions: ^6.1.1
     compressing: ^1.10.5
     concurrently: ^9.2.0
     cross-env: ^7.0.3
@@ -6088,13 +6087,6 @@ __metadata:
   version: 0.1.2
   resolution: "compare-version@npm:0.1.2"
   checksum: f38b853cf0d244c0af5f444409abde3d2198cd97312efa1dbc4ab41b520009327c2a63db59bbaf2d69288eff6167ef22be9788dc5476157d073ecdff1a8eeb2d
-  languageName: node
-  linkType: hard
-
-"compare-versions@npm:^6.1.1":
-  version: 6.1.1
-  resolution: "compare-versions@npm:6.1.1"
-  checksum: 415205c7627f9e4f358f571266422980c9fe2d99086be0c9a48008ef7c771f32b0fbe8e97a441ffedc3910872f917a0675fe0fe3c3b6d331cda6d8690be06338
   languageName: node
   linkType: hard
 
