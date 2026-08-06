@@ -5,6 +5,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
 import type { AppHost } from '@shared/app'
+import { compareVersions } from '@shared/compare-versions'
 import Helper from './Helper'
 import { format } from 'date-fns'
 import { hostname, userInfo } from 'os'
@@ -450,31 +451,4 @@ export async function isNTFS(fileOrDirPath: string) {
   }
 }
 
-export const versionCompare = (a: string, b: string) => {
-  if (a === b) {
-    return 0
-  }
-  const aArr = a.split('.')
-  const bArr = b.split('.')
-  if (!aArr.length || !bArr.length) {
-    return 0
-  }
-  const max = Math.max(aArr.length, bArr.length)
-  for (let i = 0; i < max; i++) {
-    let aNum = 0
-    let bNum = 0
-    try {
-      aNum = parseInt(aArr?.shift?.() ?? '0')
-      aNum = isNaN(aNum) ? 0 : aNum
-      bNum = parseInt(bArr?.shift?.() ?? '0')
-      bNum = isNaN(bNum) ? 0 : bNum
-    } catch {}
-    if (aNum > bNum) {
-      return 1
-    }
-    if (aNum < bNum) {
-      return -1
-    }
-  }
-  return 0
-}
+export const versionCompare = compareVersions

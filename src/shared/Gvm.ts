@@ -77,11 +77,16 @@ export function mergeGvmVersionData(
 }
 
 export function sortGvmVersionsNewestFirst<T extends GvmVersionItem>(versions: readonly T[]): T[] {
-  return [...versions].sort(
-    (a, b) =>
-      compareVersions(b.version, a.version) ||
-      b.name.localeCompare(a.name, undefined, { numeric: true })
-  )
+  return [...versions].sort((a, b) => {
+    let versionResult = 0
+    try {
+      versionResult = compareVersions(b.version, a.version)
+    } catch {
+      // GVM also exposes legacy identifiers such as release.r60.3 and
+      // weekly.2012-03-13, which are intentionally outside semver.
+    }
+    return versionResult || b.name.localeCompare(a.name, undefined, { numeric: true })
+  })
 }
 
 export function quotePosixShell(value: string): string {

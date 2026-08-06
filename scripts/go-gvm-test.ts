@@ -84,6 +84,18 @@ assert.deepEqual(
   unsortedVersions.map((item) => item.name),
   ['go1.22.9', 'go1.24.5', 'go1.23.10']
 )
+assert.doesNotThrow(() =>
+  sortGvmVersionsNewestFirst([
+    { name: 'go1.24.5', version: '1.24.5', installed: false, isDefault: false },
+    { name: 'release.r60.3', version: 'release.r60.3', installed: false, isDefault: false },
+    {
+      name: 'weekly.2012-03-13',
+      version: 'weekly.2012-03-13',
+      installed: false,
+      isDefault: false
+    }
+  ])
+)
 
 assert.equal(isGvmVersionIdentifier('go1.24.5'), true)
 assert.equal(isGvmVersionIdentifier('release.r60.3'), true)

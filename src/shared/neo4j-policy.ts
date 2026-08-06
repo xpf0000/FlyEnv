@@ -1,14 +1,6 @@
-export const NEO4J_MIN_VERSION = '5.23.0'
+import { compareVersions } from './compare-versions'
 
-function compareVersions(a: string, b: string) {
-  const left = a.split('.').map(Number)
-  const right = b.split('.').map(Number)
-  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
-    const diff = (left[i] ?? 0) - (right[i] ?? 0)
-    if (diff !== 0) return diff
-  }
-  return 0
-}
+export const NEO4J_MIN_VERSION = '5.23.0'
 
 export type Neo4jJavaPolicy = {
   supportedMajor: number[]
