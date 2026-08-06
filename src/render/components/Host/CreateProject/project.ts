@@ -5,6 +5,7 @@ export type ProjectTypes = 'PHP' | 'NodeJS' | 'Python' | 'Go'
 
 export type ProjectPHPForm = {
   dir: string
+  name: string
   php: string
   composer: string
   version: string | undefined
@@ -54,6 +55,7 @@ export const ProjectSetup = reactive<{
   form: {
     PHP: {
       dir: '',
+      name: 'flyenv-created-project',
       php: '',
       composer: '',
       version: undefined,
@@ -88,6 +90,7 @@ export const ProjectSetup = reactive<{
   },
   phpFormInit() {
     this.form.PHP.dir = ''
+    this.form.PHP.name = 'flyenv-created-project'
     this.form.PHP.php = ''
     this.form.PHP.composer = ''
     this.form.PHP.version = undefined
