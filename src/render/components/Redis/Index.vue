@@ -6,7 +6,30 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" type-flag="redis" title="Redis"></Service>
+      <Service v-if="tab === 0" type-flag="redis" title="Redis">
+        <template v-if="isRunning" #tool-left>
+          <el-button
+            style="color: #01cc74"
+            class="button"
+            link
+            :disabled="redisCommanderOpening || !redisCommanderNodeAvailable"
+            @click.stop="redisCommanderPanel.open()"
+          >
+            <el-icon
+              v-if="redisCommanderOpening"
+              class="is-loading"
+              style="width: 20px; height: 20px; margin-left: 10px"
+            >
+              <Loading />
+            </el-icon>
+            <yb-icon
+              v-else
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')"
+            ></yb-icon>
+          </el-button>
+        </template>
+      </Service>
       <Manager
         v-else-if="tab === 1"
         type-flag="redis"
@@ -26,8 +49,18 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import { computed } from 'vue'
+  import { Loading } from '@element-plus/icons-vue'
+  import { BrewStore } from '@/store/brew'
+  import redisCommanderPanel from './RedisCommanderPanel'
 
   const { tab, checkVersion } = AppModuleSetup('redis')
+  const brewStore = BrewStore()
+  const isRunning = computed(() => {
+    return brewStore.module('redis').installed.some((item) => item.run)
+  })
+  const redisCommanderOpening = redisCommanderPanel.opening
+  const redisCommanderNodeAvailable = redisCommanderPanel.nodeAvailable
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),

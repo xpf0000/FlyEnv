@@ -97,6 +97,12 @@ const controllers = [
     controller: 'PostgreSql/PgAdminPanel.ts',
     instance: 'pgAdminPanel',
     className: 'PgAdminPanel'
+  },
+  {
+    page: 'Redis/Index.vue',
+    controller: 'Redis/RedisCommanderPanel.ts',
+    instance: 'redisCommanderPanel',
+    className: 'RedisCommanderPanel'
   }
 ]
 
@@ -114,5 +120,19 @@ for (const registration of controllers) {
   assert.match(controllerSource, /readonly opening = ref\(false\)/)
   assert.match(controllerSource, /export default new [A-Za-z0-9_]+\(\)/)
 }
+
+const redisPage = readFileSync(join(componentsDir, 'Redis/Index.vue'), 'utf-8')
+const redisPanel = readFileSync(
+  join(componentsDir, 'Redis/RedisCommanderPanel.ts'),
+  'utf-8'
+)
+assert.match(redisPage, /<template v-if="isRunning" #tool-left>/)
+assert.match(redisPage, /:disabled="redisCommanderOpening \|\| !redisCommanderNodeAvailable"/)
+assert.match(redisPanel, /IPC\.sendSensitive\('app-fork:redis', 'openRedisCommander'/)
+assert.match(redisPanel, /isWebPanelInstallNotice/)
+assert.match(redisPanel, /shell\.openExternal\(res\.data\.url\)/)
+assert.doesNotMatch(redisPage, /from\s+['"]@\/util\/IPC['"]/)
+assert.doesNotMatch(redisPage, /requirepass|RedisDir|readFile|redisCommanderConfig/)
+assert.doesNotMatch(redisPanel, /requirepass|RedisDir|readFile|redisCommanderConfig/)
 
 console.log('renderer operation boundary tests passed')
