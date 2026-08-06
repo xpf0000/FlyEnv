@@ -45,11 +45,10 @@ assert.equal(
   'http://flyenv:secret@127.0.0.1:8082'
 )
 assert.deepEqual(
-  redisCommanderArgs(
-    { host: '127.0.0.1', port: 6380, password: 'redis-secret' },
-    8082,
-    { login: 'flyenv', password: 'panel-secret' }
-  ),
+  redisCommanderArgs({ host: '127.0.0.1', port: 6380, password: 'redis-secret' }, 8082, {
+    login: 'flyenv',
+    password: 'panel-secret'
+  }),
   [
     '--address',
     '127.0.0.1',
@@ -126,9 +125,7 @@ const runtime = new RedisCommanderRuntime(root, {
     return { 'APP-Service-Start-PID': '1234' }
   },
   processList: async () =>
-    running
-      ? [{ PID: '1234', PPID: '', COMMAND: `node ${runtimePaths.entry}`, USER: '' }]
-      : [],
+    running ? [{ PID: '1234', PPID: '', COMMAND: `node ${runtimePaths.entry}`, USER: '' }] : [],
   listeningPids: async () => (running ? ['1234'] : []),
   health: async () => running,
   portFinder: async () => 8082,
@@ -162,10 +159,7 @@ await rm(root, { recursive: true, force: true })
 const projectRoot = join(import.meta.dirname, '..')
 const redisModule = readFileSync(join(projectRoot, 'src/fork/module/Redis/index.ts'), 'utf8')
 assert.match(redisModule, /RedisCommanderRuntime/)
-assert.match(
-  redisModule,
-  /openRedisCommander\(\s*node: SoftInstalled,\s*redis: SoftInstalled\s*\)/
-)
+assert.match(redisModule, /openRedisCommander\(\s*node: SoftInstalled,\s*redis: SoftInstalled\s*\)/)
 assert.match(redisModule, /this\.redisCommanderRuntime\.open\(node, redis, on\)/)
 assert.match(redisModule, /const redisCommanderPids = await this\.redisCommanderRuntime\.stop\(\)/)
 assert.match(

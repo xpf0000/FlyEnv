@@ -70,7 +70,9 @@ export function redisCommanderPaths(baseDir: string, windows: boolean): RedisCom
   const slash = (value: string) => (windows ? value.replaceAll('/', '\\') : value)
   return {
     root: slash(root),
-    entry: slash(pathJoin(root, 'node_modules', REDIS_COMMANDER_PACKAGE, 'bin', 'redis-commander.js')),
+    entry: slash(
+      pathJoin(root, 'node_modules', REDIS_COMMANDER_PACKAGE, 'bin', 'redis-commander.js')
+    ),
     pid: slash(pathJoin(root, 'redis-commander.pid')),
     port: slash(pathJoin(root, 'redis-commander.port')),
     credentials: slash(pathJoin(root, 'redis-commander.credentials.json')),
@@ -375,10 +377,7 @@ export class RedisCommanderRuntime {
     return [...pids]
   }
 
-  private async waitHealth(
-    port: number,
-    credentials: RedisCommanderCredentials
-  ): Promise<boolean> {
+  private async waitHealth(port: number, credentials: RedisCommanderCredentials): Promise<boolean> {
     for (let attempt = 0; attempt < 40; attempt += 1) {
       if (await this.checkHealth(port, credentials)) return true
       await new Promise((resolve) => setTimeout(resolve, 250))
@@ -400,7 +399,8 @@ export class RedisCommanderRuntime {
     on: (...args: any[]) => void
   ): Promise<RedisCommanderOpenResult> {
     const nodeBin = `${node?.bin ?? ''}`.trim()
-    if (!nodeBin) throw new Error('A Node.js version must be selected before opening Redis Commander')
+    if (!nodeBin)
+      throw new Error('A Node.js version must be selected before opening Redis Commander')
 
     const connection = await this.readConfig(redis)
     await mkdirp(this.paths.root)

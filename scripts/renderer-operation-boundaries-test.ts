@@ -122,10 +122,7 @@ for (const registration of controllers) {
 }
 
 const redisPage = readFileSync(join(componentsDir, 'Redis/Index.vue'), 'utf-8')
-const redisPanel = readFileSync(
-  join(componentsDir, 'Redis/RedisCommanderPanel.ts'),
-  'utf-8'
-)
+const redisPanel = readFileSync(join(componentsDir, 'Redis/RedisCommanderPanel.ts'), 'utf-8')
 assert.match(redisPage, /<template v-if="isRunning" #tool-left>/)
 assert.match(redisPage, /:disabled="redisCommanderOpening \|\| !redisCommanderNodeAvailable"/)
 assert.match(redisPanel, /IPC\.sendSensitive\('app-fork:redis', 'openRedisCommander'/)
