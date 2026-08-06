@@ -1225,6 +1225,16 @@ const postgreSqlRendererSource = readFileSync(
   join(process.cwd(), 'src', 'render', 'components', 'PostgreSql', 'Index.vue'),
   'utf-8'
 )
+const pgAdminPanelFile = join(
+  process.cwd(),
+  'src',
+  'render',
+  'components',
+  'PostgreSql',
+  'PgAdminPanel.ts'
+)
+assert.equal(existsSync(pgAdminPanelFile), true)
+const pgAdminPanelSource = readFileSync(pgAdminPanelFile, 'utf-8')
 const postgreSqlSetupSource = readFileSync(
   join(process.cwd(), 'src', 'render', 'components', 'PostgreSql', 'setup.ts'),
   'utf-8'
@@ -1246,8 +1256,11 @@ assert.doesNotMatch(
 )
 
 assert.match(postgreSqlRendererSource, /v-if="isRunning"/)
-assert.match(postgreSqlRendererSource, /:disabled="pgAdminOpening \|\| !pgAdminDataDirReady"/)
-assert.match(postgreSqlRendererSource, /@click\.stop="openPGAdmin"/)
+assert.match(postgreSqlRendererSource, /:disabled="pgAdminOpening"/)
+assert.match(postgreSqlRendererSource, /@click\.stop="pgAdminPanel\.open\(\)"/)
+assert.match(postgreSqlRendererSource, /import pgAdminPanel from '\.\/PgAdminPanel'/)
+assert.doesNotMatch(postgreSqlRendererSource, /from '@\/util\/IPC'/)
+assert.doesNotMatch(postgreSqlRendererSource, /WebPanelOpening/)
 assert.doesNotMatch(
   postgreSqlRendererSource,
   /PgAdminSetup|pgAdminSetup|PgAdminCredentials|pgAdminStatus|preparePGAdmin|sendSensitive|credentials/
@@ -1265,14 +1278,9 @@ assert.match(
 )
 assert.match(postgreSqlRendererSource, /watch\(runningVersion, updateRunningDataDir/)
 assert.match(postgreSqlRendererSource, /const refreshRunningDataDir = \(\) => updateRunningDataDir/)
-assert.match(postgreSqlRendererSource, /const pgAdminDataDirReady = ref\(false\)/)
 assert.match(
   postgreSqlRendererSource,
-  /PostgreSqlSetup\.init\(\)\s*\.then\(\(\) => \{[\s\S]*?refreshRunningDataDir\(\)[\s\S]*?pgAdminDataDirReady\.value = true/s
-)
-assert.match(
-  postgreSqlRendererSource,
-  /!pgAdminDataDirReady\.value\s*\|\|\s*!selectedPythonAvailable\(\)/
+  /PostgreSqlSetup\.init\(\)\s*\.then\(\(\) => \{[\s\S]*?refreshRunningDataDir\(\)/s
 )
 assert.match(
   postgreSqlRendererSource,
@@ -1282,25 +1290,14 @@ assert.match(
   postgreSqlRendererSource,
   /set\(v: string\) \{\s*if \(isRunning\.value \|\| !currentVersion\?\.value\?\.bin\) \{/s
 )
-assert.match(postgreSqlRendererSource, /MessageError\(I18nT\('base\.needSelectVersion'\)\)/)
-assert.match(
-  postgreSqlRendererSource,
-  /const pgAdminVersion = JSON\.parse\(JSON\.stringify\(runningVersion\.value\)\)/
-)
-assert.match(
-  postgreSqlRendererSource,
-  /const pgAdminPython = JSON\.parse\(JSON\.stringify\(selectedPython\)\)/
-)
-assert.match(
-  postgreSqlRendererSource,
-  /IPC\.send\(\s*'app-fork:postgresql',\s*'openPGAdmin',\s*pgAdminVersion,\s*runningDataDir\.value,\s*pgAdminPython\s*\)/s
-)
-assert.match(postgreSqlRendererSource, /if \(res\?\.code === 200\) \{[\s\S]*?return\s*\}/s)
-assert.match(postgreSqlRendererSource, /IPC\.off\(key\)/)
-assert.match(postgreSqlRendererSource, /webPanelOpeningState\('pgadmin4'\)/)
-assert.match(postgreSqlRendererSource, /pgAdminOpeningState\.finish\(\)/)
-assert.match(postgreSqlRendererSource, /res\?\.code === 0 && res\.data\?\.url/)
-assert.match(postgreSqlRendererSource, /shell\.openExternal\(res\.data\.url\)/)
+assert.match(postgreSqlRendererSource, /pgAdminPanel\.open\(\)/)
+assert.match(pgAdminPanelSource, /export class PgAdminPanel/)
+assert.match(pgAdminPanelSource, /readonly opening = ref\(false\)/)
+assert.match(pgAdminPanelSource, /BrewStore\(\)/)
+assert.match(pgAdminPanelSource, /PostgreSqlSetup\.init\(\)/)
+assert.match(pgAdminPanelSource, /IPC\.send\(\s*'app-fork:postgresql',\s*'openPGAdmin'/s)
+assert.match(pgAdminPanelSource, /isWebPanelInstallNotice/)
+assert.match(pgAdminPanelSource, /shell\.openExternal\(res\.data\.url\)/)
 assert.doesNotMatch(postgreSqlRendererSource, /localForage|localStorage|sessionStorage/)
 
 assert.match(postgreSqlSetupSource, /let initPromise: Promise<void> \| undefined/)

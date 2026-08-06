@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
   CH_UI_PORT,
@@ -12,6 +12,9 @@ import {
 const root = join(import.meta.dirname, '..')
 const forkSource = readFileSync(join(root, 'src/fork/module/ClickHouse/index.ts'), 'utf-8')
 const pageSource = readFileSync(join(root, 'src/render/components/ClickHouse/Index.vue'), 'utf-8')
+const chUiPanelFile = join(root, 'src/render/components/ClickHouse/ChUiPanel.ts')
+assert.equal(existsSync(chUiPanelFile), true)
+const chUiPanelSource = readFileSync(chUiPanelFile, 'utf-8')
 
 assert.equal(CH_UI_PORT, 3488)
 assert.equal(chUIAssetName('darwin', 'arm64'), 'ch-ui-darwin-arm64')
@@ -77,9 +80,13 @@ assert.match(pageSource, /<Loading\s*\/>/)
 assert.match(pageSource, /<yb-icon\s+v-else/)
 assert.match(pageSource, /:disabled="chUIOpening"/)
 assert.doesNotMatch(pageSource, /:loading="chUIOpening"/)
-assert.match(pageSource, /IPC\.send\('app-fork:clickhouse', 'openCHUI'\)/)
-assert.match(pageSource, /webPanelOpeningState\('ch-ui'\)/)
-assert.match(pageSource, /chUIOpeningState\.finish\(\)/)
-assert.match(pageSource, /shell\.openExternal\(res\.data\.url\)/)
+assert.match(pageSource, /import chUiPanel from '\.\/ChUiPanel'/)
+assert.match(pageSource, /chUiPanel\.open\(\)/)
+assert.doesNotMatch(pageSource, /from '@\/util\/IPC'/)
+assert.doesNotMatch(pageSource, /WebPanelOpening/)
+assert.match(chUiPanelSource, /export class ChUiPanel/)
+assert.match(chUiPanelSource, /readonly opening = ref\(false\)/)
+assert.match(chUiPanelSource, /IPC\.send\('app-fork:clickhouse', 'openCHUI'\)/)
+assert.match(chUiPanelSource, /shell\.openExternal\(res\.data\.url\)/)
 
 console.log('clickhouse CH-UI regression tests passed')

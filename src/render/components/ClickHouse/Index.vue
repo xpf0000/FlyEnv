@@ -13,7 +13,7 @@
             class="button"
             link
             :disabled="chUIOpening"
-            @click.stop="openCHUI"
+            @click.stop="chUiPanel.open()"
           >
             <el-icon
               v-if="chUIOpening"
@@ -54,18 +54,14 @@
   import { computed } from 'vue'
   import { Loading } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
-  import { MessageError } from '@/util/Element'
-  import { shell } from '@/util/NodeFn'
-  import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
-  import { webPanelOpeningState } from '@/util/WebPanelOpening'
+  import chUiPanel from './ChUiPanel'
 
   const brewStore = BrewStore()
   const isRunning = computed(() => {
     return brewStore.module('clickhouse').installed.some((item) => item.run)
   })
-  const chUIOpeningState = webPanelOpeningState('ch-ui')
-  const chUIOpening = chUIOpeningState.opening
+  const chUIOpening = chUiPanel.opening
   const { tab, checkVersion } = AppModuleSetup('clickhouse')
   const tabs = [
     I18nT('base.service'),
@@ -74,23 +70,5 @@
     I18nT('base.log')
   ]
 
-  const openCHUI = () => {
-    if (chUIOpening.value) {
-      return
-    }
-    if (!chUIOpeningState.start()) return
-    IPC.send('app-fork:clickhouse', 'openCHUI').then((key: string, res: any) => {
-      if (res?.code === 200) {
-        return
-      }
-      IPC.off(key)
-      chUIOpeningState.finish()
-      if (res?.code === 0 && res.data?.url) {
-        shell.openExternal(res.data.url).catch()
-        return
-      }
-      MessageError(res?.msg ?? 'CH-UI failed to start')
-    })
-  }
   checkVersion()
 </script>

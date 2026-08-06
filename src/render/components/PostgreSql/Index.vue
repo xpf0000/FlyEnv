@@ -13,11 +13,11 @@
             style="color: #01cc74"
             class="button"
             link
-            :disabled="pgAdminOpening || !pgAdminDataDirReady"
-            @click.stop="openPGAdmin"
+            :disabled="pgAdminOpening"
+            @click.stop="pgAdminPanel.open()"
           >
             <el-icon
-              v-if="pgAdminOpening || !pgAdminDataDirReady"
+              v-if="pgAdminOpening"
               class="is-loading"
               style="width: 20px; height: 20px; margin-left: 10px"
             >
@@ -72,11 +72,7 @@
   import { chooseFolder } from '@/util/File'
   import { Edit, Loading } from '@element-plus/icons-vue'
   import { shell } from '@/util/NodeFn'
-  import IPC from '@/util/IPC'
-  import { MessageError } from '@/util/Element'
-  import { ElMessage } from 'element-plus'
-  import { isWebPanelInstallNotice } from '@shared/WebPanelInstallNotice'
-  import { webPanelOpeningState } from '@/util/WebPanelOpening'
+  import pgAdminPanel from './PgAdminPanel'
 
   const { tab, checkVersion } = AppModuleSetup('nginx')
   const tabs = [
@@ -109,14 +105,10 @@
   }
   watch(runningVersion, updateRunningDataDir, { immediate: true })
   const refreshRunningDataDir = () => updateRunningDataDir(runningVersion.value)
-  const pgAdminOpeningState = webPanelOpeningState('pgadmin4')
-  const pgAdminOpening = pgAdminOpeningState.opening
-  const pgAdminDataDirReady = ref(false)
-  let installNotice: { close: () => void } | undefined
+  const pgAdminOpening = pgAdminPanel.opening
   PostgreSqlSetup.init()
     .then(() => {
       refreshRunningDataDir()
-      pgAdminDataDirReady.value = true
     })
     .catch()
 
@@ -150,60 +142,5 @@
         DATA_DIR.value = path
       })
       .catch()
-  }
-
-  const selectedPythonAvailable = () => {
-    if (brewStore.currentVersion('python')?.bin) {
-      return true
-    }
-    MessageError(I18nT('base.needSelectVersion'))
-    return false
-  }
-
-  const openPGAdmin = () => {
-    if (
-      pgAdminOpening.value ||
-      !pgAdminDataDirReady.value ||
-      !selectedPythonAvailable() ||
-      !runningVersion.value
-    ) {
-      return
-    }
-    const selectedPython = brewStore.currentVersion('python')
-    if (!selectedPython) {
-      return
-    }
-    if (!pgAdminOpeningState.start()) return
-    const pgAdminVersion = JSON.parse(JSON.stringify(runningVersion.value))
-    const pgAdminPython = JSON.parse(JSON.stringify(selectedPython))
-    IPC.send(
-      'app-fork:postgresql',
-      'openPGAdmin',
-      pgAdminVersion,
-      runningDataDir.value,
-      pgAdminPython
-    ).then((key: string, res: any) => {
-      if (res?.code === 200) {
-        if (isWebPanelInstallNotice(res.msg)) {
-          installNotice?.close()
-          installNotice = ElMessage({
-            message: I18nT('base.webPanelFirstInstall', { service: res.msg.service }),
-            type: 'info',
-            duration: 0,
-            showClose: true
-          })
-        }
-        return
-      }
-      installNotice?.close()
-      installNotice = undefined
-      IPC.off(key)
-      pgAdminOpeningState.finish()
-      if (res?.code === 0 && res.data?.url) {
-        shell.openExternal(res.data.url).catch()
-        return
-      }
-      MessageError(res?.msg ?? 'pgAdmin 4 failed to start')
-    })
   }
 </script>
