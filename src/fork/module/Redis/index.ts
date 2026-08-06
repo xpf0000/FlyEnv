@@ -28,11 +28,21 @@ import TaskQueue from '../../TaskQueue'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 import { StopProcessListSearch } from '@shared/StopProcessList'
+import { RedisCommanderRuntime, type RedisCommanderOpenResult } from './RedisCommander'
 
 class Redis extends Base {
+  private _redisCommanderRuntime?: RedisCommanderRuntime
+
   constructor() {
     super()
     this.type = 'redis'
+  }
+
+  private get redisCommanderRuntime() {
+    if (!this._redisCommanderRuntime) {
+      this._redisCommanderRuntime = new RedisCommanderRuntime(global.Server.BaseDir!)
+    }
+    return this._redisCommanderRuntime
   }
 
   init() {
@@ -48,7 +58,21 @@ class Redis extends Base {
   getLogFiles(version?: SoftInstalled) {
     const v = version?.version?.split('.')?.[0] ?? ''
     if (!v) return []
-    return [{ name: 'log', path: join(global.Server.RedisDir!, `redis-${v}.log`) }]
+    const redisCommander = this.redisCommanderRuntime.paths
+    return [
+      { name: 'log', path: join(global.Server.RedisDir!, `redis-${v}.log`) },
+      { name: 'redis-commander-start-out', path: redisCommander.startOut },
+      { name: 'redis-commander-start-error', path: redisCommander.startError }
+    ]
+  }
+
+  openRedisCommander(
+    node: SoftInstalled,
+    redis: SoftInstalled
+  ): ForkPromise<RedisCommanderOpenResult> {
+    return new ForkPromise((resolve, reject, on) => {
+      this.redisCommanderRuntime.open(node, redis, on).then(resolve).catch(reject)
+    })
   }
 
   initConf(version: SoftInstalled) {
@@ -95,10 +119,23 @@ class Redis extends Base {
   }
 
   _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': string[] }> {
-    if (!isWindows()) {
-      return super._stopServer(version) as any
-    }
     return new ForkPromise(async (resolve, reject, on) => {
+      const redisCommanderPids = await this.redisCommanderRuntime.stop().catch((error) => {
+        console.error('stop Redis Commander error: ', error)
+        return [] as string[]
+      })
+      const mergePids = (result: { 'APP-Service-Stop-PID'?: Array<string | number> }) => {
+        result['APP-Service-Stop-PID'] = Array.from(
+          new Set([...(result['APP-Service-Stop-PID'] ?? []), ...redisCommanderPids])
+        )
+        resolve(result as { 'APP-Service-Stop-PID': string[] })
+      }
+
+      if (!isWindows()) {
+        super._stopServer(version).on(on).then(mergePids).catch(reject)
+        return
+      }
+
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
@@ -119,7 +156,7 @@ class Redis extends Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
       })
-      resolve({
+      mergePids({
         'APP-Service-Stop-PID': arr
       })
     })

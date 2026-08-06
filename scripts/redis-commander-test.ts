@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -158,5 +158,19 @@ assert.deepEqual(kills, ['1234'])
 assert.equal(existsSync(runtimePaths.pid), false)
 assert.equal(existsSync(runtimePaths.port), false)
 await rm(root, { recursive: true, force: true })
+
+const projectRoot = join(import.meta.dirname, '..')
+const redisModule = readFileSync(join(projectRoot, 'src/fork/module/Redis/index.ts'), 'utf8')
+assert.match(redisModule, /RedisCommanderRuntime/)
+assert.match(
+  redisModule,
+  /openRedisCommander\(\s*node: SoftInstalled,\s*redis: SoftInstalled\s*\)/
+)
+assert.match(redisModule, /this\.redisCommanderRuntime\.open\(node, redis, on\)/)
+assert.match(redisModule, /const redisCommanderPids = await this\.redisCommanderRuntime\.stop\(\)/)
+assert.match(
+  redisModule,
+  /\[\.\.\.\(result\['APP-Service-Stop-PID'\] \?\? \[\]\), \.\.\.redisCommanderPids\]/
+)
 
 console.log('Redis Commander contract tests passed')
