@@ -14,6 +14,8 @@ import { syncStaticInstalledFlags } from './syncStaticInstalledFlags'
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
+const FETCH_INSTALLED_TIMEOUT_MS = 60_000
+
 export class Module {
   typeFlag: AllAppModule = 'dns'
   isService: boolean = true
@@ -72,6 +74,19 @@ export class Module {
   }
 
   private _fetchInstalledResolves: CallbackFn[] = []
+  private _fetchInstalledTimer?: ReturnType<typeof setTimeout>
+
+  private _settleFetchInstalled(resolve: CallbackFn, fetched: boolean = true) {
+    if (this._fetchInstalledTimer) {
+      clearTimeout(this._fetchInstalledTimer)
+      this._fetchInstalledTimer = undefined
+    }
+    this.installedFetched = fetched
+    this.fetchInstalleding = false
+    this._fetchInstalledResolves.forEach((f) => f(true))
+    this._fetchInstalledResolves.splice(0)
+    resolve(true)
+  }
 
   resetCurrentVersion(autoSave: boolean = false) {
     if (this.typeFlag !== 'php' && this.installed.length > 0) {
@@ -170,21 +185,37 @@ export class Module {
       console.trace('fetchInstalled run: ', this.typeFlag)
       this.fetchInstalleding = true
       const setup = JSON.parse(JSON.stringify(appStore.config.setup))
-      IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup).then(
-        async (key: string, res: any) => {
-          IPC.off(key)
+      const request = IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup)
+      let settled = false
+      this._fetchInstalledTimer = setTimeout(() => {
+        if (settled) return
+        settled = true
+        IPC.off(request.key)
+        console.error(
+          `fetchInstalled timed out after ${FETCH_INSTALLED_TIMEOUT_MS}ms:`,
+          this.typeFlag
+        )
+        this._settleFetchInstalled(resolve, false)
+      }, FETCH_INSTALLED_TIMEOUT_MS)
+      request.then(async (key: string, res: any) => {
+        if (settled) return
+        IPC.off(key)
+        let fetched = false
+        try {
           const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
           if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
             await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
-          } else {
-            this.installedFetched = true
-            this.fetchInstalleding = false
+            fetched = true
           }
-          this._fetchInstalledResolves.forEach((f) => f(true))
-          this._fetchInstalledResolves.splice(0)
-          resolve(true)
+        } catch (error) {
+          console.error('fetchInstalled response error: ', error)
+        } finally {
+          if (!settled) {
+            settled = true
+            this._settleFetchInstalled(resolve, fetched)
+          }
         }
-      )
+      })
     })
   }
 

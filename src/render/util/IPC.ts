@@ -43,6 +43,7 @@ class IPC {
     }
     window.FlyEnvNodeAPI.ipcSendToMain(command, key, ...args)
     return {
+      key,
       then: (callback: IPCCallback) => {
         this.listens[key] = callback
       }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { basename, join, relative } from 'node:path'
+import { basename, join, relative, sep } from 'node:path'
 import type { SoftInstalled } from '../src/shared/app'
 import { redisCommanderRequest } from '../src/render/components/Redis/RedisCommanderRequest'
 
@@ -32,7 +32,7 @@ const legacyDirectIpcIndexPages = [
 const actualDirectIpcIndexPages = walk(componentsDir)
   .filter((path) => basename(path) === 'Index.vue')
   .filter((path) => /from\s+['"]@\/util\/IPC['"]/.test(readFileSync(path, 'utf-8')))
-  .map((path) => relative(componentsDir, path))
+  .map((path) => relative(componentsDir, path).split(sep).join('/'))
   .sort()
 
 assert.deepEqual(actualDirectIpcIndexPages, legacyDirectIpcIndexPages)

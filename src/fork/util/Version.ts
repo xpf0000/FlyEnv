@@ -16,6 +16,8 @@ import { userInfo } from 'node:os'
 import { execSync } from 'node:child_process'
 import { withBinVersionCache } from './BinVersionCache'
 
+const COMMAND_LOOKUP_TIMEOUT_MS = 60_000
+
 export function versionFixed(version?: string | null) {
   return (
     version
@@ -100,7 +102,8 @@ const versionBinVersionRaw = (
   bin: string,
   command: string,
   reg: RegExp,
-  findInError?: boolean
+  findInError?: boolean,
+  timeoutMs?: number
 ): Promise<VersionResult> => {
   return new Promise(async (resolve) => {
     const outputFromExecError = (err: any) => {
@@ -137,7 +140,8 @@ const versionBinVersionRaw = (
       process.chdir(cwd)
       const res = await execPromiseWithEnv(command, {
         cwd,
-        shell: undefined
+        shell: undefined,
+        timeout: timeoutMs
       })
       console.log('versionBinVersion: ', command, reg, bin, res)
       handleThen(res)
@@ -160,11 +164,12 @@ export const versionBinVersion = (
   bin: string,
   command: string,
   reg: RegExp,
-  findInError?: boolean
+  findInError?: boolean,
+  timeoutMs?: number
 ) =>
   withBinVersionCache(
     bin,
-    () => versionBinVersionRaw(bin, command, reg, findInError),
+    () => versionBinVersionRaw(bin, command, reg, findInError, timeoutMs),
     isValidVersionResult
   )
 
@@ -342,7 +347,10 @@ export const versionLocalFetch = async (
     searchDepth1Dir = [...customDirs]
     searchDepth2Dir = [global.Server.AppDir!]
     try {
-      const res = await execPromiseWithEnv(`where.exe ${binName}`)
+      const res = await execPromiseWithEnv(`where.exe ${binName}`, {
+        timeout: COMMAND_LOOKUP_TIMEOUT_MS,
+        windowsHide: true
+      })
       const bins =
         res?.stdout
           ?.split('\n')
