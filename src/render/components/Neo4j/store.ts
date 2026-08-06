@@ -70,11 +70,8 @@ export const Neo4jStore = defineStore('neo4j', {
     },
 
     getBinding(bin: string | undefined | null): Neo4jJavaBinding | undefined {
-      this.ensureHydrated()
-      // Config can be initialized after tray/module bootstrap. Merge it lazily
-      // so an early lookup never permanently hides persisted bindings.
-      const saved = copyBindings(AppStore().config.setup?.neo4jJavaBindings)
-      Object.assign(this.javaByBin, saved)
+      // This method is called while rendering each service-table row. Keep it
+      // strictly read-only; hydration belongs to setup/actions, never render.
       return this.javaByBin[normalizeNeo4jBin(bin)]
     },
 
@@ -155,6 +152,7 @@ export const Neo4jStore = defineStore('neo4j', {
 
     /** Parameters appended to the existing ModuleInstalledItem startService IPC call. */
     startParams(item: SoftInstalled): [{ javaHome: string; neo4jInstanceDir?: string }] {
+      this.ensureHydrated()
       const binding = this.getBinding(item.bin)
       if (!binding) throw new Error('Select a compatible Java runtime before starting Neo4j')
       const policy = resolveNeo4jJavaPolicy(item.version)

@@ -14,6 +14,15 @@ const service = read('src/render/components/ServiceManager/index.vue')
 
 assert.match(store, /export const Neo4jStore = defineStore\('neo4j'/)
 assert.match(store, /getBinding\(/)
+const getBindingBody = store.match(
+  /getBinding\([^)]*\): Neo4jJavaBinding \| undefined \{([\s\S]*?)\n    \},\n\n    async setBinding/
+)
+assert.ok(getBindingBody, 'getBinding implementation must be found')
+assert.doesNotMatch(
+  getBindingBody[1],
+  /ensureHydrated|Object\.assign|this\.javaByBin\s*=/,
+  'getBinding must stay read-only because it is called from the table render path'
+)
 assert.match(store, /setBinding\(/)
 assert.match(store, /reconcileBindings\(/)
 assert.match(store, /neo4jJavaBindings/)

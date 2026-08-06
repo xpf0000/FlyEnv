@@ -96,6 +96,8 @@
 
   const brewStore = BrewStore()
   const neo4jStore = Neo4jStore()
+  // Hydrate before the first render so row helpers remain pure reads.
+  neo4jStore.ensureHydrated()
   const installed = computed(() => brewStore.module('neo4j').installed)
   const javaInstalled = computed(() => brewStore.module('java').installed)
   const runningVersion = computed(() => installed.value.find((item) => item.run))
