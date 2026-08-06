@@ -49,7 +49,7 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
-  import { computed, ref } from 'vue'
+  import { computed } from 'vue'
   import { Loading } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { MessageError } from '@/util/Element'
@@ -57,6 +57,7 @@
   import IPC from '@/util/IPC'
   import { ElMessage } from 'element-plus'
   import { isWebPanelInstallNotice } from '@shared/WebPanelInstallNotice'
+  import { webPanelOpeningState } from '@/util/WebPanelOpening'
 
   const { tab, checkVersion } = AppModuleSetup('mongodb')
   const brewStore = BrewStore()
@@ -64,7 +65,8 @@
     return brewStore.module('mongodb').installed.some((item) => item.run)
   })
   const nodeVersion = computed(() => brewStore.currentVersion('node'))
-  const dbGateOpening = ref(false)
+  const dbGateOpeningState = webPanelOpeningState('dbgate')
+  const dbGateOpening = dbGateOpeningState.opening
   let installNotice: { close: () => void } | undefined
   const tabs = [
     I18nT('base.service'),
@@ -79,7 +81,7 @@
       MessageError(I18nT('base.needSelectVersion'))
       return
     }
-    dbGateOpening.value = true
+    if (!dbGateOpeningState.start()) return
     const selectedNode = JSON.parse(JSON.stringify(nodeVersion.value))
     IPC.sendSensitive('app-fork:mongodb', 'openDbGate', selectedNode).then(
       (key: string, res: any) => {
@@ -98,7 +100,7 @@
         installNotice?.close()
         installNotice = undefined
         IPC.off(key)
-        dbGateOpening.value = false
+        dbGateOpeningState.finish()
         if (res?.code === 0 && res.data?.url) {
           shell.openExternal(res.data.url).catch()
           return

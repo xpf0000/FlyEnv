@@ -76,6 +76,7 @@
   import { MessageError } from '@/util/Element'
   import { ElMessage } from 'element-plus'
   import { isWebPanelInstallNotice } from '@shared/WebPanelInstallNotice'
+  import { webPanelOpeningState } from '@/util/WebPanelOpening'
 
   const { tab, checkVersion } = AppModuleSetup('nginx')
   const tabs = [
@@ -108,7 +109,8 @@
   }
   watch(runningVersion, updateRunningDataDir, { immediate: true })
   const refreshRunningDataDir = () => updateRunningDataDir(runningVersion.value)
-  const pgAdminOpening = ref(false)
+  const pgAdminOpeningState = webPanelOpeningState('pgadmin4')
+  const pgAdminOpening = pgAdminOpeningState.opening
   const pgAdminDataDirReady = ref(false)
   let installNotice: { close: () => void } | undefined
   PostgreSqlSetup.init()
@@ -171,7 +173,7 @@
     if (!selectedPython) {
       return
     }
-    pgAdminOpening.value = true
+    if (!pgAdminOpeningState.start()) return
     const pgAdminVersion = JSON.parse(JSON.stringify(runningVersion.value))
     const pgAdminPython = JSON.parse(JSON.stringify(selectedPython))
     IPC.send(
@@ -196,7 +198,7 @@
       installNotice?.close()
       installNotice = undefined
       IPC.off(key)
-      pgAdminOpening.value = false
+      pgAdminOpeningState.finish()
       if (res?.code === 0 && res.data?.url) {
         shell.openExternal(res.data.url).catch()
         return

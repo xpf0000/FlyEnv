@@ -1295,9 +1295,10 @@ assert.match(
   postgreSqlRendererSource,
   /IPC\.send\(\s*'app-fork:postgresql',\s*'openPGAdmin',\s*pgAdminVersion,\s*runningDataDir\.value,\s*pgAdminPython\s*\)/s
 )
-assert.match(postgreSqlRendererSource, /if \(res\?\.code === 200\) \{\s*return\s*\}/s)
+assert.match(postgreSqlRendererSource, /if \(res\?\.code === 200\) \{[\s\S]*?return\s*\}/s)
 assert.match(postgreSqlRendererSource, /IPC\.off\(key\)/)
-assert.match(postgreSqlRendererSource, /pgAdminOpening\.value = false/)
+assert.match(postgreSqlRendererSource, /webPanelOpeningState\('pgadmin4'\)/)
+assert.match(postgreSqlRendererSource, /pgAdminOpeningState\.finish\(\)/)
 assert.match(postgreSqlRendererSource, /res\?\.code === 0 && res\.data\?\.url/)
 assert.match(postgreSqlRendererSource, /shell\.openExternal\(res\.data\.url\)/)
 assert.doesNotMatch(postgreSqlRendererSource, /localForage|localStorage|sessionStorage/)
