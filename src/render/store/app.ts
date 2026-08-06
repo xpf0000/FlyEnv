@@ -122,7 +122,6 @@ type StateBase = SetupBase & {
   windowsElevationMethod?: WindowsElevationMethod
   appFont?: string
   codeFont?: string
-  neo4jJavaBindings?: Record<string, { javaHome: string; javaMajor: number }>
 }
 
 interface State {
@@ -181,8 +180,7 @@ const state: State = {
       mongodbBrewInitiated: false,
       editorConfig: EditorBaseConfig,
       phpGroupStart: {},
-      currentNodeTool: 'default',
-      neo4jJavaBindings: {}
+      currentNodeTool: 'default'
     }
   },
   httpServe: [],

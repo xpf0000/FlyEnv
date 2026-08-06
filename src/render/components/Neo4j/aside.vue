@@ -22,7 +22,7 @@
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { BrewStore, type SoftInstalled } from '@/store/brew'
-  import { Neo4jStore } from './store'
+  import { Neo4jManager } from './store'
 
   const {
     showItem,
@@ -37,9 +37,8 @@
   } = AsideSetup('neo4j')
 
   const neo4jModule = BrewStore().module('neo4j')
-  const neo4jStore = Neo4jStore()
   const startParams = (version: SoftInstalled) => {
-    return Promise.resolve(neo4jStore.startParams(version))
+    return Neo4jManager.startParams(version)
   }
   if (!neo4jModule.startExtParam) neo4jModule.startExtParam = startParams as any
   if (!neo4jModule.stopExtParam) neo4jModule.stopExtParam = startParams as any

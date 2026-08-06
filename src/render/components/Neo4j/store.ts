@@ -1,7 +1,6 @@
-import { defineStore } from 'pinia'
-import { computed, reactive } from 'vue'
-import { AppStore } from '@/store/app'
 import { BrewStore, type SoftInstalled } from '@/store/brew'
+import { reactiveBind } from '@/util/Index'
+import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 import {
   filterJavaCandidates,
   javaMajorFromVersion,
@@ -9,19 +8,11 @@ import {
   type Neo4jJavaCandidate
 } from './policy'
 
+const storageKey = 'flyenv-neo4j-java-bindings'
+
 export type Neo4jJavaBinding = {
   javaHome: string
   javaMajor: number
-}
-
-type State = {
-  javaByBin: Record<string, Neo4jJavaBinding>
-  hydrated: boolean
-}
-
-const state: State = {
-  javaByBin: {},
-  hydrated: false
 }
 
 /** Keep a binding stable when the same installation is represented with different separators. */
@@ -47,60 +38,77 @@ const copyBindings = (value: unknown): Record<string, Neo4jJavaBinding> => {
   return result
 }
 
-export const Neo4jStore = defineStore('neo4j', {
-  state: (): State => state,
-  getters: {
-    bindings(state): Record<string, Neo4jJavaBinding> {
-      return state.javaByBin
+/**
+ * Owns Neo4j-to-Java bindings outside AppStore config.  The singleton survives
+ * page re-entry while the reactive wrapper keeps the Java select rows current.
+ */
+export class Neo4jJavaBindingManager {
+  javaByBin: Record<string, Neo4jJavaBinding> = {}
+  inited = false
+  private initPromise?: Promise<void>
+  private mutationQueue: Promise<void> = Promise.resolve()
+
+  private enqueueMutation<T>(operation: () => Promise<T>): Promise<T> {
+    const next = this.mutationQueue.then(operation, operation)
+    this.mutationQueue = next.then(
+      () => undefined,
+      () => undefined
+    )
+    return next
+  }
+
+  async init() {
+    if (this.inited) return
+    if (!this.initPromise) {
+      this.initPromise = StorageGetAsync<Record<string, Neo4jJavaBinding>>(storageKey)
+        .then((saved) => {
+          Object.assign(this.javaByBin, copyBindings(saved))
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          this.inited = true
+        })
     }
-  },
-  actions: {
-    hydrate() {
-      const appStore = AppStore()
-      const saved = copyBindings(appStore.config.setup?.neo4jJavaBindings)
-      this.javaByBin = reactive(saved)
-      this.hydrated = true
-      return this.javaByBin
-    },
+    await this.initPromise
+  }
 
-    /** Read persisted state lazily; page entry is not required for service/tray starts. */
-    ensureHydrated() {
-      if (!this.hydrated) this.hydrate()
-      return this.javaByBin
-    },
+  getBinding(bin: string | undefined | null): Neo4jJavaBinding | undefined {
+    // This method is called while rendering each service-table row. Keep it
+    // strictly read-only; initialization belongs to setup/actions, never render.
+    return this.javaByBin[normalizeNeo4jBin(bin)]
+  }
 
-    getBinding(bin: string | undefined | null): Neo4jJavaBinding | undefined {
-      // This method is called while rendering each service-table row. Keep it
-      // strictly read-only; hydration belongs to setup/actions, never render.
-      return this.javaByBin[normalizeNeo4jBin(bin)]
-    },
-
-    async setBinding(bin: string, binding: Neo4jJavaBinding) {
-      const key = normalizeNeo4jBin(bin)
-      if (!key) throw new Error('Neo4j installation path is required')
-      if (!binding?.javaHome || !Number.isFinite(binding.javaMajor)) {
-        throw new Error('A valid Java runtime is required')
-      }
-      this.ensureHydrated()
-      this.javaByBin[key] = reactive({
+  async setBinding(bin: string, binding: Neo4jJavaBinding) {
+    const key = normalizeNeo4jBin(bin)
+    if (!key) throw new Error('Neo4j installation path is required')
+    if (!binding?.javaHome || !Number.isFinite(binding.javaMajor)) {
+      throw new Error('A valid Java runtime is required')
+    }
+    await this.init()
+    return this.enqueueMutation(async () => {
+      this.javaByBin[key] = {
         javaHome: binding.javaHome,
         javaMajor: Number(binding.javaMajor)
-      })
+      }
       await this.persist()
       return this.javaByBin[key]
-    },
+    })
+  }
 
-    async removeBinding(bin: string) {
-      this.ensureHydrated()
+  async removeBinding(bin: string) {
+    await this.init()
+    return this.enqueueMutation(async () => {
       delete this.javaByBin[normalizeNeo4jBin(bin)]
       await this.persist()
-    },
+    })
+  }
 
-    /** Remove stale paths and initialize new rows with the recommended local JDK. */
-    async reconcileBindings(installed: SoftInstalled[]) {
-      const neo4jModule = BrewStore().module('neo4j')
-      if (!neo4jModule.installedFetched && installed.length === 0) return
-      this.ensureHydrated()
+  /** Remove stale paths and initialize new rows with the recommended local JDK. */
+  async reconcileBindings(installed: SoftInstalled[]) {
+    const neo4jModule = BrewStore().module('neo4j')
+    if (!neo4jModule.installedFetched && installed.length === 0) return
+    await this.init()
+    return this.enqueueMutation(async () => {
       const bins = new Set(installed.map((item) => normalizeNeo4jBin(item.bin)).filter(Boolean))
       let changed = false
       Object.keys(this.javaByBin).forEach((bin) => {
@@ -117,64 +125,64 @@ export const Neo4jStore = defineStore('neo4j', {
         if (!candidate) return
         const javaMajor = this.candidateMajor(candidate)
         if (!javaMajor) return
-        this.javaByBin[normalizeNeo4jBin(item.bin)] = reactive({
+        this.javaByBin[normalizeNeo4jBin(item.bin)] = {
           javaHome: candidate.path,
           javaMajor
-        })
+        }
         changed = true
       })
       if (changed) await this.persist()
-    },
-
-    javaCandidates(): Neo4jJavaCandidate[] {
-      const java = BrewStore().module('java' as any)
-      return java.installed.map((item) => ({
-        bin: item.bin,
-        path: item.path,
-        version: item.version,
-        num: item.num
-      }))
-    },
-
-    candidatesForVersion(version: string | null | undefined) {
-      return filterJavaCandidates(version, this.javaCandidates())
-    },
-
-    policyForVersion(version: string | null | undefined) {
-      return resolveNeo4jJavaPolicy(version)
-    },
-
-    candidateMajor(candidate: Neo4jJavaCandidate) {
-      return candidate.num
-        ? Number(String(candidate.num).slice(0, 2))
-        : javaMajorFromVersion(candidate.version)
-    },
-
-    /** Parameters appended to the existing ModuleInstalledItem startService IPC call. */
-    startParams(item: SoftInstalled): [{ javaHome: string; neo4jInstanceDir?: string }] {
-      this.ensureHydrated()
-      const binding = this.getBinding(item.bin)
-      if (!binding) throw new Error('Select a compatible Java runtime before starting Neo4j')
-      const policy = resolveNeo4jJavaPolicy(item.version)
-      if (!policy.supportedMajor.includes(binding.javaMajor)) {
-        throw new Error(
-          `Java ${binding.javaMajor} is not compatible with Neo4j ${item.version ?? ''}`
-        )
-      }
-      return [
-        {
-          javaHome: binding.javaHome,
-          neo4jInstanceDir: (item as any).neo4jInstanceDir ?? undefined
-        }
-      ]
-    },
-
-    async persist() {
-      const appStore = AppStore()
-      appStore.config.setup.neo4jJavaBindings = JSON.parse(JSON.stringify(this.javaByBin))
-      await appStore.saveConfig()
-    }
+    })
   }
-})
 
-export const neo4jBindingState = computed(() => Neo4jStore().javaByBin)
+  javaCandidates(): Neo4jJavaCandidate[] {
+    const java = BrewStore().module('java' as any)
+    return java.installed.map((item) => ({
+      bin: item.bin,
+      path: item.path,
+      version: item.version,
+      num: item.num
+    }))
+  }
+
+  candidatesForVersion(version: string | null | undefined) {
+    return filterJavaCandidates(version, this.javaCandidates())
+  }
+
+  policyForVersion(version: string | null | undefined) {
+    return resolveNeo4jJavaPolicy(version)
+  }
+
+  candidateMajor(candidate: Neo4jJavaCandidate) {
+    return candidate.num
+      ? Number(String(candidate.num).slice(0, 2))
+      : javaMajorFromVersion(candidate.version)
+  }
+
+  /** Parameters appended to the existing ModuleInstalledItem startService IPC call. */
+  async startParams(
+    item: SoftInstalled
+  ): Promise<[{ javaHome: string; neo4jInstanceDir?: string }]> {
+    await this.init()
+    const binding = this.getBinding(item.bin)
+    if (!binding) throw new Error('Select a compatible Java runtime before starting Neo4j')
+    const policy = resolveNeo4jJavaPolicy(item.version)
+    if (!policy.supportedMajor.includes(binding.javaMajor)) {
+      throw new Error(
+        `Java ${binding.javaMajor} is not compatible with Neo4j ${item.version ?? ''}`
+      )
+    }
+    return [
+      {
+        javaHome: binding.javaHome,
+        neo4jInstanceDir: (item as any).neo4jInstanceDir ?? undefined
+      }
+    ]
+  }
+
+  async persist() {
+    await StorageSetAsync(storageKey, JSON.parse(JSON.stringify(this.javaByBin)))
+  }
+}
+
+export const Neo4jManager = reactiveBind(new Neo4jJavaBindingManager())

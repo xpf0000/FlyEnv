@@ -27,7 +27,7 @@
         </template>
         <template #column="{ row }">
           <div class="flex items-center justify-center gap-2 w-full">
-            <template v-if="!neo4jStore.policyForVersion(row.version).supportedMajor.length">
+            <template v-if="!neo4jManager.policyForVersion(row.version).supportedMajor.length">
               <span class="text-red-400 text-xs">Unsupported Neo4j version</span>
             </template>
             <template v-else-if="javaCandidates(row).length">
@@ -83,7 +83,7 @@
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import neo4jController from './controller'
-  import { Neo4jStore } from './store'
+  import { Neo4jManager } from './store'
 
   const { tab, checkVersion } = AppModuleSetup('neo4j')
   const tabs = [
@@ -95,26 +95,26 @@
   ]
 
   const brewStore = BrewStore()
-  const neo4jStore = Neo4jStore()
-  // Hydrate before the first render so row helpers remain pure reads.
-  neo4jStore.ensureHydrated()
+  const neo4jManager = Neo4jManager
+  // Load persisted bindings before reconciliation; row helpers remain pure reads.
+  Neo4jManager.init().catch()
   const installed = computed(() => brewStore.module('neo4j').installed)
   const javaInstalled = computed(() => brewStore.module('java').installed)
   const runningVersion = computed(() => installed.value.find((item) => item.run))
   const browserOpening = neo4jController.opening
 
-  const javaCandidates = (row: SoftInstalled) => neo4jStore.candidatesForVersion(row.version)
-  const javaMajor = (candidate: any) => neo4jStore.candidateMajor(candidate)
+  const javaCandidates = (row: SoftInstalled) => neo4jManager.candidatesForVersion(row.version)
+  const javaMajor = (candidate: any) => neo4jManager.candidateMajor(candidate)
   const javaLabel = (candidate: any) => {
     const major = javaMajor(candidate)
     return `Java ${major}${candidate.path ? ` · ${candidate.path}` : ''}`
   }
-  const selectedJava = (row: SoftInstalled) => neo4jStore.getBinding(row.bin)?.javaHome ?? ''
+  const selectedJava = (row: SoftInstalled) => neo4jManager.getBinding(row.bin)?.javaHome ?? ''
   const updateJava = async (row: SoftInstalled, javaHome: string) => {
     if (row.run || row.running) return
     const candidate = javaCandidates(row).find((item) => item.path === javaHome)
     if (!candidate) return
-    await neo4jStore.setBinding(row.bin, {
+    await neo4jManager.setBinding(row.bin, {
       javaHome: candidate.path,
       javaMajor: javaMajor(candidate)
     })
@@ -128,7 +128,7 @@
     ([versions]) => {
       const neo4jModule = brewStore.module('neo4j' as any)
       if (versions.length === 0 && !neo4jModule.installedFetched) return
-      neo4jStore.reconcileBindings(versions).catch()
+      neo4jManager.reconcileBindings(versions).catch()
     },
     { immediate: true }
   )

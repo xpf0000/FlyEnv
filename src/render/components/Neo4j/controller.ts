@@ -6,7 +6,7 @@ import { BrewStore } from '@/store/brew'
 import { MessageError } from '@/util/Element'
 import { shell } from '@/util/NodeFn'
 import IPC from '@/util/IPC'
-import { Neo4jStore } from './store'
+import { Neo4jManager } from './store'
 
 type OperationKind = 'start' | 'stop' | 'restart'
 
@@ -88,8 +88,7 @@ export class Neo4jController {
     if (!item?.version || !item?.path) return 'Neo4j version is not selected'
     if (item.enable === false) return item.error ?? 'Neo4j version is unsupported'
     if (item.run && item.pid) return true
-    const store = Neo4jStore()
-    const [runtime] = store.startParams(item)
+    const [runtime] = await Neo4jManager.startParams(item)
     const password = await this.initialPassword(item)
     if (password === null) return 'Neo4j startup cancelled'
     if ((item as any)._onStart) {
@@ -141,8 +140,7 @@ export class Neo4jController {
 
   private async stopInternal(item: SoftInstalled): Promise<string | boolean> {
     if (!item?.run && !item?.running) return true
-    const store = Neo4jStore()
-    const [runtime] = this.runtimeForStop(item, store)
+    const [runtime] = await this.runtimeForStop(item)
     item.running = true
     item.run = false
     const requestData = JSON.parse(JSON.stringify(item))
@@ -159,9 +157,9 @@ export class Neo4jController {
     return result?.msg ?? 'Neo4j failed to stop'
   }
 
-  private runtimeForStop(item: SoftInstalled, store: ReturnType<typeof Neo4jStore>) {
+  private async runtimeForStop(item: SoftInstalled) {
     try {
-      return store.startParams(item)
+      return await Neo4jManager.startParams(item)
     } catch {
       if (item.javaHome) {
         return [

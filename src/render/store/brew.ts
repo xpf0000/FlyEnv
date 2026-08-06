@@ -83,11 +83,11 @@ export const BrewStore = defineStore('brew', {
         module.watchShowHide = module.watchShowHide.bind(module)
         this.modules[module.typeFlag] = module
         if (flag === ('neo4j' as any)) {
-          // Keep Java binding lookup in the Neo4j domain store while allowing
+          // Keep Java binding lookup in the Neo4j binding manager while allowing
           // tray/service starts to use the existing ModuleInstalledItem flow.
           module.startExtParam = async (item) => {
-            const { Neo4jStore } = await import('@/components/Neo4j/store')
-            return Neo4jStore().startParams(item)
+            const { Neo4jManager } = await import('@/components/Neo4j/store')
+            return Neo4jManager.startParams(item)
           }
         }
         module.watchShowHide()
