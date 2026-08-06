@@ -52,6 +52,25 @@ export type ServiceStartSpawnParams = {
   outFile?: string
   /** Override where the process stderr is written (default: baseDir/<flag>-<ver>-start-error.log) */
   errFile?: string
+  /** Redact executable arguments and environment values from the startup diagnostic log. */
+  sensitive?: boolean
+}
+
+type ServiceStartSpawnLogParam = Omit<ServiceStartSpawnParams, 'execArgs' | 'execEnv'> & {
+  execArgs?: string[] | '[REDACTED]'
+  execEnv?: Record<string, string> | '[REDACTED]'
+}
+
+export function serviceStartSpawnLogParam(
+  param: ServiceStartSpawnParams
+): ServiceStartSpawnLogParam {
+  if (!param.sensitive) return param
+  const { execArgs, execEnv, ...safeParam } = param
+  return {
+    ...safeParam,
+    execArgs: execArgs ? '[REDACTED]' : undefined,
+    execEnv: execEnv ? '[REDACTED]' : undefined
+  }
 }
 
 type UnixCustomerServiceStartScriptParams = {
@@ -404,7 +423,7 @@ export async function customerServiceStartExec(
 export async function serviceStartSpawn(
   param: ServiceStartSpawnParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
-  console.log('serviceStartSpawn param: ', param)
+  console.log('serviceStartSpawn param: ', serviceStartSpawnLogParam(param))
   const baseDir = param.baseDir
   const version = param.version
   const execEnv = param?.execEnv ?? ''

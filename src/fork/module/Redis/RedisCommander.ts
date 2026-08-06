@@ -171,6 +171,12 @@ const validCredentials = (value: unknown): value is RedisCommanderCredentials =>
   )
 }
 
+class RedisCommanderOpenCanceledError extends Error {
+  constructor() {
+    super('Redis Commander opening was canceled')
+  }
+}
+
 const processList = async (): Promise<PItem[]> => {
   try {
     return await (isWindows() ? ProcessPidListStrict() : ProcessListFetch())
@@ -214,6 +220,8 @@ export class RedisCommanderRuntime {
   private readonly readConfig: (redis: SoftInstalled) => Promise<RedisCommanderConnection>
   private readonly killProcesses: (pids: string[]) => Promise<void>
   private openFlight?: Promise<RedisCommanderOpenResult>
+  private stoppingFlight?: Promise<string[]>
+  private openGeneration = 0
 
   constructor(baseDir: string, options: RedisCommanderRuntimeOptions = {}) {
     this.windows = options.platformWindows ?? isWindows()
@@ -345,7 +353,8 @@ export class RedisCommanderRuntime {
       outFile: paths.startOut,
       errFile: paths.startError,
       on,
-      waitTime: 1500
+      waitTime: 1500,
+      sensitive: true
     })
   }
 
@@ -393,52 +402,65 @@ export class RedisCommanderRuntime {
     }
   }
 
+  private assertOpenActive(generation: number) {
+    if (generation !== this.openGeneration) {
+      throw new RedisCommanderOpenCanceledError()
+    }
+  }
+
   private async openInternal(
     node: SoftInstalled,
     redis: SoftInstalled,
-    on: (...args: any[]) => void
+    on: (...args: any[]) => void,
+    generation: number
   ): Promise<RedisCommanderOpenResult> {
-    const nodeBin = `${node?.bin ?? ''}`.trim()
-    if (!nodeBin)
-      throw new Error('A Node.js version must be selected before opening Redis Commander')
-
-    const connection = await this.readConfig(redis)
-    await mkdirp(this.paths.root)
-    const credentials = await this.ensureCredentials()
-    const persistedPid = existsSync(this.paths.pid)
-      ? (await readFile(this.paths.pid, 'utf8')).trim()
-      : ''
-    const persistedPort = await this.readPort()
-
-    if (persistedPid || persistedPort) {
-      const pids = persistedPid ? await this.ownedPids(persistedPid) : []
-      const listening =
-        !!persistedPid &&
-        !!persistedPort &&
-        pids.length > 0 &&
-        (await this.fetchListeningPids(`${persistedPort}`)).includes(persistedPid)
-      if (
-        persistedPid &&
-        persistedPort &&
-        listening &&
-        (await this.checkHealth(persistedPort, credentials))
-      ) {
-        return this.openResult(persistedPid, persistedPort, credentials, nodeBin)
-      }
-      if (pids.length > 0) {
-        try {
-          await this.killProcesses(pids)
-          await this.waitForStopped(pids)
-        } catch {}
-      }
-      await remove(this.paths.pid).catch(() => {})
-      await remove(this.paths.port).catch(() => {})
-    }
-
     try {
+      const nodeBin = `${node?.bin ?? ''}`.trim()
+      if (!nodeBin) {
+        throw new Error('A Node.js version must be selected before opening Redis Commander')
+      }
+
+      const connection = await this.readConfig(redis)
+      this.assertOpenActive(generation)
+      await mkdirp(this.paths.root)
+      const credentials = await this.ensureCredentials()
+      this.assertOpenActive(generation)
+      const persistedPid = existsSync(this.paths.pid)
+        ? (await readFile(this.paths.pid, 'utf8')).trim()
+        : ''
+      const persistedPort = await this.readPort()
+
+      if (persistedPid || persistedPort) {
+        const pids = persistedPid ? await this.ownedPids(persistedPid) : []
+        const listening =
+          !!persistedPid &&
+          !!persistedPort &&
+          pids.length > 0 &&
+          (await this.fetchListeningPids(`${persistedPort}`)).includes(persistedPid)
+        if (
+          persistedPid &&
+          persistedPort &&
+          listening &&
+          (await this.checkHealth(persistedPort, credentials))
+        ) {
+          this.assertOpenActive(generation)
+          return this.openResult(persistedPid, persistedPort, credentials, nodeBin)
+        }
+        if (pids.length > 0) {
+          try {
+            await this.killProcesses(pids)
+            await this.waitForStopped(pids)
+          } catch {}
+        }
+        await remove(this.paths.pid).catch(() => {})
+        await remove(this.paths.port).catch(() => {})
+        this.assertOpenActive(generation)
+      }
+
       if (!existsSync(this.paths.entry)) {
         on(webPanelInstallNotice('Redis Commander'))
         await this.installPackage(nodeBin, this.paths)
+        this.assertOpenActive(generation)
       }
       const port = await this.locatePort(
         REDIS_COMMANDER_DEFAULT_PORT,
@@ -446,14 +468,26 @@ export class RedisCommanderRuntime {
         REDIS_COMMANDER_MAX_PORT,
         persistedPort ? [persistedPort] : []
       )
+      this.assertOpenActive(generation)
       const start = await this.startPackage(node, this.paths, connection, port, credentials, on)
+      this.assertOpenActive(generation)
       if (!(await this.waitHealth(port, credentials))) {
         throw new Error('Redis Commander did not become healthy after startup')
       }
+      this.assertOpenActive(generation)
+      const startedPid = start['APP-Service-Start-PID']
+      const listeningPids = await this.fetchListeningPids(`${port}`)
+      this.assertOpenActive(generation)
+      if (!listeningPids.includes(startedPid)) {
+        throw new Error('Redis Commander does not own its allocated loopback port')
+      }
       await writeFile(this.paths.port, `${port}`)
-      return this.openResult(start['APP-Service-Start-PID'], port, credentials, nodeBin)
+      this.assertOpenActive(generation)
+      return this.openResult(startedPid, port, credentials, nodeBin)
     } catch (error) {
-      await this.stop().catch(() => {})
+      if (!(error instanceof RedisCommanderOpenCanceledError)) {
+        await this.stopOwned().catch(() => {})
+      }
       throw error
     }
   }
@@ -482,16 +516,21 @@ export class RedisCommanderRuntime {
     on: (...args: any[]) => void = () => {}
   ): ForkPromise<RedisCommanderOpenResult> {
     return new ForkPromise((resolve, reject) => {
-      if (!this.openFlight) {
-        this.openFlight = this.openInternal(node, redis, on).finally(() => {
-          this.openFlight = undefined
-        })
+      const start = async () => {
+        if (this.stoppingFlight) await this.stoppingFlight
+        if (!this.openFlight) {
+          const generation = this.openGeneration
+          this.openFlight = this.openInternal(node, redis, on, generation).finally(() => {
+            this.openFlight = undefined
+          })
+        }
+        return this.openFlight
       }
-      this.openFlight.then(resolve).catch(reject)
+      start().then(resolve).catch(reject)
     })
   }
 
-  async stop(): Promise<string[]> {
+  private async stopOwned(): Promise<string[]> {
     const pid = existsSync(this.paths.pid) ? (await readFile(this.paths.pid, 'utf8')).trim() : ''
     const pids = pid ? await this.ownedPids(pid) : []
     try {
@@ -504,5 +543,22 @@ export class RedisCommanderRuntime {
       await remove(this.paths.port).catch(() => {})
     }
     return pids
+  }
+
+  async stop(): Promise<string[]> {
+    if (this.stoppingFlight) return this.stoppingFlight
+
+    this.openGeneration += 1
+    const pendingOpen = this.openFlight
+    const flight = (async () => {
+      if (pendingOpen) await pendingOpen.catch(() => {})
+      return this.stopOwned()
+    })()
+    this.stoppingFlight = flight
+    try {
+      return await flight
+    } finally {
+      if (this.stoppingFlight === flight) this.stoppingFlight = undefined
+    }
   }
 }
