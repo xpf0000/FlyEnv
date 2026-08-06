@@ -1,8 +1,7 @@
 import { createServer } from 'node:net'
 import { join, posix, win32 } from 'node:path'
 
-export const PGADMIN4_PACKAGE = 'pgadmin4==9.17'
-export const PGADMIN4_PACKAGE_VERSION = '9.17'
+export const PGADMIN4_PACKAGE = 'pgadmin4'
 export const PGADMIN4_DEFAULT_PORT = 5050
 export const PGADMIN4_MAX_PORT = 65535
 export const PGADMIN4_MAX_SERVER_PORT = 65534
@@ -300,7 +299,7 @@ export function pgAdminConfigContent(dataDir: string, logDir: string, port: numb
 }
 
 export function pgAdminPackageRootProbe(): string {
-  return "from importlib.metadata import distribution; d = distribution('pgadmin4'); assert d.version == '9.17'; print(d.locate_file('pgadmin4'))"
+  return "from importlib.metadata import distribution; d = distribution('pgadmin4'); print(d.locate_file('pgadmin4'))"
 }
 
 export function pgAdminPackageRootUnversionedProbe(): string {
@@ -600,7 +599,50 @@ export function pgAdminCommandOwnedWithoutPackageMetadata(
 
 export interface PgAdminProcess {
   PID: string
+  PPID?: string
   COMMAND: string
+}
+
+export function pgAdminPortOwnedByProcessTree(
+  listeningPids: readonly string[],
+  rootPid: string,
+  processes: readonly Pick<PgAdminProcess, 'PID' | 'PPID'>[]
+): boolean {
+  const root = rootPid.trim()
+  if (!root) return false
+
+  const ownedPids = new Set([root])
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const process of processes) {
+      const pid = `${process.PID ?? ''}`.trim()
+      const parentPid = `${process.PPID ?? ''}`.trim()
+      if (pid && parentPid && ownedPids.has(parentPid) && !ownedPids.has(pid)) {
+        ownedPids.add(pid)
+        changed = true
+      }
+    }
+  }
+
+  return listeningPids.some((pid) => ownedPids.has(`${pid}`.trim()))
+}
+
+export function pgAdminWindowsKillCommand(pids: readonly string[]): string {
+  const normalizedPids = Array.from(
+    new Set(pids.map((pid) => `${pid}`.trim()).filter((pid) => /^[1-9]\d*$/.test(pid)))
+  )
+  return normalizedPids.length ? `taskkill /f /pid ${normalizedPids.join(' /pid ')}` : ''
+}
+
+export function pgAdminRuntimePythonPath(
+  pythonPath: string,
+  windows: boolean,
+  fileExists: (file: string) => boolean
+): string {
+  if (!windows) return pythonPath
+  const pythonwPath = win32.join(win32.dirname(pythonPath), 'pythonw.exe')
+  return fileExists(pythonwPath) ? pythonwPath : pythonPath
 }
 
 export function pgAdminOwnedPids(

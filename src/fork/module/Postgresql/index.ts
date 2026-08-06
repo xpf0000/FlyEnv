@@ -62,11 +62,14 @@ import {
   pgAdminPackageRootOwned,
   pgAdminPackageRootProbe,
   pgAdminPackageRootUnversionedProbe,
+  pgAdminPortOwnedByProcessTree,
   pgAdminPaths,
   pgAdminPrivateDirectories,
   parsePgAdminServerIdentity,
+  pgAdminRuntimePythonPath,
   pgAdminServersContent,
   pgAdminUrl,
+  pgAdminWindowsKillCommand,
   PgAdminSingleFlight,
   postgresqlPortFromConfig,
   startPgAdminWithPortRetry,
@@ -172,7 +175,10 @@ class Manager extends Base {
     const listeningPids = isWindows()
       ? await fetchLoopbackListeningPidsWindows(`${port}`)
       : await fetchLoopbackListeningPids(`${port}`)
-    return listeningPids.includes(pid)
+    if (listeningPids.includes(pid)) return true
+
+    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
+    return pgAdminPortOwnedByProcessTree(listeningPids, pid, processList)
   }
 
   private async pgAdminPidsStillRunning(pids: string[]): Promise<string[]> {
@@ -184,7 +190,14 @@ class Manager extends Base {
   private async stopPgAdminPidsStrict(pids: string[]): Promise<void> {
     await stopPgAdminPidsWithVerification({
       pids,
-      kill: (targetPids) => ProcessKillStrict('-INT', targetPids),
+      kill: async (targetPids) => {
+        if (isWindows()) {
+          const command = pgAdminWindowsKillCommand(targetPids)
+          if (command) await execPromiseWithEnv(command)
+          return
+        }
+        await ProcessKillStrict('-INT', targetPids)
+      },
       remainingPids: () => this.pgAdminPidsStillRunning(pids),
       wait: waitTime
     })
@@ -407,11 +420,12 @@ class Manager extends Base {
             await reconcilePgAdminServer()
 
             try {
+              const servicePython = pgAdminRuntimePythonPath(paths.python, isWindows(), existsSync)
               const started = await serviceStartSpawn({
                 version: {
                   typeFlag: version.typeFlag,
                   version: 'pgadmin4',
-                  bin: paths.python,
+                  bin: servicePython,
                   path: paths.root,
                   num: null,
                   enable: true,
@@ -420,7 +434,7 @@ class Manager extends Base {
                 },
                 pidPath: paths.pid,
                 baseDir: paths.root,
-                bin: paths.python,
+                bin: servicePython,
                 execArgs: [join(packageRoot, 'pgAdmin4.py')],
                 execEnv: {
                   LC_ALL: global.Server.Local!,
