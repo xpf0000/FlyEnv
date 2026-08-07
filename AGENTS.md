@@ -197,7 +197,7 @@ yarn postinstall                  # Install Electron app dependencies
 - Use TypeScript for all new code
 - Vue SFCs must use `<script lang="ts">`
 - Prefer Composition API over Options API
-- Use Pinia for state management
+- Use the established Pinia stores for existing shared/domain state. For a new module, do not add Pinia state unless the user explicitly authorizes it; prefer a module-local class bound with `reactiveBind`.
 - Follow existing module patterns for new services
 
 ## Module Boundaries and Operation Ownership
@@ -205,12 +205,23 @@ yarn postinstall                  # Install Electron app dependencies
 Apply these rules to every new or changed module, renderer IPC flow, service lifecycle, background operation, download, installation, web panel, or external process. Before making such a change, read `.codex/skills/flyenv-module-boundaries/SKILL.md` and record the required operation contract in the implementation plan.
 
 - UI state belongs to the mounted Vue component only. It includes inputs, dialogs, selections, and display-only filters; it may reset when the page is destroyed.
-- Domain state belongs to Pinia or the established module store. It includes selected versions, installed service lists, and application settings.
+- Existing shared domain state belongs to Pinia or the established module store. New module-owned domain state follows **New Module Constraints** and defaults to a module-local class bound with `reactiveBind`.
 - Long-running renderer operations belong to a module-local singleton controller. This includes work that can outlive its initiating page, reports progress, starts or waits for an external process, downloads or installs software, opens a panel, or requires terminal cleanup.
 - Fork modules own child processes, PID/port state, and companion shutdown. Renderer state is never the source of truth for process liveness.
 - Entry pages bind controller state and commands; they do not own operation IPC, progress, notices, terminal errors, or listener cleanup. The state owner follows its lifetime, not the button that first triggers it.
 - A generic loading-state map cannot replace a controller. A controller owns the complete operation lifecycle: preconditions, request snapshot, IPC callbacks, notices, terminal result, re-entry guard, and cleanup.
 - Each long-running operation plan must record its owner, lifetime, intermediate events, terminal events, duplicate invocation behavior, service interaction, and lifecycle tests.
+
+### New Module Constraints
+
+Unless the user explicitly authorizes an exception for the specific module, apply all of the following:
+
+1. **Persistence**: Do not add module data to `config.setup` or any other shared configuration object. Persist and load module-owned state with `StorageSetAsync` and `StorageGetAsync`.
+2. **Renderer state**: Do not create a new Pinia store for module-owned state. Use a normal module-local class/singleton and expose its reactive state through `reactiveBind`.
+3. **Service lifecycle**: Reuse `ModuleInstalledItem.start()`, `stop()`, and `restart()` whenever they can express the lifecycle. Put module-specific arguments in the module's `startExtParam`/`stopExtParam` registration (normally its `aside.vue`), instead of adding a separate start/stop workflow or controller methods.
+4. **Module ownership**: Keep module-only properties, types, helpers, policies, and methods inside the module directory. Public service types, stores, lifecycle classes, and generic helpers must remain module-agnostic.
+
+Before implementation, record the exception authorization (if any) and verify this checklist in the plan. Do not infer authorization from an existing module that predates these rules.
 
 ## Adding a New Module
 

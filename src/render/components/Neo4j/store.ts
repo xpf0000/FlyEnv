@@ -1,10 +1,13 @@
 import { BrewStore, type SoftInstalled } from '@/store/brew'
 import { reactiveBind } from '@/util/Index'
+import { dirname, join, normalize, resolve } from '@/util/path-browserify'
 import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
+import { SHA256 } from 'crypto-js'
 import {
   filterJavaCandidates,
   javaMajorFromVersion,
   resolveNeo4jJavaPolicy,
+  sortJavaCandidatesByVersion,
   type Neo4jJavaCandidate
 } from './policy'
 
@@ -146,7 +149,7 @@ export class Neo4jJavaBindingManager {
   }
 
   candidatesForVersion(version: string | null | undefined) {
-    return filterJavaCandidates(version, this.javaCandidates())
+    return sortJavaCandidatesByVersion(filterJavaCandidates(version, this.javaCandidates()))
   }
 
   policyForVersion(version: string | null | undefined) {
@@ -159,10 +162,20 @@ export class Neo4jJavaBindingManager {
       : javaMajorFromVersion(candidate.version)
   }
 
+  /** Derive the same per-installation directory as the Neo4j fork runtime. */
+  instanceDirFor(item: Pick<SoftInstalled, 'bin' | 'path'>): string {
+    const installationPath = item.path || dirname(dirname(item.bin || ''))
+    let canonical = normalize(resolve(installationPath)).replace(/[\\/]+$/, '')
+    if (window.Server.isWindows) canonical = canonical.replaceAll('/', '\\')
+    const key = SHA256(canonical).toString().slice(0, 16)
+    const moduleDir = window.Server.Neo4jDir ?? join(window.Server.BaseDir!, 'neo4j')
+    return join(moduleDir, 'instances', key)
+  }
+
   /** Parameters appended to the existing ModuleInstalledItem startService IPC call. */
   async startParams(
     item: SoftInstalled
-  ): Promise<[{ javaHome: string; neo4jInstanceDir?: string }]> {
+  ): Promise<[{ javaHome: string; neo4jInstanceDir: string }]> {
     await this.init()
     const binding = this.getBinding(item.bin)
     if (!binding) throw new Error('Select a compatible Java runtime before starting Neo4j')
@@ -175,7 +188,20 @@ export class Neo4jJavaBindingManager {
     return [
       {
         javaHome: binding.javaHome,
-        neo4jInstanceDir: (item as any).neo4jInstanceDir ?? undefined
+        neo4jInstanceDir: this.instanceDirFor(item)
+      }
+    ]
+  }
+
+  /** Keep stopping available after a Java binding is removed or becomes invalid. */
+  async stopParams(
+    item: SoftInstalled
+  ): Promise<[{ javaHome?: string; neo4jInstanceDir: string }]> {
+    await this.init()
+    return [
+      {
+        javaHome: this.getBinding(item.bin)?.javaHome,
+        neo4jInstanceDir: this.instanceDirFor(item)
       }
     ]
   }

@@ -60,8 +60,6 @@ export {
 
 export type Neo4jStartParams = {
   javaHome?: string
-  /** Optional one-time password supplied by the renderer controller. Never logged. */
-  password?: string
   neo4jInstanceDir?: string
 }
 
@@ -91,8 +89,7 @@ function installRoot(version: SoftInstalled): string {
 function pathsForVersion(version: SoftInstalled, requestedInstanceDir?: string): Neo4jPaths {
   const root = installRoot(version)
   const key = neo4jInstanceKey(root)
-  const instanceDir =
-    requestedInstanceDir || version?.neo4jInstanceDir || join(moduleBaseDir(), 'instances', key)
+  const instanceDir = requestedInstanceDir || join(moduleBaseDir(), 'instances', key)
   const confDir = join(instanceDir, 'conf')
   return {
     root,
@@ -265,28 +262,6 @@ class Neo4j extends Base {
     }
   }
 
-  private async setInitialPassword(
-    version: SoftInstalled,
-    paths: Neo4jPaths,
-    javaHome: string,
-    password: string | undefined
-  ) {
-    if (!password || existsSync(join(paths.dataDir, 'databases'))) return
-    const adminBin = join(dirname(version.bin), isWindows() ? 'neo4j-admin.bat' : 'neo4j-admin')
-    if (!existsSync(adminBin)) return
-    // Password is intentionally never passed to logs or ForkPromise progress events.
-    // Neo4j 5's command accepts the password as a positional argument. The
-    // process is short-lived and its output is intentionally not forwarded to
-    // FlyEnv logs; therefore the secret never enters command history or a log
-    // event (service start diagnostics are also redacted).
-    await spawnPromiseWithEnv(adminBin, ['dbms', 'set-initial-password', password], {
-      cwd: paths.root,
-      env: this.envFor(version, paths, javaHome),
-      shell: isWindows(),
-      windowsHide: true
-    })
-  }
-
   _startServer(version: SoftInstalled, params?: Neo4jStartParams) {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
@@ -296,12 +271,8 @@ class Neo4j extends Base {
             I18nT('appLog.startServiceBegin', { service: `neo4j-${version.version}` })
           )
         })
-        const java = await validateNeo4jJava(version.version, params?.javaHome ?? version.javaHome)
-        const paths = await this.initializeInstance(
-          version,
-          params?.neo4jInstanceDir ?? version.neo4jInstanceDir
-        )
-        await this.setInitialPassword(version, paths, java.javaHome, params?.password)
+        const java = await validateNeo4jJava(version.version, params?.javaHome)
+        const paths = await this.initializeInstance(version, params?.neo4jInstanceDir)
 
         this.pidPath = paths.pidFile
         const res = await serviceStartSpawn({
@@ -327,12 +298,7 @@ class Neo4j extends Base {
         })
         resolve({
           ...res,
-          'APP-Service-Start-Item': {
-            ...version,
-            javaHome: java.javaHome,
-            javaMajor: java.javaMajor,
-            neo4jInstanceDir: paths.instanceDir
-          }
+          'APP-Service-Start-Item': { ...version }
         })
       } catch (error) {
         reject(error)
@@ -342,7 +308,7 @@ class Neo4j extends Base {
 
   _stopServer(version: SoftInstalled, params?: Neo4jStartParams) {
     return new ForkPromise(async (resolve, _reject, on) => {
-      const paths = this.paths(version, params?.neo4jInstanceDir ?? version.neo4jInstanceDir)
+      const paths = this.paths(version, params?.neo4jInstanceDir)
       const pidFile = paths.pidFile
       const pid = existsSync(pidFile) ? (await readFile(pidFile, 'utf-8')).trim() : ''
       on({
@@ -353,7 +319,7 @@ class Neo4j extends Base {
       })
 
       let stoppedGracefully = false
-      const javaHome = params?.javaHome ?? version.javaHome
+      const javaHome = params?.javaHome
       try {
         if (javaHome && existsSync(javaBinForHome(javaHome))) {
           const env = this.envFor(version, paths, javaHome)
@@ -462,10 +428,7 @@ class Neo4j extends Base {
             version,
             num: version ? Number(versionFixed(version).split('.').slice(0, 2).join('')) : null,
             enable: Boolean(version && supported),
-            error,
-            neo4jNeedsPassword: Boolean(
-              version && supported && !existsSync(join(pathsForVersion(item).dataDir, 'databases'))
-            )
+            error
           })
         })
         resolve(versionSort(versions))

@@ -26,8 +26,8 @@
   import { BrewStore } from '@/store/brew'
   import IPC from '@/util/IPC'
   import { join } from '@/util/path-browserify'
+  import { Neo4jManager } from './store'
 
-  const props = defineProps<{ type: 'out' | 'error' }>()
   const brewStore = BrewStore()
   const log = ref()
   const logType = ref('')
@@ -45,20 +45,16 @@
 
   const files = computed(() => {
     const item = currentVersion.value
-    const fallback = (item as any)?.neo4jInstanceDir
-      ? join(
-          (item as any).neo4jInstanceDir,
-          'logs',
-          props.type === 'out' ? 'neo4j.log' : 'neo4j-error.log'
-        )
-      : ''
-    const dynamic = dynamicFiles.value.filter((entry) =>
-      props.type === 'out'
-        ? entry.name.includes('out') || entry.name === 'neo4j.log'
-        : entry.name.includes('error') || entry.name === 'debug.log'
-    )
-    if (dynamic.length) return dynamic
-    return fallback ? [{ name: props.type === 'out' ? 'stdout' : 'stderr', path: fallback }] : []
+    if (dynamicFiles.value.length) return dynamicFiles.value
+    if (!item) return []
+    const instanceDir = Neo4jManager.instanceDirFor(item)
+    const logDir = join(instanceDir, 'logs')
+    return [
+      { name: 'neo4j', path: join(logDir, 'neo4j.log') },
+      { name: 'debug', path: join(logDir, 'debug.log') },
+      { name: 'start-out', path: join(logDir, 'start-out.log') },
+      { name: 'start-error', path: join(logDir, 'start-error.log') }
+    ]
   })
 
   watch(

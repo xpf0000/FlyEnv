@@ -24,6 +24,7 @@
   import { BrewStore, type SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'
   import { join } from '@/util/path-browserify'
+  import { Neo4jManager } from './store'
 
   const brewStore = BrewStore()
   const conf = ref()
@@ -41,8 +42,7 @@
     })
 
   const fallbackPaths = (item: SoftInstalled) => {
-    const instanceDir = (item as any).neo4jInstanceDir
-    if (!instanceDir) return { file: '', defaultFile: '' }
+    const instanceDir = Neo4jManager.instanceDirFor(item)
     const configFile = join(instanceDir, 'conf/neo4j.conf')
     return { file: configFile, defaultFile: `${configFile}.default` }
   }

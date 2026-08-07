@@ -4,7 +4,8 @@ import { join } from 'node:path'
 import {
   filterJavaCandidates,
   isNeo4jSupportedVersion,
-  resolveNeo4jJavaPolicy
+  resolveNeo4jJavaPolicy,
+  sortJavaCandidatesByVersion
 } from '../src/shared/neo4j-policy'
 import { compareVersions } from '../src/shared/compare-versions'
 
@@ -50,6 +51,13 @@ assert.equal(
     { bin: '/jdk21/bin/java', path: '/jdk21', version: '21.0.6' }
   ])[0].version,
   '21.0.6'
+)
+assert.deepEqual(
+  sortJavaCandidatesByVersion([
+    { bin: '/jdk21/bin/java', path: '/jdk21', version: '21.0.6', num: 210 },
+    { bin: '/jdk25/bin/java', path: '/jdk25', version: '25.0.1', num: 250 }
+  ]).map((candidate) => candidate.version),
+  ['25.0.1', '21.0.6']
 )
 
 console.log('Neo4j policy tests passed')

@@ -4,7 +4,7 @@
 
 **Goal:** Add a local FlyEnv Neo4j Community service module that scans installed versions, binds each version to a compatible local JDK, and owns safe start/stop/config/log/Browser lifecycle without calling nest-admin.
 
-**Architecture:** The fork module owns Neo4j processes, PID files, instance directories, configuration, logs, and health checks. A Neo4j renderer store persists install-bin to Java Home bindings; a module-local controller owns password prompts and long-running renderer operations. The service list uses the existing ServiceManager slot to render a per-version Java selector.
+**Architecture:** The fork module owns Neo4j processes, PID files, instance directories, configuration, logs, and health checks. A Neo4j renderer store persists install-bin to Java Home bindings; a module-local controller owns long-running renderer operations without storing or prompting for database credentials. The service list uses the existing ServiceManager slot to render a per-version Java selector.
 
 **Tech Stack:** Electron, Vue 3, Pinia, TypeScript, node:child_process, existing serviceStartSpawn/serviceStartExec, ForkPromise, EnvSync, existing Java module discovery.
 
@@ -20,7 +20,7 @@
 - Create src/render/components/Neo4j/Config.vue and Logs.vue.
 - Create src/render/components/Neo4j/store.ts: local Java binding state.
 - Create src/render/components/Neo4j/policy.ts: renderer Java policy and candidate filtering.
-- Create src/render/components/Neo4j/controller.ts: singleton start/stop/password operation owner.
+- Create src/render/components/Neo4j/controller.ts: singleton start/stop operation owner.
 - Modify src/shared/app.d.ts: add optional runtime snapshot fields to SoftInstalled.
 - Modify src/render/store/app.ts: persist Neo4j bindings in FlyEnv local configuration.
 - Modify src/render/store/brew.ts: preserve Neo4j runtime snapshots during installed-item rehydration.
@@ -231,7 +231,7 @@ Create a Pinia module store with javaByBin, getBinding(bin), setBinding(bin, bin
 
 - [ ] **Step 2: Add the operation controller**
 
-Create a module-local singleton that owns an immutable request snapshot, re-entry guard, password prompt handoff, progress events, terminal result, and cleanup. Its public commands are start(item), stop(item), and restart(item). A duplicate start returns the active promise; a second version is rejected while another instance is running; stop is idempotent.
+Create a module-local singleton that owns an immutable request snapshot, re-entry guard, progress events, terminal result, and cleanup. Its public commands are start(item), stop(item), and restart(item). A duplicate start returns the active promise; a second version is rejected while another instance is running; stop is idempotent. It must not prompt for or persist a Neo4j password.
 
 - [ ] **Step 3: Wire Java start parameters**
 
@@ -251,7 +251,7 @@ Follow Qdrant Module.ts, Index.vue, and aside.vue patterns. Set moduleType dataB
 yarn test:renderer-operation-boundaries
 ~~~
 
-Expected: the controller owns password/progress/terminal cleanup, and the mounted page contains no long-running IPC listener or generic loading map.
+Expected: the controller owns progress/terminal cleanup, and the mounted page contains no long-running IPC listener or generic loading map.
 
 - [ ] **Step 7: Commit renderer ownership changes**
 
@@ -277,7 +277,7 @@ Set JAVA_HOME, prepend the selected JDK bin to PATH, set NEO4J_CONF, and start n
 
 - [ ] **Step 3: Initialize the first password safely**
 
-When the instance data directory has not been initialized, invoke neo4j-admin dbms set-initial-password through an argument/env path that is redacted by existing service-start diagnostics. Do not write the password to a file or log. If the command fails, return the terminal error and leave the existing data directory untouched where possible.
+When the instance data directory has not been initialized, do not invoke neo4j-admin dbms set-initial-password. Start Neo4j normally so it uses the official default credentials (`neo4j` / `neo4j`), leaving password changes to Neo4j Browser.
 
 - [ ] **Step 4: Wait for terminal startup**
 
@@ -306,7 +306,7 @@ git commit -m "feat: add safe Neo4j service lifecycle"
 
 - [ ] **Step 1: Add runtime and lifecycle message keys**
 
-Add keys for Java runtime, incompatible JDK, initial password, Browser, unsupported version, health timeout, and graceful stop. Provide complete English and Simplified Chinese text, then add fallback-safe values for every built-in locale required by the language checker.
+Add keys for Java runtime, Browser, unsupported version, health timeout, and graceful stop. Provide complete English and Simplified Chinese text, then add fallback-safe values for every built-in locale required by the language checker.
 
 - [ ] **Step 2: Run language validation**
 
@@ -350,7 +350,7 @@ Expose Java 17, 21, and 25 where supported. Confirm 5.23–5.26 filter to 17/21,
 
 - [ ] **Step 4: Verify lifecycle and data safety**
 
-Start with a first-run password, open Browser, edit config, stop gracefully, restart, and verify data/log/config persistence. Start a second Neo4j version and confirm it is rejected while the first is running. Confirm stopping Neo4j does not terminate another Java process.
+Start with the default Neo4j credentials, open Browser, edit config, stop gracefully, restart, and verify data/log/config persistence. Start a second Neo4j version and confirm it is rejected while the first is running. Confirm stopping Neo4j does not terminate another Java process.
 
 - [ ] **Step 5: Run the production build**
 

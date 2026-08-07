@@ -21,10 +21,6 @@ export interface SoftInstalled {
   flag?: string
   pid?: string
   note?: string
-  javaHome?: string
-  javaMajor?: number
-  neo4jInstanceDir?: string
-  neo4jNeedsPassword?: boolean
   typeFlag: AllAppModule
 }
 
@@ -82,14 +78,6 @@ export const BrewStore = defineStore('brew', {
         module.stop = module.stop.bind(module)
         module.watchShowHide = module.watchShowHide.bind(module)
         this.modules[module.typeFlag] = module
-        if (flag === ('neo4j' as any)) {
-          // Keep Java binding lookup in the Neo4j binding manager while allowing
-          // tray/service starts to use the existing ModuleInstalledItem flow.
-          module.startExtParam = async (item) => {
-            const { Neo4jManager } = await import('@/components/Neo4j/store')
-            return Neo4jManager.startParams(item)
-          }
-        }
         module.watchShowHide()
       }
       return this.modules[flag] as any

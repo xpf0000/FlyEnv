@@ -11,11 +11,12 @@
         type-flag="neo4j"
         title="Neo4j"
         column-label="Java"
-        :column-width="260"
+        :column-width="220"
       >
         <template #tool-left>
           <el-button
             v-if="runningVersion"
+            style="color: #01cc74"
             class="button"
             link
             :disabled="browserOpening"
@@ -65,8 +66,7 @@
         url="https://neo4j.com/deployment-center/"
       />
       <Config v-else-if="tab === 2" />
-      <Logs v-else-if="tab === 3" type="out" />
-      <Logs v-else-if="tab === 4" type="error" />
+      <Logs v-else-if="tab === 3" />
     </div>
   </div>
 </template>
@@ -90,8 +90,7 @@
     I18nT('base.service'),
     I18nT('base.versionManager'),
     I18nT('base.configFile'),
-    'stdout',
-    I18nT('common.label.errorLog')
+    I18nT('base.log')
   ]
 
   const brewStore = BrewStore()
@@ -138,6 +137,6 @@
 
 <style lang="scss" scoped>
   .neo4j-java-select {
-    width: 240px;
+    width: 200px;
   }
 </style>

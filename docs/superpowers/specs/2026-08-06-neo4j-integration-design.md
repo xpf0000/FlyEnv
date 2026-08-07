@@ -131,13 +131,13 @@ Renderer 模块归类为 `dataBaseServer`，启用服务和托盘入口。服务
 1. renderer controller 获取版本对应的 Java 绑定和不可变启动快照。
 2. fork 模块校验 `javaHome/bin/java` 存在，并执行版本检查。
 3. 创建或校验实例的 conf/data/logs 目录。
-4. 若数据目录尚未初始化，renderer 通过密码输入框取得初始密码；密码只在内存中传递给 fork。
+4. 若数据目录尚未初始化，不执行 FlyEnv 自定义密码设置；Neo4j 使用官方默认账号 `neo4j` 和默认密码 `neo4j`，用户在 Browser 中自行修改。
 5. fork 设置 `JAVA_HOME`、`PATH`、`NEO4J_CONF`，使用 `neo4j console` 启动。
 6. 写入 Neo4j 专属 PID 文件和启动日志。
 7. 等待 PID 存在并探测 HTTP 7474 和 Bolt 7687；健康检查成功后才报告服务启动完成。
 8. renderer 更新运行状态并启用 Browser 按钮。
 
-初始密码不能写入普通配置、命令历史或日志。若数据目录已经初始化，则不再自动调用初始密码命令。
+FlyEnv 不保存或传递 Neo4j 密码，也不调用 `neo4j-admin dbms set-initial-password`。密码由 Neo4j 首次登录流程和 Browser 管理。
 
 ## 停止流程
 
