@@ -72,7 +72,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, watch } from 'vue'
+  import { computed } from 'vue'
   import { Loading } from '@element-plus/icons-vue'
   import { I18nT } from '@lang/index'
   import { AppModuleSetup } from '@/core/Module'
@@ -98,7 +98,6 @@
   // Load persisted bindings before reconciliation; row helpers remain pure reads.
   Neo4jManager.init().catch()
   const installed = computed(() => brewStore.module('neo4j').installed)
-  const javaInstalled = computed(() => brewStore.module('java').installed)
   const runningVersion = computed(() => installed.value.find((item) => item.run))
   const browserOpening = neo4jController.opening
 
@@ -121,16 +120,6 @@
   const openJavaModule = () => {
     Router.push({ path: '/java' }).catch()
   }
-
-  watch(
-    [installed, javaInstalled],
-    ([versions]) => {
-      const neo4jModule = brewStore.module('neo4j' as any)
-      if (versions.length === 0 && !neo4jModule.installedFetched) return
-      neo4jManager.reconcileBindings(versions).catch()
-    },
-    { immediate: true }
-  )
 
   checkVersion()
 </script>

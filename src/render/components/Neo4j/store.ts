@@ -3,6 +3,7 @@ import { reactiveBind } from '@/util/Index'
 import { dirname, join, normalize, resolve } from '@/util/path-browserify'
 import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 import { SHA256 } from 'crypto-js'
+import { watch } from 'vue'
 import {
   filterJavaCandidates,
   javaMajorFromVersion,
@@ -50,6 +51,7 @@ export class Neo4jJavaBindingManager {
   inited = false
   private initPromise?: Promise<void>
   private mutationQueue: Promise<void> = Promise.resolve()
+  private installedVersionsWatching = false
 
   private enqueueMutation<T>(operation: () => Promise<T>): Promise<T> {
     const next = this.mutationQueue.then(operation, operation)
@@ -104,6 +106,25 @@ export class Neo4jJavaBindingManager {
       delete this.javaByBin[normalizeNeo4jBin(bin)]
       await this.persist()
     })
+  }
+
+  watchInstalledVersions() {
+    if (this.installedVersionsWatching) return
+    this.installedVersionsWatching = true
+    const neo4jModule = BrewStore().module('neo4j')
+    const javaModule = BrewStore().module('java' as any)
+    watch(
+      () => ({
+        neo4jFetched: neo4jModule.installedFetched,
+        neo4j: neo4jModule.installed.map((item) => [item.bin, item.path, item.version]),
+        java: javaModule.installed.map((item) => [item.bin, item.path, item.version, item.num])
+      }),
+      () => {
+        if (!neo4jModule.installedFetched) return
+        this.reconcileBindings(neo4jModule.installed).catch(() => undefined)
+      },
+      { immediate: true }
+    )
   }
 
   /** Remove stale paths and initialize new rows with the recommended local JDK. */

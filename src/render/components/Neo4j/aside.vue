@@ -38,6 +38,7 @@
   } = AsideSetup('neo4j')
 
   const neo4jModule = BrewStore().module('neo4j')
+  Neo4jManager.watchInstalledVersions()
   const startParams = (item: ModuleInstalledItem) => {
     return Neo4jManager.startParams(item)
   }
