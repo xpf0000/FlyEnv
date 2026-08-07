@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { SoftInstalled } from '../src/shared/app'
 import { neo4jStartCommand } from '../src/fork/module/Neo4j/start-command'
+import { upsertNeo4jDirectorySettings } from '../src/fork/module/Neo4j/contract'
 
 const root = join(import.meta.dirname, '..')
 const controller = readFileSync(join(root, 'src/render/components/Neo4j/controller.ts'), 'utf-8')
@@ -87,6 +88,12 @@ assert.deepEqual(
 
 const neo4jFork = readFileSync(join(root, 'src/fork/module/Neo4j/index.ts'), 'utf-8')
 assert.match(neo4jFork, /import \{ neo4jStartCommand \} from '\.\/start-command'/)
+assert.match(neo4jFork, /neo4jStopProcessPids\(list, pid, paths\.root, paths\.confDir\)/)
+assert.doesNotMatch(
+  neo4jFork,
+  /spawnPromiseWithEnv\(version\.bin, \['stop'\]/,
+  'Neo4j console mode must stop the owned PID tree directly instead of waiting on neo4j stop'
+)
 assert.match(
   neo4jFork,
   /neo4jStartCommand\(\s*version,\s*isWindows\(\),\s*existsSync,\s*EnvSync\.PowerShellPath \|\| 'powershell\.exe'\s*\)/
@@ -94,6 +101,27 @@ assert.match(
 assert.match(
   neo4jFork,
   /serviceStartSpawn\(\{[\s\S]{0,1000}bin: command\.bin,[\s\S]{0,100}execArgs: command\.execArgs,[\s\S]{0,300}execEnv: \{[\s\S]{0,300}command\.execEnv/
+)
+assert.match(
+  neo4jFork,
+  /serviceStartSpawn\(\{[\s\S]{0,1200}detached: false,[\s\S]{0,200}waitTime: 3000/
+)
+const windowsConfigPath = String.raw`E:\Github\FlyEnv\data\server\neo4j\instances\instance\logs`
+assert.equal(
+  upsertNeo4jDirectorySettings('', { 'server.directories.logs': windowsConfigPath }),
+  'server.directories.logs=E:/Github/FlyEnv/data/server/neo4j/instances/instance/logs\n'
+)
+assert.equal(
+  upsertNeo4jDirectorySettings(`server.directories.logs=${windowsConfigPath}\n`, {
+    'server.directories.logs': windowsConfigPath
+  }),
+  'server.directories.logs=E:/Github/FlyEnv/data/server/neo4j/instances/instance/logs\n'
+)
+assert.equal(
+  upsertNeo4jDirectorySettings('server.directories.logs=C:\\custom\\neo4j\\logs\n', {
+    'server.directories.logs': windowsConfigPath
+  }),
+  'server.directories.logs=C:/custom/neo4j/logs\n'
 )
 
 console.log('Neo4j service lifecycle tests passed')

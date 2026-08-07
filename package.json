@@ -27,6 +27,7 @@
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
     "test:neo4j-renderer": "tsx scripts/neo4j-renderer-test.ts",
     "test:neo4j-service-lifecycle": "tsx scripts/neo4j-service-lifecycle-test.ts",
+    "test:neo4j-startup": "tsx scripts/neo4j-startup-test.ts",
     "test:postgresql-pgadmin4:integration": "tsx scripts/postgresql-pgadmin4-integration-test.ts",
     "dev": "yarn run clean:dev && yarn run build-dev-runner && cross-env NODE_ENV=development node electron/dev-runner.mjs",
     "build": "yarn test:renderer-operation-boundaries && yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production node electron/app-builder.mjs",

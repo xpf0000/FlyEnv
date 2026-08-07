@@ -313,9 +313,16 @@ export const ProcessKillStrict = async (sig: string, pids: string[]) => {
     useHelper = false
   }
   if (useHelper) {
-    const res = await Helper.send('tools', 'kill', sig, pids)
-    appDebugLog(`[ProcessKill][helper]`, `${JSON.stringify({ res, sig, pids })}`).catch()
-    return
+    try {
+      const res = await Helper.send('tools', 'kill', sig, pids)
+      appDebugLog(`[ProcessKill][helper]`, `${JSON.stringify({ res, sig, pids })}`).catch()
+      return
+    } catch (error) {
+      appDebugLog(`[ProcessKill][helper-fallback]`, `${error}`).catch()
+      if (!isWindows()) {
+        throw error
+      }
+    }
   }
 
   let command = ``

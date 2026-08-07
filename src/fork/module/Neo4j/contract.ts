@@ -52,10 +52,22 @@ export function upsertNeo4jDirectorySettings(
   let result = content.replace(/\r\n/g, '\n')
   for (const [key, value] of Object.entries(settings)) {
     const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const active = new RegExp(`^\\s*(?!#)${escaped}\\s*=`, 'm')
-    if (active.test(result)) continue
+    // Neo4j parses this file as Java properties, where a Windows backslash is
+    // an escape character. Forward slashes work on Windows and keep paths
+    // stable when an existing instance config is migrated on startup.
+    const configValue = value.replace(/\\/g, '/')
+    const active = new RegExp(`^([ \\t]*(?!#)${escaped}[ \\t]*=)[ \\t]*([^\\r\\n]*?)[ \\t]*$`, 'm')
+    const activeMatch = result.match(active)
+    if (activeMatch) {
+      const existingValue = activeMatch[2]
+      const normalizedExistingValue = existingValue.replace(/\\/g, '/')
+      if (normalizedExistingValue !== existingValue) {
+        result = result.replace(active, `${activeMatch[1]}${normalizedExistingValue}`)
+      }
+      continue
+    }
     if (result.length > 0 && !result.endsWith('\n')) result += '\n'
-    result += `${key}=${value}\n`
+    result += `${key}=${configValue}\n`
   }
   return result
 }

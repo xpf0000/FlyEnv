@@ -1,6 +1,5 @@
 import { dirname, join, normalize, resolve, sep } from 'node:path'
 import { existsSync } from 'node:fs'
-import axios from 'axios'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
@@ -27,8 +26,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import EnvSync from '@shared/EnvSync'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/runtime'
-import { isMacOS, isWindows } from '@shared/utils'
-import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPid } from '@shared/Process'
+import { isMacOS, isWindows, waitTime } from '@shared/utils'
+import { ProcessKill } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
   NEO4J_MIN_VERSION,
@@ -37,6 +36,7 @@ import {
   resolveNeo4jJavaPolicy
 } from './policy'
 import { neo4jStartCommand } from './start-command'
+import { neo4jStopProcessPids, waitForNeo4jStartupProcess } from './startup'
 import {
   NEO4J_DEFAULT_BOLT_PORT,
   NEO4J_DEFAULT_HTTP_PORT,
@@ -148,43 +148,9 @@ export async function validateNeo4jJava(
   return { javaHome: home, javaBin, javaMajor }
 }
 
-async function isPidAlive(pid: string): Promise<boolean> {
-  if (!pid) return false
-  try {
-    const list = await ProcessListFetch()
-    return list.some((item) => `${item.PID}` === `${pid}`)
-  } catch {
-    return false
-  }
-}
-
-async function waitForHttp(port: number, maxAttempts = 60): Promise<void> {
-  let lastError: unknown
-  for (let i = 0; i < maxAttempts; i += 1) {
-    try {
-      const response = await axios.get(`http://127.0.0.1:${port}/`, {
-        timeout: 1000,
-        validateStatus: () => true,
-        proxy: false
-      })
-      if (response.status >= 100 && response.status < 500) return
-      lastError = new Error(`HTTP ${response.status}`)
-    } catch (error) {
-      lastError = error
-    }
-    await new Promise((resolveWait) => setTimeout(resolveWait, 500))
-  }
-  throw new Error(`Neo4j HTTP health check failed on port ${port}: ${lastError ?? 'timeout'}`)
-}
-
-export async function checkNeo4jHealth(
-  configFile: string
-): Promise<{ httpPort: number; boltPort: number }> {
-  const content = existsSync(configFile) ? await readFile(configFile, 'utf-8') : ''
-  const httpPort = parseNeo4jHttpPort(content)
-  const boltPort = parseNeo4jBoltPort(content)
-  await waitForHttp(httpPort)
-  return { httpPort, boltPort }
+async function startupCommandForPid(pid: string): Promise<string> {
+  const process = (await StopProcessListFetch()).find((item) => `${item.PID}` === `${pid}`)
+  return `${process?.COMMAND ?? ''}`
 }
 
 class Neo4j extends Base {
@@ -295,14 +261,24 @@ class Neo4j extends Base {
           errFile: paths.startError,
           on,
           sensitive: true,
+          detached: false,
           waitTime: 3000
         })
-        const ports = await checkNeo4jHealth(paths.configFile)
+        const startupPid = res['APP-Service-Start-PID']
+        const startupCommand = await startupCommandForPid(startupPid)
+        if (!startupCommand) {
+          throw new Error(`Neo4j startup process ${startupPid} command was not found`)
+        }
+        await waitForNeo4jStartupProcess({
+          startupPid,
+          startupCommand,
+          installationPath: paths.root,
+          configDir: paths.confDir,
+          listProcesses: StopProcessListFetch,
+          wait: waitTime
+        })
         on({
-          'APP-On-Log': AppLog(
-            'info',
-            `Neo4j ${version.version} is ready on HTTP ${ports.httpPort} / Bolt ${ports.boltPort}`
-          )
+          'APP-On-Log': AppLog('info', `Neo4j ${version.version} process tree is ready`)
         })
         resolve({
           ...res,
@@ -326,55 +302,38 @@ class Neo4j extends Base {
         )
       })
 
-      let stoppedGracefully = false
-      const javaHome = params?.javaHome
-      try {
-        if (javaHome && existsSync(javaBinForHome(javaHome))) {
-          const env = this.envFor(version, paths, javaHome)
-          await spawnPromiseWithEnv(version.bin, ['stop'], {
-            cwd: paths.root,
-            env,
-            shell: isWindows(),
-            windowsHide: true
-          })
-          stoppedGracefully = true
-        }
-      } catch {
-        stoppedGracefully = false
-      }
-
-      if (stoppedGracefully && pid) {
-        for (let i = 0; i < 20; i += 1) {
-          if (!(await isPidAlive(pid))) break
-          await new Promise((resolveWait) => setTimeout(resolveWait, 500))
-        }
-        if (await isPidAlive(pid)) stoppedGracefully = false
-      }
-
       const markerPids: string[] = []
-      if (!stoppedGracefully && pid) {
-        try {
-          const list = await StopProcessListFetch()
-          markerPids.push(
-            ...ProcessOwnedPidsByPid(pid, list, [version.bin, paths.root, paths.instanceDir])
-          )
-        } catch {}
-      }
-      // Never kill a PID solely because a stale pid file contains its number. The
-      // process list helper verifies that the command still belongs to this
-      // installation before returning it.
+      try {
+        const list = await StopProcessListFetch()
+        markerPids.push(...neo4jStopProcessPids(list, pid, paths.root, paths.confDir))
+      } catch {}
+      // A stale launcher PID is insufficient. The helper recovers the exact
+      // instance Java process by --home-dir and --config-dir when needed.
       const allPids = Array.from(new Set(markerPids.filter(Boolean)))
-      if (!stoppedGracefully && allPids.length > 0) {
+      if (allPids.length > 0) {
         try {
           await ProcessKill(isWindows() ? '-INT' : '-TERM', allPids)
         } catch {}
       }
 
-      if (allPids.includes(pid)) {
+      let stopped = allPids.length === 0
+      if (allPids.length > 0) {
         for (let i = 0; i < 30; i += 1) {
-          if (!(await isPidAlive(pid))) break
-          await new Promise((resolveWait) => setTimeout(resolveWait, 500))
+          const remaining = neo4jStopProcessPids(
+            await StopProcessListFetch(),
+            pid,
+            paths.root,
+            paths.confDir
+          )
+          if (remaining.length === 0) {
+            stopped = true
+            break
+          }
+          await waitTime(500)
         }
+      }
+      if (!stopped) {
+        throw new Error(`Neo4j process ${pid} did not exit after stop request`)
       }
       await remove(pidFile).catch(() => {})
       if (this.pidPath === pidFile) this.pidPath = join(moduleBaseDir(), 'neo4j.pid')

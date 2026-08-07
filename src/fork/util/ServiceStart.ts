@@ -54,6 +54,8 @@ export type ServiceStartSpawnParams = {
   errFile?: string
   /** Redact executable arguments and environment values from the startup diagnostic log. */
   sensitive?: boolean
+  /** Keep wrapper processes attached when the platform launcher cannot survive CREATE_NEW_PROCESS_GROUP. */
+  detached?: boolean
 }
 
 type ServiceStartSpawnLogParam = Omit<ServiceStartSpawnParams, 'execArgs' | 'execEnv'> & {
@@ -463,7 +465,7 @@ export async function serviceStartSpawn(
   const doExec = (): Promise<{ 'APP-Service-Start-PID': string }> => {
     const cwd = param?.cwd ?? dirname(bin)
     const options: any = {
-      detached: true,
+      detached: param.detached ?? true,
       stdio: ['ignore', out, err],
       cwd,
       env: {
