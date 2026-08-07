@@ -24,6 +24,7 @@ import {
 import { unpack } from '../../util/Zip'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
+import EnvSync from '@shared/EnvSync'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/runtime'
 import { isMacOS, isWindows } from '@shared/utils'
@@ -35,6 +36,7 @@ import {
   javaMajorFromVersion,
   resolveNeo4jJavaPolicy
 } from './policy'
+import { neo4jStartCommand } from './start-command'
 import {
   NEO4J_DEFAULT_BOLT_PORT,
   NEO4J_DEFAULT_HTTP_PORT,
@@ -275,13 +277,19 @@ class Neo4j extends Base {
         const paths = await this.initializeInstance(version, params?.neo4jInstanceDir)
 
         this.pidPath = paths.pidFile
+        const command = neo4jStartCommand(
+          version,
+          isWindows(),
+          existsSync,
+          EnvSync.PowerShellPath || 'powershell.exe'
+        )
         const res = await serviceStartSpawn({
           version,
           pidPath: paths.pidFile,
           baseDir: paths.instanceDir,
-          bin: version.bin,
-          execArgs: ['console'],
-          execEnv: this.envFor(version, paths, java.javaHome),
+          bin: command.bin,
+          execArgs: command.execArgs,
+          execEnv: { ...this.envFor(version, paths, java.javaHome), ...(command.execEnv ?? {}) },
           cwd: paths.root,
           outFile: paths.startOut,
           errFile: paths.startError,

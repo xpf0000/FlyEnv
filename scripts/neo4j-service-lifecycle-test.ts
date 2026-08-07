@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import type { SoftInstalled } from '../src/shared/app'
+import { neo4jStartCommand } from '../src/fork/module/Neo4j/start-command'
 
 const root = join(import.meta.dirname, '..')
 const controller = readFileSync(join(root, 'src/render/components/Neo4j/controller.ts'), 'utf-8')
@@ -38,5 +40,60 @@ assert.match(aside, /Neo4jManager\.startParams/)
 assert.match(aside, /Neo4jManager\.stopParams/)
 assert.match(neo4jStore, /instanceDirFor\(/)
 assert.doesNotMatch(controller, /startInternal|stopInternal|stopOtherVersions/)
+
+const nativeVersion = { bin: '/opt/neo4j/bin/neo4j' } as SoftInstalled
+assert.deepEqual(
+  neo4jStartCommand(nativeVersion, false, () => false, 'powershell.exe'),
+  { bin: nativeVersion.bin, execArgs: ['console'] }
+)
+
+const windowsVersion = { bin: join('neo4j', 'bin', 'neo4j.bat') } as SoftInstalled
+const expectedPowerShellScript = join('neo4j', 'bin', 'neo4j.ps1')
+assert.deepEqual(
+  neo4jStartCommand(
+    windowsVersion,
+    true,
+    (scriptPath) => scriptPath === expectedPowerShellScript,
+    'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+  ),
+  {
+    bin: 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+    execArgs: [
+      '-NoProfile',
+      '-NonInteractive',
+      '-NoLogo',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-WindowStyle',
+      'Hidden',
+      '-File',
+      expectedPowerShellScript,
+      'console'
+    ]
+  }
+)
+
+const percentPathVersion = {
+  bin: 'C:\\Neo4j\\%NEO4J_HOME%\\bin\\neo4j.bat'
+} as SoftInstalled
+assert.deepEqual(
+  neo4jStartCommand(percentPathVersion, true, () => false, 'powershell.exe'),
+  {
+    bin: 'cmd.exe',
+    execArgs: ['/d', '/s', '/c', '"%FLYENV_NEO4J_BIN%" console'],
+    execEnv: { FLYENV_NEO4J_BIN: percentPathVersion.bin }
+  }
+)
+
+const neo4jFork = readFileSync(join(root, 'src/fork/module/Neo4j/index.ts'), 'utf-8')
+assert.match(neo4jFork, /import \{ neo4jStartCommand \} from '\.\/start-command'/)
+assert.match(
+  neo4jFork,
+  /neo4jStartCommand\(\s*version,\s*isWindows\(\),\s*existsSync,\s*EnvSync\.PowerShellPath \|\| 'powershell\.exe'\s*\)/
+)
+assert.match(
+  neo4jFork,
+  /serviceStartSpawn\(\{[\s\S]{0,1000}bin: command\.bin,[\s\S]{0,100}execArgs: command\.execArgs,[\s\S]{0,300}execEnv: \{[\s\S]{0,300}command\.execEnv/
+)
 
 console.log('Neo4j service lifecycle tests passed')
