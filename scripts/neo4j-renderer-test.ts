@@ -37,11 +37,17 @@ assert.doesNotMatch(
 assert.match(store, /setBinding\(/)
 assert.match(store, /reconcileBindings\(/)
 assert.match(store, /mutationQueue/)
-assert.match(store, /import \{ watch \} from 'vue'/)
+assert.match(store, /import \{ effectScope, watch, type EffectScope \} from 'vue'/)
 assert.match(store, /watchInstalledVersions\(\)/)
 assert.match(store, /private installedVersionsWatching = false/)
+assert.match(store, /private installedVersionsScope\?: EffectScope/)
+assert.match(store, /this\.installedVersionsScope = effectScope\(true\)/)
+assert.match(store, /this\.installedVersionsScope\.run\(\(\) => \{/)
 assert.match(store, /if \(this\.installedVersionsWatching\) return/)
-assert.match(store, /this\.reconcileBindings\(neo4jModule\.installed\)\.catch\(\(\) => undefined\)/)
+assert.match(
+  store,
+  /this\.reconcileBindings\(neo4jModule\.installed\)\.catch\(\(error\) =>[\s\S]*console\.error\('Neo4j Java binding reconciliation failed', error\)/
+)
 assert.match(store, /sortJavaCandidatesByVersion/)
 assert.match(controller, /export class Neo4jController\b/)
 assert.match(controller, /readonly opening = ref\(false\)/)

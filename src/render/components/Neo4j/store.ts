@@ -3,7 +3,7 @@ import { reactiveBind } from '@/util/Index'
 import { dirname, join, normalize, resolve } from '@/util/path-browserify'
 import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 import { SHA256 } from 'crypto-js'
-import { watch } from 'vue'
+import { effectScope, watch, type EffectScope } from 'vue'
 import {
   filterJavaCandidates,
   javaMajorFromVersion,
@@ -52,6 +52,7 @@ export class Neo4jJavaBindingManager {
   private initPromise?: Promise<void>
   private mutationQueue: Promise<void> = Promise.resolve()
   private installedVersionsWatching = false
+  private installedVersionsScope?: EffectScope
 
   private enqueueMutation<T>(operation: () => Promise<T>): Promise<T> {
     const next = this.mutationQueue.then(operation, operation)
@@ -113,18 +114,23 @@ export class Neo4jJavaBindingManager {
     this.installedVersionsWatching = true
     const neo4jModule = BrewStore().module('neo4j')
     const javaModule = BrewStore().module('java' as any)
-    watch(
-      () => ({
-        neo4jFetched: neo4jModule.installedFetched,
-        neo4j: neo4jModule.installed.map((item) => [item.bin, item.path, item.version]),
-        java: javaModule.installed.map((item) => [item.bin, item.path, item.version, item.num])
-      }),
-      () => {
-        if (!neo4jModule.installedFetched) return
-        this.reconcileBindings(neo4jModule.installed).catch(() => undefined)
-      },
-      { immediate: true }
-    )
+    this.installedVersionsScope = effectScope(true)
+    this.installedVersionsScope.run(() => {
+      watch(
+        () => ({
+          neo4jFetched: neo4jModule.installedFetched,
+          neo4j: neo4jModule.installed.map((item) => [item.bin, item.path, item.version]),
+          java: javaModule.installed.map((item) => [item.bin, item.path, item.version, item.num])
+        }),
+        () => {
+          if (!neo4jModule.installedFetched) return
+          this.reconcileBindings(neo4jModule.installed).catch((error) =>
+            console.error('Neo4j Java binding reconciliation failed', error)
+          )
+        },
+        { immediate: true }
+      )
+    })
   }
 
   /** Remove stale paths and initialize new rows with the recommended local JDK. */
