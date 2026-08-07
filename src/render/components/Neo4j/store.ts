@@ -133,6 +133,12 @@ export class Neo4jJavaBindingManager {
     })
   }
 
+  stopInstalledVersionsWatch() {
+    this.installedVersionsScope?.stop()
+    this.installedVersionsScope = undefined
+    this.installedVersionsWatching = false
+  }
+
   /** Remove stale paths and initialize new rows with the recommended local JDK. */
   async reconcileBindings(installed: SoftInstalled[]) {
     const neo4jModule = BrewStore().module('neo4j')

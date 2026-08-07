@@ -44,6 +44,10 @@ assert.match(store, /private installedVersionsScope\?: EffectScope/)
 assert.match(store, /this\.installedVersionsScope = effectScope\(true\)/)
 assert.match(store, /this\.installedVersionsScope\.run\(\(\) => \{/)
 assert.match(store, /if \(this\.installedVersionsWatching\) return/)
+assert.match(store, /stopInstalledVersionsWatch\(\)/)
+assert.match(store, /this\.installedVersionsScope\?\.stop\(\)/)
+assert.match(store, /this\.installedVersionsScope = undefined/)
+assert.match(store, /this\.installedVersionsWatching = false/)
 assert.match(
   store,
   /this\.reconcileBindings\(neo4jModule\.installed\)\.catch\(\(error\) =>[\s\S]*console\.error\('Neo4j Java binding reconciliation failed', error\)/
@@ -86,5 +90,7 @@ assert.doesNotMatch(logs, /defineProps<\{ type: 'out' \| 'error' \}>/)
 assert.doesNotMatch(logs, /props\.type/)
 assert.match(service, /<slot name="column" :row="scope\.row">/)
 assert.match(aside, /Neo4jManager\.watchInstalledVersions\(\)/)
+assert.match(aside, /import \{ onBeforeUnmount \} from 'vue'/)
+assert.match(aside, /onBeforeUnmount\(\(\) => Neo4jManager\.stopInstalledVersionsWatch\(\)\)/)
 
 console.log('Neo4j renderer tests passed')

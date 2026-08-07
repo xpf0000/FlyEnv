@@ -20,6 +20,7 @@
 </template>
 
 <script lang="ts" setup>
+  import { onBeforeUnmount } from 'vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { BrewStore } from '@/store/brew'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
@@ -39,6 +40,7 @@
 
   const neo4jModule = BrewStore().module('neo4j')
   Neo4jManager.watchInstalledVersions()
+  onBeforeUnmount(() => Neo4jManager.stopInstalledVersionsWatch())
   const startParams = (item: ModuleInstalledItem) => {
     return Neo4jManager.startParams(item)
   }
