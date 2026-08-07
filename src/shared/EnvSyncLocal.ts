@@ -10,6 +10,8 @@ import { powerShellInlineArgs } from './PowerShellCommand'
 
 const execFilePromise = promisify(execFile)
 
+const WINDOWS_ENV_FETCH_TIMEOUT_MS = 60_000
+
 export const WINDOWS_ENV_SCRIPT = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $userVars = [Environment]::GetEnvironmentVariables('User')
@@ -146,6 +148,7 @@ class EnvSyncLocalLoader {
         {
           encoding: 'utf8',
           windowsHide: true,
+          timeout: WINDOWS_ENV_FETCH_TIMEOUT_MS,
           maxBuffer: 10 * 1024 * 1024
         }
       )

@@ -1,4 +1,4 @@
-import { dirname, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync, readdirSync, realpathSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/runtime'
@@ -33,6 +33,10 @@ import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 import type { PItem } from '@shared/Process'
 import EnvSync from '@shared/EnvSync'
+
+const RABBITMQ_EPMD_START_TIMEOUT_MS = 60_000
+const RABBITMQ_VERSION_COMMAND_TIMEOUT_MS = 60_000
+
 class RabbitMQ extends Base {
   baseDir: string = ''
 
@@ -48,9 +52,19 @@ class RabbitMQ extends Base {
 
   async _resolveErlangHome() {
     const env = await EnvSync.sync().catch(() => process.env)
-    const envHome = `${env?.ERLANG_HOME ?? env?.Erlang_Home ?? ''}`.trim()
+    const stripOuterQuotes = (value: string) => value.trim().replace(/^['"]|['"]$/g, '')
+    const envHome = stripOuterQuotes(`${env?.ERLANG_HOME ?? env?.Erlang_Home ?? ''}`)
     if (envHome && existsSync(envHome)) {
       return envHome
+    }
+    const envPath = `${env?.PATH ?? env?.Path ?? ''}`
+    for (const entry of envPath.split(';')) {
+      const binDir = stripOuterQuotes(entry)
+      if (basename(binDir).toLowerCase() !== 'bin') continue
+      const pathHome = dirname(binDir)
+      if (existsSync(join(pathHome, 'bin/erl.exe'))) {
+        return pathHome
+      }
     }
     const appDir = global.Server.AppDir
     if (!appDir || !existsSync(appDir)) {
@@ -162,9 +176,14 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
     if (!str || !existsSync(str)) {
       return
     }
-    const dirs = await readdir(str)
-    for (const dir of dirs) {
-      const bin = join(str, dir, 'bin/epmd.exe')
+    const epmdCandidates = [join(str, 'bin', 'epmd.exe')]
+    try {
+      const dirs = await readdir(str)
+      for (const dir of dirs) {
+        epmdCandidates.push(join(str, dir, 'bin/epmd.exe'))
+      }
+    } catch {}
+    for (const bin of epmdCandidates) {
       console.log('epmd.exe: ', bin)
       if (existsSync(bin)) {
         console.log('epmd.exe existsSync: ', bin)
@@ -173,7 +192,9 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
           await EnvSync.sync()
           await execPromise(`start /B ./epmd.exe > NUL 2>&1`, {
             cwd: dirname(bin),
-            shell: EnvSync.CMDPath || 'cmd.exe'
+            shell: EnvSync.CMDPath || 'cmd.exe',
+            timeout: RABBITMQ_EPMD_START_TIMEOUT_MS,
+            windowsHide: true
           })
         } catch (e: any) {
           console.log('epmd.exe start error: ', e)
@@ -367,7 +388,14 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
               const bin = join(dirname(item.bin), 'rabbitmqctl.bat')
               const command = `"${bin}" version`
               const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
-              return TaskQueue.run(versionBinVersion, bin, command, reg)
+              return TaskQueue.run(
+                versionBinVersion,
+                bin,
+                command,
+                reg,
+                false,
+                RABBITMQ_VERSION_COMMAND_TIMEOUT_MS
+              )
             })
             return Promise.all(all)
           } else {
