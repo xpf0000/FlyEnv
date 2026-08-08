@@ -50,7 +50,7 @@ export const AsideSetup = () => {
       const all: Array<Promise<any>> = []
       if (v) {
         CloudflareTunnelStore.items.forEach((v) => {
-          if (appStore.phpGroupStart?.[v.id] !== false && !v?.run) {
+          if (!v?.run) {
             all.push(v.start())
           }
         })
@@ -93,7 +93,7 @@ export const AsideSetup = () => {
     } else {
       if (showItem?.value) {
         CloudflareTunnelStore.items.forEach((v) => {
-          if (appStore.phpGroupStart?.[v.id] !== false && !v?.run) {
+          if (!v?.run) {
             all.push(v.start())
           }
         })

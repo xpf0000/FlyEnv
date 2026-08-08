@@ -129,31 +129,6 @@
           <slot name="column" :row="scope.row"></slot>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
-        <template #header>
-          <span class="truncate">{{ I18nT('php.quickStart') }}</span>
-        </template>
-        <template #default="scope">
-          <template
-            v-if="
-              currentVersion?.version === scope.row.version &&
-              currentVersion?.path === scope.row.path
-            "
-          >
-            <el-button
-              link
-              class="status group-off"
-              :class="{ off: appStore.phpGroupStart[scope.row.bin] === false }"
-            >
-              <yb-icon
-                style="width: 30px; height: 30px"
-                :svg="import('@/svg/nogroupstart.svg?raw')"
-                @click.stop="groupTrunOn(scope.row)"
-              />
-            </el-button>
-          </template>
-        </template>
-      </el-table-column>
       <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
         <template #header>
           <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
@@ -222,7 +197,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.service')" :prop="null" width="110px">
+      <el-table-column fixed="right" :label="I18nT('base.service')" :prop="null" width="110px">
         <template #default="scope">
           <template v-if="scope.row.running">
             <el-button :loading="true" link></el-button>
@@ -265,6 +240,7 @@
         </template>
       </el-table-column>
       <el-table-column
+        fixed="right"
         :label="I18nT('common.label.action')"
         :prop="null"
         width="100px"
@@ -322,7 +298,6 @@
     saveNote,
     isInEnv,
     isInAppEnv,
-    groupTrunOn,
     openDir,
     serviceDo,
     showCustomDir,

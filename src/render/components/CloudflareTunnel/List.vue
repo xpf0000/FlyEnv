@@ -130,21 +130,6 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
-        <template #default="scope">
-          <el-button
-            link
-            class="status group-off"
-            :class="{ off: appStore?.phpGroupStart?.[scope.row.id] === false }"
-            @click.stop="groupTrunOn(scope.row)"
-          >
-            <yb-icon
-              style="width: 30px; height: 30px"
-              :svg="import('@/svg/nogroupstart.svg?raw')"
-            />
-          </el-button>
-        </template>
-      </el-table-column>
       <el-table-column :label="I18nT('base.service')" :prop="null" width="100px">
         <template #default="scope">
           <template v-if="scope.row.running">
@@ -219,11 +204,8 @@
   import { I18nT } from '@lang/index'
   import { Lock, Plus } from '@element-plus/icons-vue'
   import { Setup } from './setup'
-  import { AppStore } from '@/store/app'
   import { CloudflareTunnel } from '@/core/CloudflareTunnel/CloudflareTunnel'
   import { CloudflareTunnelDnsRecord } from '@/core/CloudflareTunnel/type'
-
-  const appStore = AppStore()
 
   const {
     add,
@@ -233,7 +215,6 @@
     openOutUrl,
     openLocalUrl,
     localServiceUrl,
-    groupTrunOn,
     copy,
     editDNS,
     delDNS,

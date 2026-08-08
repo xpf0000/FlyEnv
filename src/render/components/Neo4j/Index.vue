@@ -11,7 +11,7 @@
         type-flag="neo4j"
         title="Neo4j"
         column-label="Java"
-        :column-width="220"
+        :column-width="160"
       >
         <template #tool-left>
           <el-button
@@ -36,7 +36,7 @@
                 :model-value="selectedJava(row)"
                 :disabled="row.run || row.running"
                 size="small"
-                class="neo4j-java-select"
+                class="w-[140px]"
                 placeholder="Select Java"
                 @change="(value: string) => updateJava(row, value)"
               >
@@ -123,9 +123,3 @@
 
   checkVersion()
 </script>
-
-<style lang="scss" scoped>
-  .neo4j-java-select {
-    width: 200px;
-  }
-</style>

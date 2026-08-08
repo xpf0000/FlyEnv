@@ -1062,6 +1062,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(asideSource, /common\.startupGroup\.controlLegacyTooltip/)
   assert.match(asideSource, /name: defaultStartupGroup\.value\.name/)
   assert.match(asideSource, /\{\{ groupTooltip \}\}/)
+  assert.doesNotMatch(asideSource, /phpGroupStart/)
   assert.doesNotMatch(asideSource, /I18nT\('aside\.groupStart'\)/)
   assert.match(asideSource, /startupGroupStateForId/)
   assert.match(asideSource, /defaultStartupGroup\.value\?\.id !== startupGroupStateForId\.value/)

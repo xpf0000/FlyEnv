@@ -82,14 +82,9 @@ export const AsideSetup = (flag: AllAppModule) => {
         const module = brewStore.module(flag)
         all.push(module.stop())
       }
-    } else {
-      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
-        return all
-      }
-      if (showItem?.value && currentVersion?.value?.version) {
-        const module = brewStore.module(flag)
-        all.push(module.start())
-      }
+    } else if (showItem?.value && currentVersion?.value?.version) {
+      const module = brewStore.module(flag)
+      all.push(module.start())
     }
     return all
   }

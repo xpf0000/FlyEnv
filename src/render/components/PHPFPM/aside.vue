@@ -42,7 +42,7 @@
       if (v) {
         const runNum: Set<number> = new Set<number>()
         phpVersions?.value?.forEach((v) => {
-          if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
+          if (v?.version && !v?.run) {
             if (!runNum.has(v.num!)) {
               runNum.add(v.num!)
               all.push(v.start())
@@ -92,7 +92,7 @@
       if (showItem?.value) {
         const runNum: Set<number> = new Set<number>()
         phpVersions?.value?.forEach((v) => {
-          if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
+          if (v?.version && !v?.run) {
             if (!runNum.has(v.num!)) {
               runNum.add(v.num!)
               all.push(v.start())

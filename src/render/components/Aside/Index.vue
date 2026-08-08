@@ -438,9 +438,6 @@
       .filter((f): f is AppServiceModuleItem => !!f)
   })
 
-  /**
-   * Aside service vue component
-   */
   const asideServiceShowModule = computed(() => {
     return groupManagedServiceModules.value
   })
@@ -459,27 +456,6 @@
       .flat()
   })
 
-  /**
-   * All Aside service is set not group start. And no customer service exists
-   */
-  const noGroupStart = computed(() => {
-    const a = groupManagedTypeFlags.value.every((typeFlag) => {
-      const appModule = platformAppModules.value.find((m) => m.typeFlag === typeFlag)
-      const serviceModule = AppServiceModule?.[typeFlag]
-      if (appModule?.moduleType === 'language' && typeFlag !== 'php-fpm') {
-        return serviceModule?.serviceDisabled !== false
-      }
-      const versionFlag = typeFlag === 'php-fpm' ? 'php' : typeFlag
-      const v = brewStore.currentVersion(versionFlag)
-      if (!v) {
-        return true
-      }
-      return appStore.phpGroupStart?.[v.bin] === false
-    })
-    const b = serviceShowCustomer.value.length === 0
-    return a && b
-  })
-
   const legacyGroupIsRunning = computed(() => {
     return (
       asideServiceShowModule.value.some((m) => !!m?.serviceRunning) ||
@@ -488,32 +464,12 @@
     )
   })
 
-  // const debugObj = computed(() => {
-  //   const modules = Object.values(AppServiceModule)
-  //   const allDisabled = modules.every((m) => !!m?.serviceDisabled)
-  //   const running = modules.some((m) => !!m?.serviceFetching)
-  //
-  //   return {
-  //     modules: AppServiceModule,
-  //     allDisabled,
-  //     running,
-  //     versionInitiated: appStore.versionInitiated,
-  //     customerRunning: serviceShowCustomer.value.some((s) => s.running),
-  //     noGroupStart: noGroupStart.value,
-  //     serviceShowCustomer: serviceShowCustomer.value
-  //   }
-  // })
-
   const legacyGroupDisabled = computed(() => {
     const modules = groupManagedServiceModules.value
-    const allDisabled = modules.every((m) => !!m?.serviceDisabled)
-    const running = modules.some((m) => !!m?.serviceFetching)
-    console.log('groupDisabled', allDisabled, running, appStore.versionInitiated)
     return (
-      allDisabled ||
-      running ||
+      modules.every((m) => !!m.serviceDisabled) ||
+      modules.some((m) => !!m.serviceFetching) ||
       !appStore.versionInitiated ||
-      noGroupStart.value ||
       serviceShowCustomer.value.some((s) => s.running)
     )
   })
@@ -769,11 +725,7 @@
     if (groupDisabled.value) return
 
     const group = defaultStartupGroup.value
-    if (!group && startupGroupConfig.value.defaultStartupGroupId) {
-      await startupGroupStore.setDefault()
-    }
-
-    if (resolveGroupExecutionRoute(startupGroupsVisible.value, group) === 'legacy') {
+    if (startupGroupRoute.value === 'legacy') {
       legacyGroupDo()
       return
     }

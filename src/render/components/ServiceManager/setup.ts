@@ -1,4 +1,4 @@
-import { computed, ComputedRef, reactive, ref } from 'vue'
+import { computed, ComputedRef, ref } from 'vue'
 import { AppStore } from '@/store/app'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
@@ -59,19 +59,6 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const isInAppEnv = (item: SoftInstalled) => {
     return ServiceActionStore.isInAppEnv(item)
-  }
-
-  const groupTrunOn = (item: SoftInstalled) => {
-    const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
-    const key = item.bin
-    if (dict?.[key] === false) {
-      dict[key] = true
-      delete dict?.[key]
-    } else {
-      dict[key] = false
-    }
-    appStore.config.setup.phpGroupStart = reactive(dict)
-    appStore.saveConfig().then().catch()
   }
 
   const resetData = () => {
@@ -223,7 +210,6 @@ export const Setup = (typeFlag: AllAppModule) => {
     versionRunning,
     isInEnv,
     isInAppEnv,
-    groupTrunOn,
     openDir,
     editingNoteKey,
     editingNoteValue,

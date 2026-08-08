@@ -112,7 +112,6 @@ type StateBase = SetupBase & {
   mongodbBrewInitiated: boolean
   currentNodeTool: 'fnm' | 'nvm' | 'default'
   editorConfig: EditorConfig
-  phpGroupStart: { [k: string]: boolean }
   autoStartService?: boolean
   autoHide?: boolean
   autoLaunch?: boolean
@@ -179,7 +178,6 @@ const state: State = {
       phpBrewInitiated: false,
       mongodbBrewInitiated: false,
       editorConfig: EditorBaseConfig,
-      phpGroupStart: {},
       currentNodeTool: 'default'
     }
   },
@@ -201,9 +199,6 @@ export const AppStore = defineStore('app', {
   getters: {
     editorConfig(): EditorConfig {
       return this.config.setup.editorConfig
-    },
-    phpGroupStart(): { [k: string]: boolean } {
-      return this.config.setup.phpGroupStart
     }
   },
   actions: {
@@ -242,9 +237,6 @@ export const AppStore = defineStore('app', {
       const editorConfig = this.config.setup.editorConfig
       EditorBaseConfig.init(editorConfig)
       this.config.setup.editorConfig = EditorBaseConfig
-      if (!this.config.setup.phpGroupStart) {
-        this.config.setup.phpGroupStart = reactive({})
-      }
     },
     INIT_HTTP_SERVE(obj: any) {
       this.httpServe = reactive(obj)

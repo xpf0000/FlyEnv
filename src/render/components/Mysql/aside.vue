@@ -24,7 +24,6 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
-  import { AppStore } from '@/store/app'
   import { MysqlStore } from '@/components/Mysql/mysql'
   import { computed } from 'vue'
   import { BrewStore } from '@/store/brew'
@@ -41,7 +40,6 @@
     currentVersion
   } = AsideSetup('mysql')
 
-  const appStore = AppStore()
   const brewStore = BrewStore()
   const mysqlStore = MysqlStore()
 
@@ -60,9 +58,6 @@
         }
       }
     } else {
-      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
-        return all
-      }
       if (showItem?.value && currentVersion?.value?.version) {
         const module = brewStore.module('mysql')
         all.push(module.start())

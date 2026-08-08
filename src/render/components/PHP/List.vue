@@ -59,21 +59,6 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
-        <template #default="scope">
-          <el-button
-            link
-            class="status group-off"
-            :class="{ off: appStore?.phpGroupStart?.[scope.row.bin] === false }"
-            @click.stop="groupTrunOn(scope.row)"
-          >
-            <yb-icon
-              style="width: 30px; height: 30px"
-              :svg="import('@/svg/nogroupstart.svg?raw')"
-            />
-          </el-button>
-        </template>
-      </el-table-column>
       <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
         <template #header>
           <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
@@ -252,7 +237,6 @@
     versions,
     isInEnv,
     isInAppEnv,
-    groupTrunOn,
     openDir,
     serviceDo,
     showCustomDir,
@@ -292,9 +276,6 @@
 
   const action = (item: SoftInstalled, index: number, flag: string) => {
     switch (flag) {
-      case 'groupstart':
-        groupTrunOn(item)
-        break
       case 'open':
         shell.openPath(item.path)
         break
