@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { SoftInstalled } from '../src/shared/app'
-import { neo4jStartCommand } from '../src/fork/module/Neo4j/start-command'
+import { neo4jPathEnv, neo4jStartCommand } from '../src/fork/module/Neo4j/start-command'
 import { upsertNeo4jDirectorySettings } from '../src/fork/module/Neo4j/contract'
 
 const root = join(import.meta.dirname, '..')
@@ -43,6 +43,15 @@ assert.match(neo4jStore, /instanceDirFor\(/)
 assert.doesNotMatch(controller, /startInternal|stopInternal|stopOtherVersions/)
 
 const nativeVersion = { bin: '/opt/neo4j/bin/neo4j' } as SoftInstalled
+const packagedPath = neo4jPathEnv(
+  '/Library/Java/JavaVirtualMachines/jdk-21/Contents/Home',
+  nativeVersion.bin,
+  undefined,
+  false
+)
+assert.match(packagedPath, /\/usr\/bin/)
+assert.match(packagedPath, /\/bin/)
+assert.match(packagedPath, /\/opt\/neo4j\/bin/)
 assert.deepEqual(
   neo4jStartCommand(nativeVersion, false, () => false, 'powershell.exe'),
   { bin: nativeVersion.bin, execArgs: ['console'] }
@@ -87,8 +96,9 @@ assert.deepEqual(
 )
 
 const neo4jFork = readFileSync(join(root, 'src/fork/module/Neo4j/index.ts'), 'utf-8')
-assert.match(neo4jFork, /import \{ neo4jStartCommand \} from '\.\/start-command'/)
+assert.match(neo4jFork, /import \{[^}]*neo4jStartCommand[^}]*\} from '\.\/start-command'/)
 assert.match(neo4jFork, /neo4jStopProcessPids\(list, pid, paths\.root, paths\.confDir\)/)
+assert.match(neo4jFork, /const syncedEnv = await EnvSync\.sync\(\)/)
 assert.doesNotMatch(
   neo4jFork,
   /spawnPromiseWithEnv\(version\.bin, \['stop'\]/,

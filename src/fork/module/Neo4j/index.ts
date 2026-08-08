@@ -1,4 +1,4 @@
-import { dirname, join, normalize, resolve, sep } from 'node:path'
+import { dirname, join, normalize, resolve } from 'node:path'
 import { existsSync } from 'node:fs'
 import { Base } from '../Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -35,7 +35,7 @@ import {
   javaMajorFromVersion,
   resolveNeo4jJavaPolicy
 } from './policy'
-import { neo4jStartCommand } from './start-command'
+import { neo4jPathEnv, neo4jStartCommand } from './start-command'
 import { neo4jStopProcessPids, waitForNeo4jStartupProcess } from './startup'
 import {
   NEO4J_DEFAULT_BOLT_PORT,
@@ -217,13 +217,12 @@ class Neo4j extends Base {
   private envFor(
     version: SoftInstalled,
     paths: Neo4jPaths,
-    javaHome: string
+    javaHome: string,
+    currentPath?: string
   ): Record<string, string> {
-    const currentPath = process.env.PATH ?? ''
-    const javaBinDir = join(javaHome, 'bin')
     return {
       JAVA_HOME: javaHome,
-      PATH: `${javaBinDir}${sep}${dirname(version.bin)}${sep}${currentPath}`,
+      PATH: neo4jPathEnv(javaHome, version.bin, currentPath, isWindows()),
       NEO4J_CONF: paths.confDir,
       NEO4J_HOME: paths.root,
       NEO4J_PID_FILE: paths.pidFile
@@ -240,6 +239,7 @@ class Neo4j extends Base {
           )
         })
         const java = await validateNeo4jJava(version.version, params?.javaHome)
+        const syncedEnv = await EnvSync.sync()
         const paths = await this.initializeInstance(version, params?.neo4jInstanceDir)
 
         this.pidPath = paths.pidFile
@@ -255,7 +255,10 @@ class Neo4j extends Base {
           baseDir: paths.instanceDir,
           bin: command.bin,
           execArgs: command.execArgs,
-          execEnv: { ...this.envFor(version, paths, java.javaHome), ...(command.execEnv ?? {}) },
+          execEnv: {
+            ...this.envFor(version, paths, java.javaHome, syncedEnv.PATH ?? syncedEnv.Path),
+            ...(command.execEnv ?? {})
+          },
           cwd: paths.root,
           outFile: paths.startOut,
           errFile: paths.startError,

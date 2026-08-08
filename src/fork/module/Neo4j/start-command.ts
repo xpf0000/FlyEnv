@@ -7,6 +7,29 @@ export type Neo4jStartCommand = {
   execEnv?: Record<string, string>
 }
 
+/**
+ * Build the PATH used by the Neo4j launcher. Packaged macOS apps can be
+ * started without a shell and therefore inherit an incomplete PATH; retain
+ * the synced environment and add the system directories required by the
+ * launcher itself (`dirname`, `uname`, etc.).
+ */
+export function neo4jPathEnv(
+  javaHome: string,
+  neo4jBin: string,
+  currentPath: string | undefined,
+  windows: boolean
+): string {
+  const separator = windows ? ';' : ':'
+  const systemEntries = windows ? [] : ['/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin']
+  const entries = [
+    join(javaHome, 'bin'),
+    dirname(neo4jBin),
+    ...(currentPath ?? '').split(separator),
+    ...systemEntries
+  ]
+  return Array.from(new Set(entries.map((entry) => entry.trim()).filter(Boolean))).join(separator)
+}
+
 export function neo4jStartCommand(
   version: SoftInstalled,
   windows: boolean,
