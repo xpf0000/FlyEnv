@@ -24,9 +24,9 @@ class SiteSucker {
     const urlObj = new URL(url)
     urlObj.hash = ''
     url = urlObj.toString()
-    Store.host = urlObj.host
-    Store.dir = join(item.config.dir, urlObj.host)
     Config.update(item.config)
+    Store.host = urlObj.host
+    Store.dir = join(Config.dir, urlObj.host)
 
     const saveFile = urlToDir(url, true)
     const currentPage: PageLink = {
@@ -36,7 +36,7 @@ class SiteSucker {
       type: 'text/html'
     }
     Store.Pages.push(new LinkItem(currentPage))
-    PageTask.init(item?.config?.windowCount ?? 2)
+    PageTask.init(Config.windowCount)
     LinkTask.init(CPU_Count - 1)
     PageTask.updateConfig()
     PageTask.run().then()

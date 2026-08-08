@@ -19,6 +19,18 @@ const BaseExcludeHost = [
   'www.google.com'
 ]
 
+const numberOrDefault = (value: unknown, fallback: number, minimum: number, integer = false) => {
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    value < minimum ||
+    (integer && !Number.isInteger(value))
+  ) {
+    return fallback
+  }
+  return value
+}
+
 class Config implements RunConfig {
   dir: string = ''
   excludeLink: string = ''
@@ -27,47 +39,32 @@ class Config implements RunConfig {
   maxVideoSize: number = 0
   pageLimit: string = ''
   proxy: string = ''
-  timeout: number = 6000
-  windowCount = 4
+  timeout: number = 5000
+  windowCount = 2
   ExcludeHost: string[] = []
 
   constructor() {}
 
-  update(config: RunConfig) {
+  update(config: Partial<RunConfig> = {}) {
+    this.dir = typeof config.dir === 'string' ? config.dir : ''
+    this.proxy = typeof config.proxy === 'string' ? config.proxy.trim() : ''
+    this.excludeLink = typeof config.excludeLink === 'string' ? config.excludeLink.trim() : ''
+    this.pageLimit = typeof config.pageLimit === 'string' ? config.pageLimit.trim() : ''
+    this.timeout = numberOrDefault(config.timeout, 5000, 1)
+    this.maxImgSize = numberOrDefault(config.maxImgSize, 0, 0)
+    this.maxVideoSize = numberOrDefault(config.maxVideoSize, 0, 0)
+    this.maxRetryTimes = numberOrDefault(config.maxRetryTimes, 3, 0, true)
+    this.windowCount = numberOrDefault(config.windowCount, 2, 1, true)
+
     this.ExcludeHost.splice(0)
     this.ExcludeHost.push(...BaseExcludeHost)
 
-    if (config?.excludeLink?.trim()) {
-      const excludes = config.excludeLink
-        .trim()
+    if (this.excludeLink) {
+      const excludes = this.excludeLink
         .split('\n')
         .filter((f) => !!f.trim())
         .map((m) => m.trim())
       this.ExcludeHost.push(...excludes)
-    }
-
-    if (config?.pageLimit?.trim()) {
-      this.pageLimit = config.pageLimit.trim()
-    } else {
-      this.pageLimit = ''
-    }
-
-    if (config?.timeout) {
-      this.timeout = config.timeout
-    } else {
-      this.timeout = 5000
-    }
-
-    if (config?.maxImgSize) {
-      this.maxImgSize = config.maxImgSize
-    } else {
-      this.maxImgSize = 0
-    }
-
-    if (config?.maxVideoSize) {
-      this.maxVideoSize = config.maxVideoSize
-    } else {
-      this.maxVideoSize = 0
     }
   }
 }
