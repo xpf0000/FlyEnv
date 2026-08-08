@@ -8,7 +8,6 @@
   "obfuscatorSrc": "Obfuszkálandó PHP fájl vagy mappa",
   "obfuscatorDesc": "Mentse a fájlt vagy mappát, ne duplikálja a forrásfájlt vagy -mappát",
   "obfuscatorConfig": "Speciális beállítás",
-  "quickStart": "Csoportos indítás",
   "display_errors": "Részletes hibainformációk kiírása",
   "short_open_tag": "Rövid tag támogatás",
   "file_uploads": "Fájlfeltöltés engedélyezve van-e",

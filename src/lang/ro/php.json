@@ -11,7 +11,6 @@
   "obfuscatorSrc": "Fişier PHP sau folder pentru a fi obfuscated",
   "obfuscatorDesc": "Salvați fișierul sau folderul, nu duplicați fișierul sau dosarul sursă",
   "obfuscatorConfig": "Setări avansate",
-  "quickStart": "Grup Start",
   "display_errors": "Dacă se vor afișa informații detaliate despre eroare",
   "short_open_tag": "Suport pentru etichete scurte",
   "file_uploads": "Este permis să se încarce fișiere",

@@ -96,5 +96,6 @@
   "ForceDelete": "Prisilno Brisanje",
   "needInstallHelperTips": "Neke operacije su propale jer su potrebne Administratorske privilegije. To uključuje modificiranje Hosts datoteke, pristup popisu procesa, vezivanje na portove ispod 1024, ili upravljanje sistemskim varijablama okruženja.\nMolimo instalirajte FlyEnv Helper kako biste odobrili potrebne dozvole za ove zadatke. Kliknite \"OK\" za nastavak s instalacijom.",
   "targetPlatforms": "Ciljne Platforme",
-  "selectVersion": "Odaberi Verziju"
+  "selectVersion": "Odaberi Verziju",
+  "webPanelFirstInstall": "{service} treba instalirati pri prvom pokretanju. To može potrajati, stoga budite strpljivi. Upravljačka ploča otvorit će se automatski kada instalacija završi."
 }

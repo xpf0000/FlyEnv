@@ -11,7 +11,6 @@
   "obfuscatorSrc": "PHP tiedosto tai kansio hämmennetään",
   "obfuscatorDesc": "Tallenna tiedosto tai kansio, ei kopioi lähdetiedostoa tai kansiota",
   "obfuscatorConfig": "Edistyneet Asetukset",
-  "quickStart": "GroupStart",
   "display_errors": "Tulostetaanko yksityiskohtaiset virhetiedot",
   "short_open_tag": "Lyhyt tagituki",
   "file_uploads": "Onko se sallittu ladata tiedostoja",

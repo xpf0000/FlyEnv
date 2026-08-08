@@ -11,7 +11,6 @@
   "obfuscatorSrc": "ملف أو مجلد PHP المراد تعتيمه",
   "obfuscatorDesc": "احفظ الملف أو المجلد، لا تكرر ملف أو مجلد المصدر",
   "obfuscatorConfig": "إعدادات متقدمة",
-  "quickStart": "GroupStart",
   "display_errors": "هل يتم إخراج معلومات مفصلة عن الأخطاء",
   "short_open_tag": "دعم الوسم المختصر (Short tag)",
   "file_uploads": "هل يُسمح بتحميل الملفات",

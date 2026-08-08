@@ -11,7 +11,6 @@
   "obfuscatorSrc": "PHP fil eller mappe som skal være obfuscated",
   "obfuscatorDesc": "Lagre filen eller mappen, ikke dupliser kildefilen eller -mappen",
   "obfuscatorConfig": "Avanserte innstillinger",
-  "quickStart": "GruppeStart",
   "display_errors": "Om informasjon om utdata detaljert feilinformasjon",
   "short_open_tag": "Kort tagg støtte",
   "file_uploads": "Har det lov å laste opp filer",

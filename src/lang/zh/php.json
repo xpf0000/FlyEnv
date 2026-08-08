@@ -11,7 +11,6 @@
   "obfuscatorSrc": "待混淆PHP文件或文件夹",
   "obfuscatorDesc": "保存文件或文件夹, 不能和源文件或原文件夹重复",
   "obfuscatorConfig": "高级设置",
-  "quickStart": "群组启动",
   "display_errors": "是否输出详细错误信息",
   "short_open_tag": "短标签支持",
   "file_uploads": "是否允许上传文件",

@@ -11,7 +11,6 @@
   "obfuscatorSrc": "PHP file or folder to be obfuscated",
   "obfuscatorDesc": "Save the file or folder, not duplicate the source file or folder",
   "obfuscatorConfig": "Advanced Settings",
-  "quickStart": "GroupStart",
   "display_errors": "Whether to output detailed error information",
   "short_open_tag": "Short tag support",
   "file_uploads": "Is it allowed to upload files",

@@ -11,7 +11,6 @@
   "obfuscatorSrc": "PHP fil eller mappe der skal korrumperes",
   "obfuscatorDesc": "Gem filen eller mappen, ikke dupliker kildefilen eller mappen",
   "obfuscatorConfig": "Avancerede Indstillinger",
-  "quickStart": "GroupStart",
   "display_errors": "Om detaljeret fejlinformation skal skrives",
   "short_open_tag": "Kort tag- understøttelse",
   "file_uploads": "Er det tilladt at uploade filer",

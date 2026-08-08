@@ -11,7 +11,6 @@
   "obfuscatorSrc": "Gizlədiləcək PHP faylı və ya qovluğu",
   "obfuscatorDesc": "Mənbə fayl və ya qovluğu kopyalamadan saxla",
   "obfuscatorConfig": "Qabaqcıl Ayarlar",
-  "quickStart": "Qrup Başlat",
   "display_errors": "Ətraflı xəta məlumatı göstərilsin?",
   "short_open_tag": "Qısa etiket dəstəyi",
   "file_uploads": "Fayl yükləməyə icazə verilsin?",

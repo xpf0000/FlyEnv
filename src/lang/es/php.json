@@ -11,7 +11,6 @@
   "obfuscatorSrc": "Archivo o carpeta PHP a ofuscar",
   "obfuscatorDesc": "Guardar el archivo o carpeta, no duplica el archivo o carpeta fuente",
   "obfuscatorConfig": "Configuraciones Avanzadas",
-  "quickStart": "Arranque",
   "display_errors": "Si se debe mostrar información detallada de errores",
   "short_open_tag": "Soporte para etiquetas cortas",
   "file_uploads": "Si está permitido subir archivos",

@@ -96,5 +96,6 @@
   "ForceDelete": "강제 삭제",
   "needInstallHelperTips": "일부 작업은 관리자 권한이 필요하여 실패했습니다. 여기에는 hosts 파일 수정, 프로세스 목록 접근, 1024 미만 포트 바인딩, 시스템 환경 변수 관리 등이 포함됩니다.\n이러한 작업에 필요한 권한을 부여하려면 FlyEnv Helper를 설치하세요. 설치를 진행하려면 \"확인\"을 클릭하세요.",
   "targetPlatforms": "대상 플랫폼",
-  "selectVersion": "버전 선택"
+  "selectVersion": "버전 선택",
+  "webPanelFirstInstall": "{service}은(는) 처음 실행할 때 설치해야 합니다. 시간이 걸릴 수 있으므로 잠시 기다려 주세요. 설치가 완료되면 관리 패널이 자동으로 열립니다."
 }

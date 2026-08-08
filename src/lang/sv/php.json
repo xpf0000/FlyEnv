@@ -11,7 +11,6 @@
   "obfuscatorSrc": "PHP-fil eller mapp som ska förvrängas",
   "obfuscatorDesc": "Spara filen eller mappen, duplicera inte källfilen eller mappen",
   "obfuscatorConfig": "Avancerad inställning",
-  "quickStart": "Gruppstart",
   "display_errors": "Om detaljerad felinformation ska visas",
   "short_open_tag": "Stöd för korta taggar",
   "file_uploads": "Är det tillåtet att ladda upp filer",

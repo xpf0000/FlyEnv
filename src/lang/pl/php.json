@@ -11,7 +11,6 @@
   "obfuscatorSrc": "Plik lub folder PHP do ukrycia",
   "obfuscatorDesc": "Zapisz plik lub folder, nie duplikuj pliku źródłowego lub folderu",
   "obfuscatorConfig": "Ustawienia zaawansowane",
-  "quickStart": "Rozpoczęcie grupy",
   "display_errors": "Czy wychodzić szczegółowe informacje o błędach",
   "short_open_tag": "Wsparcie dla krótkiego tagu",
   "file_uploads": "Czy ma prawo wgrywać pliki",

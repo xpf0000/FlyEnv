@@ -11,7 +11,6 @@
   "obfuscatorSrc": "待混淆 PHP 檔案或資料夾",
   "obfuscatorDesc": "儲存檔案或資料夾，不能和來源檔案或原資料夾重複",
   "obfuscatorConfig": "進階設定",
-  "quickStart": "群組啟動",
   "display_errors": "是否輸出詳細錯誤資訊",
   "short_open_tag": "短標籤支援",
   "file_uploads": "是否允許上傳檔案",

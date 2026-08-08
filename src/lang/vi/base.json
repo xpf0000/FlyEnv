@@ -96,5 +96,6 @@
   "ForceDelete": "Bắt buộc xóa",
   "needInstallHelperTips": "Một số thao tác thất bại do yêu cầu quyền Quản trị viên. Các thao tác này bao gồm sửa đổi tệp Hosts, truy cập danh sách tiến trình, liên kết với các cổng dưới 1024 hoặc quản lý các biến môi trường của hệ thống.\nVui lòng cài đặt FlyEnv Helper để cấp các quyền cần thiết cho các tác vụ này. Nhấp vào \"Đồng ý\" để tiếp tục cài đặt.",
   "targetPlatforms": "Nền tảng mục tiêu",
-  "selectVersion": "Chọn phiên bản"
+  "selectVersion": "Chọn phiên bản",
+  "webPanelFirstInstall": "Cần cài đặt {service} trong lần chạy đầu tiên. Quá trình này có thể mất một chút thời gian, vui lòng kiên nhẫn. Bảng điều khiển quản trị sẽ tự động mở sau khi cài đặt hoàn tất."
 }

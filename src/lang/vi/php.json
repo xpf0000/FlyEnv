@@ -11,7 +11,6 @@
   "obfuscatorSrc": "Tệp hoặc thư mục PHP cần làm rối mã",
   "obfuscatorDesc": "Lưu tệp hoặc thư mục, không được trùng với tệp hoặc thư mục gốc",
   "obfuscatorConfig": "Cài đặt nâng cao",
-  "quickStart": "Khởi động nhóm",
   "display_errors": "Có xuất thông tin lỗi chi tiết hay không",
   "short_open_tag": "Hỗ trợ thẻ ngắn (short tag)",
   "file_uploads": "Có cho phép tải tệp lên hay không",

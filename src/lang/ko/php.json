@@ -11,7 +11,6 @@
   "obfuscatorSrc": "난독화할 PHP 파일 또는 폴더",
   "obfuscatorDesc": "원본 파일이나 폴더를 중복하지 말고 저장하세요",
   "obfuscatorConfig": "고급 설정",
-  "quickStart": "빠른 시작",
   "display_errors": "자세한 오류 정보를 출력할지 여부",
   "short_open_tag": "숏태그(short tag) 지원",
   "file_uploads": "파일 업로드 허용 여부",

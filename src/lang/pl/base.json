@@ -96,5 +96,6 @@
   "ForceDelete": "Wymuś usunięcie",
   "needInstallHelperTips": "Niektóre operacje nie powiodły się, ponieważ wymagane są uprawnienia administratora. Obejmuje to modyfikację pliku hostów, dostęp do listy procesów, wiązanie z portami poniżej 1024 lub zarządzanie zmiennymi środowiskowymi systemu.\nZainstaluj FlyEnv Helper aby przyznać niezbędne uprawnienia do tych zadań. Kliknij \"OK\", aby kontynuować instalację.",
   "targetPlatforms": "Platformy docelowe",
-  "selectVersion": "Wybierz wersję"
+  "selectVersion": "Wybierz wersję",
+  "webPanelFirstInstall": "{service} musi zostać zainstalowany przy pierwszym uruchomieniu. Może to chwilę potrwać, więc prosimy o cierpliwość. Panel zarządzania otworzy się automatycznie po zakończeniu instalacji."
 }

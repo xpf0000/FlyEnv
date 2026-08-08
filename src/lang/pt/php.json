@@ -11,7 +11,6 @@
   "obfuscatorSrc": "Ficheiro ou pasta PHP a ser ofuscado",
   "obfuscatorDesc": "Guarde o ficheiro ou pasta, não pode ser o mesmo que a origem",
   "obfuscatorConfig": "Configurações avançadas",
-  "quickStart": "Iniciar grupo",
   "display_errors": "Exibir erros detalhados",
   "short_open_tag": "Suporte a tag curta",
   "file_uploads": "Permitir upload de ficheiros",

@@ -96,5 +96,6 @@
   "ForceDelete": "Eliminazione forzata",
   "needInstallHelperTips": "Alcune operazioni non sono riuscite perché sono richiesti privilegi di amministratore. Ciò include la modifica del file Hosts, l'accesso all'elenco di processo, l'associazione a porte inferiori a 1024 o la gestione di variabili di ambiente di sistema.\nSi prega di installare FlyEnv Helper per concedere i permessi necessari per queste attività. Fare clic su \"OK\" per procedere con l'installazione.",
   "targetPlatforms": "Piattaforme di destinazione",
-  "selectVersion": "Seleziona versione"
+  "selectVersion": "Seleziona versione",
+  "webPanelFirstInstall": "{service} deve essere installato al primo avvio. L'operazione potrebbe richiedere del tempo, quindi attendere. Il pannello di gestione si aprirà automaticamente al termine dell'installazione."
 }
