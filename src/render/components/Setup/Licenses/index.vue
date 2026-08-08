@@ -150,8 +150,8 @@
                 <el-button
                   type="primary"
                   link
-                  @click.stop="toUrl('https://flyenv.com/sponsor.html')"
-                  >https://flyenv.com/sponsor.html</el-button
+                  @click.stop="toUrl('https://flyenv.com/license.html')"
+                  >https://flyenv.com/license.html</el-button
                 >
               </p>
               <p>2. {{ I18nT('licenses.howToObtain.methods.1.title') }} </p>
@@ -170,8 +170,8 @@
                 <el-button
                   type="primary"
                   link
-                  @click.stop="toUrl('https://flyenv.com/sponsor.html')"
-                  >https://flyenv.com/sponsor.html</el-button
+                  @click.stop="toUrl('https://flyenv.com/license.html')"
+                  >https://flyenv.com/license.html</el-button
                 >
               </p>
               <p>{{ I18nT('licenses.submitInfo') }}</p>

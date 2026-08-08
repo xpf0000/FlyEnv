@@ -458,7 +458,7 @@ export class RedisCommanderRuntime {
   private async waitForStopped(pids: string[]): Promise<boolean> {
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const active = await this.listProcesses().catch(() => [])
-      if (!pids.some((pid) => active.some((item) => `${item.PID}` === `${pid}`))) return true
+      if (!pids.some((pid) => active.some((item: PItem) => `${item.PID}` === `${pid}`))) return true
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
     return false

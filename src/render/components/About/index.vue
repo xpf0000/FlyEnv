@@ -45,9 +45,9 @@
               target="_blank"
               href="javascript:"
               rel="noopener noreferrer"
-              @click="openUrl($event, 'https://flyenv.com/sponsor.html')"
+              @click="openUrl($event, 'https://flyenv.com/license.html')"
             >
-              https://flyenv.com/sponsor.html
+              https://flyenv.com/license.html
             </a>
           </el-col>
         </el-row>
@@ -78,9 +78,9 @@
               target="_blank"
               href="javascript:"
               rel="noopener noreferrer"
-              @click="openUrl($event, 'https://flyenv.com/sponsor.html')"
+              @click="openUrl($event, 'https://flyenv.com/license.html')"
             >
-              https://flyenv.com/sponsor.html
+              https://flyenv.com/license.html
             </a>
           </el-col>
         </el-row>

@@ -1,21 +1,14 @@
 <template>
-  <div class="module-config h-full overflow-hidden flex flex-col">
-    <el-card class="app-base-el-card flex-1 overflow-hidden">
-      <template #header>neo4j.conf</template>
-      <Conf
-        v-if="file"
-        ref="conf"
-        type-flag="neo4j"
-        :default-file="defaultFile"
-        :file="file"
-        file-ext="conf"
-        config-language="ini"
-        :show-commond="false"
-        url="https://neo4j.com/docs/operations-manual/current/configuration/"
-      />
-      <el-empty v-else description="Install a Neo4j version first" />
-    </el-card>
-  </div>
+  <Conf
+    ref="conf"
+    type-flag="neo4j"
+    :default-file="defaultFile"
+    :file="file"
+    file-ext="conf"
+    config-language="ini"
+    :show-commond="false"
+    url="https://neo4j.com/docs/operations-manual/current/configuration/"
+  />
 </template>
 
 <script lang="ts" setup>
