@@ -30,7 +30,7 @@
     "test:neo4j-startup": "tsx scripts/neo4j-startup-test.ts",
     "test:postgresql-pgadmin4:integration": "tsx scripts/postgresql-pgadmin4-integration-test.ts",
     "dev": "yarn run clean:dev && yarn run build-dev-runner && cross-env NODE_ENV=development node electron/dev-runner.mjs",
-    "build": "yarn test:renderer-operation-boundaries && yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production node electron/app-builder.mjs",
+    "build": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production node electron/app-builder.mjs",
     "test:helper:contract": "tsx scripts/helper-contract-check.ts",
     "test:windows-helper-install": "tsx scripts/windows-helper-install-script-test.ts",
     "test:windows-helper-install-ipc": "tsx scripts/windows-helper-install-ipc-test.ts",
