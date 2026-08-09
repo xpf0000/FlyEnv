@@ -159,6 +159,8 @@ const redisCommanderSource = readFileSync(
   'utf8'
 )
 assert.match(redisCommanderSource, /sensitive:\s*true/)
+assert.match(redisCommanderSource, /node_modules', 'npm', 'bin', 'npm-cli\.js'/)
+assert.doesNotMatch(redisCommanderSource, /shell:\s*this\.windows/)
 
 const root = await mkdtemp(join(tmpdir(), 'flyenv-redis-commander-'))
 const runtimePaths = redisCommanderPaths(root, false)

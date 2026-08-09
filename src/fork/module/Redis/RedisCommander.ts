@@ -343,14 +343,15 @@ export class RedisCommanderRuntime {
 
   private async defaultInstall(nodeBin: string, paths: RedisCommanderPaths): Promise<void> {
     const nodeDir = dirname(nodeBin)
-    const candidates = [
-      join(nodeDir, this.windows ? 'npm.cmd' : 'npm'),
-      join(nodeDir, 'npm'),
+    const npmCliCandidates = [
       join(nodeDir, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
       join(dirname(nodeDir), 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js')
     ]
-    const npm = candidates.find((candidate) => existsSync(candidate))
-    if (!npm) throw new Error('npm is not available for the selected Node.js version')
+    const npmCli = npmCliCandidates.find((candidate) => existsSync(candidate))
+    const npm = this.windows
+      ? undefined
+      : [join(nodeDir, 'npm')].find((candidate) => existsSync(candidate))
+    if (!npmCli && !npm) throw new Error('npm is not available for the selected Node.js version')
 
     await mkdirp(paths.root)
     const manifestPath = join(paths.root, 'package.json')
@@ -379,10 +380,10 @@ export class RedisCommanderRuntime {
       '--no-fund',
       REDIS_COMMANDER_PACKAGE
     ]
-    if (npm.endsWith('.js')) {
-      await spawnPromise(nodeBin, [npm, ...args], { cwd: paths.root, shell: false })
+    if (npmCli) {
+      await spawnPromise(nodeBin, [npmCli, ...args], { cwd: paths.root, shell: false })
     } else {
-      await spawnPromise(npm, args, { cwd: paths.root, shell: this.windows })
+      await spawnPromise(npm!, args, { cwd: paths.root, shell: false })
     }
     if (!existsSync(paths.entry)) {
       throw new Error('Redis Commander package installation did not produce its entry script')
