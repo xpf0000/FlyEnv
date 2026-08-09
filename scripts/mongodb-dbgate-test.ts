@@ -2,13 +2,14 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { delimiter, join } from 'node:path'
 import {
   DBGATE_DEFAULT_PORT,
   DBGATE_PACKAGE,
   dbGateCommandOwned,
   dbGateCredentials,
   dbGateEnv,
+  dbGateInstallEnv,
   dbGateInstallManifest,
   dbGatePaths,
   dbGateUrl,
@@ -33,6 +34,9 @@ assert.deepEqual(dbGateInstallManifest(), {
   overrides: { 'dbgate-pg-dumper': '1.0.0' }
 })
 assert.equal(DBGATE_DEFAULT_PORT, 3000)
+const dbGateUnixInstallEnv = dbGateInstallEnv('/tmp/Fly Env/node/bin', false)
+assert.equal(dbGateUnixInstallEnv?.PATH?.split(delimiter)[0], '/tmp/Fly Env/node/bin')
+assert.equal(dbGateInstallEnv('C:\\Fly Env\\node', true), undefined)
 assert.equal(unix.root, '/tmp/FlyEnv/server/dbgate')
 assert.equal(unix.workspace, '/tmp/FlyEnv/server/dbgate/workspace')
 assert.equal(unix.pid, '/tmp/FlyEnv/server/dbgate/dbgate.pid')

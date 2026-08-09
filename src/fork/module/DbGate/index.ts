@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { chmod, mkdirp, readFile, remove, writeFile } from '@shared/fs-extra'
-import { dirname, join, normalize, posix, win32 } from 'node:path'
+import { delimiter, dirname, join, normalize, posix, win32 } from 'node:path'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -61,6 +61,19 @@ const normalizeForPlatform = (value: string, windows: boolean) => {
 }
 
 const quoteSafe = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+export function dbGateInstallEnv(nodeDir: string, windows: boolean): NodeJS.ProcessEnv | undefined {
+  if (windows) return undefined
+  return {
+    ...process.env,
+    PATH: [nodeDir, process.env.PATH].filter(Boolean).join(delimiter)
+  }
+}
+
+const npmInstallOptions = (cwd: string, nodeDir: string, windows: boolean) => {
+  const env = dbGateInstallEnv(nodeDir, windows)
+  return env ? { cwd, shell: false, env } : { cwd, shell: false }
+}
 
 export function dbGatePaths(baseDir: string, windows: boolean): DbGatePaths {
   const pathJoin = windows ? win32.join : posix.join
@@ -251,9 +264,13 @@ export class DbGateRuntime {
       DBGATE_PACKAGE
     ]
     if (npmCli) {
-      await spawnPromise(nodeBin, [npmCli, ...args], { cwd: paths.root, shell: false })
+      await spawnPromise(
+        nodeBin,
+        [npmCli, ...args],
+        npmInstallOptions(paths.root, nodeDir, this.windows)
+      )
     } else {
-      await spawnPromise(npm!, args, { cwd: paths.root, shell: false })
+      await spawnPromise(npm!, args, npmInstallOptions(paths.root, nodeDir, this.windows))
     }
     if (!existsSync(paths.entry))
       throw new Error('DbGate package installation did not produce its entry script')

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { delimiter, dirname, join } from 'node:path'
 import type { SoftInstalled } from '../src/shared/app'
 import type { ForkPromise } from '../src/shared/ForkPromise'
 import {
@@ -14,6 +14,7 @@ import {
   redisCommanderArgs,
   redisCommanderAutoLoginUrl,
   redisCommanderConfig,
+  redisCommanderInstallEnv,
   redisCommanderSsoEnvironment,
   redisCommanderInstallManifest,
   redisCommanderPaths,
@@ -28,6 +29,9 @@ const forkPromiseToPromise = <T>(value: ForkPromise<T>) =>
 assert.equal(REDIS_COMMANDER_PACKAGE, 'redis-commander')
 assert.equal(REDIS_COMMANDER_DEFAULT_PORT, 8081)
 assert.equal(REDIS_COMMANDER_LOGIN, 'flyenv')
+const redisCommanderUnixInstallEnv = redisCommanderInstallEnv('/tmp/Fly Env/node/bin', false)
+assert.equal(redisCommanderUnixInstallEnv?.PATH?.split(delimiter)[0], '/tmp/Fly Env/node/bin')
+assert.equal(redisCommanderInstallEnv('C:\\Fly Env\\node', true), undefined)
 assert.deepEqual(redisCommanderConfig('port 6380\nrequirepass "secret value"\n'), {
   host: '127.0.0.1',
   port: 6380,

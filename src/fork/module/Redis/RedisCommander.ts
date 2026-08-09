@@ -1,7 +1,7 @@
 import { createHmac, randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { chmod, mkdirp, readFile, remove, writeFile } from '@shared/fs-extra'
-import { dirname, join, normalize, posix, win32 } from 'node:path'
+import { delimiter, dirname, join, normalize, posix, win32 } from 'node:path'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -72,6 +72,22 @@ const normalizeForPlatform = (value: string, windows: boolean) => {
 }
 
 const quoteSafe = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+export function redisCommanderInstallEnv(
+  nodeDir: string,
+  windows: boolean
+): NodeJS.ProcessEnv | undefined {
+  if (windows) return undefined
+  return {
+    ...process.env,
+    PATH: [nodeDir, process.env.PATH].filter(Boolean).join(delimiter)
+  }
+}
+
+const npmInstallOptions = (cwd: string, nodeDir: string, windows: boolean) => {
+  const env = redisCommanderInstallEnv(nodeDir, windows)
+  return env ? { cwd, shell: false, env } : { cwd, shell: false }
+}
 
 const stripQuotes = (value: string) => {
   if (value.length < 2) return value
@@ -382,9 +398,13 @@ export class RedisCommanderRuntime {
       REDIS_COMMANDER_PACKAGE
     ]
     if (npmCli) {
-      await spawnPromise(nodeBin, [npmCli, ...args], { cwd: paths.root, shell: false })
+      await spawnPromise(
+        nodeBin,
+        [npmCli, ...args],
+        npmInstallOptions(paths.root, nodeDir, this.windows)
+      )
     } else {
-      await spawnPromise(npm!, args, { cwd: paths.root, shell: false })
+      await spawnPromise(npm!, args, npmInstallOptions(paths.root, nodeDir, this.windows))
     }
     if (!existsSync(paths.entry)) {
       throw new Error('Redis Commander package installation did not produce its entry script')
