@@ -1,7 +1,7 @@
 import { createHmac, randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { chmod, mkdirp, readFile, remove, writeFile } from '@shared/fs-extra'
-import { dirname, join, normalize, win32 } from 'node:path'
+import { dirname, join, normalize, posix, win32 } from 'node:path'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -10,7 +10,7 @@ import {
   fetchLoopbackListeningPids as fetchLoopbackListeningPidsWindows,
   ProcessPidListStrict
 } from '@shared/Process.win'
-import { isWindows } from '@shared/utils'
+import { isWindows, waitTime } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 import { findLoopbackPort } from '@shared/LoopbackPort'
 import { webPanelInstallNotice } from '@shared/WebPanelInstallNotice'
@@ -23,6 +23,7 @@ export const REDIS_COMMANDER_MAX_PORT = 65535
 export const REDIS_COMMANDER_LOGIN = 'flyenv'
 export const REDIS_COMMANDER_SSO_ISSUER = 'FlyEnv'
 const REDIS_COMMANDER_SSO_TOKEN_TTL_SECONDS = 60
+const REDIS_COMMANDER_STARTUP_LOG_TAIL_LENGTH = 4_000
 
 export type RedisCommanderPaths = {
   root: string
@@ -80,7 +81,7 @@ const stripQuotes = (value: string) => {
 }
 
 export function redisCommanderPaths(baseDir: string, windows: boolean): RedisCommanderPaths {
-  const pathJoin = windows ? win32.join : join
+  const pathJoin = windows ? win32.join : posix.join
   const root = pathJoin(baseDir, 'redis-commander')
   const slash = (value: string) => (windows ? value.replaceAll('/', '\\') : value)
   return {
@@ -449,18 +450,44 @@ export class RedisCommanderRuntime {
   }
 
   private async waitHealth(port: number, credentials: RedisCommanderCredentials): Promise<boolean> {
-    for (let attempt = 0; attempt < 40; attempt += 1) {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
       if (await this.checkHealth(port, credentials)) return true
-      await new Promise((resolve) => setTimeout(resolve, 250))
+      await waitTime(1000)
     }
     return false
+  }
+
+  private async startupDiagnostics(port: number, pid: string, nodeBin: string): Promise<string> {
+    const readTail = async (file: string) => {
+      try {
+        const content = `${await readFile(file, 'utf8')}`.trim()
+        return content.length > REDIS_COMMANDER_STARTUP_LOG_TAIL_LENGTH
+          ? content.slice(-REDIS_COMMANDER_STARTUP_LOG_TAIL_LENGTH)
+          : content
+      } catch {
+        return ''
+      }
+    }
+    const [stdout, stderr] = await Promise.all([
+      readTail(this.paths.startOut),
+      readTail(this.paths.startError)
+    ])
+    return [
+      `target=http://127.0.0.1:${port}`,
+      `pid=${pid || 'unknown'}`,
+      `node=${nodeBin}`,
+      `entry=${this.paths.entry}`,
+      `cwd=${this.paths.root}`,
+      `stdout=${stdout || '<empty>'}`,
+      `stderr=${stderr || '<empty>'}`
+    ].join('\n')
   }
 
   private async waitForStopped(pids: string[]): Promise<boolean> {
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const active = await this.listProcesses().catch(() => [])
       if (!pids.some((pid) => active.some((item: PItem) => `${item.PID}` === `${pid}`))) return true
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await waitTime(100)
     }
     return false
   }
@@ -549,7 +576,12 @@ export class RedisCommanderRuntime {
       const start = await this.startPackage(node, this.paths, connection, port, credentials, on)
       this.assertOpenActive(generation)
       if (!(await this.waitHealth(port, credentials))) {
-        throw new Error('Redis Commander did not become healthy after startup')
+        const diagnostics = await this.startupDiagnostics(
+          port,
+          start['APP-Service-Start-PID'],
+          nodeBin
+        )
+        throw new Error(`Redis Commander did not become healthy after startup\n${diagnostics}`)
       }
       this.assertOpenActive(generation)
       const startedPid = start['APP-Service-Start-PID']

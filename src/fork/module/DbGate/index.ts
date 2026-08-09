@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { chmod, mkdirp, readFile, remove, writeFile } from '@shared/fs-extra'
-import { dirname, join, normalize, win32 } from 'node:path'
+import { dirname, join, normalize, posix, win32 } from 'node:path'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -10,7 +10,7 @@ import {
   fetchLoopbackListeningPids as fetchLoopbackListeningPidsWindows,
   ProcessPidListStrict
 } from '@shared/Process.win'
-import { isWindows } from '@shared/utils'
+import { isWindows, waitTime } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 import { findLoopbackPort } from '@shared/LoopbackPort'
 import { webPanelInstallNotice } from '@shared/WebPanelInstallNotice'
@@ -21,6 +21,7 @@ export const DBGATE_DEFAULT_PORT = 3000
 export const DBGATE_PORT_SCAN_COUNT = 20
 export const DBGATE_MAX_PORT = 65535
 export const DBGATE_LOGIN = 'flyenv'
+const DBGATE_STARTUP_LOG_TAIL_LENGTH = 4_000
 
 export function dbGateInstallManifest() {
   return {
@@ -62,7 +63,7 @@ const normalizeForPlatform = (value: string, windows: boolean) => {
 const quoteSafe = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 export function dbGatePaths(baseDir: string, windows: boolean): DbGatePaths {
-  const pathJoin = windows ? win32.join : join
+  const pathJoin = windows ? win32.join : posix.join
   const root = pathJoin(baseDir, 'dbgate')
   const slash = (value: string) => (windows ? value.replaceAll('/', '\\') : value)
   return {
@@ -310,18 +311,44 @@ export class DbGateRuntime {
   }
 
   private async waitHealth(port: number, credentials: DbGateCredentials): Promise<boolean> {
-    for (let attempt = 0; attempt < 40; attempt += 1) {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
       if (await this.checkHealth(port, credentials)) return true
-      await new Promise((resolve) => setTimeout(resolve, 250))
+      await waitTime(1000)
     }
     return false
+  }
+
+  private async startupDiagnostics(port: number, pid: string, nodeBin: string): Promise<string> {
+    const readTail = async (file: string) => {
+      try {
+        const content = `${await readFile(file, 'utf8')}`.trim()
+        return content.length > DBGATE_STARTUP_LOG_TAIL_LENGTH
+          ? content.slice(-DBGATE_STARTUP_LOG_TAIL_LENGTH)
+          : content
+      } catch {
+        return ''
+      }
+    }
+    const [stdout, stderr] = await Promise.all([
+      readTail(this.paths.startOut),
+      readTail(this.paths.startError)
+    ])
+    return [
+      `target=http://127.0.0.1:${port}`,
+      `pid=${pid || 'unknown'}`,
+      `node=${nodeBin}`,
+      `entry=${this.paths.entry}`,
+      `cwd=${this.paths.root}`,
+      `stdout=${stdout || '<empty>'}`,
+      `stderr=${stderr || '<empty>'}`
+    ].join('\n')
   }
 
   private async waitForStopped(pids: string[]): Promise<void> {
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const active = await this.listProcesses().catch(() => [])
       if (!pids.some((pid) => active.some((item) => `${item.PID}` === `${pid}`))) return
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await waitTime(100)
     }
   }
 
@@ -376,7 +403,12 @@ export class DbGateRuntime {
       )
       const start = await this.startPackage(node, this.paths, port, credentials, on)
       if (!(await this.waitHealth(port, credentials))) {
-        throw new Error('DbGate did not become healthy after startup')
+        const diagnostics = await this.startupDiagnostics(
+          port,
+          start['APP-Service-Start-PID'],
+          nodeBin
+        )
+        throw new Error(`DbGate did not become healthy after startup\n${diagnostics}`)
       }
       await writeFile(this.paths.port, `${port}`)
       return {

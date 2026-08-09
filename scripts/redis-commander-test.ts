@@ -161,6 +161,13 @@ const redisCommanderSource = readFileSync(
 assert.match(redisCommanderSource, /sensitive:\s*true/)
 assert.match(redisCommanderSource, /node_modules', 'npm', 'bin', 'npm-cli\.js'/)
 assert.doesNotMatch(redisCommanderSource, /shell:\s*this\.windows/)
+assert.match(redisCommanderSource, /import \{ isWindows, waitTime \} from '@shared\/utils'/)
+assert.match(redisCommanderSource, /attempt < 20/)
+assert.match(redisCommanderSource, /await waitTime\(1000\)/)
+assert.doesNotMatch(redisCommanderSource, /setTimeout\(/)
+assert.match(redisCommanderSource, /startupDiagnostics/)
+assert.match(redisCommanderSource, /redis-commander\.start\.out\.log/)
+assert.match(redisCommanderSource, /redis-commander\.start\.error\.log/)
 
 const root = await mkdtemp(join(tmpdir(), 'flyenv-redis-commander-'))
 const runtimePaths = redisCommanderPaths(root, false)
@@ -522,6 +529,64 @@ try {
 } finally {
   await foreignListenerRuntime.stop()
   await rm(foreignListenerRoot, { recursive: true, force: true })
+}
+
+const failedStartupRoot = await mkdtemp(join(tmpdir(), 'flyenv-redis-commander-failed-startup-'))
+const failedStartupPaths = redisCommanderPaths(failedStartupRoot, false)
+await mkdir(dirname(failedStartupPaths.entry), { recursive: true })
+await writeFile(failedStartupPaths.entry, '')
+await mkdir(dirname(failedStartupPaths.startOut), { recursive: true })
+await writeFile(failedStartupPaths.startOut, 'startup output')
+await writeFile(failedStartupPaths.startError, 'startup error')
+let failedStartupRunning = false
+const failedStartupRuntime = new RedisCommanderRuntime(failedStartupRoot, {
+  paths: failedStartupPaths,
+  config: async () => ({ host: '127.0.0.1', port: 6380 }),
+  starter: async (_node, currentPaths) => {
+    failedStartupRunning = true
+    await writeFile(currentPaths.pid, '6789')
+    return { 'APP-Service-Start-PID': '6789' }
+  },
+  processList: async () =>
+    failedStartupRunning
+      ? [
+          {
+            PID: '6789',
+            PPID: '',
+            COMMAND: `node ${failedStartupPaths.entry}`,
+            USER: ''
+          }
+        ]
+      : [],
+  listeningPids: async () => (failedStartupRunning ? ['6789'] : []),
+  health: async () => false,
+  portFinder: async () => 8084,
+  kill: async () => {
+    failedStartupRunning = false
+  }
+})
+;(failedStartupRuntime as any).waitHealth = async () => false
+
+try {
+  await assert.rejects(
+    forkPromiseToPromise(failedStartupRuntime.open(node, redis)),
+    (error: Error) => {
+      assert.match(error.message, /Redis Commander did not become healthy after startup/)
+      assert.match(error.message, /target=http:\/\/127\.0\.0\.1:8084/)
+      assert.match(error.message, /pid=6789/)
+      assert.match(error.message, /node=\/tmp\/node/)
+      assert.ok(error.message.includes(`entry=${failedStartupPaths.entry}`))
+      assert.ok(error.message.includes(`cwd=${failedStartupPaths.root}`))
+      assert.match(error.message, /stdout=startup output/)
+      assert.match(error.message, /stderr=startup error/)
+      return true
+    }
+  )
+  assert.equal(existsSync(failedStartupPaths.pid), false)
+  assert.equal(existsSync(failedStartupPaths.port), false)
+} finally {
+  await failedStartupRuntime.stop()
+  await rm(failedStartupRoot, { recursive: true, force: true })
 }
 
 const projectRoot = join(import.meta.dirname, '..')

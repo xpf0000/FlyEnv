@@ -7,6 +7,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const workflow = readFileSync(join(root, '.github/workflows/windows-version-build.yml'), 'utf8')
 const builder = readFileSync(join(root, 'scripts/app-builder.ts'), 'utf8')
 const windowsConfig = readFileSync(join(root, 'configs/electron-builder.win.ts'), 'utf8')
+const localBuilder = readFileSync(join(root, 'scripts/app-builder-win-local.ts'), 'utf8')
+const localConfig = readFileSync(join(root, 'configs/electron-builder.win.local.ts'), 'utf8')
+const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 const bundleScriptPath = join(root, 'scripts/windows-signpath-bundle.ps1')
 const thisTestPath = fileURLToPath(import.meta.url)
 
@@ -34,6 +37,16 @@ for (const sourceFile of signingSourceFiles) {
 
 assert.doesNotMatch(windowsConfig, /afterPackSign|customSign|signtoolOptions/)
 assert.match(builder, /FLYENV_WINDOWS_BUILD_STAGE/)
+assert.doesNotMatch(builder, /signExecutable:\s*false/)
+assert.match(localBuilder, /electron-builder\.win\.local/)
+assert.match(localBuilder, /Platform\.WINDOWS\.createTarget\('nsis', Arch\.x64\)/)
+assert.match(localConfig, /output:\s*'release'/)
+assert.match(localConfig, /signExecutable:\s*false/)
+assert.match(localConfig, /target:\s*'nsis'/)
+assert.equal(
+  packageJson.scripts?.['build:win'],
+  'yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder-win-local.ts --outfile=electron/app-builder-win-local.mjs && cross-env NODE_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false node electron/app-builder-win-local.mjs'
+)
 assert.match(builder, /FLYENV_PREPACKAGED_APP_DIR/)
 assert.match(builder, /prepackaged/)
 assert.doesNotMatch(

@@ -14,13 +14,26 @@ import {
   binXattrFix,
   downloadFile,
   zipUnpack,
-  rename
+  rename,
+  remove
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/runtime'
 import { isMacOS, isWindows } from '@shared/utils'
+
+export const QDRANT_WEB_UI_VERSION = 'v0.2.13'
+
+export function qdrantWebUiDir(bin: string): string {
+  return join(dirname(bin), 'static')
+}
+
+export function qdrantWebUiEnvironment(bin: string): Record<string, string> {
+  return {
+    QDRANT__SERVICE__STATIC_CONTENT_DIR: qdrantWebUiDir(bin)
+  }
+}
 
 class Qdrant extends Base {
   constructor() {
@@ -66,6 +79,18 @@ class Qdrant extends Base {
       const bin = version.bin
       await this.initConfig(version).on(on)
 
+      try {
+        await this.ensureWebUi(bin, version.version)
+      } catch (e) {
+        console.log('qdrant web ui repair error: ', e)
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            `Qdrant Web UI is unavailable: ${e instanceof Error ? e.message : `${e}`}`
+          )
+        })
+      }
+
       const baseDir = join(global.Server.BaseDir!, `qdrant`)
       await mkdirp(baseDir)
 
@@ -75,6 +100,7 @@ class Qdrant extends Base {
           pidPath: this.pidPath,
           baseDir,
           bin,
+          execEnv: qdrantWebUiEnvironment(bin),
           on
         })
         resolve(res)
@@ -166,24 +192,43 @@ class Qdrant extends Base {
       await binXattrFix(row.bin)
     }
     try {
-      const staticDir = join(row.appDir, 'static')
-      if (!existsSync(staticDir)) {
-        const webUiVersion = 'v0.2.13'
-        const webUiUrl = `https://github.com/qdrant/qdrant-web-ui/releases/download/${webUiVersion}/dist-qdrant.zip`
-        const webUiZip = join(global.Server.Cache!, `qdrant-web-ui-${webUiVersion}.zip`)
-        if (!existsSync(webUiZip)) {
-          await downloadFile(webUiUrl, webUiZip)
-        }
-        if (existsSync(webUiZip)) {
-          await zipUnpack(webUiZip, row.appDir)
-          const distDir = join(row.appDir, 'dist')
-          if (existsSync(distDir)) {
-            await rename(distDir, staticDir)
-          }
-        }
-      }
+      await this.ensureWebUi(row.bin, row.version, row.appDir)
     } catch (e) {
       console.log('qdrant web ui install error: ', e)
+    }
+  }
+
+  private async ensureWebUi(bin: string, version?: string | null, appDir?: string): Promise<void> {
+    const root = appDir ?? dirname(bin)
+    const staticDir = qdrantWebUiDir(bin)
+    if (existsSync(join(staticDir, 'index.html'))) return
+
+    const webUiUrl = `https://github.com/qdrant/qdrant-web-ui/releases/download/${QDRANT_WEB_UI_VERSION}/dist-qdrant.zip`
+    const webUiZip = join(global.Server.Cache!, `qdrant-web-ui-${QDRANT_WEB_UI_VERSION}.zip`)
+    const extractDir = join(
+      global.Server.Cache!,
+      `qdrant-web-ui-${version?.trim() || 'latest'}-extract`
+    )
+    if (!existsSync(webUiZip)) {
+      await downloadFile(webUiUrl, webUiZip)
+    }
+    if (!existsSync(webUiZip)) {
+      throw new Error(`Qdrant Web UI archive was not downloaded: ${webUiZip}`)
+    }
+
+    await remove(extractDir).catch(() => {})
+    await mkdirp(extractDir)
+    try {
+      await zipUnpack(webUiZip, extractDir)
+      const distDir = join(extractDir, 'dist')
+      if (!existsSync(join(distDir, 'index.html'))) {
+        throw new Error('Qdrant Web UI archive does not contain dist/index.html')
+      }
+      await remove(staticDir).catch(() => {})
+      await mkdirp(root)
+      await rename(distDir, staticDir)
+    } finally {
+      await remove(extractDir).catch(() => {})
     }
   }
 
