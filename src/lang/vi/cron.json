@@ -17,7 +17,7 @@
   "expression": "Tác vụ được tạo",
   "scheduleRequired": "Vui lòng nhập lịch trình",
   "scheduleInvalid": "Tác vụ cron không hợp lệ",
-  "validExpression": "Biểu thức cron hợp lệ",
+  "validExpression": "Tác vụ cron hợp lệ",
   "scheduleAdvancedTip": "Chỉ hỗ trợ các lịch trình di động: mỗi N phút, hàng giờ, hàng ngày, hàng tuần hoặc hàng tháng. Sử dụng cú pháp cron 5 trường dạng số.",
   "commandRequired": "Vui lòng nhập lệnh",
   "nameRequired": "Vui lòng nhập tên tác vụ",
