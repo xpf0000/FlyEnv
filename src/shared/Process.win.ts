@@ -233,7 +233,15 @@ export function loopbackListeningPidsFromNetstat(content: string, port: string):
     const parts = entry.trim().replace(/\s+/g, ' ').split(' ')
     if (parts.length !== 5 || parts[0].toUpperCase() !== 'TCP') continue
     const [_, localAddress, __, state, pid] = parts
-    if (localAddress === `127.0.0.1:${port}` && state === 'LISTENING' && /^\d+$/.test(pid)) {
+    const loopbackAddress = /^(?:127\.0\.0\.1|0\.0\.0\.0|\[::\]|\[::1\]):\d+$/.test(
+      localAddress
+    )
+    if (
+      loopbackAddress &&
+      localAddress.endsWith(`:${port}`) &&
+      state === 'LISTENING' &&
+      /^\d+$/.test(pid)
+    ) {
       pids.add(pid)
     }
   }

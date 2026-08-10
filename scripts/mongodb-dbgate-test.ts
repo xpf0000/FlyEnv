@@ -132,6 +132,38 @@ assert.equal(existsSync(runtimePaths.pid), false)
 assert.equal(existsSync(runtimePaths.port), false)
 await rm(runtimeRoot, { recursive: true, force: true })
 
+const retryRoot = await mkdtemp(join(tmpdir(), 'flyenv-dbgate-retry-test-'))
+const retryPaths = dbGatePaths(retryRoot, false)
+let retryStarts = 0
+let retryAlive = true
+await mkdir(join(retryPaths.root, 'node_modules', 'dbgate-serve', 'bin'), { recursive: true })
+await writeFile(retryPaths.entry, '')
+const retryRuntime = new DbGateRuntime(retryRoot, {
+  paths: retryPaths,
+  processList: async () =>
+    retryAlive
+      ? [{ PID: '4321', PPID: '1', USER: 'test', COMMAND: `node ${retryPaths.entry}` }]
+      : [],
+  listeningPids: async () => [],
+  health: async () => true,
+  portFinder: async () => 3002,
+  starter: async (_node, paths) => {
+    retryStarts += 1
+    retryAlive = true
+    await writeFile(paths.pid, '4321')
+    return { 'APP-Service-Start-PID': '4321' }
+  },
+  kill: async () => {
+    retryAlive = false
+  }
+})
+;(retryRuntime as any).waitHealth = async () => retryStarts > 1
+const retryOpen = await retryRuntime.open(node)
+assert.equal(retryStarts, 2)
+assert.equal(retryOpen['APP-Service-Start-PID'], '4321')
+await retryRuntime.stop()
+await rm(retryRoot, { recursive: true, force: true })
+
 assert.equal(await findLoopbackPort(3000, 3, 3002, [3000], async (port) => port === 3001), 3001)
 await assert.rejects(
   () => findLoopbackPort(3000, 2, 3001, [], async () => false),
@@ -152,8 +184,20 @@ assert.match(forkSource, /openDbGate\(/)
 assert.match(dbGateSource, /node_modules', 'npm', 'bin', 'npm-cli\.js'/)
 assert.doesNotMatch(dbGateSource, /shell:\s*this\.windows/)
 assert.match(dbGateSource, /import \{ isWindows, waitTime \} from '@shared\/utils'/)
-assert.match(dbGateSource, /attempt < 20/)
-assert.match(dbGateSource, /await waitTime\(1000\)/)
+assert.match(dbGateSource, /timeout: 3000/)
+assert.match(dbGateSource, /DBGATE_HEALTH_ATTEMPTS = 30/)
+assert.match(dbGateSource, /DBGATE_HEALTH_INTERVAL_MILLISECONDS = 1000/)
+assert.match(dbGateSource, /attempt < DBGATE_HEALTH_ATTEMPTS/)
+assert.match(dbGateSource, /await waitTime\(DBGATE_HEALTH_INTERVAL_MILLISECONDS\)/)
+assert.match(dbGateSource, /waitTime: 2000/)
+assert.match(dbGateSource, /installPackage\(nodeBin, this\.paths\)[\s\S]*?await waitTime\(1000\)/)
+assert.match(dbGateSource, /firstAttempt:/)
+assert.match(dbGateSource, /retryAttempt:/)
+assert.match(dbGateSource, /debugUpstream/)
+assert.match(dbGateSource, /instrumentUpstream/)
+assert.match(dbGateSource, /dbgate\.upstream\.debug\.log/)
+assert.match(dbGateSource, /serve\.main\.require\.begin/)
+assert.match(dbGateSource, /main\.server\.listen\.callback/)
 assert.doesNotMatch(dbGateSource, /setTimeout\(/)
 assert.match(forkSource, /dbGateRuntime\.stop\(/)
 assert.match(pageSource, /BrewStore\(\)/)
@@ -171,6 +215,8 @@ assert.match(dbGatePanelSource, /IPC\.sendSensitive\(/)
 assert.match(dbGatePanelSource, /ElMessage/)
 assert.match(dbGatePanelSource, /isWebPanelInstallNotice/)
 assert.match(dbGatePanelSource, /shell\.openExternal\(res\.data\.url\)/)
+assert.match(dbGateSource, /healthError=/)
+assert.match(dbGateSource, /listeningPids=/)
 assert.doesNotMatch(pageSource, /password|credentials/i)
 assert.match(ipcSource, /sensitive/i)
 assert.equal(packageJson.dependencies?.['dbgate-serve'], undefined)

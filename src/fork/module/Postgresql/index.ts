@@ -205,7 +205,10 @@ class Manager extends Base {
 
   private async pgAdminHttpReachable(port: number): Promise<boolean> {
     try {
-      await axios.get(pgAdminUrl(port), { timeout: 1000, validateStatus: () => true })
+      await axios.get(pgAdminUrl(port), {
+        timeout: 3000,
+        validateStatus: () => true
+      })
       return true
     } catch {
       return false

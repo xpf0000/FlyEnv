@@ -166,10 +166,21 @@ assert.match(redisCommanderSource, /sensitive:\s*true/)
 assert.match(redisCommanderSource, /node_modules', 'npm', 'bin', 'npm-cli\.js'/)
 assert.doesNotMatch(redisCommanderSource, /shell:\s*this\.windows/)
 assert.match(redisCommanderSource, /import \{ isWindows, waitTime \} from '@shared\/utils'/)
-assert.match(redisCommanderSource, /attempt < 20/)
-assert.match(redisCommanderSource, /await waitTime\(1000\)/)
+assert.match(redisCommanderSource, /timeout: 3000/)
+assert.match(
+  redisCommanderSource,
+  /auth: \{ username: credentials\.login, password: credentials\.password \}/
+)
+assert.match(redisCommanderSource, /validateStatus: \(\) => true/)
+assert.match(redisCommanderSource, /REDIS_COMMANDER_HEALTH_ATTEMPTS = 30/)
+assert.match(redisCommanderSource, /REDIS_COMMANDER_HEALTH_INTERVAL_MILLISECONDS = 1000/)
+assert.match(redisCommanderSource, /await waitTime\(REDIS_COMMANDER_HEALTH_INTERVAL_MILLISECONDS\)/)
+assert.match(redisCommanderSource, /waitTime: 2000/)
 assert.doesNotMatch(redisCommanderSource, /setTimeout\(/)
 assert.match(redisCommanderSource, /startupDiagnostics/)
+assert.match(redisCommanderSource, /lastHealthError/)
+assert.match(redisCommanderSource, /healthError=/)
+assert.match(redisCommanderSource, /listeningPids=/)
 assert.match(redisCommanderSource, /redis-commander\.start\.out\.log/)
 assert.match(redisCommanderSource, /redis-commander\.start\.error\.log/)
 

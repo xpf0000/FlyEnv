@@ -24,6 +24,8 @@ export const REDIS_COMMANDER_LOGIN = 'flyenv'
 export const REDIS_COMMANDER_SSO_ISSUER = 'FlyEnv'
 const REDIS_COMMANDER_SSO_TOKEN_TTL_SECONDS = 60
 const REDIS_COMMANDER_STARTUP_LOG_TAIL_LENGTH = 4_000
+const REDIS_COMMANDER_HEALTH_ATTEMPTS = 30
+const REDIS_COMMANDER_HEALTH_INTERVAL_MILLISECONDS = 1000
 
 export type RedisCommanderPaths = {
   root: string
@@ -292,6 +294,7 @@ export class RedisCommanderRuntime {
   private readonly startPackage: NonNullable<RedisCommanderRuntimeOptions['starter']>
   private readonly readConfig: (redis: SoftInstalled) => Promise<RedisCommanderConnection>
   private readonly killProcesses: (pids: string[]) => Promise<void>
+  private lastHealthError = ''
   private openFlight?: Promise<RedisCommanderOpened>
   private stoppingFlight?: Promise<string[]>
   private openGeneration = 0
@@ -318,12 +321,19 @@ export class RedisCommanderRuntime {
 
   private async defaultHealth(
     port: number,
-    _credentials: RedisCommanderCredentials
+    credentials: RedisCommanderCredentials
   ): Promise<boolean> {
     try {
-      const response = await axios.get(redisCommanderUrl(port), { timeout: 1200 })
+      const response = await axios.get(redisCommanderUrl(port), {
+        timeout: 3000,
+        auth: { username: credentials.login, password: credentials.password },
+        validateStatus: () => true
+      })
+      this.lastHealthError = ''
       return response.status >= 200 && response.status < 400
-    } catch {
+    } catch (error) {
+      const item = error as { code?: string; message?: string }
+      this.lastHealthError = [item.code, item.message ?? `${error}`].filter(Boolean).join(': ')
       return false
     }
   }
@@ -435,7 +445,7 @@ export class RedisCommanderRuntime {
       outFile: paths.startOut,
       errFile: paths.startError,
       on,
-      waitTime: 1500,
+      waitTime: 2000,
       execEnv: redisCommanderSsoEnvironment(credentials),
       sensitive: true
     })
@@ -470,9 +480,12 @@ export class RedisCommanderRuntime {
   }
 
   private async waitHealth(port: number, credentials: RedisCommanderCredentials): Promise<boolean> {
-    for (let attempt = 0; attempt < 20; attempt += 1) {
+    this.lastHealthError = ''
+    for (let attempt = 0; attempt < REDIS_COMMANDER_HEALTH_ATTEMPTS; attempt += 1) {
       if (await this.checkHealth(port, credentials)) return true
-      await waitTime(1000)
+      if (attempt + 1 < REDIS_COMMANDER_HEALTH_ATTEMPTS) {
+        await waitTime(REDIS_COMMANDER_HEALTH_INTERVAL_MILLISECONDS)
+      }
     }
     return false
   }
@@ -492,12 +505,15 @@ export class RedisCommanderRuntime {
       readTail(this.paths.startOut),
       readTail(this.paths.startError)
     ])
+    const listeningPids = await this.fetchListeningPids(`${port}`).catch(() => [])
     return [
       `target=http://127.0.0.1:${port}`,
       `pid=${pid || 'unknown'}`,
       `node=${nodeBin}`,
       `entry=${this.paths.entry}`,
       `cwd=${this.paths.root}`,
+      `healthError=${this.lastHealthError || '<none>'}`,
+      `listeningPids=${listeningPids.join(',') || '<none>'}`,
       `stdout=${stdout || '<empty>'}`,
       `stderr=${stderr || '<empty>'}`
     ].join('\n')

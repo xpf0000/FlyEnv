@@ -332,7 +332,7 @@ assert.deepEqual(
     ].join('\n'),
     '5050'
   ),
-  ['101']
+  ['101', '102', '104']
 )
 
 assert.equal(
@@ -738,8 +738,8 @@ assert.equal(
   }),
   false
 )
-assert.equal(defaultHealthIntervals.length, 59)
-assert.deepEqual(new Set(defaultHealthIntervals), new Set([500]))
+assert.equal(defaultHealthIntervals.length, 29)
+assert.deepEqual(new Set(defaultHealthIntervals), new Set([1000]))
 
 const explicitHealthIntervals: number[] = []
 assert.equal(
@@ -1102,8 +1102,13 @@ assert.match(postgresqlSource, /readFile\(paths\.port, 'utf-8'\)/)
 assert.match(postgresqlSource, /writeFile\(paths\.port, `\$\{port\}`\)/)
 assert.match(postgresqlSource, /isHealthy: async \(port, started\) =>/)
 assert.match(postgresqlSource, /pgAdminHttpReachable\(port\)/)
+assert.match(postgresqlSource, /pgAdminHttpReachable\(port: number\)/)
+assert.match(pgAdminSource, /const PGADMIN4_HEALTH_ATTEMPTS = 30/)
+assert.match(pgAdminSource, /const PGADMIN4_HEALTH_INTERVAL_MILLISECONDS = 1000/)
+assert.match(postgresqlSource, /timeout: 3000/)
 assert.match(postgresqlSource, /if \(!runningPid && existsSync\(paths\.port\)\)/)
 assert.match(postgresqlSource, /serviceStartSpawn\([\s\S]*?bin: servicePython/)
+assert.match(postgresqlSource, /bin: servicePython,[\s\S]*?waitTime: 2000/)
 assert.match(postgresqlSource, /_stopPGAdmin\(/)
 assert.match(postgresqlSource, /pgAdminPackageRootUnversionedProbe/)
 assert.match(postgresqlSource, /pgAdminOwnedPidsWithoutPackageMetadata/)
