@@ -1,13 +1,11 @@
-# FlyEnv新版本4.17.1更新日志
+# FlyEnv新版本4.18.0更新日志
 
 本次更新内容：
-1. 新增ClickHouse模块. https://github.com/xpf0000/FlyEnv/issues/774
-2. 新增Temporal模块.https://github.com/xpf0000/FlyEnv/issues/730
-3. 新增Temporal CLI模块.https://github.com/xpf0000/FlyEnv/issues/730
-4. 托盘菜单新增启动组的显示,可以直接从托盘菜单操作启动组了. https://github.com/xpf0000/FlyEnv/issues/782
-5. 修复Windows上帮助程序安装失败的问题. 新增了授权操作方法设置. 帮助程序安装失败时,会自动回退到UAC方式.
-   https://github.com/xpf0000/FlyEnv/issues/756
-   https://github.com/xpf0000/FlyEnv/issues/797
+1. 新增Neo4j模块. https://github.com/xpf0000/FlyEnv/issues/719
+2. 新增pgAdmin 4管理面板. https://github.com/xpf0000/FlyEnv/issues/680
+3. 新增DbGate管理面板.
+4. 新增Redis Commander管理面板.
+5. 修复站点二维码缺少协议前缀的问题. https://github.com/xpf0000/FlyEnv/issues/815
 
 参照：
 ```
