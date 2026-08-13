@@ -80,7 +80,10 @@ work to the user. It does not remove the manual deployment steps that this featu
 
 ### Persisted site model
 
-Extend the existing `AppHost` record only for `type: 'tomcat'` with Tomcat-owned data:
+Persist a `tomcat` property only on host records whose `type` is `tomcat`. Define the property,
+its TypeScript intersection type, validation, and all helpers under the Tomcat module; do not add
+Tomcat-specific fields to either shared or renderer-global `AppHost` interfaces. Generic Host code
+continues to carry the opaque persisted property when it clones and saves a host record.
 
 ```ts
 type TomcatContextMapping = {
@@ -98,15 +101,20 @@ type TomcatSiteConfig = {
 }
 ```
 
-`tomcat` is optional on the shared host type so existing PHP and Tomcat records remain readable.
-The type and all validation/generation helpers stay under the Tomcat module rather than becoming
-generic web-server abstractions. This is not new module-owned configuration in `config.setup`: the
-data is part of the existing host record, whose lifetime and persistence already belong to the
-Host domain.
+This is not new module-owned configuration in `config.setup`: the data is part of the existing host
+record, whose lifetime and persistence already belong to the Host domain. Existing PHP and Tomcat
+records remain readable because a missing `tomcat` property means no managed Contexts and rewrite
+disabled.
 
-For compatibility, a missing `tomcat` field means no managed Contexts and rewrite disabled. FlyEnv
-will not infer a Context from `root`: an operator must explicitly add it. That avoids accidentally
-mounting a directory that was intended only as an `appBase` and preserves current deployments.
+FlyEnv will not infer a Context from `root`: an operator must explicitly add it. That avoids
+accidentally mounting a directory that was intended only as an `appBase` and preserves current
+deployments.
+
+Tomcat Host names and aliases are unique across all Tomcat site records, independent of Connector
+port. An Engine has one Host namespace: two records with the same name/alias would otherwise share
+one Tomcat Host and one Context descriptor directory unpredictably. The Tomcat drawer exposes the
+existing alias field and rejects any overlapping primary name or alias before save; the fork repeats
+the check to protect non-renderer callers.
 
 ### Context validation and descriptor generation
 
@@ -117,8 +125,9 @@ reorder mapping rows. A mapping contains:
   backslashes, `.`/`..` path segments, or whitespace-only content. Context paths are unique after
   normalization.
 - **Application path (`docBase`)**: absolute, non-empty, existing path; it must be a directory or
-  `.war` file. It may be outside the Host `appBase`, which is required for build-output deployments
-  such as an external WAR.
+  `.war` file located outside the Host `appBase`. This is required when a Context descriptor names
+  a `docBase`, because Tomcat otherwise scans the same application from `appBase` and can deploy it
+  twice. A dedicated empty `appBase` plus an external build directory or WAR is the normal setup.
 
 The fork owns final filesystem validation and descriptor generation, so validation does not depend
 on a mounted renderer. The renderer performs the same inexpensive validation for immediate field
@@ -134,11 +143,11 @@ removes only descriptors carrying that FlyEnv ownership marker that no longer ma
 mapping IDs. Unmarked descriptors—including manually created Context files—are never altered. On
 site deletion it removes only this site's marked descriptors across its old aliases.
 
-The Host remains `appBase=<root>`, with `unpackWARs="true"`. A Host with at least one managed
-descriptor is configured with `deployOnStartup="false"` and `autoDeploy="false"` to prevent
-Tomcat from scanning an appBase that may contain build artifacts, while still loading the explicit
-Context descriptors at startup. A Host without managed Contexts retains the current automatic
-deployment behavior.
+The Host remains `appBase=<root>`, with `unpackWARs="true"`, `deployOnStartup="true"`, and
+`autoDeploy="true"`. Tomcat's standard Host deployer uses these flags to load and monitor Context
+descriptors from `conf/Catalina/<host>/`; turning them off would leave the descriptors undeployed.
+The `docBase`-outside-`appBase` validation prevents the duplicate deployment issue without
+disabling the descriptor deployment mechanism.
 
 ### Rewrite configuration
 
@@ -146,16 +155,17 @@ The drawer adds a **Tomcat rewrite** switch and a code editor. The setting is ho
 Context-level, because Tomcat's `RewriteValve` and its `rewrite.config` are host-scoped. When
 enabled, the fork:
 
-1. Writes the exact editor content to
+1. Writes a FlyEnv ownership comment followed by the editor content to
    `CATALINA_BASE/conf/Catalina/<alias>/rewrite.config`.
 2. Adds a `<Valve appFlag="FlyEnv" className="org.apache.catalina.valves.rewrite.RewriteValve"/>`
    to the corresponding FlyEnv-managed Host in `server.xml`.
 
 When disabled or deleted, it removes only the FlyEnv-marked RewriteValve. It removes only a
 `rewrite.config` bearing FlyEnv's file marker; a pre-existing user-owned rewrite configuration is
-left untouched and will continue to be used by any user-owned RewriteValve. Rename/alias changes
-remove stale FlyEnv-owned files from the previous alias directories and generate them for the new
-aliases.
+left untouched and will continue to be used by any user-owned RewriteValve. Enabling rewrite when
+an unmarked `rewrite.config` already exists is an explicit conflict and fails without overwriting
+the file. Rename/alias changes remove stale FlyEnv-owned files from the previous alias directories
+and generate them for the new aliases.
 
 OpenMRS can then be expressed without manual file work: configure the mapping
 `/openmrs -> /absolute/path/openmrs.war`, enable rewrite, and set
@@ -225,7 +235,7 @@ With this design, the manual steps from the OpenMRS guide reduce to application-
 | Edit `server.xml` and manually add `<Context>` | Add `/openmrs` and select the built WAR in the Tomcat site drawer. |
 | Create `conf/Catalina/<host>/rewrite.config` | Enable rewrite and save the rule in the drawer. |
 | Add RewriteValve manually | FlyEnv manages the marked host Valve. |
-| Keep an empty dedicated appBase by hand | Choose a dedicated directory as the Host root; FlyEnv disables appBase scanning when explicit Contexts exist. |
+| Keep an empty dedicated appBase by hand | Choose a dedicated directory as the Host root; FlyEnv validates that every explicitly mapped application stays outside it. |
 | Build compatibility/JVM/database setup | Remains documented, project-specific operator work. |
 
 ## Module Boundary Checklist
