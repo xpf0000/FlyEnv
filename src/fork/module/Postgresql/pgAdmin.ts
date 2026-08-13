@@ -2,6 +2,8 @@ import { createServer } from 'node:net'
 import { join, posix, win32 } from 'node:path'
 
 export const PGADMIN4_PACKAGE = 'pgadmin4'
+export const PGADMIN4_MIN_PYTHON_MINOR = 9
+export const PGADMIN4_MAX_PYTHON_MINOR = 13
 export const PGADMIN4_DEFAULT_PORT = 5050
 export const PGADMIN4_MAX_PORT = 65535
 export const PGADMIN4_MAX_SERVER_PORT = 65534
@@ -725,7 +727,29 @@ export function validPgAdminPythonVersion(version: string | null | undefined): b
 
   const major = Number(match[1])
   const minor = Number(match[2])
-  return major > 3 || (major === 3 && minor >= 9)
+  return major === 3 && minor >= PGADMIN4_MIN_PYTHON_MINOR && minor <= PGADMIN4_MAX_PYTHON_MINOR
+}
+
+export interface PythonVersionInfo {
+  major: number
+  minor: number
+  micro: number
+}
+
+export function parsePythonVersion(versionStr: string): PythonVersionInfo | null {
+  const match = /^(?:Python\s+)?(\d+)\.(\d+)\.(\d+)\s*$/.exec(versionStr?.trim() ?? '')
+  if (!match) return null
+  
+  return {
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    micro: Number(match[3])
+  }
+}
+
+export function validatePgAdminPythonVersionInfo(info: PythonVersionInfo | null): boolean {
+  if (!info) return false
+  return info.major === 3 && info.minor >= PGADMIN4_MIN_PYTHON_MINOR && info.minor <= PGADMIN4_MAX_PYTHON_MINOR
 }
 
 export interface PgAdminHealthOptions {

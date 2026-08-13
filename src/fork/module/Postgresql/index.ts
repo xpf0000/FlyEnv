@@ -49,6 +49,8 @@ import {
   completePgAdminInitialization,
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
+  PGADMIN4_MAX_PYTHON_MINOR,
+  PGADMIN4_MIN_PYTHON_MINOR,
   PGADMIN4_PACKAGE,
   pgAdminCommandOwned,
   pgAdminOwnedPidsWithoutPackageMetadata,
@@ -66,6 +68,7 @@ import {
   pgAdminPaths,
   pgAdminPrivateDirectories,
   parsePgAdminServerIdentity,
+  parsePythonVersion,
   pgAdminRuntimePythonPath,
   pgAdminServersContent,
   pgAdminUrl,
@@ -76,6 +79,7 @@ import {
   stopPgAdminPidsWithVerification,
   type PgAdminServerIdentity,
   validPgAdminPythonVersion,
+  validatePgAdminPythonVersionInfo,
   verifyPgAdminPidPersistence,
   waitForPgAdminHealth,
   waitForPostgresqlProcess
@@ -141,6 +145,17 @@ class Manager extends Base {
 
   private async pgAdminPackageRootUnversioned(pythonBin: string): Promise<string> {
     return this.pgAdminPackageRoot(pythonBin, pgAdminPackageRootUnversionedProbe)
+  }
+
+  private async validateVenvPythonVersion(pythonBin: string): Promise<void> {
+    const result = await spawnPromiseWithEnv(pythonBin, ['-c', 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")'], {
+      shell: false
+    })
+    const versionStr = result.stdout.trim()
+    const versionInfo = parsePythonVersion(versionStr)
+    if (!validatePgAdminPythonVersionInfo(versionInfo)) {
+      throw new Error(`pgAdmin 4 requires Python 3.${PGADMIN4_MIN_PYTHON_MINOR} through 3.${PGADMIN4_MAX_PYTHON_MINOR}, but the virtual environment has Python ${versionStr}`)
+    }
   }
 
   private async pgAdminRunningPid(packageRoot: string): Promise<string | undefined> {
@@ -299,6 +314,8 @@ class Manager extends Base {
         if (!existsSync(paths.python)) {
           throw new Error('pgAdmin virtual environment Python was not created')
         }
+
+        await this.validateVenvPythonVersion(paths.python)
 
         let packageRoot = ''
         let packageRepaired = false
