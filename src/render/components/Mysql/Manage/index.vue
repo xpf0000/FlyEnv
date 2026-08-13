@@ -25,6 +25,7 @@
                   <template v-if="item.run">
                     <el-button
                       link
+                      :disabled="versionRunning"
                       class="status running"
                       :class="{ disabled: versionRunning }"
                       @click.stop="item.serviceDo('stop')"
@@ -33,6 +34,7 @@
                     </el-button>
                     <el-button
                       link
+                      :disabled="versionRunning"
                       class="status refresh"
                       :class="{ disabled: versionRunning }"
                       @click.stop="item.serviceDo('restart')"
@@ -43,6 +45,7 @@
                   <template v-else>
                     <el-button
                       link
+                      :disabled="versionRunning"
                       class="status start current"
                       :class="{
                         disabled: versionRunning || !item.version
@@ -119,7 +122,8 @@
   const brewStore = BrewStore()
 
   const versionRunning = computed(() => {
-    return brewStore.module(props.item.typeFlag)?.installed?.some((f) => f.running)
+    const module = brewStore.module(props.item.typeFlag)
+    return module.starting || module.installed.some((item) => item.running)
   })
 
   const selectDatabase = computed(() => {

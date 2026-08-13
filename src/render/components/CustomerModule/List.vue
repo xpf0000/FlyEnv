@@ -40,25 +40,31 @@
           </template>
           <template v-else>
             <template v-if="scope.row.run">
-              <el-button link class="status running">
-                <yb-icon
-                  :svg="import('@/svg/stop2.svg?raw')"
-                  @click.stop="serviceDo('stop', scope.row)"
-                />
+              <el-button
+                link
+                :disabled="versionRunning"
+                class="status running"
+                @click.stop="serviceDo('stop', scope.row)"
+              >
+                <yb-icon :svg="import('@/svg/stop2.svg?raw')" />
               </el-button>
-              <el-button link class="status refresh">
-                <yb-icon
-                  :svg="import('@/svg/icon_refresh.svg?raw')"
-                  @click.stop="serviceDo('restart', scope.row)"
-                />
+              <el-button
+                link
+                :disabled="versionRunning"
+                class="status refresh"
+                @click.stop="serviceDo('restart', scope.row)"
+              >
+                <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" />
               </el-button>
             </template>
             <template v-else>
-              <el-button link class="status start">
-                <yb-icon
-                  :svg="import('@/svg/play.svg?raw')"
-                  @click.stop="serviceDo('start', scope.row)"
-                />
+              <el-button
+                link
+                :disabled="versionRunning"
+                class="status start"
+                @click.stop="serviceDo('start', scope.row)"
+              >
+                <yb-icon :svg="import('@/svg/play.svg?raw')" />
               </el-button>
             </template>
           </template>
@@ -152,6 +158,14 @@
     return AppCustomerModule.currentModule?.currentItemID ?? ''
   })
 
+  const versionRunning = computed(() => {
+    const module = AppCustomerModule.currentModule
+    if (!module?.isOnlyRunOne || !module.isService) {
+      return false
+    }
+    return module.starting || module.item.some((item) => item.running)
+  })
+
   const logs = (item: ModuleCustomerExecItem) => {
     return [
       {
@@ -206,7 +220,7 @@
           const onStart = AppCustomerModule.currentModule!.onExecStart.bind(
             AppCustomerModule.currentModule!
           )
-          save.onStart(onStart)
+          save.onStart(onStart, AppCustomerModule.currentModule)
           AppCustomerModule.currentModule!.item.splice(index, 1, save)
           AppCustomerModule.saveModule()
         })
@@ -232,6 +246,9 @@
   }
 
   const serviceDo = (fn: 'start' | 'stop' | 'restart', item: ModuleCustomerExecItem) => {
+    if (versionRunning.value) {
+      return
+    }
     if (fn === 'start') {
       item.start().then().catch()
     } else if (fn === 'stop') {

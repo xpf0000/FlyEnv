@@ -22,6 +22,7 @@
     "test:go-gvm": "tsx scripts/go-gvm-test.ts",
     "test:hermes-provider": "tsx scripts/hermes-provider-config-test.ts",
     "test:postgresql-pgadmin4": "tsx scripts/postgresql-pgadmin4-test.ts",
+    "test:module-lifecycle-single-flight": "tsx scripts/module-lifecycle-single-flight-test.ts",
     "test:mongodb-dbgate": "tsx scripts/mongodb-dbgate-test.ts",
     "test:redis-commander": "tsx scripts/redis-commander-test.ts",
     "test:qdrant": "tsx scripts/qdrant-test.ts",

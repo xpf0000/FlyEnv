@@ -23,6 +23,8 @@ export class Module {
 
   installedFetched: boolean = false
 
+  /** Exclusive service modules may start only one version at a time. */
+  starting: boolean = false
   fetchInstalleding: boolean = false
   fetchEnving: boolean = false
 
@@ -42,6 +44,25 @@ export class Module {
   portFetching: boolean = false
   staticFetching: boolean = false
   sdkmanFetching: boolean = false
+  private startFlight?: Promise<string | boolean>
+
+  startSingleFlight(start: () => Promise<string | boolean>): Promise<string | boolean> {
+    if (!this.isOnlyRunOne) {
+      return start()
+    }
+    if (this.startFlight) {
+      return this.startFlight
+    }
+    this.starting = true
+    const flight = start().finally(() => {
+      if (this.startFlight === flight) {
+        this.startFlight = undefined
+        this.starting = false
+      }
+    })
+    this.startFlight = flight
+    return flight
+  }
 
   onItemStart(item: ModuleInstalledItem): Promise<Module> {
     return new Promise((resolve) => {

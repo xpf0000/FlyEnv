@@ -42,6 +42,11 @@ export class ModuleInstalledItem implements SoftInstalled {
 
   // 使用箭头函数绑定 this
   start(): Promise<string | boolean> {
+    const module = BrewStore().module(this.typeFlag)
+    return module.startSingleFlight(() => this.startInternal())
+  }
+
+  private async startInternal(): Promise<string | boolean> {
     return new Promise(async (resolve) => {
       if (this.run && this.pid) {
         return resolve(true)
@@ -146,6 +151,11 @@ export class ModuleInstalledItem implements SoftInstalled {
   serviceDo(flag: 'stop' | 'start' | 'restart') {
     return new Promise(async (resolve) => {
       if (!this?.version || !this?.path) {
+        return
+      }
+      const module = BrewStore().module(this.typeFlag)
+      if (module.starting || module.installed.some((item) => item.running)) {
+        resolve(true)
         return
       }
       let action: any

@@ -206,6 +206,7 @@
             <template v-if="scope.row.run">
               <el-button
                 link
+                :disabled="versionRunning"
                 class="status running"
                 :class="{ disabled: versionRunning }"
                 @click.stop="serviceDo('stop', scope.row)"
@@ -214,6 +215,7 @@
               </el-button>
               <el-button
                 link
+                :disabled="versionRunning"
                 class="status refresh"
                 :class="{ disabled: versionRunning }"
                 @click.stop="serviceDo('restart', scope.row)"
@@ -224,6 +226,7 @@
             <template v-else>
               <el-button
                 link
+                :disabled="versionRunning"
                 class="status start"
                 :class="{
                   disabled: versionRunning || !scope.row.version,

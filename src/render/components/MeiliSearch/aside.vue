@@ -27,7 +27,6 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { MeiliSearchSetup } from './setup'
   import { BrewStore } from '@/store/brew'
@@ -49,15 +48,12 @@
   MeiliSearchSetup.init()
 
   const brewStore = BrewStore()
-  const currentVersion = computed(() => {
-    return brewStore.currentVersion('meilisearch')
-  })
 
   const module = brewStore.module('meilisearch')
   if (!module?.startExtParam) {
     module.startExtParam = (version: ModuleInstalledItem) => {
       return new Promise<any[]>((resolve) => {
-        const v = currentVersion?.value?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const dir = join(window.Server.BaseDir!, `meilisearch`, v)
         const p = MeiliSearchSetup.dir?.[version.bin] ?? dir
         resolve([p])

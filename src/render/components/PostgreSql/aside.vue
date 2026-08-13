@@ -32,7 +32,6 @@
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
   import { join } from '@/util/path-browserify'
   import { PostgreSqlSetup } from '@/components/PostgreSql/setup'
-  import { computed } from 'vue'
 
   const {
     showItem,
@@ -50,14 +49,10 @@
 
   const brewStore = BrewStore()
 
-  const currentVersion = computed(() => {
-    return brewStore.currentVersion('postgresql')
-  })
-
   const module = brewStore.module('postgresql')
   const extParamFn = (version: ModuleInstalledItem) => {
     return new Promise<any[]>((resolve) => {
-      const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+      const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dir = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       const p = PostgreSqlSetup.dir?.[version.bin] ?? dir
       resolve([p])

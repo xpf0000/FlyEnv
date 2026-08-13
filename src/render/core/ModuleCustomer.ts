@@ -37,10 +37,17 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
   run = false
   pid = ''
 
+  declare private module?: ModuleCustomer
   _onStart!: (item: ModuleCustomerExecItem) => Promise<ModuleCustomer>
 
-  constructor(item: any) {
+  constructor(item: any, module?: ModuleCustomer) {
     Object.assign(this, item)
+    Object.defineProperty(this, 'module', {
+      value: module,
+      writable: true,
+      configurable: true,
+      enumerable: false
+    })
     this.running = false
     this.run = false
     this.pid = ''
@@ -64,6 +71,10 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
   }
 
   start(): Promise<boolean | string> {
+    return this.module?.startSingleFlight(() => this._startInternal()) ?? this._startInternal()
+  }
+
+  _startInternal(): Promise<boolean | string> {
     return new Promise(async (resolve) => {
       if (this.run && this.pid) {
         return resolve(true)
@@ -158,8 +169,9 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
     })
   }
 
-  onStart(fn: any) {
+  onStart(fn: (item: ModuleCustomerExecItem) => Promise<ModuleCustomer>, module?: ModuleCustomer) {
     this._onStart = fn
+    this.module = module ?? this.module
   }
 }
 
@@ -176,28 +188,50 @@ class ModuleCustomer implements CustomerModuleItem {
   currentItemID = ''
   configPath: Array<{ name: string; path: string }> = []
   logPath: Array<{ name: string; path: string }> = []
+  /** Exclusive custom service modules may start only one version at a time. */
+  starting: boolean = false
+  private startFlight?: Promise<boolean | string>
 
   showHideWatcher: any
 
   constructor(item: any) {
     Object.assign(this, item)
     this.typeFlag = this.id
+    this.starting = false
     const list: ModuleCustomerExecItem[] = []
     const arr: CustomerModuleExecItem[] = item?.item ?? []
     const onStart = this.onExecStart.bind(this)
     for (const i of arr) {
-      const execItem = reactive(new ModuleCustomerExecItem(i))
+      const execItem = reactive(new ModuleCustomerExecItem(i, this))
       execItem.onStart = execItem.onStart.bind(execItem)
       execItem.stop = execItem.stop.bind(execItem)
       execItem.start = execItem.start.bind(execItem)
-      execItem.onStart(onStart)
+      execItem.onStart(onStart, this)
       list.push(execItem)
     }
     this.item = reactive(list)
   }
 
-  onExecStart(item: ModuleCustomerExecItem) {
-    return new Promise(async (resolve) => {
+  startSingleFlight(start: () => Promise<boolean | string>): Promise<boolean | string> {
+    if (!this.isOnlyRunOne || !this.isService) {
+      return start()
+    }
+    if (this.startFlight) {
+      return this.startFlight
+    }
+    this.starting = true
+    const flight = start().finally(() => {
+      if (this.startFlight === flight) {
+        this.startFlight = undefined
+        this.starting = false
+      }
+    })
+    this.startFlight = flight
+    return flight
+  }
+
+  onExecStart(item: ModuleCustomerExecItem): Promise<ModuleCustomer> {
+    return new Promise<ModuleCustomer>(async (resolve) => {
       if (!this.isOnlyRunOne || !this.isService) {
         resolve(this)
         return

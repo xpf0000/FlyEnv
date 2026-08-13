@@ -1014,6 +1014,18 @@ const pgAdminSource = readFileSync(
   join(process.cwd(), 'src', 'fork', 'module', 'Postgresql', 'pgAdmin.ts'),
   'utf-8'
 )
+const postgresqlAsideSource = readFileSync(
+  join(process.cwd(), 'src', 'render', 'components', 'PostgreSql', 'aside.vue'),
+  'utf-8'
+)
+const consulAsideSource = readFileSync(
+  join(process.cwd(), 'src', 'render', 'components', 'Consul', 'aside.vue'),
+  'utf-8'
+)
+const meiliSearchAsideSource = readFileSync(
+  join(process.cwd(), 'src', 'render', 'components', 'MeiliSearch', 'aside.vue'),
+  'utf-8'
+)
 const postgreSqlStopSource = postgresqlSource.slice(
   postgresqlSource.indexOf('  _stopServer('),
   postgresqlSource.indexOf('  _startServer(')
@@ -1047,6 +1059,34 @@ assert.match(
   postgreSqlStopSource,
   /'APP-Service-Stop-PID': \[\.\.\.pids\]\.map\(\(p\) => Number\(p\)\)/
 )
+const postgresqlExtParamSource = postgresqlAsideSource.slice(
+  postgresqlAsideSource.indexOf('const extParamFn'),
+  postgresqlAsideSource.indexOf('if (!module?.startExtParam)')
+)
+assert.ok(
+  postgresqlExtParamSource.includes(
+    "const versionTop = version?.version?.split('.')?.shift() ?? ''"
+  )
+)
+assert.doesNotMatch(postgresqlExtParamSource, /currentVersion\?\.value\?\.version/)
+const consulExtParamSource = consulAsideSource.slice(
+  consulAsideSource.indexOf('module.startExtParam'),
+  consulAsideSource.indexOf('AppServiceModule.consul')
+)
+assert.ok(
+  consulExtParamSource.includes("const versionTop = version?.version?.split('.')?.shift() ?? ''")
+)
+assert.doesNotMatch(consulExtParamSource, /currentVersion\?\.value\?\.version/)
+const meiliSearchExtParamSource = meiliSearchAsideSource.slice(
+  meiliSearchAsideSource.indexOf('module.startExtParam'),
+  meiliSearchAsideSource.indexOf('AppServiceModule.meilisearch')
+)
+assert.ok(
+  meiliSearchExtParamSource.includes(
+    "const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''"
+  )
+)
+assert.doesNotMatch(meiliSearchExtParamSource, /currentVersion\?\.value\?\.version/)
 assert.match(postgresqlSource, /new PgAdminSingleFlight/)
 assert.match(postgresqlSource, /writeFile\(paths\.initialized, '1'\)/)
 assert.match(postgresqlSource, /pgAdminDesktopInitializationVerificationContent/)

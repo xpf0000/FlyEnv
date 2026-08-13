@@ -50,7 +50,8 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   const versionRunning = computed(() => {
-    return brewStore.module(typeFlag)?.installed?.some((f) => f.running)
+    const module = brewStore.module(typeFlag)
+    return module.starting || module.installed.some((item) => item.running)
   })
 
   const isInEnv = (item: SoftInstalled) => {
@@ -93,6 +94,9 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: ModuleInstalledItem) => {
     if (!item?.version || !item?.path) {
+      return
+    }
+    if (versionRunning.value) {
       return
     }
     let action: any

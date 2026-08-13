@@ -29,7 +29,6 @@
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { BrewStore } from '@/store/brew'
-  import { computed } from 'vue'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
   import { join } from '@/util/path-browserify'
   import { ConsulSetup } from '@/components/Consul/setup'
@@ -50,15 +49,11 @@
 
   const brewStore = BrewStore()
 
-  const currentVersion = computed(() => {
-    return brewStore.currentVersion('consul')
-  })
-
   const module = brewStore.module('consul')
   if (!module?.startExtParam) {
     module.startExtParam = (version: ModuleInstalledItem) => {
       return new Promise<any[]>((resolve) => {
-        const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+        const versionTop = version?.version?.split('.')?.shift() ?? ''
         const dir = join(window.Server.BaseDir!, `consul/consul-${versionTop}-data`)
         const p = ConsulSetup.dir?.[version.bin] ?? dir
         resolve([p])
