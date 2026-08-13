@@ -20,71 +20,36 @@
           </a>
         </div>
       </div>
-      <template v-if="lang === 'zh'">
-        <el-row style="padding: 0 20px; margin-top: 30px">
-          <el-col>
-            感谢使用FlyEnv. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub Issues
-          </el-col>
-          <el-col style="margin-top: 12px">
-            如果FlyEnv有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢
-          </el-col>
-          <el-col style="margin-top: 12px">
-            GitHub:
-            <a
-              target="_blank"
-              href="javascript:"
-              rel="noopener noreferrer"
-              @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
-            >
-              https://github.com/xpf0000/FlyEnv
-            </a>
-          </el-col>
-          <el-col style="margin-top: 12px">
-            赞助:
-            <a
-              target="_blank"
-              href="javascript:"
-              rel="noopener noreferrer"
-              @click="openUrl($event, 'https://flyenv.com/license.html')"
-            >
-              https://flyenv.com/license.html
-            </a>
-          </el-col>
-        </el-row>
-      </template>
-      <template v-else>
-        <el-row style="padding: 0 20px; margin-top: 30px">
-          <el-col>
-            Thanks for using FlyEnv. If you have any questions or suggestions, you can join the
-            community for discussion. You can also submit GitHub Issues
-          </el-col>
-          <el-col style="margin-top: 12px">
-            If FlyEnv is helpful to you, please star and sponsor for the project. Thanks
-          </el-col>
-          <el-col style="margin-top: 12px">
-            GitHub:
-            <a
-              target="_blank"
-              href="javascript:"
-              rel="noopener noreferrer"
-              @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
-            >
-              https://github.com/xpf0000/FlyEnv
-            </a>
-          </el-col>
-          <el-col style="margin-top: 12px">
-            Sponsor:
-            <a
-              target="_blank"
-              href="javascript:"
-              rel="noopener noreferrer"
-              @click="openUrl($event, 'https://flyenv.com/license.html')"
-            >
-              https://flyenv.com/license.html
-            </a>
-          </el-col>
-        </el-row>
-      </template>
+      <el-row style="padding: 0 20px; margin-top: 30px">
+        <el-col>
+          {{ $t('feedback.about.thanks') }}
+        </el-col>
+        <el-col style="margin-top: 12px">
+          {{ $t('feedback.about.starSponsor') }}
+        </el-col>
+        <el-col style="margin-top: 12px">
+          {{ $t('feedback.about.github') }}
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
+          >
+            https://github.com/xpf0000/FlyEnv
+          </a>
+        </el-col>
+        <el-col style="margin-top: 12px">
+          {{ $t('feedback.about.sponsor') }}
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://flyenv.com/license.html')"
+          >
+            https://flyenv.com/license.html
+          </a>
+        </el-col>
+      </el-row>
       <div style="margin: 20px 20px 0">
         <span style="margin-right: 12px">{{ $t('feedback.anythingToSay') }}</span>
         <el-button type="primary" @click.stop="toFeedback">{{
@@ -96,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, onMounted, onUnmounted } from 'vue'
   import { AppStore } from '@/store/app'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { app, shell } from '@/util/NodeFn'
@@ -105,8 +70,6 @@
 
   const version = ref('')
   const appStore = AppStore()
-
-  const lang = computed(() => appStore.config.setup.lang)
 
   const openUrl = (e: Event, url: string) => {
     e.preventDefault()
