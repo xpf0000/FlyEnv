@@ -39,6 +39,13 @@
     "licenseTips": "No license found. Only 3 modules/execution items can be created.",
     "outputLog": "Output Log"
   },
+  "moduleDescription": {
+    "consul": "Service discovery and configuration for distributed applications.",
+    "etcd": "Distributed key-value store for service configuration and state.",
+    "rnacos": "Service discovery and centralized configuration management.",
+    "temporal": "Reliable orchestration of application workflows and long-running processes.",
+    "temporalCli": "Command-line tool for managing and interacting with Temporal."
+  },
   "flyenvHelper": "Fix FlyEnv Helper",
   "flyenvHelperBtn": "Fix",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully",

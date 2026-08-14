@@ -39,6 +39,13 @@
     "licenseTips": "Aucune licence trouvée. Seuls 3 modules/éléments d'exécution peuvent être créés.",
     "outputLog": "Journal de sortie"
   },
+  "moduleDescription": {
+    "consul": "Découverte et configuration de services pour les architectures distribuées.",
+    "etcd": "Stockage clé-valeur distribué pour la configuration et l’état des systèmes distribués.",
+    "rnacos": "Découverte de services et gestion centralisée de leur configuration.",
+    "temporal": "Orchestration fiable de workflows et de processus applicatifs de longue durée.",
+    "temporalCli": "Outil en ligne de commande pour administrer et interagir avec Temporal."
+  },
   "flyenvHelper": "Réparer l'application d'assistance FlyEnv",
   "flyenvHelperBtn": "Réparer",
   "flyenvHelperFixSuccess": "Réparation de l'application d'assistance FlyEnv réussie",
