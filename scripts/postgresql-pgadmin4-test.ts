@@ -9,7 +9,9 @@ import {
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
   PGADMIN4_MAX_PORT,
+  PGADMIN4_MAX_PYTHON_MINOR,
   PGADMIN4_MAX_SERVER_PORT,
+  PGADMIN4_MIN_PYTHON_MINOR,
   PGADMIN4_PACKAGE,
   PGADMIN4_PORT_SCAN_COUNT,
   PgAdminSingleFlight,
@@ -29,6 +31,7 @@ import {
   pgAdminPaths,
   pgAdminPrivateDirectories,
   parsePgAdminServerIdentity,
+  parsePythonVersion,
   pgAdminServersContent,
   pgAdminUrl,
   postgresqlPortFromConfig,
@@ -37,6 +40,7 @@ import {
   stopPgAdminPidsWithVerification,
   validPgAdminRegistrationPort,
   validPgAdminPythonVersion,
+  validatePgAdminPythonVersionInfo,
   verifyPgAdminPidPersistence,
   waitForPgAdminHealth,
   waitForPostgresqlProcess
@@ -968,6 +972,40 @@ assert.equal(validPgAdminPythonVersion('Python 3.9.0'), true)
 assert.equal(validPgAdminPythonVersion('3.13.1'), true)
 assert.equal(validPgAdminPythonVersion('not a version'), false)
 assert.equal(validPgAdminPythonVersion(null), false)
+
+// Test Python 3.14 is now rejected (regression test for pgAdmin 9.17 compatibility)
+assert.equal(validPgAdminPythonVersion('3.14.0'), false)
+assert.equal(validPgAdminPythonVersion('Python 3.14.0'), false)
+assert.equal(validPgAdminPythonVersion('3.14'), false)
+
+// Test version parsing and validation functions
+assert.equal(PGADMIN4_MIN_PYTHON_MINOR, 9)
+assert.equal(PGADMIN4_MAX_PYTHON_MINOR, 13)
+
+// Test parsePythonVersion with valid versions
+assert.deepEqual(parsePythonVersion('3.9.0'), { major: 3, minor: 9, micro: 0 })
+assert.deepEqual(parsePythonVersion('3.10.5'), { major: 3, minor: 10, micro: 5 })
+assert.deepEqual(parsePythonVersion('3.13.1'), { major: 3, minor: 13, micro: 1 })
+assert.deepEqual(parsePythonVersion('3.14.0'), { major: 3, minor: 14, micro: 0 })
+assert.deepEqual(parsePythonVersion('Python 3.9.0'), { major: 3, minor: 9, micro: 0 })
+
+// Test parsePythonVersion with invalid versions
+assert.equal(parsePythonVersion('3.8'), null)
+assert.equal(parsePythonVersion('not a version'), null)
+assert.equal(parsePythonVersion(''), null)
+
+// Test validatePgAdminPythonVersionInfo with valid versions
+assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 9, micro: 0 }), true)
+assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 10, micro: 5 }), true)
+assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 11, micro: 0 }), true)
+assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 12, micro: 0 }), true)
+assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 13, micro: 1 }), true)
+
+// Test validatePgAdminPythonVersionInfo with unsupported versions
+assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 8, micro: 0 }), false)
+assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 14, micro: 0 }), false)
+assert.equal(validatePgAdminPythonVersionInfo({ major: 2, minor: 7, micro: 0 }), false)
+assert.equal(validatePgAdminPythonVersionInfo(null), false)
 
 await assert.rejects(
   findPgAdminPort(65536),
