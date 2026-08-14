@@ -14,7 +14,9 @@
   import { computed, ref } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import { AppStore } from '@/store/app'
+  import type { SoftInstalled } from '@shared/app'
   import { join } from '@/util/path-browserify'
+  import { tomcatCatalinaBase } from './setup'
 
   const props = defineProps<{
     fileName: string
@@ -27,8 +29,8 @@
   })
 
   const currentBaseDir = computed(() => {
-    const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-    return join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
+    if (!currentVersion.value) return ''
+    return tomcatCatalinaBase(currentVersion.value as SoftInstalled)
   })
 
   const conf = ref()

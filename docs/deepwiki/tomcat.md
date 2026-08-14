@@ -11,7 +11,30 @@
 
 Tomcat 模块为 FlyEnv 提供 Apache Tomcat Servlet 容器管理功能，支持 Java Web 应用的部署与运行。模块完整实现了 Tomcat 服务的生命周期管理、版本管理、虚拟主机配置以及 SSL/TLS 支持。
 
+## Managed Tomcat Sites
+
+Tomcat 项目在 **Hosts → Tomcat Projects** 中配置。一个站点可以定义零个或多个应用映射；`root` 是 Tomcat Host 的 `appBase`，每个映射独立指定 Context 路径和 `docBase`。选择 appBase 后，FlyEnv 会扫描其直接子目录和 WAR 文件并补充映射：`portal` 对应 `/portal`，`ROOT` 对应 `/`，WAR 使用去掉 `.war` 后的同一规则。
+
+这类 appBase 内、名称与 Context 路径完全一致的直接子应用由 Tomcat 自动部署，FlyEnv 不生成 Context descriptor，避免重复部署。外部目录/WAR 或自定义 Context 路径仍由 FlyEnv 写入标准 descriptor。appBase 本身、嵌套子目录，以及名称与 Context 路径不一致的 appBase 内映射会被拒绝。
+
+FlyEnv 将 Context 写为 Tomcat 标准 descriptor，而不是把 Context 写进 `server.xml`：
+
+```text
+<CATALINA_BASE>/conf/Catalina/<host>/
+├── ROOT.xml          # /
+├── openmrs.xml       # /openmrs
+├── api#v1.xml        # /api/v1
+└── rewrite.config    # host-level RewriteValve configuration
+```
+
+每个 Tomcat 站点只使用其主域名对应的 descriptor 目录。Host 保持 `unpackWARs="true"`、`deployOnStartup="true"` 和 `autoDeploy="true"`，因此 Tomcat 会自动部署 appBase 的自然应用并加载上述标准部署描述符。FlyEnv 只更新包含 FlyEnv 标识的 descriptor、`rewrite.config`、Valve、Connector 与 SNI 条目；手写文件或 XML 不会被覆盖。启用 rewrite 时，FlyEnv 在 Host 上添加标记的 `RewriteValve` 并写入 `rewrite.config`；若该位置已有未标记的 rewrite 文件，保存会明确报冲突。
+
+SSL Connector 会显式设置 `SSLEnabled="true"`、`scheme="https"`、`secure="true"` 和 `defaultSSLHostConfigName="_default_"`。同一 HTTPS 端口的每个站点主域名都有自己的标记 SNI 配置，默认配置按主域名字典序稳定选择。保存时会刷新已有 SNI 的证书路径，解决旧证书继续生效的问题。
+
+保存站点会先协调当前版本的 CATALINA_BASE，再同步 hosts 文件。Tomcat 原本运行时，FlyEnv 使用标准 `ModuleInstalledItem.restart()` 重启一次；原本停止时只保存配置，不会启动服务。
+
 相关文档链接:
+
 - [Java 模块](java.md) - Tomcat 依赖 Java 运行时
 - [Host 管理](../README.md) - 虚拟主机配置
 
@@ -59,7 +82,7 @@ Main Process (Application.ts)
    ▼
 6. Service Startup
    ├── _initDefaultDir() - Initialize CATALINA_BASE
-   ├── makeGlobalTomcatServerXML() - Generate config
+   ├── reconcileTomcatBase() - Reconcile managed config
    └── serviceStartExec() - Execute catalina.sh
 ```
 
@@ -69,14 +92,14 @@ Main Process (Application.ts)
 
 ### Module Registration (AppModuleItem)
 
-| Field | Value | Description |
-|-------|-------|-------------|
-| `moduleType` | `webServer` | Module category |
-| `typeFlag` | `tomcat` | Unique identifier |
-| `label` | `Tomcat` | Display name |
-| `isService` | `true` | Has start/stop capability |
-| `isTray` | `true` | Show in tray window |
-| `asideIndex` | `4` | Position in aside menu |
+| Field        | Value       | Description               |
+| ------------ | ----------- | ------------------------- |
+| `moduleType` | `webServer` | Module category           |
+| `typeFlag`   | `tomcat`    | Unique identifier         |
+| `label`      | `Tomcat`    | Display name              |
+| `isService`  | `true`      | Has start/stop capability |
+| `isTray`     | `true`      | Show in tray window       |
+| `asideIndex` | `4`         | Position in aside menu    |
 
 Sources: src/render/components/Tomcat/Module.ts:4-14
 
@@ -84,9 +107,9 @@ Sources: src/render/components/Tomcat/Module.ts:4-14
 
 ```typescript
 interface TomcatSetup {
-  CATALINA_BASE: Record<string, string>  // Map<binPath, baseDir>
-  init(): void                           // Load from localForage
-  save(): void                           // Persist to localForage
+  CATALINA_BASE: Record<string, string> // Map<binPath, baseDir>
+  init(): void // Load from localForage
+  save(): void // Persist to localForage
 }
 ```
 
@@ -94,11 +117,11 @@ Sources: src/render/components/Tomcat/setup.ts:4-8
 
 ### SoftInstalled (Partial)
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `bin` | `string` | Path to catalina.sh/catalina.bat |
-| `version` | `string` | Tomcat version string |
-| `path` | `string` | Installation directory |
+| Field     | Type     | Description                      |
+| --------- | -------- | -------------------------------- |
+| `bin`     | `string` | Path to catalina.sh/catalina.bat |
+| `version` | `string` | Tomcat version string            |
+| `path`    | `string` | Installation directory           |
 
 ---
 
@@ -109,7 +132,7 @@ Sources: src/render/components/Tomcat/setup.ts:4-8
 Extends `Base` class, implements Tomcat-specific service management.
 
 | Method | Parameters | Returns | Description |
-|--------|-----------|---------|-------------|
+| --- | --- | --- | --- |
 | `init()` | - | `void` | Set PID file path |
 | `_startServer()` | `version`, `CATALINA_BASE?` | `ForkPromise` | Start Tomcat service |
 | `_initDefaultDir()` | `version`, `baseDir?` | `ForkPromise<string>` | Initialize CATALINA_BASE |
@@ -124,15 +147,16 @@ Sources: src/fork/module/Tomcat/index.ts:34-346
 
 Main panel component with tab-based navigation.
 
-| Tab Index | Component | Description |
-|-----------|-----------|-------------|
-| 0 | ServiceManager | Service control panel |
-| 1 | VersionManager | Version installation/management |
-| 2 | Config (server.xml) | Main server configuration |
-| 3 | Config (web.xml) | Web application defaults |
-| 4 | Logs | Access and error logs |
+| Tab Index | Component           | Description                     |
+| --------- | ------------------- | ------------------------------- |
+| 0         | ServiceManager      | Service control panel           |
+| 1         | VersionManager      | Version installation/management |
+| 2         | Config (server.xml) | Main server configuration       |
+| 3         | Config (web.xml)    | Web application defaults        |
+| 4         | Logs                | Access and error logs           |
 
 Features:
+
 - **CATALINA_BASE Selector**: Customizable base directory per version
 - **Dynamic Path Resolution**: Auto-generates path from version number
 
@@ -142,25 +166,24 @@ Sources: src/render/components/Tomcat/Index.vue:1-101
 
 Aside menu item with service toggle switch.
 
-| Feature | Implementation |
-|---------|----------------|
-| Service Toggle | `AsideSetup('tomcat')` hook |
-| Start Extension | `startExtParam()` - Returns CATALINA_BASE |
-| State Registration | `AppServiceModule.tomcat` |
+| Feature            | Implementation                            |
+| ------------------ | ----------------------------------------- |
+| Service Toggle     | `AsideSetup('tomcat')` hook               |
+| Start Extension    | `startExtParam()` - Returns CATALINA_BASE |
+| State Registration | `AppServiceModule.tomcat`                 |
 
 Sources: src/render/components/Tomcat/aside.vue:1-71
 
-### 4. Configuration Generator: ServiceItemJavaTomcat.ts
+### 4. Configuration Generator: ServerXML.ts
 
 Generates dynamic `server.xml` based on Host configuration.
 
 | Function | Parameters | Description |
-|----------|-----------|------------- |
+| --- | --- | --- |
 | `makeTomcatServerXML()` | `cnfDir`, `serverContent`, `hostAll` | Generate server.xml with vhosts |
-| `makeGlobalTomcatServerXML()` | `version` | Generate global Tomcat config |
-| `makeCustomTomcatServerXML()` | `host` | Generate per-host config |
+| `reconcileTomcatBase()` | `catalinaBase`, optional hosts | Reconcile server.xml and managed site files |
 
-Sources: src/fork/module/Service/ServiceItemJavaTomcat.ts:24-286
+Sources: src/fork/module/Tomcat/ServerXML.ts
 
 ---
 
@@ -188,8 +211,8 @@ startService(version, CATALINA_BASE)
     │       ├── Copy conf/ files from installation
     │       └── catalina.policy, server.xml, web.xml, etc.
     │
-    ├── 6. Generate server.xml
-    │   └── makeGlobalTomcatServerXML()
+    ├── 6. Reconcile server.xml and site files
+    │   └── reconcileTomcatBase()
     │       ├── Fetch all tomcat-type hosts
     │       ├── Parse existing server.xml
     │       ├── Add Connector ports for each host
@@ -255,20 +278,22 @@ CATALINA_BASE/
 
 The `makeTomcatServerXML()` function dynamically modifies server.xml based on FlyEnv Host configuration:
 
-| Host Property | XML Element | Attribute |
-|--------------|-------------|-----------|
-| `port.tomcat` | Connector | `port` |
-| `port.tomcat_ssl` | Connector (SSL) | `port` |
-| `root` | Host | `appBase` |
-| `name` + aliases | Host | `name` |
-| `useSSL` | SSLHostConfig | Certificate config |
+| Host Property     | XML Element     | Attribute          |
+| ----------------- | --------------- | ------------------ |
+| `port.tomcat`     | Connector       | `port`             |
+| `port.tomcat_ssl` | Connector (SSL) | `port`             |
+| `root`            | Host            | `appBase`          |
+| `name`            | Host            | `name`             |
+| `useSSL`          | SSLHostConfig   | Certificate config |
 
 **Connector Configuration:**
+
 ```xml
 <Connector appFlag="FlyEnv" port="8080" protocol="HTTP/1.1" connectionTimeout="60000"/>
 ```
 
 **SSL Connector:**
+
 ```xml
 <Connector appFlag="FlyEnv" port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
            maxThreads="150" SSLEnabled="true" scheme="https">
@@ -281,6 +306,7 @@ The `makeTomcatServerXML()` function dynamically modifies server.xml based on Fl
 ```
 
 **Virtual Host:**
+
 ```xml
 <Host name="example.com" appBase="/path/to/webapp" appFlag="FlyEnv"
       unpackWARs="true" autoDeploy="true">
@@ -301,7 +327,7 @@ Sources: src/fork/module/Service/ServiceItemJavaTomcat.ts:24-263
 ### Supported Commands
 
 | Command | Parameters | Returns | Description |
-|---------|-----------|---------|-------------|
+| --- | --- | --- | --- |
 | `startService` | `SoftInstalled`, `CATALINA_BASE?` | `{APP-Service-Start-PID: pid}` | Start Tomcat |
 | `stopService` | `SoftInstalled` | `{APP-Service-Stop-PID: pids[]}` | Stop Tomcat |
 | `allInstalledVersions` | `setup` | `SoftInstalled[]` | List local versions |
@@ -312,7 +338,7 @@ Sources: src/fork/module/Service/ServiceItemJavaTomcat.ts:24-263
 ### IPC Events
 
 | Event | Direction | Payload | Description |
-|-------|-----------|---------|-------------|
+| --- | --- | --- | --- |
 | `app-fork:tomcat` | Renderer → Main → Fork | `{fn: string, args: any[]}` | Command dispatch |
 | `APP-On-Log` | Fork → Renderer | `{type, msg}` | Log messages |
 | `APP-Service-Start-PID` | Fork → Renderer | `pid` | Service started |
@@ -323,7 +349,7 @@ Sources: src/fork/module/Service/ServiceItemJavaTomcat.ts:24-263
 ## Platform Differences
 
 | Feature | macOS | Windows | Linux | Notes |
-|---------|-------|---------|-------|-------|
+| --- | --- | --- | --- | --- |
 | Binary Name | `catalina.sh` | `catalina.bat` | `catalina.sh` | Platform-specific scripts |
 | Start Script | `startup.sh` | `startup.bat` | `startup.sh` | Used for version detection |
 | Version Script | `version.sh` | `version.bat` | `version.sh` | Version string extraction |
@@ -363,7 +389,7 @@ Sources: src/fork/module/Tomcat/index.ts:177-199
 ### Local Version Detection
 
 1. **Search Paths**: `setup.tomcat.dirs` array
-2. **Binary Pattern**: 
+2. **Binary Pattern**:
    - Unix: `catalina.sh` with keyword `tomcat`
    - Windows: `catalina.bat`
 3. **Version Extraction**:
@@ -377,30 +403,12 @@ Sources: src/fork/module/Tomcat/index.ts:177-199
 
 ### Directory Structure
 
-| Platform | Install Path | Example |
-|----------|--------------|---------|
-| Windows | `AppDir/tomcat-{version}` | `C:\FlyEnv\app\tomcat-9.0.82` |
-| Unix | `AppDir/static-tomcat-{version}` | `/Applications/FlyEnv/app/static-tomcat-9.0.82` |
+| Platform | Install Path                     | Example                                         |
+| -------- | -------------------------------- | ----------------------------------------------- |
+| Windows  | `AppDir/tomcat-{version}`        | `C:\FlyEnv\app\tomcat-9.0.82`                   |
+| Unix     | `AppDir/static-tomcat-{version}` | `/Applications/FlyEnv/app/static-tomcat-9.0.82` |
 
 Sources: src/fork/module/Tomcat/index.ts:44-73, 253-309
-
----
-
-## Integration with Host System
-
-### ServiceItemJavaTomcat Class
-
-For per-host Tomcat instances (Java project type):
-
-| Feature | Global Tomcat | Per-Host Tomcat |
-|---------|--------------|-----------------|
-| Class | `Tomcat` | `ServiceItemJavaTomcat` |
-| Config | `makeGlobalTomcatServerXML()` | `makeCustomTomcatServerXML()` |
-| CATALINA_BASE | Version-based | Host ID-based |
-| JDK | System JAVA_HOME | Host-specific `jdkDir` |
-| Start Method | `catalina.sh` | `catalina.sh` with custom env |
-
-Sources: src/fork/module/Service/ServiceItemJavaTomcat.ts:338-451
 
 ---
 
@@ -408,20 +416,21 @@ Sources: src/fork/module/Service/ServiceItemJavaTomcat.ts:338-451
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Start fails silently | Java not installed | Check JAVA_HOME environment |
-| Port conflict | Another Tomcat running | Check `port.tomcat` in Host config |
-| SSL not working | Certificate paths | Verify cert/key file existence |
-| 404 errors | Wrong appBase path | Check Host `root` directory |
+| Issue                | Cause                  | Solution                           |
+| -------------------- | ---------------------- | ---------------------------------- |
+| Start fails silently | Java not installed     | Check JAVA_HOME environment        |
+| Port conflict        | Another Tomcat running | Check `port.tomcat` in Host config |
+| SSL not working      | Certificate paths      | Verify cert/key file existence     |
+| 404 errors           | Wrong appBase path     | Check Host `root` directory        |
 
 ### Debugging
 
 Enable verbose logging by checking:
+
 1. Fork process logs in Console
 2. `logs/catalina.out` (Unix) or `logs/catalina.*.log` (Windows)
 3. Host-specific logs in `vhost/logs/`
 
 ---
 
-*Sources: src/fork/module/Tomcat/index.ts src/render/components/Tomcat/Module.ts src/render/components/Tomcat/Index.vue src/render/components/Tomcat/aside.vue src/render/components/Tomcat/setup.ts src/render/components/Tomcat/Config.vue src/render/components/Tomcat/Logs.vue src/fork/module/Service/ServiceItemJavaTomcat.ts src/fork/module/Base/index.ts*
+_Sources: src/fork/module/Tomcat/index.ts src/render/components/Tomcat/Module.ts src/render/components/Tomcat/Index.vue src/render/components/Tomcat/aside.vue src/render/components/Tomcat/setup.ts src/render/components/Tomcat/Config.vue src/render/components/Tomcat/Logs.vue src/fork/module/Service/ServiceItemJavaTomcat.ts src/fork/module/Base/index.ts_

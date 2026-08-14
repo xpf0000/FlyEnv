@@ -78,4 +78,14 @@
   "exec": "Execute",
   "runInTerminal": "Run in Terminal",
   "portSetting": "Port Settings"
+  ,"tomcatAppBase": "Tomcat appBase"
+  ,"tomcatContexts": "Application mappings"
+  ,"tomcatContextPath": "Context path"
+  ,"tomcatDocBase": "Application path (docBase)"
+  ,"tomcatAddContext": "Add mapping"
+  ,"tomcatRewrite": "Tomcat rewrite"
+  ,"tomcatRewriteContent": "rewrite.config content"
+  ,"tomcatContextPathInvalid": "Enter a safe Context path beginning with /"
+  ,"tomcatDocBaseRequired": "Select an application directory or WAR file"
+  ,"tomcatNameConflict": "This domain or alias is already used by another Tomcat site"
 }

@@ -14,8 +14,10 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
+  import type { SoftInstalled } from '@shared/app'
   import { join } from '@/util/path-browserify'
   import { format } from 'date-fns'
+  import { tomcatCatalinaBase } from './setup'
 
   const appStore = AppStore()
 
@@ -24,8 +26,8 @@
   })
 
   const currentBaseDir = computed(() => {
-    const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-    return join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
+    if (!currentVersion.value) return ''
+    return tomcatCatalinaBase(currentVersion.value as SoftInstalled)
   })
 
   const currentDate = new Date()

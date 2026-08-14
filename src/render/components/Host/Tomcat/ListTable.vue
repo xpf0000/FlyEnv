@@ -133,14 +133,14 @@
 
 <script lang="ts" setup>
   import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref } from 'vue'
-  import { handleHost } from '@/util/Host'
+  import tomcatSiteController from './TomcatSiteController'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import QrcodePopper from '../Qrcode/Index.vue'
   import Base from '@/core/Base'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import type { AppHost } from '@shared/app'
+  import type { AppHost } from '@/store/app'
   import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
   import { join } from '@/util/path-browserify'
@@ -288,9 +288,13 @@
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
+          .then(async () => {
             item.deling = true
-            handleHost(item, 'del')
+            try {
+              await tomcatSiteController.save(item, 'del')
+            } finally {
+              item.deling = false
+            }
           })
           .catch(() => {})
         break
@@ -348,19 +352,18 @@
     quickEditBack = JSON.parse(JSON.stringify(host))
   }
 
-  const docClick = (e?: MouseEvent) => {
+  const docClick = async (e?: MouseEvent) => {
     const dom: HTMLElement = e?.target as any
     if (quickEdit?.value && !quickEditTr?.value?.contains(dom)) {
       if (!quickEdit?.value?.name?.trim() || quickEditNameError?.value) {
         quickEdit.value.name = quickEditBack?.name ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
-        handleHost(
+        await tomcatSiteController.save(
           JSON.parse(JSON.stringify(quickEdit.value)),
           'edit',
-          quickEditBack as any,
-          false
-        ).then()
+          quickEditBack
+        )
       }
       quickEdit.value = undefined
       quickEditTr.value = undefined

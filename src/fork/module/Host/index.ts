@@ -33,6 +33,7 @@ import { setDirRole, updateAutoSSL, updateRootRule } from './Host'
 import { TaskAddPhpMyAdminSite, TaskAddRandomSite } from './Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './HostFile'
+import { validateTomcatSite, type TomcatSiteHost } from '../Tomcat/Site'
 import Helper from '../../Helper'
 import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
@@ -80,6 +81,8 @@ export class Host extends Base {
           await saveHostList(hostList)
         } catch (e) {
           appDebugLog('[handleHost][writeHostFile][error]', `${e}`).catch()
+          reject(e)
+          return
         }
         resolve({
           host: hostList
@@ -224,6 +227,15 @@ export class Host extends Base {
         }
       }
 
+      if ((flag === 'add' || flag === 'edit') && host.type === 'tomcat') {
+        await validateTomcatSite(host as TomcatSiteHost, hostList as TomcatSiteHost[])
+        await updateAutoSSL(host, old ?? ({} as AppHost))
+        if (host.useSSL && (!host.ssl?.cert || !host.ssl?.key)) {
+          reject(new Error('Tomcat SSL requires a certificate and private key'))
+          return
+        }
+      }
+
       let index: number
       switch (flag) {
         case 'add':
@@ -239,7 +251,12 @@ export class Host extends Base {
           break
         case 'del':
           if (host?.name) {
-            await this._delVhost(host)
+            if (host.type === 'tomcat') {
+              // Tomcat site reconciliation owns the transaction. Keep the generated
+              // certificate directory until the save has committed successfully.
+            } else {
+              await this._delVhost(host)
+            }
           }
           index = hostList.findIndex((h) => h.id === host.id)
           if (index >= 0) {
@@ -271,7 +288,7 @@ export class Host extends Base {
               await this._editVhost(host, old)
             }
             await doPark()
-          } else {
+          } else if (host.type !== 'tomcat') {
             if (old?.name) {
               await this._delVhost(old!)
             }

@@ -2,7 +2,7 @@ import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
+import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
@@ -21,11 +21,15 @@ import {
   serviceStartExecCMD,
   waitTime,
   remove,
+  removeByRoot,
   zipUnpack,
   moveChildDirToParent
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { makeGlobalTomcatServerXML } from './ServerXML'
+import { reconcileTomcatBase, restoreTomcatBase, snapshotTomcatBase } from './ServerXML'
+import { tomcatAutoSSLDeletionId } from './Site'
+import Host from '../Host'
+import { fetchHostList, saveHostList } from '../Host/HostFile'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { I18nT } from '@lang/runtime'
 import { isLinux, isWindows } from '@shared/utils'
@@ -147,9 +151,7 @@ class Tomcat extends Base {
       }
 
       const baseDir: any = await this._initDefaultDir(version, CATALINA_BASE).on(on)
-      await makeGlobalTomcatServerXML({
-        path: baseDir
-      } as any)
+      await reconcileTomcatBase(baseDir)
 
       await mkdirp(join(baseDir, 'logs'))
       // Tomcat needs these CATALINA_BASE dirs; java.io.tmpdir points at temp/ and the
@@ -295,6 +297,44 @@ class Tomcat extends Base {
     })
   }
 
+  saveSite(
+    version: SoftInstalled,
+    catalinaBase: string,
+    host: AppHost,
+    flag: 'add' | 'edit' | 'del',
+    old?: AppHost
+  ) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      let before: AppHost[] = []
+      let baseSnapshot: Awaited<ReturnType<typeof snapshotTomcatBase>> | undefined
+      try {
+        before = await fetchHostList()
+        await this._initDefaultDir(version, catalinaBase).on(on)
+        baseSnapshot = await snapshotTomcatBase(catalinaBase)
+        const result: any = await Host.handleHost(host, flag, old)
+        const hostList: AppHost[] = result.host
+        await reconcileTomcatBase(catalinaBase, hostList)
+        if (flag === 'del') {
+          const certificateOwnerId = tomcatAutoSSLDeletionId(host as any, old as any)
+          if (certificateOwnerId !== undefined) {
+            await removeByRoot(join(global.Server.BaseDir!, `CA/${certificateOwnerId}`)).catch(() => {})
+          }
+        }
+        resolve({ host: hostList })
+      } catch (error) {
+        try {
+          await saveHostList(before)
+          if (baseSnapshot) {
+            await restoreTomcatBase(catalinaBase, baseSnapshot)
+          }
+        } catch (rollbackError) {
+          console.error('Tomcat site rollback failed', rollbackError)
+        }
+        reject(error)
+      }
+    })
+  }
+
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
@@ -388,9 +428,9 @@ class Tomcat extends Base {
     })
   }
 
-  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+  getConfigFiles(_version?: SoftInstalled, catalinaBase?: string): Array<{ name: string; path: string }> {
     const v = _version?.version?.split('.')?.shift() ?? ''
-    const confDir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`, 'conf')
+    const confDir = join(catalinaBase ?? join(global.Server.BaseDir!, `tomcat/tomcat${v}`), 'conf')
     return [
       { name: 'server.xml', path: join(confDir, 'server.xml') },
       { name: 'web.xml', path: join(confDir, 'web.xml') },
@@ -402,9 +442,9 @@ class Tomcat extends Base {
     ]
   }
 
-  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+  getLogFiles(_version?: SoftInstalled, catalinaBase?: string): Array<{ name: string; path: string }> {
     const v = _version?.version?.split('.')?.shift() ?? ''
-    const logsDir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`, 'logs')
+    const logsDir = join(catalinaBase ?? join(global.Server.BaseDir!, `tomcat/tomcat${v}`), 'logs')
     return [{ name: 'catalina.out', path: join(logsDir, 'catalina.out') }]
   }
 }

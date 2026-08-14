@@ -50,9 +50,8 @@
   import { I18nT } from '@lang/index'
   import { Edit } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
-  import { TomcatSetup } from '@/components/Tomcat/setup'
+  import { TomcatSetup, tomcatCatalinaBase } from '@/components/Tomcat/setup'
   import { chooseFolder } from '@/util/File'
-  import { join } from '@/util/path-browserify'
   import { shell } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('tomcat')
@@ -64,6 +63,7 @@
     I18nT('base.log')
   ]
   checkVersion()
+  TomcatSetup.init().catch()
 
   const brewStore = BrewStore()
 
@@ -74,11 +74,7 @@
   const CATALINA_BASE = computed({
     get() {
       if (currentVersion?.value?.bin) {
-        if (TomcatSetup.CATALINA_BASE[currentVersion.value.bin]) {
-          return TomcatSetup.CATALINA_BASE[currentVersion.value.bin]
-        }
-        const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-        return join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
+        return tomcatCatalinaBase(currentVersion.value)
       }
       return I18nT('base.needSelectVersion')
     },

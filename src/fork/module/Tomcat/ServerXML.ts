@@ -1,10 +1,234 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { join, resolve as pathResolve } from 'node:path'
-import { hostAlias, copyFile, existsSync, mkdirp, readFile, writeFile } from '../../Fn'
+import { join } from 'node:path'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
+import { existsSync, mkdirp, readFile, writeFile } from '../../Fn'
 import { fetchHostList } from '../Host/HostFile'
+import { updateAutoSSL } from '../Host/Host'
+import {
+  reconcileTomcatSiteFiles,
+  restoreTomcatSiteFiles,
+  snapshotTomcatSiteFiles,
+  type TomcatSiteFilesSnapshot,
+  tomcatHostName,
+  tomcatSiteConfig,
+  type TomcatSiteHost
+} from './Site'
 
-export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
+type XMLItem = Record<string, any>
+
+const asArray = <T>(value: T | T[] | undefined): T[] => {
+  return value === undefined ? [] : Array.isArray(value) ? value : [value]
+}
+
+const setArrayOrDelete = (object: XMLItem, key: string, values: XMLItem[]) => {
+  if (values.length === 0) {
+    delete object[key]
+  } else {
+    object[key] = values
+  }
+}
+
+const isFlyEnv = (value: XMLItem | undefined) => value?.appFlag === 'FlyEnv'
+const isSSLConnector = (connector: XMLItem) => connector.SSLEnabled === 'true'
+const isRewriteValve = (valve: XMLItem) =>
+  valve.className === 'org.apache.catalina.valves.rewrite.RewriteValve'
+
+const isEmptyContext = (context: XMLItem) =>
+  context.path === '' && context.docBase === '' && Object.keys(context).length === 2
+
+const certificate = (cert: string, key: string): XMLItem => ({
+  certificateFile: cert,
+  certificateKeyFile: key,
+  type: 'RSA'
+})
+
+const sslHostConfig = (hostName: string, cert: string, key: string): XMLItem => ({
+  appFlag: 'FlyEnv',
+  hostName,
+  sslProtocol: 'TLS',
+  certificateVerification: 'false',
+  Certificate: certificate(cert, key)
+})
+
+const accessLogValve = (host: TomcatSiteHost): XMLItem => ({
+  appFlag: 'FlyEnv',
+  className: 'org.apache.catalina.valves.AccessLogValve',
+  directory: join(global.Server.BaseDir!, 'vhost/logs'),
+  prefix: `${host.name}-tomcat_access_log`,
+  suffix: '.log',
+  pattern: '%h %l %u %t &quot;%r&quot; %s %b'
+})
+
+const addOrUpdateHost = (hosts: XMLItem[], name: string, host: TomcatSiteHost) => {
+  let item = hosts.find((candidate) => candidate.name === name)
+  if (item && !isFlyEnv(item)) {
+    throw new Error(`Tomcat site conflicts with a user-managed Host named ${name}`)
+  }
+  if (!item) {
+    item = {}
+    hosts.push(item)
+  }
+  Object.assign(item, {
+    name,
+    appBase: host.root,
+    appFlag: 'FlyEnv',
+    unpackWARs: 'true',
+    deployOnStartup: 'true',
+    autoDeploy: 'true'
+  })
+
+  const contexts = asArray<XMLItem>(item.Context).filter((context) => !isEmptyContext(context))
+  const managedPaths = new Set(tomcatSiteConfig(host).contexts.map((context) => context.path))
+  const inlineConflict = contexts.find((context) => managedPaths.has(context.path ?? ''))
+  if (inlineConflict) {
+    throw new Error(
+      `Tomcat site has a user-managed inline Context for ${inlineConflict.path ?? ''} on Host ${name}`
+    )
+  }
+  setArrayOrDelete(item, 'Context', contexts)
+
+  const valves = asArray<XMLItem>(item.Valve)
+  if (!valves.some((valve) => valve.className === 'org.apache.catalina.valves.AccessLogValve')) {
+    valves.push(accessLogValve(host))
+  }
+  const enabled = tomcatSiteConfig(host).rewrite.enabled
+  if (enabled && valves.some((valve) => !isFlyEnv(valve) && isRewriteValve(valve))) {
+    throw new Error(`Tomcat site has a user-managed RewriteValve on Host ${name}`)
+  }
+  const retained = valves.filter((valve) => !(isFlyEnv(valve) && isRewriteValve(valve)))
+  if (enabled) {
+    retained.push({
+      appFlag: 'FlyEnv',
+      className: 'org.apache.catalina.valves.rewrite.RewriteValve'
+    })
+  }
+  setArrayOrDelete(item, 'Valve', retained)
+}
+
+const desiredTLS = (hosts: TomcatSiteHost[]) => {
+  const byPort = new Map<number, TomcatSiteHost[]>()
+  for (const host of hosts) {
+    if (!host.useSSL || !host.ssl?.cert || !host.ssl?.key) {
+      continue
+    }
+    const port = host.port?.tomcat_ssl ?? 443
+    byPort.set(port, [...(byPort.get(port) ?? []), host])
+  }
+  return byPort
+}
+
+const reconcileSSLConfigs = (connector: XMLItem, group: TomcatSiteHost[]) => {
+  const desired = new Map<string, { cert: string; key: string }>()
+  const primary = [...group].sort((a, b) => a.name.localeCompare(b.name))[0]
+  desired.set('_default_', { cert: primary.ssl.cert, key: primary.ssl.key })
+  for (const host of group) {
+    desired.set(tomcatHostName(host), { cert: host.ssl.cert, key: host.ssl.key })
+  }
+
+  const existing = asArray<XMLItem>(connector.SSLHostConfig)
+  const desiredNames = new Set(desired.keys())
+  const manualConflict = existing.find(
+    (config) => !isFlyEnv(config) && desiredNames.has(config.hostName ?? '_default_')
+  )
+  if (manualConflict) {
+    throw new Error(
+      `Tomcat site conflicts with a user-managed SSLHostConfig: ${manualConflict.hostName ?? '_default_'}`
+    )
+  }
+  const retained = existing.filter((config) => !isFlyEnv(config))
+  for (const [name, paths] of desired) {
+    const config = existing.find((candidate) => isFlyEnv(candidate) && candidate.hostName === name)
+    if (config) {
+      Object.assign(config, sslHostConfig(name, paths.cert, paths.key))
+      retained.push(config)
+    } else {
+      retained.push(sslHostConfig(name, paths.cert, paths.key))
+    }
+  }
+  setArrayOrDelete(connector, 'SSLHostConfig', retained)
+}
+
+const reconcileConnectors = (
+  service: XMLItem,
+  hosts: TomcatSiteHost[],
+  sslHosts: TomcatSiteHost[] = hosts
+) => {
+  const connectors = asArray<XMLItem>(service.Connector)
+  const tlsGroups = desiredTLS(sslHosts)
+  const httpPorts = new Set(hosts.map((host) => host.port?.tomcat ?? 80))
+
+  for (const [port] of tlsGroups) {
+    if (httpPorts.has(port)) {
+      throw new Error(`Tomcat site cannot use the same HTTP and HTTPS Connector port: ${port}`)
+    }
+    const existing = connectors.find((connector) => `${connector.port}` === `${port}`)
+    if (existing && (!isFlyEnv(existing) || !isSSLConnector(existing))) {
+      throw new Error(`Tomcat site conflicts with a user-managed HTTPS Connector on port ${port}`)
+    }
+  }
+
+  for (const port of httpPorts) {
+    const existing = connectors.find((connector) => `${connector.port}` === `${port}`)
+    if (existing && isSSLConnector(existing)) {
+      throw new Error(`Tomcat site conflicts with an HTTPS Connector on HTTP port ${port}`)
+    }
+    if (!existing) {
+      connectors.push({
+        appFlag: 'FlyEnv',
+        port: String(port),
+        protocol: 'HTTP/1.1',
+        connectionTimeout: '60000'
+      })
+    }
+  }
+
+  for (const [port, group] of tlsGroups) {
+    let connector = connectors.find((candidate) => `${candidate.port}` === `${port}`)
+    if (!connector) {
+      connector = {}
+      connectors.push(connector)
+    }
+    Object.assign(connector, {
+      appFlag: 'FlyEnv',
+      port: String(port),
+      protocol: 'org.apache.coyote.http11.Http11NioProtocol',
+      maxThreads: '150',
+      SSLEnabled: 'true',
+      scheme: 'https',
+      secure: 'true',
+      defaultSSLHostConfigName: '_default_'
+    })
+    reconcileSSLConfigs(connector, group)
+  }
+
+  const retained = connectors.filter((connector) => {
+    if (!isFlyEnv(connector)) {
+      return true
+    }
+    const port = Number(connector.port)
+    if (isSSLConnector(connector)) {
+      if (tlsGroups.has(port)) {
+        return true
+      }
+      const configs = asArray<XMLItem>(connector.SSLHostConfig)
+      const manual = configs.filter((config) => !isFlyEnv(config))
+      if (manual.length > 0) {
+        setArrayOrDelete(connector, 'SSLHostConfig', manual)
+        return true
+      }
+      return false
+    }
+    return httpPorts.has(port)
+  })
+  setArrayOrDelete(service, 'Connector', retained)
+}
+
+export const makeTomcatServerXML = (
+  cnfDir: string,
+  serverContent: string,
+  hostAll: AppHost[],
+  sslHosts?: TomcatSiteHost[]
+) => {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '',
@@ -18,328 +242,68 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
     suppressBooleanAttributes: false,
     format: true
   })
+  const document = parser.parse(serverContent) as XMLItem
+  const server = document.Server as XMLItem
+  const service = server.Service as XMLItem
+  let engine = service.Engine as XMLItem | string | undefined
+  if (!engine || typeof engine !== 'object') {
+    engine = {}
+    service.Engine = engine
+  }
+  const hosts = asArray<XMLItem>(engine.Host)
+  const tomcatHosts = hostAll.filter((host) => host.type === 'tomcat') as TomcatSiteHost[]
+  const desiredNames = new Set<string>()
 
-  const serverXML = parser.parse(serverContent)
+  for (const host of tomcatHosts) {
+    const name = tomcatHostName(host)
+    if (!name) continue
+    desiredNames.add(name)
+    addOrUpdateHost(hosts, name, host)
+  }
+  setArrayOrDelete(
+    engine,
+    'Host',
+    hosts.filter((host) => !isFlyEnv(host) || desiredNames.has(host.name))
+  )
+  reconcileConnectors(service, tomcatHosts, sslHosts ?? tomcatHosts)
+  return builder.build(document)
+}
 
-  const handlePort = (host: AppHost) => {
-    const port = host?.port?.tomcat ?? 80
-    if (!serverXML.Server.Service.Connector) {
-      const xml = `<Connector appFlag="FlyEnv" port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
-      const xmlObj = parser.parse(xml)
-      serverXML.Server.Service.Connector = xmlObj.Connector
-    } else if (!Array.isArray(serverXML.Server.Service.Connector)) {
-      if (`${serverXML.Server.Service.Connector.port}` !== `${port}`) {
-        serverXML.Server.Service.Connector = [serverXML.Server.Service.Connector]
-        const xml = `<Connector appFlag="FlyEnv" port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
-        const xmlObj = parser.parse(xml)
-        serverXML.Server.Service.Connector.push(xmlObj.Connector)
-      }
-    }
-    if (host.useSSL && host.ssl.cert && host.ssl.key) {
-      const port = host?.port?.tomcat_ssl ?? 443
-      if (!Array.isArray(serverXML.Server.Service.Connector)) {
-        serverXML.Server.Service.Connector = [serverXML.Server.Service.Connector]
-      }
-      console.log('serverXML.Server.Service.Connector: ', serverXML.Server.Service.Connector)
-      const find: any = serverXML.Server.Service.Connector.find(
-        (c: any) => `${c.port}` === `${port}`
-      )
-      console.log('find: ', find)
-      if (!find) {
-        const arr = [
-          `<Connector appFlag="FlyEnv" port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
-                   maxThreads="150" SSLEnabled="true" scheme="https">`,
-          `<SSLHostConfig sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
-                             type="RSA"/>
-            </SSLHostConfig>`
-        ]
-        hostAlias(host).forEach((h) => {
-          arr.push(`<SSLHostConfig appFlag="FlyEnv" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
-                             type="RSA"/>
-            </SSLHostConfig>`)
-        })
-        arr.push(`</Connector>`)
-        const xml = parser.parse(arr.join('\n'))
-        serverXML.Server.Service.Connector.push(xml.Connector)
-      } else {
-        const hostConfig = find.SSLHostConfig
-        if (!hostConfig) {
-          const arr = [
-            `<Connector appFlag="FlyEnv" port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
-                   maxThreads="150" SSLEnabled="true" scheme="https">`,
-            `<SSLHostConfig sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
-                             type="RSA"/>
-            </SSLHostConfig>`
-          ]
-          hostAlias(host).forEach((h) => {
-            arr.push(`<SSLHostConfig appFlag="FlyEnv" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
-                             type="RSA"/>
-            </SSLHostConfig>`)
-          })
-          arr.push(`</Connector>`)
-          const xml = parser.parse(arr.join('\n'))
-          find.SSLHostConfig = xml.Connector.SSLHostConfig
-        } else {
-          hostAlias(host).forEach((h) => {
-            const findHost = hostConfig.find((c: any) => c.hostName === h)
-            if (!findHost) {
-              const str = `<SSLHostConfig appFlag="FlyEnv" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
-                             type="RSA"/>
-            </SSLHostConfig>`
-              const xml = parser.parse(str)
-              hostConfig.push(xml.SSLHostConfig)
-            }
-          })
-          const defaultConf = hostConfig.find((h: any) => !h?.hostName)
-          if (defaultConf) {
-            const cert = defaultConf.Certificate.certificateFile
-            const key = defaultConf.Certificate.certificateKeyFile
-            if (!existsSync(pathResolve(cnfDir, cert)) || !existsSync(pathResolve(cnfDir, key))) {
-              defaultConf.Certificate.certificateFile = host.ssl.cert
-              defaultConf.Certificate.certificateKeyFile = host.ssl.key
-            }
-          }
-        }
-      }
+export const reconcileTomcatBase = async (catalinaBase: string, suppliedHosts?: AppHost[]) => {
+  const hosts = suppliedHosts ?? (await fetchHostList())
+  const tomcatHosts = hosts.filter((host) => host.type === 'tomcat') as TomcatSiteHost[]
+  for (const host of tomcatHosts) {
+    if (host.useSSL && host.autoSSL) {
+      await updateAutoSSL(host, host)
     }
   }
+  const sslHosts = tomcatHosts.filter(
+    (host) => !host.useSSL || (existsSync(host.ssl?.cert) && existsSync(host.ssl?.key))
+  )
+  const configFile = join(catalinaBase, 'conf', 'server.xml')
+  let serverContent = await readFile(configFile, 'utf-8')
+  serverContent = serverContent.replaceAll('PhpWebStudy', 'FlyEnv')
+  const next = makeTomcatServerXML(join(catalinaBase, 'conf'), serverContent, tomcatHosts, sslHosts)
+  await reconcileTomcatSiteFiles(catalinaBase, tomcatHosts)
+  await writeFile(configFile, next)
+}
 
-  const handleVhost = (host: AppHost) => {
-    const logDir = join(global.Server.BaseDir!, 'vhost/logs')
-    let hosts = serverXML.Server.Service.Engine.Host
-    if (!hosts) {
-      const arr: string[] = []
-      hostAlias(host).forEach((h) => {
-        arr.push(`<Host name="${h}" appBase="${host.root}" appFlag="FlyEnv"
-                  unpackWARs="true" autoDeploy="true">
-                <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
-                       prefix="${host.name}-tomcat_access_log" suffix=".log"
-                       pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
-            </Host>`)
-      })
-      const xml = parser.parse(arr.join('\n'))
-      serverXML.Server.Service.Engine.Host = xml.Host
-    } else {
-      if (!Array.isArray(hosts)) {
-        serverXML.Server.Service.Engine.Host = [serverXML.Server.Service.Engine.Host]
-        hosts = serverXML.Server.Service.Engine.Host
-      }
-      hostAlias(host).forEach((h) => {
-        const findHost = hosts.find((s: any) => s.name === h)
-        if (findHost) {
-          findHost.appBase = host.root
-        } else {
-          const str = `<Host name="${h}" appBase="${host.root}" appFlag="FlyEnv"
-                  unpackWARs="true" autoDeploy="true">
-                <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
-                       prefix="${host.name}-tomcat_access_log" suffix=".log"
-                       pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
-            </Host>`
-          const xml = parser.parse(str)
-          hosts.push(xml.Host)
-        }
-      })
-    }
-  }
+export type TomcatBaseSnapshot = {
+  serverXML: string
+  siteFiles: TomcatSiteFilesSnapshot
+}
 
-  const cleanPort = (allPort: Set<number>) => {
-    if (!serverXML.Server.Service.Connector) {
-      return
-    }
-    if (!Array.isArray(serverXML.Server.Service.Connector)) {
-      return
-    }
-    const allApp = serverXML.Server.Service.Connector.filter((c: any) => c.appFlag === 'FlyEnv')
-    const dels: any[] = []
-    for (const c of allApp) {
-      const port = Number(c.port)
-      if (!allPort.has(port)) {
-        dels.push(c)
-      }
-    }
-    for (const c of dels) {
-      const index = serverXML.Server.Service.Connector.indexOf(c)
-      if (index >= 0) {
-        serverXML.Server.Service.Connector.splice(index, 1)
-      }
-    }
-  }
+export const snapshotTomcatBase = async (catalinaBase: string): Promise<TomcatBaseSnapshot> => ({
+  serverXML: await readFile(join(catalinaBase, 'conf', 'server.xml'), 'utf-8'),
+  siteFiles: await snapshotTomcatSiteFiles(catalinaBase)
+})
 
-  const isEmptyContext = (context: any) => {
-    return (
-      context &&
-      context.path === '' &&
-      context.docBase === '' &&
-      Object.keys(context).length === 2
-    )
-  }
-
-  const cleanEmptyContext = () => {
-    const hosts = serverXML.Server.Service.Engine.Host
-    const list = Array.isArray(hosts) ? hosts : hosts ? [hosts] : []
-    for (const host of list) {
-      if (host.appFlag !== 'FlyEnv' || !host.Context) {
-        continue
-      }
-      if (Array.isArray(host.Context)) {
-        host.Context = host.Context.filter((context: any) => !isEmptyContext(context))
-        if (host.Context.length === 0) {
-          delete host.Context
-        }
-      } else if (isEmptyContext(host.Context)) {
-        delete host.Context
-      }
-    }
-  }
-
-  const cleanVhost = (allName: Set<string>) => {
-    if (Array.isArray(serverXML.Server.Service.Engine.Host)) {
-      const allHost = serverXML.Server.Service.Engine.Host.filter(
-        (c: any) => c.appFlag === 'FlyEnv'
-      )
-      const dels: any[] = []
-      for (const c of allHost) {
-        const name = c.name
-        if (!allName.has(name)) {
-          dels.push(c)
-        }
-      }
-      for (const c of dels) {
-        const index = serverXML.Server.Service.Engine.Host.indexOf(c)
-        if (index >= 0) {
-          serverXML.Server.Service.Engine.Host.splice(index, 1)
-        }
-      }
-    }
-    if (Array.isArray(serverXML.Server.Service.Connector)) {
-      for (const Connector of serverXML.Server.Service.Connector) {
-        if (Connector?.appFlag !== 'FlyEnv') {
-          continue
-        }
-        const SSLHostConfig = Connector.SSLHostConfig
-        if (!SSLHostConfig || !Array.isArray(SSLHostConfig)) {
-          continue
-        }
-        const dels: any[] = []
-        for (const c of SSLHostConfig) {
-          if (c?.appFlag !== 'FlyEnv') {
-            continue
-          }
-          const name = c.hostName
-          console.log('SSLHostConfig c: ', c, name, allName.has(name), SSLHostConfig.indexOf(c))
-          if (!allName.has(name)) {
-            dels.push(c)
-          }
-        }
-        for (const c of dels) {
-          const index = SSLHostConfig.indexOf(c)
-          if (index >= 0) {
-            SSLHostConfig.splice(index, 1)
-          }
-        }
-      }
-    }
-  }
-
-  const allPort: Set<number> = new Set()
-  const allName: Set<string> = new Set()
-
-  for (const host of hostAll) {
-    handlePort(host)
-    handleVhost(host)
-    allPort.add(host.port?.tomcat ?? 80)
-    if (host.useSSL) {
-      allPort.add(host.port?.tomcat_ssl ?? 443)
-    }
-    hostAlias(host).forEach((n) => allName.add(n))
-  }
-
-  cleanPort(allPort)
-  cleanVhost(allName)
-  cleanEmptyContext()
-
-  return builder.build(serverXML)
+export const restoreTomcatBase = async (catalinaBase: string, snapshot: TomcatBaseSnapshot) => {
+  await restoreTomcatSiteFiles(catalinaBase, snapshot.siteFiles)
+  await writeFile(join(catalinaBase, 'conf', 'server.xml'), snapshot.serverXML)
 }
 
 export const makeGlobalTomcatServerXML = async (version: SoftInstalled) => {
-  let hostAll: Array<AppHost> = []
-  try {
-    hostAll = await fetchHostList()
-  } catch {}
-  hostAll = hostAll.filter((h) => h.type === 'tomcat')
-
-  const vhostDir = join(global.Server.BaseDir!, 'vhost/tomcat')
-  await mkdirp(vhostDir)
-
-  const configFile = join(version.path, 'conf/server.xml')
-  let serverContent = await readFile(configFile, 'utf-8')
-  serverContent = serverContent.replace(new RegExp('PhpWebStudy', 'g'), 'FlyEnv')
-
-  const defaultFile = join(version.path, 'conf/server.xml.default')
-  if (!existsSync(defaultFile)) {
-    await writeFile(defaultFile, serverContent)
-  }
-
-  const content = makeTomcatServerXML(join(version.path, 'conf'), serverContent, hostAll)
-  await writeFile(configFile, content)
-}
-
-export const makeCustomTomcatServerXML = async (host: AppHost) => {
-  const hostAll: Array<AppHost> = [host]
-
-  const tomcatDir = host?.tomcatDir ?? ''
-  if (!tomcatDir || !existsSync(tomcatDir)) {
-    return
-  }
-
-  const logDir = join(global.Server.BaseDir!, `tomcat/${host.id}/logs`)
-  await mkdirp(logDir)
-
-  const files = [
-    'catalina.properties',
-    'context.xml',
-    'jaspic-providers.xml',
-    'jaspic-providers.xsd',
-    'tomcat-users.xml',
-    'tomcat-users.xsd',
-    'logging.properties',
-    'web.xml'
-  ]
-  const versionPath = pathResolve(tomcatDir, '../../conf')
-  const vhostPath = join(global.Server.BaseDir!, `tomcat/${host.id}/conf`)
-  await mkdirp(vhostPath)
-  for (const file of files) {
-    const of = join(versionPath, file)
-    const nf = join(vhostPath, file)
-    if (!existsSync(nf) && existsSync(of)) {
-      await copyFile(of, nf)
-    }
-  }
-
-  const configFile = join(global.Server.BaseDir!, `tomcat/${host.id}/conf/server.xml`)
-  let serverContent = ''
-  if (existsSync(configFile)) {
-    serverContent = await readFile(configFile, 'utf-8')
-    serverContent = serverContent.replace(new RegExp('PhpWebStudy', 'g'), 'FlyEnv')
-  } else {
-    const configFile = pathResolve(tomcatDir, '../../conf/server.xml')
-    serverContent = await readFile(configFile, 'utf-8')
-    const defaultFile = pathResolve(tomcatDir, '../../conf/server.xml.default')
-    if (!existsSync(defaultFile)) {
-      await writeFile(defaultFile, serverContent)
-    }
-  }
-
-  const content = makeTomcatServerXML(pathResolve(tomcatDir, '../../conf'), serverContent, hostAll)
-  await writeFile(configFile, content)
+  await mkdirp(join(version.path, 'conf'))
+  await reconcileTomcatBase(version.path)
 }

@@ -96,7 +96,14 @@ export const updateAutoSSL = async (host: AppHost, old: AppHost) => {
   const oldAliasArr = hostAlias(old)
   const newAliasArr = hostAlias(host)
   if (host?.useSSL && host?.autoSSL) {
-    if (host?.autoSSL !== old?.autoSSL || !isEqual(oldAliasArr, newAliasArr)) {
+    if (
+      host?.autoSSL !== old?.autoSSL ||
+      !isEqual(oldAliasArr, newAliasArr) ||
+      !host.ssl?.cert ||
+      !host.ssl?.key ||
+      !existsSync(host.ssl.cert) ||
+      !existsSync(host.ssl.key)
+    ) {
       const ssl = await makeAutoSSL(host)
       console.log('updateAutoSSL: ', ssl)
       if (ssl) {

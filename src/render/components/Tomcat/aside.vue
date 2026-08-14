@@ -28,9 +28,8 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
-  import { TomcatSetup } from '@/components/Tomcat/setup'
+  import { TomcatSetup, tomcatCatalinaBase } from '@/components/Tomcat/setup'
   import { BrewStore } from '@/store/brew'
-  import { join } from '@/util/path-browserify'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 
   const {
@@ -45,17 +44,15 @@
     stopNav
   } = AsideSetup('tomcat')
 
-  TomcatSetup.init()
+  TomcatSetup.init().catch()
 
   const brewStore = BrewStore()
   const module = brewStore.module('tomcat')
   if (!module?.startExtParam) {
     module.startExtParam = (version: ModuleInstalledItem) => {
-      return new Promise<any[]>((resolve) => {
-        const v = version.version?.split('.')?.shift() ?? ''
-        const dir = join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
-        const p = TomcatSetup.CATALINA_BASE?.[version.bin] ?? dir
-        resolve([p])
+      return new Promise<any[]>(async (resolve) => {
+        await TomcatSetup.init()
+        resolve([tomcatCatalinaBase(version)])
       })
     }
   }

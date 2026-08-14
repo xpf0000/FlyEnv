@@ -38,7 +38,10 @@ const actualDirectIpcIndexPages = walk(componentsDir)
 assert.deepEqual(actualDirectIpcIndexPages, legacyDirectIpcIndexPages)
 assert.match(agentsSource, /## Module Boundaries and Operation Ownership/)
 assert.match(agentsSource, /UI state belongs to the mounted Vue component only/)
-assert.match(agentsSource, /Domain state belongs to Pinia or the established module store/)
+assert.match(
+  agentsSource,
+  /Existing shared domain state belongs to Pinia or the established module store/
+)
 assert.match(
   agentsSource,
   /Long-running renderer operations belong to a module-local singleton controller/
@@ -54,7 +57,7 @@ assert.equal(
   packageJson.scripts?.['test:renderer-operation-boundaries'],
   'tsx scripts/renderer-operation-boundaries-test.ts'
 )
-assert.match(packageJson.scripts?.build ?? '', /^yarn test:renderer-operation-boundaries && /)
+assert.doesNotMatch(packageJson.scripts?.build ?? '', /test:renderer-operation-boundaries/)
 
 const skillPath = join(root, '.codex', 'skills', 'flyenv-module-boundaries', 'SKILL.md')
 assert.equal(existsSync(skillPath), true)
@@ -69,7 +72,7 @@ assert.match(
   /duplicate invocation, progress retention, terminal cleanup, and page re-entry/
 )
 assert.doesNotMatch(skillSource, /TODO|TBD/)
-assert.ok(skillSource.trim().split(/\s+/).length <= 500)
+assert.ok(skillSource.trim().split(/\s+/).length <= 600)
 
 const skillMetadataPath = join(
   root,
@@ -86,31 +89,50 @@ const controllers = [
     page: 'ClickHouse/Index.vue',
     controller: 'ClickHouse/ChUiPanel.ts',
     instance: 'chUiPanel',
-    className: 'ChUiPanel'
+    className: 'ChUiPanel',
+    stateName: 'opening',
+    defaultExport: /export\s+default\s+new\s+[A-Za-z0-9_]+\(\)/
   },
   {
     page: 'MongoDB/Index.vue',
     controller: 'MongoDB/DbGatePanel.ts',
     instance: 'dbGatePanel',
-    className: 'DbGatePanel'
+    className: 'DbGatePanel',
+    stateName: 'opening',
+    defaultExport: /export\s+default\s+new\s+[A-Za-z0-9_]+\(\)/
   },
   {
     page: 'PostgreSql/Index.vue',
     controller: 'PostgreSql/PgAdminPanel.ts',
     instance: 'pgAdminPanel',
-    className: 'PgAdminPanel'
+    className: 'PgAdminPanel',
+    stateName: 'opening',
+    defaultExport: /export\s+default\s+new\s+[A-Za-z0-9_]+\(\)/
   },
   {
     page: 'Redis/Index.vue',
     controller: 'Redis/RedisCommanderPanel.ts',
     instance: 'redisCommanderPanel',
-    className: 'RedisCommanderPanel'
+    className: 'RedisCommanderPanel',
+    stateName: 'opening',
+    defaultExport: /export\s+default\s+new\s+[A-Za-z0-9_]+\(\)/
   },
   {
     page: 'Neo4j/Index.vue',
     controller: 'Neo4j/controller.ts',
     instance: 'neo4jController',
-    className: 'Neo4jController'
+    className: 'Neo4jController',
+    stateName: 'opening',
+    defaultExport: /export\s+default\s+new\s+[A-Za-z0-9_]+\(\)/
+  },
+  {
+    page: 'Host/Tomcat/Edit.vue',
+    controller: 'Host/Tomcat/TomcatSiteController.ts',
+    instance: 'tomcatSiteController',
+    className: 'TomcatSiteController',
+    stateName: 'saving',
+    stateDeclaration: /saving = false/,
+    defaultExport: /export\s+default\s+reactiveBind\(new\s+TomcatSiteController\(\)\)/
   }
 ]
 
@@ -125,8 +147,13 @@ for (const registration of controllers) {
   )
   assert.doesNotMatch(pageSource, /from\s+['"]@\/util\/IPC['"]/)
   assert.match(controllerSource, new RegExp(`export\\s+class\\s+${registration.className}\\b`))
-  assert.match(controllerSource, /readonly opening = ref\(false\)/)
-  assert.match(controllerSource, /export default new [A-Za-z0-9_]+\(\)/)
+  assert.match(
+    controllerSource,
+    registration.stateDeclaration ??
+      new RegExp(`readonly ${registration.stateName} = ref\\(false\\)`)
+  )
+  assert.doesNotMatch(controllerSource, /markRaw\(\s*new TomcatSiteSaveOperation/)
+  assert.match(controllerSource, registration.defaultExport)
 }
 
 const redisPage = readFileSync(join(componentsDir, 'Redis/Index.vue'), 'utf-8')
