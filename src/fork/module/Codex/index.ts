@@ -237,13 +237,34 @@ class Codex extends Base {
     })
   }
 
-  runInTerminal(workDir: string, sessionId: string) {
+  deleteSessions(sessionIds: string[]) {
+    return new ForkPromise(async (resolve) => {
+      const ids = [...new Set(sessionIds)]
+      const results = await Promise.allSettled(ids.map((sessionId) => this.deleteSession(sessionId)))
+      const deletedIds: string[] = []
+      const failedIds: string[] = []
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          deletedIds.push(ids[index])
+        } else {
+          failedIds.push(ids[index])
+        }
+      })
+
+      resolve({ deletedIds, failedIds })
+    })
+  }
+
+  runInTerminal(workDir: string, sessionId = '') {
     return new ForkPromise(async (resolve, reject) => {
-      const codexCommand = `${resolveAiCliTerminalCommand('codex')} resume ${sessionId}`
+      const command = sessionId
+        ? `${resolveAiCliTerminalCommand('codex')} resume ${sessionId}`
+        : resolveAiCliTerminalCommand('codex')
       const dir = workDir || homedir()
       const terminalCommand = isWindows()
-        ? `cd "${dir}"; ${codexCommand}`
-        : `cd "${dir}" && ${codexCommand}`
+        ? `cd "${dir}"; ${command}`
+        : `cd "${dir}" && ${command}`
       try {
         await ExecCommand.runInTerminal(terminalCommand)
         resolve(true)

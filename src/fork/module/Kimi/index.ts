@@ -205,12 +205,15 @@ class Kimi extends Base {
     return map
   }
 
-  runInTerminal(workDir: string, sessionId: string) {
+  runInTerminal(workDir: string, sessionId = '') {
     return new ForkPromise(async (resolve, reject) => {
-      const kimiCommand = `${resolveAiCliTerminalCommand('kimi')} --session "${sessionId}"`
+      const command = sessionId
+        ? `${resolveAiCliTerminalCommand('kimi')} --session "${sessionId}"`
+        : resolveAiCliTerminalCommand('kimi')
+      const dir = workDir || homedir()
       const terminalCommand = isWindows()
-        ? `cd "${workDir}"; ${kimiCommand}`
-        : `cd "${workDir}" && ${kimiCommand}`
+        ? `cd "${dir}"; ${command}`
+        : `cd "${dir}" && ${command}`
       try {
         await ExecCommand.runInTerminal(terminalCommand)
         resolve(true)
@@ -299,6 +302,25 @@ class Kimi extends Base {
       } catch (e: any) {
         reject(e?.message ?? 'fail')
       }
+    })
+  }
+
+  deleteSessions(sessionIds: string[]) {
+    return new ForkPromise(async (resolve) => {
+      const ids = [...new Set(sessionIds)]
+      const results = await Promise.allSettled(ids.map((sessionId) => this.deleteSession(sessionId)))
+      const deletedIds: string[] = []
+      const failedIds: string[] = []
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          deletedIds.push(ids[index])
+        } else {
+          failedIds.push(ids[index])
+        }
+      })
+
+      resolve({ deletedIds, failedIds })
     })
   }
 

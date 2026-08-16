@@ -27,6 +27,7 @@
     "test:redis-commander": "tsx scripts/redis-commander-test.ts",
     "test:qdrant": "tsx scripts/qdrant-test.ts",
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
+    "test:ai-cli-session-fork": "tsx scripts/ai-cli-session-fork-test.ts",
     "test:neo4j-renderer": "tsx scripts/neo4j-renderer-test.ts",
     "test:neo4j-service-lifecycle": "tsx scripts/neo4j-service-lifecycle-test.ts",
     "test:neo4j-startup": "tsx scripts/neo4j-startup-test.ts",
