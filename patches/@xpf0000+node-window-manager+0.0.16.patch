@@ -2,7 +2,17 @@ diff --git a/node_modules/@xpf0000/node-window-manager/binding.gyp b/node_module
 index 666f0d3..7dff8c8 100644
 --- a/node_modules/@xpf0000/node-window-manager/binding.gyp
 +++ b/node_modules/@xpf0000/node-window-manager/binding.gyp
-@@ -31,7 +31,8 @@
+@@ -18,7 +18,8 @@
+             "d3d11.lib",
+             "dxgi.lib",
+             "windowscodecs.lib",
+-            "shcore.lib"
++            "shcore.lib",
++            "windowsapp.lib"
+           ],
+             "defines": [
+               "WIN32_LEAN_AND_MEAN",
+@@ -31,7 +32,8 @@
                    "ExceptionHandling": 1,
                    "AdditionalOptions": [
                       "/std:c++20",
