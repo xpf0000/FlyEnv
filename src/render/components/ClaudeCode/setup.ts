@@ -66,6 +66,8 @@ class ClaudeCode {
   installed = false
   version = ''
   loading = false
+  deletingSessions = false
+  openingSessionDirs = new Set<string>()
 
   configPaths: Record<string, string> = {}
   sessions: SessionItem[] = []
@@ -207,6 +209,62 @@ class ClaudeCode {
         resolve(true)
       })
     })
+  }
+
+  deleteSessions(sessionIds: string[]): Promise<string[]> {
+    const ids = [...new Set(sessionIds)]
+    if (!ids.length || this.deletingSessions) {
+      return Promise.resolve([])
+    }
+
+    this.deletingSessions = true
+    return new Promise((resolve) => {
+      IPC.send('app-fork:claudeCode', 'deleteSessions', ids).then((key: string, res: any) => {
+        IPC.off(key)
+        this.deletingSessions = false
+        if (res?.code !== 0) {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          resolve([])
+          return
+        }
+
+        const deletedIds = Array.isArray(res?.data?.deletedIds) ? res.data.deletedIds : []
+        const failedIds = Array.isArray(res?.data?.failedIds) ? res.data.failedIds : []
+        if (deletedIds.length) {
+          MessageSuccess(I18nT('common.session.deleted'))
+          this.refreshSessions()
+        }
+        if (failedIds.length) {
+          MessageError(I18nT('base.fail'))
+        }
+        resolve(deletedIds)
+      })
+    })
+  }
+
+  startSessionInTerminal(workDir: string): Promise<boolean> {
+    if (this.openingSessionDirs.has(workDir)) {
+      return Promise.resolve(false)
+    }
+
+    this.openingSessionDirs.add(workDir)
+    return new Promise((resolve) => {
+      IPC.send('app-fork:claudeCode', 'runInTerminal', workDir).then((key: string, res: any) => {
+        IPC.off(key)
+        this.openingSessionDirs.delete(workDir)
+        if (res?.code === 0) {
+          MessageSuccess(I18nT('host.runInTerminal'))
+          resolve(true)
+          return
+        }
+        MessageError(res?.msg ?? I18nT('base.fail'))
+        resolve(false)
+      })
+    })
+  }
+
+  isStartingSessionInTerminal(workDir: string) {
+    return this.openingSessionDirs.has(workDir)
   }
 
   resumeSession(sessionId: string, workDir: string) {

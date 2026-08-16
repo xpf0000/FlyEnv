@@ -59,6 +59,49 @@ assert.equal(
 )
 assert.doesNotMatch(packageJson.scripts?.build ?? '', /test:renderer-operation-boundaries/)
 
+const aiSessionModules = [
+  { directory: 'ClaudeCode', setup: 'ClaudeCodeSetup', forkKey: 'claudeCode' },
+  { directory: 'Codex', setup: 'CodexSetup', forkKey: 'codex' },
+  { directory: 'OpenCode', setup: 'OpenCodeSetup', forkKey: 'openCode' },
+  { directory: 'CopilotCli', setup: 'CopilotCliSetup', forkKey: 'copilotCli' },
+  { directory: 'Kimi', setup: 'KimiSetup', forkKey: 'kimi' },
+  { directory: 'Antigravity', setup: 'AntigravitySetup', forkKey: 'antigravity' }
+]
+
+for (const module of aiSessionModules) {
+  const pageSource = readFileSync(join(componentsDir, module.directory, 'Sessions.vue'), 'utf-8')
+  const setupSource = readFileSync(join(componentsDir, module.directory, 'setup.ts'), 'utf-8')
+  const setupDeleteStart = setupSource.indexOf('deleteSessions(sessionIds: string[])')
+  const setupTerminalStart = setupSource.indexOf('startSessionInTerminal(workDir: string)')
+  const setupDeleteSource = setupSource.slice(setupDeleteStart, setupTerminalStart)
+
+  assert.match(pageSource, /const selectedSessionIds = ref\(new Set<string>\(\)\)/)
+  assert.match(pageSource, /const visibleSessionIds = computed\(/)
+  assert.match(pageSource, /const deleteSelectedSessions = \(\) =>/)
+  assert.match(pageSource, /<template #title>/)
+  assert.match(pageSource, /terminal\.svg\?raw/)
+  assert.match(pageSource, new RegExp(`${module.setup}\\.deleteSessions\\(ids\\)`))
+  assert.match(pageSource, /@click\.stop="startSessionInTerminal\(group\.workDir\)"/)
+  assert.match(pageSource, new RegExp(`${module.setup}\\.startSessionInTerminal\\(workDir\\)`))
+  assert.doesNotMatch(pageSource, /from\s+['"]@\/util\/IPC['"]/)
+
+  assert.match(setupSource, /deletingSessions = false/)
+  assert.match(setupSource, /openingSessionDirs = new Set<string>\(\)/)
+  assert.match(setupSource, /deleteSessions\(sessionIds: string\[\]\): Promise<string\[\]>/)
+  assert.match(
+    setupSource,
+    new RegExp(`IPC\\.send\\('app-fork:${module.forkKey}', 'deleteSessions', ids\\)`)
+  )
+  assert.match(setupSource, /startSessionInTerminal\(workDir: string\): Promise<boolean>/)
+  assert.match(
+    setupSource,
+    new RegExp(`IPC\\.send\\('app-fork:${module.forkKey}', 'runInTerminal', workDir\\)`)
+  )
+  assert.match(setupSource, /isStartingSessionInTerminal\(workDir: string\)/)
+  assert.match(setupDeleteSource, /this\.refreshSessions\(\)/)
+  assert.equal((setupDeleteSource.match(/this\.refreshSessions\(\)/g) ?? []).length, 1)
+}
+
 const skillPath = join(root, '.codex', 'skills', 'flyenv-module-boundaries', 'SKILL.md')
 assert.equal(existsSync(skillPath), true)
 const skillSource = readFileSync(skillPath, 'utf-8')

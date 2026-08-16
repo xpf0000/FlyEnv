@@ -6,7 +6,11 @@ import { tmpdir, homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
-import { checkAiCliVersion, resolveAiCliCommand, resolveAiCliTerminalCommand } from '../../util/AiCli'
+import {
+  checkAiCliVersion,
+  resolveAiCliCommand,
+  resolveAiCliTerminalCommand
+} from '../../util/AiCli'
 
 export interface OpenCodeSessionItem {
   id: string
@@ -148,7 +152,9 @@ class OpenCode extends Base {
   deleteSessions(sessionIds: string[]) {
     return new ForkPromise(async (resolve) => {
       const ids = [...new Set(sessionIds)]
-      const results = await Promise.allSettled(ids.map((sessionId) => this.deleteSession(sessionId)))
+      const results = await Promise.allSettled(
+        ids.map((sessionId) => this.deleteSession(sessionId))
+      )
       const deletedIds: string[] = []
       const failedIds: string[] = []
 
@@ -170,9 +176,7 @@ class OpenCode extends Base {
         ? `${resolveAiCliTerminalCommand('opencode')} --session ${sessionId}`
         : resolveAiCliTerminalCommand('opencode')
       const dir = workDir || homedir()
-      const terminalCommand = isWindows()
-        ? `cd "${dir}"; ${command}`
-        : `cd "${dir}" && ${command}`
+      const terminalCommand = isWindows() ? `cd "${dir}"; ${command}` : `cd "${dir}" && ${command}`
       try {
         await ExecCommand.runInTerminal(terminalCommand)
         resolve(true)

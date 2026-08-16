@@ -17,7 +17,11 @@ import { ExecCommand } from '@shared/Exec'
 import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
-import { checkAiCliVersion, resolveAiCliCommand, resolveAiCliTerminalCommand } from '../../util/AiCli'
+import {
+  checkAiCliVersion,
+  resolveAiCliCommand,
+  resolveAiCliTerminalCommand
+} from '../../util/AiCli'
 
 export interface CodexSessionItem {
   id: string
@@ -240,7 +244,9 @@ class Codex extends Base {
   deleteSessions(sessionIds: string[]) {
     return new ForkPromise(async (resolve) => {
       const ids = [...new Set(sessionIds)]
-      const results = await Promise.allSettled(ids.map((sessionId) => this.deleteSession(sessionId)))
+      const results = await Promise.allSettled(
+        ids.map((sessionId) => this.deleteSession(sessionId))
+      )
       const deletedIds: string[] = []
       const failedIds: string[] = []
 
@@ -262,9 +268,7 @@ class Codex extends Base {
         ? `${resolveAiCliTerminalCommand('codex')} resume ${sessionId}`
         : resolveAiCliTerminalCommand('codex')
       const dir = workDir || homedir()
-      const terminalCommand = isWindows()
-        ? `cd "${dir}"; ${command}`
-        : `cd "${dir}" && ${command}`
+      const terminalCommand = isWindows() ? `cd "${dir}"; ${command}` : `cd "${dir}" && ${command}`
       try {
         await ExecCommand.runInTerminal(terminalCommand)
         resolve(true)

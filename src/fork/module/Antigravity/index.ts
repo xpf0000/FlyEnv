@@ -214,7 +214,9 @@ class Antigravity extends Base {
   deleteSessions(sessionIds: string[]) {
     return new ForkPromise(async (resolve) => {
       const ids = [...new Set(sessionIds)]
-      const results = await Promise.allSettled(ids.map((sessionId) => this.deleteSession(sessionId)))
+      const results = await Promise.allSettled(
+        ids.map((sessionId) => this.deleteSession(sessionId))
+      )
       const deletedIds: string[] = []
       const failedIds: string[] = []
 
@@ -236,9 +238,7 @@ class Antigravity extends Base {
         ? `${resolveAiCliTerminalCommand('agy')} --conversation ${sessionId}`
         : resolveAiCliTerminalCommand('agy')
       const dir = workDir || homedir()
-      const terminalCommand = isWindows()
-        ? `cd "${dir}"; ${command}`
-        : `cd "${dir}" && ${command}`
+      const terminalCommand = isWindows() ? `cd "${dir}"; ${command}` : `cd "${dir}" && ${command}`
       try {
         await ExecCommand.runInTerminal(terminalCommand)
         resolve(true)

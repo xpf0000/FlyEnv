@@ -2,7 +2,19 @@
   <el-card class="version-manager">
     <template #header>
       <div class="card-header">
-        <span>{{ I18nT('common.session.list') }}</span>
+        <div class="left flex items-center">
+          <span>{{ I18nT('common.session.list') }}</span>
+          <el-tooltip :content="I18nT('common.action.delete')" placement="top" :show-after="300">
+            <el-button
+              link
+              type="danger"
+              size="small"
+              :icon="Delete"
+              :disabled="selectedSessionIds.size === 0 || CopilotCliSetup.deletingSessions"
+              @click="deleteSelectedSessions"
+            />
+          </el-tooltip>
+        </div>
         <el-button
           link
           :disabled="CopilotCliSetup.loading"
@@ -31,8 +43,27 @@
                 v-for="group in filteredGroups"
                 :key="group.workDir"
                 :name="group.workDir"
-                :title="group.workDir"
               >
+                <template #title>
+                  <div class="flex min-w-0 flex-1 items-center">
+                    <span class="truncate">{{ group.workDir }}</span>
+                    <el-tooltip
+                      :content="I18nT('host.runInTerminal')"
+                      placement="top"
+                      :show-after="300"
+                    >
+                      <el-button
+                        link
+                        size="small"
+                        class="ml-2 shrink-0"
+                        :disabled="CopilotCliSetup.isStartingSessionInTerminal(group.workDir)"
+                        @click.stop="startSessionInTerminal(group.workDir)"
+                      >
+                        <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="16" height="16" />
+                      </el-button>
+                    </el-tooltip>
+                  </div>
+                </template>
                 <el-table-v2
                   :columns="columns"
                   :data="group.sessions"
@@ -53,11 +84,19 @@
 </template>
 
 <script lang="tsx" setup>
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { CopilotCliSetup, SessionItem } from './setup'
   import { MoreFilled, VideoPlay, Delete } from '@element-plus/icons-vue'
-  import { ElMessageBox, ElPopover, ElButton, ElIcon, ElTooltip, type Column } from 'element-plus'
+  import {
+    ElMessageBox,
+    ElPopover,
+    ElButton,
+    ElIcon,
+    ElTooltip,
+    ElCheckbox,
+    type Column
+  } from 'element-plus'
   import { clipboard } from '@/util/NodeFn'
   import { MessageSuccess } from '@/util/Element'
 
@@ -65,6 +104,7 @@
   const containerRef = ref<HTMLElement>()
   const tableWidth = ref(800)
   const activeNames = ref<string[]>([])
+  const selectedSessionIds = ref(new Set<string>())
 
   const filteredGroups = computed(() => {
     const groups = CopilotCliSetup.sessionGroups
@@ -85,6 +125,76 @@
       }))
       .filter((group) => group.sessions.length > 0)
   })
+
+  const visibleSessionIds = computed(() =>
+    filteredGroups.value.flatMap((group) => group.sessions.map((session) => session.id))
+  )
+  const allVisibleSelected = computed(
+    () =>
+      visibleSessionIds.value.length > 0 &&
+      visibleSessionIds.value.every((id) => selectedSessionIds.value.has(id))
+  )
+  const visibleSelectionIndeterminate = computed(() => {
+    const selectedCount = visibleSessionIds.value.filter((id) =>
+      selectedSessionIds.value.has(id)
+    ).length
+    return selectedCount > 0 && selectedCount < visibleSessionIds.value.length
+  })
+
+  const setSessionSelected = (sessionId: string, selected: boolean) => {
+    const next = new Set(selectedSessionIds.value)
+    if (selected) {
+      next.add(sessionId)
+    } else {
+      next.delete(sessionId)
+    }
+    selectedSessionIds.value = next
+  }
+
+  const setVisibleSessionsSelected = (selected: boolean) => {
+    const next = new Set(selectedSessionIds.value)
+    visibleSessionIds.value.forEach((sessionId) => {
+      if (selected) {
+        next.add(sessionId)
+      } else {
+        next.delete(sessionId)
+      }
+    })
+    selectedSessionIds.value = next
+  }
+
+  const deleteSelectedSessions = () => {
+    const ids = [...selectedSessionIds.value]
+    if (!ids.length) {
+      return
+    }
+    ElMessageBox.confirm(I18nT('base.delAlertContent'), I18nT('base.delAlertTitle'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      type: 'warning'
+    })
+      .then(async () => {
+        const deletedIds = await CopilotCliSetup.deleteSessions(ids)
+        const next = new Set(selectedSessionIds.value)
+        deletedIds.forEach((sessionId) => next.delete(sessionId))
+        selectedSessionIds.value = next
+      })
+      .catch(() => {})
+  }
+
+  const startSessionInTerminal = (workDir: string) => {
+    CopilotCliSetup.startSessionInTerminal(workDir)
+  }
+
+  watch(
+    () => CopilotCliSetup.sessions,
+    (sessions) => {
+      const availableIds = new Set(sessions.map((session) => session.id))
+      selectedSessionIds.value = new Set(
+        [...selectedSessionIds.value].filter((sessionId) => availableIds.has(sessionId))
+      )
+    }
+  )
 
   const updateTableWidth = () => {
     if (containerRef.value) {
@@ -114,6 +224,27 @@
   }
 
   const columns: Column<SessionItem>[] = [
+    {
+      key: 'selection',
+      dataKey: 'selection',
+      width: 52,
+      align: 'center',
+      headerCellRenderer: () => (
+        <ElCheckbox
+          modelValue={allVisibleSelected.value}
+          indeterminate={visibleSelectionIndeterminate.value}
+          onClick={(event: Event) => event.stopPropagation()}
+          onChange={(selected: boolean) => setVisibleSessionsSelected(selected)}
+        />
+      ),
+      cellRenderer: ({ rowData: row }) => (
+        <ElCheckbox
+          modelValue={selectedSessionIds.value.has(row.id)}
+          onClick={(event: Event) => event.stopPropagation()}
+          onChange={(selected: boolean) => setSessionSelected(row.id, selected)}
+        />
+      )
+    },
     {
       key: 'id',
       title: I18nT('common.session.id'),
