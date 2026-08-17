@@ -11,6 +11,7 @@ import {
   resolveAiCliCommand,
   resolveAiCliTerminalCommand
 } from '../../util/AiCli'
+import { dedupeAiCliSessions } from '../../util/AiCliSession'
 
 export interface OpenCodeSessionItem {
   id: string
@@ -119,6 +120,9 @@ class OpenCode extends Base {
         const arr: any[] = Array.isArray(data) ? data : []
         arr.forEach((s) => {
           const updated = s?.updated ?? s?.created
+          if (!s?.id) {
+            return
+          }
           list.push({
             id: s?.id ?? '',
             title: s?.title ?? s?.id ?? '',
@@ -130,11 +134,12 @@ class OpenCode extends Base {
       } catch (e) {
         console.log('openCode listSessions error: ', e)
       }
-      list.sort((a, b) => {
+      const deduplicated = dedupeAiCliSessions(list)
+      deduplicated.sort((a, b) => {
         if (!a.updatedAt || !b.updatedAt) return 0
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       })
-      resolve(list)
+      resolve(deduplicated)
     })
   }
 

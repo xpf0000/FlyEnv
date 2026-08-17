@@ -80,6 +80,7 @@ for (const module of aiSessionModules) {
   assert.match(pageSource, /const deleteSelectedSessions = \(\) =>/)
   assert.match(pageSource, /<template #title>/)
   assert.match(pageSource, /terminal\.svg\?raw/)
+  assert.match(pageSource, /class="ml-3 !text-lg"/)
   assert.match(pageSource, new RegExp(`${module.setup}\\.deleteSessions\\(ids\\)`))
   assert.match(pageSource, /@click\.stop="startSessionInTerminal\(group\.workDir\)"/)
   assert.match(pageSource, new RegExp(`${module.setup}\\.startSessionInTerminal\\(workDir\\)`))

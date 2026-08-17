@@ -13,6 +13,7 @@ import {
   resolveAiCliCommand,
   resolveAiCliTerminalCommand
 } from '../../util/AiCli'
+import { dedupeAiCliSessions } from '../../util/AiCliSession'
 
 const require = createRequire(import.meta.url)
 
@@ -144,7 +145,7 @@ class CopilotCli extends Base {
       } catch (e) {
         console.log('copilotCli listSessions error: ', e)
       }
-      resolve(list)
+      resolve(dedupeAiCliSessions(list))
     })
   }
 

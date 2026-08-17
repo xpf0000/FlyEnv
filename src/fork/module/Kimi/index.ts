@@ -9,6 +9,7 @@ import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { optionalBearerHeaders } from '@shared/aiCliMcp'
 import { checkAiCliVersion, resolveAiCliTerminalCommand } from '../../util/AiCli'
+import { dedupeAiCliSessions } from '../../util/AiCliSession'
 
 export interface KimiSessionItem {
   id: string
@@ -271,11 +272,12 @@ class Kimi extends Base {
         console.log('kimi listSessions error: ', e)
       }
       // Sort by updatedAt desc
-      list.sort((a, b) => {
+      const deduplicated = dedupeAiCliSessions(list)
+      deduplicated.sort((a, b) => {
         if (!a.updatedAt || !b.updatedAt) return 0
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       })
-      resolve(list)
+      resolve(deduplicated)
     })
   }
 

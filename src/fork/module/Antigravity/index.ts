@@ -9,6 +9,7 @@ import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { joinMcpCommand, optionalBearerHeaders } from '@shared/aiCliMcp'
 import { checkAiCliVersion, resolveAiCliTerminalCommand } from '../../util/AiCli'
+import { dedupeAiCliSessions } from '../../util/AiCliSession'
 
 const require = createRequire(import.meta.url)
 
@@ -182,11 +183,12 @@ class Antigravity extends Base {
       } catch (e) {
         console.log('antigravity listSessions error: ', e)
       }
-      list.sort((a, b) => {
+      const deduplicated = dedupeAiCliSessions(list)
+      deduplicated.sort((a, b) => {
         if (!a.updatedAt || !b.updatedAt) return 0
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       })
-      resolve(list)
+      resolve(deduplicated)
     })
   }
 

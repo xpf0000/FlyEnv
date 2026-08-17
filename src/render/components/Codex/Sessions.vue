@@ -9,6 +9,7 @@
               link
               type="danger"
               size="small"
+              class="ml-3 !text-lg"
               :icon="Delete"
               :disabled="selectedSessionIds.size === 0 || CodexSetup.deletingSessions"
               @click="deleteSelectedSessions"

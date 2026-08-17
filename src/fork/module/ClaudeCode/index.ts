@@ -20,6 +20,7 @@ import {
   resolveAiCliCommand,
   resolveAiCliTerminalCommand
 } from '../../util/AiCli'
+import { dedupeAiCliSessions } from '../../util/AiCliSession'
 
 export interface ClaudeCodeSessionItem {
   id: string
@@ -141,11 +142,12 @@ class ClaudeCode extends Base {
       } catch (e) {
         console.log('claudeCode listSessions error: ', e)
       }
-      list.sort((a, b) => {
+      const deduplicated = dedupeAiCliSessions(list)
+      deduplicated.sort((a, b) => {
         if (!a.updatedAt || !b.updatedAt) return 0
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       })
-      resolve(list)
+      resolve(deduplicated)
     })
   }
 
