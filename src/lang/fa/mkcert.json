@@ -1,0 +1,12 @@
+{
+  "checking": "در حال بررسی نصب...",
+  "isInstalled": "نصب شده",
+  "notInstalled": "mkcert نصب نشده است",
+  "install": "نصب mkcert",
+  "checkAgain": "بررسی مجدد",
+  "recheck": "بررسی دوباره",
+  "installCA": "نصب CA",
+  "carootLabel": "مسیر ریشه CA",
+  "certificates": "گواهی‌ها",
+  "noSSLHosts": "هیچ هاستی با SSL فعال وجود ندارد. ابتدا SSL را برای یک هاست فعال کنید."
+}

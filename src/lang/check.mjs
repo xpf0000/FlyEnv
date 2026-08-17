@@ -8,7 +8,39 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const require = createRequire(import.meta.url)
 
-const glob = require('glob')
+const glob = {
+  sync(pattern) {
+    const results = []
+    function walk(dir) {
+      if (!fs.existsSync(dir)) return
+      const list = fs.readdirSync(dir)
+      list.forEach((file) => {
+        const fullPath = path.join(dir, file)
+        const stat = fs.statSync(fullPath)
+        if (stat && stat.isDirectory()) {
+          const base = path.basename(fullPath)
+          if (base !== 'node_modules' && base !== '.git' && base !== 'dist' && base !== '.yarn') {
+            walk(fullPath)
+          }
+        } else {
+          if (pattern.endsWith('**/*.json')) {
+            if (fullPath.endsWith('.json')) {
+              results.push(fullPath)
+            }
+          } else {
+            const ext = path.extname(pattern)
+            if (fullPath.endsWith(ext)) {
+              results.push(fullPath)
+            }
+          }
+        }
+      })
+    }
+    const baseDir = pattern.split('**')[0]
+    walk(baseDir)
+    return results
+  }
+}
 
 // 配置
 const PROJECT_ROOT = path.join(__dirname, '..')

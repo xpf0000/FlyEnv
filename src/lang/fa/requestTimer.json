@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "جستجوی DNS",
+  "tcpConnect": "اتصال TCP",
+  "tlsHandshake": "دست‌دادن TLS",
+  "requestProcessing": "پردازش درخواست",
+  "ttfb": "زمان تا دریافت اولین بایت (TTFB)",
+  "contentDownload": "دانلود محتوا",
+  "downloadSpeed": "سرعت دانلود",
+  "dataSize": "اندازه داده",
+  "httpVersion": "نسخه HTTP",
+  "statusCode": "کد وضعیت",
+  "usingProxy": "استفاده از پروکسی",
+  "totalTime": "زمان کل",
+  "skippedForProxy": "نادیده‌گرفته‌شده به دلیل پروکسی",
+  "metric": "معیار",
+  "value": "مقدار"
+}

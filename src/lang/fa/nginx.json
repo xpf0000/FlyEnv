@@ -1,0 +1,10 @@
+{
+  "gzip": "آیا فشرده‌سازی GZIP فعال باشد",
+  "gzip_min_length": "حداقل اندازه فایل فشرده شده",
+  "gzip_comp_level": "سطح فشرده‌سازی",
+  "client_max_body_size": "حداکثر اندازه فایل آپلود",
+  "server_names_hash_max_size": "حداکثر اندازه جدول هش برای نام سرور",
+  "server_names_hash_bucket_size": "اندازه باکت جدول هش برای نام سرور",
+  "client_header_buffer_size": "اندازه بافر هدر درخواست کلاینت",
+  "client_body_buffer_size": "اندازه بافر بدنه درخواست"
+}

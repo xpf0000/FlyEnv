@@ -1,0 +1,23 @@
+{
+  "about": "درباره",
+  "app": "FlyEnv",
+  "checkForUpdates": "بررسی برای به‌روزرسانی...",
+  "hide": "پنهان کردن FlyEnv",
+  "hideOthers": "پنهان کردن بقیه",
+  "unhide": "نمایش همه",
+  "quit": "خروج از FlyEnv",
+  "cut": "برش (Cut)",
+  "paste": "چسباندن (Paste)",
+  "window": "پنجره",
+  "minimize": "کوچک کردن",
+  "zoom": "بزرگ‌نمایی",
+  "fullscreen": "ورود به حالت تمام‌صفحه",
+  "front": "انتقال FlyEnv به جلو",
+  "dev": "باز کردن پنجره دیباگ",
+  "needInstallHelper": "FlyEnv نیاز به نصب یک برنامه کمکی دارد",
+  "helperInstalling": "برنامه کمکی در حال نصب است، لطفا صبر کنید",
+  "waitHelper": "برنامه کمکی در حال راه‌اندازی است، لطفا صبر کنید",
+  "helperInstallFailTips": "نصب برنامه کمکی با خطا مواجه شد. لطفا سعی کنید آن را به صورت دستی در پنجره ترمینال نصب کنید",
+  "helperInstallSuccessTips": "برنامه کمکی با موفقیت نصب شد",
+  "helperInstallTitle": "نصب برنامه کمکی FlyEnv"
+}

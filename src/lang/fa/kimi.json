@@ -1,0 +1,21 @@
+{
+  "notInstalled": "ابزار Kimi Code CLI نصب نشده است. روی دکمه زیر کلیک کنید تا نصب‌کننده رسمی اجرا شود.",
+  "officialWebsite": "صفحه گیت‌هاب Kimi Code CLI",
+  "officialDocs": "مستندات Kimi Code CLI",
+  "permissionMode": "حالت دسترسی (Permission Mode)",
+  "defaultThinking": "حالت تفکر (Thinking Mode)",
+  "defaultPlanMode": "حالت برنامه‌ریزی (Plan Mode)",
+  "telemetry": "سنجش از دور (Telemetry)",
+  "cmd": {
+    "upgrade": "ارتقای Kimi Code CLI",
+    "continue": "ادامه آخرین نشست در دایرکتوری فعلی",
+    "sessionSelect": "انتخاب و ادامه یک نشست",
+    "plan": "شروع در حالت برنامه‌ریزی",
+    "yolo": "تایید خودکار فراخوانی ابزارهای معمولی (yolo)",
+    "export": "خروجی گرفتن از نشست به صورت ZIP",
+    "vis": "باز کردن بصری‌ساز نشست در مرورگر",
+    "providerList": "لیست ارائه‌دهندگان پیکربندی‌شده",
+    "providerAdd": "افزودن ارائه‌دهندگان از یک آدرس ریجستری",
+    "providerRemove": "حذف یک ارائه‌دهنده"
+  }
+}

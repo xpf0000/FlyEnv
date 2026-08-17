@@ -1,0 +1,21 @@
+{
+  "console": "کنسول",
+  "webServer": "وب سرور",
+  "dataBaseServer": "پایگاه داده (Database)",
+  "emailServer": "سرویس‌دهنده ایمیل",
+  "language": "زبان‌ها و محیط‌های اجرا",
+  "searchEngine": "موتور جستجو",
+  "dnsServer": "کارساز DNS",
+  "ftpServer": "کارساز FTP",
+  "containerRuntime": "محیط اجرای کانتینر",
+  "appLog": "لاگ برنامه",
+  "aiCoding": "کدنویسی با هوش مصنوعی",
+  "ai": "هوش مصنوعی",
+  "objectStorage": "ذخیره‌سازی ابری (Object Storage)",
+  "appExit": "توقف تمامی سرویس‌های در حال اجرا و خروج از FlyEnv",
+  "groupStart": "راه‌اندازی تک‌کلیکی تمامی سرویس‌های موجود در پنل",
+  "networkTunnel": "تونل شبکه",
+  "cacheAndQueue": "کش و صف پیام",
+  "serviceGovernance": "راهبری سرویس (Service Governance)",
+  "other": "سایر"
+}
