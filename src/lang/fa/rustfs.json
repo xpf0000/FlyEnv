@@ -1,0 +1,22 @@
+{
+  "RUSTFS_ADDRESS": "اتصال به یک آدرس و پورت مشخص (ADDRESS:PORT). آدرس می‌تواند یک IP یا نام هاست باشد. مقدار پیش‌فرض ':9000' است.",
+  "RUSTFS_ACCESS_KEY": "کلید دسترسی (Access key) مورد استفاده برای احراز هویت API S3.",
+  "RUSTFS_ACCESS_KEY_FILE": "مسیر فایل حاوی کلید دسترسی برای احراز هویت API S3.",
+  "RUSTFS_SECRET_KEY": "کلید مخفی (Secret key) مورد استفاده برای احراز هویت API S3.",
+  "RUSTFS_SECRET_KEY_FILE": "مسیر فایل حاوی کلید مخفی برای احراز هویت API S3.",
+  "RUSTFS_CONSOLE_ENABLE": "فعال‌سازی سرور کنسول وب. برای فعال‌سازی روی 'true' تنظیم کنید.",
+  "RUSTFS_CONSOLE_ADDRESS": "آدرس اتصال سرور کنسول. مقدار پیش‌فرض ':9001' است.",
+  "RUSTFS_SERVER_DOMAINS": "نام دامنه مورد استفاده برای درخواست‌های سبک هاست مجازی.",
+  "RUSTFS_TLS_PATH": "مسیر گواهینامه TLS برای API و کنسول RustFS.",
+  "RUSTFS_REGION": "نام منطقه (Region) برای سرور.",
+  "RUSTFS_LICENSE": "کلید لایسنس برای ویژگی‌های تجاری.",
+  "RUSTFS_KMS_ENABLE": "فعال‌سازی رمزگذاری KMS برای رمزگذاری سمت سرور. برای فعال‌سازی روی 'true' تنظیم کنید.",
+  "RUSTFS_KMS_BACKEND": "نوع بک‌اند KMS: 'local' یا 'vault'. مقدار پیش‌فرض 'local' است.",
+  "RUSTFS_KMS_KEY_DIR": "دایرکتوری کلید KMS برای بک‌اند محلی.",
+  "RUSTFS_KMS_VAULT_ADDRESS": "آدرس سرور Vault برای بک‌اند vault.",
+  "RUSTFS_KMS_VAULT_TOKEN": "توکن Vault برای احراز هویت بک‌اند vault.",
+  "RUSTFS_KMS_DEFAULT_KEY_ID": "شناسه کلید پیش‌فرض KMS برای رمزگذاری.",
+  "RUSTFS_OBS_ENDPOINT": "نقطه پایانی قابلیت رصد (Observability) برای ردگیری، معیارها و لاگ‌ها (فقط در حالت gRPC).",
+  "RUSTFS_BUFFER_PROFILE_DISABLE": "غیرفعال‌سازی تغییر اندازه بافر تطبیقی با پروفایل‌های حجم کاری. برای استفاده از بافرهای با اندازه ثابت روی 'true' تنظیم کنید.",
+  "RUSTFS_BUFFER_PROFILE": "پروفایل حجم کاری برای تغییر اندازه بافر تطبیقی. گزینه‌ها: GeneralPurpose، AiTraining، DataAnalytics، WebWorkload، IndustrialIoT، SecureStorage."
+}

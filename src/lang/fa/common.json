@@ -1,0 +1,180 @@
+{
+  "label": {
+    "model": "مدل",
+    "name": "نام",
+    "status": "وضعیت",
+    "workingDirectory": "پوشه کاری",
+    "action": "عملیات",
+    "comment": "توضیح",
+    "source": "منبع",
+    "site": "سایت",
+    "errorLog": "لاگ خطا",
+    "library": "کتابخانه",
+    "path": "مسیر",
+    "description": "توضیحات",
+    "port": "پورت",
+    "startCommand": "دستور شروع",
+    "licenseDescription": "توضیحات لایسنس",
+    "password": "رمز عبور",
+    "username": "نام کاربری",
+    "size": "اندازه",
+    "containerEnvVars": "متغیرهای محیطی کانتینر",
+    "createdTime": "زمان ایجاد",
+    "image": "ایمیج",
+    "state": "وضعیت",
+    "grid": "شبکه (Grid)",
+    "gridSpacing": "فاصله‌گذاری شبکه (پیکسل)",
+    "fontSize": "اندازه قلم",
+    "code": "کد"
+  },
+  "action": {
+    "enable": "فعال‌سازی",
+    "disable": "غیرفعال‌سازی",
+    "resume": "ادامه دادن",
+    "uninstall": "حذف نصب",
+    "copy": "کپی کردن",
+    "preview": "پیش‌نمایش",
+    "search": "جستجو",
+    "clear": "پاک کردن",
+    "resetPassword": "بازنشانی رمز عبور",
+    "delete": "حذف",
+    "add": "افزودن",
+    "edit": "ویرایش",
+    "generate": "تولید",
+    "refresh": "بروزرسانی",
+    "save": "ذخیره",
+    "start": "شروع",
+    "stop": "توقف",
+    "close": "بستن",
+    "selectAll": "انتخاب همه",
+    "changeName": "ویرایش نام",
+    "changeOwnerPassword": "تغییر رمز عبور مالک",
+    "changeRole": "تغییر نقش"
+  },
+  "state": {
+    "running": "در حال اجرا",
+    "installed": "نصب شده",
+    "enabled": "فعال",
+    "disabled": "غیرفعال",
+    "available": "در دسترس"
+  },
+  "session": {
+    "list": "جلسات (Sessions)",
+    "title": "عنوان",
+    "id": "شناسه جلسه",
+    "lastPrompt": "آخرین پرامپت",
+    "search": "جستجوی جلسات",
+    "deleted": "جلسه حذف شد",
+    "resumed": "جلسه در ترمینال از سر گرفته شد"
+  },
+  "mcp": {
+    "type": "نوع",
+    "commandOrUrl": "دستور / آدرس اینترنتی (URL)",
+    "scope": "دامنه (Scope)",
+    "addServer": "افزودن سرور"
+  },
+  "category": {
+    "basic": "پایه",
+    "mcp": "MCP",
+    "skills": "مهارت‌ها (Skills)",
+    "basicInfo": "اطلاعات پایه",
+    "configuration": "پیکربندی",
+    "favorites": "علاقه‌مندی‌ها",
+    "plugins": "افزونه‌ها",
+    "backupUpdate": "پشتیبان‌گیری و بروزرسانی"
+  },
+  "skills": {
+    "openSkillsDir": "باز کردن پوشه مهارت‌ها",
+    "openSkillDir": "باز کردن پوشه مهارت",
+    "revealSkillFile": "نمایش فایل مهارت",
+    "noSkills": "هیچ مهارتی یافت نشد",
+    "skillFileMissing": "فایل مهارت یافت نشد",
+    "skillLoadFailed": "بارگذاری فایل مهارت با شکست مواجه شد",
+    "builtin": "توکار (Built-in)"
+  },
+  "cli": {
+    "help": "نمایش اطلاعات راهنما",
+    "version": "نمایش شماره نسخه",
+    "start": "شروع یک جلسه تعاملی جدید",
+    "mcpList": "لیست سرورهای MCP پیکربندی‌شده",
+    "doctor": "اجرای بررسی‌های سلامت",
+    "doctorFix": "اجرای بررسی‌های سلامت با اصلاح خودکار",
+    "gatewayStart": "شروع سرویس گیت‌وی (Gateway)",
+    "gatewayStop": "توقف سرویس گیت‌وی (Gateway)",
+    "gatewayRestart": "راه‌اندازی مجدد سرویس گیت‌وی (Gateway)",
+    "gatewayStatus": "نمایش وضعیت گیت‌وی (Gateway)",
+    "gatewayRun": "اجرای گیت‌وی (Gateway) در پیش‌زمینه",
+    "gatewayUninstall": "حذف نصب سرویس گیت‌وی (Gateway)",
+    "skillsList": "لیست مهارت‌های در دسترس"
+  },
+  "gateway": {
+    "category": "سرویس گیت‌وی (Gateway)",
+    "status": "وضعیت گیت‌وی (Gateway)",
+    "running": "سرویس گیت‌وی در حال اجراست",
+    "stopped": "سرویس گیت‌وی متوقف شده است",
+    "startFailed": "شروع به کار گیت‌وی با شکست مواجه شد"
+  },
+  "value": {
+    "yes": "بله",
+    "no": "خیر",
+    "other": "سایر",
+    "default": "پیش‌فرض",
+    "none": "هیچ‌کدام",
+    "local": "محلی (Local)"
+  },
+  "plugin": {
+    "search": "جستجوی افزونه‌ها",
+    "removed": "افزونه حذف شد"
+  },
+  "schedule": {
+    "everyHour": "هر ساعت",
+    "everyMinute": "هر دقیقه"
+  },
+  "error": {
+    "phpiniNotFound": "فایل php.ini یافت نشد"
+  },
+  "startupGroup": {
+    "title": "گروه‌های راه‌اندازی (Startup Groups)",
+    "description": "شروع و توقف نسخه‌های دقیق سرویس‌ها و پروژه‌های زبان‌های برنامه‌نویسی با ترتیب کنترل‌شده.",
+    "add": "افزودن گروه راه‌اندازی",
+    "edit": "ویرایش گروه راه‌اندازی",
+    "default": "گروه راه‌اندازی پیش‌فرض",
+    "controlDefaultTooltip": "شروع یا توقف گروه راه‌اندازی پیش‌فرض: {name}",
+    "controlLegacyTooltip": "شروع یا توقف تمامی سرویس‌های نمایش داده شده",
+    "defaultTooltip": "کنترل تک‌کلیکی بالا سمت چپ و راه‌اندازی خودکار سرویس‌ها از این گروه راه‌اندازی استفاده خواهند کرد.",
+    "licenseTips": "بدون لایسنس، تنها امکان ایجاد یک گروه راه‌اندازی وجود دارد.",
+    "defaultEmptyDisabled": "یک گروه راه‌اندازی خالی نمی‌تواند به عنوان پیش‌فرض تنظیم شود.",
+    "basicInfo": "اطلاعات پایه",
+    "selectServices": "انتخاب سرویس‌ها",
+    "startOrder": "ترتیب راه‌اندازی",
+    "previous": "قبلی",
+    "next": "بعدی",
+    "color": "رنگ",
+    "nameRequired": "نام گروه راه‌اندازی را وارد کنید.",
+    "noGroups": "یک گروه راه‌اندازی ایجاد کنید تا سرویس‌های مرتبط را به ترتیب شروع کنید.",
+    "noCandidates": "هیچ سرویس یا پروژه نصب‌شده‌ای که به طور مستقل قابل اجرا باشد پیدا نشد.",
+    "noRemark": "بدون توضیح",
+    "emptyMembers": "هیچ عضوی انتخاب نشده است",
+    "sameModuleWarning": "multiple versions of this module may conflict",
+    "samePortWarning": "سرویس‌های انتخاب شده از پورت شناخته‌شده یکسانی استفاده می‌کنند",
+    "deleteConfirm": "گروه راه‌اندازی {name} حذف شود؟ سرویس‌های در حال اجرا متوقف نخواهند شد.",
+    "hideConfirm": "پنهان کردن گروه‌های راه‌اندازی باعث متوقف شدن تمام سرویس‌های موجود در هر گروه راه‌اندازی می‌شود. آیا ادامه می‌دهید؟",
+    "hideFailed": "گروه‌های راه‌اندازی همچنان قابل مشاهده هستند زیرا این سرویس‌ها متوقف نشدند:",
+    "hideBusy": "لطفاً تا اتمام عملیات گروه راه‌اندازی فعلی صبر کنید.",
+    "state": {
+      "stopped": "متوقف شده",
+      "running": "در حال اجرا",
+      "partial-running": "در حال اجرای ناقص",
+      "executing": "در حال اجرا",
+      "invalid": "پیکربندی نامعتبر"
+    },
+    "outcome": {
+      "started": "راه‌اندازی شد",
+      "stopped": "متوقف شد",
+      "skipped": "نادیده گرفته شد",
+      "failed": "ناموفق",
+      "not-run": "اجرا نشده",
+      "invalid": "پیکربندی نامعتبر"
+    }
+  }
+}

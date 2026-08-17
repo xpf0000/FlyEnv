@@ -1,0 +1,16 @@
+{
+  "installFNM": "نصب <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
+  "installNVM": "نصب <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
+  "Terminal": "ترمینال",
+  "registry": "رجیستری",
+  "checkPackageJsonUpdate": "بررسی برای بروزرسانی‌ها",
+  "updatePackageJsonFile": "بروزرسانی فایل package.json",
+  "updatePackageJsonFileTips": "این عملیات فایل package.json را تغییر می‌دهد. آیا از بروزرسانی مطمئن هستید؟",
+  "copyDirPath": "کپی مسیر پوشه پروژه",
+  "openIN": "باز کردن در",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "projectEnvSet": "محیط پروژه",
+  "installGit": "نصب <a href=\"javascript:void();\" onclick=\"openUrl('https://git-scm.com')\">Git</a>"
+}

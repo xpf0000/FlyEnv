@@ -1,0 +1,9 @@
+{
+  "title": "سازنده توکن",
+  "uppercase": "حروف بزرگ (ABC...)",
+  "lowercase": "حروف کوچک (abc...)",
+  "numbers": "اعداد (123...)",
+  "symbols": "نمادها (!-;...)",
+  "length": "طول",
+  "tokenPlaceholder": "توکن..."
+}

@@ -1,0 +1,19 @@
+{
+  "OLLAMA_DEBUG": "نمایش اطلاعات عیب‌یابی اضافی (مانند OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "آدرس IP برای سرور ollama (پیش‌فرض 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "مدت زمانی که مدل‌ها در حافظه لود شده باقی می‌مانند (پیش‌فرض \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "حداکثر تعداد مدل‌های لود شده در هر GPU",
+  "OLLAMA_MAX_QUEUE": "حداکثر تعداد درخواست‌های در صف",
+  "OLLAMA_MODELS": "مسیر دایرکتوری مدل‌ها",
+  "OLLAMA_NUM_PARALLEL": "حداکثر تعداد درخواست‌های همزمان",
+  "OLLAMA_NOPRUNE": "عدم هرس بلاک‌های مدل در زمان راه‌اندازی",
+  "OLLAMA_ORIGINS": "لیستی از مبداهای مجاز جدا شده با کاما",
+  "OLLAMA_SCHED_SPREAD": "همیشه مدل را در تمام GPUها توزیع و زمان‌بندی کن",
+  "OLLAMA_FLASH_ATTENTION": "فعال‌سازی Flash Attention",
+  "OLLAMA_KV_CACHE_TYPE": "نوع کوانتیزاسیون برای کش K/V (پیش‌فرض: f16)",
+  "OLLAMA_LLM_LIBRARY": "تنظیم کتابخانه LLM برای نادیده گرفتن تشخیص خودکار",
+  "OLLAMA_GPU_OVERHEAD": "رزرو بخشی از VRAM برای هر GPU (بر حسب بایت)",
+  "OLLAMA_LOAD_TIMEOUT": "مدت زمان مجاز برای متوقف ماندن لود مدل قبل از انصراف (پیش‌فرض \"5m\")",
+  "needServiceRun": "لطفاً ابتدا سرویس Ollama را راه‌اندازی کنید",
+  "model": "مدل‌ها"
+}
