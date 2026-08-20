@@ -19,9 +19,9 @@ export default class ServerManager {
   /**
    * 初始化服务器目录
    */
-  initServerDir() {
+  initServerDir(): Promise<boolean> {
     const runpath = DetermineRunPath()
-    SetupGlobalPaths(runpath)
+    return SetupGlobalPaths(runpath)
   }
 
   /**

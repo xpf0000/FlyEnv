@@ -503,6 +503,114 @@ func ValidatePathForWrite(path string) error {
 	return validatePathAccess(path, true)
 }
 
+func isExactConfiguredFlyEnvDataDirectoryRoot(path string, roots []string) bool {
+	for _, root := range roots {
+		if pathEqual(path, root) {
+			return true
+		}
+	}
+	return false
+}
+
+// ValidateFlyEnvDataDirectoryRoot permits only the exact data root recorded by
+// the elevated installer. It intentionally does not allow a configured root's
+// children, so this recovery operation cannot be repurposed as a generic
+// privileged mkdir endpoint.
+func ValidateFlyEnvDataDirectoryRoot(path string) (string, error) {
+	if runtime.GOOS != "windows" {
+		return "", fmt.Errorf("FlyEnv data-directory recovery is only supported on Windows")
+	}
+	clean, err := cleanAbsPath(path)
+	if err != nil {
+		return "", err
+	}
+	if isSensitiveSystemPath(clean) {
+		return "", fmt.Errorf("sensitive system path is not allowed")
+	}
+	hasSymlink, err := PathHasSymlinkComponent(clean)
+	if err != nil {
+		return "", err
+	}
+	if hasSymlink {
+		return "", fmt.Errorf("data-directory root contains a reparse point")
+	}
+	configured := readConfiguredAllowedRoots()
+	if !configured.filePresent || len(configured.roots) == 0 {
+		return "", fmt.Errorf("FlyEnv data-directory roots are unavailable")
+	}
+	if !isExactConfiguredFlyEnvDataDirectoryRoot(clean, configured.roots) {
+		return "", fmt.Errorf("unexpected FlyEnv data-directory root")
+	}
+	return clean, nil
+}
+
+// ValidateFlyEnvPowerShellRuntimeScriptPath only permits the runtime script
+// directly below a configured FlyEnv data root. It intentionally does not
+// inherit the generic "descendant of an allowed root" write capability.
+func ValidateFlyEnvPowerShellRuntimeScriptPath(path string) (string, error) {
+	clean, err := cleanAbsPath(path)
+	if err != nil {
+		return "", err
+	}
+	if err := ValidatePathForWrite(clean); err != nil {
+		return "", err
+	}
+	configured := readConfiguredAllowedRoots()
+	if !configured.filePresent || len(configured.roots) == 0 {
+		return "", fmt.Errorf("FlyEnv runtime script roots are unavailable")
+	}
+	for _, root := range configured.roots {
+		if pathEqual(clean, filepath.Join(root, "bin", "flyenv.ps1")) {
+			return clean, nil
+		}
+	}
+	return "", fmt.Errorf("unexpected FlyEnv runtime script path: %s", path)
+}
+
+// ValidateFlyEnvPowerShellProfilePath only permits the two PowerShell profile
+// names inside the current helper user's home. The Documents component itself
+// may be localized or redirected (for example, to OneDrive), so it cannot be
+// hard-coded. This remains separate from the generic business-path whitelist.
+func ValidateFlyEnvPowerShellProfilePath(path, edition string) (string, error) {
+	if runtime.GOOS != "windows" {
+		return "", fmt.Errorf("PowerShell profile validation is only supported on Windows")
+	}
+	clean, err := cleanAbsPath(path)
+	if err != nil {
+		return "", err
+	}
+	if hasSymlink, err := PathHasSymlinkComponent(clean); err != nil {
+		return "", err
+	} else if hasSymlink {
+		return "", fmt.Errorf("PowerShell profile path contains a reparse point: %s", path)
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to determine helper user home: %w", err)
+	}
+	cleanHome, err := cleanAbsPath(home)
+	if err != nil {
+		return "", fmt.Errorf("failed to normalize helper user home: %w", err)
+	}
+	var expectedDirectory, expectedFileName string
+	switch edition {
+	case "windows-powershell":
+		expectedDirectory = "WindowsPowerShell"
+		expectedFileName = "Microsoft.PowerShell_profile.ps1"
+	case "pwsh":
+		expectedDirectory = "PowerShell"
+		expectedFileName = "Profile.ps1"
+	default:
+		return "", fmt.Errorf("unsupported PowerShell edition: %s", edition)
+	}
+	if !pathInDir(clean, cleanHome) || pathEqual(clean, cleanHome) ||
+		!strings.EqualFold(filepath.Base(filepath.Dir(clean)), expectedDirectory) ||
+		!strings.EqualFold(filepath.Base(clean), expectedFileName) {
+		return "", fmt.Errorf("unexpected PowerShell profile path for %s: %s", edition, path)
+	}
+	return clean, nil
+}
+
 func ValidatePathForRemove(path string) error {
 	clean, err := cleanAbsPath(path)
 	if err != nil {

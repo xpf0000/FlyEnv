@@ -191,6 +191,20 @@ class OpenCode extends Base {
     })
   }
 
+  resumeLastSessionInTerminal(workDir: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const command = `${resolveAiCliTerminalCommand('opencode')} --continue`
+      const dir = workDir || homedir()
+      const terminalCommand = isWindows() ? `cd "${dir}"; ${command}` : `cd "${dir}" && ${command}`
+      try {
+        await ExecCommand.runInTerminal(terminalCommand)
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? e?.toString() ?? 'fail')
+      }
+    })
+  }
+
   // ========== MCP ==========
 
   private async readConfig(): Promise<any> {

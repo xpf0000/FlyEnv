@@ -222,6 +222,20 @@ class Kimi extends Base {
     })
   }
 
+  resumeLastSessionInTerminal(workDir: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const command = `${resolveAiCliTerminalCommand('kimi')} --continue`
+      const dir = workDir || homedir()
+      const terminalCommand = isWindows() ? `cd "${dir}"; ${command}` : `cd "${dir}" && ${command}`
+      try {
+        await ExecCommand.runInTerminal(terminalCommand)
+        resolve(true)
+      } catch (e: any) {
+        reject(e?.message ?? e?.toString() ?? 'fail')
+      }
+    })
+  }
+
   listSessions() {
     return new ForkPromise(async (resolve) => {
       const list: KimiSessionItem[] = []

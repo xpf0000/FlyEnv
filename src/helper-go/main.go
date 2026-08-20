@@ -26,7 +26,7 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 20
+	Helper_Version   = 22
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
@@ -419,6 +419,8 @@ func (a *AppHelper) verifySignature(info TaskItem) bool {
 		return false
 	}
 
+	// encoding/json sorts object keys and applies HTML escaping. The renderer's
+	// helperSignatureArgsJSON mirrors this representation before signing.
 	argsJSON, err := json.Marshal(info.Args)
 	if err != nil {
 		fmt.Printf("Warning: failed to marshal args for signature verification: %v\n", err)
@@ -785,6 +787,33 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 				} else {
 					execErr = fmt.Errorf("writeBufferBase64ByRoot expects 2 arguments, got %d", len(info.Args))
 				}
+			case "installFlyEnvPowerShellIntegration":
+				if len(info.Args) != 1 {
+					execErr = fmt.Errorf("installFlyEnvPowerShellIntegration expects 1 argument, got %d", len(info.Args))
+					break
+				}
+				payload, marshalErr := json.Marshal(info.Args[0])
+				if marshalErr != nil {
+					execErr = fmt.Errorf("installFlyEnvPowerShellIntegration: invalid payload: %w", marshalErr)
+					break
+				}
+				var request module.FlyEnvPowerShellIntegrationRequest
+				if unmarshalErr := json.Unmarshal(payload, &request); unmarshalErr != nil {
+					execErr = fmt.Errorf("installFlyEnvPowerShellIntegration: invalid request: %w", unmarshalErr)
+					break
+				}
+				result, execErr = a.Tool.InstallFlyEnvPowerShellIntegration(request)
+			case "ensureFlyEnvDataDirectory":
+				if len(info.Args) != 1 {
+					execErr = fmt.Errorf("ensureFlyEnvDataDirectory expects 1 argument, got %d", len(info.Args))
+					break
+				}
+				dataDirectory, ok := info.Args[0].(string)
+				if !ok {
+					execErr = fmt.Errorf("ensureFlyEnvDataDirectory: arg[0] must be a string, got %T", info.Args[0])
+					break
+				}
+				result, execErr = a.Tool.EnsureFlyEnvDataDirectory(dataDirectory)
 			case "readFileByRoot":
 				if len(info.Args) == 1 {
 					if file, ok := info.Args[0].(string); ok {

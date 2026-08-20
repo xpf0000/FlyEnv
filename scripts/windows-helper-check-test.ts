@@ -5,6 +5,7 @@ import {
   HelperVersion,
   createAppHelperChecker,
   getWindowsHelperBinaryPath,
+  helperSignatureArgsJSON,
   windowsHelperBinaryExists
 } from '../src/shared/AppHelperCheck'
 import { isAppHelperError } from '../src/shared/WindowsHelperState'
@@ -41,6 +42,16 @@ async function main() {
   assert.equal(typeof createAppHelperChecker, 'function')
   assert.equal(typeof getWindowsHelperBinaryPath, 'function')
   assert.equal(typeof windowsHelperBinaryExists, 'function')
+  assert.equal(
+    helperSignatureArgsJSON([
+      {
+        scriptPath: 'C:\\FlyEnv\\bin\\flyenv.ps1',
+        scriptBase64: 'abc',
+        profiles: [{ path: 'C:\\Users\\FlyEnv\\Profile.ps1', edition: 'pwsh' }]
+      }
+    ]),
+    '[{"profiles":[{"edition":"pwsh","path":"C:\\\\Users\\\\FlyEnv\\\\Profile.ps1"}],"scriptBase64":"abc","scriptPath":"C:\\\\FlyEnv\\\\bin\\\\flyenv.ps1"}]'
+  )
 
   let createConnectionCalled = false
   const missingBinaryCheck = createAppHelperChecker({

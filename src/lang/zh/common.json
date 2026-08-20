@@ -64,6 +64,8 @@
     "id": "会话 ID",
     "lastPrompt": "最后提示词",
     "search": "搜索会话",
+    "newSession": "新会话",
+    "lastSession": "上次会话",
     "deleted": "会话已删除",
     "resumed": "已在终端中恢复会话"
   },

@@ -29,12 +29,12 @@
       <div v-loading="OpenCodeSetup.statsLoading" class="p-5 h-full overflow-hidden">
         <el-scrollbar v-if="OpenCodeSetup.stats.length > 0">
           <div v-for="(group, gIndex) in OpenCodeSetup.stats" :key="gIndex" class="stat-group mb-5">
-            <div class="stat-title">{{ group.title }}</div>
+            <div class="stat-title">{{ localizeStatText(group.title) }}</div>
             <el-descriptions :column="3" direction="vertical" border size="small">
               <el-descriptions-item
                 v-for="(row, rIndex) in group.rows"
                 :key="rIndex"
-                :label="row.label"
+                :label="localizeStatText(row.label)"
               >
                 {{ row.value }}
               </el-descriptions-item>
@@ -51,8 +51,14 @@
   import { ref, onMounted } from 'vue'
   import { I18nT } from '@lang/index'
   import { OpenCodeSetup } from './setup'
+  import { statTranslationKey } from './statsI18n'
 
   const days = ref(OpenCodeSetup.statsDays)
+
+  const localizeStatText = (text: string) => {
+    const key = statTranslationKey(text)
+    return key ? I18nT(key) : text
+  }
 
   const refresh = () => {
     OpenCodeSetup.statsDays = days.value

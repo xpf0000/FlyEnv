@@ -58,6 +58,24 @@
     },
     {
       "module": "tools",
+      "function": "installFlyEnvPowerShellIntegration",
+      "args": [{ "name": "request", "type": "object" }],
+      "return": "flyEnvPowerShellIntegrationResult",
+      "platform": "windows",
+      "privileged": true,
+      "pathAccess": "write"
+    },
+    {
+      "module": "tools",
+      "function": "ensureFlyEnvDataDirectory",
+      "args": [{ "name": "dataDirectory", "type": "string" }],
+      "return": "boolean",
+      "platform": "windows",
+      "privileged": true,
+      "pathAccess": "write"
+    },
+    {
+      "module": "tools",
       "function": "readFileByRoot",
       "args": [{ "name": "file", "type": "string" }],
       "return": "string",

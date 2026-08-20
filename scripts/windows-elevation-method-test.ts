@@ -7,7 +7,20 @@ const serverManager = fs.readFileSync(path.resolve('src/main/core/ServerManager.
 
 assert.match(serverManager, /WindowsElevationMethod = resolveWindowsElevationMethod/)
 assert.match(application, /App-Windows-Elevation-Method-Fallback/)
-assert.match(application, /APP-Windows-Elevation-Method-Changed/)
+assert.match(application, /setWindowsElevationRuntimeMethod/)
+assert.match(application, /restoreWindowsElevationMethodAfterHelperReady/)
+assert.match(
+  application,
+  /private restoreWindowsElevationMethodAfterHelperReady\(\) \{[\s\S]{0,500}configManager\.setConfig\('setup\.windowsElevationMethod', method\)/
+)
+assert.match(
+  application,
+  /AppHelper\.onSuduExecSuccess\(\(\) => \{[\s\S]{0,300}this\.restoreWindowsElevationMethodAfterHelperReady\(\)/
+)
+assert.doesNotMatch(
+  application,
+  /setWindowsElevationRuntimeMethod[\s\S]{0,300}APP-Windows-Elevation-Method-Changed/
+)
 assert.match(application, /message.state === 'installFaild'/)
 assert.match(application, /message.state === 'fallbackToUac'/)
 assert.match(application, /this.serverManager.updateGlobalConfig/)

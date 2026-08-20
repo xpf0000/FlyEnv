@@ -1,6 +1,7 @@
 import { reactive, markRaw } from 'vue'
 import { join, basename } from '@/util/path-browserify'
 import { DirWatcher, FileWatcher, fs } from '@/util/NodeFn'
+import { ensureDataDirectoryReady } from '@/core/DataDirectoryStartup'
 
 type NginxRewriteItem = {
   name: string
@@ -30,20 +31,25 @@ export const HostNginxRewriteSetup: {
   initNginxRewriteCustomWatch() {
     HostNginxRewriteSetup.templateWatcher?.close()
     const dir = join(window.Server.BaseDir!, 'NginxRewriteTemplate')
-    HostNginxRewriteSetup.templateWatcher = markRaw(
-      new DirWatcher(dir, async (file: string) => {
-        const name = basename(file)
-        const exists = await fs.existsSync(file)
-        if (exists) {
-          HostNginxRewriteSetup.nginxRewriteCustom[file] = reactive({
-            name,
-            content: ''
+    ensureDataDirectoryReady()
+      .then((ready) => {
+        if (!ready) return
+        HostNginxRewriteSetup.templateWatcher = markRaw(
+          new DirWatcher(dir, async (file: string) => {
+            const name = basename(file)
+            const exists = await fs.existsSync(file)
+            if (exists) {
+              HostNginxRewriteSetup.nginxRewriteCustom[file] = reactive({
+                name,
+                content: ''
+              })
+            } else {
+              delete HostNginxRewriteSetup.nginxRewriteCustom[file]
+            }
           })
-        } else {
-          delete HostNginxRewriteSetup.nginxRewriteCustom[file]
-        }
+        )
       })
-    )
+      .catch(() => {})
   },
   initNginxRewrites() {
     if (Object.keys(HostNginxRewriteSetup.nginxRewriteDefault).length === 0) {
@@ -64,22 +70,25 @@ export const HostNginxRewriteSetup: {
 
     if (Object.keys(HostNginxRewriteSetup.nginxRewriteCustom).length === 0) {
       const dir = join(window.Server.BaseDir!, 'NginxRewriteTemplate')
-      fs.mkdirp(dir).then().catch()
-      fs.readdir(dir, false).then(async (files) => {
-        files = files.sort()
-        for (const file of files) {
-          const k = join(dir, file)
-          const exists = await fs.existsSync(k)
-          if (!exists) {
-            continue
+      ensureDataDirectoryReady()
+        .then(async (ready) => {
+          if (!ready) return
+          await fs.mkdirp(dir)
+          const files = (await fs.readdir(dir, false)).sort()
+          for (const file of files) {
+            const k = join(dir, file)
+            const exists = await fs.existsSync(k)
+            if (!exists) {
+              continue
+            }
+            const name = file.split('.').shift()!
+            HostNginxRewriteSetup.nginxRewriteCustom[k] = {
+              name,
+              content: ''
+            }
           }
-          const name = file.split('.').shift()!
-          HostNginxRewriteSetup.nginxRewriteCustom[k] = {
-            name,
-            content: ''
-          }
-        }
-      })
+        })
+        .catch(() => {})
     }
   },
   initFileWatch(file: string, fn: () => void) {

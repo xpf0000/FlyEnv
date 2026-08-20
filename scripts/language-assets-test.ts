@@ -13,6 +13,22 @@ const writeLocale = async (directory: string, baseValue: string) => {
   await mkdir(localeRoot, { recursive: true })
   await writeFile(join(localeRoot, 'base.json'), JSON.stringify({ title: baseValue }))
   await writeFile(join(localeRoot, 'menu.json'), JSON.stringify({ exit: `${baseValue}-exit` }))
+  await writeFile(
+    join(localeRoot, 'opencode.json'),
+    JSON.stringify({ title: `${baseValue}-open-code` })
+  )
+  await writeFile(
+    join(localeRoot, 'claude-code.json'),
+    JSON.stringify({ title: `${baseValue}-claude-code` })
+  )
+  await writeFile(
+    join(localeRoot, 'copilot-cli.json'),
+    JSON.stringify({ title: `${baseValue}-copilot-cli` })
+  )
+  await writeFile(
+    join(localeRoot, 'token-generator.json'),
+    JSON.stringify({ title: `${baseValue}-token-generator` })
+  )
 }
 
 try {
@@ -43,7 +59,11 @@ try {
     locale: 'zh',
     messages: {
       base: { title: '中文' },
-      menu: { exit: '中文-exit' }
+      claudeCode: { title: '中文-claude-code' },
+      copilotCli: { title: '中文-copilot-cli' },
+      menu: { exit: '中文-exit' },
+      openCode: { title: '中文-open-code' },
+      'token-generator': { title: '中文-token-generator' }
     }
   })
 

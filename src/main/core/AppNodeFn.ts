@@ -11,7 +11,7 @@ import { join } from 'node:path'
 import { readdir, access as fsAccess } from 'node:fs/promises'
 import Helper from '../../fork/Helper'
 import { resolve as PathResolve } from 'path'
-import { isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import { realpath } from '@shared/fs-extra'
 import { copy, mkdirp, writeFile, readFile, copyFile, chmod, remove } from '@shared/fs-extra'
 import crypto from 'node:crypto'
@@ -418,6 +418,14 @@ X-GNOME-Autostart-enabled=true`
   app_getVersion(command: string, key: string) {
     const version = app.getVersion()
     this?.mainWindow?.webContents.send('command', command, key, version)
+  }
+
+  debug_log(command: string, key: string, flag: string, info: string) {
+    appDebugLog(flag, info)
+      .catch(() => {})
+      .finally(() => {
+        this?.mainWindow?.webContents.send('command', command, key, undefined)
+      })
   }
 
   dialog_showSaveDialog(command: string, key: string, options: Electron.SaveDialogOptions) {

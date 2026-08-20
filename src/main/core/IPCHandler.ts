@@ -46,6 +46,7 @@ export interface IPCHandlerDependencies {
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
   appNodeFnManager: typeof AppNodeFnManager
+  retryDataDirectory?: () => Promise<boolean>
 }
 
 export default class IPCHandler extends EventEmitter {
@@ -339,6 +340,20 @@ export default class IPCHandler extends EventEmitter {
       case 'application:language-invalidate':
         this.deps.languageCoordinator.invalidate(args[0])
         this.sendToMainWindow(command, key, { code: 0, data: true })
+        break
+      case 'application:data-directory-retry':
+        if (!this.deps.retryDataDirectory) {
+          this.sendToMainWindow(command, key, { code: 0, data: false })
+          break
+        }
+        this.deps
+          .retryDataDirectory()
+          .then((ready) => {
+            this.sendToMainWindow(command, key, { code: 0, data: ready })
+          })
+          .catch((error) => {
+            this.sendToMainWindow(command, key, { code: 1, msg: String(error) })
+          })
         break
 
       // FlyEnv Helper 相关

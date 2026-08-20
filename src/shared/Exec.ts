@@ -74,7 +74,9 @@ end tell`
       await EnvSync.sync()
       await spawnPromiseWithEnv(
         EnvSync.PowerShellPath || 'powershell.exe',
-        powerShellInlineArgs(buildWindowsTerminalInlineScript(c)),
+        powerShellInlineArgs(
+          buildWindowsTerminalInlineScript(c, EnvSync.PowerShellPath || 'powershell.exe')
+        ),
         {
           windowsHide: true
         }

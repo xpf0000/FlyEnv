@@ -140,12 +140,6 @@ export class WindowsSystemScheduler {
     return taskScriptPath(this.cronRoot, jobId, ext)
   }
 
-  private winEnvValue(name: string): string {
-    const env = { ...process.env, ...(EnvSync.AppEnv ?? {}) }
-    const key = Object.keys(env).find((item) => item.toLowerCase() === name.toLowerCase())
-    return key ? `${env[key] || ''}` : ''
-  }
-
   private cmdQuote(value: string): string {
     return `"${value.replace(/"/g, '""')}"`
   }
@@ -154,14 +148,18 @@ export class WindowsSystemScheduler {
     await EnvSync.sync()
   }
 
+  private systemPath(): string {
+    return EnvSync.SystemPath || 'C:\\Windows\\System32'
+  }
+
   private systemRoot(): string {
-    return this.winEnvValue('SystemRoot') || this.winEnvValue('windir') || 'C:\\Windows'
+    return dirname(this.systemPath())
   }
 
   private async schtasksPath(): Promise<string> {
     await this.syncEnv()
     const systemRoot = this.systemRoot()
-    const systemPath = EnvSync.SystemPath || join(systemRoot, 'System32')
+    const systemPath = this.systemPath()
     const candidates = [
       join(systemPath, 'schtasks.exe'),
       join(systemRoot, 'Sysnative', 'schtasks.exe'),

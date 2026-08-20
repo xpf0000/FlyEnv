@@ -2,7 +2,10 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { buildWindowsHelperFallbackPlan } from '../src/shared/WindowsHelperFallback'
+import {
+  buildFlyEnvDataDirectoryRecoveryUacPlan,
+  buildWindowsHelperFallbackPlan
+} from '../src/shared/WindowsHelperFallback'
 
 const originalProgramData = process.env.ProgramData
 const tempProgramData = path.join(os.tmpdir(), `flyenv-helper-plan-test-${Date.now()}`)
@@ -12,6 +15,37 @@ const allowedRootsFile = path.join(allowedRootsDir, 'flyenv.allowed-roots')
 process.env.ProgramData = tempProgramData
 fs.mkdirSync(allowedRootsDir, { recursive: true })
 fs.writeFileSync(allowedRootsFile, 'C:\\FlyEnv\n', 'utf8')
+
+const dataDirectoryRecoveryPlan = buildFlyEnvDataDirectoryRecoveryUacPlan(
+  'C:\\FlyEnv',
+  'S-1-5-21-111-222-333-444'
+)
+assert.match(dataDirectoryRecoveryPlan.command, /-EncodedCommand/)
+assert.match(dataDirectoryRecoveryPlan.script, /FromBase64String/)
+assert.doesNotMatch(dataDirectoryRecoveryPlan.script, /C:\\FlyEnv/)
+assert.doesNotMatch(dataDirectoryRecoveryPlan.script, /S-1-5-21-111-222-333-444/)
+assert.match(dataDirectoryRecoveryPlan.script, /\[System\.IO\.Directory\]::CreateDirectory/)
+assert.match(dataDirectoryRecoveryPlan.script, /reparse point/)
+assert.match(dataDirectoryRecoveryPlan.script, /FileSystemAccessRule/)
+assert.match(dataDirectoryRecoveryPlan.script, /FullControl/)
+assert.match(dataDirectoryRecoveryPlan.script, /ContainerInherit,ObjectInherit/)
+assert.match(dataDirectoryRecoveryPlan.script, /Set-Acl -LiteralPath/)
+
+assert.throws(
+  () => buildFlyEnvDataDirectoryRecoveryUacPlan('C:\\FlyEnv\\child', 'S-1-5-21-111-222-333-444'),
+  (error: unknown) => {
+    assert.equal((error as { code?: string }).code, 'helper_execution_failed')
+    return true
+  }
+)
+
+assert.throws(
+  () => buildFlyEnvDataDirectoryRecoveryUacPlan('D:\\outside', 'S-1-5-21-111-222-333-444'),
+  (error: unknown) => {
+    assert.equal((error as { code?: string }).code, 'helper_execution_failed')
+    return true
+  }
+)
 
 const inlineWritePlan = buildWindowsHelperFallbackPlan(
   'tools',

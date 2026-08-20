@@ -49,22 +49,42 @@
                 >
                   <template #title>
                     <div class="flex min-w-0 flex-1 items-center">
-                      <span class="truncate">{{ group.workDir }}</span>
-                      <el-tooltip
-                        :content="I18nT('host.runInTerminal')"
-                        placement="top"
-                        :show-after="300"
-                      >
-                        <el-button
-                          link
-                          size="small"
-                          class="ml-2 shrink-0"
-                          :disabled="KimiSetup.isStartingSessionInTerminal(group.workDir)"
-                          @click.stop="startSessionInTerminal(group.workDir)"
+                      <span class="min-w-0 flex-1 truncate">{{ group.workDir }}</span>
+                      <div class="ml-auto flex shrink-0 gap-2">
+                        <el-tooltip
+                          :content="I18nT('common.session.newSession')"
+                          placement="top"
+                          :show-after="300"
                         >
-                          <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="16" height="16" />
-                        </el-button>
-                      </el-tooltip>
+                          <el-button
+                            link
+                            size="small"
+                            :disabled="KimiSetup.isStartingSessionInTerminal(group.workDir)"
+                            @click.stop="startSessionInTerminal(group.workDir)"
+                          >
+                            <yb-icon
+                              :svg="import('@/svg/terminal.svg?raw')"
+                              width="16"
+                              height="16"
+                            />
+                          </el-button>
+                        </el-tooltip>
+                        <el-tooltip
+                          :content="I18nT('common.session.lastSession')"
+                          placement="top"
+                          :show-after="300"
+                        >
+                          <el-button
+                            link
+                            size="small"
+                            class="!ml-0 mr-3"
+                            :disabled="KimiSetup.isStartingSessionInTerminal(group.workDir)"
+                            @click.stop="resumeLastSessionInTerminal(group.workDir)"
+                          >
+                            <RefreshLeft class="w-[16px] h-[16px]" />
+                          </el-button>
+                        </el-tooltip>
+                      </div>
                     </div>
                   </template>
                   <el-table-v2
@@ -101,7 +121,7 @@
   import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { KimiSetup, SessionItem } from './setup'
-  import { MoreFilled, VideoPlay, Download, Delete } from '@element-plus/icons-vue'
+  import { MoreFilled, VideoPlay, Download, Delete, RefreshLeft } from '@element-plus/icons-vue'
   import {
     ElMessageBox,
     ElPopover,
@@ -200,6 +220,10 @@
 
   const startSessionInTerminal = (workDir: string) => {
     KimiSetup.startSessionInTerminal(workDir)
+  }
+
+  const resumeLastSessionInTerminal = (workDir: string) => {
+    KimiSetup.resumeLastSessionInTerminal(workDir)
   }
 
   watch(

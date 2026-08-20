@@ -64,6 +64,8 @@
     "id": "Session ID",
     "lastPrompt": "Last Prompt",
     "search": "Search sessions",
+    "newSession": "New Session",
+    "lastSession": "Last Session",
     "deleted": "Session deleted",
     "resumed": "Session resumed in terminal"
   },

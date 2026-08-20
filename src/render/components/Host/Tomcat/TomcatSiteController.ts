@@ -8,6 +8,7 @@ import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
 import { handleWriteHosts } from '@/util/Host'
 import IPC from '@/util/IPC'
 import { reactiveBind } from '@/util/Index'
+import { ensureDataDirectoryReady } from '@/core/DataDirectoryStartup'
 import {
   TomcatSiteSaveOperation,
   type TomcatSaveRequest,
@@ -31,6 +32,9 @@ export class TomcatSiteController {
 
   async save(host: AppHost, flag: 'add' | 'edit' | 'del', old?: AppHost): Promise<boolean> {
     if (this.saving) {
+      return false
+    }
+    if (!(await ensureDataDirectoryReady())) {
       return false
     }
     const version = this.runningVersion() ?? BrewStore().currentVersion('tomcat')

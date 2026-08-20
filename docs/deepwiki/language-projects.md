@@ -1,9 +1,6 @@
 # LanguageProjects Deep Dive
 
-> **模块类型**: 语言项目运行时管理器（非传统常驻服务，无 Base 继承链）
-> **模块标识**: `language-project`
-> **继承基类**: 无（独立类 `LanguageProject`，通过 `BaseManager` 动态加载）
-> **分析日期**: 2026-04-22
+> **模块类型**: 语言项目运行时管理器（非传统常驻服务，无 Base 继承链） **模块标识**: `language-project` **继承基类**: 无（独立类 `LanguageProject`，通过 `BaseManager` 动态加载） **分析日期**: 2026-04-22
 
 ---
 
@@ -59,24 +56,24 @@ Sources: `src/render/components/LanguageProjects/ProjectItem.ts:66-85`, `src/ren
 ```typescript
 export type ProjectItemType = {
   id: string
-  path: string                    // 项目根目录（隔离边界）
+  path: string // 项目根目录（隔离边界）
   comment: string
-  binVersion: string              // 选中的语言版本号
-  binPath: string                 // 语言运行时安装目录
-  binBin: string                  // 可执行文件绝对路径（如 /opt/php/8.3/bin/php）
-  isService: boolean              // 是否作为常驻服务运行
-  runCommand: string              // 启动命令（commandType='command' 时生效）
-  runFile: string                 // 启动脚本路径（commandType='file' 时生效）
+  binVersion: string // 选中的语言版本号
+  binPath: string // 语言运行时安装目录
+  binBin: string // 可执行文件绝对路径（如 /opt/php/8.3/bin/php）
+  isService: boolean // 是否作为常驻服务运行
+  runCommand: string // 启动命令（commandType='command' 时生效）
+  runFile: string // 启动脚本路径（commandType='file' 时生效）
   commandType: 'command' | 'file'
-  projectPort: number             // 服务监听端口（仅 isService=true）
+  projectPort: number // 服务监听端口（仅 isService=true）
   configPath: Array<{ name: string; path: string }>
   logPath: Array<{ name: string; path: string }>
-  pidPath: string                 // PID 文件路径（用于 waitPidFile 检测）
-  isSudo: boolean                 // 是否需要 root 权限启动
+  pidPath: string // PID 文件路径（用于 waitPidFile 检测）
+  isSudo: boolean // 是否需要 root 权限启动
   envVarType: 'none' | 'specify' | 'file'
-  envVar: string                  // 直接填写的环境变量（KEY=VAL 格式）
-  envFile: string                 // 环境变量文件路径
-  runInTerminal: boolean          // 是否在系统终端中打开
+  envVar: string // 直接填写的环境变量（KEY=VAL 格式）
+  envFile: string // 环境变量文件路径
+  runInTerminal: boolean // 是否在系统终端中打开
 }
 ```
 
@@ -84,7 +81,7 @@ export type ProjectItemType = {
 
 ```typescript
 export type RunProjectItem = ProjectItemType & {
-  typeFlag: string                // 语言标识：nodejs/python/golang/...
+  typeFlag: string // 语言标识：nodejs/python/golang/...
 }
 ```
 
@@ -100,7 +97,7 @@ export type ModuleExecItem = {
   commandType: 'command' | 'file'
   isSudo?: boolean
   pidPath?: string
-  env: Record<string, string>     // 解析后的键值对环境变量
+  env: Record<string, string> // 解析后的键值对环境变量
   binBin: string
 }
 ```
@@ -108,7 +105,7 @@ export type ModuleExecItem = {
 **状态映射关系**：
 
 | 前端状态 | 物理进程映射 | 说明 |
-| :--- | :--- | :--- |
+| :-- | :-- | :-- |
 | `ProjectItem.state.isRun` | PID 文件存在且进程存活 | 由 IPC 回调中的 `APP-Service-Start-PID` 设置 |
 | `ProjectItem.state.pid` | 操作系统进程 PID | 从 Shell 输出提取 `FlyEnv-Process-ID${pid}FlyEnv-Process-ID` |
 | `ProjectItem.state.running` | 启动/停止操作进行中 | 纯前端状态，无后端对应 |
@@ -127,9 +124,7 @@ Sources: `src/render/components/LanguageProjects/ProjectItem.ts:11-39`, `src/ren
 
 **场景**: 用户为一个项目选择语言版本后，FlyEnv 自动生成/更新项目目录下的 `.flyenv` 文件
 
-**路径**: `index.vue` -> `docClick()` 行内编辑版本切换
-  → `Project.ts` -> `setDirEnv(item)`
-  → `fs.writeFile(join(item.path, '.flyenv'), ...)`
+**路径**: `index.vue` -> `docClick()` 行内编辑版本切换→ `Project.ts` -> `setDirEnv(item)` → `fs.writeFile(join(item.path, '.flyenv'), ...)`
 
 **关键代码解析**（`src/render/components/LanguageProjects/Project.ts:160-273`）：
 
@@ -162,6 +157,7 @@ async setDirEnv(item: ProjectItem) {
 ```
 
 **核心设计点**：
+
 - **ID 标签过滤**：每个项目的 PATH 注入行末尾带有 `#FlyEnv-ID-${item.id}` 注释。当用户切换版本时，`setDirEnv` 先读取现有 `.flyenv`，用正则过滤掉带当前项目 ID 的旧行，再追加新行。实现版本切换的无残留更新。
 - **路径探测**：不只是 `binPath`，还会探测 `binPath/bin` 和 `binPath/sbin`，确保绝大多数语言安装结构的 PATH 覆盖。
 - **幂等写入**：如果 `binVersion` 为空（使用系统版本），则写入空文件或清空对应 ID 的行。
@@ -170,10 +166,12 @@ async setDirEnv(item: ProjectItem) {
 
 **场景**: FlyEnv 首次启动或用户点击"环境设置"时，向用户 Shell 配置注入自动加载脚本
 
-**路径**: `Project.ts` -> `initDirs()` / `setDirEnv()`
-  → `IPC.send('app-fork:tools', 'initFlyEnvSH')`
-  → `src/fork/module/Tool/index.ts` -> `initFlyEnvSH()`
-  → 修改 `~/.zshrc` / `~/.bashrc` / PowerShell Profile
+**路径**:
+
+- macOS/Linux：`Project.ts` -> `initDirs()` / `setDirEnv()` → `IPC.send('app-fork:tools', 'initFlyEnvSH')` → `src/fork/module/Tool/index.ts` -> `initFlyEnvSH()`；
+- Windows：`Project.ts` -> `initDirs()` → `ShellInitController.syncAllowedDirs()`，同步成功后 `ShellInitController.ensure()` → `IPC.send('app-fork:tools', 'initFlyEnvSH')` → `src/fork/module/Tool.win/init.ts` -> `initFlyEnvSH()` → Go Helper 或受限 UAC fallback。
+
+Windows controller 是 module-local 单例，拥有 IPC 监听、进度、错误提示和 `inFlight` 合并；`Project.ts` 不再直接持有这段操作的 IPC 生命周期。
 
 **macOS/Linux 实现**（`src/fork/module/Tool/index.ts:642-721`）：
 
@@ -227,20 +225,41 @@ cd() {
 }
 ```
 
-**Windows 实现**（`src/fork/module/Tool.win/index.ts:979-1028`）：
+**Windows 实现**（`src/fork/module/Tool.win/init.ts`）：
 
 ```typescript
+const profiles = buildPowerShellProfileTargets(
+  global.Server.UserDocuments!
+)
+
+// 不启动 PowerShell 查询 $PROFILE，避免加载用户 Profile 产生副作用。
+// Windows PowerShell: <Documents>\\WindowsPowerShell\\Microsoft.PowerShell_profile.ps1
+// PowerShell 7: <Documents>\\PowerShell\\Profile.ps1（不依赖 pwsh.exe 是否在 PATH）
+// 这里只写固定配置，不发现或启动 pwsh.exe；UAC 负载才使用系统 Windows PowerShell 启动器。
+// 初始化另行检查 CurrentUser 执行策略，Restricted 时设置 RemoteSigned。
+
 initFlyEnvSH() {
-  const flyenvScriptPath = join(dirname(global.Server.AppDir!), 'bin/flyenv.ps1')
-  await copyFile(join(global.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
-  for (const version of psVersions) {
-    const profilePath = (await execPromiseWithEnv(`$PROFILE.${version.profileType}`, ...)).stdout.trim()
-    const loadCommand = `. "${flyenvScriptPath.replace(/\\/g, '/')}"\n`
-    if (!content.includes(loadCommand.trim())) {
-      await writeFile(profilePath, `${content.trim()}\n\n# FlyEnv Auto-Load\n${loadCommand}`)
-    }
-  }
+  // 以 initFlyEnvSHInFlight 合并并发调用，并记录各步骤耗时。
+  const integration = await Helper.send('tools', 'installFlyEnvPowerShellIntegration', {
+    scriptPath: join(dirname(global.Server.AppDir!), 'bin/flyenv.ps1'),
+    scriptBase64: Buffer.from(await readFile(join(global.Server.Static!, 'sh/fly-env.ps1'))).toString('base64'),
+    profiles
+  })
+  // 使用实际返回的 scriptState/profile states；执行策略修复失败只产生 warning。
 }
+```
+
+`tools/installFlyEnvPowerShellIntegration` 是独立 Helper 合约。它只允许 `<allowed-root>\\bin\\flyenv.ps1` 与当前用户 home 下两个固定 Profile 目标；Go Helper 与 UAC 回退都会拒绝 reparse point、路径遍历、重复 edition 和超过 1 MiB 的脚本。UAC 回退把校验后的 payload 和调用用户 home 直接嵌入提升进程参数，不复用通用临时 data-file；提升后还会复验 allowed-roots 文件及父目录的 owner/DACL。返回的 JSON 状态由 renderer 保留，不会以文件存在与否猜测成功。
+
+Profile block 由固定 marker 管理。旧的 `# FlyEnv Auto-Load` 两行 block 会迁移；不完整、重复或歧义 marker 会失败而不是覆盖用户 Profile：
+
+```powershell
+# >>> FlyEnv shell integration >>>
+$flyenvScript = '...\\bin\\flyenv.ps1'
+if (Test-Path -LiteralPath $flyenvScript) {
+  . $flyenvScript
+}
+# <<< FlyEnv shell integration <<<
 ```
 
 **`fly-env.ps1` 核心逻辑**（`static/sh/Windows/fly-env.ps1:1-45`）：
@@ -263,6 +282,7 @@ function Get-FlyEnvAllowedPaths {
 ```
 
 **关键差异**：
+
 - **macOS**: 使用 `add-zsh-hook chpwd` 监听目录切换，触发 `source .flyenv`
 - **Linux**: 覆盖 `cd` 内置命令，切换目录后触发 `source .flyenv`
 - **Windows**: 重写 `global:Prompt` 函数，每次显示提示符时检测当前目录是否在白名单中，首次进入时执行 `.flyenv` 中的 PowerShell 命令
@@ -271,20 +291,18 @@ function Get-FlyEnvAllowedPaths {
 
 **场景**: 项目目录列表变更时，更新 Shell 可识别的白名单
 
-**路径**: `Project.ts` -> `saveDirs()` / `initDirs()`
-  → `IPC.send('app-fork:tools', 'initAllowDir', dirs)`
-  → `src/fork/module/Tool/index.ts` -> `initAllowDir(json)`
-  → `writeFile(join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir'), json)`
+**路径**: `Project.ts` -> `saveDirs()` / `initDirs()` → `IPC.send('app-fork:tools', 'initAllowDir', dirs)` → `src/fork/module/Tool/index.ts` -> `initAllowDir(json)` → `writeFile(join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir'), json)`
 
 **平台差异**：
 
-| 平台 | 白名单文件路径 | 格式 |
-| :--- | :--- | :--- |
-| macOS | `~/Library/FlyEnv/bin/.flyenv.dir` | 每行一个绝对路径（`\n` 分隔） |
-| Linux | `~/.config/FlyEnv/bin/.flyenv.dir` | 每行一个绝对路径（`\n` 分隔） |
-| Windows | `{AppDir}/bin/.flyenv.dir` | JSON 数组（`JSON.stringify(res)`） |
+| 平台    | 白名单文件路径                     | 格式                               |
+| :------ | :--------------------------------- | :--------------------------------- |
+| macOS   | `~/Library/FlyEnv/bin/.flyenv.dir` | 每行一个绝对路径（`\n` 分隔）      |
+| Linux   | `~/.config/FlyEnv/bin/.flyenv.dir` | 每行一个绝对路径（`\n` 分隔）      |
+| Windows | `{AppDir}/bin/.flyenv.dir`         | JSON 数组（`JSON.stringify(res)`） |
 
 **边缘情况处理**：
+
 - `flyenv_autoload` 在读取 `.flyenv.dir` 前先计算 SHA256 hash，若文件未变更则直接返回，避免重复解析
 - 路径过滤：忽略不以 `/` 开头的行，去除尾部 `/`，Linux 使用 `realpath -m` 规范化
 
@@ -300,12 +318,7 @@ Sources: `src/render/components/LanguageProjects/Project.ts:121-139`, `src/fork/
 
 **场景**: 用户点击项目列表中的启动按钮
 
-**路径**: `index.vue` -> `scope.row.start()`
-  → `ProjectItem.ts` -> `start(showMessage, runInTerminal)`
-  → `IPC.send('app-fork:language-project', 'startService', data, typeFlag, password, openInTerminal)`
-  → `src/fork/module/LanguageProject/index.ts` -> `startService(project, typeFlag, password, openInTerminal)`
-  → `customerServiceStartExec(version, isService)` (macOS/Linux)
-  → `customerServiceStartExecWin(version, isService)` (Windows)
+**路径**: `index.vue` -> `scope.row.start()` → `ProjectItem.ts` -> `start(showMessage, runInTerminal)` → `IPC.send('app-fork:language-project', 'startService', data, typeFlag, password, openInTerminal)` → `src/fork/module/LanguageProject/index.ts` -> `startService(project, typeFlag, password, openInTerminal)` → `customerServiceStartExec(version, isService)` (macOS/Linux) → `customerServiceStartExecWin(version, isService)` (Windows)
 
 **Fork 层核心逻辑**（`src/fork/module/LanguageProject/index.ts:71-309`）：
 
@@ -463,10 +476,7 @@ Write-Host "##FlyEnv-Process-ID$($process.Id)FlyEnv-Process-ID##"
 
 **场景**: 用户选择"在终端中运行"，需要打开系统 Terminal/PowerShell 并执行命令
 
-**路径**: `index.vue` 操作菜单 -> `scope.row.start(true, true)`
-  → `ProjectItem.start(true, true)`
-  → `IPC.send(..., openInTerminal = true)`
-  → `LanguageProject.startService()`
+**路径**: `index.vue` 操作菜单 -> `scope.row.start(true, true)` → `ProjectItem.start(true, true)` → `IPC.send(..., openInTerminal = true)` → `LanguageProject.startService()`
 
 **macOS Terminal 模式**（`src/fork/module/LanguageProject/index.ts:127-182`）：
 
@@ -508,6 +518,7 @@ await execPromise(`"${exeSH}" "${command}"`, { cwd: global.Server.Cache! })
 ```
 
 **`exec-by-terminal.sh` 关键逻辑**：
+
 - 检测 `$XDG_CURRENT_DESKTOP` 判断桌面环境
 - 按优先级尝试 `gnome-terminal`, `kitty`, `konsole`, `xfce4-terminal`, `mate-terminal`, `lxterminal`, `terminator`, `tilix`, `alacritty`, `xterm`, `urxvt`
 - 若命令长度超过 100 字符，写入临时脚本文件再执行，避免命令行注入问题
@@ -520,13 +531,13 @@ const exePS = join(global.Server.Cache!, `exec-by-terminal-${uuid()}.ps1`)
 const commandFile = join(global.Server.Cache!, `command-${uuid()}.txt`)
 await copyFile(terminalPS, exePS)
 await writeFile(commandFile, command, 'utf-8')
-await execPromise(
-  `powershell.exe -ExecutionPolicy Bypass -File "${exePS}" "${commandFile}"`,
-  { cwd: global.Server.Cache! }
-)
+await execPromise(`powershell.exe -ExecutionPolicy Bypass -File "${exePS}" "${commandFile}"`, {
+  cwd: global.Server.Cache!
+})
 ```
 
 **`exec-by-terminal.ps1` 关键逻辑**：
+
 - 将命令 Base64 编码后嵌入临时脚本，避免 PowerShell 参数转义地狱
 - 按优先级尝试 `wt` (Windows Terminal), `pwsh` (PowerShell 7), `powershell` (PowerShell 5.1)
 - 终端保持打开状态，执行完毕后提示"Press any key to close"
@@ -541,10 +552,7 @@ Sources: `src/fork/module/LanguageProject/index.ts:71-309`, `src/fork/util/Servi
 
 #### 3.3.1 调用链：停止服务
 
-**路径**: `index.vue` -> `scope.row.stop()`
-  → `ProjectItem.ts` -> `stop()`
-  → `IPC.send('app-fork:language-project', 'stopService', pid, typeFlag)`
-  → `src/fork/module/LanguageProject/index.ts` -> `stopService(pid, typeFlag)`
+**路径**: `index.vue` -> `scope.row.stop()` → `ProjectItem.ts` -> `stop()` → `IPC.send('app-fork:language-project', 'stopService', pid, typeFlag)` → `src/fork/module/LanguageProject/index.ts` -> `stopService(pid, typeFlag)`
 
 **macOS/Linux 实现**（`src/fork/module/LanguageProject/index.ts:34-69`）：
 
@@ -572,13 +580,16 @@ stopService(pid: string, typeFlag: string) {
 if (isWindows()) {
   const pids = await ProcessPidListByPid(`${pid}`.trim()) // 递归 WMI 查询子进程
   if (pids.length > 0) {
-    try { await ProcessKill('-INT', pids) } catch {}
+    try {
+      await ProcessKill('-INT', pids)
+    } catch {}
   }
   resolve({ 'APP-Service-Stop-PID': pids })
 }
 ```
 
 **边缘情况**：
+
 - `ProcessPidsByPid` 从全量进程列表中递归匹配 `PPID` 链，可能包含 PID 本身及其所有后代
 - 先发送 `SIGTERM`（优雅终止），等待 500ms 后发送 `SIGINT`（强制中断），无 `SIGKILL` 兜底
 - Windows 统一使用 `-INT`（对应任务管理器的"结束任务"）
@@ -593,11 +604,7 @@ Sources: `src/fork/module/LanguageProject/index.ts:34-69`, `src/shared/Process.t
 
 #### 3.4.1 调用链：版本选择到 PATH 注入
 
-**路径**: `ProjectEdit.vue` -> `el-select v-model="item.binBin"`
-  → `watch(() => item.value.binBin, ...)` 更新 `binVersion` / `binPath`
-  → 保存后 `index.vue` -> `docClick()` 检测到 `nodeChanged`
-  → `Project.setDirEnv(item)` 重写 `.flyenv`
-  → 启动时 `customerServiceStartExec` 再次在脚本中注入 `export PATH="${dirname(binBin)}:$PATH"`
+**路径**: `ProjectEdit.vue` -> `el-select v-model="item.binBin"` → `watch(() => item.value.binBin, ...)` 更新 `binVersion` / `binPath` → 保存后 `index.vue` -> `docClick()` 检测到 `nodeChanged` → `Project.setDirEnv(item)` 重写 `.flyenv` → 启动时 `customerServiceStartExec` 再次在脚本中注入 `export PATH="${dirname(binBin)}:$PATH"`
 
 **前端版本列表构建**（`index.vue:355-361`）：
 
@@ -606,9 +613,7 @@ const binVersions = computed(() => {
   return brewStore.module(props.typeFlag).installed.map((p) => {
     return {
       ...p,
-      bin: props.typeFlag === 'php'
-        ? (p?.phpBin ?? join(p.path, 'bin/php'))
-        : p.bin
+      bin: props.typeFlag === 'php' ? (p?.phpBin ?? join(p.path, 'bin/php')) : p.bin
     }
   })
 })
@@ -617,7 +622,7 @@ const binVersions = computed(() => {
 **双层 PATH 隔离**：
 
 | 层级 | 注入位置 | 生效范围 | 代码位置 |
-| :--- | :--- | :--- | :--- |
+| :-- | :-- | :-- | :-- |
 | L1 - 运行时脚本 | `flyenv-async-exec.sh` 的 `#ENV#` 占位符 | 当前服务进程 | `src/fork/util/ServiceStart.ts:228-230` |
 | L2 - 终端自动加载 | 项目目录 `.flyenv` 文件 | 用户在该目录打开的终端会话 | `src/render/components/LanguageProjects/Project.ts:240-266` |
 | L3 - 终端手动打开 | `openInTerminal` 模式下的命令前缀 | 单次终端会话 | `src/fork/module/LanguageProject/index.ts:134-136` |
@@ -649,11 +654,7 @@ Sources: `src/render/components/LanguageProjects/ProjectEdit.vue:367-399`, `src/
 
 #### 3.5.1 调用链：环境变量解析与注入
 
-**路径**: `ProjectEdit.vue` -> `envVarType` / `envVar` / `envFile` 表单
-  → 保存到 `ProjectItem`
-  → 启动时 `LanguageProject.startService()`
-  → 正则解析 → `version.env`
-  → `spawnPromiseWithEnv(..., { env: version.env })`
+**路径**: `ProjectEdit.vue` -> `envVarType` / `envVar` / `envFile` 表单 → 保存到 `ProjectItem` → 启动时 `LanguageProject.startService()` → 正则解析 → `version.env` → `spawnPromiseWithEnv(..., { env: version.env })`
 
 **数据清洗逻辑**（`src/fork/module/LanguageProject/index.ts:100-119`）：
 
@@ -678,6 +679,7 @@ for (const line of lines) {
 ```
 
 **正则细节**：
+
 - `/^\s*export\s+(\w+)=(.+)$/i`：匹配 `export KEY=VAL`，支持前导空格，忽略大小写
 - `/^(\w+)=(.+)$/`：匹配裸 `KEY=VAL`
 - `.replace(/^["']|["']$/g, '')`：去除值两端可能的引号
@@ -686,7 +688,7 @@ for (const line of lines) {
 **注入位置**：
 
 | 平台 | 注入方式 | 代码位置 |
-| :--- | :--- | :--- |
+| :-- | :-- | :-- |
 | macOS/Linux 标准 | `spawnPromiseWithEnv(..., { env: version.env })` | `src/fork/util/ServiceStart.ts:266-270` |
 | macOS/Linux sudo | `execPromiseSudo([shell, psName], { env: version.env })` | `src/fork/util/ServiceStart.ts:260-264` |
 | Windows 标准 | `spawnPromiseWithEnv(..., { env: version.env })` | `src/fork/util/ServiceStart.win.ts:363-371` |
@@ -702,12 +704,7 @@ Sources: `src/fork/module/LanguageProject/index.ts:100-119`, `src/fork/util/Serv
 
 #### 3.6.1 调用链：sudo 启动
 
-**路径**: `ProjectItem.start()` 检测 `this.isSudo && !window.Server.Password`
-  → `showPasswordTips(doRun, resolve)`
-  → `ElMessageBox.prompt(...)` 弹出密码输入框
-  → `IPC.send('app:password-check', pass)`
-  → 验证通过后 `window.Server.Password = pass`
-  → `doRun(pass, false)` 或用户点击"取消"则 `doRun(undefined, true)`（转终端模式）
+**路径**: `ProjectItem.start()` 检测 `this.isSudo && !window.Server.Password` → `showPasswordTips(doRun, resolve)` → `ElMessageBox.prompt(...)` 弹出密码输入框→ `IPC.send('app:password-check', pass)` → 验证通过后 `window.Server.Password = pass` → `doRun(pass, false)` 或用户点击"取消"则 `doRun(undefined, true)`（转终端模式）
 
 **密码对话框分支**（`src/render/components/LanguageProjects/ProjectItem.ts:180-220`）：
 
@@ -753,6 +750,7 @@ if (version.isSudo) {
 ```
 
 **边缘情况**：
+
 - 密码错误时，`editorErrorMessage` 实时显示错误信息，不关闭对话框
 - "取消"按钮的文案为 `"nodejs.openIN" + " " + "nodejs.Terminal"`，即"在终端中打开"，作为无密码的 fallback
 - `window.Server.Password` 在应用生命周期内有效，重启应用后需重新输入
@@ -764,11 +762,11 @@ Sources: `src/render/components/LanguageProjects/ProjectItem.ts:124-220`, `src/r
 ## IPC API Reference
 
 | Event Name | Payload Type | Return Type | Handler Location | Core Logic | Side Effects |
-| :--- | :--- | :--- | :--- | :--- | :--- |
+| :-- | :-- | :-- | :-- | :-- | :-- |
 | `app-fork:language-project:startService` | `{ project: RunProjectItem, typeFlag: string, password?: string, openInTerminal?: boolean }` | `{ 'APP-Service-Start-PID': string }` | `src/fork/module/LanguageProject/index.ts:71` | 解析 env → 生成脚本 → `spawnPromiseWithEnv` / `execPromiseSudo` / 终端模式 | 更新 `ProjectItem.state.isRun/pid` |
 | `app-fork:language-project:stopService` | `{ pid: string, typeFlag: string }` | `{ 'APP-Service-Stop-PID': string[] }` | `src/fork/module/LanguageProject/index.ts:34` | `ProcessPidsByPid` / `ProcessPidListByPid` → `ProcessKill` | 更新 `ProjectItem.state.isRun=false, pid=''` |
 | `app-fork:tools:initAllowDir` | `dirs: string`（Windows JSON / Unix 换行分隔） | `boolean` | `src/fork/module/Tool/index.ts:633` | 写入 `.flyenv.dir` 白名单文件 | Shell 钩子下次读取时生效 |
-| `app-fork:tools:initFlyEnvSH` | 无 | `boolean` | `src/fork/module/Tool/index.ts:642` | 修改 `~/.zshrc` / `~/.bashrc` / PS Profile | 注入 `source flyenv.sh` 或 `. flyenv.ps1` |
+| `app-fork:tools:initFlyEnvSH` | 无 | Unix：`boolean`；Windows：`FlyEnvShellInitResult` | `src/fork/module/Tool/index.ts` / `src/fork/module/Tool.win/init.ts` | Unix 修改 shell rc；Windows 推导固定 Profile、调用 Helper/UAC | Windows 返回 runtime/Profile 实际状态与降级 warning |
 | `app:password-check` | `password: string` | `{ code: 0, data: string }` | Main Process（非 Fork） | 验证 sudo 密码 | 设置 `window.Server.Password` |
 
 Sources: `src/fork/module/LanguageProject/index.ts:20-313`, `src/fork/module/Tool/index.ts:633-721`, `src/fork/module/Tool.win/index.ts:970-1028`
@@ -780,7 +778,7 @@ Sources: `src/fork/module/LanguageProject/index.ts:20-313`, `src/fork/module/Too
 ### 总览表格
 
 | 功能域 | macOS | Linux | Windows | 关键文件 |
-| :--- | :--- | :--- | :--- | :--- |
+| :-- | :-- | :-- | :-- | :-- |
 | **.flyenv 文件语法** | `export PATH="..."` | `export PATH="..."` | `$env:PATH = "..."` | `Project.ts:192-268` |
 | **Shell 钩子机制** | `add-zsh-hook chpwd` | 覆盖 `cd` 内置命令 | 重写 `global:Prompt` | `fly-env.sh`, `fly-env.ps1` |
 | **白名单文件路径** | `~/Library/FlyEnv/bin/.flyenv.dir` | `~/.config/FlyEnv/bin/.flyenv.dir` | `{AppDir}/bin/.flyenv.dir` | `Tool/index.ts:635`, `Tool.win/index.ts:972` |
@@ -791,17 +789,20 @@ Sources: `src/fork/module/LanguageProject/index.ts:20-313`, `src/fork/module/Too
 | **进程停止信号** | `SIGTERM` → 500ms → `SIGINT` | 同上 | `ProcessKill('-INT', pids)` | `LanguageProject/index.ts:34-69` |
 | **ENV 注入方式** | `spawnPromiseWithEnv({ env })` | 同上 | 同上 | `ServiceStart.ts:266`, `ServiceStart.win.ts:369` |
 | **sudo 支持** | `execPromiseSudo` | 同上 | 无（Windows 无 sudo 概念） | `ServiceStart.ts:260` |
-| **Shell 配置注入目标** | `~/.zshrc` | `~/.bashrc` | PowerShell `CurrentUserCurrentHost` + `CurrentUserAllHosts` | `Tool/index.ts:644`, `Tool.win/index.ts:981-983` |
+| **Shell 配置注入目标** | `~/.zshrc` | `~/.bashrc` | 固定当前用户的 Windows PowerShell / PowerShell 7 Profile | `Tool/index.ts`, `Tool.win/init.ts` |
 
 ### 场景化平台差异说明
 
 **在项目级环境隔离中**：
+
 - macOS 使用 zsh 的 `add-zsh-hook chpwd` 实现零侵入目录监听；Linux 因 bash 无内置 chpwd hook，采用覆盖 `cd` 命令的侵入式方案；Windows 因 PowerShell 无目录切换事件，采用重写 `Prompt` 函数的轮询式方案，每次显示提示符时检测当前目录是否变化。
 
 **在服务启动中**：
+
 - macOS/Linux 使用 `nohup` + `&` 后台运行，通过 `$!` 获取 PID；Windows 使用 `Start-Process -PassThru` 获取进程对象，再提取 `$process.Id`。Windows 的 `flyenv-customer-exec.ps1` 额外启动一层 `powershell.exe` 子进程来执行用户命令，而 macOS/Linux 直接执行用户命令。
 
 **在终端模式中**：
+
 - macOS 生成 `.scpt` AppleScript 文件调用 `Terminal.app`；Linux 需要遍历 10+ 种终端模拟器并适配各自的命令行参数；Windows 通过 Base64 编码命令避免转义问题，并优先尝试 Windows Terminal (`wt`)。
 
 Sources: `src/render/components/LanguageProjects/Project.ts:121-273`, `src/fork/module/LanguageProject/index.ts:127-293`, `static/sh/macOS/fly-env.sh`, `static/sh/Linux/fly-env.sh`, `static/sh/Windows/fly-env.ps1`, `static/sh/Linux/exec-by-terminal.sh`, `static/sh/Windows/exec-by-terminal.ps1`
@@ -827,7 +828,7 @@ flowchart LR
 ### 错误处理流程
 
 | 阶段 | 错误类型 | 处理方式 | 代码位置 |
-| :--- | :--- | :--- | :--- |
+| :-- | :-- | :-- | :-- |
 | 表单验证 | 空路径 / 空命令 / 非法端口 | `errs` 对象标红，阻止保存 | `ProjectEdit.vue:500-517` |
 | 密码验证 | 密码错误 | `instance.editorErrorMessage = ...`，不关闭对话框 | `ProjectItem.ts:205` |
 | Fork 启动 | 进程启动失败 | `reject(e)` → IPC code=1 → `MessageError(res.msg)` | `LanguageProject/index.ts:304-307` |
@@ -839,7 +840,7 @@ flowchart LR
 ### 临时文件生命周期
 
 | 临时文件 | 创建位置 | 清理逻辑 | 说明 |
-| :--- | :--- | :--- | :--- |
+| :-- | :-- | :-- | :-- |
 | `start-{id}.sh` / `.ps1` | `global.Server.BaseDir!/module-customer` | 不主动清理，复用 | 服务启动脚本 |
 | `{uuid}.scpt` | `global.Server.Cache!` | `try/catch/finally` 中 `await remove(scptFile)` | macOS 终端模式 AppleScript |
 | `{uuid}.sh` | `global.Server.Cache!` | `try/catch/finally` 中 `await remove(exeSH)` | Linux 终端模式脚本 |
@@ -854,12 +855,14 @@ Sources: `src/render/components/LanguageProjects/ProjectEdit.vue:500-517`, `src/
 ## 质量自检清单
 
 ### 内容质量检查
+
 - [x] **信息密度**: 每 5 行文本包含 2 函数 + 1 路径 + 1 命令/Interface
 - [x] **精准溯源**: 每个 Section 末尾都有 `Sources: path/to/file.ts:line-line`
 - [x] **无模糊描述**: 没有"负责..."、"用于..."、"相关逻辑"等词汇
 - [x] **调用链完整**: UI → Manager → IPC → Fork → Shell 链路清晰
 
 ### 结构完整性检查
+
 - [x] **Overview**: 包含模块技术定位，非功能描述
 - [x] **Architecture**: 包含组件层次 + 状态同步机制
 - [x] **Data Models**: 包含核心 Interface 定义
@@ -869,18 +872,21 @@ Sources: `src/render/components/LanguageProjects/ProjectEdit.vue:500-517`, `src/
 - [x] **Data Flow**: 回答数据来源、转换、返回、错误处理四个问题
 
 ### 功能域驱动专项检查
+
 - [x] **按发现的功能域组织了 `Functional Deep Dives`**（项目级环境隔离、跨进程服务执行、服务停止与进程树清理、多版本运行时路由、环境变量注入引擎、特权提升与密码管理）
 - [x] **覆盖了所有 Class 以及 XTermExec 模式**（标准模式 + macOS/Linux/Windows 三种终端模式）
 - [x] **每个功能域都包含独立的调用链 + 平台差异 + 数据清洗**
 - [x] **功能域标题足够硬核**（如"项目级环境隔离"、"多版本运行时路由"）
 
 ### 技术准确性检查
+
 - [x] **函数名拼写**: 与源码完全一致
 - [x] **文件路径**: 使用相对路径 `src/...` 格式
 - [x] **行号范围**: Sources 标注准确的行号范围
 - [x] **NOT FOUND 标注**: 未使用（所有核心代码均已找到）
 
 ### 反偷懒检查
+
 - [x] **非产品描述**: 没有"提供...能力"、"支持...功能"等营销语言
 - [x] **非 API 手册**: 解释实现机制而非罗列方法
 - [x] **代码细节**: 包含具体的命令参数构建、正则解析、错误处理逻辑

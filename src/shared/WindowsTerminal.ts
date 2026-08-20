@@ -8,7 +8,10 @@ export function powerShellDoubleQuoted(value: string): string {
   return `"${`${value}`.replace(/`/g, '``').replace(/"/g, '`"').replace(/\$/g, '`$')}"`
 }
 
-export function buildWindowsTerminalInlineScript(command: string): string {
+export function buildWindowsTerminalInlineScript(
+  command: string,
+  windowsPowerShellPath = 'powershell.exe'
+): string {
   const commandBytes = Buffer.from(command, 'utf8').toString('base64')
   const terminalPayload = `
 $ErrorActionPreference = 'Continue'
@@ -67,9 +70,9 @@ $terminals = @(
         Launch = { Start-Process -FilePath 'powershell' -ArgumentList $argumentList }
     },
     @{
-        Name = 'Windows PowerShell System32'
-        Test = { Test-Path "$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" }
-        Launch = { Start-Process -FilePath "$env:SystemRoot\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ArgumentList $argumentList }
+        Name = 'Windows PowerShell'
+        Test = { Test-Path -LiteralPath ${powerShellSingleQuoted(windowsPowerShellPath)} }
+        Launch = { Start-Process -FilePath ${powerShellSingleQuoted(windowsPowerShellPath)} -ArgumentList $argumentList }
     }
 )
 

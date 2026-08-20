@@ -79,8 +79,7 @@ const languageRequest = <T>(command: string, ...args: unknown[]) =>
   })
 
 export const lang = {
-  listCustom: () =>
-    languageRequest<CustomLocaleMetadata[]>('application:language-list-custom'),
+  listCustom: () => languageRequest<CustomLocaleMetadata[]>('application:language-list-custom'),
   invalidate: (locale: string) =>
     languageRequest<boolean>('application:language-invalidate', locale),
   initCustom: (locale: 'en' | 'zh') =>
@@ -168,6 +167,10 @@ export const app = {
   ),
   getLoginItemSettings: createIPCCall<[], string>('app', 'getLoginItemSettings'),
   getVersion: createIPCCall<[], string>('app', 'getVersion')
+}
+
+export const debug = {
+  log: createIPCCall<[string, string], void>('debug', 'log')
 }
 
 export const dialog = {

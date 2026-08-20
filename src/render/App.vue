@@ -22,6 +22,9 @@
   import { shell } from '@/util/NodeFn'
   import { AppUI } from '@/util/UI'
   import { buildProxyConfigCommand, type InstallProxyPlatform } from '@shared/installProxyEnv'
+  import { handleWriteHosts } from '@/util/Host'
+  import { synchronizeHostsAtStartup } from '@/util/HostStartupSync'
+  import { markDataDirectoryReady } from '@/core/DataDirectoryStartup'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -60,21 +63,33 @@
     return platformModule.value.filter((m) => m.isService).map((m) => m.typeFlag)
   })
 
-  for (const item of platformModule.value) {
-    const module = reactive(new Module())
-    module.typeFlag = item.typeFlag
-    module.isService = item?.isService ?? false
-    module.isOnlyRunOne = item?.isOnlyRunOne !== false
-    module.fetchInstalled = module.fetchInstalled.bind(module)
-    module.onItemStart = module.onItemStart.bind(module)
-    module.fetchBrew = module.fetchBrew.bind(module)
-    module.fetchPort = module.fetchPort.bind(module)
-    module.fetchStatic = module.fetchStatic.bind(module)
-    module.start = module.start.bind(module)
-    module.stop = module.stop.bind(module)
-    module.watchShowHide = module.watchShowHide.bind(module)
-    brewStore.modules[module.typeFlag] = module
-    module?.watchShowHide?.()
+  let modulesInitialized = false
+  let startupInitialized = false
+
+  const initializeModules = () => {
+    if (modulesInitialized) return
+    modulesInitialized = true
+    for (const item of platformModule.value) {
+      const existingModule = brewStore.modules[item.typeFlag]
+      if (existingModule) {
+        existingModule.watchShowHide()
+        continue
+      }
+      const module = reactive(new Module())
+      module.typeFlag = item.typeFlag
+      module.isService = item?.isService ?? false
+      module.isOnlyRunOne = item?.isOnlyRunOne !== false
+      module.fetchInstalled = module.fetchInstalled.bind(module)
+      module.onItemStart = module.onItemStart.bind(module)
+      module.fetchBrew = module.fetchBrew.bind(module)
+      module.fetchPort = module.fetchPort.bind(module)
+      module.fetchStatic = module.fetchStatic.bind(module)
+      module.start = module.start.bind(module)
+      module.stop = module.stop.bind(module)
+      module.watchShowHide = module.watchShowHide.bind(module)
+      brewStore.modules[module.typeFlag] = module
+      module.watchShowHide()
+    }
   }
 
   const showAbout = () => {
@@ -97,8 +112,19 @@
   //   return JSON.stringify(obj)
   // })
 
-  const init = () => {
+  const init = async () => {
+    if (startupInitialized) return
+    if (!window.Server.DataDirectoryReady) {
+      return
+    }
+    startupInitialized = true
+    initializeModules()
     checkProxy()
+    try {
+      await synchronizeHostsAtStartup(() => appStore.initHost(), handleWriteHosts)
+    } catch (error) {
+      console.error('Startup hosts synchronization failed:', error)
+    }
     const flags: Array<AllAppModule> = allService.value.filter(
       (f: AllAppModule) => showItem?.value?.[f] !== false
     ) as Array<keyof typeof AppModuleEnum>
@@ -133,9 +159,6 @@
       .finally(() => {
         appStore.versionInitiated = true
       })
-    if (appStore.hosts.length === 0) {
-      appStore.initHost().then()
-    }
   }
 
   const checkProxy = () => {
@@ -172,14 +195,23 @@
 
   AppUI()
 
+  IPC.on('APP-Data-Directory-Ready').then((_key: string, ready: boolean) => {
+    if (ready) {
+      window.Server.DataDirectoryReady = true
+      markDataDirectoryReady()
+      init().catch((error) => console.error('Renderer startup failed:', error))
+    }
+  })
+
   onMounted(() => {
-    init()
+    init().catch((error) => console.error('Renderer startup failed:', error))
     brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
   })
 
   onUnmounted(() => {
     IPC.off('application:about')
     IPC.off('application:need-password')
+    IPC.off('APP-Data-Directory-Ready')
   })
 
   window.addEventListener('keydown', (e) => {

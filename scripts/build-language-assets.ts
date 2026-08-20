@@ -9,6 +9,14 @@ export interface BuildLanguageAssetsOptions {
   catalog?: LocaleCatalog
 }
 
+const namespaceAliases: Readonly<Record<string, string>> = {
+  'claude-code': 'claudeCode',
+  'copilot-cli': 'copilotCli',
+  opencode: 'openCode'
+}
+
+const resolveNamespace = (fileName: string) => namespaceAliases[fileName] || fileName
+
 const readJsonObject = async (file: string): Promise<Record<string, unknown>> => {
   let value: unknown
   try {
@@ -47,7 +55,7 @@ export const buildLanguageAssets = async ({
 
     const messages: Record<string, unknown> = {}
     for (const name of files) {
-      const namespace = name.slice(0, -'.json'.length)
+      const namespace = resolveNamespace(name.slice(0, -'.json'.length))
       if (namespace === 'index') continue
       if (Object.hasOwn(messages, namespace)) {
         throw new Error(`Duplicate locale namespace: ${locale}/${namespace}`)

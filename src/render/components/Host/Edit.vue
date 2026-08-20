@@ -341,6 +341,7 @@
   import { join } from '@/util/path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
   import { uuid } from '@/util/Index'
+  import { ensureDataDirectoryReady } from '@/core/DataDirectoryStartup'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -556,7 +557,13 @@
   })
 
   const nginxRewriteTemplateDir = join(window.Server.BaseDir!, 'NginxRewriteTemplate')
-  fs.mkdirp(nginxRewriteTemplateDir).then().catch()
+  ensureDataDirectoryReady()
+    .then((ready) => {
+      if (ready) {
+        return fs.mkdirp(nginxRewriteTemplateDir)
+      }
+    })
+    .catch(() => {})
 
   watch(
     phpVersions,
@@ -752,9 +759,9 @@
       const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
       const data = JSON.parse(JSON.stringify(item.value))
       data.name = new URL(data.name.includes('http') ? data.name : `https://${data.name}`).hostname
-      handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
+      handleHost(data, flag, props.edit as AppHost, park.value).then((result) => {
         running.value = false
-        show.value = false
+        if (result !== false) show.value = false
       })
     }
     if (!item.value.phpVersion && !props.isEdit) {

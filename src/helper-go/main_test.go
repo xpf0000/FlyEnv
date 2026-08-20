@@ -141,6 +141,38 @@ func TestVerifySignatureIncludesAuthFields(t *testing.T) {
 	}
 }
 
+func TestVerifySignatureCanonicalizesObjectArguments(t *testing.T) {
+	previousKey := helperKey
+	defer func() {
+		helperKey = previousKey
+	}()
+
+	helperKey = []byte("01234567890123456789012345678901")
+	app := NewAppHelper()
+	item := TaskItem{
+		Key:      "request-shell-hook",
+		Module:   "tools",
+		Function: "installFlyEnvPowerShellIntegration",
+		Args: []interface{}{map[string]interface{}{
+			"scriptPath":   `C:\FlyEnv\bin\flyenv.ps1`,
+			"scriptBase64": "abc",
+			"profiles": []interface{}{map[string]interface{}{
+				"path":    `C:\Users\FlyEnv\Profile.ps1`,
+				"edition": "pwsh",
+			}},
+		}},
+		Ts:        time.Now().UnixMilli(),
+		Nonce:     "nonce-shell-hook",
+		ClientPid: 12345,
+		ClientExe: `C:\FlyEnv\FlyEnv.exe`,
+	}
+	item.Sig = signTaskForTest(helperKey, item)
+
+	if !app.verifySignature(item) {
+		t.Fatal("valid signature with object arguments should pass")
+	}
+}
+
 func TestParseSetSystemPathArgsAcceptsOptionalExpectedRawPath(t *testing.T) {
 	paths := []interface{}{
 		`%INTEL_DEV_REDIST%redist\intel64\compiler`,

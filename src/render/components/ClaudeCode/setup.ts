@@ -263,6 +263,29 @@ class ClaudeCode {
     })
   }
 
+  resumeLastSessionInTerminal(workDir: string): Promise<boolean> {
+    if (this.openingSessionDirs.has(workDir)) {
+      return Promise.resolve(false)
+    }
+
+    this.openingSessionDirs.add(workDir)
+    return new Promise((resolve) => {
+      IPC.send('app-fork:claudeCode', 'resumeLastSessionInTerminal', workDir).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          this.openingSessionDirs.delete(workDir)
+          if (res?.code === 0) {
+            MessageSuccess(I18nT('common.session.resumed'))
+            resolve(true)
+            return
+          }
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          resolve(false)
+        }
+      )
+    })
+  }
+
   isStartingSessionInTerminal(workDir: string) {
     return this.openingSessionDirs.has(workDir)
   }

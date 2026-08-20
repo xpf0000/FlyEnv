@@ -15,7 +15,7 @@ const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 const Helper_Check_Timeout = 3000
 
-export const HelperVersion = 20
+export const HelperVersion = 22
 
 export type HelperHealth = {
   version: number
@@ -31,7 +31,9 @@ type HelperResponse = {
 }
 
 export const HelperKeyPath = (): string => {
-  return isWindows() ? join(process.env.LOCALAPPDATA || tmpdir(), 'FlyEnv', 'flyenv-helper.key') : Key_Path_Unix
+  return isWindows()
+    ? join(process.env.LOCALAPPDATA || tmpdir(), 'FlyEnv', 'flyenv-helper.key')
+    : Key_Path_Unix
 }
 
 export const getHelperKey = async (): Promise<Buffer | null> => {
@@ -40,6 +42,38 @@ export const getHelperKey = async (): Promise<Buffer | null> => {
   } catch {
     return null
   }
+}
+
+const canonicalizeSignatureValue = (value: unknown): unknown => {
+  if (value === null || typeof value !== 'object') {
+    return value
+  }
+
+  const toJSON = (value as { toJSON?: () => unknown }).toJSON
+  if (typeof toJSON === 'function') {
+    return canonicalizeSignatureValue(toJSON.call(value))
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => canonicalizeSignatureValue(item))
+  }
+
+  const sorted: Record<string, unknown> = {}
+  for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+    sorted[key] = canonicalizeSignatureValue((value as Record<string, unknown>)[key])
+  }
+  return sorted
+}
+
+export const helperSignatureArgsJSON = (args: any[]): string => {
+  // Go's encoding/json sorts object keys and HTML-escapes these characters.
+  // Match that representation before both sides calculate the HMAC.
+  return JSON.stringify(canonicalizeSignatureValue(args ?? []))
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029')
 }
 
 export const signTaskItem = (
@@ -55,7 +89,7 @@ export const signTaskItem = (
     clientExe?: string
   }
 ): string => {
-  const argsJSON = JSON.stringify(item.args ?? [])
+  const argsJSON = helperSignatureArgsJSON(item.args ?? [])
   const payload = `${item.key}|${item.module}|${item.function}|${argsJSON}|${item.ts}|${item.nonce}|${item.clientPid ?? 0}|${item.clientExe ?? ''}`
   const hmac = crypto.createHmac('sha256', key)
   hmac.update(payload)
@@ -117,7 +151,7 @@ type AppHelperCheckDeps = {
   getHelperKey: typeof getHelperKey
 }
 
-const helperResponseErrorCode = (message: string): AppHelperErrorCode => {
+export const helperResponseErrorCode = (message: string): AppHelperErrorCode => {
   if (/signature/i.test(message)) {
     return 'helper_signature_invalid'
   }
@@ -159,7 +193,10 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
           reject(new AppHelperError(code, message))
         })
       }
-      const timer = setTimeout(() => fail('helper_pipe_unreachable', 'Timed out waiting for helper pipe'), Helper_Check_Timeout)
+      const timer = setTimeout(
+        () => fail('helper_pipe_unreachable', 'Timed out waiting for helper pipe'),
+        Helper_Check_Timeout
+      )
 
       try {
         client = runtime.createConnection(AppHelperSocketPathGet())
@@ -205,11 +242,17 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
           return
         }
         if (response.key !== key) {
-          fail('helper_execution_failed', 'Helper response key did not match the health-check request')
+          fail(
+            'helper_execution_failed',
+            'Helper response key did not match the health-check request'
+          )
           return
         }
         if (response.code !== 0) {
-          fail(helperResponseErrorCode(response.msg ?? ''), response.msg ?? 'Helper rejected the health-check request')
+          fail(
+            helperResponseErrorCode(response.msg ?? ''),
+            response.msg ?? 'Helper rejected the health-check request'
+          )
           return
         }
         finish(() => {
@@ -217,7 +260,9 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
           resolve(response)
         })
       })
-      client.on('error', (error) => fail('helper_pipe_unreachable', error?.message || 'Could not connect to helper pipe'))
+      client.on('error', (error) =>
+        fail('helper_pipe_unreachable', error?.message || 'Could not connect to helper pipe')
+      )
     })
 
   return async (): Promise<HelperHealth | true> => {
@@ -227,10 +272,16 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
 
     const helperKey = await runtime.getHelperKey()
     if (runtime.isWindows() && !helperKey) {
-      throw new AppHelperError('helper_key_missing', `Windows helper key missing: ${HelperKeyPath()}`)
+      throw new AppHelperError(
+        'helper_key_missing',
+        `Windows helper key missing: ${HelperKeyPath()}`
+      )
     }
     if (runtime.isWindows() && helperKey && helperKey.length !== 32) {
-      throw new AppHelperError('helper_key_invalid', 'Windows helper key must contain exactly 32 bytes')
+      throw new AppHelperError(
+        'helper_key_invalid',
+        'Windows helper key must contain exactly 32 bytes'
+      )
     }
 
     const version = await request('version', helperKey)
@@ -250,7 +301,10 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       !Number.isInteger(result.pid) ||
       result.pid <= 0
     ) {
-      throw new AppHelperError('helper_health_invalid', 'Helper health response is missing a valid version or PID')
+      throw new AppHelperError(
+        'helper_health_invalid',
+        'Helper health response is missing a valid version or PID'
+      )
     }
     return { version: result.version, pid: result.pid, sid: result.sid }
   }

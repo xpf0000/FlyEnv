@@ -3,14 +3,23 @@ package module
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"helper-go/utils"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"unicode/utf16"
 )
+
+const (
+	flyEnvProfileMarkerBegin = "# >>> FlyEnv shell integration >>>"
+	flyEnvProfileMarkerEnd   = "# <<< FlyEnv shell integration <<<"
+)
+
+var legacyFlyEnvAutoLoadBlock = regexp.MustCompile(`(?im)^[\t ]*# FlyEnv Auto-Load\r?\n[\t ]*\.[\t ]+["'][^"'\r\n]*[\\/]bin[\\/]flyenv\.ps1["'][\t ]*(?:\r?\n)?`)
 
 func resolveWindowsSystemExe(name string, systemRoot string, exists func(string) bool, isWindows bool) string {
 	if !isWindows {
@@ -61,6 +70,38 @@ type ExecResult struct {
 	Stderr string `json:"stderr"`
 }
 
+type FlyEnvPowerShellProfileTarget struct {
+	Edition string `json:"edition"`
+	Path    string `json:"path"`
+}
+
+type FlyEnvPowerShellIntegrationRequest struct {
+	ScriptPath   string                          `json:"scriptPath"`
+	ScriptBase64 string                          `json:"scriptBase64"`
+	Profiles     []FlyEnvPowerShellProfileTarget `json:"profiles"`
+}
+
+type FlyEnvPowerShellProfileResult struct {
+	Edition string `json:"edition"`
+	Path    string `json:"path"`
+	State   string `json:"state"`
+}
+
+type FlyEnvPowerShellIntegrationResult struct {
+	ScriptState string                          `json:"scriptState"`
+	Profiles    []FlyEnvPowerShellProfileResult `json:"profiles"`
+}
+
+type flyEnvAtomicWrite struct {
+	Path string
+	Data []byte
+}
+
+type flyEnvAtomicWritePayload struct {
+	PathBase64 string `json:"pathBase64"`
+	DataBase64 string `json:"dataBase64"`
+}
+
 // copyFile 使用 Go 原生 API 复制文件
 func copyFile(src, dst string) error {
 	data, err := os.ReadFile(src)
@@ -93,6 +134,63 @@ func powerShellEncodedArgs(script string) []string {
 // runPowerShellScript executes a PowerShell script body without writing a temporary script file.
 func runPowerShellScript(script string) (string, string, error) {
 	return utils.ExecCommand(utils.GetPowerShellExe(), powerShellEncodedArgs(script), nil)
+}
+
+func flyEnvDataDirectoryRecoveryScript(dataDirectory, userSID string) string {
+	dataDirectoryBase64 := base64.StdEncoding.EncodeToString([]byte(dataDirectory))
+	userSIDBase64 := base64.StdEncoding.EncodeToString([]byte(userSID))
+	return fmt.Sprintf(`
+$ErrorActionPreference = 'Stop'
+$dataPath = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%s'))
+$userSid = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('%s'))
+if ([string]::IsNullOrWhiteSpace($dataPath) -or [string]::IsNullOrWhiteSpace($userSid)) {
+  throw 'FlyEnv data-directory recovery arguments are invalid'
+}
+if (Test-Path -LiteralPath $dataPath) {
+  $item = Get-Item -LiteralPath $dataPath -Force -ErrorAction Stop
+  if (-not $item.PSIsContainer) {
+    throw 'FlyEnv data-directory recovery target is not a directory'
+  }
+  if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+    throw 'FlyEnv data-directory recovery target is a reparse point'
+  }
+} else {
+  [System.IO.Directory]::CreateDirectory($dataPath) | Out-Null
+}
+$item = Get-Item -LiteralPath $dataPath -Force -ErrorAction Stop
+if (-not $item.PSIsContainer -or ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+  throw 'FlyEnv data-directory recovery target is invalid after creation'
+}
+$acl = Get-Acl -LiteralPath $dataPath -ErrorAction Stop
+$userIdentity = New-Object System.Security.Principal.SecurityIdentifier($userSid)
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userIdentity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
+$acl.SetAccessRule($rule)
+Set-Acl -LiteralPath $dataPath -AclObject $acl -ErrorAction Stop
+`, dataDirectoryBase64, userSIDBase64)
+}
+
+// EnsureFlyEnvDataDirectory restores the single data root authorized by the
+// elevated installer. It is intentionally separate from generic write helpers.
+func (t *ToolManager) EnsureFlyEnvDataDirectory(dataDirectory string) (bool, error) {
+	if runtime.GOOS != "windows" {
+		return false, fmt.Errorf("FlyEnv data-directory recovery is only supported on Windows")
+	}
+	cleanDirectory, err := utils.ValidateFlyEnvDataDirectoryRoot(dataDirectory)
+	if err != nil {
+		return false, fmt.Errorf("FlyEnv data-directory recovery target is not allowed: %w", err)
+	}
+	userSID, err := utils.CurrentUserSID()
+	if err != nil {
+		return false, fmt.Errorf("failed to determine Helper user identity: %w", err)
+	}
+	_, _, err = runPowerShellScript(flyEnvDataDirectoryRecoveryScript(cleanDirectory, userSID))
+	if err != nil {
+		return false, fmt.Errorf("FlyEnv data-directory recovery command failed: %w", err)
+	}
+	if _, err := utils.ValidateFlyEnvDataDirectoryRoot(cleanDirectory); err != nil {
+		return false, fmt.Errorf("FlyEnv data-directory recovery validation failed: %w", err)
+	}
+	return true, nil
 }
 
 // WriteFileByRoot with improved cleanup
@@ -144,6 +242,303 @@ func (t *ToolManager) WriteBufferBase64ByRoot(file string, content string) (bool
 		return false, fmt.Errorf("failed to copy from temp '%s' to target '%s': %w", cacheFile, file, err)
 	}
 	return true, nil
+}
+
+type flyEnvProfileEncoding uint8
+
+const (
+	flyEnvProfileEncodingUTF8 flyEnvProfileEncoding = iota
+	flyEnvProfileEncodingUTF8BOM
+	flyEnvProfileEncodingUTF16LE
+	flyEnvProfileEncodingUTF16BE
+)
+
+func decodeFlyEnvProfile(data []byte) (string, flyEnvProfileEncoding, error) {
+	if len(data) >= 3 && data[0] == 0xef && data[1] == 0xbb && data[2] == 0xbf {
+		return string(data[3:]), flyEnvProfileEncodingUTF8BOM, nil
+	}
+	if len(data) >= 2 && data[0] == 0xff && data[1] == 0xfe {
+		if (len(data)-2)%2 != 0 {
+			return "", 0, fmt.Errorf("invalid UTF-16LE PowerShell profile")
+		}
+		values := make([]uint16, (len(data)-2)/2)
+		for i := range values {
+			values[i] = binary.LittleEndian.Uint16(data[2+i*2:])
+		}
+		return string(utf16.Decode(values)), flyEnvProfileEncodingUTF16LE, nil
+	}
+	if len(data) >= 2 && data[0] == 0xfe && data[1] == 0xff {
+		if (len(data)-2)%2 != 0 {
+			return "", 0, fmt.Errorf("invalid UTF-16BE PowerShell profile")
+		}
+		values := make([]uint16, (len(data)-2)/2)
+		for i := range values {
+			values[i] = binary.BigEndian.Uint16(data[2+i*2:])
+		}
+		return string(utf16.Decode(values)), flyEnvProfileEncodingUTF16BE, nil
+	}
+	return string(data), flyEnvProfileEncodingUTF8, nil
+}
+
+func encodeFlyEnvProfile(content string, encoding flyEnvProfileEncoding) []byte {
+	switch encoding {
+	case flyEnvProfileEncodingUTF8BOM:
+		return append([]byte{0xef, 0xbb, 0xbf}, []byte(content)...)
+	case flyEnvProfileEncodingUTF16LE, flyEnvProfileEncodingUTF16BE:
+		values := utf16.Encode([]rune(content))
+		result := make([]byte, 2+len(values)*2)
+		if encoding == flyEnvProfileEncodingUTF16LE {
+			result[0], result[1] = 0xff, 0xfe
+			for i, value := range values {
+				binary.LittleEndian.PutUint16(result[2+i*2:], value)
+			}
+		} else {
+			result[0], result[1] = 0xfe, 0xff
+			for i, value := range values {
+				binary.BigEndian.PutUint16(result[2+i*2:], value)
+			}
+		}
+		return result
+	default:
+		return []byte(content)
+	}
+}
+
+func flyEnvProfileNewline(content string) string {
+	if strings.Contains(content, "\r\n") {
+		return "\r\n"
+	}
+	return "\n"
+}
+
+func flyEnvProfileBlock(scriptPath, newline string) string {
+	quotedPath := strings.ReplaceAll(scriptPath, "'", "''")
+	return strings.Join([]string{
+		flyEnvProfileMarkerBegin,
+		"$flyenvScript = '" + quotedPath + "'",
+		"if (Test-Path -LiteralPath $flyenvScript) {",
+		"  . $flyenvScript",
+		"}",
+		flyEnvProfileMarkerEnd,
+	}, newline)
+}
+
+func reconcileFlyEnvProfile(content, scriptPath string) (string, bool, error) {
+	original := content
+	content = legacyFlyEnvAutoLoadBlock.ReplaceAllString(content, "")
+	beginCount := strings.Count(content, flyEnvProfileMarkerBegin)
+	endCount := strings.Count(content, flyEnvProfileMarkerEnd)
+	if beginCount != endCount || beginCount > 1 {
+		return "", false, fmt.Errorf("ambiguous FlyEnv PowerShell profile marker blocks")
+	}
+	newline := flyEnvProfileNewline(content)
+	block := flyEnvProfileBlock(scriptPath, newline)
+	start := strings.Index(content, flyEnvProfileMarkerBegin)
+	end := strings.Index(content, flyEnvProfileMarkerEnd)
+	if start >= 0 || end >= 0 {
+		if start < 0 || end < start {
+			return "", false, fmt.Errorf("incomplete FlyEnv PowerShell profile marker block")
+		}
+		end += len(flyEnvProfileMarkerEnd)
+		updated := content[:start] + block + content[end:]
+		return updated, updated != original, nil
+	}
+	separator := ""
+	if strings.TrimSpace(content) != "" {
+		separator = newline + newline
+	}
+	updated := content + separator + block + newline
+	return updated, updated != original, nil
+}
+
+func writeFlyEnvAtomically(path string, data []byte) error {
+	if runtime.GOOS == "windows" {
+		return writeFlyEnvAtomicallyBatchWithPowerShell([]flyEnvAtomicWrite{{Path: path, Data: data}})
+	}
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	temporary, err := os.CreateTemp(dir, ".flyenv-shell-*")
+	if err != nil {
+		return err
+	}
+	temporaryPath := temporary.Name()
+	defer os.Remove(temporaryPath)
+	if _, err = temporary.Write(data); err != nil {
+		temporary.Close()
+		return err
+	}
+	if err = temporary.Sync(); err != nil {
+		temporary.Close()
+		return err
+	}
+	if err = temporary.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temporaryPath, path)
+}
+
+// Some redirected OneDrive profile folders reject the .NET/Win32 file-create
+// path used by os.CreateTemp/os.WriteFile while accepting the PowerShell
+// provider's byte stream and Move-Item operations. Send all changed files in
+// one PowerShell process; each file still has its own same-directory atomic
+// replacement.
+func writeFlyEnvAtomicallyBatchWithPowerShell(writes []flyEnvAtomicWrite) error {
+	if len(writes) == 0 {
+		return nil
+	}
+	payload := make([]flyEnvAtomicWritePayload, 0, len(writes))
+	for _, write := range writes {
+		payload = append(payload, flyEnvAtomicWritePayload{
+			PathBase64: base64.StdEncoding.EncodeToString([]byte(write.Path)),
+			DataBase64: base64.StdEncoding.EncodeToString(write.Data),
+		})
+	}
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to encode FlyEnv PowerShell write payload: %w", err)
+	}
+	payloadBase64 := base64.StdEncoding.EncodeToString(payloadJSON)
+	script := fmt.Sprintf(`$ErrorActionPreference = 'Stop'
+$payloadJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))
+$writes = $payloadJson | ConvertFrom-Json
+foreach ($write in @($writes)) {
+  $target = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String([string]$write.pathBase64))
+  [byte[]]$bytes = [Convert]::FromBase64String([string]$write.dataBase64)
+  $directory = Split-Path -Parent $target
+  New-Item -ItemType Directory -Path $directory -Force | Out-Null
+  $temporary = Join-Path $directory ('.flyenv-shell-' + [Guid]::NewGuid().ToString('N') + '.tmp')
+  try {
+    Set-Content -LiteralPath $temporary -Value $bytes -Encoding Byte -Force
+    Move-Item -LiteralPath $temporary -Destination $target -Force -ErrorAction Stop
+  }
+  finally {
+    if (Test-Path -LiteralPath $temporary) {
+      Remove-Item -LiteralPath $temporary -Force -ErrorAction SilentlyContinue
+    }
+  }
+
+}`, payloadBase64)
+	_, stderr, err := utils.ExecCommand(utils.GetPowerShellExe(), powerShellEncodedArgs(script), nil)
+	if err != nil {
+		return fmt.Errorf("PowerShell provider batch write failed: %w: %s", err, strings.TrimSpace(stderr))
+	}
+	return nil
+}
+
+func writeFlyEnvScript(path string, data []byte) (string, error) {
+	if existing, err := os.ReadFile(path); err == nil && string(existing) == string(data) {
+		return "unchanged", nil
+	}
+	if err := writeFlyEnvAtomically(path, data); err != nil {
+		return "failed", err
+	}
+	return "updated", nil
+}
+
+func writeFlyEnvProfile(target FlyEnvPowerShellProfileTarget, scriptPath string) (FlyEnvPowerShellProfileResult, error) {
+	result, write, err := prepareFlyEnvProfileWrite(target, scriptPath)
+	if err != nil || write == nil {
+		return result, err
+	}
+	if err := writeFlyEnvAtomically(write.Path, write.Data); err != nil {
+		return FlyEnvPowerShellProfileResult{}, err
+	}
+	return result, nil
+}
+
+func prepareFlyEnvProfileWrite(target FlyEnvPowerShellProfileTarget, scriptPath string) (FlyEnvPowerShellProfileResult, *flyEnvAtomicWrite, error) {
+	cleanPath, err := utils.ValidateFlyEnvPowerShellProfilePath(target.Path, target.Edition)
+	if err != nil {
+		return FlyEnvPowerShellProfileResult{}, nil, err
+	}
+	original, readErr := os.ReadFile(cleanPath)
+	if readErr != nil && !os.IsNotExist(readErr) {
+		return FlyEnvPowerShellProfileResult{}, nil, readErr
+	}
+	content, encoding := "", flyEnvProfileEncodingUTF8
+	if readErr == nil {
+		content, encoding, err = decodeFlyEnvProfile(original)
+		if err != nil {
+			return FlyEnvPowerShellProfileResult{}, nil, err
+		}
+	}
+	updated, changed, err := reconcileFlyEnvProfile(content, scriptPath)
+	if err != nil {
+		return FlyEnvPowerShellProfileResult{}, nil, err
+	}
+	state := "unchanged"
+	if changed {
+		state = "updated"
+		return FlyEnvPowerShellProfileResult{Edition: target.Edition, Path: cleanPath, State: state}, &flyEnvAtomicWrite{
+			Path: cleanPath,
+			Data: encodeFlyEnvProfile(updated, encoding),
+		}, nil
+	}
+	return FlyEnvPowerShellProfileResult{Edition: target.Edition, Path: cleanPath, State: state}, nil, nil
+}
+
+// InstallFlyEnvPowerShellIntegration is deliberately narrower than the
+// generic writeFileByRoot operation. It can only update FlyEnv's runtime
+// script and the current user's two standard PowerShell profile locations.
+func (t *ToolManager) InstallFlyEnvPowerShellIntegration(
+	request FlyEnvPowerShellIntegrationRequest,
+) (FlyEnvPowerShellIntegrationResult, error) {
+	if runtime.GOOS != "windows" {
+		return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("PowerShell integration is only supported on Windows")
+	}
+	if request.ScriptPath == "" || len(request.ScriptBase64) == 0 {
+		return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("FlyEnv PowerShell integration requires a script path and content")
+	}
+	cleanScriptPath, err := utils.ValidateFlyEnvPowerShellRuntimeScriptPath(request.ScriptPath)
+	if err != nil {
+		return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("runtime script path is not allowed: %w", err)
+	}
+	script, err := base64.StdEncoding.DecodeString(request.ScriptBase64)
+	if err != nil || len(script) == 0 || len(script) > 1024*1024 {
+		return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("invalid FlyEnv PowerShell runtime script content")
+	}
+	if len(request.Profiles) == 0 {
+		return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("no PowerShell profiles were discovered")
+	}
+	profiles := make([]FlyEnvPowerShellProfileTarget, 0, len(request.Profiles))
+	seenEditions := make(map[string]bool)
+	for _, profile := range request.Profiles {
+		if seenEditions[profile.Edition] {
+			return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("duplicate PowerShell profile edition: %s", profile.Edition)
+		}
+		cleanProfilePath, validationErr := utils.ValidateFlyEnvPowerShellProfilePath(profile.Path, profile.Edition)
+		if validationErr != nil {
+			return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("invalid %s profile: %w", profile.Edition, validationErr)
+		}
+		seenEditions[profile.Edition] = true
+		profiles = append(profiles, FlyEnvPowerShellProfileTarget{Edition: profile.Edition, Path: cleanProfilePath})
+	}
+	scriptState := "updated"
+	writes := make([]flyEnvAtomicWrite, 0, len(profiles)+1)
+	if existing, readErr := os.ReadFile(cleanScriptPath); readErr == nil && string(existing) == string(script) {
+		scriptState = "unchanged"
+	} else if readErr != nil && !os.IsNotExist(readErr) {
+		return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("failed to read FlyEnv runtime script: %w", readErr)
+	} else {
+		writes = append(writes, flyEnvAtomicWrite{Path: cleanScriptPath, Data: script})
+	}
+	result := FlyEnvPowerShellIntegrationResult{ScriptState: scriptState}
+	for _, profile := range profiles {
+		profileResult, write, err := prepareFlyEnvProfileWrite(profile, cleanScriptPath)
+		if err != nil {
+			return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("failed to update %s profile: %w", profile.Edition, err)
+		}
+		result.Profiles = append(result.Profiles, profileResult)
+		if write != nil {
+			writes = append(writes, *write)
+		}
+	}
+	if err := writeFlyEnvAtomicallyBatchWithPowerShell(writes); err != nil {
+		return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("failed to install FlyEnv PowerShell integration: %w", err)
+	}
+	return result, nil
 }
 
 // ReadFileByRoot with improved cleanup

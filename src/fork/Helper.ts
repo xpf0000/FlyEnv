@@ -3,8 +3,10 @@ import {
   AppHelperCheck,
   AppHelperSocketPathGet,
   getHelperKey,
+  helperResponseErrorCode,
   helperTaskAuthFields,
-  signTaskItem
+  signTaskItem,
+  windowsHelperBinaryExists
 } from '@shared/AppHelperCheck'
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
@@ -20,20 +22,14 @@ import {
 } from '@shared/WindowsHelperState'
 
 type Module =
-  | 'helper'
-  | 'tools'
-  | 'mariadb'
-  | 'redis'
-  | 'php'
-  | 'mailpit'
-  | 'mysql'
-  | 'rabbitmq'
-  | 'host'
+  'helper' | 'tools' | 'mariadb' | 'redis' | 'php' | 'mailpit' | 'mysql' | 'rabbitmq' | 'host'
 type FN =
   | 'version'
   | 'health'
   | 'writeFileByRoot'
   | 'writeBufferBase64ByRoot'
+  | 'installFlyEnvPowerShellIntegration'
+  | 'ensureFlyEnvDataDirectory'
   | 'readFileByRoot'
   | 'processList'
   | 'macportsDirFixed'
@@ -60,6 +56,20 @@ type FN =
 
 type WindowsHelperFallback = typeof import('@shared/WindowsHelperFallback').runWindowsHelperFallback
 
+const summarizeHelperArgs = (args: any[]) =>
+  args.map((arg) => {
+    if (typeof arg === 'string') {
+      return { type: 'string', length: arg.length }
+    }
+    if (Array.isArray(arg)) {
+      return { type: 'array', length: arg.length }
+    }
+    if (arg && typeof arg === 'object') {
+      return { type: 'object', keys: Object.keys(arg).slice(0, 32) }
+    }
+    return { type: typeof arg }
+  })
+
 const lazyWindowsHelperFallback: WindowsHelperFallback = async (...args) => {
   const { runWindowsHelperFallback } = await import('@shared/WindowsHelperFallback')
   return runWindowsHelperFallback(...args)
@@ -69,6 +79,8 @@ type HelperDeps = {
   createConnection: typeof createConnection
   appHelperCheck: typeof AppHelperCheck
   getHelperKey: typeof getHelperKey
+  helperBinaryExists: () => boolean
+  helperRequestTimeoutMs: number
   isWindows: typeof isWindows
   getWindowsElevationMethod: () => WindowsElevationMethod
   notifyWindowsElevationFallback: (reason: AppHelperErrorCode) => void
@@ -80,6 +92,8 @@ const defaultHelperDeps: HelperDeps = {
   createConnection,
   appHelperCheck: AppHelperCheck,
   getHelperKey,
+  helperBinaryExists: () => !isWindows() || !global.Server?.Static || windowsHelperBinaryExists(),
+  helperRequestTimeoutMs: 30_000,
   isWindows,
   getWindowsElevationMethod: () =>
     resolveWindowsElevationMethod(global.Server?.WindowsElevationMethod),
@@ -104,6 +118,11 @@ export class Helper {
   async ensureKey() {
     if (this.helperKey) return
     this.helperKey = await this.deps.getHelperKey()
+  }
+
+  private invalidateHelperState() {
+    this.enable = false
+    this.helperKey = null
   }
 
   private validatePathArg(arg: any): boolean {
@@ -165,14 +184,6 @@ export class Helper {
     return (await this.deps.runWindowsHelperFallback(module, fn, args)) as T
   }
 
-  private notifyWindowsElevationFallback(reason: AppHelperErrorCode) {
-    if (this.appHelper) {
-      this.appHelper.fallbackToUac(reason)
-      return
-    }
-    this.deps.notifyWindowsElevationFallback(reason)
-  }
-
   private async routeUnavailableHelper<T>(
     error: unknown,
     module: Module,
@@ -180,12 +191,8 @@ export class Helper {
     args: any[]
   ): Promise<{ handled: boolean; value?: T }> {
     if (this.deps.isWindows() && isAppHelperError(error, 'helper_binary_missing')) {
-      this.notifyWindowsElevationFallback(error.code)
-      if (isWindowsHelperFallbackAllowed(module, fn)) {
-        return { handled: true, value: await this.runWindowsUacFallback<T>(module, fn, args) }
-      }
+      this.invalidateHelperState()
     }
-
     const transport = this.deps.isWindows()
       ? this.deps.resolveWindowsHelperTransport(error, module, fn)
       : 'prompt'
@@ -207,15 +214,41 @@ export class Helper {
   }
 
   send<T>(module: Module, fn: FN, ...args: any): Promise<T> {
+    return this.sendInternal<T>(module, fn, args, true)
+  }
+
+  private sendInternal<T>(
+    module: Module,
+    fn: FN,
+    args: any[],
+    retrySignature: boolean
+  ): Promise<T> {
     return new Promise(async (resolve, reject) => {
-      console.trace('Helper.send: ', module, fn, ...args)
+      console.trace('[Fork][Helper][send]', {
+        module,
+        fn,
+        argCount: args.length,
+        args: summarizeHelperArgs(args)
+      })
       let settled = false
+      const isHelperFirstOperation =
+        module === 'tools' &&
+        (fn === 'installFlyEnvPowerShellIntegration' || fn === 'ensureFlyEnvDataDirectory')
+      let requestTimer: ReturnType<typeof setTimeout> | undefined
+
+      const clearRequestTimer = () => {
+        if (requestTimer) {
+          clearTimeout(requestTimer)
+          requestTimer = undefined
+        }
+      }
 
       const resolveOnce = (value: T) => {
         if (settled) {
           return
         }
         settled = true
+        clearRequestTimer()
         resolve(value)
       }
 
@@ -224,6 +257,7 @@ export class Helper {
           return
         }
         settled = true
+        clearRequestTimer()
         reject(error)
       }
 
@@ -232,7 +266,21 @@ export class Helper {
         return
       }
 
-      if (this.deps.isWindows() && this.deps.getWindowsElevationMethod() === 'uac') {
+      // A running fork can outlive the Helper binary (for example after an
+      // antivirus cleanup). Invalidate the cached socket state before trying
+      // to send another task, so the normal binary-missing route is used.
+      if (this.deps.isWindows() && this.enable && !this.deps.helperBinaryExists()) {
+        this.invalidateHelperState()
+      }
+
+      // These operations require a healthy Helper. A previous automatic UAC
+      // fallback must not bypass it, because neither operation has a generic
+      // UAC fallback and both can complete silently through the running Helper.
+      if (
+        this.deps.isWindows() &&
+        this.deps.getWindowsElevationMethod() === 'uac' &&
+        !isHelperFirstOperation
+      ) {
         try {
           resolveOnce(await this.runWindowsUacFallback<T>(module, fn, args))
         } catch (error) {
@@ -262,6 +310,7 @@ export class Helper {
       const client = this.deps.createConnection(AppHelperSocketPathGet())
       const buffer: Buffer[] = []
       let transportFailed = false
+      let requestParam: any
 
       const closeClient = () => {
         try {
@@ -279,7 +328,7 @@ export class Helper {
           `${JSON.stringify({
             module,
             fn,
-            args,
+            args: summarizeHelperArgs(args),
             error: {
               message: error.message,
               code: (error as NodeJS.ErrnoException).code
@@ -290,7 +339,7 @@ export class Helper {
         console.log('connect failed error: ', error)
         try {
           const routed = await this.routeUnavailableHelper<T>(
-            new AppHelperError('helper_execution_failed', error.message),
+            new AppHelperError('helper_pipe_unreachable', error.message),
             module,
             fn,
             args
@@ -304,7 +353,7 @@ export class Helper {
       }
 
       client.on('connect', () => {
-        const param: any = {
+        requestParam = {
           key,
           module,
           function: fn,
@@ -312,11 +361,22 @@ export class Helper {
           ...helperTaskAuthFields()
         }
         if (this.helperKey) {
-          param.sig = signTaskItem(this.helperKey, param)
+          requestParam.sig = signTaskItem(this.helperKey, requestParam)
         }
-        console.log('Connected to server', param)
+        console.log('[Fork][Helper][request]', {
+          module,
+          fn,
+          argCount: args.length,
+          args: summarizeHelperArgs(args),
+          clientPid: requestParam.clientPid,
+          clientExe: requestParam.clientExe,
+          hasSignature: typeof requestParam.sig === 'string',
+          signatureLength: typeof requestParam.sig === 'string' ? requestParam.sig.length : 0,
+          timestamp: requestParam.ts,
+          noncePresent: typeof requestParam.nonce === 'string' && requestParam.nonce.length > 0
+        })
         try {
-          client.write(JSON.stringify(param), (error?: Error | null) => {
+          client.write(JSON.stringify(requestParam), (error?: Error | null) => {
             if (error) {
               handleSocketError(error).catch((routeError) => {
                 rejectOnce(this.normalizeError(routeError))
@@ -336,7 +396,9 @@ export class Helper {
       })
 
       client.on('end', () => {
-        closeClient()
+        if (settled || transportFailed) {
+          return
+        }
         console.log('Disconnected from server')
         let res: any
         try {
@@ -346,10 +408,66 @@ export class Helper {
         if (res && res?.key && res?.key === key) {
           buffer.splice(0)
           if (res?.code === 0) {
+            closeClient()
             return resolveOnce(res?.data)
           }
+          const error = new AppHelperError(
+            helperResponseErrorCode(res?.msg ?? ''),
+            res?.msg ?? 'Execution failed'
+          )
+          transportFailed = true
+          closeClient()
+
+          if (error.code === 'helper_signature_invalid') {
+            appDebugLog(
+              '[Fork][Helper][signature-mismatch]',
+              JSON.stringify({
+                module,
+                fn,
+                requestId: requestParam?.key,
+                clientPid: requestParam?.clientPid,
+                clientExe: requestParam?.clientExe,
+                helperKeyLength: this.helperKey?.length ?? 0,
+                signatureLength:
+                  typeof requestParam?.sig === 'string' ? requestParam.sig.length : 0,
+                retry: retrySignature
+              })
+            ).catch(() => {})
+            if (retrySignature) {
+              clearRequestTimer()
+              this.invalidateHelperState()
+              this.sendInternal<T>(module, fn, args, false)
+                .then(resolveOnce)
+                .catch((retryError) => rejectOnce(this.normalizeError(retryError)))
+              return
+            }
+            this.routeUnavailableHelper<T>(error, module, fn, args)
+              .then((routed) => {
+                if (routed.handled) {
+                  resolveOnce(routed.value as T)
+                  return
+                }
+                rejectOnce(error)
+              })
+              .catch((routeError) => rejectOnce(this.normalizeError(routeError)))
+            return
+          }
+          return rejectOnce(error)
         }
-        return rejectOnce(new Error(res?.msg ?? 'Execution failed'))
+        transportFailed = true
+        closeClient()
+        const error = new AppHelperError('helper_pipe_unreachable', 'Invalid Helper response')
+        this.routeUnavailableHelper<T>(error, module, fn, args)
+          .then((routed) => {
+            if (routed.handled) {
+              resolveOnce(routed.value as T)
+              return
+            }
+            rejectOnce(error)
+          })
+          .catch((routeError) => {
+            rejectOnce(this.normalizeError(routeError))
+          })
       })
 
       client.on('error', (error) => {
@@ -357,6 +475,16 @@ export class Helper {
           rejectOnce(this.normalizeError(routeError))
         })
       })
+
+      if (this.deps.helperRequestTimeoutMs > 0) {
+        requestTimer = setTimeout(() => {
+          handleSocketError(
+            new AppHelperError('helper_pipe_unreachable', 'Helper response timed out')
+          ).catch((routeError) => {
+            rejectOnce(this.normalizeError(routeError))
+          })
+        }, this.deps.helperRequestTimeoutMs)
+      }
     })
   }
 }

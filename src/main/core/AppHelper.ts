@@ -19,12 +19,7 @@ import type { CallbackFn } from '@shared/app'
 
 type AppHelperMessage = {
   state:
-    | 'needInstall'
-    | 'installing'
-    | 'installed'
-    | 'installFaild'
-    | 'checkSuccess'
-    | 'fallbackToUac'
+    'needInstall' | 'installing' | 'installed' | 'installFaild' | 'checkSuccess' | 'fallbackToUac'
   reason?: string
 }
 
@@ -47,7 +42,9 @@ export const waitForHelperHealth = async <T>(
   const deadlineMs = options.deadlineMs ?? 30_000
   const maxDelayMs = options.maxDelayMs ?? 2_000
   const now = options.now ?? Date.now
-  const sleep = options.sleep ?? ((milliseconds) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)))
+  const sleep =
+    options.sleep ??
+    ((milliseconds) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)))
   let delayMs = options.initialDelayMs ?? 250
   const startedAt = now()
   let lastError: unknown
@@ -326,6 +323,7 @@ export class AppHelper {
         await this.deps.appHelperCheck()
         this.state = 'normal'
         this.emitStatus('checkSuccess')
+        await this?._onSuduExecSuccess?.()
         resolve(true)
         return
       } catch (error) {
@@ -343,7 +341,7 @@ export class AppHelper {
           await waitForHelperHealth(() => this.deps.appHelperCheck())
           this.state = 'normal'
           this.emitStatus('checkSuccess')
-          this?._onSuduExecSuccess?.()
+          await this?._onSuduExecSuccess?.()
           resolve(true)
         } catch (error) {
           const appError = toAppHelperInstallError(error)

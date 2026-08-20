@@ -23,7 +23,11 @@ import { MCPRuntime } from './core/MCPRuntime'
 import ServerManager from './core/ServerManager'
 import IPCHandler from './core/IPCHandler'
 import { CheckBrewOrPort } from './utils/CheckBrew'
-import { MakeServerDir } from './utils/ServerPath'
+import { setServerDirectoryPermissionDeniedHandler } from './utils/ServerPath'
+import {
+  createDeferredHelperInstallRequest,
+  type DirectoryPermissionFailureReason
+} from './utils/ServerDirectory'
 import { reactive, watch } from 'vue'
 import { debounce } from '@shared/debounce'
 import { LanguageRepository } from './core/LanguageRepository'
@@ -58,6 +62,14 @@ export default class Application extends EventEmitter {
   private serverManager: ServerManager
   private ipcHandler!: IPCHandler
   private stopPromise?: Promise<void>
+  private serverDirectoryInitialization!: Promise<boolean>
+  private serverDirectoryRetry?: Promise<boolean>
+  private serverDirectoryHelperInstall = createDeferredHelperInstallRequest(
+    () => {
+      AppHelper.needInstall()
+    },
+    (reason) => this.notifyDataDirectoryFailure(reason)
+  )
 
   constructor() {
     super()
@@ -66,7 +78,13 @@ export default class Application extends EventEmitter {
     this.mcpConfigManager = new MCPConfigManager()
     this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
-    this.serverManager.initServerDir()
+    setServerDirectoryPermissionDeniedHandler((reason) => {
+      this.serverDirectoryHelperInstall.notifyPermissionDenied(reason)
+    })
+    this.serverDirectoryInitialization = this.serverManager.initServerDir().then((ready) => {
+      global.Server.DataDirectoryReady = ready
+      return ready
+    })
 
     this.languageRepository = new LanguageRepository({
       builtInRoot: resolve(global.Server.Static!, 'lang'),
@@ -94,6 +112,7 @@ export default class Application extends EventEmitter {
     const requestedLocale = getLanguage(this.configManager.getConfig('setup.lang'))
     await this.languageRepository.ready()
     await this.languageCoordinator.initialize(requestedLocale)
+    await this.serverDirectoryInitialization
 
     AppNodeFnManager.nativeTheme_watch()
     AppNodeFnManager.configManager = this.configManager
@@ -120,7 +139,8 @@ export default class Application extends EventEmitter {
       trayManager: this.trayManager,
       serverManager: this.serverManager,
       languageCoordinator: this.languageCoordinator,
-      appNodeFnManager: AppNodeFnManager
+      appNodeFnManager: AppNodeFnManager,
+      retryDataDirectory: () => this.retryServerDataDirectory()
     })
 
     this.setupEventHandlers()
@@ -203,12 +223,71 @@ export default class Application extends EventEmitter {
     })
 
     AppHelper.onSuduExecSuccess(() => {
-      MakeServerDir()
+      this.restoreWindowsElevationMethodAfterHelperReady()
+      return this.serverManager.initServerDir().then((ready) => {
+        global.Server.DataDirectoryReady = ready
+        if (ready && this.mainWindow) {
+          this.windowManager.sendCommandTo(
+            this.mainWindow!,
+            'APP-Data-Directory-Ready',
+            'APP-Data-Directory-Ready',
+            true
+          )
+        }
+      })
     })
   }
 
-  private setWindowsElevationMethod(method: 'helper' | 'uac', reason?: string) {
-    this.configManager.setConfig('setup.windowsElevationMethod', method)
+  private retryServerDataDirectory(): Promise<boolean> {
+    if (global.Server.DataDirectoryReady) {
+      return Promise.resolve(true)
+    }
+    if (this.serverDirectoryRetry) {
+      return this.serverDirectoryRetry
+    }
+
+    this.serverDirectoryHelperInstall.resetRequest()
+    const retry = this.serverManager
+      .initServerDir()
+      .then((ready) => {
+        global.Server.DataDirectoryReady = ready
+        if (ready && this.mainWindow) {
+          this.windowManager.sendCommandTo(
+            this.mainWindow,
+            'APP-Data-Directory-Ready',
+            'APP-Data-Directory-Ready',
+            true
+          )
+        }
+        return ready
+      })
+      .finally(() => {
+        if (this.serverDirectoryRetry === retry) {
+          this.serverDirectoryRetry = undefined
+        }
+      })
+    this.serverDirectoryRetry = retry
+    return retry
+  }
+
+  private notifyDataDirectoryFailure(reason: DirectoryPermissionFailureReason) {
+    if (!this.mainWindow) {
+      return
+    }
+    const key = 'APP-Data-Directory-Failure'
+    this.windowManager.sendCommandTo(this.mainWindow, key, key, { reason })
+  }
+
+  private setWindowsElevationRuntimeMethod(method: 'helper' | 'uac', reason?: string) {
+    global.Server.WindowsElevationMethod = method
+    void reason
+  }
+
+  private restoreWindowsElevationMethodAfterHelperReady() {
+    const method = 'helper'
+    if (this.configManager.getConfig('setup.windowsElevationMethod') !== method) {
+      this.configManager.setConfig('setup.windowsElevationMethod', method)
+    }
     this.serverManager.updateGlobalConfig()
     if (!this.mainWindow) {
       return
@@ -217,7 +296,7 @@ export default class Application extends EventEmitter {
       this.mainWindow,
       'APP-Windows-Elevation-Method-Changed',
       'APP-Windows-Elevation-Method-Changed',
-      { method, reason }
+      { method, reason: 'helperReady' }
     )
   }
 
@@ -230,7 +309,7 @@ export default class Application extends EventEmitter {
       (message.state === 'installFaild' || message.state === 'fallbackToUac') &&
       global.Server.WindowsElevationMethod === 'helper'
     ) {
-      this.setWindowsElevationMethod('uac', message.reason)
+      this.setWindowsElevationRuntimeMethod('uac', message.reason)
     }
 
     if (!this.mainWindow) {
@@ -263,7 +342,7 @@ export default class Application extends EventEmitter {
     this.forkManager.setLanguageSnapshotProvider(() => this.languageCoordinator.snapshot())
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
       if (key === 'App-Windows-Elevation-Method-Fallback') {
-        this.setWindowsElevationMethod('uac', info?.reason)
+        this.setWindowsElevationRuntimeMethod('uac', info?.reason)
         return
       }
       if (key === 'App-Need-Init-FlyEnv-Helper') {
@@ -367,6 +446,10 @@ export default class Application extends EventEmitter {
 
     this.ipcHandler.on('application:window-open-new', (page) => {
       console.log('application:window-open-new: ', page)
+    })
+
+    this.ipcHandler.on('application:renderer-initialized', () => {
+      this.serverDirectoryHelperInstall.markReady()
     })
   }
 

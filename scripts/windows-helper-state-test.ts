@@ -6,6 +6,7 @@ import {
   DEFAULT_WINDOWS_ELEVATION_METHOD,
   buildHelperCheckResponse,
   isAppHelperError,
+  isAppHelperUnavailableError,
   isWindowsHelperFallbackAllowed,
   resolveWindowsElevationMethod,
   resolveWindowsHelperTransport,
@@ -14,6 +15,10 @@ import {
 
 const sourcePath = path.resolve(process.cwd(), 'src/shared/WindowsHelperState.ts')
 const source = fs.readFileSync(sourcePath, 'utf8')
+const applicationSource = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/main/Application.ts'),
+  'utf8'
+)
 
 assert.equal(DEFAULT_WINDOWS_ELEVATION_METHOD, 'helper')
 assert.equal(resolveWindowsElevationMethod(undefined), 'helper')
@@ -24,6 +29,8 @@ assert.equal(resolveWindowsElevationMethod('invalid'), 'helper')
 const expectedAllowlist = [
   'tools/writeFileByRoot',
   'tools/writeBufferBase64ByRoot',
+  'tools/installFlyEnvPowerShellIntegration',
+  'tools/ensureFlyEnvDataDirectory',
   'tools/rm',
   'tools/setSystemPath',
   'tools/setSystemEnv',
@@ -31,10 +38,14 @@ const expectedAllowlist = [
   'host/sslAddTrustedCert'
 ]
 
-const allowlistMatch = source.match(/const FALLBACK_ALLOWLIST = new Set\(\[(?<entries>[\s\S]*?)\]\)/)
+const allowlistMatch = source.match(
+  /const FALLBACK_ALLOWLIST = new Set\(\[(?<entries>[\s\S]*?)\]\)/
+)
 assert.ok(allowlistMatch?.groups?.entries, 'FALLBACK_ALLOWLIST entries must be declared inline')
 
-const actualAllowlist = [...allowlistMatch.groups.entries.matchAll(/'([^']+)'/g)].map((match) => match[1])
+const actualAllowlist = [...allowlistMatch.groups.entries.matchAll(/'([^']+)'/g)].map(
+  (match) => match[1]
+)
 assert.deepEqual(actualAllowlist, expectedAllowlist)
 
 for (const entry of expectedAllowlist) {
@@ -45,6 +56,11 @@ assert.equal(isWindowsHelperFallbackAllowed('tools', 'readFileByRoot'), false)
 
 assert.match(source, /export type HelperCheckResponse =/)
 assert.match(source, /shouldOpenHelperInstaller = \(reason\?: string\)/)
+assert.match(applicationSource, /setWindowsElevationRuntimeMethod/)
+assert.doesNotMatch(
+  applicationSource,
+  /private setWindowsElevationRuntimeMethod\([^)]*\) \{[\s\S]{0,200}configManager\.setConfig\('setup\.windowsElevationMethod'/
+)
 
 assert.equal(
   resolveWindowsHelperTransport(
@@ -52,13 +68,53 @@ assert.equal(
     'tools',
     'writeFileByRoot'
   ),
-  'reject'
+  'fallback'
 )
 assert.equal(
   resolveWindowsHelperTransport(
     new AppHelperError('helper_binary_missing', 'missing'),
     'tools',
     'readFileByRoot'
+  ),
+  'reject'
+)
+assert.equal(
+  resolveWindowsHelperTransport(
+    new AppHelperError('helper_unreachable', 'unreachable'),
+    'tools',
+    'installFlyEnvPowerShellIntegration'
+  ),
+  'prompt'
+)
+assert.equal(
+  resolveWindowsHelperTransport(
+    new AppHelperError('helper_binary_missing', 'missing'),
+    'tools',
+    'installFlyEnvPowerShellIntegration'
+  ),
+  'fallback'
+)
+assert.equal(
+  resolveWindowsHelperTransport(
+    new AppHelperError('helper_binary_missing', 'missing'),
+    'tools',
+    'ensureFlyEnvDataDirectory'
+  ),
+  'fallback'
+)
+assert.equal(
+  resolveWindowsHelperTransport(
+    new AppHelperError('helper_pipe_unreachable', 'pipe unavailable'),
+    'tools',
+    'installFlyEnvPowerShellIntegration'
+  ),
+  'prompt'
+)
+assert.equal(
+  resolveWindowsHelperTransport(
+    new AppHelperError('helper_execution_failed', 'execution failed'),
+    'tools',
+    'installFlyEnvPowerShellIntegration'
   ),
   'reject'
 )
@@ -92,7 +148,7 @@ assert.equal(
     'tools',
     'writeFileByRoot'
   ),
-  'fallback'
+  'reject'
 )
 
 const helperMissing = new AppHelperError('helper_binary_missing', 'missing')
@@ -101,12 +157,18 @@ assert.equal(isAppHelperError(helperMissing, 'helper_binary_missing'), true)
 assert.equal(isAppHelperError(helperMissing, 'helper_unreachable'), false)
 assert.equal(isAppHelperError(new Error('x')), false)
 assert.equal(isAppHelperError({ code: 'helper_binary_missing' }), false)
+assert.equal(isAppHelperUnavailableError(helperMissing), true)
+assert.equal(
+  isAppHelperUnavailableError(new AppHelperError('helper_execution_failed', 'business denied')),
+  false
+)
 
 assert.deepEqual(buildHelperCheckResponse(null), { code: 0, data: true })
-assert.deepEqual(
-  buildHelperCheckResponse(helperMissing),
-  { code: 1, data: false, reason: 'helper_binary_missing' }
-)
+assert.deepEqual(buildHelperCheckResponse(helperMissing), {
+  code: 1,
+  data: false,
+  reason: 'helper_binary_missing'
+})
 assert.deepEqual(
   buildHelperCheckResponse(new AppHelperError('helper_unreachable', 'unreachable')),
   { code: 1, data: false, reason: 'helper_unreachable' }

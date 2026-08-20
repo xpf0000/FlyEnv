@@ -7,6 +7,7 @@ import { nativeTheme } from '@/util/NodeFn'
 import { isEqual } from 'lodash-es'
 import { AppStore } from '@/store/app'
 import { SetupStore } from '@/components/Setup/store'
+import { I18nT } from '@lang/index'
 
 class GlobalIPCOn {
   public inited = false
@@ -40,17 +41,25 @@ class GlobalIPCOn {
       }
     })
 
+    IPC.on('APP-Data-Directory-Failure').then((_key: string, res: any) => {
+      const message =
+        res?.reason === 'helper-binary-missing'
+          ? I18nT('base.helperBinaryMissing')
+          : I18nT('base.dataDirectoryRecoveryFailed')
+      MessageError(message)
+    })
+
     IPC.on('APP-FlyEnv-Helper-Notice').then((key: string, res: any) => {
       if (res?.code === 0) {
         MessageSuccess(res?.msg)
       } else if (res.code === 1) {
-        MessageError(res?.msg)
         if (
           res?.status === 'installFaild' &&
           this.inited &&
           !FlyEnvHelperSetup.show &&
           !HelperStore.isInstallResultPending()
         ) {
+          MessageError(res?.msg)
           HelperStore.showInstallFailDialog(res?.reason)
         } else if (
           !res?.status &&

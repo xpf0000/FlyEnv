@@ -39,14 +39,11 @@ finally {
 }`
 
 const getDefaultSystemPath = () => {
-  return EnvSync.SystemPath || join(process.env.SystemRoot || 'C:\\Windows', 'System32')
+  return EnvSync.SystemPath || 'C:\\Windows\\System32'
 }
 
 const getDefaultPowerShellPath = () => {
-  return (
-    EnvSync.PowerShellPath ||
-    join(process.env.SystemRoot || 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe')
-  )
+  return EnvSync.PowerShellPath || 'powershell.exe'
 }
 
 const getDefaultRegistryToolPath = () => {

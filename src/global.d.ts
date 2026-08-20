@@ -16,6 +16,7 @@ export interface ServerType {
   isArmArch?: boolean
   Static?: string
   Cache?: string
+  DataDirectoryReady?: boolean
   RedisDir?: string
   MongoDBDir?: string
   FTPDir?: string
@@ -36,6 +37,7 @@ export interface ServerType {
   ForceStart?: boolean
   WindowsElevationMethod?: WindowsElevationMethod
   UserHome?: string
+  UserDocuments?: string
   Licenses?: string
   UserUUID?: string
   LangCustomer?: any

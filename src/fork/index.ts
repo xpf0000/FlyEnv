@@ -107,7 +107,7 @@ process.on('message', function (args: any) {
       .catch((error) => {
         if (Array.isArray(args) && args.length > 0) {
           const ipcCommandKey = args[0]
-          ProcessSendError(ipcCommandKey, `${error}`)
+          ProcessSendError(ipcCommandKey, error)
         }
         appDebugLog(
           '[Fork][exec][error]',

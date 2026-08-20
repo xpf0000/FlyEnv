@@ -65,7 +65,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   const resetData = () => {
     const data = brewStore.module(typeFlag)
     data.installedFetched = false
-    data.fetchInstalled().catch()
+    data.fetchInstalled(true).catch()
   }
 
   const openDir = (dir: string) => {
@@ -196,7 +196,7 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const fetchData = () => {
     const data = brewStore.module(typeFlag)
-    data.fetchInstalled().catch()
+    data.fetchInstalled(true).catch()
   }
 
   const fetching = computed(() => {

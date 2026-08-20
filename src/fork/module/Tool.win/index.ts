@@ -223,8 +223,7 @@ subjectAltName=@alt_names
       try {
         await EnvSync.sync()
         const systemPath = EnvSync.SystemPath ?? 'C:\\Windows\\System32'
-        powershell =
-          EnvSync.PowerShellPath ?? join(systemPath, 'WindowsPowerShell/v1.0/powershell.exe')
+        powershell = EnvSync.PowerShellPath ?? 'powershell.exe'
         rundll32 = join(systemPath, 'rundll32.exe')
         sysdm = join(systemPath, 'sysdm.cpl')
         systemPropertiesAdvanced = join(systemPath, 'SystemPropertiesAdvanced.exe')

@@ -269,7 +269,9 @@ class LanguageProject {
           await EnvSync.sync()
           await spawnPromiseWithEnv(
             EnvSync.PowerShellPath || 'powershell.exe',
-            powerShellInlineArgs(buildWindowsTerminalInlineScript(command)),
+            powerShellInlineArgs(
+              buildWindowsTerminalInlineScript(command, EnvSync.PowerShellPath || 'powershell.exe')
+            ),
             {
               cwd: global.Server.Cache!,
               env: version.env,

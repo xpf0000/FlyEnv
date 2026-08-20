@@ -113,7 +113,7 @@ class BaseManager {
       })
     }
     const error = (e: Error) => {
-      ProcessSendError(ipcCommandKey, e.toString())
+      ProcessSendError(ipcCommandKey, e)
       const memoryUsage = process.memoryUsage()
       console.log({
         modules: Array.from(this.modules),

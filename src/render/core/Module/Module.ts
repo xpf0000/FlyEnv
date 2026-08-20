@@ -11,6 +11,7 @@ import { ModuleSdkmanItem } from '@/core/Module/ModuleSdkmanItem'
 import { brewInfo, fetchVerion, portInfo, sdkmanInfo } from '@/util/Brew'
 import { installedVersionNote, syncInstalledVersionNotes } from '@/util/InstalledVersionNote'
 import { syncStaticInstalledFlags } from './syncStaticInstalledFlags'
+import { ensureDataDirectoryReady } from '@/core/DataDirectoryStartup'
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
@@ -190,7 +191,15 @@ export class Module {
     this.fetchInstalleding = false
   }
 
-  fetchInstalled(): Promise<boolean> {
+  fetchInstalled(retryDataDirectory = false): Promise<boolean> {
+    if (!window.Server.DataDirectoryReady) {
+      if (!retryDataDirectory) {
+        return Promise.resolve(false)
+      }
+      return ensureDataDirectoryReady().then((ready) => {
+        return ready ? this.fetchInstalled(retryDataDirectory) : false
+      })
+    }
     const appStore = AppStore()
     return new Promise((resolve) => {
       if (this.installedFetched) {

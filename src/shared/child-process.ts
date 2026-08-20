@@ -14,9 +14,28 @@ type ForkPromiseResType = ForkPromise<{
   stderr: string
 }>
 
+type SpawnPromiseWithEnvTiming = {
+  onEnvSync?: (durationMs: number) => void
+  onSpawn?: (durationMs: number) => void
+  onExit?: (details: {
+    code: number | null
+    durationMs: number
+    stdoutBytes: number
+    stderrBytes: number
+  }) => void
+  onError?: (details: { durationMs: number; error: Error }) => void
+}
+
 type SpawnPromiseWithEnvOptions = {
   [key: string]: any
   trimOutput?: boolean
+  timing?: SpawnPromiseWithEnvTiming
+}
+
+const reportSpawnPromiseWithEnvTiming = (callback: (() => void) | undefined) => {
+  try {
+    callback?.()
+  } catch {}
 }
 
 export function execPromiseSudo(
@@ -180,8 +199,10 @@ export const spawnPromiseWithEnv = (
   options: SpawnPromiseWithEnvOptions = {}
 ): ForkPromiseResType => {
   return new ForkPromise(async (resolve, reject, on) => {
+    const envSyncStartedAt = Date.now()
     const env = await EnvSync.sync()
-    const { trimOutput = true, ...spawnOptions } = options
+    const { trimOutput = true, timing, ...spawnOptions } = options
+    reportSpawnPromiseWithEnvTiming(() => timing?.onEnvSync?.(Date.now() - envSyncStartedAt))
     const optdefault: any = {
       env
     }
@@ -190,9 +211,14 @@ export const spawnPromiseWithEnv = (
     }
     const opt = mergeProcessOptions(optdefault, spawnOptions)
     let cp: ChildProcess
+    const spawnStartedAt = Date.now()
     try {
       cp = spawn(command, arg, opt)
     } catch (e) {
+      const error = e instanceof Error ? e : new Error(String(e))
+      reportSpawnPromiseWithEnvTiming(() =>
+        timing?.onError?.({ durationMs: Date.now() - spawnStartedAt, error })
+      )
       reject(e)
       return
     }
@@ -219,6 +245,14 @@ export const spawnPromiseWithEnv = (
       exit = true
       const stdoutText = Buffer.concat(stdout).toString()
       const stderrText = Buffer.concat(stderr).toString()
+      reportSpawnPromiseWithEnvTiming(() =>
+        timing?.onExit?.({
+          code,
+          durationMs: Date.now() - spawnStartedAt,
+          stdoutBytes: Buffer.byteLength(stdoutText),
+          stderrBytes: Buffer.byteLength(stderrText)
+        })
+      )
       if (!code) {
         resolve({
           stdout: trimOutput ? stdoutText.trim() : stdoutText,
@@ -228,8 +262,14 @@ export const spawnPromiseWithEnv = (
         reject(new Error(trimOutput ? stderrText.trim() : stderrText))
       }
     }
+    cp.on('spawn', () => {
+      reportSpawnPromiseWithEnvTiming(() => timing?.onSpawn?.(Date.now() - spawnStartedAt))
+    })
     cp.on('error', (err: Error) => {
       exit = true
+      reportSpawnPromiseWithEnvTiming(() =>
+        timing?.onError?.({ durationMs: Date.now() - spawnStartedAt, error: err })
+      )
       reject(err)
     })
     cp.on('exit', onEnd)

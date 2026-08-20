@@ -149,6 +149,45 @@ func TestValidateSystemEnvValueKeepsStrictPathValidation(t *testing.T) {
 	}
 }
 
+func TestValidateFlyEnvPowerShellProfilePathAllowsRedirectedDocumentsInsideHome(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("PowerShell profiles are a Windows-only feature")
+	}
+
+	home := t.TempDir()
+	t.Setenv("USERPROFILE", home)
+	profile := filepath.Join(
+		home,
+		"OneDrive",
+		"文档",
+		"WindowsPowerShell",
+		"Microsoft.PowerShell_profile.ps1",
+	)
+
+	clean, err := ValidateFlyEnvPowerShellProfilePath(profile, "windows-powershell")
+	if err != nil {
+		t.Fatalf("redirected Windows PowerShell profile should be allowed: %v", err)
+	}
+	if !pathEqual(clean, profile) {
+		t.Fatalf("validated profile path = %q, want %q", clean, profile)
+	}
+
+	invalid := filepath.Join(home, "OneDrive", "文档", "Microsoft.PowerShell_profile.ps1")
+	if _, err := ValidateFlyEnvPowerShellProfilePath(invalid, "windows-powershell"); err == nil {
+		t.Fatal("profile without the WindowsPowerShell directory should be rejected")
+	}
+
+	outsideHome := filepath.Join(
+		filepath.Dir(home),
+		"outside-home",
+		"WindowsPowerShell",
+		"Microsoft.PowerShell_profile.ps1",
+	)
+	if _, err := ValidateFlyEnvPowerShellProfilePath(outsideHome, "windows-powershell"); err == nil {
+		t.Fatal("profile outside the current user home should be rejected")
+	}
+}
+
 func TestAllowedRootsFilePresentDisablesNameFallback(t *testing.T) {
 	oldOverride := allowedRootsFilePathForTesting
 	defer func() {
@@ -170,6 +209,19 @@ func TestAllowedRootsFilePresentDisablesNameFallback(t *testing.T) {
 	}
 	if isBusinessPathAllowed(managedPath) {
 		t.Fatal("present but invalid allowed-roots file should disable managed-name fallback")
+	}
+}
+
+func TestFlyEnvDataDirectoryRecoveryAllowsOnlyAnExactConfiguredRoot(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "FlyEnv-Data")
+	if !isExactConfiguredFlyEnvDataDirectoryRoot(root, []string{root}) {
+		t.Fatal("the configured FlyEnv data root itself must be accepted")
+	}
+	if isExactConfiguredFlyEnvDataDirectoryRoot(filepath.Join(root, "server"), []string{root}) {
+		t.Fatal("a child directory must not gain data-root recovery privileges")
+	}
+	if isExactConfiguredFlyEnvDataDirectoryRoot(root, []string{filepath.Join(filepath.Dir(root), "other-root")}) {
+		t.Fatal("an unconfigured FlyEnv-looking directory must be rejected")
 	}
 }
 

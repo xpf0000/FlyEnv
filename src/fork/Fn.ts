@@ -134,13 +134,17 @@ export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   })
 }
 
-export const ProcessSendError = (key: string, msg: any, on?: boolean) => {
+export const ProcessSendError = (key: string, error: any, on?: boolean) => {
+  const errorCode =
+    error && typeof error === 'object' && typeof error.code === 'string' ? error.code : undefined
+  const msg = error instanceof Error ? error.toString() : `${error}`
   process?.send?.({
     on,
     key,
     info: {
       code: 1,
-      msg
+      msg,
+      ...(errorCode ? { errorCode } : {})
     }
   })
 }

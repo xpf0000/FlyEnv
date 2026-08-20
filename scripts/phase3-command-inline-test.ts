@@ -77,5 +77,6 @@ assert.ok(terminalScript.includes('-EncodedCommand'))
 assert.ok(!/['"]-File['"]/.test(terminalScript))
 assert.ok(!terminalScript.includes('exec-by-terminal.ps1'))
 assert.ok(!terminalScript.includes('command-'))
+assert.ok(!terminalScript.includes('$env:SystemRoot'))
 
 console.log('phase3 command inline tests passed')

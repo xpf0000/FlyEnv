@@ -56,6 +56,30 @@ async function main() {
   assert.equal(sudoCalls, 1)
   assert.equal(checkCalls, 1)
 
+  let releaseDirectoryStartup: (() => void) | undefined
+  let healthyInitSettled = false
+  const healthyHelper = createAppHelper({
+    appHelperCheck: async () => true
+  })
+  healthyHelper.onSuduExecSuccess(
+    () =>
+      new Promise<void>((resolve) => {
+        releaseDirectoryStartup = resolve
+      })
+  )
+  const healthyInit = healthyHelper.initHelper().then(() => {
+    healthyInitSettled = true
+  })
+  await new Promise<void>((resolve) => setImmediate(resolve))
+  assert.equal(
+    healthyInitSettled,
+    false,
+    'a healthy Helper check must wait for the data-directory startup gate to finish'
+  )
+  releaseDirectoryStartup?.()
+  await healthyInit
+  assert.equal(healthyInitSettled, true)
+
   let attempts = 0
   let now = 0
   const delays: number[] = []
