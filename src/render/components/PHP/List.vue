@@ -200,6 +200,7 @@
               <yb-icon :svg="import('@/svg/extend.svg?raw')" width="17" height="17" />
               <span class="ml-3">{{ I18nT('php.extensions') }}</span>
             </li>
+            <slot name="action" :item="scope.row"></slot>
           </EXT>
         </template>
       </el-table-column>

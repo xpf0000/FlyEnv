@@ -27,8 +27,11 @@ import { StopProcessListSearch } from '@shared/StopProcessList'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
 import { ProcessKill } from '@shared/Process'
+import { FastCgiWorkerStore } from './FastCgiWorkers'
 
 class Php extends Base {
+  private workerStore?: FastCgiWorkerStore
+
   constructor() {
     super()
     this.type = 'php'
@@ -36,6 +39,34 @@ class Php extends Base {
 
   init() {
     this.pidPath = join(global.Server.PhpDir!, 'php.pid')
+  }
+
+  private fastCgiWorkerStore() {
+    const filePath = join(global.Server.PhpDir!, 'fastcgi-workers.json')
+    if (!this.workerStore || this.workerStore.filePath !== filePath) {
+      this.workerStore = new FastCgiWorkerStore(filePath)
+    }
+    return this.workerStore
+  }
+
+  getFastCgiWorkerCount(version: SoftInstalled): ForkPromise<number> {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        resolve(await this.fastCgiWorkerStore().get(version.path))
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  setFastCgiWorkerCount(version: SoftInstalled, count: number): ForkPromise<number> {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        resolve(await this.fastCgiWorkerStore().set(version.path, count))
+      } catch (error) {
+        reject(error)
+      }
+    })
   }
 
   initCACertPEM() {
@@ -277,10 +308,11 @@ class Php extends Base {
 
       const bin = join(version.path, 'php-cgi-spawner.exe')
       const pidPath = join(global.Server.PhpDir!, `php${version.num}.pid`)
+      const workerCount = await this.fastCgiWorkerStore().get(version.path)
       const execArgs = [
         `php-cgi.exe -c php.phpwebstudy.90${version.num}.ini`,
         `90${version.num}`,
-        '4'
+        String(workerCount)
       ]
 
       try {

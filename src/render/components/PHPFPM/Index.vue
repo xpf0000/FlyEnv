@@ -6,7 +6,11 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" title="PHP-FPM" />
+      <Service v-if="tab === 0" title="PHP-FPM">
+        <template #action="{ item }">
+          <FastCgiWorkersAction :item="item" />
+        </template>
+      </Service>
       <Manager
         v-else-if="tab === 1"
         type-flag="php"
@@ -20,6 +24,7 @@
 
 <script lang="ts" setup>
   import Service from '@/components/PHP/List.vue'
+  import FastCgiWorkersAction from './FastCgiWorkersAction.vue'
   import Manager from '@/components/VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
