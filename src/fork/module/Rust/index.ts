@@ -8,6 +8,7 @@ import {
   moveChildDirToParent,
   readdir,
   readFile,
+  rename,
   remove,
   uuid,
   versionBinVersion,
@@ -18,10 +19,35 @@ import {
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { isWindows } from '@shared/utils'
 import { homedir, tmpdir } from 'node:os'
+
+export function rustVersionSearchDirs(setup: any, appDir: string, managedVersions: string[]) {
+  return [
+    ...(setup?.rust?.dirs ?? []),
+    ...managedVersions.map((version) => join(appDir, 'rust', version))
+  ]
+}
+
+export async function installRustWindowsArchive(zip: string, appDir: string) {
+  const stagingDir = join(dirname(appDir), `.rust-install-${uuid()}`)
+  await remove(appDir)
+  await mkdirp(stagingDir)
+  try {
+    await zipUnpack(zip, stagingDir)
+    const roots = (await readdir(stagingDir, { withFileTypes: true })).filter((entry) =>
+      entry.isDirectory()
+    )
+    if (roots.length !== 1) {
+      throw new Error('Rust archive has an unexpected directory layout')
+    }
+    await rename(join(stagingDir, roots[0].name), appDir)
+  } finally {
+    await remove(stagingDir)
+  }
+}
 
 class Rust extends Base {
   constructor() {
@@ -85,7 +111,17 @@ class Rust extends Base {
     return new ForkPromise(async (resolve) => {
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
-      const customDirs = [...(setup?.rust?.dirs ?? [])]
+      const managedVersions: string[] = []
+      const managedRoot = join(global.Server.AppDir!, 'rust')
+      if (existsSync(managedRoot)) {
+        const dirs = await readdir(managedRoot, { withFileTypes: true })
+        dirs.forEach((dir) => {
+          if (dir.isDirectory()) {
+            managedVersions.push(dir.name)
+          }
+        })
+      }
+      const customDirs = rustVersionSearchDirs(setup, global.Server.AppDir!, managedVersions)
       const rustupDir = join(this.rustupHome(), 'toolchains')
       if (existsSync(rustupDir)) {
         const dirs = await readdir(rustupDir, { withFileTypes: true })
@@ -139,19 +175,7 @@ class Rust extends Base {
 
   async _installSoftHandle(row: any): Promise<void> {
     if (isWindows()) {
-      await remove(row.appDir)
-      await mkdirp(row.appDir)
-      const cacheDir = join(global.Server.Cache!, uuid())
-      await mkdirp(cacheDir)
-      await zipUnpack(row.zip, cacheDir)
-      const files = await readdir(cacheDir)
-      const find = files.find((f) => f.includes('.tar'))
-      if (!find) {
-        throw new Error('UnZIP failed')
-      }
-      await zipUnpack(join(cacheDir, find), row.appDir)
-      await moveChildDirToParent(row.appDir)
-      await remove(cacheDir)
+      await installRustWindowsArchive(row.zip, row.appDir)
     } else {
       const dir = row.appDir
       await super._installSoftHandle(row)

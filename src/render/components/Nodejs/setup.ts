@@ -8,14 +8,22 @@ import { NodeDefaultSetup } from '@/components/Nodejs/default/setup'
 export const Setup = () => {
   const appStore = AppStore()
   const store = NodejsStore()
+  const isWindows = computed(() => window.Server.isWindows)
+
+  if (isWindows.value && ['fnm', 'nvm'].includes(appStore.config.setup.currentNodeTool)) {
+    appStore.config.setup.currentNodeTool = 'default'
+    appStore.saveConfig()
+  }
 
   const currentTool = computed({
     get() {
-      return appStore.config.setup.currentNodeTool || 'default'
+      const tool = appStore.config.setup.currentNodeTool || 'default'
+      return isWindows.value && ['fnm', 'nvm'].includes(tool) ? 'default' : tool
     },
     set(v) {
-      if (v !== appStore.config.setup.currentNodeTool) {
-        appStore.config.setup.currentNodeTool = v
+      const tool = isWindows.value && ['fnm', 'nvm'].includes(v) ? 'default' : v
+      if (tool !== appStore.config.setup.currentNodeTool) {
+        appStore.config.setup.currentNodeTool = tool
         appStore.saveConfig()
       }
     }
@@ -116,6 +124,7 @@ export const Setup = () => {
     taskConfirm,
     taskCancel,
     loading,
-    reFetch
+    reFetch,
+    isWindows
   }
 }

@@ -47,10 +47,7 @@ export const Setup = () => {
   const checkInstalled = (): Promise<boolean> => {
     return new Promise((resolve) => {
       if (window.Server.isWindows) {
-        // For Windows, use localVersion to check
-        fetchLocal().then(() => {
-          resolve(NVMSetup.local.length > 0)
-        })
+        resolve(false)
         return
       }
       IPC.send('app-fork:node', 'checkInstalled', 'nvm').then((key: string, res: any) => {
@@ -67,6 +64,9 @@ export const Setup = () => {
   NVMSetup.checkInstalled = checkInstalled
 
   const fetchLocal = () => {
+    if (window.Server.isWindows) {
+      return Promise.resolve()
+    }
     if (NVMSetup.local.length > 0 || NVMSetup.fetching) {
       return Promise.resolve()
     }
@@ -100,6 +100,9 @@ export const Setup = () => {
    * Switch version using XTerm
    */
   const versionChangeXTerm = async (item: any) => {
+    if (window.Server.isWindows) {
+      return
+    }
     if (NVMSetup.switching) {
       return
     }
@@ -137,6 +140,9 @@ export const Setup = () => {
    * Install or uninstall version using XTerm
    */
   const installOrUninstallXTerm = async (action: 'install' | 'uninstall', item: any) => {
+    if (window.Server.isWindows) {
+      return
+    }
     if (NVMSetup.installing) {
       return
     }
@@ -219,6 +225,9 @@ export const Setup = () => {
   })
 
   const installNVM = async () => {
+    if (window.Server.isWindows) {
+      return
+    }
     if (NVMSetup.installing) {
       return
     }
@@ -319,7 +328,9 @@ export const Setup = () => {
     NVMSetup?.xterm?.unmounted()
   })
 
-  fetchLocal().catch()
+  if (!window.Server.isWindows) {
+    fetchLocal().catch()
+  }
 
   return {
     fetchLocal,

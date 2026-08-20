@@ -38,7 +38,6 @@ export default class TrayManager extends EventEmitter {
   }
 
   addModernStyleListener() {
-    this.tray.on('click', this.handleTrayClick)
     this.tray.on('right-click', this.handleTrayClick)
     this.tray.on('double-click', () => {
       this.emit('double-click')

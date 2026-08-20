@@ -5,8 +5,8 @@
         <div class="left">
           <el-radio-group v-model="currentTool" size="small">
             <el-radio-button value="default">FlyEnv</el-radio-button>
-            <el-radio-button value="fnm">fnm</el-radio-button>
-            <el-radio-button value="nvm">nvm</el-radio-button>
+            <el-radio-button v-if="!isWindows" value="fnm">fnm</el-radio-button>
+            <el-radio-button v-if="!isWindows" value="nvm">nvm</el-radio-button>
           </el-radio-group>
         </div>
         <el-button :disabled="loading" class="button" link @click="reFetch">
@@ -48,7 +48,8 @@
 
   const nodejsStore = NodejsStore()
 
-  const { currentTool, showFooter, taskEnd, taskConfirm, taskCancel, loading, reFetch } = Setup()
+  const { currentTool, showFooter, taskEnd, taskConfirm, taskCancel, loading, reFetch, isWindows } =
+    Setup()
 
   nodejsStore.chekTool()
   nodejsStore.fetchAll()

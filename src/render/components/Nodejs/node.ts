@@ -87,29 +87,24 @@ export const NodejsStore = defineStore('nodejs', {
       }
       this.checking = true
       return new Promise((resolve) => {
-        // Check both fnm and nvm
-        Promise.all([
-          new Promise<'fnm' | ''>((resolve) => {
-            IPC.send('app-fork:node', 'checkInstalled', 'fnm').then((key: string, res: any) => {
-              IPC.off(key)
-              if (res?.code === 0 && res?.data?.installed) {
-                resolve('fnm')
-              } else {
-                resolve('')
-              }
+        const checks: Array<Promise<'fnm' | 'nvm' | ''>> = []
+        if (!window.Server.isWindows) {
+          checks.push(
+            new Promise<'fnm' | ''>((resolve) => {
+              IPC.send('app-fork:node', 'checkInstalled', 'fnm').then((key: string, res: any) => {
+                IPC.off(key)
+                resolve(res?.code === 0 && res?.data?.installed ? 'fnm' : '')
+              })
+            }),
+            new Promise<'nvm' | ''>((resolve) => {
+              IPC.send('app-fork:node', 'checkInstalled', 'nvm').then((key: string, res: any) => {
+                IPC.off(key)
+                resolve(res?.code === 0 && res?.data?.installed ? 'nvm' : '')
+              })
             })
-          }),
-          new Promise<'nvm' | ''>((resolve) => {
-            IPC.send('app-fork:node', 'checkInstalled', 'nvm').then((key: string, res: any) => {
-              IPC.off(key)
-              if (res?.code === 0 && res?.data?.installed) {
-                resolve('nvm')
-              } else {
-                resolve('')
-              }
-            })
-          })
-        ]).then(([fnmInstalled, nvmInstalled]) => {
+          )
+        }
+        Promise.all(checks).then(([fnmInstalled, nvmInstalled]) => {
           if (fnmInstalled && nvmInstalled) {
             this.tool = 'all'
           } else if (fnmInstalled) {

@@ -20,6 +20,8 @@
     "test:clickhouse-ch-ui": "tsx scripts/clickhouse-ch-ui-test.ts",
     "test:clickhouse-service-lifecycle": "tsx scripts/clickhouse-service-lifecycle-test.ts",
     "test:go-gvm": "tsx scripts/go-gvm-test.ts",
+    "test:node-tray-issues": "tsx scripts/node-tray-issues-test.ts",
+    "test:rust-windows-install": "tsx scripts/rust-windows-install-test.ts",
     "test:hermes-provider": "tsx scripts/hermes-provider-config-test.ts",
     "test:postgresql-pgadmin4": "tsx scripts/postgresql-pgadmin4-test.ts",
     "test:module-lifecycle-single-flight": "tsx scripts/module-lifecycle-single-flight-test.ts",

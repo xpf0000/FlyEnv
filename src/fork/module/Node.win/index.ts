@@ -25,7 +25,6 @@ import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../../TaskQueue'
 import { run } from 'npm-check-updates'
 import { appDebugLog } from '@shared/utils'
-import EnvSync from '@shared/EnvSync'
 
 class Manager extends Base {
   constructor() {
@@ -37,6 +36,10 @@ class Manager extends Base {
    */
   checkInstalled(tool: 'fnm' | 'nvm') {
     return new ForkPromise(async (resolve) => {
+      if ((tool === 'fnm' || tool === 'nvm') && process.platform === 'win32') {
+        resolve({ installed: false, version: '', dir: '' })
+        return
+      }
       try {
         const command = `${tool} --version`
         const res = await execPromiseWithEnv(command)
@@ -205,6 +208,10 @@ class Manager extends Base {
 
   localVersion(tool: 'fnm' | 'nvm' | 'default') {
     return new ForkPromise(async (resolve) => {
+      if ((tool === 'fnm' || tool === 'nvm') && process.platform === 'win32') {
+        resolve({ versions: [], current: '', tool })
+        return
+      }
       if (tool === 'default') {
         const dir = join(global.Server.AppDir!, 'nodejs')
         if (!existsSync(dir)) {
@@ -340,6 +347,10 @@ class Manager extends Base {
     version: string
   ) {
     return new ForkPromise(async (resolve, reject, on) => {
+      if ((tool === 'fnm' || tool === 'nvm') && process.platform === 'win32') {
+        reject(new Error('Windows external Node version managers are not supported'))
+        return
+      }
       if (tool === 'default') {
         if (action === 'uninstall') {
           const dir = join(global.Server.AppDir!, `nodejs/v${version}`)
@@ -510,98 +521,7 @@ class Manager extends Base {
     }>
   > {
     return new ForkPromise(async (resolve) => {
-      const all: any[] = []
-      let fnmDir = ''
-      try {
-        await EnvSync.sync()
-        fnmDir = (
-          await execPromiseWithEnv(`echo %FNM_DIR%`, {
-            shell: EnvSync.CMDPath || 'cmd.exe'
-          })
-        ).stdout.trim()
-        if (fnmDir === '%FNM_DIR%') {
-          fnmDir = ''
-        }
-      } catch {}
-      if (!fnmDir) {
-        try {
-          const res = await execPromiseWithEnv('fnm env')
-          fnmDir =
-            res?.stdout
-              ?.trim()
-              ?.split('\n')
-              ?.find((l) => l.includes('SET FNM_DIR'))
-              ?.split('=')?.[1]
-              ?.replace(/"/g, '') ?? ''
-        } catch {}
-      }
-
-      if (fnmDir && existsSync(fnmDir)) {
-        fnmDir = join(fnmDir, 'node-versions')
-        if (existsSync(fnmDir)) {
-          let allFnm: any[] = []
-          try {
-            allFnm = await readdir(fnmDir)
-          } catch {}
-          allFnm = allFnm
-            .filter(
-              (f) => f.startsWith('v') && existsSync(join(fnmDir, f, 'installation/node.exe'))
-            )
-            .map((f) => {
-              const version = f.replace('v', '')
-              const bin = join(fnmDir, f, 'installation/node.exe')
-              return {
-                version,
-                bin
-              }
-            })
-          all.push(...allFnm)
-        }
-      }
-
-      let nvmDir = ''
-      try {
-        await EnvSync.sync()
-        nvmDir = (
-          await execPromiseWithEnv(`nvm root`, {
-            shell: EnvSync.CMDPath || 'cmd.exe'
-          })
-        ).stdout
-          .trim()
-          .replace('Current Root: ', '')
-      } catch {}
-      if (!nvmDir) {
-        try {
-          await EnvSync.sync()
-          nvmDir = (
-            await execPromiseWithEnv(`nvm root`, {
-              shell: EnvSync.PowerShellPath || 'powershell.exe'
-            })
-          ).stdout
-            .trim()
-            .replace('Current Root: ', '')
-        } catch {}
-      }
-      if (nvmDir && existsSync(nvmDir)) {
-        if (existsSync(nvmDir)) {
-          let allNVM: any[] = []
-          try {
-            allNVM = await readdir(nvmDir)
-          } catch {}
-          allNVM = allNVM
-            .filter((f) => f.startsWith('v') && existsSync(join(nvmDir, f, 'node.exe')))
-            .map((f) => {
-              const version = f.replace('v', '')
-              const bin = join(nvmDir, f, 'node.exe')
-              return {
-                version,
-                bin
-              }
-            })
-          all.push(...allNVM)
-        }
-      }
-      resolve(all)
+      resolve([])
     })
   }
 

@@ -56,6 +56,7 @@ export class ModuleStaticItem implements OnlineVersionItem {
               module.staticDowing = module.staticDowing.filter(
                 (s) => s.url !== this.url && s.bin !== this.bin
               )
+              this.installed = true
               resolve(true)
             } else {
               IPC.off(key)
