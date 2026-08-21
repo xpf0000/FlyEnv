@@ -57,13 +57,7 @@ export interface BrowseSkillItem {
 }
 
 export type OnlineSkillSource =
-  | 'all'
-  | 'official'
-  | 'skills-sh'
-  | 'well-known'
-  | 'github'
-  | 'clawhub'
-  | 'lobehub'
+  'all' | 'official' | 'skills-sh' | 'well-known' | 'github' | 'clawhub' | 'lobehub'
 
 export type SkillTab = 'installed' | OnlineSkillSource
 
@@ -100,6 +94,8 @@ class Hermes {
   configPaths: Record<string, string> = {}
   skills: string[] = []
   sessions: SessionItem[] = []
+  sessionLoading = false
+  private sessionRefreshPromise: Promise<void> | undefined
   providers: ProviderItem[] = HermesProviders
   currentProvider = ''
   chatQuery = ''
@@ -301,12 +297,22 @@ class Hermes {
   }
 
   refreshSessions() {
-    IPC.send('app-fork:hermes', 'listSessions').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        this.sessions = res?.data ?? []
-      }
+    if (this.sessionRefreshPromise) {
+      return this.sessionRefreshPromise
+    }
+    this.sessionLoading = true
+    this.sessionRefreshPromise = new Promise((resolve) => {
+      IPC.send('app-fork:hermes', 'listSessions').then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          this.sessions = res?.data ?? []
+        }
+        this.sessionLoading = false
+        this.sessionRefreshPromise = undefined
+        resolve()
+      })
     })
+    return this.sessionRefreshPromise
   }
 
   async deleteSession(id: string, domRef: Ref<HTMLElement>) {

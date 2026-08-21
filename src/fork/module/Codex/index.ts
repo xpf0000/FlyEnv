@@ -22,7 +22,7 @@ import {
   resolveAiCliCommand,
   resolveAiCliTerminalCommand
 } from '../../util/AiCli'
-import { dedupeAiCliSessions } from '../../util/AiCliSession'
+import { dedupeAiCliSessions, runAiCliSessionTasks } from '../../util/AiCliSession'
 
 export interface CodexSessionItem {
   id: string
@@ -131,9 +131,11 @@ class Codex extends Base {
         }
         const files: string[] = []
         await this.collectSessionFiles(sessionsDir, files)
-        for (const filePath of files) {
-          const meta = await this.parseSessionFile(filePath)
-          if (!meta.id) {
+        const metas = await runAiCliSessionTasks(
+          files.map((filePath) => () => this.parseSessionFile(filePath))
+        )
+        for (const meta of metas) {
+          if (!meta?.id) {
             continue
           }
           list.push({

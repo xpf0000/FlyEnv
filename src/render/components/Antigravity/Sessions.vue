@@ -18,18 +18,18 @@
         </div>
         <el-button
           link
-          :disabled="AntigravitySetup.loading"
+          :disabled="AntigravitySetup.sessionLoading"
           @click="AntigravitySetup.refreshSessions()"
         >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="w-[24px] h-[24px]"
-            :class="{ 'fa-spin': AntigravitySetup.loading }"
+            :class="{ 'fa-spin': AntigravitySetup.sessionLoading }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <div class="w-full h-full overflow-hidden">
+    <div v-loading="AntigravitySetup.sessionLoading" class="w-full h-full overflow-hidden">
       <div class="p-5 h-full overflow-hidden flex flex-col">
         <el-input
           v-model="search"

@@ -18,18 +18,18 @@
         </div>
         <el-button
           link
-          :disabled="CopilotCliSetup.loading"
+          :disabled="CopilotCliSetup.sessionLoading"
           @click="CopilotCliSetup.refreshSessions()"
         >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="w-[24px] h-[24px]"
-            :class="{ 'fa-spin': CopilotCliSetup.loading }"
+            :class="{ 'fa-spin': CopilotCliSetup.sessionLoading }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <div class="w-full h-full overflow-hidden">
+    <div v-loading="CopilotCliSetup.sessionLoading" class="w-full h-full overflow-hidden">
       <div class="p-5 h-full overflow-hidden flex flex-col">
         <el-input
           v-model="search"

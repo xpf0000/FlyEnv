@@ -61,6 +61,8 @@ class CopilotCli {
   installed = false
   version = ''
   loading = false
+  sessionLoading = false
+  private sessionRefreshPromise: Promise<void> | undefined
   deletingSessions = false
   openingSessionDirs = new Set<string>()
 
@@ -175,12 +177,22 @@ class CopilotCli {
   // ========== Sessions ==========
 
   refreshSessions() {
-    IPC.send('app-fork:copilotCli', 'listSessions').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        this.sessions = res?.data ?? []
-      }
+    if (this.sessionRefreshPromise) {
+      return this.sessionRefreshPromise
+    }
+    this.sessionLoading = true
+    this.sessionRefreshPromise = new Promise((resolve) => {
+      IPC.send('app-fork:copilotCli', 'listSessions').then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          this.sessions = res?.data ?? []
+        }
+        this.sessionLoading = false
+        this.sessionRefreshPromise = undefined
+        resolve()
+      })
     })
+    return this.sessionRefreshPromise
   }
 
   deleteSession(sessionId: string) {

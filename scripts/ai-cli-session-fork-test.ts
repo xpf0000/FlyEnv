@@ -38,6 +38,11 @@ for (const module of modules) {
   assert.match(terminalSource, /ExecCommand\.runInTerminal\(terminalCommand\)/)
 }
 
+for (const directory of ['ClaudeCode', 'Codex', 'Kimi']) {
+  const source = readFileSync(join(root, 'src', 'fork', 'module', directory, 'index.ts'), 'utf-8')
+  assert.match(source, /runAiCliSessionTasks\(/)
+}
+
 const deduped = dedupeAiCliSessions([
   { id: 'older', title: 'older', updatedAt: '2026-08-16T10:00:00.000Z' },
   { id: 'same', title: 'old', updatedAt: '2026-08-16T10:00:00.000Z' },

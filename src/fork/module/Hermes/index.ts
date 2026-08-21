@@ -329,7 +329,6 @@ class Hermes extends Base {
       try {
         await execPromiseWithEnv(`${this.hermesBin()} sessions list > "${tmp}" 2>&1`)
         const content: string = (await readFile(tmp, 'utf-8')).trim()
-        console.log('listSessions content: ', content)
         if (content.startsWith('No sessions found')) {
           resolve(list)
           return
@@ -348,7 +347,6 @@ class Hermes extends Base {
         for (const line of lines) {
           const lineTrim = line.trim()
           const parts = lineTrim.split(/\s{3,}/).filter(Boolean)
-          console.log('listSessions parts: ', parts)
           if (parts.length >= 4) {
             const id = parts.pop()
             const src = parts.pop()

@@ -16,16 +16,20 @@
             />
           </el-tooltip>
         </div>
-        <el-button link :disabled="OpenCodeSetup.loading" @click="OpenCodeSetup.refreshSessions()">
+        <el-button
+          link
+          :disabled="OpenCodeSetup.sessionLoading"
+          @click="OpenCodeSetup.refreshSessions()"
+        >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="w-[24px] h-[24px]"
-            :class="{ 'fa-spin': OpenCodeSetup.loading }"
+            :class="{ 'fa-spin': OpenCodeSetup.sessionLoading }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <div class="w-full h-full overflow-hidden">
+    <div v-loading="OpenCodeSetup.sessionLoading" class="w-full h-full overflow-hidden">
       <div class="p-5 h-full overflow-hidden flex flex-col">
         <el-input
           v-model="search"

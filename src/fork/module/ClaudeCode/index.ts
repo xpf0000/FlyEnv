@@ -20,7 +20,7 @@ import {
   resolveAiCliCommand,
   resolveAiCliTerminalCommand
 } from '../../util/AiCli'
-import { dedupeAiCliSessions } from '../../util/AiCliSession'
+import { dedupeAiCliSessions, runAiCliSessionTasks } from '../../util/AiCliSession'
 
 export interface ClaudeCodeSessionItem {
   id: string
@@ -115,6 +115,7 @@ class ClaudeCode extends Base {
           return
         }
         const projects = await readdir(projectsDir)
+        const sessionFiles: Array<{ sessionId: string; filePath: string }> = []
         for (const project of projects) {
           const projectPath = join(projectsDir, project)
           let entries: string[] = []
@@ -128,17 +129,29 @@ class ClaudeCode extends Base {
               continue
             }
             const sessionId = entry.replace(/\.jsonl$/, '')
-            const filePath = join(projectPath, entry)
-            const meta = await this.parseSessionFile(filePath)
-            list.push({
-              id: sessionId,
-              title: meta.title || sessionId,
-              lastPrompt: meta.lastPrompt,
-              workDir: meta.workDir,
-              updatedAt: meta.updatedAt
-            })
+            sessionFiles.push({ sessionId, filePath: join(projectPath, entry) })
           }
         }
+        const metas = await runAiCliSessionTasks(
+          sessionFiles.map(
+            ({ filePath }) =>
+              () =>
+                this.parseSessionFile(filePath)
+          )
+        )
+        metas.forEach((meta, index) => {
+          if (!meta) {
+            return
+          }
+          const { sessionId } = sessionFiles[index]
+          list.push({
+            id: sessionId,
+            title: meta.title || sessionId,
+            lastPrompt: meta.lastPrompt,
+            workDir: meta.workDir,
+            updatedAt: meta.updatedAt
+          })
+        })
       } catch (e) {
         console.log('claudeCode listSessions error: ', e)
       }

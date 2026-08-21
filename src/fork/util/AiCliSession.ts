@@ -1,6 +1,35 @@
+import { TaskQueue } from '@shared/TaskQueue'
+
 export interface AiCliSessionRecord {
   id: string
   updatedAt: string
+}
+
+export async function runAiCliSessionTasks<T>(
+  tasks: Array<() => Promise<T>>
+): Promise<Array<T | undefined>> {
+  const results: Array<T | undefined> = Array.from({ length: tasks.length })
+  if (!tasks.length) {
+    return results
+  }
+
+  return new Promise((resolve) => {
+    new TaskQueue(4)
+      .initQueue(
+        tasks.map((task, index) => ({
+          run: async () => {
+            try {
+              results[index] = await task()
+            } catch {
+              // A malformed or unavailable session file must not fail the whole list.
+            }
+            return true
+          }
+        }))
+      )
+      .end(() => resolve(results))
+      .run()
+  })
 }
 
 function parseUpdatedAt(value: string): number | undefined {

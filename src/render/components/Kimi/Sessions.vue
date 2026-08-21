@@ -16,16 +16,16 @@
             />
           </el-tooltip>
         </div>
-        <el-button link :disabled="KimiSetup.loading" @click="KimiSetup.refreshSessions()">
+        <el-button link :disabled="KimiSetup.sessionLoading" @click="KimiSetup.refreshSessions()">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="w-[24px] h-[24px]"
-            :class="{ 'fa-spin': KimiSetup.loading }"
+            :class="{ 'fa-spin': KimiSetup.sessionLoading }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <div class="w-full h-full overflow-hidden">
+    <div v-loading="KimiSetup.sessionLoading" class="w-full h-full overflow-hidden">
       <template v-if="KimiSetup.installing">
         <div class="w-full h-full overflow-hidden p-5">
           <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>

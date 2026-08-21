@@ -3,16 +3,20 @@
     <template #header>
       <div class="card-header">
         <span>{{ I18nT('common.session.list') }}</span>
-        <el-button link :disabled="HermesSetup.loading" @click="HermesSetup.refreshSessions()">
+        <el-button
+          link
+          :disabled="HermesSetup.sessionLoading"
+          @click="HermesSetup.refreshSessions()"
+        >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
-            :class="{ 'fa-spin': HermesSetup.loading }"
+            :class="{ 'fa-spin': HermesSetup.sessionLoading }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <div class="w-full h-full overflow-hidden">
+    <div v-loading="HermesSetup.sessionLoading" class="w-full h-full overflow-hidden">
       <template v-if="HermesSetup.installing">
         <div class="w-full h-full overflow-hidden p-5">
           <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>

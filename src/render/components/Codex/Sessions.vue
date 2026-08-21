@@ -16,16 +16,16 @@
             />
           </el-tooltip>
         </div>
-        <el-button link :disabled="CodexSetup.loading" @click="CodexSetup.refreshSessions()">
+        <el-button link :disabled="CodexSetup.sessionLoading" @click="CodexSetup.refreshSessions()">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="w-[24px] h-[24px]"
-            :class="{ 'fa-spin': CodexSetup.loading }"
+            :class="{ 'fa-spin': CodexSetup.sessionLoading }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <div class="w-full h-full overflow-hidden">
+    <div v-loading="CodexSetup.sessionLoading" class="w-full h-full overflow-hidden">
       <div class="p-5 h-full overflow-hidden flex flex-col">
         <el-input
           v-model="search"

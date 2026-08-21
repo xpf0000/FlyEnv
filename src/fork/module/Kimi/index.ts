@@ -9,7 +9,7 @@ import { isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { optionalBearerHeaders } from '@shared/aiCliMcp'
 import { checkAiCliVersion, resolveAiCliTerminalCommand } from '../../util/AiCli'
-import { dedupeAiCliSessions } from '../../util/AiCliSession'
+import { dedupeAiCliSessions, runAiCliSessionTasks } from '../../util/AiCliSession'
 
 export interface KimiSessionItem {
   id: string
@@ -236,6 +236,31 @@ class Kimi extends Base {
     })
   }
 
+  private async parseSessionState(
+    sessionId: string,
+    workDir: string,
+    stateFile: string
+  ): Promise<KimiSessionItem> {
+    const session: KimiSessionItem = {
+      id: sessionId,
+      title: sessionId,
+      lastPrompt: '',
+      workDir,
+      updatedAt: ''
+    }
+    try {
+      if (existsSync(stateFile)) {
+        const state = JSON.parse(await readFile(stateFile, 'utf-8'))
+        session.title = state?.title || sessionId
+        session.lastPrompt = state?.lastPrompt || ''
+        session.updatedAt = state?.updatedAt || state?.lastActive || ''
+      }
+    } catch {
+      // Ignore unreadable session state while listing the remaining sessions.
+    }
+    return session
+  }
+
   listSessions() {
     return new ForkPromise(async (resolve) => {
       const list: KimiSessionItem[] = []
@@ -247,6 +272,7 @@ class Kimi extends Base {
           return
         }
         const buckets = await readdir(sessionsDir)
+        const sessionFiles: Array<{ sessionId: string; stateFile: string }> = []
         for (const bucket of buckets) {
           const bucketPath = join(sessionsDir, bucket)
           try {
@@ -256,32 +282,24 @@ class Kimi extends Base {
                 continue
               }
               const sessionDir = join(bucketPath, sessionId)
-              const stateFile = join(sessionDir, 'state.json')
-              let title = sessionId
-              let lastPrompt = ''
-              let updatedAt = ''
-              try {
-                if (existsSync(stateFile)) {
-                  const state = JSON.parse(await readFile(stateFile, 'utf-8'))
-                  title = state?.title || sessionId
-                  lastPrompt = state?.lastPrompt || ''
-                  updatedAt = state?.updatedAt || state?.lastActive || ''
-                }
-              } catch {
-                // ignore
-              }
-              list.push({
-                id: sessionId,
-                title,
-                lastPrompt,
-                workDir: workDirMap[sessionId] || '',
-                updatedAt
-              })
+              sessionFiles.push({ sessionId, stateFile: join(sessionDir, 'state.json') })
             }
           } catch (e) {
             console.log('kimi listSessions bucket error: ', e)
           }
         }
+        const sessions = await runAiCliSessionTasks(
+          sessionFiles.map(
+            ({ sessionId, stateFile }) =>
+              () =>
+                this.parseSessionState(sessionId, workDirMap[sessionId] || '', stateFile)
+          )
+        )
+        sessions.forEach((session) => {
+          if (session) {
+            list.push(session)
+          }
+        })
       } catch (e) {
         console.log('kimi listSessions error: ', e)
       }
