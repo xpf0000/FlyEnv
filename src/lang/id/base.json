@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Beberapa operasi gagal karena memerlukan hak administrator. Hal ini termasuk memodifikasi berkas Hosts, mengakses daftar proses, mengikat ke port di bawah 1024, atau mengelola variabel lingkungan sistem.\nSilakan instal FlyEnv Helper untuk memberikan izin yang diperlukan untuk tugas-tugas ini. Klik \"OK\" untuk melanjutkan instalasi.",
   "targetPlatforms": "Platform target",
   "selectVersion": "Pilih Versi",
-  "webPanelFirstInstall": "{service} perlu diinstal saat pertama kali dijalankan. Proses ini mungkin memerlukan waktu, jadi harap bersabar. Panel manajemen akan terbuka otomatis setelah instalasi selesai."
+  "webPanelFirstInstall": "{service} perlu diinstal saat pertama kali dijalankan. Proses ini mungkin memerlukan waktu, jadi harap bersabar. Panel manajemen akan terbuka otomatis setelah instalasi selesai.",
+  "helperBinaryMissing": "Helper FlyEnv tidak ditemukan. Instal ulang FlyEnv atau perbaiki helper.",
+  "dataDirectoryRecoveryFailed": "FlyEnv tidak dapat memulihkan direktori data. Periksa helper lalu coba lagi."
 }

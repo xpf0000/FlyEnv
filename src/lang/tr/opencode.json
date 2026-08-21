@@ -20,5 +20,28 @@
     "stats": "Belirteç kullanımı ve maliyet istatistiklerini göster",
     "providersList": "Sağlayıcıları ve kimlik bilgilerini listele",
     "agentList": "Tüm kullanılabilir ajanları listele"
+  },
+  "statsLabels": {
+    "overview": "Genel bakış",
+    "sessions": "Oturumlar",
+    "messages": "Mesajlar",
+    "days": "Günler",
+    "costAndTokens": "Maliyet & token",
+    "toolUsage": "Araç kullanımı",
+    "avgCostPerDay": "Ortalama Maliyet/gün",
+    "avgTokensPerSession": "Ortalama token/oturum",
+    "medianTokensPerSession": "Medyan token/oturum",
+    "summary": "Özet",
+    "models": "Modeller",
+    "totalCost": "Toplam Maliyet",
+    "cost": "Maliyet",
+    "totalTokens": "Toplam token",
+    "inputTokens": "Girdi token",
+    "outputTokens": "Çıktı token",
+    "reasoningTokens": "Akıl yürütme token",
+    "cacheReadTokens": "Önbellekten okunan token",
+    "cacheWriteTokens": "Önbelleğe yazılan token",
+    "totalRequests": "Toplam istek",
+    "totalSessions": "Toplam Oturumlar"
   }
 }

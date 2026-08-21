@@ -20,5 +20,28 @@
     "stats": "Покажете статистика за използването на токени и разходите",
     "providersList": "Покажете доставчици и идентификационни данни",
     "agentList": "Покажете всички налични агенти"
+  },
+  "statsLabels": {
+    "overview": "Общ преглед",
+    "sessions": "Сесии",
+    "messages": "Съобщения",
+    "days": "Дни",
+    "costAndTokens": "Разходи & токени",
+    "toolUsage": "Използване на инструменти",
+    "avgCostPerDay": "Средно Разходи/ден",
+    "avgTokensPerSession": "Средно токени/сесия",
+    "medianTokensPerSession": "Медиана токени/сесия",
+    "summary": "Обобщение",
+    "models": "Модели",
+    "totalCost": "Общо Разходи",
+    "cost": "Разходи",
+    "totalTokens": "Общо токени",
+    "inputTokens": "Входни токени",
+    "outputTokens": "Изходни токени",
+    "reasoningTokens": "Разсъждение токени",
+    "cacheReadTokens": "Прочетени от кеша токени",
+    "cacheWriteTokens": "Записани в кеша токени",
+    "totalRequests": "Общо заявки",
+    "totalSessions": "Общо Сесии"
   }
 }

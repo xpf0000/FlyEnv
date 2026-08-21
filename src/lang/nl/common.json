@@ -65,7 +65,9 @@
     "lastPrompt": "Laatste prompt",
     "search": "Sessies zoeken",
     "deleted": "Sessie verwijderd",
-    "resumed": "Sessie hervat in terminal"
+    "resumed": "Sessie hervat in terminal",
+    "newSession": "Nieuwe sessie",
+    "lastSession": "Laatste sessie"
   },
   "mcp": {
     "type": "Type",

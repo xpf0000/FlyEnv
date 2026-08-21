@@ -65,7 +65,9 @@
     "lastPrompt": "最後提示詞",
     "search": "搜尋工作階段",
     "deleted": "工作階段已刪除",
-    "resumed": "已在終端中恢復工作階段"
+    "resumed": "已在終端中恢復工作階段",
+    "newSession": "新工作階段",
+    "lastSession": "上次工作階段"
   },
   "mcp": {
     "type": "類型",

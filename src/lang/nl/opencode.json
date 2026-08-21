@@ -20,5 +20,28 @@
     "stats": "Toon statistieken over tokengebruik en kosten",
     "providersList": "Toon providers en inloggegevens",
     "agentList": "Toon alle beschikbare agents"
+  },
+  "statsLabels": {
+    "overview": "Overzicht",
+    "sessions": "Sessies",
+    "messages": "Berichten",
+    "days": "Dagen",
+    "costAndTokens": "Kosten & tokens",
+    "toolUsage": "Toolgebruik",
+    "avgCostPerDay": "Gemiddeld Kosten/dag",
+    "avgTokensPerSession": "Gemiddeld tokens/sessie",
+    "medianTokensPerSession": "Mediaan tokens/sessie",
+    "summary": "Samenvatting",
+    "models": "Modellen",
+    "totalCost": "Totaal Kosten",
+    "cost": "Kosten",
+    "totalTokens": "Totaal tokens",
+    "inputTokens": "Invoer tokens",
+    "outputTokens": "Uitvoer tokens",
+    "reasoningTokens": "Redenering tokens",
+    "cacheReadTokens": "Uit cache gelezen tokens",
+    "cacheWriteTokens": "Naar cache geschreven tokens",
+    "totalRequests": "Totaal verzoeken",
+    "totalSessions": "Totaal Sessies"
   }
 }

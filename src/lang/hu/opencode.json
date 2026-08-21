@@ -20,5 +20,28 @@
     "stats": "Mutassa meg a tokenhasználat és a költségek statisztikáját",
     "providersList": "Sorolja fel a szolgáltatókat és hitelesítő adatokat",
     "agentList": "Sorolja fel az összes elérhető ügynököt"
+  },
+  "statsLabels": {
+    "overview": "Áttekintés",
+    "sessions": "Munkamenetek",
+    "messages": "Üzenetek",
+    "days": "Napok",
+    "costAndTokens": "Költség & tokenek",
+    "toolUsage": "Eszközhasználat",
+    "avgCostPerDay": "Átlag Költség/nap",
+    "avgTokensPerSession": "Átlag tokenek/munkamenet",
+    "medianTokensPerSession": "Medián tokenek/munkamenet",
+    "summary": "Összegzés",
+    "models": "Modellek",
+    "totalCost": "Összes Költség",
+    "cost": "Költség",
+    "totalTokens": "Összes tokenek",
+    "inputTokens": "Bemeneti tokenek",
+    "outputTokens": "Kimeneti tokenek",
+    "reasoningTokens": "Következtetési tokenek",
+    "cacheReadTokens": "Gyorsítótárból olvasott tokenek",
+    "cacheWriteTokens": "Gyorsítótárba írt tokenek",
+    "totalRequests": "Összes kérés",
+    "totalSessions": "Összes Munkamenetek"
   }
 }

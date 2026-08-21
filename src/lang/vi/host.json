@@ -77,5 +77,10 @@
   "runSetting": "Cài đặt chạy",
   "exec": "Thực thi",
   "runInTerminal": "Chạy trong Terminal",
-  "portSetting": "Cài đặt cổng"
+  "portSetting": "Cài đặt cổng",
+  "tomcatAppBase": "appBase Tomcat",
+  "tomcatContexts": "Ánh xạ ứng dụng",
+  "tomcatContextPath": "Đường dẫn context",
+  "tomcatDocBase": "Đường dẫn ứng dụng",
+  "tomcatRewrite": "Rewrite Tomcat"
 }

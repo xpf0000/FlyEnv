@@ -6,5 +6,11 @@
   "sendMessage": "Nachricht senden",
   "anythingToSay": "Gibt es etwas zu sagen?",
   "noSelected": "Keine Auswahl",
-  "inputFilter": "Eingabe zum Filter"
+  "inputFilter": "Eingabe zum Filter",
+  "about": {
+    "thanks": "Danke, dass Sie FlyEnv verwenden. Bei Fragen oder Vorschlägen können Sie der Community beitreten oder GitHub-Issues einreichen.",
+    "starSponsor": "Wenn FlyEnv Ihnen hilft, geben Sie dem Projekt bitte einen Stern und unterstützen Sie es. Danke!",
+    "github": "GitHub:",
+    "sponsor": "Unterstützen:"
+  }
 }

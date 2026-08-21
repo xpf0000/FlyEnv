@@ -65,7 +65,9 @@
     "lastPrompt": "Letzte Eingabe",
     "search": "Sitzungen durchsuchen",
     "deleted": "Sitzung gelöscht",
-    "resumed": "Sitzung im Terminal fortgesetzt"
+    "resumed": "Sitzung im Terminal fortgesetzt",
+    "newSession": "Neue Sitzung",
+    "lastSession": "Letzte Sitzung"
   },
   "mcp": {
     "type": "Type",

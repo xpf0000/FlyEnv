@@ -50,5 +50,12 @@
   "appFont": "Phông chữ giao diện",
   "appFontTips": "Đặt phông chữ được sử dụng cho giao diện ứng dụng. Để trống để sử dụng phông chữ hệ thống mặc định",
   "codeFont": "Phông chữ mã",
-  "codeFontTips": "Đặt phông chữ được sử dụng cho terminal, trình soạn thảo và các vùng mã khác. Để trống để sử dụng phông chữ monospace mặc định"
+  "codeFontTips": "Đặt phông chữ được sử dụng cho terminal, trình soạn thảo và các vùng mã khác. Để trống để sử dụng phông chữ monospace mặc định",
+  "moduleDescription": {
+    "consul": "Khám phá dịch vụ và cấu hình cho các ứng dụng phân tán.",
+    "etcd": "Kho khóa-giá trị phân tán cho cấu hình và trạng thái dịch vụ.",
+    "rnacos": "Khám phá dịch vụ và quản lý cấu hình tập trung.",
+    "temporal": "Điều phối đáng tin cậy các quy trình ứng dụng và tiến trình chạy dài.",
+    "temporalCli": "Công cụ dòng lệnh để quản lý và tương tác với Temporal."
+  }
 }

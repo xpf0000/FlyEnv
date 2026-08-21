@@ -33,5 +33,9 @@
     "emptyFunction": "الرجاء إدخال اسم الدالة",
     "sameName": "الوظيفة موجودة بالفعل",
     "invalidName": "اسم الدالة غير صالح. يمكن أن يحتوي اسم الدالة فقط على الأحرف والأرقام والشرطات السفلية"
-  }
+  },
+  "fastcgiWorkers": "عمليات FastCGI",
+  "fastcgiWorkerCount": "عدد العمال",
+  "fastcgiWorkerInvalid": "أدخل عددًا صحيحًا من {min} إلى {max}.",
+  "fastcgiWorkerRestart": "إعادة تشغيل خدمة PHP الآن لتطبيق عدد عمال FastCGI الجديد؟"
 }

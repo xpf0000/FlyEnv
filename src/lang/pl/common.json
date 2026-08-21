@@ -65,7 +65,9 @@
     "lastPrompt": "Ostatni prompt",
     "search": "Szukaj sesji",
     "deleted": "Sesja została usunięta",
-    "resumed": "Sesję wznowiono w terminalu"
+    "resumed": "Sesję wznowiono w terminalu",
+    "newSession": "Nowa sesja",
+    "lastSession": "Ostatnia sesja"
   },
   "mcp": {
     "type": "Type",

@@ -97,5 +97,7 @@
   "needInstallHelperTips": "當前操作執行失敗，原因是部分核心功能（如修改 Hosts 檔案、取得處理程序清單、使用 1024 以下通訊埠、讀寫系統變數等）需要管理員權限。\n請安裝 FlyEnv 輔助程式以完成授權。點擊「確定」立即開始安裝。",
   "targetPlatforms": "目標平台",
   "selectVersion": "選擇版本",
-  "webPanelFirstInstall": "首次執行需要安裝 {service}，安裝過程可能需要一些時間，請耐心等候。安裝完成後將自動開啟管理面板。"
+  "webPanelFirstInstall": "首次執行需要安裝 {service}，安裝過程可能需要一些時間，請耐心等候。安裝完成後將自動開啟管理面板。",
+  "helperBinaryMissing": "FlyEnv 輔助程式遺失，請重新安裝 FlyEnv 或修復輔助程式。",
+  "dataDirectoryRecoveryFailed": "FlyEnv 無法還原資料目錄，請檢查輔助程式後重試。"
 }

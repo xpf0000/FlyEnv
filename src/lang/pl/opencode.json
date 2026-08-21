@@ -20,5 +20,28 @@
     "stats": "Pokaz statystyki zuzycia tokenow i kosztow",
     "providersList": "Wyswietl dostawcow i dane logowania",
     "agentList": "Wyswietl wszystkich dostepnych agentow"
+  },
+  "statsLabels": {
+    "overview": "Przegląd",
+    "sessions": "Sesje",
+    "messages": "Wiadomości",
+    "days": "Dni",
+    "costAndTokens": "Koszt & tokeny",
+    "toolUsage": "Użycie narzędzi",
+    "avgCostPerDay": "Średni Koszt/dzień",
+    "avgTokensPerSession": "Średni tokeny/sesja",
+    "medianTokensPerSession": "Mediana tokeny/sesja",
+    "summary": "Podsumowanie",
+    "models": "Modele",
+    "totalCost": "Łącznie Koszt",
+    "cost": "Koszt",
+    "totalTokens": "Łącznie tokeny",
+    "inputTokens": "Wejściowe tokeny",
+    "outputTokens": "Wyjściowe tokeny",
+    "reasoningTokens": "Rozumowanie tokeny",
+    "cacheReadTokens": "Odczytane z pamięci podręcznej tokeny",
+    "cacheWriteTokens": "Zapisane w pamięci podręcznej tokeny",
+    "totalRequests": "Łącznie żądania",
+    "totalSessions": "Łącznie Sesje"
   }
 }

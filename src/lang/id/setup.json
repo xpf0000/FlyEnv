@@ -50,5 +50,12 @@
   "appFont": "Font Antarmuka",
   "appFontTips": "Atur font yang digunakan untuk antarmuka aplikasi. Biarkan kosong untuk menggunakan font sistem default",
   "codeFont": "Font Kode",
-  "codeFontTips": "Atur font yang digunakan untuk terminal, editor, dan area kode lainnya. Biarkan kosong untuk menggunakan font monospace default"
+  "codeFontTips": "Atur font yang digunakan untuk terminal, editor, dan area kode lainnya. Biarkan kosong untuk menggunakan font monospace default",
+  "moduleDescription": {
+    "consul": "Penemuan layanan dan konfigurasi untuk aplikasi terdistribusi.",
+    "etcd": "Penyimpanan kunci-nilai terdistribusi untuk konfigurasi dan status layanan.",
+    "rnacos": "Penemuan layanan dan pengelolaan konfigurasi terpusat.",
+    "temporal": "Orkestrasi alur kerja aplikasi dan proses jangka panjang yang andal.",
+    "temporalCli": "Alat baris perintah untuk mengelola dan berinteraksi dengan Temporal."
+  }
 }

@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Certaines opérations ont échoué car les privilèges d'administration sont nécessaires. Cela inclut la modification du fichier hôtes, l'accès à la liste des processus, la liaison aux ports inférieurs à 1024, ou la gestion des variables d'environnement système.\nVeuillez installer le FlyEnv Helper pour accorder les autorisations nécessaires à ces tâches. Cliquez sur \"OK\" pour procéder à l'installation.",
   "targetPlatforms": "Plateformes cibles",
   "selectVersion": "Sélectionner une version",
-  "webPanelFirstInstall": "{service} doit être installé lors de sa première exécution. Cela peut prendre un certain temps, veuillez patienter. Le panneau de gestion s'ouvrira automatiquement une fois l'installation terminée."
+  "webPanelFirstInstall": "{service} doit être installé lors de sa première exécution. Cela peut prendre un certain temps, veuillez patienter. Le panneau de gestion s'ouvrira automatiquement une fois l'installation terminée.",
+  "helperBinaryMissing": "L'assistant FlyEnv est manquant. Réinstallez FlyEnv ou réparez l'assistant.",
+  "dataDirectoryRecoveryFailed": "FlyEnv n'a pas pu restaurer le dossier de données. Vérifiez l'assistant et réessayez."
 }

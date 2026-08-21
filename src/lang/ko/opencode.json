@@ -20,5 +20,28 @@
     "stats": "토큰 사용량 및 비용 통계 보기",
     "providersList": "제공자와 자격 증명 목록 보기",
     "agentList": "사용 가능한 모든 에이전트 목록 보기"
+  },
+  "statsLabels": {
+    "overview": "개요",
+    "sessions": "세션",
+    "messages": "메시지",
+    "days": "일수",
+    "costAndTokens": "비용 & 토큰",
+    "toolUsage": "도구 사용량",
+    "avgCostPerDay": "평균 비용/일",
+    "avgTokensPerSession": "평균 토큰/세션",
+    "medianTokensPerSession": "중앙값 토큰/세션",
+    "summary": "요약",
+    "models": "모델",
+    "totalCost": "총 비용",
+    "cost": "비용",
+    "totalTokens": "총 토큰",
+    "inputTokens": "입력 토큰",
+    "outputTokens": "출력 토큰",
+    "reasoningTokens": "추론 토큰",
+    "cacheReadTokens": "캐시 읽기 토큰",
+    "cacheWriteTokens": "캐시 쓰기 토큰",
+    "totalRequests": "총 요청",
+    "totalSessions": "총 세션"
   }
 }

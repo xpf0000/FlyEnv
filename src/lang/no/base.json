@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Noen operasjoner mislyktes fordi administratorrettigheter kreves. Dette omfatter endring av verts-filen, tilgang til prosesslisten, binding til porter under 1024 eller styring av systemmiljøvariabler.\nInstaller FlyEnv Helper for å gi de nødvendige tillatelsene for disse oppgavene. Klikk \"OK\" for å fortsette installasjonen.",
   "targetPlatforms": "Mål plattformer",
   "selectVersion": "Velg versjon",
-  "webPanelFirstInstall": "{service} må installeres første gang det kjøres. Dette kan ta litt tid, så vennligst vent. Administrasjonspanelet åpnes automatisk når installasjonen er fullført."
+  "webPanelFirstInstall": "{service} må installeres første gang det kjøres. Dette kan ta litt tid, så vennligst vent. Administrasjonspanelet åpnes automatisk når installasjonen er fullført.",
+  "helperBinaryMissing": "FlyEnv-hjelperen mangler. Installer FlyEnv på nytt eller reparer hjelperen.",
+  "dataDirectoryRecoveryFailed": "FlyEnv kunne ikke gjenopprette datamappen. Kontroller hjelperen og prøv igjen."
 }

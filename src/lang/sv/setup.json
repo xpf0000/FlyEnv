@@ -50,5 +50,12 @@
   "appFont": "UI-typsnitt",
   "appFontTips": "Ange typsnitt som används för programgränssnittet. Lämna tomt för att använda systemets standardtypsnitt",
   "codeFont": "Kodtypsnitt",
-  "codeFontTips": "Ange typsnitt som används för terminal, editor och andra kodområden. Lämna tomt för att använda standardtypsnitt för monospace"
+  "codeFontTips": "Ange typsnitt som används för terminal, editor och andra kodområden. Lämna tomt för att använda standardtypsnitt för monospace",
+  "moduleDescription": {
+    "consul": "Tjänsteidentifiering och konfiguration för distribuerade program.",
+    "etcd": "Distribuerat nyckel-värdelager för tjänstekonfiguration och tillstånd.",
+    "rnacos": "Tjänsteidentifiering och centraliserad konfigurationshantering.",
+    "temporal": "Tillförlitlig orkestrering av programarbetsflöden och långvariga processer.",
+    "temporalCli": "Kommandoradsverktyg för att hantera och interagera med Temporal."
+  }
 }

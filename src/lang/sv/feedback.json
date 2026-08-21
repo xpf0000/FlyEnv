@@ -6,5 +6,11 @@
   "sendMessage": "Skicka meddelande",
   "anythingToSay": "Något att säga",
   "noSelected": "Inget valt",
-  "inputFilter": "Skriv för att filtrera"
+  "inputFilter": "Skriv för att filtrera",
+  "about": {
+    "thanks": "Tack för att du använder FlyEnv. Om du har frågor eller förslag kan du delta i communityn eller skicka in ett GitHub-ärende.",
+    "starSponsor": "Om FlyEnv är användbart för dig kan du ge projektet en stjärna och stödja det. Tack!",
+    "github": "GitHub:",
+    "sponsor": "Sponsra:"
+  }
 }

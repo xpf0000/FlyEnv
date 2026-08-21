@@ -50,5 +50,12 @@
   "appFont": "Fonte da interface",
   "appFontTips": "Definir a fonte usada para a interface do usuário do aplicativo. Deixe em branco para usar a fonte padrão do sistema",
   "codeFont": "Fonte do código",
-  "codeFontTips": "Definir a fonte usada para áreas de código, editor e outros códigos. Deixe em branco para usar a fonte monospace padrão"
+  "codeFontTips": "Definir a fonte usada para áreas de código, editor e outros códigos. Deixe em branco para usar a fonte monospace padrão",
+  "moduleDescription": {
+    "consul": "Descoberta de serviços e configuração para aplicações distribuídas.",
+    "etcd": "Armazenamento distribuído de chave-valor para configuração e estado dos serviços.",
+    "rnacos": "Descoberta de serviços e gerenciamento centralizado da configuração.",
+    "temporal": "Orquestração confiável de fluxos de trabalho e processos de longa duração.",
+    "temporalCli": "Ferramenta de linha de comando para gerenciar e interagir com o Temporal."
+  }
 }

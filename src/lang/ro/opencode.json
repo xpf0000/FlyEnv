@@ -20,5 +20,28 @@
     "stats": "Afisati statisticile de utilizare a tokenurilor si costurilor",
     "providersList": "Listati furnizorii si credentialele",
     "agentList": "Listati toti agentii disponibili"
+  },
+  "statsLabels": {
+    "overview": "Prezentare generală",
+    "sessions": "Sesiuni",
+    "messages": "Mesaje",
+    "days": "Zile",
+    "costAndTokens": "Cost & tokeni",
+    "toolUsage": "Utilizarea instrumentelor",
+    "avgCostPerDay": "Medie Cost/zi",
+    "avgTokensPerSession": "Medie tokeni/sesiune",
+    "medianTokensPerSession": "Mediană tokeni/sesiune",
+    "summary": "Rezumat",
+    "models": "Modele",
+    "totalCost": "Total Cost",
+    "cost": "Cost",
+    "totalTokens": "Total tokeni",
+    "inputTokens": "Intrare tokeni",
+    "outputTokens": "Ieșire tokeni",
+    "reasoningTokens": "Raționament tokeni",
+    "cacheReadTokens": "Citite din cache tokeni",
+    "cacheWriteTokens": "Scrise în cache tokeni",
+    "totalRequests": "Total solicitări",
+    "totalSessions": "Total Sesiuni"
   }
 }

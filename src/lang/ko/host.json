@@ -77,5 +77,10 @@
   "runSetting": "실행 설정",
   "exec": "실행",
   "runInTerminal": "터미널에서 실행",
-  "portSetting": "포트 설정"
+  "portSetting": "포트 설정",
+  "tomcatAppBase": "Tomcat appBase",
+  "tomcatContexts": "애플리케이션 매핑",
+  "tomcatContextPath": "컨텍스트 경로",
+  "tomcatDocBase": "애플리케이션 경로",
+  "tomcatRewrite": "Tomcat 재작성"
 }

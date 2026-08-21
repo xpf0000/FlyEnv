@@ -33,5 +33,9 @@
     "emptyFunction": "Kérjük, adja meg a függvény nevét",
     "sameName": "A függvény már létezik",
     "invalidName": "Érvénytelen függvénynév. A függvénynév csak betűket, számokat és aláhúzásjeleket tartalmazhat"
-  }
+  },
+  "fastcgiWorkers": "FastCGI-munkafolyamatok",
+  "fastcgiWorkerCount": "Munkafolyamatok száma",
+  "fastcgiWorkerInvalid": "Adjon meg egy egész számot {min} és {max} között.",
+  "fastcgiWorkerRestart": "Újraindítja most a PHP-szolgáltatást az új FastCGI-munkafolyamatszám alkalmazásához?"
 }

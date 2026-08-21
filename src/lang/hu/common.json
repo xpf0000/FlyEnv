@@ -65,7 +65,9 @@
     "lastPrompt": "Utolsó prompt",
     "search": "Munkamenetek keresése",
     "deleted": "A munkamenet törölve",
-    "resumed": "A munkamenet a terminálban folytatódott"
+    "resumed": "A munkamenet a terminálban folytatódott",
+    "newSession": "Új munkamenet",
+    "lastSession": "Legutóbbi munkamenet"
   },
   "mcp": {
     "type": "Type",

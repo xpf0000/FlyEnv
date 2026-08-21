@@ -77,5 +77,10 @@
   "runSetting": "Lancer les paramètres",
   "exec": "Exécuter",
   "runInTerminal": "Exécuter dans le Terminal",
-  "portSetting": "Paramètres du Port"
+  "portSetting": "Paramètres du Port",
+  "tomcatAppBase": "répertoire appBase de Tomcat",
+  "tomcatContexts": "mappages d’applications",
+  "tomcatContextPath": "chemin de contexte",
+  "tomcatDocBase": "chemin de l’application",
+  "tomcatRewrite": "réécriture Tomcat"
 }

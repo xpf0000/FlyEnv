@@ -77,5 +77,10 @@
   "runSetting": "Kør Indstillinger",
   "exec": "Udfør",
   "runInTerminal": "Kør i terminal",
-  "portSetting": "Port Indstillinger"
+  "portSetting": "Port Indstillinger",
+  "tomcatAppBase": "Tomcat appBase",
+  "tomcatContexts": "Applikationskortlægninger",
+  "tomcatContextPath": "Kontekststi",
+  "tomcatDocBase": "Programsti",
+  "tomcatRewrite": "Tomcat-omskrivning"
 }

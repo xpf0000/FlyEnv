@@ -20,5 +20,28 @@
     "stats": "Token istifadesi ve xerc statistikasini goster",
     "providersList": "Provayderleri ve giris melumatlarini siyahila",
     "agentList": "Butun movcud agentleri siyahila"
+  },
+  "statsLabels": {
+    "overview": "Ümumi baxış",
+    "sessions": "Sessiyalar",
+    "messages": "Mesajlar",
+    "days": "Günlər",
+    "costAndTokens": "Xərc & tokenlər",
+    "toolUsage": "Alət istifadəsi",
+    "avgCostPerDay": "Orta Xərc/gün",
+    "avgTokensPerSession": "Orta tokenlər/sessiya",
+    "medianTokensPerSession": "Median tokenlər/sessiya",
+    "summary": "Xülasə",
+    "models": "Modellər",
+    "totalCost": "Ümumi Xərc",
+    "cost": "Xərc",
+    "totalTokens": "Ümumi tokenlər",
+    "inputTokens": "Daxil olan tokenlər",
+    "outputTokens": "Çıxan tokenlər",
+    "reasoningTokens": "Mühakimə tokenlər",
+    "cacheReadTokens": "Keşdən oxunan tokenlər",
+    "cacheWriteTokens": "Keşə yazılan tokenlər",
+    "totalRequests": "Ümumi sorğular",
+    "totalSessions": "Ümumi Sessiyalar"
   }
 }

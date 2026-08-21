@@ -82,10 +82,5 @@
   "tomcatContexts": "نگاشت‌های برنامه (Application Mappings)",
   "tomcatContextPath": "مسیر Context",
   "tomcatDocBase": "مسیر برنامه (docBase)",
-  "tomcatAddContext": "افزودن نگاشت",
-  "tomcatRewrite": "تغییر مسیر تام‌کت (Rewrite)",
-  "tomcatRewriteContent": "محتوای rewrite.config",
-  "tomcatContextPathInvalid": "یک مسیر Context معتبر که با / شروع می‌شود وارد کنید",
-  "tomcatDocBaseRequired": "یک دایرکتوری برنامه یا فایل WAR انتخاب کنید",
-  "tomcatNameConflict": "این دامنه یا نام مستعار قبلا توسط سایت تام‌کت دیگری استفاده شده است"
+  "tomcatRewrite": "تغییر مسیر تام‌کت (Rewrite)"
 }

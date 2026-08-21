@@ -77,5 +77,10 @@
   "runSetting": "Nastavení spuštění",
   "exec": "Spustit",
   "runInTerminal": "Spustit v terminálu",
-  "portSetting": "Nastavení portu"
+  "portSetting": "Nastavení portu",
+  "tomcatAppBase": "appBase Tomcatu",
+  "tomcatContexts": "Mapování aplikací",
+  "tomcatContextPath": "Cesta kontextu",
+  "tomcatDocBase": "Cesta aplikace",
+  "tomcatRewrite": "Přepisování Tomcat"
 }

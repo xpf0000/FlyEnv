@@ -33,5 +33,9 @@
     "emptyFunction": "Inserisci il nome della funzione",
     "sameName": "Funzione già esistente",
     "invalidName": "Nome funzione non valido. Il nome della funzione può contenere solo lettere, numeri e trattini bassi"
-  }
+  },
+  "fastcgiWorkers": "Worker FastCGI",
+  "fastcgiWorkerCount": "Numero di worker",
+  "fastcgiWorkerInvalid": "Inserisci un numero intero da {min} a {max}.",
+  "fastcgiWorkerRestart": "Riavviare ora questo servizio PHP per applicare il nuovo numero di worker FastCGI?"
 }

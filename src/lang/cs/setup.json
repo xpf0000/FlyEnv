@@ -50,5 +50,12 @@
   "appFont": "Písmo rozhraní",
   "appFontTips": "Nastavte písmo používané pro rozhraní aplikace. Ponechte prázdné pro použití výchozího systémového písma",
   "codeFont": "Písmo kódu",
-  "codeFontTips": "Nastavte písmo používané pro terminál, editor a další oblasti kódů. Ponechte prázdné pro použití výchozího písma monospace"
+  "codeFontTips": "Nastavte písmo používané pro terminál, editor a další oblasti kódů. Ponechte prázdné pro použití výchozího písma monospace",
+  "moduleDescription": {
+    "consul": "Zjišťování služeb a konfigurace pro distribuované aplikace.",
+    "etcd": "Distribuované úložiště klíč-hodnota pro konfiguraci a stav služby.",
+    "rnacos": "Zjišťování služeb a centralizovaná správa konfigurace.",
+    "temporal": "Spolehlivá orchestrace pracovních postupů a dlouhotrvajících procesů aplikací.",
+    "temporalCli": "Nástroj příkazového řádku pro správu a práci s Temporalem."
+  }
 }

@@ -65,7 +65,9 @@
     "lastPrompt": "Son sorğu",
     "search": "Sessiyalarda axtar",
     "deleted": "Sessiya silindi",
-    "resumed": "Sessiya terminalda bərpa edildi"
+    "resumed": "Sessiya terminalda bərpa edildi",
+    "newSession": "Yeni sessiya",
+    "lastSession": "Son sessiya"
   },
   "mcp": {
     "type": "Type",

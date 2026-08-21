@@ -77,5 +77,10 @@
   "runSetting": "Ajustes de ejecución",
   "exec": "Ejecutar",
   "runInTerminal": "Ejecutar en terminal",
-  "portSetting": "Ajustes del puerto"
+  "portSetting": "Ajustes del puerto",
+  "tomcatAppBase": "appBase de Tomcat",
+  "tomcatContexts": "Asignaciones de aplicaciones",
+  "tomcatContextPath": "Ruta de contexto",
+  "tomcatDocBase": "Ruta de aplicación",
+  "tomcatRewrite": "Rewrite de Tomcat"
 }

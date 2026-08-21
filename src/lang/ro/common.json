@@ -65,7 +65,9 @@
     "lastPrompt": "Ultimul prompt",
     "search": "Caută sesiuni",
     "deleted": "Sesiunea a fost ștearsă",
-    "resumed": "Sesiunea a fost reluată în terminal"
+    "resumed": "Sesiunea a fost reluată în terminal",
+    "newSession": "Sesiune nouă",
+    "lastSession": "Ultima sesiune"
   },
   "mcp": {
     "type": "Type",

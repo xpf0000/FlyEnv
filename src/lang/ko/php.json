@@ -33,5 +33,9 @@
     "emptyFunction": "함수 이름을 입력하세요",
     "sameName": "이미 존재하는 함수입니다",
     "invalidName": "유효하지 않은 함수 이름입니다. 함수 이름은 영문자, 숫자, 밑줄(_)만 사용할 수 있습니다"
-  }
+  },
+  "fastcgiWorkers": "FastCGI 워커",
+  "fastcgiWorkerCount": "워커 수",
+  "fastcgiWorkerInvalid": "{min}에서 {max} 사이의 정수를 입력하세요.",
+  "fastcgiWorkerRestart": "새 FastCGI 워커 수를 적용하기 위해 지금 PHP 서비스를 다시 시작할까요?"
 }

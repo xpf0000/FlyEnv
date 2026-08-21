@@ -20,5 +20,28 @@
     "stats": "顯示 token 使用量與成本統計",
     "providersList": "列出提供者與憑證",
     "agentList": "列出所有可用代理"
+  },
+  "statsLabels": {
+    "overview": "概覽",
+    "sessions": "工作階段",
+    "messages": "訊息",
+    "days": "天數",
+    "costAndTokens": "費用 & Token",
+    "toolUsage": "工具使用情況",
+    "avgCostPerDay": "平均 費用/天",
+    "avgTokensPerSession": "平均 Token/工作階段",
+    "medianTokensPerSession": "中位數 Token/工作階段",
+    "summary": "摘要",
+    "models": "模型",
+    "totalCost": "總計 費用",
+    "cost": "費用",
+    "totalTokens": "總計 Token",
+    "inputTokens": "輸入 Token",
+    "outputTokens": "輸出 Token",
+    "reasoningTokens": "推理 Token",
+    "cacheReadTokens": "快取讀取 Token",
+    "cacheWriteTokens": "快取寫入 Token",
+    "totalRequests": "總計 要求",
+    "totalSessions": "總計 工作階段"
   }
 }

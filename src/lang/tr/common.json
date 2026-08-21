@@ -65,7 +65,9 @@
     "lastPrompt": "Son İstem",
     "search": "Oturumlarda ara",
     "deleted": "Oturum silindi",
-    "resumed": "Oturum terminalde sürdürüldü"
+    "resumed": "Oturum terminalde sürdürüldü",
+    "newSession": "Yeni oturum",
+    "lastSession": "Son oturum"
   },
   "mcp": {
     "type": "Tür",

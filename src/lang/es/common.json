@@ -65,7 +65,9 @@
     "lastPrompt": "Último prompt",
     "search": "Buscar sesiones",
     "deleted": "Sesión eliminada",
-    "resumed": "Sesión reanudada en la terminal"
+    "resumed": "Sesión reanudada en la terminal",
+    "newSession": "Nueva sesión",
+    "lastSession": "Última sesión"
   },
   "mcp": {
     "type": "Type",

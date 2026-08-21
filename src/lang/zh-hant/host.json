@@ -77,5 +77,10 @@
   "runSetting": "執行設定",
   "exec": "執行",
   "runInTerminal": "在終端中執行",
-  "portSetting": "通訊埠設定"
+  "portSetting": "通訊埠設定",
+  "tomcatAppBase": "Tomcat 應用程式基礎目錄",
+  "tomcatContexts": "應用程式對映",
+  "tomcatContextPath": "Context 路徑",
+  "tomcatDocBase": "應用程式路徑（docBase）",
+  "tomcatRewrite": "Tomcat 重寫規則"
 }

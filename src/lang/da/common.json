@@ -65,7 +65,9 @@
     "lastPrompt": "Seneste prompt",
     "search": "Søg i sessioner",
     "deleted": "Session slettet",
-    "resumed": "Session genoptaget i terminalen"
+    "resumed": "Session genoptaget i terminalen",
+    "newSession": "Ny session",
+    "lastSession": "Seneste session"
   },
   "mcp": {
     "type": "Type",

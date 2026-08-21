@@ -50,5 +50,12 @@
   "appFont": "Schriftart der Oberfläche",
   "appFontTips": "Schriftart für die Benutzeroberfläche festlegen. Leer lassen, um die Standard-Systemschriftart zu verwenden",
   "codeFont": "Code-Schriftart",
-  "codeFontTips": "Schriftart für Terminal, Editor und andere Codebereiche festlegen. Leer lassen, um die Standard-Monospace-Schriftart zu verwenden"
+  "codeFontTips": "Schriftart für Terminal, Editor und andere Codebereiche festlegen. Leer lassen, um die Standard-Monospace-Schriftart zu verwenden",
+  "moduleDescription": {
+    "consul": "Dienstermittlung und Konfiguration für verteilte Anwendungen.",
+    "etcd": "Verteiltes Schlüssel-Wert-Speicher für Dienstkonfiguration und -status.",
+    "rnacos": "Dienstermittlung und zentrale Konfigurationsverwaltung.",
+    "temporal": "Zuverlässige Orchestrierung von Anwendungs-Workflows und lang laufenden Prozessen.",
+    "temporalCli": "Befehlszeilenwerkzeug zur Verwaltung und Interaktion mit Temporal."
+  }
 }

@@ -33,5 +33,9 @@
     "emptyFunction": "لطفاً نام تابع را وارد کنید",
     "sameName": "تابع از قبل وجود دارد",
     "invalidName": "نام تابع نامعتبر است. نام تابع فقط می‌تواند شامل حروف، اعداد و زیرخط باشد"
-  }
+  },
+  "fastcgiWorkers": "پردازشگرهای FastCGI",
+  "fastcgiWorkerCount": "تعداد پردازشگرها",
+  "fastcgiWorkerInvalid": "یک عدد صحیح بین {min} و {max} وارد کنید.",
+  "fastcgiWorkerRestart": "برای اعمال تعداد جدید پردازشگرهای FastCGI، سرویس PHP اکنون بازراه‌اندازی شود؟"
 }

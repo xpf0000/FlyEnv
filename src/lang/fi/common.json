@@ -65,7 +65,9 @@
     "lastPrompt": "Viimeisin kehote",
     "search": "Etsi istuntoja",
     "deleted": "Istunto poistettu",
-    "resumed": "Istunto jatkettiin terminaalissa"
+    "resumed": "Istunto jatkettiin terminaalissa",
+    "newSession": "Uusi istunto",
+    "lastSession": "Viimeisin istunto"
   },
   "mcp": {
     "type": "Type",

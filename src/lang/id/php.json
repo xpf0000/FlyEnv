@@ -33,5 +33,9 @@
     "emptyFunction": "Silakan masukkan nama fungsi",
     "sameName": "Fungsi sudah ada",
     "invalidName": "Nama fungsi tidak valid. Nama fungsi hanya boleh berisi huruf, angka, dan garis bawah"
-  }
+  },
+  "fastcgiWorkers": "Worker FastCGI",
+  "fastcgiWorkerCount": "Jumlah worker",
+  "fastcgiWorkerInvalid": "Masukkan bilangan bulat dari {min} hingga {max}.",
+  "fastcgiWorkerRestart": "Mulai ulang layanan PHP sekarang untuk menerapkan jumlah worker FastCGI yang baru?"
 }

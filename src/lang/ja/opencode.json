@@ -20,5 +20,28 @@
     "stats": "トークン使用量とコストの統計を表示",
     "providersList": "プロバイダーと認証情報を一覧表示",
     "agentList": "利用可能なすべてのエージェントを一覧表示"
+  },
+  "statsLabels": {
+    "overview": "概要",
+    "sessions": "セッション",
+    "messages": "メッセージ",
+    "days": "日数",
+    "costAndTokens": "コスト & トークン",
+    "toolUsage": "ツール使用状況",
+    "avgCostPerDay": "平均 コスト/日",
+    "avgTokensPerSession": "平均 トークン/セッション",
+    "medianTokensPerSession": "中央値 トークン/セッション",
+    "summary": "概要",
+    "models": "モデル",
+    "totalCost": "合計 コスト",
+    "cost": "コスト",
+    "totalTokens": "合計 トークン",
+    "inputTokens": "入力 トークン",
+    "outputTokens": "出力 トークン",
+    "reasoningTokens": "推論 トークン",
+    "cacheReadTokens": "キャッシュ読み取り トークン",
+    "cacheWriteTokens": "キャッシュ書き込み トークン",
+    "totalRequests": "合計 リクエスト",
+    "totalSessions": "合計 セッション"
   }
 }

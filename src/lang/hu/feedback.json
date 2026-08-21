@@ -6,5 +6,11 @@
   "sendMessage": "Üzenet küldése",
   "anythingToSay": "Van mondanivalója?",
   "noSelected": "Nincs kiválasztva",
-  "inputFilter": "Szűrőbeviteli mező"
+  "inputFilter": "Szűrőbeviteli mező",
+  "about": {
+    "thanks": "Köszönjük, hogy a FlyEnv-et használja. Kérdésekkel vagy javaslatokkal csatlakozzon a közösséghez, vagy küldjön GitHub-issue-t.",
+    "starSponsor": "Ha hasznosnak találja a FlyEnv-et, csillagozza meg és támogassa a projektet. Köszönjük!",
+    "github": "GitHub:",
+    "sponsor": "Támogatás:"
+  }
 }

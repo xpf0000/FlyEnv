@@ -6,5 +6,11 @@
   "sendMessage": "Lähetä Viesti",
   "anythingToSay": "Kaikki mitä sanottavaa",
   "noSelected": "Ei Valittu",
-  "inputFilter": "Sisääntulo Suodattamaan"
+  "inputFilter": "Sisääntulo Suodattamaan",
+  "about": {
+    "thanks": "Kiitos, että käytät FlyEnviä. Jos sinulla on kysymyksiä tai ehdotuksia, liity yhteisöön tai lähetä GitHub-issue.",
+    "starSponsor": "Jos FlyEnv on sinulle hyödyllinen, anna projektille tähti ja tue sitä. Kiitos!",
+    "github": "GitHub:",
+    "sponsor": "Sponsoroi:"
+  }
 }

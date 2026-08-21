@@ -20,5 +20,28 @@
     "stats": "Vis statistikk for tokenbruk og kostnader",
     "providersList": "List leverandorer og legitimasjon",
     "agentList": "List alle tilgjengelige agenter"
+  },
+  "statsLabels": {
+    "overview": "Oversikt",
+    "sessions": "Økter",
+    "messages": "Meldinger",
+    "days": "Dager",
+    "costAndTokens": "Kostnad & symboler",
+    "toolUsage": "Verktøybruk",
+    "avgCostPerDay": "Gjennomsnitt Kostnad/dag",
+    "avgTokensPerSession": "Gjennomsnitt symboler/økt",
+    "medianTokensPerSession": "Median symboler/økt",
+    "summary": "Sammendrag",
+    "models": "Modeller",
+    "totalCost": "Totalt Kostnad",
+    "cost": "Kostnad",
+    "totalTokens": "Totalt symboler",
+    "inputTokens": "Inndata symboler",
+    "outputTokens": "Utdata symboler",
+    "reasoningTokens": "Resonnering symboler",
+    "cacheReadTokens": "Lest fra hurtigbuffer symboler",
+    "cacheWriteTokens": "Skrevet til hurtigbuffer symboler",
+    "totalRequests": "Totalt forespørsler",
+    "totalSessions": "Totalt Økter"
   }
 }

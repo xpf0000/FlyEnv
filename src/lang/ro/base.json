@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Unele operații au eșuat deoarece privilegiile de administrator sunt necesare. Aceasta include modificarea fişierului Gazde, accesarea listei procesului, legarea de porturile de sub 1024 sau gestionarea variabilelor de mediu ale sistemului.\nVă rugăm să instalați Helper-ul FlyEnv pentru a acorda permisiunile necesare pentru aceste sarcini. Faceți clic pe \"OK\" pentru a continua instalarea.",
   "targetPlatforms": "Platforme țintă",
   "selectVersion": "Selectați versiunea",
-  "webPanelFirstInstall": "{service} trebuie instalat la prima rulare. Acest lucru poate dura ceva timp, așa că vă rugăm să aveți răbdare. Panoul de administrare se va deschide automat după finalizarea instalării."
+  "webPanelFirstInstall": "{service} trebuie instalat la prima rulare. Acest lucru poate dura ceva timp, așa că vă rugăm să aveți răbdare. Panoul de administrare se va deschide automat după finalizarea instalării.",
+  "helperBinaryMissing": "Lipsește utilitarul FlyEnv. Reinstalați FlyEnv sau reparați utilitarul.",
+  "dataDirectoryRecoveryFailed": "FlyEnv nu a putut restaura directorul de date. Verificați utilitarul și încercați din nou."
 }

@@ -77,5 +77,10 @@
   "runSetting": "İşləmə Parametrləri",
   "exec": "İcra et",
   "runInTerminal": "Terminalda işlət",
-  "portSetting": "Port Parametrləri"
+  "portSetting": "Port Parametrləri",
+  "tomcatAppBase": "Tomcat appBase",
+  "tomcatContexts": "Tətbiq xəritələri",
+  "tomcatContextPath": "Context yolu",
+  "tomcatDocBase": "Tətbiq yolu",
+  "tomcatRewrite": "Tomcat yenidən yazması"
 }

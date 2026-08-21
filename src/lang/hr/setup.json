@@ -50,5 +50,12 @@
   "appFont": "Font Korisničkog Sučelja",
   "appFontTips": "Postavi font koji se koristi za korisničko sučelje aplikacije. Ostavite prazno za korištenje zadanog sistemskog fonta",
   "codeFont": "Font Koda",
-  "codeFontTips": "Postavi font koji se koristi za terminal, uređivač i ostala područja koda. Ostavite prazno za korištenje zadanog monospace fonta"
+  "codeFontTips": "Postavi font koji se koristi za terminal, uređivač i ostala područja koda. Ostavite prazno za korištenje zadanog monospace fonta",
+  "moduleDescription": {
+    "consul": "Otkrivanje usluga i konfiguracija za distribuirane aplikacije.",
+    "etcd": "Distribuirano spremište ključ-vrijednost za konfiguraciju i stanje usluge.",
+    "rnacos": "Otkrivanje usluga i centralizirano upravljanje konfiguracijom.",
+    "temporal": "Pouzdana orkestracija tijekova rada i dugotrajnih procesa aplikacija.",
+    "temporalCli": "Alat naredbenog retka za upravljanje Temporalom i rad s njim."
+  }
 }

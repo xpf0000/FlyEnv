@@ -77,5 +77,10 @@
   "runSetting": "Запустить настройки",
   "exec": "Выполнить",
   "runInTerminal": "Запустить в терминале",
-  "portSetting": "Настройки порта"
+  "portSetting": "Настройки порта",
+  "tomcatAppBase": "каталог приложений Tomcat",
+  "tomcatContexts": "сопоставления приложений",
+  "tomcatContextPath": "путь контекста",
+  "tomcatDocBase": "путь приложения",
+  "tomcatRewrite": "перезапись Tomcat"
 }

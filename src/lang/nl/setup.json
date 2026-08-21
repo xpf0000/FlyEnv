@@ -50,5 +50,12 @@
   "appFont": "UI-lettertype",
   "appFontTips": "Stel het lettertype in dat wordt gebruikt voor de gebruikersinterface van de applicatie. Laat leeg om het standaard lettertype te gebruiken",
   "codeFont": "Codelettertype",
-  "codeFontTips": "Stel het lettertype in dat wordt gebruikt voor terminal, editor en andere codegebieden. Laat leeg om het standaard lettertype voor monospace te gebruiken"
+  "codeFontTips": "Stel het lettertype in dat wordt gebruikt voor terminal, editor en andere codegebieden. Laat leeg om het standaard lettertype voor monospace te gebruiken",
+  "moduleDescription": {
+    "consul": "Servicedetectie en configuratie voor gedistribueerde toepassingen.",
+    "etcd": "Gedistribueerde sleutel-waardearchief voor serviceconfiguratie en -status.",
+    "rnacos": "Servicedetectie en centraal configuratiebeheer.",
+    "temporal": "Betrouwbare orkestratie van applicatieworkflows en langdurige processen.",
+    "temporalCli": "Opdrachtregelprogramma voor beheer en interactie met Temporal."
+  }
 }

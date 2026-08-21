@@ -20,5 +20,28 @@
     "stats": "Показати статистику використання токенів і витрат",
     "providersList": "Показати провайдерів і облікові дані",
     "agentList": "Показати всіх доступних агентів"
+  },
+  "statsLabels": {
+    "overview": "Огляд",
+    "sessions": "Сеанси",
+    "messages": "Повідомлення",
+    "days": "Дні",
+    "costAndTokens": "Вартість & токени",
+    "toolUsage": "Використання інструментів",
+    "avgCostPerDay": "Середня Вартість/день",
+    "avgTokensPerSession": "Середня токени/сеанс",
+    "medianTokensPerSession": "Медіана токени/сеанс",
+    "summary": "Підсумок",
+    "models": "Моделі",
+    "totalCost": "Усього Вартість",
+    "cost": "Вартість",
+    "totalTokens": "Усього токени",
+    "inputTokens": "Вхідні токени",
+    "outputTokens": "Вихідні токени",
+    "reasoningTokens": "Міркування токени",
+    "cacheReadTokens": "Прочитано з кешу токени",
+    "cacheWriteTokens": "Записано в кеш токени",
+    "totalRequests": "Усього запитів",
+    "totalSessions": "Усього Сеанси"
   }
 }

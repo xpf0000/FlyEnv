@@ -50,5 +50,12 @@
   "appFont": "Czcionka interfejsu",
   "appFontTips": "Ustaw czcionkę używaną dla interfejsu aplikacji. Pozostaw puste, aby użyć domyślnej czcionki systemowej",
   "codeFont": "Czcionka kodu",
-  "codeFontTips": "Ustaw czcionkę używaną w terminalu, edytorze i innych obszarach kodowych. Pozostaw puste, aby użyć domyślnej czcionki jednoprzestrzeni"
+  "codeFontTips": "Ustaw czcionkę używaną w terminalu, edytorze i innych obszarach kodowych. Pozostaw puste, aby użyć domyślnej czcionki jednoprzestrzeni",
+  "moduleDescription": {
+    "consul": "Wykrywanie usług i konfiguracja aplikacji rozproszonych.",
+    "etcd": "Rozproszony magazyn klucz-wartość dla konfiguracji i stanu usług.",
+    "rnacos": "Wykrywanie usług i scentralizowane zarządzanie konfiguracją.",
+    "temporal": "Niezawodna orkiestracja przepływów pracy i długotrwałych procesów.",
+    "temporalCli": "Narzędzie wiersza poleceń do zarządzania Temporalem i pracy z nim."
+  }
 }

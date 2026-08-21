@@ -6,5 +6,11 @@
   "sendMessage": "Gửi tin nhắn",
   "anythingToSay": "Lời nhắn của bạn",
   "noSelected": "Chưa chọn",
-  "inputFilter": "Nhập để lọc..."
+  "inputFilter": "Nhập để lọc...",
+  "about": {
+    "thanks": "Cảm ơn bạn đã sử dụng FlyEnv. Nếu có câu hỏi hoặc đề xuất, hãy tham gia cộng đồng để thảo luận hoặc gửi GitHub Issue.",
+    "starSponsor": "Nếu FlyEnv hữu ích, hãy đánh dấu sao và ủng hộ dự án. Cảm ơn bạn!",
+    "github": "GitHub:",
+    "sponsor": "Tài trợ:"
+  }
 }

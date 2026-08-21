@@ -50,5 +50,12 @@
   "appFont": "Arayüz Yazı Tipi",
   "appFontTips": "Uygulama arayüzü için kullanılan yazı tipini ayarlayın. Varsayılan sistem yazı tipini kullanmak için boş bırakın",
   "codeFont": "Kod Yazı Tipi",
-  "codeFontTips": "Terminal, editör ve diğer kod alanları için kullanılan yazı tipini ayarlayın. Varsayılan monospace yazı tipini kullanmak için boş bırakın"
+  "codeFontTips": "Terminal, editör ve diğer kod alanları için kullanılan yazı tipini ayarlayın. Varsayılan monospace yazı tipini kullanmak için boş bırakın",
+  "moduleDescription": {
+    "consul": "Dağıtık uygulamalar için hizmet keşfi ve yapılandırma.",
+    "etcd": "Hizmet yapılandırması ve durumu için dağıtık anahtar-değer deposu.",
+    "rnacos": "Hizmet keşfi ve merkezi yapılandırma yönetimi.",
+    "temporal": "Uygulama iş akışlarının ve uzun süren işlemlerin güvenilir orkestrasyonu.",
+    "temporalCli": "Temporal’ı yönetmek ve onunla etkileşim kurmak için komut satırı aracı."
+  }
 }

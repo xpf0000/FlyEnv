@@ -77,5 +77,10 @@
   "runSetting": "Execută setările",
   "exec": "Execută",
   "runInTerminal": "Rulează în Terminal",
-  "portSetting": "Setări port"
+  "portSetting": "Setări port",
+  "tomcatAppBase": "appBase Tomcat",
+  "tomcatContexts": "Mapări de aplicații",
+  "tomcatContextPath": "Calea contextului",
+  "tomcatDocBase": "Calea aplicației",
+  "tomcatRewrite": "Rescriere Tomcat"
 }

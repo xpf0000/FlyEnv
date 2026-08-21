@@ -33,5 +33,9 @@
     "emptyFunction": "Lütfen fonksiyon adı girin",
     "sameName": "Fonksiyon zaten mevcut",
     "invalidName": "Geçersiz fonksiyon adı. Fonksiyon adı yalnızca harf, rakam ve alt çizgi içerebilir"
-  }
+  },
+  "fastcgiWorkers": "FastCGI çalışanları",
+  "fastcgiWorkerCount": "Çalışan sayısı",
+  "fastcgiWorkerInvalid": "{min} ile {max} arasında bir tam sayı girin.",
+  "fastcgiWorkerRestart": "Yeni FastCGI çalışan sayısını uygulamak için PHP hizmeti şimdi yeniden başlatılsın mı?"
 }

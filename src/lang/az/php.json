@@ -33,5 +33,9 @@
     "emptyFunction": "Zəhmət olmasa funksiya adını daxil edin",
     "sameName": "Funksiya artıq mövcuddur",
     "invalidName": "Yanlış funksiya adı. Funksiya adı yalnız hərflər, rəqəmlər və alt xətlərdən ibarət ola bilər"
-  }
+  },
+  "fastcgiWorkers": "FastCGI işçi prosesləri",
+  "fastcgiWorkerCount": "İşçi sayı",
+  "fastcgiWorkerInvalid": "{min} ilə {max} arasında tam ədəd daxil edin.",
+  "fastcgiWorkerRestart": "Yeni FastCGI işçi sayını tətbiq etmək üçün PHP xidmətini indi yenidən başladın?"
 }

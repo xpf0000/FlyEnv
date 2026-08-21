@@ -20,5 +20,28 @@
     "stats": "Visa statistik over tokenanvandning och kostnader",
     "providersList": "Lista leverantorer och inloggningsuppgifter",
     "agentList": "Lista alla tillgangliga agenter"
+  },
+  "statsLabels": {
+    "overview": "Översikt",
+    "sessions": "Sessioner",
+    "messages": "Meddelanden",
+    "days": "Dagar",
+    "costAndTokens": "Kostnad & tokens",
+    "toolUsage": "Verktygsanvändning",
+    "avgCostPerDay": "Genomsnitt Kostnad/dag",
+    "avgTokensPerSession": "Genomsnitt tokens/session",
+    "medianTokensPerSession": "Median tokens/session",
+    "summary": "Sammanfattning",
+    "models": "Modeller",
+    "totalCost": "Totalt Kostnad",
+    "cost": "Kostnad",
+    "totalTokens": "Totalt tokens",
+    "inputTokens": "Inmatning tokens",
+    "outputTokens": "Utmatning tokens",
+    "reasoningTokens": "Resonemang tokens",
+    "cacheReadTokens": "Lästa från cache tokens",
+    "cacheWriteTokens": "Skrivna till cache tokens",
+    "totalRequests": "Totalt förfrågningar",
+    "totalSessions": "Totalt Sessioner"
   }
 }

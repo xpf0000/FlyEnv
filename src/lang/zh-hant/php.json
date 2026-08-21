@@ -33,5 +33,9 @@
     "emptyFunction": "請輸入函式名稱",
     "sameName": "函式已存在",
     "invalidName": "無效的函式名稱。函式名稱只能包含字母、數字、底線"
-  }
+  },
+  "fastcgiWorkers": "FastCGI 工作程序",
+  "fastcgiWorkerCount": "工作程序數量",
+  "fastcgiWorkerInvalid": "請輸入 {min} 到 {max} 之間的整數。",
+  "fastcgiWorkerRestart": "立即重新啟動此 PHP 服務以套用新的 FastCGI 工作程序數量？"
 }

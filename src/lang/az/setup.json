@@ -50,5 +50,12 @@
   "appFont": "İnterfeys şrifti",
   "appFontTips": "Tətbiq interfeysi üçün istifadə olunan şrifti təyin edin. Standart sistem şriftini istifadə etmək üçün boş buraxın",
   "codeFont": "Kod şrifti",
-  "codeFontTips": "Terminal, redaktor və digər kod sahələri üçün istifadə olunan şrifti təyin edin. Standart monospace şriftini istifadə etmək üçün boş buraxın"
+  "codeFontTips": "Terminal, redaktor və digər kod sahələri üçün istifadə olunan şrifti təyin edin. Standart monospace şriftini istifadə etmək üçün boş buraxın",
+  "moduleDescription": {
+    "consul": "Paylanmış tətbiqlər üçün xidmət aşkarlanması və konfiqurasiya.",
+    "etcd": "Xidmət konfiqurasiyası və vəziyyəti üçün paylanmış açar-dəyər anbarı.",
+    "rnacos": "Xidmət aşkarlanması və mərkəzləşdirilmiş konfiqurasiya idarəetməsi.",
+    "temporal": "Tətbiq iş axınlarının və uzunmüddətli proseslərin etibarlı orkestrasiya edilməsi.",
+    "temporalCli": "Temporal-ı idarə etmək və onunla işləmək üçün komanda sətri aləti."
+  }
 }

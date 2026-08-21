@@ -77,5 +77,10 @@
   "runSetting": "Futtatási beállítások",
   "exec": "Végrehajtás",
   "runInTerminal": "Futtatás terminálban",
-  "portSetting": "Port beállítások"
+  "portSetting": "Port beállítások",
+  "tomcatAppBase": "Tomcat appBase",
+  "tomcatContexts": "Alkalmazás-hozzárendelések",
+  "tomcatContextPath": "Környezeti útvonal",
+  "tomcatDocBase": "Alkalmazás útvonala",
+  "tomcatRewrite": "Tomcat-átírás"
 }

@@ -77,5 +77,10 @@
   "exec": "Çalıştır",
   "runInTerminal": "Terminalde Çalıştır",
   "portSetting": "Port Ayarları",
-  "projectFlutter": "Flutter Projeleri"
+  "projectFlutter": "Flutter Projeleri",
+  "tomcatAppBase": "Tomcat appBase",
+  "tomcatContexts": "Uygulama eşlemeleri",
+  "tomcatContextPath": "Bağlam yolu",
+  "tomcatDocBase": "Uygulama yolu",
+  "tomcatRewrite": "Tomcat yeniden yazma"
 }

@@ -77,5 +77,10 @@
   "runSetting": "Изпълни настройките",
   "exec": "Изпълнение",
   "runInTerminal": "Изпълни в Терминал",
-  "portSetting": "Порт настройки"
+  "portSetting": "Порт настройки",
+  "tomcatAppBase": "appBase на Tomcat",
+  "tomcatContexts": "Съпоставяния на приложения",
+  "tomcatContextPath": "Път на контекста",
+  "tomcatDocBase": "Път на приложението",
+  "tomcatRewrite": "Презаписване на Tomcat"
 }

@@ -6,5 +6,11 @@
   "sendMessage": "Pošalji Poruku",
   "anythingToSay": "Imate li što za reći",
   "noSelected": "Ništa odabrano",
-  "inputFilter": "Unesi za filtriranje"
+  "inputFilter": "Unesi za filtriranje",
+  "about": {
+    "thanks": "Hvala što koristite FlyEnv. Ako imate pitanja ili prijedloga, pridružite se zajednici ili pošaljite GitHub issue.",
+    "starSponsor": "Ako vam je FlyEnv koristan, označite projekt zvjezdicom i podržite ga. Hvala!",
+    "github": "GitHub:",
+    "sponsor": "Sponzoriraj:"
+  }
 }

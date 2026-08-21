@@ -97,5 +97,7 @@
   "ForceDelete": "Kényszerített törlés",
   "needInstallHelperTips": "Egyes műveletek sikertelenek voltak, mert rendszergazdai jogosultság szükséges hozzájuk. Ide tartozik a Hosts fájl módosítása, a folyamatlista elérése, az 1024 alatti portokhoz kötés, illetve a rendszer környezeti változóinak kezelése.\nTelepítse a FlyEnv Helper segédprogramot, hogy megadja a szükséges jogosultságokat ezekhez a feladatokhoz. A telepítés folytatásához kattintson az „OK” gombra.",
   "targetPlatforms": "Célplatformok",
-  "webPanelFirstInstall": "A(z) {service} szolgáltatást az első futtatáskor telepíteni kell. Ez eltarthat egy ideig, kérjük, legyen türelemmel. A kezelőpanel a telepítés befejezése után automatikusan megnyílik."
+  "webPanelFirstInstall": "A(z) {service} szolgáltatást az első futtatáskor telepíteni kell. Ez eltarthat egy ideig, kérjük, legyen türelemmel. A kezelőpanel a telepítés befejezése után automatikusan megnyílik.",
+  "helperBinaryMissing": "Hiányzik a FlyEnv segédprogramja. Telepítse újra a FlyEnv-et, vagy javítsa a segédprogramot.",
+  "dataDirectoryRecoveryFailed": "A FlyEnv nem tudta helyreállítani az adatkönyvtárat. Ellenőrizze a segédprogramot, majd próbálja újra."
 }

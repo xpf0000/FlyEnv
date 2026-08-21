@@ -33,5 +33,9 @@
     "emptyFunction": "Molimo unesite naziv funkcije",
     "sameName": "Funkcija već postoji",
     "invalidName": "Nevaljani naziv funkcije. Naziv funkcije može sadržavati samo slova, brojeve i podcrtaje"
-  }
+  },
+  "fastcgiWorkers": "FastCGI radni procesi",
+  "fastcgiWorkerCount": "Broj radnika",
+  "fastcgiWorkerInvalid": "Unesite cijeli broj od {min} do {max}.",
+  "fastcgiWorkerRestart": "Želite li sada ponovno pokrenuti PHP uslugu i primijeniti novi broj FastCGI radnika?"
 }

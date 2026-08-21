@@ -33,5 +33,9 @@
     "emptyFunction": "関数名を入力してください",
     "sameName": "関数は既に存在します",
     "invalidName": "無効な関数名です。関数名は文字、数字、アンダースコアのみ使用できます。"
-  }
+  },
+  "fastcgiWorkers": "FastCGI ワーカー",
+  "fastcgiWorkerCount": "ワーカー数",
+  "fastcgiWorkerInvalid": "{min} から {max} までの整数を入力してください。",
+  "fastcgiWorkerRestart": "新しい FastCGI ワーカー数を適用するため、PHP サービスを今すぐ再起動しますか？"
 }

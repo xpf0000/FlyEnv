@@ -6,5 +6,11 @@
   "sendMessage": "給我留言",
   "anythingToSay": "任何想說的",
   "noSelected": "未選擇",
-  "inputFilter": "輸入內容進行篩選"
+  "inputFilter": "輸入內容進行篩選",
+  "about": {
+    "thanks": "感謝使用 FlyEnv。如有問題或建議，歡迎加入社群討論，也可以提交 GitHub Issue。",
+    "starSponsor": "如果 FlyEnv 對你有幫助，請為專案加上 Star 並贊助支持。謝謝！",
+    "github": "GitHub：",
+    "sponsor": "贊助："
+  }
 }

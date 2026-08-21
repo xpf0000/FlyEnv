@@ -77,5 +77,10 @@
   "runSetting": "Налаштування запуску",
   "exec": "Виконати",
   "runInTerminal": "Запустити в терміні",
-  "portSetting": "Параметри порту"
+  "portSetting": "Параметри порту",
+  "tomcatAppBase": "appBase Tomcat",
+  "tomcatContexts": "Відповідності застосунків",
+  "tomcatContextPath": "Шлях контексту",
+  "tomcatDocBase": "Шлях застосунку",
+  "tomcatRewrite": "Перезапис Tomcat"
 }

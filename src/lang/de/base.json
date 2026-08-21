@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Einige Operationen sind fehlgeschlagen, da Administratorrechte erforderlich sind. Dazu gehören die Änderung der Hosts-Datei, der Zugriff auf die Prozessliste, die Bindung an Ports unterhalb von 1024 oder die Verwaltung von System-Umgebungsvariablen.\nBitte installieren Sie den FlyEnv Helfer, um die erforderlichen Berechtigungen für diese Aufgaben zu erteilen. Klicken Sie auf \"OK\", um mit der Installation fortzufahren.",
   "targetPlatforms": "Zielplattformen",
   "selectVersion": "Version auswählen",
-  "webPanelFirstInstall": "{service} muss beim ersten Start installiert werden. Dies kann eine Weile dauern, bitte haben Sie etwas Geduld. Das Verwaltungsfenster wird nach Abschluss der Installation automatisch geöffnet."
+  "webPanelFirstInstall": "{service} muss beim ersten Start installiert werden. Dies kann eine Weile dauern, bitte haben Sie etwas Geduld. Das Verwaltungsfenster wird nach Abschluss der Installation automatisch geöffnet.",
+  "helperBinaryMissing": "Der FlyEnv-Helfer fehlt. Installieren Sie FlyEnv neu oder reparieren Sie den Helfer.",
+  "dataDirectoryRecoveryFailed": "FlyEnv konnte den Datenordner nicht wiederherstellen. Prüfen Sie den Helfer und versuchen Sie es erneut."
 }

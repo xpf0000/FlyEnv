@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Jotkin toiminnot epäonnistuivat, koska järjestelmänvalvojan oikeudet vaaditaan. Tähän kuuluu Hosts-tiedoston muuttaminen, prosessiluettelon avaaminen, alle 1024 sijaitseviin satamiin sitominen tai järjestelmän ympäristömuuttujien hallinta.\nAsenna FlyEnv Helper myöntääksesi tarvittavat oikeudet näihin tehtäviin. Klikkaa \"OK\" jatkaaksesi asennusta.",
   "targetPlatforms": "Kohdealustat",
   "selectVersion": "Valitse Versio",
-  "webPanelFirstInstall": "{service} on asennettava ensimmäisellä käynnistyskerralla. Tämä voi kestää hetken, joten odota kärsivällisesti. Hallintapaneeli avautuu automaattisesti, kun asennus on valmis."
+  "webPanelFirstInstall": "{service} on asennettava ensimmäisellä käynnistyskerralla. Tämä voi kestää hetken, joten odota kärsivällisesti. Hallintapaneeli avautuu automaattisesti, kun asennus on valmis.",
+  "helperBinaryMissing": "FlyEnv-apuohjelma puuttuu. Asenna FlyEnv uudelleen tai korjaa apuohjelma.",
+  "dataDirectoryRecoveryFailed": "FlyEnv ei voinut palauttaa tietokansiota. Tarkista apuohjelma ja yritä uudelleen."
 }

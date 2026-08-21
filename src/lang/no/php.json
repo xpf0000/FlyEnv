@@ -33,5 +33,9 @@
     "emptyFunction": "Skriv inn funksjonsnavn",
     "sameName": "Funksjonen finnes allerede",
     "invalidName": "Ugyldig funksjonsnavn. Funksjonsnavn kan bare inneholde bokstaver, tall og understrekingstegn"
-  }
+  },
+  "fastcgiWorkers": "FastCGI-arbeidere",
+  "fastcgiWorkerCount": "Antall arbeidere",
+  "fastcgiWorkerInvalid": "Skriv inn et heltall fra {min} til {max}.",
+  "fastcgiWorkerRestart": "Starte PHP-tjenesten på nytt nå for å bruke det nye antallet FastCGI-arbeidere?"
 }

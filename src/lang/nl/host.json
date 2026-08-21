@@ -77,5 +77,10 @@
   "runSetting": "Instellingen uitvoeren",
   "exec": "Uitvoeren",
   "runInTerminal": "Uitvoeren in Terminal",
-  "portSetting": "Poort Instellingen"
+  "portSetting": "Poort Instellingen",
+  "tomcatAppBase": "Tomcat appBase",
+  "tomcatContexts": "Applicatietoewijzingen",
+  "tomcatContextPath": "Contextpad",
+  "tomcatDocBase": "Applicatiepad",
+  "tomcatRewrite": "Tomcat-herschrijving"
 }

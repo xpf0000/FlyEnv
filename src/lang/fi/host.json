@@ -77,5 +77,10 @@
   "runSetting": "Suorita Asetukset",
   "exec": "Suorita",
   "runInTerminal": "Suorita päätteessä",
-  "portSetting": "Portti Asetukset"
+  "portSetting": "Portti Asetukset",
+  "tomcatAppBase": "Tomcatin appBase",
+  "tomcatContexts": "Sovellusten yhdistämiset",
+  "tomcatContextPath": "Kontekstipolku",
+  "tomcatDocBase": "Sovelluspolku",
+  "tomcatRewrite": "Tomcat-uudelleenkirjoitus"
 }

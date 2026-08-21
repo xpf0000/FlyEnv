@@ -20,5 +20,28 @@
     "stats": "نمایش آمار هزینه و استفاده از توکن",
     "providersList": "لیست کردن ارائه‌دهندگان و اطلاعات ورود",
     "agentList": "لیست کردن تمام عامل‌های در دسترس"
+  },
+  "statsLabels": {
+    "overview": "نمای کلی",
+    "sessions": "جلسه‌ها",
+    "messages": "پیام‌ها",
+    "days": "روزها",
+    "costAndTokens": "هزینه & توکن‌ها",
+    "toolUsage": "استفاده از ابزار",
+    "avgCostPerDay": "میانگین هزینه/روز",
+    "avgTokensPerSession": "میانگین توکن‌ها/جلسه",
+    "medianTokensPerSession": "میانه توکن‌ها/جلسه",
+    "summary": "خلاصه",
+    "models": "مدل‌ها",
+    "totalCost": "مجموع هزینه",
+    "cost": "هزینه",
+    "totalTokens": "مجموع توکن‌ها",
+    "inputTokens": "ورودی توکن‌ها",
+    "outputTokens": "خروجی توکن‌ها",
+    "reasoningTokens": "استدلال توکن‌ها",
+    "cacheReadTokens": "خوانده‌شده از کش توکن‌ها",
+    "cacheWriteTokens": "نوشته‌شده در کش توکن‌ها",
+    "totalRequests": "مجموع درخواست‌ها",
+    "totalSessions": "مجموع جلسه‌ها"
   }
 }

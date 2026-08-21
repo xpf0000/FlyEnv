@@ -65,7 +65,9 @@
     "lastPrompt": "Prompt cuối cùng",
     "search": "Tìm kiếm phiên làm việc",
     "deleted": "Đã xóa phiên làm việc",
-    "resumed": "Phiên làm việc đã được khôi phục trong terminal"
+    "resumed": "Phiên làm việc đã được khôi phục trong terminal",
+    "newSession": "Phiên mới",
+    "lastSession": "Phiên trước"
   },
   "mcp": {
     "type": "Loại",

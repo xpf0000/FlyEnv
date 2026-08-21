@@ -20,5 +20,28 @@
     "stats": "token ব্যবহার ও খরচের পরিসংখ্যান দেখান",
     "providersList": "provider ও credentials তালিকাভুক্ত করুন",
     "agentList": "সব উপলভ্য agent তালিকাভুক্ত করুন"
+  },
+  "statsLabels": {
+    "overview": "সংক্ষিপ্ত বিবরণ",
+    "sessions": "সেশন",
+    "messages": "বার্তা",
+    "days": "দিন",
+    "costAndTokens": "খরচ & টোকেন",
+    "toolUsage": "টুল ব্যবহার",
+    "avgCostPerDay": "গড় খরচ/দিন",
+    "avgTokensPerSession": "গড় টোকেন/সেশন",
+    "medianTokensPerSession": "মধ্যমা টোকেন/সেশন",
+    "summary": "সারাংশ",
+    "models": "মডেল",
+    "totalCost": "মোট খরচ",
+    "cost": "খরচ",
+    "totalTokens": "মোট টোকেন",
+    "inputTokens": "ইনপুট টোকেন",
+    "outputTokens": "আউটপুট টোকেন",
+    "reasoningTokens": "যুক্তি টোকেন",
+    "cacheReadTokens": "ক্যাশ থেকে পড়া টোকেন",
+    "cacheWriteTokens": "ক্যাশে লেখা টোকেন",
+    "totalRequests": "মোট অনুরোধ",
+    "totalSessions": "মোট সেশন"
   }
 }

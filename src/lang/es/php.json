@@ -33,5 +33,9 @@
     "emptyFunction": "Por favor, introduzca el nombre de la función",
     "sameName": "La función ya existe",
     "invalidName": "Nombre de función inválido. El nombre de la función sólo puede contener letras, números y guiones bajos"
-  }
+  },
+  "fastcgiWorkers": "Workers de FastCGI",
+  "fastcgiWorkerCount": "Número de workers",
+  "fastcgiWorkerInvalid": "Introduce un número entero entre {min} y {max}.",
+  "fastcgiWorkerRestart": "¿Reiniciar ahora este servicio PHP para aplicar el nuevo número de workers FastCGI?"
 }

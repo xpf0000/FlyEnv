@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Některé operace se nezdařily, protože jsou vyžadována oprávnění správce. To zahrnuje úpravu souboru Hosts, přístup k seznamu procesů, závazné pro porty pod 1024 nebo správu proměnných systémového prostředí.\nNainstalujte si FlyEnv Helper pro udělení potřebných oprávnění pro tyto úkoly. Klikněte na \"OK\" pro pokračování v instalaci.",
   "targetPlatforms": "Cílové platformy",
   "selectVersion": "Vyberte verzi",
-  "webPanelFirstInstall": "Při prvním spuštění je nutné nainstalovat {service}. Může to chvíli trvat, proto prosím vyčkejte. Po dokončení instalace se automaticky otevře panel pro správu."
+  "webPanelFirstInstall": "Při prvním spuštění je nutné nainstalovat {service}. Může to chvíli trvat, proto prosím vyčkejte. Po dokončení instalace se automaticky otevře panel pro správu.",
+  "helperBinaryMissing": "Pomocný program FlyEnv chybí. Přeinstalujte FlyEnv nebo pomocný program opravte.",
+  "dataDirectoryRecoveryFailed": "FlyEnv nemohl obnovit datovou složku. Zkontrolujte pomocný program a zkuste to znovu."
 }

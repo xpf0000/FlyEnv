@@ -33,5 +33,9 @@
     "emptyFunction": "Zadejte název funkce",
     "sameName": "Funkce již existuje",
     "invalidName": "Neplatný název funkce. Název funkce může obsahovat pouze písmena, čísla a podtržítka"
-  }
+  },
+  "fastcgiWorkers": "Pracovní procesy FastCGI",
+  "fastcgiWorkerCount": "Počet workerů",
+  "fastcgiWorkerInvalid": "Zadejte celé číslo od {min} do {max}.",
+  "fastcgiWorkerRestart": "Restartovat nyní službu PHP a použít nový počet workerů FastCGI?"
 }

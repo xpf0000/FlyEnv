@@ -77,5 +77,10 @@
   "runSetting": "Ρυθμίσεις Εκτέλεσης",
   "exec": "Εκτέλεση",
   "runInTerminal": "Εκτέλεση σε Τερματικό",
-  "portSetting": "Ρυθμίσεις Θύρας"
+  "portSetting": "Ρυθμίσεις Θύρας",
+  "tomcatAppBase": "appBase Tomcat",
+  "tomcatContexts": "Αντιστοιχίσεις εφαρμογών",
+  "tomcatContextPath": "Διαδρομή context",
+  "tomcatDocBase": "Διαδρομή εφαρμογής",
+  "tomcatRewrite": "Επανεγγραφή Tomcat"
 }

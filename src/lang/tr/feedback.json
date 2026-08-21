@@ -6,5 +6,11 @@
   "sendMessage": "Mesaj Gönder",
   "anythingToSay": "Söylemek istediğiniz bir şey var mı?",
   "noSelected": "Seçilmedi",
-  "inputFilter": "Filtrelemek için yazın"
+  "inputFilter": "Filtrelemek için yazın",
+  "about": {
+    "thanks": "FlyEnv kullandığınız için teşekkürler. Sorularınız veya önerileriniz varsa topluluğa katılın ya da GitHub sorunu gönderin.",
+    "starSponsor": "FlyEnv sizin için yararlıysa projeye yıldız verin ve destek olun. Teşekkürler!",
+    "github": "GitHub:",
+    "sponsor": "Sponsor ol:"
+  }
 }

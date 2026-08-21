@@ -50,5 +50,12 @@
   "appFont": "Käyttöliittymän fontti",
   "appFontTips": "Aseta sovelluksen käyttöliittymässä käytettävä fontti. Jätä tyhjäksi käyttääksesi järjestelmän oletusfonttia",
   "codeFont": "Koodifontti",
-  "codeFontTips": "Aseta terminaalissa, editorissa ja muilla koodialueilla käytettävä fontti. Jätä tyhjäksi käyttääksesi oletusmonospace-fonttia"
+  "codeFontTips": "Aseta terminaalissa, editorissa ja muilla koodialueilla käytettävä fontti. Jätä tyhjäksi käyttääksesi oletusmonospace-fonttia",
+  "moduleDescription": {
+    "consul": "Palveluiden etsintä ja määritys hajautetuille sovelluksille.",
+    "etcd": "Hajautettu avain-arvo-varasto palvelun määrityksille ja tilalle.",
+    "rnacos": "Palveluiden etsintä ja keskitetty määritysten hallinta.",
+    "temporal": "Sovellusten työnkulkujen ja pitkäkestoisten prosessien luotettava orkestrointi.",
+    "temporalCli": "Komentorivityökalu Temporalin hallintaan ja käyttöön."
+  }
 }

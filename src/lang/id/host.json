@@ -77,5 +77,10 @@
   "runSetting": "Pengaturan Jalankan",
   "exec": "Jalankan",
   "runInTerminal": "Jalankan di Terminal",
-  "portSetting": "Pengaturan Port"
+  "portSetting": "Pengaturan Port",
+  "tomcatAppBase": "appBase Tomcat",
+  "tomcatContexts": "Pemetaan aplikasi",
+  "tomcatContextPath": "Jalur konteks",
+  "tomcatDocBase": "Jalur aplikasi",
+  "tomcatRewrite": "Penulisan ulang Tomcat"
 }

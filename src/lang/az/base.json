@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Bəzi əməliyyatlar uğursuz oldu, çünki Administrator icazələri tələb olunur. Bunlara Hosts faylının dəyişdirilməsi, proseslər siyahısına çıxış, 1024-dən aşağı portlara bağlanma və ya sistem ətraf mühit dəyişənlərinin idarə edilməsi daxildir. Bu tapşırıqlar üçün zəruri icazələri təmin etmək üçün FlyEnv Helper-i quraşdırın. Quraşdırmaya davam etmək üçün \"OK\" düyməsini basın.",
   "targetPlatforms": "Hədəf platformalar",
   "selectVersion": "Versiya seçin",
-  "webPanelFirstInstall": "{service} ilk dəfə işə salındıqda quraşdırılmalıdır. Bu bir qədər vaxt apara bilər, ona görə səbirli olun. Quraşdırma tamamlandıqda idarəetmə paneli avtomatik açılacaq."
+  "webPanelFirstInstall": "{service} ilk dəfə işə salındıqda quraşdırılmalıdır. Bu bir qədər vaxt apara bilər, ona görə səbirli olun. Quraşdırma tamamlandıqda idarəetmə paneli avtomatik açılacaq.",
+  "helperBinaryMissing": "FlyEnv köməkçi proqramı yoxdur. FlyEnv-i yenidən quraşdırın və ya köməkçi proqramı bərpa edin.",
+  "dataDirectoryRecoveryFailed": "FlyEnv məlumat qovluğunu bərpa edə bilmədi. Köməkçi proqramı yoxlayın və yenidən cəhd edin."
 }

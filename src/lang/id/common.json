@@ -65,7 +65,9 @@
     "lastPrompt": "Prompt Terakhir",
     "search": "Cari sesi",
     "deleted": "Sesi dihapus",
-    "resumed": "Sesi dilanjutkan di terminal"
+    "resumed": "Sesi dilanjutkan di terminal",
+    "newSession": "Sesi baru",
+    "lastSession": "Sesi terakhir"
   },
   "mcp": {
     "type": "Tipe",

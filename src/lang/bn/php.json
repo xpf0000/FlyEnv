@@ -33,5 +33,9 @@
     "emptyFunction": "অনুগ্রহ করে ফাংশনের নাম লিখুন",
     "sameName": "ফাংশনটি ইতিমধ্যে আছে",
     "invalidName": "অবৈধ ফাংশনের নাম। ফাংশনের নামে কেবল অক্ষর, সংখ্যা এবং আন্ডারস্কোর থাকতে পারে"
-  }
+  },
+  "fastcgiWorkers": "FastCGI ওয়ার্কার",
+  "fastcgiWorkerCount": "ওয়ার্কার সংখ্যা",
+  "fastcgiWorkerInvalid": "{min} থেকে {max} পর্যন্ত একটি পূর্ণসংখ্যা লিখুন।",
+  "fastcgiWorkerRestart": "নতুন FastCGI ওয়ার্কার সংখ্যা প্রয়োগ করতে এখন PHP পরিষেবা পুনরায় চালু করবেন?"
 }

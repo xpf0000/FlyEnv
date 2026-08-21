@@ -20,5 +20,28 @@
     "stats": "Εμφανίστε στατιστικά χρήσης token και κόστους",
     "providersList": "Εμφανίστε παρόχους και διαπιστευτήρια",
     "agentList": "Εμφανίστε όλους τους διαθέσιμους agents"
+  },
+  "statsLabels": {
+    "overview": "Επισκόπηση",
+    "sessions": "Συνεδρίες",
+    "messages": "Μηνύματα",
+    "days": "Ημέρες",
+    "costAndTokens": "Κόστος & tokens",
+    "toolUsage": "Χρήση εργαλείων",
+    "avgCostPerDay": "Μέσο Κόστος/ημέρα",
+    "avgTokensPerSession": "Μέσο tokens/συνεδρία",
+    "medianTokensPerSession": "Διάμεσος tokens/συνεδρία",
+    "summary": "Σύνοψη",
+    "models": "Μοντέλα",
+    "totalCost": "Σύνολο Κόστος",
+    "cost": "Κόστος",
+    "totalTokens": "Σύνολο tokens",
+    "inputTokens": "Εισόδου tokens",
+    "outputTokens": "Εξόδου tokens",
+    "reasoningTokens": "Συλλογισμού tokens",
+    "cacheReadTokens": "Αναγνωσμένα από cache tokens",
+    "cacheWriteTokens": "Εγγεγραμμένα σε cache tokens",
+    "totalRequests": "Σύνολο αιτήματα",
+    "totalSessions": "Σύνολο Συνεδρίες"
   }
 }

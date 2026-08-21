@@ -6,5 +6,11 @@
   "sendMessage": "Send Besked",
   "anythingToSay": "Noget at sige",
   "noSelected": "Ingen Valgt",
-  "inputFilter": "Input To Filter (Automatic Copy)"
+  "inputFilter": "Input To Filter (Automatic Copy)",
+  "about": {
+    "thanks": "Tak fordi du bruger FlyEnv. Hvis du har spørgsmål eller forslag, kan du deltage i fællesskabet eller oprette en GitHub-issue.",
+    "starSponsor": "Hvis FlyEnv er nyttigt for dig, så giv projektet en stjerne og støt det. Tak!",
+    "github": "GitHub:",
+    "sponsor": "Sponsorer:"
+  }
 }

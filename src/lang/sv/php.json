@@ -33,5 +33,9 @@
     "emptyFunction": "Ange funktionsnamn",
     "sameName": "Funktionen finns redan",
     "invalidName": "Ogiltigt funktionsnamn. Funktionsnamnet kan endast innehålla bokstäver, siffror och understreck"
-  }
+  },
+  "fastcgiWorkers": "FastCGI-arbetare",
+  "fastcgiWorkerCount": "Antal arbetare",
+  "fastcgiWorkerInvalid": "Ange ett heltal från {min} till {max}.",
+  "fastcgiWorkerRestart": "Starta om PHP-tjänsten nu för att tillämpa det nya antalet FastCGI-arbetare?"
 }

@@ -77,5 +77,10 @@
   "runSetting": "Postavke Pokretanja",
   "exec": "Izvrši",
   "runInTerminal": "Pokreni u Terminalu",
-  "portSetting": "Postavke Portova"
+  "portSetting": "Postavke Portova",
+  "tomcatAppBase": "Tomcat appBase",
+  "tomcatContexts": "Mapiranja aplikacija",
+  "tomcatContextPath": "Putanja konteksta",
+  "tomcatDocBase": "Putanja aplikacije",
+  "tomcatRewrite": "Tomcat prepisivanje"
 }

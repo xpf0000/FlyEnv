@@ -33,5 +33,9 @@
     "emptyFunction": "Voer de functienaam in",
     "sameName": "Functie bestaat al",
     "invalidName": "Ongeldige functienaam. De naam van de functie mag alleen letters, cijfers en onderstrepingstekens bevatten"
-  }
+  },
+  "fastcgiWorkers": "FastCGI-workers",
+  "fastcgiWorkerCount": "Aantal workers",
+  "fastcgiWorkerInvalid": "Voer een geheel getal van {min} tot {max} in.",
+  "fastcgiWorkerRestart": "Deze PHP-service nu herstarten om het nieuwe aantal FastCGI-workers toe te passen?"
 }

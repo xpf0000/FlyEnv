@@ -6,5 +6,11 @@
   "sendMessage": "Kirim Pesan",
   "anythingToSay": "Ada yang ingin disampaikan?",
   "noSelected": "Tidak Ada yang Dipilih",
-  "inputFilter": "Masukkan untuk Filter"
+  "inputFilter": "Masukkan untuk Filter",
+  "about": {
+    "thanks": "Terima kasih telah menggunakan FlyEnv. Jika ada pertanyaan atau saran, bergabunglah dengan komunitas atau kirim GitHub Issue.",
+    "starSponsor": "Jika FlyEnv bermanfaat, beri bintang dan dukung proyek ini. Terima kasih!",
+    "github": "GitHub:",
+    "sponsor": "Sponsor:"
+  }
 }

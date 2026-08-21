@@ -6,5 +6,11 @@
   "sendMessage": "Odeslat zprávu",
   "anythingToSay": "Cokoliv, co je třeba říci",
   "noSelected": "Není vybráno",
-  "inputFilter": "Zadejte pro filtrování"
+  "inputFilter": "Zadejte pro filtrování",
+  "about": {
+    "thanks": "Děkujeme, že používáte FlyEnv. S dotazy nebo návrhy se připojte ke komunitě, případně odešlete issue na GitHubu.",
+    "starSponsor": "Pokud je pro vás FlyEnv užitečný, dejte projektu hvězdičku a podpořte jej. Děkujeme!",
+    "github": "GitHub:",
+    "sponsor": "Sponzorovat:"
+  }
 }

@@ -20,5 +20,28 @@
     "stats": "Hiển thị thống kê về mức sử dụng token và chi phí",
     "providersList": "Liệt kê các nhà cung cấp và thông tin xác thực",
     "agentList": "Liệt kê tất cả các agent hiện có"
+  },
+  "statsLabels": {
+    "overview": "Tổng quan",
+    "sessions": "Phiên",
+    "messages": "Tin nhắn",
+    "days": "Ngày",
+    "costAndTokens": "Chi phí & token",
+    "toolUsage": "Mức sử dụng công cụ",
+    "avgCostPerDay": "Trung bình Chi phí/ngày",
+    "avgTokensPerSession": "Trung bình token/phiên",
+    "medianTokensPerSession": "Trung vị token/phiên",
+    "summary": "Tóm tắt",
+    "models": "Mô hình",
+    "totalCost": "Tổng Chi phí",
+    "cost": "Chi phí",
+    "totalTokens": "Tổng token",
+    "inputTokens": "Đầu vào token",
+    "outputTokens": "Đầu ra token",
+    "reasoningTokens": "Suy luận token",
+    "cacheReadTokens": "Đọc từ bộ nhớ đệm token",
+    "cacheWriteTokens": "Ghi vào bộ nhớ đệm token",
+    "totalRequests": "Tổng yêu cầu",
+    "totalSessions": "Tổng Phiên"
   }
 }

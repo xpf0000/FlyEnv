@@ -65,7 +65,9 @@
     "lastPrompt": "最後のプロンプト",
     "search": "セッションを検索",
     "deleted": "セッションを削除しました",
-    "resumed": "セッションをターミナルで再開しました"
+    "resumed": "セッションをターミナルで再開しました",
+    "newSession": "新しいセッション",
+    "lastSession": "前回のセッション"
   },
   "mcp": {
     "type": "Type",

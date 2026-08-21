@@ -82,10 +82,5 @@
   "tomcatContexts": "应用映射",
   "tomcatContextPath": "Context 路径",
   "tomcatDocBase": "应用路径（docBase）",
-  "tomcatAddContext": "添加映射",
-  "tomcatRewrite": "Tomcat 重写规则",
-  "tomcatRewriteContent": "rewrite.config 内容",
-  "tomcatContextPathInvalid": "请输入以 / 开头的安全 Context 路径",
-  "tomcatDocBaseRequired": "请选择应用目录或 WAR 文件",
-  "tomcatNameConflict": "此域名或别名已被其他 Tomcat 站点使用"
+  "tomcatRewrite": "Tomcat 重写规则"
 }

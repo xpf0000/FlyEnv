@@ -20,5 +20,28 @@
     "stats": "Tampilkan statistik penggunaan token dan biaya",
     "providersList": "Daftarkan penyedia dan kredensial",
     "agentList": "Daftarkan semua agen yang tersedia"
+  },
+  "statsLabels": {
+    "overview": "Ikhtisar",
+    "sessions": "Sesi",
+    "messages": "Pesan",
+    "days": "Hari",
+    "costAndTokens": "Biaya & token",
+    "toolUsage": "Penggunaan alat",
+    "avgCostPerDay": "Rata-rata Biaya/hari",
+    "avgTokensPerSession": "Rata-rata token/sesi",
+    "medianTokensPerSession": "Median token/sesi",
+    "summary": "Ringkasan",
+    "models": "Model",
+    "totalCost": "Total Biaya",
+    "cost": "Biaya",
+    "totalTokens": "Total token",
+    "inputTokens": "Input token",
+    "outputTokens": "Output token",
+    "reasoningTokens": "Penalaran token",
+    "cacheReadTokens": "Dibaca dari cache token",
+    "cacheWriteTokens": "Ditulis ke cache token",
+    "totalRequests": "Total permintaan",
+    "totalSessions": "Total Sesi"
   }
 }

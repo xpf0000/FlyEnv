@@ -50,5 +50,12 @@
   "appFont": "Felületi betűtípus",
   "appFontTips": "Az alkalmazás felületén használt betűtípus. Hagyja üresen az alapértelmezett rendszerbetűtípus használatához",
   "codeFont": "Kódbetűtípus",
-  "codeFontTips": "A terminálban, szerkesztőben és más kódterületeken használt betűtípus. Hagyja üresen az alapértelmezett monospace betűtípus használatához"
+  "codeFontTips": "A terminálban, szerkesztőben és más kódterületeken használt betűtípus. Hagyja üresen az alapértelmezett monospace betűtípus használatához",
+  "moduleDescription": {
+    "consul": "Szolgáltatásfelderítés és konfiguráció elosztott alkalmazásokhoz.",
+    "etcd": "Elosztott kulcs-érték tároló a szolgáltatás konfigurációjához és állapotához.",
+    "rnacos": "Szolgáltatásfelderítés és központi konfigurációkezelés.",
+    "temporal": "Az alkalmazás-munkafolyamatok és hosszan futó folyamatok megbízható vezénylése.",
+    "temporalCli": "Parancssori eszköz a Temporal kezeléséhez és használatához."
+  }
 }

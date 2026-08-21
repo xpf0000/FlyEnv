@@ -20,5 +20,28 @@
     "stats": "Zobrazit statistiky využití tokenů a nákladů",
     "providersList": "Vypsat poskytovatele a přihlašovací údaje",
     "agentList": "Vypsat všechny dostupné agenty"
+  },
+  "statsLabels": {
+    "overview": "Přehled",
+    "sessions": "Relace",
+    "messages": "Zprávy",
+    "days": "Dny",
+    "costAndTokens": "Náklady & tokeny",
+    "toolUsage": "Využití nástrojů",
+    "avgCostPerDay": "Průměr Náklady/den",
+    "avgTokensPerSession": "Průměr tokeny/relaci",
+    "medianTokensPerSession": "Medián tokeny/relaci",
+    "summary": "Souhrn",
+    "models": "Modely",
+    "totalCost": "Celkem Náklady",
+    "cost": "Náklady",
+    "totalTokens": "Celkem tokeny",
+    "inputTokens": "Vstupní tokeny",
+    "outputTokens": "Výstupní tokeny",
+    "reasoningTokens": "Odvozovací tokeny",
+    "cacheReadTokens": "Načtené z mezipaměti tokeny",
+    "cacheWriteTokens": "Zapsané do mezipaměti tokeny",
+    "totalRequests": "Celkem požadavků",
+    "totalSessions": "Celkem Relace"
   }
 }

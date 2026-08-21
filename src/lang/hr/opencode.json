@@ -20,5 +20,28 @@
     "stats": "Prikaži statistiku potrošnje tokena i troškova",
     "providersList": "Prikaži pružatelje i vjerodajnice",
     "agentList": "Prikaži sve dostupne agente"
+  },
+  "statsLabels": {
+    "overview": "Pregled",
+    "sessions": "Sesije",
+    "messages": "Poruke",
+    "days": "Dani",
+    "costAndTokens": "Trošak & tokeni",
+    "toolUsage": "Upotreba alata",
+    "avgCostPerDay": "Prosjek Trošak/dan",
+    "avgTokensPerSession": "Prosjek tokeni/sesija",
+    "medianTokensPerSession": "Medijan tokeni/sesija",
+    "summary": "Sažetak",
+    "models": "Modeli",
+    "totalCost": "Ukupno Trošak",
+    "cost": "Trošak",
+    "totalTokens": "Ukupno tokeni",
+    "inputTokens": "Ulazni tokeni",
+    "outputTokens": "Izlazni tokeni",
+    "reasoningTokens": "Zaključivanje tokeni",
+    "cacheReadTokens": "Pročitano iz predmemorije tokeni",
+    "cacheWriteTokens": "Zapisano u predmemoriju tokeni",
+    "totalRequests": "Ukupno zahtjeva",
+    "totalSessions": "Ukupno Sesije"
   }
 }

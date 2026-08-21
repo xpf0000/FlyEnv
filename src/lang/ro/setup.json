@@ -50,5 +50,12 @@
   "appFont": "Font interfață",
   "appFontTips": "Setați fontul utilizat pentru interfața aplicației. Lăsați gol pentru a utiliza fontul implicit de sistem",
   "codeFont": "Font pentru cod",
-  "codeFontTips": "Setați fontul utilizat pentru terminal, editor și alte zone de cod. Lăsați gol pentru a utiliza fontul implicit monospace"
+  "codeFontTips": "Setați fontul utilizat pentru terminal, editor și alte zone de cod. Lăsați gol pentru a utiliza fontul implicit monospace",
+  "moduleDescription": {
+    "consul": "Descoperirea serviciilor și configurarea aplicațiilor distribuite.",
+    "etcd": "Stocare distribuită cheie-valoare pentru configurarea și starea serviciilor.",
+    "rnacos": "Descoperirea serviciilor și gestionarea centralizată a configurației.",
+    "temporal": "Orchestrare fiabilă a fluxurilor de lucru și a proceselor de lungă durată.",
+    "temporalCli": "Instrument de linie de comandă pentru gestionarea și utilizarea Temporal."
+  }
 }

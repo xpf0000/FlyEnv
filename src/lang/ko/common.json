@@ -65,7 +65,9 @@
     "lastPrompt": "마지막 프롬프트",
     "search": "세션 검색",
     "deleted": "세션이 삭제되었습니다",
-    "resumed": "세션이 터미널에서 다시 시작되었습니다"
+    "resumed": "세션이 터미널에서 다시 시작되었습니다",
+    "newSession": "새 세션",
+    "lastSession": "마지막 세션"
   },
   "mcp": {
     "type": "Type",

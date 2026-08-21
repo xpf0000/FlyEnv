@@ -33,5 +33,9 @@
     "emptyFunction": "Vui lòng nhập tên hàm",
     "sameName": "Hàm đã tồn tại",
     "invalidName": "Tên hàm không hợp lệ. Tên hàm chỉ có thể chứa chữ cái, số và dấu gạch dưới"
-  }
+  },
+  "fastcgiWorkers": "Worker FastCGI",
+  "fastcgiWorkerCount": "Số worker",
+  "fastcgiWorkerInvalid": "Nhập số nguyên từ {min} đến {max}.",
+  "fastcgiWorkerRestart": "Khởi động lại dịch vụ PHP ngay để áp dụng số worker FastCGI mới?"
 }

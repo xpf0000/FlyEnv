@@ -20,5 +20,28 @@
     "stats": "Nayta tokenien kaytto- ja kustannustilastot",
     "providersList": "Listaa palveluntarjoajat ja tunnistetiedot",
     "agentList": "Listaa kaikki saatavilla olevat agentit"
+  },
+  "statsLabels": {
+    "overview": "Yleiskatsaus",
+    "sessions": "Istunnot",
+    "messages": "Viestit",
+    "days": "Päivät",
+    "costAndTokens": "Kustannus & tokenit",
+    "toolUsage": "Työkalujen käyttö",
+    "avgCostPerDay": "Keskiarvo Kustannus/päivä",
+    "avgTokensPerSession": "Keskiarvo tokenit/istunto",
+    "medianTokensPerSession": "Mediaani tokenit/istunto",
+    "summary": "Yhteenveto",
+    "models": "Mallit",
+    "totalCost": "Yhteensä Kustannus",
+    "cost": "Kustannus",
+    "totalTokens": "Yhteensä tokenit",
+    "inputTokens": "Syöte tokenit",
+    "outputTokens": "Tuloste tokenit",
+    "reasoningTokens": "Päättely tokenit",
+    "cacheReadTokens": "Välimuistista luetut tokenit",
+    "cacheWriteTokens": "Välimuistiin kirjoitetut tokenit",
+    "totalRequests": "Yhteensä pyynnöt",
+    "totalSessions": "Yhteensä Istunnot"
   }
 }

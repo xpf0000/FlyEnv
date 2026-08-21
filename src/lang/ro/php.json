@@ -33,5 +33,9 @@
     "emptyFunction": "Te rugăm să introduci numele funcției",
     "sameName": "Funcția există deja",
     "invalidName": "Numele funcției este invalid. Numele funcției poate conține doar litere, numere, și underscore"
-  }
+  },
+  "fastcgiWorkers": "Workeri FastCGI",
+  "fastcgiWorkerCount": "Număr de workeri",
+  "fastcgiWorkerInvalid": "Introduceți un număr întreg între {min} și {max}.",
+  "fastcgiWorkerRestart": "Reporniți acum serviciul PHP pentru a aplica noul număr de workeri FastCGI?"
 }

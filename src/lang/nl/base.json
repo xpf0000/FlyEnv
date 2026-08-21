@@ -97,5 +97,7 @@
   "needInstallHelperTips": "Sommige bewerkingen zijn mislukt omdat beheerdersbevoegdheden vereist zijn. Dit omvat onder andere het wijzigen van het Hosts bestand, toegang tot de proceslijst, binding met poorten onder 1024, of het beheren van systeemomgevingsvariabelen.\nInstalleer de FlyEnv Helper om de benodigde machtigingen te geven voor deze taken. Klik op \"OK\" om verder te gaan met de installatie.",
   "targetPlatforms": "Doel platformen",
   "selectVersion": "Versie selecteren",
-  "webPanelFirstInstall": "{service} moet de eerste keer dat het wordt uitgevoerd worden geïnstalleerd. Dit kan even duren, dus even geduld. Het beheerpaneel wordt automatisch geopend zodra de installatie is voltooid."
+  "webPanelFirstInstall": "{service} moet de eerste keer dat het wordt uitgevoerd worden geïnstalleerd. Dit kan even duren, dus even geduld. Het beheerpaneel wordt automatisch geopend zodra de installatie is voltooid.",
+  "helperBinaryMissing": "De FlyEnv-helper ontbreekt. Installeer FlyEnv opnieuw of herstel de helper.",
+  "dataDirectoryRecoveryFailed": "FlyEnv kon de gegevensmap niet herstellen. Controleer de helper en probeer het opnieuw."
 }

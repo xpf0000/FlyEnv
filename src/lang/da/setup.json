@@ -50,5 +50,12 @@
   "appFont": "UI-skrifttype",
   "appFontTips": "Sæt skrifttypen der bruges til programmets UI. Efterlad blank for at bruge systemets standardskrifttype",
   "codeFont": "Kodeskrifttype",
-  "codeFontTips": "Angiv skrifttypen der bruges til terminal, editor og andre kodeområder. Efterlad blank for at bruge standard monospace skrifttype"
+  "codeFontTips": "Angiv skrifttypen der bruges til terminal, editor og andre kodeområder. Efterlad blank for at bruge standard monospace skrifttype",
+  "moduleDescription": {
+    "consul": "Tjenesteopdagelse og konfiguration til distribuerede programmer.",
+    "etcd": "Distribueret nøgleværdilager til tjenestekonfiguration og -tilstand.",
+    "rnacos": "Tjenesteopdagelse og central konfigurationsstyring.",
+    "temporal": "Pålidelig orkestrering af programarbejdsgange og langvarige processer.",
+    "temporalCli": "Kommandolinjeværktøj til administration og interaktion med Temporal."
+  }
 }

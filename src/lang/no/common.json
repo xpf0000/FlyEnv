@@ -65,7 +65,9 @@
     "lastPrompt": "Siste prompt",
     "search": "Søk i økter",
     "deleted": "Økt slettet",
-    "resumed": "Økt gjenopptatt i terminal"
+    "resumed": "Økt gjenopptatt i terminal",
+    "newSession": "Ny økt",
+    "lastSession": "Siste økt"
   },
   "mcp": {
     "type": "Type",

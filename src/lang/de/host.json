@@ -77,5 +77,10 @@
   "runSetting": "Einstellungen ausführen",
   "exec": "Ausführen",
   "runInTerminal": "Im Terminal ausführen",
-  "portSetting": "Port-Einstellungen"
+  "portSetting": "Port-Einstellungen",
+  "tomcatAppBase": "Tomcat-App-Verzeichnis",
+  "tomcatContexts": "Anwendungszuordnungen",
+  "tomcatContextPath": "Kontextpfad",
+  "tomcatDocBase": "Anwendungspfad",
+  "tomcatRewrite": "Tomcat-Rewrite"
 }

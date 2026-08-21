@@ -65,7 +65,9 @@
     "lastPrompt": "Senaste prompten",
     "search": "Sök sessioner",
     "deleted": "Sessionen har tagits bort",
-    "resumed": "Sessionen återupptogs i terminalen"
+    "resumed": "Sessionen återupptogs i terminalen",
+    "newSession": "Ny session",
+    "lastSession": "Senaste sessionen"
   },
   "mcp": {
     "type": "Type",

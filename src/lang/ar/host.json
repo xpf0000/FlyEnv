@@ -77,5 +77,10 @@
   "runSetting": "إعدادات التشغيل",
   "exec": "تنفيذ",
   "runInTerminal": "التشغيل في الطرفية",
-  "portSetting": "إعدادات المنفذ"
+  "portSetting": "إعدادات المنفذ",
+  "tomcatAppBase": "دليل تطبيق Tomcat",
+  "tomcatContexts": "تعيينات التطبيقات",
+  "tomcatContextPath": "مسار السياق",
+  "tomcatDocBase": "مسار التطبيق",
+  "tomcatRewrite": "إعادة كتابة Tomcat"
 }

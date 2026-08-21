@@ -50,5 +50,12 @@
   "appFont": "UI-skrifttype",
   "appFontTips": "Angi skrifttypen som brukes for program-brukergrensesnittet. La stå tom for å bruke standard system skrifttype",
   "codeFont": "Skrifttype for kode",
-  "codeFontTips": "Angi skriften som brukes for terminal, tekstbehandler og andre kodeområder. La stå tom for å bruke standard skrift for monospace"
+  "codeFontTips": "Angi skriften som brukes for terminal, tekstbehandler og andre kodeområder. La stå tom for å bruke standard skrift for monospace",
+  "moduleDescription": {
+    "consul": "Tjenesteoppdagelse og konfigurasjon for distribuerte applikasjoner.",
+    "etcd": "Distribuert nøkkel-verdi-lager for tjenestekonfigurasjon og -tilstand.",
+    "rnacos": "Tjenesteoppdagelse og sentralisert konfigurasjonsstyring.",
+    "temporal": "Pålitelig orkestrering av arbeidsflyter og langvarige prosesser.",
+    "temporalCli": "Kommandolinjeverktøy for å administrere og samhandle med Temporal."
+  }
 }

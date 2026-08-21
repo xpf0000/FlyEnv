@@ -20,5 +20,28 @@
     "stats": "اعرض إحصاءات استخدام الرموز والتكلفة",
     "providersList": "اعرض المزوّدين وبيانات الاعتماد",
     "agentList": "اعرض جميع الوكلاء المتاحين"
+  },
+  "statsLabels": {
+    "overview": "نظرة عامة",
+    "sessions": "الجلسات",
+    "messages": "الرسائل",
+    "days": "الأيام",
+    "costAndTokens": "التكلفة & الرموز",
+    "toolUsage": "استخدام الأدوات",
+    "avgCostPerDay": "متوسط التكلفة/اليوم",
+    "avgTokensPerSession": "متوسط الرموز/الجلسة",
+    "medianTokensPerSession": "وسيط الرموز/الجلسة",
+    "summary": "الملخص",
+    "models": "النماذج",
+    "totalCost": "إجمالي التكلفة",
+    "cost": "التكلفة",
+    "totalTokens": "إجمالي الرموز",
+    "inputTokens": "الإدخال الرموز",
+    "outputTokens": "الإخراج الرموز",
+    "reasoningTokens": "الاستدلال الرموز",
+    "cacheReadTokens": "قراءة ذاكرة التخزين المؤقت الرموز",
+    "cacheWriteTokens": "كتابة ذاكرة التخزين المؤقت الرموز",
+    "totalRequests": "إجمالي الطلبات",
+    "totalSessions": "إجمالي الجلسات"
   }
 }

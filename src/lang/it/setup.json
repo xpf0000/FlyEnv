@@ -50,5 +50,12 @@
   "appFont": "Font interfaccia",
   "appFontTips": "Imposta il carattere usato per l'interfaccia utente dell'applicazione. Lasciare vuoto per usare il carattere di sistema predefinito",
   "codeFont": "Font del codice",
-  "codeFontTips": "Imposta il carattere usato per terminale, editor e altre aree di codice. Lasciare vuoto per usare il carattere a spaziatura variabile predefinito"
+  "codeFontTips": "Imposta il carattere usato per terminale, editor e altre aree di codice. Lasciare vuoto per usare il carattere a spaziatura variabile predefinito",
+  "moduleDescription": {
+    "consul": "Individuazione dei servizi e configurazione per applicazioni distribuite.",
+    "etcd": "Archivio chiave-valore distribuito per la configurazione e lo stato dei servizi.",
+    "rnacos": "Individuazione dei servizi e gestione centralizzata della configurazione.",
+    "temporal": "Orchestrazione affidabile dei flussi applicativi e dei processi di lunga durata.",
+    "temporalCli": "Strumento da riga di comando per gestire e usare Temporal."
+  }
 }

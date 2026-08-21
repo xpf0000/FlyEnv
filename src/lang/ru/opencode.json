@@ -20,5 +20,28 @@
     "stats": "Показать статистику использования токенов и затрат",
     "providersList": "Показать провайдеров и учетные данные",
     "agentList": "Показать всех доступных агентов"
+  },
+  "statsLabels": {
+    "overview": "Обзор",
+    "sessions": "Сеансы",
+    "messages": "Сообщения",
+    "days": "Дни",
+    "costAndTokens": "Стоимость & токены",
+    "toolUsage": "Использование инструментов",
+    "avgCostPerDay": "Средняя Стоимость/день",
+    "avgTokensPerSession": "Средняя токены/сеанс",
+    "medianTokensPerSession": "Медиана токены/сеанс",
+    "summary": "Сводка",
+    "models": "Модели",
+    "totalCost": "Всего Стоимость",
+    "cost": "Стоимость",
+    "totalTokens": "Всего токены",
+    "inputTokens": "Входные токены",
+    "outputTokens": "Выходные токены",
+    "reasoningTokens": "Рассуждения токены",
+    "cacheReadTokens": "Прочитано из кэша токены",
+    "cacheWriteTokens": "Записано в кэш токены",
+    "totalRequests": "Всего запросов",
+    "totalSessions": "Всего Сеансы"
   }
 }

@@ -77,5 +77,10 @@
   "runSetting": "রান সেটিংস",
   "exec": "এক্সিকিউট",
   "runInTerminal": "টার্মিনালে চালাও",
-  "portSetting": "পোর্ট সেটিংস"
+  "portSetting": "পোর্ট সেটিংস",
+  "tomcatAppBase": "Tomcat appBase",
+  "tomcatContexts": "অ্যাপ্লিকেশন ম্যাপিং",
+  "tomcatContextPath": "কনটেক্সট পাথ",
+  "tomcatDocBase": "অ্যাপ্লিকেশন পাথ",
+  "tomcatRewrite": "Tomcat রিরাইট"
 }

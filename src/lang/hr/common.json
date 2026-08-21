@@ -65,7 +65,9 @@
     "lastPrompt": "Posljednji upit",
     "search": "Pretraži sesije",
     "deleted": "Sesija je izbrisana",
-    "resumed": "Sesija je nastavljena u terminalu"
+    "resumed": "Sesija je nastavljena u terminalu",
+    "newSession": "Nova sesija",
+    "lastSession": "Posljednja sesija"
   },
   "mcp": {
     "type": "Type",
