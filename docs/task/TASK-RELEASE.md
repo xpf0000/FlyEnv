@@ -1,11 +1,14 @@
-# FlyEnv新版本4.18.0更新日志
+# FlyEnv新版本4.18.1更新日志
 
 本次更新内容：
-1. 新增Neo4j模块. https://github.com/xpf0000/FlyEnv/issues/719
-2. 新增pgAdmin 4管理面板. https://github.com/xpf0000/FlyEnv/issues/680
-3. 新增DbGate管理面板.
-4. 新增Redis Commander管理面板.
-5. 修复站点二维码缺少协议前缀的问题. https://github.com/xpf0000/FlyEnv/issues/815
+1. 优化Windows的帮助程序和数据文件夹初始化逻辑. 解决有些新用户无法使用的问题
+2. 修复Windows上Rust无法安装的问题
+3. 优化Tomcat站点新建方法. 现在可以设置应用映射了.
+4. Windows上PHP-FPM新增PHP-CGI线程数量设置.  https://github.com/xpf0000/FlyEnv/issues/830
+5. 移除Windows上nvm和fnm支持. 修复nvm弹窗报错问题. https://github.com/xpf0000/FlyEnv/issues/831
+6. 优化Windows上托盘菜单点击逻辑. https://github.com/xpf0000/FlyEnv/issues/831
+7. 修复macOS上别名设置问题. https://github.com/xpf0000/FlyEnv/issues/832
+8. 多语言新增波斯语支持. https://github.com/xpf0000/FlyEnv/pull/829
 
 参照：
 ```

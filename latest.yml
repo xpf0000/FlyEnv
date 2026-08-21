@@ -1,8 +1,8 @@
-version: 4.18.0
+version: 4.18.1
 files:
-  - url: FlyEnv-Setup-4.18.0.exe
-    sha512: OotpLoyqthQudhJKwQAJMQSCaGuN/3b2v/UCeD+yt67/v0fAasE0yoVlUYY7eID4naoPGSex3Az6PURaI/hLzQ==
-    size: 144709387
-path: FlyEnv-Setup-4.18.0.exe
-sha512: OotpLoyqthQudhJKwQAJMQSCaGuN/3b2v/UCeD+yt67/v0fAasE0yoVlUYY7eID4naoPGSex3Az6PURaI/hLzQ==
-releaseDate: '2026-08-10T07:37:14.802Z'
+  - url: FlyEnv-Setup-4.18.1.exe
+    sha512: LE3Zm1fPYRnXcL/ZmJUKsmN0UocdQnAwiIcYNlcaOPZUVeinuwAVbCYM6QxLJY0iDkaryattpPu36RErWz+inA==
+    size: 144794356
+path: FlyEnv-Setup-4.18.1.exe
+sha512: LE3Zm1fPYRnXcL/ZmJUKsmN0UocdQnAwiIcYNlcaOPZUVeinuwAVbCYM6QxLJY0iDkaryattpPu36RErWz+inA==
+releaseDate: '2026-08-21T15:24:52.566Z'

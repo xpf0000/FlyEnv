@@ -2,6 +2,90 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.18.1] - 2026-08-22
+
+# **FlyEnv v4.18.1 Update Release Notes**
+
+## **🚀 New Features**
+
+### **1. Added Tomcat Application Mappings**
+
+Tomcat sites can now map application directories or WAR files to explicit context paths while creating or editing a site. FlyEnv validates the mapping, writes the required Tomcat Context descriptors, and keeps the generated configuration synchronized when the site changes.
+
+This makes it possible to serve multiple applications from one Tomcat site using paths such as `/`, `/api`, or `/admin` without manually maintaining Tomcat XML files.
+
+---
+
+### **2. Added Configurable PHP FastCGI Worker Counts on Windows**
+
+Windows PHP FastCGI installations can now set the number of `php-cgi` workers for each installed PHP version. Choose an integer from 1 to 64 in FlyEnv; restarting a running PHP service applies the updated count.
+
+This gives local PHP projects a supported way to tune concurrency when several sites or heavier development workloads are running at once.
+
+[Issue #830](https://github.com/xpf0000/FlyEnv/issues/830)
+
+---
+
+### **3. Added Persian Language Support**
+
+FlyEnv is now available in Persian (`fa`). The new locale covers the application's built-in translation catalog and is selectable from the language settings.
+
+Thanks to [@Nitron2020](https://github.com/Nitron2020) for the contribution! [Pull Request #829](https://github.com/xpf0000/FlyEnv/pull/829)
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **4. Improved Windows Helper and Data Directory Initialization**
+
+FlyEnv now coordinates Windows Helper startup with data-directory initialization more reliably. When a new installation needs elevated access to create or repair its data location, FlyEnv can recover permissions and retry the operation before dependent setup continues.
+
+This improves first-run reliability for Windows users who previously could not start using FlyEnv because its data directory or Helper had not initialized correctly.
+
+---
+
+### **5. Fixed Rust Installation on Windows**
+
+Resolved a Windows installation issue that could leave downloaded Rust archives in an invalid layout. FlyEnv now unpacks the official archive through a staging directory and installs its expected root directory correctly.
+
+---
+
+### **6. Removed NVM and FNM Support on Windows**
+
+FlyEnv no longer detects or operates the external NVM and FNM Node.js version managers on Windows. Managed Node.js versions continue to work through FlyEnv's built-in installation workflow, while removing this integration prevents the NVM startup popup reported by affected users.
+
+[Issue #831](https://github.com/xpf0000/FlyEnv/issues/831)
+
+---
+
+### **7. Fixed Windows Tray Menu Click Behavior**
+
+The Windows modern tray menu now opens from a right-click only. Double-clicking the tray icon opens the main FlyEnv window without also displaying the quick-action menu.
+
+[Issue #831](https://github.com/xpf0000/FlyEnv/issues/831)
+
+---
+
+### **8. Fixed macOS Alias PATH Entries**
+
+Resolved an issue where editing a FlyEnv alias on macOS could write a stray quote into the `PATH` export in `.zshrc`. Alias setup now parses existing path entries safely and preserves a valid shell configuration.
+
+[Issue #832](https://github.com/xpf0000/FlyEnv/issues/832)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)
+
+**Enjoy the update!**
+
 ## [4.18.0] - 2026-08-10
 
 # **FlyEnv v4.18.0 Update Release Notes**
