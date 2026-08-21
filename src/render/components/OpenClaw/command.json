@@ -156,7 +156,7 @@
       "commands": [
         { "label": "openclaw backup create", "descriptionKey": "openclaw.cmd.backupCreate", "needInput": false },
         { "label": "openclaw backup verify", "descriptionKey": "openclaw.cmd.backupVerify", "needInput": true },
-        { "label": "openclaw update", "descriptionKey": "openclaw.cmd.update", "needInput": false },
+        { "label": "openclaw update", "descriptionKey": "openclaw.cmd.update", "needInput": false, "needRefresh": true },
         { "label": "openclaw update status", "descriptionKey": "openclaw.cmd.updateStatus", "needInput": false },
         { "label": "openclaw update --dry-run", "descriptionKey": "openclaw.cmd.updateDryRun", "needInput": false }
       ]

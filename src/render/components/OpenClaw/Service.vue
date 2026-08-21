@@ -77,6 +77,14 @@
           >
             <el-form-item class="flex-shrink-0" :label="'OpenClaw ' + I18nT('base.version')">
               <span>{{ OpenClawSetup.version }}</span>
+              <el-button
+                class="ml-3"
+                link
+                :disabled="OpenClawSetup.loading || OpenClawSetup.installing"
+                @click.stop="OpenClawSetup.updateOpenClaw(xtermDom)"
+              >
+                {{ I18nT('openclaw.cmd.update') }}
+              </el-button>
             </el-form-item>
             <el-form-item class="flex-shrink-0" :label="I18nT('common.gateway.status')">
               <template v-if="OpenClawSetup.gatewayRunning">

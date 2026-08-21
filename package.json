@@ -1,6 +1,6 @@
 {
   "name": "FlyEnv",
-  "version": "4.18.0",
+  "version": "4.18.1",
   "description": "All-In-One Full-Stack Environment Management Tool",
   "author": {
     "name": "Pengfei Xu",
@@ -31,6 +31,8 @@
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
     "test:ai-cli-session-fork": "tsx scripts/ai-cli-session-fork-test.ts",
     "test:ai-cli-session-list": "tsx scripts/ai-cli-session-list-test.ts",
+    "test:tool-alias-path": "tsx scripts/tool-alias-path-test.ts",
+    "test:openclaw-service": "tsx scripts/openclaw-service-test.ts",
     "test:neo4j-renderer": "tsx scripts/neo4j-renderer-test.ts",
     "test:neo4j-service-lifecycle": "tsx scripts/neo4j-service-lifecycle-test.ts",
     "test:neo4j-startup": "tsx scripts/neo4j-startup-test.ts",

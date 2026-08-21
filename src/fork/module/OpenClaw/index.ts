@@ -9,6 +9,7 @@ import { isLinux, isMacOS } from '@shared/utils'
 import { PItem, ProcessKill, ProcessPidsByPid } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import { I18nT } from '@lang/runtime'
+import { parseGatewayStatus } from './status'
 
 class OpenClaw extends Base {
   constructor() {
@@ -62,19 +63,7 @@ class OpenClaw extends Base {
         }
       }
 
-      // Parse status
-      const isInstalled =
-        (!status.includes('Service: Scheduled Task (missing)') &&
-          !status.includes('Service: systemd (disabled)')) ||
-        status.includes('RPC probe: ok')
-      const isRunning = status.includes('RPC probe: ok')
-      const isStopped = status.includes('RPC probe: failed')
-      const dashboard =
-        status
-          .split('\n')
-          .find((s) => s.includes('Dashboard:'))
-          ?.replace('Dashboard:', '')
-          ?.trim() ?? ''
+      const { isInstalled, isRunning, isStopped, dashboard } = parseGatewayStatus(status)
 
       const configFile = join(homedir(), '.openclaw/openclaw.json')
       resolve({

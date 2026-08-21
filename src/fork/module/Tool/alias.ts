@@ -13,6 +13,7 @@ import { dirname, join, resolve as PathResolve } from 'node:path'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import { defaultShell, isMacOS } from '@shared/utils'
 import { fetchPATH } from './path'
+import { parseExportPathEntries } from './pathExport'
 
 export function setAlias(
   service: SoftInstalled,
@@ -104,15 +105,7 @@ export function setAlias(
     const arr: string[] = []
     matchs.forEach((x: string) => {
       content = content.replace(`\n${x}`, '').replace(`${x}`, '')
-      const list = x
-        .trim()
-        .replace('export', '')
-        .replace('PATH', '')
-        .replace('=', '')
-        .replace(new RegExp('"'), '')
-        .replace(new RegExp('\\$PATH'), '')
-        .split(':')
-        .filter((s) => !!s.trim())
+      const list = parseExportPathEntries(x)
       arr.push(...list)
     })
     arr.unshift(aliasDir)

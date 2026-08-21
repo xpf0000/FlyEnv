@@ -227,6 +227,18 @@ class OpenClaw {
     }
   }
 
+  async updateOpenClaw(domRef: Ref<HTMLElement>) {
+    await this.doAction(
+      {
+        label: 'openclaw update',
+        descriptionKey: 'openclaw.cmd.update',
+        needInput: false,
+        needRefresh: true
+      },
+      domRef
+    )
+  }
+
   taskConfirm() {
     this.installing = false
     this.installEnd = false
