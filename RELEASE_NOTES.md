@@ -34,9 +34,17 @@ Thanks to [@Nitron2020](https://github.com/Nitron2020) for the contribution! [Pu
 
 ---
 
+### **4. Added AI CLI Session Quick Actions**
+
+The session pages for Antigravity, Claude Code, Codex, GitHub Copilot CLI, Kimi, and OpenCode now provide quick actions for each working directory. Start a new AI CLI session directly in that directory, or resume its most recent session with one click.
+
+This makes it faster to return to the right project context without manually opening a terminal, changing directories, and entering the CLI command.
+
+---
+
 ## **🛠️ Improvements & Bug Fixes**
 
-### **4. Improved Windows Helper and Data Directory Initialization**
+### **5. Improved Windows Helper and Data Directory Initialization**
 
 FlyEnv now coordinates Windows Helper startup with data-directory initialization more reliably. When a new installation needs elevated access to create or repair its data location, FlyEnv can recover permissions and retry the operation before dependent setup continues.
 
@@ -44,13 +52,13 @@ This improves first-run reliability for Windows users who previously could not s
 
 ---
 
-### **5. Fixed Rust Installation on Windows**
+### **6. Fixed Rust Installation on Windows**
 
 Resolved a Windows installation issue that could leave downloaded Rust archives in an invalid layout. FlyEnv now unpacks the official archive through a staging directory and installs its expected root directory correctly.
 
 ---
 
-### **6. Removed NVM and FNM Support on Windows**
+### **7. Removed NVM and FNM Support on Windows**
 
 FlyEnv no longer detects or operates the external NVM and FNM Node.js version managers on Windows. Managed Node.js versions continue to work through FlyEnv's built-in installation workflow, while removing this integration prevents the NVM startup popup reported by affected users.
 
@@ -58,7 +66,7 @@ FlyEnv no longer detects or operates the external NVM and FNM Node.js version ma
 
 ---
 
-### **7. Fixed Windows Tray Menu Click Behavior**
+### **8. Fixed Windows Tray Menu Click Behavior**
 
 The Windows modern tray menu now opens from a right-click only. Double-clicking the tray icon opens the main FlyEnv window without also displaying the quick-action menu.
 
@@ -66,7 +74,7 @@ The Windows modern tray menu now opens from a right-click only. Double-clicking 
 
 ---
 
-### **8. Fixed macOS Alias PATH Entries**
+### **9. Fixed macOS Alias PATH Entries**
 
 Resolved an issue where editing a FlyEnv alias on macOS could write a stray quote into the `PATH` export in `.zshrc`. Alias setup now parses existing path entries safely and preserves a valid shell configuration.
 
