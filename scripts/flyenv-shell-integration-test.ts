@@ -10,6 +10,7 @@ import { buildPowerShellProfileTargets } from '../src/fork/module/Tool.win/init'
 const root = path.join(import.meta.dirname, '..')
 const fallback = fs.readFileSync(join(root, 'src/shared/WindowsHelperFallback.ts'), 'utf8')
 const helper = fs.readFileSync(join(root, 'src/fork/Helper.ts'), 'utf8')
+const helperGoWhitelist = fs.readFileSync(join(root, 'src/helper-go/utils/whitelist.go'), 'utf8')
 const init = fs.readFileSync(join(root, 'src/fork/module/Tool.win/init.ts'), 'utf8')
 const controller = fs.readFileSync(
   join(root, 'src/render/components/Tools/ShellInitController.ts'),
@@ -35,8 +36,11 @@ assert.ok(
 )
 assert.match(helper, /'installFlyEnvPowerShellIntegration'/)
 assert.match(helper, /helperResponseErrorCode/)
+assert.doesNotMatch(helperGoWhitelist, /os\.UserHomeDir\(\)/)
 assert.match(fallback, /validateFlyEnvPowerShellIntegrationArgs/)
 assert.match(fallback, /buildInstallFlyEnvPowerShellIntegrationScript/)
+assert.doesNotMatch(fallback, /callerHome/)
+assert.doesNotMatch(fallback, /Test-FlyEnvShellPathInDirectory \$profilePath \$userHome/)
 assert.match(fallback, /await EnvSync\.sync\(\)\.catch\(\(\) => undefined\)/)
 assert.match(fallback, /powershellPath: EnvSync\.PowerShellPath \|\| 'powershell\.exe'/)
 assert.doesNotMatch(fallback, /powershellPath: 'powershell\.exe'/)
@@ -118,11 +122,15 @@ assert.throws(() => parseFlyEnvPowerShellIntegrationFallbackResult('not JSON'), 
 assert.deepEqual(buildPowerShellProfileTargets('C:\\Users\\FlyEnv\\OneDrive\\文档'), [
   {
     edition: 'windows-powershell',
-    path: 'C:\\Users\\FlyEnv\\OneDrive\\文档\\WindowsPowerShell\\Microsoft.PowerShell_profile.ps1'
+    path: path.join(
+      'C:\\Users\\FlyEnv\\OneDrive\\文档',
+      'WindowsPowerShell',
+      'Microsoft.PowerShell_profile.ps1'
+    )
   },
   {
     edition: 'pwsh',
-    path: 'C:\\Users\\FlyEnv\\OneDrive\\文档\\PowerShell\\Profile.ps1'
+    path: path.join('C:\\Users\\FlyEnv\\OneDrive\\文档', 'PowerShell', 'Profile.ps1')
   }
 ])
 
@@ -177,28 +185,25 @@ try {
           ]),
         /unexpected windows-powershell profile path/
       )
-      assert.throws(
-        () =>
-          buildFlyEnvPowerShellIntegrationUacPlan([
-            {
-              ...request,
-              profiles: [
-                {
-                  edition: 'windows-powershell',
-                  path: join(
-                    path.dirname(isolatedRoot),
-                    'outside-home',
-                    'WindowsPowerShell',
-                    'Microsoft.PowerShell_profile.ps1'
-                  )
-                }
-              ]
-            }
-          ]),
-        /unexpected windows-powershell profile path/
+      assert.doesNotThrow(() =>
+        buildFlyEnvPowerShellIntegrationUacPlan([
+          {
+            ...request,
+            profiles: [
+              {
+                edition: 'windows-powershell',
+                path: join(
+                  path.dirname(isolatedRoot),
+                  'outside-home',
+                  'WindowsPowerShell',
+                  'Microsoft.PowerShell_profile.ps1'
+                )
+              }
+            ]
+          }
+        ])
       )
       const uacPlan = buildFlyEnvPowerShellIntegrationUacPlan([request], {
-        callerHome: isolatedRoot,
         powershellPath: 'powershell.exe',
         resultPath: join(isolatedRoot, 'result.json'),
         nonce: 'flyenv-shell-test-nonce'
@@ -288,7 +293,6 @@ if ($errors.Count -gt 0) { throw $errors[0].Message }`
               }
             ],
             {
-              callerHome: isolatedRoot,
               powershellPath: 'powershell.exe',
               resultPath: join(isolatedRoot, 'large-result.json'),
               nonce: 'flyenv-shell-large-payload'

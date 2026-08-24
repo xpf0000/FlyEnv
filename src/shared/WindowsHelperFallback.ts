@@ -68,7 +68,6 @@ type FlyEnvPowerShellProfileTarget = {
 }
 
 type ValidatedFlyEnvPowerShellIntegrationArgs = {
-  callerHome: string
   scriptPath: string
   scriptBase64: string
   profiles: FlyEnvPowerShellProfileTarget[]
@@ -85,7 +84,6 @@ export type FlyEnvPowerShellIntegrationUacPlan = {
 }
 
 export type FlyEnvPowerShellIntegrationUacPlanOptions = {
-  callerHome?: string
   powershellPath?: string
   resultPath?: string
   nonce?: string
@@ -513,8 +511,7 @@ function validateBase64(value: string, label: string): string {
 
 function validateFlyEnvPowerShellProfileTarget(
   value: unknown,
-  index: number,
-  callerHome: string
+  index: number
 ): FlyEnvPowerShellProfileTarget {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     helperExecutionFailed(`installFlyEnvPowerShellIntegration profiles[${index}] must be an object`)
@@ -538,8 +535,6 @@ function validateFlyEnvPowerShellProfileTarget(
   const expectedFileName =
     edition === 'windows-powershell' ? 'Microsoft.PowerShell_profile.ps1' : 'Profile.ps1'
   if (
-    !pathInDir(targetPath, callerHome) ||
-    pathEqual(targetPath, callerHome) ||
     path.win32.basename(path.win32.dirname(targetPath)).toLowerCase() !==
       expectedDirectory.toLowerCase() ||
     path.win32.basename(targetPath).toLowerCase() !== expectedFileName.toLowerCase()
@@ -569,15 +564,13 @@ function validateFlyEnvPowerShellScriptPath(value: string): string {
 }
 
 function validateFlyEnvPowerShellIntegrationArgs(
-  args: unknown[],
-  callerHomeValue = process.env.USERPROFILE
+  args: unknown[]
 ): ValidatedFlyEnvPowerShellIntegrationArgs {
   ensureArgCount(args, 1, 'installFlyEnvPowerShellIntegration')
   if (typeof args[0] !== 'object' || args[0] === null || Array.isArray(args[0])) {
     helperExecutionFailed('installFlyEnvPowerShellIntegration request must be an object')
   }
   const request = args[0] as Record<string, unknown>
-  const callerHome = cleanAbsPath(callerHomeValue ?? '', 'current user home')
   const scriptPath = validateFlyEnvPowerShellScriptPath(
     ensureString(request.scriptPath, 'installFlyEnvPowerShellIntegration scriptPath')
   )
@@ -593,14 +586,14 @@ function validateFlyEnvPowerShellIntegrationArgs(
   }
   const seen = new Set<string>()
   const profiles = request.profiles.map((profile, index) => {
-    const target = validateFlyEnvPowerShellProfileTarget(profile, index, callerHome)
+    const target = validateFlyEnvPowerShellProfileTarget(profile, index)
     if (seen.has(target.edition)) {
       helperExecutionFailed(`duplicate PowerShell profile edition: ${target.edition}`)
     }
     seen.add(target.edition)
     return target
   })
-  return { callerHome, scriptPath, scriptBase64, profiles }
+  return { scriptPath, scriptBase64, profiles }
 }
 
 function buildTempFilePath(kind: WindowsHelperFallbackTempFileKind): string {
@@ -786,8 +779,7 @@ function buildInstallFlyEnvPowerShellIntegrationScript(
   } = {}
 ): string {
   const runtimeSetup = `$payloadJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(${powerShellString(Buffer.from(JSON.stringify(args), 'utf8').toString('base64'))}))
-$payload = $payloadJson | ConvertFrom-Json
-$callerHome = ${powerShellString(args.callerHome)}`
+$payload = $payloadJson | ConvertFrom-Json`
   const resultSetup =
     options.resultPath && options.nonce
       ? `$flyEnvResultPath = ${powerShellString(options.resultPath)}
@@ -825,13 +817,6 @@ function Normalize-FlyEnvShellPath([string]$Value, [string]$Label) {
 }
 function Test-FlyEnvShellPathEqual([string]$Left, [string]$Right) {
   return [string]::Equals($Left, $Right, [StringComparison]::OrdinalIgnoreCase)
-}
-function Test-FlyEnvShellPathInDirectory([string]$Path, [string]$Directory) {
-  if (Test-FlyEnvShellPathEqual $Path $Directory) {
-    return $true
-  }
-  $prefix = $Directory.TrimEnd([char[]]@('\\', '/')) + '\\'
-  return $Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)
 }
 function Assert-FlyEnvShellNoReparsePoint([string]$Path) {
   $current = [IO.Path]::GetFullPath($Path)
@@ -902,7 +887,7 @@ function Assert-FlyEnvAllowedRootsSecurity([string]$AllowedRootsFile) {
   Assert-FlyEnvAllowedRootsObjectSecurity $parent
   Assert-FlyEnvAllowedRootsObjectSecurity $AllowedRootsFile
 }
-function Assert-FlyEnvPowerShellIntegrationPayload($Request, [string]$CallerHome) {
+function Assert-FlyEnvPowerShellIntegrationPayload($Request) {
   $scriptPath = Normalize-FlyEnvShellPath ([string]$Request.scriptPath) 'runtime script path'
   Assert-FlyEnvShellNoReparsePoint $scriptPath
   $programData = Normalize-FlyEnvShellPath ([string]$env:ProgramData) 'ProgramData path'
@@ -938,7 +923,6 @@ function Assert-FlyEnvPowerShellIntegrationPayload($Request, [string]$CallerHome
   if ($scriptBytes.Length -eq 0 -or $scriptBytes.Length -gt 1048576) {
     throw 'invalid FlyEnv runtime script content'
   }
-  $userHome = Normalize-FlyEnvShellPath $CallerHome 'current user home'
   $seen = @{}
   $profiles = @()
   foreach ($profile in @($Request.profiles)) {
@@ -959,7 +943,6 @@ function Assert-FlyEnvPowerShellIntegrationPayload($Request, [string]$CallerHome
     }
     $profilePath = Normalize-FlyEnvShellPath ([string]$profile.path) "$edition profile path"
     if (
-      -not (Test-FlyEnvShellPathInDirectory $profilePath $userHome) -or
       -not [string]::Equals([IO.Path]::GetFileName($profilePath), $expectedProfileFileName, [StringComparison]::OrdinalIgnoreCase) -or
       -not [string]::Equals([IO.Path]::GetFileName([IO.Path]::GetDirectoryName($profilePath)), $expectedProfileDirectory, [StringComparison]::OrdinalIgnoreCase)
     ) {
@@ -974,7 +957,7 @@ function Assert-FlyEnvPowerShellIntegrationPayload($Request, [string]$CallerHome
   }
   return [PSCustomObject]@{ scriptPath = $scriptPath; scriptBase64 = [string]$Request.scriptBase64; profiles = $profiles }
 }
-$payload = Assert-FlyEnvPowerShellIntegrationPayload $payload $callerHome
+$payload = Assert-FlyEnvPowerShellIntegrationPayload $payload
 function Get-FlyEnvProfileDocument([string]$Path) {
   if (-not (Test-Path -LiteralPath $Path)) {
     return [PSCustomObject]@{ Text = ''; Encoding = 'utf8' }
@@ -1362,7 +1345,7 @@ export function buildFlyEnvPowerShellIntegrationUacPlan(
   args: unknown[],
   options: FlyEnvPowerShellIntegrationUacPlanOptions = {}
 ): FlyEnvPowerShellIntegrationUacPlan {
-  const validated = validateFlyEnvPowerShellIntegrationArgs(args, options.callerHome)
+  const validated = validateFlyEnvPowerShellIntegrationArgs(args)
   const powershellPath = options.powershellPath ?? 'powershell.exe'
   if (!powershellPath || CONTROL_CHAR_PATTERN.test(powershellPath)) {
     helperExecutionFailed('PowerShell executable path is invalid')

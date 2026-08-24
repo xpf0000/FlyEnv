@@ -149,7 +149,7 @@ func TestValidateSystemEnvValueKeepsStrictPathValidation(t *testing.T) {
 	}
 }
 
-func TestValidateFlyEnvPowerShellProfilePathAllowsRedirectedDocumentsInsideHome(t *testing.T) {
+func TestValidateFlyEnvPowerShellProfilePathAllowsRedirectedDocumentsOutsideHome(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		t.Skip("PowerShell profiles are a Windows-only feature")
 	}
@@ -183,8 +183,12 @@ func TestValidateFlyEnvPowerShellProfilePathAllowsRedirectedDocumentsInsideHome(
 		"WindowsPowerShell",
 		"Microsoft.PowerShell_profile.ps1",
 	)
-	if _, err := ValidateFlyEnvPowerShellProfilePath(outsideHome, "windows-powershell"); err == nil {
-		t.Fatal("profile outside the current user home should be rejected")
+	clean, err = ValidateFlyEnvPowerShellProfilePath(outsideHome, "windows-powershell")
+	if err != nil {
+		t.Fatalf("redirected profile outside the current user home should be allowed: %v", err)
+	}
+	if !pathEqual(clean, outsideHome) {
+		t.Fatalf("validated profile path = %q, want %q", clean, outsideHome)
 	}
 }
 

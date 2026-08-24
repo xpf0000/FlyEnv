@@ -567,10 +567,9 @@ func ValidateFlyEnvPowerShellRuntimeScriptPath(path string) (string, error) {
 	return "", fmt.Errorf("unexpected FlyEnv runtime script path: %s", path)
 }
 
-// ValidateFlyEnvPowerShellProfilePath only permits the two PowerShell profile
-// names inside the current helper user's home. The Documents component itself
-// may be localized or redirected (for example, to OneDrive), so it cannot be
-// hard-coded. This remains separate from the generic business-path whitelist.
+// ValidateFlyEnvPowerShellProfilePath only permits the two standard
+// edition-specific PowerShell profile names. Windows may relocate Documents
+// outside the helper user's home, so profile location is not restricted to it.
 func ValidateFlyEnvPowerShellProfilePath(path, edition string) (string, error) {
 	if runtime.GOOS != "windows" {
 		return "", fmt.Errorf("PowerShell profile validation is only supported on Windows")
@@ -584,14 +583,6 @@ func ValidateFlyEnvPowerShellProfilePath(path, edition string) (string, error) {
 	} else if hasSymlink {
 		return "", fmt.Errorf("PowerShell profile path contains a reparse point: %s", path)
 	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to determine helper user home: %w", err)
-	}
-	cleanHome, err := cleanAbsPath(home)
-	if err != nil {
-		return "", fmt.Errorf("failed to normalize helper user home: %w", err)
-	}
 	var expectedDirectory, expectedFileName string
 	switch edition {
 	case "windows-powershell":
@@ -603,8 +594,7 @@ func ValidateFlyEnvPowerShellProfilePath(path, edition string) (string, error) {
 	default:
 		return "", fmt.Errorf("unsupported PowerShell edition: %s", edition)
 	}
-	if !pathInDir(clean, cleanHome) || pathEqual(clean, cleanHome) ||
-		!strings.EqualFold(filepath.Base(filepath.Dir(clean)), expectedDirectory) ||
+	if !strings.EqualFold(filepath.Base(filepath.Dir(clean)), expectedDirectory) ||
 		!strings.EqualFold(filepath.Base(clean), expectedFileName) {
 		return "", fmt.Errorf("unexpected PowerShell profile path for %s: %s", edition, path)
 	}

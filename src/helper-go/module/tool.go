@@ -481,7 +481,7 @@ func prepareFlyEnvProfileWrite(target FlyEnvPowerShellProfileTarget, scriptPath 
 
 // InstallFlyEnvPowerShellIntegration is deliberately narrower than the
 // generic writeFileByRoot operation. It can only update FlyEnv's runtime
-// script and the current user's two standard PowerShell profile locations.
+// script and the two edition-specific standard PowerShell profile locations.
 func (t *ToolManager) InstallFlyEnvPowerShellIntegration(
 	request FlyEnvPowerShellIntegrationRequest,
 ) (FlyEnvPowerShellIntegrationResult, error) {
