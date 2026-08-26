@@ -1,0 +1,12 @@
+{
+  "checking": "इंस्टॉलेशन जांची जा रही है...",
+  "isInstalled": "इंस्टॉल है",
+  "notInstalled": "mkcert इंस्टॉल नहीं है",
+  "install": "mkcert इंस्टॉल करें",
+  "checkAgain": "पुनः जांचें",
+  "recheck": "पुनः जांचें",
+  "installCA": "CA इंस्टॉल करें",
+  "carootLabel": "CA रूट पथ",
+  "certificates": "प्रमाणपत्र",
+  "noSSLHosts": "SSL सक्षम वाले कोई hosts नहीं हैं। पहले किसी host पर SSL सक्षम करें।"
+}

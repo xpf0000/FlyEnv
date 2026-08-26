@@ -1,0 +1,21 @@
+{
+  "console": "कंसोल",
+  "webServer": "वेब सर्वर",
+  "dataBaseServer": "डेटाबेस सर्वर",
+  "emailServer": "ईमेल सर्वर",
+  "language": "भाषा और रनटाइम",
+  "searchEngine": "खोज इंजन",
+  "dnsServer": "DNS सर्वर",
+  "ftpServer": "FTP सर्वर",
+  "containerRuntime": "कंटेनर रनटाइम",
+  "appLog": "ऐप लॉग",
+  "aiCoding": "AI कोडिंग",
+  "ai": "AI",
+  "objectStorage": "ऑब्जेक्ट स्टोरेज",
+  "appExit": "सभी चल रही सेवाओं को रोकें और FlyEnv से बाहर निकलें",
+  "groupStart": "पैनल पर प्रदर्शित सभी उपलब्ध सेवाओं को एक क्लिक में शुरू करें",
+  "networkTunnel": "नेटवर्क टनल",
+  "cacheAndQueue": "कैश और मैसेज क्यू",
+  "serviceGovernance": "सेवा शासन",
+  "other": "अन्य"
+}

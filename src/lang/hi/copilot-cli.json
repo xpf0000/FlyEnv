@@ -1,0 +1,13 @@
+{
+  "notInstalled": "GitHub Copilot CLI इंस्टॉल नहीं है। npm के माध्यम से इंस्टॉल करने के लिए नीचे दिए गए बटन पर क्लिक करें (Node.js 22+ आवश्यक)।",
+  "officialWebsite": "Copilot CLI GitHub",
+  "officialDocs": "Copilot CLI दस्तावेज़",
+  "cmd": {
+    "update": "Copilot CLI का नवीनतम संस्करण डाउनलोड करें",
+    "resume": "पिछला सत्र पुनरारंभ करें (पिकर)",
+    "continue": "हालिया सत्र पुनरारंभ करें",
+    "prompt": "एक बार में प्रॉम्प्ट गैर-इंटरैक्टिव में चलाएं",
+    "login": "Copilot के साथ प्रमाणित करें",
+    "init": "रिपॉज़िटरी के लिए Copilot निर्देश प्रारंभ करें"
+  }
+}

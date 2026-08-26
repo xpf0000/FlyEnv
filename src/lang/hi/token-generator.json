@@ -1,0 +1,9 @@
+{
+  "title": "टोकन जनरेटर",
+  "uppercase": "अपरकेस (ABC...)",
+  "lowercase": "लोअरकेस (abc...)",
+  "numbers": "संख्याएं (123...)",
+  "symbols": "प्रतीक (!-;...)",
+  "length": "लंबाई",
+  "tokenPlaceholder": "टोकन..."
+}

@@ -1,0 +1,23 @@
+{
+  "about": "के बारे में",
+  "app": "FlyEnv",
+  "checkForUpdates": "अपडेट की जांच करें...",
+  "hide": "FlyEnv छिपाएं",
+  "hideOthers": "अन्य छिपाएं",
+  "unhide": "सभी दिखाएं",
+  "quit": "FlyEnv से बाहर निकलें",
+  "cut": "काटें",
+  "paste": "पेस्ट करें",
+  "window": "विंडो",
+  "minimize": "न्यूनतम करें",
+  "zoom": "ज़ूम",
+  "fullscreen": "पूर्ण स्क्रीन में प्रवेश करें",
+  "front": "FlyEnv को सामने लाएं",
+  "dev": "डीबग विंडो खोलें",
+  "needInstallHelper": "FlyEnv को एक सहायक प्रोग्राम इंस्टॉल करना है",
+  "helperInstalling": "सहायक प्रोग्राम इंस्टॉल हो रहा है, कृपया प्रतीक्षा करें",
+  "waitHelper": "सहायक प्रोग्राम शुरू हो रहा है, कृपया प्रतीक्षा करें",
+  "helperInstallFailTips": "सहायक प्रोग्राम इंस्टॉलेशन विफल। कृपया टर्मिनल विंडो में मैन्युअल रूप से इंस्टॉल करने का प्रयास करें",
+  "helperInstallSuccessTips": "सहायक प्रोग्राम इंस्टॉलेशन सफल",
+  "helperInstallTitle": "FlyEnv Helper इंस्टॉल करें"
+}
