@@ -13,7 +13,7 @@ class Manager extends Base {
 
   handleProjectDir(dir: string, framework: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const pdir = join(dir, 'flyenv-create-project')
+      const pdir = join(dir, 'flyenv-created-project')
       if (!existsSync(pdir)) {
         return reject(new Error(I18nT('appLog.newProjectFail')))
       }
