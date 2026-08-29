@@ -4,10 +4,11 @@ import { BrewStore } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import type { AllAppModule } from '@/core/type'
-import { MessageSuccess } from '@/util/Element'
+import { MessageSuccess, MessageWarning } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { join, basename, dirname } from '@/util/path-browserify'
 import { clipboard, fs } from '@/util/NodeFn'
+import { brewFormulaSourceName, findInstalledFormulaConflict } from './FormulaConflict'
 
 export const BrewSetup = reactive<{
   installEnd: boolean
@@ -163,6 +164,13 @@ export const Setup = (typeFlag: AllAppModule) => {
     return `brew ${fn} ${row.name}`
   }
 
+  const formulaConflictTips = (row: any) =>
+    row.conflictingFormula
+      ? I18nT('versionmanager.brewFormulaConflict', {
+          source: brewFormulaSourceName(row.conflictingFormula)
+        })
+      : ''
+
   const copyCommand = (row: any) => {
     const command = fetchCommand(row)
     clipboard.writeText(command)
@@ -171,6 +179,14 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const handleBrewVersion = async (row: any) => {
     if (BrewSetup.installing) {
+      return
+    }
+    if (row.conflictingFormula) {
+      MessageWarning(
+        I18nT('versionmanager.brewFormulaConflict', {
+          source: brewFormulaSourceName(row.conflictingFormula)
+        })
+      )
       return
     }
     BrewSetup.installing = true
@@ -223,12 +239,14 @@ export const Setup = (typeFlag: AllAppModule) => {
         return n
       })
       const num = parseInt(nums.join(''))
-      Object.assign(value, {
+      arr.push({
+        ...value,
         version: value.version,
         installed: value.installed,
+        conflictingFormula:
+          typeFlag === 'php' ? findInstalledFormulaConflict(value, list) : undefined,
         num
       })
-      arr.push(value)
     }
     arr.sort((a: any, b: any) => {
       return b.num - a.num
@@ -294,6 +312,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     xtermDom,
     fetchCommand,
     copyCommand,
+    formulaConflictTips,
     showBrewError,
     brewBin,
     brewError

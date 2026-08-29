@@ -56,6 +56,8 @@
     "test:hosts-idempotent-write": "tsx scripts/hosts-idempotent-write-test.ts",
     "test:stop-process-list-cache": "tsx scripts/stop-process-list-cache-test.ts",
     "test:bin-version-cache": "tsx scripts/bin-version-cache-test.ts",
+    "test:brew-formula-tap-installed": "tsx scripts/brew-formula-tap-installed-test.ts",
+    "test:brew-formula-conflict": "tsx scripts/brew-formula-conflict-test.ts",
     "test:rabbitmq-enumeration-timeout": "tsx scripts/rabbitmq-enumeration-timeout-test.ts",
     "test:env-sync-coordinator": "tsx scripts/env-sync-coordinator-test.ts",
     "test:fork-idle-lifecycle": "tsx scripts/fork-idle-lifecycle-test.ts",
