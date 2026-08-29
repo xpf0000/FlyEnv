@@ -258,7 +258,9 @@
         )
       }
       command.push(`cd flyenv-created-project`)
-      command.push(`mv ./* ../`)
+      command.push(
+        `find . -mindepth 1 -maxdepth 1 -exec sh -c 'for item; do mv -- "$item" ../ || exit 1; done' sh {} +`
+      )
       command.push(`cd ../`)
       command.push(`rm -rf flyenv-created-project`)
     }
