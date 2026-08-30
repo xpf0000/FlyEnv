@@ -1,0 +1,19 @@
+{
+  "OLLAMA_DEBUG": "अतिरिक्त डीबग जानकारी दिखाएं (जैसे OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "ollama सर्वर के लिए IP पता (डिफ़ॉल्ट 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "मेमोरी में लोड किए गए मॉडल कितने समय तक रहते हैं (डिफ़ॉल्ट \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "प्रति GPU अधिकतम लोड किए गए मॉडल",
+  "OLLAMA_MAX_QUEUE": "अधिकतम कतार में अनुरोध",
+  "OLLAMA_MODELS": "मॉडल निर्देशिका का पथ",
+  "OLLAMA_NUM_PARALLEL": "अधिकतम समानांतर अनुरोध",
+  "OLLAMA_NOPRUNE": "प्रारंभ पर मॉडल ब्लॉब न काटें",
+  "OLLAMA_ORIGINS": "अनुमत मूलों की अल्पविराम से अलग की गई सूची",
+  "OLLAMA_SCHED_SPREAD": "हमेशा सभी GPUs में मॉडल शेड्यूल करें",
+  "OLLAMA_FLASH_ATTENTION": "फ़्लैश अटेंशन सक्षम किया",
+  "OLLAMA_KV_CACHE_TYPE": "K/V कैश के लिए क्वांटाइज़ेशन प्रकार (डिफ़ॉल्ट: f16)",
+  "OLLAMA_LLM_LIBRARY": "ऑटोडिटेक्शन को बायपास करने के लिए LLM लाइब्रेरी सेट करें",
+  "OLLAMA_GPU_OVERHEAD": "प्रति GPU VRAM का एक हिस्सा आरक्षित करें (बाइट्स)",
+  "OLLAMA_LOAD_TIMEOUT": "मॉडल लोड को कितनी देर तक रुकने दें, छोड़ने से पहले (डिफ़ॉल्ट \"5m\")",
+  "needServiceRun": "कृपया पहले Olama सेवा शुरू करें",
+  "model": "मॉडल"
+}

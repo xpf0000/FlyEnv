@@ -1,0 +1,10 @@
+{
+  "gzip": "GZIP कंप्रेशन ट्रांसमिशन सक्षम है या नहीं",
+  "gzip_min_length": "न्यूनतम कंप्रेस्ड फ़ाइल",
+  "gzip_comp_level": "कंप्रेसिबिलिटी",
+  "client_max_body_size": "अधिकतम अपलोड फ़ाइल आकार",
+  "server_names_hash_max_size": "सर्वर नाम के लिए हैश टेबल अधिकतम आकार",
+  "server_names_hash_bucket_size": "सर्वर नाम के लिए हैश टेबल आकार",
+  "client_header_buffer_size": "क्लाइंट अनुरोध हेडर बफ़र आकार",
+  "client_body_buffer_size": "अनुरोध बॉडी बफ़र आकार"
+}

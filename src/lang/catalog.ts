@@ -15,6 +15,7 @@ export const BuiltInLocaleCatalog = {
   fi: { label: 'Suomi', sourceDir: 'fi' },
   fr: { label: 'Français', sourceDir: 'fr' },
   hr: { label: 'Hrvatski', sourceDir: 'hr' },
+  hi: { label: 'हिन्दी', sourceDir: 'hi' },
   hu: { label: 'Magyar', sourceDir: 'hu' },
   id: { label: 'Bahasa Indonesia', sourceDir: 'id' },
   it: { label: 'Italiano', sourceDir: 'it' },

@@ -1,0 +1,22 @@
+{
+  "RUSTFS_ADDRESS": "किसी विशिष्ट ADDRESS:PORT से बाइंड करें, ADDRESS IP या होस्टनाम हो सकता है। डिफ़ॉल्ट ':9000' है।",
+  "RUSTFS_ACCESS_KEY": "S3 API प्रमाणीकरण के लिए उपयोग की जाने वाली एक्सेस कुंजी।",
+  "RUSTFS_ACCESS_KEY_FILE": "S3 API प्रमाणीकरण के लिए एक्सेस कुंजी वाली फ़ाइल का पथ।",
+  "RUSTFS_SECRET_KEY": "S3 API प्रमाणीकरण के लिए उपयोग की जाने वाली गोपनीय कुंजी।",
+  "RUSTFS_SECRET_KEY_FILE": "S3 API प्रमाणीकरण के लिए गोपनीय कुंजी वाली फ़ाइल का पथ।",
+  "RUSTFS_CONSOLE_ENABLE": "वेब कंसोल सर्वर सक्षम करें। सक्षम करने के लिए 'true' सेट करें।",
+  "RUSTFS_CONSOLE_ADDRESS": "कंसोल सर्वर बाइंड पता। डिफ़ॉल्ट ':9001' है।",
+  "RUSTFS_SERVER_DOMAINS": "वर्चुअल-होस्टेड-स्टाइल अनुरोधों के लिए उपयोग किया जाने वाला डोमेन नाम।",
+  "RUSTFS_TLS_PATH": "RustFS API और कंसोल के लिए TLS प्रमाणपत्र पथ।",
+  "RUSTFS_REGION": "सर्वर के लिए क्षेत्र का नाम।",
+  "RUSTFS_LICENSE": "वाणिज्यिक सुविधाओं के लिए लाइसेंस कुंजी।",
+  "RUSTFS_KMS_ENABLE": "सर्वर-साइड एन्क्रिप्शन के लिए KMS एन्क्रिप्शन सक्षम करें। सक्षम करने के लिए 'true' सेट करें।",
+  "RUSTFS_KMS_BACKEND": "KMS बैकएंड प्रकार: 'local' या 'vault'। डिफ़ॉल्ट 'local' है।",
+  "RUSTFS_KMS_KEY_DIR": "लोकल बैकएंड के लिए KMS कुंजी निर्देशिका।",
+  "RUSTFS_KMS_VAULT_ADDRESS": "vault बैकएंड के लिए Vault सर्वर पता।",
+  "RUSTFS_KMS_VAULT_TOKEN": "vault बैकएंड प्रमाणीकरण के लिए Vault टोकन।",
+  "RUSTFS_KMS_DEFAULT_KEY_ID": "एन्क्रिप्शन के लिए डिफ़ॉल्ट KMS कुंजी ID।",
+  "RUSTFS_OBS_ENDPOINT": "ट्रेस, मेट्रिक्स और लॉग के लिए पर्यवेक्षण एंडपॉइंट (केवल gRPC मोड)।",
+  "RUSTFS_BUFFER_PROFILE_DISABLE": "कार्यभार प्रोफ़ाइल के साथ अनुकूली बफ़र साइज़िंग अक्षम करें। फ़िक्स्ड-साइज़ बफ़र का उपयोग करने के लिए 'true' सेट करें।",
+  "RUSTFS_BUFFER_PROFILE": "अनुकूली बफ़र साइज़िंग के लिए कार्यभार प्रोफ़ाइल। विकल्प: GeneralPurpose, AiTraining, DataAnalytics, WebWorkload, IndustrialIoT, SecureStorage।"
+}

@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Kimi Code CLI इंस्टॉल नहीं है। आधिकारिक इंस्टॉलर चलाने के लिए नीचे दिए गए बटन पर क्लिक करें।",
+  "officialWebsite": "Kimi Code CLI GitHub",
+  "officialDocs": "Kimi Code CLI दस्तावेज़",
+  "permissionMode": "अनुमति मोड",
+  "defaultThinking": "सोच मोड",
+  "defaultPlanMode": "योजना मोड",
+  "telemetry": "टेलीमेट्री",
+  "cmd": {
+    "upgrade": "Kimi Code CLI अपग्रेड करें",
+    "continue": "वर्तमान निर्देशिका में हालिया सत्र जारी रखें",
+    "sessionSelect": "सत्र चुनें और पुनरारंभ करें",
+    "plan": "योजना मोड में शुरू करें",
+    "yolo": "नियमित टूल कॉल्स स्वचालित अनुमोदन",
+    "export": "सत्र को ZIP में निर्यात करें",
+    "vis": "ब्राउज़र में सत्र विज़ुअलाइज़र खोलें",
+    "providerList": "कॉन्फ़िगर किए गए प्रदाताओं की सूची बनाएं",
+    "providerAdd": "रजिस्ट्री URL से प्रदाता जोड़ें",
+    "providerRemove": "प्रदाता हटाएं"
+  }
+}
