@@ -47,9 +47,10 @@ assert(
   'Windows must not eagerly fetch FNM versions'
 )
 assert(
-  !/this\.tray\.on\('click', this\.handleTrayClick\)/.test(tray) &&
+  /if \(!isWindows\(\)\) \{\s*this\.tray\.on\('click', this\.handleTrayClick\)\s*\}/.test(tray) &&
+    (tray.match(/this\.tray\.on\('click', this\.handleTrayClick\)/g) ?? []).length === 1 &&
     /this\.tray\.on\('right-click', this\.handleTrayClick\)/.test(tray),
-  'Modern tray popup must be bound to right-click only'
+  'Modern tray popup must use right-click only on Windows and both mouse buttons elsewhere'
 )
 
 console.log('node/tray issue regression tests passed')
