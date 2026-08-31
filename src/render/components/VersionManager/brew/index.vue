@@ -72,6 +72,17 @@
               :svg="import('@/svg/ok.svg?raw')"
               class="installed"
             ></yb-icon>
+            <el-tooltip
+              v-else-if="scope.row.conflictingFormula"
+              :content="formulaConflictTips(scope.row)"
+              placement="top"
+              popper-class="brew-formula-conflict-tooltip"
+            >
+              <span class="text-yellow-500 cursor-help inline-flex items-center gap-1">
+                {{ I18nT('versionmanager.brewFormulaUnavailable') }}
+                <yb-icon :svg="import('@/svg/question.svg?raw')" width="12" height="12"></yb-icon>
+              </span>
+            </el-tooltip>
           </div>
         </template>
       </el-table-column>
@@ -81,7 +92,7 @@
             type="primary"
             link
             :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-            :disabled="BrewSetup.installing"
+            :disabled="BrewSetup.installing || !!scope.row.conflictingFormula"
             @click="handleBrewVersion(scope.row)"
             >{{
               scope.row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')
@@ -111,6 +122,7 @@
     installBrew,
     fetchCommand,
     copyCommand,
+    formulaConflictTips,
     showBrewError,
     brewError,
     brewBin
@@ -121,5 +133,13 @@
     a {
       color: #4096ff;
     }
+  }
+
+  .brew-formula-conflict-tooltip {
+    max-width: 245px;
+    font-size: 12px !important;
+    line-height: 18px;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
   }
 </style>

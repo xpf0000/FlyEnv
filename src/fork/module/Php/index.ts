@@ -38,6 +38,7 @@ import { unpack } from '../../util/Zip'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
 import { uuid } from '@shared/utils'
+import { qualifyHomebrewCoreFormula } from '../../util/BrewFormula'
 
 class Php extends Base {
   constructor() {
@@ -616,10 +617,11 @@ xdebug.output_dir = "${output_dir}"
   brewinfo() {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        let all: Array<string> = ['php']
+        let all: Array<string> = ['php', 'shivammathur/php/php']
         const command = 'brew search -q --formula "/^(php|shivammathur/php/php)@[\\d\\.]+$/"'
         all = await brewSearch(all, command)
-        const info = await brewInfoJson(all)
+        all = [...new Set(all.map(qualifyHomebrewCoreFormula))]
+        const info = await brewInfoJson(all, { tapAware: true })
         resolve(info)
       } catch (e) {
         reject(e)

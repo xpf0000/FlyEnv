@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "अपडेट की जांच करें",
+  "update-available-message": "FlyEnv का एक नया संस्करण उपलब्ध है, अभी अपडेट करें?",
+  "update-not-available-message": "आप अपडेट हैं!",
+  "update-downloaded-message": "इंस्टॉल करने के लिए तैयार...",
+  "update-error-message": "अपडेट त्रुटि",
+  "view-update-log": "अपडेट लॉग देखें",
+  "download-new-version": "नया संस्करण डाउनलोड करें"
+}

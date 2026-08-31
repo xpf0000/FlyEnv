@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI इंस्टॉल नहीं है। आधिकारिक इंस्टॉलर के साथ इंस्टॉल करने के लिए नीचे दिए गए बटन पर क्लिक करें।",
+  "officialWebsite": "Antigravity वेबसाइट",
+  "officialDocs": "Antigravity CLI दस्तावेज़",
+  "sandboxMode": "टर्मिनल सैंडबॉक्स",
+  "toolPermission": "टूल अनुमति",
+  "sessionId": "वार्तालाप ID",
+  "updatedAt": "अपडेट किया गया",
+  "sessionResumed": "टर्मिनल में वार्तालाप पुनरारंभ",
+  "sessionDeleted": "वार्तालाप हटाया गया",
+  "cmd": {
+    "update": "Antigravity CLI को नवीनतम संस्करण में अपडेट करें",
+    "models": "उपलब्ध मॉडलों की सूची बनाएं",
+    "continue": "हालिया वार्तालाप जारी रखें",
+    "resume": "ID से पिछला वार्तालाप पुनरारंभ करें",
+    "prompt": "एक बार में प्रॉम्प्ट गैर-इंटरैक्टिव में चलाएं",
+    "pluginList": "आयात किए गए प्लगइन की सूची बनाएं",
+    "pluginImport": "gemini या claude से प्लगइन आयात करें",
+    "install": "एनवायरनमेंट पथ और शेल सेटिंग्स कॉन्फ़िगर करें"
+  }
+}
