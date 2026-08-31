@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -54,10 +54,42 @@ try {
   const multipleInstalledVersions = [{ version: '8.4.24' }, { version: '8.4.25' }]
   assert.equal(
     await brewFormulaInstalledForTap(
-      { name: 'php@8.4', tap: 'homebrew/core', installed: multipleInstalledVersions },
+      {
+        name: 'php@8.4',
+        tap: 'homebrew/core',
+        linked_keg: '8.4.25',
+        installed: multipleInstalledVersions
+      },
+      [cellarDir]
+    ),
+    false
+  )
+  assert.equal(
+    await brewFormulaInstalledForTap(
+      {
+        name: 'php@8.4',
+        tap: 'shivammathur/php',
+        linked_keg: '8.4.25',
+        installed: multipleInstalledVersions
+      },
       [cellarDir]
     ),
     true
+  )
+
+  const optDir = join(tempRoot, 'opt')
+  await mkdir(optDir, { recursive: true })
+  await symlink(
+    receiptDir,
+    join(optDir, 'php@8.4'),
+    process.platform === 'win32' ? 'junction' : 'dir'
+  )
+  assert.equal(
+    await brewFormulaInstalledForTap(
+      { name: 'php@8.4', tap: 'homebrew/core', installed: multipleInstalledVersions },
+      [cellarDir]
+    ),
+    false
   )
   assert.equal(
     await brewFormulaInstalledForTap(

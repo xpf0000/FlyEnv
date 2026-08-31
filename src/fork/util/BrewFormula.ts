@@ -1,10 +1,11 @@
-import { existsSync } from 'node:fs'
+import { existsSync, realpathSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 
 type BrewFormulaInfo = {
   name?: string
   tap?: string
+  linked_keg?: string | null
   installed?: Array<{ version?: string }>
 }
 
@@ -19,6 +20,18 @@ export const qualifyHomebrewCoreFormula = (name: string) => {
   return formula.includes('/') ? formula : `homebrew/core/${formula}`
 }
 
+const resolveOptKeg = (formulaName: string, cellarDirs: string[]) => {
+  for (const cellarDir of cellarDirs) {
+    try {
+      const kegPath = realpathSync(join(dirname(cellarDir), 'opt', formulaName))
+      const formulaRackPath = realpathSync(join(cellarDir, formulaName))
+      if (dirname(kegPath) === formulaRackPath) {
+        return { cellarDir, version: basename(kegPath) }
+      }
+    } catch {}
+  }
+}
+
 export const brewFormulaInstalledForTap = async (item: BrewFormulaInfo, cellarDirs: string[]) => {
   const installed = Array.isArray(item.installed) ? item.installed : []
   if (installed.length === 0) {
@@ -31,13 +44,21 @@ export const brewFormulaInstalledForTap = async (item: BrewFormulaInfo, cellarDi
     return true
   }
 
+  const linkedKeg = `${item.linked_keg ?? ''}`.trim()
+  const optKeg = linkedKeg ? undefined : resolveOptKeg(formulaName, cellarDirs)
+  const receiptVersions = linkedKeg
+    ? [{ version: linkedKeg }]
+    : optKeg
+      ? [{ version: optKeg.version }]
+      : installed
+  const receiptCellarDirs = optKeg ? [optKeg.cellarDir] : cellarDirs
   let foundTapIdentity = false
-  for (const install of installed) {
+  for (const install of receiptVersions) {
     const version = `${install?.version ?? ''}`.trim()
     if (!version) {
       continue
     }
-    for (const cellarDir of cellarDirs) {
+    for (const cellarDir of receiptCellarDirs) {
       const receiptFile = join(cellarDir, formulaName, version, 'INSTALL_RECEIPT.json')
       if (!existsSync(receiptFile)) {
         continue
