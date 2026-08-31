@@ -335,4 +335,60 @@ assert.match(
 assert.match(shellInitControllerSource, /response\?\.code === 200/)
 assert.match(shellInitControllerSource, /IPC\.off\(key\)/)
 
+const phpCreateControllerPath = join(
+  componentsDir,
+  'Host',
+  'CreateProject',
+  'PhpProjectCreateController.ts'
+)
+const phpCreateControllerSource = existsSync(phpCreateControllerPath)
+  ? readFileSync(phpCreateControllerPath, 'utf-8')
+  : ''
+const phpCreateSource = readFileSync(
+  join(componentsDir, 'Host', 'CreateProject', 'phpCreate.vue'),
+  'utf-8'
+)
+const phpCreateWindowsSource = readFileSync(
+  join(componentsDir, 'Host', 'CreateProject', 'phpCreate.win.vue'),
+  'utf-8'
+)
+const projectSetupSource = readFileSync(
+  join(componentsDir, 'Host', 'CreateProject', 'project.ts'),
+  'utf-8'
+)
+const phpFormStart = projectSetupSource.indexOf('export type ProjectPHPForm')
+const nodeFormStart = projectSetupSource.indexOf('export type ProjectNodeJSForm')
+const phpFormSource = projectSetupSource.slice(phpFormStart, nodeFormStart)
+
+assert.equal(existsSync(phpCreateControllerPath), true)
+assert.match(phpCreateSource, /from ['"]\.\/PhpProjectCreateController['"]/)
+assert.match(phpCreateWindowsSource, /from ['"]\.\/PhpProjectCreateController['"]/)
+assert.doesNotMatch(phpCreateSource, /mv \.\/\* \.\.\//)
+assert.doesNotMatch(phpCreateSource, /from ['"]@\/util\/XTerm['"]/)
+assert.doesNotMatch(phpCreateWindowsSource, /from ['"]@\/util\/XTerm['"]/)
+assert.doesNotMatch(phpCreateWindowsSource, /from ['"]@\/util\/IPC['"]/)
+assert.doesNotMatch(phpCreateWindowsSource, /from ['"]@\/util\/Element['"]/)
+assert.doesNotMatch(phpFormSource, /\brunning:/)
+assert.doesNotMatch(phpFormSource, /\bcreated:/)
+assert.doesNotMatch(phpFormSource, /\bcreateFail:/)
+assert.doesNotMatch(projectSetupSource, /execing\.PHP/)
+assert.match(phpCreateControllerSource, /export class PhpProjectCreateController\b/)
+assert.match(phpCreateControllerSource, /import IPC from '@\/util\/IPC'/)
+assert.match(phpCreateControllerSource, /import \{ reactiveBind \} from '@\/util\/Index'/)
+assert.match(phpCreateControllerSource, /import \{ markRaw \} from 'vue'/)
+assert.match(phpCreateControllerSource, /import XTerm from '@\/util\/XTerm'/)
+assert.match(phpCreateControllerSource, /import \{ MessageError \} from '@\/util\/Element'/)
+assert.match(phpCreateControllerSource, /markRaw\(new XTerm\(\)\)/)
+assert.match(phpCreateControllerSource, /IPC\.send\('app-fork:project', 'handleProjectDir'/)
+assert.match(phpCreateControllerSource, /response\?\.code === 200/)
+assert.match(phpCreateControllerSource, /IPC\.off\(key\)/)
+assert.match(
+  phpCreateControllerSource,
+  /export default reactiveBind\(new PhpProjectCreateController\(\)\)/
+)
+assert.ok(
+  phpCreateControllerSource.indexOf('await terminal.send(commands, false)') <
+    phpCreateControllerSource.indexOf("IPC.send('app-fork:project', 'handleProjectDir'")
+)
+
 console.log('renderer operation boundary tests passed')

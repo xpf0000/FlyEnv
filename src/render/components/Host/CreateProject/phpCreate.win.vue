@@ -13,7 +13,7 @@
   >
     <template #default>
       <div class="main-wapper h-full">
-        <template v-if="loading">
+        <template v-if="showTerminal">
           <div ref="xterm" class="h-full overflow-hidden"> </div>
         </template>
         <template v-else>
@@ -90,18 +90,13 @@
       <div class="dialog-footer">
         <template v-if="!created">
           <el-button @click="doStop">{{ I18nT('base.cancel') }}</el-button>
-          <template v-if="createFail">
-            <el-button type="primary" @click="doStop">{{ I18nT('base.confirm') }}</el-button>
-          </template>
-          <template v-else>
-            <el-button
-              :loading="loading"
-              :disabled="!createAble"
-              type="primary"
-              @click="doCreateProject"
-              >{{ I18nT('base.confirm') }}</el-button
-            >
-          </template>
+          <el-button
+            :loading="loading"
+            :disabled="!createAble"
+            type="primary"
+            @click="doCreateProject"
+            >{{ I18nT('base.confirm') }}</el-button
+          >
         </template>
         <template v-else>
           <el-button @click="doCancel">{{ I18nT('base.confirm') }}</el-button>
@@ -114,17 +109,17 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
   import { BrewStore } from '@/store/brew'
   import AppVersions from './version'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
-  import XTerm from '@/util/XTerm'
-  import IPC from '@/util/IPC'
-  import { MessageError } from '@/util/Element'
-  import { join, dirname } from '@/util/path-browserify'
-  import { dialog, fs } from '@/util/NodeFn'
+  import { join } from '@/util/path-browserify'
+  import { dialog } from '@/util/NodeFn'
+  import phpProjectCreateController, {
+    type PhpProjectCreateRequest
+  } from './PhpProjectCreateController'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
@@ -139,32 +134,17 @@
   })
 
   const brewStore = BrewStore()
-  const loading = computed({
-    get() {
-      return ProjectSetup.form.PHP.running
-    },
-    set(v) {
-      ProjectSetup.form.PHP.running = v
-    }
-  })
-
-  const created = computed({
-    get() {
-      return ProjectSetup.form.PHP.created
-    },
-    set(v) {
-      ProjectSetup.form.PHP.created = v
-    }
-  })
-
-  const createFail = computed({
-    get() {
-      return ProjectSetup.form.PHP?.createFail ?? false
-    },
-    set(v) {
-      ProjectSetup.form.PHP.createFail = v
-    }
-  })
+  const terminalVisible = ref(false)
+  const starting = ref(false)
+  const loading = computed(() => phpProjectCreateController.running || starting.value)
+  const created = computed(() => phpProjectCreateController.created)
+  const showTerminal = computed(
+    () =>
+      terminalVisible.value ||
+      phpProjectCreateController.running ||
+      phpProjectCreateController.created ||
+      phpProjectCreateController.failed
+  )
 
   const createAble = computed(() => {
     return !!ProjectSetup.form.PHP.dir && !!ProjectSetup.form.PHP.version
@@ -203,122 +183,62 @@
       })
   }
 
+  const createRequest = (): PhpProjectCreateRequest => {
+    const form = ProjectSetup.form.PHP
+    return {
+      dir: form.dir,
+      php: form.php,
+      composer: form.composer,
+      version: form.version,
+      package: app.value.package,
+      framework: props.type.toLowerCase(),
+      isWordPress: props.type === 'WordPress',
+      proxy: Object.fromEntries(
+        Object.entries(window.Server.Proxy ?? {}).map(([key, value]) => [key, `${value}`])
+      ),
+      isWindows: true
+    }
+  }
+
   const doCreateProject = async () => {
     if (loading.value) {
       return
     }
-    loading.value = true
-    const form = ProjectSetup.form.PHP
-    const execXTerm = new XTerm()
-    const command: string[] = []
-    if (window.Server.Proxy) {
-      for (const k in window.Server.Proxy) {
-        const v = window.Server.Proxy[k]
-        command.push(`$env:${k}="${v}"`)
+    terminalVisible.value = true
+    starting.value = true
+    await nextTick()
+    try {
+      if (show.value && xterm.value) {
+        await phpProjectCreateController.start(createRequest(), xterm.value)
       }
+    } finally {
+      starting.value = false
     }
-    command.push(`cd "${form.dir}"`)
-
-    if (props.type === 'WordPress') {
-      const tmpl = `{
-  "require": {
-    "johnpbloch/wordpress": "${form.version}"
-  },
-  "config": {
-    "allow-plugins": {
-      "johnpbloch/wordpress-core-installer": true
-    }
-  }
-}
-`
-      await fs.writeFile(join(form.dir, 'composer.json'), tmpl)
-
-      if (form.php && form.composer) {
-        command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
-        command.push(`php "${form.composer}" update`)
-      } else if (form.php) {
-        command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
-        command.push(`composer update`)
-      } else if (form.composer) {
-        command.push(`php "${form.composer}" update`)
-      } else {
-        command.push(`composer update`)
-      }
-    } else {
-      const name = app.value.package
-      if (form.php && form.composer) {
-        command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
-        command.push(
-          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
-        )
-      } else if (form.php) {
-        command.push(`$env:PATH = "${dirname(form.php)};" + $env:PATH`)
-        command.push(
-          `composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
-        )
-      } else if (form.composer) {
-        command.push(
-          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
-        )
-      } else {
-        command.push(
-          `composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
-        )
-      }
-    }
-
-    nextTick().then(() => {
-      execXTerm.mount(xterm.value!).then(() => {
-        execXTerm?.send(command, false)?.then(() => {
-          if (props.type === 'WordPress') {
-            created.value = true
-          } else {
-            IPC.send(
-              'app-fork:project',
-              'handleProjectDir',
-              ProjectSetup.form.PHP.dir,
-              props.type.toLowerCase()
-            ).then((key: string, res: any) => {
-              IPC.off(key)
-              if (res?.code === 0) {
-                created.value = true
-              } else {
-                if (res?.msg) {
-                  MessageError(res?.msg)
-                }
-                createFail.value = true
-              }
-            })
-          }
-        })
-      })
-    })
-    ProjectSetup.execing.PHP = markRaw(execXTerm)
   }
 
   const doCancel = () => {
     show.value = false
+    phpProjectCreateController.reset()
     ProjectSetup.phpFormInit()
+    terminalVisible.value = false
   }
 
-  const doStop = () => {
+  const doStop = async () => {
     if (!loading.value) {
-      show.value = false
+      doCancel()
       return
     }
-    const execXTerm = ProjectSetup.execing.PHP
-    execXTerm?.stop()?.then(() => {
-      execXTerm?.destroy()
-      created.value = false
-      loading.value = false
-      createFail.value = false
-      delete ProjectSetup.execing.PHP
-    })
+    await phpProjectCreateController.stop()
+    phpProjectCreateController.reset()
+    ProjectSetup.phpFormInit()
+    terminalVisible.value = false
+    show.value = false
   }
 
   const doCreateHost = () => {
     const framework = props.type.toLowerCase()
-    let dir = ProjectSetup.form.PHP.dir
+    const projectDir = ProjectSetup.form.PHP.dir
+    let dir = projectDir
     let nginxRewrite = ''
     if (framework.includes('wordpress')) {
       dir = join(ProjectSetup.form.PHP.dir, 'wordpress')
@@ -367,7 +287,9 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
 }`
     }
     show.value = false
+    phpProjectCreateController.reset()
     ProjectSetup.phpFormInit()
+    terminalVisible.value = false
     nextTick().then(() => {
       callback({
         dir,
@@ -376,25 +298,21 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     })
   }
 
-  onMounted(() => {
-    if (loading.value) {
-      nextTick().then(() => {
-        const execXTerm = ProjectSetup.execing.PHP
-        if (execXTerm && xterm.value) {
-          execXTerm.mount(xterm.value)
-        }
-      })
+  onMounted(async () => {
+    if (phpProjectCreateController.running) {
+      terminalVisible.value = true
+      await nextTick()
+      if (xterm.value) {
+        await phpProjectCreateController.attach(xterm.value)
+      }
     }
   })
 
   onBeforeUnmount(() => {
-    const execXTerm = ProjectSetup.execing.PHP
-    execXTerm?.unmounted()
-    if (created.value) {
-      execXTerm?.destroy()
-      created.value = false
-      loading.value = false
-      delete ProjectSetup.execing.PHP
+    phpProjectCreateController.detach()
+    if (!phpProjectCreateController.running) {
+      phpProjectCreateController.reset()
+      terminalVisible.value = false
     }
   })
 

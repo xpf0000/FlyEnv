@@ -33,6 +33,9 @@ else
 fi
 
 cd flyenv-created-project || exit 1
-mv ./* ../
-cd ../
+for item in ./* ./.[!.]* ./..?*; do
+  [ -e "$item" ] || [ -L "$item" ] || continue
+  mv "$item" ../ || exit 1
+done
+cd ../ || exit 1
 rm -rf flyenv-created-project

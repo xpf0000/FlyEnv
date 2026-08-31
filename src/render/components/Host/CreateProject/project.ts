@@ -9,9 +9,6 @@ export type ProjectPHPForm = {
   composer: string
   version: string | undefined
   framework: string
-  running: boolean
-  created: boolean
-  createFail?: boolean
 }
 
 export type ProjectNodeJSForm = {
@@ -43,7 +40,7 @@ export const ProjectSetup = reactive<{
     Python: ProjectForm
     Go: ProjectForm
   }
-  execing: Partial<Record<ProjectTypes, XTerm>>
+  execing: Partial<Record<Exclude<ProjectTypes, 'PHP'>, XTerm>>
   phpFormInit: () => void
 }>({
   tab: 'PHP',
@@ -57,9 +54,7 @@ export const ProjectSetup = reactive<{
       php: '',
       composer: '',
       version: undefined,
-      framework: '',
-      running: false,
-      created: false
+      framework: ''
     },
     NodeJS: {
       dir: '',
@@ -92,7 +87,5 @@ export const ProjectSetup = reactive<{
     this.form.PHP.composer = ''
     this.form.PHP.version = undefined
     this.form.PHP.framework = ''
-    this.form.PHP.created = false
-    this.form.PHP.running = false
   }
 })
