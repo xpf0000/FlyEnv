@@ -21,6 +21,11 @@ if [ "$1" != "info" ]; then
   exit 2
 fi
 
+if [ "$2" = "homebrew/core/php@8.5" ]; then
+  printf '[{"name":"php","full_name":"php","tap":"homebrew/core","versions":{"stable":"8.5.9"},"installed":[]},{"name":"php","full_name":"php","tap":"homebrew/core","versions":{"stable":"8.5.9"},"installed":[]},{"name":"php","full_name":"shivammathur/php/php","tap":"shivammathur/php","versions":{"stable":"8.5.10"},"installed":[]}]'
+  exit 0
+fi
+
 if [ "$2" = "mongodb/brew/mongodb-community" ] && [ "$3" = "--json" ]; then
   printf '[{"versions":{"stable":"8.0.12"},"installed":[],"full_name":"mongodb/brew/mongodb-community"}]'
   exit 0
@@ -40,6 +45,21 @@ exit 1
     ...process.env,
     PATH: tempDir
   }
+
+  const phpInfo = await brewInfoJson(
+    ['homebrew/core/php@8.5', 'shivammathur/php/php@8.5', 'shivammathur/php/php'],
+    { tapAware: true }
+  )
+
+  assert.deepEqual(phpInfo, [
+    { version: '8.5.9', installed: false, name: 'php', flag: 'brew' },
+    {
+      version: '8.5.10',
+      installed: false,
+      name: 'shivammathur/php/php',
+      flag: 'brew'
+    }
+  ])
 
   const info = await brewInfoJson([
     'mongodb/brew/mongodb-community',

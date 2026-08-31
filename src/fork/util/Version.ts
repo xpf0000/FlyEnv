@@ -15,6 +15,7 @@ import * as process from 'node:process'
 import { userInfo } from 'node:os'
 import { execSync } from 'node:child_process'
 import { withBinVersionCache } from './BinVersionCache'
+import { brewFormulaInstalledForTap } from './BrewFormula'
 
 const COMMAND_LOOKUP_TIMEOUT_MS = 60_000
 
@@ -334,6 +335,20 @@ const fetchBrewCellarDirs = async () => {
   return Array.from(dirs)
 }
 
+const fetchActiveBrewCellarDirs = async () => {
+  try {
+    const res = await spawnPromiseWithEnv('brew', ['--cellar'])
+    const dirs = res.stdout
+      .split('\n')
+      .map((dir) => normalizeExistingDir(dir))
+      .filter((dir): dir is string => !!dir)
+    if (dirs.length > 0) {
+      return [...new Set(dirs)]
+    }
+  } catch {}
+  return fetchBrewCellarDirs()
+}
+
 export const versionLocalFetch = async (
   customDirs: string[],
   binName: string,
@@ -507,24 +522,40 @@ export const versionMacportsFetch = async (bins: string[]): Promise<Array<SoftIn
   return list
 }
 
-export const brewInfoJson = async (names: string[]) => {
+export const brewInfoJson = async (names: string[], options?: { tapAware?: boolean }) => {
   const info: any = []
   if (!names.length) {
     return info
+  }
+  const fetchedFormulae = options?.tapAware ? new Set<string>() : undefined
+  let cellarDirs: string[] | undefined
+  const getCellarDirs = async () => {
+    cellarDirs ??= await fetchActiveBrewCellarDirs()
+    return cellarDirs
   }
   const fetchInfo = async (formulaNames: string[]) => {
     const command = ['brew', 'info', ...formulaNames, '--json', '--formula'].join(' ')
     console.log('brewinfo doRun: ', command)
     const res = await execPromiseWithEnv(command)
     const arr = JSON.parse(res.stdout)
-    arr.forEach((item: any) => {
+    for (const item of arr) {
+      const formulaKey = `${item?.tap ?? ''}:${item?.full_name ?? item?.name ?? ''}`
+      if (fetchedFormulae?.has(formulaKey)) {
+        continue
+      }
+      fetchedFormulae?.add(formulaKey)
+      const installed = item?.installed?.length
+        ? options?.tapAware
+          ? await brewFormulaInstalledForTap(item, await getCellarDirs())
+          : true
+        : false
       info.push({
         version: item?.versions?.stable ?? '',
-        installed: item?.installed?.length > 0,
+        installed,
         name: item.full_name,
         flag: 'brew'
       })
-    })
+    }
   }
   try {
     await fetchInfo(names)
