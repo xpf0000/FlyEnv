@@ -277,7 +277,7 @@
     "tailwindcss": "^3.4.17",
     "tar": "^7.5.19",
     "tiny-emitter": "^2.1.0",
-    "toml": "^3.0.0",
+    "toml": "^4.2.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.35.0",
