@@ -50,6 +50,32 @@ class RabbitMQ extends Base {
     this.pidPath = join(this.baseDir, 'rabbitmq.pid')
   }
 
+  private startupLogFiles(version: SoftInstalled) {
+    const versionStr = version.version?.trim() ?? ''
+    return [
+      {
+        name: `${this.type}-${versionStr}-start-out.log`,
+        path: join(this.baseDir, `${this.type}-${versionStr}-start-out.log`.split(' ').join(''))
+      },
+      {
+        name: `${this.type}-${versionStr}-start-error.log`,
+        path: join(this.baseDir, `${this.type}-${versionStr}-start-error.log`.split(' ').join(''))
+      }
+    ]
+  }
+
+  private async startupDiagnostics(version: SoftInstalled): Promise<string> {
+    const messages: string[] = []
+    for (const file of this.startupLogFiles(version)) {
+      if (!existsSync(file.path)) continue
+      try {
+        const content = (await readFile(file.path, 'utf-8')).trim()
+        if (content) messages.push(`${file.name}:\n${content}`)
+      } catch {}
+    }
+    return messages.join('\n')
+  }
+
   async _resolveErlangHome() {
     const env = await EnvSync.sync().catch(() => process.env)
     const stripOuterQuotes = (value: string) => value.trim().replace(/^['"]|['"]$/g, '')
@@ -221,16 +247,45 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
       const v = version?.version?.split('.')?.[0] ?? ''
       const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
       await mkdirp(mnesiaBaseDir)
+      let launcherPid = ''
+      const isLauncherAlive = () => {
+        const pid = Number(launcherPid)
+        if (!pid || Number.isNaN(pid)) return true
+        try {
+          process.kill(pid, 0)
+          return true
+        } catch (error: any) {
+          return error?.code === 'EPERM'
+        }
+      }
+      const failStart = async (cause?: unknown) => {
+        const diagnostics = await this.startupDiagnostics(version)
+        const causeText = cause instanceof Error ? cause.message : `${cause ?? ''}`
+        const error = [diagnostics, causeText].filter((item) => item.trim()).join('\n')
+        const message = error || I18nT('fork.startFail')
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: message,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
+        reject(new Error(message))
+      }
       const checkpid = async (time = 0) => {
-        // RabbitMQ self-daemonizes through Erlang/epmd: the launcher exits once the
-        // broker is up while beam.smp keeps running. In `-detached` mode the broker
-        // writes <NODENAME>.pid (e.g. rabbit@localhost.pid) into MNESIA_BASE with its
-        // real PID — wait for it to confirm a successful start.
-        const all = readdirSync(mnesiaBaseDir)
-        const pidFileName = all.find((p) => p.endsWith('.pid'))
-        const pid = pidFileName
-          ? (await readFile(join(mnesiaBaseDir, pidFileName), 'utf-8')).trim()
-          : ''
+        // Keep the broker attached to the spawned process. RabbitMQ writes its real
+        // PID into MNESIA_BASE once boot completes, while attached startup keeps
+        // Erlang's failure output in the captured start logs.
+        let pid = ''
+        try {
+          const all = readdirSync(mnesiaBaseDir)
+          const pidFileName = all.find((p) => p.endsWith('.pid'))
+          pid = pidFileName
+            ? (await readFile(join(mnesiaBaseDir, pidFileName), 'utf-8')).trim()
+            : ''
+        } catch {}
         if (pid) {
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid }))
@@ -238,22 +293,13 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
           resolve({
             'APP-Service-Start-PID': pid
           })
+        } else if (launcherPid && time >= 2 && !isLauncherAlive()) {
+          await failStart()
+        } else if (time < 60) {
+          await waitTime(500)
+          await checkpid(time + 1)
         } else {
-          if (time < 60) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            on({
-              'APP-On-Log': AppLog(
-                'error',
-                I18nT('appLog.execStartCommandFail', {
-                  error: I18nT('fork.startFail'),
-                  service: `${this.type}-${version.version}`
-                })
-              )
-            })
-            reject(new Error(I18nT('fork.startFail')))
-          }
+          await failStart()
         }
       }
       try {
@@ -263,6 +309,12 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
           await unlink(join(mnesiaBaseDir, pid))
         }
       } catch {}
+
+      for (const file of this.startupLogFiles(version)) {
+        try {
+          await writeFile(file.path, '')
+        } catch {}
+      }
 
       const bin = version.bin
       const baseDir = this.baseDir
@@ -293,29 +345,27 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
           return
         }
       } else {
-        // RabbitMQ's Erlang/epmd architecture decouples the broker from the launcher:
-        // the `rabbitmq-server` wrapper process exits once the broker is up, while the
-        // beam.smp keeps running under epmd. serviceStartSpawn would treat that launcher
-        // exit as a startup failure, so we DON'T trust its result — checkpid() (polling
-        // the broker's .pid in mnesiaBaseDir) is the source of truth. We pass `-detached`
-        // so the broker fully self-daemonizes; no start script is landed to disk.
+        // Keep the Erlang VM in the foreground so duplicate-node/configuration errors
+        // are captured by serviceStartSpawn. Its detached child process still survives
+        // the fork worker, and checkpid() remains the source of truth for readiness.
         const execEnv: Record<string, string> = {
           RABBITMQ_CONF_ENV_FILE: confFile
         }
         try {
-          await serviceStartSpawn({
+          const started = await serviceStartSpawn({
             version,
             pidPath: this.pidPath,
             baseDir,
             bin,
-            execArgs: ['-detached'],
+            execArgs: [],
             execEnv,
             on,
             waitTime: 1000
           })
-        } catch {
-          // Expected: the detached launcher exits immediately. The broker keeps booting;
-          // checkpid() below confirms it actually came up (or times out → real failure).
+          launcherPid = started['APP-Service-Start-PID']
+        } catch (error) {
+          await failStart(error)
+          return
         }
       }
       await checkpid()
@@ -500,6 +550,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
     if (!v) return []
     const logDir = join(this.baseDir, `log-${v}`)
     return [
+      ...(version ? this.startupLogFiles(version) : []),
       {
         name: 'rabbit@localhost.log',
         path: join(logDir, 'rabbit@localhost.log')

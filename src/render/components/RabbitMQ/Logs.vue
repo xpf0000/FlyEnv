@@ -43,6 +43,16 @@
       return
     }
     const logDir = join(window.Server.BaseDir!, 'rabbitmq', `log-${v}`)
+    const startOut = join(
+      window.Server.BaseDir!,
+      'rabbitmq',
+      `rabbitmq-${currentVersion.value.version}-start-out.log`
+    )
+    const startError = join(
+      window.Server.BaseDir!,
+      'rabbitmq',
+      `rabbitmq-${currentVersion.value.version}-start-error.log`
+    )
     const content = await fs.readFile(confFile)
     const name =
       content
@@ -52,7 +62,14 @@
         ?.pop()
         ?.replace('"', '')
         ?.trim() ?? 'rabbit@localhost'
-    filepath.value = join(logDir, `${name}.log`)
+    const brokerLog = join(logDir, `${name}.log`)
+    if (await fs.existsSync(brokerLog)) {
+      filepath.value = brokerLog
+    } else if (await fs.existsSync(startError)) {
+      filepath.value = startError
+    } else {
+      filepath.value = startOut
+    }
   }
 
   watch(

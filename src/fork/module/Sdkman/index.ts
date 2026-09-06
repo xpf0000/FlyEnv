@@ -4,6 +4,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseWithEnv, versionFixed } from '../../Fn'
 import { compareVersions } from '@shared/compare-versions'
 import type { SoftInstalled } from '@shared/app'
+import { parseSdkmanJavaOutput } from './parser'
 
 class Sdkman extends Base {
   constructor() {
@@ -11,48 +12,13 @@ class Sdkman extends Base {
   }
 
   /**
-   * Parse SDKMAN `sdk list java` output (table format with Vendor/Version/Dist/Status/Identifier)
+   * Parse SDKMAN `sdk list java` output (current and legacy table formats)
    */
   async sdkmanJavaSearch(initPrefix: string) {
     try {
       const command = `bash -c '${initPrefix} && sdk list java 2>/dev/null'`
       const res = await execPromiseWithEnv(command)
-      const stdout = res.stdout
-      const lines = stdout.split('\n')
-      const items: any[] = []
-      let currentVendor = ''
-
-      for (const line of lines) {
-        // Match data lines: " Vendor    |     | Version  | Dist  | Status  | Identifier"
-        // or continuation:  "           |     | Version  | Dist  | Status  | Identifier"
-        const match = line.match(
-          /^\s(.{14})\|\s{0,3}(.{3,5})\|\s(.{12,14})\|\s(\S+)\s+\|\s*(.*?)\s*\|\s*(\S+)\s*$/
-        )
-        if (!match) continue
-
-        const vendor = match[1].trim()
-        const version = match[3].trim()
-        const status = match[5].trim()
-        const identifier = match[6].trim()
-
-        if (!version || !identifier) continue
-
-        if (vendor) {
-          currentVendor = vendor
-        }
-
-        items.push({
-          name: identifier,
-          version: version,
-          installed:
-            status.toLowerCase().includes('installed') || status.toLowerCase().includes('local'),
-          flag: 'sdkman',
-          vendor: currentVendor,
-          identifier: identifier
-        })
-      }
-
-      return items
+      return parseSdkmanJavaOutput(res.stdout)
     } catch (e) {
       console.log('sdkmanJavaSearch err: ', e)
     }
