@@ -34,6 +34,7 @@
     "test:ai-cli-session-list": "tsx scripts/ai-cli-session-list-test.ts",
     "test:tool-alias-path": "tsx scripts/tool-alias-path-test.ts",
     "test:openclaw-service": "tsx scripts/openclaw-service-test.ts",
+    "test:dns-renderer": "tsx scripts/dns-renderer-test.ts",
     "test:neo4j-renderer": "tsx scripts/neo4j-renderer-test.ts",
     "test:neo4j-service-lifecycle": "tsx scripts/neo4j-service-lifecycle-test.ts",
     "test:neo4j-startup": "tsx scripts/neo4j-startup-test.ts",

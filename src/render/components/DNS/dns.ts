@@ -5,6 +5,7 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { ip, type NetworkInterfaceInfo } from '@/util/NodeFn'
 import { AppStore } from '@/store/app'
+import { buildSiteHostnames } from '@shared/siteRuntime'
 
 export interface DNSLogItem {
   host: string
@@ -75,17 +76,8 @@ export const DnsStore = defineStore('dns', {
     initWatchAppHost() {
       const appStore = AppStore()
       const localHosts = computed(() => {
-        const all: Set<string> = new Set()
-        appStore.hosts.forEach((host) => {
-          all.add(host.name)
-          const alias = host.alias.split('\n').filter((n) => {
-            return n && n.trim().length > 0
-          })
-          for (const a of alias) {
-            all.add(a)
-          }
-        })
-        return JSON.stringify(Array.from(all))
+        const all = appStore.hosts.flatMap((host) => buildSiteHostnames(host))
+        return JSON.stringify(Array.from(new Set(all)))
       })
       if (DNSAppHostWatcher) {
         DNSAppHostWatcher()

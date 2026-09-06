@@ -8,6 +8,7 @@ import { HostStore } from '@/components/Host/store'
 import { shell } from '@/util/NodeFn'
 import { join } from '@/util/path-browserify'
 import { ensureDataDirectoryReady } from '@/core/DataDirectoryStartup'
+import { splitHostAliases } from '@shared/siteRuntime'
 
 const handleHostEnd = (arr: Array<AppHost>, isAdd?: boolean) => {
   const appStore = AppStore()
@@ -81,11 +82,7 @@ export const handleHost = (
 }
 
 export const hostAlias = (item: AppHost) => {
-  const alias = item.alias
-    ? item.alias.split('\n').filter((n) => {
-        return n && n.length > 0
-      })
-    : []
+  const alias = splitHostAliases(item.alias)
   return Array.from(new Set([item.name, ...alias])).sort()
 }
 

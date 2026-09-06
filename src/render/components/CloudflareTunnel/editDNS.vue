@@ -74,6 +74,7 @@
   import { AppStore } from '@/store/app'
   import { CloudflareTunnel } from '@/core/CloudflareTunnel/CloudflareTunnel'
   import CloudflareTunnelStore from '@/core/CloudflareTunnel/CloudflareTunnelStore'
+  import { buildSiteHostnames } from '@shared/siteRuntime'
 
   const props = defineProps<{
     item: CloudflareTunnel
@@ -160,17 +161,7 @@
 
   const appStore = AppStore()
   const localHosts = computed(() => {
-    const all: Set<string> = new Set()
-    appStore.hosts.forEach((host) => {
-      all.add(host.name)
-      const alias = host.alias.split('\n').filter((n) => {
-        return n && n.trim().length > 0
-      })
-      for (const a of alias) {
-        all.add(a)
-      }
-    })
-    return Array.from(all)
+    return Array.from(new Set(appStore.hosts.flatMap((host) => buildSiteHostnames(host))))
   })
 
   const querySearch = (queryString: string, cb: any) => {

@@ -29,6 +29,7 @@
   import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
   import { shell, clipboard } from '@/util/NodeFn'
+  import { splitHostAliases } from '@shared/siteRuntime'
 
   const props = defineProps<{
     host: AppHost
@@ -56,9 +57,7 @@
       hosts.value.push(`https://${props.host.name}${port}/`)
       return
     }
-    const alias = props.host.alias.split('\n').filter((n) => {
-      return n && n.trim().length > 0
-    })
+    const alias = splitHostAliases(props.host.alias)
     alias.unshift(props.host.name)
     const httpPort = [props.host.port.nginx, props.host.port.apache]
     alias.forEach((n) => {

@@ -80,6 +80,7 @@
   import CloudflareTunnelStore from '@/core/CloudflareTunnel/CloudflareTunnelStore'
   import { BrewStore } from '@/store/brew'
   import { MessageError } from '@/util/Element'
+  import { buildSiteHostnames } from '@shared/siteRuntime'
 
   const brewStore = BrewStore()
 
@@ -171,17 +172,7 @@
 
   const appStore = AppStore()
   const localHosts = computed(() => {
-    const all: Set<string> = new Set()
-    appStore.hosts.forEach((host) => {
-      all.add(host.name)
-      const alias = host.alias.split('\n').filter((n) => {
-        return n && n.trim().length > 0
-      })
-      for (const a of alias) {
-        all.add(a)
-      }
-    })
-    return Array.from(all)
+    return Array.from(new Set(appStore.hosts.flatMap((host) => buildSiteHostnames(host))))
   })
 
   const querySearch = (queryString: string, cb: any) => {

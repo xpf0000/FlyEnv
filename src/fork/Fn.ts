@@ -59,6 +59,7 @@ import {
 } from '@shared/fs-extra'
 import { addPath, fetchRawPATH, handleWinPathArr, writePath } from './util/PATH.win'
 import { isWindows, waitTime } from '@shared/utils'
+import { splitHostAliases } from '@shared/siteRuntime'
 
 export { waitTime, addPath, fetchRawPATH, handleWinPathArr, writePath }
 
@@ -259,11 +260,7 @@ export function downloadFile(url: string, savepath: string) {
 }
 
 export const hostAlias = (item: AppHost) => {
-  const alias = item.alias
-    ? item.alias.split('\n').filter((n) => {
-        return n && n.length > 0
-      })
-    : []
+  const alias = splitHostAliases(item.alias)
   return Array.from(new Set([item.name, ...alias])).sort()
 }
 
