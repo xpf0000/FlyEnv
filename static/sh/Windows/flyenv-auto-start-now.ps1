@@ -330,7 +330,12 @@ try {
         Throw-InstallerError -Code 'helper_execution_failed' -Message 'FlyEnv helper backup hash changed while restoring'
       }
       if (Test-Path -LiteralPath $exePath -PathType Leaf) {
-        [System.IO.File]::Replace($pendingHelperFile, $exePath, $null, $true)
+        [System.IO.File]::Replace(
+          $pendingHelperFile,
+          $exePath,
+          [System.Management.Automation.Language.NullString]::Value,
+          $true
+        )
       } else {
         [System.IO.File]::Move($pendingHelperFile, $exePath)
       }

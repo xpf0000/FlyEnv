@@ -31,7 +31,7 @@ assert.match(source, /Get-FileHash -LiteralPath \$backupExePath -Algorithm SHA25
 assert.match(source, /Copy-Item -LiteralPath \$backupExePath -Destination \$pendingHelperFile/)
 assert.match(
   source,
-  /\[System\.IO\.File\]::Replace\(\$pendingHelperFile, \$exePath, \$null, \$true\)/
+  /\[System\.IO\.File\]::Replace\(\s*\$pendingHelperFile,\s*\$exePath,\s*\[System\.Management\.Automation\.Language\.NullString\]::Value,\s*\$true\s*\)/
 )
 assert.match(appHelperSource, /join\(dirname\(bin\), 'flyenv-helper-backup\.exe'\)/)
 assert.match(appHelperSource, /\.replace\('#BACKUPEXECPATH#', backupBin\)/)
