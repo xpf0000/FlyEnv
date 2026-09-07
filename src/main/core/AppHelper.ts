@@ -14,7 +14,7 @@ import {
 import { getWindowsHelperIdentity } from '@shared/WindowsHelperIdentity'
 import { WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
 import { tmpdir, userInfo } from 'node:os'
-import { copyFile, chmod, mkdirp, readFile, writeFile } from '@shared/fs-extra'
+import { copyFile, chmod, existsSync, mkdirp, readFile, writeFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
 
 type AppHelperMessage = {
@@ -188,14 +188,15 @@ export class AppHelper {
         command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
       } else if (isWindows()) {
-        if (!windowsHelperBinaryExists()) {
+        const bin = getWindowsHelperBinaryPath()
+        const backupBin = join(dirname(bin), 'flyenv-helper-backup.exe')
+        if (!bin || (!windowsHelperBinaryExists() && !existsSync(backupBin))) {
           throw new AppHelperError(
             'helper_binary_missing',
             `Windows helper binary missing: ${getWindowsHelperBinaryPath()}`
           )
         }
         const binDir = PathResolve(global.Server.Static!, '../../../../')
-        const bin = getWindowsHelperBinaryPath()
         const tmpl = await readFile(
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
@@ -205,6 +206,7 @@ export class AppHelper {
           .replace('#TASKNAME#', 'FlyEnvHelperTask')
           .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
+          .replace('#BACKUPEXECPATH#', backupBin)
           .replace('#DATAPATH#', dataPath)
           .replace('#APPUSERNAME#', windowsIdentity.account)
           .replace('#APPUSERSID#', windowsIdentity.sid)
@@ -263,14 +265,15 @@ export class AppHelper {
         command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
       } else if (isWindows()) {
-        if (!windowsHelperBinaryExists()) {
+        const bin = getWindowsHelperBinaryPath()
+        const backupBin = bin
+        if (!bin || (!windowsHelperBinaryExists() && !existsSync(backupBin))) {
           throw new AppHelperError(
             'helper_binary_missing',
             `Windows helper binary missing: ${getWindowsHelperBinaryPath()}`
           )
         }
         const binDir = PathResolve(global.Server.Static!, '../../../build/')
-        const bin = getWindowsHelperBinaryPath()
         const tmpl = await readFile(
           join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
           'utf-8'
@@ -280,6 +283,7 @@ export class AppHelper {
           .replace('#TASKNAME#', 'FlyEnvHelperTask')
           .replace('#SRCEXECPATH#', '')
           .replace('#EXECPATH#', bin)
+          .replace('#BACKUPEXECPATH#', backupBin)
           .replace('#DATAPATH#', dataPath)
           .replace('#APPUSERNAME#', windowsIdentity.account)
           .replace('#APPUSERSID#', windowsIdentity.sid)
@@ -326,14 +330,7 @@ export class AppHelper {
         await this?._onSuduExecSuccess?.()
         resolve(true)
         return
-      } catch (error) {
-        if (isAppHelperError(error, 'helper_binary_missing')) {
-          this.state = 'normal'
-          this.emitStatus('installFaild', error.code)
-          reject(error)
-          return
-        }
-      }
+      } catch {}
 
       this.emitStatus('needInstall')
       const doCheck = async () => {

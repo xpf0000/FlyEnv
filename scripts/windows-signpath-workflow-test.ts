@@ -78,6 +78,17 @@ assert.match(
   /github-artifact-id:\s*\$\{\{ steps\.upload-unsigned-app\.outputs\.artifact-id \}\}/
 )
 assert.match(workflow, /FLYENV_PREPACKAGED_APP_DIR:\s*'release\/win-unpacked'/)
+assert.match(workflow, /name:\s*Stage signed FlyEnv Helper backup/)
+assert.match(workflow, /flyenv-helper-backup\.exe/)
+assert.match(workflow, /Get-FileHash -LiteralPath \$helper -Algorithm SHA256/)
+assert.match(workflow, /Get-FileHash -LiteralPath \$backup -Algorithm SHA256/)
+assert.ok(
+  workflow.indexOf('name: Apply signed application PE files') <
+    workflow.indexOf('name: Stage signed FlyEnv Helper backup') &&
+    workflow.indexOf('name: Stage signed FlyEnv Helper backup') <
+      workflow.indexOf('name: Package signed Windows application'),
+  'helper backup must be copied after SignPath applies signatures and before packaging'
+)
 assert.doesNotMatch(workflow, /Install-Module\s+-Name\s+SignPath/)
 
 console.log('Windows SignPath trusted-build workflow tests passed')
