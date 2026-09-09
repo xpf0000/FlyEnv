@@ -1,0 +1,68 @@
+name: Windows Test Build (unsigned)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/mysql-multi-instance-port
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-test:
+    name: Build Windows Test Packages (x64)
+    runs-on: windows-2022
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: choco install -y make
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'src/helper-go/go.mod'
+          cache-dependency-path: 'src/helper-go/go.sum'
+
+      - name: Install Yarn and build tools
+        run: npm install -g yarn node-gyp
+
+      - name: Install dependencies with Yarn
+        shell: pwsh
+        run: |
+          $env:LINK = 'runtimeobject.lib'
+          yarn install
+
+      - name: Build Go helper
+        shell: pwsh
+        run: |
+          go install github.com/tc-hib/go-winres@latest
+          $env:PATH = "$(go env GOPATH)\bin;$env:PATH"
+          Set-Location "$env:GITHUB_WORKSPACE/src/helper-go"
+          go mod download
+          go-winres make
+          .\build-win.ps1
+
+      - name: Build unsigned Windows packages
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: yarn build:win
+
+      - name: Upload Windows test artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlyEnv-Windows-x64-test-unsigned
+          path: |
+            release/*.exe
+          if-no-files-found: error
+          retention-days: 14
