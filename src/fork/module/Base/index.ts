@@ -83,7 +83,7 @@ export class Base {
     })
   }
 
-  protected appPidFile() {
+  protected appPidFile(_version?: SoftInstalled) {
     return join(global.Server.BaseDir!, `pid/${this.type}.pid`)
   }
 
@@ -202,8 +202,8 @@ export class Base {
     )
   }
 
-  protected async saveAppPid(pid: string | number) {
-    const appPidFile = this.appPidFile()
+  protected async saveAppPid(pid: string | number, version?: SoftInstalled) {
+    const appPidFile = this.appPidFile(version)
     await this.ensureAppPidDirWritable()
     await remove(appPidFile).catch(() => {})
     await writeFile(appPidFile, `${pid}`.trim())
@@ -251,7 +251,7 @@ export class Base {
       try {
         if (res?.['APP-Service-Start-PID']) {
           const pid = res['APP-Service-Start-PID']
-          await this.saveAppPid(pid)
+          await this.saveAppPid(pid, version)
         }
       } catch (e) {
         console.error('save app pid error: ', e)
@@ -279,7 +279,7 @@ export class Base {
       on({
         'APP-Service-Stop-Success': true
       })
-      const appPidFile = this.appPidFile()
+      const appPidFile = this.appPidFile(version)
       const ownedMarkers = this.ownedProcessMarkers(version)
       try {
         const appPid = await this.readPidFromFile(appPidFile)

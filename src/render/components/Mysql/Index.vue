@@ -2,7 +2,7 @@
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
       <template v-for="(item, _index) in tabs" :key="_index">
-        <template v-if="_index === 5">
+        <template v-if="_index === 2">
           <el-badge type="success" is-dot :hidden="!groupRun">
             <el-radio-button :label="item" :value="_index"></el-radio-button>
           </el-badge>
@@ -48,6 +48,22 @@
             <SetUp width="17" height="17" />
             <span class="ml-3">{{ I18nT('mysql.manage') }}</span>
           </li>
+          <li @click.stop="openDir(row.path)">
+            <yb-icon :svg="import('@/svg/folder.svg?raw')" width="17" height="17" />
+            <span class="ml-3">{{ I18nT('base.open') }}</span>
+          </li>
+          <li @click.stop="toConfig(row)">
+            <yb-icon :svg="import('@/svg/config.svg?raw')" width="17" height="17" />
+            <span class="ml-3">{{ I18nT('base.configFile') }}</span>
+          </li>
+          <li @click.stop="toLogs(row, 'error')">
+            <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
+            <span class="ml-3">{{ I18nT('common.label.errorLog') }}</span>
+          </li>
+          <li @click.stop="toLogs(row, 'slow')">
+            <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
+            <span class="ml-3">{{ I18nT('base.slowLog') }}</span>
+          </li>
         </template>
       </Service>
       <Manager
@@ -56,10 +72,7 @@
         url="https://dev.mysql.com/downloads/mysql/"
         title="Mysql"
       ></Manager>
-      <Config v-if="tab === 2"></Config>
-      <Logs v-if="tab === 3" type="error"></Logs>
-      <Logs v-if="tab === 4" type="slow"></Logs>
-      <Group v-if="tab === 5"></Group>
+      <Group v-if="tab === 2"></Group>
     </div>
   </div>
 </template>
@@ -67,8 +80,6 @@
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
   import Service from '../ServiceManager/index.vue'
-  import Config from './Config.vue'
-  import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
   import Group from './Group/Index.vue'
   import { MysqlStore } from './mysql'
@@ -79,18 +90,15 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { BrewStore } from '@/store/brew'
   import { MySQLManage } from '@/components/Mysql/Manage/manage'
+  import { shell } from '@/util/NodeFn'
 
   const brewStore = BrewStore()
   const mysqlStore = MysqlStore()
   const { tab, checkVersion } = AppModuleSetup('mysql')
-  const tabs = [
-    I18nT('base.service'),
-    I18nT('base.versionManager'),
-    I18nT('base.configFile'),
-    I18nT('base.log'),
-    I18nT('base.slowLog'),
-    I18nT('base.group')
-  ]
+  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('base.group')]
+  if (tab.value > tabs.length - 1) {
+    tab.value = 0
+  }
   const groupRun = computed(() => {
     return mysqlStore.all.some((a) => a.version.running)
   })
@@ -103,6 +111,28 @@
         item
       }).then()
     })
+  }
+
+  let ConfigVM: any
+  import('./Config.vue').then((res) => {
+    ConfigVM = res.default
+  })
+
+  let LogsVM: any
+  import('./Logs.vue').then((res) => {
+    LogsVM = res.default
+  })
+
+  const toConfig = (item: ModuleInstalledItem) => {
+    AsyncComponentShow(ConfigVM, { version: item }).then()
+  }
+
+  const openDir = (path: string) => {
+    shell.openPath(path)
+  }
+
+  const toLogs = (item: ModuleInstalledItem, type: 'error' | 'slow') => {
+    AsyncComponentShow(LogsVM, { version: item, type }).then()
   }
 
   brewStore

@@ -30,7 +30,16 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
-import { PItem, ProcessKill, ProcessOwnedPidsByPid } from '@shared/Process'
+import {
+  fetchProcessPidByPort as fetchUnixProcessPidByPort,
+  PItem,
+  ProcessKill,
+  ProcessOwnedPidsByPid
+} from '@shared/Process'
+import {
+  fetchProcessPidByPort as fetchWindowsProcessPidByPort,
+  ProcessPidListStrict
+} from '@shared/Process.win'
 import { StopProcessListSearch, StopProcessPidList } from '@shared/StopProcessList'
 import { EOL } from 'os'
 import { createConnection } from 'mysql2/promise'
@@ -47,19 +56,38 @@ class Mysql extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.MysqlDir!, 'mysql.pid')
+    // MySQL is version-scoped; runtime paths are resolved from the version object.
+  }
+
+  private runtimePaths(version: SoftInstalled) {
+    const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? 'default'
+    const base = global.Server.MysqlDir!
+    return {
+      config: join(base, `my-${v}.cnf`),
+      dataDir: join(base, `data-${v}`),
+      pid: join(base, `mysql-${v}.pid`),
+      slowLog: join(base, `mysql-${v}-slow.log`),
+      errorLog: join(base, `mysql-${v}-error.log`),
+      socket: join(base, `mysql-${v}.sock`)
+    }
+  }
+
+  protected appPidFile(version?: SoftInstalled) {
+    const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? 'default'
+    return join(global.Server.MysqlDir!, `mysql-${v}.app.pid`)
   }
 
   getConfigFiles(version?: SoftInstalled) {
-    const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-    if (!v) return []
-    return [{ name: 'main', path: join(global.Server.MysqlDir!, `my-${v}.cnf`) }]
+    if (!version?.version) return []
+    return [{ name: 'main', path: this.runtimePaths(version).config }]
   }
 
-  getLogFiles() {
+  getLogFiles(version?: SoftInstalled) {
+    if (!version?.version) return []
+    const paths = this.runtimePaths(version)
     return [
-      { name: 'error', path: join(global.Server.MysqlDir!, 'error.log') },
-      { name: 'slow', path: join(global.Server.MysqlDir!, 'slow.log') }
+      { name: 'error', path: paths.errorLog },
+      { name: 'slow', path: paths.slowLog }
     ]
   }
 
@@ -74,7 +102,12 @@ class Mysql extends Base {
         if (existsSync(bin)) {
           process.chdir(dirname(bin))
           try {
-            await execPromise(`mysqladmin.exe --host="127.0.0.1" -uroot password "${password}"`)
+            const port =
+              iniParse(await readFile(this.runtimePaths(version).config, 'utf8'))?.mysqld?.port ??
+              3306
+            await execPromise(
+              `mysqladmin.exe --host="127.0.0.1" --port=${port} -uroot password "${password}"`
+            )
           } catch (e) {
             on({
               'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: e }))
@@ -99,9 +132,12 @@ class Mysql extends Base {
         }
         resolve(true)
       } else {
-        execPromise(`./mysqladmin --socket=/tmp/mysql.sock -uroot password "${password}"`, {
-          cwd: dirname(version.bin)
-        })
+        execPromise(
+          `./mysqladmin --socket="${this.runtimePaths(version).socket}" -uroot password "${password}"`,
+          {
+            cwd: dirname(version.bin)
+          }
+        )
           .then((res) => {
             on({
               'APP-On-Log': AppLog(
@@ -124,14 +160,11 @@ class Mysql extends Base {
   }
 
   _stopServer(version: SoftInstalled): ForkPromise<any> {
-    if (!isWindows()) {
-      return super._stopServer(version)
-    }
-
     return new ForkPromise(async (resolve, reject, on) => {
       const pids = new Set<string>()
       const killPids = new Set<string>()
-      const appPidFile = this.appPidFile()
+      const paths = this.runtimePaths(version)
+      const appPidFile = this.appPidFile(version)
       if (existsSync(appPidFile)) {
         try {
           const pid = await this.readPidFromFile(appPidFile)
@@ -142,7 +175,7 @@ class Mysql extends Base {
         TaskQueue.run(remove, appPidFile).then().catch()
       }
       try {
-        const pid = await this.readPidFromFile()
+        const pid = await this.readPidFromFile(paths.pid)
         if (pid) {
           pids.add(pid)
         }
@@ -153,6 +186,13 @@ class Mysql extends Base {
       try {
         const processList = await StopProcessPidList()
         const ownedMarkers = this.ownedProcessMarkers(version)
+        processList
+          .filter(
+            (item) =>
+              item.COMMAND.includes(paths.config) &&
+              (item.COMMAND.includes('mysqld') || item.COMMAND.includes('mariadbd'))
+          )
+          .forEach((item) => pids.add(item.PID))
         for (const pid of pids) {
           ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) =>
             killPids.add(item)
@@ -160,15 +200,12 @@ class Mysql extends Base {
         }
       } catch {}
       if (pids.size > 0) {
-        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-        const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
         const bin = join(dirname(version.bin), 'mysqladmin.exe')
         const password = version?.rootPassword ?? 'root'
-
         let port = 3306
-        if (existsSync(m)) {
+        if (existsSync(paths.config)) {
           try {
-            const content = await readFile(m, 'utf8')
+            const content = await readFile(paths.config, 'utf8')
             const config = iniParse(content)
             port = config?.mysqld?.port ?? 3306
           } catch {}
@@ -178,17 +215,18 @@ class Mysql extends Base {
         /**
          * ./mysqladmin.exe --defaults-file="C:\Program Files\FlyEnv-Data\server\mysql\my-5.7.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
          */
-        const command = `"${bin}" --defaults-file="${m}" --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
+        const command = `"${bin}" --defaults-file="${paths.config}" --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
         console.log('mysql _stopServer command: ', command)
-        try {
-          await execPromise(command)
-          success = true
-        } catch (e) {
-          success = false
-          console.log('mysql _stopServer command error: ', e)
+        if (isWindows()) {
+          try {
+            await execPromise(command)
+            success = true
+          } catch (e) {
+            console.log('mysql _stopServer command error: ', e)
+          }
         }
 
-        if (!success) {
+        if (!success && killPids.size > 0) {
           const arr = Array.from(killPids)
           if (arr.length > 0) {
             const str = arr.map((s) => `/pid ${s}`).join(' ')
@@ -196,8 +234,10 @@ class Mysql extends Base {
               await execPromise(`taskkill /f /t ${str}`)
             } catch {}
           }
-        } else {
+        } else if (success) {
           await waitTime(1500)
+        } else if (!isWindows() && killPids.size > 0) {
+          await ProcessKill('-TERM', [...killPids])
         }
       }
 
@@ -222,12 +262,12 @@ class Mysql extends Base {
         )
       })
 
-      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
-      const dataDir = join(global.Server.MysqlDir!, `data-${v}`)
-      const p = join(global.Server.MysqlDir!, 'mysql.pid')
-      const s = join(global.Server.MysqlDir!, 'slow.log')
-      const e = join(global.Server.MysqlDir!, 'error.log')
+      const paths = this.runtimePaths(version)
+      const m = paths.config
+      const dataDir = paths.dataDir
+      const p = paths.pid
+      const s = paths.slowLog
+      const e = paths.errorLog
       if (!existsSync(m)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
@@ -236,11 +276,41 @@ class Mysql extends Base {
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
+port=3306
 datadir=${pathFixedToUnix(dataDir)}`
         await writeFile(m, conf)
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: m }))
         })
+      }
+
+      const content = await readFile(m, 'utf8')
+      const config = iniParse(content)
+      const configuredPort = Number.parseInt(`${config?.mysqld?.port ?? 3306}`, 10)
+      const port = Number.isFinite(configuredPort) && configuredPort > 0 ? configuredPort : 3306
+      const ddir = config?.mysqld?.datadir ?? dataDir
+      const listeningPids = isWindows()
+        ? await fetchWindowsProcessPidByPort(`${port}`)
+        : (await fetchUnixProcessPidByPort(`${port}`)).map((item) => item.PID)
+      if (listeningPids.length > 0) {
+        const processList = isWindows()
+          ? await ProcessPidListStrict().catch(() => [])
+          : await StopProcessPidList().catch(() => [])
+        const owner = processList.find((item) => listeningPids.includes(item.PID))
+        const command = owner?.COMMAND ?? ''
+        const ownerVersion = command.match(/my-(\d+\.\d+)\.cnf/i)?.[1]
+        const error = ownerVersion
+          ? I18nT('mysql.portConflictFlyEnv', {
+              version: version.version,
+              port,
+              ownerVersion
+            })
+          : I18nT('mysql.portConflictOther', {
+              version: version.version,
+              port,
+              pid: owner?.PID ?? listeningPids[0]
+            })
+        throw new Error(error)
       }
 
       const unlinkDirOnFail = async () => {
@@ -259,11 +329,6 @@ datadir=${pathFixedToUnix(dataDir)}`
           await mkdirp(baseDir)
           const execEnv = ''
 
-          const content = await readFile(m, 'utf8')
-          const config = iniParse(content)
-          const port = config?.mysqld?.port ?? 3306
-          const ddir = config?.mysqld?.datadir ?? dataDir
-
           if (isWindows()) {
             const execArgs = [
               `--defaults-file="${m}"`,
@@ -272,6 +337,8 @@ datadir=${pathFixedToUnix(dataDir)}`
               '--slow-query-log=ON',
               `--slow-query-log-file="${s}"`,
               `--log-error="${e}"`,
+              `--port=${port}`,
+              `--socket="${paths.socket}"`,
               '--standalone'
             ]
             if (skipGrantTables) {
@@ -318,13 +385,13 @@ datadir=${pathFixedToUnix(dataDir)}`
             }
 
             if (skipGrantTables) {
-              params.push(`--socket=/tmp/mysql.${version.version}.sock`)
+              params.push(`--socket=${paths.socket}`)
               params.push(`--datadir=${ddir}`)
               params.push('--bind-address=127.0.0.1')
               params.push(`--port=${port}`)
               params.push('--skip-grant-tables')
             } else {
-              params.push(`--socket=/tmp/mysql.sock`)
+              params.push(`--socket=${paths.socket}`)
             }
 
             try {
@@ -355,6 +422,8 @@ datadir=${pathFixedToUnix(dataDir)}`
         await chmod(dataDir, '0777')
         let bin = version.bin
         if (isWindows()) {
+          const config = iniParse(await readFile(m, 'utf8'))
+          const port = config?.mysqld?.port ?? 3306
           const params = [
             `--defaults-file="${m}"`,
             `--pid-file="${p}"`,
@@ -362,6 +431,8 @@ datadir=${pathFixedToUnix(dataDir)}`
             '--slow-query-log=ON',
             `--slow-query-log-file="${s}"`,
             `--log-error="${e}"`,
+            `--port=${port}`,
+            `--socket="${paths.socket}"`,
             '--initialize-insecure'
           ]
 
@@ -386,7 +457,7 @@ datadir=${pathFixedToUnix(dataDir)}`
             '--user=mysql',
             `--slow-query-log-file=${s}`,
             `--log-error=${e}`,
-            '--socket=/tmp/mysql.sock'
+            `--socket=${paths.socket}`
           ]
           const installdb = join(version.path, 'bin/mysql_install_db')
           if (existsSync(installdb) && version.num! < 57) {
@@ -971,7 +1042,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         }
       } else {
         const bin = join(dirname(version.bin), 'mysql')
-        const socket = `/tmp/mysql.${version.version}.sock`
+        const socket = this.runtimePaths(version).socket
 
         if (compareVersions(version.version!, '8.0.0') === 1) {
           try {
@@ -1016,7 +1087,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
       version.rootPassword = password
       try {
-        await super._stopServer(version)
+        await this._stopServer(version)
       } catch {}
 
       resolve(true)

@@ -154,7 +154,10 @@ export class ModuleInstalledItem implements SoftInstalled {
         return
       }
       const module = BrewStore().module(this.typeFlag)
-      if (module.starting || module.installed.some((item) => item.running)) {
+      if (
+        module.starting ||
+        (this.typeFlag !== 'mysql' && module.installed.some((item) => item.running))
+      ) {
         resolve(true)
         return
       }

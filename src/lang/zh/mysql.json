@@ -1,5 +1,7 @@
 {
   "port": "端口号. 默认为3306",
+  "portConflictFlyEnv": "MySQL {version} 启动失败：端口 {port} 已被 MySQL {ownerVersion} 占用。\n如需同时运行，请编辑其中一个版本的配置并使用不同端口。",
+  "portConflictOther": "MySQL {version} 启动失败：端口 {port} 已被其他进程占用（PID {pid}）。\n请关闭占用端口的程序，或修改当前 MySQL 版本的端口。",
   "key_buffer_size": "用于索引的缓冲区大小",
   "query_cache_size": "查询缓存,不开启请设为0",
   "tmp_table_size": "临时表缓存大小",

@@ -1,41 +1,56 @@
 <template>
-  <Conf
-    ref="conf"
-    :type-flag="'mysql'"
-    :default-conf="defaultConf"
-    :file="file"
-    :file-ext="'cnf'"
-    :show-commond="true"
-    @on-type-change="onTypeChange"
+  <el-drawer
+    v-model="show"
+    size="75%"
+    :destroy-on-close="true"
+    :with-header="false"
+    :close-on-click-modal="false"
+    @closed="closedFn"
   >
-    <template #common>
-      <Common :setting="commonSetting" />
-    </template>
-  </Conf>
+    <div class="host-vhost">
+      <div class="nav pl-3 pr-5">
+        <div class="left" @click="show = false">
+          <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
+          <span class="ml-3 title truncate">MySQL {{ version.version }} - {{ version.path }}</span>
+        </div>
+      </div>
+      <Conf
+        ref="conf"
+        :type-flag="'mysql'"
+        :default-conf="defaultConf"
+        :file="file"
+        :file-ext="'cnf'"
+        :show-commond="true"
+        :version="version"
+        @on-type-change="onTypeChange"
+      >
+        <template #common>
+          <Common :setting="commonSetting" />
+        </template>
+      </Conf>
+    </div>
+  </el-drawer>
 </template>
 
 <script lang="ts" setup>
   import { computed, ref, watch, Ref, reactive } from 'vue'
-  import Conf from '@/components/Conf/index.vue'
+  import Conf from '@/components/Conf/drawer.vue'
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
   import { debounce } from 'lodash-es'
-  import { AppStore } from '@/store/app'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import type { SoftInstalled } from '@/store/brew'
   import { uuid } from '@/util/Index'
   import { join } from '@/util/path-browserify'
   import { IniParse } from '@/util/IniParse'
-
-  const appStore = AppStore()
+  const props = defineProps<{ version: SoftInstalled }>()
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
 
-  const currentVersion = computed(() => {
-    return appStore.config?.server?.mysql?.current?.version
-  })
-
   const vm = computed(() => {
-    return currentVersion?.value?.split('.')?.slice(0, 2)?.join('.')
+    return props.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
   })
 
   const file = computed(() => {
@@ -54,6 +69,7 @@
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
+port=3306
 datadir=${dataDir}`
   })
 
@@ -221,4 +237,6 @@ datadir=${dataDir}`
       getCommonSetting()
     }
   }
+
+  defineExpose({ show, onClosed, onSubmit })
 </script>

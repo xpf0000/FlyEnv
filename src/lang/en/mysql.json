@@ -1,5 +1,7 @@
 {
   "port": "TCP Port (Default: 3306)",
+  "portConflictFlyEnv": "MySQL {version} failed to start: port {port} is already occupied by MySQL {ownerVersion}.\nTo run both versions, edit one configuration and use a different port.",
+  "portConflictOther": "MySQL {version} failed to start: port {port} is already occupied by another process (PID {pid}).\nClose the process using the port or change the MySQL port.",
   "key_buffer_size": "Buffer size for indexing",
   "query_cache_size": "Query cache, please set to 0 if not enabled",
   "tmp_table_size": "Temporary table cache size",

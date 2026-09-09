@@ -3,7 +3,6 @@ import { AppStore } from '@/store/app'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { MessageError } from '@/util/Element'
-import { MysqlStore } from '@/components/Mysql/mysql'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import type { AllAppModule } from '@/core/type'
 import { shell } from '@/util/NodeFn'
@@ -51,7 +50,7 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const versionRunning = computed(() => {
     const module = brewStore.module(typeFlag)
-    return module.starting || module.installed.some((item) => item.running)
+    return module.starting
   })
 
   const isInEnv = (item: SoftInstalled) => {
@@ -99,6 +98,9 @@ export const Setup = (typeFlag: AllAppModule) => {
     if (versionRunning.value) {
       return
     }
+    if (item.running) {
+      return
+    }
     let action: any
     switch (flag) {
       case 'stop':
@@ -115,14 +117,6 @@ export const Setup = (typeFlag: AllAppModule) => {
       if (typeof res === 'string') {
         MessageError(res)
       } else {
-        if (typeFlag === 'mysql') {
-          const mysqlStore = MysqlStore()
-          if (flag === 'stop') {
-            mysqlStore.groupStop().then()
-          } else {
-            mysqlStore.groupStart().then()
-          }
-        }
       }
     })
   }

@@ -402,6 +402,9 @@ export default class MCPContextResolver {
 
   private deriveSocket(flag: string, version: SoftInstalled, configText: string, port: number) {
     if (flag === 'mysql' || flag === 'mariadb') {
+      if (flag === 'mysql' && version?.version) {
+        return join(global.Server.MysqlDir!, `mysql-${mysqlVersionPrefix(version.version)}.sock`)
+      }
       if (version?.version) {
         return `/tmp/mysql.${version.version}.sock`
       }

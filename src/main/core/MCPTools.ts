@@ -19,7 +19,6 @@ const SINGLE_INSTANCE_SERVICES = new Set<string>([
   'nginx',
   'apache',
   'caddy',
-  'mysql',
   'mariadb',
   'postgresql',
   'clickhouse',
@@ -526,7 +525,7 @@ export class MCPTools {
   async startService(flag: string, version?: string): Promise<any> {
     this.assertLifecycleFlag(flag, 'start')
     const v = await this.pickVersion(flag, version)
-    // 单实例服务（nginx/mysql/redis... isOnlyRunOne）：启动某版本即「切到该版本」——
+    // 单实例服务（nginx/redis... isOnlyRunOne）：启动某版本即「切到该版本」——
     // 与 FlyEnv UI 的 onItemStart 行为对齐，先停掉其它正在运行的版本。
     // 多实例运行时（php/node/python... 语言类）：多版本可并存，不停其它。
     if (SINGLE_INSTANCE_SERVICES.has(flag)) {
