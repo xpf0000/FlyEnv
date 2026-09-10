@@ -10,4 +10,10 @@ assert.match(
   "Rosetta config must use the XDG_CONFIG_HOME from Podman's synchronized shell environment"
 )
 
+assert.match(
+  source,
+  /env\.CONTAINERS_CONF && !env\.CONTAINERS_CONF_OVERRIDE[\s\S]*?CONTAINERS_CONF_OVERRIDE: rosettaConfig/,
+  'Rosetta config must be loaded after a custom CONTAINERS_CONF for machine initialization'
+)
+
 console.log('Podman Rosetta config path checks passed')

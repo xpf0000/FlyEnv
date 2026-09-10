@@ -50,7 +50,7 @@ class Podman extends Base {
    * The drop-in file never touches the user's own containers.conf
    * and can be rolled back by deleting it.
    */
-  private async applyRosettaConfig(enable: boolean) {
+  private async applyRosettaConfig(enable: boolean): Promise<Record<string, string> | undefined> {
     try {
       let version = ''
       const tmp = join(tmpdir(), `${uuid()}.txt`)
@@ -71,11 +71,13 @@ class Podman extends Base {
       const env = await EnvSync.sync()
       const configHome = env.XDG_CONFIG_HOME || join(homedir(), '.config')
       const confDir = join(configHome, 'containers', 'containers.conf.d')
+      const rosettaConfig = join(confDir, 'flyenv-podman.conf')
       await mkdirp(confDir)
-      await writeFile(
-        join(confDir, 'flyenv-podman.conf'),
-        `[machine]\nrosetta = ${enable ? 'true' : 'false'}\n`
-      )
+      await writeFile(rosettaConfig, `[machine]\nrosetta = ${enable ? 'true' : 'false'}\n`)
+
+      if (env.CONTAINERS_CONF && !env.CONTAINERS_CONF_OVERRIDE) {
+        return { ...env, CONTAINERS_CONF_OVERRIDE: rosettaConfig }
+      }
     } catch (e) {
       console.log('applyRosettaConfig error: ', e)
     }
@@ -346,9 +348,7 @@ class Podman extends Base {
         } else {
           args.push('--rootful=false')
         }
-        if (isMacOS()) {
-          await this.applyRosettaConfig(!!rosetta)
-        }
+        const rosettaEnv = isMacOS() ? await this.applyRosettaConfig(!!rosetta) : undefined
         if (identityPath) {
           args.push(`--identity-path "${identityPath}"`)
         }
@@ -358,7 +358,7 @@ class Podman extends Base {
 
         args.push(name)
 
-        await execPromiseWithEnv(args.join(' '))
+        await execPromiseWithEnv(args.join(' '), rosettaEnv ? { env: rosettaEnv } : undefined)
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
