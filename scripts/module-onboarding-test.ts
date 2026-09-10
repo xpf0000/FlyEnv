@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { compileScript, compileStyleAsync, compileTemplate, parse } from '@vue/compiler-sfc'
 import {
   MODULE_ONBOARDING_VERSION,
   initialModuleOnboardingVersion
@@ -16,6 +18,37 @@ import {
   completeModuleOnboardingConfig,
   handleCompleteModuleOnboardingRequest
 } from '../src/main/core/ModuleOnboardingConfig'
+
+const onboardingComponentSource = readFileSync(
+  new URL('../src/render/components/ModuleOnboarding/index.vue', import.meta.url),
+  'utf8'
+)
+const onboardingComponent = parse(onboardingComponentSource, {
+  filename: 'src/render/components/ModuleOnboarding/index.vue'
+})
+assert.deepEqual(onboardingComponent.errors, [])
+assert.ok(onboardingComponent.descriptor.scriptSetup)
+assert.ok(onboardingComponent.descriptor.template)
+const onboardingScript = compileScript(onboardingComponent.descriptor, {
+  id: 'module-onboarding'
+})
+const onboardingTemplate = compileTemplate({
+  id: 'module-onboarding',
+  filename: 'src/render/components/ModuleOnboarding/index.vue',
+  source: onboardingComponent.descriptor.template.content,
+  compilerOptions: { bindingMetadata: onboardingScript.bindings }
+})
+assert.deepEqual(onboardingTemplate.errors, [])
+for (const style of onboardingComponent.descriptor.styles) {
+  const onboardingStyle = await compileStyleAsync({
+    id: 'module-onboarding',
+    filename: 'src/render/components/ModuleOnboarding/index.vue',
+    source: style.content,
+    scoped: style.scoped,
+    preprocessLang: style.lang as 'scss'
+  })
+  assert.deepEqual(onboardingStyle.errors, [])
+}
 
 assert.equal(MODULE_ONBOARDING_VERSION, 1)
 assert.equal(initialModuleOnboardingVersion(false), 0)
