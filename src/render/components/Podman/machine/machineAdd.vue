@@ -32,7 +32,7 @@
         <el-form-item :label="I18nT('podman.rootful')" prop="rootful">
           <el-switch v-model="form.rootful" />
         </el-form-item>
-        <el-form-item v-if="!isEdit" :label="I18nT('podman.rosetta')" prop="rosetta">
+        <el-form-item v-if="!isEdit && isMacOSArm" :label="I18nT('podman.rosetta')" prop="rosetta">
           <el-switch v-model="form.rosetta" />
         </el-form-item>
         <el-form-item v-if="!isEdit" :label="I18nT('podman.identityPath')" prop="identityPath">
@@ -63,6 +63,9 @@
 
   const props = defineProps<{ item?: any }>()
   const isEdit = !!props.item
+
+  // Rosetta is only supported by Podman on Apple Silicon (arm64)
+  const isMacOSArm = computed(() => window.Server.isMacOS && window.Server.isArmArch)
 
   const visible = ref(true)
   const submitting = ref(false)
