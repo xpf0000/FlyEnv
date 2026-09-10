@@ -1,17 +1,81 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { SoftInstalled } from '@shared/app'
-import { tmpdir } from 'node:os'
+import { tmpdir, homedir } from 'node:os'
 import { join } from 'node:path'
-import { uuid, execPromiseWithEnv, readFile, remove, existsSync, waitTime } from '../../Fn'
-import { isLinux, isWindows } from '@shared/utils'
+import {
+  uuid,
+  execPromiseWithEnv,
+  readFile,
+  writeFile,
+  remove,
+  existsSync,
+  mkdirp,
+  waitTime
+} from '../../Fn'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import axios from 'axios'
 import { fetchTags } from './image'
+
+/**
+ * Podman 5.1.0 introduced the Rosetta toggle, read from containers.conf
+ * ([machine] rosetta) when a machine is created or started. There is no
+ * `--rosetta` CLI flag on `podman machine init` in any Podman version.
+ */
+const PODMAN_ROSETTA_MIN_VERSION = '5.1.0'
+
+const compareVersion = (a: string, b: string): number => {
+  const pa = a.split('.').map((n) => parseInt(n, 10) || 0)
+  const pb = b.split('.').map((n) => parseInt(n, 10) || 0)
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] ?? 0
+    const y = pb[i] ?? 0
+    if (x !== y) {
+      return x - y
+    }
+  }
+  return 0
+}
 
 class Podman extends Base {
   constructor() {
     super()
     this.type = 'podman'
+  }
+
+  /**
+   * Write the Rosetta preference to a drop-in containers.conf so Podman
+   * (>= 5.1.0, Apple Silicon) applies it on machine init/start.
+   * The drop-in file never touches the user's own containers.conf
+   * and can be rolled back by deleting it.
+   */
+  private async applyRosettaConfig(enable: boolean) {
+    try {
+      let version = ''
+      const tmp = join(tmpdir(), `${uuid()}.txt`)
+      try {
+        await execPromiseWithEnv(`podman --version > "${tmp}" 2>&1`)
+        version = ((await readFile(tmp, 'utf-8')) || '').split(' ')?.pop()?.trim() ?? ''
+      } catch {
+        version = ''
+      } finally {
+        if (existsSync(tmp)) {
+          await remove(tmp)
+        }
+      }
+      const m = version.match(/(\d+\.\d+\.\d+)/)
+      if (!m || compareVersion(m[1], PODMAN_ROSETTA_MIN_VERSION) < 0) {
+        return
+      }
+      const confDir = join(homedir(), '.config', 'containers', 'containers.conf.d')
+      await mkdirp(confDir)
+      await writeFile(
+        join(confDir, 'flyenv-podman.conf'),
+        `[machine]\nrosetta = ${enable ? 'true' : 'false'}\n`
+      )
+    } catch (e) {
+      console.log('applyRosettaConfig error: ', e)
+    }
   }
 
   private async getComposeCommand(): Promise<string> {
@@ -279,8 +343,8 @@ class Podman extends Base {
         } else {
           args.push('--rootful=false')
         }
-        if (rosetta) {
-          args.push('--rosetta')
+        if (isMacOS()) {
+          await this.applyRosettaConfig(!!rosetta)
         }
         if (identityPath) {
           args.push(`--identity-path "${identityPath}"`)
