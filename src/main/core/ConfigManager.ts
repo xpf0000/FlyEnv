@@ -1,5 +1,9 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { app } from 'electron'
 import Store from 'electron-store'
 import { type Options } from 'electron-store'
+import { initialModuleOnboardingVersion } from '@shared/ModuleOnboarding'
 import {
   DEFAULT_WINDOWS_ELEVATION_METHOD,
   type WindowsElevationMethod
@@ -37,6 +41,7 @@ interface ConfigOptions {
   }
   password: string
   showTour: boolean
+  moduleOnboardingVersion: number
   setup: {
     common: {
       showItem: {
@@ -108,6 +113,8 @@ export default class ConfigManager {
   }
 
   initConfig() {
+    const userConfigPath = join(app.getPath('userData'), 'user.json')
+    const persistedUserConfigExists = existsSync(userConfigPath)
     const options: Options<ConfigOptions> = {
       name: 'user',
       defaults: {
@@ -142,6 +149,7 @@ export default class ConfigManager {
         },
         password: '',
         showTour: true,
+        moduleOnboardingVersion: initialModuleOnboardingVersion(persistedUserConfigExists),
         setup: {
           common: {
             showItem: {
