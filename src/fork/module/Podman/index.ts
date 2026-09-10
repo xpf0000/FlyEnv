@@ -14,6 +14,7 @@ import {
   waitTime
 } from '../../Fn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import EnvSync from '@shared/EnvSync'
 import axios from 'axios'
 import { fetchTags } from './image'
 
@@ -67,7 +68,9 @@ class Podman extends Base {
       if (!m || compareVersion(m[1], PODMAN_ROSETTA_MIN_VERSION) < 0) {
         return
       }
-      const confDir = join(homedir(), '.config', 'containers', 'containers.conf.d')
+      const env = await EnvSync.sync()
+      const configHome = env.XDG_CONFIG_HOME || join(homedir(), '.config')
+      const confDir = join(configHome, 'containers', 'containers.conf.d')
       await mkdirp(confDir)
       await writeFile(
         join(confDir, 'flyenv-podman.conf'),

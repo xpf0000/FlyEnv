@@ -30,6 +30,7 @@
     "test:mongodb-dbgate": "tsx scripts/mongodb-dbgate-test.ts",
     "test:redis-commander": "tsx scripts/redis-commander-test.ts",
     "test:qdrant": "tsx scripts/qdrant-test.ts",
+    "test:podman-rosetta-config": "tsx scripts/podman-rosetta-config-test.ts",
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
     "test:ai-cli-session-fork": "tsx scripts/ai-cli-session-fork-test.ts",
     "test:ai-cli-session-list": "tsx scripts/ai-cli-session-list-test.ts",
