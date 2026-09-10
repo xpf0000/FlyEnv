@@ -3,6 +3,6 @@
   "noPortFound": "未偵測到 <a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a>\n如想安裝 Macports，可點擊此連結\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\n按照文件說明進行安裝。",
   "brewErrorTips": "在此位置 {bin}，偵測到 Homebrew 的可執行檔案。\n但是 FlyEnv 無法調用。錯誤訊息：\n{error}",
   "noSDKMANFound": "未偵測到 <a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a>\n如需安裝 SDKMAN，可點擊安裝按鈕進行安裝",
-  "brewFormulaConflict": "目前來源：{source}\n切換來源前，請先解除安裝目前的 PHP 版本。",
-  "brewFormulaUnavailable": "無法使用"
+  "brewFormulaConflict": "當前來源：{source}\n切換來源前，請先卸載當前 PHP 版本。",
+  "brewFormulaUnavailable": "不可用"
 }
