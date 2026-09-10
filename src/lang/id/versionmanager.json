@@ -2,5 +2,7 @@
   "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> tidak ditemukan\nUntuk menginstal Homebrew, klik tombol instal untuk melanjutkan\nAnda juga dapat mengklik tautan ini\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nIkuti dokumentasi untuk menginstal.",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> tidak ditemukan.\nInstal Macports, Anda dapat mengklik tautan ini\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nIkuti dokumentasi untuk menginstal.",
   "brewErrorTips": "Pada lokasi {bin}, file eksekusi Homebrew terdeteksi.\nNamun, FlyEnv tidak dapat memanggilnya. Pesan kesalahan:\n{error}",
-  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> tidak ditemukan\nUntuk menginstal SDKMAN, klik tombol instalasi"
+  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> tidak ditemukan\nUntuk menginstal SDKMAN, klik tombol instalasi",
+  "brewFormulaConflict": "Sumber saat ini: {source}\nCopot pemasangan versi PHP saat ini sebelum mengganti sumber.",
+  "brewFormulaUnavailable": "Tidak tersedia"
 }
