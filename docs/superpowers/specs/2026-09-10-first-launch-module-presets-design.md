@@ -36,7 +36,7 @@ PHP is selected initially. Stack cards are additive: selecting PHP and Python pr
 
 **Show all modules** explicitly marks every built-in module available on the current platform as visible, persists that map and the completed onboarding version in one save, closes the modal, and starts normal module initialization.
 
-If saving fails, the modal remains open, the action becomes available again, and the user receives an error message. The completion marker and visibility map must never be saved in separate requests, because that could leave the installation marked complete with only part of the selected visibility applied.
+If saving fails, the modal remains open, the action becomes available again, and the user receives an error message. A dedicated acknowledged onboarding IPC persists the completion marker and visibility map in one main-process configuration patch; they must never be saved in separate requests, because that could leave the installation marked complete with only part of the selected visibility applied.
 
 ## Preset catalog
 
@@ -90,8 +90,8 @@ The renderer bootstrap sequence becomes:
 3. `App.vue` checks `moduleOnboardingVersion`.
 4. Completed installations continue through the existing `init()` path immediately.
 5. Fresh installations render the onboarding modal and do not call `initializeModules()` or fetch installed versions yet.
-6. A successful onboarding action saves one immutable configuration snapshot.
-7. The renderer then invokes the existing initialization path exactly once.
+6. An onboarding action sends one immutable payload to the main process; the main process persists the version and optional visibility map together and returns an explicit success or failure response.
+7. On success, the renderer applies the same payload to `AppStore` and invokes the existing initialization path exactly once. On failure, renderer state remains unchanged and the modal stays open.
 
 The bootstrap gate belongs in `App.vue`, where the existing one-time `startupInitialized` and `modulesInitialized` guards already live. The onboarding component emits a terminal result to that owner; it does not initialize services itself.
 
@@ -106,13 +106,14 @@ The Settings → Modules navigation reuses the existing router and `SetupStore.t
 | Module instances and installed-version discovery | Existing `BrewStore` and module lifecycle |
 | Service processes, PID/port state, and shutdown | Existing fork modules; unchanged |
 
-There is no new long-running renderer operation. The only asynchronous action is one existing preference-save IPC request, so a module-local singleton controller and a progress-event contract are not warranted. The save action rejects duplicate clicks while in flight and has only two terminal events: success, which releases bootstrap, and failure, which keeps the modal open and restores retry availability.
+There is no new long-running renderer operation. The only asynchronous action is one short, acknowledged onboarding preference-save IPC request, so a module-local singleton controller and a progress-event contract are not warranted. The main process owns persistence and returns one terminal success or failure response; the component rejects duplicate clicks while the request is in flight. Success updates `AppStore` and releases bootstrap, while failure leaves renderer state unchanged, keeps the modal open, and restores retry availability.
 
 No new module is added, no module-owned state is persisted in `config.setup`, no new Pinia store is created, no service start/stop path changes, and no module-only properties leak into shared service types. Therefore none of the New Module Constraints requires an exception.
 
 ## Expected implementation areas
 
 - `src/main/core/ConfigManager.ts`: classify fresh versus existing persisted configuration and migrate the version marker.
+- `src/main/core/AppNodeFn.ts` and `src/render/util/NodeFn.ts`: persist the onboarding payload through one acknowledged, typed IPC call.
 - `src/render/store/app.ts`: type, load, and save the onboarding version with the existing application configuration.
 - `src/render/App.vue`: gate the existing module initialization and host synchronization until onboarding resolves.
 - `src/render/components/ModuleOnboarding/`: modal component and pure preset/visibility helpers.
@@ -136,7 +137,7 @@ Automated checks must cover:
 - Customize writes no visibility changes and navigates to Settings → Modules.
 - Show all writes `true` for every supported built-in module.
 - A save failure does not mark onboarding complete, release bootstrap, or close the modal.
-- Duplicate clicks cause only one preference-save request.
+- Duplicate clicks cause only one onboarding persistence request.
 - Module initialization does not begin while onboarding is unresolved and begins exactly once after success.
 - Existing module-visibility behavior and Settings → Modules controls continue to work.
 
