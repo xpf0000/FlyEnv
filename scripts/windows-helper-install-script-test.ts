@@ -4,6 +4,8 @@ import path from 'node:path'
 
 const scriptPath = path.resolve(process.cwd(), 'static/sh/Windows/flyenv-auto-start-now.ps1')
 const source = fs.readFileSync(scriptPath, 'utf8')
+const appHelperPath = path.resolve(process.cwd(), 'src/main/core/AppHelper.ts')
+const appHelperSource = fs.readFileSync(appHelperPath, 'utf8')
 const helperWhitelistPath = path.resolve(process.cwd(), 'src/helper-go/utils/whitelist.go')
 const helperWhitelistSource = fs.readFileSync(helperWhitelistPath, 'utf8')
 
@@ -23,11 +25,26 @@ assert.match(
 )
 assert.doesNotMatch(source, /\[string\]::IsNullOrWhiteSpace\(\$programData\)/)
 assert.match(source, /if \(\$null -eq \$programData -or \$programData -eq ""\) \{/)
-assert.match(source, /Test-Path -LiteralPath \$exePath -PathType Leaf/)
+assert.match(source, /\$backupExePath = '#BACKUPEXECPATH#'/)
+assert.match(source, /Test-Path -LiteralPath \$backupExePath -PathType Leaf/)
+assert.match(source, /Get-FileHash -LiteralPath \$backupExePath -Algorithm SHA256/)
+assert.match(source, /Copy-Item -LiteralPath \$backupExePath -Destination \$pendingHelperFile/)
+assert.match(
+  source,
+  /\[System\.IO\.File\]::Replace\(\s*\$pendingHelperFile,\s*\$exePath,\s*\[System\.Management\.Automation\.Language\.NullString\]::Value,\s*\$true\s*\)/
+)
+assert.match(appHelperSource, /join\(dirname\(bin\), 'flyenv-helper-backup\.exe'\)/)
+assert.match(appHelperSource, /\.replace\('#BACKUPEXECPATH#', backupBin\)/)
 assert.match(source, /FlyEnv data path is not a directory: \$dataPath/)
 assert.match(source, /function Assert-PathHasNoReparsePoints/)
-assert.match(source, /Assert-PathHasNoReparsePoints -Path \$dataPath -Label ['"]FlyEnv data directory['"]/)
-assert.match(source, /\$allowDir = Assert-PathHasNoReparsePoints -Path \$allowDir -Label ['"]FlyEnv allowed roots directory['"]/)
+assert.match(
+  source,
+  /Assert-PathHasNoReparsePoints -Path \$dataPath -Label ['"]FlyEnv data directory['"]/
+)
+assert.match(
+  source,
+  /\$allowDir = Assert-PathHasNoReparsePoints -Path \$allowDir -Label ['"]FlyEnv allowed roots directory['"]/
+)
 assert.match(source, /\$canonicalPath = \[System\.IO\.Path\]::GetFullPath\(\$Path\)/)
 assert.match(source, /Wait-Process -Id \$runningProcesses\.Id -Timeout 5 -ErrorAction Stop/)
 assert.match(
@@ -45,7 +62,10 @@ assert.match(source, /Assert-AllowedRootsAcl -Path \$allowDir/)
 assert.match(source, /Assert-AllowedRootsAcl -Path \$allowFile/)
 assert.match(source, /FLYENV_HELPER_INSTALL_ERROR:/)
 assert.match(source, /\$appUserName = "#APPUSERNAME#"/)
-assert.match(source, /\$appUserSid = New-Object System\.Security\.Principal\.SecurityIdentifier\("#APPUSERSID#"\)/)
+assert.match(
+  source,
+  /\$appUserSid = New-Object System\.Security\.Principal\.SecurityIdentifier\("#APPUSERSID#"\)/
+)
 assert.match(source, /\$keyPath = "#KEYPATH#"/)
 assert.match(source, /\$action\.Arguments = "--key-path/)
 assert.match(source, /\$taskDefinition\.Principal\.UserId = \$appUserName/)

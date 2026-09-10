@@ -52,6 +52,8 @@
     "test:helper:contract": "tsx scripts/helper-contract-check.ts",
     "test:flyenv-shell-integration": "tsx scripts/flyenv-shell-integration-test.ts",
     "test:windows-helper-install": "tsx scripts/windows-helper-install-script-test.ts",
+    "test:windows-app-helper-init": "tsx scripts/windows-app-helper-init-test.ts",
+    "test:windows-after-sign-helper": "tsx scripts/windows-after-sign-helper-test.ts",
     "test:windows-helper-install-ipc": "tsx scripts/windows-helper-install-ipc-test.ts",
     "test:windows-cron": "tsx scripts/phase4-install-terminal-cron-test.ts && tsx scripts/windows-cron-wrapper-migration-test.ts && tsx scripts/windows-cron-wrapper-runtime-test.ts",
     "test:startup-groups": "tsx scripts/startup-group-test.ts",

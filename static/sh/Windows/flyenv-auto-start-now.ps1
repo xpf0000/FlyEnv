@@ -8,6 +8,7 @@ $taskStarted = $false
 $pendingAllowFile = $null
 $allowFileBackup = $null
 $allowFileInstalled = $false
+$pendingHelperFile = $null
 
 function Throw-InstallerError {
   param(
@@ -200,6 +201,7 @@ function Remove-TaskIfExists {
 try {
   $taskName = '#TASKNAME#'
   $exePath = '#EXECPATH#'
+  $backupExePath = '#BACKUPEXECPATH#'
   $dataPath = '#DATAPATH#'
   $appUserName = "#APPUSERNAME#"
   $appUserSid = New-Object System.Security.Principal.SecurityIdentifier("#APPUSERSID#")
@@ -218,8 +220,20 @@ try {
   if ([string]::IsNullOrWhiteSpace($appUserName) -or [string]::IsNullOrWhiteSpace($keyPath)) {
     Throw-InstallerError -Code 'helper_task_invalid' -Message 'FlyEnv user identity or stable key path is missing'
   }
-  if ([string]::IsNullOrWhiteSpace($exePath) -or -not (Test-Path -LiteralPath $exePath -PathType Leaf)) {
-    Throw-InstallerError -Code 'helper_binary_missing' -Message "FlyEnv helper binary not found: $exePath"
+  if ([string]::IsNullOrWhiteSpace($exePath)) {
+    Throw-InstallerError -Code 'helper_binary_missing' -Message 'FlyEnv helper binary path is empty'
+  }
+  if ((Test-Path -LiteralPath $exePath) -and -not (Test-Path -LiteralPath $exePath -PathType Leaf)) {
+    Throw-InstallerError -Code 'helper_binary_missing' -Message "FlyEnv helper binary path is not a file: $exePath"
+  }
+  if ([string]::IsNullOrWhiteSpace($backupExePath) -or -not (Test-Path -LiteralPath $backupExePath -PathType Leaf)) {
+    Throw-InstallerError -Code 'helper_binary_missing' -Message "FlyEnv helper backup binary not found: $backupExePath"
+  }
+  $backupHash = (Get-FileHash -LiteralPath $backupExePath -Algorithm SHA256 -ErrorAction Stop).Hash
+  $helperNeedsRestore = $true
+  if (Test-Path -LiteralPath $exePath -PathType Leaf) {
+    $helperHash = (Get-FileHash -LiteralPath $exePath -Algorithm SHA256 -ErrorAction Stop).Hash
+    $helperNeedsRestore = -not [string]::Equals($helperHash, $backupHash, [System.StringComparison]::OrdinalIgnoreCase)
   }
   if ([string]::IsNullOrWhiteSpace($dataPath)) {
     Throw-InstallerError -Code 'helper_acl_invalid' -Message 'FlyEnv data path is empty'
@@ -306,6 +320,34 @@ try {
     }
   }
 
+  if ($helperNeedsRestore) {
+    try {
+      $helperDirectory = Split-Path -Parent $exePath
+      $pendingHelperFile = Join-Path $helperDirectory ("flyenv-helper.$([Guid]::NewGuid().ToString('N')).pending")
+      Copy-Item -LiteralPath $backupExePath -Destination $pendingHelperFile -Force -ErrorAction Stop
+      $pendingHelperHash = (Get-FileHash -LiteralPath $pendingHelperFile -Algorithm SHA256 -ErrorAction Stop).Hash
+      if (-not [string]::Equals($pendingHelperHash, $backupHash, [System.StringComparison]::OrdinalIgnoreCase)) {
+        Throw-InstallerError -Code 'helper_execution_failed' -Message 'FlyEnv helper backup hash changed while restoring'
+      }
+      if (Test-Path -LiteralPath $exePath -PathType Leaf) {
+        [System.IO.File]::Replace(
+          $pendingHelperFile,
+          $exePath,
+          [System.Management.Automation.Language.NullString]::Value,
+          $true
+        )
+      } else {
+        [System.IO.File]::Move($pendingHelperFile, $exePath)
+      }
+      $pendingHelperFile = $null
+    } catch {
+      if ($_.Exception.Message -like 'FLYENV_HELPER_INSTALL_ERROR:*') {
+        throw
+      }
+      Throw-InstallerError -Code 'helper_execution_failed' -Message "Failed to restore FlyEnv helper from backup: $($_.Exception.Message)"
+    }
+  }
+
   Write-Host 'Creating scheduled task via API...'
   $scheduler = New-Object -ComObject 'Schedule.Service'
   $scheduler.Connect()
@@ -366,6 +408,11 @@ catch {
   if ($pendingAllowFile -and (Test-Path -LiteralPath $pendingAllowFile)) {
     try {
       Remove-Item -LiteralPath $pendingAllowFile -Force -ErrorAction Stop
+    } catch {}
+  }
+  if ($pendingHelperFile -and (Test-Path -LiteralPath $pendingHelperFile)) {
+    try {
+      Remove-Item -LiteralPath $pendingHelperFile -Force -ErrorAction Stop
     } catch {}
   }
   if ($taskStarted -and $registeredTask) {

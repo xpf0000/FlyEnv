@@ -56,6 +56,35 @@ async function main() {
   assert.equal(sudoCalls, 1)
   assert.equal(checkCalls, 1)
 
+  let missingPrimaryCheckCalls = 0
+  let missingPrimaryCommandCalls = 0
+  let missingPrimarySudoCalls = 0
+  const missingPrimaryHelper = createAppHelper({
+    appHelperCheck: async () => {
+      missingPrimaryCheckCalls += 1
+      if (missingPrimaryCheckCalls === 1) {
+        throw new AppHelperError('helper_binary_missing', 'primary helper is missing')
+      }
+      return true
+    },
+    sudo: async () => {
+      missingPrimarySudoCalls += 1
+      return { stdout: '', stderr: '' }
+    }
+  })
+  missingPrimaryHelper.command = async () => {
+    missingPrimaryCommandCalls += 1
+    return { command: 'echo repair from backup', icns: '' }
+  }
+  await missingPrimaryHelper.initHelper()
+  assert.equal(
+    missingPrimaryCommandCalls,
+    1,
+    'a missing primary helper must still start the backup repair command'
+  )
+  assert.equal(missingPrimarySudoCalls, 1)
+  assert.equal(missingPrimaryCheckCalls, 2)
+
   let releaseDirectoryStartup: (() => void) | undefined
   let healthyInitSettled = false
   const healthyHelper = createAppHelper({

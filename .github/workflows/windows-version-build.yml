@@ -123,6 +123,21 @@ jobs:
             -BundleDir "$env:GITHUB_WORKSPACE/release/signpath-app-signed" `
             -ManifestPath "$env:GITHUB_WORKSPACE/release/signpath-app-manifest.json"
 
+      - name: Stage signed FlyEnv Helper backup
+        shell: pwsh
+        run: |
+          $helper = "$env:GITHUB_WORKSPACE/release/win-unpacked/resources/helper/flyenv-helper.exe"
+          $backup = "$env:GITHUB_WORKSPACE/release/win-unpacked/resources/helper/flyenv-helper-backup.exe"
+          if (-not (Test-Path -LiteralPath $helper -PathType Leaf)) {
+            throw "Signed FlyEnv helper was not found: $helper"
+          }
+          Copy-Item -LiteralPath $helper -Destination $backup -Force -ErrorAction Stop
+          $helperHash = (Get-FileHash -LiteralPath $helper -Algorithm SHA256 -ErrorAction Stop).Hash
+          $backupHash = (Get-FileHash -LiteralPath $backup -Algorithm SHA256 -ErrorAction Stop).Hash
+          if (-not [string]::Equals($helperHash, $backupHash, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw 'FlyEnv helper backup hash does not match the signed helper'
+          }
+
       # 第 2 阶段:使用已签名 app 目录生成安装包。NSIS 禁止复制 elevate.exe,
       # Portable 使用 useZip 直接打包预构建目录,避免覆盖第一阶段返回的有效签名。
       - name: Package signed Windows application
