@@ -2,5 +2,7 @@
   "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Το Homebrew</a> δεν βρέθηκε.\nΓια να εγκαταστήσετε το Homebrew, κάντε κλικ στο κουμπί εγκατάστασης για να συνεχίσετε.\nΜπορείτε επίσης να κάνετε κλικ σε αυτόν τον σύνδεσμο\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nκαι να ακολουθήσετε την τεκμηρίωση για την εγκατάσταση.",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> δεν βρέθηκε.\nΕγκατάσταση Macports, μπορείτε να κάνετε κλικ σε αυτό το σύνδεσμο\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nΑκολουθήστε την τεκμηρίωση για εγκατάσταση.",
   "brewErrorTips": "Στη θέση {bin} εντοπίστηκαν εκτελέσιμα αρχεία Homebrew.\nΩστόσο, το FlyEnv δεν μπορεί να τα καλέσει. Μήνυμα σφάλματος:\n{error}",
-  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> δεν βρέθηκε\nΓια εγκατάσταση SDKMAN, κάντε κλικ στο κουμπί εγκατάστασης για να προχωρήσετε"
+  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> δεν βρέθηκε\nΓια εγκατάσταση SDKMAN, κάντε κλικ στο κουμπί εγκατάστασης για να προχωρήσετε",
+  "brewFormulaConflict": "Τρέχουσα πηγή: {source}\nΑπεγκαταστήστε την τρέχουσα έκδοση PHP πριν αλλάξετε πηγή.",
+  "brewFormulaUnavailable": "Μη διαθέσιμο"
 }

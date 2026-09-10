@@ -2,5 +2,7 @@
   "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> nem található\nA Homebrew telepítéséhez kattintson a telepítés gombra\nErre a hivatkozásra is kattinthat:\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macphpstudy.com/zh/help-4-2.html')\">https://www.macphpstudy.com/zh/help-4-2.html</a>\nKövesse a dokumentációt a telepítéshez.",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> nem található.\nMacports telepítéséhez kattintson erre a hivatkozásra:\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nKövesse a dokumentációt a telepítéshez.",
   "brewErrorTips": "Ezen a helyen {bin} Homebrew futtatható fájlokat észleltünk.\nAzonban a FlyEnv nem tudja meghívni őket. Hibaüzenet:\n{error}",
-  "noSDKMANFound": "A(z) <a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> nem található\nAz SDKMAN telepítéséhez kattintson a telepítés gombra"
+  "noSDKMANFound": "A(z) <a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> nem található\nAz SDKMAN telepítéséhez kattintson a telepítés gombra",
+  "brewFormulaConflict": "Jelenlegi forrás: {source}\nA forrás váltása előtt távolítsa el a jelenlegi PHP-verziót.",
+  "brewFormulaUnavailable": "Nem elérhető"
 }

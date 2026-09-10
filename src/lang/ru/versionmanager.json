@@ -2,5 +2,7 @@
   "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> не найден\nЧтобы установить Homebrew, нажмите кнопку «Установить».\nВы также можете перейти по этой ссылке\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nСледуйте документации по установке.",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> не найден.\nУстановить Macports, вы можете нажать на эту ссылку\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nСледуйте документации для установки.",
   "brewErrorTips": "В этом месте {bin}были обнаружены исполняемые файлы Homebrew.\nОднако, FlyEnv не может их вызвать. Ошибка:\n{error}",
-  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> не найден\nДля установки SDKMAN, нажмите кнопку установки, чтобы продолжить"
+  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> не найден\nДля установки SDKMAN, нажмите кнопку установки, чтобы продолжить",
+  "brewFormulaConflict": "Текущий источник: {source}\nУдалите текущую версию PHP перед переключением источника.",
+  "brewFormulaUnavailable": "Недоступно"
 }
