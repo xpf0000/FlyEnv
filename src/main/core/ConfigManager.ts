@@ -3,11 +3,15 @@ import { join } from 'node:path'
 import { app } from 'electron'
 import Store from 'electron-store'
 import { type Options } from 'electron-store'
-import { initialModuleOnboardingVersion } from '@shared/ModuleOnboarding'
+import {
+  initialModuleOnboardingVersion,
+  type ModuleOnboardingVisibility
+} from '@shared/ModuleOnboarding'
 import {
   DEFAULT_WINDOWS_ELEVATION_METHOD,
   type WindowsElevationMethod
 } from '@shared/WindowsHelperState'
+import { completeModuleOnboardingConfig } from './ModuleOnboardingConfig'
 
 interface ConfigOptions {
   'last-check-update-time': number
@@ -44,22 +48,7 @@ interface ConfigOptions {
   moduleOnboardingVersion: number
   setup: {
     common: {
-      showItem: {
-        Hosts: boolean
-        Nginx: boolean
-        Apache: boolean
-        Mysql: boolean
-        mariadb: boolean
-        Php: boolean
-        Memcached: boolean
-        Redis: boolean
-        NodeJS: boolean
-        MongoDB: boolean
-        HttpServe: boolean
-        Tools: boolean
-        DNS: boolean
-        FTP: boolean
-      }
+      showItem: ModuleOnboardingVisibility
     }
     nginx: {
       dirs: Array<string>
@@ -262,6 +251,11 @@ export default class ConfigManager {
     } else {
       this.config?.set(key)
     }
+  }
+
+  completeModuleOnboarding(showItem?: ModuleOnboardingVisibility): void {
+    const setup = this.getConfig('setup') as ConfigOptions['setup']
+    completeModuleOnboardingConfig((patch) => this.config!.set(patch), setup, showItem)
   }
 
   reset() {

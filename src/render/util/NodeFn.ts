@@ -2,6 +2,10 @@ import IPC from '@/util/IPC'
 import DOMPurify from 'dompurify'
 import type { ExecOptions } from 'node:child_process'
 import type { Stats } from 'node:fs'
+import type {
+  CompleteModuleOnboardingRequest,
+  ModuleOnboardingIPCResult
+} from '@shared/ModuleOnboarding'
 
 // 创建类型工具
 type IPCMethod<T extends any[], R> = (...args: T) => Promise<R>
@@ -137,6 +141,11 @@ export const nativeTheme = {
   }
 }
 
+const completeModuleOnboardingRaw = createIPCCall<
+  [CompleteModuleOnboardingRequest],
+  ModuleOnboardingIPCResult
+>('app', 'completeModuleOnboarding')
+
 export const app = {
   getPath: createIPCCall<
     [
@@ -161,6 +170,11 @@ export const app = {
   >('app', 'getPath'),
   getWindowsHelperBinaryPath: createIPCCall<[], string>('app', 'getWindowsHelperBinaryPath'),
   getConfig: createIPCCall<[], any>('app', 'getConfig'),
+  async completeModuleOnboarding(payload: CompleteModuleOnboardingRequest): Promise<true> {
+    const response = await completeModuleOnboardingRaw(payload)
+    if (response.code === 0) return true
+    throw new Error(response.msg)
+  },
   setLoginItemSettings: createIPCCall<[{ openAtLogin?: boolean }], string>(
     'app',
     'setLoginItemSettings'

@@ -12,6 +12,7 @@ import {
   DEFAULT_WINDOWS_ELEVATION_METHOD,
   type WindowsElevationMethod
 } from '@shared/WindowsHelperState'
+import { MODULE_ONBOARDING_VERSION } from '@shared/ModuleOnboarding'
 
 export interface AppHost {
   id: number
@@ -65,7 +66,7 @@ export interface AppServerCurrent {
   run?: boolean
 }
 
-type AppShowItem = Partial<Record<AllAppModule | string, boolean>>
+export type AppShowItem = Partial<Record<AllAppModule | string, boolean>>
 
 type ServerBase = Partial<
   Record<
@@ -128,6 +129,7 @@ interface State {
   envIndex: number
   hosts: Array<AppHost>
   config: {
+    moduleOnboardingVersion: number
     server: ServerBase
     password: string
     setup: StateBase
@@ -156,6 +158,7 @@ const state: State = {
   envIndex: 1,
   hosts: [],
   config: {
+    moduleOnboardingVersion: MODULE_ONBOARDING_VERSION,
     server: {},
     password: '',
     setup: {
@@ -266,6 +269,7 @@ export const AppStore = defineStore('app', {
           config.password = ''
         }
         this.INIT_CONFIG({
+          moduleOnboardingVersion: config?.moduleOnboardingVersion ?? MODULE_ONBOARDING_VERSION,
           server: config.server,
           password: config.password,
           setup: config.setup,
@@ -289,6 +293,7 @@ export const AppStore = defineStore('app', {
         const setup = JSON.parse(JSON.stringify(this.config.setup))
         const args = JSON.parse(
           JSON.stringify({
+            moduleOnboardingVersion: this.config.moduleOnboardingVersion,
             server,
             password: this.config.password,
             setup,

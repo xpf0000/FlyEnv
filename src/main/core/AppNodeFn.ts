@@ -21,6 +21,7 @@ import EnvSync from '@shared/EnvSync'
 import { mergeProcessOptions } from '@shared/process-options'
 import { LazyRuntime } from './lazy/LazyRuntime'
 import { getWindowsHelperBinaryPath } from '@shared/AppHelperCheck'
+import { handleCompleteModuleOnboardingRequest } from './ModuleOnboardingConfig'
 
 const markdownRuntime = new LazyRuntime(async () => {
   const { createMarkdownRenderer } = await import('@/util/markdown/markdown')
@@ -319,6 +320,11 @@ export class AppNodeFn {
     const config = this?.configManager?.getConfig()
     console.log('this?.mainWindow?.webContents: ', this)
     this?.mainWindow?.webContents?.send('command', command, key, config)
+  }
+
+  app_completeModuleOnboarding(command: string, key: string, request: unknown) {
+    const result = handleCompleteModuleOnboardingRequest(request, this.configManager)
+    this?.mainWindow?.webContents.send('command', command, key, result)
   }
 
   private async linuxAutoLaunch(autoLaunch: boolean) {
