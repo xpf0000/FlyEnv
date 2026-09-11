@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Kies je technologiestacks",
+    "description": "FlyEnv toont alleen de bijbehorende modules. Je kunt dit later wijzigen via Instellingen → Module.",
+    "selectedCount": "Aantal modules dat wordt getoond: {count}",
+    "apply": "Toepassen en beginnen",
+    "customize": "Modules aanpassen",
+    "showAll": "Alle modules tonen",
+    "saveFailed": "Je modulekeuze kon niet worden opgeslagen. Probeer het opnieuw."
+  },
   "tsinghua": "Tsinghua Universiteit download bron",
   "bfsu": "Foreign Studies Universiteit download bron van Beijing",
   "tencent": "Tencent downloadbron",

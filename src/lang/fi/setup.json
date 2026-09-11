@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Valitse käyttämäsi teknologiapinot",
+    "description": "FlyEnv näyttää vain niihin liittyvät moduulit. Voit muuttaa valintaa myöhemmin kohdassa Asetukset → Moduuli.",
+    "selectedCount": "Näytettävien moduulien määrä: {count}",
+    "apply": "Ota käyttöön ja aloita",
+    "customize": "Mukauta moduuleja",
+    "showAll": "Näytä kaikki moduulit",
+    "saveFailed": "Moduulivalintaa ei voitu tallentaa. Yritä uudelleen."
+  },
   "tsinghua": "Latauslahde Tsinghuan yliopistosta",
   "bfsu": "Peking Foreign Studies Yliopiston latauslähde",
   "tencent": "Tencentin latauslähde",

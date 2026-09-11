@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Vælg dine teknologistakke",
+    "description": "FlyEnv viser kun de relevante moduler. Du kan ændre dette senere under Indstillinger → Modul.",
+    "selectedCount": "Antal moduler, der vises: {count}",
+    "apply": "Anvend og kom i gang",
+    "customize": "Tilpas moduler",
+    "showAll": "Vis alle moduler",
+    "saveFailed": "Dit valg af moduler kunne ikke gemmes. Prøv igen."
+  },
   "tsinghua": "Tsinghua University download kilde",
   "bfsu": "Beijing Foreign Studies University download kilde",
   "tencent": "Tencent download kilde",

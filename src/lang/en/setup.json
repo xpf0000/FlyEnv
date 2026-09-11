@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Choose your technology stacks",
+    "description": "FlyEnv will show only the related modules. You can change this later in Settings → Modules.",
+    "selectedCount": "{count} modules will be shown",
+    "apply": "Apply and start",
+    "customize": "Customize modules",
+    "showAll": "Show all modules",
+    "saveFailed": "Could not save your module selection. Please try again."
+  },
   "tsinghua": "Tsinghua University download source",
   "bfsu": "Beijing Foreign Studies University download source",
   "tencent": "Tencent download source",

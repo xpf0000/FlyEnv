@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "選擇你常用的技術棧",
+    "description": "FlyEnv 將只顯示相關模組，之後可隨時在「設定 → 模組」中調整。",
+    "selectedCount": "將顯示 {count} 個模組",
+    "apply": "套用並開始使用",
+    "customize": "自訂模組",
+    "showAll": "顯示全部模組",
+    "saveFailed": "無法儲存模組選擇，請重試。"
+  },
   "tsinghua": "清華大學下載源",
   "bfsu": "北京外國語大學下載源",
   "tencent": "騰訊下載源",

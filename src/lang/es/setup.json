@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Elige tus pilas tecnológicas",
+    "description": "FlyEnv mostrará solo los módulos relacionados. Puedes cambiarlo más adelante en Configuraciones → Módulo.",
+    "selectedCount": "Número de módulos que se mostrarán: {count}",
+    "apply": "Aplicar y empezar",
+    "customize": "Personalizar módulos",
+    "showAll": "Mostrar todos los módulos",
+    "saveFailed": "No se pudo guardar tu selección de módulos. Inténtalo de nuevo."
+  },
   "tsinghua": "Fuente de descarga de la Universidad de Tsinghua",
   "bfsu": "Fuente de descarga de la Universidad de Estudios Extranjeros de Beijing",
   "tencent": "Fuente de descarga de Tencent",

@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Wybierz swoje stosy technologiczne",
+    "description": "FlyEnv pokaże tylko powiązane moduły. Możesz to później zmienić w Ustawienia → Moduł.",
+    "selectedCount": "Liczba modułów, które zostaną wyświetlone: {count}",
+    "apply": "Zastosuj i rozpocznij",
+    "customize": "Dostosuj moduły",
+    "showAll": "Pokaż wszystkie moduły",
+    "saveFailed": "Nie udało się zapisać wyboru modułów. Spróbuj ponownie."
+  },
   "tsinghua": "Źródło pobierania Uniwersytetu Tsinghua",
   "bfsu": "Źródło pobierania Pekin Foreign Studies University",
   "tencent": "Źródło pobierania",

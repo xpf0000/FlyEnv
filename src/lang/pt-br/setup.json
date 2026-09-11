@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Escolha suas stacks de tecnologia",
+    "description": "O FlyEnv mostrará apenas os módulos relacionados. Você pode alterar essa opção depois em Configurações → Módulos.",
+    "selectedCount": "Número de módulos que serão exibidos: {count}",
+    "apply": "Aplicar e começar",
+    "customize": "Personalizar módulos",
+    "showAll": "Mostrar todos os módulos",
+    "saveFailed": "Não foi possível salvar sua seleção de módulos. Tente novamente."
+  },
   "tsinghua": "Fonte de download da Universidade de Tsinghua",
   "bfsu": "Fonte de download da Universidade de Estudos Estrangeiros de Pequim",
   "tencent": "Fonte de download da Tencent",

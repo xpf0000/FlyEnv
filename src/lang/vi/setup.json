@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Chọn các bộ công nghệ bạn sử dụng",
+    "description": "FlyEnv sẽ chỉ hiển thị các module liên quan. Bạn có thể thay đổi lựa chọn này sau trong Cài đặt → Module.",
+    "selectedCount": "{count} module sẽ được hiển thị",
+    "apply": "Áp dụng và bắt đầu",
+    "customize": "Tùy chỉnh module",
+    "showAll": "Hiển thị tất cả module",
+    "saveFailed": "Không thể lưu lựa chọn module của bạn. Vui lòng thử lại."
+  },
   "tsinghua": "Mirror Đại học Thanh Hoa",
   "bfsu": "Mirror Đại học Ngoại ngữ Bắc Kinh",
   "tencent": "Mirror Tencent",

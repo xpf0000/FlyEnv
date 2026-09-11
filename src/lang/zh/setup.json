@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "选择你常用的技术栈",
+    "description": "FlyEnv 将只显示相关模块，之后可随时在“设置 → 模块”中调整。",
+    "selectedCount": "将显示 {count} 个模块",
+    "apply": "应用并开始使用",
+    "customize": "自定义模块",
+    "showAll": "显示全部模块",
+    "saveFailed": "无法保存模块选择，请重试。"
+  },
   "tsinghua": "清华大学下载源",
   "bfsu": "北京外国语大学下载源",
   "tencent": "腾讯下载源",

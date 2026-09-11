@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Odaberite svoje tehnološke skupove",
+    "description": "FlyEnv će prikazivati samo povezane module. To možete naknadno promijeniti u Postavke → Modul.",
+    "selectedCount": "Broj modula koji će se prikazivati: {count}",
+    "apply": "Primijeni i započni",
+    "customize": "Prilagodi module",
+    "showAll": "Prikaži sve module",
+    "saveFailed": "Odabir modula nije moguće spremiti. Pokušajte ponovno."
+  },
   "tsinghua": "Izvor za preuzimanje Sveučilišta Tsinghua",
   "bfsu": "Izvor za preuzimanje Sveučilišta za strane studije u Pekingu",
   "tencent": "Tencent izvor za preuzimanje",

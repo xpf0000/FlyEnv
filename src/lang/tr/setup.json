@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Kullandığınız teknoloji yığınlarını seçin",
+    "description": "FlyEnv yalnızca ilgili modülleri gösterecek. Bunu daha sonra Ayarlar → Modül bölümünden değiştirebilirsiniz.",
+    "selectedCount": "{count} modül gösterilecek",
+    "apply": "Uygula ve başla",
+    "customize": "Modülleri özelleştir",
+    "showAll": "Tüm modülleri göster",
+    "saveFailed": "Modül seçiminiz kaydedilemedi. Lütfen tekrar deneyin."
+  },
   "tsinghua": "Tsinghua Üniversitesi indirme kaynağı",
   "bfsu": "Pekin Yabancı Diller Üniversitesi indirme kaynağı",
   "tencent": "Tencent indirme kaynağı",

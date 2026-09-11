@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "사용할 기술 스택을 선택하세요",
+    "description": "FlyEnv는 관련 모듈만 표시합니다. 나중에 설정 → 모듈에서 변경할 수 있습니다.",
+    "selectedCount": "{count}개의 모듈이 표시됩니다",
+    "apply": "적용하고 시작",
+    "customize": "모듈 맞춤 설정",
+    "showAll": "모든 모듈 표시",
+    "saveFailed": "모듈 선택을 저장할 수 없습니다. 다시 시도해 주세요."
+  },
   "tsinghua": "칭화 대학 다운로드 소스",
   "bfsu": "북경외국어대학 다운로드 소스",
   "tencent": "텐센트 다운로드 소스",

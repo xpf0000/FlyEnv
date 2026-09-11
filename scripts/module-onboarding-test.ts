@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { compileScript, compileStyleAsync, compileTemplate, parse } from '@vue/compiler-sfc'
 import { ref } from 'vue'
+import { BuiltInLocaleCatalog } from '../src/lang/catalog'
 import {
   MODULE_ONBOARDING_VERSION,
   initialModuleOnboardingVersion
@@ -20,6 +21,40 @@ import {
   handleCompleteModuleOnboardingRequest
 } from '../src/main/core/ModuleOnboardingConfig'
 import { createModuleOnboardingStartupGate } from '../src/render/components/ModuleOnboarding/startupGate'
+
+const onboardingLocaleKeys = [
+  'title',
+  'description',
+  'selectedCount',
+  'apply',
+  'customize',
+  'showAll',
+  'saveFailed'
+]
+for (const { sourceDir } of Object.values(BuiltInLocaleCatalog)) {
+  const setup = JSON.parse(
+    readFileSync(new URL(`../src/lang/${sourceDir}/setup.json`, import.meta.url), 'utf8')
+  )
+  const messages = setup.moduleOnboarding
+  assert.ok(
+    messages && typeof messages === 'object' && !Array.isArray(messages),
+    `${sourceDir}: setup.moduleOnboarding must be an object`
+  )
+  assert.deepEqual(
+    Object.keys(messages).sort(),
+    [...onboardingLocaleKeys].sort(),
+    `${sourceDir}: onboarding must contain exactly the seven required keys`
+  )
+  for (const key of onboardingLocaleKeys) {
+    assert.equal(typeof messages[key], 'string', `${sourceDir}: ${key} must be a string`)
+    assert.ok(messages[key].trim(), `${sourceDir}: ${key} must not be empty`)
+    assert.deepEqual(
+      messages[key].match(/\{[^{}]*\}/g) ?? [],
+      key === 'selectedCount' ? ['{count}'] : [],
+      `${sourceDir}: ${key} must preserve the expected interpolation placeholders`
+    )
+  }
+}
 
 const onboardingComponentSource = readFileSync(
   new URL('../src/render/components/ModuleOnboarding/index.vue', import.meta.url),

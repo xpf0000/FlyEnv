@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Alegeți stivele tehnologice pe care le folosiți",
+    "description": "FlyEnv va afișa doar modulele asociate. Puteți modifica această alegere mai târziu din Setări → Modul.",
+    "selectedCount": "Numărul de module care vor fi afișate: {count}",
+    "apply": "Aplică și începe",
+    "customize": "Personalizează modulele",
+    "showAll": "Afișează toate modulele",
+    "saveFailed": "Selecția modulelor nu a putut fi salvată. Încercați din nou."
+  },
   "tsinghua": "Sursa de descărcare a Universităţii Tsinghua",
   "bfsu": "Sursa descărcată de la Universitatea din Beijing pentru Studii Străine",
   "tencent": "Sursă descărcare tencenți",

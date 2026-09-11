@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Välj dina teknikstackar",
+    "description": "FlyEnv visar bara de relaterade modulerna. Du kan ändra detta senare under Inställningar → Module.",
+    "selectedCount": "Antal moduler som kommer att visas: {count}",
+    "apply": "Tillämpa och kom igång",
+    "customize": "Anpassa moduler",
+    "showAll": "Visa alla moduler",
+    "saveFailed": "Det gick inte att spara ditt modulval. Försök igen."
+  },
   "tsinghua": "Tsinghua University nedladdningskälla",
   "bfsu": "Beijing Foreign Studies University nedladdningskälla",
   "tencent": "Tencent nedladdningskälla",

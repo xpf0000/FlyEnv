@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Scegli i tuoi stack tecnologici",
+    "description": "FlyEnv mostrerà solo i moduli correlati. Potrai modificare questa scelta in seguito in Impostazioni → Modulo.",
+    "selectedCount": "Numero di moduli che verranno mostrati: {count}",
+    "apply": "Applica e inizia",
+    "customize": "Personalizza i moduli",
+    "showAll": "Mostra tutti i moduli",
+    "saveFailed": "Impossibile salvare la selezione dei moduli. Riprova."
+  },
   "tsinghua": "Sorgente di download Università Tsinghua",
   "bfsu": "Sorgente di download Università di Studi Stranieri di Pechino",
   "tencent": "Sorgente di download Tencent",

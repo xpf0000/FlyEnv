@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Vyberte si technologické stacky",
+    "description": "FlyEnv zobrazí pouze související moduly. Později to můžete změnit v Nastavení → Modul.",
+    "selectedCount": "Počet zobrazených modulů: {count}",
+    "apply": "Použít a začít",
+    "customize": "Přizpůsobit moduly",
+    "showAll": "Zobrazit všechny moduly",
+    "saveFailed": "Výběr modulů se nepodařilo uložit. Zkuste to prosím znovu."
+  },
   "tsinghua": "Zdroj stažení Univerzity v Tsinghua",
   "bfsu": "Zdroj stažení Pekingské univerzity zahraničních studií",
   "tencent": "Zdroj stažení Tencent",

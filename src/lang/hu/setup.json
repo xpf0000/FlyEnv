@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Válassza ki a használt technológiai stackeket",
+    "description": "A FlyEnv csak a kapcsolódó modulokat jeleníti meg. Ezt később a Beállítások → Modul menüpontban módosíthatja.",
+    "selectedCount": "A megjelenítendő modulok száma: {count}",
+    "apply": "Alkalmazás és kezdés",
+    "customize": "Modulok testreszabása",
+    "showAll": "Összes modul megjelenítése",
+    "saveFailed": "Nem sikerült menteni a modulválasztást. Kérjük, próbálja újra."
+  },
   "tsinghua": "Tsinghua Egyetem letöltési forrás",
   "bfsu": "Pekingi Idegennyelvi Egyetem letöltési forrás",
   "tencent": "Tencent letöltési forrás",

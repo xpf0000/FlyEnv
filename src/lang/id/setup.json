@@ -1,4 +1,13 @@
 {
+  "moduleOnboarding": {
+    "title": "Pilih stack teknologi Anda",
+    "description": "FlyEnv hanya akan menampilkan modul terkait. Anda dapat mengubahnya nanti di Pengaturan → Modul.",
+    "selectedCount": "{count} modul akan ditampilkan",
+    "apply": "Terapkan dan mulai",
+    "customize": "Sesuaikan modul",
+    "showAll": "Tampilkan semua modul",
+    "saveFailed": "Pilihan modul Anda tidak dapat disimpan. Silakan coba lagi."
+  },
   "tsinghua": "Sumber unduhan Universitas Tsinghua",
   "bfsu": "Sumber unduhan Universitas Studi Asing Beijing",
   "tencent": "Sumber unduhan Tencent",
