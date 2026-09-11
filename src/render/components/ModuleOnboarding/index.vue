@@ -7,9 +7,11 @@
     :close-on-click-modal="false"
     :close-on-press-escape="false"
   >
-    <template #header>
+    <template #header="{ titleId, titleClass }">
       <div class="module-onboarding-header">
-        <h2>{{ I18nT('setup.moduleOnboarding.title') }}</h2>
+        <h2 :id="titleId" :class="titleClass">
+          {{ I18nT('setup.moduleOnboarding.title') }}
+        </h2>
         <p>{{ I18nT('setup.moduleOnboarding.description') }}</p>
       </div>
     </template>
@@ -102,6 +104,27 @@
     rust: rustIcon
   } satisfies Record<ModuleStackPresetId, string>
 
+  const moduleLabels: Partial<Record<AllAppModule, string>> = {
+    php: 'PHP',
+    'php-fpm': 'PHP-FPM',
+    apache: 'Apache',
+    nginx: 'Nginx',
+    node: 'Node.js',
+    mysql: 'MySQL',
+    mariadb: 'MariaDB',
+    redis: 'Redis',
+    postgresql: 'PostgreSQL',
+    mongodb: 'MongoDB',
+    java: 'Java',
+    gradle: 'Gradle',
+    tomcat: 'Tomcat',
+    python: 'Python',
+    golang: 'Go',
+    dotnet: '.NET',
+    ruby: 'Ruby',
+    rust: 'Rust'
+  }
+
   const currentVisibility = computed(() => appStore.config.setup.common.showItem)
   const previewVisibility = computed(() =>
     buildPresetVisibility(currentVisibility.value, props.supportedFlags, selected.value)
@@ -111,7 +134,10 @@
   )
 
   const visiblePresetModules = (modules: readonly AllAppModule[]) =>
-    modules.filter((flag) => props.supportedFlags.includes(flag)).join(', ')
+    modules
+      .filter((flag) => props.supportedFlags.includes(flag))
+      .map((flag) => moduleLabels[flag] ?? flag)
+      .join(', ')
 
   const togglePreset = (id: ModuleStackPresetId) => {
     selected.value = selected.value.includes(id)
@@ -228,12 +254,10 @@
     }
 
     span {
-      overflow: hidden;
       color: var(--el-text-color-secondary);
       font-size: 12px;
       line-height: 1.45;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      overflow-wrap: anywhere;
     }
   }
 
