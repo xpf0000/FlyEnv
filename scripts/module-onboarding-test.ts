@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { compileScript, compileStyleAsync, compileTemplate, parse } from '@vue/compiler-sfc'
+import * as VueRuntime from 'vue'
 import {
   MODULE_ONBOARDING_VERSION,
   initialModuleOnboardingVersion
@@ -49,6 +50,63 @@ for (const style of onboardingComponent.descriptor.styles) {
   })
   assert.deepEqual(onboardingStyle.errors, [])
 }
+
+const appComponentSource = readFileSync(new URL('../src/render/App.vue', import.meta.url), 'utf8')
+const appComponent = parse(appComponentSource, { filename: 'src/render/App.vue' })
+assert.deepEqual(appComponent.errors, [])
+assert.ok(appComponent.descriptor.scriptSetup)
+assert.ok(appComponent.descriptor.template)
+const appScript = compileScript(appComponent.descriptor, { id: 'app' })
+const appTemplate = compileTemplate({
+  id: 'app',
+  filename: 'src/render/App.vue',
+  source: appComponent.descriptor.template.content,
+  compilerOptions: { bindingMetadata: appScript.bindings }
+})
+assert.deepEqual(appTemplate.errors, [])
+for (const style of appComponent.descriptor.styles) {
+  const appStyle = await compileStyleAsync({
+    id: 'app',
+    filename: 'src/render/App.vue',
+    source: style.content,
+    scoped: style.scoped,
+    preprocessLang: style.lang as 'scss'
+  })
+  assert.deepEqual(appStyle.errors, [])
+}
+
+const executableAppTemplate = compileTemplate({
+  id: 'app-runtime',
+  filename: 'src/render/App.vue',
+  source: appComponent.descriptor.template.content,
+  compilerOptions: { mode: 'function' }
+})
+assert.deepEqual(executableAppTemplate.errors, [])
+const resolveComponent = (name: string) => name
+const renderApp = Function(
+  'Vue',
+  executableAppTemplate.code
+)({
+  ...VueRuntime,
+  resolveComponent
+}) as (context: Record<string, unknown>, cache: unknown[]) => VueRuntime.VNode
+const handleOnboardingResolved = () => undefined
+const renderedApp = renderApp(
+  {
+    onboardingRequired: true,
+    onboardingResolved: false,
+    platformModule: [{ typeFlag: 'php' }, { typeFlag: 'linux-only' }],
+    handleOnboardingResolved
+  },
+  []
+)
+const renderedChildren = renderedApp.children as VueRuntime.VNode[]
+assert.deepEqual(
+  renderedChildren.map((child) => child.type),
+  ['TitleBar', 'VueSvg', 'ModuleOnboarding', 'router-view', 'FloatButton']
+)
+assert.deepEqual(renderedChildren[2]?.props?.['supported-flags'], ['php', 'linux-only'])
+assert.equal(renderedChildren[2]?.props?.onResolved, handleOnboardingResolved)
 
 assert.equal(MODULE_ONBOARDING_VERSION, 1)
 assert.equal(initialModuleOnboardingVersion(false), 0)

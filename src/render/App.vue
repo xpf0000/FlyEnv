@@ -1,6 +1,11 @@
 <template>
   <TitleBar />
   <VueSvg />
+  <ModuleOnboarding
+    v-if="onboardingRequired && !onboardingResolved"
+    :supported-flags="platformModule.map((item) => item.typeFlag)"
+    @resolved="handleOnboardingResolved"
+  />
   <router-view />
   <FloatButton />
 </template>
@@ -25,9 +30,18 @@
   import { handleWriteHosts } from '@/util/Host'
   import { synchronizeHostsAtStartup } from '@/util/HostStartupSync'
   import { markDataDirectoryReady } from '@/core/DataDirectoryStartup'
+  import ModuleOnboarding from '@/components/ModuleOnboarding/index.vue'
+  import { MODULE_ONBOARDING_VERSION } from '@shared/ModuleOnboarding'
+  import { SetupStore } from '@/components/Setup/store'
+  import Router from '@/router'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
+
+  const onboardingRequired = computed(
+    () => appStore.config.moduleOnboardingVersion < MODULE_ONBOARDING_VERSION
+  )
+  const onboardingResolved = ref(!onboardingRequired.value)
 
   const showItem = computed(() => {
     return appStore.config.setup.common.showItem
@@ -161,6 +175,18 @@
       })
   }
 
+  const initializeWhenAllowed = () => (onboardingResolved.value ? init() : Promise.resolve())
+
+  const handleOnboardingResolved = async (destination: 'main' | 'module-settings') => {
+    onboardingResolved.value = true
+    if (destination === 'module-settings') {
+      SetupStore().tab = 'module'
+      appStore.currentPage = '/setup'
+      await Router.push('/setup')
+    }
+    await initializeWhenAllowed()
+  }
+
   const checkProxy = () => {
     if (appStore?.config?.setup?.proxy?.on) {
       return
@@ -199,12 +225,12 @@
     if (ready) {
       window.Server.DataDirectoryReady = true
       markDataDirectoryReady()
-      init().catch((error) => console.error('Renderer startup failed:', error))
+      initializeWhenAllowed().catch((error) => console.error('Renderer startup failed:', error))
     }
   })
 
   onMounted(() => {
-    init().catch((error) => console.error('Renderer startup failed:', error))
+    initializeWhenAllowed().catch((error) => console.error('Renderer startup failed:', error))
     brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
   })
 
