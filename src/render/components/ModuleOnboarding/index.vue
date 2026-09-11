@@ -2,49 +2,83 @@
   <el-dialog
     :model-value="true"
     width="780px"
-    class="module-onboarding-dialog"
+    class="dark:bg-[#1d2033] el-dialog-content-flex-1 h-[600px] max-h-[75vh]"
     :show-close="false"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
   >
     <template #header="{ titleId, titleClass }">
-      <div class="module-onboarding-header">
-        <h2 :id="titleId" :class="titleClass">
+      <div class="pr-2">
+        <h2
+          :id="titleId"
+          :class="[
+            titleClass,
+            'm-0 text-xl font-semibold leading-[1.35] text-[var(--el-text-color-primary)]'
+          ]"
+        >
           {{ I18nT('setup.moduleOnboarding.title') }}
         </h2>
-        <p>{{ I18nT('setup.moduleOnboarding.description') }}</p>
+        <p class="m-0 mt-2 text-sm leading-[1.55] text-[var(--el-text-color-secondary)]">
+          {{ I18nT('setup.moduleOnboarding.description') }}
+        </p>
       </div>
     </template>
 
-    <div class="module-onboarding-grid">
-      <button
-        v-for="preset in MODULE_STACK_PRESETS"
-        :key="preset.id"
-        type="button"
-        class="module-onboarding-card"
-        :class="{ 'is-selected': selected.includes(preset.id) }"
-        :aria-pressed="selected.includes(preset.id)"
-        :disabled="saving"
-        @click="togglePreset(preset.id)"
-      >
-        <yb-icon :svg="presetIcons[preset.icon]" width="38" height="38" />
-        <span class="module-onboarding-card-copy">
-          <strong>{{ preset.label }}</strong>
-          <span>{{ visiblePresetModules(preset.modules) }}</span>
-        </span>
-      </button>
-    </div>
+    <el-auto-resizer class="h-full overflow-hidden">
+      <template #default="{ height }">
+        <el-scrollbar :height="height">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              v-for="preset in MODULE_STACK_PRESETS"
+              :key="preset.id"
+              type="button"
+              class="flex h-[91px] min-w-0 cursor-pointer items-center gap-3.5 rounded-lg border px-4 py-[15px] text-left font-[inherit] text-[var(--el-text-color-primary)] transition-[border-color,background-color,box-shadow] duration-150 ease-in-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
+              :class="
+                selected.includes(preset.id)
+                  ? 'border-blue-500 bg-blue-500/10 shadow-[0_0_0_1px_rgb(59_130_246/0.2)] enabled:hover:border-blue-500'
+                  : 'border-[var(--el-border-color)] bg-[var(--el-fill-color-blank)] enabled:hover:border-[var(--el-border-color-darker)]'
+              "
+              :aria-pressed="selected.includes(preset.id)"
+              :disabled="saving"
+              @click="togglePreset(preset.id)"
+            >
+              <yb-icon
+                :class="{ 'p-[3px]': preset.icon === 'ruby', 'p-[2px]': preset.icon === 'rust' }"
+                :svg="presetIcons[preset.icon]"
+                width="38"
+                height="38"
+                class="shrink-0"
+              />
+              <span class="flex min-w-0 flex-col gap-[5px]">
+                <strong class="text-[15px] font-semibold leading-[1.3]">{{ preset.label }}</strong>
+                <span
+                  class="text-xs leading-[1.45] text-[var(--el-text-color-secondary)] [overflow-wrap:anywhere]"
+                  >{{ visiblePresetModules(preset.modules) }}</span
+                >
+              </span>
+            </button>
+          </div>
 
-    <div class="module-onboarding-count" role="status" aria-live="polite" aria-atomic="true">
-      {{ I18nT('setup.moduleOnboarding.selectedCount', { count: selectedModuleCount }) }}
-    </div>
+          <div
+            class="mt-4 text-[13px] text-[var(--el-text-color-regular)]"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {{ I18nT('setup.moduleOnboarding.selectedCount', { count: selectedModuleCount }) }}
+          </div>
+        </el-scrollbar>
+      </template>
+    </el-auto-resizer>
 
     <template #footer>
-      <div class="module-onboarding-actions">
+      <div
+        class="flex items-center justify-between gap-4 max-sm:flex-col-reverse max-sm:items-stretch"
+      >
         <el-button link :disabled="saving" @click="showAll">
           {{ I18nT('setup.moduleOnboarding.showAll') }}
         </el-button>
-        <div class="module-onboarding-actions-primary">
+        <div class="flex items-center gap-2 max-sm:justify-end">
           <el-button :disabled="saving" @click="customize">
             {{ I18nT('setup.moduleOnboarding.customize') }}
           </el-button>
@@ -64,13 +98,13 @@
   import { AppStore } from '@/store/app'
   import { MessageError } from '@/util/Element'
   import { app } from '@/util/NodeFn'
-  import phpIcon from '@/svg/php.svg?raw'
-  import nodeIcon from '@/svg/nodejs.svg?raw'
-  import javaIcon from '@/svg/java.svg?raw'
-  import pythonIcon from '@/svg/python.svg?raw'
-  import goIcon from '@/svg/Golang.svg?raw'
-  import dotnetIcon from '@/svg/dotnet.svg?raw'
-  import rubyIcon from '@/svg/Ruby.svg?raw'
+  import phpIcon from '@/svg/php-raw.svg?raw'
+  import nodeIcon from '@/svg/nodejs-raw.svg?raw'
+  import javaIcon from '@/svg/java-raw.svg?raw'
+  import pythonIcon from '@/svg/python-raw.svg?raw'
+  import goIcon from '@/svg/golang-raw.svg?raw'
+  import dotnetIcon from '@/svg/dotnet-raw.svg?raw'
+  import rubyIcon from '@/svg/ruby-raw.svg?raw'
   import rustIcon from '@/svg/rust.svg?raw'
   import { persistModuleOnboarding } from './persistence'
   import {
@@ -171,138 +205,3 @@
 
   const customize = () => run('module-settings', undefined)
 </script>
-
-<style lang="scss" scoped>
-  .module-onboarding-header {
-    padding-right: 8px;
-
-    h2 {
-      margin: 0;
-      color: var(--el-text-color-primary);
-      font-size: 20px;
-      font-weight: 600;
-      line-height: 1.35;
-    }
-
-    p {
-      margin: 8px 0 0;
-      color: var(--el-text-color-secondary);
-      font-size: 14px;
-      line-height: 1.55;
-    }
-  }
-
-  .module-onboarding-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .module-onboarding-card {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: 14px;
-    padding: 15px 16px;
-    border: 1px solid var(--el-border-color);
-    border-radius: 8px;
-    background: var(--el-fill-color-blank);
-    color: var(--el-text-color-primary);
-    font: inherit;
-    text-align: left;
-    transition:
-      border-color 0.15s ease,
-      background-color 0.15s ease,
-      box-shadow 0.15s ease;
-    cursor: pointer;
-
-    &:hover:not(:disabled) {
-      border-color: var(--el-border-color-darker);
-    }
-
-    &:focus-visible {
-      outline: 2px solid #eab308;
-      outline-offset: 2px;
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-
-    &.is-selected {
-      border-color: #eab308;
-      background: rgb(234 179 8 / 10%);
-      box-shadow: 0 0 0 1px rgb(234 179 8 / 20%);
-    }
-
-    .fa-icon {
-      flex: none;
-    }
-  }
-
-  .module-onboarding-card-copy {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 5px;
-
-    strong {
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.3;
-    }
-
-    span {
-      color: var(--el-text-color-secondary);
-      font-size: 12px;
-      line-height: 1.45;
-      overflow-wrap: anywhere;
-    }
-  }
-
-  .module-onboarding-count {
-    margin-top: 16px;
-    color: var(--el-text-color-regular);
-    font-size: 13px;
-  }
-
-  .module-onboarding-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
-
-  .module-onboarding-actions-primary {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  @media (max-width: 640px) {
-    .module-onboarding-grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .module-onboarding-actions {
-      align-items: stretch;
-      flex-direction: column-reverse;
-    }
-
-    .module-onboarding-actions-primary {
-      justify-content: flex-end;
-    }
-  }
-</style>
-
-<style lang="scss">
-  .module-onboarding-dialog {
-    max-width: calc(100vw - 32px);
-
-    .el-dialog__body {
-      max-height: calc(100vh - 190px);
-      overflow-y: auto;
-    }
-  }
-</style>

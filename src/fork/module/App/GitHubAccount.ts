@@ -1,8 +1,6 @@
 import axios from 'axios'
-import _node_machine_id from 'node-machine-id'
+import { machineId } from '@shared/machineId'
 import { getAxiosProxy } from '../../util/Axios'
-
-const { machineId } = _node_machine_id
 
 type RequestFn = (config: Record<string, any>) => Promise<{ data?: any }>
 

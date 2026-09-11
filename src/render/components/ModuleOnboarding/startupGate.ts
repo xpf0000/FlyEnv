@@ -11,6 +11,8 @@ export const createModuleOnboardingStartupGate = (options: ModuleOnboardingStart
   const onboardingRequired = options.storedVersion < options.currentVersion
   const onboardingResolved = ref(!onboardingRequired)
 
+  console.log('createModuleOnboardingStartupGate: ', onboardingRequired, onboardingResolved)
+
   const initializeWhenAllowed = () =>
     onboardingResolved.value ? options.initialize() : Promise.resolve()
 

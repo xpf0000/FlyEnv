@@ -119,6 +119,23 @@ export class StartupGroupStore {
     this.replace(await this.persist(groups, defaultId))
   }
 
+  async reorder(ids: string[]) {
+    await this.init()
+    const currentIds = this.groups.map((group) => group.id)
+    const groupsById = new Map(this.groups.map((group) => [group.id, group]))
+    if (
+      ids.length !== this.groups.length ||
+      new Set(ids).size !== ids.length ||
+      ids.some((id) => !groupsById.has(id))
+    ) {
+      throw new Error('Invalid startup group order')
+    }
+    if (ids.every((id, index) => id === currentIds[index])) return false
+    const groups = ids.map((id) => groupsById.get(id)!)
+    this.replace(await this.persist(groups, this.defaultStartupGroupId))
+    return true
+  }
+
   async setDefault(id?: string) {
     await this.init()
     const group = id ? this.find(id) : undefined

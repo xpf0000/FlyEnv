@@ -27,19 +27,29 @@
           </el-button>
         </el-empty>
 
-        <div v-else class="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-          <GroupCard
-            v-for="group in groups"
-            :key="group.id"
-            :group="group"
-            :is-default="config.defaultStartupGroupId === group.id"
-            @group-change="executeGroup"
-            @member-change="executeMember"
-            @edit="openEditor"
-            @delete="removeGroup"
-            @default-change="defaultChange"
-          />
-        </div>
+        <draggable
+          v-else
+          v-model="orderedGroups"
+          item-key="id"
+          handle=".startup-group-card-drag-handle"
+          class="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-3"
+          ghost-class="startup-group-card-ghost"
+          :disabled="reordering || groups.length < 2"
+          @end="persistGroupOrder"
+        >
+          <template #item="{ element: group }">
+            <GroupCard
+              :group="group"
+              :is-default="config.defaultStartupGroupId === group.id"
+              :reorder-enabled="groups.length > 1"
+              @group-change="executeGroup"
+              @member-change="executeMember"
+              @edit="openEditor"
+              @delete="removeGroup"
+              @default-change="defaultChange"
+            />
+          </template>
+        </draggable>
       </el-scrollbar>
     </div>
 
@@ -51,6 +61,7 @@
   import { Lock } from '@element-plus/icons-vue'
   import { ElMessageBox } from 'element-plus'
   import { computed, onMounted, ref, watch } from 'vue'
+  import draggable from 'vuedraggable'
 
   import { I18nT } from '@lang/index'
   import { SetupStore } from '@/components/Setup/store'
@@ -66,12 +77,14 @@
   const store = StartupGroupManager.store
   store.init().catch()
   const groups = computed(() => store.groups)
+  const orderedGroups = ref<StartupGroup[]>([])
   const config = computed(() => store.config)
   const appStore = AppStore()
   const setupStore = SetupStore()
   const isAddLocked = computed(() => store.isCreationLocked(setupStore.isActive))
   const editorVisible = ref(false)
   const editingGroup = ref<StartupGroup>()
+  const reordering = ref(false)
   const itemLabel = (item: StartupGroupItem) =>
     StartupGroupManager.getMemberDisplayTitle(item, I18nT('common.startupGroup.noRemark'))
 
@@ -143,6 +156,28 @@
     await ensureSources()
   }
 
+  const persistGroupOrder = async () => {
+    if (reordering.value) return
+    reordering.value = true
+    try {
+      await store.reorder(orderedGroups.value.map((group) => group.id))
+      orderedGroups.value = [...groups.value]
+    } catch (error) {
+      orderedGroups.value = [...groups.value]
+      MessageError(error instanceof Error ? error.message : `${error}`)
+    } finally {
+      reordering.value = false
+    }
+  }
+
+  watch(
+    () => [...groups.value],
+    () => {
+      if (!reordering.value) orderedGroups.value = [...groups.value]
+    },
+    { immediate: true }
+  )
+
   watch(
     () => groups.value.map((group) => `${group.id}:${group.updatedAt}`).join('|'),
     ensureSources
@@ -153,5 +188,9 @@
 <style scoped lang="scss">
   .startup-group-main {
     overflow: auto !important;
+  }
+
+  :deep(.startup-group-card-ghost) {
+    opacity: 0.35;
   }
 </style>

@@ -307,6 +307,43 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
 }
 
 {
+  const writes: StartupGroupConfigData[] = []
+  const store = new StartupGroupStoreClass(testRunner, {
+    createId: () => 'unused',
+    now: () => 10,
+    get: async () => ({
+      groups: [
+        makeGroup('first', [mysql]).toJSON(),
+        makeGroup('second', [redis]).toJSON(),
+        makeGroup('third', [api]).toJSON()
+      ],
+      defaultStartupGroupId: 'second'
+    }),
+    set: async (value) => {
+      writes.push(value)
+    }
+  })
+
+  await store.init()
+  await assert.rejects(() => store.reorder(['first']), /Invalid startup group order/)
+  assert.equal(writes.length, 0)
+  const changed = await store.reorder(['third', 'first', 'second'])
+
+  assert.equal(changed, true)
+  assert.deepEqual(
+    store.groups.map((group) => group.id),
+    ['third', 'first', 'second']
+  )
+  assert.deepEqual(
+    writes.at(-1)?.groups.map((group) => group.id),
+    ['third', 'first', 'second']
+  )
+  assert.equal(store.defaultStartupGroupId, 'second')
+  assert.equal(await store.reorder(['third', 'first', 'second']), false)
+  assert.equal(writes.length, 1)
+}
+
+{
   let releaseStart!: () => void
   let markStarted!: () => void
   const startGate = new Promise<void>((resolve) => {

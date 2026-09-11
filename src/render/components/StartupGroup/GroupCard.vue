@@ -2,16 +2,23 @@
   <el-card class="startup-group-card" shadow="hover">
     <template #header>
       <div class="flex items-center justify-between gap-3">
-        <div class="min-w-0">
-          <div class="flex items-center gap-2">
-            <span
-              class="inline-block h-3 w-3 rounded-full"
-              :style="{ backgroundColor: group.color || '#409eff' }"
-            ></span>
-            <strong class="truncate text-base">{{ group.name }}</strong>
-          </div>
-          <div v-if="group.description" class="mt-1 truncate text-xs text-zinc-500">
-            {{ group.description }}
+        <div class="flex min-w-0 items-center gap-2">
+          <yb-icon
+            v-if="reorderEnabled"
+            class="startup-group-card-drag-handle h-5 w-5 flex-shrink-0 cursor-grab text-zinc-400 active:cursor-grabbing"
+            :svg="import('@/svg/handle.svg?raw')"
+          />
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span
+                class="inline-block h-3 w-3 rounded-full"
+                :style="{ backgroundColor: group.color || '#409eff' }"
+              ></span>
+              <strong class="truncate text-base">{{ group.name }}</strong>
+            </div>
+            <div v-if="group.description" class="mt-1 truncate text-xs text-zinc-500">
+              {{ group.description }}
+            </div>
           </div>
         </div>
         <el-switch
@@ -93,6 +100,7 @@
   const props = defineProps<{
     group: StartupGroup
     isDefault: boolean
+    reorderEnabled?: boolean
   }>()
 
   const emit = defineEmits<{

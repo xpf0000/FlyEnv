@@ -2,7 +2,7 @@
   <TitleBar />
   <VueSvg />
   <ModuleOnboarding
-    v-if="onboardingRequired && !onboardingResolved"
+    v-if="showModuleOnboarding"
     :supported-flags="platformModule.map((item) => item.typeFlag)"
     @resolved="handleOnboardingResolved"
   />
@@ -178,6 +178,11 @@
       initialize: init,
       onPreparationError: (error) => console.error('Module onboarding navigation failed:', error)
     })
+
+  const showModuleOnboarding = computed(() => {
+    // return true
+    return onboardingRequired && !onboardingResolved.value
+  })
 
   const handleOnboardingResolved = async (destination: 'main' | 'module-settings') => {
     try {

@@ -9,7 +9,7 @@ import { compareVersions } from '@shared/compare-versions'
 import Helper from './Helper'
 import { format } from 'date-fns'
 import { hostname, userInfo } from 'os'
-import _node_machine_id from 'node-machine-id'
+import { machineId } from '@shared/machineId'
 import { zipUnpack } from './util/Zip'
 import { getAllFileAsync, getSubDirAsync, moveChildDirToParent, moveDirToDir } from './util/Dir'
 import { customerServiceStartExec, serviceStartExec } from './util/ServiceStart'
@@ -77,8 +77,6 @@ export {
   versionMacportsFetch,
   versionSort
 }
-
-const { machineId } = _node_machine_id
 
 export {
   machineId,
