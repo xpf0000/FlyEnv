@@ -20,6 +20,38 @@ type ModuleOnboardingConfigManager = {
   completeModuleOnboarding(showItem?: ModuleOnboardingVisibility): void
 }
 
+export const protectModuleOnboardingConfigPatch = <
+  TConfig extends { moduleOnboardingVersion: number; setup: SetupWithModuleVisibility }
+>(
+  current: TConfig,
+  patch: Partial<TConfig>
+): Partial<TConfig> => {
+  if (
+    !Object.hasOwn(patch, 'moduleOnboardingVersion') ||
+    typeof patch.moduleOnboardingVersion !== 'number' ||
+    !(patch.moduleOnboardingVersion < current.moduleOnboardingVersion)
+  ) {
+    return patch
+  }
+
+  // An ordinary renderer save can still carry the snapshot from before the onboarding ACK.
+  return {
+    ...patch,
+    moduleOnboardingVersion: current.moduleOnboardingVersion,
+    ...(patch.setup === undefined
+      ? {}
+      : {
+          setup: {
+            ...patch.setup,
+            common: {
+              ...patch.setup.common,
+              showItem: { ...current.setup.common.showItem }
+            }
+          }
+        })
+  }
+}
+
 export const completeModuleOnboardingConfig = <TSetup extends SetupWithModuleVisibility>(
   set: (patch: ModuleOnboardingConfigPatch<TSetup>) => void,
   setup: TSetup,

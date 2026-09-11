@@ -35,7 +35,7 @@
       </button>
     </div>
 
-    <div class="module-onboarding-count">
+    <div class="module-onboarding-count" role="status" aria-live="polite" aria-atomic="true">
       {{ I18nT('setup.moduleOnboarding.selectedCount', { count: selectedModuleCount }) }}
     </div>
 

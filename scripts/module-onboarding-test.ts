@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { buildSync } from 'esbuild'
+import type ConfigManager from '../src/main/core/ConfigManager'
 import { compileScript, compileStyleAsync, compileTemplate, parse } from '@vue/compiler-sfc'
 import { ref } from 'vue'
 import { BuiltInLocaleCatalog } from '../src/lang/catalog'
@@ -18,7 +21,8 @@ import {
 import { persistModuleOnboarding } from '../src/render/components/ModuleOnboarding/persistence'
 import {
   completeModuleOnboardingConfig,
-  handleCompleteModuleOnboardingRequest
+  handleCompleteModuleOnboardingRequest,
+  protectModuleOnboardingConfigPatch
 } from '../src/main/core/ModuleOnboardingConfig'
 import { createModuleOnboardingStartupGate } from '../src/render/components/ModuleOnboarding/startupGate'
 
@@ -419,6 +423,61 @@ const markerOnlyPatches: unknown[] = []
 completeModuleOnboardingConfig((patch) => markerOnlyPatches.push(patch), currentSetup, undefined)
 assert.deepEqual(markerOnlyPatches, [{ moduleOnboardingVersion: 1 }])
 
+const protectedCurrent = {
+  moduleOnboardingVersion: 1,
+  setup: { common: { showItem: { php: false, python: true }, theme: 'dark' }, license: 'old' }
+}
+const protectedIncoming = {
+  moduleOnboardingVersion: 0,
+  setup: { common: { showItem: { php: true, python: false }, theme: 'light' }, license: 'new' }
+}
+const currentBeforeProtection = structuredClone(protectedCurrent)
+const incomingBeforeProtection = structuredClone(protectedIncoming)
+const protectedPatch = protectModuleOnboardingConfigPatch(protectedCurrent, protectedIncoming)
+assert.deepEqual(protectedPatch, {
+  moduleOnboardingVersion: 1,
+  setup: { common: { showItem: { php: false, python: true }, theme: 'light' }, license: 'new' }
+})
+assert.deepEqual(protectedCurrent, currentBeforeProtection)
+assert.deepEqual(protectedIncoming, incomingBeforeProtection)
+protectedPatch.setup!.common.showItem.php = true
+assert.deepEqual(protectedCurrent, currentBeforeProtection)
+
+// Exercise the real main-process write boundary without opening a user profile.
+const configManagerBundle = buildSync({
+  entryPoints: ['src/main/core/ConfigManager.ts'],
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  packages: 'external',
+  write: false
+}).outputFiles[0]!.text
+const configManagerModule = { exports: {} as { default: typeof ConfigManager } }
+const requireDependency = createRequire(import.meta.url)
+new Function('require', 'module', 'exports', configManagerBundle)(
+  (name: string) =>
+    name === 'electron' || name === 'electron-store' ? {} : requireDependency(name),
+  configManagerModule,
+  configManagerModule.exports
+)
+const createConfigWriteHarness = (initial: Record<string, any>) => {
+  let persisted = structuredClone(initial)
+  const manager = Object.create(configManagerModule.exports.default.prototype) as ConfigManager
+  manager.config = {
+    get store() {
+      return structuredClone(persisted)
+    },
+    get: (key: string) => structuredClone(persisted[key]),
+    set: (key: string | object, value?: unknown) => {
+      persisted = {
+        ...persisted,
+        ...structuredClone(typeof key === 'string' ? { [key]: value } : key)
+      }
+    }
+  } as ConfigManager['config']
+  return { manager, read: () => structuredClone(persisted) }
+}
+
 type RendererReceive = (event: unknown, command: string, key: string, response: unknown) => void
 let rendererReceive!: RendererReceive
 const rendererSends: Array<{ command: string; key: string; args: unknown[] }> = []
@@ -496,5 +555,64 @@ assert.equal(saveConfigSend.command, 'application:save-preference')
 assert.equal((saveConfigSend.args[0] as any).moduleOnboardingVersion, 0)
 rendererReceive({}, 'command', saveConfigSend.key, true)
 await saveConfigPending
+
+const configRace = createConfigWriteHarness(JSON.parse(JSON.stringify(appStore.config)))
+const onboardingSavePending = persistModuleOnboarding(
+  appStore.config,
+  { php: false, python: true },
+  rendererApp.completeModuleOnboarding
+)
+const onboardingSaveSend = rendererSends.at(-1)!
+const onboardingResult = handleCompleteModuleOnboardingRequest(
+  onboardingSaveSend.args[2],
+  configRace.manager
+)
+assert.deepEqual(onboardingResult, { code: 0, data: true })
+assert.equal(configRace.read().moduleOnboardingVersion, 1)
+assert.equal(appStore.config.moduleOnboardingVersion, 0)
+
+// License initialization can save the old renderer snapshot before the onboarding ACK arrives.
+appStore.config.setup.license = 'license-from-initialization'
+appStore.config.server = { php: { current: { version: '8.4.0' } } }
+const queuedOrdinarySave = appStore.saveConfig()
+const queuedOrdinarySend = rendererSends.at(-1)!
+const staleSnapshot = queuedOrdinarySend.args[0] as Record<string, any>
+const unchangedSnapshot = structuredClone(staleSnapshot)
+assert.equal(staleSnapshot.moduleOnboardingVersion, 0)
+assert.deepEqual(staleSnapshot.setup.common.showItem, { php: true })
+configRace.manager.setConfig(staleSnapshot)
+assert.equal(configRace.read().moduleOnboardingVersion, 1, 'stale saves must not reopen onboarding')
+assert.deepEqual(configRace.read().setup.common.showItem, { php: false, python: true })
+assert.equal(configRace.read().setup.license, 'license-from-initialization')
+assert.deepEqual(configRace.read().server, { php: { current: { version: '8.4.0' } } })
+assert.deepEqual(staleSnapshot, unchangedSnapshot)
+rendererReceive({}, 'command', queuedOrdinarySend.key, true)
+await queuedOrdinarySave
+rendererReceive({}, 'command', onboardingSaveSend.key, onboardingResult)
+await onboardingSavePending
+assert.equal(appStore.config.moduleOnboardingVersion, 1)
+assert.deepEqual(appStore.config.setup.common.showItem, { php: false, python: true })
+
+const completedConfig = configRace.read()
+for (const revision of [1, 2, undefined]) {
+  const write = createConfigWriteHarness(completedConfig)
+  const patch = {
+    ...(revision === undefined ? {} : { moduleOnboardingVersion: revision }),
+    setup: { ...completedConfig.setup, common: { showItem: { php: true, python: false } } }
+  }
+  const originalPatch = structuredClone(patch)
+  write.manager.setConfig(patch)
+  assert.equal(write.read().moduleOnboardingVersion, revision ?? 1)
+  assert.deepEqual(write.read().setup.common.showItem, { php: true, python: false })
+  assert.deepEqual(patch, originalPatch)
+}
+const markerOnlySave = createConfigWriteHarness(completedConfig)
+markerOnlySave.manager.setConfig({ moduleOnboardingVersion: 0, password: 'new-password' })
+assert.equal(markerOnlySave.read().moduleOnboardingVersion, 1)
+assert.deepEqual(markerOnlySave.read().setup, completedConfig.setup)
+assert.equal(markerOnlySave.read().password, 'new-password')
+markerOnlySave.manager.setConfig('moduleOnboardingVersion', 0)
+assert.equal(markerOnlySave.read().moduleOnboardingVersion, 0)
+
 console.log = originalConsoleLog
 console.warn = originalConsoleWarn

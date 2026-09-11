@@ -11,7 +11,10 @@ import {
   DEFAULT_WINDOWS_ELEVATION_METHOD,
   type WindowsElevationMethod
 } from '@shared/WindowsHelperState'
-import { completeModuleOnboardingConfig } from './ModuleOnboardingConfig'
+import {
+  completeModuleOnboardingConfig,
+  protectModuleOnboardingConfigPatch
+} from './ModuleOnboardingConfig'
 
 interface ConfigOptions {
   'last-check-update-time': number
@@ -248,8 +251,8 @@ export default class ConfigManager {
   setConfig(key: string | Partial<ConfigOptions>, ...args: any[]) {
     if (typeof key === 'string') {
       this.config?.set(key as any, ...args)
-    } else {
-      this.config?.set(key)
+    } else if (this.config) {
+      this.config.set(protectModuleOnboardingConfigPatch(this.config.store, key))
     }
   }
 
