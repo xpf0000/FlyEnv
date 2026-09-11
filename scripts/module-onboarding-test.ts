@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { compileScript, compileStyleAsync, compileTemplate, parse } from '@vue/compiler-sfc'
-import * as VueRuntime from 'vue'
+import { ref } from 'vue'
 import {
   MODULE_ONBOARDING_VERSION,
   initialModuleOnboardingVersion
@@ -19,6 +19,7 @@ import {
   completeModuleOnboardingConfig,
   handleCompleteModuleOnboardingRequest
 } from '../src/main/core/ModuleOnboardingConfig'
+import { createModuleOnboardingStartupGate } from '../src/render/components/ModuleOnboarding/startupGate'
 
 const onboardingComponentSource = readFileSync(
   new URL('../src/render/components/ModuleOnboarding/index.vue', import.meta.url),
@@ -75,38 +76,104 @@ for (const style of appComponent.descriptor.styles) {
   assert.deepEqual(appStyle.errors, [])
 }
 
-const executableAppTemplate = compileTemplate({
-  id: 'app-runtime',
-  filename: 'src/render/App.vue',
-  source: appComponent.descriptor.template.content,
-  compilerOptions: { mode: 'function' }
+const createStartupHarness = (storedVersion: number, readyAtStart: boolean) => {
+  let ready = readyAtStart
+  let initialized = false
+  let initializationCount = 0
+  const navigationErrors: unknown[] = []
+  const gate = createModuleOnboardingStartupGate({
+    storedVersion,
+    currentVersion: MODULE_ONBOARDING_VERSION,
+    initialize: async () => {
+      if (initialized || !ready) return
+      initialized = true
+      initializationCount += 1
+    },
+    onPreparationError: (error) => navigationErrors.push(error)
+  })
+  return {
+    gate,
+    navigationErrors,
+    initializationCount: () => initializationCount,
+    markReady: () => {
+      ready = true
+    }
+  }
+}
+
+const existingInstall = createStartupHarness(MODULE_ONBOARDING_VERSION, true)
+assert.equal(existingInstall.gate.onboardingRequired, false)
+assert.equal(existingInstall.gate.onboardingResolved.value, true)
+await existingInstall.gate.initializeWhenAllowed()
+assert.equal(existingInstall.initializationCount(), 1)
+
+for (const ordering of ['ready-before-mount', 'ready-after-mount'] as const) {
+  const freshInstall = createStartupHarness(0, ordering === 'ready-before-mount')
+  assert.equal(freshInstall.gate.onboardingRequired, true)
+  assert.equal(freshInstall.gate.onboardingResolved.value, false)
+  await freshInstall.gate.initializeWhenAllowed()
+  if (ordering === 'ready-after-mount') freshInstall.markReady()
+  await freshInstall.gate.initializeWhenAllowed()
+  assert.equal(freshInstall.initializationCount(), 0)
+  await freshInstall.gate.completeOnboarding()
+  assert.equal(freshInstall.initializationCount(), 1)
+  await freshInstall.gate.initializeWhenAllowed()
+  await freshInstall.gate.initializeWhenAllowed()
+  assert.equal(freshInstall.initializationCount(), 1)
+}
+
+const resolvedBeforeReady = createStartupHarness(0, false)
+await resolvedBeforeReady.gate.completeOnboarding()
+assert.equal(resolvedBeforeReady.initializationCount(), 0)
+resolvedBeforeReady.markReady()
+await resolvedBeforeReady.gate.initializeWhenAllowed()
+await resolvedBeforeReady.gate.initializeWhenAllowed()
+assert.equal(resolvedBeforeReady.initializationCount(), 1)
+
+const persistedMarker = ref(0)
+const markerRace = createStartupHarness(persistedMarker.value, true)
+persistedMarker.value = MODULE_ONBOARDING_VERSION
+assert.equal(markerRace.gate.onboardingRequired, true)
+assert.equal(markerRace.gate.onboardingResolved.value, false)
+await markerRace.gate.completeOnboarding()
+assert.equal(markerRace.gate.onboardingResolved.value, true)
+assert.equal(markerRace.initializationCount(), 1)
+
+const customizeSequence: string[] = []
+const customizeGate = createModuleOnboardingStartupGate({
+  storedVersion: 0,
+  currentVersion: MODULE_ONBOARDING_VERSION,
+  initialize: async () => {
+    customizeSequence.push('initialize')
+  }
 })
-assert.deepEqual(executableAppTemplate.errors, [])
-const resolveComponent = (name: string) => name
-const renderApp = Function(
-  'Vue',
-  executableAppTemplate.code
-)({
-  ...VueRuntime,
-  resolveComponent
-}) as (context: Record<string, unknown>, cache: unknown[]) => VueRuntime.VNode
-const handleOnboardingResolved = () => undefined
-const renderedApp = renderApp(
-  {
-    onboardingRequired: true,
-    onboardingResolved: false,
-    platformModule: [{ typeFlag: 'php' }, { typeFlag: 'linux-only' }],
-    handleOnboardingResolved
+await customizeGate.completeOnboarding(async () => {
+  assert.equal(customizeGate.onboardingResolved.value, true)
+  customizeSequence.push('select-module-settings')
+  await Promise.resolve()
+  customizeSequence.push('navigate-setup')
+})
+assert.equal(customizeGate.onboardingResolved.value, true)
+assert.deepEqual(customizeSequence, ['select-module-settings', 'navigate-setup', 'initialize'])
+
+const navigationFailure = new Error('navigation failed')
+const failureSequence: string[] = []
+const failedNavigationGate = createModuleOnboardingStartupGate({
+  storedVersion: 0,
+  currentVersion: MODULE_ONBOARDING_VERSION,
+  initialize: async () => {
+    failureSequence.push('initialize')
   },
-  []
-)
-const renderedChildren = renderedApp.children as VueRuntime.VNode[]
-assert.deepEqual(
-  renderedChildren.map((child) => child.type),
-  ['TitleBar', 'VueSvg', 'ModuleOnboarding', 'router-view', 'FloatButton']
-)
-assert.deepEqual(renderedChildren[2]?.props?.['supported-flags'], ['php', 'linux-only'])
-assert.equal(renderedChildren[2]?.props?.onResolved, handleOnboardingResolved)
+  onPreparationError: (error) => {
+    assert.equal(error, navigationFailure)
+    failureSequence.push('report-navigation-error')
+  }
+})
+await failedNavigationGate.completeOnboarding(async () => {
+  failureSequence.push('navigate-setup')
+  throw navigationFailure
+})
+assert.deepEqual(failureSequence, ['navigate-setup', 'report-navigation-error', 'initialize'])
 
 assert.equal(MODULE_ONBOARDING_VERSION, 1)
 assert.equal(initialModuleOnboardingVersion(false), 0)

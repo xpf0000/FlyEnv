@@ -34,14 +34,10 @@
   import { MODULE_ONBOARDING_VERSION } from '@shared/ModuleOnboarding'
   import { SetupStore } from '@/components/Setup/store'
   import Router from '@/router'
+  import { createModuleOnboardingStartupGate } from '@/components/ModuleOnboarding/startupGate'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
-
-  const onboardingRequired = computed(
-    () => appStore.config.moduleOnboardingVersion < MODULE_ONBOARDING_VERSION
-  )
-  const onboardingResolved = ref(!onboardingRequired.value)
 
   const showItem = computed(() => {
     return appStore.config.setup.common.showItem
@@ -175,16 +171,28 @@
       })
   }
 
-  const initializeWhenAllowed = () => (onboardingResolved.value ? init() : Promise.resolve())
+  const { onboardingRequired, onboardingResolved, initializeWhenAllowed, completeOnboarding } =
+    createModuleOnboardingStartupGate({
+      storedVersion: appStore.config.moduleOnboardingVersion,
+      currentVersion: MODULE_ONBOARDING_VERSION,
+      initialize: init,
+      onPreparationError: (error) => console.error('Module onboarding navigation failed:', error)
+    })
 
   const handleOnboardingResolved = async (destination: 'main' | 'module-settings') => {
-    onboardingResolved.value = true
-    if (destination === 'module-settings') {
-      SetupStore().tab = 'module'
-      appStore.currentPage = '/setup'
-      await Router.push('/setup')
+    try {
+      await completeOnboarding(
+        destination === 'module-settings'
+          ? async () => {
+              SetupStore().tab = 'module'
+              appStore.currentPage = '/setup'
+              await Router.push('/setup')
+            }
+          : undefined
+      )
+    } catch (error) {
+      console.error('Renderer startup failed:', error)
     }
-    await initializeWhenAllowed()
   }
 
   const checkProxy = () => {
