@@ -47,28 +47,12 @@ jobs:
         run: |
           npm install -g yarn node-gyp
 
-      - name: Import Certificates and Prepare Notarization
+      - name: Prepare Notarization API Key
         env:
-          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
           AUTH_KEY_BASE64: ${{ secrets.MACOS_AUTH_KEY_BASE64 }}
         run: |
-          # 1. 还原 .p8 文件
           mkdir -p build
           echo -n "$AUTH_KEY_BASE64" | base64 --decode -o build/apple_api_key.p8
-
-          # 2. 创建临时钥匙串并导入证书
-          CERT_PATH=$RUNNER_TEMP/build_cert.p12
-          echo -n "$MACOS_CERTIFICATE" | base64 --decode -o "$CERT_PATH"
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          KEYCHAIN_PWD="temporary_password"
-
-          security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
-          security import "$CERT_PATH" -P "$MACOS_CERTIFICATE_PWD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
-          security list-keychains -d user -s "$KEYCHAIN_PATH"
 
       - name: Install dependencies
         run: yarn install
@@ -82,7 +66,7 @@ jobs:
       - name: Build and Notarize Electron App
         env:
           # 关键点：增加 Node 内存上限到 8GB
-          NODE_OPTIONS: "--max-old-space-size=4096"
+          NODE_OPTIONS: '--max-old-space-size=4096'
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
