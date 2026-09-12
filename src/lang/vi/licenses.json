@@ -1,39 +1,41 @@
 {
-  "description": "Giấy phép là sự công nhận và ủng hộ cho sự nỗ lực của FlyEnv và các tác giả của nó. Mục đích của nó không phải là hạn chế người dùng mà là nhắc nhở họ tôn trọng những nỗ lực của các nhà phát triển và tuân thủ các điều khoản liên quan khi sử dụng phần mềm. Bằng cách tuân thủ giấy phép, người dùng không chỉ hỗ trợ sự phát triển liên tục của dự án mà còn đóng góp vào tinh thần tin tưởng và hợp tác trong cộng đồng mã nguồn mở.",
+  "description": "Giấy phép FlyEnv hỗ trợ việc phát triển và bảo trì dự án một cách liên tục. Nó không nhằm mục đích chặn việc phát triển cục bộ cốt lõi — các runtime cốt lõi và tính năng quản lý môi trường sẽ luôn được truy cập. Giấy phép loại bỏ các giới hạn đánh giá của các công cụ cao cấp và giúp FlyEnv được duy trì trên macOS, Windows và Linux.",
   "restrictions": {
-    "title": "Người dùng không có giấy phép sẽ phải chịu các hạn chế sau:",
+    "title": "FlyEnv vẫn hoạt động mà không cần giấy phép, nhưng các giới hạn đánh giá sau sẽ áp dụng:",
     "items": {
-      "0": "Có thể tạo tối đa ba trang web.",
-      "1": "Tính năng trò chuyện AI chỉ khả dụng trong thời gian dùng thử ba ngày.",
-      "2": "Các hạn chế bổ sung có thể áp dụng cho các tính năng trong tương lai."
+      "0": "Quản lý trang web bị giới hạn tối đa 3 trang web cục bộ.",
+      "1": "Trợ lý AI bị giới hạn trong thời gian dùng thử 3 ngày.",
+      "2": "Công cụ chụp màn hình bị giới hạn trong thời gian dùng thử 3 ngày.",
+      "3": "Công cụ tối ưu hóa hình ảnh bị giới hạn trong thời gian dùng thử 3 ngày.",
+      "4": "Các tính năng cao cấp mới có thể áp dụng thời gian dùng thử hoặc giới hạn tương tự."
     }
   },
   "howToObtain": {
     "title": "Cách Nhận Giấy phép",
-    "description": "FlyEnv cung cấp các cách linh hoạt để có được giấy phép. Người dùng có thể chọn bất kỳ phương pháp nào sau đây để đăng ký:",
+    "description": "FlyEnv cung cấp ba cách sau để nhận giấy phép. Giấy phép chưa thể được cấp tự động, vì vậy tất cả các yêu cầu đều được xem xét và cấp thủ công:",
     "methods": {
       "0": {
-        "title": "Quyên góp cho Dự án",
-        "description": "Không có số tiền cố định nào được yêu cầu cho các khoản quyên góp. Xem xét tình hình kinh tế khác nhau của người dùng ở các quốc gia khác nhau (ví dụ: nhiều người dùng là sinh viên), vui lòng chọn một số tiền phù hợp với hoàn cảnh của bạn."
+        "title": "Mua Giấy phép Cá nhân",
+        "description": "Giấy phép Cá nhân FlyEnv có giá $10 USD. Nó áp dụng cho một thiết bị đang hoạt động (hỗ trợ chuyển thiết bị thông qua quản lý giấy phép) và loại bỏ tất cả các giới hạn đánh giá. Thanh toán được xử lý bởi Paddle. Sau khi mua, hãy gửi ID đơn hàng Paddle của bạn trong biểu mẫu yêu cầu bên dưới. Trang mua hàng:"
       },
       "1": {
-        "title": "Đóng góp cho Phát triển",
-        "description": "Tham gia vào dự án bằng cách gửi Yêu cầu Kéo. Bất kể số lượng mã, miễn là nó cải thiện tích cực dự án (ví dụ: sửa lỗi dịch thuật), nó đều đủ điều kiện."
+        "title": "Đóng góp cho Mã nguồn",
+        "description": "Gửi một Pull Request trên GitHub để giúp cải thiện FlyEnv. Mọi đóng góp có ý nghĩa đều được tính — từ các tính năng lớn đến những sửa đổi tài liệu đơn giản."
       },
       "2": {
         "title": "Quảng bá Dự án",
-        "description": "Hãy quảng bá FlyEnv bằng cách chia sẻ trải nghiệm thực tế qua bài viết, video, blog, vlog hoặc bình luận. Nội dung có thể bằng bất kỳ ngôn ngữ nào, miễn là công khai trên internet."
+        "description": "Chia sẻ trải nghiệm FlyEnv của bạn trên bất kỳ nền tảng nào, bằng bất kỳ ngôn ngữ nào — bài viết, video, blog hoặc bài đăng. Nội dung phải nguyên bản và chân thực; nội dung đã xuất bản hơn 3 tháng trước có thể không còn đủ điều kiện."
       }
     }
   },
-  "submitInfo": "Sau khi hoàn thành bất kỳ phương pháp nào ở trên, vui lòng điền kết quả vào hộp nhập liệu bên dưới và nhấp vào nút 'Yêu cầu Giấy phép' để gửi đơn đăng ký của bạn. Yêu cầu giấy phép được xem xét thủ công, vì vậy hãy kiên nhẫn. Chúng thường được xử lý kịp thời.",
+  "submitInfo": "Sau khi hoàn thành bất kỳ phương pháp nào ở trên, hãy dán bằng chứng của bạn vào hộp tin nhắn bên dưới cùng với một địa chỉ email hợp lệ, sau đó nhấp vào nút 'Yêu cầu Giấy phép'. Các yêu cầu được xử lý thủ công, thường trong vòng 24 giờ, và bạn sẽ được thông báo qua email khi giấy phép của bạn đã được cấp.",
   "messageLabel": "Tin nhắn",
-  "messagePlaceholder": "Vui lòng gửi người hiến tặng, liên kết quyên góp hoặc ID đơn hàng khi chọn quyên góp.\nVui lòng gửi liên kết PR cho những người chọn tham gia vào phát triển dự án.\nVui lòng gửi liên kết bài viết/video nếu bạn chọn giúp quảng bá dự án",
+  "messagePlaceholder": "Người mua: ID đơn hàng Paddle hoặc email biên lai của bạn.\nNgười đóng góp: liên kết đến Pull Request GitHub của bạn.\nNgười quảng bá: liên kết đến bài đăng, video hoặc bài viết của bạn.\nVui lòng cung cấp thêm một địa chỉ email hợp lệ để chúng tôi có thể thông báo cho bạn khi giấy phép được cấp.",
   "requestButton": "Yêu cầu Giấy phép",
   "refreshButton": "Làm Mới Trạng Thái",
   "licenseActivated": "Giấy phép được kích hoạt",
   "licenseNoActivated": "Giấy phép chưa được kích hoạt",
-  "licenseInfo": "Giấy phép hiện được cung cấp là giấy phép vĩnh viễn, mỗi máy tính tương ứng với một giấy phép. Nếu bạn thay đổi máy tính, bạn cần liên kết uuid của thiết bị mới trong 'Giấy phép của tôi' hoặc nộp đơn xin giấy phép mới.",
+  "licenseInfo": "Giấy phép hiện tại là giấy phép vĩnh viễn và tuân theo chính sách một giấy phép cho một thiết bị. Mỗi giấy phép được gắn với một UUID phần cứng cụ thể. Nếu bạn chuyển sang máy tính mới, hãy đăng nhập bằng tài khoản GitHub của bạn và vào 'Giấy phép của tôi' để hủy liên kết thiết bị cũ và liên kết thiết bị mới, hoặc yêu cầu giấy phép mới.",
   "logoutTips": "Bạn có chắc chắn muốn đăng xuất không?",
   "delBindTips": "Bạn có chắc chắn muốn hủy liên kết giấy phép với UUID này không?",
   "addBindTips": "Bạn có chắc chắn muốn liên kết giấy phép với UUID này không?",

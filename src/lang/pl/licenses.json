@@ -1,39 +1,41 @@
 {
-  "description": "Ta licencja potwierdza i wspiera wysiłki FlyEnv i jego autorów. Jego celem nie jest ograniczanie użytkowników, lecz wspieranie poszanowania dzieł wykonawców i własności intelektualnej. Upewnij się, że otrzymasz ważną licencję przed użyciem FlyEnv do celów komercyjnych.",
+  "description": "Licencja FlyEnv wspiera ciągły rozwój i utrzymanie projektu. Nie ma na celu blokowania podstawowej pracy lokalnej — podstawowe środowiska uruchomieniowe i funkcje zarządzania środowiskiem zawsze pozostaną dostępne. Licencja usuwa ograniczenia wersji próbnej narzędzi premium i pomaga utrzymać FlyEnv na macOS, Windows i Linux.",
   "restrictions": {
-    "title": "Użytkownicy bez licencji będą podlegali następującym ograniczeniom:",
+    "title": "FlyEnv pozostaje funkcjonalny bez licencji, ale obowiązują następujące ograniczenia wersji próbnej:",
     "items": {
-      "0": "Można utworzyć maksymalnie trzy witryny.",
-      "1": "Funkcja czatu AI jest dostępna tylko przez okres próbny trzech dni.",
-      "2": "Dodatkowe ograniczenia mogą mieć zastosowanie do przyszłych funkcji."
+      "0": "Zarządzanie witrynami jest ograniczone do maksymalnie 3 lokalnych witryn.",
+      "1": "Asystent AI jest dostępny w wersji próbnej przez 3 dni.",
+      "2": "Narzędzie zrzutów ekranu jest dostępne w wersji próbnej przez 3 dni.",
+      "3": "Optymalizator obrazów jest dostępny w wersji próbnej przez 3 dni.",
+      "4": "Nowe funkcje premium mogą podlegać podobnym okresom próbnym lub ograniczeniom."
     }
   },
   "howToObtain": {
     "title": "Jak uzyskać licencję",
-    "description": "FlyEnv zapewnia elastyczne sposoby uzyskania licencji. Użytkownicy mogą wybrać jedną z następujących metod:",
+    "description": "FlyEnv oferuje następujące trzy sposoby uzyskania licencji. Licencje nie są jeszcze wydawane automatycznie, dlatego wszystkie wnioski są rozpatrywane i realizowane ręcznie:",
     "methods": {
       "0": {
-        "title": "Darowizna dla projektu",
-        "description": "Nie ma stałej kwoty na darowizny, biorąc pod uwagę zróżnicowaną sytuację ekonomiczną użytkowników w różnych krajach (np. ., wielu użytkowników to ucznicy), proszę wybrać kwotę wygodną dla Ciebie."
+        "title": "Kup licencję osobistą",
+        "description": "Licencja osobista FlyEnv kosztuje $10 USD. Obejmuje jedno aktywne urządzenie (przeniesienie na inne urządzenie jest możliwe w zarządzaniu licencjami) i usuwa wszystkie ograniczenia wersji próbnej. Płatność obsługuje Paddle. Po zakupie podaj identyfikator zamówienia Paddle w poniższym formularzu. Strona zakupu:"
       },
       "1": {
-        "title": "Przyczyń się do rozwoju",
-        "description": "Weź udział w projekcie poprzez przesłanie Pull Request. Niezależnie od ilości kodu, o ile poprawi to projekt (e. ., naprawia błąd tłumaczenia), liczy się twój wkład."
+        "title": "Wnieś wkład w kod",
+        "description": "Prześlij Pull Request na GitHub, aby pomóc ulepszyć FlyEnv. Liczy się każdy znaczący wkład — od dużych funkcji po proste poprawki dokumentacji."
       },
       "2": {
-        "title": "Promuj projekt",
-        "description": "Promuj FlyEnv dzieląc się swoimi doświadczeniami w artykułach, filmach, blogach, vlogach lub komentarzach. Preferowane są informacje zwrotne dla użytkownika. Treść może być w dowolnym języku i na dowolnej platformie."
+        "title": "Rozpowszechnij informację",
+        "description": "Podziel się swoimi doświadczeniami z FlyEnv na dowolnej platformie i w dowolnym języku — artykuły, filmy, blogi lub posty. Treść musi być oryginalna i autentyczna; treści opublikowane ponad 3 miesiące temu mogą już nie kwalifikować się do licencji."
       }
     }
   },
-  "submitInfo": "po zakończeniu którejkolwiek z powyższych metod, wypełnij wyniki w polu wejściowym poniżej i kliknij przycisk 'Prośba o licencję', aby złożyć wniosek. Żądania licencji są zwykle przetwarzane w ciągu 24 godzin.",
+  "submitInfo": "Po wykonaniu dowolnej z powyższych metod wklej dowód w polu wiadomości poniżej wraz z ważnym adresem e-mail, a następnie kliknij przycisk 'Poproś o licencję'. Wnioski są przetwarzane ręcznie, zwykle w ciągu 24 godzin, a o wydaniu licencji powiadomimy Cię e-mailem.",
   "messageLabel": "Wiadomość",
-  "messagePlaceholder": "Prosimy o przesłanie darowizny, linku darowizny, lub identyfikatora zamówienia podczas wyboru darowizny.\nPrześlij link PR dla tych, którzy decydują się uczestniczyć w tworzeniu projektu.\nProsimy o przesłanie linku do artykułu, filmu, bloga, vlog lub komentarza dla tych, którzy decydują się na promocję.",
+  "messagePlaceholder": "Kupujący: identyfikator zamówienia Paddle lub e-mail z potwierdzeniem.\nWspółtwórcy: link do Twojego Pull Request na GitHub.\nPromotorzy: link do Twojego posta, filmu lub artykułu.\nPodaj również ważny adres e-mail, abyśmy mogli powiadomić Cię o wydaniu licencji.",
   "requestButton": "Poproś o licencję",
   "refreshButton": "Odśwież województwo",
   "licenseActivated": "Licencja aktywowana",
   "licenseNoActivated": "Licencja nieaktywna",
-  "licenseInfo": "Obecnie udzielana licencja jest licencją stałą, każdy komputer odpowiada jednej licencji. Jeśli zmienisz komputer, musisz powiązać uuid nowego urządzenia w 'Moje licencje' lub ubiegać się o nową licencję.",
+  "licenseInfo": "Obecna licencja jest licencją stałą i obowiązuje zasada jednej licencji na urządzenie. Każda licencja jest przypisana do konkretnego sprzętowego UUID. Jeśli zmienisz komputer, zaloguj się kontem GitHub i przejdź do 'Moje licencje', aby odłączyć stare urządzenie i powiązać nowe, lub poproś o nową licencję.",
   "logoutTips": "Czy na pewno chcesz się wylogować?",
   "delBindTips": "Czy na pewno chcesz usunąć powiązanie licencji z tego UUID?",
   "addBindTips": "Czy na pewno chcesz powiązać licencję z tym UUID?",

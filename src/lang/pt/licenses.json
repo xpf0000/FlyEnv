@@ -1,39 +1,41 @@
 {
-  "description": "A licença é um reconhecimento e apoio ao trabalho árduo do FlyEnv e seus autores. Seu propósito não é restringir usuários, mas lembrá-los de respeitar os esforços dos desenvolvedores e cumprir os termos relevantes ao usar o software. Ao aderir à licença, os usuários não apenas apoiam o desenvolvimento contínuo do projeto, mas também contribuem para o espírito de confiança e colaboração dentro da comunidade de código aberto.",
+  "description": "A licença do FlyEnv apoia o desenvolvimento e a manutenção contínuos do projeto. Seu objetivo não é bloquear o desenvolvimento local essencial — os runtimes principais e os recursos de gerenciamento de ambiente sempre permanecerão acessíveis. Uma licença remove os limites de avaliação das ferramentas premium e ajuda a manter o FlyEnv atualizado no macOS, Windows e Linux.",
   "restrictions": {
-    "title": "Usuários sem licença estarão sujeitos às seguintes restrições:",
+    "title": "O FlyEnv permanece funcional sem uma licença, mas os seguintes limites de avaliação se aplicam:",
     "items": {
-      "0": "Um máximo de três sites pode ser criado.",
-      "1": "O recurso de chat IA está disponível para um período de teste de apenas três dias.",
-      "2": "Restrições adicionais podem se aplicar a recursos futuros."
+      "0": "O gerenciamento de sites é limitado a um máximo de 3 sites locais.",
+      "1": "O assistente de AI é limitado a um período de avaliação de 3 dias.",
+      "2": "A ferramenta de captura de tela é limitada a um período de avaliação de 3 dias.",
+      "3": "O otimizador de imagens é limitado a um período de avaliação de 3 dias.",
+      "4": "Novos recursos premium podem estar sujeitos a períodos de avaliação ou limites semelhantes."
     }
   },
   "howToObtain": {
     "title": "Como Obter uma Licença",
-    "description": "FlyEnv fornece maneiras flexíveis de obter uma licença. Os usuários podem escolher qualquer um dos seguintes métodos para aplicar:",
+    "description": "O FlyEnv oferece as três seguintes maneiras de obter uma licença. As licenças ainda não podem ser emitidas automaticamente, portanto todas as solicitações são revisadas e emitidas manualmente:",
     "methods": {
       "0": {
-        "title": "Doar para o Projeto",
-        "description": "Não há valor fixo exigido para doações. Considerando as situações econômicas variadas dos usuários em diferentes países (ex: muitos usuários são estudantes), por favor escolha um valor que se adeque às suas circunstâncias."
+        "title": "Comprar uma Licença Pessoal",
+        "description": "Uma Licença Pessoal do FlyEnv custa $10 USD. Ela cobre um dispositivo ativo (a transferência de dispositivo é suportada por meio do gerenciamento de licenças) e remove todos os limites de avaliação. O pagamento é processado pelo Paddle. Após a compra, envie o ID do seu pedido Paddle no formulário de solicitação abaixo. Página de compra:"
       },
       "1": {
-        "title": "Contribuir para o Desenvolvimento",
-        "description": "Participe do projeto enviando um Pull Request. Independentemente da quantidade de código, desde que melhore positivamente o projeto (ex: corrigir um erro de tradução), qualifica."
+        "title": "Contribuir para o Código",
+        "description": "Envie um Pull Request no GitHub para ajudar a melhorar o FlyEnv. Toda contribuição significativa conta — desde grandes recursos até simples correções de documentação."
       },
       "2": {
-        "title": "Promover o Projeto",
-        "description": "Promova o FlyEnv publicando artigos, vídeos, blogs, vlogs, ou introduzindo-o em comentários. O conteúdo pode ser em qualquer idioma e em qualquer plataforma, desde que seja publicamente acessível na internet."
+        "title": "Divulgar o Projeto",
+        "description": "Compartilhe sua experiência com o FlyEnv em qualquer plataforma e em qualquer idioma — artigos, vídeos, blogs ou publicações. O conteúdo deve ser original e autêntico; conteúdo publicado há mais de 3 meses pode não ser mais elegível."
       }
     }
   },
-  "submitInfo": "Após completar qualquer um dos métodos acima, por favor preencha os resultados na caixa de entrada abaixo e clique no botão 'Solicitar Licença' para enviar sua aplicação. Solicitações de licença são revisadas manualmente, então por favor seja paciente. Elas são geralmente processadas prontamente.",
+  "submitInfo": "Após concluir qualquer um dos métodos acima, cole sua comprovação na caixa de mensagem abaixo junto com um endereço de e-mail válido e clique no botão 'Solicitar Licença'. As solicitações são processadas manualmente, geralmente em até 24 horas, e você será notificado por e-mail assim que sua licença for emitida.",
   "messageLabel": "Mensagem",
-  "messagePlaceholder": "Por favor envie o doador, link de doação, ou ID do pedido ao escolher doar.\nPor favor envie o link do PR para aqueles que escolhem participar do desenvolvimento do projeto.\nPor favor envie link do artigo/vídeo se você escolher ajudar a promover o projeto",
+  "messagePlaceholder": "Compradores: o ID do seu pedido Paddle ou o e-mail do recibo.\nContribuidores: o link do seu Pull Request no GitHub.\nDivulgadores: o link da sua publicação, vídeo ou artigo.\nPor favor, inclua também um endereço de e-mail válido para que possamos notificá-lo quando a licença for emitida.",
   "requestButton": "Solicitar Licença",
   "refreshButton": "Atualizar Estado",
   "licenseActivated": "Licença ativada",
   "licenseNoActivated": "Licença não ativada",
-  "licenseInfo": "A licença atualmente fornecida é uma licença permanente, cada computador corresponde a uma licença. Se você trocar de computador, precisa vincular o uuid do novo dispositivo em 'Minhas Licenças' ou solicitar uma nova licença.",
+  "licenseInfo": "A licença atual é permanente e segue a política de uma licença por dispositivo. Cada licença está vinculada a um UUID de hardware específico. Se você trocar para um novo computador, faça login com sua conta do GitHub e acesse 'Minhas Licenças' para desvincular o dispositivo antigo e vincular o novo, ou solicite uma nova licença.",
   "logoutTips": "Tem certeza de que deseja sair?",
   "delBindTips": "Tem certeza de que deseja desvincular a licença deste UUID?",
   "addBindTips": "Tem certeza de que deseja vincular a licença a este UUID?",

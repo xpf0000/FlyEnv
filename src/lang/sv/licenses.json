@@ -1,39 +1,41 @@
 {
-  "description": "Licensen är ett erkännande och stöd för det hårda arbetet av FlyEnv och dess författare. Syftet är inte att begränsa användare utan att påminna dem om att respektera utvecklarnas ansträngningar och följa de relevanta villkoren vid användning av programvaran. Genom att följa licensen stödjer användarna inte bara den fortsatta utvecklingen av projektet utan bidrar också till andan av förtroende och samarbete inom open-source-gemenskapen.",
+  "description": "FlyEnv-licensen stödjer den fortsatta utvecklingen och det löpande underhållet av projektet. Den är inte avsedd att blockera den centrala lokala utvecklingen — viktiga körtider och miljöhanteringsfunktioner kommer alltid att förbli tillgängliga. En licens tar bort provbegränsningarna i premiumverktygen och hjälper till att hålla FlyEnv underhållet på macOS, Windows och Linux.",
   "restrictions": {
-    "title": "Användare utan licens kommer att omfattas av följande begränsningar:",
+    "title": "FlyEnv fungerar utan licens, men följande provbegränsningar gäller:",
     "items": {
-      "0": "Maximalt tre webbplatser kan skapas.",
-      "1": "AI-chattfunktionen är tillgänglig under en provperiod på endast tre dagar.",
-      "2": "Ytterligare begränsningar kan tillkomma för framtida funktioner."
+      "0": "Webbplatshanteringen är begränsad till maximalt 3 lokala webbplatser.",
+      "1": "AI-assistenten är begränsad till en provperiod på 3 dagar.",
+      "2": "Skärmdumpsverktyget är begränsat till en provperiod på 3 dagar.",
+      "3": "Bildoptimeraren är begränsad till en provperiod på 3 dagar.",
+      "4": "Nya premiumfunktioner kan omfattas av liknande provperioder eller begränsningar."
     }
   },
   "howToObtain": {
     "title": "Hur man skaffar en licens",
-    "description": "FlyEnv erbjuder flexibla sätt att skaffa en licens. Användare kan välja något av följande metoder för att ansöka:",
+    "description": "FlyEnv erbjuder följande tre sätt att skaffa en licens. Licenser kan ännu inte utfärdas automatiskt, så alla förfrågningar granskas och utfärdas manuellt:",
     "methods": {
       "0": {
-        "title": "Donera till projektet",
-        "description": "Det finns inget fast belopp som krävs för donationer. Med tanke på de varierande ekonomiska situationerna för användare i olika länder (t.ex. många användare är studenter), välj ett belopp som passar dina omständigheter."
+        "title": "Köp en personlig licens",
+        "description": "En personlig FlyEnv-licens kostar $10 USD. Den täcker en aktiv enhet (enhetsbyte stöds via licenshanteringen) och tar bort alla provbegränsningar. Betalningen hanteras av Paddle. Efter köpet anger du ditt Paddle-order-ID i ansökningsformuläret nedan. Köpsida:"
       },
       "1": {
-        "title": "Bidra till utvecklingen",
-        "description": "Delta i projektet genom att skicka in en Pull Request. Oavsett mängden kod, så länge det positivt förbättrar projektet (t.ex. rättar ett översättningsfel), kvalificerar det sig."
+        "title": "Bidra till kodbasen",
+        "description": "Skicka in en Pull Request på GitHub för att hjälpa till att förbättra FlyEnv. Varje meningsfullt bidrag räknas — från stora funktioner till enkla dokumentationsrättningar."
       },
       "2": {
-        "title": "Främja projektet",
-        "description": "Sprid FlyEnv genom att dela din erfarenhet i artiklar, videor, bloggar eller kommentarer. Äkta användarberättelser uppskattas. Innehållet kan vara på vilket språk som helst och publiceras var som helst online."
+        "title": "Sprid budskapet",
+        "description": "Dela din erfarenhet av FlyEnv på valfri plattform och på valfritt språk — artiklar, videor, bloggar eller inlägg. Innehållet måste vara originellt och äkta; innehåll som publicerats för mer än 3 månader sedan kanske inte längre är giltigt."
       }
     }
   },
-  "submitInfo": "Efter att ha slutfört någon av ovanstående metoder, fyll i resultaten i inmatningsrutan nedan och klicka på knappen 'Begär licens' för att skicka din ansökan. Licensförfrågningar granskas manuellt, så var vänlig och ha tålamod. De behandlas vanligtvis snabbt.",
+  "submitInfo": "Efter att ha slutfört någon av metoderna ovan, klistra in ditt bevis i meddelanderutan nedan tillsammans med en giltig e-postadress och klicka sedan på knappen 'Begär licens'. Förfrågningar behandlas manuellt, vanligtvis inom 24 timmar, och du meddelas via e-post när din licens har utfärdats.",
   "messageLabel": "Meddelande",
-  "messagePlaceholder": "Vänligen skicka in givaren, donationslänken eller order-ID när du väljer att donera.\nVänligen skicka in PR-länken för dem som väljer att delta i projektutvecklingen.\nVänligen skicka in artikel-/videolänken om du väljer att hjälpa till att främja projektet",
+  "messagePlaceholder": "Köpare: ditt Paddle-order-ID eller din kvittens-e-postadress.\nBidragsgivare: länken till din GitHub Pull Request.\nMarknadsförare: länken till ditt inlägg, din video eller din artikel.\nAnge även en giltig e-postadress så att vi kan meddela dig när licensen har utfärdats.",
   "requestButton": "Begär licens",
   "refreshButton": "Uppdatera status",
   "licenseActivated": "Licens aktiverad",
   "licenseNoActivated": "Licensen är inte aktiverad",
-  "licenseInfo": "Den nuvarande licensen är en permanent licens, varje dator motsvarar en licens. Om du byter dator måste du binda den nya enhetens uuid i 'Mina licenser', eller ansöka om en ny licens.",
+  "licenseInfo": "Den nuvarande licensen är permanent och följer principen en licens per enhet. Varje licens är knuten till ett specifikt hårdvaru-UUID. Om du byter till en ny dator, logga in med ditt GitHub-konto och gå till 'Mina licenser' för att avbinda den gamla enheten och binda den nya, eller begär en ny licens.",
   "logoutTips": "Är du säker på att du vill logga ut?",
   "delBindTips": "Är du säker på att du vill ta bort bindningen av licensen från detta UUID?",
   "addBindTips": "Är du säker på att du vill binda licensen till detta UUID?",

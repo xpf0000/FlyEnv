@@ -141,6 +141,8 @@
               <p>1. {{ I18nT('licenses.restrictions.items.0') }}</p>
               <p>2. {{ I18nT('licenses.restrictions.items.1') }}</p>
               <p>3. {{ I18nT('licenses.restrictions.items.2') }}</p>
+              <p>4. {{ I18nT('licenses.restrictions.items.3') }}</p>
+              <p>5. {{ I18nT('licenses.restrictions.items.4') }}</p>
               <p>{{ I18nT('licenses.licenseInfo') }}</p>
               <div class="text-xl">{{ I18nT('licenses.howToObtain.title') }}</div>
               <p>{{ I18nT('licenses.howToObtain.description') }}</p>

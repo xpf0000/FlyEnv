@@ -1,39 +1,41 @@
 {
-  "description": "La licence est une reconnaissance et un soutien pour le travail acharné de FlyEnv et de ses auteurs. Son objectif n'est pas de restreindre les utilisateurs mais de leur rappeler de respecter les efforts des développeurs et de se conformer aux termes pertinents lors de l'utilisation du logiciel. En respectant la licence, les utilisateurs soutiennent non seulement le développement continu du projet, mais contribuent également à l'esprit de confiance et de collaboration au sein de la communauté open source.",
+  "description": "La licence FlyEnv soutient le développement et la maintenance continus du projet. Elle n'a pas vocation à bloquer le développement local de base : les runtimes essentiels et les fonctionnalités de gestion d'environnement resteront toujours accessibles. Une licence supprime les limites d'évaluation des outils premium et contribue à maintenir FlyEnv sur macOS, Windows et Linux.",
   "restrictions": {
-    "title": "Les utilisateurs sans licence seront soumis aux restrictions suivantes :",
+    "title": "FlyEnv reste fonctionnel sans licence, mais les limites d'évaluation suivantes s'appliquent :",
     "items": {
-      "0": "Un maximum de trois sites peut être créés.",
-      "1": "La fonctionnalité de chat IA est disponible pour une période d'essai de trois jours seulement.",
-      "2": "Des restrictions supplémentaires peuvent s'appliquer aux fonctionnalités futures."
+      "0": "La gestion des sites est limitée à un maximum de 3 sites locaux.",
+      "1": "L'assistant AI est limité à un essai de 3 jours.",
+      "2": "L'outil de capture d'écran est limité à un essai de 3 jours.",
+      "3": "L'optimiseur d'images est limité à un essai de 3 jours.",
+      "4": "Les nouvelles fonctionnalités premium peuvent être soumises à des périodes d'essai ou des limites similaires."
     }
   },
   "howToObtain": {
     "title": "Comment obtenir une licence",
-    "description": "FlyEnv propose des moyens flexibles pour obtenir une licence. Les utilisateurs peuvent choisir l'une des méthodes suivantes pour postuler :",
+    "description": "FlyEnv propose les trois méthodes suivantes pour obtenir une licence. Les licences ne pouvant pas encore être émises automatiquement, toutes les demandes sont examinées et émises manuellement :",
     "methods": {
       "0": {
-        "title": "Faire un don au projet",
-        "description": "Aucun montant fixe n'est requis pour les dons. Compte tenu des situations économiques variées des utilisateurs dans différents pays (par exemple, de nombreux utilisateurs sont des étudiants), veuillez choisir un montant adapté à vos circonstances."
+        "title": "Acheter une licence personnelle",
+        "description": "Une licence personnelle FlyEnv coûte $10 USD. Elle couvre un appareil actif (le transfert d'appareil est possible via la gestion des licences) et supprime toutes les limites d'évaluation. Le paiement est traité par Paddle. Après l'achat, soumettez votre identifiant de commande Paddle dans le formulaire de demande ci-dessous. Page d'achat :"
       },
       "1": {
-        "title": "Contribuer au développement",
-        "description": "Participez au projet en soumettant une Pull Request. Quelle que soit la quantité de code, tant qu'elle améliore positivement le projet (par exemple, corriger une erreur de traduction), elle est éligible."
+        "title": "Contribuer au code",
+        "description": "Soumettez une Pull Request sur GitHub pour contribuer à l'amélioration de FlyEnv. Chaque contribution significative compte, des fonctionnalités majeures aux simples corrections de documentation."
       },
       "2": {
-        "title": "Promouvoir le projet",
-        "description": "Promouvez FlyEnv en partageant votre expérience dans des articles, vidéos, blogs, vlogs ou commentaires. Les retours d'utilisateurs authentiques sont préférés. Le contenu peut être dans n'importe quelle langue et sur n'importe quelle plateforme, tant qu'il est disponible publiquement en ligne."
+        "title": "Faire connaître le projet",
+        "description": "Partagez votre expérience FlyEnv sur n'importe quelle plateforme et dans n'importe quelle langue : articles, vidéos, blogs ou publications. Le contenu doit être original et authentique ; un contenu publié il y a plus de 3 mois peut ne plus être éligible."
       }
     }
   },
-  "submitInfo": "Après avoir complété l'une des méthodes ci-dessus, veuillez remplir les résultats dans la fenêtre de saisie ci-dessous et cliquez sur le bouton 'Demander une licence' pour soumettre votre demande. Les demandes de licence sont examinées manuellement, alors soyez patient. Elles sont généralement traitées rapidement.",
+  "submitInfo": "Après avoir complété l'une des méthodes ci-dessus, collez votre preuve dans la zone de message ci-dessous accompagnée d'une adresse e-mail valide, puis cliquez sur le bouton 'Demander une licence'. Les demandes sont traitées manuellement, généralement sous 24 heures, et vous serez notifié par e-mail dès que votre licence aura été émise.",
   "messageLabel": "Message",
-  "messagePlaceholder": "Veuillez soumettre le donateur, le lien de don ou l'ID de commande lors du choix de faire un don.\nVeuillez soumettre le lien PR pour ceux qui choisissent de participer au développement du projet.\nVeuillez soumettre le lien de l'article/vidéo si vous choisissez d'aider à promouvoir le projet",
+  "messagePlaceholder": "Acheteurs : votre identifiant de commande Paddle ou l'e-mail de votre reçu.\nContributeurs : le lien vers votre Pull Request GitHub.\nPromoteurs : le lien vers votre publication, vidéo ou article.\nVeuillez également inclure une adresse e-mail valide afin que nous puissions vous notifier une fois la licence émise.",
   "requestButton": "Demander une licence",
   "refreshButton": "Actualiser l'état",
   "licenseActivated": "Licence activée",
   "licenseNoActivated": "Licence non activée",
-  "licenseInfo": "La licence actuellement fournie est une licence permanente, chaque ordinateur correspond à une licence. Si vous changez d'ordinateur, vous devez lier l'uuid du nouvel appareil dans 'Mes Licences', ou demander une nouvelle licence.",
+  "licenseInfo": "La licence actuelle est permanente et suit une politique d'une licence par appareil. Chaque licence est liée à un UUID matériel spécifique. Si vous changez d'ordinateur, connectez-vous avec votre compte GitHub et accédez à 'Mes Licences' pour dissocier l'ancien appareil et lier le nouveau, ou demandez une nouvelle licence.",
   "logoutTips": "Êtes-vous sûr de vouloir vous déconnecter ?",
   "delBindTips": "Êtes-vous sûr de vouloir dissocier la licence de cet UUID ?",
   "addBindTips": "Êtes-vous sûr de vouloir lier la licence à cet UUID ?",

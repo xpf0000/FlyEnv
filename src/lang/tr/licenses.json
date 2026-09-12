@@ -1,39 +1,41 @@
 {
-  "description": "Lisans, FlyEnv ve yazarlarının emeğine bir takdir ve destektir. Amacı kullanıcıları kısıtlamak değil, geliştiricilerin çabalarına saygı gösterilmesini ve yazılımı kullanırken ilgili koşullara uyulmasını hatırlatmaktır. Lisansa uyarak, kullanıcılar sadece projenin sürekli gelişimini desteklemekle kalmaz, aynı zamanda açık kaynak topluluğundaki güven ve iş birliği ruhuna katkıda bulunurlar.",
+  "description": "FlyEnv lisansı, projenin sürekli gelişimini ve bakımını destekler. Amacı temel yerel geliştirmeyi engellemek değildir — temel çalışma zamanları ve ortam yönetimi özellikleri her zaman erişilebilir kalacaktır. Bir lisans, premium araçların deneme sınırlarını kaldırır ve FlyEnv'in macOS, Windows ve Linux'ta bakımının sürdürülmesine yardımcı olur.",
   "restrictions": {
-    "title": "Lisansı olmayan kullanıcılar aşağıdaki kısıtlamalara tabi olacaktır:",
+    "title": "FlyEnv lisans olmadan da çalışmaya devam eder, ancak aşağıdaki deneme sınırları uygulanır:",
     "items": {
-      "0": "En fazla üç site oluşturulabilir.",
-      "1": "Yapay zeka sohbet özelliği yalnızca üç günlük deneme süresiyle kullanılabilir.",
-      "2": "Gelecekteki özelliklerde ek kısıtlamalar olabilir."
+      "0": "Site yönetimi en fazla 3 yerel siteyle sınırlıdır.",
+      "1": "AI asistanı 3 günlük deneme süresiyle sınırlıdır.",
+      "2": "Ekran görüntüsü aracı 3 günlük deneme süresiyle sınırlıdır.",
+      "3": "Görsel iyileştirici 3 günlük deneme süresiyle sınırlıdır.",
+      "4": "Yeni premium özellikler benzer deneme sürelerine veya sınırlara tabi olabilir."
     }
   },
   "howToObtain": {
-    "title": "Lisans Nasıl Alınır?",
-    "description": "FlyEnv lisans almak için esnek yollar sunar. Kullanıcılar aşağıdaki yöntemlerden herhangi birini seçerek başvurabilir:",
+    "title": "Nasıl Lisans Alınır?",
+    "description": "FlyEnv lisans almak için aşağıdaki üç yolu sunar. Lisanslar henüz otomatik olarak verilemediğinden, tüm talepler manuel olarak incelenir ve düzenlenir:",
     "methods": {
       "0": {
-        "title": "Projeye Bağış Yapın",
-        "description": "Bağış için belirli bir tutar zorunlu değildir. Farklı ülkelerdeki kullanıcıların ekonomik durumları (örneğin birçok kullanıcı öğrencidir) göz önüne alındığında, size uygun bir tutarı seçebilirsiniz."
+        "title": "Kişisel Lisans Satın Alın",
+        "description": "FlyEnv Kişisel Lisansı 10 USD'dir. Bir aktif cihazı kapsar (lisans yönetimi aracılığıyla cihaz aktarımı desteklenir) ve tüm deneme sınırlarını kaldırır. Ödeme işlemi Paddle tarafından gerçekleştirilir. Satın aldıktan sonra, aşağıdaki talep formuna Paddle sipariş numaranızı girin. Satın alma sayfası:"
       },
       "1": {
-        "title": "Geliştirmeye Katkıda Bulunun",
-        "description": "Projeye Pull Request göndererek katkıda bulunun. Kod miktarı önemli değil, projeye olumlu katkı sağladığı sürece (örneğin bir çeviri hatasını düzeltmek gibi) yeterlidir."
+        "title": "Kod Tabanına Katkıda Bulunun",
+        "description": "FlyEnv'i geliştirmeye yardımcı olmak için GitHub'da bir Pull Request gönderin. Büyük özelliklerden basit dokümantasyon düzeltmelerine kadar her anlamlı katkı değerlidir."
       },
       "2": {
-        "title": "Projeyi Tanıtın",
-        "description": "FlyEnv’i tanıtmak için makale, video, blog veya yorumlarda gerçek deneyimlerinizi paylaşın. Dürüst kullanıcı görüşleri tercih edilir. İçerik her dilde ve her platformda olabilir, yeter ki internette herkese açık olsun."
+        "title": "Duyurun",
+        "description": "FlyEnv deneyiminizi herhangi bir platformda, herhangi bir dilde paylaşın — makaleler, videolar, bloglar veya gönderiler. İçerik özgün ve samimi olmalıdır; 3 aydan daha önce yayınlanmış içerikler artık uygun olmayabilir."
       }
     }
   },
-  "submitInfo": "Yukarıdaki yöntemlerden herhangi birini tamamladıktan sonra, aşağıdaki giriş kutusuna sonucu yazın ve 'Lisans Talep Et' butonuna tıklayarak başvurunuzu gönderin. Lisans başvuruları manuel olarak incelenir, lütfen sabırlı olun. Genellikle kısa sürede yanıt verilir.",
+  "submitInfo": "Yukarıdaki yöntemlerden herhangi birini tamamladıktan sonra, kanıtınızı geçerli bir e-posta adresiyle birlikte aşağıdaki mesaj kutusuna yapıştırın ve ardından 'Lisans Talep Et' butonuna tıklayın. Talepler manuel olarak işlenir, genellikle 24 saat içinde tamamlanır ve lisansınız düzenlendiğinde e-posta ile bilgilendirilirsiniz.",
   "messageLabel": "Mesaj",
-  "messagePlaceholder": "Bağış yaptıysanız lütfen bağışçı adı, bağış bağlantısı veya sipariş numarasını girin.\nProje geliştirmeye katkıda bulunduysanız lütfen PR bağlantısını gönderin.\nProjeyi tanıttıysanız lütfen makale/video bağlantısını gönderin.",
+  "messagePlaceholder": "Satın alanlar: Paddle sipariş numaranız veya makbuz e-postanız.\nKatkıda bulunanlar: GitHub Pull Request bağlantınız.\nTanıtanlar: Gönderinizin, videonuzun veya makalenizin bağlantısı.\nLütfen lisans düzenlendiğinde sizi bilgilendirebilmemiz için geçerli bir e-posta adresi de ekleyin.",
   "requestButton": "Lisans Talep Et",
   "refreshButton": "Durumu Yenile",
   "licenseActivated": "Lisans etkinleştirildi",
   "licenseNoActivated": "Lisans etkinleştirilmedi",
-  "licenseInfo": "Mevcut sağlanan lisans kalıcı bir lisandır, her bilgisayar bir lisansla eşleşir. Bilgisayar değiştirirseniz, 'Lisanslarım'da yeni cihazın uuid'sini bağlamanız veya yeni lisans başvurusunda bulunmanız gerekir.",
+  "licenseInfo": "Mevcut lisans kalıcıdır ve cihaz başına bir lisans politikasını takip eder. Her lisans belirli bir donanım UUID'sine bağlıdır. Yeni bir bilgisayara geçerseniz, GitHub hesabınızla giriş yapın ve 'Lisanslarım' bölümüne giderek eski cihazın bağlantısını kaldırıp yenisini bağlayın veya yeni bir lisans talep edin.",
   "logoutTips": "Oturumu kapatmak istediğinizden emin misiniz?",
   "delBindTips": "Lisansı bu UUID'den bağlamayı kaldırmak istediğinizden emin misiniz?",
   "addBindTips": "Lisansı bu UUID'ye bağlamak istediğinizden emin misiniz?",

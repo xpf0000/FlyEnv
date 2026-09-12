@@ -26,7 +26,7 @@
           >{{ info.Resources?.Memory }} MB</el-descriptions-item
         >
         <el-descriptions-item :label="I18nT('podman.DiskSize')"
-          >{{ info.Resources?.DiskSize }} MB</el-descriptions-item
+          >{{ info.Resources?.DiskSize }} GiB</el-descriptions-item
         >
         <el-descriptions-item :label="I18nT('podman.rootful')">{{
           info.Rootful ? I18nT('common.value.yes') : I18nT('common.value.no')

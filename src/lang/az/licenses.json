@@ -1,39 +1,41 @@
 {
-  "description": "Lisenziya, FlyEnv və müəlliflərinin əməyinə verilən bir təşəkkür və dəstəkdir. Məqsədi istifadəçiləri məhdudlaşdırmaq deyil, inkişaf etdiricilərin səylərinə hörmət göstərilməsini və proqramdan istifadə edərkən müvafiq şərtlərə əməl edilməsini xatırlatmaqdır. Lisenziyaya riayət etməklə, istifadəçilər təkcə layihənin davamlı inkişafını dəstəkləmir, həm də açıq mənbə icmasında etimad və əməkdaşlıq ruhuna töhfə verirlər.",
+  "description": "FlyEnv lisenziyası layihənin davamlı inkişafını və saxlanmasını dəstəkləyir. Məqsədi əsas yerli inkişafı bloklamaq deyil — əsas mühitlər və mühit idarəetmə funksiyaları həmişə əlçatan qalacaq. Lisenziya premium alətlərin sınaq məhdudiyyətlərini aradan qaldırır və FlyEnv-in macOS, Windows və Linux platformalarında saxlanmasına kömək edir.",
   "restrictions": {
-    "title": "Lisenziyası olmayan istifadəçilər aşağıdakı məhdudiyyətlərə tabe olacaqlar:",
+    "title": "FlyEnv lisenziyasız da işlək qalır, lakin aşağıdakı sınaq məhdudiyyətləri tətbiq olunur:",
     "items": {
-      "0": "Ən çox üç sayt yaradıla bilər.",
-      "1": "Süni intellekt söhbət funksiyası yalnız üç günlük sınaq müddəti ilə istifadə edilə bilər.",
-      "2": "Gələcək funksiyalarda əlavə məhdudiyyətlər ola bilər."
+      "0": "Sayt idarəetməsi maksimum 3 yerli saytla məhdudlaşır.",
+      "1": "AI köməkçisi 3 günlük sınaq müddəti ilə məhdudlaşır.",
+      "2": "Ekran görüntüsü aləti 3 günlük sınaq müddəti ilə məhdudlaşır.",
+      "3": "Şəkil optimallaşdırıcı 3 günlük sınaq müddəti ilə məhdudlaşır.",
+      "4": "Yeni premium funksiyalar oxşar sınaq müddətlərinə və ya məhdudiyyətlərə tabe ola bilər."
     }
   },
   "howToObtain": {
-    "title": "Lisenziyanı Necə Əldə Etmək Olar?",
-    "description": "FlyEnv lisenziya almaq üçün çevik üsullar təqdim edir. İstifadəçilər aşağıdakı metodlardan birini seçərək müraciət edə bilərlər:",
+    "title": "Lisenziyanı Necə Əldə Etmək Olar",
+    "description": "FlyEnv lisenziya əldə etmək üçün aşağıdakı üç üsulu təklif edir. Lisenziyalar hələlik avtomatik verilə bilmir, buna görə bütün müraciətlər əl ilə yoxlanılır və verilir:",
     "methods": {
       "0": {
-        "title": "Layihəyə İanə Edin",
-        "description": "İanə üçün müəyyən bir məbləğ tələb olunmur. Müxtəlif ölkələrdəki istifadəçilərin iqtisadi vəziyyəti (məsələn, bir çox istifadəçi tələbədir) nəzərə alınaraq, sizə uyğun məbləği seçə bilərsiniz."
+        "title": "Şəxsi Lisenziya Alın",
+        "description": "FlyEnv Şəxsi Lisenziyası $10 USD dəyərindədir. O, bir aktiv cihazı əhatə edir (lisenziya idarəetməsi vasitəsilə cihaz köçürülməsi dəstəklənir) və bütün sınaq məhdudiyyətlərini aradan qaldırır. Ödəniş Paddle vasitəsilə həyata keçirilir. Aldıqdan sonra Paddle sifariş ID-nizi aşağıdakı müraciət formasında göndərin. Satınalma səhifəsi:"
       },
       "1": {
-        "title": "İnkişafa Töhfə Verin",
-        "description": "Layihəyə Pull Request göndərərək töhfə verin. Kod miqdarı vacib deyil, layihəyə müsbət təsir göstərməsi (məsələn, tərcümə səhvini düzəltmək kimi) kifayətdir."
+        "title": "Kod Bazasına Töhfə Verin",
+        "description": "FlyEnv-i təkmilləşdirməyə kömək etmək üçün GitHub-da Pull Request göndərin. Böyük funksiyalardan sadə sənədləşdirmə düzəlişlərinə qədər hər bir mənalı töhfə nəzərə alınır."
       },
       "2": {
         "title": "Layihəni Tanıdın",
-        "description": "FlyEnv-i tanıtmaq üçün məqalə, video, bloq və ya rəylərdə real təcrübələrinizi paylaşın. Dürüst istifadəçi fikirləri üstünlük təşkil edir. Məzmun istənilən dildə və platformada ola bilər, kifayət ki, internetdə açıq şəkildə paylaşılsın."
+        "description": "FlyEnv təcrübənizi istənilən platformada, istənilən dildə paylaşın — məqalələr, videolar, bloqlar və ya postlar. Məzmun orijinal və həqiqi olmalıdır; 3 aydan çox əvvəl dərc edilmiş məzmun artıq uyğun olmaya bilər."
       }
     }
   },
-  "submitInfo": "Yuxarıdakı üsullardan birini tamamladıqdan sonra nəticəni aşağıdakı giriş qutusuna yazın və 'Lisenziya Tələb Et' düyməsinə klikləyərək müraciətinizi göndərin. Lisenziya müraciətləri əl ilə yoxlanılır, zəhmət olmasa səbirli olun. Adətən qısa müddətdə cavab verilir.",
+  "submitInfo": "Yuxarıdakı üsullardan birini tamamladıqdan sonra sübutunuzu etibarlı e-poçt ünvanı ilə birlikdə aşağıdakı mesaj qutusuna yapışdırın və 'Lisenziya Tələb Et' düyməsinə klikləyin. Müraciətlər əl ilə işlənir, adətən 24 saat ərzində, lisenziyanız verildikdən sonra e-poçtla xəbər veriləcək.",
   "messageLabel": "Mesaj",
-  "messagePlaceholder": "İanə etmisinizsə, zəhmət olmasa ianəçi adını, ianə bağlantısını və ya sifariş nömrəsini daxil edin.\nLayihəyə töhfə vermisinizsə, zəhmət olmasa PR bağlantısını göndərin.\nLayihəni tanıtmısınızsa, zəhmət olmasa məqalə/video bağlantısını göndərin.",
+  "messagePlaceholder": "Alıcılar: Paddle sifariş ID-niz və ya qəbz e-poçtunuz.\nTöhfə verənlər: GitHub Pull Request bağlantınız.\nTanıtım edənlər: postunuzun, videonuzun və ya məqalənizin bağlantısı.\nLisenziya verildikdən sonra sizə xəbər verə bilməyimiz üçün etibarlı e-poçt ünvanını da əlavə edin.",
   "requestButton": "Lisenziya Tələb Et",
   "refreshButton": "Vəziyyəti Yenilə",
   "licenseActivated": "Lisenziya aktiv edildi",
   "licenseNoActivated": "Lisenziya aktiv edilməyib",
-  "licenseInfo": "Cari təqdim olunan lisenziya daimi lisenziyadır, hər bir kompüter bir lisenziyaya uyğundur. Əgər kompüteri dəyişdirsəniz, 'Mənim Lisenziyalarım' bölməsində yeni cihazın uuid-ni bağlamaq və ya yeni lisenziya üçün müraciət etmək lazımdır.",
+  "licenseInfo": "Cari lisenziya daimi olub bir cihaza bir lisenziya siyasətinə əməl edir. Hər lisenziya müəyyən bir avadanlıq UUID-nə bağlıdır. Yeni kompüterə keçsəniz, GitHub hesabınızla daxil olun və köhnə cihazın bağlantısını ləğv edib yenisini bağlamaq üçün 'Mənim Lisenziyalarım' bölməsinə keçin, ya da yeni lisenziya tələb edin.",
   "logoutTips": "Çıxış etmək istədiyinizə əminsiniz?",
   "delBindTips": "Bu UUID ilə lisenziya bağlantısını ləğv etmək istədiyinizə əminsiniz?",
   "addBindTips": "Lisenziyanı bu UUID ilə bağlamaq istədiyinizə əminsiniz?",

@@ -1,39 +1,41 @@
 {
-  "description": "Ez a licenc elismeri és támogatja a FlyEnv és szerzőinek munkáját. Nem célja a felhasználók korlátozása, hanem arra ösztönöz, hogy tiszteletben tartsák a fejlesztők munkáját és szellemi tulajdonát. Kérjük, gondoskodjon érvényes licenc beszerzéséről, mielőtt a FlyEnv-et kereskedelmi célokra használná.",
+  "description": "A FlyEnv licenc a projekt folyamatos fejlesztését és karbantartását támogatja. Nem célja az alapvető helyi fejlesztés akadályozása – az alapvető futtatókörnyezetek és a környezetkezelési funkciók mindig elérhetők maradnak. A licenc megszünteti a prémium eszközök próbaidőszaki korlátozásait, és hozzájárul ahhoz, hogy a FlyEnv macOS-en, Windowson és Linuxon is karbantartott maradjon.",
   "restrictions": {
-    "title": "A licenccel nem rendelkező felhasználókra az alábbi korlátozások vonatkoznak:",
+    "title": "A FlyEnv licenc nélkül is működik, de az alábbi próbaidőszaki korlátozások érvényesek:",
     "items": {
-      "0": "Legfeljebb három webhely hozható létre.",
-      "1": "Az AI chat funkció kizárólag háromnapos próbaidőszakban érhető el.",
-      "2": "A jövőbeli funkciókra további korlátozások vonatkozhatnak."
+      "0": "A webhelykezelés legfeljebb 3 helyi webhelyre korlátozódik.",
+      "1": "Az AI asszisztens 3 napos próbaidőszakra korlátozódik.",
+      "2": "A képernyőkép-készítő eszköz 3 napos próbaidőszakra korlátozódik.",
+      "3": "A képoptimalizáló 3 napos próbaidőszakra korlátozódik.",
+      "4": "Az új prémium funkciókra hasonló próbaidőszakok vagy korlátozások vonatkozhatnak."
     }
   },
   "howToObtain": {
-    "title": "Licenc beszerzése",
-    "description": "A FlyEnv rugalmas módokat kínál a licenc beszerzésére. A felhasználók az alábbi módszerek bármelyikével jelentkezhetnek:",
+    "title": "Licenc megszerzése",
+    "description": "A FlyEnv a következő három módot kínálja a licenc megszerzésére. A licencek kiállítása egyelőre nem automatizált, ezért minden kérelmet manuálisan ellenőrzünk és állítunk ki:",
     "methods": {
       "0": {
-        "title": "Adományozás a projektnek",
-        "description": "Az adományoknál nincs kötelező fix összeg. A különböző országok felhasználóinak eltérő gazdasági helyzetét figyelembe véve (például sok felhasználó diák), válasszon olyan összeget, amely Önnek kényelmes."
+        "title": "Personal License vásárlása",
+        "description": "A FlyEnv Personal License ára $10 USD. Egy aktív eszközre vonatkozik (az eszköz átvitele a licenckezelésen keresztül támogatott), és megszünteti az összes próbaidőszaki korlátozást. A fizetést a Paddle dolgozza fel. A vásárlás után adja meg a Paddle rendelésazonosítóját az alábbi űrlapon. Vásárlási oldal:"
       },
       "1": {
-        "title": "Hozzájárulás a fejlesztéshez",
-        "description": "Vegyen részt a projektben Pull Request beküldésével. A kód mennyiségétől függetlenül, ha a hozzájárulás pozitívan javítja a projektet (például fordítási hiba javítása), az hozzájárulásnak számít."
+        "title": "Hozzájárulás a kódbázishoz",
+        "description": "Küldjön be Pull Requestet a GitHubon, hogy segítse a FlyEnv fejlesztését. Minden értékes hozzájárulás számít – a nagyobb funkcióktól az egyszerű dokumentációjavításokig."
       },
       "2": {
-        "title": "A projekt népszerűsítése",
-        "description": "Népszerűsítse a FlyEnv-et tapasztalatainak megosztásával cikkekben, videókban, blogokon, vlogokban vagy hozzászólásokban. Előnyben részesül az őszinte felhasználói visszajelzés. A tartalom bármilyen nyelven és platformon lehet."
+        "title": "Terjessze a hírt",
+        "description": "Ossza meg FlyEnv-s tapasztalatait bármely platformon, bármilyen nyelven – cikkekben, videókban, blogokban vagy bejegyzésekben. A tartalomnak eredetinek és hitelesnek kell lennie; a 3 hónapnál régebben közzétett tartalmak már nem feltétlenül jogosítanak licencre."
       }
     }
   },
-  "submitInfo": "A fenti módszerek bármelyikének teljesítése után töltse ki az eredményeket az alábbi beviteli mezőben, majd kattintson a „Licenc igénylése” gombra a jelentkezés elküldéséhez. A licenckérelmek feldolgozása általában 24 órán belül megtörténik.",
+  "submitInfo": "Miután a fenti módszerek bármelyikét elvégezte, illessze be a bizonyítékot az alábbi üzenetmezőbe egy érvényes e-mail-címmel együtt, majd kattintson a „Licenc igénylése” gombra. A kérelmeket manuálisan dolgozzuk fel, általában 24 órán belül, és a licenc kiállításáról e-mailben értesítjük.",
   "messageLabel": "Üzenet",
-  "messagePlaceholder": "Adományozás választása esetén adja meg az adományozót, az adományozási linket vagy a rendelésazonosítót.\nA projektfejlesztésben való részvétel esetén adja meg a PR hivatkozását.\nNépszerűsítés választása esetén adja meg a cikk, videó, blog, vlog vagy hozzászólás hivatkozását.",
+  "messagePlaceholder": "Vásárlók: a Paddle rendelésazonosítója vagy a vásárláshoz használt e-mail-cím.\nKözreműködők: a GitHub Pull Request hivatkozása.\nNépszerűsítők: a bejegyzés, videó vagy cikk hivatkozása.\nKérjük, adjon meg egy érvényes e-mail-címet is, hogy a licenc kiállításáról értesíthessük.",
   "requestButton": "Licenc igénylése",
   "refreshButton": "Állapot frissítése",
   "licenseActivated": "Licenc aktiválva",
   "licenseNoActivated": "A licenc nincs aktiválva",
-  "licenseInfo": "A jelenleg biztosított licenc állandó licenc, és minden számítógéphez egy licenc tartozik. Ha számítógépet vált, az új eszköz uuid azonosítóját a „Saját licencek” részben kell kötni, vagy új licencet kell igényelni.",
+  "licenseInfo": "A jelenlegi licenc állandó, és az egy licenc egy eszközre szabályt követi. Minden licenc egy adott hardver-UUID-hez kötődik. Ha új számítógépre vált, jelentkezzen be GitHub-fiókjával, és a „Saját licencek” részen válassza le a régi eszközt és kösse az újat, vagy igényeljen új licencet.",
   "logoutTips": "Biztosan kijelentkezik?",
   "delBindTips": "Biztosan leválasztja a licencet erről az UUID-ről?",
   "addBindTips": "Biztosan ehhez az UUID-hez köti a licencet?",

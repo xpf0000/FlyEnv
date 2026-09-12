@@ -1,39 +1,41 @@
 {
-  "description": "Această licență recunoaște și sprijină eforturile lui FlyEnv și ale autorilor săi. Aceasta nu este destinată restricţionării utilizatorilor, ci încurajării respectului pentru activitatea dezvoltatorilor şi pentru proprietatea intelectuală. Asigurați-vă că obțineți o licență valabilă înainte de a utiliza FlyEnv în scopuri comerciale.",
+  "description": "Licența FlyEnv susține dezvoltarea și întreținerea continuă a proiectului. Aceasta nu este destinată blocării dezvoltării locale de bază — runtime-urile esențiale și funcțiile de gestionare a mediului vor rămâne întotdeauna accesibile. O licență elimină limitele de evaluare ale instrumentelor premium și ajută la menținerea FlyEnv pe macOS, Windows și Linux.",
   "restrictions": {
-    "title": "Utilizatorii care nu dețin o licență vor face obiectul următoarelor restricții:",
+    "title": "FlyEnv rămâne funcțional fără licență, însă se aplică următoarele limite de evaluare:",
     "items": {
-      "0": "Pot fi create maximum trei situri.",
-      "1": "Funcția de chat AI este disponibilă doar pentru o perioadă de probă de trei zile.",
-      "2": "Se pot aplica restricții suplimentare caracteristicilor viitoare."
+      "0": "Gestionarea siturilor este limitată la maximum 3 situri locale.",
+      "1": "Asistentul AI este limitat la o perioadă de probă de 3 zile.",
+      "2": "Instrumentul de captură de ecran este limitat la o perioadă de probă de 3 zile.",
+      "3": "Optimizatorul de imagini este limitat la o perioadă de probă de 3 zile.",
+      "4": "Noile funcții premium pot face obiectul unor perioade de probă sau limite similare."
     }
   },
   "howToObtain": {
     "title": "Cum să obții o licență",
-    "description": "FlyEnv oferă modalități flexibile de a obține o licență. Utilizatorii pot alege oricare dintre următoarele metode de aplicat:",
+    "description": "FlyEnv oferă următoarele trei modalități de a obține o licență. Licențele nu pot fi emise automat încă, așa că toate cererile sunt verificate și emise manual:",
     "methods": {
       "0": {
-        "title": "Donează pentru Proiect",
-        "description": "Nu este necesară o sumă fixă pentru donații. Luând în considerare situațiile economice diferite ale utilizatorilor din diferite țări (e. ., mulți utilizatori sunt elevi), vă rugăm să alegeți o sumă confortabilă pentru dvs."
+        "title": "Achiziționează o licență personală",
+        "description": "O licență personală FlyEnv costă $10 USD. Aceasta acoperă un dispozitiv activ (transferul pe alt dispozitiv este acceptat prin gestionarea licenței) și elimină toate limitele de evaluare. Plata este procesată de Paddle. După achiziție, trimite ID-ul comenzii Paddle în formularul de cerere de mai jos. Pagina de achiziție:"
       },
       "1": {
-        "title": "Contribuie la dezvoltare",
-        "description": "Participă la proiect prin depunerea unei solicitări Pull Request. Indiferent de cantitatea de cod, atât timp cât îmbunătățește pozitiv proiectul (e. ., reparând o eroare de traducere), contribuţia ta contează."
+        "title": "Contribuie la codul sursă",
+        "description": "Trimite un Pull Request pe GitHub pentru a ajuta la îmbunătățirea FlyEnv. Fiecare contribuție semnificativă contează — de la funcții majore la simple corecturi de documentație."
       },
       "2": {
-        "title": "Promovarea proiectului",
-        "description": "Promovează FlyEnv partajând experiența ta în articole, videoclipuri, bloguri, vlog-uri sau comentarii. Feedback-ul utilizatorului autentic este preferat. Conținutul poate fi în orice limbă și pe orice platformă."
+        "title": "Promovează proiectul",
+        "description": "Împărtășește experiența ta cu FlyEnv pe orice platformă, în orice limbă — articole, videoclipuri, bloguri sau postări. Conținutul trebuie să fie original și autentic; conținutul publicat cu mai mult de 3 luni în urmă ar putea să nu mai fie eligibil."
       }
     }
   },
-  "submitInfo": "după completarea oricăruia dintre metodele de mai sus, vă rugăm să completați rezultatele în caseta de mai jos și să faceți clic pe butonul 'Solicitare licență' pentru a remite cererea dvs. Cererile de licenţă sunt de obicei procesate în 24 de ore.",
+  "submitInfo": "După finalizarea oricăreia dintre metodele de mai sus, lipește dovada în caseta de mesaj de mai jos împreună cu o adresă de e-mail validă, apoi apasă butonul 'Solicită licență'. Cererile sunt procesate manual, de obicei în 24 de ore, și vei fi notificat prin e-mail după emiterea licenței.",
   "messageLabel": "Mesaj",
-  "messagePlaceholder": "Vă rugăm să trimiteți link-ul de donație, sau ID-ul comenzii atunci când alegeți să donați.\nVă rugăm să trimiteți link-ul PR pentru cei care aleg să participe la dezvoltarea proiectului.\nVă rugăm să trimiteți un link către articole, video, blog, vlog, sau să comentați pentru cei care aleg să promoveze.",
+  "messagePlaceholder": "Cumpărători: ID-ul comenzii Paddle sau e-mailul de confirmare a plății.\nContribuitori: link-ul către Pull Request-ul tău de pe GitHub.\nPromotori: link-ul către postarea, videoclipul sau articolul tău.\nTe rugăm să incluzi și o adresă de e-mail validă, pentru a te putea notifica după emiterea licenței.",
   "requestButton": "Solicită licență",
   "refreshButton": "Reîmprospătare stare",
   "licenseActivated": "Licență activată",
   "licenseNoActivated": "Licenta nu este activata",
-  "licenseInfo": "Licența oferită în prezent este o licență permanentă, fiecare computer corespunde unei licențe. Dacă schimbați computerul, trebuie să legați uuid-ul noului dispozitiv în 'Licențele mele' sau să solicitați o licență nouă.",
+  "licenseInfo": "Licența actuală este permanentă și urmează politica unei licențe per dispozitiv. Fiecare licență este legată de un UUID hardware specific. Dacă treci la un computer nou, conectează-te cu contul tău GitHub și accesează 'Licențele mele' pentru a dezlega dispozitivul vechi și a lega noul dispozitiv, sau solicită o licență nouă.",
   "logoutTips": "Sigur doriți să vă deconectați?",
   "delBindTips": "Sigur doriți să dezlegați licența de acest UUID?",
   "addBindTips": "Sigur doriți să legați licența la acest UUID?",

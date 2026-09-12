@@ -1,39 +1,41 @@
 {
-  "description": "Tato licence uznává a podporuje úsilí FlyEnv a jeho autorů. Jejím cílem není omezovat uživatele, ale podporovat úctu k práci a duševnímu vlastnictví vývojářů. Před použitím FlyEnv pro komerční účely se ujistěte, že jste získali platnou licenci.",
+  "description": "Licence FlyEnv podporuje průběžný vývoj a údržbu projektu. Jejím cílem není blokovat základní lokální vývoj — základní runtime prostředí a funkce správy prostředí zůstanou vždy dostupné. Licence odstraňuje zkušební omezení prémiových nástrojů a pomáhá udržovat FlyEnv v chodu na macOS, Windows i Linuxu.",
   "restrictions": {
-    "title": "Uživatelé bez licence budou podléhat následujícím omezením:",
+    "title": "FlyEnv zůstává funkční i bez licence, platí však následující zkušební omezení:",
     "items": {
-      "0": "Je možné vytvořit maximálně tři stránky.",
-      "1": "Funkce AI chatu je dostupná pouze po dobu tří dnů.",
-      "2": "Další omezení mohou platit pro budoucí funkce."
+      "0": "Správa stránek je omezena na maximálně 3 lokální stránky.",
+      "1": "AI asistent je omezen na 3denní zkušební dobu.",
+      "2": "Nástroj pro snímky obrazovky je omezen na 3denní zkušební dobu.",
+      "3": "Optimalizátor obrázků je omezen na 3denní zkušební dobu.",
+      "4": "Nové prémiové funkce mohou podléhat podobným zkušebním dobám nebo omezením."
     }
   },
   "howToObtain": {
     "title": "Jak získat licenci",
-    "description": "FlyEnv poskytuje flexibilní způsoby, jak získat licenci. Uživatelé si mohou vybrat některou z následujících metod:",
+    "description": "FlyEnv nabízí následující tři způsoby, jak získat licenci. Licence zatím nelze vydávat automaticky, takže všechny žádosti jsou kontrolovány a vydávány ručně:",
     "methods": {
       "0": {
-        "title": "Přispět na projekt",
-        "description": "Pro dary není vyžadována pevně stanovená částka. S ohledem na různou ekonomickou situaci uživatelů v různých zemích (např. mnoho uživatelů jsou studenti) si prosím vyberte částku, která je pro vás příjemná."
+        "title": "Zakoupit osobní licenci",
+        "description": "Osobní licence FlyEnv stojí $10 USD. Vztahuje se na jedno aktivní zařízení (přenos na jiné zařízení je podporován prostřednictvím správy licencí) a odstraňuje všechna zkušební omezení. Platba je zpracovávána službou Paddle. Po zakoupení zadejte ID své objednávky Paddle do formuláře žádosti níže. Stránka nákupu:"
       },
       "1": {
-        "title": "Přispět k vývoji",
-        "description": "Zapojte se do projektu odesláním Pull Requestu. Bez ohledu na množství kódu, pokud projekt pozitivně zlepšuje (např. oprava chyby v překladu), váš příspěvek se počítá."
+        "title": "Přispět do kódu projektu",
+        "description": "Odešlete Pull Request na GitHubu a pomozte vylepšit FlyEnv. Počítá se každý smysluplný příspěvek — od rozsáhlých funkcí až po jednoduché opravy dokumentace."
       },
       "2": {
-        "title": "Propagovat projekt",
-        "description": "Propagujte FlyEnv sdílením vašich zkušeností s články, videi, blogy, vlogy nebo komentáři. Upřednostňuje se uživatelská zpětná vazba. Obsah může být v libovolném jazyce a na libovolné platformě."
+        "title": "Šiřte povědomí o projektu",
+        "description": "Sdílejte své zkušenosti s FlyEnv na libovolné platformě a v libovolném jazyce — články, videa, blogy nebo příspěvky. Obsah musí být originální a autentický; obsah publikovaný před více než 3 měsíci již nemusí být způsobilý."
       }
     }
   },
-  "submitInfo": "Po dokončení některé z výše uvedených metod vyplňte prosím výsledky do vstupního pole níže a pro odeslání vaší žádosti klikněte na tlačítko 'Požádat o licenci'. Žádosti o licence jsou obvykle zpracovávány do 24 hodin.",
+  "submitInfo": "Po dokončení některé z výše uvedených metod vložte svůj důkaz do pole pro zprávu níže spolu s platnou e-mailovou adresou a poté klikněte na tlačítko 'Požádat o licenci'. Žádosti jsou zpracovávány ručně, obvykle do 24 hodin, a po vydání licence budete informováni e-mailem.",
   "messageLabel": "Zpráva",
-  "messagePlaceholder": "Při volbě daru prosím uveďte dárce, odkaz na dar nebo ID objednávky.\nPokud se rozhodnete podílet na vývoji projektu, uveďte prosím odkaz na PR.\nPokud se rozhodnete projekt propagovat, nahrajte prosím odkaz na svůj článek, video, blog, vlog nebo komentář.",
+  "messagePlaceholder": "Kupující: ID vaší objednávky Paddle nebo e-mail s potvrzením.\nPřispěvatelé: odkaz na váš GitHub Pull Request.\nPropagátoři: odkaz na váš příspěvek, video nebo článek.\nUveďte prosím také platnou e-mailovou adresu, abychom vás mohli po vydání licence informovat.",
   "requestButton": "Žádost o licenci",
   "refreshButton": "Obnovit stav",
   "licenseActivated": "Licence aktivována",
   "licenseNoActivated": "Licence není aktivována",
-  "licenseInfo": "Aktuálně poskytovaná licence je trvalá licence, každý počítač odpovídá jedné licenci. Pokud vyměníte počítač, je třeba v 'Moje licence' navázat uuid nového zařízení nebo požádat o novou licenci.",
+  "licenseInfo": "Aktuální licence je trvalá a řídí se zásadou jedna licence na jedno zařízení. Každá licence je vázána na konkrétní hardwarové UUID. Pokud přejdete na nový počítač, přihlaste se svým účtem GitHub, v části 'Moje licence' zrušte vazbu starého zařízení a navážte nové, nebo požádejte o novou licenci.",
   "logoutTips": "Opravdu se chcete odhlásit?",
   "delBindTips": "Opravdu chcete zrušit vazbu licence na toto UUID?",
   "addBindTips": "Opravdu chcete navázat licenci na toto UUID?",

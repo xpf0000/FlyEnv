@@ -1,39 +1,41 @@
 {
-  "description": "Diese Lizenz würdigt und unterstützt die Bemühungen von FlyEnv und seinen Autoren. Es soll nicht die Nutzer einschränken, sondern die Achtung der Arbeit und des geistigen Eigentums der Entwickler fördern. Bitte stellen Sie sicher, dass Sie vor der Nutzung von FlyEnv eine gültige Lizenz erhalten.",
+  "description": "Die FlyEnv-Lizenz unterstützt die laufende Entwicklung und Wartung des Projekts. Sie soll die lokale Kernentwicklung nicht blockieren – zentrale Laufzeitumgebungen und Funktionen zur Verwaltung von Entwicklungsumgebungen bleiben immer zugänglich. Eine Lizenz hebt die Evaluierungsbeschränkungen der Premium-Werkzeuge auf und hilft dabei, FlyEnv auf macOS, Windows und Linux zu pflegen.",
   "restrictions": {
-    "title": "Benutzer ohne Lizenz unterliegen folgenden Einschränkungen:",
+    "title": "FlyEnv bleibt auch ohne Lizenz funktionsfähig, es gelten jedoch folgende Evaluierungsbeschränkungen:",
     "items": {
-      "0": "Es können maximal drei Seiten erstellt werden.",
-      "1": "Das KI-Chat-Feature ist nur für einen Testzeitraum von drei Tagen verfügbar.",
-      "2": "Weitere Einschränkungen können für zukünftige Funktionen gelten."
+      "0": "Die Seitenverwaltung ist auf maximal 3 lokale Seiten beschränkt.",
+      "1": "Der KI-Assistent ist auf einen Testzeitraum von 3 Tagen beschränkt.",
+      "2": "Das Screenshot-Werkzeug ist auf einen Testzeitraum von 3 Tagen beschränkt.",
+      "3": "Der Bildoptimierer ist auf einen Testzeitraum von 3 Tagen beschränkt.",
+      "4": "Neue Premium-Funktionen können ähnlichen Testzeiträumen oder Beschränkungen unterliegen."
     }
   },
   "howToObtain": {
     "title": "So erhältst du eine Lizenz",
-    "description": "FlyEnv bietet flexible Möglichkeiten, eine Lizenz zu erwerben. Benutzer können eine der folgenden Methoden wählen:",
+    "description": "FlyEnv bietet die folgenden drei Möglichkeiten, eine Lizenz zu erhalten. Lizenzen können noch nicht automatisch ausgestellt werden, daher werden alle Anfragen manuell geprüft und ausgestellt:",
     "methods": {
       "0": {
-        "title": "Spenden an das Projekt",
-        "description": "Für Spenden ist kein fester Betrag erforderlich, da die wirtschaftliche Situation der Nutzer in den verschiedenen Ländern unterschiedlich ist (z.B., viele Benutzer sind Studenten), wähle bitte einen Betrag, der für dich angemessen ist."
+        "title": "Eine persönliche Lizenz erwerben",
+        "description": "Eine persönliche FlyEnv-Lizenz kostet $10 USD. Sie deckt ein aktives Gerät ab (der Gerätewechsel wird über die Lizenzverwaltung unterstützt) und hebt alle Evaluierungsbeschränkungen auf. Der Kauf wird über Paddle abgewickelt. Gib nach dem Kauf deine Paddle-Bestellnummer im untenstehenden Anfrageformular ein. Kaufseite:"
       },
       "1": {
-        "title": "Zur Entwicklung beitragen",
-        "description": "Du kannst dich an dem Projekt beteiligen, indem du einen Pull Request einreichst. Unabhängig vom Umfang des Codes zählt jeder Beitrag, solange er das Projekt positiv verbessert (z. B. durch die Korrektur eines Übersetzungsfehlers)."
+        "title": "Zum Code beitragen",
+        "description": "Reiche einen Pull Request auf GitHub ein, um FlyEnv zu verbessern. Jeder sinnvolle Beitrag zählt – von großen Funktionen bis hin zu einfachen Korrekturen an der Dokumentation."
       },
       "2": {
-        "title": "Das Projekt bewerben",
-        "description": "Bewirb FlyEnv, indem du deine Erfahrungen in Artikeln, Videos, Blogs, Vlogs oder Kommentaren teilst. Bevorzugt werden authentische Nutzerbewertungen. Die Inhalte können in jeder Sprache und auf jeder Plattform veröffentlicht werden."
+        "title": "FlyEnv bekannter machen",
+        "description": "Teile deine Erfahrungen mit FlyEnv auf einer beliebigen Plattform und in einer beliebigen Sprache – als Artikel, Video, Blog oder Beitrag. Die Inhalte müssen original und authentisch sein; Inhalte, die vor mehr als 3 Monaten veröffentlicht wurden, kommen möglicherweise nicht mehr in Frage."
       }
     }
   },
-  "submitInfo": "Nach Abschluss einer der oben genannten Methoden gib bitte die Ergebnisse in das Eingabefeld unten ein und klicke auf die Schaltfläche „Lizenz anfordern“, um deinen Antrag zu übermitteln. Lizenzanfragen werden in der Regel innerhalb von 24 Stunden bearbeitet.",
+  "submitInfo": "Füge nach Abschluss einer der oben genannten Methoden deinen Nachweis zusammen mit einer gültigen E-Mail-Adresse in das Nachrichtenfeld unten ein und klicke anschließend auf die Schaltfläche „Lizenz anfordern“. Anfragen werden manuell bearbeitet, in der Regel innerhalb von 24 Stunden, und du wirst per E-Mail benachrichtigt, sobald deine Lizenz ausgestellt wurde.",
   "messageLabel": "Nachricht",
-  "messagePlaceholder": "Bitte gib den Spender, den Spendenlink oder die Bestell-ID ein, wenn du dich für eine Spende entscheidest.\nBitte gib den PR-Link an, wenn du dich für die Teilnahme an der Projektentwicklung entscheidest.\nBitte gib einen Link zu deinem Artikel, Video, Blog, Vlog oder Kommentar an, wenn du dich für die Werbung entscheidest.",
+  "messagePlaceholder": "Käufer: deine Paddle-Bestellnummer oder die Quittungs-E-Mail.\nMitwirkende: der Link zu deinem GitHub-Pull-Request.\nWerber: der Link zu deinem Beitrag, Video oder Artikel.\nBitte gib außerdem eine gültige E-Mail-Adresse an, damit wir dich benachrichtigen können, sobald die Lizenz ausgestellt wurde.",
   "requestButton": "Lizenz anfordern",
   "refreshButton": "Aktualisiere Status",
   "licenseActivated": "Lizenz aktiviert",
   "licenseNoActivated": "Lizenz nicht aktiviert",
-  "licenseInfo": "Die aktuell bereitgestellte Lizenz ist eine permanente Lizenz, jeder Computer entspricht einer Lizenz. Wenn Sie den Computer wechseln, müssen Sie in 'Meine Lizenzen' die UUID des neuen Geräts binden oder eine neue Lizenz beantragen.",
+  "licenseInfo": "Die aktuelle Lizenz ist permanent und folgt dem Prinzip „eine Lizenz pro Gerät“. Jede Lizenz ist an eine bestimmte Hardware-UUID gebunden. Wenn Sie zu einem neuen Computer wechseln, melden Sie sich mit Ihrem GitHub-Konto an und gehen Sie zu „Meine Lizenzen“, um das alte Gerät zu entbinden und das neue zu binden, oder fordern Sie eine neue Lizenz an.",
   "logoutTips": "Sind Sie sicher, dass Sie sich abmelden möchten?",
   "delBindTips": "Sind Sie sicher, dass Sie die Lizenzbindung an diese UUID aufheben möchten?",
   "addBindTips": "Sind Sie sicher, dass Sie die Lizenz an diese UUID binden möchten?",

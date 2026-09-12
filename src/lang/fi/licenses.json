@@ -1,39 +1,41 @@
 {
-  "description": "Tämä lisenssi tunnustaa FlyEnvin ja sen kirjoittajien pyrkimykset ja tukee niitä. Tarkoituksena ei ole rajoittaa käyttäjiä, vaan edistää kehittäjien työn ja henkisen omaisuuden kunnioittamista. Varmista, että saat voimassa olevan lisenssin ennen kuin käytät FlyEnv kaupallisiin tarkoituksiin.",
+  "description": "FlyEnv-lisenssi tukee projektin jatkuvaa kehittämistä ja ylläpitoa. Sen tarkoituksena ei ole estää paikallista peruskehitystä – perusajonaikaiset ympäristöt ja ympäristönhallintaominaisuudet pysyvät aina käytettävissä. Lisenssi poistaa maksullisten työkalujen arviointirajoitukset ja auttaa pitämään FlyEnvin ylläpidettynä macOS:ssä, Windowsissa ja Linuxissa.",
   "restrictions": {
-    "title": "Käyttäjiin, joilla ei ole lisenssiä, sovelletaan seuraavia rajoituksia:",
+    "title": "FlyEnv toimii myös ilman lisenssiä, mutta seuraavat arviointirajoitukset ovat voimassa:",
     "items": {
-      "0": "Voidaan luoda enintään kolme kohdetta.",
-      "1": "AI chat -ominaisuus on saatavilla vain kolmen päivän kokeilujaksolle.",
-      "2": "Tuleviin ominaisuuksiin voidaan soveltaa lisärajoituksia."
+      "0": "Sivustojen hallinta on rajoitettu enintään kolmeen paikalliseen sivustoon.",
+      "1": "AI-avustaja on rajoitettu kolmen päivän kokeilujaksoon.",
+      "2": "Kuvakaappaustyökalu on rajoitettu kolmen päivän kokeilujaksoon.",
+      "3": "Kuvien optimointityökalu on rajoitettu kolmen päivän kokeilujaksoon.",
+      "4": "Uusiin maksullisiin ominaisuuksiin saatetaan soveltaa vastaavia kokeilujaksoja tai rajoituksia."
     }
   },
   "howToObtain": {
-    "title": "Miten hankkia lisenssi",
-    "description": "FlyEnv tarjoaa joustavia tapoja saada lisenssi. Käyttäjät voivat valita minkä tahansa seuraavista menetelmistä:",
+    "title": "Näin hankit lisenssin",
+    "description": "FlyEnv tarjoaa seuraavat kolme tapaa lisenssin hankkimiseen. Lisenssejä ei voida vielä myöntää automaattisesti, joten kaikki pyynnöt tarkistetaan ja käsitellään manuaalisesti:",
     "methods": {
       "0": {
-        "title": "Lahjoita projektille",
-        "description": "Lahjoituksia varten ei tarvita kiinteää summaa, kun otetaan huomioon eri maiden käyttäjien erilaiset taloudelliset tilanteet (esim. ., monet käyttäjät ovat opiskelijoita), valitse summa, joka on mukava sinulle."
+        "title": "Osta henkilökohtainen lisenssi",
+        "description": "FlyEnv Personal License maksaa $10 USD. Se kattaa yhden aktiivisen laitteen (laitteen vaihto onnistuu lisenssinhallinnan kautta) ja poistaa kaikki arviointirajoitukset. Kassaprosessista vastaa Paddle. Oston jälkeen lähetä Paddle-tilaustunnuksesi alla olevalla pyyntölomakkeella. Ostosivu:"
       },
       "1": {
-        "title": "Osallistu kehitykseen",
-        "description": "Osallistu projektiin lähettämällä Pull Request. Riippumatta koodin määrästä, niin kauan kuin se positiivisesti parantaa projektia (e. ., vahvistamisesta käännösvirhe), maksuosuus laskee."
+        "title": "Osallistu koodipohjan kehittämiseen",
+        "description": "Lähetä Pull Request GitHubissa auttaaksesi FlyEnvin parantamisessa. Jokainen merkityksellinen panos lasketaan – suurista ominaisuuksista yksinkertaisiin dokumentaatiokorjauksiin."
       },
       "2": {
-        "title": "Hankkeen edistäminen",
-        "description": "Edistää FlyEnv jakamalla kokemuksesi artikkeleita, videoita, blogeja, vlogs, tai kommentteja. Aito käyttäjän palaute on suositeltavaa. Sisältö voi olla millä tahansa kielellä ja millä tahansa alustalla."
+        "title": "Levitä sanaa",
+        "description": "Jaa FlyEnv-kokemuksesi millä tahansa alustalla millä tahansa kielellä – artikkeleina, videoina, blogeina tai julkaisuina. Sisällön on oltava alkuperäistä ja aitoa; yli 3 kuukautta sitten julkaistu sisältö ei välttämättä enää kelpaa."
       }
     }
   },
-  "submitInfo": "Sen jälkeen kun jokin edellä mainituista menetelmistä on suoritettu, ole hyvä ja täytä tulokset alla olevaan kenttään ja lähetä hakemuksesi klikkaamalla 'Request License' -painiketta. Lisenssipyynnöt käsitellään yleensä 24 tunnin kuluessa.",
+  "submitInfo": "Kun olet suorittanut jonkin yllä olevista menetelmistä, liitä todisteesi alla olevaan viestikenttään yhdessä voimassa olevan sähköpostiosoitteen kanssa ja napsauta 'Request License' -painiketta. Pyynnöt käsitellään manuaalisesti, yleensä 24 tunnin kuluessa, ja saat ilmoituksen sähköpostitse, kun lisenssi on myönnetty.",
   "messageLabel": "Viesti",
-  "messagePlaceholder": "Ole hyvä ja lähetä lahjoittaja, lahjoituslinkki tai tilaushenkilöllisyystodistus, kun päätät lahjoittaa.\nOle hyvä ja lähetä PR-linkki niille, jotka haluavat osallistua projektin kehittämiseen.\nOle hyvä ja lähetä linkki artikkeliisi, videoihisi, blogiisi, vlogisiisi tai kommentoi niille, jotka haluavat markkinoida.",
+  "messagePlaceholder": "Ostajat: Paddle-tilaustunnuksesi tai kuitin sähköpostiosoite.\nOsallistujat: linkki GitHub Pull Requestiisi.\nEdistäjät: linkki julkaisuusi, videoosi tai artikkeliisi.\nLiitä mukaan myös voimassa oleva sähköpostiosoite, jotta voimme ilmoittaa sinulle, kun lisenssi on myönnetty.",
   "requestButton": "Pyydä Lisenssiä",
   "refreshButton": "Päivitä Tila",
   "licenseActivated": "Lisenssi aktivoitu",
   "licenseNoActivated": "Lisenssiä ei ole aktivoitu",
-  "licenseInfo": "Nykyinen tarjottu lisenssi on pysyvä lisenssi, jokainen tietokone vastaa yhtä lisenssiä. Jos vaihdat tietokonetta, sinun on sidottava uuden laitteen uuid kohdassa 'Lisenssini' tai haettava uutta lisenssiä.",
+  "licenseInfo": "Nykyinen lisenssi on pysyvä ja noudattaa yhden lisenssin per laite -käytäntöä. Jokainen lisenssi on sidottu tiettyyn laitteiston UUID:hen. Jos vaihdat uuteen tietokoneeseen, kirjaudu sisään GitHub-tililläsi ja siirry kohtaan 'Lisenssini' irrottaaksesi vanhan laitteen ja sitoaksesi uuden, tai pyydä uutta lisenssiä.",
   "logoutTips": "Haluatko varmasti kirjautua ulos?",
   "delBindTips": "Haluatko varmasti irrottaa lisenssin tästä UUID:stä?",
   "addBindTips": "Haluatko varmasti sitoa lisenssin tähän UUID:hen?",

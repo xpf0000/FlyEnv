@@ -17,6 +17,7 @@ import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
 import axios from 'axios'
 import { fetchTags } from './image'
+import { podmanMachineInitArgs, type PodmanMachineInitConfig } from './machineInit'
 
 /**
  * Podman 5.1.0 introduced the Rosetta toggle, read from containers.conf
@@ -307,56 +308,13 @@ class Podman extends Base {
     })
   }
 
-  machineInit(config: {
-    name: string
-    cpus: number
-    memory: number
-    disk: number
-    isDefault: boolean
-    rootful: boolean
-    rosetta: boolean
-    identityPath?: string
-    remoteUsername?: string
-  }) {
+  machineInit(config: PodmanMachineInitConfig) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const {
-          name,
-          cpus,
-          memory,
-          disk,
-          isDefault,
-          rootful,
-          rosetta,
-          identityPath,
-          remoteUsername
-        } = config
-
         console.log('machineInit config: ', config)
 
-        const args: string[] = ['podman machine init']
-
-        args.push(`--cpus ${cpus}`)
-        args.push(`--memory ${memory}`)
-        args.push(`--disk-size ${disk}`)
-
-        if (isDefault) {
-          args.push('--now')
-        }
-        if (rootful) {
-          args.push('--rootful')
-        } else {
-          args.push('--rootful=false')
-        }
-        const rosettaEnv = isMacOS() ? await this.applyRosettaConfig(!!rosetta) : undefined
-        if (identityPath) {
-          args.push(`--identity-path "${identityPath}"`)
-        }
-        if (remoteUsername) {
-          args.push(`--username "${remoteUsername}"`)
-        }
-
-        args.push(name)
+        const rosettaEnv = isMacOS() ? await this.applyRosettaConfig(!!config.rosetta) : undefined
+        const args = podmanMachineInitArgs(config)
 
         await execPromiseWithEnv(args.join(' '), rosettaEnv ? { env: rosettaEnv } : undefined)
         resolve(true)

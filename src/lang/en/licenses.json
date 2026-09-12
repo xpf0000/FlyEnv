@@ -1,39 +1,41 @@
 {
-  "description": "This license acknowledges and supports the efforts of FlyEnv and its authors. It is not intended to restrict users, but to encourage respect for the developers’ work and intellectual property. Please ensure you obtain a valid license before using FlyEnv for commercial purposes.",
+  "description": "The FlyEnv license supports the ongoing development and maintenance of the project. It is not intended to block core local development — core runtimes and environment management features will always remain accessible. A license removes the evaluation limits of premium tools and helps keep FlyEnv maintained across macOS, Windows, and Linux.",
   "restrictions": {
-    "title": "Users without a license will be subject to the following restrictions:",
+    "title": "FlyEnv remains functional without a license, but the following evaluation limits apply:",
     "items": {
-      "0": "A maximum of three sites can be created.",
-      "1": "The AI chat feature is available for a trial period of three days only.",
-      "2": "Additional restrictions may apply to future features."
+      "0": "Site management is limited to a maximum of 3 local sites.",
+      "1": "The AI assistant is limited to a 3-day trial.",
+      "2": "The screenshot tool is limited to a 3-day trial.",
+      "3": "The image optimizer is limited to a 3-day trial.",
+      "4": "New premium features may be subject to similar trial periods or limits."
     }
   },
   "howToObtain": {
-    "title": "How to Obtain a License",
-    "description": "FlyEnv provides flexible ways to obtain a license. Users can choose any of the following methods to apply:",
+    "title": "How to Get Licensed",
+    "description": "FlyEnv offers the following three ways to obtain a license. Licenses cannot be issued automatically yet, so all requests are reviewed and issued manually:",
     "methods": {
       "0": {
-        "title": "Donate to the Project",
-        "description": "There is no fixed amount required for donations. Considering the varying economic situations of users in different countries (e.g., many users are students), please choose an amount that is comfortable for you."
+        "title": "Purchase a Personal License",
+        "description": "A FlyEnv Personal License costs $10 USD. It covers one active device (device transfer is supported via license management) and removes all evaluation limits. Checkout is processed by Paddle. After purchasing, submit your Paddle order ID in the request form below. Purchase page:"
       },
       "1": {
-        "title": "Contribute to Development",
-        "description": "Participate in the project by submitting a Pull Request. Regardless of the amount of code, as long as it positively improves the project (e.g., fixing a translation error), your contribution counts."
+        "title": "Contribute to the Codebase",
+        "description": "Submit a Pull Request on GitHub to help improve FlyEnv. Every meaningful contribution counts — from major features to simple documentation fixes."
       },
       "2": {
-        "title": "Promote the Project",
-        "description": "Promote FlyEnv by sharing your experience in articles, videos, blogs, vlogs, or comments. Authentic user feedback is preferred. Content can be in any language and on any platform."
+        "title": "Spread the Word",
+        "description": "Share your FlyEnv experience on any platform in any language — articles, videos, blogs, or posts. Content must be original and authentic; content published more than 3 months ago may no longer be eligible."
       }
     }
   },
-  "submitInfo": "After completing any of the above methods, please fill in the results in the input box below and click the 'Request License' button to submit your application. License requests are usually processed within 24 hours.",
+  "submitInfo": "After completing any of the methods above, paste your proof into the message box below together with a valid email address, then click the 'Request License' button. Requests are processed manually, usually within 24 hours, and you will be notified by email once your license has been issued.",
   "messageLabel": "Message",
-  "messagePlaceholder": "Please submit the donor, donation link, or order ID when choosing to donate.\nPlease submit the PR link for those who choose to participate in project development.\nPlease submit a link to your article, video, blog, vlog, or comment for those who choose to promote.",
+  "messagePlaceholder": "Purchasers: your Paddle order ID or receipt email.\nContributors: the link to your GitHub Pull Request.\nPromoters: the link to your post, video, or article.\nPlease also include a valid email address so we can notify you once the license is issued.",
   "requestButton": "Request License",
   "refreshButton": "Refresh State",
   "licenseActivated": "License activated",
   "licenseNoActivated": "License not activated",
-  "licenseInfo": "The current provided license is a permanent license, each computer corresponds to one license. If you change computers, you need to bind the new device's uuid in 'My Licenses', or apply for a new license.",
+  "licenseInfo": "The current license is permanent and follows a one-license-per-device policy. Each license is tied to a specific hardware UUID. If you switch to a new computer, log in with your GitHub account and go to 'My Licenses' to unbind the old device and bind the new one, or request a new license.",
   "logoutTips": "Are you sure you want to log out?",
   "delBindTips": "Are you sure to unbind the license from this UUID?",
   "addBindTips": "Are you sure to bind the license to this UUID?",

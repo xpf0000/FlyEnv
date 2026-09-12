@@ -1,39 +1,41 @@
 {
-  "description": "Lisensi ini adalah pengakuan dan dukungan untuk kerja keras FlyEnv dan penulisnya. Tujuannya bukan untuk membatasi pengguna, tetapi untuk mengingatkan mereka untuk menghormati upaya para pengembang dan mematuhi ketentuan yang relevan saat menggunakan perangkat lunak. Dengan mematuhi lisensi ini, pengguna tidak hanya mendukung pengembangan proyek yang berkelanjutan tetapi juga berkontribusi pada semangat kepercayaan dan kolaborasi dalam komunitas sumber terbuka.",
+  "description": "Lisensi FlyEnv mendukung pengembangan dan pemeliharaan proyek ini secara berkelanjutan. Lisensi ini tidak dimaksudkan untuk memblokir pengembangan lokal inti — runtime inti dan fitur manajemen lingkungan akan selalu tetap dapat diakses. Lisensi menghapus batas evaluasi pada alat premium dan membantu menjaga FlyEnv tetap terpelihara di macOS, Windows, dan Linux.",
   "restrictions": {
-    "title": "Pengguna tanpa lisensi akan dikenakan pembatasan berikut:",
+    "title": "FlyEnv tetap berfungsi tanpa lisensi, tetapi batas evaluasi berikut berlaku:",
     "items": {
-      "0": "Maksimal tiga situs dapat dibuat.",
-      "1": "Fitur obrolan AI tersedia hanya untuk periode percobaan tiga hari.",
-      "2": "Pembatasan tambahan mungkin berlaku untuk fitur mendatang."
+      "0": "Manajemen situs dibatasi maksimal 3 situs lokal.",
+      "1": "Asisten AI dibatasi untuk masa percobaan 3 hari.",
+      "2": "Alat tangkapan layar dibatasi untuk masa percobaan 3 hari.",
+      "3": "Pengoptimal gambar dibatasi untuk masa percobaan 3 hari.",
+      "4": "Fitur premium baru mungkin dikenakan masa percobaan atau batasan serupa."
     }
   },
   "howToObtain": {
     "title": "Cara Mendapatkan Lisensi",
-    "description": "FlyEnv menyediakan cara fleksibel untuk mendapatkan lisensi. Pengguna dapat memilih salah satu metode berikut untuk mengajukan permohonan:",
+    "description": "FlyEnv menawarkan tiga cara berikut untuk mendapatkan lisensi. Lisensi belum dapat diterbitkan secara otomatis, sehingga semua permohonan ditinjau dan diterbitkan secara manual:",
     "methods": {
       "0": {
-        "title": "Donasi untuk Proyek",
-        "description": "Tidak ada jumlah tetap yang diperlukan untuk donasi. Mengingat situasi ekonomi yang bervariasi di berbagai negara (misalnya, banyak pengguna adalah mahasiswa), silakan pilih jumlah yang sesuai dengan keadaan Anda."
+        "title": "Beli Lisensi Personal",
+        "description": "Lisensi Personal FlyEnv seharga $10 USD. Lisensi ini mencakup satu perangkat aktif (perpindahan perangkat didukung melalui manajemen lisensi) dan menghapus semua batas evaluasi. Pembayaran diproses oleh Paddle. Setelah membeli, kirimkan ID pesanan Paddle Anda di formulir permohonan di bawah. Halaman pembelian:"
       },
       "1": {
-        "title": "Berpartisipasi dalam Pengembangan",
-        "description": "Berpartisipasi dalam proyek dengan mengirimkan Pull Request. Tidak peduli seberapa banyak kode yang ditambahkan, selama itu meningkatkan proyek secara positif (misalnya, memperbaiki kesalahan terjemahan), itu memenuhi syarat."
+        "title": "Berkontribusi pada Kode",
+        "description": "Kirimkan Pull Request di GitHub untuk membantu meningkatkan FlyEnv. Setiap kontribusi yang bermakna diperhitungkan — mulai dari fitur besar hingga perbaikan dokumentasi sederhana."
       },
       "2": {
-        "title": "Mempromosikan Proyek",
-        "description": "Promosikan FlyEnv dengan membagikan pengalaman nyata lewat artikel, video, blog, vlog, atau komentar. Konten bisa dalam bahasa apa pun dan di platform mana pun, asalkan terbuka untuk umum di internet."
+        "title": "Sebarkan Kabar",
+        "description": "Bagikan pengalaman FlyEnv Anda di platform mana pun dalam bahasa apa pun — artikel, video, blog, atau postingan. Konten harus orisinal dan autentik; konten yang dipublikasikan lebih dari 3 bulan yang lalu mungkin tidak lagi memenuhi syarat."
       }
     }
   },
-  "submitInfo": "Setelah menyelesaikan salah satu metode di atas, harap isi hasilnya di kotak input di bawah ini dan klik tombol 'Ajukan Lisensi' untuk mengirimkan permohonan Anda. Permohonan lisensi akan ditinjau secara manual, jadi harap bersabar. Biasanya diproses dengan cepat.",
+  "submitInfo": "Setelah menyelesaikan salah satu metode di atas, tempelkan bukti Anda ke dalam kotak pesan di bawah ini bersama dengan alamat email yang valid, lalu klik tombol 'Ajukan Lisensi'. Permohonan diproses secara manual, biasanya dalam waktu 24 jam, dan Anda akan diberi tahu melalui email setelah lisensi Anda diterbitkan.",
   "messageLabel": "Pesan",
-  "messagePlaceholder": "Harap kirimkan donatur, tautan donasi, atau ID pesanan saat memilih untuk mendonasikan.\nHarap kirimkan tautan PR bagi mereka yang memilih untuk berpartisipasi dalam pengembangan proyek.\nHarap kirimkan tautan artikel/video jika Anda memilih untuk membantu mempromosikan proyek",
+  "messagePlaceholder": "Pembeli: ID pesanan Paddle atau email tanda terima Anda.\nKontributor: tautan ke Pull Request GitHub Anda.\nPromotor: tautan ke postingan, video, atau artikel Anda.\nHarap sertakan juga alamat email yang valid agar kami dapat memberi tahu Anda setelah lisensi diterbitkan.",
   "requestButton": "Ajukan Lisensi",
   "refreshButton": "Segarkan Status",
   "licenseActivated": "Lisensi diaktifkan",
   "licenseNoActivated": "Lisensi tidak diaktifkan",
-  "licenseInfo": "Lisensi yang disediakan saat ini adalah lisensi permanen, setiap komputer sesuai dengan satu lisensi. Jika Anda mengganti komputer, Anda perlu mengikat uuid perangkat baru di 'Lisensi Saya', atau mengajukan lisensi baru.",
+  "licenseInfo": "Lisensi saat ini bersifat permanen dan mengikuti kebijakan satu lisensi per perangkat. Setiap lisensi terikat pada UUID perangkat keras tertentu. Jika Anda beralih ke komputer baru, masuk dengan akun GitHub Anda dan buka 'Lisensi Saya' untuk melepaskan ikatan perangkat lama dan mengikat perangkat baru, atau ajukan lisensi baru.",
   "logoutTips": "Apakah Anda yakin ingin keluar?",
   "delBindTips": "Apakah Anda yakin ingin membatalkan ikatan lisensi dari UUID ini?",
   "addBindTips": "Apakah Anda yakin ingin mengikat lisensi ke UUID ini?",

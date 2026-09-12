@@ -1,39 +1,41 @@
 {
-  "description": "Ova licenca priznaje i podržava napore FlyEnv-a i njegovih autora. Nije namijenjena ograničavanju korisnika, već poticanju poštovanja rada programera i intelektualnog vlasništva. Molimo osigurajte da imate valjanu licencu prije korištenja FlyEnv-a u komercijalne svrhe.",
+  "description": "Licenca za FlyEnv podržava stalni razvoj i održavanje projekta. Nije namijenjena blokiranju osnovnog lokalnog razvoja — osnovna okruženja za izvršavanje i značajke upravljanja okruženjem uvijek će ostati dostupne. Licenca uklanja probna ograničenja premium alata i pomaže održavati FlyEnv na macOS-u, Windowsu i Linuxu.",
   "restrictions": {
-    "title": "Korisnici bez licence bit će podložni sljedećim ograničenjima:",
+    "title": "FlyEnv ostaje funkcionalan bez licence, ali primjenjuju se sljedeća probna ograničenja:",
     "items": {
-      "0": "Mogu se kreirati maksimalno tri stranice.",
-      "1": "Značajka AI chata dostupna je samo za probno razdoblje od tri dana.",
-      "2": "Dodatna ograničenja mogu se primijeniti na buduće značajke."
+      "0": "Upravljanje stranicama ograničeno je na najviše 3 lokalne stranice.",
+      "1": "AI asistent ograničen je na 3-dnevno probno razdoblje.",
+      "2": "Alat za snimke zaslona ograničen je na 3-dnevno probno razdoblje.",
+      "3": "Alat za optimizaciju slika ograničen je na 3-dnevno probno razdoblje.",
+      "4": "Nove premium značajke mogu podlijeći sličnim probnim razdobljima ili ograničenjima."
     }
   },
   "howToObtain": {
-    "title": "Kako Dobiti Licencu",
-    "description": "FlyEnv pruža fleksibilne načine za dobivanje licence. Korisnici mogu odabrati bilo koji od sljedećih metoda za prijavu:",
+    "title": "Kako Nabaviti Licencu",
+    "description": "FlyEnv nudi sljedeća tri načina za dobivanje licence. Licence se još ne mogu izdavati automatski, pa se svi zahtjevi pregledavaju i izdaju ručno:",
     "methods": {
       "0": {
-        "title": "Donacija Projektu",
-        "description": "Nema fiksnog iznosa potrebnog za donacije. Uzimajući u obzir različite ekonomske situacije korisnika u različitim zemljama (npr. mnogi korisnici su studenti), molimo odaberite iznos koji vam odgovara."
+        "title": "Kupnja Osobne Licence",
+        "description": "Osobna licenca za FlyEnv košta $10 USD. Pokriva jedan aktivni uređaj (prijenos uređaja podržan je putem upravljanja licencama) i uklanja sva probna ograničenja. Plaćanje obrađuje Paddle. Nakon kupnje, unesite svoj Paddle ID narudžbe u obrazac za zahtjev u nastavku. Stranica za kupnju:"
       },
       "1": {
-        "title": "Doprinos Razvoju",
-        "description": "Sudjelujte u projektu slanjem Pull Requesta. Bez obzira na količinu koda, sve dok pozitivno poboljšava projekt (npr. ispravljanje greške u prijevodu), vaš doprinos se računa."
+        "title": "Doprinos Kôdu",
+        "description": "Pošaljite Pull Request na GitHubu kako biste pomogli poboljšati FlyEnv. Svaki značajan doprinos se računa — od velikih značajki do jednostavnih ispravaka dokumentacije."
       },
       "2": {
-        "title": "Promoviranje Projekta",
-        "description": "Promovirajte FlyEnv dijeljenjem svog iskustva u člancima, videima, blogovima, vlogovima ili komentarima. Autentičan korisnički feedback je poželjan. Sadržaj može biti na bilo kojem jeziku i na bilo kojoj platformi."
+        "title": "Proširite Vijest",
+        "description": "Podijelite svoje iskustvo s FlyEnv-om na bilo kojoj platformi i na bilo kojem jeziku — članci, videi, blogovi ili objave. Sadržaj mora biti izvoran i autentičan; sadržaj objavljen prije više od 3 mjeseca možda više neće biti prihvatljiv."
       }
     }
   },
-  "submitInfo": "Nakon završetka bilo koje od gore navedenih metoda, molimo ispunite rezultate u polje za unos ispod i kliknite gumb 'Zatraži Licencu' za slanje prijave. Zahtjevi za licencu se obično obrađuju u roku od 24 sata.",
+  "submitInfo": "Nakon dovršetka bilo koje od gore navedenih metoda, zalijepite svoj dokaz u polje za poruku u nastavku zajedno s valjanom adresom e-pošte, a zatim kliknite gumb 'Zatraži Licencu'. Zahtjevi se obrađuju ručno, obično u roku od 24 sata, a bit ćete obaviješteni e-poštom kada vaša licenca bude izdana.",
   "messageLabel": "Poruka",
-  "messagePlaceholder": "Molimo pošaljite donatorsku, vezu donacije ili ID narudžbe kada odabirete doniranje.\nMolimo pošaljite PR vezu za one koji odabiru sudjelovati u razvoju projekta.\nMolimo pošaljite vezu vašeg članka, videa, bloga, vloga ili komentara za one koji odabiru promovirati.",
+  "messagePlaceholder": "Kupci: vaš Paddle ID narudžbe ili e-pošta s potvrdom narudžbe.\nSuradnici: veza na vaš GitHub Pull Request.\nPromicatelji: veza na vašu objavu, video ili članak.\nMolimo priložite i valjanu adresu e-pošte kako bismo vas mogli obavijestiti kada licenca bude izdana.",
   "requestButton": "Zatraži Licencu",
   "refreshButton": "Osvježi Stanje",
   "licenseActivated": "Licenca aktivirana",
   "licenseNoActivated": "Licenca nije aktivirana",
-  "licenseInfo": "Trenutno pružena licenca je trajna licenca, svako računalo odgovara jednoj licenci. Ako promijenite računala, trebate vezati UUID novog uređaja u 'Moje Licence', ili podnijeti zahtjev za novu licencu.",
+  "licenseInfo": "Trenutačna licenca je trajna i slijedi pravilo jedne licence po uređaju. Svaka je licenca vezana uz određeni UUID hardvera. Ako prijeđete na novo računalo, prijavite se svojim GitHub računom i idite na 'Moje Licence' kako biste odvezali stari uređaj i vezali novi, ili zatražite novu licencu.",
   "logoutTips": "Jeste li sigurni da se želite odjaviti?",
   "delBindTips": "Jeste li sigurni da želite odveznati licencu od ovog UUID-a?",
   "addBindTips": "Jeste li sigurni da želite vezati licencu za ovaj UUID?",

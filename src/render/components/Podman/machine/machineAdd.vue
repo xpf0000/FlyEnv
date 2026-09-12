@@ -23,8 +23,12 @@
           <span class="ml-2 text-xs">MB</span>
         </el-form-item>
         <el-form-item v-if="!isEdit" :label="I18nT('podman.DiskSize')" prop="disk">
-          <el-input-number v-model="form.disk" :min="10240" :max="1048576" />
-          <span class="ml-2 text-xs">MB</span>
+          <el-input-number
+            v-model="form.disk"
+            :min="PODMAN_MACHINE_DISK_GIB.min"
+            :max="PODMAN_MACHINE_DISK_GIB.max"
+          />
+          <span class="ml-2 text-xs">{{ PODMAN_MACHINE_DISK_GIB.unit }}</span>
         </el-form-item>
         <el-form-item v-if="!isEdit" :label="I18nT('podman.isDefault')" prop="isDefault">
           <el-switch v-model="form.isDefault" />
@@ -34,9 +38,6 @@
         </el-form-item>
         <el-form-item v-if="!isEdit && isMacOSArm" :label="I18nT('podman.rosetta')" prop="rosetta">
           <el-switch v-model="form.rosetta" />
-        </el-form-item>
-        <el-form-item v-if="!isEdit" :label="I18nT('podman.identityPath')" prop="identityPath">
-          <el-input v-model="form.identityPath" placeholder="~/.ssh/id_rsa" />
         </el-form-item>
         <el-form-item v-if="!isEdit" :label="I18nT('podman.remoteUsername')" prop="remoteUsername">
           <el-input v-model="form.remoteUsername" placeholder="user" />
@@ -60,6 +61,7 @@
   import { ElMessage } from 'element-plus'
   import IPC from '@/util/IPC'
   import { PodmanManager } from '@/components/Podman/class/Podman'
+  import { createPodmanMachineForm, PODMAN_MACHINE_DISK_GIB } from './form'
 
   const props = defineProps<{ item?: any }>()
   const isEdit = !!props.item
@@ -70,17 +72,7 @@
   const visible = ref(true)
   const submitting = ref(false)
   const formRef = ref()
-  const form = ref({
-    name: '',
-    cpus: 4,
-    memory: 4096,
-    disk: 20480,
-    isDefault: false,
-    rootful: false,
-    rosetta: false,
-    identityPath: '',
-    remoteUsername: ''
-  })
+  const form = ref(createPodmanMachineForm(props?.item))
 
   // 获取最新的 machine 数据
   const currentMachine = computed(() => {
@@ -96,7 +88,7 @@
       form.value.name = machine.name ?? ''
       form.value.cpus = info.Resources.CPUs ?? 2
       form.value.memory = info.Resources.Memory ?? 2048
-      form.value.disk = info.Resources.DiskSize ?? 20480
+      form.value.disk = info.Resources.DiskSize ?? 20
       form.value.rootful = info.Rootful ?? false
       form.value.rosetta = info.Rosetta ?? false
     } else if (isEdit && props.item?.info?.Resources) {
@@ -105,11 +97,9 @@
       form.value.name = props.item.name ?? ''
       form.value.cpus = info.Resources.CPUs ?? 2
       form.value.memory = info.Resources.Memory ?? 2048
-      form.value.disk = info.Resources.DiskSize ?? 20480
+      form.value.disk = info.Resources.DiskSize ?? 20
       form.value.rootful = info.Rootful ?? false
       form.value.rosetta = info.Rosetta ?? false
-    } else {
-      Object.assign(form.value, props?.item)
     }
   }
 

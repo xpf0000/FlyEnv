@@ -1,39 +1,41 @@
 {
-  "description": "Deze licentie erkent en ondersteunt de inspanningen van FlyEnv en zijn auteurs. Het is niet de bedoeling om gebruikers te beperken, maar om respect voor het werk van de ontwikkelaar en het intellectuele eigendom te bevorderen. Verzeker u van een geldige licentie voordat u FlyEnv gebruikt voor commerciële doeleinden.",
+  "description": "De FlyEnv-licentie ondersteunt de doorlopende ontwikkeling en het onderhoud van het project. Ze is niet bedoeld om lokale kernontwikkeling te blokkeren — kernruntimes en functies voor omgevingsbeheer blijven altijd toegankelijk. Een licentie verwijdert de evaluatiebeperkingen van premiumtools en helpt FlyEnv onderhouden te blijven op macOS, Windows en Linux.",
   "restrictions": {
-    "title": "Gebruikers zonder licentie worden onderworpen aan de volgende beperkingen:",
+    "title": "FlyEnv blijft functioneel zonder licentie, maar de volgende evaluatiebeperkingen zijn van toepassing:",
     "items": {
-      "0": "Maximaal drie sites kunnen worden aangemaakt.",
-      "1": "De AI-chatfunctie is beschikbaar voor een proefperiode van slechts drie dagen.",
-      "2": "Extra beperkingen kunnen van toepassing zijn op toekomstige functies."
+      "0": "Sitebeheer is beperkt tot maximaal 3 lokale sites.",
+      "1": "De AI-assistent is beperkt tot een proefperiode van 3 dagen.",
+      "2": "De schermafbeeldingstool is beperkt tot een proefperiode van 3 dagen.",
+      "3": "De afbeeldingsoptimalisator is beperkt tot een proefperiode van 3 dagen.",
+      "4": "Nieuwe premiumfuncties kunnen onderworpen zijn aan vergelijkbare proefperiodes of beperkingen."
     }
   },
   "howToObtain": {
     "title": "Hoe een licentie verkrijgen",
-    "description": "FlyEnv biedt flexibele manieren om een licentie te verkrijgen. Gebruikers kunnen een van de volgende methoden kiezen om toe te passen:",
+    "description": "FlyEnv biedt de volgende drie manieren om een licentie te verkrijgen. Licenties kunnen nog niet automatisch worden uitgegeven, dus alle aanvragen worden handmatig beoordeeld en uitgegeven:",
     "methods": {
       "0": {
-        "title": "Doneer aan het project",
-        "description": "Er is geen vast bedrag nodig voor donaties. Gezien de uiteenlopende economische situatie van gebruikers in verschillende landen (bv. ., veel gebruikers zijn leerlingen), kies een bedrag dat comfortabel is voor u."
+        "title": "Koop een persoonlijke licentie",
+        "description": "Een persoonlijke FlyEnv-licentie kost $10 USD. Ze dekt één actief apparaat (overdracht naar een ander apparaat wordt ondersteund via licentiebeheer) en verwijdert alle evaluatiebeperkingen. De afrekening wordt verwerkt door Paddle. Dien na aankoop uw Paddle-order-ID in via het onderstaande aanvraagformulier. Aankooppagina:"
       },
       "1": {
-        "title": "Meewerken aan ontwikkeling",
-        "description": "Neem deel aan het project door een pull-aanvraag in te dienen. Ongeacht de hoeveelheid code, zolang het het project positief verbetert (bv. ., het herstellen van een vertaalfout), uw bijdrage telt."
+        "title": "Draag bij aan de codebase",
+        "description": "Dien een Pull Request in op GitHub om FlyEnv te helpen verbeteren. Elke betekenisvolle bijdrage telt — van grote functies tot eenvoudige documentatiecorrecties."
       },
       "2": {
-        "title": "Promoot het Project",
-        "description": "Promoot FlyEnv door uw ervaring te delen in artikelen, video's, blogs, vlogs of opmerkingen. Authentieke gebruikersfeedback heeft de voorkeur. Inhoud kan in elke taal en op elk platform zijn."
+        "title": "Verspreid het woord",
+        "description": "Deel uw FlyEnv-ervaring op elk platform in elke taal — artikelen, video's, blogs of berichten. De inhoud moet origineel en authentiek zijn; inhoud die meer dan 3 maanden geleden is gepubliceerd, komt mogelijk niet meer in aanmerking."
       }
     }
   },
-  "submitInfo": "Na het voltooien van bovenstaande methodes, Vul de resultaten in het onderstaande invoervak in en klik op de knop 'Verzoek licentie' om uw aanvraag in te dienen. Licentieverzoeken worden meestal binnen 24 uur verwerkt.",
+  "submitInfo": "Nadat u een van de bovenstaande methoden hebt voltooid, plakt u uw bewijs in het onderstaande berichtenvak samen met een geldig e-mailadres en klikt u op de knop 'Licentie aanvragen'. Aanvragen worden handmatig verwerkt, meestal binnen 24 uur, en u ontvangt een e-mail zodra uw licentie is uitgegeven.",
   "messageLabel": "Bericht",
-  "messagePlaceholder": "Gelieve de donatie link of order-ID in te dienen wanneer je ervoor kiest om te doneren.\nDien de PR-link in voor degenen die ervoor kiezen deel te nemen aan de projectontwikkeling.\nStuur een link naar je artikel, video, blog, vlog of een opmerking voor degenen die promoten kiezen.",
+  "messagePlaceholder": "Kopers: uw Paddle-order-ID of ontvangstbevestigings-e-mail.\nBijdragers: de link naar uw GitHub Pull Request.\nPromotors: de link naar uw bericht, video of artikel.\nVermeld ook een geldig e-mailadres zodat we u kunnen informeren zodra de licentie is uitgegeven.",
   "requestButton": "Licentie aanvragen",
   "refreshButton": "Ververs status",
   "licenseActivated": "Licentie geactiveerd",
   "licenseNoActivated": "Licentie niet geactiveerd",
-  "licenseInfo": "De huidige licentie is een permanente licentie, elke computer komt overeen met één licentie. Als u van computer wisselt, moet u de uuid van het nieuwe apparaat koppelen in 'Mijn Licenties' of een nieuwe licentie aanvragen.",
+  "licenseInfo": "De huidige licentie is permanent en volgt een beleid van één licentie per apparaat. Elke licentie is gekoppeld aan een specifieke hardware-UUID. Als u overstapt naar een nieuwe computer, log dan in met uw GitHub-account en ga naar 'Mijn Licenties' om het oude apparaat te ontkoppelen en het nieuwe te koppelen, of vraag een nieuwe licentie aan.",
   "logoutTips": "Weet u zeker dat u wilt uitloggen?",
   "delBindTips": "Weet u zeker dat u de licentie van deze UUID wilt ontkoppelen?",
   "addBindTips": "Weet u zeker dat u de licentie aan deze UUID wilt koppelen?",
