@@ -21,6 +21,11 @@ var (
 )
 
 var allowedRootsFilePathForTesting string
+var windowsHelperAllowedRootsPath string
+
+func ConfigureWindowsHelperInstance(paths WindowsHelperPaths) {
+	windowsHelperAllowedRootsPath = paths.AllowedRootsPath
+}
 
 var shellProfileFiles = map[string]bool{
 	".bash_login":   true,
@@ -120,11 +125,7 @@ func allowedRootsFilePath() string {
 		return allowedRootsFilePathForTesting
 	}
 	if runtime.GOOS == "windows" {
-		programData := os.Getenv("ProgramData")
-		if programData == "" {
-			programData = commonApplicationDataPath()
-		}
-		return filepath.Join(programData, "FlyEnv", "flyenv.allowed-roots")
+		return windowsHelperAllowedRootsPath
 	}
 	return allowedRootsFileUnix
 }
@@ -464,6 +465,12 @@ func validatePathAccess(path string, forWrite bool) error {
 	if err != nil {
 		return err
 	}
+	if runtime.GOOS == "windows" && forWrite {
+		protectedRoot := filepath.Dir(allowedRootsFilePath())
+		if pathInDir(clean, protectedRoot) || pathInDir(protectedRoot, clean) {
+			return fmt.Errorf("helper installation is writable only by the elevated installer")
+		}
+	}
 	if isExplicitSystemFile(clean) {
 		if !(runtime.GOOS == "darwin" && pathInDir(clean, "/etc")) {
 			hasSymlink, err := PathHasSymlinkComponent(clean)
@@ -517,6 +524,12 @@ func isExactConfiguredFlyEnvDataDirectoryRoot(path string, roots []string) bool 
 // children, so this recovery operation cannot be repurposed as a generic
 // privileged mkdir endpoint.
 func ValidateFlyEnvDataDirectoryRoot(path string) (string, error) {
+	if runtime.GOOS == "windows" {
+		protectedRoot := filepath.Dir(allowedRootsFilePath())
+		if pathInDir(path, protectedRoot) || pathInDir(protectedRoot, path) {
+			return "", fmt.Errorf("cannot grant user write access to helper installation")
+		}
+	}
 	if runtime.GOOS != "windows" {
 		return "", fmt.Errorf("FlyEnv data-directory recovery is only supported on Windows")
 	}

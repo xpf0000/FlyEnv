@@ -1,6 +1,7 @@
 export type AppHelperErrorCode =
   | 'helper_binary_missing'
   | 'helper_key_missing'
+  | 'helper_key_inaccessible'
   | 'helper_key_invalid'
   | 'helper_unreachable'
   | 'helper_pipe_unreachable'
@@ -33,6 +34,7 @@ export type HelperCheckResponse =
 const APP_HELPER_ERROR_CODES = new Set<AppHelperErrorCode>([
   'helper_binary_missing',
   'helper_key_missing',
+  'helper_key_inaccessible',
   'helper_key_invalid',
   'helper_unreachable',
   'helper_pipe_unreachable',
@@ -53,6 +55,7 @@ const APP_HELPER_ERROR_CODES = new Set<AppHelperErrorCode>([
 const APP_HELPER_UNAVAILABLE_ERROR_CODES = new Set<AppHelperErrorCode>([
   'helper_binary_missing',
   'helper_key_missing',
+  'helper_key_inaccessible',
   'helper_key_invalid',
   'helper_unreachable',
   'helper_pipe_unreachable',

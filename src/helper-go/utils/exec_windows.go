@@ -30,7 +30,7 @@ func GetPipeNameFromSocketPath(socketPath string) string {
 	var result strings.Builder
 	for _, r := range baseName {
 		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
-			(r >= '0' && r <= '9') || r == '_' || r == '-' {
+			(r >= '0' && r <= '9') || r == '_' || r == '-' || r == '.' {
 			result.WriteRune(r)
 		} else {
 			result.WriteRune('_')
@@ -55,17 +55,17 @@ func CurrentUserSID() (string, error) {
 	return sid, nil
 }
 
-func CreateWindowsNamedPipe(SOCKET_PATH string) (net.Listener, error) {
+func CreateWindowsNamedPipe(SOCKET_PATH string, expectedSID string) (net.Listener, error) {
 	pipeName := GetPipeNameFromSocketPath(SOCKET_PATH)
 	fullPipePath := `\\.\pipe\` + pipeName
 
-	sid, err := CurrentUserSID()
+	sid, err := windows.StringToSid(expectedSID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get current user SID: %w", err)
+		return nil, fmt.Errorf("invalid expected user SID: %w", err)
 	}
 
-	// D:P = DACL protected, (A;;GA;;;SID) = Allow Generic All to current user only
-	sddl := fmt.Sprintf("D:P(A;;GA;;;%s)", sid)
+	// SYSTEM creates the pipe; only the target user's OS token may submit requests.
+	sddl := fmt.Sprintf("D:P(A;;GA;;;SY)(A;;GRGW;;;%s)", sid.String())
 
 	// Configure the named pipe
 	pipeConfig := &winio.PipeConfig{

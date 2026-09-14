@@ -1,12 +1,18 @@
 import { mkdirp, writeFile, readFile, existsSync } from '@shared/fs-extra'
 import { createConnection } from 'node:net'
-import { tmpdir, userInfo } from 'node:os'
-import { basename, dirname, join, resolve as pathResolve } from 'node:path'
+import { userInfo } from 'node:os'
+import { dirname, join, resolve as pathResolve } from 'node:path'
 import is from 'electron-is'
 import { isWindows } from './utils'
 import JSON5 from 'json5'
 import crypto from 'node:crypto'
 import { AppHelperError, type AppHelperErrorCode } from './WindowsHelperState'
+import {
+  getWindowsHelperIdentity,
+  readWindowsHelperTask,
+  windowsHelperTaskInvalidReason,
+  type WindowsHelperIdentity
+} from './WindowsHelperIdentity'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 const Role_Path = '/tmp/flyenv.role'
@@ -15,12 +21,13 @@ const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 const Helper_Check_Timeout = 3000
 
-export const HelperVersion = 23
+export const HelperVersion = 25
 
 export type HelperHealth = {
   version: number
   pid: number
   sid?: string
+  instanceId?: string
 }
 
 type HelperResponse = {
@@ -30,16 +37,35 @@ type HelperResponse = {
   msg?: string
 }
 
-export const HelperKeyPath = (): string => {
-  return isWindows()
-    ? join(process.env.LOCALAPPDATA || tmpdir(), 'FlyEnv', 'flyenv-helper.key')
-    : Key_Path_Unix
+let cachedWindowsHelperIdentity: Promise<WindowsHelperIdentity> | undefined
+
+const currentWindowsHelperIdentity = (): Promise<WindowsHelperIdentity> => {
+  cachedWindowsHelperIdentity ??= getWindowsHelperIdentity()
+  return cachedWindowsHelperIdentity
 }
 
-export const getHelperKey = async (): Promise<Buffer | null> => {
+export const HelperKeyPath = (identity?: WindowsHelperIdentity): string => {
+  if (!isWindows()) return Key_Path_Unix
+  if (!identity) throw new Error('Windows helper identity is required for the key path')
+  return identity.keyPath
+}
+
+export const getHelperKey = async (identity?: WindowsHelperIdentity): Promise<Buffer | null> => {
+  const resolvedIdentity = isWindows()
+    ? (identity ?? (await currentWindowsHelperIdentity()))
+    : undefined
+  const keyPath = HelperKeyPath(resolvedIdentity)
   try {
-    return await readFile(HelperKeyPath())
-  } catch {
+    return await readFile(keyPath)
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException)?.code
+    if (isWindows() && (code === 'EACCES' || code === 'EPERM')) {
+      throw new AppHelperError(
+        'helper_key_inaccessible',
+        `Windows helper key is inaccessible: ${keyPath}`,
+        error instanceof Error ? error.message : String(error)
+      )
+    }
     return null
   }
 }
@@ -103,12 +129,11 @@ export const helperTaskAuthFields = () => ({
   clientExe: process.execPath ?? ''
 })
 
-export const AppHelperSocketPathGet = (): string => {
+export const AppHelperSocketPathGet = async (identity?: WindowsHelperIdentity): Promise<string> => {
   if (!isWindows()) {
     return SOCKET_PATH
   }
-  const pipeName = basename(SOCKET_PATH).replace(/[^a-zA-Z0-9_-]/g, '_')
-  return `\\\\.\\pipe\\${pipeName}`
+  return (identity ?? (await currentWindowsHelperIdentity())).pipePath
 }
 
 export const AppHelperRoleFix = async () => {
@@ -125,7 +150,7 @@ export const AppHelperRoleFix = async () => {
 }
 
 export const getWindowsHelperBinaryPath = (): string => {
-  const staticPath = global.Server.Static ?? ''
+  const staticPath = global.Server?.Static ?? ''
   if (!staticPath) {
     return ''
   }
@@ -140,15 +165,24 @@ export const windowsHelperBinaryExists = (): boolean => {
   if (!isWindows()) {
     return true
   }
-  const helperPath = getWindowsHelperBinaryPath()
+  const helperPath = getWindowsHelperValidationBinaryPath()
   return !!helperPath && existsSync(helperPath)
+}
+
+export const getWindowsHelperValidationBinaryPath = (): string => {
+  const primary = getWindowsHelperBinaryPath()
+  if (!primary) return ''
+  const backup = join(dirname(primary), 'flyenv-helper-backup.exe')
+  return is.production() && existsSync(backup) ? backup : primary
 }
 
 type AppHelperCheckDeps = {
   isWindows: () => boolean
   helperBinaryExists: () => boolean
   createConnection: typeof createConnection
-  getHelperKey: typeof getHelperKey
+  getHelperKey: (identity?: WindowsHelperIdentity) => Promise<Buffer | null>
+  getWindowsIdentity: typeof getWindowsHelperIdentity
+  readWindowsTask: typeof readWindowsHelperTask
 }
 
 export const helperResponseErrorCode = (message: string): AppHelperErrorCode => {
@@ -167,10 +201,12 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
     helperBinaryExists: windowsHelperBinaryExists,
     createConnection,
     getHelperKey,
+    getWindowsIdentity: getWindowsHelperIdentity,
+    readWindowsTask: readWindowsHelperTask,
     ...deps
   }
 
-  const request = (fn: 'version' | 'health', helperKey: Buffer | null) =>
+  const request = (fn: 'version' | 'health', helperKey: Buffer | null, pipePath: string) =>
     new Promise<HelperResponse>((resolve, reject) => {
       const key = `flyenv-helper-${fn}-check`
       const buffer: Buffer[] = []
@@ -199,7 +235,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       )
 
       try {
-        client = runtime.createConnection(AppHelperSocketPathGet())
+        client = runtime.createConnection(pipePath)
       } catch (error) {
         fail('helper_pipe_unreachable', error instanceof Error ? error.message : `${error}`)
         return
@@ -270,11 +306,23 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       throw new AppHelperError('helper_binary_missing', 'Windows helper binary missing')
     }
 
-    const helperKey = await runtime.getHelperKey()
+    let identity: WindowsHelperIdentity | undefined
+    if (runtime.isWindows()) {
+      try {
+        identity = await runtime.getWindowsIdentity()
+      } catch (error) {
+        throw new AppHelperError(
+          'helper_task_invalid',
+          `Could not capture Windows helper identity: ${error instanceof Error ? error.message : error}`
+        )
+      }
+    }
+
+    const helperKey = await runtime.getHelperKey(identity)
     if (runtime.isWindows() && !helperKey) {
       throw new AppHelperError(
         'helper_key_missing',
-        `Windows helper key missing: ${HelperKeyPath()}`
+        `Windows helper key missing: ${HelperKeyPath(identity)}`
       )
     }
     if (runtime.isWindows() && helperKey && helperKey.length !== 32) {
@@ -284,7 +332,33 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       )
     }
 
-    const version = await request('version', helperKey)
+    let expectedSid: string | undefined
+    let expectedInstanceId: string | undefined
+    if (runtime.isWindows()) {
+      try {
+        if (!identity) throw new Error('Windows helper identity is unavailable')
+        expectedSid = identity.sid
+        expectedInstanceId = identity.instanceId
+        const task = await runtime.readWindowsTask(identity, getWindowsHelperValidationBinaryPath())
+        const reason = windowsHelperTaskInvalidReason(task, identity, identity.executable)
+        if (reason) throw new AppHelperError('helper_task_invalid', reason)
+      } catch (error) {
+        if (error instanceof AppHelperError) throw error
+        throw new AppHelperError(
+          'helper_task_invalid',
+          `Could not validate Windows helper task: ${error instanceof Error ? error.message : error}`
+        )
+      }
+    }
+
+    let pipePath = SOCKET_PATH
+    if (runtime.isWindows()) {
+      if (!identity) {
+        throw new AppHelperError('helper_task_invalid', 'Windows helper pipe is unavailable')
+      }
+      pipePath = identity.pipePath
+    }
+    const version = await request('version', helperKey, pipePath)
     if (version.data !== HelperVersion) {
       throw new AppHelperError('helper_version_mismatch', 'Helper version does not match FlyEnv')
     }
@@ -292,7 +366,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       return true
     }
 
-    const health = await request('health', helperKey)
+    const health = await request('health', helperKey, pipePath)
     const result = health.data as Partial<HelperHealth> | undefined
     if (
       !result ||
@@ -306,7 +380,18 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
         'Helper health response is missing a valid version or PID'
       )
     }
-    return { version: result.version, pid: result.pid, sid: result.sid }
+    if (result.sid !== expectedSid || result.instanceId !== expectedInstanceId) {
+      throw new AppHelperError(
+        'helper_health_invalid',
+        'Helper instance identity does not match the FlyEnv user'
+      )
+    }
+    return {
+      version: result.version,
+      pid: result.pid,
+      sid: result.sid,
+      instanceId: result.instanceId
+    }
   }
 }
 

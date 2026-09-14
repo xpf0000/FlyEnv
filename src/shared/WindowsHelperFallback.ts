@@ -10,7 +10,7 @@ import { deflateRawSync } from 'node:zlib'
 import EnvSync from './EnvSync'
 import { buildPowerShellEncodedCommand } from './PowerShellCommand'
 import { classifyWindowsElevationError, exec as Sudo } from './Sudo'
-import { getWindowsHelperIdentity } from './WindowsHelperIdentity'
+import { getWindowsHelperIdentity, windowsHelperInstancePaths } from './WindowsHelperIdentity'
 import { AppHelperError, isWindowsHelperFallbackAllowed } from './WindowsHelperState'
 
 export type WindowsHelperFallbackMode = 'inline' | 'data-file'
@@ -87,6 +87,7 @@ export type FlyEnvPowerShellIntegrationUacPlanOptions = {
   powershellPath?: string
   resultPath?: string
   nonce?: string
+  targetUserSid?: string
 }
 
 const execFileAsync = promisify(execFile)
@@ -280,9 +281,28 @@ function isWindowsProgramFilesFlyEnvPath(targetPath: string): boolean {
   })
 }
 
+let scopedAllowedRootsFilePath: string | undefined
+
 function allowedRootsFilePath(): string {
+  if (scopedAllowedRootsFilePath) return scopedAllowedRootsFilePath
   const programData = process.env.ProgramData || 'C:\\ProgramData'
   return path.win32.join(programData, 'FlyEnv', 'flyenv.allowed-roots')
+}
+
+function withTargetAllowedRoots<T>(targetUserSid: string | undefined, action: () => T): T {
+  const previous = scopedAllowedRootsFilePath
+  if (targetUserSid) {
+    try {
+      scopedAllowedRootsFilePath = windowsHelperInstancePaths(targetUserSid).allowedRootsPath
+    } catch {
+      helperExecutionFailed('FlyEnv helper target SID is invalid')
+    }
+  }
+  try {
+    return action()
+  } finally {
+    scopedAllowedRootsFilePath = previous
+  }
 }
 
 function readConfiguredAllowedRoots(): ConfiguredAllowedRoots {
@@ -339,6 +359,10 @@ function isConfiguredAllowedRoot(targetPath: string, roots: string[]): boolean {
 
 function validateFlyEnvDataDirectoryRecoveryRoot(value: string): string {
   const targetPath = cleanAbsPath(value, 'ensureFlyEnvDataDirectory data directory')
+  const protectedRoot = path.win32.join(process.env.ProgramData || 'C:\\ProgramData', 'FlyEnv')
+  if (pathInDir(targetPath, protectedRoot) || pathInDir(protectedRoot, targetPath)) {
+    helperExecutionFailed('Cannot grant user write access to helper installation')
+  }
   if (isSensitiveSystemPath(targetPath)) {
     helperExecutionFailed(`sensitive system path is not allowed: ${value}`)
   }
@@ -776,6 +800,8 @@ function buildInstallFlyEnvPowerShellIntegrationScript(
   options: {
     resultPath?: string
     nonce?: string
+    targetUserSid?: string
+    allowedRootsPath?: string
   } = {}
 ): string {
   const runtimeSetup = `$payloadJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(${powerShellString(Buffer.from(JSON.stringify(args), 'utf8').toString('base64'))}))
@@ -890,8 +916,7 @@ function Assert-FlyEnvAllowedRootsSecurity([string]$AllowedRootsFile) {
 function Assert-FlyEnvPowerShellIntegrationPayload($Request) {
   $scriptPath = Normalize-FlyEnvShellPath ([string]$Request.scriptPath) 'runtime script path'
   Assert-FlyEnvShellNoReparsePoint $scriptPath
-  $programData = Normalize-FlyEnvShellPath ([string]$env:ProgramData) 'ProgramData path'
-  $allowedRootsFile = Join-Path $programData 'FlyEnv\\flyenv.allowed-roots'
+  $allowedRootsFile = Normalize-FlyEnvShellPath ${powerShellString(options.allowedRootsPath ?? allowedRootsFilePath())} 'allowed roots path'
   if (-not (Test-Path -LiteralPath $allowedRootsFile -PathType Leaf)) {
     throw 'FlyEnv runtime script roots are unavailable'
   }
@@ -949,6 +974,18 @@ function Assert-FlyEnvPowerShellIntegrationPayload($Request) {
       throw "unexpected $edition profile path: $profilePath"
     }
     Assert-FlyEnvShellNoReparsePoint $profilePath
+    $targetSid = ${powerShellString(options.targetUserSid ?? '')}
+    if (-not $targetSid) { throw 'Missing FlyEnv target SID for profile ownership check' }
+    $candidate = [IO.Path]::GetDirectoryName($profilePath)
+    $targetOwned = $false
+    while ($candidate) {
+      if (Test-Path -LiteralPath $candidate) {
+        $owner = (Get-Acl -LiteralPath $candidate).GetOwner([Security.Principal.SecurityIdentifier]).Value
+        if ($owner -eq $targetSid) { $targetOwned = $true; break }
+      }
+      $candidate = [IO.Path]::GetDirectoryName($candidate)
+    }
+    if (-not $targetOwned) { throw "Profile does not belong to target SID: $profilePath" }
     $seen[$edition] = $true
     $profiles += [PSCustomObject]@{ edition = $edition; path = $profilePath }
   }
@@ -1204,8 +1241,18 @@ if (-not $${variableName}) {
 }`
 }
 
-function buildSetAutoStartScript(args: ValidatedSetAutoStartArgs, tempFilePath?: string): string {
-  const runLevel = args.taskName === 'FlyEnvStartup' ? 'limited' : 'highest'
+function buildSetAutoStartScript(
+  args: ValidatedSetAutoStartArgs,
+  tempFilePath?: string,
+  targetUserSid?: string
+): string {
+  if (
+    args.taskName !== 'FlyEnvStartup' ||
+    !targetUserSid ||
+    !WINDOWS_SID_PATTERN.test(targetUserSid)
+  ) {
+    helperExecutionFailed('Helper tasks are installer-owned; app startup requires target SID')
+  }
   const runtimeSetup = tempFilePath
     ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw | ConvertFrom-Json
 $enabled = [bool]$payload.enabled
@@ -1218,10 +1265,21 @@ $exePath = ${powerShellString(args.exePath)}`
 ${runtimeSetup}
 ${buildResolveWindowsSystemExeScript('schtasksExe', 'schtasks')}
 if ($enabled) {
-  & $schtasksExe /create /tn $taskName /tr ('"' + $exePath + '"') /sc onlogon /rl ${runLevel} /f | Out-Null
-  if ($LASTEXITCODE -ne 0) {
-    throw "$schtasksExe /create failed with exit code $LASTEXITCODE"
-  }
+  $targetSid = ${powerShellString(targetUserSid)}
+  $scheduler = New-Object -ComObject 'Schedule.Service'
+  $scheduler.Connect()
+  $definition = $scheduler.NewTask(0)
+  $definition.Settings.ExecutionTimeLimit = 'PT0S'
+  $definition.Settings.DisallowStartIfOnBatteries = $false
+  $definition.Settings.StopIfGoingOnBatteries = $false
+  $trigger = $definition.Triggers.Create(9)
+  $trigger.UserId = $targetSid
+  $action = $definition.Actions.Create(0)
+  $action.Path = $exePath
+  $definition.Principal.UserId = $targetSid
+  $definition.Principal.LogonType = 3
+  $definition.Principal.RunLevel = 0
+  $scheduler.GetFolder('\\').RegisterTaskDefinition($taskName, $definition, 6, $targetSid, $null, 3) | Out-Null
 }
 else {
   & $schtasksExe /delete /tn $taskName /f | Out-Null
@@ -1293,11 +1351,13 @@ export function buildFlyEnvDataDirectoryRecoveryUacPlan(
   dataDirectory: string,
   userSid: string
 ): WindowsHelperFallbackPlan {
-  const validatedDirectory = validateFlyEnvDataDirectoryRecoveryRoot(dataDirectory)
   if (!WINDOWS_SID_PATTERN.test(userSid)) {
     helperExecutionFailed('FlyEnv data-directory recovery user SID is invalid')
   }
-  return createPlan(buildFlyEnvDataDirectoryRecoveryScript(validatedDirectory, userSid))
+  return withTargetAllowedRoots(userSid, () => {
+    const validatedDirectory = validateFlyEnvDataDirectoryRecoveryRoot(dataDirectory)
+    return createPlan(buildFlyEnvDataDirectoryRecoveryScript(validatedDirectory, userSid))
+  })
 }
 
 function buildInlineOrDataFilePlan(
@@ -1341,7 +1401,7 @@ finally {
 & ([ScriptBlock]::Create($decodedScript))`
 }
 
-export function buildFlyEnvPowerShellIntegrationUacPlan(
+function buildFlyEnvPowerShellIntegrationUacPlanWithRoots(
   args: unknown[],
   options: FlyEnvPowerShellIntegrationUacPlanOptions = {}
 ): FlyEnvPowerShellIntegrationUacPlan {
@@ -1361,7 +1421,9 @@ export function buildFlyEnvPowerShellIntegrationUacPlan(
 
   const childScript = buildInstallFlyEnvPowerShellIntegrationScript(validated, {
     resultPath,
-    nonce
+    nonce,
+    targetUserSid: options.targetUserSid,
+    allowedRootsPath: allowedRootsFilePath()
   })
   const childCommand = buildCompressedPowerShellCommand(childScript)
   const launcherScript = `${buildPowerShellPreamble()}
@@ -1406,11 +1468,21 @@ catch {
   }
 }
 
-export function buildWindowsHelperFallbackPlan(
+export function buildFlyEnvPowerShellIntegrationUacPlan(
+  args: unknown[],
+  options: FlyEnvPowerShellIntegrationUacPlanOptions = {}
+): FlyEnvPowerShellIntegrationUacPlan {
+  return withTargetAllowedRoots(options.targetUserSid, () =>
+    buildFlyEnvPowerShellIntegrationUacPlanWithRoots(args, options)
+  )
+}
+
+function buildWindowsHelperFallbackPlanWithRoots(
   module: string,
   fn: string,
   args: unknown[],
-  inlineLimit = DEFAULT_INLINE_LIMIT
+  inlineLimit = DEFAULT_INLINE_LIMIT,
+  targetUserSid?: string
 ): WindowsHelperFallbackPlan {
   if (!isWindowsHelperFallbackAllowed(module, fn)) {
     fallbackNotSupported(module, fn)
@@ -1463,7 +1535,7 @@ export function buildWindowsHelperFallbackPlan(
   if (module === 'tools' && fn === 'setAutoStartWin') {
     const validated = validateSetAutoStartArgs(args)
     return buildInlineOrDataFilePlan(
-      (tempFilePath) => buildSetAutoStartScript(validated, tempFilePath),
+      (tempFilePath) => buildSetAutoStartScript(validated, tempFilePath, targetUserSid),
       'text',
       JSON.stringify(validated),
       inlineLimit
@@ -1475,6 +1547,18 @@ export function buildWindowsHelperFallbackPlan(
   }
 
   fallbackNotSupported(module, fn)
+}
+
+export function buildWindowsHelperFallbackPlan(
+  module: string,
+  fn: string,
+  args: unknown[],
+  inlineLimit = DEFAULT_INLINE_LIMIT,
+  targetUserSid?: string
+): WindowsHelperFallbackPlan {
+  return withTargetAllowedRoots(targetUserSid, () =>
+    buildWindowsHelperFallbackPlanWithRoots(module, fn, args, inlineLimit, targetUserSid)
+  )
 }
 
 export function parseFlyEnvPowerShellIntegrationFallbackResult(
@@ -1549,7 +1633,8 @@ async function runFlyEnvPowerShellIntegrationUacFallback(
 ): Promise<FlyEnvPowerShellIntegrationFallbackResult> {
   await EnvSync.sync().catch(() => undefined)
   const plan = buildFlyEnvPowerShellIntegrationUacPlan(args, {
-    powershellPath: EnvSync.PowerShellPath || 'powershell.exe'
+    powershellPath: EnvSync.PowerShellPath || 'powershell.exe',
+    targetUserSid: (await getWindowsHelperIdentity()).sid
   })
   try {
     await fs.rm(plan.resultPath, { force: true }).catch(() => {})
@@ -1598,7 +1683,8 @@ export async function runWindowsHelperFallback(
     return true
   }
   await EnvSync.sync()
-  const plan = buildWindowsHelperFallbackPlan(module, fn, args)
+  const targetUserSid = (await getWindowsHelperIdentity()).sid
+  const plan = buildWindowsHelperFallbackPlan(module, fn, args, DEFAULT_INLINE_LIMIT, targetUserSid)
 
   try {
     if (plan.tempFilePath && plan.tempFileContent !== undefined) {

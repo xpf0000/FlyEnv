@@ -6,9 +6,29 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"helper-go/utils"
+	"runtime"
 	"testing"
 	"time"
 )
+
+func TestWindowsPeerUsesTargetRatherThanHelperProcessSID(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows peer authorization")
+	}
+	saved := runtimeConfig
+	defer func() { runtimeConfig = saved }()
+	runtimeConfig.ExpectedUserSID = "S-1-5-21-100-200-300-400"
+	app := NewAppHelper()
+	if err := app.validatePeer(utils.PeerInfo{UserSID: runtimeConfig.ExpectedUserSID}); err != nil {
+		t.Fatal(err)
+	}
+	for _, sid := range []string{"S-1-5-18", "S-1-5-21-100-200-300-500", ""} {
+		if err := app.validatePeer(utils.PeerInfo{UserSID: sid}); err == nil {
+			t.Fatalf("unauthorized SID accepted: %s", sid)
+		}
+	}
+}
 
 func signTaskForTest(key []byte, item TaskItem) string {
 	argsJSON, _ := json.Marshal(item.Args)
@@ -46,26 +66,40 @@ func TestParseRole(t *testing.T) {
 }
 
 func TestParseWindowsHelperRuntimeConfig(t *testing.T) {
+	sid := "S-1-5-21-100-200-300-400"
+	instanceID, err := utils.WindowsHelperInstanceID(sid)
+	if err != nil {
+		t.Fatal(err)
+	}
 	config, err := parseHelperRuntimeConfig([]string{
-		"--key-path", `C:\\Users\\flyenv\\AppData\\Local\\FlyEnv\\flyenv-helper.key`,
-		"--expected-user-sid", "S-1-5-21-100-200-300-400",
+		"--instance-id", instanceID,
+		"--expected-user-sid", sid,
 	})
 	if err != nil {
 		t.Fatalf("parseHelperRuntimeConfig returned error: %v", err)
 	}
-	if config.KeyPath != `C:\\Users\\flyenv\\AppData\\Local\\FlyEnv\\flyenv-helper.key` {
-		t.Fatalf("unexpected key path: %q", config.KeyPath)
+	if config.InstanceID != instanceID {
+		t.Fatalf("unexpected instance ID: %q", config.InstanceID)
 	}
-	if config.ExpectedUserSID != "S-1-5-21-100-200-300-400" {
+	if config.ExpectedUserSID != sid {
 		t.Fatalf("unexpected SID: %q", config.ExpectedUserSID)
+	}
+	if config.Paths.InstanceID != instanceID || config.Paths.KeyPath == "" || config.Paths.AllowedRootsPath == "" {
+		t.Fatalf("runtime paths were not derived: %+v", config.Paths)
 	}
 	if _, err := parseHelperRuntimeConfig([]string{"--expected-user-sid"}); err == nil {
 		t.Fatal("missing expected-user-sid value should fail")
 	}
+	if _, err := parseHelperRuntimeConfig([]string{
+		"--instance-id", "00000000000000000000000000000000",
+		"--expected-user-sid", sid,
+	}); err == nil {
+		t.Fatal("instance ID that does not match the SID must fail")
+	}
 }
 
-func TestHelperHealthResponseIncludesVersionPIDAndSID(t *testing.T) {
-	response := helperHealthResponse(1234, "S-1-5-21-100-200-300-400")
+func TestHelperHealthResponseIncludesVersionPIDAndInstanceIdentity(t *testing.T) {
+	response := helperHealthResponse(1234, "S-1-5-21-100-200-300-400", "abf09273e32cc15f69da240b7f8f588f")
 	if response["version"] != Helper_Version {
 		t.Fatalf("health version = %v, want %d", response["version"], Helper_Version)
 	}
@@ -74,6 +108,9 @@ func TestHelperHealthResponseIncludesVersionPIDAndSID(t *testing.T) {
 	}
 	if response["sid"] != "S-1-5-21-100-200-300-400" {
 		t.Fatalf("health sid = %v", response["sid"])
+	}
+	if response["instanceId"] != "abf09273e32cc15f69da240b7f8f588f" {
+		t.Fatalf("health instanceId = %v", response["instanceId"])
 	}
 }
 

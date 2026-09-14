@@ -307,7 +307,7 @@ export class Helper {
       }
       await this.ensureKey()
       const key = uuid()
-      const client = this.deps.createConnection(AppHelperSocketPathGet())
+      const client = this.deps.createConnection(await AppHelperSocketPathGet())
       const buffer: Buffer[] = []
       let transportFailed = false
       let requestParam: any

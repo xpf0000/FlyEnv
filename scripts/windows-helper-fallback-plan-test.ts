@@ -6,20 +6,29 @@ import {
   buildFlyEnvDataDirectoryRecoveryUacPlan,
   buildWindowsHelperFallbackPlan
 } from '../src/shared/WindowsHelperFallback'
+import { windowsHelperInstancePaths } from '../src/shared/WindowsHelperIdentity'
+
+const fallbackSource = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/shared/WindowsHelperFallback.ts'),
+  'utf8'
+)
+assert.match(
+  fallbackSource,
+  /const targetUserSid = \(await getWindowsHelperIdentity\(\)\)\.sid\s+const plan = buildWindowsHelperFallbackPlan/
+)
 
 const originalProgramData = process.env.ProgramData
 const tempProgramData = path.join(os.tmpdir(), `flyenv-helper-plan-test-${Date.now()}`)
-const allowedRootsDir = path.join(tempProgramData, 'FlyEnv')
-const allowedRootsFile = path.join(allowedRootsDir, 'flyenv.allowed-roots')
+const targetSid = 'S-1-5-21-111-222-333-444'
+const instance = windowsHelperInstancePaths(targetSid, tempProgramData)
+const allowedRootsDir = path.dirname(instance.allowedRootsPath)
+const allowedRootsFile = instance.allowedRootsPath
 
 process.env.ProgramData = tempProgramData
 fs.mkdirSync(allowedRootsDir, { recursive: true })
 fs.writeFileSync(allowedRootsFile, 'C:\\FlyEnv\n', 'utf8')
 
-const dataDirectoryRecoveryPlan = buildFlyEnvDataDirectoryRecoveryUacPlan(
-  'C:\\FlyEnv',
-  'S-1-5-21-111-222-333-444'
-)
+const dataDirectoryRecoveryPlan = buildFlyEnvDataDirectoryRecoveryUacPlan('C:\\FlyEnv', targetSid)
 assert.match(dataDirectoryRecoveryPlan.command, /-EncodedCommand/)
 assert.match(dataDirectoryRecoveryPlan.script, /FromBase64String/)
 assert.doesNotMatch(dataDirectoryRecoveryPlan.script, /C:\\FlyEnv/)
@@ -51,11 +60,16 @@ const inlineWritePlan = buildWindowsHelperFallbackPlan(
   'tools',
   'writeFileByRoot',
   ['C:/FlyEnv/flyenv-inline.txt', 'ok'],
-  2000
+  2000,
+  targetSid
 )
 assert.equal(inlineWritePlan.mode, 'inline')
 assert.match(inlineWritePlan.command, /-EncodedCommand/)
 assert.equal(inlineWritePlan.tempFileContent, undefined)
+
+const legacyAllowedRootsDir = path.join(tempProgramData, 'FlyEnv')
+fs.mkdirSync(legacyAllowedRootsDir, { recursive: true })
+fs.writeFileSync(path.join(legacyAllowedRootsDir, 'flyenv.allowed-roots'), 'C:\\FlyEnv\n', 'utf8')
 
 const emptyWritePlan = buildWindowsHelperFallbackPlan(
   'tools',
@@ -174,22 +188,29 @@ const setAutoStartPlan = buildWindowsHelperFallbackPlan(
   'tools',
   'setAutoStartWin',
   [true, 'FlyEnvStartup', 'C:/FlyEnv/flyenv.exe'],
-  6000
+  6000,
+  'S-1-5-21-100-200-300-400'
 )
 assert.equal(setAutoStartPlan.mode, 'inline')
 assert.match(setAutoStartPlan.script, /\$schtasksExe = \$null/)
 assert.match(setAutoStartPlan.script, /Sysnative/)
 assert.match(setAutoStartPlan.script, /System32/)
 assert.doesNotMatch(setAutoStartPlan.script, /& schtasks\.exe /)
-assert.match(setAutoStartPlan.script, /\/rl limited/)
+assert.match(setAutoStartPlan.script, /Principal.RunLevel = 0/)
+assert.match(setAutoStartPlan.script, /Principal.LogonType = 3/)
 
-const setHelperAutoStartPlan = buildWindowsHelperFallbackPlan(
-  'tools',
-  'setAutoStartWin',
-  [true, 'FlyEnvHelperTask', 'C:/FlyEnv/flyenv-helper.exe'],
-  6000
+assert.throws(
+  () =>
+    buildWindowsHelperFallbackPlan(
+      'tools',
+      'setAutoStartWin',
+      [true, 'FlyEnvHelperTask', 'C:/FlyEnv/flyenv-helper.exe'],
+      6000,
+      'S-1-5-21-100-200-300-400'
+    ),
+  /installer-owned/
 )
-assert.match(setHelperAutoStartPlan.script, /\/rl highest/)
+assert.match(setAutoStartPlan.script, /\$targetSid = 'S-1-5-21-100-200-300-400'/)
 
 assert.throws(
   () => buildWindowsHelperFallbackPlan('tools', 'setSystemEnv', ['FLYENV-ALIAS', 'x'], 2000),

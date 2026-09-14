@@ -26,7 +26,7 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 23
+	Helper_Version   = 25
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
@@ -37,8 +37,9 @@ const (
 var rolePattern = regexp.MustCompile(`^([0-9]+):([0-9]+)$`)
 
 type helperRuntimeConfig struct {
-	KeyPath         string
+	InstanceID      string
 	ExpectedUserSID string
+	Paths           utils.WindowsHelperPaths
 }
 
 var runtimeConfig helperRuntimeConfig
@@ -47,7 +48,7 @@ func parseHelperRuntimeConfig(args []string) (helperRuntimeConfig, error) {
 	flags := flag.NewFlagSet("flyenv-helper", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	config := helperRuntimeConfig{}
-	flags.StringVar(&config.KeyPath, "key-path", "", "explicit helper key path")
+	flags.StringVar(&config.InstanceID, "instance-id", "", "target helper instance ID")
 	flags.StringVar(&config.ExpectedUserSID, "expected-user-sid", "", "expected Windows user SID")
 	if err := flags.Parse(args); err != nil {
 		return helperRuntimeConfig{}, err
@@ -55,18 +56,29 @@ func parseHelperRuntimeConfig(args []string) (helperRuntimeConfig, error) {
 	if flags.NArg() != 0 {
 		return helperRuntimeConfig{}, fmt.Errorf("unexpected helper arguments: %s", strings.Join(flags.Args(), " "))
 	}
-	if runtime.GOOS == "windows" && (config.KeyPath == "" || config.ExpectedUserSID == "") {
-		return helperRuntimeConfig{}, fmt.Errorf("Windows helper requires --key-path and --expected-user-sid")
+	if runtime.GOOS == "windows" && (config.InstanceID == "" || config.ExpectedUserSID == "") {
+		return helperRuntimeConfig{}, fmt.Errorf("Windows helper requires --instance-id and --expected-user-sid")
+	}
+	if config.InstanceID != "" || config.ExpectedUserSID != "" {
+		if config.InstanceID == "" || config.ExpectedUserSID == "" {
+			return helperRuntimeConfig{}, fmt.Errorf("instance ID and expected user SID must be provided together")
+		}
+		paths, err := utils.CurrentWindowsHelperInstancePaths(config.ExpectedUserSID)
+		if err != nil {
+			return helperRuntimeConfig{}, err
+		}
+		if !strings.EqualFold(config.InstanceID, paths.InstanceID) {
+			return helperRuntimeConfig{}, fmt.Errorf("helper instance ID does not match expected user SID")
+		}
+		config.InstanceID = paths.InstanceID
+		config.Paths = paths
 	}
 	return config, nil
 }
 
 func getKeyPath() string {
 	if runtime.GOOS == "windows" {
-		if runtimeConfig.KeyPath != "" {
-			return runtimeConfig.KeyPath
-		}
-		return utils.WindowsHelperKeyPath()
+		return runtimeConfig.Paths.KeyPath
 	}
 	return Key_Path_Unix
 }
@@ -79,8 +91,8 @@ func validateExpectedWindowsUserSID() error {
 	if err != nil {
 		return fmt.Errorf("failed to determine helper user SID: %w", err)
 	}
-	if !strings.EqualFold(actualSID, runtimeConfig.ExpectedUserSID) {
-		return fmt.Errorf("helper user SID mismatch: expected %s, got %s", runtimeConfig.ExpectedUserSID, actualSID)
+	if actualSID != "S-1-5-18" {
+		return fmt.Errorf("helper runtime SID must be SYSTEM, got %s (target %s)", actualSID, runtimeConfig.ExpectedUserSID)
 	}
 	return nil
 }
@@ -351,6 +363,14 @@ func ensureSecureKeyFile(keyPath string) ([]byte, error) {
 
 func loadOrGenerateKey() error {
 	keyPath := getKeyPath()
+	if runtime.GOOS == "windows" {
+		key, err := utils.ReadWindowsHelperKey(keyPath, runtimeConfig.ExpectedUserSID)
+		if err != nil {
+			return err
+		}
+		helperKey = key
+		return nil
+	}
 	key, err := ensureSecureKeyFile(keyPath)
 	if err != nil {
 		return err
@@ -453,14 +473,10 @@ func (a *AppHelper) verifySignature(info TaskItem) bool {
 
 func (a *AppHelper) validatePeer(peer utils.PeerInfo) error {
 	if runtime.GOOS == "windows" {
-		currentSID, err := utils.CurrentUserSID()
-		if err != nil {
-			return fmt.Errorf("failed to get helper user SID: %w", err)
-		}
 		if peer.UserSID == "" {
 			return fmt.Errorf("missing Windows peer SID")
 		}
-		if !strings.EqualFold(peer.UserSID, currentSID) {
+		if !utils.WindowsHelperPeerAllowed(runtimeConfig.ExpectedUserSID, peer.UserSID) {
 			return fmt.Errorf("unauthorized Windows peer SID")
 		}
 		return nil
@@ -505,13 +521,16 @@ func (a *AppHelper) validateClientBinding(info TaskItem, peer utils.PeerInfo) er
 	return nil
 }
 
-func helperHealthResponse(pid int, sid string) map[string]interface{} {
+func helperHealthResponse(pid int, sid, instanceID string) map[string]interface{} {
 	response := map[string]interface{}{
 		"version": Helper_Version,
 		"pid":     pid,
 	}
 	if sid != "" {
 		response["sid"] = sid
+	}
+	if instanceID != "" {
+		response["instanceId"] = instanceID
 	}
 	return response
 }
@@ -522,13 +541,9 @@ func helperHealth() (map[string]interface{}, error) {
 		if err := utils.ValidateWindowsHelperHealth(); err != nil {
 			return nil, fmt.Errorf("allow-roots health validation failed: %w", err)
 		}
-		currentSID, err := utils.CurrentUserSID()
-		if err != nil {
-			return nil, fmt.Errorf("failed to determine helper user SID: %w", err)
-		}
-		sid = currentSID
+		sid = runtimeConfig.ExpectedUserSID
 	}
-	return helperHealthResponse(os.Getpid(), sid), nil
+	return helperHealthResponse(os.Getpid(), sid, runtimeConfig.InstanceID), nil
 }
 
 // Run sets up and starts the Unix domain socket server
@@ -546,11 +561,11 @@ func (a *AppHelper) Run() error {
 	// Create the appropriate listener based on platform
 	if runtime.GOOS == "windows" {
 		// Use named pipe on Windows
-		listener, err = utils.CreateWindowsNamedPipe(SOCKET_PATH)
+		listener, err = utils.CreateWindowsNamedPipe(runtimeConfig.Paths.PipeName, runtimeConfig.ExpectedUserSID)
 		if err != nil {
 			return fmt.Errorf("failed to create named pipe: %w", err)
 		}
-		fmt.Println("Server is listening on Windows named pipe:", utils.GetPipeNameFromSocketPath(SOCKET_PATH))
+		fmt.Println("Server is listening on Windows named pipe:", utils.GetPipeNameFromSocketPath(runtimeConfig.Paths.PipeName))
 	} else {
 		// Use Unix domain socket on Unix-like systems
 		listener, err = net.Listen("unix", SOCKET_PATH)
@@ -1226,6 +1241,9 @@ func main() {
 		os.Exit(1)
 	}
 	runtimeConfig = config
+	if runtime.GOOS == "windows" {
+		utils.ConfigureWindowsHelperInstance(runtimeConfig.Paths)
+	}
 	if err := validateExpectedWindowsUserSID(); err != nil {
 		fmt.Printf("Failed to validate helper user SID: %v\n", err)
 		os.Exit(1)
@@ -1235,6 +1253,7 @@ func main() {
 		os.Exit(1)
 	}
 	app := NewAppHelper()
+	app.Tool.TargetUserSID = runtimeConfig.ExpectedUserSID
 	if err := app.Run(); err != nil {
 		fmt.Printf("AppHelper terminated with error: %v\n", err)
 		os.Exit(1)

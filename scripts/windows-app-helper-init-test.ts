@@ -4,6 +4,44 @@ import { AppHelperError, isAppHelperError } from '../src/shared/WindowsHelperSta
 
 async function main() {
   assert.equal(typeof createAppHelper, 'function')
+  let releaseInitialCheck: (() => void) | undefined
+  let initialChecks = 0
+  const concurrent = createAppHelper({
+    appHelperCheck: async () => {
+      initialChecks++
+      await new Promise<void>((resolve) => {
+        releaseInitialCheck = resolve
+      })
+      return true
+    }
+  })
+  const pendingInitialCheck = concurrent.initHelper()
+  await assert.rejects(concurrent.initHelper(), /Please Wait/)
+  assert.equal(
+    initialChecks,
+    1,
+    'duplicate initialization must be guarded before the first health check'
+  )
+  releaseInitialCheck?.()
+  await pendingInitialCheck
+
+  let repairChecks = 0
+  let repairs = 0
+  const stale = createAppHelper({
+    appHelperCheck: async () => {
+      if (++repairChecks === 1)
+        throw new AppHelperError('helper_task_invalid', 'task belongs to admin SID')
+      return true
+    },
+    sudo: async () => {
+      repairs++
+      return { stdout: 'repaired target SID', stderr: '' }
+    }
+  })
+  stale.command = async () => ({ command: 'repair fixture', icns: '' })
+  await stale.initHelper()
+  assert.equal(repairs, 1)
+  assert.equal(stale.state, 'normal')
 
   let checkCalls = 0
   let commandCalls = 0

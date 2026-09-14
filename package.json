@@ -56,6 +56,7 @@
     "test:helper:contract": "tsx scripts/helper-contract-check.ts",
     "test:flyenv-shell-integration": "tsx scripts/flyenv-shell-integration-test.ts",
     "test:windows-helper-install": "tsx scripts/windows-helper-install-script-test.ts",
+    "test:windows-helper-cross-user": "tsx scripts/windows-helper-cross-user-test.ts",
     "test:windows-app-helper-init": "tsx scripts/windows-app-helper-init-test.ts",
     "test:windows-after-sign-helper": "tsx scripts/windows-after-sign-helper-test.ts",
     "test:windows-helper-install-ipc": "tsx scripts/windows-helper-install-ipc-test.ts",

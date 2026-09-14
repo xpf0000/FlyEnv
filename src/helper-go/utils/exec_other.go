@@ -15,6 +15,6 @@ func GetPipeNameFromSocketPath(socketPath string) string {
 	return socketPath
 }
 
-func CreateWindowsNamedPipe(SOCKET_PATH string) (net.Listener, error) {
+func CreateWindowsNamedPipe(SOCKET_PATH string, expectedSID string) (net.Listener, error) {
 	return nil, nil
 }

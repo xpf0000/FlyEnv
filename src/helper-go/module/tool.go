@@ -63,6 +63,7 @@ func getWindowsSystemExe(name string) string {
 // ToolManager embeds BaseManager, providing various system utility functionalities.
 type ToolManager struct {
 	BaseManager
+	TargetUserSID string
 }
 
 type ExecResult struct {
@@ -179,9 +180,9 @@ func (t *ToolManager) EnsureFlyEnvDataDirectory(dataDirectory string) (bool, err
 	if err != nil {
 		return false, fmt.Errorf("FlyEnv data-directory recovery target is not allowed: %w", err)
 	}
-	userSID, err := utils.CurrentUserSID()
-	if err != nil {
-		return false, fmt.Errorf("failed to determine Helper user identity: %w", err)
+	userSID := t.TargetUserSID
+	if userSID == "" {
+		return false, fmt.Errorf("missing FlyEnv target user SID")
 	}
 	_, _, err = runPowerShellScript(flyEnvDataDirectoryRecoveryScript(cleanDirectory, userSID))
 	if err != nil {
@@ -511,6 +512,9 @@ func (t *ToolManager) InstallFlyEnvPowerShellIntegration(
 		cleanProfilePath, validationErr := utils.ValidateFlyEnvPowerShellProfilePath(profile.Path, profile.Edition)
 		if validationErr != nil {
 			return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("invalid %s profile: %w", profile.Edition, validationErr)
+		}
+		if err := utils.ValidateWindowsProfileOwner(cleanProfilePath, t.TargetUserSID); err != nil {
+			return FlyEnvPowerShellIntegrationResult{}, err
 		}
 		seenEditions[profile.Edition] = true
 		profiles = append(profiles, FlyEnvPowerShellProfileTarget{Edition: profile.Edition, Path: cleanProfilePath})
@@ -947,13 +951,6 @@ func (t *ToolManager) RunScript(shell, scriptPath string) (ExecResult, error) {
 	return ExecResult{Stdout: stdout, Stderr: stderr}, nil
 }
 
-func autoStartRunLevel(taskName string) string {
-	if taskName == "FlyEnvStartup" {
-		return "limited"
-	}
-	return "highest"
-}
-
 // SetAutoStartWin creates or deletes a Windows scheduled task for auto-start.
 func (t *ToolManager) SetAutoStartWin(enabled bool, taskName, exePath string) (bool, error) {
 	if !utils.IsWindows() {
@@ -962,17 +959,36 @@ func (t *ToolManager) SetAutoStartWin(enabled bool, taskName, exePath string) (b
 	if err := utils.ValidateAutoStartTask(enabled, taskName, exePath); err != nil {
 		return false, err
 	}
+	if taskName != "FlyEnvStartup" || t.TargetUserSID == "" {
+		return false, fmt.Errorf("helper tasks are installer-owned; app startup requires target SID")
+	}
 	schtasksExe := getWindowsSystemExe("schtasks")
 
 	if enabled {
-		// schtasks 的 /tr 值在路径含空格时需要内层引号，否则 Task Scheduler
-		// 会把首个空格前的部分当作可执行文件，导致登录时启动失败。
-		// Go 的 exec.Command 在 Windows 上会用 syscall.EscapeArg 处理内层引号。
-		trValue := `"` + exePath + `"`
-		_, stderr, err := utils.ExecCommand(schtasksExe, []string{
-			"/create", "/tn", taskName, "/tr", trValue,
-			"/sc", "onlogon", "/rl", autoStartRunLevel(taskName), "/f",
-		}, nil)
+		// Register an interactive target-user task without a password prompt in
+		// the SYSTEM helper session. The helper itself remains installer-owned.
+		payload, err := json.Marshal(map[string]string{"exePath": exePath, "sid": t.TargetUserSID})
+		if err != nil {
+			return false, err
+		}
+		script := fmt.Sprintf(`$ErrorActionPreference = 'Stop'
+$config = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s')) | ConvertFrom-Json
+$scheduler = New-Object -ComObject 'Schedule.Service'
+$scheduler.Connect()
+$definition = $scheduler.NewTask(0)
+$definition.Settings.ExecutionTimeLimit = 'PT0S'
+$definition.Settings.DisallowStartIfOnBatteries = $false
+$definition.Settings.StopIfGoingOnBatteries = $false
+$trigger = $definition.Triggers.Create(9)
+$trigger.UserId = $config.sid
+$action = $definition.Actions.Create(0)
+$action.Path = $config.exePath
+$definition.Principal.UserId = $config.sid
+$definition.Principal.LogonType = 3
+$definition.Principal.RunLevel = 0
+$scheduler.GetFolder('\').RegisterTaskDefinition('FlyEnvStartup', $definition, 6, $config.sid, $null, 3) | Out-Null
+`, base64.StdEncoding.EncodeToString(payload))
+		_, stderr, err := runPowerShellScript(script)
 		if err != nil {
 			return false, fmt.Errorf("failed to create auto start task: %w, stderr: %s", err, stderr)
 		}

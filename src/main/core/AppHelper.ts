@@ -3,6 +3,7 @@ import is from 'electron-is'
 import { appDebugLog, isLinux, isMacOS, isWindows, uuid } from '@shared/utils'
 import {
   AppHelperCheck,
+  HelperVersion,
   getWindowsHelperBinaryPath,
   windowsHelperBinaryExists
 } from '@shared/AppHelperCheck'
@@ -11,7 +12,12 @@ import {
   type AppHelperErrorCode,
   isAppHelperError
 } from '@shared/WindowsHelperState'
-import { getWindowsHelperIdentity } from '@shared/WindowsHelperIdentity'
+import {
+  getWindowsHelperIdentity,
+  buildWindowsHelperInstallScript,
+  windowsHelperInstalledPath,
+  windowsHelperInstallerCommand
+} from '@shared/WindowsHelperIdentity'
 import { WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
 import { tmpdir, userInfo } from 'node:os'
 import { copyFile, chmod, existsSync, mkdirp, readFile, writeFile } from '@shared/fs-extra'
@@ -202,18 +208,17 @@ export class AppHelper {
           'utf-8'
         )
         const windowsIdentity = await getWindowsHelperIdentity()
-        const content = tmpl
-          .replace('#TASKNAME#', 'FlyEnvHelperTask')
-          .replace('#SRCEXECPATH#', '')
-          .replace('#EXECPATH#', bin)
-          .replace('#BACKUPEXECPATH#', backupBin)
-          .replace('#DATAPATH#', dataPath)
-          .replace('#APPUSERNAME#', windowsIdentity.account)
-          .replace('#APPUSERSID#', windowsIdentity.sid)
-          .replace('#KEYPATH#', windowsIdentity.keyPath)
+        const content = buildWindowsHelperInstallScript(tmpl, {
+          identity: windowsIdentity,
+          executable: windowsHelperInstalledPath(windowsIdentity),
+          sourceExecutable: bin,
+          backupExecutable: backupBin,
+          dataPath,
+          helperVersion: HelperVersion
+        })
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, '\ufeff' + content)
-        command = `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
+        command = windowsHelperInstallerCommand(tmpFile, tmpDir)
         icns = join(binDir, 'icon.icns')
       }
     } else {
@@ -279,19 +284,18 @@ export class AppHelper {
           'utf-8'
         )
         const windowsIdentity = await getWindowsHelperIdentity()
-        const content = tmpl
-          .replace('#TASKNAME#', 'FlyEnvHelperTask')
-          .replace('#SRCEXECPATH#', '')
-          .replace('#EXECPATH#', bin)
-          .replace('#BACKUPEXECPATH#', backupBin)
-          .replace('#DATAPATH#', dataPath)
-          .replace('#APPUSERNAME#', windowsIdentity.account)
-          .replace('#APPUSERSID#', windowsIdentity.sid)
-          .replace('#KEYPATH#', windowsIdentity.keyPath)
+        const content = buildWindowsHelperInstallScript(tmpl, {
+          identity: windowsIdentity,
+          executable: windowsHelperInstalledPath(windowsIdentity),
+          sourceExecutable: bin,
+          backupExecutable: backupBin,
+          dataPath,
+          helperVersion: HelperVersion
+        })
 
         const tmpFile = join(tmpDir, `${uuid()}.ps1`)
         await writeFile(tmpFile, '\ufeff' + content)
-        command = `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "try { Unblock-File -LiteralPath '${tmpFile}'; & '${tmpFile}' } finally { Remove-Item -LiteralPath '${tmpDir}' -Recurse -Force -ErrorAction SilentlyContinue }"`
+        command = windowsHelperInstallerCommand(tmpFile, tmpDir)
         icns = join(binDir, 'icon.icns')
       }
     }
@@ -323,6 +327,7 @@ export class AppHelper {
         reject(new Error('Please Wait'))
         return
       }
+      this.state = 'installing'
       try {
         await this.deps.appHelperCheck()
         this.state = 'normal'
@@ -330,7 +335,10 @@ export class AppHelper {
         await this?._onSuduExecSuccess?.()
         resolve(true)
         return
-      } catch {}
+      } catch (error) {
+        const reason = toAppHelperInstallError(error)
+        appDebugLog('[AppHelper][repair]', `${reason.code}: ${reason.message}`).catch(() => {})
+      }
 
       this.emitStatus('needInstall')
       const doCheck = async () => {
@@ -342,6 +350,10 @@ export class AppHelper {
           resolve(true)
         } catch (error) {
           const appError = toAppHelperInstallError(error)
+          appDebugLog(
+            '[AppHelper][health]',
+            `${appError.code}: ${appError.message}\n${appError.stderr ?? ''}`
+          ).catch(() => {})
           this.state = 'normal'
           this.emitStatus('installFaild', appError.code)
           reject(appError)
@@ -359,12 +371,16 @@ export class AppHelper {
           })
           .then(({ stdout, stderr }) => {
             console.log('initHelper: ', stdout, stderr)
+            appDebugLog('[AppHelper][install]', `${stdout}\n${stderr}`).catch(() => {})
             this.state = 'installed'
             doCheck().catch(() => {})
           })
           .catch((e) => {
             const appError = toAppHelperInstallError(e)
-            appDebugLog('[AppHelper][initHelper][error]', `${appError})}`).catch()
+            appDebugLog(
+              '[AppHelper][initHelper][error]',
+              `${appError.code}: ${appError.message}\n${appError.stderr ?? ''}`
+            ).catch(() => {})
             console.log('initHelper err: ', appError)
             this.state = 'normal'
             this.emitStatus('installFaild', appError.code)
