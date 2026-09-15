@@ -2,6 +2,10 @@ import assert from 'node:assert/strict'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, join, relative, sep } from 'node:path'
 import type { SoftInstalled } from '../src/shared/app'
+import {
+  resolvePgAdminPython,
+  selectPgAdminPython
+} from '../src/render/components/PostgreSql/PgAdminPython'
 import { redisCommanderRequest } from '../src/render/components/Redis/RedisCommanderRequest'
 
 const root = join(import.meta.dirname, '..')
@@ -268,8 +272,80 @@ for (const registration of controllers) {
   assert.match(controllerSource, registration.defaultExport)
 }
 
+const pgAdminPanelSource = readFileSync(join(componentsDir, 'PostgreSql/PgAdminPanel.ts'), 'utf-8')
+assert.match(pgAdminPanelSource, /resolvePgAdminPython\(/)
+assert.doesNotMatch(pgAdminPanelSource, /currentVersion\('python'\)/)
+assert.match(pgAdminPanelSource, /ServiceActionStore\.isInAppEnv\(candidate\)/)
+assert.match(pgAdminPanelSource, /\(\) => ServiceActionStore\.fetchPath\(\)/)
+assert.ok(
+  pgAdminPanelSource.indexOf('this.opening.value = true') <
+    pgAdminPanelSource.indexOf('await resolvePgAdminPython(')
+)
+
+const serviceActionStoreSource = readFileSync(
+  join(componentsDir, 'ServiceManager/EXT/store.ts'),
+  'utf-8'
+)
+assert.match(serviceActionStoreSource, /fetchPath: \(\) => Promise<void>/)
+assert.match(serviceActionStoreSource, /const FETCH_PATH_TIMEOUT_MS = 20_000/)
+assert.match(serviceActionStoreSource, /const FETCH_PATH_COOLDOWN_MS = 60_000/)
+assert.match(serviceActionStoreSource, /setTimeout\(settle, FETCH_PATH_TIMEOUT_MS\)/)
+assert.match(
+  serviceActionStoreSource,
+  /setTimeout\(\(\) => \{\s*ServiceActionStore\.fetchPathing = false\s*\}, FETCH_PATH_COOLDOWN_MS\)/
+)
+assert.match(serviceActionStoreSource, /ServiceActionStore\.fetchPathing = false/)
+
 const redisPage = readFileSync(join(componentsDir, 'Redis/Index.vue'), 'utf-8')
 const redisPanel = readFileSync(join(componentsDir, 'Redis/RedisCommanderPanel.ts'), 'utf-8')
+const pgAdminPythonCandidates = [
+  { version: '3.14.3', bin: 'C:/FlyEnv/python-3.14/python.exe', path: 'C:/FlyEnv/python-3.14' },
+  { version: '3.13.15', bin: 'C:/FlyEnv/python-3.13/python.exe', path: 'C:/FlyEnv/python-3.13' },
+  { version: '3.9.13', bin: 'C:/FlyEnv/python-3.9/python.exe', path: 'C:/FlyEnv/python-3.9' }
+]
+assert.equal(
+  selectPgAdminPython(pgAdminPythonCandidates, (candidate) => candidate.version === '3.13.15')
+    ?.version,
+  '3.13.15'
+)
+assert.equal(
+  selectPgAdminPython(pgAdminPythonCandidates, (candidate) => candidate.version === '3.14.3')
+    ?.version,
+  '3.13.15'
+)
+assert.equal(
+  selectPgAdminPython([pgAdminPythonCandidates[0]], () => false),
+  undefined
+)
+assert.equal(
+  selectPgAdminPython([pgAdminPythonCandidates[2], pgAdminPythonCandidates[1]], () => false)
+    ?.version,
+  '3.13.15'
+)
+const initiallyUnfetchedPythonModule: {
+  installed: typeof pgAdminPythonCandidates
+  fetchInstalled: (retryDataDirectory?: boolean) => Promise<boolean>
+} = {
+  installed: [],
+  async fetchInstalled(retryDataDirectory) {
+    assert.equal(retryDataDirectory, true)
+    this.installed = [...pgAdminPythonCandidates]
+    return true
+  }
+}
+let pgAdminEnvPathsReady = false
+assert.equal(
+  (
+    await resolvePgAdminPython(
+      initiallyUnfetchedPythonModule,
+      (candidate) => pgAdminEnvPathsReady && candidate.version === '3.9.13',
+      async () => {
+        pgAdminEnvPathsReady = true
+      }
+    )
+  )?.version,
+  '3.9.13'
+)
 const redisCommanderOpenRequest = redisCommanderRequest(
   { bin: '/tmp/node', rootPassword: 'node-secret' } as SoftInstalled,
   { version: '7.4.0', rootPassword: 'redis-secret' } as SoftInstalled

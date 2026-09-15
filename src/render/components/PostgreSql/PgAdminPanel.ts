@@ -8,6 +8,12 @@ import { shell } from '@/util/NodeFn'
 import IPC from '@/util/IPC'
 import { ElMessage } from 'element-plus'
 import { isWebPanelInstallNotice } from '@shared/WebPanelInstallNotice'
+import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+import {
+  PGADMIN4_MAX_PYTHON_MINOR,
+  PGADMIN4_MIN_PYTHON_MINOR,
+  resolvePgAdminPython
+} from './PgAdminPython'
 
 export class PgAdminPanel {
   readonly opening = ref(false)
@@ -18,14 +24,22 @@ export class PgAdminPanel {
 
     const brewStore = BrewStore()
     const version = brewStore.module('postgresql').installed.find((item) => item.run)
-    const python = brewStore.currentVersion('python')
-    if (!version || !python?.bin) {
+    if (!version) {
       MessageError(I18nT('base.needSelectVersion'))
       return
     }
-
     this.opening.value = true
     try {
+      const python = await resolvePgAdminPython(
+        brewStore.module('python'),
+        (candidate) => ServiceActionStore.isInAppEnv(candidate),
+        () => ServiceActionStore.fetchPath()
+      )
+      if (!python?.bin) {
+        throw new Error(
+          `pgAdmin 4 requires Python 3.${PGADMIN4_MIN_PYTHON_MINOR} through 3.${PGADMIN4_MAX_PYTHON_MINOR}`
+        )
+      }
       await PostgreSqlSetup.init()
       const versionTop = version.version?.split('.')?.shift() ?? ''
       const dataDir =

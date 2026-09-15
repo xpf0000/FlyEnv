@@ -17,6 +17,9 @@ import { Setup } from '@/components/Tools/SystenEnv/setup'
 import { installedVersionNote, setInstalledVersionNote } from '@/util/InstalledVersionNote'
 
 let time = 0
+const FETCH_PATH_TIMEOUT_MS = 20_000
+const FETCH_PATH_COOLDOWN_MS = 60_000
+let fetchPathInFlight: Promise<void> | undefined
 const escapeHtml = (content: string) => {
   return content
     .replace(/&/g, '&amp;')
@@ -40,7 +43,7 @@ export const ServiceActionStore: {
   allPath: string[]
   appPath: string[]
   fetchPathing: boolean
-  fetchPath: () => void
+  fetchPath: () => Promise<void>
   cleanAlias: () => void
   showAlias: (item: SoftInstalled) => void
   setAlias: (
@@ -139,35 +142,71 @@ export const ServiceActionStore: {
     })
   },
   fetchPath() {
+    if (fetchPathInFlight) {
+      return fetchPathInFlight
+    }
     if (ServiceActionStore.fetchPathing) {
-      return
+      return Promise.resolve()
     }
     ServiceActionStore.fetchPathing = true
-    IPC.send('app-fork:tools', 'fetchPATH').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0 && res?.data?.allPath) {
-        const all = res?.data?.allPath ?? []
-        const app = res?.data?.appPath ?? []
-        ServiceActionStore.allPath = reactive([...all])
-        ServiceActionStore.appPath = reactive([...app])
-
-        if (window.Server.isWindows) {
-          localForage
-            .getItem(`flyenv-app-env-dir`)
-            .then((res: Record<string, string>) => {
-              const list = res || {}
-              const set = new Set([...Object.values(list), ...app])
-              const appList = Array.from(set)
-              ServiceActionStore.appPath = reactive([...appList])
-            })
-            .catch()
-        }
-
+    let resolveFetch!: () => void
+    const current = new Promise<void>((resolve) => {
+      resolveFetch = resolve
+    })
+    fetchPathInFlight = current
+    let settled = false
+    let requestKey: string | undefined
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    const settle = (keepCooldown = false) => {
+      if (settled) return
+      settled = true
+      if (timeout) clearTimeout(timeout)
+      if (requestKey) IPC.off(requestKey)
+      if (fetchPathInFlight === current) {
+        fetchPathInFlight = undefined
+      }
+      if (keepCooldown) {
         setTimeout(() => {
           ServiceActionStore.fetchPathing = false
-        }, 60000)
+        }, FETCH_PATH_COOLDOWN_MS)
+      } else {
+        ServiceActionStore.fetchPathing = false
       }
-    })
+      resolveFetch()
+    }
+
+    try {
+      const request = IPC.send('app-fork:tools', 'fetchPATH')
+      requestKey = request.key
+      request.then(async (_key: string, res: any) => {
+        let keepCooldown = false
+        try {
+          if (res?.code === 0 && res?.data?.allPath) {
+            const all = res?.data?.allPath ?? []
+            const app = res?.data?.appPath ?? []
+            let appPaths = [...app]
+            if (window.Server.isWindows) {
+              const stored = await localForage
+                .getItem<Record<string, string>>(`flyenv-app-env-dir`)
+                .catch(() => null)
+              appPaths = [...new Set([...Object.values(stored || {}), ...app])]
+            }
+            if (!settled) {
+              ServiceActionStore.allPath = reactive([...all])
+              ServiceActionStore.appPath = reactive(appPaths)
+              keepCooldown = true
+            }
+          }
+        } finally {
+          settle(keepCooldown)
+        }
+      })
+      timeout = setTimeout(settle, FETCH_PATH_TIMEOUT_MS)
+    } catch {
+      settle()
+    }
+
+    return current
   },
   updatePath(item: SoftInstalled, typeFlag: string) {
     return new Promise((resolve, reject) => {

@@ -739,7 +739,7 @@ export interface PythonVersionInfo {
 export function parsePythonVersion(versionStr: string): PythonVersionInfo | null {
   const match = /^(?:Python\s+)?(\d+)\.(\d+)\.(\d+)\s*$/.exec(versionStr?.trim() ?? '')
   if (!match) return null
-  
+
   return {
     major: Number(match[1]),
     minor: Number(match[2]),
@@ -749,7 +749,21 @@ export function parsePythonVersion(versionStr: string): PythonVersionInfo | null
 
 export function validatePgAdminPythonVersionInfo(info: PythonVersionInfo | null): boolean {
   if (!info) return false
-  return info.major === 3 && info.minor >= PGADMIN4_MIN_PYTHON_MINOR && info.minor <= PGADMIN4_MAX_PYTHON_MINOR
+  return (
+    info.major === 3 &&
+    info.minor >= PGADMIN4_MIN_PYTHON_MINOR &&
+    info.minor <= PGADMIN4_MAX_PYTHON_MINOR
+  )
+}
+
+export function assertPgAdminPythonVersion(versionStr: string, source: string): void {
+  const version = versionStr.trim()
+  if (validatePgAdminPythonVersionInfo(parsePythonVersion(version))) return
+
+  const actual = version ? `has version ${version}` : 'version could not be determined'
+  throw new Error(
+    `pgAdmin 4 requires Python 3.${PGADMIN4_MIN_PYTHON_MINOR} through 3.${PGADMIN4_MAX_PYTHON_MINOR}, but ${source} ${actual}`
+  )
 }
 
 export interface PgAdminHealthOptions {

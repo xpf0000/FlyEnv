@@ -35,6 +35,7 @@ import {
   pgAdminServersContent,
   pgAdminUrl,
   postgresqlPortFromConfig,
+  assertPgAdminPythonVersion,
   assertPgAdminRegistrationPort,
   startPgAdminWithPortRetry,
   stopPgAdminPidsWithVerification,
@@ -1006,6 +1007,11 @@ assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 8, micro: 0 }),
 assert.equal(validatePgAdminPythonVersionInfo({ major: 3, minor: 14, micro: 0 }), false)
 assert.equal(validatePgAdminPythonVersionInfo({ major: 2, minor: 7, micro: 0 }), false)
 assert.equal(validatePgAdminPythonVersionInfo(null), false)
+assert.doesNotThrow(() => assertPgAdminPythonVersion('3.13.15', 'selected Python'))
+assert.throws(
+  () => assertPgAdminPythonVersion('3.14.3', 'selected Python'),
+  /pgAdmin 4 requires Python 3\.9 through 3\.13, but selected Python has version 3\.14\.3/
+)
 
 await assert.rejects(
   findPgAdminPort(65536),
@@ -1141,7 +1147,11 @@ assert.match(postgresqlSource, /completePgAdminInitialization\(/)
 assert.match(postgresqlSource, /startPgAdminWithPortRetry/)
 assert.match(postgresqlSource, /verifyPgAdminPidPersistence/)
 assert.match(postgresqlSource, /pgAdminOwnedPids/)
-assert.match(postgresqlSource, /validPgAdminPythonVersion\(python\.version\)/)
+assert.doesNotMatch(openPgAdminSource, /validPgAdminPythonVersion\(python\.version\)/)
+assert.match(
+  openPgAdminSource,
+  /await this\.validatePgAdminPythonVersion\(python\.bin, 'selected Python'\)/
+)
 assert.match(postgresqlSource, /assertPgAdminRegistrationPort\(postgreSqlPort\)/)
 assert.match(postgresqlSource, /postgresqlPortFromConfig/)
 assert.match(

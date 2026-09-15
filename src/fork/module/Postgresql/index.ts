@@ -46,11 +46,10 @@ import { StopProcessListFetch } from '@shared/StopProcessList'
 import { webPanelInstallNotice } from '@shared/WebPanelInstallNotice'
 import {
   assertPgAdminRegistrationPort,
+  assertPgAdminPythonVersion,
   completePgAdminInitialization,
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
-  PGADMIN4_MAX_PYTHON_MINOR,
-  PGADMIN4_MIN_PYTHON_MINOR,
   PGADMIN4_PACKAGE,
   pgAdminCommandOwned,
   pgAdminOwnedPidsWithoutPackageMetadata,
@@ -68,7 +67,6 @@ import {
   pgAdminPaths,
   pgAdminPrivateDirectories,
   parsePgAdminServerIdentity,
-  parsePythonVersion,
   pgAdminRuntimePythonPath,
   pgAdminServersContent,
   pgAdminUrl,
@@ -78,8 +76,6 @@ import {
   startPgAdminWithPortRetry,
   stopPgAdminPidsWithVerification,
   type PgAdminServerIdentity,
-  validPgAdminPythonVersion,
-  validatePgAdminPythonVersionInfo,
   verifyPgAdminPidPersistence,
   waitForPgAdminHealth,
   waitForPostgresqlProcess
@@ -147,15 +143,18 @@ class Manager extends Base {
     return this.pgAdminPackageRoot(pythonBin, pgAdminPackageRootUnversionedProbe)
   }
 
-  private async validateVenvPythonVersion(pythonBin: string): Promise<void> {
-    const result = await spawnPromiseWithEnv(pythonBin, ['-c', 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")'], {
-      shell: false
-    })
-    const versionStr = result.stdout.trim()
-    const versionInfo = parsePythonVersion(versionStr)
-    if (!validatePgAdminPythonVersionInfo(versionInfo)) {
-      throw new Error(`pgAdmin 4 requires Python 3.${PGADMIN4_MIN_PYTHON_MINOR} through 3.${PGADMIN4_MAX_PYTHON_MINOR}, but the virtual environment has Python ${versionStr}`)
-    }
+  private async validatePgAdminPythonVersion(pythonBin: string, source: string): Promise<void> {
+    const result = await spawnPromiseWithEnv(
+      pythonBin,
+      [
+        '-c',
+        'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")'
+      ],
+      {
+        shell: false
+      }
+    )
+    assertPgAdminPythonVersion(result.stdout, source)
   }
 
   private async pgAdminRunningPid(packageRoot: string): Promise<string | undefined> {
@@ -295,9 +294,7 @@ class Manager extends Base {
         if (!python?.bin || !existsSync(python.bin)) {
           throw new Error('A selected Python binary is required')
         }
-        if (!validPgAdminPythonVersion(python.version)) {
-          throw new Error('pgAdmin 4 requires Python 3.9 or later')
-        }
+        await this.validatePgAdminPythonVersion(python.bin, 'selected Python')
         if (firstStart) {
           on(webPanelInstallNotice('pgAdmin 4'))
         }
@@ -315,7 +312,7 @@ class Manager extends Base {
           throw new Error('pgAdmin virtual environment Python was not created')
         }
 
-        await this.validateVenvPythonVersion(paths.python)
+        await this.validatePgAdminPythonVersion(paths.python, 'pgAdmin virtual environment')
 
         let packageRoot = ''
         let packageRepaired = false
