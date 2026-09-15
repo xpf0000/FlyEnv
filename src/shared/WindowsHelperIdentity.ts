@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import path from 'node:path'
 import crypto from 'node:crypto'
+import fs from 'node:fs/promises'
 
 const execFileAsync = promisify(execFile)
 
@@ -141,6 +142,23 @@ export const windowsHelperInstalledPath = (identity: Pick<WindowsHelperIdentity,
 export const windowsHelperArguments = (identity: WindowsHelperIdentity): string =>
   `--instance-id "${identity.instanceId}" --expected-user-sid "${identity.sid}"`
 
+export const windowsHelperBinariesMatch = async (
+  executable: string,
+  sourceExecutable: string
+): Promise<boolean> => {
+  try {
+    const [executableData, sourceData] = await Promise.all([
+      fs.readFile(executable),
+      fs.readFile(sourceExecutable)
+    ])
+    const executableHash = crypto.createHash('sha256').update(executableData).digest()
+    const sourceHash = crypto.createHash('sha256').update(sourceData).digest()
+    return crypto.timingSafeEqual(executableHash, sourceHash)
+  } catch {
+    return false
+  }
+}
+
 export type WindowsHelperTask = {
   principal: string
   logonType: number
@@ -184,8 +202,6 @@ export const readWindowsHelperTask = async (
 ): Promise<WindowsHelperTask | null> => {
   const config = Buffer.from(
     JSON.stringify({
-      sourceExecutable,
-      executable: identity.executable,
       taskFolder: identity.taskFolder,
       taskName: identity.taskName
     }),
@@ -203,11 +219,9 @@ $principal = $definition.Principal.UserId
 if ($principal -notmatch '^S-1-') { $principal = (New-Object Security.Principal.NTAccount($principal)).Translate([Security.Principal.SecurityIdentifier]).Value }
 $action = $definition.Actions.Item(1)
 $trigger = $definition.Triggers.Item(1)
-$binaryMatches = $false
-if ((Test-Path -LiteralPath $config.executable -PathType Leaf) -and (Test-Path -LiteralPath $config.sourceExecutable -PathType Leaf)) {
-  $binaryMatches = (Get-FileHash -LiteralPath $config.executable -Algorithm SHA256).Hash -eq (Get-FileHash -LiteralPath $config.sourceExecutable -Algorithm SHA256).Hash
-}
-@{ principal=$principal; logonType=[int]$definition.Principal.LogonType; runLevel=[int]$definition.Principal.RunLevel; enabled=[bool]$task.Enabled; actionCount=$definition.Actions.Count; executable=[string]$action.Path; arguments=[string]$action.Arguments; triggerCount=$definition.Triggers.Count; triggerSid=[string]$trigger.UserId; binaryMatches=$binaryMatches } | ConvertTo-Json -Compress
+$triggerSid = $trigger.UserId
+if ($triggerSid -notmatch '^S-1-') { $triggerSid = (New-Object Security.Principal.NTAccount($triggerSid)).Translate([Security.Principal.SecurityIdentifier]).Value }
+@{ principal=$principal; logonType=[int]$definition.Principal.LogonType; runLevel=[int]$definition.Principal.RunLevel; enabled=[bool]$task.Enabled; actionCount=$definition.Actions.Count; executable=[string]$action.Path; arguments=[string]$action.Arguments; triggerCount=$definition.Triggers.Count; triggerSid=[string]$triggerSid } | ConvertTo-Json -Compress
 `
   const { stdout } = await execFileAsync(
     'powershell.exe',
@@ -219,5 +233,10 @@ if ((Test-Path -LiteralPath $config.executable -PathType Leaf) -and (Test-Path -
     ],
     { windowsHide: true, timeout: 10_000 }
   )
-  return JSON.parse(stdout.trim())
+  const task = JSON.parse(stdout.trim()) as Omit<WindowsHelperTask, 'binaryMatches'> | null
+  if (!task) return null
+  return {
+    ...task,
+    binaryMatches: await windowsHelperBinariesMatch(identity.executable, sourceExecutable)
+  }
 }

@@ -21,6 +21,10 @@ $principal = [pscustomobject]@{ UserId = 'S-1-5-18'; LogonType = 5; RunLevel = 1
 $task = [pscustomobject]@{ Definition = [pscustomobject]@{ Principal = $principal; Actions = $actions; Triggers = $triggers }; Stopped = $false }
 $task | Add-Member ScriptMethod Stop { param($flags) $this.Stopped = $true }
 Assert-RegisteredTaskConfiguration -Task $task -ExePath $exePath -AppUserSid $target -ExpectedArguments $arguments
+$currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$triggers.Trigger.UserId = $currentIdentity.Name
+Assert-RegisteredTaskConfiguration -Task $task -ExePath $exePath -AppUserSid $currentIdentity.User -ExpectedArguments $arguments
+$triggers.Trigger.UserId = $target.Value
 foreach ($change in @(
   @{ Object=$principal; Field='UserId'; Value='S-1-5-21-100-200-300-500' },
   @{ Object=$principal; Field='LogonType'; Value=3 },

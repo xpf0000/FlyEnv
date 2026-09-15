@@ -197,7 +197,11 @@ function Assert-RegisteredTaskConfiguration {
   if ($Task.Definition.Principal.LogonType -ne 5 -or $Task.Definition.Principal.RunLevel -ne 1) {
     Throw-InstallerError -Code 'helper_task_invalid' -Message 'Scheduled task principal must use ServiceAccount/Highest'
   }
-  if ($Task.Definition.Triggers.Count -ne 1 -or $Task.Definition.Triggers.Item(1).UserId -ne $AppUserSid.Value) {
+  if ($Task.Definition.Triggers.Count -ne 1) {
+    Throw-InstallerError -Code 'helper_task_invalid' -Message 'Scheduled task must contain exactly one target-user logon trigger'
+  }
+  $triggerSid = Resolve-UserSid -Identity $Task.Definition.Triggers.Item(1).UserId
+  if ($triggerSid.Value -ne $AppUserSid.Value) {
     Throw-InstallerError -Code 'helper_task_invalid' -Message 'Scheduled task trigger must belong to the target SID'
   }
   if ($Task.Definition.Actions.Count -ne 1) {

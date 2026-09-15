@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import {
   parseWindowsWhoAmIUserCsv,
+  windowsHelperBinariesMatch,
   windowsHelperInstanceId,
   windowsHelperInstancePaths
 } from '../src/shared/WindowsHelperIdentity'
@@ -36,4 +38,28 @@ assert.match(source, /getWindowsHelperIdentity\(\)/)
 assert.match(source, /buildWindowsHelperInstallScript\(tmpl, \{/)
 assert.match(source, /identity: windowsIdentity/)
 
-console.log('windows-helper-identity-test: ok')
+const testBinaryFingerprint = async (): Promise<void> => {
+  const tempDirectory = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'flyenv-helper-identity-'))
+  try {
+    const installed = path.join(tempDirectory, 'installed.exe')
+    const bundled = path.join(tempDirectory, 'bundled.exe')
+    await fs.promises.writeFile(installed, 'same helper binary')
+    await fs.promises.writeFile(bundled, 'same helper binary')
+    assert.equal(await windowsHelperBinariesMatch(installed, bundled), true)
+    await fs.promises.writeFile(bundled, 'different helper binary')
+    assert.equal(await windowsHelperBinariesMatch(installed, bundled), false)
+    assert.equal(
+      await windowsHelperBinariesMatch(installed, path.join(tempDirectory, 'missing.exe')),
+      false
+    )
+  } finally {
+    await fs.promises.rm(tempDirectory, { recursive: true, force: true })
+  }
+}
+
+testBinaryFingerprint()
+  .then(() => console.log('windows-helper-identity-test: ok'))
+  .catch((error) => {
+    console.error(error)
+    process.exit(1)
+  })
