@@ -16,6 +16,8 @@
   "rootful": "Rootful Mode",
   "userModeNetworking": "User-mode Networking",
   "rosetta": "Rosetta (Mac)",
+  "rosettaGlobalTip": "Applies as a global Podman preference for Apple Silicon machines (not per-VM). Requires Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta needs Podman >= 5.1.0. Upgrade Podman to enable this switch.",
   "identityPath": "SSH Key Path",
   "remoteUsername": "Remote User",
   "Dashboard": "Dashboard",
