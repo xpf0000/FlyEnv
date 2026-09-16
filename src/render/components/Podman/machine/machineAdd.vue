@@ -37,7 +37,16 @@
           <el-switch v-model="form.rootful" />
         </el-form-item>
         <el-form-item v-if="!isEdit && isMacOSArm" :label="I18nT('podman.rosetta')" prop="rosetta">
-          <el-switch v-model="form.rosetta" />
+          <div class="flex w-full flex-col gap-1">
+            <el-switch v-model="form.rosetta" :disabled="rosettaVersionTooOld" />
+            <span class="text-xs text-[var(--el-text-color-secondary)]">
+              {{
+                rosettaVersionTooOld
+                  ? I18nT('podman.rosettaNeedVersion')
+                  : I18nT('podman.rosettaGlobalTip')
+              }}
+            </span>
+          </div>
         </el-form-item>
         <el-form-item v-if="!isEdit" :label="I18nT('podman.remoteUsername')" prop="remoteUsername">
           <el-input v-model="form.remoteUsername" placeholder="user" />
@@ -56,23 +65,38 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { ElMessage } from 'element-plus'
   import IPC from '@/util/IPC'
   import { PodmanManager } from '@/components/Podman/class/Podman'
   import { createPodmanMachineForm, PODMAN_MACHINE_DISK_GIB } from './form'
+  import { podmanRosettaVersionTooOld } from '@shared/podman-rosetta'
 
   const props = defineProps<{ item?: any }>()
   const isEdit = !!props.item
 
   // Rosetta is only supported by Podman on Apple Silicon (arm64)
   const isMacOSArm = computed(() => window.Server.isMacOS && window.Server.isArmArch)
+  // Disable only when version is known and < 5.1.0.
+  // Empty/unknown version must NOT block: backend still gates the write,
+  // and a race before podmanInit returns would otherwise false-disable the switch.
+  const rosettaVersionTooOld = computed(() => podmanRosettaVersionTooOld(PodmanManager.version))
 
   const visible = ref(true)
   const submitting = ref(false)
   const formRef = ref()
   const form = ref(createPodmanMachineForm(props?.item))
+
+  watch(
+    rosettaVersionTooOld,
+    (tooOld) => {
+      if (tooOld) {
+        form.value.rosetta = false
+      }
+    },
+    { immediate: true }
+  )
 
   // 获取最新的 machine 数据
   const currentMachine = computed(() => {
