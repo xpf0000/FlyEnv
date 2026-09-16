@@ -95,14 +95,14 @@ Helper 版本由 20 升至 21，以确保旧版本 Helper 不会误认为它支�
 | 目标 | 限制 |
 | --- | --- |
 | runtime 脚本 | 必须精确等于受原有 FlyEnv 数据根白名单约束的 `<root>\\bin\\flyenv.ps1`。 |
-| Windows PowerShell Profile | 必须位于调用该操作的用户 home 下无 reparse point 的路径，且以 `WindowsPowerShell\\Microsoft.PowerShell_profile.ps1` 结尾。 |
-| PowerShell 7 Profile | 必须位于调用该操作的用户 home 下无 reparse point 的路径，且以 `PowerShell\\Profile.ps1` 结尾。 |
-| 路径安全 | 不信任调用方传入的任意路径；拒绝用户 home 外的目标、相对路径、traversal、控制字符、重复 edition 与 reparse/symlink 组件。这允许 Windows 将 Documents 本地化或重定向至 home 内的 OneDrive 目录。 |
+| Windows PowerShell Profile | 根路径由 Electron `app.getPath('documents')` 提供，路径无 reparse point，且以 `WindowsPowerShell\\Microsoft.PowerShell_profile.ps1` 结尾。 |
+| PowerShell 7 Profile | 根路径由 Electron `app.getPath('documents')` 提供，路径无 reparse point，且以 `PowerShell\\Profile.ps1` 结尾。 |
+| 路径安全 | 信任主进程取得的 Documents known-folder 路径；拒绝相对路径、traversal、控制字符、重复 edition 与 reparse/symlink 组件，不检查 Profile 或祖先目录 Owner，也不限制 Documents 必须位于用户 home 内。 |
 | 内容安全 | runtime 脚本使用 Base64，最大 1 MiB；Profile 内容不由调用者传入，只能生成固定 marker block。 |
 
-UAC fallback 不复用通用 `Sudo` 的 `command.bat`、`execute.bat` 或 data-file 传输。它把校验后的完整请求、调用用户 home 和子 PowerShell 脚本压缩后直接嵌入 `Start-Process -Verb RunAs` 的参数；构造时将总长度限制在 Windows 命令行安全余量内，过大的请求会失败而不是退回临时负载文件。临时目录只保存随机路径的结果信封，结果中的 nonce 必须与内联 nonce 匹配，且结果不会用于授权特权写入。
+UAC fallback 不复用通用 `Sudo` 的 `command.bat`、`execute.bat` 或 data-file 传输。它把校验后的完整请求和子 PowerShell 脚本压缩后直接嵌入 `Start-Process -Verb RunAs` 的参数；构造时将总长度限制在 Windows 命令行安全余量内，过大的请求会失败而不是退回临时负载文件。临时目录只保存随机路径的结果信封，结果中的 nonce 必须与内联 nonce 匹配，且结果不会用于授权特权写入。
 
-提升后的脚本会重新校验 runtime 根目录。除 reparse point 和文件大小限制外，`%ProgramData%\\FlyEnv\\flyenv.allowed-roots` 及其父目录都必须由 `SYSTEM` 或内置 `Administrators` 拥有，且任何非信任 SID 不得具有写入、删除、修改 ACL 或取得所有权的 Allow 权限。调用用户的 home 在提升前被捕获并内联传入，因此即使 UAC 使用另一个管理员账户，也只会修改原调用用户已发现的固定 Profile 路径。
+提升后的脚本会重新校验 runtime 根目录。除 reparse point 和文件大小限制外，`%ProgramData%\\FlyEnv\\flyenv.allowed-roots` 及其父目录都必须由 `SYSTEM` 或内置 `Administrators` 拥有，且任何非信任 SID 不得具有写入、删除、修改 ACL 或取得所有权的 Allow 权限。Profile 路径在提升前由 Electron Documents known-folder 结果构造并内联传入，不做 Profile 或祖先目录 Owner 校验。
 
 Profile 采用如下 marker，能更新旧的 FlyEnv block，并在 marker 不完整、重复或歧义时拒绝覆盖；旧的 `# FlyEnv Auto-Load` 两行 block 会迁移为这个 marker。对于 OneDrive 重定向的 Documents，Profile 原子写入使用 PowerShell provider 的字节写入和 `Move-Item`，避免 `.NET File.WriteAllBytes` 在该类目录下返回 `FileNotFoundException`：
 

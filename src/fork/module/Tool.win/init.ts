@@ -92,6 +92,9 @@ export const buildPowerShellProfileTargets = (documentsPath: string): ProfileCan
   return targets
 }
 
+// SetupGlobalPaths obtains UserDocuments from Electron app.getPath('documents').
+// Treat that known-folder result as authoritative, including redirected paths;
+// helper implementations must not add an ancestor-owner requirement.
 const profileCandidates = () => buildPowerShellProfileTargets(global.Server.UserDocuments ?? '')
 
 export function initAllowDir(json: string) {

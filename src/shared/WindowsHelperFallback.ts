@@ -800,7 +800,6 @@ function buildInstallFlyEnvPowerShellIntegrationScript(
   options: {
     resultPath?: string
     nonce?: string
-    targetUserSid?: string
     allowedRootsPath?: string
   } = {}
 ): string {
@@ -974,18 +973,9 @@ function Assert-FlyEnvPowerShellIntegrationPayload($Request) {
       throw "unexpected $edition profile path: $profilePath"
     }
     Assert-FlyEnvShellNoReparsePoint $profilePath
-    $targetSid = ${powerShellString(options.targetUserSid ?? '')}
-    if (-not $targetSid) { throw 'Missing FlyEnv target SID for profile ownership check' }
-    $candidate = [IO.Path]::GetDirectoryName($profilePath)
-    $targetOwned = $false
-    while ($candidate) {
-      if (Test-Path -LiteralPath $candidate) {
-        $owner = (Get-Acl -LiteralPath $candidate).GetOwner([Security.Principal.SecurityIdentifier]).Value
-        if ($owner -eq $targetSid) { $targetOwned = $true; break }
-      }
-      $candidate = [IO.Path]::GetDirectoryName($candidate)
-    }
-    if (-not $targetOwned) { throw "Profile does not belong to target SID: $profilePath" }
+    # The app supplies profiles from Electron app.getPath('documents'). That
+    # known-folder path is authoritative; redirected Documents ancestors are
+    # not required to be owned by the target SID.
     $seen[$edition] = $true
     $profiles += [PSCustomObject]@{ edition = $edition; path = $profilePath }
   }
@@ -1422,7 +1412,6 @@ function buildFlyEnvPowerShellIntegrationUacPlanWithRoots(
   const childScript = buildInstallFlyEnvPowerShellIntegrationScript(validated, {
     resultPath,
     nonce,
-    targetUserSid: options.targetUserSid,
     allowedRootsPath: allowedRootsFilePath()
   })
   const childCommand = buildCompressedPowerShellCommand(childScript)

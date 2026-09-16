@@ -106,21 +106,21 @@ Helper 后面完全不依赖 FlyEnv 本体装在哪里。
 ```text
 Alice
 FlyEnv 4.19
-Helper protocol 25
+Helper protocol 26
 
 Bob
 FlyEnv 4.18
-Helper protocol 24
+Helper protocol 25
 ```
 
 就可以自然变成：
 
 ```text
 Alice instance
-  flyenv-helper.exe v25
+  flyenv-helper.exe v26
 
 Bob instance
-  flyenv-helper.exe v24
+  flyenv-helper.exe v25
 ```
 
 完全互不影响。
@@ -148,32 +148,32 @@ Alice 和 Bob 理论上使用相同 FlyEnv 版本。
 那：
 
 ```text
-Alice helper = v24
-Bob helper   = v24
+Alice helper = v25
+Bob helper   = v25
 ```
 
 虽然二进制重复了一份，但这通常不是什么成本。
 
-而升级全局 FlyEnv 到 v25 后：
+而升级全局 FlyEnv 到 v26 后：
 
 Alice 第一次打开：
 
 ```text
-检测 Alice helper v24
-→ 只升级 Alice helper 到 v25
+检测 Alice helper v25
+→ 只升级 Alice helper 到 v26
 ```
 
 Bob 还没打开：
 
 ```text
-Bob helper 仍然 v24
+Bob helper 仍然 v25
 ```
 
 等 Bob 下次打开新 FlyEnv：
 
 ```text
-检测 Bob helper v24
-→ 升级 Bob helper 到 v25
+检测 Bob helper v25
+→ 升级 Bob helper 到 v26
 ```
 
 也很自然。
@@ -332,7 +332,7 @@ Alice 和 Bob 可以各自初始化自己的 Helper，不互相锁。
   "schemaVersion": 1,
   "instanceId": "9c102a8c2af5c68061ce3b16014ba466",
   "sid": "S-1-5-21-...",
-  "helperProtocol": 24,
+  "helperProtocol": 26,
   "helperVersion": "4.18.4",
   "helperSha256": "...",
   "dataPath": "..."

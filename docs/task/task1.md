@@ -232,50 +232,11 @@ FlyEnvHelperPipe-{SID hash}
 
 ---
 
-# P1：Profile owner 检查可能对企业用户过严
+# P1：Profile owner 检查过严（2026-09-16 已解决）
 
-这里我也会特别注意：
+原方案要求 PowerShell profile 至少有一个归属目标 SID 的目录祖先。该要求已经撤销，因为 OneDrive Known Folder Move、企业 Documents Redirect、网络 Home Folder、备份恢复和公司统一 profile 的合法目录可能由 SYSTEM 或 Administrators 持有。
 
-> PowerShell profile 必须有归属目标 SID 的目录祖先；支持目标用户拥有的 redirected Documents。
-
-而剩余限制也承认：
-
-> 企业重定向 Documents 如果没有目标用户拥有的目录祖先，会拒绝。
-
-这恰好可能发生在：
-
-* OneDrive Known Folder Move
-* 企业 Documents Redirect
-* 网络 Home Folder
-* 公司统一 profile
-
-而 Issue #852 本身就是企业设备。
-
-所以人工测试的时候建议顺便检查：
-
-```powershell
-[Environment]::GetFolderPath('MyDocuments')
-```
-
-看看该用户是不是：
-
-```text
-C:\Users\rabdallah\Documents
-```
-
-如果是普通路径，现在不用担心。
-
-如果已经被重定向到：
-
-```text
-OneDrive
-网络路径
-企业目录
-```
-
-就要特别验证 shell integration。
-
-这个不一定要挡住 helper 发布，但需要验证。
+现行产品策略以 Electron `app.getPath('documents')` 为 Documents 根路径的权威来源。Go Helper 与 UAC fallback 不检查 profile 文件或祖先目录 Owner，也不应重新引入该限制；仍保留绝对路径、固定 PowerShell profile 目录/文件名和 reparse-point 校验。详见 `docs/task/windows-helper-cross-user-result.md`。
 
 ---
 
@@ -428,7 +389,7 @@ npx tsc --noEmit
 2. **完整构建 Windows production installer。**
    不只是单独 `go build`。
 
-3. **检查最终安装包内 helper 是否正确为 protocol 24。**
+3. **检查最终安装包内 helper 是否正确为 protocol 26。**
 
 4. **双账户 VM 实测：**
 

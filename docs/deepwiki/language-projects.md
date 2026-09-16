@@ -249,7 +249,7 @@ initFlyEnvSH() {
 }
 ```
 
-`tools/installFlyEnvPowerShellIntegration` 是独立 Helper 合约。它只允许 `<allowed-root>\\bin\\flyenv.ps1` 与当前用户 home 下两个固定 Profile 目标；Go Helper 与 UAC 回退都会拒绝 reparse point、路径遍历、重复 edition 和超过 1 MiB 的脚本。UAC 回退把校验后的 payload 和调用用户 home 直接嵌入提升进程参数，不复用通用临时 data-file；提升后还会复验 allowed-roots 文件及父目录的 owner/DACL。返回的 JSON 状态由 renderer 保留，不会以文件存在与否猜测成功。
+`tools/installFlyEnvPowerShellIntegration` 是独立 Helper 合约。它只允许 `<allowed-root>\\bin\\flyenv.ps1` 与 Electron `app.getPath('documents')` 派生的两个固定 Profile 目标；Go Helper 与 UAC 回退都会拒绝 reparse point、路径遍历、重复 edition 和超过 1 MiB 的脚本，但不检查 Profile 或祖先目录 Owner，也不要求 Documents 位于用户 home 内。UAC 回退把校验后的 payload 直接嵌入提升进程参数，不复用通用临时 data-file；提升后还会复验 allowed-roots 文件及父目录的 owner/DACL。返回的 JSON 状态由 renderer 保留，不会以文件存在与否猜测成功。
 
 Profile block 由固定 marker 管理。旧的 `# FlyEnv Auto-Load` 两行 block 会迁移；不完整、重复或歧义 marker 会失败而不是覆盖用户 Profile：
 

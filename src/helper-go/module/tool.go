@@ -480,6 +480,31 @@ func prepareFlyEnvProfileWrite(target FlyEnvPowerShellProfileTarget, scriptPath 
 	return FlyEnvPowerShellProfileResult{Edition: target.Edition, Path: cleanPath, State: state}, nil, nil
 }
 
+// validateFlyEnvPowerShellProfiles deliberately does not consult TargetUserSID.
+// Electron's Documents known-folder result is the authority for profile
+// placement; ownership is not a requirement for redirected Documents trees.
+func (t *ToolManager) validateFlyEnvPowerShellProfiles(
+	requested []FlyEnvPowerShellProfileTarget,
+) ([]FlyEnvPowerShellProfileTarget, error) {
+	profiles := make([]FlyEnvPowerShellProfileTarget, 0, len(requested))
+	seenEditions := make(map[string]bool)
+	for _, profile := range requested {
+		if seenEditions[profile.Edition] {
+			return nil, fmt.Errorf("duplicate PowerShell profile edition: %s", profile.Edition)
+		}
+		cleanProfilePath, err := utils.ValidateFlyEnvPowerShellProfilePath(profile.Path, profile.Edition)
+		if err != nil {
+			return nil, fmt.Errorf("invalid %s profile: %w", profile.Edition, err)
+		}
+		// The renderer derives this path from Electron app.getPath("documents").
+		// That known-folder result is authoritative: redirected or restored
+		// Documents trees need not have an ancestor owned by the target SID.
+		seenEditions[profile.Edition] = true
+		profiles = append(profiles, FlyEnvPowerShellProfileTarget{Edition: profile.Edition, Path: cleanProfilePath})
+	}
+	return profiles, nil
+}
+
 // InstallFlyEnvPowerShellIntegration is deliberately narrower than the
 // generic writeFileByRoot operation. It can only update FlyEnv's runtime
 // script and the two edition-specific standard PowerShell profile locations.
@@ -503,21 +528,9 @@ func (t *ToolManager) InstallFlyEnvPowerShellIntegration(
 	if len(request.Profiles) == 0 {
 		return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("no PowerShell profiles were discovered")
 	}
-	profiles := make([]FlyEnvPowerShellProfileTarget, 0, len(request.Profiles))
-	seenEditions := make(map[string]bool)
-	for _, profile := range request.Profiles {
-		if seenEditions[profile.Edition] {
-			return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("duplicate PowerShell profile edition: %s", profile.Edition)
-		}
-		cleanProfilePath, validationErr := utils.ValidateFlyEnvPowerShellProfilePath(profile.Path, profile.Edition)
-		if validationErr != nil {
-			return FlyEnvPowerShellIntegrationResult{}, fmt.Errorf("invalid %s profile: %w", profile.Edition, validationErr)
-		}
-		if err := utils.ValidateWindowsProfileOwner(cleanProfilePath, t.TargetUserSID); err != nil {
-			return FlyEnvPowerShellIntegrationResult{}, err
-		}
-		seenEditions[profile.Edition] = true
-		profiles = append(profiles, FlyEnvPowerShellProfileTarget{Edition: profile.Edition, Path: cleanProfilePath})
+	profiles, err := t.validateFlyEnvPowerShellProfiles(request.Profiles)
+	if err != nil {
+		return FlyEnvPowerShellIntegrationResult{}, err
 	}
 	scriptState := "updated"
 	writes := make([]flyEnvAtomicWrite, 0, len(profiles)+1)

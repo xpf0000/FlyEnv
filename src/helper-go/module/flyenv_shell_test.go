@@ -28,6 +28,34 @@ func TestWriteFlyEnvAtomicallyWithPowerShell(t *testing.T) {
 	}
 }
 
+func TestPowerShellProfilesTrustTheDocumentsPathWithoutTargetOwnership(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("PowerShell profiles are Windows-specific")
+	}
+	documents := filepath.Join(t.TempDir(), "Redirected Documents")
+	manager := &ToolManager{TargetUserSID: "S-1-5-21-100-200-300-500"}
+	profiles, err := manager.validateFlyEnvPowerShellProfiles([]FlyEnvPowerShellProfileTarget{
+		{
+			Edition: "windows-powershell",
+			Path: filepath.Join(
+				documents,
+				"WindowsPowerShell",
+				"Microsoft.PowerShell_profile.ps1",
+			),
+		},
+		{
+			Edition: "pwsh",
+			Path:    filepath.Join(documents, "PowerShell", "Profile.ps1"),
+		},
+	})
+	if err != nil {
+		t.Fatalf("Electron's Documents path must not depend on ancestor ownership: %v", err)
+	}
+	if len(profiles) != 2 {
+		t.Fatalf("validated profile count = %d, want 2", len(profiles))
+	}
+}
+
 func TestWriteFlyEnvAtomicallyBatchWithPowerShell(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		t.Skip("PowerShell provider fallback is Windows-specific")

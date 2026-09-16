@@ -583,6 +583,8 @@ func ValidateFlyEnvPowerShellRuntimeScriptPath(path string) (string, error) {
 // ValidateFlyEnvPowerShellProfilePath only permits the two standard
 // edition-specific PowerShell profile names. Windows may relocate Documents
 // outside the helper user's home, so profile location is not restricted to it.
+// The caller obtains Documents from Electron app.getPath("documents"); by
+// product policy its ancestors do not need to be owned by the target SID.
 func ValidateFlyEnvPowerShellProfilePath(path, edition string) (string, error) {
 	if runtime.GOOS != "windows" {
 		return "", fmt.Errorf("PowerShell profile validation is only supported on Windows")

@@ -21,7 +21,7 @@ const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 const Helper_Check_Timeout = 3000
 
-export const HelperVersion = 25
+export const HelperVersion = 26
 
 export type HelperHealth = {
   version: number

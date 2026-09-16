@@ -218,7 +218,12 @@ try {
       assert.match(uacPlan.args.at(-1) ?? '', /Start-Process -FilePath/)
       assert.doesNotMatch(uacPlan.childScript, /Get-Content -LiteralPath .*fallback-/)
       assert.match(uacPlan.childScript, /flyenv-shell-test-nonce/)
-      assert.match(uacPlan.childScript, /Profile does not belong to target SID/)
+      assert.doesNotMatch(
+        uacPlan.childScript,
+        /Profile does not belong to target SID/,
+        "the UAC fallback must trust Electron's Documents path without an owner check"
+      )
+      assert.doesNotMatch(uacPlan.childScript, /\$targetOwned|profile ownership check/)
       assert.match(uacPlan.childScript, /\$Result \| ConvertTo-Json -Compress -Depth 8/)
       assert.ok(uacPlan.childScript.includes("if ($Value -match '(^|[\\\\/])\\.\\.([\\\\/]|$)')"))
       assert.match(uacPlan.childScript, /Assert-FlyEnvAllowedRootsSecurity/)

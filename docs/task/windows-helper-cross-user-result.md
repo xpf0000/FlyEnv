@@ -45,8 +45,14 @@ helper 程序先复制到同目录随机 `.pending` 文件，校验 SHA-256 后�
 - HMAC、时间戳/nonce、防重放、客户端 PID/可执行文件绑定及 RPC/path allowlist 保持有效。
 - Go 只从推导出的 per-SID 路径读取 key 和 allowed-roots，并检查 key 长度、owner、受保护 DACL 和目标用户只读权限。
 - helper 安装目录及其祖先不能通过普通 RPC 加入可写根或被修改权限。
-- 数据目录权限恢复、PowerShell profile 和 `FlyEnvStartup` 都使用 UAC 前捕获的目标 SID；应用启动任务继续以目标用户 InteractiveToken/Limited 运行。
+- 数据目录权限恢复和 `FlyEnvStartup` 使用 UAC 前捕获的目标 SID；PowerShell profile 路径由 Electron `app.getPath('documents')` 提供，不做目标 SID 或祖先目录 Owner 校验。
 - macOS、Linux 以及现有 Sudo TEMP 通信流程不变。
+
+## PowerShell Profile 路径策略（2026-09-16）
+
+PowerShell profile 的 Documents 根路径以主进程调用 Electron `app.getPath('documents')` 的结果为准，再拼接固定的 `WindowsPowerShell\Microsoft.PowerShell_profile.ps1` 或 `PowerShell\Profile.ps1`。Go Helper 与 UAC fallback 只保留绝对路径、固定目录/文件名和 reparse-point 校验，不检查 profile 文件或任一祖先目录的 ACL Owner。
+
+这是明确的产品策略，不应重新增加“祖先 Owner 必须等于目标用户 SID”的限制。Windows 重定向、备份恢复、域策略和管理员预建目录都可能由 SYSTEM 或 Administrators 持有，但仍是当前用户的合法 Documents 路径；Owner 不等价于路径来源或实际写权限。
 
 ## 主要改动
 
@@ -54,8 +60,8 @@ helper 程序先复制到同目录随机 `.pending` 文件，校验 SHA-256 后�
 - `src/shared/AppHelperCheck.ts`、`src/fork/Helper.ts`：按当前 SID 读取 key、连接管道并校验 task/fingerprint/health。
 - `src/main/core/AppHelper.ts`：把完整实例配置和协议版本交给现有安装生命周期。
 - `static/sh/Windows/flyenv-auto-start-now.ps1`：创建受保护的 per-SID 文件、任务和元数据，只操作当前实例。
-- `src/helper-go/main.go`、`src/helper-go/utils/*`：协议 25、实例参数、派生路径、per-SID 管道与 ACL 校验。
-- `src/helper-go/module/tool.go`、`src/shared/WindowsHelperFallback.ts`：恢复目录、shell integration 和应用开机启动使用目标 SID。
+- `src/helper-go/main.go`、`src/helper-go/utils/*`：协议 26、实例参数、派生路径、per-SID 管道与 ACL 校验；v26 同时发布不再检查 PowerShell profile 祖先 Owner 的行为。
+- `src/helper-go/module/tool.go`、`src/shared/WindowsHelperFallback.ts`：恢复目录和应用开机启动使用目标 SID；shell integration 信任 Electron 提供的 Documents 路径且不检查 profile 祖先 Owner。
 - `scripts/windows-helper-*.ts`、`scripts/windows-helper-task-behavior-test.ps1`：实例隔离、安装契约、任务差异、错误处理和兼容回归测试。
 
 没有新增 renderer/Pinia/config.setup 状态。主进程 `AppHelper` 单例拥有安装与修复生命周期，Task Scheduler 拥有 SYSTEM helper 进程生命周期，fork 模块继续发起已认证 RPC。
@@ -71,8 +77,8 @@ helper 程序先复制到同目录随机 `.pending` 文件，校验 SHA-256 后�
 - `test:flyenv-shell-integration`、`test:helper:contract`、helper 协议版本同步。
 - `go test ./utils ./module -count=1`、`go vet ./...`；管理员模式的 Go 全量测试此前通过。
 - 所有本次修改 TypeScript 文件的定向 ESLint、`git diff --check`。
-- Windows helper 编译成功，输出 3,470,848 字节的 `flyenv-helper-windows-amd64-v1.exe`。
-- `yarn build:win` 成功，生成未签名的 `release/FlyEnv-Setup-4.18.3.exe`。展开包中的主 helper、backup helper 和 Go 构建产物 SHA-256 均为 `670C4E527DBB928723C43B888F16A2BB789FE8CB6EFA8550CC6F752D42A64F6E`。
+- 2026-09-16 协议 26 Windows helper 重新编译成功，输出 3,469,312 字节的 `flyenv-helper-windows-amd64-v1.exe`，SHA-256 为 `77E2363F937F2B4B7B72F9AB3552AB15C4CA377297974170370DD5FBFD56493C`。
+- 2026-09-15 协议 25 的 `yarn build:win` 曾成功生成未签名的 `release/FlyEnv-Setup-4.18.3.exe`；协议 26 改动本次只重新生成 Helper 二进制，完整安装包留给下一次正式构建。
 
 `yarn tsc --noEmit --pretty false` 仍报告 9 个仓库既有错误，位于 `configs/electron-builder.linux.ts`、DNS、Image、Podman 和 BrewFormula；本次修改文件没有新增类型错误。
 
@@ -106,4 +112,3 @@ $instanceRoot
 
 - 当前开发机没有可自动使用的第二套普通用户与管理员凭据，因此尚未完成上述真人双会话验证；正式发布前应在 Windows VM 执行。
 - 根目录旧 helper 任务和旧 profile key 会保留，避免无法确认归属时误删其他用户资源。它们可由管理员在确认无进程依赖后人工清理。
-- 企业重定向 Documents 若找不到归属目标 SID 的目录祖先，PowerShell profile 安装会拒绝执行，需要在实际域策略环境核查 ACL。
