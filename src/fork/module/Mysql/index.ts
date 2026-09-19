@@ -73,20 +73,48 @@ class Mysql extends Base {
         const bin = join(dirname(version.bin), 'mysqladmin.exe')
         if (existsSync(bin)) {
           process.chdir(dirname(bin))
-          try {
-            await execPromise(`mysqladmin.exe --host="127.0.0.1" -uroot password "${password}"`)
-          } catch (e) {
+          const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+          const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
+          let port = 3306
+          if (existsSync(m)) {
+            try {
+              const content = await readFile(m, 'utf8')
+              const config = iniParse(content)
+              port = config?.mysqld?.port ?? 3306
+            } catch {}
+          }
+          /**
+           * mysqladmin.exe --defaults-file="...my-8.0.cnf" --connect-timeout=2 --protocol=tcp --port=3306 --host="127.0.0.1" -uroot password "root"
+           * The port must come from the version cnf. Without it mysqladmin connects to the
+           * default 3306, hits the wrong server or none, and the new instance keeps the empty
+           * password created by --initialize-insecure (#773).
+           */
+          const command = `mysqladmin.exe --defaults-file="${m}" --connect-timeout=2 --protocol=tcp --port=${port} --host="127.0.0.1" -uroot password "${password}"`
+          let inited = false
+          let lastError: unknown = null
+          for (let i = 0; i < 3 && !inited; i++) {
+            if (i > 0) {
+              await waitTime(1000)
+            }
+            try {
+              await execPromise(command)
+              inited = true
+            } catch (e) {
+              lastError = e
+              console.log('_initPassword err: ', e)
+            }
+          }
+          if (!inited) {
             on({
-              'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: e }))
+              'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: lastError }))
             })
-            console.log('_initPassword err: ', e)
-            reject(e)
+            reject(lastError)
             return
           }
           on({
             'APP-On-Log': AppLog(
               'info',
-              I18nT('appLog.initDBPassSuccess', { user: 'root', pass: 'root' })
+              I18nT('appLog.initDBPassSuccess', { user: 'root', pass: password })
             )
           })
         } else {

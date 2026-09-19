@@ -30,6 +30,7 @@
     "test:postgresql-pgadmin4": "tsx scripts/postgresql-pgadmin4-test.ts",
     "test:module-lifecycle-single-flight": "tsx scripts/module-lifecycle-single-flight-test.ts",
     "test:mongodb-dbgate": "tsx scripts/mongodb-dbgate-test.ts",
+    "test:mysql-init-password-port": "tsx scripts/mysql-init-password-port-test.ts",
     "test:redis-commander": "tsx scripts/redis-commander-test.ts",
     "test:qdrant": "tsx scripts/qdrant-test.ts",
     "test:podman-machine-init": "tsx scripts/podman-machine-init-test.ts",
