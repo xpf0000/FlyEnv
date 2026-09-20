@@ -1,7 +1,11 @@
 <template>
-  <li :class="{ active: currentPath === '/mailpit-plugin' }" @click="nav">
+  <li
+    v-if="showItem !== false"
+    :class="'non-draggable' + (currentPage === '/mailpit-plugin' ? ' active' : '')"
+    @click="nav"
+  >
     <div class="left">
-      <div class="icon-block">
+      <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon
           :svg="import('@/svg/mailpit.svg?raw')"
           style="padding: 5px"
@@ -11,18 +15,38 @@
       </div>
       <span class="title">Mailpit Plugin</span>
     </div>
+
+    <el-switch
+      v-model="serviceRunning"
+      :disabled="serviceDisabled"
+      @click.stop="stopNav"
+      @change="switchChange()"
+    />
   </li>
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
+  import { AsideSetup, AppServiceModule } from '@/core/ASide'
 
-  const route = useRoute()
-  const router = useRouter()
-  const currentPath = computed(() => route.path)
+  const flag = 'mailpit-plugin' as any
+  const {
+    showItem,
+    serviceDisabled,
+    serviceFetching,
+    serviceRunning,
+    currentPage,
+    groupDo,
+    switchChange,
+    nav,
+    stopNav
+  } = AsideSetup(flag)
 
-  const nav = () => {
-    router.push('/mailpit-plugin').catch(() => {})
+  ;(AppServiceModule as any)[flag] = {
+    groupDo,
+    switchChange,
+    serviceRunning,
+    serviceFetching,
+    serviceDisabled,
+    showItem
   }
 </script>
