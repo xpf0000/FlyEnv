@@ -7,21 +7,36 @@ import { validatePluginManifest } from '../src/shared/plugin/PluginManifest'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
-const output = path.resolve(root, 'tmp/plugin-system-test/example')
+const output = path.resolve(root, 'tmp/plugin-system-test/mailpit-example')
 
 const sourceManifest = validatePluginManifest(
-  await fs.readJson(path.resolve(root, 'plugins/example/plugin.json'))
+  await fs.readJson(path.resolve(root, 'plugins/mailpit/plugin.json'))
 )
-assert.equal(sourceManifest.id, 'example')
-assert.equal(sourceManifest.module.typeFlag, 'example-plugin')
+assert.equal(sourceManifest.id, 'mailpit-example')
+assert.equal(sourceManifest.module.typeFlag, 'mailpit-plugin')
 
-await buildPlugin('example', { outputRoot: output, minify: false })
+await buildPlugin('mailpit', { outputRoot: output, minify: false })
 
 const builtManifest = validatePluginManifest(await fs.readJson(path.join(output, 'plugin.json')))
 assert.equal(builtManifest.entry.render, 'render/index.mjs')
 assert.equal(builtManifest.entry.fork, 'fork/index.mjs')
 assert.equal(await fs.pathExists(path.join(output, 'render/index.mjs')), true)
 assert.equal(await fs.pathExists(path.join(output, 'fork/index.mjs')), true)
+
+const forkEntry = await fs.readFile(path.resolve(root, 'plugins/mailpit/fork/index.ts'), 'utf8')
+assert.match(forkEntry, /@fork\/module\/MailPit/)
+
+const rendererEntry = await fs.readFile(
+  path.resolve(root, 'plugins/mailpit/render/Index.vue'),
+  'utf8'
+)
+assert.match(rendererEntry, /fetchAllOnlineVersion/)
+assert.match(rendererEntry, /startService/)
+assert.match(rendererEntry, /installSoft/)
+
+const pluginRuntime = await fs.readFile(path.resolve(root, 'src/render/core/Plugin.ts'), 'utf8')
+assert.match(pluginRuntime, /__FLYENV_PLUGIN_HOST__/)
+assert.match(pluginRuntime, /vue-router/)
 
 const baseManager = await fs.readFile(path.resolve(root, 'src/fork/BaseManager.ts'), 'utf8')
 assert.match(baseManager, /pluginLoader\.load\(module\)/)
