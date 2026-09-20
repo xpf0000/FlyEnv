@@ -170,6 +170,14 @@ export type AppModuleItem = {
 
   isOnlyRunOne?: boolean
 
+  /**
+   * Present only for dynamically loaded FlyEnv plugins.
+   */
+  plugin?: {
+    id: string
+    version: string
+  }
+
   platform?: Array<'macOS' | 'Windows' | 'Linux'>
 }
 
