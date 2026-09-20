@@ -21,6 +21,7 @@ export class Module {
   typeFlag: AllAppModule = 'dns'
   isService: boolean = true
   isOnlyRunOne: boolean = true
+  isPlugin: boolean = false
 
   installedFetched: boolean = false
 
@@ -215,7 +216,9 @@ export class Module {
       console.trace('fetchInstalled run: ', this.typeFlag)
       this.fetchInstalleding = true
       const setup = JSON.parse(JSON.stringify(appStore.config.setup))
-      const request = IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup)
+      const request = this.isPlugin
+        ? IPC.send(`app-fork:${this.typeFlag}`, 'allInstalledVersions', setup)
+        : IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup)
       let settled = false
       this._fetchInstalledTimer = setTimeout(() => {
         if (settled) return
@@ -232,10 +235,16 @@ export class Module {
         IPC.off(key)
         let fetched = false
         try {
-          const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
-          if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
-            await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
+          if (this.isPlugin) {
+            const installed = Array.isArray(res?.data) ? res.data : []
+            await this.applyInstalledVersions(installed)
             fetched = true
+          } else {
+            const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
+            if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
+              await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
+              fetched = true
+            }
           }
         } catch (error) {
           console.error('fetchInstalled response error: ', error)
