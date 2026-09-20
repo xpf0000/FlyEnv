@@ -36,10 +36,10 @@
         <el-table-column label="Service" width="180">
           <template #default="scope">
             <el-button
-              v-if="runningBin !== scope.row.bin"
+              v-if="!scope.row.run"
               type="success"
               link
-              :loading="workingBin === scope.row.bin"
+              :loading="scope.row.running"
               @click="start(scope.row)"
             >
               Start
@@ -48,7 +48,7 @@
               v-else
               type="danger"
               link
-              :loading="workingBin === scope.row.bin"
+              :loading="scope.row.running"
               @click="stop(scope.row)"
             >
               Stop
@@ -105,15 +105,16 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import IPC from '@/util/IPC'
+  import { BrewStore } from '@/store/brew'
 
   const TYPE_FLAG = 'mailpit-plugin'
-  const installed = ref<any[]>([])
+  const brewStore = BrewStore()
+  const module = brewStore.module(TYPE_FLAG as any)
+  const installed = computed(() => module.installed)
   const online = ref<any[]>([])
   const loading = ref(false)
-  const workingBin = ref('')
-  const runningBin = ref('')
   const installingVersion = ref('')
   const status = ref('')
   const configPath = ref('')
@@ -142,8 +143,8 @@
   }
 
   const refreshInstalled = async () => {
-    const list = await request<any[]>('allInstalledVersions', [{ mailpit: { dirs: [] } }])
-    installed.value = Array.isArray(list) ? list : []
+    module.installedFetched = false
+    await module.fetchInstalled(true)
   }
 
   const refreshOnline = async () => {
@@ -174,31 +175,16 @@
   }
 
   const start = async (row: any) => {
-    workingBin.value = row.bin
     status.value = `Starting Mailpit ${row.version}…`
-    try {
-      await request('startService', [{ ...row, typeFlag: 'mailpit' }])
-      runningBin.value = row.bin
-      status.value = `Mailpit ${row.version} is running`
-    } catch (error: any) {
-      status.value = error?.message ?? String(error)
-    } finally {
-      workingBin.value = ''
-    }
+    const result = await row.start()
+    status.value =
+      typeof result === 'string' ? result : `Mailpit ${row.version} is running`
   }
 
   const stop = async (row: any) => {
-    workingBin.value = row.bin
     status.value = `Stopping Mailpit ${row.version}…`
-    try {
-      await request('stopService', [{ ...row, typeFlag: 'mailpit' }])
-      if (runningBin.value === row.bin) runningBin.value = ''
-      status.value = `Mailpit ${row.version} stopped`
-    } catch (error: any) {
-      status.value = error?.message ?? String(error)
-    } finally {
-      workingBin.value = ''
-    }
+    const result = await row.stop()
+    status.value = typeof result === 'string' ? result : `Mailpit ${row.version} stopped`
   }
 
   const install = async (row: any) => {
