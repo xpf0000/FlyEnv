@@ -1,4 +1,4 @@
-import { build as viteBuild } from 'vite'
+import { build as viteBuild, type Plugin as VitePlugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { build as esbuild } from 'esbuild'
@@ -9,6 +9,49 @@ import { validatePluginManifest } from '../src/shared/plugin/PluginManifest'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
+
+const HOST_RUNTIME_PACKAGES = ['vue', 'pinia', 'vue-router'] as const
+
+function validExportName(name: string) {
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) && name !== 'default'
+}
+
+async function createHostRuntimePlugin(): Promise<VitePlugin> {
+  const exportNames = new Map<string, string[]>()
+  for (const packageName of HOST_RUNTIME_PACKAGES) {
+    const runtime = await import(packageName)
+    exportNames.set(packageName, Object.keys(runtime).filter(validExportName))
+  }
+
+  return {
+    name: 'flyenv-plugin-host-runtime',
+    enforce: 'pre',
+    resolveId(id) {
+      if (HOST_RUNTIME_PACKAGES.includes(id as any)) {
+        return '\0flyenv-plugin-host-runtime:' + id
+      }
+      return undefined
+    },
+    load(id) {
+      const prefix = '\0flyenv-plugin-host-runtime:'
+      if (!id.startsWith(prefix)) return undefined
+      const packageName = id.slice(prefix.length)
+      const names = exportNames.get(packageName) ?? []
+      const lines = [
+        'const runtime = globalThis.__FLYENV_PLUGIN_HOST__?.[' + JSON.stringify(packageName) + ']',
+        'if (!runtime) throw new Error(' +
+          JSON.stringify('FlyEnv plugin host runtime unavailable: ' + packageName) +
+          ')',
+        ...names.map(
+          (name) => 'export const ' + name + ' = runtime[' + JSON.stringify(name) + ']'
+        ),
+        'export default runtime'
+      ]
+      return lines.join('\n')
+    }
+  }
+}
+
 
 export type BuildPluginOptions = {
   outputRoot?: string
@@ -34,10 +77,11 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
 
   if (sourceManifest.entry.render) {
     const renderEntry = path.resolve(pluginRoot, sourceManifest.entry.render)
+    const hostRuntimePlugin = await createHostRuntimePlugin()
     await viteBuild({
       configFile: false,
       root: pluginRoot,
-      plugins: [vue(), vueJsx({ transformOn: true, mergeProps: true })],
+      plugins: [hostRuntimePlugin, vue(), vueJsx({ transformOn: true, mergeProps: true })],
       resolve: {
         alias: {
           '@': path.resolve(root, 'src/render'),
@@ -78,7 +122,12 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
       format: 'esm',
       target: 'node18',
       minify: options.minify ?? false,
-      tsconfig: path.resolve(root, 'tsconfig.json')
+      tsconfig: path.resolve(root, 'tsconfig.json'),
+      alias: {
+        '@fork': path.resolve(root, 'src/fork'),
+        '@shared': path.resolve(root, 'src/shared'),
+        '@lang': path.resolve(root, 'src/lang')
+      }
     })
     builtManifest.entry.fork = 'fork/index.mjs'
   }
