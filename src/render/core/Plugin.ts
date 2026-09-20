@@ -1,5 +1,14 @@
+import * as Vue from 'vue'
+import * as Pinia from 'pinia'
+import * as VueRouter from 'vue-router'
 import IPC from '@/util/IPC'
 import type { AppModuleItem } from '@/core/type'
+
+;(globalThis as any).__FLYENV_PLUGIN_HOST__ = {
+  vue: Vue,
+  pinia: Pinia,
+  'vue-router': VueRouter
+}
 
 type RendererPluginPayload = {
   id: string
