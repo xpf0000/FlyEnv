@@ -33,10 +33,31 @@ const rendererEntry = await fs.readFile(
 assert.match(rendererEntry, /fetchAllOnlineVersion/)
 assert.match(rendererEntry, /startService/)
 assert.match(rendererEntry, /installSoft/)
+assert.match(rendererEntry, /BrewStore/)
+assert.match(rendererEntry, /module\.fetchInstalled/)
 
 const pluginRuntime = await fs.readFile(path.resolve(root, 'src/render/core/Plugin.ts'), 'utf8')
 assert.match(pluginRuntime, /__FLYENV_PLUGIN_HOST__/)
 assert.match(pluginRuntime, /vue-router/)
+assert.match(pluginRuntime, /plugin:\s*\{/)
+
+const moduleRuntime = await fs.readFile(
+  path.resolve(root, 'src/render/core/Module/Module.ts'),
+  'utf8'
+)
+assert.match(moduleRuntime, /this\.isPlugin/)
+assert.match(moduleRuntime, /app-fork:\$\{this\.typeFlag\}/)
+assert.match(moduleRuntime, /'allInstalledVersions', setup/)
+
+const appStartup = await fs.readFile(path.resolve(root, 'src/render/App.vue'), 'utf8')
+assert.match(appStartup, /module\.isPlugin = !!item\.plugin/)
+
+const moduleSettings = await fs.readFile(
+  path.resolve(root, 'src/render/components/Setup/ModuleShowHide/index.vue'),
+  'utf8'
+)
+assert.match(moduleSettings, />Plugin<\/)
+assert.match(moduleSettings, /plugin\.version/)
 
 const baseManager = await fs.readFile(path.resolve(root, 'src/fork/BaseManager.ts'), 'utf8')
 assert.match(baseManager, /pluginLoader\.load\(module\)/)
