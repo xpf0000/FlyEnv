@@ -37,6 +37,9 @@
       ],
       "@lang/*": [
         "src/lang/*"
+      ],
+      "@fork/*": [
+        "src/fork/*"
       ]
     }
   },
