@@ -32,7 +32,14 @@ async function importPlugin(payload: RendererPluginPayload) {
   const url = URL.createObjectURL(blob)
   try {
     const loaded: any = await import(/* @vite-ignore */ url)
-    return (loaded.default ?? loaded) as AppModuleItem
+    const item = (loaded.default ?? loaded) as AppModuleItem
+    Object.assign(item as any, payload.module, {
+      plugin: {
+        id: payload.id,
+        version: payload.version
+      }
+    })
+    return item
   } finally {
     URL.revokeObjectURL(url)
   }
