@@ -111,7 +111,11 @@
     "test:helper:go:vet:admin": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/helper-go-admin-test.ps1 vet",
     "test:helper:admin": "yarn run test:helper:contract && yarn run test:helper:go:admin && yarn run test:helper:go:vet:admin",
     "test:helper": "yarn run test:helper:contract && yarn run test:helper:go && yarn run test:helper:go:vet",
-    "postinstall": "patch-package && electron-builder install-app-deps"
+    "postinstall": "patch-package && electron-builder install-app-deps",
+    "plugin:dev": "tsx scripts/plugin-runner.ts dev",
+    "plugin:build": "tsx scripts/plugin-builder.ts",
+    "plugin:debug": "tsx scripts/plugin-runner.ts debug",
+    "test:plugin-system": "tsx scripts/plugin-system-test.ts"
   },
   "type": "module",
   "main": "./dist/electron/main.mjs",
