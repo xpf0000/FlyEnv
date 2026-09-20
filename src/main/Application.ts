@@ -42,6 +42,7 @@ import {
 } from './core/lazy/OptionalRuntimes'
 import { getElectronResourcePath } from './utils/AppRuntimePath'
 import type { TrayAction } from '@shared/Tray'
+import PluginManager from './plugins/PluginManager'
 
 export default class Application extends EventEmitter {
   isReady: boolean = false
@@ -57,6 +58,7 @@ export default class Application extends EventEmitter {
   forkManager?: ForkManager
   languageRepository: LanguageRepository
   languageCoordinator: LanguageCoordinator
+  pluginManager: PluginManager
 
   // 新提取的管理器
   private serverManager: ServerManager
@@ -78,6 +80,7 @@ export default class Application extends EventEmitter {
     this.mcpConfigManager = new MCPConfigManager()
     this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
+    this.pluginManager = new PluginManager()
     setServerDirectoryPermissionDeniedHandler((reason) => {
       this.serverDirectoryHelperInstall.notifyPermissionDenied(reason)
     })
@@ -113,6 +116,8 @@ export default class Application extends EventEmitter {
     await this.languageRepository.ready()
     await this.languageCoordinator.initialize(requestedLocale)
     await this.serverDirectoryInitialization
+    await this.pluginManager.refresh()
+    ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
 
     AppNodeFnManager.nativeTheme_watch()
     AppNodeFnManager.configManager = this.configManager
@@ -140,6 +145,7 @@ export default class Application extends EventEmitter {
       serverManager: this.serverManager,
       languageCoordinator: this.languageCoordinator,
       appNodeFnManager: AppNodeFnManager,
+      pluginManager: this.pluginManager,
       retryDataDirectory: () => this.retryServerDataDirectory()
     })
 
