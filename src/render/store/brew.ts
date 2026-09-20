@@ -68,6 +68,7 @@ export const BrewStore = defineStore('brew', {
         module.typeFlag = flag
         module.isService = find?.isService ?? false
         module.isOnlyRunOne = find?.isOnlyRunOne !== false
+        module.isPlugin = !!find?.plugin
         module.fetchInstalled = module.fetchInstalled.bind(module)
         module.onItemStart = module.onItemStart.bind(module)
         module.fetchBrew = module.fetchBrew.bind(module)
