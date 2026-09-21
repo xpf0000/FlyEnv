@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "plugins": [
+    {
+      "id": "mailpit-example",
+      "name": "Mailpit Plugin Example",
+      "version": "0.1.0",
+      "description": "A real FlyEnv plugin example backed by the Mailpit service backend.",
+      "author": "FlyEnv",
+      "platforms": ["Windows", "macOS", "Linux"],
+      "artifact": {
+        "url": "https://github.com/xpf0000/FlyEnv/releases/download/plugin-mailpit-example-0.1.0/mailpit-example-0.1.0.flyenv-plugin",
+        "sha256": "119d3feebd5bd4c33f0bb04128de0c80909c572e641149ac9224042bf8f78bc0"
+      },
+      "official": true
+    }
+  ]
+}

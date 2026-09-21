@@ -66,6 +66,9 @@ const getWindowsRunPath = (): string => {
  * 确定运行路径
  */
 export const DetermineRunPath = (): string => {
+  if (process.env.FLYENV_DATA_ROOT) {
+    return resolve(process.env.FLYENV_DATA_ROOT)
+  }
   let runpath = ''
 
   if (isMacOS()) {

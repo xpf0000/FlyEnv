@@ -100,6 +100,28 @@ const pluginRunner = await fs.readFile(path.resolve(root, 'scripts/plugin-runner
 assert.match(pluginRunner, /tmp[\\/]plugins[\\/]debug/)
 assert.doesNotMatch(pluginRunner, /dist[\\/]plugins.*manifest\.id/)
 
+const runtimeSmoke = await fs.readFile(
+  path.resolve(root, 'scripts/plugin-runtime-smoke.ts'),
+  'utf8'
+)
+for (const checkpoint of [
+  'renderer-route',
+  'fork-version-scan',
+  'start-stop',
+  'update',
+  'uninstall',
+  'runtime-data-preserved'
+]) {
+  assert.match(runtimeSmoke, new RegExp(checkpoint))
+}
+const packageJson = await fs.readJson(path.resolve(root, 'package.json'))
+assert.equal(packageJson.scripts['plugin:runtime-smoke'], 'tsx scripts/plugin-runtime-smoke.ts')
+
+const officialRegistry = await fs.readJson(path.resolve(root, 'plugins/registry.json'))
+assert.equal(officialRegistry.schemaVersion, 1)
+assert.equal(officialRegistry.plugins[0].official, true)
+assert.match(officialRegistry.plugins[0].artifact.sha256, /^[a-f0-9]{64}$/)
+
 await fs.ensureDir(debugOutput)
 await fs.writeJson(path.join(debugOutput, 'plugin.json'), builtManifest)
 await fs.remove(path.resolve(root, 'dist'))

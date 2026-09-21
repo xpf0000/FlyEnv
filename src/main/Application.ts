@@ -10,7 +10,8 @@ import { ForkManager } from './core/ForkManager'
 import AppHelper from './core/AppHelper'
 import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
-import { resolve } from 'node:path'
+import { join, resolve } from 'node:path'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
 import ServiceVersionManager from './core/ServiceVersionManager'
@@ -119,6 +120,9 @@ export default class Application extends EventEmitter {
     await this.languageCoordinator.initialize(requestedLocale)
     await this.serverDirectoryInitialization
     await this.pluginManager.refresh()
+    if (process.env.FLYENV_PLUGIN_SMOKE === '1') {
+      await this.preparePluginRuntimeSmoke()
+    }
     ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
 
     AppNodeFnManager.nativeTheme_watch()
@@ -157,6 +161,9 @@ export default class Application extends EventEmitter {
     this.initFontAccessPermission()
     this.initAppHelper()
     this.initForkManager()
+    if (process.env.FLYENV_PLUGIN_SMOKE === '1') {
+      void this.runPluginRuntimeSmoke()
+    }
 
     if (!is.dev()) {
       this.ipcHandler.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
@@ -236,6 +243,134 @@ export default class Application extends EventEmitter {
       throw new Error(`Service ${moduleId} is still running`)
     }
     return { stopped: true }
+  }
+
+  private async preparePluginRuntimeSmoke() {
+    if (process.env.FLYENV_PLUGIN_SMOKE_PHASE !== 'install') return
+    const resultPath = process.env.FLYENV_PLUGIN_SMOKE_RESULT
+    try {
+      const item = (await this.pluginManager.listCatalog()).find(
+        (candidate) => candidate.id === 'runtime-smoke-plugin'
+      )
+      if (!item?.artifact.sha256) throw new Error('runtime smoke catalog item is missing checksum')
+      await this.pluginManager.install({
+        id: item.id,
+        version: item.version,
+        url: item.artifact.url,
+        sha256: item.artifact.sha256,
+        source: 'official'
+      })
+      const dataPath = join(global.Server.BaseDir!, 'plugins-data/runtime-smoke-plugin/state.txt')
+      await mkdir(resolve(dataPath, '..'), { recursive: true })
+      await writeFile(dataPath, 'preserve-me\n')
+      if (resultPath) {
+        await writeFile(
+          resultPath,
+          JSON.stringify({ ok: true, phase: 'installed', checkpoints: ['install'] })
+        )
+      }
+      setTimeout(() => app.quit(), 250)
+    } catch (error) {
+      if (resultPath) {
+        await writeFile(
+          resultPath,
+          JSON.stringify({ ok: false, phase: 'install', checkpoints: [], error: String(error) })
+        )
+      }
+      setTimeout(() => app.quit(), 250)
+    }
+  }
+
+  private async runPluginRuntimeSmoke() {
+    if (process.env.FLYENV_PLUGIN_SMOKE_PHASE !== 'verify') return
+    const resultPath = process.env.FLYENV_PLUGIN_SMOKE_RESULT
+    const checkpoints: string[] = ['install', 'relaunch']
+    try {
+      await new Promise<void>((resolveReady) => {
+        if (this.isReady) {
+          resolveReady()
+          return
+        }
+        this.once('ready', () => resolveReady())
+        setTimeout(resolveReady, 30_000)
+      })
+      const routeResult = await this.mainWindow?.webContents.executeJavaScript(
+        `(async () => { let routes = []; for (let i = 0; i < 40; i += 1) { const router = window.__FLYENV_PLUGIN_ROUTER__; routes = router?.getRoutes?.().map((item) => item.path) ?? []; if (routes.includes('/runtime-smoke-plugin')) break; await new Promise((r) => setTimeout(r, 250)); } const route = routes.includes('/runtime-smoke-plugin'); location.hash = '#/runtime-smoke-plugin'; return { hash: location.hash, ready: route === true, routes } })()`,
+        true
+      )
+      if (!routeResult?.ready || !String(routeResult.hash).includes('runtime-smoke-plugin')) {
+        throw new Error(`renderer plugin route was not loaded: ${JSON.stringify(routeResult)}`)
+      }
+      checkpoints.push('renderer-route')
+
+      ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
+      const versions = await this.runPluginRuntimeFork('allInstalledVersions', {
+        runtime: true
+      })
+      if (!Array.isArray(versions) || versions[0]?.version !== '1.0.0') {
+        throw new Error(`Fork plugin version scan did not return v1: ${JSON.stringify(versions)}`)
+      }
+      checkpoints.push('fork-version-scan')
+      await this.runPluginRuntimeFork('startService', { version: '1.0.0', bin: 'runtime-smoke' })
+      await this.runPluginRuntimeFork('stopService', { version: '1.0.0', bin: 'runtime-smoke' })
+      checkpoints.push('start-stop')
+
+      await this.pluginManager.update('runtime-smoke-plugin')
+      await this.syncPlugins()
+      if (
+        (await this.pluginManager.listInstalled()).find(
+          (item) => item.id === 'runtime-smoke-plugin'
+        )?.version !== '2.0.0'
+      ) {
+        throw new Error('plugin update did not activate v2')
+      }
+      checkpoints.push('update')
+
+      await this.pluginManager.setEnabled('runtime-smoke-plugin', false)
+      checkpoints.push('disable')
+      await this.pluginManager.setEnabled('runtime-smoke-plugin', true)
+      checkpoints.push('re-enable')
+      await this.pluginManager.uninstall('runtime-smoke-plugin')
+      checkpoints.push('uninstall')
+      await this.pluginManager.refresh()
+      if (
+        (await this.pluginManager.listInstalled()).some(
+          (item) => item.id === 'runtime-smoke-plugin'
+        )
+      ) {
+        throw new Error('plugin remained installed after uninstall')
+      }
+      checkpoints.push('pending-cleanup')
+
+      const dataPath = join(global.Server.BaseDir!, 'plugins-data/runtime-smoke-plugin/state.txt')
+      if ((await readFile(dataPath, 'utf8')) !== 'preserve-me\n') {
+        throw new Error('plugin runtime data was not preserved')
+      }
+      checkpoints.push('runtime-data-preserved')
+      if (resultPath) await writeFile(resultPath, JSON.stringify({ ok: true, checkpoints }))
+    } catch (error) {
+      if (resultPath)
+        await writeFile(
+          resultPath,
+          JSON.stringify({ ok: false, checkpoints, error: String(error) })
+        )
+    } finally {
+      setTimeout(() => app.quit(), 250)
+    }
+  }
+
+  private runPluginRuntimeFork(fn: string, item: unknown) {
+    if (!this.forkManager) return Promise.reject(new Error('Fork manager is not initialized'))
+    return new Promise<any>((resolveFork, rejectFork) => {
+      this.forkManager!.send('runtime-smoke-plugin', fn, item)
+        .on(() => {})
+        .then((result: any) => {
+          if (result?.code === 0) {
+            resolveFork(result?.data?.code !== undefined ? result.data.data : result.data)
+          } else rejectFork(new Error(result?.msg ?? `Fork ${fn} failed`))
+        })
+        .catch(rejectFork)
+    })
   }
 
   /**

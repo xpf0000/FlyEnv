@@ -116,6 +116,7 @@
     "plugin:build": "tsx scripts/plugin-builder.ts",
     "plugin:debug": "tsx scripts/plugin-runner.ts debug",
     "plugin:test": "tsx scripts/plugin-test.ts",
+    "plugin:runtime-smoke": "tsx scripts/plugin-runtime-smoke.ts",
     "test:plugin-system": "tsx scripts/plugin-system-test.ts",
     "test:plugin-manager": "tsx scripts/plugin-manager-test.ts",
     "test:plugin-market-ui": "tsx scripts/plugin-market-ui-test.ts"
