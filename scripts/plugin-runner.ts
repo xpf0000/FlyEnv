@@ -22,7 +22,7 @@ const manifest = validatePluginManifest(
 const outputRoot =
   mode === 'dev'
     ? path.resolve(root, 'tmp/plugins', manifest.id)
-    : path.resolve(root, 'dist/plugins', manifest.id)
+    : path.resolve(root, 'tmp/plugins/debug', manifest.id)
 
 if (mode === 'dev') {
   await buildPlugin(name, { outputRoot, minify: false })

@@ -115,7 +115,10 @@
     "plugin:dev": "tsx scripts/plugin-runner.ts dev",
     "plugin:build": "tsx scripts/plugin-builder.ts",
     "plugin:debug": "tsx scripts/plugin-runner.ts debug",
-    "test:plugin-system": "tsx scripts/plugin-system-test.ts"
+    "plugin:test": "tsx scripts/plugin-test.ts",
+    "test:plugin-system": "tsx scripts/plugin-system-test.ts",
+    "test:plugin-manager": "tsx scripts/plugin-manager-test.ts",
+    "test:plugin-market-ui": "tsx scripts/plugin-market-ui-test.ts"
   },
   "type": "module",
   "main": "./dist/electron/main.mjs",
