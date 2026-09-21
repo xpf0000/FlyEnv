@@ -37,6 +37,8 @@ try {
   const incompatibleArchive = join(root, 'incompatible.flyenv-plugin')
   const failedUpdateSource = join(root, 'failed-update-source')
   const failedUpdateArchive = join(root, 'failed-update.flyenv-plugin')
+  const updateSource = join(root, 'update-source')
+  const updateArchive = join(root, 'update.flyenv-plugin')
   await writeFile(join(root, 'placeholder'), '')
   await import('node:fs/promises').then(({ mkdir }) =>
     mkdir(join(source, 'render'), { recursive: true })
@@ -72,17 +74,38 @@ try {
   )
   await pack(failedUpdateSource, failedUpdateArchive)
   const failedUpdateBytes = await readFile(failedUpdateArchive)
+  await mkdir(join(updateSource, 'render'), { recursive: true })
+  await writeFile(
+    join(updateSource, 'plugin.json'),
+    JSON.stringify(manifestFixture({ version: '2.0.0' }))
+  )
+  await writeFile(
+    join(updateSource, 'render/index.mjs'),
+    'export default { typeFlag: "sample-plugin" }'
+  )
+  await pack(updateSource, updateArchive)
+  const updateBytes = await readFile(updateArchive)
   const archiveBytes = new Map([
     ['https://example.test/sample.flyenv-plugin', bytes],
     ['https://example.test/missing-entry.flyenv-plugin', missingEntryBytes],
     ['https://example.test/incompatible.flyenv-plugin', incompatibleBytes],
-    ['https://example.test/failed-update.flyenv-plugin', failedUpdateBytes]
+    ['https://example.test/failed-update.flyenv-plugin', failedUpdateBytes],
+    ['https://example.test/update.flyenv-plugin', updateBytes]
   ])
   const previousRegistry = process.env.FLYENV_PLUGIN_REGISTRY_URL
   process.env.FLYENV_PLUGIN_REGISTRY_URL = 'https://official.test/registry.json'
+  let stopCalls = 0
+  let serviceRunning = false
+  let failStop = false
   const manager = new PluginManager({
     pluginsRoot: join(root, 'plugins'),
     statePath: join(root, 'plugins.json'),
+    stopPluginServices: async () => {
+      stopCalls += 1
+      if (failStop) throw new Error('service stop failed')
+      serviceRunning = false
+      return { stopped: true }
+    },
     fetchImpl: async (url) =>
       url.toString().includes('registry')
         ? new Response(
@@ -174,6 +197,23 @@ try {
   assert.equal((await manager.getRendererPlugins()).length, 1)
   assert.equal((await manager.listCatalog())[0].installed, '1.0.0')
 
+  serviceRunning = true
+  await manager.setEnabled('sample.plugin', false)
+  assert.equal(stopCalls, 1)
+  assert.equal(serviceRunning, false)
+  await manager.setEnabled('sample.plugin', true)
+  serviceRunning = true
+  failStop = true
+  await assert.rejects(() => manager.setEnabled('sample.plugin', false), /service stop failed/i)
+  assert.equal((await manager.listInstalled())[0].enabled, true)
+  assert.equal(
+    await readFile(join(root, 'plugins/sample.plugin/1.0.0/plugin.json')).then(() => true),
+    true
+  )
+  failStop = false
+  serviceRunning = false
+
+  serviceRunning = true
   await assert.rejects(
     () =>
       manager.install({
@@ -185,6 +225,7 @@ try {
       }),
     /entry/i
   )
+  serviceRunning = false
   const stateAfterFailedUpdate = JSON.parse(await readFile(join(root, 'plugins.json'), 'utf8'))
   assert.equal(stateAfterFailedUpdate.plugins['sample.plugin'].activeVersion, '1.0.0')
   assert.equal(
@@ -195,6 +236,24 @@ try {
     ),
     true
   )
+
+  serviceRunning = true
+  const stopCallsBeforeSuccessfulUpdate = stopCalls
+  const updated = await manager.install({
+    id: 'sample.plugin',
+    version: '2.0.0',
+    url: 'https://example.test/update.flyenv-plugin',
+    sha256: createHash('sha256').update(updateBytes).digest('hex'),
+    source: 'official'
+  })
+  assert.equal(updated.version, '2.0.0')
+  assert.equal(stopCalls, stopCallsBeforeSuccessfulUpdate + 1)
+  assert.equal(
+    JSON.parse(await readFile(join(root, 'plugins.json'), 'utf8')).plugins['sample.plugin']
+      .activeVersion,
+    '2.0.0'
+  )
+  serviceRunning = false
 
   const firstToggle = manager.setEnabled('sample.plugin', false)
   const secondToggle = manager.setEnabled('sample.plugin', true)
@@ -306,7 +365,10 @@ try {
   await manager.removeSource('https://third-party.test/registry.json')
   assert.equal((await manager.listSources()).length, 0)
 
+  serviceRunning = true
+  const stopCallsBeforeUninstall = stopCalls
   await manager.uninstall('sample.plugin')
+  assert.equal(stopCalls, stopCallsBeforeUninstall + 1)
   assert.equal((await manager.listInstalled()).length, 0)
   if (previousRegistry === undefined) delete process.env.FLYENV_PLUGIN_REGISTRY_URL
   else process.env.FLYENV_PLUGIN_REGISTRY_URL = previousRegistry

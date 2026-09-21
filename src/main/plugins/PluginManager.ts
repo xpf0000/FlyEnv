@@ -69,6 +69,7 @@ export type PluginManagerOptions = {
   pluginsRoot?: string
   statePath?: string
   fetchImpl?: typeof fetch
+  stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
 }
 
 export type PluginDiagnostic = {
@@ -108,6 +109,7 @@ export class PluginManager {
   private readonly rootOverride?: string
   private readonly stateOverride?: string
   private readonly fetchImpl: typeof fetch
+  private readonly stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
   private readonly operations = new Map<string, Promise<unknown>>()
   private diagnostics: PluginDiagnostic[] = []
   private hasRefreshed = false
@@ -116,6 +118,7 @@ export class PluginManager {
     this.rootOverride = options.pluginsRoot
     this.stateOverride = options.statePath
     this.fetchImpl = options.fetchImpl ?? fetch
+    this.stopPluginServices = options.stopPluginServices
   }
 
   get pluginsRoot() {
@@ -366,6 +369,9 @@ export class PluginManager {
   setEnabled(id: string, enabled: boolean) {
     return this.runSerialized(id, async () => {
       if (!this.plugins.has(id)) throw new Error(`Plugin not installed: ${id}`)
+      if (!enabled) {
+        await this.stopPluginServices?.(this.plugins.get(id)!.manifest.module.typeFlag)
+      }
       const state = this.state.plugins[id] ?? { enabled: true }
       state.enabled = enabled
       this.state.plugins[id] = state
@@ -507,6 +513,8 @@ export class PluginManager {
       if (input.version && input.version !== manifest.version)
         throw new Error('Plugin version does not match the registry entry')
       await this.validatePackageRoot(packageRoot, manifest)
+      const installed = this.plugins.get(manifest.id)
+      if (installed) await this.stopPluginServices?.(manifest.module.typeFlag)
       const targetRoot = join(this.pluginsRoot, manifest.id, manifest.version)
       await fs.mkdir(dirname(targetRoot), { recursive: true })
       const previousState = this.state.plugins[manifest.id]
@@ -569,6 +577,7 @@ export class PluginManager {
   uninstall(id: string) {
     return this.runSerialized(id, async () => {
       if (!this.plugins.has(id)) throw new Error(`Plugin not installed: ${id}`)
+      await this.stopPluginServices?.(this.plugins.get(id)!.manifest.module.typeFlag)
       const pluginRoot = join(this.pluginsRoot, id)
       let pendingDelete: string | undefined
       try {

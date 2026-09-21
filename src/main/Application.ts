@@ -80,7 +80,9 @@ export default class Application extends EventEmitter {
     this.mcpConfigManager = new MCPConfigManager()
     this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
-    this.pluginManager = new PluginManager()
+    this.pluginManager = new PluginManager({
+      stopPluginServices: (moduleId) => this.stopPluginServices(moduleId)
+    })
     setServerDirectoryPermissionDeniedHandler((reason) => {
       this.serverDirectoryHelperInstall.notifyPermissionDenied(reason)
     })
@@ -146,6 +148,7 @@ export default class Application extends EventEmitter {
       languageCoordinator: this.languageCoordinator,
       appNodeFnManager: AppNodeFnManager,
       pluginManager: this.pluginManager,
+      onPluginsChanged: () => this.syncPlugins(),
       retryDataDirectory: () => this.retryServerDataDirectory()
     })
 
@@ -202,6 +205,37 @@ export default class Application extends EventEmitter {
     this.windowManager.on('window-closed', (data) => {
       this.storeWindowState(data)
     })
+  }
+
+  private async stopPluginServices(moduleId: string): Promise<{ stopped: true }> {
+    const status = ServiceProcessManager.statusOf(moduleId)
+    if (!status.running) return { stopped: true }
+    if (!this.forkManager) throw new Error(`Fork manager is not ready for ${moduleId}`)
+
+    for (const instance of status.instances) {
+      const version = {
+        ...instance,
+        typeFlag: moduleId,
+        enable: true
+      }
+      const result = await new Promise<any>((resolve, reject) => {
+        this.forkManager!.send(moduleId, 'stopService', version)
+          .on(() => {})
+          .then(resolve)
+          .catch(reject)
+      })
+      if (result?.code !== 0) {
+        throw new Error(
+          typeof result?.msg === 'string' ? result.msg : `Failed to stop ${moduleId} service`
+        )
+      }
+      ServiceProcessManager.delByBin(moduleId, [instance.bin])
+    }
+
+    if (ServiceProcessManager.statusOf(moduleId).running) {
+      throw new Error(`Service ${moduleId} is still running`)
+    }
+    return { stopped: true }
   }
 
   /**
@@ -536,6 +570,15 @@ export default class Application extends EventEmitter {
       'APP-Update-Global-Server',
       this.serverManager.getGlobalServer()
     )
+  }
+
+  private async syncPlugins() {
+    await this.pluginManager.refresh()
+    ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
+    if (this.forkManager) {
+      this.forkManager.broadcastServer(this.serverManager.getGlobalServer())
+    }
+    this.sendGlobalServerUpdate()
   }
 
   show(page = 'index') {
