@@ -4,6 +4,7 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
 import { tmpdir } from 'node:os'
 import {
+  FLYENV_PLUGIN_ARCHITECTURES,
   validatePluginCatalog,
   validatePluginManifest,
   type FlyEnvPluginCatalog,
@@ -504,10 +505,7 @@ export class PluginManager {
       const manifest = validatePluginManifest(
         JSON.parse(await fs.readFile(join(packageRoot, 'plugin.json'), 'utf8'))
       )
-      const platform = this.currentPlatform()
-      if (manifest.module.platform?.length && !manifest.module.platform.includes(platform)) {
-        throw new Error(`Plugin ${manifest.id} is not compatible with ${platform}`)
-      }
+      this.assertManifestCompatibility(manifest)
       if (input.id && input.id !== manifest.id)
         throw new Error('Plugin id does not match the registry entry')
       if (input.version && input.version !== manifest.version)
@@ -608,6 +606,7 @@ export class PluginManager {
     const manifest = validatePluginManifest(
       JSON.parse(await fs.readFile(join(rootPath, 'plugin.json'), 'utf8'))
     )
+    this.assertManifestCompatibility(manifest)
     await this.validatePackageRoot(rootPath, manifest)
     return {
       manifest,
@@ -664,6 +663,24 @@ export class PluginManager {
     if (process.platform === 'win32') return 'Windows'
     if (process.platform === 'darwin') return 'macOS'
     return 'Linux'
+  }
+
+  private currentArchitecture(): (typeof FLYENV_PLUGIN_ARCHITECTURES)[number] {
+    if (FLYENV_PLUGIN_ARCHITECTURES.includes(process.arch as never)) {
+      return process.arch as (typeof FLYENV_PLUGIN_ARCHITECTURES)[number]
+    }
+    return 'x64'
+  }
+
+  private assertManifestCompatibility(manifest: FlyEnvPluginManifest) {
+    const platform = this.currentPlatform()
+    if (manifest.module.platform?.length && !manifest.module.platform.includes(platform)) {
+      throw new Error(`Plugin ${manifest.id} is not compatible with ${platform}`)
+    }
+    const architecture = this.currentArchitecture()
+    if (manifest.architecture?.length && !manifest.architecture.includes(architecture)) {
+      throw new Error(`Plugin ${manifest.id} is not compatible with ${architecture}`)
+    }
   }
 }
 

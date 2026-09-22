@@ -35,6 +35,8 @@ try {
   const missingEntryArchive = join(root, 'missing-entry.flyenv-plugin')
   const incompatibleSource = join(root, 'incompatible-source')
   const incompatibleArchive = join(root, 'incompatible.flyenv-plugin')
+  const incompatibleArchitectureSource = join(root, 'incompatible-architecture-source')
+  const incompatibleArchitectureArchive = join(root, 'incompatible-architecture.flyenv-plugin')
   const failedUpdateSource = join(root, 'failed-update-source')
   const failedUpdateArchive = join(root, 'failed-update.flyenv-plugin')
   const updateSource = join(root, 'update-source')
@@ -67,6 +69,22 @@ try {
   )
   await pack(incompatibleSource, incompatibleArchive)
   const incompatibleBytes = await readFile(incompatibleArchive)
+  await mkdir(join(incompatibleArchitectureSource, 'render'), { recursive: true })
+  await writeFile(
+    join(incompatibleArchitectureSource, 'plugin.json'),
+    JSON.stringify(
+      manifestFixture({
+        id: 'incompatible-architecture.plugin',
+        architecture: [process.arch === 'arm64' ? 'x64' : 'arm64']
+      })
+    )
+  )
+  await writeFile(
+    join(incompatibleArchitectureSource, 'render/index.mjs'),
+    'export default { typeFlag: "sample-plugin" }'
+  )
+  await pack(incompatibleArchitectureSource, incompatibleArchitectureArchive)
+  const incompatibleArchitectureBytes = await readFile(incompatibleArchitectureArchive)
   await mkdir(failedUpdateSource, { recursive: true })
   await writeFile(
     join(failedUpdateSource, 'plugin.json'),
@@ -89,6 +107,7 @@ try {
     ['https://example.test/sample.flyenv-plugin', bytes],
     ['https://example.test/missing-entry.flyenv-plugin', missingEntryBytes],
     ['https://example.test/incompatible.flyenv-plugin', incompatibleBytes],
+    ['https://example.test/incompatible-architecture.flyenv-plugin', incompatibleArchitectureBytes],
     ['https://example.test/failed-update.flyenv-plugin', failedUpdateBytes],
     ['https://example.test/update.flyenv-plugin', updateBytes]
   ])
@@ -139,6 +158,10 @@ try {
       ),
     /platform/i
   )
+  assert.throws(
+    () => validatePluginManifest(manifestFixture({ architecture: ['mips'] })),
+    /architecture/i
+  )
 
   await assert.rejects(
     () =>
@@ -179,6 +202,17 @@ try {
         version: '1.0.0',
         url: 'https://example.test/incompatible.flyenv-plugin',
         sha256: createHash('sha256').update(incompatibleBytes).digest('hex'),
+        source: 'official'
+      }),
+    /compatible/i
+  )
+  await assert.rejects(
+    () =>
+      manager.install({
+        id: 'incompatible-architecture.plugin',
+        version: '1.0.0',
+        url: 'https://example.test/incompatible-architecture.flyenv-plugin',
+        sha256: createHash('sha256').update(incompatibleArchitectureBytes).digest('hex'),
         source: 'official'
       }),
     /compatible/i
