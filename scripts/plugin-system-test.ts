@@ -119,8 +119,11 @@ assert.equal(packageJson.scripts['plugin:runtime-smoke'], 'tsx scripts/plugin-ru
 
 const officialRegistry = await fs.readJson(path.resolve(root, 'plugins/registry.json'))
 assert.equal(officialRegistry.schemaVersion, 1)
-assert.equal(officialRegistry.plugins[0].official, true)
-assert.match(officialRegistry.plugins[0].artifact.sha256, /^[a-f0-9]{64}$/)
+assert.equal(Array.isArray(officialRegistry.plugins), true)
+for (const item of officialRegistry.plugins) {
+  assert.equal(item.official, true)
+  assert.match(item.artifact.sha256, /^[a-f0-9]{64}$/)
+}
 
 await fs.ensureDir(debugOutput)
 await fs.writeJson(path.join(debugOutput, 'plugin.json'), builtManifest)

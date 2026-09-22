@@ -52,7 +52,9 @@ The Settings → Plugin Market page reads the official registry and lets users a
 
 ## Publishing a catalog plugin
 
-The checked-in official registry contains the Mailpit example as `mailpit-example`: `plugins/registry.json`. Before publishing that registry entry, upload the exact archive produced by `yarn plugin:build mailpit` to the release URL in the entry and verify its SHA-256 digest. Rebuilding the archive with different bytes requires updating both the release asset and the registry checksum together.
+The checked-in official registry is intentionally empty until a release asset is uploaded. This prevents a catalog entry from advertising an unavailable download. Add the Mailpit entry to `plugins/registry.json` only after the release asset is reachable.
+
+The entry should use the exact archive produced by `yarn plugin:build mailpit` and its SHA-256 digest. Rebuilding the archive with different bytes requires updating both the release asset and the registry checksum together.
 
 The release checklist is:
 
