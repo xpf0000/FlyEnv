@@ -2,7 +2,7 @@
   "apiVersion": 1,
   "id": "mailpit-example",
   "name": "Mailpit Plugin Example",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A real FlyEnv plugin example backed by the existing Mailpit service implementation.",
   "author": "FlyEnv",
   "module": {

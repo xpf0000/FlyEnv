@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict'
 import fs from 'fs-extra'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { buildPlugin } from './plugin-builder'
 import { validatePluginManifest } from '../src/shared/plugin/PluginManifest'
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
+// import.meta.url pathname is '/E:/...' on Windows; fileURLToPath handles the drive letter.
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const name = process.argv[2]
 
 if (!name) throw new Error('Usage: yarn plugin:test <plugin-name>')

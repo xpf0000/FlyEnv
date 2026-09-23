@@ -63,7 +63,12 @@ try {
     JSON.stringify(
       manifestFixture({
         id: 'incompatible.plugin',
-        module: { typeFlag: 'incompatible-plugin', platform: ['Windows'] }
+        module: {
+          typeFlag: 'incompatible-plugin',
+          // Must exclude the platform running this test, otherwise the
+          // compatibility check passes and validation fails elsewhere first.
+          platform: [process.platform === 'win32' ? 'macOS' : 'Windows']
+        }
       })
     )
   )
@@ -324,7 +329,14 @@ try {
     join(linkDir, 'plugin.json'),
     JSON.stringify(manifestFixture({ id: 'link.plugin' }))
   )
-  await symlink(join(root, 'placeholder'), join(linkDir, 'render/index.mjs'))
+  // Windows only allows symlink creation with developer mode or elevation;
+  // without it the entry simply does not exist, which exercises the same
+  // "entry file is missing" diagnostic below.
+  try {
+    await symlink(join(root, 'placeholder'), join(linkDir, 'render/index.mjs'))
+  } catch (error: any) {
+    if (error?.code !== 'EPERM') throw error
+  }
   const duplicateManager = new PluginManager({
     pluginsRoot: duplicateRoot,
     statePath: join(root, 'duplicate-plugins.json')

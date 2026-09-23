@@ -33,7 +33,7 @@ function validExportName(name: string) {
   return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) && name !== 'default'
 }
 
-async function createHostRuntimePlugin(): Promise<VitePlugin> {
+export async function createHostRuntimePlugin(): Promise<VitePlugin> {
   const exportNames = new Map<string, string[]>()
   for (const packageName of HOST_RUNTIME_PACKAGES) {
     const runtime = await import(packageName)
@@ -77,9 +77,16 @@ async function createHostRuntimePlugin(): Promise<VitePlugin> {
     if (candidate.startsWith('.') && importer) {
       candidate = path.resolve(path.dirname(importer.split('?')[0]), candidate)
     }
+    // Vite's string alias does a naive prefix replace, so on Windows the id
+    // arrives with mixed separators ('<root>\src\render/core/ASide'). Compare
+    // in slash-normalized form or every bridge lookup misses here.
+    const slash = (value: string) => value.split(path.sep).join('/')
+    const normalized = slash(candidate)
     for (const [alias, target] of aliasTargets) {
-      if (candidate === target || candidate.startsWith(target + path.sep)) {
-        return alias + candidate.slice(target.length).split(path.sep).join('/')
+      const slashedTarget = slash(target)
+      if (normalized === slashedTarget) return alias
+      if (normalized.startsWith(slashedTarget + '/')) {
+        return alias + normalized.slice(slashedTarget.length)
       }
     }
     return id
@@ -220,6 +227,12 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
       configFile: false,
       root: pluginRoot,
       plugins: [hostRuntimePlugin, vue(), vueJsx({ transformOn: true, mergeProps: true })],
+      define: {
+        // Library mode does not replace process.env.NODE_ENV, but the artifact
+        // is blob-imported into the renderer where `process` does not exist.
+        'process.env.NODE_ENV': JSON.stringify(options.minify ? 'production' : 'development'),
+        __INTLIFY_PROD_DEVTOOLS__: 'false'
+      },
       resolve: {
         alias: {
           '@': path.resolve(root, 'src/render'),

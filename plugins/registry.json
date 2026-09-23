@@ -4,7 +4,7 @@
     {
       "id": "mailpit-example",
       "name": "Mailpit Plugin Example",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "description": "A real FlyEnv plugin example backed by the existing Mailpit service implementation.",
       "author": "FlyEnv",
       "module": {
@@ -27,7 +27,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "1c3018a40b507419ea6b720fdccc4e2749950b7a2d25926853ccdd5586d8a67f"
+        "sha256": "d094ec1a2cf0268bdb01fcd504eb9a414441edff6eecbc8caad94dcb88d859f1"
       },
       "official": true
     }

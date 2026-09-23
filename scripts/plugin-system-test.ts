@@ -98,7 +98,9 @@ const archiveListing = await new Promise<Array<{ name: string }>>((resolve, reje
 })
 for (const entry of ['plugin.json', 'render/index.mjs', 'fork/index.mjs']) {
   assert.equal(
-    archiveListing.some((item) => item.name.endsWith(entry)),
+    // 7za on Windows records entry names with backslashes; the installer
+    // normalizes them the same way before validating paths.
+    archiveListing.some((item) => item.name.replaceAll('\\', '/').endsWith(entry)),
     true,
     `archive missing ${entry}`
   )
