@@ -1,14 +1,99 @@
 import * as Vue from 'vue'
 import * as Pinia from 'pinia'
 import * as VueRouter from 'vue-router'
+import * as ElementPlus from 'element-plus'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import IPC from '@/util/IPC'
 import type { AppModuleItem } from '@/core/type'
+import { defineAsyncComponent } from 'vue'
+import { AsideSetup, AppServiceModule } from '@/core/ASide'
+import { AppModuleSetup, AppModuleTab, AppCustomerModule } from '@/core/Module'
+import { BrewStore } from '@/store/brew'
+import { AppModules } from '@/core/AppModules'
+import { VueExtend } from '@/core/VueExtend'
+import {
+  AppAllLang,
+  BuiltInLocaleCatalog,
+  FALLBACK_LOCALE,
+  normalizeLocale,
+  AppI18n,
+  I18nT,
+  applyLanguagePayload,
+  getActiveLocale,
+  releaseLocalePayload
+} from '@lang/index'
 
-;(globalThis as any).__FLYENV_PLUGIN_HOST__ = {
+const lazyRouter = new Proxy(
+  {},
+  {
+    get(_target, property) {
+      const router = (globalThis as any).__FLYENV_PLUGIN_ROUTER__
+      if (!router) throw new Error('FlyEnv plugin router is not initialized')
+      const value = router[property]
+      return typeof value === 'function' ? value.bind(router) : value
+    }
+  }
+)
+
+const pluginHost: Record<string, any> = {
   vue: Vue,
   pinia: Pinia,
-  'vue-router': VueRouter
+  'vue-router': VueRouter,
+  'element-plus': ElementPlus,
+  '@element-plus/icons-vue': ElementPlusIconsVue,
+  ipc: IPC,
+  router: lazyRouter,
+  aside: {
+    AsideSetup,
+    AppServiceModule
+  },
+  coreModule: {
+    AppModuleSetup,
+    AppModuleTab,
+    AppCustomerModule
+  },
+  lang: {
+    AppAllLang,
+    BuiltInLocaleCatalog,
+    FALLBACK_LOCALE,
+    normalizeLocale,
+    AppI18n,
+    I18nT,
+    applyLanguagePayload,
+    getActiveLocale,
+    releaseLocalePayload
+  },
+  stores: {
+    AppStore: (...args: any[]) => {
+      const appStore = (globalThis as any).__FLYENV_PLUGIN_APP_STORE__
+      if (!appStore) throw new Error('FlyEnv plugin AppStore is not initialized')
+      return appStore(...args)
+    },
+    BrewStore: (...args: any[]) => BrewStore(...args)
+  },
+  // Shared UI components exposed lazily so plugin bundles do not duplicate the
+  // component tree (monaco, xterm, etc.). Plugin code receives the host component
+  // objects; both run in the same JS realm, so async components are safe.
+  components: {
+    ServiceManager: defineAsyncComponent(() => import('@/components/ServiceManager/index.vue')),
+    VersionManager: defineAsyncComponent(() => import('@/components/VersionManager/index.vue')),
+    Conf: defineAsyncComponent(() => import('@/components/Conf/index.vue')),
+    ConfCommon: defineAsyncComponent(() => import('@/components/Conf/common.vue')),
+    Log: defineAsyncComponent(() => import('@/components/Log/index.vue')),
+    LogTool: defineAsyncComponent(() => import('@/components/Log/tool.vue'))
+  },
+  // Lazy getters: AppModules/VueExtend sit in a circular import chain with this
+  // module (AppModules imports loadRendererPluginModules from here), so they must
+  // not be captured eagerly in the object literal. The getters only run when a
+  // plugin accesses the bridge at runtime, long after host initialization.
+  get appModules() {
+    return AppModules
+  },
+  get vueExtend() {
+    return VueExtend
+  }
 }
+;(globalThis as any).__FLYENV_PLUGIN_HOST__ = pluginHost
 
 type RendererPluginPayload = {
   id: string

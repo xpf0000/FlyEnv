@@ -136,6 +136,7 @@ export function validatePluginCatalog(value: unknown): FlyEnvPluginCatalog {
         : raw
   ) as FlyEnvPluginCatalog
   if (!Array.isArray(catalog.plugins)) throw new Error('Plugin registry plugins must be an array')
+  const validated: FlyEnvPluginCatalogItem[] = []
   for (const plugin of catalog.plugins) {
     if (!plugin || !safeId.test(plugin.id) || !plugin.name || !plugin.version) {
       throw new Error('Plugin registry contains an invalid plugin')
@@ -150,12 +151,19 @@ export function validatePluginCatalog(value: unknown): FlyEnvPluginCatalog {
     const packageArtifact = (plugin as FlyEnvPluginCatalogItem & { package?: FlyEnvPluginArtifact })
       .package
     if (!candidate.artifact && packageArtifact) candidate.artifact = packageArtifact
+    // Draft entries (url intentionally left empty until the release asset is
+    // uploaded) are skipped instead of rejecting the whole registry.
+    if (plugin.artifact?.url === '') {
+      continue
+    }
     if (!plugin.artifact?.url || !/^https?:\/\//i.test(plugin.artifact.url)) {
       throw new Error(`Plugin registry artifact URL is invalid: ${plugin.id}`)
     }
     if (plugin.artifact.sha256 && !/^[a-f0-9]{64}$/i.test(plugin.artifact.sha256)) {
       throw new Error(`Plugin registry artifact checksum is invalid: ${plugin.id}`)
     }
+    validated.push(plugin)
   }
+  catalog.plugins = validated
   return catalog
 }

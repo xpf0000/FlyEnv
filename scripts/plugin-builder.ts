@@ -4,9 +4,15 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import { build as esbuild } from 'esbuild'
 import fs from 'fs-extra'
 import path from 'node:path'
+import crypto from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-import { validatePluginManifest } from '../src/shared/plugin/PluginManifest'
+import {
+  validatePluginManifest,
+  type FlyEnvPluginCatalog,
+  type FlyEnvPluginCatalogItem,
+  type FlyEnvPluginManifest
+} from '../src/shared/plugin/PluginManifest'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
@@ -15,7 +21,13 @@ const sevenZip = require('7zip-min-electron') as {
   pack(source: string, target: string, callback: (error?: Error | null) => void): void
 }
 
-const HOST_RUNTIME_PACKAGES = ['vue', 'pinia', 'vue-router'] as const
+const HOST_RUNTIME_PACKAGES = [
+  'vue',
+  'pinia',
+  'vue-router',
+  'element-plus',
+  '@element-plus/icons-vue'
+] as const
 
 function validExportName(name: string) {
   return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) && name !== 'default'
@@ -32,18 +44,53 @@ async function createHostRuntimePlugin(): Promise<VitePlugin> {
     '@/router': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.router`,
     '@/router/index': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.router`,
     '@/store/app': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AppStore = (...args) => host?.stores?.AppStore?.(...args)`,
+    '@/core/ASide': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AsideSetup = host?.aside?.AsideSetup\nexport const AppServiceModule = host?.aside?.AppServiceModule`,
+    '@/core/Module': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AppModuleSetup = host?.coreModule?.AppModuleSetup\nexport const AppModuleTab = host?.coreModule?.AppModuleTab\nexport const AppCustomerModule = host?.coreModule?.AppCustomerModule`,
+    '@/store/brew': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const BrewStore = (...args) => host?.stores?.BrewStore?.(...args)`,
+    '@/core/VueExtend': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const VueExtend = host?.vueExtend`,
+    '@/core/App': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AppModules = host?.appModules`,
+    '@/core/AppModules': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AppModules = host?.appModules`,
+    '@/components/ServiceManager/index.vue': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.components?.ServiceManager`,
+    '@/components/VersionManager/index.vue': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.components?.VersionManager`,
+    '@/components/Conf/index.vue': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.components?.Conf`,
+    '@/components/Conf/common.vue': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.components?.ConfCommon`,
+    '@/components/Log/index.vue': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.components?.Log`,
+    '@/components/Log/tool.vue': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.components?.LogTool`,
+    '@lang/index': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AppAllLang = host?.lang?.AppAllLang\nexport const BuiltInLocaleCatalog = host?.lang?.BuiltInLocaleCatalog\nexport const FALLBACK_LOCALE = host?.lang?.FALLBACK_LOCALE\nexport const normalizeLocale = host?.lang?.normalizeLocale\nexport const AppI18n = host?.lang?.AppI18n\nexport const I18nT = host?.lang?.I18nT\nexport const applyLanguagePayload = host?.lang?.applyLanguagePayload\nexport const getActiveLocale = host?.lang?.getActiveLocale\nexport const releaseLocalePayload = host?.lang?.releaseLocalePayload`,
     'flyenv:ipc': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.ipc`,
     'flyenv:router': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.router`,
-    'flyenv:app-store': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AppStore = (...args) => host?.stores?.AppStore?.(...args)`,
-    'flyenv:mailpit': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.components?.Mailpit`,
-    'flyenv:mailpit-aside': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.components?.MailpitAside`
+    'flyenv:app-store': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AppStore = (...args) => host?.stores?.AppStore?.(...args)`
+  }
+
+  // Vite applies resolve.alias before user pre-plugins, so resolveId may receive
+  // the raw specifier ('@/store/brew'), the alias-resolved absolute path
+  // ('<root>/src/render/store/brew'), or a relative id ('./AppModules') from an
+  // already-bundled src file. Normalize all three forms back to the alias
+  // specifier before matching bridgeModules.
+  const aliasTargets: Array<[string, string]> = [
+    ['@', path.resolve(root, 'src/render')],
+    ['@shared', path.resolve(root, 'src/shared')],
+    ['@lang', path.resolve(root, 'src/lang')]
+  ]
+  const normalizeBridgeId = (id: string, importer?: string): string => {
+    let candidate = id.split('?')[0]
+    if (candidate.startsWith('.') && importer) {
+      candidate = path.resolve(path.dirname(importer.split('?')[0]), candidate)
+    }
+    for (const [alias, target] of aliasTargets) {
+      if (candidate === target || candidate.startsWith(target + path.sep)) {
+        return alias + candidate.slice(target.length).split(path.sep).join('/')
+      }
+    }
+    return id
   }
 
   return {
     name: 'flyenv-plugin-host-runtime',
     enforce: 'pre',
-    resolveId(id) {
-      if (bridgeModules[id]) return '\0flyenv-plugin-bridge:' + id
+    resolveId(id, importer) {
+      const bridgeId = bridgeModules[id] ? id : normalizeBridgeId(id, importer)
+      if (bridgeModules[bridgeId]) return '\0flyenv-plugin-bridge:' + bridgeId
       if (id.endsWith('json_typegen_wasm_bg.wasm')) {
         return '\0flyenv-plugin-wasm-stub'
       }
@@ -84,6 +131,56 @@ export type BuildPluginOptions = {
   archivePath?: string
 }
 
+async function updateOfficialRegistry(manifest: FlyEnvPluginManifest, archivePath: string) {
+  const registryPath = path.resolve(root, 'plugins/registry.json')
+  let registry: FlyEnvPluginCatalog = { schemaVersion: 1, plugins: [] }
+  if (await fs.pathExists(registryPath)) {
+    registry = await fs.readJson(registryPath)
+  }
+  if (typeof registry.schemaVersion !== 'number') registry.schemaVersion = 1
+  if (!Array.isArray(registry.plugins)) registry.plugins = []
+
+  const sha256 = crypto
+    .createHash('sha256')
+    .update(await fs.readFile(archivePath))
+    .digest('hex')
+
+  const existing = registry.plugins.find((item) => item.id === manifest.id)
+  const entry: FlyEnvPluginCatalogItem = {
+    id: manifest.id,
+    name: manifest.name,
+    version: manifest.version,
+    ...(manifest.description ? { description: manifest.description } : {}),
+    ...(manifest.author ? { author: manifest.author } : {}),
+    ...(manifest.homepage ? { homepage: manifest.homepage } : {}),
+    ...(manifest.icon ? { icon: manifest.icon } : {}),
+    module: manifest.module,
+    ...(manifest.module.platform ? { platforms: manifest.module.platform } : {}),
+    artifact: {
+      // Keep an already-published URL; rebuilding must not clear it. The URL is
+      // the only field filled by hand, after the release asset is uploaded.
+      url: existing?.artifact?.url ? existing.artifact.url : '',
+      sha256
+    },
+    official: true
+  }
+  const index = registry.plugins.findIndex((item) => item.id === manifest.id)
+  if (index >= 0) {
+    registry.plugins[index] = entry
+  } else {
+    registry.plugins.push(entry)
+  }
+  await fs.writeFile(registryPath, JSON.stringify(registry, null, 2) + '\n')
+  const urlNote = entry.artifact.url
+    ? `artifact.url kept: ${entry.artifact.url}`
+    : 'artifact.url is empty — fill it in after uploading the release asset.'
+  console.log(`Registry updated: plugins/registry.json (${entry.id}@${entry.version}). ${urlNote}`)
+
+  const registryCopy = path.join(path.dirname(archivePath), 'registry.json')
+  await fs.copy(registryPath, registryCopy)
+  console.log(`Registry copied: ${registryCopy}`)
+}
+
 export async function packPlugin(outputRoot: string, archivePath: string) {
   await fs.ensureDir(path.dirname(archivePath))
   await new Promise<void>((resolve, reject) => {
@@ -100,11 +197,18 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
   }
 
   const sourceManifest = validatePluginManifest(await fs.readJson(manifestPath))
+  const pluginDistRoot = path.resolve(root, 'dist/plugins', name)
   const outputRoot = options.outputRoot
     ? path.resolve(options.outputRoot)
-    : path.resolve(root, 'dist/plugins', sourceManifest.id)
+    : path.join(pluginDistRoot, sourceManifest.id)
 
-  await fs.remove(outputRoot)
+  if (!options.outputRoot && !options.archivePath) {
+    // Default-path build owns the whole per-plugin dist directory: wipe it so
+    // stale versioned archives do not accumulate.
+    await fs.remove(pluginDistRoot)
+  } else {
+    await fs.remove(outputRoot)
+  }
   await fs.ensureDir(outputRoot)
 
   const builtManifest = structuredClone(sourceManifest)
@@ -149,8 +253,31 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
     // Fork plugins are loaded by Node's dynamic import inside Electron's
     // utility process.  Provide a native require bridge so bundled CommonJS
     // dependencies (for example axios/form-data) work from the ESM artifact.
-    const forkOutput = path.join(outputRoot, 'fork/index.mjs')
-    await fs.ensureDir(path.dirname(forkOutput))
+    // Runtime require() calls that survive bundling (for example
+    // 7zip-min-electron in fork/util/Zip.ts, whose 7za binary must resolve from
+    // the app's own node_modules) are anchored at global.Server.Static — the
+    // same resolution base the built-in fork bundle has (it is always a
+    // sibling of dist/electron/fork.mjs) — instead of the plugin install
+    // directory, which has no node_modules. import.meta.url remains the
+    // fallback before the server broadcast arrives.
+    const forkBanner = [
+      "import { createRequire as __flyenvPluginCreateRequire } from 'node:module';",
+      "import { pathToFileURL as __flyenvPluginPathToFileURL } from 'node:url';",
+      'const __flyenvPluginRequireAnchor = (fallbackUrl) => {',
+      '  const anchor = globalThis.Server?.Static;',
+      "  return anchor ? __flyenvPluginPathToFileURL(anchor + '/index.js') : fallbackUrl;",
+      '};',
+      'let __flyenvPluginRequire;',
+      'const require = (id) => {',
+      '  if (!__flyenvPluginRequire) {',
+      '    __flyenvPluginRequire = __flyenvPluginCreateRequire(',
+      '      __flyenvPluginRequireAnchor(import.meta.url)',
+      '    );',
+      '  }',
+      '  return __flyenvPluginRequire(id);',
+      '};'
+    ].join('\n')
+    const forkOutput = path.join(outputRoot, 'fork', 'index.mjs')
     await esbuild({
       entryPoints: [forkEntry],
       outfile: forkOutput,
@@ -166,8 +293,31 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
         '@lang': path.resolve(root, 'src/lang')
       },
       banner: {
-        js: "import { createRequire as __flyenvPluginCreateRequire } from 'node:module'; const require = __flyenvPluginCreateRequire(import.meta.url);"
-      }
+        js: forkBanner
+      },
+      plugins: [
+        {
+          name: 'flyenv-plugin-require-anchor',
+          setup(build) {
+            // Fork sources hold their own `createRequire(import.meta.url)`
+            // bindings (Zip.ts, DNS, Host, ...). esbuild inlines them into the
+            // bundle where the banner's require shim cannot reach, so rewrite
+            // the anchor to resolve against the app's node_modules at runtime.
+            build.onLoad({ filter: /\.ts$/ }, async (args) => {
+              if (!args.path.startsWith(root)) return undefined
+              const contents = await fs.readFile(args.path, 'utf8')
+              if (!contents.includes('createRequire(import.meta.url)')) return undefined
+              return {
+                contents: contents.replaceAll(
+                  'createRequire(import.meta.url)',
+                  'createRequire(__flyenvPluginRequireAnchor(import.meta.url))'
+                ),
+                loader: 'ts'
+              }
+            })
+          }
+        }
+      ]
     })
     builtManifest.entry.fork = 'fork/index.mjs'
   }
@@ -180,20 +330,46 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
   if (options.archive) {
     const archivePath =
       options.archivePath ??
-      path.resolve(
-        root,
-        'dist/plugins',
-        `${sourceManifest.id}-${sourceManifest.version}.flyenv-plugin`
-      )
+      path.join(pluginDistRoot, `${sourceManifest.id}-${sourceManifest.version}.flyenv-plugin`)
     await packPlugin(outputRoot, archivePath)
     console.log(`Plugin package: ${archivePath}`)
+    await updateOfficialRegistry(sourceManifest, archivePath)
   }
   console.log(`Plugin built: ${sourceManifest.id} -> ${outputRoot}`)
   return outputRoot
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const name = process.argv[2]
-  if (!name) throw new Error('Usage: yarn plugin:build <plugin-name>')
-  await buildPlugin(name, { minify: process.env.NODE_ENV === 'production', archive: true })
+  const args = process.argv.slice(2)
+  if (args.includes('--all')) {
+    const pluginsDir = path.resolve(root, 'plugins')
+    const names: string[] = []
+    for (const entry of await fs.readdir(pluginsDir)) {
+      if (await fs.pathExists(path.join(pluginsDir, entry, 'plugin.json'))) {
+        names.push(entry)
+      }
+    }
+    names.sort()
+    if (names.length === 0) throw new Error('No plugins found under plugins/')
+    const succeeded: string[] = []
+    const failed: string[] = []
+    for (const name of names) {
+      try {
+        await buildPlugin(name, { minify: true, archive: true })
+        succeeded.push(name)
+      } catch (error) {
+        failed.push(name)
+        console.error(`Plugin build failed: ${name}`, error)
+      }
+    }
+    console.log(`Plugin build summary: ${succeeded.length} succeeded [${succeeded.join(', ')}]`)
+    if (failed.length > 0) {
+      console.error(`Plugin build summary: ${failed.length} failed [${failed.join(', ')}]`)
+      process.exit(1)
+    }
+  } else {
+    const name = args[0]
+    if (!name) throw new Error('Usage: yarn plugin:build <plugin-name> | yarn plugin:build --all')
+    await buildPlugin(name, { minify: true, archive: true })
+  }
 }

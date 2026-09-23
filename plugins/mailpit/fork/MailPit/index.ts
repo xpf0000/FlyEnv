@@ -1,0 +1,266 @@
+import { join } from 'path'
+import { existsSync } from 'fs'
+import { Base } from '@fork/module/Base'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
+import {
+  AppLog,
+  brewInfoJson,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  binXattrFix
+} from '@fork/Fn'
+import { serviceStartSpawn } from '@fork/util/ServiceStart'
+import { ForkPromise } from '@shared/ForkPromise'
+import TaskQueue from '@fork/TaskQueue'
+import { I18nT } from '@lang/runtime'
+import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+
+class MailPit extends Base {
+  constructor() {
+    super()
+    this.type = 'mailpit-plugin'
+  }
+
+  init() {
+    this.pidPath = join(global.Server.BaseDir!, 'mailpit/mailpit.pid')
+  }
+
+  initConfig(): ForkPromise<string> {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const baseDir = join(global.Server.BaseDir!, 'mailpit')
+      if (!existsSync(baseDir)) {
+        await mkdirp(baseDir)
+      }
+      const iniFile = join(baseDir, 'mailpit.conf')
+      if (!existsSync(iniFile)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
+        const tmplFile = join(global.Server.Static!, 'tmpl/mailpit.conf')
+        let content = await readFile(tmplFile, 'utf-8')
+        const logFile = join(baseDir, 'mailpit.log')
+        content = content.replace('##LOG_FILE##', pathFixedToUnix(logFile))
+        await writeFile(iniFile, content)
+        const defaultIniFile = join(baseDir, 'mailpit.conf.default')
+        await writeFile(defaultIniFile, content)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: iniFile }))
+        })
+      }
+      resolve(iniFile)
+    })
+  }
+
+  fetchLogPath() {
+    return new ForkPromise(async (resolve) => {
+      const baseDir = join(global.Server.BaseDir!, 'mailpit')
+      const iniFile = join(baseDir, 'mailpit.conf')
+      if (!existsSync(iniFile)) {
+        resolve('')
+        return
+      }
+      const content = await readFile(iniFile, 'utf-8')
+      const logStr = content.split('\n').find((s) => s.includes('MP_LOG_FILE'))
+      if (!logStr) {
+        resolve('')
+        return
+      }
+      const file = logStr.trim().split('=').pop()
+      resolve(file ?? '')
+    })
+  }
+
+  _startServer(version: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `mailpit-${version.version}` })
+        )
+      })
+      const bin = version.bin
+      const iniFile = await this.initConfig().on(on)
+
+      const getConfEnv = async () => {
+        const content = await readFile(iniFile, 'utf-8')
+        const arr = content
+          .split('\n')
+          .filter((s) => {
+            const str = s.trim()
+            return !!str && str.startsWith('MP_')
+          })
+          .map((s) => s.trim())
+        const dict: Record<string, string> = {}
+        arr.forEach((a) => {
+          const item = a.split('=')
+          const k = item.shift()
+          const v = item.join('=')
+          if (k) {
+            dict[k] = v
+          }
+        })
+        return dict
+      }
+
+      const opt = await getConfEnv()
+
+      const baseDir = join(global.Server.BaseDir!, `mailpit`)
+      await mkdirp(baseDir)
+
+      const execEnv: Record<string, string> = {}
+      for (const k in opt) {
+        execEnv[k] = opt[k]
+      }
+
+      try {
+        const res = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath,
+          baseDir,
+          bin,
+          execEnv,
+          on
+        })
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
+      }
+    })
+  }
+
+  fetchAllOnlineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mailpit')
+        all.forEach((a: any) => {
+          let dir = ''
+          let zip = ''
+          if (isWindows()) {
+            dir = join(global.Server.AppDir!, `mailpit-${a.version}`, 'mailpit.exe')
+            zip = join(global.Server.Cache!, `mailpit-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `mailpit-${a.version}`)
+          } else {
+            dir = join(global.Server.AppDir!, `static-mailpit-${a.version}`, 'mailpit')
+            zip = join(global.Server.Cache!, `static-mailpit-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-mailpit-${a.version}`)
+          }
+
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+          a.name = `Mailpit-${a.version}`
+        })
+        resolve(all)
+      } catch {
+        resolve({})
+      }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isWindows()) {
+        all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit.exe')]
+      } else {
+        all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit', 'mailpit')]
+      }
+      Promise.all(all)
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const fetchMailpitBinVersion = async (bin: string) => {
+            const reg = /(v)(\d+(\.\d+){1,4})( )/g
+            const noReleaseCheck = await versionBinVersion(
+              bin,
+              `"${bin}" version --no-release-check`,
+              reg
+            )
+            if (noReleaseCheck.version) {
+              return noReleaseCheck
+            }
+
+            const fallback = await versionBinVersion(bin, `"${bin}" version`, reg, true)
+            if (fallback.version) {
+              return fallback
+            }
+
+            return {
+              version: fallback.version,
+              error: fallback.error ?? noReleaseCheck.error
+            }
+          }
+          const all = versions.map((item) => TaskQueue.run(fetchMailpitBinVersion, item.bin))
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    await super._installSoftHandle(row)
+    if (isMacOS()) {
+      await binXattrFix(row.bin)
+    }
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const all = ['mailpit']
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      resolve({})
+    })
+  }
+
+  getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'mailpit')
+    return [
+      { name: 'mailpit.conf', path: join(baseDir, 'mailpit.conf') },
+      { name: 'mailpit.conf.default', path: join(baseDir, 'mailpit.conf.default') }
+    ]
+  }
+
+  getLogFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {
+    const baseDir = join(global.Server.BaseDir!, 'mailpit')
+    return [{ name: 'mailpit.log', path: join(baseDir, 'mailpit.log') }]
+  }
+}
+export default new MailPit()

@@ -216,7 +216,8 @@ export class Module {
       console.trace('fetchInstalled run: ', this.typeFlag)
       this.fetchInstalleding = true
       const setup = JSON.parse(JSON.stringify(appStore.config.setup))
-      const request = this.isPlugin
+      const requestedAsPlugin = this.isPlugin
+      const request = requestedAsPlugin
         ? IPC.send(`app-fork:${this.typeFlag}`, 'allInstalledVersions', setup)
         : IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup)
       let settled = false
@@ -233,9 +234,16 @@ export class Module {
       request.then(async (key: string, res: any) => {
         if (settled) return
         IPC.off(key)
+        if (requestedAsPlugin !== this.isPlugin) {
+          // The record was reconciled (plugin disabled/enabled) while the
+          // request was in flight; this response belongs to the old channel.
+          settled = true
+          this._settleFetchInstalled(resolve, false)
+          return
+        }
         let fetched = false
         try {
-          if (this.isPlugin) {
+          if (requestedAsPlugin) {
             const installed = Array.isArray(res?.data) ? res.data : []
             await this.applyInstalledVersions(installed)
             fetched = true

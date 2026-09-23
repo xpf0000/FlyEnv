@@ -51,14 +51,17 @@ export default { typeFlag: 'runtime-smoke-plugin', label: 'Runtime Smoke', aside
   await writeFile(
     path.join(packageRoot, 'fork/index.mjs'),
     `
+// Matches the ForkPromise contract of real fork modules: exec(...).on().then()
+// resolves with the RAW data; BaseManager wraps it via ProcessSendSuccess.
 const response = (data) => ({
   on() { return this },
-  then(resolve) { return Promise.resolve({ code: 0, data }).then(resolve) }
+  then(resolve) { return Promise.resolve(data).then(resolve) }
 })
 export default {
   init() {},
   exec(name, item) {
     if (name === 'allInstalledVersions') return response([{ version: ${JSON.stringify(version)}, bin: 'runtime-smoke', enable: true }])
+    if (name === 'fetchAllOnlineVersion') return response([{ version: ${JSON.stringify(version)}, mVersion: ${JSON.stringify(version)}, url: 'http://127.0.0.1/runtime-smoke.zip', zip: '/flyenv-smoke/runtime-smoke.zip', bin: '/flyenv-smoke/runtime-smoke', appDir: '/flyenv-smoke', name: 'RuntimeSmoke', downloaded: false, installed: false }])
     if (name === 'startService') return response({ started: true, version: item?.version })
     if (name === 'stopService') return response({ stopped: true, version: item?.version })
     return response(true)
@@ -191,10 +194,18 @@ try {
     'renderer-route',
     'fork-version-scan',
     'start-stop',
+    'version-list',
     'update',
+    'hot-fork-update',
     'disable',
+    'hot-disable',
+    'poison-brew-module',
     're-enable',
+    'hot-reenable',
+    'hot-reenable-version-list',
+    'hot-reenable-installed-list',
     'uninstall',
+    'hot-uninstall',
     'pending-cleanup',
     'runtime-data-preserved'
   ]

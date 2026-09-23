@@ -1,7 +1,7 @@
 <template>
   <li
     v-if="showItem !== false"
-    :class="'non-draggable' + (currentPage === '/mailpit-plugin' ? ' active' : '')"
+    :class="'non-draggable' + (currentPage === `/${typeFlag}` ? ' active' : '')"
     @click="nav"
   >
     <div class="left">
@@ -13,7 +13,7 @@
           height="28"
         />
       </div>
-      <span class="title">Mailpit Plugin</span>
+      <span class="title">{{ title }}</span>
     </div>
 
     <el-switch
@@ -21,14 +21,28 @@
       :disabled="serviceDisabled"
       @click.stop="stopNav"
       @change="switchChange()"
-    />
+    >
+    </el-switch>
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
+  import type { AllAppModule } from '@/core/type'
 
-  const flag = 'mailpit-plugin' as any
+  const props = withDefaults(
+    defineProps<{
+      typeFlag?: AllAppModule
+      title?: string
+    }>(),
+    {
+      typeFlag: 'mailpit-plugin',
+      title: 'Mailpit Plugin'
+    }
+  )
+  const typeFlag = props.typeFlag
+  const title = props.title
+
   const {
     showItem,
     serviceDisabled,
@@ -39,14 +53,14 @@
     switchChange,
     nav,
     stopNav
-  } = AsideSetup(flag)
+  } = AsideSetup(typeFlag)
 
-  ;(AppServiceModule as any)[flag] = {
+  AppServiceModule[typeFlag] = {
     groupDo,
     switchChange,
     serviceRunning,
     serviceFetching,
     serviceDisabled,
     showItem
-  }
+  } as any
 </script>

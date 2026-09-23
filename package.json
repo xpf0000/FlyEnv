@@ -114,12 +114,15 @@
     "postinstall": "patch-package && electron-builder install-app-deps",
     "plugin:dev": "tsx scripts/plugin-runner.ts dev",
     "plugin:build": "tsx scripts/plugin-builder.ts",
+    "plugin:build:all": "tsx scripts/plugin-builder.ts --all",
     "plugin:debug": "tsx scripts/plugin-runner.ts debug",
     "plugin:test": "tsx scripts/plugin-test.ts",
     "plugin:runtime-smoke": "tsx scripts/plugin-runtime-smoke.ts",
     "test:plugin-system": "tsx scripts/plugin-system-test.ts",
     "test:plugin-manager": "tsx scripts/plugin-manager-test.ts",
-    "test:plugin-market-ui": "tsx scripts/plugin-market-ui-test.ts"
+    "test:plugin-market-ui": "tsx scripts/plugin-market-ui-test.ts",
+    "test:light-theme": "tsx scripts/light-theme-test.ts",
+    "test:module-top-tabs": "tsx scripts/module-top-tabs-test.ts"
   },
   "type": "module",
   "main": "./dist/electron/main.mjs",

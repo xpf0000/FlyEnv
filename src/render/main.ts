@@ -17,6 +17,8 @@ import CapturerSetup from '@/components/Tools/Capturer/setup'
 import GlobalIPCOn from '@/util/GlobalIPCOn'
 import { RendererLanguage } from '@/core/LanguageService'
 import { MessageError } from '@/util/Element'
+import { loadAppPluginModules } from './core/AppModules'
+import { registerPluginRoutes } from './router'
 
 window.Server = reactive({}) as any
 
@@ -36,6 +38,8 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
         const bootstrap = await RendererLanguage.initialize()
         store.config.setup.lang = bootstrap.locale
         ThemeInit()
+        await loadAppPluginModules()
+        registerPluginRoutes()
         appRoot.mount('#app')
         IPC.send('application:renderer-initialized')
         if (bootstrap.warning) {

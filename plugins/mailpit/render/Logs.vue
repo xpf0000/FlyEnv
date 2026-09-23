@@ -21,7 +21,7 @@
       typeFlag?: AllAppModule
     }>(),
     {
-      typeFlag: 'mailpit'
+      typeFlag: 'mailpit-plugin'
     }
   )
 

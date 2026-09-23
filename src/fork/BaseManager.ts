@@ -90,6 +90,7 @@ class BaseManager {
   constructor() {}
 
   init() {
+    this.pluginLoader.clear()
     import('./module/Cron')
       .then((res) => {
         this.Cron = res.default

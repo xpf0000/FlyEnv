@@ -1,0 +1,58 @@
+html.light {
+  --flyenv-light-canvas: #f4f8fd;
+  --flyenv-light-sidebar: #f7faff;
+  --flyenv-light-surface: #ffffff;
+  --flyenv-light-surface-muted: #f8fbff;
+  --flyenv-light-surface-hover: #edf5ff;
+  --flyenv-light-text: #193252;
+  --flyenv-light-text-muted: #6f84a3;
+  --flyenv-light-text-faint: #91a4bf;
+  --flyenv-light-primary: #1573e6;
+  --flyenv-light-primary-hover: #0f65ca;
+  --flyenv-light-primary-soft: #e5f1ff;
+  --flyenv-light-border: #d9e5f2;
+  --flyenv-light-border-light: #e8f0f8;
+  --flyenv-light-border-strong: rgba(70, 108, 153, 0.35);
+  --flyenv-light-border-soft: rgba(70, 108, 153, 0.15);
+  --flyenv-sidebar-divider-color: var(--flyenv-light-border);
+  --flyenv-segmented-background: var(--flyenv-light-surface-muted);
+  --flyenv-segmented-border: var(--flyenv-light-border);
+  --flyenv-segmented-shadow: 0 2px 8px var(--flyenv-light-shadow);
+  --flyenv-segmented-active-shadow: 0 2px 6px var(--flyenv-light-primary-shadow);
+  --flyenv-light-overlay: rgba(70, 108, 153, 0.5);
+  --flyenv-light-overlay-strong: rgba(70, 108, 153, 0.6);
+  --flyenv-light-shadow: rgba(21, 115, 230, 0.12);
+  --flyenv-light-shadow-strong: rgba(21, 115, 230, 0.18);
+  --flyenv-light-primary-shadow: rgba(21, 115, 230, 0.3);
+
+  --main-bg-color: var(--flyenv-light-canvas);
+  --main-panel-bg-color: var(--flyenv-light-surface);
+  --base-bg-color: var(--flyenv-light-primary-soft);
+  --base-bg-color-1: rgba(70, 108, 153, 0.1);
+  --base-bg-color-2: rgba(21, 115, 230, 0.1);
+
+  --el-color-primary: var(--flyenv-light-primary);
+  --el-color-primary-light-3: #5c9ff0;
+  --el-color-primary-light-5: #8ab9f3;
+  --el-color-primary-light-7: #b9d5f8;
+  --el-color-primary-light-8: #d0e4fb;
+  --el-color-primary-light-9: #e8f2fd;
+  --el-color-primary-dark-2: var(--flyenv-light-primary-hover);
+  --el-bg-color: var(--flyenv-light-surface);
+  --el-bg-color-page: var(--flyenv-light-canvas);
+  --el-bg-color-overlay: var(--flyenv-light-surface);
+  --el-fill-color-blank: var(--flyenv-light-surface);
+  --el-fill-color-light: var(--flyenv-light-surface-muted);
+  --el-fill-color-lighter: #f5f9ff;
+  --el-fill-color-hover: var(--flyenv-light-surface-hover);
+  --el-text-color-primary: var(--flyenv-light-text);
+  --el-text-color-regular: var(--flyenv-light-text);
+  --el-text-color-secondary: var(--flyenv-light-text-muted);
+  --el-text-color-placeholder: var(--flyenv-light-text-faint);
+  --el-border-color: var(--flyenv-light-border);
+  --el-border-color-light: var(--flyenv-light-border-light);
+  --el-border-color-lighter: #edf3fa;
+  --el-border-color-extra-light: #f3f7fc;
+  --el-box-shadow-light: 0 2px 12px var(--flyenv-light-shadow);
+  --el-box-shadow-lighter: 0 1px 6px var(--flyenv-light-shadow);
+}

@@ -1,23 +1,21 @@
+@use './theme/light-tokens';
+
 html.light {
-  --main-bg-color: #f1f2f3;
-  --base-bg-color: rgba(51, 68, 85, 0.35);
-  --base-bg-color-2: rgba(51, 68, 85, 0.2);
-  --base-bg-color-1: rgba(51, 68, 85, 0.15);
 
   #app {
-    background: #fff;
+    background: var(--flyenv-light-canvas);
 
     #container {
-      background: #fff;
+      background: var(--flyenv-light-canvas);
 
       .aside {
-        background: var(--main-bg-color);
-        color: #345;
+        background: var(--flyenv-light-sidebar);
+        color: var(--flyenv-light-text);
 
         .top-tool {
           svg {
             &:hover {
-              color: #fdab1f;
+              color: var(--flyenv-light-primary);
             }
           }
         }
@@ -32,15 +30,16 @@ html.light {
             &.active {
               background-color: var(--base-bg-color);
               backdrop-filter: blur(5px);
+              color: var(--flyenv-light-primary);
 
               svg {
-                color: #fff;
+                color: var(--flyenv-light-primary);
               }
             }
           }
 
           svg {
-            color: #345;
+            color: var(--flyenv-light-text);
           }
 
           &::-webkit-scrollbar-thumb {
@@ -60,15 +59,16 @@ html.light {
             &.active {
               background-color: var(--base-bg-color);
               backdrop-filter: blur(5px);
+              color: var(--flyenv-light-primary);
 
               svg {
-                color: #fff;
+                color: var(--flyenv-light-primary);
               }
             }
           }
 
           svg {
-            color: #345;
+            color: var(--flyenv-light-text);
           }
         }
       }
@@ -76,15 +76,15 @@ html.light {
   }
 
   .el-table {
-    --el-table-text-color: #345;
+    --el-table-text-color: var(--flyenv-light-text);
 
     .is-top {
       --el-table-tr-bg-color: var(--el-color-info-light-9);
     }
 
     .is-sorting {
-      --el-table-tr-bg-color: #f8f8f8;
-      filter: drop-shadow(0 0 5px rgba(120,120,120,0.5));
+      --el-table-tr-bg-color: var(--flyenv-light-surface-muted);
+      filter: drop-shadow(0 0 5px var(--flyenv-light-shadow));
       position: relative;
       z-index: 1500;
 
@@ -95,16 +95,16 @@ html.light {
   }
 
   .el-popover.el-popper.host-list-poper {
-    background: rgba(51, 68, 85, 0.6);
+    background: var(--flyenv-light-overlay-strong);
     backdrop-filter: blur(5px);
 
     .host-list-menu {
       > li {
         .el-dropdown {
-          color: #fff;
+          color: var(--flyenv-light-surface);
         }
         &:hover {
-          background: rgba(51, 68, 85, 0.5);
+          background: var(--flyenv-light-overlay);
           backdrop-filter: blur(5px);
         }
       }
@@ -112,9 +112,9 @@ html.light {
   }
 
   .el-popover.el-popper.host-sort-poper {
-    background: rgba(51, 68, 85, 0.6);
+    background: var(--flyenv-light-overlay-strong);
     backdrop-filter: blur(5px);
-    color: #fff;
+    color: var(--flyenv-light-surface);
   }
 
   .el-dialog {
@@ -127,16 +127,16 @@ html.light {
 
           .input,
           .input-textarea {
-            color: #345;
+            color: var(--flyenv-light-text);
             &::-webkit-input-placeholder {
-              color: rgba(51, 68, 85, 0.7);
+              color: var(--flyenv-light-text-muted);
             }
           }
           .input {
-            border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+            border-bottom: 1px solid var(--flyenv-light-border-strong);
 
             &:hover {
-              border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+              border-bottom: 2px solid var(--flyenv-light-border-strong);
             }
             &:focus {
               border-bottom: 2px solid #01cc74;
@@ -146,10 +146,10 @@ html.light {
             }
           }
           .input-textarea {
-            border: 1px solid rgba(51, 68, 85, 0.4);
+            border: 1px solid var(--flyenv-light-border-strong);
 
             &:hover {
-              border: 2px solid rgba(51, 68, 85, 0.4);
+              border: 2px solid var(--flyenv-light-border-strong);
             }
             &:focus {
               border: 2px solid #01cc74;
@@ -163,16 +163,16 @@ html.light {
           .plant-title {
             svg {
               &:hover {
-                color: #fdab1f;
+                color: var(--flyenv-light-primary);
               }
             }
           }
           .path-choose .icon-block {
             svg {
-              color: #789;
+              color: var(--flyenv-light-text-faint);
 
               &:hover {
-                color: #fdab1f;
+                color: var(--flyenv-light-primary);
               }
             }
           }
@@ -183,7 +183,7 @@ html.light {
 
   .main-right-panel {
     background: var(--main-bg-color);
-    color: #345;
+    color: var(--flyenv-light-text);
 
     > .top-tab {
       .el-button-group>.el-button:not(:last-child) {
@@ -198,7 +198,7 @@ html.light {
         &.active {
           background: var(--base-bg-color);
           backdrop-filter: blur(5px);
-          color: #fff;
+          color: var(--flyenv-light-primary);
         }
       }
     }
@@ -207,9 +207,9 @@ html.light {
       .el-table__header {
         thead {
           tr {
-            background: #fff;
+            background: var(--flyenv-light-surface);
             th.el-table__cell {
-              background: #fff;
+              background: var(--flyenv-light-surface);
             }
           }
         }
@@ -250,14 +250,14 @@ html.light {
 
           .path-choose {
             .input {
-              color: #345;
-              border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+              color: var(--flyenv-light-text);
+              border-bottom: 1px solid var(--flyenv-light-border-strong);
 
               &::-webkit-input-placeholder {
-                color: rgba(51, 68, 85, 0.7);
+                color: var(--flyenv-light-text-muted);
               }
               &:hover {
-                border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+                border-bottom: 2px solid var(--flyenv-light-border-strong);
               }
               &:focus {
                 border-bottom: 2px solid #01cc74;
@@ -278,7 +278,7 @@ html.light {
 
       > .empty {
         > .wapper {
-          color: #345;
+          color: var(--flyenv-light-text);
         }
       }
 
@@ -290,16 +290,16 @@ html.light {
           > .top {
             > .value {
               &:hover {
-                color: #fdab1f;
+                color: var(--flyenv-light-primary);
               }
             }
           }
 
           > .bottom {
             > .url {
-              color: #409eff;
+              color: var(--flyenv-light-primary);
               &.empty {
-                color: #345;
+                color: var(--flyenv-light-text);
               }
             }
           }
@@ -317,14 +317,14 @@ html.light {
     &.dns-panel {
       .top-tab {
         svg {
-          color: #345;
+          color: var(--flyenv-light-text);
         }
       }
     }
   }
 
   .el-drawer .el-drawer__body {
-    background: #fff !important;
+    background: var(--flyenv-light-surface) !important;
     padding: 0 !important;
 
     .host-vhost {
@@ -336,19 +336,19 @@ html.light {
       }
 
       .main-wapper {
-        background: #fff;
+        background: var(--flyenv-light-surface);
       }
     }
 
     .host-edit:not(.tools) {
-      background: #fff;
+      background: var(--flyenv-light-surface);
 
       .nav {
         background: var(--main-bg-color);
       }
 
       .main-wapper {
-        color: #345;
+        color: var(--flyenv-light-text);
 
         .main {
           background: var(--base-bg-color-1);
@@ -358,24 +358,24 @@ html.light {
         .el-switch {
           &:not(.is-checked) {
             .el-switch__core {
-              background: #b4b6b8;
-              border-color: #b4b6b8;
+              background: var(--flyenv-light-text-faint);
+              border-color: var(--flyenv-light-text-faint);
             }
           }
         }
 
         .input,
         .input-textarea {
-          color: #345;
+          color: var(--flyenv-light-text);
           &::-webkit-input-placeholder {
-            color: rgba(51, 68, 85, 0.7);
+            color: var(--flyenv-light-text-muted);
           }
         }
         .input {
-          border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+          border-bottom: 1px solid var(--flyenv-light-border-strong);
 
           &:hover {
-            border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+            border-bottom: 2px solid var(--flyenv-light-border-strong);
           }
           &:focus {
             border-bottom: 2px solid #01cc74;
@@ -385,10 +385,10 @@ html.light {
           }
         }
         .input-textarea {
-          border: 1px solid rgba(51, 68, 85, 0.4);
+          border: 1px solid var(--flyenv-light-border-strong);
 
           &:hover {
-            border: 2px solid rgba(51, 68, 85, 0.4);
+            border: 2px solid var(--flyenv-light-border-strong);
           }
           &:focus {
             border: 2px solid #01cc74;
@@ -408,13 +408,13 @@ html.light {
 
       &.json-parse {
         .main {
-          background: #fff;
+          background: var(--flyenv-light-surface);
         }
       }
     }
 
     .host-logs {
-      background: #fff;
+      background: var(--flyenv-light-surface);
       > .top-tab {
         > li {
           &:hover {
@@ -424,7 +424,7 @@ html.light {
           &.active {
             background: var(--base-bg-color);
             backdrop-filter: blur(5px);
-            color: #fff;
+            color: var(--flyenv-light-primary);
           }
         }
       }
@@ -445,16 +445,16 @@ html.light {
     .main-wapper {
       .input,
       .input-textarea {
-        color: #345;
+        color: var(--flyenv-light-text);
         &::-webkit-input-placeholder {
-          color: rgba(51, 68, 85, 0.7);
+          color: var(--flyenv-light-text-muted);
         }
       }
       .input {
-        border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+        border-bottom: 1px solid var(--flyenv-light-border-strong);
 
         &:hover {
-          border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+          border-bottom: 2px solid var(--flyenv-light-border-strong);
         }
         &:focus {
           border-bottom: 2px solid #01cc74;
@@ -464,10 +464,10 @@ html.light {
         }
       }
       .input-textarea {
-        border: 1px solid rgba(51, 68, 85, 0.4);
+        border: 1px solid var(--flyenv-light-border-strong);
 
         &:hover {
-          border: 2px solid rgba(51, 68, 85, 0.4);
+          border: 2px solid var(--flyenv-light-border-strong);
         }
         &:focus {
           border: 2px solid #01cc74;
@@ -489,8 +489,8 @@ html.light {
       .main-wapper {
         .select-dir-wapper {
           #selectDir {
-            border: 2px dashed #ccc;
-            color: #345;
+            border: 2px dashed var(--flyenv-light-border-strong);
+            color: var(--flyenv-light-text);
           }
         }
       }
@@ -499,12 +499,12 @@ html.light {
 
   .app-chat {
     .nav {
-      background: #fff;
+      background: var(--flyenv-light-surface);
     }
   }
 
   .app-ai-tool {
-    background: #fff;
+    background: var(--flyenv-light-surface);
   }
 
   .tools-system-env {

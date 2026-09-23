@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, Menu } from 'electron'
+import { app, Menu, session } from 'electron'
 import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
@@ -79,6 +79,7 @@ export default class Launcher extends EventEmitter {
   handelAppReady() {
     app.on('ready', async () => {
       console.log('app on ready !!!!!!')
+      await this.loadDebugExtension()
       const application = new Application()
       await application.init()
       global.application = application
@@ -99,6 +100,19 @@ export default class Launcher extends EventEmitter {
         }
       }
     })
+  }
+
+  private async loadDebugExtension() {
+    const extensionPath = process.env.FLYENV_DEBUG_EXTENSION_PATH
+    if (!extensionPath) return
+    try {
+      const extension = await session.defaultSession.extensions.loadExtension(extensionPath, {
+        allowFileAccess: true
+      })
+      console.log(`[FlyEnv] loaded debug extension: ${extension.name} ${extension.version}`)
+    } catch (error) {
+      logger.error(`[FlyEnv] failed to load debug extension: ${extensionPath}`, error)
+    }
   }
 
   handleAppWillQuit() {

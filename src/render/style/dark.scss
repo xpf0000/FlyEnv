@@ -1,9 +1,14 @@
 html.dark {
+  --flyenv-sidebar-divider-color: #242737;
   --main-panel-bg-color: #282b3d;
   --base-bg-color: #1d2033;
   --base-bg-color-1: #32364a;
   --base-bg-color-2: #474b60;
   --base-color-white-07: rgba(255,255,255,0.7);
+  --flyenv-segmented-background: var(--base-bg-color-1);
+  --flyenv-segmented-border: rgba(255, 255, 255, 0.1);
+  --flyenv-segmented-shadow: none;
+  --flyenv-segmented-active-shadow: none;
 
   #app {
     background: var(--base-bg-color);

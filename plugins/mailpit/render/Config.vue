@@ -33,7 +33,7 @@
       typeFlag?: AllAppModule
     }>(),
     {
-      typeFlag: 'mailpit'
+      typeFlag: 'mailpit-plugin'
     }
   )
   const typeFlag = props.typeFlag

@@ -315,6 +315,11 @@ export default class Application extends EventEmitter {
       await this.runPluginRuntimeFork('stopService', { version: '1.0.0', bin: 'runtime-smoke' })
       checkpoints.push('start-stop')
 
+      // VersionManager data flow (renderer): the static version list must load
+      // through brewStore.module(typeFlag).fetchStatic() while the plugin is enabled.
+      await this.expectPluginSmokeVersionList('enabled')
+      checkpoints.push('version-list')
+
       await this.pluginManager.update('runtime-smoke-plugin')
       await this.syncPlugins()
       if (
@@ -326,12 +331,59 @@ export default class Application extends EventEmitter {
       }
       checkpoints.push('update')
 
+      // Hot reload, no restart: fork dispatch must pick up the updated plugin
+      // code (Node import() cache busted), and the renderer route must stay.
+      const hotVersions = await this.runPluginRuntimeFork('allInstalledVersions', {
+        runtime: true
+      })
+      if (!Array.isArray(hotVersions) || hotVersions[0]?.version !== '2.0.0') {
+        throw new Error(`Fork plugin hot update did not return v2: ${JSON.stringify(hotVersions)}`)
+      }
+      await this.expectPluginSmokeRoute(true)
+      checkpoints.push('hot-fork-update')
+
       await this.pluginManager.setEnabled('runtime-smoke-plugin', false)
+      await this.syncPlugins()
       checkpoints.push('disable')
+      // Disabled without restart: fork dispatch must stop resolving the module
+      // and the renderer route must disappear.
+      await this.expectPluginSmokeForkRejected('allInstalledVersions')
+      await this.expectPluginSmokeRoute(false)
+      checkpoints.push('hot-disable')
+      // Regression guard: while the plugin is disabled, any still-alive caller
+      // (a not-yet-unmounted computed, a group card, ...) can recreate the
+      // BrewStore module record with isPlugin=false. Re-enable must heal that
+      // stale record instead of leaving every fetch on the wrong fork channel.
+      await this.poisonPluginSmokeBrewModule()
+      checkpoints.push('poison-brew-module')
+
       await this.pluginManager.setEnabled('runtime-smoke-plugin', true)
+      await this.syncPlugins()
       checkpoints.push('re-enable')
+      const reenabledVersions = await this.runPluginRuntimeFork('allInstalledVersions', {
+        runtime: true
+      })
+      if (!Array.isArray(reenabledVersions) || reenabledVersions[0]?.version !== '2.0.0') {
+        throw new Error(
+          `Fork plugin re-enable did not restore dispatch: ${JSON.stringify(reenabledVersions)}`
+        )
+      }
+      await this.expectPluginSmokeRoute(true)
+      checkpoints.push('hot-reenable')
+      // Re-enabled without restart: the renderer module record was dropped on
+      // disable, so the VersionManager fetch path must rebuild it and still
+      // load the version list.
+      await this.expectPluginSmokeVersionList('re-enabled')
+      checkpoints.push('hot-reenable-version-list')
+      await this.expectPluginSmokeInstalledList('re-enabled')
+      checkpoints.push('hot-reenable-installed-list')
+
       await this.pluginManager.uninstall('runtime-smoke-plugin')
+      await this.syncPlugins()
       checkpoints.push('uninstall')
+      await this.expectPluginSmokeForkRejected('allInstalledVersions')
+      await this.expectPluginSmokeRoute(false)
+      checkpoints.push('hot-uninstall')
       await this.pluginManager.refresh()
       if (
         (await this.pluginManager.listInstalled()).some(
@@ -371,6 +423,120 @@ export default class Application extends EventEmitter {
         })
         .catch(rejectFork)
     })
+  }
+
+  private async expectPluginSmokeForkRejected(fn: string) {
+    let resolved = false
+    try {
+      await this.runPluginRuntimeFork(fn, { runtime: true })
+      resolved = true
+    } catch {}
+    if (resolved) {
+      throw new Error(`Fork ${fn} unexpectedly resolved after the plugin was disabled/removed`)
+    }
+  }
+
+  private async expectPluginSmokeRoute(expectPresent: boolean) {
+    const result = await this.mainWindow?.webContents.executeJavaScript(
+      `(async () => { for (let i = 0; i < 40; i += 1) { const router = window.__FLYENV_PLUGIN_ROUTER__; const routes = router?.getRoutes?.().map((item) => item.path) ?? []; if (routes.includes('/runtime-smoke-plugin') === ${expectPresent}) return { ok: true }; await new Promise((r) => setTimeout(r, 250)); } const router = window.__FLYENV_PLUGIN_ROUTER__; return { ok: false, routes: router?.getRoutes?.().map((item) => item.path) ?? [] } })()`,
+      true
+    )
+    if (!result?.ok) {
+      throw new Error(
+        `renderer plugin route hot-sync failed (expectPresent=${expectPresent}): ${JSON.stringify(result)}`
+      )
+    }
+  }
+
+  /**
+   * Drives the same renderer data flow the VersionManager static tab uses:
+   * brewStore.module(typeFlag).fetchStatic() -> IPC fetchAllOnlineVersion.
+   * The localStorage fetchVerion cache is cleared first so the assertion always
+   * exercises the live IPC path, not a cached response.
+   */
+  private async expectPluginSmokeVersionList(label: string) {
+    const result = await this.mainWindow?.webContents.executeJavaScript(
+      `(async () => {
+        try {
+          localStorage.removeItem('fetchVerion-runtime-smoke-plugin')
+          const storeFn = window.__FLYENV_PLUGIN_BREW_STORE__
+          if (!storeFn) return { ok: false, error: 'BrewStore global missing' }
+          const brewStore = storeFn()
+          const mod = brewStore.module('runtime-smoke-plugin')
+          if (!mod.isPlugin) return { ok: false, error: 'module was not recreated as a plugin module', isPlugin: mod.isPlugin }
+          mod.fetchStatic()
+          for (let i = 0; i < 40; i += 1) {
+            if (!mod.staticFetching) break
+            await new Promise((r) => setTimeout(r, 250))
+          }
+          return { ok: true, count: mod.static.length, fetching: mod.staticFetching }
+        } catch (e) {
+          return { ok: false, error: String(e) }
+        }
+      })()`,
+      true
+    )
+    if (!result?.ok || !(result?.count > 0)) {
+      throw new Error(
+        `renderer plugin version list failed to load (${label}): ${JSON.stringify(result)}`
+      )
+    }
+  }
+
+  /**
+   * Simulates the renderer state that caused the disable/re-enable installed
+   * version bug: while the plugin is disabled, a still-alive caller recreates
+   * the BrewStore module record, and because AppModules no longer contains the
+   * plugin the record is created with isPlugin=false.
+   */
+  private async poisonPluginSmokeBrewModule() {
+    const result = await this.mainWindow?.webContents.executeJavaScript(
+      `(async () => {
+        try {
+          const storeFn = window.__FLYENV_PLUGIN_BREW_STORE__
+          if (!storeFn) return { ok: false, error: 'BrewStore global missing' }
+          const mod = storeFn().module('runtime-smoke-plugin')
+          return { ok: mod.isPlugin === false, isPlugin: mod.isPlugin }
+        } catch (e) {
+          return { ok: false, error: String(e) }
+        }
+      })()`,
+      true
+    )
+    if (!result?.ok) {
+      throw new Error(`failed to poison brew module while disabled: ${JSON.stringify(result)}`)
+    }
+  }
+
+  /**
+   * After re-enable, the poisoned BrewStore record must be reconciled back to a
+   * plugin module and fetchInstalled must go through the plugin fork channel
+   * (app-fork:<typeFlag>) again, returning the installed versions.
+   */
+  private async expectPluginSmokeInstalledList(label: string) {
+    const result = await this.mainWindow?.webContents.executeJavaScript(
+      `(async () => {
+        try {
+          const storeFn = window.__FLYENV_PLUGIN_BREW_STORE__
+          if (!storeFn) return { ok: false, error: 'BrewStore global missing' }
+          const mod = storeFn().module('runtime-smoke-plugin')
+          if (!mod.isPlugin) {
+            return { ok: false, error: 'stale module record was not reconciled to a plugin module' }
+          }
+          mod.installedFetched = false
+          await mod.fetchInstalled()
+          return { ok: mod.installed.length > 0, count: mod.installed.length }
+        } catch (e) {
+          return { ok: false, error: String(e) }
+        }
+      })()`,
+      true
+    )
+    if (!result?.ok) {
+      throw new Error(
+        `renderer plugin installed list failed to load (${label}): ${JSON.stringify(result)}`
+      )
+    }
   }
 
   /**

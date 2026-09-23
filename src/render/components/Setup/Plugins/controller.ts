@@ -1,5 +1,6 @@
 import IPC from '@/util/IPC'
 import { reactiveBind } from '@/util/Index'
+import { syncRendererPluginModules } from '@/core/AppModules'
 
 export type PluginCatalogItem = {
   id: string
@@ -42,6 +43,7 @@ class PluginMarketControllerState {
   restartRequired = false
   acknowledgedSources = new Set<string>()
   private readonly inFlight = new Map<string, Promise<unknown>>()
+  private refreshSeq = 0
 
   private request<T>(command: string, ...args: unknown[]) {
     return new Promise<T>((resolve, reject) => {
@@ -74,8 +76,11 @@ class PluginMarketControllerState {
     return task
   }
 
-  async refresh() {
-    return this.shared('refresh', async () => {
+  async refresh(options?: { fresh?: boolean }) {
+    const run = async () => {
+      // Generation guard: a forced refresh after a mutation can overlap an
+      // earlier in-flight refresh; the stale response must not win.
+      const seq = ++this.refreshSeq
       this.loading = true
       this.error = ''
       try {
@@ -84,17 +89,28 @@ class PluginMarketControllerState {
           this.request<PluginCatalogItem[]>('application:plugin-installed'),
           this.request<PluginSource[]>('application:plugin-sources')
         ])
+        if (seq !== this.refreshSeq) return this.catalog
         this.catalog = catalog ?? []
         this.installed = installed ?? []
         this.sources = sources ?? []
         return this.catalog
       } catch (error) {
-        this.error = error instanceof Error ? error.message : String(error)
+        if (seq === this.refreshSeq) {
+          this.error = error instanceof Error ? error.message : String(error)
+        }
         throw error
       } finally {
-        this.loading = false
+        if (seq === this.refreshSeq) this.loading = false
       }
-    })
+    }
+    if (options?.fresh) {
+      const task = run().finally(() => {
+        if (this.inFlight.get('refresh') === task) this.inFlight.delete('refresh')
+      })
+      this.inFlight.set('refresh', task)
+      return task
+    }
+    return this.shared('refresh', run)
   }
 
   actionFor(item: PluginCatalogItem) {
@@ -127,8 +143,8 @@ class PluginMarketControllerState {
         sha256: item.artifact.sha256,
         source: item.official ? 'official' : item.source
       })
-      await this.refresh()
-      this.restartRequired = true
+      await this.refresh({ fresh: true })
+      await this.applyHotReload()
       return result
     })
   }
@@ -140,8 +156,8 @@ class PluginMarketControllerState {
   async toggle(item: PluginCatalogItem, enabled: boolean) {
     return this.mutate(item.id, async () => {
       const result = await this.request('application:plugin-toggle', item.id, enabled)
-      await this.refresh()
-      this.restartRequired = true
+      await this.refresh({ fresh: true })
+      await this.applyHotReload()
       return result
     })
   }
@@ -149,8 +165,8 @@ class PluginMarketControllerState {
   async uninstall(item: PluginCatalogItem) {
     return this.mutate(item.id, async () => {
       const result = await this.request('application:plugin-uninstall', item.id)
-      await this.refresh()
-      this.restartRequired = true
+      await this.refresh({ fresh: true })
+      await this.applyHotReload()
       return result
     })
   }
@@ -159,16 +175,29 @@ class PluginMarketControllerState {
     return this.shared(`source:add:${url}`, async () => {
       const result = await this.request<PluginSource[]>('application:plugin-source-add', url)
       this.sources = result ?? []
-      await this.refresh()
+      await this.refresh({ fresh: true })
       return result
     })
+  }
+
+  private async applyHotReload() {
+    try {
+      // The main/fork sides already applied the change (IPC code 0). Hot-syncing
+      // the renderer is best-effort: failure never rolls back the change, it only
+      // falls back to the restart prompt.
+      await syncRendererPluginModules()
+      this.restartRequired = false
+    } catch (error) {
+      console.error('[Plugin] hot reload failed, restart required', error)
+      this.restartRequired = true
+    }
   }
 
   removeSource(url: string) {
     return this.shared(`source:remove:${url}`, async () => {
       const result = await this.request<PluginSource[]>('application:plugin-source-remove', url)
       this.sources = result ?? []
-      await this.refresh()
+      await this.refresh({ fresh: true })
       return result
     })
   }

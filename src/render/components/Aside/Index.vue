@@ -80,9 +80,14 @@
                   marginTop: _index === 0 ? '15px' : null
                 } as any
               "
-              class="module-type pb-3 pl-1 text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300 border-b border-zinc-200 dark:border-zinc-700"
-              >{{ item.label }}</div
+              class="module-type flex items-center gap-3 pb-3 pl-1 text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300"
             >
+              <span class="shrink-0">{{ item.label }}</span>
+              <span
+                aria-hidden="true"
+                class="h-px flex-1 bg-[var(--flyenv-sidebar-divider-color)]"
+              ></span>
+            </div>
             <template v-for="(i, _j) in item.sub" :key="_j">
               <template v-if="isCustomerModule(i)">
                 <CustomerModule :item="i" />
