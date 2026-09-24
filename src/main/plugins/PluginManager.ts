@@ -3,6 +3,8 @@ import { createRequire } from 'node:module'
 import { dirname, join, relative, resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
 import { tmpdir } from 'node:os'
+import axios from 'axios'
+import { getAxiosProxy } from '../../fork/util/Axios'
 import {
   FLYENV_PLUGIN_ARCHITECTURES,
   validatePluginCatalog,
@@ -104,6 +106,33 @@ function callbackPromise<T>(fn: (callback: (error: Error | null, result?: T) => 
   )
 }
 
+const proxiedFetch: typeof fetch = async (input, init) => {
+  const url =
+    typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+  const response = await axios({
+    method: 'get',
+    url,
+    proxy: getAxiosProxy(),
+    responseType: 'arraybuffer',
+    validateStatus: () => true,
+    signal: init?.signal ?? undefined
+  })
+  const rawHeaders: Record<string, unknown> =
+    typeof response.headers?.toJSON === 'function'
+      ? (response.headers.toJSON() as Record<string, unknown>)
+      : (response.headers as unknown as Record<string, unknown>)
+  const headers = new Headers()
+  for (const [key, value] of Object.entries(rawHeaders ?? {})) {
+    if (value === undefined || value === null) continue
+    headers.set(key, Array.isArray(value) ? value.join(', ') : String(value))
+  }
+  return new Response((response.data as BodyInit | null) ?? null, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  })
+}
+
 export class PluginManager {
   private plugins = new Map<string, FlyEnvPluginRecord>()
   private moduleToPlugin = new Map<string, FlyEnvPluginRecord>()
@@ -119,7 +148,7 @@ export class PluginManager {
   constructor(options: PluginManagerOptions = {}) {
     this.rootOverride = options.pluginsRoot
     this.stateOverride = options.statePath
-    this.fetchImpl = options.fetchImpl ?? fetch
+    this.fetchImpl = options.fetchImpl ?? proxiedFetch
     this.stopPluginServices = options.stopPluginServices
   }
 
@@ -410,7 +439,7 @@ export class PluginManager {
     const sources = [officialUrl, ...(await this.listSources()).map((item) => item.url)]
     for (const source of sources) {
       try {
-        const response = await this.fetchImpl(source, { signal: AbortSignal.timeout(10_000) })
+        const response = await this.fetchImpl(source, { signal: AbortSignal.timeout(60_000) })
         if (!response.ok) throw new Error(`Registry request failed: ${response.status}`)
         catalogs.push({
           catalog: validatePluginCatalog(await response.json()),

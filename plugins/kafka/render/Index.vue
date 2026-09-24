@@ -60,6 +60,7 @@
   import { I18nT } from '@lang/index'
   import { AppModuleSetup } from '@/core/Module'
   import Router from '@/router/index'
+  import { BrewStore } from '@/store/brew'
   import type { SoftInstalled } from '@/store/brew'
   import Service from '@/components/ServiceManager/index.vue'
   import Manager from '@/components/VersionManager/index.vue'
@@ -82,6 +83,13 @@
   const kafkaManager = KafkaManager
   // Load persisted bindings before reconciliation; row helpers remain pure reads.
   KafkaManager.init().catch()
+
+  // No current version lands the user on the version-manager tab, whose
+  // installed flags are synced from this list; never wait for a manual refresh.
+  const kafkaModule = BrewStore().module('kafka')
+  if (!kafkaModule.installedFetched) {
+    kafkaModule.fetchInstalled(true).catch()
+  }
 
   const javaCandidates = (_row: SoftInstalled) => kafkaManager.candidates()
   const javaLabel = (candidate: KafkaJavaCandidate) => {

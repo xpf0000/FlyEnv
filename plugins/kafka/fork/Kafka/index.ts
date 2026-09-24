@@ -9,6 +9,7 @@ import {
   execPromiseWithEnv,
   mkdirp,
   moveChildDirToParent,
+  readdir,
   readFile,
   remove,
   serviceStartExecCMD,
@@ -219,6 +220,7 @@ transaction.state.log.min.isr=1
       }
       const paths = this._instancePaths(version)
       try {
+        await this._fixRunClassBat(version.bin)
         await this.initConfig(version).on(on)
         await mkdirp(paths.dataDir)
         await mkdirp(paths.logsDir)
@@ -383,29 +385,53 @@ transaction.state.log.min.isr=1
     return '-TERM'
   }
 
+  private _binRelativePath(): string {
+    return isWindows() ? 'bin/windows/kafka-server-start.bat' : 'bin/kafka-server-start.sh'
+  }
+
+  private _appDirOf(version: string): string {
+    return join(global.Server.AppDir!, 'kafka', version)
+  }
+
+  private _legacyAppDirOf(version: string): string {
+    return join(global.Server.AppDir!, `static-kafka-${version}`)
+  }
+
+  private async _fetchOnlineList(): Promise<OnlineVersionItem[]> {
+    const arch = global.Server.Arch === 'x86_64' ? 'x86' : 'arm'
+    if (isWindows()) {
+      return await KafkaVersionFetch.win()
+    } else if (isMacOS()) {
+      return await KafkaVersionFetch.mac(arch)
+    } else if (isLinux()) {
+      return await KafkaVersionFetch.linux(arch)
+    }
+    return []
+  }
+
   fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const arch = global.Server.Arch === 'x86_64' ? 'x86' : 'arm'
-        let all: OnlineVersionItem[] = []
-        if (isWindows()) {
-          all = await KafkaVersionFetch.win()
-        } else if (isMacOS()) {
-          all = await KafkaVersionFetch.mac(arch)
-        } else if (isLinux()) {
-          all = await KafkaVersionFetch.linux(arch)
+        let all: OnlineVersionItem[] = await this._fetchOnlineList()
+        if (all.length === 0) {
+          // The Apache CDN/archive check chain can silently fail on a cold
+          // network (every error degrades to an empty list). Retry once so the
+          // first page visit does not end up with an empty version table.
+          await waitTime(1500)
+          all = await this._fetchOnlineList()
         }
+        const binRel = this._binRelativePath()
         all.forEach((a: any) => {
-          const appDir = join(global.Server.AppDir!, `static-kafka-${a.version}`)
+          const appDir = this._appDirOf(a.version)
+          const legacyAppDir = this._legacyAppDirOf(a.version)
+          const bin = join(appDir, binRel)
+          const legacyBin = join(legacyAppDir, binRel)
           const zip = join(global.Server.Cache!, `kafka_2.13-${a.version}.tgz`)
-          const bin = isWindows()
-            ? join(appDir, 'bin/windows/kafka-server-start.bat')
-            : join(appDir, 'bin/kafka-server-start.sh')
-          a.appDir = appDir
+          a.appDir = existsSync(legacyBin) && !existsSync(bin) ? legacyAppDir : appDir
           a.zip = zip
-          a.bin = bin
+          a.bin = existsSync(legacyBin) && !existsSync(bin) ? legacyBin : bin
           a.downloaded = existsSync(zip)
-          a.installed = existsSync(bin)
+          a.installed = existsSync(bin) || existsSync(legacyBin)
           a.name = `Kafka-${a.version}`
         })
         resolve(all)
@@ -413,6 +439,72 @@ transaction.state.log.min.isr=1
         resolve([])
       }
     })
+  }
+
+  /**
+   * Kafka's bin/windows/kafka-run-class.bat builds CLASSPATH by concatenating
+   * every jar in libs/ one by one. Under deep install dirs the `set` command
+   * line grows past cmd.exe's 8191-char limit ("The input line is too long"),
+   * which breaks both service startup and every CLI wrapper. Replacing the
+   * per-jar loop with a single `libs\*` wildcard entry keeps the line short;
+   * the JVM expands wildcard classpaths natively. Idempotent.
+   */
+  private async _fixRunClassBat(bin: string) {
+    if (!isWindows() || !bin) {
+      return
+    }
+    const root = dirname(dirname(dirname(bin)))
+    const file = join(root, 'bin/windows/kafka-run-class.bat')
+    if (!existsSync(file)) {
+      return
+    }
+    try {
+      const content = await readFile(file, 'utf-8')
+      if (content.includes('call :concat "%BASE_DIR%\\libs\\*"')) {
+        return
+      }
+      const fixed = content.replace(
+        /for %%i in \("%BASE_DIR%\\libs\\\*"\) do \(\r?\n\s*call :concat "%%i"\r?\n\)/,
+        'call :concat "%BASE_DIR%\\libs\\*"'
+      )
+      if (fixed !== content) {
+        await writeFile(file, fixed)
+      }
+    } catch {}
+  }
+
+  /**
+   * Read the Kafka version from the libs/ jar names (kafka_2.13-X.Y.Z.jar /
+   * kafka-clients-X.Y.Z.jar). This avoids spawning `kafka-topics.bat
+   * --version`, which starts a JVM per version and, on Windows, can fail
+   * outright when the install path is deep (cmd 8191-char line limit).
+   */
+  private async _versionFromLibs(bin: string): Promise<string> {
+    if (!bin) {
+      return ''
+    }
+    // Windows: <root>/bin/windows/kafka-server-start.bat; unix: <root>/bin/kafka-server-start.sh
+    const root = isWindows() ? dirname(dirname(dirname(bin))) : dirname(dirname(bin))
+    const libsDir = join(root, 'libs')
+    if (!existsSync(libsDir)) {
+      return ''
+    }
+    try {
+      const files = await readdir(libsDir)
+      const patterns = [
+        /^kafka-clients-(\d+(\.\d+){1,3})\.jar$/,
+        /^kafka_2\.\d+-(\d+(\.\d+){1,3})\.jar$/
+      ]
+      for (const file of files) {
+        for (const pattern of patterns) {
+          const match = file.match(pattern)
+          if (match?.[1]) {
+            return match[1]
+          }
+        }
+      }
+    } catch {}
+    return ''
   }
 
   allInstalledVersions(setup: any) {
@@ -429,13 +521,21 @@ transaction.state.log.min.isr=1
           binPaths
         )
         const versions = versionFilterSame(fetched)
-        const checks = versions.map((item) => {
+        const checks = versions.map(async (item) => {
+          const jarVersion = await this._versionFromLibs(item.bin)
+          if (jarVersion) {
+            return { version: jarVersion, error: undefined }
+          }
+          // Fall back to the CLI for installs without a libs dir (e.g. custom
+          // layouts). Patch kafka-run-class.bat first or the command fails on
+          // deep Windows paths.
+          await this._fixRunClassBat(item.bin)
           const topicsBin = isWindows()
             ? join(dirname(item.bin), 'kafka-topics.bat')
             : join(dirname(item.bin), 'kafka-topics.sh')
           const command = `"${topicsBin}" --version`
           const reg = /(.*?)(\d+(\.\d+){1,3})(.*?)/g
-          return TaskQueue.run(
+          return await TaskQueue.run(
             versionBinVersion,
             item.bin,
             command,
@@ -560,6 +660,7 @@ transaction.state.log.min.isr=1
     if (!existsSync(topicsBin)) {
       throw new Error(I18nT('fork.binNotFound'))
     }
+    await this._fixRunClassBat(version.bin)
     const env = await this._javaEnv(home)
     try {
       return await execPromiseWithEnv(`"${topicsBin}" ${args}`, {
