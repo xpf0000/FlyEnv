@@ -1,18 +1,28 @@
 import IPC from '@/util/IPC'
 import { reactiveBind } from '@/util/Index'
 import { syncRendererPluginModules } from '@/core/AppModules'
+import { AppI18n } from '@lang/index'
+import { resolvePluginI18nText, type FlyEnvPluginI18nText } from '@shared/plugin/PluginManifest'
 
 export type PluginCatalogItem = {
   id: string
   name: string
   version: string
-  description?: string
+  description?: FlyEnvPluginI18nText
   author?: string
   artifact: { url: string; sha256?: string }
   official?: boolean
   source?: string
   installed?: string | null
   enabled?: boolean
+}
+
+/**
+ * Localized plugin description for the current UI language. Reads the
+ * reactive vue-i18n locale, so templates re-render on language change.
+ */
+export function pluginDescription(item: { description?: FlyEnvPluginI18nText }): string {
+  return resolvePluginI18nText(item.description, AppI18n().global.locale) ?? ''
 }
 
 export type PluginSource = { url: string; official: boolean }

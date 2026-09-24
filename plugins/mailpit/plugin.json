@@ -3,7 +3,10 @@
   "id": "mailpit-example",
   "name": "Mailpit Plugin Example",
   "version": "0.1.2",
-  "description": "A real FlyEnv plugin example backed by the existing Mailpit service implementation.",
+  "description": {
+    "en": "A real FlyEnv plugin example backed by the existing Mailpit service implementation.",
+    "zh": "一个真实的 FlyEnv 插件示例，基于现有的 Mailpit 服务实现。"
+  },
   "author": "FlyEnv",
   "module": {
     "typeFlag": "mailpit-plugin",

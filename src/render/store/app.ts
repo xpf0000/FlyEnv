@@ -182,7 +182,9 @@ const state: State = {
       mongodbBrewInitiated: false,
       editorConfig: EditorBaseConfig,
       currentNodeTool: 'default'
-    }
+      // SetupBase gained a module-flag index signature for plugin ids; the
+      // named keys above legitimately don't match it.
+    } as any
   },
   httpServe: [],
   versionInitiated: false,

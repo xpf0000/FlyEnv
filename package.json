@@ -115,6 +115,7 @@
     "plugin:dev": "tsx scripts/plugin-runner.ts dev",
     "plugin:build": "tsx scripts/plugin-builder.ts",
     "plugin:build:all": "tsx scripts/plugin-builder.ts --all",
+    "plugin:release": "tsx scripts/plugin-release.ts",
     "plugin:debug": "tsx scripts/plugin-runner.ts debug",
     "plugin:test": "tsx scripts/plugin-test.ts",
     "plugin:runtime-smoke": "tsx scripts/plugin-runtime-smoke.ts",

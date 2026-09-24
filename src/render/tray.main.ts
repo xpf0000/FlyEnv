@@ -1,6 +1,10 @@
 import { VueExtend } from './core/VueExtend'
 import App from './tray/App.vue'
 import './index.scss'
+// Shares the brand tokens with the main window (style/index.scss): without this
+// the tray falls back to Element Plus's default --el-color-success (#67c23a)
+// instead of FlyEnv green (#01cc74), so tray switches render a different green.
+import './style/theme/base-tokens.scss'
 import { createPinia } from 'pinia'
 import IPC from './util/IPC'
 import { AppStore } from './tray/store/app'
@@ -37,11 +41,9 @@ IPC.on('APP:Tray-Store-Sync').then((key: string, res: any) => {
   tryMount()
 })
 
-IPC.on('APP-Language-Changed').then(
-  async (key: string, payload: LanguageRuntimePayload) => {
-    await RendererLanguage.applyBroadcast(payload)
-    AppStore().lang = payload.locale
-    languageReady = true
-    tryMount()
-  }
-)
+IPC.on('APP-Language-Changed').then(async (key: string, payload: LanguageRuntimePayload) => {
+  await RendererLanguage.applyBroadcast(payload)
+  AppStore().lang = payload.locale
+  languageReady = true
+  tryMount()
+})

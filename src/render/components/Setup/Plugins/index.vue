@@ -104,7 +104,7 @@
                     </div>
                     <div class="text-xs opacity-50 mt-1">{{ item.author || 'FlyEnv' }}</div>
                     <p class="mt-2 text-[13px] leading-relaxed opacity-60 line-clamp-2">
-                      {{ item.description || item.id }}
+                      {{ pluginDescription(item) || item.id }}
                     </p>
                   </div>
                   <div
@@ -201,10 +201,10 @@
                     </div>
                     <div class="text-xs opacity-40 mt-1">{{ item.id }}</div>
                     <p
-                      v-if="item.description"
+                      v-if="pluginDescription(item)"
                       class="mt-2 text-[13px] leading-relaxed opacity-60 line-clamp-2"
                     >
-                      {{ item.description }}
+                      {{ pluginDescription(item) }}
                     </p>
                   </div>
                   <div
@@ -329,7 +329,7 @@
                       {{ item.author || 'FlyEnv' }} · v{{ item.version }}
                     </div>
                     <p class="mt-2 text-[13px] leading-relaxed opacity-60 line-clamp-2">
-                      {{ item.description || item.id }}
+                      {{ pluginDescription(item) || item.id }}
                     </p>
                     <div class="flex items-center gap-1.5 text-xs opacity-40 mt-1.5">
                       <Link class="w-3 h-3 shrink-0" />
@@ -376,7 +376,7 @@
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { Box, Delete, Link, RefreshRight } from '@element-plus/icons-vue'
   import { I18nT } from '@lang/index'
-  import { PluginMarket, type PluginCatalogItem } from './controller'
+  import { PluginMarket, pluginDescription, type PluginCatalogItem } from './controller'
 
   const tab = ref('official')
   const sourceInput = ref('')

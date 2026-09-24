@@ -1,0 +1,24 @@
+{
+  "apiVersion": 1,
+  "id": "kafka",
+  "name": "Kafka",
+  "version": "0.1.2",
+  "description": {
+    "en": "Apache Kafka service module. Runs a single-node KRaft Kafka broker and requires a Java 17+ runtime.",
+    "zh": "Apache Kafka 服务模块。以单节点 KRaft 模式运行 Kafka 服务，需要 Java 17+ 运行时。"
+  },
+  "author": "FlyEnv",
+  "module": {
+    "typeFlag": "kafka",
+    "moduleType": "cacheAndQueue",
+    "label": "Kafka",
+    "asideIndex": 49,
+    "isService": true,
+    "isTray": true,
+    "platform": ["Windows", "macOS", "Linux"]
+  },
+  "entry": {
+    "render": "render/Module.ts",
+    "fork": "fork/index.ts"
+  }
+}

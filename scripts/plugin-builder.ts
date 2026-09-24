@@ -310,6 +310,30 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
       },
       plugins: [
         {
+          name: 'flyenv-plugin-host-lang',
+          setup(build) {
+            // Fork plugin bundles must share the fork process's live i18n
+            // instance (a bundled copy never receives language payloads and is
+            // stuck on the fallback locale). The fork process exposes it on
+            // `globalThis.__FLYENV_PLUGIN_HOST__.lang` (src/fork/index.ts);
+            // rewrite every `@lang/runtime` import to read from that bridge.
+            build.onResolve({ filter: /^@lang\/runtime$/ }, () => ({
+              path: '@lang/runtime',
+              namespace: 'flyenv-plugin-host-lang'
+            }))
+            build.onLoad({ filter: /.*/, namespace: 'flyenv-plugin-host-lang' }, () => ({
+              contents: [
+                'const host = globalThis.__FLYENV_PLUGIN_HOST__',
+                'export const AppI18n = host?.lang?.AppI18n',
+                'export const FALLBACK_LOCALE = host?.lang?.FALLBACK_LOCALE',
+                'export const getActiveLocale = host?.lang?.getActiveLocale',
+                'export const I18nT = host?.lang?.I18nT'
+              ].join('\n'),
+              loader: 'js'
+            }))
+          }
+        },
+        {
           name: 'flyenv-plugin-require-anchor',
           setup(build) {
             // Fork sources hold their own `createRequire(import.meta.url)`

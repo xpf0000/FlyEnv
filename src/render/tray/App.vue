@@ -122,6 +122,10 @@
         border-radius: 10px !important;
         overflow: hidden;
 
+        .el-switch {
+          --el-switch-on-color: var(--el-color-success);
+        }
+
         > .top-tool {
           display: flex;
           align-items: center;

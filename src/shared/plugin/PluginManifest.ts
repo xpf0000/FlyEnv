@@ -5,12 +5,46 @@ export const FLYENV_PLUGIN_ARCHITECTURES = ['x64', 'arm64', 'arm', 'ia32'] as co
 
 type PluginArchitecture = (typeof FLYENV_PLUGIN_ARCHITECTURES)[number]
 
+/**
+ * Plugin text that may be localized: either a plain string (shown as-is for
+ * every language) or a map of locale code -> text, for example
+ * `{ "en": "...", "zh": "..." }`. Locale codes match the app's language
+ * directories (`en`, `zh`, `zh-hant`, `pt-br`, ...).
+ */
+export type FlyEnvPluginI18nText = string | Record<string, string>
+
+/**
+ * Resolve a FlyEnvPluginI18nText for a locale. Lookup order: exact locale,
+ * base language (`pt-br` -> `pt`), `en`, then the first entry.
+ */
+export function resolvePluginI18nText(
+  text: FlyEnvPluginI18nText | undefined,
+  locale: string
+): string | undefined {
+  if (!text) return undefined
+  if (typeof text === 'string') return text
+  const normalized = `${locale}`.toLowerCase()
+  if (text[normalized]) return text[normalized]
+  const base = normalized.split('-')[0]
+  if (base && text[base]) return text[base]
+  if (text.en) return text.en
+  const first = Object.values(text).find((value) => typeof value === 'string' && value)
+  return first || undefined
+}
+
+function isValidI18nText(value: unknown): boolean {
+  if (typeof value === 'string') return true
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const entries = Object.values(value as Record<string, unknown>)
+  return entries.length > 0 && entries.every((item) => typeof item === 'string' && !!item)
+}
+
 export type FlyEnvPluginManifest = {
   apiVersion: number
   id: string
   name: string
   version: string
-  description?: string
+  description?: FlyEnvPluginI18nText
   author?: string
   homepage?: string
   icon?: string
@@ -39,7 +73,7 @@ export type FlyEnvPluginCatalogItem = {
   id: string
   name: string
   version: string
-  description?: string
+  description?: FlyEnvPluginI18nText
   author?: string
   homepage?: string
   icon?: string
@@ -84,6 +118,9 @@ export function validatePluginManifest(value: unknown): FlyEnvPluginManifest {
   }
   if (typeof manifest.name !== 'string' || !manifest.name || typeof manifest.version !== 'string') {
     throw new Error('Plugin name and version are required')
+  }
+  if (manifest.description !== undefined && !isValidI18nText(manifest.description)) {
+    throw new Error('Plugin description must be a string or a locale-to-text map')
   }
   if (!semver.test(manifest.version))
     throw new Error(`Plugin version is invalid: ${manifest.version}`)
@@ -140,6 +177,9 @@ export function validatePluginCatalog(value: unknown): FlyEnvPluginCatalog {
   for (const plugin of catalog.plugins) {
     if (!plugin || !safeId.test(plugin.id) || !plugin.name || !plugin.version) {
       throw new Error('Plugin registry contains an invalid plugin')
+    }
+    if (plugin.description !== undefined && !isValidI18nText(plugin.description)) {
+      throw new Error(`Plugin registry description is invalid: ${plugin.id}`)
     }
     const candidate = plugin as FlyEnvPluginCatalog['plugins'][number] & {
       url?: string

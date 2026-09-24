@@ -1,5 +1,5 @@
 import { computed, reactive, watch } from 'vue'
-import type { AllAppModule, AppModuleEnum } from '@/core/type'
+import type { AllAppModule } from '@/core/type'
 import type { CallbackFn, SoftInstalled } from '@shared/app'
 import { AppStore } from '@/store/app'
 import IPC from '@/util/IPC'
@@ -248,7 +248,7 @@ export class Module {
             await this.applyInstalledVersions(installed)
             fetched = true
           } else {
-            const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
+            const versions: Record<string, Array<SoftInstalled>> = res?.data ?? {}
             if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
               await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
               fetched = true

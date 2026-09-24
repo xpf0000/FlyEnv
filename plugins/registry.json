@@ -5,7 +5,10 @@
       "id": "mailpit-example",
       "name": "Mailpit Plugin Example",
       "version": "0.1.2",
-      "description": "A real FlyEnv plugin example backed by the existing Mailpit service implementation.",
+      "description": {
+        "en": "A real FlyEnv plugin example backed by the existing Mailpit service implementation.",
+        "zh": "一个真实的 FlyEnv 插件示例，基于现有的 Mailpit 服务实现。"
+      },
       "author": "FlyEnv",
       "module": {
         "typeFlag": "mailpit-plugin",
@@ -27,7 +30,40 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "d094ec1a2cf0268bdb01fcd504eb9a414441edff6eecbc8caad94dcb88d859f1"
+        "sha256": "04357f44b3cac850a9a3fbbc4d99d731948adb93ce86e35dfada76c2d4ac6c5b"
+      },
+      "official": true
+    },
+    {
+      "id": "kafka",
+      "name": "Kafka",
+      "version": "0.1.2",
+      "description": {
+        "en": "Apache Kafka service module. Runs a single-node KRaft Kafka broker and requires a Java 17+ runtime.",
+        "zh": "Apache Kafka 服务模块。以单节点 KRaft 模式运行 Kafka 服务，需要 Java 17+ 运行时。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "kafka",
+        "moduleType": "cacheAndQueue",
+        "label": "Kafka",
+        "asideIndex": 49,
+        "isService": true,
+        "isTray": true,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "863ffd5cea2e88fe8c27856b77abc541c5e3106a09dc3ac0b97a5bb88e5f1f6d"
       },
       "official": true
     }

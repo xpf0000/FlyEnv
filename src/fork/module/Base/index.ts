@@ -259,6 +259,59 @@ export class Base {
     })
   }
 
+  /**
+   * Process-name search key used by `_stopServer` to find orphaned service
+   * processes. Subclasses (including plugin-bundled modules) can override
+   * this hook instead of duplicating the whole stop flow.
+   */
+  protected _stopSearchName(): string | undefined {
+    const dis: { [k: string]: string } = {
+      caddy: 'caddy',
+      nginx: 'nginx',
+      apache: 'httpd',
+      mysql: 'mysqld',
+      mariadb: 'mariadbd',
+      memcached: 'memcached',
+      mongodb: 'mongod',
+      postgresql: 'postgres',
+      clickhouse: 'clickhouse',
+      'pure-ftpd': 'pure-ftpd',
+      tomcat: 'org.apache.catalina.startup.Bootstrap',
+      rabbitmq: 'rabbit',
+      elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch',
+      ollama: 'ollama',
+      cliproxyapi: 'cli-proxy-api',
+      rnacos: 'rnacos',
+      frankenphp: 'frankenphp',
+      roadrunner: 'rr',
+      'swoole-cli': 'swoole-cli',
+      numa: 'numa',
+      temporal: 'temporal-server',
+      'temporal-cli': 'temporal'
+    }
+    return dis?.[this.type]
+  }
+
+  /**
+   * Kill signal used by `_stopServer` on unix. JVM-style services need
+   * `-TERM`; everything else defaults to `-INT`. Windows always uses `-INT`.
+   */
+  protected _stopSignal(): string {
+    switch (this.type) {
+      case 'mysql':
+      case 'mariadb':
+      case 'mongodb':
+      case 'tomcat':
+      case 'rabbitmq':
+      case 'elasticsearch':
+      case 'etcd':
+      case 'numa':
+        return '-TERM'
+      default:
+        return '-INT'
+    }
+  }
+
   _stopServer(version: SoftInstalled, ...args: any): ForkPromise<any> {
     console.log(version)
     console.log(args)
@@ -296,31 +349,7 @@ export class Base {
       if (version?.pid) {
         allPid.push(...ProcessOwnedPidsByPid(version.pid, plist, ownedMarkers))
       }
-      const dis: { [k: string]: string } = {
-        caddy: 'caddy',
-        nginx: 'nginx',
-        apache: 'httpd',
-        mysql: 'mysqld',
-        mariadb: 'mariadbd',
-        memcached: 'memcached',
-        mongodb: 'mongod',
-        postgresql: 'postgres',
-        clickhouse: 'clickhouse',
-        'pure-ftpd': 'pure-ftpd',
-        tomcat: 'org.apache.catalina.startup.Bootstrap',
-        rabbitmq: 'rabbit',
-        elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch',
-        ollama: 'ollama',
-        cliproxyapi: 'cli-proxy-api',
-        rnacos: 'rnacos',
-        frankenphp: 'frankenphp',
-        roadrunner: 'rr',
-        'swoole-cli': 'swoole-cli',
-        numa: 'numa',
-        temporal: 'temporal-server',
-        'temporal-cli': 'temporal'
-      }
-      const serverName = dis?.[this.type]
+      const serverName = this._stopSearchName()
       if (serverName) {
         if (isWindows()) {
           const all = ProcessSearch(serverName, false, plist)
@@ -362,22 +391,7 @@ export class Base {
         }
       } else {
         if (arr.length > 0) {
-          let sig = ''
-          switch (this.type) {
-            case 'mysql':
-            case 'mariadb':
-            case 'mongodb':
-            case 'tomcat':
-            case 'rabbitmq':
-            case 'elasticsearch':
-            case 'etcd':
-            case 'numa':
-              sig = '-TERM'
-              break
-            default:
-              sig = '-INT'
-              break
-          }
+          const sig = this._stopSignal()
           try {
             await ProcessKill(sig, arr)
           } catch {}

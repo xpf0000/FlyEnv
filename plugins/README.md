@@ -4,6 +4,51 @@ Plugins live in `plugins/<plugin-name>` while developing in the FlyEnv repositor
 
 A plugin contains a `plugin.json` manifest and may provide both Renderer and Fork entries.
 
+## Localized manifest text
+
+`plugin.json` fields shown in the Plugin Market — currently `description` — accept either a
+plain string (shown for every language) or a locale-to-text map:
+
+```json
+{
+  "description": {
+    "en": "Apache Kafka service module. Runs a single-node KRaft Kafka broker.",
+    "zh": "Apache Kafka 服务模块。以单节点 KRaft 模式运行 Kafka 服务。"
+  }
+}
+```
+
+Locale codes match the app's language directories (`en`, `zh`, `zh-hant`, `pt-br`, ...).
+Resolution order at display time: exact locale → base language (`pt-br` → `pt`) → `en` →
+first entry. The map is copied verbatim into the registry entry by `plugin:build`, so
+third-party registries can localize descriptions the same way.
+
+## Plugin-local translations
+
+Plugin UI text and fork-side error messages should live in a side-agnostic language pack at
+`plugins/<plugin-name>/lang/` (see `plugins/kafka/lang/`): one dictionary per locale
+(`en.ts`, `zh.ts`, ...) plus an `index.ts` exporting a `createT(getLocale)` factory. The
+factory takes a locale getter and returns a `t(key, args?)` lookup with resolution order
+exact locale → base language → `en` → key, so the pack itself imports nothing from `@lang`
+and works in both processes.
+
+Each side binds the factory to its host i18n instance:
+
+- `plugins/<plugin-name>/render/lang.ts` — `createT(() => AppI18n().global.locale)` with
+  `AppI18n` from `@lang/index` (host-bridged on the Renderer side; do not import
+  `@lang/runtime` in render code, that would bundle a second i18n instance).
+- `plugins/<plugin-name>/fork/lang.ts` — same factory with `AppI18n` from `@lang/runtime`.
+  On the Fork side `@lang/runtime` is also host-bridged: the fork process exposes its live
+  i18n instance on `globalThis.__FLYENV_PLUGIN_HOST__.lang` (`src/fork/index.ts`) and the
+  builder rewrites `@lang/runtime` imports to that bridge, so fork bundles share the host
+  instance instead of bundling a stale copy that never receives language updates. Guard the
+  call (`AppI18n?.()?.global?.locale ?? 'en'`) so the plugin still loads on hosts that
+  predate the fork-side bridge.
+
+For messages that already exist in the app's own language files, fork code can keep using
+`I18nT` from `@lang/runtime` directly (e.g. `I18nT('fork.binNotFound')`) — it resolves
+through the same bridge.
+
 ## Real example: Mailpit
 
 `plugins/mailpit` is intentionally a real service plugin rather than a Hello World example.
@@ -18,7 +63,7 @@ Reference rules for plugin module code:
 - **Module-specific code** belongs in the plugin directory (the fork module class, the module's
   own Vue pages).
 - **FlyEnv framework code** is referenced via build aliases and bundled into the plugin
-  artifact during `plugin:build`: `@fork/*`, `@shared/*`, `@lang/runtime` on the Fork side;
+  artifact during `plugin:build`: `@fork/*`, `@shared/*` on the Fork side;
   `@/util/*` and `@/svg/*.svg?raw` on the Renderer side. A plugin bundle should only contain
   the plugin's own files plus small utility libraries (for example `lodash-es`, `dompurify`);
   anything heavy or stateful must be bridged instead.
@@ -37,7 +82,8 @@ Reference rules for plugin module code:
   bundle native-binary packages.
 - **Host singleton state must not be bundled** — it is bridged to the running host at runtime:
   `@/core/ASide` (service registry), `@/core/Module` (tab persistence), `@/store/app`,
-  `@/store/brew`, `@lang/index` (i18n runtime), plus `@/util/IPC` and `@/router`.
+  `@/store/brew`, `@lang/index` (Renderer i18n runtime) and `@lang/runtime` (Fork i18n
+  runtime), plus `@/util/IPC` and `@/router`.
 - **Application skeleton modules are always host-bridged, never bundled**: `@/core/VueExtend`
   (app factory), `@/core/App` and `@/core/AppModules` (built-in module registry), `@/router`,
   `@/core/Plugin`. Bundling any of these would drag the entire built-in renderer (via
@@ -67,6 +113,8 @@ The example intentionally shares the built-in module's binary dirs config (`setu
 yarn plugin:dev mailpit
 yarn plugin:build mailpit
 yarn plugin:build:all
+yarn plugin:release kafka
+yarn plugin:release --all
 yarn plugin:debug mailpit
 yarn plugin:test
 yarn plugin:runtime-smoke
@@ -75,6 +123,7 @@ yarn plugin:runtime-smoke
 - `plugin:dev` builds an unminified plugin into `tmp/plugins/<id>` and launches FlyEnv with only that development plugin registered. The dev directory is outside `dist`, so a normal development clean does not remove it.
 - `plugin:build` creates the minified distributable plugin under the per-plugin-folder output directory `dist/plugins/<plugin-folder>/`: the plugin payload in `dist/plugins/<plugin-folder>/<id>`, a `.flyenv-plugin` archive beside it, an upserted entry in the official `plugins/registry.json`, and a copy of that registry at `dist/plugins/<plugin-folder>/registry.json` next to the archive. Default-path builds wipe the plugin's own `dist/plugins/<plugin-folder>/` first, so stale versioned archives never accumulate; other plugins' folders are untouched.
 - `plugin:build:all` (or `yarn plugin:build --all`) builds every folder under `plugins/` that contains a `plugin.json`, serially, printing a success/failure summary; any failure exits non-zero.
+- `plugin:release <name> [...more]` (or `--all`) builds the plugin(s) and assembles an upload-ready directory at `dist/plugins-release/` containing only the `.flyenv-plugin` archives and a `registry.json` — upload its contents to the hosting bucket as-is. Artifact URLs in that registry are derived as `--base-url` + `<id>-<version>.flyenv-plugin` (default base `https://oss.macphpstudy.com/plugins/`); entries whose archives were published earlier keep their existing URL, and entries never published and not built now are dropped with a warning. `--all` wipes the release directory first; a partial release updates it in place, replacing stale archives of the same plugin id. Note archives are byte-different on every build (embedded timestamps change the sha256), so always upload the archive together with the `registry.json` produced in the same run.
 - `plugin:debug` launches FlyEnv against the already-built artifact in `dist/plugins/<plugin-folder>/<id>` (run `plugin:build` first).
 - `plugin:test` builds the Mailpit example, inspects the archive, and checks the runtime wiring.
 - `plugin:runtime-smoke` starts a real Electron process twice against an isolated data directory. It verifies install, relaunch, renderer route registration, Fork version discovery, start/stop, update, disable/re-enable, uninstall, deferred cleanup, and runtime data preservation.

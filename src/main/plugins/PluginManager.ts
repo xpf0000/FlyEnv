@@ -8,6 +8,7 @@ import {
   validatePluginCatalog,
   validatePluginManifest,
   type FlyEnvPluginCatalog,
+  type FlyEnvPluginI18nText,
   type FlyEnvPluginManifest
 } from '@shared/plugin/PluginManifest'
 
@@ -58,7 +59,7 @@ export type InstalledPlugin = {
   id: string
   name: string
   version: string
-  description?: string
+  description?: FlyEnvPluginI18nText
   author?: string
   module: FlyEnvPluginManifest['module']
   enabled: boolean
@@ -405,8 +406,7 @@ export class PluginManager {
   async listCatalog() {
     const catalogs: Array<{ catalog: FlyEnvPluginCatalog; source: string; official: boolean }> = []
     const officialUrl =
-      process.env.FLYENV_PLUGIN_REGISTRY_URL ??
-      'https://raw.githubusercontent.com/xpf0000/FlyEnv/master/plugins/registry.json'
+      process.env.FLYENV_PLUGIN_REGISTRY_URL ?? 'https://oss.macphpstudy.com/plugins/registry.json'
     const sources = [officialUrl, ...(await this.listSources()).map((item) => item.url)]
     for (const source of sources) {
       try {
