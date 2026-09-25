@@ -59,12 +59,20 @@ class PluginMarketControllerState {
     return new Promise<T>((resolve, reject) => {
       const call = IPC.send(command, ...args)
       let settled = false
+      const timeout = [
+        'application:plugin-install',
+        'application:plugin-update',
+        'application:plugin-toggle',
+        'application:plugin-uninstall'
+      ].includes(command)
+        ? 10 * 60_000
+        : 120_000
       const timer = setTimeout(() => {
         if (settled) return
         settled = true
         IPC.off(call.key)
         reject(new Error(`${command} timed out`))
-      }, 120_000)
+      }, timeout)
       call.then((key: string, response: any) => {
         if (settled || response?.code === 200) return
         settled = true

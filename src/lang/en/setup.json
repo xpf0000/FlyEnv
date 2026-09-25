@@ -36,6 +36,8 @@
   "pluginsThirdParty": "Third-party sources",
   "pluginsInstall": "Install",
   "pluginsUpdate": "Update",
+  "pluginsLicenseRequiredTitle": "License Required",
+  "pluginsLicenseRequiredTips": "Installing and updating plugins requires an active license. Please activate your license first.",
   "pluginsReinstall": "Reinstall",
   "pluginsUninstall": "Uninstall",
   "pluginsEmpty": "No plugins available",

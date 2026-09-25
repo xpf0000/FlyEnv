@@ -3,6 +3,7 @@ import { createRequire } from 'node:module'
 import { dirname, join, relative, resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { Readable } from 'node:stream'
 import axios from 'axios'
 import { getAxiosProxy } from '../../fork/util/Axios'
 import {
@@ -13,13 +14,18 @@ import {
   type FlyEnvPluginI18nText,
   type FlyEnvPluginManifest
 } from '@shared/plugin/PluginManifest'
+import { verifyLicenseCode } from '@shared/license'
+
+const PLUGIN_STATE_VERSION = 2
 
 const require = createRequire(import.meta.url)
 const MAX_PLUGIN_ARCHIVE_BYTES = 250 * 1024 * 1024
+const MAX_PLUGIN_UNPACKED_BYTES = 1024 * 1024 * 1024
+const MAX_PLUGIN_FILES = 10_000
 const sevenZip = require('7zip-min-electron') as {
   list(
     path: string,
-    callback: (error: Error | null, result?: Array<{ name?: string }>) => void
+    callback: (error: Error | null, result?: Array<{ name?: string; size?: string }>) => void
   ): void
   unpack(path: string, destination: string, callback: (error?: Error | null) => void): void
 }
@@ -29,10 +35,11 @@ type PluginState = {
   activeVersion?: string
   source?: string
   pendingDelete?: string[]
+  installToken?: string
 }
 
 type PluginStateFile = {
-  version: 1
+  version: number
   plugins: Record<string, PluginState>
   sources: string[]
 }
@@ -74,6 +81,11 @@ export type PluginManagerOptions = {
   statePath?: string
   fetchImpl?: typeof fetch
   stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
+  licenseCheck?: () => Promise<boolean>
+  secretProtect?: {
+    encrypt(text: string): string
+    decrypt(data: string): string
+  }
 }
 
 export type PluginDiagnostic = {
@@ -113,7 +125,7 @@ const proxiedFetch: typeof fetch = async (input, init) => {
     method: 'get',
     url,
     proxy: getAxiosProxy(),
-    responseType: 'arraybuffer',
+    responseType: 'stream',
     validateStatus: () => true,
     signal: init?.signal ?? undefined
   })
@@ -126,7 +138,7 @@ const proxiedFetch: typeof fetch = async (input, init) => {
     if (value === undefined || value === null) continue
     headers.set(key, Array.isArray(value) ? value.join(', ') : String(value))
   }
-  return new Response((response.data as BodyInit | null) ?? null, {
+  return new Response(Readable.toWeb(response.data as Readable) as unknown as BodyInit, {
     status: response.status,
     statusText: response.statusText,
     headers
@@ -136,20 +148,28 @@ const proxiedFetch: typeof fetch = async (input, init) => {
 export class PluginManager {
   private plugins = new Map<string, FlyEnvPluginRecord>()
   private moduleToPlugin = new Map<string, FlyEnvPluginRecord>()
-  private state: PluginStateFile = { version: 1, plugins: {}, sources: [] }
+  private state: PluginStateFile = { version: PLUGIN_STATE_VERSION, plugins: {}, sources: [] }
   private readonly rootOverride?: string
   private readonly stateOverride?: string
   private readonly fetchImpl: typeof fetch
   private readonly stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
+  private readonly licenseCheck: () => Promise<boolean>
+  private readonly secretProtect?: { encrypt(text: string): string; decrypt(data: string): string }
   private readonly operations = new Map<string, Promise<unknown>>()
+  private operationTail: Promise<void> = Promise.resolve()
+  private stateLoaded = false
   private diagnostics: PluginDiagnostic[] = []
   private hasRefreshed = false
+  private legacyState = false
+  private stateDirty = false
 
   constructor(options: PluginManagerOptions = {}) {
     this.rootOverride = options.pluginsRoot
     this.stateOverride = options.statePath
     this.fetchImpl = options.fetchImpl ?? proxiedFetch
     this.stopPluginServices = options.stopPluginServices
+    this.licenseCheck = options.licenseCheck ?? (() => verifyLicenseCode(global.Server.Licenses))
+    this.secretProtect = options.secretProtect
   }
 
   get pluginsRoot() {
@@ -165,16 +185,25 @@ export class PluginManager {
       const value = JSON.parse(
         await fs.readFile(this.statePath, 'utf8')
       ) as Partial<PluginStateFile>
+      // Version 1 records can receive install tokens only after a license check.
+      // Keep the legacy version until every active record has been migrated.
+      this.legacyState = value.version === 1
       this.state = {
-        version: 1,
+        version: this.legacyState ? 1 : PLUGIN_STATE_VERSION,
         plugins: value.plugins && typeof value.plugins === 'object' ? value.plugins : {},
         sources: Array.isArray(value.sources)
           ? value.sources.filter((item) => typeof item === 'string')
           : []
       }
     } catch {
-      this.state = { version: 1, plugins: {}, sources: [] }
+      this.legacyState = false
+      this.state = { version: PLUGIN_STATE_VERSION, plugins: {}, sources: [] }
     }
+    this.stateLoaded = true
+  }
+
+  private async ensureStateLoaded() {
+    if (!this.stateLoaded) await this.readState()
   }
 
   private async writeState() {
@@ -213,15 +242,25 @@ export class PluginManager {
   private runSerialized<T>(id: string, operation: () => Promise<T>) {
     const existing = this.operations.get(id)
     if (existing) return existing as Promise<T>
-    const task = operation().finally(() => {
+    const task = this.operationTail.then(operation).finally(() => {
       if (this.operations.get(id) === task) this.operations.delete(id)
     })
     this.operations.set(id, task)
+    this.operationTail = task.then(
+      () => undefined,
+      () => undefined
+    )
     return task
   }
 
   async refresh() {
-    await this.readState()
+    return this.runSerialized('__refresh__', async () => {
+      await this.readState()
+      return this.refreshLoaded()
+    })
+  }
+
+  private async refreshLoaded() {
     this.diagnostics = []
     if (!this.hasRefreshed) await this.cleanupPendingDeletes()
     if ((globalThis as any).Server?.DataDirectoryReady === false) {
@@ -308,6 +347,14 @@ export class PluginManager {
     this.plugins.clear()
     this.moduleToPlugin.clear()
     for (const record of selected.values()) {
+      if (!record.development) {
+        try {
+          await this.assertScannedPluginAllowed(record)
+        } catch (error) {
+          this.recordDiagnostic(record.rootPath, error, record.manifest.id)
+          continue
+        }
+      }
       const moduleId = record.manifest.module.typeFlag
       if (this.plugins.has(record.manifest.id)) {
         this.recordDiagnostic(
@@ -328,8 +375,106 @@ export class PluginManager {
       this.plugins.set(record.manifest.id, record)
       this.moduleToPlugin.set(moduleId, record)
     }
+    if (this.stateDirty) {
+      if (
+        Object.values(this.state.plugins).every((plugin) =>
+          plugin.activeVersion ? !!plugin.installToken : true
+        )
+      ) {
+        this.state.version = PLUGIN_STATE_VERSION
+        this.legacyState = false
+      }
+      await this.writeState()
+      this.stateDirty = false
+    }
     this.hasRefreshed = true
     return this.listInstalled()
+  }
+
+  /**
+   * Scan-time guard: require a matching local install record, or migrate a
+   * version 1 record with an active license. This prevents an ordinary copy
+   * of plugin files from activating without a corresponding local record.
+   */
+  private async assertScannedPluginAllowed(record: FlyEnvPluginRecord) {
+    const state = this.state.plugins[record.manifest.id]
+    if (!state?.activeVersion) {
+      throw new Error(`Plugin was not installed through the plugin manager: ${record.manifest.id}`)
+    }
+    if (!state.installToken && this.legacyState && !(await this.licenseCheck())) {
+      throw new Error(`An active license is required to migrate plugin: ${record.manifest.id}`)
+    }
+    const manifestRaw = await fs.readFile(join(record.rootPath, 'plugin.json'), 'utf8')
+    const token = await this.computeInstallToken(
+      record.manifest.id,
+      record.manifest.version,
+      manifestRaw
+    )
+    if (state.installToken) {
+      if (state.installToken !== token) {
+        throw new Error(`Plugin install record mismatch: ${record.manifest.id}`)
+      }
+      return
+    }
+    if (this.legacyState) {
+      state.installToken = token
+      this.stateDirty = true
+      return
+    }
+    throw new Error(`Plugin install record mismatch: ${record.manifest.id}`)
+  }
+
+  /**
+   * Per-installation random secret used to bind install tokens to this FlyEnv
+   * installation. Deliberately not derived from the machine id, which can
+   * change. Stored outside both the plugins directory and plugins.json, so
+   * copying those to another installation is not enough to forge tokens.
+   *
+   * When a `secretProtect` implementation is available (Electron safeStorage
+   * in the app), the secret is stored encrypted with the OS account keychain:
+   * copying even this file to another machine yields ciphertext that cannot
+   * be decrypted there, and the scan guard rejects the copied plugins. A
+   * missing or unreadable secret never skips token verification.
+   */
+  private installSecret?: string
+  private async getInstallSecret() {
+    if (this.installSecret) return this.installSecret
+    const secretPath = join(dirname(this.statePath), '.plugin-install-secret')
+    let existing = ''
+    try {
+      existing = (await fs.readFile(secretPath, 'utf8')).trim()
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+    }
+    if (existing.startsWith('enc:')) {
+      if (!this.secretProtect) {
+        throw new Error('Plugin install secret cannot be decrypted on this installation')
+      }
+      try {
+        const decrypted = this.secretProtect.decrypt(existing.slice(4))
+        this.installSecret = decrypted
+        return decrypted
+      } catch (error) {
+        throw new Error(
+          `Plugin install secret cannot be decrypted on this installation: ${(error as Error)?.message ?? error}`
+        )
+      }
+    }
+    if (existing) {
+      this.installSecret = existing
+      return existing
+    }
+    const created = randomUUID()
+    await fs.mkdir(dirname(secretPath), { recursive: true })
+    const stored = this.secretProtect ? `enc:${this.secretProtect.encrypt(created)}` : created
+    await fs.writeFile(secretPath, stored, { mode: 0o600, flag: 'wx' })
+    this.installSecret = created
+    return created
+  }
+
+  private async computeInstallToken(id: string, version: string, manifestRaw: string) {
+    const secret = await this.getInstallSecret()
+    return createHash('sha256').update(`${secret}:${id}:${version}:${manifestRaw}`).digest('hex')
   }
 
   private recordDiagnostic(pluginPath: string, error: unknown, id?: string) {
@@ -407,29 +552,33 @@ export class PluginManager {
       state.enabled = enabled
       this.state.plugins[id] = state
       await this.writeState()
-      await this.refresh()
+      await this.refreshLoaded()
       return this.plugins.get(id)
     })
   }
 
   async listSources() {
-    await this.readState()
+    await this.ensureStateLoaded()
     return this.state.sources.map((url) => ({ url, official: false }))
   }
 
   async addSource(url: string) {
     this.assertSourceUrl(url)
-    await this.readState()
-    if (!this.state.sources.includes(url)) this.state.sources.push(url)
-    await this.writeState()
-    return this.listSources()
+    return this.runSerialized(`source:add:${url}`, async () => {
+      await this.ensureStateLoaded()
+      if (!this.state.sources.includes(url)) this.state.sources.push(url)
+      await this.writeState()
+      return this.listSources()
+    })
   }
 
   async removeSource(url: string) {
-    await this.readState()
-    this.state.sources = this.state.sources.filter((item) => item !== url)
-    await this.writeState()
-    return this.listSources()
+    return this.runSerialized(`source:remove:${url}`, async () => {
+      await this.ensureStateLoaded()
+      this.state.sources = this.state.sources.filter((item) => item !== url)
+      await this.writeState()
+      return this.listSources()
+    })
   }
 
   async listCatalog() {
@@ -484,36 +633,84 @@ export class PluginManager {
     source?: string
   }) {
     this.assertSourceUrl(input.url)
+    if (!(await this.licenseCheck())) {
+      throw new Error('An active license is required to install or update plugins')
+    }
     if (input.source && !input.sha256) {
       throw new Error('Plugin catalog installs require a SHA-256 checksum')
     }
-    await this.readState()
+    await this.ensureStateLoaded()
     await fs.mkdir(this.pluginsRoot, { recursive: true })
-    const response = await this.fetchImpl(input.url, { signal: AbortSignal.timeout(120_000) })
-    if (!response.ok) throw new Error(`Plugin download failed: ${response.status}`)
-    const contentLength = Number(response.headers.get('content-length') ?? 0)
-    if (contentLength > MAX_PLUGIN_ARCHIVE_BYTES) throw new Error('Plugin archive is too large')
-    const bytes = Buffer.from(await response.arrayBuffer())
-    if (bytes.byteLength > MAX_PLUGIN_ARCHIVE_BYTES) throw new Error('Plugin archive is too large')
-    if (input.sha256) {
-      const actual = createHash('sha256').update(bytes).digest('hex')
-      if (actual.toLowerCase() !== input.sha256.toLowerCase())
-        throw new Error('Plugin checksum verification failed')
-    }
     const temporary = join(tmpdir(), `flyenv-plugin-${randomUUID()}.flyenv-plugin`)
     const extraction = join(this.pluginsRoot, `.staging-${randomUUID()}`)
-    await fs.writeFile(temporary, bytes)
     try {
-      const files = await callbackPromise<Array<{ name?: string }>>((callback) =>
+      const response = await this.fetchImpl(input.url, { signal: AbortSignal.timeout(120_000) })
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => {})
+        throw new Error(`Plugin download failed: ${response.status}`)
+      }
+      const contentLength = Number(response.headers.get('content-length') ?? 0)
+      if (contentLength > MAX_PLUGIN_ARCHIVE_BYTES) {
+        await response.body?.cancel().catch(() => {})
+        throw new Error('Plugin archive is too large')
+      }
+      if (!response.body) throw new Error('Plugin download has no response body')
+      let archive: Awaited<ReturnType<typeof fs.open>>
+      try {
+        archive = await fs.open(temporary, 'wx')
+      } catch (error) {
+        await response.body.cancel().catch(() => {})
+        throw error
+      }
+      const reader = response.body.getReader()
+      const digest = createHash('sha256')
+      let downloadedBytes = 0
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          downloadedBytes += value.byteLength
+          if (downloadedBytes > MAX_PLUGIN_ARCHIVE_BYTES) {
+            throw new Error('Plugin archive is too large')
+          }
+          digest.update(value)
+          let offset = 0
+          while (offset < value.byteLength) {
+            const { bytesWritten } = await archive.write(value, offset, value.byteLength - offset)
+            if (bytesWritten === 0) throw new Error('Plugin download could not be written')
+            offset += bytesWritten
+          }
+        }
+      } finally {
+        await reader.cancel().catch(() => {})
+        await archive.close()
+      }
+      if (input.sha256 && digest.digest('hex').toLowerCase() !== input.sha256.toLowerCase()) {
+        throw new Error('Plugin checksum verification failed')
+      }
+      const files = await callbackPromise<Array<{ name?: string; size?: string }>>((callback) =>
         sevenZip.list(temporary, callback)
       )
+      if (!files?.length || files.length > MAX_PLUGIN_FILES) {
+        throw new Error('Plugin archive contains too many files')
+      }
+      let unpackedBytes = 0
       for (const item of files ?? []) {
         const name = (item.name ?? '').replaceAll('\\', '/').replace(/\/+/g, '/')
-        if (name.startsWith('/') || name.split('/').includes('..'))
+        if (name.startsWith('/') || /^[A-Za-z]:\//.test(name) || name.split('/').includes('..'))
           throw new Error('Plugin archive contains an unsafe path')
+        const size = Number(item.size ?? 0)
+        if (!Number.isSafeInteger(size) || size < 0) {
+          throw new Error('Plugin archive contains an invalid file size')
+        }
+        unpackedBytes += size
+        if (unpackedBytes > MAX_PLUGIN_UNPACKED_BYTES) {
+          throw new Error('Plugin archive expands beyond the allowed size')
+        }
       }
       await fs.mkdir(extraction, { recursive: true })
       await callbackPromise<void>((callback) => sevenZip.unpack(temporary, extraction, callback))
+      await this.validateExtractedTree(extraction)
       let packageRoot = extraction
       for (
         let depth = 0;
@@ -531,9 +728,8 @@ export class PluginManager {
           throw new Error('Plugin archive must contain plugin.json at its root')
         packageRoot = join(packageRoot, children[0].name)
       }
-      const manifest = validatePluginManifest(
-        JSON.parse(await fs.readFile(join(packageRoot, 'plugin.json'), 'utf8'))
-      )
+      const manifestRaw = await fs.readFile(join(packageRoot, 'plugin.json'), 'utf8')
+      const manifest = validatePluginManifest(JSON.parse(manifestRaw))
       this.assertManifestCompatibility(manifest)
       if (input.id && input.id !== manifest.id)
         throw new Error('Plugin id does not match the registry entry')
@@ -559,10 +755,11 @@ export class PluginManager {
           enabled: previousState?.enabled !== false,
           activeVersion: manifest.version,
           source: input.source ?? previousState?.source,
-          pendingDelete: previousState?.pendingDelete
+          pendingDelete: previousState?.pendingDelete,
+          installToken: await this.computeInstallToken(manifest.id, manifest.version, manifestRaw)
         }
         await this.writeState()
-        await this.refresh()
+        await this.refreshLoaded()
         await this.scheduleVersionCleanup(
           manifest.id,
           manifest.version,
@@ -576,7 +773,7 @@ export class PluginManager {
         if (previousState) this.state.plugins[manifest.id] = previousState
         else delete this.state.plugins[manifest.id]
         await this.writeState().catch(() => {})
-        await this.refresh().catch(() => {})
+        await this.refreshLoaded().catch(() => {})
         throw error
       } finally {
         await fs.rm(backupRoot, { recursive: true, force: true }).catch(() => {})
@@ -621,9 +818,35 @@ export class PluginManager {
       if (pendingDelete) this.state.plugins[id] = { enabled: false, pendingDelete: [pendingDelete] }
       else delete this.state.plugins[id]
       await this.writeState()
-      await this.refresh()
+      await this.refreshLoaded()
       return true
     })
+  }
+
+  private async validateExtractedTree(rootPath: string) {
+    const pending = [rootPath]
+    let files = 0
+    let bytes = 0
+    while (pending.length) {
+      const directory = pending.pop()!
+      for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+        const entryPath = join(directory, entry.name)
+        const stat = await fs.lstat(entryPath)
+        if (stat.isSymbolicLink()) {
+          throw new Error('Plugin archive contains a symbolic link')
+        }
+        if (stat.isDirectory()) {
+          pending.push(entryPath)
+          continue
+        }
+        if (!stat.isFile()) throw new Error('Plugin archive contains an unsupported file')
+        files += 1
+        bytes += stat.size
+        if (files > MAX_PLUGIN_FILES || bytes > MAX_PLUGIN_UNPACKED_BYTES) {
+          throw new Error('Plugin archive expands beyond the allowed size')
+        }
+      }
+    }
   }
 
   private async loadPlugin(

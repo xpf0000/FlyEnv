@@ -121,7 +121,8 @@
                     </span>
                     <el-button
                       size="small"
-                      :type="PluginMarket.actionFor(item) === 'update' ? 'warning' : 'primary'"
+                      :type="actionButtonType(item)"
+                      :icon="licensed ? undefined : Lock"
                       :loading="!!PluginMarket.busyById[item.id]"
                       @click="install(item)"
                       >{{ actionLabel(item) }}</el-button
@@ -350,7 +351,8 @@
                     </span>
                     <el-button
                       size="small"
-                      :type="PluginMarket.actionFor(item) === 'update' ? 'warning' : 'primary'"
+                      :type="actionButtonType(item)"
+                      :icon="licensed ? undefined : Lock"
                       :loading="!!PluginMarket.busyById[item.id]"
                       @click="install(item)"
                       >{{ actionLabel(item) }}</el-button
@@ -374,9 +376,13 @@
 <script lang="ts" setup>
   import { computed, onMounted, ref } from 'vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
-  import { Box, Delete, Link, RefreshRight } from '@element-plus/icons-vue'
+  import { Box, Delete, Link, Lock, RefreshRight } from '@element-plus/icons-vue'
   import { I18nT } from '@lang/index'
   import { PluginMarket, pluginDescription, type PluginCatalogItem } from './controller'
+  import { SetupStore } from '../store'
+
+  const setupStore = SetupStore()
+  const licensed = computed(() => setupStore.isActive)
 
   const tab = ref('official')
   const sourceInput = ref('')
@@ -415,8 +421,29 @@
   const refresh = () =>
     PluginMarket.refresh().catch((error) => ElMessage.error(error?.message ?? String(error)))
 
+  const actionButtonType = (item: PluginCatalogItem) => {
+    if (!licensed.value) return 'warning'
+    return PluginMarket.actionFor(item) === 'update' ? 'warning' : 'primary'
+  }
+
   const install = async (item: PluginCatalogItem) => {
     try {
+      if (!licensed.value) {
+        await ElMessageBox.confirm(
+          I18nT('setup.pluginsLicenseRequiredTips'),
+          I18nT('setup.pluginsLicenseRequiredTitle'),
+          {
+            confirmButtonText: I18nT('base.confirm'),
+            cancelButtonText: I18nT('base.cancel'),
+            type: 'warning'
+          }
+        )
+          .then(() => {
+            setupStore.tab = 'licenses'
+          })
+          .catch(() => {})
+        return
+      }
       if (
         PluginMarket.isThirdParty(item) &&
         !PluginMarket.acknowledgedSources.has(item.source ?? '')

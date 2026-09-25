@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, globalShortcut, session } from 'electron'
+import { app, BrowserWindow, globalShortcut, safeStorage, session } from 'electron'
 import is from 'electron-is'
 import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
@@ -82,7 +82,18 @@ export default class Application extends EventEmitter {
     this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
     this.pluginManager = new PluginManager({
-      stopPluginServices: (moduleId) => this.stopPluginServices(moduleId)
+      stopPluginServices: (moduleId) => this.stopPluginServices(moduleId),
+      licenseCheck: process.env.FLYENV_PLUGIN_SMOKE === '1' ? async () => true : undefined,
+      // OS account keychain (Keychain / DPAPI / system keyring) encryption for
+      // the plugin install secret, so copying the secret file to another
+      // machine yields undecryptable ciphertext. Falls back to plain storage
+      // where no system encryption is available.
+      secretProtect: safeStorage.isEncryptionAvailable()
+        ? {
+            encrypt: (text) => safeStorage.encryptString(text).toString('base64'),
+            decrypt: (data) => safeStorage.decryptString(Buffer.from(data, 'base64'))
+          }
+        : undefined
     })
     setServerDirectoryPermissionDeniedHandler((reason) => {
       this.serverDirectoryHelperInstall.notifyPermissionDenied(reason)

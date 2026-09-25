@@ -25,6 +25,8 @@ sortModules()
 
 let pluginModulesLoaded = false
 let syncInFlight: Promise<void> | undefined
+let syncRequested = 0
+let syncCompleted = 0
 
 function removePluginModule(typeFlag: string) {
   const index = AppModules.findIndex((m) => m.typeFlag === typeFlag && m.plugin)
@@ -53,7 +55,7 @@ async function doSyncRendererPluginModules() {
   for (const module of [...AppModules]) {
     if (!module.plugin) continue
     const next = fresh.get(module.typeFlag)
-    if (!next || (next as any).plugin?.version !== (module as any).plugin?.version) {
+    if (!next || next !== module) {
       removePluginModule(module.typeFlag)
     }
   }
@@ -93,8 +95,15 @@ async function doSyncRendererPluginModules() {
  * every plugin install/toggle/uninstall for hot reload without restart.
  */
 export function syncRendererPluginModules(): Promise<void> {
+  syncRequested += 1
   if (!syncInFlight) {
-    syncInFlight = doSyncRendererPluginModules().finally(() => {
+    syncInFlight = (async () => {
+      while (syncCompleted < syncRequested) {
+        const requested = syncRequested
+        await doSyncRendererPluginModules()
+        syncCompleted = requested
+      }
+    })().finally(() => {
       syncInFlight = undefined
     })
   }
@@ -104,7 +113,12 @@ export function syncRendererPluginModules(): Promise<void> {
 export async function loadAppPluginModules() {
   if (pluginModulesLoaded) return
   pluginModulesLoaded = true
-  await syncRendererPluginModules()
+  try {
+    await syncRendererPluginModules()
+  } catch (error) {
+    // Plugin loading must not prevent the rest of the application from mounting.
+    console.error('[Plugin] startup sync failed', error)
+  }
 }
 
 export { AppModules }

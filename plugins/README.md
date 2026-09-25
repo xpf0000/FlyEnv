@@ -148,6 +148,23 @@ yarn plugin:runtime-smoke
 
 Installed plugins are discovered from `<FlyEnv Data Directory>/plugins/<plugin-id>/<version>`. FlyEnv keeps active versions and enabled state in `<FlyEnv Data Directory>/plugins.json`.
 
+Discovery is gated: a plugin directory only loads when it was installed through the Plugin
+Manager. The scan requires a `plugins.json` state record with a matching `installToken`
+(SHA-256 over a per-installation random secret, plugin id, version, and manifest contents,
+written at install time), so copying plugin files into the directory directly does not
+activate the plugin. The secret is generated once and stored in `.plugin-install-secret`
+outside both the plugins directory and `plugins.json`, so copying the plugin files together
+with the state file into another FlyEnv installation fails the token check as well. In the
+app the secret is additionally encrypted with the OS account keychain (Electron
+`safeStorage`: Keychain / DPAPI / system keyring), so even copying the secret file yields
+ciphertext that cannot be decrypted on another machine and the copied plugins are rejected;
+where no system encryption is available the secret falls back to plain storage. The
+secret is deliberately not derived from the machine id, which can change. State files
+written before install tokens existed (version 1) are migrated only while an active license
+is available; a missing or unreadable install secret never skips verification. Once all legacy
+records have tokens, the state file is rewritten at the current version. Development mode
+(`FLYENV_PLUGIN_PATH`) bypasses this guard.
+
 Plugin changes take effect **without restarting FlyEnv**. Install, update, disable, re-enable,
 and uninstall all broadcast the refreshed plugin snapshot to the fork process (whose loader
 cache is invalidated via a version+mtime import-URL cache buster) and hot-sync the renderer:
@@ -159,6 +176,13 @@ from the JS realm, so removed plugins leave their code resident in memory until 
 restart — behavior is fully reset, only the memory lingers.
 
 The Settings → Plugin Market page reads the official registry and lets users add third-party registry JSON URLs. A registry can contain either `{ "plugins": [...] }` or one plugin object; each item needs an `artifact.url` (or `url`/`downloadUrl`) and an exact SHA-256 checksum. Catalog installs without a checksum are rejected. Third-party registries are explicitly acknowledged before their plugins can be installed because a plugin can execute native Renderer and Fork code.
+
+Installing and updating plugins requires an active FlyEnv license. Without one, the
+install/update buttons render in warning color with a lock icon and route to the license
+page, and the main process independently verifies the license (RSA-signed machine id,
+`@shared/license`) before any download starts. Plugins with a current install token keep
+working without a license; version-1 records need an active license for their one-time
+token migration.
 
 ## Publishing a catalog plugin
 

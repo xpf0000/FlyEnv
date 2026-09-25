@@ -103,16 +103,36 @@ type RendererPluginPayload = {
   css?: string
 }
 
-function addStyle(id: string, css?: string) {
-  if (!css || document.querySelector(`style[data-flyenv-plugin="${id}"]`)) return
-  const style = document.createElement('style')
-  style.dataset.flyenvPlugin = id
-  style.textContent = css
-  document.head.appendChild(style)
+type LoadedRendererPlugin = {
+  version: string
+  code: string
+  css?: string
+  item: AppModuleItem
+}
+
+const loadedPlugins = new Map<string, LoadedRendererPlugin>()
+
+function syncStyles(payloads: RendererPluginPayload[]) {
+  const active = new Set(payloads.map((payload) => payload.id))
+  for (const style of document.querySelectorAll<HTMLStyleElement>('style[data-flyenv-plugin]')) {
+    if (!active.has(style.dataset.flyenvPlugin ?? '')) style.remove()
+  }
+  for (const payload of payloads) {
+    const existing = document.querySelector<HTMLStyleElement>(
+      `style[data-flyenv-plugin="${payload.id}"]`
+    )
+    if (!payload.css) {
+      existing?.remove()
+      continue
+    }
+    const style = existing ?? document.createElement('style')
+    style.dataset.flyenvPlugin = payload.id
+    if (style.textContent !== payload.css) style.textContent = payload.css
+    if (!existing) document.head.appendChild(style)
+  }
 }
 
 async function importPlugin(payload: RendererPluginPayload) {
-  addStyle(payload.id, payload.css)
   const blob = new Blob([payload.code], { type: 'text/javascript' })
   const url = URL.createObjectURL(blob)
   try {
@@ -131,30 +151,56 @@ async function importPlugin(payload: RendererPluginPayload) {
 }
 
 export function loadRendererPluginModules(timeout = 5_000): Promise<AppModuleItem[]> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let settled = false
-    const finish = (value: AppModuleItem[]) => {
+    const call = IPC.send('application:plugins')
+    const finish = (error?: Error, value?: AppModuleItem[]) => {
       if (settled) return
       settled = true
-      resolve(value)
-    }
-    const timer = window.setTimeout(() => finish([]), timeout)
-
-    IPC.send('application:plugins').then(async (_key: string, response: any) => {
       window.clearTimeout(timer)
+      IPC.off(call.key)
+      if (error) reject(error)
+      else resolve(value ?? [])
+    }
+    const timer = window.setTimeout(
+      () => finish(new Error('Loading renderer plugins timed out')),
+      timeout
+    )
+
+    call.then((_key: string, response: any) => {
+      if (settled) return
       if (response?.code !== 0 || !Array.isArray(response?.data)) {
-        finish([])
+        finish(new Error(response?.msg ?? 'Loading renderer plugins failed'))
         return
       }
-      const modules: AppModuleItem[] = []
-      for (const payload of response.data as RendererPluginPayload[]) {
-        try {
-          modules.push(await importPlugin(payload))
-        } catch (error) {
-          console.error('[Plugin] failed to load renderer plugin', payload.id, error)
+      void (async () => {
+        const payloads = response.data as RendererPluginPayload[]
+        const modules: AppModuleItem[] = []
+        const next = new Map<string, LoadedRendererPlugin>()
+        for (const payload of payloads) {
+          const cached = loadedPlugins.get(payload.id)
+          const item =
+            cached?.version === payload.version &&
+            cached.code === payload.code
+              ? cached.item
+              : await importPlugin(payload)
+          modules.push(item)
+          next.set(payload.id, {
+            version: payload.version,
+            code: payload.code,
+            css: payload.css,
+            item
+          })
         }
-      }
-      finish(modules)
+        if (settled) return
+        syncStyles(payloads)
+        loadedPlugins.clear()
+        for (const [id, cached] of next) loadedPlugins.set(id, cached)
+        finish(undefined, modules)
+      })().catch((error) => {
+        console.error('[Plugin] failed to load renderer plugin', error)
+        finish(error instanceof Error ? error : new Error(String(error)))
+      })
     })
   })
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { createRequire } from 'node:module'
@@ -121,9 +121,11 @@ try {
   let stopCalls = 0
   let serviceRunning = false
   let failStop = false
+  let licenseOk = true
   const manager = new PluginManager({
     pluginsRoot: join(root, 'plugins'),
     statePath: join(root, 'plugins.json'),
+    licenseCheck: async () => licenseOk,
     stopPluginServices: async () => {
       stopCalls += 1
       if (failStop) throw new Error('service stop failed')
@@ -167,6 +169,20 @@ try {
     () => validatePluginManifest(manifestFixture({ architecture: ['mips'] })),
     /architecture/i
   )
+
+  licenseOk = false
+  await assert.rejects(
+    () =>
+      manager.install({
+        id: 'sample.plugin',
+        version: '1.0.0',
+        url: 'https://example.test/sample.flyenv-plugin',
+        sha256,
+        source: 'official'
+      }),
+    /license/i
+  )
+  licenseOk = true
 
   await assert.rejects(
     () =>
@@ -294,6 +310,70 @@ try {
   )
   serviceRunning = false
 
+  // Copying the plugin files together with the plugins.json state file into
+  // another installation (different install secret) must not activate it.
+  const cloneRoot = join(root, 'clone')
+  await cp(join(root, 'plugins'), join(cloneRoot, 'plugins'), { recursive: true })
+  await cp(join(root, 'plugins.json'), join(cloneRoot, 'plugins.json'))
+  const cloneManager = new PluginManager({
+    pluginsRoot: join(cloneRoot, 'plugins'),
+    statePath: join(cloneRoot, 'plugins.json')
+  })
+  await cloneManager.refresh()
+  assert.equal(cloneManager.listInstalled().length, 0)
+  assert.equal(
+    cloneManager.getDiagnostics().some((item) => /install record mismatch/i.test(item.message)),
+    true
+  )
+
+  // With OS keychain encryption (safeStorage) the install secret survives
+  // restarts on the same account, and copying even the secret file to another
+  // machine — where the keychain cannot decrypt it — blocks the copied plugins.
+  const protectorFor = (key: string) => ({
+    encrypt: (text: string) => Buffer.from(`${key}:${text}`, 'utf8').toString('base64'),
+    decrypt: (data: string) => {
+      const raw = Buffer.from(data, 'base64').toString('utf8')
+      if (!raw.startsWith(`${key}:`)) throw new Error('decryption failed')
+      return raw.slice(key.length + 1)
+    }
+  })
+  const encRoot = join(root, 'encrypted')
+  const encOptions = {
+    pluginsRoot: join(encRoot, 'plugins'),
+    statePath: join(encRoot, 'plugins.json'),
+    licenseCheck: async () => true,
+    secretProtect: protectorFor('machine-a'),
+    fetchImpl: async (url: URL | RequestInfo) =>
+      new Response(archiveBytes.get(url.toString()) ?? bytes, { status: 200 })
+  }
+  await new PluginManager(encOptions).install({
+    id: 'sample.plugin',
+    version: '1.0.0',
+    url: 'https://example.test/sample.flyenv-plugin',
+    sha256,
+    source: 'official'
+  })
+  assert.equal(
+    (await readFile(join(encRoot, '.plugin-install-secret'), 'utf8')).startsWith('enc:'),
+    true
+  )
+  const encRestart = await new PluginManager(encOptions).refresh()
+  assert.equal(encRestart.length, 1)
+
+  const encCloneRoot = join(root, 'encrypted-clone')
+  await cp(encRoot, encCloneRoot, { recursive: true })
+  const encClone = new PluginManager({
+    pluginsRoot: join(encCloneRoot, 'plugins'),
+    statePath: join(encCloneRoot, 'plugins.json'),
+    secretProtect: protectorFor('machine-b')
+  })
+  await encClone.refresh()
+  assert.equal(encClone.listInstalled().length, 0)
+  assert.equal(
+    encClone.getDiagnostics().some((item) => /install secret/i.test(item.message)),
+    true
+  )
+
   const firstToggle = manager.setEnabled('sample.plugin', false)
   const secondToggle = manager.setEnabled('sample.plugin', true)
   assert.equal(firstToggle, secondToggle)
@@ -337,9 +417,24 @@ try {
   } catch (error: any) {
     if (error?.code !== 'EPERM') throw error
   }
+  // A version-1 state file marks these as pre-token legacy installs, so the
+  // scan guard accepts them once and backfills their install tokens.
+  await writeFile(
+    join(root, 'duplicate-plugins.json'),
+    JSON.stringify({
+      version: 1,
+      plugins: {
+        'one.plugin': { enabled: true, activeVersion: '1.0.0' },
+        'two.plugin': { enabled: true, activeVersion: '1.0.0' },
+        'link.plugin': { enabled: true, activeVersion: '1.0.0' }
+      },
+      sources: []
+    })
+  )
   const duplicateManager = new PluginManager({
     pluginsRoot: duplicateRoot,
-    statePath: join(root, 'duplicate-plugins.json')
+    statePath: join(root, 'duplicate-plugins.json'),
+    licenseCheck: async () => true
   })
   await duplicateManager.refresh()
   assert.equal(
@@ -348,6 +443,29 @@ try {
   )
   assert.equal(
     duplicateManager.getDiagnostics().some((item) => /entry file is missing/i.test(item.message)),
+    true
+  )
+
+  // Plugin files copied directly into the plugins directory (no state record)
+  // must not load.
+  const copiedRoot = join(root, 'copied-plugins')
+  const copiedDir = join(copiedRoot, 'copied.plugin', '1.0.0')
+  await mkdir(join(copiedDir, 'render'), { recursive: true })
+  await writeFile(
+    join(copiedDir, 'plugin.json'),
+    JSON.stringify(manifestFixture({ id: 'copied.plugin', module: { typeFlag: 'copied-module' } }))
+  )
+  await writeFile(join(copiedDir, 'render/index.mjs'), 'export default {}')
+  const copiedManager = new PluginManager({
+    pluginsRoot: copiedRoot,
+    statePath: join(root, 'copied-plugins.json')
+  })
+  await copiedManager.refresh()
+  assert.equal(copiedManager.listInstalled().length, 0)
+  assert.equal(
+    copiedManager
+      .getDiagnostics()
+      .some((item) => /not installed through the plugin manager/i.test(item.message)),
     true
   )
 

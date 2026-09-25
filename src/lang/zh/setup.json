@@ -36,6 +36,8 @@
   "pluginsThirdParty": "第三方源",
   "pluginsInstall": "安装",
   "pluginsUpdate": "更新",
+  "pluginsLicenseRequiredTitle": "需要许可证",
+  "pluginsLicenseRequiredTips": "安装和升级插件需要有效的许可证，请先激活许可证。",
   "pluginsReinstall": "重新安装",
   "pluginsUninstall": "卸载",
   "pluginsEmpty": "暂无可用插件",
