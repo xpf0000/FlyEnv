@@ -14,6 +14,7 @@ import {
   remove,
   serviceStartExecCMD,
   versionBinVersion,
+  versionDirCache,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
@@ -509,6 +510,13 @@ transaction.state.log.min.isr=1
 
   allInstalledVersions(setup: any) {
     return new ForkPromise(async (resolve) => {
+      // versionLocalFetch caches directory listings in the module-level
+      // versionDirCache. Without clearing it, versions installed after an
+      // earlier scan stay invisible until the fork process restarts (the
+      // built-in Version module clears it the same way on every call).
+      for (const k in versionDirCache) {
+        delete versionDirCache[k]
+      }
       try {
         const binName = isWindows() ? 'kafka-server-start.bat' : 'kafka-server-start'
         const binPaths = isWindows()

@@ -6,6 +6,7 @@ import {
   AppLog,
   brewInfoJson,
   versionBinVersion,
+  versionDirCache,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
@@ -168,6 +169,13 @@ class MailPit extends Base {
 
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
+      // versionLocalFetch caches directory listings in the module-level
+      // versionDirCache. Without clearing it, versions installed after an
+      // earlier scan stay invisible until the fork process restarts (the
+      // built-in Version module clears it the same way on every call).
+      for (const k in versionDirCache) {
+        delete versionDirCache[k]
+      }
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
       if (isWindows()) {

@@ -49,6 +49,24 @@ For messages that already exist in the app's own language files, fork code can k
 `I18nT` from `@lang/runtime` directly (e.g. `I18nT('fork.binNotFound')`) — it resolves
 through the same bridge.
 
+## Fork-side version discovery
+
+`versionLocalFetch` (`@fork/Fn`) caches directory listings in the module-level
+`versionDirCache` so repeated scans of large trees stay cheap. Any plugin `allInstalledVersions`
+implementation must clear that cache before scanning, exactly like the built-in Version
+module does:
+
+```ts
+for (const k in versionDirCache) {
+  delete versionDirCache[k]
+}
+```
+
+Without this, versions installed after an earlier scan stay invisible to the service page
+until the fork process restarts (the Version Manager's static tab still shows them because
+its `installed` flags come from a separate `existsSync` check, which makes the stale service
+list look especially confusing).
+
 ## Real example: Mailpit
 
 `plugins/mailpit` is intentionally a real service plugin rather than a Hello World example.
