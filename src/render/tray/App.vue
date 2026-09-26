@@ -1,5 +1,5 @@
 <template>
-  <div class="tray-main" :class="{ 'is-windows': store.isWindows }">
+  <div class="tray-main" :class="'popup-' + side">
     <VueSvg />
     <div class="tray-aside-inner">
       <ul class="top-tool">
@@ -31,7 +31,7 @@
         <li @click="doExit"> {{ I18nT('tray.exit') }} </li>
       </ul>
     </div>
-    <span ref="arrow" class="popper-arrow" :style="{ left: left } as any"></span>
+    <span ref="arrow" class="popper-arrow" :style="arrowStyle"></span>
   </div>
 </template>
 
@@ -40,6 +40,7 @@
   import { AppStore } from './store/app'
   import IPC from '../util/IPC'
   import { I18nT } from '@lang/index'
+  import type { TrayPopupSide } from '@shared/Tray'
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
   import CustomerItem from './CustomerItem.vue'
   import StartupGroupItem from './StartupGroupItem.vue'
@@ -57,10 +58,23 @@
   })
   const startupGroups = computed(() => store.startupGroups)
 
-  const left: Ref<string | null> = ref(null)
-  IPC.on('APP:Poper-Left').then((key: string, res: any) => {
-    console.log('APP:Poper-Left: ', key, res)
-    left.value = `${res}px`
+  // 弹窗相对托盘图标的边,由主进程按任务栏位置下发;箭头贴在朝向图标的那条边上
+  const side: Ref<TrayPopupSide> = ref<TrayPopupSide>(store.isWindows ? 'up' : 'down')
+  IPC.on('APP:Tray-Popup-Side').then((key: string, res: any) => {
+    if (res === 'up' || res === 'down' || res === 'left' || res === 'right') {
+      side.value = res
+    }
+  })
+
+  const arrowOffset: Ref<number> = ref(15)
+  IPC.on('APP:Tray-Arrow-Offset').then((key: string, res: any) => {
+    const offset = Number(res)
+    arrowOffset.value = Number.isFinite(offset) ? offset : 15
+  })
+
+  const arrowStyle = computed(() => {
+    const offset = `${arrowOffset.value}px`
+    return side.value === 'up' || side.value === 'down' ? { left: offset } : { top: offset }
   })
 
   const groupDo = () => {
@@ -246,13 +260,43 @@
         transform: rotate(45deg);
       }
 
-      &.is-windows {
+      // 弹窗在图标上方:箭头贴弹窗下边缘
+      &.popup-up {
         padding-top: 0;
         padding-bottom: 7px;
 
         .popper-arrow {
           top: unset;
           bottom: 2px;
+        }
+      }
+
+      // 弹窗在图标下方:箭头贴弹窗上边缘
+      &.popup-down {
+        padding-top: 7px;
+
+        .popper-arrow {
+          top: 2px;
+        }
+      }
+
+      // 弹窗在图标左侧(任务栏在屏幕右侧):箭头贴弹窗右边缘
+      &.popup-left {
+        padding-top: 0;
+        padding-right: 7px;
+
+        .popper-arrow {
+          right: 2px;
+        }
+      }
+
+      // 弹窗在图标右侧(任务栏在屏幕左侧):箭头贴弹窗左边缘
+      &.popup-right {
+        padding-top: 0;
+        padding-left: 7px;
+
+        .popper-arrow {
+          left: 2px;
         }
       }
     }

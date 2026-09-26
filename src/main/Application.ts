@@ -42,7 +42,7 @@ import {
   siteSuckerRuntime
 } from './core/lazy/OptionalRuntimes'
 import { getElectronResourcePath } from './utils/AppRuntimePath'
-import type { TrayAction } from '@shared/Tray'
+import type { TrayAction, TrayPopupSide } from '@shared/Tray'
 import PluginManager from './plugins/PluginManager'
 
 export default class Application extends EventEmitter {
@@ -925,8 +925,8 @@ export default class Application extends EventEmitter {
       }
     })
 
-    this.trayManager.on('click', (x, y, poperX, show) => {
-      this.handleTrayClick(x, y, poperX, show)
+    this.trayManager.on('click', (x, y, arrowOffset, show, side) => {
+      this.handleTrayClick(x, y, arrowOffset, show, side)
     })
 
     this.trayManager.on('double-click', () => {
@@ -962,6 +962,9 @@ export default class Application extends EventEmitter {
           this.languageCoordinator.snapshot()
         )
         this.trayManager.addModernStyleListener()
+        // 首次显示前先把弹窗方向/箭头同步给渲染层,并在屏幕外消耗掉系统的窗口淡入
+        this.syncTrayPopupLayout()
+        this.trayManager.primePopupWindow()
       })
 
       // 更新 IPC 处理器的 trayWindow 引用
@@ -976,16 +979,52 @@ export default class Application extends EventEmitter {
     this.ipcHandler.updateDependencies({ trayWindow: undefined })
   }
 
-  private handleTrayClick(x: number, y: number, poperX: number, show: boolean) {
-    if (this?.trayWindow && show) {
-      this?.trayWindow?.setPosition(Math.round(x), Math.round(y))
-      this?.trayWindow?.setAlwaysOnTop(true, 'screen-saver')
-      this?.trayWindow?.show()
-      console.log('tray show !!!')
-      this.windowManager.sendCommandTo(this.trayWindow!, 'APP:Poper-Left', 'APP:Poper-Left', poperX)
-      this?.trayWindow?.moveTop()
+  private syncTrayPopupLayout() {
+    if (!this.trayWindow) {
+      return
+    }
+    const layout = this.trayManager.getPopupLayout()
+    this.windowManager.sendCommandTo(
+      this.trayWindow,
+      'APP:Tray-Popup-Side',
+      'APP:Tray-Popup-Side',
+      layout.side
+    )
+    this.windowManager.sendCommandTo(
+      this.trayWindow,
+      'APP:Tray-Arrow-Offset',
+      'APP:Tray-Arrow-Offset',
+      layout.arrowOffset
+    )
+  }
+
+  private handleTrayClick(
+    x: number,
+    y: number,
+    arrowOffset: number,
+    show: boolean,
+    side: TrayPopupSide
+  ) {
+    if (!this.trayWindow) {
+      return
+    }
+    if (show) {
+      // 布局要先于显示下发,窗口恢复不透明后就不会再重排
+      this.windowManager.sendCommandTo(
+        this.trayWindow,
+        'APP:Tray-Popup-Side',
+        'APP:Tray-Popup-Side',
+        side
+      )
+      this.windowManager.sendCommandTo(
+        this.trayWindow,
+        'APP:Tray-Arrow-Offset',
+        'APP:Tray-Arrow-Offset',
+        arrowOffset
+      )
+      this.trayManager.openPopup(x, y)
     } else {
-      this?.trayWindow?.hide()
+      this.trayManager.closePopup()
     }
   }
 

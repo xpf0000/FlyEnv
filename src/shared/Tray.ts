@@ -1,5 +1,8 @@
 export type TrayAction = 'groupDo' | 'startupGroupDo' | 'switchChange' | 'show' | 'exit'
 
+/** 托盘弹窗相对托盘图标所在的边,同时决定箭头贴在弹窗的哪条边 */
+export type TrayPopupSide = 'up' | 'down' | 'left' | 'right'
+
 export type TrayModuleItemState = {
   show: boolean
   run: boolean

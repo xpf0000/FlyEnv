@@ -88,7 +88,7 @@ export default class WindowManager extends EventEmitter {
     const pageOptions = this.getPageOptions(page)
     trayBrowserOptions.webPreferences!.preload = join(global.Server.Static!, 'preload/preload.js')
     window = new BrowserWindow(trayBrowserOptions)
-    this.trayManager!.window = window
+    this.trayManager!.attachWindow(window)
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
         event.preventDefault()
@@ -105,24 +105,9 @@ export default class WindowManager extends EventEmitter {
     window.on('close', (event: Event) => {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
-        window.hide()
-        this.trayManager!.show = false
+        // 弹窗的显隐由 TrayManager 用"移出屏幕"实现,不能 hide(会被系统重放整窗淡入)
+        this.trayManager!.closePopup()
       }
-    })
-    window.on('show', () => {
-      window.removeListener('blur', this.trayManager!.onBlur)
-      this.trayManager!.show = true
-      setTimeout(() => {
-        window.on('blur', this.trayManager!.onBlur)
-        this.trayManager!.clicking = false
-      }, 250)
-    })
-    window.on('hide', () => {
-      this.trayManager!.show = false
-      setTimeout(() => {
-        this.trayManager!.clicking = false
-      }, 250)
-      window.removeListener('blur', this.trayManager!.onBlur)
     })
     this.bindAfterClosed(page, window)
     this.addWindow(page, window)
