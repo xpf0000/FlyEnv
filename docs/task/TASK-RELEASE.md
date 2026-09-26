@@ -1,10 +1,11 @@
 # FlyEnv新版本4.18.3更新日志
 
 本次更新内容：
-1. 新增新用户技术栈选择引导. 降低新用户的心智负担. 避免新用户看到这么多模块很多还用不上, 觉得FlyEnv太复杂, 而不愿使用的问题.
-2. 启动组新增拖动排序功能.
-3. 修复Windows上有些用户没有uuid导致的无法申请许可证的问题.
-4. 修复Podman参数问题.
+1. 新增插件市场.
+2. 插件市场新增kafka插件
+3. https://github.com/xpf0000/FlyEnv/pull/863
+4. https://github.com/xpf0000/FlyEnv/pull/866
+5. https://github.com/xpf0000/FlyEnv/pull/868
 
 参照：
 ```
