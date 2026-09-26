@@ -1,21 +1,21 @@
-version: 4.18.3
+version: 4.19.0
 files:
   -
-    url: FlyEnv-4.18.3-mac.zip
-    sha512: I7BeCq6WfCgUmcJS3ch/cO6ffBT75h9SrC+v8xeScKl6KmfU7PDK+v85ftu2VdwUVD4JyRvj0Qe64iIdlDCYSQ==
-    size: 173793133
+    url: FlyEnv-4.19.0-mac.zip
+    sha512: CK5bJYu7Ak7EaYQGCnrhk3dmJsyjNXV7rQc19+hpX4narmYYFs02tLCX3fQPIpssHd0nTf3DY6HhRnYnN0E8SQ==
+    size: 173907148
   -
-    url: FlyEnv-4.18.3-arm64-mac.zip
-    sha512: sbp5tlskn8vJYzrfEZ4WlFQQjJtb3f656OH8EPGuJu21tZCQWuuoRdwSt5DDhBmyAVAVP2C0qKIkcboXhEg/Ng==
-    size: 164375586
+    url: FlyEnv-4.19.0-arm64-mac.zip
+    sha512: b/N7g3Y3Ric/nE7dCD0UfBg10q6/FoReyRuY/AXZpaKLcZWQe4T0paaq104cV6gvtVLzwNKrxc/P7NGyO49w5w==
+    size: 164488905
   -
-    url: FlyEnv-4.18.3.dmg
-    sha512: SXgvvFOEJzqhfo3aC3pEl9sbq0IMMac0MSWbbAWN+imQMN6YYfoCVJ1D1NP2lwb8ePsRdZMDDwJr44tGIbhsGA==
-    size: 182059163
+    url: FlyEnv-4.19.0.dmg
+    sha512: mlhFSGSXtYqX1dXHEj/Xje3Mcxh4j6zfprjv7WJECJb519o3mLjLkDvrUqDLJ5K8dCPyzVcNxRFtIGeiNwr89g==
+    size: 182165654
   -
-    url: FlyEnv-4.18.3-arm64.dmg
-    sha512: 7dZ5U3otYO/KEFJfSZmLuh74by0dTSCmwJSRco0QTSKrhrFyoiCulI8chaPQmOoro3sfYTvIMCA1Q+h9xxj1lA==
-    size: 172569455
-path: FlyEnv-4.18.3-mac.zip
-sha512: I7BeCq6WfCgUmcJS3ch/cO6ffBT75h9SrC+v8xeScKl6KmfU7PDK+v85ftu2VdwUVD4JyRvj0Qe64iIdlDCYSQ==
-releaseDate: '2026-09-12T10:55:47.551Z'
+    url: FlyEnv-4.19.0-arm64.dmg
+    sha512: thKv143IdXc7l+4FvCO7KEknbkyFlBAeXErwBMucATZoWbEKhU6JbsfR2+r+XsSeItJiOqWGki5YwZaYr4jNZQ==
+    size: 172671432
+path: FlyEnv-4.19.0-mac.zip
+sha512: CK5bJYu7Ak7EaYQGCnrhk3dmJsyjNXV7rQc19+hpX4narmYYFs02tLCX3fQPIpssHd0nTf3DY6HhRnYnN0E8SQ==
+releaseDate: '2026-09-26T05:50:52.758Z'
