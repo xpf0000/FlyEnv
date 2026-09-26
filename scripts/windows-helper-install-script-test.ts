@@ -10,28 +10,27 @@ const helperWhitelistPath = path.resolve(process.cwd(), 'src/helper-go/utils/whi
 const helperWhitelistSource = fs.readFileSync(helperWhitelistPath, 'utf8')
 
 assert.match(source, /\$ErrorActionPreference\s*=\s*'Stop'/)
-assert.match(source, /\$programData\s*=\s*\$env:ProgramData/)
 assert.match(
   source,
-  /\$programData\s*=\s*\[System\.Environment\]::GetFolderPath\(\[System\.Environment\+SpecialFolder\]::CommonApplicationData\)/
+  /function Get-HelperCommonApplicationDataPath[\s\S]+GetFolderPath\(\[System\.Environment\+SpecialFolder\]::CommonApplicationData\)/
 )
 assert.match(
   source,
-  /\[System\.Environment\+SpecialFolder\]::CommonApplicationData\)\s+if \(\$null -eq \$programData -or \$programData -eq ""\) \{\s+\$programData = "C:\\ProgramData"/
+  /function Get-HelperCommonApplicationDataPath[\s\S]+Windows ProgramData known folder is unavailable/
 )
 assert.match(
   helperWhitelistSource,
   /if runtime\.GOOS == "windows" \{\s+return windowsHelperAllowedRootsPath/
 )
 assert.doesNotMatch(source, /\[string\]::IsNullOrWhiteSpace\(\$programData\)/)
-assert.match(source, /if \(\$null -eq \$programData -or \$programData -eq ""\) \{/)
 assert.match(source, /\$backupExePath = \[string\]\$config.backupExecutable/)
 assert.match(source, /Test-Path -LiteralPath \$backupExePath -PathType Leaf/)
-assert.match(source, /Get-FileHash -LiteralPath \$backupExePath -Algorithm SHA256/)
+assert.match(source, /function Get-Sha256Hash/)
+assert.doesNotMatch(source, /Get-FileHash/)
 assert.match(source, /Copy-Item -LiteralPath \$backupExePath -Destination \$pendingHelperFile/)
 assert.match(
   source,
-  /\[System\.IO\.File\]::Replace\(\s*\$pendingHelperFile,\s*\$exePath,\s*\[System\.Management\.Automation\.Language\.NullString\]::Value,\s*\$true\s*\)/
+  /Publish-StagedHelperFile -StagedPath \$pendingHelperFile -DestinationPath \$exePath/
 )
 assert.match(appHelperSource, /join\(dirname\(bin\), 'flyenv-helper-backup\.exe'\)/)
 assert.match(appHelperSource, /backupExecutable: backupBin/)
@@ -86,5 +85,42 @@ assert.match(source, /function Assert-RegisteredTaskConfiguration/)
 assert.match(source, /Assert-RegisteredTaskConfiguration -Task \$registeredTask/)
 assert.match(source, /\$registeredTask\.Run\(\$null\)/)
 assert.doesNotMatch(source, /FlyEnvHelperTask/)
+assert.match(source, /function Invoke-WithFileRetry/)
+assert.match(source, /\$hresult -band 0xffff\) -eq 32/)
+assert.match(source, /\$hresult -band 0xffff\) -eq 33/)
+assert.match(source, /function Test-SecureHelperKey/)
+assert.match(source, /Test-SecureHelperKey -Path \$keyPath/)
+assert.match(source, /Length -ne 32/)
+assert.match(source, /Global\\FlyEnv\.Helper\.Install\.\$instanceId/)
+assert.match(source, /WaitOne\(\[TimeSpan\]::FromSeconds\(30\)\)/)
+assert.match(source, /catch \[System\.Threading\.AbandonedMutexException\]/)
+assert.match(source, /SetAccessRuleProtection\(\$true, \$false\)/)
+assert.match(source, /MutexAccessRule\(\$trustedSid, 'FullControl', 'Allow'\)\)/)
+assert.match(source, /Another FlyEnv helper installation is active for SID/)
+assert.match(source, /try \{ \$sidInstallMutex\.ReleaseMutex\(\) \} catch \{\}/)
+assert.match(source, /RestartInterval = 'PT1M'/)
+assert.match(source, /RestartCount = 3/)
+assert.match(source, /StartWhenAvailable = \$true/)
+assert.match(source, /ExecutionTimeLimit = 'PT0S'/)
+assert.match(source, /AllowDemandStart = \$true/)
+assert.match(source, /MultipleInstances = 2/)
+assert.match(source, /DisallowStartIfOnBatteries = \$false/)
+assert.match(source, /StopIfGoingOnBatteries = \$false/)
+assert.match(
+  source,
+  /\$taskSddl = "D:P\(A;;FA;;;SY\)\(A;;FA;;;BA\)\(A;;FRFX;;;\$\(\$appUserSid\.Value\)\)"/
+)
+assert.doesNotMatch(source, /DeleteTask\(/)
+assert.match(source, /\$global:LASTEXITCODE = 0/)
+assert.match(source, /\$global:LASTEXITCODE = 1/)
+const stageOrder = (marker: string) => source.indexOf(marker)
+assert.ok(
+  stageOrder("$stage = 'stage-replacements'") < stageOrder("$stage = 'stop-current-instance'")
+)
+assert.ok(
+  stageOrder("$stage = 'stop-current-instance'") < stageOrder("$stage = 'publish-replacements'")
+)
+assert.ok(stageOrder("$stage = 'publish-replacements'") < stageOrder("$stage = 'register-task'"))
+assert.ok(stageOrder("$stage = 'register-task'") < stageOrder("$stage = 'start-task'"))
 
 console.log('windows-helper-install-script-test: ok')

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, globalShortcut, session } from 'electron'
+import { app, BrowserWindow, globalShortcut, safeStorage, session } from 'electron'
 import is from 'electron-is'
 import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
@@ -10,7 +10,8 @@ import { ForkManager } from './core/ForkManager'
 import AppHelper from './core/AppHelper'
 import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
-import { resolve } from 'node:path'
+import { join, resolve } from 'node:path'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
 import ServiceVersionManager from './core/ServiceVersionManager'
@@ -42,6 +43,7 @@ import {
 } from './core/lazy/OptionalRuntimes'
 import { getElectronResourcePath } from './utils/AppRuntimePath'
 import type { TrayAction, TrayPopupSide } from '@shared/Tray'
+import PluginManager from './plugins/PluginManager'
 
 export default class Application extends EventEmitter {
   isReady: boolean = false
@@ -57,6 +59,7 @@ export default class Application extends EventEmitter {
   forkManager?: ForkManager
   languageRepository: LanguageRepository
   languageCoordinator: LanguageCoordinator
+  pluginManager: PluginManager
 
   // 新提取的管理器
   private serverManager: ServerManager
@@ -78,6 +81,20 @@ export default class Application extends EventEmitter {
     this.mcpConfigManager = new MCPConfigManager()
     this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
+    this.pluginManager = new PluginManager({
+      stopPluginServices: (moduleId) => this.stopPluginServices(moduleId),
+      licenseCheck: process.env.FLYENV_PLUGIN_SMOKE === '1' ? async () => true : undefined,
+      // OS account keychain (Keychain / DPAPI / system keyring) encryption for
+      // the plugin install secret, so copying the secret file to another
+      // machine yields undecryptable ciphertext. Falls back to plain storage
+      // where no system encryption is available.
+      secretProtect: safeStorage.isEncryptionAvailable()
+        ? {
+            encrypt: (text) => safeStorage.encryptString(text).toString('base64'),
+            decrypt: (data) => safeStorage.decryptString(Buffer.from(data, 'base64'))
+          }
+        : undefined
+    })
     setServerDirectoryPermissionDeniedHandler((reason) => {
       this.serverDirectoryHelperInstall.notifyPermissionDenied(reason)
     })
@@ -113,6 +130,11 @@ export default class Application extends EventEmitter {
     await this.languageRepository.ready()
     await this.languageCoordinator.initialize(requestedLocale)
     await this.serverDirectoryInitialization
+    await this.pluginManager.refresh()
+    if (process.env.FLYENV_PLUGIN_SMOKE === '1') {
+      await this.preparePluginRuntimeSmoke()
+    }
+    ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
 
     AppNodeFnManager.nativeTheme_watch()
     AppNodeFnManager.configManager = this.configManager
@@ -140,6 +162,8 @@ export default class Application extends EventEmitter {
       serverManager: this.serverManager,
       languageCoordinator: this.languageCoordinator,
       appNodeFnManager: AppNodeFnManager,
+      pluginManager: this.pluginManager,
+      onPluginsChanged: () => this.syncPlugins(),
       retryDataDirectory: () => this.retryServerDataDirectory()
     })
 
@@ -148,6 +172,9 @@ export default class Application extends EventEmitter {
     this.initFontAccessPermission()
     this.initAppHelper()
     this.initForkManager()
+    if (process.env.FLYENV_PLUGIN_SMOKE === '1') {
+      void this.runPluginRuntimeSmoke()
+    }
 
     if (!is.dev()) {
       this.ipcHandler.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
@@ -196,6 +223,331 @@ export default class Application extends EventEmitter {
     this.windowManager.on('window-closed', (data) => {
       this.storeWindowState(data)
     })
+  }
+
+  private async stopPluginServices(moduleId: string): Promise<{ stopped: true }> {
+    const status = ServiceProcessManager.statusOf(moduleId)
+    if (!status.running) return { stopped: true }
+    if (!this.forkManager) throw new Error(`Fork manager is not ready for ${moduleId}`)
+
+    for (const instance of status.instances) {
+      const version = {
+        ...instance,
+        typeFlag: moduleId,
+        enable: true
+      }
+      const result = await new Promise<any>((resolve, reject) => {
+        this.forkManager!.send(moduleId, 'stopService', version)
+          .on(() => {})
+          .then(resolve)
+          .catch(reject)
+      })
+      if (result?.code !== 0) {
+        throw new Error(
+          typeof result?.msg === 'string' ? result.msg : `Failed to stop ${moduleId} service`
+        )
+      }
+      ServiceProcessManager.delByBin(moduleId, [instance.bin])
+    }
+
+    if (ServiceProcessManager.statusOf(moduleId).running) {
+      throw new Error(`Service ${moduleId} is still running`)
+    }
+    return { stopped: true }
+  }
+
+  private async preparePluginRuntimeSmoke() {
+    if (process.env.FLYENV_PLUGIN_SMOKE_PHASE !== 'install') return
+    const resultPath = process.env.FLYENV_PLUGIN_SMOKE_RESULT
+    try {
+      const item = (await this.pluginManager.listCatalog()).find(
+        (candidate) => candidate.id === 'runtime-smoke-plugin'
+      )
+      if (!item?.artifact.sha256) throw new Error('runtime smoke catalog item is missing checksum')
+      await this.pluginManager.install({
+        id: item.id,
+        version: item.version,
+        url: item.artifact.url,
+        sha256: item.artifact.sha256,
+        source: 'official'
+      })
+      const dataPath = join(global.Server.BaseDir!, 'plugins-data/runtime-smoke-plugin/state.txt')
+      await mkdir(resolve(dataPath, '..'), { recursive: true })
+      await writeFile(dataPath, 'preserve-me\n')
+      if (resultPath) {
+        await writeFile(
+          resultPath,
+          JSON.stringify({ ok: true, phase: 'installed', checkpoints: ['install'] })
+        )
+      }
+      setTimeout(() => app.quit(), 250)
+    } catch (error) {
+      if (resultPath) {
+        await writeFile(
+          resultPath,
+          JSON.stringify({ ok: false, phase: 'install', checkpoints: [], error: String(error) })
+        )
+      }
+      setTimeout(() => app.quit(), 250)
+    }
+  }
+
+  private async runPluginRuntimeSmoke() {
+    if (process.env.FLYENV_PLUGIN_SMOKE_PHASE !== 'verify') return
+    const resultPath = process.env.FLYENV_PLUGIN_SMOKE_RESULT
+    const checkpoints: string[] = ['install', 'relaunch']
+    try {
+      await new Promise<void>((resolveReady) => {
+        if (this.isReady) {
+          resolveReady()
+          return
+        }
+        this.once('ready', () => resolveReady())
+        setTimeout(resolveReady, 30_000)
+      })
+      const routeResult = await this.mainWindow?.webContents.executeJavaScript(
+        `(async () => { let routes = []; for (let i = 0; i < 40; i += 1) { const router = window.__FLYENV_PLUGIN_ROUTER__; routes = router?.getRoutes?.().map((item) => item.path) ?? []; if (routes.includes('/runtime-smoke-plugin')) break; await new Promise((r) => setTimeout(r, 250)); } const route = routes.includes('/runtime-smoke-plugin'); location.hash = '#/runtime-smoke-plugin'; return { hash: location.hash, ready: route === true, routes } })()`,
+        true
+      )
+      if (!routeResult?.ready || !String(routeResult.hash).includes('runtime-smoke-plugin')) {
+        throw new Error(`renderer plugin route was not loaded: ${JSON.stringify(routeResult)}`)
+      }
+      checkpoints.push('renderer-route')
+
+      ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
+      const versions = await this.runPluginRuntimeFork('allInstalledVersions', {
+        runtime: true
+      })
+      if (!Array.isArray(versions) || versions[0]?.version !== '1.0.0') {
+        throw new Error(`Fork plugin version scan did not return v1: ${JSON.stringify(versions)}`)
+      }
+      checkpoints.push('fork-version-scan')
+      await this.runPluginRuntimeFork('startService', { version: '1.0.0', bin: 'runtime-smoke' })
+      await this.runPluginRuntimeFork('stopService', { version: '1.0.0', bin: 'runtime-smoke' })
+      checkpoints.push('start-stop')
+
+      // VersionManager data flow (renderer): the static version list must load
+      // through brewStore.module(typeFlag).fetchStatic() while the plugin is enabled.
+      await this.expectPluginSmokeVersionList('enabled')
+      checkpoints.push('version-list')
+
+      await this.pluginManager.update('runtime-smoke-plugin')
+      await this.syncPlugins()
+      if (
+        (await this.pluginManager.listInstalled()).find(
+          (item) => item.id === 'runtime-smoke-plugin'
+        )?.version !== '2.0.0'
+      ) {
+        throw new Error('plugin update did not activate v2')
+      }
+      checkpoints.push('update')
+
+      // Hot reload, no restart: fork dispatch must pick up the updated plugin
+      // code (Node import() cache busted), and the renderer route must stay.
+      const hotVersions = await this.runPluginRuntimeFork('allInstalledVersions', {
+        runtime: true
+      })
+      if (!Array.isArray(hotVersions) || hotVersions[0]?.version !== '2.0.0') {
+        throw new Error(`Fork plugin hot update did not return v2: ${JSON.stringify(hotVersions)}`)
+      }
+      await this.expectPluginSmokeRoute(true)
+      checkpoints.push('hot-fork-update')
+
+      await this.pluginManager.setEnabled('runtime-smoke-plugin', false)
+      await this.syncPlugins()
+      checkpoints.push('disable')
+      // Disabled without restart: fork dispatch must stop resolving the module
+      // and the renderer route must disappear.
+      await this.expectPluginSmokeForkRejected('allInstalledVersions')
+      await this.expectPluginSmokeRoute(false)
+      checkpoints.push('hot-disable')
+      // Regression guard: while the plugin is disabled, any still-alive caller
+      // (a not-yet-unmounted computed, a group card, ...) can recreate the
+      // BrewStore module record with isPlugin=false. Re-enable must heal that
+      // stale record instead of leaving every fetch on the wrong fork channel.
+      await this.poisonPluginSmokeBrewModule()
+      checkpoints.push('poison-brew-module')
+
+      await this.pluginManager.setEnabled('runtime-smoke-plugin', true)
+      await this.syncPlugins()
+      checkpoints.push('re-enable')
+      const reenabledVersions = await this.runPluginRuntimeFork('allInstalledVersions', {
+        runtime: true
+      })
+      if (!Array.isArray(reenabledVersions) || reenabledVersions[0]?.version !== '2.0.0') {
+        throw new Error(
+          `Fork plugin re-enable did not restore dispatch: ${JSON.stringify(reenabledVersions)}`
+        )
+      }
+      await this.expectPluginSmokeRoute(true)
+      checkpoints.push('hot-reenable')
+      // Re-enabled without restart: the renderer module record was dropped on
+      // disable, so the VersionManager fetch path must rebuild it and still
+      // load the version list.
+      await this.expectPluginSmokeVersionList('re-enabled')
+      checkpoints.push('hot-reenable-version-list')
+      await this.expectPluginSmokeInstalledList('re-enabled')
+      checkpoints.push('hot-reenable-installed-list')
+
+      await this.pluginManager.uninstall('runtime-smoke-plugin')
+      await this.syncPlugins()
+      checkpoints.push('uninstall')
+      await this.expectPluginSmokeForkRejected('allInstalledVersions')
+      await this.expectPluginSmokeRoute(false)
+      checkpoints.push('hot-uninstall')
+      await this.pluginManager.refresh()
+      if (
+        (await this.pluginManager.listInstalled()).some(
+          (item) => item.id === 'runtime-smoke-plugin'
+        )
+      ) {
+        throw new Error('plugin remained installed after uninstall')
+      }
+      checkpoints.push('pending-cleanup')
+
+      const dataPath = join(global.Server.BaseDir!, 'plugins-data/runtime-smoke-plugin/state.txt')
+      if ((await readFile(dataPath, 'utf8')) !== 'preserve-me\n') {
+        throw new Error('plugin runtime data was not preserved')
+      }
+      checkpoints.push('runtime-data-preserved')
+      if (resultPath) await writeFile(resultPath, JSON.stringify({ ok: true, checkpoints }))
+    } catch (error) {
+      if (resultPath)
+        await writeFile(
+          resultPath,
+          JSON.stringify({ ok: false, checkpoints, error: String(error) })
+        )
+    } finally {
+      setTimeout(() => app.quit(), 250)
+    }
+  }
+
+  private runPluginRuntimeFork(fn: string, item: unknown) {
+    if (!this.forkManager) return Promise.reject(new Error('Fork manager is not initialized'))
+    return new Promise<any>((resolveFork, rejectFork) => {
+      this.forkManager!.send('runtime-smoke-plugin', fn, item)
+        .on(() => {})
+        .then((result: any) => {
+          if (result?.code === 0) {
+            resolveFork(result?.data?.code !== undefined ? result.data.data : result.data)
+          } else rejectFork(new Error(result?.msg ?? `Fork ${fn} failed`))
+        })
+        .catch(rejectFork)
+    })
+  }
+
+  private async expectPluginSmokeForkRejected(fn: string) {
+    let resolved = false
+    try {
+      await this.runPluginRuntimeFork(fn, { runtime: true })
+      resolved = true
+    } catch {}
+    if (resolved) {
+      throw new Error(`Fork ${fn} unexpectedly resolved after the plugin was disabled/removed`)
+    }
+  }
+
+  private async expectPluginSmokeRoute(expectPresent: boolean) {
+    const result = await this.mainWindow?.webContents.executeJavaScript(
+      `(async () => { for (let i = 0; i < 40; i += 1) { const router = window.__FLYENV_PLUGIN_ROUTER__; const routes = router?.getRoutes?.().map((item) => item.path) ?? []; if (routes.includes('/runtime-smoke-plugin') === ${expectPresent}) return { ok: true }; await new Promise((r) => setTimeout(r, 250)); } const router = window.__FLYENV_PLUGIN_ROUTER__; return { ok: false, routes: router?.getRoutes?.().map((item) => item.path) ?? [] } })()`,
+      true
+    )
+    if (!result?.ok) {
+      throw new Error(
+        `renderer plugin route hot-sync failed (expectPresent=${expectPresent}): ${JSON.stringify(result)}`
+      )
+    }
+  }
+
+  /**
+   * Drives the same renderer data flow the VersionManager static tab uses:
+   * brewStore.module(typeFlag).fetchStatic() -> IPC fetchAllOnlineVersion.
+   * The localStorage fetchVerion cache is cleared first so the assertion always
+   * exercises the live IPC path, not a cached response.
+   */
+  private async expectPluginSmokeVersionList(label: string) {
+    const result = await this.mainWindow?.webContents.executeJavaScript(
+      `(async () => {
+        try {
+          localStorage.removeItem('fetchVerion-runtime-smoke-plugin')
+          const storeFn = window.__FLYENV_PLUGIN_BREW_STORE__
+          if (!storeFn) return { ok: false, error: 'BrewStore global missing' }
+          const brewStore = storeFn()
+          const mod = brewStore.module('runtime-smoke-plugin')
+          if (!mod.isPlugin) return { ok: false, error: 'module was not recreated as a plugin module', isPlugin: mod.isPlugin }
+          mod.fetchStatic()
+          for (let i = 0; i < 40; i += 1) {
+            if (!mod.staticFetching) break
+            await new Promise((r) => setTimeout(r, 250))
+          }
+          return { ok: true, count: mod.static.length, fetching: mod.staticFetching }
+        } catch (e) {
+          return { ok: false, error: String(e) }
+        }
+      })()`,
+      true
+    )
+    if (!result?.ok || !(result?.count > 0)) {
+      throw new Error(
+        `renderer plugin version list failed to load (${label}): ${JSON.stringify(result)}`
+      )
+    }
+  }
+
+  /**
+   * Simulates the renderer state that caused the disable/re-enable installed
+   * version bug: while the plugin is disabled, a still-alive caller recreates
+   * the BrewStore module record, and because AppModules no longer contains the
+   * plugin the record is created with isPlugin=false.
+   */
+  private async poisonPluginSmokeBrewModule() {
+    const result = await this.mainWindow?.webContents.executeJavaScript(
+      `(async () => {
+        try {
+          const storeFn = window.__FLYENV_PLUGIN_BREW_STORE__
+          if (!storeFn) return { ok: false, error: 'BrewStore global missing' }
+          const mod = storeFn().module('runtime-smoke-plugin')
+          return { ok: mod.isPlugin === false, isPlugin: mod.isPlugin }
+        } catch (e) {
+          return { ok: false, error: String(e) }
+        }
+      })()`,
+      true
+    )
+    if (!result?.ok) {
+      throw new Error(`failed to poison brew module while disabled: ${JSON.stringify(result)}`)
+    }
+  }
+
+  /**
+   * After re-enable, the poisoned BrewStore record must be reconciled back to a
+   * plugin module and fetchInstalled must go through the plugin fork channel
+   * (app-fork:<typeFlag>) again, returning the installed versions.
+   */
+  private async expectPluginSmokeInstalledList(label: string) {
+    const result = await this.mainWindow?.webContents.executeJavaScript(
+      `(async () => {
+        try {
+          const storeFn = window.__FLYENV_PLUGIN_BREW_STORE__
+          if (!storeFn) return { ok: false, error: 'BrewStore global missing' }
+          const mod = storeFn().module('runtime-smoke-plugin')
+          if (!mod.isPlugin) {
+            return { ok: false, error: 'stale module record was not reconciled to a plugin module' }
+          }
+          mod.installedFetched = false
+          await mod.fetchInstalled()
+          return { ok: mod.installed.length > 0, count: mod.installed.length }
+        } catch (e) {
+          return { ok: false, error: String(e) }
+        }
+      })()`,
+      true
+    )
+    if (!result?.ok) {
+      throw new Error(
+        `renderer plugin installed list failed to load (${label}): ${JSON.stringify(result)}`
+      )
+    }
   }
 
   /**
@@ -530,6 +882,15 @@ export default class Application extends EventEmitter {
       'APP-Update-Global-Server',
       this.serverManager.getGlobalServer()
     )
+  }
+
+  private async syncPlugins() {
+    await this.pluginManager.refresh()
+    ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
+    if (this.forkManager) {
+      this.forkManager.broadcastServer(this.serverManager.getGlobalServer())
+    }
+    this.sendGlobalServerUpdate()
   }
 
   show(page = 'index') {

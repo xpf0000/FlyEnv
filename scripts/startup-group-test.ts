@@ -1041,6 +1041,7 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.match(cardSource, /StartupGroupManager\.isMemberDisabled/)
   assert.match(cardSource, /:before-change="groupBeforeChange"/)
   assert.match(cardSource, /:before-change="\(\) => memberBeforeChange\(item\)"/)
+  assert.equal(cardSource.match(/\[--el-switch-on-color:var\(--el-color-success\)\]/g)?.length, 2)
   assert.doesNotMatch(cardSource, /@change="groupChange"/)
   assert.doesNotMatch(cardSource, /@change="memberChange\(item, \$event\)"/)
   assert.match(

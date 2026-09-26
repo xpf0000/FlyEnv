@@ -36,6 +36,10 @@
   import Router from '@/router'
   import { createModuleOnboardingStartupGate } from '@/components/ModuleOnboarding/startupGate'
 
+  ;(globalThis as any).__FLYENV_PLUGIN_ROUTER__ = Router
+  ;(globalThis as any).__FLYENV_PLUGIN_APP_STORE__ = AppStore
+  ;(globalThis as any).__FLYENV_PLUGIN_BREW_STORE__ = BrewStore
+
   const appStore = AppStore()
   const brewStore = BrewStore()
 
@@ -89,6 +93,7 @@
       module.typeFlag = item.typeFlag
       module.isService = item?.isService ?? false
       module.isOnlyRunOne = item?.isOnlyRunOne !== false
+      module.isPlugin = !!item.plugin
       module.fetchInstalled = module.fetchInstalled.bind(module)
       module.onItemStart = module.onItemStart.bind(module)
       module.fetchBrew = module.fetchBrew.bind(module)

@@ -121,7 +121,13 @@ function logPrinter(data: string[]) {
 }
 
 function runElectronApp() {
-  const args = ['--inspect=5858', 'dist/electron/main.mjs']
+  const args = [
+    ...(process.env.FLYENV_PLUGIN_SMOKE ? [] : ['--inspect=5858']),
+    ...(process.env.FLYENV_DATA_ROOT
+      ? [`--user-data-dir=${_path.resolve(process.env.FLYENV_DATA_ROOT, 'electron-user-data')}`]
+      : []),
+    'dist/electron/main.mjs'
+  ]
   electronProcess = spawn('electron', args, {
     stdio: 'pipe',
     shell: isWindows()
@@ -211,13 +217,9 @@ _fs.watch(
 )
 
 const langPath = _path.resolve(__dirname, '../src/lang/')
-_fs.watch(
-  langPath,
-  { recursive: true },
-  (event, filename) => {
-    next(langPath, filename)
-  }
-)
+_fs.watch(langPath, { recursive: true }, (event, filename) => {
+  next(langPath, filename)
+})
 
 const staticPath = _path.resolve(__dirname, '../static/')
 _fs.watch(

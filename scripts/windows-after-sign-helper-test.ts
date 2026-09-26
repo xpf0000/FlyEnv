@@ -6,21 +6,25 @@ import { tmpdir } from 'node:os'
 import afterSign from '../build/afterSign'
 
 async function main() {
-  const appOutDir = await mkdtemp(join(tmpdir(), 'flyenv-after-sign-'))
-  const unpackedHelper = join(
-    appOutDir,
-    'resources/app.asar.unpacked/node_modules/helper/flyenv-helper.exe'
-  )
-  const helper = join(appOutDir, 'resources/helper/flyenv-helper.exe')
-  const backup = join(appOutDir, 'resources/helper/flyenv-helper-backup.exe')
-  const payload = Buffer.from('signed-helper-payload')
-
-  try {
+  const createFixture = async () => {
+    const appOutDir = await mkdtemp(join(tmpdir(), 'flyenv-after-sign-'))
+    const unpackedHelper = join(
+      appOutDir,
+      'resources/app.asar.unpacked/node_modules/helper/flyenv-helper.exe'
+    )
     await mkdir(join(appOutDir, 'resources/app.asar.unpacked/node_modules/helper'), {
       recursive: true
     })
-    await writeFile(unpackedHelper, payload)
-    await afterSign({ electronPlatformName: 'win32', appOutDir } as any)
+    return { appOutDir, unpackedHelper }
+  }
+
+  const happy = await createFixture()
+  const helper = join(happy.appOutDir, 'resources/helper/flyenv-helper.exe')
+  const backup = join(happy.appOutDir, 'resources/helper/flyenv-helper-backup.exe')
+  const payload = Buffer.from('signed-helper-payload')
+  try {
+    await writeFile(happy.unpackedHelper, payload)
+    await afterSign({ electronPlatformName: 'win32', appOutDir: happy.appOutDir } as any)
 
     assert.deepEqual(await readFile(helper), payload)
     assert.deepEqual(
@@ -28,9 +32,33 @@ async function main() {
       payload,
       'local Windows packaging must include a backup helper for repair'
     )
-    assert.equal(existsSync(unpackedHelper), false)
+    assert.equal(existsSync(happy.unpackedHelper), false)
   } finally {
-    await rm(appOutDir, { recursive: true, force: true })
+    await rm(happy.appOutDir, { recursive: true, force: true })
+  }
+
+  const missing = await createFixture()
+  try {
+    await assert.rejects(
+      afterSign({ electronPlatformName: 'win32', appOutDir: missing.appOutDir } as any),
+      /Windows helper artifact is missing/
+    )
+  } finally {
+    await rm(missing.appOutDir, { recursive: true, force: true })
+  }
+
+  const failedCopy = await createFixture()
+  try {
+    await writeFile(failedCopy.unpackedHelper, payload)
+    await mkdir(join(failedCopy.appOutDir, 'resources/helper/flyenv-helper.exe'), {
+      recursive: true
+    })
+    await assert.rejects(
+      afterSign({ electronPlatformName: 'win32', appOutDir: failedCopy.appOutDir } as any),
+      /EISDIR|copy/i
+    )
+  } finally {
+    await rm(failedCopy.appOutDir, { recursive: true, force: true })
   }
 
   console.log('windows after-sign helper test passed')

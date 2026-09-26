@@ -19,7 +19,7 @@ async function main() {
     sourceExecutable: 'C:\\Program Files\\FlyEnv\\helper\\flyenv-helper.exe',
     backupExecutable: 'C:\\Program Files\\FlyEnv\\helper\\flyenv-helper-backup.exe',
     dataPath: 'C:\\FlyEnv Data',
-    helperVersion: 26
+    helperVersion: 27
   }
   const script = identity.buildWindowsHelperInstallScript('#INSTALL_CONFIG#', config)
   const decoded = JSON.parse(Buffer.from(script, 'base64').toString('utf8'))

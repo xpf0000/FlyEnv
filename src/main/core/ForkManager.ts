@@ -179,6 +179,19 @@ export class ForkManager {
     return Promise.all([...forks].map((fork) => fork.sendLanguage(message)))
   }
 
+  broadcastServer(server: unknown) {
+    const forks = new Set(
+      [this.ftpsrvFork, this.dnsFork, this.ollamaChatFork, ...this.forks].filter(
+        (item): item is ForkItem => !!item && !item.childExited
+      )
+    )
+    for (const fork of forks) {
+      try {
+        fork.child.postMessage({ Server: server })
+      } catch {}
+    }
+  }
+
   async destroy() {
     await this.binVersionCacheStore.flush()
     this.unsubscribeEnvSync()

@@ -18,18 +18,14 @@ export default async function (configuration: AfterPackContext) {
     appOutDir,
     'resources/app.asar.unpacked/node_modules/helper/flyenv-helper.exe'
   )
-  if (existsSync(helperPath)) {
-    try {
-      const dest = join(appOutDir, 'resources/helper/flyenv-helper.exe')
-      const backup = join(appOutDir, 'resources/helper/flyenv-helper-backup.exe')
-      await mkdirp(dirname(dest))
-      await copyFile(helperPath, dest)
-      await copyFile(dest, backup)
-      await remove(dirname(helperPath))
-    } catch (e) {
-      console.warn(`win copy helperPath File error: ${e}`)
-    }
-  } else {
-    console.warn(`win helperPath File not found: ${helperPath}`)
+  if (!existsSync(helperPath)) {
+    throw new Error(`Windows helper artifact is missing: ${helperPath}`)
   }
+
+  const dest = join(appOutDir, 'resources/helper/flyenv-helper.exe')
+  const backup = join(appOutDir, 'resources/helper/flyenv-helper-backup.exe')
+  await mkdirp(dirname(dest))
+  await copyFile(helperPath, dest)
+  await copyFile(dest, backup)
+  await remove(dirname(helperPath))
 }

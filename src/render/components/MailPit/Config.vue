@@ -1,7 +1,7 @@
 <template>
   <Conf
     ref="conf"
-    :type-flag="'mailpit'"
+    :type-flag="typeFlag"
     :default-file="defaultFile"
     :file="file"
     :file-ext="'conf'"
@@ -26,6 +26,17 @@
   import { uuid } from '@/util/Index'
   import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
+  import type { AllAppModule } from '@/core/type'
+
+  const props = withDefaults(
+    defineProps<{
+      typeFlag?: AllAppModule
+    }>(),
+    {
+      typeFlag: 'mailpit'
+    }
+  )
+  const typeFlag = props.typeFlag
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const conf = ref()
@@ -577,7 +588,7 @@
 
   fs.existsSync(file.value).then((e) => {
     if (!e) {
-      IPC.send('app-fork:mailpit', 'initConfig').then((key: string) => {
+      IPC.send(`app-fork:${typeFlag}`, 'initConfig').then((key: string) => {
         IPC.off(key)
         conf?.value?.update()
       })

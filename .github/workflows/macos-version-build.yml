@@ -63,6 +63,9 @@ jobs:
           chmod +x ./build.sh
           bash ./build.sh # 脚本会根据当前 matrix 架构自动构建
 
+      - name: Verify helper version sync
+        run: npx tsx scripts/helper-version-sync-test.ts
+
       - name: Build and Notarize Electron App
         env:
           # 关键点：增加 Node 内存上限到 8GB

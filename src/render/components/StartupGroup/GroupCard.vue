@@ -22,7 +22,7 @@
           </div>
         </div>
         <el-switch
-          class="flex-shrink-0"
+          class="flex-shrink-0 [--el-switch-on-color:var(--el-color-success)]"
           :model-value="groupRunning"
           :disabled="groupDisabled"
           :before-change="groupBeforeChange"
@@ -46,6 +46,7 @@
             </div>
           </div>
           <el-switch
+            class="[--el-switch-on-color:var(--el-color-success)]"
             :model-value="memberRunning(item)"
             :disabled="StartupGroupManager.isMemberDisabled(group, item)"
             :before-change="() => memberBeforeChange(item)"

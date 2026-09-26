@@ -16,7 +16,7 @@ async function main() {
     }
   })
   const pendingInitialCheck = concurrent.initHelper()
-  await assert.rejects(concurrent.initHelper(), /Please Wait/)
+  assert.equal(concurrent.initHelper(), pendingInitialCheck)
   assert.equal(
     initialChecks,
     1,
@@ -83,7 +83,7 @@ async function main() {
   const firstInit = helper.initHelper()
   await commandStarted
 
-  await assert.rejects(helper.initHelper(), /Please Wait/)
+  assert.equal(helper.initHelper(), firstInit)
   assert.equal(helper.state, 'installing')
   assert.equal(commandCalls, 1)
   assert.equal(statuses.filter((state) => state === 'needInstall').length, 1)
@@ -146,6 +146,28 @@ async function main() {
   releaseDirectoryStartup?.()
   await healthyInit
   assert.equal(healthyInitSettled, true)
+
+  const callbackStatuses: string[] = []
+  const callbackFailure = createAppHelper({
+    appHelperCheck: async () => true
+  })
+  callbackFailure.onStatusMessage((message) => {
+    callbackStatuses.push(message.state)
+  })
+  callbackFailure.onSuduExecSuccess(async () => {
+    throw new Error('data directory initialization failed')
+  })
+  assert.equal(
+    await callbackFailure.initHelper(),
+    true,
+    'a failing post-ready callback must not fail a healthy install'
+  )
+  assert.equal(
+    callbackStatuses.includes('installFaild'),
+    false,
+    'a failing post-ready callback must not emit installFaild'
+  )
+  assert.equal(callbackStatuses.includes('checkSuccess'), true)
 
   let attempts = 0
   let now = 0

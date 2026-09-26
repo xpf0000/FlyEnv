@@ -6,7 +6,7 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" type-flag="mailpit" title="Mailpit">
+      <Service v-if="tab === 0" :type-flag="typeFlag" :title="title">
         <template v-if="isRunning" #tool-left>
           <el-button style="color: #01cc74" class="button" link @click.stop="openURL">
             <yb-icon
@@ -18,15 +18,15 @@
       </Service>
       <Manager
         v-else-if="tab === 1"
-        type-flag="mailpit"
+        :type-flag="typeFlag"
         :has-static="true"
         :show-port-lib="false"
         :show-brew-lib="true"
         title="Mailpit"
         url="https://github.com/axllent/mailpit/releases"
       ></Manager>
-      <Config v-if="tab === 2"></Config>
-      <Logs v-if="tab === 3"></Logs>
+      <Config v-if="tab === 2" :type-flag="typeFlag"></Config>
+      <Logs v-if="tab === 3" :type-flag="typeFlag"></Logs>
     </div>
   </div>
 </template>
@@ -42,8 +42,22 @@
   import { BrewStore } from '@/store/brew'
   import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
+  import type { AllAppModule } from '@/core/type'
 
-  const { tab, checkVersion } = AppModuleSetup('mailpit')
+  const props = withDefaults(
+    defineProps<{
+      typeFlag?: AllAppModule
+      title?: string
+    }>(),
+    {
+      typeFlag: 'mailpit',
+      title: 'Mailpit'
+    }
+  )
+  const typeFlag = props.typeFlag
+  const title = props.title
+
+  const { tab, checkVersion } = AppModuleSetup(typeFlag)
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),
@@ -53,7 +67,7 @@
   checkVersion()
   const brewStore = BrewStore()
   const isRunning = computed(() => {
-    return brewStore.module('mailpit').installed.some((m) => m.run)
+    return brewStore.module(typeFlag).installed.some((m) => m.run)
   })
   const openURL = async () => {
     const iniFile = join(window.Server.BaseDir!, 'mailpit/mailpit.conf')

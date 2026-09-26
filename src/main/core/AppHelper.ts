@@ -5,7 +5,8 @@ import {
   AppHelperCheck,
   HelperVersion,
   getWindowsHelperBinaryPath,
-  windowsHelperBinaryExists
+  windowsHelperBinaryExists,
+  recoverWindowsHelper
 } from '@shared/AppHelperCheck'
 import {
   AppHelperError,
@@ -15,12 +16,13 @@ import {
 import {
   getWindowsHelperIdentity,
   buildWindowsHelperInstallScript,
-  windowsHelperInstalledPath,
-  windowsHelperInstallerCommand
+  readWindowsHelperDiagnostics,
+  windowsHelperInstalledPath
 } from '@shared/WindowsHelperIdentity'
+import { runWindowsHelperInstaller } from '@shared/WindowsHelperInstaller'
 import { WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
 import { tmpdir, userInfo } from 'node:os'
-import { copyFile, chmod, existsSync, mkdirp, readFile, writeFile } from '@shared/fs-extra'
+import { copyFile, chmod, existsSync, mkdirp, readFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
 
 type AppHelperMessage = {
@@ -59,6 +61,12 @@ export const waitForHelperHealth = async <T>(
     try {
       return await check()
     } catch (error) {
+      if (!isAppHelperError(error)) {
+        throw error
+      }
+      if (error.code !== 'helper_pipe_unreachable' && error.code !== 'helper_unreachable') {
+        throw error
+      }
       lastError = error
     }
     const remainingMs = deadlineMs - (now() - startedAt)
@@ -114,15 +122,24 @@ const lazySudo: SudoExec = async (...args) => {
 type AppHelperDeps = {
   appHelperCheck: typeof AppHelperCheck
   sudo: SudoExec
+  installWindows: typeof runWindowsHelperInstaller
+  recoverWindowsHelper: () => Promise<boolean>
+  windowsDiagnostics: () => Promise<string>
 }
 
 const defaultAppHelperDeps: AppHelperDeps = {
   appHelperCheck: AppHelperCheck,
-  sudo: lazySudo
+  sudo: lazySudo,
+  installWindows: runWindowsHelperInstaller,
+  recoverWindowsHelper,
+  windowsDiagnostics: async () =>
+    readWindowsHelperDiagnostics(await getWindowsHelperIdentity(), getWindowsHelperBinaryPath())
 }
 
 export class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
+
+  private installation?: Promise<boolean>
 
   private _onMessage?: AppHelperCallback
 
@@ -142,7 +159,28 @@ export class AppHelper {
     this._onMessage?.({ state, reason })
   }
 
-  async command() {
+  async command(): Promise<{ command: string; icns: string; windowsScript?: string }> {
+    if (isWindows()) {
+      const bin = getWindowsHelperBinaryPath()
+      const backupBin = is.production() ? join(dirname(bin), 'flyenv-helper-backup.exe') : bin
+      if (!bin || (!windowsHelperBinaryExists() && !existsSync(backupBin))) {
+        throw new AppHelperError('helper_binary_missing', `Windows helper binary missing: ${bin}`)
+      }
+      const tmpl = await readFile(
+        join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
+        'utf-8'
+      )
+      const windowsIdentity = await getWindowsHelperIdentity()
+      const windowsScript = buildWindowsHelperInstallScript(tmpl, {
+        identity: windowsIdentity,
+        executable: windowsHelperInstalledPath(windowsIdentity),
+        sourceExecutable: bin,
+        backupExecutable: backupBin,
+        dataPath: dirname(global.Server.AppDir!),
+        helperVersion: HelperVersion
+      })
+      return { command: '', icns: '', windowsScript }
+    }
     let command = ''
     let icns = ``
 
@@ -193,33 +231,6 @@ export class AppHelper {
 
         command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
-      } else if (isWindows()) {
-        const bin = getWindowsHelperBinaryPath()
-        const backupBin = join(dirname(bin), 'flyenv-helper-backup.exe')
-        if (!bin || (!windowsHelperBinaryExists() && !existsSync(backupBin))) {
-          throw new AppHelperError(
-            'helper_binary_missing',
-            `Windows helper binary missing: ${getWindowsHelperBinaryPath()}`
-          )
-        }
-        const binDir = PathResolve(global.Server.Static!, '../../../../')
-        const tmpl = await readFile(
-          join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
-          'utf-8'
-        )
-        const windowsIdentity = await getWindowsHelperIdentity()
-        const content = buildWindowsHelperInstallScript(tmpl, {
-          identity: windowsIdentity,
-          executable: windowsHelperInstalledPath(windowsIdentity),
-          sourceExecutable: bin,
-          backupExecutable: backupBin,
-          dataPath,
-          helperVersion: HelperVersion
-        })
-        const tmpFile = join(tmpDir, `${uuid()}.ps1`)
-        await writeFile(tmpFile, '\ufeff' + content)
-        command = windowsHelperInstallerCommand(tmpFile, tmpDir)
-        icns = join(binDir, 'icon.icns')
       }
     } else {
       if (isMacOS()) {
@@ -269,34 +280,6 @@ export class AppHelper {
 
         command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'Icon@256x256.icns')
-      } else if (isWindows()) {
-        const bin = getWindowsHelperBinaryPath()
-        const backupBin = bin
-        if (!bin || (!windowsHelperBinaryExists() && !existsSync(backupBin))) {
-          throw new AppHelperError(
-            'helper_binary_missing',
-            `Windows helper binary missing: ${getWindowsHelperBinaryPath()}`
-          )
-        }
-        const binDir = PathResolve(global.Server.Static!, '../../../build/')
-        const tmpl = await readFile(
-          join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
-          'utf-8'
-        )
-        const windowsIdentity = await getWindowsHelperIdentity()
-        const content = buildWindowsHelperInstallScript(tmpl, {
-          identity: windowsIdentity,
-          executable: windowsHelperInstalledPath(windowsIdentity),
-          sourceExecutable: bin,
-          backupExecutable: backupBin,
-          dataPath,
-          helperVersion: HelperVersion
-        })
-
-        const tmpFile = join(tmpDir, `${uuid()}.ps1`)
-        await writeFile(tmpFile, '\ufeff' + content)
-        command = windowsHelperInstallerCommand(tmpFile, tmpDir)
-        icns = join(binDir, 'icon.icns')
       }
     }
 
@@ -317,82 +300,74 @@ export class AppHelper {
   }
 
   initHelper() {
-    return new Promise(async (resolve, reject) => {
-      if (this.state !== 'normal') {
-        if (this.state === 'installing') {
-          this.emitStatus('installing')
-        } else if (this.state === 'installed') {
-          this.emitStatus('installed')
-        }
-        reject(new Error('Please Wait'))
-        return
-      }
-      this.state = 'installing'
+    if (this.installation) return this.installation
+    this.state = 'installing'
+    this.installation = this.install().finally(() => {
+      this.state = 'normal'
+      this.installation = undefined
+    })
+    return this.installation
+  }
+
+  private async install(): Promise<boolean> {
+    let windowsInstallation = false
+    try {
+      let healthy = false
       try {
         await this.deps.appHelperCheck()
-        this.state = 'normal'
-        this.emitStatus('checkSuccess')
-        await this?._onSuduExecSuccess?.()
-        resolve(true)
-        return
+        healthy = true
       } catch (error) {
         const reason = toAppHelperInstallError(error)
         appDebugLog('[AppHelper][repair]', `${reason.code}: ${reason.message}`).catch(() => {})
-      }
-
-      this.emitStatus('needInstall')
-      const doCheck = async () => {
-        try {
-          await waitForHelperHealth(() => this.deps.appHelperCheck())
-          this.state = 'normal'
-          this.emitStatus('checkSuccess')
-          await this?._onSuduExecSuccess?.()
-          resolve(true)
-        } catch (error) {
-          const appError = toAppHelperInstallError(error)
-          appDebugLog(
-            '[AppHelper][health]',
-            `${appError.code}: ${appError.message}\n${appError.stderr ?? ''}`
-          ).catch(() => {})
-          this.state = 'normal'
-          this.emitStatus('installFaild', appError.code)
-          reject(appError)
+        if (reason.code === 'helper_pipe_unreachable' || reason.code === 'helper_unreachable') {
+          try {
+            if (await this.deps.recoverWindowsHelper()) {
+              await waitForHelperHealth(() => this.deps.appHelperCheck(), { deadlineMs: 10_000 })
+              healthy = true
+            }
+          } catch (recoveryError) {
+            appDebugLog('[AppHelper][recover]', String(recoveryError)).catch(() => {})
+          }
         }
       }
-
-      try {
-        this.state = 'installing'
+      if (!healthy) {
+        this.emitStatus('needInstall')
         this.emitStatus('installing')
-        const { command, icns } = await this.command()
-        this.deps
-          .sudo(command, {
-            name: 'FlyEnv',
-            icns: icns
-          })
-          .then(({ stdout, stderr }) => {
-            console.log('initHelper: ', stdout, stderr)
-            appDebugLog('[AppHelper][install]', `${stdout}\n${stderr}`).catch(() => {})
-            this.state = 'installed'
-            doCheck().catch(() => {})
-          })
-          .catch((e) => {
-            const appError = toAppHelperInstallError(e)
-            appDebugLog(
-              '[AppHelper][initHelper][error]',
-              `${appError.code}: ${appError.message}\n${appError.stderr ?? ''}`
-            ).catch(() => {})
-            console.log('initHelper err: ', appError)
-            this.state = 'normal'
-            this.emitStatus('installFaild', appError.code)
-            reject(appError)
-          })
-      } catch (error) {
-        const appError = toAppHelperInstallError(error)
-        this.state = 'normal'
-        this.emitStatus('installFaild', appError.code)
-        reject(appError)
+        const { command, icns, windowsScript } = await this.command()
+        windowsInstallation = !!windowsScript
+        const { stdout, stderr } = windowsScript
+          ? await this.deps.installWindows(windowsScript)
+          : await this.deps.sudo(command, { name: 'FlyEnv', icns })
+        appDebugLog('[AppHelper][install]', `${stdout}\n${stderr}`).catch(() => {})
+        this.state = 'installed'
+        await waitForHelperHealth(() => this.deps.appHelperCheck())
       }
-    })
+      try {
+        await this._onSuduExecSuccess?.()
+      } catch (callbackError) {
+        appDebugLog('[AppHelper][post-ready]', String(callbackError)).catch(() => {})
+      }
+      this.emitStatus('checkSuccess')
+      return true
+    } catch (error) {
+      const appError = toAppHelperInstallError(error)
+      if (windowsInstallation && appError.code !== 'elevation_uac_cancelled') {
+        try {
+          const diagnostics = await this.deps.windowsDiagnostics()
+          appError.stderr = [appError.message, diagnostics, appError.stderr]
+            .filter(Boolean)
+            .join('\n')
+        } catch {
+          /* Keep the original installation error. */
+        }
+      }
+      appDebugLog(
+        '[AppHelper][install][error]',
+        `${appError.code}: ${appError.message}\n${appError.stderr ?? ''}`
+      ).catch(() => {})
+      this.emitStatus('installFaild', appError.code)
+      throw appError
+    }
   }
 }
 

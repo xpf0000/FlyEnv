@@ -21,7 +21,7 @@ const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 const Helper_Check_Timeout = 3000
 
-export const HelperVersion = 26
+export const HelperVersion = 27
 
 export type HelperHealth = {
   version: number
@@ -40,7 +40,10 @@ type HelperResponse = {
 let cachedWindowsHelperIdentity: Promise<WindowsHelperIdentity> | undefined
 
 const currentWindowsHelperIdentity = (): Promise<WindowsHelperIdentity> => {
-  cachedWindowsHelperIdentity ??= getWindowsHelperIdentity()
+  cachedWindowsHelperIdentity ??= getWindowsHelperIdentity().catch((error) => {
+    cachedWindowsHelperIdentity = undefined
+    throw error
+  })
   return cachedWindowsHelperIdentity
 }
 
@@ -396,3 +399,17 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
 }
 
 export const AppHelperCheck = createAppHelperChecker()
+
+// Starting an intact current-SID task does not require replacing its binary/key.
+// Older installations without execute permission fall through to the UAC repair.
+export const recoverWindowsHelper = async (): Promise<boolean> => {
+  if (!isWindows()) return false
+  const identity = await getWindowsHelperIdentity()
+  const key = await getHelperKey(identity)
+  if (key?.length !== 32) return false
+  const source = getWindowsHelperValidationBinaryPath()
+  const task = await readWindowsHelperTask(identity, source)
+  if (windowsHelperTaskInvalidReason(task, identity, identity.executable)) return false
+  const started = await readWindowsHelperTask(identity, source, true)
+  return !windowsHelperTaskInvalidReason(started, identity, identity.executable)
+}

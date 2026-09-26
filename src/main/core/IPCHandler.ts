@@ -23,6 +23,7 @@ import { tmpdir } from 'node:os'
 import { existsSync, readFileSync } from 'node:fs'
 import { CheckBrewOrPort } from '../utils/CheckBrew'
 import type { LanguageCoordinator } from './LanguageCoordinator'
+import type PluginManager from '../plugins/PluginManager'
 import {
   capturerRuntime,
   httpServerRuntime,
@@ -46,6 +47,8 @@ export interface IPCHandlerDependencies {
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
   appNodeFnManager: typeof AppNodeFnManager
+  pluginManager?: PluginManager
+  onPluginsChanged?: () => Promise<void> | void
   retryDataDirectory?: () => Promise<boolean>
 }
 
@@ -244,9 +247,10 @@ export default class IPCHandler extends EventEmitter {
     this.deps.windowManager.sendCommandTo(win, command, key, info)
 
     // 处理许可证码
-    if (info?.data?.['APP-Licenses-Code']) {
-      const code: string = info.data['APP-Licenses-Code']
+    if (info?.data && 'APP-Licenses-Code' in info.data) {
+      const code: string = info.data['APP-Licenses-Code'] ?? ''
       this.deps.configManager?.setConfig('setup.license', code)
+      global.Server.Licenses = code
       this.deps.windowManager.sendCommandTo(
         this.deps.mainWindow!,
         'APP-License-Need-Update',
@@ -340,6 +344,48 @@ export default class IPCHandler extends EventEmitter {
       case 'application:language-invalidate':
         this.deps.languageCoordinator.invalidate(args[0])
         this.sendToMainWindow(command, key, { code: 0, data: true })
+        break
+      case 'application:plugins':
+        if (!this.deps.pluginManager) {
+          this.sendToMainWindow(command, key, { code: 0, data: [] })
+          break
+        }
+        this.deps.pluginManager
+          .getRendererPlugins()
+          .then((plugins) => this.sendToMainWindow(command, key, { code: 0, data: plugins }))
+          .catch((error) =>
+            this.sendToMainWindow(command, key, {
+              code: 1,
+              msg: error instanceof Error ? error.message : String(error)
+            })
+          )
+        break
+      case 'application:plugin-installed':
+        this.handlePluginInstalled(command, key)
+        break
+      case 'application:plugin-market-list':
+        this.handlePluginMarketList(command, key)
+        break
+      case 'application:plugin-sources':
+        this.handlePluginSources(command, key)
+        break
+      case 'application:plugin-source-add':
+        this.handlePluginSourceAdd(command, key, args[0])
+        break
+      case 'application:plugin-source-remove':
+        this.handlePluginSourceRemove(command, key, args[0])
+        break
+      case 'application:plugin-install':
+        this.handlePluginInstall(command, key, args[0])
+        break
+      case 'application:plugin-update':
+        this.handlePluginUpdate(command, key, args[0])
+        break
+      case 'application:plugin-toggle':
+        this.handlePluginToggle(command, key, args[0], args[1])
+        break
+      case 'application:plugin-uninstall':
+        this.handlePluginUninstall(command, key, args[0])
         break
       case 'application:data-directory-retry':
         if (!this.deps.retryDataDirectory) {
@@ -875,6 +921,105 @@ export default class IPCHandler extends EventEmitter {
       .catch((e: any) => {
         this.sendToMainWindow(command, key, { code: 1, msg: `${e?.message ?? e}` })
       })
+  }
+
+  // ===== FlyEnv plugins =====
+
+  private pluginManagerOrError(command: string, key: string) {
+    const manager = this.deps.pluginManager
+    if (!manager) {
+      this.sendToMainWindow(command, key, { code: 1, msg: 'Plugin manager not initialized' })
+      return undefined
+    }
+    return manager
+  }
+
+  private finishPluginChange(command: string, key: string, data: unknown) {
+    Promise.resolve(this.deps.onPluginsChanged?.())
+      .then(() => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handlePluginInstalled(command: string, key: string) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    this.sendToMainWindow(command, key, { code: 0, data: manager.listInstalled() })
+  }
+
+  private handlePluginMarketList(command: string, key: string) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    manager
+      .listCatalog()
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handlePluginSources(command: string, key: string) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    manager
+      .listSources()
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handlePluginSourceAdd(command: string, key: string, url: unknown) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    manager
+      .addSource(String(url ?? ''))
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handlePluginSourceRemove(command: string, key: string, url: unknown) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    manager
+      .removeSource(String(url ?? ''))
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handlePluginInstall(command: string, key: string, input: unknown) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    if (!input || typeof input !== 'object') {
+      this.sendToMainWindow(command, key, { code: 1, msg: 'Plugin install information is invalid' })
+      return
+    }
+    manager
+      .install(input as any)
+      .then((data) => this.finishPluginChange(command, key, data))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handlePluginToggle(command: string, key: string, id: unknown, enabled: unknown) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    manager
+      .setEnabled(String(id ?? ''), enabled === true)
+      .then((data) => this.finishPluginChange(command, key, data))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handlePluginUpdate(command: string, key: string, id: unknown) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    manager
+      .update(String(id ?? ''))
+      .then((data) => this.finishPluginChange(command, key, data))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
+  }
+
+  private handlePluginUninstall(command: string, key: string, id: unknown) {
+    const manager = this.pluginManagerOrError(command, key)
+    if (!manager) return
+    manager
+      .uninstall(String(id ?? ''))
+      .then((data) => this.finishPluginChange(command, key, data))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
   }
 
   private handleMcpStop(command: string, key: string) {

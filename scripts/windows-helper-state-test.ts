@@ -167,11 +167,12 @@ assert.deepEqual(buildHelperCheckResponse(null), { code: 0, data: true })
 assert.deepEqual(buildHelperCheckResponse(helperMissing), {
   code: 1,
   data: false,
-  reason: 'helper_binary_missing'
+  reason: 'helper_binary_missing',
+  msg: 'missing'
 })
 assert.deepEqual(
   buildHelperCheckResponse(new AppHelperError('helper_unreachable', 'unreachable')),
-  { code: 1, data: false, reason: 'helper_unreachable' }
+  { code: 1, data: false, reason: 'helper_unreachable', msg: 'unreachable' }
 )
 assert.deepEqual(
   buildHelperCheckResponse(
@@ -181,13 +182,15 @@ assert.deepEqual(
     code: 1,
     data: false,
     reason: 'helper_acl_invalid',
+    msg: 'allow-roots ACL verification failed',
     stderr: 'icacls output'
   }
 )
 assert.deepEqual(buildHelperCheckResponse(new Error('x')), {
   code: 1,
   data: false,
-  reason: 'helper_execution_failed'
+  reason: 'helper_execution_failed',
+  msg: 'x'
 })
 
 assert.equal(shouldOpenHelperInstaller('helper_binary_missing'), false)

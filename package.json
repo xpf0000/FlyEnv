@@ -1,6 +1,6 @@
 {
   "name": "FlyEnv",
-  "version": "4.18.3",
+  "version": "4.19.0",
   "description": "All-In-One Full-Stack Environment Management Tool",
   "author": {
     "name": "Pengfei Xu",
@@ -30,6 +30,7 @@
     "test:postgresql-pgadmin4": "tsx scripts/postgresql-pgadmin4-test.ts",
     "test:module-lifecycle-single-flight": "tsx scripts/module-lifecycle-single-flight-test.ts",
     "test:mongodb-dbgate": "tsx scripts/mongodb-dbgate-test.ts",
+    "test:mysql-init-password-port": "tsx scripts/mysql-init-password-port-test.ts",
     "test:redis-commander": "tsx scripts/redis-commander-test.ts",
     "test:qdrant": "tsx scripts/qdrant-test.ts",
     "test:podman-machine-init": "tsx scripts/podman-machine-init-test.ts",
@@ -111,7 +112,20 @@
     "test:helper:go:vet:admin": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/helper-go-admin-test.ps1 vet",
     "test:helper:admin": "yarn run test:helper:contract && yarn run test:helper:go:admin && yarn run test:helper:go:vet:admin",
     "test:helper": "yarn run test:helper:contract && yarn run test:helper:go && yarn run test:helper:go:vet",
-    "postinstall": "patch-package && electron-builder install-app-deps"
+    "postinstall": "patch-package && electron-builder install-app-deps",
+    "plugin:dev": "tsx scripts/plugin-runner.ts dev",
+    "plugin:build": "tsx scripts/plugin-builder.ts",
+    "plugin:build:all": "tsx scripts/plugin-builder.ts --all",
+    "plugin:release": "tsx scripts/plugin-release.ts",
+    "plugin:debug": "tsx scripts/plugin-runner.ts debug",
+    "plugin:test": "tsx scripts/plugin-test.ts",
+    "plugin:runtime-smoke": "tsx scripts/plugin-runtime-smoke.ts",
+    "test:plugin-system": "tsx scripts/plugin-system-test.ts",
+    "test:plugin-manager": "tsx scripts/plugin-manager-test.ts",
+    "test:plugin-proxy": "tsx scripts/plugin-proxy-test.ts",
+    "test:plugin-market-ui": "tsx scripts/plugin-market-ui-test.ts",
+    "test:light-theme": "tsx scripts/light-theme-test.ts",
+    "test:module-top-tabs": "tsx scripts/module-top-tabs-test.ts"
   },
   "type": "module",
   "main": "./dist/electron/main.mjs",

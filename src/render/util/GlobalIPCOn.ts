@@ -8,6 +8,7 @@ import { isEqual } from 'lodash-es'
 import { AppStore } from '@/store/app'
 import { SetupStore } from '@/components/Setup/store'
 import { I18nT } from '@lang/index'
+import { syncRendererPluginModules } from '@/core/AppModules'
 
 class GlobalIPCOn {
   public inited = false
@@ -24,12 +25,21 @@ class GlobalIPCOn {
       if (isEqual(server, res)) {
         return
       }
+      const pluginsChanged = !isEqual(server?.Plugins, res?.Plugins)
       for (const key in server) {
         delete server?.[key]
       }
       Object.assign(window.Server, res)
       const store = AppStore()
       store.envIndex += 1
+      if (pluginsChanged) {
+        // Plugin install/update/toggle/uninstall: hot-sync renderer modules and
+        // routes without a restart. The fork side is already refreshed by the
+        // same broadcast. Failure here only means the change applies on restart.
+        syncRendererPluginModules().catch((error) => {
+          console.error('[Plugin] hot sync failed; restart to apply plugin changes', error)
+        })
+      }
     })
     IPC.on('APP-License-Need-Update').then(() => {
       SetupStore().init()

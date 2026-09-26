@@ -70,6 +70,9 @@ jobs:
           chmod +x ./build-os.sh
           bash ./build-os.sh
 
+      - name: Verify helper version sync
+        run: npx tsx scripts/helper-version-sync-test.ts
+
       - name: Build Electron packages with electron-builder
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,3 +1,5 @@
+@use './theme/base-tokens';
+
 *{
   box-sizing: border-box;
   list-style: none;
@@ -126,6 +128,10 @@ body {
       transition: width 0.3s;
       width: 280px;
 
+      .el-switch {
+        --el-switch-on-color: var(--el-color-success);
+      }
+
       .swith-power{
         &.on{
           color: #01cc74;
@@ -241,6 +247,70 @@ body {
   line-height: 1.75;
   display: flex;
   flex-direction: column;
+
+  >.el-radio-group {
+    flex-shrink: 0;
+    align-self: flex-start;
+    gap: 2px;
+    padding: 4px;
+    border: 1px solid var(--flyenv-segmented-border);
+    border-radius: 8px;
+    background: var(--flyenv-segmented-background);
+    box-shadow: var(--flyenv-segmented-shadow);
+
+    .el-radio-button {
+      height: 28px;
+    }
+
+    .el-radio-button__inner {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 4px 12px;
+      border: 0;
+      border-radius: 8px !important;
+      outline: none;
+      background: transparent;
+      box-shadow: none !important;
+      color: var(--el-text-color-primary);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 20px;
+      opacity: 0.6;
+      transition: all 0.2s;
+    }
+
+    .el-radio-button:not(.is-active) .el-radio-button__inner:hover {
+      background: var(--el-color-primary-light-9);
+      color: var(--el-text-color-primary);
+      opacity: 0.9;
+    }
+
+    .el-radio-button.is-active
+      .el-radio-button__original-radio:not(:disabled)
+      +.el-radio-button__inner {
+      background: var(--el-color-primary);
+      color: var(--el-color-white);
+      opacity: 1;
+      box-shadow: var(--flyenv-segmented-active-shadow) !important;
+    }
+
+    .el-radio-button__original-radio:focus-visible +.el-radio-button__inner {
+      outline: 2px solid var(--el-color-primary);
+      outline-offset: 1px;
+    }
+
+    .el-radio-button__original-radio:disabled +.el-radio-button__inner {
+      cursor: not-allowed;
+      background: transparent;
+      color: var(--el-text-color-placeholder);
+      opacity: 0.45;
+    }
+
+    .el-radio-button__original-radio:not(:disabled) +.el-radio-button__inner:active {
+      transform: scale(0.98);
+    }
+  }
 
   .main-block {
     flex: 1;
@@ -2366,7 +2436,7 @@ body {
   }
   .setup-menu {
     flex-shrink: 0;
-    border-top: 1px solid #242737;
+    border-top: 1px solid var(--flyenv-sidebar-divider-color);
   }
   .bottom-menu {
     margin-bottom: 24px;
@@ -3022,7 +3092,7 @@ body {
             }
           }
           >.el-radio-group {
-            padding-left: 20px;
+            margin-left: 20px;
           }
         }
       }

@@ -18,26 +18,13 @@ import EnvSync from '@shared/EnvSync'
 import axios from 'axios'
 import { fetchTags } from './image'
 import { podmanMachineInitArgs, type PodmanMachineInitConfig } from './machineInit'
+import { PODMAN_ROSETTA_DROPIN, podmanSupportsRosetta } from '@shared/podman-rosetta'
 
 /**
  * Podman 5.1.0 introduced the Rosetta toggle, read from containers.conf
  * ([machine] rosetta) when a machine is created or started. There is no
  * `--rosetta` CLI flag on `podman machine init` in any Podman version.
  */
-const PODMAN_ROSETTA_MIN_VERSION = '5.1.0'
-
-const compareVersion = (a: string, b: string): number => {
-  const pa = a.split('.').map((n) => parseInt(n, 10) || 0)
-  const pb = b.split('.').map((n) => parseInt(n, 10) || 0)
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const x = pa[i] ?? 0
-    const y = pb[i] ?? 0
-    if (x !== y) {
-      return x - y
-    }
-  }
-  return 0
-}
 
 class Podman extends Base {
   constructor() {
@@ -65,8 +52,7 @@ class Podman extends Base {
           await remove(tmp)
         }
       }
-      const m = version.match(/(\d+\.\d+\.\d+)/)
-      if (!m || compareVersion(m[1], PODMAN_ROSETTA_MIN_VERSION) < 0) {
+      if (!podmanSupportsRosetta(version)) {
         return
       }
       const env = await EnvSync.sync()
@@ -74,7 +60,10 @@ class Podman extends Base {
       const confDir = join(configHome, 'containers', 'containers.conf.d')
       const rosettaConfig = join(confDir, 'flyenv-podman.conf')
       await mkdirp(confDir)
-      await writeFile(rosettaConfig, `[machine]\nrosetta = ${enable ? 'true' : 'false'}\n`)
+      await writeFile(
+        rosettaConfig,
+        `${PODMAN_ROSETTA_DROPIN}[machine]\nrosetta = ${enable ? 'true' : 'false'}\n`
+      )
 
       if (env.CONTAINERS_CONF && !env.CONTAINERS_CONF_OVERRIDE) {
         return { ...env, CONTAINERS_CONF_OVERRIDE: rosettaConfig }

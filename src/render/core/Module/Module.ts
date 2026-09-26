@@ -1,5 +1,5 @@
 import { computed, reactive, watch } from 'vue'
-import type { AllAppModule, AppModuleEnum } from '@/core/type'
+import type { AllAppModule } from '@/core/type'
 import type { CallbackFn, SoftInstalled } from '@shared/app'
 import { AppStore } from '@/store/app'
 import IPC from '@/util/IPC'
@@ -21,6 +21,7 @@ export class Module {
   typeFlag: AllAppModule = 'dns'
   isService: boolean = true
   isOnlyRunOne: boolean = true
+  isPlugin: boolean = false
 
   installedFetched: boolean = false
 
@@ -215,7 +216,10 @@ export class Module {
       console.trace('fetchInstalled run: ', this.typeFlag)
       this.fetchInstalleding = true
       const setup = JSON.parse(JSON.stringify(appStore.config.setup))
-      const request = IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup)
+      const requestedAsPlugin = this.isPlugin
+      const request = requestedAsPlugin
+        ? IPC.send(`app-fork:${this.typeFlag}`, 'allInstalledVersions', setup)
+        : IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup)
       let settled = false
       this._fetchInstalledTimer = setTimeout(() => {
         if (settled) return
@@ -230,12 +234,25 @@ export class Module {
       request.then(async (key: string, res: any) => {
         if (settled) return
         IPC.off(key)
+        if (requestedAsPlugin !== this.isPlugin) {
+          // The record was reconciled (plugin disabled/enabled) while the
+          // request was in flight; this response belongs to the old channel.
+          settled = true
+          this._settleFetchInstalled(resolve, false)
+          return
+        }
         let fetched = false
         try {
-          const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
-          if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
-            await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
+          if (requestedAsPlugin) {
+            const installed = Array.isArray(res?.data) ? res.data : []
+            await this.applyInstalledVersions(installed)
             fetched = true
+          } else {
+            const versions: Record<string, Array<SoftInstalled>> = res?.data ?? {}
+            if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
+              await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
+              fetched = true
+            }
           }
         } catch (error) {
           console.error('fetchInstalled response error: ', error)

@@ -3,7 +3,7 @@
 # --- Configuration ---
 BUILD_DIR="./dist"
 APP_NAME="flyenv-helper"
-MAIN_PACKAGE="./main.go" # Or "." if your main.go is in the current directory and you're building the module
+MAIN_PACKAGE="." # Build the whole package; main.go references sibling files such as startup_diagnostics.go
 
 # Determine architecture and set TARGET
 ARCH=$(uname -m)

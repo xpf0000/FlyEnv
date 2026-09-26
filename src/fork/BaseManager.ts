@@ -1,5 +1,6 @@
 import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
 import { isWindows } from '@shared/utils'
+import PluginLoader from './PluginLoader'
 
 class BaseManager {
   Apache: any
@@ -84,10 +85,12 @@ class BaseManager {
   TemporalCli: any
 
   modules: Set<string> = new Set()
+  private readonly pluginLoader = new PluginLoader()
 
   constructor() {}
 
   init() {
+    this.pluginLoader.clear()
     import('./module/Cron')
       .then((res) => {
         this.Cron = res.default
@@ -643,7 +646,12 @@ class BaseManager {
       }
       doRun(this.CopilotCli)
     } else {
-      ProcessSendError(ipcCommandKey, 'No Found Module')
+      const target = await this.pluginLoader.load(module)
+      if (target) {
+        doRun(target)
+      } else {
+        ProcessSendError(ipcCommandKey, 'No Found Module')
+      }
     }
   }
 

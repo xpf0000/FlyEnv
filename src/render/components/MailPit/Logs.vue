@@ -14,11 +14,21 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import IPC from '@/util/IPC'
+  import type { AllAppModule } from '@/core/type'
+
+  const props = withDefaults(
+    defineProps<{
+      typeFlag?: AllAppModule
+    }>(),
+    {
+      typeFlag: 'mailpit'
+    }
+  )
 
   const log = ref()
   const filepath = ref('')
 
-  IPC.send('app-fork:mailpit', 'fetchLogPath').then((key: string, res: any) => {
+  IPC.send(`app-fork:${props.typeFlag}`, 'fetchLogPath').then((key: string, res: any) => {
     IPC.off(key)
     filepath.value = res?.data ?? ''
   })

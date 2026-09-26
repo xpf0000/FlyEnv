@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"helper-go/utils"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -95,6 +96,26 @@ func TestParseWindowsHelperRuntimeConfig(t *testing.T) {
 		"--expected-user-sid", sid,
 	}); err == nil {
 		t.Fatal("instance ID that does not match the SID must fail")
+	}
+}
+
+func TestSanitizeStartupDiagnosticRedactsKeyAndArguments(t *testing.T) {
+	message := sanitizeStartupDiagnostic("key=0123456789 args=secret-value pipe failure")
+	if message == "" || message == "key=0123456789 args=secret-value pipe failure" {
+		t.Fatal("startup diagnostic was not sanitized")
+	}
+	if strings.Contains(message, "0123456789") || strings.Contains(message, "secret-value") {
+		t.Fatalf("startup diagnostic leaked sensitive value: %q", message)
+	}
+}
+
+func TestSanitizeStartupDiagnosticKeepsNaturalLanguageKeyErrors(t *testing.T) {
+	message := sanitizeStartupDiagnostic("failed to load helper key: access denied for SID S-1-5-21-100")
+	if strings.Contains(message, "[redacted]") {
+		t.Fatalf("natural language key error was over-redacted: %q", message)
+	}
+	if !strings.Contains(message, "access denied") {
+		t.Fatalf("diagnostic detail was lost: %q", message)
 	}
 }
 

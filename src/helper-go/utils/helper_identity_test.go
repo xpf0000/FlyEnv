@@ -2,6 +2,7 @@ package utils
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -61,5 +62,17 @@ func TestWindowsHelperInstanceIdentity(t *testing.T) {
 	}
 	if got := GetPipeNameFromSocketPath(paths.PipeName); got != paths.PipeName {
 		t.Fatalf("named pipe was rewritten: %q", got)
+	}
+}
+
+func TestCurrentWindowsHelperInstancePathsIgnoresProgramDataEnvironment(t *testing.T) {
+	spoofed := filepath.Join(t.TempDir(), "attacker-controlled")
+	t.Setenv("ProgramData", spoofed)
+	paths, err := CurrentWindowsHelperInstancePaths("S-1-5-21-100-200-300-400")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.HasPrefix(paths.InstanceRoot, spoofed+string(filepath.Separator)) {
+		t.Fatal("helper instance path trusted inherited ProgramData")
 	}
 }

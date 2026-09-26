@@ -116,7 +116,13 @@ export enum AppModuleEnum {
   mcp = 'mcp'
 }
 
-export type AllAppModule = keyof typeof AppModuleEnum
+/**
+ * Module type flag. Built-in modules are keys of `AppModuleEnum`; plugins
+ * installed from the Plugin Market bring their own dynamic ids (for example
+ * `kafka`), so the union also accepts any string. The `(string & {})` form
+ * keeps editor autocomplete for the built-in flags.
+ */
+export type AllAppModule = keyof typeof AppModuleEnum | (string & {})
 
 export const AppWithRoot = [
   'apache',
@@ -169,6 +175,14 @@ export type AppModuleItem = {
   isTray?: boolean
 
   isOnlyRunOne?: boolean
+
+  /**
+   * Present only for dynamically loaded FlyEnv plugins.
+   */
+  plugin?: {
+    id: string
+    version: string
+  }
 
   platform?: Array<'macOS' | 'Windows' | 'Linux'>
 }
