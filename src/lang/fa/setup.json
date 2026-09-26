@@ -87,7 +87,7 @@
   "flyenvHelper": "اصلاح دستیار FlyEnv",
   "flyenvHelperBtn": "اصلاح",
   "flyenvHelperFixSuccess": "دستیار FlyEnv با موفقیت اصلاح شد",
-  "flyenvHelperInstallFailTips": "نصب دستیار FlyEnv ناموفق بود. لطفا برنامه FlyEnv را با دسترسی مدیر (Administrator) اجرا کنید، یا روی دکمه تایید کلیک کرده و برنامه کمکی flyenv-helper.exe را در پوشه باز شده به صورت دستی اجرا کنید.",
+  "flyenvHelperInstallFailTips": "نصب دستیار FlyEnv ناموفق بود. با حساب اصلی Windows از طریق دکمه تعمیر در تنظیمات دوباره تلاش کنید. اگر باز هم ناموفق بود، جزئیات خطای زیر را ارسال کنید.",
   "windowsElevationMethod": "روش ارتقای دسترسی",
   "windowsElevationMethodTips": "انتخاب نحوه ارتقای دسترسی برای عملیات‌های ویندوز که نیاز به مجوز مدیر دارند. UAC برای هر عملیات تایید می‌خواهد؛ اما Helper پس از نصب، از نمایش مکرر اعلان‌ها جلوگیری می‌کند.",
   "windowsElevationUac": "UAC",

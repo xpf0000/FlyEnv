@@ -11,6 +11,101 @@ $allowFileInstalled = $false
 $pendingHelperFile = $null
 $pendingKeyFile = $null
 $pendingInstanceConfigFile = $null
+$sidInstallMutex = $null
+$sidInstallMutexHeld = $false
+
+function Get-HelperCommonApplicationDataPath {
+  $knownFolder = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::CommonApplicationData)
+  if ([string]::IsNullOrWhiteSpace($knownFolder)) {
+    Throw-InstallerError -Code 'helper_execution_failed' -Message 'Windows ProgramData known folder is unavailable'
+  }
+  return $knownFolder
+}
+
+function Get-Sha256Hash {
+  param([Parameter(Mandatory = $true)][string]$Path)
+
+  $stream = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+  $sha = [System.Security.Cryptography.SHA256]::Create()
+  try {
+    return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '').ToLowerInvariant()
+  } finally {
+    $sha.Dispose()
+    $stream.Dispose()
+  }
+}
+
+function Test-TransientFileError {
+  param([Parameter(Mandatory = $true)]$ErrorRecord)
+
+  $exception = $ErrorRecord.Exception
+  while ($exception) {
+    $hresult = $exception.HResult
+    if (($hresult -band 0xffff) -eq 32 -or ($hresult -band 0xffff) -eq 33) { return $true }
+    $exception = $exception.InnerException
+  }
+  return $false
+}
+
+function Invoke-WithFileRetry {
+  param(
+    [Parameter(Mandatory = $true)][scriptblock]$Operation,
+    [int]$MaxAttempts = 5,
+    [int]$DelayMilliseconds = 100
+  )
+
+  for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+    try {
+      return & $Operation
+    } catch {
+      if (-not (Test-TransientFileError -ErrorRecord $_) -or $attempt -eq $MaxAttempts) {
+        throw
+      }
+      Start-Sleep -Milliseconds ($DelayMilliseconds * $attempt)
+    }
+  }
+}
+
+function Test-SecureHelperKey {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)]$AdminSid,
+    [Parameter(Mandatory = $true)]$SystemSid,
+    [Parameter(Mandatory = $true)]$UserSid
+  )
+
+  if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+    return $false
+  }
+  try {
+    if ((Invoke-WithFileRetry -Operation { [System.IO.File]::ReadAllBytes($Path) }).Length -ne 32) {
+      return $false
+    }
+    Assert-AllowedRootsAcl -Path $Path -AdminSid $AdminSid -SystemSid $SystemSid
+    $acl = Get-Acl -LiteralPath $Path
+    foreach ($rule in $acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier])) {
+      if ($rule.AccessControlType -ne 'Allow') { return $false }
+      if ($rule.IdentityReference.Value -notin @($AdminSid.Value, $SystemSid.Value, $UserSid.Value)) { return $false }
+    }
+    return $true
+  } catch {
+    return $false
+  }
+}
+
+function Publish-StagedHelperFile {
+  param(
+    [Parameter(Mandatory = $true)][string]$StagedPath,
+    [Parameter(Mandatory = $true)][string]$DestinationPath,
+    [string]$BackupPath
+  )
+  if (Test-Path -LiteralPath $DestinationPath -PathType Leaf) {
+    $backup = if ($BackupPath) { $BackupPath } else { [System.Management.Automation.Language.NullString]::Value }
+    Invoke-WithFileRetry -Operation { [IO.File]::Replace($StagedPath, $DestinationPath, $backup, $true) }
+  } else {
+    Invoke-WithFileRetry -Operation { [IO.File]::Move($StagedPath, $DestinationPath) }
+  }
+}
 
 function Throw-InstallerError {
   param(
@@ -233,7 +328,12 @@ function Get-OrCreateTaskFolder {
       if ($_.Exception.HResult -ne -2147024894) {
         throw
       }
-      $currentFolder.CreateFolder($segment, $FolderSddl) | Out-Null
+      try {
+        $currentFolder.CreateFolder($segment, $FolderSddl) | Out-Null
+      } catch {
+        # Another SID may have created the shared folder concurrently.
+        $currentFolder = $Scheduler.GetFolder($currentPath)
+      }
       $currentFolder = $Scheduler.GetFolder($currentPath)
     }
     $currentFolder.SetSecurityDescriptor($FolderSddl, 0)
@@ -268,14 +368,12 @@ try {
   $instanceConfigPath = [string]$config.identity.instanceConfigPath
   $pipeName = [string]$config.identity.pipeName
   $stage = 'validate-target'
-  Write-Host "targetUserName=$appUserName targetUserSid=$($appUserSid.Value) helperInstanceId=$instanceId targetHelperKeyPath=$keyPath elevatedUserName=$([Security.Principal.WindowsIdentity]::GetCurrent().Name)"
-  $programData = $env:ProgramData
-  if ($null -eq $programData -or $programData -eq "") {
-    $programData = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::CommonApplicationData)
-    if ($null -eq $programData -or $programData -eq "") {
-      $programData = "C:\ProgramData"
-    }
+  $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+  if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Throw-InstallerError -Code 'helper_execution_failed' -Message 'Windows administrator approval is required to install the helper'
   }
+  Write-Host "targetUserName=$appUserName targetUserSid=$($appUserSid.Value) helperInstanceId=$instanceId targetHelperKeyPath=$keyPath elevatedUserName=$([Security.Principal.WindowsIdentity]::GetCurrent().Name)"
+  $programData = Get-HelperCommonApplicationDataPath
   $flyenvRoot = Join-Path $programData 'FlyEnv'
   $helperRoot = Join-Path $flyenvRoot 'Helper'
   $usersRoot = Join-Path $helperRoot 'users'
@@ -304,6 +402,22 @@ try {
   if ($taskFolderPath -ne '\FlyEnv\Helper' -or $taskName -ne $instanceId) {
     Throw-InstallerError -Code 'helper_task_invalid' -Message 'Helper task path does not match the target SID namespace'
   }
+  $mutexName = "Global\FlyEnv.Helper.Install.$instanceId"
+  $mutexCreated = $false
+  $mutexSecurity = New-Object Security.AccessControl.MutexSecurity
+  $mutexSecurity.SetAccessRuleProtection($true, $false)
+  foreach ($trustedSid in @($adminSid, $systemSid)) {
+    $mutexSecurity.AddAccessRule((New-Object Security.AccessControl.MutexAccessRule($trustedSid, 'FullControl', 'Allow')))
+  }
+  $sidInstallMutex = New-Object System.Threading.Mutex($false, $mutexName, [ref]$mutexCreated, $mutexSecurity)
+  try {
+    $sidInstallMutexHeld = $sidInstallMutex.WaitOne([TimeSpan]::FromSeconds(30))
+  } catch [System.Threading.AbandonedMutexException] {
+    $sidInstallMutexHeld = $true
+  }
+  if (-not $sidInstallMutexHeld) {
+    Throw-InstallerError -Code 'helper_execution_failed' -Message "Another FlyEnv helper installation is active for SID $($appUserSid.Value)"
+  }
   if ([string]::IsNullOrWhiteSpace($exePath)) {
     Throw-InstallerError -Code 'helper_binary_missing' -Message 'FlyEnv helper binary path is empty'
   }
@@ -313,16 +427,16 @@ try {
   if ([string]::IsNullOrWhiteSpace($backupExePath) -or -not (Test-Path -LiteralPath $backupExePath -PathType Leaf)) {
     Throw-InstallerError -Code 'helper_binary_missing' -Message "FlyEnv helper backup binary not found: $backupExePath"
   }
-  $backupHash = (Get-FileHash -LiteralPath $backupExePath -Algorithm SHA256 -ErrorAction Stop).Hash
+  $backupHash = Invoke-WithFileRetry -Operation { Get-Sha256Hash -Path $backupExePath }
   if (Test-Path -LiteralPath ([string]$config.sourceExecutable) -PathType Leaf) {
-    $sourceHash = (Get-FileHash -LiteralPath ([string]$config.sourceExecutable) -Algorithm SHA256 -ErrorAction Stop).Hash
+    $sourceHash = Invoke-WithFileRetry -Operation { Get-Sha256Hash -Path ([string]$config.sourceExecutable) }
     if (-not [string]::Equals($sourceHash, $backupHash, [System.StringComparison]::OrdinalIgnoreCase)) {
       Throw-InstallerError -Code 'helper_execution_failed' -Message 'FlyEnv packaged helper fingerprints do not match'
     }
   }
   $helperNeedsRestore = $true
   if (Test-Path -LiteralPath $exePath -PathType Leaf) {
-    $helperHash = (Get-FileHash -LiteralPath $exePath -Algorithm SHA256 -ErrorAction Stop).Hash
+    $helperHash = Invoke-WithFileRetry -Operation { Get-Sha256Hash -Path $exePath }
     $helperNeedsRestore = -not [string]::Equals($helperHash, $backupHash, [System.StringComparison]::OrdinalIgnoreCase)
   }
   if ([string]::IsNullOrWhiteSpace($dataPath)) {
@@ -374,20 +488,7 @@ try {
     Assert-NotReparsePoint -Path $pendingAllowFile -Label 'FlyEnv pending allowed roots file'
     Set-AllowedRootsFileAcl -Path $pendingAllowFile -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
     Assert-AllowedRootsAcl -Path $pendingAllowFile -AdminSid $adminSid -SystemSid $systemSid
-    if (Test-Path -LiteralPath $allowFile) {
-      $allowFileBackup = Join-Path $instanceRoot ("allowed-roots.$([Guid]::NewGuid().ToString('N')).backup")
-      [System.IO.File]::Replace($pendingAllowFile, $allowFile, $allowFileBackup, $true)
-    } else {
-      Move-Item -LiteralPath $pendingAllowFile -Destination $allowFile -ErrorAction Stop
-    }
-    $pendingAllowFile = $null
-    $allowFileInstalled = $true
-    Assert-AllowedRootsAcl -Path $allowFile -AdminSid $adminSid -SystemSid $systemSid
-    if ($allowFileBackup -and (Test-Path -LiteralPath $allowFileBackup)) {
-      Remove-Item -LiteralPath $allowFileBackup -Force -ErrorAction Stop
-    }
-    $allowFileBackup = $null
-    $allowFileInstalled = $false
+    # Keep this staged until every replacement is ready and the old task is stopped.
   } catch {
     if ($_.Exception.Message -like 'FLYENV_HELPER_INSTALL_ERROR:*') {
       throw
@@ -395,26 +496,7 @@ try {
     Throw-InstallerError -Code 'helper_acl_invalid' -Message "Failed to lock or verify allowed roots permissions: $($_.Exception.Message)"
   }
 
-  $stage = 'stop-current-instance'
-  $scheduler = New-Object -ComObject 'Schedule.Service'
-  $scheduler.Connect()
-  $taskFolderSddl = 'D:P(A;;FA;;;SY)(A;;FA;;;BA)(A;;FR;;;BU)'
-  $rootFolder = Get-OrCreateTaskFolder -Scheduler $scheduler -FolderPath $taskFolderPath -FolderSddl $taskFolderSddl
-  $registeredTask = Get-TaskIfExists -TaskFolder $rootFolder -TaskName $taskName
-  if ($registeredTask) {
-    $registeredTask.Stop(0)
-    $stopDeadline = [DateTime]::UtcNow.AddSeconds(5)
-    while ($registeredTask.State -eq 4 -and [DateTime]::UtcNow -lt $stopDeadline) {
-      Start-Sleep -Milliseconds 100
-      $registeredTask = Get-TaskIfExists -TaskFolder $rootFolder -TaskName $taskName
-      if (-not $registeredTask) { break }
-    }
-    if ($registeredTask -and $registeredTask.State -eq 4) {
-      Throw-InstallerError -Code 'helper_task_start_failed' -Message 'Current SID helper task did not stop'
-    }
-  }
-
-  $stage = 'protect-helper-and-key'
+  $stage = 'stage-replacements'
   $helperDirectory = Split-Path -Parent $exePath
   if (-not (Test-Path -LiteralPath $helperDirectory)) { New-Item -ItemType Directory -Path $helperDirectory | Out-Null }
   $helperDirectory = Assert-PathHasNoReparsePoints -Path $helperDirectory -Label 'Helper executable directory'
@@ -423,61 +505,36 @@ try {
   Assert-PathHasNoReparsePoints -Path $exePath -Label 'Helper executable' | Out-Null
   if ($helperNeedsRestore) {
     try {
-      $helperDirectory = Split-Path -Parent $exePath
       $pendingHelperFile = Join-Path $helperDirectory ("flyenv-helper.$([Guid]::NewGuid().ToString('N')).pending")
-      Copy-Item -LiteralPath $backupExePath -Destination $pendingHelperFile -Force -ErrorAction Stop
-      $pendingHelperHash = (Get-FileHash -LiteralPath $pendingHelperFile -Algorithm SHA256 -ErrorAction Stop).Hash
+      Invoke-WithFileRetry -Operation { Copy-Item -LiteralPath $backupExePath -Destination $pendingHelperFile -Force -ErrorAction Stop }
+      $pendingHelperHash = Invoke-WithFileRetry -Operation { Get-Sha256Hash -Path $pendingHelperFile }
       if (-not [string]::Equals($pendingHelperHash, $backupHash, [System.StringComparison]::OrdinalIgnoreCase)) {
-        Throw-InstallerError -Code 'helper_execution_failed' -Message 'FlyEnv helper backup hash changed while restoring'
+        Throw-InstallerError -Code 'helper_execution_failed' -Message 'FlyEnv helper backup hash changed while staging'
       }
-      if (Test-Path -LiteralPath $exePath -PathType Leaf) {
-        [System.IO.File]::Replace(
-          $pendingHelperFile,
-          $exePath,
-          [System.Management.Automation.Language.NullString]::Value,
-          $true
-        )
-      } else {
-        [System.IO.File]::Move($pendingHelperFile, $exePath)
-      }
-      $pendingHelperFile = $null
     } catch {
-      if ($_.Exception.Message -like 'FLYENV_HELPER_INSTALL_ERROR:*') {
-        throw
-      }
-      Throw-InstallerError -Code 'helper_execution_failed' -Message "Failed to restore FlyEnv helper from backup: $($_.Exception.Message)"
+      if ($_.Exception.Message -like 'FLYENV_HELPER_INSTALL_ERROR:*') { throw }
+      Throw-InstallerError -Code 'helper_execution_failed' -Message "Failed to stage FlyEnv helper from backup: $($_.Exception.Message)"
     }
   }
 
-  # Executable needs ReadAndExecute for the target user (file ACL inherits protected directory).
-  $exeAcl = Get-Acl -LiteralPath $exePath
-  $exeAcl.SetAccessRuleProtection($false, $true)
-  foreach ($rule in @($exeAcl.Access | Where-Object { -not $_.IsInherited })) { $exeAcl.RemoveAccessRuleSpecific($rule) }
-  $exeAcl.SetOwner($adminSid)
-  Set-Acl -LiteralPath $exePath -AclObject $exeAcl
-  # The key is provisioned before SYSTEM starts, never derived from the SYSTEM profile.
   $keyDirectory = Assert-PathHasNoReparsePoints -Path (Split-Path -Parent $keyPath) -Label 'Target helper key directory'
   if (-not (Test-Path -LiteralPath $keyDirectory)) { New-Item -ItemType Directory -Path $keyDirectory | Out-Null }
   Set-AllowedRootsDirectoryAcl -Path $keyDirectory -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
   Assert-PathHasNoReparsePoints -Path $keyPath -Label 'Target helper key' | Out-Null
-  if (Test-Path -LiteralPath $keyPath) {
-    if (-not (Test-Path -LiteralPath $keyPath -PathType Leaf)) { Throw-InstallerError -Code 'helper_acl_invalid' -Message 'Helper key is not a file' }
+  $keyIsValid = Test-SecureHelperKey -Path $keyPath -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
+  if (-not $keyIsValid) {
+    if ((Test-Path -LiteralPath $keyPath) -and -not (Test-Path -LiteralPath $keyPath -PathType Leaf)) {
+      Throw-InstallerError -Code 'helper_acl_invalid' -Message 'Helper key is not a file'
+    }
+    $keyBytes = New-Object byte[] 32
+    $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+    try { $rng.GetBytes($keyBytes) } finally { $rng.Dispose() }
+    $pendingKeyFile = Join-Path $keyDirectory ("flyenv-helper.key.$([Guid]::NewGuid().ToString('N')).pending")
+    Invoke-WithFileRetry -Operation { [IO.File]::WriteAllBytes($pendingKeyFile, $keyBytes) }
+    [Array]::Clear($keyBytes, 0, $keyBytes.Length)
+    Set-AllowedRootsFileAcl -Path $pendingKeyFile -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
+    Assert-AllowedRootsAcl -Path $pendingKeyFile -AdminSid $adminSid -SystemSid $systemSid
   }
-  $keyBytes = New-Object byte[] 32
-  $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
-  try { $rng.GetBytes($keyBytes) } finally { $rng.Dispose() }
-  $pendingKeyFile = Join-Path $keyDirectory ("flyenv-helper.key.$([Guid]::NewGuid().ToString('N')).pending")
-  [IO.File]::WriteAllBytes($pendingKeyFile, $keyBytes)
-  [Array]::Clear($keyBytes, 0, $keyBytes.Length)
-  Set-AllowedRootsFileAcl -Path $pendingKeyFile -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
-  if (Test-Path -LiteralPath $keyPath) {
-    # Rename replacement does not write through a preexisting hard link.
-    Remove-Item -LiteralPath $keyPath -Force -ErrorAction Stop
-  }
-  [IO.File]::Move($pendingKeyFile, $keyPath)
-  $pendingKeyFile = $null
-  Set-AllowedRootsFileAcl -Path $keyPath -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
-  Assert-AllowedRootsAcl -Path $keyPath -AdminSid $adminSid -SystemSid $systemSid
 
   $instanceState = [ordered]@{
     schemaVersion = 1
@@ -492,15 +549,69 @@ try {
     dataPath = $dataPath
   }
   $pendingInstanceConfigFile = Join-Path $instanceRoot ("instance.$([Guid]::NewGuid().ToString('N')).pending")
-  Set-Content -LiteralPath $pendingInstanceConfigFile -Value ($instanceState | ConvertTo-Json -Compress) -Encoding UTF8 -ErrorAction Stop
-  Set-AllowedRootsFileAcl -Path $pendingInstanceConfigFile -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
-  if (Test-Path -LiteralPath $instanceConfigPath) {
-    Remove-Item -LiteralPath $instanceConfigPath -Force -ErrorAction Stop
+  Invoke-WithFileRetry -Operation {
+    Set-Content -LiteralPath $pendingInstanceConfigFile -Value ($instanceState | ConvertTo-Json -Compress) -Encoding UTF8 -ErrorAction Stop
   }
-  [IO.File]::Move($pendingInstanceConfigFile, $instanceConfigPath)
-  $pendingInstanceConfigFile = $null
+  Set-AllowedRootsFileAcl -Path $pendingInstanceConfigFile -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
+  Assert-AllowedRootsAcl -Path $pendingInstanceConfigFile -AdminSid $adminSid -SystemSid $systemSid
+
+  $stage = 'stop-current-instance'
+  $scheduler = New-Object -ComObject 'Schedule.Service'
+  $scheduler.Connect()
+  $taskFolderSddl = 'D:P(A;;FA;;;SY)(A;;FA;;;BA)(A;;FR;;;BU)'
+  $rootFolder = Get-OrCreateTaskFolder -Scheduler $scheduler -FolderPath $taskFolderPath -FolderSddl $taskFolderSddl
+  $registeredTask = Get-TaskIfExists -TaskFolder $rootFolder -TaskName $taskName
+  if ($registeredTask) {
+    $registeredTask.Stop(0)
+    $stopDeadline = [DateTime]::UtcNow.AddSeconds(15)
+    while ($registeredTask.State -eq 4 -and [DateTime]::UtcNow -lt $stopDeadline) {
+      Start-Sleep -Milliseconds 100
+      $registeredTask = Get-TaskIfExists -TaskFolder $rootFolder -TaskName $taskName
+      if (-not $registeredTask) { break }
+    }
+    if ($registeredTask -and $registeredTask.State -eq 4) {
+      Throw-InstallerError -Code 'helper_task_start_failed' -Message 'Current SID helper task did not stop'
+    }
+  }
+
+  $stage = 'publish-replacements'
+  if ($pendingAllowFile) {
+    if (Test-Path -LiteralPath $allowFile) {
+      $allowFileBackup = Join-Path $instanceRoot ("allowed-roots.$([Guid]::NewGuid().ToString('N')).backup")
+    }
+    Publish-StagedHelperFile -StagedPath $pendingAllowFile -DestinationPath $allowFile -BackupPath $allowFileBackup
+    $pendingAllowFile = $null
+    $allowFileInstalled = $true
+    Set-AllowedRootsFileAcl -Path $allowFile -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
+    Assert-AllowedRootsAcl -Path $allowFile -AdminSid $adminSid -SystemSid $systemSid
+  }
+  if ($pendingHelperFile) {
+    Publish-StagedHelperFile -StagedPath $pendingHelperFile -DestinationPath $exePath
+    $pendingHelperFile = $null
+  }
+  if ($pendingKeyFile) {
+    Publish-StagedHelperFile -StagedPath $pendingKeyFile -DestinationPath $keyPath
+    $pendingKeyFile = $null
+  }
+  if ($pendingInstanceConfigFile) {
+    Publish-StagedHelperFile -StagedPath $pendingInstanceConfigFile -DestinationPath $instanceConfigPath
+    $pendingInstanceConfigFile = $null
+  }
+  # Repair executable permissions even when its fingerprint already matches.
+  $exeAcl = Get-Acl -LiteralPath $exePath
+  $exeAcl.SetAccessRuleProtection($false, $true)
+  foreach ($rule in @($exeAcl.Access | Where-Object { -not $_.IsInherited })) { $exeAcl.RemoveAccessRuleSpecific($rule) }
+  $exeAcl.SetOwner($adminSid)
+  Set-Acl -LiteralPath $exePath -AclObject $exeAcl
+  Set-AllowedRootsFileAcl -Path $keyPath -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
+  Assert-AllowedRootsAcl -Path $keyPath -AdminSid $adminSid -SystemSid $systemSid
   Set-AllowedRootsFileAcl -Path $instanceConfigPath -AdminSid $adminSid -SystemSid $systemSid -UserSid $appUserSid
   Assert-AllowedRootsAcl -Path $instanceConfigPath -AdminSid $adminSid -SystemSid $systemSid
+  if ($allowFileBackup -and (Test-Path -LiteralPath $allowFileBackup)) {
+    try { Remove-Item -LiteralPath $allowFileBackup -Force -ErrorAction Stop } catch {}
+    $allowFileBackup = $null
+  }
+  $allowFileInstalled = $false
 
   Write-Host 'Creating scheduled task via API...'
 
@@ -508,6 +619,12 @@ try {
   $taskDefinition.RegistrationInfo.Description = 'FlyEnv Helper Auto Start'
   $taskDefinition.RegistrationInfo.Author = $appUserName
   $taskDefinition.Settings.ExecutionTimeLimit = 'PT0S'
+  $taskDefinition.Settings.RestartInterval = 'PT1M'
+  $taskDefinition.Settings.RestartCount = 3
+  $taskDefinition.Settings.StartWhenAvailable = $true
+  $taskDefinition.Settings.Enabled = $true
+  $taskDefinition.Settings.AllowDemandStart = $true
+  $taskDefinition.Settings.MultipleInstances = 2
   $taskDefinition.Settings.DisallowStartIfOnBatteries = $false
   $taskDefinition.Settings.StopIfGoingOnBatteries = $false
   $trigger = $taskDefinition.Triggers.Create(9)
@@ -522,7 +639,7 @@ try {
 
   try {
     $stage = 'register-task'
-    $taskSddl = "D:P(A;;FA;;;SY)(A;;FA;;;BA)(A;;FR;;;$($appUserSid.Value))"
+    $taskSddl = "D:P(A;;FA;;;SY)(A;;FA;;;BA)(A;;FRFX;;;$($appUserSid.Value))"
     Write-Host "stage=$stage taskName=$taskName taskPrincipal=$($systemSid.Value) taskLogonType=ServiceAccount helperExecutable=$exePath expectedUserSid=$($appUserSid.Value)"
     $rootFolder.RegisterTaskDefinition($taskName, $taskDefinition, 6, $systemSid.Value, $null, 5, $taskSddl) | Out-Null
     $taskRegistered = $true
@@ -546,6 +663,7 @@ try {
   }
 
   Write-Host "Task '$taskName' started successfully via API."
+  $global:LASTEXITCODE = 0
   exit 0
 }
 catch {
@@ -558,7 +676,7 @@ catch {
   }
   if ($allowFileBackup -and (Test-Path -LiteralPath $allowFileBackup)) {
     try {
-      [System.IO.File]::Replace($allowFileBackup, $allowFile, $null, $true)
+      [System.IO.File]::Replace($allowFileBackup, $allowFile, [System.Management.Automation.Language.NullString]::Value, $true)
     } catch {}
   } elseif ($allowFileInstalled -and $allowFile -and (Test-Path -LiteralPath $allowFile)) {
     try {
@@ -580,15 +698,21 @@ catch {
       $registeredTask.Stop(0)
     } catch {}
   }
-  if ($taskRegistered -and $rootFolder) {
-    try {
-      $rootFolder.DeleteTask($taskName, 0)
-    } catch {}
-  }
+  # Never delete a pre-existing or newly registered task during recovery; leaving it
+  # registered keeps the current SID repairable and avoids helper-version rollback.
   $message = $originalError
   if ($message -notlike 'FLYENV_HELPER_INSTALL_ERROR:*') {
     $message = "FLYENV_HELPER_INSTALL_ERROR:helper_execution_failed:$message"
   }
   [Console]::Error.WriteLine("${message} (stage=$stage)")
+  $global:LASTEXITCODE = 1
   exit 1
+} finally {
+  if ($sidInstallMutexHeld -and $sidInstallMutex) {
+    try { $sidInstallMutex.ReleaseMutex() } catch {}
+    $sidInstallMutexHeld = $false
+  }
+  if ($sidInstallMutex) {
+    try { $sidInstallMutex.Dispose() } catch {}
+  }
 }

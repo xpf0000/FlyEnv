@@ -80,7 +80,7 @@
   "flyenvHelper": "Ret FlyEnv Helper",
   "flyenvHelperBtn": "Ret",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fast Med Succesfuld",
-  "flyenvHelperInstallFailTips": "Installationen af FlyEnv-hjælpeprogrammet mislykkedes. Prøv at køre FlyEnv med administratorrettigheder, eller klik på OK-knappen og kør flyenv-helper.exe-hjælpeprogrammet manuelt i den åbnede mappe.",
+  "flyenvHelperInstallFailTips": "Installationen af FlyEnv-hjælpeprogrammet mislykkedes. Prøv igen med din oprindelige Windows-konto via reparationsknappen i indstillingerne. Del fejloplysningerne nedenfor, hvis det mislykkes igen.",
   "windowsElevationMethod": "Metode til rettighedsforhøjelse",
   "windowsElevationMethodTips": "Vælg, hvordan Windows-handlinger, der kræver administratorrettigheder, skal få forhøjede rettigheder. UAC beder om bekræftelse for hver understøttet handling; hjælpeprogrammet undgår gentagne anmodninger, når det er installeret.",
   "windowsElevationUac": "UAC",

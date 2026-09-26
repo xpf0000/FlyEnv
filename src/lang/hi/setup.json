@@ -87,7 +87,7 @@
   "flyenvHelper": "FlyEnv Helper ठीक करें",
   "flyenvHelperBtn": "ठीक करें",
   "flyenvHelperFixSuccess": "FlyEnv Helper सफलतापूर्वक ठीक हुआ",
-  "flyenvHelperInstallFailTips": "Flyenv helper इंस्टॉलेशन विफल। कृपया व्यवस्थापक विशेषाधिकारों के साथ FlyEnv चलाने का प्रयास करें, या ठीक बटन पर क्लिक करें और खोले गए फ़ोल्डर में मैन्युअल रूप से flyenv-helper.exe सहायक प्रोग्राम चलाएं।",
+  "flyenvHelperInstallFailTips": "Flyenv helper इंस्टॉलेशन विफल. अपने मूल Windows खाते से सेटिंग्स के मरम्मत बटन द्वारा फिर प्रयास करें। यदि फिर विफल हो, तो नीचे दिए गए त्रुटि विवरण साझा करें।",
   "windowsElevationMethod": "एलिवेशन विधि",
   "windowsElevationMethodTips": "चुनें कि व्यवस्थापक विशेषाधिकारों वाले Windows ऑपरेशन कैसे उन्नत होते हैं। UAC प्रत्येक समर्थित ऑपरेशन के लिए पुष्टि मांगता है; Helper इंस्टॉल होने के बाद बार-बार प्रॉम्प्ट से बचता है।",
   "windowsElevationUac": "UAC",

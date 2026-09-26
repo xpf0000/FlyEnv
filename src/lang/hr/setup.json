@@ -80,7 +80,7 @@
   "flyenvHelper": "Popravak FlyEnv Helpera",
   "flyenvHelperBtn": "Popravi",
   "flyenvHelperFixSuccess": "FlyEnv Helper Uspješno Popravljen",
-  "flyenvHelperInstallFailTips": "Instalacija FlyEnv helpera nije uspjela. Molimo pokušajte pokrenuti FlyEnv s administratorskim privilegijama, ili kliknite gumb OK i ručno pokrenite flyenv-helper.exe pomoćni program u otvorenoj mapi.",
+  "flyenvHelperInstallFailTips": "Instalacija FlyEnv helpera nije uspjela. Pokušajte ponovno s izvornim Windows računom putem gumba za popravak u postavkama. Ako ponovno ne uspije, podijelite pojedinosti pogreške u nastavku.",
   "windowsElevationMethod": "Način povišenja ovlasti",
   "windowsElevationMethodTips": "Odaberite način povišenja ovlasti za radnje u sustavu Windows koje zahtijevaju administratorske ovlasti. UAC traži potvrdu za svaku podržanu radnju; pomoćni program nakon instalacije izbjegava ponavljane upite.",
   "windowsElevationUac": "UAC",

@@ -8,6 +8,15 @@ const execFileAsync = promisify(execFile)
 
 const WINDOWS_SID_PATTERN = /^S-1-(?:\d+-)+\d+$/i
 
+export const windowsPowerShellPath = (systemRoot = process.env.SystemRoot || 'C:\\Windows') =>
+  path.win32.join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
+
+export const windowsPowerShellEnv = (): NodeJS.ProcessEnv => ({
+  ...process.env,
+  // Installation must not autoload user modules that shadow Windows commands.
+  PSModulePath: path.win32.join(path.win32.dirname(windowsPowerShellPath()), 'Modules')
+})
+
 export type WindowsHelperInstancePaths = {
   instanceId: string
   instanceRoot: string
@@ -81,31 +90,28 @@ export const getWindowsHelperIdentity = async (): Promise<WindowsHelperIdentity>
   const localAppData = process.env.LOCALAPPDATA ?? ''
   // Execute in the original process context, with explicit UTF-8 for Unicode accounts.
   const script =
-    '[Console]::OutputEncoding = [Text.Encoding]::UTF8; $identity = [Security.Principal.WindowsIdentity]::GetCurrent(); @{ account = $identity.Name; sid = $identity.User.Value } | ConvertTo-Json -Compress'
+    "[Console]::OutputEncoding = [Text.Encoding]::UTF8; $ErrorActionPreference = 'Stop'; $identity = [Security.Principal.WindowsIdentity]::GetCurrent(); @{ account = $identity.Name; sid = $identity.User.Value; programData = [Environment]::GetFolderPath([Environment+SpecialFolder]::CommonApplicationData) } | ConvertTo-Json -Compress"
   const { stdout } = await execFileAsync(
-    path.win32.join(
-      process.env.SystemRoot || 'C:\\Windows',
-      'System32',
-      'WindowsPowerShell',
-      'v1.0',
-      'powershell.exe'
-    ),
+    windowsPowerShellPath(),
     [
       '-NoProfile',
       '-NonInteractive',
       '-EncodedCommand',
       Buffer.from(script, 'utf16le').toString('base64')
     ],
-    { windowsHide: true, timeout: 10_000 }
+    { windowsHide: true, timeout: 10_000, env: windowsPowerShellEnv() }
   )
-  const identity = JSON.parse(stdout.trim()) as Pick<WindowsHelperIdentity, 'account' | 'sid'>
+  const identity = JSON.parse(stdout.trim()) as Pick<WindowsHelperIdentity, 'account' | 'sid'> & {
+    programData: string
+  }
   if (!identity.account || !/^S-1-(?:\d+-)+\d+$/.test(identity.sid)) {
     throw new Error('Could not capture the FlyEnv Windows user identity')
   }
   return {
-    ...identity,
+    account: identity.account,
+    sid: identity.sid,
     localAppData,
-    ...windowsHelperInstancePaths(identity.sid)
+    ...windowsHelperInstancePaths(identity.sid, identity.programData)
   }
 }
 
@@ -133,11 +139,12 @@ export const windowsHelperInstallerCommand = (
 ): string => {
   const quote = (value: string) => `'${value.replace(/'/g, "''")}'`
   const script = `$ErrorActionPreference = 'Stop'; $code = 1; try { Unblock-File -LiteralPath ${quote(scriptPath)}; & ${quote(scriptPath)}; $code = $LASTEXITCODE } finally { Remove-Item -LiteralPath ${quote(tempDirectory)} -Recurse -Force -ErrorAction SilentlyContinue }; exit $code`
-  return `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -EncodedCommand ${Buffer.from(script, 'utf16le').toString('base64')}`
+  return `"${windowsPowerShellPath()}" -NoProfile -ExecutionPolicy Bypass -EncodedCommand ${Buffer.from(script, 'utf16le').toString('base64')}`
 }
 
-export const windowsHelperInstalledPath = (identity: Pick<WindowsHelperIdentity, 'sid'>): string =>
-  windowsHelperInstancePaths(identity.sid).executable
+export const windowsHelperInstalledPath = (
+  identity: Pick<WindowsHelperIdentity, 'sid'> & Partial<Pick<WindowsHelperIdentity, 'executable'>>
+): string => identity.executable ?? windowsHelperInstancePaths(identity.sid).executable
 
 export const windowsHelperArguments = (identity: WindowsHelperIdentity): string =>
   `--instance-id "${identity.instanceId}" --expected-user-sid "${identity.sid}"`
@@ -170,6 +177,8 @@ export type WindowsHelperTask = {
   triggerSid: string
   triggerCount: number
   binaryMatches: boolean
+  state?: number
+  lastTaskResult?: number
 }
 
 export const windowsHelperTaskInvalidReason = (
@@ -198,12 +207,23 @@ export const windowsHelperTaskInvalidReason = (
 
 export const readWindowsHelperTask = async (
   identity: WindowsHelperIdentity,
-  sourceExecutable: string
+  sourceExecutable: string,
+  startIfStopped = false
 ): Promise<WindowsHelperTask | null> => {
+  if (
+    startIfStopped &&
+    !(await windowsHelperBinariesMatch(identity.executable, sourceExecutable))
+  ) {
+    throw new Error('Installed helper executable differs from bundled version')
+  }
   const config = Buffer.from(
     JSON.stringify({
       taskFolder: identity.taskFolder,
-      taskName: identity.taskName
+      taskName: identity.taskName,
+      executable: identity.executable,
+      arguments: windowsHelperArguments(identity),
+      sid: identity.sid,
+      startIfStopped
     }),
     'utf8'
   ).toString('base64')
@@ -221,17 +241,23 @@ $action = $definition.Actions.Item(1)
 $trigger = $definition.Triggers.Item(1)
 $triggerSid = $trigger.UserId
 if ($triggerSid -notmatch '^S-1-') { $triggerSid = (New-Object Security.Principal.NTAccount($triggerSid)).Translate([Security.Principal.SecurityIdentifier]).Value }
-@{ principal=$principal; logonType=[int]$definition.Principal.LogonType; runLevel=[int]$definition.Principal.RunLevel; enabled=[bool]$task.Enabled; actionCount=$definition.Actions.Count; executable=[string]$action.Path; arguments=[string]$action.Arguments; triggerCount=$definition.Triggers.Count; triggerSid=[string]$triggerSid } | ConvertTo-Json -Compress
+if ($config.startIfStopped) {
+  if ($principal -ne 'S-1-5-18' -or $definition.Principal.LogonType -ne 5 -or $definition.Principal.RunLevel -ne 1 -or -not $task.Enabled -or $definition.Actions.Count -ne 1 -or $definition.Triggers.Count -ne 1 -or $triggerSid -ne $config.sid -or [IO.Path]::GetFullPath($action.Path) -ne [IO.Path]::GetFullPath($config.executable) -or $action.Arguments -cne $config.arguments) {
+    throw 'Refusing to start an invalid helper task'
+  }
+  if ($task.State -ne 4 -and $task.State -ne 2) { $task.Run($null) | Out-Null }
+}
+@{ principal=$principal; logonType=[int]$definition.Principal.LogonType; runLevel=[int]$definition.Principal.RunLevel; enabled=[bool]$task.Enabled; actionCount=$definition.Actions.Count; executable=[string]$action.Path; arguments=[string]$action.Arguments; triggerCount=$definition.Triggers.Count; triggerSid=[string]$triggerSid; state=[int]$task.State; lastTaskResult=[int64]$task.LastTaskResult } | ConvertTo-Json -Compress
 `
   const { stdout } = await execFileAsync(
-    'powershell.exe',
+    windowsPowerShellPath(),
     [
       '-NoProfile',
       '-NonInteractive',
       '-EncodedCommand',
       Buffer.from(script, 'utf16le').toString('base64')
     ],
-    { windowsHide: true, timeout: 10_000 }
+    { windowsHide: true, timeout: 10_000, env: windowsPowerShellEnv() }
   )
   const task = JSON.parse(stdout.trim()) as Omit<WindowsHelperTask, 'binaryMatches'> | null
   if (!task) return null
@@ -239,4 +265,44 @@ if ($triggerSid -notmatch '^S-1-') { $triggerSid = (New-Object Security.Principa
     ...task,
     binaryMatches: await windowsHelperBinariesMatch(identity.executable, sourceExecutable)
   }
+}
+
+// Diagnostics are best-effort and bounded; they must never hide the original failure.
+export const readWindowsHelperDiagnostics = async (
+  identity: WindowsHelperIdentity,
+  sourceExecutable: string
+): Promise<string> => {
+  const details: string[] = []
+  try {
+    const task = await readWindowsHelperTask(identity, sourceExecutable)
+    details.push(
+      task
+        ? `Task state=${task.state}, LastTaskResult=${task.lastTaskResult}`
+        : 'Task missing or inaccessible'
+    )
+  } catch (error) {
+    details.push(`Task diagnostics unavailable: ${String(error).slice(0, 512)}`)
+  }
+  const logPath = path.win32.join(identity.instanceRoot, 'startup.log')
+  try {
+    const log = await fs.open(logPath, 'r')
+    try {
+      const stat = await log.stat()
+      if (stat.isFile()) {
+        const buffer = Buffer.alloc(Math.min(stat.size, 3072))
+        const { bytesRead } = await log.read(
+          buffer,
+          0,
+          buffer.length,
+          Math.max(0, stat.size - buffer.length)
+        )
+        details.push(`Startup log (${logPath}):\n${buffer.subarray(0, bytesRead).toString('utf8')}`)
+      }
+    } finally {
+      await log.close()
+    }
+  } catch {
+    /* A process blocked before startup cannot create a log. */
+  }
+  return details.join('\n')
 }

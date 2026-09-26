@@ -80,7 +80,7 @@
   "flyenvHelper": "FlyEnv Yardımçı Proqramını Bərpa Et",
   "flyenvHelperBtn": "Bərpa Et",
   "flyenvHelperFixSuccess": "FlyEnv yardımçı proqramı uğurla bərpa edildi",
-  "flyenvHelperInstallFailTips": "FlyEnv köməkçi proqramının quraşdırılması uğursuz oldu. Zəhmət olmasa FlyEnv-i administrator səlahiyyətləri ilə işə salmağa cəhd edin, ya da OK düyməsini basıb açılan qovluqda flyenv-helper.exe köməkçi proqramını əl ilə işə salın.",
+  "flyenvHelperInstallFailTips": "FlyEnv köməkçi proqramının quraşdırılması uğursuz oldu. İlkin Windows hesabınızla parametrlərdəki bərpa düyməsi vasitəsilə yenidən cəhd edin. Yenə uğursuz olarsa, aşağıdakı xəta təfərrüatlarını paylaşın.",
   "windowsElevationMethod": "Yüksəltmə üsulu",
   "windowsElevationMethodTips": "İnzibatçı imtiyazları tələb edən Windows əməliyyatlarının necə yüksəldiləcəyini seçin. UAC dəstəklənən hər əməliyyat üçün təsdiq tələb edir; köməkçi quraşdırıldıqdan sonra təkrarlanan sorğuların qarşısını alır.",
   "windowsElevationUac": "UAC",

@@ -80,7 +80,7 @@
   "flyenvHelper": "إصلاح FlyEnv Helper",
   "flyenvHelperBtn": "إصلاح",
   "flyenvHelperFixSuccess": "تم إصلاح FlyEnv Helper بنجاح",
-  "flyenvHelperInstallFailTips": "فشل تثبيت مساعد FlyEnv. الرجاء محاولة تشغيل FlyEnv مع امتيازات المسؤول، أو انقر على زر OK وتشغيل مساعد flyenv-help يدويا. برنامج مساعد xe في المجلد المفتوح.",
+  "flyenvHelperInstallFailTips": "فشل تثبيت مساعد FlyEnv. أعد المحاولة بحساب Windows الأصلي عبر زر الإصلاح في الإعدادات. إذا تكرر الفشل، شارك تفاصيل الخطأ أدناه.",
   "windowsElevationMethod": "طريقة رفع الامتيازات",
   "windowsElevationMethodTips": "اختر كيفية رفع امتيازات عمليات Windows التي تتطلب صلاحيات المسؤول. يطلب التحكم في حساب المستخدم (UAC) التأكيد لكل عملية مدعومة؛ وتتفادى الأداة المساعدة الطلبات المتكررة بعد تثبيتها.",
   "windowsElevationUac": "UAC",

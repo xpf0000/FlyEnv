@@ -87,7 +87,7 @@
   "flyenvHelper": "Fix FlyEnv Helper",
   "flyenvHelperBtn": "Fix",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully",
-  "flyenvHelperInstallFailTips": "FlyEnv helper installation failed. Please try running FlyEnv with administrator privileges, or click the OK button and manually run the flyenv-helper.exe helper program in the opened folder.",
+  "flyenvHelperInstallFailTips": "FlyEnv helper installation failed. Keep using your original Windows account and retry with the helper repair button in Settings. If it fails again, share the error details below.",
   "windowsElevationMethod": "Elevation Method",
   "windowsElevationMethodTips": "Choose how Windows operations that require administrator privileges are elevated. UAC asks for confirmation for each supported operation; Helper avoids repeated prompts after it is installed.",
   "windowsElevationUac": "UAC",

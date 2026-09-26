@@ -80,7 +80,7 @@
   "flyenvHelper": "FlyEnv 輔助程式修復",
   "flyenvHelperBtn": "修復",
   "flyenvHelperFixSuccess": "FlyEnv 輔助程式修復成功",
-  "flyenvHelperInstallFailTips": "FlyEnv 輔助程式安裝失敗，請嘗試使用管理員權限啟動 FlyEnv，或者點擊確定按鈕，在開啟的資料夾中，手動執行 flyenv-helper.exe 輔助程式",
+  "flyenvHelperInstallFailTips": "FlyEnv 輔助程式安裝失敗。請繼續使用原本的 Windows 帳戶，在設定中點擊輔助程式修復按鈕重試；若仍失敗，請提供下方錯誤詳情。",
   "windowsElevationMethod": "提權方式",
   "windowsElevationMethodTips": "選擇 Windows 需要管理員權限的操作所使用的提權方式。UAC 會針對每個受支援的操作要求確認；安裝輔助程式後即可避免重複確認。",
   "windowsElevationUac": "UAC",

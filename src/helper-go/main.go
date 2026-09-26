@@ -26,7 +26,7 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 26
+	Helper_Version   = 27
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
@@ -1237,24 +1237,33 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 func main() {
 	config, err := parseHelperRuntimeConfig(os.Args[1:])
 	if err != nil {
+		closeDiagnostics := setStartupDiagnosticsFromArgs(os.Args[1:])
+		startupDiagnosticf("invalid helper startup arguments; expected --instance-id and --expected-user-sid")
+		closeDiagnostics()
 		fmt.Printf("Failed to parse helper runtime configuration: %v\n", err)
 		os.Exit(1)
 	}
 	runtimeConfig = config
+	closeDiagnostics := setStartupDiagnostics(runtimeConfig.Paths)
+	defer closeDiagnostics()
+	startupDiagnosticf("helper startup: instance=%s expected-user-sid=%s key-path=%s pipe=%s", runtimeConfig.InstanceID, runtimeConfig.ExpectedUserSID, runtimeConfig.Paths.KeyPath, runtimeConfig.Paths.PipeName)
 	if runtime.GOOS == "windows" {
 		utils.ConfigureWindowsHelperInstance(runtimeConfig.Paths)
 	}
 	if err := validateExpectedWindowsUserSID(); err != nil {
+		startupDiagnosticf("failed to validate helper user SID: %v", err)
 		fmt.Printf("Failed to validate helper user SID: %v\n", err)
 		os.Exit(1)
 	}
 	if err := loadOrGenerateKey(); err != nil {
+		startupDiagnosticf("failed to load helper key: %v", err)
 		fmt.Printf("Failed to load/generate key: %v\n", err)
 		os.Exit(1)
 	}
 	app := NewAppHelper()
 	app.Tool.TargetUserSID = runtimeConfig.ExpectedUserSID
 	if err := app.Run(); err != nil {
+		startupDiagnosticf("helper pipe/runtime terminated: %v", err)
 		fmt.Printf("AppHelper terminated with error: %v\n", err)
 		os.Exit(1)
 	}

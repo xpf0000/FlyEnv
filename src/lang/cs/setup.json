@@ -80,7 +80,7 @@
   "flyenvHelper": "Opravit pomocníka FlyEnv",
   "flyenvHelperBtn": "Opravit",
   "flyenvHelperFixSuccess": "Pomocník FlyEnv úspěšně opraven",
-  "flyenvHelperInstallFailTips": "Instalace pomocného programu FlyEnv se nezdařila. Zkuste spustit FlyEnv s oprávněními správce nebo klikněte na tlačítko OK a ručně spusťte pomocný program flyenv-helper.exe v otevřené složce.",
+  "flyenvHelperInstallFailTips": "Instalace pomocného programu FlyEnv se nezdařila. Zkuste to znovu s původním účtem Windows tlačítkem opravy v nastavení. Pokud chyba přetrvá, sdílejte podrobnosti níže.",
   "windowsElevationMethod": "Způsob zvýšení oprávnění",
   "windowsElevationMethodTips": "Zvolte, jak se mají zvyšovat oprávnění pro operace systému Windows, které vyžadují oprávnění správce. Řízení uživatelských účtů (UAC) vyžaduje potvrzení u každé podporované operace; pomocný program po instalaci zabrání opakovaným výzvám.",
   "windowsElevationUac": "UAC",

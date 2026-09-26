@@ -80,7 +80,7 @@
   "flyenvHelper": "Herstel FlyEnv Helper",
   "flyenvHelperBtn": "Repareer",
   "flyenvHelperFixSuccess": "FlyEnv Helper succesvol opgelost",
-  "flyenvHelperInstallFailTips": "De installatie van FlyEnv helper is mislukt. Probeer FlyEnv uit te voeren met beheerdersrechten, of klik op de knop OK en voer het hulpprogramma flyenv-helper.exe handmatig uit in de geopende map.",
+  "flyenvHelperInstallFailTips": "De installatie van FlyEnv helper is mislukt. Probeer het met uw oorspronkelijke Windows-account opnieuw via de herstelknop in Instellingen. Deel bij een nieuwe fout de onderstaande foutdetails.",
   "windowsElevationMethod": "Methode voor bevoegdheidsverhoging",
   "windowsElevationMethodTips": "Kies hoe Windows-bewerkingen waarvoor beheerdersrechten nodig zijn, worden uitgevoerd met verhoogde rechten. UAC vraagt bevestiging voor elke ondersteunde bewerking; het hulpprogramma voorkomt herhaalde prompts nadat het is geïnstalleerd.",
   "windowsElevationUac": "UAC",

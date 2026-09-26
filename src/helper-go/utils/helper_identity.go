@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -20,6 +19,7 @@ type WindowsHelperPaths struct {
 	KeyPath            string
 	AllowedRootsPath   string
 	InstanceConfigPath string
+	DiagnosticsPath    string
 	PipeName           string
 }
 
@@ -48,14 +48,15 @@ func WindowsHelperInstancePaths(programData, sid string) (WindowsHelperPaths, er
 		KeyPath:            filepath.Join(instanceRoot, "helper.key"),
 		AllowedRootsPath:   filepath.Join(instanceRoot, "allowed-roots"),
 		InstanceConfigPath: filepath.Join(instanceRoot, "instance.json"),
+		DiagnosticsPath:    filepath.Join(instanceRoot, "startup.log"),
 		PipeName:           "FlyEnv.Helper." + instanceID,
 	}, nil
 }
 
 func CurrentWindowsHelperInstancePaths(sid string) (WindowsHelperPaths, error) {
-	programData := os.Getenv("ProgramData")
-	if programData == "" {
-		programData = commonApplicationDataPath()
+	programData, err := commonApplicationDataPath()
+	if err != nil {
+		return WindowsHelperPaths{}, err
 	}
 	return WindowsHelperInstancePaths(programData, sid)
 }

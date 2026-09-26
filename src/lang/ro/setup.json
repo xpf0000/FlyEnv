@@ -80,7 +80,7 @@
   "flyenvHelper": "Fix Helper FlyEnv",
   "flyenvHelperBtn": "Repară",
   "flyenvHelperFixSuccess": "FlyEnv Helper fixat cu succes",
-  "flyenvHelperInstallFailTips": "Instalarea programului FlyEnv helper a eșuat. Încercați să rulați FlyEnv cu privilegii de administrator sau faceți clic pe butonul OK și rulați manual programul flyenv-helper.exe din folderul deschis.",
+  "flyenvHelperInstallFailTips": "Instalarea programului FlyEnv helper a eșuat. Reîncercați cu contul Windows inițial folosind butonul de reparare din setări. Dacă eșuează din nou, transmiteți detaliile erorii de mai jos.",
   "windowsElevationMethod": "Metodă de elevare a privilegiilor",
   "windowsElevationMethodTips": "Alegeți cum sunt elevate operațiunile Windows care necesită privilegii de administrator. UAC solicită confirmare pentru fiecare operațiune acceptată; programul auxiliar evită solicitările repetate după instalare.",
   "windowsElevationUac": "UAC",

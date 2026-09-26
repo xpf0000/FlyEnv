@@ -29,7 +29,8 @@ export const resolveWindowsElevationMethod = (value: unknown): WindowsElevationM
 export type WindowsHelperTransport = 'socket' | 'fallback' | 'prompt' | 'reject'
 
 export type HelperCheckResponse =
-  { code: 0; data: true } | { code: 1; data: false; reason: AppHelperErrorCode; stderr?: string }
+  | { code: 0; data: true }
+  | { code: 1; data: false; reason: AppHelperErrorCode; msg?: string; stderr?: string }
 
 const APP_HELPER_ERROR_CODES = new Set<AppHelperErrorCode>([
   'helper_binary_missing',
@@ -161,12 +162,21 @@ export const buildHelperCheckResponse = (error: unknown): HelperCheckResponse =>
 
   if (isAppHelperError(error)) {
     const stderr = error.stderr?.trim()
-    return stderr
-      ? { code: 1, data: false, reason: error.code, stderr: stderr.slice(0, 4096) }
-      : { code: 1, data: false, reason: error.code }
+    return {
+      code: 1,
+      data: false,
+      reason: error.code,
+      msg: error.message.slice(0, 4096),
+      ...(stderr ? { stderr: stderr.slice(0, 4096) } : {})
+    }
   }
 
-  return { code: 1, data: false, reason: 'helper_execution_failed' }
+  return {
+    code: 1,
+    data: false,
+    reason: 'helper_execution_failed',
+    msg: (error instanceof Error ? error.message : String(error)).slice(0, 4096)
+  }
 }
 
 export const shouldOpenHelperInstaller = (reason?: string) => {

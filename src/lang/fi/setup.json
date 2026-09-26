@@ -80,7 +80,7 @@
   "flyenvHelper": "Korjaa FlyEnv -auttaja",
   "flyenvHelperBtn": "Korjaa",
   "flyenvHelperFixSuccess": "FlyEnv Helper Kiinteä Onnistuneesti",
-  "flyenvHelperInstallFailTips": "FlyEnv-apuohjelman asennus epäonnistui. Yritä suorittaa FlyEnv järjestelmänvalvojan oikeuksilla tai napsauta OK-painiketta ja suorita flyenv-helper.exe-apuohjelma manuaalisesti avautuneessa kansiossa.",
+  "flyenvHelperInstallFailTips": "FlyEnv-apuohjelman asennus epäonnistui. Yritä uudelleen alkuperäisellä Windows-tililläsi asetusten korjauspainikkeella. Jos asennus epäonnistuu uudelleen, lähetä alla olevat virhetiedot.",
   "windowsElevationMethod": "Korotustapa",
   "windowsElevationMethodTips": "Valitse, miten järjestelmänvalvojan oikeuksia edellyttävien Windows-toimintojen oikeudet korotetaan. UAC pyytää vahvistuksen jokaiselle tuetulle toiminnolle; apuohjelma välttää toistuvat kehotteet asennuksen jälkeen.",
   "windowsElevationUac": "UAC",

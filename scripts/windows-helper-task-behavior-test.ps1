@@ -7,6 +7,50 @@ if ($errors.Count) { throw ($errors | Out-String) }
 foreach ($node in $ast.FindAll({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) {
   . ([scriptblock]::Create($node.Extent.Text))
 }
+$fixture = Join-Path ([IO.Path]::GetTempPath()) ("flyenv-helper-fixture-$([Guid]::NewGuid().ToString('N'))")
+New-Item -ItemType Directory -Path $fixture | Out-Null
+try {
+  $hashFile = Join-Path $fixture 'hash.bin'
+  [IO.File]::WriteAllBytes($hashFile, [Text.Encoding]::UTF8.GetBytes('hash fixture'))
+  $sha = Get-Sha256Hash -Path $hashFile
+  if ($sha -ne 'cf3c9430364b43f31062427c0cb1e22ea1e28b34c6a05f5035418d0b8029acca') { throw "Unexpected SHA256: $sha" }
+  $programDataProbe = Get-HelperCommonApplicationDataPath
+  if ([string]::IsNullOrWhiteSpace($programDataProbe)) { throw 'Known-folder ProgramData path is empty' }
+  $retryFixture = @{ attempts = 0 }
+  $retryResult = Invoke-WithFileRetry -DelayMilliseconds 1 -Operation {
+    $retryFixture.attempts++
+    if ($retryFixture.attempts -lt 3) { throw [Runtime.InteropServices.COMException]::new('sharing fixture', -2147024864) }
+    'retry-ok'
+  }
+  if ($retryResult -ne 'retry-ok' -or $retryFixture.attempts -ne 3) { throw "Unexpected retry result: $retryResult/$($retryFixture.attempts)" }
+  $retryFixture.attempts = 0
+  try {
+    Invoke-WithFileRetry -Operation { $retryFixture.attempts++; throw [UnauthorizedAccessException]::new('denied fixture') }
+    throw 'Access denied was swallowed'
+  } catch {
+    if ($retryFixture.attempts -ne 1 -or $_.Exception.Message -notlike '*denied fixture*') { throw }
+  }
+  $pending = Join-Path $fixture 'replacement.pending'
+  $destination = Join-Path $fixture 'replacement.bin'
+  [IO.File]::WriteAllText($pending, 'first')
+  Publish-StagedHelperFile -StagedPath $pending -DestinationPath $destination
+  if ([IO.File]::ReadAllText($destination) -ne 'first' -or (Test-Path -LiteralPath $pending)) { throw 'First publication failed' }
+  [IO.File]::WriteAllText($pending, 'second')
+  # Actual sharing violation: failed replacement must retain both original and staged bytes.
+  $held = [IO.File]::Open($destination, 'Open', 'Read', 'Read')
+  try {
+    try { Publish-StagedHelperFile -StagedPath $pending -DestinationPath $destination; throw 'Locked replacement succeeded' }
+    catch { if (-not (Test-TransientFileError -ErrorRecord $_)) { throw } }
+    if ([IO.File]::ReadAllText($destination) -ne 'first' -or [IO.File]::ReadAllText($pending) -ne 'second') { throw 'Failed replacement lost data' }
+  } finally { $held.Dispose() }
+  Publish-StagedHelperFile -StagedPath $pending -DestinationPath $destination
+  if ([IO.File]::ReadAllText($destination) -ne 'second') { throw 'Retry after unlock failed' }
+} finally {
+  $resolvedFixture = [IO.Path]::GetFullPath($fixture)
+  $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
+  if (-not $resolvedFixture.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Fixture escaped TEMP' }
+  Remove-Item -LiteralPath $resolvedFixture -Recurse -Force -ErrorAction SilentlyContinue
+}
 $target = New-Object Security.Principal.SecurityIdentifier('S-1-5-21-100-200-300-400')
 $instanceId = 'abf09273e32cc15f69da240b7f8f588f'
 if ((Get-HelperInstanceId -Sid $target.Value) -ne $instanceId) { throw 'PowerShell SID instance ID does not match TypeScript/Go' }

@@ -80,7 +80,7 @@
   "flyenvHelper": "Reparar FlyEnv Helper",
   "flyenvHelperBtn": "Reparar",
   "flyenvHelperFixSuccess": "Reparo do FlyEnv Helper bem-sucedido",
-  "flyenvHelperInstallFailTips": "Falha na instalação do auxiliar FlyEnv. Tente executar o FlyEnv com privilégios de administrador ou clique no botão OK e execute manualmente o programa auxiliar flyenv-helper.exe na pasta aberta.",
+  "flyenvHelperInstallFailTips": "Falha na instalação do auxiliar FlyEnv. Tente novamente com a sua conta Windows original pelo botão de reparação nas definições. Se voltar a falhar, partilhe os detalhes do erro abaixo.",
   "windowsElevationMethod": "Método de elevação",
   "windowsElevationMethodTips": "Escolha como elevar as operações do Windows que exigem privilégios de administrador. O UAC pede confirmação para cada operação suportada; o programa auxiliar evita pedidos repetidos após a instalação.",
   "windowsElevationUac": "UAC",

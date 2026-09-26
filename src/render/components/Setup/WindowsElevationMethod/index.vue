@@ -18,6 +18,15 @@
         value="helper"
       ></el-radio-button>
     </el-radio-group>
+    <el-button
+      v-if="method === 'helper'"
+      class="ml-2"
+      :loading="HelperStore.isInstallResultPending()"
+      :disabled="changing"
+      @click="HelperStore.repair()"
+    >
+      {{ I18nT('setup.flyenvHelperBtn') }}
+    </el-button>
   </div>
 </template>
 
@@ -25,7 +34,6 @@
   import { computed, ref } from 'vue'
   import { AppStore } from '@/store/app'
   import HelperStore from '@/store/helper'
-  import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
   import {
     resolveWindowsElevationMethod,
@@ -33,25 +41,21 @@
   } from '@shared/WindowsHelperState'
 
   const store = AppStore()
-  const changing = ref(false)
+  const savingPreference = ref(false)
+  const changing = computed(() => savingPreference.value || HelperStore.isInstallResultPending())
   const method = computed(() =>
     resolveWindowsElevationMethod(store.config.setup.windowsElevationMethod)
   )
 
   const persist = async (value: WindowsElevationMethod) => {
-    store.config.setup.windowsElevationMethod = value
-    await store.saveConfig()
+    savingPreference.value = true
+    try {
+      store.config.setup.windowsElevationMethod = value
+      await store.saveConfig()
+    } finally {
+      savingPreference.value = false
+    }
   }
-
-  const verifyOrInstallHelper = () =>
-    new Promise<boolean>((resolve) => {
-      HelperStore.beginInstall()
-      IPC.send('APP-FlyEnv-Helper-Install').then((key: string, res: any) => {
-        IPC.off(key)
-        HelperStore.completeInstall(res)
-        resolve(res?.code === 0)
-      })
-    })
 
   const changeMethod = async (value: string | number | boolean) => {
     if ((value !== 'uac' && value !== 'helper') || changing.value || value === method.value) {
@@ -61,13 +65,10 @@
       await persist('uac')
       return
     }
-    changing.value = true
     try {
-      await persist((await verifyOrInstallHelper()) ? 'helper' : 'uac')
+      await persist((await HelperStore.repair()) ? 'helper' : 'uac')
     } catch {
       await persist('uac')
-    } finally {
-      changing.value = false
     }
   }
 </script>

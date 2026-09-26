@@ -2,6 +2,8 @@
 
 日期：2026-09-15。对应 `docs/task/task.md`、`task1.md`、`task2.md` 和 Issue #852。
 
+> 后续更新（2026-09-26）：本文保留 v26 改造时的历史记录；其中“不另加系统级安装锁”、Windows helper 安装沿用旧 Sudo TEMP 流程等描述已被后续实现取代。当前版本为 v27，增加了 per-SID 系统互斥锁、独立内联 PowerShell 提权、暂存发布、停止任务恢复和启动诊断。完整改动、原因与验证边界见 [Windows helper v27 安装健壮性修复说明](windows-helper-resilience-v27.md)。主程序与备份的指纹选择策略仍不改变。
+
 ## 根因
 
 FlyEnv 已经能在 UAC 前取得启动 FlyEnv 的目标用户 SID，但旧架构仍把 helper 运行身份、客户端身份、任务、密钥和命名管道混在一套机器级资源中。标准用户用另一管理员凭据批准 UAC 后，任务可能绑定错误的账户；改成 SYSTEM 后，如果 helper 又拿 SYSTEM SID 校验普通用户客户端，请求仍会失败。单一任务和管道也会让同一台机器上的不同 Windows 用户互相覆盖。

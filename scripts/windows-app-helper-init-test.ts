@@ -16,7 +16,7 @@ async function main() {
     }
   })
   const pendingInitialCheck = concurrent.initHelper()
-  await assert.rejects(concurrent.initHelper(), /Please Wait/)
+  assert.equal(concurrent.initHelper(), pendingInitialCheck)
   assert.equal(
     initialChecks,
     1,
@@ -83,7 +83,7 @@ async function main() {
   const firstInit = helper.initHelper()
   await commandStarted
 
-  await assert.rejects(helper.initHelper(), /Please Wait/)
+  assert.equal(helper.initHelper(), firstInit)
   assert.equal(helper.state, 'installing')
   assert.equal(commandCalls, 1)
   assert.equal(statuses.filter((state) => state === 'needInstall').length, 1)

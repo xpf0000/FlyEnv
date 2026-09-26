@@ -80,7 +80,7 @@
   "flyenvHelper": "Reparera FlyEnv-hjälpprogram",
   "flyenvHelperBtn": "Reparera",
   "flyenvHelperFixSuccess": "Reparation av FlyEnv-hjälpprogram lyckades",
-  "flyenvHelperInstallFailTips": "Installationen av FlyEnv-hjälpprogrammet misslyckades. Försök att köra FlyEnv med administratörsbehörighet eller klicka på OK-knappen och kör hjälpprogrammet flyenv-helper.exe manuellt i den öppnade mappen.",
+  "flyenvHelperInstallFailTips": "Installationen av FlyEnv-hjälpprogrammet misslyckades. Försök igen med ditt ursprungliga Windows-konto via reparationsknappen i inställningarna. Dela felinformationen nedan om det misslyckas igen.",
   "windowsElevationMethod": "Metod för behörighetshöjning",
   "windowsElevationMethodTips": "Välj hur Windows-åtgärder som kräver administratörsbehörighet ska köras med förhöjda rättigheter. UAC ber om bekräftelse för varje åtgärd som stöds; hjälpprogrammet undviker upprepade frågor efter installationen.",
   "windowsElevationUac": "UAC",
