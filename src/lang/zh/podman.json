@@ -16,6 +16,8 @@
   "rootful": "Rootful模式",
   "userModeNetworking": "用户模式网络",
   "rosetta": "Mac 用 Rosetta",
+  "rosettaGlobalTip": "会写入全局 Podman 偏好（Apple Silicon），不是单台虚拟机独立开关。需要 Podman >= 5.1.0。",
+  "rosettaNeedVersion": "Rosetta 需要 Podman >= 5.1.0。请升级 Podman 后再开启。",
   "identityPath": "SSH密钥路径",
   "remoteUsername": "远程用户",
   "Dashboard": "仪表盘",
