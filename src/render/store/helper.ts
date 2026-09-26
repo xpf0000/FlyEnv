@@ -20,14 +20,6 @@ class Helper {
     return this.installResultPending
   }
 
-  beginInstall() {
-    this.installResultPending = true
-  }
-
-  completeInstall(res: any) {
-    this.handleInstallResult(res)
-  }
-
   repair(): Promise<boolean> {
     if (this.installPromise) {
       return this.installPromise.then((res) => res?.code === 0)
@@ -38,7 +30,11 @@ class Helper {
       const sent = IPC.send('APP-FlyEnv-Helper-Install')
       const timer = setTimeout(() => {
         IPC.off(sent.key)
-        resolve({ code: 1, reason: 'elevation_status_timeout', msg: I18nT('menu.waitHelper') })
+        resolve({
+          code: 1,
+          reason: 'elevation_status_timeout',
+          msg: I18nT('setup.flyenvHelperInstallTimeout')
+        })
       }, 300_000)
       try {
         sent.then((key: string, res: any) => {
@@ -111,7 +107,6 @@ class Helper {
         this.repair().catch(() => false)
       })
       .catch(() => {
-        this.installResultPending = false
         this.show = false
       })
   }

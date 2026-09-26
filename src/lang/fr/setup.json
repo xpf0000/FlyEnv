@@ -88,6 +88,7 @@
   "flyenvHelperBtn": "Réparer",
   "flyenvHelperFixSuccess": "Réparation de l'application d'assistance FlyEnv réussie",
   "flyenvHelperInstallFailTips": "L'installation de l'assistant FlyEnv a échoué. Réessayez avec votre compte Windows habituel via le bouton de réparation dans les paramètres. En cas de nouvel échec, transmettez les détails de l’erreur ci-dessous.",
+  "flyenvHelperInstallTimeout": "Délai d'attente du résultat de l'installation dépassé. L'installation est peut-être encore en cours en arrière-plan. Utilisez à nouveau le bouton de réparation de l'assistant pour vérifier le résultat.",
   "windowsElevationMethod": "Mode d'élévation",
   "windowsElevationMethodTips": "Choisissez comment élever les opérations Windows nécessitant des privilèges administrateur. Le contrôle de compte d'utilisateur (UAC) demande une confirmation pour chaque opération prise en charge ; l'assistant évite les demandes répétées une fois installé.",
   "windowsElevationUac": "UAC",

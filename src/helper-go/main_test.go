@@ -109,6 +109,16 @@ func TestSanitizeStartupDiagnosticRedactsKeyAndArguments(t *testing.T) {
 	}
 }
 
+func TestSanitizeStartupDiagnosticKeepsNaturalLanguageKeyErrors(t *testing.T) {
+	message := sanitizeStartupDiagnostic("failed to load helper key: access denied for SID S-1-5-21-100")
+	if strings.Contains(message, "[redacted]") {
+		t.Fatalf("natural language key error was over-redacted: %q", message)
+	}
+	if !strings.Contains(message, "access denied") {
+		t.Fatalf("diagnostic detail was lost: %q", message)
+	}
+}
+
 func TestHelperHealthResponseIncludesVersionPIDAndInstanceIdentity(t *testing.T) {
 	response := helperHealthResponse(1234, "S-1-5-21-100-200-300-400", "abf09273e32cc15f69da240b7f8f588f")
 	if response["version"] != Helper_Version {

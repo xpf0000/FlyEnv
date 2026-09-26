@@ -61,11 +61,10 @@ export const waitForHelperHealth = async <T>(
     try {
       return await check()
     } catch (error) {
-      if (
-        isAppHelperError(error) &&
-        error.code !== 'helper_pipe_unreachable' &&
-        error.code !== 'helper_unreachable'
-      ) {
+      if (!isAppHelperError(error)) {
+        throw error
+      }
+      if (error.code !== 'helper_pipe_unreachable' && error.code !== 'helper_unreachable') {
         throw error
       }
       lastError = error
@@ -343,7 +342,11 @@ export class AppHelper {
         this.state = 'installed'
         await waitForHelperHealth(() => this.deps.appHelperCheck())
       }
-      await this._onSuduExecSuccess?.()
+      try {
+        await this._onSuduExecSuccess?.()
+      } catch (callbackError) {
+        appDebugLog('[AppHelper][post-ready]', String(callbackError)).catch(() => {})
+      }
       this.emitStatus('checkSuccess')
       return true
     } catch (error) {

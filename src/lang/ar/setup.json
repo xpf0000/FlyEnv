@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "إصلاح",
   "flyenvHelperFixSuccess": "تم إصلاح FlyEnv Helper بنجاح",
   "flyenvHelperInstallFailTips": "فشل تثبيت مساعد FlyEnv. أعد المحاولة بحساب Windows الأصلي عبر زر الإصلاح في الإعدادات. إذا تكرر الفشل، شارك تفاصيل الخطأ أدناه.",
+  "flyenvHelperInstallTimeout": "انتهت مهلة انتظار نتيجة التثبيت. قد يكون التثبيت لا يزال قيد التشغيل في الخلفية. استخدم زر إصلاح المساعد مرة أخرى للتحقق من النتيجة.",
   "windowsElevationMethod": "طريقة رفع الامتيازات",
   "windowsElevationMethodTips": "اختر كيفية رفع امتيازات عمليات Windows التي تتطلب صلاحيات المسؤول. يطلب التحكم في حساب المستخدم (UAC) التأكيد لكل عملية مدعومة؛ وتتفادى الأداة المساعدة الطلبات المتكررة بعد تثبيتها.",
   "windowsElevationUac": "UAC",

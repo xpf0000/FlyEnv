@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Perbaiki",
   "flyenvHelperFixSuccess": "Perbaikan program bantu FlyEnv berhasil",
   "flyenvHelperInstallFailTips": "Pemasangan FlyEnv helper gagal. Coba lagi dengan akun Windows semula melalui tombol perbaikan di Pengaturan. Jika gagal lagi, bagikan detail kesalahan di bawah.",
+  "flyenvHelperInstallTimeout": "Waktu tunggu hasil instalasi habis. Instalasi mungkin masih berjalan di latar belakang. Gunakan kembali tombol perbaikan helper untuk memeriksa hasilnya.",
   "windowsElevationMethod": "Metode Peningkatan Hak Akses",
   "windowsElevationMethodTips": "Pilih cara meningkatkan hak akses untuk operasi Windows yang memerlukan hak administrator. UAC meminta konfirmasi untuk setiap operasi yang didukung; program pembantu menghindari permintaan berulang setelah diinstal.",
   "windowsElevationUac": "UAC",

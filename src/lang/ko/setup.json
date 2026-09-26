@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "복구",
   "flyenvHelperFixSuccess": "FlyEnv 헬퍼가 성공적으로 복구되었습니다",
   "flyenvHelperInstallFailTips": "FlyEnv 헬퍼 설치에 실패했습니다. 기존 Windows 계정에서 설정의 복구 버튼으로 다시 시도하세요. 계속 실패하면 아래 오류 세부 정보를 공유해 주세요.",
+  "flyenvHelperInstallTimeout": "설치 결과를 기다리는 시간이 초과되었습니다. 설치가 아직 백그라운드에서 진행 중일 수 있습니다. 도우미 복구 버튼을 다시 사용하여 결과를 확인하세요.",
   "windowsElevationMethod": "권한 상승 방식",
   "windowsElevationMethodTips": "관리자 권한이 필요한 Windows 작업의 권한 상승 방식을 선택합니다. UAC는 지원되는 작업마다 확인을 요청하며, 헬퍼를 설치하면 반복되는 확인 요청을 피할 수 있습니다.",
   "windowsElevationUac": "UAC",

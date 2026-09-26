@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Ret",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fast Med Succesfuld",
   "flyenvHelperInstallFailTips": "Installationen af FlyEnv-hjælpeprogrammet mislykkedes. Prøv igen med din oprindelige Windows-konto via reparationsknappen i indstillingerne. Del fejloplysningerne nedenfor, hvis det mislykkes igen.",
+  "flyenvHelperInstallTimeout": "Tidsgrænsen for at vente på installationsresultatet er udløbet. Installationen kører muligvis stadig i baggrunden. Brug hjælperens reparationsknap igen for at kontrollere resultatet.",
   "windowsElevationMethod": "Metode til rettighedsforhøjelse",
   "windowsElevationMethodTips": "Vælg, hvordan Windows-handlinger, der kræver administratorrettigheder, skal få forhøjede rettigheder. UAC beder om bekræftelse for hver understøttet handling; hjælpeprogrammet undgår gentagne anmodninger, når det er installeret.",
   "windowsElevationUac": "UAC",

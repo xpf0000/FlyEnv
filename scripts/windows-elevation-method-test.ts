@@ -44,17 +44,19 @@ assert.match(
 )
 assert.match(control, /value="uac"/)
 assert.match(control, /value="helper"/)
-assert.match(control, /APP-FlyEnv-Helper-Install/)
-assert.match(control, /HelperStore\.beginInstall\(\)/)
-assert.match(control, /HelperStore\.completeInstall\(res\)/)
+assert.match(control, /HelperStore\.repair\(\)/)
+assert.doesNotMatch(control, /APP-FlyEnv-Helper-Install/)
+assert.doesNotMatch(control, /beginInstall/)
+assert.doesNotMatch(control, /completeInstall/)
+assert.doesNotMatch(control, /verifyOrInstallHelper/)
 assert.match(globalIpc, /APP-Windows-Elevation-Method-Changed/)
 assert.match(
   globalIpc,
   /!res\?\.status &&\s*!HelperStore\.isInstallResultPending\(\) &&\s*HelperStore\.shouldShowNeedInstallDialog/
 )
-assert.match(helperStore, /beginInstall\(\)/)
-assert.match(helperStore, /completeInstall\(res: any\)/)
-assert.match(helperStore, /app\.getWindowsHelperBinaryPath\(\)/)
+assert.doesNotMatch(helperStore, /beginInstall/)
+assert.doesNotMatch(helperStore, /completeInstall\(/)
+assert.doesNotMatch(helperStore, /app\.getWindowsHelperBinaryPath\(\)/)
 assert.doesNotMatch(helperStore, /app\.getPath\('exe'\)/)
 assert.match(
   nodeFn,

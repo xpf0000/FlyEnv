@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Repareer",
   "flyenvHelperFixSuccess": "FlyEnv Helper succesvol opgelost",
   "flyenvHelperInstallFailTips": "De installatie van FlyEnv helper is mislukt. Probeer het met uw oorspronkelijke Windows-account opnieuw via de herstelknop in Instellingen. Deel bij een nieuwe fout de onderstaande foutdetails.",
+  "flyenvHelperInstallTimeout": "Time-out bij het wachten op het installatieresultaat. De installatie wordt mogelijk nog steeds op de achtergrond uitgevoerd. Gebruik de herstelknop van de helper opnieuw om het resultaat te controleren.",
   "windowsElevationMethod": "Methode voor bevoegdheidsverhoging",
   "windowsElevationMethodTips": "Kies hoe Windows-bewerkingen waarvoor beheerdersrechten nodig zijn, worden uitgevoerd met verhoogde rechten. UAC vraagt bevestiging voor elke ondersteunde bewerking; het hulpprogramma voorkomt herhaalde prompts nadat het is geïnstalleerd.",
   "windowsElevationUac": "UAC",

@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Sửa",
   "flyenvHelperFixSuccess": "Sửa FlyEnv Helper thành công",
   "flyenvHelperInstallFailTips": "Quá trình cài đặt trình trợ giúp FlyEnv đã thất bại. Thử lại bằng tài khoản Windows ban đầu qua nút sửa chữa trong Cài đặt. Nếu vẫn thất bại, hãy gửi chi tiết lỗi bên dưới.",
+  "flyenvHelperInstallTimeout": "Hết thời gian chờ kết quả cài đặt. Quá trình cài đặt có thể vẫn đang chạy trong nền. Hãy dùng lại nút sửa trợ giúp để kiểm tra kết quả.",
   "windowsElevationMethod": "Phương thức nâng quyền",
   "windowsElevationMethodTips": "Chọn cách nâng quyền cho các thao tác Windows cần đặc quyền quản trị viên. UAC yêu cầu xác nhận cho từng thao tác được hỗ trợ; chương trình trợ giúp tránh các lời nhắc lặp lại sau khi được cài đặt.",
   "windowsElevationUac": "UAC",

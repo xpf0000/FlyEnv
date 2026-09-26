@@ -8,6 +8,7 @@ async function main() {
   let sends = 0
   let hostWrites = 0
   let failSend = false
+  let elConfirm: () => Promise<any> = async () => undefined
   const listeners = new Map<string, (key: string, res: any) => void>()
   const dialogs: any[] = []
   const timers = new Set<() => void>()
@@ -27,7 +28,7 @@ async function main() {
     }
   }
   const dependencies: Record<string, any> = {
-    'element-plus': { ElMessageBox: { confirm: async () => undefined } },
+    'element-plus': { ElMessageBox: { confirm: () => elConfirm() } },
     '@lang/index': { I18nT: (key: string) => key },
     '@/util/IPC': { default: ipc },
     '@/util/NodeFn': {
@@ -108,12 +109,31 @@ async function main() {
   timers.delete(timeout)
   timeout()
   assert.equal(await timedOut, false)
+  assert.match(dialogs[2].message, /flyenvHelperInstallTimeout/)
   assert.equal(listeners.size, 0)
   assert.equal(controller.isInstallResultPending(), false)
   const retry = controller.repair()
   respond(5, { code: 0 })
   assert.equal(await retry, true)
   assert.equal(timers.size, 0)
+
+  let rejectConfirm: (error: any) => void = () => {}
+  elConfirm = () =>
+    new Promise((_resolve, reject) => {
+      rejectConfirm = reject
+    })
+  controller.showNeedInstallDialog('helper_not_found')
+  assert.equal(controller.show, true)
+  const inFlight = controller.repair()
+  assert.equal(controller.isInstallResultPending(), true)
+  rejectConfirm(new Error('cancel'))
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(controller.isInstallResultPending(), true)
+  assert.equal(controller.show, false)
+  respond(6, { code: 0 })
+  assert.equal(await inFlight, true)
+  assert.equal(controller.isInstallResultPending(), false)
+
   console.log('windows-helper-renderer-controller-test: ok')
 }
 

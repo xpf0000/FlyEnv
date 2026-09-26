@@ -1,7 +1,7 @@
 # --- Configuration ---
 BUILD_DIR="./dist"
 APP_NAME="flyenv-helper"
-MAIN_PACKAGE="./main.go" # Or "." if your main.go is in the current directory and you're building the module
+MAIN_PACKAGE="." # Build the whole package; main.go references sibling files such as startup_diagnostics.go
 
 # Define target platforms: GOOS GOARCH GOAMD64_SETTING
 # GOAMD64_SETTING is specifically for amd64 builds, empty for others

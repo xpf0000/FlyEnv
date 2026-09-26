@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Popravi",
   "flyenvHelperFixSuccess": "FlyEnv Helper Uspješno Popravljen",
   "flyenvHelperInstallFailTips": "Instalacija FlyEnv helpera nije uspjela. Pokušajte ponovno s izvornim Windows računom putem gumba za popravak u postavkama. Ako ponovno ne uspije, podijelite pojedinosti pogreške u nastavku.",
+  "flyenvHelperInstallTimeout": "Isteklo je vrijeme čekanja na rezultat instalacije. Instalacija se možda još uvijek izvodi u pozadini. Ponovno upotrijebite gumb za popravak pomoćnog programa da provjerite rezultat.",
   "windowsElevationMethod": "Način povišenja ovlasti",
   "windowsElevationMethodTips": "Odaberite način povišenja ovlasti za radnje u sustavu Windows koje zahtijevaju administratorske ovlasti. UAC traži potvrdu za svaku podržanu radnju; pomoćni program nakon instalacije izbjegava ponavljane upite.",
   "windowsElevationUac": "UAC",

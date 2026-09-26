@@ -72,6 +72,9 @@ jobs:
           # 使用 PowerShell 脚本构建
           .\build-win.ps1
 
+      - name: Verify helper version sync
+        run: npx tsx scripts/helper-version-sync-test.ts
+
       # 第 1 阶段:编译并生成 win-unpacked。portable 目标会先把 elevate.exe 放入 app 目录,
       # 从而让它与 FlyEnv.exe / dll / node 扩展一起通过可信 GitHub Artifact 签名。
       - name: Build unsigned Windows application

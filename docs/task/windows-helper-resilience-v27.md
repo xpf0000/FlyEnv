@@ -68,6 +68,7 @@
 
 - 单个输出字段最多保留 8,000 字符，包括单条超长输出；响应接收上限为 128 KiB。
 - `FLYENV_HELPER_INSTALL_ERROR:<code>:<message>` 映射到现有类型化错误，关键错误置于诊断前部，避免被普通输出淹没。
+- 提权子进程连不上结果管道（被杀软或管道策略拦截、管道名被占用等）时以专用退出码 73 结束；launcher 把它转换为 JSON 诊断，主进程映射为 `elevation_pipe_connect_failed`，不再只剩笼统的 `elevation_launch_failed`。该退出码是管道不可用时的唯一回传通道。
 - Windows 原生错误码 1223 映射为 `elevation_uac_cancelled`，不把用户拒绝当作安装损坏。
 - launcher 默认等待 180 秒。超时并结束 launcher 不代表提权子进程已经退出，因此返回“不确定、可能仍在完成”的错误，不删除安装数据。
 - 此时结果管道额外保留最多 10 分钟，迟到结果到达或截止后清理；server/socket/timer 使用 `unref`，不会仅为了清理而阻止 FlyEnv 退出。
@@ -102,6 +103,8 @@
 
 **调整：** 先核对管理员权限、SID 派生实例 ID、任务/管道/路径命名空间，再取得 `Global\FlyEnv.Helper.Install.<instance-id>` 互斥锁。锁只给 Administrators/SYSTEM 完全控制，等待上限 30 秒；兼容 abandoned mutex，并在 finally 释放。
 
+**已知边界（本地 DoS）：** `Global\` 命名空间的 mutex 不需要任何特权即可创建（`SeCreateGlobalPrivilege` 只约束 Global 命名空间中 file-mapping 与符号链接的创建，不约束 mutex 等同步对象），因此同机另一个本地用户可以预创建同名 mutex 并设置拒绝性 DACL，使安装被阻断。这只是本地 DoS：不能获得 SYSTEM、不能替换 helper、不能绕过 SID 命名空间/ACL/指纹检查，与既有的 ProgramData 目录抢占风险同级。记录为边界，不为此引入更复杂的锁机制；若未来面向多租户主机场景再评估受保护命名空间方案。
+
 随后检查必需备份、原有指纹规则、数据目录及 reparse-point/ACL。不同 SID 使用不同锁；创建共享任务文件夹遇到并发创建时重新读取目录，避免两个用户首次安装互相绊倒。
 
 ### 5.2 文件占用只做有限、针对性重试
@@ -127,6 +130,8 @@ SHA-256 改由 .NET 文件流实现，降低 PowerShell 模块自动加载依赖
 
 **边界：** 这是“先暂存、逐文件原子替换”，不是多个文件的整体事务。断电或发布中途失败仍可能留下部分新文件；已有 allowed-roots 备份按现有失败路径尽力恢复，未发布暂存文件尽力清理，但不会自动回退旧 helper 二进制。后续修复重新校验实际状态。有效 key 复用也不代表降低其权限要求。
 
+**只读目标边界：** v26 对 key/instance.json 使用 `Remove-Item -Force` + `Move`，可以替换被置只读的文件；本轮统一为原子 `File.Replace` 后，目标被置只读（某些杀软/企业策略会这么做）时发布会明确报错，且原文件与暂存文件都保留。保留该行为——为了少见的只读场景重新引入“先删旧文件再 Move”会削弱原子性；遇到此类失败应先检查文件只读属性。
+
 ### 5.4 任务设置和失败清理
 
 **原问题：** 已安装但停止的任务可能只能通过重新提权修复；任务缺少崩溃恢复设置；失败时删除任务、清理错误覆盖原错误，会让下一次修复更困难。
@@ -148,8 +153,8 @@ SHA-256 改由 .NET 文件流实现，降低 PowerShell 模块自动加载依赖
 - **重复调用：** 同一个 `initHelper()` 安装 Promise 返回给所有调用方，避免一个调用仍安装中、另一个却提前得到成功；finally 统一恢复可重试状态。
 - **停止任务恢复：** 仅对 helper/pipe unreachable 尝试恢复。先验证 32 字节 key、任务 principal、动作、参数、触发 SID 及安装程序指纹；真正 Run 前再校验，不会为了少一次 UAC 而启动任意任务。已 Running/Queued 的任务不重复 Run。
 - **旧任务兼容：** 旧任务没有执行权限或恢复失败时，回到正常 UAC 安装修复，而不是把恢复能力作为强制前提。
-- **健康等待：** 任务恢复后的等待预算为 10 秒，安装后为 30 秒；临时不可达采用退避。版本、身份、ACL 等已识别的非暂态错误直接失败，不空等至超时。单次底层检查仍有自身超时，预算不是每种异常下严格的进程总时长保证。
-- **成功条件：** 最终检查通过后才执行成功回调并发出 checkSuccess。成功回调异常与“初始 helper 不健康”分开处理，不因为回调失败立即进入第二次安装。
+- **健康等待：** 任务恢复后的等待预算为 10 秒，安装后为 30 秒；临时不可达采用退避。版本、身份、ACL 等已识别的非暂态错误直接失败，不空等至超时。未归类为暂态的普通异常（编程错误等）同样立即抛出，不参与退避重试。单次底层检查仍有自身超时，预算不是每种异常下严格的进程总时长保证。
+- **成功条件：** 最终检查通过后才执行成功回调并发出 checkSuccess。成功回调（恢复提权方式配置、初始化数据目录等 post-ready 工作）异常与“初始 helper 不健康”分开处理：回调失败只记录日志（`[AppHelper][post-ready]`），安装仍按最终健康判定报告成功；不上报 installFaild、不进入第二次安装、不把运行时提权方式降级为 uac。
 - **错误传递：** IPC 除 reason/stderr 外保留 msg；无 stderr 的普通异常不再只剩一个错误码。msg/stderr 各截断至 4,096 字符。
 - **失败补充诊断：** Windows 安装失败（用户取消除外）尽力补充 Task state、LastTaskResult 和启动日志末尾最多 3,072 字节；诊断读取失败不覆盖安装原错。
 
@@ -187,7 +192,7 @@ Windows GUI 构建没有可见控制台，计划任务启动失败时仅看到�
 
 ### 8.3 修复按钮统一由 controller 管理
 
-`src/render/store/helper.ts` 的 `repair()` 拥有安装请求、共享 Promise、中间事件过滤、终态处理、300 秒兜底超时和 IPC 监听清理。同步发送失败、失败后重试、取消后重试均恢复可操作状态；成功后仍调用既有 hosts 补写流程。
+`src/render/store/helper.ts` 的 `repair()` 拥有安装请求、共享 Promise、中间事件过滤、终态处理、300 秒兜底超时和 IPC 监听清理。同步发送失败、失败后重试、取消后重试均恢复可操作状态；成功后仍调用既有 hosts 补写流程。安装确认框的取消只关闭对话框，不触碰 `installResultPending`（该状态由 `repair()` 独占管理）；300 秒兜底超时使用专用文案 `setup.flyenvHelperInstallTimeout`（33 个 locale 同步新增），不再复用语义不符的“请稍候”。
 
 `src/render/components/Setup/WindowsElevationMethod/index.vue` 在 helper 模式提供修复按钮；切换到 helper 和手动修复共用该入口。页面不再自行发送安装 IPC 或拥有安装 loading，只保留保存偏好的局部状态。
 
@@ -201,17 +206,18 @@ Windows 错误对话框显示诊断（最多 1,024 字符），用户取消不�
 
 - `scripts/helper-version-sync-test.ts`：两端版本及目标版本 27 一致，防止漏升一端。
 - `scripts/windows-after-sign-helper-test.ts`：实际临时文件验证缺失产物、复制失败中止打包，以及成功时主程序/备份内容一致。
-- `scripts/windows-app-helper-init-test.ts`：重复安装调用必须共享同一个终态 Promise；覆盖安装成功/失败后的状态和既有恢复逻辑。
-- `scripts/windows-helper-elevation-test.ts`（新增）：真实 PowerShell 子进程和命名管道，不请求 UAC；覆盖特殊字符路径、完整脚本命令行长度、Unicode 超长输出、错误码、取消、超时和迟到子进程结果。
+- `scripts/windows-app-helper-init-test.ts`：重复安装调用必须共享同一个终态 Promise；覆盖安装成功/失败后的状态和既有恢复逻辑；post-ready 成功回调失败时安装仍成功、不发 installFaild。
+- `scripts/windows-elevation-method-test.ts`：更新为 controller 契约——组件经 `HelperStore.repair()` 发起修复，不再直发安装 IPC；helper store 中 `beginInstall`/`completeInstall` 死代码已随断言一并删除。
+- `scripts/windows-helper-elevation-test.ts`（新增）：真实 PowerShell 子进程和命名管道，不请求 UAC；覆盖特殊字符路径、完整脚本命令行长度、Unicode 超长输出、错误码、取消、超时和迟到子进程结果；另覆盖结果管道不可达时提权子进程以退出码 73 结束、launcher 输出 JSON 诊断并映射为 `elevation_pipe_connect_failed`（真实去-UAC launcher 链路验证）。
 - `scripts/windows-helper-cross-user-test.ts`：既有身份配置/特殊路径 fixture 的版本同步为 27；该脚本不等同于真实跨账户 UAC 验证。
 - `scripts/windows-helper-install-ipc-test.ts`：保留主进程最终结果回复及全局通知防重复契约，适配 controller 统一发送结构。
-- `scripts/windows-helper-install-script-test.ts`：更新脚本契约断言，覆盖 known folder、SHA-256、锁、暂存先于停止、有限重试、key 复用、任务恢复设置和不删除任务等结构约束。
+- `scripts/windows-helper-install-script-test.ts`：更新脚本契约断言，覆盖 known folder、SHA-256、锁（30 秒上限、abandoned 兼容、finally 释放、仅 Admin/SYSTEM）、暂存→停止→发布→注册→启动完整顺序、错误 32/33 有限重试、key 复用及 32 字节规则、任务恢复设置（PT0S/PT1M×3/StartWhenAvailable/AllowDemandStart/MultipleInstances=2/电池开关/FRFX SDDL）和不删除任务等结构约束。
 - `scripts/windows-helper-powershell-test.ts`（新增）：系统目录可不在 C 盘、模块路径隔离，以及实际身份捕获不信任被污染的 ProgramData 环境变量。
-- `scripts/windows-helper-renderer-controller-test.ts`（新增）：执行真实 controller 逻辑，替换外部 IPC/对话框边界；断言重复请求只发送一次、中间事件不清理、成功/失败/取消/同步异常/超时清理及后续重试。
-- `scripts/windows-helper-resilience-test.ts`（新增）：无 stderr 错误仍保留 msg；永久健康错误不重试；主进程防重；有效停止任务恢复不进入安装；失败附带任务诊断。
+- `scripts/windows-helper-renderer-controller-test.ts`（新增）：执行真实 controller 逻辑，替换外部 IPC/对话框边界；断言重复请求只发送一次、中间事件不清理、成功/失败/取消/同步异常/超时清理及后续重试；安装进行中取消确认框不改变 pending 状态；超时对话框使用 `flyenvHelperInstallTimeout` 文案。
+- `scripts/windows-helper-resilience-test.ts`（新增）：无 stderr 错误仍保留 msg；永久健康错误不重试；未归类普通异常快速失败；主进程防重；有效停止任务恢复不进入安装；失败附带任务诊断。
 - `scripts/windows-helper-state-test.ts`：适配并验证类型化/普通异常的 msg、stderr 和错误分类输出。
-- `scripts/windows-helper-task-behavior-test.ps1`：只加载安装脚本函数、不执行安装主体；测试哈希、known folder、临时/永久错误重试、真实文件锁下的原子替换、释放后重试，以及假 scheduler 对象的身份/动作拒绝。
-- `src/helper-go/main_test.go`：新增启动诊断敏感值过滤测试；该 main 包在本机非提权环境未执行，不能算已通过。
+- `scripts/windows-helper-task-behavior-test.ps1`：只加载安装脚本函数、不执行安装主体；测试哈希、known folder、临时（32/33）/永久错误重试及 5 次上限、真实文件锁下的原子替换、释放后重试、只读目标 Replace 安全失败（原文件与暂存均保留），以及假 scheduler 对象的身份/动作拒绝。
+- `src/helper-go/main_test.go`：新增启动诊断敏感值过滤测试（含 `helper key:` 自然语言错误不被过度脱敏的回归）；该 main 包在本机非提权环境未执行，不能算已通过。
 - `src/helper-go/utils/helper_identity_test.go`：污染 ProgramData 后实例根不得落入污染目录，防止路径来源回归。
 - `src/helper-go/utils/helper_diagnostics_test.go`（新增）：日志轮转大小上限、重启追加、符号链接与硬链接拒绝。硬链接用例独立于符号链接，防止缺少 symlink 权限时连带跳过。
 
@@ -235,8 +241,25 @@ Windows 错误对话框显示诊断（最多 1,024 字符），用户取消不�
 - 标准用户输入另一管理员凭据批准 UAC，结合非 ASCII 用户名、特殊字符路径、重定位 ProgramData。
 - 真正注册/运行 SYSTEM 任务，验证目标用户 demand start 权限、登录触发器、失败重启及同 SID/不同 SID 并发安装。
 - 磁盘满、永久 ACL 拒绝、文件占用、进程中断/重启，分别发生在停止前、停止后、发布中和注册后。
-- UAC 取消或长时间不批准、launcher 超时但子进程继续、保留期内再次修复。
+- key / instance.json / allowed-roots 被杀软或企业策略置为只读：原子 Replace 应明确报错并保留原文件与暂存文件，清除只读属性后重试应成功。
+- 同机另一本地用户预创建 `Global\FlyEnv.Helper.Install.<instance-id>` 互斥锁：安装应被拒绝并报“另一安装进行中”，其他检查不被绕过（见 §5.1 已知边界）。
+- UAC 取消或长时间不批准、launcher 超时但子进程继续、保留期内再次修复；结果管道被杀软/管道策略拦截时应得到 `elevation_pipe_connect_failed` 及明确提示。
 - Defender/第三方杀软、AppLocker/WDAC/Constrained Language、禁用 Task Scheduler：应诊断失败，不绕过安全策略。
 - Go main 包管理员测试、需要创建符号链接权限的用例；当前账号的 symlink 测试因权限不足跳过。
 
 这些限制意味着“尽量减少可恢复失败”，不意味着在拒绝管理员授权、发布文件缺失、强制执行限制或不可用磁盘上保证安装成功。
+
+## 11. 审查后跟进修复（同日第二轮）
+
+依据 [v27 审查报告](windows-helper-resilience-v27-review.md) 及 [复审意见](windows-helper-v27-review.md)，本轮在不改变核心设计的前提下处理了以下状态边界与诊断细节：
+
+- **post-ready 回调与安装结果解耦：** `_onSuduExecSuccess`（恢复提权方式配置、初始化数据目录）失败只记录 `[AppHelper][post-ready]` 日志；不再上报 installFaild、不再把运行时提权方式降级为 uac，安装结果只由最终健康判定决定。
+- **未知健康检查错误快速失败：** `waitForHelperHealth` 只对 `helper_pipe_unreachable`/`helper_unreachable` 退避重试；其余 `AppHelperError` 与所有未归类异常（编程错误等）立即抛出。
+- **结果管道不可达的诊断：** 提权子进程连接结果管道失败以退出码 73 结束，launcher 转换为 JSON 诊断，主进程映射为新的类型化错误 `elevation_pipe_connect_failed`。
+- **renderer 状态所有权：** 安装确认框取消不再清理 `installResultPending`；300 秒兜底超时改用专用文案 `setup.flyenvHelperInstallTimeout`（33 个 locale 新增）；删除 `beginInstall`/`completeInstall` 死代码，并把过期的 `windows-elevation-method-test.ts` 更新为 controller 契约断言。
+- **Go 启动诊断脱敏修正：** 脱敏正则只匹配 `key=`/`arg=` 赋值形式，不再把 `failed to load helper key: <原因>` 这类自然语言错误的首词误判为敏感值。
+- **构建脚本修正：** `src/helper-go/build.sh`、`build-os.sh` 的 `MAIN_PACKAGE` 由 `./main.go` 改为 `.`——v27 新增 `startup_diagnostics.go` 后单文件构建必然失败，macOS/Linux helper 发布构建此前已实际不可用。Windows 产物已按 `build-win.ps1` 用当前源码重建（仍标 27，属同一未发布轮次）。
+- **测试补洞：** 结构断言补齐错误 33、停止→发布→注册→启动完整顺序、互斥锁细节、任务设置开关、key 32 字节规则；行为测试补齐重试 5 次上限、错误 33 重试、只读目标 Replace 安全失败；controller/主进程/提权链路分别补齐确认框取消、回调失败隔离、未知错误快速失败和管道不可达用例。
+- **记录为边界不修改逻辑：** key/instance.json 只读目标行为变化（§5.3 边界）、`Global\` 互斥锁本地 DoS（§5.1 边界，复审已纠正机制描述：创建 Global mutex 无需 `SeCreateGlobalPrivilege`）。
+
+仍未处理（发版流程事项）：macOS/Linux helper 由三个发布 workflow 在打包同任务内从当前源码构建（上述构建脚本修正已解除 macOS/Linux 的构建阻塞），且三个 workflow 均已加入 `helper-version-sync-test` 步骤作为发布护栏；`helper-version-sync-test.ts` 本身只校验源码常量，不校验 `dist/` 产物版本——CI 同源构建流程下产物即源码产物，如需防本地手工混包可再考虑产物级校验。

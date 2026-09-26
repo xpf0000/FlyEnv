@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Onar",
   "flyenvHelperFixSuccess": "FlyEnv yardımcı programı başarıyla onarıldı",
   "flyenvHelperInstallFailTips": "FlyEnv yardımcı programı kurulumu başarısız oldu. Asıl Windows hesabınızla Ayarlar'daki onarım düğmesinden yeniden deneyin. Sorun devam ederse aşağıdaki hata ayrıntılarını paylaşın.",
+  "flyenvHelperInstallTimeout": "Kurulum sonucunu bekleme süresi doldu. Kurulum hâlâ arka planda çalışıyor olabilir. Sonucu kontrol etmek için yardımcı onarım düğmesini tekrar kullanın.",
   "windowsElevationMethod": "Yetki yükseltme yöntemi",
   "windowsElevationMethodTips": "Yönetici ayrıcalıkları gerektiren Windows işlemlerinin nasıl yükseltileceğini seçin. UAC, desteklenen her işlem için onay ister; yardımcı program yüklendikten sonra tekrarlanan istemleri önler.",
   "windowsElevationUac": "UAC",

@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Napraw",
   "flyenvHelperFixSuccess": "Pomocnik FlyEnv został naprawiony",
   "flyenvHelperInstallFailTips": "Instalacja programu pomocniczego FlyEnv nie powiodła się. Spróbuj ponownie z pierwotnego konta Windows przyciskiem naprawy w ustawieniach. Jeśli błąd się powtórzy, przekaż poniższe szczegóły.",
+  "flyenvHelperInstallTimeout": "Przekroczono limit czasu oczekiwania na wynik instalacji. Instalacja może nadal działać w tle. Użyj ponownie przycisku naprawy pomocnika, aby sprawdzić wynik.",
   "windowsElevationMethod": "Metoda podnoszenia uprawnień",
   "windowsElevationMethodTips": "Wybierz sposób podnoszenia uprawnień dla operacji systemu Windows wymagających uprawnień administratora. UAC prosi o potwierdzenie dla każdej obsługiwanej operacji; program pomocniczy po instalacji eliminuje powtarzające się monity.",
   "windowsElevationUac": "UAC",

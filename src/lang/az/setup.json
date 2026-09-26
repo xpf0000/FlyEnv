@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Bərpa Et",
   "flyenvHelperFixSuccess": "FlyEnv yardımçı proqramı uğurla bərpa edildi",
   "flyenvHelperInstallFailTips": "FlyEnv köməkçi proqramının quraşdırılması uğursuz oldu. İlkin Windows hesabınızla parametrlərdəki bərpa düyməsi vasitəsilə yenidən cəhd edin. Yenə uğursuz olarsa, aşağıdakı xəta təfərrüatlarını paylaşın.",
+  "flyenvHelperInstallTimeout": "Quraşdırma nəticəsini gözləmə vaxtı bitdi. Quraşdırma hələ də arxa planda davam edə bilər. Nəticəni yoxlamaq üçün köməkçi təmir düyməsini yenidən istifadə edin.",
   "windowsElevationMethod": "Yüksəltmə üsulu",
   "windowsElevationMethodTips": "İnzibatçı imtiyazları tələb edən Windows əməliyyatlarının necə yüksəldiləcəyini seçin. UAC dəstəklənən hər əməliyyat üçün təsdiq tələb edir; köməkçi quraşdırıldıqdan sonra təkrarlanan sorğuların qarşısını alır.",
   "windowsElevationUac": "UAC",

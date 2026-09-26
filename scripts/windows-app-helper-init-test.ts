@@ -147,6 +147,28 @@ async function main() {
   await healthyInit
   assert.equal(healthyInitSettled, true)
 
+  const callbackStatuses: string[] = []
+  const callbackFailure = createAppHelper({
+    appHelperCheck: async () => true
+  })
+  callbackFailure.onStatusMessage((message) => {
+    callbackStatuses.push(message.state)
+  })
+  callbackFailure.onSuduExecSuccess(async () => {
+    throw new Error('data directory initialization failed')
+  })
+  assert.equal(
+    await callbackFailure.initHelper(),
+    true,
+    'a failing post-ready callback must not fail a healthy install'
+  )
+  assert.equal(
+    callbackStatuses.includes('installFaild'),
+    false,
+    'a failing post-ready callback must not emit installFaild'
+  )
+  assert.equal(callbackStatuses.includes('checkSuccess'), true)
+
   let attempts = 0
   let now = 0
   const delays: number[] = []

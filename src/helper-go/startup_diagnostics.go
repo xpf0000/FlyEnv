@@ -15,7 +15,7 @@ import (
 var (
 	startupDiagnosticsMu sync.Mutex
 	startupDiagnostics   io.WriteCloser
-	startupSecretPattern = regexp.MustCompile(`(?i)(\b(?:helper\s+)?key\s*[=:]\s*|\bargs?\s*[=:]\s*)[^\s,;]+`)
+	startupSecretPattern = regexp.MustCompile(`(?i)(\b(?:helper\s+)?key\s*=\s*|\bargs?\s*=\s*)[^\s,;]+`)
 )
 
 func sanitizeStartupDiagnostic(message string) string {

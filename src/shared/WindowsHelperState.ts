@@ -14,6 +14,7 @@ export type AppHelperErrorCode =
   | 'helper_start_timeout'
   | 'elevation_uac_cancelled'
   | 'elevation_launch_failed'
+  | 'elevation_pipe_connect_failed'
   | 'elevation_status_timeout'
   | 'helper_execution_failed'
   | 'windows_fallback_not_supported'
@@ -48,6 +49,7 @@ const APP_HELPER_ERROR_CODES = new Set<AppHelperErrorCode>([
   'helper_start_timeout',
   'elevation_uac_cancelled',
   'elevation_launch_failed',
+  'elevation_pipe_connect_failed',
   'elevation_status_timeout',
   'helper_execution_failed',
   'windows_fallback_not_supported'

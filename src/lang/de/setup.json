@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Beheben",
   "flyenvHelperFixSuccess": "FlyEnv-Helfer erfolgreich repariert",
   "flyenvHelperInstallFailTips": "Die Installation des FlyEnv-Helpers ist fehlgeschlagen. Versuchen Sie es mit Ihrem ursprünglichen Windows-Konto über die Reparaturschaltfläche in den Einstellungen erneut. Teilen Sie bei erneutem Fehlschlag die folgenden Fehlerdetails mit.",
+  "flyenvHelperInstallTimeout": "Zeitüberschreitung beim Warten auf das Installationsergebnis. Die Installation läuft möglicherweise noch im Hintergrund. Verwenden Sie die Reparatur-Schaltfläche des Hilfsprogramms erneut, um das Ergebnis zu prüfen.",
   "windowsElevationMethod": "Erhöhungsmethode",
   "windowsElevationMethodTips": "Wählen Sie, wie Windows-Vorgänge, die Administratorrechte erfordern, mit erhöhten Rechten ausgeführt werden. Die Benutzerkontensteuerung (UAC) fordert für jeden unterstützten Vorgang eine Bestätigung an; das Hilfsprogramm vermeidet nach der Installation wiederholte Aufforderungen.",
   "windowsElevationUac": "UAC",

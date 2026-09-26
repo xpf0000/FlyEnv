@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Opravit",
   "flyenvHelperFixSuccess": "Pomocník FlyEnv úspěšně opraven",
   "flyenvHelperInstallFailTips": "Instalace pomocného programu FlyEnv se nezdařila. Zkuste to znovu s původním účtem Windows tlačítkem opravy v nastavení. Pokud chyba přetrvá, sdílejte podrobnosti níže.",
+  "flyenvHelperInstallTimeout": "Vypršel časový limit čekání na výsledek instalace. Instalace může stále běžet na pozadí. Výsledek zkontrolujte opětovným použitím tlačítka opravy pomocníka.",
   "windowsElevationMethod": "Způsob zvýšení oprávnění",
   "windowsElevationMethodTips": "Zvolte, jak se mají zvyšovat oprávnění pro operace systému Windows, které vyžadují oprávnění správce. Řízení uživatelských účtů (UAC) vyžaduje potvrzení u každé podporované operace; pomocný program po instalaci zabrání opakovaným výzvám.",
   "windowsElevationUac": "UAC",

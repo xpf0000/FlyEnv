@@ -22,6 +22,23 @@ async function main() {
     (actual: unknown) => actual === error
   )
   assert.equal(checks, 1)
+  const programmingError = new TypeError('check implementation bug')
+  let programmingChecks = 0
+  await assert.rejects(
+    waitForHelperHealth(
+      async () => {
+        programmingChecks++
+        throw programmingError
+      },
+      {
+        sleep: async () => {
+          throw new Error('unknown errors must fail fast without retry')
+        }
+      }
+    ),
+    (actual: unknown) => actual === programmingError
+  )
+  assert.equal(programmingChecks, 1)
   let release: (() => void) | undefined
   const helper = createAppHelper({
     appHelperCheck: async () => {

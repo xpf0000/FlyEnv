@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "修复",
   "flyenvHelperFixSuccess": "FlyEnv帮助程序修复成功",
   "flyenvHelperInstallFailTips": "FlyEnv 帮助程序安装失败。请继续使用原来的 Windows 账户，在设置中点击帮助程序修复按钮重试；如仍失败，请提供下方错误详情。",
+  "flyenvHelperInstallTimeout": "等待安装结果超时。安装可能仍在后台进行，请再次点击帮助程序修复按钮以确认结果。",
   "windowsElevationMethod": "提权方式",
   "windowsElevationMethodTips": "选择 Windows 需要管理员权限操作的提权方式。UAC 会在每次支持的操作时请求确认；帮助程序安装成功后可避免重复确认。",
   "windowsElevationUac": "UAC",

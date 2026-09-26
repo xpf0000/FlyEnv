@@ -10,6 +10,9 @@ const execFileAsync = promisify(execFile)
 const quote = (text: string) => `'${text.replace(/'/g, "''")}'`
 const MAX_RESULT_BYTES = 128 * 1024
 const LATE_RESULT_GRACE_MS = 10 * 60_000
+// Distinct elevated-child exit code: the child could not reach the result pipe, so
+// this code is the only channel back. The launcher converts it into JSON diagnostics.
+export const WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE = 73
 
 type InstallResult = { nonce: string; exitCode: number; stdout: string; stderr: string }
 type InstallPlan = { powershell: string; childCommand: string; launcher: string }
@@ -29,7 +32,12 @@ export const buildWindowsHelperElevationPlan = (
 $ErrorActionPreference = 'Stop'
 $env:PSModulePath = Join-Path $PSHOME 'Modules'
 $pipe = New-Object IO.Pipes.NamedPipeClientStream('.', ${quote(pipeName)}, [IO.Pipes.PipeDirection]::Out)
-$pipe.Connect(10000)
+try {
+  $pipe.Connect(10000)
+} catch {
+  try { $pipe.Dispose() } catch {}
+  exit ${WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE}
+}
 $writer = New-Object IO.StreamWriter($pipe, (New-Object Text.UTF8Encoding($false)))
 $writer.AutoFlush = $true
 $consoleLog = New-Object IO.StringWriter
@@ -57,7 +65,7 @@ exit $global:LASTEXITCODE
   // through Start-Process without cmd.exe or another layer of shell interpolation.
   const childCommand = `& { $s = New-Object IO.MemoryStream(,[Convert]::FromBase64String('${compressed}')); $g = New-Object IO.Compression.GZipStream($s,[IO.Compression.CompressionMode]::Decompress); $r = New-Object IO.StreamReader($g,[Text.Encoding]::UTF8); try { $c = $r.ReadToEnd() } finally { $r.Dispose(); $g.Dispose(); $s.Dispose() }; & ([ScriptBlock]::Create($c)) }`
   const argumentsText = `-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "${childCommand}"`
-  const launcher = `$ErrorActionPreference = 'Stop'; [Console]::OutputEncoding = [Text.Encoding]::UTF8; try { $p = Start-Process -FilePath ${quote(powershell)} -ArgumentList ${quote(argumentsText)} -Verb RunAs -WindowStyle Hidden -Wait -PassThru; exit $p.ExitCode } catch { $e = $_.Exception; while ($e.InnerException) { $e = $e.InnerException }; @{ nativeErrorCode=$e.NativeErrorCode; message=$e.Message } | ConvertTo-Json -Compress; exit 1 }`
+  const launcher = `$ErrorActionPreference = 'Stop'; [Console]::OutputEncoding = [Text.Encoding]::UTF8; try { $p = Start-Process -FilePath ${quote(powershell)} -ArgumentList ${quote(argumentsText)} -Verb RunAs -WindowStyle Hidden -Wait -PassThru; if ($p.ExitCode -eq ${WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE}) { @{ nativeErrorCode=$p.ExitCode; message='The elevated installer could not connect to the FlyEnv result pipe. An antivirus or pipe policy may have blocked it.' } | ConvertTo-Json -Compress }; exit $p.ExitCode } catch { $e = $_.Exception; while ($e.InnerException) { $e = $e.InnerException }; @{ nativeErrorCode=$e.NativeErrorCode; message=$e.Message } | ConvertTo-Json -Compress; exit 1 }`
   if (launcher.length + powershell.length + 256 >= 30000) {
     throw new AppHelperError(
       'elevation_launch_failed',
@@ -178,6 +186,12 @@ export const runWindowsHelperInstaller = async (
       throw new AppHelperError(
         'elevation_uac_cancelled',
         'Windows administrator approval was cancelled'
+      )
+    if (details.nativeErrorCode === WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE)
+      throw new AppHelperError(
+        'elevation_pipe_connect_failed',
+        'The elevated installer could not connect to the FlyEnv result pipe. An antivirus or pipe policy may have blocked it.',
+        launchError?.stderr
       )
     if (launchError?.killed) {
       awaitingLateResult = true

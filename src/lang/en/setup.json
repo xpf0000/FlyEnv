@@ -88,6 +88,7 @@
   "flyenvHelperBtn": "Fix",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully",
   "flyenvHelperInstallFailTips": "FlyEnv helper installation failed. Keep using your original Windows account and retry with the helper repair button in Settings. If it fails again, share the error details below.",
+  "flyenvHelperInstallTimeout": "Timed out waiting for the installation result. The installation may still be running in the background. Use the helper repair button again to check the result.",
   "windowsElevationMethod": "Elevation Method",
   "windowsElevationMethodTips": "Choose how Windows operations that require administrator privileges are elevated. UAC asks for confirmation for each supported operation; Helper avoids repeated prompts after it is installed.",
   "windowsElevationUac": "UAC",

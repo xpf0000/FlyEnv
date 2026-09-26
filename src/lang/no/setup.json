@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Reparer",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fikset",
   "flyenvHelperInstallFailTips": "FlyEnv-hjelpeprogrammet kunne ikke installeres. Prøv igjen med den opprinnelige Windows-kontoen via reparasjonsknappen i innstillingene. Del feildetaljene nedenfor hvis det mislykkes igjen.",
+  "flyenvHelperInstallTimeout": "Tidsavbrudd ved venting på installasjonsresultatet. Installasjonen kan fortsatt kjøre i bakgrunnen. Bruk reparasjonsknappen for hjelpeprogrammet igjen for å sjekke resultatet.",
   "windowsElevationMethod": "Metode for rettighetsheving",
   "windowsElevationMethodTips": "Velg hvordan Windows-operasjoner som krever administratorrettigheter, skal kjøre med forhøyede rettigheter. UAC ber om bekreftelse for hver støttet operasjon; hjelpeprogrammet unngår gjentatte forespørsler etter at det er installert.",
   "windowsElevationUac": "UAC",

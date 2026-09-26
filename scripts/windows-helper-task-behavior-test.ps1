@@ -30,6 +30,20 @@ try {
   } catch {
     if ($retryFixture.attempts -ne 1 -or $_.Exception.Message -notlike '*denied fixture*') { throw }
   }
+  $retryFixture.attempts = 0
+  try {
+    Invoke-WithFileRetry -DelayMilliseconds 1 -Operation { $retryFixture.attempts++; throw [Runtime.InteropServices.COMException]::new('sharing fixture', -2147024864) }
+    throw 'Persistent sharing violation was swallowed'
+  } catch {
+    if ($retryFixture.attempts -ne 5 -or $_.Exception.Message -notlike '*sharing fixture*') { throw }
+  }
+  $retryFixture.attempts = 0
+  $lockResult = Invoke-WithFileRetry -DelayMilliseconds 1 -Operation {
+    $retryFixture.attempts++
+    if ($retryFixture.attempts -lt 2) { throw [Runtime.InteropServices.COMException]::new('lock fixture', -2147024863) }
+    'lock-ok'
+  }
+  if ($lockResult -ne 'lock-ok' -or $retryFixture.attempts -ne 2) { throw "Unexpected lock retry result: $lockResult/$($retryFixture.attempts)" }
   $pending = Join-Path $fixture 'replacement.pending'
   $destination = Join-Path $fixture 'replacement.bin'
   [IO.File]::WriteAllText($pending, 'first')
@@ -45,6 +59,20 @@ try {
   } finally { $held.Dispose() }
   Publish-StagedHelperFile -StagedPath $pending -DestinationPath $destination
   if ([IO.File]::ReadAllText($destination) -ne 'second') { throw 'Retry after unlock failed' }
+  # Read-only destination: replacement must fail while retaining both original and staged bytes.
+  $readonlyDestination = Join-Path $fixture 'readonly-target.bin'
+  [IO.File]::WriteAllText($readonlyDestination, 'original')
+  [IO.File]::WriteAllText($pending, 'readonly-check')
+  [IO.File]::SetAttributes($readonlyDestination, [IO.FileAttributes]::ReadOnly)
+  try {
+    $replaced = $false
+    try { Publish-StagedHelperFile -StagedPath $pending -DestinationPath $readonlyDestination; $replaced = $true } catch {}
+    if ($replaced) { throw 'Read-only replacement succeeded' }
+    if ([IO.File]::ReadAllText($readonlyDestination) -ne 'original') { throw 'Read-only target content changed' }
+    if ([IO.File]::ReadAllText($pending) -ne 'readonly-check') { throw 'Staged file lost after read-only failure' }
+  } finally {
+    [IO.File]::SetAttributes($readonlyDestination, [IO.FileAttributes]::Normal)
+  }
 } finally {
   $resolvedFixture = [IO.Path]::GetFullPath($fixture)
   $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'

@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Ripara",
   "flyenvHelperFixSuccess": "Riparazione del programma di supporto FlyEnv riuscita",
   "flyenvHelperInstallFailTips": "Installazione dell'helper FlyEnv non riuscita. Riprova con il tuo account Windows originale usando il pulsante di riparazione nelle impostazioni. Se il problema persiste, condividi i dettagli dell’errore qui sotto.",
+  "flyenvHelperInstallTimeout": "Tempo scaduto in attesa del risultato dell'installazione. L'installazione potrebbe essere ancora in esecuzione in background. Usa di nuovo il pulsante di riparazione dell'helper per verificare il risultato.",
   "windowsElevationMethod": "Metodo di elevazione",
   "windowsElevationMethodTips": "Scegli come elevare le operazioni di Windows che richiedono privilegi di amministratore. UAC richiede una conferma per ogni operazione supportata; il programma di supporto evita richieste ripetute dopo l'installazione.",
   "windowsElevationUac": "UAC",

@@ -82,6 +82,46 @@ async function main() {
       (error: any) =>
         error.code === 'elevation_status_timeout' && /may still be finishing/.test(error.message)
     )
+    await assert.rejects(
+      installer.runWindowsHelperInstaller('exit 0', {
+        launch: async () => {
+          throw Object.assign(new Error('pipe blocked'), {
+            code: 73,
+            stdout:
+              '{"nativeErrorCode":73,"message":"The elevated installer could not connect to the FlyEnv result pipe. An antivirus or pipe policy may have blocked it."}'
+          })
+        }
+      }),
+      (error: any) =>
+        error.code === 'elevation_pipe_connect_failed' && /result pipe/.test(error.message)
+    )
+    const pipePlan = installer.buildWindowsHelperElevationPlan(
+      '$global:LASTEXITCODE = 0; exit 0',
+      'flyenv-test-missing-pipe',
+      'nonce'
+    )
+    let launcherError: any
+    try {
+      await exec(
+        pipePlan.powershell,
+        [
+          '-NoProfile',
+          '-NonInteractive',
+          '-Command',
+          pipePlan.launcher.replace('-Verb RunAs ', '')
+        ],
+        { windowsHide: true, timeout: 30000 }
+      )
+    } catch (error) {
+      launcherError = error
+    }
+    assert.ok(launcherError, 'a missing result pipe must fail the launcher')
+    const launcherDetails = JSON.parse((launcherError.stdout ?? '').trim())
+    assert.equal(
+      launcherDetails.nativeErrorCode,
+      73,
+      'the launcher must convert a pipe connect failure into diagnostics'
+    )
     let lateChild: Promise<{ stdout: string; stderr: string }> | undefined
     await assert.rejects(
       installer.runWindowsHelperInstaller(

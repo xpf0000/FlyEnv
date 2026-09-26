@@ -81,6 +81,7 @@
   "flyenvHelperBtn": "Javítás",
   "flyenvHelperFixSuccess": "A FlyEnv Helper sikeresen javítva",
   "flyenvHelperInstallFailTips": "A FlyEnv Helper telepítése sikertelen. Próbálja újra az eredeti Windows-fiókkal a beállítások javítás gombjával. Újabb hiba esetén ossza meg az alábbi részleteket.",
+  "flyenvHelperInstallTimeout": "Időtúllépés a telepítési eredményre várakozás közben. A telepítés lehet, hogy még mindig fut a háttérben. Az eredmény ellenőrzéséhez használja újra a segédprogram javítás gombot.",
   "windowsElevationMethod": "Jogosultságemelési mód",
   "windowsElevationMethodTips": "Válassza ki, hogyan emelje meg a rendszergazdai jogosultságot igénylő Windows-műveletek jogosultságait. Az UAC minden támogatott művelethez megerősítést kér; a segédprogram telepítés után elkerüli az ismétlődő kéréseket.",
   "windowsElevationUac": "UAC",
