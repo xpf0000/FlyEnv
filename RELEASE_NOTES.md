@@ -2,6 +2,34 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.19.1] - 2026-09-27
+
+# **FlyEnv v4.19.1 Update Release Notes**
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **1. Fixed Invisible Tray Window Blocking Mouse Clicks on macOS**
+
+Resolved an issue where, after updating to v4.19.0, an invisible FlyEnv window could sit above all other applications and intercept mouse clicks. The affected area extended from the top-left corner of the screen down the left side, making windows, buttons, links, and desktop icons in that zone unclickable until FlyEnv was fully closed.
+
+The cause was the tray popup's "fake hide" mechanism: instead of truly hiding, the popup window was made fully transparent and parked off-screen. A transparent window still intercepts mouse input, and macOS can move off-screen windows back onto the display — leaving an invisible overlay blocking the top-left area. The tray popup now truly hides with the native window-hide call. It is set to fully transparent right before hiding, so the system window fade that Windows replays on transparent windows still plays invisibly, and full opacity is restored when the popup appears — no click blocking, and no visible fade.
+
+Thanks to [@dkoychev](https://github.com/dkoychev) for the report! [Issue #869](https://github.com/xpf0000/FlyEnv/issues/869)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)
+
+**Enjoy the update!**
+
 ## [4.19.0] - 2026-09-26
 
 # **FlyEnv v4.19.0 Update Release Notes**
