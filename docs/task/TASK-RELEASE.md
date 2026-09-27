@@ -1,11 +1,7 @@
-# FlyEnv新版本4.18.3更新日志
+# FlyEnv新版本4.19.1更新日志
 
 本次更新内容：
-1. 新增插件市场.
-2. 插件市场新增kafka插件
-3. https://github.com/xpf0000/FlyEnv/pull/863
-4. https://github.com/xpf0000/FlyEnv/pull/866
-5. https://github.com/xpf0000/FlyEnv/pull/868
+1. 修复https://github.com/xpf0000/FlyEnv/issues/869
 
 参照：
 ```
