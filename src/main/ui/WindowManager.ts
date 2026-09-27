@@ -105,7 +105,6 @@ export default class WindowManager extends EventEmitter {
     window.on('close', (event: Event) => {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
-        // 弹窗的显隐由 TrayManager 用"移出屏幕"实现,不能 hide(会被系统重放整窗淡入)
         this.trayManager!.closePopup()
       }
     })

@@ -962,9 +962,8 @@ export default class Application extends EventEmitter {
           this.languageCoordinator.snapshot()
         )
         this.trayManager.addModernStyleListener()
-        // 首次显示前先把弹窗方向/箭头同步给渲染层,并在屏幕外消耗掉系统的窗口淡入
+        // 首次显示前先把弹窗方向/箭头同步给渲染层
         this.syncTrayPopupLayout()
-        this.trayManager.primePopupWindow()
       })
 
       // 更新 IPC 处理器的 trayWindow 引用

@@ -70,33 +70,29 @@ assert(
   'Tray popup must stay inside the icon display on both axes'
 )
 assert(
-  /getPopupLayout\(\)/.test(tray) &&
-    /this\.syncTrayPopupLayout\(\)/.test(application) &&
-    /this\.trayManager\.primePopupWindow\(\)/.test(application) &&
-    /win\.setOpacity\(0\)\s*\n\s*win\.showInactive\(\)/.test(tray),
-  'Tray popup must sync layout and consume the system fade off-screen before the first show'
+  /getPopupLayout\(\)/.test(tray) && /this\.syncTrayPopupLayout\(\)/.test(application),
+  'Tray popup must sync layout before the first show'
 )
 assert(
   /attachWindow\(win: BrowserWindow\)/.test(tray) &&
-    /this\.primed = false/.test(tray) &&
     /this\.trayManager!\.attachWindow\(window\)/.test(windowManager),
-  'A rebuilt tray window must reset primed, or it would skip the off-screen fade pre-consume'
+  'A rebuilt tray window must re-bind through attachWindow so show state resets'
 )
 assert(
   /openPopup\(x: number, y: number\)/.test(tray) &&
     /closePopup\(\)/.test(tray) &&
-    /private parkPosition\(\)/.test(tray) &&
     /this\.trayManager\.openPopup\(x, y\)/.test(application) &&
     /this\.trayManager\.closePopup\(\)/.test(application) &&
     /this\.trayManager!\.closePopup\(\)/.test(windowManager),
-  'Tray popup visibility must be implemented by moving the window on/off screen'
+  'Tray popup open/close must go through TrayManager'
 )
 assert(
-  !/win\.hide\(\)/.test(tray) &&
-    /bindCloseToHide && !this\.willQuit\) \{\s*event\.preventDefault\(\)\s*\/\/[^\n]*\n\s*this\.trayManager!\.closePopup\(\)/.test(
-      windowManager
-    ),
-  'Tray popup must never call hide(): Windows replays a ~300ms fade on every hidden->visible'
+  /win\.setOpacity\(0\)\s*\n\s*win\.hide\(\)/.test(tray),
+  'Tray popup must fully hide() when closed: an invisible opacity-0 window still intercepts clicks (issue #869)'
+)
+assert(
+  /win\.show\(\)\s*\n\s*\}[\s\S]*?win\.setOpacity\(1\)/.test(tray),
+  'Tray popup must show() at opacity 0 and restore opacity after, so the Windows show-fade plays invisibly'
 )
 assert(
   /'APP:Tray-Popup-Side'/.test(application) &&
