@@ -31,6 +31,8 @@ export default class TrayManager extends EventEmitter {
   window: BrowserWindow | undefined
   private lastBlurCloseAt: number = 0
   private alwaysOnTopArmed: boolean = false
+  private popupGeneration: number = 0
+  private blurArmTimer: ReturnType<typeof setTimeout> | undefined
   private layoutNonce: number = 0
   private layoutAppliedResolver: (() => void) | undefined
   // 弹窗的设计尺寸(WindowManager 创建窗口时也是 270x435),任何 DPI 下 DIP 尺寸都恒定。
@@ -62,6 +64,7 @@ export default class TrayManager extends EventEmitter {
     }
     this.tray.on('right-click', this.handleTrayClick)
     this.tray.on('double-click', () => {
+      this.closePopup()
       this.emit('double-click')
     })
   }
@@ -177,20 +180,22 @@ export default class TrayManager extends EventEmitter {
    * 状态标志必须一起重置。
    */
   attachWindow(win: BrowserWindow) {
+    this.closePopup()
     this.window = win
     this.show = false
     this.clicking = false
     this.alwaysOnTopArmed = false
   }
 
-  /** 打开弹窗:先等渲染层应用布局,再钉住尺寸移动到目标位置、置顶并显示。
-   * 纯 show——不取焦点、不做透明度操作。显式 focus() 会引入 blur 竞态:溢出菜单
-   * 里的图标右键后系统会把前台还给之前的窗口,弹窗刚显示就被自己的 blur 关掉 */
+  /** 先同步布局再显示。失焦监听在 show 前绑定,避免漏掉打开时的失焦。
+   * Windows 给托盘菜单的前台切换留出短暂缓冲,结束时检查实际焦点。 */
   async openPopup(x: number, y: number, side: TrayPopupSide, arrowOffset: number) {
     const win = this.window
     if (!win || win.isDestroyed()) {
       return
     }
+    this.closePopup()
+    const generation = this.popupGeneration
     // 先置意图标志:布局回执是异步的,期间再次点击会得到正确的"关闭"切换
     this.show = true
     this.clicking = true
@@ -198,7 +203,12 @@ export default class TrayManager extends EventEmitter {
     // 等渲染层真正应用了方向/箭头再显示;直接发 IPC 不等回执的话,窗口可见后
     // 布局才落地,箭头会以旧位置渲染一帧再跳变(肉眼可见的"闪一下")
     await this.syncPopupLayout(side, arrowOffset)
-    if (!this.show || win.isDestroyed()) {
+    if (
+      !this.show ||
+      generation !== this.popupGeneration ||
+      win !== this.window ||
+      win.isDestroyed()
+    ) {
       // 等待期间已被关闭(快速切换),放弃本次打开
       return
     }
@@ -211,18 +221,23 @@ export default class TrayManager extends EventEmitter {
       this.alwaysOnTopArmed = true
     }
     win.moveTop()
+    win.on('blur', this.onBlur)
+    this.clicking = isWindows()
     win.show()
-    setTimeout(() => {
-      if (!this.show || win.isDestroyed()) {
-        return
-      }
-      // 250ms 后再挂 blur:溢出菜单场景下系统在右键后立刻把前台还给之前的窗口,
-      // 这次 blur 落在武装之前自然忽略;之后用户点了弹窗外面,blur 才关窗。
-      // 先摘再挂:250ms 内快速关→开会叠加多个定时器,避免 onBlur 被注册多份
-      win.removeListener('blur', this.onBlur)
-      win.on('blur', this.onBlur)
-      this.clicking = false
-    }, 250)
+    if (isWindows() && this.show && generation === this.popupGeneration) {
+      this.blurArmTimer = setTimeout(() => {
+        this.blurArmTimer = undefined
+        if (!this.show || generation !== this.popupGeneration || win.isDestroyed()) {
+          return
+        }
+        this.clicking = false
+        // 缓冲期间的 blur 已发生,不能等待窗口再次失焦才关闭。
+        if (!win.isFocused()) {
+          this.lastBlurCloseAt = Date.now()
+          this.closePopup()
+        }
+      }, 250)
+    }
   }
 
   /** 关闭弹窗:真正 hide。隐藏窗口不存在也就谈不上拦截点击(issue #869),
@@ -230,6 +245,14 @@ export default class TrayManager extends EventEmitter {
   closePopup() {
     const win = this.window
     this.show = false
+    this.clicking = false
+    this.popupGeneration += 1
+    if (this.blurArmTimer !== undefined) {
+      clearTimeout(this.blurArmTimer)
+      this.blurArmTimer = undefined
+    }
+    this.layoutAppliedResolver?.()
+    this.layoutAppliedResolver = undefined
     if (!win || win.isDestroyed()) {
       return
     }
@@ -418,6 +441,7 @@ export default class TrayManager extends EventEmitter {
   }
 
   destroy() {
+    this.closePopup()
     this.tray.removeAllListeners()
     this.tray.setContextMenu(null)
     this.tray.destroy()

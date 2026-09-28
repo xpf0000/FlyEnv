@@ -64,7 +64,7 @@ assert(
     /win\.on\('blur', this\.onBlur\)/.test(tray) &&
     /Date\.now\(\) - this\.lastBlurCloseAt < 350/.test(tray) &&
     !/win\.focus\(\)/.test(tray),
-  'Tray popup must close on outside click via a 250ms-delayed blur listener, without ever calling focus(): explicit focus lets the OS foreground restore close it instantly'
+  'Tray popup must close on blur and suppress the same tray click from reopening it, without forcing focus'
 )
 assert(
   /private getPopupSide\(display: Display, trayBounds: Rectangle\): TrayPopupSide \{/.test(tray) &&

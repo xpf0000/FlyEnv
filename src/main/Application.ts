@@ -894,6 +894,9 @@ export default class Application extends EventEmitter {
   }
 
   show(page = 'index') {
+    if (page === 'index') {
+      this.trayManager?.closePopup()
+    }
     this.windowManager.showWindow(page)
   }
 
@@ -986,7 +989,7 @@ export default class Application extends EventEmitter {
     side: TrayPopupSide
   ) {
     if (show) {
-      // 布局同步(含渲染层回执)、移动、置顶、取焦点都由 TrayManager 在全透明状态下完成
+      // 布局同步、移动、显示及失焦关闭统一由 TrayManager 管理
       this.trayManager.openPopup(x, y, side, arrowOffset)
     } else {
       this.trayManager.closePopup()

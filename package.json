@@ -24,6 +24,7 @@
     "test:go-gvm": "tsx scripts/go-gvm-test.ts",
     "test:sdkman-java-parser": "tsx scripts/sdkman-java-parser-test.ts",
     "test:node-tray-issues": "tsx scripts/node-tray-issues-test.ts",
+    "test:tray-popup-lifecycle": "tsx scripts/tray-popup-lifecycle-test.ts",
     "test:rust-windows-install": "tsx scripts/rust-windows-install-test.ts",
     "test:php-project-directory": "tsx scripts/php-project-directory-test.ts",
     "test:hermes-provider": "tsx scripts/hermes-provider-config-test.ts",
