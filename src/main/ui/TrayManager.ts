@@ -28,16 +28,15 @@ export default class TrayManager extends EventEmitter {
   status: TrayState | undefined
   show: boolean = false
   clicking: boolean = false
-  primed: boolean = false
   window: BrowserWindow | undefined
   private lastBlurCloseAt: number = 0
   private alwaysOnTopArmed: boolean = false
   private layoutNonce: number = 0
   private layoutAppliedResolver: (() => void) | undefined
   // 弹窗的设计尺寸(WindowManager 创建窗口时也是 270x435),任何 DPI 下 DIP 尺寸都恒定。
-  // 所有移动都必须用 setBounds 把这个尺寸钉回去:Win11 分数缩放下裸 setPosition
-  // 每次调用都会让窗口膨胀 1~2px,弹窗会越开越大。钉常量而不是捕获 getBounds()
-  // 的原因:DPI 缩放变化后实际尺寸会漂移,每次开/关都重新钉回设计尺寸即可自动纠正
+  // 定位/移动都必须用这个常量:Win11 分数缩放下裸 setPosition 每次调用都会让窗口
+  // 膨胀 1~2px,弹窗会越开越大;现读 getBounds() 则会把系统取整抖动反馈进定位。
+  // 每次打开都 setBounds 钉回设计尺寸,DPI 变化造成的漂移也会自动纠正
   private popupSize = { width: 270, height: 435 }
 
   constructor() {
@@ -174,37 +173,20 @@ export default class TrayManager extends EventEmitter {
   }
 
   /**
-   * 绑定新建的弹窗窗口。新窗口没有预热过,primed 必须一起重置——托盘样式切换
-   * (modern→classic→modern)会销毁并重建窗口,旧标志会让新窗口跳过屏外预热、淡入复活。
+   * 绑定新建的弹窗窗口。托盘样式切换(modern→classic→modern)会销毁并重建窗口,
+   * 状态标志必须一起重置。新窗口先置全透明:openPopup 里 hidden→visible 的
+   * 系统淡入只对透明度 0 的窗口播放,首次打开也不能例外
    */
   attachWindow(win: BrowserWindow) {
     this.window = win
-    this.primed = false
     this.show = false
     this.clicking = false
     this.alwaysOnTopArmed = false
-  }
-
-  /**
-   * 透明窗口每次 hidden→visible 都会被 Windows 重放一次约 300ms 的整窗淡入(与 DOM 无关,
-   * 无法用 CSS 或 DWMWA_TRANSITIONS_FORCEDISABLED 去掉)。所以弹窗窗口创建后先在屏幕外
-   * show 一次,把这次淡入消耗在看不见的地方;之后只靠移动进出屏幕,不再 hide/show。
-   */
-  primePopupWindow() {
-    const win = this.window
-    if (!win || win.isDestroyed() || this.primed) {
-      return
-    }
-    this.primed = true
-    const park = this.parkPosition()
-    win.setBounds({ x: park.x, y: park.y, ...this.popupSize })
     win.setOpacity(0)
-    win.showInactive()
   }
 
-  /** 打开弹窗:窗口一直"显示"着停在屏幕外。所有可能产生视觉抖动的操作(布局变更、
-   * 移动、置顶、取焦点)都在全透明状态下完成,最后才恢复不透明——用户看到的第一帧
-   * 就是最终状态,箭头跳变和焦点闪烁都被透明度掩盖 */
+  /** 打开弹窗:先等渲染层应用布局,再在全透明状态下完成移动/置顶/取焦点,
+   * 最后恢复不透明——用户看到的第一帧就是最终状态,箭头跳变和焦点闪烁都被掩盖 */
   async openPopup(x: number, y: number, side: TrayPopupSide, arrowOffset: number) {
     const win = this.window
     if (!win || win.isDestroyed()) {
@@ -221,6 +203,8 @@ export default class TrayManager extends EventEmitter {
       // 等待期间已被关闭(快速切换),放弃本次打开
       return
     }
+    // setBounds 把尺寸钉回设计值:裸 setPosition 在 Win11 分数缩放下每次调用
+    // 都让窗口膨胀 1~2px,弹窗会越开越大
     win.setBounds({ x: Math.round(x), y: Math.round(y), ...this.popupSize })
     if (!this.alwaysOnTopArmed) {
       // 置顶只需设置一次,每次重设都在挑动 z-order,可能引入额外闪烁
@@ -229,11 +213,14 @@ export default class TrayManager extends EventEmitter {
     }
     win.moveTop()
     if (!win.isVisible()) {
-      win.showInactive()
+      // Windows 会对透明窗口的 hidden→visible 重放约 300ms 整窗淡入。窗口 hide 前
+      // 已置为全透明(见 closePopup),这次淡入在不可见状态下播放,对用户无感
+      win.show()
     }
-    // 移动/改透明度都不会激活窗口,必须显式取焦点,否则"点弹窗外面自动关"的 blur
+    // 移动/显示都不保证激活窗口,必须显式取焦点,否则"点弹窗外面自动关"的 blur
     // 永远不会触发;焦点切换放在恢复不透明之前,激活瞬间的闪烁不可见
     win.focus()
+    // 淡入作用于透明度 0 的窗口,这里恢复不透明,弹窗直接出现
     win.setOpacity(1)
     setTimeout(() => {
       if (!this.show || win.isDestroyed()) {
@@ -244,6 +231,41 @@ export default class TrayManager extends EventEmitter {
       win.on('blur', this.onBlur)
       this.clicking = false
     }, 250)
+  }
+
+  /**
+   * 关闭弹窗:必须真正 hide。不能只用 setOpacity(0)/移出屏幕"伪隐藏"——
+   * 透明度为 0 的窗口依然存在且会拦截鼠标点击,系统还可能在显示器变化时把它
+   * 拉回屏内,表现为屏幕左上角一块区域点不动(issue #869)。
+   * hide 前先置全透明:Windows 会在下次 show() 时重放整窗淡入,淡入作用于
+   * 透明度 0 的窗口用户不可见,openPopup 再恢复不透明
+   */
+  closePopup() {
+    const win = this.window
+    this.show = false
+    if (!win || win.isDestroyed()) {
+      return
+    }
+    win.removeListener('blur', this.onBlur)
+    if (win.isFocused()) {
+      // 主动交还焦点,避免隐藏前窗口一直攥着键盘输入
+      win.blur()
+    }
+    win.setOpacity(0)
+    win.hide()
+  }
+
+  handleTrayClick = (event: any) => {
+    event?.preventDefault?.()
+    if (!this.show && Date.now() - this.lastBlurCloseAt < 350) {
+      // Windows 下弹窗打开时点击图标会先触发 blur(已自动关窗)再触发 click,
+      // 此时 this.show 已为 false,若照常处理会把刚关掉的弹窗立刻重新打开
+      return
+    }
+    this.clicking = true
+    this.window?.removeListener('blur', this.onBlur)
+    const { x, y, side, arrowOffset } = this.resolvePlacement()
+    this.emit('click', x, y, arrowOffset, !this.show, side)
   }
 
   /** 弹窗相对图标的方向与箭头偏移,供显示前先把布局同步给渲染层 */
@@ -295,44 +317,6 @@ export default class TrayManager extends EventEmitter {
       nonce: this.layoutNonce
     })
     return true
-  }
-
-  /** 关闭弹窗:移回屏幕外并置全透明,不能 hide,否则下次显示会再淡入一次 */
-  closePopup() {
-    const win = this.window
-    this.show = false
-    if (!win || win.isDestroyed()) {
-      return
-    }
-    const park = this.parkPosition()
-    win.setOpacity(0)
-    win.setBounds({ x: park.x, y: park.y, ...this.popupSize })
-    win.removeListener('blur', this.onBlur)
-    if (win.isFocused()) {
-      // 窗口只是移出屏幕、并没有 hide,不主动交还焦点的话它会一直攥着键盘输入
-      win.blur()
-    }
-  }
-
-  /** 屏幕外停放点:所有显示器包围盒之外的左上角 */
-  private parkPosition() {
-    const displays = screen.getAllDisplays()
-    const minX = Math.min(...displays.map((d) => d.bounds.x))
-    const minY = Math.min(...displays.map((d) => d.bounds.y))
-    return { x: Math.round(minX - this.popupSize.width - 100), y: Math.round(minY) }
-  }
-
-  handleTrayClick = (event: any) => {
-    event?.preventDefault?.()
-    if (!this.show && Date.now() - this.lastBlurCloseAt < 350) {
-      // Windows 下弹窗打开时点击图标会先触发 blur(已自动关窗)再触发 click,
-      // 此时 this.show 已为 false,若照常处理会把刚关掉的弹窗立刻重新打开
-      return
-    }
-    this.clicking = true
-    this.window?.removeListener('blur', this.onBlur)
-    const { x, y, side, arrowOffset } = this.resolvePlacement()
-    this.emit('click', x, y, arrowOffset, !this.show, side)
   }
 
   private resolvePlacement(): TrayPopupPlacement {

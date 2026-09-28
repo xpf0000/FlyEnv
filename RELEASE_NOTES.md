@@ -2,6 +2,106 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.19.1] - 2026-09-27
+
+# **FlyEnv v4.19.1 Update Release Notes**
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **1. Fixed Invisible Tray Window Blocking Mouse Clicks on macOS**
+
+Resolved an issue where, after updating to v4.19.0, an invisible FlyEnv window could sit above all other applications and intercept mouse clicks. The affected area extended from the top-left corner of the screen down the left side, making windows, buttons, links, and desktop icons in that zone unclickable until FlyEnv was fully closed.
+
+The cause was the tray popup's "fake hide" mechanism: instead of truly hiding, the popup window was made fully transparent and parked off-screen. A transparent window still intercepts mouse input, and macOS can move off-screen windows back onto the display — leaving an invisible overlay blocking the top-left area. The tray popup now truly hides with the native window-hide call. It is set to fully transparent right before hiding, so the system window fade that Windows replays on transparent windows still plays invisibly, and full opacity is restored when the popup appears — no click blocking, and no visible fade.
+
+Thanks to [@dkoychev](https://github.com/dkoychev) for the report! [Issue #869](https://github.com/xpf0000/FlyEnv/issues/869)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)
+
+**Enjoy the update!**
+
+## [4.19.0] - 2026-09-26
+
+# **FlyEnv v4.19.0 Update Release Notes**
+
+## **🚀 New Features**
+
+### **1. Added Plugin Market**
+
+FlyEnv now includes a dedicated **Plugin Market** (Settings → Plugin Market) that lets you extend the app with optional modules while keeping the core application focused. Plugins can provide complete FlyEnv modules — including services with their own pages, configuration, and logs — that integrate into the same workflow as the built-in modules.
+
+The Plugin Market provides:
+- **Official Catalog**: Browse and install official FlyEnv plugins with one click
+- **Third-Party Registries**: Add community plugin registry URLs as additional sources; third-party sources are explicitly acknowledged before their plugins can be installed
+- **Installed Plugin Management**: Update, disable, re-enable, or uninstall installed plugins from one place
+- **No Restart Required**: Installing, updating, disabling, and removing plugins takes effect immediately — new modules appear in the menu and running services are stopped safely before changes
+- **Verified Installs**: Every catalog plugin carries an exact SHA-256 checksum, and installed plugins are protected by per-installation tokens encrypted with the OS keychain, so copying plugin files between machines does not activate them
+
+Installing and updating plugins requires an active FlyEnv license; already-installed plugins keep working without one.
+
+---
+
+### **2. Added Kafka Plugin**
+
+The Plugin Market launches with **Kafka** as its first official service plugin. The plugin adds a complete Apache Kafka module that runs a single-node KRaft-mode broker (no ZooKeeper required) on Windows, macOS, and Linux.
+
+This integration provides:
+- **Version Management**: Download and manage Kafka releases directly from FlyEnv
+- **Java Runtime Binding**: Runs on a Java 17+ runtime, with validation of the selected Java version
+- **Service Controls**: Start and stop the broker through the standard FlyEnv service workflow, including system tray integration
+- **Topic Management**: Create, inspect, and delete Kafka topics from the built-in Topics page
+- **Configuration and Logs**: Edit the generated server configuration and inspect broker logs from the module
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **3. Improved Podman Rosetta Setting on Apple Silicon**
+
+The Rosetta switch for Podman machines is now disabled with an explanatory tip when the installed Podman version is known to be too old (below 5.1.0, which introduced the `[machine] rosetta` containers.conf option), while unknown versions no longer false-disable the control. The setting is also clearly documented as a global Podman preference rather than a per-VM option, and the FlyEnv-managed `flyenv-podman.conf` drop-in now carries a header comment explaining its origin and safe removal.
+
+Thanks to [@YoloCyber](https://github.com/YoloCyber) for the contribution! [Pull Request #863](https://github.com/xpf0000/FlyEnv/pull/863)
+
+---
+
+### **4. Fixed MySQL Root Password Initialization on Custom Ports**
+
+Resolved an issue where the first start of a MySQL instance configured on a non-default port failed to set the root password: the initialization command always connected to the default port 3306, leaving the new instance with an empty password while FlyEnv kept connecting with the configured one. FlyEnv now resolves the instance's own configuration file, passes the correct port explicitly, and retries the initialization for slow-starting servers.
+
+Thanks to [@ulusoyomer](https://github.com/ulusoyomer) for the contribution! [Pull Request #866](https://github.com/xpf0000/FlyEnv/pull/866) [Issue #773](https://github.com/xpf0000/FlyEnv/issues/773)
+
+---
+
+### **5. Fixed Windows Tray Popup on Non-Bottom Taskbars**
+
+Resolved several issues with the Windows tray popup: it was clipped off-screen whenever the taskbar was docked to the top, left, or right edge; it re-laid-out visibly right after appearing; and every opening replayed a ~300ms system window fade. The popup now positions itself from the actual taskbar edge with the arrow pointing at the tray icon, appears instantly in a single frame, and handles focus correctly so clicking outside closes it as expected.
+
+Thanks to [@darius-gs](https://github.com/darius-gs) for the contribution! [Pull Request #868](https://github.com/xpf0000/FlyEnv/pull/868)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can verify the build process and download the artifacts directly from the following links:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues)
+
+**Enjoy the update!**
+
 ## [4.18.3] - 2026-09-12
 
 # **FlyEnv v4.18.3 Update Release Notes**

@@ -76,34 +76,31 @@ assert(
   'Tray popup must stay inside the icon display on both axes'
 )
 assert(
-  /pushPopupLayout\(\)/.test(tray) &&
-    /this\.trayManager\.pushPopupLayout\(\)/.test(application) &&
-    /this\.trayManager\.primePopupWindow\(\)/.test(application) &&
-    /win\.setOpacity\(0\)\s*\n\s*win\.showInactive\(\)/.test(tray),
-  'Tray popup must sync layout and consume the system fade off-screen before the first show'
+  /pushPopupLayout\(\)/.test(tray) && /this\.trayManager\.pushPopupLayout\(\)/.test(application),
+  'Tray popup must sync layout before the first show'
 )
 assert(
   /attachWindow\(win: BrowserWindow\)/.test(tray) &&
-    /this\.primed = false/.test(tray) &&
     /this\.alwaysOnTopArmed = false/.test(tray) &&
+    /win\.setOpacity\(0\)/.test(tray) &&
     /this\.trayManager!\.attachWindow\(window\)/.test(windowManager),
-  'A rebuilt tray window must reset primed and the always-on-top flag, or it would skip setup steps'
+  'A rebuilt tray window must reset state flags and start fully transparent through attachWindow'
 )
 assert(
   /openPopup\(x: number, y: number, side: TrayPopupSide, arrowOffset: number\)/.test(tray) &&
     /closePopup\(\)/.test(tray) &&
-    /private parkPosition\(\)/.test(tray) &&
     /this\.trayManager\.openPopup\(x, y, side, arrowOffset\)/.test(application) &&
     /this\.trayManager\.closePopup\(\)/.test(application) &&
     /this\.trayManager!\.closePopup\(\)/.test(windowManager),
-  'Tray popup visibility must be implemented by moving the window on/off screen'
+  'Tray popup open/close must go through TrayManager'
 )
 assert(
-  !/win\.hide\(\)/.test(tray) &&
-    /bindCloseToHide && !this\.willQuit\) \{\s*event\.preventDefault\(\)\s*\/\/[^\n]*\n\s*this\.trayManager!\.closePopup\(\)/.test(
-      windowManager
-    ),
-  'Tray popup must never call hide(): Windows replays a ~300ms fade on every hidden->visible'
+  /win\.setOpacity\(0\)\s*\n\s*win\.hide\(\)/.test(tray),
+  'Tray popup must fully hide() when closed: an invisible opacity-0 window still intercepts clicks (issue #869)'
+)
+assert(
+  /win\.show\(\)\s*\n\s*\}[\s\S]*?win\.setOpacity\(1\)/.test(tray),
+  'Tray popup must show() at opacity 0 and restore opacity after, so the Windows show-fade plays invisibly'
 )
 assert(
   /await this\.syncPopupLayout\(side, arrowOffset\)/.test(tray) &&
@@ -111,7 +108,7 @@ assert(
     /'APP:Tray-Popup-Layout-Applied'/.test(ipcHandler) &&
     !/'APP:Tray-Popup-Side'/.test(application) &&
     !/'APP:Tray-Arrow-Offset'/.test(application) &&
-    /win\.focus\(\)\s*\n\s*win\.setOpacity\(1\)/.test(tray),
+    /win\.focus\(\)[\s\S]*?win\.setOpacity\(1\)/.test(tray),
   'Popup layout must be acknowledged by the renderer and focus must happen before the final reveal'
 )
 assert(
@@ -128,7 +125,7 @@ assert(
   !/win\.setPosition\(/.test(tray) &&
     /private popupSize = \{ width: 270, height: 435 \}/.test(tray) &&
     (tray.match(/win\.setBounds\(\{ x: [^,]+, y: [^,]+, \.\.\.this\.popupSize \}\)/g) ?? [])
-      .length === 3 &&
+      .length === 1 &&
     /const size = this\.popupSize/.test(tray),
   'Popup moves must pin the size via setBounds: bare setPosition grows the window 1-2px per call on Win11 fractional DPI'
 )
