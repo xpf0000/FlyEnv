@@ -30,6 +30,15 @@ export default class TrayManager extends EventEmitter {
   clicking: boolean = false
   primed: boolean = false
   window: BrowserWindow | undefined
+  private lastBlurCloseAt: number = 0
+  private alwaysOnTopArmed: boolean = false
+  private layoutNonce: number = 0
+  private layoutAppliedResolver: (() => void) | undefined
+  // 弹窗的设计尺寸(WindowManager 创建窗口时也是 270x435),任何 DPI 下 DIP 尺寸都恒定。
+  // 所有移动都必须用 setBounds 把这个尺寸钉回去:Win11 分数缩放下裸 setPosition
+  // 每次调用都会让窗口膨胀 1~2px,弹窗会越开越大。钉常量而不是捕获 getBounds()
+  // 的原因:DPI 缩放变化后实际尺寸会漂移,每次开/关都重新钉回设计尺寸即可自动纠正
+  private popupSize = { width: 270, height: 435 }
 
   constructor() {
     super()
@@ -159,6 +168,7 @@ export default class TrayManager extends EventEmitter {
   onBlur(event: Event) {
     event.preventDefault()
     if (!this.clicking) {
+      this.lastBlurCloseAt = Date.now()
       this.closePopup()
     }
   }
@@ -172,6 +182,7 @@ export default class TrayManager extends EventEmitter {
     this.primed = false
     this.show = false
     this.clicking = false
+    this.alwaysOnTopArmed = false
   }
 
   /**
@@ -186,29 +197,44 @@ export default class TrayManager extends EventEmitter {
     }
     this.primed = true
     const park = this.parkPosition()
-    win.setPosition(park.x, park.y)
+    win.setBounds({ x: park.x, y: park.y, ...this.popupSize })
     win.setOpacity(0)
     win.showInactive()
   }
 
-  /** 打开弹窗:窗口一直"显示"着停在屏幕外,这里只移动位置、置顶并恢复不透明 */
-  openPopup(x: number, y: number) {
+  /** 打开弹窗:窗口一直"显示"着停在屏幕外。所有可能产生视觉抖动的操作(布局变更、
+   * 移动、置顶、取焦点)都在全透明状态下完成,最后才恢复不透明——用户看到的第一帧
+   * 就是最终状态,箭头跳变和焦点闪烁都被透明度掩盖 */
+  async openPopup(x: number, y: number, side: TrayPopupSide, arrowOffset: number) {
     const win = this.window
     if (!win || win.isDestroyed()) {
       return
     }
-    win.setPosition(Math.round(x), Math.round(y))
-    win.setAlwaysOnTop(true, 'screen-saver')
-    win.moveTop()
-    win.setOpacity(1)
-    if (!win.isVisible()) {
-      win.show()
-    }
-    // 移动/改透明度都不会激活窗口,必须显式取焦点,否则"点弹窗外面自动关"的 blur 永远不会触发
-    win.focus()
+    // 先置意图标志:布局回执是异步的,期间再次点击会得到正确的"关闭"切换
     this.show = true
     this.clicking = true
     win.removeListener('blur', this.onBlur)
+    // 等渲染层真正应用了方向/箭头再显示;直接发 IPC 不等回执的话,窗口可见后
+    // 布局才落地,箭头会以旧位置渲染一帧再跳变(肉眼可见的"闪一下")
+    await this.syncPopupLayout(side, arrowOffset)
+    if (!this.show || win.isDestroyed()) {
+      // 等待期间已被关闭(快速切换),放弃本次打开
+      return
+    }
+    win.setBounds({ x: Math.round(x), y: Math.round(y), ...this.popupSize })
+    if (!this.alwaysOnTopArmed) {
+      // 置顶只需设置一次,每次重设都在挑动 z-order,可能引入额外闪烁
+      win.setAlwaysOnTop(true, 'screen-saver')
+      this.alwaysOnTopArmed = true
+    }
+    win.moveTop()
+    if (!win.isVisible()) {
+      win.showInactive()
+    }
+    // 移动/改透明度都不会激活窗口,必须显式取焦点,否则"点弹窗外面自动关"的 blur
+    // 永远不会触发;焦点切换放在恢复不透明之前,激活瞬间的闪烁不可见
+    win.focus()
+    win.setOpacity(1)
     setTimeout(() => {
       if (!this.show || win.isDestroyed()) {
         return
@@ -220,6 +246,57 @@ export default class TrayManager extends EventEmitter {
     }, 250)
   }
 
+  /** 弹窗相对图标的方向与箭头偏移,供显示前先把布局同步给渲染层 */
+  getPopupLayout() {
+    const { side, arrowOffset } = this.resolvePlacement()
+    return { side, arrowOffset }
+  }
+
+  /** 把方向/箭头一次性推给渲染层(dom-ready 预热用,不等回执) */
+  pushPopupLayout() {
+    const { side, arrowOffset } = this.getPopupLayout()
+    this.sendPopupLayout(side, arrowOffset)
+  }
+
+  /** 渲染层已应用最新布局的回执,由 IPCHandler 转发 */
+  notifyLayoutApplied(nonce: number) {
+    if (nonce === this.layoutNonce) {
+      this.layoutAppliedResolver?.()
+      this.layoutAppliedResolver = undefined
+    }
+  }
+
+  /** 发送布局并等待渲染层回执;回执丢失时按超时兜底,绝不卡住打开流程 */
+  private syncPopupLayout(side: TrayPopupSide, arrowOffset: number): Promise<void> {
+    if (!this.sendPopupLayout(side, arrowOffset)) {
+      return Promise.resolve()
+    }
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        this.layoutAppliedResolver = undefined
+        resolve()
+      }, 150)
+      this.layoutAppliedResolver = () => {
+        clearTimeout(timer)
+        resolve()
+      }
+    })
+  }
+
+  private sendPopupLayout(side: TrayPopupSide, arrowOffset: number): boolean {
+    const win = this.window
+    if (!win || win.isDestroyed()) {
+      return false
+    }
+    this.layoutNonce += 1
+    win.webContents.send('command', 'APP:Tray-Popup-Layout', 'APP:Tray-Popup-Layout', {
+      side,
+      arrowOffset,
+      nonce: this.layoutNonce
+    })
+    return true
+  }
+
   /** 关闭弹窗:移回屏幕外并置全透明,不能 hide,否则下次显示会再淡入一次 */
   closePopup() {
     const win = this.window
@@ -229,7 +306,7 @@ export default class TrayManager extends EventEmitter {
     }
     const park = this.parkPosition()
     win.setOpacity(0)
-    win.setPosition(park.x, park.y)
+    win.setBounds({ x: park.x, y: park.y, ...this.popupSize })
     win.removeListener('blur', this.onBlur)
     if (win.isFocused()) {
       // 窗口只是移出屏幕、并没有 hide,不主动交还焦点的话它会一直攥着键盘输入
@@ -242,28 +319,27 @@ export default class TrayManager extends EventEmitter {
     const displays = screen.getAllDisplays()
     const minX = Math.min(...displays.map((d) => d.bounds.x))
     const minY = Math.min(...displays.map((d) => d.bounds.y))
-    const width = this.window?.getBounds().width ?? 270
-    return { x: Math.round(minX - width - 100), y: Math.round(minY) }
+    return { x: Math.round(minX - this.popupSize.width - 100), y: Math.round(minY) }
   }
 
   handleTrayClick = (event: any) => {
     event?.preventDefault?.()
+    if (!this.show && Date.now() - this.lastBlurCloseAt < 350) {
+      // Windows 下弹窗打开时点击图标会先触发 blur(已自动关窗)再触发 click,
+      // 此时 this.show 已为 false,若照常处理会把刚关掉的弹窗立刻重新打开
+      return
+    }
     this.clicking = true
     this.window?.removeListener('blur', this.onBlur)
     const { x, y, side, arrowOffset } = this.resolvePlacement()
     this.emit('click', x, y, arrowOffset, !this.show, side)
   }
 
-  /** 弹窗相对图标的方向与箭头偏移,供显示前先把布局同步给渲染层 */
-  getPopupLayout() {
-    const { side, arrowOffset } = this.resolvePlacement()
-    return { side, arrowOffset }
-  }
-
   private resolvePlacement(): TrayPopupPlacement {
     const trayBounds = this.tray.getBounds()
-    const windowBounds = this.window?.getBounds()
-    const size = { width: windowBounds?.width ?? 270, height: windowBounds?.height ?? 435 }
+    // 尺寸不能用 getBounds() 现读:系统取整后的实际值会随位置/DPI 抖动,
+    // 用它定位会自我放大误差;统一用设计尺寸,与实际渲染最多差 1px,不可感知
+    const size = this.popupSize
     const centerX = trayBounds.x + trayBounds.width * 0.5
     const centerY = trayBounds.y + trayBounds.height * 0.5
     // 图标可能在副屏上,定位与边界判断都要基于图标所在的显示器

@@ -450,6 +450,9 @@ export default class IPCHandler extends EventEmitter {
       case 'APP:Tray-Command':
         this.handleTrayCommand(command, args)
         break
+      case 'APP:Tray-Popup-Layout-Applied':
+        this.deps.trayManager.notifyLayoutApplied(args?.[0])
+        break
 
       // 开发工具
       case 'application:open-dev-window':

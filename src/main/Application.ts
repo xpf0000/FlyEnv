@@ -963,7 +963,7 @@ export default class Application extends EventEmitter {
         )
         this.trayManager.addModernStyleListener()
         // 首次显示前先把弹窗方向/箭头同步给渲染层,并在屏幕外消耗掉系统的窗口淡入
-        this.syncTrayPopupLayout()
+        this.trayManager.pushPopupLayout()
         this.trayManager.primePopupWindow()
       })
 
@@ -979,25 +979,6 @@ export default class Application extends EventEmitter {
     this.ipcHandler.updateDependencies({ trayWindow: undefined })
   }
 
-  private syncTrayPopupLayout() {
-    if (!this.trayWindow) {
-      return
-    }
-    const layout = this.trayManager.getPopupLayout()
-    this.windowManager.sendCommandTo(
-      this.trayWindow,
-      'APP:Tray-Popup-Side',
-      'APP:Tray-Popup-Side',
-      layout.side
-    )
-    this.windowManager.sendCommandTo(
-      this.trayWindow,
-      'APP:Tray-Arrow-Offset',
-      'APP:Tray-Arrow-Offset',
-      layout.arrowOffset
-    )
-  }
-
   private handleTrayClick(
     x: number,
     y: number,
@@ -1005,24 +986,9 @@ export default class Application extends EventEmitter {
     show: boolean,
     side: TrayPopupSide
   ) {
-    if (!this.trayWindow) {
-      return
-    }
     if (show) {
-      // 布局要先于显示下发,窗口恢复不透明后就不会再重排
-      this.windowManager.sendCommandTo(
-        this.trayWindow,
-        'APP:Tray-Popup-Side',
-        'APP:Tray-Popup-Side',
-        side
-      )
-      this.windowManager.sendCommandTo(
-        this.trayWindow,
-        'APP:Tray-Arrow-Offset',
-        'APP:Tray-Arrow-Offset',
-        arrowOffset
-      )
-      this.trayManager.openPopup(x, y)
+      // 布局同步(含渲染层回执)、移动、置顶、取焦点都由 TrayManager 在全透明状态下完成
+      this.trayManager.openPopup(x, y, side, arrowOffset)
     } else {
       this.trayManager.closePopup()
     }

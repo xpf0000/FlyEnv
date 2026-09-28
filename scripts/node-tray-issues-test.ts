@@ -18,6 +18,7 @@ const tray = await read('src/main/ui/TrayManager.ts')
 const trayApp = await read('src/render/tray/App.vue')
 const application = await read('src/main/Application.ts')
 const windowManager = await read('src/main/ui/WindowManager.ts')
+const ipcHandler = await read('src/main/core/IPCHandler.ts')
 
 assert(
   /if \(\(tool === 'fnm' \|\| tool === 'nvm'\) && process\.platform === 'win32'\)/.test(nodeWin),
@@ -56,6 +57,11 @@ assert(
   'Modern tray popup must use right-click only on Windows and both mouse buttons elsewhere'
 )
 assert(
+  /lastBlurCloseAt/.test(tray) &&
+    /!this\.show && Date\.now\(\) - this\.lastBlurCloseAt < 350/.test(tray),
+  'Tray click must ignore the click that follows a blur-triggered close, or the popup reopens instantly'
+)
+assert(
   /private getPopupSide\(display: Display, trayBounds: Rectangle\): TrayPopupSide \{/.test(tray) &&
     /if \(trayBounds\.y < workArea\.y\) \{\s*return 'down'\s*\}/.test(tray) &&
     /if \(trayBounds\.y \+ trayBounds\.height > areaBottom\) \{\s*return 'up'\s*\}/.test(tray) &&
@@ -70,8 +76,8 @@ assert(
   'Tray popup must stay inside the icon display on both axes'
 )
 assert(
-  /getPopupLayout\(\)/.test(tray) &&
-    /this\.syncTrayPopupLayout\(\)/.test(application) &&
+  /pushPopupLayout\(\)/.test(tray) &&
+    /this\.trayManager\.pushPopupLayout\(\)/.test(application) &&
     /this\.trayManager\.primePopupWindow\(\)/.test(application) &&
     /win\.setOpacity\(0\)\s*\n\s*win\.showInactive\(\)/.test(tray),
   'Tray popup must sync layout and consume the system fade off-screen before the first show'
@@ -79,14 +85,15 @@ assert(
 assert(
   /attachWindow\(win: BrowserWindow\)/.test(tray) &&
     /this\.primed = false/.test(tray) &&
+    /this\.alwaysOnTopArmed = false/.test(tray) &&
     /this\.trayManager!\.attachWindow\(window\)/.test(windowManager),
-  'A rebuilt tray window must reset primed, or it would skip the off-screen fade pre-consume'
+  'A rebuilt tray window must reset primed and the always-on-top flag, or it would skip setup steps'
 )
 assert(
-  /openPopup\(x: number, y: number\)/.test(tray) &&
+  /openPopup\(x: number, y: number, side: TrayPopupSide, arrowOffset: number\)/.test(tray) &&
     /closePopup\(\)/.test(tray) &&
     /private parkPosition\(\)/.test(tray) &&
-    /this\.trayManager\.openPopup\(x, y\)/.test(application) &&
+    /this\.trayManager\.openPopup\(x, y, side, arrowOffset\)/.test(application) &&
     /this\.trayManager\.closePopup\(\)/.test(application) &&
     /this\.trayManager!\.closePopup\(\)/.test(windowManager),
   'Tray popup visibility must be implemented by moving the window on/off screen'
@@ -99,10 +106,31 @@ assert(
   'Tray popup must never call hide(): Windows replays a ~300ms fade on every hidden->visible'
 )
 assert(
-  /'APP:Tray-Popup-Side'/.test(application) &&
-    /'APP:Tray-Arrow-Offset'/.test(application) &&
-    /side: TrayPopupSide\s*\n\s*\) \{/.test(application),
-  'Main process must forward the popup side and arrow offset to the tray window'
+  /await this\.syncPopupLayout\(side, arrowOffset\)/.test(tray) &&
+    /notifyLayoutApplied\(nonce: number\)/.test(tray) &&
+    /'APP:Tray-Popup-Layout-Applied'/.test(ipcHandler) &&
+    !/'APP:Tray-Popup-Side'/.test(application) &&
+    !/'APP:Tray-Arrow-Offset'/.test(application) &&
+    /win\.focus\(\)\s*\n\s*win\.setOpacity\(1\)/.test(tray),
+  'Popup layout must be acknowledged by the renderer and focus must happen before the final reveal'
+)
+assert(
+  /IPC\.on\('APP:Tray-Popup-Layout'\)/.test(trayApp) &&
+    /IPC\.send\('APP:Tray-Popup-Layout-Applied', res\?\.nonce \?\? 0\)/.test(trayApp),
+  'Tray renderer must apply the combined layout message and send back the nonce ack'
+)
+assert(
+  /!this\.alwaysOnTopArmed/.test(tray) &&
+    /win\.setAlwaysOnTop\(true, 'screen-saver'\)\s*\n\s*this\.alwaysOnTopArmed = true/.test(tray),
+  'Always-on-top must be armed only once, not re-toggled on every open'
+)
+assert(
+  !/win\.setPosition\(/.test(tray) &&
+    /private popupSize = \{ width: 270, height: 435 \}/.test(tray) &&
+    (tray.match(/win\.setBounds\(\{ x: [^,]+, y: [^,]+, \.\.\.this\.popupSize \}\)/g) ?? [])
+      .length === 3 &&
+    /const size = this\.popupSize/.test(tray),
+  'Popup moves must pin the size via setBounds: bare setPosition grows the window 1-2px per call on Win11 fractional DPI'
 )
 assert(
   /win\.focus\(\)/.test(tray) &&

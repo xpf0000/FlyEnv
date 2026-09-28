@@ -58,18 +58,18 @@
   })
   const startupGroups = computed(() => store.startupGroups)
 
-  // 弹窗相对托盘图标的边,由主进程按任务栏位置下发;箭头贴在朝向图标的那条边上
+  // 弹窗相对托盘图标的边与箭头偏移,由主进程按任务栏位置一次性下发;
+  // 应用后必须回执,主进程收到回执才会把窗口恢复不透明,保证第一帧就是最终布局
   const side: Ref<TrayPopupSide> = ref<TrayPopupSide>(store.isWindows ? 'up' : 'down')
-  IPC.on('APP:Tray-Popup-Side').then((key: string, res: any) => {
-    if (res === 'up' || res === 'down' || res === 'left' || res === 'right') {
-      side.value = res
-    }
-  })
-
   const arrowOffset: Ref<number> = ref(15)
-  IPC.on('APP:Tray-Arrow-Offset').then((key: string, res: any) => {
-    const offset = Number(res)
+  IPC.on('APP:Tray-Popup-Layout').then((key: string, res: any) => {
+    const nextSide = res?.side
+    if (nextSide === 'up' || nextSide === 'down' || nextSide === 'left' || nextSide === 'right') {
+      side.value = nextSide
+    }
+    const offset = Number(res?.arrowOffset)
     arrowOffset.value = Number.isFinite(offset) ? offset : 15
+    IPC.send('APP:Tray-Popup-Layout-Applied', res?.nonce ?? 0)
   })
 
   const arrowStyle = computed(() => {
