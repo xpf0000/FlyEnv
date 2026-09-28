@@ -3,3 +3,7 @@ html.dark {
   --flyenv-color-success: #01cc74;
   --el-color-success: var(--flyenv-color-success);
 }
+
+html.dark {
+  --flyenv-sidebar-divider-color: rgba(63, 63, 70, 1);
+}

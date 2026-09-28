@@ -5,6 +5,7 @@ import './index.scss'
 // the tray falls back to Element Plus's default --el-color-success (#67c23a)
 // instead of FlyEnv green (#01cc74), so tray switches render a different green.
 import './style/theme/base-tokens.scss'
+import './style/theme/light-tokens.scss'
 import { createPinia } from 'pinia'
 import IPC from './util/IPC'
 import { AppStore } from './tray/store/app'

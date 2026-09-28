@@ -226,8 +226,7 @@
 
         .tray-menu-separator {
           margin: 4px 18px;
-          border-top: 1px solid currentColor;
-          opacity: 0.16;
+          border-top: 1px solid var(--flyenv-sidebar-divider-color);
         }
 
         > .bottom-tool {
@@ -336,25 +335,18 @@
     }
   }
   html.light {
-    --base-bg-color: #f4f5f6;
-    --base-bg-color-2: rgba(51, 68, 85, 0.2);
-    --base-bg-color-1: rgba(51, 68, 85, 0.15);
-
-    body {
-      background: var(--base-bg-color);
-    }
-
     #app {
       .popper-arrow {
-        background: var(--base-bg-color);
-        border: 1px solid var(--base-bg-color);
+        background: var(--flyenv-light-sidebar);
+        border: 1px solid var(--flyenv-light-sidebar);
       }
     }
     .tray-aside-inner {
-      background: var(--base-bg-color);
+      background: var(--flyenv-light-sidebar);
+      color: var(--flyenv-light-text);
 
       > .top-tool {
-        border-bottom: 1px solid var(--base-bg-color-1);
+        border-bottom: 1px solid var(--flyenv-light-border);
         > li {
           &:hover {
             background: var(--base-bg-color-2);
@@ -364,21 +356,26 @@
       }
 
       .menu {
-        color: #345;
+        color: var(--flyenv-light-text);
 
         li {
           &:hover {
-            background: var(--base-bg-color-1);
+            background: var(--base-bg-color-2);
           }
         }
 
         svg {
-          color: #345;
+          color: var(--flyenv-light-text);
         }
       }
+
       > .bottom-tool {
-        border-top: 1px solid var(--base-bg-color-1);
-        color: #345;
+        border-top: 1px solid var(--flyenv-light-border);
+        color: var(--flyenv-light-text);
+
+        > li:hover {
+          color: var(--flyenv-light-primary);
+        }
       }
     }
   }
