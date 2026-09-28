@@ -59,7 +59,7 @@
   const startupGroups = computed(() => store.startupGroups)
 
   // 弹窗相对托盘图标的边与箭头偏移,由主进程按任务栏位置一次性下发;
-  // 应用后必须回执,主进程收到回执才会把窗口恢复不透明,保证第一帧就是最终布局
+  // 应用后必须回执,主进程收到回执才会显示窗口,保证第一帧就是最终布局
   const side: Ref<TrayPopupSide> = ref<TrayPopupSide>(store.isWindows ? 'up' : 'down')
   const arrowOffset: Ref<number> = ref(15)
   IPC.on('APP:Tray-Popup-Layout').then((key: string, res: any) => {

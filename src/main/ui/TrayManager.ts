@@ -174,19 +174,18 @@ export default class TrayManager extends EventEmitter {
 
   /**
    * 绑定新建的弹窗窗口。托盘样式切换(modern→classic→modern)会销毁并重建窗口,
-   * 状态标志必须一起重置。新窗口先置全透明:openPopup 里 hidden→visible 的
-   * 系统淡入只对透明度 0 的窗口播放,首次打开也不能例外
+   * 状态标志必须一起重置。
    */
   attachWindow(win: BrowserWindow) {
     this.window = win
     this.show = false
     this.clicking = false
     this.alwaysOnTopArmed = false
-    win.setOpacity(0)
   }
 
-  /** 打开弹窗:先等渲染层应用布局,再在全透明状态下完成移动/置顶/取焦点,
-   * 最后恢复不透明——用户看到的第一帧就是最终状态,箭头跳变和焦点闪烁都被掩盖 */
+  /** 打开弹窗:先等渲染层应用布局,再钉住尺寸移动到目标位置、置顶并显示。
+   * 纯 show——不取焦点、不做透明度操作。显式 focus() 会引入 blur 竞态:溢出菜单
+   * 里的图标右键后系统会把前台还给之前的窗口,弹窗刚显示就被自己的 blur 关掉 */
   async openPopup(x: number, y: number, side: TrayPopupSide, arrowOffset: number) {
     const win = this.window
     if (!win || win.isDestroyed()) {
@@ -212,20 +211,13 @@ export default class TrayManager extends EventEmitter {
       this.alwaysOnTopArmed = true
     }
     win.moveTop()
-    if (!win.isVisible()) {
-      // Windows 会对透明窗口的 hidden→visible 重放约 300ms 整窗淡入。窗口 hide 前
-      // 已置为全透明(见 closePopup),这次淡入在不可见状态下播放,对用户无感
-      win.show()
-    }
-    // 移动/显示都不保证激活窗口,必须显式取焦点,否则"点弹窗外面自动关"的 blur
-    // 永远不会触发;焦点切换放在恢复不透明之前,激活瞬间的闪烁不可见
-    win.focus()
-    // 淡入作用于透明度 0 的窗口,这里恢复不透明,弹窗直接出现
-    win.setOpacity(1)
+    win.show()
     setTimeout(() => {
       if (!this.show || win.isDestroyed()) {
         return
       }
+      // 250ms 后再挂 blur:溢出菜单场景下系统在右键后立刻把前台还给之前的窗口,
+      // 这次 blur 落在武装之前自然忽略;之后用户点了弹窗外面,blur 才关窗。
       // 先摘再挂:250ms 内快速关→开会叠加多个定时器,避免 onBlur 被注册多份
       win.removeListener('blur', this.onBlur)
       win.on('blur', this.onBlur)
@@ -233,13 +225,8 @@ export default class TrayManager extends EventEmitter {
     }, 250)
   }
 
-  /**
-   * 关闭弹窗:必须真正 hide。不能只用 setOpacity(0)/移出屏幕"伪隐藏"——
-   * 透明度为 0 的窗口依然存在且会拦截鼠标点击,系统还可能在显示器变化时把它
-   * 拉回屏内,表现为屏幕左上角一块区域点不动(issue #869)。
-   * hide 前先置全透明:Windows 会在下次 show() 时重放整窗淡入,淡入作用于
-   * 透明度 0 的窗口用户不可见,openPopup 再恢复不透明
-   */
+  /** 关闭弹窗:真正 hide。隐藏窗口不存在也就谈不上拦截点击(issue #869),
+   * 不做 setOpacity(0) 之类的伪隐藏,避免再次 show 时不合成画面 */
   closePopup() {
     const win = this.window
     this.show = false
@@ -251,7 +238,6 @@ export default class TrayManager extends EventEmitter {
       // 主动交还焦点,避免隐藏前窗口一直攥着键盘输入
       win.blur()
     }
-    win.setOpacity(0)
     win.hide()
   }
 
