@@ -22,8 +22,8 @@ const region = source.slice(start, end)
 assert.match(region, /my-\$\{v\}\.cnf/, '_initPassword must resolve the version cnf file')
 assert.match(
   region,
-  /iniParse\(content\)[\s\S]*?config\?\.mysqld\?\.port \?\? 3306/,
-  '_initPassword must parse the port from the version cnf with the 3306 fallback'
+  /iniParse\(content\)[\s\S]*?config\?\.mysqld\?\.port \?\? DEFAULT_MYSQL_PORT/,
+  '_initPassword must parse the port from the version cnf with the MySQL default fallback'
 )
 
 // mysqladmin must receive the cnf, a TCP protocol hint and the parsed port

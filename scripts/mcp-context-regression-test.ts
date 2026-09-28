@@ -110,6 +110,7 @@ function createTempServerLayout() {
   const root = mkdtempSync(join(tmpdir(), 'flyenv-mcp-context-'))
   const baseDir = join(root, 'base')
   const mysqlDir = join(root, 'mysql')
+  const mariadbDir = join(root, 'mariadb')
   const redisDir = join(root, 'redis')
   const postgresqlDir = join(root, 'postgresql')
   const mongoDir = join(root, 'mongodb')
@@ -120,6 +121,7 @@ function createTempServerLayout() {
   for (const dir of [
     baseDir,
     mysqlDir,
+    mariadbDir,
     redisDir,
     postgresqlDir,
     mongoDir,
@@ -147,6 +149,7 @@ function createTempServerLayout() {
   )
   writeFileSync(join(mysqlDir, 'error.log'), 'mysql error\n', 'utf-8')
   writeFileSync(join(mysqlDir, 'slow.log'), 'mysql slow\n', 'utf-8')
+  writeFileSync(join(mariadbDir, 'my-13.0.cnf'), '[mariadbd]\ndatadir=/data/mariadb13\n', 'utf-8')
   writeFileSync(join(baseDir, 'vhost', 'nginx', '1001.conf'), 'server {}\n', 'utf-8')
   writeFileSync(join(baseDir, 'vhost', 'rewrite', '1001.conf'), 'try_files\n', 'utf-8')
   writeFileSync(join(baseDir, 'vhost', 'logs', '1001.log'), 'access\n', 'utf-8')
@@ -166,6 +169,7 @@ function createTempServerLayout() {
     root,
     baseDir,
     mysqlDir,
+    mariadbDir,
     projectDir,
     certDir
   }
@@ -190,11 +194,17 @@ async function testContextTools() {
     path: '/opt/mysql/8.4.0',
     rootPassword: 'root001'
   })
+  const mariadb130 = makeVersion('mariadb', '13.0.0', {
+    bin: '/opt/mariadb/13.0.0/bin/mariadbd',
+    path: '/opt/mariadb/13.0.0',
+    rootPassword: 'root002'
+  })
 
   ServiceVersionManager.updateCache({
     php: [php84],
     nginx: [nginx],
-    mysql: [mysql84]
+    mysql: [mysql84],
+    mariadb: [mariadb130]
   })
   ServiceProcessManager.addPid('php', '1101', php84)
   ServiceProcessManager.addPid('nginx', '2202', nginx)
@@ -250,6 +260,9 @@ async function testContextTools() {
   forkManager.logFilesByModule.mysql = [
     { name: 'error', path: join(temp.mysqlDir, 'error.log'), exists: true }
   ]
+  forkManager.configFilesByModule.mariadb = [
+    { name: 'main', path: join(temp.mariadbDir, 'my-13.0.cnf'), exists: true }
+  ]
 
   const tools = new MCPTools(forkManager as any, new FakeMcpConfigManager() as any)
 
@@ -274,9 +287,15 @@ async function testContextTools() {
   const db = await tools.getDatabaseConnectionInfo('mysql', '8.4.0')
   assert.equal(db.port, 3307)
   assert.equal(db.password, 'root001')
-  assert.equal(db.socket, '/tmp/mysql.8.4.0.sock')
+  assert.equal(db.socket, '/tmp/mysql.sock')
   assert.equal(db.sourceHints.port, 'config')
   assert.equal(db.sourceHints.socket, 'derived')
+
+  const mariadb = await tools.getDatabaseConnectionInfo('mariadb', '13.0.0')
+  assert.equal(mariadb.port, 3307)
+  assert.equal(mariadb.password, 'root002')
+  assert.equal(mariadb.socket, '/tmp/mariadb.sock')
+  assert.equal(mariadb.sourceHints.port, 'default')
 
   const siteFiles = await tools.getManagedFileMap({ scope: 'site', name: 'demo.test' })
   assert.ok(siteFiles.files.env.some((item: any) => item.path.endsWith('.env') && item.exists))
@@ -290,7 +309,7 @@ async function testContextTools() {
   })
   assert.ok(
     serviceFiles.files.runtime.some(
-      (item: any) => item.name === 'socket' && item.path === '/tmp/mysql.8.4.0.sock'
+      (item: any) => item.name === 'socket' && item.path === '/tmp/mysql.sock'
     )
   )
   assert.ok(serviceFiles.files.data.some((item: any) => item.path.includes('/data/mysql84')))
