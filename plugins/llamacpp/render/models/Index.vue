@@ -8,7 +8,7 @@
     <div v-for="model in results" :key="model.id" class="rounded border p-3">
       <div class="font-semibold">{{ model.id }}</div>
       <div class="text-xs opacity-70">{{ LlamaCppT('downloads') }}: {{ model.downloads }} · {{ model.license ?? LlamaCppT('licenseUnknown') }}</div>
-      <el-button size="small" class="mt-2" @click="inspect(model.id)">{{ LlamaCppT('chooseFile') }}</el-button>
+      <el-button size="small" class="mt-2" @click="inspect(model.id, model.license)">{{ LlamaCppT('chooseFile') }}</el-button>
     </div>
     <div v-if="results.length" class="flex gap-2">
       <el-button :disabled="page === 0" @click="search(page - 1)">{{ LlamaCppT('previous') }}</el-button>
@@ -55,9 +55,9 @@
     error.value = ''
     try { results.value = await LlamaCppManager.searchHubModels(query.value, targetPage); page.value = targetPage } catch (e) { error.value = `${e}` } finally { searching.value = false }
   }
-  const inspect = async (repoId: string) => {
+  const inspect = async (repoId: string, license?: string) => {
     error.value = ''
-    try { files.value = await LlamaCppManager.getHubModelFiles(repoId) } catch (e) { error.value = `${e}` }
+    try { files.value = (await LlamaCppManager.getHubModelFiles(repoId)).map((file) => ({ ...file, license })) } catch (e) { error.value = `${e}` }
   }
   const download = async (file: HubModelFile) => {
     error.value = ''

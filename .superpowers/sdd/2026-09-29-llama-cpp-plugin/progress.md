@@ -10,14 +10,14 @@ Pre-flight shared interfaces:
 - Task 1–7 produce the installable plugin; Task 8 documents/builds the catalog draft. Match: build leaves artifact URL empty pending publication.
 
 Task status:
-- Task 1: in progress
-- Task 2: pending
-- Task 3: pending
-- Task 4: pending
-- Task 5: pending
-- Task 6: pending
-- Task 7: pending
-- Task 8: pending
+- Task 1: complete
+- Task 2: complete
+- Task 3: complete
+- Task 4: complete
+- Task 5: complete
+- Task 6: complete
+- Task 7: complete with documented smoke-scope ruling
+- Task 8: complete
 
 Task 1: Ruling: add `render/lang.ts` and `fork/lang.ts` bindings — `plugins/README.md` requires each process to bind the side-agnostic dictionary to the live host locale bridge; cost if wrong: two unnecessary adapters, but omitting them would leave plugin-local translations disconnected from runtime locale changes.
 Task 1: complete (commits 64282d8..176f7ad, tests: yarn plugin:test llamacpp → Done in 5.62s.)
@@ -40,3 +40,7 @@ Task 6: complete (commit pending; module-local controller and Runtime/Models/Set
 Task 7: task-start — run the repository's isolated Electron install/relaunch/hot-update/disable/uninstall smoke. Ruling: keep this generic harness and its `Application.ts` hooks unchanged; its lifecycle checkpoints are plugin-system-wide and currently use a purpose-built synthetic Fork module. llama.cpp's public release/model hosts are deliberately not contacted by smoke; this plugin's download, staging, digest, cancellation, argv, health-timeout, and path-safety contracts are covered by deterministic local fakes in `test:llamacpp-plugin`. Extending Application with smoke-only network URL overrides would add test paths to the production plugin and risk weakening its fixed-origin security. Cost if this ruling is wrong: no end-to-end Electron test of the llama.cpp child-process itself; the service spawn/stop integration remains validated by shared host lifecycle and deterministic health-cleanup tests.
 Task 7: complete (existing `yarn plugin:runtime-smoke` passed all 19 install/relaunch/route/Fork/start-stop/update/disable/re-enable/uninstall/data-preservation checkpoints.)
 Task 7 follow-up: parser fixtures now match current official no-tag Windows names (`llama-bin-win-cpu-x64.zip`) and tagged Linux names; install validates exact official GitHub origin, release tag, CUDA companion pairing, expected archive size and optional digest. Hub downloads reconstruct the Resolver URL inside Fork, so renderer-supplied URLs cannot redirect model requests. `yarn test:llamacpp-plugin` and `yarn plugin:test llamacpp` passed.
+
+Task 8: task-start — update plugin development docs, regenerate the registry from the final archive, verify the archive SHA/empty URL, then rerun all deterministic and Electron smoke checks before commit.
+
+Task 8: complete (pending commit; plugin docs updated; final archive builds as `llama-cpp@0.1.0`, generated registry URL remains empty and its SHA-256 matches the archive byte-for-byte). Final deterministic contract tests, Plugin Market checks, renderer build, generic Electron runtime smoke, and diff checks passed. Whole-project tsc still reports existing errors outside this plugin; no llama.cpp diagnostics.

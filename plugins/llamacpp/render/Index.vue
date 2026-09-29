@@ -8,7 +8,7 @@
         <Service type-flag="llama-cpp" title="llama.cpp" />
         <div class="mt-4 rounded border p-3">
           <div>{{ LlamaCppT('selectedModel') }}: {{ LlamaCppManager.selectedModel?.repoId ?? LlamaCppT('none') }}</div>
-          <div class="mt-1">{{ LlamaCppT('endpoint') }}: http://{{ LlamaCppManager.profile.host }}:{{ LlamaCppManager.profile.port }}/v1</div>
+          <div class="mt-1">{{ LlamaCppT('endpoint') }}: {{ endpoint }}</div>
           <el-button class="mt-2" size="small" @click="copyEndpoint">{{ LlamaCppT('copyEndpoint') }}</el-button>
         </div>
       </section>
@@ -28,10 +28,11 @@
   import ModelsView from './models/Index.vue'
   import RuntimeView from './runtime/Index.vue'
   import SettingsView from './settings/Index.vue'
-  import { onMounted } from 'vue'
+  import { computed, onMounted } from 'vue'
 
   const { tab } = AppModuleSetup('llama-cpp')
   const tabs = [LlamaCppT('service'), LlamaCppT('models'), LlamaCppT('runtime'), LlamaCppT('settings')]
   onMounted(() => LlamaCppManager.init())
-  const copyEndpoint = () => navigator.clipboard.writeText(`http://${LlamaCppManager.profile.host}:${LlamaCppManager.profile.port}/v1`)
+  const endpoint = computed(() => `http://${LlamaCppManager.profile.host.includes(':') ? `[${LlamaCppManager.profile.host}]` : LlamaCppManager.profile.host}:${LlamaCppManager.profile.port}/v1`)
+  const copyEndpoint = () => navigator.clipboard.writeText(endpoint.value)
 </script>

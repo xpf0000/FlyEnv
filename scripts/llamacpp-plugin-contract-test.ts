@@ -7,7 +7,7 @@ import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInst
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
 import { deleteLocalModel, downloadHubModelFile, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModelFile } from '../plugins/llamacpp/shared/types'
-import { buildServerInvocation, createApiKeyFile, validateLaunchProfile, waitForServerHealth } from '../plugins/llamacpp/fork/config'
+import { assertInvocationSupported, buildServerInvocation, createApiKeyFile, validateLaunchProfile, waitForServerHealth } from '../plugins/llamacpp/fork/config'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
 import { createControllerTransport, LlamaCppController, LlamaCppManager, type ControllerTransport } from '../plugins/llamacpp/render/controller'
 
@@ -192,9 +192,10 @@ const testHubFileMetadata = async () => {
 
 const testModelDownloadDigestAndAtomicRename = async () => {
   const fixture = fakeModelDeps({ bytes: '1234567890', digest: 'a'.repeat(64) })
-  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'Q4/model.gguf', size: 10, sha256: 'a'.repeat(64), downloadUrl: 'https://example.test/model' }
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'Q4/model.gguf', size: 10, sha256: 'a'.repeat(64), license: 'apache-2.0', downloadUrl: 'https://example.test/model' }
   const model = await downloadHubModelFile('op-1', file, '/models', new AbortController().signal, () => {}, fixture.deps)
   assert.equal(model.localPath, '/models/model.gguf')
+  assert.equal(model.license, 'apache-2.0')
   assert.equal(fixture.files.has('/models/model.gguf'), true)
   assert.match(fixture.requestedUrl, /^https:\/\/huggingface\.co\/org\/model\/resolve\/main\/Q4\/model\.gguf/)
   assert.equal([...fixture.files.keys()].some((path) => path.endsWith('.part')), false)
@@ -228,6 +229,10 @@ const testBuildServerInvocationUsesArgv = () => {
   assert.deepEqual(invocation.args.slice(0, 2), ['--model', '/models/test.gguf'])
   assert.ok(invocation.args.includes('--port'))
   assert.equal(invocation.args.some((arg) => arg.includes(';')), false)
+}
+
+const testLaunchRejectsUnsupportedRuntimeFlags = () => {
+  assert.throws(() => assertInvocationSupported('--model --host --port', ['--model', 'x.gguf', '--host', '127.0.0.1', '--ctx-size', '4096']), /--ctx-size/)
 }
 
 const testLaunchProfileRejectsUnknownBackendDevice = () => {
@@ -356,6 +361,7 @@ void (async () => {
   await testModelDownloadFailureCleansPartial()
   await testModelDeleteRejectsOutsideRoot()
   testBuildServerInvocationUsesArgv()
+  testLaunchRejectsUnsupportedRuntimeFlags()
   testLaunchProfileRejectsUnknownBackendDevice()
   testLoopbackDoesNotRequireApiKey()
   testNonLoopbackRequiresApiKeyFile()

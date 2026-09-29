@@ -39,6 +39,7 @@ export interface HubModelFile {
   path: string
   size: number
   sha256?: string
+  license?: string
   downloadUrl: string
 }
 

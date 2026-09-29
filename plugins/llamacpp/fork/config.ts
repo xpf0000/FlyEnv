@@ -3,10 +3,12 @@ import { chmod, mkdir, writeFile } from 'node:fs/promises'
 import { isIP } from 'node:net'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
+import { spawn } from 'node:child_process'
 import type { SoftInstalled } from '@shared/app'
 import type { LaunchProfile, LocalModel, RuntimeVariant, ServerInvocation, ValidatedLaunchProfile } from '../shared/types'
 
 const isLoopback = (host: string) => host === 'localhost' || host === '127.0.0.1' || host === '::1'
+export const formatUrlHost = (host: string) => host.includes(':') && !host.startsWith('[') ? `[${host}]` : host
 
 export const validateLaunchProfile = (profile: LaunchProfile, variant: RuntimeVariant): ValidatedLaunchProfile => {
   if (profile.backend !== variant.backend) throw new Error('Selected backend does not match the installed runtime')
@@ -37,6 +39,30 @@ export const buildServerInvocation = (profile: ValidatedLaunchProfile, runtime: 
   if (profile.apiKeyFile) args.push('--api-key-file', profile.apiKeyFile)
   return { bin: runtime.bin, args, env: {}, cwd: runtime.path }
 }
+
+export const assertInvocationSupported = (helpText: string, args: string[]): void => {
+  const requiredFlags = Array.from(new Set(args.filter((arg) => arg.startsWith('--'))))
+  const missing = requiredFlags.filter((flag) => !helpText.includes(flag))
+  if (missing.length) throw new Error(`This llama-server build does not support required options: ${missing.join(', ')}`)
+}
+
+export const readServerHelp = (bin: string, timeoutMs = 10_000): Promise<string> => new Promise((resolveHelp, reject) => {
+  const child = spawn(bin, ['--help'], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
+  let output = ''
+  const timer = setTimeout(() => {
+    child.kill()
+    reject(new Error('Timed out while checking llama-server options'))
+  }, timeoutMs)
+  const append = (chunk: Buffer) => { output = `${output}${chunk.toString()}`.slice(0, 2_000_000) }
+  child.stdout?.on('data', append)
+  child.stderr?.on('data', append)
+  child.once('error', (error) => { clearTimeout(timer); reject(error) })
+  child.once('close', (code) => {
+    clearTimeout(timer)
+    if (code === 0 || output.includes('--model')) resolveHelp(output)
+    else reject(new Error(`Could not read llama-server options (exit ${code})`))
+  })
+})
 
 export const validateApiKeyFile = async (path: string, platform: NodeJS.Platform = process.platform): Promise<void> => {
   if (platform === 'win32') throw new Error('Private API key files are not supported on Windows yet')

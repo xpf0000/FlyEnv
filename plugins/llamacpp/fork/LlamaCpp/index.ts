@@ -12,7 +12,7 @@ import type { HubModelFile } from '../../shared/types'
 import axios from 'axios'
 import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import { AppLog } from '@fork/Fn'
-import { buildServerInvocation, createApiKeyFile, validateApiKeyFile, validateLaunchProfile, variantFromInstalled, waitForServerHealth } from '../config'
+import { assertInvocationSupported, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, variantFromInstalled, waitForServerHealth } from '../config'
 import type { LaunchProfile, LocalModel } from '../../shared/types'
 
 export interface LlamaCppDeps {
@@ -40,6 +40,7 @@ const productionDeps: LlamaCppDeps = {
 export class LlamaCppModule extends Base {
   private deps: LlamaCppDeps
   private modelDownloads = new Map<string, AbortController>()
+  private activeModelPath?: string
 
   constructor(deps: LlamaCppDeps = productionDeps) {
     super()
@@ -168,7 +169,7 @@ export class LlamaCppModule extends Base {
   deleteLocalModel(path: string, activeModelPath?: string) {
     return new ForkPromise<boolean>(async (resolve, reject) => {
       try {
-        await deleteLocalModelImpl(path, join(global.Server.BaseDir!, 'llama-cpp', 'models'), activeModelPath)
+        await deleteLocalModelImpl(path, join(global.Server.BaseDir!, 'llama-cpp', 'models'), this.activeModelPath ?? activeModelPath)
         resolve(true)
       } catch (error) { reject(error) }
     })
@@ -193,12 +194,24 @@ export class LlamaCppModule extends Base {
     return 'llama-server'
   }
 
+  _stopServer(version: SoftInstalled, ...args: unknown[]) {
+    const stopping = super._stopServer(version, ...args)
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        const result = await stopping.on(on)
+        this.activeModelPath = undefined
+        resolve(result)
+      } catch (error) { reject(error) }
+    })
+  }
+
   _startServer(version: SoftInstalled, profile: LaunchProfile, model: LocalModel) {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
         const validated = validateLaunchProfile(profile, variantFromInstalled(version))
         if (validated.apiKeyFile) await validateApiKeyFile(validated.apiKeyFile)
         const invocation = buildServerInvocation(validated, version, model)
+        assertInvocationSupported(await readServerHelp(invocation.bin), invocation.args)
         const serviceRoot = join(global.Server.BaseDir!, 'llama-cpp')
         const logDir = join(serviceRoot, 'logs')
         const startResult = await serviceStartSpawn({
@@ -214,11 +227,12 @@ export class LlamaCppModule extends Base {
         })
         const apiKey = validated.apiKeyFile ? (await readFile(validated.apiKeyFile, 'utf8')).trim() : ''
         try {
-          await waitForServerHealth(async () => {
-            const response = await axios.get(`http://${validated.host}:${validated.port}/health`, {
+        await waitForServerHealth(async () => {
+            const response = await axios.get(`http://${formatUrlHost(validated.host)}:${validated.port}/health`, {
               timeout: 1_500,
               headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined
-            })
+        })
+        this.activeModelPath = model.localPath
             return response.status >= 200 && response.status < 300
           }, async () => {
             await this._stopServer(version).on(on)
@@ -227,7 +241,7 @@ export class LlamaCppModule extends Base {
           on({ 'APP-On-Log': AppLog('error', 'llama-server did not become healthy and was stopped') })
           throw error
         }
-        resolve({ ...startResult, endpoint: `http://${validated.host}:${validated.port}/v1`, model: model.repoId })
+        resolve({ ...startResult, endpoint: `http://${formatUrlHost(validated.host)}:${validated.port}/v1`, model: model.repoId })
       } catch (error) { reject(error) }
     })
   }
