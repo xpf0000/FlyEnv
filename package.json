@@ -126,7 +126,8 @@
     "test:plugin-proxy": "tsx scripts/plugin-proxy-test.ts",
     "test:plugin-market-ui": "tsx scripts/plugin-market-ui-test.ts",
     "test:light-theme": "tsx scripts/light-theme-test.ts",
-    "test:module-top-tabs": "tsx scripts/module-top-tabs-test.ts"
+    "test:module-top-tabs": "tsx scripts/module-top-tabs-test.ts",
+    "test:llamacpp-plugin": "tsx scripts/llamacpp-plugin-contract-test.ts"
   },
   "type": "module",
   "main": "./dist/electron/main.mjs",

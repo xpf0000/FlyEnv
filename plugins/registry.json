@@ -66,6 +66,39 @@
         "sha256": "ad2c7a92024fa4ad2c4bd4becc7126253fcd03ed6344b51fff3cf9d9303c4181"
       },
       "official": true
+    },
+    {
+      "id": "llama-cpp",
+      "name": "llama.cpp",
+      "version": "0.1.0",
+      "description": {
+        "en": "Manage llama.cpp local inference runtimes and GGUF models.",
+        "zh": "管理 llama.cpp 本地推理运行时和 GGUF 模型。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "llama-cpp",
+        "moduleType": "ai",
+        "label": "llama.cpp",
+        "asideIndex": 70,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "c5da5ae0c49d9d3f95f3506caa50dbd30d9f099455a43d89a0e3c75b9c968f5b"
+      },
+      "official": true
     }
   ]
 }

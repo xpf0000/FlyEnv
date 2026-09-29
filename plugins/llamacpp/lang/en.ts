@@ -1,0 +1,17 @@
+export default {
+  service: 'Service',
+  models: 'Models',
+  runtime: 'Runtime',
+  settings: 'Logs and Settings',
+  pluginDescription: 'Manage llama.cpp inference runtimes and GGUF models.',
+  selectedModel: 'Selected model', none: 'None', endpoint: 'OpenAI-compatible Base URL', copyEndpoint: 'Copy endpoint',
+  searchModels: 'Search public GGUF repositories', search: 'Search', downloads: 'Downloads', licenseUnknown: 'License not provided',
+  chooseFile: 'List GGUF files', download: 'Download', downloadStatus: 'Model download', cancel: 'Cancel', localModels: 'Local models',
+  selected: 'Selected', select: 'Select', delete: 'Delete', confirmDeleteModel: 'Delete this local model file?',
+  stable: 'Stable', prerelease: 'Prerelease', refresh: 'Refresh',
+  runtimeStatus: 'Runtime installation', installedRuntimes: 'Installed runtimes', install: 'Install', remove: 'Remove', confirmRemoveRuntime: 'Remove this runtime? A running server will be stopped first.',
+  host: 'Bind host', port: 'Port', contextSize: 'Context size', threads: 'CPU threads', gpuLayers: 'GPU layers', gpuDevice: 'GPU device index',
+  apiKeyFile: 'API key file', apiKey: 'New API key (16+ characters)', createKeyFile: 'Create private key file',
+  nonLoopbackNote: 'Non-loopback addresses require an API key. Windows remote binding is disabled until private file permissions can be guaranteed.',
+  save: 'Save settings', previous: 'Previous', next: 'Next'
+}

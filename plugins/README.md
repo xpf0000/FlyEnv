@@ -125,6 +125,27 @@ The Renderer exercises real Mailpit operations through the plugin Fork module:
 
 The example intentionally shares the built-in module's binary dirs config (`setup.mailpit.dirs`). Both manage the same Mailpit binaries/default ports, so they should not be started at the same time.
 
+## llama.cpp service plugin
+
+`plugins/llamacpp` is a separate service plugin with ID/type flag `llama-cpp`. It discovers the official `ggml-org/llama.cpp` GitHub Releases API, then offers only assets matching the current OS, architecture, and supported CPU, CUDA, Vulkan, or Apple Silicon Metal build. CUDA runtime archives are paired by exact release asset name. Runtime identity is release tag + platform + architecture + backend + CUDA runtime version when present.
+
+The plugin's distributable contains renderer/Fork code only. Installed binaries, staging files, GGUF weights, secret key files, and server logs are kept beneath `<FlyEnv data directory>/llama-cpp/` in `runtimes/`, `staging/`, `models/`, `secrets/`, and `logs/`. Structured launch settings and the local-model index use the host `StorageGetAsync`/`StorageSetAsync` store. Plugin disable, update, and uninstall leave these user files in place; runtime and model removal is an explicit operation.
+
+The Models page searches public Hugging Face GGUF repositories without the `hf` CLI or a token. It downloads one non-sharded text `.gguf` file at a time, checks the advertised size and SHA-256/LFS digest when available, then atomically activates the completed file. Private/gated repositories, multi-shard bundles, `mmproj` files, and persistent Hub credentials are not supported.
+
+The server starts from a typed profile using an argv array and binds to `127.0.0.1` by default. Non-loopback binding requires a private API-key file; it is currently disabled on Windows because the plugin cannot guarantee restrictive file permissions there. The plugin does not install GPU drivers or expose arbitrary command-line fragments.
+
+Develop and validate the plugin with:
+
+```bash
+yarn test:llamacpp-plugin
+yarn plugin:test llamacpp
+yarn plugin:build llamacpp
+yarn plugin:runtime-smoke
+```
+
+The repository's Electron runtime smoke covers the generic plugin installation and lifecycle. llama.cpp's release/model downloads and launch-profile security contracts are tested offline with local fakes, so the smoke never fetches public model weights or binaries.
+
 ## Commands
 
 ```bash

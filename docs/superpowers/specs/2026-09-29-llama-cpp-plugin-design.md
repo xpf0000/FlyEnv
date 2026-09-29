@@ -154,10 +154,10 @@ Exact splitting may follow the code size, but all module-specific policy and sta
 
 - `yarn plugin:build llamacpp` creates a standalone plugin archive without embedding runtime/model payloads or duplicating host singletons/heavy UI components.
 - `yarn plugin:test llamacpp` validates manifest, entry wiring, release asset parsing, supported platform filtering, launch argument generation, secret redaction, and model path ownership.
-- `yarn plugin:runtime-smoke` verifies install/activate, renderer route, Fork runtime discovery, server start/health/stop, plugin update/disable/uninstall, and preservation of runtime/model data.
+- `yarn plugin:runtime-smoke` verifies the generic plugin-system install/activate, renderer route, Fork dispatch, lifecycle, update/disable/uninstall, and plugin-data preservation. llama.cpp-specific downloads, invocation validation, and health-timeout cleanup are checked by deterministic local fake contract tests; the Electron smoke does not launch a real or fake llama-server.
 - Runtime selection never returns a mismatched OS/architecture/backend/CUDA companion combination; a release missing an asset presents that variant as unavailable.
 - Public Hub search does not require `hf` or a token; HTTP 429 and network failures are shown with retry guidance and do not leave a stuck loading state.
-- Duplicate runtime/model operations do not corrupt staging or produce multiple child processes. Failure, cancellation, page unmount/re-entry, and retry each reach a terminal controller state and clean listeners.
+- Duplicate runtime/model operations do not corrupt staging or produce multiple child processes. Failure, cancellation, page unmount/re-entry, and retry each reach a terminal controller state and clean listeners. Contract tests cover the operation controller and cleanup; full llama-server child-process lifecycle remains an integration-test limitation.
 - Server failure during spawn or health startup is surfaced as a failed start, with the process and PID record cleaned. Stop failure prevents update/delete/uninstall of an active runtime or model.
 - Default service binding is loopback; a non-loopback bind cannot start without an API key file.
 - No new module-owned data is stored in `config.setup`, no new Pinia store is added, and module-specific contracts do not leak into shared service abstractions.
@@ -173,5 +173,5 @@ Exact splitting may follow the code size, but all module-specific policy and sta
 ## Open operational limits
 
 - Official Release asset naming and availability can change. The plugin must treat the API response as the source of truth, validate recognizable asset shapes, and keep variant parsing covered by representative fixtures from official releases.
-- llama.cpp server flags evolve. The plugin binds supported launch settings to the selected runtime's `--help`/version capability and reports unsupported variants rather than guessing. Model file transfer is independent of the runtime's optional download subcommand.
+- llama.cpp server flags evolve. Before launch, the plugin checks the selected runtime's `--help` output for every generated option and refuses to start if a flag is absent. Model file transfer is independent of the runtime's optional download subcommand.
 - Runtime drivers are outside the plugin's management scope. A binary being listed means only that an official asset exists for that OS/architecture/backend, not that the user's machine can execute it successfully.
