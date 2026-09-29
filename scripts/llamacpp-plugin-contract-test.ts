@@ -213,6 +213,24 @@ const testHubSearchAnonymousPaginationAnd429 = async () => {
   await assert.rejects(searchHubModels('model', 0, fixture.deps), /429/)
 }
 
+const testHubModelCatalogLoadsPopularGGUFModelsWithoutQuery = async () => {
+  let requested = ''
+  const fixture = fakeModelDeps({ payload: [{ id: 'Qwen/Qwen3-8B-GGUF', downloads: 321, cardData: { license: 'apache-2.0' } }] })
+  fixture.deps.requestJson = async (url) => {
+    requested = url
+    return [{ id: 'Qwen/Qwen3-8B-GGUF', downloads: 321, cardData: { license: 'apache-2.0' } }]
+  }
+
+  const models = await searchHubModels('', 0, fixture.deps)
+
+  assert.equal(models[0].id, 'Qwen/Qwen3-8B-GGUF')
+  assert.match(requested, /filter=gguf/)
+  assert.match(requested, /sort=downloads/)
+  assert.match(requested, /limit=20/)
+  assert.match(requested, /skip=0/)
+  assert.doesNotMatch(requested, /(?:\?|&)search=/)
+}
+
 const testHubFileMetadata = async () => {
   const fixture = fakeModelDeps({ payload: [{ type: 'file', path: 'Q4/model.gguf', size: 10, lfs: { size: 10, oid: 'a'.repeat(64) } }, { type: 'file', path: 'README.md', size: 2 }] })
   const files = await getHubModelFiles('org/model', 'main', fixture.deps)
@@ -446,6 +464,7 @@ void (async () => {
   testRuntimeRejectsUntrustedAssetUrl()
   testRuntimeRejectsMissingOrMismatchedCudaCompanion()
   await testHubSearchAnonymousPaginationAnd429()
+  await testHubModelCatalogLoadsPopularGGUFModelsWithoutQuery()
   await testHubFileMetadata()
   await testModelDownloadDigestAndAtomicRename()
   await testModelDownloadFailureCleansPartial()

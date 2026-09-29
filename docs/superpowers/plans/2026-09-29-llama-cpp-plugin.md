@@ -231,3 +231,9 @@
 - **Model launch boundary:** Fork resolves the model and managed model root through the filesystem, rejects non-files and symlink/path escapes, then launches using the canonical path.
 - **Renderer removal flow:** the Runtime page exposes removal and refreshes installed versions after its terminal Fork response. The renderer controller owns request state and prevents re-entry while a runtime operation is active.
 - **Lifecycle tests:** deterministic contracts cover no-tag CUDA companion pairing, omitted/mismatched companions, update/removal stop guards, failed stop propagation, PID/process stop verification, managed model path/symlink confinement, and health-timeout cleanup failure reporting.
+
+## Review follow-up: browsable model catalog
+
+- **User flow:** Models opens on a public GGUF library sorted by downloads; the optional search accepts a model name or `organization/repository`. The local-model list is a separate tab. Expanding one repository fetches its GGUF variants and shows each file's advertised size before download.
+- **Operation ownership:** catalog and repository-file lookups are bounded, read-only page requests whose transient loading/results belong to the mounted Models view; duplicate search and stale file-list responses are guarded there. Downloads and cancellation remain owned by `LlamaCppController`/Fork and retain their existing progress, terminal-event, and retry behavior.
+- **Verification:** the offline contract test confirms an empty-query request lists popular GGUF repositories with download sorting and pagination; existing metadata tests cover file size, and plugin build validates the updated tabbed renderer.

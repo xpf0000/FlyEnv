@@ -84,9 +84,9 @@ const validRepoId = (repoId: string) => /^[\w.-]+\/[\w.-]+$/.test(repoId)
 
 export const searchHubModels = async (query: string, page = 0, deps: ModelDownloadDeps = productionDeps): Promise<HubModel[]> => {
   const search = query.trim()
-  if (!search) return []
   if (!Number.isInteger(page) || page < 0) throw new Error('Page must be a non-negative integer')
-  const url = `https://huggingface.co/api/models?search=${encodeURIComponent(search)}&filter=gguf&limit=20&sort=downloads&direction=-1&skip=${page * 20}`
+  const searchParam = search ? `search=${encodeURIComponent(search)}&` : ''
+  const url = `https://huggingface.co/api/models?${searchParam}filter=gguf&limit=20&sort=downloads&direction=-1&skip=${page * 20}`
   const payload = await deps.requestJson(url)
   if (!Array.isArray(payload)) throw new Error('Unexpected Hugging Face model search response')
   return (payload as HubModelApiItem[]).map((item) => ({
