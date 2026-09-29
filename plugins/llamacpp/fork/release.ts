@@ -81,6 +81,7 @@ const parseAssetIdentity = (name: string, release: string): Omit<RuntimeVariant,
   if (platform === 'macos' && (arch !== 'arm64' || backend !== 'metal')) return undefined
   if (platform === 'linux' && backend === 'metal') return undefined
   if (platform === 'linux' && arch === 'arm64' && backend === 'cuda') return undefined
+  if (backend === 'cuda' && !cudaVersion) return undefined
   return { release, platform, arch, backend, cudaVersion }
 }
 
@@ -120,6 +121,6 @@ export const fetchRuntimeReleases = async (channel: 'stable' | 'prerelease', hos
   })
   const releases = response.data
   return releases
-    .filter((release) => channel === 'prerelease' || !release.prerelease)
+    .filter((release) => channel === 'prerelease' ? release.prerelease : !release.prerelease)
     .flatMap((release) => parseReleaseAssets(release, host))
 }

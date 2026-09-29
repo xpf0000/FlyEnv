@@ -16,8 +16,8 @@ const testReleaseAssetParsing = () => {
     tag_name: 'b4000',
     prerelease: false,
     assets: [
-      { name: 'llama-b4000-bin-win-cpu-x64.zip', size: 100, browser_download_url: 'https://example.test/cpu.zip' },
-      { name: 'llama-b4000-bin-win-cuda-12.4-x64.zip', size: 200, browser_download_url: 'https://example.test/cuda.zip' },
+      { name: 'llama-bin-win-cpu-x64.zip', size: 100, browser_download_url: 'https://example.test/cpu.zip' },
+      { name: 'llama-bin-win-cuda-12.8-x64.zip', size: 200, browser_download_url: 'https://example.test/cuda.zip' },
       { name: 'llama-b4000-bin-win-vulkan-x64.zip', size: 300, browser_download_url: 'https://example.test/vulkan.zip' },
       { name: 'llama-b4000-bin-macos-arm64.tar.gz', size: 400, browser_download_url: 'https://example.test/mac.tar.gz' },
       { name: 'llama-b4000-bin-ubuntu-x64.tar.gz', size: 500, browser_download_url: 'https://example.test/linux.tar.gz' }
@@ -26,7 +26,7 @@ const testReleaseAssetParsing = () => {
   const win = parseReleaseAssets(release, { platform: 'windows', arch: 'x64' })
   assert.deepEqual(win.map((variant) => variant.backend), ['cpu', 'cuda', 'vulkan'])
   assert.equal(win[0].release, 'b4000')
-  assert.equal(win[1].cudaVersion, '12.4')
+  assert.equal(win[1].cudaVersion, '12.8')
   assert.equal(parseReleaseAssets(release, { platform: 'macos', arch: 'arm64' })[0].backend, 'metal')
 }
 
@@ -64,18 +64,19 @@ const testUnknownAssetRejected = () => {
   assert.deepEqual(parseReleaseAssets(release, { platform: 'linux', arch: 'x64' }), [])
 }
 
-const fakeRuntime = (options: { digest?: string; executable?: boolean } = {}) => {
+const fakeRuntime = (options: { digest?: string; executable?: boolean; archive?: string } = {}) => {
   const files = new Map<string, string>()
   const dirs = new Set<string>()
   const deps: RuntimeInstallDeps = {
     mkdir: async (path) => { dirs.add(path) },
-    download: async (_url, target) => { files.set(target, 'archive') },
+    download: async (url, target) => { files.set(target, url.includes('cudart') ? 'cu' : (options.archive ?? 'archive')) },
     digest: async (path) => path.includes('cudart') ? 'companion-digest' : (options.digest ?? 'a'.repeat(64)),
     extract: async (archive, target) => {
       if (archive.includes('cudart')) files.set(`${target}/libcudart.so`, 'cuda')
       else if (options.executable !== false) files.set(`${target}/llama-server`, 'binary')
     },
     exists: async (path) => files.has(path) || dirs.has(path),
+    size: async (path) => files.get(path)?.length ?? 0,
     rename: async (from, to) => {
       if (dirs.has(from)) { dirs.delete(from); dirs.add(to) }
       for (const [path, value] of [...files]) {
@@ -98,7 +99,7 @@ const fakeRuntime = (options: { digest?: string; executable?: boolean } = {}) =>
   const paths: RuntimePaths = { cacheDir: '/data/cache', runtimeRoot: '/data/runtimes', stagingRoot: '/data/staging' }
   const variant: RuntimeVariant = {
     release: 'b4000', platform: 'linux', arch: 'x64', backend: 'cuda', cudaVersion: '12.4',
-    assetName: 'llama.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/llama.tar.gz', size: 10,
+    assetName: 'llama.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/llama.tar.gz', size: 7,
     sha256: 'a'.repeat(64), companion: { assetName: 'cudart-llama.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/cudart-llama.tar.gz', size: 2 }
   }
   return { deps, files, dirs, paths, variant }
@@ -111,6 +112,14 @@ const testRuntimeInstallDigestFailurePreservesActiveVersion = async () => {
   await assert.rejects(installRuntime(fixture.variant, fixture.paths, fixture.deps), /SHA-256/)
   assert.equal(fixture.dirs.has(active), true)
   assert.equal([...fixture.dirs].some((path) => path.includes('stage')), false)
+}
+
+const testRuntimeInstallSizeFailurePreservesActiveVersion = async () => {
+  const fixture = fakeRuntime({ archive: 'short' })
+  const active = '/data/runtimes/b4000-linux-x64-cuda-12.4'
+  fixture.dirs.add(active)
+  await assert.rejects(installRuntime(fixture.variant, fixture.paths, fixture.deps), /Size verification/)
+  assert.equal(fixture.dirs.has(active), true)
 }
 
 const testRuntimeInstallMissingExecutableCleansStaging = async () => {
@@ -336,6 +345,7 @@ void (async () => {
   testCudaCompanionPairing()
   testUnknownAssetRejected()
   await testRuntimeInstallDigestFailurePreservesActiveVersion()
+  await testRuntimeInstallSizeFailurePreservesActiveVersion()
   await testRuntimeInstallMissingExecutableCleansStaging()
   await testRuntimeInstallSuccessPairsCudaRuntime()
   await testRuntimeDeleteRejectsOutsideRoot()

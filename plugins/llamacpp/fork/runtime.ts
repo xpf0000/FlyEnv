@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
-import { access, mkdir, readdir, rename, rm, chmod, writeFile } from 'node:fs/promises'
+import { access, mkdir, readdir, rename, rm, chmod, writeFile, stat } from 'node:fs/promises'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { Transform } from 'node:stream'
@@ -21,6 +21,7 @@ export interface RuntimeInstallDeps {
   mkdir(path: string): Promise<void>
   download(url: string, target: string, progress?: (downloaded: number, total?: number) => void): Promise<void>
   digest(path: string): Promise<string>
+  size(path: string): Promise<number>
   extract(archive: string, target: string): Promise<void>
   exists(path: string): Promise<boolean>
   rename(from: string, to: string): Promise<void>
@@ -52,6 +53,7 @@ const defaultDeps: RuntimeInstallDeps = {
     await pipeline((await import('node:fs')).createReadStream(path), hash)
     return hash.digest('hex')
   },
+  size: async (path) => (await stat(path)).size,
   extract: (archive, target) => unpack(archive, target),
   exists: async (path) => access(path).then(() => true, () => false),
   rename,
@@ -113,7 +115,8 @@ export const validateRuntimeVariant = (variant: RuntimeVariant): void => {
   }
 }
 
-const verifyDigest = async (asset: RuntimeAsset, archive: string, deps: RuntimeInstallDeps) => {
+const verifyAsset = async (asset: RuntimeAsset, archive: string, deps: RuntimeInstallDeps) => {
+  if (asset.size > 0 && await deps.size(archive) !== asset.size) throw new Error(`Size verification failed for ${asset.assetName}`)
   if (!asset.sha256) return
   const actual = (await deps.digest(archive)).toLowerCase()
   if (actual !== asset.sha256.toLowerCase()) throw new Error(`SHA-256 verification failed for ${asset.assetName}`)
@@ -145,13 +148,13 @@ export const installRuntime = async (
   try {
     const mainArchive = join(stageDir, variant.assetName.split(/[\\/]/).pop()!)
     await deps.download(variant.assetUrl, mainArchive, (downloaded, total) => onProgress?.(variant.assetName, downloaded, total))
-    await verifyDigest(variant, mainArchive, deps)
+    await verifyAsset(variant, mainArchive, deps)
     await deps.mkdir(runtimeStage)
     await deps.extract(mainArchive, runtimeStage)
     if (variant.companion) {
       const companionArchive = join(stageDir, variant.companion.assetName.split(/[\\/]/).pop()!)
       await deps.download(variant.companion.assetUrl, companionArchive, (downloaded, total) => onProgress?.(variant.companion!.assetName, downloaded, total))
-      await verifyDigest(variant.companion, companionArchive, deps)
+      await verifyAsset(variant.companion, companionArchive, deps)
       await deps.extract(companionArchive, runtimeStage)
     }
     const stagedBin = await resolveServer(runtimeStage, variant.platform, deps)
