@@ -9,6 +9,7 @@ import axios from 'axios'
 import { unpack } from '@fork/util/Zip'
 import { getAxiosProxy } from '@fork/util/Axios'
 import { hasMatchingCudaIdentity } from './release'
+import { runtimeDirectoryName } from '../shared/runtime'
 import type { SoftInstalled } from '@shared/app'
 import type { RuntimeAsset, RuntimeVariant } from '../shared/types'
 
@@ -83,13 +84,7 @@ const defaultDeps: RuntimeInstallDeps = {
   }
 }
 
-export const runtimeDirectoryName = (variant: RuntimeVariant): string => [
-  variant.release,
-  variant.platform,
-  variant.arch,
-  variant.backend,
-  variant.cudaVersion && variant.backend === 'cuda' && variant.cudaVersion
-].filter(Boolean).join('-').replace(/[^a-zA-Z0-9._-]/g, '_')
+export { runtimeDirectoryName } from '../shared/runtime'
 
 export const validateRuntimeVariant = (variant: RuntimeVariant): void => {
   const allowed = (candidate: RuntimeVariant) =>

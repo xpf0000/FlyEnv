@@ -1,6 +1,7 @@
 import { reactiveBind } from '@/util/Index'
 import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 import type { HubModel, HubModelFile, LaunchProfile, LocalModel, RuntimeVariant } from '../shared/types'
+import { runtimeIdentityKey } from '../shared/runtime'
 
 export interface OperationState {
   id: string
@@ -49,6 +50,7 @@ const productionTransport: ControllerTransport = {
 
 const settingsKey = 'flyenv-llama-cpp-settings'
 const modelsKey = 'flyenv-llama-cpp-models'
+const storageSnapshot = <T>(value: T): T => JSON.parse(JSON.stringify(value))
 
 export class LlamaCppController {
   runtimeOperation?: OperationState
@@ -95,17 +97,17 @@ export class LlamaCppController {
 
   async saveProfile(profile = this.profile) {
     this.profile = { ...profile }
-    await StorageSetAsync(settingsKey, { profile: this.profile, selectedModel: this.selectedModel })
+    await StorageSetAsync(settingsKey, storageSnapshot({ profile: this.profile, selectedModel: this.selectedModel }))
   }
 
   async selectModel(model: LocalModel) {
     this.selectedModel = model
     this.profile.modelPath = model.localPath
-    await StorageSetAsync(settingsKey, { profile: this.profile, selectedModel: model })
+    await StorageSetAsync(settingsKey, storageSnapshot({ profile: this.profile, selectedModel: model }))
   }
 
   async installRuntime(variant: RuntimeVariant) {
-    const id = [variant.release, variant.platform, variant.arch, variant.backend, variant.cudaVersion].filter(Boolean).join('|')
+    const id = runtimeIdentityKey(variant)
     if (this.runtimeOperation && !['success', 'failed', 'cancelled'].includes(this.runtimeOperation.status)) {
       throw new Error('A runtime installation is already in progress')
     }
@@ -161,7 +163,7 @@ export class LlamaCppController {
       operation.result = model
       operation.status = 'success'
       if (!this.localModels.some((item) => item.localPath === model.localPath)) this.localModels.push(model)
-      await StorageSetAsync(modelsKey, this.localModels)
+      await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
       return model
     } catch (error) {
       operation.status = operation.status === 'cancelling' ? 'cancelled' : 'failed'
@@ -188,7 +190,7 @@ export class LlamaCppController {
     if (this.selectedModel?.localPath === model.localPath) throw new Error('Stop the server and select another model before deleting this model')
     await this.transport.request('deleteLocalModel', [model.localPath, this.selectedModel?.localPath], () => {})
     this.localModels = this.localModels.filter((item) => item.localPath !== model.localPath)
-    await StorageSetAsync(modelsKey, this.localModels)
+    await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
   }
 
   clearError() { this.error = '' }

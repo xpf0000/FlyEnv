@@ -1,26 +1,58 @@
 <template>
-  <el-card class="version-manager flex h-full flex-col" :body-style="{ flex: '1', minHeight: '0', overflow: 'hidden' }">
-    <template #header>
-      <div class="card-header"><div class="left"><span>{{ LlamaCppT('logs') }}</span></div></div>
-    </template>
-    <Log v-if="logFile" :log-file="logFile" class="h-full" />
-    <div v-else class="flex h-full items-center justify-center opacity-70">{{ LlamaCppT('noLogs') }}</div>
-  </el-card>
+  <div class="module-config">
+    <el-card>
+      <LogVM ref="log" :log-file="logFile" />
+      <template #footer>
+        <div class="flex items-center gap-3">
+          <div class="min-w-0 flex-1"><ToolVM :log="log" /></div>
+          <el-select v-if="files.length" v-model="logFile" class="w-56 shrink-0">
+            <el-option
+              v-for="file in files"
+              :key="file.path"
+              :label="file.name"
+              :value="file.path"
+            />
+          </el-select>
+        </div>
+      </template>
+    </el-card>
+  </div>
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref } from 'vue'
+  import { computed, onUnmounted, ref, watch } from 'vue'
   import { BrewStore } from '@/store/brew'
-  import Log from '@/components/Log/index.vue'
+  import LogVM from '@/components/Log/index.vue'
+  import ToolVM from '@/components/Log/tool.vue'
   import { LlamaCppManager } from '../controller'
-  import { LlamaCppT } from '../lang'
 
+  const log = ref()
   const logFile = ref('')
-  onMounted(async () => {
-    await LlamaCppManager.init()
-    const installed = BrewStore().module('llama-cpp').installed[0]
-    if (!installed) return
-    const logs = await LlamaCppManager.request<Array<{ name: string; path: string; exists: boolean }>>('listLogFiles', JSON.parse(JSON.stringify(installed))).catch(() => [])
-    logFile.value = logs.find((item) => item.name === 'stderr')?.path ?? logs[0]?.path ?? ''
+  const files = ref<Array<{ name: string; path: string; exists: boolean }>>([])
+  const currentVersion = computed(() => BrewStore().currentVersion('llama-cpp'))
+  let generation = 0
+  watch(
+    currentVersion,
+    async (version) => {
+      const requestGeneration = ++generation
+      logFile.value = ''
+      files.value = []
+      if (!version) return
+      const listed = await LlamaCppManager.request<typeof files.value>(
+        'listLogFiles',
+        JSON.parse(JSON.stringify(version))
+      ).catch(() => [])
+      if (requestGeneration !== generation) return
+      files.value = listed
+      logFile.value =
+        listed.find((item) => item.name === 'stderr' && item.exists)?.path ??
+        listed.find((item) => item.exists)?.path ??
+        listed[0]?.path ??
+        ''
+    },
+    { immediate: true }
+  )
+  onUnmounted(() => {
+    generation++
   })
 </script>

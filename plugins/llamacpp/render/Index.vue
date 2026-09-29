@@ -4,16 +4,28 @@
       <el-radio-button v-for="(item, index) in tabs" :key="index" :label="item" :value="index" />
     </el-radio-group>
     <div class="main-block">
-      <section v-if="tab === 0" class="p-4">
-        <Service type-flag="llama-cpp" title="llama.cpp" />
-        <el-card class="version-manager mt-4">
-          <div>{{ LlamaCppT('selectedModel') }}: {{ LlamaCppManager.selectedModel?.repoId ?? LlamaCppT('none') }}</div>
-          <div class="mt-1">{{ LlamaCppT('endpoint') }}: {{ endpoint }}</div>
-          <el-button class="mt-2" size="small" @click="copyEndpoint">{{ LlamaCppT('copyEndpoint') }}</el-button>
-        </el-card>
-      </section>
-      <ModelsView v-else-if="tab === 1" />
-      <RuntimeView v-else-if="tab === 2" />
+      <Service v-if="tab === 0" type-flag="llama-cpp" title="llama.cpp">
+        <template #tool-left>
+          <el-popover placement="bottom" width="480" trigger="click">
+            <template #reference
+              ><el-button link class="ml-3">{{ LlamaCppT('selectedModel') }}</el-button></template
+            >
+            <el-descriptions :column="1" border>
+              <el-descriptions-item :label="LlamaCppT('selectedModel')">{{
+                LlamaCppManager.selectedModel?.path ?? LlamaCppT('none')
+              }}</el-descriptions-item>
+              <el-descriptions-item :label="LlamaCppT('endpoint')">{{
+                endpoint
+              }}</el-descriptions-item>
+            </el-descriptions>
+            <el-button class="mt-3" size="small" @click="copyEndpoint">{{
+              LlamaCppT('copyEndpoint')
+            }}</el-button>
+          </el-popover>
+        </template>
+      </Service>
+      <RuntimeView v-else-if="tab === 1" />
+      <ModelsView v-else-if="tab === 2" />
       <SettingsView v-else-if="tab === 3" />
       <LogsView v-else />
     </div>
@@ -22,7 +34,6 @@
 
 <script lang="ts" setup>
   import Service from '@/components/ServiceManager/index.vue'
-  import Manager from '@/components/VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { LlamaCppT } from './lang'
   import { LlamaCppManager } from './controller'
@@ -32,9 +43,19 @@
   import LogsView from './logs/Index.vue'
   import { computed, onMounted } from 'vue'
 
-  const { tab } = AppModuleSetup('llama-cpp')
-  const tabs = [LlamaCppT('service'), LlamaCppT('models'), LlamaCppT('versionManager'), LlamaCppT('settings'), LlamaCppT('logs')]
+  const { tab, checkVersion } = AppModuleSetup('llama-cpp')
+  const tabs = [
+    LlamaCppT('service'),
+    LlamaCppT('versionManager'),
+    LlamaCppT('models'),
+    LlamaCppT('settings'),
+    LlamaCppT('logs')
+  ]
   onMounted(() => LlamaCppManager.init())
-  const endpoint = computed(() => `http://${LlamaCppManager.profile.host.includes(':') ? `[${LlamaCppManager.profile.host}]` : LlamaCppManager.profile.host}:${LlamaCppManager.profile.port}/v1`)
+  checkVersion()
+  const endpoint = computed(
+    () =>
+      `http://${LlamaCppManager.profile.host.includes(':') ? `[${LlamaCppManager.profile.host}]` : LlamaCppManager.profile.host}:${LlamaCppManager.profile.port}/v1`
+  )
   const copyEndpoint = () => navigator.clipboard.writeText(endpoint.value)
 </script>

@@ -35,17 +35,24 @@
 <script lang="tsx" setup>
   import { I18nT } from '@lang/index'
   import type { AllAppModule } from '@/core/type'
-  import { Setup, StaticSetup } from './setup'
+  import { Setup, StaticSetup, type StaticVersionItem } from './setup'
+  import { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
   import { computed } from 'vue'
   import { ElTooltip, ElProgress, ElButton } from 'element-plus'
   import type { Column } from 'element-plus'
 
-  const props = defineProps<{
-    typeFlag: AllAppModule
-  }>()
+  const props = withDefaults(
+    defineProps<{
+      typeFlag: AllAppModule
+      items?: StaticVersionItem[]
+      fetching?: boolean
+    }>(),
+    { fetching: undefined }
+  )
+  const emit = defineEmits<{ action: [item: StaticVersionItem] }>()
 
   const showChannelTabs = computed(() => {
-    return StaticSetup.channel.show?.[props.typeFlag]
+    return props.items === undefined && StaticSetup.channel.show?.[props.typeFlag]
   })
 
   const channelTab = computed({
@@ -61,7 +68,15 @@
     return StaticSetup.channel.channels?.[props.typeFlag] ?? []
   })
 
-  const { fetching, tableData, handleVersion, fetchCommand, copyCommand } = Setup(props.typeFlag)
+  const setup = props.items === undefined ? Setup(props.typeFlag) : undefined
+  const fetching = computed(() => props.fetching ?? setup?.fetching.value ?? false)
+  const tableData = computed(() => props.items ?? setup?.tableData.value ?? [])
+  const handleVersion = (row: StaticVersionItem) =>
+    setup ? setup.handleVersion(row as ModuleStaticItem) : emit('action', row)
+  const fetchCommand = (row: StaticVersionItem) =>
+    setup ? setup.fetchCommand(row as ModuleStaticItem) : row.url
+  const copyCommand = (row: StaticVersionItem) =>
+    setup ? setup.copyCommand(row as ModuleStaticItem) : new ModuleStaticItem(row).copyCommand()
 
   const columns: Column<any>[] = [
     {
@@ -170,7 +185,7 @@
             link
             style={{ opacity: row.version !== undefined ? 1 : 0 }}
             loading={row.downing}
-            disabled={row.downing}
+            disabled={row.downing || row.disabled}
             onClick={() => handleVersion(row)}
           >
             {row.installed ? I18nT('common.action.uninstall') : I18nT('base.install')}

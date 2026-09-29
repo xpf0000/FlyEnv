@@ -1,91 +1,142 @@
 <template>
-  <el-card class="version-manager flex h-full flex-col" :body-style="{ flex: '1', minHeight: '0', overflowY: 'auto' }">
-    <template #header>
-      <div class="card-header">
-        <div class="left">
-          <span>{{ LlamaCppT('versionManager') }}</span>
-          <el-radio-group v-model="channel" size="small" class="ml-6" :disabled="loading">
-            <el-radio-button value="stable">{{ LlamaCppT('stable') }}</el-radio-button>
-            <el-radio-button value="prerelease">{{ LlamaCppT('prerelease') }}</el-radio-button>
-          </el-radio-group>
-        </div>
-        <el-button class="button" link :disabled="loading" @click="load">{{ LlamaCppT('refresh') }}</el-button>
+  <Manager
+    type-flag="llama-cpp"
+    title="llama.cpp"
+    :items="items"
+    :fetching="loading"
+    :has-static="true"
+    :show-brew-lib="false"
+    :show-port-lib="false"
+    @refresh="load"
+    @action="handleVersion"
+  >
+    <template #header-left>
+      <span>llama.cpp</span>
+      <el-radio-group v-model="channel" size="small" class="ml-6" :disabled="loading">
+        <el-radio-button value="stable">{{ LlamaCppT('stable') }}</el-radio-button>
+        <el-radio-button value="prerelease">{{ LlamaCppT('prerelease') }}</el-radio-button>
+      </el-radio-group>
+    </template>
+    <template v-if="error || LlamaCppManager.runtimeOperation" #footer>
+      <el-alert
+        v-if="error || LlamaCppManager.runtimeOperation?.error"
+        :title="error || LlamaCppManager.runtimeOperation?.error"
+        type="error"
+        :closable="false"
+      />
+      <div v-else class="flex items-center gap-3">
+        <span
+          >{{ LlamaCppT('runtimeStatus') }}: {{ LlamaCppManager.runtimeOperation?.status }}</span
+        >
+        <span class="truncate text-sm opacity-70">{{
+          LlamaCppManager.runtimeOperation?.progress?.asset
+        }}</span>
       </div>
     </template>
-
-    <p v-if="error" class="mb-3 text-red-500">{{ error }}</p>
-    <div v-if="loading" class="py-5 text-center opacity-70">{{ LlamaCppT('loadingVersions') }}</div>
-    <div v-else-if="!variants.length" class="py-5 text-center opacity-70">{{ LlamaCppT('noRuntimeVariants') }}</div>
-    <el-card v-for="variant in variants" :key="identity(variant)" class="mb-3 last:mb-0" shadow="never">
-      <div class="flex items-center justify-between gap-3">
-        <div class="min-w-0">
-          <div class="font-semibold">{{ variant.release }} · {{ variant.backend }} <span v-if="variant.cudaVersion">CUDA {{ variant.cudaVersion }}</span></div>
-          <div class="truncate text-xs opacity-70">{{ variant.platform }} / {{ variant.arch }} · {{ variant.assetName }} · {{ formatBytes(variant.size) }}</div>
-        </div>
-        <el-button :disabled="busy" @click="install(variant)">{{ LlamaCppT('install') }}</el-button>
-      </div>
-    </el-card>
-
-    <el-card v-if="LlamaCppManager.runtimeOperation" class="mt-3" shadow="never">
-      {{ LlamaCppT('runtimeStatus') }}: {{ LlamaCppManager.runtimeOperation.status }}
-      <span v-if="LlamaCppManager.runtimeOperation.progress?.asset"> · {{ LlamaCppManager.runtimeOperation.progress.asset }}</span>
-      <p v-if="LlamaCppManager.runtimeOperation.error" class="text-red-500">{{ LlamaCppManager.runtimeOperation.error }}</p>
-    </el-card>
-
-    <h3 class="pb-2 pt-5 font-semibold">{{ LlamaCppT('installedRuntimes') }}</h3>
-    <div v-if="!installed.length" class="py-3 text-sm opacity-70">{{ LlamaCppT('noInstalledRuntimes') }}</div>
-    <el-card v-for="runtime in installed" :key="runtime.bin" class="mb-3 last:mb-0" shadow="never">
-      <div class="flex items-center justify-between gap-3">
-        <div class="min-w-0">
-          <div>{{ runtime.version }} · {{ runtime.flag }}</div>
-          <div class="truncate text-xs opacity-70">{{ runtime.path }}</div>
-        </div>
-        <el-popconfirm :title="LlamaCppT('confirmRemoveRuntime')" @confirm="remove(runtime.path)">
-          <template #reference><el-button type="danger" plain :disabled="busy">{{ LlamaCppT('remove') }}</el-button></template>
-        </el-popconfirm>
-      </div>
-    </el-card>
-  </el-card>
+  </Manager>
 </template>
 
 <script lang="ts" setup>
   import { computed, onMounted, ref, watch } from 'vue'
+  import { ElMessageBox } from 'element-plus'
+  import Manager from '@/components/VersionManager/index.vue'
+  import type { StaticVersionItem } from '@/components/VersionManager/static/setup'
   import { BrewStore } from '@/store/brew'
+  import { formatBytes } from '@/util/Index'
   import type { RuntimeVariant } from '../../shared/types'
+  import { runtimeDirectoryName, runtimeIdentityKey } from '../../shared/runtime'
   import { LlamaCppManager } from '../controller'
   import { LlamaCppT } from '../lang'
 
+  type RuntimeRow = StaticVersionItem & { variant?: RuntimeVariant; installedPath?: string }
   const channel = ref<'stable' | 'prerelease'>('stable')
   const variants = ref<RuntimeVariant[]>([])
   const loading = ref(false)
   const error = ref('')
-  const installed = computed(() => BrewStore().module('llama-cpp').installed)
-  const busy = computed(() => !!LlamaCppManager.runtimeOperation && ['starting', 'running'].includes(LlamaCppManager.runtimeOperation.status))
-
-  onMounted(() => { LlamaCppManager.init(); load() })
-  watch(channel, () => load())
+  const module = BrewStore().module('llama-cpp')
+  const busy = computed(
+    () =>
+      !!LlamaCppManager.runtimeOperation &&
+      ['starting', 'running'].includes(LlamaCppManager.runtimeOperation.status)
+  )
+  const items = computed<RuntimeRow[]>(() => {
+    const seen = new Set<string>()
+    const rows = variants.value.map((variant) => {
+      const installed = module.installed.find(
+        (runtime) =>
+          runtime.path.replace(/\\/g, '/').split('/').pop() === runtimeDirectoryName(variant)
+      )
+      if (installed) seen.add(installed.path)
+      const operation = LlamaCppManager.runtimeOperation
+      const progress = operation?.progress
+      return {
+        name: `llama.cpp · ${variant.backend}${variant.cudaVersion ? ` ${variant.cudaVersion}` : ''} · ${formatBytes(variant.size)}`,
+        url: variant.assetUrl,
+        version: variant.release,
+        installed: !!installed,
+        installedPath: installed?.path,
+        variant,
+        disabled: busy.value,
+        downing:
+          busy.value &&
+          (operation?.id === runtimeIdentityKey(variant) || operation?.id === installed?.path),
+        progress: progress?.total
+          ? Math.round(((progress.downloaded ?? 0) / progress.total) * 100)
+          : 0
+      }
+    })
+    return [
+      ...rows,
+      ...module.installed
+        .filter((runtime) => !seen.has(runtime.path))
+        .map((runtime) => ({
+          name: `llama.cpp · ${runtime.flag ?? ''}`,
+          url: runtime.path,
+          version: runtime.version ?? '',
+          installed: true,
+          installedPath: runtime.path,
+          disabled: busy.value,
+          downing: busy.value && LlamaCppManager.runtimeOperation?.id === runtime.path
+        }))
+    ]
+  })
   const load = async () => {
     if (loading.value) return
     loading.value = true
     error.value = ''
-    try { variants.value = await LlamaCppManager.fetchRuntimeVariants(channel.value) } catch (e) { error.value = `${e}` } finally { loading.value = false }
+    try {
+      variants.value = await LlamaCppManager.fetchRuntimeVariants(channel.value)
+    } catch (e) {
+      error.value = `${e}`
+    } finally {
+      loading.value = false
+    }
   }
-  const install = async (variant: RuntimeVariant) => {
+  const handleVersion = async (item: StaticVersionItem) => {
+    const row = item as RuntimeRow
+    if (busy.value) return
+    if (row.installedPath) {
+      try {
+        await ElMessageBox.confirm(LlamaCppT('confirmRemoveRuntime'), LlamaCppT('remove'), {
+          type: 'warning'
+        })
+      } catch {
+        return
+      }
+    }
     error.value = ''
     try {
-      await LlamaCppManager.installRuntime(variant)
-      await BrewStore().module('llama-cpp').fetchInstalled()
-      LlamaCppManager.profile.backend = variant.backend
-      await LlamaCppManager.saveProfile()
-    } catch (e) { error.value = `${e}` }
+      if (row.installedPath) await LlamaCppManager.removeRuntime(row.installedPath)
+      else if (row.variant) await LlamaCppManager.installRuntime(row.variant)
+      await module.fetchInstalled(true)
+    } catch (e) {
+      error.value = `${e}`
+    }
   }
-  const remove = async (path: string) => {
-    error.value = ''
-    try {
-      await LlamaCppManager.removeRuntime(path)
-      await BrewStore().module('llama-cpp').fetchInstalled()
-    } catch (e) { error.value = `${e}` }
-  }
-  const identity = (variant: RuntimeVariant) => [variant.release, variant.platform, variant.arch, variant.backend, variant.cudaVersion].join('|')
-  const formatBytes = (value: number) => `${(value / 1024 / 1024).toFixed(0)} MB`
+  watch(channel, load)
+  onMounted(async () => {
+    await LlamaCppManager.init()
+    await module.fetchInstalled()
+    await load()
+  })
 </script>
