@@ -3,9 +3,10 @@ import {
   parseReleaseAssets,
   type GitHubRelease
 } from '../plugins/llamacpp/fork/release'
-import type { RuntimeHost } from '../plugins/llamacpp/shared/types'
 import { installRuntime, removeRuntime, type RuntimeInstallDeps, type RuntimePaths } from '../plugins/llamacpp/fork/runtime'
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
+import { deleteLocalModel, downloadHubModelFile, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
+import type { HubModelFile } from '../plugins/llamacpp/shared/types'
 
 const testReleaseAssetParsing = () => {
   const release: GitHubRelease = {
@@ -128,6 +129,71 @@ const testRuntimeDeleteRejectsOutsideRoot = async () => {
   await assert.rejects(removeRuntime('/data/models/important.gguf', fixture.paths.runtimeRoot, fixture.deps), /runtime root/)
 }
 
+const fakeModelDeps = (config: { payload?: unknown; bytes?: string; digest?: string; failDownload?: boolean } = {}) => {
+  const files = new Map<string, string>()
+  const deps: ModelDownloadDeps = {
+    requestJson: async (url) => {
+      if (url.includes('models?')) return config.payload ?? []
+      return config.payload ?? []
+    },
+    mkdir: async () => {},
+    download: async (_url, target, signal, progress) => {
+      if (config.failDownload || signal.aborted) throw new Error('aborted')
+      const content = config.bytes ?? 'model-data'
+      files.set(target, content)
+      progress(content.length, content.length)
+    },
+    digest: async () => config.digest ?? 'digest',
+    exists: async (path) => files.has(path),
+    size: async (path) => files.get(path)?.length ?? 0,
+    rename: async (from, to) => { const value = files.get(from); if (value !== undefined) { files.delete(from); files.set(to, value) } },
+    remove: async (path) => { files.delete(path) },
+    write: async (path, content) => { files.set(path, content) }
+  }
+  return { deps, files }
+}
+
+const testHubSearchAnonymousPaginationAnd429 = async () => {
+  let requested = ''
+  const fixture = fakeModelDeps({ payload: [{ id: 'org/model-GGUF', downloads: 12, cardData: { license: 'apache-2.0' } }] })
+  fixture.deps.requestJson = async (url) => { requested = url; return [{ id: 'org/model-GGUF', downloads: 12, cardData: { license: 'apache-2.0' } }] }
+  const results = await searchHubModels('tiny gguf', 2, fixture.deps)
+  assert.match(requested, /skip=40/)
+  assert.equal(results[0].license, 'apache-2.0')
+  fixture.deps.requestJson = async () => { throw new Error('Hugging Face Hub rate limit reached (HTTP 429); retry later') }
+  await assert.rejects(searchHubModels('model', 0, fixture.deps), /429/)
+}
+
+const testHubFileMetadata = async () => {
+  const fixture = fakeModelDeps({ payload: [{ type: 'file', path: 'Q4/model.gguf', size: 10, lfs: { size: 10, oid: 'a'.repeat(64) } }, { type: 'file', path: 'README.md', size: 2 }] })
+  const files = await getHubModelFiles('org/model', 'main', fixture.deps)
+  assert.equal(files.length, 1)
+  assert.equal(files[0].sha256, 'a'.repeat(64))
+  assert.match(files[0].downloadUrl, /org\/model\/resolve\/main\/Q4\/model.gguf/)
+}
+
+const testModelDownloadDigestAndAtomicRename = async () => {
+  const fixture = fakeModelDeps({ bytes: '1234567890', digest: 'a'.repeat(64) })
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'Q4/model.gguf', size: 10, sha256: 'a'.repeat(64), downloadUrl: 'https://example.test/model' }
+  const model = await downloadHubModelFile('op-1', file, '/models', new AbortController().signal, () => {}, fixture.deps)
+  assert.equal(model.localPath, '/models/model.gguf')
+  assert.equal(fixture.files.has('/models/model.gguf'), true)
+  assert.equal([...fixture.files.keys()].some((path) => path.endsWith('.part')), false)
+}
+
+const testModelDownloadFailureCleansPartial = async () => {
+  const fixture = fakeModelDeps({ failDownload: true })
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'model.gguf', size: 10, downloadUrl: 'https://example.test/model' }
+  await assert.rejects(downloadHubModelFile('op-2', file, '/models', new AbortController().signal, () => {}, fixture.deps), /aborted/)
+  assert.equal([...fixture.files.keys()].some((path) => path.endsWith('.part')), false)
+}
+
+const testModelDeleteRejectsOutsideRoot = async () => {
+  const fixture = fakeModelDeps()
+  await assert.rejects(deleteLocalModel('/private/model.gguf', '/models', undefined, fixture.deps), /model root/)
+  await assert.rejects(deleteLocalModel('/models/active.gguf', '/models', '/models/active.gguf', fixture.deps), /active server/)
+}
+
 void (async () => {
   testReleaseAssetParsing()
   testUnsupportedVariantFiltered()
@@ -137,5 +203,10 @@ void (async () => {
   await testRuntimeInstallMissingExecutableCleansStaging()
   await testRuntimeInstallSuccessPairsCudaRuntime()
   await testRuntimeDeleteRejectsOutsideRoot()
+  await testHubSearchAnonymousPaginationAnd429()
+  await testHubFileMetadata()
+  await testModelDownloadDigestAndAtomicRename()
+  await testModelDownloadFailureCleansPartial()
+  await testModelDeleteRejectsOutsideRoot()
   console.log('llama.cpp plugin contract tests passed')
 })()

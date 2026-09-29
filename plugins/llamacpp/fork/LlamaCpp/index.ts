@@ -5,8 +5,10 @@ import { Base } from '@fork/module/Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { fetchRuntimeReleases, normalizeRuntimeHost } from '../release'
-import { installRuntime, removeRuntime, runtimeDirectoryName, runtimePathsForHost, type RuntimeInstallDeps, type RuntimePaths } from '../runtime'
+import { installRuntime, removeRuntime, runtimeDirectoryName, runtimePathsForHost, type RuntimePaths } from '../runtime'
 import type { RuntimeHost, RuntimeVariant } from '../../shared/types'
+import { deleteLocalModel as deleteLocalModelImpl, downloadHubModelFile as downloadHubModelFileImpl, getHubModelFiles as getHubModelFilesImpl, searchHubModels as searchHubModelsImpl } from '../models'
+import type { HubModelFile } from '../../shared/types'
 
 export interface LlamaCppDeps {
   getHost(): RuntimeHost | undefined
@@ -32,6 +34,7 @@ const productionDeps: LlamaCppDeps = {
 
 export class LlamaCppModule extends Base {
   private deps: LlamaCppDeps
+  private modelDownloads = new Map<string, AbortController>()
 
   constructor(deps: LlamaCppDeps = productionDeps) {
     super()
@@ -116,6 +119,52 @@ export class LlamaCppModule extends Base {
   removeRuntime(identity: string) {
     const path = join(this.deps.getPaths().runtimeRoot, runtimeDirectoryName(JSON.parse(identity) as RuntimeVariant))
     return this.removeRuntimeVariant(path)
+  }
+
+  searchHubModels(query: string, page = 0) {
+    return new ForkPromise(async (resolve, reject) => {
+      try { resolve(await searchHubModelsImpl(query, page)) } catch (error) { reject(error) }
+    })
+  }
+
+  getHubModelFiles(repoId: string, revision = 'main') {
+    return new ForkPromise(async (resolve, reject) => {
+      try { resolve(await getHubModelFilesImpl(repoId, revision)) } catch (error) { reject(error) }
+    })
+  }
+
+  downloadHubModelFile(operationId: string, file: HubModelFile) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      if (this.modelDownloads.has(operationId)) return reject(new Error('A model download with this operation ID is already active'))
+      const controller = new AbortController()
+      this.modelDownloads.set(operationId, controller)
+      const modelsRoot = join(global.Server.BaseDir!, 'llama-cpp', 'models')
+      try {
+        const model = await downloadHubModelFileImpl(operationId, file, modelsRoot, controller.signal, (progress) => {
+          on({ 'APP-On-Progress': { operationId, ...progress } })
+        })
+        resolve(model)
+      } catch (error) { reject(error) }
+      finally { this.modelDownloads.delete(operationId) }
+    })
+  }
+
+  cancelModelDownload(operationId: string) {
+    return new ForkPromise<boolean>((resolve) => {
+      const controller = this.modelDownloads.get(operationId)
+      if (!controller) return resolve(false)
+      controller.abort()
+      resolve(true)
+    })
+  }
+
+  deleteLocalModel(path: string, activeModelPath?: string) {
+    return new ForkPromise<boolean>(async (resolve, reject) => {
+      try {
+        await deleteLocalModelImpl(path, join(global.Server.BaseDir!, 'llama-cpp', 'models'), activeModelPath)
+        resolve(true)
+      } catch (error) { reject(error) }
+    })
   }
 
   _startServer(_version: SoftInstalled) {
