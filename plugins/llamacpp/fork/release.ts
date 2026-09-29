@@ -126,13 +126,20 @@ export const normalizeRuntimeHost = (platform = process.platform, arch = process
 }
 
 export const fetchRuntimeReleases = async (channel: 'stable' | 'prerelease', host: RuntimeHost): Promise<RuntimeVariant[]> => {
-  const response = await axios.get<GitHubRelease[]>('https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=30', {
-    headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
-    timeout: 30_000,
-    proxy: getAxiosProxy()
-  })
-  const releases = response.data
-  return releases
-    .filter((release) => channel === 'prerelease' ? release.prerelease : !release.prerelease)
-    .flatMap((release) => parseReleaseAssets(release, host))
+  const variants: RuntimeVariant[] = []
+  for (let page = 1; page <= 20; page++) {
+    const response = await axios.get<GitHubRelease[]>('https://api.github.com/repos/ggml-org/llama.cpp/releases', {
+      params: { per_page: 100, page },
+      headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+      timeout: 30_000,
+      proxy: getAxiosProxy()
+    })
+    const releases = response.data
+    if (!releases.length) break
+    const matching = releases.filter((release) => channel === 'prerelease' ? release.prerelease : !release.prerelease)
+    variants.push(...matching.flatMap((release) => parseReleaseAssets(release, host)))
+    // GitHub sorts by recency, so stable releases can fall behind many daily prereleases.
+    if (channel === 'prerelease' || variants.length) break
+  }
+  return variants
 }

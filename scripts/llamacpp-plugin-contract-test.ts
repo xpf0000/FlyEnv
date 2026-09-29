@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
+import axios from 'axios'
 import {
+  fetchRuntimeReleases,
   parseReleaseAssets,
   type GitHubRelease
 } from '../plugins/llamacpp/fork/release'
@@ -30,6 +32,28 @@ const testReleaseAssetParsing = () => {
   assert.equal(win[0].release, 'b4000')
   assert.equal(win[1].cudaVersion, '12.8')
   assert.equal(parseReleaseAssets(release, { platform: 'macos', arch: 'arm64' })[0].backend, 'metal')
+}
+
+const testStableRuntimeFetchPaginatesPastRecentPrereleases = async () => {
+  const originalGet = axios.get
+  const requests: Array<{ page: number; perPage: number }> = []
+  const stableRelease: GitHubRelease = {
+    tag_name: 'v0.5.0', prerelease: false,
+    assets: [{ name: 'llama-bin-win-cpu-x64.zip', size: 10, browser_download_url: 'https://example.test/stable.zip' }]
+  }
+  ;(axios as any).get = async (_url: string, config?: any) => {
+    const page = (config?.params?.page ?? 1) as number
+    requests.push({ page, perPage: config?.params?.per_page ?? 30 })
+    return { data: page === 1 ? Array.from({ length: 100 }, (_, index) => ({ tag_name: `b${index}`, prerelease: true, assets: [] })) : [stableRelease] }
+  }
+  try {
+    const variants = await fetchRuntimeReleases('stable', { platform: 'windows', arch: 'x64' })
+    assert.equal(variants.length, 1)
+    assert.equal(variants[0].release, 'v0.5.0')
+    assert.deepEqual(requests, [{ page: 1, perPage: 100 }, { page: 2, perPage: 100 }])
+  } finally {
+    axios.get = originalGet
+  }
 }
 
 const testUnsupportedVariantFiltered = () => {
@@ -452,6 +476,7 @@ const testControllerTransportCleansListenerAtTerminal = async () => {
 
 void (async () => {
   testReleaseAssetParsing()
+  await testStableRuntimeFetchPaginatesPastRecentPrereleases()
   testUnsupportedVariantFiltered()
   testCudaCompanionPairing()
   testCudaCompanionWithoutTagPairsAndMissingCompanionIsFiltered()

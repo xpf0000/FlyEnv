@@ -1,6 +1,8 @@
 <template>
-  <div class="space-y-4 p-4">
-    <h3 class="font-semibold">{{ LlamaCppT('settings') }}</h3>
+  <el-card class="version-manager">
+    <template #header>
+      <div class="card-header"><div class="left"><span>{{ LlamaCppT('settings') }}</span></div></div>
+    </template>
     <div class="grid grid-cols-2 gap-3">
       <label>{{ LlamaCppT('host') }}<el-input v-model="profile.host" /></label>
       <label>{{ LlamaCppT('port') }}<el-input-number v-model="profile.port" :min="1" :max="65535" /></label>
@@ -9,7 +11,7 @@
       <label>{{ LlamaCppT('gpuLayers') }}<el-input-number v-model="profile.gpuLayers" :min="0" :max="999" /></label>
       <label>{{ LlamaCppT('gpuDevice') }}<el-input v-model="profile.gpuDevice" placeholder="0" /></label>
     </div>
-    <div class="rounded border p-3">
+    <div class="mt-4 rounded border p-3">
       <div>{{ LlamaCppT('apiKeyFile') }}: {{ profile.apiKeyFile ?? LlamaCppT('none') }}</div>
       <div class="mt-2 flex gap-2">
         <el-input v-model="apiKey" type="password" show-password :placeholder="LlamaCppT('apiKey')" />
@@ -17,17 +19,13 @@
       </div>
       <small>{{ LlamaCppT('nonLoopbackNote') }}</small>
     </div>
-    <p v-if="error" class="text-red-500">{{ error }}</p>
-    <el-button type="primary" @click="save">{{ LlamaCppT('save') }}</el-button>
-    <h3 class="pt-3 font-semibold">{{ LlamaCppT('settings') }}</h3>
-    <Log v-if="logFile" :log-file="logFile" class="h-64" />
-  </div>
+    <p v-if="error" class="mt-3 text-red-500">{{ error }}</p>
+    <el-button class="mt-4" type="primary" @click="save">{{ LlamaCppT('save') }}</el-button>
+  </el-card>
 </template>
 
 <script lang="ts" setup>
   import { onMounted, reactive, ref } from 'vue'
-  import { BrewStore } from '@/store/brew'
-  import Log from '@/components/Log/index.vue'
   import { LlamaCppManager } from '../controller'
   import { LlamaCppT } from '../lang'
 
@@ -35,15 +33,10 @@
   const apiKey = ref('')
   const savingKey = ref(false)
   const error = ref('')
-  const logFile = ref('')
+
   onMounted(async () => {
     await LlamaCppManager.init()
     Object.assign(profile, LlamaCppManager.profile)
-    const installed = BrewStore().module('llama-cpp').installed[0]
-    if (installed) {
-      const logs = await LlamaCppManager.request<Array<{ name: string; path: string; exists: boolean }>>('listLogFiles', JSON.parse(JSON.stringify(installed))).catch(() => [])
-      logFile.value = logs.find((item) => item.name === 'stderr')?.path ?? logs[0]?.path ?? ''
-    }
   })
   const save = async () => {
     error.value = ''
