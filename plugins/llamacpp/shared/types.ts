@@ -46,3 +46,27 @@ export interface LocalModel extends HubModelFile {
   localPath: string
   downloadedAt: number
 }
+
+export interface LaunchProfile {
+  modelPath: string
+  backend: RuntimeBackend
+  host: string
+  port: number
+  contextSize: number
+  threads: number
+  gpuLayers: number
+  gpuDevice?: string
+  apiKeyFile?: string
+}
+
+export interface ValidatedLaunchProfile extends LaunchProfile {
+  host: string
+  port: number
+}
+
+export interface ServerInvocation {
+  bin: string
+  args: string[]
+  env: Record<string, string>
+  cwd: string
+}

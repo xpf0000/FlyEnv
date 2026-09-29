@@ -120,7 +120,7 @@ export const installRuntime = async (
     const probeResult = await deps.probe(stagedBin)
     const bin = join(finalDir, relative(runtimeStage, stagedBin))
     if (variant.platform !== 'windows') await chmod(stagedBin, 0o755).catch(() => {})
-    await deps.write(join(runtimeStage, 'flyenv-runtime.json'), JSON.stringify(variant, null, 2))
+    await deps.write(join(runtimeStage, 'flyenv-runtime.json'), JSON.stringify({ ...variant, executable: relative(runtimeStage, stagedBin) }, null, 2))
     if (await deps.exists(finalDir)) {
       await deps.rename(finalDir, backupDir)
       movedOld = true

@@ -9,6 +9,13 @@ import { installRuntime, removeRuntime, runtimeDirectoryName, runtimePathsForHos
 import type { RuntimeHost, RuntimeVariant } from '../../shared/types'
 import { deleteLocalModel as deleteLocalModelImpl, downloadHubModelFile as downloadHubModelFileImpl, getHubModelFiles as getHubModelFilesImpl, searchHubModels as searchHubModelsImpl } from '../models'
 import type { HubModelFile } from '../../shared/types'
+import axios from 'axios'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { serviceStartSpawn } from '@fork/util/ServiceStart'
+import { AppLog } from '@fork/Fn'
+import { buildServerInvocation, validateApiKeyFile, validateLaunchProfile, variantFromInstalled, waitForServerHealth } from '../config'
+import type { LaunchProfile, LocalModel } from '../../shared/types'
 
 export interface LlamaCppDeps {
   getHost(): RuntimeHost | undefined
@@ -77,9 +84,9 @@ export class LlamaCppModule extends Base {
           const path = join(runtimeRoot, dir)
           const manifest = join(path, 'flyenv-runtime.json')
           if (!this.deps.exists(manifest)) continue
-          const variant = JSON.parse(await this.deps.read(manifest)) as RuntimeVariant
+          const variant = JSON.parse(await this.deps.read(manifest)) as RuntimeVariant & { executable?: string }
           const binName = variant.platform === 'windows' ? 'llama-server.exe' : 'llama-server'
-          const bin = join(path, binName)
+          const bin = join(path, variant.executable ?? binName)
           installed.push({
             typeFlag: 'llama-cpp' as SoftInstalled['typeFlag'], version: variant.release, bin, path,
             num: null, enable: true, run: false, running: false, flag: variant.backend,
@@ -167,8 +174,47 @@ export class LlamaCppModule extends Base {
     })
   }
 
-  _startServer(_version: SoftInstalled) {
-    return new ForkPromise((_, reject) => reject(new Error('Select a llama.cpp runtime and model before starting the server')))
+  protected _stopSearchName() {
+    return 'llama-server'
+  }
+
+  _startServer(version: SoftInstalled, profile: LaunchProfile, model: LocalModel) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        const validated = validateLaunchProfile(profile, variantFromInstalled(version))
+        if (validated.apiKeyFile) await validateApiKeyFile(validated.apiKeyFile)
+        const invocation = buildServerInvocation(validated, version, model)
+        const serviceRoot = join(global.Server.BaseDir!, 'llama-cpp')
+        const logDir = join(serviceRoot, 'logs')
+        const startResult = await serviceStartSpawn({
+          version,
+          pidPath: this.pidPath || join(serviceRoot, 'llama-server.pid'),
+          baseDir: logDir,
+          bin: invocation.bin,
+          execArgs: invocation.args,
+          execEnv: invocation.env,
+          cwd: invocation.cwd,
+          on,
+          sensitive: true
+        })
+        const apiKey = validated.apiKeyFile ? (await readFile(validated.apiKeyFile, 'utf8')).trim() : ''
+        try {
+          await waitForServerHealth(async () => {
+            const response = await axios.get(`http://${validated.host}:${validated.port}/health`, {
+              timeout: 1_500,
+              headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined
+            })
+            return response.status >= 200 && response.status < 300
+          }, async () => {
+            await this._stopServer(version).on(on)
+          })
+        } catch (error) {
+          on({ 'APP-On-Log': AppLog('error', 'llama-server did not become healthy and was stopped') })
+          throw error
+        }
+        resolve({ ...startResult, endpoint: `http://${validated.host}:${validated.port}/v1`, model: model.repoId })
+      } catch (error) { reject(error) }
+    })
   }
 }
 

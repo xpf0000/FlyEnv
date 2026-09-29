@@ -7,6 +7,8 @@ import { installRuntime, removeRuntime, type RuntimeInstallDeps, type RuntimePat
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
 import { deleteLocalModel, downloadHubModelFile, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModelFile } from '../plugins/llamacpp/shared/types'
+import { buildServerInvocation, createApiKeyFile, validateLaunchProfile, waitForServerHealth } from '../plugins/llamacpp/fork/config'
+import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
 
 const testReleaseAssetParsing = () => {
   const release: GitHubRelease = {
@@ -194,6 +196,51 @@ const testModelDeleteRejectsOutsideRoot = async () => {
   await assert.rejects(deleteLocalModel('/models/active.gguf', '/models', '/models/active.gguf', fixture.deps), /active server/)
 }
 
+const launchVariant: RuntimeVariant = {
+  release: 'b4000', platform: 'linux', arch: 'x64', backend: 'cuda', cudaVersion: '12.4',
+  assetName: 'llama.tar.gz', assetUrl: 'https://example.test/llama.tar.gz', size: 10
+}
+const launchProfile: LaunchProfile = {
+  modelPath: '/models/test.gguf', backend: 'cuda', host: '127.0.0.1', port: 8080,
+  contextSize: 4096, threads: 8, gpuLayers: 20, gpuDevice: '0'
+}
+
+const testBuildServerInvocationUsesArgv = () => {
+  const validated = validateLaunchProfile(launchProfile, launchVariant)
+  const invocation = buildServerInvocation(validated, { bin: '/runtime/llama-server', path: '/runtime', version: 'b4000' } as any, { localPath: '/models/test.gguf' } as any)
+  assert.deepEqual(invocation.args.slice(0, 2), ['--model', '/models/test.gguf'])
+  assert.ok(invocation.args.includes('--port'))
+  assert.equal(invocation.args.some((arg) => arg.includes(';')), false)
+}
+
+const testLaunchProfileRejectsUnknownBackendDevice = () => {
+  assert.throws(() => validateLaunchProfile({ ...launchProfile, gpuDevice: 'cuda:any arbitrary' }, launchVariant), /GPU device/)
+}
+
+const testLoopbackDoesNotRequireApiKey = () => {
+  assert.doesNotThrow(() => validateLaunchProfile(launchProfile, launchVariant))
+}
+
+const testNonLoopbackRequiresApiKeyFile = () => {
+  assert.throws(() => validateLaunchProfile({ ...launchProfile, host: '0.0.0.0' }, launchVariant), /API key file/)
+}
+
+const testApiKeyNeverAppearsInArgsOrLogs = async () => {
+  const secret = 'secret-value-12345'
+  const keyFile = await createApiKeyFile(secret, '/tmp/llama-test-secret', 'linux')
+  const profile = validateLaunchProfile({ ...launchProfile, host: '0.0.0.0', apiKeyFile: keyFile }, launchVariant)
+  const invocation = buildServerInvocation(profile, { bin: '/runtime/llama-server', path: '/runtime', version: 'b4000' } as any, { localPath: '/models/test.gguf' } as any)
+  assert.equal(invocation.args.includes(secret), false)
+  assert.equal(invocation.args.includes(keyFile), true)
+  await (await import('node:fs/promises')).rm('/tmp/llama-test-secret', { recursive: true, force: true })
+}
+
+const testHealthTimeoutCleansProcess = async () => {
+  let cleaned = false
+  await assert.rejects(waitForServerHealth(async () => false, async () => { cleaned = true }, { timeoutMs: 5, intervalMs: 1 }), /health check timed out/)
+  assert.equal(cleaned, true)
+}
+
 void (async () => {
   testReleaseAssetParsing()
   testUnsupportedVariantFiltered()
@@ -208,5 +255,11 @@ void (async () => {
   await testModelDownloadDigestAndAtomicRename()
   await testModelDownloadFailureCleansPartial()
   await testModelDeleteRejectsOutsideRoot()
+  testBuildServerInvocationUsesArgv()
+  testLaunchProfileRejectsUnknownBackendDevice()
+  testLoopbackDoesNotRequireApiKey()
+  testNonLoopbackRequiresApiKeyFile()
+  await testApiKeyNeverAppearsInArgsOrLogs()
+  await testHealthTimeoutCleansProcess()
   console.log('llama.cpp plugin contract tests passed')
 })()
