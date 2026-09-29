@@ -15,7 +15,7 @@ export default {
   stable: '稳定版', prerelease: '预发布版', refresh: '刷新', loadingVersions: '正在加载可用版本…', noRuntimeVariants: '没有找到适用于此平台的运行时版本。',
   runtimeStatus: '运行时安装', installedRuntimes: '已安装运行时', noInstalledRuntimes: '尚未安装运行时。', install: '安装', remove: '删除', confirmRemoveRuntime: '删除此运行时？如果服务正在运行，会先将其停止。',
   host: '监听地址', port: '端口', contextSize: '上下文长度', threads: 'CPU 线程数', gpuLayers: 'GPU 层数', gpuDevice: 'GPU 设备索引',
-  apiKeyFile: 'API 密钥文件', apiKey: '新 API 密钥（至少 16 个字符）', createKeyFile: '创建私有密钥文件',
+  apiKeyFile: 'API 密钥文件', newApiKey: '新 API 密钥', apiKey: '新 API 密钥（至少 16 个字符）', createKeyFile: '创建私有密钥文件',
   nonLoopbackNote: '非本机回环地址必须配置 API 密钥。Windows 在无法保证私有文件权限前不开放远程监听。',
   save: '保存设置', previous: '上一页', next: '下一页'
 }

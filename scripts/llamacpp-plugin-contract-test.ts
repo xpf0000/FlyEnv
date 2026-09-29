@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import axios from 'axios'
+import localForage from 'localforage'
+import { reactive } from 'vue'
 import {
   fetchRuntimeReleases,
   parseReleaseAssets,
@@ -455,6 +457,29 @@ const testTerminalEventAllowsRetry = async () => {
   assert.equal(count, 2)
 }
 
+const testControllerPersistsPlainSnapshotsFromReactiveState = async () => {
+  const originalSetItem = localForage.setItem
+  const snapshots: unknown[] = []
+  localForage.setItem = async (_key, value) => {
+    snapshots.push(structuredClone(value))
+    return value
+  }
+  try {
+    const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'model.gguf', size: 10, downloadUrl: 'https://example.test/model.gguf' }
+    const downloaded = { ...file, localPath: '/data/models/downloaded.gguf', downloadedAt: 1 }
+    const controller = reactive(new LlamaCppController({ request: async () => downloaded } as ControllerTransport))
+    await controller.selectModel(reactive({ ...downloaded, localPath: '/data/models/selected.gguf' }))
+    await controller.saveProfile()
+    await controller.downloadModel(file)
+    await controller.deleteModel(downloaded)
+    assert.equal(snapshots.length, 4)
+    assert.equal((snapshots[0] as any).data.selectedModel.localPath, '/data/models/selected.gguf')
+    assert.deepEqual((snapshots[3] as any).data, [])
+  } finally {
+    localForage.setItem = originalSetItem
+  }
+}
+
 const testControllerTransportCleansListenerAtTerminal = async () => {
   let callback: ((key: string, response: any) => void) | undefined
   let removed = false
@@ -510,6 +535,7 @@ void (async () => {
   testControllerReentryRetainsOperation()
   await testControllerCancelClearsListener()
   await testTerminalEventAllowsRetry()
+  await testControllerPersistsPlainSnapshotsFromReactiveState()
   await testControllerTransportCleansListenerAtTerminal()
   console.log('llama.cpp plugin contract tests passed')
 })()

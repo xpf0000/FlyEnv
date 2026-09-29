@@ -1,27 +1,55 @@
 <template>
-  <el-card class="version-manager">
-    <template #header>
-      <div class="card-header"><div class="left"><span>{{ LlamaCppT('settings') }}</span></div></div>
-    </template>
-    <div class="grid grid-cols-2 gap-3">
-      <label>{{ LlamaCppT('host') }}<el-input v-model="profile.host" /></label>
-      <label>{{ LlamaCppT('port') }}<el-input-number v-model="profile.port" :min="1" :max="65535" /></label>
-      <label>{{ LlamaCppT('contextSize') }}<el-input-number v-model="profile.contextSize" :min="128" :max="1048576" /></label>
-      <label>{{ LlamaCppT('threads') }}<el-input-number v-model="profile.threads" :min="1" :max="512" /></label>
-      <label>{{ LlamaCppT('gpuLayers') }}<el-input-number v-model="profile.gpuLayers" :min="0" :max="999" /></label>
-      <label>{{ LlamaCppT('gpuDevice') }}<el-input v-model="profile.gpuDevice" placeholder="0" /></label>
-    </div>
-    <div class="mt-4 rounded border p-3">
-      <div>{{ LlamaCppT('apiKeyFile') }}: {{ profile.apiKeyFile ?? LlamaCppT('none') }}</div>
-      <div class="mt-2 flex gap-2">
-        <el-input v-model="apiKey" type="password" show-password :placeholder="LlamaCppT('apiKey')" />
-        <el-button :loading="savingKey" @click="saveKey">{{ LlamaCppT('createKeyFile') }}</el-button>
-      </div>
-      <small>{{ LlamaCppT('nonLoopbackNote') }}</small>
-    </div>
-    <p v-if="error" class="mt-3 text-red-500">{{ error }}</p>
-    <el-button class="mt-4" type="primary" @click="save">{{ LlamaCppT('save') }}</el-button>
-  </el-card>
+  <div class="module-config">
+    <el-card>
+      <template #header
+        ><span>{{ LlamaCppT('settings') }}</span></template
+      >
+      <el-scrollbar class="h-full p-4">
+        <el-form label-width="150px" label-position="left" @submit.prevent="save">
+          <el-form-item :label="LlamaCppT('host')"
+            ><el-input v-model="profile.host"
+          /></el-form-item>
+          <el-form-item :label="LlamaCppT('port')"
+            ><el-input-number v-model="profile.port" :min="1" :max="65535"
+          /></el-form-item>
+          <el-form-item :label="LlamaCppT('contextSize')"
+            ><el-input-number v-model="profile.contextSize" :min="128" :max="1048576"
+          /></el-form-item>
+          <el-form-item :label="LlamaCppT('threads')"
+            ><el-input-number v-model="profile.threads" :min="1" :max="512"
+          /></el-form-item>
+          <el-form-item :label="LlamaCppT('gpuLayers')"
+            ><el-input-number v-model="profile.gpuLayers" :min="0" :max="999"
+          /></el-form-item>
+          <el-form-item :label="LlamaCppT('gpuDevice')"
+            ><el-input v-model="profile.gpuDevice" placeholder="0"
+          /></el-form-item>
+          <el-form-item :label="LlamaCppT('apiKeyFile')"
+            ><el-input :model-value="profile.apiKeyFile ?? LlamaCppT('none')" readonly
+          /></el-form-item>
+          <el-form-item :label="LlamaCppT('newApiKey')">
+            <el-input
+              v-model="apiKey"
+              type="password"
+              show-password
+              :placeholder="LlamaCppT('apiKey')"
+            >
+              <template #append
+                ><el-button :loading="savingKey" @click="saveKey">{{
+                  LlamaCppT('createKeyFile')
+                }}</el-button></template
+              >
+            </el-input>
+          </el-form-item>
+          <el-alert :title="LlamaCppT('nonLoopbackNote')" type="info" :closable="false" />
+          <el-alert v-if="error" class="mt-3" :title="error" type="error" :closable="false" />
+        </el-form>
+      </el-scrollbar>
+      <template #footer
+        ><el-button type="primary" @click="save">{{ LlamaCppT('save') }}</el-button></template
+      >
+    </el-card>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -40,7 +68,11 @@
   })
   const save = async () => {
     error.value = ''
-    try { await LlamaCppManager.saveProfile(profile) } catch (e) { error.value = `${e}` }
+    try {
+      await LlamaCppManager.saveProfile(profile)
+    } catch (e) {
+      error.value = `${e}`
+    }
   }
   const saveKey = async () => {
     savingKey.value = true
@@ -49,6 +81,10 @@
       profile.apiKeyFile = await LlamaCppManager.createApiKeyFile(apiKey.value)
       apiKey.value = ''
       await LlamaCppManager.saveProfile(profile)
-    } catch (e) { error.value = `${e}` } finally { savingKey.value = false }
+    } catch (e) {
+      error.value = `${e}`
+    } finally {
+      savingKey.value = false
+    }
   }
 </script>

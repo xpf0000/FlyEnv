@@ -5,6 +5,14 @@ import type { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
 import { compareVersions } from '@shared/compare-versions'
 import { versionFixed } from '@/util/Version'
 
+export type StaticVersionItem = Pick<
+  ModuleStaticItem,
+  'name' | 'url' | 'version' | 'installed' | 'downing'
+> & {
+  progress?: number
+  disabled?: boolean
+}
+
 export const StaticSetup = reactive<{
   reFetch: () => void
   channel: {
