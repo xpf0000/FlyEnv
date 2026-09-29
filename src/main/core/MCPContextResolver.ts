@@ -39,6 +39,11 @@ const DATABASE_FLAGS = new Set([
 
 const WEB_SERVER_FLAGS = ['caddy', 'nginx', 'apache', 'frankenphp', 'tomcat'] as const
 
+const DEFAULT_MYSQL_PORT = 3306
+const DEFAULT_MARIADB_PORT = 3307
+const DEFAULT_MYSQL_SOCKET = '/tmp/mysql.sock'
+const DEFAULT_MARIADB_SOCKET = '/tmp/mariadb.sock'
+
 type MySqlStyleConfig = {
   serverSection: string
   values: Record<string, string>
@@ -147,6 +152,20 @@ function parsePort(value: any): number | undefined {
     return undefined
   }
   return port
+}
+
+function defaultDatabasePort(flag: string, configText: string) {
+  if (flag === 'mariadb' && configText.trim()) {
+    return DEFAULT_MYSQL_PORT
+  }
+  return flag === 'mariadb' ? DEFAULT_MARIADB_PORT : DEFAULT_MYSQL_PORT
+}
+
+function defaultDatabaseSocket(flag: string, configText: string) {
+  if (flag === 'mariadb' && configText.trim()) {
+    return DEFAULT_MYSQL_SOCKET
+  }
+  return flag === 'mariadb' ? DEFAULT_MARIADB_SOCKET : DEFAULT_MYSQL_SOCKET
 }
 
 function firstExistingConfigFile(files: ManagedPathItem[]) {
@@ -400,12 +419,13 @@ export default class MCPContextResolver {
     return undefined
   }
 
-  private deriveSocket(flag: string, version: SoftInstalled, configText: string, port: number) {
+  private deriveSocket(flag: string, configText: string, port?: number) {
     if (flag === 'mysql' || flag === 'mariadb') {
-      if (version?.version) {
-        return `/tmp/mysql.${version.version}.sock`
+      const configuredSocket = parseMySqlStyleConfigText(configText).values.socket
+      if (configuredSocket) {
+        return configuredSocket
       }
-      return '/tmp/mysql.sock'
+      return defaultDatabaseSocket(flag, configText)
     }
     if (flag === 'postgresql') {
       const parsed = parsePostgresqlConfigText(configText)
@@ -414,7 +434,7 @@ export default class MCPContextResolver {
           .split(',')
           .map((item) => stripQuotes(item.trim()))[0]
         if (dir) {
-          return join(dir, `.s.PGSQL.${port}`)
+          return port ? join(dir, `.s.PGSQL.${port}`) : undefined
         }
       }
       return undefined
@@ -494,7 +514,8 @@ export default class MCPContextResolver {
     const configText = readTextIfExists(firstExistingConfigFile(files.config))
     const port =
       flag === 'mysql' || flag === 'mariadb'
-        ? (parsePort(parseMySqlStyleConfigText(configText).values.port) ?? 3306)
+        ? (parsePort(parseMySqlStyleConfigText(configText).values.port) ??
+          defaultDatabasePort(flag, configText))
         : flag === 'postgresql'
           ? (parsePort(parsePostgresqlConfigText(configText).port) ?? 5432)
           : flag === 'redis'
@@ -519,7 +540,7 @@ export default class MCPContextResolver {
     push('runtime', makePathItem('pid', join(global.Server.BaseDir!, 'pid', `${flag}.pid`)))
 
     if (port) {
-      push('runtime', makePathItem('socket', this.deriveSocket(flag, version, configText, port)))
+      push('runtime', makePathItem('socket', this.deriveSocket(flag, configText, port)))
     }
 
     const defaultDataDir = this.defaultDataDir(flag, version)
@@ -767,12 +788,14 @@ export default class MCPContextResolver {
 
     if (flag === 'mysql' || flag === 'mariadb') {
       const parsed = parseMySqlStyleConfigText(configText)
-      port = parsePort(parsed.values.port) ?? 3306
+      port = parsePort(parsed.values.port) ?? defaultDatabasePort(flag, configText)
       sourceHints.port = parsed.values.port ? 'config' : 'default'
       if (!parsed.values.port) {
-        warnings.push('Configured port not found, fallback to default 3306.')
+        warnings.push(
+          `Configured port not found, fallback to default ${defaultDatabasePort(flag, configText)}.`
+        )
       }
-      socket = this.deriveSocket(flag, versionObj, configText, port)
+      socket = this.deriveSocket(flag, configText, port)
       sourceHints.socket = socket ? 'derived' : 'default'
       user = 'root'
       sourceHints.user = 'default'
@@ -787,7 +810,7 @@ export default class MCPContextResolver {
       if (!parsed.port) {
         warnings.push('Configured port not found, fallback to default 5432.')
       }
-      socket = this.deriveSocket(flag, versionObj, configText, port)
+      socket = this.deriveSocket(flag, configText, port)
       sourceHints.socket = socket ? 'config' : 'default'
       user = 'postgres'
       sourceHints.user = 'default'
