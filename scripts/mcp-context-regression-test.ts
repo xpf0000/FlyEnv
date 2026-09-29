@@ -149,7 +149,12 @@ function createTempServerLayout() {
   )
   writeFileSync(join(mysqlDir, 'error.log'), 'mysql error\n', 'utf-8')
   writeFileSync(join(mysqlDir, 'slow.log'), 'mysql slow\n', 'utf-8')
-  writeFileSync(join(mariadbDir, 'my-13.0.cnf'), '[mariadbd]\ndatadir=/data/mariadb13\n', 'utf-8')
+  writeFileSync(
+    join(mariadbDir, 'my-13.0.cnf'),
+    '[mariadbd]\nport=3307\nsocket=/tmp/mariadb.sock\ndatadir=/data/mariadb13\n',
+    'utf-8'
+  )
+  writeFileSync(join(mariadbDir, 'my-11.4.cnf'), '[mariadbd]\ndatadir=/data/mariadb11\n', 'utf-8')
   writeFileSync(join(baseDir, 'vhost', 'nginx', '1001.conf'), 'server {}\n', 'utf-8')
   writeFileSync(join(baseDir, 'vhost', 'rewrite', '1001.conf'), 'try_files\n', 'utf-8')
   writeFileSync(join(baseDir, 'vhost', 'logs', '1001.log'), 'access\n', 'utf-8')
@@ -192,19 +197,24 @@ async function testContextTools() {
   const mysql84 = makeVersion('mysql', '8.4.0', {
     bin: '/opt/mysql/8.4.0/bin/mysqld',
     path: '/opt/mysql/8.4.0',
-    rootPassword: 'root001'
+    rootPassword: 'root'
   })
   const mariadb130 = makeVersion('mariadb', '13.0.0', {
     bin: '/opt/mariadb/13.0.0/bin/mariadbd',
     path: '/opt/mariadb/13.0.0',
-    rootPassword: 'root002'
+    rootPassword: 'root'
+  })
+  const mariadb114 = makeVersion('mariadb', '11.4.0', {
+    bin: '/opt/mariadb/11.4.0/bin/mariadbd',
+    path: '/opt/mariadb/11.4.0',
+    rootPassword: 'root'
   })
 
   ServiceVersionManager.updateCache({
     php: [php84],
     nginx: [nginx],
     mysql: [mysql84],
-    mariadb: [mariadb130]
+    mariadb: [mariadb130, mariadb114]
   })
   ServiceProcessManager.addPid('php', '1101', php84)
   ServiceProcessManager.addPid('nginx', '2202', nginx)
@@ -286,16 +296,28 @@ async function testContextTools() {
 
   const db = await tools.getDatabaseConnectionInfo('mysql', '8.4.0')
   assert.equal(db.port, 3307)
-  assert.equal(db.password, 'root001')
+  assert.equal(db.password, 'root')
   assert.equal(db.socket, '/tmp/mysql.sock')
   assert.equal(db.sourceHints.port, 'config')
   assert.equal(db.sourceHints.socket, 'derived')
 
   const mariadb = await tools.getDatabaseConnectionInfo('mariadb', '13.0.0')
   assert.equal(mariadb.port, 3307)
-  assert.equal(mariadb.password, 'root002')
+  assert.equal(mariadb.password, 'root')
   assert.equal(mariadb.socket, '/tmp/mariadb.sock')
-  assert.equal(mariadb.sourceHints.port, 'default')
+  assert.equal(mariadb.sourceHints.port, 'config')
+
+  forkManager.configFilesByModule.mariadb = [
+    { name: 'main', path: join(temp.mariadbDir, 'my-11.4.cnf'), exists: true }
+  ]
+  const legacyMariaDB = await tools.getDatabaseConnectionInfo('mariadb', '11.4.0')
+  assert.equal(legacyMariaDB.port, 3306)
+  assert.equal(legacyMariaDB.socket, '/tmp/mysql.sock')
+  assert.equal(legacyMariaDB.sourceHints.port, 'default')
+
+  forkManager.configFilesByModule.mariadb = [
+    { name: 'main', path: join(temp.mariadbDir, 'my-13.0.cnf'), exists: true }
+  ]
 
   const siteFiles = await tools.getManagedFileMap({ scope: 'site', name: 'demo.test' })
   assert.ok(siteFiles.files.env.some((item: any) => item.path.endsWith('.env') && item.exists))

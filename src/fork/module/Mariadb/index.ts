@@ -52,6 +52,8 @@ type MariaDBPemFiles = {
 
 const DEFAULT_MARIADB_PORT = 3307
 const DEFAULT_MARIADB_SOCKET = '/tmp/mariadb.sock'
+const LEGACY_MARIADB_PORT = 3306
+const LEGACY_MARIADB_SOCKET = '/tmp/mysql.sock'
 
 const stripMariaDBValueQuotes = (value: any) => {
   return `${value ?? ''}`.trim().replace(/^['"]|['"]$/g, '')
@@ -90,14 +92,25 @@ const getMariaDBConfigValue = (section: any, names: string[]) => {
   return ''
 }
 
-const getMariaDBPort = (config: any) => {
+const getMariaDBPort = (config: any, legacyDefaults = false) => {
+  const port = Number(getMariaDBConfigValue(getMariaDBServerConfig(config), ['port']))
+  if (Number.isFinite(port) && port > 0) {
+    return port
+  }
+  return legacyDefaults ? LEGACY_MARIADB_PORT : DEFAULT_MARIADB_PORT
+}
+
+const getMariaDBSocket = (config: any, legacyDefaults = false) => {
   return (
-    getMariaDBConfigValue(getMariaDBServerConfig(config), ['port']) || `${DEFAULT_MARIADB_PORT}`
+    getMariaDBConfigValue(getMariaDBServerConfig(config), ['socket']) ||
+    (legacyDefaults ? LEGACY_MARIADB_SOCKET : DEFAULT_MARIADB_SOCKET)
   )
 }
 
-const getMariaDBSocket = (config: any) => {
-  return getMariaDBConfigValue(getMariaDBServerConfig(config), ['socket']) || DEFAULT_MARIADB_SOCKET
+const getMariaDBMaintenanceSocket = (socket: string, version: string) => {
+  return socket.endsWith('.sock')
+    ? `${socket.slice(0, -'.sock'.length)}.${version}.sock`
+    : `${socket}.${version}.sock`
 }
 
 const mariaDBPathExists = (value: string, dataDir: string, binDir: string) => {
@@ -426,7 +439,7 @@ class Manager extends Base {
         try {
           const content = existsSync(m) ? await readFile(m, 'utf8') : ''
           const config = iniParse(content)
-          port = Number(getMariaDBPort(config))
+          port = getMariaDBPort(config, existsSync(m))
         } catch {}
 
         promise = execPromise(
@@ -442,7 +455,7 @@ class Manager extends Base {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
         const content = existsSync(m) ? await readFile(m, 'utf8') : ''
-        const socket = getMariaDBSocket(iniParse(content))
+        const socket = getMariaDBSocket(iniParse(content), existsSync(m))
         promise = execPromise(`./${basename(bin)} --socket="${socket}" -uroot password "root"`, {
           cwd: dirname(bin)
         })
@@ -515,7 +528,7 @@ class Manager extends Base {
           try {
             const content = await readFile(m, 'utf8')
             const config = iniParse(content)
-            port = Number(getMariaDBPort(config))
+            port = getMariaDBPort(config, true)
           } catch {}
         }
 
@@ -611,8 +624,10 @@ datadir=${dataDir}`
           const content = await readFile(m, 'utf8')
           const config = iniParse(content)
           const serverConfig = getMariaDBServerConfig(config)
-          const port = Number(getMariaDBPort(config))
+          const port = getMariaDBPort(config, true)
           const ddir = pathFixedToUnix(stripMariaDBValueQuotes(serverConfig?.datadir ?? dataDir))
+          const socket = getMariaDBSocket(config, true)
+          const maintenanceSocket = getMariaDBMaintenanceSocket(socket, version.version!)
 
           if (isWindows()) {
             const params = [
@@ -668,6 +683,10 @@ datadir=${dataDir}`
             }
 
             if (skipGrantTables) {
+              params.push(`--socket=${maintenanceSocket}`)
+              params.push(`--datadir=${ddir}`)
+              params.push('--bind-address=127.0.0.1')
+              params.push(`--port=${port}`)
               params.push('--skip-grant-tables')
             }
 
@@ -923,7 +942,10 @@ datadir=${dataDir}`
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
         const content = existsSync(m) ? await readFile(m, 'utf8') : ''
-        const socket = getMariaDBSocket(iniParse(content))
+        const socket = getMariaDBMaintenanceSocket(
+          getMariaDBSocket(iniParse(content), true),
+          version.version!
+        )
 
         try {
           await execPromise(
@@ -957,7 +979,7 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = Number(getMariaDBPort(config))
+      const port = getMariaDBPort(config, true)
       console.log('rootPasswordChange port: ', port)
       let connection: Connection | undefined
       try {
@@ -1079,7 +1101,7 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = Number(getMariaDBPort(config))
+      const port = getMariaDBPort(config, true)
       console.log('rootPasswordChange port: ', port)
       let connection: Connection | undefined
       try {
@@ -1175,7 +1197,7 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = Number(getMariaDBPort(config))
+      const port = getMariaDBPort(config, true)
       const password = version?.rootPassword ?? 'root'
       const error: any = []
 

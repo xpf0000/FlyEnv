@@ -48,6 +48,17 @@ const getMysqlSocket = (config: any) => {
   return socket ? `${socket}`.trim().replace(/^['"]|['"]$/g, '') : DEFAULT_MYSQL_SOCKET
 }
 
+const getMysqlPort = (config: any) => {
+  const port = Number(`${config?.mysqld?.port ?? ''}`.trim())
+  return Number.isFinite(port) && port > 0 ? port : DEFAULT_MYSQL_PORT
+}
+
+const getMysqlMaintenanceSocket = (socket: string, version: string) => {
+  return socket.endsWith('.sock')
+    ? `${socket.slice(0, -'.sock'.length)}.${version}.sock`
+    : `${socket}.${version}.sock`
+}
+
 class Mysql extends Base {
   constructor() {
     super()
@@ -88,7 +99,7 @@ class Mysql extends Base {
             try {
               const content = await readFile(m, 'utf8')
               const config = iniParse(content)
-              port = config?.mysqld?.port ?? DEFAULT_MYSQL_PORT
+              port = getMysqlPort(config)
             } catch {}
           }
           /**
@@ -210,7 +221,7 @@ class Mysql extends Base {
           try {
             const content = await readFile(m, 'utf8')
             const config = iniParse(content)
-            port = config?.mysqld?.port ?? DEFAULT_MYSQL_PORT
+            port = getMysqlPort(config)
           } catch {}
         }
 
@@ -303,8 +314,10 @@ datadir=${pathFixedToUnix(dataDir)}`
 
           const content = await readFile(m, 'utf8')
           const config = iniParse(content)
-          const port = config?.mysqld?.port ?? DEFAULT_MYSQL_PORT
+          const port = getMysqlPort(config)
           const ddir = config?.mysqld?.datadir ?? dataDir
+          const socket = getMysqlSocket(config)
+          const maintenanceSocket = getMysqlMaintenanceSocket(socket, version.version!)
 
           if (isWindows()) {
             const execArgs = [
@@ -360,6 +373,10 @@ datadir=${pathFixedToUnix(dataDir)}`
             }
 
             if (skipGrantTables) {
+              params.push(`--socket=${maintenanceSocket}`)
+              params.push(`--datadir=${ddir}`)
+              params.push('--bind-address=127.0.0.1')
+              params.push(`--port=${port}`)
               params.push('--skip-grant-tables')
             }
 
@@ -1006,7 +1023,13 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         }
       } else {
         const bin = join(dirname(version.bin), 'mysql')
-        const socket = getMysqlSocket(config)
+        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+        const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
+        const content = existsSync(m) ? await readFile(m, 'utf8') : ''
+        const socket = getMysqlMaintenanceSocket(
+          getMysqlSocket(iniParse(content)),
+          version.version!
+        )
 
         if (compareVersions(version.version!, '8.0.0') === 1) {
           try {
@@ -1065,7 +1088,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = config?.mysqld?.port ?? DEFAULT_MYSQL_PORT
+      const port = getMysqlPort(config)
       console.log('rootPasswordChange port: ', port)
       let connection: Connection | undefined
       try {
@@ -1187,7 +1210,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = config?.mysqld?.port ?? DEFAULT_MYSQL_PORT
+      const port = getMysqlPort(config)
       console.log('rootPasswordChange port: ', port)
       let connection: Connection | undefined
       try {
@@ -1310,7 +1333,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = config?.mysqld?.port ?? DEFAULT_MYSQL_PORT
+      const port = getMysqlPort(config)
       const password = version?.rootPassword ?? 'root'
       const error: any = []
 
