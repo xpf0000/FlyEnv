@@ -8,6 +8,7 @@ import { spawn } from 'node:child_process'
 import axios from 'axios'
 import { unpack } from '@fork/util/Zip'
 import { getAxiosProxy } from '@fork/util/Axios'
+import { hasMatchingCudaIdentity } from './release'
 import type { SoftInstalled } from '@shared/app'
 import type { RuntimeAsset, RuntimeVariant } from '../shared/types'
 
@@ -110,8 +111,9 @@ export const validateRuntimeVariant = (variant: RuntimeVariant): void => {
   if (!allowed(variant) || !variant.release || !Number.isFinite(variant.size) || variant.size < 0) throw new Error('Unsupported llama.cpp runtime variant')
   if (variant.backend === 'cuda' ? !/^\d+(?:\.\d+)?$/.test(variant.cudaVersion ?? '') : variant.cudaVersion !== undefined) throw new Error('Invalid CUDA runtime identity')
   if (validateAsset(variant) !== variant.release) throw new Error('Runtime asset tag does not match the selected release')
-  if (variant.companion && (variant.companion.assetName !== `cudart-${variant.assetName}` || validateAsset(variant.companion) !== variant.release)) {
-    throw new Error('CUDA companion must match the selected release archive')
+  if (variant.backend === 'cuda' && !variant.companion) throw new Error('CUDA runtime requires its matching companion archive')
+  if (variant.companion && (!hasMatchingCudaIdentity(variant.assetName, variant.companion.assetName, variant.release) || validateAsset(variant.companion) !== variant.release)) {
+    throw new Error('CUDA companion must match the selected runtime identity and release')
   }
 }
 
@@ -167,8 +169,9 @@ export const installRuntime = async (
       movedOld = true
     }
     await deps.rename(runtimeStage, finalDir)
-    if (movedOld) await deps.remove(backupDir)
-    await deps.remove(stageDir)
+    // Activation is complete; cleanup failures must not report an installed runtime as failed.
+    if (movedOld) await deps.remove(backupDir).catch(() => {})
+    await deps.remove(stageDir).catch(() => {})
     return {
       typeFlag: 'llama-cpp' as SoftInstalled['typeFlag'],
       version: variant.release,

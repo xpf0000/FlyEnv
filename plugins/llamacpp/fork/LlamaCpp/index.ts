@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import { readFile, readdir } from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { Base } from '@fork/module/Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -12,7 +12,8 @@ import type { HubModelFile } from '../../shared/types'
 import axios from 'axios'
 import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import { AppLog } from '@fork/Fn'
-import { assertInvocationSupported, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, variantFromInstalled, waitForServerHealth } from '../config'
+import { StopProcessListFetch } from '@shared/StopProcessList'
+import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, validateManagedModelPath, variantFromInstalled, waitForServerHealth } from '../config'
 import type { LaunchProfile, LocalModel } from '../../shared/types'
 
 export interface LlamaCppDeps {
@@ -41,6 +42,9 @@ export class LlamaCppModule extends Base {
   private deps: LlamaCppDeps
   private modelDownloads = new Map<string, AbortController>()
   private activeModelPath?: string
+  private activeRuntime?: SoftInstalled
+  private runtimeMutationInProgress = false
+  private serverStarting = false
 
   constructor(deps: LlamaCppDeps = productionDeps) {
     super()
@@ -99,14 +103,19 @@ export class LlamaCppModule extends Base {
 
   installRuntimeVariant(variant: RuntimeVariant) {
     return new ForkPromise<SoftInstalled>(async (resolve, reject, on) => {
-      on({ 'APP-On-Progress': { status: 'downloading', asset: variant.assetName } })
+      if (this.runtimeMutationInProgress || this.serverStarting) return reject(new Error('A llama.cpp runtime or server operation is already in progress'))
+      this.runtimeMutationInProgress = true
       try {
+        const targetPath = join(this.deps.getPaths().runtimeRoot, runtimeDirectoryName(variant))
+        await this.stopActiveRuntimeForPath(targetPath, on)
+        on({ 'APP-On-Progress': { status: 'downloading', asset: variant.assetName } })
         const installed = await this.deps.install(variant, this.deps.getPaths(), (asset, downloaded, total) => {
           on({ 'APP-On-Progress': { status: 'downloading', asset, downloaded, total } })
         })
         on({ 'APP-On-Progress': { status: 'installed', version: installed.version } })
         resolve(installed)
       } catch (error) { reject(error) }
+      finally { this.runtimeMutationInProgress = false }
     })
   }
 
@@ -117,10 +126,14 @@ export class LlamaCppModule extends Base {
 
   removeRuntimeVariant(path: string) {
     return new ForkPromise<boolean>(async (resolve, reject) => {
+      if (this.runtimeMutationInProgress || this.serverStarting) return reject(new Error('A llama.cpp runtime or server operation is already in progress'))
+      this.runtimeMutationInProgress = true
       try {
+        await this.stopActiveRuntimeForPath(path)
         await this.deps.remove(path, this.deps.getPaths().runtimeRoot)
         resolve(true)
       } catch (error) { reject(error) }
+      finally { this.runtimeMutationInProgress = false }
     })
   }
 
@@ -198,8 +211,16 @@ export class LlamaCppModule extends Base {
     const stopping = super._stopServer(version, ...args)
     return new ForkPromise(async (resolve, reject, on) => {
       try {
-        const result = await stopping.on(on)
+        const result = await stopping.on((data) => {
+          if ('APP-Service-Stop-Success' in data) return
+          on(data)
+        })
+        const stoppedPids = (result?.['APP-Service-Stop-PID'] ?? []).map((pid: string | number) => `${pid}`)
+        const runningProcesses = await StopProcessListFetch()
+        assertServerStopped(stoppedPids, runningProcesses.map((process) => `${process.PID}`), !!this.pidPath && existsSync(this.pidPath))
         this.activeModelPath = undefined
+        this.activeRuntime = undefined
+        on({ 'APP-Service-Stop-Success': true })
         resolve(result)
       } catch (error) { reject(error) }
     })
@@ -207,16 +228,24 @@ export class LlamaCppModule extends Base {
 
   _startServer(version: SoftInstalled, profile: LaunchProfile, model: LocalModel) {
     return new ForkPromise(async (resolve, reject, on) => {
+      if (this.runtimeMutationInProgress || this.serverStarting) return reject(new Error('A llama.cpp runtime operation is already in progress'))
+      this.serverStarting = true
       try {
         const validated = validateLaunchProfile(profile, variantFromInstalled(version))
         if (validated.apiKeyFile) await validateApiKeyFile(validated.apiKeyFile)
-        const invocation = buildServerInvocation(validated, version, model)
+        const modelRoot = join(global.Server.BaseDir!, 'llama-cpp', 'models')
+        const managedModelPath = await validateManagedModelPath(model.localPath, modelRoot)
+        const managedModel = { ...model, localPath: managedModelPath }
+        const managedProfile = { ...validated, modelPath: managedModelPath }
+        const invocation = buildServerInvocation(managedProfile, version, managedModel)
         assertInvocationSupported(await readServerHelp(invocation.bin), invocation.args)
         const serviceRoot = join(global.Server.BaseDir!, 'llama-cpp')
         const logDir = join(serviceRoot, 'logs')
+        this.pidPath = join(serviceRoot, 'llama-server.pid')
+        const apiKey = managedProfile.apiKeyFile ? (await readFile(managedProfile.apiKeyFile, 'utf8')).trim() : ''
         const startResult = await serviceStartSpawn({
           version,
-          pidPath: this.pidPath || join(serviceRoot, 'llama-server.pid'),
+          pidPath: this.pidPath,
           baseDir: logDir,
           bin: invocation.bin,
           execArgs: invocation.args,
@@ -225,25 +254,31 @@ export class LlamaCppModule extends Base {
           on,
           sensitive: true
         })
-        const apiKey = validated.apiKeyFile ? (await readFile(validated.apiKeyFile, 'utf8')).trim() : ''
         try {
-        await waitForServerHealth(async () => {
-            const response = await axios.get(`http://${formatUrlHost(validated.host)}:${validated.port}/health`, {
+          await waitForServerHealth(async () => {
+            const response = await axios.get(`http://${formatUrlHost(managedProfile.host)}:${managedProfile.port}/health`, {
               timeout: 1_500,
               headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined
-        })
-        this.activeModelPath = model.localPath
+            })
+            this.activeModelPath = managedModelPath
             return response.status >= 200 && response.status < 300
           }, async () => {
             await this._stopServer(version).on(on)
           })
+          this.activeRuntime = version
         } catch (error) {
-          on({ 'APP-On-Log': AppLog('error', 'llama-server did not become healthy and was stopped') })
+          on({ 'APP-On-Log': AppLog('error', `llama-server failed its health check; cleanup was attempted (${error instanceof Error ? error.message : `${error}`})`) })
           throw error
         }
-        resolve({ ...startResult, endpoint: `http://${formatUrlHost(validated.host)}:${validated.port}/v1`, model: model.repoId })
+        resolve({ ...startResult, endpoint: `http://${formatUrlHost(managedProfile.host)}:${managedProfile.port}/v1`, model: model.repoId })
       } catch (error) { reject(error) }
+      finally { this.serverStarting = false }
     })
+  }
+
+  private async stopActiveRuntimeForPath(path: string, on?: (data: Record<string, unknown>) => void) {
+    if (!this.activeRuntime || resolve(this.activeRuntime.path) !== resolve(path)) return
+    await this._stopServer(this.activeRuntime).on(on ?? (() => {}))
   }
 }
 

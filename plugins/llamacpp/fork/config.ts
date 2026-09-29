@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
-import { chmod, mkdir, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, realpath, stat, writeFile } from 'node:fs/promises'
 import { isIP } from 'node:net'
-import { join, resolve } from 'node:path'
+import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { spawn } from 'node:child_process'
 import type { SoftInstalled } from '@shared/app'
@@ -42,8 +42,23 @@ export const buildServerInvocation = (profile: ValidatedLaunchProfile, runtime: 
 
 export const assertInvocationSupported = (helpText: string, args: string[]): void => {
   const requiredFlags = Array.from(new Set(args.filter((arg) => arg.startsWith('--'))))
-  const missing = requiredFlags.filter((flag) => !helpText.includes(flag))
+  const missing = requiredFlags.filter((flag) => {
+    const escaped = flag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return !new RegExp(`(?:^|[\\s,])${escaped}(?=$|[\\s,=])`, 'm').test(helpText)
+  })
   if (missing.length) throw new Error(`This llama-server build does not support required options: ${missing.join(', ')}`)
+}
+
+export const validateManagedModelPath = async (modelPath: string, modelsRoot: string): Promise<string> => {
+  if (!modelPath || !modelPath.toLowerCase().endsWith('.gguf')) throw new Error('Select a local GGUF model file')
+  const root = await realpath(resolve(modelsRoot))
+  const model = await realpath(resolve(modelPath))
+  const info = await stat(model)
+  const rel = relative(root, model)
+  if (!info.isFile() || !isAbsolute(model) || rel === '' || rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
+    throw new Error('Model path must point to a GGUF file inside the managed models directory')
+  }
+  return model
 }
 
 export const readServerHelp = (bin: string, timeoutMs = 10_000): Promise<string> => new Promise((resolveHelp, reject) => {
@@ -97,8 +112,21 @@ export const waitForServerHealth = async (
     try { if (await check()) return } catch {}
     await delay(Math.min(intervalMs, Math.max(1, deadline - Date.now())))
   }
-  await cleanup().catch(() => {})
-  throw new Error('llama-server health check timed out; the process was stopped')
+  try {
+    await cleanup()
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : `${error}`
+    throw new Error(`llama-server health check timed out; cleanup failed: ${detail}`)
+  }
+  throw new Error('llama-server health check timed out; cleanup request completed')
+}
+
+export const assertServerStopped = (stoppedPids: string[], runningPids: string[], pidFileExists: boolean): void => {
+  const remaining = stoppedPids.filter((pid) => runningPids.includes(`${pid}`))
+  if (remaining.length || pidFileExists) {
+    const suffix = remaining.length ? `; process(es) still running: ${remaining.join(', ')}` : '; PID file remains'
+    throw new Error(`llama-server cleanup did not complete${suffix}`)
+  }
 }
 
 export const variantFromInstalled = (runtime: SoftInstalled): RuntimeVariant => {

@@ -222,3 +222,12 @@
 | `yarn plugin:build llamacpp` | Plugin archive builds; runtime/models remain external; draft catalog entry has valid SHA and empty URL |
 | `yarn plugin:runtime-smoke` | Generic Electron plugin install/route/Fork/lifecycle/update/uninstall/data-preservation pass; llama.cpp behavior is covered by local fake contract tests |
 | `git diff --check` | No whitespace errors |
+
+## Review follow-up: runtime safety and stop verification
+
+- **Runtime install/removal owner:** the Fork `LlamaCppModule` owns each mutation for its asynchronous request lifetime. It emits install progress, returns one terminal success/error, and rejects duplicate mutations or mutations racing server startup. If the target runtime is active, Fork calls the existing Base stop lifecycle and aborts the mutation on stop or verification failure.
+- **Service stop owner:** Fork calls Base shutdown, then verifies the returned PID set against a fresh process list and confirms the owned PID file is gone before clearing active runtime/model state or allowing replacement/deletion. Health-timeout cleanup preserves and reports shutdown failures without claiming the process stopped.
+- **CUDA release pairing:** Fork parses runtime and companion names by platform, architecture, backend, and CUDA version. It omits CUDA variants without a matching companion; installation independently validates the pair and release URL.
+- **Model launch boundary:** Fork resolves the model and managed model root through the filesystem, rejects non-files and symlink/path escapes, then launches using the canonical path.
+- **Renderer removal flow:** the Runtime page exposes removal and refreshes installed versions after its terminal Fork response. The renderer controller owns request state and prevents re-entry while a runtime operation is active.
+- **Lifecycle tests:** deterministic contracts cover no-tag CUDA companion pairing, omitted/mismatched companions, update/removal stop guards, failed stop propagation, PID/process stop verification, managed model path/symlink confinement, and health-timeout cleanup failure reporting.

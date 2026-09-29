@@ -26,7 +26,7 @@ const asAsset = (asset: GitHubRelease['assets'][number]): RuntimeAsset => ({
   sha256: sha256Of(asset.digest)
 })
 
-const parseAssetIdentity = (name: string, release: string): Omit<RuntimeVariant, keyof RuntimeAsset | 'companion'> | undefined => {
+export const parseAssetIdentity = (name: string, release: string): Omit<RuntimeVariant, keyof RuntimeAsset | 'companion'> | undefined => {
   const escapedTag = release.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const prefix = new RegExp(`^(?:cudart-)?llama-(?:${escapedTag}-)?bin-`)
   if (!prefix.test(name)) return undefined
@@ -85,8 +85,20 @@ const parseAssetIdentity = (name: string, release: string): Omit<RuntimeVariant,
   return { release, platform, arch, backend, cudaVersion }
 }
 
+export const hasMatchingCudaIdentity = (runtimeName: string, companionName: string, release: string): boolean => {
+  const runtime = parseAssetIdentity(runtimeName, release)
+  const companion = parseAssetIdentity(companionName, release)
+  return !!runtime && !!companion && runtime.backend === 'cuda' && companion.backend === 'cuda' &&
+    runtime.platform === companion.platform && runtime.arch === companion.arch && runtime.cudaVersion === companion.cudaVersion
+}
+
 export const parseReleaseAssets = (release: GitHubRelease, host: RuntimeHost): RuntimeVariant[] => {
-  const assets = new Map(release.assets.map((asset) => [asset.name, asset]))
+  const companions = new Map<string, GitHubRelease['assets'][number]>()
+  for (const asset of release.assets) {
+    if (!asset.name.startsWith('cudart-')) continue
+    const identity = parseAssetIdentity(asset.name, release.tag_name)
+    if (identity?.backend === 'cuda') companions.set([identity.platform, identity.arch, identity.backend, identity.cudaVersion].join('|'), asset)
+  }
   const variants: RuntimeVariant[] = []
   for (const asset of release.assets) {
     if (asset.name.startsWith('cudart-')) continue
@@ -94,9 +106,9 @@ export const parseReleaseAssets = (release: GitHubRelease, host: RuntimeHost): R
     if (!identity || identity.platform !== host.platform || identity.arch !== host.arch) continue
     const variant: RuntimeVariant = { ...identity, ...asAsset(asset) }
     if (identity.backend === 'cuda') {
-      const companionName = `cudart-${asset.name}`
-      const companion = assets.get(companionName)
-      if (companion) variant.companion = asAsset(companion)
+      const companion = companions.get([identity.platform, identity.arch, identity.backend, identity.cudaVersion].join('|'))
+      if (!companion) continue
+      variant.companion = asAsset(companion)
     }
     variants.push(variant)
   }

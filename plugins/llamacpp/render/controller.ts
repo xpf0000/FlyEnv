@@ -127,6 +127,25 @@ export class LlamaCppController {
     }
   }
 
+  async removeRuntime(path: string) {
+    if (this.runtimeOperation && !['success', 'failed', 'cancelled'].includes(this.runtimeOperation.status)) {
+      throw new Error('A runtime operation is already in progress')
+    }
+    const operation: OperationState = { id: path, status: 'starting' }
+    this.runtimeOperation = operation
+    this.error = ''
+    try {
+      operation.result = await this.transport.request('removeRuntimeVariant', [path], () => {})
+      operation.status = 'success'
+      return operation.result
+    } catch (error) {
+      operation.status = 'failed'
+      operation.error = error instanceof Error ? error.message : `${error}`
+      this.error = operation.error
+      throw error
+    }
+  }
+
   async downloadModel(file: HubModelFile, operationId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`) {
     if (this.modelOperation && !['success', 'failed', 'cancelled'].includes(this.modelOperation.status)) {
       throw new Error('A model download is already in progress')

@@ -7,7 +7,8 @@ import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInst
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
 import { deleteLocalModel, downloadHubModelFile, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModelFile } from '../plugins/llamacpp/shared/types'
-import { assertInvocationSupported, buildServerInvocation, createApiKeyFile, validateLaunchProfile, waitForServerHealth } from '../plugins/llamacpp/fork/config'
+import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, validateLaunchProfile, validateManagedModelPath, waitForServerHealth } from '../plugins/llamacpp/fork/config'
+import { LlamaCppModule } from '../plugins/llamacpp/fork/LlamaCpp'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
 import { createControllerTransport, LlamaCppController, LlamaCppManager, type ControllerTransport } from '../plugins/llamacpp/render/controller'
 
@@ -18,6 +19,7 @@ const testReleaseAssetParsing = () => {
     assets: [
       { name: 'llama-bin-win-cpu-x64.zip', size: 100, browser_download_url: 'https://example.test/cpu.zip' },
       { name: 'llama-bin-win-cuda-12.8-x64.zip', size: 200, browser_download_url: 'https://example.test/cuda.zip' },
+      { name: 'cudart-llama-bin-win-cuda-12.8-x64.zip', size: 20, browser_download_url: 'https://example.test/cudart.zip' },
       { name: 'llama-b4000-bin-win-vulkan-x64.zip', size: 300, browser_download_url: 'https://example.test/vulkan.zip' },
       { name: 'llama-b4000-bin-macos-arm64.tar.gz', size: 400, browser_download_url: 'https://example.test/mac.tar.gz' },
       { name: 'llama-b4000-bin-ubuntu-x64.tar.gz', size: 500, browser_download_url: 'https://example.test/linux.tar.gz' }
@@ -54,6 +56,22 @@ const testCudaCompanionPairing = () => {
   const variants = parseReleaseAssets(release, { platform: 'linux', arch: 'x64' })
   assert.equal(variants.length, 1)
   assert.equal(variants[0].companion?.assetName, 'cudart-llama-b4000-bin-ubuntu-cuda-12.4-x64.tar.gz')
+}
+
+const testCudaCompanionWithoutTagPairsAndMissingCompanionIsFiltered = () => {
+  const release: GitHubRelease = {
+    tag_name: 'b10293', prerelease: false,
+    assets: [
+      { name: 'llama-b10293-bin-win-cuda-12.4-x64.zip', size: 200, browser_download_url: 'https://example.test/cuda.zip' },
+      { name: 'cudart-llama-bin-win-cuda-12.4-x64.zip', size: 50, browser_download_url: 'https://example.test/cudart.zip' },
+      { name: 'llama-b10293-bin-win-cuda-11.8-x64.zip', size: 100, browser_download_url: 'https://example.test/cuda-old.zip' },
+      { name: 'cudart-llama-bin-win-cuda-12.8-x64.zip', size: 50, browser_download_url: 'https://example.test/cudart-other.zip' }
+    ]
+  }
+  const variants = parseReleaseAssets(release, { platform: 'windows', arch: 'x64' })
+  assert.equal(variants.length, 1)
+  assert.equal(variants[0].cudaVersion, '12.4')
+  assert.equal(variants[0].companion?.assetName, 'cudart-llama-bin-win-cuda-12.4-x64.zip')
 }
 
 const testUnknownAssetRejected = () => {
@@ -99,8 +117,8 @@ const fakeRuntime = (options: { digest?: string; executable?: boolean; archive?:
   const paths: RuntimePaths = { cacheDir: '/data/cache', runtimeRoot: '/data/runtimes', stagingRoot: '/data/staging' }
   const variant: RuntimeVariant = {
     release: 'b4000', platform: 'linux', arch: 'x64', backend: 'cuda', cudaVersion: '12.4',
-    assetName: 'llama.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/llama.tar.gz', size: 7,
-    sha256: 'a'.repeat(64), companion: { assetName: 'cudart-llama.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/cudart-llama.tar.gz', size: 2 }
+    assetName: 'llama-b4000-bin-ubuntu-cuda-12.4-x64.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/llama-b4000-bin-ubuntu-cuda-12.4-x64.tar.gz', size: 7,
+    sha256: 'a'.repeat(64), companion: { assetName: 'cudart-llama-b4000-bin-ubuntu-cuda-12.4-x64.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/cudart-llama-b4000-bin-ubuntu-cuda-12.4-x64.tar.gz', size: 2 }
   }
   return { deps, files, dirs, paths, variant }
 }
@@ -143,6 +161,19 @@ const testRuntimeDeleteRejectsOutsideRoot = async () => {
 
 const testRuntimeRejectsUntrustedAssetUrl = () => {
   assert.throws(() => validateRuntimeVariant({ ...launchVariant, assetUrl: 'http://127.0.0.1/payload.tar.gz' }), /official llama.cpp GitHub releases/)
+}
+
+const testRuntimeRejectsMissingOrMismatchedCudaCompanion = () => {
+  const variant = fakeRuntime().variant
+  assert.throws(() => validateRuntimeVariant({ ...variant, companion: undefined }), /requires its matching companion/)
+  assert.throws(() => validateRuntimeVariant({
+    ...variant,
+    companion: {
+      ...variant.companion!,
+      assetName: 'cudart-llama-b4000-bin-ubuntu-cuda-11.8-x64.tar.gz',
+      assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/cudart-llama-b4000-bin-ubuntu-cuda-11.8-x64.tar.gz'
+    }
+  }), /runtime identity/)
 }
 
 const fakeModelDeps = (config: { payload?: unknown; bytes?: string; digest?: string; failDownload?: boolean } = {}) => {
@@ -233,6 +264,7 @@ const testBuildServerInvocationUsesArgv = () => {
 
 const testLaunchRejectsUnsupportedRuntimeFlags = () => {
   assert.throws(() => assertInvocationSupported('--model --host --port', ['--model', 'x.gguf', '--host', '127.0.0.1', '--ctx-size', '4096']), /--ctx-size/)
+  assert.throws(() => assertInvocationSupported('--model-dir --host --port --ctx-size --threads --n-gpu-layers', ['--model', 'x.gguf']), /--model/)
 }
 
 const testLaunchProfileRejectsUnknownBackendDevice = () => {
@@ -261,6 +293,62 @@ const testHealthTimeoutCleansProcess = async () => {
   let cleaned = false
   await assert.rejects(waitForServerHealth(async () => false, async () => { cleaned = true }, { timeoutMs: 5, intervalMs: 1 }), /health check timed out/)
   assert.equal(cleaned, true)
+}
+
+const testHealthTimeoutReportsCleanupFailureWithoutClaimingStopped = async () => {
+  await assert.rejects(
+    waitForServerHealth(async () => false, async () => { throw new Error('stop failed') }, { timeoutMs: 2, intervalMs: 1 }),
+    /health check timed out; cleanup failed: stop failed/
+  )
+}
+
+const testStopVerificationRejectsRemainingProcessesAndPidFiles = () => {
+  assert.doesNotThrow(() => assertServerStopped(['1'], [], false))
+  assert.throws(() => assertServerStopped(['1'], ['1'], false), /still running/)
+  assert.throws(() => assertServerStopped([], [], true), /PID file remains/)
+}
+
+const testManagedModelPathConfinement = async () => {
+  const fs = await import('node:fs/promises')
+  const os = await import('node:os')
+  const path = await import('node:path')
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'llama-model-root-'))
+  const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'llama-model-outside-'))
+  try {
+    const model = path.join(root, 'weights.gguf')
+    const externalModel = path.join(outside, 'external.gguf')
+    await fs.writeFile(model, 'model')
+    await fs.writeFile(externalModel, 'external')
+    assert.equal(await validateManagedModelPath(model, root), await fs.realpath(model))
+    await assert.rejects(validateManagedModelPath(externalModel, root), /inside the managed models directory/)
+    await fs.symlink(externalModel, path.join(root, 'linked.gguf'))
+    await assert.rejects(validateManagedModelPath(path.join(root, 'linked.gguf'), root), /inside the managed models directory/)
+  } finally {
+    await fs.rm(root, { recursive: true, force: true })
+    await fs.rm(outside, { recursive: true, force: true })
+  }
+}
+
+const testActiveRuntimeMustStopBeforeMutation = async () => {
+  const target = '/data/runtimes/b4000-linux-x64-cuda-12.4'
+  const paths: RuntimePaths = { cacheDir: '/data/cache', runtimeRoot: '/data/runtimes', stagingRoot: '/data/staging' }
+  let installs = 0
+  const module = new LlamaCppModule({
+    getHost: () => ({ platform: 'linux', arch: 'x64' }), getPaths: () => paths,
+    fetchReleases: async () => [], install: async () => { installs++; return {} as any },
+    remove: async () => {}, read: async () => '', list: async () => [], exists: () => false
+  })
+  const active = { path: target } as any
+  ;(module as any).activeRuntime = active
+  let stopped = 0
+  ;(module as any)._stopServer = () => ({ on: async () => { stopped++; return true } })
+  await module.installRuntimeVariant(launchVariant)
+  assert.equal(stopped, 1)
+  assert.equal(installs, 1)
+
+  ;(module as any).activeRuntime = active
+  ;(module as any)._stopServer = () => ({ on: async () => { throw new Error('stop failed') } })
+  await assert.rejects(async () => { await module.removeRuntimeVariant(target) }, /stop failed/)
 }
 
 const deferred = <T>() => {
@@ -348,6 +436,7 @@ void (async () => {
   testReleaseAssetParsing()
   testUnsupportedVariantFiltered()
   testCudaCompanionPairing()
+  testCudaCompanionWithoutTagPairsAndMissingCompanionIsFiltered()
   testUnknownAssetRejected()
   await testRuntimeInstallDigestFailurePreservesActiveVersion()
   await testRuntimeInstallSizeFailurePreservesActiveVersion()
@@ -355,6 +444,7 @@ void (async () => {
   await testRuntimeInstallSuccessPairsCudaRuntime()
   await testRuntimeDeleteRejectsOutsideRoot()
   testRuntimeRejectsUntrustedAssetUrl()
+  testRuntimeRejectsMissingOrMismatchedCudaCompanion()
   await testHubSearchAnonymousPaginationAnd429()
   await testHubFileMetadata()
   await testModelDownloadDigestAndAtomicRename()
@@ -367,6 +457,10 @@ void (async () => {
   testNonLoopbackRequiresApiKeyFile()
   await testApiKeyNeverAppearsInArgsOrLogs()
   await testHealthTimeoutCleansProcess()
+  await testHealthTimeoutReportsCleanupFailureWithoutClaimingStopped()
+  testStopVerificationRejectsRemainingProcessesAndPidFiles()
+  await testManagedModelPathConfinement()
+  await testActiveRuntimeMustStopBeforeMutation()
   await testControllerRejectsDuplicateRuntimeInstall()
   await testControllerKeepsProgressUntilTerminalEvent()
   testControllerReentryRetainsOperation()

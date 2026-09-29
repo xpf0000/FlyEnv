@@ -12,7 +12,6 @@
       <div>
         <div class="font-semibold">{{ variant.release }} · {{ variant.backend }} <span v-if="variant.cudaVersion">CUDA {{ variant.cudaVersion }}</span></div>
         <div class="text-xs opacity-70">{{ variant.platform }} / {{ variant.arch }} · {{ variant.assetName }} · {{ formatBytes(variant.size) }}</div>
-        <div v-if="variant.backend === 'cuda' && !variant.companion" class="text-xs text-amber-600">{{ LlamaCppT('cudaNoCompanion') }}</div>
       </div>
       <el-button :disabled="busy" @click="install(variant)">{{ LlamaCppT('install') }}</el-button>
     </div>
@@ -22,8 +21,11 @@
       <p v-if="LlamaCppManager.runtimeOperation.error" class="text-red-500">{{ LlamaCppManager.runtimeOperation.error }}</p>
     </div>
     <h3 class="pt-3 font-semibold">{{ LlamaCppT('installedRuntimes') }}</h3>
-    <div v-for="runtime in installed" :key="runtime.bin" class="rounded border p-3">
-      {{ runtime.version }} · {{ runtime.flag }} · {{ runtime.path }}
+    <div v-for="runtime in installed" :key="runtime.bin" class="flex items-center justify-between gap-3 rounded border p-3">
+      <div>{{ runtime.version }} · {{ runtime.flag }} · {{ runtime.path }}</div>
+      <el-popconfirm :title="LlamaCppT('confirmRemoveRuntime')" @confirm="remove(runtime.path)">
+        <template #reference><el-button type="danger" plain :disabled="busy">{{ LlamaCppT('remove') }}</el-button></template>
+      </el-popconfirm>
     </div>
   </div>
 </template>
@@ -54,6 +56,13 @@
       await BrewStore().module('llama-cpp').fetchInstalled()
       LlamaCppManager.profile.backend = variant.backend
       await LlamaCppManager.saveProfile()
+    } catch (e) { error.value = `${e}` }
+  }
+  const remove = async (path: string) => {
+    error.value = ''
+    try {
+      await LlamaCppManager.removeRuntime(path)
+      await BrewStore().module('llama-cpp').fetchInstalled()
     } catch (e) { error.value = `${e}` }
   }
   const identity = (variant: RuntimeVariant) => [variant.release, variant.platform, variant.arch, variant.backend, variant.cudaVersion].join('|')
