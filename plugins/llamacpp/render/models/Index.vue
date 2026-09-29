@@ -1,20 +1,28 @@
 <template>
-  <div class="space-y-4 p-4">
-    <el-radio-group v-model="activeTab" size="small">
-      <el-radio-button value="library">{{ LlamaCppT('modelLibrary') }}</el-radio-button>
-      <el-radio-button value="local">{{ LlamaCppT('localModels') }}</el-radio-button>
-    </el-radio-group>
+  <el-card class="version-manager flex h-full flex-col" :body-style="{ flex: '1', minHeight: '0', overflowY: 'auto' }">
+    <template #header>
+      <div class="card-header">
+        <div class="left">
+          <span>{{ LlamaCppT('models') }}</span>
+          <el-radio-group v-model="activeTab" size="small" class="ml-6">
+            <el-radio-button value="library">{{ LlamaCppT('modelLibrary') }}</el-radio-button>
+            <el-radio-button value="local">{{ LlamaCppT('localModels') }}</el-radio-button>
+          </el-radio-group>
+        </div>
+        <el-button class="button" link :disabled="searching" @click="refresh">{{ LlamaCppT('refresh') }}</el-button>
+      </div>
+    </template>
 
     <template v-if="activeTab === 'library'">
-      <div class="flex gap-2">
+      <div class="mb-3 flex gap-2">
         <el-input v-model="query" clearable :placeholder="LlamaCppT('searchModels')" @keyup.enter="search(0)" />
         <el-button :loading="searching" @click="search(0)">{{ LlamaCppT('search') }}</el-button>
       </div>
-      <p v-if="!query.trim()" class="text-xs opacity-70">{{ LlamaCppT('popularModelsHint') }}</p>
-      <p v-if="error" class="text-red-500">{{ error }}</p>
+      <p v-if="!query.trim()" class="mb-3 text-xs opacity-70">{{ LlamaCppT('popularModelsHint') }}</p>
+      <p v-if="error" class="mb-3 text-red-500">{{ error }}</p>
 
       <div v-if="searching" class="py-5 text-center opacity-70">{{ LlamaCppT('loadingModels') }}</div>
-      <div v-for="model in results" :key="model.id" class="rounded border p-3">
+      <el-card v-for="model in results" :key="model.id" class="mb-3 last:mb-0" shadow="never">
         <div class="flex items-center justify-between gap-3">
           <div class="min-w-0">
             <div class="truncate font-semibold">{{ model.id }}</div>
@@ -35,14 +43,12 @@
               <div class="truncate text-sm">{{ file.path }}</div>
               <div class="text-xs opacity-70">{{ formatBytes(file.size) }}</div>
             </div>
-            <el-button
-              size="small"
-              :disabled="isDownloaded(file) || modelBusy"
-              @click="download(file)"
-            >{{ isDownloaded(file) ? LlamaCppT('downloaded') : LlamaCppT('download') }}</el-button>
+            <el-button size="small" :disabled="isDownloaded(file) || modelBusy" @click="download(file)">
+              {{ isDownloaded(file) ? LlamaCppT('downloaded') : LlamaCppT('download') }}
+            </el-button>
           </div>
         </div>
-      </div>
+      </el-card>
 
       <div v-if="results.length" class="flex items-center justify-center gap-3">
         <el-button :disabled="page === 0 || searching" @click="search(page - 1)">{{ LlamaCppT('previous') }}</el-button>
@@ -53,27 +59,29 @@
     </template>
 
     <template v-else>
-      <p v-if="error" class="text-red-500">{{ error }}</p>
+      <p v-if="error" class="mb-3 text-red-500">{{ error }}</p>
       <div v-if="!LlamaCppManager.localModels.length" class="py-5 text-center opacity-70">{{ LlamaCppT('noLocalModels') }}</div>
-      <div v-for="model in LlamaCppManager.localModels" :key="model.localPath" class="flex items-center justify-between gap-3 rounded border p-3">
-        <div class="min-w-0">
-          <div class="truncate">{{ model.path }}</div>
-          <div class="truncate text-xs opacity-70">{{ model.repoId }} · {{ formatBytes(model.size) }}</div>
+      <el-card v-for="model in LlamaCppManager.localModels" :key="model.localPath" class="mb-3 last:mb-0" shadow="never">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="truncate">{{ model.path }}</div>
+            <div class="truncate text-xs opacity-70">{{ model.repoId }} · {{ formatBytes(model.size) }}</div>
+          </div>
+          <div class="flex shrink-0 gap-2">
+            <el-button size="small" @click="select(model)">{{ model.localPath === LlamaCppManager.selectedModel?.localPath ? LlamaCppT('selected') : LlamaCppT('select') }}</el-button>
+            <el-button size="small" type="danger" @click="removeModel(model)">{{ LlamaCppT('delete') }}</el-button>
+          </div>
         </div>
-        <div class="flex shrink-0 gap-2">
-          <el-button size="small" @click="select(model)">{{ model.localPath === LlamaCppManager.selectedModel?.localPath ? LlamaCppT('selected') : LlamaCppT('select') }}</el-button>
-          <el-button size="small" type="danger" @click="removeModel(model)">{{ LlamaCppT('delete') }}</el-button>
-        </div>
-      </div>
+      </el-card>
     </template>
 
-    <div v-if="LlamaCppManager.modelOperation" class="rounded border p-3">
+    <el-card v-if="LlamaCppManager.modelOperation" class="mt-3" shadow="never">
       <div>{{ LlamaCppT('downloadStatus') }}: {{ LlamaCppManager.modelOperation.status }}</div>
       <div v-if="LlamaCppManager.modelOperation.progress">{{ formatBytes(LlamaCppManager.modelOperation.progress.downloaded ?? 0) }} / {{ formatBytes(LlamaCppManager.modelOperation.progress.total ?? 0) }}</div>
       <p v-if="LlamaCppManager.modelOperation.error" class="text-red-500">{{ LlamaCppManager.modelOperation.error }}</p>
       <el-button v-if="['starting', 'running'].includes(LlamaCppManager.modelOperation.status)" size="small" @click="cancel">{{ LlamaCppT('cancel') }}</el-button>
-    </div>
-  </div>
+    </el-card>
+  </el-card>
 </template>
 
 <script lang="ts" setup>
@@ -99,6 +107,7 @@
     await search(0)
   })
 
+  const refresh = () => activeTab.value === 'library' ? search(0) : LlamaCppManager.init()
   const search = async (targetPage = page.value) => {
     if (searching.value) return
     searching.value = true

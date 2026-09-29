@@ -6,15 +6,16 @@
     <div class="main-block">
       <section v-if="tab === 0" class="p-4">
         <Service type-flag="llama-cpp" title="llama.cpp" />
-        <div class="mt-4 rounded border p-3">
+        <el-card class="version-manager mt-4">
           <div>{{ LlamaCppT('selectedModel') }}: {{ LlamaCppManager.selectedModel?.repoId ?? LlamaCppT('none') }}</div>
           <div class="mt-1">{{ LlamaCppT('endpoint') }}: {{ endpoint }}</div>
           <el-button class="mt-2" size="small" @click="copyEndpoint">{{ LlamaCppT('copyEndpoint') }}</el-button>
-        </div>
+        </el-card>
       </section>
       <ModelsView v-else-if="tab === 1" />
       <RuntimeView v-else-if="tab === 2" />
-      <SettingsView v-else />
+      <SettingsView v-else-if="tab === 3" />
+      <LogsView v-else />
     </div>
   </div>
 </template>
@@ -28,10 +29,11 @@
   import ModelsView from './models/Index.vue'
   import RuntimeView from './runtime/Index.vue'
   import SettingsView from './settings/Index.vue'
+  import LogsView from './logs/Index.vue'
   import { computed, onMounted } from 'vue'
 
   const { tab } = AppModuleSetup('llama-cpp')
-  const tabs = [LlamaCppT('service'), LlamaCppT('models'), LlamaCppT('runtime'), LlamaCppT('settings')]
+  const tabs = [LlamaCppT('service'), LlamaCppT('models'), LlamaCppT('versionManager'), LlamaCppT('settings'), LlamaCppT('logs')]
   onMounted(() => LlamaCppManager.init())
   const endpoint = computed(() => `http://${LlamaCppManager.profile.host.includes(':') ? `[${LlamaCppManager.profile.host}]` : LlamaCppManager.profile.host}:${LlamaCppManager.profile.port}/v1`)
   const copyEndpoint = () => navigator.clipboard.writeText(endpoint.value)
