@@ -7,3 +7,19 @@ export interface RuntimeIdentity {
   backend: RuntimeBackend
   cudaVersion?: string
 }
+
+export interface RuntimeHost {
+  platform: RuntimeIdentity['platform']
+  arch: RuntimeIdentity['arch']
+}
+
+export interface RuntimeAsset {
+  assetName: string
+  assetUrl: string
+  size: number
+  sha256?: string
+}
+
+export interface RuntimeVariant extends RuntimeIdentity, RuntimeAsset {
+  companion?: RuntimeAsset
+}
