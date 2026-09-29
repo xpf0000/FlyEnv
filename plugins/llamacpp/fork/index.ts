@@ -1,3 +1,3 @@
-import LlamaCpp from './LlamaCpp'
+import { createLlamaCppModule } from './LlamaCpp'
 
-export default LlamaCpp
+export default createLlamaCppModule()

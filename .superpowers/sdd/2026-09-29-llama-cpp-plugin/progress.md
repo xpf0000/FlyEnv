@@ -24,3 +24,6 @@ Task 1: complete (commits 64282d8..176f7ad, tests: yarn plugin:test llamacpp →
 
 Task 2: task-start — add deterministic official-release asset fixtures first, then implement only recognized runtime archive patterns and CUDA companion matching. Current `RuntimeBackend`/`RuntimeIdentity` scaffold is the shared contract; no host code changes expected.
 Task 2: complete (commit pending; `yarn test:llamacpp-plugin`, `yarn plugin:test llamacpp`, and `yarn plugin:build llamacpp` passed. Red run failed as expected on missing parser; a later failing assertion exposed Linux ARM64 CUDA escaping the planned support matrix and was fixed.)
+
+Task 3: task-start — runtime management will use a plugin-local installer with injected filesystem/download/extract/probe operations. The install transaction must never replace an existing target until the staged archive and any exact CUDA companion have extracted and passed executable probing; removal resolves strictly beneath the plugin runtime root.
+Task 3: complete (commit pending; runtime contract tests cover SHA mismatch rollback, missing executable cleanup, matching CUDA companion extraction, and deletion containment. `yarn test:llamacpp-plugin`, `yarn plugin:test llamacpp`, `yarn plugin:build llamacpp`, and `git diff --check` passed.)
