@@ -105,7 +105,7 @@ export const getHubModelFiles = async (repoId: string, revision = 'main', deps: 
   const payload = await deps.requestJson(url)
   if (!Array.isArray(payload)) throw new Error('Unexpected Hugging Face file listing response')
   return (payload as HubTreeItem[])
-    .filter((item) => item.type === 'file' && item.path.toLowerCase().endsWith('.gguf'))
+    .filter((item) => item.type === 'file' && item.path.toLowerCase().endsWith('.gguf') && !/-\d{5}-of-\d{5}\.gguf$/i.test(item.path) && !/mmproj/i.test(item.path))
     .map((item) => ({
       repoId,
       revision,
@@ -124,7 +124,9 @@ export const downloadHubModelFile = async (
   onProgress: (event: { downloaded: number; total?: number }) => void,
   deps: ModelDownloadDeps = productionDeps
 ): Promise<LocalModel> => {
-  if (!validRepoId(file.repoId) || !file.path.toLowerCase().endsWith('.gguf')) throw new Error('Only public single-file GGUF downloads are supported')
+  if (!validRepoId(file.repoId) || !/^[\w.-]+$/.test(file.revision) || !file.path.toLowerCase().endsWith('.gguf') || /-\d{5}-of-\d{5}\.gguf$/i.test(file.path) || /mmproj/i.test(file.path) || file.path.split('/').some((part) => !part || part === '.' || part === '..' || part.includes('\\') || part.includes('\0'))) {
+    throw new Error('Only public single-file GGUF downloads are supported')
+  }
   const safeOperationId = operationId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64) || 'download'
   const fileName = basename(file.path)
   if (!fileName || fileName === '.' || fileName === '..') throw new Error('Invalid model filename')
@@ -134,7 +136,8 @@ export const downloadHubModelFile = async (
   if (await deps.exists(finalPath)) throw new Error(`Model already exists: ${fileName}`)
   let finalized = false
   try {
-    await deps.download(file.downloadUrl, partialPath, signal, (downloaded, total) => onProgress({ downloaded, total: total ?? file.size }))
+    const resolverUrl = `https://huggingface.co/${encodeRepoPath(file.repoId)}/resolve/${encodeURIComponent(file.revision)}/${encodeRepoPath(file.path)}?download=true`
+    await deps.download(resolverUrl, partialPath, signal, (downloaded, total) => onProgress({ downloaded, total: total ?? file.size }))
     const actualSize = await deps.size(partialPath)
     if (file.size > 0 && actualSize !== file.size) throw new Error(`Model size verification failed: expected ${file.size}, received ${actualSize}`)
     if (file.sha256 && (await deps.digest(partialPath)).toLowerCase() !== file.sha256.toLowerCase()) throw new Error('Model SHA-256 verification failed')

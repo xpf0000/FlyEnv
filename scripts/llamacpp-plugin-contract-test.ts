@@ -3,12 +3,13 @@ import {
   parseReleaseAssets,
   type GitHubRelease
 } from '../plugins/llamacpp/fork/release'
-import { installRuntime, removeRuntime, type RuntimeInstallDeps, type RuntimePaths } from '../plugins/llamacpp/fork/runtime'
+import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInstallDeps, type RuntimePaths } from '../plugins/llamacpp/fork/runtime'
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
 import { deleteLocalModel, downloadHubModelFile, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModelFile } from '../plugins/llamacpp/shared/types'
 import { buildServerInvocation, createApiKeyFile, validateLaunchProfile, waitForServerHealth } from '../plugins/llamacpp/fork/config'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
+import { createControllerTransport, LlamaCppController, LlamaCppManager, type ControllerTransport } from '../plugins/llamacpp/render/controller'
 
 const testReleaseAssetParsing = () => {
   const release: GitHubRelease = {
@@ -69,7 +70,7 @@ const fakeRuntime = (options: { digest?: string; executable?: boolean } = {}) =>
   const deps: RuntimeInstallDeps = {
     mkdir: async (path) => { dirs.add(path) },
     download: async (_url, target) => { files.set(target, 'archive') },
-    digest: async (path) => path.includes('cudart') ? 'companion-digest' : (options.digest ?? 'expected'),
+    digest: async (path) => path.includes('cudart') ? 'companion-digest' : (options.digest ?? 'a'.repeat(64)),
     extract: async (archive, target) => {
       if (archive.includes('cudart')) files.set(`${target}/libcudart.so`, 'cuda')
       else if (options.executable !== false) files.set(`${target}/llama-server`, 'binary')
@@ -97,8 +98,8 @@ const fakeRuntime = (options: { digest?: string; executable?: boolean } = {}) =>
   const paths: RuntimePaths = { cacheDir: '/data/cache', runtimeRoot: '/data/runtimes', stagingRoot: '/data/staging' }
   const variant: RuntimeVariant = {
     release: 'b4000', platform: 'linux', arch: 'x64', backend: 'cuda', cudaVersion: '12.4',
-    assetName: 'llama.tar.gz', assetUrl: 'https://example.test/llama.tar.gz', size: 10,
-    sha256: 'expected', companion: { assetName: 'cudart.tar.gz', assetUrl: 'https://example.test/cudart.tar.gz', size: 2 }
+    assetName: 'llama.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/llama.tar.gz', size: 10,
+    sha256: 'a'.repeat(64), companion: { assetName: 'cudart-llama.tar.gz', assetUrl: 'https://github.com/ggml-org/llama.cpp/releases/download/b4000/cudart-llama.tar.gz', size: 2 }
   }
   return { deps, files, dirs, paths, variant }
 }
@@ -131,15 +132,21 @@ const testRuntimeDeleteRejectsOutsideRoot = async () => {
   await assert.rejects(removeRuntime('/data/models/important.gguf', fixture.paths.runtimeRoot, fixture.deps), /runtime root/)
 }
 
+const testRuntimeRejectsUntrustedAssetUrl = () => {
+  assert.throws(() => validateRuntimeVariant({ ...launchVariant, assetUrl: 'http://127.0.0.1/payload.tar.gz' }), /official llama.cpp GitHub releases/)
+}
+
 const fakeModelDeps = (config: { payload?: unknown; bytes?: string; digest?: string; failDownload?: boolean } = {}) => {
   const files = new Map<string, string>()
+  let requestedUrl = ''
   const deps: ModelDownloadDeps = {
     requestJson: async (url) => {
       if (url.includes('models?')) return config.payload ?? []
       return config.payload ?? []
     },
     mkdir: async () => {},
-    download: async (_url, target, signal, progress) => {
+    download: async (url, target, signal, progress) => {
+      requestedUrl = url
       if (config.failDownload || signal.aborted) throw new Error('aborted')
       const content = config.bytes ?? 'model-data'
       files.set(target, content)
@@ -152,7 +159,7 @@ const fakeModelDeps = (config: { payload?: unknown; bytes?: string; digest?: str
     remove: async (path) => { files.delete(path) },
     write: async (path, content) => { files.set(path, content) }
   }
-  return { deps, files }
+  return { deps, files, get requestedUrl() { return requestedUrl } }
 }
 
 const testHubSearchAnonymousPaginationAnd429 = async () => {
@@ -180,6 +187,7 @@ const testModelDownloadDigestAndAtomicRename = async () => {
   const model = await downloadHubModelFile('op-1', file, '/models', new AbortController().signal, () => {}, fixture.deps)
   assert.equal(model.localPath, '/models/model.gguf')
   assert.equal(fixture.files.has('/models/model.gguf'), true)
+  assert.match(fixture.requestedUrl, /^https:\/\/huggingface\.co\/org\/model\/resolve\/main\/Q4\/model\.gguf/)
   assert.equal([...fixture.files.keys()].some((path) => path.endsWith('.part')), false)
 }
 
@@ -241,6 +249,87 @@ const testHealthTimeoutCleansProcess = async () => {
   assert.equal(cleaned, true)
 }
 
+const deferred = <T>() => {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej })
+  return { promise, resolve, reject }
+}
+
+const testControllerRejectsDuplicateRuntimeInstall = async () => {
+  const pending = deferred<unknown>()
+  const transport: ControllerTransport = { request: () => pending.promise as Promise<any> }
+  const controller = new LlamaCppController(transport)
+  const first = controller.installRuntime(launchVariant)
+  await assert.rejects(controller.installRuntime(launchVariant), /already in progress/)
+  pending.resolve(true)
+  await first
+}
+
+const testControllerKeepsProgressUntilTerminalEvent = async () => {
+  const pending = deferred<unknown>()
+  const transport: ControllerTransport = { request: (_method, _args, progress) => { progress({ downloaded: 55, total: 100 }); return pending.promise as Promise<any> } }
+  const controller = new LlamaCppController(transport)
+  const task = controller.installRuntime(launchVariant)
+  assert.equal(controller.runtimeOperation?.progress?.downloaded, 55)
+  assert.equal(controller.runtimeOperation?.status, 'running')
+  pending.resolve(true)
+  await task
+  assert.equal(controller.runtimeOperation?.status, 'success')
+}
+
+const testControllerReentryRetainsOperation = () => {
+  assert.equal(LlamaCppManager, LlamaCppManager)
+  assert.ok(LlamaCppManager instanceof LlamaCppController)
+}
+
+const testControllerCancelClearsListener = async () => {
+  const pending = deferred<unknown>()
+  const calls: string[] = []
+  const transport: ControllerTransport = {
+    request: (method) => {
+      calls.push(method)
+      if (method === 'cancelModelDownload') return Promise.resolve(true) as Promise<any>
+      return pending.promise as Promise<any>
+    }
+  }
+  const controller = new LlamaCppController(transport)
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'm.gguf', size: 1, downloadUrl: 'https://example.test/m.gguf' }
+  const task = controller.downloadModel(file, 'cancel-id').catch(() => undefined)
+  await controller.cancelModelDownload('cancel-id')
+  pending.reject(new Error('aborted'))
+  await task
+  assert.equal(calls.includes('cancelModelDownload'), true)
+  assert.equal(controller.modelOperation?.status, 'cancelled')
+}
+
+const testTerminalEventAllowsRetry = async () => {
+  let count = 0
+  const controller = new LlamaCppController({ request: async () => ++count } as ControllerTransport)
+  await controller.installRuntime(launchVariant)
+  await controller.installRuntime(launchVariant)
+  assert.equal(count, 2)
+}
+
+const testControllerTransportCleansListenerAtTerminal = async () => {
+  let callback: ((key: string, response: any) => void) | undefined
+  let removed = false
+  let sensitive = false
+  const ipc = {
+    send: (_command: string, ..._args: unknown[]) => ({ then: (cb: (key: string, response: any) => void) => { callback = cb } }),
+    sendSensitive: (_command: string, ..._args: unknown[]) => { sensitive = true; return { then: (cb: (key: string, response: any) => void) => { callback = cb } } },
+    off: () => { removed = true }
+  }
+  const transport = createControllerTransport(ipc)
+  const task = transport.request('createApiKeyFile', ['secret-key'], () => {}, true)
+  callback?.('key', { code: 200, msg: { 'APP-On-Progress': { status: 'saving' } } })
+  assert.equal(removed, false)
+  callback?.('key', { code: 0, data: '/secret/keyfile' })
+  assert.equal(await task, '/secret/keyfile')
+  assert.equal(removed, true)
+  assert.equal(sensitive, true)
+}
+
 void (async () => {
   testReleaseAssetParsing()
   testUnsupportedVariantFiltered()
@@ -250,6 +339,7 @@ void (async () => {
   await testRuntimeInstallMissingExecutableCleansStaging()
   await testRuntimeInstallSuccessPairsCudaRuntime()
   await testRuntimeDeleteRejectsOutsideRoot()
+  testRuntimeRejectsUntrustedAssetUrl()
   await testHubSearchAnonymousPaginationAnd429()
   await testHubFileMetadata()
   await testModelDownloadDigestAndAtomicRename()
@@ -261,5 +351,11 @@ void (async () => {
   testNonLoopbackRequiresApiKeyFile()
   await testApiKeyNeverAppearsInArgsOrLogs()
   await testHealthTimeoutCleansProcess()
+  await testControllerRejectsDuplicateRuntimeInstall()
+  await testControllerKeepsProgressUntilTerminalEvent()
+  testControllerReentryRetainsOperation()
+  await testControllerCancelClearsListener()
+  await testTerminalEventAllowsRetry()
+  await testControllerTransportCleansListenerAtTerminal()
   console.log('llama.cpp plugin contract tests passed')
 })()

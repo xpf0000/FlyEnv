@@ -49,7 +49,7 @@ export const validateApiKeyFile = async (path: string, platform: NodeJS.Platform
 
 export const createApiKeyFile = async (key: string, secretRoot: string, platform: NodeJS.Platform = process.platform): Promise<string> => {
   if (platform === 'win32') throw new Error('Private API key files are not supported on Windows yet; non-loopback binding is disabled')
-  if (!key || key.length < 16 || key.length > 512 || /[\r\n\0]/.test(key)) throw new Error('API key must contain 16–512 printable characters')
+  if (!key || key.length < 16 || key.length > 512 || /[\x00-\x1f\x7f]/.test(key)) throw new Error('API key must contain 16–512 printable characters')
   const root = resolve(secretRoot)
   await mkdir(root, { recursive: true, mode: 0o700 })
   await chmod(root, 0o700)

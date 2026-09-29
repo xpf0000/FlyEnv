@@ -23,6 +23,7 @@
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { BrewStore } from '@/store/brew'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+  import { LlamaCppManager } from './controller'
 
   const typeFlag = 'llama-cpp'
   const {
@@ -38,7 +39,15 @@
   } = AsideSetup(typeFlag)
 
   const module = BrewStore().module(typeFlag)
-  if (!module.startExtParam) module.startExtParam = (_version: ModuleInstalledItem) => []
+  module.startExtParam = async (version: ModuleInstalledItem) => {
+    await LlamaCppManager.init()
+    const model = LlamaCppManager.selectedModel
+    if (!model) throw new Error('Select a local GGUF model before starting llama.cpp')
+    LlamaCppManager.profile.modelPath = model.localPath
+    LlamaCppManager.profile.backend = (version.flag ?? 'cpu') as typeof LlamaCppManager.profile.backend
+    await LlamaCppManager.saveProfile()
+    return [LlamaCppManager.profile, model]
+  }
   if (!module.stopExtParam) module.stopExtParam = (_version: ModuleInstalledItem) => []
 
   AppServiceModule[typeFlag] = {

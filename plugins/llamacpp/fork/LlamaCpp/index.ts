@@ -10,18 +10,16 @@ import type { RuntimeHost, RuntimeVariant } from '../../shared/types'
 import { deleteLocalModel as deleteLocalModelImpl, downloadHubModelFile as downloadHubModelFileImpl, getHubModelFiles as getHubModelFilesImpl, searchHubModels as searchHubModelsImpl } from '../models'
 import type { HubModelFile } from '../../shared/types'
 import axios from 'axios'
-import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
 import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import { AppLog } from '@fork/Fn'
-import { buildServerInvocation, validateApiKeyFile, validateLaunchProfile, variantFromInstalled, waitForServerHealth } from '../config'
+import { buildServerInvocation, createApiKeyFile, validateApiKeyFile, validateLaunchProfile, variantFromInstalled, waitForServerHealth } from '../config'
 import type { LaunchProfile, LocalModel } from '../../shared/types'
 
 export interface LlamaCppDeps {
   getHost(): RuntimeHost | undefined
   getPaths(): RuntimePaths
   fetchReleases(channel: 'stable' | 'prerelease', host: RuntimeHost): Promise<RuntimeVariant[]>
-  install(variant: RuntimeVariant, paths: RuntimePaths): Promise<SoftInstalled>
+  install(variant: RuntimeVariant, paths: RuntimePaths, progress?: (assetName: string, downloaded: number, total?: number) => void): Promise<SoftInstalled>
   remove(path: string, root: string): Promise<void>
   read(path: string): Promise<string>
   list(path: string): Promise<string[]>
@@ -32,7 +30,7 @@ const productionDeps: LlamaCppDeps = {
   getHost: () => normalizeRuntimeHost(),
   getPaths: () => runtimePathsForHost(global.Server.BaseDir!),
   fetchReleases: fetchRuntimeReleases,
-  install: (variant, paths) => installRuntime(variant, paths),
+  install: (variant, paths, progress) => installRuntime(variant, paths, undefined, progress),
   remove: (path, root) => removeRuntime(path, root),
   read: (path) => readFile(path, 'utf8'),
   list: (path) => readdir(path),
@@ -102,7 +100,9 @@ export class LlamaCppModule extends Base {
     return new ForkPromise<SoftInstalled>(async (resolve, reject, on) => {
       on({ 'APP-On-Progress': { status: 'downloading', asset: variant.assetName } })
       try {
-        const installed = await this.deps.install(variant, this.deps.getPaths())
+        const installed = await this.deps.install(variant, this.deps.getPaths(), (asset, downloaded, total) => {
+          on({ 'APP-On-Progress': { status: 'downloading', asset, downloaded, total } })
+        })
         on({ 'APP-On-Progress': { status: 'installed', version: installed.version } })
         resolve(installed)
       } catch (error) { reject(error) }
@@ -172,6 +172,21 @@ export class LlamaCppModule extends Base {
         resolve(true)
       } catch (error) { reject(error) }
     })
+  }
+
+  createApiKeyFile(key: string) {
+    return new ForkPromise<string>(async (resolve, reject) => {
+      try { resolve(await createApiKeyFile(key, join(global.Server.BaseDir!, 'llama-cpp', 'secrets'))) } catch (error) { reject(error) }
+    })
+  }
+
+  getLogFiles(version?: SoftInstalled) {
+    const base = join(global.Server.BaseDir!, 'llama-cpp', 'logs')
+    const id = `${this.type}-${version?.version ?? 'server'}`.split(' ').join('')
+    return [
+      { name: 'stdout', path: join(base, `${id}-start-out.log`) },
+      { name: 'stderr', path: join(base, `${id}-start-error.log`) }
+    ]
   }
 
   protected _stopSearchName() {

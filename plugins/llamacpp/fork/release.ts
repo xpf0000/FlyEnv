@@ -1,4 +1,6 @@
 import type { RuntimeAsset, RuntimeBackend, RuntimeHost, RuntimeVariant } from '../shared/types'
+import axios from 'axios'
+import { getAxiosProxy } from '@fork/util/Axios'
 
 export interface GitHubRelease {
   tag_name: string
@@ -111,11 +113,12 @@ export const normalizeRuntimeHost = (platform = process.platform, arch = process
 }
 
 export const fetchRuntimeReleases = async (channel: 'stable' | 'prerelease', host: RuntimeHost): Promise<RuntimeVariant[]> => {
-  const response = await fetch('https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=30', {
-    headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }
+  const response = await axios.get<GitHubRelease[]>('https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=30', {
+    headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+    timeout: 30_000,
+    proxy: getAxiosProxy()
   })
-  if (!response.ok) throw new Error(`GitHub Releases request failed (${response.status})`)
-  const releases = await response.json() as GitHubRelease[]
+  const releases = response.data
   return releases
     .filter((release) => channel === 'prerelease' || !release.prerelease)
     .flatMap((release) => parseReleaseAssets(release, host))
