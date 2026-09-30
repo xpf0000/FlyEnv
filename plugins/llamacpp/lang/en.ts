@@ -14,8 +14,8 @@ export default {
   selected: 'Selected', select: 'Select', delete: 'Delete', confirmDeleteModel: 'Delete this local model file?',
   stable: 'Stable', prerelease: 'Prerelease', refresh: 'Refresh', loadingVersions: 'Loading available versions…', noRuntimeVariants: 'No runtime versions found for this platform.',
   runtimeStatus: 'Runtime installation', installedRuntimes: 'Installed runtimes', noInstalledRuntimes: 'No installed runtimes.', install: 'Install', remove: 'Remove', confirmRemoveRuntime: 'Remove this runtime? A running server will be stopped first.',
-  host: 'Bind host', port: 'Port', contextSize: 'Context size', threads: 'CPU threads', gpuLayers: 'GPU layers', gpuDevice: 'GPU device index',
-  apiKeyFile: 'API key file', newApiKey: 'New API key', apiKey: 'New API key (16+ characters)', createKeyFile: 'Create private key file',
+  host: 'Bind host', port: 'Port', contextSize: 'Context size', contextSizeHint: 'Default 8192 tokens. Larger contexts use more RAM or VRAM.', threads: 'CPU threads', gpuLayers: 'GPU layers', gpuDevice: 'GPU device index',
+  apiKeyFile: 'API key file', newApiKey: 'New API key', apiKey: 'New API key (16+ characters)', generateKey: 'Generate', copyKey: 'Copy', createKeyFile: 'Create private key file',
   nonLoopbackNote: 'Non-loopback addresses require an API key. Windows remote binding is disabled until private file permissions can be guaranteed.',
   save: 'Save settings', previous: 'Previous', next: 'Next'
 }

@@ -8,12 +8,11 @@ import { BrewStore } from '@/store/brew'
 import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
 import { dirname } from '@/util/path-browserify'
 import { clipboard } from '@/util/NodeFn'
-
-type HardwareProfile = {
-  ramGB: number
-  vramGB: number
-  loaded: boolean
-}
+import {
+  getModelSizeColorForHardware,
+  modelHardwareFromReport,
+  type ModelHardware
+} from '@/util/ModelSize'
 
 export type OllamaModelItem = {
   isRoot?: boolean
@@ -41,7 +40,7 @@ export const OllamaAllModelsSetup = reactive<{
   list: {}
 })
 
-const hardware = reactive<HardwareProfile>({
+const hardware = reactive<ModelHardware>({
   ramGB: 0,
   vramGB: 0,
   loaded: false
@@ -93,27 +92,7 @@ export const Setup = () => {
         })
       })
 
-      const toArr = (v: any) => (Array.isArray(v) ? v : v ? [v] : [])
-
-      const mods = toArr(res?.memory)
-      const totalRam = mods.reduce((s: number, m: any) => s + Number(m?.Capacity || 0), 0)
-      hardware.ramGB = totalRam ? Math.round((totalRam / 1024 / 1024 / 1024) * 100) / 100 : 0
-
-      let maxVram = 0
-      const nvidia = toArr(res?.nvidia)
-      nvidia.forEach((row: any) => {
-        const gb = Number(row?.MemoryTotalMiB || 0) / 1024
-        if (gb > maxVram) maxVram = gb
-      })
-      if (maxVram === 0) {
-        const gpus = toArr(res?.gpu)
-        gpus.forEach((g: any) => {
-          const gb = Number(g?.AdapterRAM || 0) / 1024 / 1024 / 1024
-          if (gb > maxVram) maxVram = gb
-        })
-      }
-      hardware.vramGB = maxVram ? Math.round(maxVram * 100) / 100 : 0
-      hardware.loaded = true
+      Object.assign(hardware, modelHardwareFromReport(res))
     } catch {
       hardware.loaded = false
     }
@@ -122,24 +101,7 @@ export const Setup = () => {
   }
 
   const getModelSizeColor = (sizeText?: string): 'success' | 'warning' | 'danger' | undefined => {
-    if (!hardware.loaded) return undefined
-    const sizeGB = parseSizeToGB(sizeText)
-    if (!sizeGB) return undefined
-
-    const vram = hardware.vramGB
-    const ram = hardware.ramGB
-
-    // 如果模型能完全放入显存，优先按显存判断（Ollama 会主要用 GPU 运行）
-    if (vram > 0 && sizeGB <= vram) {
-      if (sizeGB <= vram * 0.7) return 'success'
-      return 'warning'
-    }
-
-    // 模型放不进显存（或没有独立显存），按系统内存评估
-    // Ollama 支持纯 CPU 推理，内存足够即可运行
-    if (sizeGB <= ram * 0.15) return 'success'
-    if (sizeGB <= ram * 0.3) return 'warning'
-    return 'danger'
+    return getModelSizeColorForHardware(parseSizeToGB(sizeText), hardware)
   }
 
   const fetchData = () => {

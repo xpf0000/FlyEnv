@@ -7,7 +7,7 @@
     :has-static="true"
     :show-brew-lib="false"
     :show-port-lib="false"
-    @refresh="load"
+    @refresh="load(true)"
     @action="handleVersion"
   >
     <template #header-left>
@@ -17,14 +17,8 @@
         <el-radio-button value="prerelease">{{ LlamaCppT('prerelease') }}</el-radio-button>
       </el-radio-group>
     </template>
-    <template v-if="error || LlamaCppManager.runtimeOperation" #footer>
-      <el-alert
-        v-if="error || LlamaCppManager.runtimeOperation?.error"
-        :title="error || LlamaCppManager.runtimeOperation?.error"
-        type="error"
-        :closable="false"
-      />
-      <div v-else class="flex items-center gap-3">
+    <template v-if="busy" #footer>
+      <div class="flex items-center gap-3">
         <span
           >{{ LlamaCppT('runtimeStatus') }}: {{ LlamaCppManager.runtimeOperation?.status }}</span
         >
@@ -39,6 +33,8 @@
 <script lang="ts" setup>
   import { computed, onMounted, ref, watch } from 'vue'
   import { ElMessageBox } from 'element-plus'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { I18nT } from '@lang/index'
   import Manager from '@/components/VersionManager/index.vue'
   import type { StaticVersionItem } from '@/components/VersionManager/static/setup'
   import { BrewStore } from '@/store/brew'
@@ -47,12 +43,12 @@
   import { runtimeDirectoryName, runtimeIdentityKey } from '../../shared/runtime'
   import { LlamaCppManager } from '../controller'
   import { LlamaCppT } from '../lang'
+  import { escapeNoticeText } from '../notice'
 
   type RuntimeRow = StaticVersionItem & { variant?: RuntimeVariant; installedPath?: string }
   const channel = ref<'stable' | 'prerelease'>('stable')
   const variants = ref<RuntimeVariant[]>([])
   const loading = ref(false)
-  const error = ref('')
   const module = BrewStore().module('llama-cpp')
   const busy = computed(
     () =>
@@ -100,14 +96,13 @@
         }))
     ]
   })
-  const load = async () => {
+  const load = async (refresh = false) => {
     if (loading.value) return
     loading.value = true
-    error.value = ''
     try {
-      variants.value = await LlamaCppManager.fetchRuntimeVariants(channel.value)
+      variants.value = await LlamaCppManager.fetchRuntimeVariants(channel.value, refresh)
     } catch (e) {
-      error.value = `${e}`
+      MessageError(escapeNoticeText(e))
     } finally {
       loading.value = false
     }
@@ -124,16 +119,16 @@
         return
       }
     }
-    error.value = ''
     try {
       if (row.installedPath) await LlamaCppManager.removeRuntime(row.installedPath)
       else if (row.variant) await LlamaCppManager.installRuntime(row.variant)
       await module.fetchInstalled(true)
+      MessageSuccess(I18nT('base.success'))
     } catch (e) {
-      error.value = `${e}`
+      MessageError(escapeNoticeText(e))
     }
   }
-  watch(channel, load)
+  watch(channel, () => load())
   onMounted(async () => {
     await LlamaCppManager.init()
     await module.fetchInstalled()

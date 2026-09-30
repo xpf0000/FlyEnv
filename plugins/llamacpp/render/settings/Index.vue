@@ -12,9 +12,12 @@
           <el-form-item :label="LlamaCppT('port')"
             ><el-input-number v-model="profile.port" :min="1" :max="65535"
           /></el-form-item>
-          <el-form-item :label="LlamaCppT('contextSize')"
-            ><el-input-number v-model="profile.contextSize" :min="128" :max="1048576"
-          /></el-form-item>
+          <el-form-item :label="LlamaCppT('contextSize')">
+            <div class="flex flex-col items-start gap-1">
+              <el-input-number v-model="profile.contextSize" :min="128" :max="1048576" />
+              <span class="text-xs opacity-70">{{ LlamaCppT('contextSizeHint') }}</span>
+            </div>
+          </el-form-item>
           <el-form-item :label="LlamaCppT('threads')"
             ><el-input-number v-model="profile.threads" :min="1" :max="512"
           /></el-form-item>
@@ -28,21 +31,32 @@
             ><el-input :model-value="profile.apiKeyFile ?? LlamaCppT('none')" readonly
           /></el-form-item>
           <el-form-item :label="LlamaCppT('newApiKey')">
-            <el-input
-              v-model="apiKey"
-              type="password"
-              show-password
-              :placeholder="LlamaCppT('apiKey')"
-            >
-              <template #append
-                ><el-button :loading="savingKey" @click="saveKey">{{
-                  LlamaCppT('createKeyFile')
-                }}</el-button></template
-              >
-            </el-input>
+            <div class="flex w-full flex-col gap-2">
+              <el-input
+                v-model="apiKey"
+                type="password"
+                show-password
+                :disabled="savingKey"
+                :placeholder="LlamaCppT('apiKey')"
+              />
+              <div class="flex items-center gap-2">
+                <el-button :disabled="savingKey" @click="apiKey = generateApiKey()">{{
+                  LlamaCppT('generateKey')
+                }}</el-button>
+                <el-button :disabled="!apiKey || savingKey" @click="copyKey">{{
+                  LlamaCppT('copyKey')
+                }}</el-button>
+                <el-button
+                  type="primary"
+                  :loading="savingKey"
+                  :disabled="apiKey.length < 16 || savingKey"
+                  @click="saveKey"
+                  >{{ LlamaCppT('createKeyFile') }}</el-button
+                >
+              </div>
+            </div>
           </el-form-item>
           <el-alert :title="LlamaCppT('nonLoopbackNote')" type="info" :closable="false" />
-          <el-alert v-if="error" class="mt-3" :title="error" type="error" :closable="false" />
         </el-form>
       </el-scrollbar>
       <template #footer
@@ -54,35 +68,47 @@
 
 <script lang="ts" setup>
   import { onMounted, reactive, ref } from 'vue'
+  import { I18nT } from '@lang/index'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { clipboard } from '@/util/NodeFn'
+  import { generateApiKey } from './key'
   import { LlamaCppManager } from '../controller'
   import { LlamaCppT } from '../lang'
+  import { escapeNoticeText } from '../notice'
 
   const profile = reactive({ ...LlamaCppManager.profile })
   const apiKey = ref('')
   const savingKey = ref(false)
-  const error = ref('')
 
   onMounted(async () => {
     await LlamaCppManager.init()
     Object.assign(profile, LlamaCppManager.profile)
   })
   const save = async () => {
-    error.value = ''
     try {
       await LlamaCppManager.saveProfile(profile)
+      MessageSuccess(I18nT('base.success'))
     } catch (e) {
-      error.value = `${e}`
+      MessageError(escapeNoticeText(e))
+    }
+  }
+  const copyKey = async () => {
+    if (!apiKey.value) return
+    try {
+      await clipboard.writeText(apiKey.value)
+      MessageSuccess(I18nT('base.copySuccess'))
+    } catch (error) {
+      MessageError(escapeNoticeText(error))
     }
   }
   const saveKey = async () => {
     savingKey.value = true
-    error.value = ''
     try {
       profile.apiKeyFile = await LlamaCppManager.createApiKeyFile(apiKey.value)
-      apiKey.value = ''
       await LlamaCppManager.saveProfile(profile)
+      MessageSuccess(I18nT('base.success'))
     } catch (e) {
-      error.value = `${e}`
+      MessageError(escapeNoticeText(e))
     } finally {
       savingKey.value = false
     }
