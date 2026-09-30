@@ -21,12 +21,17 @@ export interface IpcBridge {
   off(key: string): void
 }
 
+const storageSnapshot = <T>(value: T): T => JSON.parse(JSON.stringify(value))
+const ipcArgument = (value: unknown): unknown =>
+  value !== null && typeof value === 'object' ? storageSnapshot(value) : value
+
 export const createControllerTransport = (ipc: IpcBridge): ControllerTransport => ({
   request<T>(method: string, args: unknown[], onProgress: (data: any) => void, sensitive = false) {
     return new Promise<T>((resolve, reject) => {
+      const cloneableArgs = args.map(ipcArgument)
       const request = sensitive
-        ? ipc.sendSensitive('app-fork:llama-cpp', method, ...args)
-        : ipc.send('app-fork:llama-cpp', method, ...args)
+        ? ipc.sendSensitive('app-fork:llama-cpp', method, ...cloneableArgs)
+        : ipc.send('app-fork:llama-cpp', method, ...cloneableArgs)
       request.then((key, response) => {
         if (response?.code === 200) {
           const progress = response?.msg?.['APP-On-Progress']
@@ -50,17 +55,20 @@ const productionTransport: ControllerTransport = {
 
 const settingsKey = 'flyenv-llama-cpp-settings'
 const modelsKey = 'flyenv-llama-cpp-models'
-const storageSnapshot = <T>(value: T): T => JSON.parse(JSON.stringify(value))
+const runtimeVariantsKey = 'flyenv-llama-cpp-runtime-variants'
+type RuntimeChannel = 'stable' | 'prerelease'
 
 export class LlamaCppController {
   runtimeOperation?: OperationState
   modelOperation?: OperationState
   error = ''
   profile: LaunchProfile = {
-    modelPath: '', backend: 'cpu', host: '127.0.0.1', port: 8080, contextSize: 4096, threads: 4, gpuLayers: 0
+    modelPath: '', backend: 'cpu', host: '127.0.0.1', port: 8080, contextSize: 8192, threads: 4, gpuLayers: 0
   }
   selectedModel?: LocalModel
   localModels: LocalModel[] = []
+  private runtimeVariants: Partial<Record<RuntimeChannel, RuntimeVariant[]>> = {}
+  private runtimeRequests: Partial<Record<RuntimeChannel, Promise<RuntimeVariant[]>>> = {}
   private initialized = false
 
   constructor(private transport: ControllerTransport = productionTransport) {}
@@ -69,9 +77,15 @@ export class LlamaCppController {
     if (this.initialized) return
     const saved = await StorageGetAsync<{ profile?: LaunchProfile; selectedModel?: LocalModel }>(settingsKey).catch(() => undefined)
     const models = await StorageGetAsync<LocalModel[]>(modelsKey).catch(() => undefined)
+    const cachedVariants = await StorageGetAsync<Partial<Record<RuntimeChannel, RuntimeVariant[]>>>(runtimeVariantsKey).catch(() => undefined)
     if (saved?.profile) this.profile = { ...this.profile, ...saved.profile }
     if (saved?.selectedModel) this.selectedModel = saved.selectedModel
     this.localModels = Array.isArray(models) ? models : []
+    if (cachedVariants) {
+      for (const channel of ['stable', 'prerelease'] as const) {
+        if (Array.isArray(cachedVariants[channel])) this.runtimeVariants[channel] = cachedVariants[channel]
+      }
+    }
     this.initialized = true
   }
 
@@ -79,8 +93,19 @@ export class LlamaCppController {
     return this.transport.request<T>(method, args, () => {})
   }
 
-  fetchRuntimeVariants(channel: 'stable' | 'prerelease' = 'stable') {
-    return this.request<RuntimeVariant[]>('fetchRuntimeVariants', channel)
+  async fetchRuntimeVariants(channel: RuntimeChannel = 'stable', refresh = false) {
+    await this.init()
+    if (!refresh && this.runtimeVariants[channel]) return this.runtimeVariants[channel]
+    if (this.runtimeRequests[channel]) return this.runtimeRequests[channel]
+    const request = this.request<RuntimeVariant[]>('fetchRuntimeVariants', channel)
+      .then(async (variants) => {
+        this.runtimeVariants[channel] = variants
+        await StorageSetAsync(runtimeVariantsKey, storageSnapshot(this.runtimeVariants)).catch(() => {})
+        return variants
+      })
+      .finally(() => { delete this.runtimeRequests[channel] })
+    this.runtimeRequests[channel] = request
+    return request
   }
 
   searchHubModels(query: string, page = 0) {

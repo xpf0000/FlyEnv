@@ -42,6 +42,9 @@
   import SettingsView from './settings/Index.vue'
   import LogsView from './logs/Index.vue'
   import { computed, onMounted } from 'vue'
+  import { I18nT } from '@lang/index'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { escapeNoticeText } from './notice'
 
   const { tab, checkVersion } = AppModuleSetup('llama-cpp')
   const tabs = [
@@ -57,5 +60,12 @@
     () =>
       `http://${LlamaCppManager.profile.host.includes(':') ? `[${LlamaCppManager.profile.host}]` : LlamaCppManager.profile.host}:${LlamaCppManager.profile.port}/v1`
   )
-  const copyEndpoint = () => navigator.clipboard.writeText(endpoint.value)
+  const copyEndpoint = async () => {
+    try {
+      await navigator.clipboard.writeText(endpoint.value)
+      MessageSuccess(I18nT('base.copySuccess'))
+    } catch (error) {
+      MessageError(escapeNoticeText(error))
+    }
+  }
 </script>

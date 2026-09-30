@@ -15,6 +15,9 @@ import { assertInvocationSupported, assertServerStopped, buildServerInvocation, 
 import { LlamaCppModule } from '../plugins/llamacpp/fork/LlamaCpp'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
 import { createControllerTransport, LlamaCppController, LlamaCppManager, type ControllerTransport } from '../plugins/llamacpp/render/controller'
+import { getModelSizeColorForHardware, modelHardwareFromReport } from '../src/render/util/ModelSize'
+import { generateApiKey } from '../plugins/llamacpp/render/settings/key'
+import { escapeNoticeText } from '../plugins/llamacpp/render/notice'
 
 const testReleaseAssetParsing = () => {
   const release: GitHubRelease = {
@@ -499,6 +502,109 @@ const testControllerTransportCleansListenerAtTerminal = async () => {
   assert.equal(sensitive, true)
 }
 
+const testRuntimeCatalogCacheRequiresExplicitRefresh = async () => {
+  const originalGetItem = localForage.getItem
+  const originalSetItem = localForage.setItem
+  const saved = new Map<string, unknown>()
+  let requests = 0
+  localForage.getItem = async (key) => saved.get(key) as any
+  localForage.setItem = async (key, value) => {
+    structuredClone(value)
+    saved.set(key, value)
+    return value
+  }
+  const makeController = () => new LlamaCppController({
+    request: async (method) => {
+      if (method !== 'fetchRuntimeVariants') throw new Error(`Unexpected ${method}`)
+      requests++
+      if (requests === 4) throw new Error('offline')
+      return [{ ...launchVariant, release: `b${requests}` }]
+    }
+  } as ControllerTransport)
+  try {
+    saved.set('flyenv-llama-cpp-settings', { data: { profile: { contextSize: 4096 } } })
+    const controller = makeController()
+    await controller.init()
+    assert.equal(controller.profile.contextSize, 4096)
+    assert.equal((await controller.fetchRuntimeVariants('stable'))[0].release, 'b1')
+    assert.equal((await controller.fetchRuntimeVariants('stable'))[0].release, 'b1')
+    assert.equal(requests, 1)
+    assert.equal((await controller.fetchRuntimeVariants('prerelease'))[0].release, 'b2')
+    assert.equal((await controller.fetchRuntimeVariants('stable', true))[0].release, 'b3')
+    await assert.rejects(controller.fetchRuntimeVariants('stable', true), /offline/)
+    assert.equal((await controller.fetchRuntimeVariants('stable'))[0].release, 'b3')
+    const reopened = makeController()
+    await reopened.init()
+    assert.equal((await reopened.fetchRuntimeVariants('stable'))[0].release, 'b3')
+    assert.equal(requests, 4)
+
+    const pending = deferred<RuntimeVariant[]>()
+    let concurrentRequests = 0
+    const concurrent = new LlamaCppController({
+      request: () => { concurrentRequests++; return pending.promise }
+    } as ControllerTransport)
+    await concurrent.init()
+    const first = concurrent.fetchRuntimeVariants('stable', true)
+    const second = concurrent.fetchRuntimeVariants('stable', true)
+    await new Promise((resolve) => setImmediate(resolve))
+    assert.equal(concurrentRequests, 1)
+    pending.resolve([{ ...launchVariant, release: 'b5' }])
+    assert.equal((await first)[0].release, 'b5')
+    assert.equal((await second)[0].release, 'b5')
+  } finally {
+    localForage.getItem = originalGetItem
+    localForage.setItem = originalSetItem
+  }
+}
+
+const testReactiveRuntimeIsCloneableAtIpcBoundary = async () => {
+  let callback: ((key: string, response: unknown) => void) | undefined
+  const ipc = {
+    send: (_command: string, _method: string, ...args: unknown[]) => {
+      structuredClone(args)
+      return { then: (handler: typeof callback) => { callback = handler } }
+    },
+    sendSensitive: () => { throw new Error('unexpected sensitive request') },
+    off: () => {}
+  }
+  const request = createControllerTransport(ipc)
+  const task = request.request('installRuntimeVariant', [reactive({ ...launchVariant, companion: { ...launchVariant.companion } })], () => {})
+  callback?.('key', { code: 0, data: true })
+  assert.equal(await task, true)
+}
+
+const testModelSizeFitsOllamaHardwareRules = () => {
+  const hardware = { ramGB: 16, vramGB: 8, loaded: true }
+  assert.equal(getModelSizeColorForHardware(4, hardware), 'success')
+  assert.equal(getModelSizeColorForHardware(7, hardware), 'warning')
+  assert.equal(getModelSizeColorForHardware(12, hardware), 'danger')
+  assert.equal(getModelSizeColorForHardware(4, { ramGB: 16, vramGB: 0, loaded: true }), 'warning')
+  assert.equal(getModelSizeColorForHardware(4, { ...hardware, loaded: false }), undefined)
+  assert.deepEqual(
+    modelHardwareFromReport({
+      memory: [{ Capacity: 8 * 1024 ** 3 }, { Capacity: 8 * 1024 ** 3 }],
+      nvidia: [{ MemoryTotalMiB: 8192 }],
+      gpu: [{ AdapterRAM: 2 * 1024 ** 3 }]
+    }),
+    hardware
+  )
+}
+
+const testGeneratedApiKeyAndContextDefault = async () => {
+  const first = generateApiKey()
+  const second = generateApiKey()
+  assert.match(first, /^[0-9a-f]{64}$/)
+  assert.notEqual(first, second)
+  assert.equal(new LlamaCppController().profile.contextSize, 8192)
+}
+
+const testExternalErrorsAreSafeForHtmlMessageHelper = () => {
+  assert.equal(
+    escapeNoticeText(new Error('Model already exists: <img src=x onerror="alert(1)">')),
+    'Model already exists: &lt;img src=x onerror=&quot;alert(1)&quot;&gt;'
+  )
+}
+
 void (async () => {
   testReleaseAssetParsing()
   await testStableRuntimeFetchPaginatesPastRecentPrereleases()
@@ -537,5 +643,10 @@ void (async () => {
   await testTerminalEventAllowsRetry()
   await testControllerPersistsPlainSnapshotsFromReactiveState()
   await testControllerTransportCleansListenerAtTerminal()
+  await testRuntimeCatalogCacheRequiresExplicitRefresh()
+  await testReactiveRuntimeIsCloneableAtIpcBoundary()
+  testModelSizeFitsOllamaHardwareRules()
+  await testGeneratedApiKeyAndContextDefault()
+  testExternalErrorsAreSafeForHtmlMessageHelper()
   console.log('llama.cpp plugin contract tests passed')
 })()

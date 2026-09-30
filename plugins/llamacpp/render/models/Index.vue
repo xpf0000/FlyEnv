@@ -39,7 +39,6 @@
           LlamaCppT('popularModelsHint')
         }}</p>
       </div>
-      <el-alert v-if="error" class="shrink-0" :title="error" type="error" :closable="false" />
       <div class="min-h-0 flex-1">
         <el-auto-resizer>
           <template #default="{ height, width }">
@@ -83,12 +82,6 @@
         />
       </div>
       <div v-if="LlamaCppManager.modelOperation" class="mt-3 space-y-2">
-        <el-alert
-          v-if="LlamaCppManager.modelOperation.error"
-          :title="LlamaCppManager.modelOperation.error"
-          :type="LlamaCppManager.modelOperation.status === 'cancelled' ? 'info' : 'error'"
-          :closable="false"
-        />
         <div class="flex items-center justify-between gap-3">
           <span class="text-sm"
             >{{ LlamaCppT('downloadStatus') }}: {{ LlamaCppManager.modelOperation.status }}</span
@@ -100,7 +93,7 @@
           <el-button
             v-if="['starting', 'running'].includes(LlamaCppManager.modelOperation.status)"
             size="small"
-            @click="LlamaCppManager.cancelModelDownload().catch(() => {})"
+            @click="cancelDownload"
             >{{ LlamaCppT('cancel') }}</el-button
           >
         </div>
@@ -111,14 +104,22 @@
 </template>
 
 <script lang="tsx" setup>
-  import { computed, onMounted, onUnmounted, ref } from 'vue'
+  import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
   import { Download, Delete } from '@element-plus/icons-vue'
   import { ElButton, ElMessageBox, ElTag, ElTooltip, type Column } from 'element-plus'
   import { I18nT } from '@lang/index'
   import { formatBytes } from '@/util/Index'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+  import {
+    getModelSizeColorForHardware,
+    modelHardwareFromReport,
+    type ModelHardware
+  } from '@/util/ModelSize'
+  import IPC from '@/util/IPC'
   import type { HubModel, HubModelFile, LocalModel } from '../../shared/types'
   import { LlamaCppManager } from '../controller'
   import { LlamaCppT } from '../lang'
+  import { escapeNoticeText } from '../notice'
 
   type ModelRow = {
     key: string
@@ -137,7 +138,9 @@
   const loadingRepos = new Set<string>()
   const searching = ref(false)
   const page = ref(0)
-  const error = ref('')
+  const hardware = reactive<ModelHardware>({ ramGB: 0, vramGB: 0, loaded: false })
+  let hardwareRequestKey = ''
+  let mounted = true
   let generation = 0
   const modelBusy = computed(
     () =>
@@ -183,11 +186,24 @@
       (local) =>
         local.repoId === file.repoId && local.revision === file.revision && local.path === file.path
     )
-  const download = (file: HubModelFile) => LlamaCppManager.downloadModel(file).catch(() => {})
-  const select = (model: LocalModel) =>
-    LlamaCppManager.selectModel(model).catch((e) => {
-      error.value = `${e}`
-    })
+  const showError = (error: unknown) => MessageError(escapeNoticeText(error))
+  const download = async (file: HubModelFile) => {
+    try {
+      await LlamaCppManager.downloadModel(file)
+      MessageSuccess(I18nT('base.success'))
+    } catch (e) {
+      if (LlamaCppManager.modelOperation?.status !== 'cancelled') showError(e)
+    }
+  }
+  const cancelDownload = () => LlamaCppManager.cancelModelDownload().catch(showError)
+  const select = async (model: LocalModel) => {
+    try {
+      await LlamaCppManager.selectModel(model)
+      MessageSuccess(I18nT('base.success'))
+    } catch (e) {
+      showError(e)
+    }
+  }
   const removeModel = async (model: LocalModel) => {
     try {
       await ElMessageBox.confirm(LlamaCppT('confirmDeleteModel'), LlamaCppT('delete'), {
@@ -198,15 +214,15 @@
     }
     try {
       await LlamaCppManager.deleteModel(model)
+      MessageSuccess(I18nT('base.success'))
     } catch (e) {
-      error.value = `${e}`
+      showError(e)
     }
   }
   const search = async (targetPage = 0) => {
     if (searching.value) return
     const requestGeneration = ++generation
     searching.value = true
-    error.value = ''
     results.value = []
     files.value = {}
     expandedRowKeys.value = []
@@ -217,7 +233,7 @@
       results.value = listed
       page.value = targetPage
     } catch (e) {
-      if (requestGeneration === generation) error.value = `${e}`
+      if (requestGeneration === generation) showError(e)
     } finally {
       if (requestGeneration === generation) searching.value = false
     }
@@ -235,7 +251,7 @@
             files.value[key] = listed.map((file) => ({ ...file, license: model.license }))
         })
         .catch((e) => {
-          if (requestGeneration === generation) error.value = `${e}`
+          if (requestGeneration === generation) showError(e)
         })
         .finally(() => {
           if (requestGeneration === generation) loadingRepos.delete(key)
@@ -281,7 +297,14 @@
       headerClass: 'flex-shrink-0',
       cellRenderer: ({ rowData }) =>
         rowData.file || rowData.local ? (
-          <ElTag size="small" effect="plain">
+          <ElTag
+            size="small"
+            effect="plain"
+            type={getModelSizeColorForHardware(
+              (rowData.file ?? rowData.local)!.size / 1024 ** 3,
+              hardware
+            )}
+          >
             {formatBytes((rowData.file ?? rowData.local)!.size)}
           </ElTag>
         ) : (
@@ -370,10 +393,19 @@
     }
   ])
   onMounted(async () => {
+    const request = IPC.send('app-fork:ollama', 'pcReport')
+    hardwareRequestKey = request.key
+    request.then((key: string, response: { code?: number; data?: Record<string, unknown> }) => {
+      IPC.off(key)
+      if (mounted && response?.code === 0 && response.data)
+        Object.assign(hardware, modelHardwareFromReport(response.data))
+    })
     await LlamaCppManager.init()
-    await search(0)
+    if (mounted) await search(0)
   })
   onUnmounted(() => {
+    mounted = false
     generation++
+    if (hardwareRequestKey) IPC.off(hardwareRequestKey)
   })
 </script>
