@@ -244,8 +244,11 @@ export class Module {
         let fetched = false
         try {
           if (requestedAsPlugin) {
-            const installed = Array.isArray(res?.data) ? res.data : []
-            await this.applyInstalledVersions(installed)
+            if (res?.code !== 0 || !Array.isArray(res?.data)) {
+              console.error('fetchInstalled plugin response error: ', this.typeFlag, res?.msg)
+              return
+            }
+            await this.applyInstalledVersions(res.data)
             fetched = true
           } else {
             const versions: Record<string, Array<SoftInstalled>> = res?.data ?? {}

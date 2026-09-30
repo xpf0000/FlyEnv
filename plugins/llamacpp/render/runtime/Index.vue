@@ -33,8 +33,7 @@
 <script lang="ts" setup>
   import { computed, onMounted, ref, watch } from 'vue'
   import { ElMessageBox } from 'element-plus'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import { I18nT } from '@lang/index'
+  import { MessageError } from '@/util/Element'
   import Manager from '@/components/VersionManager/index.vue'
   import type { StaticVersionItem } from '@/components/VersionManager/static/setup'
   import { BrewStore } from '@/store/brew'
@@ -122,8 +121,6 @@
     try {
       if (row.installedPath) await LlamaCppManager.removeRuntime(row.installedPath)
       else if (row.variant) await LlamaCppManager.installRuntime(row.variant)
-      await module.fetchInstalled(true)
-      MessageSuccess(I18nT('base.success'))
     } catch (e) {
       MessageError(escapeNoticeText(e))
     }

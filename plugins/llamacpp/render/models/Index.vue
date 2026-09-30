@@ -14,7 +14,7 @@
           class="button"
           link
           :disabled="searching"
-          @click="search(0)"
+          @click="search(page, true)"
         >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
@@ -71,8 +71,8 @@
         </el-auto-resizer>
       </div>
     </el-scrollbar>
-    <template v-if="activeTab === 'library' || LlamaCppManager.modelOperation" #footer>
-      <div v-if="activeTab === 'library'" class="flex justify-end">
+    <template v-if="activeTab === 'library'" #footer>
+      <div class="flex justify-start">
         <el-pagination
           :current-page="page + 1"
           :page-count="page + 1 + (results.length === 20 ? 1 : 0)"
@@ -81,24 +81,6 @@
           @current-change="(value: number) => search(value - 1)"
         />
       </div>
-      <div v-if="LlamaCppManager.modelOperation" class="mt-3 space-y-2">
-        <div class="flex items-center justify-between gap-3">
-          <span class="text-sm"
-            >{{ LlamaCppT('downloadStatus') }}: {{ LlamaCppManager.modelOperation.status }}</span
-          >
-          <span v-if="LlamaCppManager.modelOperation.progress" class="text-sm opacity-70"
-            >{{ formatBytes(LlamaCppManager.modelOperation.progress.downloaded ?? 0) }} /
-            {{ formatBytes(LlamaCppManager.modelOperation.progress.total ?? 0) }}</span
-          >
-          <el-button
-            v-if="['starting', 'running'].includes(LlamaCppManager.modelOperation.status)"
-            size="small"
-            @click="cancelDownload"
-            >{{ LlamaCppT('cancel') }}</el-button
-          >
-        </div>
-        <el-progress v-if="modelBusy" :percentage="downloadPercentage" />
-      </div>
     </template>
   </el-card>
 </template>
@@ -106,7 +88,7 @@
 <script lang="tsx" setup>
   import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
   import { Download, Delete } from '@element-plus/icons-vue'
-  import { ElButton, ElMessageBox, ElTag, ElTooltip, type Column } from 'element-plus'
+  import { ElButton, ElMessageBox, ElProgress, ElTag, ElTooltip, type Column } from 'element-plus'
   import { I18nT } from '@lang/index'
   import { formatBytes } from '@/util/Index'
   import { MessageError, MessageSuccess } from '@/util/Element'
@@ -117,7 +99,7 @@
   } from '@/util/ModelSize'
   import IPC from '@/util/IPC'
   import type { HubModel, HubModelFile, LocalModel } from '../../shared/types'
-  import { LlamaCppManager } from '../controller'
+  import { LlamaCppManager, modelFileKey } from '../controller'
   import { LlamaCppT } from '../lang'
   import { escapeNoticeText } from '../notice'
 
@@ -128,6 +110,8 @@
     file?: HubModelFile
     local?: LocalModel
     placeholder?: boolean
+    downloading?: boolean
+    progress?: number
     children?: ModelRow[]
   }
   const activeTab = ref<'library' | 'local'>('library')
@@ -147,40 +131,58 @@
       !!LlamaCppManager.modelOperation &&
       !['success', 'failed', 'cancelled'].includes(LlamaCppManager.modelOperation.status)
   )
-  const downloadPercentage = computed(() => {
+  const downloadPercentage = () => {
     const progress = LlamaCppManager.modelOperation?.progress
     return progress?.total
       ? Math.min(100, Math.round(((progress.downloaded ?? 0) / progress.total) * 100))
       : 0
+  }
+  const tableData = computed<ModelRow[]>(() => {
+    const downloading = modelBusy.value
+    const targetKey = LlamaCppManager.modelOperation?.targetKey
+    const targetFile = LlamaCppManager.modelOperation?.targetFile
+    const progress = downloading ? downloadPercentage() : 0
+    if (activeTab.value === 'local')
+      return LlamaCppManager.localModels.map((local) => ({
+        key: local.localPath,
+        name: local.path,
+        local
+      }))
+    const rows: ModelRow[] = results.value.map((model) => ({
+      key: model.id,
+      name: model.id,
+      model,
+      children: files.value[model.id]?.length
+        ? files.value[model.id].map((file) => ({
+            key: `${model.id}/${file.revision}/${file.path}`,
+            name: file.path,
+            file,
+            downloading: downloading && targetKey === modelFileKey(file),
+            progress
+          }))
+        : [
+            {
+              key: `${model.id}/placeholder`,
+              name: files.value[model.id] ? LlamaCppT('noVariants') : LlamaCppT('loadingVariants'),
+              placeholder: true
+            }
+          ]
+    }))
+    const targetVisible = rows.some(
+      (row) =>
+        expandedRowKeys.value.includes(row.key) &&
+        row.children?.some((child) => child.file && modelFileKey(child.file) === targetKey)
+    )
+    if (downloading && targetFile && !targetVisible)
+      rows.unshift({
+        key: `active-download:${targetKey}`,
+        name: `${targetFile.repoId}/${targetFile.path}`,
+        file: targetFile,
+        downloading: true,
+        progress
+      })
+    return rows
   })
-  const tableData = computed<ModelRow[]>(() =>
-    activeTab.value === 'local'
-      ? LlamaCppManager.localModels.map((local) => ({
-          key: local.localPath,
-          name: local.path,
-          local
-        }))
-      : results.value.map((model) => ({
-          key: model.id,
-          name: model.id,
-          model,
-          children: files.value[model.id]?.length
-            ? files.value[model.id].map((file) => ({
-                key: `${model.id}/${file.revision}/${file.path}`,
-                name: file.path,
-                file
-              }))
-            : [
-                {
-                  key: `${model.id}/placeholder`,
-                  name: files.value[model.id]
-                    ? LlamaCppT('noVariants')
-                    : LlamaCppT('loadingVariants'),
-                  placeholder: true
-                }
-              ]
-        }))
-  )
   const isDownloaded = (file: HubModelFile) =>
     LlamaCppManager.localModels.some(
       (local) =>
@@ -219,19 +221,18 @@
       showError(e)
     }
   }
-  const search = async (targetPage = 0) => {
+  const search = async (targetPage = 0, refresh = false) => {
     if (searching.value) return
     const requestGeneration = ++generation
     searching.value = true
-    results.value = []
-    files.value = {}
-    expandedRowKeys.value = []
-    loadingRepos.clear()
     try {
-      const listed = await LlamaCppManager.searchHubModels(query.value, targetPage)
+      const listed = await LlamaCppManager.searchHubModels(query.value, targetPage, refresh)
       if (requestGeneration !== generation) return
       results.value = listed
       page.value = targetPage
+      files.value = {}
+      expandedRowKeys.value = []
+      loadingRepos.clear()
     } catch (e) {
       if (requestGeneration === generation) showError(e)
     } finally {
@@ -314,6 +315,21 @@
     ...(activeTab.value === 'library'
       ? [
           {
+            key: 'progress',
+            title: LlamaCppT('downloadStatus'),
+            width: 150,
+            class: 'flex-shrink-0',
+            headerClass: 'flex-shrink-0',
+            cellRenderer: ({ rowData }: { rowData: ModelRow }) =>
+              rowData.downloading ? (
+                <div class="cell-progress w-full">
+                  <ElProgress class="w-full" percentage={rowData.progress ?? 0} />
+                </div>
+              ) : (
+                <span />
+              )
+          },
+          {
             key: 'downloads',
             title: LlamaCppT('downloads'),
             width: 110,
@@ -377,15 +393,25 @@
         }
         const file = rowData.file
         return file ? (
-          <ElButton
-            link
-            type="primary"
-            icon={Download}
-            disabled={modelBusy.value || isDownloaded(file)}
-            onClick={() => download(file)}
-          >
-            {LlamaCppT('download')}
-          </ElButton>
+          rowData.downloading ? (
+            <ElButton
+              link
+              disabled={LlamaCppManager.modelOperation?.status === 'cancelling'}
+              onClick={cancelDownload}
+            >
+              {LlamaCppT('cancel')}
+            </ElButton>
+          ) : (
+            <ElButton
+              link
+              type="primary"
+              icon={Download}
+              disabled={modelBusy.value || isDownloaded(file)}
+              onClick={() => download(file)}
+            >
+              {LlamaCppT('download')}
+            </ElButton>
+          )
         ) : (
           <span />
         )

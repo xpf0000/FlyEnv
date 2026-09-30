@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import axios from 'axios'
 import localForage from 'localforage'
-import { reactive } from 'vue'
+import { computed, reactive } from 'vue'
 import {
   fetchRuntimeReleases,
   parseReleaseAssets,
@@ -10,11 +10,11 @@ import {
 import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInstallDeps, type RuntimePaths } from '../plugins/llamacpp/fork/runtime'
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
 import { deleteLocalModel, downloadHubModelFile, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
-import type { HubModelFile } from '../plugins/llamacpp/shared/types'
+import type { HubModel, HubModelFile } from '../plugins/llamacpp/shared/types'
 import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, validateLaunchProfile, validateManagedModelPath, waitForServerHealth } from '../plugins/llamacpp/fork/config'
 import { LlamaCppModule } from '../plugins/llamacpp/fork/LlamaCpp'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
-import { createControllerTransport, LlamaCppController, LlamaCppManager, type ControllerTransport } from '../plugins/llamacpp/render/controller'
+import { createControllerTransport, LlamaCppController, LlamaCppManager, modelFileKey, type ControllerTransport } from '../plugins/llamacpp/render/controller'
 import { getModelSizeColorForHardware, modelHardwareFromReport } from '../src/render/util/ModelSize'
 import { generateApiKey } from '../plugins/llamacpp/render/settings/key'
 import { escapeNoticeText } from '../plugins/llamacpp/render/notice'
@@ -418,11 +418,35 @@ const testControllerRejectsDuplicateRuntimeInstall = async () => {
 const testControllerKeepsProgressUntilTerminalEvent = async () => {
   const pending = deferred<unknown>()
   const transport: ControllerTransport = { request: (_method, _args, progress) => { progress({ downloaded: 55, total: 100 }); return pending.promise as Promise<any> } }
-  const controller = new LlamaCppController(transport)
+  const controller = reactive(new LlamaCppController(transport))
+  const busy = computed(() => ['starting', 'running'].includes(controller.runtimeOperation?.status ?? ''))
   const task = controller.installRuntime(launchVariant)
   assert.equal(controller.runtimeOperation?.progress?.downloaded, 55)
   assert.equal(controller.runtimeOperation?.status, 'running')
+  assert.equal(busy.value, true)
   pending.resolve(true)
+  await task
+  assert.equal(controller.runtimeOperation?.status, 'success')
+  assert.equal(busy.value, false)
+}
+
+const testRuntimeWaitsForInstalledRefresh = async () => {
+  const pending = deferred<void>()
+  let refreshes = 0
+  const controller = reactive(new LlamaCppController(
+    { request: async () => ({ path: '/data/runtime' }) } as ControllerTransport,
+    async (target) => {
+      assert.deepEqual(target, { path: '/data/runtime', installed: true })
+      refreshes++
+      await pending.promise
+    }
+  ))
+  const task = controller.installRuntime(launchVariant)
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(refreshes, 1)
+  assert.equal(controller.runtimeOperation?.status, 'starting')
+  await assert.rejects(controller.installRuntime(launchVariant), /already in progress/)
+  pending.resolve()
   await task
   assert.equal(controller.runtimeOperation?.status, 'success')
 }
@@ -435,21 +459,52 @@ const testControllerReentryRetainsOperation = () => {
 const testControllerCancelClearsListener = async () => {
   const pending = deferred<unknown>()
   const calls: string[] = []
+  let progress!: (data: any) => void
   const transport: ControllerTransport = {
-    request: (method) => {
+    request: (method, _args, onProgress) => {
       calls.push(method)
       if (method === 'cancelModelDownload') return Promise.resolve(true) as Promise<any>
+      progress = onProgress
       return pending.promise as Promise<any>
     }
   }
   const controller = new LlamaCppController(transport)
   const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'm.gguf', size: 1, downloadUrl: 'https://example.test/m.gguf' }
   const task = controller.downloadModel(file, 'cancel-id').catch(() => undefined)
+  assert.equal(controller.modelOperation?.targetKey, modelFileKey(file))
   await controller.cancelModelDownload('cancel-id')
+  progress({ downloaded: 1, total: 2 })
+  assert.equal(controller.modelOperation?.status, 'cancelling')
   pending.reject(new Error('aborted'))
   await task
   assert.equal(calls.includes('cancelModelDownload'), true)
   assert.equal(controller.modelOperation?.status, 'cancelled')
+}
+
+const testModelDownloadProgressTracksItsFileUntilTerminal = async () => {
+  const originalSetItem = localForage.setItem
+  localForage.setItem = async (_key, value) => value
+  try {
+    const pending = deferred<any>()
+    let progress!: (data: any) => void
+    const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'm.gguf', size: 100, downloadUrl: 'https://example.test/m.gguf' }
+    const controller = reactive(new LlamaCppController({ request: (_method, _args, onProgress) => { progress = onProgress; return pending.promise } }))
+    const busy = computed(() => ['starting', 'running'].includes(controller.modelOperation?.status ?? ''))
+    const task = controller.downloadModel(file, 'download-id')
+    assert.equal(controller.modelOperation?.targetKey, modelFileKey(file))
+    assert.deepEqual(controller.modelOperation?.targetFile, file)
+    progress({ downloaded: 55, total: 100 })
+    assert.equal(controller.modelOperation?.status, 'running')
+    assert.equal(busy.value, true)
+    assert.equal(controller.modelOperation?.progress?.downloaded, 55)
+    await assert.rejects(controller.downloadModel(file), /already in progress/)
+    pending.resolve({ ...file, localPath: '/data/m.gguf', downloadedAt: 1 })
+    await task
+    assert.equal(controller.modelOperation?.status, 'success')
+    assert.equal(busy.value, false)
+  } finally {
+    localForage.setItem = originalSetItem
+  }
 }
 
 const testTerminalEventAllowsRetry = async () => {
@@ -500,6 +555,104 @@ const testControllerTransportCleansListenerAtTerminal = async () => {
   assert.equal(await task, '/secret/keyfile')
   assert.equal(removed, true)
   assert.equal(sensitive, true)
+}
+
+const testModelCatalogCacheRequiresExplicitRefresh = async () => {
+  const originalGetItem = localForage.getItem
+  const originalSetItem = localForage.setItem
+  const saved = new Map<string, unknown>()
+  const calls: string[] = []
+  let failRefresh = false
+  localForage.getItem = async (key) => saved.get(key) as any
+  localForage.setItem = async (key, value) => { structuredClone(value); saved.set(key, value); return value }
+  const makeController = () => new LlamaCppController({
+    request: async (method, args) => {
+      calls.push(`${method}:${JSON.stringify(args)}`)
+      if (failRefresh) throw new Error('offline')
+      if (method === 'searchHubModels') return [{ id: `org/model-${calls.length}`, downloads: 1, likes: 0 }]
+      if (method === 'getHubModelFiles') return [{ repoId: 'org/model', revision: 'main', path: `model-${calls.length}.gguf`, size: 1, downloadUrl: 'https://example.test/model.gguf' }]
+      throw new Error(`Unexpected ${method}`)
+    }
+  } as ControllerTransport)
+  try {
+    const controller = makeController()
+    const first = await controller.searchHubModels('test', 0)
+    assert.deepEqual(await controller.searchHubModels('test', 0), first)
+    assert.equal(calls.length, 1)
+    await controller.searchHubModels('test', 1)
+    await controller.searchHubModels('other', 0)
+    assert.equal(calls.length, 3)
+    const files = await controller.getHubModelFiles('org/model')
+    assert.deepEqual(await controller.getHubModelFiles('org/model'), files)
+    assert.equal(calls.length, 4)
+    const reopened = makeController()
+    assert.deepEqual(await reopened.searchHubModels('test', 0), first)
+    assert.deepEqual(await reopened.getHubModelFiles('org/model'), files)
+    assert.equal(calls.length, 4)
+    failRefresh = true
+    await assert.rejects(reopened.searchHubModels('test', 0, true), /offline/)
+    assert.deepEqual(await reopened.searchHubModels('test', 0), first)
+    assert.deepEqual(await reopened.getHubModelFiles('org/model'), files)
+    failRefresh = false
+    await reopened.searchHubModels('test', 0, true)
+    await reopened.getHubModelFiles('org/model')
+    assert.equal(calls.length, 7)
+    await reopened.searchHubModels('test', 1)
+    assert.equal(calls.length, 8)
+
+    const pending = deferred<HubModel[]>()
+    let concurrentRequests = 0
+    const concurrent = new LlamaCppController({ request: () => { concurrentRequests++; return pending.promise } } as ControllerTransport)
+    await concurrent.init()
+    const one = concurrent.searchHubModels('new-query', 0)
+    const two = concurrent.searchHubModels('new-query', 0)
+    await new Promise((resolve) => setImmediate(resolve))
+    assert.equal(concurrentRequests, 1)
+    pending.resolve([{ id: 'org/concurrent', downloads: 1, likes: 0 }])
+    assert.deepEqual(await one, await two)
+
+    const staleFileRequest = deferred<HubModelFile[]>()
+    let fileRequests = 0
+    const staleController = new LlamaCppController({
+      request: async (method) => {
+        if (method === 'searchHubModels') return [{ id: 'org/stale', downloads: 1, likes: 0 }]
+        fileRequests++
+        return fileRequests === 1 ? staleFileRequest.promise : []
+      }
+    } as ControllerTransport)
+    await staleController.init()
+    const oldFiles = staleController.getHubModelFiles('org/stale')
+    await new Promise((resolve) => setImmediate(resolve))
+    await staleController.searchHubModels('new-query', 0, true)
+    staleFileRequest.resolve([{ repoId: 'org/stale', revision: 'main', path: 'old.gguf', size: 1, downloadUrl: 'https://example.test/old.gguf' }])
+    await oldFiles
+    assert.deepEqual(await staleController.getHubModelFiles('org/stale'), [])
+    assert.equal(fileRequests, 2)
+  } finally {
+    localForage.getItem = originalGetItem
+    localForage.setItem = originalSetItem
+  }
+}
+
+const testControllerInitializationIsCoalesced = async () => {
+  const originalGetItem = localForage.getItem
+  const pending = deferred<any>()
+  let hubReads = 0
+  localForage.getItem = async (key) => {
+    if (key === 'flyenv-llama-cpp-hub-catalog') { hubReads++; return pending.promise }
+    return undefined as any
+  }
+  try {
+    const controller = new LlamaCppController()
+    const first = controller.init()
+    const second = controller.init()
+    await new Promise((resolve) => setImmediate(resolve))
+    assert.equal(hubReads, 1)
+    pending.resolve({ data: { pages: {}, files: {} } })
+    await Promise.all([first, second])
+  } finally {
+    localForage.getItem = originalGetItem
+  }
 }
 
 const testRuntimeCatalogCacheRequiresExplicitRefresh = async () => {
@@ -638,12 +791,16 @@ void (async () => {
   await testActiveRuntimeMustStopBeforeMutation()
   await testControllerRejectsDuplicateRuntimeInstall()
   await testControllerKeepsProgressUntilTerminalEvent()
+  await testRuntimeWaitsForInstalledRefresh()
   testControllerReentryRetainsOperation()
   await testControllerCancelClearsListener()
+  await testModelDownloadProgressTracksItsFileUntilTerminal()
   await testTerminalEventAllowsRetry()
   await testControllerPersistsPlainSnapshotsFromReactiveState()
   await testControllerTransportCleansListenerAtTerminal()
   await testRuntimeCatalogCacheRequiresExplicitRefresh()
+  await testModelCatalogCacheRequiresExplicitRefresh()
+  await testControllerInitializationIsCoalesced()
   await testReactiveRuntimeIsCloneableAtIpcBoundary()
   testModelSizeFitsOllamaHardwareRules()
   await testGeneratedApiKeyAndContextDefault()
