@@ -43,10 +43,18 @@ const sha256 = (value?: string): string | undefined => {
   return /^[a-f\d]{64}$/.test(digest) ? digest : undefined
 }
 
-export const formatHubRequestError = (error: unknown, proxyConfigured: boolean) => {
-  const detail = error as { message?: string; response?: { status?: number } }
+export const formatHubRequestError = (error: unknown, proxy: boolean | { host: string; port?: string }) => {
+  const detail = error as { code?: string; message?: string; response?: { status?: number } }
   const status = detail?.response?.status ? ` (${detail.response.status})` : ''
-  return new Error(`Hugging Face Hub request failed${status} (FlyEnv proxy: ${proxyConfigured ? 'on' : 'off'}): ${detail?.message ?? error}`)
+  const proxyConfigured = !!proxy
+  const address = typeof proxy === 'object' ? `${proxy.host}${proxy.port ? `:${proxy.port}` : ''}` : ''
+  let guidance = ''
+  if (proxyConfigured && detail?.code === 'ECONNREFUSED') {
+    guidance = `Proxy ${address || 'server'} is not accepting connections. Start it or update FlyEnv proxy settings. `
+  } else if (proxyConfigured && /before secure TLS connection was established/i.test(detail?.message ?? '')) {
+    guidance = 'TLS setup failed through the configured proxy; check whether the proxy can reach huggingface.co. '
+  }
+  return new Error(`Hugging Face Hub request failed${status} (FlyEnv proxy: ${proxyConfigured ? 'on' : 'off'}): ${guidance}${detail?.message ?? error}`)
 }
 
 const productionDeps: ModelDownloadDeps = {
@@ -57,12 +65,16 @@ const productionDeps: ModelDownloadDeps = {
       return response.data
     } catch (error: any) {
       if (error?.response?.status === 429) throw new Error('Hugging Face Hub rate limit reached (HTTP 429); retry later')
-      throw formatHubRequestError(error, !!proxy)
+      throw formatHubRequestError(error, proxy)
     }
   },
   mkdir: async (path) => mkdir(path, { recursive: true }).then(() => undefined),
   download: async (url, target, signal, progress) => {
-    const response = await axios.get(url, { responseType: 'stream', signal, timeout: 0, proxy: getAxiosProxy(), maxRedirects: 5 })
+    const proxy = getAxiosProxy()
+    const response = await axios.get(url, { responseType: 'stream', signal, timeout: 0, proxy, maxRedirects: 5 }).catch((error) => {
+      if (signal.aborted || axios.isCancel(error) || error?.code === 'ERR_CANCELED') throw error
+      throw formatHubRequestError(error, proxy)
+    })
     const total = Number(response.headers['content-length']) || undefined
     let downloaded = 0
     const meter = new Transform({

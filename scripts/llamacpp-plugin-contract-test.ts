@@ -9,7 +9,7 @@ import {
 } from '../plugins/llamacpp/fork/release'
 import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInstallDeps, type RuntimePaths } from '../plugins/llamacpp/fork/runtime'
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
-import { deleteLocalModel, downloadHubModelFile, formatHubRequestError, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
+import { createModelDownloadDeps, deleteLocalModel, downloadHubModelFile, formatHubRequestError, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModel, HubModelFile } from '../plugins/llamacpp/shared/types'
 import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, validateLaunchProfile, validateManagedModelPath, waitForServerHealth } from '../plugins/llamacpp/fork/config'
 import { LlamaCppModule, isManagedModelActive } from '../plugins/llamacpp/fork/LlamaCpp'
@@ -701,6 +701,15 @@ const testModelSwitchLifecycle = async () => {
 const testHubRequestErrorReportsProxyState = () => {
   assert.match(formatHubRequestError(new Error('socket disconnected'), false).message, /FlyEnv proxy: off/)
   assert.match(formatHubRequestError(new Error('socket disconnected'), true).message, /FlyEnv proxy: on/)
+  const refused = Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:7890'), { code: 'ECONNREFUSED' })
+  assert.match(
+    formatHubRequestError(refused, { protocol: 'http', host: '127.0.0.1', port: '7890' }).message,
+    /127\.0\.0\.1:7890.*not accepting connections.*FlyEnv proxy settings/i
+  )
+  assert.match(
+    formatHubRequestError(new Error('Client network socket disconnected before secure TLS connection was established'), { protocol: 'http', host: '127.0.0.1', port: '7890' }).message,
+    /TLS.*proxy.*huggingface\.co/i
+  )
 }
 
 const testHubRequestUsesFlyEnvProxy = async () => {
@@ -718,6 +727,23 @@ const testHubRequestUsesFlyEnvProxy = async () => {
     delete global.Server.Proxy
     await searchHubModels('')
     assert.equal(proxies[1], false)
+  } finally {
+    ;(axios as any).get = originalGet
+    global.Server = originalServer
+  }
+}
+
+const testHubDownloadReportsProxyFailureAndPreservesCancellation = async () => {
+  const originalGet = axios.get
+  const originalServer = global.Server
+  try {
+    global.Server = { ...originalServer, Proxy: { https_proxy: 'http://127.0.0.1:7890' } } as typeof global.Server
+    const refused = Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:7890'), { code: 'ECONNREFUSED' })
+    ;(axios as any).get = async () => { throw refused }
+    await assert.rejects(createModelDownloadDeps().download('https://huggingface.co/org/model/resolve/main/model.gguf', '/unused', new AbortController().signal, () => {}), /Proxy 127\.0\.0\.1:7890 is not accepting connections/)
+    const canceled = Object.assign(new Error('canceled'), { code: 'ERR_CANCELED' })
+    ;(axios as any).get = async () => { throw canceled }
+    await assert.rejects(createModelDownloadDeps().download('https://huggingface.co/org/model/resolve/main/model.gguf', '/unused', new AbortController().signal, () => {}), (error: unknown) => error === canceled)
   } finally {
     ;(axios as any).get = originalGet
     global.Server = originalServer
@@ -1050,6 +1076,7 @@ void (async () => {
   await testModelSwitchLifecycle()
   testHubRequestErrorReportsProxyState()
   await testHubRequestUsesFlyEnvProxy()
+  await testHubDownloadReportsProxyFailureAndPreservesCancellation()
   await testControllerTransportCleansListenerAtTerminal()
   await testRuntimeCatalogCacheRequiresExplicitRefresh()
   await testModelCatalogCacheRequiresExplicitRefresh()

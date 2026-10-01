@@ -6,11 +6,11 @@
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="llama-cpp" title="llama.cpp">
         <template #tool-left>
-          <div class="ml-4">
+          <div class="ml-4 min-w-0">
             <el-popover placement="bottom" width="480" trigger="click">
               <template #reference>
-                <el-button link class="max-w-64">
-                  <span class="truncate text-yellow-500"
+                <el-button link class="min-w-0 w-full">
+                  <span class="block min-w-0 truncate text-yellow-500"
                     >{{ LlamaCppT('selectedModel') }}:
                     {{ LlamaCppManager.selectedModel?.path ?? LlamaCppT('none') }}</span
                   >
