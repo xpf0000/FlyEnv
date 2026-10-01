@@ -4,9 +4,11 @@ import { mkdir, rename, rm, access, writeFile, stat } from 'node:fs/promises'
 import { basename, join, relative, resolve, sep, isAbsolute } from 'node:path'
 import { Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
+import { setTimeout as delay } from 'node:timers/promises'
 import axios from 'axios'
 import { getAxiosProxy } from '@fork/util/Axios'
 import type { HubModel, HubModelFile, LocalModel } from '../shared/types'
+import { isStandaloneGGUFPath } from '../shared/modelFile'
 
 interface HubModelApiItem {
   id: string
@@ -57,11 +59,26 @@ export const formatHubRequestError = (error: unknown, proxy: boolean | { host: s
   return new Error(`Hugging Face Hub request failed${status} (FlyEnv proxy: ${proxyConfigured ? 'on' : 'off'}): ${guidance}${detail?.message ?? error}`)
 }
 
+const retryHubConnection = async <T>(request: () => Promise<T>, signal?: AbortSignal): Promise<T> => {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await request()
+    } catch (error: any) {
+      const retryable = !error?.response && (
+        ['ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN', 'EPIPE'].includes(error?.code) ||
+        /before secure TLS connection was established/i.test(error?.message ?? '')
+      )
+      if (!retryable || attempt >= 2 || signal?.aborted) throw error
+      await delay(200 * (attempt + 1), undefined, { signal })
+    }
+  }
+}
+
 const productionDeps: ModelDownloadDeps = {
   requestJson: async (url) => {
     const proxy = getAxiosProxy()
     try {
-      const response = await axios.get(url, { headers: { Accept: 'application/json' }, timeout: 30_000, proxy })
+      const response = await retryHubConnection(() => axios.get(url, { headers: { Accept: 'application/json' }, timeout: 30_000, proxy }))
       return response.data
     } catch (error: any) {
       if (error?.response?.status === 429) throw new Error('Hugging Face Hub rate limit reached (HTTP 429); retry later')
@@ -71,7 +88,7 @@ const productionDeps: ModelDownloadDeps = {
   mkdir: async (path) => mkdir(path, { recursive: true }).then(() => undefined),
   download: async (url, target, signal, progress) => {
     const proxy = getAxiosProxy()
-    const response = await axios.get(url, { responseType: 'stream', signal, timeout: 0, proxy, maxRedirects: 5 }).catch((error) => {
+    const response = await retryHubConnection(() => axios.get(url, { responseType: 'stream', signal, timeout: 0, proxy, maxRedirects: 5 }), signal).catch((error) => {
       if (signal.aborted || axios.isCancel(error) || error?.code === 'ERR_CANCELED') throw error
       throw formatHubRequestError(error, proxy)
     })
@@ -124,7 +141,7 @@ export const getHubModelFiles = async (repoId: string, revision = 'main', deps: 
   const payload = await deps.requestJson(url)
   if (!Array.isArray(payload)) throw new Error('Unexpected Hugging Face file listing response')
   return (payload as HubTreeItem[])
-    .filter((item) => item.type === 'file' && item.path.toLowerCase().endsWith('.gguf') && !/-\d{5}-of-\d{5}\.gguf$/i.test(item.path) && !/mmproj/i.test(item.path))
+    .filter((item) => item.type === 'file' && isStandaloneGGUFPath(item.path))
     .map((item) => ({
       repoId,
       revision,
@@ -143,8 +160,8 @@ export const downloadHubModelFile = async (
   onProgress: (event: { downloaded: number; total?: number }) => void,
   deps: ModelDownloadDeps = productionDeps
 ): Promise<LocalModel> => {
-  if (!validRepoId(file.repoId) || !/^[\w.-]+$/.test(file.revision) || !file.path.toLowerCase().endsWith('.gguf') || /-\d{5}-of-\d{5}\.gguf$/i.test(file.path) || /mmproj/i.test(file.path) || file.path.split('/').some((part) => !part || part === '.' || part === '..' || part.includes('\\') || part.includes('\0'))) {
-    throw new Error('Only public single-file GGUF downloads are supported')
+  if (!validRepoId(file.repoId) || !/^[\w.-]+$/.test(file.revision) || !isStandaloneGGUFPath(file.path) || file.path.split('/').some((part) => !part || part === '.' || part === '..' || part.includes('\\') || part.includes('\0'))) {
+    throw new Error('Only public single-file standalone GGUF model downloads are supported')
   }
   const safeOperationId = operationId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64) || 'download'
   const fileName = basename(file.path)

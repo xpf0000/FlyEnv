@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto'
-import { chmod, mkdir, realpath, stat, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
 import { isIP } from 'node:net'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { spawn } from 'node:child_process'
 import type { SoftInstalled } from '@shared/app'
 import type { LaunchProfile, LocalModel, RuntimeVariant, ServerInvocation, ValidatedLaunchProfile } from '../shared/types'
+import { isStandaloneGGUFPath } from '../shared/modelFile'
 
 const isLoopback = (host: string) => host === 'localhost' || host === '127.0.0.1' || host === '::1'
 export const formatUrlHost = (host: string) => host.includes(':') && !host.startsWith('[') ? `[${host}]` : host
@@ -51,6 +52,7 @@ export const assertInvocationSupported = (helpText: string, args: string[]): voi
 
 export const validateManagedModelPath = async (modelPath: string, modelsRoot: string): Promise<string> => {
   if (!modelPath || !modelPath.toLowerCase().endsWith('.gguf')) throw new Error('Select a local GGUF model file')
+  if (!isStandaloneGGUFPath(modelPath)) throw new Error('Select a standalone GGUF model; auxiliary files cannot start llama-server')
   const root = await realpath(resolve(modelsRoot))
   const model = await realpath(resolve(modelPath))
   const info = await stat(model)
@@ -126,6 +128,33 @@ export const assertServerStopped = (stoppedPids: string[], runningPids: string[]
   if (remaining.length || pidFileExists) {
     const suffix = remaining.length ? `; process(es) still running: ${remaining.join(', ')}` : '; PID file remains'
     throw new Error(`llama-server cleanup did not complete${suffix}`)
+  }
+}
+
+export const waitForServerStopped = async (
+  stoppedPids: string[],
+  listRunningPids: () => Promise<string[]>,
+  pidPath: string,
+  options: { timeoutMs?: number; intervalMs?: number } = {}
+): Promise<void> => {
+  const pidFileContent = pidPath ? await readFile(pidPath, 'utf8').catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return ''
+    throw error
+  }) : ''
+  const trackedPids = Array.from(new Set([...stoppedPids, pidFileContent.split(/\r?\n/)[0].trim()].filter(Boolean)))
+  const deadline = Date.now() + (options.timeoutMs ?? 10_000)
+  while (true) {
+    const runningPids = await listRunningPids()
+    if (!trackedPids.some((pid) => runningPids.includes(pid))) {
+      if (pidPath) await rm(pidPath, { force: true })
+      assertServerStopped(trackedPids, runningPids, false)
+      return
+    }
+    if (Date.now() >= deadline) {
+      assertServerStopped(trackedPids, runningPids, !!pidPath)
+      throw new Error('llama-server did not stop in time')
+    }
+    await delay(Math.min(options.intervalMs ?? 200, Math.max(1, deadline - Date.now())))
   }
 }
 

@@ -14,7 +14,7 @@ import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import { AppLog } from '@fork/Fn'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import type { PItem } from '@shared/Process'
-import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, validateManagedModelPath, variantFromInstalled, waitForServerHealth } from '../config'
+import { assertInvocationSupported, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, validateManagedModelPath, variantFromInstalled, waitForServerHealth, waitForServerStopped } from '../config'
 import type { LaunchProfile, LocalModel } from '../../shared/types'
 
 export interface LlamaCppDeps {
@@ -229,6 +229,7 @@ export class LlamaCppModule extends Base {
   }
 
   _stopServer(version: SoftInstalled, ...args: unknown[]) {
+    this.pidPath = join(global.Server.BaseDir!, 'llama-cpp', 'llama-server.pid')
     const stopping = super._stopServer(version, ...args)
     return new ForkPromise(async (resolve, reject, on) => {
       try {
@@ -237,8 +238,7 @@ export class LlamaCppModule extends Base {
           on(data)
         })
         const stoppedPids = (result?.['APP-Service-Stop-PID'] ?? []).map((pid: string | number) => `${pid}`)
-        const runningProcesses = await StopProcessListFetch()
-        assertServerStopped(stoppedPids, runningProcesses.map((process) => `${process.PID}`), !!this.pidPath && existsSync(this.pidPath))
+        await waitForServerStopped(stoppedPids, async () => (await StopProcessListFetch()).map((process) => `${process.PID}`), this.pidPath)
         this.activeRuntime = undefined
         on({ 'APP-Service-Stop-Success': true })
         resolve(result)

@@ -28,7 +28,7 @@
                     @change="selectModel"
                   >
                     <el-option
-                      v-for="model in LlamaCppManager.localModels"
+                      v-for="model in selectableModels"
                       :key="model.localPath"
                       :label="model.path"
                       :value="model.localPath"
@@ -59,6 +59,7 @@
   import { AppModuleSetup } from '@/core/Module'
   import { LlamaCppT } from './lang'
   import { LlamaCppManager } from './controller'
+  import { isStandaloneGGUFPath } from '../shared/modelFile'
   import ModelsView from './models/Index.vue'
   import RuntimeView from './runtime/Index.vue'
   import SettingsView from './settings/Index.vue'
@@ -85,6 +86,11 @@
       `http://${LlamaCppManager.profile.host.includes(':') ? `[${LlamaCppManager.profile.host}]` : LlamaCppManager.profile.host}:${LlamaCppManager.profile.port}/v1`
   )
   const currentVersion = computed(() => BrewStore().currentVersion('llama-cpp'))
+  const selectableModels = computed(() =>
+    LlamaCppManager.localModels.filter(
+      (model) => isStandaloneGGUFPath(model.path) && isStandaloneGGUFPath(model.localPath)
+    )
+  )
   const modelSwitchBusy = computed(
     () =>
       !!LlamaCppManager.modelSwitchOperation &&

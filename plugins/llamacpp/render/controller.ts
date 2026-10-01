@@ -8,6 +8,7 @@ import type {
   RuntimeVariant
 } from '../shared/types'
 import { runtimeIdentityKey } from '../shared/runtime'
+import { isStandaloneGGUFPath } from '../shared/modelFile'
 import { escapeNoticeText } from './notice'
 
 export interface OperationState {
@@ -119,6 +120,9 @@ type HubCatalog = { pages: Record<string, HubModel[]>; files: Record<string, Hub
 export const modelFileKey = (file: Pick<HubModelFile, 'repoId' | 'revision' | 'path'>) =>
   JSON.stringify([file.repoId, file.revision, file.path])
 
+const isRunnableLocalModel = (model: LocalModel) =>
+  isStandaloneGGUFPath(model.path) && isStandaloneGGUFPath(model.localPath)
+
 export class LlamaCppController {
   runtimeOperation?: OperationState
   modelOperation?: OperationState
@@ -164,8 +168,19 @@ export class LlamaCppController {
         StorageRemoveAsync(hubCatalogKey)
       ])
       if (saved?.profile) this.profile = { ...this.profile, ...saved.profile }
-      if (saved?.selectedModel) this.selectedModel = saved.selectedModel
       this.localModels = Array.isArray(models) ? models : []
+      if (saved?.selectedModel) {
+        this.selectedModel = isRunnableLocalModel(saved.selectedModel)
+          ? saved.selectedModel
+          : this.localModels.find(isRunnableLocalModel)
+        if (!isRunnableLocalModel(saved.selectedModel)) {
+          this.profile.modelPath = this.selectedModel?.localPath ?? ''
+          await StorageSetAsync(
+            settingsKey,
+            storageSnapshot({ profile: this.profile, selectedModel: this.selectedModel })
+          )
+        }
+      }
       this.initialized = true
     })().finally(() => {
       this.initRequest = undefined
@@ -255,6 +270,7 @@ export class LlamaCppController {
   }
 
   async selectModel(model: LocalModel) {
+    if (!isRunnableLocalModel(model)) throw new Error('Select a standalone GGUF model')
     this.selectedModel = model
     this.profile.modelPath = model.localPath
     await StorageSetAsync(
@@ -267,6 +283,7 @@ export class LlamaCppController {
     await this.init()
     const model = this.selectedModel
     if (!model) throw new Error('Select a local GGUF model before starting llama.cpp')
+    if (!isRunnableLocalModel(model)) throw new Error('Select a standalone GGUF model before starting llama.cpp')
     this.profile.modelPath = model.localPath
     this.profile.backend = backend as LaunchProfile['backend']
     await this.saveProfile()
@@ -479,7 +496,7 @@ export class LlamaCppController {
     this.localModels = this.localModels.filter((item) => item.localPath !== model.localPath)
     await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
     if (this.selectedModel?.localPath === model.localPath) {
-      this.selectedModel = this.localModels[0]
+      this.selectedModel = this.localModels.find(isRunnableLocalModel)
       this.profile.modelPath = this.selectedModel?.localPath ?? ''
       await StorageSetAsync(
         settingsKey,

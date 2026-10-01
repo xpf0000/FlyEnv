@@ -11,7 +11,7 @@ import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInst
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
 import { createModelDownloadDeps, deleteLocalModel, downloadHubModelFile, formatHubRequestError, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModel, HubModelFile } from '../plugins/llamacpp/shared/types'
-import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, readServerHelp, validateLaunchProfile, validateManagedModelPath, waitForServerHealth } from '../plugins/llamacpp/fork/config'
+import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, readServerHelp, validateLaunchProfile, validateManagedModelPath, waitForServerHealth, waitForServerStopped } from '../plugins/llamacpp/fork/config'
 import { LlamaCppModule, isManagedModelActive } from '../plugins/llamacpp/fork/LlamaCpp'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
 import { createControllerTransport, LlamaCppController, LlamaCppManager, modelFileKey, type ControllerTransport, type ModelService } from '../plugins/llamacpp/render/controller'
@@ -262,11 +262,19 @@ const testHubModelCatalogLoadsPopularGGUFModelsWithoutQuery = async () => {
 }
 
 const testHubFileMetadata = async () => {
-  const fixture = fakeModelDeps({ payload: [{ type: 'file', path: 'Q4/model.gguf', size: 10, lfs: { size: 10, oid: 'a'.repeat(64) } }, { type: 'file', path: 'README.md', size: 2 }] })
+  const fixture = fakeModelDeps({ payload: [{ type: 'file', path: 'Q4/model.gguf', size: 10, lfs: { size: 10, oid: 'a'.repeat(64) } }, { type: 'file', path: 'Q4/model-imatrix-Q4_K_M.gguf', size: 10 }, { type: 'file', path: 'imatrix_unsloth.gguf', size: 2 }, { type: 'file', path: 'MTP/mtp-model.gguf', size: 10 }, { type: 'file', path: 'README.md', size: 2 }] })
   const files = await getHubModelFiles('org/model', 'main', fixture.deps)
-  assert.equal(files.length, 1)
+  assert.equal(files.length, 2)
   assert.equal(files[0].sha256, 'a'.repeat(64))
   assert.match(files[0].downloadUrl, /org\/model\/resolve\/main\/Q4\/model.gguf/)
+}
+
+const testAuxiliaryGGUFDownloadIsRejected = async () => {
+  const fixture = fakeModelDeps()
+  for (const path of ['imatrix_unsloth.gguf', 'MTP/mtp-model.gguf']) {
+    const file: HubModelFile = { repoId: 'org/model', revision: 'main', path, size: 10, downloadUrl: 'https://example.test/model' }
+    await assert.rejects(downloadHubModelFile('aux', file, '/models', new AbortController().signal, () => {}, fixture.deps), /standalone GGUF model/i)
+  }
 }
 
 const testModelDownloadDigestAndAtomicRename = async () => {
@@ -372,6 +380,27 @@ const testStopVerificationRejectsRemainingProcessesAndPidFiles = () => {
   assert.throws(() => assertServerStopped([], [], true), /PID file remains/)
 }
 
+const testStopWaitsForExitBeforeRemovingManagedPidFile = async () => {
+  const fs = await import('node:fs/promises')
+  const os = await import('node:os')
+  const path = await import('node:path')
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'llama-stop-'))
+  const pidFile = path.join(root, 'llama-server.pid')
+  try {
+    await fs.writeFile(pidFile, '321')
+    let checks = 0
+    await waitForServerStopped(['321'], async () => (++checks < 3 ? ['321'] : []), pidFile, { timeoutMs: 100, intervalMs: 1 })
+    assert.equal(checks, 3)
+    await assert.rejects(fs.access(pidFile), /ENOENT/)
+
+    await fs.writeFile(pidFile, '321')
+    await assert.rejects(waitForServerStopped(['321'], async () => ['321'], pidFile, { timeoutMs: 5, intervalMs: 1 }), /still running/)
+    await fs.access(pidFile)
+  } finally {
+    await fs.rm(root, { recursive: true, force: true })
+  }
+}
+
 const testManagedModelPathConfinement = async () => {
   const fs = await import('node:fs/promises')
   const os = await import('node:os')
@@ -387,6 +416,11 @@ const testManagedModelPathConfinement = async () => {
     await assert.rejects(validateManagedModelPath(externalModel, root), /inside the managed models directory/)
     await fs.symlink(externalModel, path.join(root, 'linked.gguf'))
     await assert.rejects(validateManagedModelPath(path.join(root, 'linked.gguf'), root), /inside the managed models directory/)
+    for (const name of ['imatrix_unsloth.gguf', 'mtp-model.gguf']) {
+      const auxiliary = path.join(root, name)
+      await fs.writeFile(auxiliary, 'auxiliary')
+      await assert.rejects(validateManagedModelPath(auxiliary, root), /standalone GGUF model/i)
+    }
   } finally {
     await fs.rm(root, { recursive: true, force: true })
     await fs.rm(outside, { recursive: true, force: true })
@@ -649,6 +683,39 @@ const testFirstDownloadSelectsModelAndDeleteMovesSelection = async () => {
   }
 }
 
+const testAuxiliaryLocalModelCannotBecomeCurrent = async () => {
+  const originalGetItem = localForage.getItem
+  const originalSetItem = localForage.setItem
+  const originalRemoveItem = localForage.removeItem
+  const auxiliary = { repoId: 'org/model', revision: 'main', path: 'imatrix_unsloth.gguf', size: 10, downloadUrl: 'https://example.test/aux', localPath: '/data/imatrix_unsloth.gguf', downloadedAt: 1 }
+  const runnable = { ...auxiliary, path: 'model-Q4_K_M.gguf', localPath: '/data/model-Q4_K_M.gguf' }
+  const saved = new Map<string, any>([
+    ['flyenv-llama-cpp-settings', { data: { profile: { modelPath: auxiliary.localPath }, selectedModel: auxiliary } }],
+    ['flyenv-llama-cpp-models', { data: [auxiliary, runnable] }]
+  ])
+  localForage.getItem = async (key) => saved.get(key)
+  localForage.setItem = async (key, value) => { saved.set(key, value); return value }
+  localForage.removeItem = async (key) => { saved.delete(key) }
+  try {
+    const controller = new LlamaCppController({ request: async (method) => {
+      if (method === 'deleteLocalModel') return undefined
+      throw new Error(`Unexpected ${method}`)
+    } } as ControllerTransport)
+    await controller.init()
+    assert.equal(controller.selectedModel?.localPath, runnable.localPath)
+    assert.equal(controller.profile.modelPath, runnable.localPath)
+    assert.equal(saved.get('flyenv-llama-cpp-settings')?.data.selectedModel.localPath, runnable.localPath)
+    await assert.rejects(controller.selectModel(auxiliary), /standalone GGUF model/i)
+    await controller.deleteModel(runnable)
+    assert.equal(controller.selectedModel, undefined)
+    assert.equal(controller.localModels.length, 1)
+  } finally {
+    localForage.getItem = originalGetItem
+    localForage.setItem = originalSetItem
+    localForage.removeItem = originalRemoveItem
+  }
+}
+
 const testStartArgumentsAreCloneable = async () => {
   const originalSetItem = localForage.setItem
   localForage.setItem = async (_key, value) => { structuredClone(value); return value }
@@ -746,6 +813,52 @@ const testHubRequestUsesFlyEnvProxy = async () => {
   } finally {
     ;(axios as any).get = originalGet
     global.Server = originalServer
+  }
+}
+
+const testHubCatalogRetriesTransientTlsDisconnect = async () => {
+  const originalGet = axios.get
+  const originalServer = global.Server
+  let calls = 0
+  try {
+    global.Server = { ...originalServer, Proxy: { https_proxy: 'http://127.0.0.1:17891' } } as typeof global.Server
+    ;(axios as any).get = async () => {
+      calls++
+      if (calls === 1) throw Object.assign(new Error('Client network socket disconnected before secure TLS connection was established'), { code: 'ECONNRESET' })
+      return { data: [{ id: 'org/model-GGUF' }] }
+    }
+    assert.equal((await searchHubModels(''))[0].id, 'org/model-GGUF')
+    assert.equal(calls, 2)
+  } finally {
+    ;(axios as any).get = originalGet
+    global.Server = originalServer
+  }
+}
+
+const testHubDownloadRetriesTransientTlsDisconnect = async () => {
+  const originalGet = axios.get
+  const originalServer = global.Server
+  const fs = await import('node:fs/promises')
+  const os = await import('node:os')
+  const path = await import('node:path')
+  const { Readable } = await import('node:stream')
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'llama-retry-'))
+  let calls = 0
+  try {
+    global.Server = { ...originalServer, Proxy: { https_proxy: 'http://127.0.0.1:17891' } } as typeof global.Server
+    ;(axios as any).get = async () => {
+      calls++
+      if (calls === 1) throw Object.assign(new Error('Client network socket disconnected before secure TLS connection was established'), { code: 'ECONNRESET' })
+      return { data: Readable.from([Buffer.from('ok')]), headers: { 'content-length': '2' } }
+    }
+    const target = path.join(root, 'model.gguf')
+    await createModelDownloadDeps().download('https://huggingface.co/org/model/resolve/main/model.gguf', target, new AbortController().signal, () => {})
+    assert.equal(await fs.readFile(target, 'utf8'), 'ok')
+    assert.equal(calls, 2)
+  } finally {
+    ;(axios as any).get = originalGet
+    global.Server = originalServer
+    await fs.rm(root, { recursive: true, force: true })
   }
 }
 
@@ -1063,6 +1176,7 @@ void (async () => {
   await testHubSearchAnonymousPaginationAnd429()
   await testHubModelCatalogLoadsPopularGGUFModelsWithoutQuery()
   await testHubFileMetadata()
+  await testAuxiliaryGGUFDownloadIsRejected()
   await testModelDownloadDigestAndAtomicRename()
   await testModelDownloadFailureCleansPartial()
   await testModelDeleteRejectsOutsideRoot()
@@ -1076,6 +1190,7 @@ void (async () => {
   await testHealthTimeoutCleansProcess()
   await testHealthTimeoutReportsCleanupFailureWithoutClaimingStopped()
   testStopVerificationRejectsRemainingProcessesAndPidFiles()
+  await testStopWaitsForExitBeforeRemovingManagedPidFile()
   await testManagedModelPathConfinement()
   await testActiveRuntimeMustStopBeforeMutation()
   testManagedServerSurvivesForkRestartForDeletionGuard()
@@ -1089,10 +1204,13 @@ void (async () => {
   await testTerminalEventAllowsRetry()
   await testControllerPersistsPlainSnapshotsFromReactiveState()
   await testFirstDownloadSelectsModelAndDeleteMovesSelection()
+  await testAuxiliaryLocalModelCannotBecomeCurrent()
   await testStartArgumentsAreCloneable()
   await testModelSwitchLifecycle()
   testHubRequestErrorReportsProxyState()
   await testHubRequestUsesFlyEnvProxy()
+  await testHubCatalogRetriesTransientTlsDisconnect()
+  await testHubDownloadRetriesTransientTlsDisconnect()
   await testHubDownloadReportsProxyFailureAndPreservesCancellation()
   await testControllerTransportCleansListenerAtTerminal()
   await testRuntimeCatalogCacheRequiresExplicitRefresh()
