@@ -11,7 +11,7 @@ import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInst
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
 import { createModelDownloadDeps, deleteLocalModel, downloadHubModelFile, formatHubRequestError, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModel, HubModelFile } from '../plugins/llamacpp/shared/types'
-import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, validateLaunchProfile, validateManagedModelPath, waitForServerHealth } from '../plugins/llamacpp/fork/config'
+import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, readServerHelp, validateLaunchProfile, validateManagedModelPath, waitForServerHealth } from '../plugins/llamacpp/fork/config'
 import { LlamaCppModule, isManagedModelActive } from '../plugins/llamacpp/fork/LlamaCpp'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
 import { createControllerTransport, LlamaCppController, LlamaCppManager, modelFileKey, type ControllerTransport, type ModelService } from '../plugins/llamacpp/render/controller'
@@ -341,6 +341,22 @@ const testHealthTimeoutCleansProcess = async () => {
   let cleaned = false
   await assert.rejects(waitForServerHealth(async () => false, async () => { cleaned = true }, { timeoutMs: 5, intervalMs: 1 }), /health check timed out/)
   assert.equal(cleaned, true)
+}
+
+const testColdServerHelpCanTakeLongerThanTenSeconds = async () => {
+  if (process.platform === 'win32') return
+  const fs = await import('node:fs/promises')
+  const os = await import('node:os')
+  const path = await import('node:path')
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'llama-help-'))
+  try {
+    const bin = path.join(root, 'slow-llama-server')
+    await fs.writeFile(bin, '#!/usr/bin/env node\nsetTimeout(() => console.log("--model --host --port"), 10_500)\n', { mode: 0o700 })
+    assert.match(await readServerHelp(bin), /--model --host --port/)
+    await assert.rejects(readServerHelp(bin, 20), /Timed out while checking llama-server options/)
+  } finally {
+    await fs.rm(root, { recursive: true, force: true })
+  }
 }
 
 const testHealthTimeoutReportsCleanupFailureWithoutClaimingStopped = async () => {
@@ -1056,6 +1072,7 @@ void (async () => {
   testLoopbackDoesNotRequireApiKey()
   testNonLoopbackRequiresApiKeyFile()
   await testApiKeyNeverAppearsInArgsOrLogs()
+  await testColdServerHelpCanTakeLongerThanTenSeconds()
   await testHealthTimeoutCleansProcess()
   await testHealthTimeoutReportsCleanupFailureWithoutClaimingStopped()
   testStopVerificationRejectsRemainingProcessesAndPidFiles()

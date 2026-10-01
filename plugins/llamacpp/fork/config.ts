@@ -61,7 +61,7 @@ export const validateManagedModelPath = async (modelPath: string, modelsRoot: st
   return model
 }
 
-export const readServerHelp = (bin: string, timeoutMs = 10_000): Promise<string> => new Promise((resolveHelp, reject) => {
+export const readServerHelp = (bin: string, timeoutMs = 30_000): Promise<string> => new Promise((resolveHelp, reject) => {
   const child = spawn(bin, ['--help'], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
   let output = ''
   const timer = setTimeout(() => {
