@@ -86,7 +86,7 @@
 </template>
 
 <script lang="tsx" setup>
-  import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+  import { computed, onMounted, onUnmounted, reactive, toRefs } from 'vue'
   import { Download, Delete, Close } from '@element-plus/icons-vue'
   import { ElButton, ElMessageBox, ElProgress, ElTag, ElTooltip, type Column } from 'element-plus'
   import { I18nT } from '@lang/index'
@@ -119,18 +119,10 @@
     if (row.local) return !isGGUFShardPath(row.local.path) && (row.local.standalone ?? isStandaloneGGUFPath(row.local.path, row.local.repoId))
     return !!row.file && isStandaloneGGUFPath(row.file.path, row.file.repoId)
   }
-  const activeTab = ref<'library' | 'local'>('local')
-  const query = ref('')
-  const results = ref<HubModel[]>([])
-  const files = ref<Record<string, HubModelFile[]>>({})
-  const expandedRowKeys = ref<string[]>([])
-  const loadingRepos = new Set<string>()
-  const searching = ref(false)
-  const page = ref(0)
+  const { activeTab, query, results, files, expandedRowKeys, searching, page } = toRefs(LlamaCppManager.modelView)
   const hardware = reactive<ModelHardware>({ ramGB: 0, vramGB: 0, loaded: false })
   let hardwareRequestKey = ''
   let mounted = true
-  let generation = 0
   const modelBusy = computed(
     () =>
       !!LlamaCppManager.modelOperation &&
@@ -219,42 +211,16 @@
     }
   }
   const search = async (targetPage = 0, refresh = false) => {
-    if (searching.value) return
-    const requestGeneration = ++generation
-    searching.value = true
     try {
-      const listed = await LlamaCppManager.searchHubModels(query.value, targetPage, refresh)
-      if (requestGeneration !== generation) return
-      results.value = listed
-      page.value = targetPage
-      files.value = {}
-      expandedRowKeys.value = []
-      loadingRepos.clear()
+      await LlamaCppManager.searchModelLibrary(targetPage, refresh)
     } catch (e) {
-      if (requestGeneration === generation) showError(e)
-    } finally {
-      if (requestGeneration === generation) searching.value = false
+      if (mounted) showError(e)
     }
   }
   const onExpandedRowsChange = (keys: string[]) => {
-    expandedRowKeys.value = keys
-    for (const key of keys) {
-      const model = results.value.find((item) => item.id === key)
-      if (!model || files.value[key] || loadingRepos.has(key)) continue
-      loadingRepos.add(key)
-      const requestGeneration = generation
-      LlamaCppManager.getHubModelFiles(model.id)
-        .then((listed) => {
-          if (requestGeneration === generation)
-            files.value[key] = listed.map((file) => ({ ...file, license: model.license }))
-        })
-        .catch((e) => {
-          if (requestGeneration === generation) showError(e)
-        })
-        .finally(() => {
-          if (requestGeneration === generation) loadingRepos.delete(key)
-        })
-    }
+    LlamaCppManager.setExpandedModelRepos(keys).catch((error) => {
+      if (mounted) showError(error)
+    })
   }
   const columns = computed<Column<ModelRow>[]>(() => [
     {
@@ -420,11 +386,12 @@
         Object.assign(hardware, modelHardwareFromReport(response.data))
     })
     await LlamaCppManager.init()
-    if (mounted) await search(0)
+    if (mounted) await LlamaCppManager.ensureModelLibrary().catch((error) => {
+      if (mounted) showError(error)
+    })
   })
   onUnmounted(() => {
     mounted = false
-    generation++
     if (hardwareRequestKey) IPC.off(hardwareRequestKey)
   })
 </script>

@@ -116,6 +116,17 @@ const runtimeVariantsKey = 'flyenv-llama-cpp-runtime-variants'
 const hubCatalogKey = 'flyenv-llama-cpp-hub-catalog'
 type RuntimeChannel = 'stable' | 'prerelease'
 type HubCatalog = { pages: Record<string, HubModel[]>; files: Record<string, HubModelFile[]> }
+type ModelViewState = {
+  activeTab: 'local' | 'library'
+  query: string
+  page: number
+  results: HubModel[]
+  files: Record<string, HubModelFile[]>
+  expandedRowKeys: string[]
+  searching: boolean
+  loaded: boolean
+  error: string
+}
 
 export const modelFileKey = (file: Pick<HubModelFile, 'repoId' | 'revision' | 'path'>) =>
   JSON.stringify([file.repoId, file.revision, file.path])
@@ -139,6 +150,10 @@ export class LlamaCppController {
   }
   selectedModel?: LocalModel
   localModels: LocalModel[] = []
+  modelView: ModelViewState = {
+    activeTab: 'local', query: '', page: 0, results: [], files: {},
+    expandedRowKeys: [], searching: false, loaded: false, error: ''
+  }
   private runtimeVariants: Partial<Record<RuntimeChannel, RuntimeVariant[]>> = {}
   private runtimeRequests: Partial<Record<RuntimeChannel, Promise<RuntimeVariant[]>>> = {}
   private hubCatalog: HubCatalog = { pages: {}, files: {} }
@@ -146,6 +161,10 @@ export class LlamaCppController {
   private hubFileRequests: Partial<Record<string, Promise<HubModelFile[]>>> = {}
   private hubPagesGeneration = 0
   private hubFilesGeneration = 0
+  private modelViewGeneration = 0
+  private modelLibraryGeneration = 0
+  private modelLibraryRequest?: { key: string; promise: Promise<HubModel[]> }
+  private modelViewFileRequests: Partial<Record<string, Promise<void>>> = {}
   private initialized = false
   private initRequest?: Promise<void>
 
@@ -255,6 +274,70 @@ export class LlamaCppController {
       })
     this.hubFileRequests[key] = request
     return request
+  }
+
+  ensureModelLibrary() {
+    if (this.modelLibraryRequest) return this.modelLibraryRequest.promise
+    if (this.modelView.loaded) return Promise.resolve(this.modelView.results)
+    return this.searchModelLibrary(this.modelView.page)
+  }
+
+  searchModelLibrary(targetPage = 0, refresh = false) {
+    const key = JSON.stringify([this.modelView.query.trim(), targetPage, refresh])
+    if (this.modelLibraryRequest?.key === key) return this.modelLibraryRequest.promise
+    const generation = ++this.modelLibraryGeneration
+    this.modelView.searching = true
+    this.modelView.error = ''
+    const request = this.searchHubModels(this.modelView.query, targetPage, refresh)
+      .then((listed) => {
+        if (generation !== this.modelLibraryGeneration) return listed
+        this.modelView.results = listed
+        this.modelView.page = targetPage
+        this.modelView.files = {}
+        this.modelView.expandedRowKeys = []
+        this.modelViewFileRequests = {}
+        this.modelView.loaded = true
+        this.modelViewGeneration++
+        return listed
+      })
+      .catch((error) => {
+        if (generation !== this.modelLibraryGeneration) return this.modelView.results
+        this.modelView.error = error instanceof Error ? error.message : `${error}`
+        throw error
+      })
+      .finally(() => {
+        if (generation === this.modelLibraryGeneration) {
+          this.modelLibraryRequest = undefined
+          this.modelView.searching = false
+        }
+      })
+    this.modelLibraryRequest = { key, promise: request }
+    return request
+  }
+
+  setExpandedModelRepos(keys: string[]) {
+    this.modelView.expandedRowKeys = [...keys]
+    const generation = this.modelViewGeneration
+    return Promise.all(keys.map((key) => {
+      const model = this.modelView.results.find((item) => item.id === key)
+      if (!model || this.modelView.files[key]) return Promise.resolve()
+      if (this.modelViewFileRequests[key]) return this.modelViewFileRequests[key]
+      const request = this.getHubModelFiles(model.id)
+        .then((listed) => {
+          if (generation === this.modelViewGeneration)
+            this.modelView.files[key] = listed.map((file) => ({ ...file, license: model.license }))
+        })
+        .catch((error) => {
+          if (generation !== this.modelViewGeneration) return
+          this.modelView.error = error instanceof Error ? error.message : `${error}`
+          throw error
+        })
+        .finally(() => {
+          if (this.modelViewFileRequests[key] === request) delete this.modelViewFileRequests[key]
+        })
+      this.modelViewFileRequests[key] = request
+      return request
+    })).then(() => undefined)
   }
 
   createApiKeyFile(key: string) {

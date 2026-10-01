@@ -1172,6 +1172,102 @@ const testModelCatalogCacheRequiresExplicitRefresh = async () => {
   }
 }
 
+const testModelPageStateSurvivesReentryAndPendingFileLoad = async () => {
+  const originalGetItem = localForage.getItem
+  const originalRemoveItem = localForage.removeItem
+  localForage.getItem = async () => null
+  localForage.removeItem = async () => {}
+  const pendingFiles = deferred<HubModelFile[]>()
+  let searches = 0
+  let fileRequests = 0
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'main.gguf', size: 1, downloadUrl: 'https://example.test/main.gguf' }
+  const controller = new LlamaCppController({ request: async (method) => {
+    if (method === 'searchHubModels') {
+      searches++
+      return [{ id: 'org/model', downloads: 1, likes: 0, license: 'apache-2.0' }]
+    }
+    if (method === 'getHubModelFiles') {
+      fileRequests++
+      return pendingFiles.promise
+    }
+    throw new Error(`Unexpected ${method}`)
+  } } as ControllerTransport)
+  try {
+    controller.modelView.activeTab = 'library'
+    controller.modelView.query = 'qwen'
+    await controller.ensureModelLibrary()
+    assert.equal(searches, 1)
+    assert.equal(controller.modelView.page, 0)
+    assert.equal(controller.modelView.results[0].id, 'org/model')
+    const loading = controller.setExpandedModelRepos(['org/model'])
+    await new Promise((resolve) => setImmediate(resolve))
+    assert.deepEqual(controller.modelView.expandedRowKeys, ['org/model'])
+    await controller.ensureModelLibrary()
+    assert.equal(searches, 1)
+    assert.equal(fileRequests, 1)
+    pendingFiles.resolve([file])
+    await loading
+    assert.equal(controller.modelView.files['org/model'][0].license, 'apache-2.0')
+    assert.equal(controller.modelView.activeTab, 'library')
+    assert.equal(controller.modelView.query, 'qwen')
+    await controller.ensureModelLibrary()
+    assert.deepEqual(controller.modelView.expandedRowKeys, ['org/model'])
+    assert.equal(fileRequests, 1)
+    controller.modelView.query = 'llama'
+    await controller.searchModelLibrary(0)
+    assert.deepEqual(controller.modelView.expandedRowKeys, [])
+    assert.deepEqual(controller.modelView.files, {})
+    await controller.searchModelLibrary(0, true)
+    assert.equal(searches, 3)
+  } finally {
+    localForage.getItem = originalGetItem
+    localForage.removeItem = originalRemoveItem
+  }
+}
+
+const testModelPageIgnoresSupersededSearchAndFileErrors = async () => {
+  const originalGetItem = localForage.getItem
+  const originalRemoveItem = localForage.removeItem
+  localForage.getItem = async () => null
+  localForage.removeItem = async () => {}
+  const firstSearch = deferred<HubModel[]>()
+  const newerSearch = deferred<HubModel[]>()
+  const oldFiles = deferred<HubModelFile[]>()
+  let searchCalls = 0
+  const controller = new LlamaCppController({ request: async (method, args) => {
+    if (method === 'searchHubModels') {
+      searchCalls++
+      return (args[0] === 'first' ? firstSearch : newerSearch).promise
+    }
+    if (method === 'getHubModelFiles') return oldFiles.promise
+    throw new Error(`Unexpected ${method}`)
+  } } as ControllerTransport)
+  try {
+    controller.modelView.query = 'first'
+    const first = controller.searchModelLibrary(0)
+    await new Promise((resolve) => setImmediate(resolve))
+    controller.modelView.query = 'newer'
+    const newer = controller.searchModelLibrary(0)
+    await new Promise((resolve) => setImmediate(resolve))
+    assert.equal(searchCalls, 2)
+    firstSearch.resolve([{ id: 'org/old', downloads: 1, likes: 0 }])
+    await first
+    newerSearch.resolve([{ id: 'org/new', downloads: 1, likes: 0 }])
+    await newer
+    assert.equal(controller.modelView.results[0].id, 'org/new')
+    const expansion = controller.setExpandedModelRepos(['org/new'])
+    await new Promise((resolve) => setImmediate(resolve))
+    await controller.searchModelLibrary(0, true)
+    oldFiles.reject(new Error('old file request failed'))
+    await expansion
+    assert.equal(controller.modelView.error, '')
+    assert.deepEqual(controller.modelView.expandedRowKeys, [])
+  } finally {
+    localForage.getItem = originalGetItem
+    localForage.removeItem = originalRemoveItem
+  }
+}
+
 const testControllerInitializationIsCoalesced = async () => {
   const originalGetItem = localForage.getItem
   const pending = deferred<any>()
@@ -1380,6 +1476,8 @@ void (async () => {
   await testControllerTransportCleansListenerAtTerminal()
   await testRuntimeCatalogCacheRequiresExplicitRefresh()
   await testModelCatalogCacheRequiresExplicitRefresh()
+  await testModelPageStateSurvivesReentryAndPendingFileLoad()
+  await testModelPageIgnoresSupersededSearchAndFileErrors()
   await testControllerInitializationIsCoalesced()
   await testReactiveRuntimeIsCloneableAtIpcBoundary()
   testModelSizeFitsOllamaHardwareRules()
