@@ -16,6 +16,8 @@ import { StopProcessListFetch } from '@shared/StopProcessList'
 import type { PItem } from '@shared/Process'
 import { assertInvocationSupported, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, validateManagedModelPath, variantFromInstalled, waitForServerHealth, waitForServerStopped } from '../config'
 import type { LaunchProfile, LocalModel } from '../../shared/types'
+import { isGGUFShardPath } from '../../shared/modelFile'
+import { isStandaloneGGUFFile } from '../gguf'
 
 export interface LlamaCppDeps {
   getHost(): RuntimeHost | undefined
@@ -252,9 +254,11 @@ export class LlamaCppModule extends Base {
       this.serverStarting = true
       try {
         const validated = validateLaunchProfile(profile, variantFromInstalled(version))
+        if (isGGUFShardPath(model.path)) throw new Error('Select a standalone GGUF model before starting llama.cpp')
         if (validated.apiKeyFile) await validateApiKeyFile(validated.apiKeyFile)
         const modelRoot = join(global.Server.BaseDir!, 'llama-cpp', 'models')
         const managedModelPath = await validateManagedModelPath(model.localPath, modelRoot)
+        if (!await isStandaloneGGUFFile(managedModelPath)) throw new Error('Select a standalone GGUF model before starting llama.cpp')
         const managedModel = { ...model, localPath: managedModelPath }
         const managedProfile = { ...validated, modelPath: managedModelPath }
         const invocation = buildServerInvocation(managedProfile, version, managedModel)

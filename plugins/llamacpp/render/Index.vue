@@ -59,7 +59,7 @@
   import { AppModuleSetup } from '@/core/Module'
   import { LlamaCppT } from './lang'
   import { LlamaCppManager } from './controller'
-  import { isStandaloneGGUFPath } from '../shared/modelFile'
+  import { isGGUFShardPath, isStandaloneGGUFPath } from '../shared/modelFile'
   import ModelsView from './models/Index.vue'
   import RuntimeView from './runtime/Index.vue'
   import SettingsView from './settings/Index.vue'
@@ -88,7 +88,7 @@
   const currentVersion = computed(() => BrewStore().currentVersion('llama-cpp'))
   const selectableModels = computed(() =>
     LlamaCppManager.localModels.filter(
-      (model) => isStandaloneGGUFPath(model.path) && isStandaloneGGUFPath(model.localPath)
+      (model) => !isGGUFShardPath(model.path) && (model.standalone ?? isStandaloneGGUFPath(model.path, model.repoId))
     )
   )
   const modelSwitchBusy = computed(

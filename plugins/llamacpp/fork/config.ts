@@ -6,7 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { spawn } from 'node:child_process'
 import type { SoftInstalled } from '@shared/app'
 import type { LaunchProfile, LocalModel, RuntimeVariant, ServerInvocation, ValidatedLaunchProfile } from '../shared/types'
-import { isStandaloneGGUFPath } from '../shared/modelFile'
+import { isGGUFShardPath } from '../shared/modelFile'
 
 const isLoopback = (host: string) => host === 'localhost' || host === '127.0.0.1' || host === '::1'
 export const formatUrlHost = (host: string) => host.includes(':') && !host.startsWith('[') ? `[${host}]` : host
@@ -52,7 +52,7 @@ export const assertInvocationSupported = (helpText: string, args: string[]): voi
 
 export const validateManagedModelPath = async (modelPath: string, modelsRoot: string): Promise<string> => {
   if (!modelPath || !modelPath.toLowerCase().endsWith('.gguf')) throw new Error('Select a local GGUF model file')
-  if (!isStandaloneGGUFPath(modelPath)) throw new Error('Select a standalone GGUF model; auxiliary files cannot start llama-server')
+  if (isGGUFShardPath(modelPath)) throw new Error('Select a standalone GGUF model; split files cannot start llama-server alone')
   const root = await realpath(resolve(modelsRoot))
   const model = await realpath(resolve(modelPath))
   const info = await stat(model)

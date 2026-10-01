@@ -11,6 +11,8 @@ import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInst
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
 import { createModelDownloadDeps, deleteLocalModel, downloadHubModelFile, formatHubRequestError, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModel, HubModelFile } from '../plugins/llamacpp/shared/types'
+import { isStandaloneGGUFPath } from '../plugins/llamacpp/shared/modelFile'
+import { isStandaloneGGUFFile } from '../plugins/llamacpp/fork/gguf'
 import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, readServerHelp, validateLaunchProfile, validateManagedModelPath, waitForServerHealth, waitForServerStopped } from '../plugins/llamacpp/fork/config'
 import { LlamaCppModule, isManagedModelActive } from '../plugins/llamacpp/fork/LlamaCpp'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
@@ -206,7 +208,7 @@ const testRuntimeRejectsMissingOrMismatchedCudaCompanion = () => {
   }), /runtime identity/)
 }
 
-const fakeModelDeps = (config: { payload?: unknown; bytes?: string; digest?: string; failDownload?: boolean } = {}) => {
+const fakeModelDeps = (config: { payload?: unknown; bytes?: string; digest?: string; failDownload?: boolean; standalone?: boolean } = {}) => {
   const files = new Map<string, string>()
   let requestedUrl = ''
   const deps: ModelDownloadDeps = {
@@ -215,6 +217,7 @@ const fakeModelDeps = (config: { payload?: unknown; bytes?: string; digest?: str
       return config.payload ?? []
     },
     mkdir: async () => {},
+    realPath: async (path) => path,
     download: async (url, target, signal, progress) => {
       requestedUrl = url
       if (config.failDownload || signal.aborted) throw new Error('aborted')
@@ -227,7 +230,8 @@ const fakeModelDeps = (config: { payload?: unknown; bytes?: string; digest?: str
     size: async (path) => files.get(path)?.length ?? 0,
     rename: async (from, to) => { const value = files.get(from); if (value !== undefined) { files.delete(from); files.set(to, value) } },
     remove: async (path) => { files.delete(path) },
-    write: async (path, content) => { files.set(path, content) }
+    write: async (path, content) => { files.set(path, content) },
+    inspect: async () => config.standalone ?? true
   }
   return { deps, files, get requestedUrl() { return requestedUrl } }
 }
@@ -262,18 +266,83 @@ const testHubModelCatalogLoadsPopularGGUFModelsWithoutQuery = async () => {
 }
 
 const testHubFileMetadata = async () => {
-  const fixture = fakeModelDeps({ payload: [{ type: 'file', path: 'Q4/model.gguf', size: 10, lfs: { size: 10, oid: 'a'.repeat(64) } }, { type: 'file', path: 'Q4/model-imatrix-Q4_K_M.gguf', size: 10 }, { type: 'file', path: 'imatrix_unsloth.gguf', size: 2 }, { type: 'file', path: 'MTP/mtp-model.gguf', size: 10 }, { type: 'file', path: 'README.md', size: 2 }] })
+  const fixture = fakeModelDeps({ payload: [{ type: 'file', path: 'Q4/model.gguf', size: 10, lfs: { size: 10, oid: 'a'.repeat(64) } }, { type: 'file', path: 'Q4/model-imatrix-Q4_K_M.gguf', size: 10 }, { type: 'file', path: 'imatrix_unsloth.gguf', size: 2 }, { type: 'file', path: 'MTP/mtp-model.gguf', size: 10 }, { type: 'file', path: 'mmproj-F16.gguf', size: 10 }, { type: 'file', path: 'model-00001-of-00002.gguf', size: 10 }, { type: 'file', path: 'README.md', size: 2 }] })
   const files = await getHubModelFiles('org/model', 'main', fixture.deps)
-  assert.equal(files.length, 2)
+  assert.deepEqual(files.map((file) => file.path), ['Q4/model.gguf', 'Q4/model-imatrix-Q4_K_M.gguf', 'imatrix_unsloth.gguf', 'MTP/mtp-model.gguf', 'mmproj-F16.gguf', 'model-00001-of-00002.gguf'])
   assert.equal(files[0].sha256, 'a'.repeat(64))
   assert.match(files[0].downloadUrl, /org\/model\/resolve\/main\/Q4\/model.gguf/)
 }
 
-const testAuxiliaryGGUFDownloadIsRejected = async () => {
+const testHubFileListingFollowsPagination = async () => {
   const fixture = fakeModelDeps()
-  for (const path of ['imatrix_unsloth.gguf', 'MTP/mtp-model.gguf']) {
+  const urls: string[] = []
+  fixture.deps.requestJson = async (url) => {
+    urls.push(url)
+    return urls.length === 1
+      ? { items: [{ type: 'file', path: 'first.gguf', size: 10 }], next: 'https://huggingface.co/api/models/org/model/tree/main?recursive=true&cursor=next' }
+      : { items: [{ type: 'file', path: 'second.gguf', size: 20 }], next: undefined }
+  }
+  assert.deepEqual((await getHubModelFiles('org/model', 'main', fixture.deps)).map((file) => file.path), ['first.gguf', 'second.gguf'])
+  assert.equal(urls.length, 2)
+}
+
+const testSupportingGGUFDownloadIsAllowedButUnsafePathsAreRejected = async () => {
+  const fixture = fakeModelDeps({ bytes: 'model-data' })
+  for (const path of ['imatrix_unsloth.gguf', 'MTP/mtp-model.gguf', 'mmproj-F16.gguf', 'model-00001-of-00002.gguf']) {
     const file: HubModelFile = { repoId: 'org/model', revision: 'main', path, size: 10, downloadUrl: 'https://example.test/model' }
-    await assert.rejects(downloadHubModelFile('aux', file, '/models', new AbortController().signal, () => {}, fixture.deps), /standalone GGUF model/i)
+    const local = await downloadHubModelFile(`file-${path}`, file, '/models', new AbortController().signal, () => {}, fixture.deps)
+    assert.equal(local.path, path)
+    assert.equal(fixture.files.has(local.localPath), true)
+  }
+  for (const path of ['README.md', '../outside.gguf']) {
+    const file: HubModelFile = { repoId: 'org/model', revision: 'main', path, size: 10, downloadUrl: 'https://example.test/model' }
+    await assert.rejects(downloadHubModelFile('invalid', file, '/models', new AbortController().signal, () => {}, fixture.deps), /GGUF model downloads/)
+  }
+}
+
+const testDownloadedGGUFRoleIsReturnedToRenderer = async () => {
+  const fixture = fakeModelDeps({ bytes: 'model-data', standalone: false })
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'ambiguous.gguf', size: 10, downloadUrl: 'https://example.test/ambiguous.gguf' }
+  const local = await downloadHubModelFile('draft', file, '/models', new AbortController().signal, () => {}, fixture.deps)
+  assert.equal(local.standalone, false)
+  assert.equal(JSON.parse(fixture.files.get(`${local.localPath}.flyenv.json`) ?? '{}').standalone, false)
+}
+
+const testMainModelFilenameHintsAvoidKnownSidecars = () => {
+  assert.equal(isStandaloneGGUFPath('Llama-3.2-Vision-Instruct-Q4_K_M.gguf'), true)
+  assert.equal(isStandaloneGGUFPath('model-imatrix-Q4_K_M.gguf'), true)
+  assert.equal(isStandaloneGGUFPath('Qwen3.6-27B-NVFP4-Q4_K_M-mtp.gguf'), true)
+  assert.equal(isStandaloneGGUFPath('Step-3.7-Flash-MTP-Q6_K.gguf', 'notSnix/Step-3.7-Flash-MTP-Draft-GGUF'), false)
+  for (const path of ['imatrix_unsloth.gguf', 'MTP/mtp-model.gguf', 'model-MTP-draft.gguf', 'qwen3.5-9b-dflash-Q4_K_M.gguf', 'Millie-1.1-35B-A3B-vision.gguf', 'mmproj-F16.gguf', 'model-00001-of-00002.gguf']) {
+    assert.equal(isStandaloneGGUFPath(path), false, path)
+  }
+}
+
+const testGGUFContentsDistinguishDraftFromMainModel = async () => {
+  const fs = await import('node:fs/promises')
+  const os = await import('node:os')
+  const path = await import('node:path')
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'llama-gguf-role-'))
+  const u32 = (value: number) => { const bytes = Buffer.alloc(4); bytes.writeUInt32LE(value); return bytes }
+  const u64 = (value: number) => { const bytes = Buffer.alloc(8); bytes.writeBigUInt64LE(BigInt(value)); return bytes }
+  const str = (value: string) => Buffer.concat([u64(Buffer.byteLength(value)), Buffer.from(value)])
+  const fixture = (architecture: string, tensors: string[]) => Buffer.concat([
+    Buffer.from('GGUF'), u32(3), u64(tensors.length), u64(1),
+    str('general.architecture'), u32(8), str(architecture),
+    ...tensors.flatMap((name) => [str(name), u32(1), u64(1), u32(0), u64(0)])
+  ])
+  try {
+    const main = path.join(root, 'main.gguf')
+    const mtp = path.join(root, 'draft.gguf')
+    const dflash = path.join(root, 'dflash.gguf')
+    await fs.writeFile(main, fixture('qwen35', ['token_embd.weight', 'blk.0.attn_norm.weight']))
+    await fs.writeFile(mtp, fixture('qwen35', ['blk.64.attn_norm.weight']))
+    await fs.writeFile(dflash, fixture('dflash', ['blk.0.attn_norm.weight']))
+    assert.equal(await isStandaloneGGUFFile(main), true)
+    assert.equal(await isStandaloneGGUFFile(mtp), false)
+    assert.equal(await isStandaloneGGUFFile(dflash), false)
+  } finally {
+    await fs.rm(root, { recursive: true, force: true })
   }
 }
 
@@ -281,11 +350,33 @@ const testModelDownloadDigestAndAtomicRename = async () => {
   const fixture = fakeModelDeps({ bytes: '1234567890', digest: 'a'.repeat(64) })
   const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'Q4/model.gguf', size: 10, sha256: 'a'.repeat(64), license: 'apache-2.0', downloadUrl: 'https://example.test/model' }
   const model = await downloadHubModelFile('op-1', file, '/models', new AbortController().signal, () => {}, fixture.deps)
-  assert.equal(model.localPath, '/models/model.gguf')
+  assert.ok(model.localPath.startsWith('/models/'))
+  assert.ok(model.localPath.endsWith('/model.gguf'))
   assert.equal(model.license, 'apache-2.0')
-  assert.equal(fixture.files.has('/models/model.gguf'), true)
+  assert.equal(fixture.files.has(model.localPath), true)
   assert.match(fixture.requestedUrl, /^https:\/\/huggingface\.co\/org\/model\/resolve\/main\/Q4\/model\.gguf/)
   assert.equal([...fixture.files.keys()].some((path) => path.endsWith('.part')), false)
+}
+
+const testSameNamedGGUFFilesKeepSeparateManagedPaths = async () => {
+  const fixture = fakeModelDeps({ bytes: 'model-data' })
+  const base: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'Q4/model.gguf', size: 10, downloadUrl: 'https://example.test/model' }
+  const first = await downloadHubModelFile('q4', base, '/models', new AbortController().signal, () => {}, fixture.deps)
+  const second = await downloadHubModelFile('q8', { ...base, path: 'Q8/model.gguf' }, '/models', new AbortController().signal, () => {}, fixture.deps)
+  assert.notEqual(first.localPath, second.localPath)
+  assert.equal(fixture.files.has(first.localPath), true)
+  assert.equal(fixture.files.has(second.localPath), true)
+  const shardOne = await downloadHubModelFile('shard1', { ...base, path: 'split/model-00001-of-00002.gguf' }, '/models', new AbortController().signal, () => {}, fixture.deps)
+  const shardTwo = await downloadHubModelFile('shard2', { ...base, path: 'split/model-00002-of-00002.gguf' }, '/models', new AbortController().signal, () => {}, fixture.deps)
+  assert.equal((await import('node:path')).dirname(shardOne.localPath), (await import('node:path')).dirname(shardTwo.localPath))
+}
+
+const testDownloadRejectsRedirectedManagedDirectory = async () => {
+  const fixture = fakeModelDeps({ bytes: 'model-data' })
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'model.gguf', size: 10, downloadUrl: 'https://example.test/model' }
+  fixture.deps.realPath = async (path) => path.includes('/hub-files/') ? '/outside' : path
+  await assert.rejects(downloadHubModelFile('redirected', file, '/models', new AbortController().signal, () => {}, fixture.deps), /managed models directory/)
+  assert.equal(fixture.files.size, 0)
 }
 
 const testModelDownloadFailureCleansPartial = async () => {
@@ -416,14 +507,32 @@ const testManagedModelPathConfinement = async () => {
     await assert.rejects(validateManagedModelPath(externalModel, root), /inside the managed models directory/)
     await fs.symlink(externalModel, path.join(root, 'linked.gguf'))
     await assert.rejects(validateManagedModelPath(path.join(root, 'linked.gguf'), root), /inside the managed models directory/)
-    for (const name of ['imatrix_unsloth.gguf', 'mtp-model.gguf']) {
-      const auxiliary = path.join(root, name)
-      await fs.writeFile(auxiliary, 'auxiliary')
-      await assert.rejects(validateManagedModelPath(auxiliary, root), /standalone GGUF model/i)
-    }
+    const shard = path.join(root, 'model-00001-of-00002.gguf')
+    await fs.writeFile(shard, 'shard')
+    await assert.rejects(validateManagedModelPath(shard, root), /standalone GGUF model/i)
   } finally {
     await fs.rm(root, { recursive: true, force: true })
     await fs.rm(outside, { recursive: true, force: true })
+  }
+}
+
+const testForkRejectsSupportingRepositoryPathBeforeLaunch = async () => {
+  const fs = await import('node:fs/promises')
+  const os = await import('node:os')
+  const path = await import('node:path')
+  const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), 'llama-support-start-'))
+  const savedServer = global.Server
+  try {
+    global.Server = { ...savedServer, BaseDir: baseDir } as typeof global.Server
+    const localPath = path.join(baseDir, 'llama-cpp', 'models', 'other.gguf')
+    await fs.mkdir(path.dirname(localPath), { recursive: true })
+    await fs.writeFile(localPath, 'auxiliary')
+    const model = { repoId: 'org/model', revision: 'main', path: 'MTP/other.gguf', size: 10, downloadUrl: 'https://example.test/other.gguf', localPath, downloadedAt: 1 }
+    const version = { bin: '/runtime/llama-server', path: '/runtime', version: 'b4000', note: JSON.stringify({ platform: 'linux', arch: 'x64', backend: 'cuda' }) } as any
+    await assert.rejects(Promise.resolve(new LlamaCppModule()._startServer(version, { ...launchProfile, modelPath: model.localPath }, model).on(() => {})), /standalone GGUF model/)
+  } finally {
+    global.Server = savedServer
+    await fs.rm(baseDir, { recursive: true, force: true })
   }
 }
 
@@ -683,6 +792,33 @@ const testFirstDownloadSelectsModelAndDeleteMovesSelection = async () => {
   }
 }
 
+const testSupportingDownloadDoesNotBecomeCurrentModel = async () => {
+  const originalSetItem = localForage.setItem
+  const saved = new Map<string, any>()
+  localForage.setItem = async (key, value) => { saved.set(key, structuredClone(value)); return value }
+  try {
+    const supporting: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'MTP/mtp-model.gguf', size: 10, downloadUrl: 'https://example.test/mtp.gguf' }
+    const standalone: HubModelFile = { ...supporting, path: 'Qwen3.6-27B-NVFP4-Q4_K_M-mtp.gguf' }
+    const controller = new LlamaCppController({ request: async (_method, args) => ({
+      ...(args[1] as HubModelFile), localPath: `/data/${(args[1] as HubModelFile).path.split('/').at(-1)}`, downloadedAt: 1,
+      standalone: !['MTP/mtp-model.gguf', 'ambiguous.gguf'].includes((args[1] as HubModelFile).path)
+    }) } as ControllerTransport)
+    await controller.downloadModel(supporting)
+    assert.equal(controller.modelOperation?.status, 'success')
+    assert.equal(controller.localModels.length, 1)
+    assert.equal(controller.selectedModel, undefined)
+    assert.equal(controller.profile.modelPath, '')
+    assert.equal(saved.get('flyenv-llama-cpp-settings'), undefined)
+    await controller.downloadModel({ ...supporting, path: 'ambiguous.gguf' })
+    assert.equal(controller.selectedModel, undefined)
+    await controller.downloadModel(standalone)
+    assert.equal((controller.selectedModel as { path: string } | undefined)?.path, standalone.path)
+    assert.equal(controller.profile.modelPath, '/data/Qwen3.6-27B-NVFP4-Q4_K_M-mtp.gguf')
+  } finally {
+    localForage.setItem = originalSetItem
+  }
+}
+
 const testAuxiliaryLocalModelCannotBecomeCurrent = async () => {
   const originalGetItem = localForage.getItem
   const originalSetItem = localForage.setItem
@@ -786,11 +922,11 @@ const testHubRequestErrorReportsProxyState = () => {
   assert.match(formatHubRequestError(new Error('socket disconnected'), true).message, /FlyEnv proxy: on/)
   const refused = Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:7890'), { code: 'ECONNREFUSED' })
   assert.match(
-    formatHubRequestError(refused, { protocol: 'http', host: '127.0.0.1', port: '7890' }).message,
+    formatHubRequestError(refused, { host: '127.0.0.1', port: '7890' }).message,
     /127\.0\.0\.1:7890.*not accepting connections.*FlyEnv proxy settings/i
   )
   assert.match(
-    formatHubRequestError(new Error('Client network socket disconnected before secure TLS connection was established'), { protocol: 'http', host: '127.0.0.1', port: '7890' }).message,
+    formatHubRequestError(new Error('Client network socket disconnected before secure TLS connection was established'), { host: '127.0.0.1', port: '7890' }).message,
     /TLS.*proxy.*huggingface\.co/i
   )
 }
@@ -810,6 +946,26 @@ const testHubRequestUsesFlyEnvProxy = async () => {
     delete global.Server.Proxy
     await searchHubModels('')
     assert.equal(proxies[1], false)
+  } finally {
+    ;(axios as any).get = originalGet
+    global.Server = originalServer
+  }
+}
+
+const testHubTreeReadsNextLinkFromProductionResponse = async () => {
+  const originalGet = axios.get
+  const originalServer = global.Server
+  const urls: string[] = []
+  try {
+    global.Server = { ...originalServer, Proxy: { https_proxy: 'http://127.0.0.1:17891' } } as typeof global.Server
+    ;(axios as any).get = async (url: string) => {
+      urls.push(url)
+      return urls.length === 1
+        ? { data: [{ type: 'file', path: 'first.gguf', size: 10 }], headers: { link: '<https://huggingface.co/api/models/org/model/tree/main?recursive=true&cursor=next>; rel="next"' } }
+        : { data: [{ type: 'file', path: 'second.gguf', size: 20 }], headers: {} }
+    }
+    assert.deepEqual((await getHubModelFiles('org/model')).map((file) => file.path), ['first.gguf', 'second.gguf'])
+    assert.equal(urls.length, 2)
   } finally {
     ;(axios as any).get = originalGet
     global.Server = originalServer
@@ -1176,8 +1332,14 @@ void (async () => {
   await testHubSearchAnonymousPaginationAnd429()
   await testHubModelCatalogLoadsPopularGGUFModelsWithoutQuery()
   await testHubFileMetadata()
-  await testAuxiliaryGGUFDownloadIsRejected()
+  await testHubFileListingFollowsPagination()
+  await testSupportingGGUFDownloadIsAllowedButUnsafePathsAreRejected()
+  await testDownloadedGGUFRoleIsReturnedToRenderer()
+  testMainModelFilenameHintsAvoidKnownSidecars()
+  await testGGUFContentsDistinguishDraftFromMainModel()
   await testModelDownloadDigestAndAtomicRename()
+  await testSameNamedGGUFFilesKeepSeparateManagedPaths()
+  await testDownloadRejectsRedirectedManagedDirectory()
   await testModelDownloadFailureCleansPartial()
   await testModelDeleteRejectsOutsideRoot()
   testBuildServerInvocationUsesArgv()
@@ -1192,6 +1354,7 @@ void (async () => {
   testStopVerificationRejectsRemainingProcessesAndPidFiles()
   await testStopWaitsForExitBeforeRemovingManagedPidFile()
   await testManagedModelPathConfinement()
+  await testForkRejectsSupportingRepositoryPathBeforeLaunch()
   await testActiveRuntimeMustStopBeforeMutation()
   testManagedServerSurvivesForkRestartForDeletionGuard()
   await testForkDeletesOnlyInactiveModelsUsingLiveProcesses()
@@ -1204,11 +1367,13 @@ void (async () => {
   await testTerminalEventAllowsRetry()
   await testControllerPersistsPlainSnapshotsFromReactiveState()
   await testFirstDownloadSelectsModelAndDeleteMovesSelection()
+  await testSupportingDownloadDoesNotBecomeCurrentModel()
   await testAuxiliaryLocalModelCannotBecomeCurrent()
   await testStartArgumentsAreCloneable()
   await testModelSwitchLifecycle()
   testHubRequestErrorReportsProxyState()
   await testHubRequestUsesFlyEnvProxy()
+  await testHubTreeReadsNextLinkFromProductionResponse()
   await testHubCatalogRetriesTransientTlsDisconnect()
   await testHubDownloadRetriesTransientTlsDisconnect()
   await testHubDownloadReportsProxyFailureAndPreservesCancellation()

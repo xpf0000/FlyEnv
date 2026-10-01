@@ -99,6 +99,7 @@
   } from '@/util/ModelSize'
   import IPC from '@/util/IPC'
   import type { HubModel, HubModelFile, LocalModel } from '../../shared/types'
+  import { isGGUFShardPath, isStandaloneGGUFPath } from '../../shared/modelFile'
   import { LlamaCppManager, modelFileKey } from '../controller'
   import { LlamaCppT } from '../lang'
   import { escapeNoticeText } from '../notice'
@@ -113,6 +114,10 @@
     downloading?: boolean
     progress?: number
     children?: ModelRow[]
+  }
+  const isMainModelRow = (row: ModelRow) => {
+    if (row.local) return !isGGUFShardPath(row.local.path) && (row.local.standalone ?? isStandaloneGGUFPath(row.local.path, row.local.repoId))
+    return !!row.file && isStandaloneGGUFPath(row.file.path, row.file.repoId)
   }
   const activeTab = ref<'library' | 'local'>('local')
   const query = ref('')
@@ -272,7 +277,19 @@
           show-after={600}
         >
           <div class="min-w-0 px-3">
-            <div class="truncate">{rowData.name}</div>
+            <div class="flex min-w-0 items-center gap-2">
+              <span class="min-w-0 truncate">{rowData.name}</span>
+              {(rowData.file || rowData.local) && (
+                <ElTag
+                  class="shrink-0"
+                  size="small"
+                  effect="plain"
+                  type={isMainModelRow(rowData) ? 'success' : 'info'}
+                >
+                  {LlamaCppT(isMainModelRow(rowData) ? 'mainModel' : 'supportingFile')}
+                </ElTag>
+              )}
+            </div>
             {(rowData.local?.repoId || rowData.model?.license) && (
               <div class="truncate text-xs opacity-70">
                 {rowData.local?.repoId ?? rowData.model?.license}
@@ -293,10 +310,12 @@
           <ElTag
             size="small"
             effect="plain"
-            type={getModelSizeColorForHardware(
-              (rowData.file ?? rowData.local)!.size / 1024 ** 3,
-              hardware
-            )}
+            type={isMainModelRow(rowData)
+              ? getModelSizeColorForHardware(
+                  (rowData.file ?? rowData.local)!.size / 1024 ** 3,
+                  hardware
+                )
+              : 'info'}
           >
             {formatBytes((rowData.file ?? rowData.local)!.size)}
           </ElTag>

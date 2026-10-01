@@ -46,6 +46,7 @@ export interface HubModelFile {
 export interface LocalModel extends HubModelFile {
   localPath: string
   downloadedAt: number
+  standalone?: boolean
 }
 
 export interface LaunchProfile {

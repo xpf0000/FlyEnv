@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
-import { mkdir, rename, rm, access, writeFile, stat } from 'node:fs/promises'
+import { mkdir, rename, rm, access, realpath, writeFile, stat } from 'node:fs/promises'
 import { basename, join, relative, resolve, sep, isAbsolute } from 'node:path'
 import { Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
@@ -8,7 +8,8 @@ import { setTimeout as delay } from 'node:timers/promises'
 import axios from 'axios'
 import { getAxiosProxy } from '@fork/util/Axios'
 import type { HubModel, HubModelFile, LocalModel } from '../shared/types'
-import { isStandaloneGGUFPath } from '../shared/modelFile'
+import { isStandaloneGGUFFile } from './gguf'
+import { isGGUFShardPath } from '../shared/modelFile'
 
 interface HubModelApiItem {
   id: string
@@ -30,6 +31,7 @@ interface HubTreeItem {
 export interface ModelDownloadDeps {
   requestJson(url: string): Promise<unknown>
   mkdir(path: string): Promise<void>
+  realPath(path: string): Promise<string>
   download(url: string, target: string, signal: AbortSignal, progress: (downloaded: number, total?: number) => void): Promise<void>
   digest(path: string): Promise<string>
   exists(path: string): Promise<boolean>
@@ -37,6 +39,7 @@ export interface ModelDownloadDeps {
   rename(from: string, to: string): Promise<void>
   remove(path: string): Promise<void>
   write(path: string, content: string): Promise<void>
+  inspect(path: string): Promise<boolean>
 }
 
 const sha256 = (value?: string): string | undefined => {
@@ -74,18 +77,24 @@ const retryHubConnection = async <T>(request: () => Promise<T>, signal?: AbortSi
   }
 }
 
+const nextHubPage = (link?: string): string | undefined =>
+  link?.match(/<([^>]+)>;\s*rel="?next"?/i)?.[1]
+
 const productionDeps: ModelDownloadDeps = {
   requestJson: async (url) => {
     const proxy = getAxiosProxy()
     try {
       const response = await retryHubConnection(() => axios.get(url, { headers: { Accept: 'application/json' }, timeout: 30_000, proxy }))
-      return response.data
+      return url.includes('/tree/')
+        ? { items: response.data, next: nextHubPage(response.headers.link) }
+        : response.data
     } catch (error: any) {
       if (error?.response?.status === 429) throw new Error('Hugging Face Hub rate limit reached (HTTP 429); retry later')
       throw formatHubRequestError(error, proxy)
     }
   },
   mkdir: async (path) => mkdir(path, { recursive: true }).then(() => undefined),
+  realPath: realpath,
   download: async (url, target, signal, progress) => {
     const proxy = getAxiosProxy()
     const response = await retryHubConnection(() => axios.get(url, { responseType: 'stream', signal, timeout: 0, proxy, maxRedirects: 5 }), signal).catch((error) => {
@@ -112,7 +121,8 @@ const productionDeps: ModelDownloadDeps = {
   size: async (path) => (await stat(path)).size,
   rename,
   remove: (path) => rm(path, { force: true, recursive: true }),
-  write: async (path, content) => { await writeFile(path, content, { flag: 'wx' }) }
+  write: async (path, content) => { await writeFile(path, content, { flag: 'wx' }) },
+  inspect: isStandaloneGGUFFile
 }
 
 const encodeRepoPath = (path: string) => path.split('/').map(encodeURIComponent).join('/')
@@ -137,11 +147,27 @@ export const searchHubModels = async (query: string, page = 0, deps: ModelDownlo
 
 export const getHubModelFiles = async (repoId: string, revision = 'main', deps: ModelDownloadDeps = productionDeps): Promise<HubModelFile[]> => {
   if (!validRepoId(repoId) || !/^[\w.-]+$/.test(revision)) throw new Error('Invalid Hub repository or revision')
-  const url = `https://huggingface.co/api/models/${encodeRepoPath(repoId)}/tree/${encodeURIComponent(revision)}?recursive=true&expand=true`
-  const payload = await deps.requestJson(url)
-  if (!Array.isArray(payload)) throw new Error('Unexpected Hugging Face file listing response')
-  return (payload as HubTreeItem[])
-    .filter((item) => item.type === 'file' && isStandaloneGGUFPath(item.path))
+  const firstUrl = `https://huggingface.co/api/models/${encodeRepoPath(repoId)}/tree/${encodeURIComponent(revision)}?recursive=true`
+  const expectedPath = new URL(firstUrl).pathname
+  const seen = new Set<string>()
+  const items: HubTreeItem[] = []
+  let url: string | undefined = firstUrl
+  while (url) {
+    if (seen.has(url)) throw new Error('Hugging Face file listing pagination loop')
+    seen.add(url)
+    const payload = await deps.requestJson(url)
+    const page: { items?: unknown; next?: string } = Array.isArray(payload) ? { items: payload } : payload as { items?: unknown; next?: string }
+    if (!Array.isArray(page?.items)) throw new Error('Unexpected Hugging Face file listing response')
+    items.push(...page.items as HubTreeItem[])
+    if (!page.next) break
+    const nextUrl: URL = new URL(page.next, url)
+    if (nextUrl.origin !== 'https://huggingface.co' || nextUrl.pathname !== expectedPath) {
+      throw new Error('Invalid Hugging Face file listing continuation')
+    }
+    url = nextUrl.toString()
+  }
+  return items
+    .filter((item) => item.type === 'file' && item.path.toLowerCase().endsWith('.gguf'))
     .map((item) => ({
       repoId,
       revision,
@@ -160,15 +186,21 @@ export const downloadHubModelFile = async (
   onProgress: (event: { downloaded: number; total?: number }) => void,
   deps: ModelDownloadDeps = productionDeps
 ): Promise<LocalModel> => {
-  if (!validRepoId(file.repoId) || !/^[\w.-]+$/.test(file.revision) || !isStandaloneGGUFPath(file.path) || file.path.split('/').some((part) => !part || part === '.' || part === '..' || part.includes('\\') || part.includes('\0'))) {
-    throw new Error('Only public single-file standalone GGUF model downloads are supported')
+  if (!validRepoId(file.repoId) || !/^[\w.-]+$/.test(file.revision) || !file.path.toLowerCase().endsWith('.gguf') || file.path.split('/').some((part) => !part || part === '.' || part === '..' || part.includes('\\') || part.includes('\0'))) {
+    throw new Error('Only public GGUF model downloads are supported')
   }
   const safeOperationId = operationId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64) || 'download'
   const fileName = basename(file.path)
   if (!fileName || fileName === '.' || fileName === '..') throw new Error('Invalid model filename')
-  const finalPath = join(modelsRoot, fileName)
-  const partialPath = join(modelsRoot, `.${fileName}.${safeOperationId}.part`)
-  await deps.mkdir(modelsRoot)
+  const group = createHash('sha256').update(JSON.stringify([file.repoId, file.revision, file.path.split('/').slice(0, -1).join('/')])).digest('hex')
+  const targetDir = join(modelsRoot, 'hub-files', group)
+  const finalPath = join(targetDir, fileName)
+  const partialPath = join(targetDir, `.${fileName}.${safeOperationId}.part`)
+  await deps.mkdir(targetDir)
+  const relativeDir = relative(await deps.realPath(modelsRoot), await deps.realPath(targetDir))
+  if (!relativeDir || relativeDir === '..' || relativeDir.startsWith(`..${sep}`) || isAbsolute(relativeDir)) {
+    throw new Error('Download target must stay inside the managed models directory')
+  }
   if (await deps.exists(finalPath)) throw new Error(`Model already exists: ${fileName}`)
   let finalized = false
   try {
@@ -177,11 +209,11 @@ export const downloadHubModelFile = async (
     const actualSize = await deps.size(partialPath)
     if (file.size > 0 && actualSize !== file.size) throw new Error(`Model size verification failed: expected ${file.size}, received ${actualSize}`)
     if (file.sha256 && (await deps.digest(partialPath)).toLowerCase() !== file.sha256.toLowerCase()) throw new Error('Model SHA-256 verification failed')
-    const local: LocalModel = { ...file, localPath: finalPath, downloadedAt: Date.now() }
     const metadataPartial = `${partialPath}.flyenv.json`
-    await deps.write(metadataPartial, JSON.stringify(local, null, 2))
     await deps.rename(partialPath, finalPath)
     finalized = true
+    const local: LocalModel = { ...file, localPath: finalPath, downloadedAt: Date.now(), standalone: !isGGUFShardPath(file.path) && await deps.inspect(finalPath) }
+    await deps.write(metadataPartial, JSON.stringify(local, null, 2))
     await deps.rename(metadataPartial, `${finalPath}.flyenv.json`)
     return local
   } catch (error) {

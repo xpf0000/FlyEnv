@@ -8,7 +8,7 @@ import type {
   RuntimeVariant
 } from '../shared/types'
 import { runtimeIdentityKey } from '../shared/runtime'
-import { isStandaloneGGUFPath } from '../shared/modelFile'
+import { isGGUFShardPath, isStandaloneGGUFPath } from '../shared/modelFile'
 import { escapeNoticeText } from './notice'
 
 export interface OperationState {
@@ -121,7 +121,7 @@ export const modelFileKey = (file: Pick<HubModelFile, 'repoId' | 'revision' | 'p
   JSON.stringify([file.repoId, file.revision, file.path])
 
 const isRunnableLocalModel = (model: LocalModel) =>
-  isStandaloneGGUFPath(model.path) && isStandaloneGGUFPath(model.localPath)
+  !isGGUFShardPath(model.path) && (model.standalone ?? isStandaloneGGUFPath(model.path, model.repoId))
 
 export class LlamaCppController {
   runtimeOperation?: OperationState
@@ -460,7 +460,7 @@ export class LlamaCppController {
       if (!this.localModels.some((item) => item.localPath === model.localPath))
         this.localModels.push(model)
       await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
-      if (!this.selectedModel) await this.selectModel(model)
+      if (!this.selectedModel && isRunnableLocalModel(model)) await this.selectModel(model)
       active.status = 'success'
       return model
     } catch (error) {
