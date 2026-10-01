@@ -1,19 +1,19 @@
 <template>
   <div class="module-config">
     <el-card>
-      <LogVM ref="log" :log-file="logFile" />
+      <template #header>
+        <el-radio-group v-model="logFile">
+          <el-radio-button
+            v-for="file in files"
+            :key="file.path"
+            :label="file.name"
+            :value="file.path"
+          />
+        </el-radio-group>
+      </template>
+      <LogVM ref="log" :log-file="logFile" class="h-full overflow-hidden" />
       <template #footer>
-        <div class="flex items-center gap-3">
-          <div class="min-w-0 flex-1"><ToolVM :log="log" /></div>
-          <el-select v-if="files.length" v-model="logFile" class="w-56 shrink-0">
-            <el-option
-              v-for="file in files"
-              :key="file.path"
-              :label="file.name"
-              :value="file.path"
-            />
-          </el-select>
-        </div>
+        <ToolVM :log="log" />
       </template>
     </el-card>
   </div>

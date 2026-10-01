@@ -40,13 +40,7 @@
 
   const module = BrewStore().module(typeFlag)
   module.startExtParam = async (version: ModuleInstalledItem) => {
-    await LlamaCppManager.init()
-    const model = LlamaCppManager.selectedModel
-    if (!model) throw new Error('Select a local GGUF model before starting llama.cpp')
-    LlamaCppManager.profile.modelPath = model.localPath
-    LlamaCppManager.profile.backend = (version.flag ?? 'cpu') as typeof LlamaCppManager.profile.backend
-    await LlamaCppManager.saveProfile()
-    return [LlamaCppManager.profile, model]
+    return LlamaCppManager.startParameters(version.flag ?? 'cpu')
   }
   if (!module.stopExtParam) module.stopExtParam = (_version: ModuleInstalledItem) => []
 

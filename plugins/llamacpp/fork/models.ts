@@ -43,14 +43,21 @@ const sha256 = (value?: string): string | undefined => {
   return /^[a-f\d]{64}$/.test(digest) ? digest : undefined
 }
 
+export const formatHubRequestError = (error: unknown, proxyConfigured: boolean) => {
+  const detail = error as { message?: string; response?: { status?: number } }
+  const status = detail?.response?.status ? ` (${detail.response.status})` : ''
+  return new Error(`Hugging Face Hub request failed${status} (FlyEnv proxy: ${proxyConfigured ? 'on' : 'off'}): ${detail?.message ?? error}`)
+}
+
 const productionDeps: ModelDownloadDeps = {
   requestJson: async (url) => {
+    const proxy = getAxiosProxy()
     try {
-      const response = await axios.get(url, { headers: { Accept: 'application/json' }, timeout: 30_000, proxy: getAxiosProxy() })
+      const response = await axios.get(url, { headers: { Accept: 'application/json' }, timeout: 30_000, proxy })
       return response.data
     } catch (error: any) {
       if (error?.response?.status === 429) throw new Error('Hugging Face Hub rate limit reached (HTTP 429); retry later')
-      throw new Error(`Hugging Face Hub request failed${error?.response?.status ? ` (${error.response.status})` : ''}: ${error?.message ?? error}`)
+      throw formatHubRequestError(error, !!proxy)
     }
   },
   mkdir: async (path) => mkdir(path, { recursive: true }).then(() => undefined),

@@ -8,6 +8,7 @@ import type {
   RuntimeVariant
 } from '../shared/types'
 import { runtimeIdentityKey } from '../shared/runtime'
+import { escapeNoticeText } from './notice'
 
 export interface OperationState {
   id: string
@@ -16,6 +17,19 @@ export interface OperationState {
   status: 'starting' | 'running' | 'cancelling' | 'success' | 'failed' | 'cancelled'
   progress?: { downloaded?: number; total?: number; status?: string; asset?: string }
   result?: unknown
+  error?: string
+}
+
+export interface ModelService {
+  run: boolean
+  running: boolean
+  stop(): Promise<string | boolean>
+  start(): Promise<string | boolean>
+}
+
+export interface ModelSwitchOperation {
+  targetPath: string
+  status: 'starting' | 'stopping' | 'startingService' | 'success' | 'failed'
   error?: string
 }
 
@@ -89,6 +103,12 @@ const refreshInstalledRuntimes = async (target?: RuntimeRefreshTarget) => {
   }
 }
 
+const notifySwitchError = (message: string) => {
+  import('@/util/Element')
+    .then(({ MessageError }) => MessageError(escapeNoticeText(message)))
+    .catch(() => {})
+}
+
 const settingsKey = 'flyenv-llama-cpp-settings'
 const modelsKey = 'flyenv-llama-cpp-models'
 const runtimeVariantsKey = 'flyenv-llama-cpp-runtime-variants'
@@ -102,6 +122,7 @@ export const modelFileKey = (file: Pick<HubModelFile, 'repoId' | 'revision' | 'p
 export class LlamaCppController {
   runtimeOperation?: OperationState
   modelOperation?: OperationState
+  modelSwitchOperation?: ModelSwitchOperation
   error = ''
   profile: LaunchProfile = {
     modelPath: '',
@@ -126,7 +147,8 @@ export class LlamaCppController {
 
   constructor(
     private transport: ControllerTransport = productionTransport,
-    private refreshInstalled: (target?: RuntimeRefreshTarget) => Promise<void> = async () => {}
+    private refreshInstalled: (target?: RuntimeRefreshTarget) => Promise<void> = async () => {},
+    private reportSwitchError: (message: string) => void = () => {}
   ) {}
 
   async init() {
@@ -239,6 +261,93 @@ export class LlamaCppController {
       settingsKey,
       storageSnapshot({ profile: this.profile, selectedModel: model })
     )
+  }
+
+  async startParameters(backend: string): Promise<[LaunchProfile, LocalModel]> {
+    await this.init()
+    const model = this.selectedModel
+    if (!model) throw new Error('Select a local GGUF model before starting llama.cpp')
+    this.profile.modelPath = model.localPath
+    this.profile.backend = backend as LaunchProfile['backend']
+    await this.saveProfile()
+    return storageSnapshot([this.profile, model])
+  }
+
+  async switchModel(model: LocalModel, service?: ModelService) {
+    if (
+      this.modelSwitchOperation &&
+      !['success', 'failed'].includes(this.modelSwitchOperation.status)
+    ) {
+      const message = 'A model switch is already in progress'
+      this.reportSwitchError(message)
+      throw new Error(message)
+    }
+    const operation: ModelSwitchOperation = { targetPath: model.localPath, status: 'starting' }
+    this.modelSwitchOperation = operation
+    const active = this.modelSwitchOperation
+    let previous: LocalModel | undefined
+    let stopped = false
+    try {
+      await this.init()
+      previous = this.selectedModel
+      if (!this.localModels.some((item) => item.localPath === model.localPath)) {
+        throw new Error('The selected model is no longer installed')
+      }
+      if (this.selectedModel?.localPath === model.localPath) {
+        active.status = 'success'
+        return
+      }
+      if (service?.running) throw new Error('Wait for the current service operation to finish')
+      const wasRunning = service?.run === true
+      if (wasRunning) {
+        active.status = 'stopping'
+        const result = await service.stop()
+        if (result !== true)
+          throw new Error(typeof result === 'string' ? result : 'Could not stop llama.cpp')
+        stopped = true
+      }
+      await this.selectModel(model)
+      if (wasRunning) {
+        active.status = 'startingService'
+        const result = await service.start()
+        if (result !== true)
+          throw new Error(typeof result === 'string' ? result : 'Could not restart llama.cpp')
+      }
+      active.status = 'success'
+    } catch (error) {
+      const recoveryErrors: string[] = []
+      if (this.selectedModel?.localPath === model.localPath) {
+        try {
+          if (previous) await this.selectModel(previous)
+          else {
+            this.selectedModel = undefined
+            this.profile.modelPath = ''
+            await this.saveProfile()
+          }
+        } catch (restoreError) {
+          recoveryErrors.push(`Could not restore model selection: ${restoreError}`)
+        }
+      }
+      if (stopped && service && !service.run && previous) {
+        try {
+          const result = await service.start()
+          if (result !== true)
+            throw new Error(
+              typeof result === 'string' ? result : 'Could not restart the previous model'
+            )
+        } catch (restoreError) {
+          recoveryErrors.push(`Could not restart the previous model: ${restoreError}`)
+        }
+      }
+      const message = [error instanceof Error ? error.message : `${error}`, ...recoveryErrors].join(
+        '; '
+      )
+      active.status = 'failed'
+      active.error = message
+      this.error = message
+      this.reportSwitchError(message)
+      throw new Error(message)
+    }
   }
 
   async installRuntime(variant: RuntimeVariant) {
@@ -385,5 +494,5 @@ export class LlamaCppController {
 }
 
 export const LlamaCppManager = reactiveBind(
-  new LlamaCppController(productionTransport, refreshInstalledRuntimes)
+  new LlamaCppController(productionTransport, refreshInstalledRuntimes, notifySwitchError)
 )

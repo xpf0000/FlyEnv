@@ -9,12 +9,12 @@ import {
 } from '../plugins/llamacpp/fork/release'
 import { installRuntime, removeRuntime, validateRuntimeVariant, type RuntimeInstallDeps, type RuntimePaths } from '../plugins/llamacpp/fork/runtime'
 import type { RuntimeVariant } from '../plugins/llamacpp/shared/types'
-import { deleteLocalModel, downloadHubModelFile, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
+import { deleteLocalModel, downloadHubModelFile, formatHubRequestError, getHubModelFiles, searchHubModels, type ModelDownloadDeps } from '../plugins/llamacpp/fork/models'
 import type { HubModel, HubModelFile } from '../plugins/llamacpp/shared/types'
 import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, validateLaunchProfile, validateManagedModelPath, waitForServerHealth } from '../plugins/llamacpp/fork/config'
 import { LlamaCppModule, isManagedModelActive } from '../plugins/llamacpp/fork/LlamaCpp'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
-import { createControllerTransport, LlamaCppController, LlamaCppManager, modelFileKey, type ControllerTransport } from '../plugins/llamacpp/render/controller'
+import { createControllerTransport, LlamaCppController, LlamaCppManager, modelFileKey, type ControllerTransport, type ModelService } from '../plugins/llamacpp/render/controller'
 import { getModelSizeColorForHardware, modelHardwareFromReport } from '../src/render/util/ModelSize'
 import { generateApiKey } from '../plugins/llamacpp/render/settings/key'
 import { escapeNoticeText } from '../plugins/llamacpp/render/notice'
@@ -633,6 +633,97 @@ const testFirstDownloadSelectsModelAndDeleteMovesSelection = async () => {
   }
 }
 
+const testStartArgumentsAreCloneable = async () => {
+  const originalSetItem = localForage.setItem
+  localForage.setItem = async (_key, value) => { structuredClone(value); return value }
+  try {
+    const model = reactive({ repoId: 'org/model', revision: 'main', path: 'one.gguf', size: 1, downloadUrl: 'https://example.test/one.gguf', localPath: '/data/one.gguf', downloadedAt: 1 })
+    const controller = reactive(new LlamaCppController())
+    controller.selectedModel = model
+    const args = await controller.startParameters('metal')
+    assert.doesNotThrow(() => structuredClone(args))
+    assert.equal(args[0].backend, 'metal')
+    assert.equal(args[0].modelPath, model.localPath)
+  } finally { localForage.setItem = originalSetItem }
+}
+
+const testModelSwitchLifecycle = async () => {
+  const originalSetItem = localForage.setItem
+  localForage.setItem = async (_key, value) => value
+  try {
+    const first = { repoId: 'org/model', revision: 'main', path: 'one.gguf', size: 1, downloadUrl: 'https://example.test/one.gguf', localPath: '/data/one.gguf', downloadedAt: 1 }
+    const second = { ...first, path: 'two.gguf', localPath: '/data/two.gguf' }
+    const controller = new LlamaCppController()
+    await controller.init()
+    controller.localModels = [first, second]
+    controller.selectedModel = first
+    const events: string[] = []
+    const service: ModelService = {
+      run: true, running: false,
+      stop: async () => { events.push('stop'); service.run = false; return true },
+      start: async () => { events.push(`start:${controller.selectedModel?.path}`); service.run = true; return true }
+    }
+    await controller.switchModel(second, service)
+    assert.deepEqual(events, ['stop', 'start:two.gguf'])
+    assert.equal(controller.selectedModel?.path, 'two.gguf')
+    assert.equal(controller.modelSwitchOperation?.status, 'success')
+    await controller.switchModel(first, { ...service, run: false })
+    assert.equal(controller.selectedModel?.path, 'one.gguf')
+    assert.deepEqual(events, ['stop', 'start:two.gguf'])
+
+    service.stop = async () => 'stop failed'
+    await assert.rejects(controller.switchModel(second, service), /stop failed/)
+    assert.equal(controller.selectedModel?.path, 'one.gguf')
+    assert.equal(controller.modelSwitchOperation?.status, 'failed')
+
+    service.stop = async () => { service.run = false; return true }
+    let starts = 0
+    service.start = async () => { starts++; if (starts === 1) return 'start failed'; service.run = true; return true }
+    await assert.rejects(controller.switchModel(second, service), /start failed/)
+    assert.equal(controller.selectedModel?.path, 'one.gguf')
+    assert.equal(service.run, true)
+    assert.equal(starts, 2)
+    service.start = async () => { service.run = true; return true }
+    await controller.switchModel(second, service)
+    assert.equal(controller.selectedModel?.path, 'two.gguf')
+
+    const pendingStop = deferred<string | boolean>()
+    service.stop = () => pendingStop.promise
+    const switching = controller.switchModel(first, service)
+    await new Promise((resolve) => setImmediate(resolve))
+    await assert.rejects(controller.switchModel(first, service), /already in progress/)
+    pendingStop.resolve(true)
+    await switching
+    assert.equal(controller.modelSwitchOperation?.status, 'success')
+  } finally { localForage.setItem = originalSetItem }
+}
+
+const testHubRequestErrorReportsProxyState = () => {
+  assert.match(formatHubRequestError(new Error('socket disconnected'), false).message, /FlyEnv proxy: off/)
+  assert.match(formatHubRequestError(new Error('socket disconnected'), true).message, /FlyEnv proxy: on/)
+}
+
+const testHubRequestUsesFlyEnvProxy = async () => {
+  const originalGet = axios.get
+  const originalServer = global.Server
+  const proxies: unknown[] = []
+  try {
+    global.Server = { ...originalServer, Proxy: { https_proxy: 'http://127.0.0.1:7890' } } as typeof global.Server
+    ;(axios as any).get = async (_url: string, options: { proxy: unknown }) => {
+      proxies.push(options.proxy)
+      return { data: [] }
+    }
+    await searchHubModels('')
+    assert.deepEqual(proxies[0], { protocol: 'http', host: '127.0.0.1', port: '7890' })
+    delete global.Server.Proxy
+    await searchHubModels('')
+    assert.equal(proxies[1], false)
+  } finally {
+    ;(axios as any).get = originalGet
+    global.Server = originalServer
+  }
+}
+
 const testControllerTransportCleansListenerAtTerminal = async () => {
   let callback: ((key: string, response: any) => void) | undefined
   let removed = false
@@ -955,6 +1046,10 @@ void (async () => {
   await testTerminalEventAllowsRetry()
   await testControllerPersistsPlainSnapshotsFromReactiveState()
   await testFirstDownloadSelectsModelAndDeleteMovesSelection()
+  await testStartArgumentsAreCloneable()
+  await testModelSwitchLifecycle()
+  testHubRequestErrorReportsProxyState()
+  await testHubRequestUsesFlyEnvProxy()
   await testControllerTransportCleansListenerAtTerminal()
   await testRuntimeCatalogCacheRequiresExplicitRefresh()
   await testModelCatalogCacheRequiresExplicitRefresh()

@@ -5,6 +5,7 @@ export default {
   settings: '设置', logs: '日志', noLogs: '暂无可用日志文件。',
   pluginDescription: '管理 llama.cpp 推理运行时和 GGUF 模型。',
   selectedModel: '当前模型', none: '无', endpoint: '兼容 OpenAI 的 Base URL', copyEndpoint: '复制地址',
+  switchModel: '切换模型', confirmSwitchModel: '切换到 {model} 需要重启正在运行的 llama.cpp 服务，是否继续？',
   modelLibrary: '模型库', localModels: '本地模型',
   searchModels: '搜索模型名称或组织/仓库', search: '搜索', downloads: '下载量', licenseUnknown: '未提供许可证',
   popularModelsHint: '热门公开 GGUF 模型。可按名称搜索，也可输入组织/仓库 ID。', loadingModels: '正在加载模型…',

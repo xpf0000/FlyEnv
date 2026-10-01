@@ -5,6 +5,7 @@ export default {
   settings: 'Settings', logs: 'Logs', noLogs: 'No log file is available yet.',
   pluginDescription: 'Manage llama.cpp inference runtimes and GGUF models.',
   selectedModel: 'Selected model', none: 'None', endpoint: 'OpenAI-compatible Base URL', copyEndpoint: 'Copy endpoint',
+  switchModel: 'Switch model', confirmSwitchModel: 'Switching to {model} will restart the running llama.cpp service. Continue?',
   modelLibrary: 'Library', localModels: 'Local models',
   searchModels: 'Search model name or organization/repository', search: 'Search', downloads: 'Downloads', licenseUnknown: 'License not provided',
   popularModelsHint: 'Popular public GGUF models. Search by name or enter an organization/repository ID.', loadingModels: 'Loading models…',
