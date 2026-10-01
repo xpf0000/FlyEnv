@@ -277,19 +277,7 @@
           show-after={600}
         >
           <div class="min-w-0 px-3">
-            <div class="flex min-w-0 items-center gap-2">
-              <span class="min-w-0 truncate">{rowData.name}</span>
-              {(rowData.file || rowData.local) && (
-                <ElTag
-                  class="shrink-0"
-                  size="small"
-                  effect="plain"
-                  type={isMainModelRow(rowData) ? 'success' : 'info'}
-                >
-                  {LlamaCppT(isMainModelRow(rowData) ? 'mainModel' : 'supportingFile')}
-                </ElTag>
-              )}
-            </div>
+            <div class="truncate">{rowData.name}</div>
             {(rowData.local?.repoId || rowData.model?.license) && (
               <div class="truncate text-xs opacity-70">
                 {rowData.local?.repoId ?? rowData.model?.license}
@@ -298,6 +286,22 @@
           </div>
         </ElTooltip>
       )
+    },
+    {
+      key: 'mainModel',
+      title: LlamaCppT('isMainModel'),
+      width: 160,
+      align: 'center',
+      class: 'flex-shrink-0',
+      headerClass: 'flex-shrink-0',
+      cellRenderer: ({ rowData }) =>
+        rowData.file || rowData.local ? (
+          <ElTag size="small" effect="plain" type={isMainModelRow(rowData) ? 'success' : 'info'}>
+            {LlamaCppT(isMainModelRow(rowData) ? 'mainModel' : 'supportingFile')}
+          </ElTag>
+        ) : (
+          <span />
+        )
     },
     {
       key: 'size',
@@ -339,16 +343,6 @@
               ) : (
                 <span />
               )
-          },
-          {
-            key: 'downloads',
-            title: LlamaCppT('downloads'),
-            width: 110,
-            class: 'flex-shrink-0',
-            headerClass: 'flex-shrink-0',
-            cellRenderer: ({ rowData }: { rowData: ModelRow }) => (
-              <span>{rowData.model?.downloads.toLocaleString() ?? ''}</span>
-            )
           }
         ]
       : []),
