@@ -5,8 +5,8 @@
         <div class="left">
           <span>{{ LlamaCppT('models') }}</span>
           <el-radio-group v-model="activeTab" size="small" class="ml-6">
-            <el-radio-button value="library">{{ LlamaCppT('modelLibrary') }}</el-radio-button>
             <el-radio-button value="local">{{ LlamaCppT('localModels') }}</el-radio-button>
+            <el-radio-button value="library">{{ LlamaCppT('modelLibrary') }}</el-radio-button>
           </el-radio-group>
         </div>
         <el-button
@@ -87,7 +87,7 @@
 
 <script lang="tsx" setup>
   import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
-  import { Download, Delete } from '@element-plus/icons-vue'
+  import { Download, Delete, Close } from '@element-plus/icons-vue'
   import { ElButton, ElMessageBox, ElProgress, ElTag, ElTooltip, type Column } from 'element-plus'
   import { I18nT } from '@lang/index'
   import { formatBytes } from '@/util/Index'
@@ -114,7 +114,7 @@
     progress?: number
     children?: ModelRow[]
   }
-  const activeTab = ref<'library' | 'local'>('library')
+  const activeTab = ref<'library' | 'local'>('local')
   const query = ref('')
   const results = ref<HubModel[]>([])
   const files = ref<Record<string, HubModelFile[]>>({})
@@ -183,8 +183,8 @@
       })
     return rows
   })
-  const isDownloaded = (file: HubModelFile) =>
-    LlamaCppManager.localModels.some(
+  const downloadedModel = (file: HubModelFile) =>
+    LlamaCppManager.localModels.find(
       (local) =>
         local.repoId === file.repoId && local.revision === file.revision && local.path === file.path
     )
@@ -198,14 +198,6 @@
     }
   }
   const cancelDownload = () => LlamaCppManager.cancelModelDownload().catch(showError)
-  const select = async (model: LocalModel) => {
-    try {
-      await LlamaCppManager.selectModel(model)
-      MessageSuccess(I18nT('base.success'))
-    } catch (e) {
-      showError(e)
-    }
-  }
   const removeModel = async (model: LocalModel) => {
     try {
       await ElMessageBox.confirm(LlamaCppT('confirmDeleteModel'), LlamaCppT('delete'), {
@@ -341,28 +333,28 @@
           }
         ]
       : []),
-    {
-      key: 'installed',
-      title: I18nT('base.isInstalled'),
-      width: 100,
-      align: 'center',
-      class: 'flex-shrink-0',
-      headerClass: 'flex-shrink-0',
-      cellRenderer: ({ rowData }) =>
-        rowData.local || (rowData.file && isDownloaded(rowData.file)) ? (
-          <ElTag type="success" size="small">
-            {rowData.local && rowData.local.localPath === LlamaCppManager.selectedModel?.localPath
-              ? LlamaCppT('selected')
-              : LlamaCppT('downloaded')}
-          </ElTag>
-        ) : (
-          <span />
-        )
-    },
+    ...(activeTab.value === 'library'
+      ? [
+          {
+            key: 'installed',
+            title: I18nT('base.isInstalled'),
+            width: 100,
+            align: 'center' as const,
+            class: 'flex-shrink-0',
+            headerClass: 'flex-shrink-0',
+            cellRenderer: ({ rowData }: { rowData: ModelRow }) =>
+              rowData.file && downloadedModel(rowData.file) ? (
+                <YbIcon class="installed" svg={import('@/svg/ok.svg?raw')}></YbIcon>
+              ) : (
+                <span />
+              )
+          }
+        ]
+      : []),
     {
       key: 'operation',
       title: I18nT('common.label.action'),
-      width: 150,
+      width: 100,
       align: 'center',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',
@@ -370,50 +362,38 @@
         if (rowData.local) {
           const local = rowData.local
           return (
-            <div class="flex items-center gap-2">
-              <ElButton
-                link
-                type="primary"
-                disabled={
-                  modelBusy.value || local.localPath === LlamaCppManager.selectedModel?.localPath
-                }
-                onClick={() => select(local)}
-              >
-                {LlamaCppT('select')}
-              </ElButton>
-              <ElButton
-                link
-                type="danger"
-                icon={Delete}
-                disabled={modelBusy.value}
-                onClick={() => removeModel(local)}
-              />
-            </div>
+            <ElButton
+              link
+              type="danger"
+              icon={Delete}
+              aria-label={LlamaCppT('delete')}
+              disabled={modelBusy.value}
+              onClick={() => removeModel(local)}
+            />
           )
         }
         const file = rowData.file
-        return file ? (
-          rowData.downloading ? (
+        if (!file) return <span />
+        if (rowData.downloading)
+          return (
             <ElButton
               link
+              icon={Close}
+              aria-label={LlamaCppT('cancel')}
               disabled={LlamaCppManager.modelOperation?.status === 'cancelling'}
               onClick={cancelDownload}
-            >
-              {LlamaCppT('cancel')}
-            </ElButton>
-          ) : (
-            <ElButton
-              link
-              type="primary"
-              icon={Download}
-              disabled={modelBusy.value || isDownloaded(file)}
-              onClick={() => download(file)}
-            >
-              {LlamaCppT('download')}
-            </ElButton>
+            />
           )
-        ) : (
-          <span />
+        const local = downloadedModel(file)
+        return (
+          <ElButton
+            link
+            type={local ? 'danger' : 'primary'}
+            icon={local ? Delete : Download}
+            aria-label={local ? LlamaCppT('delete') : LlamaCppT('download')}
+            disabled={modelBusy.value}
+            onClick={() => (local ? removeModel(local) : download(file))}
+          />
         )
       }
     }

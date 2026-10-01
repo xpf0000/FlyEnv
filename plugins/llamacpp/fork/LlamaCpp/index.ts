@@ -13,6 +13,7 @@ import axios from 'axios'
 import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import { AppLog } from '@fork/Fn'
 import { StopProcessListFetch } from '@shared/StopProcessList'
+import type { PItem } from '@shared/Process'
 import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, validateManagedModelPath, variantFromInstalled, waitForServerHealth } from '../config'
 import type { LaunchProfile, LocalModel } from '../../shared/types'
 
@@ -38,10 +39,24 @@ const productionDeps: LlamaCppDeps = {
   exists: existsSync
 }
 
+export const isManagedModelActive = (processes: PItem[], baseDir: string, target: string, pid = '') => {
+  const managedRoot = join(baseDir, 'llama-cpp').replace(/\\/g, '/').toLowerCase()
+  const modelRoot = join(baseDir, 'llama-cpp', 'models').replace(/\\/g, '/').toLowerCase()
+  const targetPath = target.replace(/\\/g, '/').toLowerCase()
+  return processes.some((process) => {
+    const command = process.COMMAND.replace(/\\/g, '/').toLowerCase()
+    if (!/(?:^|\/)llama-server(?:\.exe)?(?:["'\s]|$)/.test(command)) return false
+    if (!command.includes(`${managedRoot}/`) && (!pid || process.PID !== pid)) return false
+    if (command.includes(targetPath)) return true
+    // A different managed GGUF is visible in argv; permit deleting this inactive model.
+    // If the process list truncated argv, keep deletion blocked rather than guessing.
+    return !command.includes(`${modelRoot}/`) || !command.includes('.gguf')
+  })
+}
+
 export class LlamaCppModule extends Base {
   private deps: LlamaCppDeps
   private modelDownloads = new Map<string, AbortController>()
-  private activeModelPath?: string
   private activeRuntime?: SoftInstalled
   private runtimeMutationInProgress = false
   private serverStarting = false
@@ -179,10 +194,16 @@ export class LlamaCppModule extends Base {
     })
   }
 
-  deleteLocalModel(path: string, activeModelPath?: string) {
+  deleteLocalModel(path: string) {
     return new ForkPromise<boolean>(async (resolve, reject) => {
       try {
-        await deleteLocalModelImpl(path, join(global.Server.BaseDir!, 'llama-cpp', 'models'), this.activeModelPath ?? activeModelPath)
+        if (this.serverStarting) throw new Error('Cannot delete a model while llama.cpp is starting')
+        const baseDir = global.Server.BaseDir!
+        const pid = await this.readPidFromFile(join(baseDir, 'llama-cpp', 'llama-server.pid'))
+        if (isManagedModelActive(await StopProcessListFetch(), baseDir, path, pid)) {
+          throw new Error('Stop the active server before deleting a model')
+        }
+        await deleteLocalModelImpl(path, join(baseDir, 'llama-cpp', 'models'), undefined)
         resolve(true)
       } catch (error) { reject(error) }
     })
@@ -218,7 +239,6 @@ export class LlamaCppModule extends Base {
         const stoppedPids = (result?.['APP-Service-Stop-PID'] ?? []).map((pid: string | number) => `${pid}`)
         const runningProcesses = await StopProcessListFetch()
         assertServerStopped(stoppedPids, runningProcesses.map((process) => `${process.PID}`), !!this.pidPath && existsSync(this.pidPath))
-        this.activeModelPath = undefined
         this.activeRuntime = undefined
         on({ 'APP-Service-Stop-Success': true })
         resolve(result)
@@ -260,7 +280,6 @@ export class LlamaCppModule extends Base {
               timeout: 1_500,
               headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined
             })
-            this.activeModelPath = managedModelPath
             return response.status >= 200 && response.status < 300
           }, async () => {
             await this._stopServer(version).on(on)

@@ -7,13 +7,31 @@
       <Service v-if="tab === 0" type-flag="llama-cpp" title="llama.cpp">
         <template #tool-left>
           <el-popover placement="bottom" width="480" trigger="click">
-            <template #reference
-              ><el-button link class="ml-3">{{ LlamaCppT('selectedModel') }}</el-button></template
-            >
+            <template #reference>
+              <el-button link class="ml-3 max-w-64">
+                <span class="truncate"
+                  >{{ LlamaCppT('selectedModel') }}:
+                  {{ LlamaCppManager.selectedModel?.path ?? LlamaCppT('none') }}</span
+                >
+              </el-button>
+            </template>
             <el-descriptions :column="1" border>
-              <el-descriptions-item :label="LlamaCppT('selectedModel')">{{
-                LlamaCppManager.selectedModel?.path ?? LlamaCppT('none')
-              }}</el-descriptions-item>
+              <el-descriptions-item :label="LlamaCppT('selectedModel')">
+                <el-select
+                  :model-value="LlamaCppManager.selectedModel?.localPath"
+                  class="w-full"
+                  filterable
+                  :placeholder="LlamaCppT('none')"
+                  @change="selectModel"
+                >
+                  <el-option
+                    v-for="model in LlamaCppManager.localModels"
+                    :key="model.localPath"
+                    :label="model.path"
+                    :value="model.localPath"
+                  />
+                </el-select>
+              </el-descriptions-item>
               <el-descriptions-item :label="LlamaCppT('endpoint')">{{
                 endpoint
               }}</el-descriptions-item>
@@ -64,6 +82,15 @@
     try {
       await navigator.clipboard.writeText(endpoint.value)
       MessageSuccess(I18nT('base.copySuccess'))
+    } catch (error) {
+      MessageError(escapeNoticeText(error))
+    }
+  }
+  const selectModel = async (path: string) => {
+    const model = LlamaCppManager.localModels.find((item) => item.localPath === path)
+    if (!model) return
+    try {
+      await LlamaCppManager.selectModel(model)
     } catch (error) {
       MessageError(escapeNoticeText(error))
     }

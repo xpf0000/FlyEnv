@@ -1,6 +1,12 @@
 import { reactiveBind } from '@/util/Index'
-import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
-import type { HubModel, HubModelFile, LaunchProfile, LocalModel, RuntimeVariant } from '../shared/types'
+import { StorageGetAsync, StorageRemoveAsync, StorageSetAsync } from '@/util/Storage'
+import type {
+  HubModel,
+  HubModelFile,
+  LaunchProfile,
+  LocalModel,
+  RuntimeVariant
+} from '../shared/types'
 import { runtimeIdentityKey } from '../shared/runtime'
 
 export interface OperationState {
@@ -14,12 +20,23 @@ export interface OperationState {
 }
 
 export interface ControllerTransport {
-  request<T>(method: string, args: unknown[], onProgress: (data: any) => void, sensitive?: boolean): Promise<T>
+  request<T>(
+    method: string,
+    args: unknown[],
+    onProgress: (data: any) => void,
+    sensitive?: boolean
+  ): Promise<T>
 }
 
 export interface IpcBridge {
-  send(command: string, ...args: unknown[]): { then(callback: (key: string, response: any) => void): void }
-  sendSensitive(command: string, ...args: unknown[]): { then(callback: (key: string, response: any) => void): void }
+  send(
+    command: string,
+    ...args: unknown[]
+  ): { then(callback: (key: string, response: any) => void): void }
+  sendSensitive(
+    command: string,
+    ...args: unknown[]
+  ): { then(callback: (key: string, response: any) => void): void }
   off(key: string): void
 }
 
@@ -50,7 +67,10 @@ export const createControllerTransport = (ipc: IpcBridge): ControllerTransport =
 
 const productionTransport: ControllerTransport = {
   request<T>(method: string, args: unknown[], onProgress: (data: any) => void, sensitive = false) {
-    return import('@/util/IPC').then(({ default: IPC }) => createControllerTransport(IPC).request<T>(method, args, onProgress, sensitive))
+    return import('@/util/IPC')
+      .then(({ default: IPC }) =>
+        createControllerTransport(IPC).request<T>(method, args, onProgress, sensitive)
+      )
       .catch((error) => Promise.reject(error))
   }
 }
@@ -84,7 +104,13 @@ export class LlamaCppController {
   modelOperation?: OperationState
   error = ''
   profile: LaunchProfile = {
-    modelPath: '', backend: 'cpu', host: '127.0.0.1', port: 8080, contextSize: 8192, threads: 4, gpuLayers: 0
+    modelPath: '',
+    backend: 'cpu',
+    host: '127.0.0.1',
+    port: 8080,
+    contextSize: 8192,
+    threads: 4,
+    gpuLayers: 0
   }
   selectedModel?: LocalModel
   localModels: LocalModel[] = []
@@ -107,24 +133,21 @@ export class LlamaCppController {
     if (this.initialized) return
     if (this.initRequest) return this.initRequest
     this.initRequest = (async () => {
-      const saved = await StorageGetAsync<{ profile?: LaunchProfile; selectedModel?: LocalModel }>(settingsKey).catch(() => undefined)
+      const saved = await StorageGetAsync<{ profile?: LaunchProfile; selectedModel?: LocalModel }>(
+        settingsKey
+      ).catch(() => undefined)
       const models = await StorageGetAsync<LocalModel[]>(modelsKey).catch(() => undefined)
-      const cachedVariants = await StorageGetAsync<Partial<Record<RuntimeChannel, RuntimeVariant[]>>>(runtimeVariantsKey).catch(() => undefined)
-      const cachedHub = await StorageGetAsync<HubCatalog>(hubCatalogKey).catch(() => undefined)
+      await Promise.allSettled([
+        StorageRemoveAsync(runtimeVariantsKey),
+        StorageRemoveAsync(hubCatalogKey)
+      ])
       if (saved?.profile) this.profile = { ...this.profile, ...saved.profile }
       if (saved?.selectedModel) this.selectedModel = saved.selectedModel
       this.localModels = Array.isArray(models) ? models : []
-      if (cachedVariants) {
-        for (const channel of ['stable', 'prerelease'] as const) {
-          if (Array.isArray(cachedVariants[channel])) this.runtimeVariants[channel] = cachedVariants[channel]
-        }
-      }
-      if (cachedHub) this.hubCatalog = {
-        pages: cachedHub.pages && typeof cachedHub.pages === 'object' ? cachedHub.pages : {},
-        files: cachedHub.files && typeof cachedHub.files === 'object' ? cachedHub.files : {}
-      }
       this.initialized = true
-    })().finally(() => { this.initRequest = undefined })
+    })().finally(() => {
+      this.initRequest = undefined
+    })
     return this.initRequest
   }
 
@@ -137,12 +160,13 @@ export class LlamaCppController {
     if (!refresh && this.runtimeVariants[channel]) return this.runtimeVariants[channel]
     if (this.runtimeRequests[channel]) return this.runtimeRequests[channel]
     const request = this.request<RuntimeVariant[]>('fetchRuntimeVariants', channel)
-      .then(async (variants) => {
+      .then((variants) => {
         this.runtimeVariants[channel] = variants
-        await StorageSetAsync(runtimeVariantsKey, storageSnapshot(this.runtimeVariants)).catch(() => {})
         return variants
       })
-      .finally(() => { delete this.runtimeRequests[channel] })
+      .finally(() => {
+        delete this.runtimeRequests[channel]
+      })
     this.runtimeRequests[channel] = request
     return request
   }
@@ -155,7 +179,7 @@ export class LlamaCppController {
     if (this.hubPageRequests[key]) return this.hubPageRequests[key]
     const generation = this.hubPagesGeneration
     const request = this.request<HubModel[]>('searchHubModels', normalizedQuery, page)
-      .then(async (models) => {
+      .then((models) => {
         if (refresh) {
           this.hubCatalog.pages = {}
           this.hubCatalog.files = {}
@@ -166,11 +190,12 @@ export class LlamaCppController {
         }
         if (refresh || generation === this.hubPagesGeneration) {
           this.hubCatalog.pages[key] = models
-          await StorageSetAsync(hubCatalogKey, storageSnapshot(this.hubCatalog)).catch(() => {})
         }
         return models
       })
-      .finally(() => { if (this.hubPageRequests[key] === request) delete this.hubPageRequests[key] })
+      .finally(() => {
+        if (this.hubPageRequests[key] === request) delete this.hubPageRequests[key]
+      })
     this.hubPageRequests[key] = request
     return request
   }
@@ -182,14 +207,15 @@ export class LlamaCppController {
     if (this.hubFileRequests[key]) return this.hubFileRequests[key]
     const generation = this.hubFilesGeneration
     const request = this.request<HubModelFile[]>('getHubModelFiles', repoId, revision)
-      .then(async (files) => {
+      .then((files) => {
         if (generation === this.hubFilesGeneration) {
           this.hubCatalog.files[key] = files
-          await StorageSetAsync(hubCatalogKey, storageSnapshot(this.hubCatalog)).catch(() => {})
         }
         return files
       })
-      .finally(() => { if (this.hubFileRequests[key] === request) delete this.hubFileRequests[key] })
+      .finally(() => {
+        if (this.hubFileRequests[key] === request) delete this.hubFileRequests[key]
+      })
     this.hubFileRequests[key] = request
     return request
   }
@@ -200,18 +226,27 @@ export class LlamaCppController {
 
   async saveProfile(profile = this.profile) {
     this.profile = { ...profile }
-    await StorageSetAsync(settingsKey, storageSnapshot({ profile: this.profile, selectedModel: this.selectedModel }))
+    await StorageSetAsync(
+      settingsKey,
+      storageSnapshot({ profile: this.profile, selectedModel: this.selectedModel })
+    )
   }
 
   async selectModel(model: LocalModel) {
     this.selectedModel = model
     this.profile.modelPath = model.localPath
-    await StorageSetAsync(settingsKey, storageSnapshot({ profile: this.profile, selectedModel: model }))
+    await StorageSetAsync(
+      settingsKey,
+      storageSnapshot({ profile: this.profile, selectedModel: model })
+    )
   }
 
   async installRuntime(variant: RuntimeVariant) {
     const id = runtimeIdentityKey(variant)
-    if (this.runtimeOperation && !['success', 'failed', 'cancelled'].includes(this.runtimeOperation.status)) {
+    if (
+      this.runtimeOperation &&
+      !['success', 'failed', 'cancelled'].includes(this.runtimeOperation.status)
+    ) {
       throw new Error('A runtime installation is already in progress')
     }
     const operation: OperationState = { id, status: 'starting' }
@@ -220,12 +255,18 @@ export class LlamaCppController {
     const active = this.runtimeOperation
     this.error = ''
     try {
-      active.result = await this.transport.request('installRuntimeVariant', [variant], (progress) => {
-        active.status = 'running'
-        active.progress = progress
-      })
+      active.result = await this.transport.request(
+        'installRuntimeVariant',
+        [variant],
+        (progress) => {
+          active.status = 'running'
+          active.progress = progress
+        }
+      )
       const installedPath = (active.result as { path?: string } | undefined)?.path
-      await this.refreshInstalled(installedPath ? { path: installedPath, installed: true } : undefined)
+      await this.refreshInstalled(
+        installedPath ? { path: installedPath, installed: true } : undefined
+      )
       active.status = 'success'
       return active.result
     } catch (error) {
@@ -237,7 +278,10 @@ export class LlamaCppController {
   }
 
   async removeRuntime(path: string) {
-    if (this.runtimeOperation && !['success', 'failed', 'cancelled'].includes(this.runtimeOperation.status)) {
+    if (
+      this.runtimeOperation &&
+      !['success', 'failed', 'cancelled'].includes(this.runtimeOperation.status)
+    ) {
       throw new Error('A runtime operation is already in progress')
     }
     const operation: OperationState = { id: path, status: 'starting' }
@@ -257,24 +301,41 @@ export class LlamaCppController {
     }
   }
 
-  async downloadModel(file: HubModelFile, operationId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`) {
-    if (this.modelOperation && !['success', 'failed', 'cancelled'].includes(this.modelOperation.status)) {
+  async downloadModel(
+    file: HubModelFile,
+    operationId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  ) {
+    if (
+      this.modelOperation &&
+      !['success', 'failed', 'cancelled'].includes(this.modelOperation.status)
+    ) {
       throw new Error('A model download is already in progress')
     }
-    const operation: OperationState = { id: operationId, targetKey: modelFileKey(file), targetFile: storageSnapshot(file), status: 'starting' }
+    const operation: OperationState = {
+      id: operationId,
+      targetKey: modelFileKey(file),
+      targetFile: storageSnapshot(file),
+      status: 'starting'
+    }
     this.modelOperation = operation
     const active = this.modelOperation
     this.error = ''
     try {
-      const model = await this.transport.request<LocalModel>('downloadHubModelFile', [operationId, file], (progress) => {
-        if (active.status === 'cancelling') return
-        active.status = 'running'
-        active.progress = progress
-      })
+      const model = await this.transport.request<LocalModel>(
+        'downloadHubModelFile',
+        [operationId, file],
+        (progress) => {
+          if (active.status === 'cancelling') return
+          active.status = 'running'
+          active.progress = progress
+        }
+      )
       active.result = model
-      active.status = 'success'
-      if (!this.localModels.some((item) => item.localPath === model.localPath)) this.localModels.push(model)
+      if (!this.localModels.some((item) => item.localPath === model.localPath))
+        this.localModels.push(model)
       await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
+      if (!this.selectedModel) await this.selectModel(model)
+      active.status = 'success'
       return model
     } catch (error) {
       active.status = active.status === 'cancelling' ? 'cancelled' : 'failed'
@@ -286,9 +347,16 @@ export class LlamaCppController {
 
   async cancelModelDownload(operationId = this.modelOperation?.id) {
     const operation = this.modelOperation
-    if (!operation || operation.id !== operationId || !['starting', 'running'].includes(operation.status)) return false
+    if (
+      !operation ||
+      operation.id !== operationId ||
+      !['starting', 'running'].includes(operation.status)
+    )
+      return false
     operation.status = 'cancelling'
-    try { await this.transport.request<boolean>('cancelModelDownload', [operation.id], () => {}) } catch (error) {
+    try {
+      await this.transport.request<boolean>('cancelModelDownload', [operation.id], () => {})
+    } catch (error) {
       operation.status = 'failed'
       operation.error = error instanceof Error ? error.message : `${error}`
       this.error = operation.error
@@ -298,13 +366,24 @@ export class LlamaCppController {
   }
 
   async deleteModel(model: LocalModel) {
-    if (this.selectedModel?.localPath === model.localPath) throw new Error('Stop the server and select another model before deleting this model')
-    await this.transport.request('deleteLocalModel', [model.localPath, this.selectedModel?.localPath], () => {})
+    await this.transport.request('deleteLocalModel', [model.localPath], () => {})
     this.localModels = this.localModels.filter((item) => item.localPath !== model.localPath)
     await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
+    if (this.selectedModel?.localPath === model.localPath) {
+      this.selectedModel = this.localModels[0]
+      this.profile.modelPath = this.selectedModel?.localPath ?? ''
+      await StorageSetAsync(
+        settingsKey,
+        storageSnapshot({ profile: this.profile, selectedModel: this.selectedModel })
+      )
+    }
   }
 
-  clearError() { this.error = '' }
+  clearError() {
+    this.error = ''
+  }
 }
 
-export const LlamaCppManager = reactiveBind(new LlamaCppController(productionTransport, refreshInstalledRuntimes))
+export const LlamaCppManager = reactiveBind(
+  new LlamaCppController(productionTransport, refreshInstalledRuntimes)
+)
