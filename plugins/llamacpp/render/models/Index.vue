@@ -99,6 +99,7 @@
     type ModelHardware
   } from '@/util/ModelSize'
   import IPC from '@/util/IPC'
+  import { shell } from '@/util/NodeFn'
   import type { HubModel, HubModelFile, LocalModel } from '../../shared/types'
   import { isGGUFShardPath, isStandaloneGGUFPath } from '../../shared/modelFile'
   import { LlamaCppManager, modelFileKey } from '../controller'
@@ -187,6 +188,8 @@
         local.repoId === file.repoId && local.revision === file.revision && local.path === file.path
     )
   const showError = (error: unknown) => MessageError(escapeNoticeText(error))
+  const revealLocalModel = (model: LocalModel) =>
+    shell.showItemInFolder(model.localPath).catch(showError)
   const download = async (file: HubModelFile) => {
     try {
       await LlamaCppManager.downloadModel(file)
@@ -244,7 +247,20 @@
           show-after={600}
         >
           <div class="min-w-0 px-3">
-            <div class="truncate">{rowData.name}</div>
+            {rowData.local ? (
+              <button
+                type="button"
+                class="block w-full cursor-pointer truncate text-left hover:text-yellow-500"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  revealLocalModel(rowData.local!)
+                }}
+              >
+                {rowData.name}
+              </button>
+            ) : (
+              <div class="truncate">{rowData.name}</div>
+            )}
             {(rowData.local?.repoId || rowData.model?.license) && (
               <div class="truncate text-xs opacity-70">
                 {rowData.local?.repoId ?? rowData.model?.license}
