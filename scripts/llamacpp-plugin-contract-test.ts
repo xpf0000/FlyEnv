@@ -1049,6 +1049,37 @@ const testHubDownloadRetriesTransientTlsDisconnect = async () => {
   }
 }
 
+const testHubDownloadCoalescesProgressAndReportsFinalBytes = async () => {
+  const originalGet = axios.get
+  const fs = await import('node:fs/promises')
+  const os = await import('node:os')
+  const path = await import('node:path')
+  const { Readable } = await import('node:stream')
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'llama-progress-'))
+  const chunks = Array.from({ length: 2_000 }, () => Buffer.alloc(1_024))
+  const total = chunks.length * chunks[0].length
+  const progress: Array<{ downloaded: number; total?: number }> = []
+  try {
+    ;(axios as any).get = async () => ({
+      data: Readable.from(chunks),
+      headers: { 'content-length': String(total) }
+    })
+    const target = path.join(root, 'model.gguf')
+    await createModelDownloadDeps().download(
+      'https://huggingface.co/org/model/resolve/main/model.gguf',
+      target,
+      new AbortController().signal,
+      (downloaded, size) => progress.push({ downloaded, total: size })
+    )
+    assert.ok(progress.length > 0 && progress.length <= 12, `Too many progress events: ${progress.length}`)
+    assert.deepEqual(progress.at(-1), { downloaded: total, total })
+    assert.equal((await fs.stat(target)).size, total)
+  } finally {
+    ;(axios as any).get = originalGet
+    await fs.rm(root, { recursive: true, force: true })
+  }
+}
+
 const testHubDownloadReportsProxyFailureAndPreservesCancellation = async () => {
   const originalGet = axios.get
   const originalServer = global.Server
@@ -1505,6 +1536,7 @@ void (async () => {
   await testHubTreeReadsNextLinkFromProductionResponse()
   await testHubCatalogRetriesTransientTlsDisconnect()
   await testHubDownloadRetriesTransientTlsDisconnect()
+  await testHubDownloadCoalescesProgressAndReportsFinalBytes()
   await testHubDownloadReportsProxyFailureAndPreservesCancellation()
   await testControllerTransportCleansListenerAtTerminal()
   await testRuntimeCatalogCacheRequiresExplicitRefresh()

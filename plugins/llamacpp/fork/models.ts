@@ -103,14 +103,25 @@ const productionDeps: ModelDownloadDeps = {
     })
     const total = Number(response.headers['content-length']) || undefined
     let downloaded = 0
+    let lastReportedAt = 0
+    let lastReportedDownloaded = 0
+    const reportProgress = (force = false) => {
+      if (downloaded === lastReportedDownloaded) return
+      const now = Date.now()
+      if (!force && now - lastReportedAt < 200) return
+      lastReportedAt = now
+      lastReportedDownloaded = downloaded
+      progress(downloaded, total)
+    }
     const meter = new Transform({
       transform(chunk, _encoding, callback) {
         downloaded += chunk.length
-        progress(downloaded, total)
+        reportProgress()
         callback(null, chunk)
       }
     })
     await pipeline(response.data, meter, createWriteStream(target, { flags: 'wx' }), { signal })
+    reportProgress(true)
   },
   digest: async (path, signal) => {
     const hash = createHash('sha256')
