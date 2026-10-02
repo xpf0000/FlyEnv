@@ -564,9 +564,13 @@ export class LlamaCppController {
       return false
     operation.status = 'cancelling'
     try {
-      await this.transport.request<boolean>('cancelModelDownload', [operation.id], () => {})
+      const accepted = await this.transport.request<boolean>('cancelModelDownload', [operation.id], () => {})
+      if (!accepted) {
+        if (operation.status === 'cancelling') operation.status = 'running'
+        throw new Error('Model download cancellation was not accepted by the Fork worker')
+      }
     } catch (error) {
-      operation.status = 'failed'
+      if (operation.status === 'cancelling') operation.status = 'running'
       operation.error = error instanceof Error ? error.message : `${error}`
       this.error = operation.error
       throw error

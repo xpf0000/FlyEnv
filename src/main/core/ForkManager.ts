@@ -28,6 +28,7 @@ export class ForkManager {
   ftpsrvFork?: ForkItem
   dnsFork?: ForkItem
   ollamaChatFork?: ForkItem
+  llamaCppModelFork?: ForkItem
 
   _on: Callback = () => {}
   private readonly envSyncCoordinator = new EnvSyncCoordinator(fetchEnvSyncLocal, {
@@ -101,9 +102,13 @@ export class ForkManager {
   private broadcastEnvSyncInvalidated(revision: number) {
     const message: EnvSyncInvalidated = { type: 'env-sync-invalidated', revision }
     const forks = new Set(
-      [this.ftpsrvFork, this.dnsFork, this.ollamaChatFork, ...this.forks].filter(
-        (item): item is ForkItem => !!item
-      )
+      [
+        this.ftpsrvFork,
+        this.dnsFork,
+        this.ollamaChatFork,
+        this.llamaCppModelFork,
+        ...this.forks
+      ].filter((item): item is ForkItem => !!item)
     )
     for (const fork of forks) {
       if (fork.childExited) continue
@@ -141,6 +146,12 @@ export class ForkManager {
       }
       return this.ollamaChatFork.send(...args)
     }
+    if (module === 'llama-cpp' && ['downloadHubModelFile', 'cancelModelDownload'].includes(fn)) {
+      if (!this.llamaCppModelFork) {
+        this.llamaCppModelFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
+      }
+      return this.llamaCppModelFork.send(...args)
+    }
     /**
      * Find a thread with no tasks.
      * The first generic item is always the three-minute primary. Every additional generic item
@@ -172,18 +183,26 @@ export class ForkManager {
 
   async broadcastLanguage(message: LanguageChanged) {
     const forks = new Set(
-      [this.ftpsrvFork, this.dnsFork, this.ollamaChatFork, ...this.forks].filter(
-        (item): item is ForkItem => !!item && !item.childExited
-      )
+      [
+        this.ftpsrvFork,
+        this.dnsFork,
+        this.ollamaChatFork,
+        this.llamaCppModelFork,
+        ...this.forks
+      ].filter((item): item is ForkItem => !!item && !item.childExited)
     )
     return Promise.all([...forks].map((fork) => fork.sendLanguage(message)))
   }
 
   broadcastServer(server: unknown) {
     const forks = new Set(
-      [this.ftpsrvFork, this.dnsFork, this.ollamaChatFork, ...this.forks].filter(
-        (item): item is ForkItem => !!item && !item.childExited
-      )
+      [
+        this.ftpsrvFork,
+        this.dnsFork,
+        this.ollamaChatFork,
+        this.llamaCppModelFork,
+        ...this.forks
+      ].filter((item): item is ForkItem => !!item && !item.childExited)
     )
     for (const fork of forks) {
       try {
@@ -199,6 +218,7 @@ export class ForkManager {
     this.dnsFork?.destroy()
     this.ftpsrvFork?.destroy()
     this.ollamaChatFork?.destroy()
+    this.llamaCppModelFork?.destroy()
     this.forks.forEach((fork) => {
       fork.destroy()
     })

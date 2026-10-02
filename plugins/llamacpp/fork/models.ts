@@ -33,7 +33,7 @@ export interface ModelDownloadDeps {
   mkdir(path: string): Promise<void>
   realPath(path: string): Promise<string>
   download(url: string, target: string, signal: AbortSignal, progress: (downloaded: number, total?: number) => void): Promise<void>
-  digest(path: string): Promise<string>
+  digest(path: string, signal?: AbortSignal): Promise<string>
   exists(path: string): Promise<boolean>
   size(path: string): Promise<number>
   rename(from: string, to: string): Promise<void>
@@ -112,9 +112,9 @@ const productionDeps: ModelDownloadDeps = {
     })
     await pipeline(response.data, meter, createWriteStream(target, { flags: 'wx' }), { signal })
   },
-  digest: async (path) => {
+  digest: async (path, signal) => {
     const hash = createHash('sha256')
-    await pipeline((await import('node:fs')).createReadStream(path), hash)
+    await pipeline((await import('node:fs')).createReadStream(path), hash, { signal })
     return hash.digest('hex')
   },
   exists: (path) => access(path).then(() => true, () => false),
@@ -206,14 +206,18 @@ export const downloadHubModelFile = async (
   try {
     const resolverUrl = `https://huggingface.co/${encodeRepoPath(file.repoId)}/resolve/${encodeURIComponent(file.revision)}/${encodeRepoPath(file.path)}?download=true`
     await deps.download(resolverUrl, partialPath, signal, (downloaded, total) => onProgress({ downloaded, total: total ?? file.size }))
+    signal.throwIfAborted()
     const actualSize = await deps.size(partialPath)
     if (file.size > 0 && actualSize !== file.size) throw new Error(`Model size verification failed: expected ${file.size}, received ${actualSize}`)
-    if (file.sha256 && (await deps.digest(partialPath)).toLowerCase() !== file.sha256.toLowerCase()) throw new Error('Model SHA-256 verification failed')
+    if (file.sha256 && (await deps.digest(partialPath, signal)).toLowerCase() !== file.sha256.toLowerCase()) throw new Error('Model SHA-256 verification failed')
+    signal.throwIfAborted()
     const metadataPartial = `${partialPath}.flyenv.json`
     await deps.rename(partialPath, finalPath)
     finalized = true
     const local: LocalModel = { ...file, localPath: finalPath, downloadedAt: Date.now(), standalone: !isGGUFShardPath(file.path) && await deps.inspect(finalPath) }
+    signal.throwIfAborted()
     await deps.write(metadataPartial, JSON.stringify(local, null, 2))
+    signal.throwIfAborted()
     await deps.rename(metadataPartial, `${finalPath}.flyenv.json`)
     return local
   } catch (error) {

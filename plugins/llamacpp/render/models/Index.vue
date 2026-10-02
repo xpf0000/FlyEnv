@@ -52,6 +52,7 @@
               :row-height="59"
               row-key="key"
               expand-column-key="name"
+              :default-expanded-row-keys="expandedRowKeys"
               :expanded-row-keys="expandedRowKeys"
               @expanded-rows-change="onExpandedRowsChange"
             >

@@ -386,6 +386,21 @@ const testModelDownloadFailureCleansPartial = async () => {
   assert.equal([...fixture.files.keys()].some((path) => path.endsWith('.part')), false)
 }
 
+const testModelCancelDuringDigestRemovesPartial = async () => {
+  const fixture = fakeModelDeps({ bytes: 'model-data', digest: 'a'.repeat(64) })
+  const controller = new AbortController()
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'model.gguf', size: 10, sha256: 'a'.repeat(64), downloadUrl: 'https://example.test/model' }
+  fixture.deps.digest = async () => {
+    controller.abort()
+    return file.sha256!
+  }
+  await assert.rejects(
+    downloadHubModelFile('cancel-digest', file, '/models', controller.signal, () => {}, fixture.deps),
+    /abort/i
+  )
+  assert.equal(fixture.files.size, 0)
+}
+
 const testModelDeleteRejectsOutsideRoot = async () => {
   const fixture = fakeModelDeps()
   await assert.rejects(deleteLocalModel('/private/model.gguf', '/models', undefined, fixture.deps), /model root/)
@@ -680,6 +695,22 @@ const testControllerCancelClearsListener = async () => {
   await task
   assert.equal(calls.includes('cancelModelDownload'), true)
   assert.equal(controller.modelOperation?.status, 'cancelled')
+}
+
+const testControllerRejectsUnacknowledgedCancel = async () => {
+  const pending = deferred<unknown>()
+  const transport: ControllerTransport = {
+    request: (method) => method === 'cancelModelDownload'
+      ? Promise.resolve(false) as Promise<any>
+      : pending.promise as Promise<any>
+  }
+  const controller = new LlamaCppController(transport)
+  const file: HubModelFile = { repoId: 'org/model', revision: 'main', path: 'm.gguf', size: 1, downloadUrl: 'https://example.test/m.gguf' }
+  const task = controller.downloadModel(file, 'missing-worker').catch(() => undefined)
+  await assert.rejects(controller.cancelModelDownload('missing-worker'), /cancel.*not.*accepted/i)
+  assert.equal(controller.modelOperation?.status, 'running')
+  pending.reject(new Error('transfer failed'))
+  await task
 }
 
 const testModelDownloadProgressTracksItsFileUntilTerminal = async () => {
@@ -1437,6 +1468,7 @@ void (async () => {
   await testSameNamedGGUFFilesKeepSeparateManagedPaths()
   await testDownloadRejectsRedirectedManagedDirectory()
   await testModelDownloadFailureCleansPartial()
+  await testModelCancelDuringDigestRemovesPartial()
   await testModelDeleteRejectsOutsideRoot()
   testBuildServerInvocationUsesArgv()
   testLaunchRejectsUnsupportedRuntimeFlags()
@@ -1459,6 +1491,7 @@ void (async () => {
   await testRuntimeWaitsForInstalledRefresh()
   testControllerReentryRetainsOperation()
   await testControllerCancelClearsListener()
+  await testControllerRejectsUnacknowledgedCancel()
   await testModelDownloadProgressTracksItsFileUntilTerminal()
   await testTerminalEventAllowsRetry()
   await testControllerPersistsPlainSnapshotsFromReactiveState()
