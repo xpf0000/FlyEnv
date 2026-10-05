@@ -10,6 +10,7 @@ import { type FSWatcher, rm, stat, existsSync, watch, createReadStream, constant
 import { join } from 'node:path'
 import { readdir, access as fsAccess } from 'node:fs/promises'
 import Helper from '../../fork/Helper'
+import { AppHelperError } from '@shared/WindowsHelperState'
 import { resolve as PathResolve } from 'path'
 import { appDebugLog, isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import { realpath } from '@shared/fs-extra'
@@ -367,15 +368,9 @@ X-GNOME-Autostart-enabled=true`
     const exePath = app.getPath('exe')
     console.log('exePath: ', exePath)
     const taskName = 'FlyEnvStartup'
-    try {
-      await Helper.send('tools', 'setAutoStartWin', autoLaunch, taskName, exePath)
-      return true
-    } catch (e: any) {
-      if (!autoLaunch) {
-        return true
-      }
-      throw e
-    }
+    // 关闭自启动也可能被策略拒绝；保留错误，不能仅因目标值是 false 就报告成功。
+    await Helper.send('tools', 'setAutoStartWin', autoLaunch, taskName, exePath)
+    return true
   }
 
   app_setLoginItemSettings(command: string, key: string, param: any) {
@@ -390,7 +385,11 @@ X-GNOME-Autostart-enabled=true`
           this?.mainWindow?.webContents.send('command', command, key, true)
         })
         .catch((error) => {
-          this?.mainWindow?.webContents.send('command', command, key, `${error}`)
+          // 保留权限错误类型，同时 renderer 展示 message；不再只传字符串丢失取消原因。
+          this?.mainWindow?.webContents.send('command', command, key, {
+            message: String(error),
+            errorCode: error instanceof AppHelperError ? error.code : undefined
+          })
         })
       return
     }
@@ -633,24 +632,32 @@ X-GNOME-Autostart-enabled=true`
       })
   }
 
-  fs_readFile(command: string, key: string, path: string) {
+  fs_readFile(command: string, key: string, path: string, strict = false) {
+    // strict 供 hosts/项目版本等会依据读取结果重写文件的调用方使用；旧只读调用
+    // 保持缺失返回空字符串的合同。只把访问拒绝交给权限分流，不以 UAC 掩盖 I/O 错误。
+    const fail = (error: NodeJS.ErrnoException) => {
+      this?.mainWindow?.webContents.send(
+        'command',
+        command,
+        key,
+        strict ? { code: 1, msg: error.message, errorCode: error.code } : ''
+      )
+    }
     path = pathFixedToUnix(path)
     readFile(path, 'utf-8')
       .then((data: string) => {
         this?.mainWindow?.webContents.send('command', command, key, data)
       })
       .catch((error: NodeJS.ErrnoException) => {
-        if (error.code === 'ENOENT') {
-          this?.mainWindow?.webContents.send('command', command, key, '')
+        if (!['EACCES', 'EPERM'].includes(error.code ?? '')) {
+          fail(error)
           return
         }
         Helper.send('tools', 'readFileByRoot', path)
           .then((data) => {
             this?.mainWindow?.webContents.send('command', command, key, data)
           })
-          .catch(() => {
-            this?.mainWindow?.webContents.send('command', command, key, '')
-          })
+          .catch(fail)
       })
   }
 
@@ -661,13 +668,24 @@ X-GNOME-Autostart-enabled=true`
       })
       .catch((e) => {
         console.error('fs_writeFile error: ', e)
+        // 写入取消/失败必须回传结构化终态；false 被旧 renderer 当作 void 成功，
+        // 会导致 hosts 编辑器提示成功或项目版本继续注册。非权限错误不尝试提权。
+        const fail = (error: NodeJS.ErrnoException) => {
+          this?.mainWindow?.webContents.send('command', command, key, {
+            code: 1,
+            msg: error.message,
+            errorCode: error.code
+          })
+        }
+        if (!['EACCES', 'EPERM'].includes(e.code ?? '')) {
+          fail(e)
+          return
+        }
         Helper.send('tools', 'writeFileByRoot', path, data)
           .then(() => {
             this?.mainWindow?.webContents.send('command', command, key, true)
           })
-          .catch(() => {
-            this?.mainWindow?.webContents.send('command', command, key, false)
-          })
+          .catch(fail)
       })
   }
 

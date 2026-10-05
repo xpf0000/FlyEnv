@@ -467,4 +467,17 @@ assert.ok(
     phpCreateControllerSource.indexOf("IPC.send('app-fork:project', 'handleProjectDir'")
 )
 
+// 权限页只能绑定控制器；IPC、进度、超时清理与版本保护必须由单例所有。
+const privilegeDir = join(componentsDir, 'Setup', 'WindowsElevationMethod')
+const privilegeController = readFileSync(join(privilegeDir, 'Controller.ts'), 'utf-8')
+for (const filename of ['Choice.vue', 'index.vue']) {
+  const page = readFileSync(join(privilegeDir, filename), 'utf-8')
+  assert.doesNotMatch(page, /IPC\.send\(/)
+}
+assert.match(privilegeController, /reactiveBind\(new WindowsPrivilegeController\(\)\)/)
+assert.match(privilegeController, /result\?\.code === 200/)
+assert.match(privilegeController, /IPC\.off\(key\)/)
+assert.match(privilegeController, /private operation\?: Promise<void>/)
+assert.match(privilegeController, /snapshot\.revision < /)
+
 console.log('renderer operation boundary tests passed')

@@ -4,7 +4,6 @@ import {
   execPromise,
   uuid,
   waitPidFile,
-  waitTime,
   chmod,
   remove,
   writeFile,
@@ -12,12 +11,16 @@ import {
   copyFile
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
+import { withServiceStopContext, type ServiceStopContext } from '@shared/ServiceStopContext'
 import { existsSync } from 'fs'
-import { ProcessKill, ProcessPidsByPid } from '@shared/Process'
 import { I18nT } from '@lang/runtime'
 import type { ModuleExecItem, SoftInstalled } from '@shared/app'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { StopProcessListFetch, StopProcessPidListByPid } from '@shared/StopProcessList'
+import {
+  captureServiceProcessIdentity,
+  stopRegisteredServiceProcesses,
+  type ServiceProcessIdentity
+} from '@shared/ServiceProcessIdentity'
 
 class ModuleCustomer {
   constructor() {}
@@ -33,48 +36,50 @@ class ModuleCustomer {
     })
   }
 
-  stopService(pid: string) {
-    return new ForkPromise(async (resolve) => {
-      if (isWindows()) {
-        const pids = await StopProcessPidListByPid(`${pid}`.trim())
-
-        if (pids.length > 0) {
-          try {
-            await ProcessKill('-INT', pids)
-          } catch {}
-        }
-
-        resolve({
-          'APP-Service-Stop-PID': pids
+  /**
+   * 自定义服务只依据原启动根身份停止，不按执行程序扫描其他实例。根确认后，
+   * 正常子孙随树处理；末次等待确认完整原清单退出后才发送成功 PID。没有活父
+   * 但存在历史 PPID、读取失败或授权取消均保留失败，main 不注销原代次。
+   */
+  stopService(
+    pid: string,
+    stopOptions?: ServiceStopContext,
+    identity?: ServiceProcessIdentity | string
+  ) {
+    // 公共可选第二参数携带首表，原启动身份顺延；共享根发现直接读此表，不再请求 IPC。
+    return withServiceStopContext(
+      stopOptions,
+      () =>
+        new ForkPromise(async (resolve) => {
+          // 与语言项目共用原启动身份约束及平台停止流程，不在模块重复查时间/等待。
+          const pids = await stopRegisteredServiceProcesses(pid, identity)
+          resolve({ 'APP-Service-Stop-PID': pids })
         })
-      } else {
-        const allPid: string[] = []
-        const plist: any = await StopProcessListFetch()
-        const pids = ProcessPidsByPid(pid.trim(), plist)
-        allPid.push(...pids)
-        const arr: string[] = Array.from(new Set(allPid))
-        if (arr.length > 0) {
-          let sig = '-TERM'
-          try {
-            await ProcessKill(sig, arr)
-          } catch {}
-          await waitTime(500)
-          sig = '-INT'
-          try {
-            await ProcessKill(sig, arr)
-          } catch {}
-        }
-        resolve({
-          'APP-Service-Stop-PID': arr
-        })
-      }
-    })
+    )
   }
   startService(version: ModuleExecItem, isService: boolean, openInTerminal?: boolean) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolveResult, reject) => {
+      // 直接/终端启动共享创建时间采样；暂时失败有限重试，持续失败不得盲认当前 PID。
+      // 只把 PID 和创建身份返回给停止登记，不将执行命令、口令或终端参数混入停止。
+      const launchedAt = Date.now()
+      const resolve = (result: any) => {
+        const pid = `${result?.['APP-Service-Start-PID'] ?? ''}`.trim()
+        if (/^\d+$/.test(pid) && Number(pid) > 4) {
+          resolveResult(
+            captureServiceProcessIdentity(pid, launchedAt).then((identity) => ({
+              ...result,
+              'APP-Service-Stop-Args': [pid, identity]
+            }))
+          )
+        } else resolveResult(result)
+      }
       if (version.commandType === 'file' && !existsSync(version.commandFile)) {
         reject(new Error('Command File Not Exists'))
         return
+      }
+      // 与普通启动一致，终端启动不能复用历史 PID 文件的旧内容。
+      if (openInTerminal && isService && version.pidPath && existsSync(version.pidPath)) {
+        await remove(version.pidPath)
       }
 
       if (isMacOS() && openInTerminal) {

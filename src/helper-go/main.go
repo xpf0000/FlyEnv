@@ -26,7 +26,16 @@ import (
 
 // Constants for socket paths
 const (
-	Helper_Version   = 27
+	// Helper_Version 是帮助程序发布版本，Go 源码变更时必须递增并同步
+	// src/shared/AppHelperCheck.ts 的 HelperVersion；版本/health RPC 据此识别旧程序，
+	// 防止应用把仍运行旧逻辑的 Helper 当作已升级。v32 调整 Windows TCP 查询与
+	// Helper 初始化/停止身份边界；所有平台产物须重新构建并同步应用端断言。
+	// v33：增加 Windows 停止的实际 taskkill 参数、输出、身份观察及返回诊断。
+	// v34：服务请求携带完整有序 PID 和后代创建身份，用原句柄父先子后结束，取消 /T。
+	// v35：完整 PID 集合一次停止请求，移除逐 PID 的阻塞等待，保留原身份/句柄预检。
+	// v36：系统环境写入后非阻塞安排后台广播，合并待处理通知，不等待窗口响应。
+	// v37：取消 Helper 内提前通知，由 FlyEnv 环境业务结算后统一广播，避免重复通知。
+	Helper_Version   = 37
 	SOCKET_PATH      = "/tmp/flyenv-helper.sock"
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
@@ -864,7 +873,29 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 					execErr = fmt.Errorf("chmod expects 2 arguments, got %d", len(info.Args))
 				}
 			case "kill":
-				if len(info.Args) == 2 {
+				if len(info.Args) >= 2 && len(info.Args) <= 4 {
+					// 兼容旧 UNIX signal/PIDs 及早期普通身份第三参；新请求统一为
+					// signal/PIDs/treeMode/identities。Windows 活目标没有身份时工具层拒绝。
+					// treeMode 为兼容沿用参数名；v34 表示完整有序服务集合，不能动态扩树。
+					tree := false
+					var identities []utils.ProcessStartIdentity
+					identityIndex := -1
+					switch len(info.Args) {
+					case 2:
+					case 3:
+						identityIndex = 2
+					case 4:
+						mode, ok := info.Args[2].(bool)
+						if !ok {
+							execErr = fmt.Errorf("kill: process mode must be a boolean")
+						} else {
+							tree = mode
+							identityIndex = 3
+						}
+					}
+					if identityIndex >= 0 && execErr == nil {
+						identities, execErr = parseProcessStartIdentities(info.Args[identityIndex], "kill")
+					}
 					if sig, ok := info.Args[0].(string); ok {
 						var pids []string
 						if pidList, ok := info.Args[1].([]interface{}); ok { // JSON数组通常解析为[]interface{}
@@ -883,13 +914,13 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 						}
 
 						if execErr == nil { // 只有在上面的参数转换没有错误时才执行方法
-							result, execErr = a.Tool.Kill(sig, pids)
+							result, execErr = a.Tool.KillWithIdentity(sig, pids, tree, identities)
 						}
 					} else {
 						execErr = fmt.Errorf("kill: arg[0] must be a string, got %T", info.Args[0])
 					}
 				} else {
-					execErr = fmt.Errorf("kill expects 2 arguments, got %d", len(info.Args))
+					execErr = fmt.Errorf("kill expects 2 to 4 arguments, got %d", len(info.Args))
 				}
 			case "ln_s":
 				if len(info.Args) == 2 {
@@ -906,8 +937,12 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 					execErr = fmt.Errorf("ln_s expects 2 arguments, got %d", len(info.Args))
 				}
 			case "killPorts":
-				if len(info.Args) == 1 {
+				if len(info.Args) == 1 || len(info.Args) == 2 {
 					var ports []string
+					var identities []utils.ProcessStartIdentity
+					if len(info.Args) == 2 {
+						identities, execErr = parseProcessStartIdentities(info.Args[1], "killPorts")
+					}
 					if portList, ok := info.Args[0].([]interface{}); ok {
 						for i, p := range portList {
 							if portStr, ok := p.(string); ok {
@@ -923,10 +958,10 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 						execErr = fmt.Errorf("killPorts: arg[0] must be a string array, got %T", info.Args[0])
 					}
 					if execErr == nil {
-						result, execErr = a.Tool.KillPorts(ports)
+						result, execErr = a.Tool.KillPortsWithIdentity(ports, identities)
 					}
 				} else {
-					execErr = fmt.Errorf("killPorts expects 1 argument, got %d", len(info.Args))
+					execErr = fmt.Errorf("killPorts expects 1 or 2 arguments, got %d", len(info.Args))
 				}
 			case "getPortPids":
 				if len(info.Args) == 1 {
@@ -1231,6 +1266,70 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 		}
 		return // Exit after handling one complete request
 	}
+}
+
+// parseProcessStartIdentities 在解码为 RPC 类型前验证 JSON 形状；encoding/json
+// 单独使用会接受 null 并静默忽略未知字段，不能作为身份协议的唯一校验。
+func parseProcessStartIdentities(value interface{}, operation string) ([]utils.ProcessStartIdentity, error) {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: invalid process identities: %w", operation, err)
+	}
+	trimmed := strings.TrimSpace(string(data))
+	if !strings.HasPrefix(trimmed, "[") {
+		return nil, fmt.Errorf("%s: process identities must be an array", operation)
+	}
+	var entries []map[string]json.RawMessage
+	if err := json.Unmarshal(data, &entries); err != nil || entries == nil {
+		return nil, fmt.Errorf("%s: invalid process identity array", operation)
+	}
+	limit := 256
+	if operation == "kill" {
+		limit = 4096 // 工具层仍会按普通/服务模式进一步限制，不允许端口接口借此扩容。
+	}
+	if len(entries) > limit {
+		return nil, fmt.Errorf("%s: too many process identities", operation)
+	}
+	for index, entry := range entries {
+		for key := range entry {
+			if key != "pid" && key != "created" && key != "source" && key != "path" {
+				return nil, fmt.Errorf("%s: identities[%d] has unknown field %q", operation, index, key)
+			}
+		}
+		if len(entry["pid"]) == 0 || len(entry["created"]) == 0 {
+			return nil, fmt.Errorf("%s: identities[%d] requires pid and created", operation, index)
+		}
+		var pid uint32
+		var created string
+		if err := json.Unmarshal(entry["pid"], &pid); err != nil || pid <= 4 {
+			return nil, fmt.Errorf("%s: identities[%d] has invalid pid", operation, index)
+		}
+		if err := json.Unmarshal(entry["created"], &created); err != nil || strings.TrimSpace(created) == "" {
+			return nil, fmt.Errorf("%s: identities[%d] has invalid created time", operation, index)
+		}
+		var source string
+		if len(entry["source"]) == 0 || json.Unmarshal(entry["source"], &source) != nil || (source != "startTime" && source != "cim" && !(operation == "kill" && source == "cim-descendant")) {
+			return nil, fmt.Errorf("%s: identities[%d] has invalid source", operation, index)
+		}
+		if len(entry["path"]) == 0 && source == "cim" {
+			return nil, fmt.Errorf("%s: identities[%d] requires a CIM path", operation, index)
+		}
+		var path string
+		if len(entry["path"]) > 0 && json.Unmarshal(entry["path"], &path) != nil {
+			return nil, fmt.Errorf("%s: identities[%d] has invalid path", operation, index)
+		}
+		if source == "cim" && strings.TrimSpace(path) == "" {
+			return nil, fmt.Errorf("%s: identities[%d] requires a CIM path", operation, index)
+		}
+		if _, err := time.Parse(time.RFC3339Nano, created); err != nil {
+			return nil, fmt.Errorf("%s: identities[%d] has invalid created time", operation, index)
+		}
+	}
+	var identities []utils.ProcessStartIdentity
+	if err := json.Unmarshal(data, &identities); err != nil {
+		return nil, fmt.Errorf("%s: invalid process identities: %w", operation, err)
+	}
+	return identities, nil
 }
 
 // Main entry point for the Go program

@@ -66,34 +66,34 @@ export class Module {
     return flight
   }
 
-  onItemStart(item: ModuleInstalledItem): Promise<Module> {
-    return new Promise((resolve) => {
-      if (!this.isOnlyRunOne) {
-        console.log('onItemStart exit: ', this.typeFlag)
-        resolve(this)
-        return
-      }
-      const appStore = AppStore()
-      const current = appStore.serverCurrent(this.typeFlag)
-      if (
-        current?.current?.version !== item.version ||
-        current?.current?.path !== item.path ||
-        current?.current?.bin !== item.bin
-      ) {
-        appStore.UPDATE_SERVER_CURRENT({
-          flag: this.typeFlag,
-          data: JSON.parse(JSON.stringify(item))
-        })
-        appStore.saveConfig().catch()
-      }
-      Promise.all(this.installed.map((a) => a.stop()))
-        .then(() => {
-          resolve(this)
-        })
-        .catch(() => {
-          resolve(this)
-        })
-    })
+  /** 独占版本切换沿用当前请求的交互意图；旧版本未停成功时禁止启动目标。 */
+  async onItemStart(
+    item: ModuleInstalledItem,
+    interactive = true,
+    isActive: () => boolean = () => true
+  ): Promise<Module> {
+    if (!this.isOnlyRunOne) return this
+    // 当前启动自己的前置切换停止不能等待当前 startFlight，否则会形成自等待。
+    const stopped = await Promise.all(this.installed.map((a) => a.stop(interactive, false)))
+    const failures = stopped.filter((result) => result !== true)
+    if (failures.length) throw new Error(failures.map(String).join('\n'))
+    // 启动总预算可能在前置停止期间耗尽；旧请求不能再切换模块当前版本。
+    if (!isActive()) return this
+    // 当前版本配置在停止成功后才改变，取消授权不会提前把界面指向新版本。
+    const appStore = AppStore()
+    const current = appStore.serverCurrent(this.typeFlag)
+    if (
+      current?.current?.version !== item.version ||
+      current?.current?.path !== item.path ||
+      current?.current?.bin !== item.bin
+    ) {
+      appStore.UPDATE_SERVER_CURRENT({
+        flag: this.typeFlag,
+        data: JSON.parse(JSON.stringify(item))
+      })
+      appStore.saveConfig().catch()
+    }
+    return this
   }
 
   private _fetchInstalledResolves: CallbackFn[] = []
@@ -167,7 +167,8 @@ export class Module {
         installItem.start = installItem.start.bind(installItem)
         installItem.stop = installItem.stop.bind(installItem)
         installItem.setEnv = installItem.setEnv.bind(installItem)
-        installItem._onStart = this.onItemStart
+        // 该 callback 由 item 持有并以 item 为调用接收者；显式绑定模块，保留版本切换上下文。
+        installItem._onStart = this.onItemStart.bind(this)
         return installItem as any
       })
 
@@ -400,7 +401,8 @@ export class Module {
       })
   }
 
-  start(): Promise<string | boolean> {
+  /** 启动组/侧边栏沿用既有版本生命周期，并向每个目标传递本次授权意图。 */
+  start(interactive = true): Promise<string | boolean> {
     return new Promise((resolve) => {
       if (this.installed.length === 0) {
         resolve(true)
@@ -408,7 +410,7 @@ export class Module {
       }
       console.log('start: ', this, this.typeFlag, this.isOnlyRunOne)
       if (!this.isOnlyRunOne) {
-        Promise.all(this.installed.map((a) => a.start()))
+        Promise.all(this.installed.map((a) => a.start(interactive)))
           .then((arrs) => {
             const err = arrs.filter((a) => typeof a === 'string')
             if (err.length) {
@@ -441,7 +443,7 @@ export class Module {
         }
       }
       find!
-        .start()
+        .start(interactive)
         .then((res) => {
           resolve(res)
         })
@@ -451,18 +453,20 @@ export class Module {
     })
   }
 
-  stop(): Promise<string | boolean> {
+  /** 聚合错误字符串，禁止把取消权限或子版本停止失败统一吞成成功。 */
+  stop(interactive = true): Promise<string | boolean> {
     return new Promise((resolve) => {
       if (!this.installed.length) {
         resolve(true)
         return
       }
-      Promise.all(this.installed.map((a) => a.stop()))
-        .then(() => {
-          resolve(true)
+      Promise.all(this.installed.map((a) => a.stop(interactive)))
+        .then((results) => {
+          const errors = results.filter((result) => typeof result === 'string')
+          resolve(errors.length ? errors.join('\n') : true)
         })
-        .catch(() => {
-          resolve(true)
+        .catch((error) => {
+          resolve(error instanceof Error ? error.message : String(error))
         })
     })
   }

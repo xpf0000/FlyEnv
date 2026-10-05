@@ -22,6 +22,7 @@ import { closeSync, openSync } from 'node:fs'
 import { spawn } from 'node:child_process'
 import EnvSync from '@shared/EnvSync'
 import { ProcessListFetch } from '@shared/Process'
+import { resolveWindowsPowerShellPath } from '@shared/WindowsSystemPaths'
 
 export type ServiceStartParams = {
   version: SoftInstalled
@@ -138,9 +139,8 @@ export async function serviceStartExec(
   const timeToWait = param?.timeToWait ?? 500
 
   if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
+    // 删除旧 PID 失败应在启动前结束，不能读旧文件并登记为新实例。
+    await remove(pidPath)
   }
 
   await mkdirp(baseDir)
@@ -276,13 +276,13 @@ export async function customerServiceStartExec(
   version: ModuleExecItem,
   isService: boolean
 ): Promise<{ 'APP-Service-Start-PID': string }> {
-  console.log('customerServiceStartExec: ', version, isService)
+  console.log('customerServiceStartExec: ', version.id, isService)
 
   const pidPath = version?.pidPath ?? ''
   if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
+    // 停止契约必须绑定本次实际启动的根；历史 PID 文件清理失败时不能继续
+    // 启动再复用旧文件。这里在创建外部进程前失败，避免产生未正确登记的实例。
+    await remove(pidPath)
   }
 
   const baseDir = join(global.Server.BaseDir!, 'module-customer')
@@ -360,7 +360,8 @@ export async function customerServiceStartExec(
     }
   }
 
-  await waitPidFile(errFile, 0, 6, 500)
+  // 错误日志存在而为空是正常情况；只等待出现，不按 PID 的空文件语义重试。
+  await waitPidFile(errFile, 0, 6, 500, false)
 
   if (!isService) {
     let msg = ''
@@ -435,9 +436,8 @@ export async function serviceStartSpawn(
   const pidPath = param?.pidPath ?? ''
 
   if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
+    // 同一条规则适用于 spawn 包装，避免旧 PID 冒充本次启动结果。
+    await remove(pidPath)
   }
 
   await mkdirp(baseDir)
@@ -453,10 +453,10 @@ export async function serviceStartSpawn(
   await mkdirp(dirname(outFile))
   await mkdirp(dirname(errFile))
 
-  const out = openSync(outFile, 'a')
-  const err = openSync(errFile, 'a')
-
   const env = await EnvSync.sync()
+  // 环境同步和系统程序解析可能失败，必须在打开日志句柄前完成，避免失败启动泄漏句柄。
+  const powerShell =
+    isWindows() && bin.toLowerCase().endsWith('.ps1') ? resolveWindowsPowerShellPath() : undefined
 
   on({
     'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
@@ -466,7 +466,6 @@ export async function serviceStartSpawn(
     const cwd = param?.cwd ?? dirname(bin)
     const options: any = {
       detached: param.detached ?? true,
-      stdio: ['ignore', out, err],
       cwd,
       env: {
         ...env,
@@ -475,17 +474,24 @@ export async function serviceStartSpawn(
       windowsHide: true // 隐藏 cmd 窗口
     }
     if (isWindows()) {
-      if (bin.endsWith('.ps1')) {
-        options.shell = EnvSync.PowerShellPath || 'powershell.exe'
+      if (powerShell) {
+        // .ps1 入口同样使用受验证的系统绝对路径，不能依赖 PATH 或用户环境覆盖。
+        options.shell = powerShell
       } else if (!bin.endsWith('.exe') && !bin.endsWith('.com')) {
         options.shell = true
       }
     }
-    // 2. 启动进程
-    const cp = spawn(bin, execArgs, options)
-    // 3. 立即关闭父进程中的句柄 (子进程已继承)
-    closeSync(out)
-    closeSync(err)
+    // 两个文件打开以及 spawn 均可能同步失败；无论子进程是否创建都释放父方句柄。
+    const out = openSync(outFile, 'a')
+    let err: number | undefined
+    let cp: ReturnType<typeof spawn>
+    try {
+      err = openSync(errFile, 'a')
+      cp = spawn(bin, execArgs, { ...options, stdio: ['ignore', out, err] })
+    } finally {
+      closeSync(out)
+      if (err !== undefined) closeSync(err)
+    }
 
     return new Promise((resolve, reject) => {
       // 监听启动瞬间的错误（如文件路径不存在、权限不足）

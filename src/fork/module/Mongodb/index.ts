@@ -27,10 +27,12 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import axios from 'axios'
-import { isWindows, pathFixedToUnix } from '@shared/utils'
+import YAML from 'yamljs'
+import { appDebugLog, isWindows, pathFixedToUnix } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { DbGateRuntime, type DbGateOpenResult } from '../DbGate'
+import { fetchLoopbackListeningPids } from '@shared/Process.win'
 
 class Manager extends Base {
   mongoshVersion = '2.5.2'
@@ -135,12 +137,25 @@ class Manager extends Base {
     })
   }
 
-  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
+  /** 面板可以单独打开；它只关闭 DbGate，不能把 Node 版本传给 mongod 的停止策略。 */
+  companionStopArgs(command: string, pid: string, args: any[]): any[] | undefined {
+    if (command === 'openDbGate') return [{ ...args[0], pid }, { dbGateOnly: true }]
+  }
+
+  _stopServer(
+    version: SoftInstalled,
+    options?: { dbGateOnly?: boolean }
+  ): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     return new ForkPromise(async (resolve, reject, on) => {
-      const dbGatePids = await this.dbGateRuntime.stop().catch((error) => {
-        console.error('stop DbGate error: ', error)
-        return [] as string[]
-      })
+      // DbGate 属于模块停止的一部分，失败不能伪装为整个服务已停止。
+      // 独立面板的登记 PID 仅供其 runtime 恢复；常规数据库停止不能传 mongod PID。
+      const dbGatePids = await this.dbGateRuntime.stop(
+        options?.dbGateOnly ? version.pid : undefined
+      )
+      if (options?.dbGateOnly) {
+        resolve({ 'APP-Service-Stop-PID': dbGatePids.map(Number) })
+        return
+      }
       const mergePids = (result: { 'APP-Service-Stop-PID'?: Array<string | number> }) => {
         result['APP-Service-Stop-PID'] = Array.from(
           new Set([...(result['APP-Service-Stop-PID'] ?? []), ...dbGatePids])
@@ -152,50 +167,70 @@ class Manager extends Base {
         super._stopServer(version).on(on).then(mergePids).catch(reject)
         return
       }
-      try {
-        await this.initMongosh()
-      } catch {}
+      on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type })) })
+      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+      const configFile = join(global.Server.MongoDBDir!, `mongodb-${v}.conf`)
+      const targets = await this.windowsServiceTargets(version, [configFile])
+      let finalList = targets.list
       const mongosh = join(global.Server.AppDir!, 'mongosh', this.mongoshVersion, 'bin/mongosh.exe')
-      if (existsSync(mongosh)) {
-        try {
-          await spawnPromise('mongosh.exe', ['--eval', `"db.shutdownServer()"`], {
-            cwd: dirname(mongosh),
-            shell: false
-          })
-        } catch (e) {
-          console.log('mongosh shutdown error: ', e)
-        }
-        const pids = new Set<string>()
-        const appPidFile = this.appPidFile()
-        if (existsSync(appPidFile)) {
-          try {
-            const pid = await this.readPidFromFile(appPidFile)
-            if (pid) {
-              pids.add(pid)
-            }
-          } catch {}
-          TaskQueue.run(remove, appPidFile).then().catch()
-        }
-        try {
-          const pid = await this.readPidFromFile()
-          if (pid) {
-            pids.add(pid)
+      if (targets.pids.length) {
+        if (existsSync(mongosh)) {
+          // 停止时不下载软件。读当前配置的端口，并验证监听者属于本次服务目标，
+          // 避免固定 27017 意外关闭另一个 MongoDB。认证/TLS 自定义配置失败会保留错误。
+          const config = YAML.parse(await readFile(configFile, 'utf8'))
+          // 缺少显式端口时保留 MongoDB 官方默认 27017；进程归属仍由本实例标记确认。
+          const port = Number(config?.net?.port ?? 27017)
+          if (!Number.isInteger(port) || port < 1 || port > 65535)
+            throw new Error('Invalid MongoDB port')
+          const owners = await fetchLoopbackListeningPids(`${port}`)
+          // 多监听者时必须全部属于已确认目标；仅其中一个属于 FlyEnv 不能证明
+          // 本次连接会落到它，禁止向共享该端口的其他实例发送 shutdownServer。
+          if (!owners.length || owners.some((pid) => !targets.pids.includes(pid))) {
+            throw new Error('MongoDB listening port does not belong to this service instance')
           }
-        } catch {}
-        if (version?.pid) {
-          pids.add(`${version.pid}`)
+          let shutdownError: unknown
+          try {
+            // 绝对程序路径及参数数组支持中文/空格；连接只指向已经核对的本地端口。
+            // MongoDB 关闭会断开客户端连接，最终以真实进程消失判断成功。
+            await spawnPromise(
+              mongosh,
+              [
+                `mongodb://127.0.0.1:${port}/admin?directConnection=true&serverSelectionTimeoutMS=3000`,
+                '--quiet',
+                '--eval',
+                'db.getSiblingDB("admin").shutdownServer()'
+              ],
+              { cwd: dirname(mongosh), shell: false, timeout: 30_000, windowsHide: true }
+            )
+          } catch (error) {
+            shutdownError = error
+          }
+          try {
+            finalList = await this.waitWindowsServiceExit(targets.pids, 10_000, targets.list)
+          } catch (error) {
+            // 不记录完整数据库连接/命令；失败到达统一 stopService 终态并保留登记。
+            await appDebugLog(
+              '[MongoDB][stop][incomplete]',
+              'Database shutdown did not complete'
+            ).catch(() => {})
+            throw shutdownError ?? error
+          }
+        } else {
+          // 缺少 mongosh 时交给 Base 统一树停止与等待，传入首次归属快照及 CREATED 身份。
+          finalList = await this.stopWindowsServiceProcesses(targets.pids, targets.list)
         }
-        on({
-          'APP-Service-Stop-Success': true
-        })
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
-        })
-        return mergePids({
-          'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
-        })
       }
-      super._stopServer(version).on(on).then(mergePids).catch(reject)
+      if (targets.pids.some((pid) => finalList.some(({ PID }) => PID === pid))) {
+        throw new Error('MongoDB is still running after the stop request')
+      }
+      // 空目标沿用首次发现快照；公共清理只删候选已退出且文件值仍匹配的 PID。
+      await this.cleanupStoppedServicePidFiles(
+        [...targets.candidates, ...targets.pids, `${version.pid ?? ''}`].filter(Boolean),
+        finalList
+      )
+      on({ 'APP-Service-Stop-Success': true })
+      on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type })) })
+      mergePids({ 'APP-Service-Stop-PID': targets.pids })
     })
   }
 

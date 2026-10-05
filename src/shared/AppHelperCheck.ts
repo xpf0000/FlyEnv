@@ -21,7 +21,19 @@ const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 const Helper_Check_Timeout = 3000
 
-export const HelperVersion = 27
+// 与 src/helper-go/main.go 的 Helper_Version 同步：Go 源码变更必须升级发布版本。
+// version/health 校验据此拒绝旧 Helper，并由现有安装流程更新；Windows 系统路径
+// 和错误传播修复从 v28 开始，v29 新增父身份树协议，v30 扩展普通 PID/端口身份复核，
+// v31 将 Unix 进程/端口查询失败作为错误返回；v32 统一 Windows 监听查询来源并严格化
+// Helper 连接初始化与进程身份复核。
+// 此常量供各平台共用，发布时必须重建对应平台产物，
+// Windows 主备文件还须来自同一新产物，不能仅改常量就宣称二进制已经升级。
+// v33 同步 Go 执行端停止诊断；旧二进制不会产生新增的实际 taskkill 日志。
+// v34 服务停止改为完整有序 PID + 原句柄父先子后执行，旧 /T 二进制必须更新。
+// v35 与 Go 停止执行同步：一次请求连续终止，取消逐 PID 阻塞等待。
+// v36 环境广播改为 Helper 后台队列；旧程序仍阻塞写入 RPC，须通过版本检查更新。
+// v37 删除 Helper 提前广播，统一在环境业务结算后通知；旧 v36 会提前/重复广播。
+export const HelperVersion = 37
 
 export type HelperHealth = {
   version: number

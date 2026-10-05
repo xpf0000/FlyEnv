@@ -5,7 +5,20 @@ import { delimiter, dirname, join, normalize, posix, win32 } from 'node:path'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { ProcessKillStrict, ProcessListFetch, type PItem } from '@shared/Process'
+import {
+  ProcessListByExactPid,
+  ProcessKillStrict,
+  ProcessListFetch,
+  type PItem
+} from '@shared/Process'
+import { isReadableServiceStopRoot } from '@shared/ProcessSnapshot'
+import { StopProcessListFetch } from '@shared/StopProcessList'
+import {
+  cleanupStoppedServicePidFiles,
+  ServiceProcessExitTimeoutError,
+  stopWindowsServiceProcesses,
+  waitForServiceProcessExit
+} from '@shared/ServiceStop'
 import {
   fetchLoopbackListeningPids as fetchLoopbackListeningPidsWindows,
   ProcessPidListStrict
@@ -253,11 +266,8 @@ class RedisCommanderOpenCanceledError extends Error {
 }
 
 const processList = async (): Promise<PItem[]> => {
-  try {
-    return await (isWindows() ? ProcessPidListStrict() : ProcessListFetch())
-  } catch {
-    return []
-  }
+  // 查询失败代表身份未知，不等于没有进程；让停止/打开流程保留失败终态。
+  return await (isWindows() ? ProcessPidListStrict() : ProcessListFetch())
 }
 
 export type RedisCommanderRuntimeOptions = {
@@ -293,7 +303,7 @@ export class RedisCommanderRuntime {
   private readonly installPackage: (nodeBin: string, paths: RedisCommanderPaths) => Promise<void>
   private readonly startPackage: NonNullable<RedisCommanderRuntimeOptions['starter']>
   private readonly readConfig: (redis: SoftInstalled) => Promise<RedisCommanderConnection>
-  private readonly killProcesses: (pids: string[]) => Promise<void>
+  private readonly killProcesses?: (pids: string[]) => Promise<void>
   private lastHealthError = ''
   private openFlight?: Promise<RedisCommanderOpened>
   private stoppingFlight?: Promise<string[]>
@@ -316,7 +326,8 @@ export class RedisCommanderRuntime {
     this.installPackage = options.installer ?? this.defaultInstall
     this.startPackage = options.starter ?? this.defaultStart
     this.readConfig = options.config ?? this.defaultConfig
-    this.killProcesses = options.kill ?? ((pids) => ProcessKillStrict('-INT', pids))
+    // kill 注入只供隔离的 runtime 测试；生产 Windows 路径使用共享快照执行阶段。
+    this.killProcesses = options.kill
   }
 
   private async defaultHealth(
@@ -461,22 +472,16 @@ export class RedisCommanderRuntime {
     }
   }
 
-  private async ownedPids(pid: string): Promise<string[]> {
-    const list = await this.listProcesses()
+  private async ownedPids(pid: string, processes?: PItem[]): Promise<string[]> {
+    const list = processes ?? (await this.listProcesses())
     const root = list.find((item) => `${item.PID}` === `${pid}`)
-    if (!root || !redisCommanderCommandOwned(root.COMMAND, this.paths, this.windows)) return []
-
-    const pids = new Set<string>([`${pid}`])
-    const visit = (parent: string) => {
-      for (const item of list) {
-        if (`${item.PPID}` === parent && !pids.has(`${item.PID}`)) {
-          pids.add(`${item.PID}`)
-          visit(`${item.PID}`)
-        }
-      }
-    }
-    visit(`${pid}`)
-    return [...pids]
+    // 根缺席、不可读或归属不匹配返回空集合，不让单个文件候选阻断其他面板树。
+    if (
+      !isReadableServiceStopRoot(root, this.windows) ||
+      !redisCommanderCommandOwned(root.COMMAND, this.paths, this.windows)
+    )
+      return []
+    return ProcessListByExactPid(`${pid}`, list).map(({ PID }) => PID)
   }
 
   private async waitHealth(port: number, credentials: RedisCommanderCredentials): Promise<boolean> {
@@ -519,23 +524,34 @@ export class RedisCommanderRuntime {
     ].join('\n')
   }
 
-  private async waitForStopped(pids: string[]): Promise<boolean> {
-    for (let attempt = 0; attempt < 20; attempt += 1) {
-      const active = await this.listProcesses().catch(() => [])
-      if (!pids.some((pid) => active.some((item: PItem) => `${item.PID}` === `${pid}`))) return true
-      await waitTime(100)
+  private async stopPids(pids: string[], failureMessage: string, list: PItem[]): Promise<PItem[]> {
+    // 所有查询/kill provider 的空目标都保留首次列表，避免误删被过滤的活 PID。
+    if (!pids.length) return list
+    if (this.windows && !this.killProcesses) {
+      // 候选归属使用的首次完整快照直达共享停止与退出确认，不再二次采样后杀树。
+      return stopWindowsServiceProcesses(pids, list)
     }
-    return false
-  }
-
-  private async stopPids(pids: string[], failureMessage: string): Promise<void> {
+    let killError: unknown
     try {
-      await this.killProcesses(pids)
-    } catch {
-      throw new Error(failureMessage)
+      if (this.killProcesses) await this.killProcesses(pids)
+      else await ProcessKillStrict('-INT', pids)
+    } catch (error) {
+      // 某 PID 可能在信号前自然退出；记录错误后仍确认原目标是否全部消失。
+      killError = error
     }
-    if (!(await this.waitForStopped(pids))) {
-      throw new Error(failureMessage)
+    try {
+      // 面板异步退出和自定义 kill 注入同样使用公共等待；保留 100ms 间隔，
+      // 但十秒按真实经过时间计量，不再是 100 次查询加睡眠的累计上限。
+      return await waitForServiceProcessExit(pids, 10_000, {
+        fetchList: () => this.listProcesses(),
+        initialList: list,
+        pollDelayMs: 100
+      })
+    } catch (error) {
+      if (!killError && error instanceof ServiceProcessExitTimeoutError) {
+        throw new Error(failureMessage)
+      }
+      throw killError ?? error
     }
   }
 
@@ -569,7 +585,14 @@ export class RedisCommanderRuntime {
       const persistedPort = await this.readPort()
 
       if (persistedPid || persistedPort) {
-        const pids = persistedPid ? await this.ownedPids(persistedPid) : []
+        const persistedList = await this.listProcesses()
+        const pids = persistedPid ? await this.ownedPids(persistedPid, persistedList) : []
+        // 打开与停止采用不同终态：筛选为空不能授权覆盖仍存活的旧实例记录。
+        if (!pids.length && persistedList.some(({ PID }) => PID === persistedPid)) {
+          throw new Error(
+            `Cannot restart Redis Commander with an unverified active root; PID=${persistedPid}`
+          )
+        }
         const listening =
           !!persistedPid &&
           !!persistedPort &&
@@ -585,10 +608,19 @@ export class RedisCommanderRuntime {
           this.assertOpenActive(generation)
           return { pid: persistedPid, port: persistedPort, credentials, nodeBin }
         }
+        let finalList = persistedList
         if (pids.length > 0) {
-          await this.stopPids(pids, 'Redis Commander did not stop before restart')
+          finalList = await this.stopPids(
+            pids,
+            'Redis Commander did not stop before restart',
+            persistedList
+          )
         }
-        await remove(this.paths.pid).catch(() => {})
+        if (this.windows) {
+          await cleanupStoppedServicePidFiles([persistedPid, ...pids], finalList, [this.paths.pid])
+        } else {
+          await remove(this.paths.pid).catch(() => {})
+        }
         await remove(this.paths.port).catch(() => {})
         this.assertOpenActive(generation)
       }
@@ -674,12 +706,33 @@ export class RedisCommanderRuntime {
 
   private async stopOwned(): Promise<string[]> {
     const pid = existsSync(this.paths.pid) ? (await readFile(this.paths.pid, 'utf8')).trim() : ''
-    const pids = pid ? await this.ownedPids(pid) : []
-    if (pids.length > 0) {
-      await this.stopPids(pids, 'Redis Commander did not stop')
+    // 私有 PID 文件遺失時，僅從帶有本次私有 entry/workspace 標記的命令恢復根；
+    // 不按共用 Node 執行檔掃描，以免把其他 Node 應用納入停止目標。
+    // 初始停止发现参加主进程批次；注入 provider 保留，活性/确认查询仍取新表。
+    const list =
+      this.listProcesses === processList ? await StopProcessListFetch() : await this.listProcesses()
+    const candidates = new Set([pid])
+    list
+      .filter(({ COMMAND }) => redisCommanderCommandOwned(COMMAND, this.paths, this.windows))
+      .forEach(({ PID }) => candidates.add(`${PID}`))
+    const pids = Array.from(
+      new Set(
+        (
+          await Promise.all(
+            [...candidates].filter(Boolean).map((value) => this.ownedPids(value, list))
+          )
+        ).flat()
+      )
+    )
+    let finalList = list
+    if (this.windows) {
+      finalList = await this.stopPids(pids, 'Redis Commander did not stop', list)
+    } else if (pids.length > 0) {
+      finalList = await this.stopPids(pids, 'Redis Commander did not stop', list)
     }
-    await remove(this.paths.pid).catch(() => {})
-    await remove(this.paths.port).catch(() => {})
+    // 筛选为空不能无条件删记录；所有平台保留活的被过滤候选及其端口。
+    await cleanupStoppedServicePidFiles([...candidates, ...pids], finalList, [this.paths.pid])
+    if (!existsSync(this.paths.pid)) await remove(this.paths.port)
     return pids
   }
 

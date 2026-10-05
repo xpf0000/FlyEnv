@@ -56,11 +56,10 @@ assert.equal(isWindowsHelperFallbackAllowed('tools', 'readFileByRoot'), false)
 
 assert.match(source, /export type HelperCheckResponse =/)
 assert.match(source, /shouldOpenHelperInstaller = \(reason\?: string\)/)
-assert.match(applicationSource, /setWindowsElevationRuntimeMethod/)
-assert.doesNotMatch(
-  applicationSource,
-  /private setWindowsElevationRuntimeMethod\([^)]*\) \{[\s\S]{0,200}configManager\.setConfig\('setup\.windowsElevationMethod'/
-)
+// 新生产链由主进程统一协调；旧 fallback/健康成功不再直接改用户偏好。
+assert.match(applicationSource, /WindowsPrivilegeCoordinator/)
+assert.doesNotMatch(applicationSource, /setWindowsElevationRuntimeMethod/)
+assert.doesNotMatch(applicationSource, /restoreWindowsElevationMethodAfterHelperReady/)
 
 assert.equal(
   resolveWindowsHelperTransport(

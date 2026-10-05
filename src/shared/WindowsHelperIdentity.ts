@@ -3,19 +3,15 @@ import { promisify } from 'node:util'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
+import {
+  resolveWindowsPowerShellPath,
+  windowsPowerShellEnv,
+  windowsPowerShellPath
+} from './WindowsSystemPaths'
 
 const execFileAsync = promisify(execFile)
 
 const WINDOWS_SID_PATTERN = /^S-1-(?:\d+-)+\d+$/i
-
-export const windowsPowerShellPath = (systemRoot = process.env.SystemRoot || 'C:\\Windows') =>
-  path.win32.join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
-
-export const windowsPowerShellEnv = (): NodeJS.ProcessEnv => ({
-  ...process.env,
-  // Installation must not autoload user modules that shadow Windows commands.
-  PSModulePath: path.win32.join(path.win32.dirname(windowsPowerShellPath()), 'Modules')
-})
 
 export type WindowsHelperInstancePaths = {
   instanceId: string
@@ -43,7 +39,13 @@ export const windowsHelperInstancePaths = (
   sid: string,
   programData = process.env.ProgramData || 'C:\\ProgramData'
 ): WindowsHelperInstancePaths => {
-  if (!path.win32.isAbsolute(programData)) {
+  // 实例必须部署到本机的完整 ProgramData 路径；仅 isAbsolute 会接受 \\folder。
+  // 禁止 UNC/设备命名空间/ADS，避免每 SID 实例被放到另一个盘符上下文或网络位置。
+  if (
+    !/^[a-z]:[\\/]/iu.test(programData) ||
+    /[\x00-\x1f\x7f<>"|?*:]/u.test(programData.slice(2)) ||
+    programData.split(/[\\/]/u).some((part) => part === '..' || /[. ]$/u.test(part))
+  ) {
     throw new Error('ProgramData must be an absolute Windows path')
   }
   const instanceId = windowsHelperInstanceId(sid)
@@ -72,27 +74,13 @@ export type WindowsHelperIdentity = WindowsHelperInstancePaths & {
   localAppData: string
 }
 
-export const parseWindowsWhoAmIUserCsv = (
-  output: string
-): Pick<WindowsHelperIdentity, 'account' | 'sid'> => {
-  const record = output
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .find((line) => /^"[^"]+","S-1-/.test(line))
-  const match = record?.match(/^"([^"]+)","(S-1-[^"]+)"$/)
-  if (!match) {
-    throw new Error('Could not parse whoami /user CSV output')
-  }
-  return { account: match[1], sid: match[2] }
-}
-
 export const getWindowsHelperIdentity = async (): Promise<WindowsHelperIdentity> => {
   const localAppData = process.env.LOCALAPPDATA ?? ''
   // Execute in the original process context, with explicit UTF-8 for Unicode accounts.
   const script =
     "[Console]::OutputEncoding = [Text.Encoding]::UTF8; $ErrorActionPreference = 'Stop'; $identity = [Security.Principal.WindowsIdentity]::GetCurrent(); @{ account = $identity.Name; sid = $identity.User.Value; programData = [Environment]::GetFolderPath([Environment+SpecialFolder]::CommonApplicationData) } | ConvertTo-Json -Compress"
   const { stdout } = await execFileAsync(
-    windowsPowerShellPath(),
+    resolveWindowsPowerShellPath(),
     [
       '-NoProfile',
       '-NonInteractive',
@@ -250,7 +238,7 @@ if ($config.startIfStopped) {
 @{ principal=$principal; logonType=[int]$definition.Principal.LogonType; runLevel=[int]$definition.Principal.RunLevel; enabled=[bool]$task.Enabled; actionCount=$definition.Actions.Count; executable=[string]$action.Path; arguments=[string]$action.Arguments; triggerCount=$definition.Triggers.Count; triggerSid=[string]$triggerSid; state=[int]$task.State; lastTaskResult=[int64]$task.LastTaskResult } | ConvertTo-Json -Compress
 `
   const { stdout } = await execFileAsync(
-    windowsPowerShellPath(),
+    resolveWindowsPowerShellPath(),
     [
       '-NoProfile',
       '-NonInteractive',

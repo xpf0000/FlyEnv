@@ -22,10 +22,10 @@
   <div class="main brew-src">
     <el-select
       :model-value="appLang"
-      @change="onLanguageChange"
       :loading="running"
       :disabled="running"
       :placeholder="$t('base.changeLang')"
+      @change="onLanguageChange"
     >
       <template v-for="(item, _index) in langList" :key="_index">
         <el-option :label="item.label" :value="item.value"></el-option>

@@ -5,6 +5,7 @@ import { isLinux, isMacOS, isWindows, uuid, waitTime } from '@shared/utils'
 import EnvSync from './EnvSync'
 import { powerShellInlineArgs } from './PowerShellCommand'
 import { buildWindowsTerminalInlineScript } from './WindowsTerminal'
+import { resolveWindowsPowerShellPath } from './WindowsSystemPaths'
 
 type ExecType = {
   escapeCommand: (command: string) => string
@@ -72,11 +73,11 @@ end tell`
   if (isWindows()) {
     try {
       await EnvSync.sync()
+      // 外层引导和内层终端使用同一个已检查的系统 PowerShell，不回退到 PATH 搜索。
+      const powershell = resolveWindowsPowerShellPath()
       await spawnPromiseWithEnv(
-        EnvSync.PowerShellPath || 'powershell.exe',
-        powerShellInlineArgs(
-          buildWindowsTerminalInlineScript(c, EnvSync.PowerShellPath || 'powershell.exe')
-        ),
+        powershell,
+        powerShellInlineArgs(buildWindowsTerminalInlineScript(c, powershell)),
         {
           windowsHide: true
         }

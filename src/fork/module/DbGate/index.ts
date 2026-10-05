@@ -5,7 +5,20 @@ import { delimiter, dirname, join, normalize, posix, win32 } from 'node:path'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { ProcessKillStrict, ProcessListFetch, type PItem } from '@shared/Process'
+import {
+  ProcessListByExactPid,
+  ProcessKillStrict,
+  ProcessListFetch,
+  type PItem
+} from '@shared/Process'
+import { isReadableServiceStopRoot } from '@shared/ProcessSnapshot'
+import { StopProcessListFetch } from '@shared/StopProcessList'
+import {
+  cleanupStoppedServicePidFiles,
+  ServiceProcessExitTimeoutError,
+  stopWindowsServiceProcesses,
+  waitForServiceProcessExit
+} from '@shared/ServiceStop'
 import {
   fetchLoopbackListeningPids as fetchLoopbackListeningPidsWindows,
   ProcessPidListStrict
@@ -147,11 +160,8 @@ const validCredentials = (value: unknown): value is DbGateCredentials => {
 }
 
 const processList = async (): Promise<PItem[]> => {
-  try {
-    return isWindows() ? ProcessPidListStrict() : ProcessListFetch()
-  } catch {
-    return []
-  }
+  // 停止与打开恢复都依赖真实清单；查询异常必须向上报告，不能伪装成没有进程。
+  return isWindows() ? ProcessPidListStrict() : ProcessListFetch()
 }
 
 export type DbGateRuntimeOptions = {
@@ -182,10 +192,11 @@ export class DbGateRuntime {
   private readonly locatePort: typeof findLoopbackPort
   private readonly installPackage: (nodeBin: string, paths: DbGatePaths) => Promise<void>
   private readonly startPackage: NonNullable<DbGateRuntimeOptions['starter']>
-  private readonly killProcesses: (pids: string[]) => Promise<void>
+  private readonly killProcesses?: (pids: string[]) => Promise<void>
   private readonly debugUpstream: boolean
   private lastHealthError = ''
   private openFlight?: Promise<DbGateOpenResult>
+  private stopFlight?: Promise<string[]>
 
   constructor(baseDir: string, options: DbGateRuntimeOptions = {}) {
     this.windows = options.platformWindows ?? isWindows()
@@ -203,7 +214,8 @@ export class DbGateRuntime {
     this.locatePort = options.portFinder ?? findLoopbackPort
     this.installPackage = options.installer ?? this.defaultInstall
     this.startPackage = options.starter ?? this.defaultStart
-    this.killProcesses = options.kill ?? ((pids) => ProcessKillStrict('-INT', pids))
+    // kill 注入只供隔离的 runtime 测试；生产 Windows 路径直接使用共享快照执行阶段。
+    this.killProcesses = options.kill
     this.debugUpstream = options.debugUpstream ?? false
   }
 
@@ -459,21 +471,17 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
     return Number.isInteger(port) && port >= 1 && port <= 65535 ? port : undefined
   }
 
-  private async ownedPids(pid: string): Promise<string[]> {
-    const list = await this.listProcesses()
+  private async ownedPids(pid: string, processes?: PItem[]): Promise<string[]> {
+    const list = processes ?? (await this.listProcesses())
     const root = list.find((item) => `${item.PID}` === `${pid}`)
-    if (!root || !dbGateCommandOwned(root.COMMAND, this.paths, this.windows)) return []
-    const pids = new Set<string>([`${pid}`])
-    const visit = (parent: string) => {
-      for (const item of list) {
-        if (`${item.PPID}` === parent && !pids.has(`${item.PID}`)) {
-          pids.add(`${item.PID}`)
-          visit(`${item.PID}`)
-        }
-      }
-    }
-    visit(`${pid}`)
-    return [...pids]
+    // 不可读/陌生 PID 只过滤；其他候选继续。确认根后复用公共有效父子关系，
+    // 正常子孙无需另验命令，历史 PPID 假边不会混入目标。
+    if (
+      !isReadableServiceStopRoot(root, this.windows) ||
+      !dbGateCommandOwned(root.COMMAND, this.paths, this.windows)
+    )
+      return []
+    return ProcessListByExactPid(`${pid}`, list).map(({ PID }) => PID)
   }
 
   private async waitHealth(port: number, credentials: DbGateCredentials): Promise<boolean> {
@@ -517,11 +525,34 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
     ].join('\n')
   }
 
-  private async waitForStopped(pids: string[]): Promise<void> {
-    for (let attempt = 0; attempt < 20; attempt += 1) {
-      const active = await this.listProcesses().catch(() => [])
-      if (!pids.some((pid) => active.some((item) => `${item.PID}` === `${pid}`))) return
-      await waitTime(100)
+  private async stopPidsAndConfirm(pids: string[], list: PItem[]): Promise<PItem[]> {
+    // 注入 kill 的路径也必须保留首次完整表；空目标不是“所有候选都已退出”的证据。
+    if (!pids.length) return list
+    if (this.windows && !this.killProcesses) {
+      // 归属与执行复核沿用 stopOwned/openInternal 首次获取的完整列表，不再另采样后杀。
+      return stopWindowsServiceProcesses(pids, list)
+    }
+    let killError: unknown
+    try {
+      if (this.killProcesses) await this.killProcesses(pids)
+      else await ProcessKillStrict('-INT', pids)
+    } catch (error) {
+      // 某个 PID 可在信号到达前自然退出；记录错误后仍核对原目标完整清单。
+      killError = error
+    }
+    try {
+      // 非 Windows/自定义 kill 也复用公共轮询，只注入 Runtime 的严格查询源。
+      // 返回确认退出的同一列表，避免为文件清理再发一次查询。
+      return await waitForServiceProcessExit(pids, 10_000, {
+        fetchList: () => this.listProcesses(),
+        initialList: list,
+        pollDelayMs: 100
+      })
+    } catch (error) {
+      if (!killError && error instanceof ServiceProcessExitTimeoutError) {
+        throw new Error(`DbGate is still running; PIDs=${pids.join(',')}`)
+      }
+      throw killError ?? error
     }
   }
 
@@ -538,12 +569,19 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
       ? (await readFile(this.paths.pid, 'utf8')).trim()
       : ''
     const persistedPort = await this.readPort()
-    if (persistedPid && persistedPort) {
-      const pids = await this.ownedPids(persistedPid)
+    // 端口文件缺失也不能绕过旧 PID 的检查并覆盖存活实例。
+    if (persistedPid || persistedPort) {
+      const persistedList = await this.listProcesses()
+      const pids = await this.ownedPids(persistedPid, persistedList)
+      // 停止发现允许过滤，但打开流程不能把活的未知根当作已退出并覆盖记录。
+      if (!pids.length && persistedList.some(({ PID }) => PID === persistedPid)) {
+        throw new Error(`Cannot restart DbGate with an unverified active root; PID=${persistedPid}`)
+      }
       const listening =
+        !!persistedPort &&
         pids.length > 0 &&
         (await this.fetchListeningPids(`${persistedPort}`)).includes(persistedPid)
-      if (listening && (await this.checkHealth(persistedPort, credentials))) {
+      if (persistedPort && listening && (await this.checkHealth(persistedPort, credentials))) {
         return {
           url: dbGateUrl(persistedPort, credentials),
           'APP-Service-Start-PID': persistedPid,
@@ -555,13 +593,16 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
           } as SoftInstalled
         }
       }
+      let finalList = persistedList
       if (pids.length > 0) {
-        try {
-          await this.killProcesses(pids)
-          await this.waitForStopped(pids)
-        } catch {}
+        // 旧面板没有正常退出时不继续覆盖 PID/端口并启动第二份面板。
+        finalList = await this.stopPidsAndConfirm(pids, persistedList)
       }
-      await remove(this.paths.pid).catch(() => {})
+      if (this.windows) {
+        await cleanupStoppedServicePidFiles([persistedPid, ...pids], finalList, [this.paths.pid])
+      } else {
+        await remove(this.paths.pid).catch(() => {})
+      }
       await remove(this.paths.port).catch(() => {})
     }
     try {
@@ -591,15 +632,20 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
         // DbGate can leave its first process unhealthy after a fresh npm
         // install. Restart that confirmed process once.
         const firstPid = start['APP-Service-Start-PID']
-        const firstOwnedPids = await this.ownedPids(firstPid)
-        if (/^\d+$/.test(firstPid)) {
-          // firstPid came directly from this invocation of serviceStartSpawn.
-          // Process/netstat enumeration can briefly disagree with the HTTP
-          // result on Windows, so use that PID as a narrow one-time fallback.
-          const pidsToStop = firstOwnedPids.length > 0 ? firstOwnedPids : [firstPid]
-          await this.killProcesses(pidsToStop)
-          await this.waitForStopped(pidsToStop)
-          await remove(this.paths.pid).catch(() => {})
+        const firstList = await this.listProcesses()
+        const firstOwnedPids = await this.ownedPids(firstPid, firstList)
+        if (/^\d+$/.test(firstPid) && firstOwnedPids.length > 0) {
+          // 启动结果中的 PID 也可能在健康等待期间退出并被复用。只处理仍由私有
+          // entry 确认的父树，不能在归属清单为空时直接结束当前同数字 PID。
+          const pidsToStop = firstOwnedPids
+          const finalList = await this.stopPidsAndConfirm(pidsToStop, firstList)
+          if (this.windows) {
+            await cleanupStoppedServicePidFiles([firstPid, ...pidsToStop], finalList, [
+              this.paths.pid
+            ])
+          } else {
+            await remove(this.paths.pid).catch(() => {})
+          }
           await waitTime(1000)
           start = await this.startPackage(node, this.paths, port, credentials, on)
           if (!(await this.waitHealth(port, credentials))) {
@@ -628,7 +674,8 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
         } as SoftInstalled
       }
     } catch (error) {
-      await this.stop().catch(() => {})
+      // openInternal 不能等待自己的 openFlight；只执行内部清理，失败仍保留身份。
+      await this.stopOwned().catch(() => {})
       throw error
     }
   }
@@ -637,7 +684,9 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
     node: SoftInstalled,
     on: (...args: any[]) => void = () => {}
   ): ForkPromise<DbGateOpenResult> {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
+      // 已有停止必须先结算，避免旧停止回包删除刚启动面板的 PID/端口文件。
+      if (this.stopFlight) await this.stopFlight
       if (!this.openFlight) {
         this.openFlight = this.openInternal(node, on).finally(() => {
           this.openFlight = undefined
@@ -647,18 +696,55 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
     })
   }
 
-  async stop(): Promise<string[]> {
+  private async stopOwned(expectedPid?: string): Promise<string[]> {
     const pid = existsSync(this.paths.pid) ? (await readFile(this.paths.pid, 'utf8')).trim() : ''
-    const pids = pid ? await this.ownedPids(pid) : []
-    try {
-      if (pids.length > 0) {
-        await this.killProcesses(pids)
-        await this.waitForStopped(pids)
-      }
-    } finally {
-      await remove(this.paths.pid).catch(() => {})
-      await remove(this.paths.port).catch(() => {})
+    // 仅初始停止发现复用批次；打开/活性与退出确认不能使用停止前的缓存。
+    const list =
+      this.listProcesses === processList ? await StopProcessListFetch() : await this.listProcesses()
+    // 私有文件缺失时仍可用 main 保存的面板 PID 和私有 entry 恢复目标；每个父
+    // 仍经过模块归属判断。不能拿数据库的 PID 或共享 Node 路径直接结束进程。
+    const candidates = new Set(
+      [
+        pid,
+        `${expectedPid ?? ''}`.trim(),
+        ...list
+          .filter((item) => dbGateCommandOwned(item.COMMAND, this.paths, this.windows))
+          .map(({ PID }) => `${PID}`)
+      ].filter(Boolean)
+    )
+    const pids = new Set<string>()
+    for (const candidate of candidates) {
+      const owned = await this.ownedPids(candidate, list)
+      owned.forEach((value) => pids.add(value))
     }
-    return pids
+    const stopped = [...pids]
+    let finalList = list
+    if (this.windows) {
+      finalList = await this.stopPidsAndConfirm(stopped, list)
+    } else if (stopped.length) {
+      finalList = await this.stopPidsAndConfirm(stopped, list)
+    }
+    // 不放在 finally：取消授权、查询失败、执行失败和超时都必须保留重试依据。
+    // 即使目标为空也按快照清理；活的被过滤候选及其端口记录保留，供重试。
+    await cleanupStoppedServicePidFiles([...candidates, ...stopped], finalList, [this.paths.pid])
+    if (!existsSync(this.paths.pid)) await remove(this.paths.port)
+    return stopped
+  }
+
+  async stop(expectedPid?: string): Promise<string[]> {
+    if (this.stopFlight) return this.stopFlight
+    const opening = this.openFlight
+    const pending = (async () => {
+      // 用户打开后马上停止/退出，要等已受理打开完成或失败再清理实际产生的进程。
+      // 打开失败也继续按私有文件恢复；openInternal 内部清理不调用这个公共等待层。
+      if (opening) await opening.catch(() => {})
+      return this.stopOwned(expectedPid)
+    })()
+    this.stopFlight = pending
+    try {
+      return await pending
+    } finally {
+      if (this.stopFlight === pending) this.stopFlight = undefined
+    }
   }
 }

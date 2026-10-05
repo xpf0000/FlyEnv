@@ -12,6 +12,7 @@ import type {
   StartupGroupRuntimeModule
 } from '../type'
 
+/** 服务 adapter 只转发既有版本 start/stop；不持有 PID 或第二套权限请求状态。 */
 class StartupGroupServiceAdapter implements StartupGroupAdapter {
   constructor(private readonly runtime: StartupGroupRuntime) {}
   async exists(item: StartupGroupItem) {
@@ -23,18 +24,19 @@ class StartupGroupServiceAdapter implements StartupGroupAdapter {
     if (target.running) return 'executing' as const
     return target.run ? ('running' as const) : ('stopped' as const)
   }
-  async start(item: StartupGroupItem) {
+  async start(item: StartupGroupItem, interactive = true) {
     const target = await this.runtime.installedTarget(item)
     if (!target) throw new Error('Service version not found')
-    await this.runtime.ensureSuccess(target.start())
+    await this.runtime.ensureSuccess(target.start(interactive))
   }
-  async stop(item: StartupGroupItem) {
+  async stop(item: StartupGroupItem, interactive = true) {
     const target = await this.runtime.installedTarget(item)
     if (!target) throw new Error('Service version not found')
-    await this.runtime.ensureSuccess(target.stop())
+    await this.runtime.ensureSuccess(target.stop(interactive))
   }
 }
 
+/** 项目通知、开终端和交互授权是独立参数；后台项目不得借默认参数弹授权。 */
 class StartupGroupProjectAdapter implements StartupGroupAdapter {
   constructor(private readonly runtime: StartupGroupRuntime) {}
   async exists(item: StartupGroupItem) {
@@ -46,15 +48,15 @@ class StartupGroupProjectAdapter implements StartupGroupAdapter {
     if (target.state.running) return 'executing' as const
     return target.state.isRun ? ('running' as const) : ('stopped' as const)
   }
-  async start(item: StartupGroupItem) {
+  async start(item: StartupGroupItem, interactive = true) {
     const target = await this.runtime.projectTarget(item)
     if (!target) throw new Error('Language project not found')
-    await this.runtime.ensureSuccess(target.start(false))
+    await this.runtime.ensureSuccess(target.start(false, false, interactive))
   }
-  async stop(item: StartupGroupItem) {
+  async stop(item: StartupGroupItem, interactive = true) {
     const target = await this.runtime.projectTarget(item)
     if (!target) throw new Error('Language project not found')
-    await this.runtime.ensureSuccess(target.stop(false))
+    await this.runtime.ensureSuccess(target.stop(false, interactive))
   }
 }
 

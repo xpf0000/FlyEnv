@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "FlyEnv ヘルパーのインストールに失敗しました。元の Windows アカウントで、設定の修復ボタンから再試行してください。失敗が続く場合は、以下のエラー詳細をお知らせください。",
   "flyenvHelperInstallTimeout": "インストール結果の待機がタイムアウトしました。インストールはまだバックグラウンドで実行中の可能性があります。ヘルパー修復ボタンをもう一度使用して結果を確認してください。",
   "windowsElevationMethod": "昇格方法",
-  "windowsElevationMethodTips": "管理者権限が必要な Windows 操作をどの方法で昇格させるかを選択します。UAC は対応する操作ごとに確認を求めます。ヘルパーをインストールすると、繰り返し確認を求められなくなります。",
+  "windowsElevationMethodTips": "選択は保存され、後で設定から変更できます。",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "ヘルパー",
   "appFont": "UI フォント",
@@ -96,5 +96,26 @@
     "rnacos": "サービス検出と集中型設定管理。",
     "temporal": "アプリケーションのワークフローと長時間処理を確実にオーケストレーション。",
     "temporalCli": "Temporal を管理し操作するためのコマンドラインツール。"
+  },
+  "windowsPrivilege": {
+    "busy": "別の権限操作を実行中です。しばらくお待ちください。",
+    "title": "権限の承認方法を選択",
+    "description": "操作「{operation}」には管理者権限が必要です。承認方法を選択してください。",
+    "uacDescription": "UAC：必要に応じて Windows が承認または管理者の資格情報を求めます。常駐ヘルパーのインストールは不要です。",
+    "helperDescription": "ヘルパー：繰り返しの承認要求を減らします。インストール時にシステム権限のタスクが登録されるため、会社の端末ポリシーを確認してください。",
+    "helperReady": "ヘルパーの準備ができました。",
+    "settingsHint": "選択は保存され、後で設定から変更できます。",
+    "disableOption": "このアカウントに以前インストールしたヘルパーも無効にする（UAC が必要になる場合があります）",
+    "disableOnSwitch": "UAC に切り替えると、このアカウントのヘルパーを自動的に無効にします。インストール済みファイルは保持されます。",
+    "disableHelperTips": "この Windows アカウント用のヘルパーを停止し、そのスケジュールタスクを無効にします。インストール済みファイルは保持されます。UAC の承認が必要な場合があります。",
+    "disableFailed": "UAC に切り替えましたが、既存のヘルパーを無効にできませんでした。",
+    "elevated": "FlyEnv は管理者として実行されています。このセッションでは直接実行し、保存済みの設定は変更しません。",
+    "unselected": "承認方法は未選択です。初めて管理者権限が必要になったときに FlyEnv が確認します。",
+    "operation": "システム操作",
+    "useUac": "UAC",
+    "useHelper": "ヘルパー",
+    "disableHelper": "ヘルパーを無効にする",
+    "failed": "Windows の権限承認に失敗しました。",
+    "timeout": "権限承認がタイムアウトしました。操作がまだ実行中の可能性があります。"
   }
 }

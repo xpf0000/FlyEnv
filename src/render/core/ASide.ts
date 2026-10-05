@@ -7,7 +7,7 @@ import type { AllAppModule } from '@/core/type'
 import { AppStore } from '@/store/app'
 
 export interface AppServiceModuleItem {
-  groupDo: (isRunning: boolean) => Array<Promise<string | boolean>>
+  groupDo: (isRunning: boolean, interactive?: boolean) => Array<Promise<string | boolean>>
   switchChange: () => void
   serviceRunning: boolean
   serviceFetching: boolean
@@ -75,16 +75,17 @@ export const AsideSetup = (flag: AllAppModule) => {
     return appStore.config.setup.common.showItem?.[flag] !== false
   })
 
-  const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
+  // 将自动启动的非交互意图传到既有 module 生命周期，侧边栏不拥有另一套权限状态。
+  const groupDo = (isRunning: boolean, interactive = true): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
     if (isRunning) {
       if (showItem?.value && serviceRunning?.value && currentVersion?.value?.version) {
         const module = brewStore.module(flag)
-        all.push(module.stop())
+        all.push(module.stop(interactive))
       }
     } else if (showItem?.value && currentVersion?.value?.version) {
       const module = brewStore.module(flag)
-      all.push(module.start())
+      all.push(module.start(interactive))
     }
     return all
   }

@@ -49,12 +49,14 @@ assert.match(
 )
 assert.match(
   moduleSource,
-  /Promise\.all\(this\.installed\.map\(\(a\) => a\.stop\(\)\)\)/,
+  // 独占切换不能把后台启动升级成可弹窗停止；仍等待全部旧版本的停止终态。
+  /Promise\.all\(this\.installed\.map\(\(a\) => a\.stop\(interactive\)\)\)/,
   'version switching must continue to wait for every version stop before starting the target'
 )
 assert.match(
   installedItemSource,
-  /module\.startSingleFlight\(\(\) => this\.startInternal\(\)\)/,
+  // 增加意图参数后仍必须复用原模块 single-flight，而非复制后台启停实现。
+  /module\.startSingleFlight\(\(\) => this\.startInternal\(interactive\)\)/,
   'version starts must enter the module-level single-flight gate'
 )
 assert.match(
@@ -84,7 +86,7 @@ assert.match(
 )
 assert.match(
   customerModuleSource,
-  /return this\.module\?\.startSingleFlight\(\(\) => this\._startInternal\(\)\)/,
+  /return\s*\(?\s*this\.module\?\.startSingleFlight\(\(\) => this\._startInternal\(interactive\)\)/,
   'custom version starts must enter their module-level single-flight gate'
 )
 assert.match(

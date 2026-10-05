@@ -1,10 +1,20 @@
+/** main 持有 Helper 管理操作的生命周期；共享层仅提供身份契约与认证运输。 */
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { createServer, type Socket } from 'node:net'
 import { randomUUID } from 'node:crypto'
 import { gzipSync } from 'node:zlib'
-import { windowsPowerShellEnv, windowsPowerShellPath } from './WindowsHelperIdentity'
-import { AppHelperError, type AppHelperErrorCode } from './WindowsHelperState'
+import {
+  windowsPowerShellEnv,
+  windowsPowerShellPath,
+  resolveWindowsPowerShellPath
+} from '@shared/WindowsSystemPaths'
+import { AppHelperError, type AppHelperErrorCode } from '@shared/WindowsHelperState'
+import {
+  buildWindowsRunAsLauncher,
+  isWindowsLaunchFailure,
+  type WindowsLaunchDiagnostic
+} from '@shared/WindowsRunAs'
+import { buildWindowsPipeClient, createWindowsActionPipe } from '@shared/WindowsActionPipe'
 
 const execFileAsync = promisify(execFile)
 const quote = (text: string) => `'${text.replace(/'/g, "''")}'`
@@ -31,7 +41,7 @@ export const buildWindowsHelperElevationPlan = (
   const child = `
 $ErrorActionPreference = 'Stop'
 $env:PSModulePath = Join-Path $PSHOME 'Modules'
-$pipe = New-Object IO.Pipes.NamedPipeClientStream('.', ${quote(pipeName)}, [IO.Pipes.PipeDirection]::Out)
+${buildWindowsPipeClient(pipeName)}
 try {
   $pipe.Connect(10000)
 } catch {
@@ -40,6 +50,12 @@ try {
 }
 $writer = New-Object IO.StreamWriter($pipe, (New-Object Text.UTF8Encoding($false)))
 $writer.AutoFlush = $true
+$reader = New-Object IO.StreamReader($pipe, (New-Object Text.UTF8Encoding($false)))
+try {
+  # Only an OS-authenticated connection receives READY; installation cannot start before that acknowledgement.
+  $writer.WriteLine(${quote(nonce)})
+  if ($reader.ReadLine() -cne 'READY') { throw 'Helper result pipe did not approve the connection' }
+} catch { $reader.Dispose(); $writer.Dispose(); $pipe.Dispose(); exit ${WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE} }
 $consoleLog = New-Object IO.StringWriter
 [Console]::SetOut($consoleLog)
 [Console]::SetError($consoleLog)
@@ -56,7 +72,7 @@ ${script}
   $errors = $consoleLog.ToString()
   if ($errors.Length -gt 8000) { $errors = $errors.Substring($errors.Length - 8000) }
   try { $writer.WriteLine((@{ nonce=${quote(nonce)}; exitCode=[int]$global:LASTEXITCODE; stdout=$output; stderr=$errors } | ConvertTo-Json -Compress)) }
-  finally { $writer.Dispose(); $pipe.Dispose(); $consoleLog.Dispose() }
+  finally { $reader.Dispose(); $writer.Dispose(); $pipe.Dispose(); $consoleLog.Dispose() }
 }
 exit $global:LASTEXITCODE
 `
@@ -65,7 +81,7 @@ exit $global:LASTEXITCODE
   // through Start-Process without cmd.exe or another layer of shell interpolation.
   const childCommand = `& { $s = New-Object IO.MemoryStream(,[Convert]::FromBase64String('${compressed}')); $g = New-Object IO.Compression.GZipStream($s,[IO.Compression.CompressionMode]::Decompress); $r = New-Object IO.StreamReader($g,[Text.Encoding]::UTF8); try { $c = $r.ReadToEnd() } finally { $r.Dispose(); $g.Dispose(); $s.Dispose() }; & ([ScriptBlock]::Create($c)) }`
   const argumentsText = `-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "${childCommand}"`
-  const launcher = `$ErrorActionPreference = 'Stop'; [Console]::OutputEncoding = [Text.Encoding]::UTF8; try { $p = Start-Process -FilePath ${quote(powershell)} -ArgumentList ${quote(argumentsText)} -Verb RunAs -WindowStyle Hidden -Wait -PassThru; if ($p.ExitCode -eq ${WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE}) { @{ nativeErrorCode=$p.ExitCode; message='The elevated installer could not connect to the FlyEnv result pipe. An antivirus or pipe policy may have blocked it.' } | ConvertTo-Json -Compress }; exit $p.ExitCode } catch { $e = $_.Exception; while ($e.InnerException) { $e = $e.InnerException }; @{ nativeErrorCode=$e.NativeErrorCode; message=$e.Message } | ConvertTo-Json -Compress; exit 1 }`
+  const launcher = buildWindowsRunAsLauncher(powershell, argumentsText)
   if (launcher.length + powershell.length + 256 >= 30000) {
     throw new AppHelperError(
       'elevation_launch_failed',
@@ -82,54 +98,35 @@ export const runWindowsHelperInstaller = async (
   const nonce = randomUUID()
   const pipeName = `FlyEnv.Install.${randomUUID()}`
   const plan = buildWindowsHelperElevationPlan(script, pipeName, nonce)
-  const sockets = new Set<Socket>()
+  // 计划构造保持纯函数；安装开始前验证系统文件，缺失时不启动 broker 或弹 UAC。
+  resolveWindowsPowerShellPath()
   let result: InstallResult | undefined
   let awaitingLateResult = false
-  let resultArrived!: () => void
-  const resultReady = new Promise<void>((resolve) => {
-    resultArrived = resolve
+  // 安装和业务执行共用 native 身份边界；不能仅凭命令行可见的 nonce 接受安装成功。
+  const pipe = await createWindowsActionPipe({
+    pipeName,
+    nonce,
+    elevated: true,
+    maxBytes: MAX_RESULT_BYTES,
+    onResult: (value) => {
+      const message = value as InstallResult
+      if (
+        !message ||
+        typeof message !== 'object' ||
+        Array.isArray(message) ||
+        message.nonce !== nonce ||
+        !Number.isInteger(message.exitCode) ||
+        typeof message.stdout !== 'string' ||
+        typeof message.stderr !== 'string'
+      )
+        throw new Error('Invalid Helper installation result')
+      // 首份可信终态固定，重复消息或连接不可覆盖。
+      result ??= message
+    }
   })
-  const server = createServer((socket) => {
-    sockets.add(socket)
-    socket.setTimeout(awaitingLateResult ? LATE_RESULT_GRACE_MS : 180_000, () => socket.destroy())
-    if (awaitingLateResult) socket.unref()
-    socket.on('error', () => {})
-    socket.on('close', () => sockets.delete(socket))
-    let buffer = ''
-    socket.setEncoding('utf8')
-    socket.on('data', (chunk: string) => {
-      buffer += chunk
-      if (Buffer.byteLength(buffer, 'utf8') > MAX_RESULT_BYTES) {
-        socket.destroy()
-        return
-      }
-      if (!buffer.includes('\n')) return
-      try {
-        const message = JSON.parse(buffer.slice(0, buffer.indexOf('\n')))
-        if (
-          message.nonce === nonce &&
-          Number.isInteger(message.exitCode) &&
-          typeof message.stdout === 'string' &&
-          typeof message.stderr === 'string'
-        ) {
-          result = message
-          resultArrived()
-        }
-      } catch {
-        /* Ignore malformed or unrelated peers; never trust an unauthenticated result. */
-      }
-      socket.end()
-    })
-  })
-  const closeResults = async () => {
-    for (const socket of sockets) socket.destroy()
-    if (server.listening) await new Promise<void>((resolve) => server.close(() => resolve()))
-  }
+  const resultReady = pipe.resultReady
+  const closeResults = pipe.close
   try {
-    await new Promise<void>((resolve, reject) => {
-      server.once('error', reject)
-      server.listen(`\\\\.\\pipe\\${pipeName}`, resolve)
-    })
     const launch =
       options.launch ??
       ((p: InstallPlan) =>
@@ -176,28 +173,40 @@ export const runWindowsHelperInstaller = async (
         marker ? `${marker[0]}\n${diagnostic}` : diagnostic
       )
     }
-    let details: { nativeErrorCode?: number; message?: string } = {}
+    let details: WindowsLaunchDiagnostic = {}
     try {
-      details = JSON.parse(launchError?.stdout?.trim() || '{}')
+      const parsed = JSON.parse(launchError?.stdout?.trim() || '{}')
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) details = parsed
     } catch {
       /* Preserve original error below. */
     }
-    if (details.nativeErrorCode === 1223)
+    if (details.nativeErrorCode === 1223 && isWindowsLaunchFailure(details))
       throw new AppHelperError(
         'elevation_uac_cancelled',
         'Windows administrator approval was cancelled'
       )
-    if (details.nativeErrorCode === WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE)
+    if (
+      details.nativeErrorCode === WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE &&
+      (details.pipeConnectFailed || details.phase === undefined)
+    )
       throw new AppHelperError(
         'elevation_pipe_connect_failed',
         'The elevated installer could not connect to the FlyEnv result pipe. An antivirus or pipe policy may have blocked it.',
         launchError?.stderr
       )
-    if (launchError?.killed) {
+    // 能确认 RunAs 启动失败的原生错误，与“子进程可能已安装但结果丢失”分开。
+    // 不能将普通退出码/空结果视为未执行，否则 UI 会引导用户盲目重装。
+    if (isWindowsLaunchFailure(details))
+      throw new AppHelperError(
+        'elevation_launch_failed',
+        details.message || 'Windows could not launch the Helper installer',
+        launchError?.stderr
+      )
+    if (!launchError || launchError?.killed || typeof launchError?.code === 'number') {
       awaitingLateResult = true
       throw new AppHelperError(
         'elevation_status_timeout',
-        'Timed out waiting for Windows administrator approval or installation. The installer may still be finishing; no installation files were removed.'
+        'No authenticated installation result was received. The installer may still be finishing; no installation files were removed.'
       )
     }
     throw new AppHelperError(
@@ -212,11 +221,7 @@ export const runWindowsHelperInstaller = async (
       // Killing the launcher does not kill its elevated child. Retain the result
       // channel for a bounded grace period; the SID mutex still serializes retries.
       // These cleanup resources must not keep the application alive by themselves.
-      server.unref()
-      for (const socket of sockets) {
-        socket.setTimeout(LATE_RESULT_GRACE_MS)
-        socket.unref()
-      }
+      pipe.retain()
       const cleanupTimer = setTimeout(() => {
         void closeResults()
       }, LATE_RESULT_GRACE_MS)

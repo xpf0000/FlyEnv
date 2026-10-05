@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "FlyEnv-apuohjelman asennus epäonnistui. Yritä uudelleen alkuperäisellä Windows-tililläsi asetusten korjauspainikkeella. Jos asennus epäonnistuu uudelleen, lähetä alla olevat virhetiedot.",
   "flyenvHelperInstallTimeout": "Asennustuloksen odottaminen aikakatkaistiin. Asennus saattaa edelleen olla käynnissä taustalla. Tarkista tulos käyttämällä apuohjelman korjauspainiketta uudelleen.",
   "windowsElevationMethod": "Korotustapa",
-  "windowsElevationMethodTips": "Valitse, miten järjestelmänvalvojan oikeuksia edellyttävien Windows-toimintojen oikeudet korotetaan. UAC pyytää vahvistuksen jokaiselle tuetulle toiminnolle; apuohjelma välttää toistuvat kehotteet asennuksen jälkeen.",
+  "windowsElevationMethodTips": "Valintasi tallennetaan. Voit muuttaa sitä myöhemmin Asetuksissa.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Apuohjelma",
   "appFont": "Käyttöliittymän fontti",
@@ -96,5 +96,26 @@
     "rnacos": "Palveluiden etsintä ja keskitetty määritysten hallinta.",
     "temporal": "Sovellusten työnkulkujen ja pitkäkestoisten prosessien luotettava orkestrointi.",
     "temporalCli": "Komentorivityökalu Temporalin hallintaan ja käyttöön."
+  },
+  "windowsPrivilege": {
+    "busy": "Toinen valtuutustoiminto on käynnissä. Odota.",
+    "title": "Valitse valtuutustapa",
+    "description": "Toiminto ”{operation}” tarvitsee järjestelmänvalvojan oikeudet. Valitse valtuutustapa.",
+    "uacDescription": "UAC: Windows pyytää tarvittaessa hyväksyntää tai järjestelmänvalvojan tunnuksia. Pysyvää tausta-apuohjelmaa ei tarvitse asentaa.",
+    "helperDescription": "Apuohjelma: vähentää toistuvia pyyntöjä. Asennus luo ajoitetun tehtävän järjestelmäoikeuksilla; tarkista yrityksesi laitekäytäntö.",
+    "helperReady": "Apuohjelma on käyttövalmis.",
+    "settingsHint": "Valintasi tallennetaan. Voit muuttaa sitä myöhemmin Asetuksissa.",
+    "disableOption": "Poista myös aiemmin asennettu tämän tilin apuohjelma käytöstä (voi vaatia UAC:n)",
+    "disableOnSwitch": "UAC:hen vaihtaminen poistaa tämän tilin apuohjelman automaattisesti käytöstä. Asennetut tiedostot säilyvät.",
+    "disableHelperTips": "Pysäyttää tälle Windows-tilille asennetun apuohjelman ja poistaa sen ajoitetun tehtävän käytöstä. Asennetut tiedostot säilyvät. Toiminto voi vaatia UAC-hyväksynnän.",
+    "disableFailed": "UAC valittiin, mutta nykyistä apuohjelmaa ei voitu poistaa käytöstä.",
+    "elevated": "FlyEnv toimii järjestelmänvalvojana. Tämän istunnon toiminnot suoritetaan suoraan; tallennettu valinta ei muutu.",
+    "unselected": "Valtuutustapaa ei ole valittu. FlyEnv kysyy, kun järjestelmänvalvojan oikeuksia tarvitaan ensimmäistä kertaa.",
+    "operation": "Järjestelmätoiminto",
+    "useUac": "UAC",
+    "useHelper": "Apuohjelma",
+    "disableHelper": "Poista apuohjelma käytöstä",
+    "failed": "Windows-valtuutus epäonnistui.",
+    "timeout": "Valtuutus aikakatkaistiin. Toiminto saattaa yhä olla käynnissä."
   }
 }

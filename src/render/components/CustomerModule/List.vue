@@ -134,6 +134,7 @@
   import { FolderAdd } from '@element-plus/icons-vue'
   import Base from '@/core/Base'
   import { join } from '@/util/path-browserify'
+  import { MessageError } from '@/util/Element'
 
   const title = computed(() => {
     return AppCustomerModule.currentModule?.label ?? ''
@@ -211,18 +212,28 @@
           edit: item,
           isEdit: true
         }).then((res) => {
-          const find = AppCustomerModule.currentModule!.item[index]
-          find.stop().then().catch()
-          const save = reactive(new ModuleCustomerExecItem(res))
-          save.pid = ''
-          save.running = false
-          save.run = false
-          const onStart = AppCustomerModule.currentModule!.onExecStart.bind(
-            AppCustomerModule.currentModule!
-          )
-          save.onStart(onStart, AppCustomerModule.currentModule)
-          AppCustomerModule.currentModule!.item.splice(index, 1, save)
-          AppCustomerModule.saveModule()
+          const module = AppCustomerModule.currentModule!
+          // 弹窗可能跨越列表重排；用实例 id 找原行，避免停错另一个版本。
+          const find = module.item.find((entry) => entry.id === item.id)
+          if (!find) return
+          find
+            .stop()
+            .then((stopped) => {
+              if (stopped !== true) {
+                MessageError(typeof stopped === 'string' ? stopped : I18nT('base.fail'))
+                return
+              }
+              const save = reactive(new ModuleCustomerExecItem(res))
+              save.pid = ''
+              save.running = false
+              save.run = false
+              const currentIndex = module.item.findIndex((entry) => entry.id === find.id)
+              if (currentIndex < 0) return
+              save.onStart(module.onExecStart.bind(module), module)
+              module.item.splice(currentIndex, 1, save)
+              AppCustomerModule.saveModule()
+            })
+            .catch((error) => MessageError(String(error)))
         })
         break
       case 'del':
@@ -235,9 +246,23 @@
               AppCustomerModule.currentModule?.item?.findIndex((f) => f.id === item.id) ?? -1
             if (findIndex >= 0) {
               const find: ModuleCustomerExecItem = AppCustomerModule.currentModule!.item[findIndex]
-              find.stop().then().catch()
-              AppCustomerModule.currentModule!.item.splice(findIndex, 1)
-              AppCustomerModule.saveModule()
+              find
+                .stop()
+                .then((stopped) => {
+                  // 停止失败时保留配置项和 PID，避免删除后失去可见的重试入口。
+                  if (stopped !== true) {
+                    MessageError(typeof stopped === 'string' ? stopped : I18nT('base.fail'))
+                    return
+                  }
+                  const currentIndex =
+                    AppCustomerModule.currentModule?.item.findIndex(
+                      (entry) => entry.id === item.id
+                    ) ?? -1
+                  if (currentIndex < 0) return
+                  AppCustomerModule.currentModule!.item.splice(currentIndex, 1)
+                  AppCustomerModule.saveModule()
+                })
+                .catch((error) => MessageError(String(error)))
             }
           })
           .catch()
@@ -250,15 +275,20 @@
       return
     }
     if (fn === 'start') {
-      item.start().then().catch()
+      item.start().then((res) => {
+        if (res !== true) MessageError(typeof res === 'string' ? res : I18nT('base.fail'))
+      })
     } else if (fn === 'stop') {
-      item.stop().then().catch()
+      item.stop().then((res) => {
+        if (res !== true) MessageError(typeof res === 'string' ? res : I18nT('base.fail'))
+      })
     } else if (fn === 'restart') {
       item
-        .stop()
-        .then(() => item.start())
-        .then()
-        .catch()
+        .restart()
+        .then((res) => {
+          if (res !== true) MessageError(typeof res === 'string' ? res : I18nT('base.fail'))
+        })
+        .catch((error) => MessageError(String(error)))
     }
   }
 </script>

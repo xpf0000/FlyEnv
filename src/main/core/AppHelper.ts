@@ -19,7 +19,7 @@ import {
   readWindowsHelperDiagnostics,
   windowsHelperInstalledPath
 } from '@shared/WindowsHelperIdentity'
-import { runWindowsHelperInstaller } from '@shared/WindowsHelperInstaller'
+import { runWindowsHelperInstaller } from './WindowsHelperInstaller'
 import { WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
 import { tmpdir, userInfo } from 'node:os'
 import { copyFile, chmod, existsSync, mkdirp, readFile } from '@shared/fs-extra'
@@ -29,6 +29,8 @@ type AppHelperMessage = {
   state:
     'needInstall' | 'installing' | 'installed' | 'installFaild' | 'checkSuccess' | 'fallbackToUac'
   reason?: string
+  // checkSuccess 同时用于健康检查和实际安装完成；只有后者才能显示安装成功通知。
+  installationPerformed?: boolean
 }
 
 type AppHelperCallback = (message: AppHelperMessage) => void
@@ -155,8 +157,23 @@ export class AppHelper {
     this._onSuduExecSuccess = fn
   }
 
-  private emitStatus(state: AppHelperMessage['state'], reason?: string) {
-    this._onMessage?.({ state, reason })
+  private emitStatus(
+    state: AppHelperMessage['state'],
+    reason?: string,
+    installationPerformed?: boolean
+  ) {
+    // 状态通知属于 UI 副作用。窗口销毁/IPC 发送失败不能把已健康的 Helper
+    // 判成安装失败，也不能覆盖安装的真实错误或破坏 installation 的 finally。
+    try {
+      this._onMessage?.({
+        state,
+        reason,
+        // 其他状态保留原字段；此标志是执行结果信息，不是持久的安装状态缓存。
+        ...(installationPerformed === undefined ? {} : { installationPerformed })
+      })
+    } catch (error) {
+      void appDebugLog('[AppHelper][status-notify]', String(error)).catch(() => {})
+    }
   }
 
   async command(): Promise<{ command: string; icns: string; windowsScript?: string }> {
@@ -311,6 +328,9 @@ export class AppHelper {
 
   private async install(): Promise<boolean> {
     let windowsInstallation = false
+    // 每次 initHelper 都会健康检查。仅在本次真正执行安装后记录，恢复已有任务或
+    // 已健康直接返回都为 false；后续健康验证失败仍走 catch，不发成功终态。
+    let installationPerformed = false
     try {
       let healthy = false
       try {
@@ -339,6 +359,7 @@ export class AppHelper {
           ? await this.deps.installWindows(windowsScript)
           : await this.deps.sudo(command, { name: 'FlyEnv', icns })
         appDebugLog('[AppHelper][install]', `${stdout}\n${stderr}`).catch(() => {})
+        installationPerformed = true
         this.state = 'installed'
         await waitForHelperHealth(() => this.deps.appHelperCheck())
       }
@@ -347,7 +368,7 @@ export class AppHelper {
       } catch (callbackError) {
         appDebugLog('[AppHelper][post-ready]', String(callbackError)).catch(() => {})
       }
-      this.emitStatus('checkSuccess')
+      this.emitStatus('checkSuccess', undefined, installationPerformed)
       return true
     } catch (error) {
       const appError = toAppHelperInstallError(error)

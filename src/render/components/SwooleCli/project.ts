@@ -1,12 +1,7 @@
 import { join } from '@/util/path-browserify'
 
 export type SwooleCliProjectPreset =
-  | 'native'
-  | 'hyperf'
-  | 'easyswoole'
-  | 'laravel-octane'
-  | 'php-script'
-  | 'custom'
+  'native' | 'hyperf' | 'easyswoole' | 'laravel-octane' | 'php-script' | 'custom'
 
 export type SwooleCliProjectExtra = {
   swooleCliPreset?: SwooleCliProjectPreset

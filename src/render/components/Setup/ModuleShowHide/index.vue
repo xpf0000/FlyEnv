@@ -12,11 +12,7 @@
         >
           <el-tag size="small" effect="plain" type="info">Plugin</el-tag>
         </el-tooltip>
-        <el-tooltip
-          v-if="description"
-          :content="description"
-          placement="top"
-        >
+        <el-tooltip v-if="description" :content="description" placement="top">
           <InfoFilled class="w-[14px] h-[14px] shrink-0 cursor-help text-zinc-400" />
         </el-tooltip>
       </div>

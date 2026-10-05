@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "FlyEnv yardımcı programı kurulumu başarısız oldu. Asıl Windows hesabınızla Ayarlar'daki onarım düğmesinden yeniden deneyin. Sorun devam ederse aşağıdaki hata ayrıntılarını paylaşın.",
   "flyenvHelperInstallTimeout": "Kurulum sonucunu bekleme süresi doldu. Kurulum hâlâ arka planda çalışıyor olabilir. Sonucu kontrol etmek için yardımcı onarım düğmesini tekrar kullanın.",
   "windowsElevationMethod": "Yetki yükseltme yöntemi",
-  "windowsElevationMethodTips": "Yönetici ayrıcalıkları gerektiren Windows işlemlerinin nasıl yükseltileceğini seçin. UAC, desteklenen her işlem için onay ister; yardımcı program yüklendikten sonra tekrarlanan istemleri önler.",
+  "windowsElevationMethodTips": "Seçiminiz kaydedilir. Daha sonra Ayarlar’dan değiştirebilirsiniz.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Yardımcı program",
   "appFont": "Arayüz Yazı Tipi",
@@ -96,5 +96,26 @@
     "rnacos": "Hizmet keşfi ve merkezi yapılandırma yönetimi.",
     "temporal": "Uygulama iş akışlarının ve uzun süren işlemlerin güvenilir orkestrasyonu.",
     "temporalCli": "Temporal’ı yönetmek ve onunla etkileşim kurmak için komut satırı aracı."
+  },
+  "windowsPrivilege": {
+    "busy": "Başka bir yetkilendirme işlemi sürüyor. Lütfen bekleyin.",
+    "title": "Yetkilendirme yöntemini seçin",
+    "description": "“{operation}” işlemi yönetici hakları gerektirir. Yetkilendirme yöntemini seçin.",
+    "uacDescription": "UAC: Windows gerektiğinde onay veya yönetici kimlik bilgilerini ister. Kalıcı bir yardımcı kurulması gerekmez.",
+    "helperDescription": "Yardımcı: tekrarlanan onay isteklerini azaltır. Kurulum, sistem yetkilerine sahip bir zamanlanmış görev oluşturur; şirketinizin cihaz politikasını kontrol edin.",
+    "helperReady": "Yardımcı kullanıma hazır.",
+    "settingsHint": "Seçiminiz kaydedilir. Daha sonra Ayarlar’dan değiştirebilirsiniz.",
+    "disableOption": "Bu hesap için önceden kurulmuş yardımcıyı da devre dışı bırak (UAC gerekebilir)",
+    "disableOnSwitch": "UAC’ye geçiş bu hesabın yardımcısını otomatik olarak devre dışı bırakır. Yüklü dosyalar korunur.",
+    "disableHelperTips": "Bu Windows hesabı için yüklü yardımcıyı durdurur ve zamanlanmış görevini devre dışı bırakır. Yüklü dosyalar korunur. Bu işlem UAC onayı gerektirebilir.",
+    "disableFailed": "UAC seçildi, ancak mevcut yardımcı devre dışı bırakılamadı.",
+    "elevated": "FlyEnv yönetici olarak çalışıyor. Bu oturumdaki işlemler doğrudan yürütülür; kaydedilen seçim değişmez.",
+    "unselected": "Yetkilendirme yöntemi seçilmedi. FlyEnv ilk kez yönetici hakları gerektiğinde soracaktır.",
+    "operation": "Sistem işlemi",
+    "useUac": "UAC",
+    "useHelper": "Yardımcı program",
+    "disableHelper": "Yardımcıyı devre dışı bırak",
+    "failed": "Windows yetkilendirmesi başarısız.",
+    "timeout": "Yetkilendirme zaman aşımına uğradı. İşlem hâlâ devam ediyor olabilir."
   }
 }

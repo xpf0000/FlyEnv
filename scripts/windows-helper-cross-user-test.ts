@@ -19,7 +19,8 @@ async function main() {
     sourceExecutable: 'C:\\Program Files\\FlyEnv\\helper\\flyenv-helper.exe',
     backupExecutable: 'C:\\Program Files\\FlyEnv\\helper\\flyenv-helper-backup.exe',
     dataPath: 'C:\\FlyEnv Data',
-    helperVersion: 27
+    // 此处模拟当前发布的安装配置；跨账户身份合同不因 v28 版本升级而改变。
+    helperVersion: 28
   }
   const script = identity.buildWindowsHelperInstallScript('#INSTALL_CONFIG#', config)
   const decoded = JSON.parse(Buffer.from(script, 'base64').toString('utf8'))

@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "A FlyEnv Helper telepítése sikertelen. Próbálja újra az eredeti Windows-fiókkal a beállítások javítás gombjával. Újabb hiba esetén ossza meg az alábbi részleteket.",
   "flyenvHelperInstallTimeout": "Időtúllépés a telepítési eredményre várakozás közben. A telepítés lehet, hogy még mindig fut a háttérben. Az eredmény ellenőrzéséhez használja újra a segédprogram javítás gombot.",
   "windowsElevationMethod": "Jogosultságemelési mód",
-  "windowsElevationMethodTips": "Válassza ki, hogyan emelje meg a rendszergazdai jogosultságot igénylő Windows-műveletek jogosultságait. Az UAC minden támogatott művelethez megerősítést kér; a segédprogram telepítés után elkerüli az ismétlődő kéréseket.",
+  "windowsElevationMethodTips": "A választás mentésre kerül. Később a Beállításokban módosíthatja.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Segédprogram",
   "appFont": "Felületi betűtípus",
@@ -96,5 +96,26 @@
     "rnacos": "Szolgáltatásfelderítés és központi konfigurációkezelés.",
     "temporal": "Az alkalmazás-munkafolyamatok és hosszan futó folyamatok megbízható vezénylése.",
     "temporalCli": "Parancssori eszköz a Temporal kezeléséhez és használatához."
+  },
+  "windowsPrivilege": {
+    "busy": "Egy másik engedélyezési művelet folyamatban van. Kérjük, várjon.",
+    "title": "Válasszon engedélyezési módot",
+    "description": "A(z) „{operation}” művelethez rendszergazdai jogosultság kell. Válasszon engedélyezési módot.",
+    "uacDescription": "UAC: A Windows szükség esetén jóváhagyást vagy rendszergazdai hitelesítő adatokat kér. Nem kell állandó háttérsegédet telepíteni.",
+    "helperDescription": "Segédprogram: csökkenti az ismételt kéréseket. A telepítés rendszerjogosultságú ütemezett feladatot hoz létre; ellenőrizze vállalata eszközszabályzatát.",
+    "helperReady": "A segéd használatra kész.",
+    "settingsHint": "A választás mentésre kerül. Később a Beállításokban módosíthatja.",
+    "disableOption": "A fiók korábban telepített segédprogramjának letiltása is (UAC szükséges lehet)",
+    "disableOnSwitch": "Az UAC-ra váltás automatikusan letiltja a fiók segédjét. A telepített fájlok megmaradnak.",
+    "disableHelperTips": "Leállítja az ehhez a Windows-fiókhoz telepített segédet, és letiltja az ütemezett feladatát. A telepített fájlok megmaradnak. UAC-jóváhagyásra lehet szükség.",
+    "disableFailed": "Az UAC lett kiválasztva, de a meglévő segédprogramot nem sikerült letiltani.",
+    "elevated": "A FlyEnv rendszergazdaként fut. A műveletek ebben a munkamenetben közvetlenül futnak; a mentett választás nem változik.",
+    "unselected": "Nincs kiválasztott engedélyezési mód. A FlyEnv az első rendszergazdai jogosultságot igénylő műveletnél kérdez rá.",
+    "operation": "Rendszerművelet",
+    "useUac": "UAC",
+    "useHelper": "Segédprogram",
+    "disableHelper": "Segédprogram letiltása",
+    "failed": "A Windows engedélyezése sikertelen.",
+    "timeout": "Az engedélyezés időtúllépés miatt megszakadt. A művelet még futhat."
   }
 }

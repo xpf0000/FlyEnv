@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Instalacja programu pomocniczego FlyEnv nie powiodła się. Spróbuj ponownie z pierwotnego konta Windows przyciskiem naprawy w ustawieniach. Jeśli błąd się powtórzy, przekaż poniższe szczegóły.",
   "flyenvHelperInstallTimeout": "Przekroczono limit czasu oczekiwania na wynik instalacji. Instalacja może nadal działać w tle. Użyj ponownie przycisku naprawy pomocnika, aby sprawdzić wynik.",
   "windowsElevationMethod": "Metoda podnoszenia uprawnień",
-  "windowsElevationMethodTips": "Wybierz sposób podnoszenia uprawnień dla operacji systemu Windows wymagających uprawnień administratora. UAC prosi o potwierdzenie dla każdej obsługiwanej operacji; program pomocniczy po instalacji eliminuje powtarzające się monity.",
+  "windowsElevationMethodTips": "Wybór zostanie zapisany. Możesz go później zmienić w Ustawieniach.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Program pomocniczy",
   "appFont": "Czcionka interfejsu",
@@ -96,5 +96,26 @@
     "rnacos": "Wykrywanie usług i scentralizowane zarządzanie konfiguracją.",
     "temporal": "Niezawodna orkiestracja przepływów pracy i długotrwałych procesów.",
     "temporalCli": "Narzędzie wiersza poleceń do zarządzania Temporalem i pracy z nim."
+  },
+  "windowsPrivilege": {
+    "busy": "Trwa inna operacja autoryzacji. Proszę czekać.",
+    "title": "Wybierz sposób autoryzacji",
+    "description": "Operacja „{operation}” wymaga uprawnień administratora. Wybierz sposób autoryzacji.",
+    "uacDescription": "UAC: Windows w razie potrzeby prosi o zgodę lub dane administratora. Instalacja stale działającego pomocnika nie jest wymagana.",
+    "helperDescription": "Pomocnik: ogranicza powtarzające się monity. Instalacja tworzy zaplanowane zadanie z uprawnieniami systemowymi; sprawdź firmowe zasady dotyczące urządzeń.",
+    "helperReady": "Pomocnik jest gotowy do użycia.",
+    "settingsHint": "Wybór zostanie zapisany. Możesz go później zmienić w Ustawieniach.",
+    "disableOption": "Wyłącz także wcześniej zainstalowanego pomocnika tego konta (może wymagać UAC)",
+    "disableOnSwitch": "Przejście na UAC automatycznie wyłącza pomocnika tego konta. Zainstalowane pliki zostają zachowane.",
+    "disableHelperTips": "Zatrzymuje pomocnika zainstalowanego dla tego konta Windows i wyłącza jego zaplanowane zadanie. Zainstalowane pliki zostają zachowane. Może być wymagana zgoda UAC.",
+    "disableFailed": "Wybrano UAC, ale nie udało się wyłączyć istniejącego pomocnika.",
+    "elevated": "FlyEnv działa jako administrator. Operacje w tej sesji są wykonywane bezpośrednio; zapisany wybór się nie zmienia.",
+    "unselected": "Nie wybrano sposobu autoryzacji. FlyEnv zapyta przy pierwszej operacji wymagającej uprawnień administratora.",
+    "operation": "Operacja systemowa",
+    "useUac": "UAC",
+    "useHelper": "Program pomocniczy",
+    "disableHelper": "Wyłącz pomocnika",
+    "failed": "Autoryzacja Windows nie powiodła się.",
+    "timeout": "Przekroczono czas autoryzacji. Operacja może nadal trwać."
   }
 }

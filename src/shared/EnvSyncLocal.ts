@@ -1,12 +1,18 @@
+import { startPerformanceConsoleTimer, endPerformanceConsoleTimer } from './PerformanceDiagnostics'
 import { appDebugLog, isWindows } from '@shared/utils'
 import { shellEnv } from 'shell-env'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import { dirname, join } from 'node:path'
-import { existsSync } from 'node:fs'
+import { win32, join } from 'node:path'
 import * as process from 'node:process'
 import JSON5 from 'json5'
 import { powerShellInlineArgs } from './PowerShellCommand'
+import {
+  resolveWindowsPowerShellPath,
+  resolveWindowsSystemExecutable,
+  windowsPowerShellPath,
+  windowsSystemDirectory
+} from './WindowsSystemPaths'
 
 const execFilePromise = promisify(execFile)
 
@@ -94,14 +100,6 @@ class EnvSyncLocalLoader {
   private powerShellPath?: string
   private systemPath?: string
 
-  private findProcessEnv(key: string): string | undefined {
-    const lowKey = key.toLowerCase()
-    for (const [envKey, value] of Object.entries(process.env)) {
-      if (envKey.toLowerCase() === lowKey) return value
-    }
-    return undefined
-  }
-
   private findEnv(env: Record<string, string>, key: string): string | undefined {
     const lowKey = key.toLowerCase()
     for (const [envKey, value] of Object.entries(env)) {
@@ -112,42 +110,22 @@ class EnvSyncLocalLoader {
 
   private async getWindowsAllEnv(): Promise<Record<string, string>> {
     let stdout = ''
-    const cmdDefault = 'C:\\Windows\\System32\\cmd.exe'
-    const comSpec = this.findProcessEnv('ComSpec')
-    const systemRoot = this.findProcessEnv('SystemRoot')
-    if (comSpec) {
-      this.systemPath = dirname(comSpec)
-    } else if (systemRoot) {
-      this.systemPath = join(systemRoot, 'System32')
-    } else if (existsSync(cmdDefault)) {
-      this.systemPath = dirname(cmdDefault)
-    } else {
-      this.systemPath = 'C:\\Windows\\System32'
-    }
-
-    const programFiles = this.findProcessEnv('ProgramFiles')
-    const programFilesX86 = this.findProcessEnv('ProgramFiles(x86)')
-    const powershellCandidates = [
-      systemRoot ? join(systemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe') : undefined,
-      'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
-      programFiles ? join(programFiles, 'PowerShell/7/pwsh.exe') : undefined,
-      programFilesX86 ? join(programFilesX86, 'PowerShell/7/pwsh.exe') : undefined
-    ]
-    let powershell = 'powershell.exe'
-    for (const candidate of powershellCandidates) {
-      if (candidate && existsSync(candidate)) {
-        powershell = candidate
-        break
-      }
-    }
+    // 环境同步是权限操作的间接前置：定位程序本身不能依赖待同步的 PATH，
+    // 也不能让用户注册表中的 ComSpec/SystemRoot 改变实际系统目录。
+    this.systemPath = windowsSystemDirectory()
 
     try {
       const result: any = await execFilePromise(
-        powershell,
+        resolveWindowsPowerShellPath(),
         powerShellInlineArgs(WINDOWS_ENV_SCRIPT),
         {
           encoding: 'utf8',
           windowsHide: true,
+          // 环境同步自身使用内置模块，避免继承的 PSModulePath 覆盖系统命令。
+          env: {
+            ...process.env,
+            PSModulePath: win32.join(win32.dirname(windowsPowerShellPath()), 'Modules')
+          },
           timeout: WINDOWS_ENV_FETCH_TIMEOUT_MS,
           maxBuffer: 10 * 1024 * 1024
         }
@@ -174,61 +152,33 @@ class EnvSyncLocalLoader {
     }
   }
 
-  private fetchWinPaths(env: Record<string, string>) {
-    const cmdPath = 'C:\\Windows\\System32\\cmd.exe'
-    if (existsSync(cmdPath)) {
-      this.cmdPath = cmdPath
-    } else if (env.ComSpec && existsSync(env.ComSpec)) {
-      this.cmdPath = env.ComSpec
-    } else if (env.SystemRoot && existsSync(env.SystemRoot)) {
-      this.cmdPath = join(env.SystemRoot, 'System32/cmd.exe')
-    } else {
-      for (const [key, value] of Object.entries(env)) {
-        const lowKey = key.toLowerCase()
-        if (lowKey === 'comspec' && existsSync(value)) {
-          this.cmdPath = value
-          break
-        }
-        if (lowKey === 'systemroot' && existsSync(value)) {
-          this.cmdPath = join(value, 'System32/cmd.exe')
-          break
-        }
-      }
-    }
-
-    const systemRoot = this.findEnv(env, 'SystemRoot')
-    const programFiles = this.findEnv(env, 'ProgramFiles')
-    const programFilesX86 = this.findEnv(env, 'ProgramFiles(x86)')
-    const candidates = [
-      'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
-      systemRoot ? join(systemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe') : undefined,
-      programFiles ? join(programFiles, 'PowerShell/7/pwsh.exe') : undefined,
-      programFilesX86 ? join(programFilesX86, 'PowerShell/7/pwsh.exe') : undefined
-    ]
-    for (const candidate of candidates) {
-      if (candidate && existsSync(candidate)) {
-        this.powerShellPath = candidate
-        return
-      }
-    }
+  private fetchWinPaths() {
+    // 缺失保留 undefined：纯 Node 操作仍可用，真正需要系统程序的入口明确失败。
+    // 不把不存在的文件、PowerShell 7 或 PATH 中的同名程序冒充系统 Windows PowerShell。
+    try {
+      this.cmdPath = resolveWindowsSystemExecutable('cmd.exe')
+    } catch {}
+    try {
+      this.powerShellPath = resolveWindowsPowerShellPath()
+    } catch {}
   }
 
   private async fetchWindows(): Promise<EnvSyncLocalResult> {
-    console.time('EnvSync getWindowsAllEnv')
+    startPerformanceConsoleTimer('EnvSync getWindowsAllEnv')
     let lastEnv: Record<string, string> = {}
     try {
       lastEnv = await this.getWindowsAllEnv()
     } catch {}
-    console.timeEnd('EnvSync getWindowsAllEnv')
+    endPerformanceConsoleTimer('EnvSync getWindowsAllEnv')
 
     const path = buildWindowsSyncedPath(this.findEnv(lastEnv, 'PATH') ?? '', [
-      this.systemPath ?? 'C:\\Windows\\System32',
-      'C:\\Windows\\System32\\WindowsPowerShell\\v1.0',
+      this.systemPath ?? windowsSystemDirectory(),
+      win32.dirname(windowsPowerShellPath()),
       'C:\\Program Files\\RedHat\\Podman'
     ])
 
     const env = stringEnv({ ...process.env, ...lastEnv, PATH: path, Path: path })
-    this.fetchWinPaths(env)
+    this.fetchWinPaths()
     return {
       env,
       cmdPath: this.cmdPath,

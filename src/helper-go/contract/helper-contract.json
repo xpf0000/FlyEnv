@@ -109,7 +109,9 @@
       "function": "kill",
       "args": [
         { "name": "signal", "type": "string" },
-        { "name": "pids", "type": "string[]" }
+        { "name": "pids", "type": "string[]" },
+        { "name": "treeMode", "type": "boolean", "optional": true },
+        { "name": "identities", "type": "processStartIdentity[]", "optional": true }
       ],
       "return": "boolean",
       "platform": "all",
@@ -130,7 +132,10 @@
     {
       "module": "tools",
       "function": "killPorts",
-      "args": [{ "name": "ports", "type": "string[]" }],
+      "args": [
+        { "name": "ports", "type": "string[]" },
+        { "name": "identities", "type": "processStartIdentity[]", "optional": true }
+      ],
       "return": "boolean",
       "platform": "all",
       "privileged": true
@@ -140,7 +145,7 @@
       "function": "getPortPids",
       "args": [{ "name": "port", "type": "string" }],
       "return": "portProcessInfo[]",
-      "platform": "unix",
+      "platform": "all",
       "privileged": false
     },
     {

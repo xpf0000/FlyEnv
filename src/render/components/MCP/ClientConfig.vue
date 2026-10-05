@@ -27,8 +27,7 @@
         <div class="relative">
           <pre
             class="bg-gray-900 text-gray-100 rounded-md p-4 overflow-auto text-xs leading-relaxed"
-            >{{ MCPSetup.httpConfigSnippet(httpClient) }}</pre
-          >
+            >{{ MCPSetup.httpConfigSnippet(httpClient) }}</pre>
           <el-button
             class="absolute top-2 right-2"
             size="small"
@@ -68,8 +67,7 @@
         <div class="relative">
           <pre
             class="bg-gray-900 text-gray-100 rounded-md p-4 overflow-auto text-xs leading-relaxed"
-            >{{ MCPSetup.stdioConfigSnippet }}</pre
-          >
+            >{{ MCPSetup.stdioConfigSnippet }}</pre>
           <el-button
             class="absolute top-2 right-2"
             size="small"

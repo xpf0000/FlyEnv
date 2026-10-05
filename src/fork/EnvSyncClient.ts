@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { bindWindowsPathLogger } from '@shared/WindowsPathDiagnostics'
 import {
   isEnvSyncGetResponse,
   isEnvSyncInvalidateResponse,
@@ -12,6 +13,8 @@ type Pending<T> = {
   resolve: (value: T) => void
   reject: (error: Error) => void
   timeout: TimerToken
+  /** 仅绑定诊断原请求；不随环境协议发送，不持有环境内容。 */
+  logPath: ReturnType<typeof bindWindowsPathLogger>
 }
 
 type EnvSyncClientOptions = {
@@ -42,14 +45,18 @@ export class EnvSyncClient {
 
   private request<T>(pending: Map<string, Pending<T>>, message: EnvSyncRequest): Promise<T> {
     return new Promise<T>((resolve, reject) => {
+      const logPath = bindWindowsPathLogger()
+      logPath('env-sync.ipc-request', { envRequestId: message.requestId, type: message.type })
       const timeout = this.scheduleTimeout(() => {
+        logPath('env-sync.ipc-timeout', { envRequestId: message.requestId })
         pending.delete(message.requestId)
         reject(new Error(`Env sync request timed out after ${this.timeoutMs}ms`))
       }, this.timeoutMs)
-      pending.set(message.requestId, { resolve, reject, timeout })
+      pending.set(message.requestId, { resolve, reject, timeout, logPath })
       try {
         this.send(message)
       } catch (error) {
+        logPath('env-sync.ipc-send-failed', { envRequestId: message.requestId })
         pending.delete(message.requestId)
         this.cancelTimeout(timeout)
         reject(error instanceof Error ? error : new Error(String(error)))
@@ -75,6 +82,12 @@ export class EnvSyncClient {
     if (isEnvSyncGetResponse(message)) {
       const pending = this.getPending.get(message.requestId)
       if (!pending) return true
+      pending.logPath('env-sync.ipc-response', {
+        envRequestId: message.requestId,
+        type: message.type,
+        failed: Boolean(message.error),
+        revision: message.snapshot?.revision
+      })
       this.getPending.delete(message.requestId)
       this.cancelTimeout(pending.timeout)
       if (message.error || !message.snapshot) {
@@ -87,6 +100,12 @@ export class EnvSyncClient {
     if (isEnvSyncInvalidateResponse(message)) {
       const pending = this.invalidatePending.get(message.requestId)
       if (!pending) return true
+      pending.logPath('env-sync.ipc-response', {
+        envRequestId: message.requestId,
+        type: message.type,
+        failed: Boolean(message.error),
+        revision: message.revision
+      })
       this.invalidatePending.delete(message.requestId)
       this.cancelTimeout(pending.timeout)
       if (message.error || message.revision === undefined) {

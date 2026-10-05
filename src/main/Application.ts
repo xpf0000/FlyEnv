@@ -1,3 +1,7 @@
+import {
+  performanceDiagnosticNow,
+  performanceDiagnosticElapsed
+} from '@shared/PerformanceDiagnostics'
 import { EventEmitter } from 'events'
 import { app, BrowserWindow, globalShortcut, safeStorage, session } from 'electron'
 import is from 'electron-is'
@@ -8,6 +12,16 @@ import { getLanguage, getLocale, logger } from './utils'
 import { applyLanguagePayload, I18nT } from '@lang/runtime'
 import { ForkManager } from './core/ForkManager'
 import AppHelper from './core/AppHelper'
+import { WindowsPrivilegeCoordinator } from './core/WindowsPrivilegeCoordinator'
+import { WindowsPrivilegeBridge } from './core/WindowsPrivilegeBridge'
+import {
+  applyWindowsPrivilegeSnapshot,
+  isWindowsProcessElevated,
+  setWindowsPrivilegeProvider,
+  withWindowsPrivilegeInteraction,
+  type WindowsPrivilegeSnapshot
+} from '@shared/WindowsPrivilege'
+import { WINDOWS_ELEVATION_CHOICE_VERSION } from '@shared/WindowsHelperState'
 import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
 import { join, resolve } from 'node:path'
@@ -15,7 +29,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
 import ServiceVersionManager from './core/ServiceVersionManager'
-import { AppHelperRoleFix } from '@shared/AppHelperCheck'
+import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import ConfigManager from './core/ConfigManager'
 import MCPConfigManager from './core/MCPConfigManager'
@@ -44,6 +58,13 @@ import {
 import { getElectronResourcePath } from './utils/AppRuntimePath'
 import type { TrayAction, TrayPopupSide } from '@shared/Tray'
 import PluginManager from './plugins/PluginManager'
+import { appDebugLog, isWindows } from '@shared/utils'
+import { randomUUID } from 'node:crypto'
+import {
+  logServiceStopBoundary,
+  timeServiceStopBoundary,
+  withServiceStopDiagnostics
+} from '@shared/ServiceStopDiagnostics'
 
 export default class Application extends EventEmitter {
   isReady: boolean = false
@@ -67,9 +88,12 @@ export default class Application extends EventEmitter {
   private stopPromise?: Promise<void>
   private serverDirectoryInitialization!: Promise<boolean>
   private serverDirectoryRetry?: Promise<boolean>
+  // 权限选择必须等待主窗口 mount/IPC 完成；冷启动阶段仅保留待处理选择。
+  private rendererReady = false
+  private windowsPrivilege!: WindowsPrivilegeCoordinator
   private serverDirectoryHelperInstall = createDeferredHelperInstallRequest(
     () => {
-      AppHelper.needInstall()
+      void withWindowsPrivilegeInteraction(true, () => this.retryServerDataDirectory())
     },
     (reason) => this.notifyDataDirectoryFailure(reason)
   )
@@ -78,6 +102,46 @@ export default class Application extends EventEmitter {
     super()
     this.setupInitialConfig()
     this.configManager = new ConfigManager()
+    // 在数据目录初始化之前挂接 provider；启动恢复也走同一分流，禁止直接安装 Helper。
+    this.windowsPrivilege = new WindowsPrivilegeCoordinator({
+      read: () => ({
+        method: this.configManager.getConfig('setup.windowsElevationMethod'),
+        choiceVersion: this.configManager.getConfig('setup.windowsElevationChoiceVersion')
+      }),
+      save: (method, version) => this.configManager.setWindowsElevationChoice(method, version),
+      elevated: isWindowsProcessElevated,
+      onNotificationError: (error) => {
+        void appDebugLog('[WindowsPrivilege][notify]', String(error)).catch(() => {})
+      },
+      publish: (snapshot) => this.publishWindowsPrivilege(snapshot),
+      dismiss: (id) => {
+        if (!this.mainWindow || this.mainWindow.isDestroyed()) return
+        const command = 'APP-Windows-Privilege-Choice-Closed'
+        this.windowManager.sendCommandTo(this.mainWindow, command, command, id)
+      },
+      prompt: (choice) => {
+        if (!this.rendererReady || !this.mainWindow || this.mainWindow.isDestroyed()) return false
+        this.mainWindow.show()
+        const command = 'APP-Windows-Privilege-Choice'
+        this.windowManager.sendCommandTo(this.mainWindow, command, command, choice)
+        return true
+      }
+    })
+    if (isWindows()) {
+      setWindowsPrivilegeProvider({
+        resolve: async (request) => {
+          const method = await this.windowsPrivilege.resolve(request)
+          if (method === 'helper' && request.operation === 'helper/ready')
+            await this.ensureWindowsHelper(request.interactive)
+          return method
+        },
+        acquire: () => this.windowsPrivilege.acquire(this),
+        release: (lease) => this.windowsPrivilege.release(lease, this)
+      })
+      // before-quit 会被 Launcher 延迟以等待 stop；此时释放协调器会让 hosts
+      // 清理无法申请 UAC。正常路径在 doStop 末尾释放，真正退出时再幂等兜底。
+      app.once('will-quit', () => this.windowsPrivilege.dispose())
+    }
     this.mcpConfigManager = new MCPConfigManager()
     this.mcpBridgeManager = new MCPBridgeManager()
     this.serverManager = new ServerManager(this.configManager)
@@ -130,6 +194,7 @@ export default class Application extends EventEmitter {
     await this.languageRepository.ready()
     await this.languageCoordinator.initialize(requestedLocale)
     await this.serverDirectoryInitialization
+    if (isWindows()) this.publishWindowsPrivilege(await this.windowsPrivilege.snapshot())
     await this.pluginManager.refresh()
     if (process.env.FLYENV_PLUGIN_SMOKE === '1') {
       await this.preparePluginRuntimeSmoke()
@@ -164,7 +229,8 @@ export default class Application extends EventEmitter {
       appNodeFnManager: AppNodeFnManager,
       pluginManager: this.pluginManager,
       onPluginsChanged: () => this.syncPlugins(),
-      retryDataDirectory: () => this.retryServerDataDirectory()
+      retryDataDirectory: () => this.retryServerDataDirectory(),
+      windowsPrivilege: this.windowsPrivilege
     })
 
     this.setupEventHandlers()
@@ -226,32 +292,29 @@ export default class Application extends EventEmitter {
   }
 
   private async stopPluginServices(moduleId: string): Promise<{ stopped: true }> {
-    const status = ServiceProcessManager.statusOf(moduleId)
-    if (!status.running) return { stopped: true }
+    return ServiceProcessManager.runLifecycle(moduleId, 'stop', () =>
+      this.stopPluginServicesImpl(moduleId)
+    )
+  }
+
+  private async stopPluginServicesImpl(moduleId: string): Promise<{ stopped: true }> {
+    // statusOf 只用于界面展示，会隐藏单独打开的伴随面板；插件卸载/禁用必须清掉原始登记中的
+    // 服务和 companion 两类进程，否则模块代码被移除后仍可能遗留一个无法再管理的面板。
+    const registered = [...(ServiceProcessManager.servicePID[moduleId] ?? [])].filter(
+      ({ pid }) => !!pid
+    )
+    if (!registered.length) return { stopped: true }
     if (!this.forkManager) throw new Error(`Fork manager is not ready for ${moduleId}`)
 
-    for (const instance of status.instances) {
-      const version = {
-        ...instance,
-        typeFlag: moduleId,
-        enable: true
-      }
-      const result = await new Promise<any>((resolve, reject) => {
-        this.forkManager!.send(moduleId, 'stopService', version)
-          .on(() => {})
-          .then(resolve)
-          .catch(reject)
-      })
-      if (result?.code !== 0) {
-        throw new Error(
-          typeof result?.msg === 'string' ? result.msg : `Failed to stop ${moduleId} service`
-        )
-      }
-      ServiceProcessManager.delByBin(moduleId, [instance.bin])
-    }
+    // 模块屏障已等待所有旧生命周期请求；与退出/MCP 共用并行停止及派发代次保护。
+    // 全部项结算后才决定是否允许卸载，不能因一项失败提前撤掉其他项的模块代码。
+    const results = await ServiceProcessManager.stopRegisteredInstances([moduleId])
+    const failures = results
+      .filter(({ status }) => status === 'failed')
+      .map(({ pid, error }) => `PID=${pid}: ${error}`)
 
-    if (ServiceProcessManager.statusOf(moduleId).running) {
-      throw new Error(`Service ${moduleId} is still running`)
+    if (failures.length || ServiceProcessManager.servicePID[moduleId]?.some(({ pid }) => !!pid)) {
+      throw new Error(`Service or companion ${moduleId} is still running: ${failures.join('\n')}`)
     }
     return { stopped: true }
   }
@@ -322,8 +385,34 @@ export default class Application extends EventEmitter {
         throw new Error(`Fork plugin version scan did not return v1: ${JSON.stringify(versions)}`)
       }
       checkpoints.push('fork-version-scan')
-      await this.runPluginRuntimeFork('startService', { version: '1.0.0', bin: 'runtime-smoke' })
-      await this.runPluginRuntimeFork('stopService', { version: '1.0.0', bin: 'runtime-smoke' })
+      // 烟雾验证也走正式服务登记链：start 终态拿到 PID 与原样 stop 参数后先登记，随后
+      // 才发送 stop。退出若恰好并发开始，会等待整个消费者；stop 失败则登记保留给退出重试。
+      await ServiceProcessManager.runLifecycle('runtime-smoke-plugin', 'start', async () => {
+        const startItem = { version: '1.0.0', bin: 'runtime-smoke' }
+        const startResult = await this.runPluginRuntimeFork('startService', startItem)
+        const pid = startResult?.['APP-Service-Start-PID']
+        if (pid) {
+          ServiceProcessManager.addPid(
+            'runtime-smoke-plugin',
+            `${pid}`,
+            startResult?.['APP-Service-Start-Item'] ?? startItem,
+            startResult?.['APP-Service-Stop-Args'] ?? [{ ...startItem, pid: `${pid}` }]
+          )
+        }
+        const snapshot = pid
+          ? ServiceProcessManager.stopSnapshotFor('runtime-smoke-plugin', `${pid}`)
+          : undefined
+        const stopResult = await this.runPluginRuntimeForkArgs(
+          'stopService',
+          ...(snapshot?.args ?? [startItem])
+        )
+        if (snapshot)
+          ServiceProcessManager.finishStopSnapshot(
+            'runtime-smoke-plugin',
+            snapshot,
+            (stopResult?.['APP-Service-Stop-PID'] ?? []).map(String)
+          )
+      })
       checkpoints.push('start-stop')
 
       // VersionManager data flow (renderer): the static version list must load
@@ -423,9 +512,13 @@ export default class Application extends EventEmitter {
   }
 
   private runPluginRuntimeFork(fn: string, item: unknown) {
+    return this.runPluginRuntimeForkArgs(fn, item)
+  }
+
+  private runPluginRuntimeForkArgs(fn: string, ...args: unknown[]) {
     if (!this.forkManager) return Promise.reject(new Error('Fork manager is not initialized'))
     return new Promise<any>((resolveFork, rejectFork) => {
-      this.forkManager!.send('runtime-smoke-plugin', fn, item)
+      this.forkManager!.send('runtime-smoke-plugin', fn, ...args)
         .on(() => {})
         .then((result: any) => {
           if (result?.code === 0) {
@@ -575,7 +668,8 @@ export default class Application extends EventEmitter {
     })
 
     AppHelper.onSuduExecSuccess(() => {
-      this.restoreWindowsElevationMethodAfterHelperReady()
+      // Windows 安装由当前权限请求持有租约；此回调再恢复目录会递归申请租约而死锁。
+      if (isWindows()) return
       return this.serverManager.initServerDir().then((ready) => {
         global.Server.DataDirectoryReady = ready
         if (ready && this.mainWindow) {
@@ -588,6 +682,44 @@ export default class Application extends EventEmitter {
         }
       })
     })
+  }
+
+  /** 后台只检查健康，交互请求才可恢复/安装；安装与业务 UAC 共用全局租约。 */
+  private async ensureWindowsHelper(interactive = true) {
+    if (!interactive || this.windowsPrivilege.isClosing()) {
+      // 退出只使用已安装且健康的 Helper；不能在关闭窗口时启动安装/修复流程。
+      await AppHelperCheck()
+      return
+    }
+    const lease = await this.windowsPrivilege.acquire(this)
+    try {
+      // 排队期间设置可能已经改变；安装前重新读取主进程配置，禁止旧请求复活 Helper。
+      if (
+        (await this.windowsPrivilege.resolve({ operation: 'helper/install', interactive })) !==
+        'helper'
+      )
+        throw new Error('Authorization method changed before Helper installation')
+      await AppHelper.initHelper()
+    } finally {
+      this.windowsPrivilege.release(lease, this)
+    }
+  }
+
+  /** 主进程配置是唯一权威，广播给主窗口、托盘和全部 fork，禁止静默改用户方式。 */
+  private publishWindowsPrivilege(snapshot: WindowsPrivilegeSnapshot) {
+    applyWindowsPrivilegeSnapshot(snapshot)
+    this.forkManager?.broadcastWindowsPrivilege(snapshot)
+    const command = 'APP-Windows-Elevation-Method-Changed'
+    // 权限控制器只在主窗口注册；托盘通过自己的状态广播获得展示数据。
+    for (const win of [this.mainWindow]) {
+      if (!win || win.isDestroyed()) continue
+      try {
+        // 某个窗口发送失败时继续通知其他窗口；各接收者自行过滤旧 revision。
+        this.windowManager.sendCommandTo(win, command, command, snapshot)
+      } catch (error) {
+        void appDebugLog('[WindowsPrivilege][publish]', String(error)).catch(() => {})
+      }
+    }
   }
 
   private retryServerDataDirectory(): Promise<boolean> {
@@ -630,40 +762,18 @@ export default class Application extends EventEmitter {
     this.windowManager.sendCommandTo(this.mainWindow, key, key, { reason })
   }
 
-  private setWindowsElevationRuntimeMethod(method: 'helper' | 'uac', reason?: string) {
-    global.Server.WindowsElevationMethod = method
-    void reason
-  }
-
-  private restoreWindowsElevationMethodAfterHelperReady() {
-    const method = 'helper'
-    if (this.configManager.getConfig('setup.windowsElevationMethod') !== method) {
-      this.configManager.setConfig('setup.windowsElevationMethod', method)
-    }
-    this.serverManager.updateGlobalConfig()
-    if (!this.mainWindow) {
-      return
-    }
-    this.windowManager.sendCommandTo(
-      this.mainWindow,
-      'APP-Windows-Elevation-Method-Changed',
-      'APP-Windows-Elevation-Method-Changed',
-      { method, reason: 'helperReady' }
-    )
-  }
-
   /**
    * 处理 Helper 状态消息
    */
-  private handleHelperStatusMessage(message: { state: string; reason?: string }) {
-    if (
-      global.Server.isWindows &&
-      (message.state === 'installFaild' || message.state === 'fallbackToUac') &&
-      global.Server.WindowsElevationMethod === 'helper'
-    ) {
-      this.setWindowsElevationRuntimeMethod('uac', message.reason)
-    }
-
+  private handleHelperStatusMessage(message: {
+    state: string
+    reason?: string
+    installationPerformed?: boolean
+  }) {
+    // Windows 业务请求会反复确认 Helper 健康；检查/恢复成功不等于又安装了一次。
+    // 设置切换/修复由其控制器在响应成功后提示“已就绪”；首次业务的真实安装仍
+    // 广播成功，保留原 renderer 的 busy 过滤，避免设置操作得到两份成功提示。
+    if (isWindows() && message.state === 'checkSuccess' && !message.installationPerformed) return
     if (!this.mainWindow) {
       return
     }
@@ -681,6 +791,8 @@ export default class Application extends EventEmitter {
     if (base) {
       this.windowManager.sendCommandTo(this.mainWindow!, key, key, {
         ...base,
+        // renderer 结合显式选择过滤通知，不再由失败通知触发隐式 UAC 切换。
+        status: message.state,
         reason: message.reason
       })
     }
@@ -691,14 +803,25 @@ export default class Application extends EventEmitter {
    */
   private initForkManager() {
     this.forkManager = new ForkManager(getElectronResourcePath('fork.mjs'))
+    // 在惰性创建任何 worker 前注入桥接层，否则早期 worker 无法等待首次权限选择。
+    this.forkManager.windowsPrivilegeBridge = new WindowsPrivilegeBridge(
+      this.windowsPrivilege,
+      (interactive) => this.ensureWindowsHelper(interactive)
+    )
     this.forkManager.setLanguageSnapshotProvider(() => this.languageCoordinator.snapshot())
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
+      // 兼容旧事件但不再应用自动 fallback；模式变化只能通过显式选择提交。
       if (key === 'App-Windows-Elevation-Method-Fallback') {
-        this.setWindowsElevationRuntimeMethod('uac', info?.reason)
         return
       }
+      // 旧初始化请求只能作用于已确认 Helper 的 Windows 用户，未选择/UAC 不提示安装。
       if (key === 'App-Need-Init-FlyEnv-Helper') {
-        AppHelper.needInstall()
+        if (
+          !isWindows() ||
+          (global.Server.WindowsElevationChoiceVersion === WINDOWS_ELEVATION_CHOICE_VERSION &&
+            global.Server.WindowsElevationMethod === 'helper')
+        )
+          AppHelper.needInstall()
         return
       }
       this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
@@ -801,6 +924,9 @@ export default class Application extends EventEmitter {
     })
 
     this.ipcHandler.on('application:renderer-initialized', () => {
+      // 延后呈现选择及目录恢复，避免启动时窗口还不存在导致授权请求失去宿主。
+      this.rendererReady = true
+      this.windowsPrivilege.present()
       this.serverDirectoryHelperInstall.markReady()
     })
   }
@@ -1046,7 +1172,28 @@ export default class Application extends EventEmitter {
   }
 
   private async doStop() {
+    // 只创建本轮退出的诊断 ID；已有 stopPromise 继续防重，不引入退出状态机或批次协议。
+    const quitId = randomUUID()
+    const quitStarted = performanceDiagnosticNow()
+    const quitData = { quitId }
+    logServiceStopBoundary('quit.begin', quitData)
     logger.info('[FlyEnv] application stop !!!')
+    // 菜单退出、app.quit 和 relaunch 共用此顺序；已确认授权在并行清理期间继续有效。
+    this.windowManager?.setWillQuit(true)
+    this.windowsPrivilege.beginShutdown()
+    // 同步关闭两层入口，再等待已接纳请求的完整终态消费者；尤其要等迟到的 start PID
+    // 登记完成后才允许并行停止取得最终表。排队请求靠 AsyncLocalStorage 通行证继续运行；
+    // 尚未完成首次权限方式选择的请求由 beginShutdown 取消并结算，已选方式的请求可收尾。
+    ServiceProcessManager.beginLifecycleShutdown()
+    this.forkManager?.beginServiceLifecycleShutdown()
+    await timeServiceStopBoundary('quit.service-drain', quitData, () =>
+      ServiceProcessManager.drainLifecycleRequests()
+    )
+    // 保留两个屏障的先后关系：服务终态消费者可能继续派发配置/hosts 等原始请求。
+    // 只有消费者结束后再 drain fork，才能保证随后并行清理 hosts 时没有旧写入回流。
+    await timeServiceStopBoundary('quit.fork-drain', quitData, () =>
+      this.forkManager?.drainServiceLifecycleRequests()
+    )
     try {
       globalShortcut.unregisterAll()
     } catch (e) {
@@ -1077,31 +1224,84 @@ export default class Application extends EventEmitter {
     } catch (e) {
       console.log('Capturer.stopCapturer e: ', e)
     }
+    // 门禁及 drain 已完成：HTTP/MCP 关闭、服务停止和 main 的 hosts 清理互不依赖。
+    // 每个任务保留自己的计时及错误接收者；allSettled 等全部收尾，即使某个任务或
+    // 错误日志意外拒绝，也不能提前销毁其他任务正在使用的 worker/权限协调器。
+    // parallel-cleanup.completed 仅表示整组等待结束，单项失败仍看对应 failed 日志。
+    // 快捷键/屏幕/PTY 等上面的同步清理没有可重叠的 await，继续直接执行。
     try {
-      await httpServerRuntime.peek()?.stopAll()
-    } catch (e) {
-      console.log('HttpServer.stopAll e: ', e)
-    }
-    try {
-      await this.mcpRuntime?.stopLoaded()
-    } catch (e) {
-      console.log('mcpRuntime.stop e: ', e)
-    }
-    try {
-      await this.serverManager.stopServer()
-    } catch (e) {
-      console.log('serverManager.stopServer e: ', e)
-    }
-    try {
-      await this.forkManager?.destroy()
-    } catch (e) {
-      console.log('forkManager.destroy e: ', e)
+      await timeServiceStopBoundary('quit.parallel-cleanup', quitData, () =>
+        Promise.allSettled([
+          (async () => {
+            try {
+              await timeServiceStopBoundary('quit.http-stop', quitData, () =>
+                httpServerRuntime.peek()?.stopAll()
+              )
+            } catch (e) {
+              console.log('HttpServer.stopAll e: ', e)
+            }
+          })(),
+          (async () => {
+            try {
+              await timeServiceStopBoundary('quit.mcp-stop', quitData, () =>
+                this.mcpRuntime?.stopLoaded()
+              )
+            } catch (e) {
+              console.log('mcpRuntime.stop e: ', e)
+            }
+          })(),
+          (async () => {
+            try {
+              // 仍使用普通权限执行 Windows 服务 kill；hosts 的 UAC 独立计时。
+              // 服务实例本身已并行，继续复用既有首表与停止结果登记。
+              await timeServiceStopBoundary('quit.services-stop', quitData, () =>
+                withWindowsPrivilegeInteraction(true, () => this.serverManager.stopServer())
+              )
+            } catch (e) {
+              console.log('serverManager.stopServer e: ', e)
+            }
+          })(),
+          (async () => {
+            try {
+              // 用户主动退出可申请已选 UAC；closing 禁止新的权限方式选择。
+              // main 的文件操作不使用服务 worker；drain 已收口旧 hosts 写入，所以
+              // 可以与服务停止重叠。诊断/交互上下文只绑定本分支，不串到其他任务。
+              await withServiceStopDiagnostics({ module: 'quit-hosts', quitId }, () =>
+                timeServiceStopBoundary('quit.hosts-cleanup', quitData, () =>
+                  withWindowsPrivilegeInteraction(true, () => this.serverManager.cleanHosts())
+                )
+              )
+            } catch (error) {
+              // UAC 取消、拒绝或未知结果仍记录真实失败并继续退出，不自动重放写入。
+              logger.warn('[FlyEnv][quit][hosts-cleanup]', error)
+            }
+          })()
+        ])
+      )
+      try {
+        // 服务停止依赖 worker；destroy 还会释放 EnvSync provider。等并行组全部
+        // 结算后再回收，避免截断停止请求或改变 hosts 清理中的依赖生命周期。
+        await timeServiceStopBoundary('quit.forks-destroy', quitData, () =>
+          this.forkManager?.destroy()
+        )
+      } catch (e) {
+        console.log('forkManager.destroy e: ', e)
+      }
+    } finally {
+      // hosts 可能先于服务结束；不能在单个 hosts 分支的 finally 中撤销其他任务的
+      // 提权租约。并行组和 fork 回收均已收尾后，才统一释放退出权限资源。
+      this.windowsPrivilege.dispose()
     }
     try {
       this.trayManager?.destroy()
     } catch (e) {
       console.log('trayManager.destroy e: ', e)
     }
+    // returned 仅表示 doStop 已收尾，不把被原 catch 记录的失败解释为所有服务/hosts 成功。
+    logServiceStopBoundary('quit.returned', {
+      quitId,
+      durationMs: performanceDiagnosticElapsed(quitStarted)
+    })
   }
 
   relaunch() {

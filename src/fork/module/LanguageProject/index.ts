@@ -1,17 +1,15 @@
 import { ForkPromise } from '@shared/ForkPromise'
+import { withServiceStopContext, type ServiceStopContext } from '@shared/ServiceStopContext'
 import type { SoftInstalled } from '@shared/app'
 import type { RunProjectItem } from '@shared/LanguageProjectRunner'
 import {
   customerServiceStartExec,
   customerServiceStartExecWin,
   waitPidFile,
-  waitTime,
   uuid,
   existsSync
 } from '../../Fn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
-import { ProcessKill, ProcessPidsByPid } from '@shared/Process'
-import { StopProcessListFetch, StopProcessPidListByPid } from '@shared/StopProcessList'
 import { I18nT } from '@lang/runtime'
 import { basename, dirname, join } from 'path'
 import { chmod, remove, writeFile, copyFile, readFile, spawnPromiseWithEnv } from '../../Fn'
@@ -19,6 +17,12 @@ import { execPromise } from '../../Fn'
 import EnvSync from '@shared/EnvSync'
 import { powerShellInlineArgs } from '@shared/PowerShellCommand'
 import { buildWindowsTerminalInlineScript, powerShellDoubleQuoted } from '@shared/WindowsTerminal'
+import { resolveWindowsPowerShellPath } from '@shared/WindowsSystemPaths'
+import {
+  captureServiceProcessIdentity,
+  stopRegisteredServiceProcesses,
+  type ServiceProcessIdentity
+} from '@shared/ServiceProcessIdentity'
 
 class LanguageProject {
   constructor() {}
@@ -34,41 +38,30 @@ class LanguageProject {
     })
   }
 
-  stopService(pid: string, typeFlag: string) {
-    return new ForkPromise(async (resolve) => {
-      console.log('LanguageProject stopService: ', pid, typeFlag)
-      if (isWindows()) {
-        const pids = await StopProcessPidListByPid(`${pid}`.trim())
-        if (pids.length > 0) {
-          try {
-            await ProcessKill('-INT', pids)
-          } catch {}
-        }
-        resolve({
-          'APP-Service-Stop-PID': pids
+  /**
+   * 与 UI/MCP/退出复用的项目停止契约。main 保存实际启动 PID、语言标记及创建
+   * 身份；这里从一份新鲜列表确认父，再信任其原子孙。成功回传才允许注销登记，
+   * 权限取消、身份变化、查询失败和退出超时均 reject，不把 worker 逐个预授权。
+   */
+  stopService(
+    pid: string,
+    stopOptions?: ServiceStopContext,
+    typeFlag?: string,
+    identity?: ServiceProcessIdentity | string
+  ) {
+    // 首表是可选第二参数，语言标记/原启动身份顺延且保持原含义；不改变登记参数。
+    // 嵌套公共停止使用本次传入表，多个项目并行时不共享可覆盖的全局字段。
+    return withServiceStopContext(
+      stopOptions,
+      () =>
+        new ForkPromise(async (resolve) => {
+          console.log('LanguageProject stopService: ', pid, typeFlag)
+          // 登记根、首次快照身份、后代收集、平台停止与退出确认全部走共享入口，
+          // 避免项目和自定义服务各自实现一份相同流程。语言标记只用于诊断。
+          const pids = await stopRegisteredServiceProcesses(pid, identity)
+          resolve({ 'APP-Service-Stop-PID': pids })
         })
-      } else {
-        const allPid: string[] = []
-        const plist: any = await StopProcessListFetch()
-        const pids = ProcessPidsByPid(pid.trim(), plist)
-        allPid.push(...pids)
-        const arr: string[] = Array.from(new Set(allPid))
-        if (arr.length > 0) {
-          let sig = '-TERM'
-          try {
-            await ProcessKill(sig, arr)
-          } catch {}
-          await waitTime(500)
-          sig = '-INT'
-          try {
-            await ProcessKill(sig, arr)
-          } catch {}
-        }
-        resolve({
-          'APP-Service-Stop-PID': arr
-        })
-      }
-    })
+    )
   }
 
   startService(
@@ -77,8 +70,23 @@ class LanguageProject {
     password?: string,
     openInTerminal?: boolean
   ) {
-    return new ForkPromise(async (resolve, reject) => {
-      console.log('LanguageProject startService: ', project, typeFlag, password, openInTerminal)
+    return new ForkPromise(async (resolveResult, reject) => {
+      // 所有正常/终端启动分支共用这一启动范围。成功 PID 必须来自本次启动返回，
+      // 身份放在停止参数中，main 仅保存并转发，不保存项目命令、密码或环境变量。
+      const launchedAt = Date.now()
+      const resolve = (result: any) => {
+        const pid = `${result?.['APP-Service-Start-PID'] ?? ''}`.trim()
+        if (/^\d+$/.test(pid) && Number(pid) > 4) {
+          resolveResult(
+            captureServiceProcessIdentity(pid, launchedAt).then((identity) => ({
+              ...result,
+              'APP-Service-Stop-Args': [pid, typeFlag, identity]
+            }))
+          )
+        } else resolveResult(result)
+      }
+      // 启动/停止登记诊断不输出完整项目、sudo 密码或环境变量。
+      console.log('LanguageProject startService: ', project.id, typeFlag, openInTerminal)
 
       // 验证执行文件是否存在
       if (project.commandType === 'file' && !project.runFile) {
@@ -87,6 +95,11 @@ class LanguageProject {
       }
 
       const isService = true
+      // 终端分支不经过 customerServiceStartExec 的旧 PID 清理，启动前必须移除
+      // 历史文件；否则 waitPidFile 会立即把上一轮 PID 当作本次启动成功。
+      if (openInTerminal && project.pidPath && existsSync(project.pidPath)) {
+        await remove(project.pidPath)
+      }
       const version: any = {
         id: project.id,
         command: project.runCommand,
@@ -267,11 +280,12 @@ class LanguageProject {
 
         try {
           await EnvSync.sync()
+          // 终端启动同样产生后续要停止的 PID；外层和终端内包装进程使用同一
+          // 系统绝对路径，PATH 缺失/含中文目录均不改变实际执行的 PowerShell。
+          const powerShellPath = resolveWindowsPowerShellPath()
           await spawnPromiseWithEnv(
-            EnvSync.PowerShellPath || 'powershell.exe',
-            powerShellInlineArgs(
-              buildWindowsTerminalInlineScript(command, EnvSync.PowerShellPath || 'powershell.exe')
-            ),
+            powerShellPath,
+            powerShellInlineArgs(buildWindowsTerminalInlineScript(command, powerShellPath)),
             {
               cwd: global.Server.Cache!,
               env: version.env,

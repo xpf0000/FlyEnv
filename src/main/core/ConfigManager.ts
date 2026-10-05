@@ -87,6 +87,8 @@ interface ConfigOptions {
     }
     autoCheck: boolean
     windowsElevationMethod: WindowsElevationMethod
+    // 可缺省的显式选择标记；旧默认 helper 不等于用户已经同意使用常驻程序。
+    windowsElevationChoiceVersion?: number
     editorConfig: {
       theme: 'vs-dark' | 'vs-light' | 'hc-dark' | 'hc-light'
       fontSize: number
@@ -250,10 +252,41 @@ export default class ConfigManager {
 
   setConfig(key: string | Partial<ConfigOptions>, ...args: any[]) {
     if (typeof key === 'string') {
+      // 字符串键与对象补丁遵循同一授权边界，只有专用原子提交入口能改权限偏好。
+      if (key === 'setup') {
+        this.setConfig({ setup: args[0] })
+        return
+      }
+      if (
+        ['setup.windowsElevationMethod', 'setup.windowsElevationChoiceVersion'].some(
+          (field) => key === field || key.startsWith(field + '.')
+        )
+      )
+        return
       this.config?.set(key as any, ...args)
     } else if (this.config) {
-      this.config.set(protectModuleOnboardingConfigPatch(this.config.store, key))
+      const patch = protectModuleOnboardingConfigPatch(this.config.store, key)
+      // 普通设置页可能持有旧快照；不能通过保存其他设置覆盖权限协调器刚提交的选择。
+      if (patch.setup) {
+        patch.setup.windowsElevationMethod = this.config.get('setup.windowsElevationMethod')
+        patch.setup.windowsElevationChoiceVersion = this.config.get(
+          'setup.windowsElevationChoiceVersion'
+        )
+      }
+      this.config.set(patch)
     }
+  }
+
+  /** 专用提交入口一次保存方式与确认版本；写盘失败时等待的权限请求保持未授权。 */
+  setWindowsElevationChoice(method: WindowsElevationMethod, version: number) {
+    if (!this.config) throw new Error('Configuration is unavailable')
+    this.config.set({
+      setup: {
+        ...this.config.get('setup'),
+        windowsElevationMethod: method,
+        windowsElevationChoiceVersion: version
+      }
+    })
   }
 
   completeModuleOnboarding(showItem?: ModuleOnboardingVisibility): void {

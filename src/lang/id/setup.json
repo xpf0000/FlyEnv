@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Pemasangan FlyEnv helper gagal. Coba lagi dengan akun Windows semula melalui tombol perbaikan di Pengaturan. Jika gagal lagi, bagikan detail kesalahan di bawah.",
   "flyenvHelperInstallTimeout": "Waktu tunggu hasil instalasi habis. Instalasi mungkin masih berjalan di latar belakang. Gunakan kembali tombol perbaikan helper untuk memeriksa hasilnya.",
   "windowsElevationMethod": "Metode Peningkatan Hak Akses",
-  "windowsElevationMethodTips": "Pilih cara meningkatkan hak akses untuk operasi Windows yang memerlukan hak administrator. UAC meminta konfirmasi untuk setiap operasi yang didukung; program pembantu menghindari permintaan berulang setelah diinstal.",
+  "windowsElevationMethodTips": "Pilihan Anda akan disimpan. Anda dapat mengubahnya nanti di Pengaturan.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Program Pembantu",
   "appFont": "Font Antarmuka",
@@ -96,5 +96,26 @@
     "rnacos": "Penemuan layanan dan pengelolaan konfigurasi terpusat.",
     "temporal": "Orkestrasi alur kerja aplikasi dan proses jangka panjang yang andal.",
     "temporalCli": "Alat baris perintah untuk mengelola dan berinteraksi dengan Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "Operasi otorisasi lain sedang berjalan. Harap tunggu.",
+    "title": "Pilih metode otorisasi",
+    "description": "Operasi “{operation}” memerlukan hak administrator. Pilih cara mengotorisasinya.",
+    "uacDescription": "UAC: Windows meminta persetujuan atau kredensial administrator saat diperlukan. Tidak perlu memasang pembantu yang terus berjalan.",
+    "helperDescription": "Pembantu: mengurangi permintaan berulang. Pemasangan membuat tugas terjadwal dengan hak sistem; periksa kebijakan perangkat perusahaan Anda.",
+    "helperReady": "Helper siap digunakan.",
+    "settingsHint": "Pilihan Anda akan disimpan. Anda dapat mengubahnya nanti di Pengaturan.",
+    "disableOption": "Nonaktifkan juga pembantu yang sebelumnya dipasang untuk akun ini (mungkin memerlukan UAC)",
+    "disableOnSwitch": "Beralih ke UAC secara otomatis menonaktifkan Helper akun ini. File yang terpasang tetap disimpan.",
+    "disableHelperTips": "Menghentikan Helper yang terpasang untuk akun Windows ini dan menonaktifkan tugas terjadwalnya. File yang terpasang tetap disimpan. Tindakan ini mungkin memerlukan persetujuan UAC.",
+    "disableFailed": "UAC telah dipilih, tetapi pembantu yang ada tidak dapat dinonaktifkan.",
+    "elevated": "FlyEnv berjalan sebagai administrator. Operasi sesi ini dijalankan langsung; pilihan tersimpan tidak berubah.",
+    "unselected": "Metode otorisasi belum dipilih. FlyEnv akan bertanya saat hak administrator pertama kali diperlukan.",
+    "operation": "Operasi sistem",
+    "useUac": "UAC",
+    "useHelper": "Program Pembantu",
+    "disableHelper": "Nonaktifkan pembantu",
+    "failed": "Otorisasi Windows gagal.",
+    "timeout": "Waktu otorisasi habis. Operasi mungkin masih berjalan."
   }
 }

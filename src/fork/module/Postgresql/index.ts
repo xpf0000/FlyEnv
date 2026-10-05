@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname, win32 } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/runtime'
@@ -35,14 +35,16 @@ import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
 import {
   fetchLoopbackListeningPids,
   ProcessKillStrict,
+  ProcessListByExactPid,
   ProcessListFetch,
-  ProcessSearch
+  type PItem
 } from '@shared/Process'
 import {
   fetchLoopbackListeningPids as fetchLoopbackListeningPidsWindows,
   ProcessPidListStrict
 } from '@shared/Process.win'
-import { StopProcessListFetch } from '@shared/StopProcessList'
+import { StopProcessListFetch, fetchStopProcessListLocal } from '@shared/StopProcessList'
+import { isReadableServiceStopRoot } from '@shared/ProcessSnapshot'
 import { webPanelInstallNotice } from '@shared/WebPanelInstallNotice'
 import {
   assertPgAdminRegistrationPort,
@@ -70,7 +72,6 @@ import {
   pgAdminRuntimePythonPath,
   pgAdminServersContent,
   pgAdminUrl,
-  pgAdminWindowsKillCommand,
   PgAdminSingleFlight,
   postgresqlPortFromConfig,
   startPgAdminWithPortRetry,
@@ -84,6 +85,30 @@ import {
 type PgAdminOpenResult = {
   url: string
   'APP-Service-Start-PID': string
+}
+
+/**
+ * 以完整 -D 参数识别数据库实例，避免相似前缀的数据目录被混为同一服务。
+ * Unix/macOS 只依赖命令参数和 postgres 程序名，不要求易变化的完整可执行路径。
+ */
+const postgresCommandUsesDataDirectory = (
+  command: string,
+  dataDirectory: string,
+  windows = false
+) => {
+  const normalizePath = (value: string) => {
+    const normalized = value.replace(/\\/g, '/')
+    return windows ? normalized.toLowerCase() : normalized
+  }
+  const directory = normalizePath(dataDirectory)
+  const escapedDirectory = directory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const normalizedCommand = normalizePath(command)
+  const dataDirectoryFlag = windows ? '-[dD]' : '-D'
+  const postgresExecutable = /(?:^|[/\s])postgres(?:\.exe)?(?=["'\s]|$)/i
+  const dataDirectoryArgument = new RegExp(
+    `(?:^|\\s)${dataDirectoryFlag}(?:\\s+|=)(?:"${escapedDirectory}"|'${escapedDirectory}'|${escapedDirectory})(?=\\s|$)`
+  )
+  return postgresExecutable.test(normalizedCommand) && dataDirectoryArgument.test(normalizedCommand)
 }
 
 class Manager extends Base {
@@ -160,14 +185,21 @@ class Manager extends Base {
   private async pgAdminRunningPid(packageRoot: string): Promise<string | undefined> {
     const paths = this.pgAdminPaths()
     const pid = await this.readPidFromFile(paths.pid)
-    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
+    const processList = await fetchStopProcessListLocal()
     const process = pid ? processList.find((item) => item.PID === pid) : undefined
-    const command = process?.COMMAND ?? ''
-    if (pid && pgAdminCommandOwned(command, paths, packageRoot, isWindows())) {
+    const command = process?.COMMAND
+    // 活 PID 的空命令行或不匹配命令属于身份未知；不能删登记或当成无实例继续启动。
+    if (process && !command) throw new Error(`Cannot verify pgAdmin process PID=${pid}`)
+    if (pid && pgAdminCommandOwned(command ?? '', paths, packageRoot, isWindows())) {
       return pid
     }
     if (pid) {
-      await remove(paths.pid).catch(() => {})
+      if (process) throw new Error(`pgAdmin PID=${pid} is active but ownership is unknown`)
+      if (processList.some(({ PPID }) => `${PPID}` === pid)) {
+        throw new Error(`Cannot verify pgAdmin descendants for PID=${pid}`)
+      }
+      // 只删仍保存本次确认已退出 PID 的旧文件，避免覆盖并发写入的新登记。
+      if ((await this.readPidFromFile(paths.pid)) === pid) await remove(paths.pid)
     }
     const ownedPids = pgAdminOwnedPids(processList, paths, packageRoot, isWindows())
     return ownedPids.length === 1 ? ownedPids[0] : undefined
@@ -175,13 +207,13 @@ class Manager extends Base {
 
   private async pgAdminOwnedProcessPids(packageRoot: string): Promise<string[]> {
     const paths = this.pgAdminPaths()
-    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
+    const processList = await fetchStopProcessListLocal()
     return pgAdminOwnedPids(processList, paths, packageRoot, isWindows())
   }
 
   private async pgAdminFallbackOwnedProcessPids(): Promise<string[]> {
     const paths = this.pgAdminPaths()
-    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
+    const processList = await fetchStopProcessListLocal()
     return pgAdminOwnedPidsWithoutPackageMetadata(processList, paths, isWindows())
   }
 
@@ -191,7 +223,7 @@ class Manager extends Base {
       : await fetchLoopbackListeningPids(`${port}`)
     if (listeningPids.includes(pid)) return true
 
-    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
+    const processList = await fetchStopProcessListLocal()
     return pgAdminPortOwnedByProcessTree(listeningPids, pid, processList)
   }
 
@@ -201,20 +233,22 @@ class Manager extends Base {
     return pids.filter((pid) => activePids.has(pid))
   }
 
-  private async stopPgAdminPidsStrict(pids: string[]): Promise<void> {
+  private async stopPgAdminPidsStrict(pids: string[], processList?: PItem[]): Promise<PItem[]> {
+    if (isWindows()) {
+      // pgAdmin 根已按私有目录确认；Base 把首次快照身份送入统一权限树停止并返回最终列表。
+      // 未传首表时加入 main 的发现共享；已传列表时继续原采样，不额外查询。
+      const initialList = processList ?? (await StopProcessListFetch())
+      return this.stopWindowsServiceProcesses(pids, initialList)
+    }
     await stopPgAdminPidsWithVerification({
       pids,
       kill: async (targetPids) => {
-        if (isWindows()) {
-          const command = pgAdminWindowsKillCommand(targetPids)
-          if (command) await execPromiseWithEnv(command)
-          return
-        }
         await ProcessKillStrict('-INT', targetPids)
       },
       remainingPids: () => this.pgAdminPidsStillRunning(pids),
       wait: waitTime
     })
+    return fetchStopProcessListLocal()
   }
 
   private async pgAdminHttpReachable(port: number): Promise<boolean> {
@@ -233,28 +267,26 @@ class Manager extends Base {
     const paths = this.pgAdminPaths()
     const root =
       packageRoot ?? (await this.pgAdminPackageRootUnversioned(paths.python).catch(() => ''))
-    if (!root || !pgAdminPackageRootOwned(root, paths, isWindows())) {
-      const pids = await this.pgAdminFallbackOwnedProcessPids()
-      if (pids.length > 0) {
-        await this.stopPgAdminPidsStrict(pids)
-      }
-      await remove(paths.pid).catch(() => {})
-      await remove(paths.port).catch(() => {})
-      return pids
-    }
-
-    const pid = await this.pgAdminRunningPid(root)
-    const pids = Array.from(
-      new Set([pid, ...(await this.pgAdminOwnedProcessPids(root))].filter(Boolean))
-    ) as string[]
-    if (pids.length === 0) {
-      await remove(paths.port).catch(() => {})
-      return []
-    }
-
-    await this.stopPgAdminPidsStrict(pids)
-    await remove(paths.pid).catch(() => {})
-    await remove(paths.port).catch(() => {})
+    // pgAdmin 的停止前发现共享 main 完整列表，启动检查与最终确认仍独立新查。
+    const processList = await StopProcessListFetch()
+    const pid = await this.readPidFromFile(paths.pid)
+    // 私有记录只是候选；只选可读且配置归属明确的根，不强行追加文件中的陌生 PID。
+    // 包元数据可用/缺失只改变模块的匹配规则，共用同一树收集、执行与清理流程。
+    const readableRoots = processList.filter((process) => isReadableServiceStopRoot(process))
+    const roots =
+      root && pgAdminPackageRootOwned(root, paths, isWindows())
+        ? pgAdminOwnedPids(readableRoots, paths, root, isWindows())
+        : pgAdminOwnedPidsWithoutPackageMetadata(readableRoots, paths, isWindows())
+    // 后代取自未过滤的原完整列表；父已确认就无需每个 worker 的身份字段可读。
+    const pids = [
+      ...new Set(
+        roots.flatMap((pid) => ProcessListByExactPid(pid, processList).map(({ PID }) => PID))
+      )
+    ]
+    const after = pids.length ? await this.stopPgAdminPidsStrict(pids, processList) : processList
+    await this.cleanupStoppedServicePidFiles([pid, ...pids].filter(Boolean), after, [paths.pid])
+    // 被过滤的活候选保留 PID 与端口，供以后重试；过滤不等于已退出。
+    if (!existsSync(paths.pid)) await remove(paths.port)
     return pids
   }
 
@@ -516,16 +548,45 @@ class Manager extends Base {
     })
   }
 
+  /** DATA_DIR 是实例身份的一部分；退出沿用启动目录，不重新读取已编辑的设置。 */
+  serviceStopArgs(pid: string, version: SoftInstalled, DATA_DIR?: string): any[] {
+    const major = version?.version?.split('.')?.shift() ?? ''
+    return [
+      { ...version, pid },
+      DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${major}`)
+    ]
+  }
+
+  /** pgAdmin 可独立打开，单独停止不会关闭 PostgreSQL 数据目录。 */
+  companionStopArgs(command: string, pid: string, args: any[]): any[] | undefined {
+    if (command === 'openPGAdmin') return [{ ...args[0], pid }, args[1], true]
+  }
+
   _stopServer(
     version: SoftInstalled,
-    DATA_DIR?: string
+    DATA_DIR?: string,
+    pgAdminOnly = false
   ): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     return new ForkPromise(async (resolve, reject, on) => {
+      const appPidFile = this.appPidFile()
+      const appPidBefore = existsSync(appPidFile) ? await this.readPidFromFile(appPidFile) : ''
       const pgAdminPids = await this._stopPGAdmin()
+      if (pgAdminOnly) {
+        resolve({ 'APP-Service-Stop-PID': pgAdminPids.map(Number) })
+        return
+      }
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       const logFile = join(dbPath, 'pg.log')
+      const postmasterPidFile = join(dbPath, 'postmaster.pid')
+      // 仅在停止开始前读取的 PID 可成为本次清理候选；不得把停止期间覆盖的新值认成本实例。
+      const postmasterPidBefore = existsSync(postmasterPidFile)
+        ? await this.readPidFromFile(postmasterPidFile)
+        : ''
+      // Windows 的共享树停止器返回最终快照，后续残留判断和登记清理共用它；
+      // Unix/macOS 则在原生关闭确认循环中保存最后一次完整进程列表。
+      let finalProcessList: PItem[] | undefined
 
       const doStop = async () => {
         try {
@@ -534,80 +595,127 @@ class Manager extends Base {
             shell: false
           })
         } catch (e) {
-          appDebugLog(`[PostgreSql][_stopServer][error]`, `${e}`).catch()
-          console.log('PostgreSQL shutdown error: ', e)
-          console.log('PostgreSQL shutdown error version: ', version, bin)
+          // pg_ctl 失败不代表服务已经退出；原错误必须上交，保留 PID/登记供用户重试。
+          appDebugLog(
+            `[PostgreSql][_stopServer][error]`,
+            `${(e as NodeJS.ErrnoException)?.code ?? 'pg_ctl failed'}`
+          ).catch()
+          console.log('PostgreSQL shutdown failed', (e as NodeJS.ErrnoException)?.code)
+          throw e
         }
       }
 
       if (!isWindows()) {
-        const pidFile = join(dbPath, 'postmaster.pid')
+        const pidFile = postmasterPidFile
         await doStop()
-        const check = async (times = 0) => {
-          if (times >= 10) {
-            console.log('times out: ', times)
-            return true
-          }
+        let pidFileRemoved = false
+        for (let attempt = 0; attempt < 10; attempt += 1) {
           if (!existsSync(pidFile)) {
-            console.log('times success: ', times)
-            return true
-          } else {
-            await waitTime(1000)
-            return await check(times + 1)
+            pidFileRemoved = true
+            break
           }
+          await waitTime(1000)
         }
-        await check()
+        if (!pidFileRemoved && !existsSync(pidFile)) pidFileRemoved = true
+        if (!pidFileRemoved) {
+          throw new Error('PostgreSQL postmaster.pid still exists after the stop request')
+        }
 
-        // 等待 postgres 进程完全退出（解决 macOS 共享内存未释放问题）
-        if (isMacOS()) {
-          const waitProcessExit = async (retryTimes = 0) => {
-            if (retryTimes >= 15) {
-              console.log('waitProcessExit timeout')
-              return
-            }
-            try {
-              const plist = await StopProcessListFetch()
-              const postgresProcs = ProcessSearch('postgres', false, plist).filter(
-                (p) =>
-                  p.COMMAND.includes(dbPath) &&
-                  !p.COMMAND.includes('grep ') &&
-                  !p.COMMAND.includes('/bin/sh -c')
-              )
-              if (postgresProcs.length > 0) {
-                console.log('PostgreSQL processes still running:', postgresProcs)
-                await waitTime(1000)
-                await waitProcessExit(retryTimes + 1)
-              }
-            } catch (e) {
-              console.log('waitProcessExit error:', e)
-            }
+        // PID 文件消失只是辅助证据；还需用精确 DATA_DIR 参数确认数据库进程退出。
+        // macOS 在退出确认后仍保留共享内存清理等待；查询失败或超时都不能报成功。
+        for (let attempt = 0; attempt < 15; attempt += 1) {
+          const plist = await fetchStopProcessListLocal()
+          finalProcessList = plist
+          const postgresProcs = plist.filter((process) =>
+            postgresCommandUsesDataDirectory(process.COMMAND, dbPath)
+          )
+          if (!postgresProcs.length) break
+          if (attempt === 14) {
+            throw new Error('PostgreSQL processes are still running after the stop request')
           }
-          await waitProcessExit()
-          // 额外等待确保共享内存释放
+          await waitTime(1000)
+        }
+        if (isMacOS()) {
+          // Keep the existing macOS delay after postgres releases its shared memory.
           await waitTime(500)
         }
       } else {
-        await doStop()
+        // Windows 关闭由本模块负责。根须同时匹配当前数据目录参数和本版本 postgres.exe；
+        // pgAdmin、其他数据目录或被复用的 stale PID 均不能触发数据库原生关闭。
+        const list = await ProcessPidListStrict()
+        // 首次严格列表同时承担所有权发现和后续 Windows 树停止的创建时间证明。
+        finalProcessList = list
+        const exe = win32.normalize(join(dirname(bin), 'postgres.exe')).toLowerCase()
+        const roots = list.filter(
+          (process) =>
+            isReadableServiceStopRoot(process, true) &&
+            postgresCommandUsesDataDirectory(process.COMMAND, dbPath, true) &&
+            !!process.EXECUTABLE &&
+            win32.normalize(process.EXECUTABLE).toLowerCase() === exe
+        )
+        const recordedPid = postmasterPidBefore
+        // pg_ctl 从 postmaster.pid 取目标。文件中的根未通过本实例归属筛选时，
+        // 过滤本次数据库关闭，不以其他有效根替代文件授权；已确认的 companion 仍继续。
+        const targets = roots.some(({ PID }) => PID === recordedPid)
+          ? [
+              ...new Set(
+                roots.flatMap(({ PID }) => ProcessListByExactPid(PID, list).map(({ PID }) => PID))
+              )
+            ]
+          : []
+        if (targets.length) {
+          // pg_ctl 使用 postmaster.pid 定位根；先确认文件没有指向另一实例，再关闭。
+          let shutdownError: unknown
+          try {
+            // fast 仍是数据库有序关闭，-w/-t 明确等待与上限；绝对 bin/参数数组
+            // 支持中文和空格目录，不依赖 PATH。失败不退为 OS 强杀数据库。
+            await spawnPromiseWithEnv(
+              bin,
+              ['stop', '-D', dbPath, '-l', logFile, '-m', 'fast', '-w', '-t', '10'],
+              { cwd: dirname(bin), shell: false, timeout: 20_000, windowsHide: true }
+            )
+          } catch (error) {
+            shutdownError = error
+          }
+          try {
+            // 原生 fast 关闭后复用公共等待的最终列表，不能再另做一次全量查询。
+            finalProcessList = await this.waitWindowsServiceExit(targets, 10_000, list)
+          } catch (error) {
+            // 查询失败、超时或原生关闭失败都保留停止失败，后面的登记/PID 不清除。
+            throw shutdownError ?? error
+          }
+        }
+        // 父与 worker 已确认退出才合并停止 PID；不依赖进度或 pg_ctl 的退出码。
+        targets.forEach((pid) => pgAdminPids.push(pid))
       }
 
       const pids = new Set<string>()
-      const appPidFile = this.appPidFile()
-      if (existsSync(appPidFile)) {
-        try {
-          const pid = await this.readPidFromFile(appPidFile)
-          if (pid) {
-            pids.add(pid)
-          }
-        } catch {}
-        TaskQueue.run(unlink, appPidFile).then().catch()
+      // 无目标时沿用首次发现列表；Windows 有目标时使用 Base 返回值；Unix/macOS
+      // 使用原生关闭轮询最后一次严格列表。没有任何已确认快照时不允许清理登记。
+      const confirmedFinalList = finalProcessList
+      if (!confirmedFinalList) throw new Error('Cannot confirm PostgreSQL process exit')
+      const appPidCandidates = [appPidBefore, `${version.pid ?? ''}`, ...pgAdminPids].filter(
+        Boolean
+      )
+      // 清理错误必须传播，不能让停止主流程在 PID 文件仍登记时报告完整成功。
+      await this.cleanupStoppedServicePidFiles(appPidCandidates, confirmedFinalList, [appPidFile])
+      await this.cleanupStoppedServicePidFiles([postmasterPidBefore], confirmedFinalList, [
+        postmasterPidFile
+      ])
+      if (
+        appPidBefore &&
+        appPidCandidates.includes(appPidBefore) &&
+        !confirmedFinalList.some(({ PID }) => PID === appPidBefore)
+      ) {
+        pids.add(appPidBefore)
       }
-      try {
-        const pid = await this.readPidFromFile(join(dbPath, 'postmaster.pid'))
-        if (pid) {
-          pids.add(pid)
-        }
-      } catch {}
-      if (version?.pid) {
+      if (
+        postmasterPidBefore &&
+        !confirmedFinalList.some(({ PID }) => PID === postmasterPidBefore)
+      ) {
+        pids.add(postmasterPidBefore)
+      }
+      if (version?.pid && !confirmedFinalList.some(({ PID }) => PID === `${version.pid}`)) {
         pids.add(`${version.pid}`)
       }
       pgAdminPids.forEach((pid) => pids.add(pid))

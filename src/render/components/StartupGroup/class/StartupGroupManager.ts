@@ -148,9 +148,10 @@ export class StartupGroupManagerService {
     }
   }
 
-  setGroupEnabled(group: StartupGroup, enabled: boolean) {
+  /** 控制器防重仍由 manager/runner 所有；页面只传递本次开关目标与授权意图。 */
+  setGroupEnabled(group: StartupGroup, enabled: boolean, interactive = true) {
     if (this.busy) return Promise.resolve(undefined)
-    return enabled ? group.start() : group.stop()
+    return enabled ? group.start(interactive) : group.stop(interactive)
   }
 
   setMemberEnabled(group: StartupGroup, item: StartupGroupItem, enabled: boolean) {

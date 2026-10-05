@@ -1,5 +1,6 @@
 import IPC from '@/util/IPC'
 import DOMPurify from 'dompurify'
+import { appHelperErrorFromIPC } from '@shared/WindowsHelperState'
 import type { ExecOptions } from 'node:child_process'
 import type { Stats } from 'node:fs'
 import type {
@@ -175,10 +176,11 @@ export const app = {
     if (response.code === 0) return true
     throw new Error(response.msg)
   },
-  setLoginItemSettings: createIPCCall<[{ openAtLogin?: boolean }], string>(
-    'app',
-    'setLoginItemSettings'
-  ),
+  // Windows 回传类型化失败；其他平台仍可返回既有字符串或 true。
+  setLoginItemSettings: createIPCCall<
+    [{ openAtLogin?: boolean }],
+    boolean | string | { message: string; errorCode?: string }
+  >('app', 'setLoginItemSettings'),
   getLoginItemSettings: createIPCCall<[], string>('app', 'getLoginItemSettings'),
   getVersion: createIPCCall<[], string>('app', 'getVersion')
 }
@@ -229,6 +231,24 @@ export const toml = {
   stringify: createIPCCall<any, string>('toml', 'stringify')
 }
 
+/** 文件写入/严格读取的结果桥：保留 UAC 错误类型，不把 false/错误对象当成功数据。 */
+type FileIPCFailure = { code: 1; msg?: string; errorCode?: string }
+const throwFileIPCFailure = (response: FileIPCFailure): never => {
+  const privilegeError = appHelperErrorFromIPC(response)
+  if (privilegeError) throw privilegeError
+  throw Object.assign(new Error(response.msg ?? 'File operation failed'), {
+    code: response.errorCode
+  })
+}
+const writeFileRequest = createIPCCall<[string, string], boolean | FileIPCFailure>(
+  'fs',
+  'writeFile'
+)
+const strictReadFileRequest = createIPCCall<[string, boolean], string | FileIPCFailure>(
+  'fs',
+  'readFile'
+)
+
 export const fs = {
   chmod: createIPCCall<[path: string, mode: string | number], void>('fs', 'chmod'),
   remove: createIPCCall<[path: string], void>('fs', 'remove'),
@@ -242,7 +262,19 @@ export const fs = {
   existsSync: createIPCCall<[string], boolean>('fs', 'existsSync'),
   access: createIPCCall<[path: string, mode?: 'r' | 'w' | 'rw'], boolean>('fs', 'access'),
   readFile: createIPCCall<[path: string], string>('fs', 'readFile'),
-  writeFile: createIPCCall<[path: string, data: string], void>('fs', 'writeFile'),
+  // 重写文件前使用严格读取，防止读取拒绝/缺失被空字符串替代而丢失既有内容。
+  async readFileStrict(path: string): Promise<string> {
+    const response = await strictReadFileRequest(path, true)
+    if (typeof response !== 'string') throwFileIPCFailure(response)
+    return response
+  },
+  async writeFile(path: string, data: string): Promise<void> {
+    const response = await writeFileRequest(path, data)
+    if (response === true) return
+    // 兼容尚未更新的 main 返回 false；任何未确认成功的响应都必须 reject。
+    if (response && typeof response === 'object') throwFileIPCFailure(response)
+    throw new Error('File write failed')
+  },
   realpath: createIPCCall<[path: string], string>('fs', 'realpath'),
   getFileHash: createIPCCall<
     [string, 'sha1' | 'sha256' | 'md5' | 'sha512' | 'sha512Base64'],

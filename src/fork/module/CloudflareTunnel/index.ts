@@ -1,5 +1,6 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import { withServiceStopContext, type ServiceStopContext } from '@shared/ServiceStopContext'
 import type { SoftInstalled } from '@shared/app'
 import { CloudflareTunnel } from './CloudflareTunnel'
 import { join } from 'path'
@@ -48,6 +49,10 @@ class CloudflareTunnelBase extends Base {
         })
         const json = JSON.parse(JSON.stringify(res))
         json['APP-Service-Start-PID'] = model.pid
+        // 隧道的公开界面入口仍是 start/stop；退出通过 stopService 调用同一个 stop。
+        // 停止只需要 PID，运行登记不复制 API/tunnel token。
+        json['APP-Service-Start-Item'] = { pid: model.pid, bin: model.cloudflaredBin }
+        json['APP-Service-Stop-Args'] = [{ pid: model.pid, cloudflaredBin: model.cloudflaredBin }]
         resolve(json)
       } catch (e) {
         reject(e)
@@ -56,16 +61,23 @@ class CloudflareTunnelBase extends Base {
   }
 
   stop(item: CloudflareTunnel) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       try {
         const model = new CloudflareTunnel()
         Object.assign(model, item)
-        await model.stop()
+        const pid = await model.stop()
+        resolve({ 'APP-Service-Stop-PID': pid ? [pid] : [] })
       } catch (e) {
-        console.log('CloudflareTunnelBase stop error', e)
+        // 内层取消/拒绝授权必须经过模块入口到达 renderer，不能继续报告已停止。
+        reject(e)
       }
-      resolve(true)
     })
+  }
+
+  /** 服务退出适配器只转发原有 stop，不另建隧道终止策略。 */
+  stopService(item: SoftInstalled, stopOptions?: ServiceStopContext) {
+    // 退出适配器也接收同一首表，model.stop 的公共取表方法直接使用它。
+    return withServiceStopContext(stopOptions, () => this.stop(item as unknown as CloudflareTunnel))
   }
 
   getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {

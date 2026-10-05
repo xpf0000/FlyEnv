@@ -55,7 +55,16 @@ func (h *HostManager) SslAddTrustedCert(cwd, caName string) (bool, error) {
 		}
 	} else if utils.IsWindows() {
 		caFile := filepath.Join(cwd, caName)
-		_, stderr, cmdErr := utils.ExecCommand("certutil", []string{"-addstore", "root", caFile}, nil)
+		// 检查实际证书文件的路径链，不能只检查父目录而漏掉证书本身的 junction/symlink。
+		if err := utils.ValidatePathForRead(caFile); err != nil {
+			return false, fmt.Errorf("certificate path not allowed: %w", err)
+		}
+		// certutil 来自系统 API 定位的完整路径；证书以独立参数传递，不切换业务目录。
+		certutil, resolveErr := utils.GetWindowsSystemExe("certutil")
+		if resolveErr != nil {
+			return false, resolveErr
+		}
+		_, stderr, cmdErr := utils.ExecCommand(certutil, []string{"-addstore", "root", caFile}, nil)
 		if cmdErr != nil {
 			err = fmt.Errorf("Windows add-trusted-cert failed: %w, stderr: %s", cmdErr, stderr)
 		}
@@ -131,6 +140,19 @@ func (h *HostManager) SslFindCertificate(cwd string, commonName ...string) (stri
 
 // DnsRefresh flushes the system's DNS cache.
 func (h *HostManager) DnsRefresh() (bool, error) {
+	if utils.IsWindows() {
+		// 选择 Helper 后必须有 Windows DNS 授权分支，不能落入“平台不支持”。
+		// ipconfig 使用原生系统目录定位；不套 cmd/PowerShell，不依赖 SYSTEM 的 PATH。
+		ipconfig, err := utils.GetWindowsSystemExe("ipconfig")
+		if err != nil {
+			return false, err
+		}
+		_, stderr, err := utils.ExecCommand(ipconfig, []string{"/flushdns"}, nil)
+		if err != nil {
+			return false, fmt.Errorf("Windows DNS refresh failed: %w, stderr: %s", err, stderr)
+		}
+		return true, nil
+	}
 	if utils.IsMacOS() {
 		_, _, err1 := utils.ExecCommand("dscacheutil", []string{"-flushcache"}, nil)
 		if err1 != nil {

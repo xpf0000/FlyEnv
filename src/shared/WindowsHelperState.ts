@@ -1,4 +1,8 @@
+// 新增三种状态分别表示需交互授权、用户取消选择和真实拒绝访问；禁止混成“安装损坏”。
 export type AppHelperErrorCode =
+  | 'windows_authorization_required'
+  | 'windows_choice_cancelled'
+  | 'windows_permission_denied'
   | 'helper_binary_missing'
   | 'helper_key_missing'
   | 'helper_key_inaccessible'
@@ -23,6 +27,9 @@ export type WindowsElevationMethod = 'helper' | 'uac'
 
 export const DEFAULT_WINDOWS_ELEVATION_METHOD: WindowsElevationMethod = 'helper'
 
+// 纯数据常量放在 renderer 可用的共享文件，升级确认版本时所有入口统一引用。
+export const WINDOWS_ELEVATION_CHOICE_VERSION = 1
+
 export const resolveWindowsElevationMethod = (value: unknown): WindowsElevationMethod => {
   return value === 'uac' ? 'uac' : DEFAULT_WINDOWS_ELEVATION_METHOD
 }
@@ -33,7 +40,11 @@ export type HelperCheckResponse =
   | { code: 0; data: true }
   | { code: 1; data: false; reason: AppHelperErrorCode; msg?: string; stderr?: string }
 
+// 跨 IPC 序列化后仍识别权限错误，供目录延迟恢复及服务失败终态使用。
 const APP_HELPER_ERROR_CODES = new Set<AppHelperErrorCode>([
+  'windows_authorization_required',
+  'windows_choice_cancelled',
+  'windows_permission_denied',
   'helper_binary_missing',
   'helper_key_missing',
   'helper_key_inaccessible',

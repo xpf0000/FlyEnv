@@ -317,7 +317,9 @@ class Tomcat extends Base {
         if (flag === 'del') {
           const certificateOwnerId = tomcatAutoSSLDeletionId(host as any, old as any)
           if (certificateOwnerId !== undefined) {
-            await removeByRoot(join(global.Server.BaseDir!, `CA/${certificateOwnerId}`)).catch(() => {})
+            await removeByRoot(join(global.Server.BaseDir!, `CA/${certificateOwnerId}`)).catch(
+              () => {}
+            )
           }
         }
         resolve({ host: hostList })
@@ -428,7 +430,10 @@ class Tomcat extends Base {
     })
   }
 
-  getConfigFiles(_version?: SoftInstalled, catalinaBase?: string): Array<{ name: string; path: string }> {
+  getConfigFiles(
+    _version?: SoftInstalled,
+    catalinaBase?: string
+  ): Array<{ name: string; path: string }> {
     const v = _version?.version?.split('.')?.shift() ?? ''
     const confDir = join(catalinaBase ?? join(global.Server.BaseDir!, `tomcat/tomcat${v}`), 'conf')
     return [
@@ -442,7 +447,10 @@ class Tomcat extends Base {
     ]
   }
 
-  getLogFiles(_version?: SoftInstalled, catalinaBase?: string): Array<{ name: string; path: string }> {
+  getLogFiles(
+    _version?: SoftInstalled,
+    catalinaBase?: string
+  ): Array<{ name: string; path: string }> {
     const v = _version?.version?.split('.')?.shift() ?? ''
     const logsDir = join(catalinaBase ?? join(global.Server.BaseDir!, `tomcat/tomcat${v}`), 'logs')
     return [{ name: 'catalina.out', path: join(logsDir, 'catalina.out') }]

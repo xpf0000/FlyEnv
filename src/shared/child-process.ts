@@ -6,6 +6,7 @@ import { isMacOS, uuid } from '@shared/utils'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { remove, writeFile, existsSync } from './fs-extra'
+import { timeOperation } from './OperationTiming'
 
 export const execPromise = promisify(exec)
 
@@ -200,7 +201,8 @@ export const spawnPromiseWithEnv = (
 ): ForkPromiseResType => {
   return new ForkPromise(async (resolve, reject, on) => {
     const envSyncStartedAt = Date.now()
-    const env = await EnvSync.sync()
+    // 权限诊断必须区分环境同步与实际子进程耗时；不启用观察器时保留原同步行为。
+    const env = await timeOperation('process.env-sync', () => EnvSync.sync())
     const { trimOutput = true, timing, ...spawnOptions } = options
     reportSpawnPromiseWithEnvTiming(() => timing?.onEnvSync?.(Date.now() - envSyncStartedAt))
     const optdefault: any = {

@@ -1,12 +1,14 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
+import { withServiceStopContext, type ServiceStopContext } from '@shared/ServiceStopContext'
 import DNS2 from 'dns2'
 import { createRequire } from 'node:module'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import type { SoftInstalled } from '@shared/app'
 import { mkdirp, existsSync, writeFile, readFile, readFileByRoot } from '../../Fn'
 import { dirname, join } from 'node:path'
-import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+import { HostsFileLinux, HostsFileMacOS } from '@shared/PlatFormConst'
+import { windowsSystemDirectory } from '@shared/WindowsSystemPaths'
 import { getPrimaryLocalIPAddress } from '@shared/network'
 
 const require = createRequire(import.meta.url)
@@ -79,7 +81,8 @@ class Manager extends Base {
   async initHosts(LOCAL_IP: string) {
     let hostFile = ''
     if (isWindows()) {
-      hostFile = HostsFileWindows
+      // DNS 读取与 Host/UAC 写入共用系统目录规则，兼容非 C 盘 Windows。
+      hostFile = join(windowsSystemDirectory(), 'drivers', 'etc', 'hosts')
     } else if (isLinux()) {
       hostFile = HostsFileLinux
     } else if (isMacOS()) {
@@ -146,7 +149,7 @@ class Manager extends Base {
       this.localIP = LOCAL_IP
       const server = createServer({
         udp: true,
-        handle: (request: DNS2.DnsRequest, send: (response: DNS2.DnsResponse) => void) => {
+        handle: (request: any, send: (response: any) => void) => {
           const response = Packet.createResponseFromRequest(request)
           const [question] = request.questions
           const { name } = question
@@ -157,7 +160,7 @@ class Manager extends Base {
           const wildcard = this.checkWildcardDomainMatch(name)
           if (this.hosts?.[name] || wildcard) {
             const ip = this.hosts?.[name] ?? wildcard
-            const item = {
+            const item: any = {
               name,
               type: Packet.TYPE.A,
               class: Packet.CLASS.IN,
@@ -191,7 +194,7 @@ class Manager extends Base {
                       class: Packet.CLASS.IN,
                       ttl: item.ttl,
                       address: item.address
-                    })
+                    } as any)
                     process?.send?.({
                       on: true,
                       key: this.ipcCommandKey,
@@ -245,20 +248,33 @@ class Manager extends Base {
       this.server = server
     })
   }
-  close() {
-    this.server?.close?.()
+  async close() {
+    // DNS server 由专用 fork 持有；await close 确认 socket 已释放，拒绝时保留实例供重试。
+    await this.server?.close?.()
     this.server = null
   }
 
-  stopService(): any {
-    return new ForkPromise((resolve) => {
-      this.close()
-      resolve(true)
-    })
+  stopService(_version?: SoftInstalled, stopOptions?: ServiceStopContext): any {
+    // 与其他模块使用同一可选参数位置；DNS 仅关闭自己 socket，不消费列表或 kill 宿主。
+    return withServiceStopContext(
+      stopOptions,
+      () =>
+        new ForkPromise(async (resolve) => {
+          await this.close()
+          // 回传的是宿主 fork PID 供登记清理，绝不把宿主 Electron worker 当作外部服务去 kill。
+          resolve({ 'APP-Service-Stop-PID': [`${process.pid}`] })
+        })
+    )
   }
 
   startService(): ForkPromise<any> {
-    return this.start()
+    return new ForkPromise((resolve, reject, on) => {
+      // 与外部服务采用同一成功终态登记，但停止动作仅关闭模块自己的 socket。
+      this.start()
+        .on(on)
+        .then(() => resolve({ 'APP-Service-Start-PID': `${process.pid}` }))
+        .catch(reject)
+    })
   }
 
   getConfigFiles(_version?: SoftInstalled): Array<{ name: string; path: string }> {

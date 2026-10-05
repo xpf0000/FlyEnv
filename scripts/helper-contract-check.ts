@@ -4,7 +4,7 @@ import ts from 'typescript'
 
 type ArgSpec = {
   name: string
-  type: 'string' | 'boolean' | 'number' | 'string[]' | 'object'
+  type: 'string' | 'boolean' | 'number' | 'string[]' | 'processStartIdentity[]' | 'object'
   optional?: boolean
 }
 
@@ -100,22 +100,72 @@ function checkArgType(call: HelperCall, spec: MethodSpec, arg: ArgSpec, node: ts
   if (!actual) return
 
   const loc = `${path.relative(repoRoot, call.file)}:${call.line}`
-  if (arg.type === 'string[]') {
+  if (arg.type === 'string[]' || arg.type === 'processStartIdentity[]') {
     if (actual !== 'array') {
-      errors.push(
-        `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} must be string[]`
-      )
+      errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} must be an array`)
       return
     }
     const arr = node as ts.ArrayLiteralExpression
     for (const element of arr.elements) {
       if (
+        arg.type === 'string[]' &&
         literalKind(element as ts.Expression) &&
         literalKind(element as ts.Expression) !== 'string'
       ) {
         errors.push(
           `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} contains a non-string literal`
         )
+      }
+      if (arg.type === 'processStartIdentity[]' && ts.isObjectLiteralExpression(element)) {
+        // 调用点的常量身份也需符合协议；Go 运行时会再次检查。创建时间来源与路径
+        // 决定执行端能否安全重查该 PID。
+        const properties = new Map<string, ts.Expression>()
+        for (const property of element.properties) {
+          if (!ts.isPropertyAssignment(property)) {
+            errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} has an invalid identity property`)
+            continue
+          }
+          const key = property.name.getText().replace(/^['"]|['"]$/g, '')
+          if (!['pid', 'created', 'source', 'path'].includes(key)) {
+            errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity has unknown field ${key}`)
+          }
+          properties.set(key, property.initializer)
+        }
+        for (const key of ['pid', 'created', 'source']) {
+          if (!properties.has(key)) {
+            errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity is missing ${key}`)
+          }
+        }
+        for (const key of ['created', 'source', 'path']) {
+          const value = properties.get(key)
+          if (value && literalKind(value) && literalKind(value) !== 'string') {
+            errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity ${key} must be a string`)
+          }
+        }
+        const source = properties.get('source')
+        const sourceValue = source && stringLiteralText(source)
+        // v34 后代来源只属于 kill 的显式服务集合；端口/普通字面量请求不能借此
+        // 绕过 EXE 约束。动态 mode 的最终边界仍由 Go 执行器校验。
+        const allowsDescendant =
+          spec.module === 'tools' &&
+          spec.function === 'kill' &&
+          call.args.length >= 4 &&
+          call.args[2].kind !== ts.SyntaxKind.FalseKeyword
+        if (
+          sourceValue &&
+          sourceValue !== 'startTime' &&
+          sourceValue !== 'cim' &&
+          !(sourceValue === 'cim-descendant' && allowsDescendant)
+        ) {
+          errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity has invalid source ${sourceValue}`)
+        }
+        if (sourceValue === 'cim' && !properties.has('path')) {
+          errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} CIM identity is missing path`)
+        }
+        const pid = properties.get('pid')
+        if (pid && literalKind(pid) && literalKind(pid) !== 'number') {
+          errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity pid must be a number`)
+        }
       }
     }
     return

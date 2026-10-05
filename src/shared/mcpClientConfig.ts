@@ -2,12 +2,7 @@ import { parseToml, stringifyToml } from '@shared/toml'
 import { optionalBearerHeaders } from './aiCliMcp'
 
 export type MCPHttpClientFlag =
-  | 'claudeCode'
-  | 'codex'
-  | 'openCode'
-  | 'kimi'
-  | 'antigravity'
-  | 'copilotCli'
+  'claudeCode' | 'codex' | 'openCode' | 'kimi' | 'antigravity' | 'copilotCli'
 
 type MCPServerUrlOptions = {
   host?: string

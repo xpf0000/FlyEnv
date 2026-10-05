@@ -1,3 +1,4 @@
+import { buildPerformanceProcessStopPrelude } from './PerformanceDiagnostics'
 import { execFile } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { lstatSync, readFileSync, statSync } from 'node:fs'
@@ -7,13 +8,133 @@ import path from 'node:path'
 import process from 'node:process'
 import { promisify } from 'node:util'
 import { deflateRawSync } from 'node:zlib'
-import EnvSync from './EnvSync'
+import {
+  windowsProcessSafetyGuard,
+  windowsStopProcessLookup,
+  windowsTcpConnectionLookup,
+  windowsStopListenerLookup,
+  windowsProcessStartIdentity,
+  windowsStopIdentityLookup
+} from './WindowsProcessSafety'
 import { buildPowerShellEncodedCommand } from './PowerShellCommand'
-import { classifyWindowsElevationError, exec as Sudo } from './Sudo'
 import { getWindowsHelperIdentity, windowsHelperInstancePaths } from './WindowsHelperIdentity'
+import {
+  windowsPowerShellPath,
+  windowsSystemDirectory,
+  resolveWindowsPowerShellPath
+} from './WindowsSystemPaths'
 import { AppHelperError, isWindowsHelperFallbackAllowed } from './WindowsHelperState'
 
+/**
+ * 本文件保留一份动作验证/脚本实现，以及独立入口仍需的旧传输适配。
+ * 标准权限路由使用 buildWindowsPrivilegeAction，直接得到业务脚本；旧入口
+ * 才使用 buildWindowsHelperFallbackPlan/runWindowsHelperFallback 编码命令、
+ * 选择数据文件或调用 Sudo。二者显式传递各自的根目录上下文，不切换全局状态。
+ */
+
 export type WindowsHelperFallbackMode = 'inline' | 'data-file'
+
+/**
+ * 服务停止的完整显式 PID 集合已在 fork 按父先子后排序。一次 PowerShell 动作
+ * 预检并保留原对象句柄，一次 taskkill 显式传递所有有序 PID，不使用 /T，
+ * 不逐 PID 启动外部命令或等待；taskkill 参数顺序不等同于父已确认退出。
+ * 根保留 EXE 约束；后代继承首次树归属，只比创建时点，不单独匹配路径/配置。
+ * 使用原生 StartTime 与 CIM 的微秒精度对齐，不为每个 worker 发 CIM 查询。
+ */
+const buildWindowsOrderedServiceStopAction = (
+  preamble: string,
+  targets: string,
+  expected: string
+) => `${preamble}
+${targets}
+${expected}
+${windowsStopProcessLookup}
+${buildPerformanceProcessStopPrelude()}
+function Confirm-FlyEnvOriginalProcess($target, $snapshot) {
+  $actualTime = $target.StartTime.ToUniversalTime()
+  $expectedTime = [DateTime]::Parse([string]$snapshot.created, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime()
+  $format = if ($snapshot.source -eq 'startTime') { 'o' } else { "yyyy-MM-dd'T'HH:mm:ss.ffffff'Z'" }
+  if ($actualTime.ToString($format, [Globalization.CultureInfo]::InvariantCulture) -cne $expectedTime.ToString($format, [Globalization.CultureInfo]::InvariantCulture)) {
+    throw ('Process identity changed; PID=' + $target.Id + '; refresh and retry')
+  }
+  if ($snapshot.source -ne 'cim-descendant') {
+    ${windowsProcessSafetyGuard('$target')}
+    if ($snapshot.source -eq 'cim' -and -not [string]::Equals([IO.Path]::GetFullPath([string]$target.Path), [IO.Path]::GetFullPath([string]$snapshot.path), [StringComparison]::OrdinalIgnoreCase)) {
+      throw ('Process path changed; PID=' + $target.Id + '; refresh and retry')
+    }
+  } elseif ($target.Id -le 4 -or $target.Id -eq $PID -or @('system','registry','smss','csrss','wininit','services','lsass','lsaiso','svchost','winlogon','fontdrvhost','dwm','securityhealthservice','msmpeng') -contains $target.ProcessName.ToLowerInvariant()) {
+    throw ('Refusing to stop a protected Windows process; PID=' + $target.Id)
+  }
+  return $actualTime.ToString('o', [Globalization.CultureInfo]::InvariantCulture)
+}
+$expectedByPid = @{}
+foreach ($snapshot in @($expectedProcesses)) {
+  if ($expectedByPid.ContainsKey([int]$snapshot.pid)) { throw 'Duplicate process identity' }
+  $expectedByPid[[int]$snapshot.pid] = $snapshot
+}
+$opened = [Collections.Generic.List[object]]::new()
+try {
+  # 全部目标先打开句柄；句柄跨越预检、父结束与后代结束，号码不能被新对象复用。
+  foreach ($targetPid in $targetPids) {
+    Add-FlyEnvProcessStopEvent 'preflight-request' $targetPid
+    $target = Get-FlyEnvStopTarget $targetPid
+    if ($null -eq $target) { Add-FlyEnvProcessStopEvent 'preflight-skipped-missing' $targetPid; continue }
+    try {
+      $targetHandle = $target.Handle
+      if ($target.HasExited) { Add-FlyEnvProcessStopEvent 'preflight-skipped-exited' $targetPid; $target.Dispose(); continue }
+      $snapshot = $expectedByPid[[int]$targetPid]
+      if ($null -eq $snapshot) { throw ('Missing process identity; PID=' + $targetPid) }
+      $created = Confirm-FlyEnvOriginalProcess $target $snapshot
+      Add-FlyEnvProcessStopEvent 'preflight-identity' $targetPid @{ expectedCreated=$snapshot.created; actualCreated=$created; source=$snapshot.source }
+      $opened.Add(@{ target=$target; snapshot=$snapshot })
+    } catch {
+      # 获取句柄/StartTime 也可能失败；清理不能再次抛错并覆盖原错误或遗漏 Dispose。
+      $preflightError = $_
+      $alreadyExited = $false
+      try { $alreadyExited = $target.HasExited } catch { }
+      try { $target.Dispose() } catch { }
+      if ($alreadyExited) { Add-FlyEnvProcessStopEvent 'preflight-skipped-exited' $targetPid; continue }
+      Add-FlyEnvProcessStopEvent 'preflight-failed' $targetPid @{ error=$preflightError.Exception.Message }
+      throw $preflightError
+    }
+  }
+  # 授权等待后再次比对原句柄身份；只收集尚未退出的原对象，不扩树、不接纳复用 PID。
+  $live = @(foreach ($entry in $opened) {
+    $target = $entry.target
+    if ($target.HasExited) { Add-FlyEnvProcessStopEvent 'before-stop-skipped-exited' $target.Id; continue }
+    [void](Confirm-FlyEnvOriginalProcess $target $entry.snapshot)
+    $target
+  })
+  if ($live.Count -gt 0) {
+    $executable = [IO.Path]::Combine([Environment]::SystemDirectory, 'taskkill.exe')
+    $arguments = '/F' + (($live | ForEach-Object { ' /PID ' + [int]$_.Id }) -join '')
+    Add-FlyEnvProcessStopEvent 'taskkill-request' 0 @{ executable=$executable; arguments=$arguments; orderedPids=@($live | ForEach-Object { $_.Id }) }
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName=$executable; $startInfo.Arguments=$arguments
+    $startInfo.UseShellExecute=$false; $startInfo.CreateNoWindow=$true
+    $startInfo.RedirectStandardOutput=$true; $startInfo.RedirectStandardError=$true
+    $command = [Diagnostics.Process]::new(); $command.StartInfo=$startInfo
+    try {
+      if (-not $command.Start()) { throw 'Cannot start taskkill' }
+      # 同时排空两个输出管道，防止多 PID 输出堵塞；这里只等待一次命令终态。
+      $stdout = $command.StandardOutput.ReadToEndAsync()
+      $stderr = $command.StandardError.ReadToEndAsync()
+      if (-not $command.WaitForExit(10000)) {
+        try { $command.Kill() } catch { }
+        throw 'taskkill command timed out; result is unknown'
+      }
+      Add-FlyEnvProcessStopEvent 'taskkill-result' 0 @{ exitCode=$command.ExitCode; stdout=$stdout.GetAwaiter().GetResult(); stderr=$stderr.GetAwaiter().GetResult() }
+      if ($command.ExitCode -ne 0 -and @($live | Where-Object { -not $_.HasExited }).Count -gt 0) {
+        throw ('taskkill failed; exitCode=' + $command.ExitCode)
+      }
+      # 非零但原句柄全部已退出是自然退出竞态；命令成功不额外等待每一个 PID。
+      foreach ($target in $live) { Add-FlyEnvProcessStopEvent 'stop-command-completed' $target.Id }
+    } finally { $command.Dispose() }
+  }
+} finally {
+  foreach ($entry in $opened) { $entry.target.Dispose() }
+}
+`
 export type WindowsHelperFallbackTempFileKind = 'text' | 'base64'
 
 export type WindowsHelperFallbackPlan = {
@@ -199,6 +320,27 @@ function cleanAbsPath(value: string, label: string): string {
   if (hasPathTraversal(trimmed)) {
     helperExecutionFailed(`${label} contains path traversal`)
   }
+  // win32.isAbsolute('\\folder') 为 true，但盘符取决于当前目录；设备命名空间
+  // 又会绕过通常的 Win32 规范化。只接收完整盘符路径或带 server/share 的 UNC。
+  // 原始值必须与验证值一致，防止 Node 直接执行原参数而 PowerShell 使用 trim 后参数。
+  if (
+    value !== trimmed ||
+    (!/^[a-z]:[\\/]/iu.test(trimmed) && !/^\\\\[^\\/]+[\\/][^\\/]+(?:[\\/]|$)/u.test(trimmed)) ||
+    /^\\\\[?.][\\/]/u.test(trimmed) ||
+    /[\x00-\x1f\x7f<>"|?*]/u.test(trimmed) ||
+    trimmed.replace(/^[a-z]:/iu, '').includes(':') ||
+    trimmed.split(/[\\/]/u).some((part) => part !== '.' && /[. ]$/u.test(part))
+  ) {
+    helperExecutionFailed(`${label} contains an ambiguous or unsupported Windows path`)
+  }
+  // Win32 设备名在普通目录内也有特殊含义（如 NUL.txt）；不能把它当业务文件。
+  if (
+    trimmed
+      .split(/[\\/]/u)
+      .some((part) => /^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³]) *(?:\.|$)/iu.test(part))
+  ) {
+    helperExecutionFailed(`${label} contains a reserved Windows device name`)
+  }
   const normalized = path.win32.normalize(trimmed)
   if (!path.win32.isAbsolute(normalized)) {
     helperExecutionFailed(`${label} must be an absolute path`)
@@ -210,7 +352,8 @@ function cleanAbsPath(value: string, label: string): string {
 }
 
 function windowsSystemPath(): string {
-  return EnvSync.SystemPath || 'C:\\Windows\\System32'
+  // 系统敏感路径范围不能由用户同步环境或固定 C: 回退决定。
+  return windowsSystemDirectory()
 }
 
 function windowsSystemRoot(): string {
@@ -219,11 +362,7 @@ function windowsSystemRoot(): string {
 
 function windowsHostsPathCandidates(): string[] {
   const systemRoot = windowsSystemRoot()
-  return [
-    path.win32.join(systemRoot, 'System32', 'drivers', 'etc', 'hosts'),
-    'C:\\Windows\\System32\\drivers\\etc\\hosts',
-    'c:\\windows\\system32\\drivers\\etc\\hosts'
-  ]
+  return [path.win32.join(systemRoot, 'System32', 'drivers', 'etc', 'hosts')]
 }
 
 function isExplicitSystemFile(targetPath: string): boolean {
@@ -281,32 +420,30 @@ function isWindowsProgramFilesFlyEnvPath(targetPath: string): boolean {
   })
 }
 
-let scopedAllowedRootsFilePath: string | undefined
+/**
+ * 构造上下文显式沿验证链传递：现代动作使用 main 提供的 roots，旧兼容入口
+ * 仅携带目标 SID 来定位 allowed-roots。没有可变全局变量、ALS 或临时切换。
+ * roots=[] 仍表示已提供的空白名单，不能退回旧目录名推断。
+ */
+type WindowsActionScope = { roots?: string[]; targetUserSid?: string }
 
-function allowedRootsFilePath(): string {
-  if (scopedAllowedRootsFilePath) return scopedAllowedRootsFilePath
-  const programData = process.env.ProgramData || 'C:\\ProgramData'
-  return path.win32.join(programData, 'FlyEnv', 'flyenv.allowed-roots')
-}
-
-function withTargetAllowedRoots<T>(targetUserSid: string | undefined, action: () => T): T {
-  const previous = scopedAllowedRootsFilePath
+function allowedRootsFilePath(targetUserSid?: string): string {
   if (targetUserSid) {
     try {
-      scopedAllowedRootsFilePath = windowsHelperInstancePaths(targetUserSid).allowedRootsPath
+      return windowsHelperInstancePaths(targetUserSid).allowedRootsPath
     } catch {
       helperExecutionFailed('FlyEnv helper target SID is invalid')
     }
   }
-  try {
-    return action()
-  } finally {
-    scopedAllowedRootsFilePath = previous
-  }
+  const programData = process.env.ProgramData || 'C:\\ProgramData'
+  return path.win32.join(programData, 'FlyEnv', 'flyenv.allowed-roots')
 }
 
-function readConfiguredAllowedRoots(): ConfiguredAllowedRoots {
-  const targetPath = allowedRootsFilePath()
+function readConfiguredAllowedRoots(scope: WindowsActionScope): ConfiguredAllowedRoots {
+  // 现代动作只读本次 main 提供的根目录，不检查 Helper 安装文件；空数组也不能
+  // 被解释成“没有配置”而扩大范围。只有旧兼容入口才定位目标账户的配置文件。
+  if (scope.roots !== undefined) return { roots: scope.roots, filePresent: true }
+  const targetPath = allowedRootsFilePath(scope.targetUserSid)
   let stats: ReturnType<typeof statSync>
   try {
     stats = statSync(targetPath)
@@ -357,7 +494,7 @@ function isConfiguredAllowedRoot(targetPath: string, roots: string[]): boolean {
   return roots.some((root) => pathInDir(targetPath, root))
 }
 
-function validateFlyEnvDataDirectoryRecoveryRoot(value: string): string {
+function validateFlyEnvDataDirectoryRecoveryRoot(value: string, scope: WindowsActionScope): string {
   const targetPath = cleanAbsPath(value, 'ensureFlyEnvDataDirectory data directory')
   const protectedRoot = path.win32.join(process.env.ProgramData || 'C:\\ProgramData', 'FlyEnv')
   if (pathInDir(targetPath, protectedRoot) || pathInDir(protectedRoot, targetPath)) {
@@ -369,7 +506,7 @@ function validateFlyEnvDataDirectoryRecoveryRoot(value: string): string {
   if (pathHasSymlinkComponent(targetPath)) {
     helperExecutionFailed(`ensureFlyEnvDataDirectory data directory contains a reparse point`)
   }
-  const configured = readConfiguredAllowedRoots()
+  const configured = readConfiguredAllowedRoots(scope)
   if (!configured.filePresent || configured.roots.length === 0) {
     helperExecutionFailed('FlyEnv data-directory roots are unavailable')
   }
@@ -395,8 +532,8 @@ function pathHasSymlinkComponent(targetPath: string): boolean {
   }
 }
 
-function isBusinessPathAllowed(targetPath: string): boolean {
-  const configured = readConfiguredAllowedRoots()
+function isBusinessPathAllowed(targetPath: string, scope: WindowsActionScope): boolean {
+  const configured = readConfiguredAllowedRoots(scope)
   if (isConfiguredAllowedRoot(targetPath, configured.roots) || isExplicitSystemFile(targetPath)) {
     return true
   }
@@ -410,7 +547,12 @@ function isBusinessPathAllowed(targetPath: string): boolean {
   return false
 }
 
-function validatePathAccess(targetPath: string, label: string, forWrite: boolean): string {
+function validatePathAccess(
+  targetPath: string,
+  label: string,
+  forWrite: boolean,
+  scope: WindowsActionScope
+): string {
   const clean = cleanAbsPath(targetPath, label)
   if (isExplicitSystemFile(clean)) {
     if (pathHasSymlinkComponent(clean)) {
@@ -421,7 +563,7 @@ function validatePathAccess(targetPath: string, label: string, forWrite: boolean
   if (isSensitiveSystemPath(clean)) {
     helperExecutionFailed(`sensitive system path is not allowed: ${targetPath}`)
   }
-  if (!isBusinessPathAllowed(clean)) {
+  if (!isBusinessPathAllowed(clean, scope)) {
     helperExecutionFailed(`path outside FlyEnv allowed scope: ${targetPath}`)
   }
   if (pathHasSymlinkComponent(clean)) {
@@ -433,20 +575,28 @@ function validatePathAccess(targetPath: string, label: string, forWrite: boolean
   return clean
 }
 
-function validatePathForRead(targetPath: string, label: string): string {
-  return validatePathAccess(targetPath, label, false)
+function validatePathForRead(targetPath: string, label: string, scope: WindowsActionScope): string {
+  return validatePathAccess(targetPath, label, false, scope)
 }
 
-function validatePathForWrite(targetPath: string, label: string): string {
-  return validatePathAccess(targetPath, label, true)
+function validatePathForWrite(
+  targetPath: string,
+  label: string,
+  scope: WindowsActionScope
+): string {
+  return validatePathAccess(targetPath, label, true, scope)
 }
 
-function validatePathForRemove(targetPath: string, label: string): string {
+function validatePathForRemove(
+  targetPath: string,
+  label: string,
+  scope: WindowsActionScope
+): string {
   const clean = cleanAbsPath(targetPath, label)
   if (isExplicitSystemFile(clean)) {
     helperExecutionFailed(`refusing to remove protected system file: ${targetPath}`)
   }
-  return validatePathAccess(clean, label, true)
+  return validatePathAccess(clean, label, true, scope)
 }
 
 function validatePathLikeEnvEntry(value: string, label: string): string {
@@ -454,7 +604,8 @@ function validatePathLikeEnvEntry(value: string, label: string): string {
   if (!trimmed) {
     helperExecutionFailed(`${label} must not be empty`)
   }
-  if (CONTROL_CHAR_PATTERN.test(trimmed) || /[;"']/u.test(trimmed)) {
+  // 单引号是合法路径字符；脚本统一通过 powerShellString 转义，不经过命令 shell。
+  if (CONTROL_CHAR_PATTERN.test(trimmed) || /[;"]/u.test(trimmed)) {
     helperExecutionFailed(`invalid PATH entry: ${trimmed}`)
   }
   if (/\$env:/iu.test(trimmed)) {
@@ -507,7 +658,11 @@ function validateSystemEnvValue(key: string, value: string): string {
     return validatePathLikeEnvEntry(value, `environment variable value for ${key}`)
   }
   if (path.win32.isAbsolute(value.trim())) {
-    return validatePathForWrite(value, `environment variable value for ${key}`)
+    // 这里只把路径作为白名单环境键的字符串值写入注册表，并不写入该路径。
+    // JAVA_HOME 等必须能够引用 FlyEnv junction 和自定义安装目录；复用文件写入
+    // 校验会误拒绝 junction/allowed-root 外的版本。保留完整路径语法检查，实际
+    // 文件写入、删除及 profile 的 allowed-root/reparse 防护不作放宽。
+    return cleanAbsPath(value, `environment variable value for ${key}`)
   }
   if (/[\\/]/u.test(value)) {
     helperExecutionFailed(`environment variable value must be an allowed path: ${key}`)
@@ -568,15 +723,19 @@ function validateFlyEnvPowerShellProfileTarget(
   return { edition, path: targetPath }
 }
 
-function validateFlyEnvPowerShellScriptPath(value: string): string {
-  const scriptPath = validatePathForWrite(value, 'installFlyEnvPowerShellIntegration scriptPath')
+function validateFlyEnvPowerShellScriptPath(value: string, scope: WindowsActionScope): string {
+  const scriptPath = validatePathForWrite(
+    value,
+    'installFlyEnvPowerShellIntegration scriptPath',
+    scope
+  )
   if (
     path.win32.basename(scriptPath).toLowerCase() !== 'flyenv.ps1' ||
     path.win32.basename(path.win32.dirname(scriptPath)).toLowerCase() !== 'bin'
   ) {
     helperExecutionFailed(`invalid FlyEnv runtime script path: ${scriptPath}`)
   }
-  const configured = readConfiguredAllowedRoots()
+  const configured = readConfiguredAllowedRoots(scope)
   if (!configured.filePresent || configured.roots.length === 0) {
     helperExecutionFailed('FlyEnv runtime script roots are unavailable')
   }
@@ -588,7 +747,8 @@ function validateFlyEnvPowerShellScriptPath(value: string): string {
 }
 
 function validateFlyEnvPowerShellIntegrationArgs(
-  args: unknown[]
+  args: unknown[],
+  scope: WindowsActionScope
 ): ValidatedFlyEnvPowerShellIntegrationArgs {
   ensureArgCount(args, 1, 'installFlyEnvPowerShellIntegration')
   if (typeof args[0] !== 'object' || args[0] === null || Array.isArray(args[0])) {
@@ -596,7 +756,8 @@ function validateFlyEnvPowerShellIntegrationArgs(
   }
   const request = args[0] as Record<string, unknown>
   const scriptPath = validateFlyEnvPowerShellScriptPath(
-    ensureString(request.scriptPath, 'installFlyEnvPowerShellIntegration scriptPath')
+    ensureString(request.scriptPath, 'installFlyEnvPowerShellIntegration scriptPath'),
+    scope
   )
   const scriptBase64 = validateBase64(
     ensureString(request.scriptBase64, 'installFlyEnvPowerShellIntegration scriptBase64'),
@@ -631,40 +792,28 @@ function buildPowerShellPreamble(): string {
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8`
 }
 
-function buildNotifyEnvironmentChangedScript(): string {
-  return `Add-Type -Namespace FlyEnvFallback -Name NativeMethods -MemberDefinition @'
-[System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
-public static extern System.IntPtr SendMessageTimeout(System.IntPtr hWnd, uint Msg, System.UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out System.UIntPtr lpdwResult);
-'@
-$notifyResult = [System.UIntPtr]::Zero
-[FlyEnvFallback.NativeMethods]::SendMessageTimeout(
-  [System.IntPtr]0xffff,
-  0x001A,
-  [System.UIntPtr]::Zero,
-  'Environment',
-  0x0002,
-  5000,
-  [ref]$notifyResult
-) | Out-Null`
-}
-
-function validateWriteFileArgs(args: unknown[]): ValidatedWriteFileArgs {
+function validateWriteFileArgs(args: unknown[], scope: WindowsActionScope): ValidatedWriteFileArgs {
   ensureArgCount(args, 2, 'writeFileByRoot')
   return {
     targetPath: validatePathForWrite(
       ensureString(args[0], 'writeFileByRoot arg[0] (targetPath)'),
-      'writeFileByRoot targetPath'
+      'writeFileByRoot targetPath',
+      scope
     ),
     content: ensureString(args[1], 'writeFileByRoot arg[1] (content)')
   }
 }
 
-function validateWriteBufferArgs(args: unknown[]): ValidatedWriteBufferArgs {
+function validateWriteBufferArgs(
+  args: unknown[],
+  scope: WindowsActionScope
+): ValidatedWriteBufferArgs {
   ensureArgCount(args, 2, 'writeBufferBase64ByRoot')
   return {
     targetPath: validatePathForWrite(
       ensureString(args[0], 'writeBufferBase64ByRoot arg[0] (targetPath)'),
-      'writeBufferBase64ByRoot targetPath'
+      'writeBufferBase64ByRoot targetPath',
+      scope
     ),
     base64Content: validateBase64(
       ensureString(args[1], 'writeBufferBase64ByRoot arg[1] (base64Content)'),
@@ -673,9 +822,13 @@ function validateWriteBufferArgs(args: unknown[]): ValidatedWriteBufferArgs {
   }
 }
 
-function validateRmArgs(args: unknown[]): string {
+function validateRmArgs(args: unknown[], scope: WindowsActionScope): string {
   ensureArgCount(args, 1, 'rm')
-  return validatePathForRemove(ensureString(args[0], 'rm arg[0] (targetPath)'), 'rm targetPath')
+  return validatePathForRemove(
+    ensureString(args[0], 'rm arg[0] (targetPath)'),
+    'rm targetPath',
+    scope
+  )
 }
 
 function validateSetSystemPathArgs(args: unknown[]): ValidatedSetSystemPathArgs {
@@ -719,7 +872,10 @@ function validateSetSystemEnvArgs(args: unknown[]): ValidatedSetSystemEnvArgs {
   return { key, value }
 }
 
-function validateSetAutoStartArgs(args: unknown[]): ValidatedSetAutoStartArgs {
+function validateSetAutoStartArgs(
+  args: unknown[],
+  scope: WindowsActionScope
+): ValidatedSetAutoStartArgs {
   ensureArgCount(args, 3, 'setAutoStartWin')
   if (typeof args[0] !== 'boolean') {
     helperExecutionFailed(
@@ -743,17 +899,21 @@ function validateSetAutoStartArgs(args: unknown[]): ValidatedSetAutoStartArgs {
   if (!ALLOWED_AUTO_START_BASENAMES.has(exeBasename)) {
     helperExecutionFailed(`invalid auto-start executable: ${exeBasename}`)
   }
-  if (!isBusinessPathAllowed(exePath) && !isManagedDirectoryByName(exePath)) {
+  if (!isBusinessPathAllowed(exePath, scope) && !isManagedDirectoryByName(exePath)) {
     helperExecutionFailed(`auto-start executable outside FlyEnv allowed scope: ${exePath}`)
   }
   return { enabled, taskName, exePath }
 }
 
-function validateSslAddTrustedCertArgs(args: unknown[]): ValidatedSslAddTrustedCertArgs {
+function validateSslAddTrustedCertArgs(
+  args: unknown[],
+  scope: WindowsActionScope
+): ValidatedSslAddTrustedCertArgs {
   ensureArgCount(args, 2, 'sslAddTrustedCert')
   const cwd = validatePathForRead(
     ensureString(args[0], 'sslAddTrustedCert arg[0] (cwd)'),
-    'sslAddTrustedCert cwd'
+    'sslAddTrustedCert cwd',
+    scope
   )
   const caName = ensureString(args[1], 'sslAddTrustedCert arg[1] (caName)').trim()
   if (path.win32.basename(caName) !== caName || path.posix.basename(caName) !== caName) {
@@ -801,8 +961,40 @@ function buildInstallFlyEnvPowerShellIntegrationScript(
     resultPath?: string
     nonce?: string
     allowedRootsPath?: string
+    // 新运行链直接携带已验证根目录，跨账户管理员不读取原用户/Helper 临时配置。
+    runtimeRoots?: string[]
   } = {}
 ): string {
+  // Documents 可位于 OneDrive；Cloud 占位对象带 ReparsePoint，但并不将名称
+  // 重定向到其他路径。仅在 profile 路径遇到该标记时查询原生 tag，精确放行
+  // CLOUD/CLOUD_1..F 且不含 NameSurrogate 的标签。junction/symlink/未知标签、
+  // 查询失败仍拒绝；runtime 脚本和 Helper 安装/allowed-roots 不使用此例外。
+  const cloudTagReader = `using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+public static class FlyEnvProfileCloudTag {
+  [StructLayout(LayoutKind.Sequential)] private struct AttributeTag { public uint Attributes; public uint Tag; }
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  private static extern SafeFileHandle CreateFile(string path, uint access, uint share, IntPtr security, uint disposition, uint flags, IntPtr template);
+  [DllImport("kernel32.dll", SetLastError=true)]
+  private static extern bool GetFileInformationByHandleEx(SafeFileHandle handle, int kind, out AttributeTag info, uint size);
+  private static Exception LastError() {
+    int code = Marshal.GetLastWin32Error();
+    // Win32Exception 的通用 HResult 不携带 ACCESS_DENIED；转为标准权限异常，
+    // 让普通令牌失败仍能由统一执行器识别并进入用户选择的 UAC/Helper 回退。
+    return code == 5 ? (Exception)new UnauthorizedAccessException("Cannot query PowerShell profile metadata") : new Win32Exception(code);
+  }
+  public static bool IsCloudPlaceholder(string path) {
+    // OPEN_REPARSE_POINT: 查询当前对象本身，不能先沿 junction 跟随到另一个目标。
+    using (SafeFileHandle handle = CreateFile(path, 0x80, 7, IntPtr.Zero, 3, 0x02200000, IntPtr.Zero)) {
+      if (handle.IsInvalid) throw LastError();
+      AttributeTag info;
+      if (!GetFileInformationByHandleEx(handle, 9, out info, 8)) throw LastError();
+      return (info.Tag & ~0x0000f000u) == 0x9000001au && (info.Tag & 0x20000000u) == 0;
+    }
+  }
+}`
   const runtimeSetup = `$payloadJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(${powerShellString(Buffer.from(JSON.stringify(args), 'utf8').toString('base64'))}))
 $payload = $payloadJson | ConvertFrom-Json`
   const resultSetup =
@@ -843,13 +1035,20 @@ function Normalize-FlyEnvShellPath([string]$Value, [string]$Label) {
 function Test-FlyEnvShellPathEqual([string]$Left, [string]$Right) {
   return [string]::Equals($Left, $Right, [StringComparison]::OrdinalIgnoreCase)
 }
-function Assert-FlyEnvShellNoReparsePoint([string]$Path) {
+function Assert-FlyEnvShellNoReparsePoint([string]$Path, [bool]$AllowCloudProfile = $false) {
   $current = [IO.Path]::GetFullPath($Path)
   while ($true) {
     if (Test-Path -LiteralPath $current) {
       $item = Get-Item -LiteralPath $current -Force
       if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
-        throw "FlyEnv shell path contains a reparse point: $Path"
+        # Cloud 例外只允许 profile 调用显式启用，不能一律放行 ReparsePoint。
+        if (-not $AllowCloudProfile) { throw "FlyEnv shell path contains a reparse point: $Path" }
+        if (-not ('FlyEnvProfileCloudTag' -as [type])) {
+          Add-Type -TypeDefinition ${powerShellString(cloudTagReader)} -ErrorAction Stop
+        }
+        if (-not [FlyEnvProfileCloudTag]::IsCloudPlaceholder($current)) {
+          throw "FlyEnv shell path contains a reparse point: $Path"
+        }
       }
     }
     $parent = Split-Path -Parent $current
@@ -915,7 +1114,10 @@ function Assert-FlyEnvAllowedRootsSecurity([string]$AllowedRootsFile) {
 function Assert-FlyEnvPowerShellIntegrationPayload($Request) {
   $scriptPath = Normalize-FlyEnvShellPath ([string]$Request.scriptPath) 'runtime script path'
   Assert-FlyEnvShellNoReparsePoint $scriptPath
-  $allowedRootsFile = Normalize-FlyEnvShellPath ${powerShellString(options.allowedRootsPath ?? allowedRootsFilePath())} 'allowed roots path'
+  ${
+    options.runtimeRoots
+      ? `$allowedRootValues = @(${options.runtimeRoots.map(powerShellString).join(', ')})`
+      : `$allowedRootsFile = Normalize-FlyEnvShellPath ${powerShellString(options.allowedRootsPath ?? allowedRootsFilePath())} 'allowed roots path'
   if (-not (Test-Path -LiteralPath $allowedRootsFile -PathType Leaf)) {
     throw 'FlyEnv runtime script roots are unavailable'
   }
@@ -923,8 +1125,10 @@ function Assert-FlyEnvPowerShellIntegrationPayload($Request) {
     throw 'FlyEnv runtime script roots are too large'
   }
   Assert-FlyEnvAllowedRootsSecurity $allowedRootsFile
+  $allowedRootValues = @(Get-Content -LiteralPath $allowedRootsFile -Encoding UTF8)`
+  }
   $allowed = $false
-  foreach ($rawRoot in @(Get-Content -LiteralPath $allowedRootsFile -Encoding UTF8)) {
+  foreach ($rawRoot in $allowedRootValues) {
     $root = [string]$rawRoot
     if ([string]::IsNullOrWhiteSpace($root) -or $root.TrimStart().StartsWith('#')) {
       continue
@@ -972,7 +1176,8 @@ function Assert-FlyEnvPowerShellIntegrationPayload($Request) {
     ) {
       throw "unexpected $edition profile path: $profilePath"
     }
-    Assert-FlyEnvShellNoReparsePoint $profilePath
+    # Documents 来自原用户已知目录，跨账户 UAC 仍写该 profile；允许标准 Cloud 标签。
+    Assert-FlyEnvShellNoReparsePoint $profilePath $true
     # The app supplies profiles from Electron app.getPath('documents'). That
     # known-folder path is authoritative; redirected Documents ancestors are
     # not required to be owned by the target SID.
@@ -1115,14 +1320,19 @@ $flyEnvResult = [PSCustomObject]@{ scriptState = $scriptState; profiles = $profi
 ${resultEnd}`
 }
 
+/** 删除失败必须停止脚本并形成失败结果；SilentlyContinue 会把未删除误判成功。 */
 function buildRmScript(targetPath: string): string {
   return `${buildPowerShellPreamble()}
 $targetPath = ${powerShellString(targetPath)}
 if (Test-Path -LiteralPath $targetPath) {
-  Remove-Item -LiteralPath $targetPath -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item -LiteralPath $targetPath -Recurse -Force -ErrorAction Stop
 }`
 }
 
+/**
+ * 所有授权方式共用相同的原值校验、注册表写入和配套变量处理，不注入临时阶段日志。
+ * 诊断由外层执行器拥有；脚本自身仍传播真实冲突/写入异常，不能因删日志吞掉失败。
+ */
 function buildSetSystemPathScript(args: ValidatedSetSystemPathArgs, tempFilePath?: string): string {
   const runtimeSetup = tempFilePath
     ? `$payload = Get-Content -LiteralPath ${powerShellString(tempFilePath)} -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -1183,8 +1393,7 @@ foreach ($entry in $otherVars.GetEnumerator()) {
   }
 }
 New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name 'FLYENV_ENV_FLUSH' -Value '0' -PropertyType String -Force | Out-Null
-Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name 'FLYENV_ENV_FLUSH' -Value '0'
-${buildNotifyEnvironmentChangedScript()}`
+Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name 'FLYENV_ENV_FLUSH' -Value '0'`
 }
 
 function buildSetSystemEnvScript(args: ValidatedSetSystemEnvArgs, tempFilePath?: string): string {
@@ -1207,28 +1416,15 @@ else {
 Set-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value`
   return `${buildPowerShellPreamble()}
 ${runtimeSetup}
-${writeValue}
-${buildNotifyEnvironmentChangedScript()}`
+${writeValue}`
 }
 
 function buildResolveWindowsSystemExeScript(variableName: string, exeName: string): string {
   const exeFileName = exeName.toLowerCase().endsWith('.exe') ? exeName : `${exeName}.exe`
-  const systemPath = windowsSystemPath()
-  const systemRoot = path.win32.dirname(systemPath)
-  return `$${variableName} = $null
-$systemRoot = ${powerShellString(systemRoot)}
-foreach ($candidate in @(
-  [IO.Path]::Combine($systemRoot, 'Sysnative', '${exeFileName}'),
-  [IO.Path]::Combine(${powerShellString(systemPath)}, '${exeFileName}')
-)) {
-  if (Test-Path -LiteralPath $candidate -PathType Leaf) {
-    $${variableName} = $candidate
-    break
-  }
-}
-if (-not $${variableName}) {
-  $${variableName} = '${exeFileName}'
-}`
+  // 在实际执行账户内通过系统 API 取 System32；不信 PATH/SystemRoot 用户覆盖值，
+  // 不回退到裸命令。缺失时在执行任何业务修改之前明确报错。
+  return `$${variableName} = [IO.Path]::Combine([Environment]::SystemDirectory, '${exeFileName}')
+if (-not (Test-Path -LiteralPath $${variableName} -PathType Leaf)) { throw 'Windows system executable is unavailable: ${exeFileName}' }`
 }
 
 function buildSetAutoStartScript(
@@ -1281,9 +1477,10 @@ else {
 
 function buildSslAddTrustedCertScript(args: ValidatedSslAddTrustedCertArgs): string {
   return `${buildPowerShellPreamble()}
-Set-Location -LiteralPath ${powerShellString(args.cwd)}
-$caFile = ${powerShellString(args.caName)}
-& certutil -addstore root $caFile | Out-Null
+${buildResolveWindowsSystemExeScript('certutilExe', 'certutil')}
+# 证书也使用完整路径，避免改变工作目录后从业务目录/PATH 启动同名 certutil。
+$caFile = ${powerShellString(path.win32.join(args.cwd, args.caName))}
+& $certutilExe -addstore root $caFile | Out-Null
 if ($LASTEXITCODE -ne 0) {
   throw "certutil -addstore failed with exit code $LASTEXITCODE"
 }`
@@ -1329,7 +1526,8 @@ function createPlan(
 ): WindowsHelperFallbackPlan {
   return {
     mode: tempFilePath ? 'data-file' : 'inline',
-    command: buildPowerShellEncodedCommand(script, EnvSync.PowerShellPath || 'powershell.exe'),
+    // 兼容计划也固定系统路径；新业务链只使用 script，并经一次性管道传输。
+    command: buildPowerShellEncodedCommand(script, windowsPowerShellPath()),
     script,
     tempFileKind,
     tempFileContent,
@@ -1344,25 +1542,31 @@ export function buildFlyEnvDataDirectoryRecoveryUacPlan(
   if (!WINDOWS_SID_PATTERN.test(userSid)) {
     helperExecutionFailed('FlyEnv data-directory recovery user SID is invalid')
   }
-  return withTargetAllowedRoots(userSid, () => {
-    const validatedDirectory = validateFlyEnvDataDirectoryRecoveryRoot(dataDirectory)
-    return createPlan(buildFlyEnvDataDirectoryRecoveryScript(validatedDirectory, userSid))
-  })
+  const scope: WindowsActionScope = { targetUserSid: userSid }
+  const validatedDirectory = validateFlyEnvDataDirectoryRecoveryRoot(dataDirectory, scope)
+  return createPlan(buildFlyEnvDataDirectoryRecoveryScript(validatedDirectory, userSid))
 }
 
-function buildInlineOrDataFilePlan(
-  buildScript: (tempFilePath?: string) => string,
-  tempFileKind: WindowsHelperFallbackTempFileKind,
-  tempFileContent: string,
-  inlineLimit: number
-): WindowsHelperFallbackPlan {
-  const inlinePlan = createPlan(buildScript())
-  if (inlinePlan.command.length <= inlineLimit) {
-    return inlinePlan
+/** 业务脚本与旧传输适配分离；数据文件内容只在旧入口明确选中该运输时求值。 */
+type WindowsActionPayload = {
+  script: string
+  dataFile?: {
+    kind: WindowsHelperFallbackTempFileKind
+    content: () => string
+    buildScript: (tempFilePath?: string) => string
   }
+}
 
-  const tempFilePath = buildTempFilePath(tempFileKind)
-  return createPlan(buildScript(tempFilePath), tempFileKind, tempFileContent, tempFilePath)
+/**
+ * 同一验证结果生成业务脚本，并提供旧入口可选的数据文件适配。现代 UAC 只读
+ * script，不编码 shell 命令、不生成临时文件名，也不序列化未使用的数据文件内容。
+ */
+function buildWindowsDataAction(
+  buildScript: (tempFilePath?: string) => string,
+  kind: WindowsHelperFallbackTempFileKind,
+  content: () => string
+): WindowsActionPayload {
+  return { script: buildScript(), dataFile: { kind, content, buildScript } }
 }
 
 function buildCompressedPowerShellCommand(script: string): string {
@@ -1391,15 +1595,19 @@ finally {
 & ([ScriptBlock]::Create($decodedScript))`
 }
 
-function buildFlyEnvPowerShellIntegrationUacPlanWithRoots(
+export function buildFlyEnvPowerShellIntegrationUacPlan(
   args: unknown[],
   options: FlyEnvPowerShellIntegrationUacPlanOptions = {}
 ): FlyEnvPowerShellIntegrationUacPlan {
-  const validated = validateFlyEnvPowerShellIntegrationArgs(args)
-  const powershellPath = options.powershellPath ?? 'powershell.exe'
-  if (!powershellPath || CONTROL_CHAR_PATTERN.test(powershellPath)) {
-    helperExecutionFailed('PowerShell executable path is invalid')
-  }
+  // 旧计划入口沿用 SID 校验，但无需额外 with-roots 包装或共享状态切换。
+  if (options.targetUserSid) allowedRootsFilePath(options.targetUserSid)
+  const scope: WindowsActionScope = { targetUserSid: options.targetUserSid }
+  const validated = validateFlyEnvPowerShellIntegrationArgs(args, scope)
+  // 纯计划允许注入完整路径；真实执行入口只注入经过存在检查的系统程序。
+  const powershellPath = cleanAbsPath(
+    options.powershellPath ?? windowsPowerShellPath(),
+    'PowerShell executable'
+  )
   const resultPath = cleanAbsPath(
     options.resultPath ?? path.join(os.tmpdir(), `flyenv-shell-uac-${randomUUID()}.json`),
     'UAC result path'
@@ -1412,7 +1620,7 @@ function buildFlyEnvPowerShellIntegrationUacPlanWithRoots(
   const childScript = buildInstallFlyEnvPowerShellIntegrationScript(validated, {
     resultPath,
     nonce,
-    allowedRootsPath: allowedRootsFilePath()
+    allowedRootsPath: allowedRootsFilePath(options.targetUserSid)
   })
   const childCommand = buildCompressedPowerShellCommand(childScript)
   const launcherScript = `${buildPowerShellPreamble()}
@@ -1457,82 +1665,67 @@ catch {
   }
 }
 
-export function buildFlyEnvPowerShellIntegrationUacPlan(
-  args: unknown[],
-  options: FlyEnvPowerShellIntegrationUacPlanOptions = {}
-): FlyEnvPowerShellIntegrationUacPlan {
-  return withTargetAllowedRoots(options.targetUserSid, () =>
-    buildFlyEnvPowerShellIntegrationUacPlanWithRoots(args, options)
-  )
-}
-
-function buildWindowsHelperFallbackPlanWithRoots(
+function buildWindowsActionPayload(
   module: string,
   fn: string,
   args: unknown[],
-  inlineLimit = DEFAULT_INLINE_LIMIT,
-  targetUserSid?: string
-): WindowsHelperFallbackPlan {
+  scope: WindowsActionScope
+): WindowsActionPayload {
   if (!isWindowsHelperFallbackAllowed(module, fn)) {
     fallbackNotSupported(module, fn)
   }
 
   if (module === 'tools' && fn === 'writeFileByRoot') {
-    const validated = validateWriteFileArgs(args)
-    return buildInlineOrDataFilePlan(
+    const validated = validateWriteFileArgs(args, scope)
+    return buildWindowsDataAction(
       (tempFilePath) => buildWriteFileScript(validated, tempFilePath),
       'text',
-      validated.content,
-      inlineLimit
+      () => validated.content
     )
   }
 
   if (module === 'tools' && fn === 'writeBufferBase64ByRoot') {
-    const validated = validateWriteBufferArgs(args)
-    return buildInlineOrDataFilePlan(
+    const validated = validateWriteBufferArgs(args, scope)
+    return buildWindowsDataAction(
       (tempFilePath) => buildWriteBufferScript(validated, tempFilePath),
       'base64',
-      validated.base64Content,
-      inlineLimit
+      () => validated.base64Content
     )
   }
 
   if (module === 'tools' && fn === 'rm') {
-    return createPlan(buildRmScript(validateRmArgs(args)))
+    return { script: buildRmScript(validateRmArgs(args, scope)) }
   }
 
   if (module === 'tools' && fn === 'setSystemPath') {
     const validated = validateSetSystemPathArgs(args)
-    return buildInlineOrDataFilePlan(
+    return buildWindowsDataAction(
       (tempFilePath) => buildSetSystemPathScript(validated, tempFilePath),
       'text',
-      JSON.stringify(validated),
-      inlineLimit
+      () => JSON.stringify(validated)
     )
   }
 
   if (module === 'tools' && fn === 'setSystemEnv') {
     const validated = validateSetSystemEnvArgs(args)
-    return buildInlineOrDataFilePlan(
+    return buildWindowsDataAction(
       (tempFilePath) => buildSetSystemEnvScript(validated, tempFilePath),
       'text',
-      JSON.stringify(validated),
-      inlineLimit
+      () => JSON.stringify(validated)
     )
   }
 
   if (module === 'tools' && fn === 'setAutoStartWin') {
-    const validated = validateSetAutoStartArgs(args)
-    return buildInlineOrDataFilePlan(
-      (tempFilePath) => buildSetAutoStartScript(validated, tempFilePath, targetUserSid),
+    const validated = validateSetAutoStartArgs(args, scope)
+    return buildWindowsDataAction(
+      (tempFilePath) => buildSetAutoStartScript(validated, tempFilePath, scope.targetUserSid),
       'text',
-      JSON.stringify(validated),
-      inlineLimit
+      () => JSON.stringify(validated)
     )
   }
 
   if (module === 'host' && fn === 'sslAddTrustedCert') {
-    return createPlan(buildSslAddTrustedCertScript(validateSslAddTrustedCertArgs(args)))
+    return { script: buildSslAddTrustedCertScript(validateSslAddTrustedCertArgs(args, scope)) }
   }
 
   fallbackNotSupported(module, fn)
@@ -1545,9 +1738,14 @@ export function buildWindowsHelperFallbackPlan(
   inlineLimit = DEFAULT_INLINE_LIMIT,
   targetUserSid?: string
 ): WindowsHelperFallbackPlan {
-  return withTargetAllowedRoots(targetUserSid, () =>
-    buildWindowsHelperFallbackPlanWithRoots(module, fn, args, inlineLimit, targetUserSid)
-  )
+  // 仅无 provider 的兼容入口包装命令并选择 TEMP；现代构造不经过本函数。
+  if (targetUserSid) allowedRootsFilePath(targetUserSid)
+  const payload = buildWindowsActionPayload(module, fn, args, { targetUserSid })
+  const inlinePlan = createPlan(payload.script)
+  if (!payload.dataFile || inlinePlan.command.length <= inlineLimit) return inlinePlan
+  const data = payload.dataFile
+  const tempFilePath = buildTempFilePath(data.kind)
+  return createPlan(data.buildScript(tempFilePath), data.kind, data.content(), tempFilePath)
 }
 
 export function parseFlyEnvPowerShellIntegrationFallbackResult(
@@ -1620,9 +1818,11 @@ function parseFlyEnvPowerShellIntegrationUacResult(
 async function runFlyEnvPowerShellIntegrationUacFallback(
   args: unknown[]
 ): Promise<FlyEnvPowerShellIntegrationFallbackResult> {
+  // 环境同步及旧 Sudo 错误分类仅归兼容执行入口，不应随现代脚本构造初始化。
+  const { default: EnvSync } = await import('./EnvSync')
   await EnvSync.sync().catch(() => undefined)
   const plan = buildFlyEnvPowerShellIntegrationUacPlan(args, {
-    powershellPath: EnvSync.PowerShellPath || 'powershell.exe',
+    powershellPath: resolveWindowsPowerShellPath(),
     targetUserSid: (await getWindowsHelperIdentity()).sid
   })
   try {
@@ -1633,6 +1833,7 @@ async function runFlyEnvPowerShellIntegrationUacFallback(
         maxBuffer: 64 * 1024
       })
     } catch (error) {
+      const { classifyWindowsElevationError } = await import('./Sudo')
       throw classifyWindowsElevationError(error)
     }
     let stdout: string
@@ -1658,6 +1859,9 @@ export async function runWindowsHelperFallback(
   if (module === 'tools' && fn === 'installFlyEnvPowerShellIntegration') {
     return await runFlyEnvPowerShellIntegrationUacFallback(args)
   }
+  // 标准业务路由使用 runWindowsAction；只有实际进入无 provider 的兼容执行
+  // 分支时才加载旧 Sudo。保留外部/独立入口能力，不给现代路径增加旧初始化依赖。
+  const { exec: Sudo } = await import('./Sudo')
   if (module === 'tools' && fn === 'ensureFlyEnvDataDirectory') {
     ensureArgCount(args, 1, 'ensureFlyEnvDataDirectory')
     const dataDirectory = ensureString(args[0], 'ensureFlyEnvDataDirectory arg[0] (dataDirectory)')
@@ -1671,6 +1875,7 @@ export async function runWindowsHelperFallback(
     await Sudo(plan.command, { name: 'FlyEnv' })
     return true
   }
+  const { default: EnvSync } = await import('./EnvSync')
   await EnvSync.sync()
   const targetUserSid = (await getWindowsHelperIdentity()).sid
   const plan = buildWindowsHelperFallbackPlan(module, fn, args, DEFAULT_INLINE_LIMIT, targetUserSid)
@@ -1680,10 +1885,8 @@ export async function runWindowsHelperFallback(
       await fs.writeFile(plan.tempFilePath, plan.tempFileContent, 'utf8')
     }
     await Sudo(plan.command, { name: 'FlyEnv' })
-    if (module === 'tools' && (fn === 'setSystemEnv' || fn === 'setSystemPath')) {
-      EnvSync.clean()
-      await EnvSync.sync().catch(() => undefined)
-    }
+    // 仅返回脚本执行结果；实际环境业务处理 clean，并在自身 resolve/reject 后通知。
+    // 独立 fallback 不能提前启动广播，否则会抢占后续列表刷新的 worker。
     return true
   } finally {
     if (plan.tempFilePath) {
@@ -1691,3 +1894,260 @@ export async function runWindowsHelperFallback(
     }
   }
 }
+
+/** main 路径及原用户身份快照；进程启动身份只用于拒绝等待期间的 PID/端口复用。 */
+export type WindowsPrivilegeActionContext = {
+  roots: string[]
+  userDocuments: string
+  userSid?: string
+  /** created 为完整精度的 Process.StartTime UTC invariant 字符串，两阶段共用同一格式。 */
+  processes?: Array<{
+    pid: number
+    created: string
+    source: 'startTime' | 'cim' | 'cim-descendant'
+    path?: string
+  }>
+}
+
+// 运行时动作必须能在尚未安装 Helper 时工作；可信根目录来自 main 提供的应用路径，
+// 不依赖 Helper 私有配置文件。
+export function buildWindowsPrivilegeAction(
+  module: string,
+  fn: string,
+  args: unknown[],
+  context: WindowsPrivilegeActionContext
+): string {
+  // main 的可信根作为本次调用的不可共享上下文；校验失败不改变其他并发动作。
+  const scope: WindowsActionScope = {
+    roots: context.roots.map((root) => cleanAbsPath(root, 'runtime root')),
+    targetUserSid: context.userSid
+  }
+  const preamble = buildPowerShellPreamble()
+  if (module === 'tools' && fn === 'installFlyEnvPowerShellIntegration') {
+    const request = validateFlyEnvPowerShellIntegrationArgs(args, scope)
+    for (const profile of request.profiles) {
+      if (!pathInDir(profile.path, cleanAbsPath(context.userDocuments, 'user Documents'))) {
+        helperExecutionFailed('PowerShell profile is outside the original user Documents directory')
+      }
+    }
+    return buildInstallFlyEnvPowerShellIntegrationScript(request, {
+      runtimeRoots: scope.roots
+    }).replace(
+      '$flyEnvResult | ConvertTo-Json -Compress',
+      '$global:FlyEnvActionResult = $flyEnvResult'
+    )
+  }
+  // 仅恢复 FlyEnv 的精确业务根目录 ACL，拒绝系统目录、Helper 安装目录及其祖先。
+  if (module === 'tools' && fn === 'ensureFlyEnvDataDirectory') {
+    ensureArgCount(args, 1, fn)
+    const root = cleanAbsPath(ensureString(args[0], 'data directory'), 'data directory')
+    if (
+      !context.roots.some((allowed) => pathEqual(root, allowed)) ||
+      pathHasSymlinkComponent(root)
+    ) {
+      helperExecutionFailed(
+        'FlyEnv data-directory recovery target is outside the application roots'
+      )
+    }
+    validateFlyEnvDataDirectoryRecoveryRoot(root, scope)
+    if (pathInDir(root, windowsSystemRoot()) || pathInDir(windowsSystemRoot(), root)) {
+      helperExecutionFailed('Cannot grant user write access to Windows system directories')
+    }
+    if (!context.userSid || !WINDOWS_SID_PATTERN.test(context.userSid))
+      helperExecutionFailed('Original user SID is required')
+    return buildFlyEnvDataDirectoryRecoveryScript(root, context.userSid)
+  }
+  if (module === 'tools' && fn === 'readFileByRoot') {
+    ensureArgCount(args, 1, fn)
+    const file = validatePathForRead(ensureString(args[0], 'file'), 'file', scope)
+    return `${preamble}\n$global:FlyEnvActionResult = [IO.File]::ReadAllText(${powerShellString(file)}, [Text.Encoding]::UTF8)`
+  }
+  if (module === 'tools' && fn === 'getSystemPath') {
+    ensureArgCount(args, 0, fn)
+    return `${preamble}\n$global:FlyEnvActionResult = [string][Environment]::GetEnvironmentVariable('Path', 'Machine')`
+  }
+  if (module === 'tools' && (fn === 'processListWin' || fn === 'getPortPids')) {
+    ensureArgCount(args, fn === 'processListWin' ? 0 : 1, fn)
+    if (fn === 'processListWin') {
+      return `${preamble}\n$global:FlyEnvActionResult = ConvertTo-Json -InputObject @(Get-CimInstance Win32_Process | Select-Object CommandLine,ExecutablePath,ProcessId,ParentProcessId,CreationClassName) -Compress`
+    }
+    const port = Number(args[0])
+    if (!Number.isInteger(port) || port < 1 || port > 65535) helperExecutionFailed('Invalid port')
+    // 通用 getPortPids 保留所有 TCP 状态，不误当成 Listen 专用查询；TIME_WAIT
+    // 可能报告 OwningProcess=0，这不是进程目标，跳过即可。其他 TCP/CIM 查询失败
+    // 必须传播，不能伪装成空快照。
+    return `${preamble}\n${windowsTcpConnectionLookup}
+$global:FlyEnvActionResult = @(Get-FlyEnvTcpConnections ${port} | Where-Object { [int]$_.OwningProcess -gt 0 } | ForEach-Object { $p = Get-CimInstance Win32_Process -Filter ('ProcessId=' + $_.OwningProcess) -ErrorAction Stop; if ($null -ne $p) { @{ PID=[string]$_.OwningProcess; PPID=[string]$p.ParentProcessId; COMMAND=[string]$p.CommandLine; USER='' } } })`
+  }
+  // 有限数字白名单阻止命令注入；在执行进程中再次核对创建时间，不以 PID 单独授权。
+  if (module === 'tools' && (fn === 'kill' || fn === 'killPorts')) {
+    // 可选第三个布尔值表示服务有序集合；沿用 RPC 位置，不再使用 /T 扩树。
+    if (fn === 'kill' && args.length === 3) {
+      if (typeof args[2] !== 'boolean') helperExecutionFailed('Invalid process tree mode')
+    } else ensureArgCount(args, fn === 'kill' ? 2 : 1, fn)
+    const tree = fn === 'kill' && args[2] === true
+    const values = fn === 'kill' ? args[1] : args[0]
+    if (!Array.isArray(values) || values.length > (tree ? 4096 : 256))
+      helperExecutionFailed('Invalid process targets')
+    // 两类请求统一去重，不因重复 PID 产生重复快照或错误的身份比较。
+    const ids = [
+      ...new Set(
+        values.map((value) => {
+          const id = Number(value)
+          if (
+            !Number.isInteger(id) ||
+            id <= (fn === 'kill' ? 4 : 0) ||
+            id > (fn === 'kill' ? 0x7fffffff : 65535)
+          )
+            helperExecutionFailed('Invalid process target')
+          return id
+        })
+      )
+    ]
+    const targets =
+      fn === 'kill'
+        ? `$targetPids = @(${ids.join(', ')})`
+        : // 提升执行时重新读取监听者；读取错误须失败，不能当作端口已空。
+          `$targetPids = @(@(${ids.join(', ')}) | ForEach-Object { Get-FlyEnvStopListenerPids ([int]$_) } | Sort-Object -Unique)`
+    const expected = context.processes
+      ? `$expectedProcesses = @(${context.processes.map((item) => `@{ pid=${item.pid}; created=${powerShellString(item.created)}; source=${powerShellString(item.source ?? 'startTime')}; path=${powerShellString(item.path ?? '')} }`).join(', ')})`
+      : '$expectedProcesses = $null'
+    if (!tree && context.processes?.some((item) => item.source === 'cim-descendant'))
+      helperExecutionFailed('Descendant identities require ordered service mode')
+    // 所有按 PID 停止共用一次批量命令；端口工具保留自己的监听者复核语义。
+    if (fn === 'kill') return buildWindowsOrderedServiceStopAction(preamble, targets, expected)
+    // 普通进程工具保持独立 PID/端口语义：预检后再次复核身份，再结束目标。
+    // 服务模式已在上方返回；此处不会接受后代来源绕过普通工具的路径授权。
+    return `${preamble}\n${targets}
+${expected}
+${windowsStopProcessLookup}${windowsStopListenerLookup}${windowsStopIdentityLookup}
+# 事件通过 WindowsElevation 的认证终态回传，记录实际结束请求和对象结果。
+# 日志函数只保存固定 PID/阶段/身份字段，不决定权限或改变原停止异常传播。
+${buildPerformanceProcessStopPrelude()}
+# 在任何停止动作前预检普通工具的全部独立 PID。
+if ($null -ne $expectedProcesses -and '${fn}' -eq 'killPorts') {
+$expectedPids = @($expectedProcesses | ForEach-Object { [int]$_.pid } | Sort-Object -Unique)
+$currentPids = @($targetPids | ForEach-Object { [int]$_ } | Sort-Object -Unique)
+if (@($currentPids | Where-Object { $expectedPids -notcontains $_ }).Count -gt 0) { throw 'Windows port owner changed; refresh and retry' }
+}
+$targets = @(foreach ($targetPid in $targetPids) {
+Add-FlyEnvProcessStopEvent 'preflight-request' $targetPid
+$target = Get-FlyEnvStopTarget $targetPid
+if ($null -eq $target) { Add-FlyEnvProcessStopEvent 'preflight-skipped-missing' $targetPid; continue }
+try {
+  # 先取得并保留原进程句柄，再读取创建身份；该句柄覆盖整个预检，finally 保证
+  # 即使权限/身份查询失败或目标已退出也释放句柄。
+  $targetHandle = $target.Handle
+  ${windowsProcessSafetyGuard('$target')}
+  if ($null -ne $expectedProcesses) {
+    $expected = @($expectedProcesses | Where-Object { $_.pid -eq $target.Id })
+    if ($expected.Count -ne 1) {
+      throw ('Process identity changed; PID=' + $target.Id + '; stage=preflight; expectedCount=' + $expected.Count + '; refresh and retry')
+    }
+    $actual = Get-FlyEnvStopIdentity $target.Id $expected[0].source
+    if ($null -eq $actual) { Add-FlyEnvProcessStopEvent 'preflight-skipped-exited' $target.Id; continue }
+    Add-FlyEnvProcessStopEvent 'preflight-identity' $target.Id @{ expectedCreated=$expected[0].created; actualCreated=$actual.created; executable=$actual.path }
+    if ($actual.created -cne $expected[0].created -or ($expected[0].source -eq 'cim' -and -not [string]::Equals([IO.Path]::GetFullPath($actual.path), [IO.Path]::GetFullPath($expected[0].path), [StringComparison]::OrdinalIgnoreCase))) {
+      throw ('Process identity changed; PID=' + $target.Id + '; stage=preflight; refresh and retry')
+    }
+    $created = $actual.created
+    $source = $expected[0].source
+    $path = $actual.path
+  } else {
+    $created = ${windowsProcessStartIdentity}
+    $source = 'startTime'
+    $path = ''
+  }
+  @{ pid=$target.Id; created=$created; source=$source; path=$path }
+} catch {
+  Add-FlyEnvProcessStopEvent 'preflight-failed' $targetPid @{ error=$_.Exception.Message }
+  throw
+} finally {
+  $target.Dispose()
+}
+})
+foreach ($snapshot in $targets) {
+Add-FlyEnvProcessStopEvent 'before-stop-request' $snapshot.pid
+$target = Get-FlyEnvStopTarget $snapshot.pid
+if ($null -eq $target) { Add-FlyEnvProcessStopEvent 'before-stop-skipped-missing' $snapshot.pid; continue }
+try {
+  # 普通进程工具固定本轮目标的原生句柄，再重查身份；服务有序集合走上方专用分支。
+  # 不靠 PID 数字跨过“复核→Stop-Process”间隙，所有返回都在 finally 释放。
+  $targetHandle = $target.Handle
+  $actual = Get-FlyEnvStopIdentity $snapshot.pid $snapshot.source
+  if ($null -eq $actual) { Add-FlyEnvProcessStopEvent 'before-stop-skipped-exited' $snapshot.pid; continue }
+  Add-FlyEnvProcessStopEvent 'before-stop-identity' $snapshot.pid @{ expectedCreated=$snapshot.created; actualCreated=$actual.created; executable=$actual.path }
+  if ($actual.created -cne $snapshot.created -or ($snapshot.source -eq 'cim' -and -not [string]::Equals([IO.Path]::GetFullPath($actual.path), [IO.Path]::GetFullPath($snapshot.path), [StringComparison]::OrdinalIgnoreCase))) {
+    throw ('Process identity changed; PID=' + $snapshot.pid + '; stage=before-stop; refresh and retry')
+  }
+  # 属性可能在身份核对后消失；仅确认目标已自行退出时才幂等跳过。
+  ${windowsProcessSafetyGuard('$target')}
+  Add-FlyEnvProcessStopEvent 'stop-process-request' $target.Id
+  Stop-Process -InputObject $target -Force -ErrorAction Stop
+  if (-not $target.WaitForExit(10000)) { throw ('Process is still running after the stop request; PID=' + $target.Id) }
+  Add-FlyEnvProcessStopEvent 'root-exited' $target.Id
+} catch {
+  Add-FlyEnvProcessStopEvent 'stop-error' $snapshot.pid @{ error=$_.Exception.Message }
+  # 普通工具只负责显式 PID；原对象已经自然退出时允许幂等完成。
+  if ($target.HasExited) { continue }
+  throw
+} finally {
+  $target.Dispose()
+}
+}`
+  }
+  if (module === 'host' && fn === 'dnsRefresh') {
+    ensureArgCount(args, 0, fn)
+    return `${preamble}\nClear-DnsClientCache -ErrorAction Stop`
+  }
+  // 读取 LocalMachine Root 无需管理员；存在本地证书时按 Thumbprint 核对实际证书，而非仅凭同名 CN。
+  if (module === 'host' && fn === 'sslFindCertificate') {
+    if (args.length < 1 || args.length > 2) helperExecutionFailed('Invalid certificate query')
+    const directory = validatePathForRead(
+      ensureString(args[0], 'certificate directory'),
+      'certificate directory',
+      scope
+    )
+    const name =
+      args[1] === undefined ? 'FlyEnv-Root-CA' : ensureString(args[1], 'certificate name')
+    if (!/^[A-Za-z0-9_. -]{1,128}$/.test(name)) helperExecutionFailed('Invalid certificate name')
+    const certificatePath = validatePathForRead(
+      path.win32.join(directory, `${name}.crt`),
+      'certificate file',
+      scope
+    )
+    return `${preamble}
+$reference = $null
+$certificatePath = ${powerShellString(certificatePath)}
+if (Test-Path -LiteralPath $certificatePath -PathType Leaf) {
+$text = [IO.File]::ReadAllText($certificatePath)
+$pem = [regex]::Match($text, '(?s)-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----')
+$bytes = if ($pem.Success) { [Convert]::FromBase64String($pem.Groups[1].Value) } else { [IO.File]::ReadAllBytes($certificatePath) }
+$reference = [Security.Cryptography.X509Certificates.X509Certificate2]::new([byte[]]$bytes)
+}
+try {
+$certs = @(Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.Subject -eq ${powerShellString(`CN=${name}`)} -and ($null -eq $reference -or $_.Thumbprint -eq $reference.Thumbprint) })
+$global:FlyEnvActionResult = @{ stdout=($certs | Format-List | Out-String); stderr='' }
+} finally { if ($null -ne $reference) { $reference.Dispose() } }`
+  }
+  // 直接消费统一验证后的业务脚本。命令编码、大小阈值和 TEMP 仅归旧适配入口，
+  // 不再用 Number.MAX_SAFE_INTEGER 伪装 inline 计划来取得现代动作。
+  return buildWindowsActionPayload(module, fn, args, scope).script
+}
+
+/** UAC 等待后再次拒绝路径链中的 junction/symlink；不能只依赖构造时的路径验证。 */
+export const buildWindowsActionPathGuard = (paths: string[]): string => `
+$ErrorActionPreference = 'Stop'
+foreach ($actionPath in @(${paths.map(powerShellString).join(', ')})) {
+  $checkedPath = [IO.Path]::GetFullPath($actionPath)
+  while (-not [string]::IsNullOrWhiteSpace($checkedPath)) {
+    if (Test-Path -LiteralPath $checkedPath) {
+      $checkedItem = Get-Item -LiteralPath $checkedPath -Force -ErrorAction Stop
+      if (($checkedItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Refusing a reparse point in the Windows action path' }
+    }
+    $parentPath = [IO.Path]::GetDirectoryName($checkedPath)
+    if ($parentPath -eq $checkedPath) { break }
+    $checkedPath = $parentPath
+  }
+}
+`
