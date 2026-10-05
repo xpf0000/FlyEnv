@@ -71,6 +71,17 @@ datadir=${dataDir}`
     },
     {
       section: 'mariadbd',
+      name: 'socket',
+      value: window.Server.isWindows ? 'MySQL' : '/tmp/mysql.sock',
+      enable: true,
+      isString: true,
+      show: !window.Server.isWindows,
+      tips() {
+        return I18nT('mysql.socket')
+      }
+    },
+    {
+      section: 'mariadbd',
       name: 'key_buffer_size',
       value: '64M',
       enable: true,
@@ -197,7 +208,8 @@ datadir=${dataDir}`
     }
     const parse = new IniParse(editConfig)
     const arr = [...names]
-      .map((item) => {
+      .map((definition) => {
+        const item = { ...definition }
         const find = parse.get(item.name)
         let value = find ?? item.value
         if (item.isString) {
