@@ -6,6 +6,7 @@ import {
   mkdirp,
   remove,
   writeFile,
+  readFile,
   zipUnpack
 } from '../../Fn'
 import { dirname, join } from 'path'
@@ -13,7 +14,8 @@ import { existsSync } from 'fs'
 import { EOL } from 'os'
 import type { AppHost } from '@shared/app'
 import Helper from '../../Helper'
-import { appDebugLog, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows } from '@shared/utils'
+import { X509Certificate } from 'node:crypto'
 import { isAppHelperError } from '@shared/WindowsHelperState'
 
 // Mutex tail for certificate issuance — see makeAutoSSL. (#700)
@@ -25,10 +27,18 @@ const initCARoot = () => {
     const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
     const CADir = dirname(CARoot)
     try {
+      if (isLinux()) {
+        const cert = new X509Certificate(await readFile(CARoot))
+        const fingerprint = cert.fingerprint256.replace(/:/g, '').toLowerCase()
+        // A copied source certificate does not prove the trust update succeeded.
+        await Helper.send('host', 'installApprovedCA', fingerprint)
+        resolve(true)
+        return
+      }
       const res = await Helper.send('host', 'sslAddTrustedCert', CADir, 'FlyEnv-Root-CA.crt')
       console.log('initCARoot res111: ', res)
     } catch (error) {
-      if (isWindows()) {
+      if (isWindows() || isLinux()) {
         reject(error)
         return
       }
@@ -160,18 +170,21 @@ subjectAltName=@alt_names
             resolve(false)
             return
           }
-          try {
-            await Helper.send('host', 'sslAddTrustedCert', CADir, `${caFileName}.crt`)
-          } catch (error) {
-            if (isWindows()) throw error
-          }
+          if (!isLinux()) {
+            try {
+              await Helper.send('host', 'sslAddTrustedCert', CADir, `${caFileName}.crt`)
+            } catch (error) {
+              if (isWindows()) throw error
+            }
 
-          const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
-          if (!res.stdout.includes('FlyEnv-Root-CA') && !res.stderr.includes('FlyEnv-Root-CA')) {
-            resolve(false)
-            return
+            const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
+            if (!res.stdout.includes('FlyEnv-Root-CA') && !res.stderr.includes('FlyEnv-Root-CA')) {
+              resolve(false)
+              return
+            }
           }
         }
+        if (isLinux()) await initCARoot()
         const hostCAName = `CA-${host.id}`
         const hostCADir = join(CADir, `${host.id}`)
         if (existsSync(hostCADir)) {
@@ -210,7 +223,7 @@ subjectAltName=@alt_names
       await appDebugLog('[makeAutoSSL][error]', `${e}`)
       console.log('makeAutoSSL error: ', e)
       // 类型化授权错误交给调用方展示/恢复；原有证书工具错误仍按 false 返回。
-      if (isWindows() && isAppHelperError(e)) {
+      if (isLinux() || (isWindows() && isAppHelperError(e))) {
         reject(e)
         return
       }

@@ -1,5 +1,6 @@
 import { isMacOS, isLinux, isWindows } from '@shared/utils'
 import { HostsFileLinux, HostsFileMacOS } from '@shared/PlatFormConst'
+import { finishLinuxHostsEditing, syncLinuxHosts } from '../../fork/module/Host/LinuxHosts'
 import { parseProxyConfigCommand } from '@shared/installProxyEnv'
 import { writeFileByRoot, readFileFixed } from '../utils'
 import ServiceProcessManager from './ServiceProcess'
@@ -15,7 +16,8 @@ export default class ServerManager {
 
   constructor(configManager: ConfigManager) {
     this.configManager = configManager
-    global.Server.Password = this.configManager.getConfig('password')
+    global.Server.Password = isLinux() ? '' : this.configManager.getConfig('password')
+    if (isLinux()) this.configManager.setConfig('password', '')
   }
 
   /**
@@ -91,6 +93,11 @@ export default class ServerManager {
     }
 
     try {
+      if (isLinux()) {
+        await finishLinuxHostsEditing()
+        await syncLinuxHosts()
+        return
+      }
       // 不记录 hosts 内容；各阶段沿用 Application 的 quitId/stopId，后续 action 可直接关联。
       const hosts = await timeServiceStopBoundary('quit.hosts-read', { file }, () =>
         readFileFixed(file)
@@ -120,7 +127,7 @@ export default class ServerManager {
     } catch (error) {
       // Windows 取消、拒绝/未知结果及 I/O 失败都需要由 Application 记录。
       // 非 Windows 保留原有尽力清理策略，本轮不改变其授权和退出行为。
-      if (isWindows()) throw error
+      if (isWindows() || isLinux()) throw error
     }
   }
 

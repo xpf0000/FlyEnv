@@ -17,8 +17,9 @@ import {
   waitTime,
   writeFile
 } from '../Fn'
-import { isMacOS, isWindows } from '@shared/utils'
-import { closeSync, openSync } from 'node:fs'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { closeSync, openSync, constants } from 'node:fs'
+import { access, readdir, rename, stat } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import EnvSync from '@shared/EnvSync'
 import { ProcessListFetch } from '@shared/Process'
@@ -40,6 +41,10 @@ export type ServiceStartParams = {
 }
 
 export type ServiceStartSpawnParams = {
+  /** Linux: retry a failed low-port bind as the same user with CAP_NET_BIND_SERVICE. */
+  lowPortService?: boolean
+  /** Known listeners select the low-port helper before starting; unknown listeners retain the fallback. */
+  listenPorts?: number[]
   version: SoftInstalled
   pidPath?: string
   baseDir: string
@@ -62,6 +67,33 @@ export type ServiceStartSpawnParams = {
 type ServiceStartSpawnLogParam = Omit<ServiceStartSpawnParams, 'execArgs' | 'execEnv'> & {
   execArgs?: string[] | '[REDACTED]'
   execEnv?: Record<string, string> | '[REDACTED]'
+}
+
+/** Preserve legacy root-owned logs without asking the helper to chmod/chown files. */
+async function prepareLinuxLog(file: string): Promise<void> {
+  if (!isLinux() || !existsSync(file)) return
+  try {
+    await access(file, constants.W_OK)
+    return
+  } catch (error) {
+    if (!['EACCES', 'EPERM'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error
+  }
+  const info = await stat(file)
+  if (!info.isFile() || info.uid !== 0) throw new Error(`Service log is not writable: ${file}`)
+  // This succeeds only when the desktop user already owns write access to the parent.
+  await rename(file, `${file}.previous-${process.pid}-${Date.now()}`)
+  await writeFile(file, '')
+}
+
+export async function prepareLinuxLogDirectory(
+  directory: string,
+  accept: (name: string) => boolean = () => true
+): Promise<void> {
+  if (!isLinux() || !existsSync(directory)) return
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (entry.isFile() && !entry.name.includes('.previous-') && accept(entry.name))
+      await prepareLinuxLog(join(directory, entry.name))
+  }
 }
 
 export function serviceStartSpawnLogParam(
@@ -126,6 +158,9 @@ export function buildUnixCustomerServiceStartScript(
 export async function serviceStartExec(
   param: ServiceStartParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
+  if (isLinux() && param.root) {
+    throw new Error('Linux helper does not execute root scripts')
+  }
   const baseDir = param.baseDir
   const version = param.version
   const execEnv = param?.execEnv ?? ''
@@ -277,6 +312,9 @@ export async function customerServiceStartExec(
   isService: boolean
 ): Promise<{ 'APP-Service-Start-PID': string }> {
   console.log('customerServiceStartExec: ', version.id, isService)
+  if (isLinux() && version.isSudo) {
+    throw new Error('Linux custom commands requiring sudo must run in XTerm')
+  }
 
   const pidPath = version?.pidPath ?? ''
   if (pidPath && existsSync(pidPath)) {
@@ -452,6 +490,8 @@ export async function serviceStartSpawn(
 
   await mkdirp(dirname(outFile))
   await mkdirp(dirname(errFile))
+  await prepareLinuxLog(outFile)
+  await prepareLinuxLog(errFile)
 
   const env = await EnvSync.sync()
   // 环境同步和系统程序解析可能失败，必须在打开日志句柄前完成，避免失败启动泄漏句柄。
@@ -534,8 +574,53 @@ export async function serviceStartSpawn(
   }
 
   try {
-    await EnvSync.sync()
-    return await doExec()
+    const launchLowPort = async () => {
+      const pid = await Helper.send<number>('service', 'launchLowPort', {
+        service: version.typeFlag,
+        bin,
+        args: execArgs,
+        env: { ...env, ...execEnv },
+        cwd: param.cwd ?? dirname(bin),
+        outFile,
+        errFile
+      })
+      if (pidPath) {
+        try {
+          await writeFile(pidPath, `${pid}`)
+        } catch (error) {
+          on({ 'APP-On-Log': AppLog('error', `Save PID file failed: ${error}`) })
+        }
+      }
+      return { 'APP-Service-Start-PID': `${pid}` }
+    }
+    if (isLinux() && param.lowPortService && param.listenPorts?.length) {
+      let threshold = 1024
+      try {
+        const value = Number(
+          (await readFile('/proc/sys/net/ipv4/ip_unprivileged_port_start', 'utf8')).trim()
+        )
+        if (Number.isInteger(value) && value >= 0 && value <= 65535) threshold = value
+      } catch {
+        // Older kernels or unavailable procfs retain the default privileged-port boundary.
+      }
+      if (param.listenPorts.some((port) => Number.isInteger(port) && port > 0 && port < threshold))
+        return await launchLowPort()
+    }
+    const before = existsSync(errFile) ? (await readFile(errFile, 'utf8')).length : 0
+    try {
+      return await doExec()
+    } catch (error) {
+      const output = existsSync(errFile) ? (await readFile(errFile, 'utf8')).slice(before) : ''
+      if (
+        !isLinux() ||
+        !param.lowPortService ||
+        !/(?:bind|listen)[\s\S]{0,300}(?:permission denied|operation not permitted)|(?:permission denied|operation not permitted)[\s\S]{0,300}(?:bind|listen)/i.test(
+          output
+        )
+      )
+        throw new Error(output.trim() ? `${error}\n${output.trim()}` : String(error))
+      return await launchLowPort()
+    }
   } catch (e) {
     on({
       'APP-On-Log': AppLog(

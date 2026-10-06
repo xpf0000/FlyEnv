@@ -49,7 +49,7 @@
           <AutoHide />
         </div>
         <div v-if="!isWindows" class="col">
-          <RestPassword />
+          <RestPassword v-if="!isLinux" />
         </div>
         <div v-else class="col">
           <TrayStyle />
@@ -96,6 +96,7 @@
   const isMacOS = computed(() => {
     return window.Server.isMacOS
   })
+  const isLinux = computed(() => window.Server.isLinux)
   const isWindows = computed(() => {
     return window.Server.isWindows
   })

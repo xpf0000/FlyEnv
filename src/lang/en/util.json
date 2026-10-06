@@ -1,4 +1,5 @@
 {
+  "linuxSystemFileReadOnly": "System environment files are read-only here. Use a terminal with administrator privileges to maintain them; your user profile files remain editable.",
   "savePath": "Save Directory",
   "saveAs": "Site Save: Save Directory/Site Host",
   "proxy": "Proxy",

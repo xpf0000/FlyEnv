@@ -10,7 +10,6 @@ import {
   getAllFileAsync,
   md5,
   portSearch,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -20,7 +19,8 @@ import {
   writeFile,
   mkdirp
 } from '../../Fn'
-import { serviceStartSpawn } from '../../util/ServiceStart'
+import { prepareLinuxLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
+import { portsFromListenConfig } from '../../util/ListenPorts'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
@@ -385,35 +385,16 @@ IncludeOptional "${vhost}"`
           reject(e)
           return
         }
-      } else if (isLinux()) {
-        // Linux Apache binds privileged ports (80/443) and needs root, which
-        // serviceStartSpawn cannot provide — keep the Helper script path.
-        const logFile = join(global.Server.ApacheDir, `common/logs/access_log`)
-        const baseDir = global.Server.ApacheDir!
-        const execEnv = ``
-        const execArgs = `-f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`
-        try {
-          const res = await serviceStartExec({
-            root: true,
-            version,
-            pidPath: pidFile,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
       } else {
         // `-D FOREGROUND` keeps httpd in the foreground (vs `-k start`, which
         // daemonizes) so the detached spawn owns the process directly.
         const logFile = join(global.Server.ApacheDir, `common/logs/access_log`)
         const baseDir = global.Server.ApacheDir!
+        await prepareLinuxLogDirectory(join(baseDir, 'common/logs'))
+        await prepareLinuxLogDirectory(
+          join(global.Server.BaseDir!, 'vhost/logs'),
+          (name) => name.endsWith('-access_log') || name.endsWith('-error_log')
+        )
         const execArgs = [
           '-f',
           conf,
@@ -426,6 +407,10 @@ IncludeOptional "${vhost}"`
         ]
         try {
           const res = await serviceStartSpawn({
+            lowPortService: isLinux(),
+            listenPorts: isLinux()
+              ? portsFromListenConfig(await readFile(conf, 'utf8'))
+              : undefined,
             version,
             pidPath: pidFile,
             baseDir,

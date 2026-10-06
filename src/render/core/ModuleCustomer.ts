@@ -155,6 +155,10 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
       if (this.run && this.pid) {
         return resolve(true)
       }
+      if (window.Server.isLinux && this.isSudo && !interactive) {
+        resolve(I18nT('service.linuxSudoRequiresTerminal'))
+        return
+      }
       this.running = true
       let module: ModuleCustomer
       try {
@@ -275,7 +279,9 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
           .then()
           .catch()
       }
-      if (this.isSudo && !window.Server.Password) {
+      if (window.Server.isLinux && this.isSudo) {
+        doRun(true)
+      } else if (this.isSudo && !window.Server.Password) {
         try {
           showPasswordTips()
         } catch (error) {

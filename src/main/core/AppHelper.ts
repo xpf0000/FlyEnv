@@ -24,6 +24,8 @@ import { WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
 import { tmpdir, userInfo } from 'node:os'
 import { copyFile, chmod, existsSync, mkdirp, readFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
+import { X509Certificate } from 'node:crypto'
+import { lstatSync } from 'node:fs'
 
 type AppHelperMessage = {
   state:
@@ -121,6 +123,33 @@ const lazySudo: SudoExec = async (...args) => {
   return exec(...args)
 }
 
+const quoteLinuxShell = (value: string) => `'${value.replace(/'/g, "'\\''")}'`
+
+function checkLinuxInstallSource(file: string) {
+  for (let path = file; ; path = dirname(path)) {
+    const stat = lstatSync(path)
+    if (stat.isSymbolicLink() || stat.uid !== 0 || (stat.mode & 0o022) !== 0) {
+      throw new Error(`Linux production installer source must be root-owned and protected: ${path}`)
+    }
+    if (dirname(path) === path) return
+  }
+}
+
+const linuxInstallCommand = async (
+  script: string,
+  bin: string,
+  role: string,
+  dataPath: string,
+  appRoot: string
+) => {
+  const ca = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
+  const caFingerprint = existsSync(ca)
+    ? new X509Certificate(await readFile(ca)).fingerprint256.replace(/:/g, '').toLowerCase()
+    : ''
+  const args = [script, bin, role, dataPath, appRoot, caFingerprint ? ca : '', caFingerprint]
+  return { command: `sudo /bin/bash ${args.map(quoteLinuxShell).join(' ')}`, caFingerprint }
+}
+
 type AppHelperDeps = {
   appHelperCheck: typeof AppHelperCheck
   sudo: SudoExec
@@ -176,7 +205,12 @@ export class AppHelper {
     }
   }
 
-  async command(): Promise<{ command: string; icns: string; windowsScript?: string }> {
+  async command(): Promise<{
+    command: string
+    icns: string
+    windowsScript?: string
+    caFingerprint?: string
+  }> {
     if (isWindows()) {
       const bin = getWindowsHelperBinaryPath()
       const backupBin = is.production() ? join(dirname(bin), 'flyenv-helper-backup.exe') : bin
@@ -197,6 +231,33 @@ export class AppHelper {
         helperVersion: HelperVersion
       })
       return { command: '', icns: '', windowsScript }
+    }
+    if (isLinux()) {
+      const account = userInfo()
+      const appRoot = PathResolve(global.Server.Static!, '../../../../')
+      const helperFile = global.Server.isArmArch
+        ? 'flyenv-helper-linux-arm64'
+        : 'flyenv-helper-linux-amd64-v1'
+      const binary = is.production()
+        ? join(appRoot, 'helper/flyenv-helper')
+        : PathResolve(global.Server.Static!, '../../../src/helper-go/dist', helperFile)
+      const script = is.production()
+        ? join(appRoot, 'helper/flyenv-helper-init.sh')
+        : join(global.Server.Static!, 'sh/flyenv-helper-init.sh')
+      if (is.production()) {
+        checkLinuxInstallSource(binary)
+        checkLinuxInstallSource(script)
+      }
+      return {
+        ...(await linuxInstallCommand(
+          script,
+          binary,
+          `${account.uid}:${account.gid}`,
+          dirname(global.Server.AppDir!),
+          appRoot
+        )),
+        icns: join(appRoot, 'Icon@256x256.icns')
+      }
     }
     let command = ''
     let icns = ``
@@ -230,24 +291,6 @@ export class AppHelper {
 
         command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'icon.icns')
-      } else if (isLinux()) {
-        const uinfo = userInfo()
-        const role = `${uinfo.uid}:${uinfo.gid}`
-        const binDir = PathResolve(global.Server.Static!, '../../../../')
-        const bin = join(binDir, 'helper/flyenv-helper')
-        const shDir = join(binDir, 'helper')
-        const shFile = join(shDir, 'flyenv-helper-init.sh')
-
-        const tmpFile = join(tmpDir, `${uuid()}.sh`)
-        await copyFile(shFile, tmpFile)
-        await chmod(tmpFile, '0755')
-
-        const tmpBin = join(tmpDir, `${uuid()}.helper`)
-        await copyFile(bin, tmpBin)
-        await chmod(tmpBin, '0755')
-
-        command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
-        icns = join(binDir, 'Icon@256x256.icns')
       }
     } else {
       if (isMacOS()) {
@@ -276,27 +319,6 @@ export class AppHelper {
 
         command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'icon.icns')
-      } else if (isLinux()) {
-        const uinfo = userInfo()
-        const role = `${uinfo.uid}:${uinfo.gid}`
-        const helperFile = global.Server.isArmArch
-          ? 'flyenv-helper-linux-arm64'
-          : 'flyenv-helper-linux-amd64-v1'
-        const binDir = PathResolve(global.Server.Static!, '../../../build/')
-        const bin = PathResolve(binDir, `../src/helper-go/dist/${helperFile}`)
-        const shDir = join(global.Server.Static!, 'sh')
-        const shFile = join(shDir, 'flyenv-helper-init.sh')
-
-        const tmpFile = join(tmpDir, `${uuid()}.sh`)
-        await copyFile(shFile, tmpFile)
-        await chmod(tmpFile, '0755')
-
-        const tmpBin = join(tmpDir, helperFile)
-        await copyFile(bin, tmpBin)
-        await chmod(tmpBin, '0755')
-
-        command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
-        icns = join(binDir, 'Icon@256x256.icns')
       }
     }
 

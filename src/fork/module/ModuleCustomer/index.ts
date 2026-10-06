@@ -144,6 +144,7 @@ class ModuleCustomer {
         } else {
           command = version.command
         }
+        if (version.isSudo) command = `sudo -- /bin/bash -lc '${command.replace(/'/g, "'\\''")}'`
         command = command.replace(/"/g, '\\"')
 
         const terminalSH = join(global.Server.Static!, 'sh/exec-by-terminal.sh')

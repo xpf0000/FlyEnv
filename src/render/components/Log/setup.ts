@@ -110,11 +110,20 @@ export const LogSetup = (file: Ref<string>) => {
             log.value = ''
             MessageSuccess(I18nT('base.success'))
           })
-          .catch(() => {
-            IPC.send(`app-fork:tools`, 'writeFileByRoot', file.value, '').then((key: string) => {
-              IPC.off(key)
-              MessageSuccess(I18nT('base.success'))
-            })
+          .catch((error) => {
+            if (window.Server.isLinux) {
+              MessageError(`${I18nT('base.fail')}: ${error}`)
+              return
+            }
+            IPC.send(`app-fork:tools`, 'writeFileByRoot', file.value, '').then(
+              (key: string, res: any) => {
+                IPC.off(key)
+                if (res?.code === 0) {
+                  log.value = ''
+                  MessageSuccess(I18nT('base.success'))
+                } else MessageError(res?.msg ?? I18nT('base.fail'))
+              }
+            )
           })
         break
     }

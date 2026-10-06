@@ -224,6 +224,7 @@ class LanguageProject {
         for (const k in version.env) {
           command = `export ${k}="${version.env[k]}"\n${command}`
         }
+        if (project.isSudo) command = `sudo -- /bin/bash -lc '${command.replace(/'/g, "'\\''")}'`
         command = command.replace(/"/g, '\\"')
 
         const terminalSH = join(global.Server.Static!, 'sh/exec-by-terminal.sh')

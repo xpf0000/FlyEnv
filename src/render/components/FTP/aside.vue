@@ -52,6 +52,10 @@
   if (!module?.startExtParam) {
     module.startExtParam = () => {
       return new Promise<any[]>((resolve, reject) => {
+        if (window.Server.isLinux) {
+          resolve([])
+          return
+        }
         const showPasswordTips = () => {
           ElMessageBox.prompt(I18nT('service.ftpdNeedPasswordToStart'), I18nT('host.warning'), {
             distinguishCancelAndClose: true,

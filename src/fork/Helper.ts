@@ -11,7 +11,7 @@ import {
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
 import { hasWindowsPrivilegeProvider } from '@shared/WindowsPrivilege'
-import { appDebugLog, isWindows, uuid } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows, uuid } from '@shared/utils'
 import { timeOperation } from '@shared/OperationTiming'
 import { bindWindowsPathLogger } from '@shared/WindowsPathDiagnostics'
 import {
@@ -25,8 +25,28 @@ import {
 } from '@shared/WindowsHelperState'
 
 type Module =
-  'helper' | 'tools' | 'mariadb' | 'redis' | 'php' | 'mailpit' | 'mysql' | 'rabbitmq' | 'host'
+  | 'helper'
+  | 'tools'
+  | 'mariadb'
+  | 'redis'
+  | 'php'
+  | 'mailpit'
+  | 'mysql'
+  | 'rabbitmq'
+  | 'host'
+  | 'service'
+  | 'ftp'
 type FN =
+  | 'start'
+  | 'stop'
+  | 'refreshUsers'
+  | 'readHosts'
+  | 'replaceHostsContent'
+  | 'syncManagedEntries'
+  | 'clearManagedEntries'
+  | 'installApprovedCA'
+  | 'repairManagedPidDirectory'
+  | 'launchLowPort'
   | 'version'
   | 'health'
   | 'writeFileByRoot'
@@ -125,6 +145,8 @@ export class Helper {
   }
 
   private validateSendArgs(module: string, fn: string, args: any[]): boolean {
+    // Hosts text is data, including arbitrary comments and paths.
+    if (isLinux() && module === 'host') return true
     for (const [index, arg] of args.entries()) {
       if (module === 'tools' && fn === 'setSystemPath' && (index === 0 || index === 2)) {
         continue
@@ -181,6 +203,23 @@ export class Helper {
     fn: FN,
     args: any[]
   ): Promise<{ handled: boolean; value?: T }> {
+    if (isLinux()) {
+      this.invalidateHelperState()
+      if (
+        isAppHelperError(error) &&
+        [
+          'helper_binary_missing',
+          'helper_key_missing',
+          'helper_key_invalid',
+          'helper_unreachable',
+          'helper_pipe_unreachable',
+          'helper_version_mismatch'
+        ].includes(error.code)
+      ) {
+        this.notifyNeedInstall()
+      }
+      throw this.normalizeError(error)
+    }
     if (this.deps.isWindows() && hasWindowsPrivilegeProvider()) {
       // 生产权限路由不再自动 fallback/repair，错误不能替用户决定使用另一种方式。
       this.invalidateHelperState()

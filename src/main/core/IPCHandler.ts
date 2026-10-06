@@ -889,6 +889,13 @@ export default class IPCHandler extends EventEmitter {
   // ===== 密码检查 =====
 
   private handlePasswordCheck(command: string, key: string, args: any[]) {
+    if (process.platform === 'linux') {
+      this.sendToMainWindow(command, key, {
+        code: 1,
+        msg: 'Use sudo interactively in XTerm on Linux'
+      })
+      return
+    }
     const pass = args?.[0] ?? ''
     execPromiseSudo(['-k', 'echo', 'FlyEnv'], undefined, pass)
       .then(() => {

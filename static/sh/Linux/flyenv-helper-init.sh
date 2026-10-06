@@ -1,81 +1,73 @@
 #!/bin/bash
-# Linux version of the FlyEnv helper installer (using systemd)
-
-BIN="$1"  # Now only takes the binary path as argument (no plist needed)
+# Runs only during explicitly authorized installation/maintenance.
+set -euo pipefail
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+[ "$(id -u)" = 0 ] || { echo 'Run this installer as root'; exit 1; }
+BIN="$1"
+ROLE="$2"
 DATA_PATH="$3"
-APP_ROOT="$4"
+CA_PATH="${5:-}"
+CA_FINGERPRINT="${6:-}"
+SERVICE_NAME=flyenv-helper
+BIN_DEST=/usr/local/bin/flyenv-helper
+SERVICE_PATH=/etc/systemd/system/flyenv-helper.service
 
-SERVICE_NAME="flyenv-helper"
-BIN_DEST="/usr/local/bin/flyenv-helper"
-SERVICE_PATH="/etc/systemd/system/${SERVICE_NAME}.service"
-ALLOW_ROOTS_PATH="/usr/local/share/FlyEnv/flyenv.allowed-roots"
+check_directory() {
+  local path="$1" owner mode
+  [ -d "$path" ] && [ ! -L "$path" ] || { echo "Unsafe install directory: $path"; exit 1; }
+  owner=$(stat -c %u "$path")
+  mode=$(stat -c %a "$path")
+  [ "$owner" = 0 ] && (( (8#$mode & 0022) == 0 )) || { echo "Unprotected install directory: $path"; exit 1; }
+}
 
-# Remove existing service if it exists
-if [ -f "$SERVICE_PATH" ]; then
-  echo "Existing service found. Stopping and disabling..."
-  sudo systemctl stop "$SERVICE_NAME"
-  sudo systemctl disable "$SERVICE_NAME"
-  sudo rm -f "$SERVICE_PATH"
-fi
+stop_existing_helper() {
+  local load_state state pid
+  load_state=$(systemctl show "$SERVICE_NAME" --property=LoadState --value) || return 1
+  if [ "$load_state" = not-found ]; then return 0; fi
+  systemctl stop "$SERVICE_NAME" || return 1
+  state=$(systemctl show "$SERVICE_NAME" --property=ActiveState --value) || return 1
+  pid=$(systemctl show "$SERVICE_NAME" --property=MainPID --value) || return 1
+  if { [ "$state" != inactive ] && [ "$state" != failed ]; } || [ "$pid" != 0 ]; then
+    echo 'Existing FlyEnv helper did not stop; installation aborted' >&2
+    return 1
+  fi
+}
+for directory in / /usr /usr/local /usr/local/bin /etc /etc/systemd /etc/systemd/system; do
+  check_directory "$directory"
+done
+if [ -e /etc/flyenv-helper ] || [ -L /etc/flyenv-helper ]; then check_directory /etc/flyenv-helper; fi
 
-if [ -e "/tmp/flyenv-helper.sock" ]; then
-  sudo chown "$2" "/tmp/flyenv-helper.sock"
-fi
+install -d -o root -g root -m 0755 /usr/local/bin /etc/flyenv-helper
+TEMP_BIN=$(mktemp /usr/local/bin/.flyenv-helper.XXXXXX)
+trap 'rm -f "$TEMP_BIN"' EXIT
+install -o root -g root -m 0755 "$BIN" "$TEMP_BIN"
+stop_existing_helper
+"$TEMP_BIN" --install-linux-policy "$ROLE" "$DATA_PATH" "$CA_PATH" "$CA_FINGERPRINT"
+mv -T "$TEMP_BIN" "$BIN_DEST"
 
-sudo mkdir -p "/usr/local/share/FlyEnv"
-echo "$2" | sudo tee "/tmp/flyenv.role" >/dev/null
-echo "$2" | sudo tee "/usr/local/share/FlyEnv/flyenv.role" >/dev/null
-sudo chown "$2" "/tmp/flyenv.role"
-sudo chmod 0600 "/tmp/flyenv.role"
-sudo chown root:root "/usr/local/share/FlyEnv/flyenv.role"
-sudo chmod 0644 "/usr/local/share/FlyEnv/flyenv.role"
-
-if [ -n "$DATA_PATH" ]; then
-  {
-    printf '%s\n' "$DATA_PATH"
-    if [ -n "$APP_ROOT" ]; then
-      printf '%s\n' "$APP_ROOT"
-    fi
-  } | sudo tee "$ALLOW_ROOTS_PATH" >/dev/null
-  sudo chown root:root "$ALLOW_ROOTS_PATH"
-  sudo chmod 0644 "$ALLOW_ROOTS_PATH"
-fi
-
-# Copy the binary
-echo "Installing binary..."
-sudo mkdir -p "/usr/local/bin"
-sudo rm -rf "$BIN_DEST" 2>/dev/null
-echo "Copy $BIN to $BIN_DEST"
-sudo cp "$BIN" "$BIN_DEST"
-sudo chmod 755 "$BIN_DEST"
-
-# Create systemd service file
-echo "Creating systemd service..."
-sudo tee "$SERVICE_PATH" > /dev/null <<EOL
+TEMP_UNIT=$(mktemp /etc/systemd/system/.flyenv-helper.XXXXXX)
+cat > "$TEMP_UNIT" <<'UNIT'
 [Unit]
-Description=FlyEnv Helper Service
+Description=FlyEnv limited privileged helper
+After=local-fs.target
 
 [Service]
 ExecStart=/usr/local/bin/flyenv-helper
-Restart=always
+Restart=on-failure
 User=root
 Group=root
+UMask=0077
+RuntimeDirectory=flyenv-helper
+RuntimeDirectoryMode=0755
+NoNewPrivileges=yes
 
 [Install]
 WantedBy=multi-user.target
-EOL
-
-# Reload systemd and enable service
-echo "Enabling service..."
-sudo systemctl daemon-reload
-sudo systemctl enable "$SERVICE_NAME"
-sudo systemctl start "$SERVICE_NAME"
-
-if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to start service. Check journalctl -u $SERVICE_NAME for details"
-    exit 1
-fi
-
-echo "Installation complete. Service is running."
-echo "To check status: sudo systemctl status $SERVICE_NAME"
-echo "To view logs: sudo journalctl -u $SERVICE_NAME -f"
+UNIT
+chmod 0644 "$TEMP_UNIT"
+mv -T "$TEMP_UNIT" "$SERVICE_PATH"
+systemctl daemon-reload
+systemctl enable "$SERVICE_NAME"
+systemctl start "$SERVICE_NAME"
+echo 'Installed: fixed hosts editing, user service low-port binding, root Pure-Ftpd, PID directory repair.'
+if [ -n "$CA_PATH" ]; then echo 'Approved the supplied public development CA snapshot.'; fi

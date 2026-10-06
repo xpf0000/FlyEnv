@@ -6,12 +6,27 @@ import {
   ProcessSearch
 } from '@shared/Process'
 import Helper from '../../Helper'
+import { isLinux } from '@shared/utils'
 
 export function killPorts(ports: Array<string>) {
   return new ForkPromise(async (resolve) => {
     // 查询/执行错误在各平台都必须向终态传播，空端口幂等由执行层明确判断。
     // ForkPromise 会接收 async executor 的异常，不需要吞错后返回 true。
-    await Helper.send('tools', 'killPorts', ports)
+    if (isLinux()) {
+      const failures: string[] = []
+      for (const port of [...new Set(ports)]) {
+        try {
+          const targets = await fetchProcessPidByPort(port)
+          await ProcessKillStrict(
+            '-9',
+            targets.map((item) => item.PID)
+          )
+        } catch (error) {
+          failures.push(`${port}: ${error}`)
+        }
+      }
+      if (failures.length) throw new Error(failures.join('\n'))
+    } else await Helper.send('tools', 'killPorts', ports)
     resolve(true)
   })
 }

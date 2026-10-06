@@ -9,6 +9,10 @@
     @closed="closedFn"
   >
     <template #default>
+      <p v-if="isLinux" class="mb-3">{{ I18nT('setup.linuxHelperScope') }}</p>
+      <p v-if="isLinux && FlyEnvHelperSetup.caFingerprint" class="mb-3 break-all"
+        >CA SHA-256: {{ FlyEnvHelperSetup.caFingerprint }}</p
+      >
       <div class="main-wapper h-full">
         <div ref="xterm" class="h-full overflow-hidden"> </div>
       </div>
@@ -32,6 +36,7 @@
   import HelperStore from '@/store/helper'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+  const isLinux = window.Server.isLinux
 
   FlyEnvHelperSetup.show = true
 
@@ -58,6 +63,7 @@
           return
         }
         FlyEnvHelperSetup.command = res.command
+        FlyEnvHelperSetup.caFingerprint = res.caFingerprint
         resolve(FlyEnvHelperSetup.command)
       })
     })

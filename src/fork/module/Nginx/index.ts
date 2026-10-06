@@ -7,7 +7,6 @@ import {
   AppLog,
   brewInfoJson,
   portSearch,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -17,14 +16,16 @@ import {
   writeFile,
   mkdirp,
   zipUnpack,
-  moveChildDirToParent
+  moveChildDirToParent,
+  spawnPromiseWithEnv
 } from '../../Fn'
-import { serviceStartSpawn } from '../../util/ServiceStart'
+import { prepareLinuxLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { I18nT } from '@lang/runtime'
 import { isLinux, isWindows } from '@shared/utils'
 import { userInfo } from 'node:os'
+import { portsFromListenConfig } from '../../util/ListenPorts'
 
 class Nginx extends Base {
   constructor() {
@@ -167,7 +168,6 @@ class Nginx extends Base {
       console.log('_startServer: ', version)
       const bin = version.bin
       const baseDir = global.Server.NginxDir!
-      const execEnv = ''
 
       if (isWindows()) {
         const bin = version.bin
@@ -200,36 +200,37 @@ class Nginx extends Base {
         await mkdirp(temp_path)
         await this._fixConf()
         const p = join(global.Server.NginxDir!, 'common')
+        await prepareLinuxLogDirectory(join(p, 'logs'))
+        await prepareLinuxLogDirectory(
+          join(global.Server.BaseDir!, 'vhost/logs'),
+          (name) =>
+            name.endsWith('.log') &&
+            !name.endsWith('.caddy.log') &&
+            !name.endsWith('.frankenphp.log')
+        )
 
-        if (isLinux()) {
-          // Linux nginx binds privileged ports (80/443) and needs root, which
-          // serviceStartSpawn cannot provide — keep the Helper script path.
-          const g = `pid ${pid};error_log ${errlog};`
-          const execArgs = `-p "${p}" -e "${errlog}" -c ${c} -g "${g}"`
-          try {
-            const res = await serviceStartExec({
-              root: true,
-              version,
-              pidPath: pid,
-              baseDir,
-              bin,
-              execArgs,
-              execEnv,
-              on
-            })
-            resolve(res)
-          } catch (e: any) {
-            console.log('-k start err: ', e)
-            reject(e)
-            return
-          }
-        } else {
+        {
           // `daemon off;` keeps nginx in the foreground so serviceStartSpawn's
           // detached spawn owns the master process directly (no fork-and-exit).
           const g = `pid ${pid};error_log ${errlog};daemon off;`
           const execArgs = ['-p', p, '-e', errlog, '-c', c, '-g', g]
+          let listenPorts: number[] = []
+          if (isLinux()) {
+            try {
+              const config = await spawnPromiseWithEnv(
+                bin,
+                ['-T', '-p', p, '-e', errlog, '-c', c],
+                { timeout: 5000 }
+              )
+              listenPorts = portsFromListenConfig(config.stdout)
+            } catch {
+              // Native configuration expansion may fail; actual startup owns the error result.
+            }
+          }
           try {
             const res = await serviceStartSpawn({
+              lowPortService: isLinux(),
+              listenPorts,
               version,
               pidPath: pid,
               baseDir,

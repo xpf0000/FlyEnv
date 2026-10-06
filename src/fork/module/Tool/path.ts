@@ -12,7 +12,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join, resolve as PathResolve } from 'path'
 import { shellEnv } from 'shell-env'
-import { appDebugLog, isMacOS } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
 import type { SoftInstalled } from '@shared/app'
 import { createPythonBinShims } from '../../util/PythonShim'
@@ -118,7 +118,9 @@ export function handleUpdatePath(param?: { zsh: string }) {
     if (content !== contentBack) {
       try {
         await writeFileByRoot(file, content)
-      } catch {}
+      } catch (error) {
+        if (isLinux()) throw error
+      }
     }
     resolve(true)
   })

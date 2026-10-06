@@ -18,6 +18,7 @@ import { setAlias, cleanAlias } from './alias'
 import { runInTerminal, openPathByApp } from './terminal'
 import { initAllowDir, initFlyEnvSH } from './init'
 import type { SoftInstalled } from '@shared/app'
+import { isLinux } from '@shared/utils'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -101,20 +102,30 @@ class Manager extends Base {
   }
 
   readFileByRoot(file: string) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       let content = ''
       try {
         content = await readFileByRoot(file)
-      } catch {}
+      } catch (error) {
+        if (isLinux()) {
+          reject(error)
+          return
+        }
+      }
       resolve(content)
     })
   }
 
   writeFileByRoot(file: string, content: string) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       try {
         await writeFileByRoot(file, content)
-      } catch {}
+      } catch (error) {
+        if (isLinux()) {
+          reject(error)
+          return
+        }
+      }
       resolve(true)
     })
   }

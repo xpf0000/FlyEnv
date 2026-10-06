@@ -12,6 +12,16 @@ export const FlyEnvHelperFix = reactive({
       return
     }
     this.fixing = true
+    if (window.Server.isLinux) {
+      // Explicit maintenance also permits approving a new CA on a healthy helper.
+      FlyEnvHelperSetup.command = ''
+      import('@/components/FlyEnvHelper/index.vue')
+        .then((m) => AsyncComponentShow(m.default))
+        .finally(() => {
+          this.fixing = false
+        })
+      return
+    }
     IPC.send('APP:FlyEnv-Helper-Check').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {

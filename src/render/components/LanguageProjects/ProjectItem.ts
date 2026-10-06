@@ -271,7 +271,14 @@ export class ProjectItem implements ProjectItemType {
           })
       }
 
-      if (this.isSudo && !window.Server.Password) {
+      if (window.Server.isLinux && this.isSudo) {
+        if (!interactive) {
+          this._state.running = false
+          resolve(I18nT('service.linuxSudoRequiresTerminal'))
+          return
+        }
+        doRun(undefined, true)
+      } else if (this.isSudo && !window.Server.Password) {
         // 后台启动不得打开密码框；已有凭据可以继续，缺凭据交回启动组报告失败。
         if (!interactive) {
           this._state.running = false

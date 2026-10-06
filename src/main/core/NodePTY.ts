@@ -41,7 +41,7 @@ class NodePTY {
           }
           console.log('pty.onData: ', data)
           if (data.trim() === 'Password:') {
-            if (global.Server.Password) {
+            if (!isLinux() && global.Server.Password) {
               pty.write(`${global.Server.Password!}\r`)
             }
           }
@@ -134,7 +134,7 @@ class NodePTY {
           }
           console.log('pty.onData: ', data)
           if (data.trim() === 'Password:') {
-            if (global.Server.Password) {
+            if (!isLinux() && global.Server.Password) {
               pty.write(`${global.Server.Password!}\r`)
             }
           }

@@ -40,6 +40,7 @@ import { HostsFileLinux, HostsFileMacOS } from '@shared/PlatFormConst'
 import { windowsSystemDirectory } from '@shared/WindowsSystemPaths'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { reconcileSystemHostsBlock } from './SystemHostsBlock'
+import { syncLinuxHosts } from './LinuxHosts'
 import { timeOperation, timeOperationSync } from '@shared/OperationTiming'
 import { launchWindowsDnsRefresh } from '@shared/WindowsDnsRefresh'
 
@@ -436,6 +437,10 @@ export class Host extends Base {
         return
       }
       let content: string = ''
+      if (isLinux()) {
+        resolve(await syncLinuxHosts(host))
+        return
+      }
       content = (await timeOperation('hosts.read-system-file', () =>
         readFileByRoot(this.hostsFile)
       )) as string
@@ -576,25 +581,29 @@ export class Host extends Base {
         } catch (error) {
           // 权限选择、文件缺失、磁盘/共享锁异常均属于 Windows 写入失败，
           // 不得吞掉后返回成功；其他平台保留原有尽力处理行为。
-          if (isWindows()) throw error
+          if (isWindows() || isLinux()) throw error
           changed = false
         }
         hasChanged = hasChanged || changed
       } else {
-        const hosts = await readFileByRoot(this.hostsFile)
-        // 带 g 的 match 返回完整匹配数组而非捕获组，原 x[2] 会漏判删除变化，
-        // 从而不刷新 DNS。复用已有协调函数，删除全部托管块并保留其他内容。
-        const removal = reconcileSystemHostsBlock(hosts, '')
-        if (removal.changed) {
-          await writeFileByRoot(this.hostsFile, removal.content)
-          hasChanged = true
+        if (isLinux()) {
+          hasChanged = await syncLinuxHosts()
+        } else {
+          const hosts = await readFileByRoot(this.hostsFile)
+          // 带 g 的 match 返回完整匹配数组而非捕获组，原 x[2] 会漏判删除变化，
+          // 从而不刷新 DNS。复用已有协调函数，删除全部托管块并保留其他内容。
+          const removal = reconcileSystemHostsBlock(hosts, '')
+          if (removal.changed) {
+            await writeFileByRoot(this.hostsFile, removal.content)
+            hasChanged = true
+          }
         }
         let changed = false
         try {
           changed = await this._initHost(appHost, false, ipv6)
         } catch (error) {
           // 与写入分支保持一致，取消、权限及普通 I/O 错误均保留失败终态。
-          if (isWindows()) throw error
+          if (isWindows() || isLinux()) throw error
           changed = false
         }
         hasChanged = hasChanged || changed
@@ -616,7 +625,7 @@ export class Host extends Base {
         } catch (error) {
           // 共享 Windows 执行器已吸收正常启动失败；此处也防住包装层等意外异常。
           // 文件已经写入，刷新异常仅记录，不得让站点操作返回失败；不等待日志写盘。
-          if (isWindows()) {
+          if (isWindows() || isLinux()) {
             void appDebugLog('[Hosts][dns-refresh][error]', String(error)).catch(() => {})
           }
         }

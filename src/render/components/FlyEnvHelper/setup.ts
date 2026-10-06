@@ -5,6 +5,7 @@ type FlyEnvHelperSetupType = {
   execXTerm?: XTerm
   loading: boolean
   command: string
+  caFingerprint?: string
   show: boolean
 }
 

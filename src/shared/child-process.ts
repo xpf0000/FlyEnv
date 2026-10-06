@@ -45,6 +45,10 @@ export function execPromiseSudo(
   password?: string
 ): ForkPromiseResType {
   return new ForkPromise(async (resolve, reject, on) => {
+    if (process.platform === 'linux') {
+      reject(new Error('Linux background sudo is disabled; run privileged commands in XTerm'))
+      return
+    }
     const stdout: Array<Uint8Array> = []
     const stderr: Array<Uint8Array> = []
     const args: string[] = ['-S']

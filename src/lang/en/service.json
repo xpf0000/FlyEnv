@@ -1,4 +1,7 @@
 {
+  "linuxSudoRequiresTerminal": "Start this privileged task interactively in the terminal; Linux background sudo is unavailable.",
+  "linuxFtpUnmanagedRoot": "This root FTP process was not started by FlyEnv's managed service. Stop it with administrator privileges before starting again.",
+  "linuxFtpUsersRefreshFailed": "FTP account changes were saved, but the running service could not apply them: {error}",
   "setaliase": "Set Alias",
   "env": "Env",
   "alias": "Alias",

@@ -102,7 +102,9 @@ function checkArgType(call: HelperCall, spec: MethodSpec, arg: ArgSpec, node: ts
   const loc = `${path.relative(repoRoot, call.file)}:${call.line}`
   if (arg.type === 'string[]' || arg.type === 'processStartIdentity[]') {
     if (actual !== 'array') {
-      errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} must be an array`)
+      errors.push(
+        `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} must be an array`
+      )
       return
     }
     const arr = node as ts.ArrayLiteralExpression
@@ -122,24 +124,32 @@ function checkArgType(call: HelperCall, spec: MethodSpec, arg: ArgSpec, node: ts
         const properties = new Map<string, ts.Expression>()
         for (const property of element.properties) {
           if (!ts.isPropertyAssignment(property)) {
-            errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} has an invalid identity property`)
+            errors.push(
+              `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} has an invalid identity property`
+            )
             continue
           }
           const key = property.name.getText().replace(/^['"]|['"]$/g, '')
           if (!['pid', 'created', 'source', 'path'].includes(key)) {
-            errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity has unknown field ${key}`)
+            errors.push(
+              `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity has unknown field ${key}`
+            )
           }
           properties.set(key, property.initializer)
         }
         for (const key of ['pid', 'created', 'source']) {
           if (!properties.has(key)) {
-            errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity is missing ${key}`)
+            errors.push(
+              `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity is missing ${key}`
+            )
           }
         }
         for (const key of ['created', 'source', 'path']) {
           const value = properties.get(key)
           if (value && literalKind(value) && literalKind(value) !== 'string') {
-            errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity ${key} must be a string`)
+            errors.push(
+              `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity ${key} must be a string`
+            )
           }
         }
         const source = properties.get('source')
@@ -157,14 +167,20 @@ function checkArgType(call: HelperCall, spec: MethodSpec, arg: ArgSpec, node: ts
           sourceValue !== 'cim' &&
           !(sourceValue === 'cim-descendant' && allowsDescendant)
         ) {
-          errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity has invalid source ${sourceValue}`)
+          errors.push(
+            `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity has invalid source ${sourceValue}`
+          )
         }
         if (sourceValue === 'cim' && !properties.has('path')) {
-          errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} CIM identity is missing path`)
+          errors.push(
+            `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} CIM identity is missing path`
+          )
         }
         const pid = properties.get('pid')
         if (pid && literalKind(pid) && literalKind(pid) !== 'number') {
-          errors.push(`${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity pid must be a number`)
+          errors.push(
+            `${loc} ${methodKey(spec.module, spec.function)} arg ${arg.name} identity pid must be a number`
+          )
         }
       }
     }
@@ -240,19 +256,32 @@ function extractGoDispatch(): Map<string, Set<string>> {
   const text = fs.readFileSync(helperGoPath, 'utf-8')
   const dispatch = new Map<string, Set<string>>()
   let currentModule = ''
+  const indent = text.match(/^(\t+)switch info\.Module \{/m)?.[1]
+  if (!indent) {
+    errors.push('Unable to find the Go module dispatcher')
+    return dispatch
+  }
+  const moduleCase = new RegExp(`^${indent}case "([^"]+)":`)
+  const functionCase = new RegExp(`^${indent}\\tcase "([^"]+)":`)
 
   for (const line of text.split(/\r?\n/)) {
-    const moduleMatch = line.match(/^\t\tcase "([^"]+)":/)
+    const moduleMatch = line.match(moduleCase)
     if (moduleMatch) {
       currentModule = moduleMatch[1]
       if (!dispatch.has(currentModule)) dispatch.set(currentModule, new Set())
       continue
     }
 
-    const fnMatch = line.match(/^\t\t\tcase "([^"]+)":/)
+    const fnMatch = line.match(functionCase)
     if (fnMatch && currentModule) {
       dispatch.get(currentModule)?.add(fnMatch[1])
     }
+  }
+
+  const linux = fs.readFileSync(path.join(repoRoot, 'src/helper-go/linux.go'), 'utf8')
+  for (const match of linux.matchAll(/"(host|tools|service|ftp)\.([A-Za-z]+)"/g)) {
+    if (!dispatch.has(match[1])) dispatch.set(match[1], new Set())
+    dispatch.get(match[1])!.add(match[2])
   }
 
   return dispatch

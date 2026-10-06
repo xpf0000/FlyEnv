@@ -79,6 +79,7 @@
   },
   "flyenvHelper": "FlyEnv帮助程序修复",
   "flyenvHelperBtn": "修复",
+  "linuxHelperScope": "安装时授权：完整编辑 hosts、以内置 Web 服务的普通用户身份绑定低端口、以 root 运行 Pure-Ftpd、修复 FlyEnv 的 PID 目录。已有的 FlyEnv CA 公共证书也将被批准加入系统信任。日常 helper 操作不再询问密码；新 CA 请在此重新安装授权。终端 sudo 继续使用系统认证。",
   "flyenvHelperFixSuccess": "FlyEnv帮助程序修复成功",
   "flyenvHelperInstallFailTips": "FlyEnv 帮助程序安装失败。请继续使用原来的 Windows 账户，在设置中点击帮助程序修复按钮重试；如仍失败，请提供下方错误详情。",
   "flyenvHelperInstallTimeout": "等待安装结果超时。安装可能仍在后台进行，请再次点击帮助程序修复按钮以确认结果。",

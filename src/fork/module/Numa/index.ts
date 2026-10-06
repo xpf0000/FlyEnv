@@ -7,7 +7,6 @@ import {
   AppLog,
   brewInfoJson,
   execPromiseWithEnv,
-  serviceStartExec,
   serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
@@ -22,7 +21,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ProcessListSearch } from '@shared/Process.win'
 import { ProcessListFetch, ProcessSearch } from '@shared/Process'
@@ -87,19 +86,7 @@ class Numa extends Base {
       let startError: any = null
       let res: any = null
       try {
-        if (isLinux()) {
-          const execArgs = `"${configFile}"`
-          res = await serviceStartExec({
-            root: true,
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            on,
-            checkPidFile: false
-          })
-        } else if (isWindows()) {
+        if (isWindows()) {
           const execArgs = `"${configFile}"`
           res = await serviceStartExecCMD({
             version,

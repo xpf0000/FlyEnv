@@ -370,6 +370,15 @@ export class Base {
 
     await remove(probeFile).catch(() => {})
 
+    if (isLinux()) {
+      try {
+        await Helper.send('tools', 'repairManagedPidDirectory')
+        await verifyWritable()
+        return
+      } catch (error) {
+        throw new Error(`PID directory is not writable: ${pidDir}. ${error}`)
+      }
+    }
     if (!isWindows()) {
       try {
         const uinfo = userInfo()

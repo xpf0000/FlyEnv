@@ -208,6 +208,7 @@ export default class ConfigManager {
       }
     }
     this.config = new Store<ConfigOptions>(options)
+    if (process.platform === 'linux') this.config.set('password', '')
 
     if (!this.config.has('setup') || !this.config.has('setup.redis')) {
       const password = this.config.get('password', '')
@@ -244,6 +245,7 @@ export default class ConfigManager {
   }
 
   getConfig(key?: any, defaultValue?: any) {
+    if (process.platform === 'linux' && key === 'password') return ''
     if (typeof key === 'undefined' && typeof defaultValue === 'undefined') {
       return this.config?.store
     }
@@ -251,6 +253,10 @@ export default class ConfigManager {
   }
 
   setConfig(key: string | Partial<ConfigOptions>, ...args: any[]) {
+    if (process.platform === 'linux') {
+      if (typeof key === 'string' && key === 'password') args = ['']
+      else if (typeof key !== 'string' && 'password' in key) key = { ...key, password: '' }
+    }
     if (typeof key === 'string') {
       // 字符串键与对象补丁遵循同一授权边界，只有专用原子提交入口能改权限偏好。
       if (key === 'setup') {

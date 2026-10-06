@@ -3,7 +3,7 @@ import { createConnection } from 'node:net'
 import { userInfo } from 'node:os'
 import { dirname, join, resolve as pathResolve } from 'node:path'
 import is from 'electron-is'
-import { isWindows } from './utils'
+import { isLinux, isWindows } from './utils'
 import JSON5 from 'json5'
 import crypto from 'node:crypto'
 import { AppHelperError, type AppHelperErrorCode } from './WindowsHelperState'
@@ -15,6 +15,8 @@ import {
 } from './WindowsHelperIdentity'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
+const LINUX_SOCKET_PATH = '/run/flyenv-helper/helper.sock'
+const LINUX_KEY_PATH = '/etc/flyenv-helper/client.key'
 const Role_Path = '/tmp/flyenv.role'
 const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
 const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
@@ -33,7 +35,7 @@ const Helper_Check_Timeout = 3000
 // v35 与 Go 停止执行同步：一次请求连续终止，取消逐 PID 阻塞等待。
 // v36 环境广播改为 Helper 后台队列；旧程序仍阻塞写入 RPC，须通过版本检查更新。
 // v37 删除 Helper 提前广播，统一在环境业务结算后通知；旧 v36 会提前/重复广播。
-export const HelperVersion = 37
+export const HelperVersion = 40
 
 export type HelperHealth = {
   version: number
@@ -60,6 +62,7 @@ const currentWindowsHelperIdentity = (): Promise<WindowsHelperIdentity> => {
 }
 
 export const HelperKeyPath = (identity?: WindowsHelperIdentity): string => {
+  if (isLinux()) return LINUX_KEY_PATH
   if (!isWindows()) return Key_Path_Unix
   if (!identity) throw new Error('Windows helper identity is required for the key path')
   return identity.keyPath
@@ -146,13 +149,13 @@ export const helperTaskAuthFields = () => ({
 
 export const AppHelperSocketPathGet = async (identity?: WindowsHelperIdentity): Promise<string> => {
   if (!isWindows()) {
-    return SOCKET_PATH
+    return isLinux() ? LINUX_SOCKET_PATH : SOCKET_PATH
   }
   return (identity ?? (await currentWindowsHelperIdentity())).pipePath
 }
 
 export const AppHelperRoleFix = async () => {
-  if (isWindows()) {
+  if (isWindows() || isLinux()) {
     return
   }
   const uinfo = userInfo()
@@ -192,6 +195,7 @@ export const getWindowsHelperValidationBinaryPath = (): string => {
 }
 
 type AppHelperCheckDeps = {
+  isLinux: () => boolean
   isWindows: () => boolean
   helperBinaryExists: () => boolean
   createConnection: typeof createConnection
@@ -212,6 +216,7 @@ export const helperResponseErrorCode = (message: string): AppHelperErrorCode => 
 
 export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) => {
   const runtime = {
+    isLinux,
     isWindows,
     helperBinaryExists: windowsHelperBinaryExists,
     createConnection,
@@ -334,17 +339,18 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
     }
 
     const helperKey = await runtime.getHelperKey(identity)
-    if (runtime.isWindows() && !helperKey) {
-      throw new AppHelperError(
-        'helper_key_missing',
-        `Windows helper key missing: ${HelperKeyPath(identity)}`
-      )
-    }
-    if (runtime.isWindows() && helperKey && helperKey.length !== 32) {
-      throw new AppHelperError(
-        'helper_key_invalid',
-        'Windows helper key must contain exactly 32 bytes'
-      )
+    if (runtime.isWindows() || runtime.isLinux()) {
+      const platform = runtime.isWindows() ? 'Windows' : 'Linux'
+      const keyPath = runtime.isLinux() ? LINUX_KEY_PATH : HelperKeyPath(identity)
+      if (!helperKey) {
+        throw new AppHelperError('helper_key_missing', `${platform} helper key missing: ${keyPath}`)
+      }
+      if (helperKey.length !== 32) {
+        throw new AppHelperError(
+          'helper_key_invalid',
+          `${platform} helper key must contain exactly 32 bytes`
+        )
+      }
     }
 
     let expectedSid: string | undefined
@@ -366,7 +372,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       }
     }
 
-    let pipePath = SOCKET_PATH
+    let pipePath = runtime.isLinux() ? LINUX_SOCKET_PATH : SOCKET_PATH
     if (runtime.isWindows()) {
       if (!identity) {
         throw new AppHelperError('helper_task_invalid', 'Windows helper pipe is unavailable')

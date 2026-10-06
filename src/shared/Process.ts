@@ -1,9 +1,10 @@
 import Helper from '../fork/Helper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { execPromiseWithEnv } from '@shared/child-process'
-import { appDebugLog, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows } from '@shared/utils'
 import { logServiceStop } from './ServiceStopDiagnostics'
 import { collectProcessSnapshotTree, isReadableServiceStopRoot } from './ProcessSnapshot'
+import { constants } from 'node:os'
 
 const isEmptyLsofNoMatch = (error: unknown) => {
   const result = error as {
@@ -39,7 +40,9 @@ export const ProcessListFetch = async (): Promise<PItem[]> => {
   }
   let useHelper = false
   try {
-    if (Helper.enable) {
+    if (isLinux()) {
+      useHelper = false
+    } else if (Helper.enable) {
       useHelper = true
     } else if (await AppHelperCheck()) {
       useHelper = true
@@ -316,6 +319,30 @@ export const ProcessKillStrict = async (sig: string, pids: string[]) => {
     }
     return
   }
+  if (isLinux()) {
+    const token = sig.replace(/^-/, '')
+    const signal = /^\d+$/.test(token)
+      ? Number(token)
+      : constants.signals[
+          (token.startsWith('SIG') ? token : `SIG${token}`) as keyof typeof constants.signals
+        ]
+    if (!Number.isInteger(signal) || signal < 0 || signal > 64)
+      throw new Error(`Unsupported signal: ${sig}`)
+    const failures: string[] = []
+    for (const pid of pids) {
+      if (!/^[1-9]\d*$/.test(pid) || Number(pid) <= 1) {
+        failures.push(`Invalid PID: ${pid}`)
+        continue
+      }
+      try {
+        process.kill(Number(pid), signal)
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ESRCH') failures.push(`${pid}: ${error}`)
+      }
+    }
+    if (failures.length) throw new Error(failures.join('\n'))
+    return
+  }
   let useHelper = false
   try {
     if (Helper.enable) {
@@ -341,7 +368,7 @@ export const ProcessKill = async (sig: string, pids: string[]) => {
     appDebugLog(`[ProcessKill][command][error]`, `${e}`).catch()
     // 还有服务使用兼容入口；Windows 命令失败必须向调用方传播，
     // 否则 N8N、网关等会清空 PID 并误报已停止。Unix 保留既有尽力清理语义。
-    if (isWindows()) throw e
+    if (isWindows() || isLinux()) throw e
   }
 }
 
@@ -355,7 +382,9 @@ export const fetchProcessPidByPort = async (port: string): Promise<PItem[]> => {
 
   let useHelper = false
   try {
-    if (Helper.enable) {
+    if (isLinux()) {
+      useHelper = false
+    } else if (Helper.enable) {
       useHelper = true
     } else if (await AppHelperCheck()) {
       useHelper = true

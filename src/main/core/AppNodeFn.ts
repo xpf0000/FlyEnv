@@ -15,6 +15,7 @@ import { resolve as PathResolve } from 'path'
 import { appDebugLog, isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import { realpath } from '@shared/fs-extra'
 import { copy, mkdirp, writeFile, readFile, copyFile, chmod, remove } from '@shared/fs-extra'
+import { readLinuxHosts, replaceLinuxHosts } from '../../fork/module/Host/LinuxHosts'
 import crypto from 'node:crypto'
 import is from 'electron-is'
 import { homedir } from 'node:os'
@@ -515,7 +516,14 @@ X-GNOME-Autostart-enabled=true`
       .then(() => {
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
-      .catch(() => {
+      .catch((error) => {
+        if (isLinux()) {
+          this?.mainWindow?.webContents.send('command', command, key, {
+            code: 1,
+            msg: String(error)
+          })
+          return
+        }
         Helper.send('tools', 'writeBufferBase64ByRoot', path, data)
           .then(() => {
             this?.mainWindow?.webContents.send('command', command, key, true)
@@ -632,6 +640,24 @@ X-GNOME-Autostart-enabled=true`
       })
   }
 
+  host_readHosts(command: string, key: string) {
+    readLinuxHosts()
+      .then((data) =>
+        this?.mainWindow?.webContents.send('command', command, key, { code: 0, data })
+      )
+      .catch((error) =>
+        this?.mainWindow?.webContents.send('command', command, key, { code: 1, msg: String(error) })
+      )
+  }
+
+  host_replaceHosts(command: string, key: string, content: string, digest: string) {
+    replaceLinuxHosts(content, digest)
+      .then(() => this?.mainWindow?.webContents.send('command', command, key, { code: 0 }))
+      .catch((error) =>
+        this?.mainWindow?.webContents.send('command', command, key, { code: 1, msg: String(error) })
+      )
+  }
+
   fs_readFile(command: string, key: string, path: string, strict = false) {
     // strict 供 hosts/项目版本等会依据读取结果重写文件的调用方使用；旧只读调用
     // 保持缺失返回空字符串的合同。只把访问拒绝交给权限分流，不以 UAC 掩盖 I/O 错误。
@@ -649,7 +675,7 @@ X-GNOME-Autostart-enabled=true`
         this?.mainWindow?.webContents.send('command', command, key, data)
       })
       .catch((error: NodeJS.ErrnoException) => {
-        if (!['EACCES', 'EPERM'].includes(error.code ?? '')) {
+        if (isLinux() || !['EACCES', 'EPERM'].includes(error.code ?? '')) {
           fail(error)
           return
         }
@@ -677,7 +703,7 @@ X-GNOME-Autostart-enabled=true`
             errorCode: error.code
           })
         }
-        if (!['EACCES', 'EPERM'].includes(e.code ?? '')) {
+        if (isLinux() || !['EACCES', 'EPERM'].includes(e.code ?? '')) {
           fail(e)
           return
         }
