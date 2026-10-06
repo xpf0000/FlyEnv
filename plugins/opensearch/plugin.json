@@ -1,0 +1,24 @@
+{
+  "apiVersion": 1,
+  "id": "opensearch",
+  "name": "OpenSearch",
+  "version": "0.1.0",
+  "description": {
+    "en": "OpenSearch search & analytics engine (Apache 2.0 fork of Elasticsearch).",
+    "zh": "OpenSearch 搜索与分析引擎（Elasticsearch 的 Apache 2.0 分支）。"
+  },
+  "author": "FlyEnv",
+  "module": {
+    "typeFlag": "opensearch",
+    "moduleType": "searchEngine",
+    "label": "OpenSearch",
+    "asideIndex": 4,
+    "isService": true,
+    "isTray": true,
+    "platform": ["Windows", "macOS", "Linux"]
+  },
+  "entry": {
+    "render": "render/Module.ts",
+    "fork": "fork/index.ts"
+  }
+}

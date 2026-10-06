@@ -99,6 +99,39 @@
         "sha256": "bdf7d82de2ce04b6bd82e0f4f0a28fad18093fc6ca2e8b0458d26648f48a7743"
       },
       "official": true
+    },
+    {
+      "id": "opensearch",
+      "name": "OpenSearch",
+      "version": "0.1.0",
+      "description": {
+        "en": "OpenSearch search & analytics engine (Apache 2.0 fork of Elasticsearch).",
+        "zh": "OpenSearch 搜索与分析引擎（Elasticsearch 的 Apache 2.0 分支）。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "opensearch",
+        "moduleType": "searchEngine",
+        "label": "OpenSearch",
+        "asideIndex": 4,
+        "isService": true,
+        "isTray": true,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "cd33f8c90e100ac154f8d66f8f6973d5529caa4db0c34dd3fc3d16e5176f5e36"
+      },
+      "official": true
     }
   ]
 }
