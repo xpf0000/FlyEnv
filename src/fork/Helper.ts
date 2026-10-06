@@ -14,9 +14,11 @@ import { hasWindowsPrivilegeProvider } from '@shared/WindowsPrivilege'
 import { appDebugLog, isLinux, isWindows, uuid } from '@shared/utils'
 import { timeOperation } from '@shared/OperationTiming'
 import { bindWindowsPathLogger } from '@shared/WindowsPathDiagnostics'
+import { I18nT } from '@lang/runtime'
 import {
   AppHelperError,
   isAppHelperError,
+  isAppHelperUnavailableError,
   isWindowsHelperFallbackAllowed,
   resolveWindowsElevationMethod,
   resolveWindowsHelperTransport,
@@ -117,6 +119,18 @@ const defaultHelperDeps: HelperDeps = {
   runWindowsHelperFallback: lazyWindowsHelperFallback
 }
 
+// 安装前置失败仍是业务失败；IPC 文案只提示安装，原始原因保留在 cause 和 debug 日志。
+class HelperInstallRequiredError extends AppHelperError {
+  constructor(error: AppHelperError) {
+    super(error.code, I18nT('menu.needInstallHelper'))
+    this.cause = error
+  }
+
+  toString(): string {
+    return this.message
+  }
+}
+
 export class Helper {
   enable = false
   appHelper?: AppHelper
@@ -162,6 +176,22 @@ export class Helper {
       }
     }
     return true
+  }
+
+  private installRequiredError(error: unknown): Error {
+    if (isAppHelperUnavailableError(error)) {
+      void appDebugLog(
+        '[Fork][Helper][need-install]',
+        JSON.stringify({
+          code: error.code,
+          message: error.message,
+          stderr: error.stderr,
+          stack: error.stack
+        })
+      ).catch(() => {})
+      return new HelperInstallRequiredError(error)
+    }
+    return this.normalizeError(error)
   }
 
   private notifyNeedInstall() {
@@ -213,10 +243,12 @@ export class Helper {
           'helper_key_invalid',
           'helper_unreachable',
           'helper_pipe_unreachable',
+          'helper_signature_invalid',
           'helper_version_mismatch'
         ].includes(error.code)
       ) {
         this.notifyNeedInstall()
+        throw this.installRequiredError(error)
       }
       throw this.normalizeError(error)
     }
@@ -241,7 +273,7 @@ export class Helper {
     if (transport === 'prompt') {
       this.enable = false
       this.notifyNeedInstall()
-      throw this.normalizeError(error)
+      throw this.installRequiredError(error)
     }
 
     this.enable = false
