@@ -38,7 +38,6 @@ import {
   assertPgAdminPythonVersion,
   assertPgAdminRegistrationPort,
   startPgAdminWithPortRetry,
-  stopPgAdminPidsWithVerification,
   validPgAdminRegistrationPort,
   validPgAdminPythonVersion,
   validatePgAdminPythonVersionInfo,
@@ -855,36 +854,6 @@ await assert.rejects(
 )
 assert.deepEqual(cleanupFailureStarts, [5050])
 
-const strictStopEvents: string[] = []
-let remainingStopPids = ['7001']
-await stopPgAdminPidsWithVerification({
-  pids: ['7001'],
-  kill: async (pids) => {
-    strictStopEvents.push(`kill:${pids.join(',')}`)
-  },
-  remainingPids: async () => {
-    strictStopEvents.push(`check:${remainingStopPids.join(',')}`)
-    const result = remainingStopPids
-    remainingStopPids = []
-    return result
-  },
-  wait: async () => {
-    strictStopEvents.push('wait')
-  },
-  attempts: 2
-})
-assert.deepEqual(strictStopEvents, ['kill:7001', 'check:7001', 'wait', 'check:'])
-await assert.rejects(
-  stopPgAdminPidsWithVerification({
-    pids: ['7002'],
-    kill: async () => {},
-    remainingPids: async () => ['7002'],
-    wait: async () => {},
-    attempts: 1
-  }),
-  /did not exit/
-)
-
 const postgresqlDataDirectory = 'C:/FlyEnv/PostgreSQL'
 const ownedPostgresProcess = {
   PID: '202',
@@ -1171,7 +1140,6 @@ assert.match(postgresqlSource, /setup-db/)
 assert.match(postgresqlSource, /pgAdminDesktopBootstrapContent\(\)/)
 assert.match(postgresqlSource, /load-servers/)
 assert.match(postgresqlSource, /findPgAdminPort\(/)
-assert.match(postgresqlSource, /ProcessKillStrict/)
 assert.match(postgresqlSource, /ProcessPidListStrict/)
 assert.match(postgresqlSource, /pgAdminCommandOwned\(command, paths, packageRoot, isWindows\(\)\)/)
 assert.match(

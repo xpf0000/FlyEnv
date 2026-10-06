@@ -75,6 +75,7 @@
     "test:stop-process-list-cache": "tsx scripts/stop-process-list-cache-test.ts",
     "test:unix-process-list": "tsx scripts/unix-process-list-test.ts",
     "test:service-stop-batch": "tsx scripts/service-stop-batch-test.ts",
+    "test:service-stop-snapshot": "tsx scripts/service-stop-snapshot-regression-test.ts",
     "test:bin-version-cache": "tsx scripts/bin-version-cache-test.ts",
     "test:brew-formula-tap-installed": "tsx scripts/brew-formula-tap-installed-test.ts",
     "test:brew-formula-conflict": "tsx scripts/brew-formula-conflict-test.ts",

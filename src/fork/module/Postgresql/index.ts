@@ -32,13 +32,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
-import {
-  fetchLoopbackListeningPids,
-  ProcessKillStrict,
-  ProcessListByExactPid,
-  ProcessListFetch,
-  type PItem
-} from '@shared/Process'
+import { fetchLoopbackListeningPids, ProcessListByExactPid, type PItem } from '@shared/Process'
 import {
   fetchLoopbackListeningPids as fetchLoopbackListeningPidsWindows,
   ProcessPidListStrict
@@ -75,7 +69,6 @@ import {
   PgAdminSingleFlight,
   postgresqlPortFromConfig,
   startPgAdminWithPortRetry,
-  stopPgAdminPidsWithVerification,
   type PgAdminServerIdentity,
   verifyPgAdminPidPersistence,
   waitForPgAdminHealth,
@@ -227,28 +220,15 @@ class Manager extends Base {
     return pgAdminPortOwnedByProcessTree(listeningPids, pid, processList)
   }
 
-  private async pgAdminPidsStillRunning(pids: string[]): Promise<string[]> {
-    const processList = isWindows() ? await ProcessPidListStrict() : await ProcessListFetch()
-    const activePids = new Set(processList.map((process) => `${process.PID}`))
-    return pids.filter((pid) => activePids.has(pid))
-  }
-
   private async stopPgAdminPidsStrict(pids: string[], processList?: PItem[]): Promise<PItem[]> {
+    const initialList = processList ?? (await StopProcessListFetch())
     if (isWindows()) {
       // pgAdmin 根已按私有目录确认；Base 把首次快照身份送入统一权限树停止并返回最终列表。
       // 未传首表时加入 main 的发现共享；已传列表时继续原采样，不额外查询。
-      const initialList = processList ?? (await StopProcessListFetch())
       return this.stopWindowsServiceProcesses(pids, initialList)
     }
-    await stopPgAdminPidsWithVerification({
-      pids,
-      kill: async (targetPids) => {
-        await ProcessKillStrict('-INT', targetPids)
-      },
-      remainingPids: () => this.pgAdminPidsStillRunning(pids),
-      wait: waitTime
-    })
-    return fetchStopProcessListLocal()
+    // Unix 同样比对原 PID/创建时间，沿用约 2.5 秒确认预算并返回清理所用的新表。
+    return this.stopUnixServicePids('-INT', pids, pids, 2500, initialList)
   }
 
   private async pgAdminHttpReachable(port: number): Promise<boolean> {

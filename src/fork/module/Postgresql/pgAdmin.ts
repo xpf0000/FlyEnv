@@ -228,34 +228,6 @@ export async function startPgAdminWithPortRetry<T>(
   }
 }
 
-export interface PgAdminStrictStopOptions {
-  pids: string[]
-  kill: (pids: string[]) => Promise<void>
-  remainingPids: () => Promise<string[]>
-  wait: (milliseconds: number) => Promise<unknown>
-  attempts?: number
-  intervalMilliseconds?: number
-}
-
-export async function stopPgAdminPidsWithVerification(
-  options: PgAdminStrictStopOptions
-): Promise<void> {
-  const pids = Array.from(new Set(options.pids.map((pid) => pid.trim()).filter(Boolean)))
-  if (pids.length === 0) return
-
-  await options.kill(pids)
-  const attempts = Math.max(1, options.attempts ?? 10)
-  const intervalMilliseconds = options.intervalMilliseconds ?? 250
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const remaining = await options.remainingPids()
-    if (remaining.length === 0) return
-    if (attempt + 1 < attempts) {
-      await options.wait(intervalMilliseconds)
-    }
-  }
-  throw new Error(`pgAdmin 4 process did not exit: ${pids.join(', ')}`)
-}
-
 export interface PgAdminPidPersistenceOptions {
   spawnedPid: string
   readPersistedPid: () => Promise<string>

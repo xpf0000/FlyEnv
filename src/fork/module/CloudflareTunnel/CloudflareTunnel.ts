@@ -2,14 +2,13 @@ import axios, { AxiosInstance } from 'axios'
 import crypto from 'crypto'
 import { join } from 'path'
 import { mkdirp, readFile, remove, writeFile } from '../../Fn'
+import { ProcessKillStrict, ProcessListByExactPid, type PItem } from '@shared/Process'
+import { StopProcessListFetch } from '@shared/StopProcessList'
 import {
-  ProcessKillStrict,
-  ProcessListByExactPid,
-  ProcessListFetch,
-  type PItem
-} from '@shared/Process'
-import { waitServiceProcessesExited } from '@shared/ServiceProcessIdentity'
-import { cleanupStoppedServicePidFiles, stopWindowsServiceProcesses } from '@shared/ServiceStop'
+  cleanupStoppedServicePidFiles,
+  stopWindowsServiceProcesses,
+  waitForServiceProcessExit
+} from '@shared/ServiceStop'
 import { isReadableServiceStopRoot } from '@shared/ProcessSnapshot'
 import type { CloudflareTunnelDnsRecord } from '@/core/CloudflareTunnel/type'
 import { spawn } from 'node:child_process'
@@ -290,10 +289,11 @@ export class CloudflareTunnel {
     let finalWindowsList: PItem[] | undefined
     try {
       console.log(`正在终止 cloudflared 进程 (PID: ${targetPid})...`)
-      // Windows 由统一权限执行器按父树停止；退出和界面都复用此方法。
+      // 三端发现均复用退出传入的首表；独立停止才向公共取表入口查询。
+      const list = await StopProcessListFetch()
+      const root = list.find(({ PID }) => PID === targetPid)
+      // Windows 按已经确认归属的完整树停止；退出和界面都复用此方法。
       if (isWindows()) {
-        const list = await ProcessListFetch()
-        const root = list.find(({ PID }) => PID === targetPid)
         if (root) {
           // 长期保存的 PID 可能复用，先确认实际程序仍是该隧道选择的 cloudflared。
           if (
@@ -305,10 +305,9 @@ export class CloudflareTunnel {
             // 未验证根过滤，不发送停止；提前返回也保留该 PID 文件和本地状态。
             return ''
           }
-          // 记录已确认父的完整子孙，只在执行后检查是否消失；授权时仍仅校验父。
-          // 父在 UAC 等待期间自行退出也不能让仍活着的子孙被错误注销。
+          // 已确认父的完整子孙取自同一首表，交互停止再核对原创建身份是否消失。
           const pids = ProcessListByExactPid(targetPid, list).map(({ PID }) => PID)
-          // 共用首次快照创建身份、父树执行和最终确认，不为隧道另建采样管道。
+          // 复用公共停止与退出确认，不为隧道另建采样管道。
           finalWindowsList = await stopWindowsServiceProcesses(pids, list)
         } else if (list.some(({ PPID }) => PPID === targetPid)) {
           return '' // 历史 PPID 没有有效父证明，不补认，但也不抛错阻断外层其他服务。
@@ -316,8 +315,6 @@ export class CloudflareTunnel {
       } else {
         // Unix 仍保留原 INT 策略，但不能吞掉权限/执行失败并清除运行 PID。
         // 本地查询证明目标已经消失才幂等成功；发信号后确认结果再清状态。
-        const list = await ProcessListFetch()
-        const root = list.find(({ PID }) => PID === targetPid)
         if (root) {
           // Unix command line is the available executable identity; never signal a reused PID
           // unless it still names the selected cloudflared binary.
@@ -339,7 +336,7 @@ export class CloudflareTunnel {
             signalError = error
           }
           try {
-            await waitServiceProcessesExited(pids)
+            await waitForServiceProcessExit(pids, 10_000, { initialList: list })
           } catch (error) {
             throw signalError ?? error
           }
