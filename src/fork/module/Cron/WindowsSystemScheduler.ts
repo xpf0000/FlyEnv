@@ -4,7 +4,7 @@ import { getPortableCronSchedule } from '@shared/CronExpression'
 import type { PortableCronSchedule } from '@shared/CronExpression'
 import { existsSync } from 'fs'
 import { dirname, join } from 'path'
-import { mkdirp, readFile, remove, spawnPromiseWithEnv, writeFile } from '../../Fn'
+import { mkdirp, remove, spawnPromiseWithEnv, writeFile } from '../../Fn'
 import { base64, homePath, runLogPath, systemTaskName, taskScriptPath } from './utils'
 
 type WindowsCronWrapperScriptParams = {
@@ -21,10 +21,6 @@ type WindowsCronWrapperScriptParams = {
 
 export const WINDOWS_CRON_WRAPPER_VERSION = 2
 export const WINDOWS_CRON_WRAPPER_VERSION_MARKER = `$FlyEnvCronWrapperVersion = ${WINDOWS_CRON_WRAPPER_VERSION}`
-
-export function isCurrentWindowsCronWrapper(content: string | Buffer | undefined): boolean {
-  return `${content || ''}`.includes(WINDOWS_CRON_WRAPPER_VERSION_MARKER)
-}
 
 export function buildWindowsCronWrapperScript(params: WindowsCronWrapperScriptParams): string {
   return `${WINDOWS_CRON_WRAPPER_VERSION_MARKER}
@@ -306,27 +302,9 @@ export class WindowsSystemScheduler {
   }
 
   async install(job: CronJob) {
+    // 仅明确安装/更新任务时生成当前脚本；不在 worker 初始化或读取列表时迁移旧脚本。
     const taskAction = await this.writeWrapper(job)
     await this.installTask(job, taskAction)
-  }
-
-  async repair(jobs: CronJob[]): Promise<void> {
-    for (const job of jobs) {
-      if (!job.enabled) {
-        continue
-      }
-
-      try {
-        const psFile = this.taskScriptPath(job.id, 'ps1')
-        const content = await readFile(psFile, 'utf8').catch(() => undefined)
-        if (isCurrentWindowsCronWrapper(content)) {
-          continue
-        }
-        await this.writeWrapper(job)
-      } catch (error) {
-        console.error(`[Cron][Windows] wrapper repair failed for ${job.id}:`, error)
-      }
-    }
   }
 
   async remove(jobId: string) {

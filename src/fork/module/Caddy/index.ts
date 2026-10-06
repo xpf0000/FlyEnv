@@ -7,7 +7,6 @@ import {
   brewInfoJson,
   portSearch,
   removeByRoot,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -18,7 +17,7 @@ import {
   mkdirp,
   versionBinVersionSync
 } from '../../Fn'
-import { serviceStartSpawn } from '../../util/ServiceStart'
+import { prepareLinuxLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
@@ -26,6 +25,7 @@ import { fetchHostList } from '../Host/HostFile'
 import { isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
 import { makeCaddyConf } from './Host'
 import { vhostName } from '../Host/vhostName'
+import { caddyListenPorts } from './Ports'
 
 class Caddy extends Base {
   constructor() {
@@ -109,35 +109,18 @@ class Caddy extends Base {
       const bin = version.bin
       const baseDir = join(global.Server.BaseDir!, 'caddy')
       await mkdirp(baseDir)
+      await prepareLinuxLogDirectory(join(global.Server.BaseDir!, 'vhost/logs'), (name) =>
+        name.endsWith('.caddy.log')
+      )
 
-      if (isLinux()) {
-        // Linux Caddy binds privileged ports (80/443) and needs root, which
-        // serviceStartSpawn cannot provide — keep the Helper script path.
-        const execEnv = ``
-        const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
-        try {
-          const res = await serviceStartExec({
-            root: true,
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
+      {
         // `caddy run` stays in the foreground (vs `start`, which daemonizes and
         // exits) so the detached spawn owns the process directly.
         const execArgs = ['run', '--config', iniFile, '--watch']
         try {
           const res = await serviceStartSpawn({
+            lowPortService: isLinux(),
+            listenPorts: isLinux() ? await caddyListenPorts(bin, iniFile) : undefined,
             version,
             pidPath: this.pidPath,
             baseDir,

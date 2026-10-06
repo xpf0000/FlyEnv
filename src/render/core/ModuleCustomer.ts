@@ -1,11 +1,12 @@
 import type { CustomerModuleExecItem, CustomerModuleItem } from '@/core/Module'
 import { computed, reactive, watch } from 'vue'
-import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { AppCustomerModule } from '@/core/Module'
 import { ElMessageBox } from 'element-plus'
 import { I18nT } from '@lang/index'
 import { AppStore } from '@/store/app'
+import { forkTerminalRequest, isPositiveHostPid } from '@/util/ForkTerminalRequest'
+import { beginServiceStatusPending, noteServiceStatusRevision } from '@/util/mcpServiceStatus'
 
 const ModuleDefaultIcon = `<svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
 >
@@ -19,6 +20,10 @@ const ModuleDefaultIcon = `<svg viewBox="0 0 1024 1024" version="1.1" xmlns="htt
     d="M512 983.04c-20.48 0-40.96-15.36-40.96-40.96V512c0-20.48 15.36-40.96 40.96-40.96s40.96 15.36 40.96 40.96v430.08c0 20.48-20.48 40.96-40.96 40.96z"
   ></path>
 </svg>`
+
+// 运行中的 Promise 留在模块局部，不成为自定义服务对象的可枚举字段并混入 IPC JSON。
+const stopOperations = new WeakMap<object, Promise<boolean | string>>()
+const startOperations = new WeakMap<object, Promise<boolean | string>>()
 
 class ModuleCustomerExecItem implements CustomerModuleExecItem {
   command: string = ''
@@ -38,7 +43,8 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
   pid = ''
 
   declare private module?: ModuleCustomer
-  _onStart!: (item: ModuleCustomerExecItem) => Promise<ModuleCustomer>
+  // 自定义独占服务的版本切换也保留后台/交互意图，不走默认可弹窗 stop。
+  _onStart!: (item: ModuleCustomerExecItem, interactive?: boolean) => Promise<ModuleCustomer>
 
   constructor(item: any, module?: ModuleCustomer) {
     Object.assign(this, item)
@@ -53,34 +59,116 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
     this.pid = ''
   }
 
-  stop() {
-    return new Promise((resolve) => {
+  /** 自定义服务停止同样保留进度与失败时的 PID，禁止取消 UAC 后误报已停止。 */
+  stop(interactive = true, waitForStart = true) {
+    const current = stopOperations.get(this)
+    // 首次 stop 会先置 run=false；重复调用仍须等待同一终态，不能提前让版本切换继续。
+    if (current) return current
+    const task = waitForStart ? this.stopAfterStart(interactive) : this.stopInternal(interactive)
+    const pending = task.finally(() => {
+      if (stopOperations.get(this) === pending) stopOperations.delete(this)
+    })
+    stopOperations.set(this, pending)
+    return pending
+  }
+
+  private async stopAfterStart(interactive: boolean): Promise<boolean | string> {
+    const starting = startOperations.get(this)
+    if (starting) {
+      const started = await starting
+      if (started !== true) return started
+    }
+    return this.stopInternal(interactive)
+  }
+
+  private stopInternal(interactive: boolean): Promise<boolean | string> {
+    return new Promise<boolean | string>((resolve) => {
       if (!this.run) {
         return resolve(true)
       }
       this.running = true
       this.run = false
-      IPC.send('app-fork:module-customer', 'stopService', this.pid).then((key: string) => {
-        IPC.off(key)
-        this.run = false
-        this.pid = ''
-        this.running = false
-        resolve(true)
-      })
+      const finishPending = beginServiceStatusPending('module-customer')
+      void forkTerminalRequest(
+        `${interactive ? 'app-fork' : 'app-fork-background'}:module-customer`,
+        ['stopService', this.pid],
+        I18nT('setup.windowsPrivilege.timeout')
+      )
+        .then((result: any) => {
+          finishPending()
+          noteServiceStatusRevision('module-customer', result?.serviceStatusRevision)
+          if (result?.code !== 0) {
+            this.run = true
+            this.running = false
+            resolve(result?.msg ?? 'Operation failed')
+            return
+          }
+          this.run = false
+          this.pid = ''
+          this.running = false
+          resolve(true)
+        })
+        .catch((error) => {
+          finishPending()
+          // 超时/同步发送异常是未知停止结果；保留 PID 与 run，让用户仍能重试或退出清理。
+          this.run = true
+          this.running = false
+          resolve(error instanceof Error ? error.message : String(error))
+        })
     })
   }
 
-  start(): Promise<boolean | string> {
-    return this.module?.startSingleFlight(() => this._startInternal()) ?? this._startInternal()
+  /** 列表重启必须先确认旧 PID 已停；失败时把实际错误留给 UI 展示。 */
+  async restart(interactive = true): Promise<boolean | string> {
+    const stopped = await this.stop(interactive)
+    if (stopped !== true) return stopped
+    return this.start(interactive)
   }
 
-  _startInternal(): Promise<boolean | string> {
+  /** 自定义版本保留原单次启动防重，权限意图作为原生命周期参数传递。 */
+  start(interactive = true): Promise<boolean | string> {
+    const current = startOperations.get(this)
+    if (current) return current
+    const task = async () => {
+      const stopping = stopOperations.get(this)
+      if (stopping) {
+        const stopped = await stopping
+        if (stopped !== true) return stopped
+      }
+      return this._startInternal(interactive)
+    }
+    const pending = Promise.resolve()
+      .then(() => this.module?.startSingleFlight(task) ?? task())
+      .catch((error) => {
+        this.running = false
+        return error instanceof Error ? error.message : String(error)
+      })
+      .finally(() => {
+        if (startOperations.get(this) === pending) startOperations.delete(this)
+      })
+    startOperations.set(this, pending)
+    return pending
+  }
+
+  _startInternal(interactive: boolean): Promise<boolean | string> {
     return new Promise(async (resolve) => {
       if (this.run && this.pid) {
         return resolve(true)
       }
+      if (window.Server.isLinux && this.isSudo && !interactive) {
+        resolve(I18nT('service.linuxSudoRequiresTerminal'))
+        return
+      }
       this.running = true
-      const module = await this._onStart(this)
+      let module: ModuleCustomer
+      try {
+        module = await this._onStart(this, interactive)
+      } catch (error) {
+        // 前置停止失败必须结束当前启动 Promise，恢复按钮并解除模块 single-flight。
+        this.running = false
+        resolve(error instanceof Error ? error.message : String(error))
+        return
+      }
 
       let hadRun = false
 
@@ -89,37 +177,55 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
           return
         }
         hadRun = true
-        IPC.send(
-          'app-fork:module-customer',
-          'startService',
-          JSON.parse(JSON.stringify(this)),
-          module.isService,
-          openInTerminal
-        ).then((key: string, res: any) => {
-          if (res.code === 0) {
-            IPC.off(key)
-            const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
-            this.running = false
-            if (module.isService) {
-              this.run = true
-              this.pid = pid
-            } else {
-              MessageSuccess(I18nT('base.success'))
+        const finishPending = beginServiceStatusPending('module-customer')
+        let itemSnapshot: string
+        try {
+          itemSnapshot = JSON.stringify(this)
+        } catch (error) {
+          finishPending()
+          this.running = false
+          // 请求未到终态时服务结果未知；保留已有标识，不能将超时伪装成已停止。
+          resolve(error instanceof Error ? error.message : String(error))
+          return
+        }
+        void forkTerminalRequest(
+          `${interactive ? 'app-fork' : 'app-fork-background'}:module-customer`,
+          ['startService', JSON.parse(itemSnapshot), module.isService, openInTerminal],
+          I18nT('setup.windowsPrivilege.timeout')
+        )
+          .then((res: any) => {
+            finishPending()
+            noteServiceStatusRevision('module-customer', res?.serviceStatusRevision)
+            if (res.code === 0) {
+              const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
+              this.running = false
+              if (module.isService) {
+                if (!isPositiveHostPid(pid)) {
+                  this.run = false
+                  this.pid = ''
+                  resolve(I18nT('base.fail'))
+                  return
+                }
+                this.run = true
+                this.pid = `${pid}`
+              } else {
+                MessageSuccess(I18nT('base.success'))
+              }
+              resolve(true)
+            } else if (res.code === 1) {
+              this.running = false
+              this.run = false
+              this.pid = ''
+              MessageError(res.msg)
+              resolve(res.msg)
             }
-            resolve(true)
-          } else if (res.code === 1) {
-            IPC.off(key)
+          })
+          .catch((error) => {
+            finishPending()
             this.running = false
-            this.run = false
-            this.pid = ''
-            MessageError(res.msg)
-            resolve(res.msg)
-          } else if (res.code === 200) {
-            if (res?.msg?.['APP-Service-Start-Success'] === true && module.isService) {
-              this.run = true
-            }
-          }
-        })
+            // 超时/发送异常不是失败终态；保留先前 PID 与状态供重试和退出清理使用。
+            resolve(error instanceof Error ? error.message : String(error))
+          })
       }
 
       const showPasswordTips = () => {
@@ -134,20 +240,32 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
             if (action === 'confirm') {
               if (instance.inputValue) {
                 const pass = instance.inputValue
-                IPC.send('app:password-check', pass).then((key: string, res: any) => {
-                  IPC.off(key)
-                  if (res?.code === 0) {
-                    window.Server.Password = res?.data ?? pass
-                    AppStore()
-                      .initConfig()
-                      .then(() => {
-                        done()
-                        doRun()
-                      })
-                  } else {
-                    instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')
-                  }
-                })
+                void forkTerminalRequest(
+                  'app:password-check',
+                  [pass],
+                  I18nT('setup.windowsPrivilege.timeout')
+                )
+                  .then((res: any) => {
+                    if (res?.code === 0) {
+                      window.Server.Password = res?.data ?? pass
+                      AppStore()
+                        .initConfig()
+                        .then(() => {
+                          done()
+                          doRun()
+                        })
+                        .catch((error) => {
+                          instance.editorErrorMessage =
+                            error instanceof Error ? error.message : String(error)
+                        })
+                    } else {
+                      instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')
+                    }
+                  })
+                  .catch((error) => {
+                    instance.editorErrorMessage =
+                      error instanceof Error ? error.message : String(error)
+                  })
               }
             } else if (action === 'cancel') {
               done()
@@ -161,15 +279,25 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
           .then()
           .catch()
       }
-      if (this.isSudo && !window.Server.Password) {
-        showPasswordTips()
+      if (window.Server.isLinux && this.isSudo) {
+        doRun(true)
+      } else if (this.isSudo && !window.Server.Password) {
+        try {
+          showPasswordTips()
+        } catch (error) {
+          this.running = false
+          resolve(error instanceof Error ? error.message : String(error))
+        }
       } else {
         doRun()
       }
     })
   }
 
-  onStart(fn: (item: ModuleCustomerExecItem) => Promise<ModuleCustomer>, module?: ModuleCustomer) {
+  onStart(
+    fn: (item: ModuleCustomerExecItem, interactive?: boolean) => Promise<ModuleCustomer>,
+    module?: ModuleCustomer
+  ) {
     this._onStart = fn
     this.module = module ?? this.module
   }
@@ -230,36 +358,31 @@ class ModuleCustomer implements CustomerModuleItem {
     return flight
   }
 
-  onExecStart(item: ModuleCustomerExecItem): Promise<ModuleCustomer> {
-    return new Promise<ModuleCustomer>(async (resolve) => {
-      if (!this.isOnlyRunOne || !this.isService) {
-        resolve(this)
-        return
+  /** 前置停止失败不改变 currentItemID，不启动另一份自定义服务实例。 */
+  async onExecStart(item: ModuleCustomerExecItem, interactive = true): Promise<ModuleCustomer> {
+    if (!this.isOnlyRunOne || !this.isService) return this
+    // 独占版本切换属于当前 startFlight 的内部前置停止，不能反向等待自己。
+    const stopped = await Promise.all(this.item.map((a) => a.stop(interactive, false)))
+    const failures = stopped.filter((result) => result !== true)
+    if (failures.length) throw new Error(failures.map(String).join('\n'))
+    if (this.currentItemID !== item.id) {
+      console.log('this.currentItemID !== item.id !!', this.currentItemID, item.id)
+      this.currentItemID = item.id
+      if (AppCustomerModule?.currentModule?.id === this.id) {
+        console.log('AppCustomerModule?.currentModule?.id === this.id', this.id)
+        AppCustomerModule.currentModule!.currentItemID = item.id
       }
-      if (this.currentItemID !== item.id) {
-        console.log('this.currentItemID !== item.id !!', this.currentItemID, item.id)
-        this.currentItemID = item.id
-        if (AppCustomerModule?.currentModule?.id === this.id) {
-          console.log('AppCustomerModule?.currentModule?.id === this.id', this.id)
-          AppCustomerModule.currentModule!.currentItemID = item.id
-        }
-        await AppCustomerModule.saveModule()
-        AppCustomerModule.index += 1
-      }
-      Promise.all(this.item.map((a) => a.stop()))
-        .then(() => {
-          resolve(this)
-        })
-        .catch(() => {
-          resolve(this)
-        })
-    })
+      await AppCustomerModule.saveModule()
+      AppCustomerModule.index += 1
+    }
+    return this
   }
 
-  start(): Promise<boolean | string> {
+  /** 模块批量启动将同一意图传给每个版本，不另建后台启动控制器。 */
+  start(interactive = true): Promise<boolean | string> {
     return new Promise((resolve) => {
       if (this.isOnlyRunOne !== true) {
-        Promise.all(this.item.map((a) => a.start()))
+        Promise.all(this.item.map((a) => a.start(interactive)))
           .then((arrs) => {
             const err = arrs.filter((a) => typeof a === 'string')
             if (err.length) {
@@ -283,7 +406,7 @@ class ModuleCustomer implements CustomerModuleItem {
       }
       find = this.item.find((f) => f.id === this.currentItemID)
       find!
-        .start()
+        .start(interactive)
         .then((res) => {
           resolve(res)
         })
@@ -293,14 +416,16 @@ class ModuleCustomer implements CustomerModuleItem {
     })
   }
 
-  stop(): Promise<boolean | string> {
+  /** 每个版本的失败需汇总给启动组，避免停止未完成却允许下一组启动。 */
+  stop(interactive = true): Promise<boolean | string> {
     return new Promise((resolve) => {
-      Promise.all(this.item.map((a) => a.stop()))
-        .then(() => {
-          resolve(true)
+      Promise.all(this.item.map((a) => a.stop(interactive)))
+        .then((results) => {
+          const errors = results.filter((result) => typeof result === 'string')
+          resolve(errors.length ? errors.join('\n') : true)
         })
-        .catch(() => {
-          resolve(true)
+        .catch((error) => {
+          resolve(error instanceof Error ? error.message : String(error))
         })
     })
   }

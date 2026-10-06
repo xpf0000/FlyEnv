@@ -42,7 +42,7 @@
   "linkCopySuccess": "Linkin URL kopioitu leikepöydälle!",
   "needSelectVersion": "Valitse ensin versio",
   "hostsSaveFailed": "Järjestelmäisäntien tiedostoa ei voitu tallentaa. Tarkista, onko tiedosto olemassa ja ovatko tiedoston käyttöoikeudet oikein",
-  "hostsReadFailed": "Tiedoston /private/etc/hosts lukeminen epäonnistui. Tarkista, onko tiedosto olemassa ja ovatko tiedoston oikeudet oikeita",
+  "hostsReadFailed": "Tiedoston {path} lukeminen epäonnistui. Tarkista, onko tiedosto olemassa ja ovatko tiedoston oikeudet oikeita",
   "needSelectDir": "Ole hyvä ja valitse kansio!",
   "processNotFound": "Prosesseja ei löytynyt",
   "hostsTitle": "Järjestelmäisännät",

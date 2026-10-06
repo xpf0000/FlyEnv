@@ -27,8 +27,7 @@ import EnvSync from '@shared/EnvSync'
 import TaskQueue from '../../TaskQueue'
 import { I18nT } from '@lang/runtime'
 import { isMacOS, isWindows, waitTime } from '@shared/utils'
-import { ProcessKill } from '@shared/Process'
-import { StopProcessListFetch } from '@shared/StopProcessList'
+import { StopProcessListFetch, fetchStopProcessListLocal } from '@shared/StopProcessList'
 import {
   NEO4J_MIN_VERSION,
   isNeo4jSupportedVersion,
@@ -293,6 +292,11 @@ class Neo4j extends Base {
     })
   }
 
+  /** 退出只需原实例目录；不把启动认证信息或其他启动选项保存为停止参数。 */
+  serviceStopArgs(pid: string, version: SoftInstalled, params?: Neo4jStartParams): any[] {
+    return [{ ...version, pid }, { neo4jInstanceDir: params?.neo4jInstanceDir }]
+  }
+
   _stopServer(version: SoftInstalled, params?: Neo4jStartParams) {
     return new ForkPromise(async (resolve, _reject, on) => {
       const paths = this.paths(version, params?.neo4jInstanceDir)
@@ -306,29 +310,39 @@ class Neo4j extends Base {
       })
 
       const markerPids: string[] = []
-      try {
-        const list = await StopProcessListFetch()
-        markerPids.push(...neo4jStopProcessPids(list, pid, paths.root, paths.confDir))
-      } catch {}
+      // 查询失败不能伪装成没有进程；退出和界面停止都由此模块确认实例归属。
+      // 首次发现共用 main 短缓存；下方 Unix 轮询/公共 Windows 确认仍取新列表。
+      const list = await StopProcessListFetch()
+      // 登记号仅是候选，归属筛选过滤不可读项；其他 home/config 根仍可恢复并停止。
+      markerPids.push(...neo4jStopProcessPids(list, pid, paths.root, paths.confDir))
       // A stale launcher PID is insufficient. The helper recovers the exact
       // instance Java process by --home-dir and --config-dir when needed.
       const allPids = Array.from(new Set(markerPids.filter(Boolean)))
+      let finalList = list
       if (allPids.length > 0) {
-        try {
-          await ProcessKill(isWindows() ? '-INT' : '-TERM', allPids)
-        } catch {}
+        // 只對實例目錄已確認的根發 TERM；信號失敗保留 PID 文件並交回錯誤供重試。
+        if (isWindows()) finalList = await this.stopWindowsServiceProcesses(allPids, list)
+        else finalList = await this.stopUnixServicePids('-TERM', allPids, allPids, 10_000, list)
       }
 
       let stopped = allPids.length === 0
-      if (allPids.length > 0) {
+      if (allPids.length > 0 && isWindows()) {
+        // 公共阶段已等待本次树中每个 PID 消失；Neo4j 仍需单独检查实例残留标记。
+        const originalStillRunning = allPids.some((targetPid) =>
+          finalList.some(({ PID }) => PID === targetPid)
+        )
+        const remaining = neo4jStopProcessPids(finalList, pid, paths.root, paths.confDir)
+        stopped = !originalStillRunning && remaining.length === 0
+      } else if (allPids.length > 0) {
         for (let i = 0; i < 30; i += 1) {
-          const remaining = neo4jStopProcessPids(
-            await StopProcessListFetch(),
-            pid,
-            paths.root,
-            paths.confDir
+          const current = await fetchStopProcessListLocal()
+          finalList = current
+          // 对原授权清单逐 PID 等待，避免父退出后不再带目录标记的 worker 被漏报。
+          const originalStillRunning = allPids.some((targetPid) =>
+            current.some(({ PID }) => PID === targetPid)
           )
-          if (remaining.length === 0) {
+          const remaining = neo4jStopProcessPids(current, pid, paths.root, paths.confDir)
+          if (!originalStillRunning && remaining.length === 0) {
             stopped = true
             break
           }
@@ -338,8 +352,15 @@ class Neo4j extends Base {
       if (!stopped) {
         throw new Error(`Neo4j process ${pid} did not exit after stop request`)
       }
-      await remove(pidFile).catch(() => {})
-      if (this.pidPath === pidFile) this.pidPath = join(moduleBaseDir(), 'neo4j.pid')
+      // 所有平台复用按值清理；身份被过滤且仍存活的根保留文件，不等同于已退出。
+      await this.cleanupStoppedServicePidFiles([...allPids, pid].filter(Boolean), finalList, [
+        this.appPidFile(),
+        this.pidPath,
+        pidFile
+      ])
+      if (this.pidPath === pidFile && !existsSync(pidFile)) {
+        this.pidPath = join(moduleBaseDir(), 'neo4j.pid')
+      }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: 'neo4j' }))
       })

@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link URL kopiert til utklippstavlen!",
   "needSelectVersion": "Vennligst velg en versjon først",
   "hostsSaveFailed": "Systemverts-filen kunne ikke lagres. Vennligst sjekk om filen eksisterer, og om filtillatelsene er riktige",
-  "hostsReadFailed": "Klarte ikke å lese filen /privat/etc/verter. Vennligst sjekk om filen eksisterer og om filtillatelsene er korrekte",
+  "hostsReadFailed": "Klarte ikke å lese filen {path}. Vennligst sjekk om filen eksisterer og om filtillatelsene er korrekte",
   "needSelectDir": "Velg en mappe!",
   "processNotFound": "Ingen prosesser funnet",
   "hostsTitle": "Systemverter",

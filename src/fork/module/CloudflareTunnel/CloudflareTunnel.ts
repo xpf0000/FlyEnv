@@ -1,12 +1,21 @@
 import axios, { AxiosInstance } from 'axios'
 import crypto from 'crypto'
 import { join } from 'path'
-import { mkdirp, remove, writeFile } from '../../Fn'
-import { ProcessKill } from '@shared/Process'
+import { mkdirp, readFile, remove, writeFile } from '../../Fn'
+import {
+  ProcessKillStrict,
+  ProcessListByExactPid,
+  ProcessListFetch,
+  type PItem
+} from '@shared/Process'
+import { waitServiceProcessesExited } from '@shared/ServiceProcessIdentity'
+import { cleanupStoppedServicePidFiles, stopWindowsServiceProcesses } from '@shared/ServiceStop'
+import { isReadableServiceStopRoot } from '@shared/ProcessSnapshot'
 import type { CloudflareTunnelDnsRecord } from '@/core/CloudflareTunnel/type'
 import { spawn } from 'node:child_process'
-import { openSync, closeSync } from 'node:fs'
-import { dirname } from 'node:path'
+import { existsSync, openSync, closeSync } from 'node:fs'
+import { dirname, win32 } from 'node:path'
+import { isWindows } from '@shared/utils'
 
 export class CloudflareTunnel {
   id: string = ''
@@ -229,6 +238,10 @@ export class CloudflareTunnel {
     })
   }
 
+  private pidFilePath() {
+    return join(global.Server.BaseDir!, 'cloudflare-tunnel', `${this.id}.pid`)
+  }
+
   /**
    * 启动
    */
@@ -266,17 +279,87 @@ export class CloudflareTunnel {
   /**
    * 停止
    */
-  async stop() {
-    if (!this.pid) {
-      return
-    }
+  async stop(): Promise<string> {
+    const pidFile = this.pidFilePath()
+    let filePid = ''
+    if (existsSync(pidFile)) filePid = (await readFile(pidFile, 'utf8')).trim()
+    const targetPid = this.pid || filePid
+    if (!targetPid) return ''
+    // 退出恢复时允许从实例私有 PID 文件找回登记；若调用方 PID 与文件不同，保留新文件。
+    this.pid = targetPid
+    let finalWindowsList: PItem[] | undefined
     try {
-      console.log(`正在终止 cloudflared 进程 (PID: ${this.pid})...`)
-      await ProcessKill('-INT', [this.pid])
-      this.pid = ''
+      console.log(`正在终止 cloudflared 进程 (PID: ${targetPid})...`)
+      // Windows 由统一权限执行器按父树停止；退出和界面都复用此方法。
+      if (isWindows()) {
+        const list = await ProcessListFetch()
+        const root = list.find(({ PID }) => PID === targetPid)
+        if (root) {
+          // 长期保存的 PID 可能复用，先确认实际程序仍是该隧道选择的 cloudflared。
+          if (
+            !isReadableServiceStopRoot(root, true, false) ||
+            !this.cloudflaredBin ||
+            win32.normalize(root.EXECUTABLE ?? '').toLowerCase() !==
+              win32.normalize(this.cloudflaredBin).toLowerCase()
+          ) {
+            // 未验证根过滤，不发送停止；提前返回也保留该 PID 文件和本地状态。
+            return ''
+          }
+          // 记录已确认父的完整子孙，只在执行后检查是否消失；授权时仍仅校验父。
+          // 父在 UAC 等待期间自行退出也不能让仍活着的子孙被错误注销。
+          const pids = ProcessListByExactPid(targetPid, list).map(({ PID }) => PID)
+          // 共用首次快照创建身份、父树执行和最终确认，不为隧道另建采样管道。
+          finalWindowsList = await stopWindowsServiceProcesses(pids, list)
+        } else if (list.some(({ PPID }) => PPID === targetPid)) {
+          return '' // 历史 PPID 没有有效父证明，不补认，但也不抛错阻断外层其他服务。
+        } else finalWindowsList = list
+      } else {
+        // Unix 仍保留原 INT 策略，但不能吞掉权限/执行失败并清除运行 PID。
+        // 本地查询证明目标已经消失才幂等成功；发信号后确认结果再清状态。
+        const list = await ProcessListFetch()
+        const root = list.find(({ PID }) => PID === targetPid)
+        if (root) {
+          // Unix command line is the available executable identity; never signal a reused PID
+          // unless it still names the selected cloudflared binary.
+          if (
+            !root.COMMAND ||
+            !this.cloudflaredBin ||
+            !root.COMMAND.includes(this.cloudflaredBin)
+          ) {
+            return '' // 不可读/归属不匹配只过滤当前隧道候选。
+          }
+          // The confirmed root grants its complete current child tree; verify the whole tree
+          // after signaling the root so detached descendants cannot be reported as stopped.
+          const pids = ProcessListByExactPid(targetPid, list).map(({ PID }) => PID)
+          let signalError: unknown
+          try {
+            await ProcessKillStrict('-INT', [targetPid])
+          } catch (error) {
+            // 根可能在快照后自然退出；由整份原 PID 清单的退出确认决定幂等结果。
+            signalError = error
+          }
+          try {
+            await waitServiceProcessesExited(pids)
+          } catch (error) {
+            throw signalError ?? error
+          }
+        } else if (list.some(({ PPID }) => PPID === targetPid)) {
+          return ''
+        }
+      }
+      if (finalWindowsList) {
+        await cleanupStoppedServicePidFiles([targetPid], finalWindowsList, [pidFile])
+      } else {
+        const currentFilePid = existsSync(pidFile) ? (await readFile(pidFile, 'utf8')).trim() : ''
+        if (currentFilePid === targetPid) await remove(pidFile)
+      }
+      if (this.pid === targetPid) this.pid = ''
       console.log('进程已终止')
+      return targetPid
     } catch (e) {
       console.error('停止 cloudflared 失败:', e)
+      // 调用方需要据此保留“运行中”状态并允许重试，取消权限不代表进程已结束。
+      throw e
     }
   }
 }

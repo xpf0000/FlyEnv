@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link URL copiat în clipboard!",
   "needSelectVersion": "Vă rugăm să selectaţi mai întâi o versiune",
   "hostsSaveFailed": "Salvarea fișierului hosts nu a reușit. Verificați dacă fișierul există și dacă permisiunile fișierului sunt corecte",
-  "hostsReadFailed": "Nu s-a putut citi fișierul /private/etc/host-uri. Vă rugăm să verificați dacă fișierul există și dacă permisiunile fișierului sunt corecte",
+  "hostsReadFailed": "Nu s-a putut citi fișierul {path}. Vă rugăm să verificați dacă fișierul există și dacă permisiunile fișierului sunt corecte",
   "needSelectDir": "Selectați un dosar!",
   "processNotFound": "Nici un proces găsit",
   "hostsTitle": "Gazde sistem",

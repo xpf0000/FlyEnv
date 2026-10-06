@@ -42,7 +42,7 @@
   "linkCopySuccess": "تم نسخ رابط URL إلى الحافظة!",
   "needSelectVersion": "الرجاء تحديد إصدار أولاً",
   "hostsSaveFailed": "فشل حفظ ملف Hosts للنظام. الرجاء التحقق من وجود الملف وصلاحياته.",
-  "hostsReadFailed": "فشل في قراءة الملف /private/etc/hosts. الرجاء التحقق من وجود الملف وصلاحياته.",
+  "hostsReadFailed": "فشل في قراءة الملف {path}. الرجاء التحقق من وجود الملف وصلاحياته.",
   "needSelectDir": "الرجاء تحديد مجلد!",
   "processNotFound": "لم يتم العثور على أي عمليات",
   "hostsTitle": "ملف Hosts للنظام",

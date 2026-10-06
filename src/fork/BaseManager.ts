@@ -1,6 +1,14 @@
-import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
+import {
+  performanceDiagnosticNow,
+  performanceDiagnosticElapsed
+} from '@shared/PerformanceDiagnostics'
+// dispatcher 只需发送 IPC 结果，不应为此提前加载 Fn 的安装、版本、解压等工具。
+import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './ProcessSend'
 import { isWindows } from '@shared/utils'
 import PluginLoader from './PluginLoader'
+import { withServiceStopContext, type ServiceStopContext } from '@shared/ServiceStopContext'
+import { logServiceStopBoundary, withServiceStopDiagnostics } from '@shared/ServiceStopDiagnostics'
+import { logWindowsPath } from '@shared/WindowsPathDiagnostics'
 
 class BaseManager {
   Apache: any
@@ -89,19 +97,14 @@ class BaseManager {
 
   constructor() {}
 
+  // 通用 worker 初始化只清理插件缓存；模块必须在 exec 收到对应命令后按需加载。
+  // Cron 任务由系统调度，元数据查询由自身请求负责；这里提前导入会让每个服务
+  // worker 重复加载其依赖，并推迟随后服务命令的处理。
   init() {
     this.pluginLoader.clear()
-    import('./module/Cron')
-      .then((res) => {
-        this.Cron = res.default
-        this.Cron?.init?.()
-      })
-      .catch((e) => {
-        console.error('[BaseManager] Cron init failed:', e)
-      })
   }
 
-  async exec(commands: Array<any>) {
+  async exec(commands: Array<any>, stopOptions?: ServiceStopContext) {
     const ipcCommandKey = commands.shift()
     const then = (res: any) => {
       ProcessSendSuccess(ipcCommandKey, res)
@@ -133,19 +136,114 @@ class BaseManager {
 
     const module: string = commands.shift()
     const fn: string = commands.shift()
+    const resolveStarted = performanceDiagnosticNow()
+    // 所有内建/插件分支集中记录解析阶段，避免只给 PHP 加日志；缓存命中也记真实耗时。
+    // requestKey 使用原 IPC key，不额外生成批次 ID，也不展开可能含密码的 commands。
+    const trace = (stage: string, data: Record<string, unknown> = {}) => {
+      // 相同 dispatcher 解析/初始化只执行一次；PATH 范围复用它，不建立另一个分派体系。
+      const pathDetails = { ...data }
+      delete pathDetails.error // 不复制可能含脚本/环境值的自由错误文本；失败阶段本身已标明结果。
+      logWindowsPath(stage.replace('fork.stop-', 'fork.operation-'), pathDetails)
+      if (fn === 'stopService') {
+        logServiceStopBoundary(stage, {
+          requestKey: ipcCommandKey,
+          module,
+          workerPid: process.pid,
+          ...data
+        })
+      }
+    }
+    trace('fork.module-resolve-begin')
 
     this.modules.add(module)
 
-    const doRun = (target: any) => {
+    const doRun = (target: any, acceptsStopOptions = true) => {
+      trace('fork.module-resolve-completed', {
+        durationMs: performanceDiagnosticElapsed(resolveStarted),
+        plugin: !acceptsStopOptions
+      })
+      const initStarted = performanceDiagnosticNow()
+      trace('fork.module-init-begin')
       target?.init?.()
+      // init 仍按原实现同步调用；returned 不表示模块自发后台任务或 Promise 已完成。
+      trace('fork.module-init-returned', {
+        durationMs: performanceDiagnosticElapsed(initStarted)
+      })
       if (module === 'temporal') {
         target?.setForkTrace?.(ipcCommandKey)
       }
-      target
-        .exec(fn, ...commands)
+      // 内建 stopService 的可选第二参数统一在此插入，原有分组/目录/语言/身份参数
+      // 顺延且内容不变。单独停止也插入 undefined，避免原第二业务参数被当成列表。
+      // 插件保留外部旧签名，仅在本次调用范围绑定随请求发送的表，不破坏自定义参数。
+      // 重新构建的插件与宿主通过 ServiceStopContext 的固定 Symbol 共用范围容器；
+      // 旧插件包继续执行原实现，不能保证复用新首表，但不会因此发生业务参数错位。
+      const invoke = () =>
+        target.exec(
+          fn,
+          ...(fn === 'stopService' && acceptsStopOptions
+            ? [commands[0], stopOptions, ...commands.slice(1)]
+            : commands)
+        )
+      // 从 dispatcher 到公共停止日志沿用同一个 requestKey；仅抽取公开实例标识。
+      // 公共 Base 将复用此诊断范围，进度/成功/失败仍由原 ForkPromise 回调结算。
+      const item = commands[0]
+      const invokeWithTrace = () => {
+        trace('fork.stop-invoke')
+        return fn === 'stopService'
+          ? withServiceStopDiagnostics(
+              {
+                requestKey: ipcCommandKey,
+                module,
+                version: item?.version,
+                bin: item?.bin,
+                rootPid: typeof item === 'string' ? item : item?.pid
+              },
+              invoke
+            )
+          : invoke()
+      }
+      const operation = acceptsStopOptions
+        ? invokeWithTrace()
+        : withServiceStopContext(stopOptions, invokeWithTrace)
+      operation
         ?.on(onData)
-        ?.then(then)
-        ?.catch(error)
+        ?.then(async (res: any) => {
+          // 只有启动成功终态才能建立退出停止契约，code=200 的进度不进入这里。
+          // 模块最了解真实启动参数：PostgreSQL DATA_DIR、Neo4j 实例目录、项目
+          // PID 签名不能由 main 根据当前设置重建，否则用户切换版本/目录后会停错。
+          // 模块已返回 Stop-Args 时原样保留；Base 派生模块默认保存版本+实际 PID。
+          const pid = res?.['APP-Service-Start-PID']
+          // 一次性命令以 -1 表示没有驻留服务；不能把这个 truthy 字符串包装成
+          // 一个可停止实例。main 也独立验证登记 PID，两个边界职责不能相互替代。
+          const hasServicePid =
+            /^\d+$/.test(`${pid ?? ''}`) && Number.isSafeInteger(Number(pid)) && Number(pid) > 0
+          if (fn === 'startService' && hasServicePid && !res?.['APP-Service-Stop-Args']) {
+            const item = res?.['APP-Service-Start-Item'] ?? commands[0]
+            const stopArgs = (await target.serviceStopArgs?.(
+              `${pid}`,
+              item,
+              ...commands.slice(1)
+            )) ?? [{ ...item, pid: `${pid}` }]
+            res = { ...res, 'APP-Service-Stop-Args': stopArgs }
+          }
+          // 单独打开 Web 面板也要登记退出清理，但不能把面板 PID 视作数据库 PID。
+          // 模块给出 companionOnly 等专用停止参数；main 仅保存通用 companion
+          // 标记，状态展示过滤它、退出/stop_all 仍遍历它。不能只遍历显示运行态。
+          const companionArgs = hasServicePid && target.companionStopArgs?.(fn, `${pid}`, commands)
+          if (companionArgs) {
+            res = {
+              ...res,
+              'APP-Service-Stop-Args': companionArgs,
+              'APP-Service-Stop-Companion': true
+            }
+          }
+          trace('fork.stop-completed')
+          then(res)
+        })
+        ?.catch((failure: Error) => {
+          trace('fork.stop-failed', { error: String(failure) })
+          error(failure)
+        })
     }
 
     if (module === 'apache') {
@@ -598,6 +696,8 @@ class BaseManager {
       }
       doRun(this.Git)
     } else if (module === 'cron') {
+      // 仅 Cron 请求加载本模块；doRun 沿用其他模块相同的 init/exec 派发顺序。
+      // 后台元数据同步由单例防重，不在通用 worker 初始化或退出时另行触发。
       if (!this.Cron) {
         const res = await import('./module/Cron')
         this.Cron = res.default
@@ -648,8 +748,9 @@ class BaseManager {
     } else {
       const target = await this.pluginLoader.load(module)
       if (target) {
-        doRun(target)
+        doRun(target, false)
       } else {
+        trace('fork.module-resolve-failed', { reason: 'module-not-found' })
         ProcessSendError(ipcCommandKey, 'No Found Module')
       }
     }

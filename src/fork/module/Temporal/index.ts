@@ -26,8 +26,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
-import { ProcessKill, ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
-import { StopProcessListFetch } from '@shared/StopProcessList'
+import { ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
+import { StopProcessListFetch, fetchStopProcessListLocal } from '@shared/StopProcessList'
 import {
   buildServerStartArgs,
   buildServerYaml,
@@ -167,7 +167,11 @@ class Temporal extends Base {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
         if (await this.isUiServerRunning()) {
-          resolve({ running: true })
+          // 复用已存在的面板时也登记 PID，让独立打开的 UI 能参加统一退出清理。
+          resolve({
+            running: true,
+            'APP-Service-Start-PID': await this.readPidFromFile(this.uiPidPath)
+          })
           return
         }
         const res = await this._startUiServer(version, on)
@@ -182,22 +186,21 @@ class Temporal extends Base {
     if (!existsSync(this.uiPidPath)) {
       return false
     }
-    try {
-      const pid = (await readFile(this.uiPidPath, 'utf-8')).trim()
-      if (!pid) {
-        return false
+    // 空 PID 表示尚无登记；读取/进程查询失败必须传播，不能把未知状态报成未运行。
+    const pid = (await readFile(this.uiPidPath, 'utf-8')).trim()
+    if (!pid) return false
+    const plist = await fetchStopProcessListLocal()
+    const root = plist.find(({ PID }) => PID === pid)
+    if (!root) {
+      if (plist.some(({ PPID }) => `${PPID}` === pid)) {
+        throw new Error(`Cannot verify Temporal UI descendants for PID=${pid}`)
       }
-      const plist = await StopProcessListFetch()
-      return (
-        ProcessOwnedPidsByPid(pid, plist, [
-          this.uiBin(),
-          this.serverBaseDir(),
-          global.Server.AppDir
-        ]).length > 0
-      )
-    } catch {
       return false
     }
+    if (!root.COMMAND) throw new Error(`Cannot verify Temporal UI process PID=${pid}`)
+    const owned = ProcessOwnedPidsByPid(pid, plist, [this.uiBin(), join(this.baseDir(), 'config')])
+    if (!owned.length) throw new Error(`Temporal UI PID=${pid} is active but ownership is unknown`)
+    return true
   }
 
   private async _startUiServer(
@@ -281,13 +284,24 @@ class Temporal extends Base {
     })
   }
 
+  /** UI 可独立打开，其停止请求仍由模块执行，不影响服务父实例的登记。 */
+  companionStopArgs(command: string, pid: string, args: any[]): any[] | undefined {
+    if (command === 'startUiServer') return [{ ...args[0], pid }, { uiOnly: true }]
+  }
+
   _stopServer(version: SoftInstalled, ...args: any) {
     return new ForkPromise(async (resolve, reject, on) => {
+      if (args[0]?.uiOnly) {
+        resolve({ 'APP-Service-Stop-PID': await this._stopUiServer(version) })
+        return
+      }
       let uiPids: string[] = []
       try {
         uiPids = await this._stopUiServer(version)
       } catch (e) {
-        console.log('temporal stop ui-server err: ', e)
+        // UI companion 未停止时不能继续把父服务整体记为已停止，允许用户授权后重试。
+        reject(e)
+        return
       }
       try {
         const res: any = await super._stopServer(version, ...args).on(on)
@@ -304,41 +318,44 @@ class Temporal extends Base {
   }
 
   private async _stopUiServer(version: SoftInstalled): Promise<string[]> {
+    // 伴随服务停止的首次发现共用 main 缓存；启动/open/登记会使启动前旧表失效。
+    // 实际结束后的确认仍严格新查，不能用本列表判定最终退出。
     const plist = await StopProcessListFetch()
-    const ownedMarkers = this.ownedProcessMarkers(version)
-    const allPid: string[] = []
+    // UI 是独立伴随程序，按自身 bin/配置目录归属，不依赖固定的数据目录名字。
+    // 面板归属用自身可执行文件及本实例配置目录；不按共享 Node 路径全量扫描。
+    const ownedMarkers = [this.uiBin(), join(this.baseDir(), 'config')]
+    const roots = new Set<string>()
     if (existsSync(this.uiPidPath)) {
-      try {
-        const content = await readFile(this.uiPidPath, 'utf-8')
-        const pid = content.trim()
-        if (pid) {
-          allPid.push(...ProcessOwnedPidsByPid(pid, plist, ownedMarkers))
-        }
-      } catch {}
+      const pid = (await readFile(this.uiPidPath, 'utf-8')).trim()
+      if (pid) roots.add(pid)
     }
-    const searched = ProcessSearch('ui-server', false, plist)
-      .filter((p) => {
-        if (isWindows()) {
-          return p.COMMAND.includes('FlyEnv-Data') || p.COMMAND.includes('PhpWebStudy-Data')
-        }
-        return (
-          (p.COMMAND.includes(this.serverBaseDir()) || p.COMMAND.includes(global.Server.AppDir!)) &&
-          !p.COMMAND.includes(' grep ')
-        )
-      })
-      .map((p) => `${p.PID}`)
-    allPid.push(...searched)
-    const arr = Array.from(new Set(allPid))
+    // 名稱僅用來找可能遺失 PID 文件的面板根；每個根仍需命中本 UI 的歸屬標記。
+    ProcessSearch('ui-server', false, plist)
+      .filter(
+        ({ COMMAND }) =>
+          COMMAND && ownedMarkers.some((marker) => marker && COMMAND.includes(marker))
+      )
+      .forEach(({ PID }) => roots.add(`${PID}`))
+    const selectedRoots: string[] = []
+    for (const pid of roots) {
+      // 保存 PID 和名称恢复都只是候选；不可读/缺席根返回空集合，继续其他有效根。
+      if (ProcessOwnedPidsByPid(pid, plist, ownedMarkers).length) selectedRoots.push(pid)
+    }
+    // 確認父進程後接受其完整子樹；不用每個 UI worker 重複做路徑授權。
+    const arr = Array.from(
+      new Set(selectedRoots.flatMap((pid) => ProcessOwnedPidsByPid(pid, plist, ownedMarkers)))
+    )
+    let finalList = plist
     if (arr.length > 0) {
-      try {
-        await ProcessKill('-INT', arr)
-      } catch {}
-    }
-    try {
-      if (existsSync(this.uiPidPath)) {
-        await remove(this.uiPidPath)
+      // 嚴格信號後等待已確認的父及子孫退出；取消/錯誤/超時保留 PID 文件供重試。
+      if (isWindows()) {
+        finalList = await this.stopWindowsServiceProcesses(arr, plist)
+      } else {
+        finalList = await this.stopUnixServicePids('-INT', selectedRoots, arr, 10_000, plist)
       }
-    } catch {}
+    }
+    // 候选筛选和文件清理相互独立：过滤的活根保留记录，新实例覆盖也保留。
+    await this.cleanupStoppedServicePidFiles([...roots, ...arr], finalList, [this.uiPidPath])
     return arr
   }
 

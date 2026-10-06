@@ -71,10 +71,23 @@ func AppDebugLog(flag string, info string) {
 // ExecCommand 执行命令并返回输出
 // 不经过 shell 解析，直接调用可执行文件，参数以数组传递
 func ExecCommand(name string, args []string, options map[string]interface{}) (string, string, error) {
+	if IsWindows() {
+		// SYSTEM 执行层再兜底：Windows 上不接受裸命令、相对路径或网络程序。
+		// 即使新调用点遗漏系统定位，也必须失败，不能由 exec.Command 搜索 PATH。
+		if err := ValidateWindowsAbsolutePath(name, false); err != nil {
+			return "", "", fmt.Errorf("Windows executable path is invalid: %w", err)
+		}
+	}
 	cmd := exec.Command(name, args...)
 
 	// 设置工作目录
 	if cwd, ok := options["cwd"].(string); ok {
+		if IsWindows() {
+			// 工作目录也必须是完整业务路径；不让进程目录改变相对目标的含义。
+			if err := ValidateWindowsAbsolutePath(cwd, true); err != nil {
+				return "", "", fmt.Errorf("Windows command working directory is invalid: %w", err)
+			}
+		}
 		cmd.Dir = cwd
 	}
 
@@ -89,6 +102,19 @@ func ExecCommand(name string, args []string, options map[string]interface{}) (st
 
 	if IsWindows() {
 		SetHideWindow(cmd)
+		if strings.EqualFold(filepath.Base(name), "powershell.exe") {
+			// 所有内联系统脚本使用系统内置模块，移除任意大小写的继承/覆盖键。
+			// 保留其他环境及原 env 覆盖语义，避免用户模块遮蔽系统 cmdlet。
+			env := cmd.Environ()
+			filtered := make([]string, 0, len(env)+1)
+			for _, entry := range env {
+				key, _, _ := strings.Cut(entry, "=")
+				if !strings.EqualFold(key, "PSModulePath") {
+					filtered = append(filtered, entry)
+				}
+			}
+			cmd.Env = append(filtered, "PSModulePath="+filepath.Join(filepath.Dir(name), "Modules"))
+		}
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -96,38 +122,14 @@ func ExecCommand(name string, args []string, options map[string]interface{}) (st
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 
-	fmt.Printf("ExecCommand: %s %v, error: %v, stdout: %s, stderr: %s\n", name, args, err, stdout.String(), stderr.String())
+	if IsWindows() {
+		// EncodedCommand 仍可解码；不把脚本载荷、环境值或文件内容写入公共调试日志。
+		fmt.Printf("ExecCommand: %s, error: %v\n", name, err)
+	} else {
+		fmt.Printf("ExecCommand: %s %v, error: %v, stdout: %s, stderr: %s\n", name, args, err, stdout.String(), stderr.String())
+	}
 
 	return stdout.String(), stderr.String(), err
-}
-
-// getPowerShellExe 获取 Windows 下 PowerShell 的完整路径
-// 如果文件存在则返回完整路径，否则回退到命令名本身
-func GetPowerShellExe() string {
-	if !IsWindows() {
-		AppDebugLog("GetPowerShellExe", "Not Windows, fallback to 'powershell'")
-		return "powershell"
-	}
-	systemRoot := os.Getenv("SystemRoot")
-	AppDebugLog("GetPowerShellExe", fmt.Sprintf("SystemRoot env raw value: %q", systemRoot))
-	if systemRoot == "" {
-		systemRoot = `C:\Windows`
-		AppDebugLog("GetPowerShellExe", "SystemRoot empty, fallback to C:\\Windows")
-	}
-	fullPath := filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
-	AppDebugLog("GetPowerShellExe", fmt.Sprintf("Checking System32 path: %s", fullPath))
-	if ExistsSync(fullPath) {
-		AppDebugLog("GetPowerShellExe", fmt.Sprintf("Found PowerShell at: %s", fullPath))
-		return fullPath
-	}
-	sysnativePath := filepath.Join(systemRoot, "Sysnative", "WindowsPowerShell", "v1.0", "powershell.exe")
-	AppDebugLog("GetPowerShellExe", fmt.Sprintf("Checking Sysnative path: %s", sysnativePath))
-	if ExistsSync(sysnativePath) {
-		AppDebugLog("GetPowerShellExe", fmt.Sprintf("Found PowerShell at Sysnative: %s", sysnativePath))
-		return sysnativePath
-	}
-	AppDebugLog("GetPowerShellExe", "PowerShell not found at expected paths, fallback to 'powershell'")
-	return "powershell"
 }
 
 // 对应 waitTime

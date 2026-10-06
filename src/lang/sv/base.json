@@ -42,7 +42,7 @@
   "linkCopySuccess": "Länk kopierad till urklipp framgångsrikt.",
   "needSelectVersion": "Vänligen välj en version först.",
   "hostsSaveFailed": "Systemets hosts-fil kunde inte sparas. Kontrollera om filen finns och om filbehörigheterna är korrekta.",
-  "hostsReadFailed": "/private/etc/hosts Misslyckades med att läsa filen. Kontrollera om filen finns och om filbehörigheterna är korrekta.",
+  "hostsReadFailed": "{path} Misslyckades med att läsa filen. Kontrollera om filen finns och om filbehörigheterna är korrekta.",
   "needSelectDir": "Vänligen välj en mapp!",
   "processNotFound": "Inga processer hittades.",
   "hostsTitle": "Systemets hosts",

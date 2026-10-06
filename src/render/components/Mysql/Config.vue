@@ -54,6 +54,8 @@
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
+port = 3306
+socket = ${window.Server.isWindows ? 'MySQL' : '/tmp/mysql.sock'}
 datadir=${dataDir}`
   })
 
@@ -65,6 +67,17 @@ datadir=${dataDir}`
       enable: true,
       tips() {
         return I18nT('mysql.port')
+      }
+    },
+    {
+      section: 'mysqld',
+      name: 'socket',
+      value: window.Server.isWindows ? 'MySQL' : '/tmp/mysql.sock',
+      enable: true,
+      isString: true,
+      show: !window.Server.isWindows,
+      tips() {
+        return I18nT('mysql.socket')
       }
     },
     {
@@ -196,7 +209,8 @@ datadir=${dataDir}`
     }
     const parse = new IniParse(editConfig)
     const arr = [...names]
-      .map((item) => {
+      .map((definition) => {
+        const item = { ...definition }
         const find = parse.get(item.name)
         let value = find ?? item.value
         if (item.isString) {

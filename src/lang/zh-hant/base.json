@@ -42,7 +42,7 @@
   "linkCopySuccess": "連結已複製到剪貼簿",
   "needSelectVersion": "請先選擇版本",
   "hostsSaveFailed": "系統 Hosts 儲存失敗，請檢視檔案是否存在，檔案權限是否正確",
-  "hostsReadFailed": "/private/etc/hosts 檔案讀取失敗，請檢視檔案是否存在，檔案權限是否正確",
+  "hostsReadFailed": "{path} 檔案讀取失敗，請檢視檔案是否存在，檔案權限是否正確",
   "needSelectDir": "請選擇資料夾！",
   "processNotFound": "未查詢到相關處理程序",
   "hostsTitle": "系統 Hosts",

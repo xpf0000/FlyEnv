@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Instalarea programului FlyEnv helper a eșuat. Reîncercați cu contul Windows inițial folosind butonul de reparare din setări. Dacă eșuează din nou, transmiteți detaliile erorii de mai jos.",
   "flyenvHelperInstallTimeout": "Timpul de așteptare a rezultatului instalării a expirat. Instalarea poate încă rula în fundal. Folosiți din nou butonul de reparare a asistentului pentru a verifica rezultatul.",
   "windowsElevationMethod": "Metodă de elevare a privilegiilor",
-  "windowsElevationMethodTips": "Alegeți cum sunt elevate operațiunile Windows care necesită privilegii de administrator. UAC solicită confirmare pentru fiecare operațiune acceptată; programul auxiliar evită solicitările repetate după instalare.",
+  "windowsElevationMethodTips": "Alegerea se salvează. O puteți schimba ulterior în Setări.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Program auxiliar",
   "appFont": "Font interfață",
@@ -96,5 +96,26 @@
     "rnacos": "Descoperirea serviciilor și gestionarea centralizată a configurației.",
     "temporal": "Orchestrare fiabilă a fluxurilor de lucru și a proceselor de lungă durată.",
     "temporalCli": "Instrument de linie de comandă pentru gestionarea și utilizarea Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "O altă operațiune de autorizare este în curs. Așteptați.",
+    "title": "Alegeți metoda de autorizare",
+    "description": "Operația „{operation}” necesită drepturi de administrator. Alegeți metoda de autorizare.",
+    "uacDescription": "UAC: Windows solicită aprobarea sau datele administratorului când este necesar. Nu trebuie instalat un ajutor permanent.",
+    "helperDescription": "Ajutor: reduce solicitările repetate. Instalarea creează o activitate programată cu drepturi de sistem; verificați politica firmei privind dispozitivele.",
+    "helperReady": "Asistentul este gata de utilizare.",
+    "settingsHint": "Alegerea se salvează. O puteți schimba ulterior în Setări.",
+    "disableOption": "Dezactivați și ajutorul instalat anterior pentru acest cont (poate necesita UAC)",
+    "disableOnSwitch": "Trecerea la UAC dezactivează automat asistentul acestui cont. Fișierele instalate sunt păstrate.",
+    "disableHelperTips": "Oprește asistentul instalat pentru acest cont Windows și dezactivează sarcina sa programată. Fișierele instalate sunt păstrate. Acțiunea poate necesita aprobarea UAC.",
+    "disableFailed": "A fost ales UAC, dar ajutorul existent nu a putut fi dezactivat.",
+    "elevated": "FlyEnv rulează ca administrator. Operațiile din această sesiune se execută direct; alegerea salvată nu se schimbă.",
+    "unselected": "Nu a fost aleasă o metodă de autorizare. FlyEnv va întreba când sunt necesare prima dată drepturi de administrator.",
+    "operation": "Operație de sistem",
+    "useUac": "UAC",
+    "useHelper": "Program auxiliar",
+    "disableHelper": "Dezactivați ajutorul",
+    "failed": "Autorizarea Windows a eșuat.",
+    "timeout": "Timpul de autorizare a expirat. Operația poate fi încă în curs."
   }
 }

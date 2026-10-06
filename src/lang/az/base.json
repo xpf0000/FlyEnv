@@ -42,7 +42,7 @@
   "linkCopySuccess": "Bağlantı panoya kopyalandı!",
   "needSelectVersion": "Zəhmət olmasa əvvəlcə bir versiya seçin",
   "hostsSaveFailed": "Sistem Hosts faylı saxlanıla bilmədi. Faylın mövcudluğunu və icazələrini yoxlayın",
-  "hostsReadFailed": "/private/etc/hosts faylı oxuna bilmədi. Faylın mövcudluğunu və icazələrini yoxlayın",
+  "hostsReadFailed": "{path} faylı oxuna bilmədi. Faylın mövcudluğunu və icazələrini yoxlayın",
   "needSelectDir": "Zəhmət olmasa bir qovluq seçin!",
   "processNotFound": "Heç bir proses tapılmadı",
   "hostsTitle": "Sistem Hosts",

@@ -5,10 +5,16 @@
     width="600px"
     :destroy-on-close="true"
     :close-on-click-modal="false"
+    :close-on-press-escape="!loading"
+    :show-close="!loading"
     class="host-edit new-project installing"
     @closed="closedFn"
   >
     <template #default>
+      <p v-if="isLinux" class="mb-3">{{ I18nT('setup.linuxHelperScope') }}</p>
+      <p v-if="isLinux && FlyEnvHelperSetup.caFingerprint" class="mb-3 break-all"
+        >CA SHA-256: {{ FlyEnvHelperSetup.caFingerprint }}</p
+      >
       <div class="main-wapper h-full">
         <div ref="xterm" class="h-full overflow-hidden"> </div>
       </div>
@@ -23,98 +29,32 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { computed, nextTick, onBeforeUnmount, onMounted, ref, markRaw } from 'vue'
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
-  import XTerm from '@/util/XTerm'
   import { FlyEnvHelperSetup } from '@/components/FlyEnvHelper/setup'
-  import IPC from '@/util/IPC'
-  import HelperStore from '@/store/helper'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+  const isLinux = window.Server.isLinux
 
   FlyEnvHelperSetup.show = true
 
   const xterm = ref<HTMLElement>()
 
-  const loading = computed({
-    get() {
-      return FlyEnvHelperSetup.loading
-    },
-    set(value) {
-      FlyEnvHelperSetup.loading = value
-    }
-  })
-
-  const fetchInstallCommand = (): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (FlyEnvHelperSetup.command) {
-        return resolve(FlyEnvHelperSetup.command)
-      }
-      IPC.send('APP:FlyEnv-Helper-Command').then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code !== 0 || !res?.command) {
-          reject(new Error(res?.reason ?? 'helper_binary_missing'))
-          return
-        }
-        FlyEnvHelperSetup.command = res.command
-        resolve(FlyEnvHelperSetup.command)
-      })
-    })
-  }
-
-  const doInstall = async () => {
-    if (loading.value) {
-      return
-    }
-    loading.value = true
-    try {
-      const execXTerm = new XTerm()
-      const c = await fetchInstallCommand()
-
-      nextTick().then(() => {
-        execXTerm.mount(xterm.value!).then(() => {
-          execXTerm?.send([c])?.then(() => {
-            loading.value = false
-          })
-        })
-      })
-      FlyEnvHelperSetup.execXTerm = markRaw(execXTerm)
-    } catch {
-      loading.value = false
-      show.value = false
-    }
-  }
+  const loading = computed(() => FlyEnvHelperSetup.loading)
 
   onMounted(() => {
-    if (loading.value) {
-      nextTick().then(() => {
-        const execXTerm = FlyEnvHelperSetup.execXTerm
-        if (execXTerm && xterm.value) {
-          execXTerm.mount(xterm.value)
-        }
-      })
-    } else {
-      doInstall()
-    }
+    nextTick().then(() => {
+      if (xterm.value) FlyEnvHelperSetup.mount(xterm.value)
+    })
   })
 
   onBeforeUnmount(() => {
-    const execXTerm = FlyEnvHelperSetup.execXTerm
-    execXTerm?.unmounted?.()
-    if (!loading.value) {
-      execXTerm?.destroy?.()
-      delete FlyEnvHelperSetup.execXTerm
-    }
-    FlyEnvHelperSetup.show = false
+    FlyEnvHelperSetup.detach()
   })
 
   const doEnd = () => {
-    FlyEnvHelperSetup.execXTerm?.destroy?.()
-    delete FlyEnvHelperSetup.execXTerm
     show.value = false
-    // 终端里装完帮助程序后，把之前没写成的系统 hosts 补上
-    HelperStore.verifyHelperReady()
   }
 
   defineExpose({

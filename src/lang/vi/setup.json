@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Quá trình cài đặt trình trợ giúp FlyEnv đã thất bại. Thử lại bằng tài khoản Windows ban đầu qua nút sửa chữa trong Cài đặt. Nếu vẫn thất bại, hãy gửi chi tiết lỗi bên dưới.",
   "flyenvHelperInstallTimeout": "Hết thời gian chờ kết quả cài đặt. Quá trình cài đặt có thể vẫn đang chạy trong nền. Hãy dùng lại nút sửa trợ giúp để kiểm tra kết quả.",
   "windowsElevationMethod": "Phương thức nâng quyền",
-  "windowsElevationMethodTips": "Chọn cách nâng quyền cho các thao tác Windows cần đặc quyền quản trị viên. UAC yêu cầu xác nhận cho từng thao tác được hỗ trợ; chương trình trợ giúp tránh các lời nhắc lặp lại sau khi được cài đặt.",
+  "windowsElevationMethodTips": "Lựa chọn sẽ được lưu. Bạn có thể thay đổi sau trong Cài đặt.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Trình trợ giúp",
   "appFont": "Phông chữ giao diện",
@@ -96,5 +96,26 @@
     "rnacos": "Khám phá dịch vụ và quản lý cấu hình tập trung.",
     "temporal": "Điều phối đáng tin cậy các quy trình ứng dụng và tiến trình chạy dài.",
     "temporalCli": "Công cụ dòng lệnh để quản lý và tương tác với Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "Một thao tác cấp quyền khác đang diễn ra. Vui lòng chờ.",
+    "title": "Chọn phương thức cấp quyền",
+    "description": "Thao tác “{operation}” cần quyền quản trị viên. Hãy chọn phương thức cấp quyền.",
+    "uacDescription": "UAC: Windows yêu cầu phê duyệt hoặc thông tin quản trị viên khi cần. Không cần cài trợ giúp chạy thường trực.",
+    "helperDescription": "Trợ giúp: giảm các yêu cầu lặp lại. Việc cài đặt tạo tác vụ theo lịch với quyền hệ thống; hãy kiểm tra chính sách thiết bị của công ty.",
+    "helperReady": "Trình trợ giúp đã sẵn sàng.",
+    "settingsHint": "Lựa chọn sẽ được lưu. Bạn có thể thay đổi sau trong Cài đặt.",
+    "disableOption": "Đồng thời vô hiệu hóa trợ giúp đã cài cho tài khoản này (có thể cần UAC)",
+    "disableOnSwitch": "Chuyển sang UAC sẽ tự động tắt trình trợ giúp của tài khoản này. Các tệp đã cài được giữ lại.",
+    "disableHelperTips": "Dừng trình trợ giúp đã cài cho tài khoản Windows này và vô hiệu hóa tác vụ theo lịch của nó. Giữ lại các tệp đã cài. Thao tác này có thể cần chấp thuận UAC.",
+    "disableFailed": "Đã chọn UAC, nhưng không thể vô hiệu hóa trợ giúp hiện có.",
+    "elevated": "FlyEnv đang chạy với quyền quản trị viên. Các thao tác được thực hiện trực tiếp trong phiên này; lựa chọn đã lưu không thay đổi.",
+    "unselected": "Chưa chọn phương thức cấp quyền. FlyEnv sẽ hỏi khi lần đầu cần quyền quản trị viên.",
+    "operation": "Thao tác hệ thống",
+    "useUac": "UAC",
+    "useHelper": "Trình trợ giúp",
+    "disableHelper": "Vô hiệu hóa trợ giúp",
+    "failed": "Cấp quyền Windows thất bại.",
+    "timeout": "Hết thời gian cấp quyền. Thao tác có thể vẫn đang chạy."
   }
 }

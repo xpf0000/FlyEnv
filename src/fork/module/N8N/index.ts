@@ -39,13 +39,11 @@ import {
   userChangeOwnerPassword
 } from './database'
 import {
-  ProcessKill,
   ProcessOwnedPidsByPid,
   fetchProcessPidByPort as fetchPidByPort,
   PItem,
   ProcessListFetch
 } from '@shared/Process'
-import { StopProcessPidList } from '@shared/StopProcessList'
 import { allInstalledVersions, fetchAllOnlineVersion } from './version'
 
 class N8N extends Base {
@@ -58,15 +56,9 @@ class N8N extends Base {
     this.pidPath = join(global.Server.BaseDir!, 'n8n/n8n.pid')
   }
 
-  /** Clean up pid files */
-  private async _cleanupPidFiles(): Promise<void> {
-    try {
-      const appPidFile = this.appPidFile()
-      if (existsSync(appPidFile)) await remove(appPidFile)
-    } catch {}
-    try {
-      if (existsSync(this.pidPath)) await remove(this.pidPath)
-    } catch {}
+  /** 使用同一停止快照清理本模块文件和 Base 文件，避免覆盖后的新实例登记被删除。 */
+  private async _cleanupPidFiles(pids: string[], finalList: PItem[]): Promise<void> {
+    await this.cleanupStoppedServicePidFiles(pids, finalList, [this.appPidFile(), this.pidPath])
   }
 
   _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': string[] }> {
@@ -79,49 +71,32 @@ class N8N extends Base {
       const port = await getPort()
       const allPid = new Set<string>()
 
-      const processList = await StopProcessPidList()
-      const ownedMarkers = this.ownedProcessMarkers(version)
+      // 父目标和结果确认与通用停止共享；Node 的子孙直接随父树处理。
+      const targets = await this.windowsServiceTargets(version)
+      const processList = targets.list
+      targets.pids.forEach((pid) => allPid.add(pid))
+      const ownedMarkers = [version.bin, join(dirname(version.bin), 'node_modules', 'n8n')]
 
-      // 1. Kill by saved app pid file
-      try {
-        const savedPid = await this.readPidFromFile(this.appPidFile())
-        if (savedPid) {
-          ProcessOwnedPidsByPid(savedPid, processList, ownedMarkers).forEach((pid) =>
-            allPid.add(pid)
-          )
-        }
-      } catch {}
-
-      // 2. Kill by n8n.pid (persisted real node pid from the last successful start)
-      try {
-        const savedPid = await this.readPidFromFile()
-        if (savedPid) {
-          ProcessOwnedPidsByPid(savedPid, processList, ownedMarkers).forEach((pid) =>
-            allPid.add(pid)
-          )
-        }
-      } catch {}
-
-      // 3. Kill by port — most reliable: finds node.exe actually listening
-      try {
-        const portPids = await fetchProcessPidByPort(port)
-        for (const pid of portPids) {
-          ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) => allPid.add(item))
-        }
-      } catch {}
-
-      // 4. Kill any node.exe whose command contains '\\n8n\\'
-      try {
-        const n8nProcs = await ProcessListSearch('\\n8n\\', false, processList)
-        n8nProcs.forEach((p) => allPid.add(p.PID!))
-      } catch {}
-
-      const arr = Array.from(allPid).filter(Boolean)
-      if (arr.length > 0) {
-        await ProcessKill('-9', arr)
+      // PID 文件已由通用目标发现读取；补充按端口找回 cmd wrapper 脱离后的 Node 根。
+      // 端口查询失败时不能把未知监听者解释成已停止，错误应阻断 PID 清理和成功回包。
+      const portPids = await fetchProcessPidByPort(port)
+      for (const pid of portPids) {
+        ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) => allPid.add(item))
       }
 
-      await this._cleanupPidFiles()
+      // 补充找回同一安装的孤立 n8n 根，不能只按进程名扩大到其他安装。
+      const n8nProcs = await ProcessListSearch('\\n8n\\', false, processList)
+      // npm 全局目录下可能有其他项目，不能仅凭名字把不同安装的 n8n 一并结束。
+      n8nProcs.forEach((p) => {
+        ProcessOwnedPidsByPid(p.PID!, processList, ownedMarkers).forEach((pid) => allPid.add(pid))
+      })
+
+      const arr = Array.from(allPid).filter(Boolean)
+      // 使用归属发现时的完整快照执行树停止与统一退出确认；空目标直接复用该快照。
+      const finalList = await this.stopWindowsServiceProcesses(arr, processList)
+
+      const cleanupCandidates = [...arr, ...targets.pids, `${version.pid ?? ''}`].filter(Boolean)
+      await this._cleanupPidFiles(cleanupCandidates, finalList)
 
       on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type })) })
       resolve({ 'APP-Service-Stop-PID': arr })

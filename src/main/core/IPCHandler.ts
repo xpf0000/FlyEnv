@@ -1,10 +1,25 @@
+import {
+  performanceDiagnosticNow,
+  performanceDiagnosticElapsed
+} from '@shared/PerformanceDiagnostics'
 import { ipcMain, shell, app } from 'electron'
 import { EventEmitter } from 'events'
 import { isMacOS, isWindows, isLinux } from '@shared/utils'
 import { execPromiseSudo } from '@shared/child-process'
 import AppHelper from './AppHelper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
-import { buildHelperCheckResponse } from '@shared/WindowsHelperState'
+import {
+  buildHelperCheckResponse,
+  WINDOWS_ELEVATION_CHOICE_VERSION
+} from '@shared/WindowsHelperState'
+import type { WindowsPrivilegeCoordinator } from './WindowsPrivilegeCoordinator'
+import { withWindowsPrivilegeInteraction } from '@shared/WindowsPrivilege'
+import {
+  isWindowsPathCommand,
+  logWindowsPath,
+  withWindowsPathDiagnostics
+} from '@shared/WindowsPathDiagnostics'
+import { timeOperationSync } from '@shared/OperationTiming'
 import ConfigManager from './ConfigManager'
 import type MCPConfigManager from './MCPConfigManager'
 import type { MCPRuntime } from './MCPRuntime'
@@ -17,6 +32,11 @@ import type ServerManager from './ServerManager'
 import type { BrowserWindow } from 'electron'
 import type AppNodeFnManager from './AppNodeFn'
 import ServiceProcessManager from './ServiceProcess'
+import {
+  serviceLifecycleAction,
+  isServiceLifecycleContextExpired,
+  captureServiceLifecycleValidity
+} from './ServiceLifecycle'
 import ServiceVersionManager from './ServiceVersionManager'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -50,6 +70,7 @@ export interface IPCHandlerDependencies {
   pluginManager?: PluginManager
   onPluginsChanged?: () => Promise<void> | void
   retryDataDirectory?: () => Promise<boolean>
+  windowsPrivilege?: WindowsPrivilegeCoordinator
 }
 
 export default class IPCHandler extends EventEmitter {
@@ -131,7 +152,8 @@ export default class IPCHandler extends EventEmitter {
     this.emit(command, ...args)
 
     // 处理 app-fork 命令
-    if (command.startsWith('app-fork:')) {
+    // 后台命令复用原服务分发链，仅携带禁止交互授权的意图，不建立另一套生命周期。
+    if (command.startsWith('app-fork:') || command.startsWith('app-fork-background:')) {
       this.handleForkCommand(command, key, ...args)
       return
     }
@@ -144,11 +166,19 @@ export default class IPCHandler extends EventEmitter {
    * 处理 Fork 命令
    */
   private handleForkCommand(command: string, key: string, ...args: any[]) {
-    const module = command.replace('app-fork:', '')
-    this.dispatchForkCommand(command, key, module, args)
+    const module = command.replace(/^app-fork(?:-background)?:/, '')
+    // 范围从 main 收到工具命令开始，包含代理/配置准备，不能在选 worker 前漏掉这一段。
+    const dispatch = () => this.dispatchForkCommand(command, key, module, args)
+    if (isWindowsPathCommand(module, args[0])) {
+      withWindowsPathDiagnostics({ rendererKey: key, command: args[0] }, dispatch)
+    } else {
+      dispatch()
+    }
   }
 
   private dispatchForkCommand(command: string, key: string, module: string, args: any[]) {
+    const pathStarted = performanceDiagnosticNow()
+    logWindowsPath('main.ipc-received')
     const action = args?.[0]
     const debugAction = {
       command,
@@ -174,8 +204,10 @@ export default class IPCHandler extends EventEmitter {
     }
 
     // 设置代理和全局配置
-    this.deps.serverManager.setProxy()
-    this.deps.serverManager.updateGlobalConfig()
+    timeOperationSync('main.prepare-global-config', () => {
+      this.deps.serverManager.setProxy()
+      this.deps.serverManager.updateGlobalConfig()
+    })
 
     const forkManager = this.deps.forkManager
     if (!forkManager) {
@@ -185,23 +217,95 @@ export default class IPCHandler extends EventEmitter {
     }
 
     // 发送给 fork 进程
-    forkManager
-      .send(module, ...args)
-      .on((info: any) => this.handleForkCallback(command, key, module, info, args))
-      .then((info: any) => {
-        this.handleForkCallback(command, key, module, info, args)
-        this.clearDebugForkAction(debugAction)
-      })
-      .catch((error) => {
+    // 自动启动/MCP 不能弹首次选择/UAC；手动命令的授权意图按异步调用链隔离。
+    const dispatch = async () => {
+      // rendererKey 与 ForkItem 生成的 requestKey 在同一范围关联；不序列化版本/环境参数。
+      // 必须等实例队列/模块屏障轮到此请求后才取快照。若 stop 排在同实例 start 后面，前一个
+      // start 的终态消费者已登记 PID；快照才能指向刚启动的代次，而不是旧渲染参数。
+      let dispatchArgs = args
+      // 普通命令没有服务代次快照，明确初始化为 undefined；仅相关生命周期请求
+      // 在实际派发时填充，回调已有判空保护，不能用空数组伪装成已采样的快照。
+      let stopSnapshot: ReturnType<typeof ServiceProcessManager.stopSnapshotFor> = undefined
+      let registrationSnapshot:
+        ReturnType<typeof ServiceProcessManager.registrationSnapshot> | undefined = undefined
+      if (action === 'stopService') {
+        stopSnapshot = ServiceProcessManager.stopSnapshotFor(module, args[1])
+        if (stopSnapshot) dispatchArgs = [action, ...stopSnapshot.args]
+        // 未命中根快照也捕获派发时完整代次；仅以 fork 实际停掉的 PID 相交清理，
+        // 不能用回包时当前登记补快照，否则迟到结果会注销新实例。
+        registrationSnapshot = ServiceProcessManager.registrationSnapshot(module)
+      }
+      if (action === 'stopGroupService') {
+        // 保留旧插件命令兼容：旧分组签名不能按版本猜根，但可按派发代次注销真实回包 PID。
+        registrationSnapshot = ServiceProcessManager.registrationSnapshot(module)
+      }
+      if (serviceLifecycleAction(module, action) === 'start') {
+        registrationSnapshot = ServiceProcessManager.registrationSnapshot(module)
+      }
+      try {
+        const request = withWindowsPrivilegeInteraction(
+          !command.startsWith('app-fork-background:') && !(module === 'app' && action === 'start'),
+          () => forkManager.send(module, ...dispatchArgs)
+        )
+        const isCurrentRequest = captureServiceLifecycleValidity()
+        request.on((info: any) => {
+          if (!isCurrentRequest()) return
+          this.handleForkCallback(
+            command,
+            key,
+            module,
+            info,
+            dispatchArgs,
+            stopSnapshot,
+            registrationSnapshot
+          )
+        })
+        const info = await request
+        logWindowsPath('main.ipc-terminal', {
+          code: info?.code,
+          durationMs: performanceDiagnosticElapsed(pathStarted)
+        })
         this.handleForkCallback(
           command,
           key,
           module,
-          { code: 1, msg: error instanceof Error ? error.message : `${error}` },
-          args
+          info,
+          dispatchArgs,
+          stopSnapshot,
+          registrationSnapshot
         )
+        return info
+      } catch (error) {
+        logWindowsPath('main.ipc-failed', { durationMs: performanceDiagnosticElapsed(pathStarted) })
+        const info = { code: 1, msg: error instanceof Error ? error.message : `${error}` }
+        this.handleForkCallback(
+          command,
+          key,
+          module,
+          info,
+          dispatchArgs,
+          stopSnapshot,
+          registrationSnapshot
+        )
+        return info
+      } finally {
+        this.clearDebugForkAction(debugAction)
+      }
+    }
+    const lifecycle = serviceLifecycleAction(module, action)
+    if (lifecycle) {
+      // main 以请求中的实例快照确定队列范围；PHP 多版本启动、各版本 stop 不再
+      // 按整个模块串行。实际派发时仍绑定当前登记代次，不复用早于排队的 PID 快照。
+      ServiceProcessManager.runLifecycle(module, lifecycle, dispatch, args[1]).catch((error) => {
+        this.sendToMainWindow(command, key, {
+          code: 1,
+          msg: error instanceof Error ? error.message : `${error}`
+        })
         this.clearDebugForkAction(debugAction)
       })
+    } else {
+      void dispatch()
+    }
   }
 
   private clearDebugForkAction(debugAction: { key: string; startedAt: number }) {
@@ -213,7 +317,17 @@ export default class IPCHandler extends EventEmitter {
   /**
    * 处理 Fork 回调
    */
-  private handleForkCallback(command: string, key: string, module: string, info: any, args: any[]) {
+  private handleForkCallback(
+    command: string,
+    key: string,
+    module: string,
+    info: any,
+    args: any[],
+    stopSnapshot?: ReturnType<typeof ServiceProcessManager.stopSnapshotFor>,
+    registrationSnapshot?: ReturnType<typeof ServiceProcessManager.registrationSnapshot>
+  ) {
+    // main 请求看门狗已结算失败，底层迟到进度/终态不得再次改登记或通知 UI。
+    if (isServiceLifecycleContextExpired()) return
     const win = this.deps.mainWindow!
 
     // 把前端获取已安装版本的结果同步到 MCP 缓存
@@ -227,23 +341,49 @@ export default class IPCHandler extends EventEmitter {
     }
 
     // 处理服务停止 PID
-    if (info?.data?.['APP-Service-Stop-PID']) {
+    if (
+      info?.code === 0 &&
+      Array.isArray(info?.data?.['APP-Service-Stop-PID']) &&
+      (args[0] === 'stopService' || registrationSnapshot)
+    ) {
       const arr: string[] = info.data['APP-Service-Stop-PID']
-      ServiceProcessManager.delPid(module, arr)
+      // fork 确认的 PID 与派发时代次相交后才注销；即使父进程已自然退出，成功终态仍可
+      // 清理请求对应的 root generation，绝不按 bin 误删后来重新启动的同版本实例。
+      if (args[0] === 'stopService' && stopSnapshot) {
+        // Intersect fork-confirmed stopped PIDs with the immutable dispatch generation set.
+        ServiceProcessManager.finishStopSnapshot(module, stopSnapshot, arr)
+      } else if (registrationSnapshot)
+        ServiceProcessManager.finishStoppedRegistrations(module, registrationSnapshot, arr)
     }
 
     // 仅清理无法按 PID 安全注销的陈旧版本登记；bin 是版本实例唯一键。
-    if (info?.data?.['APP-Service-Stale-Bins']) {
+    if (info?.code === 0 && info?.data?.['APP-Service-Stale-Bins']) {
       const bins: string[] = info.data['APP-Service-Stale-Bins']
-      ServiceProcessManager.delByBin(module, bins)
+      if (registrationSnapshot)
+        ServiceProcessManager.finishStaleBins(module, bins, registrationSnapshot)
     }
 
     // 处理服务启动 PID
-    if (info?.data?.['APP-Service-Start-PID']) {
+    if (
+      info?.code === 0 &&
+      info?.data?.['APP-Service-Start-PID'] &&
+      Array.isArray(info.data['APP-Service-Stop-Args'])
+    ) {
       const item = info.data?.['APP-Service-Start-Item'] ?? args[1]
-      ServiceProcessManager.addPid(module, info.data['APP-Service-Start-PID'], item)
+      // 启动终态中的参数由 fork 模块提供，退出原样调用同一个 stopService，
+      // 保留自定义实例目录和项目 PID 签名，不让 main 复制模块停止策略。
+      ServiceProcessManager.addPid(
+        module,
+        info.data['APP-Service-Start-PID'],
+        item,
+        info.data['APP-Service-Stop-Args'],
+        info.data['APP-Service-Stop-Companion'] === true
+      )
     }
 
+    if (info?.code === 0 || info?.code === 1) {
+      info = { ...info, serviceStatusRevision: ServiceProcessManager.statusOf(module).revision }
+    }
     this.deps.windowManager.sendCommandTo(win, command, key, info)
 
     // 处理许可证码
@@ -326,6 +466,33 @@ export default class IPCHandler extends EventEmitter {
    */
   private handleRegularCommand(command: string, key: string, ...args: any[]) {
     switch (command) {
+      // 选择/快照/取消均由 main 协调；renderer 不直接保存权限配置或运行系统命令。
+      case 'application:windows-privilege-snapshot':
+        this.deps.windowsPrivilege
+          ?.snapshot()
+          .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+          .catch((error) => this.sendRuntimeError(command, key, error))
+        break
+      case 'application:windows-privilege-select':
+        this.deps.windowsPrivilege
+          ?.select(args[0], args[1])
+          .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+          .catch((error) => this.sendToMainWindow(command, key, buildHelperCheckResponse(error)))
+        break
+      case 'application:windows-privilege-cancel':
+        this.deps.windowsPrivilege?.cancel(args[0])
+        this.sendToMainWindow(command, key, { code: 0, data: true })
+        break
+      // 独立维护操作：保留安装文件，只停当前 SID 的受验证任务/进程；失败回传终态。
+      case 'application:windows-helper-disable':
+        withWindowsPrivilegeInteraction(true, () =>
+          import('./WindowsHelperDisable').then(({ disableWindowsHelper }) =>
+            disableWindowsHelper()
+          )
+        )
+          .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+          .catch((error) => this.sendToMainWindow(command, key, buildHelperCheckResponse(error)))
+        break
       case 'application:language-bootstrap':
         this.handleLanguageBootstrap(command, key)
         break
@@ -392,8 +559,8 @@ export default class IPCHandler extends EventEmitter {
           this.sendToMainWindow(command, key, { code: 0, data: false })
           break
         }
-        this.deps
-          .retryDataDirectory()
+        // 用户点击目录重试属于交互动作；启动时的首次恢复仍按默认后台语义执行。
+        withWindowsPrivilegeInteraction(true, () => this.deps.retryDataDirectory!())
           .then((ready) => {
             this.sendToMainWindow(command, key, { code: 0, data: ready })
           })
@@ -410,7 +577,7 @@ export default class IPCHandler extends EventEmitter {
         this.handleHelperCommand(command, key)
         break
       case 'APP:FlyEnv-Helper-Check':
-        this.handleHelperCheck(command, key)
+        this.handleHelperCheck(command, key, args[0] === true)
         break
 
       // Node 函数调用
@@ -611,24 +778,100 @@ export default class IPCHandler extends EventEmitter {
 
   // ===== FlyEnv Helper 相关 =====
 
+  /** 管理员进程无需安装；其他用户必须已明确选 Helper，手动修复也进入统一队列。 */
   private handleHelperInstall(command: string, key: string) {
-    AppHelper.initHelper()
+    if (isWindows() && global.Server.WindowsProcessElevated) {
+      this.sendToMainWindow(command, key, { code: 0, data: true })
+      return
+    }
+    if (
+      isWindows() &&
+      (global.Server.WindowsElevationChoiceVersion !== WINDOWS_ELEVATION_CHOICE_VERSION ||
+        global.Server.WindowsElevationMethod !== 'helper')
+    ) {
+      this.sendToMainWindow(command, key, {
+        code: 1,
+        reason: 'windows_authorization_required',
+        msg: 'Choose Helper in Settings before installing it'
+      })
+      return
+    }
+    const installation =
+      isWindows() && this.deps.windowsPrivilege
+        ? this.deps.windowsPrivilege.acquire(this).then(async (lease) => {
+            try {
+              // 手动修复也可能排队；用户已改选 UAC 时，不再执行旧的安装请求。
+              if (
+                (await this.deps.windowsPrivilege!.resolve({
+                  operation: 'helper/install',
+                  interactive: true
+                })) !== 'helper'
+              )
+                throw new Error('Authorization method changed before Helper installation')
+              return await AppHelper.initHelper()
+            } finally {
+              this.deps.windowsPrivilege!.release(lease, this)
+            }
+          })
+        : AppHelper.initHelper()
+    installation
       .then(() => this.sendToMainWindow(command, key, { code: 0, data: true }))
       .catch((error) => this.sendToMainWindow(command, key, buildHelperCheckResponse(error)))
   }
 
+  /** 兼容安装命令入口先检查偏好；UAC 用户和管理员进程不读取 Helper 安装资源。 */
   private handleHelperCommand(command: string, key: string) {
+    if (AppHelper.state !== 'normal') {
+      this.sendToMainWindow(command, key, {
+        code: 1,
+        reason: 'helper_execution_failed',
+        msg: 'FlyEnv helper installation is already in progress'
+      })
+      return
+    }
+    if (
+      isWindows() &&
+      (global.Server.WindowsProcessElevated ||
+        global.Server.WindowsElevationChoiceVersion !== WINDOWS_ELEVATION_CHOICE_VERSION ||
+        global.Server.WindowsElevationMethod !== 'helper')
+    ) {
+      this.sendToMainWindow(command, key, {
+        code: 1,
+        reason: 'windows_authorization_required',
+        msg: 'Choose Helper in Settings before preparing its installation'
+      })
+      return
+    }
     AppHelper.command()
       .then((res) => {
-        this.sendToMainWindow(command, key, { code: 0, ...res })
+        this.sendToMainWindow(command, key, {
+          code: 0,
+          ...res,
+          command: isLinux() ? `sudo ${res.command}` : res.command
+        })
       })
       .catch((error) => {
         this.sendToMainWindow(command, key, buildHelperCheckResponse(error))
       })
   }
 
-  private handleHelperCheck(command: string, key: string) {
-    AppHelperCheck()
+  /** 避免 UI 健康轮询让未选择/UAC 用户触碰 key、任务或常驻程序。 */
+  private handleHelperCheck(command: string, key: string, terminalInstallation = false) {
+    if (
+      isWindows() &&
+      (global.Server.WindowsProcessElevated ||
+        global.Server.WindowsElevationChoiceVersion !== WINDOWS_ELEVATION_CHOICE_VERSION ||
+        global.Server.WindowsElevationMethod !== 'helper')
+    ) {
+      this.sendToMainWindow(command, key, {
+        code: 0,
+        data: false,
+        reason: 'windows_authorization_required'
+      })
+      return
+    }
+    const check = terminalInstallation ? AppHelper.verifyHelperReady() : AppHelperCheck()
+    check
       .then(() => {
         this.sendToMainWindow(command, key, { code: 0, data: true })
       })
@@ -648,7 +891,10 @@ export default class IPCHandler extends EventEmitter {
     try {
       if (typeof this.deps.appNodeFnManager[fn] === 'function') {
         const nodeFn = this.deps.appNodeFnManager[fn] as any
-        nodeFn.call(this.deps.appNodeFnManager, command, key, ...args)
+        // 用户触发的主进程 Node 函数也带独立交互上下文，如环境变量和自启动设置。
+        withWindowsPrivilegeInteraction(true, () =>
+          nodeFn.call(this.deps.appNodeFnManager, command, key, ...args)
+        )
       }
     } catch {}
   }
@@ -656,6 +902,13 @@ export default class IPCHandler extends EventEmitter {
   // ===== 密码检查 =====
 
   private handlePasswordCheck(command: string, key: string, args: any[]) {
+    if (process.platform === 'linux') {
+      this.sendToMainWindow(command, key, {
+        code: 1,
+        msg: 'Use sudo interactively in XTerm on Linux'
+      })
+      return
+    }
     const pass = args?.[0] ?? ''
     execPromiseSudo(['-k', 'echo', 'FlyEnv'], undefined, pass)
       .then(() => {
@@ -832,7 +1085,7 @@ export default class IPCHandler extends EventEmitter {
 
   private handleNodePtyExec(command: string, key: string, args: any[]) {
     this.loadNodePty()
-      .then((nodePty) => nodePty.exec(args[0], args[1], args[2], command, key))
+      .then((nodePty) => nodePty.exec(args[0], args[1], args[2], command, key, args[3] === true))
       .catch((error) => this.sendRuntimeError(command, key, error))
   }
 

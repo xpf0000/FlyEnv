@@ -56,9 +56,9 @@
     set(v: boolean) {
       const all = serviceDo(v)
       Promise.all(all).then((res) => {
-        const find = res.find((s) => typeof s === 'string')
-        if (find) {
-          MessageError(find)
+        const failure = res.find((result) => result !== true)
+        if (failure !== undefined) {
+          MessageError(typeof failure === 'string' ? failure : I18nT('base.fail'))
         } else {
           MessageSuccess(I18nT('base.success'))
         }

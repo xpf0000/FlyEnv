@@ -4,6 +4,7 @@ import type { GetManagedFileMapInput } from '@shared/mcpContext'
 import MCPContextResolver from './MCPContextResolver'
 import ServiceProcessManager from './ServiceProcess'
 import ServiceVersionManager from './ServiceVersionManager'
+import { captureServiceLifecycleValidity } from './ServiceLifecycle'
 import {
   isMcpDatabaseFlag,
   isMcpInstallableFlag,
@@ -47,6 +48,7 @@ function callFork(
   fn: string,
   ...args: any[]
 ): Promise<any> {
+  const isCurrentRequest = captureServiceLifecycleValidity()
   return new Promise((resolve, reject) => {
     let settled = false
     forkManager
@@ -57,6 +59,10 @@ function callFork(
       .then((res: any) => {
         if (settled) return
         settled = true
+        if (!isCurrentRequest()) {
+          reject(new Error('Service lifecycle request expired; ignoring late fork result'))
+          return
+        }
         if (res?.code === 0) {
           resolve(res?.data)
         } else {
@@ -523,43 +529,88 @@ export class MCPTools {
     return enabled
   }
 
-  async startService(flag: string, version?: string): Promise<any> {
+  startService(flag: string, version?: string): Promise<any> {
+    return ServiceProcessManager.runLifecycle(
+      flag,
+      'start',
+      (selected) => this.startServiceImpl(flag, version, selected),
+      async () => {
+        // 选版本也进入受理许可和 drain；PHP 按与 UI 相同的安装对象确定实例队列。
+        this.assertLifecycleFlag(flag, 'start')
+        return this.pickVersion(flag, version)
+      }
+    )
+  }
+
+  private async startServiceImpl(flag: string, version?: string, selected?: any): Promise<any> {
     this.assertLifecycleFlag(flag, 'start')
-    const v = await this.pickVersion(flag, version)
+    const v = selected ?? (await this.pickVersion(flag, version))
     // 单实例服务（nginx/mysql/redis... isOnlyRunOne）：启动某版本即「切到该版本」——
     // 与 FlyEnv UI 的 onItemStart 行为对齐，先停掉其它正在运行的版本。
     // 多实例运行时（php/node/python... 语言类）：多版本可并存，不停其它。
     if (SINGLE_INSTANCE_SERVICES.has(flag)) {
-      const running = ServiceProcessManager.statusOf(flag).instances
+      const running = ServiceProcessManager.statusOf(flag).instances.filter((instance) => {
+        const registered = ServiceProcessManager.stopSnapshotFor(flag, instance)
+        // 独立实例用自己的展示键登记、保存实际程序的停止参数；它们不属于普通安装版本
+        // 的“切换当前版本”集合（例如同版本数据库分组）。stop_all/退出仍遍历全部登记。
+        return !registered || registered.args[0]?.bin === instance.bin
+      })
       if (running.some((ins) => ins.bin !== v.bin)) {
         const raw = await this.rawServiceVersions(flag)
         for (const ins of running) {
           if (ins.bin === v.bin) continue
           const full = raw.find((r: any) => r.bin === ins.bin) ?? { ...ins, typeFlag: flag }
+          const snapshot = ServiceProcessManager.stopSnapshotFor(flag, ins)
           try {
-            await callFork(this.forkManager, flag, 'stopService', full)
-            ServiceProcessManager.delByBin(flag, [ins.bin])
-          } catch (e) {
-            console.log(`startService stop other ${flag} ${ins.version} error:`, e)
+            const data = await callFork(
+              this.forkManager,
+              flag,
+              'stopService',
+              ...(snapshot?.args ?? [full])
+            )
+            if (snapshot)
+              ServiceProcessManager.finishStopSnapshot(
+                flag,
+                snapshot,
+                (data?.['APP-Service-Stop-PID'] ?? []).map(String)
+              )
+          } catch (error) {
+            // 任一旧版本停止失败都意味着切换未完成：保留它的登记并中止，不能在旧进程
+            // 仍可能运行时继续启动新版本，也不能把失败误当成成功注销。
+            throw new Error(
+              `Cannot switch ${flag} to ${v.version ?? v.bin}: failed to stop ${ins.version ?? ins.bin}: ${String(error)}`
+            )
           }
         }
       }
     }
+    const registrationSnapshot = ServiceProcessManager.registrationSnapshot(flag)
     const data = await callFork(this.forkManager, flag, 'startService', v)
     // 把 PID 登记进主进程唯一状态源（与 IPCHandler.handleForkCallback 同口径），
     // 否则 MCP 启动的服务既不被 UI 感知，也不会在退出时被统一清理。
     const stoppedPids: string[] = data?.['APP-Service-Stop-PID'] ?? []
     if (stoppedPids.length > 0) {
-      ServiceProcessManager.delPid(flag, stoppedPids)
+      ServiceProcessManager.finishStoppedRegistrations(
+        flag,
+        registrationSnapshot,
+        stoppedPids.map(String)
+      )
     }
     const staleBins: string[] = data?.['APP-Service-Stale-Bins'] ?? []
     if (staleBins.length > 0) {
-      ServiceProcessManager.delByBin(flag, staleBins)
+      ServiceProcessManager.finishStaleBins(flag, staleBins, registrationSnapshot)
     }
     const pid = data?.['APP-Service-Start-PID']
     if (pid) {
       const item = data?.['APP-Service-Start-Item'] ?? v
-      ServiceProcessManager.addPid(flag, `${pid}`, item)
+      // MCP 启动与 UI 使用相同运行登记，退出复用模块给出的同实例停止参数。
+      ServiceProcessManager.addPid(
+        flag,
+        `${pid}`,
+        item,
+        data?.['APP-Service-Stop-Args'],
+        data?.['APP-Service-Stop-Companion'] === true
+      )
     }
     // 单实例服务：持久化 current（与渲染层 onItemStart→saveConfig 同口径，剔除 note）
     if (SINGLE_INSTANCE_SERVICES.has(flag) && this.appConfig) {
@@ -574,60 +625,82 @@ export class MCPTools {
     return data
   }
 
-  async stopService(flag: string, version?: string): Promise<any> {
+  stopService(flag: string, version?: string): Promise<any> {
+    return ServiceProcessManager.runLifecycle(
+      flag,
+      'stop',
+      (selected) => this.stopServiceImpl(flag, version, selected),
+      async () => {
+        this.assertLifecycleFlag(flag, 'stop')
+        return this.pickVersion(flag, version)
+      }
+    )
+  }
+
+  private async stopServiceImpl(flag: string, version?: string, selected?: any): Promise<any> {
     this.assertLifecycleFlag(flag, 'stop')
-    const v = await this.pickVersion(flag, version)
-    const data = await callFork(this.forkManager, flag, 'stopService', v)
-    // 停服登记清理：按 bin 精确删除——只删被停的那个版本，绝不波及同模块其它版本。
-    // （fork 的 stopService 已按版本精确停进程；这里只同步主进程状态登记）
-    const stoppedPids: string[] = data?.['APP-Service-Stop-PID'] ?? []
-    if (stoppedPids.length > 0) {
-      ServiceProcessManager.delPid(flag, stoppedPids)
-    }
-    if (v?.bin) {
-      ServiceProcessManager.delByBin(flag, [v.bin])
-    }
+    const v = selected ?? (await this.pickVersion(flag, version))
+    const snapshot = ServiceProcessManager.stopSnapshotFor(flag, v)
+    const registrations = ServiceProcessManager.registrationSnapshot(flag)
+    // 已登记实例使用启动时保存的同实例 stop 参数；未登记旧调用才回退到调用方版本对象。
+    const data = await callFork(this.forkManager, flag, 'stopService', ...(snapshot?.args ?? [v]))
+    if (snapshot)
+      ServiceProcessManager.finishStopSnapshot(
+        flag,
+        snapshot,
+        (data?.['APP-Service-Stop-PID'] ?? []).map(String)
+      )
+    else
+      ServiceProcessManager.finishStoppedRegistrations(
+        flag,
+        registrations,
+        (data?.['APP-Service-Stop-PID'] ?? []).map(String)
+      )
     return data
   }
 
   /** 停掉某模块当前登记的所有运行实例 */
-  async stopAllService(flag: string): Promise<any> {
+  stopAllService(flag: string): Promise<any> {
+    return ServiceProcessManager.runLifecycle(flag, 'stop', () => this.stopAllServiceImpl(flag))
+  }
+
+  private async stopAllServiceImpl(flag: string): Promise<any> {
     this.assertLifecycleFlag(flag, 'stop')
-    const running = ServiceProcessManager.statusOf(flag).instances
+    // 与退出编排使用同一份运行登记，包含单独打开的面板；展示状态会过滤 companion，
+    // 不能用 statusOf.instances 作为 stop_all 的完整清理清单。
+    const running = [...(ServiceProcessManager.servicePID[flag] ?? [])]
     if (running.length === 0) {
       // 没有登记在案的实例，尝试用任一已装版本触发一次 stop（兜底）
       const v = await this.pickVersion(flag).catch(() => null)
-      if (v) await callFork(this.forkManager, flag, 'stopService', v)
-      ServiceProcessManager.delAll(flag)
+      if (v) {
+        await callFork(this.forkManager, flag, 'stopService', v)
+      }
       return { stopped: [] }
     }
-    const raw = await this.rawServiceVersions(flag)
-    const stopped: string[] = []
-    const stoppedBins: string[] = []
-    const failed: string[] = []
-    for (const ins of running) {
-      // 用完整版本对象（含 bin/path）停，匹配不到则用最小对象兜底
-      const full = raw.find((r: any) => r.bin === ins.bin) ?? { ...ins, typeFlag: flag }
-      try {
-        await callFork(this.forkManager, flag, 'stopService', full)
-        stopped.push(ins.version ?? ins.bin)
-        stoppedBins.push(ins.bin)
-      } catch (e) {
-        // 单个失败不阻断其它
-        console.log(`stopAllService ${flag} ${ins.version} error:`, e)
-        failed.push(ins.version ?? ins.bin)
-      }
+    // 模块屏障已等待旧请求；内部直接使用公共并行编排，不能再次调用 runLifecycle
+    // 排在自己的屏障之后。与退出共用参数/代次冻结、失败隔离和终态注销。
+    const results = await ServiceProcessManager.stopRegisteredInstances([flag])
+    return {
+      stopped: results.filter(({ status }) => status === 'stopped').map(({ label }) => label),
+      failed: results.filter(({ status }) => status === 'failed').map(({ label }) => label)
     }
-    if (stoppedBins.length > 0) {
-      ServiceProcessManager.delByBin(flag, stoppedBins)
-    }
-    return { stopped, failed }
   }
 
-  async restartService(flag: string, version?: string): Promise<any> {
-    this.assertLifecycleFlag(flag, 'restart')
-    await this.stopService(flag, version)
-    return this.startService(flag, version)
+  restartService(flag: string, version?: string): Promise<any> {
+    return ServiceProcessManager.runLifecycle(
+      flag,
+      'start',
+      async (selected) => {
+        // 重启持有同一实例队列直到 stop/start 均完成，不在两步之间让后续请求插入。
+        this.assertLifecycleFlag(flag, 'restart')
+        await this.stopServiceImpl(flag, version, selected)
+        return this.startServiceImpl(flag, version, selected)
+      },
+      async () => {
+        this.assertLifecycleFlag(flag, 'restart')
+        return this.pickVersion(flag, version)
+      }
+    )
   }
 
   /** 解析一个版本对象供按版本的路径计算（缺省取运行中/第一个已装版本） */

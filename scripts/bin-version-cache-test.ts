@@ -357,7 +357,8 @@ const readSource = (path: string) => readFileSync(path, 'utf8')
 const forkManagerSource = readSource('src/main/core/ForkManager.ts')
 const forkItemSource = readSource('src/main/core/ForkItem.ts')
 const applicationSource = readSource('src/main/Application.ts')
-const forkEntrySource = readSource('src/fork/index.ts')
+// provider 注册位于动态加载的 runtime；bootstrap 仅负责加载与早期计时。
+const forkEntrySource = readSource('src/fork/runtime.ts')
 
 assert.match(forkManagerSource, /BinVersionCacheStore/)
 assert.match(forkManagerSource, /ElectronStoreBinVersionCachePersistence/)

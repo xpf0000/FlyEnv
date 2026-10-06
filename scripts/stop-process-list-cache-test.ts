@@ -4,7 +4,7 @@ import { StopProcessListClient } from '../src/fork/StopProcessListClient'
 import { StopProcessListBridge } from '../src/main/core/StopProcessListBridge'
 import { StopProcessListCache } from '../src/main/core/StopProcessListCache'
 import type { PItem } from '../src/shared/Process'
-import { ProcessPidListByPid, ProcessPidListByPids } from '../src/shared/Process.win'
+import { ProcessPidListByPid } from '../src/shared/Process.win'
 import {
   StopProcessListAccess,
   StopProcessListFetch,
@@ -193,14 +193,13 @@ assert.strictEqual(await StopProcessListFetch(), firstList)
 setStopProcessListProvider(undefined)
 
 assert.deepEqual(await ProcessPidListByPid('9999', []), [])
-assert.deepEqual(await ProcessPidListByPids(['9999'], []), [])
 const orphanChild: PItem[] = [{ USER: 'user', PID: '10000', PPID: '9999', COMMAND: 'child' }]
 assert.deepEqual(await ProcessPidListByPid('9999', orphanChild), ['10000'])
-assert.deepEqual(await ProcessPidListByPids(['9999'], orphanChild), ['10000'])
 
 const forkManagerSource = readFileSync('src/main/core/ForkManager.ts', 'utf8')
 const forkItemSource = readFileSync('src/main/core/ForkItem.ts', 'utf8')
-const forkEntrySource = readFileSync('src/fork/index.ts', 'utf8')
+// 首表 provider 仍由同一个 worker 运行时注册，只是从 bootstrap 动态加载。
+const forkEntrySource = readFileSync('src/fork/runtime.ts', 'utf8')
 assert.match(forkManagerSource, /StopProcessListCache/)
 assert.match(forkManagerSource, /StopProcessListBridge/)
 assert.match(forkManagerSource, /this\.stopProcessListBridge/)

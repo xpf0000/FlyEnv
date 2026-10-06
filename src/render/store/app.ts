@@ -120,6 +120,8 @@ type StateBase = SetupBase & {
   user_uuid?: string
   trayMenuBarStyle?: 'classic' | 'modern'
   windowsElevationMethod?: WindowsElevationMethod
+  // 沿用已有应用域设置；没有此标记时 UI 展示“未选择”，不展示旧默认 helper 为已同意。
+  windowsElevationChoiceVersion?: number
   appFont?: string
   codeFont?: string
 }

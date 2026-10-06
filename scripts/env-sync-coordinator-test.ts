@@ -321,7 +321,8 @@ await assert.rejects(() => timedOut, /timed out after 10000ms/)
 
 const forkManagerSource = readFileSync('src/main/core/ForkManager.ts', 'utf8')
 const forkItemSource = readFileSync('src/main/core/ForkItem.ts', 'utf8')
-const forkEntrySource = readFileSync('src/fork/index.ts', 'utf8')
+// 检查真正安装 IPC provider 的 runtime，避免把轻量 bootstrap 当作业务入口。
+const forkEntrySource = readFileSync('src/fork/runtime.ts', 'utf8')
 assert.match(forkManagerSource, /EnvSyncCoordinator/)
 assert.match(forkManagerSource, /EnvSyncBridge/)
 assert.match(forkManagerSource, /this\.envSyncBridge/)

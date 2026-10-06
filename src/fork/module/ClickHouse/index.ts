@@ -26,7 +26,11 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
 
-import { ProcessKill, ProcessListFetch, ProcessOwnedPidsByPidOrDescendant } from '@shared/Process'
+import {
+  ProcessListByExactPid,
+  ProcessListFetch,
+  ProcessOwnedPidsByPidOrDescendant
+} from '@shared/Process'
 import {
   CH_UI_CONNECTION_NAME,
   CH_UI_PORT,
@@ -35,6 +39,7 @@ import {
   clickHouseHttpPort
 } from './chUI'
 import { clickHouseVersionPidFile } from './lifecycle'
+import { StopProcessListFetch } from '@shared/StopProcessList'
 class Manager extends Base {
   constructor() {
     super()
@@ -212,16 +217,19 @@ class Manager extends Base {
     return clickHouseVersionPidFile(global.Server.BaseDir!, version.bin)
   }
 
-  private async clearVersionPidFiles(): Promise<void> {
+  private async clearVersionPidFiles(stoppedPids: string[]): Promise<void> {
     const pidDir = join(global.Server.BaseDir!, 'pid')
-    try {
-      const files = await readdir(pidDir)
-      await Promise.all(
-        files
-          .filter((file) => /^clickhouse-[a-f0-9]{32}\.pid$/.test(file))
-          .map((file) => remove(join(pidDir, file)))
-      )
-    } catch {}
+    if (!existsSync(pidDir)) return
+    const files = await readdir(pidDir)
+    const running = await ProcessListFetch()
+    for (const file of files.filter((value) => /^clickhouse-[a-f0-9]{32}\.pid$/.test(value))) {
+      const pidFile = join(pidDir, file)
+      const pid = await this.readPidFromFile(pidFile)
+      // 只清理已确认停止或快照确认不存在的版本 PID；其他活实例的登记必须保留。
+      if (!pid || stoppedPids.includes(pid) || !running.some(({ PID }) => PID === pid)) {
+        await remove(pidFile)
+      }
+    }
   }
 
   private _stopAllServers(version: SoftInstalled, ...args: any): ForkPromise<any> {
@@ -231,10 +239,13 @@ class Manager extends Base {
         uiPids = await this._stopCHUI()
       } catch (error) {
         console.log('clickhouse stop CH-UI err: ', error)
+        // UI 是服务伴随进程；任何平台未确认退出都必须阻断重启并保留 PID 供重试。
+        reject(error)
+        return
       }
       try {
         const res: any = await super._stopServer(version, ...args).on(on)
-        await this.clearVersionPidFiles()
+        await this.clearVersionPidFiles(res['APP-Service-Stop-PID'] ?? [])
         if (uiPids.length > 0) {
           res['APP-Service-Stop-PID'] = Array.from(
             new Set([...(res['APP-Service-Stop-PID'] ?? []), ...uiPids])
@@ -288,23 +299,35 @@ class Manager extends Base {
     return owned.length > 0 ? `${pid}` : ''
   }
 
+  /** 独立打开的 CH-UI 也登记清理，只停止面板，不把它当作 ClickHouse 服务。 */
+  companionStopArgs(command: string, pid: string): any[] | undefined {
+    if (command === 'openCHUI') {
+      return [{ ...this.chUIVersion(this.chUIBin()), pid }, { uiOnly: true }]
+    }
+  }
+
   _stopServer(version: SoftInstalled, ...args: any) {
     return new ForkPromise(async (resolve, reject, on) => {
-      void args
+      if (args[0]?.uiOnly) {
+        resolve({ 'APP-Service-Stop-PID': await this._stopCHUI() })
+        return
+      }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
       try {
-        const plist = await ProcessListFetch()
+        const plist = await StopProcessListFetch()
         const pids = new Set<string>()
         const versionPid = await this.readPidFromFile(this.versionPidFile(version))
         const legacyPid = await this.readPidFromFile(this.appPidFile())
-        let legacyPids: string[] = []
         const staleBinSet = new Set<string>()
         const candidates = Array.from(
           new Set([versionPid, legacyPid, `${version.pid ?? ''}`].filter(Boolean))
         )
         for (const pid of candidates) {
+          const root = plist.find(({ PID }) => PID === pid)
+          // 候选不可读/缺席只过滤，不阻断其他实例根或 CH-UI companion。
+          // 有历史后代时也不凭缺席父的号码建立新授权。
           const ownedPids = ProcessOwnedPidsByPidOrDescendant(
             pid,
             plist,
@@ -312,26 +335,32 @@ class Manager extends Base {
             ['clickhouse-watchdog']
           )
           if (ownedPids.length === 0) {
-            staleBinSet.add(version.bin)
+            // 活但未验证的候选不标成 stale；避免把过滤等同于进程已消失。
+            if (!root && !plist.some(({ PPID }) => PPID === pid)) staleBinSet.add(version.bin)
             continue
-          }
-          if (pid === legacyPid) {
-            legacyPids = ownedPids
           }
           ownedPids.forEach((ownedPid) => pids.add(ownedPid))
         }
         const arr = Array.from(pids)
+        let finalList = plist
         if (arr.length > 0) {
-          await ProcessKill('-INT', arr).catch(() => {})
+          // 只向已确认的 Unix 根发送服务信号；查询失败、信号失败或超时均拒绝成功。
+          if (isWindows()) {
+            finalList = await this.stopWindowsServiceProcesses(arr, plist)
+          } else {
+            finalList = await this.stopUnixServicePids('-INT', arr, arr, 10_000, plist)
+          }
         }
-        await remove(this.versionPidFile(version)).catch(() => {})
-        if (legacyPids.length > 0) {
-          await remove(this.appPidFile()).catch(() => {})
-        }
-        if (arr.length > 0) {
-          const uiPids = await this._stopCHUI().catch(() => [])
-          arr.push(...uiPids)
-        }
+        // 无论数据库父进程是否已退出，都要独立确认并停止仍运行的 CH-UI companion。
+        const uiPids = await this._stopCHUI()
+        arr.push(...uiPids)
+        // companion 停止也可能需要授权；整次停止成功后才移除 PID，便于失败后重试。
+        // 所有平台按最终列表清理：有效树已停止才移除旧值，活的被过滤候选保留。
+        await this.cleanupStoppedServicePidFiles(
+          [...candidates, ...arr, `${version.pid ?? ''}`].filter(Boolean),
+          finalList,
+          [this.appPidFile(), this.pidPath, this.versionPidFile(version)]
+        )
         const staleBins = Array.from(staleBinSet)
         on({ 'APP-Service-Stop-Success': true })
         on({
@@ -350,33 +379,40 @@ class Manager extends Base {
   private async _stopCHUI(): Promise<string[]> {
     const bin = this.chUIBin()
     const pidPath = this.chUIPidPath()
-    const allPid: string[] = []
-    const processes = await ProcessListFetch()
+    const processes = await StopProcessListFetch()
 
+    const candidatePids = new Set<string>()
     if (existsSync(pidPath)) {
       try {
         const pid = (await readFile(pidPath, 'utf-8')).trim()
-        const process = processes.find((item) => item.PID === pid)
-        if (process?.COMMAND.includes(bin)) {
-          allPid.push(pid)
-        }
-      } catch {}
-    }
-
-    allPid.push(
-      ...processes.filter((item) => item.COMMAND.includes(bin)).map((item) => `${item.PID}`)
-    )
-    const arr = Array.from(new Set(allPid))
-    if (arr.length > 0) {
-      try {
-        await ProcessKill('-INT', arr)
-      } catch {}
-    }
-    try {
-      if (existsSync(pidPath)) {
-        await remove(pidPath)
+        if (pid) candidatePids.add(pid)
+      } catch (error) {
+        // PID 记录不可读时不能当作 companion 已退出，也不能继续清理该记录。
+        throw error
       }
-    } catch {}
+    }
+    // 只从保存的 PID 和专属进程名恢复 UI 候选，不能按相同 EXE 全量扫描纳入用户实例。
+    ProcessSearch('ch-ui', false, processes)
+      .filter((item) => item.COMMAND.includes(bin))
+      .forEach(({ PID }) => candidatePids.add(`${PID}`))
+    const roots: string[] = []
+    for (const pid of candidatePids) {
+      // 归属工具过滤不可读/不匹配根；其他有效 UI 候选继续，确认父后再收完整树。
+      if (ProcessOwnedPidsByPid(pid, processes, [bin]).length) roots.push(pid)
+    }
+    // UI 根需带本次安装标记；确认后的完整子孙可直接随父树停止，不逐 worker 授权。
+    const arr = Array.from(
+      new Set(roots.flatMap((pid) => ProcessListByExactPid(pid, processes).map(({ PID }) => PID)))
+    )
+    let finalList = processes
+    if (arr.length > 0) {
+      if (isWindows()) finalList = await this.stopWindowsServiceProcesses(arr, processes)
+      else {
+        finalList = await this.stopUnixServicePids('-INT', roots, arr, 10_000, processes)
+      }
+    }
+    // 空目标仍沿用首次列表，不得把不可读但存活的 UI 候选当成已退出。
+    await this.cleanupStoppedServicePidFiles([...candidatePids, ...arr], finalList, [pidPath])
     return arr
   }
 

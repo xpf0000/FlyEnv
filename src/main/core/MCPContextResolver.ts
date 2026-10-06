@@ -39,6 +39,10 @@ const DATABASE_FLAGS = new Set([
 
 const WEB_SERVER_FLAGS = ['caddy', 'nginx', 'apache', 'frankenphp', 'tomcat'] as const
 
+const DEFAULT_MYSQL_PORT = 3306
+// Windows 的 socket 表示命名管道；Unix 新旧配置统一回退到 /tmp/mysql.sock。
+const DEFAULT_MYSQL_SOCKET = process.platform === 'win32' ? 'MySQL' : '/tmp/mysql.sock'
+
 type MySqlStyleConfig = {
   serverSection: string
   values: Record<string, string>
@@ -400,12 +404,13 @@ export default class MCPContextResolver {
     return undefined
   }
 
-  private deriveSocket(flag: string, version: SoftInstalled, configText: string, port: number) {
+  private deriveSocket(flag: string, configText: string, port: number) {
     if (flag === 'mysql' || flag === 'mariadb') {
-      if (version?.version) {
-        return `/tmp/mysql.${version.version}.sock`
+      const configuredSocket = parseMySqlStyleConfigText(configText).values.socket?.trim()
+      if (configuredSocket) {
+        return configuredSocket
       }
-      return '/tmp/mysql.sock'
+      return DEFAULT_MYSQL_SOCKET
     }
     if (flag === 'postgresql') {
       const parsed = parsePostgresqlConfigText(configText)
@@ -494,7 +499,7 @@ export default class MCPContextResolver {
     const configText = readTextIfExists(firstExistingConfigFile(files.config))
     const port =
       flag === 'mysql' || flag === 'mariadb'
-        ? (parsePort(parseMySqlStyleConfigText(configText).values.port) ?? 3306)
+        ? (parsePort(parseMySqlStyleConfigText(configText).values.port) ?? DEFAULT_MYSQL_PORT)
         : flag === 'postgresql'
           ? (parsePort(parsePostgresqlConfigText(configText).port) ?? 5432)
           : flag === 'redis'
@@ -519,7 +524,7 @@ export default class MCPContextResolver {
     push('runtime', makePathItem('pid', join(global.Server.BaseDir!, 'pid', `${flag}.pid`)))
 
     if (port) {
-      push('runtime', makePathItem('socket', this.deriveSocket(flag, version, configText, port)))
+      push('runtime', makePathItem('socket', this.deriveSocket(flag, configText, port)))
     }
 
     const defaultDataDir = this.defaultDataDir(flag, version)
@@ -767,13 +772,13 @@ export default class MCPContextResolver {
 
     if (flag === 'mysql' || flag === 'mariadb') {
       const parsed = parseMySqlStyleConfigText(configText)
-      port = parsePort(parsed.values.port) ?? 3306
+      port = parsePort(parsed.values.port) ?? DEFAULT_MYSQL_PORT
       sourceHints.port = parsed.values.port ? 'config' : 'default'
       if (!parsed.values.port) {
-        warnings.push('Configured port not found, fallback to default 3306.')
+        warnings.push(`Configured port not found, fallback to default ${DEFAULT_MYSQL_PORT}.`)
       }
-      socket = this.deriveSocket(flag, versionObj, configText, port)
-      sourceHints.socket = socket ? 'derived' : 'default'
+      socket = this.deriveSocket(flag, configText, port)
+      sourceHints.socket = parsed.values.socket?.trim() ? 'config' : 'default'
       user = 'root'
       sourceHints.user = 'default'
       const resolvedPassword = this.resolveDatabasePassword(flag, versionObj)
@@ -787,7 +792,7 @@ export default class MCPContextResolver {
       if (!parsed.port) {
         warnings.push('Configured port not found, fallback to default 5432.')
       }
-      socket = this.deriveSocket(flag, versionObj, configText, port)
+      socket = this.deriveSocket(flag, configText, port)
       sourceHints.socket = socket ? 'config' : 'default'
       user = 'postgres'
       sourceHints.user = 'default'

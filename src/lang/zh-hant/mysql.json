@@ -1,5 +1,6 @@
 {
   "port": "通訊埠號。預設為 3306",
+  "socket": "本機連線的 Socket 路徑，預設 /tmp/mysql.sock；Windows 下為具名管道名稱，預設 MySQL。",
   "key_buffer_size": "用於索引的緩衝區大小",
   "query_cache_size": "查詢快取，不開啟請設為 0",
   "tmp_table_size": "臨時表快取大小",

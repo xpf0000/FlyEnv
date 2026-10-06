@@ -18,11 +18,14 @@ import {
   chmod,
   remove,
   execPromiseSudo,
-  spawnPromiseWithStdin
+  spawnPromiseWithStdin,
+  spawnPromiseWithEnv
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { withBinVersionCache } from '../../util/BinVersionCache'
+import { isLinux } from '@shared/utils'
+import Helper from '../../Helper'
 
 class Manager extends Base {
   constructor() {
@@ -53,6 +56,12 @@ class Manager extends Base {
 
   _startServer(version: SoftInstalled, openInTerminal?: boolean) {
     return new ForkPromise(async (resolve, reject) => {
+      if (isLinux()) {
+        await this._initConf()
+        const pid = await Helper.send<number>('ftp', 'start', { bin: version.bin })
+        resolve({ 'APP-Service-Start-PID': `${pid}` })
+        return
+      }
       const confFile = await this._initConf()
       const bin = version.bin
       const pidfile = join(global.Server.FTPDir!, 'pure-ftpd.pid')
@@ -96,6 +105,28 @@ class Manager extends Base {
     })
   }
 
+  _stopServer(version: SoftInstalled, ...args: any[]) {
+    if (!isLinux()) return super._stopServer(version, ...args)
+    return new ForkPromise(async (resolve, reject, on) => {
+      const pid = await Helper.send<number>('ftp', 'stop')
+      let result
+      try {
+        // Base filters stale/unrelated PID records using the process snapshot.
+        // Only a confirmed FTP process failing ordinary stop needs maintenance.
+        result = await super._stopServer(version, ...args).on(on)
+      } catch (error) {
+        reject(
+          String(error).includes('EPERM')
+            ? new Error(I18nT('service.linuxFtpUnmanagedRoot'))
+            : error
+        )
+        return
+      }
+      if (pid > 0) result['APP-Service-Stop-PID'].push(`${pid}`)
+      resolve(result)
+    })
+  }
+
   getPort() {
     return new ForkPromise(async (resolve) => {
       let port: any = 21
@@ -133,9 +164,33 @@ class Manager extends Base {
     const pdb = join(global.Server.FTPDir!, 'pureftpd.pdb')
     const passwd = join(global.Server.FTPDir!, 'pureftpd.passwd')
     const command = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
+    if (isLinux()) {
+      if (
+        !existsSync(passwd) ||
+        !(await readFile(passwd, 'utf8'))
+          .split('\n')
+          .some((line: string) => line.startsWith(`${user}:`))
+      )
+        return
+      await spawnPromiseWithEnv(
+        join(cwd, 'pure-pw'),
+        ['userdel', user, '-f', passwd, '-F', pdb, '-m'],
+        { cwd }
+      )
+      return
+    }
     try {
       await execPromise(command, { cwd })
     } catch {}
+  }
+
+  private async refreshLinuxUsers() {
+    if (!isLinux()) return
+    try {
+      await Helper.send('ftp', 'refreshUsers')
+    } catch (error) {
+      throw new Error(I18nT('service.linuxFtpUsersRefreshFailed', { error: String(error) }))
+    }
   }
 
   delFtp(item: FtpItem, version: SoftInstalled) {
@@ -161,6 +216,7 @@ class Manager extends Base {
         all.splice(findOld, 1)
       }
       await writeFile(json, JSON.stringify(all))
+      await this.refreshLinuxUsers()
       resolve(true)
     })
   }
@@ -232,10 +288,11 @@ class Manager extends Base {
             all.unshift(item)
           }
           await writeFile(json, JSON.stringify(all))
+          await this.refreshLinuxUsers()
           resolve(true)
         })
-        .catch(() => {
-          reject(new Error(stdout.join('')))
+        .catch((error) => {
+          reject(error instanceof Error ? error : new Error(stdout.join('')))
         })
     })
   }

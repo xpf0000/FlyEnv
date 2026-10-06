@@ -12,8 +12,7 @@ import {
   remove,
   removeByRoot,
   readFileByRoot,
-  writeFileByRoot,
-  execPromiseWithEnv
+  writeFileByRoot
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { makeCaddyConf, updateCaddyConf, delVhost as delCaddyVhost } from '../Caddy/Host'
@@ -37,9 +36,13 @@ import { validateTomcatSite, type TomcatSiteHost } from '../Tomcat/Site'
 import Helper from '../../Helper'
 import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import { splitHostAliases } from '@shared/siteRuntime'
-import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+import { HostsFileLinux, HostsFileMacOS } from '@shared/PlatFormConst'
+import { windowsSystemDirectory } from '@shared/WindowsSystemPaths'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { reconcileSystemHostsBlock } from './SystemHostsBlock'
+import { syncLinuxHosts } from './LinuxHosts'
+import { timeOperation, timeOperationSync } from '@shared/OperationTiming'
+import { launchWindowsDnsRefresh } from '@shared/WindowsDnsRefresh'
 
 export class Host extends Base {
   hostsFile = ''
@@ -47,7 +50,8 @@ export class Host extends Base {
   constructor() {
     super()
     if (isWindows()) {
-      this.hostsFile = HostsFileWindows
+      // 构造器可能早于 Server 快照初始化，使用与 main/UAC 相同的实际系统目录。
+      this.hostsFile = join(windowsSystemDirectory(), 'drivers', 'etc', 'hosts')
     } else if (isMacOS()) {
       this.hostsFile = HostsFileMacOS
     } else if (isLinux()) {
@@ -421,7 +425,9 @@ export class Host extends Base {
           }
         }
       })
-      await writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
+      await timeOperation('hosts.write-preview', () =>
+        writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
+      )
       if (!writeToSystem) {
         resolve(false)
         return
@@ -431,14 +437,24 @@ export class Host extends Base {
         return
       }
       let content: string = ''
-      content = (await readFileByRoot(this.hostsFile)) as string
+      if (isLinux()) {
+        resolve(await syncLinuxHosts(host))
+        return
+      }
+      content = (await timeOperation('hosts.read-system-file', () =>
+        readFileByRoot(this.hostsFile)
+      )) as string
       let x = ''
       if (host.length) {
         x = `#X-HOSTS-BEGIN#\n${host.join('\n')}\n#X-HOSTS-END#`
       }
-      const result = reconcileSystemHostsBlock(content, x)
+      const result = timeOperationSync('hosts.merge-block', () =>
+        reconcileSystemHostsBlock(content, x)
+      )
       if (result.changed) {
-        await writeFileByRoot(this.hostsFile, result.content)
+        await timeOperation('hosts.write-system-file', () =>
+          writeFileByRoot(this.hostsFile, result.content)
+        )
       }
       resolve(result.changed)
     })
@@ -548,37 +564,46 @@ export class Host extends Base {
       let hasChanged = false
       let appHost: AppHost[] = []
       try {
-        appHost = await fetchHostList()
+        appHost = await timeOperation('hosts.load-site-list', () => fetchHostList())
       } catch (e) {
         reject(e)
         return
       }
       // One-time #700 migration: move vhost files from name-based to id-based.
       try {
-        await this.migrateVhostToId(appHost)
+        await timeOperation('hosts.migrate-vhosts', () => this.migrateVhostToId(appHost))
       } catch {}
       console.log('writeHosts: ', write)
       if (write) {
         let changed = false
         try {
           changed = await this._initHost(appHost, true, ipv6)
-        } catch {
+        } catch (error) {
+          // 权限选择、文件缺失、磁盘/共享锁异常均属于 Windows 写入失败，
+          // 不得吞掉后返回成功；其他平台保留原有尽力处理行为。
+          if (isWindows() || isLinux()) throw error
           changed = false
         }
         hasChanged = hasChanged || changed
       } else {
-        let hosts: any = await readFileByRoot(this.hostsFile)
-        const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-        if (x) {
-          const urls = (x?.[2] ?? '').trim()
-          hasChanged = urls !== ''
-          hosts = hosts.replace(x[0], '')
-          await writeFileByRoot(this.hostsFile, hosts.trim())
+        if (isLinux()) {
+          hasChanged = await syncLinuxHosts()
+        } else {
+          const hosts = await readFileByRoot(this.hostsFile)
+          // 带 g 的 match 返回完整匹配数组而非捕获组，原 x[2] 会漏判删除变化，
+          // 从而不刷新 DNS。复用已有协调函数，删除全部托管块并保留其他内容。
+          const removal = reconcileSystemHostsBlock(hosts, '')
+          if (removal.changed) {
+            await writeFileByRoot(this.hostsFile, removal.content)
+            hasChanged = true
+          }
         }
         let changed = false
         try {
           changed = await this._initHost(appHost, false, ipv6)
-        } catch {
+        } catch (error) {
+          // 与写入分支保持一致，取消、权限及普通 I/O 错误均保留失败终态。
+          if (isWindows() || isLinux()) throw error
           changed = false
         }
         hasChanged = hasChanged || changed
@@ -586,7 +611,10 @@ export class Host extends Base {
       if (hasChanged && existsSync(hostfile)) {
         try {
           if (isWindows()) {
-            await execPromiseWithEnv('ipconfig /flushdns')
+            // 与退出清理共用尽力启动：spawn 成功即可返回，不等待 DNS 刷新结果。
+            // 启动失败只记录，不否定前面已经成功的 hosts 写入。
+            // 直接普通权限执行，不再为刷新创建 PowerShell/broker 或请求新的授权。
+            await timeOperation('hosts.refresh-dns-launch', () => launchWindowsDnsRefresh())
           } else {
             if (Helper.enable) {
               await Helper.send('host', 'dnsRefresh')
@@ -594,7 +622,13 @@ export class Host extends Base {
               await Helper.send('host', 'dnsRefresh')
             }
           }
-        } catch {}
+        } catch (error) {
+          // 共享 Windows 执行器已吸收正常启动失败；此处也防住包装层等意外异常。
+          // 文件已经写入，刷新异常仅记录，不得让站点操作返回失败；不等待日志写盘。
+          if (isWindows() || isLinux()) {
+            void appDebugLog('[Hosts][dns-refresh][error]', String(error)).catch(() => {})
+          }
+        }
       }
       resolve(true)
     })

@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Instalace pomocného programu FlyEnv se nezdařila. Zkuste to znovu s původním účtem Windows tlačítkem opravy v nastavení. Pokud chyba přetrvá, sdílejte podrobnosti níže.",
   "flyenvHelperInstallTimeout": "Vypršel časový limit čekání na výsledek instalace. Instalace může stále běžet na pozadí. Výsledek zkontrolujte opětovným použitím tlačítka opravy pomocníka.",
   "windowsElevationMethod": "Způsob zvýšení oprávnění",
-  "windowsElevationMethodTips": "Zvolte, jak se mají zvyšovat oprávnění pro operace systému Windows, které vyžadují oprávnění správce. Řízení uživatelských účtů (UAC) vyžaduje potvrzení u každé podporované operace; pomocný program po instalaci zabrání opakovaným výzvám.",
+  "windowsElevationMethodTips": "Volba se uloží. Později ji můžete změnit v Nastavení.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Pomocný program",
   "appFont": "Písmo rozhraní",
@@ -96,5 +96,26 @@
     "rnacos": "Zjišťování služeb a centralizovaná správa konfigurace.",
     "temporal": "Spolehlivá orchestrace pracovních postupů a dlouhotrvajících procesů aplikací.",
     "temporalCli": "Nástroj příkazového řádku pro správu a práci s Temporalem."
+  },
+  "windowsPrivilege": {
+    "busy": "Probíhá jiná operace autorizace. Počkejte prosím.",
+    "title": "Vyberte způsob autorizace",
+    "description": "Operace „{operation}“ vyžaduje oprávnění správce. Vyberte způsob autorizace.",
+    "uacDescription": "UAC: Windows podle potřeby požádá o souhlas nebo přihlašovací údaje správce. Není třeba instalovat trvale běžícího pomocníka.",
+    "helperDescription": "Pomocník: omezuje opakované výzvy. Instalace vytvoří naplánovanou úlohu se systémovými právy; ověřte firemní pravidla pro zařízení.",
+    "helperReady": "Pomocník je připraven k použití.",
+    "settingsHint": "Volba se uloží. Později ji můžete změnit v Nastavení.",
+    "disableOption": "Zakázat také dříve nainstalovaného pomocníka tohoto účtu (může vyžadovat UAC)",
+    "disableOnSwitch": "Přepnutí na UAC automaticky vypne pomocníka tohoto účtu. Nainstalované soubory zůstanou zachovány.",
+    "disableHelperTips": "Zastaví pomocníka nainstalovaného pro tento účet Windows a zakáže jeho naplánovanou úlohu. Instalační soubory zachová. Může vyžadovat schválení UAC.",
+    "disableFailed": "Bylo zvoleno UAC, ale stávajícího pomocníka se nepodařilo zakázat.",
+    "elevated": "FlyEnv běží jako správce. Operace v této relaci probíhají přímo; uložená volba se nemění.",
+    "unselected": "Způsob autorizace nebyl vybrán. FlyEnv se zeptá při první potřebě oprávnění správce.",
+    "operation": "Systémová operace",
+    "useUac": "UAC",
+    "useHelper": "Pomocný program",
+    "disableHelper": "Zakázat pomocníka",
+    "failed": "Autorizace Windows selhala.",
+    "timeout": "Časový limit autorizace vypršel. Operace možná stále probíhá."
   }
 }

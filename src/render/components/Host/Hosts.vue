@@ -26,7 +26,7 @@
             </el-button>
           </el-tooltip>
           <el-tooltip :show-after="600" :content="I18nT('conf.save')" placement="top">
-            <el-button @click="saveConfig">
+            <el-button :disabled="linuxSaving" :loading="linuxSaving" @click="saveConfig">
               <yb-icon :svg="import('@/svg/save.svg?raw')" class="w-5 h-5 p-0.5" />
             </el-button>
           </el-tooltip>
@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+  import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
   import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
@@ -45,15 +45,22 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { HostsFileLinux, HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+  import { HostsFileLinux, HostsFileMacOS } from '@shared/PlatFormConst'
   import { FolderOpened } from '@element-plus/icons-vue'
+  import { readLinuxHosts, LinuxHostsEditor, reconcileLinuxHostsSave } from './LinuxHosts'
 
   const config = ref('')
+  // 读取成功才允许创建编辑器，覆盖 mounted 与异步读取的先后顺序。
+  let configLoaded = false
+  let hostsDigest = ''
+  let alive = true
+  const linuxSaving = computed(() => window.Server.isLinux && LinuxHostsEditor.saving)
   let configpath = ''
   if (window.Server.isMacOS) {
     configpath = HostsFileMacOS
   } else if (window.Server.isWindows) {
-    configpath = HostsFileWindows
+    // renderer 只使用 main 提供的路径，不导入 Node 系统查询或猜测 C: 盘。
+    configpath = window.Server.WindowsHostsFile ?? ''
   } else {
     configpath = HostsFileLinux
   }
@@ -62,18 +69,41 @@
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-  const getConfig = async () => {
+  const getConfig = async (submitted?: string) => {
     try {
-      const conf = await fs.readFile(configpath)
+      // 读取失败必须阻止保存，不能把拒绝访问伪装成空文件再覆盖原 hosts。
+      let conf: string
+      if (window.Server.isLinux) {
+        let snapshot = await readLinuxHosts()
+        if (submitted !== undefined && monacoInstance) {
+          snapshot = reconcileLinuxHostsSave(
+            snapshot,
+            submitted,
+            monacoInstance.getValue(),
+            hostsDigest
+          )
+        }
+        conf = snapshot.content
+        hostsDigest = snapshot.digest
+      } else conf = await fs.readFileStrict(configpath)
+      if (!alive) return
       config.value = conf
+      configLoaded = true
       initEditor()
     } catch {
-      config.value = I18nT('base.hostsReadFailed')
-      initEditor()
+      if (!alive) return
+      configLoaded = false
+      // 销毁旧编辑器，避免重读失败后继续保存先前的内容或错误提示文字。
+      EditorDestroy(monacoInstance)
+      monacoInstance = undefined
+      config.value = I18nT('base.hostsReadFailed', { path: configpath })
+      // 未创建编辑器时仍提示读取失败，避免用户面对空白页面而无法判断原因。
+      MessageError(config.value)
     }
   }
 
   const initEditor = async () => {
+    if (!configLoaded) return
     if (!monacoInstance) {
       if (!input.value?.style) {
         return
@@ -97,12 +127,20 @@
   }
 
   const saveConfig = async () => {
+    // 首次读取失败或编辑器尚未就绪时不能提交空 hosts；写入失败由 fs IPC 抛出。
+    if (!monacoInstance) return
     try {
       const content = monacoInstance?.getValue() ?? ''
-      await fs.writeFile(configpath, content)
-      MessageSuccess(I18nT('base.success'))
-    } catch {
-      MessageError(I18nT('base.hostsSaveFailed'))
+      if (window.Server.isLinux) {
+        if (!(await LinuxHostsEditor.save(content, hostsDigest))) return
+        // Reload the saved version so subsequent edits retain conflict protection.
+        if (alive) await getConfig(content)
+      } else {
+        await fs.writeFile(configpath, content)
+        MessageSuccess(I18nT('base.success'))
+      }
+    } catch (error) {
+      MessageError(`${I18nT('base.hostsSaveFailed')}: ${error}`)
     }
   }
 
@@ -113,6 +151,7 @@
   })
 
   onUnmounted(() => {
+    alive = false
     EditorDestroy(monacoInstance)
   })
 

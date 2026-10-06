@@ -42,7 +42,7 @@
   "linkCopySuccess": "链接已复制到剪贴板",
   "needSelectVersion": "请先选择版本",
   "hostsSaveFailed": "系统Hosts保存失败, 请查看文件是否存在, 文件权限是否正确",
-  "hostsReadFailed": "/private/etc/hosts 文件读取失败, 请查看文件是否存在, 文件权限是否正确",
+  "hostsReadFailed": "{path} 文件读取失败, 请查看文件是否存在, 文件权限是否正确",
   "needSelectDir": "请选择文件夹!",
   "processNotFound": "未查询到相关进程",
   "hostsTitle": "系统Hosts",

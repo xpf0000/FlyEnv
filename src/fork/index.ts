@@ -1,133 +1,44 @@
-import BaseManager from './BaseManager'
-import { appDebugLog } from '@shared/utils'
-import { ProcessSendError } from './Fn'
-import { AppI18n, getActiveLocale, I18nT } from '@lang/runtime'
-import { FALLBACK_LOCALE } from '@lang/catalog'
+import { appendFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { timePerformanceOperation, writePerformanceLog } from '@shared/PerformanceDiagnostics'
 
-// Fork-side plugin host bridge: fork plugin bundles resolve `@lang/runtime` to
-// this object (see the 'flyenv-plugin-host-lang' esbuild plugin in
-// scripts/plugin-builder.ts) so they share this process's live i18n instance
-// instead of bundling a copy that never receives language updates.
-;(globalThis as any).__FLYENV_PLUGIN_HOST__ = {
-  lang: { AppI18n, FALLBACK_LOCALE, getActiveLocale, I18nT }
-}
-import { StopProcessListClient } from './StopProcessListClient'
-import { setStopProcessListProvider } from '@shared/StopProcessList'
-import { BinVersionCacheClient } from './BinVersionCacheClient'
-import { setBinVersionCacheProvider } from './util/BinVersionCache'
-import EnvSync from '@shared/EnvSync'
-import { EnvSyncClient } from './EnvSyncClient'
-import ForkLanguageService from './LanguageService'
+/**
+ * 轻量入口仅引用内置模块和无依赖的公共诊断方法，不在第一条日志前加载 utils/业务树。
+ * 本地回调仅适配既有文件追加；格式、时间、开关、写入容错全部交给统一入口。
+ * 不增加 READY/ACK，不改变 worker 分派或 runtime 的初始化协议。
+ */
+const bootstrapWriter = (category: string, message: string) =>
+  appendFile(join(tmpdir(), 'flyenv-debug.log'), `${category}: ${message}\n`, 'utf8')
+const traceBootstrap = (
+  stage: string,
+  data: Record<string, unknown> | (() => Record<string, unknown>) = {},
+  failure = false
+) =>
+  writePerformanceLog(
+    bootstrapWriter,
+    '[ServiceStop][boundary]',
+    () => ({
+      ...(typeof data === 'function' ? data() : data),
+      sourcePid: process.pid,
+      workerPid: process.pid,
+      stage
+    }),
+    failure
+  )
 
-const parentPort = process.parentPort
-const stopProcessListClient = parentPort
-  ? new StopProcessListClient((message) => parentPort.postMessage(message))
-  : undefined
-const binVersionCacheClient = parentPort
-  ? new BinVersionCacheClient((message) => parentPort.postMessage(message))
-  : undefined
-const envSyncClient = parentPort
-  ? new EnvSyncClient(
-      (message) => parentPort.postMessage(message),
-      (revision) => EnvSync.clearLocal(revision)
-    )
-  : undefined
-
-if (envSyncClient) {
-  EnvSync.setProvider({
-    get: () => envSyncClient.get(),
-    invalidate: () => envSyncClient.invalidate()
-  })
-}
-
-if (stopProcessListClient) {
-  setStopProcessListProvider(() => stopProcessListClient.request())
-}
-
-if (binVersionCacheClient) {
-  setBinVersionCacheProvider({
-    get: (fingerprint) => binVersionCacheClient.get(fingerprint),
-    set: (fingerprint, value) => binVersionCacheClient.set(fingerprint, value)
-  })
-}
-
-// ---------------------- 兼容层开始 ----------------------
-// 只有在 electron 环境下且存在 parentPort 时才执行兼容逻辑
-if (parentPort) {
-  // 1. 挂载 send 方法：让内部调用的 process.send 变为 process.parentPort.postMessage
-  // @ts-ignore: 忽略 TS 对 process 上不存在 send 方法的报错
-  if (!process.send) {
-    // @ts-ignore
-    process.send = (message: any) => {
-      parentPort.postMessage(message)
-      return true // Node.js 的 process.send 返回 boolean
-    }
+void traceBootstrap('fork.bootstrap-begin', { uptimeMs: Math.round(process.uptime() * 1000) })
+// 计时包装只观察这一次动态导入，开关关闭时仍执行导入；splitting 保留异步边界。
+void timePerformanceOperation(
+  'fork.runtime-import',
+  () => import('./runtime'),
+  (event) => {
+    if (event.kind === 'start') void traceBootstrap('fork.runtime-import-begin')
+    else if (event.kind === 'end' && event.status === 'ok')
+      void traceBootstrap('fork.runtime-import-completed', { durationMs: event.durationMs })
   }
-
-  // 2. 转发 message 事件：让 process.on('message') 也能收到消息
-  // 这样你连入口的监听逻辑都不用改成 parentPort.on
-  parentPort.on('message', (e) => {
-    const data = e.data
-    if (envSyncClient?.handleMessage(data)) {
-      return
-    }
-    if (stopProcessListClient?.handleMessage(data)) {
-      return
-    }
-    if (binVersionCacheClient?.handleMessage(data)) {
-      return
-    }
-    // 将 electron 的消息结构 e.data 转发给 node 的标准事件
-    // @ts-ignore
-    process.emit('message', data)
-  })
-}
-// ---------------------- 兼容层结束 ----------------------
-
-const manager = new BaseManager()
-
-// ↓↓↓↓ 下面这里的代码完全不用动，保持原来的 child_process 写法即可 ↓↓↓↓
-process.on('message', function (args: any) {
-  if (ForkLanguageService.handle(args)) {
-    return
-  }
-  if (args.Server) {
-    global.Server = args.Server
-    if (args.ForkModule === 'temporal') {
-      appDebugLog(
-        '[Temporal][fork-after-init]',
-        JSON.stringify({
-          requestKey: args.ForkRequestKey,
-          baseDir: global.Server.BaseDir,
-          appDir: global.Server.AppDir
-        })
-      ).catch()
-    }
-    if (args.Language) {
-      ForkLanguageService.initialize(args.Language)
-    }
-    manager.init()
-    return
-  } else {
-    // 假设 manager 内部使用了 process.send，现在也能正常工作了
-    const logArgs = Array.isArray(args) ? args.slice(3) : args
-    manager
-      .exec(args)
-      .then()
-      .catch((error) => {
-        if (Array.isArray(args) && args.length > 0) {
-          const ipcCommandKey = args[0]
-          ProcessSendError(ipcCommandKey, error)
-        }
-        appDebugLog(
-          '[Fork][exec][error]',
-          `${JSON.stringify({
-            args: logArgs,
-            error
-          })}`
-        ).catch()
-      })
-  }
+).catch(async (error: unknown) => {
+  // runtime 没有成功安装 dispatcher，错误必须保留；非零退出由 ForkItem 结算待处理请求。
+  await traceBootstrap('fork.runtime-import-failed', () => ({ error: String(error) }), true)
+  process.exit(1)
 })
-
-export {}

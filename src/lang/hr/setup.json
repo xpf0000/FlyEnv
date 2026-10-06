@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Instalacija FlyEnv helpera nije uspjela. Pokušajte ponovno s izvornim Windows računom putem gumba za popravak u postavkama. Ako ponovno ne uspije, podijelite pojedinosti pogreške u nastavku.",
   "flyenvHelperInstallTimeout": "Isteklo je vrijeme čekanja na rezultat instalacije. Instalacija se možda još uvijek izvodi u pozadini. Ponovno upotrijebite gumb za popravak pomoćnog programa da provjerite rezultat.",
   "windowsElevationMethod": "Način povišenja ovlasti",
-  "windowsElevationMethodTips": "Odaberite način povišenja ovlasti za radnje u sustavu Windows koje zahtijevaju administratorske ovlasti. UAC traži potvrdu za svaku podržanu radnju; pomoćni program nakon instalacije izbjegava ponavljane upite.",
+  "windowsElevationMethodTips": "Vaš se odabir sprema. Kasnije ga možete promijeniti u Postavkama.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Pomoćni program",
   "appFont": "Font Korisničkog Sučelja",
@@ -96,5 +96,26 @@
     "rnacos": "Otkrivanje usluga i centralizirano upravljanje konfiguracijom.",
     "temporal": "Pouzdana orkestracija tijekova rada i dugotrajnih procesa aplikacija.",
     "temporalCli": "Alat naredbenog retka za upravljanje Temporalom i rad s njim."
+  },
+  "windowsPrivilege": {
+    "busy": "U tijeku je druga autorizacija. Pričekajte.",
+    "title": "Odaberite način autorizacije",
+    "description": "Radnja „{operation}” zahtijeva administratorske ovlasti. Odaberite način autorizacije.",
+    "uacDescription": "UAC: Windows po potrebi traži odobrenje ili administratorske vjerodajnice. Nije potrebna instalacija stalnog pomoćnika.",
+    "helperDescription": "Pomoćnik: smanjuje ponovljene upite. Instalacija stvara zakazani zadatak sa sistemskim ovlastima; provjerite pravila tvrtke za uređaje.",
+    "helperReady": "Pomoćnik je spreman za upotrebu.",
+    "settingsHint": "Vaš se odabir sprema. Kasnije ga možete promijeniti u Postavkama.",
+    "disableOption": "Onemogućite i prethodno instaliranog pomoćnika ovog računa (može zahtijevati UAC)",
+    "disableOnSwitch": "Prelazak na UAC automatski onemogućuje pomoćnika ovog računa. Instalirane datoteke ostaju sačuvane.",
+    "disableHelperTips": "Zaustavlja pomoćnika instaliranog za ovaj Windows račun i onemogućuje njegov zakazani zadatak. Instalirane datoteke ostaju sačuvane. Može biti potrebno UAC odobrenje.",
+    "disableFailed": "Odabran je UAC, ali postojeći pomoćnik nije mogao biti onemogućen.",
+    "elevated": "FlyEnv radi kao administrator. Radnje se u ovoj sesiji izvršavaju izravno; spremljeni odabir ostaje isti.",
+    "unselected": "Način autorizacije nije odabran. FlyEnv će pitati kad prvi put zatreba administratorske ovlasti.",
+    "operation": "Sistemska radnja",
+    "useUac": "UAC",
+    "useHelper": "Pomoćni program",
+    "disableHelper": "Onemogući pomoćnika",
+    "failed": "Autorizacija sustava Windows nije uspjela.",
+    "timeout": "Vrijeme autorizacije je isteklo. Radnja možda još traje."
   }
 }

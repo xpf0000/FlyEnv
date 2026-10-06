@@ -36,8 +36,18 @@ export interface ServerType {
   SdkmanHome?: string
   ForceStart?: boolean
   WindowsElevationMethod?: WindowsElevationMethod
+  /** 只有显式选择才产生；默认 helper 不代表用户同意常驻安装。 */
+  WindowsElevationChoiceVersion?: number
+  /** 本次 main 会话的权限广播序号，用于过滤 renderer/fork 的旧快照。 */
+  WindowsPrivilegeRevision?: number
+  /** 单条 fork 命令的交互意图快照；异步执行时需复制到 AsyncLocalStorage。 */
+  WindowsPrivilegeInteractive?: boolean
+  /** 主进程有效令牌的界面状态；真正执行时仍检查当前执行进程令牌。 */
+  WindowsProcessElevated?: boolean
   UserHome?: string
   UserDocuments?: string
+  /** main 从实际 Windows 系统目录生成并广播，renderer 不自行猜测 C: 盘。 */
+  WindowsHostsFile?: string
   Licenses?: string
   UserUUID?: string
   LangCustomer?: any

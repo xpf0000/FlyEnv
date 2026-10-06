@@ -42,6 +42,7 @@ export class StopProcessListClient {
       }, this.timeoutMs)
       this.pending.set(requestId, { resolve, reject, timeout })
       try {
+        // 仅未随 stopService 传表的独立请求会进入此客户端，共用 main 的普通短缓存。
         this.send({ type: 'stop-process-list-request', requestId })
       } catch (error) {
         this.pending.delete(requestId)

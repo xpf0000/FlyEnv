@@ -42,7 +42,7 @@
   "linkCopySuccess": "링크 URL이 클립보드에 복사되었습니다!",
   "needSelectVersion": "먼저 버전을 선택해주세요",
   "hostsSaveFailed": "시스템 hosts 파일 저장에 실패했습니다. 파일이 존재하고 권한이 올바른지 확인하세요",
-  "hostsReadFailed": "파일 /private/etc/hosts 를 읽지 못했습니다. 파일이 존재하고 권한이 올바른지 확인하세요",
+  "hostsReadFailed": "파일 {path} 를 읽지 못했습니다. 파일이 존재하고 권한이 올바른지 확인하세요",
   "needSelectDir": "폴더를 선택하세요!",
   "processNotFound": "찾을 수 있는 프로세스가 없습니다",
   "hostsTitle": "시스템 Hosts",

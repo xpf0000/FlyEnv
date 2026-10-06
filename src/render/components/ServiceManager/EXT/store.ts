@@ -1,3 +1,4 @@
+import { performanceDiagnosticNow, bindPerformanceLogger } from '@shared/PerformanceDiagnostics'
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { I18nT } from '@lang/index'
@@ -15,6 +16,7 @@ import { staticVersionDel } from '@/util/Version'
 import localForage from 'localforage'
 import { Setup } from '@/components/Tools/SystenEnv/setup'
 import { installedVersionNote, setInstalledVersionNote } from '@/util/InstalledVersionNote'
+import { debug } from '@/util/NodeFn'
 
 let time = 0
 const FETCH_PATH_TIMEOUT_MS = 20_000
@@ -216,45 +218,67 @@ export const ServiceActionStore: {
       ServiceActionStore.pathSeting[item.bin] = true
       const isSet = ServiceActionStore.appPath.some((p) => p === item.path || p === item.bin)
       const action = isSet ? 'removePATH' : 'updatePATH'
-      IPC.send('app-fork:tools', action, JSON.parse(JSON.stringify(item)), typeFlag).then(
-        (key: string, res: any) => {
-          IPC.off(key)
-          delete ServiceActionStore.pathSeting?.[item.bin]
-          if (res?.code === 0) {
-            const all = res?.data?.allPath ?? []
-            const app = res?.data?.appPath ?? []
-            ServiceActionStore.allPath = reactive([...all])
-            ServiceActionStore.appPath = reactive([...app])
-
-            if (window.Server.isWindows) {
-              localForage
-                .getItem(`flyenv-app-env-dir`)
-                .then((res: Record<string, string>) => {
-                  const list = res || {}
-                  if (action === 'removePATH') {
-                    delete list?.[typeFlag]
-                  } else {
-                    list[typeFlag] = item.path
-                  }
-
-                  const set = new Set([...Object.values(list), ...app])
-                  const appList = Array.from(set)
-                  localForage.setItem(`flyenv-app-env-dir`, list).then().catch()
-                  ServiceActionStore.appPath = reactive([...appList])
-                })
-                .catch()
-              Setup.fetchList()
-            }
-
-            MessageSuccess(I18nT('base.success'))
-            resolve(true)
-          } else {
-            const msg = res?.msg ?? I18nT('base.fail')
-            MessageError(msg)
-            reject(new Error(msg))
-          }
-        }
+      const started = performanceDiagnosticNow()
+      const request = IPC.send('app-fork:tools', action, JSON.parse(JSON.stringify(item)), typeFlag)
+      // 页面/服务数据不进入诊断，只用已有 IPC key 关联 main；记录事件时点后异步写盘。
+      // debug.log 走现有通道且自行清理监听，调用者不等待它，失败也不影响成功通知。
+      const logger = bindPerformanceLogger(
+        (category, message) => debug.log(category, message),
+        '[WindowsPath][renderer]',
+        { rendererKey: request.key, command: action, typeFlag },
+        started
       )
+      const trace = (stage: string, details: Record<string, unknown> = {}) => {
+        if (window.Server.isWindows) void logger(stage, details)
+      }
+      trace('renderer.request-sent')
+      request.then((key: string, res: any) => {
+        trace('renderer.terminal-received', { code: res?.code })
+        IPC.off(key)
+        delete ServiceActionStore.pathSeting?.[item.bin]
+        if (res?.code === 0) {
+          const all = res?.data?.allPath ?? []
+          const app = res?.data?.appPath ?? []
+          ServiceActionStore.allPath = reactive([...all])
+          ServiceActionStore.appPath = reactive([...app])
+
+          if (window.Server.isWindows) {
+            trace('renderer.local-directory-read-begin')
+            localForage
+              .getItem(`flyenv-app-env-dir`)
+              .then((res: Record<string, string>) => {
+                trace('renderer.local-directory-read-completed')
+                const list = res || {}
+                if (action === 'removePATH') {
+                  delete list?.[typeFlag]
+                } else {
+                  list[typeFlag] = item.path
+                }
+
+                const set = new Set([...Object.values(list), ...app])
+                const appList = Array.from(set)
+                localForage
+                  .setItem(`flyenv-app-env-dir`, list)
+                  .then(() => trace('renderer.local-directory-write-completed'))
+                  .catch(() => trace('renderer.local-directory-write-failed'))
+                ServiceActionStore.appPath = reactive([...appList])
+              })
+              .catch(() => trace('renderer.local-directory-read-failed'))
+            // 此刷新有自己的 IPC key/诊断范围，发出后仍立即提示写入结果，不等待列表。
+            trace('renderer.env-list-refresh-requested')
+            Setup.fetchList()
+          }
+
+          MessageSuccess(I18nT('base.success'))
+          trace('renderer.success-notice')
+          resolve(true)
+        } else {
+          const msg = res?.msg ?? I18nT('base.fail')
+          MessageError(msg)
+          trace('renderer.failure-notice')
+          reject(new Error(msg))
+        }
+      })
     })
   },
   delVersion(item: ModuleInstalledItem, type: AllAppModule) {

@@ -6,6 +6,7 @@ import {
   mkdirp,
   remove,
   writeFile,
+  readFile,
   zipUnpack
 } from '../../Fn'
 import { dirname, join } from 'path'
@@ -13,19 +14,35 @@ import { existsSync } from 'fs'
 import { EOL } from 'os'
 import type { AppHost } from '@shared/app'
 import Helper from '../../Helper'
-import { appDebugLog, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows } from '@shared/utils'
+import { X509Certificate } from 'node:crypto'
+import { isAppHelperError } from '@shared/WindowsHelperState'
 
 // Mutex tail for certificate issuance — see makeAutoSSL. (#700)
 let sslQueue: Promise<unknown> = Promise.resolve()
 
+// 生成证书文件和加入系统信任是两个步骤；Windows 信任取消必须向外传递。
 const initCARoot = () => {
-  return new Promise(async (resolve) => {
+  return new Promise(async (resolve, reject) => {
     const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
     const CADir = dirname(CARoot)
     try {
+      if (isLinux()) {
+        const cert = new X509Certificate(await readFile(CARoot))
+        const fingerprint = cert.fingerprint256.replace(/:/g, '').toLowerCase()
+        // A copied source certificate does not prove the trust update succeeded.
+        await Helper.send('host', 'installApprovedCA', fingerprint)
+        resolve(true)
+        return
+      }
       const res = await Helper.send('host', 'sslAddTrustedCert', CADir, 'FlyEnv-Root-CA.crt')
       console.log('initCARoot res111: ', res)
-    } catch {}
+    } catch (error) {
+      if (isWindows() || isLinux()) {
+        reject(error)
+        return
+      }
+    }
     resolve(true)
   })
 }
@@ -41,13 +58,14 @@ export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: stri
     () => undefined,
     () => undefined
   )
-  return new ForkPromise<{ crt: string; key: string } | false>((resolve) => {
-    run.then(resolve).catch(() => resolve(false))
+  return new ForkPromise<{ crt: string; key: string } | false>((resolve, reject) => {
+    // 保留权限错误终态给站点调用方，避免证书信任被拒绝却仍返回泛化 false。
+    run.then(resolve, reject)
   })
 }
 
 const _makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: string } | false> => {
-  return new ForkPromise(async (resolve) => {
+  return new ForkPromise(async (resolve, reject) => {
     try {
       const alias = hostAlias(host)
       const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
@@ -89,8 +107,12 @@ authorityKeyIdentifier = keyid:always,issuer`
             resolve(false)
             return
           }
-          await initCARoot()
         }
+        // 已存在 .crt 不等于已信任；每次重试按实际证书指纹查询，再决定是否申请导入。
+        // A cancelled trust operation leaves the generated CA on disk. Check
+        // trust again on retry instead of treating the existing file as proof.
+        const trust: any = await Helper.send('host', 'sslFindCertificate', CADir)
+        if (!trust.stdout.includes('FlyEnv-Root-CA')) await initCARoot()
 
         const hostCAName = `CA-${host.id}`
 
@@ -148,16 +170,21 @@ subjectAltName=@alt_names
             resolve(false)
             return
           }
-          try {
-            await Helper.send('host', 'sslAddTrustedCert', CADir, `${caFileName}.crt`)
-          } catch {}
+          if (!isLinux()) {
+            try {
+              await Helper.send('host', 'sslAddTrustedCert', CADir, `${caFileName}.crt`)
+            } catch (error) {
+              if (isWindows()) throw error
+            }
 
-          const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
-          if (!res.stdout.includes('FlyEnv-Root-CA') && !res.stderr.includes('FlyEnv-Root-CA')) {
-            resolve(false)
-            return
+            const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
+            if (!res.stdout.includes('FlyEnv-Root-CA') && !res.stderr.includes('FlyEnv-Root-CA')) {
+              resolve(false)
+              return
+            }
           }
         }
+        if (isLinux()) await initCARoot()
         const hostCAName = `CA-${host.id}`
         const hostCADir = join(CADir, `${host.id}`)
         if (existsSync(hostCADir)) {
@@ -195,6 +222,11 @@ subjectAltName=@alt_names
     } catch (e) {
       await appDebugLog('[makeAutoSSL][error]', `${e}`)
       console.log('makeAutoSSL error: ', e)
+      // 类型化授权错误交给调用方展示/恢复；原有证书工具错误仍按 false 返回。
+      if (isLinux() || (isWindows() && isAppHelperError(e))) {
+        reject(e)
+        return
+      }
       resolve(false)
     }
   })

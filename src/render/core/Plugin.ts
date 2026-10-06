@@ -180,8 +180,7 @@ export function loadRendererPluginModules(timeout = 5_000): Promise<AppModuleIte
         for (const payload of payloads) {
           const cached = loadedPlugins.get(payload.id)
           const item =
-            cached?.version === payload.version &&
-            cached.code === payload.code
+            cached?.version === payload.version && cached.code === payload.code
               ? cached.item
               : await importPlugin(payload)
           modules.push(item)

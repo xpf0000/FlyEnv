@@ -22,6 +22,13 @@ import {
   normalizeHostId,
   storageKey
 } from './utils'
+import { performance } from 'node:perf_hooks'
+import { logServiceStopBoundary, timeServiceStopBoundary } from '@shared/ServiceStopDiagnostics'
+
+// ESM 的静态依赖已执行完才到这里；此计时仅覆盖 Cron 模块正文及单例构造。
+// 模块按请求导入时才记录，不能用这段时间表示完整依赖加载耗时；按 workerPid 关联。
+const moduleEvaluationStarted = performance.now()
+logServiceStopBoundary('cron.module-evaluation.begin', { module: 'cron', workerPid: process.pid })
 
 export class Cron extends Base {
   private cronRoot: string
@@ -32,28 +39,77 @@ export class Cron extends Base {
 
   constructor() {
     super()
+    // 只计 Cron 自身字段/伴随对象构造；Base 的 super 属于外层模块执行时间。
+    const started = performance.now()
+    logServiceStopBoundary('cron.constructor.begin', { module: 'cron', workerPid: process.pid })
     this.type = 'cron'
     this.cronRoot = cronBaseDir()
     this.storage = new CronStorage(join(this.cronRoot, 'cron-jobs.json'))
     this.runRecords = new CronRunRecords(this.cronRoot)
     this.systemScheduler = new CronSystemScheduler(this.cronRoot)
+    logServiceStopBoundary('cron.constructor.completed', {
+      module: 'cron',
+      workerPid: process.pid,
+      durationMs: Math.round(performance.now() - started)
+    })
   }
 
+  // 由 Cron 请求的通用派发器调用；保留单例防重及后台同步，不修复旧脚本。
+  // UI 查询自身也会同步展示数据，后台失败不能阻断当前请求或其他模块命令。
   init() {
+    const traceData = {
+      module: 'cron',
+      workerPid: process.pid
+    }
     if (this.initStarted) {
+      logServiceStopBoundary('cron.init.skipped', { ...traceData, reason: 'already-started' })
       return
     }
     this.initStarted = true
-    this.syncCronMetadata().catch((e) => {
+    // 仍是后台任务，不 await。记录完整同步终态，不把同步 init 返回伪报为元数据完成。
+    timeServiceStopBoundary('cron.metadata-sync', traceData, () =>
+      this.syncCronMetadata(traceData)
+    ).catch((e) => {
+      // 原错误接收者保持不变；计时包装记录后重抛的业务错误在此吸收，不影响服务命令。
       console.error('[Cron] sync cron metadata failed:', e)
     })
   }
 
-  private async syncCronMetadata(): Promise<void> {
-    const data = await this.storage.load()
-    await this.systemScheduler.repair(flattenJobs(data))
-    if (ensureNextRunTimes(data) || (await this.runRecords.syncLatest(data))) {
-      await this.storage.save(data)
+  private async syncCronMetadata(traceData: Record<string, unknown>): Promise<void> {
+    // 复用公共非阻塞计时/日志；不输出定时任务命令、运行输出或配置文件内容。
+    // 每一步依然只执行一次；读取失败仍进入原后台 catch，不继续保存半成品。
+    // 初始化只更新元数据，已有系统任务脚本的生成由明确的新增/修改/启用操作负责。
+    const data = await timeServiceStopBoundary('cron.storage-load', traceData, () =>
+      this.storage.load()
+    )
+    const jobs = flattenJobs(data)
+    const metadataTrace = { ...traceData, jobCount: jobs.length }
+    const nextRunsStarted = performance.now()
+    logServiceStopBoundary('cron.next-runs.begin', metadataTrace)
+    const nextRunsChanged = ensureNextRunTimes(data)
+    logServiceStopBoundary('cron.next-runs.completed', {
+      ...metadataTrace,
+      durationMs: Math.round(performance.now() - nextRunsStarted),
+      changed: nextRunsChanged
+    })
+    // 原条件用 ||：下次运行时间变更时不会同步运行记录，不能因细化日志而多做一次同步。
+    let recordsChanged = false
+    if (nextRunsChanged) {
+      logServiceStopBoundary('cron.run-records-sync.skipped', {
+        ...metadataTrace,
+        reason: 'next-runs-changed'
+      })
+    } else {
+      recordsChanged = await timeServiceStopBoundary('cron.run-records-sync', metadataTrace, () =>
+        this.runRecords.syncLatest(data)
+      )
+    }
+    if (nextRunsChanged || recordsChanged) {
+      await timeServiceStopBoundary('cron.storage-save', metadataTrace, () =>
+        this.storage.save(data)
+      )
+    } else {
+      logServiceStopBoundary('cron.storage-save.skipped', { ...metadataTrace, reason: 'no-change' })
     }
   }
 
@@ -362,4 +418,11 @@ export class Cron extends Base {
   }
 }
 
-export default new Cron()
+// 默认导出仍为同一个 Cron 单例；只在原构造之后记录模块执行完成，不触发额外 init。
+const cron = new Cron()
+logServiceStopBoundary('cron.module-evaluation.completed', {
+  module: 'cron',
+  workerPid: process.pid,
+  durationMs: Math.round(performance.now() - moduleEvaluationStarted)
+})
+export default cron

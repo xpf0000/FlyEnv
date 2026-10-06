@@ -102,7 +102,8 @@ assert.match(forkItemSource, /\[Temporal\]\[main-before-fork\]/)
 assert.match(forkItemSource, /ForkModule: module/)
 assert.match(forkItemSource, /ForkRequestKey: requestKey/)
 
-const forkEntrySource = readFileSync(new URL('../src/fork/index.ts', import.meta.url), 'utf8')
+// 原业务初始化与日志移到 runtime，固定 fork.mjs bootstrap 不安装业务监听器。
+const forkEntrySource = readFileSync(new URL('../src/fork/runtime.ts', import.meta.url), 'utf8')
 assert.match(forkEntrySource, /args\.ForkModule === 'temporal'/)
 assert.match(forkEntrySource, /\[Temporal\]\[fork-after-init\]/)
 

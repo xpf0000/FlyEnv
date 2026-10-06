@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Installationen av FlyEnv-hjälpprogrammet misslyckades. Försök igen med ditt ursprungliga Windows-konto via reparationsknappen i inställningarna. Dela felinformationen nedan om det misslyckas igen.",
   "flyenvHelperInstallTimeout": "Tidsgränsen för att vänta på installationsresultatet har löpt ut. Installationen kan fortfarande köras i bakgrunden. Använd hjälpprogrammets reparationsknapp igen för att kontrollera resultatet.",
   "windowsElevationMethod": "Metod för behörighetshöjning",
-  "windowsElevationMethodTips": "Välj hur Windows-åtgärder som kräver administratörsbehörighet ska köras med förhöjda rättigheter. UAC ber om bekräftelse för varje åtgärd som stöds; hjälpprogrammet undviker upprepade frågor efter installationen.",
+  "windowsElevationMethodTips": "Ditt val sparas. Du kan ändra det senare i Inställningar.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Hjälpprogram",
   "appFont": "UI-typsnitt",
@@ -96,5 +96,26 @@
     "rnacos": "Tjänsteidentifiering och centraliserad konfigurationshantering.",
     "temporal": "Tillförlitlig orkestrering av programarbetsflöden och långvariga processer.",
     "temporalCli": "Kommandoradsverktyg för att hantera och interagera med Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "En annan auktorisering pågår. Vänta.",
+    "title": "Välj auktoriseringsmetod",
+    "description": "Åtgärden ”{operation}” kräver administratörsbehörighet. Välj auktoriseringsmetod.",
+    "uacDescription": "UAC: Windows ber vid behov om godkännande eller administratörsuppgifter. Ingen permanent hjälpare behöver installeras.",
+    "helperDescription": "Hjälpare: minskar upprepade frågor. Installationen skapar en schemalagd uppgift med systembehörighet; kontrollera företagets enhetspolicy.",
+    "helperReady": "Hjälparen är redo att användas.",
+    "settingsHint": "Ditt val sparas. Du kan ändra det senare i Inställningar.",
+    "disableOption": "Inaktivera även den tidigare installerade hjälparen för det här kontot (kan kräva UAC)",
+    "disableOnSwitch": "Byte till UAC inaktiverar automatiskt hjälparen för detta konto. Installerade filer behålls.",
+    "disableHelperTips": "Stoppar hjälparen installerad för detta Windows-konto och inaktiverar dess schemalagda uppgift. Installerade filer behålls. Åtgärden kan kräva UAC-godkännande.",
+    "disableFailed": "UAC har valts, men den befintliga hjälparen kunde inte inaktiveras.",
+    "elevated": "FlyEnv körs som administratör. Åtgärder utförs direkt i den här sessionen; det sparade valet ändras inte.",
+    "unselected": "Ingen auktoriseringsmetod har valts. FlyEnv frågar första gången administratörsbehörighet behövs.",
+    "operation": "Systemåtgärd",
+    "useUac": "UAC",
+    "useHelper": "Hjälpprogram",
+    "disableHelper": "Inaktivera hjälpare",
+    "failed": "Windows-auktorisering misslyckades.",
+    "timeout": "Tidsgränsen för auktoriseringen överskreds. Åtgärden kan fortfarande pågå."
   }
 }

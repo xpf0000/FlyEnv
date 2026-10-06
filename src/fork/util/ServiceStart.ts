@@ -17,11 +17,13 @@ import {
   waitTime,
   writeFile
 } from '../Fn'
-import { isMacOS, isWindows } from '@shared/utils'
-import { closeSync, openSync } from 'node:fs'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { closeSync, openSync, constants } from 'node:fs'
+import { access, readdir, rename, stat } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import EnvSync from '@shared/EnvSync'
 import { ProcessListFetch } from '@shared/Process'
+import { resolveWindowsPowerShellPath } from '@shared/WindowsSystemPaths'
 
 export type ServiceStartParams = {
   version: SoftInstalled
@@ -39,6 +41,10 @@ export type ServiceStartParams = {
 }
 
 export type ServiceStartSpawnParams = {
+  /** Linux: retry a failed low-port bind as the same user with CAP_NET_BIND_SERVICE. */
+  lowPortService?: boolean
+  /** Known listeners select the low-port helper before starting; unknown listeners retain the fallback. */
+  listenPorts?: number[]
   version: SoftInstalled
   pidPath?: string
   baseDir: string
@@ -61,6 +67,33 @@ export type ServiceStartSpawnParams = {
 type ServiceStartSpawnLogParam = Omit<ServiceStartSpawnParams, 'execArgs' | 'execEnv'> & {
   execArgs?: string[] | '[REDACTED]'
   execEnv?: Record<string, string> | '[REDACTED]'
+}
+
+/** Preserve legacy root-owned logs without asking the helper to chmod/chown files. */
+async function prepareLinuxLog(file: string): Promise<void> {
+  if (!isLinux() || !existsSync(file)) return
+  try {
+    await access(file, constants.W_OK)
+    return
+  } catch (error) {
+    if (!['EACCES', 'EPERM'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error
+  }
+  const info = await stat(file)
+  if (!info.isFile() || info.uid !== 0) throw new Error(`Service log is not writable: ${file}`)
+  // This succeeds only when the desktop user already owns write access to the parent.
+  await rename(file, `${file}.previous-${process.pid}-${Date.now()}`)
+  await writeFile(file, '')
+}
+
+export async function prepareLinuxLogDirectory(
+  directory: string,
+  accept: (name: string) => boolean = () => true
+): Promise<void> {
+  if (!isLinux() || !existsSync(directory)) return
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (entry.isFile() && !entry.name.includes('.previous-') && accept(entry.name))
+      await prepareLinuxLog(join(directory, entry.name))
+  }
 }
 
 export function serviceStartSpawnLogParam(
@@ -125,6 +158,9 @@ export function buildUnixCustomerServiceStartScript(
 export async function serviceStartExec(
   param: ServiceStartParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
+  if (isLinux() && param.root) {
+    throw new Error('Linux helper does not execute root scripts')
+  }
   const baseDir = param.baseDir
   const version = param.version
   const execEnv = param?.execEnv ?? ''
@@ -138,9 +174,8 @@ export async function serviceStartExec(
   const timeToWait = param?.timeToWait ?? 500
 
   if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
+    // 删除旧 PID 失败应在启动前结束，不能读旧文件并登记为新实例。
+    await remove(pidPath)
   }
 
   await mkdirp(baseDir)
@@ -276,13 +311,16 @@ export async function customerServiceStartExec(
   version: ModuleExecItem,
   isService: boolean
 ): Promise<{ 'APP-Service-Start-PID': string }> {
-  console.log('customerServiceStartExec: ', version, isService)
+  console.log('customerServiceStartExec: ', version.id, isService)
+  if (isLinux() && version.isSudo) {
+    throw new Error('Linux custom commands requiring sudo must run in XTerm')
+  }
 
   const pidPath = version?.pidPath ?? ''
   if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
+    // 停止契约必须绑定本次实际启动的根；历史 PID 文件清理失败时不能继续
+    // 启动再复用旧文件。这里在创建外部进程前失败，避免产生未正确登记的实例。
+    await remove(pidPath)
   }
 
   const baseDir = join(global.Server.BaseDir!, 'module-customer')
@@ -360,7 +398,8 @@ export async function customerServiceStartExec(
     }
   }
 
-  await waitPidFile(errFile, 0, 6, 500)
+  // 错误日志存在而为空是正常情况；只等待出现，不按 PID 的空文件语义重试。
+  await waitPidFile(errFile, 0, 6, 500, false)
 
   if (!isService) {
     let msg = ''
@@ -435,9 +474,8 @@ export async function serviceStartSpawn(
   const pidPath = param?.pidPath ?? ''
 
   if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
+    // 同一条规则适用于 spawn 包装，避免旧 PID 冒充本次启动结果。
+    await remove(pidPath)
   }
 
   await mkdirp(baseDir)
@@ -452,11 +490,13 @@ export async function serviceStartSpawn(
 
   await mkdirp(dirname(outFile))
   await mkdirp(dirname(errFile))
-
-  const out = openSync(outFile, 'a')
-  const err = openSync(errFile, 'a')
+  await prepareLinuxLog(outFile)
+  await prepareLinuxLog(errFile)
 
   const env = await EnvSync.sync()
+  // 环境同步和系统程序解析可能失败，必须在打开日志句柄前完成，避免失败启动泄漏句柄。
+  const powerShell =
+    isWindows() && bin.toLowerCase().endsWith('.ps1') ? resolveWindowsPowerShellPath() : undefined
 
   on({
     'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
@@ -466,7 +506,6 @@ export async function serviceStartSpawn(
     const cwd = param?.cwd ?? dirname(bin)
     const options: any = {
       detached: param.detached ?? true,
-      stdio: ['ignore', out, err],
       cwd,
       env: {
         ...env,
@@ -475,17 +514,24 @@ export async function serviceStartSpawn(
       windowsHide: true // 隐藏 cmd 窗口
     }
     if (isWindows()) {
-      if (bin.endsWith('.ps1')) {
-        options.shell = EnvSync.PowerShellPath || 'powershell.exe'
+      if (powerShell) {
+        // .ps1 入口同样使用受验证的系统绝对路径，不能依赖 PATH 或用户环境覆盖。
+        options.shell = powerShell
       } else if (!bin.endsWith('.exe') && !bin.endsWith('.com')) {
         options.shell = true
       }
     }
-    // 2. 启动进程
-    const cp = spawn(bin, execArgs, options)
-    // 3. 立即关闭父进程中的句柄 (子进程已继承)
-    closeSync(out)
-    closeSync(err)
+    // 两个文件打开以及 spawn 均可能同步失败；无论子进程是否创建都释放父方句柄。
+    const out = openSync(outFile, 'a')
+    let err: number | undefined
+    let cp: ReturnType<typeof spawn>
+    try {
+      err = openSync(errFile, 'a')
+      cp = spawn(bin, execArgs, { ...options, stdio: ['ignore', out, err] })
+    } finally {
+      closeSync(out)
+      if (err !== undefined) closeSync(err)
+    }
 
     return new Promise((resolve, reject) => {
       // 监听启动瞬间的错误（如文件路径不存在、权限不足）
@@ -528,8 +574,53 @@ export async function serviceStartSpawn(
   }
 
   try {
-    await EnvSync.sync()
-    return await doExec()
+    const launchLowPort = async () => {
+      const pid = await Helper.send<number>('service', 'launchLowPort', {
+        service: version.typeFlag,
+        bin,
+        args: execArgs,
+        env: { ...env, ...execEnv },
+        cwd: param.cwd ?? dirname(bin),
+        outFile,
+        errFile
+      })
+      if (pidPath) {
+        try {
+          await writeFile(pidPath, `${pid}`)
+        } catch (error) {
+          on({ 'APP-On-Log': AppLog('error', `Save PID file failed: ${error}`) })
+        }
+      }
+      return { 'APP-Service-Start-PID': `${pid}` }
+    }
+    if (isLinux() && param.lowPortService && param.listenPorts?.length) {
+      let threshold = 1024
+      try {
+        const value = Number(
+          (await readFile('/proc/sys/net/ipv4/ip_unprivileged_port_start', 'utf8')).trim()
+        )
+        if (Number.isInteger(value) && value >= 0 && value <= 65535) threshold = value
+      } catch {
+        // Older kernels or unavailable procfs retain the default privileged-port boundary.
+      }
+      if (param.listenPorts.some((port) => Number.isInteger(port) && port > 0 && port < threshold))
+        return await launchLowPort()
+    }
+    const before = existsSync(errFile) ? (await readFile(errFile, 'utf8')).length : 0
+    try {
+      return await doExec()
+    } catch (error) {
+      const output = existsSync(errFile) ? (await readFile(errFile, 'utf8')).slice(before) : ''
+      if (
+        !isLinux() ||
+        !param.lowPortService ||
+        !/(?:bind|listen)[\s\S]{0,300}(?:permission denied|operation not permitted)|(?:permission denied|operation not permitted)[\s\S]{0,300}(?:bind|listen)/i.test(
+          output
+        )
+      )
+        throw new Error(output.trim() ? `${error}\n${output.trim()}` : String(error))
+      return await launchLowPort()
+    }
   } catch (e) {
     on({
       'APP-On-Log': AppLog(

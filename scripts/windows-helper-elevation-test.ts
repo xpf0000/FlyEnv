@@ -4,7 +4,7 @@ import { promisify } from 'node:util'
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import * as installer from '../src/shared/WindowsHelperInstaller'
+import * as installer from '../src/main/core/WindowsHelperInstaller'
 import {
   buildWindowsHelperInstallScript,
   windowsHelperInstancePaths
@@ -31,7 +31,8 @@ async function main() {
       sourceExecutable: path.join(directory, 'helper.exe'),
       backupExecutable: path.join(directory, 'backup.exe'),
       dataPath: directory,
-      helperVersion: 27
+      // 使用当前 v28 发布配置，确保完整安装脚本夹具随 Go/应用版本同步更新。
+      helperVersion: 28
     }
   )
   const fullPlan = installer.buildWindowsHelperElevationPlan(completeScript, 'fixture', 'nonce')
@@ -82,6 +83,18 @@ async function main() {
       (error: any) =>
         error.code === 'elevation_status_timeout' && /may still be finishing/.test(error.message)
     )
+    // 普通退出码/launcher 成功但没有可信结果，也不能推断管理员安装尚未发生。
+    for (const launchError of [undefined, { code: 1 }]) {
+      await assert.rejects(
+        installer.runWindowsHelperInstaller('exit 0', {
+          launch: async () => {
+            if (launchError) throw Object.assign(new Error('No result'), launchError)
+            return { stdout: '', stderr: '' }
+          }
+        }),
+        (error: any) => error.code === 'elevation_status_timeout'
+      )
+    }
     await assert.rejects(
       installer.runWindowsHelperInstaller('exit 0', {
         launch: async () => {

@@ -112,7 +112,10 @@ export function resolveAiCliTerminalCommand(binName: string, deps: ResolveAiCliD
   return quoted
 }
 
-export async function checkAiCliVersion(binName: string, deps: CheckAiCliDeps = {}): Promise<string> {
+export async function checkAiCliVersion(
+  binName: string,
+  deps: CheckAiCliDeps = {}
+): Promise<string> {
   const cleanEnv = deps.cleanEnv ?? (() => EnvSync.clean())
   const execPromiseWithEnv = deps.execPromiseWithEnv ?? defaultExecPromiseWithEnv
   const existsSync = deps.existsSync ?? defaultExistsSync

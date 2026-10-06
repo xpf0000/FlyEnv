@@ -81,7 +81,7 @@ export async function pcReportLinux(): Promise<any> {
     let memoryArray = [{ MemoryDevices: 1 }]
 
     try {
-      const dmiRes = await execPromise('sudo dmidecode -t memory')
+      const dmiRes = await execPromise('dmidecode -t memory')
       const dmiOut = `${dmiRes?.stdout ?? ''}`
       const devices = dmiOut.split('Memory Device').slice(1)
       const mods: any[] = []

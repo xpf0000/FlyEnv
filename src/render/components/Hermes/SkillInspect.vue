@@ -27,8 +27,7 @@
             <pre
               ref="pre"
               class="whitespace-pre-wrap break-words text-sm bg-gray-50 dark:bg-gray-900 p-4"
-              >{{ content }}</pre
-            >
+              >{{ content }}</pre>
           </div>
         </el-scrollbar>
       </div>

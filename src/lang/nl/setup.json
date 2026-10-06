@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "De installatie van FlyEnv helper is mislukt. Probeer het met uw oorspronkelijke Windows-account opnieuw via de herstelknop in Instellingen. Deel bij een nieuwe fout de onderstaande foutdetails.",
   "flyenvHelperInstallTimeout": "Time-out bij het wachten op het installatieresultaat. De installatie wordt mogelijk nog steeds op de achtergrond uitgevoerd. Gebruik de herstelknop van de helper opnieuw om het resultaat te controleren.",
   "windowsElevationMethod": "Methode voor bevoegdheidsverhoging",
-  "windowsElevationMethodTips": "Kies hoe Windows-bewerkingen waarvoor beheerdersrechten nodig zijn, worden uitgevoerd met verhoogde rechten. UAC vraagt bevestiging voor elke ondersteunde bewerking; het hulpprogramma voorkomt herhaalde prompts nadat het is geïnstalleerd.",
+  "windowsElevationMethodTips": "Uw keuze wordt opgeslagen. U kunt deze later wijzigen in Instellingen.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Hulpprogramma",
   "appFont": "UI-lettertype",
@@ -96,5 +96,26 @@
     "rnacos": "Servicedetectie en centraal configuratiebeheer.",
     "temporal": "Betrouwbare orkestratie van applicatieworkflows en langdurige processen.",
     "temporalCli": "Opdrachtregelprogramma voor beheer en interactie met Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "Er wordt al een andere autorisatie uitgevoerd. Even geduld.",
+    "title": "Kies een autorisatiemethode",
+    "description": "De bewerking “{operation}” vereist beheerdersrechten. Kies hoe u deze autoriseert.",
+    "uacDescription": "UAC: Windows vraagt zo nodig om goedkeuring of beheerdersgegevens. U hoeft geen permanente helper te installeren.",
+    "helperDescription": "Helper: vermindert herhaalde verzoeken. De installatie maakt een geplande taak met systeemrechten; controleer het apparaatbeleid van uw bedrijf.",
+    "helperReady": "De Helper is klaar voor gebruik.",
+    "settingsHint": "Uw keuze wordt opgeslagen. U kunt deze later wijzigen in Instellingen.",
+    "disableOption": "Ook de eerder geïnstalleerde helper voor dit account uitschakelen (kan UAC vereisen)",
+    "disableOnSwitch": "Overschakelen naar UAC schakelt de Helper van dit account automatisch uit. Geïnstalleerde bestanden blijven behouden.",
+    "disableHelperTips": "Stopt de Helper die voor dit Windows-account is geïnstalleerd en schakelt zijn geplande taak uit. De geïnstalleerde bestanden blijven behouden. UAC-goedkeuring kan nodig zijn.",
+    "disableFailed": "UAC is gekozen, maar de bestaande helper kon niet worden uitgeschakeld.",
+    "elevated": "FlyEnv draait als beheerder. Bewerkingen worden in deze sessie direct uitgevoerd; de opgeslagen keuze blijft behouden.",
+    "unselected": "Geen autorisatiemethode gekozen. FlyEnv vraagt ernaar wanneer voor het eerst beheerdersrechten nodig zijn.",
+    "operation": "Systeembewerking",
+    "useUac": "UAC",
+    "useHelper": "Hulpprogramma",
+    "disableHelper": "Helper uitschakelen",
+    "failed": "Windows-autorisatie mislukt.",
+    "timeout": "Time-out bij autorisatie. De bewerking kan nog bezig zijn."
   }
 }

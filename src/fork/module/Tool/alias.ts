@@ -114,7 +114,9 @@ export function setAlias(
     content = content.trim() + `\nexport PATH="${path}"\n`
     try {
       await writeFileByRoot(zshrc, content)
-    } catch {}
+    } catch (error) {
+      if (process.platform === 'linux') throw error
+    }
     const res = await cleanAlias(alias)
     resolve(res)
   })

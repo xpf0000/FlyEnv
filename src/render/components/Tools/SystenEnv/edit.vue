@@ -17,13 +17,14 @@
           <el-button
             type="primary"
             class="shrink0"
-            :disabled="disabled || saving"
+            :disabled="disabled || saving || readOnly"
             :loading="saving"
             @click="doSubmit"
             >{{ $t('base.confirm') }}</el-button
           >
         </div>
         <div class="main-wapper">
+          <p v-if="readOnly" class="px-4 py-2 text-sm">{{ $t('util.linuxSystemFileReadOnly') }}</p>
           <div ref="input" class="block" style="width: 100%; height: 100%"></div>
         </div>
       </div>
@@ -51,6 +52,7 @@
   }>()
 
   const disabled = ref(false)
+  const readOnly = window.Server.isLinux && props.file.startsWith('/etc/')
   const content = ref('')
   const input = ref()
   const saving = ref(false)
@@ -63,7 +65,7 @@
       }
       monacoInstance = EditorCreate(
         input.value,
-        await EditorConfigMake(content.value, false, 'off')
+        await EditorConfigMake(content.value, readOnly, 'off')
       )
       const editorInstance = monacoInstance
       if (!editorInstance) {
@@ -96,7 +98,7 @@
   fetchContent().then()
 
   const doSubmit = () => {
-    if (disabled.value || saving.value) {
+    if (disabled.value || saving.value || readOnly) {
       return
     }
     Base.ConfirmWarning(I18nT('util.toolSaveConfirm')).then(() => {

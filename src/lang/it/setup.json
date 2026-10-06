@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Installazione dell'helper FlyEnv non riuscita. Riprova con il tuo account Windows originale usando il pulsante di riparazione nelle impostazioni. Se il problema persiste, condividi i dettagli dell’errore qui sotto.",
   "flyenvHelperInstallTimeout": "Tempo scaduto in attesa del risultato dell'installazione. L'installazione potrebbe essere ancora in esecuzione in background. Usa di nuovo il pulsante di riparazione dell'helper per verificare il risultato.",
   "windowsElevationMethod": "Metodo di elevazione",
-  "windowsElevationMethodTips": "Scegli come elevare le operazioni di Windows che richiedono privilegi di amministratore. UAC richiede una conferma per ogni operazione supportata; il programma di supporto evita richieste ripetute dopo l'installazione.",
+  "windowsElevationMethodTips": "La scelta viene salvata. Puoi cambiarla in seguito nelle Impostazioni.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Programma di supporto",
   "appFont": "Font interfaccia",
@@ -96,5 +96,26 @@
     "rnacos": "Individuazione dei servizi e gestione centralizzata della configurazione.",
     "temporal": "Orchestrazione affidabile dei flussi applicativi e dei processi di lunga durata.",
     "temporalCli": "Strumento da riga di comando per gestire e usare Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "È in corso un’altra operazione di autorizzazione. Attendi.",
+    "title": "Scegli il metodo di autorizzazione",
+    "description": "L’operazione “{operation}” richiede privilegi di amministratore. Scegli come autorizzarla.",
+    "uacDescription": "UAC: Windows richiede l’approvazione o le credenziali di amministratore quando necessario. Non serve installare un assistente permanente.",
+    "helperDescription": "Assistente: riduce le richieste ripetute. L’installazione crea un’attività pianificata con privilegi di sistema; verifica la politica aziendale sui dispositivi.",
+    "helperReady": "L’assistente è pronto all’uso.",
+    "settingsHint": "La scelta viene salvata. Puoi cambiarla in seguito nelle Impostazioni.",
+    "disableOption": "Disattiva anche l’assistente già installato per questo account (può richiedere UAC)",
+    "disableOnSwitch": "Il passaggio a UAC disattiva automaticamente l’assistente di questo account. I file installati vengono conservati.",
+    "disableHelperTips": "Arresta l’assistente installato per questo account Windows e disabilita la sua attività pianificata. I file installati vengono conservati. Potrebbe essere richiesta l’approvazione UAC.",
+    "disableFailed": "È stato scelto UAC, ma non è stato possibile disattivare l’assistente esistente.",
+    "elevated": "FlyEnv è in esecuzione come amministratore. Le operazioni vengono eseguite direttamente in questa sessione; la scelta salvata non cambia.",
+    "unselected": "Nessun metodo di autorizzazione scelto. FlyEnv lo chiederà quando serviranno per la prima volta privilegi di amministratore.",
+    "operation": "Operazione di sistema",
+    "useUac": "UAC",
+    "useHelper": "Programma di supporto",
+    "disableHelper": "Disattiva assistente",
+    "failed": "Autorizzazione Windows non riuscita.",
+    "timeout": "Tempo di autorizzazione scaduto. L’operazione potrebbe essere ancora in corso."
   }
 }

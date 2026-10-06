@@ -107,6 +107,7 @@ export function isArmArch() {
 
 export async function readFileFixed(file: string): Promise<string> {
   const path = pathFixedToUnix(file)
+  if (isLinux()) return readFile(path, 'utf8')
   try {
     return await readFile(path, 'utf-8')
   } catch {}
@@ -117,6 +118,10 @@ export async function readFileFixed(file: string): Promise<string> {
 }
 
 export const writeFileByRoot = async (file: string, content: string) => {
+  if (isLinux()) {
+    await writeFile(file, content)
+    return true
+  }
   try {
     await writeFile(file, content)
     return true

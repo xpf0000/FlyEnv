@@ -1,3 +1,9 @@
+import {
+  performanceDiagnosticNow,
+  performanceDiagnosticElapsed,
+  writePerformanceLog,
+  measurePerformanceStep
+} from '@shared/PerformanceDiagnostics'
 import { mkdirp, readFile, spawnPromiseWithEnv, writeFile } from '../../Fn'
 import Helper from '../../Helper'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -5,6 +11,7 @@ import { encodePowerShellCommand } from '@shared/PowerShellCommand'
 import EnvSync from '@shared/EnvSync'
 import { dirname, join } from 'path'
 import { appDebugLog } from '@shared/utils'
+import { resolveWindowsPowerShellPath, windowsPowerShellEnv } from '@shared/WindowsSystemPaths'
 
 type ProfileEdition = 'windows-powershell' | 'pwsh'
 
@@ -32,23 +39,19 @@ let initFlyEnvSHInFlight: ForkPromise<FlyEnvShellInitResult> | undefined
 let executionPolicyRepairInFlight: Promise<void> | undefined
 
 const logShellInitTiming = (details: Record<string, unknown>) => {
-  void appDebugLog('[Tool.win][initFlyEnvSH][timing]', JSON.stringify(details))
+  void writePerformanceLog(appDebugLog, '[Tool.win][initFlyEnvSH][timing]', details)
 }
 
 const measureShellInitStep = async <T>(
   timings: Record<string, number>,
   step: string,
   operation: () => Promise<T>
-): Promise<T> => {
-  const startedAt = Date.now()
-  try {
-    return await operation()
-  } finally {
-    const durationMs = Date.now() - startedAt
+): Promise<T> =>
+  measurePerformanceStep(step, operation, (event) => {
+    const durationMs = event.durationMs ?? 0
     timings[step] = durationMs
     logShellInitTiming({ event: 'step', step, durationMs })
-  }
-}
+  })
 
 const asErrorMessage = (error: unknown) => (error instanceof Error ? error.message : `${error}`)
 
@@ -58,9 +61,10 @@ if ($policy -eq 'Restricted') {
   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 }`
   await spawnPromiseWithEnv(
-    EnvSync.PowerShellPath || 'powershell.exe',
+    // shell 初始化的配套操作也固定系统 PowerShell；不能只在 UAC 主入口固定路径。
+    resolveWindowsPowerShellPath(),
     ['-NoProfile', '-NonInteractive', '-EncodedCommand', encodePowerShellCommand(script)],
-    { windowsHide: true }
+    { windowsHide: true, env: windowsPowerShellEnv() }
   )
 }
 
@@ -111,7 +115,7 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
 
   const operation = new ForkPromise<FlyEnvShellInitResult>(async (resolve, reject, on) => {
     const timings: Record<string, number> = {}
-    const startedAt = Date.now()
+    const startedAt = performanceDiagnosticNow()
     let currentStep = 'preparing'
     try {
       on('Preparing FlyEnv PowerShell integration')
@@ -197,7 +201,7 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
       }
       logShellInitTiming({
         event: 'completed',
-        totalMs: Date.now() - startedAt,
+        totalMs: performanceDiagnosticElapsed(startedAt),
         status: result.status,
         timings
       })
@@ -206,7 +210,7 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
       logShellInitTiming({
         event: 'failed',
         step: currentStep,
-        totalMs: Date.now() - startedAt,
+        totalMs: performanceDiagnosticElapsed(startedAt),
         timings,
         error: asErrorMessage(error)
       })

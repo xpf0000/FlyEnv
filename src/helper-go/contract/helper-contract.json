@@ -1,6 +1,30 @@
 {
   "methods": [
     {
+      "module": "ftp",
+      "function": "start",
+      "args": [{ "name": "request", "type": "object" }],
+      "return": "number",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
+      "module": "ftp",
+      "function": "stop",
+      "args": [],
+      "return": "number",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
+      "module": "ftp",
+      "function": "refreshUsers",
+      "args": [],
+      "return": "boolean",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
       "module": "helper",
       "function": "version",
       "args": [],
@@ -21,7 +45,7 @@
       "function": "processList",
       "args": [],
       "return": "processInfo[]",
-      "platform": "unix",
+      "platform": "macos",
       "privileged": false
     },
     {
@@ -36,11 +60,17 @@
       "module": "tools",
       "function": "writeFileByRoot",
       "args": [
-        { "name": "file", "type": "string" },
-        { "name": "content", "type": "string" }
+        {
+          "name": "file",
+          "type": "string"
+        },
+        {
+          "name": "content",
+          "type": "string"
+        }
       ],
       "return": "boolean",
-      "platform": "all",
+      "platform": "windows,macos",
       "privileged": true,
       "pathAccess": "write"
     },
@@ -48,18 +78,29 @@
       "module": "tools",
       "function": "writeBufferBase64ByRoot",
       "args": [
-        { "name": "file", "type": "string" },
-        { "name": "content", "type": "string" }
+        {
+          "name": "file",
+          "type": "string"
+        },
+        {
+          "name": "content",
+          "type": "string"
+        }
       ],
       "return": "boolean",
-      "platform": "all",
+      "platform": "windows,macos",
       "privileged": true,
       "pathAccess": "write"
     },
     {
       "module": "tools",
       "function": "installFlyEnvPowerShellIntegration",
-      "args": [{ "name": "request", "type": "object" }],
+      "args": [
+        {
+          "name": "request",
+          "type": "object"
+        }
+      ],
       "return": "flyEnvPowerShellIntegrationResult",
       "platform": "windows",
       "privileged": true,
@@ -68,7 +109,12 @@
     {
       "module": "tools",
       "function": "ensureFlyEnvDataDirectory",
-      "args": [{ "name": "dataDirectory", "type": "string" }],
+      "args": [
+        {
+          "name": "dataDirectory",
+          "type": "string"
+        }
+      ],
       "return": "boolean",
       "platform": "windows",
       "privileged": true,
@@ -77,18 +123,28 @@
     {
       "module": "tools",
       "function": "readFileByRoot",
-      "args": [{ "name": "file", "type": "string" }],
+      "args": [
+        {
+          "name": "file",
+          "type": "string"
+        }
+      ],
       "return": "string",
-      "platform": "all",
+      "platform": "windows,macos",
       "privileged": true,
       "pathAccess": "read"
     },
     {
       "module": "tools",
       "function": "rm",
-      "args": [{ "name": "path", "type": "string" }],
+      "args": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
       "return": "boolean",
-      "platform": "all",
+      "platform": "windows,macos",
       "privileged": true,
       "pathAccess": "remove"
     },
@@ -96,11 +152,17 @@
       "module": "tools",
       "function": "chmod",
       "args": [
-        { "name": "path", "type": "string" },
-        { "name": "mode", "type": "string" }
+        {
+          "name": "path",
+          "type": "string"
+        },
+        {
+          "name": "mode",
+          "type": "string"
+        }
       ],
       "return": "boolean",
-      "platform": "unix",
+      "platform": "macos",
       "privileged": true,
       "pathAccess": "write"
     },
@@ -108,39 +170,76 @@
       "module": "tools",
       "function": "kill",
       "args": [
-        { "name": "signal", "type": "string" },
-        { "name": "pids", "type": "string[]" }
+        {
+          "name": "signal",
+          "type": "string"
+        },
+        {
+          "name": "pids",
+          "type": "string[]"
+        },
+        {
+          "name": "treeMode",
+          "type": "boolean",
+          "optional": true
+        },
+        {
+          "name": "identities",
+          "type": "processStartIdentity[]",
+          "optional": true
+        }
       ],
       "return": "boolean",
-      "platform": "all",
+      "platform": "windows,macos",
       "privileged": true
     },
     {
       "module": "tools",
       "function": "ln_s",
       "args": [
-        { "name": "oldname", "type": "string" },
-        { "name": "newname", "type": "string" }
+        {
+          "name": "oldname",
+          "type": "string"
+        },
+        {
+          "name": "newname",
+          "type": "string"
+        }
       ],
       "return": "boolean",
-      "platform": "unix",
+      "platform": "macos",
       "privileged": true,
       "pathAccess": "read-write"
     },
     {
       "module": "tools",
       "function": "killPorts",
-      "args": [{ "name": "ports", "type": "string[]" }],
+      "args": [
+        {
+          "name": "ports",
+          "type": "string[]"
+        },
+        {
+          "name": "identities",
+          "type": "processStartIdentity[]",
+          "optional": true
+        }
+      ],
       "return": "boolean",
-      "platform": "all",
+      "platform": "windows,macos",
       "privileged": true
     },
     {
       "module": "tools",
       "function": "getPortPids",
-      "args": [{ "name": "port", "type": "string" }],
+      "args": [
+        {
+          "name": "port",
+          "type": "string"
+        }
+      ],
       "return": "portProcessInfo[]",
-      "platform": "unix",
+      "platform": "windows,macos",
       "privileged": false
     },
     {
@@ -155,9 +254,19 @@
       "module": "tools",
       "function": "setSystemPath",
       "args": [
-        { "name": "paths", "type": "string[]" },
-        { "name": "otherVars", "type": "object" },
-        { "name": "expectedPath", "type": "string", "optional": true }
+        {
+          "name": "paths",
+          "type": "string[]"
+        },
+        {
+          "name": "otherVars",
+          "type": "object"
+        },
+        {
+          "name": "expectedPath",
+          "type": "string",
+          "optional": true
+        }
       ],
       "return": "boolean",
       "platform": "windows",
@@ -167,8 +276,14 @@
       "module": "tools",
       "function": "setSystemEnv",
       "args": [
-        { "name": "key", "type": "string" },
-        { "name": "value", "type": "string" }
+        {
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "string"
+        }
       ],
       "return": "boolean",
       "platform": "windows",
@@ -178,11 +293,17 @@
       "module": "tools",
       "function": "runScript",
       "args": [
-        { "name": "shell", "type": "string" },
-        { "name": "scriptPath", "type": "string" }
+        {
+          "name": "shell",
+          "type": "string"
+        },
+        {
+          "name": "scriptPath",
+          "type": "string"
+        }
       ],
       "return": "execResult",
-      "platform": "unix",
+      "platform": "macos",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -190,9 +311,18 @@
       "module": "tools",
       "function": "setAutoStartWin",
       "args": [
-        { "name": "enabled", "type": "boolean" },
-        { "name": "taskName", "type": "string" },
-        { "name": "exePath", "type": "string" }
+        {
+          "name": "enabled",
+          "type": "boolean"
+        },
+        {
+          "name": "taskName",
+          "type": "string"
+        },
+        {
+          "name": "exePath",
+          "type": "string"
+        }
       ],
       "return": "boolean",
       "platform": "windows",
@@ -201,7 +331,12 @@
     {
       "module": "tools",
       "function": "removeLoginItemMac",
-      "args": [{ "name": "name", "type": "string" }],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
       "return": "boolean",
       "platform": "darwin",
       "privileged": true
@@ -210,8 +345,14 @@
       "module": "mariadb",
       "function": "macportsDirFixed",
       "args": [
-        { "name": "enDir", "type": "string" },
-        { "name": "shareDir", "type": "string" }
+        {
+          "name": "enDir",
+          "type": "string"
+        },
+        {
+          "name": "shareDir",
+          "type": "string"
+        }
       ],
       "return": "boolean",
       "platform": "darwin",
@@ -222,11 +363,17 @@
       "module": "redis",
       "function": "logFileFixed",
       "args": [
-        { "name": "logFile", "type": "string" },
-        { "name": "user", "type": "string" }
+        {
+          "name": "logFile",
+          "type": "string"
+        },
+        {
+          "name": "user",
+          "type": "string"
+        }
       ],
       "return": "boolean",
-      "platform": "unix",
+      "platform": "macos",
       "privileged": true,
       "pathAccess": "write"
     },
@@ -234,18 +381,29 @@
       "module": "php",
       "function": "iniFileFixed",
       "args": [
-        { "name": "baseIni", "type": "string" },
-        { "name": "ini", "type": "string" }
+        {
+          "name": "baseIni",
+          "type": "string"
+        },
+        {
+          "name": "ini",
+          "type": "string"
+        }
       ],
       "return": "boolean",
-      "platform": "unix",
+      "platform": "macos",
       "privileged": true,
       "pathAccess": "read-write"
     },
     {
       "module": "mailpit",
       "function": "binFixed",
-      "args": [{ "name": "bin", "type": "string" }],
+      "args": [
+        {
+          "name": "bin",
+          "type": "string"
+        }
+      ],
       "return": "boolean",
       "platform": "darwin",
       "privileged": true,
@@ -255,10 +413,22 @@
       "module": "mysql",
       "function": "macportsDirFixed",
       "args": [
-        { "name": "enDir", "type": "string" },
-        { "name": "shareDir", "type": "string" },
-        { "name": "langDir", "type": "string" },
-        { "name": "langEnDir", "type": "string" }
+        {
+          "name": "enDir",
+          "type": "string"
+        },
+        {
+          "name": "shareDir",
+          "type": "string"
+        },
+        {
+          "name": "langDir",
+          "type": "string"
+        },
+        {
+          "name": "langEnDir",
+          "type": "string"
+        }
       ],
       "return": "boolean",
       "platform": "darwin",
@@ -268,9 +438,14 @@
     {
       "module": "rabbitmq",
       "function": "initPlugin",
-      "args": [{ "name": "cwd", "type": "string" }],
+      "args": [
+        {
+          "name": "cwd",
+          "type": "string"
+        }
+      ],
       "return": "boolean",
-      "platform": "unix",
+      "platform": "macos",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -278,11 +453,17 @@
       "module": "host",
       "function": "sslAddTrustedCert",
       "args": [
-        { "name": "cwd", "type": "string" },
-        { "name": "caName", "type": "string" }
+        {
+          "name": "cwd",
+          "type": "string"
+        },
+        {
+          "name": "caName",
+          "type": "string"
+        }
       ],
       "return": "boolean",
-      "platform": "all",
+      "platform": "windows,macos",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -290,11 +471,18 @@
       "module": "host",
       "function": "sslFindCertificate",
       "args": [
-        { "name": "cwd", "type": "string" },
-        { "name": "commonName", "type": "string", "optional": true }
+        {
+          "name": "cwd",
+          "type": "string"
+        },
+        {
+          "name": "commonName",
+          "type": "string",
+          "optional": true
+        }
       ],
       "return": "execResult",
-      "platform": "unix",
+      "platform": "macos",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -304,6 +492,87 @@
       "args": [],
       "return": "boolean",
       "platform": "unix",
+      "privileged": true
+    },
+    {
+      "module": "host",
+      "function": "readHosts",
+      "args": [],
+      "return": "object",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
+      "module": "host",
+      "function": "replaceHostsContent",
+      "args": [
+        {
+          "name": "request",
+          "type": "object"
+        }
+      ],
+      "return": "boolean",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
+      "module": "host",
+      "function": "syncManagedEntries",
+      "args": [
+        {
+          "name": "request",
+          "type": "object"
+        }
+      ],
+      "return": "boolean",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
+      "module": "host",
+      "function": "clearManagedEntries",
+      "args": [
+        {
+          "name": "request",
+          "type": "object"
+        }
+      ],
+      "return": "boolean",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
+      "module": "host",
+      "function": "installApprovedCA",
+      "args": [
+        {
+          "name": "fingerprint",
+          "type": "string"
+        }
+      ],
+      "return": "boolean",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
+      "module": "tools",
+      "function": "repairManagedPidDirectory",
+      "args": [],
+      "return": "boolean",
+      "platform": "linux",
+      "privileged": true
+    },
+    {
+      "module": "service",
+      "function": "launchLowPort",
+      "args": [
+        {
+          "name": "request",
+          "type": "object"
+        }
+      ],
+      "return": "number",
+      "platform": "linux",
       "privileged": true
     }
   ]

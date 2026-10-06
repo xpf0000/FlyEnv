@@ -1,6 +1,6 @@
 import type { FSWatcher } from 'node:fs'
 import { createWriteStream, realpathSync } from 'node:fs'
-import { dirname, join, normalize, parse } from 'path'
+import { dirname, join, normalize } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -58,8 +58,13 @@ import {
   writeFile
 } from '@shared/fs-extra'
 import { addPath, fetchRawPATH, handleWinPathArr, writePath } from './util/PATH.win'
-import { isWindows, waitTime } from '@shared/utils'
+import { isLinux, isWindows, waitTime } from '@shared/utils'
 import { splitHostAliases } from '@shared/siteRuntime'
+import { timeOperation } from '@shared/OperationTiming'
+import { probeWindowsNTFS } from '@shared/WindowsVolume'
+// 本地 AppLogSend 只用进度发送器；原公开发送方法仍重导出，兼容模块和插件。
+import { ProcessSendLog } from './ProcessSend'
+export { ProcessSendSuccess, ProcessSendError, ProcessSendLog } from './ProcessSend'
 
 export { waitTime, addPath, fetchRawPATH, handleWinPathArr, writePath }
 
@@ -120,43 +125,6 @@ export {
   spawnPromiseWithEnv,
   spawnPromise,
   spawnPromiseWithStdin
-}
-
-export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
-  process?.send?.({
-    on,
-    key,
-    info: {
-      code: 0,
-      data
-    }
-  })
-}
-
-export const ProcessSendError = (key: string, error: any, on?: boolean) => {
-  const errorCode =
-    error && typeof error === 'object' && typeof error.code === 'string' ? error.code : undefined
-  const msg = error instanceof Error ? error.toString() : `${error}`
-  process?.send?.({
-    on,
-    key,
-    info: {
-      code: 1,
-      msg,
-      ...(errorCode ? { errorCode } : {})
-    }
-  })
-}
-
-export const ProcessSendLog = (key: string, msg: any, on?: boolean) => {
-  process?.send?.({
-    on,
-    key,
-    info: {
-      code: 200,
-      msg
-    }
-  })
 }
 
 export const AppLog = (type: 'info' | 'error' | 'debug', msg: string) => {
@@ -315,11 +283,16 @@ const validateHelperPath = (path: string): boolean => {
 }
 
 export const writeFileByRoot = async (file: string, content: string) => {
+  if (isLinux()) {
+    await writeFile(file, content)
+    return true
+  }
   if (!validateHelperPath(file)) {
     throw new Error(`Path traversal detected: ${file}`)
   }
   try {
-    await writeFile(file, content)
+    // 标记外层首次 Node 写入，与统一权限入口的普通权限重试分别统计。
+    await timeOperation('file.initial-node-write', () => writeFile(file, content))
     return true
   } catch (e) {
     console.error('writeFileByRoot writeFile error: ', e)
@@ -329,6 +302,7 @@ export const writeFileByRoot = async (file: string, content: string) => {
 }
 
 export const readFileByRoot = async (file: string): Promise<string> => {
+  if (isLinux()) return readFile(file, 'utf8')
   if (!validateHelperPath(file)) {
     throw new Error(`Path traversal detected: ${file}`)
   }
@@ -339,6 +313,10 @@ export const readFileByRoot = async (file: string): Promise<string> => {
 }
 
 export const removeByRoot = async (file: string): Promise<void> => {
+  if (isLinux()) {
+    await remove(file)
+    return
+  }
   if (!validateHelperPath(file)) {
     throw new Error(`Path traversal detected: ${file}`)
   }
@@ -348,7 +326,10 @@ export const removeByRoot = async (file: string): Promise<void> => {
   } catch {}
   try {
     await Helper.send('tools', 'rm', file)
-  } catch {}
+  } catch (error) {
+    // Windows 取消/拒绝属于删除操作的失败终态，必须交给调用方恢复状态和允许重试。
+    if (isWindows()) throw error
+  }
   return
 }
 
@@ -366,11 +347,18 @@ export const binXattrFix = async (bin: string) => {
   } catch {}
 }
 
+/**
+ * 等待本次启动产生 PID，文件创建与写入可能是两个步骤，暂时空文件不能立即
+ * 判定启动失败，否则已经创建的服务不会登记、后续退出也无法停止它。空 PID
+ * 在原预算内重试；读取失败保留原失败语义，不反复发起权限请求。错误日志仅
+ * 等待文件出现，允许空内容，调用点用 retryEmpty=false 避免额外启动延迟。
+ */
 export async function waitPidFile(
   pidFile: string,
   time = 0,
   maxTime = 20,
-  timeToWait = 500
+  timeToWait = 500,
+  retryEmpty = true
 ): Promise<
   | {
       pid?: string
@@ -392,6 +380,10 @@ export async function waitPidFile(
     } catch {
       error = true
     }
+    if (!error && !pid && retryEmpty && time < maxTime) {
+      await waitTime(timeToWait)
+      return waitPidFile(pidFile, time + 1, maxTime, timeToWait, retryEmpty)
+    }
     if (error || !pid) {
       return false
     }
@@ -401,7 +393,7 @@ export async function waitPidFile(
   } else {
     if (time < maxTime) {
       await waitTime(timeToWait)
-      res = res || (await waitPidFile(pidFile, time + 1, maxTime, timeToWait))
+      res = res || (await waitPidFile(pidFile, time + 1, maxTime, timeToWait, retryEmpty))
     } else {
       res = false
     }
@@ -426,28 +418,9 @@ export function fetchPathByBin(bin: string) {
   return path
 }
 
-const NTFS: Record<string, boolean> = {}
-
+/** 单路径调用保持兼容，复用有期限的批量卷格式缓存，不再加载 Get-Volume。 */
 export async function isNTFS(fileOrDirPath: string) {
-  const driveLetter = parse(fileOrDirPath).root.replace(/[:\\]/g, '')
-  if (NTFS?.[driveLetter] !== undefined) {
-    return NTFS[driveLetter]
-  }
-  try {
-    const jsonResult =
-      (
-        await execPromise(
-          `powershell -command "Get-Volume -DriveLetter ${driveLetter} | ConvertTo-Json"`,
-          { encoding: 'utf-8' }
-        )
-      )?.stdout ?? ''
-    const { FileSystem, FileSystemType } = JSON.parse(jsonResult)
-    const is = FileSystem === 'NTFS' || FileSystemType === 'NTFS'
-    NTFS[driveLetter] = is
-    return is
-  } catch {
-    return false
-  }
+  return (await probeWindowsNTFS([fileOrDirPath]))[0]
 }
 
 export const versionCompare = compareVersions

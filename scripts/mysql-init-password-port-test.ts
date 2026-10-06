@@ -22,8 +22,14 @@ const region = source.slice(start, end)
 assert.match(region, /my-\$\{v\}\.cnf/, '_initPassword must resolve the version cnf file')
 assert.match(
   region,
-  /iniParse\(content\)[\s\S]*?config\?\.mysqld\?\.port \?\? 3306/,
-  '_initPassword must parse the port from the version cnf with the 3306 fallback'
+  /iniParse\(content\)[\s\S]*?configuredPort = Number\(config\?\.mysqld\?\.port\)/,
+  '_initPassword must retain the configured-port validation before modifying the instance'
+)
+
+assert.match(
+  region,
+  /getMysqlSocket\(iniParse\(content\)\)/,
+  '_initPassword must parse the socket from the version cnf'
 )
 
 // mysqladmin must receive the cnf, a TCP protocol hint and the parsed port
@@ -47,11 +53,11 @@ assert.match(
   '_initPassword must retry transient connection failures'
 )
 
-// Success log must report the actual password, not a hardcoded 'root'
+// Success logs must not expose the configured password.
 assert.match(
   region,
-  /initDBPassSuccess', \{ user: 'root', pass: password \}/,
-  '_initPassword success log must report the real password'
+  /initDBPassSuccess', \{ user: 'root', pass: 'configured' \}/,
+  '_initPassword success log must keep the password masked'
 )
 
 console.log('MySQL init-password port checks passed')

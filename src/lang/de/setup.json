@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Die Installation des FlyEnv-Helpers ist fehlgeschlagen. Versuchen Sie es mit Ihrem ursprünglichen Windows-Konto über die Reparaturschaltfläche in den Einstellungen erneut. Teilen Sie bei erneutem Fehlschlag die folgenden Fehlerdetails mit.",
   "flyenvHelperInstallTimeout": "Zeitüberschreitung beim Warten auf das Installationsergebnis. Die Installation läuft möglicherweise noch im Hintergrund. Verwenden Sie die Reparatur-Schaltfläche des Hilfsprogramms erneut, um das Ergebnis zu prüfen.",
   "windowsElevationMethod": "Erhöhungsmethode",
-  "windowsElevationMethodTips": "Wählen Sie, wie Windows-Vorgänge, die Administratorrechte erfordern, mit erhöhten Rechten ausgeführt werden. Die Benutzerkontensteuerung (UAC) fordert für jeden unterstützten Vorgang eine Bestätigung an; das Hilfsprogramm vermeidet nach der Installation wiederholte Aufforderungen.",
+  "windowsElevationMethodTips": "Ihre Auswahl wird gespeichert. Sie können sie später in den Einstellungen ändern.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Hilfsprogramm",
   "appFont": "Schriftart der Oberfläche",
@@ -96,5 +96,26 @@
     "rnacos": "Dienstermittlung und zentrale Konfigurationsverwaltung.",
     "temporal": "Zuverlässige Orchestrierung von Anwendungs-Workflows und lang laufenden Prozessen.",
     "temporalCli": "Befehlszeilenwerkzeug zur Verwaltung und Interaktion mit Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "Eine andere Autorisierung läuft bereits. Bitte warten.",
+    "title": "Autorisierungsmethode wählen",
+    "description": "Der Vorgang „{operation}“ benötigt Administratorrechte. Wählen Sie eine Autorisierungsmethode.",
+    "uacDescription": "UAC: Windows fragt bei Bedarf nach Zustimmung oder Administratoranmeldedaten. Ein dauerhaft laufender Helfer muss nicht installiert werden.",
+    "helperDescription": "Hilfsprogramm: reduziert wiederholte Rückfragen. Die Installation erstellt eine geplante Aufgabe mit Systemrechten; prüfen Sie die Geräterichtlinien Ihres Unternehmens.",
+    "helperReady": "Der Helfer ist einsatzbereit.",
+    "settingsHint": "Ihre Auswahl wird gespeichert. Sie können sie später in den Einstellungen ändern.",
+    "disableOption": "Auch das zuvor installierte Hilfsprogramm dieses Kontos deaktivieren (UAC kann erforderlich sein)",
+    "disableOnSwitch": "Der Wechsel zu UAC deaktiviert automatisch den Helfer dieses Kontos. Die installierten Dateien bleiben erhalten.",
+    "disableHelperTips": "Stoppt den für dieses Windows-Konto installierten Helfer und deaktiviert dessen geplante Aufgabe. Die installierten Dateien bleiben erhalten. Möglicherweise ist eine UAC-Bestätigung erforderlich.",
+    "disableFailed": "UAC wurde gewählt, das vorhandene Hilfsprogramm konnte jedoch nicht deaktiviert werden.",
+    "elevated": "FlyEnv läuft als Administrator. Vorgänge werden in dieser Sitzung direkt ausgeführt; die gespeicherte Auswahl bleibt bestehen.",
+    "unselected": "Keine Autorisierungsmethode gewählt. FlyEnv fragt, sobald erstmals Administratorrechte benötigt werden.",
+    "operation": "Systemvorgang",
+    "useUac": "UAC",
+    "useHelper": "Hilfsprogramm",
+    "disableHelper": "Hilfsprogramm deaktivieren",
+    "failed": "Windows-Autorisierung fehlgeschlagen.",
+    "timeout": "Zeitüberschreitung bei der Autorisierung. Der Vorgang läuft möglicherweise noch."
   }
 }

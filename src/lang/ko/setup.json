@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "FlyEnv 헬퍼 설치에 실패했습니다. 기존 Windows 계정에서 설정의 복구 버튼으로 다시 시도하세요. 계속 실패하면 아래 오류 세부 정보를 공유해 주세요.",
   "flyenvHelperInstallTimeout": "설치 결과를 기다리는 시간이 초과되었습니다. 설치가 아직 백그라운드에서 진행 중일 수 있습니다. 도우미 복구 버튼을 다시 사용하여 결과를 확인하세요.",
   "windowsElevationMethod": "권한 상승 방식",
-  "windowsElevationMethodTips": "관리자 권한이 필요한 Windows 작업의 권한 상승 방식을 선택합니다. UAC는 지원되는 작업마다 확인을 요청하며, 헬퍼를 설치하면 반복되는 확인 요청을 피할 수 있습니다.",
+  "windowsElevationMethodTips": "선택한 방식이 저장됩니다. 나중에 설정에서 변경할 수 있습니다.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "헬퍼",
   "appFont": "UI 글꼴",
@@ -96,5 +96,26 @@
     "rnacos": "서비스 검색 및 중앙 집중식 구성 관리.",
     "temporal": "애플리케이션 워크플로와 장기 실행 프로세스를 안정적으로 오케스트레이션.",
     "temporalCli": "Temporal을 관리하고 상호작용하기 위한 명령줄 도구."
+  },
+  "windowsPrivilege": {
+    "busy": "다른 권한 작업이 진행 중입니다. 잠시 기다려 주세요.",
+    "title": "권한 승인 방식 선택",
+    "description": "“{operation}” 작업에는 관리자 권한이 필요합니다. 승인 방식을 선택하세요.",
+    "uacDescription": "UAC: 필요할 때 Windows에서 승인 또는 관리자 자격 증명을 요청합니다. 상주 도우미를 설치할 필요가 없습니다.",
+    "helperDescription": "도우미: 반복 승인 요청을 줄입니다. 설치 시 시스템 권한의 예약 작업이 만들어지므로 회사의 기기 정책을 확인하세요.",
+    "helperReady": "도우미를 사용할 준비가 되었습니다.",
+    "settingsHint": "선택한 방식이 저장됩니다. 나중에 설정에서 변경할 수 있습니다.",
+    "disableOption": "이 계정에 이전에 설치한 도우미도 비활성화 (UAC가 필요할 수 있음)",
+    "disableOnSwitch": "UAC로 전환하면 이 계정의 도우미가 자동으로 비활성화됩니다. 설치된 파일은 유지됩니다.",
+    "disableHelperTips": "이 Windows 계정에 설치된 도우미를 중지하고 예약 작업을 비활성화합니다. 설치된 파일은 유지됩니다. UAC 승인이 필요할 수 있습니다.",
+    "disableFailed": "UAC를 선택했지만 기존 도우미를 비활성화하지 못했습니다.",
+    "elevated": "FlyEnv가 관리자 권한으로 실행 중입니다. 이 세션에서는 작업을 직접 실행하며 저장된 선택은 변경되지 않습니다.",
+    "unselected": "승인 방식을 선택하지 않았습니다. 관리자 권한이 처음 필요할 때 FlyEnv가 묻습니다.",
+    "operation": "시스템 작업",
+    "useUac": "UAC",
+    "useHelper": "헬퍼",
+    "disableHelper": "도우미 비활성화",
+    "failed": "Windows 권한 승인에 실패했습니다.",
+    "timeout": "권한 승인이 시간 초과되었습니다. 작업이 아직 진행 중일 수 있습니다."
   }
 }

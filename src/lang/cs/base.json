@@ -42,7 +42,7 @@
   "linkCopySuccess": "Odkaz byl zkopírován do schránky!",
   "needSelectVersion": "Nejprve vyberte verzi",
   "hostsSaveFailed": "Systémový soubor hosts se nepodařilo uložit. Zkontrolujte, zda soubor existuje a zda jsou oprávnění k souboru správná.",
-  "hostsReadFailed": "Nepodařilo se přečíst soubor /private/etc/hosts. Zkontrolujte, zda soubor existuje a zda jsou správná oprávnění k souboru",
+  "hostsReadFailed": "Nepodařilo se přečíst soubor {path}. Zkontrolujte, zda soubor existuje a zda jsou správná oprávnění k souboru",
   "needSelectDir": "Vyberte složku!",
   "processNotFound": "Nebyly nalezeny žádné procesy",
   "hostsTitle": "Systémový soubor hosts",

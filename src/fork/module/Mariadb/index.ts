@@ -1,5 +1,7 @@
 import { createRequire } from 'node:module'
-import { join, basename, dirname, isAbsolute } from 'path'
+import { join, basename, dirname, isAbsolute, resolve as resolvePath } from 'path'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import { existsSync, readdirSync, statSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/runtime'
@@ -33,14 +35,34 @@ import TaskQueue from '../../TaskQueue'
 import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { compareVersions } from '@shared/compare-versions'
-import { ProcessOwnedPidsByPid } from '@shared/Process'
-import { StopProcessPidList } from '@shared/StopProcessList'
+import { ProcessListByExactPid, fetchLoopbackListeningPids } from '@shared/Process'
+import { StopProcessListFetch } from '@shared/StopProcessList'
 import { parse as iniParse } from 'ini'
 import { Connection, createConnection } from 'mysql2/promise'
 import { format } from 'date-fns'
 
 const require = createRequire(import.meta.url)
 const { pki, md } = require('node-forge')
+const execFileAsync = promisify(execFile)
+
+/** 普通服务和组服务共用 MariaDB 二进制，根身份按配置路径精确区分。 */
+const hasExactMariaDBDefaultsFile = (command: string | undefined, expected: string) => {
+  if (!command) return false
+  const normalizeConfigPath = (value: string) => {
+    const normalized = resolvePath(value).replace(/\\/g, '/')
+    return isWindows() ? normalized.toLowerCase() : normalized
+  }
+  const expectedPath = normalizeConfigPath(expected)
+  for (const match of command.matchAll(
+    /(?:^|\s)--defaults-file(?:=|\s+)(?:"([^"]+)"|'([^']+)'|([^\s]+))/gi
+  )) {
+    const configuredPath = match[1] ?? match[2] ?? match[3]
+    if (configuredPath && normalizeConfigPath(configuredPath) === expectedPath) {
+      return true
+    }
+  }
+  return false
+}
 
 type MariaDBPemFiles = {
   ca: string
@@ -49,6 +71,9 @@ type MariaDBPemFiles = {
   cachingPrivateKey: string
   cachingPublicKey: string
 }
+
+const DEFAULT_MARIADB_PORT = 3306
+const DEFAULT_MARIADB_SOCKET = '/tmp/mysql.sock'
 
 const stripMariaDBValueQuotes = (value: any) => {
   return `${value ?? ''}`.trim().replace(/^['"]|['"]$/g, '')
@@ -85,6 +110,26 @@ const getMariaDBConfigValue = (section: any, names: string[]) => {
     }
   }
   return ''
+}
+
+const getMariaDBPort = (config: any) => {
+  const port = Number(getMariaDBConfigValue(getMariaDBServerConfig(config), ['port']))
+  if (Number.isFinite(port) && port > 0) {
+    return port
+  }
+  return DEFAULT_MARIADB_PORT
+}
+
+const getMariaDBSocket = (config: any) => {
+  return (
+    getMariaDBConfigValue(getMariaDBServerConfig(config), ['socket']).trim() || DEFAULT_MARIADB_SOCKET
+  )
+}
+
+const getMariaDBMaintenanceSocket = (socket: string, version: string) => {
+  return socket.endsWith('.sock')
+    ? `${socket.slice(0, -'.sock'.length)}.${version}.sock`
+    : `${socket}.${version}.sock`
 }
 
 const mariaDBPathExists = (value: string, dataDir: string, binDir: string) => {
@@ -409,12 +454,19 @@ class Manager extends Base {
         const bin = join(dirname(version.bin), 'mariadb-admin.exe')
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
-        let port = 3306
+        let port: number
         try {
           const content = existsSync(m) ? await readFile(m, 'utf8') : ''
           const config = iniParse(content)
-          port = getMariaDBServerConfig(config)?.port ?? 3306
-        } catch {}
+          const configuredPort = Number(getMariaDBServerConfig(config)?.port)
+          if (!Number.isInteger(configuredPort) || configuredPort < 1 || configuredPort > 65535) {
+            throw new Error('invalid configured port')
+          }
+          port = configuredPort
+        } catch {
+          reject(new Error('Cannot initialize MariaDB password without a valid configured port'))
+          return
+        }
 
         promise = execPromise(
           `${basename(bin)} --defaults-file="${m}"${mariaDBClientTLSArgs(
@@ -426,114 +478,185 @@ class Manager extends Base {
         )
       } else {
         const bin = join(dirname(version.bin), 'mariadb-admin')
-        promise = execPromise(
-          `./${basename(bin)} --socket=/tmp/mysql.sock -uroot password "root"`,
-          {
-            cwd: dirname(bin)
-          }
-        )
+        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+        const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+        const content = existsSync(m) ? await readFile(m, 'utf8') : ''
+        const socket = getMariaDBSocket(iniParse(content))
+        promise = execPromise(`./${basename(bin)} --socket="${socket}" -uroot password "root"`, {
+          cwd: dirname(bin)
+        })
       }
 
       promise!
-        .then((res) => {
-          console.log('_initPassword res: ', res)
+        .then(() => {
           on({
             'APP-On-Log': AppLog(
               'info',
-              I18nT('appLog.initDBPassSuccess', { user: 'root', pass: 'root' })
+              I18nT('appLog.initDBPassSuccess', { user: 'root', pass: 'configured' })
             )
           })
           resolve(true)
         })
-        .catch((err) => {
+        .catch(() => {
           on({
-            'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: err }))
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.initDBPassFail', { error: 'mariadb-admin failed' })
+            )
           })
-          console.log('_initPassword err: ', err)
-          reject(err)
+          console.log('_initPassword failed')
+          reject(new Error('mariadb-admin failed to initialize the MariaDB password'))
         })
     })
   }
 
+  /** Unix 普通 MariaDB 服务按完整 defaults-file 参数确认根，排除同版 group 实例。 */
+  private async stopUnixByDefaultsFile(
+    version: SoftInstalled,
+    configPath: string
+  ): Promise<string[]> {
+    const appPidFile = this.appPidFile()
+    const appPidBefore = existsSync(appPidFile) ? await this.readPidFromFile(appPidFile) : ''
+    const modulePidBefore = existsSync(this.pidPath) ? await this.readPidFromFile() : ''
+    // 首次目标发现共用 main 缓存；原生关闭及停止结果确认仍由公共新查询完成。
+    const list = await StopProcessListFetch()
+    const candidates = new Set(
+      [`${version?.pid ?? ''}`, appPidBefore, modulePidBefore].filter(Boolean)
+    )
+    // 文件候选与实际目标分离；归属不符/不可读只过滤当前项，精确配置根继续停止。
+    const roots = list
+      .filter(({ COMMAND }) => hasExactMariaDBDefaultsFile(COMMAND, configPath))
+      .map(({ PID }) => `${PID}`)
+    const targets = Array.from(
+      new Set(roots.flatMap((pid) => ProcessListByExactPid(pid, list).map(({ PID }) => PID)))
+    )
+    const finalList = targets.length
+      ? await this.stopUnixServicePids('-TERM', roots, targets, 10_000, list)
+      : list
+    if (targets.some((pid) => finalList.some(({ PID }) => PID === pid))) {
+      throw new Error('MariaDB is still running after the stop request')
+    }
+    // 空目标沿用首次快照；实际停止则共用 Base 返回的最终列表，按文件当前值清理登记。
+    await this.cleanupStoppedServicePidFiles([...targets, ...candidates], finalList, [
+      appPidFile,
+      this.pidPath
+    ])
+    return targets
+  }
+
   _stopServer(version: SoftInstalled): ForkPromise<any> {
     if (!isWindows()) {
-      return super._stopServer(version)
+      return new ForkPromise(async (resolve, reject, on) => {
+        try {
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+          })
+          const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+          const targets = await this.stopUnixByDefaultsFile(
+            version,
+            join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+          )
+          on({ 'APP-Service-Stop-Success': true })
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+          })
+          resolve({ 'APP-Service-Stop-PID': targets })
+        } catch (error) {
+          reject(error)
+        }
+      })
     }
 
     return new ForkPromise(async (resolve, reject, on) => {
-      const pids = new Set<string>()
-      const killPids = new Set<string>()
-      const appPidFile = this.appPidFile()
-      if (existsSync(appPidFile)) {
-        try {
-          const pid = await this.readPidFromFile(appPidFile)
-          if (pid) {
-            pids.add(pid)
-          }
-        } catch {}
-        TaskQueue.run(remove, appPidFile).then().catch()
-      }
-      try {
-        const pid = await this.readPidFromFile()
-        if (pid) {
-          pids.add(pid)
-        }
-      } catch {}
-      if (version?.pid) {
-        pids.add(`${version.pid}`)
-      }
-      try {
-        const processList = await StopProcessPidList()
-        const ownedMarkers = this.ownedProcessMarkers(version)
-        for (const pid of pids) {
-          ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) =>
-            killPids.add(item)
-          )
-        }
-      } catch {}
-      if (pids.size > 0) {
-        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-        const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
-        const bin = join(dirname(version.bin), 'mariadb-admin.exe')
+      // 复用通用的当前版本父归属与未缓存快照，避免另一版本覆盖 app PID 后误停。
+      // 身份信息不可读/查询失败为失败终态，不能当作无进程；实际子孙不单独复核。
+      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+      const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+      // MariaDB group/普通服务可能共用 mariadbd.exe；完整 defaults-file 参数精确区分根。
+      const targets = await this.windowsServiceTargets(version, [m], (item) =>
+        hasExactMariaDBDefaultsFile(item.COMMAND, m)
+      )
+      const killPids = new Set(targets.pids)
+      let finalList = targets.list
+      if (killPids.size > 0) {
         const password = version?.rootPassword ?? 'root'
-        let port = 3306
-        if (existsSync(m)) {
-          try {
-            const content = await readFile(m, 'utf8')
-            const config = iniParse(content)
-            port = getMariaDBServerConfig(config)?.port ?? 3306
-          } catch {}
-        }
-
-        let success = false
-        /**
-         * ./mariadb-admin.exe --defaults-file="C:\Program Files\FlyEnv-Data\server\mariadb\my-11.4.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
-         */
-        const command = `"${bin}" --defaults-file="${m}"${mariaDBClientTLSArgs(
-          version.version
-        )} --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
-        console.log('mariadb _stopServer command: ', command)
+        let port: number | undefined
         try {
-          await execPromise(command)
-          success = true
-        } catch (e) {
-          success = false
-          console.log('mariadb _stopServer command error: ', e)
+          // 只有配置明确给出有效端口才允许发出关闭请求；配置读取/解析失败不能猜默认 3306。
+          const content = await readFile(m, 'utf8')
+          const config = iniParse(content)
+          const configuredPort = Number(getMariaDBServerConfig(config)?.port)
+          if (Number.isInteger(configuredPort) && configuredPort > 0 && configuredPort <= 65535) {
+            port = configuredPort
+          }
+        } catch {
+          // Leave the port unset and use only the confirmed owned-process fallback.
         }
 
-        if (!success) {
-          const arr = Array.from(killPids)
-          if (arr.length > 0) {
-            const str = arr.map((s) => `/pid ${s}`).join(' ')
-            try {
-              await execPromise(`taskkill /f /t ${str}`)
-            } catch {}
+        let nativeShutdownSucceeded = false
+        /**
+         * shell:false 下将密码作为独立字面参数传递；
+         * 拼接命令或展开 exec 错误对象都会暴露/重解释密码内容。
+         */
+        if (port !== undefined) {
+          try {
+            // 配置端口的唯一监听者必须属于本次 FlyEnv 目标；外部或共享监听不接收关闭请求。
+            // 原生关闭核验监听者，不把通用端口查询的 TIME_WAIT/出站连接混入授权目标。
+            const listenerPids = [...new Set(await fetchLoopbackListeningPids(`${port}`))]
+            if (listenerPids.length === 1 && killPids.has(listenerPids[0])) {
+              const args = [
+                `--defaults-file=${m}`,
+                '--connect-timeout=1',
+                '--shutdown-timeout=1',
+                '--protocol=tcp',
+                '--host=127.0.0.1',
+                `--port=${port}`,
+                '-uroot',
+                `-p${password}`,
+                'shutdown'
+              ]
+              if (supportsMariaDBZeroConfigSSL(version.version)) {
+                args.splice(1, 0, '--skip-ssl-verify-server-cert')
+              }
+              await execFileAsync(resolvePath(dirname(version.bin), 'mariadb-admin.exe'), args, {
+                windowsHide: true,
+                shell: false,
+                timeout: 10_000
+              })
+              nativeShutdownSucceeded = true
+            } else {
+              console.log(
+                'mariadb graceful shutdown skipped: listener is not the selected instance'
+              )
+            }
+          } catch (e) {
+            // execFile errors may retain argv including the password; log only a
+            // stable OS error code, then use the intentional owned-tree fallback.
+            console.log('mariadb graceful shutdown failed', (e as NodeJS.ErrnoException)?.code)
           }
-        } else {
-          await waitTime(1500)
         }
+
+        // 与 MySQL 共享原生关闭后的确认/原树回退，不固定睡眠、不重复发现。
+        // 只接受严格查询证明的超时回退；原 PID 的创建身份仍来自首次列表。
+        finalList = await this.stopWindowsServiceProcessesAfterNativeShutdown(
+          Array.from(killPids),
+          targets.list,
+          nativeShutdownSucceeded
+        )
       }
 
+      // 空目标沿用初始快照；原生/树停止路径则复用 Base 返回的最终快照。
+      // 即使命令行因权限不可读，也不能把仍存在的 PID 当成已退出。
+      if (
+        Array.from(killPids).some((pid) => finalList.some((item) => item.PID === pid)) ||
+        finalList.some(({ COMMAND }) => hasExactMariaDBDefaultsFile(COMMAND, m))
+      )
+        throw new Error('MariaDB is still running after the stop request')
+      // Base 仅清除候选 PID 已不存活且文件当前值仍相等的登记；空文件保留。
+      await this.cleanupStoppedServicePidFiles(
+        [...targets.candidates, ...killPids, `${version.pid ?? ''}`].filter(Boolean),
+        finalList
+      )
       on({
         'APP-Service-Stop-Success': true
       })
@@ -541,7 +664,9 @@ class Manager extends Base {
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
       })
       return resolve({
-        'APP-Service-Stop-PID': [...new Set([...pids, ...killPids])].map((p) => Number(p))
+        'APP-Service-Stop-PID': [
+          ...new Set([...killPids, `${version.pid ?? ''}`].filter(Boolean))
+        ].map(Number)
       })
     })
   }
@@ -566,7 +691,8 @@ class Manager extends Base {
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-port = 3306
+port = ${DEFAULT_MARIADB_PORT}
+socket = ${isWindows() ? 'MySQL' : DEFAULT_MARIADB_SOCKET}
 datadir=${dataDir}`
         await writeFile(m, conf)
         on({
@@ -596,8 +722,10 @@ datadir=${dataDir}`
           const content = await readFile(m, 'utf8')
           const config = iniParse(content)
           const serverConfig = getMariaDBServerConfig(config)
-          const port = serverConfig?.port ?? 3306
+          const port = getMariaDBPort(config)
           const ddir = pathFixedToUnix(stripMariaDBValueQuotes(serverConfig?.datadir ?? dataDir))
+          const socket = getMariaDBSocket(config)
+          const maintenanceSocket = getMariaDBMaintenanceSocket(socket, version.version!)
 
           if (isWindows()) {
             const params = [
@@ -613,6 +741,8 @@ datadir=${dataDir}`
             )
 
             if (skipGrantTables) {
+              // Windows 使用命名管道；与恢复客户端默认的 MySQL 管道保持一致。
+              params.push('--socket=MySQL')
               params.push(`--datadir=${ddir}`)
               params.push('--bind-address=127.0.0.1')
               params.push(`--port=${port}`)
@@ -646,20 +776,19 @@ datadir=${dataDir}`
               `--pid-file=${p}`,
               '--slow-query-log=ON',
               `--slow-query-log-file=${s}`,
-              `--log-error=${e}`
+              `--log-error=${e}`,
+              // 旧配置没有 socket 时也明确使用 /tmp/mysql.sock，避免发行版默认值漂移。
+              `--socket=${skipGrantTables ? maintenanceSocket : socket}`
             ]
             if (version?.flag === 'macports') {
               params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
             }
 
             if (skipGrantTables) {
-              params.push(`--socket=/tmp/mysql.${version.version}.sock`)
               params.push(`--datadir=${ddir}`)
               params.push('--bind-address=127.0.0.1')
               params.push(`--port=${port}`)
               params.push('--skip-grant-tables')
-            } else {
-              params.push(`--socket=/tmp/mysql.sock`)
             }
 
             try {
@@ -747,7 +876,7 @@ datadir=${dataDir}`
           }
           on(I18nT('fork.postgresqlInit', { dir: dataDir }))
           resolve(res)
-        } catch (e) {
+        } catch {
           await unlinkDirOnFail()
           reject(e)
         }
@@ -884,12 +1013,12 @@ datadir=${dataDir}`
     return new ForkPromise(async (resolve, reject) => {
       try {
         const res: any = await this._startServer(version, true)
-        console.log('rootPasswordChange _startServer res: ', res)
+        // 只读取稍后需要的 PID，不记录可能包含敏感参数的结果对象。
         const pid = res?.['APP-Service-Start-PID']
         version.pid = pid
-      } catch (e) {
-        console.log('rootPasswordChange _startServer e: ', e)
-        return reject(e)
+      } catch {
+        console.log('MariaDB password change start failed')
+        return reject(new Error('MariaDB password change could not start the service'))
       }
       await waitTime(1000)
 
@@ -899,40 +1028,49 @@ datadir=${dataDir}`
           await execPromise(
             `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'localhost' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
           )
-        } catch (e) {
-          console.log('mariadb.exe error2: ', e)
+        } catch {
+          console.log('MariaDB password update failed for localhost')
         }
         try {
           await execPromise(
             `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'127.0.0.1' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
           )
-        } catch (e) {
-          console.log('mariadb.exe error3: ', e)
+        } catch {
+          console.log('MariaDB password update failed for loopback')
         }
       } else {
         const bin = join(dirname(version.bin), 'mariadb')
-        const socket = `/tmp/mysql.${version.version}.sock`
+        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+        const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+        const content = existsSync(m) ? await readFile(m, 'utf8') : ''
+        const socket = getMariaDBMaintenanceSocket(
+          getMariaDBSocket(iniParse(content)),
+          version.version!
+        )
 
         try {
           await execPromise(
             `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'localhost' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
           )
-        } catch (e) {
-          console.log('mariadb error2: ', e)
+        } catch {
+          console.log('MariaDB password update failed for localhost')
         }
         try {
           await execPromise(
             `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'127.0.0.1' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
           )
-        } catch (e) {
-          console.log('mariadb error3: ', e)
+        } catch {
+          console.log('MariaDB password update failed for loopback')
         }
       }
 
       version.rootPassword = password
       try {
-        await super._stopServer(version)
-      } catch {}
+        // 复用含精确 defaults-file 归属的模块停止，不能走 Base 的宽泛路径或吞掉停止失败。
+        await this._stopServer(version)
+      } catch (error) {
+        return reject(error)
+      }
 
       resolve(true)
     })
@@ -945,7 +1083,7 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = getMariaDBServerConfig(config)?.port ?? 3306
+      const port = getMariaDBPort(config)
       console.log('rootPasswordChange port: ', port)
       let connection: Connection | undefined
       try {
@@ -1067,7 +1205,7 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = getMariaDBServerConfig(config)?.port ?? 3306
+      const port = getMariaDBPort(config)
       console.log('rootPasswordChange port: ', port)
       let connection: Connection | undefined
       try {
@@ -1163,7 +1301,7 @@ datadir=${dataDir}`
 
       const content = await readFile(m, 'utf8')
       const config = iniParse(content)
-      const port = getMariaDBServerConfig(config)?.port ?? 3306
+      const port = getMariaDBPort(config)
       const password = version?.rootPassword ?? 'root'
       const error: any = []
 
@@ -1175,8 +1313,9 @@ datadir=${dataDir}`
         )} -uroot -p${password} --port=${port} --host="127.0.0.1" --single-transaction --skip-add-locks --no-tablespaces ${database} > "${file}"`
         try {
           await execPromise(cammand)
-        } catch (e) {
-          error.push(I18nT('mysql.backupFail', { database, error: `${e}` }))
+        } catch {
+          // 错误可能回显含密码的 mysqldump argv；只返回固定错误文本。
+          error.push(I18nT('mysql.backupFail', { database, error: 'mysqldump failed' }))
         }
       }
 

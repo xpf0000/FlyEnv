@@ -19,16 +19,20 @@ import {
   readWindowsHelperDiagnostics,
   windowsHelperInstalledPath
 } from '@shared/WindowsHelperIdentity'
-import { runWindowsHelperInstaller } from '@shared/WindowsHelperInstaller'
-import { WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
+import { runWindowsHelperInstaller } from './WindowsHelperInstaller'
+import { LinuxSudoCancelledError, WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
 import { tmpdir, userInfo } from 'node:os'
 import { copyFile, chmod, existsSync, mkdirp, readFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
+import { X509Certificate } from 'node:crypto'
+import { lstatSync } from 'node:fs'
 
 type AppHelperMessage = {
   state:
     'needInstall' | 'installing' | 'installed' | 'installFaild' | 'checkSuccess' | 'fallbackToUac'
   reason?: string
+  // checkSuccess 同时用于健康检查和实际安装完成；只有后者才能显示安装成功通知。
+  installationPerformed?: boolean
 }
 
 type AppHelperCallback = (message: AppHelperMessage) => void
@@ -98,6 +102,9 @@ const toAppHelperInstallError = (error: unknown): AppHelperError => {
   if (isAppHelperError(error)) {
     return error
   }
+  if (error instanceof LinuxSudoCancelledError) {
+    return new AppHelperError('elevation_cancelled', error.message)
+  }
   if (error instanceof WindowsSudoError) {
     return new AppHelperError(error.code, error.message, error.stderr)
   }
@@ -117,6 +124,33 @@ const toAppHelperInstallError = (error: unknown): AppHelperError => {
 const lazySudo: SudoExec = async (...args) => {
   const { exec } = await import('@shared/Sudo')
   return exec(...args)
+}
+
+const quoteLinuxShell = (value: string) => `'${value.replace(/'/g, "'\\''")}'`
+
+function checkLinuxInstallSource(file: string) {
+  for (let path = file; ; path = dirname(path)) {
+    const stat = lstatSync(path)
+    if (stat.isSymbolicLink() || stat.uid !== 0 || (stat.mode & 0o022) !== 0) {
+      throw new Error(`Linux production installer source must be root-owned and protected: ${path}`)
+    }
+    if (dirname(path) === path) return
+  }
+}
+
+const linuxInstallCommand = async (
+  script: string,
+  bin: string,
+  role: string,
+  dataPath: string,
+  appRoot: string
+) => {
+  const ca = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
+  const caFingerprint = existsSync(ca)
+    ? new X509Certificate(await readFile(ca)).fingerprint256.replace(/:/g, '').toLowerCase()
+    : ''
+  const args = [script, bin, role, dataPath, appRoot, caFingerprint ? ca : '', caFingerprint]
+  return { command: `/bin/bash ${args.map(quoteLinuxShell).join(' ')}`, caFingerprint }
 }
 
 type AppHelperDeps = {
@@ -155,11 +189,31 @@ export class AppHelper {
     this._onSuduExecSuccess = fn
   }
 
-  private emitStatus(state: AppHelperMessage['state'], reason?: string) {
-    this._onMessage?.({ state, reason })
+  private emitStatus(
+    state: AppHelperMessage['state'],
+    reason?: string,
+    installationPerformed?: boolean
+  ) {
+    // 状态通知属于 UI 副作用。窗口销毁/IPC 发送失败不能把已健康的 Helper
+    // 判成安装失败，也不能覆盖安装的真实错误或破坏 installation 的 finally。
+    try {
+      this._onMessage?.({
+        state,
+        reason,
+        // 其他状态保留原字段；此标志是执行结果信息，不是持久的安装状态缓存。
+        ...(installationPerformed === undefined ? {} : { installationPerformed })
+      })
+    } catch (error) {
+      void appDebugLog('[AppHelper][status-notify]', String(error)).catch(() => {})
+    }
   }
 
-  async command(): Promise<{ command: string; icns: string; windowsScript?: string }> {
+  async command(): Promise<{
+    command: string
+    icns: string
+    windowsScript?: string
+    caFingerprint?: string
+  }> {
     if (isWindows()) {
       const bin = getWindowsHelperBinaryPath()
       const backupBin = is.production() ? join(dirname(bin), 'flyenv-helper-backup.exe') : bin
@@ -180,6 +234,33 @@ export class AppHelper {
         helperVersion: HelperVersion
       })
       return { command: '', icns: '', windowsScript }
+    }
+    if (isLinux()) {
+      const account = userInfo()
+      const appRoot = PathResolve(global.Server.Static!, '../../../../')
+      const helperFile = global.Server.isArmArch
+        ? 'flyenv-helper-linux-arm64'
+        : 'flyenv-helper-linux-amd64-v1'
+      const binary = is.production()
+        ? join(appRoot, 'helper/flyenv-helper')
+        : PathResolve(global.Server.Static!, '../../../src/helper-go/dist', helperFile)
+      const script = is.production()
+        ? join(appRoot, 'helper/flyenv-helper-init.sh')
+        : join(global.Server.Static!, 'sh/flyenv-helper-init.sh')
+      if (is.production()) {
+        checkLinuxInstallSource(binary)
+        checkLinuxInstallSource(script)
+      }
+      return {
+        ...(await linuxInstallCommand(
+          script,
+          binary,
+          `${account.uid}:${account.gid}`,
+          dirname(global.Server.AppDir!),
+          appRoot
+        )),
+        icns: join(appRoot, 'Icon@256x256.icns')
+      }
     }
     let command = ''
     let icns = ``
@@ -213,24 +294,6 @@ export class AppHelper {
 
         command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'icon.icns')
-      } else if (isLinux()) {
-        const uinfo = userInfo()
-        const role = `${uinfo.uid}:${uinfo.gid}`
-        const binDir = PathResolve(global.Server.Static!, '../../../../')
-        const bin = join(binDir, 'helper/flyenv-helper')
-        const shDir = join(binDir, 'helper')
-        const shFile = join(shDir, 'flyenv-helper-init.sh')
-
-        const tmpFile = join(tmpDir, `${uuid()}.sh`)
-        await copyFile(shFile, tmpFile)
-        await chmod(tmpFile, '0755')
-
-        const tmpBin = join(tmpDir, `${uuid()}.helper`)
-        await copyFile(bin, tmpBin)
-        await chmod(tmpBin, '0755')
-
-        command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
-        icns = join(binDir, 'Icon@256x256.icns')
       }
     } else {
       if (isMacOS()) {
@@ -259,27 +322,6 @@ export class AppHelper {
 
         command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
         icns = join(binDir, 'icon.icns')
-      } else if (isLinux()) {
-        const uinfo = userInfo()
-        const role = `${uinfo.uid}:${uinfo.gid}`
-        const helperFile = global.Server.isArmArch
-          ? 'flyenv-helper-linux-arm64'
-          : 'flyenv-helper-linux-amd64-v1'
-        const binDir = PathResolve(global.Server.Static!, '../../../build/')
-        const bin = PathResolve(binDir, `../src/helper-go/dist/${helperFile}`)
-        const shDir = join(global.Server.Static!, 'sh')
-        const shFile = join(shDir, 'flyenv-helper-init.sh')
-
-        const tmpFile = join(tmpDir, `${uuid()}.sh`)
-        await copyFile(shFile, tmpFile)
-        await chmod(tmpFile, '0755')
-
-        const tmpBin = join(tmpDir, helperFile)
-        await copyFile(bin, tmpBin)
-        await chmod(tmpBin, '0755')
-
-        command = `cd "${tmpDir}" && sudo /bin/bash ./${basename(tmpFile)} "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
-        icns = join(binDir, 'Icon@256x256.icns')
       }
     }
 
@@ -309,8 +351,26 @@ export class AppHelper {
     return this.installation
   }
 
+  /** Verify a terminal installation without starting another authorization request. */
+  async verifyHelperReady(): Promise<boolean> {
+    await waitForHelperHealth(() => this.deps.appHelperCheck())
+    await this.afterHelperReady()
+    return true
+  }
+
+  private async afterHelperReady() {
+    try {
+      await this._onSuduExecSuccess?.()
+    } catch (callbackError) {
+      appDebugLog('[AppHelper][post-ready]', String(callbackError)).catch(() => {})
+    }
+  }
+
   private async install(): Promise<boolean> {
     let windowsInstallation = false
+    // 每次 initHelper 都会健康检查。仅在本次真正执行安装后记录，恢复已有任务或
+    // 已健康直接返回都为 false；后续健康验证失败仍走 catch，不发成功终态。
+    let installationPerformed = false
     try {
       let healthy = false
       try {
@@ -339,15 +399,12 @@ export class AppHelper {
           ? await this.deps.installWindows(windowsScript)
           : await this.deps.sudo(command, { name: 'FlyEnv', icns })
         appDebugLog('[AppHelper][install]', `${stdout}\n${stderr}`).catch(() => {})
+        installationPerformed = true
         this.state = 'installed'
         await waitForHelperHealth(() => this.deps.appHelperCheck())
       }
-      try {
-        await this._onSuduExecSuccess?.()
-      } catch (callbackError) {
-        appDebugLog('[AppHelper][post-ready]', String(callbackError)).catch(() => {})
-      }
-      this.emitStatus('checkSuccess')
+      await this.afterHelperReady()
+      this.emitStatus('checkSuccess', undefined, installationPerformed)
       return true
     } catch (error) {
       const appError = toAppHelperInstallError(error)

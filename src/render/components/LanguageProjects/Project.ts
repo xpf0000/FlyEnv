@@ -1,3 +1,9 @@
+import {
+  performanceDiagnosticNow,
+  performanceDiagnosticElapsed,
+  writePerformanceLog,
+  measurePerformanceStep
+} from '@shared/PerformanceDiagnostics'
 import type { AllAppModule } from '@/core/type'
 import localForage from 'localforage'
 import { SetupStore } from '@/components/Setup/store'
@@ -26,7 +32,28 @@ import {
 } from '@/components/SwooleCli/project'
 
 const logSetDirEnvTiming = (details: Record<string, unknown>) => {
-  void debug.log('[LanguageProjects][setDirEnv][timing]', JSON.stringify(details)).catch(() => {})
+  void writePerformanceLog(
+    (category, message) => debug.log(category, message),
+    '[LanguageProjects][setDirEnv][timing]',
+    details
+  )
+}
+
+/** 项目版本目录只作为 PowerShell 字符串数据；$、反引号和单引号不得被解释执行。 */
+const windowsProjectPathLiteral = (entries: string[]): string => {
+  if (
+    entries.some(
+      (entry) =>
+        /[\x00-\x1f\x7f;]/u.test(entry) ||
+        !/^(?:[a-z]:[\\/]|\\\\[^\\/]+[\\/][^\\/]+(?:[\\/]|$))/iu.test(entry)
+    )
+  ) {
+    // 不允许依赖终端当前目录的相对路径；分号无法在 PATH 单个条目中表示。
+    throw new Error(
+      'Project version requires full Windows paths without control characters or PATH separators'
+    )
+  }
+  return `'${(entries.join(';') + ';').replace(/'/g, "''")}'`
 }
 
 const measureSetDirEnvStep = async <T>(
@@ -34,16 +61,12 @@ const measureSetDirEnvStep = async <T>(
   context: Record<string, unknown>,
   step: string,
   operation: () => Promise<T>
-): Promise<T> => {
-  const startedAt = Date.now()
-  try {
-    return await operation()
-  } finally {
-    const durationMs = Date.now() - startedAt
+): Promise<T> =>
+  measurePerformanceStep(step, operation, (event) => {
+    const durationMs = event.durationMs ?? 0
     timings[step] = durationMs
     logSetDirEnvTiming({ event: 'step', ...context, step, durationMs })
-  }
-}
+  })
 
 export class Project {
   allDirs: string[] = []
@@ -170,8 +193,12 @@ export class Project {
               const isRun = item?.state?.isRun
               item
                 .stop()
-                .catch()
-                .finally(() => {
+                .then((stopped) => {
+                  // stop 失败时旧服务仍可能使用原配置；不要覆盖配置或再启动第二个实例。
+                  if (stopped !== true) {
+                    MessageError(typeof stopped === 'string' ? stopped : I18nT('base.fail'))
+                    return
+                  }
                   const state = JSON.parse(JSON.stringify(item.state))
                   Object.assign(item, res)
                   Object.assign(item.state, state)
@@ -182,6 +209,7 @@ export class Project {
                     item.start().catch()
                   }
                 })
+                .catch()
             }
           })
         })
@@ -295,22 +323,30 @@ export class Project {
     })
       .then(() => {
         const item = this.project[index]
-        item.stop().catch()
-        this.project.splice(index, 1)
-        this.saveProject()
-        const dirIndex = this.allDirs.indexOf(item.path)
-        if (dirIndex >= 0) {
-          this.allDirs.splice(dirIndex, 1)
-        }
-        this.saveDirs().then(() => {
-          this.initDirs()
-        })
+        item
+          .stop()
+          .then((stopped) => {
+            // PID 未确认停止时保留项目行、目录授权和重试入口。
+            if (stopped !== true) return
+            const currentIndex = this.project.indexOf(item)
+            if (currentIndex < 0) return
+            this.project.splice(currentIndex, 1)
+            this.saveProject()
+            const dirIndex = this.allDirs.indexOf(item.path)
+            if (dirIndex >= 0) {
+              this.allDirs.splice(dirIndex, 1)
+            }
+            this.saveDirs().then(() => {
+              this.initDirs()
+            })
+          })
+          .catch((error) => MessageError(String(error)))
       })
       .catch(() => {})
   }
   async setDirEnv(item: ProjectItem) {
     const timings: Record<string, number> = {}
-    const startedAt = Date.now()
+    const startedAt = performanceDiagnosticNow()
     const context = { module: this.flagType, projectId: item.id }
     let currentStep = 'ensure-data-directory-ready'
     try {
@@ -322,7 +358,7 @@ export class Project {
           event: 'completed',
           ...context,
           status: 'data-directory-not-ready',
-          totalMs: Date.now() - startedAt,
+          totalMs: performanceDiagnosticElapsed(startedAt),
           timings
         })
         return false
@@ -350,15 +386,19 @@ export class Project {
                     arr.push(s)
                   }
                 }
+                // 已选择的版本不存在时必须失败，不能写入空配置后声称版本已启用。
+                if (!arr.length)
+                  throw new Error('Selected project version directory is unavailable')
                 if (arr.length) {
                   await fs.writeFile(
                     envFile,
-                    `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\n$env:PATH = "${arr.join(';')};" + $env:PATH #FlyEnv-ID-${item.id}`
+                    `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\n$env:PATH = ${windowsProjectPathLiteral(arr)} + $env:PATH #FlyEnv-ID-${item.id}`
                   )
                 }
               }
             } else {
-              const content = await fs.readFile(envFile)
+              // 保留用户手写的 .flyenv 内容；读取失败不能当空文件再覆盖。
+              const content = await fs.readFileStrict(envFile)
               const lines = content
                 .trim()
                 .split('\n')
@@ -375,14 +415,21 @@ export class Project {
                     arr.push(s)
                   }
                 }
+                // 更新现有配置也必须确认所选版本存在，失败时保留原文件内容。
+                if (!arr.length)
+                  throw new Error('Selected project version directory is unavailable')
                 if (arr.length) {
-                  lines.push(`$env:PATH = "${arr.join(';')};" + $env:PATH #FlyEnv-ID-${item.id}`)
+                  lines.push(
+                    `$env:PATH = ${windowsProjectPathLiteral(arr)} + $env:PATH #FlyEnv-ID-${item.id}`
+                  )
                 }
               }
               await fs.writeFile(envFile, lines.join('\n'))
             }
           } catch (e: any) {
             MessageError(e.toString())
+            // 写入失败/取消必须结束项目版本设置，不能继续注册目录并返回 ready。
+            throw e
           }
         } else {
           try {
@@ -466,7 +513,7 @@ export class Project {
           event: 'completed',
           ...context,
           status: dirsInitialized ? 'shell-not-initialized' : 'directories-not-initialized',
-          totalMs: Date.now() - startedAt,
+          totalMs: performanceDiagnosticElapsed(startedAt),
           timings
         })
         return false
@@ -475,7 +522,7 @@ export class Project {
         event: 'completed',
         ...context,
         status: 'ready',
-        totalMs: Date.now() - startedAt,
+        totalMs: performanceDiagnosticElapsed(startedAt),
         timings
       })
       return true
@@ -484,7 +531,7 @@ export class Project {
         event: 'failed',
         ...context,
         step: currentStep,
-        totalMs: Date.now() - startedAt,
+        totalMs: performanceDiagnosticElapsed(startedAt),
         timings,
         error: error instanceof Error ? error.message : `${error}`
       })

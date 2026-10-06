@@ -1104,7 +1104,9 @@ function makeGroup(id: string, items: StartupGroupItem[]): StartupGroup {
   assert.doesNotMatch(asideSource, /I18nT\('aside\.groupStart'\)/)
   assert.match(asideSource, /startupGroupStateForId/)
   assert.match(asideSource, /defaultStartupGroup\.value\?\.id !== startupGroupStateForId\.value/)
-  assert.match(asideSource, /await executeStartupGroup\(group!\)/)
+  // 自动入口显式禁止交互，手动 click 参数归一化后沿同一启动组生命周期传递。
+  assert.match(asideSource, /await executeStartupGroup\(group!, interactive !== false\)/)
+  assert.match(asideSource, /groupDo\(false\)/)
   assert.match(asideSource, /let startupGroupRefreshGeneration = 0/)
   assert.match(asideSource, /let startupGroupRefreshInFlight: Promise<void> \| undefined/)
   assert.match(asideSource, /while \(startupGroupRefreshQueued\)/)

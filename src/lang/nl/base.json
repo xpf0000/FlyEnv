@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link URL gekopieerd naar klembord!",
   "needSelectVersion": "Selecteer eerst een versie",
   "hostsSaveFailed": "Systeemhosts bestand kon niet worden opgeslagen. Controleer of het bestand bestaat en of de rechten van het bestand correct zijn",
-  "hostsReadFailed": "Lezen van bestand /private/etc/hosts mislukt. Controleer of het bestand bestaat en of de rechten van het bestand correct zijn",
+  "hostsReadFailed": "Lezen van bestand {path} mislukt. Controleer of het bestand bestaat en of de rechten van het bestand correct zijn",
   "needSelectDir": "Selecteer een map!",
   "processNotFound": "Geen processen gevonden",
   "hostsTitle": "Systeem Hosts",

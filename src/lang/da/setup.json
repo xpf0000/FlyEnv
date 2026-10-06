@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Installationen af FlyEnv-hjælpeprogrammet mislykkedes. Prøv igen med din oprindelige Windows-konto via reparationsknappen i indstillingerne. Del fejloplysningerne nedenfor, hvis det mislykkes igen.",
   "flyenvHelperInstallTimeout": "Tidsgrænsen for at vente på installationsresultatet er udløbet. Installationen kører muligvis stadig i baggrunden. Brug hjælperens reparationsknap igen for at kontrollere resultatet.",
   "windowsElevationMethod": "Metode til rettighedsforhøjelse",
-  "windowsElevationMethodTips": "Vælg, hvordan Windows-handlinger, der kræver administratorrettigheder, skal få forhøjede rettigheder. UAC beder om bekræftelse for hver understøttet handling; hjælpeprogrammet undgår gentagne anmodninger, når det er installeret.",
+  "windowsElevationMethodTips": "Dit valg gemmes. Du kan ændre det senere i Indstillinger.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Hjælpeprogram",
   "appFont": "UI-skrifttype",
@@ -96,5 +96,26 @@
     "rnacos": "Tjenesteopdagelse og central konfigurationsstyring.",
     "temporal": "Pålidelig orkestrering af programarbejdsgange og langvarige processer.",
     "temporalCli": "Kommandolinjeværktøj til administration og interaktion med Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "En anden godkendelse er i gang. Vent venligst.",
+    "title": "Vælg godkendelsesmetode",
+    "description": "Handlingen “{operation}” kræver administratorrettigheder. Vælg godkendelsesmetode.",
+    "uacDescription": "UAC: Windows beder om godkendelse eller administratoroplysninger efter behov. En fast baggrundshjælper skal ikke installeres.",
+    "helperDescription": "Hjælper: reducerer gentagne forespørgsler. Installationen opretter en planlagt opgave med systemrettigheder; kontrollér virksomhedens enhedspolitik.",
+    "helperReady": "Hjælperen er klar til brug.",
+    "settingsHint": "Dit valg gemmes. Du kan ændre det senere i Indstillinger.",
+    "disableOption": "Deaktivér også den tidligere installerede hjælper for denne konto (kan kræve UAC)",
+    "disableOnSwitch": "Skift til UAC deaktiverer automatisk hjælperen for denne konto. Installerede filer bevares.",
+    "disableHelperTips": "Stopper hjælperen installeret til denne Windows-konto og deaktiverer dens planlagte opgave. Installationsfilerne bevares. Kan kræve UAC-godkendelse.",
+    "disableFailed": "UAC er valgt, men den eksisterende hjælper kunne ikke deaktiveres.",
+    "elevated": "FlyEnv kører som administrator. Handlinger udføres direkte i denne session; det gemte valg ændres ikke.",
+    "unselected": "Ingen godkendelsesmetode er valgt. FlyEnv spørger, første gang administratorrettigheder er nødvendige.",
+    "operation": "Systemhandling",
+    "useUac": "UAC",
+    "useHelper": "Hjælpeprogram",
+    "disableHelper": "Deaktivér hjælper",
+    "failed": "Windows-godkendelse mislykkedes.",
+    "timeout": "Godkendelsen fik timeout. Handlingen kan stadig være i gang."
   }
 }

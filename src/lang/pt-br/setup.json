@@ -83,7 +83,7 @@
   "flyenvHelperInstallFailTips": "Falha na instalação do auxiliar FlyEnv. Tente novamente com sua conta original do Windows pelo botão de reparo nas configurações. Se falhar novamente, compartilhe os detalhes do erro abaixo.",
   "flyenvHelperInstallTimeout": "Tempo esgotado ao aguardar o resultado da instalação. A instalação pode ainda estar em execução em segundo plano. Use novamente o botão de reparo do assistente para verificar o resultado.",
   "windowsElevationMethod": "Método de elevação",
-  "windowsElevationMethodTips": "Escolha como elevar as operações do Windows que exigem privilégios de administrador. O UAC pede confirmação para cada operação suportada; o programa auxiliar evita pedidos repetidos após a instalação.",
+  "windowsElevationMethodTips": "Sua escolha será salva. Você pode alterá-la depois nas Configurações.",
   "windowsElevationUac": "UAC",
   "windowsElevationHelper": "Programa auxiliar",
   "appFont": "Fonte da interface",
@@ -96,5 +96,26 @@
     "rnacos": "Descoberta de serviços e gerenciamento centralizado da configuração.",
     "temporal": "Orquestração confiável de fluxos de trabalho e processos de longa duração.",
     "temporalCli": "Ferramenta de linha de comando para gerenciar e interagir com o Temporal."
+  },
+  "windowsPrivilege": {
+    "busy": "Outra operação de autorização está em andamento. Aguarde.",
+    "title": "Escolha o método de autorização",
+    "description": "A operação “{operation}” precisa de privilégios de administrador. Escolha como autorizá-la.",
+    "uacDescription": "UAC: o Windows pede aprovação ou credenciais de administrador quando necessário. Não é preciso instalar um auxiliar permanente.",
+    "helperDescription": "Auxiliar: reduz os pedidos repetidos. A instalação cria uma tarefa agendada com privilégios de sistema; consulte a política de dispositivos da sua empresa.",
+    "helperReady": "O assistente está pronto para uso.",
+    "settingsHint": "Sua escolha será salva. Você pode alterá-la depois nas Configurações.",
+    "disableOption": "Desativar também o auxiliar instalado anteriormente nesta conta (pode exigir UAC)",
+    "disableOnSwitch": "Mudar para UAC desativa automaticamente o assistente desta conta. Os arquivos instalados são mantidos.",
+    "disableHelperTips": "Para o assistente instalado para esta conta do Windows e desativa sua tarefa agendada. Os arquivos instalados são mantidos. Esta ação pode exigir aprovação do UAC.",
+    "disableFailed": "UAC foi escolhido, mas não foi possível desativar o auxiliar existente.",
+    "elevated": "O FlyEnv está sendo executado como administrador. As operações desta sessão são executadas diretamente; a escolha salva não muda.",
+    "unselected": "Nenhum método de autorização foi escolhido. O FlyEnv perguntará quando precisar pela primeira vez de privilégios de administrador.",
+    "operation": "Operação do sistema",
+    "useUac": "UAC",
+    "useHelper": "Programa auxiliar",
+    "disableHelper": "Desativar auxiliar",
+    "failed": "A autorização do Windows falhou.",
+    "timeout": "O tempo de autorização expirou. A operação ainda pode estar em andamento."
   }
 }

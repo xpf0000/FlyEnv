@@ -47,6 +47,7 @@ async function main() {
       }
     }
   }
+  dependencies['@/util/Element'] = { MessageError: () => {} }
   const module = { exports: {} as any }
   const code = transformSync(readFileSync('src/render/store/helper.ts', 'utf8'), {
     loader: 'ts',

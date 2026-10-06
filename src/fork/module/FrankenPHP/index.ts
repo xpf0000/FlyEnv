@@ -5,7 +5,6 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
-  serviceStartExec,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
@@ -19,7 +18,7 @@ import {
   chmod,
   binXattrFix
 } from '../../Fn'
-import { serviceStartSpawn } from '../../util/ServiceStart'
+import { prepareLinuxLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
@@ -28,6 +27,7 @@ import process from 'node:process'
 import { fixVHost } from './Host'
 import { withBinVersionCache } from '../../util/BinVersionCache'
 import { buildWindowsPhpIni } from './PhpIni'
+import { caddyListenPorts } from '../Caddy/Ports'
 
 class FrankenPHP extends Base {
   constructor() {
@@ -74,6 +74,9 @@ class FrankenPHP extends Base {
     return new ForkPromise(async (resolve, _reject, on) => {
       const baseDir = join(global.Server.BaseDir!, 'frankenphp')
       await mkdirp(baseDir)
+      await prepareLinuxLogDirectory(join(global.Server.BaseDir!, 'vhost/logs'), (name) =>
+        name.endsWith('.frankenphp.log')
+      )
       const iniFile = join(baseDir, 'Caddyfile')
       if (!existsSync(iniFile)) {
         on({
@@ -123,32 +126,12 @@ class FrankenPHP extends Base {
       const baseDir = join(global.Server.BaseDir!, 'frankenphp')
       await mkdirp(baseDir)
 
-      if (isLinux()) {
-        // Linux web servers bind privileged ports (80/443) and need root,
-        // which serviceStartSpawn cannot provide — keep the Helper script path.
-        const execEnv = ``
-        const execArgs = `run --config "${iniFile}" --pidfile "${this.pidPath}"`
-        try {
-          const res = await serviceStartExec({
-            root: true,
-            version,
-            pidPath: this.pidPath,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('frankenphp start err: ', e)
-          reject(e)
-          return
-        }
-      } else {
+      {
         const execArgs = ['run', '--config', iniFile, '--pidfile', this.pidPath]
         try {
           const res = await serviceStartSpawn({
+            lowPortService: isLinux(),
+            listenPorts: isLinux() ? await caddyListenPorts(bin, iniFile) : undefined,
             version,
             pidPath: this.pidPath,
             baseDir,

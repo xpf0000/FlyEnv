@@ -1,10 +1,17 @@
-import { join, isAbsolute, win32 } from 'path'
+import { isAbsolute, win32 } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import { appDebugLog } from '@shared/utils'
 import Helper from '../Helper'
 import EnvSync from '@shared/EnvSync'
 import { powerShellInlineArgs } from '@shared/PowerShellCommand'
 import { spawnPromiseWithEnv } from '@shared/child-process'
+import {
+  resolveWindowsPowerShellPath,
+  resolveWindowsSystemExecutable,
+  windowsPowerShellEnv
+} from '@shared/WindowsSystemPaths'
+import { timeOperation } from '@shared/OperationTiming'
+import { bindWindowsPathLogger, logWindowsPath } from '@shared/WindowsPathDiagnostics'
 
 type FetchRawPATHDeps = {
   readSystemPathDirect: () => Promise<string>
@@ -38,16 +45,14 @@ finally {
   }
 }`
 
-const getDefaultSystemPath = () => {
-  return EnvSync.SystemPath || 'C:\\Windows\\System32'
-}
-
 const getDefaultPowerShellPath = () => {
-  return EnvSync.PowerShellPath || 'powershell.exe'
+  // 只读 PATH 快照同样固定系统程序，不依赖刚被用户编辑的 PATH 或同步 shell。
+  return resolveWindowsPowerShellPath()
 }
 
 const getDefaultRegistryToolPath = () => {
-  return join(getDefaultSystemPath(), 'reg.exe')
+  // PowerShell 缺失/策略失败时保留 reg.exe 回退，但它也必须是完整系统路径。
+  return resolveWindowsSystemExecutable('reg.exe')
 }
 
 const parseRegistryPathQueryOutput = (output: string): string => {
@@ -82,17 +87,35 @@ export const createReadSystemPathDirect = (deps: Partial<ReadSystemPathDirectDep
   }
 
   return async (): Promise<string> => {
-    await runtime.syncEnv().catch(() => undefined)
+    // 复用 spawnPromiseWithEnv 已有观测回调，区分 Node 启动等待和系统程序运行；不改命令。
+    const log = bindWindowsPathLogger()
+    const spawnTiming = (tool: string) => ({
+      onSpawn: (durationMs: number) => log('path.snapshot-process-spawned', { tool, durationMs }),
+      onExit: (details: {
+        code: number | null
+        durationMs: number
+        stdoutBytes: number
+        stderrBytes: number
+      }) => log('path.snapshot-process-exited', { tool, ...details }),
+      onError: (details: { durationMs: number; error: Error }) =>
+        log('path.snapshot-process-failed', { tool, durationMs: details.durationMs })
+    })
+    // 包含缓存命中/实际环境同步；不删除原依赖来人为缩短测试调用链。
+    await timeOperation('path.snapshot-env-sync', () => runtime.syncEnv()).catch(() => undefined)
 
     let powerShellError: unknown
     try {
-      const res = await runtime.readWithSpawn(
-        runtime.getPowerShellPath(),
-        powerShellInlineArgs(readSystemPathPowerShellScript),
-        {
-          windowsHide: true,
-          trimOutput: false
-        }
+      const res = await timeOperation('path.snapshot-powershell', () =>
+        runtime.readWithSpawn(
+          runtime.getPowerShellPath(),
+          powerShellInlineArgs(readSystemPathPowerShellScript),
+          {
+            windowsHide: true,
+            env: windowsPowerShellEnv(),
+            trimOutput: false,
+            timing: spawnTiming('powershell')
+          }
+        )
       )
       return removePowerShellFinalNewline(res.stdout.toString())
     } catch (error) {
@@ -101,13 +124,16 @@ export const createReadSystemPathDirect = (deps: Partial<ReadSystemPathDirectDep
     }
 
     try {
-      const res = await runtime.readWithSpawn(
-        runtime.getRegistryToolPath(),
-        ['query', MACHINE_ENV_REGISTRY_KEY, '/v', 'Path'],
-        {
-          windowsHide: true,
-          trimOutput: false
-        }
+      const res = await timeOperation('path.snapshot-registry-fallback', () =>
+        runtime.readWithSpawn(
+          runtime.getRegistryToolPath(),
+          ['query', MACHINE_ENV_REGISTRY_KEY, '/v', 'Path'],
+          {
+            windowsHide: true,
+            trimOutput: false,
+            timing: spawnTiming('reg')
+          }
+        )
       )
       return parseRegistryPathQueryOutput(res.stdout.toString())
     } catch (registryError) {
@@ -249,6 +275,12 @@ export const writePath = async (
   expectedRawPath?: string
 ) => {
   console.log('writePath paths: ', path)
+  // 只记录计数、键名和保护条件；新增日志不输出原始 PATH 或环境变量值。
+  logWindowsPath('path.write-request', {
+    entryCount: path.length,
+    otherVarNames: Object.keys(otherVars),
+    compareAndSet: expectedRawPath !== undefined
+  })
   try {
     if (expectedRawPath === undefined) {
       await Helper.send('tools', 'setSystemPath', path, otherVars)
@@ -260,10 +292,17 @@ export const writePath = async (
     await appDebugLog('[writePath][error]', `${e}`)
     throw e
   }
+  // 只有实际 PATH（及配套环境变量）写入成功后才失效缓存。Helper.send 的成功
+  // 边界统一覆盖管理员/UAC/Go Helper/旧 fallback，不在通用 RPC 层判断业务。
+  // clean 在调用时立即清本地快照并登记共享失效；不等待回执、不主动 sync，
+  // 后续真正读取环境时由 sync 等待内部失效屏障，失败诊断不能重放已完成的写入。
+  void timeOperation('path.invalidate-env', () => EnvSync.clean()).catch(() => {})
 }
 
-export const addPath = async (dir: string) => {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+export const addPath = async (dir: string): Promise<boolean> => {
+  // 仅第一次 PATH 原值冲突允许继续；第二次尝试一定返回布尔值或抛出原错误。
+  // 终止条件由下面的 catch 控制，避免有限 for 循环留下隐式返回 undefined 的路径。
+  for (let attempt = 0; ; attempt += 1) {
     const snapshot = await fetchRawPATHSnapshot(true)
     const savePath = mergeWindowsPathPriority(snapshot.entries, [dir])
 
@@ -271,12 +310,14 @@ export const addPath = async (dir: string) => {
       savePath.length === snapshot.entries.length &&
       savePath.every((entry, index) => entry === snapshot.entries[index])
     ) {
-      return
+      // 区分无需写入与已提交，实际业务调用据此决定结算后是否需要环境通知。
+      return false
     }
 
     try {
       await writePath(savePath, {}, snapshot.rawPath)
-      return
+      // 不在工具函数提前通知；由 alias/Android 等完整业务结算之后触发。
+      return true
     } catch (error) {
       if (attempt === 0 && isSystemPathChangedError(error)) {
         continue

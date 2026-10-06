@@ -1,9 +1,8 @@
 import { lstatSync, statSync, type Stats } from 'fs'
+import { symlink } from 'node:fs/promises'
+import EnvSync from '@shared/EnvSync'
 import {
-  execPromise,
   fetchRawPATH,
-  isNTFS,
-  uuid,
   existsSync,
   mkdirp,
   readdir,
@@ -12,6 +11,13 @@ import {
   writeFile
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+import { resolveWindowsPowerShellPath, windowsPowerShellEnv } from '@shared/WindowsSystemPaths'
+import { encodePowerShellCommand } from '@shared/PowerShellCommand'
+import { timeOperation, timeOperationSync } from '@shared/OperationTiming'
+import { logWindowsPath } from '@shared/WindowsPathDiagnostics'
+import { notifyWindowsEnvironmentChanged } from '@shared/WindowsEnvironmentBroadcast'
 import { dirname, isAbsolute, join, win32 } from 'path'
 import type { SoftInstalled } from '@shared/app'
 import {
@@ -72,22 +78,31 @@ export function fetchPATH(): ForkPromise<any> {
       allPath: [],
       appPath: []
     }
-    const pathArr = await fetchRawPATH()
-    const allPath = pathArr
-      .filter((f) => existsSync(f))
-      .map((f) => realpathSync(f))
-      .filter((f) => existsSync(f) && statSync(f).isDirectory())
+    const pathArr = await timeOperation('path.list-read-system-path', () => fetchRawPATH())
+    // 同步文件系统扫描也可能等待慢盘；单独测量，不能全部归到注册表查询。
+    const allPath = timeOperationSync('path.list-resolve-system-entries', () =>
+      pathArr
+        .filter((f) => existsSync(f))
+        .map((f) => realpathSync(f))
+        .filter((f) => existsSync(f) && statSync(f).isDirectory())
+    )
     res.allPath = Array.from(new Set(allPath))
 
     const dir = join(dirname(global.Server.AppDir!), 'env')
     if (existsSync(dir)) {
-      let allFile = await readdir(dir)
-      allFile = allFile
-        .filter((f) => existsSync(join(dir, f)))
-        .map((f) => realpathSync(join(dir, f)))
-        .filter((f) => existsSync(f) && statSync(f).isDirectory())
+      let allFile = await timeOperation('path.list-read-env-directory', () => readdir(dir))
+      allFile = timeOperationSync('path.list-resolve-app-entries', () =>
+        allFile
+          .filter((f) => existsSync(join(dir, f)))
+          .map((f) => realpathSync(join(dir, f)))
+          .filter((f) => existsSync(f) && statSync(f).isDirectory())
+      )
       res.appPath = Array.from(new Set(allFile))
     }
+    logWindowsPath('path.list-completed', {
+      systemCount: res.allPath.length,
+      appCount: res.appPath.length
+    })
     resolve(res)
   })
 }
@@ -262,13 +277,24 @@ const writeRebuiltSystemPath = async (
   otherVars: Record<string, string> = {}
 ) => {
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const snapshot = await fetchRawPATHSnapshot(true)
-    const entries = await rebuild(snapshot)
+    // 冲突重试仍按原 compare-and-set 规则；诊断不额外读取或输出原始 PATH。
+    logWindowsPath('path.rebuild-attempt', { attempt: attempt + 1 })
+    const snapshot = await timeOperation('path.read-snapshot', () => fetchRawPATHSnapshot(true))
+    const entries = await timeOperation('path.rebuild-entries', () => rebuild(snapshot))
+    logWindowsPath('path.rebuild-ready', {
+      attempt: attempt + 1,
+      previousCount: snapshot.entries.length,
+      nextCount: entries.length,
+      otherVarNames: Object.keys(otherVars)
+    })
     try {
-      await writePath(entries, otherVars, snapshot.rawPath)
+      await timeOperation('path.commit-system-path', () =>
+        writePath(entries, otherVars, snapshot.rawPath)
+      )
       return
     } catch (error) {
       if (attempt === 0 && isSystemPathChangedError(error)) {
+        logWindowsPath('path.rebuild-conflict-retry', { attempt: attempt + 1 })
         continue
       }
       throw error
@@ -316,7 +342,8 @@ const resolveComposerVendorBinEntry = async (): Promise<string | undefined> => {
   const expandedEntries = await Promise.all(
     COMPOSER_VENDOR_BIN_ENTRIES.map(async (entry) => {
       try {
-        const expandedPath = (await execPromise(`echo ${entry}`))?.stdout?.trim()
+        // 环境路径是数据，不能放入 cmd 的 echo 后让 &、% 等参与命令解析。
+        const expandedPath = await expandWindowsEnvironmentPath(entry)
         return [entry, expandedPath] as const
       } catch {
         return [entry, undefined] as const
@@ -337,63 +364,92 @@ const buildOtherVars = async (
     otherVars['GRADLE_HOME'] = flagDir
   } else if (typeFlag === 'erlang') {
     otherVars['ERLANG_HOME'] = flagDir
-    const f = join(global.Server.Cache!, `${uuid()}.ps1`)
-    await writeFile(
-      f,
-      `New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force`
-    )
-    process.chdir(global.Server.Cache!)
+    // 这项既有的 Erlang 配套尝试仍按当前权限执行，失败不影响后续 PATH 写入。
+    // 固定注册表脚本无需落 TEMP、Unblock-File 或修改 fork 的全局工作目录，
+    // 使用完整系统程序和参数数组，消除缓存路径的引号/特殊字符与 PATH 依赖。
+    const script = `$ErrorActionPreference = 'Stop'; New-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' -Name 'LongPathsEnabled' -Value 1 -PropertyType DWORD -Force`
     try {
-      await execPromise(
-        `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${f}'; & '${f}'"`
+      await promisify(execFile)(
+        resolveWindowsPowerShellPath(),
+        ['-NoProfile', '-NonInteractive', '-EncodedCommand', encodePowerShellCommand(script)],
+        { windowsHide: true, timeout: 60_000, env: windowsPowerShellEnv() }
       )
     } catch {}
-    await removeByRoot(f)
   }
   return otherVars
 }
 
 export function removePATH(item: SoftInstalled, typeFlag: string) {
   return new ForkPromise(async (resolve, reject) => {
+    // 只记录本次明确提交；列表刷新失败时仍应通知实际发生的变更。
+    let environmentWritten = false
     try {
       const envDir = join(dirname(global.Server.AppDir!), 'env')
       const flagDir = join(envDir, typeFlag)
-      const previousJunctions = await readFlyEnvJunctions(envDir)
+      const previousJunctions = await timeOperation('path.read-junctions', () =>
+        readFlyEnvJunctions(envDir)
+      )
       const selectedJunction = findJunctionByName(previousJunctions, typeFlag)
       const managedRoots = getManagedRoots(selectedJunction ? [selectedJunction] : [], [item.path])
 
       if (selectedJunction) {
-        await removeByRoot(flagDir)
+        await timeOperation('path.remove-old-junction', () => removeByRoot(flagDir))
       }
 
       await writeRebuiltSystemPath((snapshot) =>
         removeProvenManagedEntries(snapshot.entries, managedRoots)
       )
+      environmentWritten = true
 
-      resolve(await fetchPATH())
+      resolve(await timeOperation('path.refresh-list', () => fetchPATH()))
     } catch (error) {
       reject(error)
+    } finally {
+      // resolve/reject 已结算，通知下一轮再启动，不打断本方法的刷新或覆盖其终态。
+      if (environmentWritten) notifyWindowsEnvironmentChanged()
     }
   })
 }
 
 export function updatePATH(item: SoftInstalled, typeFlag: string) {
   return new ForkPromise(async (resolve, reject) => {
+    // 失败/未知写入不通知；明确提交后附加处理失败，也保留通知已发生变更的能力。
+    let environmentWritten = false
     try {
       const envDir = join(dirname(global.Server.AppDir!), 'env')
-      if (!existsSync(envDir)) {
-        await mkdirp(envDir)
+      // 复用原来这一次存在性读取，诊断本身不再扫描目录。
+      const envDirectoryExists = existsSync(envDir)
+      logWindowsPath('path.prepare', { typeFlag, envDirectoryExists })
+      if (!envDirectoryExists) {
+        await timeOperation('path.prepare-env-directory', () => mkdirp(envDir))
       }
 
       const flagDir = join(envDir, typeFlag)
-      const previousJunctions = await readFlyEnvJunctions(envDir)
+      // 记录完整 PATH 前置步骤；正常 UI 诊断和原计时脚本复用同一阶段。
+      const previousJunctions = await timeOperation('path.read-junctions', () =>
+        readFlyEnvJunctions(envDir)
+      )
       const previousSelectedJunction = findJunctionByName(previousJunctions, typeFlag)
       if (previousSelectedJunction) {
-        await removeByRoot(flagDir)
+        await timeOperation('path.remove-old-junction', () => removeByRoot(flagDir))
       }
 
-      const junctionExpected = (await isNTFS(envDir)) && (await isNTFS(item.path))
-      let selectedJunction = findJunctionByName(await readFlyEnvJunctions(envDir), typeFlag)
+      // 保持原来的串行/短路行为，避免测量时并行化使结果偏离用户实际体验。
+      // 环境目录和安装目录的卷格式在一次系统查询中读取；同盘只查一次。
+      // 未就绪、UNC、查询失败或非 NTFS 均沿用真实安装目录的既有回退。
+      const { probeWindowsNTFS } = await timeOperation(
+        'path.import-volume-probe',
+        () => import('@shared/WindowsVolume')
+      )
+      const volumes = await timeOperation('path.volumes', () =>
+        probeWindowsNTFS([envDir, item.path])
+      )
+      const junctionExpected = volumes.every(Boolean)
+      logWindowsPath('path.volume-result', { ntfs: volumes, junctionExpected })
+      let selectedJunction = findJunctionByName(
+        await timeOperation('path.check-junction-after-removal', () => readFlyEnvJunctions(envDir)),
+        typeFlag
+      )
 
       if (selectedJunction && !junctionResolvesToInstalledRoot(selectedJunction, item.path)) {
         throw new Error(`Failed to replace FlyEnv junction "${flagDir}"`)
@@ -402,12 +458,17 @@ export function updatePATH(item: SoftInstalled, typeFlag: string) {
       if (junctionExpected && !selectedJunction) {
         let junctionCreationError: unknown
         try {
-          await execPromise(`mklink /J "${flagDir}" "${item.path}"`)
+          // Node 直接创建 junction，避免 cmd/mklink 对 %、&、括号和引号的再解析，
+          // 也不依赖 PATH/ComSpec。NTFS junction 在可写业务目录内无需管理员。
+          await timeOperation('path.create-junction', () => symlink(item.path, flagDir, 'junction'))
         } catch (error) {
           junctionCreationError = error
         }
 
-        selectedJunction = findJunctionByName(await readFlyEnvJunctions(envDir), typeFlag)
+        selectedJunction = findJunctionByName(
+          await timeOperation('path.verify-created-junction', () => readFlyEnvJunctions(envDir)),
+          typeFlag
+        )
         if (!junctionResolvesToInstalledRoot(selectedJunction, item.path)) {
           const reason =
             junctionCreationError instanceof Error ? `: ${junctionCreationError.message}` : ''
@@ -416,14 +477,22 @@ export function updatePATH(item: SoftInstalled, typeFlag: string) {
       }
 
       if (typeFlag === 'composer') {
-        await ensureComposerLaunchers(item)
+        await timeOperation('path.composer-launchers', () => ensureComposerLaunchers(item))
       }
       const composerVendorBinEntry =
-        typeFlag === 'composer' ? await resolveComposerVendorBinEntry() : undefined
+        typeFlag === 'composer'
+          ? await timeOperation('path.composer-vendor-bin', resolveComposerVendorBinEntry)
+          : undefined
 
-      const otherVars = await buildOtherVars(typeFlag, flagDir)
+      // FAT/exFAT 或无法建立 junction 时已采用安装目录 PATH；配套 HOME 变量也
+      // 必须指向实际目录，不能写入一个没有创建的 env/java、env/gradle 等路径。
+      const otherVars = await timeOperation('path.build-other-vars', () =>
+        buildOtherVars(typeFlag, selectedJunction?.root ?? item.path)
+      )
       await writeRebuiltSystemPath(async (snapshot) => {
-        const currentJunctions = await readFlyEnvJunctions(envDir)
+        const currentJunctions = await timeOperation('path.rebuild-read-junctions', () =>
+          readFlyEnvJunctions(envDir)
+        )
         const currentSelectedJunction = findJunctionByName(currentJunctions, typeFlag)
         if (
           currentSelectedJunction &&
@@ -448,17 +517,24 @@ export function updatePATH(item: SoftInstalled, typeFlag: string) {
         }
         return mergeWindowsPathPriority(legacyEntries, preferredEntries)
       }, otherVars)
+      environmentWritten = true
 
       if (typeFlag === 'php') {
-        const phpModule = (await import('../Php.win')).default
+        // 模块冷导入和 ini 配套处理分开计时；原 path.php-ini 未覆盖导入成本。
+        const phpModule = (
+          await timeOperation('path.import-php-module', () => import('../Php.win'))
+        ).default
         try {
-          await phpModule.getIniPath(item)
+          await timeOperation('path.php-ini', () => phpModule.getIniPath(item))
         } catch {}
       }
 
-      resolve(await fetchPATH())
+      resolve(await timeOperation('path.refresh-list', () => fetchPATH()))
     } catch (error) {
       reject(error)
+    } finally {
+      // 正常返回列表或后续失败均先结算；通知不参与缓存同步、ini 或列表结果。
+      if (environmentWritten) notifyWindowsEnvironmentChanged()
     }
   })
 }
@@ -481,11 +557,25 @@ type EnvPathListingDeps = {
   expand: (path: string) => Promise<string>
 }
 
+/** 只展开环境变量标记，不执行 PATH 项中的命令或 PowerShell 表达式。 */
+const expandWindowsEnvironmentPath = async (value: string): Promise<string> => {
+  const env = await EnvSync.sync()
+  const variables = new Map(Object.entries(env).map(([key, entry]) => [key.toLowerCase(), entry]))
+  // 未定义变量保留原文，让展示层标记为不可用；不使用空值掩盖配置问题。
+  return value
+    .replace(/%([a-z0-9_]+)%/giu, (match, key: string) => variables.get(key.toLowerCase()) ?? match)
+    .replace(
+      /\$env:([a-z0-9_]+)/giu,
+      (match, key: string) => variables.get(key.toLowerCase()) ?? match
+    )
+}
+
 const defaultEnvPathListingDeps: EnvPathListingDeps = {
   isAbsolute,
   realpath: realpathSync,
   exists: existsSync,
-  expand: async (path) => (await execPromise(`echo ${path}`))?.stdout?.trim() ?? ''
+  // PATH 的原始值完全保留；仅生成展示值，禁止通过 echo 求值执行任意内容。
+  expand: expandWindowsEnvironmentPath
 }
 
 /**
@@ -530,18 +620,26 @@ export function envPathList() {
       reject(error instanceof Error ? error : new Error('Fail'))
       return
     }
-    resolve(await buildEnvPathListing(snapshot))
+    resolve(await timeOperation('path.build-env-listing', () => buildEnvPathListing(snapshot)))
   })
 }
 
 export function envPathUpdate(arr: string[], expectedPath: string) {
   return new ForkPromise(async (resolve, reject) => {
+    let environmentWritten = false
     try {
-      await writePath(arr, {}, expectedPath)
+      // writePath 在其 setSystemPath 调用明确成功后立即 clean，不主动同步环境。
+      // UI 后续 envPathList 读取时，sync 会等已登记的失效再重新获取；这里不重复
+      // clean，避免同一次写入多次清空共享缓存，也不能先 sync 后才失效。
+      await timeOperation('path.commit-system-path', () => writePath(arr, {}, expectedPath))
+      environmentWritten = true
+      resolve(true)
     } catch (e) {
       console.log('envPathUpdate err: ', e)
-      return reject(e)
+      reject(e)
+    } finally {
+      // 只有成功提交后才通知，且在工具保存的 resolve/reject 之后安排。
+      if (environmentWritten) notifyWindowsEnvironmentChanged()
     }
-    resolve(true)
   })
 }

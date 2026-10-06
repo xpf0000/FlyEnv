@@ -18,6 +18,7 @@ import type { ModuleExecItem } from '@shared/app'
 import { ProcessPidListByPid } from '@shared/Process.win'
 import EnvSync from '@shared/EnvSync'
 import { encodePowerShellCommand, powerShellInlineArgs } from '@shared/PowerShellCommand'
+import { resolveWindowsPowerShellPath, windowsPowerShellPath } from '@shared/WindowsSystemPaths'
 
 export async function readFileAsUTF8(filePath: string): Promise<string> {
   try {
@@ -74,6 +75,8 @@ type WindowsCustomerServiceStartScriptParams = {
   commandFile: string
   outFile: string
   errFile: string
+  /** 外层已验证的绝对 PowerShell 路径，子包装进程必须使用同一个程序。 */
+  powerShellPath?: string
 }
 
 function powerShellSingleQuoted(value: string): string {
@@ -137,7 +140,7 @@ $ARGUMENTS = ${argumentList}
 
 Set-Location -LiteralPath ${powerShellSingleQuoted(params.cwd)}
 
-$process = Start-Process -FilePath "powershell.exe" \`
+$process = Start-Process -FilePath ${powerShellSingleQuoted(params.powerShellPath ?? windowsPowerShellPath())} \`
     -ArgumentList $ARGUMENTS \`
     -WindowStyle Hidden \`
     -PassThru \`
@@ -169,9 +172,8 @@ export async function serviceStartExecCMD(
   const timeToWait = param?.timeToWait ?? 500
 
   if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
+    // 通用 CMD 启动器也必须先移除旧记录，删除失败不创建进程、不复用旧 PID。
+    await remove(pidPath)
   }
 
   const typeFlag = version.typeFlag
@@ -277,9 +279,9 @@ export async function customerServiceStartExec(
 ): Promise<{ pids?: string[]; 'APP-Service-Start-PID': string }> {
   const pidPath = version?.pidPath ?? ''
   if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
+    // 此文件决定以后停止的父 PID。旧文件移除失败必须在启动前结束，不能吞错
+    // 后把上一轮父编号当作本次启动返回，再生成错误的运行登记。
+    await remove(pidPath)
   }
 
   const baseDir = join(global.Server.BaseDir!, 'module-customer')
@@ -301,6 +303,9 @@ export async function customerServiceStartExec(
   }
   const fallbackCwd = version.commandType === 'file' ? dirname(commandFile) : baseDir
   const cwd = version.workDir && existsSync(version.workDir) ? version.workDir : fallbackCwd
+  // 项目/自定义服务的停止身份来自此包装进程；外层与 Start-Process 都固定到
+  // 已验证的系统程序，不依赖 PATH/EnvSync 中可缺失或被同步替换的 powershell。
+  const powerShellPath = resolveWindowsPowerShellPath()
   const psScript = buildWindowsCustomerServiceStartScript({
     env,
     cwd,
@@ -308,7 +313,8 @@ export async function customerServiceStartExec(
     command: version.command,
     commandFile,
     outFile,
-    errFile
+    errFile,
+    powerShellPath
   })
 
   process.chdir(baseDir)
@@ -316,15 +322,11 @@ export async function customerServiceStartExec(
   let error: any
   try {
     await EnvSync.sync()
-    res = await spawnPromiseWithEnv(
-      EnvSync.PowerShellPath || 'powershell.exe',
-      powerShellInlineArgs(psScript),
-      {
-        cwd: baseDir,
-        env: version.env,
-        windowsHide: true
-      }
-    )
+    res = await spawnPromiseWithEnv(powerShellPath, powerShellInlineArgs(psScript), {
+      cwd: baseDir,
+      env: version.env,
+      windowsHide: true
+    })
   } catch (e) {
     error = e
     if (!isService || !version.pidPath) {
@@ -332,7 +334,8 @@ export async function customerServiceStartExec(
     }
   }
 
-  await waitPidFile(errFile, 0, 6, 500)
+  // 错误日志允许空内容；不要套用 PID 空文件重试，避免每次启动额外等待三秒。
+  await waitPidFile(errFile, 0, 6, 500, false)
 
   if (!isService) {
     let msg = ''
