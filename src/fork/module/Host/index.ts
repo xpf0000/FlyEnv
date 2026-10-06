@@ -33,14 +33,12 @@ import { TaskAddPhpMyAdminSite, TaskAddRandomSite } from './Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './HostFile'
 import { validateTomcatSite, type TomcatSiteHost } from '../Tomcat/Site'
-import Helper from '../../Helper'
-import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
 import { splitHostAliases } from '@shared/siteRuntime'
 import { HostsFileLinux, HostsFileMacOS } from '@shared/PlatFormConst'
 import { windowsSystemDirectory } from '@shared/WindowsSystemPaths'
-import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { reconcileSystemHostsBlock } from './SystemHostsBlock'
-import { syncLinuxHosts } from './LinuxHosts'
+import { syncUnixHosts } from './UnixHosts'
 import { timeOperation, timeOperationSync } from '@shared/OperationTiming'
 import { launchWindowsDnsRefresh } from '@shared/WindowsDnsRefresh'
 
@@ -54,7 +52,7 @@ export class Host extends Base {
       this.hostsFile = join(windowsSystemDirectory(), 'drivers', 'etc', 'hosts')
     } else if (isMacOS()) {
       this.hostsFile = HostsFileMacOS
-    } else if (isLinux()) {
+    } else {
       this.hostsFile = HostsFileLinux
     }
   }
@@ -437,8 +435,8 @@ export class Host extends Base {
         return
       }
       let content: string = ''
-      if (isLinux()) {
-        resolve(await syncLinuxHosts(host))
+      if (!isWindows()) {
+        resolve(await syncUnixHosts(host))
         return
       }
       content = (await timeOperation('hosts.read-system-file', () =>
@@ -575,19 +573,11 @@ export class Host extends Base {
       } catch {}
       console.log('writeHosts: ', write)
       if (write) {
-        let changed = false
-        try {
-          changed = await this._initHost(appHost, true, ipv6)
-        } catch (error) {
-          // 权限选择、文件缺失、磁盘/共享锁异常均属于 Windows 写入失败，
-          // 不得吞掉后返回成功；其他平台保留原有尽力处理行为。
-          if (isWindows() || isLinux()) throw error
-          changed = false
-        }
+        const changed = await this._initHost(appHost, true, ipv6)
         hasChanged = hasChanged || changed
       } else {
-        if (isLinux()) {
-          hasChanged = await syncLinuxHosts()
+        if (!isWindows()) {
+          hasChanged = await syncUnixHosts()
         } else {
           const hosts = await readFileByRoot(this.hostsFile)
           // 带 g 的 match 返回完整匹配数组而非捕获组，原 x[2] 会漏判删除变化，
@@ -598,14 +588,7 @@ export class Host extends Base {
             hasChanged = true
           }
         }
-        let changed = false
-        try {
-          changed = await this._initHost(appHost, false, ipv6)
-        } catch (error) {
-          // 与写入分支保持一致，取消、权限及普通 I/O 错误均保留失败终态。
-          if (isWindows() || isLinux()) throw error
-          changed = false
-        }
+        const changed = await this._initHost(appHost, false, ipv6)
         hasChanged = hasChanged || changed
       }
       if (hasChanged && existsSync(hostfile)) {
@@ -615,19 +598,11 @@ export class Host extends Base {
             // 启动失败只记录，不否定前面已经成功的 hosts 写入。
             // 直接普通权限执行，不再为刷新创建 PowerShell/broker 或请求新的授权。
             await timeOperation('hosts.refresh-dns-launch', () => launchWindowsDnsRefresh())
-          } else {
-            if (Helper.enable) {
-              await Helper.send('host', 'dnsRefresh')
-            } else if (await AppHelperCheck()) {
-              await Helper.send('host', 'dnsRefresh')
-            }
           }
         } catch (error) {
           // 共享 Windows 执行器已吸收正常启动失败；此处也防住包装层等意外异常。
           // 文件已经写入，刷新异常仅记录，不得让站点操作返回失败；不等待日志写盘。
-          if (isWindows() || isLinux()) {
-            void appDebugLog('[Hosts][dns-refresh][error]', String(error)).catch(() => {})
-          }
+          void appDebugLog('[Hosts][dns-refresh][error]', String(error)).catch(() => {})
         }
       }
       resolve(true)

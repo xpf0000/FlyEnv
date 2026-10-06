@@ -29,7 +29,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import AppNodeFnManager from './core/AppNodeFn'
 import ServiceProcessManager from './core/ServiceProcess'
 import ServiceVersionManager from './core/ServiceVersionManager'
-import { AppHelperCheck, AppHelperRoleFix } from '@shared/AppHelperCheck'
+import { AppHelperCheck } from '@shared/AppHelperCheck'
 import Helper from '../fork/Helper'
 import ConfigManager from './core/ConfigManager'
 import MCPConfigManager from './core/MCPConfigManager'
@@ -660,7 +660,6 @@ export default class Application extends EventEmitter {
    * 初始化 FlyEnv Helper
    */
   private initAppHelper() {
-    AppHelperRoleFix().catch()
     Helper.appHelper = AppHelper
 
     AppHelper.onStatusMessage((message) => {

@@ -91,7 +91,7 @@ class Helper {
     })
   }
 
-  private syncHostsAfterInstall() {
+  syncHostsAfterInstall() {
     handleWriteHosts().catch((error) => {
       MessageError(`${I18nT('base.hostsSaveFailed')}: ${error}`)
     })

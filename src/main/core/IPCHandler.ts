@@ -576,6 +576,9 @@ export default class IPCHandler extends EventEmitter {
       case 'APP:FlyEnv-Helper-Command':
         this.handleHelperCommand(command, key)
         break
+      case 'APP:FlyEnv-Helper-Terminal-Install':
+        this.handleHelperTerminalInstall(command, key, args[0])
+        break
       case 'APP:FlyEnv-Helper-Check':
         this.handleHelperCheck(command, key, args[0] === true)
         break
@@ -855,6 +858,31 @@ export default class IPCHandler extends EventEmitter {
       })
   }
 
+  private handleHelperTerminalInstall(command: string, key: string, ptyKey: string) {
+    if (isWindows()) {
+      this.sendRuntimeError(command, key, new Error('Use the Windows Helper installer'))
+      return
+    }
+    this.loadNodePty()
+      .then((nodePty) =>
+        AppHelper.installInTerminal(async (options) => {
+          this.sendToMainWindow(command, key, {
+            code: 200,
+            command: options.command,
+            caFingerprint: options.caFingerprint
+          })
+          await nodePty.execAndWait(ptyKey, [
+            isLinux() ? `sudo ${options.command}` : options.command,
+            'flyenv_terminal_exit_code=$?',
+            'wait',
+            'exit "$flyenv_terminal_exit_code"'
+          ])
+        })
+      )
+      .then(() => this.sendToMainWindow(command, key, { code: 0, data: true }))
+      .catch((error) => this.sendToMainWindow(command, key, buildHelperCheckResponse(error)))
+  }
+
   /** 避免 UI 健康轮询让未选择/UAC 用户触碰 key、任务或常驻程序。 */
   private handleHelperCheck(command: string, key: string, terminalInstallation = false) {
     if (
@@ -902,10 +930,10 @@ export default class IPCHandler extends EventEmitter {
   // ===== 密码检查 =====
 
   private handlePasswordCheck(command: string, key: string, args: any[]) {
-    if (process.platform === 'linux') {
+    if (process.platform !== 'win32') {
       this.sendToMainWindow(command, key, {
         code: 1,
-        msg: 'Use sudo interactively in XTerm on Linux'
+        msg: 'Use sudo interactively in XTerm'
       })
       return
     }

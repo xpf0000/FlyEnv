@@ -271,7 +271,7 @@ export class ProjectItem implements ProjectItemType {
           })
       }
 
-      if (window.Server.isLinux && this.isSudo) {
+      if (!window.Server.isWindows && this.isSudo) {
         if (!interactive) {
           this._state.running = false
           resolve(I18nT('service.linuxSudoRequiresTerminal'))

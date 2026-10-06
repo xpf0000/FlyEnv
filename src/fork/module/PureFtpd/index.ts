@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { join } from 'path'
 import { existsSync, statSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/runtime'
@@ -7,7 +7,6 @@ import {
   brewInfoJson,
   execPromise,
   portSearch,
-  uuid,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
@@ -15,16 +14,13 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  chmod,
-  remove,
-  execPromiseSudo,
   spawnPromiseWithStdin,
   spawnPromiseWithEnv
 } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { withBinVersionCache } from '../../util/BinVersionCache'
-import { isLinux } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 import Helper from '../../Helper'
 
 class Manager extends Base {
@@ -54,59 +50,20 @@ class Manager extends Base {
     })
   }
 
-  _startServer(version: SoftInstalled, openInTerminal?: boolean) {
+  _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
-      if (isLinux()) {
-        await this._initConf()
-        const pid = await Helper.send<number>('ftp', 'start', { bin: version.bin })
-        resolve({ 'APP-Service-Start-PID': `${pid}` })
+      if (isWindows()) {
+        reject(new Error('Pure-FTPd is not supported on Windows'))
         return
       }
-      const confFile = await this._initConf()
-      const bin = version.bin
-      const pidfile = join(global.Server.FTPDir!, 'pure-ftpd.pid')
-      let command = `cd "${dirname(bin)}" && sudo -S ./${basename(bin)} "${confFile}"`
-      if (openInTerminal) {
-        command = command.replace(/"/g, '\\"')
-        const appleScript = `
-        tell application "Terminal"
-          if not running then
-            activate
-            do script "${command}" in front window
-          else
-            activate
-            do script "${command}"
-          end if
-        end tell`
-        const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
-        await writeFile(scptFile, appleScript)
-        await chmod(scptFile, '0777')
-        try {
-          await execPromise(`osascript ./${basename(scptFile)}`, {
-            cwd: global.Server.Cache!
-          })
-          await remove(scptFile)
-        } catch (e) {
-          await remove(scptFile)
-          return reject(e)
-        }
-      } else {
-        await execPromiseSudo(command)
-      }
-      const res = await this.waitPidFile(pidfile, undefined, openInTerminal ? 60 : 20)
-      if (res && res?.pid) {
-        resolve({
-          'APP-Service-Start-PID': res.pid
-        })
-        return
-      }
-      const error = res ? res?.error : I18nT('fork.startFail')
-      reject(new Error(error))
+      await this._initConf()
+      const pid = await Helper.send<number>('ftp', 'start', { bin: version.bin })
+      resolve({ 'APP-Service-Start-PID': `${pid}` })
     })
   }
 
   _stopServer(version: SoftInstalled, ...args: any[]) {
-    if (!isLinux()) return super._stopServer(version, ...args)
+    if (isWindows()) return super._stopServer(version, ...args)
     return new ForkPromise(async (resolve, reject, on) => {
       const pid = await Helper.send<number>('ftp', 'stop')
       let result
@@ -164,7 +121,7 @@ class Manager extends Base {
     const pdb = join(global.Server.FTPDir!, 'pureftpd.pdb')
     const passwd = join(global.Server.FTPDir!, 'pureftpd.passwd')
     const command = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
-    if (isLinux()) {
+    if (!isWindows()) {
       if (
         !existsSync(passwd) ||
         !(await readFile(passwd, 'utf8'))
@@ -184,8 +141,8 @@ class Manager extends Base {
     } catch {}
   }
 
-  private async refreshLinuxUsers() {
-    if (!isLinux()) return
+  private async refreshUnixUsers() {
+    if (isWindows()) return
     try {
       await Helper.send('ftp', 'refreshUsers')
     } catch (error) {
@@ -216,7 +173,7 @@ class Manager extends Base {
         all.splice(findOld, 1)
       }
       await writeFile(json, JSON.stringify(all))
-      await this.refreshLinuxUsers()
+      await this.refreshUnixUsers()
       resolve(true)
     })
   }
@@ -288,7 +245,7 @@ class Manager extends Base {
             all.unshift(item)
           }
           await writeFile(json, JSON.stringify(all))
-          await this.refreshLinuxUsers()
+          await this.refreshUnixUsers()
           resolve(true)
         })
         .catch((error) => {

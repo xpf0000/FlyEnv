@@ -1,6 +1,5 @@
-import { mkdirp, writeFile, readFile, existsSync } from '@shared/fs-extra'
+import { readFile, existsSync } from '@shared/fs-extra'
 import { createConnection } from 'node:net'
-import { userInfo } from 'node:os'
 import { dirname, join, resolve as pathResolve } from 'node:path'
 import is from 'electron-is'
 import { isLinux, isWindows } from './utils'
@@ -14,12 +13,10 @@ import {
   type WindowsHelperIdentity
 } from './WindowsHelperIdentity'
 
-const SOCKET_PATH = '/tmp/flyenv-helper.sock'
+const DARWIN_SOCKET_PATH = '/private/var/run/flyenv-helper/helper.sock'
+const DARWIN_KEY_PATH = '/Library/Application Support/FlyEnv/Helper/client.key'
 const LINUX_SOCKET_PATH = '/run/flyenv-helper/helper.sock'
 const LINUX_KEY_PATH = '/etc/flyenv-helper/client.key'
-const Role_Path = '/tmp/flyenv.role'
-const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
-const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 const Helper_Check_Timeout = 3000
 
@@ -35,13 +32,16 @@ const Helper_Check_Timeout = 3000
 // v35 与 Go 停止执行同步：一次请求连续终止，取消逐 PID 阻塞等待。
 // v36 环境广播改为 Helper 后台队列；旧程序仍阻塞写入 RPC，须通过版本检查更新。
 // v37 删除 Helper 提前广播，统一在环境业务结算后通知；旧 v36 会提前/重复广播。
-export const HelperVersion = 41
+export const HelperVersion = 42
 
 export type HelperHealth = {
   version: number
   pid: number
   sid?: string
   instanceId?: string
+  policyVersion?: number
+  policyUID?: number
+  healthy?: boolean
 }
 
 type HelperResponse = {
@@ -63,7 +63,7 @@ const currentWindowsHelperIdentity = (): Promise<WindowsHelperIdentity> => {
 
 export const HelperKeyPath = (identity?: WindowsHelperIdentity): string => {
   if (isLinux()) return LINUX_KEY_PATH
-  if (!isWindows()) return Key_Path_Unix
+  if (!isWindows()) return DARWIN_KEY_PATH
   if (!identity) throw new Error('Windows helper identity is required for the key path')
   return identity.keyPath
 }
@@ -81,6 +81,13 @@ export const getHelperKey = async (identity?: WindowsHelperIdentity): Promise<Bu
       throw new AppHelperError(
         'helper_key_inaccessible',
         `Windows helper key is inaccessible: ${keyPath}`,
+        error instanceof Error ? error.message : String(error)
+      )
+    }
+    if (!isWindows() && (code === 'EACCES' || code === 'EPERM')) {
+      throw new AppHelperError(
+        'helper_key_invalid',
+        `Helper key is inaccessible: ${keyPath}`,
         error instanceof Error ? error.message : String(error)
       )
     }
@@ -149,22 +156,9 @@ export const helperTaskAuthFields = () => ({
 
 export const AppHelperSocketPathGet = async (identity?: WindowsHelperIdentity): Promise<string> => {
   if (!isWindows()) {
-    return isLinux() ? LINUX_SOCKET_PATH : SOCKET_PATH
+    return isLinux() ? LINUX_SOCKET_PATH : DARWIN_SOCKET_PATH
   }
   return (identity ?? (await currentWindowsHelperIdentity())).pipePath
-}
-
-export const AppHelperRoleFix = async () => {
-  if (isWindows() || isLinux()) {
-    return
-  }
-  const uinfo = userInfo()
-  const role = `${uinfo.uid}:${uinfo.gid}`
-  await writeFile(Role_Path, role)
-  try {
-    await mkdirp(dirname(Role_Path_Back))
-    await writeFile(Role_Path_Back, role)
-  } catch {}
 }
 
 export const getWindowsHelperBinaryPath = (): string => {
@@ -197,6 +191,7 @@ export const getWindowsHelperValidationBinaryPath = (): string => {
 type AppHelperCheckDeps = {
   isLinux: () => boolean
   isWindows: () => boolean
+  getUnixUid: () => number | undefined
   helperBinaryExists: () => boolean
   createConnection: typeof createConnection
   getHelperKey: (identity?: WindowsHelperIdentity) => Promise<Buffer | null>
@@ -218,6 +213,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
   const runtime = {
     isLinux,
     isWindows,
+    getUnixUid: () => process.getuid?.(),
     helperBinaryExists: windowsHelperBinaryExists,
     createConnection,
     getHelperKey,
@@ -306,7 +302,10 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
         }
         if (response.code !== 0) {
           fail(
-            helperResponseErrorCode(response.msg ?? ''),
+            fn === 'health' &&
+              helperResponseErrorCode(response.msg ?? '') !== 'helper_signature_invalid'
+              ? 'helper_health_invalid'
+              : helperResponseErrorCode(response.msg ?? ''),
             response.msg ?? 'Helper rejected the health-check request'
           )
           return
@@ -339,9 +338,13 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
     }
 
     const helperKey = await runtime.getHelperKey(identity)
-    if (runtime.isWindows() || runtime.isLinux()) {
-      const platform = runtime.isWindows() ? 'Windows' : 'Linux'
-      const keyPath = runtime.isLinux() ? LINUX_KEY_PATH : HelperKeyPath(identity)
+    {
+      const platform = runtime.isWindows() ? 'Windows' : runtime.isLinux() ? 'Linux' : 'macOS'
+      const keyPath = runtime.isWindows()
+        ? HelperKeyPath(identity)
+        : runtime.isLinux()
+          ? LINUX_KEY_PATH
+          : DARWIN_KEY_PATH
       if (!helperKey) {
         throw new AppHelperError('helper_key_missing', `${platform} helper key missing: ${keyPath}`)
       }
@@ -372,7 +375,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       }
     }
 
-    let pipePath = runtime.isLinux() ? LINUX_SOCKET_PATH : SOCKET_PATH
+    let pipePath = runtime.isLinux() ? LINUX_SOCKET_PATH : DARWIN_SOCKET_PATH
     if (runtime.isWindows()) {
       if (!identity) {
         throw new AppHelperError('helper_task_invalid', 'Windows helper pipe is unavailable')
@@ -384,6 +387,24 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       throw new AppHelperError('helper_version_mismatch', 'Helper version does not match FlyEnv')
     }
     if (!runtime.isWindows()) {
+      if (runtime.isLinux()) return true
+      const response = await request('health', helperKey, pipePath)
+      const health = response.data as Partial<HelperHealth> | undefined
+      if (
+        !health ||
+        health.version !== HelperVersion ||
+        health.policyVersion !== HelperVersion ||
+        !Number.isInteger(health.policyUID) ||
+        health.policyUID !== runtime.getUnixUid() ||
+        health.healthy !== true ||
+        !Number.isInteger(health.pid) ||
+        (health.pid ?? 0) <= 0
+      ) {
+        throw new AppHelperError(
+          'helper_health_invalid',
+          'macOS Helper health/policy does not match the installed account and version'
+        )
+      }
       return true
     }
 

@@ -28,8 +28,7 @@ import {
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
-import Helper from '../../Helper'
-import { isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { spawnPromiseWithEnv } from '@shared/child-process'
 import { ProcessListSearch } from '@shared/Process.win'
 import type { PItem } from '@shared/Process'
@@ -182,14 +181,12 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
         await execPromise(`rabbitmq-plugins.bat enable rabbitmq_management`, {
           cwd: baseDir
         })
-      } else if (isLinux()) {
+      } else {
         await spawnPromiseWithEnv(
           join(baseDir, 'rabbitmq-plugins'),
           ['enable', 'rabbitmq_management'],
           { cwd: baseDir }
         )
-      } else {
-        await Helper.send('rabbitmq', 'initPlugin', baseDir)
       }
     } catch (e: any) {
       console.log('_initPlugin err: ', e)

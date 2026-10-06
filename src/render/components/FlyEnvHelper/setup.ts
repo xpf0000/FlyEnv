@@ -35,19 +35,24 @@ class FlyEnvHelperController {
     }
   }
 
-  private fetchCommand(): Promise<string> {
+  private executeInstallation(terminal: XTerm): Promise<void> {
     return new Promise((resolve, reject) => {
-      IPC.send('APP:FlyEnv-Helper-Command').then((key: string, res: any) => {
-        if (res?.code === 200) return
-        IPC.off(key)
-        if (res?.code !== 0 || !res?.command) {
-          reject(new Error(res?.msg ?? res?.reason ?? 'helper_binary_missing'))
-          return
+      IPC.send('APP:FlyEnv-Helper-Terminal-Install', terminal.ptyKey).then(
+        (key: string, res: any) => {
+          if (res?.code === 200) {
+            this.command = res.command ?? ''
+            this.caFingerprint = res.caFingerprint
+            return
+          }
+          IPC.off(key)
+          terminal.end = true
+          if (res?.code !== 0) {
+            reject(new Error(res?.msg ?? res?.reason ?? 'Helper installation failed'))
+            return
+          }
+          resolve()
         }
-        this.command = res.command
-        this.caFingerprint = res.caFingerprint
-        resolve(res.command)
-      })
+      )
     })
   }
 
@@ -64,17 +69,12 @@ class FlyEnvHelperController {
 
   private async run(target: HTMLElement): Promise<boolean> {
     try {
-      const command = await this.fetchCommand()
       if (!this.show) return false
       const terminal = markRaw(new XTerm())
       this.execXTerm = terminal
       await terminal.mount(target)
-      const execution = terminal.send([command], true, true)
-      if (!execution) throw new Error('Installation terminal is unavailable')
-      await execution
-      if (!(await HelperStore.verifyHelperReady())) {
-        throw new Error(I18nT('menu.helperInstallFailTips'))
-      }
+      await this.executeInstallation(terminal)
+      HelperStore.syncHostsAfterInstall()
       MessageSuccess(I18nT('setup.flyenvHelperFixSuccess'))
       return true
     } catch (error) {

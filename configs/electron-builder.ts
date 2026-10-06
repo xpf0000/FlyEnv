@@ -90,7 +90,9 @@ const conf: Configuration = {
     extendInfo: {
       'Icon file': 'icon.icns',
       CFBundleDisplayName: 'FlyEnv',
-      CFBundleExecutable: 'FlyEnv'
+      CFBundleExecutable: 'FlyEnv',
+      // Sealed installation protocol; fixed bootstrap rejects older signed installers.
+      FlyEnvHelperProtocolVersion: 42
     },
     type: 'distribution',
     darkModeSupport: true,

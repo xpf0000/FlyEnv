@@ -12,10 +12,15 @@ import { readdir, access as fsAccess } from 'node:fs/promises'
 import Helper from '../../fork/Helper'
 import { AppHelperError } from '@shared/WindowsHelperState'
 import { resolve as PathResolve } from 'path'
-import { appDebugLog, isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
 import { realpath } from '@shared/fs-extra'
 import { copy, mkdirp, writeFile, readFile, copyFile, chmod, remove } from '@shared/fs-extra'
-import { readLinuxHosts, replaceLinuxHosts } from '../../fork/module/Host/LinuxHosts'
+import {
+  readUnixHosts,
+  replaceUnixHosts,
+  isSystemHostsPath,
+  assertGenericUnixFileWrite
+} from '../../fork/module/Host/UnixHosts'
 import crypto from 'node:crypto'
 import is from 'electron-is'
 import { homedir } from 'node:os'
@@ -407,12 +412,6 @@ X-GNOME-Autostart-enabled=true`
     }
 
     app.setLoginItemSettings(obj)
-    if (!obj.openAtLogin && isMacOS()) {
-      try {
-        const name = is.production() ? 'FlyEnv' : 'Electron'
-        Helper.send('tools', 'removeLoginItemMac', name).catch()
-      } catch {}
-    }
     this?.mainWindow?.webContents.send('command', command, key, true)
   }
 
@@ -517,7 +516,7 @@ X-GNOME-Autostart-enabled=true`
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
       .catch((error) => {
-        if (isLinux()) {
+        if (!isWindows()) {
           this?.mainWindow?.webContents.send('command', command, key, {
             code: 1,
             msg: String(error)
@@ -641,7 +640,7 @@ X-GNOME-Autostart-enabled=true`
   }
 
   host_readHosts(command: string, key: string) {
-    readLinuxHosts()
+    readUnixHosts()
       .then((data) =>
         this?.mainWindow?.webContents.send('command', command, key, { code: 0, data })
       )
@@ -651,7 +650,7 @@ X-GNOME-Autostart-enabled=true`
   }
 
   host_replaceHosts(command: string, key: string, content: string, digest: string) {
-    replaceLinuxHosts(content, digest)
+    replaceUnixHosts(content, digest)
       .then(() => this?.mainWindow?.webContents.send('command', command, key, { code: 0 }))
       .catch((error) =>
         this?.mainWindow?.webContents.send('command', command, key, { code: 1, msg: String(error) })
@@ -670,12 +669,16 @@ X-GNOME-Autostart-enabled=true`
       )
     }
     path = pathFixedToUnix(path)
-    readFile(path, 'utf-8')
+    const reading =
+      !isWindows() && isSystemHostsPath(path)
+        ? readUnixHosts().then((snapshot) => snapshot.content)
+        : readFile(path, 'utf-8')
+    reading
       .then((data: string) => {
         this?.mainWindow?.webContents.send('command', command, key, data)
       })
       .catch((error: NodeJS.ErrnoException) => {
-        if (isLinux() || !['EACCES', 'EPERM'].includes(error.code ?? '')) {
+        if (!isWindows() || !['EACCES', 'EPERM'].includes(error.code ?? '')) {
           fail(error)
           return
         }
@@ -688,7 +691,11 @@ X-GNOME-Autostart-enabled=true`
   }
 
   fs_writeFile(command: string, key: string, path: string, data: string) {
-    writeFile(path, data)
+    const writing = Promise.resolve().then(() => {
+      if (!isWindows()) assertGenericUnixFileWrite(pathFixedToUnix(path))
+      return writeFile(path, data)
+    })
+    writing
       .then(() => {
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
@@ -703,7 +710,7 @@ X-GNOME-Autostart-enabled=true`
             errorCode: error.code
           })
         }
-        if (isLinux() || !['EACCES', 'EPERM'].includes(e.code ?? '')) {
+        if (!isWindows() || !['EACCES', 'EPERM'].includes(e.code ?? '')) {
           fail(e)
           return
         }

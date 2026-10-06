@@ -8,7 +8,6 @@ import (
 	"golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func dispatchLinux(info TaskItem, p linuxPolicy) (interface{}, error) {
@@ -31,7 +30,7 @@ func dispatchLinux(info TaskItem, p linuxPolicy) (interface{}, error) {
 		var req struct {
 			Bin string `json:"bin"`
 		}
-		if err := decodeLinux(info.Args[0], &req); err != nil {
+		if err := decodeUnix(info.Args[0], &req); err != nil {
 			return nil, err
 		}
 		return startLinuxFTP(req.Bin, p)
@@ -45,58 +44,14 @@ func dispatchLinux(info TaskItem, p linuxPolicy) (interface{}, error) {
 			break
 		}
 		return refreshLinuxFTPUsers(p)
-	case "host.readHosts":
-		if len(info.Args) != 0 {
-			break
-		}
-		return linuxHosts.read()
-	case "host.replaceHostsContent":
-		if len(info.Args) != 1 {
-			break
-		}
-		var req struct {
-			Content string `json:"content"`
-			Digest  string `json:"digest"`
-		}
-		if err := decodeLinux(info.Args[0], &req); err != nil {
-			return nil, err
-		}
-		return true, linuxHosts.replace(req.Content, req.Digest)
-	case "host.syncManagedEntries", "host.clearManagedEntries":
-		if len(info.Args) != 1 {
-			break
-		}
-		var req struct {
-			Entries []struct {
-				IP     string `json:"ip"`
-				Domain string `json:"domain"`
-			} `json:"entries"`
-			Digest string `json:"digest"`
-		}
-		if err := decodeLinux(info.Args[0], &req); err != nil {
-			return nil, err
-		}
-		entries := ""
-		if info.Function == "clearManagedEntries" && len(req.Entries) != 0 {
-			return nil, fmt.Errorf("clear does not accept entries")
-		}
-		for _, entry := range req.Entries {
-			// Only hosts syntax separators are rejected, never an IP/domain allowlist.
-			if entry.IP == "" || entry.Domain == "" || strings.ContainsAny(entry.IP+entry.Domain, "\x00\r\n\t #") {
-				return nil, fmt.Errorf("invalid hosts entry separators")
-			}
-			entries += entry.IP + "     " + entry.Domain + "\n"
-		}
-		if len(req.Digest) != 64 {
-			return nil, fmt.Errorf("hosts digest is required")
-		}
-		return linuxHosts.syncManaged(entries, req.Digest)
+	case "host.readHosts", "host.replaceHostsContent", "host.syncManagedEntries", "host.clearManagedEntries":
+		return dispatchHosts(info, linuxHosts)
 	case "service.launchLowPort":
 		if len(info.Args) != 1 {
 			break
 		}
 		var req linuxLaunch
-		if err := decodeLinux(info.Args[0], &req); err != nil {
+		if err := decodeUnix(info.Args[0], &req); err != nil {
 			return nil, err
 		}
 		return launchLinuxService(req, p)
@@ -126,7 +81,7 @@ func dispatchLinux(info TaskItem, p linuxPolicy) (interface{}, error) {
 		if len(info.Args) != 0 {
 			break
 		}
-		return true, runTrustedLinuxTool("/usr/bin/resolvectl", "flush-caches")
+		return true, runTrustedTool("/usr/bin/resolvectl", "flush-caches")
 	}
 	return nil, fmt.Errorf("Linux helper denies %s.%s", info.Module, info.Function)
 }

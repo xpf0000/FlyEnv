@@ -3,9 +3,14 @@
     {
       "module": "ftp",
       "function": "start",
-      "args": [{ "name": "request", "type": "object" }],
+      "args": [
+        {
+          "name": "request",
+          "type": "object"
+        }
+      ],
       "return": "number",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {
@@ -13,7 +18,7 @@
       "function": "stop",
       "args": [],
       "return": "number",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {
@@ -21,7 +26,7 @@
       "function": "refreshUsers",
       "args": [],
       "return": "boolean",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {
@@ -45,7 +50,7 @@
       "function": "processList",
       "args": [],
       "return": "processInfo[]",
-      "platform": "macos",
+      "platform": "legacy-disabled",
       "privileged": false
     },
     {
@@ -70,7 +75,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "windows,macos",
+      "platform": "windows",
       "privileged": true,
       "pathAccess": "write"
     },
@@ -88,7 +93,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "windows,macos",
+      "platform": "windows",
       "privileged": true,
       "pathAccess": "write"
     },
@@ -130,7 +135,7 @@
         }
       ],
       "return": "string",
-      "platform": "windows,macos",
+      "platform": "windows",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -144,7 +149,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "windows,macos",
+      "platform": "windows",
       "privileged": true,
       "pathAccess": "remove"
     },
@@ -162,7 +167,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "macos",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "write"
     },
@@ -190,7 +195,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "windows,macos",
+      "platform": "windows",
       "privileged": true
     },
     {
@@ -207,7 +212,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "macos",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "read-write"
     },
@@ -226,7 +231,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "windows,macos",
+      "platform": "windows",
       "privileged": true
     },
     {
@@ -239,7 +244,7 @@
         }
       ],
       "return": "portProcessInfo[]",
-      "platform": "windows,macos",
+      "platform": "windows",
       "privileged": false
     },
     {
@@ -303,7 +308,7 @@
         }
       ],
       "return": "execResult",
-      "platform": "macos",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -338,7 +343,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "darwin",
+      "platform": "legacy-disabled",
       "privileged": true
     },
     {
@@ -355,7 +360,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "darwin",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "read-write"
     },
@@ -373,7 +378,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "macos",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "write"
     },
@@ -391,7 +396,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "macos",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "read-write"
     },
@@ -405,7 +410,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "darwin",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -431,7 +436,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "darwin",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "read-write"
     },
@@ -445,7 +450,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "macos",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -463,7 +468,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "windows,macos",
+      "platform": "windows",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -482,7 +487,7 @@
         }
       ],
       "return": "execResult",
-      "platform": "macos",
+      "platform": "legacy-disabled",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -499,7 +504,7 @@
       "function": "readHosts",
       "args": [],
       "return": "object",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {
@@ -512,7 +517,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {
@@ -525,7 +530,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {
@@ -538,7 +543,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {
@@ -551,7 +556,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {
@@ -559,7 +564,7 @@
       "function": "repairManagedPidDirectory",
       "args": [],
       "return": "boolean",
-      "platform": "linux",
+      "platform": "linux,macos",
       "privileged": true
     },
     {

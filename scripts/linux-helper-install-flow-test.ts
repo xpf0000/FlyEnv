@@ -177,6 +177,24 @@ async function chain() {
     '@shared/WindowsHelperState': helperState,
     '@lang/index': { I18nT: (key: string) => key },
     '@lang/runtime': { I18nT: (key: string) => key },
+    './lazy/OptionalRuntimes': {
+      nodePtyRuntime: {
+        load: async () => ({
+          onSendCommand() {},
+          execAndWait: (_key: string, commands: string[]) => {
+            assert.ok(commands[0].startsWith('sudo /bin/bash '))
+            assert.equal(commands.at(-1), 'exit "$flyenv_terminal_exit_code"')
+            terminalRuns++
+            return new Promise<void>((resolve, reject) => {
+              releaseTerminal = () =>
+                terminalExecutionFails
+                  ? reject(new Error('Installer exited with code 1'))
+                  : resolve()
+            })
+          }
+        })
+      }
+    },
     '@/util/IPC': { default: ipc },
     '@/util/Index': { reactiveBind: (value: any) => value },
     '@/util/Element': {
@@ -203,6 +221,7 @@ async function chain() {
     vue: { reactive: (value: any) => value, markRaw: (value: any) => value },
     '@/util/XTerm': {
       default: class {
+        ptyKey = 'fixture'
         mount = async () => {
           if (terminalMountFails) throw new Error('PTY initialization failed')
         }
@@ -343,6 +362,22 @@ await check(
     assert.equal(response.command, `sudo ${raw.command}`)
   }
 )
+
+await check('terminal installation blocks graphical repair until real completion', async () => {
+  const flow = await chain()
+  flow.terminal.show = true
+  const pending = flow.terminal.install({})
+  await tick()
+  assert.equal(flow.backend.state, 'installing')
+  assert.equal(await flow.helper.repair(), false)
+  assert.equal(flow.counts().pkexecCalls, 0)
+  assert.equal(flow.counts().terminalRuns, 1)
+  flow.terminal.detach()
+  assert.equal(flow.backend.state, 'installing', 'detaching cannot release asset ownership')
+  flow.finishTerminal()
+  assert.equal(await pending, true)
+  assert.equal(flow.backend.state, 'normal')
+})
 
 await check('cancelled confirmation does not install or reopen the dialog', async () => {
   const flow = await chain()

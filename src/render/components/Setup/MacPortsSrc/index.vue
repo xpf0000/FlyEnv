@@ -6,17 +6,34 @@
         <el-option :label="src.name" :value="src.url"></el-option>
       </template>
     </el-select>
-    <el-button :loading="running" :disabled="!checkMacPorts() || running" @click="changeSrc">{{
-      $t('base.switch')
-    }}</el-button>
+    <el-button
+      :loading="Controller.running"
+      :disabled="!checkMacPorts() || Controller.running"
+      @click="changeSrc"
+      >{{ $t('base.switch') }}</el-button
+    >
   </div>
+  <div v-if="Controller.preview" class="mt-4">
+    <p>{{ $t('util.macPortsSourceTerminal') }}</p>
+    <template v-for="file in Controller.preview.files" :key="file.path">
+      <p class="mt-2">{{ file.path }}</p>
+      <el-input :model-value="file.content" type="textarea" :rows="6" readonly />
+    </template>
+    <el-button class="mt-3" :disabled="Controller.running" @click="applySource"
+      >{{ $t('nodejs.openIN') }} {{ $t('nodejs.Terminal') }}</el-button
+    >
+  </div>
+  <p v-for="result in Controller.outcomes" :key="result.path" class="mt-2">
+    {{ result.path }}: {{ $t('util.macPortsSourceOutcome.' + result.status) }}
+  </p>
+  <div ref="terminalElement" class="mt-3 min-h-64"></div>
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
   import { I18nT } from '@lang/index'
-  import IPC from '@/util/IPC'
-  import { MessageError, MessageSuccess } from '@/util/Element'
+  import Controller from './Controller'
+  import { MessageError } from '@/util/Element'
   import { fs } from '@/util/NodeFn'
 
   const srcs = computed(() => {
@@ -111,7 +128,7 @@
   const sourcesConf = '/opt/local/etc/macports/sources.conf'
 
   const currentSrc = ref('')
-  const running = ref(false)
+  const terminalElement = ref<HTMLElement>()
 
   const checkMacPorts = () => {
     return !!window.Server.MacPorts
@@ -145,21 +162,17 @@
 
   const changeSrc = async () => {
     const find = srcs.value.find((f) => f.url === currentSrc.value)
-    if (find) {
-      running.value = true
-      IPC.send('app-fork:macports', 'changSrc', JSON.parse(JSON.stringify(find))).then(
-        (key: string, info: any) => {
-          IPC.off(key)
-          if (info?.code === 0) {
-            MessageSuccess(I18nT('base.success'))
-          } else {
-            MessageError(I18nT('base.fail'))
-          }
-          running.value = false
-        }
-      )
-    } else {
-      MessageError(I18nT('base.fail'))
-    }
+    if (find) await Controller.prepare(JSON.parse(JSON.stringify(find)))
+    else MessageError(I18nT('base.fail'))
   }
+  const applySource = () => {
+    if (terminalElement.value) void Controller.apply(terminalElement.value)
+  }
+  onMounted(() => {
+    if (Controller.xterm && terminalElement.value)
+      void Controller.xterm
+        .mount(terminalElement.value)
+        .catch((error) => MessageError(String(error)))
+  })
+  onUnmounted(() => Controller.detach())
 </script>

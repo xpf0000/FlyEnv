@@ -1,7 +1,6 @@
 import { I18nT } from '@lang/runtime'
 import { createWriteStream, existsSync } from 'fs'
 import { join } from 'path'
-import { userInfo } from 'os'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   currentServiceStopContext,
@@ -370,7 +369,7 @@ export class Base {
 
     await remove(probeFile).catch(() => {})
 
-    if (isLinux()) {
+    if (!isWindows()) {
       try {
         await Helper.send('tools', 'repairManagedPidDirectory')
         await verifyWritable()
@@ -379,18 +378,6 @@ export class Base {
         throw new Error(`PID directory is not writable: ${pidDir}. ${error}`)
       }
     }
-    if (!isWindows()) {
-      try {
-        const uinfo = userInfo()
-        await Helper.send('redis', 'logFileFixed', pidDir, `${uinfo.uid}:${uinfo.gid}`)
-        await chmod(pidDir, '0755').catch(() => {})
-        await verifyWritable()
-        return
-      } catch (e) {
-        lastError = e
-      }
-    }
-
     await remove(probeFile).catch(() => {})
 
     try {

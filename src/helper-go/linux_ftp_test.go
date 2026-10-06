@@ -17,23 +17,6 @@ import (
 	"time"
 )
 
-func TestLinuxFTPConfiguration(t *testing.T) {
-	config, err := linuxFTPConfig("Daemonize yes\nBind 0.0.0.0,21\nPureDB /user/database\nPIDFile /user/pid\nChrootEveryone yes\nUnixAuthentication no\nPassivePortRange 39000 40000\n", "/run/flyenv-helper/ftp-1000")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, expected := range []string{"Daemonize no", "Bind 0.0.0.0,21", "PureDB /run/flyenv-helper/ftp-1000/users.pdb", "PIDFile /run/flyenv-helper/ftp-1000/pure-ftpd.pid"} {
-		if !strings.Contains(config, expected) {
-			t.Fatalf("missing %s: %s", expected, config)
-		}
-	}
-	for _, input := range []string{"Include /etc/shadow", "ExtAuth /tmp/auth", "AltLog clf:/etc/profile", "CreateHomeDir yes", "UnixAuthentication yes", "Bind $(id),21", "PassivePortRange 1 99999", "Daemonize yes\nDaemonize yes", "MaxClientsNumber 0", "UnknownOption yes"} {
-		if _, err := linuxFTPConfig(input, "/run/flyenv-helper/ftp-1000"); err == nil {
-			t.Fatalf("accepted %q", input)
-		}
-	}
-}
-
 func TestLinuxFTPInstalledExecutable(t *testing.T) {
 	dir := t.TempDir()
 	data, err := os.ReadFile("/bin/true")
@@ -266,20 +249,5 @@ func TestLinuxFTPMissingUnit(t *testing.T) {
 	}
 	if status["LoadState"] != "not-found" || status["MainPID"] != "0" {
 		t.Fatal("fixture UID is already in use", status)
-	}
-}
-
-func TestLinuxFTPUsers(t *testing.T) {
-	passwd, err := linuxFTPUsers("alice:$6$hash:0:0::/srv/my site/./::::::::::::\n", linuxPolicy{UID: 1000, GID: 1000})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.HasPrefix(passwd, "alice:$6$hash:1000:1000::/srv/my site/./:") {
-		t.Fatal(passwd)
-	}
-	for _, input := range []string{"bad:hash:0:0::relative/path", "alice:hash:0:0::/ok\nalice:hash:1:1::/other", "#comment", "alice:hash:0:0::/ok\x00"} {
-		if _, err := linuxFTPUsers(input, linuxPolicy{UID: 1000, GID: 1000}); err == nil {
-			t.Fatalf("accepted %q", input)
-		}
 	}
 }

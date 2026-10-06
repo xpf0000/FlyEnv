@@ -1,5 +1,5 @@
 {
-  "linuxSudoRequiresTerminal": "请手动启动此任务并在终端完成授权；Linux 不支持后台自动 sudo。",
+  "linuxSudoRequiresTerminal": "请手动启动此任务并在终端完成授权；macOS/Linux 不支持后台自动 sudo。",
   "linuxFtpUnmanagedRoot": "此 root FTP 进程不属于 FlyEnv 管理的服务，请先以管理员权限停止旧进程，再重新启动。",
   "linuxFtpUsersRefreshFailed": "FTP 账户变更已保存，但运行中的服务更新失败：{error}",
   "setaliase": "设置别名",

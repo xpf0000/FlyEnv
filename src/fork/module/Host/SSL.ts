@@ -14,37 +14,29 @@ import { existsSync } from 'fs'
 import { EOL } from 'os'
 import type { AppHost } from '@shared/app'
 import Helper from '../../Helper'
-import { appDebugLog, isLinux, isWindows } from '@shared/utils'
+import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
 import { X509Certificate } from 'node:crypto'
 import { isAppHelperError } from '@shared/WindowsHelperState'
+import { macOSCertificateIsTrusted } from './CertificateTrust'
 
 // Mutex tail for certificate issuance — see makeAutoSSL. (#700)
 let sslQueue: Promise<unknown> = Promise.resolve()
 
 // 生成证书文件和加入系统信任是两个步骤；Windows 信任取消必须向外传递。
-const initCARoot = () => {
-  return new Promise(async (resolve, reject) => {
-    const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
-    const CADir = dirname(CARoot)
-    try {
-      if (isLinux()) {
-        const cert = new X509Certificate(await readFile(CARoot))
-        const fingerprint = cert.fingerprint256.replace(/:/g, '').toLowerCase()
-        // A copied source certificate does not prove the trust update succeeded.
-        await Helper.send('host', 'installApprovedCA', fingerprint)
-        resolve(true)
-        return
-      }
-      const res = await Helper.send('host', 'sslAddTrustedCert', CADir, 'FlyEnv-Root-CA.crt')
-      console.log('initCARoot res111: ', res)
-    } catch (error) {
-      if (isWindows() || isLinux()) {
-        reject(error)
-        return
-      }
+const initCARoot = async (): Promise<boolean> => {
+  const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
+  if (!isWindows()) {
+    const cert = new X509Certificate(await readFile(CARoot))
+    if (isMacOS() && (await macOSCertificateIsTrusted(CARoot, cert))) return true
+    const fingerprint = cert.fingerprint256.replace(/:/g, '').toLowerCase()
+    await Helper.send('host', 'installApprovedCA', fingerprint)
+    if (isMacOS() && !(await macOSCertificateIsTrusted(CARoot, cert))) {
+      throw new Error('The approved CA was installed but system trust verification failed')
     }
-    resolve(true)
-  })
+  } else {
+    await Helper.send('host', 'sslAddTrustedCert', dirname(CARoot), 'FlyEnv-Root-CA.crt')
+  }
+  return true
 }
 
 export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: string } | false> => {
@@ -170,21 +162,8 @@ subjectAltName=@alt_names
             resolve(false)
             return
           }
-          if (!isLinux()) {
-            try {
-              await Helper.send('host', 'sslAddTrustedCert', CADir, `${caFileName}.crt`)
-            } catch (error) {
-              if (isWindows()) throw error
-            }
-
-            const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
-            if (!res.stdout.includes('FlyEnv-Root-CA') && !res.stderr.includes('FlyEnv-Root-CA')) {
-              resolve(false)
-              return
-            }
-          }
         }
-        if (isLinux()) await initCARoot()
+        await initCARoot()
         const hostCAName = `CA-${host.id}`
         const hostCADir = join(CADir, `${host.id}`)
         if (existsSync(hostCADir)) {
@@ -220,10 +199,10 @@ subjectAltName=@alt_names
         })
       }
     } catch (e) {
-      await appDebugLog('[makeAutoSSL][error]', `${e}`)
+      void appDebugLog('[makeAutoSSL][error]', `${e}`).catch(() => {})
       console.log('makeAutoSSL error: ', e)
       // 类型化授权错误交给调用方展示/恢复；原有证书工具错误仍按 false 返回。
-      if (isLinux() || (isWindows() && isAppHelperError(e))) {
+      if (!isWindows() || isAppHelperError(e)) {
         reject(e)
         return
       }

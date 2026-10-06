@@ -19,7 +19,7 @@ import {
   moveChildDirToParent,
   spawnPromiseWithEnv
 } from '../../Fn'
-import { prepareLinuxLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
+import { prepareUnixLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { I18nT } from '@lang/runtime'
@@ -200,8 +200,8 @@ class Nginx extends Base {
         await mkdirp(temp_path)
         await this._fixConf()
         const p = join(global.Server.NginxDir!, 'common')
-        await prepareLinuxLogDirectory(join(p, 'logs'))
-        await prepareLinuxLogDirectory(
+        await prepareUnixLogDirectory(join(p, 'logs'))
+        await prepareUnixLogDirectory(
           join(global.Server.BaseDir!, 'vhost/logs'),
           (name) =>
             name.endsWith('.log') &&

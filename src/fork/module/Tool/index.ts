@@ -18,7 +18,7 @@ import { setAlias, cleanAlias } from './alias'
 import { runInTerminal, openPathByApp } from './terminal'
 import { initAllowDir, initFlyEnvSH } from './init'
 import type { SoftInstalled } from '@shared/app'
-import { isLinux } from '@shared/utils'
+import { isWindows } from '@shared/utils'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -107,7 +107,7 @@ class Manager extends Base {
       try {
         content = await readFileByRoot(file)
       } catch (error) {
-        if (isLinux()) {
+        if (!isWindows()) {
           reject(error)
           return
         }
@@ -121,7 +121,7 @@ class Manager extends Base {
       try {
         await writeFileByRoot(file, content)
       } catch (error) {
-        if (isLinux()) {
+        if (!isWindows()) {
           reject(error)
           return
         }

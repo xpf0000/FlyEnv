@@ -52,7 +52,8 @@
   }>()
 
   const disabled = ref(false)
-  const readOnly = window.Server.isLinux && props.file.startsWith('/etc/')
+  const readOnly =
+    !window.Server.isWindows && /^\/(?:etc|private\/etc|opt\/local)(?:\/|$)/.test(props.file)
   const content = ref('')
   const input = ref()
   const saving = ref(false)

@@ -1,9 +1,7 @@
-import { existsSync, mkdirp, readFile, readFileByRoot, writeFile, writeFileByRoot } from '../../Fn'
+import { existsSync, mkdirp, readFile, readFileByRoot, writeFile } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join } from 'path'
-import { userInfo } from 'os'
-import { isLinux, isMacOS } from '@shared/utils'
-import Helper from '../../Helper'
+import { isMacOS } from '@shared/utils'
 
 export function initAllowDir(json: string) {
   return new ForkPromise(async (resolve) => {
@@ -35,56 +33,23 @@ export function initFlyEnvSH() {
     }
     const contentBack = content
 
-    if (isMacOS()) {
-      const shfile = `/Applications/FlyEnv.app/Contents/Resources/helper/flyenv.sh`
-      if (!existsSync(shfile)) {
-        const fileContent = await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf-8')
-        try {
-          await writeFileByRoot(shfile, fileContent)
-        } catch {}
-        if (existsSync(shfile)) {
-          const uinfo = userInfo()
-          const user = `${uinfo.uid}:${uinfo.gid}`
-          try {
-            await Helper.send('tools', 'chmod', shfile, '777')
-            await Helper.send('redis', 'logFileFixed', shfile, user)
-          } catch {}
-        }
-      }
+    const shfile = join(global.Server.BaseDir!, 'shell/flyenv.sh')
+    await mkdirp(dirname(shfile))
+    await writeFile(shfile, await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf8'))
+    // Replace the legacy install-directory integration with the user-owned file.
+    content = content.replace(
+      /^(?!\s*#)\s*source\s*"[^"\n]*\/(?:resources|Resources)\/helper\/flyenv\.sh".*$/gm,
+      ''
+    )
+    const quoted = shfile
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\$/g, '\\$')
+      .replace(/`/g, '\\`')
+    const source = `source "${quoted}"`
+    if (!content.split('\n').includes(source)) content = content.trim() + `\n${source}`
 
-      const regex = new RegExp(
-        `^(?!\\s*#)\\s*source\\s*"/Applications/FlyEnv\\.app/Contents/Resources/helper/flyenv\\.sh"`,
-        'gmu'
-      )
-      if (!content.match(regex) && existsSync(file)) {
-        content = content.trim() + `\nsource "${shfile}"`
-      }
-    } else if (isLinux()) {
-      const shfile = join(global.Server.BaseDir!, 'shell/flyenv.sh')
-      await mkdirp(dirname(shfile))
-      await writeFile(shfile, await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf8'))
-      // Replace the legacy install-directory integration with the user-owned file.
-      content = content.replace(
-        /^(?!\s*#)\s*source\s*"[^"\n]*\/resources\/helper\/flyenv\.sh".*$/gm,
-        ''
-      )
-      const quoted = shfile
-        .replace(/\\/g, '\\\\')
-        .replace(/"/g, '\\"')
-        .replace(/\$/g, '\\$')
-        .replace(/`/g, '\\`')
-      const source = `source "${quoted}"`
-      if (!content.split('\n').includes(source)) content = content.trim() + `\n${source}`
-    }
-
-    if (content !== contentBack) {
-      if (isLinux()) await writeFile(file, content)
-      else {
-        try {
-          await writeFileByRoot(file, content)
-        } catch {}
-      }
-    }
+    if (content !== contentBack) await writeFile(file, content)
     resolve(true)
   })
 }

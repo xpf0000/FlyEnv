@@ -1,3 +1,4 @@
+import { macPortsInstallBase } from './MacPortsResources'
 import { join, basename, dirname, isAbsolute, resolve as resolvePath } from 'path'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
@@ -31,7 +32,6 @@ import {
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
-import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListByExactPid, fetchLoopbackListeningPids } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
@@ -236,7 +236,7 @@ class Mysql extends Base {
             })
             resolve(true)
           })
-          .catch((err) => {
+          .catch(() => {
             on({
               'APP-On-Log': AppLog(
                 'error',
@@ -593,22 +593,9 @@ datadir=${pathFixedToUnix(dataDir)}`
             params.push(`--datadir=${dataDir}`)
             params.push(`--basedir=${version.path}`)
             if (version?.flag === 'macports') {
-              const enDir = join(version.path, 'share')
-              if (!existsSync(enDir)) {
-                const shareDir = `/opt/local/share/${basename(version.path)}`
-                if (existsSync(shareDir)) {
-                  const langDir = join(enDir, basename(version.path))
-                  const langEnDir = join(shareDir, 'english')
-                  await Helper.send(
-                    'mysql',
-                    'macportsDirFixed',
-                    enDir,
-                    shareDir,
-                    langDir,
-                    langEnDir
-                  )
-                }
-              }
+              const basedir = await macPortsInstallBase(version.path)
+              const baseIndex = params.findIndex((value) => value.startsWith('--basedir='))
+              params[baseIndex] = `--basedir="${basedir}"`
             }
           } else {
             params.push('--initialize-insecure')
@@ -952,22 +939,9 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
             params.push(`--datadir=${dataDir}`)
             params.push(`--basedir=${currentVersion.path}`)
             if (currentVersion?.flag === 'macports') {
-              const enDir = join(currentVersion.path!, 'share')
-              if (!existsSync(enDir)) {
-                const shareDir = `/opt/local/share/${basename(currentVersion.path!)}`
-                if (existsSync(shareDir)) {
-                  const langDir = join(enDir, basename(currentVersion.path!))
-                  const langEnDir = join(shareDir, 'english')
-                  await Helper.send(
-                    'mysql',
-                    'macportsDirFixed',
-                    enDir,
-                    shareDir,
-                    langDir,
-                    langEnDir
-                  )
-                }
-              }
+              const basedir = await macPortsInstallBase(currentVersion.path!)
+              const baseIndex = params.findIndex((value) => value.startsWith('--basedir='))
+              params[baseIndex] = `--basedir="${basedir}"`
             }
           } else {
             params.push('--initialize-insecure')

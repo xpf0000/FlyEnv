@@ -39,11 +39,6 @@ class NodePTY {
           return
         }
         console.log('pty.onData: ', data)
-        if (data.trim() === 'Password:') {
-          if (!isLinux() && global.Server.Password) {
-            pty.write(`${global.Server.Password!}\r`)
-          }
-        }
         this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
       })
       pty.onExit((e) => {
@@ -130,11 +125,6 @@ class NodePTY {
           return
         }
         console.log('pty.onData: ', data)
-        if (data.trim() === 'Password:') {
-          if (!isLinux() && global.Server.Password) {
-            pty.write(`${global.Server.Password!}\r`)
-          }
-        }
         this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
       })
       pty.onExit((e) => {
@@ -197,6 +187,27 @@ class NodePTY {
     }
   }
 
+  /** Internal operations await real process exit independently of renderer listeners. */
+  async execAndWait(ptyKey: string, param: string[]): Promise<void> {
+    const pty = this.pty[ptyKey]?.pty
+    if (!pty) throw new Error('Terminal process is unavailable')
+    return new Promise((resolve, reject) => {
+      const exit = pty.onExit(({ exitCode }) => {
+        exit.dispose()
+        if (exitCode === 0) resolve()
+        else reject(new Error(`Terminal exited with code ${exitCode}`))
+      })
+      try {
+        // Fixed installation commands must not cross a writable outer script.
+        const literal = param.join('\n').replace(/'/g, "'\\''")
+        pty.write(`/bin/sh -c '${literal}'; exit $?\r`)
+      } catch (error) {
+        exit.dispose()
+        reject(error)
+      }
+    })
+  }
+
   async exec(
     ptyKey: string,
     param: string[],
@@ -245,14 +256,8 @@ class NodePTY {
           : `cd "${global.Server.Cache!}" && ./${basename(file)} && wait && exit 0\r`
       )
       const task = this.pty?.[ptyKey]
-      if (task) {
-        task.execFile = file
-      }
-      task?.task?.push({
-        command,
-        key,
-        reportExitCode
-      })
+      if (task) task.execFile = file
+      task?.task?.push({ command, key, reportExitCode })
     } else if (isWindows()) {
       const pty = this.pty?.[ptyKey]?.pty
       param.forEach((s) => {

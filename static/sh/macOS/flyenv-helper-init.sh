@@ -1,77 +1,65 @@
-#!/bin/zsh
-PLIST_SRC="$1"
-BIN="$2"
-DATA_PATH="$4"
-APP_ROOT="$5"
+#!/bin/sh
+# Invoked only from AppHelper's root-private verified snapshot. Unsigned sources
+# require the separate explicit administrator development bootstrap.
+set -eu
+umask 077
+BIN="$1"
+PLIST_SRC="$2"
+ROLE="$3"
+DATA_ROOT="$4"
+CA_PATH="$5"
+CA_FINGERPRINT="$6"
+LABEL='com.flyenv.helper'
+HELPER_DIR='/Library/Application Support/FlyEnv/Helper'
+PLIST_PATH='/Library/LaunchDaemons/com.flyenv.helper.plist'
+BIN_DEST="$HELPER_DIR/flyenv-helper"
 
-PLIST_PATH="/Library/LaunchDaemons/com.flyenv.helper.plist"
-BIN_DEST="/Library/Application Support/FlyEnv/Helper/flyenv-helper"
-ALLOW_ROOTS_PATH="/usr/local/share/FlyEnv/flyenv.allowed-roots"
-
-OS_VERSION=$(sw_vers -productVersion | cut -d. -f1)
-
-# Check if plist file already exists
-if [ -f "$PLIST_PATH" ]; then
-  echo "Existing plist found. Unloading the existing Launch Daemon..."
-  sudo launchctl enable "system/com.flyenv.helper" 2>/dev/null
-  if [ "$OS_VERSION" -ge 13 ]; then
-    echo "launchctl bootout system \"$PLIST_PATH\""
-    sudo launchctl bootout system "$PLIST_PATH" 2>/dev/null
-  else
-    echo "launchctl unload \"$PLIST_PATH\""
-    sudo launchctl unload "$PLIST_PATH" 2>/dev/null
+fail() { echo "FlyEnv helper installation failed: $*" >&2; exit 1; }
+[ "$(/usr/bin/id -u)" = 0 ] || fail 'administrator authorization is required'
+# Do not permit a direct execution of the desktop-writable installer.
+case "$0" in /private/var/root/flyenv-helper-install.*/*) ;; *) fail 'installer must run from protected staging' ;; esac
+for file in "$0" "$BIN" "$PLIST_SRC"; do
+  [ -f "$file" ] && [ ! -L "$file" ] || fail "invalid staged file: $file"
+done
+/usr/bin/plutil -lint "$PLIST_SRC" >/dev/null
+case "$ROLE" in *[!0-9:]*|:*|*:|*:*:*|'') fail 'invalid installation account' ;; esac
+case "$ROLE" in *:*) ;; *) fail 'invalid installation account' ;; esac
+case "$DATA_ROOT" in /*) ;; *) fail 'data root must be absolute' ;; esac
+if [ -n "$CA_PATH" ]; then
+  [ -f "$CA_PATH" ] && [ ! -L "$CA_PATH" ] || fail 'invalid staged CA'
+fi
+# Existing authorization assets are not changed until both launchd registration
+# and the actual old process have stopped. Errors are required prerequisites.
+job_query() {
+  if JOB_INFO=$(/bin/launchctl print "system/$LABEL" 2>&1); then
+    return 0
   fi
+  case "$JOB_INFO" in *'Could not find service'*|*'Could not find specified service'*) return 1 ;; esac
+  fail "cannot inspect old helper: $JOB_INFO"
+}
+if job_query; then
+  OLD_PID=$(printf '%s\n' "$JOB_INFO" | /usr/bin/sed -n 's/^[[:space:]]*pid = \([0-9][0-9]*\)$/\1/p')
+  /bin/launchctl bootout "system/$LABEL" || fail 'cannot stop existing helper'
+  attempt=0
+  while :; do
+    registered=0
+    alive=0
+    if job_query; then registered=1; fi
+    if [ -n "$OLD_PID" ] && /bin/kill -0 "$OLD_PID" 2>/dev/null; then alive=1; fi
+    if [ "$registered" = 0 ] && [ "$alive" = 0 ]; then break; fi
+    attempt=$((attempt + 1))
+    [ "$attempt" -lt 20 ] || fail 'old helper has not exited; existing authorization assets retained'
+    /bin/sleep 0.25
+  done
 fi
 
-if [ -e "/tmp/flyenv-helper.sock" ]; then
-  sudo chown "$3" "/tmp/flyenv-helper.sock"
-fi
-
-sudo mkdir -p "/usr/local/share/FlyEnv"
-echo "$3" | sudo tee "/tmp/flyenv.role" >/dev/null
-echo "$3" | sudo tee "/usr/local/share/FlyEnv/flyenv.role" >/dev/null
-sudo chown "$3" "/tmp/flyenv.role"
-sudo chmod 0600 "/tmp/flyenv.role"
-sudo chown root:wheel "/usr/local/share/FlyEnv/flyenv.role"
-sudo chmod 0644 "/usr/local/share/FlyEnv/flyenv.role"
-
-if [ -n "$DATA_PATH" ]; then
-  {
-    printf '%s\n' "$DATA_PATH"
-    if [ -n "$APP_ROOT" ]; then
-      printf '%s\n' "$APP_ROOT"
-    fi
-  } | sudo tee "$ALLOW_ROOTS_PATH" >/dev/null
-  sudo chown root:wheel "$ALLOW_ROOTS_PATH"
-  sudo chmod 0644 "$ALLOW_ROOTS_PATH"
-fi
-
-# Copy the new plist file
-echo "Copying new plist file..."
-sudo rm -rf "$PLIST_PATH" 2>/dev/null
-sudo cp "$PLIST_SRC" "$PLIST_PATH"
-sudo mkdir -p "/Library/Application Support/FlyEnv/Helper"
-sudo rm -rf "$BIN_DEST" 2>/dev/null
-sudo cp "$BIN" "$BIN_DEST"
-
-# Set the correct permissions
-sudo chmod 644 "$PLIST_PATH"
-sudo chmod 755 "$BIN_DEST"
-
-# Load the new Launch Daemon
-echo "Loading new Launch Daemon..."
-sudo launchctl enable "system/com.flyenv.helper" 2>/dev/null
-if [ "$OS_VERSION" -ge 13 ]; then
-  echo "launchctl bootstrap system \"$PLIST_PATH\""
-  sudo launchctl bootstrap system "$PLIST_PATH"
-else
-  echo "launchctl load \"$PLIST_PATH\""
-  sudo launchctl load "$PLIST_PATH"
-fi
-
-if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to load daemon. Please grant permission"
-    exit 1
-fi
-
-echo "Installation complete."
+# Go owns policy/key/approved-CA validation and ACLs; no /tmp role or legacy roots.
+"$BIN" --install-darwin-policy "$ROLE" "$DATA_ROOT" "$CA_PATH" "$CA_FINGERPRINT"
+# Publish only the protected verified snapshot, never reopen the desktop source.
+/usr/bin/install -o root -g wheel -m 0755 "$BIN" "$BIN_DEST.new"
+/bin/mv -f "$BIN_DEST.new" "$BIN_DEST"
+/usr/bin/install -o root -g wheel -m 0644 "$PLIST_SRC" "$PLIST_PATH.new"
+/bin/mv -f "$PLIST_PATH.new" "$PLIST_PATH"
+/bin/launchctl enable "system/$LABEL"
+/bin/launchctl bootstrap system "$PLIST_PATH"
+echo 'Helper published. FlyEnv will verify the new version and policy health.'

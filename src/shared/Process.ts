@@ -1,10 +1,9 @@
 import Helper from '../fork/Helper'
-import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { execPromiseWithEnv } from '@shared/child-process'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { parseUnixProcessList, unixProcessEnv, unixProcessListArgs } from './Process.unix'
-import { appDebugLog, isLinux, isWindows } from '@shared/utils'
+import { appDebugLog, isWindows } from '@shared/utils'
 import { logServiceStop } from './ServiceStopDiagnostics'
 import { collectProcessSnapshotTree, isReadableServiceStopRoot } from './ProcessSnapshot'
 import { constants } from 'node:os'
@@ -40,21 +39,6 @@ export const ProcessListFetch = async (): Promise<PItem[]> => {
     // 查询本机进程不应安装/健康检查常驻程序；严格普通查询失败可由服务层判定。
     const { ProcessPidListStrict } = await import('./Process.win')
     return ProcessPidListStrict()
-  }
-  let useHelper = false
-  try {
-    if (isLinux()) {
-      useHelper = false
-    } else if (Helper.enable) {
-      useHelper = true
-    } else if (await AppHelperCheck()) {
-      useHelper = true
-    }
-  } catch {
-    useHelper = false
-  }
-  if (useHelper) {
-    return (await Helper.send('tools', 'processList')) as any
   }
   const std = await promisify(execFile)('/bin/ps', unixProcessListArgs, {
     env: unixProcessEnv(),
@@ -307,46 +291,28 @@ export const ProcessKillStrict = async (sig: string, pids: string[]) => {
     }
     return
   }
-  if (isLinux()) {
-    const token = sig.replace(/^-/, '')
-    const signal = /^\d+$/.test(token)
-      ? Number(token)
-      : constants.signals[
-          (token.startsWith('SIG') ? token : `SIG${token}`) as keyof typeof constants.signals
-        ]
-    if (!Number.isInteger(signal) || signal < 0 || signal > 64)
-      throw new Error(`Unsupported signal: ${sig}`)
-    const failures: string[] = []
-    for (const pid of pids) {
-      if (!/^[1-9]\d*$/.test(pid) || Number(pid) <= 1) {
-        failures.push(`Invalid PID: ${pid}`)
-        continue
-      }
-      try {
-        process.kill(Number(pid), signal)
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ESRCH') failures.push(`${pid}: ${error}`)
-      }
+  const token = sig.replace(/^-/, '')
+  const signal = /^\d+$/.test(token)
+    ? Number(token)
+    : constants.signals[
+        (token.startsWith('SIG') ? token : `SIG${token}`) as keyof typeof constants.signals
+      ]
+  if (!Number.isInteger(signal) || signal < 0 || signal > 64)
+    throw new Error(`Unsupported signal: ${sig}`)
+  const failures: string[] = []
+  for (const pid of pids) {
+    if (!/^[1-9]\d*$/.test(pid) || Number(pid) <= 1) {
+      failures.push(`Invalid PID: ${pid}`)
+      continue
     }
-    if (failures.length) throw new Error(failures.join('\n'))
-    return
-  }
-  let useHelper = false
-  try {
-    if (Helper.enable) {
-      useHelper = true
-    } else if (await AppHelperCheck()) {
-      useHelper = true
+    try {
+      process.kill(Number(pid), signal)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ESRCH') failures.push(`${pid}: ${error}`)
     }
-  } catch {
-    useHelper = false
   }
-  if (useHelper) {
-    await Helper.send('tools', 'kill', sig, pids)
-    return
-  }
-  const command = `kill ${sig} ${pids.join(' ')}`
-  await execPromiseWithEnv(command)
+  if (failures.length) throw new Error(failures.join('\n'))
+  return
 }
 
 export const ProcessKill = async (sig: string, pids: string[]) => {
@@ -354,9 +320,8 @@ export const ProcessKill = async (sig: string, pids: string[]) => {
     await ProcessKillStrict(sig, pids)
   } catch (e) {
     appDebugLog(`[ProcessKill][command][error]`, `${e}`).catch()
-    // 还有服务使用兼容入口；Windows 命令失败必须向调用方传播，
-    // 否则 N8N、网关等会清空 PID 并误报已停止。Unix 保留既有尽力清理语义。
-    if (isWindows() || isLinux()) throw e
+    // Stop failures must preserve the caller's PID/state instead of reporting a completed stop.
+    throw e
   }
 }
 
@@ -368,53 +333,37 @@ export const fetchProcessPidByPort = async (port: string): Promise<PItem[]> => {
   }
   let pItems: PItem[] = []
 
-  let useHelper = false
+  // 端口先通过数字范围校验，再插入现有 shell 命令；直接读取 lsof 输出，
+  // 避免管道覆盖 lsof 的退出码。
+  const command = `lsof -nP -i:${port}`
+  let content = ''
   try {
-    if (isLinux()) {
-      useHelper = false
-    } else if (Helper.enable) {
-      useHelper = true
-    } else if (await AppHelperCheck()) {
-      useHelper = true
-    }
-  } catch {
-    useHelper = false
+    const res = await execPromiseWithEnv(command)
+    content = res.stdout.trim()
+    if (!content) throw new Error('lsof returned an empty process query result')
+  } catch (error) {
+    // lsof 仅在退出码 1 且标准输出/错误均为空时表示无匹配；其他失败代表归属
+    // 不可读，不能伪装成空停止目标。
+    if (isEmptyLsofNoMatch(error)) return []
+    throw error
   }
-  if (useHelper) {
-    pItems = await Helper.send<PItem[]>('tools', 'getPortPids', `${port}`)
-  } else {
-    // 端口先通过数字范围校验，再插入现有 shell 命令；直接读取 lsof 输出，
-    // 避免管道覆盖 lsof 的退出码。
-    const command = `lsof -nP -i:${port}`
-    let content = ''
-    try {
-      const res = await execPromiseWithEnv(command)
-      content = res.stdout.trim()
-      if (!content) throw new Error('lsof returned an empty process query result')
-    } catch (error) {
-      // lsof 仅在退出码 1 且标准输出/错误均为空时表示无匹配；其他失败代表归属
-      // 不可读，不能伪装成空停止目标。
-      if (isEmptyLsofNoMatch(error)) return []
-      throw error
-    }
 
-    const list: string[] = content.split('\n').filter((line) => line.trim().length > 0)
-    for (const item of list) {
-      const arr: string[] = item.trim().split(/\s+/)
-      if (arr[0]?.toUpperCase() === 'COMMAND' && arr[1]?.toUpperCase() === 'PID') continue
-      if (arr.length < 3 || !/^\d+$/.test(arr[1])) {
-        throw new Error('Invalid lsof process list output')
-      }
-      const [command, pid, user] = arr
-      pItems.push({
-        COMMAND: command,
-        PID: pid,
-        USER: user,
-        PPID: ''
-      })
+  const list: string[] = content.split('\n').filter((line) => line.trim().length > 0)
+  for (const item of list) {
+    const arr: string[] = item.trim().split(/\s+/)
+    if (arr[0]?.toUpperCase() === 'COMMAND' && arr[1]?.toUpperCase() === 'PID') continue
+    if (arr.length < 3 || !/^\d+$/.test(arr[1])) {
+      throw new Error('Invalid lsof process list output')
     }
-    if (pItems.length === 0) throw new Error('lsof returned no process rows')
+    const [command, pid, user] = arr
+    pItems.push({
+      COMMAND: command,
+      PID: pid,
+      USER: user,
+      PPID: ''
+    })
   }
+  if (pItems.length === 0) throw new Error('lsof returned no process rows')
   pItems = pItems.filter((p: PItem) => {
     return p.PID !== 'PID' && p.PPID !== 'PPID'
   })

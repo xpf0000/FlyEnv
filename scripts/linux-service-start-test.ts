@@ -14,7 +14,8 @@ const calls: unknown[][] = []
 }
 const mocks: Record<string, string> = {
   helper: 'export default globalThis.__linuxHelperTest',
-  utils: 'export const isLinux=()=>true,isMacOS=()=>false,isWindows=()=>false',
+  utils:
+    'export const isLinux=()=>true,isMacOS=()=>false,isWindows=()=>false,appDebugLog=async()=>{}',
   env: 'export default {sync:async()=>process.env}',
   lang: 'export const I18nT=(key)=>key',
   process: 'export const ProcessListFetch=async()=>[]',
@@ -33,7 +34,7 @@ try {
   const result = await build({
     stdin: {
       contents:
-        "export * from './src/fork/util/ServiceStart'; export * from './src/fork/module/Host/LinuxHosts'; export * from './src/fork/util/ListenPorts'; export * from './src/fork/module/Caddy/Ports'",
+        "export * from './src/fork/util/ServiceStart'; export * from './src/fork/module/Host/UnixHosts'; export * from './src/fork/util/ListenPorts'; export * from './src/fork/module/Caddy/Ports'",
       resolveDir: process.cwd()
     },
     bundle: true,
@@ -78,9 +79,9 @@ try {
     serviceStartSpawn,
     serviceStartExec,
     customerServiceStartExec,
-    syncLinuxHosts,
-    replaceLinuxHosts,
-    finishLinuxHostsEditing,
+    syncUnixHosts,
+    replaceUnixHosts,
+    finishUnixHostsEditing,
     portsFromListenConfig,
     portsFromCaddyConfig
   } = await import(pathToFileURL(bundle).href)
@@ -122,7 +123,7 @@ try {
     baseDir: directory,
     bin: process.execPath,
     on: () => {},
-    waitTime: 80,
+    waitTime: 400,
     lowPortService: true
   }
   const direct = await serviceStartSpawn({
@@ -184,9 +185,9 @@ try {
       return (args[2] as any).entries[0]?.domain !== 'arbitrary.example'
     return true
   }
-  assert.equal(await syncLinuxHosts(lines), false, 'matching managed block must not be rewritten')
+  assert.equal(await syncUnixHosts(lines), false, 'matching managed block must not be rewritten')
   assert.equal(calls.length, 3, 'helper owns the no-change decision')
-  assert.equal(await syncLinuxHosts(['198.51.100.200     another.domain']), true)
+  assert.equal(await syncUnixHosts(['198.51.100.200     another.domain']), true)
   assert.deepEqual(calls.at(-1), [
     'host',
     'syncManagedEntries',
@@ -197,15 +198,15 @@ try {
     new Promise<boolean>((resolve) => {
       release = resolve
     })
-  const edit = replaceLinuxHosts('draft', 'b'.repeat(64))
+  const edit = replaceUnixHosts('draft', 'b'.repeat(64))
   await new Promise((resolve) => setImmediate(resolve))
   let drained = false
-  const finish = finishLinuxHostsEditing().then(() => {
+  const finish = finishUnixHostsEditing().then(() => {
     drained = true
   })
   await new Promise((resolve) => setImmediate(resolve))
   assert.equal(drained, false, 'quit cleanup must wait for a pending full-text save')
-  await assert.rejects(replaceLinuxHosts('late edit', 'c'.repeat(64)), /closing/)
+  await assert.rejects(replaceUnixHosts('late edit', 'c'.repeat(64)), /closing/)
   release(true)
   assert.equal(await edit, true)
   await finish

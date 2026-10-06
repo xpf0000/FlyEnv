@@ -53,7 +53,7 @@ func launchLinuxServiceWithBinary(req linuxLaunch, p linuxPolicy, self string) (
 			return 0, fmt.Errorf("logs must be inside the approved data root")
 		}
 	}
-	trusted, err := openProtectedLinuxFile(self, 128*1024*1024)
+	trusted, err := openProtectedFile(self, 128*1024*1024)
 	if err != nil {
 		return 0, err
 	}

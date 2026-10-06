@@ -11,7 +11,7 @@ import {
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
 import { hasWindowsPrivilegeProvider } from '@shared/WindowsPrivilege'
-import { appDebugLog, isLinux, isWindows, uuid } from '@shared/utils'
+import { appDebugLog, isWindows, uuid } from '@shared/utils'
 import { timeOperation } from '@shared/OperationTiming'
 import { bindWindowsPathLogger } from '@shared/WindowsPathDiagnostics'
 import { I18nT } from '@lang/runtime'
@@ -104,7 +104,9 @@ const defaultHelperDeps: HelperDeps = {
   appHelperCheck: AppHelperCheck,
   getHelperKey,
   helperBinaryExists: () => !isWindows() || !global.Server?.Static || windowsHelperBinaryExists(),
-  helperRequestTimeoutMs: 30_000,
+  // Darwin's fixed FTP sequence can take 92 seconds; allow the 120s server
+  // budget plus connection/response overhead. Unknown results are never replayed.
+  helperRequestTimeoutMs: process.platform === 'darwin' ? 125_000 : 30_000,
   isWindows,
   getWindowsElevationMethod: () =>
     resolveWindowsElevationMethod(global.Server?.WindowsElevationMethod),
@@ -143,6 +145,12 @@ export class Helper {
   async ensureKey() {
     if (this.helperKey) return
     this.helperKey = await this.deps.getHelperKey()
+    if (!this.deps.isWindows()) {
+      if (!this.helperKey)
+        throw new AppHelperError('helper_key_missing', 'Helper key is missing before dispatch')
+      if (this.helperKey.length !== 32)
+        throw new AppHelperError('helper_key_invalid', 'Helper key must contain exactly 32 bytes')
+    }
   }
 
   private invalidateHelperState() {
@@ -160,7 +168,7 @@ export class Helper {
 
   private validateSendArgs(module: string, fn: string, args: any[]): boolean {
     // Hosts text is data, including arbitrary comments and paths.
-    if (isLinux() && module === 'host') return true
+    if (!this.deps.isWindows() && module === 'host') return true
     for (const [index, arg] of args.entries()) {
       if (module === 'tools' && fn === 'setSystemPath' && (index === 0 || index === 2)) {
         continue
@@ -233,7 +241,7 @@ export class Helper {
     fn: FN,
     args: any[]
   ): Promise<{ handled: boolean; value?: T }> {
-    if (isLinux()) {
+    if (!this.deps.isWindows()) {
       this.invalidateHelperState()
       if (
         isAppHelperError(error) &&
@@ -244,7 +252,8 @@ export class Helper {
           'helper_unreachable',
           'helper_pipe_unreachable',
           'helper_signature_invalid',
-          'helper_version_mismatch'
+          'helper_version_mismatch',
+          'helper_health_invalid'
         ].includes(error.code)
       ) {
         this.notifyNeedInstall()
@@ -472,7 +481,9 @@ export class Helper {
           }
           try {
             const routed = await this.routeUnavailableHelper<T>(
-              new AppHelperError('helper_pipe_unreachable', error.message),
+              isAppHelperError(error)
+                ? error
+                : new AppHelperError('helper_pipe_unreachable', error.message),
               module,
               fn,
               args

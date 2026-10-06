@@ -278,14 +278,6 @@ func TestLinuxServiceCredentials(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 }
 
-func TestManagedHostsHandlesDuplicateCompleteBlocks(t *testing.T) {
-	content := "custom\n#X-HOSTS-BEGIN#\nold\n#X-HOSTS-END#\nmiddle\n#X-HOSTS-BEGIN#\nold2\n#X-HOSTS-END#\ntail\n"
-	got, err := mergeManagedHosts(content, "")
-	if err != nil || got != "custom\n\nmiddle\n\ntail\n" {
-		t.Fatalf("got %q: %v", got, err)
-	}
-}
-
 func TestLinuxStrictRequests(t *testing.T) {
 	p := linuxPolicy{Version: Helper_Version, UID: 1000}
 	for _, info := range []TaskItem{
@@ -347,55 +339,6 @@ func TestLinuxServiceBusinessOptions(t *testing.T) {
 	}
 }
 
-func TestManagedHostsAppendPreservesWhitespace(t *testing.T) {
-	content := "custom\n\n\n"
-	got, err := mergeManagedHosts(content, "127.0.0.1 arbitrary.domain\n")
-	if err != nil || !strings.HasPrefix(got, content) {
-		t.Fatalf("outside content changed: %q, %v", got, err)
-	}
-}
-
-func TestHostsContentAndConflict(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "hosts")
-	original := "127.0.0.1 localhost\n"
-	if err := os.WriteFile(path, []byte(original), 0644); err != nil {
-		t.Fatal(err)
-	}
-	store := hostsStore{path: path}
-	before, _ := os.Stat(path)
-	first, err := store.read()
-	if err != nil {
-		t.Fatal(err)
-	}
-	content := "# custom full text\n203.0.113.42 any.domain.invalid arbitrary-name\n::1 ipv6.example\n"
-	if err := store.replace(content, first.Digest); err != nil {
-		t.Fatal(err)
-	}
-	after, _ := os.Stat(path)
-	if os.SameFile(before, after) {
-		t.Fatal("hosts save must publish a complete new file atomically")
-	}
-	if err := store.replace(original, first.Digest); err == nil {
-		t.Fatal("stale edit overwritten")
-	}
-	got, _ := os.ReadFile(path)
-	if string(got) != content {
-		t.Fatal("full text changed")
-	}
-}
-
-func TestHostsRejectsSymlink(t *testing.T) {
-	dir := t.TempDir()
-	target := filepath.Join(dir, "protected")
-	os.WriteFile(target, []byte("keep"), 0644)
-	link := filepath.Join(dir, "hosts")
-	os.Symlink(target, link)
-	store := hostsStore{path: link}
-	if _, err := store.read(); err == nil {
-		t.Fatal("followed symlink")
-	}
-}
-
 func TestHostsPreservesACLAndXattrs(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "hosts")
 	if err := os.WriteFile(path, []byte("original\n"), 0644); err != nil {
@@ -418,7 +361,7 @@ func TestHostsPreservesACLAndXattrs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = store.replace("new arbitrary hosts\n", snapshot.Digest); err != nil {
+	if _, err = store.replace("new arbitrary hosts\n", snapshot.Digest); err != nil {
 		t.Fatal(err)
 	}
 	f, err = os.Open(path)
@@ -432,17 +375,5 @@ func TestHostsPreservesACLAndXattrs(t *testing.T) {
 		if err != nil || !bytes.Equal(buffer[:n], expected) {
 			t.Fatalf("lost %s: %v", name, err)
 		}
-	}
-}
-
-func TestManagedHostsPreservesOtherContent(t *testing.T) {
-	original := "# custom\n198.51.100.1 user.local\n#X-HOSTS-BEGIN#\n127.0.0.1 old.local\n#X-HOSTS-END#\n# tail\n"
-	got, err := mergeManagedHosts(original, "203.0.113.8 arbitrary.domain\n")
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := "# custom\n198.51.100.1 user.local\n#X-HOSTS-BEGIN#\n203.0.113.8 arbitrary.domain\n#X-HOSTS-END#\n# tail\n"
-	if got != want {
-		t.Fatalf("got %q", got)
 	}
 }

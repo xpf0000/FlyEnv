@@ -90,6 +90,11 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   })
 
   const disabled = asyncComputed<boolean>(async () => {
+    if (
+      !window.Server.isWindows &&
+      /^\/(?:etc|private\/etc|opt\/local)(?:\/|$)/.test(props.value.file ?? '')
+    )
+      return true
     if (!index.value) {
       return true
     }

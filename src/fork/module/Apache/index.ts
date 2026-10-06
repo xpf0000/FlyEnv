@@ -19,7 +19,7 @@ import {
   writeFile,
   mkdirp
 } from '../../Fn'
-import { prepareLinuxLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
+import { prepareUnixLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
 import { portsFromListenConfig } from '../../util/ListenPorts'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
@@ -390,8 +390,8 @@ IncludeOptional "${vhost}"`
         // daemonizes) so the detached spawn owns the process directly.
         const logFile = join(global.Server.ApacheDir, `common/logs/access_log`)
         const baseDir = global.Server.ApacheDir!
-        await prepareLinuxLogDirectory(join(baseDir, 'common/logs'))
-        await prepareLinuxLogDirectory(
+        await prepareUnixLogDirectory(join(baseDir, 'common/logs'))
+        await prepareUnixLogDirectory(
           join(global.Server.BaseDir!, 'vhost/logs'),
           (name) => name.endsWith('-access_log') || name.endsWith('-error_log')
         )

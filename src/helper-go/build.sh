@@ -1,3 +1,6 @@
+#!/bin/bash
+set -euo pipefail
+
 # --- Configuration ---
 BUILD_DIR="./dist"
 APP_NAME="flyenv-helper"
@@ -36,9 +39,15 @@ for TARGET in "${TARGETS[@]}"; do
     echo "Building for ${GOOS_VAL} ${GOARCH_VAL} (GOAMD64=${GOAMD64_VAL:-default})..."
 
     # Set environment variables for cross-compilation
-    # CGO_ENABLED=0 is crucial for static linking and avoiding C dependencies
+    # Darwin needs the native ACL/xattr bridge; other targets stay statically linked.
     # GOAMD64 is only set if it's explicitly defined for the target (e.g., for linux amd64)
-    if [[ -n "$GOAMD64_VAL" ]]; then
+    if [[ "$GOOS_VAL" == "darwin" ]]; then
+        [[ "$(uname -s)" == "Darwin" ]] || { echo "Error: Darwin helper requires macOS SDK/clang; unsigned !cgo fallback is not a production build"; exit 1; }
+        DARWIN_C_ARCH="$GOARCH_VAL"
+        [[ "$GOARCH_VAL" != "amd64" ]] || DARWIN_C_ARCH=x86_64
+        DARWIN_SDK="$(xcrun --sdk macosx --show-sdk-path)"
+        GOOS="$GOOS_VAL" GOARCH="$GOARCH_VAL" CGO_ENABLED=1 MACOSX_DEPLOYMENT_TARGET=12.0 CC="$(xcrun --find clang)" CGO_CFLAGS="-arch $DARWIN_C_ARCH -isysroot $DARWIN_SDK -mmacosx-version-min=12.0" CGO_LDFLAGS="-arch $DARWIN_C_ARCH -isysroot $DARWIN_SDK -mmacosx-version-min=12.0" go build -o "${BUILD_DIR}/${OUTPUT_FILENAME}" "${MAIN_PACKAGE}" || { echo "Error: Build failed for ${GOOS_VAL}/${GOARCH_VAL}"; exit 1; }
+    elif [[ -n "$GOAMD64_VAL" ]]; then
         GOOS=${GOOS_VAL} GOARCH=${GOARCH_VAL} GOAMD64=${GOAMD64_VAL} CGO_ENABLED=0 go build -o "${BUILD_DIR}/${OUTPUT_FILENAME}" "${MAIN_PACKAGE}" || { echo "Error: Build failed for ${GOOS_VAL}/${GOARCH_VAL}"; exit 1; }
     else
         GOOS=${GOOS_VAL} GOARCH=${GOARCH_VAL} CGO_ENABLED=0 go build -o "${BUILD_DIR}/${OUTPUT_FILENAME}" "${MAIN_PACKAGE}" || { echo "Error: Build failed for ${GOOS_VAL}/${GOARCH_VAL}"; exit 1; }

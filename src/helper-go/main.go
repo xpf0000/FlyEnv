@@ -35,7 +35,7 @@ const (
 	// v35：完整 PID 集合一次停止请求，移除逐 PID 的阻塞等待，保留原身份/句柄预检。
 	// v36：系统环境写入后非阻塞安排后台广播，合并待处理通知，不等待窗口响应。
 	// v37：取消 Helper 内提前通知，由 FlyEnv 环境业务结算后统一广播，避免重复通知。
-	Helper_Version   = 41
+	Helper_Version   = 42
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
 	Key_Path_Unix    = "/usr/local/share/FlyEnv/flyenv-helper.key"
@@ -86,6 +86,9 @@ func parseHelperRuntimeConfig(args []string) (helperRuntimeConfig, error) {
 }
 
 func getKeyPath() string {
+	if runtime.GOOS == "darwin" {
+		return darwinKeyPath
+	}
 	if runtime.GOOS == "windows" {
 		return runtimeConfig.Paths.KeyPath
 	}
@@ -371,6 +374,9 @@ func ensureSecureKeyFile(keyPath string) ([]byte, error) {
 }
 
 func loadOrGenerateKey() error {
+	if runtime.GOOS == "darwin" {
+		return loadDarwinKey()
+	}
 	if runtime.GOOS == "linux" {
 		return loadLinuxKey()
 	}
@@ -441,7 +447,7 @@ func (a *AppHelper) validateFreshRequest(info TaskItem) error {
 	if _, exists := a.nonces[info.Nonce]; exists {
 		return fmt.Errorf("replayed request nonce")
 	}
-	if runtime.GOOS == "linux" && len(a.nonces) >= 16384 {
+	if (runtime.GOOS == "linux" || runtime.GOOS == "darwin") && len(a.nonces) >= 16384 {
 		return fmt.Errorf("helper request limit reached; retry later")
 	}
 	a.nonces[info.Nonce] = info.Ts
@@ -487,6 +493,9 @@ func (a *AppHelper) verifySignature(info TaskItem) bool {
 }
 
 func (a *AppHelper) validatePeer(peer utils.PeerInfo) error {
+	if runtime.GOOS == "darwin" {
+		return validateDarwinUID(peer.UID)
+	}
 	if runtime.GOOS == "linux" {
 		return validateLinuxUID(peer.UID)
 	}
@@ -519,6 +528,9 @@ func normalizeExecutablePath(path string) string {
 }
 
 func (a *AppHelper) validateClientBinding(info TaskItem, peer utils.PeerInfo) error {
+	if runtime.GOOS == "darwin" && peer.PID <= 0 {
+		return fmt.Errorf("missing actual peer PID")
+	}
 	if info.ClientPid <= 0 {
 		return fmt.Errorf("missing client pid")
 	}
@@ -566,6 +578,11 @@ func helperHealth() (map[string]interface{}, error) {
 
 // Run sets up and starts the Unix domain socket server
 func (a *AppHelper) Run() error {
+	if runtime.GOOS == "darwin" {
+		if err := prepareDarwinSocket(); err != nil {
+			return err
+		}
+	}
 	if runtime.GOOS == "linux" {
 		if err := prepareLinuxSocket(); err != nil {
 			return err
@@ -591,7 +608,11 @@ func (a *AppHelper) Run() error {
 		fmt.Println("Server is listening on Windows named pipe:", utils.GetPipeNameFromSocketPath(runtimeConfig.Paths.PipeName))
 	} else {
 		// Use Unix domain socket on Unix-like systems
-		listener, err = net.Listen("unix", SOCKET_PATH)
+		if runtime.GOOS == "darwin" {
+			listener, err = listenDarwinSocket()
+		} else {
+			listener, err = net.Listen("unix", SOCKET_PATH)
+		}
 		if err != nil {
 			return fmt.Errorf("failed to listen on socket '%s': %w", SOCKET_PATH, err)
 		}
@@ -603,6 +624,10 @@ func (a *AppHelper) Run() error {
 	// Linux socket permissions are set synchronously, before accepting clients.
 	if runtime.GOOS == "linux" {
 		if err := linuxSocketReady(); err != nil {
+			return err
+		}
+	} else if runtime.GOOS == "darwin" {
+		if err := darwinSocketReady(); err != nil {
 			return err
 		}
 	} else if runtime.GOOS != "windows" {
@@ -626,12 +651,18 @@ func (a *AppHelper) Run() error {
 			return err // Or continue if you want to retry accepting
 		}
 		// Handle each connection in a new goroutine
-		if runtime.GOOS == "linux" {
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			select {
 			case connections <- struct{}{}:
 				go func() {
 					defer func() { <-connections }()
-					conn.SetDeadline(time.Now().Add(30 * time.Second))
+					budget := 30 * time.Second
+					if runtime.GOOS == "darwin" {
+						// FTP start has up to 92 seconds of serial fixed-tool budgets.
+						// Lock contention can still expire this bound: do not replay unknown results.
+						budget = 120 * time.Second
+					}
+					conn.SetDeadline(time.Now().Add(budget))
 					a.handleClient(conn)
 				}()
 			default:
@@ -730,6 +761,11 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 			continue // Wait for more data
 		}
 
+		if runtime.GOOS == "darwin" && (len(info.Key) > 256 || len(info.Module) > 64 || len(info.Function) > 64 || len(info.ClientExe) > 4096) {
+			responseBytes, _ := json.Marshal(Response{Code: 1, Msg: "request metadata exceeds size limit"})
+			conn.Write(responseBytes)
+			return
+		}
 		// JSON successfully parsed, clear buffer for next message
 		reader.Reset()
 
@@ -791,6 +827,8 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 
 		if runtime.GOOS == "linux" {
 			result, execErr = dispatchLinux(info, installedLinuxPolicy)
+		} else if runtime.GOOS == "darwin" {
+			result, execErr = dispatchDarwin(info, installedDarwinPolicy)
 		} else {
 			// 使用嵌套的 switch 语句直接调用方法，并加入参数检查
 			switch info.Module {
@@ -1296,6 +1334,9 @@ func (a *AppHelper) handleClient(conn net.Conn) {
 			return // Critical error, terminate connection handling
 		}
 
+		if runtime.GOOS == "darwin" && len(responseBytes) > 2*1024*1024 {
+			responseBytes, _ = json.Marshal(Response{Key: info.Key, Code: 1, Msg: "helper response exceeds size limit"})
+		}
 		_, writeErr := conn.Write(responseBytes)
 		if writeErr != nil {
 			fmt.Printf("Error writing response for key %s: %v\n", info.Key, writeErr)
@@ -1370,6 +1411,20 @@ func parseProcessStartIdentities(value interface{}, operation string) ([]utils.P
 
 // Main entry point for the Go program
 func main() {
+	if runtime.GOOS == "darwin" {
+		if len(os.Args) > 1 && os.Args[1] == "--install-darwin-policy" {
+			if err := installDarwinPolicy(os.Args[1:]); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			return
+		}
+		if err := initializeDarwin(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		SOCKET_PATH = darwinSocketPath
+	}
 	if runtime.GOOS == "linux" {
 		if len(os.Args) > 1 && (os.Args[1] == "--linux-service-child" || os.Args[1] == "--install-linux-policy") {
 			var err error

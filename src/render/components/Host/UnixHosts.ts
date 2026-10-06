@@ -1,5 +1,5 @@
 import IPC from '@/util/IPC'
-import type { LinuxHostsSnapshot } from '../../../fork/module/Host/LinuxHosts'
+import type { UnixHostsSnapshot } from '../../../fork/module/Host/UnixHosts'
 import { reactiveBind } from '@/util/Index'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
@@ -15,15 +15,15 @@ function request<T>(method: string, ...args: string[]): Promise<T> {
     )
   })
 }
-export const readLinuxHosts = () => request<LinuxHostsSnapshot>('readHosts')
+export const readUnixHosts = () => request<UnixHostsSnapshot>('readHosts')
 
 /** Keep typing made during a save; don't accept unseen external edits as its baseline. */
-export function reconcileLinuxHostsSave(
-  snapshot: LinuxHostsSnapshot,
+export function reconcileUnixHostsSave(
+  snapshot: UnixHostsSnapshot,
   submitted: string,
   draft: string,
   previousDigest: string
-): LinuxHostsSnapshot {
+): UnixHostsSnapshot {
   if (draft === submitted) return snapshot
   return {
     content: draft,
@@ -31,7 +31,7 @@ export function reconcileLinuxHostsSave(
   }
 }
 
-class LinuxHostsEditorController {
+class UnixHostsEditorController {
   saving = false
 
   async save(content: string, digest: string): Promise<boolean> {
@@ -50,4 +50,4 @@ class LinuxHostsEditorController {
   }
 }
 
-export const LinuxHostsEditor = reactiveBind(new LinuxHostsEditorController())
+export const UnixHostsEditor = reactiveBind(new UnixHostsEditorController())

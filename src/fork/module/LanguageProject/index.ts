@@ -11,8 +11,8 @@ import {
 } from '../../Fn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { I18nT } from '@lang/runtime'
-import { basename, dirname, join } from 'path'
-import { chmod, remove, writeFile, copyFile, readFile, spawnPromiseWithEnv } from '../../Fn'
+import { dirname, join } from 'path'
+import { chmod, remove, copyFile, readFile, spawnPromiseWithEnv } from '../../Fn'
 import { execPromise } from '../../Fn'
 import EnvSync from '@shared/EnvSync'
 import { powerShellInlineArgs } from '@shared/PowerShellCommand'
@@ -23,6 +23,7 @@ import {
   stopRegisteredServiceProcesses,
   type ServiceProcessIdentity
 } from '@shared/ServiceProcessIdentity'
+import { runMacTerminalCommand } from '../../util/MacTerminal'
 
 class LanguageProject {
   constructor() {}
@@ -154,39 +155,9 @@ class LanguageProject {
 
       // 处理 macOS 终端打开
       if (isMacOS() && openInTerminal) {
-        let command = ''
-        if (project.commandType === 'file') {
-          command = project.runFile
-        } else {
-          command = project.runCommand
-        }
-        if (project.binBin && existsSync(project.binBin)) {
-          command = `export PATH="${dirname(project.binBin)}:$PATH"\n${command}`
-        }
-        for (const k in version.env) {
-          command = `export ${k}="${version.env[k]}"\n${command}`
-        }
-        command = command.replace(/"/g, '\\"')
-        const appleScript = `
-        tell application "Terminal"
-          if not running then
-            activate
-            do script "${command}" in front window
-          else
-            activate
-            do script "${command}"
-          end if
-        end tell`
-        const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
-        await writeFile(scptFile, appleScript)
-        await chmod(scptFile, '0777')
         try {
-          await execPromise(`osascript ./${basename(scptFile)}`, {
-            cwd: global.Server.Cache!
-          })
-          await remove(scptFile)
+          await runMacTerminalCommand(version)
         } catch (e) {
-          await remove(scptFile)
           return reject(e)
         }
 

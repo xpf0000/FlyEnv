@@ -111,7 +111,7 @@ export const LogSetup = (file: Ref<string>) => {
             MessageSuccess(I18nT('base.success'))
           })
           .catch((error) => {
-            if (window.Server.isLinux) {
+            if (!window.Server.isWindows) {
               MessageError(`${I18nT('base.fail')}: ${error}`)
               return
             }

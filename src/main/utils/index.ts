@@ -1,3 +1,8 @@
+import {
+  isSystemHostsPath,
+  readUnixHosts,
+  assertGenericUnixFileWrite
+} from '../../fork/module/Host/UnixHosts'
 import { app } from 'electron'
 import { arch, cpus } from 'os'
 import {
@@ -13,7 +18,7 @@ import {
   unlinkSync,
   writeFile
 } from '@shared/fs-extra'
-import { isLinux, isMacOS, pathFixedToUnix } from '@shared/utils'
+import { isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import Helper from '../../fork/Helper'
 import logger from '../core/Logger'
 
@@ -107,7 +112,8 @@ export function isArmArch() {
 
 export async function readFileFixed(file: string): Promise<string> {
   const path = pathFixedToUnix(file)
-  if (isLinux()) return readFile(path, 'utf8')
+  if (!isWindows())
+    return isSystemHostsPath(path) ? (await readUnixHosts()).content : readFile(path, 'utf8')
   try {
     return await readFile(path, 'utf-8')
   } catch {}
@@ -118,7 +124,8 @@ export async function readFileFixed(file: string): Promise<string> {
 }
 
 export const writeFileByRoot = async (file: string, content: string) => {
-  if (isLinux()) {
+  if (!isWindows()) {
+    assertGenericUnixFileWrite(file)
     await writeFile(file, content)
     return true
   }

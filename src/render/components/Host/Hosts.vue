@@ -26,7 +26,7 @@
             </el-button>
           </el-tooltip>
           <el-tooltip :show-after="600" :content="I18nT('conf.save')" placement="top">
-            <el-button :disabled="linuxSaving" :loading="linuxSaving" @click="saveConfig">
+            <el-button :disabled="unixSaving" :loading="unixSaving" @click="saveConfig">
               <yb-icon :svg="import('@/svg/save.svg?raw')" class="w-5 h-5 p-0.5" />
             </el-button>
           </el-tooltip>
@@ -47,14 +47,14 @@
   import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { HostsFileLinux, HostsFileMacOS } from '@shared/PlatFormConst'
   import { FolderOpened } from '@element-plus/icons-vue'
-  import { readLinuxHosts, LinuxHostsEditor, reconcileLinuxHostsSave } from './LinuxHosts'
+  import { readUnixHosts, UnixHostsEditor, reconcileUnixHostsSave } from './UnixHosts'
 
   const config = ref('')
   // 读取成功才允许创建编辑器，覆盖 mounted 与异步读取的先后顺序。
   let configLoaded = false
   let hostsDigest = ''
   let alive = true
-  const linuxSaving = computed(() => window.Server.isLinux && LinuxHostsEditor.saving)
+  const unixSaving = computed(() => !window.Server.isWindows && UnixHostsEditor.saving)
   let configpath = ''
   if (window.Server.isMacOS) {
     configpath = HostsFileMacOS
@@ -73,10 +73,10 @@
     try {
       // 读取失败必须阻止保存，不能把拒绝访问伪装成空文件再覆盖原 hosts。
       let conf: string
-      if (window.Server.isLinux) {
-        let snapshot = await readLinuxHosts()
+      if (!window.Server.isWindows) {
+        let snapshot = await readUnixHosts()
         if (submitted !== undefined && monacoInstance) {
-          snapshot = reconcileLinuxHostsSave(
+          snapshot = reconcileUnixHostsSave(
             snapshot,
             submitted,
             monacoInstance.getValue(),
@@ -131,8 +131,8 @@
     if (!monacoInstance) return
     try {
       const content = monacoInstance?.getValue() ?? ''
-      if (window.Server.isLinux) {
-        if (!(await LinuxHostsEditor.save(content, hostsDigest))) return
+      if (!window.Server.isWindows) {
+        if (!(await UnixHostsEditor.save(content, hostsDigest))) return
         // Reload the saved version so subsequent edits retain conflict protection.
         if (alive) await getConfig(content)
       } else {

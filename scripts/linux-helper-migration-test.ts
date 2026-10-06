@@ -10,13 +10,14 @@ import { parse, compileScript } from '@vue/compiler-sfc'
 import { createAppHelperChecker, HelperVersion } from '../src/shared/AppHelperCheck'
 
 const selected = process.argv[2]
+const darwin = process.argv[3] === 'darwin'
 const cases: Record<string, () => Promise<void>> = {
   async transport() {
     const paths: string[] = []
     let legacyOnly = false
     const check = createAppHelperChecker({
       isWindows: () => false,
-      isLinux: () => true,
+      isLinux: () => !darwin,
       getHelperKey: async () => Buffer.alloc(32),
       createConnection: ((path: string) => {
         paths.push(path)
@@ -28,7 +29,22 @@ const cases: Record<string, () => Promise<void>> = {
           queueMicrotask(() =>
             socket.emit(
               'data',
-              Buffer.from(JSON.stringify({ key: request.key, code: 0, data: HelperVersion }))
+              Buffer.from(
+                JSON.stringify({
+                  key: request.key,
+                  code: 0,
+                  data:
+                    request.function === 'health'
+                      ? {
+                          version: HelperVersion,
+                          policyVersion: HelperVersion,
+                          policyUID: process.getuid?.(),
+                          healthy: true,
+                          pid: 12345
+                        }
+                      : HelperVersion
+                })
+              )
             )
           )
         }
@@ -41,10 +57,13 @@ const cases: Record<string, () => Promise<void>> = {
       }) as any
     } as any)
     assert.equal(await check(), true)
-    assert.equal(paths[0], '/run/flyenv-helper/helper.sock')
+    assert.equal(
+      paths[0],
+      darwin ? '/private/var/run/flyenv-helper/helper.sock' : '/run/flyenv-helper/helper.sock'
+    )
     legacyOnly = true
     await assert.rejects(check(), /new helper missing/)
-    assert.equal(paths.length, 2, 'checker must never retry the legacy socket')
+    assert.equal(paths.length, darwin ? 3 : 2, 'checker must never retry the legacy socket')
     for (const [key, code] of [
       [null, 'helper_key_missing'],
       [Buffer.alloc(31), 'helper_key_invalid']
@@ -52,7 +71,7 @@ const cases: Record<string, () => Promise<void>> = {
       let connects = 0
       const check = createAppHelperChecker({
         isWindows: () => false,
-        isLinux: () => true,
+        isLinux: () => !darwin,
         getHelperKey: async () => key,
         createConnection: (() => {
           connects++
@@ -151,7 +170,9 @@ exit "$result"`
         readonly = value
       }
     }
-    ;(globalThis as any).window = { Server: { isLinux: true, Password: '' } }
+    ;(globalThis as any).window = {
+      Server: { isLinux: !darwin, isMacOS: darwin, isWindows: false, Password: '' }
+    }
     const mock = `const state=globalThis.__linuxMigration;
       export const uuid=()=> 'test-id', reactiveBind=(v)=>v;
       export const I18nT=(key)=>key, MessageError=(text)=>state.messages.push('error:'+text),MessageSuccess=(text)=>state.messages.push('success:'+text);
@@ -171,7 +192,7 @@ exit "$result"`
     try {
       const result = await build({
         stdin: {
-          contents: `export * from './src/render/components/LanguageProjects/ProjectItem'; export * from './src/render/core/ModuleCustomer'; export * from './src/render/components/Host/LinuxHosts'; export {default as SystemEditor} from 'system-editor-fixture'; export * from './src/render/components/Log/setup'; export {ref as testRef} from 'vue'`,
+          contents: `export * from './src/render/components/LanguageProjects/ProjectItem'; export * from './src/render/core/ModuleCustomer'; export * from './src/render/components/Host/UnixHosts'; export {default as SystemEditor} from 'system-editor-fixture'; export * from './src/render/components/Log/setup'; export {ref as testRef} from 'vue'`,
           resolveDir: process.cwd()
         },
         bundle: true,
@@ -207,14 +228,14 @@ exit "$result"`
       await writeFile(file, result.outputFiles[0].text)
       const module = await import(pathToFileURL(file).href)
       if (selected === 'draft') {
-        assert.equal(typeof module.reconcileLinuxHostsSave, 'function')
+        assert.equal(typeof module.reconcileUnixHostsSave, 'function')
         const snapshot = { content: 'saved', digest: 'new-digest' }
         assert.deepEqual(
-          module.reconcileLinuxHostsSave(snapshot, 'saved', 'typed while waiting', 'old-digest'),
+          module.reconcileUnixHostsSave(snapshot, 'saved', 'typed while waiting', 'old-digest'),
           { content: 'typed while waiting', digest: 'new-digest' }
         )
         assert.deepEqual(
-          module.reconcileLinuxHostsSave(
+          module.reconcileUnixHostsSave(
             { content: 'external change', digest: 'external' },
             'saved',
             'new draft',
@@ -307,7 +328,7 @@ exit "$result"`
                 contents:
                   path === '../../Fn'
                     ? `export const writeFileByRoot=async()=>{throw Error('EACCES')},readFileByRoot=async()=>{throw Error('EACCES')},getAllFileAsync=()=>{},systemProxyGet=()=>{},existsSync=()=>true;`
-                    : `export class Base {}; export const isLinux=()=>true; export const TaskQueue=class {},TaskQueueProgress={},I18nT=()=>'',BomCleanTask=class {},killPorts=()=>{},killPids=()=>{},getPortPids=()=>{},getPidsByKey=()=>{},fetchEnvPath=()=>{},fetchPATH=()=>{},handleUpdatePath=()=>{},updatePATH=()=>{},removePATH=()=>{},setAlias=()=>{},cleanAlias=()=>{},runInTerminal=()=>{},openPathByApp=()=>{},initAllowDir=()=>{},initFlyEnvSH=()=>{};export default class {};`,
+                    : `export class Base {}; export const isLinux=()=>${!darwin},isMacOS=()=>${darwin},isWindows=()=>false; export const TaskQueue=class {},TaskQueueProgress={},I18nT=()=>'',BomCleanTask=class {},killPorts=()=>{},killPids=()=>{},getPortPids=()=>{},getPidsByKey=()=>{},fetchEnvPath=()=>{},fetchPATH=()=>{},handleUpdatePath=()=>{},updatePATH=()=>{},removePATH=()=>{},setAlias=()=>{},cleanAlias=()=>{},runInTerminal=()=>{},openPathByApp=()=>{},initAllowDir=()=>{},initFlyEnvSH=()=>{};export default class {};`,
                 loader: 'js'
               }))
             }

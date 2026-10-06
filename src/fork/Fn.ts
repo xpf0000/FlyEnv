@@ -1,3 +1,8 @@
+import {
+  assertGenericUnixFileWrite,
+  isSystemHostsPath,
+  readUnixHosts
+} from './module/Host/UnixHosts'
 import type { FSWatcher } from 'node:fs'
 import { createWriteStream, realpathSync } from 'node:fs'
 import { dirname, join, normalize } from 'path'
@@ -58,7 +63,7 @@ import {
   writeFile
 } from '@shared/fs-extra'
 import { addPath, fetchRawPATH, handleWinPathArr, writePath } from './util/PATH.win'
-import { isLinux, isWindows, waitTime } from '@shared/utils'
+import { isWindows, waitTime } from '@shared/utils'
 import { splitHostAliases } from '@shared/siteRuntime'
 import { timeOperation } from '@shared/OperationTiming'
 import { probeWindowsNTFS } from '@shared/WindowsVolume'
@@ -283,7 +288,8 @@ const validateHelperPath = (path: string): boolean => {
 }
 
 export const writeFileByRoot = async (file: string, content: string) => {
-  if (isLinux()) {
+  if (!isWindows()) {
+    assertGenericUnixFileWrite(file)
     await writeFile(file, content)
     return true
   }
@@ -302,7 +308,8 @@ export const writeFileByRoot = async (file: string, content: string) => {
 }
 
 export const readFileByRoot = async (file: string): Promise<string> => {
-  if (isLinux()) return readFile(file, 'utf8')
+  if (!isWindows())
+    return isSystemHostsPath(file) ? (await readUnixHosts()).content : readFile(file, 'utf8')
   if (!validateHelperPath(file)) {
     throw new Error(`Path traversal detected: ${file}`)
   }
@@ -313,7 +320,7 @@ export const readFileByRoot = async (file: string): Promise<string> => {
 }
 
 export const removeByRoot = async (file: string): Promise<void> => {
-  if (isLinux()) {
+  if (!isWindows()) {
     await remove(file)
     return
   }
@@ -338,13 +345,7 @@ export const binXattrFix = async (bin: string) => {
     return
   }
   const command = `xattr -dr "com.apple.quarantine" "${bin}"`
-  try {
-    await execPromiseWithEnv(command)
-    return
-  } catch {}
-  try {
-    await Helper.send('mailpit', 'binFixed', bin)
-  } catch {}
+  await execPromiseWithEnv(command)
 }
 
 /**

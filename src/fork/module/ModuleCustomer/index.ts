@@ -1,12 +1,10 @@
-import { basename, join } from 'path'
+import { join } from 'path'
 import {
   customerServiceStartExec,
   execPromise,
-  uuid,
   waitPidFile,
   chmod,
   remove,
-  writeFile,
   customerServiceStartExecWin,
   copyFile
 } from '../../Fn'
@@ -21,6 +19,7 @@ import {
   stopRegisteredServiceProcesses,
   type ServiceProcessIdentity
 } from '@shared/ServiceProcessIdentity'
+import { runMacTerminalCommand } from '../../util/MacTerminal'
 
 class ModuleCustomer {
   constructor() {}
@@ -83,33 +82,9 @@ class ModuleCustomer {
       }
 
       if (isMacOS() && openInTerminal) {
-        let command = ''
-        if (version.commandType === 'file') {
-          command = version.commandFile
-        } else {
-          command = version.command
-        }
-        command = command.replace(/"/g, '\\"')
-        const appleScript = `
-        tell application "Terminal"
-          if not running then
-            activate
-            do script "${command}" in front window
-          else
-            activate
-            do script "${command}"
-          end if
-        end tell`
-        const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
-        await writeFile(scptFile, appleScript)
-        await chmod(scptFile, '0777')
         try {
-          await execPromise(`osascript ./${basename(scptFile)}`, {
-            cwd: global.Server.Cache!
-          })
-          await remove(scptFile)
+          await runMacTerminalCommand(version)
         } catch (e) {
-          await remove(scptFile)
           return reject(e)
         }
 

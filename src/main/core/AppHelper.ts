@@ -1,6 +1,6 @@
-import { join, resolve as PathResolve, basename, dirname } from 'node:path'
+import { join, resolve as PathResolve, dirname } from 'node:path'
 import is from 'electron-is'
-import { appDebugLog, isLinux, isMacOS, isWindows, uuid } from '@shared/utils'
+import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
 import {
   AppHelperCheck,
   HelperVersion,
@@ -21,11 +21,13 @@ import {
 } from '@shared/WindowsHelperIdentity'
 import { runWindowsHelperInstaller } from './WindowsHelperInstaller'
 import { LinuxSudoCancelledError, WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
-import { tmpdir, userInfo } from 'node:os'
-import { copyFile, chmod, existsSync, mkdirp, readFile } from '@shared/fs-extra'
+import { userInfo } from 'node:os'
+import { existsSync, readFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
 import { X509Certificate } from 'node:crypto'
-import { lstatSync } from 'node:fs'
+import { lstatSync, realpathSync } from 'node:fs'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 
 type AppHelperMessage = {
   state:
@@ -122,6 +124,26 @@ const toAppHelperInstallError = (error: unknown): AppHelperError => {
 }
 
 const lazySudo: SudoExec = async (...args) => {
+  if (isMacOS()) {
+    // The sudo-prompt applet reads a user-writable command file as root. Send the
+    // immutable command directly to the system authorization service instead.
+    const literal = args[0]
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+    try {
+      return await promisify(execFile)('/usr/bin/osascript', [
+        '-e',
+        `do shell script "${literal}" with administrator privileges`
+      ])
+    } catch (error: any) {
+      if (/\(-128\)/.test(error.stderr ?? '')) {
+        throw new AppHelperError('elevation_cancelled', 'Administrator authorization was cancelled')
+      }
+      throw error
+    }
+  }
   const { exec } = await import('@shared/Sudo')
   return exec(...args)
 }
@@ -153,6 +175,93 @@ const linuxInstallCommand = async (
   return { command: `/bin/bash ${args.map(quoteLinuxShell).join(' ')}`, caFingerprint }
 }
 
+// Fixed system bootstrap: only arguments are caller data; no user-writable script
+// is executed before the protected copy passes the release publisher requirement.
+export const macOSHelperBootstrap = `set -eu
+umask 077
+mode="$1"
+source="$2"
+role="$6"
+data="$7"
+ca="$8"
+fingerprint="$9"
+# Fixed system parents must not delegate staging access to the desktop account.
+for parent in / /private /private/var /private/var/root; do
+  [ -d "$parent" ] && [ ! -L "$parent" ] || { echo 'Invalid staging parent' >&2; exit 1; }
+  ownership=$(/usr/bin/stat -f '%u:%Lp' "$parent")
+  owner=\${ownership%%:*}
+  modeBits=\${ownership#*:}
+  [ "$owner" = 0 ] && [ "$((0$modeBits & 022))" = 0 ] || { echo 'Unprotected staging parent' >&2; exit 1; }
+  acl=$(/bin/ls -lde "$parent") || { echo 'Cannot inspect staging ACL' >&2; exit 1; }
+  [ -z "$(printf '%s\\n' "$acl" | /usr/bin/sed -n '2,$p')" ] || { echo 'Delegated staging ACL' >&2; exit 1; }
+done
+stage=$(/usr/bin/mktemp -d /private/var/root/flyenv-helper-install.XXXXXXXX)
+trap '/bin/rm -rf "$stage"' EXIT HUP INT TERM
+if [ "$mode" = production ]; then
+  /usr/bin/ditto "$source" "$stage/FlyEnv.app"
+  /bin/chmod -RN "$stage"
+  /usr/sbin/chown -RP root:wheel "$stage"
+  /bin/chmod -R go-w "$stage"
+  resources="$stage/FlyEnv.app/Contents/Resources"
+  for path in "$stage/FlyEnv.app" "$stage/FlyEnv.app/Contents" "$resources" "$resources/helper" "$resources/plist" "$resources/helper/flyenv-helper-init.sh" "$resources/helper/flyenv-helper" "$resources/plist/com.flyenv.helper.plist"; do
+    [ ! -L "$path" ] || { echo 'Symlink in installer resource path' >&2; exit 1; }
+  done
+  /usr/bin/codesign --verify --deep --strict --all-architectures -R '=identifier "phpstudy.xpfme.com" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$stage/FlyEnv.app"
+  [ "$(/usr/libexec/PlistBuddy -c 'Print :FlyEnvHelperProtocolVersion' "$stage/FlyEnv.app/Contents/Info.plist")" = 42 ] || { echo 'Unsupported signed helper installation protocol' >&2; exit 1; }
+  /usr/bin/codesign --verify --strict --all-architectures -R '=identifier "flyenv-helper" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$resources/helper/flyenv-helper"
+  binary="$resources/helper/flyenv-helper"
+  installer="$resources/helper/flyenv-helper-init.sh"
+  plist="$resources/plist/com.flyenv.helper.plist"
+elif [ "$mode" = development ]; then
+  echo 'Explicit administrator development installation: unsigned helper and installer.' >&2
+  /bin/cp "$3" "$stage/flyenv-helper"
+  /bin/cp "$4" "$stage/flyenv-helper-init.sh"
+  /bin/cp "$5" "$stage/com.flyenv.helper.plist"
+  binary="$stage/flyenv-helper"
+  installer="$stage/flyenv-helper-init.sh"
+  plist="$stage/com.flyenv.helper.plist"
+else
+  echo 'Invalid installer mode' >&2
+  exit 1
+fi
+if [ -n "$ca" ]; then
+  /bin/cp "$ca" "$stage/approved-ca.crt"
+  ca="$stage/approved-ca.crt"
+fi
+/usr/sbin/chown -RP root:wheel "$stage"
+/bin/chmod -RN "$stage"
+/bin/chmod -R go-w "$stage"
+/bin/chmod 0700 "$stage" "$binary"
+/bin/sh "$installer" "$binary" "$plist" "$role" "$data" "$ca" "$fingerprint"
+`
+
+type MacOSHelperInstallOptions = {
+  mode: 'production' | 'development'
+  source: string
+  binary: string
+  installer: string
+  plist: string
+  role: string
+  dataRoot: string
+  caPath: string
+  caFingerprint: string
+}
+
+export function buildMacOSHelperInstallCommand(options: MacOSHelperInstallOptions): string {
+  const args = [
+    options.mode,
+    options.source,
+    options.binary,
+    options.installer,
+    options.plist,
+    options.role,
+    options.dataRoot,
+    options.caPath,
+    options.caFingerprint
+  ]
+  return `/usr/bin/sudo /usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/sh -c ${quoteLinuxShell(macOSHelperBootstrap)} flyenv-helper-bootstrap ${args.map(quoteLinuxShell).join(' ')}`
+}
+
 type AppHelperDeps = {
   appHelperCheck: typeof AppHelperCheck
   sudo: SudoExec
@@ -174,6 +283,7 @@ export class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
 
   private installation?: Promise<boolean>
+  private terminalInstallation = false
 
   private _onMessage?: AppHelperCallback
 
@@ -262,73 +372,38 @@ export class AppHelper {
         icns: join(appRoot, 'Icon@256x256.icns')
       }
     }
-    let command = ''
-    let icns = ``
-
-    const tmpDir = join(tmpdir(), uuid())
-    const dataPath = dirname(global.Server.AppDir!)
-    const appRoot = PathResolve(global.Server.Static!, '../../../../')
-    await mkdirp(tmpDir)
-    await chmod(tmpDir, '0755')
-    if (is.production()) {
-      if (isMacOS()) {
-        const uinfo = userInfo()
-        const role = `${uinfo.uid}:${uinfo.gid}`
-        const binDir = PathResolve(global.Server.Static!, '../../../../')
-        const plist = join(binDir, 'plist/com.flyenv.helper.plist')
-        const bin = join(binDir, 'helper/flyenv-helper')
-        const shDir = join(binDir, 'helper')
-        const shFile = join(shDir, 'flyenv-helper-init.sh')
-
-        const tmpFile = join(tmpDir, `${uuid()}.sh`)
-        await copyFile(shFile, tmpFile)
-        await chmod(tmpFile, '0755')
-
-        const tmpPlist = join(tmpDir, `${uuid()}.plist`)
-        await copyFile(plist, tmpPlist)
-        await chmod(tmpPlist, '0755')
-
-        const tmpBin = join(tmpDir, `${uuid()}.helper`)
-        await copyFile(bin, tmpBin)
-        await chmod(tmpBin, '0755')
-
-        command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
-        icns = join(binDir, 'icon.icns')
-      }
-    } else {
-      if (isMacOS()) {
-        const uinfo = userInfo()
-        const role = `${uinfo.uid}:${uinfo.gid}`
-        const helperFile = global.Server.isArmArch
-          ? 'flyenv-helper-darwin-arm64'
-          : 'flyenv-helper-darwin-amd64'
-        const binDir = PathResolve(global.Server.Static!, '../../../build/')
-        const plist = join(binDir, 'plist/com.flyenv.helper.plist')
-        const bin = PathResolve(binDir, `../src/helper-go/dist/${helperFile}`)
-        const shDir = join(global.Server.Static!, 'sh')
-        const shFile = join(shDir, 'flyenv-helper-init.sh')
-
-        const tmpFile = join(tmpDir, `${uuid()}.sh`)
-        await copyFile(shFile, tmpFile)
-        await chmod(tmpFile, '0755')
-
-        const tmpPlist = join(tmpDir, 'com.flyenv.helper.plist')
-        await copyFile(plist, tmpPlist)
-        await chmod(tmpPlist, '0755')
-
-        const tmpBin = join(tmpDir, helperFile)
-        await copyFile(bin, tmpBin)
-        await chmod(tmpBin, '0755')
-
-        command = `cd "${tmpDir}" && sudo /bin/zsh ./${basename(tmpFile)} "${tmpPlist}" "${tmpBin}" "${role}" "${dataPath}" "${appRoot}" && sudo rm -rf "${tmpDir}"`
-        icns = join(binDir, 'icon.icns')
+    if (isMacOS()) {
+      const account = userInfo()
+      const production = is.production()
+      const appRoot = PathResolve(global.Server.Static!, '../../../../')
+      const ca = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
+      const caFingerprint = existsSync(ca)
+        ? new X509Certificate(await readFile(ca)).fingerprint256.replace(/:/g, '').toLowerCase()
+        : ''
+      const helperFile = global.Server.isArmArch
+        ? 'flyenv-helper-darwin-arm64'
+        : 'flyenv-helper-darwin-amd64'
+      return {
+        command: buildMacOSHelperInstallCommand({
+          mode: production ? 'production' : 'development',
+          source: production ? dirname(dirname(appRoot)) : '',
+          binary: production
+            ? ''
+            : PathResolve(global.Server.Static!, '../../../src/helper-go/dist', helperFile),
+          installer: production ? '' : join(global.Server.Static!, 'sh/flyenv-helper-init.sh'),
+          plist: production
+            ? ''
+            : PathResolve(global.Server.Static!, '../../../build/plist/com.flyenv.helper.plist'),
+          role: `${account.uid}:${account.gid}`,
+          dataRoot: realpathSync(dirname(global.Server.AppDir!)),
+          caPath: caFingerprint ? realpathSync(ca) : '',
+          caFingerprint
+        }),
+        caFingerprint,
+        icns: ''
       }
     }
-
-    return {
-      command,
-      icns
-    }
+    throw new Error('Unsupported helper installer platform')
   }
 
   needInstall() {
@@ -342,10 +417,38 @@ export class AppHelper {
   }
 
   initHelper() {
-    if (this.installation) return this.installation
+    return this.startInstallation(() => this.install())
+  }
+
+  /** The main process retains ownership through actual terminal exit and health. */
+  installInTerminal(
+    execute: (options: Awaited<ReturnType<AppHelper['command']>>) => Promise<void>
+  ) {
+    return this.startInstallation(async () => {
+      try {
+        const options = await this.command()
+        await execute(options)
+        return await this.verifyHelperReady()
+      } catch (error) {
+        void appDebugLog(
+          '[AppHelper][terminal-install][error]',
+          error instanceof Error ? (error.stack ?? error.message) : String(error)
+        ).catch(() => {})
+        throw error
+      }
+    }, true)
+  }
+
+  private startInstallation(run: () => Promise<boolean>, terminal = false): Promise<boolean> {
+    if (this.installation) {
+      if (!terminal && !this.terminalInstallation) return this.installation
+      return Promise.reject(new Error('FlyEnv helper installation is already in progress'))
+    }
     this.state = 'installing'
-    this.installation = this.install().finally(() => {
+    this.terminalInstallation = terminal
+    this.installation = run().finally(() => {
       this.state = 'normal'
+      this.terminalInstallation = false
       this.installation = undefined
     })
     return this.installation

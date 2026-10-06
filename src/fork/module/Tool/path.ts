@@ -119,7 +119,7 @@ export function handleUpdatePath(param?: { zsh: string }) {
       try {
         await writeFileByRoot(file, content)
       } catch (error) {
-        if (isLinux()) throw error
+        if (isMacOS() || isLinux()) throw error
       }
     }
     resolve(true)

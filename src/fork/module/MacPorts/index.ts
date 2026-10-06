@@ -1,58 +1,30 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { SoftInstalled } from '@shared/app'
-import { readFile, writeFileByRoot } from '../../Fn'
+import { readFile } from '../../Fn'
 import { join } from 'path'
+
 class MacPorts extends Base {
-  constructor() {
-    super()
-  }
-
-  /**
-   * Change the source of macports
-   * @param src
-   */
+  /** Return preview contents; the controller owns snapshots and terminal application. */
   changSrc(src: { url: string; rsync_server: string; rsync_dir: string }) {
-    return new ForkPromise(async (resolve, reject) => {
-      try {
-        const macportsConf = '/opt/local/etc/macports/macports.conf'
-        const sourcesConf = '/opt/local/etc/macports/sources.conf'
-
-        let content = await readFile(sourcesConf, 'utf-8')
-        let regex = /^(?:\s*rsync:\/\/.*\[default\])$/gm
-        let all: Array<string> = content.match(regex) ?? []
-        all.forEach((a) => {
-          content = content.replace(a, '')
-        })
-        content = content.trim() + '\n' + `${src.url} [default]`
-        await writeFileByRoot(sourcesConf, content)
-
-        content = await readFile(macportsConf, 'utf-8')
-
-        regex = /^(?:\s*rsync_server\s.*)$/gm
-        all = content.match(regex) ?? []
-        all.forEach((a) => {
-          content = content.replace(a, '')
-        })
-        regex = /^(?:\s*rsync_dir\s.*)$/gm
-        all = content.match(regex) ?? []
-        all.forEach((a) => {
-          content = content.replace(a, '')
-        })
-        if (src.rsync_server) {
-          content =
-            content.trim() +
-            '\n' +
-            `rsync_server ${src.rsync_server}` +
-            '\n' +
-            `rsync_dir ${src.rsync_dir}`
-        }
-        await writeFileByRoot(macportsConf, content)
-
-        resolve(true)
-      } catch (e) {
-        reject(e)
-      }
+    return new ForkPromise(async (resolve) => {
+      if ([src.url, src.rsync_server, src.rsync_dir].some((value) => /[\r\n\0]/.test(value)))
+        throw new Error('MacPorts source values must be single lines')
+      const sourcesConf = '/opt/local/etc/macports/sources.conf'
+      const macportsConf = '/opt/local/etc/macports/macports.conf'
+      const sourceText = await readFile(sourcesConf, 'utf8')
+      const configText = await readFile(macportsConf, 'utf8')
+      const sources =
+        sourceText.replace(/^(?:\s*rsync:\/\/.*\[default\])$/gm, '').trim() +
+        `\n${src.url} [default]\n`
+      let config = configText.replace(/^\s*rsync_(?:server|dir)\s.*$/gm, '').trim()
+      if (src.rsync_server)
+        config += `\nrsync_server ${src.rsync_server}\nrsync_dir ${src.rsync_dir}`
+      const files = [
+        { path: sourcesConf, content: sources },
+        { path: macportsConf, content: config + '\n' }
+      ]
+      resolve({ files })
     })
   }
 

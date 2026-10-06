@@ -37,7 +37,7 @@ import Helper from '../../Helper'
 import { unpack } from '../../util/Zip'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
-import { isLinux, uuid } from '@shared/utils'
+import { isWindows, uuid } from '@shared/utils'
 import { createHash } from 'node:crypto'
 import { qualifyHomebrewCoreFormula } from '../../util/BrewFormula'
 
@@ -93,7 +93,7 @@ class Php extends Base {
         } catch {}
       }
 
-      if (isLinux()) {
+      if (!isWindows()) {
         const localIni = join(
           global.Server.PhpDir!,
           `php-${createHash('sha256').update(version.bin).digest('hex').slice(0, 16)}`,
@@ -405,7 +405,7 @@ xdebug.output_dir = "${output_dir}"
       // the master process directly; otherwise php-fpm forks and the parent exits,
       // which serviceStartSpawn would treat as a startup failure.
       const execArgs = ['-p', varPath, '-y', phpFpmConf, '-g', pid, '-F']
-      if (isLinux()) execArgs.push('-c', await this.getIniPath(version))
+      if (!isWindows()) execArgs.push('-c', await this.getIniPath(version))
 
       try {
         const res = await serviceStartSpawn({

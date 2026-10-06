@@ -1,3 +1,4 @@
+import { macPortsInstallBase } from '../Mysql/MacPortsResources'
 import { createRequire } from 'node:module'
 import { join, basename, dirname, isAbsolute, resolve as resolvePath } from 'path'
 import { execFile } from 'node:child_process'
@@ -32,7 +33,6 @@ import {
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
-import Helper from '../../Helper'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { compareVersions } from '@shared/compare-versions'
 import { ProcessListByExactPid, fetchLoopbackListeningPids } from '@shared/Process'
@@ -122,7 +122,8 @@ const getMariaDBPort = (config: any) => {
 
 const getMariaDBSocket = (config: any) => {
   return (
-    getMariaDBConfigValue(getMariaDBServerConfig(config), ['socket']).trim() || DEFAULT_MARIADB_SOCKET
+    getMariaDBConfigValue(getMariaDBServerConfig(config), ['socket']).trim() ||
+    DEFAULT_MARIADB_SOCKET
   )
 }
 
@@ -845,13 +846,9 @@ datadir=${dataDir}`
           params.push('--auth-root-authentication-method=normal')
           params.push(`--defaults-file="${m}"`)
           if (version?.flag === 'macports') {
-            const enDir = join(version.path, 'share')
-            if (!existsSync(enDir)) {
-              const shareDir = `/opt/local/share/${basename(version.path)}`
-              if (existsSync(shareDir)) {
-                await Helper.send('mariadb', 'macportsDirFixed', enDir, shareDir)
-              }
-            }
+            const basedir = await macPortsInstallBase(version.path)
+            const baseIndex = params.findIndex((value) => value.startsWith('--basedir='))
+            params[baseIndex] = `--basedir="${basedir}"`
           }
           try {
             await execPromise(`cd "${dirname(bin)}" && ./${basename(bin)} ${params.join(' ')}`)

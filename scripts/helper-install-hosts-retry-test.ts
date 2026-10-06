@@ -19,7 +19,7 @@ const manualInstallerSource = readFileSync(
 assert.match(helperStoreSource, /import \{ handleWriteHosts \} from '@\/util\/Host'/)
 
 const verifyHelperReady = helperStoreSource.match(
-  /verifyHelperReady\(\): Promise<boolean> \{(?<body>[\s\S]*?)\n[ ]{2}\}\n\n[ ]{2}private syncHostsAfterInstall/
+  /verifyHelperReady\(\): Promise<boolean> \{(?<body>[\s\S]*?)\n[ ]{2}\}\n\n[ ]{2}syncHostsAfterInstall/
 )
 assert.ok(verifyHelperReady?.groups?.body, 'verifyHelperReady must exist')
 assert.match(
@@ -45,6 +45,9 @@ assert.doesNotMatch(forkHostSource, /systemHostsFailed|systemHostsError|markSyst
 assert.doesNotMatch(globalIpcSource, /markHelperReady/)
 assert.doesNotMatch(helperFixSource, /HelperStore/)
 assert.match(manualInstallerSource, /import HelperStore from '@\/store\/helper'/)
-assert.match(manualInstallerSource, /HelperStore\.verifyHelperReady\(\)/)
+assert.match(
+  manualInstallerSource,
+  /await this\.executeInstallation\(terminal\)[\s\S]*?HelperStore\.syncHostsAfterInstall\(\)/
+)
 
 console.log('helper-install-hosts-retry-test: ok')

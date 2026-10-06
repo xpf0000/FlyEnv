@@ -1,64 +1,8 @@
 import IPC from './IPC'
-import { ElMessageBox } from 'element-plus'
-import { AppStore } from '@/store/app'
 import { type OnlineVersionItem } from '@/store/brew'
-import { I18nT } from '@lang/index'
 import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
 import { fs } from '@/util/NodeFn'
-
-let passPromptShow = false
-export const showPassPrompt = () => {
-  return new Promise((resolve, reject) => {
-    if (passPromptShow) {
-      reject(new Error('prompt had show'))
-      return
-    }
-    passPromptShow = true
-    ElMessageBox.prompt('', I18nT('base.inputPassword'), {
-      confirmButtonText: I18nT('base.confirm'),
-      cancelButtonText: I18nT('base.cancel'),
-      inputType: 'password',
-      customClass: 'password-prompt',
-      beforeClose: (action, instance, done) => {
-        if (action === 'confirm') {
-          if (instance.inputValue) {
-            const pass = instance.inputValue
-            IPC.send('app:password-check', pass).then((key: string, res: any) => {
-              IPC.off(key)
-              if (res?.code === 0) {
-                window.Server.Password = res?.data ?? pass
-                AppStore()
-                  .initConfig()
-                  .then(() => {
-                    done()
-                    passPromptShow = false
-                    resolve(true)
-                  })
-              } else {
-                instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')
-              }
-            })
-          }
-        } else {
-          done()
-          passPromptShow = false
-          reject(new Error('user cancel'))
-        }
-      }
-    })
-      .then(() => {})
-      .catch((err) => {
-        console.log('err: ', err)
-        reject(err)
-      })
-  })
-}
-
-/**
- * Computer password verification, required for many operations
- * @returns {Promise<unknown>}
- */
 
 export function brewInfo(key: string): Promise<OnlineVersionItem[]> {
   return new Promise((resolve, reject) => {

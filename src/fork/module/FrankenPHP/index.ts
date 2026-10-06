@@ -18,7 +18,7 @@ import {
   chmod,
   binXattrFix
 } from '../../Fn'
-import { prepareLinuxLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
+import { prepareUnixLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
@@ -74,7 +74,7 @@ class FrankenPHP extends Base {
     return new ForkPromise(async (resolve, _reject, on) => {
       const baseDir = join(global.Server.BaseDir!, 'frankenphp')
       await mkdirp(baseDir)
-      await prepareLinuxLogDirectory(join(global.Server.BaseDir!, 'vhost/logs'), (name) =>
+      await prepareUnixLogDirectory(join(global.Server.BaseDir!, 'vhost/logs'), (name) =>
         name.endsWith('.frankenphp.log')
       )
       const iniFile = join(baseDir, 'Caddyfile')

@@ -278,10 +278,12 @@ function extractGoDispatch(): Map<string, Set<string>> {
     }
   }
 
-  const linux = fs.readFileSync(path.join(repoRoot, 'src/helper-go/linux.go'), 'utf8')
-  for (const match of linux.matchAll(/"(host|tools|service|ftp)\.([A-Za-z]+)"/g)) {
-    if (!dispatch.has(match[1])) dispatch.set(match[1], new Set())
-    dispatch.get(match[1])!.add(match[2])
+  for (const file of ['linux.go', 'darwin.go', 'unix_dispatch.go']) {
+    const source = fs.readFileSync(path.join(repoRoot, 'src/helper-go', file), 'utf8')
+    for (const match of source.matchAll(/"(helper|host|tools|service|ftp)\.([A-Za-z]+)"/g)) {
+      if (!dispatch.has(match[1])) dispatch.set(match[1], new Set())
+      dispatch.get(match[1])!.add(match[2])
+    }
   }
 
   return dispatch

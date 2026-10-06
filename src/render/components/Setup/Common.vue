@@ -48,10 +48,7 @@
         <div class="col">
           <AutoHide />
         </div>
-        <div v-if="!isWindows" class="col">
-          <RestPassword v-if="!isLinux" />
-        </div>
-        <div v-else class="col">
+        <div v-if="isWindows" class="col">
           <TrayStyle />
         </div>
       </div>
@@ -75,7 +72,6 @@
 
 <script lang="ts" setup>
   import BrewSrc from './BrewSrc/index.vue'
-  import RestPassword from './RestPassword/index.vue'
   import ProxySet from './ProxySet/index.vue'
   import LangeSet from './LangSet/index.vue'
   import AutoUpdate from './AutoUpdate/index.vue'
@@ -96,7 +92,6 @@
   const isMacOS = computed(() => {
     return window.Server.isMacOS
   })
-  const isLinux = computed(() => window.Server.isLinux)
   const isWindows = computed(() => {
     return window.Server.isWindows
   })

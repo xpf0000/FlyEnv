@@ -70,8 +70,8 @@ type ServiceStartSpawnLogParam = Omit<ServiceStartSpawnParams, 'execArgs' | 'exe
 }
 
 /** Preserve legacy root-owned logs without asking the helper to chmod/chown files. */
-async function prepareLinuxLog(file: string): Promise<void> {
-  if (!isLinux() || !existsSync(file)) return
+async function prepareUnixLog(file: string): Promise<void> {
+  if (isWindows() || !existsSync(file)) return
   try {
     await access(file, constants.W_OK)
     return
@@ -85,14 +85,14 @@ async function prepareLinuxLog(file: string): Promise<void> {
   await writeFile(file, '')
 }
 
-export async function prepareLinuxLogDirectory(
+export async function prepareUnixLogDirectory(
   directory: string,
   accept: (name: string) => boolean = () => true
 ): Promise<void> {
-  if (!isLinux() || !existsSync(directory)) return
+  if (isWindows() || !existsSync(directory)) return
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     if (entry.isFile() && !entry.name.includes('.previous-') && accept(entry.name))
-      await prepareLinuxLog(join(directory, entry.name))
+      await prepareUnixLog(join(directory, entry.name))
   }
 }
 
@@ -158,8 +158,8 @@ export function buildUnixCustomerServiceStartScript(
 export async function serviceStartExec(
   param: ServiceStartParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
-  if (isLinux() && param.root) {
-    throw new Error('Linux helper does not execute root scripts')
+  if (!isWindows() && param.root) {
+    throw new Error('Unix helper does not execute root scripts')
   }
   const baseDir = param.baseDir
   const version = param.version
@@ -312,8 +312,8 @@ export async function customerServiceStartExec(
   isService: boolean
 ): Promise<{ 'APP-Service-Start-PID': string }> {
   console.log('customerServiceStartExec: ', version.id, isService)
-  if (isLinux() && version.isSudo) {
-    throw new Error('Linux custom commands requiring sudo must run in XTerm')
+  if (!isWindows() && version.isSudo) {
+    throw new Error('Unix custom commands requiring sudo must run in XTerm')
   }
 
   const pidPath = version?.pidPath ?? ''
@@ -490,8 +490,8 @@ export async function serviceStartSpawn(
 
   await mkdirp(dirname(outFile))
   await mkdirp(dirname(errFile))
-  await prepareLinuxLog(outFile)
-  await prepareLinuxLog(errFile)
+  await prepareUnixLog(outFile)
+  await prepareUnixLog(errFile)
 
   const env = await EnvSync.sync()
   // 环境同步和系统程序解析可能失败，必须在打开日志句柄前完成，避免失败启动泄漏句柄。

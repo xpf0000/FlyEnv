@@ -155,7 +155,7 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
       if (this.run && this.pid) {
         return resolve(true)
       }
-      if (window.Server.isLinux && this.isSudo && !interactive) {
+      if (!window.Server.isWindows && this.isSudo && !interactive) {
         resolve(I18nT('service.linuxSudoRequiresTerminal'))
         return
       }
@@ -279,7 +279,7 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
           .then()
           .catch()
       }
-      if (window.Server.isLinux && this.isSudo) {
+      if (!window.Server.isWindows && this.isSudo) {
         doRun(true)
       } else if (this.isSudo && !window.Server.Password) {
         try {
