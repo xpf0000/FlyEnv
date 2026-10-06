@@ -42,7 +42,7 @@
   "linkCopySuccess": "Đã sao chép liên kết URL vào khay nhớ tạm!",
   "needSelectVersion": "Vui lòng chọn một phiên bản trước",
   "hostsSaveFailed": "Lưu file Hosts hệ thống thất bại. Vui lòng kiểm tra xem tệp có tồn tại và quyền truy cập tệp có đúng không",
-  "hostsReadFailed": "Không thể đọc tệp /private/etc/hosts. Vui lòng kiểm tra xem tệp có tồn tại và quyền truy cập tệp có đúng không",
+  "hostsReadFailed": "Không thể đọc tệp {path}. Vui lòng kiểm tra xem tệp có tồn tại và quyền truy cập tệp có đúng không",
   "needSelectDir": "Vui lòng chọn một thư mục!",
   "processNotFound": "Không tìm thấy tiến trình nào",
   "hostsTitle": "Hosts hệ thống",

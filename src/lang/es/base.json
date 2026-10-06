@@ -42,7 +42,7 @@
   "linkCopySuccess": "URL del enlace copiada al portapapeles!",
   "needSelectVersion": "Por favor selecciona una versión primero",
   "hostsSaveFailed": "Error al guardar el archivo Hosts del sistema. Verifica si el archivo existe y si los permisos son correctos",
-  "hostsReadFailed": "Error al leer el archivo /private/etc/hosts. Verifica si el archivo existe y si los permisos son correctos",
+  "hostsReadFailed": "Error al leer el archivo {path}. Verifica si el archivo existe y si los permisos son correctos",
   "needSelectDir": "¡Por favor selecciona una carpeta!",
   "processNotFound": "No se encontraron procesos",
   "hostsTitle": "Hosts del Sistema",

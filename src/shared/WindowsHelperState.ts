@@ -17,6 +17,7 @@ export type AppHelperErrorCode =
   | 'helper_task_start_failed'
   | 'helper_start_timeout'
   | 'elevation_uac_cancelled'
+  | 'elevation_cancelled'
   | 'elevation_launch_failed'
   | 'elevation_pipe_connect_failed'
   | 'elevation_status_timeout'
@@ -59,6 +60,7 @@ const APP_HELPER_ERROR_CODES = new Set<AppHelperErrorCode>([
   'helper_task_start_failed',
   'helper_start_timeout',
   'elevation_uac_cancelled',
+  'elevation_cancelled',
   'elevation_launch_failed',
   'elevation_pipe_connect_failed',
   'elevation_status_timeout',

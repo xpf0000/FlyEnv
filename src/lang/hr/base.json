@@ -42,7 +42,7 @@
   "linkCopySuccess": "URL linka kopiran u međuspremnik!",
   "needSelectVersion": "Molimo prvo odaberite verziju",
   "hostsSaveFailed": "Sistemska Hosts datoteka nije uspjela biti spremljena. Molimo provjerite postoji li datoteka i jesu li dozvole datoteke ispravne",
-  "hostsReadFailed": "Čitanje datoteke /private/etc/hosts nije uspjelo. Molimo provjerite postoji li datoteka i jesu li dozvole datoteke ispravne",
+  "hostsReadFailed": "Čitanje datoteke {path} nije uspjelo. Molimo provjerite postoji li datoteka i jesu li dozvole datoteke ispravne",
   "needSelectDir": "Molimo odaberite mapu!",
   "processNotFound": "Nisu pronađeni procesi",
   "hostsTitle": "Sistemski Hosts",

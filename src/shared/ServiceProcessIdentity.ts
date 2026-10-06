@@ -6,7 +6,8 @@ import { resolveWindowsPowerShellPath, windowsPowerShellEnv } from './WindowsSys
 import { StopProcessListFetch, fetchStopProcessListLocal } from './StopProcessList'
 import { ProcessKillStrict, ProcessPidsByPid, type PItem } from './Process'
 import { stopWindowsServiceProcesses, waitForServiceProcessExit } from './ServiceStop'
-import { isReadableServiceStopRoot } from './ProcessSnapshot'
+import { compareProcessCreation, isReadableServiceStopRoot } from './ProcessSnapshot'
+import { parseUnixProcessCreated, unixProcessEnv } from './Process.unix'
 
 const execFileAsync = promisify(execFile)
 
@@ -22,7 +23,7 @@ export type ServiceProcessIdentity = {
   launchedAt: number
   /** 返回启动终态前冻结上界，查询重试不能扩大允许范围。 */
   registeredAt: number
-  /** 同来源创建时间原文；缺失表示未取得身份，不能在停止阶段补认当前 PID。 */
+  /** 同来源 UTC 创建时间；缺失表示未取得身份，不能在停止阶段补认当前 PID。 */
   created?: string
 }
 
@@ -46,7 +47,7 @@ export const normalizeServiceRootPid = (value: unknown): string => {
 
 /**
  * 查询指定父的原生创建时间。固定程序路径、数字 PID 和参数数组不经过 shell；
- * Windows 使用 CIM UTC 创建时间，Unix 使用英文 ps lstart，兼容缺少完整二进制路径。
+ * Windows 使用 CIM UTC 创建时间，Unix 使用英文 UTC ps lstart 转 ISO，兼容进程标题。
  * 不吞权限/执行错误；启动捕获会有限重试，停止时只比较已采样的原身份。
  */
 const readCreated = async (pid: string): Promise<string> => {
@@ -64,11 +65,9 @@ const readCreated = async (pid: string): Promise<string> => {
   }
   const result = await execFileAsync('/bin/ps', ['-p', pid, '-o', 'lstart='], {
     timeout: 15_000,
-    env: { ...process.env, LC_ALL: 'C', LANG: 'C' }
+    env: unixProcessEnv()
   })
-  const created = result.stdout.trim()
-  if (!Number.isFinite(Date.parse(created))) throw new Error('Cannot read service creation time')
-  return created
+  return parseUnixProcessCreated(result.stdout)
 }
 
 /**
@@ -130,10 +129,9 @@ export const verifyServiceProcessIdentity = async (
   ) {
     throw new ServiceProcessIdentityMismatchError('Missing trusted service startup identity')
   }
-  // Windows 停止发现快照已经读取同来源 CIM 创建时间，直接复用。不得将该
-  // 时间与 Process.StartTime 比较，也不得遇缺字段就用“当前 PID”建立新基线。
-  // Unix 仍使用原 lstart 查询，不增加完整映像路径要求，兼容 macOS 进程标题。
-  const created = isWindows() && observed ? observed.CREATED : await readCreated(pid)
+  // 所有平台直接复用停止发现的同来源创建时间，不为根再查询一次。
+  // 缺字段不能用“当前 PID”补认；Unix 不要求映像路径，兼容 macOS 进程标题。
+  const created = observed ? observed.CREATED : await readCreated(pid)
   if (created !== expected.created)
     throw new ServiceProcessIdentityMismatchError('Service root identity changed')
 }
@@ -153,7 +151,7 @@ export const stopRegisteredServiceProcesses = async (
   const list = await StopProcessListFetch()
   const root = list.find(({ PID }) => PID === pid)
   // 注册身份是归属证据，不依赖完整命令标题。候选不可用或证明不匹配只过滤；
-  // readCreated 的真实系统查询失败仍传播，不能宽泛 catch 吞掉操作故障。
+  // 已有完整表直接比较创建时间，不在停止时重新采样父进程。
   if (!isReadableServiceStopRoot(root, isWindows(), false)) return []
   try {
     await verifyServiceProcessIdentity(pid, expected, root.COMMAND, root)
@@ -167,7 +165,7 @@ export const stopRegisteredServiceProcesses = async (
     // 确认父后，同一快照中的后代直接进入一次普通权限停止命令。
     await stopWindowsServiceProcesses(pids, list)
   } else {
-    await stopUnixServiceProcesses(pids)
+    await stopUnixServiceProcesses(pids, list)
   }
   return pids
 }
@@ -178,11 +176,22 @@ export const stopRegisteredServiceProcesses = async (
  * 记录信号错误并继续既有停止策略，只有最终严格查询证明全部消失才接受成功；
  * 仍有残留或查询失败必须报错，不能把“信号命令已返回”视为服务已停止。
  */
-export const stopUnixServiceProcesses = async (pids: string[]): Promise<void> => {
+export const stopUnixServiceProcesses = async (
+  pids: string[],
+  initialList?: PItem[]
+): Promise<void> => {
+  const originalList = initialList ?? (await StopProcessListFetch())
+  const original = new Map(originalList.map((item) => [item.PID, item]))
   let signalError: unknown
-  const signalRemaining = async (signal: string) => {
-    const list = await fetchStopProcessListLocal()
-    const remaining = pids.filter((pid) => list.some(({ PID }) => PID === pid))
+  const signalRemaining = async (signal: string, list: PItem[]) => {
+    const remaining = pids.filter((pid) =>
+      list.some(
+        (item) =>
+          item.PID === pid &&
+          original.has(pid) &&
+          compareProcessCreation(original.get(pid)?.CREATED, item.CREATED) === 0
+      )
+    )
     if (!remaining.length) return
     try {
       await ProcessKillStrict(signal, remaining)
@@ -192,11 +201,11 @@ export const stopUnixServiceProcesses = async (pids: string[]): Promise<void> =>
       signalError = error
     }
   }
-  await signalRemaining('-TERM')
+  await signalRemaining('-TERM', originalList)
   await new Promise((resolve) => setTimeout(resolve, 500))
-  await signalRemaining('-INT')
+  await signalRemaining('-INT', await fetchStopProcessListLocal())
   try {
-    await waitServiceProcessesExited(pids)
+    await waitForServiceProcessExit(pids, 10_000, { initialList: originalList })
   } catch (error) {
     if (signalError) {
       throw new Error(`Service stop did not complete: ${String(signalError)}`, { cause: error })

@@ -351,7 +351,7 @@ class Temporal extends Base {
       if (isWindows()) {
         finalList = await this.stopWindowsServiceProcesses(arr, plist)
       } else {
-        finalList = await this.stopUnixServicePids('-INT', selectedRoots, arr)
+        finalList = await this.stopUnixServicePids('-INT', selectedRoots, arr, 10_000, plist)
       }
     }
     // 候选筛选和文件清理相互独立：过滤的活根保留记录，新实例覆盖也保留。

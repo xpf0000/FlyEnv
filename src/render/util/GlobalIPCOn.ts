@@ -87,7 +87,7 @@ class GlobalIPCOn {
 
     IPC.on('APP-FlyEnv-Helper-Notice').then((key: string, res: any) => {
       // 用户取消不应立刻触发第二个安装提示；UAC、未选择、管理员模式不显示 Helper 修复通知。
-      if (res?.reason === 'elevation_uac_cancelled') return
+      if (res?.reason === 'elevation_uac_cancelled' || res?.reason === 'elevation_cancelled') return
       if (
         window.Server.isWindows &&
         (window.Server.WindowsProcessElevated ||
@@ -104,12 +104,15 @@ class GlobalIPCOn {
           res?.status === 'installFaild' &&
           this.inited &&
           !FlyEnvHelperSetup.show &&
+          !FlyEnvHelperSetup.loading &&
           !HelperStore.isInstallResultPending()
         ) {
           MessageError(res?.msg)
           HelperStore.showInstallFailDialog(res?.reason)
         } else if (
-          !res?.status &&
+          (!res?.status || res.status === 'needInstall') &&
+          !FlyEnvHelperSetup.show &&
+          !FlyEnvHelperSetup.loading &&
           !HelperStore.isInstallResultPending() &&
           HelperStore.shouldShowNeedInstallDialog(res?.reason)
         ) {

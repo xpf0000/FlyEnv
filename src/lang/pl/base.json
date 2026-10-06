@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link został skopiowany do schowka!",
   "needSelectVersion": "Proszę najpierw wybrać wersję",
   "hostsSaveFailed": "Nie udało się zapisać pliku hosts. Sprawdź, czy plik istnieje i czy uprawnienia pliku są poprawne",
-  "hostsReadFailed": "Nie udało się odczytać pliku /private/etc/hosts. Sprawdź, czy plik istnieje i czy uprawnienia pliku są poprawne",
+  "hostsReadFailed": "Nie udało się odczytać pliku {path}. Sprawdź, czy plik istnieje i czy uprawnienia pliku są poprawne",
   "needSelectDir": "Wybierz folder!",
   "processNotFound": "Nie znaleziono procesów",
   "hostsTitle": "Hosty systemowe",

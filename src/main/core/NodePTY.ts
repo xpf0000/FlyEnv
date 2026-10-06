@@ -19,151 +19,157 @@ class NodePTY {
   }
 
   async initNodePty() {
-    return new Promise(async (resolve) => {
-      const key = uuid()
-      if (isMacOS()) {
-        const env = await EnvSync.sync()
-        Object.assign(env!, {
-          TERM: 'xterm-256color',
-          COLORTERM: 'truecolor'
-        })
-        const pty: IPty = spawn('/bin/zsh', [], {
-          name: 'xterm-color',
-          cols: 80,
-          rows: 34,
-          cwd: process.cwd(),
-          env,
-          encoding: 'utf8'
-        })
-        pty.onData((data: string) => {
-          if (!this.pty?.[key] || this.pty?.[key]?.killed) {
-            return
-          }
-          console.log('pty.onData: ', data)
-          if (data.trim() === 'Password:') {
-            if (!isLinux() && global.Server.Password) {
-              pty.write(`${global.Server.Password!}\r`)
-            }
-          }
-          this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
-        })
-        pty.onExit((e) => {
-          console.log('this.pty.onExit !!!!!!', e)
-          const item = this.pty[key]
-          if (item) {
-            const execFile = item?.execFile
-            if (execFile && existsSync(execFile)) {
-              remove(execFile).then().catch()
-            }
-            const task = item?.task ?? []
-            for (const t of task) {
-              const { command, key } = t
-              this._callback?.(command, key, true)
-            }
-            this.exitPtyByKey(key)
-          }
-        })
-        this.pty[key] = {
-          task: [],
-          pty,
-          data: ''
+    const key = uuid()
+    if (isMacOS()) {
+      const env = await EnvSync.sync()
+      Object.assign(env!, {
+        TERM: 'xterm-256color',
+        COLORTERM: 'truecolor'
+      })
+      const pty: IPty = spawn('/bin/zsh', [], {
+        name: 'xterm-color',
+        cols: 80,
+        rows: 34,
+        cwd: process.cwd(),
+        env,
+        encoding: 'utf8'
+      })
+      pty.onData((data: string) => {
+        if (!this.pty?.[key] || this.pty?.[key]?.killed) {
+          return
         }
-      } else if (isWindows()) {
-        const env = await EnvSync.sync()
-        Object.assign(env!, {
-          TERM: 'xterm-256color',
-          COLORTERM: 'truecolor'
-        })
-        const pty: IPty = spawn(EnvSync.PowerShellPath || 'powershell.exe', [], {
-          name: 'xterm-color',
-          cols: 80,
-          rows: 34,
-          env,
-          cwd: process.cwd(),
-          encoding: 'utf8'
-        })
-        const onEnd = () => {
-          const item = this.pty[key]
-          if (item) {
-            const task = item?.task ?? []
-            for (const t of task) {
-              const { command, key } = t
-              this._callback?.(command, key, true)
-            }
-            this.exitPtyByKey(key)
+        console.log('pty.onData: ', data)
+        if (data.trim() === 'Password:') {
+          if (!isLinux() && global.Server.Password) {
+            pty.write(`${global.Server.Password!}\r`)
           }
         }
-        pty.onData(async (data: string) => {
-          if (!this.pty?.[key] || this.pty?.[key]?.killed) {
-            return
+        this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
+      })
+      pty.onExit((e) => {
+        console.log('this.pty.onExit !!!!!!', e)
+        const item = this.pty[key]
+        if (item) {
+          const execFile = item?.execFile
+          if (execFile && existsSync(execFile)) {
+            remove(execFile).then().catch()
           }
-          this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
-          const item = this.pty[key]
-          if (item) {
-            item.data += data
-            if (item?.data?.includes(`Task-${key}-End`)) {
-              onEnd()
-            }
+          const task = item?.task ?? []
+          for (const t of task) {
+            this.completeTask(t, e.exitCode)
           }
-        })
-        pty.onExit(async () => {
-          onEnd()
-        })
-        this.pty[key] = {
-          task: [],
-          pty,
-          data: ''
+          this.exitPtyByKey(key)
         }
-      } else if (isLinux()) {
-        const env = await EnvSync.sync()
-        Object.assign(env!, {
-          TERM: 'xterm-256color',
-          COLORTERM: 'truecolor'
-        })
-        const pty: IPty = spawn('/bin/bash', [], {
-          name: 'xterm-color',
-          cols: 80,
-          rows: 34,
-          cwd: process.cwd(),
-          env,
-          encoding: 'utf8'
-        })
-        pty.onData((data: string) => {
-          if (!this.pty?.[key] || this.pty?.[key]?.killed) {
-            return
+      })
+      this.pty[key] = {
+        task: [],
+        pty,
+        data: ''
+      }
+    } else if (isWindows()) {
+      const env = await EnvSync.sync()
+      Object.assign(env!, {
+        TERM: 'xterm-256color',
+        COLORTERM: 'truecolor'
+      })
+      const pty: IPty = spawn(EnvSync.PowerShellPath || 'powershell.exe', [], {
+        name: 'xterm-color',
+        cols: 80,
+        rows: 34,
+        env,
+        cwd: process.cwd(),
+        encoding: 'utf8'
+      })
+      const onEnd = () => {
+        const item = this.pty[key]
+        if (item) {
+          const task = item?.task ?? []
+          for (const t of task) {
+            this.completeTask(t)
           }
-          console.log('pty.onData: ', data)
-          if (data.trim() === 'Password:') {
-            if (!isLinux() && global.Server.Password) {
-              pty.write(`${global.Server.Password!}\r`)
-            }
-          }
-          this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
-        })
-        pty.onExit((e) => {
-          console.log('this.pty.onExit !!!!!!', e)
-          const item = this.pty[key]
-          if (item) {
-            const execFile = item?.execFile
-            if (execFile && existsSync(execFile)) {
-              remove(execFile).then().catch()
-            }
-            const task = item?.task ?? []
-            for (const t of task) {
-              const { command, key } = t
-              this._callback?.(command, key, true)
-            }
-            this.exitPtyByKey(key)
-          }
-        })
-        this.pty[key] = {
-          task: [],
-          pty,
-          data: ''
+          this.exitPtyByKey(key)
         }
       }
-      resolve(key)
-    })
+      pty.onData(async (data: string) => {
+        if (!this.pty?.[key] || this.pty?.[key]?.killed) {
+          return
+        }
+        this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
+        const item = this.pty[key]
+        if (item) {
+          item.data += data
+          if (item?.data?.includes(`Task-${key}-End`)) {
+            onEnd()
+          }
+        }
+      })
+      pty.onExit(async () => {
+        onEnd()
+      })
+      this.pty[key] = {
+        task: [],
+        pty,
+        data: ''
+      }
+    } else if (isLinux()) {
+      const env = await EnvSync.sync()
+      Object.assign(env!, {
+        TERM: 'xterm-256color',
+        COLORTERM: 'truecolor'
+      })
+      const pty: IPty = spawn('/bin/bash', [], {
+        name: 'xterm-color',
+        cols: 80,
+        rows: 34,
+        cwd: process.cwd(),
+        env,
+        encoding: 'utf8'
+      })
+      pty.onData((data: string) => {
+        if (!this.pty?.[key] || this.pty?.[key]?.killed) {
+          return
+        }
+        console.log('pty.onData: ', data)
+        if (data.trim() === 'Password:') {
+          if (!isLinux() && global.Server.Password) {
+            pty.write(`${global.Server.Password!}\r`)
+          }
+        }
+        this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
+      })
+      pty.onExit((e) => {
+        console.log('this.pty.onExit !!!!!!', e)
+        const item = this.pty[key]
+        if (item) {
+          const execFile = item?.execFile
+          if (execFile && existsSync(execFile)) {
+            remove(execFile).then().catch()
+          }
+          const task = item?.task ?? []
+          for (const t of task) {
+            this.completeTask(t, e.exitCode)
+          }
+          this.exitPtyByKey(key)
+        }
+      })
+      this.pty[key] = {
+        task: [],
+        pty,
+        data: ''
+      }
+    }
+    return key
+  }
+
+  private completeTask(task: PtyItem['task'][number], exitCode?: number) {
+    const result = task.reportExitCode
+      ? {
+          code: exitCode === 0 ? 0 : 1,
+          data: { exitCode },
+          ...(exitCode === 0 ? {} : { msg: `Terminal exited with code ${exitCode ?? 'unknown'}` })
+        }
+      : true
+    this._callback?.(task.command, task.key, result)
   }
 
   exitPtyByKey(key: string) {
@@ -196,8 +202,10 @@ class NodePTY {
     param: string[],
     execUseOneFile: boolean,
     command: string,
-    key: string
+    key: string,
+    reportExitCode = false
   ) {
+    if (!this.pty?.[ptyKey]?.pty) throw new Error('Terminal process is unavailable')
     if (!execUseOneFile) {
       const tmplFile = join(tmpdir(), ptyKey)
       await writeFile(tmplFile, '')
@@ -231,14 +239,19 @@ class NodePTY {
       await writeFile(file, param.join('\n'))
       await chmod(file, '0777')
       const pty = this.pty?.[ptyKey]?.pty
-      pty?.write(`cd "${global.Server.Cache!}" && ./${basename(file)} && wait && exit 0\r`)
+      pty?.write(
+        reportExitCode
+          ? `cd "${global.Server.Cache!}" && ./${basename(file)}; exit $?\r`
+          : `cd "${global.Server.Cache!}" && ./${basename(file)} && wait && exit 0\r`
+      )
       const task = this.pty?.[ptyKey]
       if (task) {
         task.execFile = file
       }
       task?.task?.push({
         command,
-        key
+        key,
+        reportExitCode
       })
     } else if (isWindows()) {
       const pty = this.pty?.[ptyKey]?.pty

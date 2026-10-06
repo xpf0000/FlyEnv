@@ -531,7 +531,7 @@ class Manager extends Base {
       new Set(roots.flatMap((pid) => ProcessListByExactPid(pid, list).map(({ PID }) => PID)))
     )
     const finalList = targets.length
-      ? await this.stopUnixServicePids('-TERM', roots, targets)
+      ? await this.stopUnixServicePids('-TERM', roots, targets, 10_000, list)
       : list
     if (targets.some((pid) => finalList.some(({ PID }) => PID === pid))) {
       throw new Error('MariaDB is still running after the stop request')

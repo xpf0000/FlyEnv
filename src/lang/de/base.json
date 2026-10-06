@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link URL in Zwischenablage kopiert!",
   "needSelectVersion": "Bitte wählen Sie zuerst eine Version",
   "hostsSaveFailed": "System-Hosts Datei konnte nicht gespeichert werden. Bitte überprüfen Sie, ob die Datei existiert und ob die Dateirechte korrekt sind",
-  "hostsReadFailed": "Fehler beim Lesen der Datei /private/etc/hosts. Bitte überprüfen Sie, ob die Datei existiert und ob die Dateirechte korrekt sind",
+  "hostsReadFailed": "Fehler beim Lesen der Datei {path}. Bitte überprüfen Sie, ob die Datei existiert und ob die Dateirechte korrekt sind",
   "needSelectDir": "Bitte wähle einen Ordner!",
   "processNotFound": "Keine Prozesse gefunden",
   "hostsTitle": "System-Hosts",

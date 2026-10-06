@@ -448,7 +448,8 @@ export class Base {
     signal: string,
     signalPids: string[],
     observedPids: string[] = signalPids,
-    timeoutMs = 10_000
+    timeoutMs = 10_000,
+    initialList?: PItem[]
   ): Promise<PItem[]> {
     let signalError: unknown
     try {
@@ -456,10 +457,9 @@ export class Base {
     } catch (error) {
       signalError = error
     }
-    // 跨平台共用原 PID 退出确认；保留 Unix 的既有信号及自然退出幂等策略，
-    // 不改变 macOS 的归属证据，也不在这里新增 KILL 回退。
+    // 跨平台共用原 PID/创建时间退出确认；保留 Unix 信号及自然退出幂等策略。
     try {
-      return await waitForServiceProcessExit(observedPids, timeoutMs)
+      return await waitForServiceProcessExit(observedPids, timeoutMs, { initialList })
     } catch (error) {
       throw signalError ?? error
     }
@@ -640,7 +640,7 @@ export class Base {
       if (arr.length > 0) {
         const sig = this._stopSignal()
         // 即使单个目标在批量 signal 前自然退出，仍由公共严格等待核对整份原目标。
-        finalProcessList = await this.stopUnixServicePids(sig, arr)
+        finalProcessList = await this.stopUnixServicePids(sig, arr, arr, 10_000, plist)
       }
       // PID 记录只在严格停止和新鲜快照确认后清除，且只清除本次目标对应的登记。
       // 不在快照中的 PID 是已退出的舊登記，可清除；仍活著但不屬本模組的 PID 保留。

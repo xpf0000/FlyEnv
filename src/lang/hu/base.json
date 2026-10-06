@@ -42,7 +42,7 @@
   "linkCopySuccess": "A hivatkozás sikeresen a vágólapra másolva",
   "needSelectVersion": "Előbb válasszon verziót",
   "hostsSaveFailed": "A rendszer hosts fájljának mentése sikertelen. Ellenőrizze, hogy a fájl létezik-e, és hogy a jogosultságai megfelelőek-e",
-  "hostsReadFailed": "/private/etc/hosts fájl beolvasása sikertelen. Ellenőrizze, hogy a fájl létezik-e, és hogy a jogosultságai megfelelőek-e",
+  "hostsReadFailed": "{path} fájl beolvasása sikertelen. Ellenőrizze, hogy a fájl létezik-e, és hogy a jogosultságai megfelelőek-e",
   "needSelectDir": "Válasszon mappát!",
   "processNotFound": "Nem található folyamat",
   "hostsTitle": "Rendszer hostfájlja",

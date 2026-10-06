@@ -42,7 +42,7 @@
   "linkCopySuccess": "Bağlantı panoya kopyalandı!",
   "needSelectVersion": "Lütfen önce bir sürüm seçin",
   "hostsSaveFailed": "Sistem Hosts dosyası kaydedilemedi. Dosyanın varlığını ve izinlerini kontrol edin",
-  "hostsReadFailed": "/private/etc/hosts dosyası okunamadı. Dosyanın varlığını ve izinlerini kontrol edin",
+  "hostsReadFailed": "{path} dosyası okunamadı. Dosyanın varlığını ve izinlerini kontrol edin",
   "needSelectDir": "Lütfen bir klasör seçin!",
   "processNotFound": "Herhangi bir işlem bulunamadı",
   "hostsTitle": "Sistem Hosts",

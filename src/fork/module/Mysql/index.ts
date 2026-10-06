@@ -272,7 +272,7 @@ class Mysql extends Base {
       new Set(roots.flatMap((pid) => ProcessListByExactPid(pid, list).map(({ PID }) => PID)))
     )
     const finalList = targets.length
-      ? await this.stopUnixServicePids('-TERM', roots, targets)
+      ? await this.stopUnixServicePids('-TERM', roots, targets, 10_000, list)
       : list
     if (targets.some((pid) => finalList.some(({ PID }) => PID === pid))) {
       throw new Error('MySQL is still running after the stop request')
@@ -679,7 +679,7 @@ datadir=${pathFixedToUnix(dataDir)}`
           if (isWindows()) {
             finalList = await this.stopWindowsServiceProcesses(arr, list)
           } else {
-            finalList = await this.stopUnixServicePids('-TERM', roots, arr)
+            finalList = await this.stopUnixServicePids('-TERM', roots, arr, 10_000, list)
           }
         }
         if (arr.some((pid) => finalList.some(({ PID }) => PID === pid))) {

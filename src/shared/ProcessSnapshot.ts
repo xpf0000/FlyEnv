@@ -2,7 +2,7 @@ import type { PItem } from './Process'
 import { isWindows } from './utils'
 
 /**
- * CIM 时间均为 UTC；将小数位补齐后比较，保留微秒精度，避免 Date.parse 的
+ * CIM 和 Unix lstart 采样均为 UTC；将小数位补齐后比较，保留微秒精度，避免 Date.parse 的
  * 毫秒截断把极短间隔的不同创建时点当成相同。缺失/无效字段不生成时间证据。
  */
 const comparableCreation = (value?: string): string | undefined => {
@@ -11,7 +11,7 @@ const comparableCreation = (value?: string): string | undefined => {
   return match ? `${match[1]}.${(match[2] ?? '').padEnd(9, '0')}Z` : undefined
 }
 
-/** 两个同来源 CIM 创建时点的比较；undefined 代表无法比较，不代表进程已退出。 */
+/** 两个同来源 UTC 创建时点的比较；undefined 代表无法比较，不代表进程已退出。 */
 export const compareProcessCreation = (left?: string, right?: string): number | undefined => {
   const a = comparableCreation(left)
   const b = comparableCreation(right)
@@ -38,7 +38,7 @@ export const isReadableServiceStopRoot = (
 /**
  * ParentProcessId 是创建时留下的数字，原父退出后不会随 PID 复用更新。若本行
  * 比当前“父”更早创建，它不可能属于该父树；只过滤这种确定无效的边，不为
- * 正常 worker 另查路径/身份。不含 CREATED 的 Unix/旧快照保持原 PID/PPID 规则。
+ * 正常 worker 另查路径/身份。不含 CREATED 的旧快照保持原 PID/PPID 规则。
  */
 export const processSnapshotParentMatches = (
   child: Pick<PItem, 'PID' | 'PPID' | 'CREATED'>,

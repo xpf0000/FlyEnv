@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link URL kopieret til udklipsholder!",
   "needSelectVersion": "Vælg først en version",
   "hostsSaveFailed": "System Hosts fil kunne ikke gemmes. Tjek venligst om filen eksisterer, og om filtilladelserne er korrekte",
-  "hostsReadFailed": "Kunne ikke læse filen /private/etc/hosts. Tjek venligst om filen eksisterer og om filrettighederne er korrekte",
+  "hostsReadFailed": "Kunne ikke læse filen {path}. Tjek venligst om filen eksisterer og om filrettighederne er korrekte",
   "needSelectDir": "Vælg venligst en mappe!",
   "processNotFound": "Ingen processer fundet",
   "hostsTitle": "System Værter",

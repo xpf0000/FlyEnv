@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link copiato negli appunti!",
   "needSelectVersion": "Seleziona prima una versione",
   "hostsSaveFailed": "Salvataggio del file hosts non riuscito. Verifica se il file esiste e i permessi sono corretti",
-  "hostsReadFailed": "Lettura del file /private/etc/hosts fallita. Verifica se il file esiste e i permessi sono corretti",
+  "hostsReadFailed": "Lettura del file {path} fallita. Verifica se il file esiste e i permessi sono corretti",
   "needSelectDir": "Seleziona una cartella!",
   "processNotFound": "Nessun processo trovato",
   "hostsTitle": "File Hosts di Sistema",

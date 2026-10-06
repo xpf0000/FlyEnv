@@ -96,7 +96,7 @@
       // 销毁旧编辑器，避免重读失败后继续保存先前的内容或错误提示文字。
       EditorDestroy(monacoInstance)
       monacoInstance = undefined
-      config.value = I18nT('base.hostsReadFailed')
+      config.value = I18nT('base.hostsReadFailed', { path: configpath })
       // 未创建编辑器时仍提示读取失败，避免用户面对空白页面而无法判断原因。
       MessageError(config.value)
     }

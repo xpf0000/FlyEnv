@@ -18,6 +18,7 @@ export interface PtyItem {
   task: {
     command: string
     key: string
+    reportExitCode?: boolean
   }[]
   execFile?: string
 }

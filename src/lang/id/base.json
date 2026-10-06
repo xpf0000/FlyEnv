@@ -42,7 +42,7 @@
   "linkCopySuccess": "Tautan berhasil disalin!",
   "needSelectVersion": "Silakan pilih versi terlebih dahulu",
   "hostsSaveFailed": "Gagal menyimpan file hosts sistem. Pastikan file ada dan izin file benar.",
-  "hostsReadFailed": "Gagal membaca file /private/etc/hosts. Pastikan file ada dan izin file benar.",
+  "hostsReadFailed": "Gagal membaca file {path}. Pastikan file ada dan izin file benar.",
   "needSelectDir": "Silakan pilih folder!",
   "processNotFound": "Proses tidak ditemukan",
   "hostsTitle": "Hosts Sistem",

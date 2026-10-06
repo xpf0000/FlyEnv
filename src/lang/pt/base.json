@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link copiado para a área de transferência",
   "needSelectVersion": "Por favor, selecione uma versão primeiro",
   "hostsSaveFailed": "Falha ao guardar o ficheiro hosts do sistema. Por favor, verifique se o ficheiro existe e se as permissões estão corretas.",
-  "hostsReadFailed": "Falha ao ler o ficheiro /private/etc/hosts. Por favor, verifique se o ficheiro existe e se as permissões estão corretas.",
+  "hostsReadFailed": "Falha ao ler o ficheiro {path}. Por favor, verifique se o ficheiro existe e se as permissões estão corretas.",
   "needSelectDir": "Por favor, selecione uma pasta!",
   "processNotFound": "Nenhum processo relacionado encontrado",
   "hostsTitle": "Hosts do sistema",

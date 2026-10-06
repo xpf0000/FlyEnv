@@ -577,7 +577,7 @@ export default class IPCHandler extends EventEmitter {
         this.handleHelperCommand(command, key)
         break
       case 'APP:FlyEnv-Helper-Check':
-        this.handleHelperCheck(command, key)
+        this.handleHelperCheck(command, key, args[0] === true)
         break
 
       // Node 函数调用
@@ -821,6 +821,14 @@ export default class IPCHandler extends EventEmitter {
 
   /** 兼容安装命令入口先检查偏好；UAC 用户和管理员进程不读取 Helper 安装资源。 */
   private handleHelperCommand(command: string, key: string) {
+    if (AppHelper.state !== 'normal') {
+      this.sendToMainWindow(command, key, {
+        code: 1,
+        reason: 'helper_execution_failed',
+        msg: 'FlyEnv helper installation is already in progress'
+      })
+      return
+    }
     if (
       isWindows() &&
       (global.Server.WindowsProcessElevated ||
@@ -836,7 +844,11 @@ export default class IPCHandler extends EventEmitter {
     }
     AppHelper.command()
       .then((res) => {
-        this.sendToMainWindow(command, key, { code: 0, ...res })
+        this.sendToMainWindow(command, key, {
+          code: 0,
+          ...res,
+          command: isLinux() ? `sudo ${res.command}` : res.command
+        })
       })
       .catch((error) => {
         this.sendToMainWindow(command, key, buildHelperCheckResponse(error))
@@ -844,7 +856,7 @@ export default class IPCHandler extends EventEmitter {
   }
 
   /** 避免 UI 健康轮询让未选择/UAC 用户触碰 key、任务或常驻程序。 */
-  private handleHelperCheck(command: string, key: string) {
+  private handleHelperCheck(command: string, key: string, terminalInstallation = false) {
     if (
       isWindows() &&
       (global.Server.WindowsProcessElevated ||
@@ -858,7 +870,8 @@ export default class IPCHandler extends EventEmitter {
       })
       return
     }
-    AppHelperCheck()
+    const check = terminalInstallation ? AppHelper.verifyHelperReady() : AppHelperCheck()
+    check
       .then(() => {
         this.sendToMainWindow(command, key, { code: 0, data: true })
       })
@@ -1072,7 +1085,7 @@ export default class IPCHandler extends EventEmitter {
 
   private handleNodePtyExec(command: string, key: string, args: any[]) {
     this.loadNodePty()
-      .then((nodePty) => nodePty.exec(args[0], args[1], args[2], command, key))
+      .then((nodePty) => nodePty.exec(args[0], args[1], args[2], command, key, args[3] === true))
       .catch((error) => this.sendRuntimeError(command, key, error))
   }
 

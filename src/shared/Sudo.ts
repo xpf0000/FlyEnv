@@ -39,6 +39,13 @@ export class WindowsSudoCommandError extends Error {
   }
 }
 
+export class LinuxSudoCancelledError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'LinuxSudoCancelledError'
+  }
+}
+
 export const classifyWindowsElevationError = (error: unknown): WindowsSudoError => {
   const message = error instanceof Error ? error.message : `${error}`
   const code = (error as NodeJS.ErrnoException | undefined)?.code
@@ -308,37 +315,34 @@ async function windowsWriteExecuteScript(instance: Instance): Promise<void> {
 async function linux(instance: Instance): Promise<{ stdout: string; stderr: string }> {
   const binary = await linuxBinary()
 
-  const command: string[] = []
-  command.push(`cd "${escapeDoubleQuotes(process.cwd())}";`)
-
-  if (instance.options.env) {
-    for (const key in instance.options.env) {
-      const value = instance.options.env[key]
-      command.push(`export ${key}="${escapeDoubleQuotes(value)}";`)
-    }
-  }
-
-  command.push(`"${escapeDoubleQuotes(binary)}"`)
+  const args: string[] = []
 
   if (/kdesudo/i.test(binary)) {
-    command.push(
+    args.push(
       '--comment',
-      `"${instance.options.name} wants to make changes. Enter your password to allow this."`
+      `${instance.options.name} wants to make changes. Enter your password to allow this.`
     )
-    command.push('-d')
-    command.push('--')
+    args.push('-d')
+    args.push('--')
   } else if (/pkexec/i.test(binary)) {
-    command.push('--disable-internal-agent')
+    args.push('--disable-internal-agent')
   }
 
   const magic = 'SUDOPROMPT\n'
-  command.push(`/bin/bash -c "echo ${escapeDoubleQuotes(magic.trim())}; ${instance.command}"`)
+  args.push('/bin/bash', '-c', `printf '${magic}'; ${instance.command}`)
 
-  const finalCommand = command.join(' ')
-
-  const { stdout, stderr } = await execChildProcessAsync(finalCommand, {
+  const { stdout, stderr } = await execFileAsync(binary, args, {
     encoding: 'utf-8',
-    maxBuffer: MAX_BUFFER
+    maxBuffer: MAX_BUFFER,
+    cwd: process.cwd(),
+    env: { ...process.env, ...instance.options.env }
+  }).catch((error) => {
+    // pkexec returns 126 when its authorization dialog is dismissed. An elevated
+    // program can also return 126, so the marker must be absent to classify cancellation.
+    if (/pkexec/i.test(binary) && error.code === 126 && !error.stdout?.startsWith(magic)) {
+      throw new LinuxSudoCancelledError(PERMISSION_DENIED)
+    }
+    throw error
   })
   const elevated = stdout && stdout.slice(0, magic.length) === magic
   if (elevated) {

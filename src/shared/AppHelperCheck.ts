@@ -35,7 +35,7 @@ const Helper_Check_Timeout = 3000
 // v35 与 Go 停止执行同步：一次请求连续终止，取消逐 PID 阻塞等待。
 // v36 环境广播改为 Helper 后台队列；旧程序仍阻塞写入 RPC，须通过版本检查更新。
 // v37 删除 Helper 提前广播，统一在环境业务结算后通知；旧 v36 会提前/重复广播。
-export const HelperVersion = 40
+export const HelperVersion = 41
 
 export type HelperHealth = {
   version: number

@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf16"
 )
 
@@ -570,6 +571,7 @@ type ProcessInfo struct {
 	PID     string
 	PPID    string
 	COMMAND string
+	CREATED string
 }
 
 // ProcessList returns a list of running processes.
@@ -579,13 +581,19 @@ func (t *ToolManager) ProcessList() ([]ProcessInfo, error) {
 	if utils.IsWindows() {
 		return nil, fmt.Errorf("use ProcessListWin to query Windows processes")
 	}
-	stdout, stderr, err := utils.ExecCommand("ps", []string{"axo", "user,pid,ppid,command"}, nil)
+	stdout, stderr, err := utils.ExecCommand("/bin/ps", []string{"axww", "-o", "user=,pid=,ppid=,lstart=,command="}, map[string]interface{}{
+		"env": map[string]string{"LC_ALL": "C", "LANG": "C", "TZ": "UTC"},
+	})
 	if err != nil {
 		// 进程列表是停止归属与残留确认的证据；查询失败不能伪装成空列表，
 		// 否则上层会把“无法读取”当成“服务已退出”并注销重试状态。
 		return nil, fmt.Errorf("failed to execute ps command: %w; stderr: %s", err, stderr)
 	}
 
+	return parseProcessList(stdout)
+}
+
+func parseProcessList(stdout string) ([]ProcessInfo, error) {
 	res := strings.TrimSpace(stdout)
 	if res == "" {
 		return nil, fmt.Errorf("ps returned an empty process list")
@@ -600,12 +608,8 @@ func (t *ToolManager) ProcessList() ([]ProcessInfo, error) {
 			continue
 		}
 		parts := strings.Fields(line)
-		// ps 会输出该固定表头，可安全跳过；其余格式错误的记录都必须报错，不能从
-		// 停止归属快照中静默删除后继续操作。
-		if len(parts) >= 3 && strings.EqualFold(parts[1], "PID") && strings.EqualFold(parts[2], "PPID") {
-			continue
-		}
-		if len(parts) < 3 {
+		// 无表头；不可解析的记录不能从完整停止快照中静默删除。
+		if len(parts) < 8 {
 			return nil, fmt.Errorf("invalid ps process list row")
 		}
 		if _, parseErr := strconv.Atoi(parts[1]); parseErr != nil {
@@ -618,13 +622,18 @@ func (t *ToolManager) ProcessList() ([]ProcessInfo, error) {
 		user := parts[0]
 		pid := parts[1]
 		ppid := parts[2]
-		command := strings.Join(parts[3:], " ")
+		created, parseErr := time.Parse("Mon Jan 2 15:04:05 2006", strings.Join(parts[3:8], " "))
+		if parseErr != nil {
+			return nil, fmt.Errorf("invalid ps process creation time: %w", parseErr)
+		}
+		command := strings.Join(parts[8:], " ")
 
 		processes = append(processes, ProcessInfo{
 			USER:    user,
 			PID:     pid,
 			PPID:    ppid,
 			COMMAND: command,
+			CREATED: created.UTC().Format("2006-01-02T15:04:05.000Z"),
 		})
 	}
 

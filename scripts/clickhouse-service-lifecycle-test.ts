@@ -31,7 +31,7 @@ const directStopSource = source.slice(
 assert.match(source, /startService\(version: SoftInstalled, \.\.\.args: any\)/)
 assert.match(source, /private _stopAllServers\(version: SoftInstalled, \.\.\.args: any\)/)
 assert.match(source, /pidPath: this\.versionPidFile\(version\)/)
-assert.match(directStopSource, /const plist = await ProcessListFetch\(\)/)
+assert.match(directStopSource, /const plist = await StopProcessListFetch\(\)/)
 assert.match(
   directStopSource,
   /ProcessOwnedPidsByPidOrDescendant\(\s*pid,\s*plist,\s*\[version\.bin\],\s*\['clickhouse-watchdog'\]\s*\)/,

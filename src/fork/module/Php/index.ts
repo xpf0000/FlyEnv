@@ -308,7 +308,7 @@ xdebug.output_dir = "${output_dir}"
         if (arr.length) {
           // 已确认父的完整子树作为所有权单元。批量 INT 中若某 PID 自然退出报 ESRCH，
           // 仍核对整份原目标；全部消失才幂等成功，否则保留信号错误/报告残留。
-          await this.stopUnixServicePids('-INT', arr)
+          await this.stopUnixServicePids('-INT', arr, arr, 10_000, plist)
         }
         // 快照不存在的 PID 是旧登记；仍存活但不属于此版本的 PID 不能清除。
         const finalList = await fetchStopProcessListLocal()

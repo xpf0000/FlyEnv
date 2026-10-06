@@ -319,3 +319,12 @@ Web 服务沿用同 UID 的普通停止链，不新增 root PID 信号或进程�
 - 七组迁移、Linux 启动/提示行为、helper 合约/版本同步通过；Windows 健康、安装脚本、安装 IPC、安装后 hosts 回归与 Go module/utils 测试通过。Windows Go 测试明确设置 GOOS=windows，避免继承交叉编译配置。
 - main/fork 使用对应平台、入口、打包及分包参数编译通过；修改 TS 文件 lint/格式、Bash 语法与 diff 检查通过。全仓 TypeScript 与 HEAD 对照仍为 38/38，无新增错误。
 - 独立只读复核确认修复后的公共响应未改变 Windows/macOS 业务行为，无剩余重要问题。三端真实安装和发行版包升级仍按原 VM 验收范围验证。本轮未提交、未推送，linux-issues.md 用户修改保持原状。
+
+### 2026-10-06 安装弹窗链路复查
+
+- 操作归属：自动安装沿用 HelperStore 与主进程 AppHelper single-flight；终端安装由 FlyEnvHelper/setup.ts 模块单例持有命令快照、PTY、IPC、提示、健康验证及清理，Vue 页面只挂载显示。页面卸载不终止已授权的安装，终态后释放 loading；无新 Pinia、持久化或模块约束例外。
+- 事件与重入：needInstall 只打开确认，code 200 不结束操作；取消授权、脚本失败和健康检查失败各自结束并报告。图形确认/安装期间拒绝终端入口，主进程安装未结束时拒绝准备终端命令，即使前端超时也不自动重放。正常失败后的终端回退仍保留；重复终端安装复用同一 Promise。
+- 成功条件：安装脚本退出码为 0 且 helper 健康检查通过。目录恢复回调沿用现有独立失败通知；安装后 hosts 同步失败只报告 hosts 结果，不撤销帮助程序安装或再次提权。服务进程生命周期不变，仅清理本次安装 PTY。
+- 修复 Linux 图形提权命令被 Sudo 拒绝的问题：AppHelper 构造原始 Bash 命令，pkexec 按 argv 启动，终端入口单独加 sudo；取消 polkit 与提权后脚本退出 126 分别处理。Unix PTY 可显式报告真实退出码，普通终端调用保留原返回约定；初始化/执行失败不再悬挂安装页面。
+- 新增 17 个安装链路行为用例与 2 个 UI 用例，接入 renderer-operation-boundaries；涵盖真实 Bash 引号/退出码、前后端安装通知、取消、回退、超时、重入、卸载、PTY 初始化失败和 hosts 附加失败。相关 Windows 安装/renderer 回归、Linux 提示/迁移/transport、WSL Go 全包测试通过。
+- main/fork 和相关 Vue 编译、修改文件 ESLint 与 diff 检查通过；全仓 TypeScript 仍有 38 个既有错误，本次修改文件没有错误。独立复查发现并修复图形/终端并发入口后复核通过。当前 Windows/WSL 环境未验证真实 Linux 桌面授权弹窗和发行版安装，不宣称这些验收已经完成。

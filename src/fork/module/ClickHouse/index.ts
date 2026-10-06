@@ -39,6 +39,7 @@ import {
   clickHouseHttpPort
 } from './chUI'
 import { clickHouseVersionPidFile } from './lifecycle'
+import { StopProcessListFetch } from '@shared/StopProcessList'
 class Manager extends Base {
   constructor() {
     super()
@@ -315,7 +316,7 @@ class Manager extends Base {
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
       try {
-        const plist = await ProcessListFetch()
+        const plist = await StopProcessListFetch()
         const pids = new Set<string>()
         const versionPid = await this.readPidFromFile(this.versionPidFile(version))
         const legacyPid = await this.readPidFromFile(this.appPidFile())
@@ -347,7 +348,7 @@ class Manager extends Base {
           if (isWindows()) {
             finalList = await this.stopWindowsServiceProcesses(arr, plist)
           } else {
-            finalList = await this.stopUnixServicePids('-INT', arr)
+            finalList = await this.stopUnixServicePids('-INT', arr, arr, 10_000, plist)
           }
         }
         // 无论数据库父进程是否已退出，都要独立确认并停止仍运行的 CH-UI companion。
@@ -378,7 +379,7 @@ class Manager extends Base {
   private async _stopCHUI(): Promise<string[]> {
     const bin = this.chUIBin()
     const pidPath = this.chUIPidPath()
-    const processes = await ProcessListFetch()
+    const processes = await StopProcessListFetch()
 
     const candidatePids = new Set<string>()
     if (existsSync(pidPath)) {
@@ -407,7 +408,7 @@ class Manager extends Base {
     if (arr.length > 0) {
       if (isWindows()) finalList = await this.stopWindowsServiceProcesses(arr, processes)
       else {
-        finalList = await this.stopUnixServicePids('-INT', roots, arr)
+        finalList = await this.stopUnixServicePids('-INT', roots, arr, 10_000, processes)
       }
     }
     // 空目标仍沿用首次列表，不得把不可读但存活的 UI 候选当成已退出。

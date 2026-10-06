@@ -42,7 +42,7 @@
   "linkCopySuccess": "Lien copié dans le presse-papiers !",
   "needSelectVersion": "Veuillez d'abord sélectionner une version",
   "hostsSaveFailed": "Échec de l'enregistrement du fichier Hosts système. Veuillez vérifier si le fichier existe et si les permissions du fichier sont correctes",
-  "hostsReadFailed": "Échec de la lecture du fichier /private/etc/hosts. Veuillez vérifier si le fichier existe et si les permissions du fichier sont correctes",
+  "hostsReadFailed": "Échec de la lecture du fichier {path}. Veuillez vérifier si le fichier existe et si les permissions du fichier sont correctes",
   "needSelectDir": "Veuillez sélectionner un dossier !",
   "processNotFound": "Aucun processus trouvé",
   "hostsTitle": "Hosts système",

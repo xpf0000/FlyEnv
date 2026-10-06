@@ -20,7 +20,7 @@ import {
   windowsHelperInstalledPath
 } from '@shared/WindowsHelperIdentity'
 import { runWindowsHelperInstaller } from './WindowsHelperInstaller'
-import { WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
+import { LinuxSudoCancelledError, WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
 import { tmpdir, userInfo } from 'node:os'
 import { copyFile, chmod, existsSync, mkdirp, readFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
@@ -102,6 +102,9 @@ const toAppHelperInstallError = (error: unknown): AppHelperError => {
   if (isAppHelperError(error)) {
     return error
   }
+  if (error instanceof LinuxSudoCancelledError) {
+    return new AppHelperError('elevation_cancelled', error.message)
+  }
   if (error instanceof WindowsSudoError) {
     return new AppHelperError(error.code, error.message, error.stderr)
   }
@@ -147,7 +150,7 @@ const linuxInstallCommand = async (
     ? new X509Certificate(await readFile(ca)).fingerprint256.replace(/:/g, '').toLowerCase()
     : ''
   const args = [script, bin, role, dataPath, appRoot, caFingerprint ? ca : '', caFingerprint]
-  return { command: `sudo /bin/bash ${args.map(quoteLinuxShell).join(' ')}`, caFingerprint }
+  return { command: `/bin/bash ${args.map(quoteLinuxShell).join(' ')}`, caFingerprint }
 }
 
 type AppHelperDeps = {
@@ -348,6 +351,21 @@ export class AppHelper {
     return this.installation
   }
 
+  /** Verify a terminal installation without starting another authorization request. */
+  async verifyHelperReady(): Promise<boolean> {
+    await waitForHelperHealth(() => this.deps.appHelperCheck())
+    await this.afterHelperReady()
+    return true
+  }
+
+  private async afterHelperReady() {
+    try {
+      await this._onSuduExecSuccess?.()
+    } catch (callbackError) {
+      appDebugLog('[AppHelper][post-ready]', String(callbackError)).catch(() => {})
+    }
+  }
+
   private async install(): Promise<boolean> {
     let windowsInstallation = false
     // 每次 initHelper 都会健康检查。仅在本次真正执行安装后记录，恢复已有任务或
@@ -385,11 +403,7 @@ export class AppHelper {
         this.state = 'installed'
         await waitForHelperHealth(() => this.deps.appHelperCheck())
       }
-      try {
-        await this._onSuduExecSuccess?.()
-      } catch (callbackError) {
-        appDebugLog('[AppHelper][post-ready]', String(callbackError)).catch(() => {})
-      }
+      await this.afterHelperReady()
       this.emitStatus('checkSuccess', undefined, installationPerformed)
       return true
     } catch (error) {

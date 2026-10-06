@@ -35,7 +35,7 @@ const (
 	// v35：完整 PID 集合一次停止请求，移除逐 PID 的阻塞等待，保留原身份/句柄预检。
 	// v36：系统环境写入后非阻塞安排后台广播，合并待处理通知，不等待窗口响应。
 	// v37：取消 Helper 内提前通知，由 FlyEnv 环境业务结算后统一广播，避免重复通知。
-	Helper_Version   = 40
+	Helper_Version   = 41
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
 	Key_Path_Unix    = "/usr/local/share/FlyEnv/flyenv-helper.key"

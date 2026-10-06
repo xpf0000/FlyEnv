@@ -480,4 +480,7 @@ assert.match(privilegeController, /IPC\.off\(key\)/)
 assert.match(privilegeController, /private operation\?: Promise<void>/)
 assert.match(privilegeController, /snapshot\.revision < /)
 
+await import('./linux-helper-ui-test')
+await import('./linux-helper-install-flow-test')
+
 console.log('renderer operation boundary tests passed')

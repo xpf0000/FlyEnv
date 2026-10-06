@@ -42,7 +42,7 @@
   "linkCopySuccess": "Link URL copied to clipboard!",
   "needSelectVersion": "Please select a version first",
   "hostsSaveFailed": "System Hosts file failed to save. Please check whether the file exists and whether the file permissions are correct",
-  "hostsReadFailed": "Failed to read the file /private/etc/hosts. Please check whether the file exists and whether the file permissions are correct",
+  "hostsReadFailed": "Failed to read the file {path}. Please check whether the file exists and whether the file permissions are correct",
   "needSelectDir": "Please select a folder!",
   "processNotFound": "No processes found",
   "hostsTitle": "System Hosts",

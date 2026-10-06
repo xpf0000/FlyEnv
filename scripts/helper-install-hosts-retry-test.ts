@@ -12,19 +12,19 @@ const helperFixSource = readFileSync(
   'utf8'
 )
 const manualInstallerSource = readFileSync(
-  join(root, 'src/render/components/FlyEnvHelper/index.vue'),
+  join(root, 'src/render/components/FlyEnvHelper/setup.ts'),
   'utf8'
 )
 
 assert.match(helperStoreSource, /import \{ handleWriteHosts \} from '@\/util\/Host'/)
 
 const verifyHelperReady = helperStoreSource.match(
-  /verifyHelperReady\(\) \{(?<body>[\s\S]*?)\n[ ]{2}\}\n\n[ ]{2}private handleInstallResult/
+  /verifyHelperReady\(\): Promise<boolean> \{(?<body>[\s\S]*?)\n[ ]{2}\}\n\n[ ]{2}private syncHostsAfterInstall/
 )
 assert.ok(verifyHelperReady?.groups?.body, 'verifyHelperReady must exist')
 assert.match(
   verifyHelperReady.groups.body,
-  /if \(res\?\.code === 0\) \{\s*handleWriteHosts\(\)\s*\.catch\(\(\) => \{\}\)/
+  /if \(res\?\.code !== 0\)[\s\S]*?return[\s\S]*?this\.syncHostsAfterInstall\(\)[\s\S]*?resolve\(true\)/
 )
 
 const installResult = helperStoreSource.match(
@@ -33,7 +33,7 @@ const installResult = helperStoreSource.match(
 assert.ok(installResult?.groups?.body, 'handleInstallResult must exist')
 assert.match(
   installResult.groups.body,
-  /if \(res\?\.code !== 0\)[\s\S]*?return[\s\S]*?handleWriteHosts\(\)\s*\.catch\(\(\) => \{\}\)/
+  /if \(res\?\.code !== 0\)[\s\S]*?return[\s\S]*?this\.syncHostsAfterInstall\(\)/
 )
 
 assert.doesNotMatch(

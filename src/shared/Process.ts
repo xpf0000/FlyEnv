@@ -1,6 +1,9 @@
 import Helper from '../fork/Helper'
 import { AppHelperCheck } from '@shared/AppHelperCheck'
 import { execPromiseWithEnv } from '@shared/child-process'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+import { parseUnixProcessList, unixProcessEnv, unixProcessListArgs } from './Process.unix'
 import { appDebugLog, isLinux, isWindows } from '@shared/utils'
 import { logServiceStop } from './ServiceStopDiagnostics'
 import { collectProcessSnapshotTree, isReadableServiceStopRoot } from './ProcessSnapshot'
@@ -24,7 +27,7 @@ export type PItem = {
   PID: string
   PPID: string
   COMMAND: string
-  /** Windows CIM CreationDate 的 UTC invariant 原文；旧/非 Windows provider 可省略。 */
+  /** UTC 创建时间：Windows CIM 原文，Unix ps lstart 转为 ISO；旧 provider 可省略。 */
   CREATED?: string
   /** Windows 查询返回的实际程序路径；用于孤立进程归属，不能仅凭相同程序名结束。 */
   EXECUTABLE?: string
@@ -53,27 +56,12 @@ export const ProcessListFetch = async (): Promise<PItem[]> => {
   if (useHelper) {
     return (await Helper.send('tools', 'processList')) as any
   }
-  const command = `ps axo user,pid,ppid,command`
-  const std = await execPromiseWithEnv(command)
-  const stdout = std.stdout.trim()
-  if (!stdout) throw new Error('ps returned an empty process list')
-  const processes: PItem[] = []
-  for (const line of stdout.split('\n').filter((item) => !!item.trim())) {
-    const fields = line.trim().split(/\s+/)
-    // ps 会输出固定列名；只丢弃该已知行，其他格式错误都拒绝，避免把不完整快照
-    // 当成完整进程列表继续执行停止流程。
-    if (fields[1]?.toUpperCase() === 'PID' && fields[2]?.toUpperCase() === 'PPID') continue
-    if (fields.length < 3 || !/^\d+$/.test(fields[1]) || !/^\d+$/.test(fields[2])) {
-      throw new Error('Invalid ps process list output')
-    }
-    processes.push({
-      USER: fields[0],
-      PID: fields[1],
-      PPID: fields[2],
-      COMMAND: fields.slice(3).join(' ')
-    })
-  }
-  return processes
+  const std = await promisify(execFile)('/bin/ps', unixProcessListArgs, {
+    env: unixProcessEnv(),
+    timeout: 15_000,
+    maxBuffer: 16 * 1024 * 1024
+  })
+  return parseUnixProcessList(std.stdout)
 }
 
 export const ProcessPidsByPid = (pid: string, arr: PItem[]): string[] => {

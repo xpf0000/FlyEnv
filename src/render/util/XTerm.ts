@@ -27,7 +27,7 @@ export class XTerm implements XTermType {
 
   mount(dom: HTMLElement) {
     this.dom = dom
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const doMount = async () => {
         console.log('doMount: ', dom)
         const appStore = AppStore()
@@ -93,7 +93,12 @@ export class XTerm implements XTermType {
 
       if (!this.ptyKey) {
         IPC.send('NodePty:init').then((key: string, res: any) => {
+          if (res?.code === 200) return
           IPC.off(key)
+          if (res?.code !== 0 || !res?.data) {
+            reject(new Error(res?.msg ?? 'Failed to initialize terminal'))
+            return
+          }
           this.ptyKey = res?.data ?? ''
           /**
            * Receive node-pty data
@@ -103,10 +108,10 @@ export class XTerm implements XTermType {
             this.xterm?.focus?.()
           })
 
-          doMount()
+          doMount().catch(reject)
         })
       } else {
-        doMount()
+        doMount().catch(reject)
       }
     })
   }
@@ -227,12 +232,12 @@ export class XTerm implements XTermType {
     })
   }
 
-  send(command: string[], execUseOneFile = true) {
+  send(command: string[], execUseOneFile = true, reportExitCode = false) {
     console.log('XTerm send:', command)
     if (this.end) {
       return
     }
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.resolve = resolve
       const param = [...command]
       if (execUseOneFile) {
@@ -240,17 +245,29 @@ export class XTerm implements XTermType {
           param.push(`echo "Task-${this.ptyKey}-End"`)
           param.push(`exit 0`)
         } else {
+          if (reportExitCode) param.push('flyenv_terminal_exit_code=$?')
           param.push(`wait;`)
-          param.push(`echo "Task-${this.ptyKey}-END" && exit 0;`)
+          param.push(
+            reportExitCode
+              ? `echo "Task-${this.ptyKey}-END"; exit "$flyenv_terminal_exit_code";`
+              : `echo "Task-${this.ptyKey}-END" && exit 0;`
+          )
         }
       }
-      IPC.send('NodePty:exec', this.ptyKey, param, execUseOneFile).then((key: string) => {
-        console.log('static command finished: ', command)
-        IPC.off(key)
-        this.end = true
-        this.resolve = undefined
-        resolve(true)
-      })
+      IPC.send('NodePty:exec', this.ptyKey, param, execUseOneFile, reportExitCode).then(
+        (key: string, res: any) => {
+          if (res?.code === 200) return
+          console.log('static command finished: ', command)
+          IPC.off(key)
+          this.end = true
+          this.resolve = undefined
+          if (res?.code === 1) {
+            reject(new Error(res?.msg ?? 'Failed to execute terminal command'))
+            return
+          }
+          resolve(true)
+        }
+      )
     })
   }
 }

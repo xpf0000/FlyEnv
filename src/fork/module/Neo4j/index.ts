@@ -322,7 +322,7 @@ class Neo4j extends Base {
       if (allPids.length > 0) {
         // 只對實例目錄已確認的根發 TERM；信號失敗保留 PID 文件並交回錯誤供重試。
         if (isWindows()) finalList = await this.stopWindowsServiceProcesses(allPids, list)
-        else finalList = await this.stopUnixServicePids('-TERM', allPids)
+        else finalList = await this.stopUnixServicePids('-TERM', allPids, allPids, 10_000, list)
       }
 
       let stopped = allPids.length === 0
