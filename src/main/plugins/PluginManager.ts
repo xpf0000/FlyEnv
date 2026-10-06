@@ -76,16 +76,18 @@ export type InstalledPlugin = {
   development: boolean
 }
 
+type PluginSecretProtection = {
+  encrypt(text: string): string
+  decrypt(data: string): string
+}
+
 export type PluginManagerOptions = {
   pluginsRoot?: string
   statePath?: string
   fetchImpl?: typeof fetch
   stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
   licenseCheck?: () => Promise<boolean>
-  secretProtect?: {
-    encrypt(text: string): string
-    decrypt(data: string): string
-  }
+  secretProtect?: PluginSecretProtection | (() => PluginSecretProtection | undefined)
 }
 
 export type PluginDiagnostic = {
@@ -154,7 +156,7 @@ export class PluginManager {
   private readonly fetchImpl: typeof fetch
   private readonly stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
   private readonly licenseCheck: () => Promise<boolean>
-  private readonly secretProtect?: { encrypt(text: string): string; decrypt(data: string): string }
+  private readonly secretProtect?: PluginManagerOptions['secretProtect']
   private readonly operations = new Map<string, Promise<unknown>>()
   private operationTail: Promise<void> = Promise.resolve()
   private stateLoaded = false
@@ -437,6 +439,10 @@ export class PluginManager {
    * missing or unreadable secret never skips token verification.
    */
   private installSecret?: string
+  private resolveSecretProtect() {
+    return typeof this.secretProtect === 'function' ? this.secretProtect() : this.secretProtect
+  }
+
   private async getInstallSecret() {
     if (this.installSecret) return this.installSecret
     const secretPath = join(dirname(this.statePath), '.plugin-install-secret')
@@ -447,11 +453,12 @@ export class PluginManager {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
     }
     if (existing.startsWith('enc:')) {
-      if (!this.secretProtect) {
+      const protector = this.resolveSecretProtect()
+      if (!protector) {
         throw new Error('Plugin install secret cannot be decrypted on this installation')
       }
       try {
-        const decrypted = this.secretProtect.decrypt(existing.slice(4))
+        const decrypted = protector.decrypt(existing.slice(4))
         this.installSecret = decrypted
         return decrypted
       } catch (error) {
@@ -466,7 +473,8 @@ export class PluginManager {
     }
     const created = randomUUID()
     await fs.mkdir(dirname(secretPath), { recursive: true })
-    const stored = this.secretProtect ? `enc:${this.secretProtect.encrypt(created)}` : created
+    const protector = this.resolveSecretProtect()
+    const stored = protector ? `enc:${protector.encrypt(created)}` : created
     await fs.writeFile(secretPath, stored, { mode: 0o600, flag: 'wx' })
     this.installSecret = created
     return created

@@ -130,11 +130,20 @@ class Helper {
 
   showInstallFailDialog(reason?: string, stderr?: string) {
     if (reason === 'elevation_uac_cancelled' || reason === 'elevation_cancelled') return
-    if (window.Server.isWindows || reason === 'elevation_status_timeout') {
+    if (
+      window.Server.isWindows ||
+      reason === 'elevation_status_timeout' ||
+      (window.Server.isMacOS &&
+        ['helper_signature_invalid', 'helper_version_mismatch', 'helper_acl_invalid'].includes(
+          reason ?? ''
+        ))
+    ) {
       const message = I18nT(
         reason === 'elevation_status_timeout'
           ? 'setup.flyenvHelperInstallTimeout'
-          : 'setup.flyenvHelperInstallFailTips'
+          : window.Server.isWindows
+            ? 'setup.flyenvHelperInstallFailTips'
+            : 'menu.helperInstallFailTips'
       )
       const diagnostic = stderr?.trim().slice(0, 1024)
       dialog

@@ -108,7 +108,7 @@ class GlobalIPCOn {
           !HelperStore.isInstallResultPending()
         ) {
           MessageError(res?.msg)
-          HelperStore.showInstallFailDialog(res?.reason)
+          HelperStore.showInstallFailDialog(res?.reason, res?.stderr || res?.msg)
         } else if (
           (!res?.status || res.status === 'needInstall') &&
           !FlyEnvHelperSetup.show &&

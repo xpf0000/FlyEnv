@@ -122,3 +122,14 @@ render 层把 Unix 的 `isSudo` 启动路由到终端（`src/render/core/ModuleC
 本轮验证：23 个相关 TS 回归脚本全部通过（安装/终端、macOS 信任、MacPorts、hosts、Linux 链路、Windows Helper 和 renderer/fork 边界）；Go `test -race -count=1 ./...` 与 `vet ./...` 通过。Darwin amd64/arm64、Linux amd64/arm64、Windows amd64 产物重新构建；main/fork 与 renderer 生产构建通过。修改文件 ESLint、Prettier 和 diff 检查通过。完整 vue-tsc 仍有 65 条既有错误，与此前诊断集合一致，无新增。
 
 额外检查 `windows-privilege-edge-test.ts` 失败：fixture 未提供 `@lang/index.I18nT`，在未修改的 `ModuleInstalledItem.start()` 抛 TypeError；该测试与模块均未在本轮修改，作为基线问题记录。Go race 保留既有 LC_DYSYMTAB 链接警告。上述检查不替代新签名发行包安装、Keychain、root FTP 与旧 macOS/MacPorts 的系统验收。
+
+## 7 启动钥匙串访问与未签名安装反馈（2026-10-06）
+
+实机日志确认未签名 production 应用在 root staging 的 codesign 校验失败，未执行安装脚本；旧 UI 随后自动打开 XTerm 重放同一安装命令，将真实原因覆盖成终端退出码。此次修复继续要求正式签名，不增加未签名生产安装降级。
+
+- 插件密钥仍由 PluginManager 管理；Application 传入延迟获取的加解密器，仅创建新密钥或解密既有密文时访问 safeStorage。空扫描、既有明文记录不访问钥匙串；既有加密插件启动验证仍需要解密，未签名构建仍可能触发系统授权。解密失败保留插件验证失败，不降级密文或跳过校验。
+- AppHelper 仍独占图形/终端安装 flight；固定 bootstrap 的签名、资源路径和协议校验输出结构化错误标记。main 统一保留原 stderr，并将详情随失败回复及状态广播传递；debug 记录错误码、原始 stderr 和异常堆栈。
+- macOS 的签名、资源/ACL、协议拒绝直接显示真实失败详情，不自动打开终端重放；取消授权保持静默，其他安装失败保留原终端入口。33 种语言的通用安装失败文案不再统一承诺终端重试。
+- 签名/协议校验和密钥解密都是必要依赖，失败阻断安装/插件激活；UI 通知与日志仍为附加动作，不能改变安装结果。未新增 renderer 操作状态、共享持久化或 Pinia store。
+
+验证：11 个关联回归脚本通过（插件、固定安装脚本、错误 IPC/UI、安装互斥与 PTY、健康、Windows 兼容、hosts 后续同步及 renderer 边界）；main/fork 构建、ESLint、Prettier、JSON 解析及 diff 检查通过。全量 vue-tsc 与既有诊断一致，无新增。未执行真实 root 安装，也未修改钥匙串授权。

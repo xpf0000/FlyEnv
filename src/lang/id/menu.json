@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv perlu menginstal program pembantu",
   "helperInstalling": "Program bantu sedang dipasang, mohon tunggu",
   "waitHelper": "Program pembantu sedang mulai, harap tunggu",
-  "helperInstallFailTips": "Pemasangan program bantu gagal, silakan coba pasang secara manual di terminal yang muncul",
+  "helperInstallFailTips": "Pemasangan program bantu gagal.",
   "helperInstallSuccessTips": "Pemasangan program bantu berhasil",
   "helperInstallTitle": "Pasang Program Bantu"
 }

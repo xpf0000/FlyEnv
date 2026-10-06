@@ -20,7 +20,7 @@ import {
   windowsHelperInstalledPath
 } from '@shared/WindowsHelperIdentity'
 import { runWindowsHelperInstaller } from './WindowsHelperInstaller'
-import { LinuxSudoCancelledError, WindowsSudoCommandError, WindowsSudoError } from '@shared/Sudo'
+import { LinuxSudoCancelledError, WindowsSudoError } from '@shared/Sudo'
 import { userInfo } from 'node:os'
 import { existsSync, readFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
@@ -33,6 +33,7 @@ type AppHelperMessage = {
   state:
     'needInstall' | 'installing' | 'installed' | 'installFaild' | 'checkSuccess' | 'fallbackToUac'
   reason?: string
+  stderr?: string
   // checkSuccess 同时用于健康检查和实际安装完成；只有后者才能显示安装成功通知。
   installationPerformed?: boolean
 }
@@ -94,6 +95,8 @@ export const waitForHelperHealth = async <T>(
 
 const installerErrorCodes = new Set<AppHelperErrorCode>([
   'helper_binary_missing',
+  'helper_signature_invalid',
+  'helper_version_mismatch',
   'helper_acl_invalid',
   'helper_task_invalid',
   'helper_task_start_failed',
@@ -110,16 +113,16 @@ const toAppHelperInstallError = (error: unknown): AppHelperError => {
   if (error instanceof WindowsSudoError) {
     return new AppHelperError(error.code, error.message, error.stderr)
   }
-  if (error instanceof WindowsSudoCommandError) {
-    const marker = error.stderr.match(/FLYENV_HELPER_INSTALL_ERROR:([a-z_]+):(.*)/i)
-    if (marker && installerErrorCodes.has(marker[1] as AppHelperErrorCode)) {
-      return new AppHelperError(marker[1] as AppHelperErrorCode, marker[2].trim(), error.stderr)
-    }
-    return new AppHelperError('helper_execution_failed', error.message, error.stderr)
+  const rawStderr = (error as { stderr?: unknown } | null)?.stderr
+  const stderr = typeof rawStderr === 'string' ? rawStderr : undefined
+  const marker = stderr?.match(/FLYENV_HELPER_INSTALL_ERROR:([a-z_]+):(.*)/i)
+  if (marker && installerErrorCodes.has(marker[1] as AppHelperErrorCode)) {
+    return new AppHelperError(marker[1] as AppHelperErrorCode, marker[2].trim(), stderr)
   }
   return new AppHelperError(
     'helper_execution_failed',
-    error instanceof Error ? error.message : `${error}`
+    error instanceof Error ? error.message : `${error}`,
+    stderr
   )
 }
 
@@ -187,13 +190,13 @@ ca="$8"
 fingerprint="$9"
 # Fixed system parents must not delegate staging access to the desktop account.
 for parent in / /private /private/var /private/var/root; do
-  [ -d "$parent" ] && [ ! -L "$parent" ] || { echo 'Invalid staging parent' >&2; exit 1; }
+  [ -d "$parent" ] && [ ! -L "$parent" ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:Invalid staging parent' >&2; exit 1; }
   ownership=$(/usr/bin/stat -f '%u:%Lp' "$parent")
   owner=\${ownership%%:*}
   modeBits=\${ownership#*:}
-  [ "$owner" = 0 ] && [ "$((0$modeBits & 022))" = 0 ] || { echo 'Unprotected staging parent' >&2; exit 1; }
-  acl=$(/bin/ls -lde "$parent") || { echo 'Cannot inspect staging ACL' >&2; exit 1; }
-  [ -z "$(printf '%s\\n' "$acl" | /usr/bin/sed -n '2,$p')" ] || { echo 'Delegated staging ACL' >&2; exit 1; }
+  [ "$owner" = 0 ] && [ "$((0$modeBits & 022))" = 0 ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:Unprotected staging parent' >&2; exit 1; }
+  acl=$(/bin/ls -lde "$parent") || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:Cannot inspect staging ACL' >&2; exit 1; }
+  [ -z "$(printf '%s\\n' "$acl" | /usr/bin/sed -n '2,$p')" ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:Delegated staging ACL' >&2; exit 1; }
 done
 stage=$(/usr/bin/mktemp -d /private/var/root/flyenv-helper-install.XXXXXXXX)
 trap '/bin/rm -rf "$stage"' EXIT HUP INT TERM
@@ -204,11 +207,11 @@ if [ "$mode" = production ]; then
   /bin/chmod -R go-w "$stage"
   resources="$stage/FlyEnv.app/Contents/Resources"
   for path in "$stage/FlyEnv.app" "$stage/FlyEnv.app/Contents" "$resources" "$resources/helper" "$resources/plist" "$resources/helper/flyenv-helper-init.sh" "$resources/helper/flyenv-helper" "$resources/plist/com.flyenv.helper.plist"; do
-    [ ! -L "$path" ] || { echo 'Symlink in installer resource path' >&2; exit 1; }
+    [ ! -L "$path" ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:Symlink in installer resource path' >&2; exit 1; }
   done
-  /usr/bin/codesign --verify --deep --strict --all-architectures -R '=identifier "phpstudy.xpfme.com" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$stage/FlyEnv.app"
-  [ "$(/usr/libexec/PlistBuddy -c 'Print :FlyEnvHelperProtocolVersion' "$stage/FlyEnv.app/Contents/Info.plist")" = 42 ] || { echo 'Unsupported signed helper installation protocol' >&2; exit 1; }
-  /usr/bin/codesign --verify --strict --all-architectures -R '=identifier "flyenv-helper" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$resources/helper/flyenv-helper"
+  /usr/bin/codesign --verify --deep --strict --all-architectures -R '=identifier "phpstudy.xpfme.com" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$stage/FlyEnv.app" || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:FlyEnv application signature or resources are invalid. Use an officially signed build.' >&2; exit 1; }
+  [ "$(/usr/libexec/PlistBuddy -c 'Print :FlyEnvHelperProtocolVersion' "$stage/FlyEnv.app/Contents/Info.plist")" = 42 ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_version_mismatch:Unsupported signed helper installation protocol' >&2; exit 1; }
+  /usr/bin/codesign --verify --strict --all-architectures -R '=identifier "flyenv-helper" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$resources/helper/flyenv-helper" || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:FlyEnv helper signature is invalid. Use an officially signed build.' >&2; exit 1; }
   binary="$resources/helper/flyenv-helper"
   installer="$resources/helper/flyenv-helper-init.sh"
   plist="$resources/plist/com.flyenv.helper.plist"
@@ -302,7 +305,8 @@ export class AppHelper {
   private emitStatus(
     state: AppHelperMessage['state'],
     reason?: string,
-    installationPerformed?: boolean
+    installationPerformed?: boolean,
+    stderr?: string
   ) {
     // 状态通知属于 UI 副作用。窗口销毁/IPC 发送失败不能把已健康的 Helper
     // 判成安装失败，也不能覆盖安装的真实错误或破坏 installation 的 finally。
@@ -310,6 +314,7 @@ export class AppHelper {
       this._onMessage?.({
         state,
         reason,
+        ...(stderr ? { stderr } : {}),
         // 其他状态保留原字段；此标志是执行结果信息，不是持久的安装状态缓存。
         ...(installationPerformed === undefined ? {} : { installationPerformed })
       })
@@ -523,9 +528,15 @@ export class AppHelper {
       }
       appDebugLog(
         '[AppHelper][install][error]',
-        `${appError.code}: ${appError.message}\n${appError.stderr ?? ''}`
+        [
+          `${appError.code}: ${appError.message}`,
+          appError.stderr,
+          error instanceof Error ? error.stack : String(error)
+        ]
+          .filter(Boolean)
+          .join('\n')
       ).catch(() => {})
-      this.emitStatus('installFaild', appError.code)
+      this.emitStatus('installFaild', appError.code, undefined, appError.stderr ?? appError.message)
       throw appError
     }
   }

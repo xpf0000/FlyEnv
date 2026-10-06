@@ -89,7 +89,7 @@ try {
   const codesign = join(root, 'codesign')
   writeFileSync(
     codesign,
-    '#!/bin/sh\nprintf "%s\\n" "$*" >> "$VERIFY_RECORD"\nif [ -n "${MUTATE_SOURCE:-}" ]; then printf "#!/bin/sh\\nexit 91\\n" > "$MUTATE_SOURCE"; fi\n[ "${VERIFY_FAIL:-0}" = 0 ]\n',
+    '#!/bin/sh\nprintf "%s\\n" "$*" >> "$VERIFY_RECORD"\nif [ -n "${MUTATE_SOURCE:-}" ]; then printf "#!/bin/sh\\nexit 91\\n" > "$MUTATE_SOURCE"; fi\nif [ "${VERIFY_FAIL:-0}" != 0 ]; then echo "code has no resources but signature indicates they must be present" >&2; exit 1; fi\n',
     { mode: 0o755 }
   )
   const plistBuddy = join(root, 'PlistBuddy')
@@ -150,6 +150,8 @@ try {
     encoding: 'utf8'
   })
   assert.notEqual(rejected.status, 0)
+  assert.match(rejected.stderr, /FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:/)
+  assert.match(rejected.stderr, /code has no resources/)
   assert.equal(
     existsSync(record),
     false,
@@ -166,6 +168,7 @@ try {
       encoding: 'utf8'
     })
     assert.notEqual(unprotected.status, 0)
+    assert.match(unprotected.stderr, /FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:/)
     assert.equal(
       existsSync(record),
       false,

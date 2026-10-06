@@ -152,12 +152,15 @@ export default class Application extends EventEmitter {
       // the plugin install secret, so copying the secret file to another
       // machine yields undecryptable ciphertext. Falls back to plain storage
       // where no system encryption is available.
-      secretProtect: safeStorage.isEncryptionAvailable()
-        ? {
-            encrypt: (text) => safeStorage.encryptString(text).toString('base64'),
-            decrypt: (data) => safeStorage.decryptString(Buffer.from(data, 'base64'))
-          }
-        : undefined
+      // Resolve only when a plugin secret needs encryption/decryption: checking
+      // availability itself can prompt for Keychain access on macOS.
+      secretProtect: () =>
+        safeStorage.isEncryptionAvailable()
+          ? {
+              encrypt: (text) => safeStorage.encryptString(text).toString('base64'),
+              decrypt: (data) => safeStorage.decryptString(Buffer.from(data, 'base64'))
+            }
+          : undefined
     })
     setServerDirectoryPermissionDeniedHandler((reason) => {
       this.serverDirectoryHelperInstall.notifyPermissionDenied(reason)
@@ -767,6 +770,7 @@ export default class Application extends EventEmitter {
   private handleHelperStatusMessage(message: {
     state: string
     reason?: string
+    stderr?: string
     installationPerformed?: boolean
   }) {
     // Windows 业务请求会反复确认 Helper 健康；检查/恢复成功不等于又安装了一次。
@@ -792,7 +796,8 @@ export default class Application extends EventEmitter {
         ...base,
         // renderer 结合显式选择过滤通知，不再由失败通知触发隐式 UAC 切换。
         status: message.state,
-        reason: message.reason
+        reason: message.reason,
+        ...(message.stderr ? { stderr: message.stderr } : {})
       })
     }
   }

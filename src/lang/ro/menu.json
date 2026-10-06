@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv trebuie să instaleze un program de ajutor",
   "helperInstalling": "Programul de ajutor se instalează, vă rugăm așteptați",
   "waitHelper": "Programul de ajutor începe, vă rugăm așteptați",
-  "helperInstallFailTips": "Instalarea programului Helper a eșuat. Vă rugăm să încercați să instalați manual în fereastra terminal",
+  "helperInstallFailTips": "Instalarea programului Helper a eșuat.",
   "helperInstallSuccessTips": "Instalarea programului de ajutor a reușit",
   "helperInstallTitle": "Instalați FlyEnv Helper"
 }

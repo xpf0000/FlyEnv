@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv musi zainstalować program pomocy",
   "helperInstalling": "Instaluje się program pomocniczy. Proszę czekać",
   "waitHelper": "Uruchamia się program pomocniczy. Proszę czekać",
-  "helperInstallFailTips": "Instalacja programu pomocniczego nie powiodła się. Spróbuj ręcznie zainstalować w oknie terminala",
+  "helperInstallFailTips": "Instalacja programu pomocniczego nie powiodła się.",
   "helperInstallSuccessTips": "Instalacja programu pomocniczego powiodła się",
   "helperInstallTitle": "Zainstaluj pomocnika FlyEnv"
 }

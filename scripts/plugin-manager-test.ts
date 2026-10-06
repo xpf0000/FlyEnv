@@ -338,14 +338,28 @@ try {
     }
   })
   const encRoot = join(root, 'encrypted')
+  let protectionCalls = 0
   const encOptions = {
     pluginsRoot: join(encRoot, 'plugins'),
     statePath: join(encRoot, 'plugins.json'),
     licenseCheck: async () => true,
-    secretProtect: protectorFor('machine-a'),
+    secretProtect: () => {
+      protectionCalls++
+      return protectorFor('machine-a')
+    },
     fetchImpl: async (url: URL | RequestInfo) =>
       new Response(archiveBytes.get(url.toString()) ?? bytes, { status: 200 })
   }
+  await new PluginManager(encOptions).refresh()
+  assert.equal(protectionCalls, 0, 'an empty plugin scan must not access the OS keychain')
+  const plainRestart = await new PluginManager({
+    pluginsRoot: join(root, 'plugins'),
+    statePath: join(root, 'plugins.json'),
+    secretProtect: () => {
+      throw new Error('an existing plaintext secret must not access the OS keychain')
+    }
+  }).refresh()
+  assert.equal(plainRestart.length, 1)
   await new PluginManager(encOptions).install({
     id: 'sample.plugin',
     version: '1.0.0',
@@ -357,8 +371,10 @@ try {
     (await readFile(join(encRoot, '.plugin-install-secret'), 'utf8')).startsWith('enc:'),
     true
   )
+  assert.equal(protectionCalls, 1, 'creating a secret must resolve encryption on demand')
   const encRestart = await new PluginManager(encOptions).refresh()
   assert.equal(encRestart.length, 1)
+  assert.equal(protectionCalls, 2, 'an encrypted secret still requires keychain decryption')
 
   const encCloneRoot = join(root, 'encrypted-clone')
   await cp(encRoot, encCloneRoot, { recursive: true })

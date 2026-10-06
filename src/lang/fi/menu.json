@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv tarvitsee asentaa apuohjelman",
   "helperInstalling": "Helper ohjelma on asennettu, odota",
   "waitHelper": "Helper ohjelma käynnistyy, ole hyvä ja odota",
-  "helperInstallFailTips": "Helper ohjelman asennus epäonnistui. Yritä asentaa manuaalisesti pääteikkunaan",
+  "helperInstallFailTips": "Helper-ohjelman asennus epäonnistui.",
   "helperInstallSuccessTips": "Helper ohjelman asennus onnistui",
   "helperInstallTitle": "Asenna FlyEnv-apu"
 }
