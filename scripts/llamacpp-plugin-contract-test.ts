@@ -621,6 +621,106 @@ const deferred = <T>() => {
   return { promise, resolve, reject }
 }
 
+const testParallelRuntimeControllerOperations = async () => {
+  const other = { ...launchVariant, release: 'b4001' }
+  const first = deferred<any>()
+  const second = deferred<any>()
+  const progress: Record<string, (data: any) => void> = {}
+  let attempts = 0
+  const controller = reactive(new LlamaCppController({
+    request: (_method, args, onProgress) => {
+      const variant = args[0] as RuntimeVariant
+      progress[variant.release] = onProgress
+      if (variant.release === 'b4000') return first.promise
+      return ++attempts === 1 ? second.promise : Promise.resolve({ path: '/data/b4001-linux-x64-cuda-12.4' })
+    }
+  }))
+  const one = controller.installRuntime(launchVariant)
+  const two = controller.installRuntime(other)
+  const twoFailure = assert.rejects(two, /download failed/)
+  assert.equal(typeof progress.b4001, 'function', 'a second runtime download must start while the first is pending')
+  progress.b4000({ downloaded: 25, total: 100 })
+  progress.b4001({ downloaded: 70, total: 100 })
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.progress?.downloaded, 25)
+  assert.equal(controller.getRuntimeOperation(other)?.progress?.downloaded, 70)
+  await assert.rejects(controller.installRuntime(launchVariant), /already in progress/)
+  await assert.rejects(controller.removeRuntime('/data/b4000-linux-x64-cuda-12.4'), /already in progress/)
+  second.reject(new Error('download failed'))
+  await twoFailure
+  assert.equal(controller.getRuntimeOperation(other)?.status, 'failed')
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.status, 'running')
+  await controller.installRuntime(other)
+  assert.equal(controller.getRuntimeOperation(other)?.status, 'success')
+  first.resolve({ path: '/data/b4000-linux-x64-cuda-12.4' })
+  await one
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.status, 'success')
+}
+
+const testParallelRuntimeRefreshIsSerialized = async () => {
+  const pending = deferred<void>()
+  const targets: string[] = []
+  const controller = new LlamaCppController(
+    { request: async (_method, args) => ({ path: `/data/${(args[0] as RuntimeVariant).release}` }) } as ControllerTransport,
+    async (target) => {
+      targets.push(target!.path)
+      if (targets.length === 1) await pending.promise
+    }
+  )
+  const first = controller.installRuntime(launchVariant)
+  const second = controller.installRuntime({ ...launchVariant, release: 'b4001' })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.deepEqual(targets, ['/data/b4000'])
+  pending.resolve()
+  await Promise.all([first, second])
+  assert.deepEqual(targets, ['/data/b4000', '/data/b4001'])
+}
+
+const testRuntimeRefreshFailurePreservesCompletedInstall = async () => {
+  const notices: string[] = []
+  let refreshes = 0
+  const installed = { path: '/data/b4000-linux-x64-cuda-12.4' }
+  const controller = new LlamaCppController(
+    { request: async () => installed } as ControllerTransport,
+    async () => { if (++refreshes === 1) throw new Error('list scan failed') },
+    (message) => notices.push(message)
+  )
+  assert.equal(await controller.installRuntime(launchVariant), installed)
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.status, 'success')
+  assert.match(controller.getRuntimeOperation(launchVariant)?.error ?? '', /list scan failed/)
+  assert.equal(notices.length, 1)
+  await controller.removeRuntime(installed.path)
+  assert.equal(controller.getRuntimeOperation(installed.path)?.status, 'success')
+  assert.equal(refreshes, 2)
+}
+
+const testParallelForkRuntimeMutations = async () => {
+  const pending = deferred<any>()
+  const otherPending = deferred<any>()
+  const paths: RuntimePaths = { cacheDir: '/data/cache', runtimeRoot: '/data/runtimes', stagingRoot: '/data/staging' }
+  let attempts = 0
+  const module = new LlamaCppModule({
+    getHost: () => ({ platform: 'linux', arch: 'x64' }), getPaths: () => paths,
+    fetchReleases: async () => [],
+    install: async (variant) => variant.release === 'b4000' ? pending.promise : ++attempts === 1 ? otherPending.promise : {} as any,
+    remove: async () => {}, read: async () => '', list: async () => [], exists: () => false
+  })
+  const first = module.installRuntimeVariant(launchVariant)
+  const other = { ...launchVariant, release: 'b4001' }
+  const second = module.installRuntimeVariant(other)
+  const secondFailure = assert.rejects(async () => { await second }, /download failed/)
+  await assert.rejects(async () => { await module.installRuntimeVariant(launchVariant) }, /already in progress/)
+  await assert.rejects(async () => { await module.removeRuntimeVariant('/data/runtimes/b4000-linux-x64-cuda-12.4') }, /already in progress/)
+  await assert.rejects(async () => { await module._startServer({ path: '/data/runtimes/b4000-linux-x64-cuda-12.4' } as any, {} as any, {} as any) }, /already in progress/)
+  otherPending.reject(new Error('download failed'))
+  await secondFailure
+  await assert.rejects(async () => { await module.installRuntimeVariant(launchVariant) }, /already in progress/)
+  await module.installRuntimeVariant(other)
+  await module.removeRuntimeVariant('/data/runtimes/b4001-linux-x64-cuda-12.4')
+  pending.resolve({ path: '/data/runtimes/b4000-linux-x64-cuda-12.4' })
+  await first
+  await module.removeRuntimeVariant('/data/runtimes/b4000-linux-x64-cuda-12.4')
+}
+
 const testControllerRejectsDuplicateRuntimeInstall = async () => {
   const pending = deferred<unknown>()
   const transport: ControllerTransport = { request: () => pending.promise as Promise<any> }
@@ -635,14 +735,14 @@ const testControllerKeepsProgressUntilTerminalEvent = async () => {
   const pending = deferred<unknown>()
   const transport: ControllerTransport = { request: (_method, _args, progress) => { progress({ downloaded: 55, total: 100 }); return pending.promise as Promise<any> } }
   const controller = reactive(new LlamaCppController(transport))
-  const busy = computed(() => ['starting', 'running'].includes(controller.runtimeOperation?.status ?? ''))
+  const busy = computed(() => ['starting', 'running'].includes(controller.getRuntimeOperation(launchVariant)?.status ?? ''))
   const task = controller.installRuntime(launchVariant)
-  assert.equal(controller.runtimeOperation?.progress?.downloaded, 55)
-  assert.equal(controller.runtimeOperation?.status, 'running')
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.progress?.downloaded, 55)
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.status, 'running')
   assert.equal(busy.value, true)
   pending.resolve(true)
   await task
-  assert.equal(controller.runtimeOperation?.status, 'success')
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.status, 'success')
   assert.equal(busy.value, false)
 }
 
@@ -660,11 +760,11 @@ const testRuntimeWaitsForInstalledRefresh = async () => {
   const task = controller.installRuntime(launchVariant)
   await new Promise((resolve) => setImmediate(resolve))
   assert.equal(refreshes, 1)
-  assert.equal(controller.runtimeOperation?.status, 'starting')
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.status, 'starting')
   await assert.rejects(controller.installRuntime(launchVariant), /already in progress/)
   pending.resolve()
   await task
-  assert.equal(controller.runtimeOperation?.status, 'success')
+  assert.equal(controller.getRuntimeOperation(launchVariant)?.status, 'success')
 }
 
 const testControllerReentryRetainsOperation = () => {
@@ -1474,6 +1574,10 @@ const testExternalErrorsAreSafeForHtmlMessageHelper = () => {
 }
 
 void (async () => {
+  await testRuntimeRefreshFailurePreservesCompletedInstall()
+  await testParallelRuntimeControllerOperations()
+  await testParallelRuntimeRefreshIsSerialized()
+  await testParallelForkRuntimeMutations()
   testReleaseAssetParsing()
   await testStableRuntimeFetchPaginatesPastRecentPrereleases()
   testUnsupportedVariantFiltered()

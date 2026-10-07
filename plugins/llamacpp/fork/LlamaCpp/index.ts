@@ -60,7 +60,7 @@ export class LlamaCppModule extends Base {
   private deps: LlamaCppDeps
   private modelDownloads = new Map<string, AbortController>()
   private activeRuntime?: SoftInstalled
-  private runtimeMutationInProgress = false
+  private runtimeMutations = new Set<string>()
   private serverStarting = false
 
   constructor(deps: LlamaCppDeps = productionDeps) {
@@ -120,19 +120,21 @@ export class LlamaCppModule extends Base {
 
   installRuntimeVariant(variant: RuntimeVariant) {
     return new ForkPromise<SoftInstalled>(async (resolve, reject, on) => {
-      if (this.runtimeMutationInProgress || this.serverStarting) return reject(new Error('A llama.cpp runtime or server operation is already in progress'))
-      this.runtimeMutationInProgress = true
+      const paths = this.deps.getPaths()
+      const targetPath = join(paths.runtimeRoot, runtimeDirectoryName(variant))
+      const key = this.runtimePathKey(targetPath)
+      if (this.runtimeMutations.has(key) || this.serverStarting) return reject(new Error('An operation for this llama.cpp runtime is already in progress'))
+      this.runtimeMutations.add(key)
       try {
-        const targetPath = join(this.deps.getPaths().runtimeRoot, runtimeDirectoryName(variant))
         await this.stopActiveRuntimeForPath(targetPath, on)
         on({ 'APP-On-Progress': { status: 'downloading', asset: variant.assetName } })
-        const installed = await this.deps.install(variant, this.deps.getPaths(), (asset, downloaded, total) => {
+        const installed = await this.deps.install(variant, paths, (asset, downloaded, total) => {
           on({ 'APP-On-Progress': { status: 'downloading', asset, downloaded, total } })
         })
         on({ 'APP-On-Progress': { status: 'installed', version: installed.version } })
         resolve(installed)
       } catch (error) { reject(error) }
-      finally { this.runtimeMutationInProgress = false }
+      finally { this.runtimeMutations.delete(key) }
     })
   }
 
@@ -143,14 +145,15 @@ export class LlamaCppModule extends Base {
 
   removeRuntimeVariant(path: string) {
     return new ForkPromise<boolean>(async (resolve, reject) => {
-      if (this.runtimeMutationInProgress || this.serverStarting) return reject(new Error('A llama.cpp runtime or server operation is already in progress'))
-      this.runtimeMutationInProgress = true
+      const key = this.runtimePathKey(path)
+      if (this.runtimeMutations.has(key) || this.serverStarting) return reject(new Error('An operation for this llama.cpp runtime is already in progress'))
+      this.runtimeMutations.add(key)
       try {
         await this.stopActiveRuntimeForPath(path)
         await this.deps.remove(path, this.deps.getPaths().runtimeRoot)
         resolve(true)
       } catch (error) { reject(error) }
-      finally { this.runtimeMutationInProgress = false }
+      finally { this.runtimeMutations.delete(key) }
     })
   }
 
@@ -250,7 +253,7 @@ export class LlamaCppModule extends Base {
 
   _startServer(version: SoftInstalled, profile: LaunchProfile, model: LocalModel) {
     return new ForkPromise(async (resolve, reject, on) => {
-      if (this.runtimeMutationInProgress || this.serverStarting) return reject(new Error('A llama.cpp runtime operation is already in progress'))
+      if (this.runtimeMutations.size > 0 || this.serverStarting) return reject(new Error('A llama.cpp runtime operation is already in progress'))
       this.serverStarting = true
       try {
         const validated = validateLaunchProfile(profile, variantFromInstalled(version))
@@ -297,6 +300,11 @@ export class LlamaCppModule extends Base {
       } catch (error) { reject(error) }
       finally { this.serverStarting = false }
     })
+  }
+
+  private runtimePathKey(path: string) {
+    const normalized = resolve(path)
+    return process.platform === 'win32' ? normalized.toLowerCase() : normalized
   }
 
   private async stopActiveRuntimeForPath(path: string, on?: (data: Record<string, unknown>) => void) {

@@ -17,16 +17,6 @@
         <el-radio-button value="prerelease">{{ LlamaCppT('prerelease') }}</el-radio-button>
       </el-radio-group>
     </template>
-    <template v-if="busy" #footer>
-      <div class="flex items-center gap-3">
-        <span
-          >{{ LlamaCppT('runtimeStatus') }}: {{ LlamaCppManager.runtimeOperation?.status }}</span
-        >
-        <span class="truncate text-sm opacity-70">{{
-          LlamaCppManager.runtimeOperation?.progress?.asset
-        }}</span>
-      </div>
-    </template>
   </Manager>
 </template>
 
@@ -39,7 +29,7 @@
   import { BrewStore } from '@/store/brew'
   import { formatBytes } from '@/util/Index'
   import type { RuntimeVariant } from '../../shared/types'
-  import { runtimeDirectoryName, runtimeIdentityKey } from '../../shared/runtime'
+  import { runtimeDirectoryName } from '../../shared/runtime'
   import { LlamaCppManager } from '../controller'
   import { LlamaCppT } from '../lang'
   import { escapeNoticeText } from '../notice'
@@ -49,11 +39,6 @@
   const variants = ref<RuntimeVariant[]>([])
   const loading = ref(false)
   const module = BrewStore().module('llama-cpp')
-  const busy = computed(
-    () =>
-      !!LlamaCppManager.runtimeOperation &&
-      ['starting', 'running'].includes(LlamaCppManager.runtimeOperation.status)
-  )
   const items = computed<RuntimeRow[]>(() => {
     const seen = new Set<string>()
     const rows = variants.value.map((variant) => {
@@ -62,7 +47,8 @@
           runtime.path.replace(/\\/g, '/').split('/').pop() === runtimeDirectoryName(variant)
       )
       if (installed) seen.add(installed.path)
-      const operation = LlamaCppManager.runtimeOperation
+      const operation = LlamaCppManager.getRuntimeOperation(variant)
+      const busy = !!operation && ['starting', 'running'].includes(operation.status)
       const progress = operation?.progress
       return {
         name: `llama.cpp · ${variant.backend}${variant.cudaVersion ? ` ${variant.cudaVersion}` : ''} · ${formatBytes(variant.size)}`,
@@ -71,10 +57,8 @@
         installed: !!installed,
         installedPath: installed?.path,
         variant,
-        disabled: busy.value,
-        downing:
-          busy.value &&
-          (operation?.id === runtimeIdentityKey(variant) || operation?.id === installed?.path),
+        disabled: busy,
+        downing: busy,
         progress: progress?.total
           ? Math.round(((progress.downloaded ?? 0) / progress.total) * 100)
           : 0
@@ -84,15 +68,19 @@
       ...rows,
       ...module.installed
         .filter((runtime) => !seen.has(runtime.path))
-        .map((runtime) => ({
-          name: `llama.cpp · ${runtime.flag ?? ''}`,
-          url: runtime.path,
-          version: runtime.version ?? '',
-          installed: true,
-          installedPath: runtime.path,
-          disabled: busy.value,
-          downing: busy.value && LlamaCppManager.runtimeOperation?.id === runtime.path
-        }))
+        .map((runtime) => {
+          const operation = LlamaCppManager.getRuntimeOperation(runtime.path)
+          const busy = !!operation && ['starting', 'running'].includes(operation.status)
+          return {
+            name: `llama.cpp · ${runtime.flag ?? ''}`,
+            url: runtime.path,
+            version: runtime.version ?? '',
+            installed: true,
+            installedPath: runtime.path,
+            disabled: busy,
+            downing: busy
+          }
+        })
     ]
   })
   const load = async (refresh = false) => {
@@ -108,7 +96,7 @@
   }
   const handleVersion = async (item: StaticVersionItem) => {
     const row = item as RuntimeRow
-    if (busy.value) return
+    if (row.downing) return
     if (row.installedPath) {
       try {
         await ElMessageBox.confirm(LlamaCppT('confirmRemoveRuntime'), LlamaCppT('remove'), {
@@ -121,8 +109,8 @@
     try {
       if (row.installedPath) await LlamaCppManager.removeRuntime(row.installedPath)
       else if (row.variant) await LlamaCppManager.installRuntime(row.variant)
-    } catch (e) {
-      MessageError(escapeNoticeText(e))
+    } catch {
+      // The controller owns runtime terminal errors and notices.
     }
   }
   watch(channel, () => load())

@@ -5,9 +5,10 @@ import type {
   HubModelFile,
   LaunchProfile,
   LocalModel,
-  RuntimeVariant
+  RuntimeVariant,
+  RuntimeIdentity
 } from '../shared/types'
-import { runtimeIdentityKey } from '../shared/runtime'
+import { runtimeDirectoryName, runtimeIdentityKey } from '../shared/runtime'
 import { isGGUFShardPath, isStandaloneGGUFPath } from '../shared/modelFile'
 import { escapeNoticeText } from './notice'
 
@@ -96,6 +97,7 @@ const refreshInstalledRuntimes = async (target?: RuntimeRefreshTarget) => {
   if (!target?.path) throw new Error('Runtime operation did not return an installed path')
   const { BrewStore } = await import('@/store/brew')
   const module = BrewStore().module('llama-cpp')
+  if (module.fetchInstalleding) await module.fetchInstalled(true)
   module.installedFetched = false
   await module.fetchInstalled(true)
   if (!module.installedFetched) throw new Error('Could not refresh installed llama.cpp runtimes')
@@ -104,7 +106,7 @@ const refreshInstalledRuntimes = async (target?: RuntimeRefreshTarget) => {
   }
 }
 
-const notifySwitchError = (message: string) => {
+const notifyOperationError = (message: string) => {
   import('@/util/Element')
     .then(({ MessageError }) => MessageError(escapeNoticeText(message)))
     .catch(() => {})
@@ -135,7 +137,8 @@ const isRunnableLocalModel = (model: LocalModel) =>
   !isGGUFShardPath(model.path) && (model.standalone ?? isStandaloneGGUFPath(model.path, model.repoId))
 
 export class LlamaCppController {
-  runtimeOperation?: OperationState
+  runtimeOperations: Record<string, OperationState> = {}
+  private runtimeRefresh?: Promise<void>
   modelOperation?: OperationState
   modelSwitchOperation?: ModelSwitchOperation
   error = ''
@@ -171,7 +174,7 @@ export class LlamaCppController {
   constructor(
     private transport: ControllerTransport = productionTransport,
     private refreshInstalled: (target?: RuntimeRefreshTarget) => Promise<void> = async () => {},
-    private reportSwitchError: (message: string) => void = () => {}
+    private reportOperationError: (message: string) => void = () => {}
   ) {}
 
   async init() {
@@ -379,7 +382,7 @@ export class LlamaCppController {
       !['success', 'failed'].includes(this.modelSwitchOperation.status)
     ) {
       const message = 'A model switch is already in progress'
-      this.reportSwitchError(message)
+      this.reportOperationError(message)
       throw new Error(message)
     }
     const operation: ModelSwitchOperation = { targetPath: model.localPath, status: 'starting' }
@@ -445,35 +448,68 @@ export class LlamaCppController {
       active.status = 'failed'
       active.error = message
       this.error = message
-      this.reportSwitchError(message)
+      this.reportOperationError(message)
       throw new Error(message)
     }
   }
 
-  async installRuntime(variant: RuntimeVariant) {
-    const id = runtimeIdentityKey(variant)
-    if (
-      this.runtimeOperation &&
-      !['success', 'failed', 'cancelled'].includes(this.runtimeOperation.status)
-    ) {
-      throw new Error('A runtime installation is already in progress')
+  getRuntimeOperation(target: RuntimeIdentity | string) {
+    const key =
+      typeof target === 'string'
+        ? target.replace(/\\/g, '/').split('/').pop()!
+        : runtimeDirectoryName(target)
+    return this.runtimeOperations[key.toLowerCase()]
+  }
+
+  private beginRuntimeOperation(target: RuntimeIdentity | string, id: string) {
+    const current = this.getRuntimeOperation(target)
+    if (current && !['success', 'failed', 'cancelled'].includes(current.status)) {
+      const message = 'An operation for this runtime is already in progress'
+      this.reportOperationError(message)
+      throw new Error(message)
     }
-    const operation: OperationState = { id, status: 'starting' }
-    this.runtimeOperation = operation
+    const key =
+      typeof target === 'string'
+        ? target.replace(/\\/g, '/').split('/').pop()!
+        : runtimeDirectoryName(target)
+    this.runtimeOperations[key.toLowerCase()] = { id, status: 'starting' }
     // Read through reactiveBind's proxy so progress and terminal changes reach the view.
-    const active = this.runtimeOperation
+    return this.getRuntimeOperation(target)!
+  }
+
+  private refreshRuntime(active: OperationState, target?: RuntimeRefreshTarget) {
+    // Downloads run concurrently; list scans run in order so a later completion
+    // cannot join an earlier scan that predates its filesystem changes.
+    const request = (this.runtimeRefresh ?? Promise.resolve())
+      .catch(() => {})
+      .then(() => this.refreshInstalled(target))
+      .catch((error) => {
+        active.error = `Runtime operation completed, but the installed list could not be refreshed: ${error instanceof Error ? error.message : `${error}`}`
+        this.error = active.error
+        this.reportOperationError(active.error)
+      })
+    this.runtimeRefresh = request
+    return request.finally(() => {
+      if (this.runtimeRefresh === request) this.runtimeRefresh = undefined
+    })
+  }
+
+  async installRuntime(variant: RuntimeVariant) {
+    const snapshot = storageSnapshot(variant)
+    const active = this.beginRuntimeOperation(snapshot, runtimeIdentityKey(snapshot))
     this.error = ''
     try {
       active.result = await this.transport.request(
         'installRuntimeVariant',
-        [variant],
+        [snapshot],
         (progress) => {
           active.status = 'running'
           active.progress = progress
         }
       )
       const installedPath = (active.result as { path?: string } | undefined)?.path
-      await this.refreshInstalled(
+      await this.refreshRuntime(
+        active,
         installedPath ? { path: installedPath, installed: true } : undefined
       )
       active.status = 'success'
@@ -482,30 +518,24 @@ export class LlamaCppController {
       active.status = 'failed'
       active.error = error instanceof Error ? error.message : `${error}`
       this.error = active.error
+      this.reportOperationError(active.error)
       throw error
     }
   }
 
   async removeRuntime(path: string) {
-    if (
-      this.runtimeOperation &&
-      !['success', 'failed', 'cancelled'].includes(this.runtimeOperation.status)
-    ) {
-      throw new Error('A runtime operation is already in progress')
-    }
-    const operation: OperationState = { id: path, status: 'starting' }
-    this.runtimeOperation = operation
-    const active = this.runtimeOperation
+    const active = this.beginRuntimeOperation(path, path)
     this.error = ''
     try {
       active.result = await this.transport.request('removeRuntimeVariant', [path], () => {})
-      await this.refreshInstalled({ path, installed: false })
+      await this.refreshRuntime(active, { path, installed: false })
       active.status = 'success'
       return active.result
     } catch (error) {
       active.status = 'failed'
       active.error = error instanceof Error ? error.message : `${error}`
       this.error = active.error
+      this.reportOperationError(active.error)
       throw error
     }
   }
@@ -564,7 +594,11 @@ export class LlamaCppController {
       return false
     operation.status = 'cancelling'
     try {
-      const accepted = await this.transport.request<boolean>('cancelModelDownload', [operation.id], () => {})
+      const accepted = await this.transport.request<boolean>(
+        'cancelModelDownload',
+        [operation.id],
+        () => {}
+      )
       if (!accepted) {
         if (operation.status === 'cancelling') operation.status = 'running'
         throw new Error('Model download cancellation was not accepted by the Fork worker')
@@ -598,5 +632,5 @@ export class LlamaCppController {
 }
 
 export const LlamaCppManager = reactiveBind(
-  new LlamaCppController(productionTransport, refreshInstalledRuntimes, notifySwitchError)
+  new LlamaCppController(productionTransport, refreshInstalledRuntimes, notifyOperationError)
 )

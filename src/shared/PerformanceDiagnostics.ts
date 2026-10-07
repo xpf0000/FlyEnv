@@ -6,7 +6,7 @@
  * 模块无静态依赖，可用于 renderer 和轻量 fork 入口；错误与帮助程序必要诊断
  * 不受此开关影响，关闭观察器不能改变业务状态、权限判断或 IPC 终态。
  */
-const PERFORMANCE_DIAGNOSTICS_ENABLED: boolean = true
+const PERFORMANCE_DIAGNOSTICS_ENABLED: boolean = false
 
 export type PerformanceLogWriter = (category: string, message: string) => unknown
 export type PerformanceLogData = Record<string, unknown>
