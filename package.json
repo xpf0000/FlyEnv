@@ -41,6 +41,7 @@
     "test:ai-cli-session-fork": "tsx scripts/ai-cli-session-fork-test.ts",
     "test:ai-cli-session-list": "tsx scripts/ai-cli-session-list-test.ts",
     "test:tool-alias-path": "tsx scripts/tool-alias-path-test.ts",
+    "test:tool-shell-profiles": "tsx scripts/tool-shell-profiles-test.ts",
     "test:openclaw-service": "tsx scripts/openclaw-service-test.ts",
     "test:dns-renderer": "tsx scripts/dns-renderer-test.ts",
     "test:neo4j-renderer": "tsx scripts/neo4j-renderer-test.ts",

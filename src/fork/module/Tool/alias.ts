@@ -1,19 +1,10 @@
-import {
-  chmod,
-  existsSync,
-  mkdirp,
-  readFileByRoot,
-  remove,
-  uuid,
-  writeFile,
-  writeFileByRoot
-} from '../../Fn'
+import { chmod, existsSync, mkdirp, remove, uuid, writeFile } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join, resolve as PathResolve } from 'node:path'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
-import { defaultShell, isMacOS } from '@shared/utils'
-import { fetchPATH } from './path'
+import { defaultShell } from '@shared/utils'
 import { parseExportPathEntries } from './pathExport'
+import { updateShellProfiles } from './shellProfiles'
 
 export function setAlias(
   service: SoftInstalled,
@@ -21,7 +12,7 @@ export function setAlias(
   old: AppServiceAliasItem | undefined,
   alias: Record<string, AppServiceAliasItem[]>
 ) {
-  return new ForkPromise(async (resolve, reject) => {
+  return new ForkPromise(async (resolve) => {
     const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
     await mkdirp(aliasDir)
     if (old?.id) {
@@ -69,54 +60,22 @@ export function setAlias(
       }
     }
 
-    const allPath = (await fetchPATH()).allPath
-    if (allPath.includes(aliasDir)) {
-      const res = await cleanAlias(alias)
-      resolve(res)
-      return
-    }
-
-    const zshrc = join(global.Server.UserHome!, isMacOS() ? '.zshrc' : '.bashrc')
-    if (!existsSync(zshrc)) {
-      try {
-        await writeFile(zshrc, '')
-      } catch {}
-    }
-    if (!existsSync(zshrc)) {
-      reject(new Error(`No found ${zshrc} and create file failed`))
-      return
-    }
-
-    let content = ''
-    try {
-      content = await readFileByRoot(zshrc)
-    } catch (e) {
-      reject(e)
-      return
-    }
-
     const appDir = dirname(global.Server.AppDir!)
-    const regex = new RegExp(
-      `^(?!\\s*#)\\s*export\\s*PATH\\s*=\\s*"(.*?)(${appDir})(.*?)\\$PATH"`,
-      'gmu'
-    )
-
-    const matchs = content.match(regex) ?? []
-    const arr: string[] = []
-    matchs.forEach((x: string) => {
-      content = content.replace(`\n${x}`, '').replace(`${x}`, '')
-      const list = parseExportPathEntries(x)
-      arr.push(...list)
+    await updateShellProfiles((content) => {
+      const regex = new RegExp(
+        `^(?!\\s*#)\\s*export\\s*PATH\\s*=\\s*"(.*?)(${appDir})(.*?)\\$PATH"`,
+        'gmu'
+      )
+      const arr: string[] = []
+      for (const match of content.match(regex) ?? []) {
+        content = content.replace(`\n${match}`, '').replace(match, '')
+        arr.push(...parseExportPathEntries(match))
+      }
+      arr.unshift(aliasDir)
+      arr.push('$PATH')
+      const path = Array.from(new Set(arr)).join(':')
+      return content.trim() + `\nexport PATH="${path}"\n`
     })
-    arr.unshift(aliasDir)
-    arr.push(`$PATH`)
-    const path = Array.from(new Set(arr)).join(':')
-    content = content.trim() + `\nexport PATH="${path}"\n`
-    try {
-      await writeFileByRoot(zshrc, content)
-    } catch (error) {
-      if (process.platform === 'linux') throw error
-    }
     const res = await cleanAlias(alias)
     resolve(res)
   })

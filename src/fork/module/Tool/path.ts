@@ -1,21 +1,13 @@
 import { realpathSync, statSync } from 'fs'
-import {
-  execPromise,
-  existsSync,
-  mkdirp,
-  readdir,
-  readFileByRoot,
-  removeByRoot,
-  writeFile,
-  writeFileByRoot
-} from '../../Fn'
+import { execPromise, existsSync, mkdirp, readdir, removeByRoot } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join, resolve as PathResolve } from 'path'
 import { shellEnv } from 'shell-env'
-import { appDebugLog, isLinux, isMacOS } from '@shared/utils'
+import { appDebugLog } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
 import type { SoftInstalled } from '@shared/app'
 import { createPythonBinShims } from '../../util/PythonShim'
+import { updateShellProfiles } from './shellProfiles'
 
 export function fetchEnvPath(): ForkPromise<string[]> {
   return new ForkPromise(async (resolve) => {
@@ -76,52 +68,22 @@ export function fetchPATH(): ForkPromise<{ allPath: string[]; appPath: string[] 
 }
 
 export function handleUpdatePath(param?: { zsh: string }) {
-  return new ForkPromise(async (resolve, reject) => {
-    const file = join(global.Server.UserHome!, isMacOS() ? '.zshrc' : '.bashrc')
-    if (!existsSync(file)) {
-      try {
-        await writeFile(file, '')
-      } catch {}
-    }
-    if (!existsSync(file)) {
-      reject(new Error(`No found ${file} and create file failed`))
-      return
-    }
-    let content = ''
-    try {
-      content = await readFileByRoot(file)
-    } catch (e) {
-      reject(e)
-      return
-    }
+  return new ForkPromise(async (resolve) => {
     const appDir = dirname(global.Server.AppDir!)
-    const contentBack = content
-
-    const regex = new RegExp(
-      `^(?!\\s*#)\\s*export\\s*PATH\\s*=\\s*"(.*?)(${appDir})(.*?)\\$PATH"`,
-      'gmu'
-    )
-    const regex2 = new RegExp(`^(?!\\s*#)\\s*export\\s*JAVA_HOME\\s*=\\s*"(.*?)"`, 'gmu')
-    const regex3 = new RegExp(`^(?!\\s*#)\\s*export\\s*GRADLE_HOME\\s*=\\s*"(.*?)"`, 'gmu')
-    const regexArr = [regex, regex2, regex3]
-    regexArr.forEach((regex) => {
-      let x: any = content.match(regex)
-      if (x && x[0]) {
-        x = x[0]
-        content = content.replace(`\n${x}`, '').replace(`${x}`, '')
+    await updateShellProfiles((content) => {
+      const regex = new RegExp(
+        `^(?!\\s*#)\\s*export\\s*PATH\\s*=\\s*"(.*?)(${appDir})(.*?)\\$PATH"`,
+        'gmu'
+      )
+      const regex2 = new RegExp(`^(?!\\s*#)\\s*export\\s*JAVA_HOME\\s*=\\s*"(.*?)"`, 'gmu')
+      const regex3 = new RegExp(`^(?!\\s*#)\\s*export\\s*GRADLE_HOME\\s*=\\s*"(.*?)"`, 'gmu')
+      for (const pattern of [regex, regex2, regex3]) {
+        for (const match of content.match(pattern) ?? []) {
+          content = content.replace(`\n${match}`, '').replace(match, '')
+        }
       }
+      return param ? content.trim() + param.zsh : content
     })
-    if (param) {
-      const text = param.zsh
-      content = content.trim() + text
-    }
-    if (content !== contentBack) {
-      try {
-        await writeFileByRoot(file, content)
-      } catch (error) {
-        if (isMacOS() || isLinux()) throw error
-      }
-    }
     resolve(true)
   })
 }
