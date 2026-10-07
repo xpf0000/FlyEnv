@@ -23,10 +23,10 @@ export const getModelSizeColorForHardware = (
   hardware: ModelHardware
 ): 'success' | 'warning' | 'danger' | undefined => {
   if (!hardware.loaded || !sizeGB) return undefined
-  if (hardware.vramGB > 0 && sizeGB <= hardware.vramGB) {
-    return sizeGB <= hardware.vramGB * 0.7 ? 'success' : 'warning'
-  }
-  if (sizeGB <= hardware.ramGB * 0.15) return 'success'
-  if (sizeGB <= hardware.ramGB * 0.3) return 'warning'
+  // Use the better available memory path consistently across all model sizes.
+  const successLimit = Math.max(hardware.vramGB * 0.7, hardware.ramGB * 0.15)
+  const warningLimit = Math.max(hardware.vramGB, hardware.ramGB * 0.3)
+  if (sizeGB <= successLimit) return 'success'
+  if (sizeGB <= warningLimit) return 'warning'
   return 'danger'
 }

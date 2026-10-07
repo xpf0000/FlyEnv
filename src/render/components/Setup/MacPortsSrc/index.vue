@@ -26,7 +26,11 @@
   <p v-for="result in Controller.outcomes" :key="result.path" class="mt-2">
     {{ result.path }}: {{ $t('util.macPortsSourceOutcome.' + result.status) }}
   </p>
-  <div ref="terminalElement" class="mt-3 min-h-64"></div>
+  <div
+    v-show="Controller.preview || Controller.xterm"
+    ref="terminalElement"
+    class="mt-3 min-h-64"
+  ></div>
 </template>
 
 <script lang="ts" setup>

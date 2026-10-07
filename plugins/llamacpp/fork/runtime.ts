@@ -6,7 +6,8 @@ import { pipeline } from 'node:stream/promises'
 import { Transform } from 'node:stream'
 import { spawn } from 'node:child_process'
 import axios from 'axios'
-import { unpack } from '@fork/util/Zip'
+import { unpack, zipUnpack } from '@fork/util/Zip'
+import { isWindows } from '@shared/utils'
 import { getAxiosProxy } from '@fork/util/Axios'
 import { hasMatchingCudaIdentity } from './release'
 import { runtimeDirectoryName } from '../shared/runtime'
@@ -56,7 +57,10 @@ const defaultDeps: RuntimeInstallDeps = {
     return hash.digest('hex')
   },
   size: async (path) => (await stat(path)).size,
-  extract: (archive, target) => unpack(archive, target),
+  extract: async (archive, target) => {
+    if (isWindows()) await zipUnpack(archive, target)
+    else await unpack(archive, target)
+  },
   exists: async (path) => access(path).then(() => true, () => false),
   rename,
   remove: (path) => rm(path, { recursive: true, force: true }),

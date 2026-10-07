@@ -1995,11 +1995,12 @@ body {
   overflow: auto;
   .row-2 {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 30px;
 
     >.col {
-      flex: 1;
+      flex: 1 1 0;
+      min-width: 0;
     }
   }
   .plant-title {
@@ -2031,9 +2032,15 @@ body {
     padding: 30px 20px;
     flex-direction: row;
     align-items: center;
+    gap: 12px;
 
     > .el-select {
-      width: 100%;
+      flex: 1;
+      min-width: 0;
+      width: 0;
+    }
+    > .el-button {
+      flex-shrink: 0;
     }
   }
   .main.proxy-set {
