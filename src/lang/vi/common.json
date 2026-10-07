@@ -52,7 +52,7 @@
     "changeRole": "Thay đổi vai trò"
   },
   "state": {
-    "running": "Dang chay",
+    "running": "Đang chạy",
     "installed": "Đã cài đặt",
     "enabled": "Đã bật",
     "disabled": "Đã tắt",
