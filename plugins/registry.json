@@ -30,7 +30,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "57116a11e1f7213df78a48cae0e7333b53cba40ea429506ef536557ab0999a34"
+        "sha256": "2abff0dab54ef98b1cd1ce91e6eb8bdf75032ad4e561b1843b0f06c3bc33c46e"
       },
       "official": true
     },
@@ -63,14 +63,14 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "ad2c7a92024fa4ad2c4bd4becc7126253fcd03ed6344b51fff3cf9d9303c4181"
+        "sha256": "2c233b3db04dcd046e62b1561546f1c2121bb4ced60e2367bd74f6f6d70f5527"
       },
       "official": true
     },
     {
       "id": "llama-cpp",
       "name": "llama.cpp",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": {
         "en": "Manage llama.cpp local inference runtimes and GGUF models.",
         "zh": "管理 llama.cpp 本地推理运行时和 GGUF 模型。"
@@ -96,7 +96,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "bdf7d82de2ce04b6bd82e0f4f0a28fad18093fc6ca2e8b0458d26648f48a7743"
+        "sha256": "55f424c983fb5686f0a0fdb228bffbae3730f51c51dac3f98b87ea5c7d1bbc83"
       },
       "official": true
     },
@@ -129,7 +129,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "cd33f8c90e100ac154f8d66f8f6973d5529caa4db0c34dd3fc3d16e5176f5e36"
+        "sha256": "2a49d4d95411eb93342014d91b3c3d8ad7588fd5d75f6e714753b567d5094d5d"
       },
       "official": true
     }

@@ -2,6 +2,80 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.20.0] - 2026-10-07
+
+# **FlyEnv v4.20.0 Update Release Notes**
+
+## **🚀 New Features**
+
+### **1. Added Windows UAC Authorization Mode**
+
+FlyEnv can now perform supported Windows administrator operations through the native **User Account Control (UAC)** prompt, without requiring the FlyEnv helper to be installed. This gives users an alternative on devices where installing a background helper is inconvenient.
+
+The new authorization workflow provides:
+
+- **Your Choice of Authorization Method**: Choose UAC or the FlyEnv helper when administrator access is first needed, and change the preference later in Settings
+- **Helper-Free UAC Operation**: In UAC mode, privileged tasks request Windows authorization directly, without automatically installing or repairing the helper
+- **System Task Coverage**: Supports administrator operations for hosts entries, DNS refresh, environment variables and PATH, certificates, and managed process operations
+- **Clear Cancellation and Failure Feedback**: Cancelling an authorization request leaves the selected method intact and reports the affected operation's result
+- **Existing Helper Management**: Users switching to UAC can choose to disable their existing FlyEnv helper
+
+---
+
+### **2. Added llama.cpp Plugin**
+
+The Plugin Market now includes **llama.cpp** for managing local inference runtimes and GGUF models directly in FlyEnv.
+
+The plugin provides:
+
+- **Runtime Version Management**: Download and manage official llama.cpp releases with the CPU or GPU backend available for your platform
+- **GGUF Model Library**: Browse and search public Hugging Face model repositories, inspect model files and sizes, and download models into a local library
+- **Inference Settings**: Configure the selected model, context size, CPU threads, GPU layers, listening address, and port
+- **Service Controls and Logs**: Start, stop, and restart the local inference server through FlyEnv's service controls, and inspect its logs
+- **Local API Access**: Run an OpenAI-compatible local endpoint, with API key configuration for authenticated access
+
+Thanks to [@vaanwd](https://github.com/vaanwd) for the feature request! [Issue #722](https://github.com/xpf0000/FlyEnv/issues/722)
+
+---
+
+### **3. Added OpenSearch Plugin**
+
+The new **OpenSearch** plugin adds a search and analytics engine to the Plugin Market, with version management and the standard FlyEnv service workflow on Windows, macOS, and Linux.
+
+The plugin provides:
+
+- **Version Management**: Download and manage OpenSearch versions from FlyEnv
+- **Service Controls**: Start and stop OpenSearch from its module or the system tray
+- **Configuration and Logs**: Edit OpenSearch, JVM, and logging settings, and inspect service logs
+- **Local Development Mode**: Disable the OpenSearch security plugin through a dedicated development-mode switch, with restart guidance
+- **OpenSearch Dashboards**: Prepare and open the matching Dashboards version for the running OpenSearch service
+
+Thanks to [@xnhinzkyx](https://github.com/xnhinzkyx) for the feature request! [Issue #880](https://github.com/xpf0000/FlyEnv/issues/880)
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **4. Fixed Excessively Long Classic Tray Menus**
+
+The classic tray menu now moves entries beyond its top-level limit into a **More** submenu. This keeps long lists of startup groups and services from pushing the main-window and exit actions out of reach, while retaining access to every service control.
+
+Thanks to [@TanNhatCMS](https://github.com/TanNhatCMS) for the report! [Issue #878](https://github.com/xpf0000/FlyEnv/issues/878)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can inspect the build process and download workflow artifacts from the public build history:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues).
+
+**Enjoy the update!**
+
 ## [4.19.1] - 2026-09-27
 
 # **FlyEnv v4.19.1 Update Release Notes**

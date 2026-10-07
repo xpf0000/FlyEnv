@@ -141,7 +141,7 @@
     "test:plugin-market-ui": "tsx scripts/plugin-market-ui-test.ts",
     "test:light-theme": "tsx scripts/light-theme-test.ts",
     "test:module-top-tabs": "tsx scripts/module-top-tabs-test.ts",
-    "test:llamacpp-plugin": "tsx scripts/llamacpp-plugin-contract-test.ts && tsx scripts/llamacpp-fork-affinity-test.ts",
+    "test:llamacpp-plugin": "tsx scripts/llamacpp-plugin-contract-test.ts && tsx scripts/llamacpp-fork-affinity-test.ts && tsx scripts/llamacpp-runtime-probe-test.ts",
     "test:opensearch-dashboards": "tsx scripts/opensearch-dashboards-backend-test.ts && tsx scripts/opensearch-dashboards-coordination-test.ts && tsx scripts/opensearch-dashboards-runtime-test.ts && tsx scripts/opensearch-dashboards-renderer-test.ts && tsx scripts/opensearch-dashboards-lifecycle-test.ts && tsx scripts/opensearch-dashboards-process-test.ts"
   },
   "type": "module",

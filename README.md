@@ -106,8 +106,8 @@ FlyEnv can manage complete local project stacks, not just one runtime.
 
 ### Windows
 
-- **Installer:** [FlyEnv-Setup-4.19.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.19.1/FlyEnv-Setup-4.19.1.exe)
-- **Portable:** [FlyEnv-Portable-4.19.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.19.1/FlyEnv-Portable-4.19.1.exe)
+- **Installer:** [FlyEnv-Setup-4.20.0.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.20.0/FlyEnv-Setup-4.20.0.exe)
+- **Portable:** [FlyEnv-Portable-4.20.0.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.20.0/FlyEnv-Portable-4.20.0.exe)
 
 ### macOS
 
@@ -115,15 +115,15 @@ FlyEnv can manage complete local project stacks, not just one runtime.
 brew install flyenv
 ```
 
-- [FlyEnv-4.19.1.dmg (Intel)](https://github.com/xpf0000/FlyEnv/releases/download/v4.19.1/FlyEnv-4.19.1.dmg)
-- [FlyEnv-4.19.1-arm64.dmg (Apple Silicon)](https://github.com/xpf0000/FlyEnv/releases/download/v4.19.1/FlyEnv-4.19.1-arm64.dmg)
+- [FlyEnv-4.20.0.dmg (Intel)](https://github.com/xpf0000/FlyEnv/releases/download/v4.20.0/FlyEnv-4.20.0.dmg)
+- [FlyEnv-4.20.0-arm64.dmg (Apple Silicon)](https://github.com/xpf0000/FlyEnv/releases/download/v4.20.0/FlyEnv-4.20.0-arm64.dmg)
 
 ### Linux
 
-- [x86_64 `.deb`](https://github.com/xpf0000/FlyEnv/releases/download/v4.19.1/FlyEnv-4.19.1-x64.deb)
-- [ARM64 `.deb`](https://github.com/xpf0000/FlyEnv/releases/download/v4.19.1/FlyEnv-4.19.1-arm64.deb)
-- [x86_64 `.rpm`](https://github.com/xpf0000/FlyEnv/releases/download/v4.19.1/FlyEnv-4.19.1-x64.rpm)
-- [ARM64 `.rpm`](https://github.com/xpf0000/FlyEnv/releases/download/v4.19.1/FlyEnv-4.19.1-arm64.rpm)
+- [x86_64 `.deb`](https://github.com/xpf0000/FlyEnv/releases/download/v4.20.0/FlyEnv-4.20.0-x64.deb)
+- [ARM64 `.deb`](https://github.com/xpf0000/FlyEnv/releases/download/v4.20.0/FlyEnv-4.20.0-arm64.deb)
+- [x86_64 `.rpm`](https://github.com/xpf0000/FlyEnv/releases/download/v4.20.0/FlyEnv-4.20.0-x64.rpm)
+- [ARM64 `.rpm`](https://github.com/xpf0000/FlyEnv/releases/download/v4.20.0/FlyEnv-4.20.0-arm64.rpm)
 
 For the latest packages, see **[GitHub Releases](https://github.com/xpf0000/FlyEnv/releases)**.
 

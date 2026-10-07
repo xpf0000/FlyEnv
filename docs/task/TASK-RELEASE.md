@@ -1,7 +1,11 @@
 # FlyEnv新版本4.19.1更新日志
 
 本次更新内容：
-1. 修复https://github.com/xpf0000/FlyEnv/issues/869
+1. Windows新增完整UAC回退. 不方便安装帮助程序的设备, 也能正常使用了.
+2. macOS/Linux帮助程序优化, 提高安全性.
+3. 新增llama.cpp插件. https://github.com/xpf0000/FlyEnv/issues/722
+4. 新增OpenSearch插件. https://github.com/xpf0000/FlyEnv/issues/880
+5. 修复经典托盘菜单长度过长的问题. https://github.com/xpf0000/FlyEnv/issues/878
 
 参照：
 ```

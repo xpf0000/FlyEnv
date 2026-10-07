@@ -68,10 +68,15 @@ const defaultDeps: RuntimeInstallDeps = {
   probe: (bin) => new Promise((resolveProbe, reject) => {
     const child = spawn(bin, ['--version'], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
     let output = ''
-    child.stdout?.on('data', (chunk) => { output += chunk.toString() })
-    child.stderr?.on('data', (chunk) => { output += chunk.toString() })
+    const append = (chunk: Buffer) => { output = `${output}${chunk.toString()}`.slice(-64_000) }
+    child.stdout?.on('data', append)
+    child.stderr?.on('data', append)
     child.once('error', reject)
-    child.once('close', (code) => code === 0 ? resolveProbe(output.trim()) : reject(new Error(`llama-server version probe failed (${code})`)))
+    child.once('close', (code, signal) => {
+      const detail = output.trim()
+      if (code === 0) resolveProbe(detail)
+      else reject(new Error(`llama-server version probe failed (${signal ?? code})${detail ? `:\n${detail}` : ''}`))
+    })
   }),
   findExecutable: async (root, name) => {
     const visit = async (dir: string): Promise<string | undefined> => {
