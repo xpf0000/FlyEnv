@@ -34,5 +34,6 @@
   "databaseBackup": "Datenbanksicherung",
   "backupSaveDirSet": "Standorteinstellungen speichern",
   "saveDirError": "Ungültiger Speicherort",
-  "backupFail": "{database} Sicherung fehlgeschlagen, Fehler: {error}"
+  "backupFail": "{database} Sicherung fehlgeschlagen, Fehler: {error}",
+  "socket": "Socket-Pfad für lokale Verbindungen (Standard: /tmp/mysql.sock). Unter Windows ist dies der Name der Named Pipe (Standard: MySQL)."
 }

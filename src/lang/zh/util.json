@@ -1,5 +1,4 @@
 {
-  "macPortsSourceOutcome": { "completed": "已应用", "failed": "失败", "unknown": "结果未知" },
   "macPortsSourceTerminal": "请预览源配置，然后在终端通过 sudo 认证应用更改。",
   "linuxSystemFileReadOnly": "系统环境文件在此只读，请在终端使用管理员权限维护；个人用户配置文件仍可编辑。",
   "savePath": "保存路径",

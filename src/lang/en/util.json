@@ -1,9 +1,4 @@
 {
-  "macPortsSourceOutcome": {
-    "completed": "Applied",
-    "failed": "Failed",
-    "unknown": "Result unknown"
-  },
   "macPortsSourceTerminal": "Review the source configuration, then apply it in the terminal using sudo authentication.",
   "linuxSystemFileReadOnly": "System environment files are read-only here. Use a terminal with administrator privileges to maintain them; your user profile files remain editable.",
   "savePath": "Save Directory",

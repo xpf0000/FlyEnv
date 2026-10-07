@@ -99,5 +99,7 @@
     "readonlyFs": "File system in sola lettura",
     "maxRetry": "Numero massimo di tentativi",
     "loading": "Caricamento informazioni contenitore..."
-  }
+  },
+  "rosettaGlobalTip": "Si applica come preferenza globale di Podman ai computer con Apple Silicon (non per singola macchina virtuale). Richiede Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta richiede Podman >= 5.1.0. Aggiorna Podman per abilitare questo interruttore."
 }

@@ -34,5 +34,6 @@
   "databaseBackup": "ডেটাবেস ব্যাকআপ",
   "backupSaveDirSet": "সংরক্ষণ অবস্থান সেটিংস",
   "saveDirError": "অবৈধ সংরক্ষণ অবস্থান",
-  "backupFail": "{database} ব্যাকআপ ব্যর্থ, ত্রুটি: {error}"
+  "backupFail": "{database} ব্যাকআপ ব্যর্থ, ত্রুটি: {error}",
+  "socket": "স্থানীয় সংযোগের Socket পাথ (ডিফল্ট: /tmp/mysql.sock)। Windows-এ এটি নামযুক্ত পাইপের নাম (ডিফল্ট: MySQL)।"
 }

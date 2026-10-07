@@ -7,7 +7,6 @@
   "useSysPHP": "Gunakan versi PHP default",
   "setByApp": "Variabel lingkungan yang disetel oleh FlyEnv",
   "setByNoApp": "Variabel lingkungan yang tidak disetel oleh FlyEnv",
-  "ftpdNeedPasswordToStart": "Pure-FTPd membutuhkan hak akses sudo untuk memulai. Harap masukkan kata sandi pengguna Anda. Kata sandi ini akan digunakan untuk pengisian otomatis nanti. Atau Anda dapat mengklik tombol di bawah ini untuk memasukkan secara manual di terminal, tetapi prompt ini mungkin akan muncul lagi.",
   "bundleinVersionDelTips": "Versi ini adalah versi bawaan, yakin ingin tidak menampilkannya?",
   "customDirVersionDelTips": "Versi ini adalah versi jalur kustom, yakin ingin tidak menampilkannya?",
   "ErrorTips": {
@@ -18,5 +17,8 @@
       "versionRange": "Rentang versi",
       "msvsVersion": "Versi MSVC"
     }
-  }
+  },
+  "linuxSudoRequiresTerminal": "Mulai tugas ini secara manual dan berikan otorisasi di terminal; macOS/Linux tidak mendukung sudo otomatis di latar belakang.",
+  "linuxFtpUnmanagedRoot": "Proses FTP root ini tidak dimulai oleh layanan yang dikelola FlyEnv. Hentikan dengan hak administrator sebelum memulai kembali.",
+  "linuxFtpUsersRefreshFailed": "Perubahan akun FTP telah disimpan, tetapi layanan yang berjalan tidak dapat menerapkannya: {error}"
 }

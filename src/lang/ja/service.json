@@ -7,7 +7,6 @@
   "useSysPHP": "デフォルトのPHPバージョンを使用",
   "setByApp": "FlyEnvによって設定された環境変数",
   "setByNoApp": "FlyEnvによって設定されていない環境変数",
-  "ftpdNeedPasswordToStart": "Pure-FTPdは起動にsudo権限が必要です。ユーザーパスワードを入力してください。パスワードは後で自動入力に使用されます。または、下のボタンをクリックしてターミナルで手動入力することもできますが、このプロンプトが再表示される場合があります。",
   "bundleinVersionDelTips": "このバージョンは内蔵版です。非表示にしてもよろしいですか？",
   "customDirVersionDelTips": "このバージョンはカスタムパス版です。非表示にしてもよろしいですか？",
   "ErrorTips": {
@@ -18,5 +17,8 @@
       "versionRange": "バージョンの範囲",
       "msvsVersion": "MSVCバージョン"
     }
-  }
+  },
+  "linuxSudoRequiresTerminal": "このタスクを手動で開始し、ターミナルで権限を承認してください。macOS/Linux ではバックグラウンドでの自動 sudo は利用できません。",
+  "linuxFtpUnmanagedRoot": "この root 権限の FTP プロセスは、FlyEnv が管理するサービスから起動されたものではありません。再起動する前に、管理者権限で停止してください。",
+  "linuxFtpUsersRefreshFailed": "FTP アカウントの変更は保存されましたが、実行中のサービスに適用できませんでした：{error}"
 }

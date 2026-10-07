@@ -99,5 +99,7 @@
     "readonlyFs": "Schreibgeschütztes Root-Dateisystem",
     "maxRetry": "Maximale Wiederholungen",
     "loading": "Lade Containerinformationen..."
-  }
+  },
+  "rosettaGlobalTip": "Gilt als globale Podman-Einstellung für Rechner mit Apple Silicon (nicht pro virtueller Maschine). Erfordert Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta benötigt Podman >= 5.1.0. Aktualisieren Sie Podman, um diesen Schalter zu aktivieren."
 }

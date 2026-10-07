@@ -50,5 +50,7 @@
   "auto": "Avtomatik",
   "noVerionsFoundInLib": "Mövcud versiya tapılmadı",
   "showToolBtn": "Alətlər üçün üzən düyməni göstər",
-  "inputSearchKey": "Axtarış açar sözü"
+  "inputSearchKey": "Axtarış açar sözü",
+  "macPortsSourceTerminal": "Mənbə konfiqurasiyasını yoxlayın, sonra sudo autentifikasiyasından istifadə edərək terminalda tətbiq edin.",
+  "linuxSystemFileReadOnly": "Sistem mühit faylları burada yalnız oxunur. Onları idarə etmək üçün inzibatçı hüquqları olan terminaldan istifadə edin; istifadəçi profilinizin faylları redaktə edilə bilər."
 }

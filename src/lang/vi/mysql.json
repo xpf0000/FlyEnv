@@ -34,5 +34,6 @@
   "databaseBackup": "Sao lưu cơ sở dữ liệu",
   "backupSaveDirSet": "Cài đặt vị trí lưu",
   "saveDirError": "Vị trí lưu không hợp lệ",
-  "backupFail": "Sao lưu {database} thất bại, lỗi: {error}"
+  "backupFail": "Sao lưu {database} thất bại, lỗi: {error}",
+  "socket": "Đường dẫn Socket cho kết nối cục bộ (mặc định: /tmp/mysql.sock). Trên Windows, đây là tên của named pipe (mặc định: MySQL)."
 }

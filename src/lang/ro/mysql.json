@@ -34,5 +34,6 @@
   "databaseBackup": "Copie de rezervă",
   "backupSaveDirSet": "Salvează setările locației",
   "saveDirError": "Locație de salvare nevalidă",
-  "backupFail": "Backupul pentru {database} a esuat, eroare: {error}"
+  "backupFail": "Backupul pentru {database} a esuat, eroare: {error}",
+  "socket": "Calea socketului pentru conexiunea locală (implicit: /tmp/mysql.sock). În Windows, acesta este numele canalului cu nume (implicit: MySQL)."
 }

@@ -34,5 +34,6 @@
   "databaseBackup": "Databassäkerhetskopiering",
   "backupSaveDirSet": "Inställningar för sparning",
   "saveDirError": "Ogiltig sparning",
-  "backupFail": "{database} säkerhetskopiering misslyckades, fel: {error}"
+  "backupFail": "{database} säkerhetskopiering misslyckades, fel: {error}",
+  "socket": "Socketsökväg för lokal anslutning (standard: /tmp/mysql.sock). På Windows är detta namnet på den namngivna pipen (standard: MySQL)."
 }

@@ -99,5 +99,7 @@
     "readonlyFs": "نظام الملفات للقراءة فقط",
     "maxRetry": "الحد الأقصى للمحاولات",
     "loading": "جارِ تحميل معلومات الحاوية..."
-  }
+  },
+  "rosettaGlobalTip": "يُحفظ هذا الخيار ضمن تفضيلات Podman العامة على أجهزة Apple Silicon، وليس لكل جهاز افتراضي على حدة. يتطلب Podman >= 5.1.0.",
+  "rosettaNeedVersion": "يتطلب Rosetta إصدار Podman >= 5.1.0. حدّث Podman قبل تفعيل هذا الخيار."
 }

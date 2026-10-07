@@ -7,7 +7,6 @@
   "useSysPHP": "Použít výchozí verzi PHP",
   "setByApp": "Proměnné prostředí nastavené FlyEnv",
   "setByNoApp": "Proměnné prostředí nejsou nastaveny FlyEnv",
-  "ftpdNeedPasswordToStart": "Pure-FTPd vyžaduje k spuštění sudo oprávnění. Zadejte prosím své uživatelské heslo. Heslo bude použito pro automatické vyplnění později. Nebo můžete kliknout na tlačítko níže pro zadání ručně v terminálu, ale tato výzva se může znovu objevit.",
   "bundleinVersionDelTips": "Tato verze je vestavěná verze. Potvrdit, že se nemá zobrazovat?",
   "customDirVersionDelTips": "Tato verze je verze z vlastní cesty. Potvrdit, že se nemá zobrazovat?",
   "ErrorTips": {
@@ -18,5 +17,8 @@
       "versionRange": "Rozsah verze",
       "msvsVersion": "Verze MSVC"
     }
-  }
+  },
+  "linuxSudoRequiresTerminal": "Spusťte tuto úlohu vyžadující zvýšená oprávnění ručně a dokončete autorizaci v terminálu; macOS/Linux nepodporuje automatické sudo na pozadí.",
+  "linuxFtpUnmanagedRoot": "Tento proces FTP běžící jako root nebyl spuštěn spravovanou službou FlyEnv. Před opětovným spuštěním jej zastavte s oprávněními správce.",
+  "linuxFtpUsersRefreshFailed": "Změny účtů FTP byly uloženy, ale běžící služba je nemohla použít: {error}"
 }

@@ -99,5 +99,7 @@
     "readonlyFs": "Kořenový FS jen pro čtení",
     "maxRetry": "Max. počet opakování",
     "loading": "Načítání informací o kontejneru..."
-  }
+  },
+  "rosettaGlobalTip": "Platí jako globální nastavení Podman pro počítače s Apple Silicon (nikoli pro jednotlivé virtuální stroje). Vyžaduje Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta vyžaduje Podman >= 5.1.0. Pro povolení tohoto přepínače aktualizujte Podman."
 }

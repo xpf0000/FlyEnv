@@ -34,5 +34,6 @@
   "databaseBackup": "डेटाबेस बैकअप",
   "backupSaveDirSet": "सहेजने का स्थान सेटिंग्स",
   "saveDirError": "अमान्य सहेजने का स्थान",
-  "backupFail": "{database} बैकअप विफल, त्रुटि: {error}"
+  "backupFail": "{database} बैकअप विफल, त्रुटि: {error}",
+  "socket": "स्थानीय कनेक्शन का Socket पथ (डिफ़ॉल्ट: /tmp/mysql.sock)। Windows पर यह नामित पाइप का नाम है (डिफ़ॉल्ट: MySQL)।"
 }

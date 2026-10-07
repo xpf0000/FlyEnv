@@ -99,5 +99,7 @@
     "readonlyFs": "Skrivebeskyttet rot FS",
     "maxRetry": "Maks forsøk",
     "loading": "Laster containerinformasjon..."
-  }
+  },
+  "rosettaGlobalTip": "Gjelder som en global Podman-innstilling for Apple Silicon-maskiner (ikke per virtuell maskin). Krever Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta krever Podman >= 5.1.0. Oppgrader Podman for å aktivere denne bryteren."
 }

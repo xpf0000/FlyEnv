@@ -5,5 +5,6 @@
   "trayMenuBarStyle": "Kaukalon Ponnahdusikkunan Tyyli",
   "classic": "Klassinen",
   "modern": "Moderni",
-  "trayMenuBarStyleTips": "Valitse tarjotin ponnahdusikkunan tyyli. Joissakin Linux-työpöydissä, moderni tyyli voi olla ongelmia, joten voit valita klassisen tyylin sijaan."
+  "trayMenuBarStyleTips": "Valitse tarjotin ponnahdusikkunan tyyli. Joissakin Linux-työpöydissä, moderni tyyli voi olla ongelmia, joten voit valita klassisen tyylin sijaan.",
+  "more": "Lisää"
 }

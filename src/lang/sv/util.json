@@ -50,5 +50,7 @@
   "auto": "Auto",
   "noVerionsFoundInLib": "Ingen version tillgänglig",
   "showToolBtn": "Visa flytande verktygsknappar",
-  "inputSearchKey": "Sokord"
+  "inputSearchKey": "Sokord",
+  "macPortsSourceTerminal": "Granska källkonfigurationen och tillämpa den sedan i terminalen med sudo-autentisering.",
+  "linuxSystemFileReadOnly": "Systemets miljöfiler är skrivskyddade här. Använd en terminal med administratörsbehörighet för att underhålla dem; filerna i din användarprofil kan fortfarande redigeras."
 }

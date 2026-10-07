@@ -50,5 +50,7 @@
   "auto": "Automatisk",
   "noVerionsFoundInLib": "Ingen tilgængelig version",
   "showToolBtn": "Vis Flydende Værktøjsknap",
-  "inputSearchKey": "Søg efter søgeord"
+  "inputSearchKey": "Søg efter søgeord",
+  "macPortsSourceTerminal": "Gennemgå kildekonfigurationen, og anvend den derefter i terminalen med sudo-godkendelse.",
+  "linuxSystemFileReadOnly": "Systemets miljøfiler er skrivebeskyttede her. Brug en terminal med administratorrettigheder til at vedligeholde dem; dine brugerprofilfiler kan fortsat redigeres."
 }

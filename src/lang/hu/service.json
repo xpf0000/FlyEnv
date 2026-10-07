@@ -9,7 +9,6 @@
   "useSysPHP": "Alapértelmezett PHP verzió használata",
   "setByApp": "A FlyEnv által beállított környezeti változók",
   "setByNoApp": "Nem a FlyEnv által beállított környezeti változók",
-  "ftpdNeedPasswordToStart": "A Pure-FTPd indításához sudo jogosultság szükséges. Kérjük, adja meg a felhasználói jelszavát. A jelszó később automatikus kitöltésre kerül. Vagy az alábbi gombra kattintva kézzel is megadhatja a terminálban, de ez az üzenet újra megjelenhet.",
   "ErrorTips": {
     "VCRuntime": {
       "title": "A rendszerből hiányzik a Visual C++ Redistributable (DLL-ek), amelyek szükségesek ennek a verziónak a futtatásához. Kérjük, kattintson az alábbi linkre a VC Runtime letöltéséhez és telepítéséhez a Microsoft hivatalos weboldaláról.",
@@ -18,5 +17,8 @@
       "versionRange": "Verziótartomány",
       "msvsVersion": "MSVC verzió"
     }
-  }
+  },
+  "linuxSudoRequiresTerminal": "Indítsa el kézzel ezt a magasabb jogosultságot igénylő feladatot, és végezze el az engedélyezést a terminálban; macOS/Linux rendszeren az automatikus háttérbeli sudo nem támogatott.",
+  "linuxFtpUnmanagedRoot": "Ezt a root jogosultságú FTP-folyamatot nem a FlyEnv által kezelt szolgáltatás indította el. Az újraindítás előtt állítsa le rendszergazdai jogosultsággal.",
+  "linuxFtpUsersRefreshFailed": "Az FTP-fiókok módosításait elmentettük, de a futó szolgáltatás nem tudta alkalmazni őket: {error}"
 }

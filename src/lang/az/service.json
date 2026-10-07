@@ -7,7 +7,6 @@
   "useSysPHP": "Standart PHP versiyasını istifadə et",
   "setByApp": "FlyEnv tərəfindən təyin edilmiş mühit dəyişənləri",
   "setByNoApp": "FlyEnv tərəfindən təyin edilməmiş mühit dəyişənləri",
-  "ftpdNeedPasswordToStart": "Pure-FTPd işlətmək üçün sudo icazələri tələb olunur. Zəhmət olmasa istifadəçi parolunuzu daxil edin. Bu parol sonrakı avtomatik doldurma üçün saxlanacaq. Alternativ olaraq aşağıdakı düyməni klikləyərək terminalda əl ilə daxil edə bilərsiniz, lakin bu xəbərdarlıq yenidən görünə bilər.",
   "bundleinVersionDelTips": "Bu versiya daxili versiyadır, göstərilməsin?",
   "customDirVersionDelTips": "Bu versiya xüsusi yol versiyasıdır, göstərilməsin?",
   "ErrorTips": {
@@ -18,5 +17,8 @@
       "versionRange": "Versiya aralığı",
       "msvsVersion": "MSVC versiyası"
     }
-  }
+  },
+  "linuxSudoRequiresTerminal": "Bu imtiyazlı tapşırığı əl ilə başladın və terminalda icazə verin; macOS/Linux-da arxa planda avtomatik sudo dəstəklənmir.",
+  "linuxFtpUnmanagedRoot": "Bu root FTP prosesi FlyEnv-in idarə olunan xidməti tərəfindən başladılmayıb. Yenidən başlatmazdan əvvəl onu inzibatçı hüquqları ilə dayandırın.",
+  "linuxFtpUsersRefreshFailed": "FTP hesab dəyişiklikləri saxlanıldı, lakin işləyən xidmət onları tətbiq edə bilmədi: {error}"
 }

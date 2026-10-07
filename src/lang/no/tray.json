@@ -5,5 +5,6 @@
   "trayMenuBarStyle": "Sprettopprett stil",
   "classic": "Klassisk",
   "modern": "Moderne",
-  "trayMenuBarStyleTips": "Velg bakgrunn for popup-stilen. I noen Linux skrivebord kan den moderne stilen ha problemer, så du kan velge den klassiske stilen isteden."
+  "trayMenuBarStyleTips": "Velg bakgrunn for popup-stilen. I noen Linux skrivebord kan den moderne stilen ha problemer, så du kan velge den klassiske stilen isteden.",
+  "more": "Mer"
 }
