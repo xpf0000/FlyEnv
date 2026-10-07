@@ -27,7 +27,7 @@
 
   const style = computed({
     get() {
-      return store.config.setup?.trayMenuBarStyle ?? 'modern'
+      return store.config.setup?.trayMenuBarStyle ?? (window.Server.isLinux ? 'classic' : 'modern')
     },
     set(v: 'modern' | 'classic') {
       store.config.setup.trayMenuBarStyle = v

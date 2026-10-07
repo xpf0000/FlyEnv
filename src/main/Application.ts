@@ -58,7 +58,7 @@ import {
 import { getElectronResourcePath } from './utils/AppRuntimePath'
 import type { TrayAction, TrayPopupSide } from '@shared/Tray'
 import PluginManager from './plugins/PluginManager'
-import { appDebugLog, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows } from '@shared/utils'
 import { randomUUID } from 'node:crypto'
 import {
   logServiceStopBoundary,
@@ -876,7 +876,9 @@ export default class Application extends EventEmitter {
       console.log('application:save-preference.config====>', config)
       this.configManager.setConfig(config)
       this.menuManager.rebuild()
-      this.trayManager.setStyle(config?.setup?.trayMenuBarStyle ?? 'modern')
+      this.trayManager.setStyle(
+        config?.setup?.trayMenuBarStyle ?? (isLinux() ? 'classic' : 'modern')
+      )
       this.serverManager.setProxy()
       this.serverManager.updateGlobalConfig()
     })
@@ -1070,7 +1072,8 @@ export default class Application extends EventEmitter {
       this.handleTrayAction(action, typeFlag)
     })
 
-    const style = this.configManager.getConfig('setup.trayMenuBarStyle') ?? 'modern'
+    const style =
+      this.configManager.getConfig('setup.trayMenuBarStyle') ?? (isLinux() ? 'classic' : 'modern')
     this.trayManager.setStyle(style)
   }
 
