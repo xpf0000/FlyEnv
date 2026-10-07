@@ -156,7 +156,7 @@
     "@mdit-vue/plugin-title": "^2.1.4",
     "@mdit-vue/plugin-toc": "^2.1.4",
     "@mdit-vue/shared": "^2.1.4",
-    "@modelcontextprotocol/sdk": "1.29.0",
+    "@modelcontextprotocol/sdk": "1.31.0",
     "@regexper/render": "^1.0.0",
     "@shikijs/core": "^3.4.2",
     "@shikijs/transformers": "^3.4.2",
