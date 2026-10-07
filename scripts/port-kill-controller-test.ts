@@ -37,11 +37,13 @@ try {
       {
         name: 'port-controller',
         setup(builder) {
-          builder.onResolve({ filter: /./ }, ({ path }) =>
-            mocks[path] ? { path, namespace: 'mock' } : undefined
-          )
+          builder.onResolve({ filter: /./ }, ({ path }) => {
+            if (path.endsWith('SudoKill')) return { path: 'sudo', namespace: 'mock' }
+            return mocks[path] ? { path, namespace: 'mock' } : undefined
+          })
           builder.onLoad({ filter: /./, namespace: 'mock' }, ({ path }) => ({
-            contents: mocks[path]
+            contents:
+              path === 'sudo' ? 'export const runSudoKill=()=>Promise.resolve(true)' : mocks[path]
           }))
         }
       }

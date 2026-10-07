@@ -114,3 +114,27 @@ for (const [command, output] of [
 console.log(
   'Helper terminal PTY: actual exit, cancellation, scheduling failure and missing process passed'
 )
+await nodePty.initNodePty()
+await nodePty.exec(
+  key,
+  ['/usr/bin/sudo /bin/kill -9 -- 123'],
+  'direct',
+  'NodePty:exec',
+  'exec-key',
+  true
+)
+assert.equal(fileWrites, 0, 'direct sudo commands must never generate a script')
+assert.ok(sent.includes('/usr/bin/sudo /bin/kill -9 -- 123'))
+const responses: any[] = []
+nodePty.onSendCommand((_command: string, _key: string, result: any) => responses.push(result))
+for (const callback of [...exits]) callback({ exitCode: 1 })
+assert.equal(responses[0].code, 1, 'direct execution must retain the real exit code')
+assert.equal(responses[0].data.exitCode, 1)
+await nodePty.initNodePty()
+await nodePty.exec(key, ['true'], 'direct', 'NodePty:exec', 'success-key', true)
+for (const callback of [...exits]) callback({ exitCode: 0 })
+assert.equal(responses[1].code, 0)
+assert.equal(fileWrites, 0)
+console.log(
+  'Direct terminal execution: no generated files and actual success/failure exit codes passed'
+)
