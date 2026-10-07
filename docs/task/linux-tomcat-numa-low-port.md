@@ -58,3 +58,31 @@ NUMA 只允许 `numa <数据根内配置文件>`。
 显式关闭 proxy / DoT 的高端口配置仍无需低端口能力。未发现 Tomcat 或特权边界阻断问题。
 
 当前环境是 macOS，Linux 真实 80/53 监听、JVM 能力继承与 root Helper 部署需 Linux 验收。
+
+## 2026-10-07 Linux 原生复核与安装包比对
+
+收到 12:24 NUMA / 12:25 Tomcat 的 Linux 权限失败日志后，在本机 Debian 12 ARM64
+虚拟机复核。上述失败对应的 `/opt/FlyEnv/resources/app.asar` 中，NUMA / Tomcat
+chunk 均没有 `lowPortService` / `listenPorts`，实际没有调用低端口 RPC；普通用户
+认证查询正在运行的 Helper，版本为 **45**，安装 policy 也为 45。
+
+用户提供的 [Actions run 37569553293](https://github.com/xpf0000/FlyEnv/actions/runs/37569553293)
+对应提交 `8e757254`，该 run 的 `packages-arm64` 产物已下载并直接解析 `.deb` / ASAR：
+NUMA `Numa-DXS3PQWI.mjs`、Tomcat `Tomcat-I2SFC2ST.mjs` 均包含低端口路由。
+该包与虚拟机桌面及已安装内容不同，无证据表明这次 Actions 打包遗漏修复。
+
+- Actions `.deb` SHA-256：`ddf60022f17a0e8acbc487d02aa5a8f3b7bd4968a27269ecfd147066bdcd4da6`。
+- 虚拟机原桌面 `.deb` SHA-256：`38e35f3483a58c19475e05962ea9d5fa3daf26556aeae89598ac21b1bbe71796`。
+- 当前源码模块回归与公共 Linux 启动回归重新运行通过。
+- 在隔离配置和日志目录中，用当前 v46 Helper 实际启动已安装的 Tomcat 11.0.26 /
+  Microsoft OpenJDK 21.0.12.1 与 NUMA 0.24.1：最终 JVM / NUMA 均为 UID 1000，
+  `CapEff` / `CapAmb` 仅 `0000000000000400`，`NoNewPrivs=1`；TCP 80 连接成功，
+  UDP 53 返回匹配查询 ID 的 DNS 响应。服务随后停止，隔离目录清理。
+- 原 `TestLinuxServiceCredentials` 在原生环境暴露 fixture 问题：root umask 077
+  使临时 Helper 不可由用户执行；umask 022 后旧 `Groups:\t1000` 精确断言不兼容
+  v45 已恢复的附加组。其输出实际证明 UID、capability 与 no-new-privileges 正确；
+  本次不改该旧测试，使用单独的真实服务测试完成上述验证。
+
+已核验包另存 `release/linux-run-37569553293/FlyEnv-4.19.1-arm64.deb`，并复制到虚拟机
+`/home/parallels/Desktop/APP/FlyEnv-4.19.1-arm64-run-37569553293.deb`。
+没有替换系统安装或 Helper；安装该包并按现有流程升级 Helper 后，仍需整套 UI 验收。

@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"golang.org/x/sys/unix"
+	"helper-go/module"
 	"net"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -300,6 +302,66 @@ func TestLinuxStrictRequests(t *testing.T) {
 	} {
 		if _, err := dispatchLinux(info, p); err == nil {
 			t.Fatalf("accepted %s.%s", info.Module, info.Function)
+		}
+	}
+}
+
+func TestLinuxPortOwnershipQuery(t *testing.T) {
+	// A caller's PATH must not select code to execute as root.
+	path := t.TempDir()
+	if err := os.WriteFile(filepath.Join(path, "lsof"), []byte("#!/bin/sh\nexit 99\n"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", path)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+	port := strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
+	p := linuxPolicy{Version: Helper_Version, UID: 1000}
+	result, err := dispatchLinux(TaskItem{Module: "tools", Function: "getPortPids", Args: []interface{}{port}}, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	items := result.([]module.PortProcessInfo)
+	found := false
+	for _, item := range items {
+		if item.PID == strconv.Itoa(os.Getpid()) {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("listener PID missing from port %s: %+v", port, items)
+	}
+	listener.Close()
+	result, err = dispatchLinux(TaskItem{Module: "tools", Function: "getPortPids", Args: []interface{}{port}}, p)
+	if err != nil || len(result.([]module.PortProcessInfo)) != 0 {
+		t.Fatalf("released port must return an empty result: %+v, %v", result, err)
+	}
+	// Optional read-only checks against services already running on a test host.
+	for _, target := range strings.Fields(os.Getenv("FLYENV_TEST_PORT_OWNERS")) {
+		pair := strings.SplitN(target, ":", 2)
+		if len(pair) != 2 {
+			t.Fatal("invalid test port owner")
+		}
+		result, err = dispatchLinux(TaskItem{Module: "tools", Function: "getPortPids", Args: []interface{}{pair[0]}}, p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		found = false
+		for _, item := range result.([]module.PortProcessInfo) {
+			if item.PID == pair[1] {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("port %s owner %s missing: %+v", pair[0], pair[1], result)
+		}
+	}
+	for _, args := range [][]interface{}{{}, {0}, {"0"}, {"65536"}, {"80;id"}, {port, "-p"}} {
+		if _, err := dispatchLinux(TaskItem{Module: "tools", Function: "getPortPids", Args: args}, p); err == nil {
+			t.Fatalf("accepted invalid port query: %v", args)
 		}
 	}
 }

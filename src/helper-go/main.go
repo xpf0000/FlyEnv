@@ -39,7 +39,8 @@ const (
 	// v44: CA lookup/import is independent of Helper installation and health.
 	// v45: Unix FTP consumes ordinary-account input snapshots and preserves supplementary groups.
 	// v46: Linux Tomcat and NUMA gain fixed low-port startup with user credentials.
-	Helper_Version   = 46
+	// v47: Linux gains a fixed read-only port ownership query for capability-bearing services.
+	Helper_Version   = 47
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
 	Key_Path_Unix    = "/usr/local/share/FlyEnv/flyenv-helper.key"

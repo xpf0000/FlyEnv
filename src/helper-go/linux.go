@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"golang.org/x/sys/unix"
+	"helper-go/module"
 	"os"
 	"path/filepath"
 )
@@ -23,6 +24,17 @@ func dispatchLinux(info TaskItem, p linuxPolicy) (interface{}, error) {
 		return nil, fmt.Errorf("Linux policy unavailable")
 	}
 	switch info.Module + "." + info.Function {
+	case "tools.getPortPids":
+		if len(info.Args) != 1 {
+			break
+		}
+		port, ok := info.Args[0].(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid port query")
+		}
+		// Read-only ownership query: capability-bearing services hide their fds
+		// from ordinary same-UID processes. This does not authorize root signals.
+		return module.NewToolManager().GetPortPids(port)
 	case "ftp.start":
 		if len(info.Args) != 1 {
 			break

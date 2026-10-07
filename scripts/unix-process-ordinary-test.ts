@@ -7,12 +7,23 @@ import { pathToFileURL } from 'node:url'
 const scratch = join(process.cwd(), 'tmp')
 await mkdir(scratch, { recursive: true })
 const directory = await mkdtemp(join(scratch, 'flyenv-unix-process-'))
-const state = { signalCalls: [] as number[], helperCalls: 0, lsof: '' }
+const state = {
+  signalCalls: [] as number[],
+  helperCalls: 0,
+  lsof: '',
+  linux: false,
+  helperError: false
+}
 ;(globalThis as any).__ordinaryUnix = state
 try {
   const mocks: Record<string, string> = {
-    '../fork/Helper': `export default {enable:true,send:()=>{globalThis.__ordinaryUnix.helperCalls++;throw Error('Unix query/stop must never use Helper')}}`,
-    '@shared/utils': 'export const isWindows=()=>false,appDebugLog=async()=>{};',
+    '../fork/Helper': `export default {enable:true,send:async()=>{
+      const state=globalThis.__ordinaryUnix;state.helperCalls++;
+      if(!state.linux||state.helperError)throw Error('port ownership unavailable');
+      return [{PID:String(process.pid),COMMAND:'node',USER:'developer',PPID:''}]
+    }}`,
+    '@shared/utils':
+      'export const isWindows=()=>false,isLinux=()=>globalThis.__ordinaryUnix.linux,appDebugLog=async()=>{};',
     '@shared/child-process':
       'export const execPromiseWithEnv=async()=>({stdout:globalThis.__ordinaryUnix.lsof,stderr:""});',
     './Process.win':
@@ -79,6 +90,17 @@ try {
   const targets = await module.fetchProcessPidByPort('18080')
   assert.equal(targets[0].PID, String(process.pid))
   assert.equal(state.helperCalls, 0, 'enabled Helper cannot intercept ordinary Unix operations')
+  state.linux = true
+  state.lsof = ''
+  const linuxTargets = await module.fetchProcessPidByPort('18080')
+  assert.equal(
+    linuxTargets[0]?.PID,
+    String(process.pid),
+    'Linux must query ownership through the fixed read-only Helper when ordinary lsof cannot see fds'
+  )
+  state.helperError = true
+  await assert.rejects(module.fetchProcessPidByPort('18080'), /port ownership unavailable/)
+  await assert.rejects(module.fetchProcessPidByPort('80;touch /tmp/pwned'), /Invalid port/)
   console.log(
     'Unix process operations: ordinary ps/lsof, signals and independent candidate outcomes passed'
   )

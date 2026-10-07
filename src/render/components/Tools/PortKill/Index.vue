@@ -20,17 +20,32 @@
           @clear="onClear"
         >
           <template #append>
-            <el-button :icon="Search" :disabled="!port" @click="doSearch" />
+            <el-button
+              :icon="Search"
+              :disabled="!port"
+              :loading="controller.querying"
+              @click="doSearch"
+            />
           </template>
         </el-autocomplete>
         <div class="table-wapper">
           <div class="btn-cell">
-            <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{
-              I18nT('base.cleanSelect')
-            }}</el-button>
-            <el-button type="danger" :disabled="arrs.length === 0" @click="cleanAll">{{
-              I18nT('base.cleanAll')
-            }}</el-button>
+            <el-button
+              :disabled="
+                arrs.length === 0 ||
+                select.length === 0 ||
+                controller.querying ||
+                controller.killing
+              "
+              @click="cleanSelect"
+              >{{ I18nT('base.cleanSelect') }}</el-button
+            >
+            <el-button
+              type="danger"
+              :disabled="arrs.length === 0 || controller.querying || controller.killing"
+              @click="cleanAll"
+              >{{ I18nT('base.cleanAll') }}</el-button
+            >
           </div>
           <el-card :header="null" shadow="never">
             <el-table
@@ -58,14 +73,13 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { MessageSuccess, MessageWarning } from '@/util/Element'
-  import IPC from '@/util/IPC'
+  import controller from './Controller'
   import Base from '@/core/Base'
   import { I18nT } from '@lang/index'
   import { SearchHistory } from '@/store/searchHistory'
 
-  const port = ref('')
-  const arrs = ref<Array<any>>([])
+  const port = ref(controller.lastPort)
+  const arrs = computed(() => controller.rows)
   const select = ref<Array<any>>([])
 
   const isWindows = computed(() => {
@@ -91,35 +105,25 @@
   }
 
   const cleanSelect = () => {
+    const pids = select.value.map((s: any) => s.PID)
     Base._Confirm(I18nT('base.killProcessConfirm'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
       .then(() => {
-        const pids = select.value.map((s: any) => s.PID)
-
-        IPC.send('app-fork:tools', 'killPids', '-9', pids).then((key: string) => {
-          IPC.off(key)
-          MessageSuccess(I18nT('base.success'))
-          doSearch()
-        })
+        controller.kill(pids)
       })
       .catch(() => {})
   }
 
   const cleanAll = () => {
+    const pids = controller.processes.map((s) => s.PID)
     Base._Confirm(I18nT('base.killAllProcessConfirm'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
       .then(() => {
-        const pids = arrs.value.map((s: any) => s.PID)
-
-        IPC.send('app-fork:tools', 'killPids', '-9', pids).then((key: string) => {
-          IPC.off(key)
-          MessageSuccess(I18nT('base.success'))
-          doSearch()
-        })
+        controller.kill(pids)
       })
       .catch(() => {})
   }
@@ -145,53 +149,8 @@
     doSearch()
   }
 
-  interface ProcessItem {
-    PID: string
-    PPID?: string
-    USER: string
-    COMMAND: string
-    children?: ProcessItem[]
-  }
-
   const doSearch = () => {
-    arrs.value = []
-    if (!port.value) {
-      return
-    }
-    SearchHistory.add('port', `${port.value}`)
-    IPC.send('app-fork:tools', 'getPortPids', port.value).then((key: string, res: any) => {
-      IPC.off(key)
-      const arr = res?.data ?? []
-      if (arr.length === 0) {
-        MessageWarning(I18nT('base.portNotUse'))
-        return
-      }
-
-      const processMap = new Map<string, ProcessItem>()
-      const rootProcesses: ProcessItem[] = []
-
-      // First pass: create all items and build the map
-      arr.forEach((item: ProcessItem) => {
-        processMap.set(item.PID, { ...item })
-      })
-
-      // Second pass: build the hierarchy
-      arr.forEach((item: ProcessItem) => {
-        const current = processMap.get(item.PID)
-        if (item.PPID && processMap.has(item.PPID)) {
-          const parent = processMap.get(item.PPID)
-          if (parent) {
-            if (!parent.children) {
-              parent.children = []
-            }
-            parent.children.push(current!)
-          }
-        } else {
-          rootProcesses.push(current!)
-        }
-      })
-
-      arrs.value = rootProcesses
-    })
+    if (port.value) SearchHistory.add('port', `${port.value}`)
+    controller.search(`${port.value}`)
   }
 </script>

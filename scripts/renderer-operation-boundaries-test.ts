@@ -32,7 +32,6 @@ const legacyDirectIpcIndexPages = [
   'Temporal/Index.vue',
   'Tools/BomClean/Index.vue',
   'Tools/PhpObfuscator/Index.vue',
-  'Tools/PortKill/Index.vue',
   'Tools/ProcessKill/Index.vue',
   'Tools/SSLMake/Index.vue',
   'Tools/SiteSucker/Index.vue',

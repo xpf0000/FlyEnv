@@ -3,7 +3,7 @@ import { execPromiseWithEnv } from '@shared/child-process'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { parseUnixProcessList, unixProcessEnv, unixProcessListArgs } from './Process.unix'
-import { appDebugLog, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows } from '@shared/utils'
 import { logServiceStop } from './ServiceStopDiagnostics'
 import { collectProcessSnapshotTree, isReadableServiceStopRoot } from './ProcessSnapshot'
 import { constants } from 'node:os'
@@ -333,37 +333,43 @@ export const fetchProcessPidByPort = async (port: string): Promise<PItem[]> => {
   }
   let pItems: PItem[] = []
 
-  // 端口先通过数字范围校验，再插入现有 shell 命令；直接读取 lsof 输出，
-  // 避免管道覆盖 lsof 的退出码。
-  const command = `lsof -nP -i:${port}`
-  let content = ''
-  try {
-    const res = await execPromiseWithEnv(command)
-    content = res.stdout.trim()
-    if (!content) throw new Error('lsof returned an empty process query result')
-  } catch (error) {
-    // lsof 仅在退出码 1 且标准输出/错误均为空时表示无匹配；其他失败代表归属
-    // 不可读，不能伪装成空停止目标。
-    if (isEmptyLsofNoMatch(error)) return []
-    throw error
-  }
-
-  const list: string[] = content.split('\n').filter((line) => line.trim().length > 0)
-  for (const item of list) {
-    const arr: string[] = item.trim().split(/\s+/)
-    if (arr[0]?.toUpperCase() === 'COMMAND' && arr[1]?.toUpperCase() === 'PID') continue
-    if (arr.length < 3 || !/^\d+$/.test(arr[1])) {
-      throw new Error('Invalid lsof process list output')
+  if (isLinux()) {
+    // A service with CAP_NET_BIND_SERVICE can hide /proc/<pid>/fd even from
+    // the same UID. Only the fixed read-only Helper query can see all owners.
+    pItems = await Helper.send<PItem[]>('tools', 'getPortPids', String(port))
+  } else {
+    // 端口先通过数字范围校验，再插入现有 shell 命令；直接读取 lsof 输出，
+    // 避免管道覆盖 lsof 的退出码。
+    const command = `lsof -nP -i:${port}`
+    let content = ''
+    try {
+      const res = await execPromiseWithEnv(command)
+      content = res.stdout.trim()
+      if (!content) throw new Error('lsof returned an empty process query result')
+    } catch (error) {
+      // lsof 仅在退出码 1 且标准输出/错误均为空时表示无匹配；其他失败代表归属
+      // 不可读，不能伪装成空停止目标。
+      if (isEmptyLsofNoMatch(error)) return []
+      throw error
     }
-    const [command, pid, user] = arr
-    pItems.push({
-      COMMAND: command,
-      PID: pid,
-      USER: user,
-      PPID: ''
-    })
+
+    const list: string[] = content.split('\n').filter((line) => line.trim().length > 0)
+    for (const item of list) {
+      const arr: string[] = item.trim().split(/\s+/)
+      if (arr[0]?.toUpperCase() === 'COMMAND' && arr[1]?.toUpperCase() === 'PID') continue
+      if (arr.length < 3 || !/^\d+$/.test(arr[1])) {
+        throw new Error('Invalid lsof process list output')
+      }
+      const [command, pid, user] = arr
+      pItems.push({
+        COMMAND: command,
+        PID: pid,
+        USER: user,
+        PPID: ''
+      })
+    }
+    if (pItems.length === 0) throw new Error('lsof returned no process rows')
   }
-  if (pItems.length === 0) throw new Error('lsof returned no process rows')
   pItems = pItems.filter((p: PItem) => {
     return p.PID !== 'PID' && p.PPID !== 'PPID'
   })

@@ -966,7 +966,13 @@ func (t *ToolManager) GetPortPids(port string) ([]PortProcessInfo, error) {
 		}
 		return processes, nil
 	}
-	stdout, stderr, err := utils.ExecCommand("lsof", []string{"-nP", "-i:" + port}, nil)
+	lsof := "lsof"
+	if runtime.GOOS == "linux" {
+		// Linux exposes this fixed read-only operation to the privileged helper;
+		// never resolve an executable through a client-controlled PATH.
+		lsof = "/usr/bin/lsof"
+	}
+	stdout, stderr, err := utils.ExecCommand(lsof, []string{"-nP", "-i:" + port}, nil)
 	if err != nil {
 		// 端口归属用于 stop 前检查；lsof 只有“退出码 1 且完全无输出”表示
 		// 无匹配者。其他执行/权限/诊断错误必须传播，不能伪装成空端口列表。
